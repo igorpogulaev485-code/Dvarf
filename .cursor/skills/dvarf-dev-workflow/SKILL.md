@@ -34,6 +34,14 @@ Do not start coding, scaffolding, or migrations until the plan is approved for t
 - Billing later; thin auth first
 - Plan → approve → code on every iteration
 
+## Backlog ideas (do not implement until planned)
+
+- Personal cabinet: edit profile fields; later product convenience features
+- Multiple auth methods per account (password + Yandex + VK + Google where allowed); link/unlink in cabinet
+- Party frame QR code for join / account-to-account interactions (with party master)
+- Phone/SMS login later (paid); store phone non-unique for now
+- Google OAuth: not for RF users/region; geo-gate or omit for RU-first launch
+
 ## Collaboration notes
 
 - Prefer Russian in plans and summaries with Игорь
