@@ -9,6 +9,24 @@ class Settings(BaseSettings):
     )
 
     database_url: str = "postgresql+psycopg://dvarf:dvarf@localhost:5432/dvarf"
+    jwt_secret: str = "dev-only-change-me"
+    jwt_algorithm: str = "HS256"
+    access_token_ttl_minutes: int = 30
+    refresh_token_ttl_days: int = 30
+    cors_origins: str = "http://localhost:5173"
+
+    yandex_client_id: str = ""
+    yandex_client_secret: str = ""
+    yandex_redirect_uri: str = "http://localhost:8000/auth/oauth/yandex/callback"
+
+    vk_client_id: str = ""
+    vk_client_secret: str = ""
+    vk_redirect_uri: str = "http://localhost:8000/auth/oauth/vk/callback"
+    vk_service_token: str = ""
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 settings = Settings()

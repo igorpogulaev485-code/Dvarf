@@ -22,3 +22,7 @@ build/
 
 # Local data
 *.log
+
+# Frontend build
+frontend/dist/
+frontend/node_modules/
