@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     refresh_token_ttl_days: int = 30
     cors_origins: str = "http://localhost:5173"
     app_public_url: str = "http://localhost:5173"
+    auth_email_stub: bool = True
+    password_reset_ttl_minutes: int = 30
 
     yandex_client_id: str = ""
     yandex_client_secret: str = ""

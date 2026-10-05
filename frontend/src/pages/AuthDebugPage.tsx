@@ -1,13 +1,22 @@
 import { useEffect, useState } from 'react'
 import { getMe, type User } from '../shared/api/auth'
 import { setTokens } from '../shared/api/client'
-import { AuthSessionPanel, EmailAuthForm, OAuthButtons } from '../features/auth'
+import {
+  AuthSessionPanel,
+  EmailAuthForm,
+  ForgotPasswordForm,
+  OAuthButtons,
+  ResetPasswordForm,
+} from '../features/auth'
 import { Panel, Stack, Text } from '../ui'
+
+type AuthView = 'register' | 'login' | 'forgot' | 'reset'
 
 export function AuthDebugPage() {
   const [user, setUser] = useState<User | null>(null)
   const [oauthMessage, setOauthMessage] = useState<string | null>(null)
-  const [mode, setMode] = useState<'login' | 'register'>('register')
+  const [view, setView] = useState<AuthView>('register')
+  const [resetToken, setResetToken] = useState('')
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -36,13 +45,22 @@ export function AuthDebugPage() {
       })
   }, [])
 
+  const panelTitle =
+    view === 'register'
+      ? 'Регистрация'
+      : view === 'login'
+        ? 'Вход'
+        : view === 'forgot'
+          ? 'Забыли пароль'
+          : 'Новый пароль'
+
   return (
     <main className="page page--auth-debug">
       <Stack gap={20}>
         <Stack gap={6}>
           <Text as="h1">Dvarf — отладка входа</Text>
           <Text tone="muted">
-            Экран из компонентов: вход по email, Яндекс ID и заглушка VK ID.
+            Экран из компонентов: вход по email, восстановление пароля (заглушка почты), OAuth.
           </Text>
         </Stack>
 
@@ -50,25 +68,51 @@ export function AuthDebugPage() {
           <AuthSessionPanel user={user} onUserChange={setUser} />
         </Panel>
 
-        <Panel title={mode === 'register' ? 'Регистрация' : 'Вход'}>
+        <Panel title={panelTitle}>
           <Stack gap={12}>
-            <div className="mode-switch">
-              <button
-                type="button"
-                className={mode === 'register' ? 'is-active' : ''}
-                onClick={() => setMode('register')}
-              >
-                Регистрация
-              </button>
-              <button
-                type="button"
-                className={mode === 'login' ? 'is-active' : ''}
-                onClick={() => setMode('login')}
-              >
-                Вход
-              </button>
-            </div>
-            <EmailAuthForm mode={mode} onSuccess={setUser} />
+            {view === 'register' || view === 'login' ? (
+              <>
+                <div className="mode-switch">
+                  <button
+                    type="button"
+                    className={view === 'register' ? 'is-active' : ''}
+                    onClick={() => setView('register')}
+                  >
+                    Регистрация
+                  </button>
+                  <button
+                    type="button"
+                    className={view === 'login' ? 'is-active' : ''}
+                    onClick={() => setView('login')}
+                  >
+                    Вход
+                  </button>
+                </div>
+                <EmailAuthForm
+                  mode={view}
+                  onSuccess={setUser}
+                  onForgotPassword={() => setView('forgot')}
+                />
+              </>
+            ) : null}
+
+            {view === 'forgot' ? (
+              <ForgotPasswordForm
+                onBackToLogin={() => setView('login')}
+                onTokenReady={(token) => {
+                  setResetToken(token)
+                  setView('reset')
+                }}
+              />
+            ) : null}
+
+            {view === 'reset' ? (
+              <ResetPasswordForm
+                initialToken={resetToken}
+                onBackToLogin={() => setView('login')}
+                onSuccess={() => setView('login')}
+              />
+            ) : null}
           </Stack>
         </Panel>
 

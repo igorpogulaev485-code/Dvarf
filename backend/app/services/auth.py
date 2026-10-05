@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+import hashlib
+import logging
+import secrets
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import ConflictError, UnauthorizedError
+from app.core.config import settings
+from app.core.exceptions import AppError, ConflictError, UnauthorizedError
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -13,10 +18,13 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import AuthProvider, User
+from app.repositories.password_reset import PasswordResetRepository
 from app.repositories.user import UserRepository
-from app.schemas.auth import TokenResponse
+from app.schemas.auth import ForgotPasswordResponse, ResetPasswordResponse, TokenResponse
 from app.schemas.user import UserResponse
 from app.services.oauth.base import OAuthProfile
+
+logger = logging.getLogger(__name__)
 
 
 def serialize_user(user: User) -> UserResponse:
@@ -41,10 +49,15 @@ def issue_tokens(user: User) -> TokenResponse:
     )
 
 
+def _hash_reset_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
 class AuthService:
     def __init__(self, db: Session) -> None:
         self.db = db
         self.users = UserRepository(db)
+        self.password_resets = PasswordResetRepository(db)
 
     def register(self, email: str, password: str) -> TokenResponse:
         if self.users.get_by_email(email):
@@ -125,3 +138,52 @@ class AuthService:
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
         return issue_tokens(loaded)
+
+    def forgot_password(self, email: str) -> ForgotPasswordResponse:
+        """Always returns the same message; email sending is stubbed for now."""
+        public_message = (
+            "Если аккаунт с таким email существует, мы отправим инструкции по восстановлению. "
+            "Сейчас почта ещё не подключена — это заглушка."
+        )
+        user = self.users.get_by_email(email)
+        debug_token: str | None = None
+
+        if user is not None and user.password_hash:
+            raw_token = secrets.token_urlsafe(32)
+            self.password_resets.create(
+                user_id=user.id,
+                token_hash=_hash_reset_token(raw_token),
+                expires_at=datetime.now(UTC)
+                + timedelta(minutes=settings.password_reset_ttl_minutes),
+            )
+            self.db.commit()
+
+            # Stub instead of sending email.
+            logger.info(
+                "Password reset stub for %s: token=%s",
+                user.email,
+                raw_token,
+            )
+            if settings.auth_email_stub:
+                debug_token = raw_token
+
+        return ForgotPasswordResponse(
+            message=public_message,
+            stub=settings.auth_email_stub,
+            debug_reset_token=debug_token,
+        )
+
+    def reset_password(self, token: str, password: str) -> ResetPasswordResponse:
+        record = self.password_resets.get_active_by_hash(_hash_reset_token(token))
+        if record is None or record.user is None:
+            raise AppError(
+                "Ссылка или код восстановления недействительны",
+                code="invalid_reset_token",
+                status_code=400,
+            )
+
+        user = record.user
+        user.password_hash = hash_password(password)
+        self.password_resets.mark_used(record)
+        self.db.commit()
+        return ResetPasswordResponse(message="Пароль успешно обновлён. Теперь можно войти.")

@@ -10,10 +10,14 @@ from app.core.config import settings
 from app.core.exceptions import AppError
 from app.models.user import AuthProvider
 from app.schemas.auth import (
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
     LoginRequest,
     OAuthStartResponse,
     RefreshRequest,
     RegisterRequest,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
     TokenResponse,
 )
 from app.schemas.user import UserResponse
@@ -49,6 +53,16 @@ def login(payload: LoginRequest, db: DbSession) -> TokenResponse:
 @router.post("/refresh", response_model=TokenResponse)
 def refresh(payload: RefreshRequest, db: DbSession) -> TokenResponse:
     return AuthService(db).refresh(payload.refresh_token)
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+def forgot_password(payload: ForgotPasswordRequest, db: DbSession) -> ForgotPasswordResponse:
+    return AuthService(db).forgot_password(payload.email)
+
+
+@router.post("/reset-password", response_model=ResetPasswordResponse)
+def reset_password(payload: ResetPasswordRequest, db: DbSession) -> ResetPasswordResponse:
+    return AuthService(db).reset_password(payload.token, payload.password)
 
 
 @router.post("/logout", status_code=204)

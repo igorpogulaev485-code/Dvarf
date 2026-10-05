@@ -56,3 +56,30 @@ export async function getMe(): Promise<User> {
 export async function startOAuth(provider: 'yandex' | 'vk'): Promise<OAuthStartResponse> {
   return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/start`)
 }
+
+export type ForgotPasswordResponse = {
+  message: string
+  stub: boolean
+  debug_reset_token: string | null
+}
+
+export type ResetPasswordResponse = {
+  message: string
+}
+
+export async function forgotPassword(email: string): Promise<ForgotPasswordResponse> {
+  return apiRequest<ForgotPasswordResponse>('/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
+export async function resetPassword(
+  token: string,
+  password: string,
+): Promise<ResetPasswordResponse> {
+  return apiRequest<ResetPasswordResponse>('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  })
+}

@@ -1,21 +1,21 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { login, register, type User } from '../../shared/api/auth'
+import { forgotPassword } from '../../shared/api/auth'
 import { ApiRequestError } from '../../shared/api/client'
 import { EMAIL_ERROR_TEXT, isValidEmail } from '../../shared/lib/email'
 import { Button, Field, Input, Stack, Text } from '../../ui'
 
-type EmailAuthFormProps = {
-  mode: 'login' | 'register'
-  onSuccess: (user: User) => void
-  onForgotPassword?: () => void
+type ForgotPasswordFormProps = {
+  onTokenReady?: (token: string) => void
+  onBackToLogin: () => void
 }
 
-export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFormProps) {
+export function ForgotPasswordForm({ onTokenReady, onBackToLogin }: ForgotPasswordFormProps) {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [debugToken, setDebugToken] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
 
   function validateEmailField(value: string): boolean {
@@ -34,29 +34,25 @@ export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFo
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
+    setMessage(null)
+    setDebugToken(null)
 
     if (!validateEmailField(email)) {
       return
     }
 
-    if (mode === 'register' && password.length < 8) {
-      setError('Пароль должен быть не короче 8 символов')
-      return
-    }
-
     setPending(true)
-
     try {
-      const result =
-        mode === 'register'
-          ? await register(email.trim(), password)
-          : await login(email.trim(), password)
-      onSuccess(result.user)
+      const result = await forgotPassword(email.trim())
+      setMessage(result.message)
+      if (result.debug_reset_token) {
+        setDebugToken(result.debug_reset_token)
+        onTokenReady?.(result.debug_reset_token)
+      }
     } catch (err) {
       if (err instanceof ApiRequestError) {
         if (err.status === 422) {
           setEmailError(EMAIL_ERROR_TEXT)
-          setError(null)
         } else {
           setError(err.message)
         }
@@ -71,13 +67,12 @@ export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFo
   return (
     <form onSubmit={handleSubmit} noValidate>
       <Stack gap={14}>
-        <Field
-          label="Email"
-          htmlFor={`${mode}-email`}
-          hint="Формат: name@mail.ru"
-        >
+        <Text tone="muted">
+          Укажите email аккаунта. Письма пока не отправляем — это каркас с заглушкой.
+        </Text>
+        <Field label="Email" htmlFor="forgot-email" hint="Формат: name@mail.ru">
           <Input
-            id={`${mode}-email`}
+            id="forgot-email"
             type="email"
             inputMode="email"
             autoComplete="email"
@@ -101,30 +96,25 @@ export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFo
           />
           {emailError ? <Text tone="danger">{emailError}</Text> : null}
         </Field>
-        <Field
-          label="Пароль"
-          htmlFor={`${mode}-password`}
-          hint={mode === 'register' ? 'Минимум 8 символов' : undefined}
-        >
-          <Input
-            id={`${mode}-password`}
-            type="password"
-            autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-            required
-            minLength={mode === 'register' ? 8 : 1}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-        </Field>
         {error ? <Text tone="danger">{error}</Text> : null}
-        <Button type="submit" disabled={pending}>
-          {pending ? '...' : mode === 'register' ? 'Зарегистрироваться' : 'Войти'}
-        </Button>
-        {mode === 'login' && onForgotPassword ? (
-          <Button type="button" variant="ghost" onClick={onForgotPassword}>
-            Забыли пароль?
-          </Button>
+        {message ? <Text tone="success">{message}</Text> : null}
+        {debugToken ? (
+          <Stack gap={6}>
+            <Text tone="muted">Отладочный код восстановления (вместо письма):</Text>
+            <Text>
+              <code className="debug-token">{debugToken}</code>
+            </Text>
+            <Button type="button" variant="secondary" onClick={() => onTokenReady?.(debugToken)}>
+              Перейти к смене пароля
+            </Button>
+          </Stack>
         ) : null}
+        <Button type="submit" disabled={pending}>
+          {pending ? '...' : 'Отправить инструкции'}
+        </Button>
+        <Button type="button" variant="ghost" onClick={onBackToLogin}>
+          Назад ко входу
+        </Button>
       </Stack>
     </form>
   )
