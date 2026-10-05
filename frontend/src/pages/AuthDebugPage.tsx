@@ -6,17 +6,15 @@ import {
   EmailAuthForm,
   ForgotPasswordForm,
   OAuthButtons,
-  ResetPasswordForm,
 } from '../features/auth'
 import { Panel, Stack, Text } from '../ui'
 
-type AuthView = 'register' | 'login' | 'forgot' | 'reset'
+type AuthView = 'register' | 'login' | 'forgot'
 
 export function AuthDebugPage() {
   const [user, setUser] = useState<User | null>(null)
   const [oauthMessage, setOauthMessage] = useState<string | null>(null)
   const [view, setView] = useState<AuthView>('register')
-  const [resetToken, setResetToken] = useState('')
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -46,13 +44,7 @@ export function AuthDebugPage() {
   }, [])
 
   const panelTitle =
-    view === 'register'
-      ? 'Регистрация'
-      : view === 'login'
-        ? 'Вход'
-        : view === 'forgot'
-          ? 'Забыли пароль'
-          : 'Новый пароль'
+    view === 'register' ? 'Регистрация' : view === 'login' ? 'Вход' : 'Забыли пароль'
 
   return (
     <main className="page page--auth-debug">
@@ -60,7 +52,7 @@ export function AuthDebugPage() {
         <Stack gap={6}>
           <Text as="h1">Dvarf — отладка входа</Text>
           <Text tone="muted">
-            Экран из компонентов: вход по email, восстановление пароля (заглушка почты), OAuth.
+            Экран из компонентов: вход по email, восстановление пароля по ссылке, OAuth.
           </Text>
         </Stack>
 
@@ -97,21 +89,7 @@ export function AuthDebugPage() {
             ) : null}
 
             {view === 'forgot' ? (
-              <ForgotPasswordForm
-                onBackToLogin={() => setView('login')}
-                onTokenReady={(token) => {
-                  setResetToken(token)
-                  setView('reset')
-                }}
-              />
-            ) : null}
-
-            {view === 'reset' ? (
-              <ResetPasswordForm
-                initialToken={resetToken}
-                onBackToLogin={() => setView('login')}
-                onSuccess={() => setView('login')}
-              />
+              <ForgotPasswordForm onBackToLogin={() => setView('login')} />
             ) : null}
           </Stack>
         </Panel>

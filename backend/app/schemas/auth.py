@@ -41,7 +41,7 @@ class ForgotPasswordResponse(BaseModel):
     message: str
     stub: bool = True
     # Only for email stub mode — remove when real mail is connected.
-    debug_reset_token: str | None = None
+    debug_reset_url: str | None = None
 
 
 class ResetPasswordRequest(BaseModel):

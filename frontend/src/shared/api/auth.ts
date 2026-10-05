@@ -60,7 +60,7 @@ export async function startOAuth(provider: 'yandex' | 'vk'): Promise<OAuthStartR
 export type ForgotPasswordResponse = {
   message: string
   stub: boolean
-  debug_reset_token: string | null
+  debug_reset_url: string | null
 }
 
 export type ResetPasswordResponse = {

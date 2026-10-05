@@ -6,16 +6,15 @@ import { EMAIL_ERROR_TEXT, isValidEmail } from '../../shared/lib/email'
 import { Button, Field, Input, Stack, Text } from '../../ui'
 
 type ForgotPasswordFormProps = {
-  onTokenReady?: (token: string) => void
   onBackToLogin: () => void
 }
 
-export function ForgotPasswordForm({ onTokenReady, onBackToLogin }: ForgotPasswordFormProps) {
+export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
   const [email, setEmail] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
-  const [debugToken, setDebugToken] = useState<string | null>(null)
+  const [debugResetUrl, setDebugResetUrl] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
 
   function validateEmailField(value: string): boolean {
@@ -35,7 +34,7 @@ export function ForgotPasswordForm({ onTokenReady, onBackToLogin }: ForgotPasswo
     event.preventDefault()
     setError(null)
     setMessage(null)
-    setDebugToken(null)
+    setDebugResetUrl(null)
 
     if (!validateEmailField(email)) {
       return
@@ -45,9 +44,8 @@ export function ForgotPasswordForm({ onTokenReady, onBackToLogin }: ForgotPasswo
     try {
       const result = await forgotPassword(email.trim())
       setMessage(result.message)
-      if (result.debug_reset_token) {
-        setDebugToken(result.debug_reset_token)
-        onTokenReady?.(result.debug_reset_token)
+      if (result.debug_reset_url) {
+        setDebugResetUrl(result.debug_reset_url)
       }
     } catch (err) {
       if (err instanceof ApiRequestError) {
@@ -68,7 +66,8 @@ export function ForgotPasswordForm({ onTokenReady, onBackToLogin }: ForgotPasswo
     <form onSubmit={handleSubmit} noValidate>
       <Stack gap={14}>
         <Text tone="muted">
-          Укажите email аккаунта. Письма пока не отправляем — это каркас с заглушкой.
+          Укажите email аккаунта. Мы отправим ссылку для смены пароля. Сейчас почта в заглушке —
+          ссылка покажется здесь.
         </Text>
         <Field label="Email" htmlFor="forgot-email" hint="Формат: name@mail.ru">
           <Input
@@ -98,19 +97,25 @@ export function ForgotPasswordForm({ onTokenReady, onBackToLogin }: ForgotPasswo
         </Field>
         {error ? <Text tone="danger">{error}</Text> : null}
         {message ? <Text tone="success">{message}</Text> : null}
-        {debugToken ? (
-          <Stack gap={6}>
-            <Text tone="muted">Отладочный код восстановления (вместо письма):</Text>
-            <Text>
-              <code className="debug-token">{debugToken}</code>
-            </Text>
-            <Button type="button" variant="secondary" onClick={() => onTokenReady?.(debugToken)}>
-              Перейти к смене пароля
+        {debugResetUrl ? (
+          <Stack gap={8}>
+            <Text tone="muted">Отладочная ссылка (вместо письма):</Text>
+            <a className="debug-link" href={debugResetUrl}>
+              {debugResetUrl}
+            </a>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                window.location.assign(debugResetUrl)
+              }}
+            >
+              Открыть форму нового пароля
             </Button>
           </Stack>
         ) : null}
         <Button type="submit" disabled={pending}>
-          {pending ? '...' : 'Отправить инструкции'}
+          {pending ? '...' : 'Отправить ссылку'}
         </Button>
         <Button type="button" variant="ghost" onClick={onBackToLogin}>
           Назад ко входу

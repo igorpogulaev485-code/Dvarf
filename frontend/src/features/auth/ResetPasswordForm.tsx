@@ -5,17 +5,12 @@ import { ApiRequestError } from '../../shared/api/client'
 import { Button, Field, Input, Stack, Text } from '../../ui'
 
 type ResetPasswordFormProps = {
-  initialToken?: string
+  token: string
   onSuccess: () => void
   onBackToLogin: () => void
 }
 
-export function ResetPasswordForm({
-  initialToken = '',
-  onSuccess,
-  onBackToLogin,
-}: ResetPasswordFormProps) {
-  const [token, setToken] = useState(initialToken)
+export function ResetPasswordForm({ token, onSuccess, onBackToLogin }: ResetPasswordFormProps) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
@@ -27,7 +22,7 @@ export function ResetPasswordForm({
     setMessage(null)
 
     if (!token.trim()) {
-      setError('Укажите код восстановления')
+      setError('Ссылка восстановления недействительна')
       return
     }
     if (password.length < 8) {
@@ -54,18 +49,7 @@ export function ResetPasswordForm({
   return (
     <form onSubmit={handleSubmit} noValidate>
       <Stack gap={14}>
-        <Text tone="muted">
-          Введите код из заглушки и новый пароль. После подключения почты код будет приходить
-          письмом.
-        </Text>
-        <Field label="Код восстановления" htmlFor="reset-token">
-          <Input
-            id="reset-token"
-            value={token}
-            required
-            onChange={(event) => setToken(event.target.value)}
-          />
-        </Field>
+        <Text tone="muted">Придумайте новый пароль для входа в Dvarf.</Text>
         <Field label="Новый пароль" htmlFor="reset-password" hint="Минимум 8 символов">
           <Input
             id="reset-password"

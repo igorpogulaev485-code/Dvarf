@@ -146,7 +146,7 @@ class AuthService:
             "Сейчас почта ещё не подключена — это заглушка."
         )
         user = self.users.get_by_email(email)
-        debug_token: str | None = None
+        debug_reset_url: str | None = None
 
         if user is not None and user.password_hash:
             raw_token = secrets.token_urlsafe(32)
@@ -158,19 +158,16 @@ class AuthService:
             )
             self.db.commit()
 
+            reset_url = f"{settings.app_public_url.rstrip('/')}/reset-password?token={raw_token}"
             # Stub instead of sending email.
-            logger.info(
-                "Password reset stub for %s: token=%s",
-                user.email,
-                raw_token,
-            )
+            logger.info("Password reset stub for %s: %s", user.email, reset_url)
             if settings.auth_email_stub:
-                debug_token = raw_token
+                debug_reset_url = reset_url
 
         return ForgotPasswordResponse(
             message=public_message,
             stub=settings.auth_email_stub,
-            debug_reset_token=debug_token,
+            debug_reset_url=debug_reset_url,
         )
 
     def reset_password(self, token: str, password: str) -> ResetPasswordResponse:
