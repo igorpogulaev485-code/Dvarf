@@ -1,5 +1,5 @@
 export type ApiError = {
-  detail?: string
+  detail?: string | unknown[]
   code?: string
 }
 
@@ -62,11 +62,15 @@ export async function apiRequest<T>(
   const data = (await response.json().catch(() => ({}))) as ApiError & T
 
   if (!response.ok) {
-    throw new ApiRequestError(
-      data.detail || 'Request failed',
-      response.status,
-      data.code,
-    )
+    const detail = data.detail
+    const message =
+      typeof detail === 'string'
+        ? detail
+        : Array.isArray(detail)
+          ? 'Проверьте правильность заполнения полей'
+          : 'Не удалось выполнить запрос'
+
+    throw new ApiRequestError(message, response.status, data.code)
   }
 
   return data

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { login, register, type User } from '../../shared/api/auth'
 import { ApiRequestError } from '../../shared/api/client'
+import { EMAIL_ERROR_TEXT, isValidEmail } from '../../shared/lib/email'
 import { Button, Field, Input, Stack, Text } from '../../ui'
 
 type EmailAuthFormProps = {
@@ -12,25 +13,54 @@ type EmailAuthFormProps = {
 export function EmailAuthForm({ mode, onSuccess }: EmailAuthFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [emailError, setEmailError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+
+  function validateEmailField(value: string): boolean {
+    if (!value.trim()) {
+      setEmailError('Укажите email')
+      return false
+    }
+    if (!isValidEmail(value)) {
+      setEmailError(EMAIL_ERROR_TEXT)
+      return false
+    }
+    setEmailError(null)
+    return true
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
+
+    if (!validateEmailField(email)) {
+      return
+    }
+
+    if (mode === 'register' && password.length < 8) {
+      setError('Пароль должен быть не короче 8 символов')
+      return
+    }
+
     setPending(true)
 
     try {
       const result =
         mode === 'register'
-          ? await register(email, password)
-          : await login(email, password)
+          ? await register(email.trim(), password)
+          : await login(email.trim(), password)
       onSuccess(result.user)
     } catch (err) {
       if (err instanceof ApiRequestError) {
-        setError(err.message)
+        if (err.status === 422) {
+          setEmailError(EMAIL_ERROR_TEXT)
+          setError(null)
+        } else {
+          setError(err.message)
+        }
       } else {
-        setError('Unexpected error')
+        setError('Произошла непредвиденная ошибка')
       }
     } finally {
       setPending(false)
@@ -38,22 +68,42 @@ export function EmailAuthForm({ mode, onSuccess }: EmailAuthFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} noValidate>
       <Stack gap={14}>
-        <Field label="Email" htmlFor={`${mode}-email`}>
+        <Field
+          label="Email"
+          htmlFor={`${mode}-email`}
+          hint="Формат: name@mail.ru"
+        >
           <Input
             id={`${mode}-email`}
             type="email"
+            inputMode="email"
             autoComplete="email"
+            placeholder="name@mail.ru"
             required
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            aria-invalid={emailError ? true : undefined}
+            className={emailError ? 'ui-input--invalid' : undefined}
+            onChange={(event) => {
+              const next = event.target.value
+              setEmail(next)
+              if (emailError) {
+                validateEmailField(next)
+              }
+            }}
+            onBlur={() => {
+              if (email.trim()) {
+                validateEmailField(email)
+              }
+            }}
           />
+          {emailError ? <Text tone="danger">{emailError}</Text> : null}
         </Field>
         <Field
-          label="Password"
+          label="Пароль"
           htmlFor={`${mode}-password`}
-          hint={mode === 'register' ? 'Minimum 8 characters' : undefined}
+          hint={mode === 'register' ? 'Минимум 8 символов' : undefined}
         >
           <Input
             id={`${mode}-password`}
@@ -67,7 +117,7 @@ export function EmailAuthForm({ mode, onSuccess }: EmailAuthFormProps) {
         </Field>
         {error ? <Text tone="danger">{error}</Text> : null}
         <Button type="submit" disabled={pending}>
-          {pending ? '...' : mode === 'register' ? 'Register' : 'Login'}
+          {pending ? '...' : mode === 'register' ? 'Зарегистрироваться' : 'Войти'}
         </Button>
       </Stack>
     </form>

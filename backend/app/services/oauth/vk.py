@@ -33,5 +33,5 @@ class VkOAuthProvider(OAuthProvider):
         # Stub: real OAuth 2.1 + PKCE exchange will be wired when secrets are ready.
         self.require_configured()
         raise NotConfiguredError(
-            "VK ID OAuth callback exchange is stubbed. Configure secrets and enable the real flow next."
+            "Обмен кода VK ID пока в заглушке. Добавьте секреты и включим реальный поток."
         )

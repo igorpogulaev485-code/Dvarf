@@ -7,6 +7,11 @@ type OAuthButtonsProps = {
   onMessage?: (message: string) => void
 }
 
+const PROVIDER_LABELS = {
+  yandex: 'Яндекс',
+  vk: 'VK ID',
+} as const
+
 export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
   const [pendingProvider, setPendingProvider] = useState<'yandex' | 'vk' | null>(null)
 
@@ -15,7 +20,10 @@ export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
     try {
       const result = await startOAuth(provider)
       if (!result.configured || !result.authorize_url) {
-        onMessage?.(result.message || `${provider} OAuth is stubbed`)
+        onMessage?.(
+          result.message ||
+            `Вход через ${PROVIDER_LABELS[provider]} пока в заглушке`,
+        )
         return
       }
       window.location.assign(result.authorize_url)
@@ -23,7 +31,7 @@ export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
       if (err instanceof ApiRequestError) {
         onMessage?.(err.message)
       } else {
-        onMessage?.('OAuth start failed')
+        onMessage?.('Не удалось начать вход через провайдера')
       }
     } finally {
       setPendingProvider(null)
@@ -32,20 +40,22 @@ export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
 
   return (
     <Stack gap={10}>
-      <Text tone="muted">OAuth providers (stub until secrets are configured)</Text>
+      <Text tone="muted">
+        Вход через провайдеров (пока заглушки — нужны ключи в настройках)
+      </Text>
       <Button
         variant="secondary"
         disabled={pendingProvider !== null}
         onClick={() => handleStart('yandex')}
       >
-        {pendingProvider === 'yandex' ? '...' : 'Continue with Yandex'}
+        {pendingProvider === 'yandex' ? '...' : 'Войти через Яндекс'}
       </Button>
       <Button
         variant="secondary"
         disabled={pendingProvider !== null}
         onClick={() => handleStart('vk')}
       >
-        {pendingProvider === 'vk' ? '...' : 'Continue with VK ID'}
+        {pendingProvider === 'vk' ? '...' : 'Войти через VK ID'}
       </Button>
     </Stack>
   )

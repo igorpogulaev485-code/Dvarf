@@ -26,7 +26,7 @@ def _provider(provider: AuthProvider):
         return YandexOAuthProvider()
     if provider == AuthProvider.vk:
         return VkOAuthProvider()
-    raise AppError("Unsupported OAuth provider", code="unsupported_provider", status_code=400)
+    raise AppError("Неподдерживаемый OAuth-провайдер", code="unsupported_provider", status_code=400)
 
 
 @router.post("/register", response_model=TokenResponse)
@@ -58,15 +58,16 @@ def me(current_user: CurrentUser) -> UserResponse:
 @router.get("/oauth/{provider}/start", response_model=OAuthStartResponse)
 def oauth_start(provider: AuthProvider) -> OAuthStartResponse:
     if provider not in {AuthProvider.yandex, AuthProvider.vk}:
-        raise AppError("Unsupported OAuth provider", code="unsupported_provider", status_code=400)
+        raise AppError("Неподдерживаемый OAuth-провайдер", code="unsupported_provider", status_code=400)
 
     oauth = _provider(provider)
+    labels = {AuthProvider.yandex: "Яндекс", AuthProvider.vk: "VK ID"}
     if not oauth.is_configured():
         return OAuthStartResponse(
             provider=provider.value,
             configured=False,
             authorize_url=None,
-            message=f"{provider.value} OAuth stub: set client id/secret in env to enable.",
+            message=f"Вход через {labels[provider]} пока в заглушке: добавьте client id/secret в env.",
         )
 
     state = secrets.token_urlsafe(16)
@@ -74,18 +75,18 @@ def oauth_start(provider: AuthProvider) -> OAuthStartResponse:
         provider=provider.value,
         configured=True,
         authorize_url=oauth.get_authorize_url(state),
-        message="Stub authorize URL generated. Callback exchange is still stubbed.",
+        message="Ссылка авторизации сформирована. Обмен кода пока в заглушке.",
     )
 
 
 @router.get("/oauth/{provider}/callback")
 async def oauth_callback(provider: AuthProvider, code: str | None = None, state: str | None = None):
     if provider not in {AuthProvider.yandex, AuthProvider.vk}:
-        raise AppError("Unsupported OAuth provider", code="unsupported_provider", status_code=400)
+        raise AppError("Неподдерживаемый OAuth-провайдер", code="unsupported_provider", status_code=400)
 
     oauth = _provider(provider)
     if not code:
-        raise AppError("Missing OAuth code", code="missing_code", status_code=400)
+        raise AppError("Не передан код OAuth", code="missing_code", status_code=400)
 
     # Intentionally stubbed until provider secrets are wired.
     await oauth.exchange_code(code)

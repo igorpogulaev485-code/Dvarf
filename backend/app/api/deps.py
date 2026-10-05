@@ -20,20 +20,20 @@ def get_current_user(
     authorization: Annotated[str | None, Header()] = None,
 ) -> User:
     if not authorization or not authorization.startswith("Bearer "):
-        raise UnauthorizedError("Missing bearer token")
+        raise UnauthorizedError("Нужен токен авторизации")
 
     token = authorization.removeprefix("Bearer ").strip()
     try:
         payload = decode_token(token)
     except Exception as exc:  # noqa: BLE001
-        raise UnauthorizedError("Invalid access token") from exc
+        raise UnauthorizedError("Недействительный access-токен") from exc
 
     if payload.get("type") != "access":
-        raise UnauthorizedError("Invalid access token")
+        raise UnauthorizedError("Недействительный access-токен")
 
     user = UserRepository(db).get_by_id(UUID(payload["sub"]))
     if user is None:
-        raise UnauthorizedError("User not found")
+        raise UnauthorizedError("Пользователь не найден")
     return user
 
 

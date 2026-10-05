@@ -34,5 +34,5 @@ class OAuthProvider(ABC):
     def require_configured(self) -> None:
         if not self.is_configured():
             raise NotConfiguredError(
-                f"{self.provider.value} OAuth is not configured yet (stub)."
+                f"OAuth-провайдер {self.provider.value} ещё не настроен (заглушка)."
             )

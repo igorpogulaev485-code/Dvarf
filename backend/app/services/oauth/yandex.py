@@ -30,5 +30,5 @@ class YandexOAuthProvider(OAuthProvider):
         # Stub: real token + /info exchange will be wired when secrets are ready.
         self.require_configured()
         raise NotConfiguredError(
-            "Yandex OAuth callback exchange is stubbed. Configure secrets and enable the real flow next."
+            "Обмен кода Яндекс OAuth пока в заглушке. Добавьте секреты и включим реальный поток."
         )

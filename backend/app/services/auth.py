@@ -48,7 +48,7 @@ class AuthService:
 
     def register(self, email: str, password: str) -> TokenResponse:
         if self.users.get_by_email(email):
-            raise ConflictError("Email already registered", code="email_taken")
+            raise ConflictError("Такой email уже зарегистрирован", code="email_taken")
 
         user = self.users.create_user(
             email=email,
@@ -70,9 +70,9 @@ class AuthService:
     def login(self, email: str, password: str) -> TokenResponse:
         user = self.users.get_by_email(email)
         if user is None or not user.password_hash:
-            raise UnauthorizedError("Invalid email or password")
+            raise UnauthorizedError("Неверный email или пароль")
         if not verify_password(password, user.password_hash):
-            raise UnauthorizedError("Invalid email or password")
+            raise UnauthorizedError("Неверный email или пароль")
 
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
@@ -82,20 +82,20 @@ class AuthService:
         try:
             payload = decode_token(refresh_token)
         except Exception as exc:  # noqa: BLE001
-            raise UnauthorizedError("Invalid refresh token") from exc
+            raise UnauthorizedError("Недействительный refresh-токен") from exc
 
         if payload.get("type") != "refresh":
-            raise UnauthorizedError("Invalid refresh token")
+            raise UnauthorizedError("Недействительный refresh-токен")
 
         user = self.users.get_by_id(UUID(payload["sub"]))
         if user is None:
-            raise UnauthorizedError("User not found")
+            raise UnauthorizedError("Пользователь не найден")
         return issue_tokens(user)
 
     def get_me(self, user_id: UUID) -> UserResponse:
         user = self.users.get_by_id(user_id)
         if user is None:
-            raise UnauthorizedError("User not found")
+            raise UnauthorizedError("Пользователь не найден")
         return serialize_user(user)
 
     def login_with_oauth_profile(self, profile: OAuthProfile) -> TokenResponse:
@@ -107,7 +107,7 @@ class AuthService:
             email_owner = self.users.get_by_email(profile.email)
             if email_owner is not None:
                 raise ConflictError(
-                    "Email already used by another account. Sign in and link the provider in the cabinet later.",
+                    "Этот email уже занят другим аккаунтом. Войдите и привяжите способ входа позже в личном кабинете.",
                     code="email_taken",
                 )
 

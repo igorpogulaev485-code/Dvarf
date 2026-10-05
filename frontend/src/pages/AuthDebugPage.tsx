@@ -12,17 +12,17 @@ export function AuthDebugPage() {
     <main className="page page--auth-debug">
       <Stack gap={20}>
         <Stack gap={6}>
-          <Text as="h1">Dvarf Auth Debug</Text>
+          <Text as="h1">Dvarf — отладка входа</Text>
           <Text tone="muted">
-            Component-based debug screen for email auth and OAuth stubs.
+            Экран из компонентов: вход по email и заглушки OAuth.
           </Text>
         </Stack>
 
-        <Panel title="Session">
+        <Panel title="Сессия">
           <AuthSessionPanel user={user} onUserChange={setUser} />
         </Panel>
 
-        <Panel title={mode === 'register' ? 'Register' : 'Login'}>
+        <Panel title={mode === 'register' ? 'Регистрация' : 'Вход'}>
           <Stack gap={12}>
             <div className="mode-switch">
               <button
@@ -30,21 +30,21 @@ export function AuthDebugPage() {
                 className={mode === 'register' ? 'is-active' : ''}
                 onClick={() => setMode('register')}
               >
-                Register
+                Регистрация
               </button>
               <button
                 type="button"
                 className={mode === 'login' ? 'is-active' : ''}
                 onClick={() => setMode('login')}
               >
-                Login
+                Вход
               </button>
             </div>
             <EmailAuthForm mode={mode} onSuccess={setUser} />
           </Stack>
         </Panel>
 
-        <Panel title="OAuth">
+        <Panel title="Вход через сервисы">
           <Stack gap={10}>
             <OAuthButtons onMessage={setOauthMessage} />
             {oauthMessage ? <Text tone="muted">{oauthMessage}</Text> : null}

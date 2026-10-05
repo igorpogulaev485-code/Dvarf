@@ -1,11 +1,25 @@
+import { useEffect, useState } from 'react'
 import { getMe, logout, type User } from '../../shared/api/auth'
 import { ApiRequestError, getAccessToken } from '../../shared/api/client'
 import { Button, Stack, Text } from '../../ui'
-import { useEffect, useState } from 'react'
 
 type AuthSessionPanelProps = {
   user: User | null
   onUserChange: (user: User | null) => void
+}
+
+const PROVIDER_LABELS: Record<string, string> = {
+  password: 'пароль',
+  yandex: 'Яндекс',
+  vk: 'VK ID',
+  google: 'Google',
+}
+
+function formatProviders(providers: string[]): string {
+  if (!providers.length) {
+    return 'нет'
+  }
+  return providers.map((provider) => PROVIDER_LABELS[provider] || provider).join(', ')
 }
 
 export function AuthSessionPanel({ user, onUserChange }: AuthSessionPanelProps) {
@@ -52,13 +66,13 @@ export function AuthSessionPanel({ user, onUserChange }: AuthSessionPanelProps) 
   }
 
   if (loading) {
-    return <Text tone="muted">Loading session...</Text>
+    return <Text tone="muted">Загружаем сессию...</Text>
   }
 
   if (!user) {
     return (
       <Stack gap={8}>
-        <Text tone="muted">Not signed in</Text>
+        <Text tone="muted">Вы не вошли в аккаунт</Text>
         {error ? <Text tone="danger">{error}</Text> : null}
       </Stack>
     )
@@ -67,11 +81,11 @@ export function AuthSessionPanel({ user, onUserChange }: AuthSessionPanelProps) 
   return (
     <Stack gap={10}>
       <Text>
-        Signed in as <strong>{user.email || user.display_name || user.id}</strong>
+        Вы вошли как <strong>{user.email || user.display_name || user.id}</strong>
       </Text>
-      <Text tone="muted">Providers: {user.providers.join(', ') || 'none'}</Text>
+      <Text tone="muted">Способы входа: {formatProviders(user.providers)}</Text>
       <Button variant="ghost" onClick={handleLogout}>
-        Logout
+        Выйти
       </Button>
     </Stack>
   )

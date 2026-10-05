@@ -92,6 +92,16 @@ input {
   border-color: var(--accent);
 }
 
+.ui-input--invalid {
+  border-color: var(--danger);
+  background: #fff6f5;
+}
+
+.ui-input--invalid:focus {
+  outline: 2px solid color-mix(in srgb, var(--danger) 35%, white);
+  border-color: var(--danger);
+}
+
 .ui-button {
   border: 1px solid transparent;
   border-radius: 12px;
