@@ -16,6 +16,11 @@ class UnauthorizedError(AppError):
         super().__init__(message, code=code, status_code=401)
 
 
+class NotFoundError(AppError):
+    def __init__(self, message: str = "Not found", *, code: str = "not_found") -> None:
+        super().__init__(message, code=code, status_code=404)
+
+
 class NotConfiguredError(AppError):
     def __init__(self, message: str, *, code: str = "provider_not_configured") -> None:
         super().__init__(message, code=code, status_code=501)
