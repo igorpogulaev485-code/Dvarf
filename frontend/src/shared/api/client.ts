@@ -36,9 +36,60 @@ export function clearTokens(): void {
   localStorage.removeItem(REFRESH_TOKEN_KEY)
 }
 
+let refreshInFlight: Promise<boolean> | null = null
+
+async function tryRefreshAccessToken(): Promise<boolean> {
+  if (refreshInFlight) {
+    return refreshInFlight
+  }
+
+  refreshInFlight = (async () => {
+    const refreshToken = getRefreshToken()
+    if (!refreshToken) {
+      return false
+    }
+    try {
+      const response = await fetch('/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      })
+      if (!response.ok) {
+        clearTokens()
+        return false
+      }
+      const data = (await response.json()) as {
+        access_token: string
+        refresh_token: string
+      }
+      setTokens(data.access_token, data.refresh_token)
+      return true
+    } catch {
+      clearTokens()
+      return false
+    } finally {
+      refreshInFlight = null
+    }
+  })()
+
+  return refreshInFlight
+}
+
+function errorMessage(data: ApiError): string {
+  const detail = data.detail
+  if (typeof detail === 'string') {
+    return detail
+  }
+  if (Array.isArray(detail)) {
+    return 'Проверьте правильность заполнения полей'
+  }
+  return 'Не удалось выполнить запрос'
+}
+
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
+  retried = false,
 ): Promise<T> {
   const headers = new Headers(options.headers)
   if (!headers.has('Content-Type') && options.body) {
@@ -55,6 +106,13 @@ export async function apiRequest<T>(
     headers,
   })
 
+  if (response.status === 401 && !retried && !path.startsWith('/auth/')) {
+    const refreshed = await tryRefreshAccessToken()
+    if (refreshed) {
+      return apiRequest<T>(path, options, true)
+    }
+  }
+
   if (response.status === 204) {
     return undefined as T
   }
@@ -62,15 +120,7 @@ export async function apiRequest<T>(
   const data = (await response.json().catch(() => ({}))) as ApiError & T
 
   if (!response.ok) {
-    const detail = data.detail
-    const message =
-      typeof detail === 'string'
-        ? detail
-        : Array.isArray(detail)
-          ? 'Проверьте правильность заполнения полей'
-          : 'Не удалось выполнить запрос'
-
-    throw new ApiRequestError(message, response.status, data.code)
+    throw new ApiRequestError(errorMessage(data), response.status, data.code)
   }
 
   return data
