@@ -445,6 +445,50 @@ input {
   align-items: center;
 }
 
+.ui-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(28, 25, 23, 0.45);
+}
+
+.ui-dialog {
+  width: min(440px, 100%);
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fffdf9;
+  box-shadow: 0 18px 40px rgba(28, 25, 23, 0.22);
+}
+
+.ui-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.sheet-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, #9a3412 35%, var(--line));
+  background: #fff7ed;
+}
+
+.sheet-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 /* Tablet-first emphasis */
 @media (min-width: 768px) {
   .page--app {

@@ -1,12 +1,18 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import {
+  getCharacter,
   updateCharacter,
   type CharacterDetail,
   type RulesEdition,
 } from '../../shared/api/characters'
 import { ApiRequestError } from '../../shared/api/client'
-import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
+import {
+  createSheetSyncChannel,
+  publishSheetSync,
+  type SheetSyncMessage,
+} from '../../shared/sync/characterSheetChannel'
+import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
@@ -23,6 +29,7 @@ type MinimalSheetEditorProps = {
   character: CharacterDetail
   onSaved: (character: CharacterDetail) => void
   onToast: (message: string) => void
+  onRemoteSave?: (message: Extract<SheetSyncMessage, { type: 'sheet-saved' }>) => void
 }
 
 type Draft = {
@@ -115,22 +122,82 @@ export function MinimalSheetEditor({
   character,
   onSaved,
   onToast,
+  onRemoteSave,
 }: MinimalSheetEditorProps) {
+  const [baseCharacter, setBaseCharacter] = useState(character)
   const [draft, setDraft] = useState(() => buildDraft(character))
   const [sheetVersion, setSheetVersion] = useState(character.sheet_version)
   const [saving, setSaving] = useState(false)
+  const [reloading, setReloading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [conflictOpen, setConflictOpen] = useState(false)
+  const channelRef = useRef<BroadcastChannel | null>(null)
+
+  useEffect(() => {
+    setBaseCharacter(character)
+    setDraft(buildDraft(character))
+    setSheetVersion(character.sheet_version)
+    setConflictOpen(false)
+    setError(null)
+  }, [character])
+
+  const onRemoteSaveRef = useRef(onRemoteSave)
+  useEffect(() => {
+    onRemoteSaveRef.current = onRemoteSave
+  }, [onRemoteSave])
+
+  useEffect(() => {
+    const channel = createSheetSyncChannel((message) => {
+      if (message.type !== 'sheet-saved') {
+        return
+      }
+      if (message.characterId !== character.id) {
+        return
+      }
+      onRemoteSaveRef.current?.(message)
+    })
+    channelRef.current = channel
+    publishSheetSync(channel, {
+      type: 'sheet-opened',
+      characterId: character.id,
+      sheetVersion: character.sheet_version,
+    })
+    return () => {
+      channel?.close()
+      channelRef.current = null
+    }
+    // Channel is per open character; avoid reconnect on every local save.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [character.id])
 
   const proficiencyBonus = useMemo(
     () => 2 + Math.floor((Math.max(draft.level, 1) - 1) / 4),
     [draft.level],
   )
 
+  async function reloadFromServer() {
+    setReloading(true)
+    setError(null)
+    try {
+      const fresh = await getCharacter(baseCharacter.id)
+      setBaseCharacter(fresh)
+      setDraft(buildDraft(fresh))
+      setSheetVersion(fresh.sheet_version)
+      setConflictOpen(false)
+      onSaved(fresh)
+      onToast('Лист обновлён с сервера')
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : 'Не удалось обновить лист')
+    } finally {
+      setReloading(false)
+    }
+  }
+
   async function handleSave() {
     setSaving(true)
     setError(null)
     try {
-      const sheet = structuredClone(asRecord(character.sheet))
+      const sheet = structuredClone(asRecord(baseCharacter.sheet))
       const identity = asRecord(sheet.identity)
       const abilities = asRecord(sheet.abilities)
       const saves = asRecord(sheet.saves)
@@ -168,7 +235,7 @@ export function MinimalSheetEditor({
       combat.speed = draft.speed
       sheet.combat = combat
 
-      const updated = await updateCharacter(character.id, {
+      const updated = await updateCharacter(baseCharacter.id, {
         sheet_version: sheetVersion,
         name: draft.name.trim() || 'Новый персонаж',
         level: draft.level,
@@ -178,12 +245,23 @@ export function MinimalSheetEditor({
         hp_max: draft.hpMax,
         sheet,
       })
+      setBaseCharacter(updated)
       setSheetVersion(updated.sheet_version)
       setDraft(buildDraft(updated))
       onSaved(updated)
+      publishSheetSync(channelRef.current, {
+        type: 'sheet-saved',
+        characterId: updated.id,
+        sheetVersion: updated.sheet_version,
+      })
       onToast('Лист сохранён')
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить лист')
+      if (err instanceof ApiRequestError && err.code === 'sheet_version_conflict') {
+        setConflictOpen(true)
+        setError(null)
+      } else {
+        setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить лист')
+      }
     } finally {
       setSaving(false)
     }
@@ -224,7 +302,7 @@ export function MinimalSheetEditor({
             <CatalogCombobox
               id="sheet-race"
               kind="race"
-              edition={character.rules_edition as RulesEdition}
+              edition={baseCharacter.rules_edition as RulesEdition}
               value={draft.raceName}
               placeholder="Начните вводить расу"
               onChange={(value, selected) =>
@@ -240,7 +318,7 @@ export function MinimalSheetEditor({
             <CatalogCombobox
               id="sheet-class"
               kind="class"
-              edition={character.rules_edition as RulesEdition}
+              edition={baseCharacter.rules_edition as RulesEdition}
               value={draft.className}
               placeholder="Начните вводить класс"
               onChange={(value, selected) =>
@@ -381,11 +459,29 @@ export function MinimalSheetEditor({
       {error ? <Text tone="danger">{error}</Text> : null}
 
       <div className="sheet-actions">
-        <Button onClick={() => void handleSave()} disabled={saving}>
+        <Button onClick={() => void handleSave()} disabled={saving || reloading}>
           {saving ? 'Сохраняем…' : 'Сохранить лист'}
         </Button>
-        <Text tone="muted">Редакция {character.rules_edition}</Text>
+        <Text tone="muted">
+          Редакция {baseCharacter.rules_edition} · v{sheetVersion}
+        </Text>
       </div>
+
+      <Dialog
+        open={conflictOpen}
+        title="Конфликт версий листа"
+        primaryLabel={reloading ? 'Обновляем…' : 'Обновить лист'}
+        secondaryLabel="Оставить мои правки"
+        busy={reloading}
+        onPrimary={() => void reloadFromServer()}
+        onSecondary={() => setConflictOpen(false)}
+      >
+        <Text>
+          Этот персонаж уже сохранён в другой вкладке или на другом устройстве. Если обновить лист,
+          локальные несохранённые правки пропадут. Можно оставить свои правки на экране и
+          перенести их вручную.
+        </Text>
+      </Dialog>
     </Stack>
   )
 }
