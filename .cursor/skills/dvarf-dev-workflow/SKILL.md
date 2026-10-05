@@ -42,6 +42,17 @@ Do not start coding, scaffolding, or migrations until the plan is approved for t
 - Phone/SMS login later (paid); store phone non-unique for now
 - Google OAuth: not for RF users/region; geo-gate or omit for RU-first launch
 
+## Git commit / push rules (accepted)
+
+1. **After an approved plan slice is implemented** — make a commit. One logical slice → one (or few clear) commits.
+2. **Commit message** — short, in English or Russian, explains *what* and *why* (not a file list).
+3. **Push** the branch after the commit(s) for that slice — do not leave finished work only local.
+4. **PR** — create or update the PR for the branch after push; keep description aligned with the approved plan.
+5. **Never commit secrets** — no `.env` with real keys, tokens, passwords, OAuth secrets. Use `.env.example` only.
+6. **Do not commit broken half-migrations** — a pushed slice must apply cleanly (migrate up works).
+7. **Plan changes mid-flight** — if scope changes, stop, re-plan, get ok, then continue with a new commit.
+8. **Main** — do not push product work straight to `main`; use `cursor/<name>-eb8e` feature branches.
+
 ## Collaboration notes
 
 - Prefer Russian in plans and summaries with Игорь
