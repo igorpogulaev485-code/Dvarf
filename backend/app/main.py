@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.routers import auth as auth_router
+from app.api.routers import characters as characters_router
 from app.core.config import settings
 from app.core.exceptions import AppError
 
@@ -17,6 +18,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router.router)
+app.include_router(characters_router.router)
 
 
 @app.exception_handler(AppError)
