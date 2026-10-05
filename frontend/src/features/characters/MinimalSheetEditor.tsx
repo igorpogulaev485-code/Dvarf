@@ -6,7 +6,7 @@ import {
   type RulesEdition,
 } from '../../shared/api/characters'
 import { ApiRequestError } from '../../shared/api/client'
-import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
+import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
@@ -202,16 +202,16 @@ export function MinimalSheetEditor({
           </Field>
           <div className="sheet-grid sheet-grid--2">
             <Field label="Уровень" htmlFor="sheet-level">
-              <Input
+              <NumberInput
                 id="sheet-level"
-                type="number"
                 min={1}
                 max={30}
+                emptyValue={1}
                 value={draft.level}
-                onChange={(event) =>
+                onValueChange={(level) =>
                   setDraft((prev) => ({
                     ...prev,
-                    level: Math.min(30, Math.max(1, Number(event.target.value) || 1)),
+                    level: level ?? 1,
                   }))
                 }
               />
@@ -262,17 +262,17 @@ export function MinimalSheetEditor({
             return (
               <label key={key} className="ability-card">
                 <span className="ability-card__label">{ABILITY_LABELS[key]}</span>
-                <Input
-                  type="number"
+                <NumberInput
                   min={1}
                   max={30}
+                  emptyValue={10}
                   value={score}
-                  onChange={(event) =>
+                  onValueChange={(next) =>
                     setDraft((prev) => ({
                       ...prev,
                       abilities: {
                         ...prev.abilities,
-                        [key]: Math.min(30, Math.max(1, Number(event.target.value) || 1)),
+                        [key]: next ?? 10,
                       },
                     }))
                   }
@@ -287,55 +287,31 @@ export function MinimalSheetEditor({
       <Panel title="Бой">
         <div className="sheet-grid sheet-grid--4">
           <Field label="HP сейчас" htmlFor="sheet-hp-current">
-            <Input
+            <NumberInput
               id="sheet-hp-current"
-              type="number"
-              value={draft.hpCurrent ?? ''}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  hpCurrent: event.target.value === '' ? null : Number(event.target.value),
-                }))
-              }
+              value={draft.hpCurrent}
+              onValueChange={(hpCurrent) => setDraft((prev) => ({ ...prev, hpCurrent }))}
             />
           </Field>
           <Field label="HP макс" htmlFor="sheet-hp-max">
-            <Input
+            <NumberInput
               id="sheet-hp-max"
-              type="number"
-              value={draft.hpMax ?? ''}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  hpMax: event.target.value === '' ? null : Number(event.target.value),
-                }))
-              }
+              value={draft.hpMax}
+              onValueChange={(hpMax) => setDraft((prev) => ({ ...prev, hpMax }))}
             />
           </Field>
           <Field label="КД" htmlFor="sheet-ac">
-            <Input
+            <NumberInput
               id="sheet-ac"
-              type="number"
-              value={draft.ac ?? ''}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  ac: event.target.value === '' ? null : Number(event.target.value),
-                }))
-              }
+              value={draft.ac}
+              onValueChange={(ac) => setDraft((prev) => ({ ...prev, ac }))}
             />
           </Field>
           <Field label="Скорость" htmlFor="sheet-speed">
-            <Input
+            <NumberInput
               id="sheet-speed"
-              type="number"
-              value={draft.speed ?? ''}
-              onChange={(event) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  speed: event.target.value === '' ? null : Number(event.target.value),
-                }))
-              }
+              value={draft.speed}
+              onValueChange={(speed) => setDraft((prev) => ({ ...prev, speed }))}
             />
           </Field>
         </div>
