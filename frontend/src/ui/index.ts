@@ -1,4 +1,6 @@
 export { Button } from './Button'
+export { Combobox } from './Combobox'
+export type { ComboboxOption } from './Combobox'
 export { EmptyState } from './EmptyState'
 export { Field } from './Field'
 export { Input } from './Input'

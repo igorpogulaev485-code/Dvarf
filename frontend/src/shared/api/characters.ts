@@ -41,3 +41,24 @@ export async function createCharacter(
 export async function getCharacter(id: string): Promise<CharacterDetail> {
   return apiRequest<CharacterDetail>(`/characters/${id}`)
 }
+
+export type CharacterUpdatePayload = {
+  sheet_version: number
+  name?: string
+  level?: number
+  class_name?: string | null
+  race_name?: string | null
+  hp_current?: number | null
+  hp_max?: number | null
+  sheet?: Record<string, unknown>
+}
+
+export async function updateCharacter(
+  id: string,
+  payload: CharacterUpdatePayload,
+): Promise<CharacterDetail> {
+  return apiRequest<CharacterDetail>(`/characters/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}

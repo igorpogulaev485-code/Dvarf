@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { MinimalSheetEditor } from '../features/characters/MinimalSheetEditor'
 import { getCharacter, type CharacterDetail } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
-import { Button, Panel, Stack, Text, Toast } from '../ui'
+import { Stack, Text, Toast } from '../ui'
 
 type LocationState = {
   toast?: string
@@ -66,32 +67,12 @@ export function CharacterDetailPage() {
         {error ? <Text tone="danger">{error}</Text> : null}
 
         {character ? (
-          <>
-            <Stack gap={6}>
-              <Text as="h1">{character.name}</Text>
-              <Text tone="muted">
-                Редакция {character.rules_edition} · уровень {character.level}
-              </Text>
-            </Stack>
-            <Panel title="Каркас листа">
-              <Stack gap={10}>
-                <Text tone="muted">
-                  Здесь будет полноценный редактор листа. Сейчас каркас — макеты дизайнера придут
-                  позже, вёрстку переработаем.
-                </Text>
-                <Text>
-                  Класс: {character.class_name || 'не задан'} · Раса:{' '}
-                  {character.race_name || 'не задана'}
-                </Text>
-                <Text>
-                  HP: {character.hp_current ?? '—'} / {character.hp_max ?? '—'}
-                </Text>
-                <Button variant="secondary" onClick={() => navigate('/characters')}>
-                  Вернуться к списку
-                </Button>
-              </Stack>
-            </Panel>
-          </>
+          <MinimalSheetEditor
+            key={character.id}
+            character={character}
+            onSaved={setCharacter}
+            onToast={setToast}
+          />
         ) : null}
       </Stack>
       <Toast message={toast} onClose={closeToast} />

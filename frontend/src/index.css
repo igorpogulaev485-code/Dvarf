@@ -294,11 +294,170 @@ input {
   font-weight: 600;
 }
 
+.ui-combobox {
+  position: relative;
+}
+
+.ui-combobox__list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(28, 25, 23, 0.12);
+  max-height: 240px;
+  overflow: auto;
+}
+
+.ui-combobox__status {
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.ui-combobox__option {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.ui-combobox__option.is-active,
+.ui-combobox__option:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.sheet-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.sheet-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sheet-grid--4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ability-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ability-card {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 12px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.ability-card__label {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.ability-card__mod {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.ability-card .ui-input {
+  text-align: center;
+  padding: 8px;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sheet-chip,
+.skill-row {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.sheet-chip {
+  padding: 10px 12px;
+  font-weight: 600;
+}
+
+.sheet-chip.is-on,
+.skill-row.is-on {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 30%, white);
+  color: var(--accent);
+}
+
+.skill-row.is-expert {
+  background: #173528;
+  border-color: #173528;
+  color: #f4fff8;
+}
+
+.skill-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.skill-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.skill-row__meta {
+  color: inherit;
+  opacity: 0.85;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.sheet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
 /* Tablet-first emphasis */
 @media (min-width: 768px) {
   .page--app {
     width: min(1040px, calc(100% - 48px));
     padding-top: 36px;
+  }
+
+  .sheet-grid--4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .ability-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
   .character-grid {
@@ -345,5 +504,15 @@ input {
 
   .app-header__actions .ui-button {
     flex: 1 1 auto;
+  }
+
+  .sheet-grid--2,
+  .ability-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .skill-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
