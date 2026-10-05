@@ -14,10 +14,11 @@ class Settings(BaseSettings):
     access_token_ttl_minutes: int = 30
     refresh_token_ttl_days: int = 30
     cors_origins: str = "http://localhost:5173"
+    app_public_url: str = "http://localhost:5173"
 
     yandex_client_id: str = ""
     yandex_client_secret: str = ""
-    yandex_redirect_uri: str = "http://localhost:8000/auth/oauth/yandex/callback"
+    yandex_redirect_uri: str = "http://localhost:5173/auth/oauth/yandex/callback"
 
     vk_client_id: str = ""
     vk_client_secret: str = ""

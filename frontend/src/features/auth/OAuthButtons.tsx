@@ -41,7 +41,7 @@ export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
   return (
     <Stack gap={10}>
       <Text tone="muted">
-        Вход через провайдеров (пока заглушки — нужны ключи в настройках)
+        Яндекс — рабочий поток (нужны ключи в env). VK ID пока заглушка.
       </Text>
       <Button
         variant="secondary"
