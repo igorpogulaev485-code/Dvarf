@@ -174,15 +174,23 @@ class AuthService:
         return issue_tokens(loaded)
 
     def forgot_password(self, email: str) -> ForgotPasswordResponse:
-        """Always returns the same message; email sending is stubbed for now."""
-        public_message = (
-            "Если аккаунт с таким email существует, мы отправим инструкции по восстановлению. "
-            "Сейчас почта ещё не подключена — это заглушка."
-        )
+        """Always returns the same public message (no email enumeration)."""
+        from app.services.mail import MailError, send_password_reset_email, smtp_configured
+
+        if settings.auth_email_stub:
+            public_message = (
+                "Если аккаунт с таким email существует, мы отправим инструкции по восстановлению. "
+                "Сейчас почта ещё не подключена — это заглушка."
+            )
+        else:
+            public_message = (
+                "Если аккаунт с таким email существует, мы отправили инструкции по восстановлению."
+            )
+
         user = self.users.get_by_email(email)
         debug_reset_url: str | None = None
 
-        if user is not None and user.password_hash:
+        if user is not None and user.password_hash and user.email:
             raw_token = secrets.token_urlsafe(32)
             self.password_resets.create(
                 user_id=user.id,
@@ -193,10 +201,19 @@ class AuthService:
             self.db.commit()
 
             reset_url = f"{settings.app_public_url.rstrip('/')}/reset-password?token={raw_token}"
-            # Stub instead of sending email.
-            logger.info("Password reset stub for %s: %s", user.email, reset_url)
-            if settings.auth_email_stub:
-                debug_reset_url = reset_url
+            if settings.auth_email_stub or not smtp_configured():
+                logger.info("Password reset stub for %s: %s", user.email, reset_url)
+                if settings.auth_email_stub:
+                    debug_reset_url = reset_url
+            else:
+                try:
+                    send_password_reset_email(to=user.email, reset_url=reset_url)
+                except MailError as exc:
+                    raise AppError(
+                        "Не удалось отправить письмо. Попробуйте позже.",
+                        code="mail_send_failed",
+                        status_code=502,
+                    ) from exc
 
         return ForgotPasswordResponse(
             message=public_message,
@@ -284,7 +301,9 @@ class AuthService:
         return serialize_user(loaded)
 
     def request_email_change(self, user_id: UUID, new_email: str) -> EmailChangeRequestResponse:
-        """Send confirmation to CURRENT email (stub). Change applies only after confirm."""
+        """Send confirmation to CURRENT email. Change applies only after confirm."""
+        from app.services.mail import MailError, send_email_change_confirm, smtp_configured
+
         user = self.users.get_by_id(user_id)
         if user is None:
             raise UnauthorizedError("Пользователь не найден")
@@ -321,22 +340,44 @@ class AuthService:
         confirm_url = (
             f"{settings.app_public_url.rstrip('/')}/confirm-email?token={raw_token}"
         )
-        # Stub: real mailer will send confirm_url to user.email (OLD address).
-        logger.info(
-            "Email change stub for %s → %s: %s",
-            user.email,
-            normalized,
-            confirm_url,
-        )
+        current_email = user.email
 
-        return EmailChangeRequestResponse(
-            message=(
-                f"Мы отправили ссылку подтверждения на текущую почту {user.email}. "
+        if settings.auth_email_stub or not smtp_configured():
+            logger.info(
+                "Email change stub for %s → %s: %s",
+                current_email,
+                normalized,
+                confirm_url,
+            )
+            message = (
+                f"Мы отправили ссылку подтверждения на текущую почту {current_email}. "
                 "Смена email произойдёт только после перехода по ссылке. "
                 "Сейчас почта ещё не подключена — это заглушка."
-            ),
+            )
+            debug_url = confirm_url if settings.auth_email_stub else None
+        else:
+            try:
+                send_email_change_confirm(
+                    to=current_email,
+                    new_email=normalized,
+                    confirm_url=confirm_url,
+                )
+            except MailError as exc:
+                raise AppError(
+                    "Не удалось отправить письмо. Попробуйте позже.",
+                    code="mail_send_failed",
+                    status_code=502,
+                ) from exc
+            message = (
+                f"Мы отправили ссылку подтверждения на текущую почту {current_email}. "
+                "Смена email произойдёт только после перехода по ссылке."
+            )
+            debug_url = None
+
+        return EmailChangeRequestResponse(
+            message=message,
             stub=settings.auth_email_stub,
-            debug_confirm_url=confirm_url if settings.auth_email_stub else None,
+            debug_confirm_url=debug_url,
         )
 
     def confirm_email_change(self, token: str) -> EmailChangeConfirmResponse:

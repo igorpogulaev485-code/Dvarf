@@ -24,7 +24,7 @@
 Уже в продуктовой ветке / PR:
 
 - Auth (register/login/refresh, auto-refresh на 401)
-- Personal cabinet: profile, phone, avatar, change password/email, danger zone (delete account)
+- Personal cabinet: profile, phone, avatar, change password/email (SMTP Mail.ru), danger zone (delete account)
 - Characters CRUD, hybrid JSONB sheet + `sheet_version` (409 на конфликт)
 - Catalogs: races / classes / weapons + sample damaging artifacts
 - Sheet: identity, abilities, saves, skills
@@ -48,7 +48,7 @@
 - Party frame (QR join, мастер пачки)
 - Encounter prep → loot
 
-Backlog (отдельные слайсы): multiclass; race → эффекты на лист; rich-text в блоках; onboarding → тема UI; OAuth link/unlink в кабинете; реальная SMTP вместо stub.
+Backlog (отдельные слайсы): multiclass; race → эффекты на лист; rich-text в блоках; onboarding → тема UI; OAuth link/unlink в кабинете.
 
 ## Репозиторий и ветки
 
@@ -81,7 +81,7 @@ Auth:
 - `PATCH /auth/me` (профиль: display_name, full_name, phone)
 - `POST /auth/change-password`
 - `POST /auth/me/avatar` / `DELETE /auth/me/avatar`
-- `POST /auth/me/email/request` / `POST /auth/me/email/confirm` (письмо на текущую почту; stub)
+- `POST /auth/me/email/request` / `POST /auth/me/email/confirm` (письмо на текущую почту; SMTP или stub)
 - `DELETE /auth/me` (удаление аккаунта)
 - `GET /auth/oauth/{yandex|vk}/start` (stub)
 - `GET /auth/oauth/{yandex|vk}/callback` (stub)

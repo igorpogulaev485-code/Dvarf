@@ -19,6 +19,13 @@ class Settings(BaseSettings):
     password_reset_ttl_minutes: int = 30
     email_change_ttl_minutes: int = 30
 
+    smtp_host: str = ""
+    smtp_port: int = 465
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+    smtp_use_ssl: bool = True
+
     yandex_client_id: str = ""
     yandex_client_secret: str = ""
     yandex_redirect_uri: str = "http://localhost:5173/auth/oauth/yandex/callback"
