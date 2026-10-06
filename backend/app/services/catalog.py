@@ -26,6 +26,7 @@ class CatalogService:
         edition: str | None = None,
         q: str | None = None,
         parent_id: UUID | None = None,
+        limit: int | None = 50,
     ) -> list[CatalogEntryOut]:
         return [
             to_out(item)
@@ -34,6 +35,7 @@ class CatalogService:
                 edition=edition,
                 q=q,
                 parent_id=parent_id,
+                limit=limit,
             )
         ]
 

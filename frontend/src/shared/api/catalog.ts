@@ -37,12 +37,14 @@ export async function listCatalogEntries(params: {
   edition?: RulesEdition
   q?: string
   parentId?: string
+  limit?: number
 }): Promise<CatalogEntry[]> {
   const search = new URLSearchParams()
   if (params.kind) search.set('kind', params.kind)
   if (params.edition) search.set('edition', params.edition)
   if (params.q?.trim()) search.set('q', params.q.trim())
   if (params.parentId) search.set('parent_id', params.parentId)
+  if (params.limit != null) search.set('limit', String(params.limit))
   const query = search.toString()
   return apiRequest<CatalogEntry[]>(`/catalog${query ? `?${query}` : ''}`)
 }

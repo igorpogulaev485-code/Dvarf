@@ -20,6 +20,7 @@ def list_catalog_entries(
     edition: str | None = Query(default=None, pattern="^(2014|2024)$"),
     q: str | None = Query(default=None, min_length=1, max_length=120),
     parent_id: UUID | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=500),
 ) -> list[CatalogEntryOut]:
     _ = current_user
     return CatalogService(db).list_entries(
@@ -27,6 +28,7 @@ def list_catalog_entries(
         edition=edition,
         q=q,
         parent_id=parent_id,
+        limit=limit,
     )
 
 

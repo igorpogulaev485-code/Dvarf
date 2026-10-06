@@ -61,7 +61,7 @@ export function GrimoireDialog({
     let active = true
     setLoading(true)
     setError(null)
-    listCatalogEntries({ kind: 'spell', edition })
+    listCatalogEntries({ kind: 'spell', edition, limit: 500 })
       .then((items) => {
         if (!active) return
         setEntries(items)

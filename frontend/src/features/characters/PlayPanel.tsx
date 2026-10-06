@@ -107,7 +107,7 @@ export function PlayPanel({
 
   useEffect(() => {
     let active = true
-    listCatalogEntries({ kind: 'condition', edition })
+    listCatalogEntries({ kind: 'condition', edition, limit: 50 })
       .then((items) => {
         if (active) setCatalogConditions(items)
       })

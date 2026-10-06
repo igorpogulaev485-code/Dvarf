@@ -25,6 +25,8 @@ function kindLabel(kind: CatalogKind): string {
   return kind
 }
 
+const SEARCH_LIMIT = 40
+
 export function CatalogCombobox({
   id,
   kind,
@@ -52,11 +54,29 @@ export function CatalogCombobox({
 
   useEffect(() => {
     let active = true
+    const trimmed = query.trim()
+
+    // After SRD load, empty query used to pull hundreds of rows per field.
+    // Search only when the user (or a prefilled value) provides text.
+    if (!trimmed) {
+      setEntries([])
+      setOptions([])
+      setLoading(false)
+      return () => {
+        active = false
+      }
+    }
+
     const timer = window.setTimeout(() => {
       setLoading(true)
       Promise.all(
         resolvedKinds.map((entryKind) =>
-          listCatalogEntries({ kind: entryKind, edition, q: query || undefined }),
+          listCatalogEntries({
+            kind: entryKind,
+            edition,
+            q: trimmed,
+            limit: SEARCH_LIMIT,
+          }),
         ),
       )
         .then((groups) => {

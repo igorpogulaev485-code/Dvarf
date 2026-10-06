@@ -20,6 +20,7 @@ class CatalogRepository:
         q: str | None = None,
         parent_id: UUID | None = None,
         include_inactive: bool = False,
+        limit: int | None = 50,
     ) -> list[CatalogEntry]:
         stmt = select(CatalogEntry)
         if not include_inactive:
@@ -45,6 +46,8 @@ class CatalogRepository:
                 )
             )
         stmt = stmt.order_by(CatalogEntry.sort_order.asc(), CatalogEntry.name_ru.asc())
+        if limit is not None:
+            stmt = stmt.limit(limit)
         return list(self.db.scalars(stmt).all())
 
     def get_by_id(self, entry_id: UUID) -> CatalogEntry | None:
