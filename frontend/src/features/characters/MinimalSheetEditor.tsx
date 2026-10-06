@@ -47,6 +47,7 @@ import {
   readIdentityExtras,
   type IdentityExtras,
 } from './identity'
+import { applyRaceCatalogToDraft } from './raceEffects'
 import {
   equippedArmorPieces,
   inventoryToSheet,
@@ -567,22 +568,72 @@ export function MinimalSheetEditor({
           <Field label="Бонус мастерства">
             <Input value={formatModifier(proficiencyBonus)} readOnly />
           </Field>
-          <Field label="Раса" htmlFor="sheet-race" hint="Можно ввести своё или выбрать из списка">
-            <CatalogCombobox
-              id="sheet-race"
-              kind="race"
-              edition={baseCharacter.rules_edition as RulesEdition}
-              value={draft.raceName}
-              placeholder="Начните вводить расу"
-              onChange={(value, selected) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  raceName: value,
-                  raceCatalogId: selected?.id ?? null,
-                }))
-              }
-            />
-          </Field>
+          <div className="sheet-grid sheet-grid--2">
+            <Field
+              label="Раса"
+              htmlFor="sheet-race"
+              hint="Выбор из каталога подставляет скорость, ТЗ, языки и блок особенностей"
+            >
+              <CatalogCombobox
+                id="sheet-race"
+                kind="race"
+                edition={baseCharacter.rules_edition as RulesEdition}
+                value={draft.raceName}
+                placeholder="Начните вводить расу"
+                onChange={(value, selected) => {
+                  if (!selected) {
+                    setDraft((prev) => ({
+                      ...prev,
+                      raceName: value,
+                      raceCatalogId: null,
+                    }))
+                    return
+                  }
+                  let toast: string | null = null
+                  setDraft((prev) => {
+                    const applied = applyRaceCatalogToDraft({
+                      selected,
+                      identity: prev.identity,
+                      textBlocks: prev.textBlocks,
+                      previousRaceLanguages: prev.identity.raceAppliedLanguages,
+                    })
+                    if (!applied) {
+                      return {
+                        ...prev,
+                        raceName: selected.name_ru,
+                        raceCatalogId: selected.id,
+                      }
+                    }
+                    toast = `Раса «${selected.name_ru}»: ${applied.summary}`
+                    return {
+                      ...prev,
+                      raceName: selected.name_ru,
+                      raceCatalogId: selected.id,
+                      speed: applied.speed,
+                      identity: applied.identity,
+                      textBlocks: applied.textBlocks,
+                    }
+                  })
+                  if (toast) onToast(toast)
+                }}
+              />
+            </Field>
+            <Field label="Размер" htmlFor="sheet-size">
+              <select
+                id="sheet-size"
+                className="play-select"
+                value={draft.identity.size || 'medium'}
+                onChange={(event) => patchIdentity({ size: event.target.value })}
+              >
+                <option value="tiny">Крошечный</option>
+                <option value="small">Маленький</option>
+                <option value="medium">Средний</option>
+                <option value="large">Большой</option>
+                <option value="huge">Огромный</option>
+                <option value="gargantuan">Громадный</option>
+              </select>
+            </Field>
+          </div>
           <div>
             <Text tone="muted">Классы</Text>
             <Stack gap={10}>

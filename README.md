@@ -105,7 +105,9 @@ flowchart TB
 | Sheet P2 | авто-ячейки и лимит подготовки от класса/уровня (2014) | ✅ |
 | Sheet P3 | КД от надетого доспеха / щита (override как у инициативы) | ✅ |
 | Sheet P4 | языки и инструменты (пресеты + свой текст) | ✅ |
-| Polish | multiclass, race→эффекты, rich-text | backlog |
+| Sheet P5 | multiclass: +1 уровень → этот класс / новый | ✅ / PR |
+| Sheet P6 | race → эффекты (скорость, ТЗ, языки, traits) | ✅ / PR |
+| Polish | rich-text в блоках; ASI от расы автоматически | backlog |
 
 ### Фаза B — Classic PDF-like *(параллельно другим агентом)*
 
@@ -156,17 +158,19 @@ flowchart LR
 - Sheet P2: class/level 2014 slot table + prepare limit
 - Sheet P3: AC from equipped armor/shield + manual override
 - Sheet P4: languages + tools proficiency lists
+- Sheet P5: multiclass level-up (same class vs new class) + sheet.classes
+- Sheet P6: race catalog → speed / darkvision / languages / traits (+ size)
 - Prod Docker deploy (Timeweb)
 
 Прод: http://201.34.132.252/ — подробности в [`deploy/README.md`](deploy/README.md).
 
 ## Очередь ближайших слайсов
 
-**Digital sheet (этот контур):** P4 языки/инструменты ✅. Дальше Polish по отдельному плану (multiclass / race→эффекты / rich-text).
+**Digital sheet (этот контур):** P5/P6 (multiclass + race→эффекты) в PR. Дальше: rich-text в текстовых блоках; опционально авто-ASI от расы.
 
 Параллельно другими агентами (не этот чат): Classic PDF-like · ЛК · Party frame.
 
-Backlog листа (не начинать без плана): multiclass; race → эффекты на лист; rich-text в блоках.
+Backlog листа (не начинать без плана): rich-text в блоках; ASI ledger от расы.
 
 ## Стек
 
