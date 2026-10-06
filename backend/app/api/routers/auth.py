@@ -24,9 +24,13 @@ from app.schemas.auth import (
     OAuthStartResponse,
     RefreshRequest,
     RegisterRequest,
+    RegisterResponse,
+    ResendVerificationRequest,
+    ResendVerificationResponse,
     ResetPasswordRequest,
     ResetPasswordResponse,
     TokenResponse,
+    VerifyEmailRequest,
 )
 from app.schemas.user import UserResponse, UserUpdateRequest
 from app.services.auth import AuthService, serialize_user
@@ -48,14 +52,27 @@ def _provider(provider: AuthProvider):
     )
 
 
-@router.post("/register", response_model=TokenResponse)
-def register(payload: RegisterRequest, db: DbSession) -> TokenResponse:
-    return AuthService(db).register(payload.email, payload.password)
+@router.post("/register", response_model=RegisterResponse)
+def register(payload: RegisterRequest, db: DbSession) -> RegisterResponse:
+    return AuthService(db).register(payload.email, payload.password, payload.display_name)
 
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: DbSession) -> TokenResponse:
     return AuthService(db).login(payload.email, payload.password)
+
+
+@router.post("/verify-email", response_model=TokenResponse)
+def verify_email(payload: VerifyEmailRequest, db: DbSession) -> TokenResponse:
+    return AuthService(db).verify_email(payload.token)
+
+
+@router.post("/resend-verification", response_model=ResendVerificationResponse)
+def resend_verification(
+    payload: ResendVerificationRequest,
+    db: DbSession,
+) -> ResendVerificationResponse:
+    return AuthService(db).resend_verification(payload.email)
 
 
 @router.post("/refresh", response_model=TokenResponse)

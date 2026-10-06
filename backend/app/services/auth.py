@@ -19,6 +19,7 @@ from app.core.security import (
 )
 from app.models.user import AuthProvider, User
 from app.repositories.email_change import EmailChangeRepository
+from app.repositories.email_verification import EmailVerificationRepository
 from app.repositories.password_reset import PasswordResetRepository
 from app.repositories.user import UserRepository
 from app.schemas.auth import (
@@ -27,6 +28,8 @@ from app.schemas.auth import (
     EmailChangeConfirmResponse,
     EmailChangeRequestResponse,
     ForgotPasswordResponse,
+    RegisterResponse,
+    ResendVerificationResponse,
     ResetPasswordResponse,
     TokenResponse,
 )
@@ -45,6 +48,7 @@ def serialize_user(user: User) -> UserResponse:
         full_name=user.full_name,
         phone=user.phone,
         avatar_url=user.avatar_url,
+        email_verified_at=user.email_verified_at,
         created_at=user.created_at,
         updated_at=user.updated_at,
         providers=[identity.provider.value for identity in user.identities],
@@ -69,15 +73,70 @@ class AuthService:
         self.users = UserRepository(db)
         self.password_resets = PasswordResetRepository(db)
         self.email_changes = EmailChangeRepository(db)
+        self.email_verifications = EmailVerificationRepository(db)
 
-    def register(self, email: str, password: str) -> TokenResponse:
+    def _issue_verification_and_send(self, user: User) -> tuple[str, str | None]:
+        """Create verification token and send (or stub). Returns (message, debug_url)."""
+        from app.services.mail import MailError, send_registration_verify_email, smtp_configured
+
+        assert user.email is not None
+        self.email_verifications.invalidate_active_for_user(user.id)
+        raw_token = secrets.token_urlsafe(32)
+        self.email_verifications.create(
+            user_id=user.id,
+            token_hash=_hash_reset_token(raw_token),
+            expires_at=datetime.now(UTC)
+            + timedelta(minutes=settings.email_verification_ttl_minutes),
+        )
+        self.db.commit()
+
+        verify_url = (
+            f"{settings.app_public_url.rstrip('/')}/verify-email?token={raw_token}"
+        )
+        debug_url: str | None = None
+
+        if settings.auth_email_stub or not smtp_configured():
+            logger.info("Email verification stub for %s: %s", user.email, verify_url)
+            if settings.auth_email_stub:
+                debug_url = verify_url
+            message = (
+                f"Мы отправили ссылку подтверждения на {user.email}. "
+                "Аккаунт активируется после перехода по ссылке. "
+                "Сейчас почта ещё не подключена — это заглушка."
+            )
+        else:
+            try:
+                send_registration_verify_email(to=user.email, verify_url=verify_url)
+            except MailError as exc:
+                raise AppError(
+                    "Не удалось отправить письмо. Попробуйте позже.",
+                    code="mail_send_failed",
+                    status_code=502,
+                ) from exc
+            message = (
+                f"Мы отправили ссылку подтверждения на {user.email}. "
+                "Аккаунт активируется после перехода по ссылке."
+            )
+
+        return message, debug_url
+
+    def register(self, email: str, password: str, display_name: str) -> RegisterResponse:
+        name = display_name.strip()
+        if len(name) < 2:
+            raise AppError(
+                "Укажите никнейм не короче 2 символов",
+                code="display_name_too_short",
+                status_code=400,
+            )
+
         if self.users.get_by_email(email):
             raise ConflictError("Такой email уже зарегистрирован", code="email_taken")
 
         user = self.users.create_user(
             email=email,
             password_hash=hash_password(password),
-            display_name=email.split("@")[0],
+            display_name=name,
+            email_verified_at=None,
         )
         self.users.add_identity(
             user=user,
@@ -85,11 +144,13 @@ class AuthService:
             provider_user_id=str(user.id),
         )
         self.db.commit()
-        self.db.refresh(user)
-        # Reload with identities
-        loaded = self.users.get_by_id(user.id)
-        assert loaded is not None
-        return issue_tokens(loaded)
+
+        message, debug_url = self._issue_verification_and_send(user)
+        return RegisterResponse(
+            message=message,
+            stub=settings.auth_email_stub,
+            debug_verify_url=debug_url,
+        )
 
     def login(self, email: str, password: str) -> TokenResponse:
         user = self.users.get_by_email(email)
@@ -97,10 +158,56 @@ class AuthService:
             raise UnauthorizedError("Неверный email или пароль")
         if not verify_password(password, user.password_hash):
             raise UnauthorizedError("Неверный email или пароль")
+        if user.email_verified_at is None:
+            raise AppError(
+                "Подтвердите email по ссылке из письма. Без этого вход недоступен.",
+                code="email_not_verified",
+                status_code=403,
+            )
 
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
         return issue_tokens(loaded)
+
+    def verify_email(self, token: str) -> TokenResponse:
+        record = self.email_verifications.get_active_by_hash(_hash_reset_token(token))
+        if record is None or record.user is None:
+            raise AppError(
+                "Ссылка подтверждения недействительна или устарела",
+                code="invalid_verification_token",
+                status_code=400,
+            )
+
+        user = record.user
+        self.users.mark_email_verified(user)
+        self.email_verifications.mark_used(record)
+        self.db.commit()
+
+        loaded = self.users.get_by_id(user.id)
+        assert loaded is not None
+        return issue_tokens(loaded)
+
+    def resend_verification(self, email: str) -> ResendVerificationResponse:
+        """Same public message whether or not the account exists / needs verify."""
+        public = (
+            "Если аккаунт с таким email ждёт подтверждения, мы отправили новую ссылку."
+        )
+        user = self.users.get_by_email(email)
+        debug_url: str | None = None
+
+        if user is not None and user.password_hash and user.email_verified_at is None:
+            message, debug_url = self._issue_verification_and_send(user)
+            return ResendVerificationResponse(
+                message=message,
+                stub=settings.auth_email_stub,
+                debug_verify_url=debug_url,
+            )
+
+        return ResendVerificationResponse(
+            message=public,
+            stub=settings.auth_email_stub,
+            debug_verify_url=None,
+        )
 
     def refresh(self, refresh_token: str) -> TokenResponse:
         try:
@@ -162,6 +269,7 @@ class AuthService:
             display_name=profile.display_name,
             full_name=profile.full_name,
             avatar_url=profile.avatar_url,
+            email_verified_at=datetime.now(UTC) if profile.email else None,
         )
         self.users.add_identity(
             user=user,
@@ -396,6 +504,8 @@ class AuthService:
             raise ConflictError("Этот email уже занят", code="email_taken")
 
         self.users.set_email(user, new_email)
+        if user.email_verified_at is None:
+            self.users.mark_email_verified(user)
         self.email_changes.mark_used(record)
         self.db.commit()
         loaded = self.users.get_by_id(user.id)

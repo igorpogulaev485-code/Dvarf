@@ -17,7 +17,7 @@
 - Frontend: React + Vite
 - Backend: Python + FastAPI (REST)
 - DB: PostgreSQL
-- Auth: email/password + JWT; OAuth Yandex/VK — stubs до секретов
+- Auth: email/password + JWT; регистрация с обязательным никнеймом и подтверждением email; OAuth Yandex/VK — stubs до секретов
 
 ## Статус (сейчас)
 
@@ -73,7 +73,8 @@ uvicorn app.main:app --reload --port 8000
 
 Auth:
 
-- `POST /auth/register`
+- `POST /auth/register` (никнейм обязателен; письмо подтверждения, токены только после verify)
+- `POST /auth/verify-email` / `POST /auth/resend-verification`
 - `POST /auth/login`
 - `POST /auth/refresh`
 - `POST /auth/logout`

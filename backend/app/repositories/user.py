@@ -41,6 +41,7 @@ class UserRepository:
         display_name: str | None = None,
         full_name: str | None = None,
         avatar_url: str | None = None,
+        email_verified_at=None,
     ) -> User:
         user = User(
             email=email.lower() if email else None,
@@ -48,7 +49,16 @@ class UserRepository:
             display_name=display_name,
             full_name=full_name,
             avatar_url=avatar_url,
+            email_verified_at=email_verified_at,
         )
+        self.db.add(user)
+        self.db.flush()
+        return user
+
+    def mark_email_verified(self, user: User) -> User:
+        from datetime import UTC, datetime
+
+        user.email_verified_at = datetime.now(UTC)
         self.db.add(user)
         self.db.flush()
         return user

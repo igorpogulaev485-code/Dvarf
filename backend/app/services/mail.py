@@ -78,3 +78,16 @@ def send_email_change_confirm(*, to: str, new_email: str, confirm_url: str) -> N
             "Если это были не вы — проигнорируйте письмо, адрес не изменится.\n"
         ),
     )
+
+
+def send_registration_verify_email(*, to: str, verify_url: str) -> None:
+    send_email(
+        to=to,
+        subject="Dvarf — подтверждение регистрации",
+        text_body=(
+            "Добро пожаловать в Dvarf!\n\n"
+            "Чтобы завершить регистрацию, подтвердите email по ссылке "
+            f"(действует ограниченное время):\n{verify_url}\n\n"
+            "Если вы не регистрировались — просто проигнорируйте письмо.\n"
+        ),
+    )

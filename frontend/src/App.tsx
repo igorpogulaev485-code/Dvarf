@@ -5,6 +5,7 @@ import { CharacterDetailPage } from './pages/CharacterDetailPage'
 import { CharactersPage } from './pages/CharactersPage'
 import { ConfirmEmailPage } from './pages/ConfirmEmailPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
+import { VerifyEmailPage } from './pages/VerifyEmailPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
 
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/login" element={<AuthDebugPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/confirm-email" element={<ConfirmEmailPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route
           path="/characters"
           element={

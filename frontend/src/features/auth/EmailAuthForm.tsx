@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { login, register, type User } from '../../shared/api/auth'
+import {
+  login,
+  register,
+  resendVerification,
+  type User,
+} from '../../shared/api/auth'
 import { ApiRequestError } from '../../shared/api/client'
 import { EMAIL_ERROR_TEXT, isValidEmail } from '../../shared/lib/email'
 import { Button, Field, Input, PasswordInput, Stack, Text } from '../../ui'
@@ -12,11 +17,16 @@ type EmailAuthFormProps = {
 }
 
 export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFormProps) {
+  const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [emailError, setEmailError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [registerMessage, setRegisterMessage] = useState<string | null>(null)
+  const [debugVerifyUrl, setDebugVerifyUrl] = useState<string | null>(null)
+  const [needsVerification, setNeedsVerification] = useState(false)
   const [pending, setPending] = useState(false)
+  const [resendPending, setResendPending] = useState(false)
 
   function validateEmailField(value: string): boolean {
     if (!value.trim()) {
@@ -34,6 +44,17 @@ export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFo
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
+    setRegisterMessage(null)
+    setDebugVerifyUrl(null)
+    setNeedsVerification(false)
+
+    if (mode === 'register') {
+      const name = displayName.trim()
+      if (name.length < 2) {
+        setError('Укажите никнейм не короче 2 символов')
+        return
+      }
+    }
 
     if (!validateEmailField(email)) {
       return
@@ -47,16 +68,22 @@ export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFo
     setPending(true)
 
     try {
-      const result =
-        mode === 'register'
-          ? await register(email.trim(), password)
-          : await login(email.trim(), password)
-      onSuccess(result.user)
+      if (mode === 'register') {
+        const result = await register(email.trim(), password, displayName.trim())
+        setRegisterMessage(result.message)
+        setDebugVerifyUrl(result.debug_verify_url)
+      } else {
+        const result = await login(email.trim(), password)
+        onSuccess(result.user)
+      }
     } catch (err) {
       if (err instanceof ApiRequestError) {
         if (err.status === 422) {
           setEmailError(EMAIL_ERROR_TEXT)
           setError(null)
+        } else if (err.code === 'email_not_verified') {
+          setNeedsVerification(true)
+          setError(err.message)
         } else {
           setError(err.message)
         }
@@ -68,9 +95,47 @@ export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFo
     }
   }
 
+  async function handleResend() {
+    setResendPending(true)
+    setError(null)
+    try {
+      const result = await resendVerification(email.trim())
+      setRegisterMessage(result.message)
+      setDebugVerifyUrl(result.debug_verify_url)
+      setNeedsVerification(false)
+    } catch (err) {
+      setError(
+        err instanceof ApiRequestError
+          ? err.message
+          : 'Не удалось отправить письмо ещё раз',
+      )
+    } finally {
+      setResendPending(false)
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} noValidate>
       <Stack gap={14}>
+        {mode === 'register' ? (
+          <Field
+            label="Никнейм"
+            htmlFor={`${mode}-display-name`}
+            hint="Обязательно, так вас будут видеть в Dvarf"
+          >
+            <Input
+              id={`${mode}-display-name`}
+              autoComplete="nickname"
+              required
+              minLength={2}
+              maxLength={128}
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              placeholder="Например, Thorin"
+            />
+          </Field>
+        ) : null}
+
         <Field
           label="Email"
           htmlFor={`${mode}-email`}
@@ -116,7 +181,21 @@ export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFo
           />
         </Field>
         {error ? <Text tone="danger">{error}</Text> : null}
-        <Button type="submit" disabled={pending}>
+        {registerMessage ? <Text tone="success">{registerMessage}</Text> : null}
+        {debugVerifyUrl ? (
+          <Stack gap={6}>
+            <Text tone="muted">Заглушка почты — ссылка для теста:</Text>
+            <a className="back-link" href={debugVerifyUrl}>
+              Подтвердить email
+            </a>
+          </Stack>
+        ) : null}
+        {needsVerification ? (
+          <Button type="button" variant="secondary" onClick={handleResend} disabled={resendPending}>
+            {resendPending ? 'Отправляем…' : 'Отправить письмо ещё раз'}
+          </Button>
+        ) : null}
+        <Button type="submit" disabled={pending || Boolean(registerMessage && mode === 'register')}>
           {pending ? '...' : mode === 'register' ? 'Зарегистрироваться' : 'Войти'}
         </Button>
         {mode === 'login' && onForgotPassword ? (

@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     auth_email_stub: bool = True
     password_reset_ttl_minutes: int = 30
     email_change_ttl_minutes: int = 30
+    email_verification_ttl_minutes: int = 60
 
     smtp_host: str = ""
     smtp_port: int = 465

@@ -1,6 +1,6 @@
 from app.models.catalog import CatalogEntry, CatalogKind, CatalogRulesEdition
 from app.models.character import Character, RulesEdition
-from app.models.user import AuthProvider, EmailChangeToken, PasswordResetToken, User, UserIdentity
+from app.models.user import AuthProvider, EmailChangeToken, EmailVerificationToken, PasswordResetToken, User, UserIdentity
 
 __all__ = [
     "AuthProvider",
@@ -9,6 +9,7 @@ __all__ = [
     "CatalogRulesEdition",
     "Character",
     "EmailChangeToken",
+    "EmailVerificationToken",
     "PasswordResetToken",
     "RulesEdition",
     "User",
