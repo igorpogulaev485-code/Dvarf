@@ -16,6 +16,8 @@ type CatalogComboboxProps = {
   placeholder?: string
   disabled?: boolean
   optionLabel?: (entry: CatalogEntry) => string
+  /** Keep only matching catalog rows in the dropdown. */
+  filterEntry?: (entry: CatalogEntry) => boolean
   onChange: (value: string, selected: CatalogEntry | null) => void
 }
 
@@ -34,6 +36,7 @@ export function CatalogCombobox({
   placeholder,
   disabled,
   optionLabel,
+  filterEntry,
   onChange,
 }: CatalogComboboxProps) {
   const [options, setOptions] = useState<ComboboxOption[]>([])
@@ -61,10 +64,13 @@ export function CatalogCombobox({
       )
         .then((groups) => {
           if (!active) return
-          const items = groups.flat().sort((a, b) => {
-            if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
-            return a.name_ru.localeCompare(b.name_ru, 'ru')
-          })
+          const items = groups
+            .flat()
+            .filter((item) => (filterEntry ? filterEntry(item) : true))
+            .sort((a, b) => {
+              if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
+              return a.name_ru.localeCompare(b.name_ru, 'ru')
+            })
           setEntries(items)
           setOptions(
             items.map((item) => ({
@@ -91,7 +97,7 @@ export function CatalogCombobox({
       active = false
       window.clearTimeout(timer)
     }
-  }, [edition, optionLabel, query, resolvedKinds])
+  }, [edition, filterEntry, optionLabel, query, resolvedKinds])
 
   return (
     <Combobox
