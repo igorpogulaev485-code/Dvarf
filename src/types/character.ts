@@ -60,6 +60,8 @@ export interface Character {
   background: string;
   playerName: string;
   race: string;
+  /** id из справочника `src/data/races` (например `dwarf-hill`) */
+  raceId?: string;
   alignment: string;
   experiencePoints: string;
 
