@@ -2,7 +2,7 @@
   "meta": {
     "edition": "2014",
     "source": "phb",
-    "notes_ru": "Аудит по ttg/dnd.su. Дварф 6; эльф 6 (PHB+MToF); полурослик 5 (PHB+SCAG+ERLW, без EGW); гном 4 (PHB+глубинный+ERLW)."
+    "notes_ru": "Аудит ttg/dnd.su. Дварф6 эльф6 полурослик5 гном4; полуэльф SCAG+ERLW; тифлинг MTF bloodlines (+PHB base)."
   },
   "deactivate_slugs": [
     "orc"
@@ -885,8 +885,187 @@
         "count": 2,
         "from": "any"
       },
-      "traits_text": "Полуэльф (2014): +2 Хар и +1 к двум другим. Тёмное зрение 60 фт. Наследие фей. Два навыка на выбор. Язык на выбор.",
+      "traits_text": "Полуэльф (2014): +2 Хар и +1 к двум другим. Тёмное зрение 60 фт. Наследие фей. Два навыка на выбор. Язык на выбор. Наследия SCAG и метки ERLW — опционально в попапе.",
       "subrace_required": false
+    },
+    {
+      "slug": "half_elf_wood",
+      "name_ru": "Полуэльф (лесной, SCAG)",
+      "name_en": "Half-Elf (Wood Heritage)",
+      "parent_slug": "half_elf",
+      "selectable": true,
+      "source": "scag",
+      "sort_order": 71,
+      "speed": 35,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "cha": 2
+      },
+      "ability_bonus_choices": {
+        "count": 2,
+        "amount": 1,
+        "from": "any",
+        "exclude": [
+          "cha"
+        ]
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 1,
+      "weapon_proficiencies": [
+        "Длинный меч",
+        "Короткий меч",
+        "Короткий лук",
+        "Длинный лук"
+      ],
+      "traits_text": "Полуэльф (лесной, SCAG): +2 Хар и +1 к двум другим. Вместо универсальности навыков — эльфийское оружие / скорость 35 / маскировка в дикой местности (в каталоге: оружие + скорость 35; маскировка в тексте). Наследие фей. Язык на выбор."
+    },
+    {
+      "slug": "half_elf_high",
+      "name_ru": "Полуэльф (высший, SCAG)",
+      "name_en": "Half-Elf (High Heritage)",
+      "parent_slug": "half_elf",
+      "selectable": true,
+      "source": "scag",
+      "sort_order": 72,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "cha": 2
+      },
+      "ability_bonus_choices": {
+        "count": 2,
+        "amount": 1,
+        "from": "any",
+        "exclude": [
+          "cha"
+        ]
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 1,
+      "weapon_proficiencies": [
+        "Длинный меч",
+        "Короткий меч",
+        "Короткий лук",
+        "Длинный лук"
+      ],
+      "traits_text": "Полуэльф (высший / лунный-солнечный, SCAG): +2 Хар и +1 к двум другим. Вместо универсальности навыков — эльфийское оружие или заговор волшебника (ИНТ). Наследие фей. Язык на выбор."
+    },
+    {
+      "slug": "half_elf_drow",
+      "name_ru": "Полуэльф (дроу, SCAG)",
+      "name_en": "Half-Elf (Drow Heritage)",
+      "parent_slug": "half_elf",
+      "selectable": true,
+      "source": "scag",
+      "sort_order": 73,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "cha": 2
+      },
+      "ability_bonus_choices": {
+        "count": 2,
+        "amount": 1,
+        "from": "any",
+        "exclude": [
+          "cha"
+        ]
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Полуэльф (дроу, SCAG): +2 Хар и +1 к двум другим. Вместо универсальности навыков — магия дроу (пляшущие огоньки; с 3 ур. огонь фей; с 5 ур. тьма — ХАР). Наследие фей. Язык на выбор."
+    },
+    {
+      "slug": "half_elf_aquatic",
+      "name_ru": "Полуэльф (водный, SCAG)",
+      "name_en": "Half-Elf (Aquatic Heritage)",
+      "parent_slug": "half_elf",
+      "selectable": true,
+      "source": "scag",
+      "sort_order": 74,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "cha": 2
+      },
+      "ability_bonus_choices": {
+        "count": 2,
+        "amount": 1,
+        "from": "any",
+        "exclude": [
+          "cha"
+        ]
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Полуэльф (водный, SCAG): +2 Хар и +1 к двум другим. Вместо универсальности навыков — скорость плавания 30 фт. Наследие фей. Язык на выбор."
+    },
+    {
+      "slug": "mark_of_detection",
+      "name_ru": "Полуэльф (метка обнаружения)",
+      "name_en": "Mark of Detection Half-Elf",
+      "parent_slug": "half_elf",
+      "selectable": true,
+      "source": "erlw",
+      "sort_order": 75,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "wis": 2
+      },
+      "ability_bonus_choices": {
+        "count": 1,
+        "amount": 1,
+        "from": "any",
+        "exclude": [
+          "wis"
+        ]
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Полуэльф (метка обнаружения, ERLW): +2 Муд и +1 к другой (вместо PHB ASI/навыков). Интуиция сыщика (d4 к Анализу / Проницательности). Чутьё угроз: Обнаружение магии и Обнаружение яда (1/длинный отдых, МУД). Заклинания метки — если есть классовое колдовство. Наследие фей."
+    },
+    {
+      "slug": "mark_of_storm",
+      "name_ru": "Полуэльф (метка бури)",
+      "name_en": "Mark of Storm Half-Elf",
+      "parent_slug": "half_elf",
+      "selectable": true,
+      "source": "erlw",
+      "sort_order": 76,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "cha": 2,
+        "dex": 1
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Полуэльф (метка бури, ERLW): +2 Хар, +1 Лов (вместо PHB ASI/навыков). Интуиция ветродела (d4 к Акробатике / инструментам навигатора). Сопротивление электричеству. Встречные ветра: Шквал; с 3 ур. Порыв ветра (ХАР). Заклинания метки — если есть классовое колдовство. Наследие фей."
     },
     {
       "slug": "half_orc",
@@ -934,8 +1113,206 @@
         "Инфернальный"
       ],
       "languages_choose": 0,
-      "traits_text": "Тифлинг (2014): +2 Хар, +1 Инт. Тёмное зрение 60 фт. Сопротивление огню. Адское наследие (тауматургия / адское возмездие / тьма).",
+      "traits_text": "Тифлинг (PHB / Асмодей, 2014): +2 Хар, +1 Инт. Тёмное зрение 60 фт. Сопротивление огню. Адское наследие (чудотворство / адское возмездие / тьма). Варианты крови — в попапе.",
       "subrace_required": false
+    },
+    {
+      "slug": "tiefling_baalzebul",
+      "name_ru": "Тифлинг (Вельзевул)",
+      "name_en": "Tiefling (Baalzebul)",
+      "parent_slug": "tiefling",
+      "selectable": true,
+      "source": "mtf",
+      "sort_order": 91,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Инфернальный"
+      ],
+      "languages_choose": 0,
+      "ability_bonuses": {
+        "cha": 2,
+        "int": 1
+      },
+      "traits_text": "Тифлинг (Вельзевул, MToF): +2 Хар, +1 Инт. Тёмное зрение 60. Сопротивление огню. Наследие Маладомини: чудотворство; с 3 ур. луч болезни; с 5 ур. корона безумия (ХАР)."
+    },
+    {
+      "slug": "tiefling_dispater",
+      "name_ru": "Тифлинг (Диспатер)",
+      "name_en": "Tiefling (Dispater)",
+      "parent_slug": "tiefling",
+      "selectable": true,
+      "source": "mtf",
+      "sort_order": 92,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Инфернальный"
+      ],
+      "languages_choose": 0,
+      "ability_bonuses": {
+        "cha": 2,
+        "dex": 1
+      },
+      "traits_text": "Тифлинг (Диспатер, MToF): +2 Хар, +1 Лов. Тёмное зрение 60. Сопротивление огню. Наследие Диса: чудотворство; с 3 ур. маскировка; с 5 ур. обнаружение мыслей (ХАР)."
+    },
+    {
+      "slug": "tiefling_fierna",
+      "name_ru": "Тифлинг (Фьёрна)",
+      "name_en": "Tiefling (Fierna)",
+      "parent_slug": "tiefling",
+      "selectable": true,
+      "source": "mtf",
+      "sort_order": 93,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Инфернальный"
+      ],
+      "languages_choose": 0,
+      "ability_bonuses": {
+        "cha": 2,
+        "wis": 1
+      },
+      "traits_text": "Тифлинг (Фьёрна, MToF): +2 Хар, +1 Муд. Тёмное зрение 60. Сопротивление огню. Наследие Флегетоса: дружба; с 3 ур. очарование личности; с 5 ур. внушение (ХАР)."
+    },
+    {
+      "slug": "tiefling_glasya",
+      "name_ru": "Тифлинг (Гласия)",
+      "name_en": "Tiefling (Glasya)",
+      "parent_slug": "tiefling",
+      "selectable": true,
+      "source": "mtf",
+      "sort_order": 94,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Инфернальный"
+      ],
+      "languages_choose": 0,
+      "ability_bonuses": {
+        "cha": 2,
+        "dex": 1
+      },
+      "traits_text": "Тифлинг (Гласия, MToF): +2 Хар, +1 Лов. Тёмное зрение 60. Сопротивление огню. Наследие Малболга: малая иллюзия; с 3 ур. маскировка; с 5 ур. невидимость (ХАР)."
+    },
+    {
+      "slug": "tiefling_levistus",
+      "name_ru": "Тифлинг (Левистус)",
+      "name_en": "Tiefling (Levistus)",
+      "parent_slug": "tiefling",
+      "selectable": true,
+      "source": "mtf",
+      "sort_order": 95,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Инфернальный"
+      ],
+      "languages_choose": 0,
+      "ability_bonuses": {
+        "cha": 2,
+        "con": 1
+      },
+      "traits_text": "Тифлинг (Левистус, MToF): +2 Хар, +1 Тел. Тёмное зрение 60. Сопротивление огню. Наследие Стигии: луч холода; с 3 ур. доспех Агатиса; с 5 ур. тьма (ХАР)."
+    },
+    {
+      "slug": "tiefling_mammon",
+      "name_ru": "Тифлинг (Маммон)",
+      "name_en": "Tiefling (Mammon)",
+      "parent_slug": "tiefling",
+      "selectable": true,
+      "source": "mtf",
+      "sort_order": 96,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Инфернальный"
+      ],
+      "languages_choose": 0,
+      "ability_bonuses": {
+        "cha": 2,
+        "int": 1
+      },
+      "traits_text": "Тифлинг (Маммон, MToF): +2 Хар, +1 Инт. Тёмное зрение 60. Сопротивление огню. Наследие Минауроса: волшебная рука; с 3 ур. диск Тензера; с 5 ур. волшебный замок (ХАР)."
+    },
+    {
+      "slug": "tiefling_mephistopheles",
+      "name_ru": "Тифлинг (Мефистофель)",
+      "name_en": "Tiefling (Mephistopheles)",
+      "parent_slug": "tiefling",
+      "selectable": true,
+      "source": "mtf",
+      "sort_order": 97,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Инфернальный"
+      ],
+      "languages_choose": 0,
+      "ability_bonuses": {
+        "cha": 2,
+        "int": 1
+      },
+      "traits_text": "Тифлинг (Мефистофель, MToF): +2 Хар, +1 Инт. Тёмное зрение 60. Сопротивление огню. Наследие Кании: волшебная рука; с 3 ур. огненные ладони; с 5 ур. горящий клинок (ХАР)."
+    },
+    {
+      "slug": "tiefling_zariel",
+      "name_ru": "Тифлинг (Зариэль)",
+      "name_en": "Tiefling (Zariel)",
+      "parent_slug": "tiefling",
+      "selectable": true,
+      "source": "mtf",
+      "sort_order": 98,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Инфернальный"
+      ],
+      "languages_choose": 0,
+      "ability_bonuses": {
+        "cha": 2,
+        "str": 1
+      },
+      "traits_text": "Тифлинг (Зариэль, MToF): +2 Хар, +1 Сил. Тёмное зрение 60. Сопротивление огню. Наследие Авернуса: чудотворство; с 3 ур. палящая кара; с 5 ур. клеймящая кара (ХАР)."
+    },
+    {
+      "slug": "tiefling_feral",
+      "name_ru": "Тифлинг (звероподобный, SCAG)",
+      "name_en": "Tiefling (Feral)",
+      "parent_slug": "tiefling",
+      "selectable": true,
+      "source": "scag",
+      "sort_order": 99,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Инфернальный"
+      ],
+      "languages_choose": 0,
+      "ability_bonuses": {
+        "dex": 2,
+        "int": 1
+      },
+      "traits_text": "Тифлинг (звероподобный, SCAG): +2 Лов, +1 Инт (вместо PHB ASI). Тёмное зрение 60. Сопротивление огню. Адское наследие PHB (или согласуй с Мастером вариант языка/пламени/крыльев из SCAG)."
     }
   ]
 }
