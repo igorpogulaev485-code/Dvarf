@@ -7,9 +7,16 @@ export type User = {
   display_name: string | null
   full_name: string | null
   phone: string | null
+  avatar_url: string | null
   created_at: string
   updated_at: string
   providers: string[]
+}
+
+export type UserUpdatePayload = {
+  display_name: string | null
+  full_name: string | null
+  phone: string | null
 }
 
 export type TokenResponse = {
@@ -51,6 +58,13 @@ export async function logout(): Promise<void> {
 
 export async function getMe(): Promise<User> {
   return apiRequest<User>('/auth/me')
+}
+
+export async function updateMe(payload: UserUpdatePayload): Promise<User> {
+  return apiRequest<User>('/auth/me', {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
 }
 
 export async function startOAuth(provider: 'yandex' | 'vk'): Promise<OAuthStartResponse> {

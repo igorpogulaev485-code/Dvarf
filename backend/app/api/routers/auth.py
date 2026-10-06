@@ -20,7 +20,7 @@ from app.schemas.auth import (
     ResetPasswordResponse,
     TokenResponse,
 )
-from app.schemas.user import UserResponse
+from app.schemas.user import UserResponse, UserUpdateRequest
 from app.services.auth import AuthService, serialize_user
 from app.services.oauth import VkOAuthProvider, YandexOAuthProvider
 from app.services.oauth.state import consume_oauth_state, issue_oauth_state
@@ -74,6 +74,15 @@ def logout() -> Response:
 @router.get("/me", response_model=UserResponse)
 def me(current_user: CurrentUser) -> UserResponse:
     return serialize_user(current_user)
+
+
+@router.patch("/me", response_model=UserResponse)
+def update_me(
+    payload: UserUpdateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> UserResponse:
+    return AuthService(db).update_me(current_user.id, payload)
 
 
 @router.get("/oauth/{provider}/start", response_model=OAuthStartResponse)

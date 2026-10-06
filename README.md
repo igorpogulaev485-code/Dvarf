@@ -24,6 +24,7 @@
 Уже в продуктовой ветке / PR:
 
 - Auth (register/login/refresh, auto-refresh на 401)
+- Personal cabinet: profile edit (`display_name` / `full_name` / phone mask), avatar from OAuth, providers status
 - Characters CRUD, hybrid JSONB sheet + `sheet_version` (409 на конфликт)
 - Catalogs: races / classes / weapons + sample damaging artifacts
 - Sheet: identity, abilities, saves, skills
@@ -47,7 +48,7 @@
 - Party frame (QR join, мастер пачки)
 - Encounter prep → loot
 
-Backlog (отдельные слайсы): multiclass; race → эффекты на лист; rich-text в блоках; onboarding → тема UI; кабинет / мульти-auth.
+Backlog (отдельные слайсы): multiclass; race → эффекты на лист; rich-text в блоках; onboarding → тема UI; OAuth link/unlink в кабинете; upload аватара.
 
 ## Репозиторий и ветки
 
@@ -77,6 +78,7 @@ Auth:
 - `POST /auth/refresh`
 - `POST /auth/logout`
 - `GET /auth/me`
+- `PATCH /auth/me` (профиль: display_name, full_name, phone)
 - `GET /auth/oauth/{yandex|vk}/start` (stub)
 - `GET /auth/oauth/{yandex|vk}/callback` (stub)
 

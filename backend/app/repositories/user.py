@@ -40,13 +40,30 @@ class UserRepository:
         password_hash: str | None = None,
         display_name: str | None = None,
         full_name: str | None = None,
+        avatar_url: str | None = None,
     ) -> User:
         user = User(
             email=email.lower() if email else None,
             password_hash=password_hash,
             display_name=display_name,
             full_name=full_name,
+            avatar_url=avatar_url,
         )
+        self.db.add(user)
+        self.db.flush()
+        return user
+
+    def update_profile(
+        self,
+        user: User,
+        *,
+        display_name: str | None,
+        full_name: str | None,
+        phone: str | None,
+    ) -> User:
+        user.display_name = display_name
+        user.full_name = full_name
+        user.phone = phone
         self.db.add(user)
         self.db.flush()
         return user

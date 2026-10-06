@@ -83,6 +83,13 @@ class YandexOAuthProvider(OAuthProvider):
         email = info.get("default_email") or None
         display_name = info.get("display_name") or info.get("login") or None
         full_name = info.get("real_name") or None
+        avatar_id = str(info.get("default_avatar_id") or "").strip()
+        is_avatar_empty = bool(info.get("is_avatar_empty"))
+        avatar_url = (
+            f"https://avatars.yandex.net/get-yapic/{avatar_id}/islands-200"
+            if avatar_id and not is_avatar_empty
+            else None
+        )
 
         return OAuthProfile(
             provider=AuthProvider.yandex,
@@ -90,4 +97,5 @@ class YandexOAuthProvider(OAuthProvider):
             email=email,
             display_name=display_name,
             full_name=full_name,
+            avatar_url=avatar_url,
         )
