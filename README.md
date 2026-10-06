@@ -59,6 +59,7 @@ Backlog (отдельные слайсы): multiclass; race → эффекты �
 - Продуктовая работа — в feature-ветках `cursor/<name>-eb8e`, в `main` только через PR
 - После каждого approved-слайса: commit → push → обновить PR
 - Секреты и `.env` с ключами не коммитить (только `.env.example`)
+- Прод (Timeweb): http://201.34.132.252/ — деплой только по явной просьбе (`./deploy/sync-and-up.sh`, см. `deploy/README.md`)
 
 Основной PR разработки: смотри открытые PR в репо (обычно auth/sheet ветка).
 

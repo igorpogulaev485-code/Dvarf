@@ -1,7 +1,7 @@
 """expand spell seed for grimoire; add class tags
 
 Revision ID: f6071829a0b1
-Revises: e5f6071829a0
+Revises: f5e6a7b8c9d0
 Create Date: 2026-10-06 05:45:00.000000
 
 """
@@ -13,7 +13,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "f6071829a0b1"
-down_revision: Union[str, Sequence[str], None] = "e5f6071829a0"
+down_revision: Union[str, Sequence[str], None] = "f5e6a7b8c9d0"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

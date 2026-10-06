@@ -21,7 +21,7 @@ from app.models.user import AuthProvider, User
 from app.repositories.password_reset import PasswordResetRepository
 from app.repositories.user import UserRepository
 from app.schemas.auth import ForgotPasswordResponse, ResetPasswordResponse, TokenResponse
-from app.schemas.user import UserResponse
+from app.schemas.user import UserResponse, UserUpdateRequest
 from app.services.oauth.base import OAuthProfile
 
 logger = logging.getLogger(__name__)
@@ -35,6 +35,7 @@ def serialize_user(user: User) -> UserResponse:
         display_name=user.display_name,
         full_name=user.full_name,
         phone=user.phone,
+        avatar_url=user.avatar_url,
         created_at=user.created_at,
         updated_at=user.updated_at,
         providers=[identity.provider.value for identity in user.identities],
@@ -111,9 +112,31 @@ class AuthService:
             raise UnauthorizedError("Пользователь не найден")
         return serialize_user(user)
 
+    def update_me(self, user_id: UUID, payload: UserUpdateRequest) -> UserResponse:
+        user = self.users.get_by_id(user_id)
+        if user is None:
+            raise UnauthorizedError("Пользователь не найден")
+
+        self.users.update_profile(
+            user,
+            display_name=payload.display_name,
+            full_name=payload.full_name,
+            phone=payload.phone,
+        )
+        self.db.commit()
+        loaded = self.users.get_by_id(user_id)
+        assert loaded is not None
+        return serialize_user(loaded)
+
     def login_with_oauth_profile(self, profile: OAuthProfile) -> TokenResponse:
         existing = self.users.get_by_identity(profile.provider, profile.provider_user_id)
         if existing is not None:
+            if profile.avatar_url and not existing.avatar_url:
+                existing.avatar_url = profile.avatar_url
+                self.db.commit()
+                loaded = self.users.get_by_id(existing.id)
+                assert loaded is not None
+                return issue_tokens(loaded)
             return issue_tokens(existing)
 
         if profile.email:
@@ -128,6 +151,7 @@ class AuthService:
             email=profile.email,
             display_name=profile.display_name,
             full_name=profile.full_name,
+            avatar_url=profile.avatar_url,
         )
         self.users.add_identity(
             user=user,

@@ -4,7 +4,7 @@ from app.schemas.auth import (
     RegisterRequest,
     TokenResponse,
 )
-from app.schemas.user import UserResponse
+from app.schemas.user import UserResponse, UserUpdateRequest
 
 __all__ = [
     "LoginRequest",
@@ -12,4 +12,5 @@ __all__ = [
     "RegisterRequest",
     "TokenResponse",
     "UserResponse",
+    "UserUpdateRequest",
 ]
