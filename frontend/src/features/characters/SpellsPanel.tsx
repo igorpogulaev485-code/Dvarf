@@ -1,12 +1,17 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
+  applySpellcastingSuggestion,
+  suggestSpellcasting,
+} from '../../shared/dnd/casterProgression'
+import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import { setConcentration } from '../../shared/dnd/concentration'
+import {
   SPELLCASTING_ABILITIES,
   SPELLCASTING_ABILITY_LABELS,
-  canSpendPactSlot,
-  canSpendSlot,
+  canCastLeveledSpell,
   clampPactSlots,
   levelLabel,
   spendPactSlot,
@@ -17,9 +22,10 @@ import {
 } from '../../shared/dnd/spells'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
-import { CastSpellDialog } from './CastSpellDialog'
+import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import type { ConcentrationState } from './play'
 import {
   countPreparedLeveled,
   createSheetSpell,
@@ -33,19 +39,27 @@ import {
 
 type SpellsPanelProps = {
   edition: RulesEdition
+  className: string
+  level: number
+  classes?: ClassLevelEntry[]
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   onChange: (spells: SpellsState) => void
+  onConcentrationChange?: (concentration: ConcentrationState | null) => void
   onToast?: (message: string) => void
 }
 
 export function SpellsPanel({
   edition,
+  className,
+  level,
+  classes,
   spells,
   abilities,
   proficiencyBonus,
   onChange,
+  onConcentrationChange,
   onToast,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -81,9 +95,72 @@ export function SpellsPanel({
     return groupSpellsByLevel(list)
   }, [filter, combatPool])
 
+  const suggestion = useMemo(
+    () =>
+      suggestSpellcasting({
+        className,
+        level,
+        classes,
+        abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      }),
+    [className, level, classes, abilities],
+  )
+
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })
   }
+
+  function applyFromClass() {
+    if (!suggestion) {
+      onToast?.('Класс не в таблице 2014 — ячейки задай вручную')
+      return
+    }
+    onChange({ ...spells, ...applySpellcastingSuggestion(spells, suggestion) })
+    const prep =
+      suggestion.max_prepared == null
+        ? suggestion.progression === 'none'
+          ? ''
+          : ' · без лимита подготовки'
+        : ` · подготовка ${suggestion.max_prepared}`
+    onToast?.(`${suggestion.labelRu}: ячейки 2014${prep}`)
+  }
+
+  const classLevelKey =
+    classes && classes.length > 0
+      ? classes
+          .map((row) => `${row.name.trim().toLowerCase()}:${row.level}`)
+          .join('|')
+      : `${className.trim().toLowerCase()}|${level}`
+  const appliedClassLevel = useRef<string | null>(null)
+  useEffect(() => {
+    if (appliedClassLevel.current == null) {
+      appliedClassLevel.current = classLevelKey
+      return
+    }
+    if (appliedClassLevel.current === classLevelKey) return
+    appliedClassLevel.current = classLevelKey
+    if (!suggestion) return
+    onChange({ ...spells, ...applySpellcastingSuggestion(spells, suggestion) })
+    onToast?.(`${suggestion.labelRu}: ячейки обновлены по таблице 2014`)
+    // Apply once per class/level change; skip the first paint so saved sheets stay intact.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classLevelKey])
+
+  const prepareKey =
+    suggestion?.max_prepared == null ? '' : `${suggestion.slug}:${suggestion.max_prepared}`
+  const appliedPrepare = useRef<string | null>(null)
+  useEffect(() => {
+    if (!prepareKey || suggestion?.max_prepared == null) return
+    if (appliedPrepare.current == null) {
+      appliedPrepare.current = prepareKey
+      return
+    }
+    if (appliedPrepare.current === prepareKey) return
+    appliedPrepare.current = prepareKey
+    if (spells.max_prepared === suggestion.max_prepared) return
+    onChange({ ...spells, max_prepared: suggestion.max_prepared })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prepareKey])
 
   function updateSpell(id: string, next: Partial<SheetSpell>) {
     patch({
@@ -137,32 +214,57 @@ export function SpellsPanel({
     })
   }
 
-  function confirmCast() {
+  function applyConcentrationIfNeeded(spell: SheetSpell) {
+    if (!spell.concentration) return
+    onConcentrationChange?.(
+      setConcentration({
+        spellId: spell.id,
+        name: spell.name || 'Заклинание',
+      }),
+    )
+  }
+
+  function confirmCast(choice: CastChoice) {
     if (!castSpell) return
     const name = castSpell.name || 'Заклинание'
     if (castSpell.level <= 0) {
-      onToast?.(`Каст: ${name}`)
+      applyConcentrationIfNeeded(castSpell)
+      onToast?.(
+        castSpell.concentration ? `Каст: ${name} (концентрация)` : `Каст: ${name}`,
+      )
       setCastSpell(null)
       return
     }
-    if (canSpendPactSlot(spells.pact_slots, castSpell.level) && spells.pact_slots) {
+    if (choice.usePact && spells.pact_slots) {
       const pactResult = spendPactSlot(spells.pact_slots)
-      if (pactResult.ok) {
-        patch({ pact_slots: pactResult.pact })
-        onToast?.(
-          `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)`,
-        )
-        setCastSpell(null)
+      if (!pactResult.ok) {
+        onToast?.('Нет свободных pact-ячеек')
         return
       }
+      patch({ pact_slots: pactResult.pact })
+      applyConcentrationIfNeeded(castSpell)
+      onToast?.(
+        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${
+          castSpell.concentration ? ' · концентрация' : ''
+        }`,
+      )
+      setCastSpell(null)
+      return
     }
-    const result = spendSpellSlot(spells.slots, castSpell.level)
+    const result = spendSpellSlot(spells.slots, choice.slotLevel)
     if (!result.ok) {
-      onToast?.(`Нет ячеек ${castSpell.level}-го уровня`)
+      onToast?.(`Нет ячеек ${choice.slotLevel}-го уровня`)
       return
     }
     patch({ slots: result.slots })
-    onToast?.(`Каст: ${name} (−1 ячейка ${castSpell.level} ур.)`)
+    applyConcentrationIfNeeded(castSpell)
+    const upcast =
+      choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
+    onToast?.(
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${
+        castSpell.concentration ? ' · концентрация' : ''
+      }`,
+    )
     setCastSpell(null)
   }
 
@@ -241,7 +343,13 @@ export function SpellsPanel({
               </div>
               <Field
                 label="Лимит подготовки"
-                hint="Пусто = без лимита. Позже подтянем от класса/уровня."
+                hint={
+                  suggestion?.max_prepared != null
+                    ? `Таблица 2014: ${suggestion.max_prepared} (${suggestion.labelRu})`
+                    : suggestion
+                      ? 'У этого класса нет лимита подготовки (известные заклинания)'
+                      : 'Пусто = без лимита. Подставь таблицу от класса или задай вручную.'
+                }
               >
                 <NumberInput
                   min={0}
@@ -252,8 +360,34 @@ export function SpellsPanel({
                 />
               </Field>
               <div>
-                <Text>Количество ячеек</Text>
-                <div className="sheet-grid sheet-grid--slots">
+                <div className="play-resources-head">
+                  <Text>Количество ячеек</Text>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={applyFromClass}
+                    disabled={!suggestion}
+                  >
+                    От класса
+                  </Button>
+                </div>
+                {suggestion ? (
+                  <Text tone="muted">
+                    {suggestion.labelRu}
+                    {suggestion.progression === 'pact'
+                      ? ` · pact ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
+                      : suggestion.progression === 'none'
+                        ? ' · не заклинатель'
+                        : ' · слоты PHB 2014'}
+                    . При смене класса или уровня подставляется само; spent не сбрасываем.
+                  </Text>
+                ) : (
+                  <Text tone="muted">
+                    Класс не распознан — оставь числа вручную. Известные: жрец, волшебник, паладин,
+                    колдун…
+                  </Text>
+                )}
+                <div className="sheet-grid sheet-grid--slots" style={{ marginTop: 8 }}>
                   {Array.from({ length: 9 }, (_, index) => {
                     const level = index + 1
                     const key = String(level)
@@ -488,8 +622,11 @@ export function SpellsPanel({
                           disabled={
                             (spell.level > 0 && !spell.prepared) ||
                             (spell.level > 0 &&
-                              !canSpendSlot(spells.slots, spell.level) &&
-                              !canSpendPactSlot(spells.pact_slots, spell.level))
+                              !canCastLeveledSpell(
+                                spells.slots,
+                                spells.pact_slots,
+                                spell.level,
+                              ))
                           }
                           onClick={() => setCastSpell(spell)}
                         >

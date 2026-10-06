@@ -1,4 +1,5 @@
 import { Field, NumberInput } from '../../ui'
+import type { ConcentrationState } from './play'
 import {
   abilityModifier,
   formatModifier,
@@ -14,7 +15,10 @@ type CombatStickyHeaderProps = {
   hpCurrent: number | null
   hpMax: number | null
   hpTemp: number
-  ac: number | null
+  /** Manual AC override; null = use autoAc from armor. */
+  acOverride: number | null
+  autoAc: number
+  acHint: string
   speed: number | null
   initiativeOverride: number | null
   inspiration: boolean
@@ -23,6 +27,8 @@ type CombatStickyHeaderProps = {
   deathSuccesses: number
   deathFails: number
   conditionNames: string[]
+  concentration: ConcentrationState | null
+  onClearConcentration?: () => void
   onChange: (patch: {
     hpCurrent?: number | null
     hpMax?: number | null
@@ -42,7 +48,9 @@ export function CombatStickyHeader({
   hpCurrent,
   hpMax,
   hpTemp,
-  ac,
+  acOverride,
+  autoAc,
+  acHint,
   speed,
   initiativeOverride,
   inspiration,
@@ -51,6 +59,8 @@ export function CombatStickyHeader({
   deathSuccesses,
   deathFails,
   conditionNames,
+  concentration,
+  onClearConcentration,
   onChange,
 }: CombatStickyHeaderProps) {
   const autoInitiative = abilityModifier(abilities.dex)
@@ -92,10 +102,46 @@ export function CombatStickyHeader({
       <p className="combat-sticky__conditions" title={conditionsLabel}>
         {conditionsLabel}
       </p>
+      {concentration ? (
+        <div className="combat-sticky__concentration">
+          <span>
+            Концентрация: <strong>{concentration.name}</strong>
+          </span>
+          {onClearConcentration ? (
+            <button type="button" className="linkish" onClick={onClearConcentration}>
+              Снять
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="combat-sticky__stats">
-        <Field label="КД">
-          <NumberInput value={ac} onValueChange={(value) => onChange({ ac: value })} />
+        <Field
+          label="КД"
+          hint={acOverride == null ? acHint : 'задано вручную'}
+        >
+          <div className="combat-sticky__init">
+            <NumberInput
+              value={acOverride ?? autoAc}
+              aria-label="Класс доспеха"
+              onValueChange={(value) => {
+                if (value == null || value === autoAc) {
+                  onChange({ ac: null })
+                  return
+                }
+                onChange({ ac: value })
+              }}
+            />
+            {acOverride != null ? (
+              <button
+                type="button"
+                className="combat-sticky__reset"
+                onClick={() => onChange({ ac: null })}
+              >
+                авто
+              </button>
+            ) : null}
+          </div>
         </Field>
         <Field label="Скорость">
           <NumberInput value={speed} onValueChange={(value) => onChange({ speed: value })} />

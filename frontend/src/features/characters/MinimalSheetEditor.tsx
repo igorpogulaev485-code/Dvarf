@@ -12,6 +12,14 @@ import {
   publishSheetSync,
   type SheetSyncMessage,
 } from '../../shared/sync/characterSheetChannel'
+import {
+  addMulticlassLevel,
+  bumpClassLevel,
+  formatClassSummary,
+  reduceClassLevel,
+  totalCharacterLevel,
+} from '../../shared/dnd/classLevels'
+import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
 import { AttunementPanel } from './AttunementPanel'
@@ -20,8 +28,15 @@ import {
   readAttunements,
   type AttunementSlot,
 } from './attunement'
+import {
+  classLevelsToSheet,
+  readClassLevels,
+  type ClassLevelEntry,
+} from './classLevels'
 import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
+import { LanguagesToolsPanel } from './LanguagesToolsPanel'
+import { LevelUpDialog, type LevelUpChoice } from './LevelUpDialog'
 import { PlayPanel } from './PlayPanel'
 import { SpellsPanel } from './SpellsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
@@ -32,7 +47,9 @@ import {
   readIdentityExtras,
   type IdentityExtras,
 } from './identity'
+import { applyRaceCatalogToDraft } from './raceEffects'
 import {
+  equippedArmorPieces,
   inventoryToSheet,
   readInventory,
   type InventoryState,
@@ -74,11 +91,9 @@ type MinimalSheetEditorProps = {
 
 type Draft = {
   name: string
-  level: number
   raceName: string
-  className: string
   raceCatalogId: string | null
-  classCatalogId: string | null
+  classes: ClassLevelEntry[]
   identity: IdentityExtras
   abilities: Record<AbilityKey, number>
   saves: Record<AbilityKey, boolean>
@@ -161,16 +176,23 @@ function buildDraft(character: CharacterDetail): Draft {
     }),
   ) as Draft['skills']
 
-  return {
-    name: character.name,
-    level: character.level,
-    raceName: character.race_name ?? '',
+  const identityExtras = readIdentityExtras(sheet)
+  const classes = readClassLevels(sheet, {
     className: character.class_name ?? '',
-    raceCatalogId:
-      typeof identity.race_catalog_id === 'string' ? identity.race_catalog_id : null,
+    level: character.level,
+    subclassName: identityExtras.subclassName,
     classCatalogId:
       typeof identity.class_catalog_id === 'string' ? identity.class_catalog_id : null,
-    identity: readIdentityExtras(sheet),
+  })
+  const level = totalCharacterLevel(classes)
+
+  return {
+    name: character.name,
+    raceName: character.race_name ?? '',
+    raceCatalogId:
+      typeof identity.race_catalog_id === 'string' ? identity.race_catalog_id : null,
+    classes,
+    identity: identityExtras,
     abilities,
     saves,
     skills,
@@ -184,7 +206,7 @@ function buildDraft(character: CharacterDetail): Draft {
     inventory: readInventory(sheet),
     attunements: readAttunements(sheet),
     spells: readSpells(sheet),
-    play: readPlay(sheet, character.level),
+    play: readPlay(sheet, level),
     textBlocks: readTextBlocks(sheet),
   }
 }
@@ -218,7 +240,18 @@ export function MinimalSheetEditor({
   const [reloading, setReloading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [conflictOpen, setConflictOpen] = useState(false)
+  const [levelUpOpen, setLevelUpOpen] = useState(false)
   const channelRef = useRef<BroadcastChannel | null>(null)
+
+  const characterLevel = useMemo(
+    () => totalCharacterLevel(draft.classes),
+    [draft.classes],
+  )
+  const classSummary = useMemo(
+    () => formatClassSummary(draft.classes),
+    [draft.classes],
+  )
+  const primaryClass = draft.classes[0]
 
   useEffect(() => {
     setBaseCharacter(character)
@@ -258,9 +291,50 @@ export function MinimalSheetEditor({
   }, [character.id])
 
   const proficiencyBonus = useMemo(
-    () => 2 + Math.floor((Math.max(draft.level, 1) - 1) / 4),
-    [draft.level],
+    () => 2 + Math.floor((Math.max(characterLevel, 1) - 1) / 4),
+    [characterLevel],
   )
+
+  function patchClass(classId: string, patch: Partial<ClassLevelEntry>) {
+    setDraft((prev) => ({
+      ...prev,
+      classes: prev.classes.map((row) =>
+        row.id === classId ? { ...row, ...patch } : row,
+      ),
+      identity:
+        prev.classes[0]?.id === classId && patch.subclass_name !== undefined
+          ? { ...prev.identity, subclassName: patch.subclass_name }
+          : prev.identity,
+    }))
+  }
+
+  function applyLevelUp(choice: LevelUpChoice) {
+    setDraft((prev) => {
+      if (totalCharacterLevel(prev.classes) >= 20) return prev
+      const nextClasses =
+        choice.type === 'same'
+          ? bumpClassLevel(prev.classes, choice.classId)
+          : addMulticlassLevel(prev.classes, {
+              name: choice.name,
+              catalog_id: choice.catalog_id,
+            })
+      const nextLevel = totalCharacterLevel(nextClasses)
+      return {
+        ...prev,
+        classes: nextClasses,
+        play: {
+          ...prev.play,
+          hitDiceCurrent: Math.min(prev.play.hitDiceCurrent + 1, nextLevel),
+        },
+      }
+    })
+    setLevelUpOpen(false)
+    onToast(
+      choice.type === 'same'
+        ? 'Уровень класса +1'
+        : `Мультикласс: ${choice.name.trim()} 1`,
+    )
+  }
 
   const passives = useMemo(() => {
     const modFor = (skillKey: string) => {
@@ -280,6 +354,15 @@ export function MinimalSheetEditor({
       insight: passiveScore(modFor('insight')),
     }
   }, [draft.abilities, draft.skills, proficiencyBonus])
+
+  const armorClass = useMemo(() => {
+    const pieces = equippedArmorPieces(draft.inventory.items)
+    return computeArmorClass({
+      dexMod: abilityModifier(draft.abilities.dex),
+      armor: pieces.armor,
+      shield: pieces.shield,
+    })
+  }, [draft.abilities.dex, draft.inventory.items])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
     setDraft((prev) => ({ ...prev, identity: { ...prev.identity, ...patch } }))
@@ -314,11 +397,19 @@ export function MinimalSheetEditor({
       const skills = asRecord(sheet.skills)
       const combat = asRecord(sheet.combat)
 
-      const identityExtras = identityExtrasToSheet(draft.identity)
+      const primary = draft.classes[0]
+      const totalLevel = totalCharacterLevel(draft.classes)
+      const summary = formatClassSummary(draft.classes)
+      const identityForSave = {
+        ...draft.identity,
+        subclassName: primary?.subclass_name ?? draft.identity.subclassName,
+      }
+      const identityExtras = identityExtrasToSheet(identityForSave)
       identity.race_catalog_id = draft.raceCatalogId
-      identity.class_catalog_id = draft.classCatalogId
+      identity.class_catalog_id = primary?.catalog_id ?? null
       Object.assign(identity, identityExtras.identityPatch)
       sheet.identity = identity
+      Object.assign(sheet, classLevelsToSheet(draft.classes))
 
       for (const key of ABILITY_KEYS) {
         abilities[key] = { ...asRecord(abilities[key]), score: draft.abilities[key] }
@@ -357,10 +448,13 @@ export function MinimalSheetEditor({
       combat.is_dying = playSheet.combatPatch.is_dying
       combat.death_successes = playSheet.combatPatch.death_successes
       combat.death_fails = playSheet.combatPatch.death_fails
+      combat.concentration = playSheet.combatPatch.concentration
       sheet.combat = combat
       const proficiency = asRecord(sheet.proficiency)
       proficiency.armor = identityExtras.proficiencyPatch.armor
       proficiency.weapons = identityExtras.proficiencyPatch.weapons
+      proficiency.languages = identityExtras.proficiencyPatch.languages
+      proficiency.tools = identityExtras.proficiencyPatch.tools
       sheet.proficiency = proficiency
       sheet.weapons = draft.weapons
       sheet.resources = playSheet.resources
@@ -372,9 +466,9 @@ export function MinimalSheetEditor({
       const updated = await updateCharacter(baseCharacter.id, {
         sheet_version: sheetVersion,
         name: draft.name.trim() || 'Новый персонаж',
-        level: draft.level,
+        level: totalLevel,
         race_name: draft.raceName.trim() || null,
-        class_name: draft.className.trim() || null,
+        class_name: summary || primary?.name.trim() || null,
         hp_current: draft.hpCurrent,
         hp_max: draft.hpMax,
         sheet,
@@ -406,13 +500,15 @@ export function MinimalSheetEditor({
       <CombatStickyHeader
         name={draft.name}
         raceName={draft.raceName}
-        className={draft.className}
-        level={draft.level}
+        className={classSummary || primaryClass?.name || ''}
+        level={characterLevel}
         abilities={draft.abilities}
         hpCurrent={draft.hpCurrent}
         hpMax={draft.hpMax}
         hpTemp={draft.play.hpTemp}
-        ac={draft.ac}
+        acOverride={draft.ac}
+        autoAc={armorClass.ac}
+        acHint={armorClass.summary}
         speed={draft.speed}
         initiativeOverride={draft.initiativeOverride}
         inspiration={draft.inspiration}
@@ -421,6 +517,13 @@ export function MinimalSheetEditor({
         deathSuccesses={draft.play.deathSuccesses}
         deathFails={draft.play.deathFails}
         conditionNames={draft.play.conditions.map((item) => item.name)}
+        concentration={draft.play.concentration}
+        onClearConcentration={() =>
+          setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, concentration: null },
+          }))
+        }
         onChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
       />
 
@@ -434,20 +537,21 @@ export function MinimalSheetEditor({
             />
           </Field>
           <div className="sheet-grid sheet-grid--2">
-            <Field label="Уровень" htmlFor="sheet-level">
-              <NumberInput
-                id="sheet-level"
-                min={1}
-                max={30}
-                emptyValue={1}
-                value={draft.level}
-                onValueChange={(level) =>
-                  setDraft((prev) => ({
-                    ...prev,
-                    level: level ?? 1,
-                  }))
-                }
-              />
+            <Field
+              label="Уровень персонажа"
+              hint="Сумма уровней классов. +1 — этот класс или мультикласс."
+            >
+              <div className="languages-tools-add">
+                <Input value={String(characterLevel)} readOnly />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={characterLevel >= 20}
+                  onClick={() => setLevelUpOpen(true)}
+                >
+                  +1 уровень
+                </Button>
+              </div>
             </Field>
             <Field label="Опыт (XP)" htmlFor="sheet-xp">
               <NumberInput
@@ -464,46 +568,131 @@ export function MinimalSheetEditor({
           <Field label="Бонус мастерства">
             <Input value={formatModifier(proficiencyBonus)} readOnly />
           </Field>
-          <Field label="Раса" htmlFor="sheet-race" hint="Можно ввести своё или выбрать из списка">
-            <CatalogCombobox
-              id="sheet-race"
-              kind="race"
-              edition={baseCharacter.rules_edition as RulesEdition}
-              value={draft.raceName}
-              placeholder="Начните вводить расу"
-              onChange={(value, selected) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  raceName: value,
-                  raceCatalogId: selected?.id ?? null,
-                }))
-              }
-            />
-          </Field>
-          <Field label="Класс" htmlFor="sheet-class" hint="Мультикласс — в backlog; пока один класс">
-            <CatalogCombobox
-              id="sheet-class"
-              kind="class"
-              edition={baseCharacter.rules_edition as RulesEdition}
-              value={draft.className}
-              placeholder="Начните вводить класс"
-              onChange={(value, selected) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  className: value,
-                  classCatalogId: selected?.id ?? null,
-                }))
-              }
-            />
-          </Field>
-          <Field label="Подкласс" htmlFor="sheet-subclass">
-            <Input
-              id="sheet-subclass"
-              value={draft.identity.subclassName}
-              placeholder="Например: Школа воплощения"
-              onChange={(event) => patchIdentity({ subclassName: event.target.value })}
-            />
-          </Field>
+          <div className="sheet-grid sheet-grid--2">
+            <Field
+              label="Раса"
+              htmlFor="sheet-race"
+              hint="Выбор из каталога подставляет скорость, ТЗ, языки и блок особенностей"
+            >
+              <CatalogCombobox
+                id="sheet-race"
+                kind="race"
+                edition={baseCharacter.rules_edition as RulesEdition}
+                value={draft.raceName}
+                placeholder="Начните вводить расу"
+                onChange={(value, selected) => {
+                  if (!selected) {
+                    setDraft((prev) => ({
+                      ...prev,
+                      raceName: value,
+                      raceCatalogId: null,
+                    }))
+                    return
+                  }
+                  let toast: string | null = null
+                  setDraft((prev) => {
+                    const applied = applyRaceCatalogToDraft({
+                      selected,
+                      identity: prev.identity,
+                      textBlocks: prev.textBlocks,
+                      previousRaceLanguages: prev.identity.raceAppliedLanguages,
+                    })
+                    if (!applied) {
+                      return {
+                        ...prev,
+                        raceName: selected.name_ru,
+                        raceCatalogId: selected.id,
+                      }
+                    }
+                    toast = `Раса «${selected.name_ru}»: ${applied.summary}`
+                    return {
+                      ...prev,
+                      raceName: selected.name_ru,
+                      raceCatalogId: selected.id,
+                      speed: applied.speed,
+                      identity: applied.identity,
+                      textBlocks: applied.textBlocks,
+                    }
+                  })
+                  if (toast) onToast(toast)
+                }}
+              />
+            </Field>
+            <Field label="Размер" htmlFor="sheet-size">
+              <select
+                id="sheet-size"
+                className="play-select"
+                value={draft.identity.size || 'medium'}
+                onChange={(event) => patchIdentity({ size: event.target.value })}
+              >
+                <option value="tiny">Крошечный</option>
+                <option value="small">Маленький</option>
+                <option value="medium">Средний</option>
+                <option value="large">Большой</option>
+                <option value="huge">Огромный</option>
+                <option value="gargantuan">Громадный</option>
+              </select>
+            </Field>
+          </div>
+          <div>
+            <Text tone="muted">Классы</Text>
+            <Stack gap={10}>
+              {draft.classes.map((row, index) => (
+                <div key={row.id} className="inventory-card">
+                  <div className="sheet-grid sheet-grid--2">
+                    <Field
+                      label={draft.classes.length > 1 ? `Класс ${index + 1}` : 'Класс'}
+                      hint={index === 0 ? 'Основной для карточки персонажа' : undefined}
+                    >
+                      <CatalogCombobox
+                        kind="class"
+                        edition={baseCharacter.rules_edition as RulesEdition}
+                        value={row.name}
+                        placeholder="Начните вводить класс"
+                        onChange={(value, selected) =>
+                          patchClass(row.id, {
+                            name: value,
+                            catalog_id: selected?.id ?? null,
+                          })
+                        }
+                      />
+                    </Field>
+                    <Field label="Уровней в классе">
+                      <div className="languages-tools-add">
+                        <Input value={String(row.level)} readOnly />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          disabled={draft.classes.length === 1 && row.level <= 1}
+                          onClick={() =>
+                            setDraft((prev) => ({
+                              ...prev,
+                              classes: reduceClassLevel(prev.classes, row.id),
+                            }))
+                          }
+                        >
+                          −1
+                        </Button>
+                      </div>
+                    </Field>
+                  </div>
+                  <Field label="Подкласс" hint="У этого класса">
+                    <Input
+                      value={row.subclass_name}
+                      placeholder="Например: Школа воплощения"
+                      onChange={(event) =>
+                        patchClass(row.id, { subclass_name: event.target.value })
+                      }
+                    />
+                  </Field>
+                </div>
+              ))}
+            </Stack>
+            <Text tone="muted">
+              Итого: {classSummary || 'класс не выбран'} · при повышении уровня можно взять другой
+              класс (мультикласс).
+            </Text>
+          </div>
           <div className="sheet-grid sheet-grid--2">
             <Field label="Предыстория" htmlFor="sheet-background">
               <Input
@@ -605,6 +794,12 @@ export function MinimalSheetEditor({
         </Stack>
       </Panel>
 
+      <LanguagesToolsPanel
+        languages={draft.identity.languages}
+        tools={draft.identity.tools}
+        onChange={(patch) => patchIdentity(patch)}
+      />
+
       <Panel title="Характеристики">
         <div className="ability-grid">
           {ABILITY_KEYS.map((key) => {
@@ -636,7 +831,7 @@ export function MinimalSheetEditor({
 
       <PlayPanel
         edition={baseCharacter.rules_edition as RulesEdition}
-        level={draft.level}
+        level={characterLevel}
         hpCurrent={draft.hpCurrent}
         hpMax={draft.hpMax}
         constitutionMod={abilityModifier(draft.abilities.con)}
@@ -671,10 +866,19 @@ export function MinimalSheetEditor({
 
       <SpellsPanel
         edition={baseCharacter.rules_edition as RulesEdition}
+        className={classSummary || primaryClass?.name || ''}
+        level={characterLevel}
+        classes={draft.classes}
         spells={draft.spells}
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
         onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        onConcentrationChange={(concentration) =>
+          setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, concentration },
+          }))
+        }
         onToast={onToast}
       />
 
@@ -770,6 +974,14 @@ export function MinimalSheetEditor({
           перенести их вручную.
         </Text>
       </Dialog>
+
+      <LevelUpDialog
+        open={levelUpOpen}
+        edition={baseCharacter.rules_edition as RulesEdition}
+        classes={draft.classes}
+        onConfirm={applyLevelUp}
+        onClose={() => setLevelUpOpen(false)}
+      />
     </Stack>
   )
 }

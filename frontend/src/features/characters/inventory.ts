@@ -1,4 +1,13 @@
 import {
+  findArmorPreset,
+  isArmorKind,
+  isBodyArmor,
+  readArmorFromCatalogData,
+  type ArmorKind,
+  type ArmorPiece,
+  type ShieldPiece,
+} from '../../shared/dnd/armor'
+import {
   EMPTY_COINS,
   type CoinPurse,
   type WeighableItem,
@@ -12,6 +21,8 @@ export type InventoryItem = {
   qty: number
   weight_lb: number | null
   equipped: boolean
+  armor_kind: ArmorKind
+  base_ac: number | null
   notes: string
 }
 
@@ -31,6 +42,8 @@ export function createInventoryItem(): InventoryItem {
     qty: 1,
     weight_lb: null,
     equipped: false,
+    armor_kind: 'none',
+    base_ac: null,
     notes: '',
   }
 }
@@ -48,6 +61,7 @@ function readCoins(raw: unknown): CoinPurse {
 
 function readItem(raw: unknown, index: number): InventoryItem {
   const row = asRecord(raw)
+  const armor_kind = isArmorKind(row.armor_kind) ? row.armor_kind : 'none'
   return {
     id: typeof row.id === 'string' ? row.id : `item-${index}`,
     name: typeof row.name === 'string' ? row.name : '',
@@ -55,6 +69,8 @@ function readItem(raw: unknown, index: number): InventoryItem {
     qty: Math.max(0, readNumber(row.qty, 1)),
     weight_lb: readNullableNumber(row.weight_lb ?? row.weight),
     equipped: Boolean(row.equipped),
+    armor_kind,
+    base_ac: readNullableNumber(row.base_ac ?? row.ac_bonus),
     notes: typeof row.notes === 'string' ? row.notes : '',
   }
 }
@@ -87,6 +103,8 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         qty: item.qty,
         weight_lb: item.weight_lb,
         equipped: item.equipped,
+        armor_kind: item.armor_kind,
+        base_ac: item.base_ac,
         notes: item.notes,
       })),
     },
@@ -99,4 +117,94 @@ export function asWeighableItems(items: InventoryItem[]): WeighableItem[] {
 
 export function readCatalogWeightLb(data: Record<string, unknown>): number | null {
   return readNullableNumber(data.weight_lb ?? data.weight)
+}
+
+export function armorFieldsFromCatalog(
+  selected: { name_ru: string; name_en?: string | null; slug?: string; data?: Record<string, unknown> },
+): Partial<InventoryItem> {
+  const data = selected.data ?? {}
+  const fromData = readArmorFromCatalogData(data)
+  const preset =
+    findArmorPreset(selected.slug ?? '') ||
+    findArmorPreset(selected.name_en ?? '') ||
+    findArmorPreset(selected.name_ru)
+
+  if (fromData) {
+    return {
+      armor_kind: fromData.armor_kind,
+      base_ac: fromData.base_ac ?? preset?.baseAc ?? (fromData.armor_kind === 'shield' ? 2 : null),
+      weight_lb: fromData.weight_lb ?? preset?.weight_lb ?? null,
+    }
+  }
+  if (preset) {
+    return {
+      armor_kind: preset.kind,
+      base_ac: preset.baseAc,
+      weight_lb: preset.weight_lb,
+    }
+  }
+  return {}
+}
+
+/** Equip item; unequip other body armor or shields of the same role. */
+export function equipInventoryItem(
+  items: InventoryItem[],
+  id: string,
+  equipped: boolean,
+): InventoryItem[] {
+  const target = items.find((item) => item.id === id)
+  if (!target) return items
+  if (!equipped) {
+    return items.map((item) => (item.id === id ? { ...item, equipped: false } : item))
+  }
+
+  const kind = target.armor_kind
+  return items.map((item) => {
+    if (item.id === id) return { ...item, equipped: true }
+    if (kind === 'shield' && item.armor_kind === 'shield') {
+      return { ...item, equipped: false }
+    }
+    if (
+      (kind === 'light' || kind === 'medium' || kind === 'heavy') &&
+      (item.armor_kind === 'light' || item.armor_kind === 'medium' || item.armor_kind === 'heavy')
+    ) {
+      return { ...item, equipped: false }
+    }
+    return item
+  })
+}
+
+export function equippedArmorPieces(items: InventoryItem[]): {
+  armor: ArmorPiece | null
+  shield: ShieldPiece | null
+} {
+  let armor: ArmorPiece | null = null
+  let shield: ShieldPiece | null = null
+  for (const item of items) {
+    if (!item.equipped || item.armor_kind === 'none') continue
+    if (item.armor_kind === 'shield') {
+      if (!shield) {
+        shield = {
+          kind: 'shield',
+          baseAc: item.base_ac ?? 2,
+          name: item.name || 'Щит',
+        }
+      }
+      continue
+    }
+    if (isBodyArmor(item.armor_kind) && !armor) {
+      armor = {
+        kind: item.armor_kind,
+        baseAc: item.base_ac ?? 10,
+        name: item.name || armorKindFallback(item.armor_kind),
+      }
+    }
+  }
+  return { armor, shield }
+}
+
+function armorKindFallback(kind: 'light' | 'medium' | 'heavy'): string {
+  if (kind === 'light') return 'Лёгкий доспех'
+  if (kind === 'medium') return 'Средний доспех'
+  return 'Тяжёлый доспех'
 }

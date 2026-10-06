@@ -3,6 +3,7 @@ import { AuthDebugPage } from './pages/AuthDebugPage'
 import { CabinetPage } from './pages/CabinetPage'
 import { CharacterDetailPage } from './pages/CharacterDetailPage'
 import { CharactersPage } from './pages/CharactersPage'
+import { ClassicSheetPage } from './pages/ClassicSheetPage'
 import { ConfirmEmailPage } from './pages/ConfirmEmailPage'
 import { JoinLobbyPage } from './pages/JoinLobbyPage'
 import { LobbiesPage } from './pages/LobbiesPage'
@@ -52,6 +53,14 @@ export default function App() {
           element={
             <RequireAuth>
               <CharacterDetailPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/characters/:characterId/classic"
+          element={
+            <RequireAuth>
+              <ClassicSheetPage />
             </RequireAuth>
           }
         />

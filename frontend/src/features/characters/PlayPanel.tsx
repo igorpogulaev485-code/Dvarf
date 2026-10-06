@@ -207,6 +207,7 @@ export function PlayPanel({
       isDying: false,
       deathSuccesses: 0,
       deathFails: 0,
+      concentration: null,
     })
     onSpellsChange({
       ...spells,

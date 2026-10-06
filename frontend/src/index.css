@@ -360,6 +360,11 @@ input {
   gap: 14px;
 }
 
+.character-card__wrap {
+  display: grid;
+  gap: 8px;
+}
+
 .character-card {
   display: grid;
   grid-template-columns: 64px 1fr;
@@ -372,6 +377,19 @@ input {
   background: var(--panel);
   text-decoration: none;
   color: inherit;
+}
+
+.character-card__actions {
+  display: flex;
+  gap: 12px;
+  padding: 0 4px 4px;
+}
+
+.character-card__actions a {
+  font-size: 0.85rem;
+  font-weight: 650;
+  text-decoration: none;
+  color: var(--accent);
 }
 
 .character-card__avatar {
@@ -947,6 +965,32 @@ input {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.combat-sticky__concentration {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 6px 0 0;
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.languages-tools-add {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+@media (max-width: 520px) {
+  .languages-tools-add {
+    grid-template-columns: 1fr;
+  }
 }
 
 .combat-chip--static {

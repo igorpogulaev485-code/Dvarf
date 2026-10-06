@@ -114,6 +114,11 @@ export function CharacterDetailPage() {
         <Link className="back-link" to="/characters">
           ← К списку персонажей
         </Link>
+        {character ? (
+          <Link className="back-link" to={`/characters/${character.id}/classic`}>
+            Классический лист 2014
+          </Link>
+        ) : null}
 
         {loading ? <Text tone="muted">Открываем лист...</Text> : null}
         {error ? <Text tone="danger">{error}</Text> : null}
