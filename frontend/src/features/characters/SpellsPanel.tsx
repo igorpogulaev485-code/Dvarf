@@ -2,11 +2,11 @@ import { useMemo, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
+import { setConcentration } from '../../shared/dnd/concentration'
 import {
   SPELLCASTING_ABILITIES,
   SPELLCASTING_ABILITY_LABELS,
-  canSpendPactSlot,
-  canSpendSlot,
+  canCastLeveledSpell,
   clampPactSlots,
   levelLabel,
   spendPactSlot,
@@ -17,9 +17,10 @@ import {
 } from '../../shared/dnd/spells'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
-import { CastSpellDialog } from './CastSpellDialog'
+import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import type { ConcentrationState } from './play'
 import {
   countPreparedLeveled,
   createSheetSpell,
@@ -37,6 +38,7 @@ type SpellsPanelProps = {
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   onChange: (spells: SpellsState) => void
+  onConcentrationChange?: (concentration: ConcentrationState | null) => void
   onToast?: (message: string) => void
 }
 
@@ -46,6 +48,7 @@ export function SpellsPanel({
   abilities,
   proficiencyBonus,
   onChange,
+  onConcentrationChange,
   onToast,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -137,32 +140,57 @@ export function SpellsPanel({
     })
   }
 
-  function confirmCast() {
+  function applyConcentrationIfNeeded(spell: SheetSpell) {
+    if (!spell.concentration) return
+    onConcentrationChange?.(
+      setConcentration({
+        spellId: spell.id,
+        name: spell.name || 'Заклинание',
+      }),
+    )
+  }
+
+  function confirmCast(choice: CastChoice) {
     if (!castSpell) return
     const name = castSpell.name || 'Заклинание'
     if (castSpell.level <= 0) {
-      onToast?.(`Каст: ${name}`)
+      applyConcentrationIfNeeded(castSpell)
+      onToast?.(
+        castSpell.concentration ? `Каст: ${name} (концентрация)` : `Каст: ${name}`,
+      )
       setCastSpell(null)
       return
     }
-    if (canSpendPactSlot(spells.pact_slots, castSpell.level) && spells.pact_slots) {
+    if (choice.usePact && spells.pact_slots) {
       const pactResult = spendPactSlot(spells.pact_slots)
-      if (pactResult.ok) {
-        patch({ pact_slots: pactResult.pact })
-        onToast?.(
-          `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)`,
-        )
-        setCastSpell(null)
+      if (!pactResult.ok) {
+        onToast?.('Нет свободных pact-ячеек')
         return
       }
+      patch({ pact_slots: pactResult.pact })
+      applyConcentrationIfNeeded(castSpell)
+      onToast?.(
+        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${
+          castSpell.concentration ? ' · концентрация' : ''
+        }`,
+      )
+      setCastSpell(null)
+      return
     }
-    const result = spendSpellSlot(spells.slots, castSpell.level)
+    const result = spendSpellSlot(spells.slots, choice.slotLevel)
     if (!result.ok) {
-      onToast?.(`Нет ячеек ${castSpell.level}-го уровня`)
+      onToast?.(`Нет ячеек ${choice.slotLevel}-го уровня`)
       return
     }
     patch({ slots: result.slots })
-    onToast?.(`Каст: ${name} (−1 ячейка ${castSpell.level} ур.)`)
+    applyConcentrationIfNeeded(castSpell)
+    const upcast =
+      choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
+    onToast?.(
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${
+        castSpell.concentration ? ' · концентрация' : ''
+      }`,
+    )
     setCastSpell(null)
   }
 
@@ -488,8 +516,11 @@ export function SpellsPanel({
                           disabled={
                             (spell.level > 0 && !spell.prepared) ||
                             (spell.level > 0 &&
-                              !canSpendSlot(spells.slots, spell.level) &&
-                              !canSpendPactSlot(spells.pact_slots, spell.level))
+                              !canCastLeveledSpell(
+                                spells.slots,
+                                spells.pact_slots,
+                                spell.level,
+                              ))
                           }
                           onClick={() => setCastSpell(spell)}
                         >

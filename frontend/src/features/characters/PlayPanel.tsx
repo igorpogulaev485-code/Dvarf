@@ -207,6 +207,7 @@ export function PlayPanel({
       isDying: false,
       deathSuccesses: 0,
       deathFails: 0,
+      concentration: null,
     })
     onSpellsChange({
       ...spells,
@@ -217,7 +218,7 @@ export function PlayPanel({
       onCombatChange({ hpCurrent: result.hp_current })
     }
     onToast(
-      'Продолжительный отдых: HP, кости, ячейки, ресурсы, −1 истощение, спасброски сброшены',
+      'Продолжительный отдых: HP, кости, ячейки, ресурсы, −1 истощение, концентрация и спасброски сброшены',
     )
   }
 
@@ -400,7 +401,7 @@ export function PlayPanel({
           </Text>
           <Text tone="muted">
             Полные HP, половина костей хитов, ячейки и pact, ресурсы «короткий»/«продолжительный»,
-            −1 истощение, сброс спасбросков от смерти.
+            −1 истощение, сброс концентрации и спасбросков от смерти.
           </Text>
           <div className="play-rest-actions">
             <Button type="button" onClick={doLongRest}>

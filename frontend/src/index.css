@@ -859,6 +859,19 @@ input {
   line-height: 1.35;
 }
 
+.combat-sticky__concentration {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 6px 0 0;
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
 .passive-grid {
   display: grid;
   gap: 10px;

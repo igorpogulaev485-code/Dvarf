@@ -63,6 +63,20 @@ export function canSpendSlot(
   return slotsRemaining(slots[String(level)]) > 0
 }
 
+/** Slot levels ≥ spell level that still have remaining uses (upcast / same-level). */
+export function availableCastSlotLevels(
+  slots: Record<string, SpellSlotState>,
+  spellLevel: number,
+): number[] {
+  if (spellLevel <= 0) return []
+  const min = Math.max(1, Math.floor(spellLevel))
+  const levels: number[] = []
+  for (let level = min; level <= 9; level += 1) {
+    if (slotsRemaining(slots[String(level)]) > 0) levels.push(level)
+  }
+  return levels
+}
+
 /** Spend one slot at `level` (1–9). Cantrips are a no-op success. */
 export function spendSpellSlot(
   slots: Record<string, SpellSlotState>,
@@ -113,4 +127,15 @@ export function spendPactSlot(
     return { ok: false, reason: 'no_slot' }
   }
   return { ok: true, pact: { ...clamped, used: clamped.used + 1 } }
+}
+
+export function canCastLeveledSpell(
+  slots: Record<string, SpellSlotState>,
+  pact: PactSlotState | null,
+  spellLevel: number,
+): boolean {
+  if (spellLevel <= 0) return true
+  return (
+    canSpendPactSlot(pact, spellLevel) || availableCastSlotLevels(slots, spellLevel).length > 0
+  )
 }

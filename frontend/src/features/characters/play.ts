@@ -3,6 +3,11 @@ import {
   type ConditionRef,
 } from '../../shared/dnd/conditions'
 import {
+  clearConcentration,
+  readConcentration,
+  type ConcentrationState,
+} from '../../shared/dnd/concentration'
+import {
   clampDeathMarks,
   clampHitDiceCurrent,
   isHitDie,
@@ -26,7 +31,10 @@ export type PlayState = {
   isDying: boolean
   deathSuccesses: number
   deathFails: number
+  concentration: ConcentrationState | null
 }
+
+export type { ConcentrationState }
 
 export function createResource(partial?: Partial<SheetResource>): SheetResource {
   return clampResource({
@@ -130,6 +138,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     isDying: Boolean(combat.is_dying),
     deathSuccesses: clampDeathMarks(readNumber(combat.death_successes, 0)),
     deathFails: clampDeathMarks(readNumber(combat.death_fails, 0)),
+    concentration: readConcentration(combat.concentration),
   }
 }
 
@@ -143,6 +152,7 @@ export function playToSheet(play: PlayState): {
     is_dying: boolean
     death_successes: number
     death_fails: number
+    concentration: ConcentrationState | null
   }
   resources: SheetResource[]
 } {
@@ -160,6 +170,12 @@ export function playToSheet(play: PlayState): {
       is_dying: play.isDying,
       death_successes: clampDeathMarks(play.deathSuccesses),
       death_fails: clampDeathMarks(play.deathFails),
+      concentration: play.concentration
+        ? {
+            spell_id: play.concentration.spell_id,
+            name: play.concentration.name,
+          }
+        : clearConcentration(),
     },
     resources: play.resources.map((item) => clampResource(item)),
   }

@@ -101,7 +101,8 @@ flowchart TB
 | Play S1–S2 | conditions, exhaustion, resources, rest, temp HP, hit dice, death saves | ✅ |
 | Sheet S3 | XP, subclass/background/alignment, passives, darkvision, armor/weapon prof | ✅ |
 | Sheet S4+ | pact magic UI, attunement, короткий/продолжительный отдых | ✅ |
-| Polish | multiclass, race→эффекты, rich-text, auto AC/slots/upcast | backlog |
+| Sheet P1 | upcast при касте + активная концентрация на листе | ✅ |
+| Polish | multiclass, race→эффекты, rich-text, auto AC/slots | backlog |
 
 ### Фаза B — Classic PDF-like *(параллельно другим агентом)*
 
@@ -148,17 +149,18 @@ flowchart LR
 - Text blocks + reorder; inventory + weight
 - Spells S1–S4; Play S1–S2; Sheet S3 passives/proficiencies
 - Sheet S4+: pact magic, attunement (max 3), short-rest hit-die heal
+- Sheet P1: upcast slot picker + active concentration on sticky header
 - Prod Docker deploy (Timeweb)
 
 Прод: http://201.34.132.252/ — подробности в [`deploy/README.md`](deploy/README.md).
 
 ## Очередь ближайших слайсов
 
-1. **Classic PDF-like** — параллельный агент (тот же sheet)  
-2. **Party frame** — отдельный план → ok (QR join, мастер пачки)  
-3. Encounter prep → loot  
+**Digital sheet (этот контур):** P1 upcast+концентрация → P2 авто-ячейки/лимит подготовки → P3 КД от доспеха → P4 языки/инструменты.
 
-Backlog (не начинать без плана): multiclass; race → эффекты на лист; rich-text в блоках; onboarding → тема UI; phone/SMS login; Google OAuth (гео-ограничения для RF).
+Параллельно другими агентами (не этот чат): Classic PDF-like · ЛК · Party frame.
+
+Backlog листа (не начинать без плана): multiclass; race → эффекты на лист; rich-text в блоках.
 
 ## Стек
 

@@ -357,6 +357,7 @@ export function MinimalSheetEditor({
       combat.is_dying = playSheet.combatPatch.is_dying
       combat.death_successes = playSheet.combatPatch.death_successes
       combat.death_fails = playSheet.combatPatch.death_fails
+      combat.concentration = playSheet.combatPatch.concentration
       sheet.combat = combat
       const proficiency = asRecord(sheet.proficiency)
       proficiency.armor = identityExtras.proficiencyPatch.armor
@@ -421,6 +422,13 @@ export function MinimalSheetEditor({
         deathSuccesses={draft.play.deathSuccesses}
         deathFails={draft.play.deathFails}
         conditionNames={draft.play.conditions.map((item) => item.name)}
+        concentration={draft.play.concentration}
+        onClearConcentration={() =>
+          setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, concentration: null },
+          }))
+        }
         onChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
       />
 
@@ -675,6 +683,12 @@ export function MinimalSheetEditor({
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
         onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        onConcentrationChange={(concentration) =>
+          setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, concentration },
+          }))
+        }
         onToast={onToast}
       />
 

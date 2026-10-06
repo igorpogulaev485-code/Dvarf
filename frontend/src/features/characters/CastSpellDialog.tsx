@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import {
+  availableCastSlotLevels,
   canSpendPactSlot,
   levelLabel,
   slotsRemaining,
@@ -6,12 +8,17 @@ import {
 import { Dialog, Stack, Text } from '../../ui'
 import type { SheetSpell, SpellsState } from './spells'
 
+export type CastChoice = {
+  usePact: boolean
+  slotLevel: number
+}
+
 type CastSpellDialogProps = {
   open: boolean
   spell: SheetSpell | null
   spells: SpellsState
   busy?: boolean
-  onConfirm: () => void
+  onConfirm: (choice: CastChoice) => void
   onClose: () => void
 }
 
@@ -23,16 +30,32 @@ export function CastSpellDialog({
   onConfirm,
   onClose,
 }: CastSpellDialogProps) {
+  const isCantrip = spell != null && spell.level <= 0
+  const spellLevel = spell?.level ?? 0
+  const slotLevels = spell && !isCantrip ? availableCastSlotLevels(spells.slots, spellLevel) : []
+  const pactOk =
+    spell != null && !isCantrip && canSpendPactSlot(spells.pact_slots, spellLevel)
+  const [usePact, setUsePact] = useState(false)
+  const [slotLevel, setSlotLevel] = useState(1)
+
+  useEffect(() => {
+    if (!spell || isCantrip) return
+    if (pactOk) {
+      setUsePact(true)
+      setSlotLevel(spells.pact_slots?.level ?? spellLevel)
+      return
+    }
+    setUsePact(false)
+    setSlotLevel(slotLevels[0] ?? spellLevel)
+  }, [spell?.id, spellLevel, isCantrip, pactOk, slotLevels.join(','), spells.pact_slots?.level])
+
   if (!spell) {
     return null
   }
 
-  const isCantrip = spell.level <= 0
-  const slot = isCantrip ? null : spells.slots[String(spell.level)]
-  const remaining = slot ? slotsRemaining(slot) : 0
-  const usePact =
-    !isCantrip && canSpendPactSlot(spells.pact_slots, spell.level)
-  const canCast = isCantrip || usePact || remaining > 0
+  const canCast = isCantrip || pactOk || slotLevels.length > 0
+  const selectedSlot = !usePact ? spells.slots[String(slotLevel)] : null
+  const remaining = selectedSlot ? slotsRemaining(selectedSlot) : 0
   const pactRemaining = spells.pact_slots
     ? Math.max(0, spells.pact_slots.max - spells.pact_slots.used)
     : 0
@@ -45,7 +68,10 @@ export function CastSpellDialog({
       secondaryLabel="Отмена"
       onPrimary={() => {
         if (!canCast || busy) return
-        onConfirm()
+        onConfirm({
+          usePact: !isCantrip && usePact && pactOk,
+          slotLevel: isCantrip ? 0 : usePact ? (spells.pact_slots?.level ?? spellLevel) : slotLevel,
+        })
       }}
       onSecondary={onClose}
       busy={busy || !canCast}
@@ -64,24 +90,64 @@ export function CastSpellDialog({
               .join(' · ')}
           </Text>
         ) : null}
+
         {isCantrip ? (
           <Text tone="muted">Заговоры не тратят ячейки.</Text>
-        ) : usePact && spells.pact_slots ? (
-          <Text tone="muted">
-            Будет потрачена 1 pact-ячейка {spells.pact_slots.level}-го уровня. Останется{' '}
-            {pactRemaining - 1} из {spells.pact_slots.max}.
-          </Text>
         ) : canCast ? (
-          <Text tone="muted">
-            Будет потрачена 1 ячейка {spell.level}-го уровня. Останется {remaining - 1} из{' '}
-            {slot?.max ?? 0}.
-          </Text>
+          <>
+            <div>
+              <Text tone="muted">Ячейка (можно выше уровня заклинания)</Text>
+              <div className="chip-row" style={{ marginTop: 8 }}>
+                {pactOk && spells.pact_slots ? (
+                  <button
+                    type="button"
+                    className={`sheet-chip${usePact ? ' is-on' : ''}`}
+                    onClick={() => setUsePact(true)}
+                  >
+                    Pact {spells.pact_slots.level}
+                  </button>
+                ) : null}
+                {slotLevels.map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    className={`sheet-chip${!usePact && slotLevel === level ? ' is-on' : ''}`}
+                    onClick={() => {
+                      setUsePact(false)
+                      setSlotLevel(level)
+                    }}
+                  >
+                    {level}-й
+                    {level > spellLevel ? ' ↑' : ''}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {usePact && spells.pact_slots ? (
+              <Text tone="muted">
+                Будет потрачена 1 pact-ячейка {spells.pact_slots.level}-го уровня. Останется{' '}
+                {pactRemaining - 1} из {spells.pact_slots.max}.
+              </Text>
+            ) : (
+              <Text tone="muted">
+                Будет потрачена 1 ячейка {slotLevel}-го уровня
+                {slotLevel > spellLevel ? ' (upcast)' : ''}. Останется {remaining - 1} из{' '}
+                {selectedSlot?.max ?? 0}.
+              </Text>
+            )}
+          </>
         ) : (
           <Text tone="danger">
-            Нет свободных ячеек {spell.level}-го уровня
+            Нет свободных ячеек {spell.level}-го уровня или выше
             {spells.pact_slots ? ' и подходящего pact' : ''}. Верни пипс или сделай отдых.
           </Text>
         )}
+
+        {spell.concentration ? (
+          <Text tone="muted">
+            Это концентрация — станет активной на листе (предыдущая снимется).
+          </Text>
+        ) : null}
       </Stack>
     </Dialog>
   )

@@ -1,4 +1,5 @@
 import { Field, NumberInput } from '../../ui'
+import type { ConcentrationState } from './play'
 import {
   abilityModifier,
   formatModifier,
@@ -23,6 +24,8 @@ type CombatStickyHeaderProps = {
   deathSuccesses: number
   deathFails: number
   conditionNames: string[]
+  concentration: ConcentrationState | null
+  onClearConcentration?: () => void
   onChange: (patch: {
     hpCurrent?: number | null
     hpMax?: number | null
@@ -51,6 +54,8 @@ export function CombatStickyHeader({
   deathSuccesses,
   deathFails,
   conditionNames,
+  concentration,
+  onClearConcentration,
   onChange,
 }: CombatStickyHeaderProps) {
   const autoInitiative = abilityModifier(abilities.dex)
@@ -92,6 +97,18 @@ export function CombatStickyHeader({
       <p className="combat-sticky__conditions" title={conditionsLabel}>
         {conditionsLabel}
       </p>
+      {concentration ? (
+        <div className="combat-sticky__concentration">
+          <span>
+            Концентрация: <strong>{concentration.name}</strong>
+          </span>
+          {onClearConcentration ? (
+            <button type="button" className="linkish" onClick={onClearConcentration}>
+              Снять
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="combat-sticky__stats">
         <Field label="КД">
