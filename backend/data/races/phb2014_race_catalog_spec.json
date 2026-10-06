@@ -2,7 +2,7 @@
   "meta": {
     "edition": "2014",
     "source": "phb",
-    "notes_ru": "Аудит ttg/dnd.su. Дварф6 эльф6 полурослик5 гном4; полуэльф SCAG+ERLW; тифлинг MTF bloodlines (+PHB base)."
+    "notes_ru": "Аудит ttg/dnd.su. Дварф6 эльф6 полурослик5 гном4 полуэльф6 тифлинг9; полуорк метка поиска; человек/драконорождённый ERLW/FTD — gap."
   },
   "deactivate_slugs": [
     "orc"
@@ -1090,8 +1090,33 @@
       "skill_proficiencies": [
         "intimidation"
       ],
-      "traits_text": "Полуорк (2014): +2 Сил, +1 Тел. Тёмное зрение 60 фт. Угрожающий вид. Непреклонная выносливость. Свирепые атаки.",
+      "traits_text": "Полуорк (2014): +2 Сил, +1 Тел. Тёмное зрение 60 фт. Угрожающий вид. Непреклонная выносливость. Свирепые атаки. Метка поиска ERLW — опционально в попапе.",
       "subrace_required": false
+    },
+    {
+      "slug": "mark_of_finding_half_orc",
+      "name_ru": "Полуорк (метка поиска)",
+      "name_en": "Mark of Finding Half-Orc",
+      "parent_slug": "half_orc",
+      "selectable": true,
+      "source": "erlw",
+      "sort_order": 81,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "wis": 2,
+        "con": 1
+      },
+      "languages": [
+        "Общий",
+        "Орочий"
+      ],
+      "languages_choose": 0,
+      "skill_proficiencies": [
+        "perception"
+      ],
+      "traits_text": "Полуорк (метка поиска, ERLW): +2 Муд, +1 Тел (вместо PHB ASI). Интуиция охотника (d4 к Восприятию / Выживанию). Магическое чутьё: Обнаружение магии и Поиск предмета (1/длинный отдых, МУД). Заклинания метки — если есть классовое колдовство. Тёмное зрение 60."
     },
     {
       "slug": "tiefling",

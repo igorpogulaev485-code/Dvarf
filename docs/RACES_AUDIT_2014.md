@@ -12,7 +12,7 @@
 | Человек | base + variant (+ ERLW метки) | 1 child | — | — | Метки ERLW — gap |
 | Драконорождённый | ancestry choice | 0 subrace | — | — | FTD/EGW — gap |
 | Полуэльф | PHB + SCAG наследия + ERLW метки | ✅ 6 children | ✅ optional | ✅ | optional forks; `c6d7` |
-| Полуорк | PHB + ERLW метка поиска | 0 | — | — | gap |
+| Полуорк | PHB + ERLW метка поиска | ✅ 1 child | ✅ optional | ⏳ | `d7e8` |
 | Тифлинг | PHB base + MTF bloodlines + SCAG feral | ✅ 9 children | ✅ optional | ✅ | optional forks; `c6d7` |
 
 ## Чеклист на расу
