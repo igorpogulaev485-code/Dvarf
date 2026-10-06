@@ -1174,24 +1174,53 @@ input {
   cursor: pointer;
 }
 
+.tag-chip--leveled {
+  cursor: default;
+  padding-right: 4px;
+}
+
 .tag-chip span:first-child {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tag-chip__x {
+.tag-chip__x,
+.tag-chip__remove {
   flex: 0 0 auto;
   opacity: 0.7;
   font-size: 0.95rem;
   line-height: 1;
 }
 
-.tag-chip:hover {
+.tag-chip__remove {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0 4px;
+  font-weight: 700;
+}
+
+.tag-chip__level {
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, white);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  min-width: 2rem;
+}
+
+.tag-chip:hover,
+.tag-chip--leveled:hover {
   border-color: var(--accent);
 }
 
-.tag-chip:hover .tag-chip__x {
+.tag-chip:hover .tag-chip__x,
+.tag-chip:hover .tag-chip__remove {
   opacity: 1;
 }
 

@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   FALLBACK_CONDITIONS,
+  conditionKey,
+  conditionMaxLevel,
   hasCondition,
+  resolveConditionName,
+  setConditionLevel,
   toggleCondition,
   type ConditionRef,
 } from '../../shared/dnd/conditions'
@@ -17,6 +21,7 @@ import {
 import {
   applyLongRest,
   applyShortRest,
+  clampExhaustion,
   type ResourceReset,
 } from '../../shared/dnd/rest'
 import {
@@ -24,13 +29,31 @@ import {
   type CatalogEntry,
 } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
-import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
+import {
+  Button,
+  Combobox,
+  Field,
+  Input,
+  NumberInput,
+  Panel,
+  SlotPips,
+  Stack,
+  Text,
+  type ComboboxOption,
+} from '../../ui'
 import {
   RESET_LABELS,
   createResource,
   type PlayState,
 } from './play'
 import type { SpellsState } from './spells'
+
+type ConditionOption = {
+  slug: string
+  name: string
+  catalog_id: string | null
+  maxLevel: number | null
+}
 
 type PlayPanelProps = {
   edition: RulesEdition
@@ -119,31 +142,129 @@ export function PlayPanel({
     }
   }, [edition])
 
-  const conditionOptions = useMemo(() => {
-    if (catalogConditions.length > 0) {
-      return catalogConditions.map((entry) => ({
-        slug: entry.slug,
-        name: entry.name_ru,
-        catalog_id: entry.id,
-      }))
+  const conditionOptions = useMemo((): ConditionOption[] => {
+    const fromCatalog =
+      catalogConditions.length > 0
+        ? catalogConditions.map((entry) => ({
+            slug: entry.slug,
+            name: resolveConditionName({
+              slug: entry.slug,
+              name_ru: entry.name_ru,
+              name_en: entry.name_en,
+            }),
+            catalog_id: entry.id,
+            maxLevel: conditionMaxLevel(entry.slug),
+          }))
+        : []
+
+    const bySlug = new Map<string, ConditionOption>(
+      fromCatalog.map((item) => [item.slug, item]),
+    )
+    for (const item of FALLBACK_CONDITIONS) {
+      if (!bySlug.has(item.slug)) {
+        bySlug.set(item.slug, {
+          slug: item.slug,
+          name: item.name_ru,
+          catalog_id: null,
+          maxLevel: item.maxLevel ?? null,
+        })
+      } else {
+        const existing = bySlug.get(item.slug)!
+        bySlug.set(item.slug, {
+          ...existing,
+          name: resolveConditionName({
+            slug: item.slug,
+            name_ru: existing.name,
+            name_en: item.name_en,
+          }),
+          maxLevel: existing.maxLevel ?? item.maxLevel ?? null,
+        })
+      }
     }
-    return FALLBACK_CONDITIONS.map((item) => ({
-      slug: item.slug,
-      name: item.name_ru,
-      catalog_id: null as string | null,
-    }))
+    return Array.from(bySlug.values()).sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   }, [catalogConditions])
+
+  const [conditionQuery, setConditionQuery] = useState('')
+
+  const activeConditions = useMemo(
+    () => play.conditions.filter((item) => item.slug !== 'exhaustion'),
+    [play.conditions],
+  )
+
+  const pickerOptions = useMemo((): ComboboxOption[] => {
+    const q = conditionQuery.trim().toLowerCase()
+    const available = conditionOptions.filter((option) => {
+      if (option.slug === 'exhaustion') {
+        return play.exhaustion <= 0
+      }
+      return !hasCondition(activeConditions, option.catalog_id ?? option.slug)
+    })
+    const filtered = available
+      .filter((option) => !q || option.name.toLowerCase().includes(q) || option.slug.includes(q))
+      .map((option) => ({ id: option.catalog_id ?? option.slug, label: option.name }))
+
+    const custom = conditionQuery.trim()
+    if (
+      custom &&
+      !filtered.some((option) => option.label.toLowerCase() === custom.toLowerCase()) &&
+      !activeConditions.some((item) => item.name.toLowerCase() === custom.toLowerCase())
+    ) {
+      filtered.push({ id: `custom:${custom}`, label: custom })
+    }
+    return filtered
+  }, [activeConditions, conditionOptions, conditionQuery, play.exhaustion])
 
   function patchPlay(patch: Partial<PlayState>) {
     onPlayChange({ ...play, ...patch })
   }
 
   function setExhaustion(next: number) {
-    patchPlay({ exhaustion: next })
+    patchPlay({ exhaustion: clampExhaustion(next) })
   }
 
-  function toggle(ref: ConditionRef) {
-    patchPlay({ conditions: toggleCondition(play.conditions, ref) })
+  function addConditionOption(option: ComboboxOption) {
+    const preset = conditionOptions.find(
+      (item) => (item.catalog_id ?? item.slug) === option.id || item.name === option.label,
+    )
+    if (preset?.slug === 'exhaustion') {
+      if (play.exhaustion <= 0) setExhaustion(1)
+      setConditionQuery('')
+      return
+    }
+
+    const ref: ConditionRef = preset
+      ? {
+          slug: preset.slug,
+          name: preset.name,
+          catalog_id: preset.catalog_id,
+          level: preset.maxLevel ? 1 : null,
+        }
+      : {
+          slug: option.label.trim().toLowerCase().replace(/\s+/g, '-'),
+          name: option.label.trim(),
+          catalog_id: null,
+          level: null,
+        }
+
+    patchPlay({
+      conditions: toggleCondition(
+        activeConditions,
+        ref,
+      ).filter((item) => item.slug !== 'exhaustion'),
+    })
+    setConditionQuery('')
+  }
+
+  function removeCondition(ref: ConditionRef) {
+    patchPlay({
+      conditions: activeConditions.filter((item) => conditionKey(item) !== conditionKey(ref)),
+    })
+  }
+
+  function changeConditionLevel(ref: ConditionRef, level: number) {
+    patchPlay({
+      conditions: setConditionLevel(activeConditions, conditionKey(ref), level),
+    })
   }
 
   function updateResource(id: string, patch: Partial<PlayState['resources'][number]>) {
@@ -356,43 +477,87 @@ export function PlayPanel({
           ) : null}
         </div>
 
-        <div>
-          <Text tone="muted">Состояния — чипы вкл/выкл</Text>
-          <div className="chip-row play-conditions">
-            {conditionOptions.map((option) => {
-              const key = option.catalog_id ?? option.slug
-              const on =
-                hasCondition(play.conditions, key) || hasCondition(play.conditions, option.slug)
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  className={`sheet-chip${on ? ' is-on' : ''}`}
-                  onClick={() => toggle(option)}
-                >
-                  {option.name}
-                </button>
-              )
-            })}
-          </div>
-        </div>
+        <div className="multi-pick">
+          <Field
+            label="Состояния"
+            hint="Выберите активные. У истощения и опьянения — уровень на плашке. Продолжительный отдых −1 истощение."
+          >
+            <Combobox
+              value={conditionQuery}
+              options={pickerOptions}
+              placeholder="Найти состояние…"
+              emptyHint="Введите название и выберите из списка"
+              onChange={setConditionQuery}
+              onSelectOption={addConditionOption}
+            />
+          </Field>
 
-        <div>
-          <Text tone="muted">Истощение 0–6 (продолжительный отдых −1)</Text>
-          <div className="exhaustion-track" role="group" aria-label="Уровень истощения">
-            {Array.from({ length: 7 }, (_, nextLevel) => (
-              <button
-                key={nextLevel}
-                type="button"
-                className={`exhaustion-pip${play.exhaustion === nextLevel ? ' is-on' : ''}${play.exhaustion > nextLevel ? ' is-filled' : ''}`}
-                aria-pressed={play.exhaustion === nextLevel}
-                aria-label={`Истощение ${nextLevel}`}
-                onClick={() => setExhaustion(nextLevel)}
-              >
-                {nextLevel}
-              </button>
-            ))}
-          </div>
+          {play.exhaustion > 0 || activeConditions.length > 0 ? (
+            <div className="tag-row" aria-label="Активные состояния">
+              {play.exhaustion > 0 ? (
+                <span className="tag-chip tag-chip--leveled">
+                  <span>Истощение</span>
+                  <select
+                    className="tag-chip__level"
+                    aria-label="Уровень истощения"
+                    value={play.exhaustion}
+                    onChange={(event) => setExhaustion(Number(event.target.value))}
+                  >
+                    {Array.from({ length: 6 }, (_, index) => index + 1).map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="tag-chip__remove"
+                    title="Снять"
+                    onClick={() => setExhaustion(0)}
+                  >
+                    ×
+                  </button>
+                </span>
+              ) : null}
+
+              {activeConditions.map((ref) => {
+                const max = conditionMaxLevel(ref.slug)
+                return (
+                  <span key={conditionKey(ref)} className="tag-chip tag-chip--leveled">
+                    <span>{resolveConditionName(ref)}</span>
+                    {max ? (
+                      <select
+                        className="tag-chip__level"
+                        aria-label={`Уровень: ${resolveConditionName(ref)}`}
+                        value={ref.level ?? 1}
+                        onChange={(event) =>
+                          changeConditionLevel(ref, Number(event.target.value))
+                        }
+                      >
+                        {Array.from({ length: max }, (_, index) => index + 1).map((level) => (
+                          <option key={level} value={level}>
+                            {level}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="tag-chip__remove"
+                      title="Снять"
+                      onClick={() => removeCondition(ref)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                )
+              })}
+            </div>
+          ) : (
+            <Text tone="muted" className="multi-pick__empty">
+              Нет активных состояний
+            </Text>
+          )}
         </div>
 
         <div className="play-rest-block">

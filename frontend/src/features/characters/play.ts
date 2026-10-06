@@ -1,5 +1,6 @@
 import {
-  FALLBACK_CONDITIONS,
+  clampConditionLevel,
+  resolveConditionName,
   type ConditionRef,
 } from '../../shared/dnd/conditions'
 import {
@@ -53,11 +54,11 @@ export function createResource(partial?: Partial<SheetResource>): SheetResource 
 function readCondition(raw: unknown, index: number): ConditionRef | null {
   if (typeof raw === 'string' && raw.trim()) {
     const slug = raw.trim()
-    const fallback = FALLBACK_CONDITIONS.find((item) => item.slug === slug)
     return {
       slug,
-      name: fallback?.name_ru ?? slug,
+      name: resolveConditionName({ slug }),
       catalog_id: null,
+      level: clampConditionLevel(slug, 1),
     }
   }
   const row = asRecord(raw)
@@ -67,14 +68,13 @@ function readCondition(raw: unknown, index: number): ConditionRef | null {
       : typeof row.name === 'string' && row.name.trim()
         ? row.name.trim()
         : `condition-${index}`
-  const name =
-    typeof row.name === 'string' && row.name.trim()
-      ? row.name.trim()
-      : FALLBACK_CONDITIONS.find((item) => item.slug === slug)?.name_ru ?? slug
+  const nameRaw = typeof row.name === 'string' ? row.name : null
+  const levelRaw = readNullableNumber(row.level)
   return {
     slug,
-    name,
+    name: resolveConditionName({ slug, name: nameRaw }),
     catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+    level: clampConditionLevel(slug, levelRaw ?? 1),
   }
 }
 
@@ -162,6 +162,7 @@ export function playToSheet(play: PlayState): {
         slug: item.slug,
         name: item.name,
         catalog_id: item.catalog_id,
+        level: item.level ?? null,
       })),
       exhaustion: clampExhaustion(play.exhaustion),
       hp_temp: Math.max(0, Math.floor(play.hpTemp)),

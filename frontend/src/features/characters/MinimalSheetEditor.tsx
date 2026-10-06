@@ -20,6 +20,7 @@ import {
   totalCharacterLevel,
 } from '../../shared/dnd/classLevels'
 import { XpProgressField } from './XpProgressField'
+import { formatConditionLabel } from '../../shared/dnd/conditions'
 import type {
   AppliedClassGrant,
   ClassGrantDef,
@@ -714,7 +715,12 @@ export function MinimalSheetEditor({
         isDying={draft.play.isDying}
         deathSuccesses={draft.play.deathSuccesses}
         deathFails={draft.play.deathFails}
-        conditionNames={draft.play.conditions.map((item) => item.name)}
+        conditionNames={[
+          ...(draft.play.exhaustion > 0 ? [`Истощение ${draft.play.exhaustion}`] : []),
+          ...draft.play.conditions
+            .filter((item) => item.slug !== 'exhaustion')
+            .map((item) => formatConditionLabel(item)),
+        ]}
         concentration={draft.play.concentration}
         onClearConcentration={() =>
           setDraft((prev) => ({
