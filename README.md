@@ -17,14 +17,26 @@
 - Frontend: React + Vite
 - Backend: Python + FastAPI (REST)
 - DB: PostgreSQL
-- Auth: email/password + JWT; регистрация с обязательным никнеймом и подтверждением email; OAuth Yandex/VK — stubs до секретов
+- Auth: email/password + JWT; регистрация с обязательным никнеймом и подтверждением email; SMTP (Mail.ru) на проде; OAuth Yandex/VK — stubs до секретов
 
 ## Статус (сейчас)
 
-Уже в продуктовой ветке / PR:
+Прод: http://201.34.132.252/
 
-- Personal cabinet: profile, phone, avatar, change password/email (SMTP Mail.ru), sessions (revoke/logout everywhere), danger zone
-- Auth (register/login/refresh with session tracking, email verification)
+### Auth / личный кабинет — закрыт, кроме OAuth
+
+- Регистрация: обязательный никнейм + письмо подтверждения; вход только после verify
+- Профиль: display_name, ФИО, телефон (маска +7), email только просмотр
+- Аватар: загрузка/удаление; миниатюра + ник в шапке списка персонажей
+- Смена email (письмо на **текущую** почту) и смена пароля
+- Восстановление пароля по письму
+- Сессии: список устройств, завершить одну / остальные / выйти везде
+- Опасная зона (красным): необратимое удаление аккаунта
+- SMTP Mail.ru на проде (`AUTH_EMAIL_STUB=false`); исходящие порты 465/587 открыты на Timeweb
+- **Не сделано в ЛК:** привязка/отвязка Яндекс и VK (кнопки disabled, ждут ключи)
+
+### Лист персонажа (цифровой)
+
 - Characters CRUD, hybrid JSONB sheet + `sheet_version` (409 на конфликт)
 - Catalogs: races / classes / weapons + sample damaging artifacts
 - Sheet: identity, abilities, saves, skills
@@ -37,7 +49,9 @@
 
 ## Очередь
 
-Ближайшее:
+Кабинет: только OAuth link/unlink, когда будут секреты Яндекс/VK.
+
+Ближайшее по продукту:
 
 1. Spells на цифровом листе (slots + known/prepared + seed)
 2. Дожать play-контур листа (условия, ресурсы rest reset и т.п. по IA-референсу)
@@ -48,15 +62,15 @@
 - Party frame (QR join, мастер пачки)
 - Encounter prep → loot
 
-Backlog (отдельные слайсы): multiclass; race → эффекты на лист; rich-text в блоках; onboarding → тема UI; OAuth link/unlink в кабинете.
+Backlog (отдельные слайсы): multiclass; race → эффекты на лист; rich-text в блоках; onboarding → тема UI; свой домен/`noreply` вместо личного SMTP.
 
 ## Репозиторий и ветки
 
-- Продуктовая работа — в feature-ветках `cursor/<name>-eb8e`, в `main` только через PR
+- Продуктовая работа — в feature-ветках `cursor/<name>-83e8`, в `main` только через PR
 - После каждого approved-слайса: commit → push → обновить PR
-- Секреты и `.env` с ключами не коммитить (только `.env.example`)
+- Секреты и `.env` с ключами не коммитить (только `.env.example`); SMTP-пароль только в `/opt/dvarf/.env` на VPS
 
-Основной PR разработки: смотри открытые PR в репо (обычно auth/sheet ветка).
+Основной PR разработки: смотри открытые PR в репо.
 
 ## Backend
 
@@ -83,7 +97,7 @@ Auth:
 - `PATCH /auth/me` (профиль: display_name, full_name, phone)
 - `POST /auth/change-password`
 - `POST /auth/me/avatar` / `DELETE /auth/me/avatar`
-- `POST /auth/me/email/request` / `POST /auth/me/email/confirm` (письмо на текущую почту; SMTP или stub)
+- `POST /auth/me/email/request` / `POST /auth/me/email/confirm` (письмо на текущую почту; SMTP на проде)
 - `DELETE /auth/me` (удаление аккаунта)
 - `GET /auth/oauth/{yandex|vk}/start` (stub)
 - `GET /auth/oauth/{yandex|vk}/callback` (stub)

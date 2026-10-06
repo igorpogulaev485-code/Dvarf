@@ -4,6 +4,10 @@
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`
 
+## Product note (cabinet)
+
+Cabinet MVP is live except Yandex/VK link-unlink. Prod mail uses Mail.ru SMTP from `/opt/dvarf/.env` (`AUTH_EMAIL_STUB=false`). Timeweb may re-block outbound 465/587 after a server config change.
+
 ## Rule (with Игорь)
 
 1. Code slice: plan → ok → commit → push → PR.
