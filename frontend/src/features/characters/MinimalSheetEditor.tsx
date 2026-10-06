@@ -19,6 +19,7 @@ import {
   reduceClassLevel,
   totalCharacterLevel,
 } from '../../shared/dnd/classLevels'
+import { XpProgressField } from './XpProgressField'
 import type {
   AppliedClassGrant,
   ClassGrantDef,
@@ -751,14 +752,10 @@ export function MinimalSheetEditor({
               </div>
             </Field>
             <Field label="Опыт (XP)" htmlFor="sheet-xp">
-              <NumberInput
-                id="sheet-xp"
-                min={0}
-                emptyValue={0}
-                value={draft.identity.experience}
-                onValueChange={(experience) =>
-                  patchIdentity({ experience: experience ?? 0 })
-                }
+              <XpProgressField
+                xp={draft.identity.experience}
+                level={characterLevel}
+                onChange={(experience) => patchIdentity({ experience })}
               />
             </Field>
           </div>

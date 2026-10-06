@@ -1,4 +1,4 @@
-import { Field, NumberInput } from '../../ui'
+import { NumberInput } from '../../ui'
 import type { ConcentrationState } from './play'
 import {
   abilityModifier,
@@ -65,13 +65,19 @@ export function CombatStickyHeader({
 }: CombatStickyHeaderProps) {
   const autoInitiative = abilityModifier(abilities.dex)
   const subtitle = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
-  const conditionsLabel =
-    conditionNames.length > 0 ? conditionNames.join(', ') : 'нет состояний'
+  const hasConditions = conditionNames.length > 0
+  const conditionsLabel = hasConditions ? conditionNames.join(', ') : ''
+  const acTitle = acOverride == null ? acHint : 'задано вручную'
+  const initTitle =
+    initiativeOverride == null
+      ? `от ЛОВ ${formatModifier(autoInitiative)}`
+      : 'задано вручную'
+  const hpTitle = hpTemp > 0 ? `врем. +${hpTemp}` : undefined
 
   return (
     <section className="combat-sticky" aria-label="Боевой статус">
       <div className="combat-sticky__identity">
-        <div>
+        <div className="combat-sticky__who">
           <h1 className="combat-sticky__name">{name || 'Без имени'}</h1>
           <p className="combat-sticky__sub">
             {subtitle} · ур. {level}
@@ -83,29 +89,43 @@ export function CombatStickyHeader({
             className={`combat-chip${inspiration ? ' is-on' : ''}`}
             onClick={() => onChange({ inspiration: !inspiration })}
             aria-pressed={inspiration}
+            title="Вдохновение"
           >
-            Вдохновение
+            <span className="combat-chip__full">Вдохновение</span>
+            <span className="combat-chip__short" aria-hidden>
+              Вдохн.
+            </span>
           </button>
           <span
             className={`combat-chip combat-chip--static${exhaustion > 0 ? ' is-on' : ''}`}
             title="Меняется в блоке «Состояния и ресурсы»"
           >
-            Истощение {exhaustion}
+            <span className="combat-chip__full">Истощение {exhaustion}</span>
+            <span className="combat-chip__short" aria-hidden>
+              Ист. {exhaustion}
+            </span>
           </span>
           {isDying ? (
-            <span className="combat-chip combat-chip--static is-danger" title="Спасброски от смерти">
+            <span
+              className="combat-chip combat-chip--static is-danger"
+              title="Спасброски от смерти"
+            >
               Смерть {deathSuccesses}/{deathFails}
             </span>
           ) : null}
         </div>
       </div>
-      <p className="combat-sticky__conditions" title={conditionsLabel}>
-        {conditionsLabel}
-      </p>
+
+      {hasConditions ? (
+        <p className="combat-sticky__conditions" title={conditionsLabel}>
+          {conditionsLabel}
+        </p>
+      ) : null}
+
       {concentration ? (
         <div className="combat-sticky__concentration">
           <span>
-            Концентрация: <strong>{concentration.name}</strong>
+            Конц.: <strong>{concentration.name}</strong>
           </span>
           {onClearConcentration ? (
             <button type="button" className="linkish" onClick={onClearConcentration}>
@@ -116,10 +136,8 @@ export function CombatStickyHeader({
       ) : null}
 
       <div className="combat-sticky__stats">
-        <Field
-          label="КД"
-          hint={acOverride == null ? acHint : 'задано вручную'}
-        >
+        <label className="combat-stat" title={acTitle}>
+          <span className="combat-stat__label">КД</span>
           <div className="combat-sticky__init">
             <NumberInput
               value={acOverride ?? autoAc}
@@ -142,11 +160,19 @@ export function CombatStickyHeader({
               </button>
             ) : null}
           </div>
-        </Field>
-        <Field label="Скорость">
-          <NumberInput value={speed} onValueChange={(value) => onChange({ speed: value })} />
-        </Field>
-        <Field label="HP" hint={hpTemp > 0 ? `врем. +${hpTemp}` : undefined}>
+        </label>
+
+        <label className="combat-stat">
+          <span className="combat-stat__label">Скор.</span>
+          <NumberInput
+            value={speed}
+            aria-label="Скорость"
+            onValueChange={(value) => onChange({ speed: value })}
+          />
+        </label>
+
+        <label className="combat-stat" title={hpTitle}>
+          <span className="combat-stat__label">HP</span>
           <div className="combat-sticky__hp">
             <NumberInput
               value={hpCurrent}
@@ -160,18 +186,14 @@ export function CombatStickyHeader({
               onValueChange={(value) => onChange({ hpMax: value })}
             />
           </div>
-        </Field>
-        <Field
-          label="Инициатива"
-          hint={
-            initiativeOverride == null
-              ? `от ЛОВ ${formatModifier(autoInitiative)}`
-              : 'задано вручную'
-          }
-        >
+        </label>
+
+        <label className="combat-stat" title={initTitle}>
+          <span className="combat-stat__label">Иниц.</span>
           <div className="combat-sticky__init">
             <NumberInput
               value={initiativeOverride ?? autoInitiative}
+              aria-label="Инициатива"
               onValueChange={(value) => {
                 if (value == null || value === autoInitiative) {
                   onChange({ initiativeOverride: null })
@@ -190,7 +212,7 @@ export function CombatStickyHeader({
               </button>
             ) : null}
           </div>
-        </Field>
+        </label>
       </div>
     </section>
   )
