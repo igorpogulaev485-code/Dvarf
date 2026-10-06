@@ -1,7 +1,7 @@
 """add lobbies settings play_sessions
 
 Revision ID: c9d0e1f2a3b4
-Revises: b829a0b1c2d3
+Revises: d041e5f2a3b4
 Create Date: 2026-10-06 09:55:00.000000
 
 """
@@ -13,7 +13,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "c9d0e1f2a3b4"
-down_revision: Union[str, Sequence[str], None] = "b829a0b1c2d3"
+down_revision: Union[str, Sequence[str], None] = "d041e5f2a3b4"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
