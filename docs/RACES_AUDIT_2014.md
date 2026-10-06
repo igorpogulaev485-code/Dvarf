@@ -11,9 +11,9 @@
 | Гном | PHB + глубинный + ERLW метка письма | ✅ 4 | ✅ | ✅ | `b5c6` |
 | Человек | base + variant (+ ERLW метки) | 1 child | — | — | Метки ERLW — gap |
 | Драконорождённый | ancestry choice | 0 subrace | — | — | FTD/EGW — gap |
-| Полуэльф | PHB + SCAG наследия + ERLW метки | ✅ 6 children | ⏳ | ⏳ | optional forks; `c6d7` |
+| Полуэльф | PHB + SCAG наследия + ERLW метки | ✅ 6 children | ✅ optional | ✅ | optional forks; `c6d7` |
 | Полуорк | PHB + ERLW метка поиска | 0 | — | — | gap |
-| Тифлинг | PHB base + MTF bloodlines + SCAG feral | ✅ 9 children | ⏳ | ⏳ | optional forks; `c6d7` |
+| Тифлинг | PHB base + MTF bloodlines + SCAG feral | ✅ 9 children | ✅ optional | ✅ | optional forks; `c6d7` |
 
 ## Чеклист на расу
 
