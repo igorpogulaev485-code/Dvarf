@@ -1143,6 +1143,58 @@ input {
   }
 }
 
+.multi-pick {
+  display: grid;
+  gap: 8px;
+}
+
+.multi-pick__empty {
+  font-size: 0.82rem;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, white);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.tag-chip span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tag-chip__x {
+  flex: 0 0 auto;
+  opacity: 0.7;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.tag-chip:hover {
+  border-color: var(--accent);
+}
+
+.tag-chip:hover .tag-chip__x {
+  opacity: 1;
+}
+
 .combat-chip--static {
   cursor: default;
 }
