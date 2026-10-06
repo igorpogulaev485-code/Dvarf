@@ -3,7 +3,19 @@
 Единый файл «что уже есть в продукте».  
 Игорь шарит его с друзьями и использует как срез для агентов.
 
-Прод: http://201.34.132.252/
+Прод: http://201.34.132.252/  
+**Prod tip (ветка линии прода):** `cursor/restore-sheet-classic-acbe`  
+Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
+
+---
+
+## Анти-overwrite (обязательно перед деплоем)
+
+1. `deploy/sync-and-up.sh` **заменяет всё** на сервере кроме `.env`. Деплой ≠ «доложить файлы», а «поставить ровно это дерево».
+2. Перед деплоем: ветка от **prod tip** + `./deploy/preflight-prod.sh` (зелёный).
+3. После деплоя: проверь живой бандл/диск. **Только потом** пиши «на проде: да».
+4. Если tip сменился твоим деплоем — обнови tip здесь, в `AGENTS.md`, `deploy/README.md`, skill `dvarf-prod-lineage`.
+5. Запрещено копировать блоки «на проде: да» из другой ветки без проверки сервера (так уже врали про лист P1–P6).
 
 ---
 
@@ -239,3 +251,4 @@
 | 2026-10-06 | `cursor/restore-avatar-upload-acbe` | Восстановлены загрузка аватара, `/uploads/`, иконка в шапке |
 | 2026-10-06 | `cursor/restore-cabinet-acbe` | Восстановлен кабинет: SMTP, verify, сессии, смена пароля/email, danger zone |
 | 2026-10-06 | `cursor/restore-sheet-classic-acbe` | Восстановлены лист P1–P6 + classic поверх lobby/cabinet; снято ложное «только в ветках» |
+| 2026-10-06 | `cursor/prod-lineage-rules-acbe` | Анти-overwrite: AGENTS.md, skills, preflight, tip=`restore-sheet-classic-acbe` |

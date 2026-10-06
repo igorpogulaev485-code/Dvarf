@@ -41,13 +41,18 @@
 
 ## Для агентов (обязательно прочитать)
 
+**Сначала:** [`AGENTS.md`](AGENTS.md) — жёсткий контракт (анти-overwrite).  
+Skills: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod-lineage/SKILL.md) · [`.cursor/skills/dvarf-dev-workflow/SKILL.md`](.cursor/skills/dvarf-dev-workflow/SKILL.md).  
+Живой срез фич: [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md).
+
 - Итерации: **короткий план → ok от Игоря → код / commit / push / PR**. Без ok код не писать.
-- Ветки: `cursor/<name>-eb8e`, в `main` только через PR.
-- Деплой на Timeweb **только** по явной просьбе («залей на сервер»). См. [`deploy/README.md`](deploy/README.md).
-- Секреты не коммитить. Для деплоя Cloud Agent: secret `DVARF_SSH_PRIVATE_KEY`.
-- Параллельные агенты: **не ломать чужой контур**. Digital sheet и classic PDF-like могут идти параллельно; **боевой фрейм / encounter / loot** на сессии — только после отдельного ok.
+- Ветки: `cursor/<name>-acbe` (от **prod tip**, не от голого `main`/старой развилки). В `main` только через PR.
+- **Prod tip сейчас:** `cursor/restore-sheet-classic-acbe`. Деплой только с дерева, где tip уже влит.
+- Деплой на Timeweb **только** по явной просьбе («залей на сервер»). `./deploy/sync-and-up.sh` **затирает весь** `/opt/dvarf` кроме `.env` — тонкая ветка убивает чужие фичи. Перед деплоем: `./deploy/preflight-prod.sh`. См. [`deploy/README.md`](deploy/README.md).
+- После деплоя: проверить маркеры (лобби, кабинет, лист, classic) на живом сервере; в `PRODUCT_STATUS` писать «на проде» только по факту.
+- Параллельные агенты: PR можно параллельно; **на сервер — один интегрированный деплой от tip**. Не деплоить каждый свою развилку.
+- Секреты не коммитить. Cloud Agent: `DVARF_SSH_PRIVATE_KEY` = **полный** OpenSSH PEM (`BEGIN`…`END`).
 - Каталоги: свой seed + SRD (CC-BY). API TTG недоступен; ждём dnd.su; **чужие сайты не скрейпим**.
-- Деплой-секрет `DVARF_SSH_PRIVATE_KEY` должен быть **полным PEM** (BEGIN…END). Обрезанный секрет (только заголовок) ломает SSH.
 
 ## Продуктовые принципы
 

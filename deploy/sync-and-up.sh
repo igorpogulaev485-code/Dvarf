@@ -6,6 +6,10 @@ HOST="${DVARF_HOST:-201.34.132.252}"
 KEY="${DVARF_SSH_KEY:-$HOME/.ssh/dvarf_timeweb}"
 REMOTE_DIR="${DVARF_REMOTE_DIR:-/opt/dvarf}"
 
+# Anti-overwrite: refuse to ship a thin branch that would wipe prod contours.
+# See AGENTS.md and .cursor/skills/dvarf-prod-lineage/SKILL.md
+bash "$ROOT/deploy/preflight-prod.sh"
+
 # One shared key for all Cloud Agents: put private key in Cursor secret
 # DVARF_SSH_PRIVATE_KEY (full PEM). Matching pubkey stays on the VPS.
 if [[ ! -f "$KEY" && -n "${DVARF_SSH_PRIVATE_KEY:-}" ]]; then
