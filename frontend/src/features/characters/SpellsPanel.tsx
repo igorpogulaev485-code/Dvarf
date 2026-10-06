@@ -1,7 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
+import {
+  applySpellcastingSuggestion,
+  suggestSpellcasting,
+} from '../../shared/dnd/casterProgression'
 import { setConcentration } from '../../shared/dnd/concentration'
 import {
   SPELLCASTING_ABILITIES,
@@ -34,6 +38,8 @@ import {
 
 type SpellsPanelProps = {
   edition: RulesEdition
+  className: string
+  level: number
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
@@ -44,6 +50,8 @@ type SpellsPanelProps = {
 
 export function SpellsPanel({
   edition,
+  className,
+  level,
   spells,
   abilities,
   proficiencyBonus,
@@ -84,9 +92,66 @@ export function SpellsPanel({
     return groupSpellsByLevel(list)
   }, [filter, combatPool])
 
+  const suggestion = useMemo(
+    () =>
+      suggestSpellcasting({
+        className,
+        level,
+        abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      }),
+    [className, level, abilities],
+  )
+
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })
   }
+
+  function applyFromClass() {
+    if (!suggestion) {
+      onToast?.('Класс не в таблице 2014 — ячейки задай вручную')
+      return
+    }
+    onChange({ ...spells, ...applySpellcastingSuggestion(spells, suggestion) })
+    const prep =
+      suggestion.max_prepared == null
+        ? suggestion.progression === 'none'
+          ? ''
+          : ' · без лимита подготовки'
+        : ` · подготовка ${suggestion.max_prepared}`
+    onToast?.(`${suggestion.labelRu} ${level} ур.: ячейки 2014${prep}`)
+  }
+
+  const classLevelKey = `${className.trim().toLowerCase()}|${level}`
+  const appliedClassLevel = useRef<string | null>(null)
+  useEffect(() => {
+    if (appliedClassLevel.current == null) {
+      appliedClassLevel.current = classLevelKey
+      return
+    }
+    if (appliedClassLevel.current === classLevelKey) return
+    appliedClassLevel.current = classLevelKey
+    if (!suggestion) return
+    onChange({ ...spells, ...applySpellcastingSuggestion(spells, suggestion) })
+    onToast?.(`${suggestion.labelRu} ${level} ур.: ячейки обновлены по таблице 2014`)
+    // Apply once per class/level change; skip the first paint so saved sheets stay intact.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classLevelKey])
+
+  const prepareKey =
+    suggestion?.max_prepared == null ? '' : `${suggestion.slug}:${suggestion.max_prepared}`
+  const appliedPrepare = useRef<string | null>(null)
+  useEffect(() => {
+    if (!prepareKey || suggestion?.max_prepared == null) return
+    if (appliedPrepare.current == null) {
+      appliedPrepare.current = prepareKey
+      return
+    }
+    if (appliedPrepare.current === prepareKey) return
+    appliedPrepare.current = prepareKey
+    if (spells.max_prepared === suggestion.max_prepared) return
+    onChange({ ...spells, max_prepared: suggestion.max_prepared })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prepareKey])
 
   function updateSpell(id: string, next: Partial<SheetSpell>) {
     patch({
@@ -269,7 +334,13 @@ export function SpellsPanel({
               </div>
               <Field
                 label="Лимит подготовки"
-                hint="Пусто = без лимита. Позже подтянем от класса/уровня."
+                hint={
+                  suggestion?.max_prepared != null
+                    ? `Таблица 2014: ${suggestion.max_prepared} (${suggestion.labelRu})`
+                    : suggestion
+                      ? 'У этого класса нет лимита подготовки (известные заклинания)'
+                      : 'Пусто = без лимита. Подставь таблицу от класса или задай вручную.'
+                }
               >
                 <NumberInput
                   min={0}
@@ -280,8 +351,34 @@ export function SpellsPanel({
                 />
               </Field>
               <div>
-                <Text>Количество ячеек</Text>
-                <div className="sheet-grid sheet-grid--slots">
+                <div className="play-resources-head">
+                  <Text>Количество ячеек</Text>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={applyFromClass}
+                    disabled={!suggestion}
+                  >
+                    От класса
+                  </Button>
+                </div>
+                {suggestion ? (
+                  <Text tone="muted">
+                    {suggestion.labelRu}
+                    {suggestion.progression === 'pact'
+                      ? ` · pact ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
+                      : suggestion.progression === 'none'
+                        ? ' · не заклинатель'
+                        : ' · слоты PHB 2014'}
+                    . При смене класса или уровня подставляется само; spent не сбрасываем.
+                  </Text>
+                ) : (
+                  <Text tone="muted">
+                    Класс не распознан — оставь числа вручную. Известные: жрец, волшебник, паладин,
+                    колдун…
+                  </Text>
+                )}
+                <div className="sheet-grid sheet-grid--slots" style={{ marginTop: 8 }}>
                   {Array.from({ length: 9 }, (_, index) => {
                     const level = index + 1
                     const key = String(level)

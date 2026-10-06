@@ -102,7 +102,8 @@ flowchart TB
 | Sheet S3 | XP, subclass/background/alignment, passives, darkvision, armor/weapon prof | ✅ |
 | Sheet S4+ | pact magic UI, attunement, короткий/продолжительный отдых | ✅ |
 | Sheet P1 | upcast при касте + активная концентрация на листе | ✅ |
-| Polish | multiclass, race→эффекты, rich-text, auto AC/slots | backlog |
+| Sheet P2 | авто-ячейки и лимит подготовки от класса/уровня (2014) | ✅ |
+| Polish | multiclass, race→эффекты, rich-text, auto AC | backlog |
 
 ### Фаза B — Classic PDF-like *(параллельно другим агентом)*
 
@@ -150,13 +151,14 @@ flowchart LR
 - Spells S1–S4; Play S1–S2; Sheet S3 passives/proficiencies
 - Sheet S4+: pact magic, attunement (max 3), short-rest hit-die heal
 - Sheet P1: upcast slot picker + active concentration on sticky header
+- Sheet P2: class/level 2014 slot table + prepare limit
 - Prod Docker deploy (Timeweb)
 
 Прод: http://201.34.132.252/ — подробности в [`deploy/README.md`](deploy/README.md).
 
 ## Очередь ближайших слайсов
 
-**Digital sheet (этот контур):** P1 upcast+концентрация → P2 авто-ячейки/лимит подготовки → P3 КД от доспеха → P4 языки/инструменты.
+**Digital sheet (этот контур):** P2 авто-ячейки ✅ → P3 КД от доспеха → P4 языки/инструменты.
 
 Параллельно другими агентами (не этот чат): Classic PDF-like · ЛК · Party frame.
 

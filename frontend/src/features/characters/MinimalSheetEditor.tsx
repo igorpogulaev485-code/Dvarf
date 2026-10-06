@@ -679,6 +679,8 @@ export function MinimalSheetEditor({
 
       <SpellsPanel
         edition={baseCharacter.rules_edition as RulesEdition}
+        className={draft.className}
+        level={draft.level}
         spells={draft.spells}
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
