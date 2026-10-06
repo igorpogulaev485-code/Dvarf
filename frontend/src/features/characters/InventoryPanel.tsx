@@ -2,6 +2,12 @@ import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
+  ARMOR_KINDS,
+  ARMOR_PRESETS,
+  armorKindLabel,
+  type ArmorKind,
+} from '../../shared/dnd/armor'
+import {
   coinWeightLb,
   carryingCapacityLb,
   formatLb,
@@ -12,8 +18,10 @@ import {
 } from '../../shared/dnd/weight'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
+  armorFieldsFromCatalog,
   asWeighableItems,
   createInventoryItem,
+  equipInventoryItem,
   readCatalogWeightLb,
   type InventoryItem,
   type InventoryState,
@@ -67,10 +75,43 @@ export function InventoryPanel({
       return
     }
     const data = selected.data ?? {}
+    const armor = armorFieldsFromCatalog(selected)
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
-      weight_lb: readCatalogWeightLb(data) ?? inventory.items.find((item) => item.id === id)?.weight_lb ?? null,
+      weight_lb:
+        armor.weight_lb ??
+        readCatalogWeightLb(data) ??
+        inventory.items.find((item) => item.id === id)?.weight_lb ??
+        null,
+      armor_kind: armor.armor_kind ?? 'none',
+      base_ac: armor.base_ac ?? null,
+    })
+  }
+
+  function applyPreset(id: string, presetKey: string) {
+    if (!presetKey) return
+    const preset = ARMOR_PRESETS.find((item) => item.key === presetKey)
+    if (!preset) return
+    updateItem(id, {
+      name: preset.labelRu,
+      armor_kind: preset.kind,
+      base_ac: preset.baseAc,
+      weight_lb: preset.weight_lb,
+    })
+  }
+
+  function setArmorKind(id: string, armor_kind: ArmorKind) {
+    const item = inventory.items.find((row) => row.id === id)
+    if (!item) return
+    if (armor_kind === 'none') {
+      updateItem(id, { armor_kind, base_ac: null })
+      return
+    }
+    const preset = ARMOR_PRESETS.find((row) => row.kind === armor_kind)
+    updateItem(id, {
+      armor_kind,
+      base_ac: item.base_ac ?? preset?.baseAc ?? (armor_kind === 'shield' ? 2 : 10),
     })
   }
 
@@ -78,8 +119,8 @@ export function InventoryPanel({
     <Panel title="Инвентарь">
       <Stack gap={14}>
         <Text tone="muted">
-          Монеты и вещи с весом. Итоговый вес считается сам (50 монет = 1 фнт) — лимит по СИЛ × 15.
-          Настройка магических предметов — блок ниже. Контейнеры — позже.
+          Монеты, вещи, броня. Надетый доспех/щит считают КД в шапке (10+ЛОВ без брони). Контейнеры —
+          позже.
         </Text>
 
         <div className="inventory-summary">
@@ -150,6 +191,52 @@ export function InventoryPanel({
                   />
                 </Field>
               </div>
+
+              <div className="sheet-grid sheet-grid--2">
+                <Field label="Шаблон брони">
+                  <select
+                    className="play-select"
+                    value=""
+                    onChange={(event) => applyPreset(item.id, event.target.value)}
+                  >
+                    <option value="">— выбрать —</option>
+                    {ARMOR_PRESETS.map((preset) => (
+                      <option key={preset.key} value={preset.key}>
+                        {preset.labelRu} (
+                        {preset.kind === 'shield' ? `+${preset.baseAc}` : preset.baseAc})
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Тип для КД">
+                  <select
+                    className="play-select"
+                    value={item.armor_kind}
+                    onChange={(event) => setArmorKind(item.id, event.target.value as ArmorKind)}
+                  >
+                    {ARMOR_KINDS.map((kind) => (
+                      <option key={kind} value={kind}>
+                        {armorKindLabel(kind)}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              {item.armor_kind !== 'none' ? (
+                <Field
+                  label={item.armor_kind === 'shield' ? 'Бонус КД щита' : 'Базовый КД доспеха'}
+                >
+                  <NumberInput
+                    min={0}
+                    max={30}
+                    emptyValue={item.armor_kind === 'shield' ? 2 : 10}
+                    value={item.base_ac}
+                    onValueChange={(base_ac) => updateItem(item.id, { base_ac })}
+                  />
+                </Field>
+              ) : null}
+
               <Field label="Заметка">
                 <Input
                   value={item.notes}
@@ -161,12 +248,26 @@ export function InventoryPanel({
                 <button
                   type="button"
                   className={`sheet-chip${item.equipped ? ' is-on' : ''}`}
-                  onClick={() => updateItem(item.id, { equipped: !item.equipped })}
+                  onClick={() =>
+                    onChange({
+                      ...inventory,
+                      items: equipInventoryItem(inventory.items, item.id, !item.equipped),
+                    })
+                  }
                 >
                   {item.equipped ? 'Надето' : 'Не надето'}
                 </button>
                 <Text tone="muted">
                   Строка: {formatLb(itemLineWeightLb(item))} фнт
+                  {item.armor_kind !== 'none'
+                    ? ` · ${armorKindLabel(item.armor_kind)}${
+                        item.base_ac != null
+                          ? item.armor_kind === 'shield'
+                            ? ` +${item.base_ac}`
+                            : ` ${item.base_ac}`
+                          : ''
+                      }`
+                    : ''}
                 </Text>
                 <Button
                   variant="ghost"

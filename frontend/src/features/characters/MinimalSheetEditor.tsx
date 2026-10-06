@@ -20,6 +20,7 @@ import {
   readAttunements,
   type AttunementSlot,
 } from './attunement'
+import { computeArmorClass } from '../../shared/dnd/armor'
 import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
 import { PlayPanel } from './PlayPanel'
@@ -33,6 +34,7 @@ import {
   type IdentityExtras,
 } from './identity'
 import {
+  equippedArmorPieces,
   inventoryToSheet,
   readInventory,
   type InventoryState,
@@ -281,6 +283,15 @@ export function MinimalSheetEditor({
     }
   }, [draft.abilities, draft.skills, proficiencyBonus])
 
+  const armorClass = useMemo(() => {
+    const pieces = equippedArmorPieces(draft.inventory.items)
+    return computeArmorClass({
+      dexMod: abilityModifier(draft.abilities.dex),
+      armor: pieces.armor,
+      shield: pieces.shield,
+    })
+  }, [draft.abilities.dex, draft.inventory.items])
+
   function patchIdentity(patch: Partial<IdentityExtras>) {
     setDraft((prev) => ({ ...prev, identity: { ...prev.identity, ...patch } }))
   }
@@ -413,7 +424,9 @@ export function MinimalSheetEditor({
         hpCurrent={draft.hpCurrent}
         hpMax={draft.hpMax}
         hpTemp={draft.play.hpTemp}
-        ac={draft.ac}
+        acOverride={draft.ac}
+        autoAc={armorClass.ac}
+        acHint={armorClass.summary}
         speed={draft.speed}
         initiativeOverride={draft.initiativeOverride}
         inspiration={draft.inspiration}
