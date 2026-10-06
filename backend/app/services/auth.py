@@ -18,9 +18,17 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import AuthProvider, User
+from app.repositories.email_change import EmailChangeRepository
 from app.repositories.password_reset import PasswordResetRepository
 from app.repositories.user import UserRepository
-from app.schemas.auth import ForgotPasswordResponse, ResetPasswordResponse, TokenResponse, ChangePasswordResponse
+from app.schemas.auth import (
+    ChangePasswordResponse,
+    EmailChangeConfirmResponse,
+    EmailChangeRequestResponse,
+    ForgotPasswordResponse,
+    ResetPasswordResponse,
+    TokenResponse,
+)
 from app.schemas.user import UserResponse, UserUpdateRequest
 from app.services.oauth.base import OAuthProfile
 
@@ -59,6 +67,7 @@ class AuthService:
         self.db = db
         self.users = UserRepository(db)
         self.password_resets = PasswordResetRepository(db)
+        self.email_changes = EmailChangeRepository(db)
 
     def register(self, email: str, password: str) -> TokenResponse:
         if self.users.get_by_email(email):
@@ -272,3 +281,84 @@ class AuthService:
         loaded = self.users.get_by_id(user_id)
         assert loaded is not None
         return serialize_user(loaded)
+
+    def request_email_change(self, user_id: UUID, new_email: str) -> EmailChangeRequestResponse:
+        """Send confirmation to CURRENT email (stub). Change applies only after confirm."""
+        user = self.users.get_by_id(user_id)
+        if user is None:
+            raise UnauthorizedError("Пользователь не найден")
+        if not user.email:
+            raise AppError(
+                "У аккаунта нет текущей почты — сменить email нельзя",
+                code="email_missing",
+                status_code=400,
+            )
+
+        normalized = new_email.strip().lower()
+        if normalized == user.email.lower():
+            raise AppError(
+                "Новый email совпадает с текущим",
+                code="email_unchanged",
+                status_code=400,
+            )
+
+        existing = self.users.get_by_email(normalized)
+        if existing is not None and existing.id != user.id:
+            raise ConflictError("Этот email уже занят", code="email_taken")
+
+        self.email_changes.invalidate_active_for_user(user.id)
+        raw_token = secrets.token_urlsafe(32)
+        self.email_changes.create(
+            user_id=user.id,
+            new_email=normalized,
+            token_hash=_hash_reset_token(raw_token),
+            expires_at=datetime.now(UTC)
+            + timedelta(minutes=settings.email_change_ttl_minutes),
+        )
+        self.db.commit()
+
+        confirm_url = (
+            f"{settings.app_public_url.rstrip('/')}/confirm-email?token={raw_token}"
+        )
+        # Stub: real mailer will send confirm_url to user.email (OLD address).
+        logger.info(
+            "Email change stub for %s → %s: %s",
+            user.email,
+            normalized,
+            confirm_url,
+        )
+
+        return EmailChangeRequestResponse(
+            message=(
+                f"Мы отправили ссылку подтверждения на текущую почту {user.email}. "
+                "Смена email произойдёт только после перехода по ссылке. "
+                "Сейчас почта ещё не подключена — это заглушка."
+            ),
+            stub=settings.auth_email_stub,
+            debug_confirm_url=confirm_url if settings.auth_email_stub else None,
+        )
+
+    def confirm_email_change(self, token: str) -> EmailChangeConfirmResponse:
+        record = self.email_changes.get_active_by_hash(_hash_reset_token(token))
+        if record is None or record.user is None:
+            raise AppError(
+                "Ссылка подтверждения недействительна или устарела",
+                code="invalid_email_change_token",
+                status_code=400,
+            )
+
+        user = record.user
+        new_email = record.new_email.lower()
+        owner = self.users.get_by_email(new_email)
+        if owner is not None and owner.id != user.id:
+            raise ConflictError("Этот email уже занят", code="email_taken")
+
+        self.users.set_email(user, new_email)
+        self.email_changes.mark_used(record)
+        self.db.commit()
+        loaded = self.users.get_by_id(user.id)
+        assert loaded is not None
+        return EmailChangeConfirmResponse(
+            message="Email успешно изменён",
+            user=serialize_user(loaded),
+        )

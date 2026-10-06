@@ -99,6 +99,31 @@ export async function deleteAvatar(): Promise<User> {
   })
 }
 
+export type EmailChangeRequestResponse = {
+  message: string
+  stub: boolean
+  debug_confirm_url: string | null
+}
+
+export type EmailChangeConfirmResponse = {
+  message: string
+  user: User
+}
+
+export async function requestEmailChange(newEmail: string): Promise<EmailChangeRequestResponse> {
+  return apiRequest<EmailChangeRequestResponse>('/auth/me/email/request', {
+    method: 'POST',
+    body: JSON.stringify({ new_email: newEmail }),
+  })
+}
+
+export async function confirmEmailChange(token: string): Promise<EmailChangeConfirmResponse> {
+  return apiRequest<EmailChangeConfirmResponse>('/auth/me/email/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  })
+}
+
 export async function startOAuth(provider: 'yandex' | 'vk'): Promise<OAuthStartResponse> {
   return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/start`)
 }

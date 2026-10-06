@@ -60,3 +60,23 @@ class ChangePasswordRequest(BaseModel):
 
 class ChangePasswordResponse(BaseModel):
     message: str
+
+
+class EmailChangeRequest(BaseModel):
+    new_email: EmailStr
+
+
+class EmailChangeRequestResponse(BaseModel):
+    message: str
+    stub: bool = True
+    # Stub only — confirmation link as if mailed to the CURRENT email.
+    debug_confirm_url: str | None = None
+
+
+class EmailChangeConfirmRequest(BaseModel):
+    token: str = Field(min_length=10, max_length=256)
+
+
+class EmailChangeConfirmResponse(BaseModel):
+    message: str
+    user: UserResponse

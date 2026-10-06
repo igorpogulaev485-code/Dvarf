@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AuthProvidersPanel, ChangePasswordForm, ProfileForm } from '../features/cabinet'
+import { AuthProvidersPanel, ChangeEmailForm, ChangePasswordForm, ProfileForm } from '../features/cabinet'
 import { getMe, logout, type User } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
 import { Button, Panel, Stack, Text, Toast } from '../ui'
@@ -84,6 +84,10 @@ export function CabinetPage() {
 
             <Panel title="Способы входа">
               <AuthProvidersPanel providers={user.providers} />
+            </Panel>
+
+            <Panel title="Смена email">
+              <ChangeEmailForm currentEmail={user.email} />
             </Panel>
 
             {user.providers.includes('password') ? (

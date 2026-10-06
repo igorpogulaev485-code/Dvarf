@@ -74,6 +74,12 @@ class UserRepository:
         self.db.flush()
         return user
 
+    def set_email(self, user: User, email: str) -> User:
+        user.email = email.lower()
+        self.db.add(user)
+        self.db.flush()
+        return user
+
     def add_identity(
         self,
         *,

@@ -12,6 +12,10 @@ from app.models.user import AuthProvider
 from app.schemas.auth import (
     ChangePasswordRequest,
     ChangePasswordResponse,
+    EmailChangeConfirmRequest,
+    EmailChangeConfirmResponse,
+    EmailChangeRequest,
+    EmailChangeRequestResponse,
     ForgotPasswordRequest,
     ForgotPasswordResponse,
     LoginRequest,
@@ -113,6 +117,24 @@ async def upload_avatar(
 @router.delete("/me/avatar", response_model=UserResponse)
 def delete_avatar(current_user: CurrentUser, db: DbSession) -> UserResponse:
     return AuthService(db).delete_avatar(current_user.id)
+
+
+@router.post("/me/email/request", response_model=EmailChangeRequestResponse)
+def request_email_change(
+    payload: EmailChangeRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> EmailChangeRequestResponse:
+    return AuthService(db).request_email_change(current_user.id, payload.new_email)
+
+
+@router.post("/me/email/confirm", response_model=EmailChangeConfirmResponse)
+def confirm_email_change(
+    payload: EmailChangeConfirmRequest,
+    db: DbSession,
+) -> EmailChangeConfirmResponse:
+    # No auth required: user opens the link from the OLD mailbox.
+    return AuthService(db).confirm_email_change(payload.token)
 
 
 @router.get("/oauth/{provider}/start", response_model=OAuthStartResponse)
