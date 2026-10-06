@@ -2,7 +2,7 @@
   "meta": {
     "edition": "2014",
     "source": "phb",
-    "notes_ru": "Подрасы в попапе как на ttg.club. Дварф: горный/холмовой (PHB), дуэргар (MTF), щитовой/золотой (SCAG), метка опеки (ERLW)."
+    "notes_ru": "Аудит по ttg.club. Дварф: 6 разновидностей. Эльф: высший/лесной/дроу (PHB) + эладрин/морской/шадар-кай (MToF)."
   },
   "deactivate_slugs": [
     "orc"
@@ -296,7 +296,7 @@
     },
     {
       "slug": "high_elf",
-      "name_ru": "Высший эльф",
+      "name_ru": "Эльф (высший)",
       "name_en": "High Elf",
       "parent_slug": "elf",
       "selectable": true,
@@ -327,7 +327,7 @@
     },
     {
       "slug": "wood_elf",
-      "name_ru": "Лесной эльф",
+      "name_ru": "Эльф (лесной)",
       "name_en": "Wood Elf",
       "parent_slug": "elf",
       "selectable": true,
@@ -358,7 +358,7 @@
     },
     {
       "slug": "drow",
-      "name_ru": "Дроу",
+      "name_ru": "Эльф (дроу)",
       "name_en": "Dark Elf (Drow)",
       "parent_slug": "elf",
       "selectable": true,
@@ -385,6 +385,88 @@
         "Ручной арбалет"
       ],
       "traits_text": "Дроу (2014): +2 Лов, +1 Хар. Тёмное зрение 120 фт. Эльфийские черты. Чувствительность к солнцу. Наследие дроу (пляшущие огоньки / огонь фей / тьма — по уровню). Владение рапирой, коротким мечом, ручным арбалетом."
+    },
+    {
+      "slug": "eladrin",
+      "name_ru": "Эльф (эладрин)",
+      "name_en": "Eladrin",
+      "parent_slug": "elf",
+      "selectable": true,
+      "source": "mtof",
+      "sort_order": 24,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "dex": 2,
+        "cha": 1
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 0,
+      "skill_proficiencies": [
+        "perception"
+      ],
+      "traits_text": "Эльф (эладрин, MToF): +2 Лов, +1 Хар. Эльфийские черты. Фейский шаг: бонусным действием телепорт 30 фт (1/короткий отдых); с 3 ур. сезон меняет доп. эффект."
+    },
+    {
+      "slug": "sea_elf",
+      "name_ru": "Эльф (морской)",
+      "name_en": "Sea Elf",
+      "parent_slug": "elf",
+      "selectable": true,
+      "source": "mtof",
+      "sort_order": 25,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "dex": 2,
+        "con": 1
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский",
+        "Водяной"
+      ],
+      "languages_choose": 0,
+      "skill_proficiencies": [
+        "perception"
+      ],
+      "weapon_proficiencies": [
+        "Копьё",
+        "Трезубец",
+        "Лёгкий арбалет",
+        "Сеть"
+      ],
+      "traits_text": "Эльф (морской, MToF): +2 Лов, +1 Тел. Эльфийские черты. Дитя моря: плавание 30 фт, дыхание водой и воздухом. Владение копьём, трезубцем, лёгким арбалетом и сетью. Друг моря."
+    },
+    {
+      "slug": "shadar_kai",
+      "name_ru": "Эльф (шадар-кай)",
+      "name_en": "Shadar-kai",
+      "parent_slug": "elf",
+      "selectable": true,
+      "source": "mtof",
+      "sort_order": 26,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "dex": 2,
+        "con": 1
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 0,
+      "skill_proficiencies": [
+        "perception"
+      ],
+      "traits_text": "Эльф (шадар-кай, MToF): +2 Лов, +1 Тел. Эльфийские черты. Сопротивление некротическому урону. Благословение Королевы Воронов: бонусным действием телепорт 30 фт (1/короткий отдых); с 3 ур. — сопротивление всему урону до начала следующего хода."
     },
     {
       "slug": "halfling",
