@@ -166,7 +166,7 @@ function buildDraft(character: CharacterDetail): Draft {
     weapons: readWeapons(sheet),
     inventory: readInventory(sheet),
     spells: readSpells(sheet),
-    play: readPlay(sheet),
+    play: readPlay(sheet, character.level),
     textBlocks: readTextBlocks(sheet),
   }
 }
@@ -307,6 +307,12 @@ export function MinimalSheetEditor({
       const playSheet = playToSheet(draft.play)
       combat.conditions = playSheet.combatPatch.conditions
       combat.exhaustion = playSheet.combatPatch.exhaustion
+      combat.hp_temp = playSheet.combatPatch.hp_temp
+      combat.hit_die = playSheet.combatPatch.hit_die
+      combat.hp_dice_current = playSheet.combatPatch.hp_dice_current
+      combat.is_dying = playSheet.combatPatch.is_dying
+      combat.death_successes = playSheet.combatPatch.death_successes
+      combat.death_fails = playSheet.combatPatch.death_fails
       sheet.combat = combat
       sheet.weapons = draft.weapons
       sheet.resources = playSheet.resources
@@ -356,11 +362,15 @@ export function MinimalSheetEditor({
         abilities={draft.abilities}
         hpCurrent={draft.hpCurrent}
         hpMax={draft.hpMax}
+        hpTemp={draft.play.hpTemp}
         ac={draft.ac}
         speed={draft.speed}
         initiativeOverride={draft.initiativeOverride}
         inspiration={draft.inspiration}
         exhaustion={draft.play.exhaustion}
+        isDying={draft.play.isDying}
+        deathSuccesses={draft.play.deathSuccesses}
+        deathFails={draft.play.deathFails}
         conditionNames={draft.play.conditions.map((item) => item.name)}
         onChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
       />
@@ -460,10 +470,14 @@ export function MinimalSheetEditor({
 
       <PlayPanel
         edition={baseCharacter.rules_edition as RulesEdition}
+        level={draft.level}
+        hpCurrent={draft.hpCurrent}
+        hpMax={draft.hpMax}
         play={draft.play}
         spells={draft.spells}
         onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        onCombatChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
         onToast={onToast}
       />
 

@@ -3,17 +3,29 @@ import {
   type ConditionRef,
 } from '../../shared/dnd/conditions'
 import {
+  clampDeathMarks,
+  clampHitDiceCurrent,
+  isHitDie,
+  type HitDie,
+} from '../../shared/dnd/hitDice'
+import {
   clampExhaustion,
   clampResource,
   type ResourceReset,
   type SheetResource,
 } from '../../shared/dnd/rest'
-import { asRecord, readNumber } from './sheetTypes'
+import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
 export type PlayState = {
   conditions: ConditionRef[]
   exhaustion: number
   resources: SheetResource[]
+  hpTemp: number
+  hitDie: HitDie | null
+  hitDiceCurrent: number
+  isDying: boolean
+  deathSuccesses: number
+  deathFails: number
 }
 
 export function createResource(partial?: Partial<SheetResource>): SheetResource {
@@ -74,7 +86,7 @@ function readResource(raw: unknown, index: number): SheetResource {
   })
 }
 
-export function readPlay(sheet: Record<string, unknown>): PlayState {
+export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
   const combat = asRecord(sheet.combat)
   const conditionsRaw = Array.isArray(combat.conditions) ? combat.conditions : []
   const conditions = conditionsRaw
@@ -102,15 +114,36 @@ export function readPlay(sheet: Record<string, unknown>): PlayState {
     })
   }
 
+  const hitDiceMax = Math.max(1, Math.floor(level))
+  const hitDiceRaw = readNullableNumber(combat.hp_dice_current)
+
   return {
     conditions,
     exhaustion: clampExhaustion(readNumber(combat.exhaustion, 0)),
     resources,
+    hpTemp: Math.max(0, Math.floor(readNumber(combat.hp_temp, 0))),
+    hitDie: isHitDie(combat.hit_die) ? combat.hit_die : null,
+    hitDiceCurrent: clampHitDiceCurrent(
+      hitDiceRaw ?? hitDiceMax,
+      hitDiceMax,
+    ),
+    isDying: Boolean(combat.is_dying),
+    deathSuccesses: clampDeathMarks(readNumber(combat.death_successes, 0)),
+    deathFails: clampDeathMarks(readNumber(combat.death_fails, 0)),
   }
 }
 
 export function playToSheet(play: PlayState): {
-  combatPatch: { conditions: ConditionRef[]; exhaustion: number }
+  combatPatch: {
+    conditions: ConditionRef[]
+    exhaustion: number
+    hp_temp: number
+    hit_die: HitDie | null
+    hp_dice_current: number
+    is_dying: boolean
+    death_successes: number
+    death_fails: number
+  }
   resources: SheetResource[]
 } {
   return {
@@ -121,6 +154,12 @@ export function playToSheet(play: PlayState): {
         catalog_id: item.catalog_id,
       })),
       exhaustion: clampExhaustion(play.exhaustion),
+      hp_temp: Math.max(0, Math.floor(play.hpTemp)),
+      hit_die: play.hitDie,
+      hp_dice_current: Math.max(0, Math.floor(play.hitDiceCurrent)),
+      is_dying: play.isDying,
+      death_successes: clampDeathMarks(play.deathSuccesses),
+      death_fails: clampDeathMarks(play.deathFails),
     },
     resources: play.resources.map((item) => clampResource(item)),
   }

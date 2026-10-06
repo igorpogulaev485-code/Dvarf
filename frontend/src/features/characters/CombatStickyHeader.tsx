@@ -13,11 +13,15 @@ type CombatStickyHeaderProps = {
   abilities: Record<AbilityKey, number>
   hpCurrent: number | null
   hpMax: number | null
+  hpTemp: number
   ac: number | null
   speed: number | null
   initiativeOverride: number | null
   inspiration: boolean
   exhaustion: number
+  isDying: boolean
+  deathSuccesses: number
+  deathFails: number
   conditionNames: string[]
   onChange: (patch: {
     hpCurrent?: number | null
@@ -37,11 +41,15 @@ export function CombatStickyHeader({
   abilities,
   hpCurrent,
   hpMax,
+  hpTemp,
   ac,
   speed,
   initiativeOverride,
   inspiration,
   exhaustion,
+  isDying,
+  deathSuccesses,
+  deathFails,
   conditionNames,
   onChange,
 }: CombatStickyHeaderProps) {
@@ -74,6 +82,11 @@ export function CombatStickyHeader({
           >
             Истощение {exhaustion}
           </span>
+          {isDying ? (
+            <span className="combat-chip combat-chip--static is-danger" title="Спасброски от смерти">
+              Смерть {deathSuccesses}/{deathFails}
+            </span>
+          ) : null}
         </div>
       </div>
       <p className="combat-sticky__conditions" title={conditionsLabel}>
@@ -87,7 +100,7 @@ export function CombatStickyHeader({
         <Field label="Скорость">
           <NumberInput value={speed} onValueChange={(value) => onChange({ speed: value })} />
         </Field>
-        <Field label="HP">
+        <Field label="HP" hint={hpTemp > 0 ? `врем. +${hpTemp}` : undefined}>
           <div className="combat-sticky__hp">
             <NumberInput
               value={hpCurrent}

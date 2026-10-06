@@ -727,6 +727,89 @@ input {
   cursor: default;
 }
 
+.combat-chip--static.is-danger {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.play-select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.play-hit-dice {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.play-death {
+  display: grid;
+  gap: 10px;
+}
+
+.play-death__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.play-death__tracks {
+  display: grid;
+  gap: 10px;
+}
+
+.play-death__tracks.is-dim {
+  opacity: 0.55;
+}
+
+.death-track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.death-track__label {
+  min-width: 72px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.death-track__pips {
+  display: flex;
+  gap: 6px;
+}
+
+.death-pip {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid var(--line);
+  background: #fff;
+  padding: 0;
+  cursor: pointer;
+}
+
+.death-pip--ok.is-filled {
+  background: #16a34a;
+  border-color: #15803d;
+}
+
+.death-pip--bad.is-filled {
+  background: #dc2626;
+  border-color: #b91c1c;
+}
+
 .combat-sticky__conditions {
   margin: 0;
   color: var(--muted);

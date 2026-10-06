@@ -1,5 +1,6 @@
 /** Pure rest helpers — sheet now, party frame later. */
 
+import { recoverHitDiceOnLongRest } from './hitDice'
 import { clampSlot, type SpellSlotState } from './spells'
 
 export type ResourceReset = 'short' | 'long' | 'manual'
@@ -66,6 +67,12 @@ export type RestResult = {
   slots?: Record<string, SpellSlotState>
   pact_slots?: { max: number; used: number; level: number } | null
   exhaustion?: number
+  hp_current?: number | null
+  hp_temp?: number
+  hit_dice_current?: number
+  is_dying?: boolean
+  death_successes?: number
+  death_fails?: number
 }
 
 export function applyShortRest(input: {
@@ -81,6 +88,9 @@ export function applyLongRest(input: {
   slots: Record<string, SpellSlotState>
   pact_slots: { max: number; used: number; level: number } | null
   exhaustion: number
+  hp_max: number | null
+  hit_dice_current: number
+  hit_dice_max: number
 }): RestResult {
   const pact = input.pact_slots
   return {
@@ -88,5 +98,14 @@ export function applyLongRest(input: {
     slots: recoverSpellSlotsOnLongRest(input.slots),
     pact_slots: pact ? { ...pact, used: 0 } : null,
     exhaustion: reduceExhaustionOnLongRest(input.exhaustion),
+    hp_current: input.hp_max,
+    hp_temp: 0,
+    hit_dice_current: recoverHitDiceOnLongRest(
+      input.hit_dice_current,
+      input.hit_dice_max,
+    ),
+    is_dying: false,
+    death_successes: 0,
+    death_fails: 0,
   }
 }

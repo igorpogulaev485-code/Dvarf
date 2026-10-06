@@ -38,13 +38,14 @@
 - Spells S3: cast button + confirm; spends slot (cantrips free); reusable `spendSpellSlot`
 - Spells S4: grimoire dialog (search / class / level filters, add to known); expanded sample seed (~32)
 - Play S1: conditions (catalog seed + chips), exhaustion 0–6, limited resources + SlotPips, short/long rest (long clears spell slots, −1 exhaustion)
+- Play S2: temp HP, hit dice (spend + long-rest recover), death saves (успехи/провалы), long rest → full HP / clear dying
 
 ## Очередь
 
 Ближайшее:
 
-1. Play S2: death saves + temp HP / hit dice на отдыхе (как на LSS classic)
-2. Classic interactive sheet (PDF-like) after digital sheet MVP
+1. Classic interactive sheet (PDF-like) after digital sheet MVP
+2. Party frame (QR join, мастер пачки)
 
 Дальше по верхнему уровню (не начинать раньше времени):
 

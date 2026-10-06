@@ -6,6 +6,13 @@ import {
   type ConditionRef,
 } from '../../shared/dnd/conditions'
 import {
+  HIT_DIE_OPTIONS,
+  clampDeathMarks,
+  clampHitDiceCurrent,
+  spendHitDie,
+  type HitDie,
+} from '../../shared/dnd/hitDice'
+import {
   applyLongRest,
   applyShortRest,
   type ResourceReset,
@@ -25,24 +32,66 @@ import type { SpellsState } from './spells'
 
 type PlayPanelProps = {
   edition: RulesEdition
+  level: number
+  hpCurrent: number | null
+  hpMax: number | null
   play: PlayState
   spells: SpellsState
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
+  onCombatChange: (patch: { hpCurrent?: number | null }) => void
   onToast: (message: string) => void
 }
 
 const RESET_OPTIONS: ResourceReset[] = ['short', 'long', 'manual']
 
+function DeathTrack({
+  label,
+  value,
+  tone,
+  onChange,
+}: {
+  label: string
+  value: number
+  tone: 'ok' | 'bad'
+  onChange: (next: number) => void
+}) {
+  return (
+    <div className="death-track" role="group" aria-label={label}>
+      <span className="death-track__label">{label}</span>
+      <div className="death-track__pips">
+        {Array.from({ length: 3 }, (_, index) => {
+          const filled = index < value
+          return (
+            <button
+              key={index}
+              type="button"
+              className={`death-pip death-pip--${tone}${filled ? ' is-filled' : ''}`}
+              aria-pressed={filled}
+              aria-label={`${label}: ${index + 1} из 3`}
+              onClick={() => onChange(index < value ? index : index + 1)}
+            />
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export function PlayPanel({
   edition,
+  level,
+  hpCurrent,
+  hpMax,
   play,
   spells,
   onPlayChange,
   onSpellsChange,
+  onCombatChange,
   onToast,
 }: PlayPanelProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
+  const hitDiceMax = Math.max(1, Math.floor(level))
 
   useEffect(() => {
     let active = true
@@ -73,20 +122,20 @@ export function PlayPanel({
     }))
   }, [catalogConditions])
 
-  function setExhaustion(level: number) {
-    onPlayChange({ ...play, exhaustion: level })
+  function patchPlay(patch: Partial<PlayState>) {
+    onPlayChange({ ...play, ...patch })
+  }
+
+  function setExhaustion(next: number) {
+    patchPlay({ exhaustion: next })
   }
 
   function toggle(ref: ConditionRef) {
-    onPlayChange({
-      ...play,
-      conditions: toggleCondition(play.conditions, ref),
-    })
+    patchPlay({ conditions: toggleCondition(play.conditions, ref) })
   }
 
   function updateResource(id: string, patch: Partial<PlayState['resources'][number]>) {
-    onPlayChange({
-      ...play,
+    patchPlay({
       resources: play.resources.map((item) =>
         item.id === id ? { ...item, ...patch } : item,
       ),
@@ -94,23 +143,17 @@ export function PlayPanel({
   }
 
   function addResource() {
-    onPlayChange({
-      ...play,
-      resources: [...play.resources, createResource({ name: 'Ресурс' })],
-    })
+    patchPlay({ resources: [...play.resources, createResource({ name: 'Ресурс' })] })
   }
 
   function removeResource(id: string) {
-    onPlayChange({
-      ...play,
-      resources: play.resources.filter((item) => item.id !== id),
-    })
+    patchPlay({ resources: play.resources.filter((item) => item.id !== id) })
   }
 
   function doShortRest() {
     const result = applyShortRest({ resources: play.resources })
-    onPlayChange({ ...play, resources: result.resources })
-    onToast('Короткий отдых: ресурсы сброса «короткий» восстановлены')
+    patchPlay({ resources: result.resources })
+    onToast('Короткий отдых: ресурсы «короткий». Кости хитов трать вручную.')
   }
 
   function doLongRest() {
@@ -119,29 +162,146 @@ export function PlayPanel({
       slots: spells.slots,
       pact_slots: spells.pact_slots,
       exhaustion: play.exhaustion,
+      hp_max: hpMax,
+      hit_dice_current: play.hitDiceCurrent,
+      hit_dice_max: hitDiceMax,
     })
     onPlayChange({
       ...play,
       resources: result.resources,
       exhaustion: result.exhaustion ?? play.exhaustion,
+      hpTemp: result.hp_temp ?? 0,
+      hitDiceCurrent: result.hit_dice_current ?? play.hitDiceCurrent,
+      isDying: false,
+      deathSuccesses: 0,
+      deathFails: 0,
     })
     onSpellsChange({
       ...spells,
       slots: result.slots ?? spells.slots,
       pact_slots: result.pact_slots === undefined ? spells.pact_slots : result.pact_slots,
     })
-    onToast('Длинный отдых: ячейки, ресурсы и −1 истощение')
+    if (result.hp_current !== undefined) {
+      onCombatChange({ hpCurrent: result.hp_current })
+    }
+    onToast('Длинный отдых: HP, кости, ячейки, ресурсы, −1 истощение, спасброски сброшены')
   }
 
   return (
     <Panel title="Состояния и ресурсы">
       <Stack gap={14}>
+        <div className="sheet-grid sheet-grid--2">
+          <Field label="Временные HP">
+            <NumberInput
+              min={0}
+              emptyValue={0}
+              value={play.hpTemp}
+              onValueChange={(value) => patchPlay({ hpTemp: Math.max(0, value ?? 0) })}
+            />
+          </Field>
+          <Field label="Кость хитов">
+            <select
+              className="play-select"
+              value={play.hitDie ?? ''}
+              onChange={(event) =>
+                patchPlay({
+                  hitDie: (event.target.value || null) as HitDie | null,
+                })
+              }
+            >
+              <option value="">не задано</option>
+              {HIT_DIE_OPTIONS.map((die) => (
+                <option key={die} value={die}>
+                  {die}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+
         <div>
-          <Text tone="muted">Состояния — как на LSS digital: чипы вкл/выкл</Text>
+          <Text tone="muted">
+            Кости хитов: {play.hitDiceCurrent} / {hitDiceMax}
+            {play.hitDie ? ` (${play.hitDie})` : ''} · короткий отдых — трать вручную
+          </Text>
+          <div className="play-hit-dice">
+            <SlotPips
+              max={hitDiceMax}
+              used={Math.max(0, hitDiceMax - play.hitDiceCurrent)}
+              label="Потраченные кости хитов"
+              onChange={(used) =>
+                patchPlay({
+                  hitDiceCurrent: clampHitDiceCurrent(hitDiceMax - used, hitDiceMax),
+                })
+              }
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={play.hitDiceCurrent <= 0}
+              onClick={() =>
+                patchPlay({ hitDiceCurrent: spendHitDie(play.hitDiceCurrent) })
+              }
+            >
+              Потратить кость
+            </Button>
+          </div>
+        </div>
+
+        <div className="play-death">
+          <div className="play-death__head">
+            <Text>Спасброски от смерти</Text>
+            <button
+              type="button"
+              className={`combat-chip${play.isDying ? ' is-on' : ''}`}
+              aria-pressed={play.isDying}
+              onClick={() =>
+                patchPlay({
+                  isDying: !play.isDying,
+                  deathSuccesses: play.isDying ? 0 : play.deathSuccesses,
+                  deathFails: play.isDying ? 0 : play.deathFails,
+                })
+              }
+            >
+              При смерти
+            </button>
+          </div>
+          <div className={`play-death__tracks${play.isDying ? '' : ' is-dim'}`}>
+            <DeathTrack
+              label="Успехи"
+              value={play.deathSuccesses}
+              tone="ok"
+              onChange={(next) =>
+                patchPlay({
+                  isDying: true,
+                  deathSuccesses: clampDeathMarks(next),
+                })
+              }
+            />
+            <DeathTrack
+              label="Провалы"
+              value={play.deathFails}
+              tone="bad"
+              onChange={(next) =>
+                patchPlay({
+                  isDying: true,
+                  deathFails: clampDeathMarks(next),
+                })
+              }
+            />
+          </div>
+          {hpCurrent != null && hpCurrent <= 0 && !play.isDying ? (
+            <Text tone="muted">HP ≤ 0 — включи «При смерти», если идёт стабилизация.</Text>
+          ) : null}
+        </div>
+
+        <div>
+          <Text tone="muted">Состояния — чипы вкл/выкл</Text>
           <div className="chip-row play-conditions">
             {conditionOptions.map((option) => {
               const key = option.catalog_id ?? option.slug
-              const on = hasCondition(play.conditions, key) || hasCondition(play.conditions, option.slug)
+              const on =
+                hasCondition(play.conditions, key) || hasCondition(play.conditions, option.slug)
               return (
                 <button
                   key={key}
@@ -159,16 +319,16 @@ export function PlayPanel({
         <div>
           <Text tone="muted">Истощение 0–6 (длинный отдых −1)</Text>
           <div className="exhaustion-track" role="group" aria-label="Уровень истощения">
-            {Array.from({ length: 7 }, (_, level) => (
+            {Array.from({ length: 7 }, (_, nextLevel) => (
               <button
-                key={level}
+                key={nextLevel}
                 type="button"
-                className={`exhaustion-pip${play.exhaustion === level ? ' is-on' : ''}${play.exhaustion > level ? ' is-filled' : ''}`}
-                aria-pressed={play.exhaustion === level}
-                aria-label={`Истощение ${level}`}
-                onClick={() => setExhaustion(level)}
+                className={`exhaustion-pip${play.exhaustion === nextLevel ? ' is-on' : ''}${play.exhaustion > nextLevel ? ' is-filled' : ''}`}
+                aria-pressed={play.exhaustion === nextLevel}
+                aria-label={`Истощение ${nextLevel}`}
+                onClick={() => setExhaustion(nextLevel)}
               >
-                {level}
+                {nextLevel}
               </button>
             ))}
           </div>
@@ -213,7 +373,10 @@ export function PlayPanel({
                       emptyValue={0}
                       value={resource.max}
                       onValueChange={(value) =>
-                        updateResource(resource.id, { max: value ?? 0, used: Math.min(resource.used, value ?? 0) })
+                        updateResource(resource.id, {
+                          max: value ?? 0,
+                          used: Math.min(resource.used, value ?? 0),
+                        })
                       }
                     />
                   </Field>
