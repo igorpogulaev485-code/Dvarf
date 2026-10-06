@@ -90,9 +90,16 @@ export function CharacterDetailPage() {
   return (
     <main className="page page--app">
       <Stack gap={16}>
-        <Link className="back-link" to="/characters">
-          ← К списку персонажей
-        </Link>
+        <div className="page-actions">
+          <Link className="back-link" to="/characters">
+            ← К списку персонажей
+          </Link>
+          {character ? (
+            <Link className="back-link" to={`/characters/${character.id}/classic`}>
+              Классический лист 2014
+            </Link>
+          ) : null}
+        </div>
 
         {loading ? <Text tone="muted">Открываем лист...</Text> : null}
         {error ? <Text tone="danger">{error}</Text> : null}
