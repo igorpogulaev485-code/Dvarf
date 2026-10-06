@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/race-setup-grants-f10e
+cursor/catalog-class-edition-dedupe-ef23
 ```
 
 URL: http://201.34.132.252/
@@ -38,7 +38,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-acbe origin/cursor/race-setup-grants-f10e
+git checkout -b cursor/<descriptive>-acbe origin/cursor/catalog-class-edition-dedupe-ef23
 # если tip уже другой — подставь актуальный из AGENTS.md / этого skill
 ```
 
@@ -46,7 +46,7 @@ git checkout -b cursor/<descriptive>-acbe origin/cursor/race-setup-grants-f10e
 
 ```bash
 git fetch origin
-git merge origin/cursor/race-setup-grants-f10e
+git merge origin/cursor/catalog-class-edition-dedupe-ef23
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```
