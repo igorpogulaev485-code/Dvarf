@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AuthProvidersPanel, ChangeEmailForm, ChangePasswordForm, ProfileForm } from '../features/cabinet'
+import {
+  AuthProvidersPanel,
+  ChangeEmailForm,
+  ChangePasswordForm,
+  DangerZone,
+  ProfileForm,
+} from '../features/cabinet'
 import { getMe, logout, type User } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
 import { Button, Panel, Stack, Text, Toast } from '../ui'
@@ -109,6 +115,16 @@ export function CabinetPage() {
               <Button variant="ghost" onClick={handleLogout} disabled={loggingOut}>
                 {loggingOut ? 'Выходим…' : 'Выйти'}
               </Button>
+            </Panel>
+
+            <Panel title="Опасная зона" className="ui-panel--danger">
+              <DangerZone
+                user={user}
+                onDeleted={() => {
+                  setToast('Аккаунт удалён')
+                  navigate('/login', { replace: true })
+                }}
+              />
             </Panel>
           </>
         ) : null}

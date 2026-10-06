@@ -80,6 +80,10 @@ class UserRepository:
         self.db.flush()
         return user
 
+    def delete_user(self, user: User) -> None:
+        self.db.delete(user)
+        self.db.flush()
+
     def add_identity(
         self,
         *,

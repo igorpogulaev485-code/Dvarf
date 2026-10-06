@@ -24,7 +24,7 @@
 Уже в продуктовой ветке / PR:
 
 - Auth (register/login/refresh, auto-refresh на 401)
-- Personal cabinet: profile, phone, avatar upload, change password, change email (confirm to old inbox, mail stub)
+- Personal cabinet: profile, phone, avatar, change password/email, danger zone (delete account)
 - Characters CRUD, hybrid JSONB sheet + `sheet_version` (409 на конфликт)
 - Catalogs: races / classes / weapons + sample damaging artifacts
 - Sheet: identity, abilities, saves, skills
@@ -82,6 +82,7 @@ Auth:
 - `POST /auth/change-password`
 - `POST /auth/me/avatar` / `DELETE /auth/me/avatar`
 - `POST /auth/me/email/request` / `POST /auth/me/email/confirm` (письмо на текущую почту; stub)
+- `DELETE /auth/me` (удаление аккаунта)
 - `GET /auth/oauth/{yandex|vk}/start` (stub)
 - `GET /auth/oauth/{yandex|vk}/callback` (stub)
 

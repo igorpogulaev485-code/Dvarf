@@ -124,6 +124,23 @@ export async function confirmEmailChange(token: string): Promise<EmailChangeConf
   })
 }
 
+export type DeleteAccountResponse = {
+  message: string
+}
+
+export async function deleteAccount(
+  confirmEmail: string,
+  password: string | null,
+): Promise<DeleteAccountResponse> {
+  return apiRequest<DeleteAccountResponse>('/auth/me', {
+    method: 'DELETE',
+    body: JSON.stringify({
+      confirm_email: confirmEmail,
+      password,
+    }),
+  })
+}
+
 export async function startOAuth(provider: 'yandex' | 'vk'): Promise<OAuthStartResponse> {
   return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/start`)
 }

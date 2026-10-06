@@ -64,7 +64,11 @@ export function ProfileForm({ user, onSaved }: ProfileFormProps) {
       <Stack gap={16}>
         <AvatarEditor user={user} onChanged={onSaved} />
 
-        <Field label="Email" htmlFor="cabinet-email" hint="Смена email пока недоступна">
+        <Field
+          label="Email"
+          htmlFor="cabinet-email"
+          hint="Только просмотр. Смена — в блоке «Смена email» ниже"
+        >
           <Input id="cabinet-email" value={user.email ?? ''} readOnly disabled />
         </Field>
 

@@ -23,6 +23,7 @@ from app.repositories.password_reset import PasswordResetRepository
 from app.repositories.user import UserRepository
 from app.schemas.auth import (
     ChangePasswordResponse,
+    DeleteAccountResponse,
     EmailChangeConfirmResponse,
     EmailChangeRequestResponse,
     ForgotPasswordResponse,
@@ -361,4 +362,54 @@ class AuthService:
         return EmailChangeConfirmResponse(
             message="Email успешно изменён",
             user=serialize_user(loaded),
+        )
+
+    def delete_account(
+        self,
+        user_id: UUID,
+        *,
+        confirm_email: str,
+        password: str | None,
+    ) -> DeleteAccountResponse:
+        user = self.users.get_by_id(user_id)
+        if user is None:
+            raise UnauthorizedError("Пользователь не найден")
+
+        if not user.email:
+            raise AppError(
+                "Нельзя удалить аккаунт без email: обратитесь в поддержку",
+                code="email_missing",
+                status_code=400,
+            )
+
+        if confirm_email.strip().lower() != user.email.lower():
+            raise AppError(
+                "Введите текущий email для подтверждения удаления",
+                code="email_confirm_mismatch",
+                status_code=400,
+            )
+
+        if user.password_hash:
+            if not password:
+                raise AppError(
+                    "Укажите пароль для подтверждения удаления",
+                    code="password_required",
+                    status_code=400,
+                )
+            if not verify_password(password, user.password_hash):
+                raise AppError(
+                    "Неверный пароль",
+                    code="wrong_password",
+                    status_code=400,
+                )
+
+        from app.services.avatar import delete_avatar_file, is_uploaded_avatar_url
+
+        if is_uploaded_avatar_url(user.avatar_url):
+            delete_avatar_file(user.id)
+
+        self.users.delete_user(user)
+        self.db.commit()
+        return DeleteAccountResponse(
+            message="Аккаунт удалён. Все данные стёрты безвозвратно.",
         )

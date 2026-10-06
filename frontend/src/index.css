@@ -168,6 +168,25 @@ input {
   border-color: var(--line);
 }
 
+.ui-button--danger {
+  background: #b42318;
+  color: #fff8f7;
+  border-color: #912018;
+}
+
+.ui-button--danger:hover:not(:disabled) {
+  background: #912018;
+}
+
+.ui-panel--danger {
+  border-color: #f3b0a8;
+  background: color-mix(in srgb, #fff5f4 88%, white);
+}
+
+.ui-panel--danger .ui-panel__title {
+  color: #b42318;
+}
+
 .ui-text {
   margin: 0;
   line-height: 1.45;

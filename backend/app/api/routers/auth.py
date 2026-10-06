@@ -12,6 +12,8 @@ from app.models.user import AuthProvider
 from app.schemas.auth import (
     ChangePasswordRequest,
     ChangePasswordResponse,
+    DeleteAccountRequest,
+    DeleteAccountResponse,
     EmailChangeConfirmRequest,
     EmailChangeConfirmResponse,
     EmailChangeRequest,
@@ -135,6 +137,19 @@ def confirm_email_change(
 ) -> EmailChangeConfirmResponse:
     # No auth required: user opens the link from the OLD mailbox.
     return AuthService(db).confirm_email_change(payload.token)
+
+
+@router.delete("/me", response_model=DeleteAccountResponse)
+def delete_account(
+    payload: DeleteAccountRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> DeleteAccountResponse:
+    return AuthService(db).delete_account(
+        current_user.id,
+        confirm_email=payload.confirm_email,
+        password=payload.password,
+    )
 
 
 @router.get("/oauth/{provider}/start", response_model=OAuthStartResponse)

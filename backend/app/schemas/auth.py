@@ -80,3 +80,12 @@ class EmailChangeConfirmRequest(BaseModel):
 class EmailChangeConfirmResponse(BaseModel):
     message: str
     user: UserResponse
+
+
+class DeleteAccountRequest(BaseModel):
+    confirm_email: EmailStr
+    password: str | None = Field(default=None, max_length=128)
+
+
+class DeleteAccountResponse(BaseModel):
+    message: str
