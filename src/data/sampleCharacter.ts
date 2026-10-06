@@ -11,7 +11,8 @@ export const sampleDwarfWizard2014: Character = {
   classAndLevel: 'Волшебник 1',
   background: 'Отшельник',
   playerName: '',
-  race: 'Дварф (холмовой)',
+  race: 'Холмовой дварф',
+  raceId: 'dwarf-hill',
   alignment: 'ХН',
   experiencePoints: '',
 

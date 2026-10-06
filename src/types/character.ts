@@ -46,6 +46,26 @@ export interface SpellSlotTrack {
   expended: number;
 }
 
+/** Ответы мастера выбора расы (попап развилок). */
+export interface RaceChoicesState {
+  choices?: Record<string, string | string[]>;
+  abilityBonuses?: Partial<Record<AbilityKey, number>>;
+  pickedSkills?: SkillKey[];
+  pickedLanguages?: string[];
+  freeText?: Record<string, string>;
+  customName?: string;
+  /** Чтобы при смене расы снять прошлые природные атаки */
+  appliedNaturalWeaponNames?: string[];
+  /** Расовые заговоры — снять при смене */
+  appliedCantrips?: string[];
+  /** Все навыки, выданные расой (фиксированные + выбранные) */
+  appliedSkillKeys?: SkillKey[];
+  /** Сколько HP/уровень уже заложено от расы */
+  appliedHpPerLevel?: number;
+  /** Был ли выставлен КД от природной брони / acBonus */
+  appliedArmorClass?: boolean;
+}
+
 export interface Character {
   id: string;
   /** По каким правилам играем / считаем */
@@ -60,6 +80,13 @@ export interface Character {
   background: string;
   playerName: string;
   race: string;
+  /** id из справочника `src/data/races` (например `dwarf-hill`) */
+  raceId?: string;
+  /**
+   * Сохранённые ответы попапа расы (подраса, ASI, навыки, инструменты…).
+   * Для хомбрю — customName.
+   */
+  raceChoices?: RaceChoicesState;
   alignment: string;
   experiencePoints: string;
 

@@ -318,6 +318,231 @@ button {
   font-size: 0.9rem;
 }
 
+/* —— Race autocomplete + setup modal —— */
+.card-form__race {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.race-field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.race-field__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.race-field input {
+  border: 1px solid #cfc5b4;
+  border-radius: 6px;
+  padding: 0.45rem 0.55rem;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink);
+  background: #fff;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.race-field--compact input {
+  border: none;
+  border-bottom: 1px solid #1a1a1a;
+  border-radius: 0;
+  padding: 0.15rem 0;
+  background: transparent;
+  font-size: inherit;
+}
+
+.race-field__list {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #cfc5b4;
+  border-radius: 8px;
+  box-shadow: 0 12px 28px rgb(0 0 0 / 14%);
+  max-height: 260px;
+  overflow: auto;
+}
+
+.race-field__list button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0.45rem 0.7rem;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: var(--ink);
+}
+
+.race-field__list button:hover,
+.race-field__list button:focus-visible {
+  background: #f3ebe0;
+}
+
+.race-field__list small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.sheet-2014__race-label {
+  position: relative;
+  z-index: 5;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgb(20 16 10 / 45%);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.modal {
+  width: min(520px, 100%);
+  max-height: min(86vh, 720px);
+  display: flex;
+  flex-direction: column;
+  background: #fffaf2;
+  border: 1px solid #cfc5b4;
+  border-radius: 12px;
+  box-shadow: 0 18px 40px rgb(0 0 0 / 22%);
+}
+
+.modal__header,
+.modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #e0d8ca;
+}
+
+.modal__footer {
+  border-bottom: 0;
+  border-top: 1px solid #e0d8ca;
+  justify-content: flex-end;
+}
+
+.modal__header h2 {
+  margin: 0;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 1.2rem;
+}
+
+.modal__body {
+  padding: 1rem;
+  overflow: auto;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.race-modal__field {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.race-modal__field > span,
+.race-modal__field > legend {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.race-modal__field input {
+  border: 1px solid #cfc5b4;
+  border-radius: 6px;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  background: #fff;
+}
+
+.race-modal__options {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.race-modal__options .btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  text-align: left;
+}
+
+.race-modal__options small {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.race-modal__chips,
+.race-modal__asi-mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chip {
+  border: 1px solid #cfc5b4;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  font: inherit;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.chip:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+.chip--on {
+  background: #2c2418;
+  border-color: #2c2418;
+  color: #fffaf2;
+}
+
+.race-modal__fixed,
+.race-modal__info {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.race-modal__error {
+  margin: 0;
+  color: #8b1e1e;
+  font-weight: 600;
+}
+
 .sheet-viewport {
   padding: 1.25rem;
   display: grid;

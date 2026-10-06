@@ -1,10 +1,11 @@
 import type { Character } from '../types/character';
 import { withSampleSeed } from '../data/characterFactory';
 
-const STORAGE_KEY = 'dvarf.characters.v1';
+/** v2: raceId / raceChoices; старый v1 сбрасываем (боевых данных ещё нет). */
+const STORAGE_KEY = 'dvarf.characters.v2';
 
 export type CharactersSnapshot = {
-  version: 1;
+  version: 2;
   characters: Character[];
 };
 
@@ -15,6 +16,9 @@ function canUseStorage(): boolean {
 export function loadCharacters(): Character[] {
   if (!canUseStorage()) return withSampleSeed();
   try {
+    // Чистим черновой v1, если остался
+    window.localStorage.removeItem('dvarf.characters.v1');
+
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       const seed = withSampleSeed();
@@ -39,6 +43,6 @@ export function loadCharacters(): Character[] {
 
 export function saveCharacters(characters: Character[]): void {
   if (!canUseStorage()) return;
-  const payload: CharactersSnapshot = { version: 1, characters };
+  const payload: CharactersSnapshot = { version: 2, characters };
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }

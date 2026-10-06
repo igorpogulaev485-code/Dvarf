@@ -35,7 +35,7 @@ export function CharactersProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key && e.key !== 'dvarf.characters.v1') return;
+      if (e.key && e.key !== 'dvarf.characters.v2') return;
       setCharacters(loadCharacters());
     };
     window.addEventListener('storage', onStorage);
