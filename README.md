@@ -2,6 +2,12 @@
 
 Лист персонажа D&D: **карточка** и **классический лист** — одна сущность (как у ЛСС).
 
+## Прод
+
+**Единственный прод:** http://201.34.132.252/
+
+Смотреть и проверять только его. GitHub Pages — **не прод**, игнорировать.
+
 ## Как устроено
 
 | Путь | Что |
@@ -21,10 +27,8 @@ npm install
 npm run dev
 ```
 
-## Прод (GitHub Pages)
+## GitHub Pages (не прод)
 
-После мержа в `main` workflow `.github/workflows/deploy-pages.yml` собирает сайт с `base=/Dvarf/`.
+После мержа в `main` workflow `.github/workflows/deploy-pages.yml` собирает сайт с `base=/Dvarf/`. Это зеркало/архив, **не production**.
 
-Нужно один раз включить **Settings → Pages → Source: GitHub Actions**.
-
-URL: `https://igorpogulaev485-code.github.io/Dvarf/`
+URL (не использовать как прод): `https://igorpogulaev485-code.github.io/Dvarf/`
