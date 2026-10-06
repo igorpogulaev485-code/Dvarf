@@ -817,6 +817,34 @@ input {
   line-height: 1.35;
 }
 
+.passive-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.passive-card {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.passive-card__label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.passive-card strong {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
 .play-conditions {
   margin-top: 8px;
 }

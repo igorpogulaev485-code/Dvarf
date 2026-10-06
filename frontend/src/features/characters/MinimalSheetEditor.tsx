@@ -20,6 +20,13 @@ import { PlayPanel } from './PlayPanel'
 import { SpellsPanel } from './SpellsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import {
+  ARMOR_PROF_OPTIONS,
+  WEAPON_PROF_OPTIONS,
+  identityExtrasToSheet,
+  readIdentityExtras,
+  type IdentityExtras,
+} from './identity'
+import {
   inventoryToSheet,
   readInventory,
   type InventoryState,
@@ -50,6 +57,7 @@ import {
   readNumber,
   type AbilityKey,
 } from './sheetTypes'
+import { passiveScore, skillModifierFromState } from '../../shared/dnd/passives'
 
 type MinimalSheetEditorProps = {
   character: CharacterDetail
@@ -65,6 +73,7 @@ type Draft = {
   className: string
   raceCatalogId: string | null
   classCatalogId: string | null
+  identity: IdentityExtras
   abilities: Record<AbilityKey, number>
   saves: Record<AbilityKey, boolean>
   skills: Record<string, { is_proficient: boolean; is_expertise: boolean }>
@@ -154,6 +163,7 @@ function buildDraft(character: CharacterDetail): Draft {
       typeof identity.race_catalog_id === 'string' ? identity.race_catalog_id : null,
     classCatalogId:
       typeof identity.class_catalog_id === 'string' ? identity.class_catalog_id : null,
+    identity: readIdentityExtras(sheet),
     abilities,
     saves,
     skills,
@@ -244,6 +254,29 @@ export function MinimalSheetEditor({
     [draft.level],
   )
 
+  const passives = useMemo(() => {
+    const modFor = (skillKey: string) => {
+      const def = SKILL_DEFS.find((skill) => skill.key === skillKey)
+      if (!def) return 0
+      const state = draft.skills[skillKey]
+      return skillModifierFromState({
+        abilityMod: abilityModifier(draft.abilities[def.base]),
+        proficiencyBonus,
+        isProficient: state.is_proficient,
+        isExpertise: state.is_expertise,
+      })
+    }
+    return {
+      perception: passiveScore(modFor('perception')),
+      investigation: passiveScore(modFor('investigation')),
+      insight: passiveScore(modFor('insight')),
+    }
+  }, [draft.abilities, draft.skills, proficiencyBonus])
+
+  function patchIdentity(patch: Partial<IdentityExtras>) {
+    setDraft((prev) => ({ ...prev, identity: { ...prev.identity, ...patch } }))
+  }
+
   async function reloadFromServer() {
     setReloading(true)
     setError(null)
@@ -273,8 +306,10 @@ export function MinimalSheetEditor({
       const skills = asRecord(sheet.skills)
       const combat = asRecord(sheet.combat)
 
+      const identityExtras = identityExtrasToSheet(draft.identity)
       identity.race_catalog_id = draft.raceCatalogId
       identity.class_catalog_id = draft.classCatalogId
+      Object.assign(identity, identityExtras.identityPatch)
       sheet.identity = identity
 
       for (const key of ABILITY_KEYS) {
@@ -304,6 +339,7 @@ export function MinimalSheetEditor({
       combat.speed = draft.speed
       combat.initiative = draft.initiativeOverride
       combat.inspiration = draft.inspiration
+      combat.darkvision = identityExtras.combatPatch.darkvision
       const playSheet = playToSheet(draft.play)
       combat.conditions = playSheet.combatPatch.conditions
       combat.exhaustion = playSheet.combatPatch.exhaustion
@@ -314,6 +350,10 @@ export function MinimalSheetEditor({
       combat.death_successes = playSheet.combatPatch.death_successes
       combat.death_fails = playSheet.combatPatch.death_fails
       sheet.combat = combat
+      const proficiency = asRecord(sheet.proficiency)
+      proficiency.armor = identityExtras.proficiencyPatch.armor
+      proficiency.weapons = identityExtras.proficiencyPatch.weapons
+      sheet.proficiency = proficiency
       sheet.weapons = draft.weapons
       sheet.resources = playSheet.resources
       Object.assign(sheet, inventoryToSheet(draft.inventory))
@@ -400,10 +440,21 @@ export function MinimalSheetEditor({
                 }
               />
             </Field>
-            <Field label="Бонус мастерства">
-              <Input value={formatModifier(proficiencyBonus)} readOnly />
+            <Field label="Опыт (XP)" htmlFor="sheet-xp">
+              <NumberInput
+                id="sheet-xp"
+                min={0}
+                emptyValue={0}
+                value={draft.identity.experience}
+                onValueChange={(experience) =>
+                  patchIdentity({ experience: experience ?? 0 })
+                }
+              />
             </Field>
           </div>
+          <Field label="Бонус мастерства">
+            <Input value={formatModifier(proficiencyBonus)} readOnly />
+          </Field>
           <Field label="Раса" htmlFor="sheet-race" hint="Можно ввести своё или выбрать из списка">
             <CatalogCombobox
               id="sheet-race"
@@ -436,6 +487,112 @@ export function MinimalSheetEditor({
               }
             />
           </Field>
+          <Field label="Подкласс" htmlFor="sheet-subclass">
+            <Input
+              id="sheet-subclass"
+              value={draft.identity.subclassName}
+              placeholder="Например: Школа воплощения"
+              onChange={(event) => patchIdentity({ subclassName: event.target.value })}
+            />
+          </Field>
+          <div className="sheet-grid sheet-grid--2">
+            <Field label="Предыстория" htmlFor="sheet-background">
+              <Input
+                id="sheet-background"
+                value={draft.identity.background}
+                placeholder="Солдат, мудрец…"
+                onChange={(event) => patchIdentity({ background: event.target.value })}
+              />
+            </Field>
+            <Field label="Мировоззрение" htmlFor="sheet-alignment">
+              <Input
+                id="sheet-alignment"
+                value={draft.identity.alignment}
+                placeholder="Нейтральный добрый…"
+                onChange={(event) => patchIdentity({ alignment: event.target.value })}
+              />
+            </Field>
+          </div>
+        </Stack>
+      </Panel>
+
+      <Panel title="Пассивные чувства">
+        <Stack gap={12}>
+          <div className="passive-grid">
+            <div className="passive-card">
+              <span className="passive-card__label">Внимательность</span>
+              <strong>{passives.perception}</strong>
+            </div>
+            <div className="passive-card">
+              <span className="passive-card__label">Анализ</span>
+              <strong>{passives.investigation}</strong>
+            </div>
+            <div className="passive-card">
+              <span className="passive-card__label">Проницательность</span>
+              <strong>{passives.insight}</strong>
+            </div>
+          </div>
+          <Field label="Тёмное зрение, фт" htmlFor="sheet-darkvision" hint="0 = нет">
+            <NumberInput
+              id="sheet-darkvision"
+              min={0}
+              emptyValue={0}
+              value={draft.identity.darkvision}
+              onValueChange={(darkvision) =>
+                patchIdentity({ darkvision: darkvision ?? 0 })
+              }
+            />
+          </Field>
+          <Text tone="muted">Пассивы = 10 + модификатор навыка (с учётом владения/экспертизы).</Text>
+        </Stack>
+      </Panel>
+
+      <Panel title="Владения снаряжением">
+        <Stack gap={12}>
+          <div>
+            <Text tone="muted">Доспехи</Text>
+            <div className="chip-row">
+              {ARMOR_PROF_OPTIONS.map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  className={`sheet-chip${draft.identity.armor[option.key] ? ' is-on' : ''}`}
+                  onClick={() =>
+                    patchIdentity({
+                      armor: {
+                        ...draft.identity.armor,
+                        [option.key]: !draft.identity.armor[option.key],
+                      },
+                    })
+                  }
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <Text tone="muted">Оружие</Text>
+            <div className="chip-row">
+              {WEAPON_PROF_OPTIONS.map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  className={`sheet-chip${draft.identity.weapons[option.key] ? ' is-on' : ''}`}
+                  onClick={() =>
+                    patchIdentity({
+                      weapons: {
+                        ...draft.identity.weapons,
+                        [option.key]: !draft.identity.weapons[option.key],
+                      },
+                    })
+                  }
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </Stack>
       </Panel>
 

@@ -39,12 +39,13 @@
 - Spells S4: grimoire dialog (search / class / level filters, add to known); expanded sample seed (~32)
 - Play S1: conditions (catalog seed + chips), exhaustion 0–6, limited resources + SlotPips, short/long rest (long clears spell slots, −1 exhaustion)
 - Play S2: temp HP, hit dice (spend + long-rest recover), death saves (успехи/провалы), long rest → full HP / clear dying
+- Sheet S3: XP, subclass/background/alignment, passive Perception/Investigation/Insight, darkvision, armor/weapon proficiencies
 
 ## Очередь
 
-Ближайшее:
+Ближайшее (digital; classic PDF — параллельно другим агентом):
 
-1. Classic interactive sheet (PDF-like) after digital sheet MVP
+1. Pact magic UI / attunement / short-rest hit-die heal
 2. Party frame (QR join, мастер пачки)
 
 Дальше по верхнему уровню (не начинать раньше времени):
