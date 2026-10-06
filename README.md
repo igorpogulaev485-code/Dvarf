@@ -31,14 +31,14 @@
 - Sticky combat header (AC / speed / HP / initiative / inspiration)
 - Multi-tab sync: BroadcastChannel + conflict UI
 - Text blocks: rename (`customLabel`), hide, add/delete custom notes; dual-write legacy LSS-shaped fields
+- Text blocks reorder: ↑↓ + `text_blocks_order` в sheet JSON
 
 ## Очередь
 
 Ближайшее:
 
-1. Reorder текстовых блоков / заметок (↑↓, persist order) — запрос игрока, в LSS отказали
-2. Spells / inventory на цифровом листе
-3. Дожать play-контур листа (условия, ресурсы rest reset и т.п. по IA-референсу)
+1. Spells / inventory на цифровом листе
+2. Дожать play-контур листа (условия, ресурсы rest reset и т.п. по IA-референсу)
 
 Дальше по верхнему уровню (не начинать раньше времени):
 

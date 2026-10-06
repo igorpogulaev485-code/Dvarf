@@ -636,6 +636,17 @@ input {
   align-items: center;
 }
 
+.text-block__move {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.text-block__move .ui-button {
+  min-width: 36px;
+  padding-inline: 8px;
+}
+
 .text-block__area {
   min-height: 120px;
   resize: vertical;

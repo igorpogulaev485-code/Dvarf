@@ -67,6 +67,25 @@ function readBlock(
   }
 }
 
+function readOrder(sheet: Record<string, unknown>, keys: string[]): string[] {
+  const raw = sheet.text_blocks_order
+  if (!Array.isArray(raw)) {
+    return keys
+  }
+  const available = new Set(keys)
+  const ordered: string[] = []
+  for (const item of raw) {
+    if (typeof item !== 'string' || !available.has(item)) continue
+    ordered.push(item)
+    available.delete(item)
+  }
+  // Append any keys missing from saved order (new defaults / custom notes)
+  for (const key of keys) {
+    if (available.has(key)) ordered.push(key)
+  }
+  return ordered
+}
+
 export function displayLabel(block: TextBlock): string {
   return block.customLabel?.trim() || block.defaultLabel
 }
@@ -91,33 +110,40 @@ export function readTextBlocks(sheet: Record<string, unknown>): TextBlock[] {
     quests: notes.quests ?? legacyText.quests,
   }
 
-  const blocks = DEFAULT_TEXT_BLOCKS.map((item) =>
-    readBlock(
+  const byKey = new Map<string, TextBlock>()
+
+  for (const item of DEFAULT_TEXT_BLOCKS) {
+    byKey.set(
       item.key,
-      item.defaultLabel,
-      textBlocks[item.key] ?? legacyFallback[item.key] ?? '',
-      false,
-    ),
-  )
+      readBlock(
+        item.key,
+        item.defaultLabel,
+        textBlocks[item.key] ?? legacyFallback[item.key] ?? '',
+        false,
+      ),
+    )
+  }
 
   const known = new Set(DEFAULT_TEXT_BLOCKS.map((item) => item.key))
   for (const [key, raw] of Object.entries(textBlocks)) {
     if (known.has(key)) continue
-    blocks.push(readBlock(key, 'Заметка', raw, true))
+    byKey.set(key, readBlock(key, 'Заметка', raw, true))
   }
 
   // Also pick up LSS-style custom notes from legacy text.*
   for (const [key, raw] of Object.entries(legacyText)) {
     if (known.has(key) || textBlocks[key] != null) continue
     if (!key.startsWith('notes')) continue
-    blocks.push(readBlock(key, 'Заметка', raw, true))
+    byKey.set(key, readBlock(key, 'Заметка', raw, true))
   }
 
-  return blocks
+  const order = readOrder(sheet, [...byKey.keys()])
+  return order.map((key) => byKey.get(key)!).filter(Boolean)
 }
 
 export function textBlocksToSheet(blocks: TextBlock[]): Record<string, unknown> {
   const text_blocks: Record<string, unknown> = {}
+  const text_blocks_order = blocks.map((block) => block.key)
   const features_text: Record<string, string> = {
     traits: '',
     features: '',
@@ -147,7 +173,7 @@ export function textBlocksToSheet(blocks: TextBlock[]): Record<string, unknown> 
     if (block.key in notes) notes[block.key] = block.value
   }
 
-  return { text_blocks, features_text, personality, notes }
+  return { text_blocks, text_blocks_order, features_text, personality, notes }
 }
 
 export function createCustomTextBlock(existing: TextBlock[]): TextBlock {
@@ -162,4 +188,18 @@ export function createCustomTextBlock(existing: TextBlock[]): TextBlock {
     value: '',
     isCustom: true,
   }
+}
+
+export function moveTextBlock(
+  blocks: TextBlock[],
+  key: string,
+  direction: 'up' | 'down',
+): TextBlock[] {
+  const index = blocks.findIndex((item) => item.key === key)
+  if (index < 0) return blocks
+  const target = direction === 'up' ? index - 1 : index + 1
+  if (target < 0 || target >= blocks.length) return blocks
+  const next = [...blocks]
+  ;[next[index], next[target]] = [next[target], next[index]]
+  return next
 }
