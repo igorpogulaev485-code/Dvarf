@@ -162,19 +162,19 @@ export function PlayPanel({
     patchPlay({ resources: play.resources.filter((item) => item.id !== id) })
   }
 
-  function doShortRest() {
+  function doShortRestResources() {
     const result = applyShortRest({ resources: play.resources })
     patchPlay({ resources: result.resources })
-    onToast('Короткий отдых: ресурсы «короткий». Лечись костью ниже.')
+    onToast('Короткий отдых: сброшены ресурсы «короткий»')
   }
 
-  function healWithHitDie() {
+  function spendHitDieOnShortRest() {
     if (!play.hitDie || play.hitDiceCurrent <= 0) {
       onToast('Нужна кость хитов и хотя бы 1 доступная')
       return
     }
     if (hpMax == null) {
-      onToast('Задай максимум HP, чтобы лечиться костью')
+      onToast('Задай максимум HP перед коротким отдыхом')
       return
     }
     const amount = Math.max(0, Math.floor(healAmount ?? suggestedHeal ?? 0))
@@ -185,7 +185,7 @@ export function PlayPanel({
     })
     patchPlay({ hitDiceCurrent: spendHitDie(play.hitDiceCurrent) })
     onCombatChange({ hpCurrent: nextHp })
-    onToast(`Лечение костью ${play.hitDie}: +${amount} HP`)
+    onToast(`Короткий отдых: +${amount} HP (${play.hitDie})`)
   }
 
   function doLongRest() {
@@ -216,7 +216,9 @@ export function PlayPanel({
     if (result.hp_current !== undefined) {
       onCombatChange({ hpCurrent: result.hp_current })
     }
-    onToast('Длинный отдых: HP, кости, ячейки, ресурсы, −1 истощение, спасброски сброшены')
+    onToast(
+      'Продолжительный отдых: HP, кости, ячейки, ресурсы, −1 истощение, спасброски сброшены',
+    )
   }
 
   return (
@@ -251,10 +253,14 @@ export function PlayPanel({
           </Field>
         </div>
 
-        <div>
+        <div className="play-rest-block">
+          <Text>
+            <strong>Короткий отдых</strong>
+          </Text>
           <Text tone="muted">
-            Кости хитов: {play.hitDiceCurrent} / {hitDiceMax}
-            {play.hitDie ? ` (${play.hitDie})` : ''} · на коротком отдыхе можно лечиться
+            За короткий отдых можно потратить кости хитов (HP) и сбросить ресурсы со сбросом
+            «короткий». Кости: {play.hitDiceCurrent} / {hitDiceMax}
+            {play.hitDie ? ` (${play.hitDie})` : ''}.
           </Text>
           <div className="play-hit-dice">
             <SlotPips
@@ -269,11 +275,11 @@ export function PlayPanel({
             />
             <div className="play-hit-heal">
               <Field
-                label="Лечение от кости"
+                label="HP за кость"
                 hint={
                   play.hitDie
                     ? `Среднее ${play.hitDie} + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod})`
-                    : 'Сначала выбери кость хитов'
+                    : 'Сначала выбери кость хитов выше'
                 }
               >
                 <NumberInput
@@ -290,19 +296,12 @@ export function PlayPanel({
                   disabled={
                     !play.hitDie || play.hitDiceCurrent <= 0 || hpMax == null
                   }
-                  onClick={healWithHitDie}
+                  onClick={spendHitDieOnShortRest}
                 >
-                  Лечиться костью
+                  Потратить кость
                 </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={play.hitDiceCurrent <= 0}
-                  onClick={() =>
-                    patchPlay({ hitDiceCurrent: spendHitDie(play.hitDiceCurrent) })
-                  }
-                >
-                  Потратить без лечения
+                <Button type="button" variant="secondary" onClick={doShortRestResources}>
+                  Сбросить короткие ресурсы
                 </Button>
               </div>
             </div>
@@ -378,7 +377,7 @@ export function PlayPanel({
         </div>
 
         <div>
-          <Text tone="muted">Истощение 0–6 (длинный отдых −1)</Text>
+          <Text tone="muted">Истощение 0–6 (продолжительный отдых −1)</Text>
           <div className="exhaustion-track" role="group" aria-label="Уровень истощения">
             {Array.from({ length: 7 }, (_, nextLevel) => (
               <button
@@ -395,13 +394,19 @@ export function PlayPanel({
           </div>
         </div>
 
-        <div className="play-rest-actions">
-          <Button type="button" variant="secondary" onClick={doShortRest}>
-            Короткий отдых
-          </Button>
-          <Button type="button" onClick={doLongRest}>
-            Длинный отдых
-          </Button>
+        <div className="play-rest-block">
+          <Text>
+            <strong>Продолжительный отдых</strong>
+          </Text>
+          <Text tone="muted">
+            Полные HP, половина костей хитов, ячейки и pact, ресурсы «короткий»/«продолжительный»,
+            −1 истощение, сброс спасбросков от смерти.
+          </Text>
+          <div className="play-rest-actions">
+            <Button type="button" onClick={doLongRest}>
+              Продолжительный отдых
+            </Button>
+          </div>
         </div>
 
         <Stack gap={10}>

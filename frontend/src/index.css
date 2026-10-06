@@ -760,6 +760,11 @@ input {
   gap: 8px;
 }
 
+.play-rest-block {
+  display: grid;
+  gap: 8px;
+}
+
 .pact-settings {
   padding-top: 4px;
   border-top: 1px solid var(--line);

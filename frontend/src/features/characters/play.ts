@@ -167,6 +167,6 @@ export function playToSheet(play: PlayState): {
 
 export const RESET_LABELS: Record<ResourceReset, string> = {
   short: 'короткий',
-  long: 'длинный',
+  long: 'продолжительный',
   manual: 'вручную',
 }
