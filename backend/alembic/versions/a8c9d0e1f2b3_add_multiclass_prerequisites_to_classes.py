@@ -1,7 +1,7 @@
 """Add PHB 2014 multiclass prerequisites onto catalog class data.
 
 Revision ID: a8c9d0e1f2b3
-Revises: c9d0e1f2a3b4
+Revises: c2b8b2062024
 Create Date: 2026-10-06 16:00:00.000000
 
 """
@@ -16,14 +16,13 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "a8c9d0e1f2b3"
-down_revision: Union[str, Sequence[str], None] = "c9d0e1f2a3b4"
+# Prod DB already applied SRD catalog (c1a7 → c2b8). Reattach tip after that head.
+down_revision: Union[str, Sequence[str], None] = "c2b8b2062024"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 # PHB 2014 Multiclassing Prerequisites (stored for catalog consumers).
 # Enforcement also lives in frontend shared/dnd/multiclassRules.ts.
-# Prod note: live DB may already be at c2b8b2062024 (SRD catalog PR).
-# Frontend gates work without this migration; apply/reattach when SRD merges into tip.
 PREREQUISITES: dict[str, dict] = {
     "barbarian": {"all": ["str"], "min": 13},
     "bard": {"all": ["cha"], "min": 13},
