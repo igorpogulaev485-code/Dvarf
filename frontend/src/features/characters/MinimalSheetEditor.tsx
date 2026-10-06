@@ -19,6 +19,22 @@ import {
   reduceClassLevel,
   totalCharacterLevel,
 } from '../../shared/dnd/classLevels'
+import type {
+  AppliedClassGrant,
+  ClassGrantDef,
+  ClassGrantPicks,
+} from '../../shared/dnd/classGrants'
+import {
+  classGrantDefFromName,
+  grantNeedsPicks,
+  packageForMode,
+} from '../../shared/dnd/classGrants'
+import {
+  applyClassGrantToDraft,
+  readAppliedClassGrants,
+  type ClassGrantDraftSlice,
+} from './classEffects'
+import { ClassGrantPickerDialog } from './ClassGrantPickerDialog'
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
@@ -110,6 +126,7 @@ type Draft = {
   spells: SpellsState
   play: PlayState
   textBlocks: TextBlock[]
+  classGrants: AppliedClassGrant[]
 }
 
 function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -208,6 +225,7 @@ function buildDraft(character: CharacterDetail): Draft {
     spells: readSpells(sheet),
     play: readPlay(sheet, level),
     textBlocks: readTextBlocks(sheet),
+    classGrants: readAppliedClassGrants(sheet.class_grants),
   }
 }
 
@@ -241,6 +259,12 @@ export function MinimalSheetEditor({
   const [error, setError] = useState<string | null>(null)
   const [conflictOpen, setConflictOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
+  const [grantPicker, setGrantPicker] = useState<{
+    classEntryId: string
+    className: string
+    mode: 'start' | 'multiclass'
+    def: ClassGrantDef
+  } | null>(null)
   const channelRef = useRef<BroadcastChannel | null>(null)
 
   const characterLevel = useMemo(
@@ -308,18 +332,126 @@ export function MinimalSheetEditor({
     }))
   }
 
-  function applyLevelUp(choice: LevelUpChoice) {
+  function draftSliceFrom(prev: Draft): ClassGrantDraftSlice {
+    return {
+      identity: prev.identity,
+      saves: prev.saves,
+      skills: prev.skills,
+      classGrants: prev.classGrants,
+      playHitDie: prev.play.hitDie,
+      hpMax: prev.hpMax,
+      hpCurrent: prev.hpCurrent,
+      constitutionScore: prev.abilities.con,
+      characterLevel: totalCharacterLevel(prev.classes),
+    }
+  }
+
+  function mergeGrantSlice(prev: Draft, slice: ClassGrantDraftSlice): Draft {
+    return {
+      ...prev,
+      identity: slice.identity,
+      saves: slice.saves,
+      skills: slice.skills,
+      classGrants: slice.classGrants,
+      hpMax: slice.hpMax,
+      hpCurrent: slice.hpCurrent,
+      play: {
+        ...prev.play,
+        hitDie: slice.playHitDie,
+      },
+    }
+  }
+
+  function grantModeForClassRow(prev: Draft, classEntryId: string): 'start' | 'multiclass' {
+    const existing = prev.classGrants.find((row) => row.classEntryId === classEntryId)
+    if (existing) return existing.mode
+    if (prev.classes.length <= 1) return 'start'
+    const index = prev.classes.findIndex((row) => row.id === classEntryId)
+    return index <= 0 ? 'start' : 'multiclass'
+  }
+
+  function commitClassGrant(input: {
+    classEntryId: string
+    className: string
+    mode: 'start' | 'multiclass'
+    picks: ClassGrantPicks
+  }) {
+    let summary: string | null = null
     setDraft((prev) => {
-      if (totalCharacterLevel(prev.classes) >= 20) return prev
-      const nextClasses =
-        choice.type === 'same'
-          ? bumpClassLevel(prev.classes, choice.classId)
-          : addMulticlassLevel(prev.classes, {
-              name: choice.name,
-              catalog_id: choice.catalog_id,
-            })
-      const nextLevel = totalCharacterLevel(nextClasses)
-      const gain = Math.max(0, Math.floor(choice.hpGain))
+      const applied = applyClassGrantToDraft({
+        draft: draftSliceFrom(prev),
+        classEntryId: input.classEntryId,
+        className: input.className,
+        mode: input.mode,
+        picks: input.picks,
+      })
+      if (!applied) return prev
+      summary = applied.summary
+      return mergeGrantSlice(prev, applied.draft)
+    })
+    if (summary) {
+      onToast(
+        `${input.mode === 'start' ? 'Старт' : 'Мультикласс'} «${input.className}»: ${summary}`,
+      )
+    }
+  }
+
+  function requestOrApplyClassGrant(input: {
+    classEntryId: string
+    className: string
+    mode: 'start' | 'multiclass'
+  }) {
+    const def = classGrantDefFromName(input.className)
+    if (!def) {
+      onToast(`Класс «${input.className}» пока без пакета владений — выставь вручную`)
+      return
+    }
+    const pkg = packageForMode(def, input.mode)
+    if (grantNeedsPicks(pkg)) {
+      setGrantPicker({
+        classEntryId: input.classEntryId,
+        className: input.className,
+        mode: input.mode,
+        def,
+      })
+      return
+    }
+    commitClassGrant({
+      classEntryId: input.classEntryId,
+      className: input.className,
+      mode: input.mode,
+      picks: { skills: [], tools: [] },
+    })
+  }
+
+  function applyLevelUp(choice: LevelUpChoice) {
+    if (totalCharacterLevel(draft.classes) >= 20) return
+
+    const existedBefore =
+      choice.type === 'multiclass'
+        ? draft.classes.some(
+            (row) => row.name.trim().toLowerCase() === choice.name.trim().toLowerCase(),
+          )
+        : true
+
+    const nextClasses =
+      choice.type === 'same'
+        ? bumpClassLevel(draft.classes, choice.classId)
+        : addMulticlassLevel(draft.classes, {
+            name: choice.name,
+            catalog_id: choice.catalog_id,
+          })
+    const newMulticlassRow =
+      choice.type === 'multiclass' && !existedBefore
+        ? nextClasses.find(
+            (row) => row.name.trim().toLowerCase() === choice.name.trim().toLowerCase(),
+          ) ?? null
+        : null
+
+    const nextLevel = totalCharacterLevel(nextClasses)
+    const gain = Math.max(0, Math.floor(choice.hpGain))
+
+    setDraft((prev) => {
       const prevMax = prev.hpMax
       const nextMax = prevMax == null ? gain : prevMax + gain
       const prevCurrent = prev.hpCurrent
@@ -344,6 +476,14 @@ export function MinimalSheetEditor({
         ? `Уровень класса +1${hpNote}`
         : `Мультикласс: ${choice.name.trim()} 1${hpNote}`,
     )
+
+    if (newMulticlassRow) {
+      requestOrApplyClassGrant({
+        classEntryId: newMulticlassRow.id,
+        className: newMulticlassRow.name,
+        mode: 'multiclass',
+      })
+    }
   }
 
   const passives = useMemo(() => {
@@ -420,6 +560,7 @@ export function MinimalSheetEditor({
       Object.assign(identity, identityExtras.identityPatch)
       sheet.identity = identity
       Object.assign(sheet, classLevelsToSheet(draft.classes))
+      sheet.class_grants = draft.classGrants
 
       for (const key of ABILITY_KEYS) {
         abilities[key] = { ...asRecord(abilities[key]), score: draft.abilities[key] }
@@ -659,12 +800,19 @@ export function MinimalSheetEditor({
                         edition={baseCharacter.rules_edition as RulesEdition}
                         value={row.name}
                         placeholder="Начните вводить класс"
-                        onChange={(value, selected) =>
+                        onChange={(value, selected) => {
                           patchClass(row.id, {
                             name: value,
                             catalog_id: selected?.id ?? null,
                           })
-                        }
+                          if (!selected) return
+                          const mode = grantModeForClassRow(draft, row.id)
+                          requestOrApplyClassGrant({
+                            classEntryId: row.id,
+                            className: selected.name_ru,
+                            mode,
+                          })
+                        }}
                       />
                     </Field>
                     <Field label="Уровней в классе">
@@ -699,8 +847,8 @@ export function MinimalSheetEditor({
               ))}
             </Stack>
             <Text tone="muted">
-              Итого: {classSummary || 'класс не выбран'} · при повышении уровня можно взять другой
-              класс (мультикласс).
+              Итого: {classSummary || 'класс не выбран'} · выбор класса из справочника подставляет
+              владения/навыки/сейвы (старт или мультикласс по PHB). Снаряжение пока вручную.
             </Text>
           </div>
           <div className="sheet-grid sheet-grid--2">
@@ -993,6 +1141,23 @@ export function MinimalSheetEditor({
         constitutionMod={abilityModifier(draft.abilities.con)}
         onConfirm={applyLevelUp}
         onClose={() => setLevelUpOpen(false)}
+      />
+
+      <ClassGrantPickerDialog
+        open={grantPicker != null}
+        def={grantPicker?.def ?? null}
+        mode={grantPicker?.mode ?? 'start'}
+        onClose={() => setGrantPicker(null)}
+        onConfirm={(picks) => {
+          if (!grantPicker) return
+          commitClassGrant({
+            classEntryId: grantPicker.classEntryId,
+            className: grantPicker.className,
+            mode: grantPicker.mode,
+            picks,
+          })
+          setGrantPicker(null)
+        }}
       />
     </Stack>
   )
