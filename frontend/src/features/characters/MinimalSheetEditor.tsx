@@ -465,6 +465,7 @@ export function MinimalSheetEditor({
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
         onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        onToast={onToast}
       />
 
       <Panel title="Спасброски">

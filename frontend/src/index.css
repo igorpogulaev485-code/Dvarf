@@ -482,6 +482,10 @@ input {
   align-items: center;
 }
 
+.spell-card__cast {
+  margin-left: auto;
+}
+
 .slot-pips {
   display: inline-flex;
   gap: 8px;

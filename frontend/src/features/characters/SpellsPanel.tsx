@@ -5,13 +5,16 @@ import type { RulesEdition } from '../../shared/api/characters'
 import {
   SPELLCASTING_ABILITIES,
   SPELLCASTING_ABILITY_LABELS,
+  canSpendSlot,
   levelLabel,
+  spendSpellSlot,
   spellAttackBonus,
   spellSaveDc,
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
+import { CastSpellDialog } from './CastSpellDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import {
   countPreparedLeveled,
@@ -30,6 +33,7 @@ type SpellsPanelProps = {
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   onChange: (spells: SpellsState) => void
+  onToast?: (message: string) => void
 }
 
 export function SpellsPanel({
@@ -38,9 +42,11 @@ export function SpellsPanel({
   abilities,
   proficiencyBonus,
   onChange,
+  onToast,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
+  const [castSpell, setCastSpell] = useState<SheetSpell | null>(null)
   const [filter, setFilter] = useState<'all' | number>('all')
   const [showAllKnown, setShowAllKnown] = useState(false)
 
@@ -126,6 +132,23 @@ export function SpellsPanel({
     })
   }
 
+  function confirmCast() {
+    if (!castSpell) return
+    const result = spendSpellSlot(spells.slots, castSpell.level)
+    if (!result.ok) {
+      onToast?.(`Нет ячеек ${castSpell.level}-го уровня`)
+      return
+    }
+    patch({ slots: result.slots })
+    const name = castSpell.name || 'Заклинание'
+    if (castSpell.level <= 0) {
+      onToast?.(`Каст: ${name}`)
+    } else {
+      onToast?.(`Каст: ${name} (−1 ячейка ${castSpell.level} ур.)`)
+    }
+    setCastSpell(null)
+  }
+
   const prepareLimitLabel =
     spells.max_prepared == null ? String(preparedCount) : `${preparedCount}/${spells.max_prepared}`
 
@@ -133,8 +156,7 @@ export function SpellsPanel({
     <Panel title="Заклинания">
       <Stack gap={14}>
         <Text tone="muted">
-          Боевой список = заговоры + подготовленные. Полный гримуар и кнопка «каст» — следующими
-          слайсами.
+          Боевой список = заговоры + подготовленные. Каст тратит ячейку (S3). Гримуар — S4.
         </Text>
 
         <div className="spells-summary">
@@ -374,6 +396,16 @@ export function SpellsPanel({
                         >
                           Удалить
                         </Button>
+                        <Button
+                          className="spell-card__cast"
+                          disabled={
+                            (spell.level > 0 && !spell.prepared) ||
+                            (spell.level > 0 && !canSpendSlot(spells.slots, spell.level))
+                          }
+                          onClick={() => setCastSpell(spell)}
+                        >
+                          Каст
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -398,6 +430,13 @@ export function SpellsPanel({
         spells={spells}
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
+      />
+      <CastSpellDialog
+        open={castSpell != null}
+        spell={castSpell}
+        spells={spells}
+        onConfirm={confirmCast}
+        onClose={() => setCastSpell(null)}
       />
     </Panel>
   )

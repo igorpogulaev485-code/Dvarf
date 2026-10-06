@@ -48,3 +48,39 @@ export function levelLabel(level: number): string {
 export function countsTowardPrepareLimit(level: number): boolean {
   return level > 0
 }
+
+export function slotsRemaining(slot: SpellSlotState | undefined): number {
+  if (!slot) return 0
+  const clamped = clampSlot(slot)
+  return Math.max(0, clamped.max - clamped.used)
+}
+
+export function canSpendSlot(
+  slots: Record<string, SpellSlotState>,
+  level: number,
+): boolean {
+  if (level <= 0) return true
+  return slotsRemaining(slots[String(level)]) > 0
+}
+
+/** Spend one slot at `level` (1–9). Cantrips are a no-op success. */
+export function spendSpellSlot(
+  slots: Record<string, SpellSlotState>,
+  level: number,
+): { ok: true; slots: Record<string, SpellSlotState> } | { ok: false; reason: 'no_slot' } {
+  if (level <= 0) {
+    return { ok: true, slots }
+  }
+  const key = String(level)
+  const current = clampSlot(slots[key] ?? { max: 0, used: 0 })
+  if (current.max <= 0 || current.used >= current.max) {
+    return { ok: false, reason: 'no_slot' }
+  }
+  return {
+    ok: true,
+    slots: {
+      ...slots,
+      [key]: { max: current.max, used: current.used + 1 },
+    },
+  }
+}
