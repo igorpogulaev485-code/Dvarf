@@ -27,6 +27,43 @@ function kindLabel(kind: CatalogKind): string {
   return kind
 }
 
+/**
+ * Prefer the requested rules edition; collapse same-name rows across editions
+ * (e.g. class «Плут» 2014 + 2024) so the dropdown never shows twins.
+ */
+function dedupeCatalogEntries(
+  entries: CatalogEntry[],
+  edition: RulesEdition,
+): CatalogEntry[] {
+  const bySlug = new Map<string, CatalogEntry>()
+  for (const item of entries) {
+    const key = `${item.kind}:${item.slug}`
+    const prev = bySlug.get(key)
+    if (!prev) {
+      bySlug.set(key, item)
+      continue
+    }
+    const prevExact = prev.rules_edition === edition
+    const nextExact = item.rules_edition === edition
+    if (nextExact && !prevExact) bySlug.set(key, item)
+  }
+
+  const byName = new Map<string, CatalogEntry>()
+  for (const item of bySlug.values()) {
+    const key = `${item.kind}:${item.name_ru.trim().toLowerCase()}`
+    const prev = byName.get(key)
+    if (!prev) {
+      byName.set(key, item)
+      continue
+    }
+    const prevExact = prev.rules_edition === edition
+    const nextExact = item.rules_edition === edition
+    if (nextExact && !prevExact) byName.set(key, item)
+  }
+
+  return [...byName.values()]
+}
+
 export function CatalogCombobox({
   id,
   kind,
@@ -64,13 +101,13 @@ export function CatalogCombobox({
       )
         .then((groups) => {
           if (!active) return
-          const items = groups
+          const filtered = groups
             .flat()
             .filter((item) => (filterEntry ? filterEntry(item) : true))
-            .sort((a, b) => {
-              if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
-              return a.name_ru.localeCompare(b.name_ru, 'ru')
-            })
+          const items = dedupeCatalogEntries(filtered, edition).sort((a, b) => {
+            if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
+            return a.name_ru.localeCompare(b.name_ru, 'ru')
+          })
           setEntries(items)
           setOptions(
             items.map((item) => ({
