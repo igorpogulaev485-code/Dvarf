@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { getMe, type User } from '../shared/api/auth'
-import { getAccessToken, setTokens } from '../shared/api/client'
+import { setTokens } from '../shared/api/client'
 import {
   AuthSessionPanel,
   EmailAuthForm,
@@ -12,11 +12,16 @@ import { Panel, Stack, Text } from '../ui'
 
 type AuthView = 'register' | 'login' | 'forgot'
 
-export function AuthDebugPage() {
+type AuthDebugPageProps = {
+  nextPath?: string | null
+}
+
+export function AuthDebugPage({ nextPath = null }: AuthDebugPageProps) {
   const navigate = useNavigate()
   const [user, setUser] = useState<User | null>(null)
   const [oauthMessage, setOauthMessage] = useState<string | null>(null)
   const [view, setView] = useState<AuthView>('login')
+  const afterAuth = nextPath || '/characters'
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -39,17 +44,12 @@ export function AuthDebugPage() {
         } else if (oauthProvider) {
           setOauthMessage(`Вход через ${oauthProvider} выполнен успешно`)
         }
-        navigate('/characters', { replace: true })
+        navigate(afterAuth, { replace: true })
       })
       .catch(() => {
         setOauthMessage('Не удалось восстановить сессию после OAuth')
       })
-  }, [navigate])
-
-  if (getAccessToken() && !oauthMessage) {
-    // Already signed in — go to characters home.
-    return <Navigate to="/characters" replace />
-  }
+  }, [afterAuth, navigate])
 
   const panelTitle =
     view === 'register' ? 'Регистрация' : view === 'login' ? 'Вход' : 'Забыли пароль'
@@ -90,7 +90,7 @@ export function AuthDebugPage() {
                   mode={view}
                   onSuccess={(nextUser) => {
                     setUser(nextUser)
-                    navigate('/characters', { replace: true })
+                    navigate(afterAuth, { replace: true })
                   }}
                   onForgotPassword={() => setView('forgot')}
                 />
