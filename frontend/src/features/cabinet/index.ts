@@ -1,0 +1,7 @@
+export { AuthProvidersPanel } from './AuthProvidersPanel'
+export { AvatarEditor } from './AvatarEditor'
+export { ChangeEmailForm } from './ChangeEmailForm'
+export { ChangePasswordForm } from './ChangePasswordForm'
+export { DangerZone } from './DangerZone'
+export { ProfileAvatar } from './ProfileAvatar'
+export { ProfileForm } from './ProfileForm'
