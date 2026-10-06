@@ -60,6 +60,7 @@ def empty_character_sheet() -> dict[str, Any]:
             "death_successes": 0,
             "death_fails": 0,
             "conditions": [],
+            "exhaustion": 0,
             "inspiration": False,
         },
         "proficiency": {
@@ -82,7 +83,7 @@ def empty_character_sheet() -> dict[str, Any]:
             "coins": {"cp": 0, "sp": 0, "ep": 0, "gp": 0, "pp": 0},
             "items": [],
         },
-        "resources": {},
+        "resources": [],
         "spells": {
             "casting_ability": None,
             "slots": {},

@@ -37,12 +37,13 @@
 - Spells S2: prepare dialog (prepared vs available), combat list = cantrips + prepared, optional max_prepared
 - Spells S3: cast button + confirm; spends slot (cantrips free); reusable `spendSpellSlot`
 - Spells S4: grimoire dialog (search / class / level filters, add to known); expanded sample seed (~32)
+- Play S1: conditions (catalog seed + chips), exhaustion 0–6, limited resources + SlotPips, short/long rest (long clears spell slots, −1 exhaustion)
 
 ## Очередь
 
 Ближайшее:
 
-1. Дожать play-контур листа (условия, ресурсы rest reset и т.п. по IA-референсу)
+1. Play S2: death saves + temp HP / hit dice на отдыхе (как на LSS classic)
 2. Classic interactive sheet (PDF-like) after digital sheet MVP
 
 Дальше по верхнему уровню (не начинать раньше времени):

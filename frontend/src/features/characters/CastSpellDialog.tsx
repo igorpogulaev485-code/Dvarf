@@ -64,7 +64,7 @@ export function CastSpellDialog({
           </Text>
         ) : (
           <Text tone="danger">
-            Нет свободных ячеек {spell.level}-го уровня. Верни пипс или отдохни (rest — позже).
+            Нет свободных ячеек {spell.level}-го уровня. Верни пипс или сделай длинный отдых.
           </Text>
         )}
       </Stack>

@@ -17,6 +17,8 @@ type CombatStickyHeaderProps = {
   speed: number | null
   initiativeOverride: number | null
   inspiration: boolean
+  exhaustion: number
+  conditionNames: string[]
   onChange: (patch: {
     hpCurrent?: number | null
     hpMax?: number | null
@@ -39,10 +41,14 @@ export function CombatStickyHeader({
   speed,
   initiativeOverride,
   inspiration,
+  exhaustion,
+  conditionNames,
   onChange,
 }: CombatStickyHeaderProps) {
   const autoInitiative = abilityModifier(abilities.dex)
   const subtitle = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
+  const conditionsLabel =
+    conditionNames.length > 0 ? conditionNames.join(', ') : 'нет состояний'
 
   return (
     <section className="combat-sticky" aria-label="Боевой статус">
@@ -53,15 +59,26 @@ export function CombatStickyHeader({
             {subtitle} · ур. {level}
           </p>
         </div>
-        <button
-          type="button"
-          className={`combat-chip${inspiration ? ' is-on' : ''}`}
-          onClick={() => onChange({ inspiration: !inspiration })}
-          aria-pressed={inspiration}
-        >
-          Вдохновение
-        </button>
+        <div className="combat-sticky__chips">
+          <button
+            type="button"
+            className={`combat-chip${inspiration ? ' is-on' : ''}`}
+            onClick={() => onChange({ inspiration: !inspiration })}
+            aria-pressed={inspiration}
+          >
+            Вдохновение
+          </button>
+          <span
+            className={`combat-chip combat-chip--static${exhaustion > 0 ? ' is-on' : ''}`}
+            title="Меняется в блоке «Состояния и ресурсы»"
+          >
+            Истощение {exhaustion}
+          </span>
+        </div>
       </div>
+      <p className="combat-sticky__conditions" title={conditionsLabel}>
+        {conditionsLabel}
+      </p>
 
       <div className="combat-sticky__stats">
         <Field label="КД">

@@ -16,6 +16,7 @@ import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '.
 import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
 import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
+import { PlayPanel } from './PlayPanel'
 import { SpellsPanel } from './SpellsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import {
@@ -23,6 +24,11 @@ import {
   readInventory,
   type InventoryState,
 } from './inventory'
+import {
+  playToSheet,
+  readPlay,
+  type PlayState,
+} from './play'
 import {
   readSpells,
   spellsToSheet,
@@ -71,6 +77,7 @@ type Draft = {
   weapons: WeaponAttack[]
   inventory: InventoryState
   spells: SpellsState
+  play: PlayState
   textBlocks: TextBlock[]
 }
 
@@ -159,6 +166,7 @@ function buildDraft(character: CharacterDetail): Draft {
     weapons: readWeapons(sheet),
     inventory: readInventory(sheet),
     spells: readSpells(sheet),
+    play: readPlay(sheet),
     textBlocks: readTextBlocks(sheet),
   }
 }
@@ -296,8 +304,12 @@ export function MinimalSheetEditor({
       combat.speed = draft.speed
       combat.initiative = draft.initiativeOverride
       combat.inspiration = draft.inspiration
+      const playSheet = playToSheet(draft.play)
+      combat.conditions = playSheet.combatPatch.conditions
+      combat.exhaustion = playSheet.combatPatch.exhaustion
       sheet.combat = combat
       sheet.weapons = draft.weapons
+      sheet.resources = playSheet.resources
       Object.assign(sheet, inventoryToSheet(draft.inventory))
       Object.assign(sheet, spellsToSheet(draft.spells))
       Object.assign(sheet, textBlocksToSheet(draft.textBlocks))
@@ -348,6 +360,8 @@ export function MinimalSheetEditor({
         speed={draft.speed}
         initiativeOverride={draft.initiativeOverride}
         inspiration={draft.inspiration}
+        exhaustion={draft.play.exhaustion}
+        conditionNames={draft.play.conditions.map((item) => item.name)}
         onChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
       />
 
@@ -443,6 +457,15 @@ export function MinimalSheetEditor({
           })}
         </div>
       </Panel>
+
+      <PlayPanel
+        edition={baseCharacter.rules_edition as RulesEdition}
+        play={draft.play}
+        spells={draft.spells}
+        onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
+        onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        onToast={onToast}
+      />
 
       <AttacksPanel
         edition={baseCharacter.rules_edition as RulesEdition}
