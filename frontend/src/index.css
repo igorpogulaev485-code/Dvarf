@@ -401,6 +401,124 @@ input {
   justify-content: space-between;
 }
 
+.spells-summary {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.spells-summary__stat strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 1.2rem;
+}
+
+.spells-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.spells-settings {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.sheet-grid--slots {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 8px;
+}
+
+.spell-level-block {
+  display: grid;
+  gap: 10px;
+}
+
+.spell-level-block__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.spell-meta-head {
+  display: none;
+}
+
+.spell-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.spell-card__top {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 72px;
+}
+
+.spell-card__meta {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.spell-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.slot-pips {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.slot-pips__label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.slot-pips__row {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.slot-pip {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: #fff;
+  cursor: pointer;
+}
+
+.slot-pip.is-filled {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.slot-pip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .ability-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -737,6 +855,14 @@ input {
 
   .inventory-card__grid {
     grid-template-columns: 1.6fr 0.6fr 0.7fr;
+  }
+
+  .sheet-grid--slots {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .spell-card__meta {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 

@@ -16,12 +16,18 @@ import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '.
 import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
 import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
+import { SpellsPanel } from './SpellsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import {
   inventoryToSheet,
   readInventory,
   type InventoryState,
 } from './inventory'
+import {
+  readSpells,
+  spellsToSheet,
+  type SpellsState,
+} from './spells'
 import {
   readTextBlocks,
   textBlocksToSheet,
@@ -64,6 +70,7 @@ type Draft = {
   inspiration: boolean
   weapons: WeaponAttack[]
   inventory: InventoryState
+  spells: SpellsState
   textBlocks: TextBlock[]
 }
 
@@ -151,6 +158,7 @@ function buildDraft(character: CharacterDetail): Draft {
     inspiration: Boolean(combat.inspiration),
     weapons: readWeapons(sheet),
     inventory: readInventory(sheet),
+    spells: readSpells(sheet),
     textBlocks: readTextBlocks(sheet),
   }
 }
@@ -291,6 +299,7 @@ export function MinimalSheetEditor({
       sheet.combat = combat
       sheet.weapons = draft.weapons
       Object.assign(sheet, inventoryToSheet(draft.inventory))
+      Object.assign(sheet, spellsToSheet(draft.spells))
       Object.assign(sheet, textBlocksToSheet(draft.textBlocks))
 
       const updated = await updateCharacter(baseCharacter.id, {
@@ -448,6 +457,14 @@ export function MinimalSheetEditor({
         inventory={draft.inventory}
         strengthScore={draft.abilities.str}
         onChange={(inventory) => setDraft((prev) => ({ ...prev, inventory }))}
+      />
+
+      <SpellsPanel
+        edition={baseCharacter.rules_edition as RulesEdition}
+        spells={draft.spells}
+        abilities={draft.abilities}
+        proficiencyBonus={proficiencyBonus}
+        onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
       />
 
       <Panel title="Спасброски">

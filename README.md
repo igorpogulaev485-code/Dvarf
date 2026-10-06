@@ -33,13 +33,15 @@
 - Text blocks: rename (`customLabel`), hide, add/delete custom notes; dual-write legacy LSS-shaped fields
 - Text blocks reorder: ↑↓ + `text_blocks_order` в sheet JSON
 - Inventory: coins, items (qty/weight/equipped), auto weight total + STR×15 capacity; gear seed with `weight_lb`
+- Spells S1: casting ability, DC/attack, slot pips, known list + filter, sample spell seed; prepare-modal / cast / grimoire later
 
 ## Очередь
 
 Ближайшее:
 
-1. Spells на цифровом листе (slots + known/prepared + seed)
-2. Дожать play-контур листа (условия, ресурсы rest reset и т.п. по IA-референсу)
+1. Spells S2 — подготовка (prepared vs available)
+2. Spells S3 — каст / трата слота; S4 — гримуар/библиотека
+3. Дожать play-контур листа (условия, ресурсы rest reset и т.п. по IA-референсу)
 
 Дальше по верхнему уровню (не начинать раньше времени):
 
