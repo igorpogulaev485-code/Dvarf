@@ -13,6 +13,7 @@ import {
   type SheetSyncMessage,
 } from '../../shared/sync/characterSheetChannel'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
+import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
@@ -46,6 +47,29 @@ type Draft = {
   hpMax: number | null
   ac: number | null
   speed: number | null
+  weapons: WeaponAttack[]
+}
+
+function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
+  const raw = sheet.weapons
+  if (!Array.isArray(raw)) {
+    return []
+  }
+  return raw.map((item, index) => {
+    const row = asRecord(item)
+    const ability = ABILITY_KEYS.includes(row.ability as AbilityKey)
+      ? (row.ability as AbilityKey)
+      : 'str'
+    return {
+      id: typeof row.id === 'string' ? row.id : `weapon-${index}`,
+      name: typeof row.name === 'string' ? row.name : '',
+      catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+      ability,
+      is_proficient: Boolean(row.is_proficient),
+      damage: typeof row.damage === 'string' ? row.damage : '',
+      damage_type: typeof row.damage_type === 'string' ? row.damage_type : '',
+    }
+  })
 }
 
 function buildDraft(character: CharacterDetail): Draft {
@@ -99,6 +123,7 @@ function buildDraft(character: CharacterDetail): Draft {
     hpMax: character.hp_max ?? readNullableNumber(combat.hp_max),
     ac: readNullableNumber(combat.ac),
     speed: readNullableNumber(combat.speed),
+    weapons: readWeapons(sheet),
   }
 }
 
@@ -234,6 +259,7 @@ export function MinimalSheetEditor({
       combat.ac = draft.ac
       combat.speed = draft.speed
       sheet.combat = combat
+      sheet.weapons = draft.weapons
 
       const updated = await updateCharacter(baseCharacter.id, {
         sheet_version: sheetVersion,
@@ -394,6 +420,14 @@ export function MinimalSheetEditor({
           </Field>
         </div>
       </Panel>
+
+      <AttacksPanel
+        edition={baseCharacter.rules_edition as RulesEdition}
+        weapons={draft.weapons}
+        abilities={draft.abilities}
+        proficiencyBonus={proficiencyBonus}
+        onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
+      />
 
       <Panel title="Спасброски">
         <div className="chip-row">
