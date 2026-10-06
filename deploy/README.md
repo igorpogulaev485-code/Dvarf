@@ -11,9 +11,18 @@
 3. Never commit or overwrite server `/opt/dvarf/.env`.
 4. After deploy: check `/health`, report URL + what shipped.
 
-## Agent deploy (from workstation / Cloud Agent)
+## Shared SSH key for all Cloud Agents
 
-Requires SSH key that is authorized on the VPS (e.g. `~/.ssh/dvarf_timeweb`).
+Cloud Agent VMs do **not** share `~/.ssh` between runs. Use **one** keypair:
+
+1. Public key — permanently on the Timeweb VPS (authorized_keys).
+2. Private key — Cursor Environment Secret `DVARF_SSH_PRIVATE_KEY` (full OpenSSH PEM).
+
+`deploy/sync-and-up.sh` writes the secret to `~/.ssh/dvarf_timeweb` if the file is missing.
+
+Do **not** commit the private key to git.
+
+## Agent deploy
 
 ```bash
 ./deploy/sync-and-up.sh
@@ -24,7 +33,7 @@ What it does:
 1. Packs the repo (no `.git`, no `node_modules`, no local `.env`)
 2. Extracts into `/opt/dvarf` while keeping the existing server `.env`
 3. Runs `docker compose -f docker-compose.prod.yml --env-file .env up -d --build`
-4. Curls `http://127.0.0.1/health` on the server
+4. Curls `http://127.0.0.1/health` on the server (retries briefly)
 
 Override host/key if needed:
 

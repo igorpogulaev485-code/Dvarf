@@ -6,8 +6,18 @@ HOST="${DVARF_HOST:-201.34.132.252}"
 KEY="${DVARF_SSH_KEY:-$HOME/.ssh/dvarf_timeweb}"
 REMOTE_DIR="${DVARF_REMOTE_DIR:-/opt/dvarf}"
 
+# One shared key for all Cloud Agents: put private key in Cursor secret
+# DVARF_SSH_PRIVATE_KEY (full PEM). Matching pubkey stays on the VPS.
+if [[ ! -f "$KEY" && -n "${DVARF_SSH_PRIVATE_KEY:-}" ]]; then
+  mkdir -p "$(dirname "$KEY")"
+  chmod 700 "$(dirname "$KEY")"
+  printf '%s\n' "$DVARF_SSH_PRIVATE_KEY" > "$KEY"
+  chmod 600 "$KEY"
+fi
+
 if [[ ! -f "$KEY" ]]; then
   echo "SSH key not found: $KEY" >&2
+  echo "Set Cursor secret DVARF_SSH_PRIVATE_KEY or file DVARF_SSH_KEY." >&2
   exit 1
 fi
 
@@ -45,8 +55,16 @@ if [[ -f /tmp/dvarf.env.bak ]]; then
 fi
 cd ${REMOTE_DIR}
 docker compose -f docker-compose.prod.yml --env-file .env up -d --build
-curl -fsS http://127.0.0.1/health
-echo
+# nginx/api may need a moment after recreate
+for i in 1 2 3 4 5 6 7 8 9 10; do
+  if curl -fsS http://127.0.0.1/health; then
+    echo
+    exit 0
+  fi
+  sleep 2
+done
+echo "health check failed" >&2
+exit 1
 EOF
 
 echo "Deployed: http://${HOST}/"
