@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/restore-sheet-classic-acbe
+cursor/prod-lineage-rules-acbe
 ```
 
 URL: http://201.34.132.252/
@@ -38,7 +38,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-acbe origin/cursor/restore-sheet-classic-acbe
+git checkout -b cursor/<descriptive>-acbe origin/cursor/prod-lineage-rules-acbe
 # если tip уже другой — подставь актуальный из AGENTS.md / этого skill
 ```
 
@@ -46,7 +46,7 @@ git checkout -b cursor/<descriptive>-acbe origin/cursor/restore-sheet-classic-ac
 
 ```bash
 git fetch origin
-git merge origin/cursor/restore-sheet-classic-acbe
+git merge origin/cursor/prod-lineage-rules-acbe
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```

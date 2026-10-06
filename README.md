@@ -47,7 +47,7 @@ Skills: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod
 
 - Итерации: **короткий план → ok от Игоря → код / commit / push / PR**. Без ok код не писать.
 - Ветки: `cursor/<name>-acbe` (от **prod tip**, не от голого `main`/старой развилки). В `main` только через PR.
-- **Prod tip сейчас:** `cursor/restore-sheet-classic-acbe`. Деплой только с дерева, где tip уже влит.
+- **Prod tip сейчас:** `cursor/prod-lineage-rules-acbe`. Деплой только с дерева, где tip уже влит.
 - Деплой на Timeweb **только** по явной просьбе («залей на сервер»). `./deploy/sync-and-up.sh` **затирает весь** `/opt/dvarf` кроме `.env` — тонкая ветка убивает чужие фичи. Перед деплоем: `./deploy/preflight-prod.sh`. См. [`deploy/README.md`](deploy/README.md).
 - После деплоя: проверить маркеры (лобби, кабинет, лист, classic) на живом сервере; в `PRODUCT_STATUS` писать «на проде» только по факту.
 - Параллельные агенты: PR можно параллельно; **на сервер — один интегрированный деплой от tip**. Не деплоить каждый свою развилку.

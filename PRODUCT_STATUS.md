@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/restore-sheet-classic-acbe`  
+**Prod tip (ветка линии прода):** `cursor/prod-lineage-rules-acbe`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -236,7 +236,7 @@
 | P6 раса → эффекты | Выбор из справочника подставляет скорость/ТЗ/языки/traits | ASI пока вручную |
 | Classic 2014 | Ссылка с карточки и детальной страницы | Печатный/классический вид того же листа |
 
-На проде: **да** (после этого деплоя) · ветка `cursor/restore-sheet-classic-acbe` · поверх `restore-cabinet-acbe`
+На проде: **да** · восстановлено веткой `cursor/restore-sheet-classic-acbe` · поверх `restore-cabinet-acbe`
 
 ---
 
@@ -251,4 +251,4 @@
 | 2026-10-06 | `cursor/restore-avatar-upload-acbe` | Восстановлены загрузка аватара, `/uploads/`, иконка в шапке |
 | 2026-10-06 | `cursor/restore-cabinet-acbe` | Восстановлен кабинет: SMTP, verify, сессии, смена пароля/email, danger zone |
 | 2026-10-06 | `cursor/restore-sheet-classic-acbe` | Восстановлены лист P1–P6 + classic поверх lobby/cabinet; снято ложное «только в ветках» |
-| 2026-10-06 | `cursor/prod-lineage-rules-acbe` | Анти-overwrite: AGENTS.md, skills, preflight, tip=`restore-sheet-classic-acbe` |
+| 2026-10-06 | `cursor/prod-lineage-rules-acbe` | Анти-overwrite: AGENTS.md, skills, preflight; tip сдвинут на эту ветку |
