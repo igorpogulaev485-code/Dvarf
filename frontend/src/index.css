@@ -498,6 +498,35 @@ input {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.attack-card__meta {
+  display: flex;
+  gap: 8px;
+}
+
+.attack-source {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+}
+
+.attack-source--weapon {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 25%, white);
+}
+
+.attack-source--artifact {
+  background: #fff1e8;
+  color: #9a3412;
+  border-color: #fdba74;
+}
+
 .attack-card__grid {
   display: grid;
   gap: 10px;

@@ -60,10 +60,17 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
     const ability = ABILITY_KEYS.includes(row.ability as AbilityKey)
       ? (row.ability as AbilityKey)
       : 'str'
+    const sourceKind =
+      row.source_kind === 'weapon' || row.source_kind === 'artifact' || row.source_kind === 'custom'
+        ? row.source_kind
+        : row.catalog_id
+          ? 'weapon'
+          : 'custom'
     return {
       id: typeof row.id === 'string' ? row.id : `weapon-${index}`,
       name: typeof row.name === 'string' ? row.name : '',
       catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+      source_kind: sourceKind,
       ability,
       is_proficient: Boolean(row.is_proficient),
       damage: typeof row.damage === 'string' ? row.damage : '',

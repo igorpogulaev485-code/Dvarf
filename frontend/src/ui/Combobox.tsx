@@ -51,8 +51,11 @@ export function Combobox({
   }, [options])
 
   function commitOption(option: ComboboxOption) {
-    onChange(option.label)
-    onSelectOption?.(option)
+    if (onSelectOption) {
+      onSelectOption(option)
+    } else {
+      onChange(option.label)
+    }
     setOpen(false)
   }
 
