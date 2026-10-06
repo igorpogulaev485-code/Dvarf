@@ -33,6 +33,10 @@ class User(Base):
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -53,6 +57,51 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    email_change_tokens: Mapped[list[EmailChangeToken]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    email_verification_tokens: Mapped[list[EmailVerificationToken]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    auth_sessions: Mapped[list[AuthSession]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+
+class AuthSession(Base):
+    __tablename__ = "auth_sessions"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    refresh_token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    user_agent: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    ip_address: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    user: Mapped[User] = relationship(back_populates="auth_sessions")
 
 
 class PasswordResetToken(Base):
@@ -79,6 +128,59 @@ class PasswordResetToken(Base):
     )
 
     user: Mapped[User] = relationship(back_populates="password_reset_tokens")
+
+
+class EmailVerificationToken(Base):
+    __tablename__ = "email_verification_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    user: Mapped[User] = relationship(back_populates="email_verification_tokens")
+
+
+class EmailChangeToken(Base):
+    __tablename__ = "email_change_tokens"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    new_email: Mapped[str] = mapped_column(String(320), nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    user: Mapped[User] = relationship(back_populates="email_change_tokens")
 
 
 class UserIdentity(Base):

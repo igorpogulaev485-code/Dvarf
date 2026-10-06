@@ -2,6 +2,7 @@ import type { User } from '../../shared/api/auth'
 
 type ProfileAvatarProps = {
   user: Pick<User, 'avatar_url' | 'display_name' | 'email' | 'full_name'>
+  size?: 'sm' | 'md'
 }
 
 function initialsFrom(user: ProfileAvatarProps['user']): string {
@@ -13,22 +14,27 @@ function initialsFrom(user: ProfileAvatarProps['user']): string {
   return source.slice(0, 2).toUpperCase()
 }
 
-export function ProfileAvatar({ user }: ProfileAvatarProps) {
+export function ProfileAvatar({ user, size = 'md' }: ProfileAvatarProps) {
+  const sizeClass = size === 'sm' ? 'profile-avatar--sm' : ''
+
   if (user.avatar_url) {
     return (
       <img
-        className="profile-avatar profile-avatar--image"
+        className={`profile-avatar profile-avatar--image ${sizeClass}`.trim()}
         src={user.avatar_url}
         alt=""
-        width={88}
-        height={88}
+        width={size === 'sm' ? 40 : 88}
+        height={size === 'sm' ? 40 : 88}
         referrerPolicy="no-referrer"
       />
     )
   }
 
   return (
-    <div className="profile-avatar profile-avatar--placeholder" aria-hidden>
+    <div
+      className={`profile-avatar profile-avatar--placeholder ${sizeClass}`.trim()}
+      aria-hidden
+    >
       {initialsFrom(user)}
     </div>
   )

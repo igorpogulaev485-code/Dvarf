@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { resetPassword } from '../../shared/api/auth'
 import { ApiRequestError } from '../../shared/api/client'
-import { Button, Field, Input, Stack, Text } from '../../ui'
+import { Button, Field, PasswordInput, Stack, Text } from '../../ui'
 
 type ResetPasswordFormProps = {
   token: string
@@ -51,9 +51,8 @@ export function ResetPasswordForm({ token, onSuccess, onBackToLogin }: ResetPass
       <Stack gap={14}>
         <Text tone="muted">Придумайте новый пароль для входа в Dvarf.</Text>
         <Field label="Новый пароль" htmlFor="reset-password" hint="Минимум 8 символов">
-          <Input
+          <PasswordInput
             id="reset-password"
-            type="password"
             autoComplete="new-password"
             required
             minLength={8}

@@ -40,6 +40,7 @@ class UserResponse(BaseModel):
     full_name: str | None = None
     phone: str | None = None
     avatar_url: str | None = None
+    email_verified_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
     providers: list[str] = Field(default_factory=list)

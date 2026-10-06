@@ -1,5 +1,6 @@
-/** 2014 PHB spell-slot / prepare tables — digital sheet only, no multiclass. */
+/** 2014 PHB spell-slot / prepare tables — digital sheet (incl. multiclass caster level). */
 
+import type { ClassLevelEntry } from './classLevels'
 import {
   clampPactSlots,
   clampSlot,
@@ -148,11 +149,39 @@ export function prepareLimitFromClass(input: {
   return Math.max(1, Math.floor(input.abilityMod) + classPart)
 }
 
+/** PHB multiclass spellcaster level (warlock pact is separate). */
+export function multiclassCasterLevel(classes: ClassLevelEntry[]): number {
+  let total = 0
+  for (const row of classes) {
+    const def = classCasterDef(resolveClassCasterSlug(row.name))
+    if (!def) continue
+    const lv = Math.max(0, Math.floor(row.level))
+    if (def.progression === 'full') total += lv
+    else if (def.progression === 'half') total += Math.floor(lv / 2)
+  }
+  return Math.min(20, Math.max(0, total))
+}
+
+export function warlockLevels(classes: ClassLevelEntry[]): number {
+  return classes.reduce((acc, row) => {
+    const slug = resolveClassCasterSlug(row.name)
+    return slug === 'warlock' ? acc + Math.max(0, Math.floor(row.level)) : acc
+  }, 0)
+}
+
 export function suggestSpellcasting(input: {
   className: string
   level: number
   abilityModFor: (ability: SpellcastingAbility) => number
+  classes?: ClassLevelEntry[]
 }): SpellcastingSuggestion | null {
+  if (input.classes && input.classes.length > 0) {
+    return suggestSpellcastingFromClasses({
+      classes: input.classes,
+      abilityModFor: input.abilityModFor,
+    })
+  }
+
   const slug = resolveClassCasterSlug(input.className)
   const def = classCasterDef(slug)
   if (!def) return null
@@ -181,6 +210,64 @@ export function suggestSpellcasting(input: {
     labelRu: def.labelRu,
     progression: def.progression,
     casting_ability: def.ability,
+    max_prepared,
+    slots,
+    pact_slots,
+  }
+}
+
+export function suggestSpellcastingFromClasses(input: {
+  classes: ClassLevelEntry[]
+  abilityModFor: (ability: SpellcastingAbility) => number
+}): SpellcastingSuggestion | null {
+  const classes = input.classes.filter((row) => row.name.trim() && row.level > 0)
+  if (classes.length === 0) return null
+
+  const casterLvl = multiclassCasterLevel(classes)
+  const warlockLvl = warlockLevels(classes)
+  const slots =
+    casterLvl > 0 ? slotsFromRow(fullCasterRow(casterLvl)) : emptySlots()
+  const pact_slots = warlockLvl > 0 ? warlockPactForLevel(warlockLvl) : null
+
+  let casting_ability: SpellcastingAbility | null = null
+  let max_prepared: number | null = null
+  let labelRu = classes.map((row) => row.name.trim()).join(' / ')
+  let slug = resolveClassCasterSlug(classes[0]?.name ?? '') ?? 'multiclass'
+  let progression: CasterProgression = 'none'
+
+  if (casterLvl > 0) progression = 'full'
+  else if (warlockLvl > 0) progression = 'pact'
+
+  for (const row of classes) {
+    const def = classCasterDef(resolveClassCasterSlug(row.name))
+    if (!def?.ability) continue
+    if (!casting_ability) {
+      casting_ability = def.ability
+      slug = def.slug
+      labelRu = def.labelRu
+    }
+    if (def.prepare) {
+      const abilityMod = input.abilityModFor(def.ability)
+      const prep = prepareLimitFromClass({
+        prepare: def.prepare,
+        level: row.level,
+        abilityMod,
+      })
+      if (prep != null) {
+        max_prepared = (max_prepared ?? 0) + prep
+      }
+    }
+  }
+
+  if (casterLvl <= 0 && warlockLvl <= 0 && !classes.some((row) => classCasterDef(resolveClassCasterSlug(row.name)))) {
+    return null
+  }
+
+  return {
+    slug,
+    labelRu: classes.length > 1 ? `Мультикласс (${casterLvl || '—'}/${warlockLvl || '—'})` : labelRu,
+    progression,
+    casting_ability,
     max_prepared,
     slots,
     pact_slots,
