@@ -11,6 +11,7 @@ type DialogProps = {
   onPrimary: () => void
   onSecondary?: () => void
   busy?: boolean
+  size?: 'default' | 'wide'
 }
 
 export function Dialog({
@@ -22,6 +23,7 @@ export function Dialog({
   onPrimary,
   onSecondary,
   busy = false,
+  size = 'default',
 }: DialogProps) {
   if (!open) {
     return null
@@ -29,7 +31,12 @@ export function Dialog({
 
   return (
     <div className="ui-dialog-backdrop" role="presentation">
-      <div className="ui-dialog" role="dialog" aria-modal="true" aria-labelledby="ui-dialog-title">
+      <div
+        className={`ui-dialog${size === 'wide' ? ' ui-dialog--wide' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ui-dialog-title"
+      >
         <Stack gap={14}>
           <h2 id="ui-dialog-title" className="ui-text">
             {title}

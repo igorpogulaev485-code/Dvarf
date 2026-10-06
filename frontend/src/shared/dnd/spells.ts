@@ -43,3 +43,8 @@ export function levelLabel(level: number): string {
   if (level <= 0) return 'Заговоры'
   return `${level}-й уровень`
 }
+
+/** Cantrips are always available; leveled spells need prepare. */
+export function countsTowardPrepareLimit(level: number): boolean {
+  return level > 0
+}

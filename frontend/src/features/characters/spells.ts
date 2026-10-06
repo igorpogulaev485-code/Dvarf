@@ -1,10 +1,11 @@
 import {
   clampSlot,
+  countsTowardPrepareLimit,
   isSpellcastingAbility,
   type SpellSlotState,
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
-import { asRecord, readNumber } from './sheetTypes'
+import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
 export type SheetSpell = {
   id: string
@@ -22,6 +23,8 @@ export type SheetSpell = {
 
 export type SpellsState = {
   casting_ability: SpellcastingAbility | null
+  /** Null = no hard prepare cap (set manually until class tables exist). */
+  max_prepared: number | null
   slots: Record<string, SpellSlotState>
   pact_slots: { max: number; used: number; level: number } | null
   known: SheetSpell[]
@@ -111,6 +114,7 @@ export function readSpells(sheet: Record<string, unknown>): SpellsState {
     casting_ability: isSpellcastingAbility(spells.casting_ability)
       ? spells.casting_ability
       : null,
+    max_prepared: readNullableNumber(spells.max_prepared),
     slots,
     pact_slots,
     known: knownRaw.map((item, index) => readSpell(item, index)),
@@ -128,6 +132,7 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
   return {
     spells: {
       casting_ability: state.casting_ability,
+      max_prepared: state.max_prepared,
       slots,
       pact_slots: state.pact_slots,
       known: state.known.map((spell) => ({
@@ -135,7 +140,7 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         name: spell.name,
         catalog_id: spell.catalog_id,
         level: spell.level,
-        prepared: spell.prepared,
+        prepared: spell.level <= 0 ? true : spell.prepared,
         notes: spell.notes,
         casting_time: spell.casting_time,
         range: spell.range,
@@ -143,7 +148,9 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         damage: spell.damage,
         concentration: spell.concentration,
       })),
-      prepared: state.known.filter((spell) => spell.prepared).map((spell) => spell.id),
+      prepared: state.known
+        .filter((spell) => spell.level <= 0 || spell.prepared)
+        .map((spell) => spell.id),
     },
   }
 }
@@ -175,4 +182,38 @@ export function groupSpellsByLevel(spells: SheetSpell[]): Array<{ level: number;
   return [...map.entries()]
     .sort((a, b) => a[0] - b[0])
     .map(([level, grouped]) => ({ level, spells: grouped }))
+}
+
+export function countPreparedLeveled(known: SheetSpell[]): number {
+  return known.filter((spell) => countsTowardPrepareLimit(spell.level) && spell.prepared).length
+}
+
+/** Combat list: cantrips + prepared leveled spells. */
+export function isReadyInCombat(spell: SheetSpell): boolean {
+  return spell.level <= 0 || spell.prepared
+}
+
+export function canPrepareSpell(
+  known: SheetSpell[],
+  spell: SheetSpell,
+  maxPrepared: number | null,
+): boolean {
+  if (!countsTowardPrepareLimit(spell.level)) return true
+  if (spell.prepared) return true
+  if (maxPrepared == null) return true
+  return countPreparedLeveled(known) < maxPrepared
+}
+
+export function setSpellPrepared(
+  known: SheetSpell[],
+  spellId: string,
+  prepared: boolean,
+  maxPrepared: number | null,
+): SheetSpell[] {
+  return known.map((spell) => {
+    if (spell.id !== spellId) return spell
+    if (spell.level <= 0) return { ...spell, prepared: true }
+    if (prepared && !canPrepareSpell(known, spell, maxPrepared)) return spell
+    return { ...spell, prepared }
+  })
 }

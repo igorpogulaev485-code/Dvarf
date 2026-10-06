@@ -630,6 +630,52 @@ input {
   border: 1px solid var(--line);
   background: #fffdf9;
   box-shadow: 0 18px 40px rgba(28, 25, 23, 0.22);
+  max-height: min(86vh, 900px);
+  overflow: auto;
+}
+
+.ui-dialog--wide {
+  width: min(640px, 100%);
+}
+
+.prepare-section {
+  display: grid;
+  gap: 8px;
+}
+
+.prepare-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.prepare-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.prepare-row__meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.prepare-row__badge {
+  display: inline-flex;
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .ui-dialog__actions {

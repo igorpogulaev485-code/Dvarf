@@ -12,10 +12,14 @@ import {
 } from '../../shared/dnd/spells'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
+import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import {
+  countPreparedLeveled,
   createSheetSpell,
   groupSpellsByLevel,
+  isReadyInCombat,
   readCatalogSpellFields,
+  setSpellPrepared,
   type SheetSpell,
   type SpellsState,
 } from './spells'
@@ -36,27 +40,35 @@ export function SpellsPanel({
   onChange,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [prepareOpen, setPrepareOpen] = useState(false)
   const [filter, setFilter] = useState<'all' | number>('all')
+  const [showAllKnown, setShowAllKnown] = useState(false)
 
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
   const dc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
   const attack = abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : null
+  const preparedCount = countPreparedLeveled(spells.known)
+
+  const combatPool = useMemo(
+    () => (showAllKnown ? spells.known : spells.known.filter(isReadyInCombat)),
+    [showAllKnown, spells.known],
+  )
 
   const filterOptions = useMemo(() => {
     const levels = new Set<number>([0])
-    for (const spell of spells.known) levels.add(spell.level)
+    for (const spell of combatPool) levels.add(spell.level)
     for (let level = 1; level <= 9; level += 1) {
       if ((spells.slots[String(level)]?.max ?? 0) > 0) levels.add(level)
     }
     return [...levels].sort((a, b) => a - b)
-  }, [spells.known, spells.slots])
+  }, [combatPool, spells.slots])
 
   const visibleSpells = useMemo(() => {
     const list =
-      filter === 'all' ? spells.known : spells.known.filter((spell) => spell.level === filter)
+      filter === 'all' ? combatPool : combatPool.filter((spell) => spell.level === filter)
     return groupSpellsByLevel(list)
-  }, [filter, spells.known])
+  }, [filter, combatPool])
 
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })
@@ -64,7 +76,12 @@ export function SpellsPanel({
 
   function updateSpell(id: string, next: Partial<SheetSpell>) {
     patch({
-      known: spells.known.map((spell) => (spell.id === id ? { ...spell, ...next } : spell)),
+      known: spells.known.map((spell) => {
+        if (spell.id !== id) return spell
+        const merged = { ...spell, ...next }
+        if (merged.level <= 0) merged.prepared = true
+        return merged
+      }),
     })
   }
 
@@ -109,11 +126,14 @@ export function SpellsPanel({
     })
   }
 
+  const prepareLimitLabel =
+    spells.max_prepared == null ? String(preparedCount) : `${preparedCount}/${spells.max_prepared}`
+
   return (
     <Panel title="Заклинания">
       <Stack gap={14}>
         <Text tone="muted">
-          S1: DC/атака, слоты-пипсы, список на листе. Подготовка из гримуара и кнопка «каст» — следующими
+          Боевой список = заговоры + подготовленные. Полный гримуар и кнопка «каст» — следующими
           слайсами.
         </Text>
 
@@ -127,16 +147,17 @@ export function SpellsPanel({
             <strong>{attack == null ? '—' : formatModifier(attack)}</strong>
           </div>
           <div className="spells-summary__stat">
-            <Text tone="muted">Характеристика</Text>
-            <strong>
-              {abilityKey ? SPELLCASTING_ABILITY_LABELS[abilityKey] : 'не задана'}
-            </strong>
+            <Text tone="muted">Подготовлено</Text>
+            <strong>{prepareLimitLabel}</strong>
           </div>
         </div>
 
         <div className="spells-toolbar">
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
+          </Button>
+          <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
+            Подготовить заклинания
           </Button>
         </div>
 
@@ -158,6 +179,18 @@ export function SpellsPanel({
                   ))}
                 </div>
               </div>
+              <Field
+                label="Лимит подготовки"
+                hint="Пусто = без лимита. Позже подтянем от класса/уровня."
+              >
+                <NumberInput
+                  min={0}
+                  max={50}
+                  emptyValue={null}
+                  value={spells.max_prepared}
+                  onValueChange={(max_prepared) => patch({ max_prepared })}
+                />
+              </Field>
               <div>
                 <Text>Количество ячеек</Text>
                 <div className="sheet-grid sheet-grid--slots">
@@ -185,10 +218,24 @@ export function SpellsPanel({
         <div className="chip-row">
           <button
             type="button"
+            className={`sheet-chip${!showAllKnown ? ' is-on' : ''}`}
+            onClick={() => setShowAllKnown(false)}
+          >
+            К бою
+          </button>
+          <button
+            type="button"
+            className={`sheet-chip${showAllKnown ? ' is-on' : ''}`}
+            onClick={() => setShowAllKnown(true)}
+          >
+            Все известные
+          </button>
+          <button
+            type="button"
             className={`sheet-chip${filter === 'all' ? ' is-on' : ''}`}
             onClick={() => setFilter('all')}
           >
-            Все
+            Ур. все
           </button>
           {filterOptions.map((level) => (
             <button
@@ -203,7 +250,11 @@ export function SpellsPanel({
         </div>
 
         {visibleSpells.length === 0 ? (
-          <Text tone="muted">Пока нет заклинаний в списке — добавь ниже.</Text>
+          <Text tone="muted">
+            {spells.known.length === 0
+              ? 'Пока нет заклинаний — добавь ниже или подготовь из списка.'
+              : 'В боевом виде пусто — нажми «Подготовить заклинания» или «Все известные».'}
+          </Text>
         ) : (
           visibleSpells.map((group) => {
             const slot = group.level > 0 ? spells.slots[String(group.level)] : null
@@ -219,12 +270,6 @@ export function SpellsPanel({
                       onChange={(used) => setSlotUsed(group.level, used)}
                     />
                   ) : null}
-                </div>
-                <div className="spell-meta-head" aria-hidden>
-                  <span>Время</span>
-                  <span>Дист.</span>
-                  <span>Атака/спас</span>
-                  <span>Эффект</span>
                 </div>
                 <Stack gap={10}>
                   {group.spells.map((spell) => (
@@ -290,13 +335,26 @@ export function SpellsPanel({
                         </Field>
                       </div>
                       <div className="spell-card__footer">
-                        <button
-                          type="button"
-                          className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
-                          onClick={() => updateSpell(spell.id, { prepared: !spell.prepared })}
-                        >
-                          {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
-                        </button>
+                        {spell.level > 0 ? (
+                          <button
+                            type="button"
+                            className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
+                            onClick={() =>
+                              patch({
+                                known: setSpellPrepared(
+                                  spells.known,
+                                  spell.id,
+                                  !spell.prepared,
+                                  spells.max_prepared,
+                                ),
+                              })
+                            }
+                          >
+                            {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
+                          </button>
+                        ) : (
+                          <span className="sheet-chip is-on">Заговор</span>
+                        )}
                         <button
                           type="button"
                           className={`sheet-chip${spell.concentration ? ' is-on' : ''}`}
@@ -334,6 +392,13 @@ export function SpellsPanel({
           </Button>
         </div>
       </Stack>
+
+      <PrepareSpellsDialog
+        open={prepareOpen}
+        spells={spells}
+        onChange={onChange}
+        onClose={() => setPrepareOpen(false)}
+      />
     </Panel>
   )
 }
