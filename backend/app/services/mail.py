@@ -36,12 +36,12 @@ def send_email(*, to: str, subject: str, text_body: str) -> None:
                 settings.smtp_host,
                 settings.smtp_port,
                 context=context,
-                timeout=30,
+                timeout=12,
             ) as smtp:
                 smtp.login(settings.smtp_user, settings.smtp_password)
                 smtp.send_message(message)
         else:
-            with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=30) as smtp:
+            with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=12) as smtp:
                 smtp.ehlo()
                 smtp.starttls(context=ssl.create_default_context())
                 smtp.ehlo()
