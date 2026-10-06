@@ -36,6 +36,255 @@ export type ClassGrantDef = {
   multiclass: ClassProficiencyPackage
 }
 
+export type StartingGearItem = {
+  name: string
+  qty?: number
+  armor_kind?: 'none' | 'light' | 'medium' | 'heavy' | 'shield'
+  base_ac?: number | null
+  weight_lb?: number | null
+  notes?: string
+}
+
+export type StartingEquipmentPackage = {
+  id: string
+  labelRu: string
+  /** Short list shown under the radio. */
+  summary: string
+  items: StartingGearItem[]
+  coinsGp?: number
+}
+
+function gear(
+  id: string,
+  labelRu: string,
+  summary: string,
+  items: StartingGearItem[],
+  coinsGp?: number,
+): StartingEquipmentPackage {
+  return { id, labelRu, summary, items, coinsGp }
+}
+
+function item(
+  name: string,
+  extra?: Partial<StartingGearItem>,
+): StartingGearItem {
+  return { name, qty: 1, armor_kind: 'none', ...extra }
+}
+
+/** Simplified PHB 2014 starting equipment forks (RU labels). */
+export const CLASS_STARTING_EQUIPMENT: Record<string, StartingEquipmentPackage[]> = {
+  barbarian: [
+    gear('a', 'Вариант A', 'Секира + 2 ручных топора + набор исследователя + 4 метательных копья', [
+      item('Секира'),
+      item('Ручной топор', { qty: 2 }),
+      item('Набор исследователя'),
+      item('Метательное копьё', { qty: 4 }),
+    ]),
+    gear('b', 'Вариант B', 'Любое воинское оружие ближнего боя + простой щит + набор исследователя + 4 копья', [
+      item('Длинный меч'),
+      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
+      item('Набор исследователя'),
+      item('Метательное копьё', { qty: 4 }),
+    ]),
+    gear('gold', 'Золото', '2к4×10 зм вместо снаряжения (на старте: 50 зм)', [], 50),
+  ],
+  bard: [
+    gear('a', 'Вариант A', 'Рапира + дипломатский набор + лютня + кожаный доспех + кинжал', [
+      item('Рапира'),
+      item('Набор дипломата'),
+      item('Лютня'),
+      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
+      item('Кинжал'),
+    ]),
+    gear('b', 'Вариант B', 'Длинный меч + артистский набор + лютня + кожаный + кинжал', [
+      item('Длинный меч'),
+      item('Набор артиста'),
+      item('Лютня'),
+      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
+      item('Кинжал'),
+    ]),
+    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
+  ],
+  cleric: [
+    gear('a', 'Вариант A', 'Булава + чешуйчатый + лёгкий арбалет + священный символ + набор жреца', [
+      item('Булава'),
+      item('Чешуйчатый доспех', { armor_kind: 'medium', base_ac: 14, weight_lb: 45 }),
+      item('Лёгкий арбалет'),
+      item('Болты арбалета', { qty: 20 }),
+      item('Священный символ'),
+      item('Набор жреца'),
+    ]),
+    gear('b', 'Вариант B', 'Боевой молот + кольчуга + щит + священный символ + набор жреца', [
+      item('Боевой молот'),
+      item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 }),
+      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
+      item('Священный символ'),
+      item('Набор жреца'),
+    ]),
+    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
+  ],
+  druid: [
+    gear('a', 'Вариант A', 'Щит + ятаган + кожаный + набор исследователя + фокус друида', [
+      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
+      item('Ятаган'),
+      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
+      item('Набор исследователя'),
+      item('Фокус друида'),
+    ]),
+    gear('b', 'Вариант B', 'Деревянный щит + простая дубинка + кожаный + набор травника + фокус', [
+      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6, notes: 'деревянный' }),
+      item('Дубинка'),
+      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
+      item('Набор травника'),
+      item('Фокус друида'),
+    ]),
+    gear('gold', 'Золото', '2к4×10 зм (на старте: 50 зм)', [], 50),
+  ],
+  fighter: [
+    gear('a', 'Вариант A', 'Кольчуга + длинный меч + щит + лёгкий арбалет + набор исследователя', [
+      item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 }),
+      item('Длинный меч'),
+      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
+      item('Лёгкий арбалет'),
+      item('Болты арбалета', { qty: 20 }),
+      item('Набор исследователя'),
+    ]),
+    gear('b', 'Вариант B', 'Кожаный + длинный лук + два боевых меча + набор исследователя', [
+      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
+      item('Длинный лук'),
+      item('Стрелы', { qty: 20 }),
+      item('Длинный меч', { qty: 2 }),
+      item('Набор исследователя'),
+    ]),
+    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
+  ],
+  monk: [
+    gear('a', 'Вариант A', 'Короткий меч + набор исследователя + 10 дротиков', [
+      item('Короткий меч'),
+      item('Набор исследователя'),
+      item('Дротик', { qty: 10 }),
+    ]),
+    gear('b', 'Вариант B', 'Простая дубинка + набор исследователя + 10 дротиков', [
+      item('Дубинка'),
+      item('Набор исследователя'),
+      item('Дротик', { qty: 10 }),
+    ]),
+    gear('gold', 'Золото', '5к4 зм (на старте: 12 зм)', [], 12),
+  ],
+  paladin: [
+    gear('a', 'Вариант A', 'Длинный меч + щит + 5 метательных копий + кольчуга + священный символ + набор жреца', [
+      item('Длинный меч'),
+      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
+      item('Метательное копьё', { qty: 5 }),
+      item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 }),
+      item('Священный символ'),
+      item('Набор жреца'),
+    ]),
+    gear('b', 'Вариант B', 'Боевой молот + щит + лёгкий арбалет + кольчуга + священный символ + набор исследователя', [
+      item('Боевой молот'),
+      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
+      item('Лёгкий арбалет'),
+      item('Болты арбалета', { qty: 20 }),
+      item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 }),
+      item('Священный символ'),
+      item('Набор исследователя'),
+    ]),
+    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
+  ],
+  ranger: [
+    gear('a', 'Вариант A', 'Чешуйчатый + 2 коротких меча + длинный лук + набор исследователя', [
+      item('Чешуйчатый доспех', { armor_kind: 'medium', base_ac: 14, weight_lb: 45 }),
+      item('Короткий меч', { qty: 2 }),
+      item('Длинный лук'),
+      item('Стрелы', { qty: 20 }),
+      item('Набор исследователя'),
+    ]),
+    gear('b', 'Вариант B', 'Кожаный + 2 коротких меча + длинный лук + набор исследователя', [
+      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
+      item('Короткий меч', { qty: 2 }),
+      item('Длинный лук'),
+      item('Стрелы', { qty: 20 }),
+      item('Набор исследователя'),
+    ]),
+    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
+  ],
+  rogue: [
+    gear('a', 'Вариант A', 'Рапира + короткий лук + набор взломщика + кожаный + 2 кинжала + воровские инструменты', [
+      item('Рапира'),
+      item('Короткий лук'),
+      item('Стрелы', { qty: 20 }),
+      item('Набор взломщика'),
+      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
+      item('Кинжал', { qty: 2 }),
+      item('Воровские инструменты'),
+    ]),
+    gear('b', 'Вариант B', 'Короткий меч + короткий лук + набор исследователя + кожаный + 2 кинжала + воровские инструменты', [
+      item('Короткий меч'),
+      item('Короткий лук'),
+      item('Стрелы', { qty: 20 }),
+      item('Набор исследователя'),
+      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
+      item('Кинжал', { qty: 2 }),
+      item('Воровские инструменты'),
+    ]),
+    gear('gold', 'Золото', '4к4×10 зм (на старте: 100 зм)', [], 100),
+  ],
+  sorcerer: [
+    gear('a', 'Вариант A', 'Лёгкий арбалет + компонентская сумка + набор исследователя + 2 кинжала', [
+      item('Лёгкий арбалет'),
+      item('Болты арбалета', { qty: 20 }),
+      item('Сумка с компонентами'),
+      item('Набор исследователя'),
+      item('Кинжал', { qty: 2 }),
+    ]),
+    gear('b', 'Вариант B', 'Боевой посох + фокус заклинателя + набор исследователя + 2 кинжала', [
+      item('Боевой посох'),
+      item('Магический фокус'),
+      item('Набор исследователя'),
+      item('Кинжал', { qty: 2 }),
+    ]),
+    gear('gold', 'Золото', '3к4×10 зм (на старте: 75 зм)', [], 75),
+  ],
+  warlock: [
+    gear('a', 'Вариант A', 'Лёгкий арбалет + компонентская сумка + кожаный + простое оружие + набор учёного + 2 кинжала', [
+      item('Лёгкий арбалет'),
+      item('Болты арбалета', { qty: 20 }),
+      item('Сумка с компонентами'),
+      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
+      item('Боевой посох'),
+      item('Набор учёного'),
+      item('Кинжал', { qty: 2 }),
+    ]),
+    gear('b', 'Вариант B', 'Боевой посох + фокус + кожаный + набор исследователя + 2 кинжала', [
+      item('Боевой посох'),
+      item('Магический фокус'),
+      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
+      item('Набор исследователя'),
+      item('Кинжал', { qty: 2 }),
+    ]),
+    gear('gold', 'Золото', '4к4×10 зм (на старте: 100 зм)', [], 100),
+  ],
+  wizard: [
+    gear('a', 'Вариант A', 'Боевой посох + компонентская сумка + набор учёного + книга заклинаний', [
+      item('Боевой посох'),
+      item('Сумка с компонентами'),
+      item('Набор учёного'),
+      item('Книга заклинаний'),
+    ]),
+    gear('b', 'Вариант B', 'Кинжал + фокус + набор исследователя + книга заклинаний', [
+      item('Кинжал'),
+      item('Магический фокус'),
+      item('Набор исследователя'),
+      item('Книга заклинаний'),
+    ]),
+    gear('gold', 'Золото', '4к4×10 зм (на старте: 100 зм)', [], 100),
+  ],
+}
+
+export function startingEquipmentFor(slug: string): StartingEquipmentPackage[] {
+  return CLASS_STARTING_EQUIPMENT[slug] ?? []
+}
+
 /** Common artisan tools (PHB) for monk tool choice. */
 export const ARTISAN_TOOL_CHOICES = [
   'Инструменты пивовара',
@@ -461,11 +710,16 @@ export type AppliedClassGrant = {
   weaponKeys: WeaponProfKey[]
   /** HP set at character level 1 from max hit die + CON (start only). */
   level1Hp: number | null
+  equipmentPackageId: string | null
+  equipmentItemIds: string[]
+  equipmentCoinsGp: number
 }
 
 export type ClassGrantPicks = {
   skills: string[]
   tools: string[]
+  /** Required for start mode when class has packages; 'skip' = без снаряжения. */
+  equipmentPackageId: string | null
 }
 
 export function classGrantDef(slug: string | null | undefined): ClassGrantDef | null {
@@ -482,6 +736,16 @@ export function packageForMode(
   mode: 'start' | 'multiclass',
 ): ClassProficiencyPackage {
   return mode === 'start' ? def.start : def.multiclass
+}
+
+/** Start always opens setup (equipment forks); multiclass only if skill/tool picks. */
+export function grantNeedsSetupDialog(
+  def: ClassGrantDef,
+  mode: 'start' | 'multiclass',
+): boolean {
+  if (mode === 'start') return true
+  const pkg = packageForMode(def, mode)
+  return grantNeedsPicks(pkg)
 }
 
 export function grantNeedsPicks(pkg: ClassProficiencyPackage): boolean {
@@ -513,6 +777,12 @@ export function formatClassGrantSummary(input: {
   if (input.picks.skills.length) bits.push(`навыки ×${input.picks.skills.length}`)
   const tools = [...pkg.toolsFixed, ...input.picks.tools]
   if (tools.length) bits.push(`инструменты: ${tools.join(', ')}`)
+  if (input.mode === 'start' && input.picks.equipmentPackageId) {
+    const pack = startingEquipmentFor(input.def.slug).find(
+      (row) => row.id === input.picks.equipmentPackageId,
+    )
+    if (pack) bits.push(`снаряжение: ${pack.labelRu}`)
+  }
   bits.push(`кость ${input.def.hitDie}`)
   return bits.join(' · ')
 }

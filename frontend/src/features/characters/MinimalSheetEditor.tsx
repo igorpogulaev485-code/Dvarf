@@ -26,15 +26,15 @@ import type {
 } from '../../shared/dnd/classGrants'
 import {
   classGrantDefFromName,
-  grantNeedsPicks,
-  packageForMode,
+  grantNeedsSetupDialog,
 } from '../../shared/dnd/classGrants'
 import {
   applyClassGrantToDraft,
   readAppliedClassGrants,
+  revokeClassGrant,
   type ClassGrantDraftSlice,
 } from './classEffects'
-import { ClassGrantPickerDialog } from './ClassGrantPickerDialog'
+import { ClassSetupDialog, HomebrewClassDialog } from './ClassSetupDialog'
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
@@ -265,6 +265,10 @@ export function MinimalSheetEditor({
     mode: 'start' | 'multiclass'
     def: ClassGrantDef
   } | null>(null)
+  const [homebrewPicker, setHomebrewPicker] = useState<{
+    classEntryId: string
+    initialName: string
+  } | null>(null)
   const channelRef = useRef<BroadcastChannel | null>(null)
 
   const characterLevel = useMemo(
@@ -343,6 +347,7 @@ export function MinimalSheetEditor({
       hpCurrent: prev.hpCurrent,
       constitutionScore: prev.abilities.con,
       characterLevel: totalCharacterLevel(prev.classes),
+      inventory: prev.inventory,
     }
   }
 
@@ -355,6 +360,7 @@ export function MinimalSheetEditor({
       classGrants: slice.classGrants,
       hpMax: slice.hpMax,
       hpCurrent: slice.hpCurrent,
+      inventory: slice.inventory,
       play: {
         ...prev.play,
         hitDie: slice.playHitDie,
@@ -406,8 +412,7 @@ export function MinimalSheetEditor({
       onToast(`Класс «${input.className}» пока без пакета владений — выставь вручную`)
       return
     }
-    const pkg = packageForMode(def, input.mode)
-    if (grantNeedsPicks(pkg)) {
+    if (grantNeedsSetupDialog(def, input.mode)) {
       setGrantPicker({
         classEntryId: input.classEntryId,
         className: input.className,
@@ -420,8 +425,28 @@ export function MinimalSheetEditor({
       classEntryId: input.classEntryId,
       className: input.className,
       mode: input.mode,
-      picks: { skills: [], tools: [] },
+      picks: { skills: [], tools: [], equipmentPackageId: null },
     })
+  }
+
+  function applyHomebrewClass(classEntryId: string, name: string) {
+    setDraft((prev) => {
+      const cleared = revokeClassGrant(draftSliceFrom(prev), classEntryId)
+      const merged = mergeGrantSlice(prev, cleared)
+      return {
+        ...merged,
+        classes: merged.classes.map((row) =>
+          row.id === classEntryId
+            ? { ...row, name, catalog_id: null }
+            : row,
+        ),
+        identity:
+          merged.classes[0]?.id === classEntryId
+            ? merged.identity
+            : merged.identity,
+      }
+    })
+    onToast(`Хомбрю-класс «${name}»: название на листе. Остальное заполни сам.`)
   }
 
   function applyLevelUp(choice: LevelUpChoice) {
@@ -814,6 +839,20 @@ export function MinimalSheetEditor({
                           })
                         }}
                       />
+                      <div className="languages-tools-add" style={{ marginTop: 8 }}>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() =>
+                            setHomebrewPicker({
+                              classEntryId: row.id,
+                              initialName: row.name,
+                            })
+                          }
+                        >
+                          Хомбрю
+                        </Button>
+                      </div>
                     </Field>
                     <Field label="Уровней в классе">
                       <div className="languages-tools-add">
@@ -847,8 +886,9 @@ export function MinimalSheetEditor({
               ))}
             </Stack>
             <Text tone="muted">
-              Итого: {classSummary || 'класс не выбран'} · выбор класса из справочника подставляет
-              владения/навыки/сейвы (старт или мультикласс по PHB). Снаряжение пока вручную.
+              Итого: {classSummary || 'класс не выбран'} · из справочника откроется попап со всеми
+              развилками (навыки, инструменты, стартовое снаряжение). «Хомбрю» — только название на
+              листе.
             </Text>
           </div>
           <div className="sheet-grid sheet-grid--2">
@@ -1143,7 +1183,7 @@ export function MinimalSheetEditor({
         onClose={() => setLevelUpOpen(false)}
       />
 
-      <ClassGrantPickerDialog
+      <ClassSetupDialog
         open={grantPicker != null}
         def={grantPicker?.def ?? null}
         mode={grantPicker?.mode ?? 'start'}
@@ -1157,6 +1197,17 @@ export function MinimalSheetEditor({
             picks,
           })
           setGrantPicker(null)
+        }}
+      />
+
+      <HomebrewClassDialog
+        open={homebrewPicker != null}
+        initialName={homebrewPicker?.initialName ?? ''}
+        onClose={() => setHomebrewPicker(null)}
+        onConfirm={(name) => {
+          if (!homebrewPicker) return
+          applyHomebrewClass(homebrewPicker.classEntryId, name)
+          setHomebrewPicker(null)
         }}
       />
     </Stack>

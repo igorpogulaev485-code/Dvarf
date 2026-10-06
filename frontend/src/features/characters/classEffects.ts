@@ -6,6 +6,7 @@ import {
   formatClassGrantSummary,
   grantNeedsPicks,
   packageForMode,
+  startingEquipmentFor,
   type AbilityKey,
   type AppliedClassGrant,
   type ArmorProfKey,
@@ -16,6 +17,8 @@ import {
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
 import { abilityModifier } from './sheetTypes'
 import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
+import { createInventoryItem, type InventoryState } from './inventory'
+import type { ArmorKind } from '../../shared/dnd/armor'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 export type SaveState = Record<AbilityKey, boolean>
@@ -30,6 +33,7 @@ export type ClassGrantDraftSlice = {
   hpCurrent: number | null
   constitutionScore: number
   characterLevel: number
+  inventory: InventoryState
 }
 
 function uniqueStrings(items: string[]): string[] {
@@ -138,6 +142,15 @@ export function revokeClassGrant(
     hpCurrent = null
   }
 
+  const removeIds = new Set(previous.equipmentItemIds ?? [])
+  const inventory: InventoryState = {
+    coins: { ...draft.inventory.coins },
+    items: draft.inventory.items.filter((item) => !removeIds.has(item.id)),
+  }
+  if ((previous.equipmentCoinsGp ?? 0) > 0) {
+    inventory.coins.gp = Math.max(0, inventory.coins.gp - previous.equipmentCoinsGp)
+  }
+
   return {
     ...draft,
     classGrants: remaining,
@@ -151,6 +164,7 @@ export function revokeClassGrant(
     saves,
     hpMax,
     hpCurrent,
+    inventory,
   }
 }
 
@@ -182,6 +196,16 @@ export function validateClassGrantPicks(input: {
     const allowed = new Set(pkg.toolChoices.from.map((item) => item.toLowerCase()))
     if (input.picks.tools.some((name) => !allowed.has(name.trim().toLowerCase()))) {
       return 'Инструмент вне списка класса'
+    }
+  }
+  if (input.mode === 'start') {
+    const packs = startingEquipmentFor(input.def.slug)
+    if (packs.length > 0) {
+      const id = input.picks.equipmentPackageId
+      if (!id || id === '') return 'Выбери стартовое снаряжение или «Без снаряжения»'
+      if (id !== 'skip' && !packs.some((pack) => pack.id === id)) {
+        return 'Неизвестный пакет снаряжения'
+      }
     }
   }
   return null
@@ -223,6 +247,35 @@ export function applyClassGrantToDraft(input: {
     hpCurrent = level1Hp
   }
 
+  const equipmentItemIds: string[] = []
+  let equipmentCoinsGp = 0
+  const inventory: InventoryState = {
+    coins: { ...cleared.inventory.coins },
+    items: [...cleared.inventory.items],
+  }
+  const equipmentPackageId =
+    input.mode === 'start' ? input.picks.equipmentPackageId : null
+  if (input.mode === 'start' && equipmentPackageId && equipmentPackageId !== 'skip') {
+    const pack = startingEquipmentFor(def.slug).find((row) => row.id === equipmentPackageId)
+    if (pack) {
+      for (const spec of pack.items) {
+        const created = createInventoryItem()
+        created.name = spec.name
+        created.qty = Math.max(1, Math.floor(spec.qty ?? 1))
+        created.armor_kind = (spec.armor_kind ?? 'none') as ArmorKind
+        created.base_ac = spec.base_ac ?? null
+        created.weight_lb = spec.weight_lb ?? null
+        created.notes = spec.notes ?? 'Стартовое снаряжение класса'
+        inventory.items.push(created)
+        equipmentItemIds.push(created.id)
+      }
+      if (pack.coinsGp && pack.coinsGp > 0) {
+        equipmentCoinsGp = pack.coinsGp
+        inventory.coins.gp += pack.coinsGp
+      }
+    }
+  }
+
   const nextGrant: AppliedClassGrant = {
     classEntryId: input.classEntryId,
     slug: def.slug,
@@ -233,6 +286,9 @@ export function applyClassGrantToDraft(input: {
     armorKeys,
     weaponKeys,
     level1Hp,
+    equipmentPackageId,
+    equipmentItemIds,
+    equipmentCoinsGp,
   }
 
   const mergedGrants = [
@@ -271,6 +327,7 @@ export function applyClassGrantToDraft(input: {
     playHitDie: def.hitDie,
     hpMax,
     hpCurrent,
+    inventory,
   }
 
   return {
@@ -304,7 +361,7 @@ export function pendingGrantRequest(input: {
 }
 
 export function emptyPicks(): ClassGrantPicks {
-  return { skills: [], tools: [] }
+  return { skills: [], tools: [], equipmentPackageId: null }
 }
 
 export function readAppliedClassGrants(raw: unknown): AppliedClassGrant[] {
@@ -335,6 +392,13 @@ export function readAppliedClassGrants(raw: unknown): AppliedClassGrant[] {
         ? row.weaponKeys.filter((value): value is WeaponProfKey => typeof value === 'string')
         : [],
       level1Hp: typeof row.level1Hp === 'number' ? row.level1Hp : null,
+      equipmentPackageId:
+        typeof row.equipmentPackageId === 'string' ? row.equipmentPackageId : null,
+      equipmentItemIds: Array.isArray(row.equipmentItemIds)
+        ? row.equipmentItemIds.filter((value): value is string => typeof value === 'string')
+        : [],
+      equipmentCoinsGp:
+        typeof row.equipmentCoinsGp === 'number' ? Math.max(0, row.equipmentCoinsGp) : 0,
     })
   }
   return result
