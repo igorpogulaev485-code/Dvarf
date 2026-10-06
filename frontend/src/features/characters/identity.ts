@@ -18,11 +18,14 @@ export type IdentityExtras = {
   subclassName: string
   background: string
   alignment: string
+  size: string
   darkvision: number
   armor: ArmorProficiency
   weapons: WeaponProficiency
   languages: string[]
   tools: string[]
+  /** Languages last applied from a race pick; removed on next race apply. */
+  raceAppliedLanguages: string[]
 }
 
 export const EMPTY_ARMOR: ArmorProficiency = {
@@ -49,6 +52,7 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
     subclassName: typeof identity.subclass_name === 'string' ? identity.subclass_name : '',
     background: typeof identity.background === 'string' ? identity.background : '',
     alignment: typeof identity.alignment === 'string' ? identity.alignment : '',
+    size: typeof identity.size === 'string' && identity.size.trim() ? identity.size : 'medium',
     darkvision: Math.max(0, Math.floor(readNumber(combat.darkvision, 0))),
     armor: {
       light: Boolean(armor.light),
@@ -62,6 +66,7 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
     },
     languages: readNameList(proficiency.languages),
     tools: readNameList(proficiency.tools),
+    raceAppliedLanguages: readNameList(identity.race_applied_languages),
   }
 }
 
@@ -81,6 +86,10 @@ export function identityExtrasToSheet(extras: IdentityExtras): {
       subclass_name: extras.subclassName.trim() || null,
       background: extras.background.trim() || null,
       alignment: extras.alignment.trim() || null,
+      size: extras.size.trim() || 'medium',
+      race_applied_languages: extras.raceAppliedLanguages
+        .map((item) => item.trim())
+        .filter(Boolean),
     },
     combatPatch: {
       darkvision: Math.max(0, Math.floor(extras.darkvision)),
