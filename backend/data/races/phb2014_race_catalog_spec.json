@@ -1,0 +1,589 @@
+{
+  "meta": {
+    "edition": "2014",
+    "source": "phb",
+    "notes_ru": "PHB 2014 расы + подрасы. Родители selectable=false — выбирай подрасу. Старый упрощ. орк деактивируется."
+  },
+  "deactivate_slugs": [
+    "orc"
+  ],
+  "races": [
+    {
+      "slug": "dwarf",
+      "name_ru": "Дварф",
+      "name_en": "Dwarf",
+      "parent_slug": null,
+      "selectable": false,
+      "source": "phb",
+      "sort_order": 10,
+      "speed": 25,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "con": 2
+      },
+      "languages": [
+        "Общий",
+        "Дварфийский"
+      ],
+      "languages_choose": 0,
+      "tool_choices": {
+        "count": 1,
+        "from": [
+          "Инструменты кузнеца",
+          "Инструменты каменщика",
+          "Инструменты пивовара"
+        ]
+      },
+      "weapon_proficiencies": [
+        "Боевой топор",
+        "Ручной топор",
+        "Лёгкий молот",
+        "Боевой молот"
+      ],
+      "traits_text": "Дварф (2014): +2 Тел. Скорость 25 фт (не снижается тяжёлым доспехом). Тёмное зрение 60 фт. Устойчивость к яду. Владение топорами и молотами. Инструменты камнетёса/кузнеца/пивовара — на выбор."
+    },
+    {
+      "slug": "hill_dwarf",
+      "name_ru": "Холмовой дварф",
+      "name_en": "Hill Dwarf",
+      "parent_slug": "dwarf",
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 11,
+      "speed": 25,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "con": 2,
+        "wis": 1
+      },
+      "languages": [
+        "Общий",
+        "Дварфийский"
+      ],
+      "languages_choose": 0,
+      "tool_choices": {
+        "count": 1,
+        "from": [
+          "Инструменты кузнеца",
+          "Инструменты каменщика",
+          "Инструменты пивовара"
+        ]
+      },
+      "weapon_proficiencies": [
+        "Боевой топор",
+        "Ручной топор",
+        "Лёгкий молот",
+        "Боевой молот"
+      ],
+      "traits_text": "Холмовой дварф (2014): +2 Тел, +1 Муд. Дварфские черты + Каменная стойкость (+1 хитов за уровень)."
+    },
+    {
+      "slug": "mountain_dwarf",
+      "name_ru": "Горный дварф",
+      "name_en": "Mountain Dwarf",
+      "parent_slug": "dwarf",
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 12,
+      "speed": 25,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "con": 2,
+        "str": 2
+      },
+      "languages": [
+        "Общий",
+        "Дварфийский"
+      ],
+      "languages_choose": 0,
+      "tool_choices": {
+        "count": 1,
+        "from": [
+          "Инструменты кузнеца",
+          "Инструменты каменщика",
+          "Инструменты пивовара"
+        ]
+      },
+      "weapon_proficiencies": [
+        "Боевой топор",
+        "Ручной топор",
+        "Лёгкий молот",
+        "Боевой молот"
+      ],
+      "armor_proficiencies": [
+        "light",
+        "medium"
+      ],
+      "traits_text": "Горный дварф (2014): +2 Тел, +2 Сил. Дварфские черты + владение лёгкими и средними доспехами."
+    },
+    {
+      "slug": "elf",
+      "name_ru": "Эльф",
+      "name_en": "Elf",
+      "parent_slug": null,
+      "selectable": false,
+      "source": "phb",
+      "sort_order": 20,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "dex": 2
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 0,
+      "skill_proficiencies": [
+        "perception"
+      ],
+      "traits_text": "Эльф (2014): +2 Лов. Тёмное зрение 60 фт. Наследие фей. Транс. Острое чутьё (Внимательность)."
+    },
+    {
+      "slug": "high_elf",
+      "name_ru": "Высший эльф",
+      "name_en": "High Elf",
+      "parent_slug": "elf",
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 21,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "dex": 2,
+        "int": 1
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 1,
+      "skill_proficiencies": [
+        "perception"
+      ],
+      "traits_text": "Высший эльф (2014): +2 Лов, +1 Инт. Эльфийские черты + владение длинным мечом, коротким мечом, коротким и длинным луком. Заговор волшебника (ИНТ). Дополнительный язык на выбор.",
+      "weapon_proficiencies": [
+        "Длинный меч",
+        "Короткий меч",
+        "Короткий лук",
+        "Длинный лук"
+      ]
+    },
+    {
+      "slug": "wood_elf",
+      "name_ru": "Лесной эльф",
+      "name_en": "Wood Elf",
+      "parent_slug": "elf",
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 22,
+      "speed": 35,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "dex": 2,
+        "wis": 1
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 0,
+      "skill_proficiencies": [
+        "perception"
+      ],
+      "weapon_proficiencies": [
+        "Длинный меч",
+        "Короткий меч",
+        "Короткий лук",
+        "Длинный лук"
+      ],
+      "traits_text": "Лесной эльф (2014): +2 Лов, +1 Муд. Скорость 35 фт. Эльфийские черты + Маскировка в дикой местности. Владение длинным/коротким мечом и луками."
+    },
+    {
+      "slug": "drow",
+      "name_ru": "Дроу",
+      "name_en": "Dark Elf (Drow)",
+      "parent_slug": "elf",
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 23,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 120,
+      "ability_bonuses": {
+        "dex": 2,
+        "cha": 1
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 0,
+      "skill_proficiencies": [
+        "perception"
+      ],
+      "weapon_proficiencies": [
+        "Рапира",
+        "Короткий меч",
+        "Ручной арбалет"
+      ],
+      "traits_text": "Дроу (2014): +2 Лов, +1 Хар. Тёмное зрение 120 фт. Эльфийские черты. Чувствительность к солнцу. Наследие дроу (пляшущие огоньки / огонь фей / тьма — по уровню). Владение рапирой, коротким мечом, ручным арбалетом."
+    },
+    {
+      "slug": "halfling",
+      "name_ru": "Полурослик",
+      "name_en": "Halfling",
+      "parent_slug": null,
+      "selectable": false,
+      "source": "phb",
+      "sort_order": 30,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "dex": 2
+      },
+      "languages": [
+        "Общий",
+        "Полуросликов"
+      ],
+      "languages_choose": 0,
+      "traits_text": "Полурослик (2014): +2 Лов. Скорость 25 фт. Удачливый. Храбрый. Полуросличья ловкость."
+    },
+    {
+      "slug": "lightfoot_halfling",
+      "name_ru": "Легконогий полурослик",
+      "name_en": "Lightfoot Halfling",
+      "parent_slug": "halfling",
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 31,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "dex": 2,
+        "cha": 1
+      },
+      "languages": [
+        "Общий",
+        "Полуросликов"
+      ],
+      "languages_choose": 0,
+      "traits_text": "Легконогий полурослик (2014): +2 Лов, +1 Хар. Черты полурослика + Естественная скрытность."
+    },
+    {
+      "slug": "stout_halfling",
+      "name_ru": "Коренастый полурослик",
+      "name_en": "Stout Halfling",
+      "parent_slug": "halfling",
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 32,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "dex": 2,
+        "con": 1
+      },
+      "languages": [
+        "Общий",
+        "Полуросликов"
+      ],
+      "languages_choose": 0,
+      "traits_text": "Коренастый полурослик (2014): +2 Лов, +1 Тел. Черты полурослика + устойчивость к яду."
+    },
+    {
+      "slug": "human",
+      "name_ru": "Человек",
+      "name_en": "Human",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 40,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "str": 1,
+        "dex": 1,
+        "con": 1,
+        "int": 1,
+        "wis": 1,
+        "cha": 1
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Человек (2014): +1 ко всем характеристикам. Дополнительный язык. Скорость 30 фт."
+    },
+    {
+      "slug": "human_variant",
+      "name_ru": "Человек (вариант)",
+      "name_en": "Human (Variant)",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 41,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 2,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "skill_choices": {
+        "count": 1,
+        "from": "any"
+      },
+      "feat_note_ru": "Черта 1 уровня — выбери вручную на листе.",
+      "traits_text": "Человек, вариант (2014): +1 к двум разным характеристикам. Навык на выбор. Черта. Язык на выбор."
+    },
+    {
+      "slug": "dragonborn",
+      "name_ru": "Драконорожденный",
+      "name_en": "Dragonborn",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 50,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "str": 2,
+        "cha": 1
+      },
+      "languages": [
+        "Общий",
+        "Драконий"
+      ],
+      "languages_choose": 0,
+      "ancestry_choices": [
+        {
+          "id": "black",
+          "label_ru": "Чёрный",
+          "damage": "кислота",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "blue",
+          "label_ru": "Синий",
+          "damage": "электричество",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "brass",
+          "label_ru": "Латунный",
+          "damage": "огонь",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "bronze",
+          "label_ru": "Бронзовый",
+          "damage": "электричество",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "copper",
+          "label_ru": "Медный",
+          "damage": "кислота",
+          "breath": "5×30 фт линия (Лов)"
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золотой",
+          "damage": "огонь",
+          "breath": "15 фт конус (Лов)"
+        },
+        {
+          "id": "green",
+          "label_ru": "Зелёный",
+          "damage": "яд",
+          "breath": "15 фт конус (Тел)"
+        },
+        {
+          "id": "red",
+          "label_ru": "Красный",
+          "damage": "огонь",
+          "breath": "15 фт конус (Лов)"
+        },
+        {
+          "id": "silver",
+          "label_ru": "Серебряный",
+          "damage": "холод",
+          "breath": "15 фт конус (Тел)"
+        },
+        {
+          "id": "white",
+          "label_ru": "Белый",
+          "damage": "холод",
+          "breath": "15 фт конус (Тел)"
+        }
+      ],
+      "traits_text": "Драконорожденный (2014): +2 Сил, +1 Хар. Драконье происхождение: сопротивление и дыхание по предку."
+    },
+    {
+      "slug": "gnome",
+      "name_ru": "Гном",
+      "name_en": "Gnome",
+      "parent_slug": null,
+      "selectable": false,
+      "source": "phb",
+      "sort_order": 60,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "int": 2
+      },
+      "languages": [
+        "Общий",
+        "Гномий"
+      ],
+      "languages_choose": 0,
+      "traits_text": "Гном (2014): +2 Инт. Тёмное зрение 60 фт. Скорость 25 фт. Гномья хитрость."
+    },
+    {
+      "slug": "forest_gnome",
+      "name_ru": "Лесной гном",
+      "name_en": "Forest Gnome",
+      "parent_slug": "gnome",
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 61,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "int": 2,
+        "dex": 1
+      },
+      "languages": [
+        "Общий",
+        "Гномий"
+      ],
+      "languages_choose": 0,
+      "traits_text": "Лесной гном (2014): +2 Инт, +1 Лов. Гномьи черты + природная иллюзия (малая иллюзия) и общение с маленькими зверями."
+    },
+    {
+      "slug": "rock_gnome",
+      "name_ru": "Скальный гном",
+      "name_en": "Rock Gnome",
+      "parent_slug": "gnome",
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 62,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "int": 2,
+        "con": 1
+      },
+      "languages": [
+        "Общий",
+        "Гномий"
+      ],
+      "languages_choose": 0,
+      "tool_proficiencies": [
+        "Инструменты ремонтника"
+      ],
+      "traits_text": "Скальный гном (2014): +2 Инт, +1 Тел. Гномьи черты + знание ремесла и болтун-механизм. Владение инструментами ремонтника."
+    },
+    {
+      "slug": "half_elf",
+      "name_ru": "Полуэльф",
+      "name_en": "Half-Elf",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 70,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "cha": 2
+      },
+      "ability_bonus_choices": {
+        "count": 2,
+        "amount": 1,
+        "from": "any",
+        "exclude": [
+          "cha"
+        ]
+      },
+      "languages": [
+        "Общий",
+        "Эльфийский"
+      ],
+      "languages_choose": 1,
+      "skill_choices": {
+        "count": 2,
+        "from": "any"
+      },
+      "traits_text": "Полуэльф (2014): +2 Хар и +1 к двум другим. Тёмное зрение 60 фт. Наследие фей. Два навыка на выбор. Язык на выбор."
+    },
+    {
+      "slug": "half_orc",
+      "name_ru": "Полуорк",
+      "name_en": "Half-Orc",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 80,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "str": 2,
+        "con": 1
+      },
+      "languages": [
+        "Общий",
+        "Орочий"
+      ],
+      "languages_choose": 0,
+      "skill_proficiencies": [
+        "intimidation"
+      ],
+      "traits_text": "Полуорк (2014): +2 Сил, +1 Тел. Тёмное зрение 60 фт. Угрожающий вид. Непреклонная выносливость. Свирепые атаки."
+    },
+    {
+      "slug": "tiefling",
+      "name_ru": "Тифлинг",
+      "name_en": "Tiefling",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 90,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "cha": 2,
+        "int": 1
+      },
+      "languages": [
+        "Общий",
+        "Инфернальный"
+      ],
+      "languages_choose": 0,
+      "traits_text": "Тифлинг (2014): +2 Хар, +1 Инт. Тёмное зрение 60 фт. Сопротивление огню. Адское наследие (тауматургия / адское возмездие / тьма)."
+    }
+  ]
+}
