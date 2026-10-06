@@ -15,7 +15,10 @@ type CombatStickyHeaderProps = {
   hpCurrent: number | null
   hpMax: number | null
   hpTemp: number
-  ac: number | null
+  /** Manual AC override; null = use autoAc from armor. */
+  acOverride: number | null
+  autoAc: number
+  acHint: string
   speed: number | null
   initiativeOverride: number | null
   inspiration: boolean
@@ -45,7 +48,9 @@ export function CombatStickyHeader({
   hpCurrent,
   hpMax,
   hpTemp,
-  ac,
+  acOverride,
+  autoAc,
+  acHint,
   speed,
   initiativeOverride,
   inspiration,
@@ -111,8 +116,32 @@ export function CombatStickyHeader({
       ) : null}
 
       <div className="combat-sticky__stats">
-        <Field label="КД">
-          <NumberInput value={ac} onValueChange={(value) => onChange({ ac: value })} />
+        <Field
+          label="КД"
+          hint={acOverride == null ? acHint : 'задано вручную'}
+        >
+          <div className="combat-sticky__init">
+            <NumberInput
+              value={acOverride ?? autoAc}
+              aria-label="Класс доспеха"
+              onValueChange={(value) => {
+                if (value == null || value === autoAc) {
+                  onChange({ ac: null })
+                  return
+                }
+                onChange({ ac: value })
+              }}
+            />
+            {acOverride != null ? (
+              <button
+                type="button"
+                className="combat-sticky__reset"
+                onClick={() => onChange({ ac: null })}
+              >
+                авто
+              </button>
+            ) : null}
+          </div>
         </Field>
         <Field label="Скорость">
           <NumberInput value={speed} onValueChange={(value) => onChange({ speed: value })} />

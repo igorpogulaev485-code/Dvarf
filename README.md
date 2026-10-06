@@ -103,7 +103,8 @@ flowchart TB
 | Sheet S4+ | pact magic UI, attunement, короткий/продолжительный отдых | ✅ |
 | Sheet P1 | upcast при касте + активная концентрация на листе | ✅ |
 | Sheet P2 | авто-ячейки и лимит подготовки от класса/уровня (2014) | ✅ |
-| Polish | multiclass, race→эффекты, rich-text, auto AC | backlog |
+| Sheet P3 | КД от надетого доспеха / щита (override как у инициативы) | ✅ |
+| Polish | multiclass, race→эффекты, rich-text | backlog |
 
 ### Фаза B — Classic PDF-like *(параллельно другим агентом)*
 
@@ -152,13 +153,14 @@ flowchart LR
 - Sheet S4+: pact magic, attunement (max 3), short-rest hit-die heal
 - Sheet P1: upcast slot picker + active concentration on sticky header
 - Sheet P2: class/level 2014 slot table + prepare limit
+- Sheet P3: AC from equipped armor/shield + manual override
 - Prod Docker deploy (Timeweb)
 
 Прод: http://201.34.132.252/ — подробности в [`deploy/README.md`](deploy/README.md).
 
 ## Очередь ближайших слайсов
 
-**Digital sheet (этот контур):** P2 авто-ячейки ✅ → P3 КД от доспеха → P4 языки/инструменты.
+**Digital sheet (этот контур):** P3 КД от доспеха ✅ → P4 языки/инструменты.
 
 Параллельно другими агентами (не этот чат): Classic PDF-like · ЛК · Party frame.
 
