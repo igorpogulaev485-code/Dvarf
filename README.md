@@ -104,6 +104,7 @@ flowchart TB
 | Sheet P1 | upcast при касте + активная концентрация на листе | ✅ |
 | Sheet P2 | авто-ячейки и лимит подготовки от класса/уровня (2014) | ✅ |
 | Sheet P3 | КД от надетого доспеха / щита (override как у инициативы) | ✅ |
+| Sheet P4 | языки и инструменты (пресеты + свой текст) | ✅ |
 | Polish | multiclass, race→эффекты, rich-text | backlog |
 
 ### Фаза B — Classic PDF-like *(параллельно другим агентом)*
@@ -154,13 +155,14 @@ flowchart LR
 - Sheet P1: upcast slot picker + active concentration on sticky header
 - Sheet P2: class/level 2014 slot table + prepare limit
 - Sheet P3: AC from equipped armor/shield + manual override
+- Sheet P4: languages + tools proficiency lists
 - Prod Docker deploy (Timeweb)
 
 Прод: http://201.34.132.252/ — подробности в [`deploy/README.md`](deploy/README.md).
 
 ## Очередь ближайших слайсов
 
-**Digital sheet (этот контур):** P3 КД от доспеха ✅ → P4 языки/инструменты.
+**Digital sheet (этот контур):** P4 языки/инструменты ✅. Дальше Polish по отдельному плану (multiclass / race→эффекты / rich-text).
 
 Параллельно другими агентами (не этот чат): Classic PDF-like · ЛК · Party frame.
 

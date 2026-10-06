@@ -75,6 +75,8 @@ def empty_character_sheet() -> dict[str, Any]:
                 "simple": False,
                 "martial": False,
             },
+            "languages": [],
+            "tools": [],
         },
         "bonuses": [],
         "weapons": [],

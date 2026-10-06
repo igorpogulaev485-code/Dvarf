@@ -23,6 +23,7 @@ import {
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
+import { LanguagesToolsPanel } from './LanguagesToolsPanel'
 import { PlayPanel } from './PlayPanel'
 import { SpellsPanel } from './SpellsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
@@ -373,6 +374,8 @@ export function MinimalSheetEditor({
       const proficiency = asRecord(sheet.proficiency)
       proficiency.armor = identityExtras.proficiencyPatch.armor
       proficiency.weapons = identityExtras.proficiencyPatch.weapons
+      proficiency.languages = identityExtras.proficiencyPatch.languages
+      proficiency.tools = identityExtras.proficiencyPatch.tools
       sheet.proficiency = proficiency
       sheet.weapons = draft.weapons
       sheet.resources = playSheet.resources
@@ -625,6 +628,12 @@ export function MinimalSheetEditor({
           </div>
         </Stack>
       </Panel>
+
+      <LanguagesToolsPanel
+        languages={draft.identity.languages}
+        tools={draft.identity.tools}
+        onChange={(patch) => patchIdentity(patch)}
+      />
 
       <Panel title="Характеристики">
         <div className="ability-grid">

@@ -1,3 +1,4 @@
+import { readNameList } from './languagesTools'
 import { asRecord, readNumber } from './sheetTypes'
 
 export type ArmorProficiency = {
@@ -20,6 +21,8 @@ export type IdentityExtras = {
   darkvision: number
   armor: ArmorProficiency
   weapons: WeaponProficiency
+  languages: string[]
+  tools: string[]
 }
 
 export const EMPTY_ARMOR: ArmorProficiency = {
@@ -57,6 +60,8 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
       simple: Boolean(weapons.simple),
       martial: Boolean(weapons.martial),
     },
+    languages: readNameList(proficiency.languages),
+    tools: readNameList(proficiency.tools),
   }
 }
 
@@ -66,6 +71,8 @@ export function identityExtrasToSheet(extras: IdentityExtras): {
   proficiencyPatch: {
     armor: ArmorProficiency
     weapons: WeaponProficiency
+    languages: string[]
+    tools: string[]
   }
 } {
   return {
@@ -81,6 +88,8 @@ export function identityExtrasToSheet(extras: IdentityExtras): {
     proficiencyPatch: {
       armor: { ...extras.armor },
       weapons: { ...extras.weapons },
+      languages: extras.languages.map((item) => item.trim()).filter(Boolean),
+      tools: extras.tools.map((item) => item.trim()).filter(Boolean),
     },
   }
 }
