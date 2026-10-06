@@ -139,9 +139,29 @@ input {
 .ui-button {
   border: 1px solid transparent;
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   cursor: pointer;
   font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.sheet-topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sheet-topbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.sheet-topbar__actions .ui-button {
+  padding: 6px 12px;
+  font-size: 0.88rem;
+  min-height: 36px;
 }
 
 .ui-button--danger {
@@ -178,6 +198,25 @@ input {
 .ui-text {
   margin: 0;
   line-height: 1.45;
+  font-size: 1rem;
+}
+
+.ui-text:is(h1) {
+  font-size: 1.35rem;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.ui-text:is(h2) {
+  font-size: 1.1rem;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.ui-text:is(h3) {
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: 700;
 }
 
 .ui-text--muted {
@@ -1411,20 +1450,53 @@ input {
 @media (max-width: 640px) {
   .page {
     width: min(100% - 20px, 720px);
-    padding-top: 20px;
+    padding: 14px 0 32px;
   }
 
   .page--app {
     width: min(100% - 20px, 980px);
   }
 
+  .ui-text:is(h1) {
+    font-size: 1.2rem;
+  }
+
+  .ui-text:is(h2) {
+    font-size: 1.02rem;
+  }
+
+  .ui-text--muted {
+    font-size: 0.88rem;
+  }
+
+  .ui-button {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    min-height: 40px;
+  }
+
+  .ui-input {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
   .ui-panel {
     border-radius: 14px;
-    padding: 16px;
+    padding: 14px;
+  }
+
+  .ui-panel__title {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+
+  .app-header {
+    gap: 10px;
   }
 
   .app-header__actions {
     width: 100%;
+    gap: 8px;
   }
 
   .app-header__user {
@@ -1432,8 +1504,36 @@ input {
     max-width: none;
   }
 
+  .app-header__user-name {
+    font-size: 0.88rem;
+  }
+
   .app-header__actions .ui-button {
     flex: 1 1 auto;
+  }
+
+  .app-nav {
+    margin-top: 6px;
+    gap: 4px;
+  }
+
+  .app-nav__link {
+    padding: 5px 10px;
+    font-size: 0.82rem;
+  }
+
+  .character-card__name {
+    font-size: 1.02rem;
+  }
+
+  .combat-sticky__name {
+    font-size: 1.15rem;
+  }
+
+  .sheet-topbar__actions .ui-button {
+    min-height: 34px;
+    padding: 5px 10px;
+    font-size: 0.84rem;
   }
 
   .sheet-grid--2,

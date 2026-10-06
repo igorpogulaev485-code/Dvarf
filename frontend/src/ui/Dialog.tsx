@@ -10,6 +10,8 @@ type DialogProps = {
   onPrimary: () => void
   onSecondary?: () => void
   busy?: boolean
+  /** Disables only the primary action (Cancel stays available). */
+  primaryDisabled?: boolean
   size?: 'default' | 'wide'
 }
 
@@ -22,6 +24,7 @@ export function Dialog({
   onPrimary,
   onSecondary,
   busy = false,
+  primaryDisabled = false,
   size = 'default',
 }: DialogProps) {
   if (!open) {
@@ -46,7 +49,7 @@ export function Dialog({
               {secondaryLabel}
             </Button>
           ) : null}
-          <Button onClick={onPrimary} disabled={busy}>
+          <Button onClick={onPrimary} disabled={busy || primaryDisabled}>
             {primaryLabel}
           </Button>
         </div>
