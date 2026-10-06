@@ -312,4 +312,4 @@
 | 2026-10-06 | `cursor/race-setup-grants-f10e` | Расы PHB + попап грантов → «В ветках» |
 | 2026-10-06 | `cursor/race-setup-grants-f10e` · PR #31 | Залито на Timeweb; tip → эта ветка; 19 рас PHB + попап |
 | 2026-10-06 | `cursor/mobile-sheet-compact-acbe` · PR #32 | Залито на Timeweb; tip → эта ветка; мобильный UX + merge race-setup |
-| 2026-10-06 | `cursor/race-human-marks-f10e` | Человек: 5 меток ERLW; tip → эта ветка; alembic `e8f9` |
+| 2026-10-06 | `cursor/race-human-marks-f10e` · PR #36 | Человек: 5 меток ERLW; tip → эта ветка; alembic `e8f9` |
