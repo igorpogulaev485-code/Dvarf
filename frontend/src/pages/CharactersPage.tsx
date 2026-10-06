@@ -87,6 +87,7 @@ export function CharactersPage() {
         <AppHeader
           title="Мои персонажи"
           subtitle={loading ? 'Загрузка...' : listSubtitle(user, characters.length)}
+          user={user}
           onOfficialSite={() => setToast('Официальный сайт скоро появится')}
         />
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, File, Response, UploadFile
 from fastapi.responses import RedirectResponse
 
 from app.api.deps import CurrentUser, DbSession
@@ -83,6 +83,21 @@ def update_me(
     db: DbSession,
 ) -> UserResponse:
     return AuthService(db).update_me(current_user.id, payload)
+
+
+@router.post("/me/avatar", response_model=UserResponse)
+async def upload_avatar(
+    current_user: CurrentUser,
+    db: DbSession,
+    file: UploadFile = File(...),
+) -> UserResponse:
+    data = await file.read()
+    return AuthService(db).upload_avatar(current_user.id, data, file.content_type)
+
+
+@router.delete("/me/avatar", response_model=UserResponse)
+def delete_avatar(current_user: CurrentUser, db: DbSession) -> UserResponse:
+    return AuthService(db).delete_avatar(current_user.id)
 
 
 @router.get("/oauth/{provider}/start", response_model=OAuthStartResponse)
