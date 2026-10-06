@@ -42,12 +42,14 @@ tar czf "$TMP_TGZ" -C "$ROOT" \
 
 "${SSH[@]}" "root@${HOST}" bash -s <<EOF
 set -euo pipefail
+exec 9>/opt/dvarf/.deploy.lock
+flock 9
 mkdir -p ${REMOTE_DIR}
 if [[ -f ${REMOTE_DIR}/.env ]]; then
   cp ${REMOTE_DIR}/.env /tmp/dvarf.env.bak
 fi
-# Replace tree but keep .env
-find ${REMOTE_DIR} -mindepth 1 -maxdepth 1 ! -name '.env' -exec rm -rf {} +
+# Replace tree but keep .env and deploy lock
+find ${REMOTE_DIR} -mindepth 1 -maxdepth 1 ! -name '.env' ! -name '.deploy.lock' ! -name '.deploy.lock.pid' -exec rm -rf {} +
 tar xzf /tmp/dvarf-deploy.tgz -C ${REMOTE_DIR}
 if [[ -f /tmp/dvarf.env.bak ]]; then
   mv /tmp/dvarf.env.bak ${REMOTE_DIR}/.env

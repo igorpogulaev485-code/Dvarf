@@ -124,12 +124,13 @@ input {
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: var(--muted);
+  color: var(--ink);
+  opacity: 0.72;
   cursor: pointer;
 }
 
 .ui-password-input__toggle:hover {
-  color: var(--ink);
+  opacity: 1;
   background: color-mix(in srgb, var(--accent-soft) 70%, white);
 }
 
