@@ -838,11 +838,15 @@ input {
   inset: 0;
   z-index: 50;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 20px;
+  overflow: hidden;
+  overscroll-behavior: none;
+  padding:
+    max(12px, env(safe-area-inset-top, 0px))
+    max(12px, env(safe-area-inset-right, 0px))
+    max(12px, env(safe-area-inset-bottom, 0px))
+    max(12px, env(safe-area-inset-left, 0px));
   background: rgba(28, 25, 23, 0.45);
 }
 
@@ -850,8 +854,8 @@ input {
   display: flex;
   flex-direction: column;
   width: min(440px, 100%);
-  max-height: calc(100dvh - 40px);
-  margin: auto 0;
+  max-height: min(720px, calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
+  margin: 0;
   padding: 0;
   border-radius: 16px;
   border: 1px solid var(--line);
@@ -867,27 +871,77 @@ input {
 .ui-dialog__title {
   flex: 0 0 auto;
   margin: 0;
-  padding: 20px 20px 0;
+  padding: 14px 16px 0;
+  font-size: 1.05rem;
+  line-height: 1.25;
+  font-weight: 700;
 }
 
 .ui-dialog__body {
   flex: 1 1 auto;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 14px 20px 8px;
+  padding: 10px 16px 8px;
+  font-size: 0.95rem;
 }
 
 .ui-dialog__actions {
   display: flex;
   flex-wrap: wrap;
   flex: 0 0 auto;
-  gap: 10px;
+  gap: 8px;
   justify-content: flex-end;
-  padding: 12px 20px 20px;
+  padding: 10px 16px max(12px, env(safe-area-inset-bottom, 0px));
   border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
   background: #fffdf9;
+}
+
+.ui-dialog__actions .ui-button {
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+/* Keep long dialog content readable; lists stay inside scroll area */
+.ui-dialog__body .chip-row {
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.ui-dialog__body .sheet-chip {
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  border-radius: 10px;
+}
+
+.ui-dialog__body .ui-text--muted {
+  font-size: 0.85rem;
+}
+
+.ui-dialog__body .ui-field__label {
+  font-size: 0.85rem;
+}
+
+.ui-dialog__body .ui-field__hint {
+  font-size: 0.78rem;
+}
+
+.ui-dialog__body .ui-input {
+  padding: 10px 12px;
+  font-size: 0.95rem;
+}
+
+/* Combobox dropdown: flow in scroll body so it is never clipped off-screen */
+.ui-dialog__body .ui-combobox__list {
+  position: static;
+  z-index: auto;
+  top: auto;
+  margin-top: 6px;
+  max-height: min(180px, 32dvh);
+  box-shadow: none;
 }
 
 .sheet-banner {
@@ -1751,5 +1805,45 @@ input {
 
   .cabinet-provider-row {
     flex-wrap: wrap;
+  }
+
+  .ui-dialog-backdrop {
+    align-items: flex-end;
+    padding:
+      max(8px, env(safe-area-inset-top, 0px))
+      0
+      0
+      0;
+  }
+
+  .ui-dialog,
+  .ui-dialog--wide {
+    width: 100%;
+    max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 8px));
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 28px rgba(28, 25, 23, 0.18);
+  }
+
+  .ui-dialog__title {
+    padding: 12px 14px 0;
+    font-size: 1rem;
+  }
+
+  .ui-dialog__body {
+    padding: 8px 14px 6px;
+  }
+
+  .ui-dialog__actions {
+    gap: 8px;
+    padding: 10px 14px max(12px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .ui-dialog__actions .ui-button {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+  }
+
+  .ui-dialog__body .ui-combobox__list {
+    max-height: min(160px, 28dvh);
   }
 }
