@@ -7,6 +7,8 @@ type NumberInputProps = Omit<
   value: number | null
   min?: number
   max?: number
+  /** Default true — levels/scores. Set false for weights and other decimals. */
+  integer?: boolean
   emptyValue?: number | null
   onValueChange: (value: number | null) => void
 }
@@ -18,10 +20,15 @@ function clampNumber(value: number, min?: number, max?: number): number {
   return next
 }
 
+function normalizeNumber(value: number, integer: boolean): number {
+  return integer ? Math.trunc(value) : value
+}
+
 export function NumberInput({
   value,
   min,
   max,
+  integer = true,
   emptyValue = null,
   onValueChange,
   className = '',
@@ -44,7 +51,7 @@ export function NumberInput({
       setText(value == null ? '' : String(value))
       return
     }
-    const next = clampNumber(Math.trunc(parsed), min, max)
+    const next = clampNumber(normalizeNumber(parsed, integer), min, max)
     setText(String(next))
     onValueChange(next)
   }
@@ -63,13 +70,17 @@ export function NumberInput({
         if (raw.trim() === '') {
           return
         }
-        const parsed = Number(raw)
+        // Allow typing "1." / "0.5" without forcing a commit mid-keystroke for decimals.
+        if (!integer && (raw.endsWith('.') || raw.endsWith(','))) {
+          return
+        }
+        const parsed = Number(raw.replace(',', '.'))
         if (!Number.isFinite(parsed)) {
           return
         }
-        onValueChange(clampNumber(Math.trunc(parsed), min, max))
+        onValueChange(clampNumber(normalizeNumber(parsed, integer), min, max))
       }}
-      onBlur={(event) => commit(event.target.value)}
+      onBlur={(event) => commit(event.target.value.replace(',', '.'))}
     />
   )
 }

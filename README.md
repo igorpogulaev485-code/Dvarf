@@ -32,12 +32,13 @@
 - Multi-tab sync: BroadcastChannel + conflict UI
 - Text blocks: rename (`customLabel`), hide, add/delete custom notes; dual-write legacy LSS-shaped fields
 - Text blocks reorder: ↑↓ + `text_blocks_order` в sheet JSON
+- Inventory: coins, items (qty/weight/equipped), auto weight total + STR×15 capacity; gear seed with `weight_lb`
 
 ## Очередь
 
 Ближайшее:
 
-1. Spells / inventory на цифровом листе
+1. Spells на цифровом листе (slots + known/prepared + seed)
 2. Дожать play-контур листа (условия, ресурсы rest reset и т.п. по IA-референсу)
 
 Дальше по верхнему уровню (не начинать раньше времени):
