@@ -9,10 +9,11 @@
       "Уровень выбора (grants_level)",
       "Развилки, которые меняют лист: владения, навыки, инструменты, языки, caster third, именованные выборы (домен/земля/дракон/тотем/маневры-счётчик и т.п.)"
     ],
+    "superseded_inventory": "official5e_subclass_catalog_spec.json — полный список 118 официальных подклассов WotC (проверено по книгам + dnd.su; ttg.club — те же оф. источники). Этот файл оставлен как детализированный срез PHB+Artificer.",
     "out_of_scope_here": [
       "Полные тексты классовых фич по уровням (потом → traits / отдельный блок)",
       "Авто-подстановка domain/land/expanded spell lists в гримуар (можно пометить в data, UI позже)",
-      "Xanathar / SCAG / Fizban / другие книги сверх PHB+Tasha artificer",
+      "Полный оф. каталог сверх PHB+Tasha artificer → см. official5e_subclass_catalog_spec.json",
       "2024 PHB подклассы (заглушки srd-5.2 пока не трогаем)",
       "Eldritch Invocations / Elemental Disciplines как полный каталог опций (в спеке — count + note; каталог опций — следующей подволной)"
     ],
