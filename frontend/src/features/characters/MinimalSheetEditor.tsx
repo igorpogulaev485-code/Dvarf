@@ -296,8 +296,8 @@ export function MinimalSheetEditor({
     subraceRequired: boolean
   } | null>(null)
   const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
-  const [raceSetupBusy, setRaceSetupBusy] = useState(false)
   const channelRef = useRef<BroadcastChannel | null>(null)
+  const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
 
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
@@ -308,6 +308,7 @@ export function MinimalSheetEditor({
     [draft.classes],
   )
   const primaryClass = draft.classes[0]
+  const rulesEdition = baseCharacter.rules_edition as RulesEdition
 
   useEffect(() => {
     setBaseCharacter(character)
@@ -316,6 +317,24 @@ export function MinimalSheetEditor({
     setConflictOpen(false)
     setError(null)
   }, [character])
+
+  // Prefetch full race catalog so subrace popup opens without a second network round-trip.
+  useEffect(() => {
+    let active = true
+    raceCatalogCacheRef.current = null
+    listCatalogEntries({ kind: 'race', edition: rulesEdition })
+      .then((rows) => {
+        if (!active) return
+        raceCatalogCacheRef.current = rows
+      })
+      .catch(() => {
+        if (!active) return
+        raceCatalogCacheRef.current = null
+      })
+    return () => {
+      active = false
+    }
+  }, [rulesEdition, character.id])
 
   const onRemoteSaveRef = useRef(onRemoteSave)
   useEffect(() => {
@@ -576,37 +595,39 @@ export function MinimalSheetEditor({
       return
     }
 
-    setRaceSetupBusy(true)
-    try {
-      const children = await listCatalogEntries({
-        kind: 'race',
-        edition: baseCharacter.rules_edition as RulesEdition,
-        parentId: selected.id,
-      })
-      const subraces = children
-        .filter((row) => row.parent_id === selected.id)
-        .sort((a, b) => a.sort_order - b.sort_order || a.name_ru.localeCompare(b.name_ru, 'ru'))
-      const subraceRequired = raceSubraceRequired(selected.data)
-
-      if (subraces.length > 0 || raceGrantNeedsSetupDialog(rootDef)) {
-        setRaceGrantPicker({
-          root: selected,
-          subraces,
-          subraceRequired,
+    let allRaces = raceCatalogCacheRef.current
+    if (!allRaces) {
+      try {
+        allRaces = await listCatalogEntries({
+          kind: 'race',
+          edition: rulesEdition,
         })
+        raceCatalogCacheRef.current = allRaces
+      } catch {
+        onToast('Не удалось загрузить справочник рас — попробуй ещё раз')
         return
       }
-
-      commitRaceGrant({
-        selected,
-        picks: { abilityBonusKeys: [], languages: [], skills: [], tools: [], ancestryId: null },
-        def: rootDef,
-      })
-    } catch {
-      onToast('Не удалось загрузить подрасы — попробуй ещё раз')
-    } finally {
-      setRaceSetupBusy(false)
     }
+
+    const subraces = allRaces
+      .filter((row) => row.parent_id === selected.id)
+      .sort((a, b) => a.sort_order - b.sort_order || a.name_ru.localeCompare(b.name_ru, 'ru'))
+    const subraceRequired = raceSubraceRequired(selected.data)
+
+    if (subraces.length > 0 || raceGrantNeedsSetupDialog(rootDef)) {
+      setRaceGrantPicker({
+        root: selected,
+        subraces,
+        subraceRequired,
+      })
+      return
+    }
+
+    commitRaceGrant({
+      selected,
+      picks: { abilityBonusKeys: [], languages: [], skills: [], tools: [], ancestryId: null },
+      def: rootDef,
+    })
   }
 
   function applyHomebrewRace(name: string) {
@@ -948,7 +969,6 @@ export function MinimalSheetEditor({
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={raceSetupBusy}
                   onClick={() => setRaceHomebrewOpen(true)}
                 >
                   Хомбрю
