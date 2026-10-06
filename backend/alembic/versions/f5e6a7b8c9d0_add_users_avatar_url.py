@@ -1,7 +1,7 @@
 """add users.avatar_url
 
 Revision ID: f5e6a7b8c9d0
-Revises: d4e5f6071829
+Revises: e5f6071829a0
 Create Date: 2026-10-06 05:15:00.000000
 
 """
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "f5e6a7b8c9d0"
-down_revision: Union[str, Sequence[str], None] = "d4e5f6071829"
+down_revision: Union[str, Sequence[str], None] = "e5f6071829a0"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
