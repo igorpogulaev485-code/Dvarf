@@ -1,25 +1,51 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { RulesEdition } from '../../shared/api/characters'
+import type { CatalogEntry } from '../../shared/api/catalog'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import {
+  averageHpGain,
+  canTakeMulticlassLevel,
+  hitDieForClass,
+  isClassEligibleForMulticlass,
+  type AbilityScores,
+} from '../../shared/dnd/multiclassRules'
+import type { HitDie } from '../../shared/dnd/hitDice'
 import { CatalogCombobox } from '../catalog'
-import { Dialog, Field, Stack, Text } from '../../ui'
+import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
 export type LevelUpChoice =
-  | { type: 'same'; classId: string }
-  | { type: 'multiclass'; name: string; catalog_id: string | null }
+  | {
+      type: 'same'
+      classId: string
+      hpGain: number
+      hitDie: HitDie | null
+    }
+  | {
+      type: 'multiclass'
+      name: string
+      catalog_id: string | null
+      hpGain: number
+      hitDie: HitDie | null
+    }
 
 type LevelUpDialogProps = {
   open: boolean
   edition: RulesEdition
   classes: ClassLevelEntry[]
+  abilities: AbilityScores
+  constitutionMod: number
   onConfirm: (choice: LevelUpChoice) => void
   onClose: () => void
 }
+
+type HpMode = 'average' | 'manual'
 
 export function LevelUpDialog({
   open,
   edition,
   classes,
+  abilities,
+  constitutionMod,
   onConfirm,
   onClose,
 }: LevelUpDialogProps) {
@@ -27,6 +53,16 @@ export function LevelUpDialog({
   const [classId, setClassId] = useState(classes[0]?.id ?? '')
   const [newClassName, setNewClassName] = useState('')
   const [newCatalogId, setNewCatalogId] = useState<string | null>(null)
+  const [newCatalogData, setNewCatalogData] = useState<Record<string, unknown> | null>(
+    null,
+  )
+  const [hpMode, setHpMode] = useState<HpMode>('average')
+  const [manualHp, setManualHp] = useState<number | null>(null)
+
+  const currentClassNames = useMemo(
+    () => classes.map((row) => row.name).filter((name) => name.trim()),
+    [classes],
+  )
 
   useEffect(() => {
     if (!open) return
@@ -34,12 +70,71 @@ export function LevelUpDialog({
     setClassId(classes[0]?.id ?? '')
     setNewClassName('')
     setNewCatalogId(null)
+    setNewCatalogData(null)
+    setHpMode('average')
+    setManualHp(null)
   }, [open, classes])
 
-  const canConfirm =
-    mode === 'same'
-      ? Boolean(classId && classes.some((row) => row.id === classId))
-      : Boolean(newClassName.trim())
+  const targetClass = useMemo(() => {
+    if (mode === 'same') {
+      const row = classes.find((item) => item.id === classId) ?? classes[0]
+      return {
+        name: row?.name ?? '',
+        catalogData: null as Record<string, unknown> | null,
+      }
+    }
+    return {
+      name: newClassName,
+      catalogData: newCatalogData,
+    }
+  }, [mode, classes, classId, newClassName, newCatalogData])
+
+  const hitDie = useMemo(
+    () =>
+      hitDieForClass({
+        className: targetClass.name,
+        catalogData: targetClass.catalogData,
+      }),
+    [targetClass],
+  )
+
+  const averageGain = hitDie ? averageHpGain(hitDie, constitutionMod) : null
+
+  const multiclassGate = useMemo(() => {
+    if (mode !== 'multiclass') return null
+    if (!newClassName.trim()) return null
+    return canTakeMulticlassLevel({
+      newClassName,
+      currentClassNames,
+      abilities,
+    })
+  }, [mode, newClassName, currentClassNames, abilities])
+
+  const hpGain =
+    hpMode === 'average'
+      ? averageGain
+      : manualHp == null
+        ? null
+        : Math.floor(manualHp)
+
+  const canConfirm = (() => {
+    if (hpGain == null || !Number.isFinite(hpGain)) return false
+    if (mode === 'same') {
+      return Boolean(classId && classes.some((row) => row.id === classId))
+    }
+    if (!newCatalogId || !newClassName.trim()) return false
+    return multiclassGate?.ok === true
+  })()
+
+  const filterEligibleClassStable = useCallback(
+    (entry: CatalogEntry) =>
+      isClassEligibleForMulticlass({
+        className: entry.name_ru,
+        currentClassNames,
+        abilities,
+      }),
+    [currentClassNames, abilities],
+  )
 
   return (
     <Dialog
@@ -48,15 +143,17 @@ export function LevelUpDialog({
       primaryLabel="Повысить"
       secondaryLabel="Отмена"
       onPrimary={() => {
-        if (!canConfirm) return
+        if (!canConfirm || hpGain == null) return
         if (mode === 'same') {
-          onConfirm({ type: 'same', classId })
+          onConfirm({ type: 'same', classId, hpGain, hitDie })
           return
         }
         onConfirm({
           type: 'multiclass',
           name: newClassName.trim(),
           catalog_id: newCatalogId,
+          hpGain,
+          hitDie,
         })
       }}
       onSecondary={onClose}
@@ -64,7 +161,7 @@ export function LevelUpDialog({
       <Stack gap={12}>
         <Text tone="muted">
           Куда идёт новый уровень персонажа? Можно прокачать уже взятый класс или взять 1 уровень
-          другого (мультикласс).
+          другого (мультикласс). Характеристики должны удовлетворять требованиям PHB 2014.
         </Text>
 
         <div className="chip-row">
@@ -101,17 +198,55 @@ export function LevelUpDialog({
         ) : (
           <Field
             label="Новый класс"
-            hint="1 уровень в другом классе. Если класс уже есть — просто +1 к нему."
+            hint="Только из справочника классов. В списке — классы, которым хватает характеристик (новый + уже взятые)."
           >
             <CatalogCombobox
               kind="class"
               edition={edition}
               value={newClassName}
-              placeholder="Например: Волшебник"
+              placeholder="Начните вводить класс"
+              filterEntry={filterEligibleClassStable}
               onChange={(value, selected) => {
                 setNewClassName(value)
                 setNewCatalogId(selected?.id ?? null)
+                setNewCatalogData(selected?.data ?? null)
               }}
+            />
+          </Field>
+        )}
+
+        <Field label="Хиты за уровень">
+          <div className="chip-row">
+            <button
+              type="button"
+              className={`sheet-chip${hpMode === 'average' ? ' is-on' : ''}`}
+              onClick={() => setHpMode('average')}
+            >
+              Среднее
+            </button>
+            <button
+              type="button"
+              className={`sheet-chip${hpMode === 'manual' ? ' is-on' : ''}`}
+              onClick={() => setHpMode('manual')}
+            >
+              Вручную
+            </button>
+          </div>
+        </Field>
+
+        {hpMode === 'average' ? (
+          <Text tone="muted">
+            {hitDie && averageGain != null
+              ? `Среднее по ${hitDie}: ⌊${hitDie.slice(1)}/2⌋+1 + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) = +${averageGain} к макс. HP`
+              : 'Не удалось определить кость хитов класса — выбери класс из справочника или введи HP вручную.'}
+          </Text>
+        ) : (
+          <Field label="Прибавка к макс. HP" hint="Бросок кости + модификатор ТЕЛ">
+            <NumberInput
+              min={1}
+              emptyValue={null}
+              value={manualHp}
+              onValueChange={setManualHp}
             />
           </Field>
         )}
@@ -119,8 +254,20 @@ export function LevelUpDialog({
         {!canConfirm ? (
           <Text tone="muted">
             {mode === 'same'
-              ? 'Выбери класс, в который идёт уровень.'
-              : 'Укажи название нового класса.'}
+              ? hitDie == null && hpMode === 'average'
+                ? 'Нужна кость хитов класса или ручной ввод HP.'
+                : hpMode === 'manual' && manualHp == null
+                  ? 'Укажи прибавку к HP.'
+                  : 'Выбери класс, в который идёт уровень.'
+              : multiclassGate && !multiclassGate.ok
+                ? multiclassGate.reason
+                : !newCatalogId
+                  ? 'Выбери класс из справочника (не свободный текст).'
+                  : hpMode === 'manual' && manualHp == null
+                    ? 'Укажи прибавку к HP.'
+                    : hitDie == null && hpMode === 'average'
+                      ? 'Нужна кость хитов или ручной ввод HP.'
+                      : 'Укажи новый класс из справочника.'}
           </Text>
         ) : null}
       </Stack>

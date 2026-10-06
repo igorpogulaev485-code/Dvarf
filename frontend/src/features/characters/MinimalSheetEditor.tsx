@@ -319,20 +319,30 @@ export function MinimalSheetEditor({
               catalog_id: choice.catalog_id,
             })
       const nextLevel = totalCharacterLevel(nextClasses)
+      const gain = Math.max(0, Math.floor(choice.hpGain))
+      const prevMax = prev.hpMax
+      const nextMax = prevMax == null ? gain : prevMax + gain
+      const prevCurrent = prev.hpCurrent
+      const nextCurrent =
+        prevCurrent == null ? nextMax : Math.min(nextMax, prevCurrent + gain)
       return {
         ...prev,
         classes: nextClasses,
+        hpMax: nextMax,
+        hpCurrent: nextCurrent,
         play: {
           ...prev.play,
           hitDiceCurrent: Math.min(prev.play.hitDiceCurrent + 1, nextLevel),
+          hitDie: choice.hitDie ?? prev.play.hitDie,
         },
       }
     })
     setLevelUpOpen(false)
+    const hpNote = ` · HP +${Math.max(0, Math.floor(choice.hpGain))}`
     onToast(
       choice.type === 'same'
-        ? 'Уровень класса +1'
-        : `Мультикласс: ${choice.name.trim()} 1`,
+        ? `Уровень класса +1${hpNote}`
+        : `Мультикласс: ${choice.name.trim()} 1${hpNote}`,
     )
   }
 
@@ -979,6 +989,8 @@ export function MinimalSheetEditor({
         open={levelUpOpen}
         edition={baseCharacter.rules_edition as RulesEdition}
         classes={draft.classes}
+        abilities={draft.abilities}
+        constitutionMod={abilityModifier(draft.abilities.con)}
         onConfirm={applyLevelUp}
         onClose={() => setLevelUpOpen(false)}
       />
