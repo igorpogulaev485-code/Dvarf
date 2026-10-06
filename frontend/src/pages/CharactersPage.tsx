@@ -5,6 +5,7 @@ import {
   CharacterList,
   CreateCharacterButton,
 } from '../features/characters'
+import { getMe, type User } from '../shared/api/auth'
 import {
   createCharacter,
   listCharacters,
@@ -14,9 +15,18 @@ import {
 import { ApiRequestError } from '../shared/api/client'
 import { Stack, Text, Toast } from '../ui'
 
+function listSubtitle(user: User | null, count: number): string {
+  const who = user?.display_name || user?.login || user?.email
+  if (who) {
+    return `${who} · ${count} в списке`
+  }
+  return `${count} в вашем списке`
+}
+
 export function CharactersPage() {
   const navigate = useNavigate()
   const [characters, setCharacters] = useState<CharacterSummary[]>([])
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -27,11 +37,13 @@ export function CharactersPage() {
   useEffect(() => {
     let active = true
     setLoading(true)
-    listCharacters()
-      .then((items) => {
-        if (active) {
-          setCharacters(items)
+    Promise.all([listCharacters(), getMe().catch(() => null)])
+      .then(([items, me]) => {
+        if (!active) {
+          return
         }
+        setCharacters(items)
+        setUser(me)
       })
       .catch((err: unknown) => {
         if (!active) {
@@ -42,6 +54,7 @@ export function CharactersPage() {
           return
         }
         setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить персонажей')
+        setCharacters([])
       })
       .finally(() => {
         if (active) {
@@ -73,7 +86,7 @@ export function CharactersPage() {
       <Stack gap={20}>
         <AppHeader
           title="Мои персонажи"
-          subtitle={loading ? 'Загрузка...' : `${characters.length} в вашем списке`}
+          subtitle={loading ? 'Загрузка...' : listSubtitle(user, characters.length)}
           onOfficialSite={() => setToast('Официальный сайт скоро появится')}
         />
 

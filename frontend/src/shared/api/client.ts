@@ -95,6 +95,10 @@ export async function apiRequest<T>(
   if (!headers.has('Content-Type') && options.body) {
     headers.set('Content-Type', 'application/json')
   }
+  if (!headers.has('Accept')) {
+    // Avoid nginx SPA rewrite on /characters when browser sends Accept: text/html
+    headers.set('Accept', 'application/json')
+  }
 
   const accessToken = getAccessToken()
   if (accessToken) {

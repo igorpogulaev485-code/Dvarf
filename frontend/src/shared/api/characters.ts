@@ -22,7 +22,11 @@ export type CharacterDetail = CharacterSummary & {
 }
 
 export async function listCharacters(): Promise<CharacterSummary[]> {
-  return apiRequest<CharacterSummary[]>('/characters')
+  const data = await apiRequest<CharacterSummary[] | unknown>('/characters')
+  if (!Array.isArray(data)) {
+    throw new Error('Некорректный ответ списка персонажей')
+  }
+  return data
 }
 
 export async function createCharacter(
