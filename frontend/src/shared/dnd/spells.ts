@@ -84,3 +84,33 @@ export function spendSpellSlot(
     },
   }
 }
+
+export type PactSlotState = {
+  max: number
+  used: number
+  level: number
+}
+
+export function clampPactSlots(pact: PactSlotState): PactSlotState {
+  const max = Math.max(0, Math.floor(pact.max))
+  const level = Math.max(1, Math.min(9, Math.floor(pact.level || 1)))
+  const used = Math.min(max, Math.max(0, Math.floor(pact.used)))
+  return { max, used, level }
+}
+
+/** 2014 warlock: leveled cast uses a pact slot if spell level ≤ pact level. */
+export function canSpendPactSlot(pact: PactSlotState | null, spellLevel: number): boolean {
+  if (!pact || spellLevel <= 0) return false
+  const clamped = clampPactSlots(pact)
+  return clamped.max > 0 && clamped.used < clamped.max && spellLevel <= clamped.level
+}
+
+export function spendPactSlot(
+  pact: PactSlotState,
+): { ok: true; pact: PactSlotState } | { ok: false; reason: 'no_slot' } {
+  const clamped = clampPactSlots(pact)
+  if (clamped.max <= 0 || clamped.used >= clamped.max) {
+    return { ok: false, reason: 'no_slot' }
+  }
+  return { ok: true, pact: { ...clamped, used: clamped.used + 1 } }
+}

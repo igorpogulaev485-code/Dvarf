@@ -7,9 +7,11 @@ import {
 } from '../../shared/dnd/conditions'
 import {
   HIT_DIE_OPTIONS,
+  applyHitDieHeal,
   clampDeathMarks,
   clampHitDiceCurrent,
   spendHitDie,
+  suggestedHitDieHeal,
   type HitDie,
 } from '../../shared/dnd/hitDice'
 import {
@@ -35,6 +37,7 @@ type PlayPanelProps = {
   level: number
   hpCurrent: number | null
   hpMax: number | null
+  constitutionMod: number
   play: PlayState
   spells: SpellsState
   onPlayChange: (play: PlayState) => void
@@ -83,6 +86,7 @@ export function PlayPanel({
   level,
   hpCurrent,
   hpMax,
+  constitutionMod,
   play,
   spells,
   onPlayChange,
@@ -92,6 +96,14 @@ export function PlayPanel({
 }: PlayPanelProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
   const hitDiceMax = Math.max(1, Math.floor(level))
+  const suggestedHeal = play.hitDie
+    ? suggestedHitDieHeal(play.hitDie, constitutionMod)
+    : null
+  const [healAmount, setHealAmount] = useState<number | null>(null)
+
+  useEffect(() => {
+    setHealAmount(suggestedHeal)
+  }, [suggestedHeal])
 
   useEffect(() => {
     let active = true
@@ -153,7 +165,27 @@ export function PlayPanel({
   function doShortRest() {
     const result = applyShortRest({ resources: play.resources })
     patchPlay({ resources: result.resources })
-    onToast('Короткий отдых: ресурсы «короткий». Кости хитов трать вручную.')
+    onToast('Короткий отдых: ресурсы «короткий». Лечись костью ниже.')
+  }
+
+  function healWithHitDie() {
+    if (!play.hitDie || play.hitDiceCurrent <= 0) {
+      onToast('Нужна кость хитов и хотя бы 1 доступная')
+      return
+    }
+    if (hpMax == null) {
+      onToast('Задай максимум HP, чтобы лечиться костью')
+      return
+    }
+    const amount = Math.max(0, Math.floor(healAmount ?? suggestedHeal ?? 0))
+    const nextHp = applyHitDieHeal({
+      hpCurrent,
+      hpMax,
+      healAmount: amount,
+    })
+    patchPlay({ hitDiceCurrent: spendHitDie(play.hitDiceCurrent) })
+    onCombatChange({ hpCurrent: nextHp })
+    onToast(`Лечение костью ${play.hitDie}: +${amount} HP`)
   }
 
   function doLongRest() {
@@ -222,7 +254,7 @@ export function PlayPanel({
         <div>
           <Text tone="muted">
             Кости хитов: {play.hitDiceCurrent} / {hitDiceMax}
-            {play.hitDie ? ` (${play.hitDie})` : ''} · короткий отдых — трать вручную
+            {play.hitDie ? ` (${play.hitDie})` : ''} · на коротком отдыхе можно лечиться
           </Text>
           <div className="play-hit-dice">
             <SlotPips
@@ -235,16 +267,45 @@ export function PlayPanel({
                 })
               }
             />
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={play.hitDiceCurrent <= 0}
-              onClick={() =>
-                patchPlay({ hitDiceCurrent: spendHitDie(play.hitDiceCurrent) })
-              }
-            >
-              Потратить кость
-            </Button>
+            <div className="play-hit-heal">
+              <Field
+                label="Лечение от кости"
+                hint={
+                  play.hitDie
+                    ? `Среднее ${play.hitDie} + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod})`
+                    : 'Сначала выбери кость хитов'
+                }
+              >
+                <NumberInput
+                  min={0}
+                  emptyValue={0}
+                  value={healAmount}
+                  onValueChange={(value) => setHealAmount(value ?? 0)}
+                  disabled={!play.hitDie}
+                />
+              </Field>
+              <div className="play-hit-heal__actions">
+                <Button
+                  type="button"
+                  disabled={
+                    !play.hitDie || play.hitDiceCurrent <= 0 || hpMax == null
+                  }
+                  onClick={healWithHitDie}
+                >
+                  Лечиться костью
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={play.hitDiceCurrent <= 0}
+                  onClick={() =>
+                    patchPlay({ hitDiceCurrent: spendHitDie(play.hitDiceCurrent) })
+                  }
+                >
+                  Потратить без лечения
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 

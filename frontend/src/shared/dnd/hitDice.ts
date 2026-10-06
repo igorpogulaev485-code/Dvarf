@@ -27,3 +27,24 @@ export function recoverHitDiceOnLongRest(current: number, max: number): number {
 export function spendHitDie(current: number): number {
   return Math.max(0, Math.floor(current) - 1)
 }
+
+export function hitDieSides(die: HitDie): number {
+  return Number(die.slice(1))
+}
+
+/** Average die face (e.g. d8 → 5) + CON mod; floor at 0 before CON can still heal 0+. */
+export function suggestedHitDieHeal(die: HitDie, constitutionMod: number): number {
+  const avg = Math.ceil(hitDieSides(die) / 2) + 1
+  return Math.max(0, avg + constitutionMod)
+}
+
+export function applyHitDieHeal(input: {
+  hpCurrent: number | null
+  hpMax: number | null
+  healAmount: number
+}): number | null {
+  if (input.hpMax == null) return input.hpCurrent
+  const current = input.hpCurrent ?? 0
+  const heal = Math.max(0, Math.floor(input.healAmount))
+  return Math.min(input.hpMax, current + heal)
+}

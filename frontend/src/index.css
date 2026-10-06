@@ -749,6 +749,43 @@ input {
   margin-top: 8px;
 }
 
+.play-hit-heal {
+  display: grid;
+  gap: 10px;
+}
+
+.play-hit-heal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pact-settings {
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+
+.pact-pips {
+  margin-top: 4px;
+}
+
+.attune-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.attune-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .play-death {
   display: grid;
   gap: 10px;

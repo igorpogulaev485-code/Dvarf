@@ -5,8 +5,11 @@ import type { RulesEdition } from '../../shared/api/characters'
 import {
   SPELLCASTING_ABILITIES,
   SPELLCASTING_ABILITY_LABELS,
+  canSpendPactSlot,
   canSpendSlot,
+  clampPactSlots,
   levelLabel,
+  spendPactSlot,
   spendSpellSlot,
   spellAttackBonus,
   spellSaveDc,
@@ -136,19 +139,48 @@ export function SpellsPanel({
 
   function confirmCast() {
     if (!castSpell) return
+    const name = castSpell.name || 'Заклинание'
+    if (castSpell.level <= 0) {
+      onToast?.(`Каст: ${name}`)
+      setCastSpell(null)
+      return
+    }
+    if (canSpendPactSlot(spells.pact_slots, castSpell.level) && spells.pact_slots) {
+      const pactResult = spendPactSlot(spells.pact_slots)
+      if (pactResult.ok) {
+        patch({ pact_slots: pactResult.pact })
+        onToast?.(
+          `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)`,
+        )
+        setCastSpell(null)
+        return
+      }
+    }
     const result = spendSpellSlot(spells.slots, castSpell.level)
     if (!result.ok) {
       onToast?.(`Нет ячеек ${castSpell.level}-го уровня`)
       return
     }
     patch({ slots: result.slots })
-    const name = castSpell.name || 'Заклинание'
-    if (castSpell.level <= 0) {
-      onToast?.(`Каст: ${name}`)
-    } else {
-      onToast?.(`Каст: ${name} (−1 ячейка ${castSpell.level} ур.)`)
-    }
+    onToast?.(`Каст: ${name} (−1 ячейка ${castSpell.level} ур.)`)
     setCastSpell(null)
+  }
+
+  function enablePact() {
+    patch({
+      pact_slots: clampPactSlots({ max: 1, used: 0, level: 1 }),
+    })
+  }
+
+  function disablePact() {
+    patch({ pact_slots: null })
+  }
+
+  function patchPact(partial: { max?: number; used?: number; level?: number }) {
+    if (!spells.pact_slots) return
+    patch({
+      pact_slots: clampPactSlots({ ...spells.pact_slots, ...partial }),
+    })
   }
 
   const prepareLimitLabel =
@@ -239,7 +271,56 @@ export function SpellsPanel({
                   })}
                 </div>
               </div>
+              <div className="pact-settings">
+                <div className="play-resources-head">
+                  <Text>Pact magic (варлок)</Text>
+                  {spells.pact_slots ? (
+                    <button type="button" className="linkish" onClick={disablePact}>
+                      Выключить
+                    </button>
+                  ) : (
+                    <Button type="button" variant="secondary" onClick={enablePact}>
+                      Включить
+                    </Button>
+                  )}
+                </div>
+                {spells.pact_slots ? (
+                  <div className="sheet-grid sheet-grid--2" style={{ marginTop: 8 }}>
+                    <Field label="Уровень pact">
+                      <NumberInput
+                        min={1}
+                        max={9}
+                        emptyValue={1}
+                        value={spells.pact_slots.level}
+                        onValueChange={(level) => patchPact({ level: level ?? 1 })}
+                      />
+                    </Field>
+                    <Field label="Макс. ячеек">
+                      <NumberInput
+                        min={0}
+                        max={10}
+                        emptyValue={0}
+                        value={spells.pact_slots.max}
+                        onValueChange={(max) => patchPact({ max: max ?? 0 })}
+                      />
+                    </Field>
+                  </div>
+                ) : (
+                  <Text tone="muted">Каст с pact тратит эти ячейки, если уровень заклинания ≤ pact.</Text>
+                )}
+              </div>
             </Stack>
+          </div>
+        ) : null}
+
+        {spells.pact_slots && spells.pact_slots.max > 0 ? (
+          <div className="pact-pips">
+            <SlotPips
+              max={spells.pact_slots.max}
+              used={spells.pact_slots.used}
+              label={`Pact ${spells.pact_slots.level}-го уровня`}
+              onChange={(used) => patchPact({ used })}
+            />
           </div>
         ) : null}
 
@@ -406,7 +487,9 @@ export function SpellsPanel({
                           className="spell-card__cast"
                           disabled={
                             (spell.level > 0 && !spell.prepared) ||
-                            (spell.level > 0 && !canSpendSlot(spells.slots, spell.level))
+                            (spell.level > 0 &&
+                              !canSpendSlot(spells.slots, spell.level) &&
+                              !canSpendPactSlot(spells.pact_slots, spell.level))
                           }
                           onClick={() => setCastSpell(spell)}
                         >

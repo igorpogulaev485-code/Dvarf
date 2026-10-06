@@ -79,7 +79,7 @@ export function InventoryPanel({
       <Stack gap={14}>
         <Text tone="muted">
           Монеты и вещи с весом. Итоговый вес считается сам (50 монет = 1 фнт) — лимит по СИЛ × 15.
-          Контейнеры и attunement позже.
+          Настройка магических предметов — блок ниже. Контейнеры — позже.
         </Text>
 
         <div className="inventory-summary">

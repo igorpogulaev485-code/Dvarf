@@ -14,6 +14,12 @@ import {
 } from '../../shared/sync/characterSheetChannel'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
+import { AttunementPanel } from './AttunementPanel'
+import {
+  attunementsToSheet,
+  readAttunements,
+  type AttunementSlot,
+} from './attunement'
 import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
 import { PlayPanel } from './PlayPanel'
@@ -85,6 +91,7 @@ type Draft = {
   inspiration: boolean
   weapons: WeaponAttack[]
   inventory: InventoryState
+  attunements: AttunementSlot[]
   spells: SpellsState
   play: PlayState
   textBlocks: TextBlock[]
@@ -175,6 +182,7 @@ function buildDraft(character: CharacterDetail): Draft {
     inspiration: Boolean(combat.inspiration),
     weapons: readWeapons(sheet),
     inventory: readInventory(sheet),
+    attunements: readAttunements(sheet),
     spells: readSpells(sheet),
     play: readPlay(sheet, character.level),
     textBlocks: readTextBlocks(sheet),
@@ -357,6 +365,7 @@ export function MinimalSheetEditor({
       sheet.weapons = draft.weapons
       sheet.resources = playSheet.resources
       Object.assign(sheet, inventoryToSheet(draft.inventory))
+      Object.assign(sheet, attunementsToSheet(draft.attunements))
       Object.assign(sheet, spellsToSheet(draft.spells))
       Object.assign(sheet, textBlocksToSheet(draft.textBlocks))
 
@@ -630,6 +639,7 @@ export function MinimalSheetEditor({
         level={draft.level}
         hpCurrent={draft.hpCurrent}
         hpMax={draft.hpMax}
+        constitutionMod={abilityModifier(draft.abilities.con)}
         play={draft.play}
         spells={draft.spells}
         onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
@@ -651,6 +661,12 @@ export function MinimalSheetEditor({
         inventory={draft.inventory}
         strengthScore={draft.abilities.str}
         onChange={(inventory) => setDraft((prev) => ({ ...prev, inventory }))}
+      />
+
+      <AttunementPanel
+        attunements={draft.attunements}
+        inventoryItems={draft.inventory.items}
+        onChange={(attunements) => setDraft((prev) => ({ ...prev, attunements }))}
       />
 
       <SpellsPanel

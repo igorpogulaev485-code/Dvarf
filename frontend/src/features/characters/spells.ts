@@ -1,7 +1,9 @@
 import {
+  clampPactSlots,
   clampSlot,
   countsTowardPrepareLimit,
   isSpellcastingAbility,
+  type PactSlotState,
   type SpellSlotState,
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
@@ -26,7 +28,7 @@ export type SpellsState = {
   /** Null = no hard prepare cap (set manually until class tables exist). */
   max_prepared: number | null
   slots: Record<string, SpellSlotState>
-  pact_slots: { max: number; used: number; level: number } | null
+  pact_slots: PactSlotState | null
   known: SheetSpell[]
 }
 
@@ -100,15 +102,17 @@ export function readSpells(sheet: Record<string, unknown>): SpellsState {
       : []
 
   const pactRaw = asRecord(spells.pact_slots)
-  const pactMax = readNumber(pactRaw.max, 0)
-  const pact_slots =
-    pactMax > 0
-      ? {
-          max: pactMax,
-          used: Math.min(pactMax, readNumber(pactRaw.used, 0)),
-          level: Math.max(1, Math.min(9, Math.floor(readNumber(pactRaw.level, 1)))),
-        }
-      : null
+  const hasPactKeys =
+    pactRaw.max != null || pactRaw.used != null || pactRaw.level != null || pactRaw.enabled === true
+  const pact_slots = hasPactKeys
+    ? clampPactSlots({
+        max: readNumber(pactRaw.max, 0),
+        used: readNumber(pactRaw.used, 0),
+        level: readNumber(pactRaw.level, 1),
+      })
+    : null
+  const pactNormalized =
+    pact_slots && pact_slots.max <= 0 && pactRaw.enabled !== true ? null : pact_slots
 
   return {
     casting_ability: isSpellcastingAbility(spells.casting_ability)
@@ -116,7 +120,7 @@ export function readSpells(sheet: Record<string, unknown>): SpellsState {
       : null,
     max_prepared: readNullableNumber(spells.max_prepared),
     slots,
-    pact_slots,
+    pact_slots: pactNormalized,
     known: knownRaw.map((item, index) => readSpell(item, index)),
   }
 }
