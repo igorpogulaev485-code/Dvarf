@@ -872,6 +872,19 @@ input {
   line-height: 1.35;
 }
 
+.languages-tools-add {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+@media (max-width: 520px) {
+  .languages-tools-add {
+    grid-template-columns: 1fr;
+  }
+}
+
 .passive-grid {
   display: grid;
   gap: 10px;
