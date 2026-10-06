@@ -37,8 +37,19 @@ import {
   type ClassGrantDraftSlice,
 } from './classEffects'
 import { ClassSetupDialog, HomebrewClassDialog } from './ClassSetupDialog'
+import { RaceSetupDialog, HomebrewRaceDialog } from './RaceSetupDialog'
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
+import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
+import {
+  isRaceComboboxRoot,
+  raceGrantNeedsSetupDialog,
+  raceSubraceRequired,
+  resolveRaceGrantDef,
+  type AppliedRaceGrant,
+  type RaceGrantDef,
+  type RaceGrantPicks,
+} from '../../shared/dnd/raceGrants'
 import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
 import { AttunementPanel } from './AttunementPanel'
 import {
@@ -65,7 +76,13 @@ import {
   readIdentityExtras,
   type IdentityExtras,
 } from './identity'
-import { applyRaceCatalogToDraft } from './raceEffects'
+import {
+  applyRaceGrantToDraft,
+  readAppliedRaceGrant,
+  reapplyRaceOverlays,
+  revokeRaceGrant,
+  type RaceGrantDraftSlice,
+} from './raceEffects'
 import {
   equippedArmorPieces,
   inventoryToSheet,
@@ -129,6 +146,7 @@ type Draft = {
   play: PlayState
   textBlocks: TextBlock[]
   classGrants: AppliedClassGrant[]
+  raceGrant: AppliedRaceGrant | null
 }
 
 function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -228,6 +246,7 @@ function buildDraft(character: CharacterDetail): Draft {
     play: readPlay(sheet, level),
     textBlocks: readTextBlocks(sheet),
     classGrants: readAppliedClassGrants(sheet.class_grants),
+    raceGrant: readAppliedRaceGrant(sheet.race_grant),
   }
 }
 
@@ -273,7 +292,14 @@ export function MinimalSheetEditor({
     classEntryId: string
     initialName: string
   } | null>(null)
+  const [raceGrantPicker, setRaceGrantPicker] = useState<{
+    root: CatalogEntry
+    subraces: CatalogEntry[]
+    subraceRequired: boolean
+  } | null>(null)
+  const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
   const channelRef = useRef<BroadcastChannel | null>(null)
+  const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
 
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
@@ -284,6 +310,7 @@ export function MinimalSheetEditor({
     [draft.classes],
   )
   const primaryClass = draft.classes[0]
+  const rulesEdition = baseCharacter.rules_edition as RulesEdition
 
   useEffect(() => {
     setBaseCharacter(character)
@@ -292,6 +319,24 @@ export function MinimalSheetEditor({
     setConflictOpen(false)
     setError(null)
   }, [character])
+
+  // Prefetch full race catalog so subrace popup opens without a second network round-trip.
+  useEffect(() => {
+    let active = true
+    raceCatalogCacheRef.current = null
+    listCatalogEntries({ kind: 'race', edition: rulesEdition })
+      .then((rows) => {
+        if (!active) return
+        raceCatalogCacheRef.current = rows
+      })
+      .catch(() => {
+        if (!active) return
+        raceCatalogCacheRef.current = null
+      })
+    return () => {
+      active = false
+    }
+  }, [rulesEdition, character.id])
 
   const onRemoteSaveRef = useRef(onRemoteSave)
   useEffect(() => {
@@ -355,8 +400,31 @@ export function MinimalSheetEditor({
     }
   }
 
-  function mergeGrantSlice(prev: Draft, slice: ClassGrantDraftSlice): Draft {
+  function raceSliceFrom(prev: Draft): RaceGrantDraftSlice {
+    const classSkills = new Set(prev.classGrants.flatMap((row) => row.skills))
+    const classTools = new Set(
+      prev.classGrants.flatMap((row) =>
+        row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
+      ),
+    )
+    const classArmor = new Set(
+      prev.classGrants.flatMap((row) => row.armorKeys),
+    ) as Set<keyof IdentityExtras['armor']>
     return {
+      identity: prev.identity,
+      skills: prev.skills,
+      abilities: prev.abilities,
+      speed: prev.speed,
+      textBlocks: prev.textBlocks,
+      raceGrant: prev.raceGrant,
+      classGrantedSkills: classSkills,
+      classGrantedTools: classTools,
+      classGrantedArmor: classArmor,
+    }
+  }
+
+  function mergeGrantSlice(prev: Draft, slice: ClassGrantDraftSlice): Draft {
+    const merged: Draft = {
       ...prev,
       identity: slice.identity,
       saves: slice.saves,
@@ -369,6 +437,20 @@ export function MinimalSheetEditor({
         ...prev.play,
         hitDie: slice.playHitDie,
       },
+    }
+    const restored = reapplyRaceOverlays(raceSliceFrom(merged))
+    return mergeRaceSlice(merged, restored)
+  }
+
+  function mergeRaceSlice(prev: Draft, slice: RaceGrantDraftSlice): Draft {
+    return {
+      ...prev,
+      identity: slice.identity,
+      skills: slice.skills,
+      abilities: slice.abilities,
+      speed: slice.speed,
+      textBlocks: slice.textBlocks,
+      raceGrant: slice.raceGrant,
     }
   }
 
@@ -468,6 +550,98 @@ export function MinimalSheetEditor({
       }
     })
     onToast(`Хомбрю-класс «${name}»: название на листе. Остальное заполни сам.`)
+  }
+
+  function commitRaceGrant(input: {
+    selected: CatalogEntry
+    picks: RaceGrantPicks
+    def?: RaceGrantDef | null
+  }) {
+    let summary: string | null = null
+    setDraft((prev) => {
+      const applied = applyRaceGrantToDraft({
+        draft: raceSliceFrom(prev),
+        selected: input.selected,
+        picks: input.picks,
+        def: input.def,
+      })
+      if (!applied) return prev
+      summary = applied.summary
+      return {
+        ...mergeRaceSlice(prev, applied.draft),
+        raceName: input.selected.name_ru,
+        raceCatalogId: input.selected.id,
+      }
+    })
+    if (summary) onToast(`Раса «${input.selected.name_ru}»: ${summary}`)
+  }
+
+  async function requestOrApplyRaceGrant(selected: CatalogEntry) {
+    if (!isRaceComboboxRoot(selected)) {
+      onToast(`«${selected.name_ru}» — выбери корневую расу; подраса будет в попапе`)
+      return
+    }
+    const rootDef = resolveRaceGrantDef({
+      raceName: selected.name_ru,
+      catalogSlug: selected.slug,
+      catalogData: selected.data,
+      nameRu: selected.name_ru,
+    })
+    if (!rootDef) {
+      onToast(`Раса «${selected.name_ru}» пока без пакета эффектов — выставь вручную`)
+      setDraft((prev) => ({
+        ...prev,
+        raceName: selected.name_ru,
+        raceCatalogId: selected.id,
+      }))
+      return
+    }
+
+    let allRaces = raceCatalogCacheRef.current
+    if (!allRaces) {
+      try {
+        allRaces = await listCatalogEntries({
+          kind: 'race',
+          edition: rulesEdition,
+        })
+        raceCatalogCacheRef.current = allRaces
+      } catch {
+        onToast('Не удалось загрузить справочник рас — попробуй ещё раз')
+        return
+      }
+    }
+
+    const subraces = allRaces
+      .filter((row) => row.parent_id === selected.id)
+      .sort((a, b) => a.sort_order - b.sort_order || a.name_ru.localeCompare(b.name_ru, 'ru'))
+    const subraceRequired = raceSubraceRequired(selected.data)
+
+    if (subraces.length > 0 || raceGrantNeedsSetupDialog(rootDef)) {
+      setRaceGrantPicker({
+        root: selected,
+        subraces,
+        subraceRequired,
+      })
+      return
+    }
+
+    commitRaceGrant({
+      selected,
+      picks: { abilityBonusKeys: [], languages: [], skills: [], tools: [], ancestryId: null },
+      def: rootDef,
+    })
+  }
+
+  function applyHomebrewRace(name: string) {
+    setDraft((prev) => {
+      const cleared = revokeRaceGrant(raceSliceFrom(prev))
+      return {
+        ...mergeRaceSlice(prev, cleared),
+        raceName: name,
+        raceCatalogId: null,
+      }
+    })
+    onToast(`Хомбрю-раса «${name}»: название на листе. Остальное заполни сам.`)
   }
 
   function applyLevelUp(choice: LevelUpChoice) {
@@ -609,6 +783,7 @@ export function MinimalSheetEditor({
       sheet.identity = identity
       Object.assign(sheet, classLevelsToSheet(draft.classes))
       sheet.class_grants = draft.classGrants
+      sheet.race_grant = draft.raceGrant
 
       for (const key of ABILITY_KEYS) {
         abilities[key] = { ...asRecord(abilities[key]), score: draft.abilities[key] }
@@ -772,7 +947,7 @@ export function MinimalSheetEditor({
             <Field
               label="Раса"
               htmlFor="sheet-race"
-              hint="Выбор из каталога подставляет скорость, ТЗ, языки и блок особенностей"
+              hint="В списке — раса; подрасу и остальные развилки выбираешь в попапе"
             >
               <CatalogCombobox
                 id="sheet-race"
@@ -780,6 +955,7 @@ export function MinimalSheetEditor({
                 edition={baseCharacter.rules_edition as RulesEdition}
                 value={draft.raceName}
                 placeholder="Начните вводить расу"
+                filterEntry={(entry) => isRaceComboboxRoot(entry)}
                 onChange={(value, selected) => {
                   if (!selected) {
                     setDraft((prev) => ({
@@ -789,34 +965,18 @@ export function MinimalSheetEditor({
                     }))
                     return
                   }
-                  let toast: string | null = null
-                  setDraft((prev) => {
-                    const applied = applyRaceCatalogToDraft({
-                      selected,
-                      identity: prev.identity,
-                      textBlocks: prev.textBlocks,
-                      previousRaceLanguages: prev.identity.raceAppliedLanguages,
-                    })
-                    if (!applied) {
-                      return {
-                        ...prev,
-                        raceName: selected.name_ru,
-                        raceCatalogId: selected.id,
-                      }
-                    }
-                    toast = `Раса «${selected.name_ru}»: ${applied.summary}`
-                    return {
-                      ...prev,
-                      raceName: selected.name_ru,
-                      raceCatalogId: selected.id,
-                      speed: applied.speed,
-                      identity: applied.identity,
-                      textBlocks: applied.textBlocks,
-                    }
-                  })
-                  if (toast) onToast(toast)
+                  void requestOrApplyRaceGrant(selected)
                 }}
               />
+              <div className="languages-tools-add" style={{ marginTop: 8 }}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setRaceHomebrewOpen(true)}
+                >
+                  Хомбрю
+                </Button>
+              </div>
             </Field>
             <Field label="Размер" htmlFor="sheet-size">
               <select
@@ -1237,6 +1397,32 @@ export function MinimalSheetEditor({
           if (!homebrewPicker) return
           applyHomebrewClass(homebrewPicker.classEntryId, name)
           setHomebrewPicker(null)
+        }}
+      />
+
+      <RaceSetupDialog
+        open={raceGrantPicker != null}
+        root={raceGrantPicker?.root ?? null}
+        subraces={raceGrantPicker?.subraces ?? []}
+        subraceRequired={raceGrantPicker?.subraceRequired ?? false}
+        onClose={() => setRaceGrantPicker(null)}
+        onConfirm={(result) => {
+          commitRaceGrant({
+            selected: result.entry,
+            picks: result.picks,
+            def: result.def,
+          })
+          setRaceGrantPicker(null)
+        }}
+      />
+
+      <HomebrewRaceDialog
+        open={raceHomebrewOpen}
+        initialName={draft.raceName}
+        onClose={() => setRaceHomebrewOpen(false)}
+        onConfirm={(name) => {
+          applyHomebrewRace(name)
+          setRaceHomebrewOpen(false)
         }}
       />
     </Stack>

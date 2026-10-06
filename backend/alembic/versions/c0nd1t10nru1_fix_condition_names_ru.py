@@ -1,7 +1,7 @@
 """Fix condition catalog Russian names + intoxicated
 
 Revision ID: c0nd1t10nru1
-Revises: b9d0e1f2a3c4
+Revises: a4b5c6d7e8f9
 Create Date: 2026-10-06 18:30:00.000000
 
 """
@@ -13,7 +13,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "c0nd1t10nru1"
-down_revision: Union[str, Sequence[str], None] = "b9d0e1f2a3c4"
+down_revision: Union[str, Sequence[str], None] = "a4b5c6d7e8f9"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

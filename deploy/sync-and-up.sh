@@ -10,13 +10,32 @@ REMOTE_DIR="${DVARF_REMOTE_DIR:-/opt/dvarf}"
 # See AGENTS.md and .cursor/skills/dvarf-prod-lineage/SKILL.md
 bash "$ROOT/deploy/preflight-prod.sh"
 
-# One shared key for all Cloud Agents: put private key in Cursor secret
-# DVARF_SSH_PRIVATE_KEY (full PEM). Matching pubkey stays on the VPS.
+# One shared key for all Cloud Agents: Cursor secret DVARF_SSH_PRIVATE_KEY.
+# Accepts full OpenSSH PEM OR raw base64 body of openssh-key-v1 (without headers).
 if [[ ! -f "$KEY" && -n "${DVARF_SSH_PRIVATE_KEY:-}" ]]; then
   mkdir -p "$(dirname "$KEY")"
   chmod 700 "$(dirname "$KEY")"
-  printf '%s\n' "$DVARF_SSH_PRIVATE_KEY" > "$KEY"
-  chmod 600 "$KEY"
+  python3 - "$KEY" <<'PY'
+import os, sys, base64, pathlib
+raw = os.environ.get("DVARF_SSH_PRIVATE_KEY", "").strip().strip('"').strip("'")
+path = pathlib.Path(sys.argv[1])
+if "BEGIN" in raw:
+    text = raw if raw.endswith("\n") else raw + "\n"
+else:
+    body = "".join(raw.split())
+    pad = (-len(body)) % 4
+    decoded = base64.b64decode(body + ("=" * pad))
+    if not decoded.startswith(b"openssh-key-v1"):
+        raise SystemExit("DVARF_SSH_PRIVATE_KEY is not an OpenSSH private key")
+    b64 = base64.encodebytes(decoded).decode("ascii")
+    text = (
+        "-----BEGIN OPENSSH PRIVATE KEY-----\n"
+        + b64
+        + "-----END OPENSSH PRIVATE KEY-----\n"
+    )
+path.write_text(text)
+path.chmod(0o600)
+PY
 fi
 
 if [[ ! -f "$KEY" ]]; then
