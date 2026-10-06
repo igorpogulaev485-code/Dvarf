@@ -5,6 +5,7 @@ export const sampleDwarfWizard2014: Character = {
   id: 'sample-dwarf-wizard',
   rulesEdition: '2014',
   sheetLayout: '2014',
+  updatedAt: new Date().toISOString(),
 
   name: '',
   classAndLevel: 'Волшебник 1',

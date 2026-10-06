@@ -52,6 +52,8 @@ export interface Character {
   rulesEdition: RulesEdition;
   /** Какой визуальный лист показываем */
   sheetLayout: SheetLayout;
+  /** ISO timestamp последнего сохранения (карточка ↔ лист) */
+  updatedAt: string;
 
   name: string;
   classAndLevel: string;
