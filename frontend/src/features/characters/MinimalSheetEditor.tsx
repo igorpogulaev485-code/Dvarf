@@ -14,6 +14,7 @@ import {
 } from '../../shared/sync/characterSheetChannel'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
+import { CombatStickyHeader } from './CombatStickyHeader'
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
@@ -47,6 +48,8 @@ type Draft = {
   hpMax: number | null
   ac: number | null
   speed: number | null
+  initiativeOverride: number | null
+  inspiration: boolean
   weapons: WeaponAttack[]
 }
 
@@ -130,6 +133,8 @@ function buildDraft(character: CharacterDetail): Draft {
     hpMax: character.hp_max ?? readNullableNumber(combat.hp_max),
     ac: readNullableNumber(combat.ac),
     speed: readNullableNumber(combat.speed),
+    initiativeOverride: readNullableNumber(combat.initiative),
+    inspiration: Boolean(combat.inspiration),
     weapons: readWeapons(sheet),
   }
 }
@@ -265,6 +270,8 @@ export function MinimalSheetEditor({
       combat.hp_max = draft.hpMax
       combat.ac = draft.ac
       combat.speed = draft.speed
+      combat.initiative = draft.initiativeOverride
+      combat.inspiration = draft.inspiration
       sheet.combat = combat
       sheet.weapons = draft.weapons
 
@@ -302,6 +309,21 @@ export function MinimalSheetEditor({
 
   return (
     <Stack gap={16}>
+      <CombatStickyHeader
+        name={draft.name}
+        raceName={draft.raceName}
+        className={draft.className}
+        level={draft.level}
+        abilities={draft.abilities}
+        hpCurrent={draft.hpCurrent}
+        hpMax={draft.hpMax}
+        ac={draft.ac}
+        speed={draft.speed}
+        initiativeOverride={draft.initiativeOverride}
+        inspiration={draft.inspiration}
+        onChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
+      />
+
       <Panel title="Основное">
         <Stack gap={12}>
           <Field label="Имя" htmlFor="sheet-name">
@@ -392,39 +414,6 @@ export function MinimalSheetEditor({
               </label>
             )
           })}
-        </div>
-      </Panel>
-
-      <Panel title="Бой">
-        <div className="sheet-grid sheet-grid--4">
-          <Field label="HP сейчас" htmlFor="sheet-hp-current">
-            <NumberInput
-              id="sheet-hp-current"
-              value={draft.hpCurrent}
-              onValueChange={(hpCurrent) => setDraft((prev) => ({ ...prev, hpCurrent }))}
-            />
-          </Field>
-          <Field label="HP макс" htmlFor="sheet-hp-max">
-            <NumberInput
-              id="sheet-hp-max"
-              value={draft.hpMax}
-              onValueChange={(hpMax) => setDraft((prev) => ({ ...prev, hpMax }))}
-            />
-          </Field>
-          <Field label="КД" htmlFor="sheet-ac">
-            <NumberInput
-              id="sheet-ac"
-              value={draft.ac}
-              onValueChange={(ac) => setDraft((prev) => ({ ...prev, ac }))}
-            />
-          </Field>
-          <Field label="Скорость" htmlFor="sheet-speed">
-            <NumberInput
-              id="sheet-speed"
-              value={draft.speed}
-              onValueChange={(speed) => setDraft((prev) => ({ ...prev, speed }))}
-            />
-          </Field>
         </div>
       </Panel>
 

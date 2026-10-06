@@ -527,6 +527,89 @@ input {
   border-color: #fdba74;
 }
 
+.combat-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 252, 248, 0.94);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 28px rgba(28, 25, 23, 0.08);
+}
+
+.combat-sticky__identity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.combat-sticky__name {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.combat-sticky__sub {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.combat-sticky__stats {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.combat-sticky__hp,
+.combat-sticky__init {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.combat-sticky__hp-sep {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.combat-sticky__reset,
+.combat-chip {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 12px;
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.combat-sticky__reset {
+  padding: 10px 12px;
+  white-space: nowrap;
+}
+
+.combat-chip {
+  padding: 10px 14px;
+}
+
+.combat-chip.is-on {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 30%, white);
+  color: var(--accent);
+}
+
+@media (min-width: 768px) {
+  .combat-sticky__stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .attack-card__grid {
   display: grid;
   gap: 10px;
