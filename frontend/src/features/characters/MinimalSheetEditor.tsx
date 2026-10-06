@@ -15,6 +15,12 @@ import {
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
 import { CombatStickyHeader } from './CombatStickyHeader'
+import { TextBlocksPanel } from './TextBlocksPanel'
+import {
+  readTextBlocks,
+  textBlocksToSheet,
+  type TextBlock,
+} from './textBlocks'
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
@@ -51,6 +57,7 @@ type Draft = {
   initiativeOverride: number | null
   inspiration: boolean
   weapons: WeaponAttack[]
+  textBlocks: TextBlock[]
 }
 
 function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -136,6 +143,7 @@ function buildDraft(character: CharacterDetail): Draft {
     initiativeOverride: readNullableNumber(combat.initiative),
     inspiration: Boolean(combat.inspiration),
     weapons: readWeapons(sheet),
+    textBlocks: readTextBlocks(sheet),
   }
 }
 
@@ -274,6 +282,7 @@ export function MinimalSheetEditor({
       combat.inspiration = draft.inspiration
       sheet.combat = combat
       sheet.weapons = draft.weapons
+      Object.assign(sheet, textBlocksToSheet(draft.textBlocks))
 
       const updated = await updateCharacter(baseCharacter.id, {
         sheet_version: sheetVersion,
@@ -485,6 +494,11 @@ export function MinimalSheetEditor({
         </div>
         <Text tone="muted">Клик: нет → владение → экспертиза → нет</Text>
       </Panel>
+
+      <TextBlocksPanel
+        blocks={draft.textBlocks}
+        onChange={(textBlocks) => setDraft((prev) => ({ ...prev, textBlocks }))}
+      />
 
       {error ? <Text tone="danger">{error}</Text> : null}
 
