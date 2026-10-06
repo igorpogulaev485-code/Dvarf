@@ -24,6 +24,8 @@ export type LevelUpChoice =
       type: 'multiclass'
       name: string
       catalog_id: string | null
+      catalog_slug: string | null
+      catalog_data: Record<string, unknown> | null
       hpGain: number
       hitDie: HitDie | null
     }
@@ -53,6 +55,7 @@ export function LevelUpDialog({
   const [classId, setClassId] = useState(classes[0]?.id ?? '')
   const [newClassName, setNewClassName] = useState('')
   const [newCatalogId, setNewCatalogId] = useState<string | null>(null)
+  const [newCatalogSlug, setNewCatalogSlug] = useState<string | null>(null)
   const [newCatalogData, setNewCatalogData] = useState<Record<string, unknown> | null>(
     null,
   )
@@ -70,6 +73,7 @@ export function LevelUpDialog({
     setClassId(classes[0]?.id ?? '')
     setNewClassName('')
     setNewCatalogId(null)
+    setNewCatalogSlug(null)
     setNewCatalogData(null)
     setHpMode('average')
     setManualHp(null)
@@ -152,6 +156,8 @@ export function LevelUpDialog({
           type: 'multiclass',
           name: newClassName.trim(),
           catalog_id: newCatalogId,
+          catalog_slug: newCatalogSlug,
+          catalog_data: newCatalogData,
           hpGain,
           hitDie,
         })
@@ -209,6 +215,7 @@ export function LevelUpDialog({
               onChange={(value, selected) => {
                 setNewClassName(value)
                 setNewCatalogId(selected?.id ?? null)
+                setNewCatalogSlug(selected?.slug ?? null)
                 setNewCatalogData(selected?.data ?? null)
               }}
             />

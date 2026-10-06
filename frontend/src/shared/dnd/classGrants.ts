@@ -34,6 +34,8 @@ export type ClassGrantDef = {
   hitDie: HitDie
   start: ClassProficiencyPackage
   multiclass: ClassProficiencyPackage
+  /** When set (e.g. from catalog.data), preferred over CLASS_STARTING_EQUIPMENT. */
+  equipment?: StartingEquipmentPackage[]
 }
 
 export type StartingGearItem = {
@@ -279,10 +281,47 @@ export const CLASS_STARTING_EQUIPMENT: Record<string, StartingEquipmentPackage[]
     ]),
     gear('gold', 'Золото', '4к4×10 зм (на старте: 100 зм)', [], 100),
   ],
+  artificer: [
+    gear(
+      'a',
+      'Вариант A',
+      '2 простых оружия + лёгкий арбалет + клёпаный кожаный + воровские + набор исследователя',
+      [
+        item('Боевой посох'),
+        item('Кинжал'),
+        item('Лёгкий арбалет'),
+        item('Болты арбалета', { qty: 20 }),
+        item('Клёпаный кожаный доспех', { armor_kind: 'light', base_ac: 12, weight_lb: 13 }),
+        item('Воровские инструменты'),
+        item('Набор исследователя'),
+      ],
+    ),
+    gear(
+      'b',
+      'Вариант B',
+      '2 простых оружия + лёгкий арбалет + чешуйчатый + воровские + набор исследователя',
+      [
+        item('Боевой посох'),
+        item('Кинжал'),
+        item('Лёгкий арбалет'),
+        item('Болты арбалета', { qty: 20 }),
+        item('Чешуйчатый доспех', { armor_kind: 'medium', base_ac: 14, weight_lb: 45 }),
+        item('Воровские инструменты'),
+        item('Набор исследователя'),
+      ],
+    ),
+    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
+  ],
 }
 
 export function startingEquipmentFor(slug: string): StartingEquipmentPackage[] {
   return CLASS_STARTING_EQUIPMENT[slug] ?? []
+}
+
+/** Prefer packages attached to a resolved def (catalog), else local fallback. */
+export function equipmentPackagesFor(def: ClassGrantDef): StartingEquipmentPackage[] {
+  if (def.equipment && def.equipment.length > 0) return def.equipment
+  return startingEquipmentFor(def.slug)
 }
 
 /** Common artisan tools (PHB) for monk tool choice. */
@@ -697,6 +736,36 @@ export const CLASS_GRANT_DEFS: Record<string, ClassGrantDef> = {
       weapons: [],
     }),
   },
+  artificer: {
+    slug: 'artificer',
+    labelRu: 'Изобретатель',
+    hitDie: 'd8',
+    start: pkg({
+      saves: ['con', 'int'],
+      armor: ['light', 'medium', 'shields'],
+      weapons: ['simple'],
+      skillChoices: {
+        count: 2,
+        from: [
+          'arcana',
+          'history',
+          'investigation',
+          'medicine',
+          'nature',
+          'perception',
+          'sleight_of_hand',
+        ],
+      },
+      toolsFixed: ['Воровские инструменты', 'Инструменты ремонтника'],
+      toolChoices: { count: 1, from: [...ARTISAN_TOOL_CHOICES] },
+    }),
+    multiclass: pkg({
+      saves: [],
+      armor: ['light', 'medium', 'shields'],
+      weapons: [],
+      toolsFixed: ['Воровские инструменты', 'Инструменты ремонтника'],
+    }),
+  },
 }
 
 export type AppliedClassGrant = {
@@ -729,6 +798,263 @@ export function classGrantDef(slug: string | null | undefined): ClassGrantDef | 
 
 export function classGrantDefFromName(className: string): ClassGrantDef | null {
   return classGrantDef(resolveClassSlug(className))
+}
+
+function isAbilityKey(value: unknown): value is AbilityKey {
+  return (
+    value === 'str' ||
+    value === 'dex' ||
+    value === 'con' ||
+    value === 'int' ||
+    value === 'wis' ||
+    value === 'cha'
+  )
+}
+
+function isArmorProfKey(value: unknown): value is ArmorProfKey {
+  return (
+    value === 'light' ||
+    value === 'medium' ||
+    value === 'heavy' ||
+    value === 'shields'
+  )
+}
+
+function parseArmorList(raw: unknown): ArmorProfKey[] {
+  if (!Array.isArray(raw)) return []
+  return raw.filter(isArmorProfKey)
+}
+
+function parseWeaponKeys(raw: unknown): WeaponProfKey[] {
+  if (!raw || typeof raw !== 'object') return []
+  const row = raw as Record<string, unknown>
+  const keys: WeaponProfKey[] = []
+  if (row.simple === true) keys.push('simple')
+  if (row.martial === true) keys.push('martial')
+  return keys
+}
+
+function parseSkillChoice(raw: unknown): SkillChoice | null {
+  if (!raw || typeof raw !== 'object') return null
+  const row = raw as Record<string, unknown>
+  const count = typeof row.count === 'number' ? Math.max(0, Math.floor(row.count)) : 0
+  if (count <= 0) return null
+  if (row.from_any === true || row.from === 'any') {
+    return { count, from: 'any' }
+  }
+  if (Array.isArray(row.from)) {
+    const from = row.from.filter((item): item is string => typeof item === 'string')
+    if (from.length === 0) return null
+    return { count, from }
+  }
+  return null
+}
+
+function resolveToolFromToken(from: unknown): string[] | null {
+  if (from === 'artisan_tools') return [...ARTISAN_TOOL_CHOICES]
+  if (from === 'musical_instruments') return [...MUSICAL_INSTRUMENT_CHOICES]
+  if (from === 'artisan_tools_or_musical') {
+    return [...ARTISAN_TOOL_CHOICES, ...MUSICAL_INSTRUMENT_CHOICES]
+  }
+  if (Array.isArray(from)) {
+    const list = from.filter((item): item is string => typeof item === 'string' && item.trim() !== '')
+    return list.length > 0 ? list : null
+  }
+  return null
+}
+
+function parseToolChoice(raw: unknown): ToolChoice | null {
+  if (!raw || typeof raw !== 'object') return null
+  const row = raw as Record<string, unknown>
+  const count = typeof row.count === 'number' ? Math.max(0, Math.floor(row.count)) : 0
+  if (count <= 0) return null
+  const from = resolveToolFromToken(row.from)
+  if (!from) return null
+  return { count, from }
+}
+
+function parseStringList(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+  return raw.filter((item): item is string => typeof item === 'string' && item.trim() !== '')
+}
+
+function parseSaves(raw: unknown): AbilityKey[] {
+  if (!Array.isArray(raw)) return []
+  return raw.filter(isAbilityKey)
+}
+
+function parseHitDie(raw: unknown): HitDie | null {
+  if (typeof raw === 'number' && Number.isFinite(raw)) {
+    const asDie = `d${Math.floor(raw)}`
+    return asDie === 'd6' || asDie === 'd8' || asDie === 'd10' || asDie === 'd12'
+      ? asDie
+      : null
+  }
+  if (typeof raw === 'string') {
+    const normalized = raw.trim().toLowerCase()
+    const withD = normalized.startsWith('d') ? normalized : `d${normalized}`
+    return withD === 'd6' || withD === 'd8' || withD === 'd10' || withD === 'd12'
+      ? withD
+      : null
+  }
+  return null
+}
+
+function parseProficiencyPackage(
+  data: Record<string, unknown>,
+  mode: 'start' | 'multiclass',
+): ClassProficiencyPackage {
+  const source =
+    mode === 'multiclass' &&
+    data.multiclass_proficiencies &&
+    typeof data.multiclass_proficiencies === 'object'
+      ? (data.multiclass_proficiencies as Record<string, unknown>)
+      : data
+
+  const saves = mode === 'start' ? parseSaves(data.saving_throws) : []
+  return pkg({
+    saves,
+    armor: parseArmorList(source.armor),
+    weapons: parseWeaponKeys(source.weapons),
+    skillChoices: parseSkillChoice(source.skill_choices),
+    toolsFixed: parseStringList(source.tools_fixed),
+    toolChoices: parseToolChoice(source.tool_choices),
+  })
+}
+
+function parseArmorKind(
+  raw: unknown,
+): 'none' | 'light' | 'medium' | 'heavy' | 'shield' | undefined {
+  if (
+    raw === 'none' ||
+    raw === 'light' ||
+    raw === 'medium' ||
+    raw === 'heavy' ||
+    raw === 'shield'
+  ) {
+    return raw
+  }
+  return undefined
+}
+
+function parseStartingEquipment(raw: unknown): StartingEquipmentPackage[] {
+  if (!Array.isArray(raw)) return []
+  const result: StartingEquipmentPackage[] = []
+  for (const entry of raw) {
+    if (!entry || typeof entry !== 'object') continue
+    const row = entry as Record<string, unknown>
+    const id = typeof row.id === 'string' ? row.id : null
+    if (!id) continue
+    const labelRu =
+      (typeof row.label_ru === 'string' && row.label_ru) ||
+      (typeof row.labelRu === 'string' && row.labelRu) ||
+      id
+    const summary =
+      (typeof row.summary_ru === 'string' && row.summary_ru) ||
+      (typeof row.summary === 'string' && row.summary) ||
+      ''
+    const itemsRaw = Array.isArray(row.items) ? row.items : []
+    const items: StartingGearItem[] = []
+    for (const spec of itemsRaw) {
+      if (!spec || typeof spec !== 'object') continue
+      const itemRow = spec as Record<string, unknown>
+      if (typeof itemRow.name !== 'string' || !itemRow.name.trim()) continue
+      items.push({
+        name: itemRow.name,
+        qty:
+          typeof itemRow.qty === 'number' && Number.isFinite(itemRow.qty)
+            ? Math.max(1, Math.floor(itemRow.qty))
+            : 1,
+        armor_kind: parseArmorKind(itemRow.armor_kind) ?? 'none',
+        base_ac:
+          typeof itemRow.base_ac === 'number' && Number.isFinite(itemRow.base_ac)
+            ? itemRow.base_ac
+            : null,
+        weight_lb:
+          typeof itemRow.weight_lb === 'number' && Number.isFinite(itemRow.weight_lb)
+            ? itemRow.weight_lb
+            : null,
+        notes: typeof itemRow.notes === 'string' ? itemRow.notes : undefined,
+      })
+    }
+    const coinsRaw = row.coins_gp ?? row.coinsGp
+    const coinsGp =
+      typeof coinsRaw === 'number' && Number.isFinite(coinsRaw)
+        ? Math.max(0, Math.floor(coinsRaw))
+        : undefined
+    result.push(gear(id, labelRu, summary, items, coinsGp))
+  }
+  return result
+}
+
+/** True when catalog.data has rich class grant fields (not just hit_die). */
+export function catalogHasClassGrantData(
+  data: Record<string, unknown> | null | undefined,
+): boolean {
+  if (!data) return false
+  return (
+    Array.isArray(data.saving_throws) ||
+    Array.isArray(data.armor) ||
+    (data.weapons != null && typeof data.weapons === 'object') ||
+    Array.isArray(data.starting_equipment) ||
+    data.skill_choices != null ||
+    data.multiclass_proficiencies != null
+  )
+}
+
+/**
+ * Build ClassGrantDef from catalog_entries.data (PHB/Tasha class rewrite).
+ * Returns null if data lacks grant fields — caller should fall back to local defs.
+ */
+export function classGrantDefFromCatalog(input: {
+  slug: string
+  nameRu: string
+  data: Record<string, unknown>
+}): ClassGrantDef | null {
+  if (!catalogHasClassGrantData(input.data)) return null
+  const hitDie =
+    parseHitDie(input.data.hit_die ?? input.data.hitDie) ??
+    CLASS_HIT_DIE[input.slug] ??
+    null
+  if (!hitDie) return null
+
+  const equipment = parseStartingEquipment(input.data.starting_equipment)
+  return {
+    slug: input.slug,
+    labelRu: input.nameRu,
+    hitDie,
+    start: parseProficiencyPackage(input.data, 'start'),
+    multiclass: parseProficiencyPackage(input.data, 'multiclass'),
+    equipment: equipment.length > 0 ? equipment : undefined,
+  }
+}
+
+/** Prefer catalog.data when rich; else local CLASS_GRANT_DEFS. */
+export function resolveClassGrantDef(input: {
+  className: string
+  catalogSlug?: string | null
+  catalogData?: Record<string, unknown> | null
+  nameRu?: string | null
+}): ClassGrantDef | null {
+  const slug =
+    (input.catalogSlug && input.catalogSlug.trim()) ||
+    resolveClassSlug(input.className)
+  const label =
+    (input.nameRu && input.nameRu.trim()) ||
+    input.className.trim() ||
+    slug ||
+    ''
+
+  if (slug && input.catalogData && catalogHasClassGrantData(input.catalogData)) {
+    const fromCatalog = classGrantDefFromCatalog({
+      slug,
+      nameRu: label || slug,
+      data: input.catalogData,
+    })
+    if (fromCatalog) return fromCatalog
+  }
+
+  return classGrantDef(slug) ?? classGrantDefFromName(input.className)
 }
 
 export function packageForMode(
@@ -778,7 +1104,7 @@ export function formatClassGrantSummary(input: {
   const tools = [...pkg.toolsFixed, ...input.picks.tools]
   if (tools.length) bits.push(`инструменты: ${tools.join(', ')}`)
   if (input.mode === 'start' && input.picks.equipmentPackageId) {
-    const pack = startingEquipmentFor(input.def.slug).find(
+    const pack = equipmentPackagesFor(input.def).find(
       (row) => row.id === input.picks.equipmentPackageId,
     )
     if (pack) bits.push(`снаряжение: ${pack.labelRu}`)

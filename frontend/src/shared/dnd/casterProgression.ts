@@ -9,7 +9,7 @@ import {
   type SpellcastingAbility,
 } from './spells'
 
-export type CasterProgression = 'full' | 'half' | 'pact' | 'none'
+export type CasterProgression = 'full' | 'half' | 'half_up' | 'pact' | 'none'
 
 export type ClassCasterDef = {
   slug: string
@@ -55,6 +55,7 @@ const FULL_CASTER_SLOTS: number[][] = [
 ]
 
 const CLASS_DEFS: ClassCasterDef[] = [
+  { slug: 'artificer', labelRu: 'Изобретатель', progression: 'half_up', ability: 'int', prepare: 'mod+half' },
   { slug: 'barbarian', labelRu: 'Варвар', progression: 'none', ability: null, prepare: null },
   { slug: 'bard', labelRu: 'Бард', progression: 'full', ability: 'cha', prepare: null },
   { slug: 'cleric', labelRu: 'Жрец', progression: 'full', ability: 'wis', prepare: 'mod+level' },
@@ -80,6 +81,8 @@ NAME_TO_SLUG['варлок'] = 'warlock'
 NAME_TO_SLUG['маг'] = 'wizard'
 NAME_TO_SLUG['жрица'] = 'cleric'
 NAME_TO_SLUG['друидка'] = 'druid'
+NAME_TO_SLUG['артифицер'] = 'artificer'
+NAME_TO_SLUG['инженер'] = 'artificer'
 
 function clampLevel(level: number): number {
   return Math.min(20, Math.max(1, Math.floor(level) || 1))
@@ -112,6 +115,12 @@ function halfCasterRow(level: number): number[] | null {
   return fullCasterRow(Math.ceil(lv / 2))
 }
 
+/** Artificer (Tasha): half caster rounded up, slots from level 1. */
+function halfUpCasterRow(level: number): number[] | null {
+  const lv = clampLevel(level)
+  return fullCasterRow(Math.ceil(lv / 2))
+}
+
 export function warlockPactForLevel(level: number): PactSlotState {
   const lv = clampLevel(level)
   let max = 1
@@ -141,10 +150,18 @@ export function prepareLimitFromClass(input: {
   prepare: ClassCasterDef['prepare']
   level: number
   abilityMod: number
+  progression?: CasterProgression
 }): number | null {
   if (!input.prepare) return null
   const lv = clampLevel(input.level)
-  if (input.prepare === 'mod+half' && lv < 2) return 0
+  // Paladin/ranger get spellcasting at 2; artificer (half_up) prepares from 1.
+  if (
+    input.prepare === 'mod+half' &&
+    lv < 2 &&
+    input.progression !== 'half_up'
+  ) {
+    return 0
+  }
   const classPart = input.prepare === 'mod+half' ? Math.floor(lv / 2) : lv
   return Math.max(1, Math.floor(input.abilityMod) + classPart)
 }
@@ -158,6 +175,7 @@ export function multiclassCasterLevel(classes: ClassLevelEntry[]): number {
     const lv = Math.max(0, Math.floor(row.level))
     if (def.progression === 'full') total += lv
     else if (def.progression === 'half') total += Math.floor(lv / 2)
+    else if (def.progression === 'half_up') total += Math.ceil(lv / 2)
   }
   return Math.min(20, Math.max(0, total))
 }
@@ -194,6 +212,8 @@ export function suggestSpellcasting(input: {
     slots = slotsFromRow(fullCasterRow(level))
   } else if (def.progression === 'half') {
     slots = slotsFromRow(halfCasterRow(level))
+  } else if (def.progression === 'half_up') {
+    slots = slotsFromRow(halfUpCasterRow(level))
   } else if (def.progression === 'pact') {
     pact_slots = warlockPactForLevel(level)
   }
@@ -203,6 +223,7 @@ export function suggestSpellcasting(input: {
     prepare: def.prepare,
     level,
     abilityMod,
+    progression: def.progression,
   })
 
   return {
@@ -252,6 +273,7 @@ export function suggestSpellcastingFromClasses(input: {
         prepare: def.prepare,
         level: row.level,
         abilityMod,
+        progression: def.progression,
       })
       if (prep != null) {
         max_prepared = (max_prepared ?? 0) + prep

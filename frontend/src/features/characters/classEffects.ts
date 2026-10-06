@@ -3,10 +3,11 @@
 import {
   classGrantDef,
   classGrantDefFromName,
+  equipmentPackagesFor,
   formatClassGrantSummary,
   grantNeedsPicks,
   packageForMode,
-  startingEquipmentFor,
+  resolveClassGrantDef,
   type AbilityKey,
   type AppliedClassGrant,
   type ArmorProfKey,
@@ -199,7 +200,7 @@ export function validateClassGrantPicks(input: {
     }
   }
   if (input.mode === 'start') {
-    const packs = startingEquipmentFor(input.def.slug)
+    const packs = equipmentPackagesFor(input.def)
     if (packs.length > 0) {
       const id = input.picks.equipmentPackageId
       if (!id || id === '') return 'Выбери стартовое снаряжение или «Без снаряжения»'
@@ -217,8 +218,17 @@ export function applyClassGrantToDraft(input: {
   className: string
   mode: 'start' | 'multiclass'
   picks: ClassGrantPicks
+  def?: ClassGrantDef | null
+  catalogSlug?: string | null
+  catalogData?: Record<string, unknown> | null
 }): { draft: ClassGrantDraftSlice; summary: string } | null {
-  const def = classGrantDefFromName(input.className)
+  const def =
+    input.def ??
+    resolveClassGrantDef({
+      className: input.className,
+      catalogSlug: input.catalogSlug,
+      catalogData: input.catalogData,
+    })
   if (!def) return null
 
   const pickError = validateClassGrantPicks({
@@ -256,7 +266,7 @@ export function applyClassGrantToDraft(input: {
   const equipmentPackageId =
     input.mode === 'start' ? input.picks.equipmentPackageId : null
   if (input.mode === 'start' && equipmentPackageId && equipmentPackageId !== 'skip') {
-    const pack = startingEquipmentFor(def.slug).find((row) => row.id === equipmentPackageId)
+    const pack = equipmentPackagesFor(def).find((row) => row.id === equipmentPackageId)
     if (pack) {
       for (const spec of pack.items) {
         const created = createInventoryItem()
@@ -349,8 +359,17 @@ export function pendingGrantRequest(input: {
   classEntryId: string
   className: string
   mode: 'start' | 'multiclass'
+  catalogSlug?: string | null
+  catalogData?: Record<string, unknown> | null
 }): { def: ClassGrantDef; mode: 'start' | 'multiclass'; needsPicks: boolean } | null {
-  const def = classGrantDefFromName(input.className) ?? classGrantDef(input.className)
+  const def =
+    resolveClassGrantDef({
+      className: input.className,
+      catalogSlug: input.catalogSlug,
+      catalogData: input.catalogData,
+    }) ??
+    classGrantDefFromName(input.className) ??
+    classGrantDef(input.className)
   if (!def) return null
   const pkg = packageForMode(def, input.mode)
   return {

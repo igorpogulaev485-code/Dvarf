@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  equipmentPackagesFor,
   packageForMode,
   skillOptionsForPackage,
-  startingEquipmentFor,
   type ClassGrantDef,
   type ClassGrantPicks,
 } from '../../shared/dnd/classGrants'
@@ -36,7 +36,7 @@ export function ClassSetupDialog({
     return skillOptionsForPackage(packageForMode(def, mode))
   }, [def, mode])
   const toolOptions = def ? packageForMode(def, mode).toolChoices?.from ?? [] : []
-  const equipmentPackages = def && mode === 'start' ? startingEquipmentFor(def.slug) : []
+  const equipmentPackages = def && mode === 'start' ? equipmentPackagesFor(def) : []
 
   const [skills, setSkills] = useState<string[]>([])
   const [tools, setTools] = useState<string[]>([])

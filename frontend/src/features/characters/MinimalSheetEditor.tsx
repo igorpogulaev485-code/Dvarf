@@ -25,8 +25,8 @@ import type {
   ClassGrantPicks,
 } from '../../shared/dnd/classGrants'
 import {
-  classGrantDefFromName,
   grantNeedsSetupDialog,
+  resolveClassGrantDef,
 } from '../../shared/dnd/classGrants'
 import {
   applyClassGrantToDraft,
@@ -264,6 +264,8 @@ export function MinimalSheetEditor({
     className: string
     mode: 'start' | 'multiclass'
     def: ClassGrantDef
+    catalogSlug: string | null
+    catalogData: Record<string, unknown> | null
   } | null>(null)
   const [homebrewPicker, setHomebrewPicker] = useState<{
     classEntryId: string
@@ -381,6 +383,9 @@ export function MinimalSheetEditor({
     className: string
     mode: 'start' | 'multiclass'
     picks: ClassGrantPicks
+    def?: ClassGrantDef | null
+    catalogSlug?: string | null
+    catalogData?: Record<string, unknown> | null
   }) {
     let summary: string | null = null
     setDraft((prev) => {
@@ -390,6 +395,9 @@ export function MinimalSheetEditor({
         className: input.className,
         mode: input.mode,
         picks: input.picks,
+        def: input.def,
+        catalogSlug: input.catalogSlug,
+        catalogData: input.catalogData,
       })
       if (!applied) return prev
       summary = applied.summary
@@ -406,8 +414,14 @@ export function MinimalSheetEditor({
     classEntryId: string
     className: string
     mode: 'start' | 'multiclass'
+    catalogSlug?: string | null
+    catalogData?: Record<string, unknown> | null
   }) {
-    const def = classGrantDefFromName(input.className)
+    const def = resolveClassGrantDef({
+      className: input.className,
+      catalogSlug: input.catalogSlug,
+      catalogData: input.catalogData,
+    })
     if (!def) {
       onToast(`Класс «${input.className}» пока без пакета владений — выставь вручную`)
       return
@@ -418,6 +432,8 @@ export function MinimalSheetEditor({
         className: input.className,
         mode: input.mode,
         def,
+        catalogSlug: input.catalogSlug ?? null,
+        catalogData: input.catalogData ?? null,
       })
       return
     }
@@ -426,6 +442,9 @@ export function MinimalSheetEditor({
       className: input.className,
       mode: input.mode,
       picks: { skills: [], tools: [], equipmentPackageId: null },
+      def,
+      catalogSlug: input.catalogSlug,
+      catalogData: input.catalogData,
     })
   }
 
@@ -507,6 +526,8 @@ export function MinimalSheetEditor({
         classEntryId: newMulticlassRow.id,
         className: newMulticlassRow.name,
         mode: 'multiclass',
+        catalogSlug: choice.type === 'multiclass' ? choice.catalog_slug : null,
+        catalogData: choice.type === 'multiclass' ? choice.catalog_data : null,
       })
     }
   }
@@ -836,6 +857,8 @@ export function MinimalSheetEditor({
                             classEntryId: row.id,
                             className: selected.name_ru,
                             mode,
+                            catalogSlug: selected.slug,
+                            catalogData: selected.data,
                           })
                         }}
                       />
@@ -1195,6 +1218,9 @@ export function MinimalSheetEditor({
             className: grantPicker.className,
             mode: grantPicker.mode,
             picks,
+            def: grantPicker.def,
+            catalogSlug: grantPicker.catalogSlug,
+            catalogData: grantPicker.catalogData,
           })
           setGrantPicker(null)
         }}

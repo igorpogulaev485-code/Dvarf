@@ -15,6 +15,7 @@ export type MulticlassPrerequisite =
 
 /** PHB 2014 Multiclassing Prerequisites table. */
 export const MULTICLASS_PREREQUISITES: Record<string, MulticlassPrerequisite> = {
+  artificer: { all: ['int'], min: 13 },
   barbarian: { all: ['str'], min: 13 },
   bard: { all: ['cha'], min: 13 },
   cleric: { all: ['wis'], min: 13 },
@@ -31,6 +32,7 @@ export const MULTICLASS_PREREQUISITES: Record<string, MulticlassPrerequisite> = 
 
 /** PHB 2014 hit die by class slug. */
 export const CLASS_HIT_DIE: Record<string, HitDie> = {
+  artificer: 'd8',
   barbarian: 'd12',
   bard: 'd8',
   cleric: 'd8',
@@ -172,6 +174,7 @@ export function canTakeMulticlassLevel(input: {
       const nameRu =
         (
           {
+            artificer: 'Изобретатель',
             barbarian: 'Варвар',
             bard: 'Бард',
             cleric: 'Жрец',
