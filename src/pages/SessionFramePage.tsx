@@ -73,14 +73,14 @@ export function SessionFramePage() {
                 onChange={(e) => updateSession({ ...session, name: e.target.value })}
               />
             </label>
-            <p className="session-bind">
-              {setting ? (
-                <Link to={`/settings/${setting.id}`}>Мир: {setting.name}</Link>
-              ) : (
-                <span className="badge">Ваншот — без сеттинга</span>
-              )}
-            </p>
           </div>
+          <p className="session-bind">
+            {setting ? (
+              <Link to={`/settings/${setting.id}`}>Мир: {setting.name}</Link>
+            ) : (
+              <span className="badge">Ваншот — без сеттинга</span>
+            )}
+          </p>
         </section>
 
         <section className="stack-gap">
