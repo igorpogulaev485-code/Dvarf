@@ -92,12 +92,9 @@ export async function apiRequest<T>(
   retried = false,
 ): Promise<T> {
   const headers = new Headers(options.headers)
-  if (!headers.has('Content-Type') && options.body) {
+  const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
+  if (!headers.has('Content-Type') && options.body && !isFormData) {
     headers.set('Content-Type', 'application/json')
-  }
-  if (!headers.has('Accept')) {
-    // Avoid nginx SPA rewrite on /characters when browser sends Accept: text/html
-    headers.set('Accept', 'application/json')
   }
 
   const accessToken = getAccessToken()
@@ -110,7 +107,19 @@ export async function apiRequest<T>(
     headers,
   })
 
-  if (response.status === 401 && !retried && !path.startsWith('/auth/')) {
+  if (
+    response.status === 401 &&
+    !retried &&
+    !path.startsWith('/auth/login') &&
+    !path.startsWith('/auth/register') &&
+    !path.startsWith('/auth/refresh') &&
+    !path.startsWith('/auth/forgot-password') &&
+    !path.startsWith('/auth/reset-password') &&
+    !path.startsWith('/auth/verify-email') &&
+    !path.startsWith('/auth/resend-verification') &&
+    !path.startsWith('/auth/oauth') &&
+    !path.startsWith('/auth/me/email/confirm')
+  ) {
     const refreshed = await tryRefreshAccessToken()
     if (refreshed) {
       return apiRequest<T>(path, options, true)

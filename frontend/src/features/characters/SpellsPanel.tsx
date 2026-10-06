@@ -6,6 +6,7 @@ import {
   applySpellcastingSuggestion,
   suggestSpellcasting,
 } from '../../shared/dnd/casterProgression'
+import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { setConcentration } from '../../shared/dnd/concentration'
 import {
   SPELLCASTING_ABILITIES,
@@ -40,6 +41,7 @@ type SpellsPanelProps = {
   edition: RulesEdition
   className: string
   level: number
+  classes?: ClassLevelEntry[]
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
@@ -52,6 +54,7 @@ export function SpellsPanel({
   edition,
   className,
   level,
+  classes,
   spells,
   abilities,
   proficiencyBonus,
@@ -97,9 +100,10 @@ export function SpellsPanel({
       suggestSpellcasting({
         className,
         level,
+        classes,
         abilityModFor: (ability) => abilityModifier(abilities[ability]),
       }),
-    [className, level, abilities],
+    [className, level, classes, abilities],
   )
 
   function patch(next: Partial<SpellsState>) {
@@ -118,10 +122,15 @@ export function SpellsPanel({
           ? ''
           : ' · без лимита подготовки'
         : ` · подготовка ${suggestion.max_prepared}`
-    onToast?.(`${suggestion.labelRu} ${level} ур.: ячейки 2014${prep}`)
+    onToast?.(`${suggestion.labelRu}: ячейки 2014${prep}`)
   }
 
-  const classLevelKey = `${className.trim().toLowerCase()}|${level}`
+  const classLevelKey =
+    classes && classes.length > 0
+      ? classes
+          .map((row) => `${row.name.trim().toLowerCase()}:${row.level}`)
+          .join('|')
+      : `${className.trim().toLowerCase()}|${level}`
   const appliedClassLevel = useRef<string | null>(null)
   useEffect(() => {
     if (appliedClassLevel.current == null) {
@@ -132,7 +141,7 @@ export function SpellsPanel({
     appliedClassLevel.current = classLevelKey
     if (!suggestion) return
     onChange({ ...spells, ...applySpellcastingSuggestion(spells, suggestion) })
-    onToast?.(`${suggestion.labelRu} ${level} ур.: ячейки обновлены по таблице 2014`)
+    onToast?.(`${suggestion.labelRu}: ячейки обновлены по таблице 2014`)
     // Apply once per class/level change; skip the first paint so saved sheets stay intact.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classLevelKey])

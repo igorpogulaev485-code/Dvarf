@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
+import {
+  getCatalogEntry,
+  listCatalogEntries,
+  type CatalogEntry,
+  type CatalogEntryListItem,
+} from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { levelLabel } from '../../shared/dnd/spells'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
@@ -31,13 +36,13 @@ type GrimoireDialogProps = {
   onToast?: (message: string) => void
 }
 
-function entryClasses(entry: CatalogEntry): string[] {
-  const raw = entry.data?.classes
+function entryClasses(entry: CatalogEntryListItem): string[] {
+  const raw = entry.preview?.classes
   return Array.isArray(raw) ? raw.filter((item): item is string => typeof item === 'string') : []
 }
 
-function entryLevel(entry: CatalogEntry): number {
-  const level = entry.data?.level
+function entryLevel(entry: CatalogEntryListItem): number {
+  const level = entry.preview?.level
   return typeof level === 'number' && Number.isFinite(level) ? Math.max(0, Math.min(9, level)) : 0
 }
 
@@ -49,7 +54,7 @@ export function GrimoireDialog({
   onClose,
   onToast,
 }: GrimoireDialogProps) {
-  const [entries, setEntries] = useState<CatalogEntry[]>([])
+  const [entries, setEntries] = useState<CatalogEntryListItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
@@ -59,72 +64,89 @@ export function GrimoireDialog({
   useEffect(() => {
     if (!open) return
     let active = true
-    setLoading(true)
-    setError(null)
-    listCatalogEntries({ kind: 'spell', edition })
-      .then((items) => {
-        if (!active) return
-        setEntries(items)
+    const trimmed = query.trim()
+    const spellClass = classFilter === 'all' ? undefined : classFilter
+    const spellLevel = levelFilter === 'all' ? undefined : levelFilter
+
+    if (trimmed.length < 2 && spellClass == null && spellLevel == null) {
+      setEntries([])
+      setLoading(false)
+      setError(null)
+      return () => {
+        active = false
+      }
+    }
+
+    const timer = window.setTimeout(() => {
+      setLoading(true)
+      setError(null)
+      listCatalogEntries({
+        kind: 'spell',
+        edition,
+        q: trimmed.length >= 2 ? trimmed : undefined,
+        spellClass,
+        spellLevel,
+        limit: 40,
       })
-      .catch(() => {
-        if (!active) return
-        setError('Не удалось загрузить гримуар')
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
+        .then((items) => {
+          if (!active) return
+          setEntries(items)
+        })
+        .catch(() => {
+          if (!active) return
+          setEntries([])
+          setError('Не удалось найти заклинания')
+        })
+        .finally(() => {
+          if (active) setLoading(false)
+        })
+    }, 220)
+
     return () => {
       active = false
+      window.clearTimeout(timer)
     }
-  }, [open, edition])
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return entries.filter((entry) => {
-      const level = entryLevel(entry)
-      if (levelFilter !== 'all' && level !== levelFilter) return false
-      if (classFilter !== 'all' && !entryClasses(entry).includes(classFilter)) return false
-      if (!q) return true
-      const hay = `${entry.name_ru} ${entry.name_en ?? ''} ${entry.slug}`.toLowerCase()
-      return hay.includes(q)
-    })
-  }, [entries, query, classFilter, levelFilter])
+  }, [open, edition, query, classFilter, levelFilter])
 
   const groups = useMemo(() => {
-    const asSpells = filtered.map((entry) => ({
+    const asSpells = entries.map((entry) => ({
       id: entry.id,
       name: entry.name_ru,
       catalog_id: entry.id,
       level: entryLevel(entry),
       prepared: false,
       notes: '',
-      casting_time: typeof entry.data.casting_time === 'string' ? entry.data.casting_time : '',
-      range: typeof entry.data.range === 'string' ? entry.data.range : '',
+      casting_time:
+        typeof entry.preview.casting_time === 'string' ? entry.preview.casting_time : '',
+      range: typeof entry.preview.range === 'string' ? entry.preview.range : '',
       attack_or_save:
-        typeof entry.data.attack_or_save === 'string' ? entry.data.attack_or_save : '',
-      damage: typeof entry.data.damage === 'string' ? entry.data.damage : '',
-      concentration: Boolean(entry.data.concentration),
+        typeof entry.preview.attack_or_save === 'string' ? entry.preview.attack_or_save : '',
+      damage: typeof entry.preview.damage === 'string' ? entry.preview.damage : '',
+      concentration: Boolean(entry.preview.concentration),
     }))
     return groupSpellsByLevel(asSpells)
-  }, [filtered])
-
-  const levelOptions = useMemo(() => {
-    const levels = new Set(entries.map(entryLevel))
-    return [...levels].sort((a, b) => a - b)
   }, [entries])
 
-  function addSpell(entry: CatalogEntry, prepare: boolean) {
+  async function addSpell(entry: CatalogEntryListItem, prepare: boolean) {
     if (knownHasCatalogId(spells.known, entry.id)) {
       onToast?.('Уже есть в списке известных')
       return
     }
-    const nextKnown = addCatalogSpellToKnown(spells.known, entry, {
+    let full: CatalogEntry
+    try {
+      full = await getCatalogEntry(entry.id)
+    } catch {
+      onToast?.('Не удалось загрузить заклинание')
+      return
+    }
+    const nextKnown = addCatalogSpellToKnown(spells.known, full, {
       prepare,
       maxPrepared: spells.max_prepared,
     })
     onChange({ ...spells, known: nextKnown })
+    const level = entryLevel(entry)
     onToast?.(
-      prepare && entryLevel(entry) > 0
+      prepare && level > 0
         ? `Добавлено и подготовлено: ${entry.name_ru}`
         : `Добавлено в известные: ${entry.name_ru}`,
     )
@@ -142,14 +164,14 @@ export function GrimoireDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          Библиотека из каталога (sample SRD). Полный SRD / dnd.su — позже. Добавляй на лист, затем
-          готовь через «Подготовить».
+          Поиск по SRD на сервере: введите от 2 букв и/или выберите класс/уровень. На лист уходит
+          только выбранное заклинание.
         </Text>
 
         <Field label="Поиск">
           <Input
             value={query}
-            placeholder="Название…"
+            placeholder="От 2 символов…"
             onChange={(event) => setQuery(event.target.value)}
           />
         </Field>
@@ -175,7 +197,7 @@ export function GrimoireDialog({
           >
             Все ур.
           </button>
-          {levelOptions.map((level) => (
+          {Array.from({ length: 10 }, (_, level) => (
             <button
               key={level}
               type="button"
@@ -188,7 +210,11 @@ export function GrimoireDialog({
         </div>
 
         <Text tone="muted">
-          {loading ? 'Загружаем…' : `Найдено: ${filtered.length} / ${entries.length}`}
+          {loading
+            ? 'Ищем…'
+            : entries.length === 0
+              ? 'Задайте поиск или фильтр'
+              : `Показано: ${entries.length} (макс. 40)`}
         </Text>
         {error ? <Text tone="danger">{error}</Text> : null}
 
@@ -216,6 +242,12 @@ export function GrimoireDialog({
                           {spell.concentration ? (
                             <span className="prepare-row__badge">К</span>
                           ) : null}
+                          {entryClasses(entry).length > 0 ? (
+                            <span className="prepare-row__meta">
+                              {' '}
+                              · {entryClasses(entry).join(', ')}
+                            </span>
+                          ) : null}
                         </div>
                         <Text tone="muted">
                           {[spell.casting_time, spell.range, spell.attack_or_save, spell.damage]
@@ -231,7 +263,7 @@ export function GrimoireDialog({
                             <button
                               type="button"
                               className="sheet-chip"
-                              onClick={() => addSpell(entry, false)}
+                              onClick={() => void addSpell(entry, false)}
                             >
                               В известные
                             </button>
@@ -239,7 +271,7 @@ export function GrimoireDialog({
                               <button
                                 type="button"
                                 className="sheet-chip"
-                                onClick={() => addSpell(entry, true)}
+                                onClick={() => void addSpell(entry, true)}
                               >
                                 Подготовить
                               </button>

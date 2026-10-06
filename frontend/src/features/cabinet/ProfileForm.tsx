@@ -4,7 +4,7 @@ import { updateMe, type User } from '../../shared/api/auth'
 import { ApiRequestError } from '../../shared/api/client'
 import { formatPhoneMask, isCompleteOrEmptyPhone, phoneFromApi, phoneToApi } from '../../shared/lib/phone'
 import { Button, Field, Input, Stack, Text } from '../../ui'
-import { ProfileAvatar } from './ProfileAvatar'
+import { AvatarEditor } from './AvatarEditor'
 
 type ProfileFormProps = {
   user: User
@@ -62,14 +62,13 @@ export function ProfileForm({ user, onSaved }: ProfileFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <Stack gap={16}>
-        <div className="cabinet-avatar-block">
-          <ProfileAvatar user={user} />
-          <Text tone="muted">
-            Аватар подтянется из Яндекс ID или VK ID при входе. Загрузка своего фото — позже.
-          </Text>
-        </div>
+        <AvatarEditor user={user} onChanged={onSaved} />
 
-        <Field label="Email" htmlFor="cabinet-email" hint="Смена email пока недоступна">
+        <Field
+          label="Email"
+          htmlFor="cabinet-email"
+          hint="Только просмотр. Смена — в блоке «Смена email» ниже"
+        >
           <Input id="cabinet-email" value={user.email ?? ''} readOnly disabled />
         </Field>
 

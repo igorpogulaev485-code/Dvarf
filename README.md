@@ -7,28 +7,62 @@
 **North star MVP:**
 
 ```text
-Лист персонажа  →  Фрейм пачки  →  Подготовка боя  →  Лут
-     (сейчас)         (далее)         (позже)        (позже)
+Лист персонажа  →  Лобби (код/QR)  →  Сессия / бой  →  Лут
+     (есть)            (есть)            (далее)       (позже)
 ```
+
+```text
+Мои персонажи (аккаунт)
+        ↓ код / QR → выбор персонажа
+Лобби (создал мастер)
+├── Сеттинг (мир, необязательно)
+└── Сессия (этот раз; может быть без сеттинга)
+```
+
+## Срез агента «Фрейм для пачки» (2026-10-06)
+
+Сделано в серверном продукте (не в Pages/`main`), залито на прод.
+
+| Что | Статус |
+|-----|--------|
+| Модель: лобби → опциональный сеттинг → сессия (ваншот ок) | ✅ |
+| Мастер создаёт лобби, получает код + QR | ✅ |
+| Игрок: `/join/КОД` → выбирает персонажа | ✅ |
+| Код на карточке персонажа | ✅ |
+| Seat/unseat в сессии из состава лобби | ✅ |
+| Nginx `/lobbies` `/sessions` `/settings` → API (фикс 405) | ✅ |
+| Прод http://201.34.132.252/ `/health` ok, alembic `c9d0e1f2a3b4` | ✅ |
+| Боевой фрейм / лут / realtime | ❌ очередь |
+
+Ветка/PR: `cursor/lobby-join-table-3333` — https://github.com/igorpogulaev485-code/Dvarf/pull/18  
+Ошибочный PR на localStorage/`main` (#12) закрыт.
+
+Дальше этому контуру: **боевой фрейм на сессии** (план → ok). Не начинать encounter/loot раньше.
 
 ## Для агентов (обязательно прочитать)
 
+**Сначала:** [`AGENTS.md`](AGENTS.md) — жёсткий контракт (анти-overwrite).  
+Skills: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod-lineage/SKILL.md) · [`.cursor/skills/dvarf-dev-workflow/SKILL.md`](.cursor/skills/dvarf-dev-workflow/SKILL.md).  
+Живой срез фич: [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md).
+
 - Итерации: **короткий план → ok от Игоря → код / commit / push / PR**. Без ok код не писать.
-- Ветки: `cursor/<name>-eb8e`, в `main` только через PR.
-- Деплой на Timeweb **только** по явной просьбе («залей на сервер»). См. [`deploy/README.md`](deploy/README.md).
-- Секреты не коммитить. Для деплоя Cloud Agent: secret `DVARF_SSH_PRIVATE_KEY`.
-- Параллельные агенты: **не ломать чужой контур**. Digital sheet и classic PDF-like могут идти параллельно; пачку / encounter / loot не начинать раньше очереди без отдельного ok.
+- Ветки: `cursor/<name>-acbe` (от **prod tip**, не от голого `main`/старой развилки). В `main` только через PR.
+- **Prod tip сейчас:** `cursor/prod-lineage-rules-acbe`. Деплой только с дерева, где tip уже влит.
+- Деплой на Timeweb **только** по явной просьбе («залей на сервер»). `./deploy/sync-and-up.sh` **затирает весь** `/opt/dvarf` кроме `.env` — тонкая ветка убивает чужие фичи. Перед деплоем: `./deploy/preflight-prod.sh`. См. [`deploy/README.md`](deploy/README.md).
+- После деплоя: проверить маркеры (лобби, кабинет, лист, classic) на живом сервере; в `PRODUCT_STATUS` писать «на проде» только по факту.
+- Параллельные агенты: PR можно параллельно; **на сервер — один интегрированный деплой от tip**. Не деплоить каждый свою развилку.
+- Секреты не коммитить. Cloud Agent: `DVARF_SSH_PRIVATE_KEY` = **полный** OpenSSH PEM (`BEGIN`…`END`).
 - Каталоги: свой seed + SRD (CC-BY). API TTG недоступен; ждём dnd.su; **чужие сайты не скрейпим**.
 
 ## Продуктовые принципы
 
 | Тема | Решение |
 |------|---------|
-| Роли | Глобальной роли «мастер / игрок» **нет**. Мастер появляется **только в контексте пачки**. |
+| Роли | Глобальной роли «мастер / игрок» **нет**. Мастер — кто создал **лобби**. |
 | Auth | Тонкий: email/password + JWT; OAuth (Yandex/VK) по мере секретов. Биллинг — позже. |
 | UI | React mobile-first (позже React Native). Визуальный редизайн — с дизайнером позже. |
 | Данные листа | Hybrid: summary-колонки + JSONB `sheet` + `sheet_version` (optimistic concurrency, 409). |
-| Переиспользование | Чистая логика в `frontend/src/shared/dnd/*` — лист сейчас, **фрейм пачки потом**. |
+| Переиспользование | Чистая логика в `frontend/src/shared/dnd/*` — лист и стол. |
 
 ## Карта домена (связи)
 
@@ -37,52 +71,37 @@ flowchart TB
   subgraph account [Аккаунт]
     User[User / auth]
     Cabinet[Личный кабинет]
-  end
-
-  subgraph sheet [Лист персонажа]
     Char[Character + sheet JSONB]
-    Digital[Digital sheet UI]
-    Classic[Classic PDF-like UI]
-    Catalog[catalog_entries seed/SRD]
   end
 
-  subgraph party [Пачка — ещё не в коде]
-    Party[Party frame]
-    Master[Мастер пачки — роль в пачке]
-    Join[QR join / invite]
-  end
-
-  subgraph table [Стол — позже]
-    Encounter[Подготовка боя]
-    Loot[Лут]
+  subgraph table [Стол]
+    Lobby[Лобби + invite code / QR]
+    Setting[Сеттинг — мир, опционально]
+    Session[Сессия — этот раз]
+    Encounter[Подготовка боя — позже]
+    Loot[Лут — позже]
   end
 
   User --> Cabinet
   User --> Char
-  Catalog --> Digital
-  Catalog --> Classic
-  Char --> Digital
-  Char --> Classic
-  Char --> Party
-  User --> Join
-  Join --> Party
-  Party --> Master
-  Party --> Encounter
+  User -->|создаёт / мастер| Lobby
+  Char -->|join по коду/QR| Lobby
+  Lobby --> Setting
+  Lobby --> Session
+  Setting -.->|опционально| Session
+  Session --> Encounter
   Encounter --> Loot
-  Digital -.->|shared/dnd helpers| Party
 ```
 
-**Смысл стрелок:** лист и каталог — фундамент; пачка читает листы участников и вводит роль мастера; бой и лут опираются на пачку, не на «голый» одиночный лист.
+## Лобби / сеттинг / сессия
 
-## Фрейм пачки (продуктовый набросок)
-
-Ещё **не реализован** — держим в README, чтобы параллельные агенты не «забывали» контур.
-
-- **Зачем:** несколько игроков за одним столом видят общий фрейм (статы/статусы/ресурсы), а не только свои экраны.
-- **Вход:** QR / invite — join «аккаунт к аккаунту» в пачку (детали протокола — отдельный план-слайс).
-- **Мастер пачки:** назначается в контексте этой пачки (не глобальный флаг в профиле).
-- **Техзадел:** VPS выбран в т.ч. под будущий realtime (WebSocket); хелперы rest/spells/weight пишутся без привязки к UI листа.
-- **Не делать сейчас:** схему БД пачки, WS, QR — пока нет отдельного ok на слайс.
+- **Лобби** — место игры. Мастер создаёт → получает **код** и **QR** (`/join/КОД`).
+- **Вход игрока:** QR/код → логин → выбрать персонажа; или код на карточке персонажа.
+- **Сеттинг** — мир внутри лобби (необязателен).
+- **Сессия** — сегодняшний стол; `setting_id` может быть `null` (ваншот). Удаление сеттинга отвязывает сессии.
+- Бой и лут — на сессии (ещё не сделано).
+- У LSS «комната» ближе к **сессии**, не к сеттингу.
+- **Прод:** залито; nginx проксирует `/lobbies`, `/sessions`, `/settings` на API (как `/characters`). SPA-навигация с `Accept: text/html` без Bearer по-прежнему отдаёт `index.html`.
 
 ## Дорожная карта
 
@@ -114,18 +133,18 @@ flowchart TB
 - Зависимость: digital JSON-контракт листа стабилен (фаза A).
 - Агентам PDF: не ломать digital-роуты и `shared/dnd` без согласования.
 
-### Фаза C — Фрейм пачки
+### Фаза C — Лобби + сессия *(каркас на проде)*
 
-Зависимости: стабильный лист (A), аккаунт/join.
-
-1. Модель Party + участники + роль «мастер пачки».
-2. QR / invite join.
-3. Общий фрейм (чтение листов / боевые виджеты).
-4. Realtime (WebSocket) — по необходимости после первого sync-среза.
+1. ✅ Модель Lobby / Setting / PlaySession + seat  
+2. ✅ Invite code + QR join + код на персонаже  
+3. ✅ UI `/lobbies`, `/join/:code`, сеттинг, фрейм сессии (состав стола)  
+4. ✅ Nginx proxy `/lobbies|/sessions|/settings` → API (иначе POST ловил 405)  
+5. ⏳ Общий **боевой** фрейм на сессии (инициатива / статусы)  
+6. ⏳ Realtime (WebSocket) по необходимости  
 
 ### Фаза D — Подготовка боя → лут
 
-Зависимости: пачка (C).
+Зависимости: сессия в лобби (C).
 
 1. Encounter prep (инициатива, участники боя, статусы стола).
 2. Loot (раздача / учёт после боя).
@@ -133,7 +152,7 @@ flowchart TB
 ```mermaid
 flowchart LR
   A[A Digital sheet] --> B[B Classic PDF-like]
-  A --> C[C Party frame]
+  A --> C[C Lobby + Session]
   B -.->|тот же sheet JSON| C
   C --> D1[D Encounter prep]
   D1 --> D2[D Loot]
@@ -141,7 +160,7 @@ flowchart LR
 
 ## Статус кода (сейчас)
 
-Уже в продуктовой ветке / PR (digital):
+Уже в продуктовой ветке / на проде:
 
 - Auth (register/login/refresh, auto-refresh на 401), cabinet profile
 - Characters CRUD, hybrid JSONB + `sheet_version` (409)
@@ -151,21 +170,20 @@ flowchart LR
 - Text blocks + reorder; inventory + weight
 - Spells S1–S4; Play S1–S2; Sheet S3 passives/proficiencies
 - Sheet S4+: pact magic, attunement (max 3), short-rest hit-die heal
-- Sheet P1: upcast slot picker + active concentration on sticky header
-- Sheet P2: class/level 2014 slot table + prepare limit
-- Sheet P3: AC from equipped armor/shield + manual override
+- **Лобби / сеттинг / сессия (каркас):** create lobby, invite code + QR, join с выбором персонажа, код на карточке, сеттинг (опционально), сессия (ваншот или с сеттингом), seat/unseat из лобби
+- Alembic head на проде: `c9d0e1f2a3b4` (lobbies/settings/sessions)
 - Prod Docker deploy (Timeweb)
 
-Прод: http://201.34.132.252/ — подробности в [`deploy/README.md`](deploy/README.md).
+Прод: http://201.34.132.252/ — подробности в [`deploy/README.md`](deploy/README.md).  
+PR этого слайса: https://github.com/igorpogulaev485-code/Dvarf/pull/18 (`cursor/lobby-join-table-3333`).
 
 ## Очередь ближайших слайсов
 
-**Digital sheet (этот контур):** P3 КД от доспеха ✅ → P4 языки/инструменты.
+1. Боевой фрейм на сессии (инициатива / статусы стола) — план → ok  
+2. Classic PDF-like — параллельный агент (тот же sheet)  
+3. Encounter prep → loot  
 
-Параллельно другими агентами (не этот чат): Classic PDF-like · ЛК · Party frame.
-
-Backlog листа (не начинать без плана): multiclass; race → эффекты на лист; rich-text в блоках.
-
+Backlog (не начинать без плана): multiclass; race → эффекты на лист; rich-text в блоках; onboarding → тема UI; phone/SMS login; Google OAuth (гео-ограничения для RF); открыть сеттинг игрокам; QR polish / срок жизни кода.
 ## Стек
 
 - Frontend: React + Vite (`src/ui`, `src/features`, `src/pages`, `src/shared`)
@@ -195,7 +213,8 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 Auth: `POST /auth/register|login|refresh|logout`, `GET /auth/me`, OAuth stubs/start.  
-Characters / catalog — `/characters`, `/catalog`.
+Characters / catalog — `/characters`, `/catalog`.  
+Lobbies / settings / sessions — `/lobbies`, `/lobbies/join`, `/settings/{id}`, `/sessions/{id}` (+ seats).
 
 ## Frontend (локально)
 
