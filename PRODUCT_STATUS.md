@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/prod-lineage-rules-acbe`  
+**Prod tip (ветка линии прода):** `cursor/srd-catalog-clean-4979`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -58,6 +58,19 @@
 ---
 
 ## Сейчас в продукте (прод)
+
+
+### 2026-10-06 — SRD справочники + восстановление prod tip
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Справочник SRD 2014/2024 | Поиск на сервере, полные данные только после выбора | Быстрые списки без скачивания всего каталога |
+| Восстановление линии прода | Merge `prod-lineage-rules-acbe` после ошибочного тонкого деплоя | Снова лобби, кабинет, аватар, лист P1–P6, classic |
+
+На проде: да · ветка `cursor/srd-catalog-clean-4979` · PR #26
+
+> Инцидент: деплой SRD с ветки без tip затёр UI; исправлено merge tip + redeploy.
+
 
 > Стартовый срез по живому серверу. Агенты дополняют и правят ниже.
 
@@ -251,4 +264,4 @@
 | 2026-10-06 | `cursor/restore-avatar-upload-acbe` | Восстановлены загрузка аватара, `/uploads/`, иконка в шапке |
 | 2026-10-06 | `cursor/restore-cabinet-acbe` | Восстановлен кабинет: SMTP, verify, сессии, смена пароля/email, danger zone |
 | 2026-10-06 | `cursor/restore-sheet-classic-acbe` | Восстановлены лист P1–P6 + classic поверх lobby/cabinet; снято ложное «только в ветках» |
-| 2026-10-06 | `cursor/prod-lineage-rules-acbe` | Анти-overwrite: AGENTS.md, skills, preflight; tip сдвинут на эту ветку |
+| 2026-10-06 | `cursor/srd-catalog-clean-4979` | Анти-overwrite: AGENTS.md, skills, preflight; tip сдвинут на эту ветку |
