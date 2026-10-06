@@ -798,26 +798,57 @@ input {
   position: fixed;
   inset: 0;
   z-index: 50;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 20px;
   background: rgba(28, 25, 23, 0.45);
 }
 
 .ui-dialog {
+  display: flex;
+  flex-direction: column;
   width: min(440px, 100%);
-  padding: 20px;
+  max-height: calc(100dvh - 40px);
+  margin: auto 0;
+  padding: 0;
   border-radius: 16px;
   border: 1px solid var(--line);
   background: #fffdf9;
   box-shadow: 0 18px 40px rgba(28, 25, 23, 0.22);
+  overflow: hidden;
+}
+
+.ui-dialog--wide {
+  width: min(640px, 100%);
+}
+
+.ui-dialog__title {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 20px 20px 0;
+}
+
+.ui-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 14px 20px 8px;
 }
 
 .ui-dialog__actions {
   display: flex;
   flex-wrap: wrap;
+  flex: 0 0 auto;
   gap: 10px;
   justify-content: flex-end;
+  padding: 12px 20px 20px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  background: #fffdf9;
 }
 
 .sheet-banner {

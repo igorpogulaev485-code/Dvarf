@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import { Button } from './Button'
-import { Stack } from './Stack'
 
 type DialogProps = {
   open: boolean
@@ -37,22 +36,20 @@ export function Dialog({
         aria-modal="true"
         aria-labelledby="ui-dialog-title"
       >
-        <Stack gap={14}>
-          <h2 id="ui-dialog-title" className="ui-text">
-            {title}
-          </h2>
-          {children}
-          <div className="ui-dialog__actions">
-            {secondaryLabel && onSecondary ? (
-              <Button variant="ghost" onClick={onSecondary} disabled={busy}>
-                {secondaryLabel}
-              </Button>
-            ) : null}
-            <Button onClick={onPrimary} disabled={busy}>
-              {primaryLabel}
+        <h2 id="ui-dialog-title" className="ui-text ui-dialog__title">
+          {title}
+        </h2>
+        <div className="ui-dialog__body">{children}</div>
+        <div className="ui-dialog__actions">
+          {secondaryLabel && onSecondary ? (
+            <Button variant="ghost" onClick={onSecondary} disabled={busy}>
+              {secondaryLabel}
             </Button>
-          </div>
-        </Stack>
+          ) : null}
+          <Button onClick={onPrimary} disabled={busy}>
+            {primaryLabel}
+          </Button>
+        </div>
       </div>
     </div>
   )
