@@ -49,6 +49,40 @@ input {
   gap: var(--stack-gap, 12px);
 }
 
+
+
+.ui-panel--danger {
+  border-color: #f3b0a8;
+  background: color-mix(in srgb, #fff5f4 88%, white);
+}
+
+.ui-panel--danger .ui-panel__title {
+  color: #b42318;
+}
+
+.session-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.session-row:last-of-type {
+  border-bottom: none;
+}
+
+.session-row__meta {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.session-row__title {
+  font-weight: 600;
+}
+
 .ui-panel {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -108,6 +142,15 @@ input {
   padding: 12px 16px;
   cursor: pointer;
   font-weight: 600;
+}
+
+.ui-button--danger {
+  background: #b42318;
+  color: #fff8f7;
+  border-color: #912018;
+}
+.ui-button--danger:hover:not(:disabled) {
+  background: #912018;
 }
 
 .ui-button:disabled {
@@ -387,6 +430,44 @@ input {
   color: var(--accent);
   text-decoration: none;
   font-weight: 600;
+}
+
+
+
+.ui-password-input {
+  position: relative;
+}
+
+.ui-password-input__field {
+  padding-right: 48px;
+}
+
+.ui-password-input__toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  opacity: 0.72;
+  cursor: pointer;
+}
+
+.ui-password-input__toggle:hover {
+  opacity: 1;
+  background: color-mix(in srgb, var(--accent-soft) 70%, white);
+}
+
+.ui-password-input__toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 35%, white);
 }
 
 .cabinet-avatar-block {

@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AuthProvidersPanel, ProfileForm } from '../features/cabinet'
-import { getMe, logout, type User } from '../shared/api/auth'
+import {
+  AuthProvidersPanel,
+  ChangeEmailForm,
+  ChangePasswordForm,
+  DangerZone,
+  ProfileForm,
+  SessionsPanel,
+} from '../features/cabinet'
+import { getMe, type User } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
-import { Button, Panel, Stack, Text, Toast } from '../ui'
+import { Panel, Stack, Text, Toast } from '../ui'
 
 export function CabinetPage() {
   const navigate = useNavigate()
@@ -11,7 +18,6 @@ export function CabinetPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const [loggingOut, setLoggingOut] = useState(false)
 
   const closeToast = useCallback(() => setToast(null), [])
 
@@ -44,17 +50,6 @@ export function CabinetPage() {
     }
   }, [navigate])
 
-  async function handleLogout() {
-    setLoggingOut(true)
-    try {
-      await logout()
-      navigate('/login', { replace: true })
-    } catch {
-      setToast('Не удалось выйти. Попробуйте ещё раз.')
-      setLoggingOut(false)
-    }
-  }
-
   return (
     <main className="page page--app">
       <Stack gap={20}>
@@ -86,10 +81,41 @@ export function CabinetPage() {
               <AuthProvidersPanel providers={user.providers} />
             </Panel>
 
-            <Panel title="Сессия">
-              <Button variant="ghost" onClick={handleLogout} disabled={loggingOut}>
-                {loggingOut ? 'Выходим…' : 'Выйти'}
-              </Button>
+            <Panel title="Смена email">
+              <ChangeEmailForm currentEmail={user.email} />
+            </Panel>
+
+            {user.providers.includes('password') ? (
+              <Panel title="Смена пароля">
+                <ChangePasswordForm
+                  onChanged={() => setToast('Пароль изменён')}
+                />
+              </Panel>
+            ) : (
+              <Panel title="Смена пароля">
+                <Text tone="muted">
+                  У аккаунта нет пароля email — смена пароля недоступна. Позже можно будет задать
+                  пароль после привязки email.
+                </Text>
+              </Panel>
+            )}
+
+            <Panel title="Сессии">
+              <SessionsPanel
+                onLoggedOut={() => {
+                  navigate('/login', { replace: true })
+                }}
+              />
+            </Panel>
+
+            <Panel title="Опасная зона" className="ui-panel--danger">
+              <DangerZone
+                user={user}
+                onDeleted={() => {
+                  setToast('Аккаунт удалён')
+                  navigate('/login', { replace: true })
+                }}
+              />
             </Panel>
           </>
         ) : null}

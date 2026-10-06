@@ -3,12 +3,14 @@ import { AuthDebugPage } from './pages/AuthDebugPage'
 import { CabinetPage } from './pages/CabinetPage'
 import { CharacterDetailPage } from './pages/CharacterDetailPage'
 import { CharactersPage } from './pages/CharactersPage'
+import { ConfirmEmailPage } from './pages/ConfirmEmailPage'
 import { JoinLobbyPage } from './pages/JoinLobbyPage'
 import { LobbiesPage } from './pages/LobbiesPage'
 import { LobbyDetailPage } from './pages/LobbyDetailPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { SessionDetailPage } from './pages/SessionDetailPage'
 import { SettingDetailPage } from './pages/SettingDetailPage'
+import { VerifyEmailPage } from './pages/VerifyEmailPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
 import { safeNextPath } from './shared/auth/nextPath'
@@ -33,6 +35,8 @@ export default function App() {
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/login" element={<LoginRoute />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/confirm-email" element={<ConfirmEmailPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/join" element={<JoinLobbyPage />} />
         <Route path="/join/:code" element={<JoinLobbyPage />} />
         <Route

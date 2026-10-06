@@ -8,6 +8,7 @@ export type User = {
   full_name: string | null
   phone: string | null
   avatar_url: string | null
+  email_verified_at: string | null
   created_at: string
   updated_at: string
   providers: string[]
@@ -33,13 +34,19 @@ export type OAuthStartResponse = {
   message: string | null
 }
 
-export async function register(email: string, password: string): Promise<TokenResponse> {
-  const result = await apiRequest<TokenResponse>('/auth/register', {
+export async function register(
+  email: string,
+  password: string,
+  displayName: string,
+): Promise<RegisterResponse> {
+  return apiRequest<RegisterResponse>('/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      email,
+      password,
+      display_name: displayName,
+    }),
   })
-  setTokens(result.access_token, result.refresh_token)
-  return result
 }
 
 export async function login(email: string, password: string): Promise<TokenResponse> {
@@ -51,9 +58,83 @@ export async function login(email: string, password: string): Promise<TokenRespo
   return result
 }
 
+export type RegisterResponse = {
+  message: string
+  stub: boolean
+  debug_verify_url: string | null
+}
+
+export type VerifyEmailResponse = TokenResponse
+
+export async function verifyEmail(token: string): Promise<VerifyEmailResponse> {
+  const result = await apiRequest<VerifyEmailResponse>('/auth/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  })
+  setTokens(result.access_token, result.refresh_token)
+  return result
+}
+
+export type ResendVerificationResponse = {
+  message: string
+  stub: boolean
+  debug_verify_url: string | null
+}
+
+export async function resendVerification(email: string): Promise<ResendVerificationResponse> {
+  return apiRequest<ResendVerificationResponse>('/auth/resend-verification', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  })
+}
+
 export async function logout(): Promise<void> {
-  await apiRequest<void>('/auth/logout', { method: 'POST' })
-  clearTokens()
+  try {
+    await apiRequest<void>('/auth/logout', { method: 'POST' })
+  } finally {
+    clearTokens()
+  }
+}
+
+export type AuthSession = {
+  id: string
+  created_at: string
+  last_seen_at: string
+  expires_at: string
+  user_agent: string | null
+  ip_address: string | null
+  current: boolean
+}
+
+export type AuthSessionListResponse = {
+  items: AuthSession[]
+}
+
+export type RevokeSessionsResponse = {
+  message: string
+  revoked: number
+}
+
+export async function listSessions(): Promise<AuthSessionListResponse> {
+  return apiRequest<AuthSessionListResponse>('/auth/sessions')
+}
+
+export async function revokeSession(sessionId: string): Promise<RevokeSessionsResponse> {
+  return apiRequest<RevokeSessionsResponse>(`/auth/sessions/${sessionId}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function revokeOtherSessions(): Promise<RevokeSessionsResponse> {
+  return apiRequest<RevokeSessionsResponse>('/auth/sessions?others_only=true', {
+    method: 'DELETE',
+  })
+}
+
+export async function revokeAllSessions(): Promise<RevokeSessionsResponse> {
+  return apiRequest<RevokeSessionsResponse>('/auth/sessions?others_only=false', {
+    method: 'DELETE',
+  })
 }
 
 export async function getMe(): Promise<User> {
@@ -64,6 +145,23 @@ export async function updateMe(payload: UserUpdatePayload): Promise<User> {
   return apiRequest<User>('/auth/me', {
     method: 'PATCH',
     body: JSON.stringify(payload),
+  })
+}
+
+export type ChangePasswordResponse = {
+  message: string
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<ChangePasswordResponse> {
+  return apiRequest<ChangePasswordResponse>('/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword,
+    }),
   })
 }
 
@@ -79,6 +177,48 @@ export async function uploadAvatar(file: File): Promise<User> {
 export async function deleteAvatar(): Promise<User> {
   return apiRequest<User>('/auth/me/avatar', {
     method: 'DELETE',
+  })
+}
+
+export type EmailChangeRequestResponse = {
+  message: string
+  stub: boolean
+  debug_confirm_url: string | null
+}
+
+export type EmailChangeConfirmResponse = {
+  message: string
+  user: User
+}
+
+export async function requestEmailChange(newEmail: string): Promise<EmailChangeRequestResponse> {
+  return apiRequest<EmailChangeRequestResponse>('/auth/me/email/request', {
+    method: 'POST',
+    body: JSON.stringify({ new_email: newEmail }),
+  })
+}
+
+export async function confirmEmailChange(token: string): Promise<EmailChangeConfirmResponse> {
+  return apiRequest<EmailChangeConfirmResponse>('/auth/me/email/confirm', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  })
+}
+
+export type DeleteAccountResponse = {
+  message: string
+}
+
+export async function deleteAccount(
+  confirmEmail: string,
+  password: string | null,
+): Promise<DeleteAccountResponse> {
+  return apiRequest<DeleteAccountResponse>('/auth/me', {
+    method: 'DELETE',
+    body: JSON.stringify({
+      confirm_email: confirmEmail,
+      password,
+    }),
   })
 }
 

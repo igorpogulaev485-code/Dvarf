@@ -1,24 +1,39 @@
 from __future__ import annotations
 
 from urllib.parse import urlencode
+from uuid import UUID
 
-from fastapi import APIRouter, File, Response, UploadFile
+from fastapi import APIRouter, File, Request, Response, UploadFile
 from fastapi.responses import RedirectResponse
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.deps import CurrentSessionId, CurrentUser, DbSession, client_meta
 from app.core.config import settings
 from app.core.exceptions import AppError
 from app.models.user import AuthProvider
 from app.schemas.auth import (
+    AuthSessionListResponse,
+    ChangePasswordRequest,
+    ChangePasswordResponse,
+    DeleteAccountRequest,
+    DeleteAccountResponse,
+    EmailChangeConfirmRequest,
+    EmailChangeConfirmResponse,
+    EmailChangeRequest,
+    EmailChangeRequestResponse,
     ForgotPasswordRequest,
     ForgotPasswordResponse,
     LoginRequest,
     OAuthStartResponse,
     RefreshRequest,
     RegisterRequest,
+    RegisterResponse,
+    ResendVerificationRequest,
+    ResendVerificationResponse,
     ResetPasswordRequest,
     ResetPasswordResponse,
+    RevokeSessionsResponse,
     TokenResponse,
+    VerifyEmailRequest,
 )
 from app.schemas.user import UserResponse, UserUpdateRequest
 from app.services.auth import AuthService, serialize_user
@@ -40,19 +55,48 @@ def _provider(provider: AuthProvider):
     )
 
 
-@router.post("/register", response_model=TokenResponse)
-def register(payload: RegisterRequest, db: DbSession) -> TokenResponse:
-    return AuthService(db).register(payload.email, payload.password)
+@router.post("/register", response_model=RegisterResponse)
+def register(payload: RegisterRequest, db: DbSession) -> RegisterResponse:
+    return AuthService(db).register(payload.email, payload.password, payload.display_name)
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, db: DbSession) -> TokenResponse:
-    return AuthService(db).login(payload.email, payload.password)
+def login(payload: LoginRequest, request: Request, db: DbSession) -> TokenResponse:
+    user_agent, ip_address = client_meta(request)
+    return AuthService(db).login(
+        payload.email,
+        payload.password,
+        user_agent=user_agent,
+        ip_address=ip_address,
+    )
+
+
+@router.post("/verify-email", response_model=TokenResponse)
+def verify_email(payload: VerifyEmailRequest, request: Request, db: DbSession) -> TokenResponse:
+    user_agent, ip_address = client_meta(request)
+    return AuthService(db).verify_email(
+        payload.token,
+        user_agent=user_agent,
+        ip_address=ip_address,
+    )
+
+
+@router.post("/resend-verification", response_model=ResendVerificationResponse)
+def resend_verification(
+    payload: ResendVerificationRequest,
+    db: DbSession,
+) -> ResendVerificationResponse:
+    return AuthService(db).resend_verification(payload.email)
 
 
 @router.post("/refresh", response_model=TokenResponse)
-def refresh(payload: RefreshRequest, db: DbSession) -> TokenResponse:
-    return AuthService(db).refresh(payload.refresh_token)
+def refresh(payload: RefreshRequest, request: Request, db: DbSession) -> TokenResponse:
+    user_agent, ip_address = client_meta(request)
+    return AuthService(db).refresh(
+        payload.refresh_token,
+        user_agent=user_agent,
+        ip_address=ip_address,
+    )
 
 
 @router.post("/forgot-password", response_model=ForgotPasswordResponse)
@@ -66,9 +110,51 @@ def reset_password(payload: ResetPasswordRequest, db: DbSession) -> ResetPasswor
 
 
 @router.post("/logout", status_code=204)
-def logout() -> Response:
-    # Access/refresh JWTs are client-held for now; cabinet/session revoke comes later.
+def logout(
+    current_user: CurrentUser,
+    session_id: CurrentSessionId,
+    db: DbSession,
+) -> Response:
+    AuthService(db).logout_current(session_id=session_id)
     return Response(status_code=204)
+
+
+@router.get("/sessions", response_model=AuthSessionListResponse)
+def list_sessions(
+    current_user: CurrentUser,
+    session_id: CurrentSessionId,
+    db: DbSession,
+) -> AuthSessionListResponse:
+    return AuthService(db).list_sessions(current_user.id, current_session_id=session_id)
+
+
+@router.delete("/sessions/{session_id}", response_model=RevokeSessionsResponse)
+def revoke_session(
+    session_id: UUID,
+    current_user: CurrentUser,
+    current_session_id: CurrentSessionId,
+    db: DbSession,
+) -> RevokeSessionsResponse:
+    return AuthService(db).revoke_session(
+        current_user.id,
+        session_id,
+        current_session_id=current_session_id,
+    )
+
+
+@router.delete("/sessions", response_model=RevokeSessionsResponse)
+def revoke_sessions(
+    current_user: CurrentUser,
+    session_id: CurrentSessionId,
+    db: DbSession,
+    others_only: bool = True,
+) -> RevokeSessionsResponse:
+    if others_only:
+        return AuthService(db).revoke_other_sessions(
+            current_user.id,
+            current_session_id=session_id,
+        )
+    return AuthService(db).revoke_all_sessions(current_user.id)
 
 
 @router.get("/me", response_model=UserResponse)
@@ -85,6 +171,19 @@ def update_me(
     return AuthService(db).update_me(current_user.id, payload)
 
 
+@router.post("/change-password", response_model=ChangePasswordResponse)
+def change_password(
+    payload: ChangePasswordRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> ChangePasswordResponse:
+    return AuthService(db).change_password(
+        current_user.id,
+        payload.current_password,
+        payload.new_password,
+    )
+
+
 @router.post("/me/avatar", response_model=UserResponse)
 async def upload_avatar(
     current_user: CurrentUser,
@@ -98,6 +197,37 @@ async def upload_avatar(
 @router.delete("/me/avatar", response_model=UserResponse)
 def delete_avatar(current_user: CurrentUser, db: DbSession) -> UserResponse:
     return AuthService(db).delete_avatar(current_user.id)
+
+
+@router.post("/me/email/request", response_model=EmailChangeRequestResponse)
+def request_email_change(
+    payload: EmailChangeRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> EmailChangeRequestResponse:
+    return AuthService(db).request_email_change(current_user.id, payload.new_email)
+
+
+@router.post("/me/email/confirm", response_model=EmailChangeConfirmResponse)
+def confirm_email_change(
+    payload: EmailChangeConfirmRequest,
+    db: DbSession,
+) -> EmailChangeConfirmResponse:
+    # No auth required: user opens the link from the OLD mailbox.
+    return AuthService(db).confirm_email_change(payload.token)
+
+
+@router.delete("/me", response_model=DeleteAccountResponse)
+def delete_account(
+    payload: DeleteAccountRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> DeleteAccountResponse:
+    return AuthService(db).delete_account(
+        current_user.id,
+        confirm_email=payload.confirm_email,
+        password=payload.password,
+    )
 
 
 @router.get("/oauth/{provider}/start", response_model=OAuthStartResponse)
@@ -139,6 +269,7 @@ def oauth_start(provider: AuthProvider) -> OAuthStartResponse:
 @router.get("/oauth/{provider}/callback")
 async def oauth_callback(
     provider: AuthProvider,
+    request: Request,
     db: DbSession,
     code: str | None = None,
     state: str | None = None,
@@ -170,7 +301,12 @@ async def oauth_callback(
 
     oauth = _provider(provider)
     profile = await oauth.exchange_code(code)
-    tokens = AuthService(db).login_with_oauth_profile(profile)
+    user_agent, ip_address = client_meta(request)
+    tokens = AuthService(db).login_with_oauth_profile(
+        profile,
+        user_agent=user_agent,
+        ip_address=ip_address,
+    )
 
     query = urlencode(
         {
