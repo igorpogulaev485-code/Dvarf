@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from datetime import datetime
+from uuid import UUID
+
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 from app.schemas.user import UserResponse
@@ -118,3 +121,23 @@ class DeleteAccountRequest(BaseModel):
 
 class DeleteAccountResponse(BaseModel):
     message: str
+
+
+class AuthSessionResponse(BaseModel):
+    id: UUID
+    created_at: datetime
+    last_seen_at: datetime
+    expires_at: datetime
+    user_agent: str | None = None
+    ip_address: str | None = None
+    current: bool = False
+
+
+class AuthSessionListResponse(BaseModel):
+    items: list[AuthSessionResponse]
+
+
+class RevokeSessionsResponse(BaseModel):
+    message: str
+    revoked: int
+

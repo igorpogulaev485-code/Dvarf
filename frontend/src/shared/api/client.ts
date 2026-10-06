@@ -107,7 +107,19 @@ export async function apiRequest<T>(
     headers,
   })
 
-  if (response.status === 401 && !retried && !path.startsWith('/auth/')) {
+  if (
+    response.status === 401 &&
+    !retried &&
+    !path.startsWith('/auth/login') &&
+    !path.startsWith('/auth/register') &&
+    !path.startsWith('/auth/refresh') &&
+    !path.startsWith('/auth/forgot-password') &&
+    !path.startsWith('/auth/reset-password') &&
+    !path.startsWith('/auth/verify-email') &&
+    !path.startsWith('/auth/resend-verification') &&
+    !path.startsWith('/auth/oauth') &&
+    !path.startsWith('/auth/me/email/confirm')
+  ) {
     const refreshed = await tryRefreshAccessToken()
     if (refreshed) {
       return apiRequest<T>(path, options, true)

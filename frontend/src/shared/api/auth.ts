@@ -89,8 +89,52 @@ export async function resendVerification(email: string): Promise<ResendVerificat
 }
 
 export async function logout(): Promise<void> {
-  await apiRequest<void>('/auth/logout', { method: 'POST' })
-  clearTokens()
+  try {
+    await apiRequest<void>('/auth/logout', { method: 'POST' })
+  } finally {
+    clearTokens()
+  }
+}
+
+export type AuthSession = {
+  id: string
+  created_at: string
+  last_seen_at: string
+  expires_at: string
+  user_agent: string | null
+  ip_address: string | null
+  current: boolean
+}
+
+export type AuthSessionListResponse = {
+  items: AuthSession[]
+}
+
+export type RevokeSessionsResponse = {
+  message: string
+  revoked: number
+}
+
+export async function listSessions(): Promise<AuthSessionListResponse> {
+  return apiRequest<AuthSessionListResponse>('/auth/sessions')
+}
+
+export async function revokeSession(sessionId: string): Promise<RevokeSessionsResponse> {
+  return apiRequest<RevokeSessionsResponse>(`/auth/sessions/${sessionId}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function revokeOtherSessions(): Promise<RevokeSessionsResponse> {
+  return apiRequest<RevokeSessionsResponse>('/auth/sessions?others_only=true', {
+    method: 'DELETE',
+  })
+}
+
+export async function revokeAllSessions(): Promise<RevokeSessionsResponse> {
+  return apiRequest<RevokeSessionsResponse>('/auth/sessions?others_only=false', {
+    method: 'DELETE',
+  })
 }
 
 export async function getMe(): Promise<User> {

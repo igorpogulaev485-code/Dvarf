@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 from urllib.parse import urlencode
+from uuid import UUID
 
-from fastapi import APIRouter, File, Response, UploadFile
+from fastapi import APIRouter, File, Request, Response, UploadFile
 from fastapi.responses import RedirectResponse
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.deps import CurrentSessionId, CurrentUser, DbSession, client_meta
 from app.core.config import settings
 from app.core.exceptions import AppError
 from app.models.user import AuthProvider
 from app.schemas.auth import (
+    AuthSessionListResponse,
     ChangePasswordRequest,
     ChangePasswordResponse,
     DeleteAccountRequest,
@@ -29,6 +31,7 @@ from app.schemas.auth import (
     ResendVerificationResponse,
     ResetPasswordRequest,
     ResetPasswordResponse,
+    RevokeSessionsResponse,
     TokenResponse,
     VerifyEmailRequest,
 )
@@ -58,13 +61,24 @@ def register(payload: RegisterRequest, db: DbSession) -> RegisterResponse:
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(payload: LoginRequest, db: DbSession) -> TokenResponse:
-    return AuthService(db).login(payload.email, payload.password)
+def login(payload: LoginRequest, request: Request, db: DbSession) -> TokenResponse:
+    user_agent, ip_address = client_meta(request)
+    return AuthService(db).login(
+        payload.email,
+        payload.password,
+        user_agent=user_agent,
+        ip_address=ip_address,
+    )
 
 
 @router.post("/verify-email", response_model=TokenResponse)
-def verify_email(payload: VerifyEmailRequest, db: DbSession) -> TokenResponse:
-    return AuthService(db).verify_email(payload.token)
+def verify_email(payload: VerifyEmailRequest, request: Request, db: DbSession) -> TokenResponse:
+    user_agent, ip_address = client_meta(request)
+    return AuthService(db).verify_email(
+        payload.token,
+        user_agent=user_agent,
+        ip_address=ip_address,
+    )
 
 
 @router.post("/resend-verification", response_model=ResendVerificationResponse)
@@ -76,8 +90,13 @@ def resend_verification(
 
 
 @router.post("/refresh", response_model=TokenResponse)
-def refresh(payload: RefreshRequest, db: DbSession) -> TokenResponse:
-    return AuthService(db).refresh(payload.refresh_token)
+def refresh(payload: RefreshRequest, request: Request, db: DbSession) -> TokenResponse:
+    user_agent, ip_address = client_meta(request)
+    return AuthService(db).refresh(
+        payload.refresh_token,
+        user_agent=user_agent,
+        ip_address=ip_address,
+    )
 
 
 @router.post("/forgot-password", response_model=ForgotPasswordResponse)
@@ -91,9 +110,51 @@ def reset_password(payload: ResetPasswordRequest, db: DbSession) -> ResetPasswor
 
 
 @router.post("/logout", status_code=204)
-def logout() -> Response:
-    # Access/refresh JWTs are client-held for now; cabinet/session revoke comes later.
+def logout(
+    current_user: CurrentUser,
+    session_id: CurrentSessionId,
+    db: DbSession,
+) -> Response:
+    AuthService(db).logout_current(session_id=session_id)
     return Response(status_code=204)
+
+
+@router.get("/sessions", response_model=AuthSessionListResponse)
+def list_sessions(
+    current_user: CurrentUser,
+    session_id: CurrentSessionId,
+    db: DbSession,
+) -> AuthSessionListResponse:
+    return AuthService(db).list_sessions(current_user.id, current_session_id=session_id)
+
+
+@router.delete("/sessions/{session_id}", response_model=RevokeSessionsResponse)
+def revoke_session(
+    session_id: UUID,
+    current_user: CurrentUser,
+    current_session_id: CurrentSessionId,
+    db: DbSession,
+) -> RevokeSessionsResponse:
+    return AuthService(db).revoke_session(
+        current_user.id,
+        session_id,
+        current_session_id=current_session_id,
+    )
+
+
+@router.delete("/sessions", response_model=RevokeSessionsResponse)
+def revoke_sessions(
+    current_user: CurrentUser,
+    session_id: CurrentSessionId,
+    db: DbSession,
+    others_only: bool = True,
+) -> RevokeSessionsResponse:
+    if others_only:
+        return AuthService(db).revoke_other_sessions(
+            current_user.id,
+            current_session_id=session_id,
+        )
+    return AuthService(db).revoke_all_sessions(current_user.id)
 
 
 @router.get("/me", response_model=UserResponse)
@@ -208,6 +269,7 @@ def oauth_start(provider: AuthProvider) -> OAuthStartResponse:
 @router.get("/oauth/{provider}/callback")
 async def oauth_callback(
     provider: AuthProvider,
+    request: Request,
     db: DbSession,
     code: str | None = None,
     state: str | None = None,
@@ -239,7 +301,12 @@ async def oauth_callback(
 
     oauth = _provider(provider)
     profile = await oauth.exchange_code(code)
-    tokens = AuthService(db).login_with_oauth_profile(profile)
+    user_agent, ip_address = client_meta(request)
+    tokens = AuthService(db).login_with_oauth_profile(
+        profile,
+        user_agent=user_agent,
+        ip_address=ip_address,
+    )
 
     query = urlencode(
         {

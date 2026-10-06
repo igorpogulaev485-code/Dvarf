@@ -81,7 +81,7 @@ export function ChangeEmailForm({ currentEmail }: ChangeEmailFormProps) {
         {message ? <Text tone="success">{message}</Text> : null}
         {debugUrl ? (
           <Stack gap={6}>
-            <Text tone="muted">Заглушка почты — ссылка для теста:</Text>
+            <Text tone="muted">Ссылка для разработки (вместо письма):</Text>
             <a className="back-link" href={debugUrl}>
               Подтвердить смену email
             </a>

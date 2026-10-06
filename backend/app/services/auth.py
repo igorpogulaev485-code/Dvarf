@@ -17,12 +17,15 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.models.user import AuthProvider, User
+from app.models.user import AuthProvider, AuthSession, User
+from app.repositories.auth_session import AuthSessionRepository
 from app.repositories.email_change import EmailChangeRepository
 from app.repositories.email_verification import EmailVerificationRepository
 from app.repositories.password_reset import PasswordResetRepository
 from app.repositories.user import UserRepository
 from app.schemas.auth import (
+    AuthSessionListResponse,
+    AuthSessionResponse,
     ChangePasswordResponse,
     DeleteAccountResponse,
     EmailChangeConfirmResponse,
@@ -31,6 +34,7 @@ from app.schemas.auth import (
     RegisterResponse,
     ResendVerificationResponse,
     ResetPasswordResponse,
+    RevokeSessionsResponse,
     TokenResponse,
 )
 from app.schemas.user import UserResponse, UserUpdateRequest
@@ -55,16 +59,24 @@ def serialize_user(user: User) -> UserResponse:
     )
 
 
-def issue_tokens(user: User) -> TokenResponse:
-    return TokenResponse(
-        access_token=create_access_token(user.id),
-        refresh_token=create_refresh_token(user.id),
-        user=serialize_user(user),
-    )
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def _hash_reset_token(token: str) -> str:
-    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+    return _hash_token(token)
+
+
+def serialize_session(session: AuthSession, *, current_id: UUID | None) -> AuthSessionResponse:
+    return AuthSessionResponse(
+        id=session.id,
+        created_at=session.created_at,
+        last_seen_at=session.last_seen_at,
+        expires_at=session.expires_at,
+        user_agent=session.user_agent,
+        ip_address=session.ip_address,
+        current=current_id is not None and session.id == current_id,
+    )
 
 
 class AuthService:
@@ -74,6 +86,50 @@ class AuthService:
         self.password_resets = PasswordResetRepository(db)
         self.email_changes = EmailChangeRepository(db)
         self.email_verifications = EmailVerificationRepository(db)
+        self.sessions = AuthSessionRepository(db)
+
+    def issue_tokens(
+        self,
+        user: User,
+        *,
+        user_agent: str | None = None,
+        ip_address: str | None = None,
+        existing_session: AuthSession | None = None,
+    ) -> TokenResponse:
+        expires_at = datetime.now(UTC) + timedelta(days=settings.refresh_token_ttl_days)
+        ua = (user_agent or "")[:512] or None
+        ip = (ip_address or "")[:64] or None
+
+        if existing_session is not None:
+            session = existing_session
+            # Placeholder hash until refresh token is minted.
+            access = create_access_token(user.id, session_id=session.id)
+            refresh = create_refresh_token(user.id, session_id=session.id)
+            self.sessions.touch(session, refresh_token_hash=_hash_token(refresh))
+        else:
+            # Create session row first with temporary hash, then mint tokens with sid.
+            placeholder = _hash_token(secrets.token_urlsafe(32))
+            session = self.sessions.create(
+                user_id=user.id,
+                refresh_token_hash=placeholder,
+                expires_at=expires_at,
+                user_agent=ua,
+                ip_address=ip,
+            )
+            access = create_access_token(user.id, session_id=session.id)
+            refresh = create_refresh_token(user.id, session_id=session.id)
+            session.refresh_token_hash = _hash_token(refresh)
+            session.last_seen_at = datetime.now(UTC)
+            self.db.add(session)
+
+        self.db.commit()
+        loaded = self.users.get_by_id(user.id)
+        assert loaded is not None
+        return TokenResponse(
+            access_token=access,
+            refresh_token=refresh,
+            user=serialize_user(loaded),
+        )
 
     def _issue_verification_and_send(self, user: User) -> tuple[str, str | None]:
         """Create verification token and send (or stub). Returns (message, debug_url)."""
@@ -100,9 +156,8 @@ class AuthService:
             if settings.auth_email_stub:
                 debug_url = verify_url
             message = (
-                f"Мы отправили ссылку подтверждения на {user.email}. "
-                "Аккаунт активируется после перехода по ссылке. "
-                "Сейчас почта ещё не подключена — это заглушка."
+                f"Аккаунт создан. Подтвердите email {user.email} по ссылке ниже "
+                "(режим разработки — письмо не отправлялось)."
             )
         else:
             try:
@@ -152,7 +207,14 @@ class AuthService:
             debug_verify_url=debug_url,
         )
 
-    def login(self, email: str, password: str) -> TokenResponse:
+    def login(
+        self,
+        email: str,
+        password: str,
+        *,
+        user_agent: str | None = None,
+        ip_address: str | None = None,
+    ) -> TokenResponse:
         user = self.users.get_by_email(email)
         if user is None or not user.password_hash:
             raise UnauthorizedError("Неверный email или пароль")
@@ -167,9 +229,15 @@ class AuthService:
 
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
-        return issue_tokens(loaded)
+        return self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
 
-    def verify_email(self, token: str) -> TokenResponse:
+    def verify_email(
+        self,
+        token: str,
+        *,
+        user_agent: str | None = None,
+        ip_address: str | None = None,
+    ) -> TokenResponse:
         record = self.email_verifications.get_active_by_hash(_hash_reset_token(token))
         if record is None or record.user is None:
             raise AppError(
@@ -185,7 +253,7 @@ class AuthService:
 
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
-        return issue_tokens(loaded)
+        return self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
 
     def resend_verification(self, email: str) -> ResendVerificationResponse:
         """Same public message whether or not the account exists / needs verify."""
@@ -209,7 +277,13 @@ class AuthService:
             debug_verify_url=None,
         )
 
-    def refresh(self, refresh_token: str) -> TokenResponse:
+    def refresh(
+        self,
+        refresh_token: str,
+        *,
+        user_agent: str | None = None,
+        ip_address: str | None = None,
+    ) -> TokenResponse:
         try:
             payload = decode_token(refresh_token)
         except Exception as exc:  # noqa: BLE001
@@ -218,10 +292,83 @@ class AuthService:
         if payload.get("type") != "refresh":
             raise UnauthorizedError("Недействительный refresh-токен")
 
+        sid_raw = payload.get("sid")
+        if not sid_raw:
+            raise UnauthorizedError("Сессия устарела — войдите снова")
+
+        session = self.sessions.get_active_by_id(UUID(str(sid_raw)))
+        if session is None or session.refresh_token_hash != _hash_token(refresh_token):
+            raise UnauthorizedError("Сессия недействительна — войдите снова")
+
         user = self.users.get_by_id(UUID(payload["sub"]))
-        if user is None:
+        if user is None or user.id != session.user_id:
             raise UnauthorizedError("Пользователь не найден")
-        return issue_tokens(user)
+
+        if user_agent:
+            session.user_agent = user_agent[:512]
+        if ip_address:
+            session.ip_address = ip_address[:64]
+
+        return self.issue_tokens(
+            user,
+            user_agent=session.user_agent,
+            ip_address=session.ip_address,
+            existing_session=session,
+        )
+
+    def list_sessions(self, user_id: UUID, *, current_session_id: UUID | None) -> AuthSessionListResponse:
+        items = [
+            serialize_session(session, current_id=current_session_id)
+            for session in self.sessions.list_active_for_user(user_id)
+        ]
+        return AuthSessionListResponse(items=items)
+
+    def revoke_session(
+        self,
+        user_id: UUID,
+        session_id: UUID,
+        *,
+        current_session_id: UUID | None,
+    ) -> RevokeSessionsResponse:
+        session = self.sessions.get_by_id(session_id)
+        if session is None or session.user_id != user_id:
+            raise AppError("Сессия не найдена", code="session_not_found", status_code=404)
+        if session.revoked_at is not None:
+            return RevokeSessionsResponse(message="Сессия уже завершена", revoked=0)
+
+        self.sessions.revoke(session)
+        self.db.commit()
+        label = "текущая сессия" if current_session_id == session_id else "сессия"
+        return RevokeSessionsResponse(message=f"Завершена {label}", revoked=1)
+
+    def revoke_other_sessions(
+        self,
+        user_id: UUID,
+        *,
+        current_session_id: UUID,
+    ) -> RevokeSessionsResponse:
+        count = self.sessions.revoke_all_for_user(user_id, except_id=current_session_id)
+        self.db.commit()
+        return RevokeSessionsResponse(
+            message="Все остальные сессии завершены",
+            revoked=count,
+        )
+
+    def revoke_all_sessions(self, user_id: UUID) -> RevokeSessionsResponse:
+        count = self.sessions.revoke_all_for_user(user_id)
+        self.db.commit()
+        return RevokeSessionsResponse(
+            message="Все сессии завершены",
+            revoked=count,
+        )
+
+    def logout_current(self, *, session_id: UUID | None) -> None:
+        if session_id is None:
+            return
+        session = self.sessions.get_by_id(session_id)
+        if session is not None and session.revoked_at is None:
+            self.sessions.revoke(session)
+            self.db.commit()
 
     def get_me(self, user_id: UUID) -> UserResponse:
         user = self.users.get_by_id(user_id)
@@ -245,7 +392,13 @@ class AuthService:
         assert loaded is not None
         return serialize_user(loaded)
 
-    def login_with_oauth_profile(self, profile: OAuthProfile) -> TokenResponse:
+    def login_with_oauth_profile(
+        self,
+        profile: OAuthProfile,
+        *,
+        user_agent: str | None = None,
+        ip_address: str | None = None,
+    ) -> TokenResponse:
         existing = self.users.get_by_identity(profile.provider, profile.provider_user_id)
         if existing is not None:
             if profile.avatar_url and not existing.avatar_url:
@@ -253,8 +406,8 @@ class AuthService:
                 self.db.commit()
                 loaded = self.users.get_by_id(existing.id)
                 assert loaded is not None
-                return issue_tokens(loaded)
-            return issue_tokens(existing)
+                return self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
+            return self.issue_tokens(existing, user_agent=user_agent, ip_address=ip_address)
 
         if profile.email:
             email_owner = self.users.get_by_email(profile.email)
@@ -279,7 +432,7 @@ class AuthService:
         self.db.commit()
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
-        return issue_tokens(loaded)
+        return self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
 
     def forgot_password(self, email: str) -> ForgotPasswordResponse:
         """Always returns the same public message (no email enumeration)."""
@@ -287,8 +440,8 @@ class AuthService:
 
         if settings.auth_email_stub:
             public_message = (
-                "Если аккаунт с таким email существует, мы отправим инструкции по восстановлению. "
-                "Сейчас почта ещё не подключена — это заглушка."
+                "Если аккаунт с таким email существует, ссылка для восстановления "
+                "будет показана ниже (режим разработки)."
             )
         else:
             public_message = (
@@ -458,9 +611,8 @@ class AuthService:
                 confirm_url,
             )
             message = (
-                f"Мы отправили ссылку подтверждения на текущую почту {current_email}. "
-                "Смена email произойдёт только после перехода по ссылке. "
-                "Сейчас почта ещё не подключена — это заглушка."
+                f"Ссылка подтверждения для смены email готова "
+                f"(режим разработки — письмо на {current_email} не отправлялось)."
             )
             debug_url = confirm_url if settings.auth_email_stub else None
         else:

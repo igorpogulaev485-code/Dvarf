@@ -66,8 +66,7 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
     <form onSubmit={handleSubmit} noValidate>
       <Stack gap={14}>
         <Text tone="muted">
-          Укажите email аккаунта. Мы отправим ссылку для смены пароля. Сейчас почта в заглушке —
-          ссылка покажется здесь.
+          Укажите email аккаунта — пришлём ссылку для смены пароля.
         </Text>
         <Field label="Email" htmlFor="forgot-email" hint="Формат: name@mail.ru">
           <Input
@@ -99,7 +98,7 @@ export function ForgotPasswordForm({ onBackToLogin }: ForgotPasswordFormProps) {
         {message ? <Text tone="success">{message}</Text> : null}
         {debugResetUrl ? (
           <Stack gap={8}>
-            <Text tone="muted">Отладочная ссылка (вместо письма):</Text>
+            <Text tone="muted">Ссылка для разработки (вместо письма):</Text>
             <a className="debug-link" href={debugResetUrl}>
               {debugResetUrl}
             </a>

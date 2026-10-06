@@ -184,7 +184,7 @@ export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFo
         {registerMessage ? <Text tone="success">{registerMessage}</Text> : null}
         {debugVerifyUrl ? (
           <Stack gap={6}>
-            <Text tone="muted">Заглушка почты — ссылка для теста:</Text>
+            <Text tone="muted">Ссылка для разработки (вместо письма):</Text>
             <a className="back-link" href={debugVerifyUrl}>
               Подтвердить email
             </a>

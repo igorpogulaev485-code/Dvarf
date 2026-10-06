@@ -429,13 +429,27 @@ input {
   background: #fff;
 }
 
-.cabinet-provider-row {
+.session-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
+  padding: 12px 0;
   border-bottom: 1px solid var(--line);
+}
+
+.session-row:last-of-type {
+  border-bottom: none;
+}
+
+.session-row__meta {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.session-row__title {
+  font-weight: 600;
 }
 
 .cabinet-provider-row:last-of-type {

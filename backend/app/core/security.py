@@ -37,19 +37,21 @@ def create_token(
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
-def create_access_token(user_id: UUID) -> str:
+def create_access_token(user_id: UUID, *, session_id: UUID) -> str:
     return create_token(
         subject=user_id,
         token_type="access",
         expires_delta=timedelta(minutes=settings.access_token_ttl_minutes),
+        extra={"sid": str(session_id)},
     )
 
 
-def create_refresh_token(user_id: UUID) -> str:
+def create_refresh_token(user_id: UUID, *, session_id: UUID) -> str:
     return create_token(
         subject=user_id,
         token_type="refresh",
         expires_delta=timedelta(days=settings.refresh_token_ttl_days),
+        extra={"sid": str(session_id)},
     )
 
 

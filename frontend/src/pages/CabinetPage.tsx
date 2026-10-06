@@ -6,10 +6,11 @@ import {
   ChangePasswordForm,
   DangerZone,
   ProfileForm,
+  SessionsPanel,
 } from '../features/cabinet'
-import { getMe, logout, type User } from '../shared/api/auth'
+import { getMe, type User } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
-import { Button, Panel, Stack, Text, Toast } from '../ui'
+import { Panel, Stack, Text, Toast } from '../ui'
 
 export function CabinetPage() {
   const navigate = useNavigate()
@@ -17,7 +18,6 @@ export function CabinetPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const [loggingOut, setLoggingOut] = useState(false)
 
   const closeToast = useCallback(() => setToast(null), [])
 
@@ -49,17 +49,6 @@ export function CabinetPage() {
       active = false
     }
   }, [navigate])
-
-  async function handleLogout() {
-    setLoggingOut(true)
-    try {
-      await logout()
-      navigate('/login', { replace: true })
-    } catch {
-      setToast('Не удалось выйти. Попробуйте ещё раз.')
-      setLoggingOut(false)
-    }
-  }
 
   return (
     <main className="page page--app">
@@ -111,10 +100,12 @@ export function CabinetPage() {
               </Panel>
             )}
 
-            <Panel title="Сессия">
-              <Button variant="ghost" onClick={handleLogout} disabled={loggingOut}>
-                {loggingOut ? 'Выходим…' : 'Выйти'}
-              </Button>
+            <Panel title="Сессии">
+              <SessionsPanel
+                onLoggedOut={() => {
+                  navigate('/login', { replace: true })
+                }}
+              />
             </Panel>
 
             <Panel title="Опасная зона" className="ui-panel--danger">

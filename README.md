@@ -23,8 +23,8 @@
 
 Уже в продуктовой ветке / PR:
 
-- Auth (register/login/refresh, auto-refresh на 401)
-- Personal cabinet: profile, phone, avatar, change password/email (SMTP Mail.ru), danger zone (delete account)
+- Personal cabinet: profile, phone, avatar, change password/email (SMTP Mail.ru), sessions (revoke/logout everywhere), danger zone
+- Auth (register/login/refresh with session tracking, email verification)
 - Characters CRUD, hybrid JSONB sheet + `sheet_version` (409 на конфликт)
 - Catalogs: races / classes / weapons + sample damaging artifacts
 - Sheet: identity, abilities, saves, skills
@@ -77,7 +77,8 @@ Auth:
 - `POST /auth/verify-email` / `POST /auth/resend-verification`
 - `POST /auth/login`
 - `POST /auth/refresh`
-- `POST /auth/logout`
+- `POST /auth/logout` (отзыв текущей сессии)
+- `GET /auth/sessions` / `DELETE /auth/sessions` / `DELETE /auth/sessions/{id}`
 - `GET /auth/me`
 - `PATCH /auth/me` (профиль: display_name, full_name, phone)
 - `POST /auth/change-password`
