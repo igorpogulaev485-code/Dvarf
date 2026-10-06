@@ -24,6 +24,14 @@ export const MOT_RACES: RaceEntry[] = [
         nameRu: 'Когти',
         nameEn: 'Claws',
         descriptionRu: 'Природная оружие: 1d4 + модификатор Силы рубящего урона.',
+        effects: [
+          {
+            type: 'naturalWeapon',
+            nameRu: 'Когти',
+            damageRu: '1к4 + СИЛ рубящий',
+            ability: 'strength',
+          },
+        ],
       },
       {
         id: 'leonin-hunt-instinct',
@@ -76,6 +84,14 @@ export const MOT_RACES: RaceEntry[] = [
         nameRu: 'Таран',
         nameEn: 'Ram',
         descriptionRu: 'Природная оружие: 1d4 + модификатор Силы дробящего урона.',
+        effects: [
+          {
+            type: 'naturalWeapon',
+            nameRu: 'Рога',
+            damageRu: '1к4 + СИЛ дробящий',
+            ability: 'strength',
+          },
+        ],
       },
       {
         id: 'satyr-magic-resistance',

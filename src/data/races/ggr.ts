@@ -26,6 +26,14 @@ export const GGR_RACES: RaceEntry[] = [
         nameRu: 'Копыта',
         nameEn: 'Hooves',
         descriptionRu: 'Природная оружие: 1d4 + модификатор Силы дробящего урона.',
+        effects: [
+          {
+            type: 'naturalWeapon',
+            nameRu: 'Копыта',
+            damageRu: '1к4 + СИЛ дробящий',
+            ability: 'strength',
+          },
+        ],
       },
       {
         id: 'centaur-equine-build',
@@ -112,6 +120,14 @@ export const GGR_RACES: RaceEntry[] = [
         nameRu: 'Рога',
         nameEn: 'Horns',
         descriptionRu: 'Природная оружие: 1d6 + модификатор Силы колющего урона.',
+        effects: [
+          {
+            type: 'naturalWeapon',
+            nameRu: 'Рога',
+            damageRu: '1к6 + СИЛ колющий',
+            ability: 'strength',
+          },
+        ],
       },
       {
         id: 'minotaur-goring-rush',

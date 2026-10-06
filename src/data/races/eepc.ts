@@ -27,6 +27,14 @@ export const EEPC_RACES: RaceEntry[] = [
         nameRu: 'Когти',
         nameEn: 'Talons',
         descriptionRu: 'Безоружная атака когтями: 1d4 рубящего урона.',
+        effects: [
+          {
+            type: 'naturalWeapon',
+            nameRu: 'Когти',
+            damageRu: '1к4 рубящий',
+            ability: 'dexterity',
+          },
+        ],
       },
     ],
   },

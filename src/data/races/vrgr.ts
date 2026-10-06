@@ -50,6 +50,14 @@ export const VRGR_RACES: RaceEntry[] = [
         nameEn: 'Vampiric Bite',
         descriptionRu:
           'Природная оружие: 1d4 колющего. Число раз = бонусу мастерства за длинный отдых усиленный укус даёт временные хиты или бонус к следующей атаке/проверке.',
+        effects: [
+          {
+            type: 'naturalWeapon',
+            nameRu: 'Укус',
+            damageRu: '1к4 + ТЕЛ колющий',
+            ability: 'constitution',
+          },
+        ],
       },
     ],
   },

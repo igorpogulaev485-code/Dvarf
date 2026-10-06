@@ -48,18 +48,22 @@ export interface SpellSlotTrack {
 
 /** Ответы мастера выбора расы (попап развилок). */
 export interface RaceChoicesState {
-  /** option id по id выбора (в т.ч. инструменты, тип дракона) */
   choices?: Record<string, string | string[]>;
-  /** Распределение ASI, если раса его требует */
   abilityBonuses?: Partial<Record<AbilityKey, number>>;
-  /** Выбранные навыки (skillChoice без фиксированного пула или дополнение) */
   pickedSkills?: SkillKey[];
-  /** Выбранные доп. языки */
   pickedLanguages?: string[];
-  /** Свободный текст: заговор высш. эльфа, название черты и т.п. */
   freeText?: Record<string, string>;
-  /** Хомбрю: название на листе */
   customName?: string;
+  /** Чтобы при смене расы снять прошлые природные атаки */
+  appliedNaturalWeaponNames?: string[];
+  /** Расовые заговоры — снять при смене */
+  appliedCantrips?: string[];
+  /** Все навыки, выданные расой (фиксированные + выбранные) */
+  appliedSkillKeys?: SkillKey[];
+  /** Сколько HP/уровень уже заложено от расы */
+  appliedHpPerLevel?: number;
+  /** Был ли выставлен КД от природной брони / acBonus */
+  appliedArmorClass?: boolean;
 }
 
 export interface Character {

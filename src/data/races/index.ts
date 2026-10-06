@@ -10,6 +10,7 @@ export type {
   AbilityScoreMode,
   AgeBlock,
   AppliedRaceBonuses,
+  AppliedNaturalWeapon,
   CreatureSize,
   LanguageGrant,
   RaceEffect,
@@ -17,7 +18,15 @@ export type {
   RaceSourceId,
   RaceSourceMeta,
   RaceTrait,
+  SheetSlot,
   SpeedBlock,
+  NaturalWeaponEffect,
+} from './types';
+
+export {
+  SHEET_SLOT_META,
+  RACE_EFFECT_SHEET_SLOT,
+  RACE_EFFECT_CATALOG,
 } from './types';
 
 export { RACE_SOURCES, RACE_SOURCE_ORDER } from './sources';

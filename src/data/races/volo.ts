@@ -401,6 +401,14 @@ export const VOLO_RACES: RaceEntry[] = [
         nameRu: 'Укус',
         nameEn: 'Bite',
         descriptionRu: 'Природная оружие: 1d6 + модификатор Силы колющего урона.',
+        effects: [
+          {
+            type: 'naturalWeapon',
+            nameRu: 'Укус',
+            damageRu: '1к6 + СИЛ колющий',
+            ability: 'strength',
+          },
+        ],
       },
       {
         id: 'lizardfolk-crocodile-cunning',
@@ -533,7 +541,15 @@ export const VOLO_RACES: RaceEntry[] = [
         nameEn: "Cat's Claws",
         descriptionRu:
           'Скорость лазания 20 футов. Безоружная атака когтями: 1d4 + модификатор Силы рубящего урона.',
-        effects: [{ type: 'speedOverride', speed: { walk: 30, climb: 20 } }],
+        effects: [
+          { type: 'speedOverride', speed: { walk: 30, climb: 20 } },
+          {
+            type: 'naturalWeapon',
+            nameRu: 'Когти',
+            damageRu: '1к4 + СИЛ рубящий',
+            ability: 'strength',
+          },
+        ],
       },
       {
         id: 'tabaxi-cat-talent',

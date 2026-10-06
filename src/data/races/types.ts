@@ -1,49 +1,88 @@
 import type { AbilityKey, SkillKey } from '../../types/character';
 
-/** Книга-источник расы (5e 2014 lineage). */
-export type RaceSourceId =
-  | 'phb'
-  | 'eepc'
-  | 'scag'
-  | 'volo'
-  | 'mtof'
-  | 'ggr'
-  | 'erlw'
-  | 'egw'
-  | 'mot'
-  | 'vrgr'
-  | 'aag' // Spelljammer: Astral Adventurer's Guide
-  | 'ftd'
-  | 'motm'
-  | 'ua'
-  | 'homebrew';
+/**
+ * Куда параметр расы пишется на классическом листе 2014.
+ * Это контракт: UI/apply опираются на него, а не на «свободный текст».
+ */
+export type SheetSlot =
+  /** Числа характеристик (Сила…Харизма) */
+  | 'abilities'
+  /** Пузырьки навыков + пассивное восприятие косвенно */
+  | 'skills'
+  /** Поле «Скорость» */
+  | 'speed'
+  /** Поле «Класс доспеха» */
+  | 'armorClass'
+  /** Таблица атак (название / бонус / урон) */
+  | 'attacks'
+  /** Максимум хитов (модификатор от расы) */
+  | 'hitPointMax'
+  /** Список заговоров на стр. заклинаний */
+  | 'cantrips'
+  /** Блок «Прочие владения и языки» */
+  | 'otherProficiencies'
+  /** Блок «Умения и особенности» */
+  | 'featuresAndTraits'
+  /** Только попап выбора — на лист не пишется напрямую */
+  | 'popupChoice';
 
-export interface RaceSourceMeta {
-  id: RaceSourceId;
-  nameRu: string;
-  nameEn: string;
-  year: number;
-}
+/** Описание слота для UI/доков. */
+export const SHEET_SLOT_META: Record<
+  SheetSlot,
+  { labelRu: string; whereRu: string }
+> = {
+  abilities: {
+    labelRu: 'Характеристики',
+    whereRu: 'Шесть чисел слева на стр. 1',
+  },
+  skills: {
+    labelRu: 'Навыки',
+    whereRu: 'Пузырьки навыков; Восприятие влияет на пассивное',
+  },
+  speed: {
+    labelRu: 'Скорость',
+    whereRu: 'Боевая полоса: Скорость',
+  },
+  armorClass: {
+    labelRu: 'Класс доспеха',
+    whereRu: 'Боевая полоса: КД (природная броня / бонус)',
+  },
+  attacks: {
+    labelRu: 'Атаки',
+    whereRu: 'Таблица «Атаки и заклинания»',
+  },
+  hitPointMax: {
+    labelRu: 'Хиты',
+    whereRu: 'Максимум хитов (+N за уровень)',
+  },
+  cantrips: {
+    labelRu: 'Заговоры',
+    whereRu: 'Страница заклинаний, список заговоров',
+  },
+  otherProficiencies: {
+    labelRu: 'Владения и языки',
+    whereRu: 'Блок «Прочие владения и языки» (+ чувства вроде тёмного зрения)',
+  },
+  featuresAndTraits: {
+    labelRu: 'Умения',
+    whereRu: 'Блок «Умения и особенности»',
+  },
+  popupChoice: {
+    labelRu: 'Выбор в попапе',
+    whereRu: 'Мастер расы; результат раскладывается в другие слоты',
+  },
+};
 
 export type CreatureSize = 'tiny' | 'small' | 'medium' | 'large';
 
-/** Фиксированное повышение характеристик (классический 2014). */
+/** Фиксированное повышение характеристик. */
 export type AbilityBonuses = Partial<Record<AbilityKey, number>>;
 
-/**
- * Как раса даёт ASI.
- * - fixed: классика PHB (+2 Con и т.п.)
- * - allPlusOne: человек PHB
- * - flexibleMotm: +2/+1 или +1/+1/+1 (MotM и часть поздних книг)
- * - chooseTwoPlusOne: вариант человека / гибкий +1 к двум
- * - custom: описано в notes (например kobold −2 Str)
- */
 export type AbilityScoreMode =
   | { kind: 'fixed'; bonuses: AbilityBonuses }
   | { kind: 'allPlusOne' }
   | { kind: 'flexibleMotm' }
   | { kind: 'chooseTwoPlusOne' }
-  /** Фиксированные бонусы + N раз по +1 к другим характеристикам (полуэльф и т.п.). */
   | {
       kind: 'fixedPlusChoose';
       bonuses: AbilityBonuses;
@@ -56,7 +95,6 @@ export interface SpeedBlock {
   fly?: number;
   swim?: number;
   climb?: number;
-  /** Например: скорость не снижается в тяжёлых доспехах */
   notesRu?: string;
 }
 
@@ -68,16 +106,31 @@ export interface AgeBlock {
 
 export interface LanguageGrant {
   fixed: string[];
-  /** Сколько языков выбрать дополнительно */
   choose?: number;
 }
 
-/** Машиночитаемый эффект для листа персонажа. */
+/**
+ * Природное оружие → строка в таблице атак.
+ * attackBonus оставляем шаблоном: лист подставит мод позже или пишет «СИЛ/ЛОВ».
+ */
+export interface NaturalWeaponEffect {
+  type: 'naturalWeapon';
+  nameRu: string;
+  /** Например: «1к4 + СИЛ рубящий» */
+  damageRu: string;
+  /** Подсказка для бонуса атаки: по какой характеристике */
+  ability?: AbilityKey;
+}
+
+/**
+ * Машиночитаемый эффект расы.
+ * У каждого типа есть канонический SheetSlot (см. RACE_EFFECT_SHEET_SLOT).
+ */
 export type RaceEffect =
   | { type: 'darkvision'; feet: number }
   | { type: 'speedOverride'; speed: SpeedBlock }
   | { type: 'skillProficiency'; skills: SkillKey[] }
-  | { type: 'skillChoice'; count: number }
+  | { type: 'skillChoice'; count: number; pool?: SkillKey[] }
   | { type: 'toolProficiency'; tools: string[] }
   | { type: 'toolChoice'; options: string[]; count: number }
   | { type: 'weaponProficiency'; weapons: string[] }
@@ -90,6 +143,7 @@ export type RaceEffect =
   | { type: 'naturalArmor'; formula: '13+DEX' | '12+CON' | '13+CON'; notesRu?: string }
   | { type: 'acBonus'; amount: number }
   | { type: 'powerfulBuild' }
+  | NaturalWeaponEffect
   | {
       type: 'cantrip';
       spellRu: string;
@@ -100,7 +154,6 @@ export type RaceEffect =
       type: 'spell';
       spellRu: string;
       spellEn?: string;
-      /** Уровень персонажа, с которого доступно */
       fromLevel: number;
       uses: string;
       ability?: AbilityKey;
@@ -114,37 +167,219 @@ export type RaceEffect =
       type: 'choice';
       id: string;
       nameRu: string;
-      /** Варианты выбора (тип дракона, наследие и т.п.) */
       options: { id: string; labelRu: string; effects?: RaceEffect[] }[];
     }
   | {
       type: 'feat';
-      /** Вариант человека: одна черта */
       notesRu?: string;
     };
+
+/** Канонический слот листа для каждого type эффекта. */
+export const RACE_EFFECT_SHEET_SLOT: Record<RaceEffect['type'], SheetSlot> = {
+  darkvision: 'otherProficiencies',
+  speedOverride: 'speed',
+  skillProficiency: 'skills',
+  skillChoice: 'popupChoice',
+  toolProficiency: 'otherProficiencies',
+  toolChoice: 'popupChoice',
+  weaponProficiency: 'otherProficiencies',
+  armorProficiency: 'otherProficiencies',
+  damageResistance: 'otherProficiencies',
+  damageImmunity: 'otherProficiencies',
+  conditionImmunity: 'otherProficiencies',
+  savingThrowAdvantage: 'featuresAndTraits',
+  hpMaxPerLevel: 'hitPointMax',
+  naturalArmor: 'armorClass',
+  acBonus: 'armorClass',
+  powerfulBuild: 'featuresAndTraits',
+  naturalWeapon: 'attacks',
+  cantrip: 'cantrips',
+  spell: 'featuresAndTraits',
+  language: 'otherProficiencies',
+  choice: 'popupChoice',
+  feat: 'popupChoice',
+};
+
+/** Человекочитаемый каталог типов параметров (для продукта/UI). */
+export const RACE_EFFECT_CATALOG: {
+  type: RaceEffect['type'];
+  slot: SheetSlot;
+  labelRu: string;
+  applyRu: string;
+}[] = [
+  {
+    type: 'darkvision',
+    slot: 'otherProficiencies',
+    labelRu: 'Тёмное зрение',
+    applyRu: 'Строка «Тёмное зрение: N футов» во владениях/языках',
+  },
+  {
+    type: 'speedOverride',
+    slot: 'speed',
+    labelRu: 'Скорость',
+    applyRu: 'Перезаписывает поле «Скорость» (ходьба/полёт/плавание/лазание)',
+  },
+  {
+    type: 'skillProficiency',
+    slot: 'skills',
+    labelRu: 'Владение навыком',
+    applyRu: 'Отмечает пузырьки навыков; цифры считаются от характеристики + БВ',
+  },
+  {
+    type: 'skillChoice',
+    slot: 'popupChoice',
+    labelRu: 'Выбор навыка',
+    applyRu: 'Попап → затем skillProficiency',
+  },
+  {
+    type: 'toolProficiency',
+    slot: 'otherProficiencies',
+    labelRu: 'Инструменты',
+    applyRu: 'Строка «Инструменты: …»',
+  },
+  {
+    type: 'toolChoice',
+    slot: 'popupChoice',
+    labelRu: 'Выбор инструмента',
+    applyRu: 'Попап → toolProficiency',
+  },
+  {
+    type: 'weaponProficiency',
+    slot: 'otherProficiencies',
+    labelRu: 'Оружие',
+    applyRu: 'Строка «Оружие: …»',
+  },
+  {
+    type: 'armorProficiency',
+    slot: 'otherProficiencies',
+    labelRu: 'Доспехи',
+    applyRu: 'Строка «Доспехи: …»',
+  },
+  {
+    type: 'damageResistance',
+    slot: 'otherProficiencies',
+    labelRu: 'Сопротивление урону',
+    applyRu: 'Строка «Сопротивление: …»',
+  },
+  {
+    type: 'damageImmunity',
+    slot: 'otherProficiencies',
+    labelRu: 'Иммунитет к урону',
+    applyRu: 'Строка «Иммунитет (урон): …»',
+  },
+  {
+    type: 'conditionImmunity',
+    slot: 'otherProficiencies',
+    labelRu: 'Иммунитет к состоянию',
+    applyRu: 'Строка «Иммунитет (состояние): …»',
+  },
+  {
+    type: 'savingThrowAdvantage',
+    slot: 'featuresAndTraits',
+    labelRu: 'Преимущество на спасбросок',
+    applyRu: 'Текст в «Умения и особенности»',
+  },
+  {
+    type: 'hpMaxPerLevel',
+    slot: 'hitPointMax',
+    labelRu: 'Хиты за уровень',
+    applyRu: 'Увеличивает максимум хитов на N × уровень (и текущие, если равны максу)',
+  },
+  {
+    type: 'naturalArmor',
+    slot: 'armorClass',
+    labelRu: 'Природная броня',
+    applyRu: 'Подставляет формулу КД (если нет доспеха)',
+  },
+  {
+    type: 'acBonus',
+    slot: 'armorClass',
+    labelRu: 'Бонус КД',
+    applyRu: 'Добавляет +N к текущему КД',
+  },
+  {
+    type: 'powerfulBuild',
+    slot: 'featuresAndTraits',
+    labelRu: 'Мощное телосложение',
+    applyRu: 'Текст в умениях',
+  },
+  {
+    type: 'naturalWeapon',
+    slot: 'attacks',
+    labelRu: 'Природное оружие',
+    applyRu: 'Добавляет строку в таблицу атак',
+  },
+  {
+    type: 'cantrip',
+    slot: 'cantrips',
+    labelRu: 'Заговор',
+    applyRu: 'В список заговоров',
+  },
+  {
+    type: 'spell',
+    slot: 'featuresAndTraits',
+    labelRu: 'Врождённое заклинание',
+    applyRu: 'Строка в умениях (уровень / использования)',
+  },
+  {
+    type: 'language',
+    slot: 'otherProficiencies',
+    labelRu: 'Язык',
+    applyRu: 'Строка «Языки: …»',
+  },
+  {
+    type: 'choice',
+    slot: 'popupChoice',
+    labelRu: 'Выбор опции',
+    applyRu: 'Попап; вложенные effects применяются после выбора',
+  },
+  {
+    type: 'feat',
+    slot: 'popupChoice',
+    labelRu: 'Черта',
+    applyRu: 'Попап (пока free text) → умения',
+  },
+];
+
+export type RaceSourceId =
+  | 'phb'
+  | 'eepc'
+  | 'scag'
+  | 'volo'
+  | 'mtof'
+  | 'ggr'
+  | 'erlw'
+  | 'egw'
+  | 'mot'
+  | 'vrgr'
+  | 'aag'
+  | 'ftd'
+  | 'motm'
+  | 'ua'
+  | 'homebrew';
+
+export interface RaceSourceMeta {
+  id: RaceSourceId;
+  nameRu: string;
+  nameEn: string;
+  year: number;
+}
 
 export interface RaceTrait {
   id: string;
   nameRu: string;
   nameEn?: string;
   descriptionRu: string;
-  /** Эффекты, которые лист может применить автоматически */
   effects?: RaceEffect[];
 }
 
-/**
- * Запись справочника: раса или подраса.
- * Подраса ссылается на parentId и наследует базовые черты родителя.
- */
 export interface RaceEntry {
   id: string;
   nameRu: string;
   nameEn: string;
   source: RaceSourceId;
-  /** Если задан — это подраса / вариант */
   parentId?: string;
   kind: 'race' | 'subrace' | 'variant';
-  /** Краткое описание для UI */
   summaryRu?: string;
   abilityScore: AbilityScoreMode;
   age?: AgeBlock;
@@ -153,12 +388,15 @@ export interface RaceEntry {
   speed: SpeedBlock;
   languages: LanguageGrant;
   traits: RaceTrait[];
-  /** id подрас (только у базовой расы) */
   subraceIds?: string[];
-  /** Перепечатано/обновлено в MotM */
   motmUpdate?: boolean;
-  /** Неофициальный / UA материал */
   unofficial?: boolean;
+}
+
+export interface AppliedNaturalWeapon {
+  nameRu: string;
+  damageRu: string;
+  ability?: AbilityKey;
 }
 
 /** Снимок расовых бонусов, готовый к наложению на Character. */
@@ -183,6 +421,7 @@ export interface AppliedRaceBonuses {
   naturalArmorFormula?: string;
   acBonus: number;
   powerfulBuild: boolean;
+  naturalWeapons: AppliedNaturalWeapon[];
   cantrips: { spellRu: string; ability?: AbilityKey }[];
   spells: {
     spellRu: string;
@@ -190,10 +429,7 @@ export interface AppliedRaceBonuses {
     uses: string;
     ability?: AbilityKey;
   }[];
-  /** Текст для блока «Умения и особенности» */
   featuresText: string;
-  /** Текст для блока владений/языков */
   proficienciesText: string;
-  /** Неразрешённые выборы игрока */
   pendingChoices: { id: string; nameRu: string; optionIds: string[] }[];
 }
