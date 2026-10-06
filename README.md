@@ -36,13 +36,14 @@
 - Spells S1: casting ability, DC/attack, slot pips, known list + filter, sample spell seed
 - Spells S2: prepare dialog (prepared vs available), combat list = cantrips + prepared, optional max_prepared
 - Spells S3: cast button + confirm; spends slot (cantrips free); reusable `spendSpellSlot`
+- Spells S4: grimoire dialog (search / class / level filters, add to known); expanded sample seed (~32)
 
 ## Очередь
 
 Ближайшее:
 
-1. Spells S4 — гримуар/библиотека
-2. Дожать play-контур листа (условия, ресурсы rest reset и т.п. по IA-референсу)
+1. Дожать play-контур листа (условия, ресурсы rest reset и т.п. по IA-референсу)
+2. Classic interactive sheet (PDF-like) after digital sheet MVP
 
 Дальше по верхнему уровню (не начинать раньше времени):
 

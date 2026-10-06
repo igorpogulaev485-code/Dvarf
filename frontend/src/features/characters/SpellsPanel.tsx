@@ -15,6 +15,7 @@ import {
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { CastSpellDialog } from './CastSpellDialog'
+import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import {
   countPreparedLeveled,
@@ -46,6 +47,7 @@ export function SpellsPanel({
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
+  const [grimoireOpen, setGrimoireOpen] = useState(false)
   const [castSpell, setCastSpell] = useState<SheetSpell | null>(null)
   const [filter, setFilter] = useState<'all' | number>('all')
   const [showAllKnown, setShowAllKnown] = useState(false)
@@ -156,7 +158,8 @@ export function SpellsPanel({
     <Panel title="Заклинания">
       <Stack gap={14}>
         <Text tone="muted">
-          Боевой список = заговоры + подготовленные. Каст тратит ячейку (S3). Гримуар — S4.
+          Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые заклинания — из
+          гримуара.
         </Text>
 
         <div className="spells-summary">
@@ -180,6 +183,9 @@ export function SpellsPanel({
           </Button>
           <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
             Подготовить заклинания
+          </Button>
+          <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
+            Гримуар
           </Button>
         </div>
 
@@ -430,6 +436,14 @@ export function SpellsPanel({
         spells={spells}
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
+      />
+      <GrimoireDialog
+        open={grimoireOpen}
+        edition={edition}
+        spells={spells}
+        onChange={onChange}
+        onClose={() => setGrimoireOpen(false)}
+        onToast={onToast}
       />
       <CastSpellDialog
         open={castSpell != null}

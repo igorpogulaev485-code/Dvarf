@@ -217,3 +217,44 @@ export function setSpellPrepared(
     return { ...spell, prepared }
   })
 }
+
+export function sheetSpellFromCatalog(entry: {
+  id: string
+  name_ru: string
+  data?: Record<string, unknown>
+}): SheetSpell {
+  const fields = readCatalogSpellFields(entry.data ?? {})
+  const level = fields.level ?? 0
+  return {
+    ...createSheetSpell(),
+    name: entry.name_ru,
+    catalog_id: entry.id,
+    level,
+    prepared: level <= 0,
+    casting_time: fields.casting_time ?? '',
+    range: fields.range ?? '',
+    attack_or_save: fields.attack_or_save ?? '',
+    damage: fields.damage ?? '',
+    concentration: Boolean(fields.concentration),
+  }
+}
+
+export function knownHasCatalogId(known: SheetSpell[], catalogId: string): boolean {
+  return known.some((spell) => spell.catalog_id === catalogId)
+}
+
+export function addCatalogSpellToKnown(
+  known: SheetSpell[],
+  entry: { id: string; name_ru: string; data?: Record<string, unknown> },
+  options?: { prepare?: boolean; maxPrepared?: number | null },
+): SheetSpell[] {
+  if (knownHasCatalogId(known, entry.id)) return known
+  const spell = sheetSpellFromCatalog(entry)
+  const prepare = options?.prepare ?? spell.level <= 0
+  const maxPrepared = options?.maxPrepared ?? null
+  let next = [...known, spell]
+  if (prepare && spell.level > 0) {
+    next = setSpellPrepared(next, spell.id, true, maxPrepared)
+  }
+  return next
+}

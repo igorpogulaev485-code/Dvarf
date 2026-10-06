@@ -682,6 +682,14 @@ input {
   font-weight: 700;
 }
 
+.grimoire-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
 .ui-dialog__actions {
   display: flex;
   flex-wrap: wrap;
