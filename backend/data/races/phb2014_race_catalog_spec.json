@@ -2,7 +2,7 @@
   "meta": {
     "edition": "2014",
     "source": "phb",
-    "notes_ru": "Аудит по ttg.club. Дварф: 6 разновидностей. Эльф: высший/лесной/дроу (PHB) + эладрин/морской/шадар-кай (MToF)."
+    "notes_ru": "Аудит по ttg/dnd.su. Дварф 6; эльф 6 (PHB+MToF); полурослик 5 (PHB+SCAG+ERLW, без EGW); гном 4 (PHB+глубинный+ERLW)."
   },
   "deactivate_slugs": [
     "orc"
@@ -492,7 +492,7 @@
     },
     {
       "slug": "lightfoot_halfling",
-      "name_ru": "Легконогий полурослик",
+      "name_ru": "Полурослик (легконогий)",
       "name_en": "Lightfoot Halfling",
       "parent_slug": "halfling",
       "selectable": true,
@@ -510,11 +510,11 @@
         "Полуросликов"
       ],
       "languages_choose": 0,
-      "traits_text": "Легконогий полурослик (2014): +2 Лов, +1 Хар. Черты полурослика + Естественная скрытность."
+      "traits_text": "Полурослик (легконогий, 2014): +2 Лов, +1 Хар. Черты полурослика + Естественная скрытность."
     },
     {
       "slug": "stout_halfling",
-      "name_ru": "Коренастый полурослик",
+      "name_ru": "Полурослик (коренастый)",
       "name_en": "Stout Halfling",
       "parent_slug": "halfling",
       "selectable": true,
@@ -532,7 +532,73 @@
         "Полуросликов"
       ],
       "languages_choose": 0,
-      "traits_text": "Коренастый полурослик (2014): +2 Лов, +1 Тел. Черты полурослика + устойчивость к яду."
+      "traits_text": "Полурослик (коренастый, 2014): +2 Лов, +1 Тел. Черты полурослика + устойчивость к яду."
+    },
+    {
+      "slug": "ghostwise_halfling",
+      "name_ru": "Полурослик (призрачный)",
+      "name_en": "Ghostwise Halfling",
+      "parent_slug": "halfling",
+      "selectable": true,
+      "source": "scag",
+      "sort_order": 33,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "dex": 2,
+        "wis": 1
+      },
+      "languages": [
+        "Общий",
+        "Полуросликов"
+      ],
+      "languages_choose": 0,
+      "traits_text": "Полурослик (призрачный, SCAG): +2 Лов, +1 Муд. Черты полурослика + Бесшумная речь (телепатия 30 фт; общий язык; один собеседник)."
+    },
+    {
+      "slug": "mark_of_healing",
+      "name_ru": "Полурослик (метка исцеления)",
+      "name_en": "Mark of Healing Halfling",
+      "parent_slug": "halfling",
+      "selectable": true,
+      "source": "erlw",
+      "sort_order": 34,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "dex": 2,
+        "wis": 1
+      },
+      "languages": [
+        "Общий",
+        "Полуросликов"
+      ],
+      "languages_choose": 0,
+      "traits_text": "Полурослик (метка исцеления, ERLW): +2 Лов, +1 Муд. Черты полурослика. Интуиция медика (d4 к Медицине / набору травника). Целительное касание: Лечение ран и Малое восстановление (1/длинный отдых, МУД). Заклинания метки — если есть классовое колдовство."
+    },
+    {
+      "slug": "mark_of_hospitality",
+      "name_ru": "Полурослик (метка гостеприимства)",
+      "name_en": "Mark of Hospitality Halfling",
+      "parent_slug": "halfling",
+      "selectable": true,
+      "source": "erlw",
+      "sort_order": 35,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 0,
+      "ability_bonuses": {
+        "dex": 2,
+        "cha": 1
+      },
+      "languages": [
+        "Общий",
+        "Полуросликов"
+      ],
+      "languages_choose": 0,
+      "traits_text": "Полурослик (метка гостеприимства, ERLW): +2 Лов, +1 Хар. Черты полурослика. Всегда гостеприимен (d4 к Убеждению / инструментам пивовара или повара). Врождённая магия: Фокусы; Невидимый слуга и Очищение пищи (1/длинный отдых, ХАР). Заклинания метки — если есть классовое колдовство."
     },
     {
       "slug": "human",
@@ -698,7 +764,7 @@
     },
     {
       "slug": "forest_gnome",
-      "name_ru": "Лесной гном",
+      "name_ru": "Гном (лесной)",
       "name_en": "Forest Gnome",
       "parent_slug": "gnome",
       "selectable": true,
@@ -716,11 +782,11 @@
         "Гномий"
       ],
       "languages_choose": 0,
-      "traits_text": "Лесной гном (2014): +2 Инт, +1 Лов. Гномьи черты + природная иллюзия (малая иллюзия) и общение с маленькими зверями."
+      "traits_text": "Гном (лесной, 2014): +2 Инт, +1 Лов. Гномьи черты + природная иллюзия (малая иллюзия) и общение с маленькими зверями."
     },
     {
       "slug": "rock_gnome",
-      "name_ru": "Скальный гном",
+      "name_ru": "Гном (скальный)",
       "name_en": "Rock Gnome",
       "parent_slug": "gnome",
       "selectable": true,
@@ -741,7 +807,52 @@
       "tool_proficiencies": [
         "Инструменты ремонтника"
       ],
-      "traits_text": "Скальный гном (2014): +2 Инт, +1 Тел. Гномьи черты + знание ремесла и болтун-механизм. Владение инструментами ремонтника."
+      "traits_text": "Гном (скальный, 2014): +2 Инт, +1 Тел. Гномьи черты + знание ремесла и болтун-механизм. Владение инструментами ремонтника."
+    },
+    {
+      "slug": "deep_gnome",
+      "name_ru": "Гном (глубинный)",
+      "name_en": "Deep Gnome (Svirfneblin)",
+      "parent_slug": "gnome",
+      "selectable": true,
+      "source": "mtf",
+      "sort_order": 63,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 120,
+      "ability_bonuses": {
+        "int": 2,
+        "dex": 1
+      },
+      "languages": [
+        "Общий",
+        "Гномий",
+        "Подземный"
+      ],
+      "languages_choose": 0,
+      "traits_text": "Гном (глубинный / свирфнеблин, EE/MToF): +2 Инт, +1 Лов. Гномьи черты. Превосходное тёмное зрение 120 фт. Каменная маскировка (преимущество Скрытности в каменистой местности). Язык: Подземный."
+    },
+    {
+      "slug": "mark_of_scribing",
+      "name_ru": "Гном (метка письма)",
+      "name_en": "Mark of Scribing Gnome",
+      "parent_slug": "gnome",
+      "selectable": true,
+      "source": "erlw",
+      "sort_order": 64,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "int": 2,
+        "cha": 1
+      },
+      "languages": [
+        "Общий",
+        "Гномий"
+      ],
+      "languages_choose": 0,
+      "traits_text": "Гном (метка письма, ERLW): +2 Инт, +1 Хар. Гномьи черты. Одарённый писец (d4 к Истории / инструментам каллиграфа или подделки). Проницательность писца: Послание; Понимание языков и Волшебные уста (1/длинный отдых, ИНТ). Заклинания метки — если есть классовое колдовство."
     },
     {
       "slug": "half_elf",
