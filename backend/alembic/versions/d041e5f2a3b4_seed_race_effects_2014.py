@@ -1,7 +1,7 @@
 """seed race data effects 2014 + missing PHB races
 
 Revision ID: d041e5f2a3b4
-Revises: c930b1c2d3e4
+Revises: d041c2d3e4f5
 Create Date: 2026-10-06 10:20:00.000000
 
 """
@@ -14,7 +14,7 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision: str = "d041e5f2a3b4"
-down_revision: Union[str, Sequence[str], None] = "c930b1c2d3e4"
+down_revision: Union[str, Sequence[str], None] = "d041c2d3e4f5"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
