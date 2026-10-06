@@ -64,13 +64,28 @@ export function CatalogCombobox({
       )
         .then((groups) => {
           if (!active) return
-          const items = groups
-            .flat()
-            .filter((item) => (filterEntry ? filterEntry(item) : true))
-            .sort((a, b) => {
-              if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
-              return a.name_ru.localeCompare(b.name_ru, 'ru')
-            })
+          // Prefer typed gear (weapon/armor) over duplicate item rows with the same slug.
+          const kindRank: Record<string, number> = {
+            weapon: 0,
+            armor: 1,
+            item: 2,
+          }
+          const bySlug = new Map<string, CatalogEntry>()
+          for (const item of groups.flat()) {
+            if (filterEntry && !filterEntry(item)) continue
+            const prev = bySlug.get(item.slug)
+            if (!prev) {
+              bySlug.set(item.slug, item)
+              continue
+            }
+            const prevRank = kindRank[prev.kind] ?? 50
+            const nextRank = kindRank[item.kind] ?? 50
+            if (nextRank < prevRank) bySlug.set(item.slug, item)
+          }
+          const items = [...bySlug.values()].sort((a, b) => {
+            if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
+            return a.name_ru.localeCompare(b.name_ru, 'ru')
+          })
           setEntries(items)
           setOptions(
             items.map((item) => ({
