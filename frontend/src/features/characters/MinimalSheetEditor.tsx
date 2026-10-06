@@ -76,6 +76,7 @@ import {
 import {
   applyRaceGrantToDraft,
   readAppliedRaceGrant,
+  reapplyRaceOverlays,
   revokeRaceGrant,
   type RaceGrantDraftSlice,
 } from './raceEffects'
@@ -399,7 +400,7 @@ export function MinimalSheetEditor({
   }
 
   function mergeGrantSlice(prev: Draft, slice: ClassGrantDraftSlice): Draft {
-    return {
+    const merged: Draft = {
       ...prev,
       identity: slice.identity,
       saves: slice.saves,
@@ -413,6 +414,8 @@ export function MinimalSheetEditor({
         hitDie: slice.playHitDie,
       },
     }
+    const restored = reapplyRaceOverlays(raceSliceFrom(merged))
+    return mergeRaceSlice(merged, restored)
   }
 
   function mergeRaceSlice(prev: Draft, slice: RaceGrantDraftSlice): Draft {

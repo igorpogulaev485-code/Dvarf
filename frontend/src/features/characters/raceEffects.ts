@@ -217,4 +217,34 @@ export function applyRaceGrantToDraft(input: {
   }
 }
 
+/** Re-apply race ledger overlays after class grant mutations (skills/tools/armor). */
+export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftSlice {
+  const grant = draft.raceGrant
+  if (!grant) return draft
+
+  const skills = { ...draft.skills }
+  for (const key of grant.skills) {
+    const current = skills[key] ?? { is_proficient: false, is_expertise: false }
+    skills[key] = { ...current, is_proficient: true }
+  }
+
+  const armor: ArmorProficiency = { ...draft.identity.armor }
+  for (const key of grant.armorKeys) {
+    armor[key] = true
+  }
+
+  return {
+    ...draft,
+    skills,
+    identity: {
+      ...draft.identity,
+      armor,
+      tools: uniqueStrings([...draft.identity.tools, ...grant.tools]),
+      darkvision: grant.darkvision || draft.identity.darkvision,
+      size: grant.size || draft.identity.size,
+    },
+    speed: grant.speed,
+  }
+}
+
 export { readAppliedRaceGrant, emptyRacePicks, resolveRaceGrantDef }
