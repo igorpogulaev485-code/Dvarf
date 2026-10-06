@@ -211,6 +211,20 @@ export function isRaceSelectable(data: Record<string, unknown> | null | undefine
   return true
 }
 
+/** Combobox shows only root races; subraces are picked inside RaceSetupDialog. */
+export function isRaceComboboxRoot(entry: {
+  parent_id?: string | null
+}): boolean {
+  return entry.parent_id == null
+}
+
+export function raceSubraceRequired(
+  data: Record<string, unknown> | null | undefined,
+): boolean {
+  if (!data) return false
+  return data.subrace_required === true
+}
+
 export function raceGrantDefFromCatalog(input: {
   slug: string
   nameRu: string

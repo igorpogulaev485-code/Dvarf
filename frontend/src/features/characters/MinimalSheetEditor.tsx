@@ -38,10 +38,11 @@ import { ClassSetupDialog, HomebrewClassDialog } from './ClassSetupDialog'
 import { RaceSetupDialog, HomebrewRaceDialog } from './RaceSetupDialog'
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
-import type { CatalogEntry } from '../../shared/api/catalog'
+import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
-  isRaceSelectable,
+  isRaceComboboxRoot,
   raceGrantNeedsSetupDialog,
+  raceSubraceRequired,
   resolveRaceGrantDef,
   type AppliedRaceGrant,
   type RaceGrantDef,
@@ -290,10 +291,12 @@ export function MinimalSheetEditor({
     initialName: string
   } | null>(null)
   const [raceGrantPicker, setRaceGrantPicker] = useState<{
-    selected: CatalogEntry
-    def: RaceGrantDef
+    root: CatalogEntry
+    subraces: CatalogEntry[]
+    subraceRequired: boolean
   } | null>(null)
   const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
+  const [raceSetupBusy, setRaceSetupBusy] = useState(false)
   const channelRef = useRef<BroadcastChannel | null>(null)
 
   const characterLevel = useMemo(
@@ -552,18 +555,18 @@ export function MinimalSheetEditor({
     if (summary) onToast(`Раса «${input.selected.name_ru}»: ${summary}`)
   }
 
-  function requestOrApplyRaceGrant(selected: CatalogEntry) {
-    if (!isRaceSelectable(selected.data)) {
-      onToast(`«${selected.name_ru}» — выбери подрасу из списка`)
+  async function requestOrApplyRaceGrant(selected: CatalogEntry) {
+    if (!isRaceComboboxRoot(selected)) {
+      onToast(`«${selected.name_ru}» — выбери корневую расу; подраса будет в попапе`)
       return
     }
-    const def = resolveRaceGrantDef({
+    const rootDef = resolveRaceGrantDef({
       raceName: selected.name_ru,
       catalogSlug: selected.slug,
       catalogData: selected.data,
       nameRu: selected.name_ru,
     })
-    if (!def) {
+    if (!rootDef) {
       onToast(`Раса «${selected.name_ru}» пока без пакета эффектов — выставь вручную`)
       setDraft((prev) => ({
         ...prev,
@@ -572,15 +575,38 @@ export function MinimalSheetEditor({
       }))
       return
     }
-    if (raceGrantNeedsSetupDialog(def)) {
-      setRaceGrantPicker({ selected, def })
-      return
+
+    setRaceSetupBusy(true)
+    try {
+      const children = await listCatalogEntries({
+        kind: 'race',
+        edition: baseCharacter.rules_edition as RulesEdition,
+        parentId: selected.id,
+      })
+      const subraces = children
+        .filter((row) => row.parent_id === selected.id)
+        .sort((a, b) => a.sort_order - b.sort_order || a.name_ru.localeCompare(b.name_ru, 'ru'))
+      const subraceRequired = raceSubraceRequired(selected.data)
+
+      if (subraces.length > 0 || raceGrantNeedsSetupDialog(rootDef)) {
+        setRaceGrantPicker({
+          root: selected,
+          subraces,
+          subraceRequired,
+        })
+        return
+      }
+
+      commitRaceGrant({
+        selected,
+        picks: { abilityBonusKeys: [], languages: [], skills: [], tools: [], ancestryId: null },
+        def: rootDef,
+      })
+    } catch {
+      onToast('Не удалось загрузить подрасы — попробуй ещё раз')
+    } finally {
+      setRaceSetupBusy(false)
     }
-    commitRaceGrant({
-      selected,
-      picks: { abilityBonusKeys: [], languages: [], skills: [], tools: [], ancestryId: null },
-      def,
-    })
   }
 
   function applyHomebrewRace(name: string) {
@@ -897,7 +923,7 @@ export function MinimalSheetEditor({
             <Field
               label="Раса"
               htmlFor="sheet-race"
-              hint="Выбор из каталога открывает попап развилок (как у класса): ASI, языки, навыки…"
+              hint="В списке — раса; подрасу и остальные развилки выбираешь в попапе"
             >
               <CatalogCombobox
                 id="sheet-race"
@@ -905,7 +931,7 @@ export function MinimalSheetEditor({
                 edition={baseCharacter.rules_edition as RulesEdition}
                 value={draft.raceName}
                 placeholder="Начните вводить расу"
-                filterEntry={(entry) => isRaceSelectable(entry.data)}
+                filterEntry={(entry) => isRaceComboboxRoot(entry)}
                 onChange={(value, selected) => {
                   if (!selected) {
                     setDraft((prev) => ({
@@ -915,13 +941,14 @@ export function MinimalSheetEditor({
                     }))
                     return
                   }
-                  requestOrApplyRaceGrant(selected)
+                  void requestOrApplyRaceGrant(selected)
                 }}
               />
               <div className="languages-tools-add" style={{ marginTop: 8 }}>
                 <Button
                   type="button"
                   variant="secondary"
+                  disabled={raceSetupBusy}
                   onClick={() => setRaceHomebrewOpen(true)}
                 >
                   Хомбрю
@@ -1352,14 +1379,15 @@ export function MinimalSheetEditor({
 
       <RaceSetupDialog
         open={raceGrantPicker != null}
-        def={raceGrantPicker?.def ?? null}
+        root={raceGrantPicker?.root ?? null}
+        subraces={raceGrantPicker?.subraces ?? []}
+        subraceRequired={raceGrantPicker?.subraceRequired ?? false}
         onClose={() => setRaceGrantPicker(null)}
-        onConfirm={(picks) => {
-          if (!raceGrantPicker) return
+        onConfirm={(result) => {
           commitRaceGrant({
-            selected: raceGrantPicker.selected,
-            picks,
-            def: raceGrantPicker.def,
+            selected: result.entry,
+            picks: result.picks,
+            def: result.def,
           })
           setRaceGrantPicker(null)
         }}

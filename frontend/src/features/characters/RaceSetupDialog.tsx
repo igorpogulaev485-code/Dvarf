@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { CatalogEntry } from '../../shared/api/catalog'
 import {
   abilityKeysForBonusChoice,
   emptyRacePicks,
+  resolveRaceGrantDef,
   type RaceGrantDef,
   type RaceGrantPicks,
 } from '../../shared/dnd/raceGrants'
@@ -9,23 +11,60 @@ import { LANGUAGE_PRESETS } from './languagesTools'
 import { ABILITY_KEYS, ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
 
+export type RaceSetupConfirm = {
+  entry: CatalogEntry
+  def: RaceGrantDef
+  picks: RaceGrantPicks
+}
+
 type RaceSetupDialogProps = {
   open: boolean
-  def: RaceGrantDef | null
-  onConfirm: (picks: RaceGrantPicks) => void
+  root: CatalogEntry | null
+  subraces: CatalogEntry[]
+  subraceRequired: boolean
+  onConfirm: (result: RaceSetupConfirm) => void
   onClose: () => void
 }
+
+const SKIP_SUBRACE = '__none__'
 
 function skillLabel(key: string): string {
   return SKILL_DEFS.find((item) => item.key === key)?.label ?? key
 }
 
+function defForEntry(entry: CatalogEntry): RaceGrantDef | null {
+  return resolveRaceGrantDef({
+    raceName: entry.name_ru,
+    catalogSlug: entry.slug,
+    catalogData: entry.data,
+    nameRu: entry.name_ru,
+  })
+}
+
 export function RaceSetupDialog({
   open,
-  def,
+  root,
+  subraces,
+  subraceRequired,
   onConfirm,
   onClose,
 }: RaceSetupDialogProps) {
+  const hasSubraceFork = subraces.length > 0
+  const [subraceKey, setSubraceKey] = useState<string | null>(null)
+
+  const effectiveEntry = useMemo(() => {
+    if (!root) return null
+    if (!hasSubraceFork) return root
+    if (subraceKey === SKIP_SUBRACE) return root
+    if (!subraceKey) return null
+    return subraces.find((row) => row.id === subraceKey) ?? null
+  }, [root, hasSubraceFork, subraceKey, subraces])
+
+  const def = useMemo(
+    () => (effectiveEntry ? defForEntry(effectiveEntry) : null),
+    [effectiveEntry],
+  )
+
   const asiNeed = def?.abilityBonusChoices?.count ?? 0
   const langNeed = def?.languagesChoose ?? 0
   const skillNeed = def?.skillChoices?.count ?? 0
@@ -58,13 +97,24 @@ export function RaceSetupDialog({
 
   useEffect(() => {
     if (!open) return
+    setSubraceKey(hasSubraceFork ? null : SKIP_SUBRACE)
     const empty = emptyRacePicks()
     setAbilityBonusKeys(empty.abilityBonusKeys)
     setLanguages(empty.languages)
     setSkills(empty.skills)
     setTools(empty.tools)
     setAncestryId(empty.ancestryId)
-  }, [open, def?.slug])
+  }, [open, root?.id, hasSubraceFork])
+
+  useEffect(() => {
+    // Reset fork picks when subrace changes.
+    const empty = emptyRacePicks()
+    setAbilityBonusKeys(empty.abilityBonusKeys)
+    setLanguages(empty.languages)
+    setSkills(empty.skills)
+    setTools(empty.tools)
+    setAncestryId(empty.ancestryId)
+  }, [subraceKey])
 
   function toggleAbility(key: (typeof ABILITY_KEYS)[number]) {
     setAbilityBonusKeys((prev) => {
@@ -98,154 +148,96 @@ export function RaceSetupDialog({
     })
   }
 
-  const ancestryOk =
-    !def || def.ancestryChoices.length === 0 || Boolean(ancestryId)
+  const subraceOk =
+    !hasSubraceFork ||
+    (subraceRequired ? Boolean(subraceKey && subraceKey !== SKIP_SUBRACE) : Boolean(subraceKey))
+
+  const ancestryOk = !def || def.ancestryChoices.length === 0 || Boolean(ancestryId)
 
   const canConfirm =
-    Boolean(def) &&
+    Boolean(root && def && effectiveEntry) &&
+    subraceOk &&
     abilityBonusKeys.length === asiNeed &&
     languages.length === langNeed &&
     skills.length === skillNeed &&
     tools.length === toolNeed &&
     ancestryOk
 
-  if (!def) return null
+  if (!root) return null
 
-  const fixedAsi = Object.entries(def.abilityBonuses)
-    .map(([key, value]) => `${ABILITY_LABELS[key as keyof typeof ABILITY_LABELS]} ${value! > 0 ? '+' : ''}${value}`)
-    .join(', ')
+  const fixedAsi = def
+    ? Object.entries(def.abilityBonuses)
+        .map(
+          ([key, value]) =>
+            `${ABILITY_LABELS[key as keyof typeof ABILITY_LABELS]} ${value! > 0 ? '+' : ''}${value}`,
+        )
+        .join(', ')
+    : ''
 
   return (
     <Dialog
       open={open}
-      title={`${def.labelRu}: настройка расы`}
+      title={`${root.name_ru}: настройка расы`}
       primaryLabel="Применить"
       secondaryLabel="Отмена"
       size="wide"
       onPrimary={() => {
-        if (!canConfirm) return
+        if (!canConfirm || !def || !effectiveEntry) return
         onConfirm({
-          abilityBonusKeys,
-          languages,
-          skills,
-          tools,
-          ancestryId,
+          entry: effectiveEntry,
+          def,
+          picks: {
+            abilityBonusKeys,
+            languages,
+            skills,
+            tools,
+            ancestryId,
+          },
         })
       }}
       onSecondary={onClose}
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Развилки расы — как у класса: отметь обязательные выборы, затем примени. ASI
-          подставится в характеристики; при смене расы откатим грант.
+          Сначала раса из списка, развилки — здесь (как у класса). Подрасу выбираешь в этом окне
+          {subraceRequired ? ' — обязательно' : hasSubraceFork ? ' — можно оставить без подрасы' : ''}.
         </Text>
 
-        {fixedAsi ? (
-          <Text>
-            Фиксированные бонусы: <strong>{fixedAsi}</strong>
-          </Text>
-        ) : null}
-
-        {asiNeed > 0 && def.abilityBonusChoices ? (
+        {hasSubraceFork ? (
           <Field
-            label={`Бонусы характеристик (${abilityBonusKeys.length}/${asiNeed})`}
-            hint={`+${def.abilityBonusChoices.amount} к каждой выбранной`}
+            label={subraceRequired ? 'Подраса (обязательно)' : 'Подраса (необязательно)'}
           >
-            <div className="chip-row">
-              {asiOptions.map((key) => {
-                const on = abilityBonusKeys.includes(key)
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    onClick={() => toggleAbility(key)}
-                  >
-                    {ABILITY_LABELS[key]}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-        ) : null}
-
-        {langNeed > 0 ? (
-          <Field label={`Языки на выбор (${languages.length}/${langNeed})`}>
-            <div className="chip-row">
-              {languageOptions.map((name) => {
-                const on = languages.includes(name)
-                return (
-                  <button
-                    key={name}
-                    type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    onClick={() => toggleLanguage(name)}
-                  >
-                    {name}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-        ) : null}
-
-        {skillNeed > 0 ? (
-          <Field label={`Навыки (${skills.length}/${skillNeed})`}>
-            <div className="chip-row">
-              {skillOptions.map((key) => {
-                const on = skills.includes(key)
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    onClick={() => toggleSkill(key)}
-                  >
-                    {skillLabel(key)}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-        ) : null}
-
-        {toolNeed > 0 ? (
-          <Field label={`Инструменты (${tools.length}/${toolNeed})`}>
-            <div className="chip-row">
-              {toolOptions.map((name) => {
-                const on = tools.includes(name)
-                return (
-                  <button
-                    key={name}
-                    type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    onClick={() => toggleTool(name)}
-                  >
-                    {name}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-        ) : null}
-
-        {def.ancestryChoices.length > 0 ? (
-          <Field label="Драконье происхождение">
             <Stack gap={8}>
-              {def.ancestryChoices.map((row) => {
-                const on = ancestryId === row.id
+              {!subraceRequired ? (
+                <button
+                  type="button"
+                  className={`sheet-chip${subraceKey === SKIP_SUBRACE ? ' is-on' : ''}`}
+                  style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                  onClick={() => setSubraceKey(SKIP_SUBRACE)}
+                >
+                  <strong>Без подрасы</strong>
+                  <div style={{ opacity: 0.85, fontWeight: 400 }}>
+                    Оставить базовую «{root.name_ru}»
+                  </div>
+                </button>
+              ) : null}
+              {subraces.map((row) => {
+                const on = subraceKey === row.id
                 return (
                   <button
                     key={row.id}
                     type="button"
                     className={`sheet-chip${on ? ' is-on' : ''}`}
                     style={{ display: 'block', width: '100%', textAlign: 'left' }}
-                    onClick={() => setAncestryId(row.id)}
+                    onClick={() => setSubraceKey(row.id)}
                   >
-                    <strong>{row.labelRu}</strong>
-                    <div style={{ opacity: 0.85, fontWeight: 400 }}>
-                      {row.damage} · дыхание {row.breath}
-                    </div>
+                    <strong>{row.name_ru}</strong>
+                    {typeof row.data.traits_text === 'string' && row.data.traits_text.trim() ? (
+                      <div style={{ opacity: 0.85, fontWeight: 400 }}>
+                        {String(row.data.traits_text).slice(0, 120)}
+                        {String(row.data.traits_text).length > 120 ? '…' : ''}
+                      </div>
+                    ) : null}
                   </button>
                 )
               })}
@@ -253,10 +245,137 @@ export function RaceSetupDialog({
           </Field>
         ) : null}
 
-        {def.featNoteRu ? <Text tone="muted">{def.featNoteRu}</Text> : null}
+        {!def && subraceOk ? (
+          <Text tone="muted">Для этой записи пока нет пакета эффектов — закрой и заполни вручную.</Text>
+        ) : null}
+
+        {def ? (
+          <>
+            {fixedAsi ? (
+              <Text>
+                Фиксированные бонусы: <strong>{fixedAsi}</strong>
+              </Text>
+            ) : null}
+
+            {asiNeed > 0 && def.abilityBonusChoices ? (
+              <Field
+                label={`Бонусы характеристик (${abilityBonusKeys.length}/${asiNeed})`}
+                hint={`+${def.abilityBonusChoices.amount} к каждой выбранной`}
+              >
+                <div className="chip-row">
+                  {asiOptions.map((key) => {
+                    const on = abilityBonusKeys.includes(key)
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        onClick={() => toggleAbility(key)}
+                      >
+                        {ABILITY_LABELS[key]}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+            ) : null}
+
+            {langNeed > 0 ? (
+              <Field label={`Языки на выбор (${languages.length}/${langNeed})`}>
+                <div className="chip-row">
+                  {languageOptions.map((name) => {
+                    const on = languages.includes(name)
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        onClick={() => toggleLanguage(name)}
+                      >
+                        {name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+            ) : null}
+
+            {skillNeed > 0 ? (
+              <Field label={`Навыки (${skills.length}/${skillNeed})`}>
+                <div className="chip-row">
+                  {skillOptions.map((key) => {
+                    const on = skills.includes(key)
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        onClick={() => toggleSkill(key)}
+                      >
+                        {skillLabel(key)}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+            ) : null}
+
+            {toolNeed > 0 ? (
+              <Field label={`Инструменты (${tools.length}/${toolNeed})`}>
+                <div className="chip-row">
+                  {toolOptions.map((name) => {
+                    const on = tools.includes(name)
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        onClick={() => toggleTool(name)}
+                      >
+                        {name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+            ) : null}
+
+            {def.ancestryChoices.length > 0 ? (
+              <Field label="Драконье происхождение">
+                <Stack gap={8}>
+                  {def.ancestryChoices.map((row) => {
+                    const on = ancestryId === row.id
+                    return (
+                      <button
+                        key={row.id}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                        onClick={() => setAncestryId(row.id)}
+                      >
+                        <strong>{row.labelRu}</strong>
+                        <div style={{ opacity: 0.85, fontWeight: 400 }}>
+                          {row.damage} · дыхание {row.breath}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </Stack>
+              </Field>
+            ) : null}
+
+            {def.featNoteRu ? <Text tone="muted">{def.featNoteRu}</Text> : null}
+          </>
+        ) : null}
 
         {!canConfirm ? (
-          <Text tone="muted">Отметь все обязательные развилки, чтобы продолжить.</Text>
+          <Text tone="muted">
+            {!subraceOk
+              ? subraceRequired
+                ? 'Выбери подрасу, чтобы продолжить.'
+                : 'Выбери подрасу или «Без подрасы».'
+              : 'Отметь все обязательные развилки, чтобы продолжить.'}
+          </Text>
         ) : null}
       </Stack>
     </Dialog>
