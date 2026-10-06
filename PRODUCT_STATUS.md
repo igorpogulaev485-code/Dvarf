@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/prod-lineage-rules-acbe`  
+**Prod tip (ветка линии прода):** `cursor/sheet-multiclass-rules-ef23`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -271,3 +271,4 @@
 | 2026-10-06 | `cursor/restore-cabinet-acbe` | Восстановлен кабинет: SMTP, verify, сессии, смена пароля/email, danger zone |
 | 2026-10-06 | `cursor/restore-sheet-classic-acbe` | Восстановлены лист P1–P6 + classic поверх lobby/cabinet; снято ложное «только в ветках» |
 | 2026-10-06 | `cursor/prod-lineage-rules-acbe` | Анти-overwrite: AGENTS.md, skills, preflight; tip сдвинут на эту ветку |
+| 2026-10-06 | `cursor/sheet-multiclass-rules-ef23` · PR #27 | Каталог 13 классов + Изобретатель half_up; гранты из catalog.data |
