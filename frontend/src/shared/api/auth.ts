@@ -84,6 +84,21 @@ export async function changePassword(
   })
 }
 
+export async function uploadAvatar(file: File): Promise<User> {
+  const body = new FormData()
+  body.append('file', file)
+  return apiRequest<User>('/auth/me/avatar', {
+    method: 'POST',
+    body,
+  })
+}
+
+export async function deleteAvatar(): Promise<User> {
+  return apiRequest<User>('/auth/me/avatar', {
+    method: 'DELETE',
+  })
+}
+
 export async function startOAuth(provider: 'yandex' | 'vk'): Promise<OAuthStartResponse> {
   return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/start`)
 }

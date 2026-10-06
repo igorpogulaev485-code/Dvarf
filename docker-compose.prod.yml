@@ -36,6 +36,9 @@ services:
       VK_CLIENT_SECRET: ${VK_CLIENT_SECRET:-}
       VK_REDIRECT_URI: ${VK_REDIRECT_URI:-}
       VK_SERVICE_TOKEN: ${VK_SERVICE_TOKEN:-}
+      UPLOADS_DIR: /app/uploads
+    volumes:
+      - dvarf_uploads:/app/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -49,6 +52,8 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    volumes:
+      - dvarf_uploads:/var/www/uploads:ro
     depends_on:
       - api
     networks:
@@ -59,3 +64,4 @@ networks:
 
 volumes:
   dvarf_pg_data:
+  dvarf_uploads:

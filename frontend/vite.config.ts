@@ -11,6 +11,7 @@ export default defineConfig({
       '/auth': 'http://127.0.0.1:8000',
       '/catalog': 'http://127.0.0.1:8000',
       '/health': 'http://127.0.0.1:8000',
+      '/uploads': 'http://127.0.0.1:8000',
       '/characters': {
         target: 'http://127.0.0.1:8000',
         bypass(req) {

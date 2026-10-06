@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     vk_client_secret: str = ""
     vk_redirect_uri: str = "http://localhost:8000/auth/oauth/vk/callback"
     vk_service_token: str = ""
+    uploads_dir: str = "uploads"
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -22,6 +22,8 @@ build/
 
 # Local data
 *.log
+uploads/
+backend/uploads/
 
 # Frontend build
 frontend/dist/

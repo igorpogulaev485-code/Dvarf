@@ -243,3 +243,32 @@ class AuthService:
         user.password_hash = hash_password(new_password)
         self.db.commit()
         return ChangePasswordResponse(message="Пароль изменён")
+
+    def upload_avatar(self, user_id: UUID, data: bytes, content_type: str | None) -> UserResponse:
+        from app.services.avatar import save_avatar_image
+
+        user = self.users.get_by_id(user_id)
+        if user is None:
+            raise UnauthorizedError("Пользователь не найден")
+
+        avatar_url = save_avatar_image(user_id=user_id, data=data, content_type=content_type)
+        self.users.set_avatar_url(user, avatar_url)
+        self.db.commit()
+        loaded = self.users.get_by_id(user_id)
+        assert loaded is not None
+        return serialize_user(loaded)
+
+    def delete_avatar(self, user_id: UUID) -> UserResponse:
+        from app.services.avatar import delete_avatar_file, is_uploaded_avatar_url
+
+        user = self.users.get_by_id(user_id)
+        if user is None:
+            raise UnauthorizedError("Пользователь не найден")
+
+        if is_uploaded_avatar_url(user.avatar_url):
+            delete_avatar_file(user_id)
+        self.users.set_avatar_url(user, None)
+        self.db.commit()
+        loaded = self.users.get_by_id(user_id)
+        assert loaded is not None
+        return serialize_user(loaded)

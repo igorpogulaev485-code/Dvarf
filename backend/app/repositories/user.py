@@ -68,6 +68,12 @@ class UserRepository:
         self.db.flush()
         return user
 
+    def set_avatar_url(self, user: User, avatar_url: str | None) -> User:
+        user.avatar_url = avatar_url
+        self.db.add(user)
+        self.db.flush()
+        return user
+
     def add_identity(
         self,
         *,
