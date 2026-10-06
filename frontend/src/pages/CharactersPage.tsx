@@ -5,6 +5,7 @@ import {
   CharacterList,
   CreateCharacterButton,
 } from '../features/characters'
+import { getMe, type User } from '../shared/api/auth'
 import {
   createCharacter,
   listCharacters,
@@ -16,6 +17,7 @@ import { Stack, Text, Toast } from '../ui'
 
 export function CharactersPage() {
   const navigate = useNavigate()
+  const [user, setUser] = useState<User | null>(null)
   const [characters, setCharacters] = useState<CharacterSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -27,11 +29,14 @@ export function CharactersPage() {
   useEffect(() => {
     let active = true
     setLoading(true)
-    listCharacters()
-      .then((items) => {
-        if (active) {
-          setCharacters(items)
+
+    Promise.all([getMe(), listCharacters()])
+      .then(([me, items]) => {
+        if (!active) {
+          return
         }
+        setUser(me)
+        setCharacters(items)
       })
       .catch((err: unknown) => {
         if (!active) {
@@ -74,6 +79,7 @@ export function CharactersPage() {
         <AppHeader
           title="Мои персонажи"
           subtitle={loading ? 'Загрузка...' : `${characters.length} в вашем списке`}
+          user={user}
           onOfficialSite={() => setToast('Официальный сайт скоро появится')}
         />
 
