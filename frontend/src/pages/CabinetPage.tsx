@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AuthProvidersPanel, ProfileForm } from '../features/cabinet'
+import { AuthProvidersPanel, ChangePasswordForm, ProfileForm } from '../features/cabinet'
 import { getMe, logout, type User } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
 import { Button, Panel, Stack, Text, Toast } from '../ui'
@@ -85,6 +85,21 @@ export function CabinetPage() {
             <Panel title="Способы входа">
               <AuthProvidersPanel providers={user.providers} />
             </Panel>
+
+            {user.providers.includes('password') ? (
+              <Panel title="Смена пароля">
+                <ChangePasswordForm
+                  onChanged={() => setToast('Пароль изменён')}
+                />
+              </Panel>
+            ) : (
+              <Panel title="Смена пароля">
+                <Text tone="muted">
+                  У аккаунта нет пароля email — смена пароля недоступна. Позже можно будет задать
+                  пароль после привязки email.
+                </Text>
+              </Panel>
+            )}
 
             <Panel title="Сессия">
               <Button variant="ghost" onClick={handleLogout} disabled={loggingOut}>

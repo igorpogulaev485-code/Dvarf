@@ -20,7 +20,7 @@ from app.core.security import (
 from app.models.user import AuthProvider, User
 from app.repositories.password_reset import PasswordResetRepository
 from app.repositories.user import UserRepository
-from app.schemas.auth import ForgotPasswordResponse, ResetPasswordResponse, TokenResponse
+from app.schemas.auth import ForgotPasswordResponse, ResetPasswordResponse, TokenResponse, ChangePasswordResponse
 from app.schemas.user import UserResponse, UserUpdateRequest
 from app.services.oauth.base import OAuthProfile
 
@@ -208,3 +208,38 @@ class AuthService:
         self.password_resets.mark_used(record)
         self.db.commit()
         return ResetPasswordResponse(message="Пароль успешно обновлён. Теперь можно войти.")
+
+    def change_password(
+        self,
+        user_id: UUID,
+        current_password: str,
+        new_password: str,
+    ) -> ChangePasswordResponse:
+        user = self.users.get_by_id(user_id)
+        if user is None:
+            raise UnauthorizedError("Пользователь не найден")
+
+        if not user.password_hash:
+            raise AppError(
+                "У аккаунта нет пароля. Сначала войдите через email/пароль или задайте пароль позже.",
+                code="password_not_set",
+                status_code=400,
+            )
+
+        if not verify_password(current_password, user.password_hash):
+            raise AppError(
+                "Текущий пароль неверный",
+                code="wrong_current_password",
+                status_code=400,
+            )
+
+        if current_password == new_password:
+            raise AppError(
+                "Новый пароль должен отличаться от текущего",
+                code="password_unchanged",
+                status_code=400,
+            )
+
+        user.password_hash = hash_password(new_password)
+        self.db.commit()
+        return ChangePasswordResponse(message="Пароль изменён")

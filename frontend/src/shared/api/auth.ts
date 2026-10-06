@@ -67,6 +67,23 @@ export async function updateMe(payload: UserUpdatePayload): Promise<User> {
   })
 }
 
+export type ChangePasswordResponse = {
+  message: string
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<ChangePasswordResponse> {
+  return apiRequest<ChangePasswordResponse>('/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword,
+    }),
+  })
+}
+
 export async function startOAuth(provider: 'yandex' | 'vk'): Promise<OAuthStartResponse> {
   return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/start`)
 }

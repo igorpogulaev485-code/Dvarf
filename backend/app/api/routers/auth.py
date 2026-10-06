@@ -10,6 +10,8 @@ from app.core.config import settings
 from app.core.exceptions import AppError
 from app.models.user import AuthProvider
 from app.schemas.auth import (
+    ChangePasswordRequest,
+    ChangePasswordResponse,
     ForgotPasswordRequest,
     ForgotPasswordResponse,
     LoginRequest,
@@ -83,6 +85,19 @@ def update_me(
     db: DbSession,
 ) -> UserResponse:
     return AuthService(db).update_me(current_user.id, payload)
+
+
+@router.post("/change-password", response_model=ChangePasswordResponse)
+def change_password(
+    payload: ChangePasswordRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> ChangePasswordResponse:
+    return AuthService(db).change_password(
+        current_user.id,
+        payload.current_password,
+        payload.new_password,
+    )
 
 
 @router.get("/oauth/{provider}/start", response_model=OAuthStartResponse)
