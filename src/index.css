@@ -58,13 +58,43 @@ button {
 }
 
 .toolbar__brand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   font-family: 'Libre Baskerville', Georgia, serif;
   font-size: 1.15rem;
   letter-spacing: 0.02em;
 }
 
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.app-nav__link {
+  color: #d7ddd4;
+  text-decoration: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.app-nav__link:hover {
+  color: #fff;
+  background: #2a312c;
+}
+
+.app-nav__link.is-active {
+  background: #3d4a3c;
+  color: #fff;
+}
+
 .toolbar__brand small {
   display: block;
+  flex-basis: 100%;
   margin-top: 0.15rem;
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.75rem;
@@ -169,6 +199,157 @@ button {
   padding: 1.25rem;
   max-width: 1100px;
   margin: 0 auto;
+  display: grid;
+  gap: 1.25rem;
+}
+
+.empty-state {
+  margin: 0;
+  padding: 1.25rem 1rem;
+  background: #fffaf2;
+  border: 1px dashed #cfc5b4;
+  border-radius: 10px;
+  color: var(--muted);
+}
+
+.empty-state--inline {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.create-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem 1rem;
+  align-items: end;
+  background: #fffaf2;
+  border: 1px solid #cfc5b4;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.create-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.create-row input,
+.create-row select,
+.create-row textarea {
+  border: 1px solid #cfc5b4;
+  border-radius: 6px;
+  padding: 0.45rem 0.55rem;
+  font-size: 1rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--ink);
+  background: #fff;
+}
+
+.create-row button {
+  border: 1px solid #8a9488;
+  background: #3d4a3c;
+  color: #fff;
+  border-radius: 4px;
+  padding: 0.5rem 0.85rem;
+  font-weight: 600;
+  height: 2.5rem;
+}
+
+.create-row button:hover {
+  background: #4d5c4c;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: #ece4d4;
+  color: #5a4a32;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+
+.section-title {
+  margin: 0;
+  font-family: 'Libre Baskerville', Georgia, serif;
+  font-size: 1.15rem;
+}
+
+.stack-gap {
+  margin-top: 0;
+}
+
+.plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.plain-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.65rem;
+  background: #f7f2e8;
+  border-radius: 8px;
+}
+
+.plain-list a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.muted {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.session-bind {
+  display: flex;
+  align-items: end;
+  margin: 0;
+}
+
+.session-bind a {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.card-form__wide {
+  grid-column: 1 / -1;
+}
+
+.card-form textarea {
+  border: 1px solid #cfc5b4;
+  border-radius: 6px;
+  padding: 0.45rem 0.55rem;
+  font-size: 1rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--ink);
+  background: #fff;
+  resize: vertical;
+  min-height: 8rem;
+}
+
+.character-card--frame {
+  border-color: #9bb092;
 }
 
 .character-grid {
@@ -198,6 +379,10 @@ button {
   margin: 0.25rem 0 0;
   color: var(--muted);
   font-size: 0.9rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .character-card__stats {

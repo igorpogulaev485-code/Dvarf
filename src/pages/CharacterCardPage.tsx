@@ -1,5 +1,6 @@
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useCharacters } from '../store/characters';
+import { useTable } from '../store/table';
 import {
   ABILITY_LABELS_RU,
   abilityModifier,
@@ -14,6 +15,7 @@ export function CharacterCardPage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const { getById, updateCharacter, deleteCharacter, saveStatus } = useCharacters();
+  const { purgeCharacter } = useTable();
   const character = getById(id);
 
   if (!character) {
@@ -29,7 +31,7 @@ export function CharacterCardPage() {
       <header className="toolbar no-print">
         <div className="toolbar__brand">
           <Link to="/" className="toolbar__back">
-            ← К списку
+            ← В лобби
           </Link>
           <div>
             {character.name || 'Безымянный персонаж'}
@@ -47,6 +49,7 @@ export function CharacterCardPage() {
             className="btn btn--quiet"
             onClick={() => {
               if (confirm('Удалить персонажа?')) {
+                purgeCharacter(character.id);
                 deleteCharacter(character.id);
                 navigate('/');
               }
