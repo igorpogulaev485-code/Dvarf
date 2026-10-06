@@ -8,7 +8,7 @@
 
 ```text
 Лист персонажа  →  Лобби (код/QR)  →  Сессия / бой  →  Лут
-     (есть)         (этот слайс)         (далее)       (позже)
+     (есть)            (есть)            (далее)       (позже)
 ```
 
 ```text
@@ -25,8 +25,9 @@
 - Ветки: `cursor/<name>-eb8e`, в `main` только через PR.
 - Деплой на Timeweb **только** по явной просьбе («залей на сервер»). См. [`deploy/README.md`](deploy/README.md).
 - Секреты не коммитить. Для деплоя Cloud Agent: secret `DVARF_SSH_PRIVATE_KEY`.
-- Параллельные агенты: **не ломать чужой контур**. Digital sheet и classic PDF-like могут идти параллельно; пачку / encounter / loot не начинать раньше очереди без отдельного ok.
+- Параллельные агенты: **не ломать чужой контур**. Digital sheet и classic PDF-like могут идти параллельно; **боевой фрейм / encounter / loot** на сессии — только после отдельного ok.
 - Каталоги: свой seed + SRD (CC-BY). API TTG недоступен; ждём dnd.su; **чужие сайты не скрейпим**.
+- Деплой-секрет `DVARF_SSH_PRIVATE_KEY` должен быть **полным PEM** (BEGIN…END). Обрезанный секрет (только заголовок) ломает SSH.
 
 ## Продуктовые принципы
 
@@ -73,8 +74,9 @@ flowchart TB
 - **Вход игрока:** QR/код → логин → выбрать персонажа; или код на карточке персонажа.
 - **Сеттинг** — мир внутри лобби (необязателен).
 - **Сессия** — сегодняшний стол; `setting_id` может быть `null` (ваншот). Удаление сеттинга отвязывает сессии.
-- Бой и лут — на сессии (ещё не в этом слайсе).
+- Бой и лут — на сессии (ещё не сделано).
 - У LSS «комната» ближе к **сессии**, не к сеттингу.
+- **Прод:** залито; nginx проксирует `/lobbies`, `/sessions`, `/settings` на API (как `/characters`). SPA-навигация с `Accept: text/html` без Bearer по-прежнему отдаёт `index.html`.
 
 ## Дорожная карта
 
@@ -103,12 +105,14 @@ flowchart TB
 - Зависимость: digital JSON-контракт листа стабилен (фаза A).
 - Агентам PDF: не ломать digital-роуты и `shared/dnd` без согласования.
 
-### Фаза C — Лобби + сессия *(в работе)*
+### Фаза C — Лобби + сессия *(каркас на проде)*
 
 1. ✅ Модель Lobby / Setting / PlaySession + seat  
 2. ✅ Invite code + QR join + код на персонаже  
-3. ⏳ Общий боевой фрейм на сессии  
-4. ⏳ Realtime (WebSocket) по необходимости  
+3. ✅ UI `/lobbies`, `/join/:code`, сеттинг, фрейм сессии (состав стола)  
+4. ✅ Nginx proxy `/lobbies|/sessions|/settings` → API (иначе POST ловил 405)  
+5. ⏳ Общий **боевой** фрейм на сессии (инициатива / статусы)  
+6. ⏳ Realtime (WebSocket) по необходимости  
 
 ### Фаза D — Подготовка боя → лут
 
@@ -125,9 +129,10 @@ flowchart LR
   C --> D1[D Encounter prep]
   D1 --> D2[D Loot]
 ```
+
 ## Статус кода (сейчас)
 
-Уже в продуктовой ветке / PR (digital):
+Уже в продуктовой ветке / на проде:
 
 - Auth (register/login/refresh, auto-refresh на 401), cabinet profile
 - Characters CRUD, hybrid JSONB + `sheet_version` (409)
@@ -137,19 +142,20 @@ flowchart LR
 - Text blocks + reorder; inventory + weight
 - Spells S1–S4; Play S1–S2; Sheet S3 passives/proficiencies
 - Sheet S4+: pact magic, attunement (max 3), short-rest hit-die heal
-- **Лобби / сеттинг / сессия:** invite code + QR join, ваншот или привязка к сеттингу
+- **Лобби / сеттинг / сессия (каркас):** create lobby, invite code + QR, join с выбором персонажа, код на карточке, сеттинг (опционально), сессия (ваншот или с сеттингом), seat/unseat из лобби
+- Alembic head на проде: `c9d0e1f2a3b4` (lobbies/settings/sessions)
 - Prod Docker deploy (Timeweb)
 
-Прод: http://201.34.132.252/ — подробности в [`deploy/README.md`](deploy/README.md).
+Прод: http://201.34.132.252/ — подробности в [`deploy/README.md`](deploy/README.md).  
+PR этого слайса: https://github.com/igorpogulaev485-code/Dvarf/pull/18 (`cursor/lobby-join-table-3333`).
 
 ## Очередь ближайших слайсов
 
-1. Боевой фрейм на сессии (инициатива / статусы стола)  
+1. Боевой фрейм на сессии (инициатива / статусы стола) — план → ok  
 2. Classic PDF-like — параллельный агент (тот же sheet)  
-3. Encounter prep → loot 
+3. Encounter prep → loot  
 
-Backlog (не начинать без плана): multiclass; race → эффекты на лист; rich-text в блоках; onboarding → тема UI; phone/SMS login; Google OAuth (гео-ограничения для RF).
-
+Backlog (не начинать без плана): multiclass; race → эффекты на лист; rich-text в блоках; onboarding → тема UI; phone/SMS login; Google OAuth (гео-ограничения для RF); открыть сеттинг игрокам; QR polish / срок жизни кода.
 ## Стек
 
 - Frontend: React + Vite (`src/ui`, `src/features`, `src/pages`, `src/shared`)
@@ -179,7 +185,8 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 Auth: `POST /auth/register|login|refresh|logout`, `GET /auth/me`, OAuth stubs/start.  
-Characters / catalog — `/characters`, `/catalog`.
+Characters / catalog — `/characters`, `/catalog`.  
+Lobbies / settings / sessions — `/lobbies`, `/lobbies/join`, `/settings/{id}`, `/sessions/{id}` (+ seats).
 
 ## Frontend (локально)
 
