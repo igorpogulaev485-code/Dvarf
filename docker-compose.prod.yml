@@ -1,0 +1,61 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: dvarf-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dvarf}
+      POSTGRES_USER: ${POSTGRES_USER:-dvarf}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - dvarf_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dvarf
+
+  api:
+    build:
+      context: ./backend
+    container_name: dvarf-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-dvarf}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-dvarf}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://201.34.132.252}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://201.34.132.252}
+      AUTH_EMAIL_STUB: ${AUTH_EMAIL_STUB:-true}
+      PASSWORD_RESET_TTL_MINUTES: ${PASSWORD_RESET_TTL_MINUTES:-30}
+      YANDEX_CLIENT_ID: ${YANDEX_CLIENT_ID:-}
+      YANDEX_CLIENT_SECRET: ${YANDEX_CLIENT_SECRET:-}
+      YANDEX_REDIRECT_URI: ${YANDEX_REDIRECT_URI:-}
+      VK_CLIENT_ID: ${VK_CLIENT_ID:-}
+      VK_CLIENT_SECRET: ${VK_CLIENT_SECRET:-}
+      VK_REDIRECT_URI: ${VK_REDIRECT_URI:-}
+      VK_SERVICE_TOKEN: ${VK_SERVICE_TOKEN:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - dvarf
+
+  web:
+    build:
+      context: ./frontend
+    container_name: dvarf-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - dvarf
+
+networks:
+  dvarf:
+
+volumes:
+  dvarf_pg_data:
