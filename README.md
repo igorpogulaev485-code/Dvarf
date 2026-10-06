@@ -86,9 +86,10 @@ flowchart TB
 
 ## Дорожная карта
 
-### Фаза A — Digital sheet MVP *(в работе / почти закрыт)*
+### Фаза A — Digital sheet MVP *(закрыт для соло-игры)*
 
-Одиночный интерактивный лист: создать → заполнить → играть (бой/отдых/заклинания).
+Одиночный интерактивный лист: создать → заполнить → играть (бой/отдых/заклинания).  
+**Готово как playable MVP**, не как полный автомат PHB: много правил всё ещё вручную (см. Polish / gaps ниже).
 
 | Слайс | Содержание | Статус |
 |-------|------------|--------|
@@ -99,8 +100,8 @@ flowchart TB
 | Spells S1–S4 | slots, prepare, cast, grimoire | ✅ |
 | Play S1–S2 | conditions, exhaustion, resources, rest, temp HP, hit dice, death saves | ✅ |
 | Sheet S3 | XP, subclass/background/alignment, passives, darkvision, armor/weapon prof | ✅ |
-| Sheet S4+ | pact magic UI, attunement, short-rest heal от кости | ✅ |
-| Polish | multiclass, race→эффекты, rich-text | backlog |
+| Sheet S4+ | pact magic UI, attunement, короткий/продолжительный отдых | ✅ |
+| Polish | multiclass, race→эффекты, rich-text, auto AC/slots/upcast | backlog |
 
 ### Фаза B — Classic PDF-like *(параллельно другим агентом)*
 
