@@ -205,7 +205,7 @@ export function RaceSetupDialog({
 
         {hasSubraceFork ? (
           <Field
-            label={subraceRequired ? 'Подраса (обязательно)' : 'Подраса (необязательно)'}
+            label={subraceRequired ? 'Разновидности (обязательно)' : 'Разновидности (необязательно)'}
           >
             <Stack gap={8}>
               {!subraceRequired ? (
@@ -223,6 +223,12 @@ export function RaceSetupDialog({
               ) : null}
               {subraces.map((row) => {
                 const on = subraceKey === row.id
+                const source =
+                  typeof row.source === 'string' && row.source.trim()
+                    ? row.source.trim().toUpperCase()
+                    : typeof row.data.source === 'string'
+                      ? String(row.data.source).toUpperCase()
+                      : ''
                 return (
                   <button
                     key={row.id}
@@ -231,7 +237,21 @@ export function RaceSetupDialog({
                     style={{ display: 'block', width: '100%', textAlign: 'left' }}
                     onClick={() => setSubraceKey(row.id)}
                   >
-                    <strong>{row.name_ru}</strong>
+                    <span
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        gap: 12,
+                        alignItems: 'baseline',
+                      }}
+                    >
+                      <strong>{row.name_ru}</strong>
+                      {source ? (
+                        <span style={{ opacity: 0.65, fontWeight: 600, fontSize: '0.85em' }}>
+                          {source}
+                        </span>
+                      ) : null}
+                    </span>
                     {typeof row.data.traits_text === 'string' && row.data.traits_text.trim() ? (
                       <div style={{ opacity: 0.85, fontWeight: 400 }}>
                         {String(row.data.traits_text).slice(0, 120)}
@@ -372,8 +392,8 @@ export function RaceSetupDialog({
           <Text tone="muted">
             {!subraceOk
               ? subraceRequired
-                ? 'Выбери подрасу, чтобы продолжить.'
-                : 'Выбери подрасу или «Без подрасы».'
+                ? 'Выбери разновидность, чтобы продолжить.'
+                : 'Выбери разновидность или «Без подрасы».'
               : 'Отметь все обязательные развилки, чтобы продолжить.'}
           </Text>
         ) : null}

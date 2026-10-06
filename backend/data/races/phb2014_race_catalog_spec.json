@@ -2,7 +2,7 @@
   "meta": {
     "edition": "2014",
     "source": "phb",
-    "notes_ru": "PHB 2014 корни + подрасы в попапе. Дварф: холмовой, горный, дуэргар (SCAG). subrace_required у дварфа/эльфа/полурослика/гнома; у человека вариант опционален."
+    "notes_ru": "Подрасы в попапе как на ttg.club. Дварф: горный/холмовой (PHB), дуэргар (MTF), щитовой/золотой (SCAG), метка опеки (ERLW)."
   },
   "deactivate_slugs": [
     "orc"
@@ -45,49 +45,13 @@
       "subrace_required": true
     },
     {
-      "slug": "hill_dwarf",
-      "name_ru": "Холмовой дварф",
-      "name_en": "Hill Dwarf",
-      "parent_slug": "dwarf",
-      "selectable": true,
-      "source": "phb",
-      "sort_order": 11,
-      "speed": 25,
-      "size": "medium",
-      "darkvision": 60,
-      "ability_bonuses": {
-        "con": 2,
-        "wis": 1
-      },
-      "languages": [
-        "Общий",
-        "Дварфийский"
-      ],
-      "languages_choose": 0,
-      "tool_choices": {
-        "count": 1,
-        "from": [
-          "Инструменты кузнеца",
-          "Инструменты каменщика",
-          "Инструменты пивовара"
-        ]
-      },
-      "weapon_proficiencies": [
-        "Боевой топор",
-        "Ручной топор",
-        "Лёгкий молот",
-        "Боевой молот"
-      ],
-      "traits_text": "Холмовой дварф (2014): +2 Тел, +1 Муд. Дварфские черты + Каменная стойкость (+1 хитов за уровень)."
-    },
-    {
       "slug": "mountain_dwarf",
-      "name_ru": "Горный дварф",
+      "name_ru": "Дварф (горный)",
       "name_en": "Mountain Dwarf",
       "parent_slug": "dwarf",
       "selectable": true,
       "source": "phb",
-      "sort_order": 12,
+      "sort_order": 11,
       "speed": 25,
       "size": "medium",
       "darkvision": 60,
@@ -121,12 +85,48 @@
       "traits_text": "Горный дварф (2014): +2 Тел, +2 Сил. Дварфские черты + владение лёгкими и средними доспехами."
     },
     {
+      "slug": "hill_dwarf",
+      "name_ru": "Дварф (холмовой)",
+      "name_en": "Hill Dwarf",
+      "parent_slug": "dwarf",
+      "selectable": true,
+      "source": "phb",
+      "sort_order": 12,
+      "speed": 25,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {
+        "con": 2,
+        "wis": 1
+      },
+      "languages": [
+        "Общий",
+        "Дварфийский"
+      ],
+      "languages_choose": 0,
+      "tool_choices": {
+        "count": 1,
+        "from": [
+          "Инструменты кузнеца",
+          "Инструменты каменщика",
+          "Инструменты пивовара"
+        ]
+      },
+      "weapon_proficiencies": [
+        "Боевой топор",
+        "Ручной топор",
+        "Лёгкий молот",
+        "Боевой молот"
+      ],
+      "traits_text": "Холмовой дварф (2014): +2 Тел, +1 Муд. Дварфские черты + Каменная стойкость (+1 хитов за уровень)."
+    },
+    {
       "slug": "duergar",
-      "name_ru": "Дуэргар",
+      "name_ru": "Дварф (дуэргар)",
       "name_en": "Duergar",
       "parent_slug": "dwarf",
       "selectable": true,
-      "source": "scag",
+      "source": "mtf",
       "sort_order": 13,
       "speed": 25,
       "size": "medium",
@@ -156,6 +156,118 @@
         "Боевой молот"
       ],
       "traits_text": "Дуэргар (SCAG 2014): +2 Тел, +1 Сил. Дварфские черты. Превосходное тёмное зрение 120 фт. Устойчивость дуэргаров. Магия дуэргаров (3 ур. увеличение, 5 ур. невидимость — 1/длинный отдых, ИНТ). Чувствительность к солнечному свету. Язык: Подземный."
+    },
+    {
+      "selectable": true,
+      "parent_slug": "dwarf",
+      "speed": 25,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Дварфийский"
+      ],
+      "languages_choose": 0,
+      "tool_choices": {
+        "count": 1,
+        "from": [
+          "Инструменты кузнеца",
+          "Инструменты каменщика",
+          "Инструменты пивовара"
+        ]
+      },
+      "weapon_proficiencies": [
+        "Боевой топор",
+        "Ручной топор",
+        "Лёгкий молот",
+        "Боевой молот"
+      ],
+      "slug": "shield_dwarf",
+      "name_ru": "Дварф (щитовой)",
+      "name_en": "Shield Dwarf",
+      "source": "scag",
+      "sort_order": 14,
+      "ability_bonuses": {
+        "con": 2,
+        "str": 2
+      },
+      "armor_proficiencies": [
+        "light",
+        "medium"
+      ],
+      "traits_text": "Дварф (щитовой, SCAG): механика горного дварфа Forgotten Realms. +2 Тел, +2 Сил. Дварфские черты + владение лёгкими и средними доспехами."
+    },
+    {
+      "selectable": true,
+      "parent_slug": "dwarf",
+      "speed": 25,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Дварфийский"
+      ],
+      "languages_choose": 0,
+      "tool_choices": {
+        "count": 1,
+        "from": [
+          "Инструменты кузнеца",
+          "Инструменты каменщика",
+          "Инструменты пивовара"
+        ]
+      },
+      "weapon_proficiencies": [
+        "Боевой топор",
+        "Ручной топор",
+        "Лёгкий молот",
+        "Боевой молот"
+      ],
+      "slug": "gold_dwarf",
+      "name_ru": "Дварф (золотой)",
+      "name_en": "Gold Dwarf",
+      "source": "scag",
+      "sort_order": 15,
+      "ability_bonuses": {
+        "con": 2,
+        "wis": 1
+      },
+      "traits_text": "Дварф (золотой, SCAG): механика холмового дварфа Forgotten Realms. +2 Тел, +1 Муд. Дварфские черты + Каменная стойкость (+1 хитов за уровень)."
+    },
+    {
+      "selectable": true,
+      "parent_slug": "dwarf",
+      "speed": 25,
+      "size": "medium",
+      "darkvision": 60,
+      "languages": [
+        "Общий",
+        "Дварфийский"
+      ],
+      "languages_choose": 0,
+      "tool_choices": {
+        "count": 1,
+        "from": [
+          "Инструменты кузнеца",
+          "Инструменты каменщика",
+          "Инструменты пивовара"
+        ]
+      },
+      "weapon_proficiencies": [
+        "Боевой топор",
+        "Ручной топор",
+        "Лёгкий молот",
+        "Боевой молот"
+      ],
+      "slug": "mark_of_warding",
+      "name_ru": "Дварф (метка опеки)",
+      "name_en": "Mark of Warding Dwarf",
+      "source": "erlw",
+      "sort_order": 16,
+      "ability_bonuses": {
+        "con": 2,
+        "int": 1
+      },
+      "traits_text": "Дварф (метка опеки, ERLW): +2 Тел, +1 Инт. Дварфские черты. Интуиция стража (d4 к Анализу / воровским инструментам). Охрана и печати: Тревога и Доспехи мага; с 3 ур. — Волшебный замок (1/длинный отдых, ИНТ). Заклинания метки — если есть классовое колдовство."
     },
     {
       "slug": "elf",
