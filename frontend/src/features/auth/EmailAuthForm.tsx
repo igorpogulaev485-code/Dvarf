@@ -3,7 +3,7 @@ import type { FormEvent } from 'react'
 import { login, register, type User } from '../../shared/api/auth'
 import { ApiRequestError } from '../../shared/api/client'
 import { EMAIL_ERROR_TEXT, isValidEmail } from '../../shared/lib/email'
-import { Button, Field, Input, Stack, Text } from '../../ui'
+import { Button, Field, Input, PasswordInput, Stack, Text } from '../../ui'
 
 type EmailAuthFormProps = {
   mode: 'login' | 'register'
@@ -106,9 +106,8 @@ export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFo
           htmlFor={`${mode}-password`}
           hint={mode === 'register' ? 'Минимум 8 символов' : undefined}
         >
-          <Input
+          <PasswordInput
             id={`${mode}-password`}
-            type="password"
             autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
             required
             minLength={mode === 'register' ? 8 : 1}

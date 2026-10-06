@@ -102,6 +102,41 @@ input {
   border-color: var(--danger);
 }
 
+.ui-password-input {
+  position: relative;
+}
+
+.ui-password-input__field {
+  padding-right: 48px;
+}
+
+.ui-password-input__toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.ui-password-input__toggle:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent-soft) 70%, white);
+}
+
+.ui-password-input__toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 35%, white);
+}
+
 .ui-button {
   border: 1px solid transparent;
   border-radius: 12px;
