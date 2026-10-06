@@ -9,6 +9,23 @@ from pydantic import BaseModel, ConfigDict, Field
 from app.models.catalog import CatalogKind, CatalogRulesEdition
 
 
+class CatalogEntryListOut(BaseModel):
+    """Lightweight row for typeahead / search results. No fat JSONB payloads."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    kind: CatalogKind
+    slug: str
+    name_ru: str
+    name_en: str | None = None
+    rules_edition: CatalogRulesEdition
+    parent_id: UUID | None = None
+    sort_order: int
+    """Small derived fields for UI (spell level/classes, etc.). Not full `data`."""
+    preview: dict[str, Any] = Field(default_factory=dict)
+
+
 class CatalogEntryOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

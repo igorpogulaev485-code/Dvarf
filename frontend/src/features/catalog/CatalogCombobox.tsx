@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  getCatalogEntry,
   listCatalogEntries,
   type CatalogEntry,
+  type CatalogEntryListItem,
   type CatalogKind,
 } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
@@ -15,17 +17,19 @@ type CatalogComboboxProps = {
   value: string
   placeholder?: string
   disabled?: boolean
-  optionLabel?: (entry: CatalogEntry) => string
+  optionLabel?: (entry: CatalogEntryListItem) => string
   onChange: (value: string, selected: CatalogEntry | null) => void
 }
 
 function kindLabel(kind: CatalogKind): string {
   if (kind === 'weapon') return 'оружие'
   if (kind === 'item') return 'артефакт'
+  if (kind === 'armor') return 'доспех'
   return kind
 }
 
 const SEARCH_LIMIT = 40
+const MIN_QUERY_LEN = 2
 
 export function CatalogCombobox({
   id,
@@ -39,7 +43,7 @@ export function CatalogCombobox({
   onChange,
 }: CatalogComboboxProps) {
   const [options, setOptions] = useState<ComboboxOption[]>([])
-  const [entries, setEntries] = useState<CatalogEntry[]>([])
+  const [entries, setEntries] = useState<CatalogEntryListItem[]>([])
   const [loading, setLoading] = useState(false)
   const [query, setQuery] = useState(value)
   const kindsKey = (kinds ?? (kind ? [kind] : [])).join(',')
@@ -56,9 +60,7 @@ export function CatalogCombobox({
     let active = true
     const trimmed = query.trim()
 
-    // After SRD load, empty query used to pull hundreds of rows per field.
-    // Search only when the user (or a prefilled value) provides text.
-    if (!trimmed) {
+    if (trimmed.length < MIN_QUERY_LEN) {
       setEntries([])
       setOptions([])
       setLoading(false)
@@ -105,7 +107,7 @@ export function CatalogCombobox({
         .finally(() => {
           if (active) setLoading(false)
         })
-    }, 180)
+    }, 220)
 
     return () => {
       active = false
@@ -122,13 +124,19 @@ export function CatalogCombobox({
       disabled={disabled}
       loading={loading}
       onChange={(next) => {
-        const match =
-          entries.find((item) => item.name_ru.toLowerCase() === next.trim().toLowerCase()) ?? null
-        onChange(next, match)
+        onChange(next, null)
       }}
       onSelectOption={(option) => {
-        const entry = entries.find((item) => item.id === option.id) ?? null
-        onChange(entry?.name_ru ?? option.label, entry)
+        const listItem = entries.find((item) => item.id === option.id) ?? null
+        const label = listItem?.name_ru ?? option.label
+        onChange(label, null)
+        void getCatalogEntry(option.id)
+          .then((full) => {
+            onChange(full.name_ru, full)
+          })
+          .catch(() => {
+            onChange(label, null)
+          })
       }}
       onQueryChange={setQuery}
     />

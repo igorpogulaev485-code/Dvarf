@@ -21,7 +21,7 @@ import {
 } from '../../shared/dnd/rest'
 import {
   listCatalogEntries,
-  type CatalogEntry,
+  type CatalogEntryListItem,
 } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
@@ -94,7 +94,7 @@ export function PlayPanel({
   onCombatChange,
   onToast,
 }: PlayPanelProps) {
-  const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
+  const [catalogConditions, setCatalogConditions] = useState<CatalogEntryListItem[]>([])
   const hitDiceMax = Math.max(1, Math.floor(level))
   const suggestedHeal = play.hitDie
     ? suggestedHitDieHeal(play.hitDie, constitutionMod)

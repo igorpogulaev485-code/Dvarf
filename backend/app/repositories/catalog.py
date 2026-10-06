@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import or_, select
+from sqlalchemy import Integer, cast, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.catalog import CatalogEntry, CatalogKind, CatalogRulesEdition
@@ -21,6 +21,8 @@ class CatalogRepository:
         parent_id: UUID | None = None,
         include_inactive: bool = False,
         limit: int | None = 50,
+        spell_level: int | None = None,
+        spell_class: str | None = None,
     ) -> list[CatalogEntry]:
         stmt = select(CatalogEntry)
         if not include_inactive:
@@ -45,6 +47,10 @@ class CatalogRepository:
                     CatalogEntry.slug.ilike(pattern),
                 )
             )
+        if spell_level is not None:
+            stmt = stmt.where(cast(CatalogEntry.data["level"].astext, Integer) == spell_level)
+        if spell_class:
+            stmt = stmt.where(CatalogEntry.data.contains({"classes": [spell_class]}))
         stmt = stmt.order_by(CatalogEntry.sort_order.asc(), CatalogEntry.name_ru.asc())
         if limit is not None:
             stmt = stmt.limit(limit)
