@@ -304,6 +304,11 @@ input {
   gap: 14px;
 }
 
+.character-card__wrap {
+  display: grid;
+  gap: 8px;
+}
+
 .character-card {
   display: grid;
   grid-template-columns: 64px 1fr;
@@ -316,6 +321,27 @@ input {
   background: var(--panel);
   text-decoration: none;
   color: inherit;
+}
+
+.character-card__actions {
+  display: flex;
+  gap: 12px;
+  padding: 0 4px 4px;
+}
+
+.character-card__actions a {
+  font-size: 0.85rem;
+  font-weight: 650;
+  text-decoration: none;
+  color: var(--accent);
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .character-card__avatar {
