@@ -10,9 +10,9 @@ export const ERLW_RACES: RaceEntry[] = [
     kind: 'race',
     motmUpdate: true,
     abilityScore: {
-      kind: 'custom',
+      kind: 'fixedPlusChoose',
       bonuses: { charisma: 2 },
-      notesRu: '+2 Харизма, +1 к одной другой характеристике',
+      choosePlusOne: 1,
     },
     size: 'medium',
     speed: { walk: 30 },
@@ -218,9 +218,9 @@ export const ERLW_RACES: RaceEntry[] = [
     kind: 'race',
     motmUpdate: true,
     abilityScore: {
-      kind: 'custom',
+      kind: 'fixedPlusChoose',
       bonuses: { constitution: 2 },
-      notesRu: '+2 Телосложение, +1 к одной другой характеристике',
+      choosePlusOne: 1,
     },
     size: 'medium',
     speed: { walk: 30 },

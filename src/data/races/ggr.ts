@@ -142,9 +142,9 @@ export const GGR_RACES: RaceEntry[] = [
     source: 'ggr',
     kind: 'race',
     abilityScore: {
-      kind: 'custom',
+      kind: 'fixedPlusChoose',
       bonuses: { constitution: 2 },
-      notesRu: '+2 Телосложение, +1 к одной характеристике на выбор',
+      choosePlusOne: 1,
     },
     size: 'medium',
     speed: { walk: 30 },

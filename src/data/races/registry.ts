@@ -13,6 +13,7 @@ import { VRGR_RACES } from './vrgr';
 import { AAG_RACES } from './aag';
 import { FTD_RACES } from './ftd';
 import { MOTM_RACES, MOTM_UPDATED_RACE_IDS } from './motm';
+import { HOMEBREW_RACES } from './homebrew';
 import { UA_RACES } from './ua';
 
 export const ALL_RACES: RaceEntry[] = [
@@ -30,6 +31,7 @@ export const ALL_RACES: RaceEntry[] = [
   ...FTD_RACES,
   ...MOTM_RACES,
   ...UA_RACES,
+  ...HOMEBREW_RACES,
 ];
 
 const byId = new Map<string, RaceEntry>();

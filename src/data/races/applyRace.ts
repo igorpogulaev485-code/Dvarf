@@ -72,7 +72,7 @@ function resolveAbilityBonuses(
   const bonuses: AbilityBonuses = {};
 
   const applyMode = (mode: RaceEntry['abilityScore']) => {
-    if (mode.kind === 'fixed' || mode.kind === 'custom') {
+    if (mode.kind === 'fixed' || mode.kind === 'custom' || mode.kind === 'fixedPlusChoose') {
       for (const [k, v] of Object.entries(mode.bonuses)) {
         const key = k as AbilityKey;
         bonuses[key] = (bonuses[key] ?? 0) + (v ?? 0);
@@ -278,11 +278,15 @@ export function computeRaceBonuses(
 export interface ApplyRaceOptions extends RaceApplicationChoices {
   /**
    * Если true — прибавляет ASI к текущим ability scores.
-   * По умолчанию только заполняет текстовые поля и скорость/навыки.
+   * По умолчанию false (пока нет разделения «база / раса»).
    */
   addAbilityScores?: boolean;
   /** Заменять featuresAndTraits текстом расы (по умолчанию дописывать) */
   replaceFeatures?: boolean;
+  /** Полное состояние попапа */
+  raceChoices?: import('../../types/character').RaceChoicesState;
+  /** Своё имя на листе (хомбрю или override) */
+  displayNameRu?: string;
 }
 
 /**
@@ -294,7 +298,30 @@ export function applyRaceToCharacter(
   raceId: string,
   options: ApplyRaceOptions = {},
 ): Character {
-  const bonuses = computeRaceBonuses(raceId, options);
+  const raceChoices = options.raceChoices;
+  const mergedChoices: RaceApplicationChoices = {
+    ...options,
+    choices: {
+      ...options.choices,
+      ...raceChoices?.choices,
+    },
+    abilityOverrides: options.abilityOverrides ?? raceChoices?.abilityBonuses,
+  };
+
+  if (raceId === 'homebrew') {
+    const name = raceChoices?.customName?.trim() || options.displayNameRu || 'Хомбрю';
+    return {
+      ...character,
+      race: name,
+      raceId: 'homebrew',
+      raceChoices: {
+        customName: name,
+      },
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  const bonuses = computeRaceBonuses(raceId, mergedChoices);
   if (!bonuses) return character;
 
   const abilities = { ...character.abilities };
@@ -305,29 +332,51 @@ export function applyRaceToCharacter(
     }
   }
 
+  const pickedSkills = (raceChoices?.pickedSkills ?? []) as SkillKey[];
   const skillProficiencies = [
-    ...new Set([...character.skillProficiencies, ...bonuses.skillProficiencies]),
+    ...new Set([
+      ...character.skillProficiencies,
+      ...bonuses.skillProficiencies,
+      ...pickedSkills,
+    ]),
   ] as SkillKey[];
 
-  const features = options.replaceFeatures
-    ? bonuses.featuresText
-    : [character.featuresAndTraits, bonuses.featuresText].filter(Boolean).join('\n\n');
-
-  const profLang = options.replaceFeatures
+  const langExtra = raceChoices?.pickedLanguages?.filter(Boolean) ?? [];
+  let profLang = options.replaceFeatures
     ? bonuses.proficienciesText
     : [character.otherProficienciesAndLanguages, bonuses.proficienciesText]
         .filter(Boolean)
         .join('\n');
+  if (langExtra.length) {
+    profLang = [profLang, `Языки (выбор): ${langExtra.join(', ')}`].filter(Boolean).join('\n');
+  }
+
+  const freeNotes = Object.entries(raceChoices?.freeText ?? {})
+    .filter(([, v]) => v?.trim())
+    .map(([k, v]) => `${k}: ${v}`);
+
+  let features = options.replaceFeatures
+    ? bonuses.featuresText
+    : [character.featuresAndTraits, bonuses.featuresText].filter(Boolean).join('\n\n');
+  if (freeNotes.length) {
+    features = [features, freeNotes.join('\n')].filter(Boolean).join('\n\n');
+  }
 
   const cantrips = [
     ...character.cantrips,
     ...bonuses.cantrips.map((c) => c.spellRu),
+    ...Object.entries(raceChoices?.freeText ?? {})
+      .filter(([k, v]) => k.includes('cantrip') && v?.trim())
+      .map(([, v]) => v!.trim()),
   ].filter((v, i, a) => a.indexOf(v) === i);
+
+  const displayName = options.displayNameRu ?? bonuses.displayNameRu;
 
   return {
     ...character,
-    race: bonuses.displayNameRu,
+    race: displayName,
     raceId,
+    raceChoices,
     abilities,
     skillProficiencies,
     speed: formatSpeed(bonuses.speed),

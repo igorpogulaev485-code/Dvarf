@@ -15,7 +15,8 @@ export type RaceSourceId =
   | 'aag' // Spelljammer: Astral Adventurer's Guide
   | 'ftd'
   | 'motm'
-  | 'ua';
+  | 'ua'
+  | 'homebrew';
 
 export interface RaceSourceMeta {
   id: RaceSourceId;
@@ -42,6 +43,12 @@ export type AbilityScoreMode =
   | { kind: 'allPlusOne' }
   | { kind: 'flexibleMotm' }
   | { kind: 'chooseTwoPlusOne' }
+  /** Фиксированные бонусы + N раз по +1 к другим характеристикам (полуэльф и т.п.). */
+  | {
+      kind: 'fixedPlusChoose';
+      bonuses: AbilityBonuses;
+      choosePlusOne: number;
+    }
   | { kind: 'custom'; bonuses: AbilityBonuses; notesRu: string };
 
 export interface SpeedBlock {

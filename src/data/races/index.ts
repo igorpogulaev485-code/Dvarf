@@ -40,3 +40,12 @@ export {
   type RaceApplicationChoices,
   type ApplyRaceOptions,
 } from './applyRace';
+export {
+  listRaceCatalog,
+  filterRaceCatalog,
+  buildRaceUiFields,
+  validateRaceChoices,
+  resolveAbilityOverrides,
+  type RaceUiField,
+  type RaceCatalogItem,
+} from './choiceSchema';

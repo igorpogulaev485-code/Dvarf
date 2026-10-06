@@ -8,6 +8,7 @@ import {
   type SkillKey,
 } from '../../types/character';
 import { ExpandingField } from '../../components/ExpandingField';
+import { RaceField } from '../../components/RaceField';
 
 type Props = {
   character: Character;
@@ -65,9 +66,9 @@ export function Sheet2014Page1({ character: c, onChange }: Props) {
             <span>Имя игрока</span>
             <input value={c.playerName} onChange={(e) => set({ playerName: e.target.value })} />
           </label>
-          <label>
+          <label className="sheet-2014__race-label">
             <span>Раса</span>
-            <input value={c.race} onChange={(e) => set({ race: e.target.value })} />
+            <RaceField character={c} onChange={onChange} compact />
           </label>
           <label>
             <span>Мировоззрение</span>

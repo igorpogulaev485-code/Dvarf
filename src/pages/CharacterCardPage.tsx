@@ -9,6 +9,7 @@ import {
   type SheetLayout,
 } from '../types/character';
 import { supportsSheetLayout } from '../sheets/CharacterSheet';
+import { RaceField } from '../components/RaceField';
 
 export function CharacterCardPage() {
   const { id = '' } = useParams();
@@ -80,9 +81,8 @@ export function CharacterCardPage() {
                 onChange={(e) => setField('classAndLevel', e.target.value)}
               />
             </label>
-            <label>
-              Раса
-              <input value={character.race} onChange={(e) => setField('race', e.target.value)} />
+            <label className="card-form__race">
+              <RaceField character={character} onChange={updateCharacter} />
             </label>
             <label>
               Предыстория

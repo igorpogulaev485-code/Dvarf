@@ -46,6 +46,22 @@ export interface SpellSlotTrack {
   expended: number;
 }
 
+/** Ответы мастера выбора расы (попап развилок). */
+export interface RaceChoicesState {
+  /** option id по id выбора (в т.ч. инструменты, тип дракона) */
+  choices?: Record<string, string | string[]>;
+  /** Распределение ASI, если раса его требует */
+  abilityBonuses?: Partial<Record<AbilityKey, number>>;
+  /** Выбранные навыки (skillChoice без фиксированного пула или дополнение) */
+  pickedSkills?: SkillKey[];
+  /** Выбранные доп. языки */
+  pickedLanguages?: string[];
+  /** Свободный текст: заговор высш. эльфа, название черты и т.п. */
+  freeText?: Record<string, string>;
+  /** Хомбрю: название на листе */
+  customName?: string;
+}
+
 export interface Character {
   id: string;
   /** По каким правилам играем / считаем */
@@ -62,6 +78,11 @@ export interface Character {
   race: string;
   /** id из справочника `src/data/races` (например `dwarf-hill`) */
   raceId?: string;
+  /**
+   * Сохранённые ответы попапа расы (подраса, ASI, навыки, инструменты…).
+   * Для хомбрю — customName.
+   */
+  raceChoices?: RaceChoicesState;
   alignment: string;
   experiencePoints: string;
 

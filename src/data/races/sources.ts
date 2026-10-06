@@ -85,6 +85,12 @@ export const RACE_SOURCES: Record<RaceSourceId, RaceSourceMeta> = {
     nameEn: 'Unearthed Arcana',
     year: 0,
   },
+  homebrew: {
+    id: 'homebrew',
+    nameRu: 'Хомбрю',
+    nameEn: 'Homebrew',
+    year: 0,
+  },
 };
 
 /** Порядок отображения книг в справочнике. */
@@ -103,4 +109,5 @@ export const RACE_SOURCE_ORDER: RaceSourceId[] = [
   'aag',
   'motm',
   'ua',
+  'homebrew',
 ];

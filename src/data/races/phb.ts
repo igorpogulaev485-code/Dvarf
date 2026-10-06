@@ -188,7 +188,6 @@ export const PHB_RACES: RaceEntry[] = [
             nameRu: 'Заговор волшебника',
             options: [],
           },
-          { type: 'language', choose: 1 },
         ],
       },
       {
@@ -646,9 +645,9 @@ export const PHB_RACES: RaceEntry[] = [
     source: 'phb',
     kind: 'race',
     abilityScore: {
-      kind: 'custom',
+      kind: 'fixedPlusChoose',
       bonuses: { charisma: 2 },
-      notesRu: '+2 Харизма, +1 к двум другим характеристикам на выбор',
+      choosePlusOne: 2,
     },
     age: { matureAround: 20, lifespanAround: 180 },
     size: 'medium',
