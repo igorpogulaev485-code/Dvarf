@@ -7,8 +7,16 @@
 **North star MVP:**
 
 ```text
-Лист персонажа  →  Фрейм пачки  →  Подготовка боя  →  Лут
-     (сейчас)         (далее)         (позже)        (позже)
+Лист персонажа  →  Лобби (код/QR)  →  Сессия / бой  →  Лут
+     (есть)         (этот слайс)         (далее)       (позже)
+```
+
+```text
+Мои персонажи (аккаунт)
+        ↓ код / QR → выбор персонажа
+Лобби (создал мастер)
+├── Сеттинг (мир, необязательно)
+└── Сессия (этот раз; может быть без сеттинга)
 ```
 
 ## Для агентов (обязательно прочитать)
@@ -24,11 +32,11 @@
 
 | Тема | Решение |
 |------|---------|
-| Роли | Глобальной роли «мастер / игрок» **нет**. Мастер появляется **только в контексте пачки**. |
+| Роли | Глобальной роли «мастер / игрок» **нет**. Мастер — кто создал **лобби**. |
 | Auth | Тонкий: email/password + JWT; OAuth (Yandex/VK) по мере секретов. Биллинг — позже. |
 | UI | React mobile-first (позже React Native). Визуальный редизайн — с дизайнером позже. |
 | Данные листа | Hybrid: summary-колонки + JSONB `sheet` + `sheet_version` (optimistic concurrency, 409). |
-| Переиспользование | Чистая логика в `frontend/src/shared/dnd/*` — лист сейчас, **фрейм пачки потом**. |
+| Переиспользование | Чистая логика в `frontend/src/shared/dnd/*` — лист и стол. |
 
 ## Карта домена (связи)
 
@@ -37,52 +45,36 @@ flowchart TB
   subgraph account [Аккаунт]
     User[User / auth]
     Cabinet[Личный кабинет]
-  end
-
-  subgraph sheet [Лист персонажа]
     Char[Character + sheet JSONB]
-    Digital[Digital sheet UI]
-    Classic[Classic PDF-like UI]
-    Catalog[catalog_entries seed/SRD]
   end
 
-  subgraph party [Пачка — ещё не в коде]
-    Party[Party frame]
-    Master[Мастер пачки — роль в пачке]
-    Join[QR join / invite]
-  end
-
-  subgraph table [Стол — позже]
-    Encounter[Подготовка боя]
-    Loot[Лут]
+  subgraph table [Стол]
+    Lobby[Лобби + invite code / QR]
+    Setting[Сеттинг — мир, опционально]
+    Session[Сессия — этот раз]
+    Encounter[Подготовка боя — позже]
+    Loot[Лут — позже]
   end
 
   User --> Cabinet
   User --> Char
-  Catalog --> Digital
-  Catalog --> Classic
-  Char --> Digital
-  Char --> Classic
-  Char --> Party
-  User --> Join
-  Join --> Party
-  Party --> Master
-  Party --> Encounter
+  User -->|создаёт / мастер| Lobby
+  Char -->|join по коду/QR| Lobby
+  Lobby --> Setting
+  Lobby --> Session
+  Setting -.->|опционально| Session
+  Session --> Encounter
   Encounter --> Loot
-  Digital -.->|shared/dnd helpers| Party
 ```
 
-**Смысл стрелок:** лист и каталог — фундамент; пачка читает листы участников и вводит роль мастера; бой и лут опираются на пачку, не на «голый» одиночный лист.
+## Лобби / сеттинг / сессия
 
-## Фрейм пачки (продуктовый набросок)
-
-Ещё **не реализован** — держим в README, чтобы параллельные агенты не «забывали» контур.
-
-- **Зачем:** несколько игроков за одним столом видят общий фрейм (статы/статусы/ресурсы), а не только свои экраны.
-- **Вход:** QR / invite — join «аккаунт к аккаунту» в пачку (детали протокола — отдельный план-слайс).
-- **Мастер пачки:** назначается в контексте этой пачки (не глобальный флаг в профиле).
-- **Техзадел:** VPS выбран в т.ч. под будущий realtime (WebSocket); хелперы rest/spells/weight пишутся без привязки к UI листа.
-- **Не делать сейчас:** схему БД пачки, WS, QR — пока нет отдельного ok на слайс.
+- **Лобби** — место игры. Мастер создаёт → получает **код** и **QR** (`/join/КОД`).
+- **Вход игрока:** QR/код → логин → выбрать персонажа; или код на карточке персонажа.
+- **Сеттинг** — мир внутри лобби (необязателен).
+- **Сессия** — сегодняшний стол; `setting_id` может быть `null` (ваншот). Удаление сеттинга отвязывает сессии.
+- Бой и лут — на сессии (ещё не в этом слайсе).
+- У LSS «комната» ближе к **сессии**, не к сеттингу.
 
 ## Дорожная карта
 
@@ -111,18 +103,16 @@ flowchart TB
 - Зависимость: digital JSON-контракт листа стабилен (фаза A).
 - Агентам PDF: не ломать digital-роуты и `shared/dnd` без согласования.
 
-### Фаза C — Фрейм пачки
+### Фаза C — Лобби + сессия *(в работе)*
 
-Зависимости: стабильный лист (A), аккаунт/join.
-
-1. Модель Party + участники + роль «мастер пачки».
-2. QR / invite join.
-3. Общий фрейм (чтение листов / боевые виджеты).
-4. Realtime (WebSocket) — по необходимости после первого sync-среза.
+1. ✅ Модель Lobby / Setting / PlaySession + seat  
+2. ✅ Invite code + QR join + код на персонаже  
+3. ⏳ Общий боевой фрейм на сессии  
+4. ⏳ Realtime (WebSocket) по необходимости  
 
 ### Фаза D — Подготовка боя → лут
 
-Зависимости: пачка (C).
+Зависимости: сессия в лобби (C).
 
 1. Encounter prep (инициатива, участники боя, статусы стола).
 2. Loot (раздача / учёт после боя).
@@ -130,12 +120,11 @@ flowchart TB
 ```mermaid
 flowchart LR
   A[A Digital sheet] --> B[B Classic PDF-like]
-  A --> C[C Party frame]
+  A --> C[C Lobby + Session]
   B -.->|тот же sheet JSON| C
   C --> D1[D Encounter prep]
   D1 --> D2[D Loot]
 ```
-
 ## Статус кода (сейчас)
 
 Уже в продуктовой ветке / PR (digital):
@@ -148,15 +137,16 @@ flowchart LR
 - Text blocks + reorder; inventory + weight
 - Spells S1–S4; Play S1–S2; Sheet S3 passives/proficiencies
 - Sheet S4+: pact magic, attunement (max 3), short-rest hit-die heal
+- **Лобби / сеттинг / сессия:** invite code + QR join, ваншот или привязка к сеттингу
 - Prod Docker deploy (Timeweb)
 
 Прод: http://201.34.132.252/ — подробности в [`deploy/README.md`](deploy/README.md).
 
 ## Очередь ближайших слайсов
 
-1. **Classic PDF-like** — параллельный агент (тот же sheet)  
-2. **Party frame** — отдельный план → ok (QR join, мастер пачки)  
-3. Encounter prep → loot  
+1. Боевой фрейм на сессии (инициатива / статусы стола)  
+2. Classic PDF-like — параллельный агент (тот же sheet)  
+3. Encounter prep → loot 
 
 Backlog (не начинать без плана): multiclass; race → эффекты на лист; rich-text в блоках; onboarding → тема UI; phone/SMS login; Google OAuth (гео-ограничения для RF).
 
