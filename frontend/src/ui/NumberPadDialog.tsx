@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useId, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button'
 
 type NumberPadDialogProps = {
@@ -36,6 +37,7 @@ export function NumberPadDialog({
   formatValue = (n) => String(n),
 }: NumberPadDialogProps) {
   const [digits, setDigits] = useState('')
+  const titleId = useId()
 
   useEffect(() => {
     if (!open) return
@@ -67,7 +69,7 @@ export function NumberPadDialog({
     }
   }, [open, onClose])
 
-  if (!open) {
+  if (!open || typeof document === 'undefined') {
     return null
   }
 
@@ -90,7 +92,7 @@ export function NumberPadDialog({
     setDigits((prev) => (prev + key).replace(/^0+(?=\d)/, '').slice(0, 8))
   }
 
-  return (
+  return createPortal(
     <div
       className="ui-dialog-backdrop"
       role="presentation"
@@ -102,11 +104,11 @@ export function NumberPadDialog({
         className="ui-dialog ui-dialog--pad"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="number-pad-title"
+        aria-labelledby={titleId}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="number-pad__head">
-          <h2 id="number-pad-title" className="ui-text ui-dialog__title">
+          <h2 id={titleId} className="number-pad__title">
             {title}
           </h2>
           <button type="button" className="number-pad__close" onClick={onClose} aria-label="Закрыть">
@@ -114,31 +116,34 @@ export function NumberPadDialog({
           </button>
         </div>
 
-        {header ? <div className="number-pad__header">{header}</div> : null}
+        <div className="number-pad__main">
+          {header ? <div className="number-pad__header">{header}</div> : null}
 
-        <div className="number-pad__display" aria-live="polite">
-          <span className="number-pad__display-value">
-            {digits === '' ? '0' : formatValue(delta)}
-          </span>
-          <span className="number-pad__display-hint">
-            сейчас {formatValue(current)}
-            {canApply
-              ? ` · + → ${formatValue(previewAdd)} · − → ${formatValue(previewSub)}`
-              : ''}
-          </span>
-        </div>
+          <div className="number-pad__display" aria-live="polite">
+            <span className="number-pad__display-value">
+              {digits === '' ? '0' : formatValue(delta)}
+            </span>
+            <span className="number-pad__display-hint">
+              сейчас {formatValue(current)}
+              {max != null ? ` / ${formatValue(max)}` : ''}
+              {canApply
+                ? ` · + → ${formatValue(previewAdd)} · − → ${formatValue(previewSub)}`
+                : ''}
+            </span>
+          </div>
 
-        <div className="number-pad__keys" role="group" aria-label="Цифровая клавиатура">
-          {KEYS.map((key) => (
-            <button
-              key={key}
-              type="button"
-              className={`number-pad__key${key === 'C' || key === '⌫' ? ' number-pad__key--meta' : ''}`}
-              onClick={() => press(key)}
-            >
-              {key}
-            </button>
-          ))}
+          <div className="number-pad__keys" role="group" aria-label="Цифровая клавиатура">
+            {KEYS.map((key) => (
+              <button
+                key={key}
+                type="button"
+                className={`number-pad__key${key === 'C' || key === '⌫' ? ' number-pad__key--meta' : ''}`}
+                onClick={() => press(key)}
+              >
+                {key}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="number-pad__actions">
@@ -165,6 +170,7 @@ export function NumberPadDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -836,7 +836,7 @@ input {
 .ui-dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1077,15 +1077,21 @@ input {
   min-width: 0;
 }
 
+.combat-stat--hp {
+  min-width: 0;
+}
+
 .combat-hp-open {
   flex: 1 1 0;
   min-width: 0;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 4px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
   margin: 0;
-  padding: 6px 8px;
+  padding: 4px 8px;
+  min-height: 38px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: #fff;
@@ -1099,9 +1105,19 @@ input {
   border-color: var(--accent);
 }
 
+.combat-hp-open__meta {
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-transform: lowercase;
+}
+
 .combat-hp-open__value {
   font-size: 0.95rem;
   font-weight: 700;
+  line-height: 1.15;
   font-variant-numeric: tabular-nums;
 }
 
@@ -1124,14 +1140,20 @@ input {
   gap: 8px;
 }
 
+.hp-levels__lead {
+  margin: 0;
+  line-height: 1.35;
+}
+
 .hp-levels__list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   gap: 4px;
-  max-height: 220px;
+  max-height: min(220px, 36dvh);
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .hp-levels__row {
@@ -1315,18 +1337,31 @@ input {
 
 .ui-dialog--pad {
   width: min(400px, 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .number-pad__head {
   display: flex;
+  flex: 0 0 auto;
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
-  padding-right: 8px;
+  padding: 12px 8px 0 16px;
+}
+
+.number-pad__title {
+  margin: 0;
+  padding: 2px 0 0;
+  font-size: 1.05rem;
+  line-height: 1.25;
+  font-weight: 700;
 }
 
 .number-pad__close {
-  margin: 10px 8px 0 0;
+  flex: 0 0 auto;
+  margin: 0;
   width: 36px;
   height: 36px;
   border: none;
@@ -1338,8 +1373,18 @@ input {
   cursor: pointer;
 }
 
+.number-pad__main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-top: 8px;
+}
+
 .number-pad__header {
-  padding: 0 16px 4px;
+  padding: 0 16px 6px;
 }
 
 .xp-pad-header {
@@ -1405,13 +1450,15 @@ input {
   font-size: 0.78rem;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .number-pad__keys {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  padding: 0 16px 12px;
+  padding: 0 16px 4px;
 }
 
 .number-pad__key {
@@ -1436,9 +1483,12 @@ input {
 
 .number-pad__actions {
   display: grid;
+  flex: 0 0 auto;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  padding: 0 16px max(14px, env(safe-area-inset-bottom, 0px));
+  padding: 10px 16px max(14px, env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  background: #fffdf9;
 }
 
 .number-pad__actions .ui-button {
@@ -2180,6 +2230,11 @@ input {
 
   .combat-sticky__stats {
     gap: 5px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .combat-stat--hp {
+    grid-column: 1 / -1;
   }
 
   .combat-stat__label {
@@ -2191,12 +2246,25 @@ input {
     font-size: 0.88rem;
   }
 
+  .combat-sticky__hp {
+    gap: 6px;
+  }
+
   .combat-hp-open {
-    padding: 5px 6px;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 10px;
+    min-height: 40px;
+  }
+
+  .combat-hp-open__meta {
+    font-size: 0.7rem;
   }
 
   .combat-hp-open__value {
-    font-size: 0.88rem;
+    font-size: 1.05rem;
   }
 
   .combat-sticky__reset {
@@ -2221,12 +2289,49 @@ input {
 
   .ui-dialog--pad {
     width: 100%;
-    max-height: min(92dvh, 720px);
+    max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 8px));
     border-radius: 16px 16px 0 0;
   }
 
+  .number-pad__head {
+    padding: 12px 6px 0 14px;
+  }
+
+  .number-pad__title {
+    font-size: 1rem;
+  }
+
+  .number-pad__header,
+  .number-pad__display {
+    margin-left: 14px;
+    margin-right: 14px;
+  }
+
+  .number-pad__header {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .number-pad__keys {
+    gap: 7px;
+    padding: 0 14px 2px;
+  }
+
   .number-pad__key {
-    min-height: 46px;
+    min-height: 48px;
+  }
+
+  .number-pad__actions {
+    padding: 10px 14px max(12px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .hp-levels__list {
+    max-height: min(200px, 32dvh);
+  }
+
+  .hp-levels__row {
+    font-size: 0.84rem;
+    padding: 6px 8px;
   }
 
   .slot-pip {

@@ -87,10 +87,8 @@ export function MaxHpByLevelsDialog({
       onSecondary={onClose}
     >
       <Stack gap={12}>
-        <Text tone="muted">
-          Собрать максимум хитов по PHB: ур. 1 исходного класса — максимум кости + ТЕЛ ({conLabel});
-          каждый следующий уровень (и 1-й уровень мультикласса) — среднее кости + ТЕЛ. Сейчас персонаж
-          ур. {level}.
+        <Text tone="muted" className="hp-levels__lead">
+          Ур. {level} · ТЕЛ {conLabel}. Первый уровень — макс. кости, дальше — среднее.
         </Text>
 
         <div className="chip-row">
@@ -109,7 +107,7 @@ export function MaxHpByLevelsDialog({
               setManualTotal(rulesTotal ?? hpMax)
             }}
           >
-            Вручную итог
+            Вручную
           </button>
         </div>
 
@@ -122,18 +120,17 @@ export function MaxHpByLevelsDialog({
                 ))}
               </ul>
               <p className="hp-levels__total">
-                Итого макс. HP: <strong>{built.total}</strong>
+                Итого: <strong>{built.total}</strong>
                 {hpMax != null ? ` · было ${hpMax}` : ''}
               </p>
             </div>
           ) : (
             <Text tone="muted">
-              Нужна кость хитов класса (выбери класс или задай кость в блоке отдыха) — иначе только
-              ручной итог.
+              Нужна кость хитов (класс или блок отдыха) — иначе вкладка «Вручную».
             </Text>
           )
         ) : (
-          <Field label="Максимум HP" hint="Свой итог, если бросал кости или хоумбрю">
+          <Field label="Максимум HP" hint="Если бросал кости или хоумбрю">
             <NumberInput
               min={1}
               emptyValue={null}
@@ -150,7 +147,7 @@ export function MaxHpByLevelsDialog({
             onChange={(event) => setFillCurrent(event.target.checked)}
           />
           <span>
-            Выставить текущие HP = макс.
+            Текущие = макс.
             {nextMax != null && nextCurrent != null
               ? ` (${hpCurrent ?? '—'} → ${nextCurrent})`
               : ''}

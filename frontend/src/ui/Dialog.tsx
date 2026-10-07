@@ -1,4 +1,5 @@
-import { useEffect, type MouseEvent, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type MouseEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button'
 
 type DialogProps = {
@@ -32,12 +33,15 @@ export function Dialog({
 }: DialogProps) {
   const canClose = Boolean(onSecondary) && !busy
   const backdropCloses = closeOnBackdrop ?? canClose
+  const titleId = useId()
+  const bodyRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    bodyRef.current?.scrollTo({ top: 0 })
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape' && canClose && onSecondary) {
@@ -53,7 +57,7 @@ export function Dialog({
     }
   }, [open, canClose, onSecondary])
 
-  if (!open) {
+  if (!open || typeof document === 'undefined') {
     return null
   }
 
@@ -63,7 +67,7 @@ export function Dialog({
     onSecondary()
   }
 
-  return (
+  return createPortal(
     <div
       className="ui-dialog-backdrop"
       role="presentation"
@@ -73,13 +77,15 @@ export function Dialog({
         className={`ui-dialog${size === 'wide' ? ' ui-dialog--wide' : ''}`}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="ui-dialog-title"
+        aria-labelledby={titleId}
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <h2 id="ui-dialog-title" className="ui-text ui-dialog__title">
+        <h2 id={titleId} className="ui-text ui-dialog__title">
           {title}
         </h2>
-        <div className="ui-dialog__body">{children}</div>
+        <div ref={bodyRef} className="ui-dialog__body">
+          {children}
+        </div>
         <div className="ui-dialog__actions">
           {secondaryLabel && onSecondary ? (
             <Button variant="ghost" onClick={onSecondary} disabled={busy}>
@@ -91,6 +97,7 @@ export function Dialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

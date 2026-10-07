@@ -199,7 +199,7 @@ export function CombatStickyHeader({
         </label>
 
         <div
-          className={`combat-stat${hpPulse ? ' combat-stat--pulse' : ''}`}
+          className={`combat-stat combat-stat--hp${hpPulse ? ' combat-stat--pulse' : ''}`}
           title={hpTitle}
         >
           <span className="combat-stat__label">HP</span>
@@ -210,22 +210,24 @@ export function CombatStickyHeader({
               aria-label={`Текущие HP ${hpCurrent ?? 'не заданы'}. Прибавить или отнять`}
               onClick={() => setCurrentPadOpen(true)}
             >
+              <span className="combat-hp-open__meta">тек · ±</span>
               <span className="combat-hp-open__value">
                 {hpCurrent == null ? '—' : hpCurrent}
               </span>
-              <span className="combat-hp-open__hint">±</span>
             </button>
-            <span className="combat-sticky__hp-sep">/</span>
+            <span className="combat-sticky__hp-sep" aria-hidden>
+              /
+            </span>
             <button
               type="button"
               className="combat-hp-open combat-hp-open--max"
               aria-label={`Максимум HP ${hpMax ?? 'не задан'}. Собрать по уровням`}
               onClick={() => setMaxDialogOpen(true)}
             >
+              <span className="combat-hp-open__meta">макс</span>
               <span className="combat-hp-open__value">
                 {hpMax == null ? '—' : hpMax}
               </span>
-              <span className="combat-hp-open__hint">ур.</span>
             </button>
           </div>
         </div>
