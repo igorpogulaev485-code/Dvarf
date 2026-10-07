@@ -104,6 +104,7 @@ def upgrade() -> None:
                     source = :source,
                     sort_order = :sort_order,
                     data = CAST(:data AS jsonb),
+                    is_active = true,
                     updated_at = now()
                 WHERE id = CAST(:id AS uuid)
                 """
@@ -124,10 +125,10 @@ def upgrade() -> None:
             """
             INSERT INTO catalog_entries (
               id, kind, rules_edition, slug, name_ru, name_en,
-              source, sort_order, parent_id, data, created_at, updated_at
+              source, sort_order, parent_id, data, is_active, created_at, updated_at
             ) VALUES (
               CAST(:id AS uuid), 'race', '2014', :slug, :name_ru, :name_en,
-              :source, :sort_order, NULL, CAST(:data AS jsonb), now(), now()
+              :source, :sort_order, NULL, CAST(:data AS jsonb), true, now(), now()
             )
             """
         ),
