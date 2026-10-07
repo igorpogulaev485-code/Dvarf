@@ -29,6 +29,7 @@ import type { ConcentrationState } from './play'
 import {
   countPreparedLeveled,
   createSheetSpell,
+  isRaceSheetSpell,
   groupSpellsByLevel,
   isReadyInCombat,
   readCatalogSpellFields,
@@ -598,6 +599,11 @@ export function SpellsPanel({
                         ) : (
                           <span className="sheet-chip is-on">Заговор</span>
                         )}
+                        {isRaceSheetSpell(spell) ? (
+                          <span className="sheet-chip is-on" title="Расовое заклинание">
+                            Раса
+                          </span>
+                        ) : null}
                         <button
                           type="button"
                           className={`sheet-chip${spell.concentration ? ' is-on' : ''}`}

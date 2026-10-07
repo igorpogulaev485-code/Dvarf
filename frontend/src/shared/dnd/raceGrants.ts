@@ -17,6 +17,17 @@ export type RaceNaturalWeapon = {
   notesRu: string | null
 }
 
+/** Innate / racial spell granted onto the known list. */
+export type RaceRacialSpell = {
+  id: string
+  /** Optional SRD/catalog slug for enrichment later. */
+  spellSlug: string | null
+  nameRu: string
+  level: number
+  castingAbility: AbilityKey | null
+  notesRu: string | null
+}
+
 export type RaceSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan'
 
 export const RACE_SIZE_LABELS: Record<RaceSize, string> = {
@@ -138,6 +149,7 @@ export type RaceGrantDef = {
   naturalArmor: NaturalArmor | null
   naturalWeapons: RaceNaturalWeapon[]
   movement: RaceMovementSpec
+  racialSpells: RaceRacialSpell[]
 }
 
 export type RaceGrantPicks = {
@@ -175,6 +187,7 @@ export type AppliedRaceGrant = {
   naturalArmor: NaturalArmor | null
   naturalWeapons: RaceNaturalWeapon[]
   movement: RaceMovementResolved
+  racialSpells: RaceRacialSpell[]
 }
 
 const ABILITY_KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
@@ -522,6 +535,48 @@ function readNaturalWeapons(raw: unknown): RaceNaturalWeapon[] {
   return out
 }
 
+function readRacialSpells(raw: unknown): RaceRacialSpell[] {
+  if (!Array.isArray(raw)) return []
+  const out: RaceRacialSpell[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    const id = typeof row.id === 'string' ? row.id.trim() : ''
+    const nameRu =
+      typeof row.name_ru === 'string'
+        ? row.name_ru.trim()
+        : typeof row.nameRu === 'string'
+          ? row.nameRu.trim()
+          : ''
+    if (!id || !nameRu) continue
+    const spellSlugRaw = row.spell_slug ?? row.spellSlug ?? row.slug
+    const spellSlug =
+      typeof spellSlugRaw === 'string' && spellSlugRaw.trim()
+        ? spellSlugRaw.trim()
+        : null
+    const level = Math.max(0, Math.min(9, Math.floor(readNumber(row.level, 0))))
+    const abilityRaw = row.casting_ability ?? row.castingAbility
+    const castingAbility =
+      typeof abilityRaw === 'string' && ABILITY_KEYS.includes(abilityRaw as AbilityKey)
+        ? (abilityRaw as AbilityKey)
+        : null
+    const notesRu =
+      typeof row.notes_ru === 'string'
+        ? row.notes_ru.trim()
+        : typeof row.notesRu === 'string'
+          ? row.notesRu.trim()
+          : null
+    out.push({
+      id,
+      spellSlug,
+      nameRu,
+      level,
+      castingAbility,
+      notesRu: notesRu || null,
+    })
+  }
+  return out
+}
+
 function readNaturalArmor(raw: unknown): NaturalArmor | null {
   const obj = asRecord(raw)
   const base = Math.floor(readNumber(obj.base, NaN))
@@ -648,6 +703,7 @@ export function raceGrantDefFromCatalog(input: {
     naturalArmor: readNaturalArmor(data.natural_armor ?? data.naturalArmor),
     naturalWeapons: readNaturalWeapons(data.natural_weapons ?? data.naturalWeapons),
     movement: readMovementSpec(data.movement),
+    racialSpells: readRacialSpells(data.racial_spells ?? data.racialSpells),
   }
 }
 
@@ -841,6 +897,10 @@ export function formatRaceGrantSummary(input: {
     input.def.naturalWeapons.length > 0
       ? `атаки: ${input.def.naturalWeapons.map((row) => row.nameRu).join(', ')}`
       : null
+  const racialSpells =
+    input.def.racialSpells.length > 0
+      ? `закл.: ${input.def.racialSpells.map((row) => row.nameRu).join(', ')}`
+      : null
   const size = resolveRaceSize(input)
   const movementHint = formatRaceMovementHint(
     resolveRaceMovement({ walk: input.def.speed, movement: input.def.movement }),
@@ -853,6 +913,7 @@ export function formatRaceGrantSummary(input: {
     `языки: ${langs}`,
     asi ? `ASI: ${asi}` : null,
     naturalWeapons,
+    racialSpells,
   ]
   return bits.filter(Boolean).join(' · ')
 }
@@ -881,5 +942,6 @@ export function readAppliedRaceGrant(raw: unknown): AppliedRaceGrant | null {
     naturalArmor: readNaturalArmor(row.naturalArmor ?? row.natural_armor),
     naturalWeapons: readNaturalWeapons(row.naturalWeapons ?? row.natural_weapons),
     movement: readMovementResolved(row.movement),
+    racialSpells: readRacialSpells(row.racialSpells ?? row.racial_spells),
   }
 }

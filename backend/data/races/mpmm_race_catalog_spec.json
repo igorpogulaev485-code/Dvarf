@@ -62,7 +62,17 @@
       ],
       "languages_choose": 1,
       "traits_text": "Аасимар (MPMM): ASI гибкий. Тёмное зрение 60. Сопротивление некротическому и излучению. Целительные руки (ПБ к10 хитов, 1/длинный отдых). Носитель света (свет). Небесное откровение с 3 ур. (излучающий / некротический / крылья — на выбор при активации).",
-      "subrace_required": false
+      "subrace_required": false,
+      "racial_spells": [
+        {
+          "id": "light",
+          "spell_slug": "light",
+          "name_ru": "Свет",
+          "level": 0,
+          "casting_ability": "cha",
+          "notes_ru": "Носитель света"
+        }
+      ]
     },
     {
       "slug": "bugbear",
@@ -181,7 +191,25 @@
       "subrace_required": false,
       "movement": {
         "fly": "walk"
-      }
+      },
+      "racial_spells": [
+        {
+          "id": "druidcraft",
+          "spell_slug": "druidcraft",
+          "name_ru": "Искусство друида",
+          "level": 0,
+          "casting_ability": "cha",
+          "notes_ru": "Магия фэйри"
+        },
+        {
+          "id": "enlarge_reduce",
+          "spell_slug": "enlarge_reduce",
+          "name_ru": "Увеличение/уменьшение",
+          "level": 2,
+          "casting_ability": "cha",
+          "notes_ru": "с 3 ур.; ПБ раз / длинный отдых"
+        }
+      ]
     },
     {
       "slug": "firbolg",
@@ -250,7 +278,33 @@
       ],
       "languages_choose": 1,
       "traits_text": "Гитъянки (MPMM): ASI гибкий. Астральное знание (навык + инструмент после длинного отдыха — до следующего). Псионика гитъянки: волшебная рука (невидимая); с 3 ур. Прыжок; с 5 ур. Туманный шаг (ИНТ).",
-      "subrace_required": false
+      "subrace_required": false,
+      "racial_spells": [
+        {
+          "id": "mage_hand",
+          "spell_slug": "mage_hand",
+          "name_ru": "Волшебная рука",
+          "level": 0,
+          "casting_ability": "int",
+          "notes_ru": "невидимая; псионика"
+        },
+        {
+          "id": "jump",
+          "spell_slug": "jump",
+          "name_ru": "Прыжок",
+          "level": 1,
+          "casting_ability": "int",
+          "notes_ru": "с 3 ур."
+        },
+        {
+          "id": "misty_step",
+          "spell_slug": "misty_step",
+          "name_ru": "Туманный шаг",
+          "level": 2,
+          "casting_ability": "int",
+          "notes_ru": "с 5 ур."
+        }
+      ]
     },
     {
       "slug": "githzerai",
@@ -704,7 +758,25 @@
       "subrace_required": false,
       "movement": {
         "swim": 30
-      }
+      },
+      "racial_spells": [
+        {
+          "id": "fog_cloud",
+          "spell_slug": "fog_cloud",
+          "name_ru": "Туманное облако",
+          "level": 1,
+          "casting_ability": "cha",
+          "notes_ru": "Контроль воздуха и воды; ПБ раз / длинный отдых"
+        },
+        {
+          "id": "gust_of_wind",
+          "spell_slug": "gust_of_wind",
+          "name_ru": "Порыв ветра",
+          "level": 2,
+          "casting_ability": "cha",
+          "notes_ru": "с 3 ур.; ПБ раз / длинный отдых"
+        }
+      ]
     },
     {
       "slug": "yuan_ti",
@@ -731,6 +803,32 @@
       "size_choices": [
         "medium",
         "small"
+      ],
+      "racial_spells": [
+        {
+          "id": "poison_spray",
+          "spell_slug": "poison_spray",
+          "name_ru": "Ядовитые брызги",
+          "level": 0,
+          "casting_ability": "cha",
+          "notes_ru": "Змеиное колдовство"
+        },
+        {
+          "id": "animal_friendship",
+          "spell_slug": "animal_friendship",
+          "name_ru": "Дружба с животными",
+          "level": 1,
+          "casting_ability": "cha",
+          "notes_ru": "только змеи"
+        },
+        {
+          "id": "suggestion",
+          "spell_slug": "suggestion",
+          "name_ru": "Внушение",
+          "level": 2,
+          "casting_ability": "cha",
+          "notes_ru": "с 3 ур."
+        }
       ]
     },
     {
