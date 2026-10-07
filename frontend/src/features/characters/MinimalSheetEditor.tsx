@@ -87,6 +87,7 @@ import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
 import { LanguagesToolsPanel } from './LanguagesToolsPanel'
 import { ClassAsiDialog } from './ClassAsiDialog'
+import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
 import { LevelUpDialog, type LevelUpChoice } from './LevelUpDialog'
 import { PlayPanel } from './PlayPanel'
 import {
@@ -110,6 +111,7 @@ import {
 import {
   applyFeatGrantToDraft,
   revokeFeatGrantsForAsi,
+  revokeFeatGrantsForBackground,
   revokeFeatGrantsForRace,
   syncFeatProficiencyResources,
   type FeatGrantDraftSlice,
@@ -417,6 +419,7 @@ export function MinimalSheetEditor({
     subraceRequired: boolean
   } | null>(null)
   const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
+  const [backgroundFeatSlug, setBackgroundFeatSlug] = useState<string | null>(null)
   const [subclassSetup, setSubclassSetup] = useState<{
     classEntryId: string
     selected: CatalogEntry
@@ -2050,11 +2053,47 @@ export function MinimalSheetEditor({
           </div>
           <div className="sheet-grid sheet-grid--2">
             <Field label="Предыстория" htmlFor="sheet-background">
-              <Input
+              <CatalogCombobox
                 id="sheet-background"
+                kind="background"
+                edition={baseCharacter.rules_edition as RulesEdition}
                 value={draft.identity.background}
-                placeholder="Солдат, мудрец…"
-                onChange={(event) => patchIdentity({ background: event.target.value })}
+                placeholder="Солдат, Соламнийский рыцарь…"
+                onChange={(next, entry) => {
+                  const prevSlug = draft.identity.backgroundSlug
+                  const nextSlug = entry?.slug ?? null
+                  const data = entry?.data ? asRecord(entry.data) : {}
+                  const grantedRaw = data.granted_feat_slug ?? data.grantedFeatSlug
+                  const granted =
+                    typeof grantedRaw === 'string' && grantedRaw.trim()
+                      ? grantedRaw.trim()
+                      : null
+                  setDraft((prev) => {
+                    let slice = featSliceFrom(prev)
+                    if (prevSlug && prevSlug !== nextSlug) {
+                      slice = revokeFeatGrantsForBackground({
+                        draft: slice,
+                        backgroundSlug: prevSlug,
+                      })
+                    }
+                    const merged = mergeFeatSlice(prev, slice)
+                    return {
+                      ...merged,
+                      identity: {
+                        ...merged.identity,
+                        background: next,
+                        backgroundSlug: nextSlug,
+                      },
+                    }
+                  })
+                  if (
+                    granted &&
+                    nextSlug &&
+                    !draft.featGrants.some((row) => row.slug === granted)
+                  ) {
+                    setBackgroundFeatSlug(granted)
+                  }
+                }}
               />
             </Field>
             <Field label="Мировоззрение" htmlFor="sheet-alignment">
@@ -2433,6 +2472,8 @@ export function MinimalSheetEditor({
         size={draft.identity.size}
         characterLevel={characterLevel}
         takenFeatSlugs={draft.featGrants.map((row) => row.slug)}
+        classSlugs={draft.classGrants.map((row) => row.slug)}
+        backgroundSlug={draft.identity.backgroundSlug}
         onConfirm={confirmClassAsi}
         onSkip={() => setPendingAsi(null)}
       />
@@ -2478,6 +2519,10 @@ export function MinimalSheetEditor({
         armor={draft.identity.armor}
         hasSpellcasting={characterHasCasterClass(draft.classes)}
         hasMartialWeapons={draft.identity.weapons.martial}
+        characterLevel={characterLevel}
+        takenSlugs={draft.featGrants.map((row) => row.slug)}
+        classSlugs={draft.classGrants.map((row) => row.slug)}
+        backgroundSlug={draft.identity.backgroundSlug}
         onClose={() => setRaceGrantPicker(null)}
         onConfirm={(result) => {
           commitRaceGrant({
@@ -2487,6 +2532,49 @@ export function MinimalSheetEditor({
             featResult: result.featResult,
           })
           setRaceGrantPicker(null)
+        }}
+      />
+
+      <FeatSetupDialog
+        open={backgroundFeatSlug != null}
+        edition={baseCharacter.rules_edition as RulesEdition}
+        title="Черта предыстории"
+        abilities={draft.abilities}
+        armor={draft.identity.armor}
+        hasSpellcasting={characterHasCasterClass(draft.classes)}
+        hasMartialWeapons={draft.identity.weapons.martial}
+        raceSlug={draft.raceGrant?.slug ?? null}
+        raceParentSlug={draft.raceGrant?.parentSlug ?? null}
+        size={draft.identity.size}
+        characterLevel={characterLevel}
+        takenSlugs={draft.featGrants.map((row) => row.slug)}
+        classSlugs={draft.classGrants.map((row) => row.slug)}
+        backgroundSlug={draft.identity.backgroundSlug}
+        forcedSlug={backgroundFeatSlug}
+        onClose={() => setBackgroundFeatSlug(null)}
+        onConfirm={(result: FeatSetupResult) => {
+          const bgSlug = draft.identity.backgroundSlug
+          if (!bgSlug) {
+            setBackgroundFeatSlug(null)
+            return
+          }
+          const grant: AppliedFeatGrant = {
+            id: newFeatGrantId(),
+            featCatalogId: result.entry.id,
+            slug: result.entry.slug,
+            nameRu: result.entry.name_ru,
+            source: { kind: 'background', backgroundSlug: bgSlug },
+            applied: result.applied,
+            picks: result.picks,
+          }
+          setDraft((prev) =>
+            mergeFeatSlice(
+              prev,
+              applyFeatGrantToDraft({ draft: featSliceFrom(prev), grant }),
+            ),
+          )
+          setBackgroundFeatSlug(null)
+          onToast(`Предыстория: черта «${grant.nameRu}»`)
         }}
       />
 

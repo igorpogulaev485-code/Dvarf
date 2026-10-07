@@ -1,6 +1,6 @@
 {
   "rules_edition": "2014",
-  "notes_ru": "Волна SDQ / DSotDQ (Dragonlance: Shadow of the Dragon Queen). 9 официальных черт кампании «Сага о Копье» (dnd.su plaque SDQ). Цепочки: Посвящённый → Адепт одежд (луна); Оруженосец → Рыцарь ордена. Класс/предыстория — мягко в prerequisites_ru (жёсткая проверка классов — позже). При расхождении dnd.su/ttg — решать с Игорем.",
+  "notes_ru": "Волна SDQ / DSotDQ (Dragonlance: Shadow of the Dragon Queen). 9 официальных черт кампании «Сага о Копье» (dnd.su plaque SDQ). Цепочки: Посвящённый → Адепт одежд (луна); Оруженосец → Рыцарь ордена. Классы/предыстории — в prerequisites.classes_any / backgrounds_any. При расхождении dnd.su/ttg — решать с Игорем.",
   "wave": "sdq",
   "feats": [
     {
@@ -44,9 +44,18 @@
             "type": "enum",
             "label_ru": "Характеристика сотворения",
             "options": [
-              { "id": "int", "label_ru": "Интеллект" },
-              { "id": "wis", "label_ru": "Мудрость" },
-              { "id": "cha", "label_ru": "Харизма" }
+              {
+                "id": "int",
+                "label_ru": "Интеллект"
+              },
+              {
+                "id": "wis",
+                "label_ru": "Мудрость"
+              },
+              {
+                "id": "cha",
+                "label_ru": "Харизма"
+              }
             ]
           },
           {
@@ -57,7 +66,9 @@
           }
         ],
         "grants": {
-          "flags": ["divinely_favored"]
+          "flags": [
+            "divinely_favored"
+          ]
         }
       }
     },
@@ -74,7 +85,15 @@
         "prerequisites_ru": "Кампания «Сага о Копье»; чародей, волшебник или предыстория «Маг Высшего волшебства»",
         "summary_ru": "Луна Кринна: заговор волшебника + 2 заклинания 1 круга.",
         "benefits_ru": "Выберите луну: Нуитари, Лунитари или Солинари. Выучите один заговор волшебника и два заклинания 1 уровня по таблице луны. Можете накладывать эти заклинания 1 круга без ячейки 1 раз / длинный отдых каждое (также за ячейки). Характеристика сотворения — Инт, Муд или Хар (выбор при взятии). Луна определяет доступ к адептам одежд.",
-        "prerequisites": {},
+        "prerequisites": {
+          "classes_any": [
+            "sorcerer",
+            "wizard"
+          ],
+          "backgrounds_any": [
+            "mage_of_high_sorcery"
+          ]
+        },
         "choices": [
           {
             "id": "moon",
@@ -100,9 +119,18 @@
             "type": "enum",
             "label_ru": "Характеристика сотворения",
             "options": [
-              { "id": "int", "label_ru": "Интеллект" },
-              { "id": "wis", "label_ru": "Мудрость" },
-              { "id": "cha", "label_ru": "Харизма" }
+              {
+                "id": "int",
+                "label_ru": "Интеллект"
+              },
+              {
+                "id": "wis",
+                "label_ru": "Мудрость"
+              },
+              {
+                "id": "cha",
+                "label_ru": "Харизма"
+              }
             ]
           },
           {
@@ -113,7 +141,9 @@
           }
         ],
         "grants": {
-          "flags": ["initiate_of_high_sorcery"]
+          "flags": [
+            "initiate_of_high_sorcery"
+          ]
         }
       }
     },
@@ -132,7 +162,13 @@
         "benefits_ru": "Выучите одно заклинание 2 уровня школы очарования или некромантии; 1/длинный отдых без ячейки (также за ячейки); характеристика — как у Посвящённого. Канал жизни: когда существо в 60 фт проваливает спасбросок против вашего наносящего урон заклинания, можете потратить кости хитов = уровню заклинания и добавить сумму бросков к урону.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["initiate_of_high_sorcery"]
+          "feats_all": [
+            "initiate_of_high_sorcery"
+          ],
+          "feats_none": [
+            "adept_of_the_red_robes",
+            "adept_of_the_white_robes"
+          ]
         },
         "choices": [
           {
@@ -143,7 +179,9 @@
           }
         ],
         "grants": {
-          "flags": ["adept_of_the_black_robes"]
+          "flags": [
+            "adept_of_the_black_robes"
+          ]
         }
       }
     },
@@ -162,7 +200,13 @@
         "benefits_ru": "Выучите одно заклинание 2 уровня школы иллюзии или преобразования; 1/длинный отдых без ячейки. Магический баланс: при атаке или проверке характеристики, если на d20 выпало 9 или меньше, можете считать результат 10. Число использований = бонус мастерства; восстанавливаются после длинного отдыха.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["initiate_of_high_sorcery"]
+          "feats_all": [
+            "initiate_of_high_sorcery"
+          ],
+          "feats_none": [
+            "adept_of_the_black_robes",
+            "adept_of_the_white_robes"
+          ]
         },
         "choices": [
           {
@@ -173,7 +217,9 @@
           }
         ],
         "grants": {
-          "flags": ["adept_of_the_red_robes"],
+          "flags": [
+            "adept_of_the_red_robes"
+          ],
           "resource": {
             "pool_id": "magical_balance",
             "pool_name_ru": "Магический баланс",
@@ -199,7 +245,13 @@
         "benefits_ru": "Выучите одно заклинание 2 уровня школы ограждения или прорицания; 1/длинный отдых без ячейки. Защитный оплот: когда вы или существо в 30 фт получаете урон, реакцией потратьте ячейку — уменьшите урон на (к6 × уровень ячейки) + модификатор характеристики сотворения Посвящённого.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["initiate_of_high_sorcery"]
+          "feats_all": [
+            "initiate_of_high_sorcery"
+          ],
+          "feats_none": [
+            "adept_of_the_black_robes",
+            "adept_of_the_red_robes"
+          ]
         },
         "choices": [
           {
@@ -210,7 +262,9 @@
           }
         ],
         "grants": {
-          "flags": ["adept_of_the_white_robes"]
+          "flags": [
+            "adept_of_the_white_robes"
+          ]
         }
       }
     },
@@ -227,10 +281,20 @@
         "prerequisites_ru": "Кампания «Сага о Копье»; воин, паладин или предыстория «Соламнийский рыцарь»",
         "summary_ru": "Посадка 5 фт; Точный удар (преимущество + к8, PB).",
         "benefits_ru": "Посадка и спешивание стоят вам только 5 футов перемещения. Точный удар: один раз за ход, когда атакуете оружием, можете дать преимущество на бросок; при попадании +1к8 урона. Число использований = бонус мастерства (тратится только при попадании); восстанавливаются после длинного отдыха.",
-        "prerequisites": {},
+        "prerequisites": {
+          "classes_any": [
+            "fighter",
+            "paladin"
+          ],
+          "backgrounds_any": [
+            "knight_of_solamnia"
+          ]
+        },
         "choices": [],
         "grants": {
-          "flags": ["squire_of_solamnia"],
+          "flags": [
+            "squire_of_solamnia"
+          ],
           "resource": {
             "pool_id": "precise_strike",
             "pool_name_ru": "Точный удар",
@@ -256,19 +320,31 @@
         "benefits_ru": "Увеличьте Силу, Ловкость или Телосложение на 1 (макс. 20). Бонусным действием можете приказать союзнику в 30 фт атаковать реакцией оружием; при попадании +1к8 урона. Число использований = бонус мастерства; восстанавливаются после длинного отдыха.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["squire_of_solamnia"]
+          "feats_all": [
+            "squire_of_solamnia"
+          ],
+          "feats_none": [
+            "knight_of_the_rose",
+            "knight_of_the_sword"
+          ]
         },
         "choices": [
           {
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "dex", "con"],
+            "from": [
+              "str",
+              "dex",
+              "con"
+            ],
             "label_ru": "+1 к Сил, Лов или Тел"
           }
         ],
         "grants": {
-          "flags": ["knight_of_the_crown"],
+          "flags": [
+            "knight_of_the_crown"
+          ],
           "resource": {
             "pool_id": "commanding_rally",
             "pool_name_ru": "Командный призыв",
@@ -294,19 +370,31 @@
         "benefits_ru": "Увеличьте Телосложение, Мудрость или Харизму на 1 (макс. 20). Бонусным действием можете воодушевить существо в 30 фт (включая себя): временные хиты = 1к8 + бонус мастерства + модификатор выбранной характеристики. Число использований = бонус мастерства; восстанавливаются после длинного отдыха.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["squire_of_solamnia"]
+          "feats_all": [
+            "squire_of_solamnia"
+          ],
+          "feats_none": [
+            "knight_of_the_crown",
+            "knight_of_the_sword"
+          ]
         },
         "choices": [
           {
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["con", "wis", "cha"],
+            "from": [
+              "con",
+              "wis",
+              "cha"
+            ],
             "label_ru": "+1 к Тел, Муд или Хар"
           }
         ],
         "grants": {
-          "flags": ["knight_of_the_rose"],
+          "flags": [
+            "knight_of_the_rose"
+          ],
           "resource": {
             "pool_id": "bolstering_rally",
             "pool_name_ru": "Укрепляющий призыв",
@@ -332,19 +420,31 @@
         "benefits_ru": "Увеличьте Интеллект, Мудрость или Харизму на 1 (макс. 20). Один раз за ход при попадании оружием можете напугать цель (спас Муд DC 8+БМ+мод выбранной характеристики): при провале испуг до конца вашего следующего хода; при успехе — помеха на следующую атаку цели. Число использований = бонус мастерства; восстанавливаются после длинного отдыха.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["squire_of_solamnia"]
+          "feats_all": [
+            "squire_of_solamnia"
+          ],
+          "feats_none": [
+            "knight_of_the_crown",
+            "knight_of_the_rose"
+          ]
         },
         "choices": [
           {
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["int", "wis", "cha"],
+            "from": [
+              "int",
+              "wis",
+              "cha"
+            ],
             "label_ru": "+1 к Инт, Муд или Хар"
           }
         ],
         "grants": {
-          "flags": ["knight_of_the_sword"],
+          "flags": [
+            "knight_of_the_sword"
+          ],
           "resource": {
             "pool_id": "demoralizing_strike",
             "pool_name_ru": "Деморализующий удар",

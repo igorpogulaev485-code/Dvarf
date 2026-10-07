@@ -16,24 +16,51 @@
         "prerequisites_ru": "Владение воинским оружием или предыстория «Великанский подкидыш»",
         "summary_ru": "Один раз за ход: доп. эффект удара по типу великана.",
         "benefits_ru": "Выберите один тип удара. Один раз за ход при попадании рукопашной атакой оружием или дальнобойной атакой метательным оружием можете добавить эффект выбранного типа (холмовой/каменный/ледяной/огненный/облачный/штормовой). Сл спасбросков = 8 + БМ + мод Сил или Тел.",
-        "prerequisites": {},
+        "prerequisites": {
+          "flags_any": [
+            "martial_weapon_prof"
+          ],
+          "backgrounds_any": [
+            "giant_foundling"
+          ]
+        },
         "choices": [
           {
             "id": "strike",
             "type": "enum",
             "label_ru": "Тип удара",
             "options": [
-              { "id": "hill", "label_ru": "Холмовой — +1к6 урона оружия; спас Сил или сбит" },
-              { "id": "stone", "label_ru": "Каменный — +1к6 силовым; спас Сил или отталкивание 10 фт" },
-              { "id": "frost", "label_ru": "Ледяной — +1к6 холодом; спас Тел или скорость 0" },
-              { "id": "fire", "label_ru": "Огненный — +1к10 огнём" },
-              { "id": "cloud", "label_ru": "Облачный — +1к4 звуком; спас Муд или невидимость для цели" },
-              { "id": "storm", "label_ru": "Штормовой — +1к6 электричеством; спас Тел или помеха на атаки" }
+              {
+                "id": "hill",
+                "label_ru": "Холмовой — +1к6 урона оружия; спас Сил или сбит"
+              },
+              {
+                "id": "stone",
+                "label_ru": "Каменный — +1к6 силовым; спас Сил или отталкивание 10 фт"
+              },
+              {
+                "id": "frost",
+                "label_ru": "Ледяной — +1к6 холодом; спас Тел или скорость 0"
+              },
+              {
+                "id": "fire",
+                "label_ru": "Огненный — +1к10 огнём"
+              },
+              {
+                "id": "cloud",
+                "label_ru": "Облачный — +1к4 звуком; спас Муд или невидимость для цели"
+              },
+              {
+                "id": "storm",
+                "label_ru": "Штормовой — +1к6 электричеством; спас Тел или помеха на атаки"
+              }
             ]
           }
         ],
         "grants": {
-          "flags": ["strike_of_the_giants"]
+          "flags": [
+            "strike_of_the_giants"
+          ]
         }
       }
     },
@@ -50,16 +77,32 @@
         "prerequisites_ru": "Умение «Использование заклинаний» или предыстория «Резчик рун»",
         "summary_ru": "Понимание языков; руны (½ БМ) → заклинания 1 круга на предмете.",
         "benefits_ru": "Выучите Понимание языков (1/длинный отдых без ячейки). Знаете число рун = половина БМ (вниз) из таблицы рунических заклинаний; после длинного отдыха можете отметить ими предмет и временно знать связанные заклинания 1 круга. Один раз / длинный отдых можете наложить одно такое заклинание без ячейки. Характеристика — Инт, Муд или Хар.",
-        "prerequisites": {},
+        "prerequisites": {
+          "flags_any": [
+            "spellcasting"
+          ],
+          "backgrounds_any": [
+            "runecarver"
+          ]
+        },
         "choices": [
           {
             "id": "cast",
             "type": "enum",
             "label_ru": "Характеристика сотворения",
             "options": [
-              { "id": "int", "label_ru": "Интеллект" },
-              { "id": "wis", "label_ru": "Мудрость" },
-              { "id": "cha", "label_ru": "Харизма" }
+              {
+                "id": "int",
+                "label_ru": "Интеллект"
+              },
+              {
+                "id": "wis",
+                "label_ru": "Мудрость"
+              },
+              {
+                "id": "cha",
+                "label_ru": "Харизма"
+              }
             ]
           },
           {
@@ -70,7 +113,9 @@
           }
         ],
         "grants": {
-          "flags": ["rune_shaper"]
+          "flags": [
+            "rune_shaper"
+          ]
         }
       }
     },
@@ -89,19 +134,34 @@
         "benefits_ru": "Увеличьте Силу, Телосложение или Мудрость на 1 (макс. 20). Бастион: реакцией устоять при перемещении ≥5 фт или опрокидывании. Железный желудок: при еде на коротком отдыхе и трате костей хитов — доп. хиты = мод Тел + БМ.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["strike_of_the_giants"]
+          "feats_all": [
+            "strike_of_the_giants"
+          ],
+          "feats_none": [
+            "keenness_of_the_stone_giant",
+            "fury_of_the_frost_giant",
+            "ember_of_the_fire_giant",
+            "guile_of_the_cloud_giant",
+            "soul_of_the_storm_giant"
+          ]
         },
         "choices": [
           {
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "con", "wis"],
+            "from": [
+              "str",
+              "con",
+              "wis"
+            ],
             "label_ru": "+1 к Сил, Тел или Муд"
           }
         ],
         "grants": {
-          "flags": ["vigor_of_the_hill_giant"]
+          "flags": [
+            "vigor_of_the_hill_giant"
+          ]
         }
       }
     },
@@ -120,19 +180,34 @@
         "benefits_ru": "Увеличьте Силу, Телосложение или Мудрость на 1 (макс. 20). Горное зрение: тёмное зрение 60 фт (или +60 фт). Бросок камня: бонусным действием дальнобойная атака заклинанием 60 фт, 1к10 силовым, спас Сил или сбит. Число использований = БМ.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["strike_of_the_giants"]
+          "feats_all": [
+            "strike_of_the_giants"
+          ],
+          "feats_none": [
+            "vigor_of_the_hill_giant",
+            "fury_of_the_frost_giant",
+            "ember_of_the_fire_giant",
+            "guile_of_the_cloud_giant",
+            "soul_of_the_storm_giant"
+          ]
         },
         "choices": [
           {
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "con", "wis"],
+            "from": [
+              "str",
+              "con",
+              "wis"
+            ],
             "label_ru": "+1 к Сил, Тел или Муд"
           }
         ],
         "grants": {
-          "flags": ["keenness_of_the_stone_giant"],
+          "flags": [
+            "keenness_of_the_stone_giant"
+          ],
           "resource": {
             "pool_id": "stone_throw",
             "pool_name_ru": "Бросок камня",
@@ -158,19 +233,35 @@
         "benefits_ru": "Увеличьте Силу, Телосложение или Мудрость на 1 (макс. 20). Сопротивление холоду. Холодное возмездие: реакцией после попадания по вам в 30 фт — спас Тел; при провале 1к8+БМ холодом и скорость 0. Число использований = БМ.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["strike_of_the_giants"]
+          "feats_all": [
+            "strike_of_the_giants"
+          ],
+          "feats_none": [
+            "vigor_of_the_hill_giant",
+            "keenness_of_the_stone_giant",
+            "ember_of_the_fire_giant",
+            "guile_of_the_cloud_giant",
+            "soul_of_the_storm_giant"
+          ]
         },
         "choices": [
           {
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "con", "wis"],
+            "from": [
+              "str",
+              "con",
+              "wis"
+            ],
             "label_ru": "+1 к Сил, Тел или Муд"
           }
         ],
         "grants": {
-          "flags": ["fury_of_the_frost_giant", "resist_cold"],
+          "flags": [
+            "fury_of_the_frost_giant",
+            "resist_cold"
+          ],
           "resource": {
             "pool_id": "frost_revenge",
             "pool_name_ru": "Холодное возмездие",
@@ -196,19 +287,35 @@
         "benefits_ru": "Увеличьте Силу, Телосложение или Мудрость на 1 (макс. 20). Сопротивление огню. Пылающее воспламенение: вместо одной атаки в действие Атака — сфера 15 фт; спас Лов; при провале 1к8+БМ огнём и ослепление. Число использований = БМ (не чаще 1/ход).",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["strike_of_the_giants"]
+          "feats_all": [
+            "strike_of_the_giants"
+          ],
+          "feats_none": [
+            "vigor_of_the_hill_giant",
+            "keenness_of_the_stone_giant",
+            "fury_of_the_frost_giant",
+            "guile_of_the_cloud_giant",
+            "soul_of_the_storm_giant"
+          ]
         },
         "choices": [
           {
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "con", "wis"],
+            "from": [
+              "str",
+              "con",
+              "wis"
+            ],
             "label_ru": "+1 к Сил, Тел или Муд"
           }
         ],
         "grants": {
-          "flags": ["ember_of_the_fire_giant", "resist_fire"],
+          "flags": [
+            "ember_of_the_fire_giant",
+            "resist_fire"
+          ],
           "resource": {
             "pool_id": "blazing_ignition",
             "pool_name_ru": "Пылающее воспламенение",
@@ -234,19 +341,34 @@
         "benefits_ru": "Увеличьте Силу, Телосложение или Харизму на 1 (макс. 20). Облачный побег: когда по вам попадаеют атакой, реакцией получите сопротивление урону этой атаки и телепортируйтесь в свободное пространство в 30 фт. Число использований = БМ.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["strike_of_the_giants"]
+          "feats_all": [
+            "strike_of_the_giants"
+          ],
+          "feats_none": [
+            "vigor_of_the_hill_giant",
+            "keenness_of_the_stone_giant",
+            "fury_of_the_frost_giant",
+            "ember_of_the_fire_giant",
+            "soul_of_the_storm_giant"
+          ]
         },
         "choices": [
           {
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "con", "cha"],
+            "from": [
+              "str",
+              "con",
+              "cha"
+            ],
             "label_ru": "+1 к Сил, Тел или Хар"
           }
         ],
         "grants": {
-          "flags": ["guile_of_the_cloud_giant"],
+          "flags": [
+            "guile_of_the_cloud_giant"
+          ],
           "resource": {
             "pool_id": "cloudy_escape",
             "pool_name_ru": "Облачный побег",
@@ -272,19 +394,34 @@
         "benefits_ru": "Увеличьте Силу, Мудрость или Харизму на 1 (макс. 20). Аура водоворота: бонусным действием аура 10 фт до начала вашего следующего хода — сопротивление звуку и электричеству, помеха на атаки по вам; существа в ауре могут получить спас Сил или половину скорости. Число использований = БМ.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["strike_of_the_giants"]
+          "feats_all": [
+            "strike_of_the_giants"
+          ],
+          "feats_none": [
+            "vigor_of_the_hill_giant",
+            "keenness_of_the_stone_giant",
+            "fury_of_the_frost_giant",
+            "ember_of_the_fire_giant",
+            "guile_of_the_cloud_giant"
+          ]
         },
         "choices": [
           {
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "wis", "cha"],
+            "from": [
+              "str",
+              "wis",
+              "cha"
+            ],
             "label_ru": "+1 к Сил, Муд или Хар"
           }
         ],
         "grants": {
-          "flags": ["soul_of_the_storm_giant"],
+          "flags": [
+            "soul_of_the_storm_giant"
+          ],
           "resource": {
             "pool_id": "maelstrom_aura",
             "pool_name_ru": "Аура водоворота",

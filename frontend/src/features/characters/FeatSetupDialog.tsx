@@ -38,6 +38,10 @@ type FeatSetupDialogProps = {
   characterLevel?: number
   /** Already taken feat slugs (optional soft filter + prereq checks). */
   takenSlugs?: string[]
+  classSlugs?: string[]
+  backgroundSlug?: string | null
+  /** Lock picker to one feat (background / race grant). */
+  forcedSlug?: string | null
   onConfirm: (result: FeatSetupResult) => void
   onClose: () => void
 }
@@ -55,6 +59,9 @@ export function FeatSetupDialog({
   size = null,
   characterLevel = 1,
   takenSlugs = [],
+  classSlugs = [],
+  backgroundSlug = null,
+  forcedSlug = null,
   onConfirm,
   onClose,
 }: FeatSetupDialogProps) {
@@ -194,6 +201,8 @@ export function FeatSetupDialog({
       size,
       characterLevel,
       ownedFeatSlugs: takenSlugs,
+      classSlugs,
+      backgroundSlug,
     })
     if (check) {
       setError(check)
@@ -229,13 +238,19 @@ export function FeatSetupDialog({
             edition={edition}
             value={value}
             placeholder="Начни вводить название…"
-            filterEntry={(entry) => !takenSlugs.includes(entry.slug)}
+            filterEntry={(entry) => {
+              if (forcedSlug && entry.slug !== forcedSlug) return false
+              return !takenSlugs.includes(entry.slug)
+            }}
             onChange={(next, entry) => {
               setValue(next)
               setSelected(entry)
             }}
           />
         </Field>
+        {forcedSlug ? (
+          <Text tone="muted">Черта предыстории / расы: выбери «{forcedSlug}» в списке.</Text>
+        ) : null}
 
         {def ? (
           <>

@@ -89,6 +89,10 @@ export type FeatGrantDef = {
     abilities?: Partial<Record<AbilityKey, number>>
     abilitiesOneOf?: Array<Partial<Record<AbilityKey, number>>>
     armor?: ArmorProfKey[]
+    /**
+     * Access OR-group with classesAny / backgroundsAny:
+     * spellcasting, martial_weapon_prof — any one path unlocks the feat.
+     */
     flagsAny?: string[]
     /** Match race slug or parent slug (elf covers wood_elf via parent). */
     racesAny?: string[]
@@ -98,6 +102,12 @@ export type FeatGrantDef = {
     minLevel?: number
     /** Required feat slugs already on the sheet (e.g. strixhaven_initiate). */
     featsAll?: string[]
+    /** Mutually exclusive: fail if any listed slug is already owned. */
+    featsNone?: string[]
+    /** Class catalog slugs (fighter, wizard…) — OR with backgrounds/flags. */
+    classesAny?: string[]
+    /** Background catalog slugs — OR with classes/flags. */
+    backgroundsAny?: string[]
   }
   choices: FeatChoiceDef[]
   fixedGrants: FeatGrantsPackage
@@ -123,6 +133,10 @@ export type FeatGrantSource =
       kind: 'race'
       raceCatalogId: string
       raceSlug: string
+    }
+  | {
+      kind: 'background'
+      backgroundSlug: string
     }
   | { kind: 'manual' }
 
@@ -412,6 +426,13 @@ export function featGrantDefFromCatalog(input: {
     item.toLowerCase(),
   )
   const featsAll = parseStringList(prereq.feats_all ?? prereq.featsAll)
+  const featsNone = parseStringList(prereq.feats_none ?? prereq.featsNone)
+  const classesAny = parseStringList(prereq.classes_any ?? prereq.classesAny).map((item) =>
+    item.toLowerCase(),
+  )
+  const backgroundsAny = parseStringList(
+    prereq.backgrounds_any ?? prereq.backgroundsAny,
+  ).map((item) => item.toLowerCase())
   const minLevelRaw = prereq.min_level ?? prereq.minLevel
   const minLevel =
     typeof minLevelRaw === 'number' && Number.isFinite(minLevelRaw)
@@ -431,6 +452,9 @@ export function featGrantDefFromCatalog(input: {
       sizeAny: sizeAny.length ? sizeAny : undefined,
       minLevel,
       featsAll: featsAll.length ? featsAll : undefined,
+      featsNone: featsNone.length ? featsNone : undefined,
+      classesAny: classesAny.length ? classesAny : undefined,
+      backgroundsAny: backgroundsAny.length ? backgroundsAny : undefined,
     },
     choices: parseChoices(data.choices),
     fixedGrants: emptyPackage({
@@ -481,6 +505,10 @@ export function validateFeatGrantPicks(input: {
   size?: string | null
   characterLevel?: number
   ownedFeatSlugs?: string[]
+  /** Class catalog slugs from class_grants ledger. */
+  classSlugs?: string[]
+  /** Background catalog slug from identity.backgroundSlug. */
+  backgroundSlug?: string | null
 }): string | null {
   const { def, picks, abilities, armor, hasSpellcasting } = input
   const need = def.prerequisites
@@ -503,27 +531,53 @@ export function validateFeatGrantPicks(input: {
   for (const key of need.armor ?? []) {
     if (!armor[key]) return `Требуется владение: ${key}`
   }
-  if (need.flagsAny?.includes('spellcasting') && !hasSpellcasting) {
-    return 'Нужно уметь накладывать хотя бы одно заклинание'
+
+  const accessPaths: boolean[] = []
+  if (need.classesAny?.length) {
+    const ownedClasses = new Set(
+      (input.classSlugs ?? []).map((slug) => slug.trim().toLowerCase()),
+    )
+    accessPaths.push(need.classesAny.some((slug) => ownedClasses.has(slug)))
   }
-  if (need.flagsAny?.includes('martial_weapon_prof') && !input.hasMartialWeapons) {
-    return 'Требуется владение воинским оружием'
+  if (need.backgroundsAny?.length) {
+    const bg = (input.backgroundSlug ?? '').trim().toLowerCase()
+    accessPaths.push(Boolean(bg) && need.backgroundsAny.includes(bg))
   }
+  if (need.flagsAny?.includes('spellcasting')) {
+    accessPaths.push(hasSpellcasting)
+  }
+  if (need.flagsAny?.includes('martial_weapon_prof')) {
+    accessPaths.push(Boolean(input.hasMartialWeapons))
+  }
+  if (accessPaths.length > 0 && !accessPaths.some(Boolean)) {
+    return def.prerequisitesRu
+      ? `Требования: ${def.prerequisitesRu}`
+      : 'Не выполнены требования (класс / предыстория / владение)'
+  }
+
   if (need.minLevel != null) {
     const level = Math.max(1, Math.floor(input.characterLevel ?? 1))
     if (level < need.minLevel) {
       return `Требуется ${need.minLevel}-й уровень персонажа`
     }
   }
+  const ownedFeats = new Set(
+    (input.ownedFeatSlugs ?? []).map((slug) => slug.trim().toLowerCase()),
+  )
   if (need.featsAll?.length) {
-    const owned = new Set(
-      (input.ownedFeatSlugs ?? []).map((slug) => slug.trim().toLowerCase()),
-    )
-    const missing = need.featsAll.filter((slug) => !owned.has(slug.toLowerCase()))
+    const missing = need.featsAll.filter((slug) => !ownedFeats.has(slug.toLowerCase()))
     if (missing.length) {
       return def.prerequisitesRu
         ? `Требования: ${def.prerequisitesRu}`
         : `Сначала возьми черту: ${missing.join(', ')}`
+    }
+  }
+  if (need.featsNone?.length) {
+    const blocked = need.featsNone.filter((slug) => ownedFeats.has(slug.toLowerCase()))
+    if (blocked.length) {
+      return def.prerequisitesRu
+        ? `Требования: ${def.prerequisitesRu}`
+        : `Несовместимо с чертой: ${blocked.join(', ')}`
     }
   }
   if (need.racesAny?.length || need.sizeAny?.length) {
@@ -728,6 +782,11 @@ export function readFeatGrantLedger(raw: unknown): AppliedFeatGrant[] {
       const raceSlug = readString(sourceRaw.raceSlug) ?? 'race'
       if (!raceCatalogId) continue
       source = { kind: 'race', raceCatalogId, raceSlug }
+    } else if (sourceRaw.kind === 'background') {
+      const backgroundSlug =
+        readString(sourceRaw.backgroundSlug) ?? readString(sourceRaw.background_slug)
+      if (!backgroundSlug) continue
+      source = { kind: 'background', backgroundSlug }
     } else {
       source = { kind: 'manual' }
     }
@@ -829,10 +888,13 @@ export function featTraitsSnippet(ledger: AppliedFeatGrant[]): string {
     .join('\n\n')
 }
 
+/** Race grants a real feat pick (Custom Lineage / human variant) — not cantrip notes. */
 export function raceRequiresFeatPick(def: {
+  featPick?: boolean
   featNoteRu?: string | null
   slug?: string
 }): boolean {
-  if (def.slug === 'custom_lineage') return true
-  return Boolean(def.featNoteRu && def.featNoteRu.trim())
+  if (def.featPick === true) return true
+  if (def.slug === 'custom_lineage' || def.slug === 'human_variant') return true
+  return false
 }
