@@ -1,6 +1,7 @@
 /** Class/subclass feature unlock for the digital sheet (2014). */
 
 import type { ClassLevelEntry } from './classLevels'
+import fighterPack from './data/fighter_2014.json'
 import roguePack from './data/rogue_2014.json'
 
 export type FeatureKind = 'passive' | 'action' | 'bonus' | 'reaction' | 'resource'
@@ -14,7 +15,7 @@ export type FeatureResource = {
   /** Fallback / fixed max when uses_from is absent or 'fixed'. */
   uses: number
   /** Resolve max from character proficiency bonus (Phantom Wails / soul trinkets). */
-  uses_from?: 'fixed' | 'proficiency_bonus'
+  uses_from?: 'fixed' | 'proficiency_bonus' | 'twice_proficiency_bonus'
   recharge: 'short_rest' | 'long_rest' | 'dawn' | 'manual'
   scale_uses?: Record<string, number>
   /** Stable pool key for sheet.resources sync (`feat:{slug}:{pool_id}:{entry}`). */
@@ -23,13 +24,24 @@ export type FeatureResource = {
   pool_name_ru?: string
   /** spend = expended uses; stock = current holdings (soul trinkets). */
   track?: 'spend' | 'stock'
-  /** If spend pool is empty, burn one linked stock to use anyway. */
+  /** If spend pool is empty, pay via linked pool (stock burn or spend die). */
   linked_spend?: {
     pool_id: string
     label_ru: string
+    /** stock = decrement holdings; spend = expend one from linked spend pool. */
+    mode?: 'stock' | 'spend'
   }
+  /** Soulknife: regain 1 die as an action, once per short/long rest. */
+  recover_one?: {
+    label_ru: string
+    recharge: 'short_rest' | 'long_rest'
+  }
+  /** Battle Master Relentless: when pool empty at initiative, regain 1. */
+  grant_one_on_initiative_if_empty?: boolean
   /** Death's Friend: after long rest, if stock empty → grant 1. */
   grant_stock_on_long_rest_if_empty?: boolean
+  stock_gain_label_ru?: string
+  stock_spend_label_ru?: string
 }
 
 export type ClassFeatureDef = {
@@ -65,6 +77,7 @@ type FeaturePack = {
 
 const LOCAL_PACKS: Record<string, FeaturePack> = {
   rogue: roguePack as FeaturePack,
+  fighter: fighterPack as FeaturePack,
 }
 
 function asFeatureList(raw: unknown): ClassFeatureDef[] {
@@ -146,16 +159,28 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
   if (!resourceRaw) return undefined
   const hasUses = typeof resourceRaw.uses === 'number'
   const usesFrom =
-    resourceRaw.uses_from === 'proficiency_bonus'
-      ? 'proficiency_bonus'
-      : resourceRaw.uses_from === 'fixed'
-        ? 'fixed'
-        : undefined
-  if (!hasUses && usesFrom !== 'proficiency_bonus') return undefined
+    resourceRaw.uses_from === 'twice_proficiency_bonus'
+      ? 'twice_proficiency_bonus'
+      : resourceRaw.uses_from === 'proficiency_bonus'
+        ? 'proficiency_bonus'
+        : resourceRaw.uses_from === 'fixed'
+          ? 'fixed'
+          : undefined
+  if (
+    !hasUses &&
+    usesFrom !== 'proficiency_bonus' &&
+    usesFrom !== 'twice_proficiency_bonus'
+  ) {
+    return undefined
+  }
 
   const linkedRaw =
     resourceRaw.linked_spend && typeof resourceRaw.linked_spend === 'object'
       ? (resourceRaw.linked_spend as Record<string, unknown>)
+      : null
+  const recoverRaw =
+    resourceRaw.recover_one && typeof resourceRaw.recover_one === 'object'
+      ? (resourceRaw.recover_one as Record<string, unknown>)
       : null
 
   return {
@@ -188,11 +213,31 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
               typeof linkedRaw.label_ru === 'string'
                 ? linkedRaw.label_ru
                 : 'сжечь частицу души',
+            mode: linkedRaw.mode === 'spend' ? 'spend' : 'stock',
           }
         : undefined,
+    recover_one:
+      recoverRaw && typeof recoverRaw.label_ru === 'string'
+        ? {
+            label_ru: recoverRaw.label_ru,
+            recharge:
+              recoverRaw.recharge === 'long_rest' ? 'long_rest' : 'short_rest',
+          }
+        : undefined,
+    grant_one_on_initiative_if_empty: Boolean(
+      resourceRaw.grant_one_on_initiative_if_empty,
+    ),
     grant_stock_on_long_rest_if_empty: Boolean(
       resourceRaw.grant_stock_on_long_rest_if_empty,
     ),
+    stock_gain_label_ru:
+      typeof resourceRaw.stock_gain_label_ru === 'string'
+        ? resourceRaw.stock_gain_label_ru
+        : undefined,
+    stock_spend_label_ru:
+      typeof resourceRaw.stock_spend_label_ru === 'string'
+        ? resourceRaw.stock_spend_label_ru
+        : undefined,
   }
 }
 
@@ -205,6 +250,11 @@ function resolveResourceUses(
   if (resource.uses_from === 'proficiency_bonus') {
     return typeof proficiencyBonus === 'number'
       ? Math.max(0, Math.floor(proficiencyBonus))
+      : null
+  }
+  if (resource.uses_from === 'twice_proficiency_bonus') {
+    return typeof proficiencyBonus === 'number'
+      ? Math.max(0, Math.floor(proficiencyBonus) * 2)
       : null
   }
   let uses = resource.uses
@@ -225,6 +275,8 @@ export function proficiencyBonusForTotalLevel(totalLevel: number): number {
 const CLASS_NAME_TO_SLUG: Record<string, string> = {
   rogue: 'rogue',
   плут: 'rogue',
+  fighter: 'fighter',
+  воин: 'fighter',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {
@@ -243,22 +295,33 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   'arcane trickster': 'arcane_trickster',
   phantom: 'phantom',
   фантом: 'phantom',
+  soulknife: 'soulknife',
+  'клинок души': 'soulknife',
+  battle_master: 'battle_master',
+  'мастер боевых искусств': 'battle_master',
+  'боевой мастер': 'battle_master',
 }
+
+const KNOWN_SUBCLASS_SLUGS = new Set([
+  'thief',
+  'assassin',
+  'arcane_trickster',
+  'phantom',
+  'soulknife',
+  'battle_master',
+])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {
   const key = input.trim().toLowerCase()
   if (!key) return null
   if (SUBCLASS_NAME_TO_SLUG[key]) return SUBCLASS_NAME_TO_SLUG[key]
-  // already a slug
-  if (
-    key === 'thief' ||
-    key === 'assassin' ||
-    key === 'arcane_trickster' ||
-    key === 'phantom'
-  ) {
-    return key
-  }
+  if (KNOWN_SUBCLASS_SLUGS.has(key)) return key
   return null
+}
+
+/** Auxiliary pool id for recover_one (1× per rest). */
+export function recoverPoolId(poolId: string): string {
+  return `${poolId}__recover`
 }
 
 export function unlockFeaturesForClasses(input: {

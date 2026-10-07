@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "purpose": "PHB 2014 Fighter class + Battle Master features for sheet unlock",
+    "edition": "2014",
+    "source": "phb",
+    "notes_ru": "Краткие summary. BM: кости превосходства + Relentless."
+  },
+  "class_slug": "fighter",
+  "features": [
+    {
+      "id": "fighting_style",
+      "level": 1,
+      "name_ru": "Боевой стиль",
+      "name_en": "Fighting Style",
+      "summary_ru": "Выбери боевой стиль (см. гранты класса).",
+      "kind": "passive"
+    },
+    {
+      "id": "second_wind",
+      "level": 1,
+      "name_ru": "Второе дыхание",
+      "name_en": "Second Wind",
+      "summary_ru": "Бонусным действием: хиты = 1к10 + уровень воина. 1× / короткий или продолжительный отдых.",
+      "kind": "bonus",
+      "resource": {
+        "uses": 1,
+        "recharge": "short_rest",
+        "pool_id": "second_wind",
+        "pool_name_ru": "Второе дыхание",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "action_surge",
+      "level": 2,
+      "name_ru": "Всплеск действий",
+      "name_en": "Action Surge",
+      "summary_ru": "В свой ход: ещё одно действие. 1× (с 17 ур. — 2×) / короткий или продолжительный отдых.",
+      "kind": "resource",
+      "resource": {
+        "uses": 1,
+        "recharge": "short_rest",
+        "scale_uses": { "2": 1, "17": 2 },
+        "pool_id": "action_surge",
+        "pool_name_ru": "Всплеск действий",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "martial_archetype",
+      "level": 3,
+      "name_ru": "Боевой архетип",
+      "name_en": "Martial Archetype",
+      "summary_ru": "Выбери архетип воина.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_4",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "extra_attack_1",
+      "level": 5,
+      "name_ru": "Дополнительная атака",
+      "name_en": "Extra Attack",
+      "summary_ru": "Атакой: две атаки оружием.",
+      "kind": "passive",
+      "scale": {
+        "label_ru": "Атак",
+        "by_level": {
+          "5": "2",
+          "11": "3",
+          "20": "4"
+        }
+      }
+    },
+    {
+      "id": "indomitable",
+      "level": 9,
+      "name_ru": "Непоколебимость",
+      "name_en": "Indomitable",
+      "summary_ru": "Перебрось проваленный спасбросок. 1× (13 — 2×, 17 — 3×) / продолжительный отдых.",
+      "kind": "resource",
+      "resource": {
+        "uses": 1,
+        "recharge": "long_rest",
+        "scale_uses": { "9": 1, "13": 2, "17": 3 },
+        "pool_id": "indomitable",
+        "pool_name_ru": "Непоколебимость",
+        "track": "spend"
+      }
+    }
+  ],
+  "subclasses": {
+    "battle_master": [
+      {
+        "id": "combat_superiority",
+        "level": 3,
+        "name_ru": "Боевое превосходство",
+        "name_en": "Combat Superiority",
+        "summary_ru": "Кости превосходства + манёвры. Все кости восстанавливаются на коротком или продолжительном отдыхе.",
+        "kind": "resource",
+        "scale": {
+          "label_ru": "Кость",
+          "by_level": {
+            "3": "к8",
+            "10": "к10",
+            "18": "к12"
+          }
+        },
+        "resource": {
+          "uses": 4,
+          "recharge": "short_rest",
+          "scale_uses": { "3": 4, "7": 5, "15": 6 },
+          "pool_id": "superiority_dice",
+          "pool_name_ru": "Кости превосходства",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "student_of_war",
+        "level": 3,
+        "name_ru": "Ученик войны",
+        "name_en": "Student of War",
+        "summary_ru": "Владение одним ремесленным инструментом.",
+        "kind": "passive"
+      },
+      {
+        "id": "know_your_enemy",
+        "level": 7,
+        "name_ru": "Знай своего врага",
+        "name_en": "Know Your Enemy",
+        "summary_ru": "Минута наблюдения: сравни характеристики/КД/класс с целью.",
+        "kind": "passive"
+      },
+      {
+        "id": "improved_combat_superiority",
+        "level": 10,
+        "name_ru": "Улучшенное превосходство",
+        "name_en": "Improved Combat Superiority",
+        "summary_ru": "Кость превосходства становится к10 (на 18 ур. — к12).",
+        "kind": "passive"
+      },
+      {
+        "id": "relentless",
+        "level": 15,
+        "name_ru": "Неутомимый",
+        "name_en": "Relentless",
+        "summary_ru": "В начале боя при 0 костей превосходства получаешь 1.",
+        "kind": "passive",
+        "resource": {
+          "uses": 4,
+          "recharge": "short_rest",
+          "scale_uses": { "3": 4, "7": 5, "15": 6 },
+          "pool_id": "superiority_dice",
+          "pool_name_ru": "Кости превосходства",
+          "track": "spend",
+          "grant_one_on_initiative_if_empty": true
+        }
+      }
+    ]
+  }
+}

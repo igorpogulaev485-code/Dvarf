@@ -9,6 +9,8 @@ import {
 import {
   consumeStock,
   findFeatureResource,
+  grantOneOnInitiativeIfEmpty,
+  recoverOneFromPool,
   spendFeatureUse,
   spendRemaining,
   stockCurrent,
@@ -32,12 +34,14 @@ function FeatureResourceControls({
   resources,
   onResourcesChange,
   onToast,
+  initiativePoolIds,
 }: {
   feature: UnlockedFeature
   classSlug: string
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
   onToast?: (message: string) => void
+  initiativePoolIds: Set<string>
 }) {
   const resource = feature.resource
   if (!resource?.pool_id) return null
@@ -71,7 +75,7 @@ function FeatureResourceControls({
               if (result.message) onToast?.(result.message)
             }}
           >
-            + частица (смерть рядом)
+            {resource.stock_gain_label_ru || `+ ${pool.name}`}
           </Button>
           <Button
             type="button"
@@ -86,12 +90,12 @@ function FeatureResourceControls({
               onResourcesChange(result.resources)
               onToast?.(
                 result.ok
-                  ? 'Частица сожжена (вопрос духу / вручную)'
+                  ? resource.stock_spend_label_ru || `${pool.name}: −1`
                   : result.message,
               )
             }}
           >
-            Сжечь частицу
+            {resource.stock_spend_label_ru || `− ${pool.name}`}
           </Button>
         </div>
       </div>
@@ -108,8 +112,18 @@ function FeatureResourceControls({
         feature.classEntryId,
       )
     : null
-  const linkedLeft = stockCurrent(linkedPool)
+  const linkedLeft =
+    linked?.mode === 'spend'
+      ? spendRemaining(linkedPool)
+      : stockCurrent(linkedPool)
   const canViaLinked = remaining <= 0 && linkedLeft > 0
+  const canRecover =
+    Boolean(resource.recover_one) && pool.used > 0
+  const hasInitiativeGrant =
+    Boolean(resource.grant_one_on_initiative_if_empty) ||
+    initiativePoolIds.has(resource.pool_id)
+  const canInitiativeGrant =
+    hasInitiativeGrant && remaining <= 0 && pool.used > 0
 
   return (
     <div className="feature-resource">
@@ -123,10 +137,15 @@ function FeatureResourceControls({
           )
         }
       />
+      {feature.scaleValue ? (
+        <Text tone="muted">
+          Сейчас: <strong>{feature.scaleValue}</strong>
+        </Text>
+      ) : null}
       {linked ? (
         <Text tone="muted">
           Сверх лимита: {linked.label_ru}
-          {linkedPool ? ` (${linkedLeft}/${linkedPool.max})` : ' (с 9 ур.)'}
+          {linkedPool ? ` (${linkedLeft} доступно)` : ''}
         </Text>
       ) : null}
       <div className="feature-resource__actions">
@@ -137,18 +156,54 @@ function FeatureResourceControls({
             const result = spendFeatureUse({ resources, feature, classSlug })
             onResourcesChange(result.resources)
             if (result.ok) {
+              const via =
+                result.via === 'linked_stock' ? ` (${linked?.label_ru})` : ''
               onToast?.(
-                result.via === 'linked_stock'
-                  ? `Вопль через частицу души${feature.scaleValue ? ` · ${feature.scaleValue}` : ''}`
-                  : `Могильный вопль${feature.scaleValue ? ` · ${feature.scaleValue}` : ''}`,
+                `${feature.name_ru}${via}${feature.scaleValue ? ` · ${feature.scaleValue}` : ''}`,
               )
             } else {
               onToast?.(result.message)
             }
           }}
         >
-          {canViaLinked ? 'Вопль (сжечь частицу)' : 'Использовать'}
+          {canViaLinked ? linked?.label_ru || 'Сверх лимита' : 'Использовать'}
         </Button>
+        {resource.recover_one ? (
+          <Button
+            type="button"
+            disabled={!canRecover}
+            onClick={() => {
+              const result = recoverOneFromPool({ resources, feature, classSlug })
+              onResourcesChange(result.resources)
+              onToast?.(result.message)
+            }}
+          >
+            {resource.recover_one.label_ru}
+          </Button>
+        ) : null}
+        {hasInitiativeGrant ? (
+          <Button
+            type="button"
+            disabled={!canInitiativeGrant}
+            onClick={() => {
+              const result = grantOneOnInitiativeIfEmpty({
+                resources,
+                feature: {
+                  ...feature,
+                  resource: {
+                    ...resource,
+                    grant_one_on_initiative_if_empty: true,
+                  },
+                },
+                classSlug,
+              })
+              onResourcesChange(result.resources)
+              onToast?.(result.message)
+            }}
+          >
+            Инициатива: +1 кость
+          </Button>
+        ) : null}
       </div>
     </div>
   )
@@ -160,12 +215,14 @@ function FeatureRow({
   resources,
   onResourcesChange,
   onToast,
+  initiativePoolIds,
 }: {
   feature: UnlockedFeature
   classSlug: string
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
   onToast?: (message: string) => void
+  initiativePoolIds: Set<string>
 }) {
   const [open, setOpen] = useState(false)
   const sourceLabel =
@@ -226,6 +283,7 @@ function FeatureRow({
             resources={resources}
             onResourcesChange={onResourcesChange}
             onToast={onToast}
+            initiativePoolIds={initiativePoolIds}
           />
         </div>
       ) : null}
@@ -251,6 +309,16 @@ export function ClassFeaturesPanel({
     [classes, characterLevel, subclassSlugByEntryId],
   )
 
+  const initiativePoolIds = useMemo(() => {
+    const set = new Set<string>()
+    for (const feature of features) {
+      if (feature.resource?.grant_one_on_initiative_if_empty && feature.resource.pool_id) {
+        set.add(feature.resource.pool_id)
+      }
+    }
+    return set
+  }, [features])
+
   const byClass = useMemo(() => {
     const map = new Map<string, UnlockedFeature[]>()
     for (const feature of features) {
@@ -271,15 +339,13 @@ export function ClassFeaturesPanel({
     <Panel title="Умения классов">
       <Stack gap={14}>
         <Text tone="muted">
-          Открываются по уровню и архетипу. Скрытая атака и вопли показывают актуальный урон;
-          ресурсы (в т.ч. частицы души Фантома) трекаются здесь и сбрасываются на отдыхе в блоке
-          боя.
+          Unlock по уровню и архетипу. Ресурсы (PB, 2×PB, кости, частицы) синхронизируются в лист;
+          отдых — в блоке боя. Контракт: docs/feature_resource_contract.md
         </Text>
 
         {byClass.length === 0 ? (
           <Text tone="muted">
-            Пока нет известных пакетов умений (сейчас заполнен Плут: PHB + Фантом). Выбери класс из
-            справочника и поднимай уровень.
+            Пока заполнены пакеты: Плут (PHB + Фантом + Клинок души) и Воин (PHB + Боевой мастер).
           </Text>
         ) : null}
 
@@ -298,6 +364,7 @@ export function ClassFeaturesPanel({
                   resources={resources}
                   onResourcesChange={onResourcesChange}
                   onToast={onToast}
+                  initiativePoolIds={initiativePoolIds}
                 />
               ))}
             </div>

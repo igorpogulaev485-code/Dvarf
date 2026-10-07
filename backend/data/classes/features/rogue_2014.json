@@ -358,7 +358,9 @@
           "recharge": "manual",
           "pool_id": "soul_trinkets",
           "pool_name_ru": "Частицы души",
-          "track": "stock"
+          "track": "stock",
+          "stock_gain_label_ru": "+ частица (смерть рядом)",
+          "stock_spend_label_ru": "Сжечь частицу"
         }
       },
       {
@@ -390,7 +392,91 @@
           "pool_id": "soul_trinkets",
           "pool_name_ru": "Частицы души",
           "track": "stock",
-          "grant_stock_on_long_rest_if_empty": true
+          "grant_stock_on_long_rest_if_empty": true,
+          "stock_gain_label_ru": "+ частица (смерть рядом)",
+          "stock_spend_label_ru": "Сжечь частицу"
+        }
+      }
+    ],
+    "soulknife": [
+      {
+        "id": "psionic_power",
+        "level": 3,
+        "name_ru": "Псионическая сила",
+        "name_en": "Psionic Power",
+        "summary_ru": "Пси-кости: число = 2× бонус мастерства. Все восстанавливаются на прод. отдыхе. Бонусным действием можно вернуть 1 кость (1× до короткого/продолжительного).",
+        "kind": "resource",
+        "scale": {
+          "label_ru": "Кость",
+          "by_level": {
+            "3": "к6",
+            "5": "к8",
+            "11": "к10",
+            "17": "к12"
+          }
+        },
+        "resource": {
+          "uses": 0,
+          "uses_from": "twice_proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "psionic_energy_dice",
+          "pool_name_ru": "Пси-кости",
+          "track": "spend",
+          "recover_one": {
+            "label_ru": "Вернуть 1 кость (бонусное)",
+            "recharge": "short_rest"
+          }
+        }
+      },
+      {
+        "id": "psychic_blades",
+        "level": 3,
+        "name_ru": "Психические клинки",
+        "name_en": "Psychic Blades",
+        "summary_ru": "Бонусным действием проявить простой клинок (магический, фехтовальный, лёгкий). Урон — психический. Можно метнуть (30/60).",
+        "kind": "bonus"
+      },
+      {
+        "id": "soul_blades",
+        "level": 9,
+        "name_ru": "Клинки души",
+        "name_en": "Soul Blades",
+        "summary_ru": "Homings Strikes / Psychic Teleportation за пси-кость (см. TCoE).",
+        "kind": "passive"
+      },
+      {
+        "id": "psychic_veil",
+        "level": 13,
+        "name_ru": "Психическая завеса",
+        "name_en": "Psychic Veil",
+        "summary_ru": "Действием: невидимость 1 час (или до атаки/заклинания). 1× / прод. отдых; можно потратить пси-кость, чтобы использовать снова.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "psychic_veil",
+          "pool_name_ru": "Психическая завеса",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "psionic_energy_dice",
+            "label_ru": "потратить пси-кость",
+            "mode": "spend"
+          }
+        }
+      },
+      {
+        "id": "rend_mind",
+        "level": 17,
+        "name_ru": "Разрыв разума",
+        "name_en": "Rend Mind",
+        "summary_ru": "При СА психическим клинком: цель спас Мудрости или оглушена на 1 мин. 1× / прод. отдых; повтор — за 3 пси-кости.",
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "rend_mind",
+          "pool_name_ru": "Разрыв разума",
+          "track": "spend"
         }
       }
     ]
