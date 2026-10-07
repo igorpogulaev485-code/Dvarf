@@ -4,6 +4,7 @@ import {
   backgroundHasRoleplayTables,
   emptyBackgroundPicks,
   personalityPickCount,
+  resolveBackgroundGrantDef,
   skillOptionsForBackground,
   type BackgroundGrantDef,
   type BackgroundGrantPicks,
@@ -20,11 +21,14 @@ export type BackgroundSetupConfirm = {
 
 type BackgroundSetupDialogProps = {
   open: boolean
-  entry: CatalogEntry | null
-  def: BackgroundGrantDef | null
+  root: CatalogEntry | null
+  /** Catalog children / PHB variants (spy, gladiator, …). */
+  variants: CatalogEntry[]
   onConfirm: (result: BackgroundSetupConfirm) => void
   onClose: () => void
 }
+
+const KEEP_ROOT = '__root__'
 
 function skillLabel(key: string): string {
   return SKILL_DEFS.find((item) => item.key === key)?.label ?? key
@@ -33,13 +37,13 @@ function skillLabel(key: string): string {
 function ChipList({
   options,
   selected,
-  multi,
   onToggle,
+  block,
 }: {
   options: string[]
   selected: string[]
-  multi: boolean
   onToggle: (value: string) => void
+  block?: boolean
 }) {
   return (
     <div className="chip-row">
@@ -50,11 +54,7 @@ function ChipList({
             key={name}
             type="button"
             className={`sheet-chip${on ? ' is-on' : ''}`}
-            style={
-              multi
-                ? undefined
-                : { display: 'block', width: '100%', textAlign: 'left' }
-            }
+            style={block ? { display: 'block', width: '100%', textAlign: 'left' } : undefined}
             onClick={() => onToggle(name)}
           >
             {name}
@@ -65,13 +65,38 @@ function ChipList({
   )
 }
 
+function defFor(entry: CatalogEntry): BackgroundGrantDef | null {
+  return resolveBackgroundGrantDef({
+    backgroundName: entry.name_ru,
+    catalogSlug: entry.slug,
+    catalogData: entry.data,
+    nameRu: entry.name_ru,
+  })
+}
+
 export function BackgroundSetupDialog({
   open,
-  entry,
-  def,
+  root,
+  variants,
   onConfirm,
   onClose,
 }: BackgroundSetupDialogProps) {
+  const hasVariantFork = variants.length > 0
+  const [variantKey, setVariantKey] = useState<string | null>(null)
+
+  const effectiveEntry = useMemo(() => {
+    if (!root) return null
+    if (!hasVariantFork) return root
+    if (variantKey === KEEP_ROOT) return root
+    if (!variantKey) return null
+    return variants.find((row) => row.id === variantKey) ?? null
+  }, [root, hasVariantFork, variantKey, variants])
+
+  const def = useMemo(
+    () => (effectiveEntry ? defFor(effectiveEntry) : null),
+    [effectiveEntry],
+  )
+
   const skillNeed = def?.skillChoices?.count ?? 0
   const toolNeed = def?.toolChoices?.count ?? 0
   const langNeed = def?.languagesChoose ?? 0
@@ -87,12 +112,16 @@ export function BackgroundSetupDialog({
   }, [def])
   const equipmentPackages = def?.equipment ?? []
   const hasRp = def ? backgroundHasRoleplayTables(def) : false
+  const choiceTables = def?.choiceTables ?? []
 
   const [skills, setSkills] = useState<string[]>([])
   const [tools, setTools] = useState<string[]>([])
   const [languages, setLanguages] = useState<string[]>([])
   const [equipmentPackageId, setEquipmentPackageId] = useState<string | null>(null)
   const [equipmentOrPicks, setEquipmentOrPicks] = useState<Record<string, string>>(
+    {},
+  )
+  const [choiceTablePicks, setChoiceTablePicks] = useState<Record<string, string[]>>(
     {},
   )
   const [personalityTraits, setPersonalityTraits] = useState<string[]>([])
@@ -102,16 +131,22 @@ export function BackgroundSetupDialog({
 
   useEffect(() => {
     if (!open) return
+    setVariantKey(hasVariantFork ? null : KEEP_ROOT)
+  }, [open, root?.id, hasVariantFork])
+
+  useEffect(() => {
+    if (!open) return
     setSkills([])
     setTools([])
     setLanguages([])
     setEquipmentPackageId(null)
     setEquipmentOrPicks({})
+    setChoiceTablePicks({})
     setPersonalityTraits([])
     setIdeal(null)
     setBond(null)
     setFlaw(null)
-  }, [open, def?.slug])
+  }, [open, effectiveEntry?.id])
 
   function toggleSkill(key: string) {
     setSkills((prev) => {
@@ -145,46 +180,62 @@ export function BackgroundSetupDialog({
     })
   }
 
+  function toggleChoice(tableId: string, option: string, need: number) {
+    setChoiceTablePicks((prev) => {
+      const current = prev[tableId] ?? []
+      if (current.includes(option)) {
+        return { ...prev, [tableId]: current.filter((item) => item !== option) }
+      }
+      if (need <= 1) return { ...prev, [tableId]: [option] }
+      if (current.length >= need) return prev
+      return { ...prev, [tableId]: [...current, option] }
+    })
+  }
+
+  const variantOk = !hasVariantFork || Boolean(variantKey)
   const equipmentOk =
-    equipmentPackages.length === 0 || Boolean(equipmentPackageId)
+    !def || equipmentPackages.length === 0 || Boolean(equipmentPackageId)
   const orNeed =
-    equipmentPackageId && equipmentPackageId !== 'skip'
-      ? def?.equipmentOrChoices ?? []
+    def && equipmentPackageId && equipmentPackageId !== 'skip'
+      ? def.equipmentOrChoices
       : []
   const orOk = orNeed.every((choice) => Boolean(equipmentOrPicks[choice.id]))
-
-  // RP optional: either untouched (0) or complete set.
+  const tablesOk = choiceTables.every((table) => {
+    const picked = choiceTablePicks[table.id] ?? []
+    return picked.length === table.count
+  })
   const traitsOk =
     personalityTraits.length === 0 || personalityTraits.length === traitNeed
 
   const canConfirm =
-    Boolean(def && entry) &&
+    Boolean(def && effectiveEntry && variantOk) &&
     skills.length === skillNeed &&
     tools.length === toolNeed &&
     languages.length === langNeed &&
     equipmentOk &&
     orOk &&
+    tablesOk &&
     traitsOk
 
-  if (!def || !entry) return null
+  if (!root) return null
 
-  const fixedSkills = def.skillProficiencies
+  const fixedSkills = (def?.skillProficiencies ?? [])
     .map((key) => skillLabel(key))
     .join(', ')
-  const fixedTools = def.toolProficiencies.join(', ')
-  const fixedLangs = def.languages.join(', ')
+  const fixedTools = (def?.toolProficiencies ?? []).join(', ')
+  const fixedLangs = (def?.languages ?? []).join(', ')
 
   return (
     <Dialog
       open={open}
-      title={`${def.labelRu}: настройка предыстории`}
+      title={`${root.name_ru}: настройка предыстории`}
       primaryLabel="Применить"
       secondaryLabel="Отмена"
       size="wide"
       onPrimary={() => {
-        if (!canConfirm) return
+        if (!canConfirm || !def || !effectiveEntry) return
         onConfirm({
-          entry,
+          entry: effectiveEntry,
           def,
           picks: {
             skills,
@@ -193,6 +244,7 @@ export function BackgroundSetupDialog({
             equipmentPackageId:
               equipmentPackages.length > 0 ? equipmentPackageId : null,
             equipmentOrPicks,
+            choiceTablePicks,
             personalityTraits,
             ideal,
             bond,
@@ -204,130 +256,181 @@ export function BackgroundSetupDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Механика (навыки, языки, инструменты, снаряжение) — обязательна. Черты характера /
-          идеалы / привязанности / слабости — по желанию: можно пропустить и заполнить позже.
+          Сначала вариант (если есть), затем механика и таблицы из книги. Черты/идеалы можно
+          пропустить. Смена предыстории отзовёт пакет.
         </Text>
 
-        {(fixedSkills || fixedTools || fixedLangs) && (
-          <Text>
-            {[
-              fixedSkills ? `Навыки: ${fixedSkills}` : null,
-              fixedTools ? `Инструменты: ${fixedTools}` : null,
-              fixedLangs ? `Языки: ${fixedLangs}` : null,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </Text>
-        )}
-
-        {def.featureNameRu ? (
-          <Field label={`Умение: ${def.featureNameRu}`}>
-            <Text tone="muted">{def.featureTextRu || '—'}</Text>
-            {def.featNoteRu ? <Text tone="muted">{def.featNoteRu}</Text> : null}
-          </Field>
-        ) : null}
-
-        {skillNeed > 0 ? (
-          <Field label={`Навыки на выбор (${skills.length}/${skillNeed})`}>
+        {hasVariantFork ? (
+          <Field label="Вариант предыстории" hint="Как подраса у расы — выбираешь в попапе">
             <div className="chip-row">
-              {skillOptions.map((key) => {
-                const on = skills.includes(key)
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    onClick={() => toggleSkill(key)}
-                  >
-                    {skillLabel(key)}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-        ) : null}
-
-        {toolNeed > 0 ? (
-          <Field label={`Инструменты на выбор (${tools.length}/${toolNeed})`}>
-            <div className="chip-row">
-              {toolOptions.map((name) => {
-                const on = tools.includes(name)
-                return (
-                  <button
-                    key={name}
-                    type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    onClick={() => toggleTool(name)}
-                  >
-                    {name}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-        ) : null}
-
-        {langNeed > 0 ? (
-          <Field
-            label={`Языки на выбор (${languages.length}/${langNeed})`}
-            hint={def.languagesChooseNoteRu ?? undefined}
-          >
-            <div className="chip-row">
-              {languageOptions.map((name) => {
-                const on = languages.includes(name)
-                return (
-                  <button
-                    key={name}
-                    type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    onClick={() => toggleLanguage(name)}
-                  >
-                    {name}
-                  </button>
-                )
-              })}
-            </div>
-          </Field>
-        ) : null}
-
-        {equipmentPackages.length > 0 ? (
-          <Field label="Снаряжение предыстории">
-            <Stack gap={8}>
-              {equipmentPackages.map((pack) => {
-                const on = equipmentPackageId === pack.id
-                return (
-                  <button
-                    key={pack.id}
-                    type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    style={{ display: 'block', width: '100%', textAlign: 'left' }}
-                    onClick={() => setEquipmentPackageId(pack.id)}
-                  >
-                    <strong>{pack.labelRu}</strong>
-                    <div style={{ opacity: 0.85, fontWeight: 400 }}>{pack.summary}</div>
-                  </button>
-                )
-              })}
               <button
                 type="button"
-                className={`sheet-chip${equipmentPackageId === 'skip' ? ' is-on' : ''}`}
-                style={{ display: 'block', width: '100%', textAlign: 'left' }}
-                onClick={() => {
-                  setEquipmentPackageId('skip')
-                  setEquipmentOrPicks({})
-                }}
+                className={`sheet-chip${variantKey === KEEP_ROOT ? ' is-on' : ''}`}
+                onClick={() => setVariantKey(KEEP_ROOT)}
               >
-                <strong>Без снаряжения</strong>
-                <div style={{ opacity: 0.85, fontWeight: 400 }}>
-                  Куплю снаряжение за золото / заполню сам
-                </div>
+                {root.name_ru} (базовый)
               </button>
-            </Stack>
+              {variants.map((row) => (
+                <button
+                  key={row.id}
+                  type="button"
+                  className={`sheet-chip${variantKey === row.id ? ' is-on' : ''}`}
+                  onClick={() => setVariantKey(row.id)}
+                >
+                  {row.name_ru}
+                </button>
+              ))}
+            </div>
           </Field>
         ) : null}
 
-        {orNeed.length > 0
-          ? orNeed.map((choice) => (
+        {!variantOk ? (
+          <Text tone="muted">Выбери базовый вариант или ответвление.</Text>
+        ) : null}
+
+        {def && effectiveEntry ? (
+          <>
+            {def.notesRu ? <Text tone="muted">{def.notesRu}</Text> : null}
+
+            {(fixedSkills || fixedTools || fixedLangs) && (
+              <Text>
+                {[
+                  fixedSkills ? `Навыки: ${fixedSkills}` : null,
+                  fixedTools ? `Инструменты: ${fixedTools}` : null,
+                  fixedLangs ? `Языки: ${fixedLangs}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </Text>
+            )}
+
+            {def.featureNameRu ? (
+              <Field label={`Умение: ${def.featureNameRu}`}>
+                <Text tone="muted">{def.featureTextRu || '—'}</Text>
+                {def.featNoteRu ? <Text tone="muted">{def.featNoteRu}</Text> : null}
+              </Field>
+            ) : null}
+
+            {choiceTables.map((table) => {
+              const picked = choiceTablePicks[table.id] ?? []
+              return (
+                <Field
+                  key={table.id}
+                  label={`${table.labelRu} (${picked.length}/${table.count})`}
+                >
+                  <ChipList
+                    options={table.options}
+                    selected={picked}
+                    block={table.options.some((row) => row.length > 48)}
+                    onToggle={(option) => toggleChoice(table.id, option, table.count)}
+                  />
+                </Field>
+              )
+            })}
+
+            {skillNeed > 0 ? (
+              <Field label={`Навыки на выбор (${skills.length}/${skillNeed})`}>
+                <div className="chip-row">
+                  {skillOptions.map((key) => {
+                    const on = skills.includes(key)
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        onClick={() => toggleSkill(key)}
+                      >
+                        {skillLabel(key)}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+            ) : null}
+
+            {toolNeed > 0 ? (
+              <Field label={`Инструменты на выбор (${tools.length}/${toolNeed})`}>
+                <div className="chip-row">
+                  {toolOptions.map((name) => {
+                    const on = tools.includes(name)
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        onClick={() => toggleTool(name)}
+                      >
+                        {name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+            ) : null}
+
+            {langNeed > 0 ? (
+              <Field
+                label={`Языки на выбор (${languages.length}/${langNeed})`}
+                hint={def.languagesChooseNoteRu ?? undefined}
+              >
+                <div className="chip-row">
+                  {languageOptions.map((name) => {
+                    const on = languages.includes(name)
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        onClick={() => toggleLanguage(name)}
+                      >
+                        {name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+            ) : null}
+
+            {equipmentPackages.length > 0 ? (
+              <Field
+                label="Снаряжение предыстории"
+                hint={def.equipmentNoteRu ?? undefined}
+              >
+                <Stack gap={8}>
+                  {equipmentPackages.map((pack) => {
+                    const on = equipmentPackageId === pack.id
+                    return (
+                      <button
+                        key={pack.id}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                        onClick={() => setEquipmentPackageId(pack.id)}
+                      >
+                        <strong>{pack.labelRu}</strong>
+                        <div style={{ opacity: 0.85, fontWeight: 400 }}>{pack.summary}</div>
+                      </button>
+                    )
+                  })}
+                  <button
+                    type="button"
+                    className={`sheet-chip${equipmentPackageId === 'skip' ? ' is-on' : ''}`}
+                    style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                    onClick={() => {
+                      setEquipmentPackageId('skip')
+                      setEquipmentOrPicks({})
+                    }}
+                  >
+                    <strong>Без снаряжения</strong>
+                    <div style={{ opacity: 0.85, fontWeight: 400 }}>
+                      Куплю снаряжение за золото / заполню сам
+                    </div>
+                  </button>
+                </Stack>
+              </Field>
+            ) : null}
+
+            {orNeed.map((choice) => (
               <Field key={choice.id} label={`Снаряжение: ${choice.labelRu}`}>
                 <div className="chip-row">
                   {choice.options.map((option) => {
@@ -350,75 +453,73 @@ export function BackgroundSetupDialog({
                   })}
                 </div>
               </Field>
-            ))
-          : null}
+            ))}
 
-        {hasRp ? (
-          <Stack gap={12}>
-            <Text>
-              <strong>Персонализация</strong>
-              <span style={{ opacity: 0.8 }}>
-                {' '}
-                — таблицы из книги; можно оставить пустым
-              </span>
-            </Text>
+            {hasRp ? (
+              <Stack gap={12}>
+                <Text>
+                  <strong>Персонализация</strong>
+                  <span style={{ opacity: 0.8 }}> — по желанию</span>
+                </Text>
 
-            {traitNeed > 0 ? (
-              <Field
-                label={`Черты характера (${personalityTraits.length}/${traitNeed})`}
-                hint="PHB: обычно две черты. Можно пропустить."
-              >
-                <ChipList
-                  options={def.personalityTraits}
-                  selected={personalityTraits}
-                  multi
-                  onToggle={toggleTrait}
-                />
-              </Field>
+                {traitNeed > 0 ? (
+                  <Field
+                    label={`Черты характера (${personalityTraits.length}/${traitNeed})`}
+                  >
+                    <ChipList
+                      options={def.personalityTraits}
+                      selected={personalityTraits}
+                      onToggle={toggleTrait}
+                      block
+                    />
+                  </Field>
+                ) : null}
+
+                {def.ideals.length > 0 ? (
+                  <Field label="Идеал">
+                    <ChipList
+                      options={def.ideals}
+                      selected={ideal ? [ideal] : []}
+                      onToggle={(value) =>
+                        setIdeal((prev) => (prev === value ? null : value))
+                      }
+                      block
+                    />
+                  </Field>
+                ) : null}
+
+                {def.bonds.length > 0 ? (
+                  <Field label="Привязанность">
+                    <ChipList
+                      options={def.bonds}
+                      selected={bond ? [bond] : []}
+                      onToggle={(value) =>
+                        setBond((prev) => (prev === value ? null : value))
+                      }
+                      block
+                    />
+                  </Field>
+                ) : null}
+
+                {def.flaws.length > 0 ? (
+                  <Field label="Слабость">
+                    <ChipList
+                      options={def.flaws}
+                      selected={flaw ? [flaw] : []}
+                      onToggle={(value) =>
+                        setFlaw((prev) => (prev === value ? null : value))
+                      }
+                      block
+                    />
+                  </Field>
+                ) : null}
+              </Stack>
             ) : null}
+          </>
+        ) : null}
 
-            {def.ideals.length > 0 ? (
-              <Field label="Идеал" hint="Один или пропустить">
-                <ChipList
-                  options={def.ideals}
-                  selected={ideal ? [ideal] : []}
-                  multi={false}
-                  onToggle={(value) => setIdeal((prev) => (prev === value ? null : value))}
-                />
-              </Field>
-            ) : null}
-
-            {def.bonds.length > 0 ? (
-              <Field label="Привязанность" hint="Одна или пропустить">
-                <ChipList
-                  options={def.bonds}
-                  selected={bond ? [bond] : []}
-                  multi={false}
-                  onToggle={(value) => setBond((prev) => (prev === value ? null : value))}
-                />
-              </Field>
-            ) : null}
-
-            {def.flaws.length > 0 ? (
-              <Field label="Слабость" hint="Одна или пропустить">
-                <ChipList
-                  options={def.flaws}
-                  selected={flaw ? [flaw] : []}
-                  multi={false}
-                  onToggle={(value) => setFlaw((prev) => (prev === value ? null : value))}
-                />
-              </Field>
-            ) : null}
-          </Stack>
-        ) : (
-          <Text tone="muted">
-            У этой предыстории в источнике нет таблиц черт/идеалов — блоки на листе заполняешь
-            вручную.
-          </Text>
-        )}
-
-        {!canConfirm ? (
-          <Text tone="muted">Отметь все обязательные развилки, чтобы продолжить.</Text>
+        {!canConfirm && variantOk ? (
+          <Text tone="muted">Отметь обязательные развилки, чтобы продолжить.</Text>
         ) : null}
       </Stack>
     </Dialog>
@@ -462,10 +563,9 @@ export function HomebrewBackgroundDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          Своя предыстория: только название на листе. Навыки, языки, инструменты и снаряжение
-          задаёшь сам — пакет из справочника не подставляем.
+          Своя предыстория: только название на листе. Владения и таблицы задаёшь сам.
         </Text>
-        <Field label="Название на листе" hint="Например: Бывший гладиатор арены…">
+        <Field label="Название на листе">
           <Input
             value={name}
             placeholder="Название предыстории"

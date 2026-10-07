@@ -51,7 +51,9 @@ import {
 } from './backgroundEffects'
 import {
   backgroundGrantNeedsSetupDialog,
+  backgroundVariantsForRoot,
   emptyBackgroundPicks,
+  isBackgroundComboboxRoot,
   resolveBackgroundGrantDef,
   type AppliedBackgroundGrant,
   type BackgroundGrantDef,
@@ -386,8 +388,8 @@ export function MinimalSheetEditor({
   } | null>(null)
   const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
   const [backgroundGrantPicker, setBackgroundGrantPicker] = useState<{
-    entry: CatalogEntry
-    def: BackgroundGrantDef
+    root: CatalogEntry
+    variants: CatalogEntry[]
   } | null>(null)
   const [backgroundHomebrewOpen, setBackgroundHomebrewOpen] = useState(false)
   const [subclassSetup, setSubclassSetup] = useState<{
@@ -407,6 +409,7 @@ export function MinimalSheetEditor({
   } | null>(null)
   const channelRef = useRef<BroadcastChannel | null>(null)
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
+  const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const [raceCatalogRows, setRaceCatalogRows] = useState<CatalogEntry[]>([])
 
   const characterLevel = useMemo(
@@ -465,6 +468,23 @@ export function MinimalSheetEditor({
     }
     onCreateGuideConsumed?.()
   }, [createGuide, onCreateGuideConsumed])
+
+  // Prefetch backgrounds so variant fork popup does not wait on a second fetch.
+  useEffect(() => {
+    let active = true
+    backgroundCatalogCacheRef.current = null
+    listCatalogEntries({ kind: 'background', edition: rulesEdition })
+      .then((rows) => {
+        if (!active) return
+        backgroundCatalogCacheRef.current = rows
+      })
+      .catch(() => {
+        /* picker will retry on demand */
+      })
+    return () => {
+      active = false
+    }
+  }, [rulesEdition])
 
   // Prefetch full race catalog so subrace popup opens without a second network round-trip.
   useEffect(() => {
@@ -1222,7 +1242,29 @@ export function MinimalSheetEditor({
     if (summary) onToast(`Предыстория «${input.selected.name_ru}»: ${summary}`)
   }
 
-  function requestOrApplyBackgroundGrant(selected: CatalogEntry) {
+  async function requestOrApplyBackgroundGrant(selected: CatalogEntry) {
+    if (!isBackgroundComboboxRoot(selected)) {
+      onToast(
+        `«${selected.name_ru}» — выбери корневую предысторию; вариант будет в попапе`,
+      )
+      return
+    }
+
+    let allBackgrounds = backgroundCatalogCacheRef.current
+    if (!allBackgrounds) {
+      try {
+        allBackgrounds = await listCatalogEntries({
+          kind: 'background',
+          edition: rulesEdition,
+        })
+        backgroundCatalogCacheRef.current = allBackgrounds
+      } catch {
+        onToast('Не удалось загрузить справочник предысторий — попробуй ещё раз')
+        return
+      }
+    }
+
+    const variants = backgroundVariantsForRoot(selected, allBackgrounds)
     const def = resolveBackgroundGrantDef({
       backgroundName: selected.name_ru,
       catalogSlug: selected.slug,
@@ -1244,8 +1286,8 @@ export function MinimalSheetEditor({
       return
     }
 
-    if (backgroundGrantNeedsSetupDialog(def)) {
-      setBackgroundGrantPicker({ entry: selected, def })
+    if (variants.length > 0 || backgroundGrantNeedsSetupDialog(def)) {
+      setBackgroundGrantPicker({ root: selected, variants })
       return
     }
 
@@ -1910,7 +1952,7 @@ export function MinimalSheetEditor({
             <Field
               label="Предыстория"
               htmlFor="sheet-background"
-              hint="Из справочника — попап с навыками, языками, инструментами и снаряжением"
+              hint="В списке — корень; вариант, таблицы и гранты — в попапе"
             >
               <CatalogCombobox
                 id="sheet-background"
@@ -1918,6 +1960,7 @@ export function MinimalSheetEditor({
                 edition={baseCharacter.rules_edition as RulesEdition}
                 value={draft.identity.background}
                 placeholder="Начните вводить предысторию"
+                filterEntry={(entry) => isBackgroundComboboxRoot(entry)}
                 onChange={(value, selected) => {
                   if (!selected) {
                     setDraft((prev) => {
@@ -1930,7 +1973,7 @@ export function MinimalSheetEditor({
                     })
                     return
                   }
-                  requestOrApplyBackgroundGrant(selected)
+                  void requestOrApplyBackgroundGrant(selected)
                 }}
               />
               <div className="languages-tools-add" style={{ marginTop: 8 }}>
@@ -2362,8 +2405,8 @@ export function MinimalSheetEditor({
 
       <BackgroundSetupDialog
         open={backgroundGrantPicker != null}
-        entry={backgroundGrantPicker?.entry ?? null}
-        def={backgroundGrantPicker?.def ?? null}
+        root={backgroundGrantPicker?.root ?? null}
+        variants={backgroundGrantPicker?.variants ?? []}
         onClose={() => setBackgroundGrantPicker(null)}
         onConfirm={(result) => {
           commitBackgroundGrant({

@@ -5,6 +5,7 @@ import {
   buildBackgroundFeatureText,
   emptyBackgroundPicks,
   formatBackgroundGrantSummary,
+  formatChoiceTableSummary,
   mergeBackgroundLanguages,
   readAppliedBackgroundGrant,
   resolveBackgroundGrantDef,
@@ -100,6 +101,12 @@ export function revokeBackgroundGrant(
     if (block.key === 'flaws') {
       return { ...block, value: upsertMarkedTextBlock(block.value, 'flaws', '') }
     }
+    if (block.key === 'background') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'backgroundStory', ''),
+      }
+    }
     return block
   })
 
@@ -194,6 +201,12 @@ export function applyBackgroundGrantToDraft(input: {
   }
 
   const personalityText = picks.personalityTraits.join('\n')
+  const storyBits = [
+    def.notesRu,
+    formatChoiceTableSummary(def, picks),
+    def.equipmentNoteRu,
+  ].filter(Boolean)
+  const storyText = storyBits.join('\n')
   const textBlocks = cleared.textBlocks.map((block) => {
     if (block.key === 'traits') {
       return { ...block, value: upsertBackgroundFeatureBlock(block.value, featureText) }
@@ -222,6 +235,12 @@ export function applyBackgroundGrantToDraft(input: {
         value: upsertMarkedTextBlock(block.value, 'flaws', picks.flaw ?? ''),
       }
     }
+    if (block.key === 'background') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'backgroundStory', storyText),
+      }
+    }
     return block
   })
 
@@ -238,6 +257,7 @@ export function applyBackgroundGrantToDraft(input: {
     equipmentOrPicks: { ...picks.equipmentOrPicks },
     equipmentItemIds,
     equipmentCoinsGp,
+    choiceTablePicks: { ...picks.choiceTablePicks },
     personalityTraits: [...picks.personalityTraits],
     ideal: picks.ideal,
     bond: picks.bond,

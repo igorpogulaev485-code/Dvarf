@@ -24,6 +24,14 @@ export type EquipmentOrChoice = {
   options: string[]
 }
 
+/** Extra flavor tables: амплуа, специализация, культура, … */
+export type BackgroundChoiceTable = {
+  id: string
+  labelRu: string
+  count: number
+  options: string[]
+}
+
 export type BackgroundGrantDef = {
   slug: string
   labelRu: string
@@ -40,11 +48,16 @@ export type BackgroundGrantDef = {
   featNoteRu: string | null
   equipment: StartingEquipmentPackage[]
   equipmentOrChoices: EquipmentOrChoice[]
+  equipmentNoteRu: string | null
+  choiceTables: BackgroundChoiceTable[]
   /** Suggested characteristics tables (optional RP picks). */
   personalityTraits: string[]
   ideals: string[]
   bonds: string[]
   flaws: string[]
+  isVariant: boolean
+  variantOf: string | null
+  notesRu: string | null
 }
 
 export type BackgroundGrantPicks = {
@@ -54,6 +67,8 @@ export type BackgroundGrantPicks = {
   equipmentPackageId: string | null
   /** choiceId → selected option name */
   equipmentOrPicks: Record<string, string>
+  /** tableId → selected option labels */
+  choiceTablePicks: Record<string, string[]>
   /** 0 or personalityPickCount (usually 2). */
   personalityTraits: string[]
   ideal: string | null
@@ -74,6 +89,7 @@ export type AppliedBackgroundGrant = {
   equipmentOrPicks: Record<string, string>
   equipmentItemIds: string[]
   equipmentCoinsGp: number
+  choiceTablePicks: Record<string, string[]>
   personalityTraits: string[]
   ideal: string | null
   bond: string | null
@@ -238,6 +254,63 @@ function readEquipmentOrChoices(raw: unknown): EquipmentOrChoice[] {
   return out
 }
 
+function readChoiceTables(raw: unknown): BackgroundChoiceTable[] {
+  if (!Array.isArray(raw)) return []
+  const out: BackgroundChoiceTable[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    const id = typeof row.id === 'string' && row.id.trim() ? row.id.trim() : ''
+    const labelRu =
+      typeof row.labelRu === 'string' && row.labelRu.trim()
+        ? row.labelRu.trim()
+        : id
+    const options = readStringList(row.options)
+    const count = Math.max(1, Math.floor(readNumber(row.count, 1)))
+    if (!id || options.length < 2) continue
+    out.push({ id, labelRu, count, options })
+  }
+  return out
+}
+
+/** Root backgrounds in combobox (variants open inside the setup popup). */
+export function isBackgroundComboboxRoot(entry: {
+  parent_id?: string | null
+  data?: Record<string, unknown> | null
+}): boolean {
+  if (entry.parent_id) return false
+  const data = entry.data ?? {}
+  if (data.is_variant === true) return false
+  if (typeof data.variant_of === 'string' && data.variant_of.trim()) return false
+  return true
+}
+
+/** PHB variants (spy/gladiator/…) for a root catalog row. */
+export function backgroundVariantsForRoot<
+  T extends {
+    id: string
+    slug: string
+    parent_id?: string | null
+    sort_order: number
+    name_ru: string
+    data?: Record<string, unknown> | null
+  },
+>(root: { id: string; slug: string }, catalog: T[]): T[] {
+  return catalog
+    .filter((row) => {
+      if (row.id === root.id) return false
+      if (row.parent_id === root.id) return true
+      const data = row.data ?? {}
+      if (typeof data.variant_of === 'string' && data.variant_of === root.slug) {
+        return true
+      }
+      return false
+    })
+    .sort(
+      (a, b) =>
+        a.sort_order - b.sort_order || a.name_ru.localeCompare(b.name_ru, 'ru'),
+    )
+}
+
 export function backgroundGrantDefFromCatalog(input: {
   slug: string
   nameRu: string
@@ -266,10 +339,16 @@ export function backgroundGrantDefFromCatalog(input: {
     featNoteRu: typeof data.feat_note_ru === 'string' ? data.feat_note_ru : null,
     equipment: readEquipmentPackages(data.starting_equipment),
     equipmentOrChoices: readEquipmentOrChoices(data.equipment_or_choices),
+    equipmentNoteRu:
+      typeof data.equipment_note_ru === 'string' ? data.equipment_note_ru : null,
+    choiceTables: readChoiceTables(data.choice_tables),
     personalityTraits: readStringList(data.personality_traits),
     ideals: readStringList(data.ideals),
     bonds: readStringList(data.bonds),
     flaws: readStringList(data.flaws),
+    isVariant: data.is_variant === true,
+    variantOf: typeof data.variant_of === 'string' ? data.variant_of : null,
+    notesRu: typeof data.notes_ru === 'string' ? data.notes_ru : null,
   }
 }
 
@@ -316,6 +395,7 @@ export function emptyBackgroundPicks(): BackgroundGrantPicks {
     languages: [],
     equipmentPackageId: null,
     equipmentOrPicks: {},
+    choiceTablePicks: {},
     personalityTraits: [],
     ideal: null,
     bond: null,
@@ -422,6 +502,20 @@ export function validateBackgroundGrantPicks(input: {
     }
   }
 
+  for (const table of def.choiceTables) {
+    const picked = picks.choiceTablePicks[table.id] ?? []
+    if (picked.length !== table.count) {
+      return `Выбери «${table.labelRu}»: ${table.count}`
+    }
+    const allowed = new Set(table.options)
+    if (picked.some((row) => !allowed.has(row))) {
+      return `Вариант вне таблицы «${table.labelRu}»`
+    }
+    if (new Set(picked).size !== picked.length) {
+      return `Нельзя выбрать один пункт «${table.labelRu}» дважды`
+    }
+  }
+
   // RP tables are optional (0 = skip), but partial picks must be complete/valid.
   const traitNeed = personalityPickCount(def)
   if (picks.personalityTraits.length > 0) {
@@ -499,11 +593,34 @@ export function readAppliedBackgroundGrant(raw: unknown): AppliedBackgroundGrant
     equipmentOrPicks: readStringMap(row.equipmentOrPicks),
     equipmentItemIds: readStringList(row.equipmentItemIds),
     equipmentCoinsGp: Math.max(0, Math.floor(readNumber(row.equipmentCoinsGp, 0))),
+    choiceTablePicks: readStringListMap(row.choiceTablePicks),
     personalityTraits: readStringList(row.personalityTraits),
     ideal: typeof row.ideal === 'string' ? row.ideal : null,
     bond: typeof row.bond === 'string' ? row.bond : null,
     flaw: typeof row.flaw === 'string' ? row.flaw : null,
   }
+}
+
+function readStringListMap(raw: unknown): Record<string, string[]> {
+  const row = asRecord(raw)
+  const out: Record<string, string[]> = {}
+  for (const [key, value] of Object.entries(row)) {
+    const list = readStringList(value)
+    if (list.length) out[key] = list
+  }
+  return out
+}
+
+export function formatChoiceTableSummary(
+  def: BackgroundGrantDef,
+  picks: BackgroundGrantPicks,
+): string {
+  const bits: string[] = []
+  for (const table of def.choiceTables) {
+    const selected = picks.choiceTablePicks[table.id] ?? []
+    if (selected.length) bits.push(`${table.labelRu}: ${selected.join('; ')}`)
+  }
+  return bits.join('\n')
 }
 
 function readStringMap(raw: unknown): Record<string, string> {
@@ -516,7 +633,7 @@ function readStringMap(raw: unknown): Record<string, string> {
 }
 
 const RP_MARKERS: Record<
-  'personality' | 'ideals' | 'bonds' | 'flaws',
+  'personality' | 'ideals' | 'bonds' | 'flaws' | 'backgroundStory',
   { start: string; end: string }
 > = {
   personality: {
@@ -534,6 +651,10 @@ const RP_MARKERS: Record<
   flaws: {
     start: '<!-- dvarf-bg-flaws -->',
     end: '<!-- /dvarf-bg-flaws -->',
+  },
+  backgroundStory: {
+    start: '<!-- dvarf-bg-story -->',
+    end: '<!-- /dvarf-bg-story -->',
   },
 }
 

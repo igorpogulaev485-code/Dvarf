@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import {
   BackgroundSetupDialog,
@@ -18,7 +18,9 @@ import { readInventory } from '../characters/inventory'
 import { readTextBlocks } from '../characters/textBlocks'
 import {
   backgroundGrantNeedsSetupDialog,
+  backgroundVariantsForRoot,
   emptyBackgroundPicks,
+  isBackgroundComboboxRoot,
   resolveBackgroundGrantDef,
   type BackgroundGrantDef,
   type BackgroundGrantPicks,
@@ -29,7 +31,7 @@ import {
 import { readAppliedSubclassGrants } from '../characters/subclassEffects'
 import { readAppliedRaceGrant } from '../../shared/dnd/raceGrants'
 import type { CharacterDetail, RulesEdition } from '../../shared/api/characters'
-import type { CatalogEntry } from '../../shared/api/catalog'
+import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import { asRecord } from '../characters/sheetTypes'
 import { Button, Stack, Text } from '../../ui'
 import type { ClassicPatch } from './fromApi'
@@ -142,10 +144,28 @@ function writeSliceToSheet(
 
 export function ClassicBackgroundPicker({ character, onPatch, onToast }: Props) {
   const [picker, setPicker] = useState<{
-    entry: CatalogEntry
-    def: BackgroundGrantDef
+    root: CatalogEntry
+    variants: CatalogEntry[]
   } | null>(null)
   const [homebrewOpen, setHomebrewOpen] = useState(false)
+  const catalogCacheRef = useRef<CatalogEntry[] | null>(null)
+  const edition = character.rules_edition as RulesEdition
+
+  useEffect(() => {
+    let active = true
+    catalogCacheRef.current = null
+    listCatalogEntries({ kind: 'background', edition })
+      .then((rows) => {
+        if (!active) return
+        catalogCacheRef.current = rows
+      })
+      .catch(() => {
+        /* retry on select */
+      })
+    return () => {
+      active = false
+    }
+  }, [edition, character.id])
 
   const currentName = useMemo(() => {
     const identity = asRecord(asRecord(character.sheet).identity)
@@ -159,6 +179,9 @@ export function ClassicBackgroundPicker({ character, onPatch, onToast }: Props) 
       grant.skills.length ? `навыки ${grant.skills.length}` : null,
       grant.tools.length ? `инстр. ${grant.tools.length}` : null,
       grant.languages.length ? `языки ${grant.languages.length}` : null,
+      Object.keys(grant.choiceTablePicks).length
+        ? `таблицы ${Object.keys(grant.choiceTablePicks).length}`
+        : null,
       grant.featureNameRu ? grant.featureNameRu : null,
     ]
     return bits.filter(Boolean).join(' · ')
@@ -188,7 +211,29 @@ export function ClassicBackgroundPicker({ character, onPatch, onToast }: Props) 
     onToast?.(`Предыстория «${input.selected.name_ru}»: ${applied.summary}`)
   }
 
-  function requestOrApply(selected: CatalogEntry) {
+  async function requestOrApply(selected: CatalogEntry) {
+    if (!isBackgroundComboboxRoot(selected)) {
+      onToast?.(
+        `«${selected.name_ru}» — выбери корневую предысторию; вариант будет в попапе`,
+      )
+      return
+    }
+
+    let allBackgrounds = catalogCacheRef.current
+    if (!allBackgrounds) {
+      try {
+        allBackgrounds = await listCatalogEntries({
+          kind: 'background',
+          edition,
+        })
+        catalogCacheRef.current = allBackgrounds
+      } catch {
+        onToast?.('Не удалось загрузить справочник предысторий — попробуй ещё раз')
+        return
+      }
+    }
+
+    const variants = backgroundVariantsForRoot(selected, allBackgrounds)
     const def = resolveBackgroundGrantDef({
       backgroundName: selected.name_ru,
       catalogSlug: selected.slug,
@@ -205,11 +250,25 @@ export function ClassicBackgroundPicker({ character, onPatch, onToast }: Props) 
       onToast?.(`«${selected.name_ru}» без пакета — только название`)
       return
     }
-    if (backgroundGrantNeedsSetupDialog(def)) {
-      setPicker({ entry: selected, def })
+    if (variants.length > 0 || backgroundGrantNeedsSetupDialog(def)) {
+      setPicker({ root: selected, variants })
       return
     }
     commit({ selected, picks: emptyBackgroundPicks(), def })
+  }
+
+  function clearBackground() {
+    const cleared = revokeBackgroundGrant(sliceFromCharacter(character))
+    const sheet = writeSliceToSheet(
+      character,
+      {
+        ...cleared,
+        identity: { ...cleared.identity, background: '' },
+      },
+      null,
+    )
+    onPatch({ sheet })
+    onToast?.('Предыстория снята')
   }
 
   function applyHomebrew(name: string) {
@@ -237,26 +296,23 @@ export function ClassicBackgroundPicker({ character, onPatch, onToast }: Props) 
           <CatalogCombobox
             id="classic-background"
             kind="background"
-            edition={character.rules_edition as RulesEdition}
+            edition={edition}
             value={currentName}
-            placeholder="Начните вводить предысторию"
-            onChange={(value, selected) => {
+            placeholder="Выбери предысторию — гранты применятся автоматически"
+            filterEntry={(entry) => isBackgroundComboboxRoot(entry)}
+            onChange={(_value, selected) => {
               if (!selected) {
-                const cleared = revokeBackgroundGrant(sliceFromCharacter(character))
-                const sheet = writeSliceToSheet(
-                  character,
-                  {
-                    ...cleared,
-                    identity: { ...cleared.identity, background: value },
-                  },
-                  null,
-                )
-                onPatch({ sheet })
+                // Free-typing does not write to the blank; only catalog / clear / homebrew.
                 return
               }
-              requestOrApply(selected)
+              void requestOrApply(selected)
             }}
           />
+          {currentName ? (
+            <Button type="button" variant="secondary" onClick={clearBackground}>
+              Снять
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="secondary"
@@ -266,15 +322,15 @@ export function ClassicBackgroundPicker({ character, onPatch, onToast }: Props) 
           </Button>
         </div>
         <Text tone="muted">
-          Те же гранты, что на цифровом листе: навыки, языки, инструменты, снаряжение и умение.
-          Попадут в инвентарь и блок «Умения».
+          Корень в списке; вариант (шпион, гладиатор…), таблицы и снаряжение — в попапе.
+          Поле «Предыстория» на бланке заполняется отсюда (без ручного ввода).
         </Text>
       </Stack>
 
       <BackgroundSetupDialog
         open={picker != null}
-        entry={picker?.entry ?? null}
-        def={picker?.def ?? null}
+        root={picker?.root ?? null}
+        variants={picker?.variants ?? []}
         onClose={() => setPicker(null)}
         onConfirm={(result) => {
           commit({
