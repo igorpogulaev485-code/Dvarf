@@ -430,6 +430,15 @@
 
 ## В ветках / ещё не на проде
 
+### 2026-10-07 — FEATS ERLW wave (Эберрон)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Аберрантный знак | +1 Тел, заговор+заклинание чародея (ERLW) | Дикий «магический» бэкап без полноценного класса |
+| Клинок вернувшегося | Эльф/полуэльф: двуклинковый ятаган (WGTE) | Финт-билд с двуклинковым ятаганом |
+
+На проде: **нет** · ветка `cursor/feats-erlw-wave-ef23` · PR #58 · tip не менять до «залей»
+
 ### 2026-10-07 — FEATS FTD wave (Фицбан)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -556,3 +565,4 @@
 | 2026-10-07 | `cursor/feats-tce-wave-ef23` · PR #55 | TCE feats catalog (26) + race prereqs; alembic `x3y4`; на проде нет |
 | 2026-10-07 | `cursor/feats-xge-wave-ef23` · PR #56 | XGE unique feats (5) + Dragon Hide AC; alembic `y4z5`; на проде нет |
 | 2026-10-07 | `cursor/feats-ftd-wave-ef23` · PR #57 | FTD dragon gift feats (3) + PB-scaled pools; alembic `z5a6`; на проде нет |
+| 2026-10-07 | `cursor/feats-erlw-wave-ef23` · PR #58 | ERLW Aberrant Dragonmark + WGTE Revenant Blade; alembic `a7b8`; на проде нет |
