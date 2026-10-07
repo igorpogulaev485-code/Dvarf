@@ -158,6 +158,9 @@ import { passiveScore, skillModifierFromState } from '../../shared/dnd/passives'
 
 type MinimalSheetEditorProps = {
   character: CharacterDetail
+  /** Fresh create: highlight class-before-race path once. */
+  createGuide?: 'class-first' | null
+  onCreateGuideConsumed?: () => void
   onSaved: (character: CharacterDetail) => void
   onToast: (message: string) => void
   onRemoteSave?: (message: Extract<SheetSyncMessage, { type: 'sheet-saved' }>) => void
@@ -324,6 +327,8 @@ function skillMark(state: { is_proficient: boolean; is_expertise: boolean }) {
 
 export function MinimalSheetEditor({
   character,
+  createGuide = null,
+  onCreateGuideConsumed,
   onSaved,
   onToast,
   onRemoteSave,
@@ -419,6 +424,16 @@ export function MinimalSheetEditor({
     setConflictOpen(false)
     setError(null)
   }, [character])
+
+  useEffect(() => {
+    if (createGuide !== 'class-first') return
+    const node = document.getElementById('sheet-class-primary')
+    if (node instanceof HTMLElement) {
+      node.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      window.setTimeout(() => node.focus(), 120)
+    }
+    onCreateGuideConsumed?.()
+  }, [createGuide, onCreateGuideConsumed])
 
   // Prefetch full race catalog so subrace popup opens without a second network round-trip.
   useEffect(() => {
@@ -1486,57 +1501,12 @@ export function MinimalSheetEditor({
           <Field label="Бонус мастерства">
             <Input value={formatModifier(proficiencyBonus)} readOnly />
           </Field>
-          <div className="sheet-grid sheet-grid--2">
-            <Field
-              label="Раса"
-              htmlFor="sheet-race"
-              hint="В списке — раса; подрасу и остальные развилки выбираешь в попапе"
-            >
-              <CatalogCombobox
-                id="sheet-race"
-                kind="race"
-                edition={baseCharacter.rules_edition as RulesEdition}
-                value={draft.raceName}
-                placeholder="Начните вводить расу"
-                filterEntry={(entry) => isRaceComboboxRoot(entry)}
-                onChange={(value, selected) => {
-                  if (!selected) {
-                    setDraft((prev) => ({
-                      ...prev,
-                      raceName: value,
-                      raceCatalogId: null,
-                    }))
-                    return
-                  }
-                  void requestOrApplyRaceGrant(selected)
-                }}
-              />
-              <div className="languages-tools-add" style={{ marginTop: 8 }}>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setRaceHomebrewOpen(true)}
-                >
-                  Хомбрю
-                </Button>
-              </div>
-            </Field>
-            <Field label="Размер" htmlFor="sheet-size">
-              <select
-                id="sheet-size"
-                className="play-select"
-                value={draft.identity.size || 'medium'}
-                onChange={(event) => patchIdentity({ size: event.target.value })}
-              >
-                <option value="tiny">Крошечный</option>
-                <option value="small">Маленький</option>
-                <option value="medium">Средний</option>
-                <option value="large">Большой</option>
-                <option value="huge">Огромный</option>
-                <option value="gargantuan">Громадный</option>
-              </select>
-            </Field>
-          </div>
+          {!primaryClass?.name.trim() ? (
+            <Text tone="muted">
+              Создание: сначала класс (и архетип, если уже есть), потом раса — так метки и расовые
+              списки заклинаний сразу видят, кастер ты или нет.
+            </Text>
+          ) : null}
           <div>
             <Text tone="muted">Классы</Text>
             <Stack gap={10}>
@@ -1545,9 +1515,14 @@ export function MinimalSheetEditor({
                   <div className="sheet-grid sheet-grid--2">
                     <Field
                       label={draft.classes.length > 1 ? `Класс ${index + 1}` : 'Класс'}
-                      hint={index === 0 ? 'Основной для карточки персонажа' : undefined}
+                      hint={
+                        index === 0
+                          ? 'Шаг 1 · основной класс для карточки персонажа'
+                          : undefined
+                      }
                     >
                       <CatalogCombobox
+                        id={index === 0 ? 'sheet-class-primary' : undefined}
                         kind="class"
                         edition={baseCharacter.rules_edition as RulesEdition}
                         value={row.name}
@@ -1691,6 +1666,68 @@ export function MinimalSheetEditor({
               развилками (навыки, инструменты, стартовое снаряжение). «Хомбрю» — только название на
               листе.
             </Text>
+          </div>
+          <div className="sheet-grid sheet-grid--2">
+            <Field
+              label="Раса"
+              htmlFor="sheet-race"
+              hint={
+                primaryClass?.name.trim()
+                  ? 'Шаг 2 · в списке — раса; подрасу и развилки выбираешь в попапе'
+                  : 'Сначала выбери класс выше — потом откроется выбор расы'
+              }
+            >
+              <CatalogCombobox
+                id="sheet-race"
+                kind="race"
+                edition={baseCharacter.rules_edition as RulesEdition}
+                value={draft.raceName}
+                placeholder={
+                  primaryClass?.name.trim()
+                    ? 'Начните вводить расу'
+                    : 'Сначала выбери класс'
+                }
+                disabled={!primaryClass?.name.trim()}
+                filterEntry={(entry) => isRaceComboboxRoot(entry)}
+                onChange={(value, selected) => {
+                  if (!primaryClass?.name.trim()) return
+                  if (!selected) {
+                    setDraft((prev) => ({
+                      ...prev,
+                      raceName: value,
+                      raceCatalogId: null,
+                    }))
+                    return
+                  }
+                  void requestOrApplyRaceGrant(selected)
+                }}
+              />
+              <div className="languages-tools-add" style={{ marginTop: 8 }}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!primaryClass?.name.trim()}
+                  onClick={() => setRaceHomebrewOpen(true)}
+                >
+                  Хомбрю
+                </Button>
+              </div>
+            </Field>
+            <Field label="Размер" htmlFor="sheet-size">
+              <select
+                id="sheet-size"
+                className="play-select"
+                value={draft.identity.size || 'medium'}
+                onChange={(event) => patchIdentity({ size: event.target.value })}
+              >
+                <option value="tiny">Крошечный</option>
+                <option value="small">Маленький</option>
+                <option value="medium">Средний</option>
+                <option value="large">Большой</option>
+                <option value="huge">Огромный</option>
+                <option value="gargantuan">Громадный</option>
+              </select>
+            </Field>
           </div>
           <div className="sheet-grid sheet-grid--2">
             <Field label="Предыстория" htmlFor="sheet-background">

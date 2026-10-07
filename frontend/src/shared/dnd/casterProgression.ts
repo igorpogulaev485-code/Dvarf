@@ -2,6 +2,11 @@
 
 import type { ClassLevelEntry } from './classLevels'
 import {
+  localFeaturePack,
+  resolveClassFeatureSlug,
+  resolveSubclassFeatureSlug,
+} from './classFeatures'
+import {
   clampPactSlots,
   clampSlot,
   type PactSlotState,
@@ -190,20 +195,18 @@ export function resolveClassCasterSlug(className: string): string | null {
 }
 
 /**
- * Subclass free-text → ⅓-caster Spellcasting feature (PHB 2014).
- * Matched against `ClassLevelEntry.subclass_name` (RU/EN aliases).
- * Only entries that actually grant the Spellcasting class feature.
+ * Subclass → Spellcasting unlock.
+ * Prefer catalog/feature-pack slug (`spellcasting_*` feature at unlocked level).
+ * Free-text aliases remain a temporary bridge for homebrew / unmatched names.
  */
 type SubclassCasterUnlock = {
-  /** Parent class slug(s) this archetype belongs to. */
   classSlugs: string[]
-  /** Minimum class level when Spellcasting appears. */
   minLevel: number
-  /** Normalized name fragments (lowercase). */
   aliases: string[]
 }
 
-const SUBCLASS_SPELLCASTING: SubclassCasterUnlock[] = [
+/** Fallback only when slug/feature pack cannot resolve the archetype. */
+const SUBCLASS_SPELLCASTING_ALIASES: SubclassCasterUnlock[] = [
   {
     classSlugs: ['fighter'],
     minLevel: 3,
@@ -231,17 +234,58 @@ function normalizeName(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
-/** True when free-text subclass name matches a known spellcasting archetype. */
+function subclassFeatureGrantsSpellcasting(input: {
+  classSlug: string
+  subclassSlug: string
+  classLevel: number
+}): boolean {
+  const pack = localFeaturePack(input.classSlug)
+  const features = pack?.subclasses[input.subclassSlug]
+  if (!features?.length) return false
+  const lv = Math.max(0, Math.floor(input.classLevel))
+  return features.some(
+    (feature) =>
+      feature.level <= lv &&
+      (feature.id.startsWith('spellcasting') ||
+        feature.name_en?.toLowerCase() === 'spellcasting'),
+  )
+}
+
+/** True when subclass (slug or free-text) grants Spellcasting at this class level. */
 export function subclassGrantsSpellcasting(input: {
   classSlug: string | null
   subclassName: string
   classLevel: number
+  /** Catalog / grant slug when known — preferred over free-text. */
+  subclassSlug?: string | null
 }): boolean {
   if (!input.classSlug) return false
   const lv = Math.max(0, Math.floor(input.classLevel))
+  if (lv <= 0) return false
+
+  const subclassSlug =
+    input.subclassSlug?.trim() ||
+    resolveSubclassFeatureSlug(input.subclassName) ||
+    null
+
+  if (subclassSlug) {
+    // Prefer feature-pack class slug (same maps as unlockFeaturesForClasses).
+    const featureClassSlug =
+      resolveClassFeatureSlug(input.classSlug) ?? input.classSlug
+    if (
+      subclassFeatureGrantsSpellcasting({
+        classSlug: featureClassSlug,
+        subclassSlug,
+        classLevel: lv,
+      })
+    ) {
+      return true
+    }
+  }
+
   const name = normalizeName(input.subclassName)
   if (!name) return false
-  for (const row of SUBCLASS_SPELLCASTING) {
+  for (const row of SUBCLASS_SPELLCASTING_ALIASES) {
     if (!row.classSlugs.includes(input.classSlug)) continue
     if (lv < row.minLevel) continue
     if (row.aliases.some((alias) => name.includes(alias) || alias.includes(name))) {

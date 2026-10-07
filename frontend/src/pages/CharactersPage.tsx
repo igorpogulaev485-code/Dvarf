@@ -72,7 +72,10 @@ export function CharactersPage() {
     try {
       const created = await createCharacter(edition)
       navigate(`/characters/${created.id}`, {
-        state: { toast: 'Персонаж создан' },
+        state: {
+          toast: 'Персонаж создан — сначала выбери класс, потом расу',
+          createGuide: 'class-first',
+        },
       })
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось создать персонажа')

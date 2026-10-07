@@ -8,6 +8,8 @@ import { Button, Dialog, Field, Input, Stack, Text, Toast } from '../ui'
 
 type LocationState = {
   toast?: string
+  /** Fresh create: nudge class-before-race path on the sheet. */
+  createGuide?: 'class-first'
 }
 
 export function CharacterDetailPage() {
@@ -23,13 +25,15 @@ export function CharacterDetailPage() {
   const [lobbyCode, setLobbyCode] = useState('')
   const [lobbyError, setLobbyError] = useState<string | null>(null)
   const [joining, setJoining] = useState(false)
-  const [toast, setToast] = useState<string | null>(
-    (location.state as LocationState | null)?.toast ?? null,
+  const initialState = location.state as LocationState | null
+  const [toast, setToast] = useState<string | null>(initialState?.toast ?? null)
+  const [createGuide, setCreateGuide] = useState<'class-first' | null>(
+    initialState?.createGuide ?? null,
   )
   const closeToast = useCallback(() => setToast(null), [])
 
   useEffect(() => {
-    if ((location.state as LocationState | null)?.toast) {
+    if ((location.state as LocationState | null)?.toast || (location.state as LocationState | null)?.createGuide) {
       navigate(location.pathname, { replace: true, state: null })
     }
   }, [location.pathname, location.state, navigate])
@@ -160,6 +164,8 @@ export function CharacterDetailPage() {
           <MinimalSheetEditor
             key={character.id}
             character={character}
+            createGuide={createGuide}
+            onCreateGuideConsumed={() => setCreateGuide(null)}
             onSaved={(item) => {
               setCharacter(item)
               setRemoteNotice(null)
