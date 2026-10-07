@@ -405,3 +405,4 @@
 | 2026-10-07 | `cursor/race-asi-flexible-f10e` · PR #42 | ASI +2/+1 или три +1; tip → эта ветка; alembic `d3e4` |
 | 2026-10-07 | `cursor/race-natural-armor-f10e` · PR #43 | Природная броня → авто-КД; tip → эта ветка; alembic `e4f5` |
 | 2026-10-07 | `cursor/race-natural-weapons-f10e` · PR #44 | Природное оружие → карточки атак; tip → эта ветка; alembic `f5a6` |
+| 2026-10-07 | `cursor/race-natural-weapons-f10e` · PR #44 | Аудит костей: тортл 1к4, сатир 1к6, людоящер рубящий, дампир ТЕЛ; alembic `g6b7` |
