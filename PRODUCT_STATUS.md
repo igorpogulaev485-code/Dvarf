@@ -430,6 +430,14 @@
 
 ## В ветках / ещё не на проде
 
+### 2026-10-07 — FEATS BMT wave (Книга многих вещей)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Картомант | 4 ур. + spellcasting; колода как фокус; туз в рукаве | Заклинание в карте бонусным действием |
+
+На проде: **нет** · ветка `cursor/feats-bmt-wave-592a` · PR #64 · tip не менять до «залей»
+
 ### 2026-10-07 — FEATS PAM wave (Planescape)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -625,3 +633,4 @@
 | 2026-10-07 | `cursor/feats-bpgg-wave-ef23` · PR #61 | BPGG Strike of the Giants chain + Rune Shaper; alembic `e1f2`; на проде нет |
 | 2026-10-07 | `cursor/feats-prereq-engine-592a` · PR #62 | Feat prereq engine (class/bg/mutex) + feat-linked backgrounds; alembic `f2a3`; на проде нет |
 | 2026-10-07 | `cursor/feats-pam-wave-592a` · PR #63 | PAM Planescape 7 feats + plane branches; alembic `g3b4`; на проде нет |
+| 2026-10-07 | `cursor/feats-bmt-wave-592a` · PR #64 | BMT Cartomancer; alembic `h4c5`; на проде нет |
