@@ -1,13 +1,13 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/race-dragonborn-ftd-f10e` · http://201.34.132.252/
+Прод tip: `cursor/race-elf-halfling-gaps-f10e` · http://201.34.132.252/
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
 | Дварф | 6: горный/холмовой PHB, дуэргар MTF, щитовой/золотой SCAG, метка опеки ERLW | ✅ 6 | ✅ `subrace_required` | ✅ | |
-| Эльф | PHB 3 + MToF 3 + метка тени ERLW + бледный EGW + астральный AAG | ✅ 9 | ✅ | ⏳ | `a0b1` |
-| Полурослик | PHB 2 + SCAG + ERLW 2 + лотосден EGW | ✅ 6 | ✅ | ⏳ | `a0b1` |
+| Эльф | PHB 3 + MToF 3 + метка тени ERLW + бледный EGW + астральный AAG | ✅ 9 | ✅ | ✅ | `a0b1` |
+| Полурослик | PHB 2 + SCAG + ERLW 2 + лотосден EGW | ✅ 6 | ✅ | ✅ | `a0b1` |
 | Гном | PHB 2 + глубинный + метка письма | ✅ 4 | ✅ | ✅ | |
 | Человек | PHB + variant + 5 меток ERLW | ✅ 6 | ✅ optional | ✅ | |
 | Драконорождённый | PHB + 3 FTD | ✅ 3 | ✅ optional | ✅ | |
@@ -25,4 +25,4 @@
 
 ## Инфра-заметка
 
-Актуальный tip head: `f9a0b1c2d3e4` (драконорождённый FTD). Новые миграции: `down_revision = f9a0b1c2d3e4`.
+Актуальный tip head: `a0b1c2d3e4f5` (эльф/полурослик gaps).
