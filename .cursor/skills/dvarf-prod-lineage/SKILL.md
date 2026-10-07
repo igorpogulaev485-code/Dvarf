@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/race-level-unlocks-f10e
+cursor/mobile-sheet-compact-acbe
 ```
 
 URL: http://201.34.132.252/
