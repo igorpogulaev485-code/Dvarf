@@ -362,10 +362,11 @@ export function multiclassCasterLevel(
   classes: ClassLevelEntry[],
   subclassCasters?: SubclassCasterOverlay[],
 ): number {
+  const overlays = resolveSubclassCasterOverlays(classes, subclassCasters ?? [])
   let total = 0
   for (const row of classes) {
     const lv = Math.max(0, Math.floor(row.level))
-    const overlay = overlayForClass(subclassCasters, row.id)
+    const overlay = overlayForClass(overlays, row.id)
     if (overlay?.progression === 'third') {
       total += Math.floor(lv / 3)
       continue
@@ -454,6 +455,46 @@ type SlotContributor =
       ability: SpellcastingAbility | null
     }
 
+/**
+ * Merge catalog third-caster grants with inferred EK / Arcane Trickster from
+ * subclass name / feature-pack slug (so free-text archetypes still get slots).
+ */
+export function resolveSubclassCasterOverlays(
+  classes: ClassLevelEntry[],
+  fromGrants: SubclassCasterOverlay[] = [],
+): SubclassCasterOverlay[] {
+  const byId = new Map<string, SubclassCasterOverlay>()
+  for (const row of fromGrants) {
+    if (row.progression === 'third') byId.set(row.classEntryId, row)
+  }
+  for (const row of classes) {
+    if (byId.has(row.id)) continue
+    const classSlug = resolveClassCasterSlug(row.name)
+    if (!classSlug) continue
+    const def = classCasterDef(classSlug)
+    // Only non-caster bases unlock ⅓ tables (fighter EK / rogue AT).
+    if (!def || def.progression !== 'none') continue
+    const lv = Math.max(0, Math.floor(row.level))
+    if (lv < 3) continue
+    if (
+      !subclassGrantsSpellcasting({
+        classSlug,
+        subclassName: row.subclass_name,
+        classLevel: lv,
+        subclassSlug: resolveSubclassFeatureSlug(row.subclass_name),
+      })
+    ) {
+      continue
+    }
+    byId.set(row.id, {
+      classEntryId: row.id,
+      progression: 'third',
+      ability: 'int',
+    })
+  }
+  return [...byId.values()]
+}
+
 function slotContributors(
   classes: ClassLevelEntry[],
   overlays: SubclassCasterOverlay[],
@@ -467,6 +508,9 @@ function slotContributors(
     }
     const def = classCasterDef(resolveClassCasterSlug(row.name))
     if (!def) continue
+    const lv = Math.max(0, Math.floor(row.level))
+    // Paladin/ranger Spellcasting starts at 2 (PHB); L1 must not count as a slot source.
+    if (def.progression === 'half' && lv < 2) continue
     if (
       def.progression === 'full' ||
       def.progression === 'half' ||
@@ -486,7 +530,7 @@ export function suggestSpellcastingFromClasses(input: {
   const classes = input.classes.filter((row) => row.name.trim() && row.level > 0)
   if (classes.length === 0) return null
 
-  const overlays = input.subclassCasters ?? []
+  const overlays = resolveSubclassCasterOverlays(classes, input.subclassCasters ?? [])
   const warlockLvl = warlockLevels(classes)
   const contributors = slotContributors(classes, overlays)
   const pact_slots = warlockLvl > 0 ? warlockPactForLevel(warlockLvl) : null
