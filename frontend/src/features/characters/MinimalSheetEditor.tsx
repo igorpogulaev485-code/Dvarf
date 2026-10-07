@@ -300,6 +300,7 @@ export function MinimalSheetEditor({
   const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
   const channelRef = useRef<BroadcastChannel | null>(null)
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
+  const [raceCatalogRows, setRaceCatalogRows] = useState<CatalogEntry[]>([])
 
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
@@ -324,14 +325,17 @@ export function MinimalSheetEditor({
   useEffect(() => {
     let active = true
     raceCatalogCacheRef.current = null
+    setRaceCatalogRows([])
     listCatalogEntries({ kind: 'race', edition: rulesEdition })
       .then((rows) => {
         if (!active) return
         raceCatalogCacheRef.current = rows
+        setRaceCatalogRows(rows)
       })
       .catch(() => {
         if (!active) return
         raceCatalogCacheRef.current = null
+        setRaceCatalogRows([])
       })
     return () => {
       active = false
@@ -736,12 +740,43 @@ export function MinimalSheetEditor({
 
   const armorClass = useMemo(() => {
     const pieces = equippedArmorPieces(draft.inventory.items)
+    const mods = {
+      str: abilityModifier(draft.abilities.str),
+      dex: abilityModifier(draft.abilities.dex),
+      con: abilityModifier(draft.abilities.con),
+      int: abilityModifier(draft.abilities.int),
+      wis: abilityModifier(draft.abilities.wis),
+      cha: abilityModifier(draft.abilities.cha),
+    }
+    let naturalArmor = draft.raceGrant?.naturalArmor ?? null
+    // Backfill for sheets that applied the race before natural_armor was catalogued.
+    if (!naturalArmor && draft.raceGrant) {
+      const entry =
+        raceCatalogRows.find((row) => row.id === draft.raceGrant!.raceCatalogId) ??
+        raceCatalogRows.find((row) => row.slug === draft.raceGrant!.slug)
+      if (entry) {
+        naturalArmor =
+          resolveRaceGrantDef({
+            raceName: entry.name_ru,
+            catalogSlug: entry.slug,
+            catalogData: entry.data,
+            nameRu: entry.name_ru,
+          })?.naturalArmor ?? null
+      }
+    }
     return computeArmorClass({
-      dexMod: abilityModifier(draft.abilities.dex),
+      dexMod: mods.dex,
+      abilityMods: mods,
       armor: pieces.armor,
       shield: pieces.shield,
+      naturalArmor,
     })
-  }, [draft.abilities.dex, draft.inventory.items])
+  }, [
+    draft.abilities,
+    draft.inventory.items,
+    draft.raceGrant,
+    raceCatalogRows,
+  ])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
     setDraft((prev) => ({ ...prev, identity: { ...prev.identity, ...patch } }))

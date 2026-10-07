@@ -1,6 +1,10 @@
 /** PHB 2014 race grants: catalog.data → picks → ledger (mirrors classGrants). */
 
+import type { NaturalArmor } from './armor'
+
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
+
+export type { NaturalArmor }
 
 export type RaceSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan'
 
@@ -91,6 +95,7 @@ export type RaceGrantDef = {
   ancestryChoices: RaceAncestryOption[]
   featNoteRu: string | null
   traitsText: string
+  naturalArmor: NaturalArmor | null
 }
 
 export type RaceGrantPicks = {
@@ -123,6 +128,7 @@ export type AppliedRaceGrant = {
   traitsText: string
   ancestryId: string | null
   featNoteRu: string | null
+  naturalArmor: NaturalArmor | null
 }
 
 const ABILITY_KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
@@ -327,6 +333,43 @@ function readArmor(raw: unknown): RaceGrantDef['armorProficiencies'] {
   )
 }
 
+function readNaturalArmor(raw: unknown): NaturalArmor | null {
+  const obj = asRecord(raw)
+  const base = Math.floor(readNumber(obj.base, NaN))
+  if (!Number.isFinite(base)) return null
+  const modRaw = obj.mod ?? obj.ability
+  const mod =
+    typeof modRaw === 'string' && ABILITY_KEYS.includes(modRaw as AbilityKey)
+      ? (modRaw as AbilityKey)
+      : null
+  const modCapRaw = obj.mod_cap ?? obj.modCap
+  const modCap =
+    typeof modCapRaw === 'number' && Number.isFinite(modCapRaw)
+      ? Math.floor(modCapRaw)
+      : null
+  const armoredBonusRaw = obj.armored_bonus ?? obj.armoredBonus
+  const armoredBonus =
+    typeof armoredBonusRaw === 'number' && Number.isFinite(armoredBonusRaw)
+      ? Math.floor(armoredBonusRaw)
+      : undefined
+  const labelRu =
+    typeof obj.label_ru === 'string'
+      ? obj.label_ru
+      : typeof obj.labelRu === 'string'
+        ? obj.labelRu
+        : 'Природная броня'
+  const allowsShield =
+    obj.allows_shield === false || obj.allowsShield === false ? false : true
+  return {
+    base,
+    mod,
+    modCap,
+    allowsShield,
+    armoredBonus,
+    labelRu,
+  }
+}
+
 export function catalogHasRaceGrantData(data: Record<string, unknown>): boolean {
   return (
     data.speed != null ||
@@ -409,6 +452,7 @@ export function raceGrantDefFromCatalog(input: {
         : typeof data.traitsText === 'string'
           ? data.traitsText.trim()
           : '',
+    naturalArmor: readNaturalArmor(data.natural_armor ?? data.naturalArmor),
   }
 }
 
@@ -613,5 +657,6 @@ export function readAppliedRaceGrant(raw: unknown): AppliedRaceGrant | null {
     traitsText: typeof row.traitsText === 'string' ? row.traitsText : '',
     ancestryId: typeof row.ancestryId === 'string' ? row.ancestryId : null,
     featNoteRu: typeof row.featNoteRu === 'string' ? row.featNoteRu : null,
+    naturalArmor: readNaturalArmor(row.naturalArmor ?? row.natural_armor),
   }
 }

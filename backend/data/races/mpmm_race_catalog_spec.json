@@ -422,6 +422,12 @@
           "stealth",
           "survival"
         ]
+      },
+      "natural_armor": {
+        "base": 13,
+        "mod": "dex",
+        "allows_shield": true,
+        "label_ru": "Природный доспех"
       }
     },
     {
@@ -571,7 +577,13 @@
       "subrace_required": false,
       "skill_proficiencies": [
         "survival"
-      ]
+      ],
+      "natural_armor": {
+        "base": 17,
+        "mod": null,
+        "allows_shield": true,
+        "label_ru": "Природный доспех"
+      }
     },
     {
       "slug": "triton",
