@@ -1,4 +1,9 @@
 import {
+  parseSpellCatalogData,
+  type SpellComponents,
+  type SpellScaleTable,
+} from '../../shared/dnd/spellCatalog'
+import {
   clampPactSlots,
   clampSlot,
   countsTowardPrepareLimit,
@@ -23,6 +28,15 @@ export type SheetSpell = {
   attack_or_save: string
   damage: string
   concentration: boolean
+  duration?: string
+  ritual?: boolean
+  school?: string
+  source_book?: string
+  /** Snapshot for UI / later cast scaling; full description stays in catalog. */
+  components?: SpellComponents
+  damage_at_character_level?: SpellScaleTable
+  damage_at_slot_level?: SpellScaleTable
+  higher_levels?: string
   /** Race innate / granted spells; stripped on race revoke. */
   source_kind?: SpellSourceKind
   /**
@@ -84,12 +98,32 @@ function readRaceGrantMode(raw: unknown): 'innate' | 'spell_list' | undefined {
   return undefined
 }
 
+function readScaleTable(raw: unknown): SpellScaleTable | undefined {
+  const row = asRecord(raw)
+  const out: SpellScaleTable = {}
+  for (const [key, value] of Object.entries(row)) {
+    if (typeof value === 'string' && value.trim()) out[key] = value
+  }
+  return Object.keys(out).length > 0 ? out : undefined
+}
+
+function readComponents(raw: unknown): SpellComponents | undefined {
+  if (raw == null) return undefined
+  if (Array.isArray(raw) || (typeof raw === 'object' && raw)) {
+    return parseSpellCatalogData({ components: raw }).components
+  }
+  return undefined
+}
+
 function readSpell(raw: unknown, index: number): SheetSpell {
   const row = asRecord(raw)
   const level = Math.max(0, Math.min(9, Math.floor(readNumber(row.level, 0))))
   const id = typeof row.id === 'string' ? row.id : `spell-${index}`
   const sourceKind = readSpellSourceKind(row.source_kind ?? row.sourceKind, id)
   const raceGrant = readRaceGrantMode(row.race_grant ?? row.raceGrant)
+  const components = readComponents(row.components)
+  const damageAtCharacter = readScaleTable(row.damage_at_character_level)
+  const damageAtSlot = readScaleTable(row.damage_at_slot_level)
   return {
     id,
     name: typeof row.name === 'string' ? row.name : '',
@@ -107,6 +141,20 @@ function readSpell(raw: unknown, index: number): SheetSpell {
           : '',
     damage: typeof row.damage === 'string' ? row.damage : '',
     concentration: Boolean(row.concentration),
+    ...(typeof row.duration === 'string' && row.duration
+      ? { duration: row.duration }
+      : {}),
+    ...(row.ritual === true ? { ritual: true } : {}),
+    ...(typeof row.school === 'string' && row.school ? { school: row.school } : {}),
+    ...(typeof row.source_book === 'string' && row.source_book
+      ? { source_book: row.source_book }
+      : {}),
+    ...(components ? { components } : {}),
+    ...(damageAtCharacter ? { damage_at_character_level: damageAtCharacter } : {}),
+    ...(damageAtSlot ? { damage_at_slot_level: damageAtSlot } : {}),
+    ...(typeof row.higher_levels === 'string' && row.higher_levels
+      ? { higher_levels: row.higher_levels }
+      : {}),
     ...(sourceKind ? { source_kind: sourceKind } : {}),
     ...(raceGrant ? { race_grant: raceGrant } : {}),
   }
@@ -189,6 +237,18 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         attack_or_save: spell.attack_or_save,
         damage: spell.damage,
         concentration: spell.concentration,
+        ...(spell.duration ? { duration: spell.duration } : {}),
+        ...(spell.ritual ? { ritual: true } : {}),
+        ...(spell.school ? { school: spell.school } : {}),
+        ...(spell.source_book ? { source_book: spell.source_book } : {}),
+        ...(spell.components ? { components: spell.components } : {}),
+        ...(spell.damage_at_character_level
+          ? { damage_at_character_level: spell.damage_at_character_level }
+          : {}),
+        ...(spell.damage_at_slot_level
+          ? { damage_at_slot_level: spell.damage_at_slot_level }
+          : {}),
+        ...(spell.higher_levels ? { higher_levels: spell.higher_levels } : {}),
         ...(spell.source_kind ? { source_kind: spell.source_kind } : {}),
         ...(spell.race_grant ? { race_grant: spell.race_grant } : {}),
       })),
@@ -200,19 +260,26 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
 }
 
 export function readCatalogSpellFields(data: Record<string, unknown>): Partial<SheetSpell> {
-  const level = Math.max(0, Math.min(9, Math.floor(readNumber(data.level, 0))))
+  const parsed = parseSpellCatalogData(data)
   return {
-    level,
-    casting_time: typeof data.casting_time === 'string' ? data.casting_time : '',
-    range: typeof data.range === 'string' ? data.range : '',
-    attack_or_save:
-      typeof data.attack_or_save === 'string'
-        ? data.attack_or_save
-        : typeof data.save === 'string'
-          ? data.save
-          : '',
-    damage: typeof data.damage === 'string' ? data.damage : '',
-    concentration: Boolean(data.concentration),
+    level: parsed.level,
+    casting_time: parsed.casting_time_label,
+    range: parsed.range,
+    attack_or_save: parsed.attack_or_save,
+    damage: parsed.damage,
+    concentration: parsed.concentration,
+    duration: parsed.duration,
+    ritual: parsed.ritual,
+    school: parsed.school,
+    source_book: parsed.source_book,
+    components: parsed.components,
+    ...(parsed.damage_at_character_level
+      ? { damage_at_character_level: parsed.damage_at_character_level }
+      : {}),
+    ...(parsed.damage_at_slot_level
+      ? { damage_at_slot_level: parsed.damage_at_slot_level }
+      : {}),
+    ...(parsed.higher_levels ? { higher_levels: parsed.higher_levels } : {}),
   }
 }
 
@@ -291,6 +358,18 @@ export function sheetSpellFromCatalog(entry: {
     attack_or_save: fields.attack_or_save ?? '',
     damage: fields.damage ?? '',
     concentration: Boolean(fields.concentration),
+    ...(fields.duration ? { duration: fields.duration } : {}),
+    ...(fields.ritual ? { ritual: true } : {}),
+    ...(fields.school ? { school: fields.school } : {}),
+    ...(fields.source_book ? { source_book: fields.source_book } : {}),
+    ...(fields.components ? { components: fields.components } : {}),
+    ...(fields.damage_at_character_level
+      ? { damage_at_character_level: fields.damage_at_character_level }
+      : {}),
+    ...(fields.damage_at_slot_level
+      ? { damage_at_slot_level: fields.damage_at_slot_level }
+      : {}),
+    ...(fields.higher_levels ? { higher_levels: fields.higher_levels } : {}),
   }
 }
 

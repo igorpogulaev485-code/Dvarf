@@ -2448,3 +2448,55 @@ input {
     max-height: min(160px, 28dvh);
   }
 }
+
+
+/* Spell catalog contract details (grimoire / sheet) */
+.spell-catalog-details {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.spell-catalog-details__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.spell-catalog-details__toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--accent, #1d4ed8);
+  padding: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.spell-catalog-details__body {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.spell-catalog-details__body p {
+  margin: 0 0 8px;
+}
+
+.prepare-row--spell {
+  align-items: flex-start;
+}
+
+.prepare-row__main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.spell-card__extras {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+}
