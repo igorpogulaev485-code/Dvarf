@@ -9,6 +9,8 @@ type NumberPadDialogProps = {
   /** Current stored value — used only for context text if needed. */
   current: number
   min?: number
+  /** Optional ceiling for add (e.g. current HP ≤ max HP). */
+  max?: number
   onClose: () => void
   onAdd: (delta: number) => void
   onSubtract: (delta: number) => void
@@ -25,6 +27,7 @@ export function NumberPadDialog({
   header,
   current,
   min = 0,
+  max,
   onClose,
   onAdd,
   onSubtract,
@@ -70,8 +73,10 @@ export function NumberPadDialog({
 
   const delta = digits === '' ? 0 : Number(digits)
   const canApply = delta > 0
-  const previewAdd = current + delta
+  const uncappedAdd = current + delta
+  const previewAdd = max == null ? uncappedAdd : Math.min(max, uncappedAdd)
   const previewSub = Math.max(min, current - delta)
+  const addDisabled = !canApply || (max != null && current >= max)
 
   function press(key: (typeof KEYS)[number]) {
     if (key === 'C') {
@@ -139,7 +144,7 @@ export function NumberPadDialog({
         <div className="number-pad__actions">
           <Button
             type="button"
-            disabled={!canApply}
+            disabled={addDisabled}
             onClick={() => {
               onAdd(delta)
               onClose()

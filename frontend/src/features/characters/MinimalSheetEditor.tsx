@@ -877,6 +877,9 @@ export function MinimalSheetEditor({
         className={classSummary || primaryClass?.name || ''}
         level={characterLevel}
         abilities={draft.abilities}
+        classes={draft.classes}
+        hitDie={draft.play.hitDie}
+        constitutionMod={abilityModifier(draft.abilities.con)}
         hpCurrent={draft.hpCurrent}
         hpMax={draft.hpMax}
         hpTemp={draft.play.hpTemp}

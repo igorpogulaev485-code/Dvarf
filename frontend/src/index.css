@@ -1077,6 +1077,111 @@ input {
   min-width: 0;
 }
 
+.combat-hp-open {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px;
+  margin: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.combat-hp-open:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 35%, white);
+  border-color: var(--accent);
+}
+
+.combat-hp-open__value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.combat-hp-open__hint {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: lowercase;
+}
+
+.combat-hp-pad-header {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hp-levels {
+  display: grid;
+  gap: 8px;
+}
+
+.hp-levels__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.hp-levels__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  font-size: 0.88rem;
+}
+
+.hp-levels__label {
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hp-levels__meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.hp-levels__gain {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.hp-levels__total {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.hp-levels__fill {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.hp-levels__fill input {
+  margin-top: 3px;
+}
+
 .combat-sticky__hp .ui-input,
 .combat-sticky__init .ui-input {
   flex: 1 1 0;
@@ -2083,6 +2188,14 @@ input {
 
   .combat-stat .ui-input {
     padding: 5px 6px;
+    font-size: 0.88rem;
+  }
+
+  .combat-hp-open {
+    padding: 5px 6px;
+  }
+
+  .combat-hp-open__value {
     font-size: 0.88rem;
   }
 
