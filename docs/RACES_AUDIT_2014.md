@@ -1,7 +1,7 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/race-mpmm-subrace-forks-f10e` · http://201.34.132.252/ · alembic `l1a2b3c4d5e6`  
+Прод tip: `cursor/race-level-unlocks-f10e` · http://201.34.132.252/ · alembic `m2b3c4d5e6f7`  
 Гибкий ASI: `preset=tasha_flexible` (+2/+1 **или** три +1).
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
@@ -51,7 +51,22 @@
 3. В попапе: только корни в combobox; forks внутри Dialog с меткой source.
 4. Apply/revoke ASI + ledger (`race_grant`).
 5. Deploy + DB/UI: число children, `subrace_required`.
+6. Уровневые/метовые заклинания: `racial_spells[].unlock_level` + `grant` (`innate` | `spell_list`).
+
+## Расовые заклинания: innate vs список метки
+
+| `grant` | Когда на лист | Подготовка |
+|---------|---------------|------------|
+| `innate` | `уровень ≥ unlock_level` | всегда готово, вне лимита подготовки |
+| `spell_list` | есть Spellcasting/Pact Magic | чип «Метка»; игрок готовит как классовое |
+
+Детект кастера (`characterHasCasterClass`):
+1. Базовый класс с фичей Spellcasting/Pact (full/pact/half_up с 1 ур.; half-паладин/следопыт с 2 ур.).
+2. Иначе архетип: EK / Arcane Trickster с 3 ур. класса (по тексту `subclass_name`).
+3. Мультикласс: достаточно **одного** подходящего класса — пересинк на level-up / смене класса / подкласса / −1 уровня.
+
+Пример: `mark_of_shadow` — малая иллюзия + невидимость@3 (innate); таблица 1–5 круга только кастеру (`spell_list`).
 
 ## Инфра-заметка
 
-Prod tip: `cursor/race-mpmm-subrace-forks-f10e` · alembic `l1a2b3c4d5e6`.
+Prod tip: `cursor/race-level-unlocks-f10e` · alembic `m2b3c4d5e6f7`.

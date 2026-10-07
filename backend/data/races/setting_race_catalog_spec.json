@@ -205,6 +205,8 @@
           "spell_slug": "minor_illusion",
           "name_ru": "Малая иллюзия",
           "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "cha",
           "notes_ru": "Едкая магия"
         },
@@ -213,6 +215,8 @@
           "spell_slug": "disguise_self",
           "name_ru": "Маскировка",
           "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "cha",
           "notes_ru": "ПБ раз / длинный отдых"
         }

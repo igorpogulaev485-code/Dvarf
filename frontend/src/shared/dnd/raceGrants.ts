@@ -17,15 +17,30 @@ export type RaceNaturalWeapon = {
   notesRu: string | null
 }
 
-/** Innate / racial spell granted onto the known list. */
+/**
+ * How a racial spell lands on the sheet.
+ * - innate: always known when unlocked; free racial cast (does not eat prepare cap).
+ * - spell_list: only if the character has Spellcasting/Pact Magic; added to class list
+ *   (prepare/learn like class spells; not auto-prepared).
+ */
+export type RaceSpellGrant = 'innate' | 'spell_list'
+
+/** Innate / mark-list racial spell entry from catalog.data.racial_spells. */
 export type RaceRacialSpell = {
   id: string
   /** Optional SRD/catalog slug for enrichment later. */
   spellSlug: string | null
   nameRu: string
+  /** Spell circle 0–9 (not character unlock level). */
   level: number
   castingAbility: AbilityKey | null
   notesRu: string | null
+  /**
+   * Minimum total character level before this entry applies.
+   * Omitted / 1 = available from level 1. Used mainly for innate unlocks.
+   */
+  unlockLevel: number
+  grant: RaceSpellGrant
 }
 
 export type RaceSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan'
@@ -574,6 +589,13 @@ function readNaturalWeapons(raw: unknown): RaceNaturalWeapon[] {
   return out
 }
 
+function readRaceSpellGrant(raw: unknown): RaceSpellGrant {
+  if (raw === 'spell_list' || raw === 'spellList' || raw === 'mark_list') {
+    return 'spell_list'
+  }
+  return 'innate'
+}
+
 function readRacialSpells(raw: unknown): RaceRacialSpell[] {
   if (!Array.isArray(raw)) return []
   const out: RaceRacialSpell[] = []
@@ -604,6 +626,11 @@ function readRacialSpells(raw: unknown): RaceRacialSpell[] {
         : typeof row.notesRu === 'string'
           ? row.notesRu.trim()
           : null
+    const unlockRaw = row.unlock_level ?? row.unlockLevel ?? row.min_level ?? row.minLevel
+    const unlockLevel = Math.max(
+      1,
+      Math.min(20, Math.floor(readNumber(unlockRaw, 1))),
+    )
     out.push({
       id,
       spellSlug,
@@ -611,9 +638,32 @@ function readRacialSpells(raw: unknown): RaceRacialSpell[] {
       level,
       castingAbility,
       notesRu: notesRu || null,
+      unlockLevel,
+      grant: readRaceSpellGrant(row.grant ?? row.grant_mode ?? row.grantMode),
     })
   }
   return out
+}
+
+/** True when character level is high enough for this racial spell entry. */
+export function racialSpellUnlocked(
+  spell: RaceRacialSpell,
+  characterLevel: number,
+): boolean {
+  return Math.max(1, Math.floor(characterLevel)) >= spell.unlockLevel
+}
+
+/** Filter catalog racial spells for the current sheet state. */
+export function selectActiveRacialSpells(input: {
+  racialSpells: RaceRacialSpell[]
+  characterLevel: number
+  hasCasterClass: boolean
+}): RaceRacialSpell[] {
+  return input.racialSpells.filter((spell) => {
+    if (!racialSpellUnlocked(spell, input.characterLevel)) return false
+    if (spell.grant === 'spell_list' && !input.hasCasterClass) return false
+    return true
+  })
 }
 
 function readNaturalArmor(raw: unknown): NaturalArmor | null {

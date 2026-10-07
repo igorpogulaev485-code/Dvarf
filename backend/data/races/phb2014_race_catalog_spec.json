@@ -267,7 +267,120 @@
         "con": 2,
         "int": 1
       },
-      "traits_text": "Дварф (метка опеки, ERLW): +2 Тел, +1 Инт. Дварфские черты. Интуиция стража (d4 к Анализу / воровским инструментам). Охрана и печати: Тревога и Доспехи мага; с 3 ур. — Волшебный замок (1/длинный отдых, ИНТ). Заклинания метки — если есть классовое колдовство."
+      "traits_text": "Дварф (метка опеки, ERLW): +2 Тел, +1 Инт. Дварфские черты. Интуиция стража (d4 к Анализу / воровским инструментам). Охрана и печати: Тревога и Доспехи мага; с 3 ур. — Волшебный замок (1/длинный отдых, ИНТ). Заклинания метки — если есть классовое колдовство.",
+      "racial_spells": [
+        {
+          "id": "alarm",
+          "spell_slug": "alarm",
+          "name_ru": "Тревога",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "int",
+          "notes_ru": "Охрана и печати"
+        },
+        {
+          "id": "mage_armor",
+          "spell_slug": "mage_armor",
+          "name_ru": "Доспехи мага",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "int",
+          "notes_ru": "Охрана и печати"
+        },
+        {
+          "id": "arcane_lock",
+          "spell_slug": "arcane_lock",
+          "name_ru": "Волшебный замок",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "int",
+          "notes_ru": "1/длинный отдых"
+        },
+        {
+          "id": "list_alarm",
+          "spell_slug": "alarm",
+          "name_ru": "Тревога",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_mage_armor",
+          "spell_slug": "mage_armor",
+          "name_ru": "Доспехи мага",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_arcane_lock",
+          "spell_slug": "arcane_lock",
+          "name_ru": "Волшебный замок",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "knock",
+          "spell_slug": "knock",
+          "name_ru": "Стук",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "glyph_of_warding",
+          "spell_slug": "glyph_of_warding",
+          "name_ru": "Символ охраны",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "magic_circle",
+          "spell_slug": "magic_circle",
+          "name_ru": "Магический круг",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "leomunds_secret_chest",
+          "spell_slug": "leomunds_secret_chest",
+          "name_ru": "Тайный сундук Леомунда",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "mordenkainens_faithful_hound",
+          "spell_slug": "mordenkainens_faithful_hound",
+          "name_ru": "Верный пёс Морденкайнена",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "antilife_shell",
+          "spell_slug": "antilife_shell",
+          "name_ru": "Преграда жизни",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "elf",
@@ -494,7 +607,110 @@
         "dex": 2,
         "cha": 1
       },
-      "traits_text": "Эльф (метка тени, ERLW): +2 Лов, +1 Хар. Эльфийские черты. Интуиция лукавого (d4 к Выступлению / Скрытности). Очертания теней: малая иллюзия; с 3 ур. Невидимость (1/длинный отдых, ХАР). Заклинания метки — если есть классовое колдовство."
+      "traits_text": "Эльф (метка тени, ERLW): +2 Лов, +1 Хар. Эльфийские черты. Интуиция лукавого (d4 к Выступлению / Скрытности). Очертания теней: малая иллюзия; с 3 ур. Невидимость (1/длинный отдых, ХАР). Заклинания метки — если есть классовое колдовство.",
+      "racial_spells": [
+        {
+          "id": "minor_illusion",
+          "spell_slug": "minor_illusion",
+          "name_ru": "Малая иллюзия",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha",
+          "notes_ru": "Очертания теней"
+        },
+        {
+          "id": "invisibility",
+          "spell_slug": "invisibility",
+          "name_ru": "Невидимость",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha",
+          "notes_ru": "1/длинный отдых"
+        },
+        {
+          "id": "disguise_self",
+          "spell_slug": "disguise_self",
+          "name_ru": "Маскировка",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "silent_image",
+          "spell_slug": "silent_image",
+          "name_ru": "Бесшумный образ",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "darkness",
+          "spell_slug": "darkness",
+          "name_ru": "Тьма",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "pass_without_trace",
+          "spell_slug": "pass_without_trace",
+          "name_ru": "Бесследное передвижение",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "clairvoyance",
+          "spell_slug": "clairvoyance",
+          "name_ru": "Ясновидение",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "major_image",
+          "spell_slug": "major_image",
+          "name_ru": "Большой образ",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "greater_invisibility",
+          "spell_slug": "greater_invisibility",
+          "name_ru": "Высшая невидимость",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "hallucinatory_terrain",
+          "spell_slug": "hallucinatory_terrain",
+          "name_ru": "Мираж",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "mislead",
+          "spell_slug": "mislead",
+          "name_ru": "Обман",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "pale_elf",
@@ -519,7 +735,38 @@
         "dex": 2,
         "wis": 1
       },
-      "traits_text": "Эльф (бледный, EGW): +2 Лов, +1 Муд. Эльфийские черты. Острый ум (преимущество Расследования / Проницательности). Благословение Лунного ткача: свет; с 3 ур. Усыпление; с 5 ур. Невидимость на себя (МУД, без мат. компонентов)."
+      "traits_text": "Эльф (бледный, EGW): +2 Лов, +1 Муд. Эльфийские черты. Острый ум (преимущество Расследования / Проницательности). Благословение Лунного ткача: свет; с 3 ур. Усыпление; с 5 ур. Невидимость на себя (МУД, без мат. компонентов).",
+      "racial_spells": [
+        {
+          "id": "light",
+          "spell_slug": "light",
+          "name_ru": "Свет",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis",
+          "notes_ru": "Благословение Лунного ткача"
+        },
+        {
+          "id": "sleep",
+          "spell_slug": "sleep",
+          "name_ru": "Усыпление",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "wis"
+        },
+        {
+          "id": "invisibility",
+          "spell_slug": "invisibility",
+          "name_ru": "Невидимость",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "wis",
+          "notes_ru": "только на себя; без мат. компонентов"
+        }
+      ]
     },
     {
       "slug": "astral_elf",
@@ -654,7 +901,110 @@
         "Полуросликов"
       ],
       "languages_choose": 0,
-      "traits_text": "Полурослик (метка исцеления, ERLW): +2 Лов, +1 Муд. Черты полурослика. Интуиция медика (d4 к Медицине / набору травника). Целительное касание: Лечение ран и Малое восстановление (1/длинный отдых, МУД). Заклинания метки — если есть классовое колдовство."
+      "traits_text": "Полурослик (метка исцеления, ERLW): +2 Лов, +1 Муд. Черты полурослика. Интуиция медика (d4 к Медицине / набору травника). Целительное касание: Лечение ран и Малое восстановление (1/длинный отдых, МУД). Заклинания метки — если есть классовое колдовство.",
+      "racial_spells": [
+        {
+          "id": "cure_wounds",
+          "spell_slug": "cure_wounds",
+          "name_ru": "Лечение ран",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis",
+          "notes_ru": "Целительное касание; 1/длинный отдых"
+        },
+        {
+          "id": "lesser_restoration",
+          "spell_slug": "lesser_restoration",
+          "name_ru": "Малое восстановление",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis",
+          "notes_ru": "1/длинный отдых"
+        },
+        {
+          "id": "list_cure_wounds",
+          "spell_slug": "cure_wounds",
+          "name_ru": "Лечение ран",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "healing_word",
+          "spell_slug": "healing_word",
+          "name_ru": "Лечащее слово",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_lesser_restoration",
+          "spell_slug": "lesser_restoration",
+          "name_ru": "Малое восстановление",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "prayer_of_healing",
+          "spell_slug": "prayer_of_healing",
+          "name_ru": "Молитва лечения",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "aura_of_vitality",
+          "spell_slug": "aura_of_vitality",
+          "name_ru": "Аура жизненной силы",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "mass_healing_word",
+          "spell_slug": "mass_healing_word",
+          "name_ru": "Массовое лечащее слово",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "aura_of_purity",
+          "spell_slug": "aura_of_purity",
+          "name_ru": "Аура очищения",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "death_ward",
+          "spell_slug": "death_ward",
+          "name_ru": "Защита от смерти",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "greater_restoration",
+          "spell_slug": "greater_restoration",
+          "name_ru": "Высшее восстановление",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "mark_of_hospitality",
@@ -676,7 +1026,120 @@
         "Полуросликов"
       ],
       "languages_choose": 0,
-      "traits_text": "Полурослик (метка гостеприимства, ERLW): +2 Лов, +1 Хар. Черты полурослика. Всегда гостеприимен (d4 к Убеждению / инструментам пивовара или повара). Врождённая магия: Фокусы; Невидимый слуга и Очищение пищи (1/длинный отдых, ХАР). Заклинания метки — если есть классовое колдовство."
+      "traits_text": "Полурослик (метка гостеприимства, ERLW): +2 Лов, +1 Хар. Черты полурослика. Всегда гостеприимен (d4 к Убеждению / инструментам пивовара или повара). Врождённая магия: Фокусы; Невидимый слуга и Очищение пищи (1/длинный отдых, ХАР). Заклинания метки — если есть классовое колдовство.",
+      "racial_spells": [
+        {
+          "id": "prestidigitation",
+          "spell_slug": "prestidigitation",
+          "name_ru": "Фокусы",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha",
+          "notes_ru": "Врождённая магия"
+        },
+        {
+          "id": "unseen_servant",
+          "spell_slug": "unseen_servant",
+          "name_ru": "Невидимый слуга",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha",
+          "notes_ru": "1/длинный отдых"
+        },
+        {
+          "id": "purify_food_and_drink",
+          "spell_slug": "purify_food_and_drink",
+          "name_ru": "Очищение пищи и питья",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha",
+          "notes_ru": "1/длинный отдых"
+        },
+        {
+          "id": "list_purify_food_and_drink",
+          "spell_slug": "purify_food_and_drink",
+          "name_ru": "Очищение пищи и питья",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_unseen_servant",
+          "spell_slug": "unseen_servant",
+          "name_ru": "Невидимый слуга",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "gentle_repose",
+          "spell_slug": "gentle_repose",
+          "name_ru": "Покой",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "ray_of_enfeeblement",
+          "spell_slug": "ray_of_enfeeblement",
+          "name_ru": "Луч слабости",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "create_food_and_water",
+          "spell_slug": "create_food_and_water",
+          "name_ru": "Сотворение пищи и воды",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "leomunds_tiny_hut",
+          "spell_slug": "leomunds_tiny_hut",
+          "name_ru": "Хижина Леомунда",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "aura_of_purity",
+          "spell_slug": "aura_of_purity",
+          "name_ru": "Аура очищения",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "mordenkainens_private_sanctum",
+          "spell_slug": "mordenkainens_private_sanctum",
+          "name_ru": "Уединение Морденкайнена",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "hallow",
+          "spell_slug": "hallow",
+          "name_ru": "Святилище",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "lotusden_halfling",
@@ -698,7 +1161,37 @@
         "Полуросликов"
       ],
       "languages_choose": 0,
-      "traits_text": "Полурослик (лотосденский, EGW): +2 Лов, +1 Муд. Черты полурослика. Дитя леса: искусство друидов; с 3 ур. Опутывание; с 5 ур. Шипы (МУД). Блуждание по лесу: помеха выследить вас; немагические заросли не затрудняют движение и не наносят урон от шипов/колючек."
+      "traits_text": "Полурослик (лотосденский, EGW): +2 Лов, +1 Муд. Черты полурослика. Дитя леса: искусство друидов; с 3 ур. Опутывание; с 5 ур. Шипы (МУД). Блуждание по лесу: помеха выследить вас; немагические заросли не затрудняют движение и не наносят урон от шипов/колючек.",
+      "racial_spells": [
+        {
+          "id": "druidcraft",
+          "spell_slug": "druidcraft",
+          "name_ru": "Искусство друидов",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis",
+          "notes_ru": "Дитя леса"
+        },
+        {
+          "id": "entangle",
+          "spell_slug": "entangle",
+          "name_ru": "Опутывание",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "wis"
+        },
+        {
+          "id": "spike_growth",
+          "spell_slug": "spike_growth",
+          "name_ru": "Шипы",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "wis"
+        }
+      ]
     },
     {
       "slug": "human",
@@ -774,7 +1267,110 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Человек (метка поиска, ERLW): +2 Муд, +1 Тел (вместо PHB). Тёмное зрение 60. Интуиция охотника (d4 к Восприятию / Выживанию). Магия искателя: Метка охотника; с 3 ур. Поиск предмета (МУД). Заклинания метки — если есть классовое колдовство. Язык на выбор."
+      "traits_text": "Человек (метка поиска, ERLW): +2 Муд, +1 Тел (вместо PHB). Тёмное зрение 60. Интуиция охотника (d4 к Восприятию / Выживанию). Магия искателя: Метка охотника; с 3 ур. Поиск предмета (МУД). Заклинания метки — если есть классовое колдовство. Язык на выбор.",
+      "racial_spells": [
+        {
+          "id": "hunters_mark",
+          "spell_slug": "hunters_mark",
+          "name_ru": "Метка охотника",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis",
+          "notes_ru": "Магия искателя"
+        },
+        {
+          "id": "locate_object",
+          "spell_slug": "locate_object",
+          "name_ru": "Поиск предмета",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "wis",
+          "notes_ru": "1/длинный отдых"
+        },
+        {
+          "id": "faerie_fire",
+          "spell_slug": "faerie_fire",
+          "name_ru": "Огонь фей",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "longstrider",
+          "spell_slug": "longstrider",
+          "name_ru": "Большой шаг",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "locate_animals_or_plants",
+          "spell_slug": "locate_animals_or_plants",
+          "name_ru": "Поиск животных или растений",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_locate_object",
+          "spell_slug": "locate_object",
+          "name_ru": "Поиск предмета",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "clairvoyance",
+          "spell_slug": "clairvoyance",
+          "name_ru": "Ясновидение",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "speak_with_plants",
+          "spell_slug": "speak_with_plants",
+          "name_ru": "Разговор с растениями",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "divination",
+          "spell_slug": "divination",
+          "name_ru": "Предсказание",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "locate_creature",
+          "spell_slug": "locate_creature",
+          "name_ru": "Поиск существа",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "commune_with_nature",
+          "spell_slug": "commune_with_nature",
+          "name_ru": "Общение с природой",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "mark_of_handling",
@@ -802,7 +1398,110 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Человек (метка ухода, ERLW): +2 Муд и +1 к другой. Дикая интуиция (d4 к Уходу за животными / Природе). Первобытная связь: Дружба с животными и Разговор с животными (1/длинный отдых, МУД); с 3 ур. — цели Зверь или Монстр с Инт ≤3. Заклинания метки — если есть классовое колдовство."
+      "traits_text": "Человек (метка ухода, ERLW): +2 Муд и +1 к другой. Дикая интуиция (d4 к Уходу за животными / Природе). Первобытная связь: Дружба с животными и Разговор с животными (1/длинный отдых, МУД); с 3 ур. — цели Зверь или Монстр с Инт ≤3. Заклинания метки — если есть классовое колдовство.",
+      "racial_spells": [
+        {
+          "id": "animal_friendship",
+          "spell_slug": "animal_friendship",
+          "name_ru": "Дружба с животными",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis",
+          "notes_ru": "Первобытная связь; 1/длинный отдых"
+        },
+        {
+          "id": "speak_with_animals",
+          "spell_slug": "speak_with_animals",
+          "name_ru": "Разговор с животными",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis",
+          "notes_ru": "1/длинный отдых"
+        },
+        {
+          "id": "list_animal_friendship",
+          "spell_slug": "animal_friendship",
+          "name_ru": "Дружба с животными",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_speak_with_animals",
+          "spell_slug": "speak_with_animals",
+          "name_ru": "Разговор с животными",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "beast_sense",
+          "spell_slug": "beast_sense",
+          "name_ru": "Чутьё зверя",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "calm_emotions",
+          "spell_slug": "calm_emotions",
+          "name_ru": "Умиротворение",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "beacon_of_hope",
+          "spell_slug": "beacon_of_hope",
+          "name_ru": "Маяк надежды",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "conjure_animals",
+          "spell_slug": "conjure_animals",
+          "name_ru": "Призыв животных",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "aura_of_life",
+          "spell_slug": "aura_of_life",
+          "name_ru": "Аура жизни",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "dominate_beast",
+          "spell_slug": "dominate_beast",
+          "name_ru": "Подчинение зверя",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "awaken",
+          "spell_slug": "awaken",
+          "name_ru": "Пробуждение",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "mark_of_making",
@@ -852,7 +1551,110 @@
           "Инструменты резчика по дереву"
         ]
       },
-      "traits_text": "Человек (метка создания, ERLW): +2 Инт и +1 к другой. Интуиция ремесленника (d4 к Магии / инструментам ремесленника). Дар творца: владение одним ремесленным инструментом. Кузнечная магия: Починка; Магическое оружие на 1 час без концентрации (1/длинный отдых, ИНТ). Заклинания метки — если есть классовое колдовство."
+      "traits_text": "Человек (метка создания, ERLW): +2 Инт и +1 к другой. Интуиция ремесленника (d4 к Магии / инструментам ремесленника). Дар творца: владение одним ремесленным инструментом. Кузнечная магия: Починка; Магическое оружие на 1 час без концентрации (1/длинный отдых, ИНТ). Заклинания метки — если есть классовое колдовство.",
+      "racial_spells": [
+        {
+          "id": "mending",
+          "spell_slug": "mending",
+          "name_ru": "Починка",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "int",
+          "notes_ru": "Кузнечная магия"
+        },
+        {
+          "id": "magic_weapon",
+          "spell_slug": "magic_weapon",
+          "name_ru": "Магическое оружие",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "int",
+          "notes_ru": "1 ч без концентрации; 1/длинный отдых"
+        },
+        {
+          "id": "identify",
+          "spell_slug": "identify",
+          "name_ru": "Опознание",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "tensers_floating_disk",
+          "spell_slug": "tensers_floating_disk",
+          "name_ru": "Парящий диск Тензера",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "continual_flame",
+          "spell_slug": "continual_flame",
+          "name_ru": "Вечный огонь",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_magic_weapon",
+          "spell_slug": "magic_weapon",
+          "name_ru": "Магическое оружие",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "elemental_weapon",
+          "spell_slug": "elemental_weapon",
+          "name_ru": "Стихийное оружие",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "glyph_of_warding",
+          "spell_slug": "glyph_of_warding",
+          "name_ru": "Символ охраны",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "fabricate",
+          "spell_slug": "fabricate",
+          "name_ru": "Изготовление",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "stone_shape",
+          "spell_slug": "stone_shape",
+          "name_ru": "Каменная форма",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "creation",
+          "spell_slug": "creation",
+          "name_ru": "Сотворение",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "mark_of_passage",
@@ -880,7 +1682,100 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Человек (метка прохода, ERLW): +2 Лов и +1 к другой. Скорость курьера 35 фт. Интуитивное движение (d4 к Акробатике / наземному транспорту). Магический проход: Туманный шаг (1/длинный отдых). Заклинания метки — если есть классовое колдовство."
+      "traits_text": "Человек (метка прохода, ERLW): +2 Лов и +1 к другой. Скорость курьера 35 фт. Интуитивное движение (d4 к Акробатике / наземному транспорту). Магический проход: Туманный шаг (1/длинный отдых). Заклинания метки — если есть классовое колдовство.",
+      "racial_spells": [
+        {
+          "id": "misty_step",
+          "spell_slug": "misty_step",
+          "name_ru": "Туманный шаг",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "int",
+          "notes_ru": "Магический проход; 1/длинный отдых"
+        },
+        {
+          "id": "expeditious_retreat",
+          "spell_slug": "expeditious_retreat",
+          "name_ru": "Ускоренное отступление",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "jump",
+          "spell_slug": "jump",
+          "name_ru": "Прыжок",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_misty_step",
+          "spell_slug": "misty_step",
+          "name_ru": "Туманный шаг",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "pass_without_trace",
+          "spell_slug": "pass_without_trace",
+          "name_ru": "Бесследное передвижение",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "blink",
+          "spell_slug": "blink",
+          "name_ru": "Мерцание",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "phantom_steed",
+          "spell_slug": "phantom_steed",
+          "name_ru": "Призрачный скакун",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "dimension_door",
+          "spell_slug": "dimension_door",
+          "name_ru": "Пространственный портал",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "freedom_of_movement",
+          "spell_slug": "freedom_of_movement",
+          "name_ru": "Свобода перемещения",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "teleportation_circle",
+          "spell_slug": "teleportation_circle",
+          "name_ru": "Круг телепортации",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "mark_of_sentinel",
@@ -901,7 +1796,100 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Человек (метка стража, ERLW): +2 Тел, +1 Муд. Интуиция стража (d4 к Проницательности / Восприятию). Щит стража: Щит (1/длинный отдых). Бдительный страж: реакцией поменяться местами с союзником в 5 фт при попадании по нему (1/длинный отдых). Заклинания метки — если есть классовое колдовство."
+      "traits_text": "Человек (метка стража, ERLW): +2 Тел, +1 Муд. Интуиция стража (d4 к Проницательности / Восприятию). Щит стража: Щит (1/длинный отдых). Бдительный страж: реакцией поменяться местами с союзником в 5 фт при попадании по нему (1/длинный отдых). Заклинания метки — если есть классовое колдовство.",
+      "racial_spells": [
+        {
+          "id": "shield",
+          "spell_slug": "shield",
+          "name_ru": "Щит",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis",
+          "notes_ru": "Щит стража; 1/длинный отдых"
+        },
+        {
+          "id": "compelled_duel",
+          "spell_slug": "compelled_duel",
+          "name_ru": "Вызов на дуэль",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "shield_of_faith",
+          "spell_slug": "shield_of_faith",
+          "name_ru": "Щит веры",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "warding_bond",
+          "spell_slug": "warding_bond",
+          "name_ru": "Охраняющая связь",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "zone_of_truth",
+          "spell_slug": "zone_of_truth",
+          "name_ru": "Зона истины",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "counterspell",
+          "spell_slug": "counterspell",
+          "name_ru": "Контрзаклинание",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "protection_from_energy",
+          "spell_slug": "protection_from_energy",
+          "name_ru": "Защита от энергии",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "death_ward",
+          "spell_slug": "death_ward",
+          "name_ru": "Защита от смерти",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "guardian_of_faith",
+          "spell_slug": "guardian_of_faith",
+          "name_ru": "Страж веры",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "bigbys_hand",
+          "spell_slug": "bigbys_hand",
+          "name_ru": "Длань Бигби",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "dragonborn",
@@ -1199,6 +2187,8 @@
           "spell_slug": "minor_illusion",
           "name_ru": "Малая иллюзия",
           "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "int",
           "notes_ru": "Природная иллюзия"
         }
@@ -1272,7 +2262,118 @@
         "Гномий"
       ],
       "languages_choose": 0,
-      "traits_text": "Гном (метка письма, ERLW): +2 Инт, +1 Хар. Гномьи черты. Одарённый писец (d4 к Истории / инструментам каллиграфа или подделки). Проницательность писца: Послание; Понимание языков и Волшебные уста (1/длинный отдых, ИНТ). Заклинания метки — если есть классовое колдовство."
+      "traits_text": "Гном (метка письма, ERLW): +2 Инт, +1 Хар. Гномьи черты. Одарённый писец (d4 к Истории / инструментам каллиграфа или подделки). Проницательность писца: Послание; Понимание языков и Волшебные уста (1/длинный отдых, ИНТ). Заклинания метки — если есть классовое колдовство.",
+      "racial_spells": [
+        {
+          "id": "message",
+          "spell_slug": "message",
+          "name_ru": "Послание",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "int",
+          "notes_ru": "Проницательность писца"
+        },
+        {
+          "id": "comprehend_languages",
+          "spell_slug": "comprehend_languages",
+          "name_ru": "Понимание языков",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "int"
+        },
+        {
+          "id": "illusory_script",
+          "spell_slug": "illusory_script",
+          "name_ru": "Иллюзорное письмо",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "int"
+        },
+        {
+          "id": "list_comprehend_languages",
+          "spell_slug": "comprehend_languages",
+          "name_ru": "Понимание языков",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_illusory_script",
+          "spell_slug": "illusory_script",
+          "name_ru": "Иллюзорное письмо",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "animal_messenger",
+          "spell_slug": "animal_messenger",
+          "name_ru": "Животный посыльный",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "silence",
+          "spell_slug": "silence",
+          "name_ru": "Тишина",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "sending",
+          "spell_slug": "sending",
+          "name_ru": "Послание",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "tongues",
+          "spell_slug": "tongues",
+          "name_ru": "Языки",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "arcane_eye",
+          "spell_slug": "arcane_eye",
+          "name_ru": "Магический глаз",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "confusion",
+          "spell_slug": "confusion",
+          "name_ru": "Смятение",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "dream",
+          "spell_slug": "dream",
+          "name_ru": "Сон",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "half_elf",
@@ -1405,7 +2506,37 @@
         "Эльфийский"
       ],
       "languages_choose": 1,
-      "traits_text": "Полуэльф (дроу, SCAG): +2 Хар и +1 к двум другим. Вместо универсальности навыков — магия дроу (пляшущие огоньки; с 3 ур. огонь фей; с 5 ур. тьма — ХАР). Наследие фей. Язык на выбор."
+      "traits_text": "Полуэльф (дроу, SCAG): +2 Хар и +1 к двум другим. Вместо универсальности навыков — магия дроу (пляшущие огоньки; с 3 ур. огонь фей; с 5 ур. тьма — ХАР). Наследие фей. Язык на выбор.",
+      "racial_spells": [
+        {
+          "id": "dancing_lights",
+          "spell_slug": "dancing_lights",
+          "name_ru": "Пляшущие огоньки",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha",
+          "notes_ru": "Магия дроу"
+        },
+        {
+          "id": "faerie_fire",
+          "spell_slug": "faerie_fire",
+          "name_ru": "Огонь фей",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "darkness",
+          "spell_slug": "darkness",
+          "name_ru": "Тьма",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha"
+        }
+      ]
     },
     {
       "slug": "half_elf_aquatic",
@@ -1466,7 +2597,119 @@
         "Эльфийский"
       ],
       "languages_choose": 1,
-      "traits_text": "Полуэльф (метка обнаружения, ERLW): +2 Муд и +1 к другой (вместо PHB ASI/навыков). Интуиция сыщика (d4 к Анализу / Проницательности). Чутьё угроз: Обнаружение магии и Обнаружение яда (1/длинный отдых, МУД). Заклинания метки — если есть классовое колдовство. Наследие фей."
+      "traits_text": "Полуэльф (метка обнаружения, ERLW): +2 Муд и +1 к другой (вместо PHB ASI/навыков). Интуиция сыщика (d4 к Анализу / Проницательности). Чутьё угроз: Обнаружение магии и Обнаружение яда (1/длинный отдых, МУД). Заклинания метки — если есть классовое колдовство. Наследие фей.",
+      "racial_spells": [
+        {
+          "id": "detect_magic",
+          "spell_slug": "detect_magic",
+          "name_ru": "Обнаружение магии",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis",
+          "notes_ru": "Чутьё угроз"
+        },
+        {
+          "id": "detect_poison_and_disease",
+          "spell_slug": "detect_poison_and_disease",
+          "name_ru": "Обнаружение болезней и яда",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis"
+        },
+        {
+          "id": "see_invisibility",
+          "spell_slug": "see_invisibility",
+          "name_ru": "Видение невидимого",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "wis",
+          "notes_ru": "1/длинный отдых"
+        },
+        {
+          "id": "list_detect_magic",
+          "spell_slug": "detect_magic",
+          "name_ru": "Обнаружение магии",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_detect_poison_and_disease",
+          "spell_slug": "detect_poison_and_disease",
+          "name_ru": "Обнаружение болезней и яда",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_see_invisibility",
+          "spell_slug": "see_invisibility",
+          "name_ru": "Видение невидимого",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "zone_of_truth",
+          "spell_slug": "zone_of_truth",
+          "name_ru": "Зона истины",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "clairvoyance",
+          "spell_slug": "clairvoyance",
+          "name_ru": "Ясновидение",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "nondetection",
+          "spell_slug": "nondetection",
+          "name_ru": "Необнаружимость",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "arcane_eye",
+          "spell_slug": "arcane_eye",
+          "name_ru": "Магический глаз",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "divination",
+          "spell_slug": "divination",
+          "name_ru": "Предсказание",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "legend_lore",
+          "spell_slug": "legend_lore",
+          "name_ru": "Знание легенд",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "mark_of_storm",
@@ -1488,7 +2731,110 @@
         "Эльфийский"
       ],
       "languages_choose": 1,
-      "traits_text": "Полуэльф (метка бури, ERLW): +2 Хар, +1 Лов (вместо PHB ASI/навыков). Интуиция ветродела (d4 к Акробатике / инструментам навигатора). Сопротивление электричеству. Встречные ветра: Шквал; с 3 ур. Порыв ветра (ХАР). Заклинания метки — если есть классовое колдовство. Наследие фей."
+      "traits_text": "Полуэльф (метка бури, ERLW): +2 Хар, +1 Лов (вместо PHB ASI/навыков). Интуиция ветродела (d4 к Акробатике / инструментам навигатора). Сопротивление электричеству. Встречные ветра: Шквал; с 3 ур. Порыв ветра (ХАР). Заклинания метки — если есть классовое колдовство. Наследие фей.",
+      "racial_spells": [
+        {
+          "id": "gust",
+          "spell_slug": "gust",
+          "name_ru": "Порыв",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha",
+          "notes_ru": "Встречные ветра"
+        },
+        {
+          "id": "gust_of_wind",
+          "spell_slug": "gust_of_wind",
+          "name_ru": "Порыв ветра",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha",
+          "notes_ru": "1/длинный отдых"
+        },
+        {
+          "id": "feather_fall",
+          "spell_slug": "feather_fall",
+          "name_ru": "Падение пёрышком",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "fog_cloud",
+          "spell_slug": "fog_cloud",
+          "name_ru": "Туманное облако",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_gust_of_wind",
+          "spell_slug": "gust_of_wind",
+          "name_ru": "Порыв ветра",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "levitate",
+          "spell_slug": "levitate",
+          "name_ru": "Левитация",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "sleet_storm",
+          "spell_slug": "sleet_storm",
+          "name_ru": "Метель",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "wind_wall",
+          "spell_slug": "wind_wall",
+          "name_ru": "Стена ветров",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "conjure_minor_elementals",
+          "spell_slug": "conjure_minor_elementals",
+          "name_ru": "Призыв малых элементалей",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "storm_sphere",
+          "spell_slug": "storm_sphere",
+          "name_ru": "Сфера бури",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "control_winds",
+          "spell_slug": "control_winds",
+          "name_ru": "Управление ветрами",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "half_orc",
@@ -1539,7 +2885,110 @@
       "skill_proficiencies": [
         "perception"
       ],
-      "traits_text": "Полуорк (метка поиска, ERLW): +2 Муд, +1 Тел (вместо PHB ASI). Интуиция охотника (d4 к Восприятию / Выживанию). Магическое чутьё: Обнаружение магии и Поиск предмета (1/длинный отдых, МУД). Заклинания метки — если есть классовое колдовство. Тёмное зрение 60."
+      "traits_text": "Полуорк (метка поиска, ERLW): +2 Муд, +1 Тел (вместо PHB ASI). Интуиция охотника (d4 к Восприятию / Выживанию). Магическое чутьё: Обнаружение магии и Поиск предмета (1/длинный отдых, МУД). Заклинания метки — если есть классовое колдовство. Тёмное зрение 60.",
+      "racial_spells": [
+        {
+          "id": "hunters_mark",
+          "spell_slug": "hunters_mark",
+          "name_ru": "Метка охотника",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis",
+          "notes_ru": "Магия искателя"
+        },
+        {
+          "id": "locate_object",
+          "spell_slug": "locate_object",
+          "name_ru": "Поиск предмета",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "wis",
+          "notes_ru": "1/длинный отдых"
+        },
+        {
+          "id": "faerie_fire",
+          "spell_slug": "faerie_fire",
+          "name_ru": "Огонь фей",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "longstrider",
+          "spell_slug": "longstrider",
+          "name_ru": "Большой шаг",
+          "level": 1,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "locate_animals_or_plants",
+          "spell_slug": "locate_animals_or_plants",
+          "name_ru": "Поиск животных или растений",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "list_locate_object",
+          "spell_slug": "locate_object",
+          "name_ru": "Поиск предмета",
+          "level": 2,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "clairvoyance",
+          "spell_slug": "clairvoyance",
+          "name_ru": "Ясновидение",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "speak_with_plants",
+          "spell_slug": "speak_with_plants",
+          "name_ru": "Разговор с растениями",
+          "level": 3,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "divination",
+          "spell_slug": "divination",
+          "name_ru": "Предсказание",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "locate_creature",
+          "spell_slug": "locate_creature",
+          "name_ru": "Поиск существа",
+          "level": 4,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        },
+        {
+          "id": "commune_with_nature",
+          "spell_slug": "commune_with_nature",
+          "name_ru": "Общение с природой",
+          "level": 5,
+          "grant": "spell_list",
+          "unlock_level": 1,
+          "notes_ru": "список метки"
+        }
+      ]
     },
     {
       "slug": "tiefling",
@@ -1569,8 +3018,28 @@
           "spell_slug": "thaumaturgy",
           "name_ru": "Чудотворство",
           "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "cha",
           "notes_ru": "Адское наследие"
+        },
+        {
+          "id": "hellish_rebuke",
+          "spell_slug": "hellish_rebuke",
+          "name_ru": "Адская месть",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "darkness",
+          "spell_slug": "darkness",
+          "name_ru": "Тьма",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha"
         }
       ]
     },
@@ -1594,7 +3063,36 @@
         "cha": 2,
         "int": 1
       },
-      "traits_text": "Тифлинг (Вельзевул, MToF): +2 Хар, +1 Инт. Тёмное зрение 60. Сопротивление огню. Наследие Маладомини: чудотворство; с 3 ур. луч болезни; с 5 ур. корона безумия (ХАР)."
+      "traits_text": "Тифлинг (Вельзевул, MToF): +2 Хар, +1 Инт. Тёмное зрение 60. Сопротивление огню. Наследие Маладомини: чудотворство; с 3 ур. луч болезни; с 5 ур. корона безумия (ХАР).",
+      "racial_spells": [
+        {
+          "id": "thaumaturgy",
+          "spell_slug": "thaumaturgy",
+          "name_ru": "Чудотворство",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "ray_of_sickness",
+          "spell_slug": "ray_of_sickness",
+          "name_ru": "Луч болезни",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "crown_of_madness",
+          "spell_slug": "crown_of_madness",
+          "name_ru": "Корона безумия",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha"
+        }
+      ]
     },
     {
       "slug": "tiefling_dispater",
@@ -1616,7 +3114,36 @@
         "cha": 2,
         "dex": 1
       },
-      "traits_text": "Тифлинг (Диспатер, MToF): +2 Хар, +1 Лов. Тёмное зрение 60. Сопротивление огню. Наследие Диса: чудотворство; с 3 ур. маскировка; с 5 ур. обнаружение мыслей (ХАР)."
+      "traits_text": "Тифлинг (Диспатер, MToF): +2 Хар, +1 Лов. Тёмное зрение 60. Сопротивление огню. Наследие Диса: чудотворство; с 3 ур. маскировка; с 5 ур. обнаружение мыслей (ХАР).",
+      "racial_spells": [
+        {
+          "id": "thaumaturgy",
+          "spell_slug": "thaumaturgy",
+          "name_ru": "Чудотворство",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "disguise_self",
+          "spell_slug": "disguise_self",
+          "name_ru": "Маскировка",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "detect_thoughts",
+          "spell_slug": "detect_thoughts",
+          "name_ru": "Обнаружение мыслей",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha"
+        }
+      ]
     },
     {
       "slug": "tiefling_fierna",
@@ -1638,7 +3165,36 @@
         "cha": 2,
         "wis": 1
       },
-      "traits_text": "Тифлинг (Фьёрна, MToF): +2 Хар, +1 Муд. Тёмное зрение 60. Сопротивление огню. Наследие Флегетоса: дружба; с 3 ур. очарование личности; с 5 ур. внушение (ХАР)."
+      "traits_text": "Тифлинг (Фьёрна, MToF): +2 Хар, +1 Муд. Тёмное зрение 60. Сопротивление огню. Наследие Флегетоса: дружба; с 3 ур. очарование личности; с 5 ур. внушение (ХАР).",
+      "racial_spells": [
+        {
+          "id": "friends",
+          "spell_slug": "friends",
+          "name_ru": "Дружба",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "charm_person",
+          "spell_slug": "charm_person",
+          "name_ru": "Очарование личности",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "suggestion",
+          "spell_slug": "suggestion",
+          "name_ru": "Внушение",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha"
+        }
+      ]
     },
     {
       "slug": "tiefling_glasya",
@@ -1660,7 +3216,36 @@
         "cha": 2,
         "dex": 1
       },
-      "traits_text": "Тифлинг (Гласия, MToF): +2 Хар, +1 Лов. Тёмное зрение 60. Сопротивление огню. Наследие Малболга: малая иллюзия; с 3 ур. маскировка; с 5 ур. невидимость (ХАР)."
+      "traits_text": "Тифлинг (Гласия, MToF): +2 Хар, +1 Лов. Тёмное зрение 60. Сопротивление огню. Наследие Малболга: малая иллюзия; с 3 ур. маскировка; с 5 ур. невидимость (ХАР).",
+      "racial_spells": [
+        {
+          "id": "minor_illusion",
+          "spell_slug": "minor_illusion",
+          "name_ru": "Малая иллюзия",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "disguise_self",
+          "spell_slug": "disguise_self",
+          "name_ru": "Маскировка",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "invisibility",
+          "spell_slug": "invisibility",
+          "name_ru": "Невидимость",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha"
+        }
+      ]
     },
     {
       "slug": "tiefling_levistus",
@@ -1682,7 +3267,36 @@
         "cha": 2,
         "con": 1
       },
-      "traits_text": "Тифлинг (Левистус, MToF): +2 Хар, +1 Тел. Тёмное зрение 60. Сопротивление огню. Наследие Стигии: луч холода; с 3 ур. доспех Агатиса; с 5 ур. тьма (ХАР)."
+      "traits_text": "Тифлинг (Левистус, MToF): +2 Хар, +1 Тел. Тёмное зрение 60. Сопротивление огню. Наследие Стигии: луч холода; с 3 ур. доспех Агатиса; с 5 ур. тьма (ХАР).",
+      "racial_spells": [
+        {
+          "id": "ray_of_frost",
+          "spell_slug": "ray_of_frost",
+          "name_ru": "Луч холода",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "armor_of_agathys",
+          "spell_slug": "armor_of_agathys",
+          "name_ru": "Доспех Агатиса",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "darkness",
+          "spell_slug": "darkness",
+          "name_ru": "Тьма",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha"
+        }
+      ]
     },
     {
       "slug": "tiefling_mammon",
@@ -1704,7 +3318,36 @@
         "cha": 2,
         "int": 1
       },
-      "traits_text": "Тифлинг (Маммон, MToF): +2 Хар, +1 Инт. Тёмное зрение 60. Сопротивление огню. Наследие Минауроса: волшебная рука; с 3 ур. диск Тензера; с 5 ур. волшебный замок (ХАР)."
+      "traits_text": "Тифлинг (Маммон, MToF): +2 Хар, +1 Инт. Тёмное зрение 60. Сопротивление огню. Наследие Минауроса: волшебная рука; с 3 ур. диск Тензера; с 5 ур. волшебный замок (ХАР).",
+      "racial_spells": [
+        {
+          "id": "mage_hand",
+          "spell_slug": "mage_hand",
+          "name_ru": "Волшебная рука",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "tensers_floating_disk",
+          "spell_slug": "tensers_floating_disk",
+          "name_ru": "Диск Тензера",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "arcane_lock",
+          "spell_slug": "arcane_lock",
+          "name_ru": "Волшебный замок",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha"
+        }
+      ]
     },
     {
       "slug": "tiefling_mephistopheles",
@@ -1726,7 +3369,36 @@
         "cha": 2,
         "int": 1
       },
-      "traits_text": "Тифлинг (Мефистофель, MToF): +2 Хар, +1 Инт. Тёмное зрение 60. Сопротивление огню. Наследие Кании: волшебная рука; с 3 ур. огненные ладони; с 5 ур. горящий клинок (ХАР)."
+      "traits_text": "Тифлинг (Мефистофель, MToF): +2 Хар, +1 Инт. Тёмное зрение 60. Сопротивление огню. Наследие Кании: волшебная рука; с 3 ур. огненные ладони; с 5 ур. горящий клинок (ХАР).",
+      "racial_spells": [
+        {
+          "id": "mage_hand",
+          "spell_slug": "mage_hand",
+          "name_ru": "Волшебная рука",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "burning_hands",
+          "spell_slug": "burning_hands",
+          "name_ru": "Огненные ладони",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "flame_blade",
+          "spell_slug": "flame_blade",
+          "name_ru": "Пылающий клинок",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha"
+        }
+      ]
     },
     {
       "slug": "tiefling_zariel",
@@ -1748,7 +3420,36 @@
         "cha": 2,
         "str": 1
       },
-      "traits_text": "Тифлинг (Зариэль, MToF): +2 Хар, +1 Сил. Тёмное зрение 60. Сопротивление огню. Наследие Авернуса: чудотворство; с 3 ур. палящая кара; с 5 ур. клеймящая кара (ХАР)."
+      "traits_text": "Тифлинг (Зариэль, MToF): +2 Хар, +1 Сил. Тёмное зрение 60. Сопротивление огню. Наследие Авернуса: чудотворство; с 3 ур. палящая кара; с 5 ур. клеймящая кара (ХАР).",
+      "racial_spells": [
+        {
+          "id": "thaumaturgy",
+          "spell_slug": "thaumaturgy",
+          "name_ru": "Чудотворство",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "searing_smite",
+          "spell_slug": "searing_smite",
+          "name_ru": "Палящая кара",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "branding_smite",
+          "spell_slug": "branding_smite",
+          "name_ru": "Клеймящая кара",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha"
+        }
+      ]
     },
     {
       "slug": "tiefling_feral",
