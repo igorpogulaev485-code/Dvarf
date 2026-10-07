@@ -14,6 +14,8 @@ export type WeaponPreset = {
 
 const PRESETS: WeaponPreset[] = [
   { labelRu: 'Секира', damage: '1к12', damageType: 'рубящий', ability: 'str', aliases: ['большое топорище', 'greataxe'] },
+  { labelRu: 'Боевой топор', damage: '1к8', damageType: 'рубящий', ability: 'str', aliases: ['battleaxe'] },
+  { labelRu: 'Молот', damage: '2к6', damageType: 'дробящий', ability: 'str', aliases: ['maul', 'двуручный молот'] },
   { labelRu: 'Ручной топор', damage: '1к6', damageType: 'рубящий', ability: 'str', aliases: ['handaxe'] },
   { labelRu: 'Метательное копьё', damage: '1к6', damageType: 'колющий', ability: 'str', aliases: ['метательное копье', 'javelin'] },
   { labelRu: 'Длинный меч', damage: '1к8', damageType: 'рубящий', ability: 'str', aliases: ['длинный меч', 'longsword'] },

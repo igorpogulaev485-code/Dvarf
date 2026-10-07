@@ -98,40 +98,85 @@
       "level": 4,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_4_sorcerer_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "asi_8_sorcerer",
       "level": 8,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_8_sorcerer_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "asi_12_sorcerer",
       "level": 12,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_12_sorcerer_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "asi_16_sorcerer",
       "level": 16,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_16_sorcerer_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "asi_19_sorcerer",
       "level": 19,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_19_sorcerer_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "sorcerous_restoration",
@@ -700,7 +745,13 @@
         "name_ru": "Магия часового механизма",
         "name_en": "Clockwork Magic",
         "summary_ru": "Доп. известные заклинания порядка; замены при ASI.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заклинания",
+          "by_level": {
+            "1": "список часового механизма; замены при ASI"
+          }
+        }
       },
       {
         "id": "restore_balance",
@@ -725,7 +776,25 @@
         "name_ru": "Бастион закона",
         "name_en": "Bastion of Law",
         "summary_ru": "Действием 1–5 очков: кубы равенства на существо (поглощают урон).",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 0,
+          "recharge": "long_rest",
+          "pool_id": "bastion_of_law",
+          "pool_name_ru": "Бастион закона",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "sorcery_points",
+            "label_ru": "1–5 очков → кости d8 защиты",
+            "mode": "spend"
+          }
+        },
+        "scale": {
+          "label_ru": "Кости",
+          "by_level": {
+            "6": "d8 × потраченные очки (1–5)"
+          }
+        }
       },
       {
         "id": "trance_of_order",
@@ -740,6 +809,12 @@
           "pool_id": "trance_of_order",
           "pool_name_ru": "Транс порядка",
           "track": "spend"
+        },
+        "scale": {
+          "label_ru": "Транс",
+          "by_level": {
+            "14": "1× long rest или 5 очков"
+          }
         }
       },
       {

@@ -97,8 +97,17 @@
       "level": 4,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_4_ranger_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "extra_attack_ranger",
@@ -113,8 +122,17 @@
       "level": 8,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_8_ranger_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "lands_stride",
@@ -137,8 +155,17 @@
       "level": 12,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_12_ranger_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "vanish",
@@ -153,8 +180,17 @@
       "level": 16,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_16_ranger_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "feral_senses",
@@ -169,8 +205,17 @@
       "level": 19,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_19_ranger_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "foe_slayer",
@@ -406,7 +451,7 @@
           "uses": 1,
           "recharge": "short_rest",
           "pool_id": "detect_portal",
-          "pool_name_ru": "Обнаружение портала",
+          "pool_name_ru": "Обнаружить портал",
           "track": "spend"
         }
       },
@@ -446,7 +491,13 @@
         "name_ru": "Удар издалека",
         "name_en": "Distant Strike",
         "summary_ru": "Перед атакой можешь телепортироваться до 10 фт. При атаке по ≥2 существам за одно действие Атака — ещё одна атака по третьему.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Телепорт атаки",
+          "by_level": {
+            "11": "до 10 фт. перед атакой; 3 цели → доп. атака"
+          }
+        }
       },
       {
         "id": "spectral_defense",
@@ -454,7 +505,13 @@
         "name_ru": "Призрачная защита",
         "name_en": "Spectral Defense",
         "summary_ru": "Реакция при попадании по тебе: сопротивление этому урону до начала твоего следующего хода (пока в сознании).",
-        "kind": "reaction"
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Реакция",
+          "by_level": {
+            "15": "сопротивление урону атаки после попадания"
+          }
+        }
       }
     ],
     "monster_slayer": [
@@ -740,6 +797,12 @@
             "lightning",
             "poison"
           ]
+        },
+        "scale": {
+          "label_ru": "Тёмное зрение / язык",
+          "by_level": {
+            "3": "60 фт.; Draconic"
+          }
         }
       },
       {
@@ -763,7 +826,13 @@
         "name_ru": "Связь клыка и чешуи",
         "name_en": "Bond of Fang and Scale",
         "summary_ru": "Сопр. типу урона дрейка. Дрейк: кусает сильнее; можешь дать ему крылья (полёт).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Связь",
+          "by_level": {
+            "7": "сопр. типу; езда; урон дрейка растёт"
+          }
+        }
       },
       {
         "id": "drake_mount",
@@ -773,10 +842,9 @@
         "summary_ru": "Дрейк: дыхание конусом/линией (урона по типу). Ты можешь ездить на Large дрейке.",
         "kind": "action",
         "scale": {
-          "label_ru": "Дыхание",
+          "label_ru": "Езда",
           "by_level": {
-            "11": "6к6",
-            "15": "8к6"
+            "7": "Medium дрейк как маунт"
           }
         }
       },
@@ -786,7 +854,13 @@
         "name_ru": "Совершенная связь",
         "name_en": "Perfected Bond",
         "summary_ru": "Дрейк +2 КД, укус сильнее. Реакция: когда ты попадаешь атакой — дрейк в 30 фт. тоже атакует цель.",
-        "kind": "reaction"
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Усиление",
+          "by_level": {
+            "15": "Large; доп. атака дрейка; Reflective Carapace"
+          }
+        }
       }
     ]
   }

@@ -8,19 +8,19 @@
   "class_slug": "cleric",
   "features": [
     {
-      "id": "spellcasting_cleric",
-      "level": 1,
-      "name_ru": "Использование заклинаний",
-      "name_en": "Spellcasting",
-      "summary_ru": "Полный кастер. Мудрость — базовая характеристика. Подготовка = Мудр. + ур. жреца.",
-      "kind": "passive"
-    },
-    {
       "id": "divine_domain",
       "level": 1,
       "name_ru": "Божественный домен",
       "name_en": "Divine Domain",
       "summary_ru": "Выбери домен. Заклинания домена всегда подготовлены (см. грант архетипа).",
+      "kind": "passive"
+    },
+    {
+      "id": "spellcasting_cleric",
+      "level": 1,
+      "name_ru": "Использование заклинаний",
+      "name_en": "Spellcasting",
+      "summary_ru": "Полный кастер. Мудрость — базовая характеристика. Подготовка = Мудр. + ур. жреца.",
       "kind": "passive"
     },
     {
@@ -64,6 +64,23 @@
       }
     },
     {
+      "id": "asi_4_cleric",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_4_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
       "id": "destroy_undead",
       "level": 5,
       "name_ru": "Уничтожение нежити",
@@ -79,6 +96,23 @@
           "14": "3",
           "17": "4"
         }
+      }
+    },
+    {
+      "id": "asi_8_cleric",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_8_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
       }
     },
     {
@@ -99,6 +133,57 @@
           "recharge": "manual"
         },
         "failure_spend_label_ru": "Провал (сброс на отдыхе)"
+      }
+    },
+    {
+      "id": "asi_12_cleric",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_12_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "asi_16_cleric",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_16_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "asi_19_cleric",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_19_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
       }
     }
   ],
@@ -551,7 +636,13 @@
         "name_ru": "Рождённый бурей",
         "name_en": "Stormborn",
         "summary_ru": "На улице под открытым небом — скорость полёта равна скорости ходьбы.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Полёт",
+          "by_level": {
+            "17": "скорость ходьбы, пока не в средних/тяжёлых доспехах"
+          }
+        }
       }
     ],
     "trickery_domain": [
@@ -624,7 +715,13 @@
         "name_ru": "Улучшенный двойник",
         "name_en": "Improved Duplicity",
         "summary_ru": "Можно создать до четырёх двойников; перемещать любого бонусным действием.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Двойник",
+          "by_level": {
+            "17": "4 иллюзии; обмен реакцией"
+          }
+        }
       }
     ],
     "war_domain": [
@@ -941,7 +1038,13 @@
         "name_ru": "Святой кузницы и огня",
         "name_en": "Saint of Forge and Fire",
         "summary_ru": "Иммунитет к огню; сопротивление дробящему/колющему/рубящему в тяжёлом доспехе.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Пока в тяжёлом доспехе",
+          "by_level": {
+            "17": "сопр. огню; иммун. к немаг. физ."
+          }
+        }
       }
     ],
     "grave_domain": [
@@ -1290,7 +1393,13 @@
         "name_ru": "Сумеречный покров",
         "name_en": "Twilight Shroud",
         "summary_ru": "Пока действует Сумеречное святилище: ты и союзники в сфере в полуукрытии.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Пока аура",
+          "by_level": {
+            "17": "полуукрытие себе и в ауре"
+          }
+        }
       }
     ]
   }
