@@ -100,6 +100,11 @@ export type FeatureResource = {
   }
   /** Label for the failure/normal spend button when success_lock is set. */
   failure_spend_label_ru?: string
+  /**
+   * PHB Rage: benefits require not wearing heavy armor.
+   * When true, spend is blocked while heavy body armor is equipped.
+   */
+  blocked_while_heavy_armor?: boolean
 }
 
 export type FeatureChoiceDef = {
@@ -565,6 +570,7 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
       typeof resourceRaw.failure_spend_label_ru === 'string'
         ? resourceRaw.failure_spend_label_ru
         : undefined,
+    blocked_while_heavy_armor: Boolean(resourceRaw.blocked_while_heavy_armor),
   }
 }
 

@@ -76,6 +76,8 @@ type ClassFeaturesPanelProps = {
   onFeaturePicksChange: (picks: FeaturePicksState) => void
   spells: SpellsState
   onSpellsChange: (spells: SpellsState) => void
+  /** Equipped heavy body armor — blocks Rage benefits (PHB). */
+  wearingHeavyArmor?: boolean
   onToast?: (message: string) => void
 }
 
@@ -86,6 +88,7 @@ function FeatureResourceControls({
   onResourcesChange,
   onToast,
   initiativeGrantByPool,
+  wearingHeavyArmor,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -93,6 +96,7 @@ function FeatureResourceControls({
   onResourcesChange: (resources: SheetResource[]) => void
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
+  wearingHeavyArmor: boolean
 }) {
   const resource = feature.resource
   if (!resource?.pool_id) return null
@@ -182,6 +186,8 @@ function FeatureResourceControls({
     hasInitiativeGrant && remaining <= 0 && pool.used > 0
   const successLock = resource.success_lock
   const lockedBySuccess = Boolean(successLock) && pool.reset === 'manual' && pool.used > 0
+  const blockedByHeavyArmor =
+    Boolean(resource.blocked_while_heavy_armor) && wearingHeavyArmor
 
   return (
     <div className="feature-resource">
@@ -198,6 +204,12 @@ function FeatureResourceControls({
       {feature.scaleValue ? (
         <Text tone="muted">
           Сейчас: <strong>{feature.scaleValue}</strong>
+        </Text>
+      ) : null}
+      {blockedByHeavyArmor ? (
+        <Text tone="muted">
+          Надет тяжёлый доспех — бонусы ярости не действуют (PHB). Сними доспех или выбери
+          лёгкий/средний.
         </Text>
       ) : null}
       {linked ? (
@@ -260,8 +272,14 @@ function FeatureResourceControls({
         ) : (
           <Button
             type="button"
-            disabled={remaining <= 0 && !canViaLinked}
+            disabled={blockedByHeavyArmor || (remaining <= 0 && !canViaLinked)}
             onClick={() => {
+              if (blockedByHeavyArmor) {
+                onToast?.(
+                  'Ярость: сними тяжёлый доспех — иначе бонусы ярости не действуют',
+                )
+                return
+              }
               const result = spendFeatureUse({ resources, feature, classSlug })
               onResourcesChange(result.resources)
               if (result.ok) {
@@ -845,6 +863,7 @@ function FeatureRow({
   onSpellsChange,
   onToast,
   initiativeGrantByPool,
+  wearingHeavyArmor,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -856,6 +875,7 @@ function FeatureRow({
   onSpellsChange: (spells: SpellsState) => void
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
+  wearingHeavyArmor: boolean
 }) {
   const [open, setOpen] = useState(false)
   const sourceLabel =
@@ -968,6 +988,7 @@ function FeatureRow({
             onResourcesChange={onResourcesChange}
             onToast={onToast}
             initiativeGrantByPool={initiativeGrantByPool}
+            wearingHeavyArmor={wearingHeavyArmor}
           />
         </div>
       ) : null}
@@ -1003,6 +1024,7 @@ export function ClassFeaturesPanel({
   onFeaturePicksChange,
   spells,
   onSpellsChange,
+  wearingHeavyArmor = false,
   onToast,
 }: ClassFeaturesPanelProps) {
   const features = useMemo(
@@ -1077,6 +1099,7 @@ export function ClassFeaturesPanel({
                   onSpellsChange={onSpellsChange}
                   onToast={onToast}
                   initiativeGrantByPool={initiativeGrantByPool}
+                  wearingHeavyArmor={wearingHeavyArmor}
                 />
               ))}
             </div>

@@ -660,6 +660,7 @@ export function MinimalSheetEditor({
       constitutionScore: prev.abilities.con,
       characterLevel: totalCharacterLevel(prev.classes),
       inventory: prev.inventory,
+      weapons: prev.weapons,
     }
   }
 
@@ -895,6 +896,7 @@ export function MinimalSheetEditor({
       hpMax: slice.hpMax,
       hpCurrent: slice.hpCurrent,
       inventory: slice.inventory,
+      weapons: slice.weapons,
       play: {
         ...prev.play,
         hitDie: slice.playHitDie,
@@ -1255,12 +1257,29 @@ export function MinimalSheetEditor({
           })?.naturalArmor ?? null
       }
     }
+    const unarmoredDefense = (() => {
+      if (pieces.armor) return null
+      const hasBarb = unlockedFeatures.some(
+        (feature) => feature.id === 'unarmored_defense_barb',
+      )
+      if (hasBarb) {
+        return { labelRu: 'Защита без доспехов', secondMod: 'con' as const }
+      }
+      const hasMonk = unlockedFeatures.some(
+        (feature) => feature.id === 'unarmored_defense_monk',
+      )
+      if (hasMonk) {
+        return { labelRu: 'Защита без доспехов', secondMod: 'wis' as const }
+      }
+      return null
+    })()
     const base = computeArmorClass({
       dexMod: mods.dex,
       abilityMods: mods,
       armor: pieces.armor,
       shield: pieces.shield,
       naturalArmor,
+      unarmoredDefense,
     })
     const styleId = findFightingStylePick(draft.featurePicks)
     const styleBonus = fightingStyleAcBonus({
@@ -1278,6 +1297,7 @@ export function MinimalSheetEditor({
     draft.raceGrant,
     draft.featurePicks,
     raceCatalogRows,
+    unlockedFeatures,
   ])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
@@ -1593,9 +1613,12 @@ export function MinimalSheetEditor({
                                     classes: nextClasses,
                                     classGrants: withoutClass.classGrants,
                                     saves: withoutClass.saves,
+                                    skills: withoutClass.skills,
+                                    identity: withoutClass.identity,
                                     hpMax: withoutClass.hpMax,
                                     hpCurrent: withoutClass.hpCurrent,
                                     inventory: withoutClass.inventory,
+                                    weapons: withoutClass.weapons,
                                     play: {
                                       ...prev.play,
                                       hitDie: withoutClass.playHitDie,
@@ -1945,6 +1968,9 @@ export function MinimalSheetEditor({
         }
         spells={draft.spells}
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        wearingHeavyArmor={
+          equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
+        }
         onToast={onToast}
       />
 

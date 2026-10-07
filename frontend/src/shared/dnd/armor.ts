@@ -172,6 +172,13 @@ export function naturalArmorValue(
   return ac
 }
 
+/** Class Unarmored Defense (barbarian 10+DEX+CON, monk 10+DEX+WIS). */
+export type UnarmoredDefense = {
+  labelRu: string
+  /** Second ability added on top of DEX. */
+  secondMod: AbilityModKey
+}
+
 export function computeArmorClass(input: {
   dexMod: number
   /** Full ability mods when natural armor uses CON/etc. */
@@ -179,6 +186,8 @@ export function computeArmorClass(input: {
   armor: ArmorPiece | null
   shield: ShieldPiece | null
   naturalArmor?: NaturalArmor | null
+  /** Used only when no body armor and no race natural armor. */
+  unarmoredDefense?: UnarmoredDefense | null
 }): { ac: number; summary: string } {
   const dex = Math.floor(input.dexMod)
   const mods: Partial<Record<AbilityModKey, number>> = {
@@ -190,6 +199,7 @@ export function computeArmorClass(input: {
   let ac: number
   const parts: string[] = []
   const natural = input.naturalArmor ?? null
+  const ud = input.unarmoredDefense ?? null
 
   if (input.armor) {
     ac = bodyArmorAc(input.armor.kind, input.armor.baseAc, dex)
@@ -222,6 +232,14 @@ export function computeArmorClass(input: {
         }${capped}`,
       )
     }
+  } else if (ud) {
+    const second = Math.floor(mods[ud.secondMod] ?? 0)
+    ac = 10 + dex + second
+    parts.push(
+      `${ud.labelRu} 10+ЛОВ${dex >= 0 ? '+' : ''}${dex}+${MOD_LABEL[ud.secondMod]}${
+        second >= 0 ? '+' : ''
+      }${second}`,
+    )
   } else {
     ac = 10 + dex
     parts.push(`10+ЛОВ ${dex >= 0 ? '+' : ''}${dex}`)

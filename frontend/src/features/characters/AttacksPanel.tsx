@@ -32,6 +32,15 @@ export function isRaceNaturalWeaponAttack(attack: Pick<WeaponAttack, 'id' | 'sou
   return attack.source_kind === 'race' || attack.id.startsWith('race-nw:')
 }
 
+/** Stable attack id for class starting-equipment weapons. */
+export function classEquipmentAttackId(classEntryId: string, inventoryItemId: string): string {
+  return `class-eq:${classEntryId}:${inventoryItemId}`
+}
+
+export function isClassEquipmentAttack(attack: Pick<WeaponAttack, 'id'>): boolean {
+  return attack.id.startsWith('class-eq:')
+}
+
 type AttacksPanelProps = {
   edition: RulesEdition
   weapons: WeaponAttack[]

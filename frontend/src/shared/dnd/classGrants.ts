@@ -781,6 +781,8 @@ export type AppliedClassGrant = {
   level1Hp: number | null
   equipmentPackageId: string | null
   equipmentItemIds: string[]
+  /** Attack cards created from starting weapons (revoke with the package). */
+  equipmentAttackIds: string[]
   equipmentCoinsGp: number
 }
 

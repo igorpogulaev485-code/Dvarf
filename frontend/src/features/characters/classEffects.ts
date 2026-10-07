@@ -16,10 +16,19 @@ import {
   type WeaponProfKey,
 } from '../../shared/dnd/classGrants'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
+import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import { abilityModifier } from './sheetTypes'
 import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
-import { createInventoryItem, type InventoryState } from './inventory'
+import {
+  createInventoryItem,
+  equipInventoryItem,
+  type InventoryState,
+} from './inventory'
 import type { ArmorKind } from '../../shared/dnd/armor'
+import {
+  classEquipmentAttackId,
+  type WeaponAttack,
+} from './AttacksPanel'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 export type SaveState = Record<AbilityKey, boolean>
@@ -35,6 +44,7 @@ export type ClassGrantDraftSlice = {
   constitutionScore: number
   characterLevel: number
   inventory: InventoryState
+  weapons: WeaponAttack[]
 }
 
 function uniqueStrings(items: string[]): string[] {
@@ -144,6 +154,7 @@ export function revokeClassGrant(
   }
 
   const removeIds = new Set(previous.equipmentItemIds ?? [])
+  const removeAttackIds = new Set(previous.equipmentAttackIds ?? [])
   const inventory: InventoryState = {
     coins: { ...draft.inventory.coins },
     items: draft.inventory.items.filter((item) => !removeIds.has(item.id)),
@@ -166,6 +177,7 @@ export function revokeClassGrant(
     hpMax,
     hpCurrent,
     inventory,
+    weapons: draft.weapons.filter((row) => !removeAttackIds.has(row.id)),
   }
 }
 
@@ -258,11 +270,13 @@ export function applyClassGrantToDraft(input: {
   }
 
   const equipmentItemIds: string[] = []
+  const equipmentAttackIds: string[] = []
   let equipmentCoinsGp = 0
-  const inventory: InventoryState = {
+  let inventory: InventoryState = {
     coins: { ...cleared.inventory.coins },
     items: [...cleared.inventory.items],
   }
+  let nextWeapons: WeaponAttack[] = [...cleared.weapons]
   const equipmentPackageId =
     input.mode === 'start' ? input.picks.equipmentPackageId : null
   if (input.mode === 'start' && equipmentPackageId && equipmentPackageId !== 'skip') {
@@ -278,6 +292,39 @@ export function applyClassGrantToDraft(input: {
         created.notes = spec.notes ?? 'Стартовое снаряжение класса'
         inventory.items.push(created)
         equipmentItemIds.push(created.id)
+
+        // Auto-wear body armor / shield so AC updates immediately.
+        if (
+          created.armor_kind === 'light' ||
+          created.armor_kind === 'medium' ||
+          created.armor_kind === 'heavy' ||
+          created.armor_kind === 'shield'
+        ) {
+          inventory = {
+            ...inventory,
+            items: equipInventoryItem(inventory.items, created.id, true),
+          }
+        }
+
+        // Weapons → Attacks panel cards (one card per distinct weapon item).
+        const weapon = findWeaponPreset(spec.name)
+        if (weapon) {
+          const attackId = classEquipmentAttackId(input.classEntryId, created.id)
+          nextWeapons.push({
+            id: attackId,
+            name:
+              created.qty > 1
+                ? `${weapon.labelRu} ×${created.qty}`
+                : weapon.labelRu,
+            catalog_id: null,
+            source_kind: 'weapon',
+            ability: weapon.ability,
+            is_proficient: true,
+            damage: weapon.damage,
+            damage_type: weapon.damageType,
+          })
+          equipmentAttackIds.push(attackId)
+        }
       }
       if (pack.coinsGp && pack.coinsGp > 0) {
         equipmentCoinsGp = pack.coinsGp
@@ -298,6 +345,7 @@ export function applyClassGrantToDraft(input: {
     level1Hp,
     equipmentPackageId,
     equipmentItemIds,
+    equipmentAttackIds,
     equipmentCoinsGp,
   }
 
@@ -338,6 +386,7 @@ export function applyClassGrantToDraft(input: {
     hpMax,
     hpCurrent,
     inventory,
+    weapons: nextWeapons,
   }
 
   return {
@@ -415,6 +464,9 @@ export function readAppliedClassGrants(raw: unknown): AppliedClassGrant[] {
         typeof row.equipmentPackageId === 'string' ? row.equipmentPackageId : null,
       equipmentItemIds: Array.isArray(row.equipmentItemIds)
         ? row.equipmentItemIds.filter((value): value is string => typeof value === 'string')
+        : [],
+      equipmentAttackIds: Array.isArray(row.equipmentAttackIds)
+        ? row.equipmentAttackIds.filter((value): value is string => typeof value === 'string')
         : [],
       equipmentCoinsGp:
         typeof row.equipmentCoinsGp === 'number' ? Math.max(0, row.equipmentCoinsGp) : 0,
