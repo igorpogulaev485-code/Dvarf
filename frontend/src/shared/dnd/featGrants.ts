@@ -492,26 +492,27 @@ export function featGrantDefFromCatalog(input: {
   }
 }
 
-export function validateFeatGrantPicks(input: {
-  def: FeatGrantDef
-  picks: FeatGrantPicks
+export type FeatPrereqContext = {
   abilities: Record<AbilityKey, number>
   armor: Partial<Record<ArmorProfKey, boolean>>
   hasSpellcasting: boolean
-  /** Martial weapon proficiency (Fighting Initiate). */
   hasMartialWeapons?: boolean
   raceSlug?: string | null
   raceParentSlug?: string | null
   size?: string | null
   characterLevel?: number
   ownedFeatSlugs?: string[]
-  /** Class catalog slugs from class_grants ledger. */
   classSlugs?: string[]
-  /** Background catalog slug from identity.backgroundSlug. */
   backgroundSlug?: string | null
-}): string | null {
-  const { def, picks, abilities, armor, hasSpellcasting } = input
+}
+
+/** Prerequisites only (no choice picks). Used to hide ineligible feats in the picker. */
+export function featPrerequisitesUnmet(
+  def: FeatGrantDef,
+  input: FeatPrereqContext,
+): string | null {
   const need = def.prerequisites
+  const { abilities, armor, hasSpellcasting } = input
 
   for (const [key, min] of Object.entries(need.abilities ?? {}) as Array<
     [AbilityKey, number]
@@ -590,7 +591,6 @@ export function validateFeatGrantPicks(input: {
       Boolean(need.sizeAny?.length) &&
       Boolean(input.size) &&
       need.sizeAny!.includes(String(input.size).toLowerCase())
-    // racesAny OR sizeAny (Squat Nimbleness); if only racesAny — require race
     if (need.racesAny?.length && need.sizeAny?.length) {
       if (!raceOk && !sizeOk) {
         return def.prerequisitesRu
@@ -605,6 +605,30 @@ export function validateFeatGrantPicks(input: {
       return 'Размер не подходит для этой черты'
     }
   }
+  return null
+}
+
+export function validateFeatGrantPicks(input: {
+  def: FeatGrantDef
+  picks: FeatGrantPicks
+  abilities: Record<AbilityKey, number>
+  armor: Partial<Record<ArmorProfKey, boolean>>
+  hasSpellcasting: boolean
+  /** Martial weapon proficiency (Fighting Initiate). */
+  hasMartialWeapons?: boolean
+  raceSlug?: string | null
+  raceParentSlug?: string | null
+  size?: string | null
+  characterLevel?: number
+  ownedFeatSlugs?: string[]
+  /** Class catalog slugs from class_grants ledger. */
+  classSlugs?: string[]
+  /** Background catalog slug from identity.backgroundSlug. */
+  backgroundSlug?: string | null
+}): string | null {
+  const { def, picks } = input
+  const prereqFail = featPrerequisitesUnmet(def, input)
+  if (prereqFail) return prereqFail
 
   for (const choice of def.choices) {
     if (choice.type === 'note') continue

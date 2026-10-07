@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { RulesEdition } from '../../shared/api/characters'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
@@ -6,6 +6,7 @@ import {
   commonLanguageOptions,
   emptyFeatPicks,
   featGrantDefFromCatalog,
+  featPrerequisitesUnmet,
   validateFeatGrantPicks,
   type AbilityKey,
   type ArmorProfKey,
@@ -83,6 +84,50 @@ export function FeatSetupDialog({
           })
         : null,
     [selected],
+  )
+
+  const prereqContext = useMemo(
+    () => ({
+      abilities,
+      armor,
+      hasSpellcasting,
+      hasMartialWeapons,
+      raceSlug,
+      raceParentSlug,
+      size,
+      characterLevel,
+      ownedFeatSlugs: takenSlugs,
+      classSlugs,
+      backgroundSlug,
+    }),
+    [
+      abilities,
+      armor,
+      hasSpellcasting,
+      hasMartialWeapons,
+      raceSlug,
+      raceParentSlug,
+      size,
+      characterLevel,
+      takenSlugs,
+      classSlugs,
+      backgroundSlug,
+    ],
+  )
+
+  const filterEligibleFeat = useCallback(
+    (entry: CatalogEntry) => {
+      if (forcedSlug) return entry.slug === forcedSlug
+      if (takenSlugs.includes(entry.slug)) return false
+      const entryDef = featGrantDefFromCatalog({
+        slug: entry.slug,
+        nameRu: entry.name_ru,
+        data: entry.data,
+      })
+      if (!entryDef) return false
+      return featPrerequisitesUnmet(entryDef, prereqContext) == null
+    },
+    [forcedSlug, takenSlugs, prereqContext],
   )
 
   useEffect(() => {
@@ -229,7 +274,7 @@ export function FeatSetupDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Каталог черт 2014 (PHB → … → SDQ → BPGG…). Гранты — на лист.
+          Только доступные тебе черты (требования уже отфильтрованы). Гранты — на лист.
         </Text>
 
         <Field label="Черта">
@@ -238,10 +283,7 @@ export function FeatSetupDialog({
             edition={edition}
             value={value}
             placeholder="Начни вводить название…"
-            filterEntry={(entry) => {
-              if (forcedSlug && entry.slug !== forcedSlug) return false
-              return !takenSlugs.includes(entry.slug)
-            }}
+            filterEntry={filterEligibleFeat}
             onChange={(next, entry) => {
               setValue(next)
               setSelected(entry)
