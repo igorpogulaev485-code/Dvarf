@@ -1657,9 +1657,37 @@ export function MinimalSheetEditor({
                             requestSubclassChange(row.id, selected)
                             return
                           }
-                          patchClass(row.id, {
-                            subclass_name: value,
-                            subclass_catalog_id: null,
+                          // Free-text / clear: drop catalog subclass grant (EK/AT caster etc.)
+                          // so stale third-caster overlays do not linger without an archetype.
+                          setDraft((prev) => {
+                            const hadGrant = prev.subclassGrants.some(
+                              (grant) => grant.classEntryId === row.id,
+                            )
+                            const cleared = hadGrant
+                              ? revokeSubclassGrant(subclassSliceFrom(prev), row.id, {
+                                  copyTextToNotes: true,
+                                })
+                              : subclassSliceFrom(prev)
+                            const merged = hadGrant
+                              ? mergeSubclassSlice(prev, cleared)
+                              : prev
+                            const nextClasses = merged.classes.map((item) =>
+                              item.id === row.id
+                                ? {
+                                    ...item,
+                                    subclass_name: value,
+                                    subclass_catalog_id: null,
+                                  }
+                                : item,
+                            )
+                            const next = withRaceSpellsSynced(merged, nextClasses)
+                            return {
+                              ...next,
+                              identity:
+                                next.classes[0]?.id === row.id
+                                  ? { ...next.identity, subclassName: value }
+                                  : next.identity,
+                            }
                           })
                         }}
                       />
