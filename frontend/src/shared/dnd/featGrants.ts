@@ -108,6 +108,15 @@ export type FeatGrantDef = {
     classesAny?: string[]
     /** Background catalog slugs — OR with classes/flags. */
     backgroundsAny?: string[]
+    /**
+     * Owned feat must have enum pick in ids_any
+     * (e.g. initiate moon=nuitari for Black Robes).
+     */
+    featEnumsAll?: Array<{
+      slug: string
+      choiceId: string
+      optionIds: string[]
+    }>
   }
   choices: FeatChoiceDef[]
   fixedGrants: FeatGrantsPackage
@@ -433,6 +442,29 @@ export function featGrantDefFromCatalog(input: {
   const backgroundsAny = parseStringList(
     prereq.backgrounds_any ?? prereq.backgroundsAny,
   ).map((item) => item.toLowerCase())
+  const featEnumsRaw = prereq.feat_enums_all ?? prereq.featEnumsAll
+  const featEnumsAll: Array<{
+    slug: string
+    choiceId: string
+    optionIds: string[]
+  }> = []
+  if (Array.isArray(featEnumsRaw)) {
+    for (const row of featEnumsRaw) {
+      const obj = asRecord(row)
+      const slug = readString(obj.slug)
+      const choiceId = readString(obj.choice) ?? readString(obj.choice_id) ?? readString(obj.choiceId)
+      const optionIds = parseStringList(obj.ids_any ?? obj.idsAny ?? obj.option_ids ?? obj.optionIds).map(
+        (item) => item.toLowerCase(),
+      )
+      if (slug && choiceId && optionIds.length) {
+        featEnumsAll.push({
+          slug: slug.toLowerCase(),
+          choiceId,
+          optionIds,
+        })
+      }
+    }
+  }
   const minLevelRaw = prereq.min_level ?? prereq.minLevel
   const minLevel =
     typeof minLevelRaw === 'number' && Number.isFinite(minLevelRaw)
@@ -455,6 +487,7 @@ export function featGrantDefFromCatalog(input: {
       featsNone: featsNone.length ? featsNone : undefined,
       classesAny: classesAny.length ? classesAny : undefined,
       backgroundsAny: backgroundsAny.length ? backgroundsAny : undefined,
+      featEnumsAll: featEnumsAll.length ? featEnumsAll : undefined,
     },
     choices: parseChoices(data.choices),
     fixedGrants: emptyPackage({
@@ -492,6 +525,11 @@ export function featGrantDefFromCatalog(input: {
   }
 }
 
+export type OwnedFeatEnumSnapshot = {
+  slug: string
+  enumIds: Record<string, string>
+}
+
 export type FeatPrereqContext = {
   abilities: Record<AbilityKey, number>
   armor: Partial<Record<ArmorProfKey, boolean>>
@@ -504,6 +542,21 @@ export type FeatPrereqContext = {
   ownedFeatSlugs?: string[]
   classSlugs?: string[]
   backgroundSlug?: string | null
+  /** Enum picks from owned feat grants (moon / plane / strike type). */
+  ownedFeatEnums?: OwnedFeatEnumSnapshot[]
+}
+
+/** Enum picks from ledger rows for feat_enums_all checks. */
+export function ownedFeatEnumsFromLedger(
+  ledger: AppliedFeatGrant[],
+): OwnedFeatEnumSnapshot[] {
+  return ledger.map((row) => ({
+    slug: row.slug,
+    enumIds: {
+      ...row.applied.enumPicks,
+      ...row.picks.enumIds,
+    },
+  }))
 }
 
 /** Prerequisites only (no choice picks). Used to hide ineligible feats in the picker. */
@@ -579,6 +632,21 @@ export function featPrerequisitesUnmet(
       return def.prerequisitesRu
         ? `Требования: ${def.prerequisitesRu}`
         : `Несовместимо с чертой: ${blocked.join(', ')}`
+    }
+  }
+  if (need.featEnumsAll?.length) {
+    const bySlug = new Map<string, OwnedFeatEnumSnapshot>()
+    for (const row of input.ownedFeatEnums ?? []) {
+      bySlug.set(row.slug.trim().toLowerCase(), row)
+    }
+    for (const needEnum of need.featEnumsAll) {
+      const owned = bySlug.get(needEnum.slug)
+      const picked = owned?.enumIds[needEnum.choiceId]?.trim().toLowerCase() ?? ''
+      if (!picked || !needEnum.optionIds.includes(picked)) {
+        return def.prerequisitesRu
+          ? `Требования: ${def.prerequisitesRu}`
+          : 'Нужен другой выбор в предыдущей черте (луна / план / удар)'
+      }
     }
   }
   if (need.racesAny?.length || need.sizeAny?.length) {
