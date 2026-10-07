@@ -430,6 +430,17 @@
 
 ## В ветках / ещё не на проде
 
+### 2026-10-07 — FEATS SCC wave (Стриксхейвен; GGtR пропуск)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| GGtR | Официальных player feats нет — волна пропущена | Не ждём пустого каталога |
+| Посвящённый Стриксхейвена | Колледж + 2 заговора + заклинание 1 круга | Магический бэкап без класса |
+| Талисман Стриксхейвена | Требует 4 ур. + Посвящённого; пул обмена | Familiar-атака и swap |
+| Prereq chain | `min_level` + `feats_all` в валидации/попапе | Нельзя взять талисман без initiate |
+
+На проде: **нет** · ветка `cursor/feats-scc-wave-ef23` · tip не менять до «залей»
+
 ### 2026-10-07 — FEATS ERLW wave (Эберрон)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -566,3 +577,4 @@
 | 2026-10-07 | `cursor/feats-xge-wave-ef23` · PR #56 | XGE unique feats (5) + Dragon Hide AC; alembic `y4z5`; на проде нет |
 | 2026-10-07 | `cursor/feats-ftd-wave-ef23` · PR #57 | FTD dragon gift feats (3) + PB-scaled pools; alembic `z5a6`; на проде нет |
 | 2026-10-07 | `cursor/feats-erlw-wave-ef23` · PR #58 | ERLW Aberrant Dragonmark + WGTE Revenant Blade; alembic `a7b8`; на проде нет |
+| 2026-10-07 | `cursor/feats-scc-wave-ef23` | SCC Strixhaven Initiate/Mascot + min_level/feats_all; GGtR skip; alembic `b8c9`; на проде нет |
