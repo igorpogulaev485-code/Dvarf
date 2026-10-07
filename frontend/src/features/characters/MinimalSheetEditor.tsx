@@ -525,6 +525,7 @@ export function MinimalSheetEditor({
       flySpeed: prev.flySpeed,
       textBlocks: prev.textBlocks,
       weapons: prev.weapons,
+      spells: prev.spells,
       raceGrant: prev.raceGrant,
       classGrantedSkills: classSkills,
       classGrantedTools: classTools,
@@ -563,6 +564,7 @@ export function MinimalSheetEditor({
       flySpeed: slice.flySpeed,
       textBlocks: slice.textBlocks,
       weapons: slice.weapons,
+      spells: slice.spells,
       raceGrant: slice.raceGrant,
     }
   }

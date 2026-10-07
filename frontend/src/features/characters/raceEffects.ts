@@ -16,7 +16,14 @@ import {
   type RaceGrantDef,
   type RaceGrantPicks,
   type RaceNaturalWeapon,
+  type RaceRacialSpell,
 } from '../../shared/dnd/raceGrants'
+import {
+  raceSpellId,
+  stripRaceSheetSpells,
+  type SheetSpell,
+  type SpellsState,
+} from './spells'
 import {
   mergeRaceLanguages,
   upsertRaceTraitsBlock,
@@ -41,11 +48,51 @@ export type RaceGrantDraftSlice = {
   flySpeed: number | null
   textBlocks: TextBlock[]
   weapons: WeaponAttack[]
+  spells: SpellsState
   raceGrant: AppliedRaceGrant | null
   /** Still covered by class grants — do not strip on race revoke. */
   classGrantedSkills: Set<string>
   classGrantedTools: Set<string>
   classGrantedArmor: Set<keyof ArmorProficiency>
+}
+
+function racialSpellToSheetSpell(
+  raceSlug: string,
+  spell: RaceRacialSpell,
+): SheetSpell {
+  const abilityNote = spell.castingAbility
+    ? `хар-ка: ${spell.castingAbility.toUpperCase()}`
+    : null
+  const notes = [spell.notesRu, abilityNote].filter(Boolean).join(' · ')
+  return {
+    id: raceSpellId(raceSlug, spell.id),
+    name: spell.nameRu,
+    catalog_id: null,
+    level: spell.level,
+    prepared: true,
+    notes,
+    casting_time: '',
+    range: '',
+    attack_or_save: '',
+    damage: '',
+    concentration: false,
+    source_kind: 'race',
+  }
+}
+
+function syncRaceRacialSpells(input: {
+  spells: SpellsState
+  raceSlug: string
+  racialSpells: RaceRacialSpell[]
+}): SpellsState {
+  const withoutRace = stripRaceSheetSpells(input.spells.known)
+  const nextKnown = [
+    ...withoutRace,
+    ...input.racialSpells.map((spell) =>
+      racialSpellToSheetSpell(input.raceSlug, spell),
+    ),
+  ]
+  return { ...input.spells, known: nextKnown }
 }
 
 function uniqueStrings(items: string[]): string[] {
@@ -150,6 +197,10 @@ export function revokeRaceGrant(draft: RaceGrantDraftSlice): RaceGrantDraftSlice
     swimSpeed: null,
     flySpeed: null,
     weapons: stripRaceNaturalWeaponAttacks(draft.weapons),
+    spells: {
+      ...draft.spells,
+      known: stripRaceSheetSpells(draft.spells.known),
+    },
     identity: {
       ...draft.identity,
       darkvision: 0,
@@ -230,6 +281,12 @@ export function applyRaceGrantToDraft(input: {
     raceSlug: def.slug,
     naturalWeapons,
   })
+  const racialSpells = def.racialSpells
+  const spells = syncRaceRacialSpells({
+    spells: cleared.spells,
+    raceSlug: def.slug,
+    racialSpells,
+  })
 
   const size = resolveRaceSize({ def, picks })
   const movement = resolveRaceMovement({
@@ -256,6 +313,7 @@ export function applyRaceGrantToDraft(input: {
     naturalArmor: def.naturalArmor,
     naturalWeapons,
     movement,
+    racialSpells,
   }
 
   const draft: RaceGrantDraftSlice = {
@@ -268,6 +326,7 @@ export function applyRaceGrantToDraft(input: {
     swimSpeed: movement.swim,
     flySpeed: movement.fly,
     weapons,
+    spells,
     identity: {
       ...cleared.identity,
       darkvision: def.darkvision,
@@ -307,11 +366,17 @@ export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftS
     raceSlug: grant.slug,
     naturalWeapons: grant.naturalWeapons ?? [],
   })
+  const spells = syncRaceRacialSpells({
+    spells: draft.spells,
+    raceSlug: grant.slug,
+    racialSpells: grant.racialSpells ?? [],
+  })
 
   return {
     ...draft,
     skills,
     weapons,
+    spells,
     identity: {
       ...draft.identity,
       armor,

@@ -9,6 +9,8 @@ import {
 } from '../../shared/dnd/spells'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
+export type SpellSourceKind = 'catalog' | 'custom' | 'race'
+
 export type SheetSpell = {
   id: string
   name: string
@@ -21,6 +23,8 @@ export type SheetSpell = {
   attack_or_save: string
   damage: string
   concentration: boolean
+  /** Race innate / granted spells; stripped on race revoke. */
+  source_kind?: SpellSourceKind
 }
 
 export type SpellsState = {
@@ -63,11 +67,19 @@ function readSlot(raw: unknown): SpellSlotState {
   })
 }
 
+function readSpellSourceKind(raw: unknown, id: string): SpellSourceKind | undefined {
+  if (raw === 'race' || raw === 'catalog' || raw === 'custom') return raw
+  if (id.startsWith('race-spell:')) return 'race'
+  return undefined
+}
+
 function readSpell(raw: unknown, index: number): SheetSpell {
   const row = asRecord(raw)
   const level = Math.max(0, Math.min(9, Math.floor(readNumber(row.level, 0))))
+  const id = typeof row.id === 'string' ? row.id : `spell-${index}`
+  const sourceKind = readSpellSourceKind(row.source_kind ?? row.sourceKind, id)
   return {
-    id: typeof row.id === 'string' ? row.id : `spell-${index}`,
+    id,
     name: typeof row.name === 'string' ? row.name : '',
     catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
     level,
@@ -83,7 +95,20 @@ function readSpell(raw: unknown, index: number): SheetSpell {
           : '',
     damage: typeof row.damage === 'string' ? row.damage : '',
     concentration: Boolean(row.concentration),
+    ...(sourceKind ? { source_kind: sourceKind } : {}),
   }
+}
+
+export function raceSpellId(raceSlug: string, spellId: string): string {
+  return `race-spell:${raceSlug}:${spellId}`
+}
+
+export function isRaceSheetSpell(spell: SheetSpell): boolean {
+  return spell.source_kind === 'race' || spell.id.startsWith('race-spell:')
+}
+
+export function stripRaceSheetSpells(known: SheetSpell[]): SheetSpell[] {
+  return known.filter((spell) => !isRaceSheetSpell(spell))
 }
 
 export function readSpells(sheet: Record<string, unknown>): SpellsState {
@@ -151,6 +176,7 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         attack_or_save: spell.attack_or_save,
         damage: spell.damage,
         concentration: spell.concentration,
+        ...(spell.source_kind ? { source_kind: spell.source_kind } : {}),
       })),
       prepared: state.known
         .filter((spell) => spell.level <= 0 || spell.prepared)
