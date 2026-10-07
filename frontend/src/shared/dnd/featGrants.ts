@@ -1,4 +1,6 @@
-/** PHB 2014 feat catalog → picks → ledger (mirrors race/class grants). */
+/** Feat catalog → picks → ledger (mirrors race/class grants). */
+
+import type { NaturalArmor } from './armor'
 
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
@@ -66,6 +68,7 @@ export type FeatGrantsPackage = {
   flags: string[]
   resource: FeatResourceGrant | null
   unarmedDamage: string | null
+  naturalArmor: NaturalArmor | null
   benefitsRu: string
   summaryRu: string
   enumPicks: Record<string, string>
@@ -305,10 +308,46 @@ function emptyPackage(partial?: Partial<FeatGrantsPackage>): FeatGrantsPackage {
     flags: [],
     resource: null,
     unarmedDamage: null,
+    naturalArmor: null,
     benefitsRu: '',
     summaryRu: '',
     enumPicks: {},
     ...partial,
+  }
+}
+
+function parseNaturalArmor(raw: unknown): NaturalArmor | null {
+  const obj = asRecord(raw)
+  const base = readNumber(obj.base, 0)
+  if (!base) return null
+  const modRaw = obj.mod
+  const mod =
+    modRaw === 'str' ||
+    modRaw === 'dex' ||
+    modRaw === 'con' ||
+    modRaw === 'int' ||
+    modRaw === 'wis' ||
+    modRaw === 'cha'
+      ? modRaw
+      : null
+  return {
+    base: Math.floor(base),
+    mod,
+    modCap:
+      typeof obj.modCap === 'number'
+        ? obj.modCap
+        : typeof obj.mod_cap === 'number'
+          ? obj.mod_cap
+          : null,
+    allowsShield: obj.allowsShield !== false && obj.allows_shield !== false,
+    armoredBonus:
+      typeof obj.armoredBonus === 'number'
+        ? obj.armoredBonus
+        : typeof obj.armored_bonus === 'number'
+          ? obj.armored_bonus
+          : undefined,
+    labelRu:
+      readString(obj.label_ru) ?? readString(obj.labelRu) ?? 'Природный доспех',
   }
 }
 
@@ -387,6 +426,9 @@ export function featGrantDefFromCatalog(input: {
       resource: parseResource(grants.resource),
       unarmedDamage:
         readString(grants.unarmed_damage) ?? readString(grants.unarmedDamage),
+      naturalArmor: parseNaturalArmor(
+        grants.natural_armor ?? grants.naturalArmor,
+      ),
       benefitsRu: readString(data.benefits_ru) ?? readString(data.benefitsRu) ?? '',
       summaryRu: readString(data.summary_ru) ?? readString(data.summaryRu) ?? '',
     }),
@@ -508,11 +550,14 @@ export function matchRacePrerequisite(input: {
   const allowed = new Set(input.allowed.map((item) => item.toLowerCase()))
   for (const slug of candidates) {
     if (allowed.has(slug)) return true
-    // wood_elf → elf, elf_drow → drow/elf, mark_of_* keep full slug
+  }
+  // Parent/child: allowed "elf" matches wood_elf / high_elf; allowed "dragonborn"
+  // matches dragonborn_chromatic. Exact child requirement (high_elf) does not
+  // match via bare parent "elf" unless parent is also listed.
+  for (const slug of candidates) {
     for (const allow of allowed) {
-      if (slug === allow || slug.startsWith(`${allow}_`) || slug.endsWith(`_${allow}`)) {
-        return true
-      }
+      if (slug.startsWith(`${allow}_`)) return true
+      if (slug.endsWith(`_${allow}`) && allow !== 'elf') return true
     }
   }
   return false
@@ -584,6 +629,19 @@ export function fightingStyleFromFeatGrants(
   return null
 }
 
+/** Best natural armor granted by feats (e.g. Dragon Hide). */
+export function naturalArmorFromFeatGrants(
+  ledger: AppliedFeatGrant[],
+): NaturalArmor | null {
+  let best: NaturalArmor | null = null
+  for (const row of ledger) {
+    const armor = row.applied.naturalArmor
+    if (!armor) continue
+    if (!best || armor.base > best.base) best = armor
+  }
+  return best
+}
+
 export function newFeatGrantId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID()
@@ -652,6 +710,9 @@ export function readFeatGrantLedger(raw: unknown): AppliedFeatGrant[] {
       resource: parseResource(appliedRaw.resource),
       unarmedDamage:
         readString(appliedRaw.unarmedDamage) ?? readString(appliedRaw.unarmed_damage),
+      naturalArmor: parseNaturalArmor(
+        appliedRaw.naturalArmor ?? appliedRaw.natural_armor,
+      ),
       benefitsRu: readString(appliedRaw.benefitsRu) ?? readString(appliedRaw.benefits_ru) ?? '',
       summaryRu: readString(appliedRaw.summaryRu) ?? readString(appliedRaw.summary_ru) ?? '',
       enumPicks: Object.fromEntries(
