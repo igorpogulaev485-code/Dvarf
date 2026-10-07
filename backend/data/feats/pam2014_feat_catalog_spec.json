@@ -1,0 +1,304 @@
+{
+  "rules_edition": "2014",
+  "notes_ru": "Волна PAM (Planescape: Adventures in the Multiverse). Наследник внешних планов → ветки по плану + Планарный странник. Тип плана (закон/зло/хаос/добро/Внешние земли) — мягко в тексте; жёстко: feats_all + feats_none между ветками. При расхождении dnd.su/ttg — решать с Игорем.",
+  "wave": "pam",
+  "feats": [
+    {
+      "id": "32d952af-a131-5270-bbbd-773360ba28dc",
+      "slug": "scion_of_the_outer_planes",
+      "name_ru": "Наследник внешних планов",
+      "name_en": "Scion of the Outer Planes",
+      "source": "pam",
+      "sort_order": 9010,
+      "data": {
+        "source": "pam",
+        "wave": "pam",
+        "prerequisites_ru": "Кампания Planescape",
+        "summary_ru": "План → сопротивление + заговор; открывает планарные черты 4 ур.",
+        "benefits_ru": "Выберите план из таблицы «Планарное влияние»: сопротивление урону и заговор (без материалов). Характеристика сотворения — Инт, Муд или Хар. Выбор плана определяет доступ к Агенту Порядка / Зловещему / Когорте Хаоса / Праведному / Послу Внешних земель.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "plane",
+            "type": "enum",
+            "label_ru": "Планарное влияние",
+            "options": [
+              { "id": "chaos", "label_ru": "Хаотичный — сопротивление яду; малая иллюзия" },
+              { "id": "evil", "label_ru": "Злой — сопротивление некротике; леденящее прикосновение" },
+              { "id": "good", "label_ru": "Добрый — сопротивление излучению; священное пламя" },
+              { "id": "law", "label_ru": "Законный — сопротивление силовому полю; указание" },
+              { "id": "outlands", "label_ru": "Внешние земли — сопротивление психике; волшебная рука" }
+            ]
+          },
+          {
+            "id": "cast",
+            "type": "enum",
+            "label_ru": "Характеристика сотворения",
+            "options": [
+              { "id": "int", "label_ru": "Интеллект" },
+              { "id": "wis", "label_ru": "Мудрость" },
+              { "id": "cha", "label_ru": "Харизма" }
+            ]
+          }
+        ],
+        "grants": {
+          "flags": ["scion_of_the_outer_planes"]
+        }
+      }
+    },
+    {
+      "id": "48a3d4b4-5156-53ec-8915-2d7ebf4239d8",
+      "slug": "agent_of_order",
+      "name_ru": "Агент Порядка",
+      "name_en": "Agent of Order",
+      "source": "pam",
+      "sort_order": 9020,
+      "data": {
+        "source": "pam",
+        "wave": "pam",
+        "prerequisites_ru": "4-й уровень; Наследник внешних планов (законный план)",
+        "summary_ru": "+1 к характеристике; стазисный удар (PB).",
+        "benefits_ru": "Увеличьте одну характеристику на 1 (макс. 20). Один раз за ход при уроне существу в 60 фт: +1к8 силовым и спас Муд или опутано до начала вашего следующего хода. Число использований = БМ.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["scion_of_the_outer_planes"],
+          "feats_none": [
+            "baleful_scion",
+            "cohort_of_chaos",
+            "righteous_heritor",
+            "outlands_envoy"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": ["str", "dex", "con", "int", "wis", "cha"],
+            "label_ru": "+1 к любой характеристике"
+          }
+        ],
+        "grants": {
+          "flags": ["agent_of_order"],
+          "resource": {
+            "pool_id": "stasis_strike",
+            "pool_name_ru": "Стазисный удар",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "f110ed7d-4448-5fbc-871f-8d276c945d56",
+      "slug": "baleful_scion",
+      "name_ru": "Зловещий наследник",
+      "name_en": "Baleful Scion",
+      "source": "pam",
+      "sort_order": 9030,
+      "data": {
+        "source": "pam",
+        "wave": "pam",
+        "prerequisites_ru": "4-й уровень; Наследник внешних планов (злой план)",
+        "summary_ru": "+1 к характеристике; хватка алчности (PB).",
+        "benefits_ru": "Увеличьте одну характеристику на 1 (макс. 20). Один раз за ход при уроне существу в 60 фт: доп. некротика 1к6+БМ и столько же хитов себе. Число использований = БМ.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["scion_of_the_outer_planes"],
+          "feats_none": [
+            "agent_of_order",
+            "cohort_of_chaos",
+            "righteous_heritor",
+            "outlands_envoy"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": ["str", "dex", "con", "int", "wis", "cha"],
+            "label_ru": "+1 к любой характеристике"
+          }
+        ],
+        "grants": {
+          "flags": ["baleful_scion"],
+          "resource": {
+            "pool_id": "grasp_of_avarice",
+            "pool_name_ru": "Хватка алчности",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "fe798b3e-99b9-5873-b931-ffd46dcacbb1",
+      "slug": "cohort_of_chaos",
+      "name_ru": "Когорта Хаоса",
+      "name_en": "Cohort of Chaos",
+      "source": "pam",
+      "sort_order": 9040,
+      "data": {
+        "source": "pam",
+        "wave": "pam",
+        "prerequisites_ru": "4-й уровень; Наследник внешних планов (хаотичный план)",
+        "summary_ru": "+1 к характеристике; хаотическая вспышка на nat 1/20.",
+        "benefits_ru": "Увеличьте одну характеристику на 1 (макс. 20). Когда на атаке или спасброске выпадает 1 или 20, бросьте по таблице «Хаотические вспышки» (пока не кончится эффект — новая не начинается).",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["scion_of_the_outer_planes"],
+          "feats_none": [
+            "agent_of_order",
+            "baleful_scion",
+            "righteous_heritor",
+            "outlands_envoy"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": ["str", "dex", "con", "int", "wis", "cha"],
+            "label_ru": "+1 к любой характеристике"
+          },
+          {
+            "id": "chaos_note",
+            "type": "note",
+            "label_ru": "Хаотические вспышки",
+            "text_ru": "Таблица вспышек — в тексте книги Planescape / dnd.su."
+          }
+        ],
+        "grants": {
+          "flags": ["cohort_of_chaos"]
+        }
+      }
+    },
+    {
+      "id": "9771a667-26de-54ff-b6ab-6012f73705aa",
+      "slug": "righteous_heritor",
+      "name_ru": "Праведный наследник",
+      "name_en": "Righteous Heritor",
+      "source": "pam",
+      "sort_order": 9050,
+      "data": {
+        "source": "pam",
+        "wave": "pam",
+        "prerequisites_ru": "4-й уровень; Наследник внешних планов (добрый план)",
+        "summary_ru": "+1 к характеристике; успокоить боль (реакция, PB).",
+        "benefits_ru": "Увеличьте одну характеристику на 1 (макс. 20). Когда вы или существо в 30 фт получает урон, реакцией уменьшите урон на 1к10+БМ. Число использований = БМ.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["scion_of_the_outer_planes"],
+          "feats_none": [
+            "agent_of_order",
+            "baleful_scion",
+            "cohort_of_chaos",
+            "outlands_envoy"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": ["str", "dex", "con", "int", "wis", "cha"],
+            "label_ru": "+1 к любой характеристике"
+          }
+        ],
+        "grants": {
+          "flags": ["righteous_heritor"],
+          "resource": {
+            "pool_id": "soothe_pain",
+            "pool_name_ru": "Успокоить боль",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "7a16b863-4432-5ff9-b6c1-a6c320c7daec",
+      "slug": "outlands_envoy",
+      "name_ru": "Посол Внешних земель",
+      "name_en": "Outlands Envoy",
+      "source": "pam",
+      "sort_order": 9060,
+      "data": {
+        "source": "pam",
+        "wave": "pam",
+        "prerequisites_ru": "4-й уровень; Наследник внешних планов (Внешние земли)",
+        "summary_ru": "+1 к характеристике; Туманный шаг + Языки 1/длинный отдых.",
+        "benefits_ru": "Увеличьте одну характеристику на 1 (макс. 20). Выучите Туманный шаг и Языки; каждое 1/длинный отдых без ячейки (также за ячейки). Характеристика — как у Наследника.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["scion_of_the_outer_planes"],
+          "feats_none": [
+            "agent_of_order",
+            "baleful_scion",
+            "cohort_of_chaos",
+            "righteous_heritor"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": ["str", "dex", "con", "int", "wis", "cha"],
+            "label_ru": "+1 к любой характеристике"
+          },
+          {
+            "id": "spell_note",
+            "type": "note",
+            "label_ru": "Заклинания",
+            "text_ru": "Добавь Туманный шаг и Языки (1/длинный отдых без ячейки каждое)."
+          }
+        ],
+        "grants": {
+          "flags": ["outlands_envoy"]
+        }
+      }
+    },
+    {
+      "id": "74b2ba33-5598-5aaa-96cf-0d38edeb4de2",
+      "slug": "planar_wanderer",
+      "name_ru": "Планарный странник",
+      "name_en": "Planar Wanderer",
+      "source": "pam",
+      "sort_order": 9070,
+      "data": {
+        "source": "pam",
+        "wave": "pam",
+        "prerequisites_ru": "4-й уровень; Наследник внешних планов",
+        "summary_ru": "Планарная адаптация; взлом и чутье порталов.",
+        "benefits_ru": "После длинного отдыха выберите сопротивление кислоте, холоду или огню до следующего длинного отдыха. Взломщик порталов: действие, проверка Инт (Магия) Сл 20 у портала в 5 фт. Чувство порталов: направление к последнему порталу; действием найти порталы в 30 фт (1/длинный отдых).",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["scion_of_the_outer_planes"]
+        },
+        "choices": [
+          {
+            "id": "adapt_note",
+            "type": "note",
+            "label_ru": "Планарная адаптация",
+            "text_ru": "После каждого длинного отдыха выбери сопротивление: кислота / холод / огонь."
+          }
+        ],
+        "grants": {
+          "flags": ["planar_wanderer"],
+          "resource": {
+            "pool_id": "portal_sense",
+            "pool_name_ru": "Чувство порталов",
+            "uses": 1,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    }
+  ]
+}
