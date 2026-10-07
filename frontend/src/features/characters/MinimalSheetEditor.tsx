@@ -2431,6 +2431,7 @@ export function MinimalSheetEditor({
         raceSlug={draft.raceGrant?.slug ?? null}
         raceParentSlug={draft.raceGrant?.parentSlug ?? null}
         size={draft.identity.size}
+        characterLevel={characterLevel}
         takenFeatSlugs={draft.featGrants.map((row) => row.slug)}
         onConfirm={confirmClassAsi}
         onSkip={() => setPendingAsi(null)}

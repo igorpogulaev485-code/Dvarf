@@ -1,0 +1,128 @@
+{
+  "rules_edition": "2014",
+  "notes_ru": "Волна SCC (Strixhaven: Curriculum of Chaos). GGtR официальных черт не содержит — пропуск; следующая сеттинговая книга с чертами — Strixhaven. При расхождении dnd.su/ttg — решать с Игорем.",
+  "wave": "scc",
+  "skipped_books": [
+    {
+      "slug": "ggtr",
+      "reason_ru": "Guildmasters' Guide to Ravnica — нет официальных player feats"
+    }
+  ],
+  "feats": [
+    {
+      "id": "589e42cb-ce9a-567d-8f70-d15bd23167a7",
+      "slug": "strixhaven_initiate",
+      "name_ru": "Посвящённый Стриксхейвена",
+      "name_en": "Strixhaven Initiate",
+      "source": "scc",
+      "sort_order": 6010,
+      "data": {
+        "source": "scc",
+        "wave": "scc",
+        "prerequisites_ru": null,
+        "summary_ru": "Колледж Стриксхейвена: 2 заговора + заклинание 1 круга (1/длинный отдых без ячейки).",
+        "benefits_ru": "Выберите один колледж Стриксхейвена. Выучите два заговора и одно заклинание 1 уровня по таблице колледжа. Заклинание 1 круга можете накладывать без ячейки 1 раз / длинный отдых (также за ячейки). Характеристика сотворения — Инт, Муд или Хар (выбор при взятии черты).",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "college",
+            "type": "enum",
+            "label_ru": "Колледж",
+            "options": [
+              {
+                "id": "lorehold",
+                "label_ru": "Лорхолд — Light / Sacred Flame / Thaumaturgy → клирик или волшебник 1 круга"
+              },
+              {
+                "id": "prismari",
+                "label_ru": "Призмари — Fire Bolt / Prestidigitation / Ray of Frost → бард или чародей 1 круга"
+              },
+              {
+                "id": "quandrix",
+                "label_ru": "Квандрикс — Druidcraft / Guidance / Mage Hand → друид или волшебник 1 круга"
+              },
+              {
+                "id": "silverquill",
+                "label_ru": "Сильверквилл — Sacred Flame / Thaumaturgy / Vicious Mockery → бард или клирик 1 круга"
+              },
+              {
+                "id": "witherbloom",
+                "label_ru": "Уизерблум — Chill Touch / Druidcraft / Spare the Dying → друид или волшебник 1 круга"
+              }
+            ]
+          },
+          {
+            "id": "cast",
+            "type": "enum",
+            "label_ru": "Характеристика сотворения",
+            "options": [
+              {
+                "id": "int",
+                "label_ru": "Интеллект"
+              },
+              {
+                "id": "wis",
+                "label_ru": "Мудрость"
+              },
+              {
+                "id": "cha",
+                "label_ru": "Харизма"
+              }
+            ]
+          },
+          {
+            "id": "spell_note",
+            "type": "note",
+            "label_ru": "Заговоры и заклинание",
+            "text_ru": "Запиши 2 заговора и заклинание 1 круга по правилам выбранного колледжа. Автоподбор — позже."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "strixhaven_initiate"
+          ]
+        }
+      }
+    },
+    {
+      "id": "8b268478-2106-51f0-bdc3-9772ff5a403c",
+      "slug": "strixhaven_mascot",
+      "name_ru": "Талисман Стриксхейвена",
+      "name_en": "Strixhaven Mascot",
+      "source": "scc",
+      "sort_order": 6020,
+      "data": {
+        "source": "scc",
+        "wave": "scc",
+        "prerequisites_ru": "4-й уровень, черта «Посвящённый Стриксхейвена»",
+        "summary_ru": "Familiar-талисман колледжа; атака вместо своей; обмен местами 1/длинный отдых.",
+        "benefits_ru": "Можете накладывать Поиск фамильяра как ритуал; форма — талисман колледжа из Посвящённого Стриксхейвена (статуя-дух / арт-элементаль / фрактал / чернильный / вредитель). Когда действием атакуете, можете отказаться от одной атаки, чтобы талисман атаковал своей реакцией. Действием можете поменяться местами с талисманом в пределах 60 фт (1/длинный отдых или за ячейку 2+ круга).",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": [
+            "strixhaven_initiate"
+          ]
+        },
+        "choices": [
+          {
+            "id": "mascot_note",
+            "type": "note",
+            "label_ru": "Талисман",
+            "text_ru": "Форма талисмана = колледж из Посвящённого Стриксхейвена. Добавь Поиск фамильяра (ритуал)."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "strixhaven_mascot"
+          ],
+          "resource": {
+            "pool_id": "mascot_swap",
+            "pool_name_ru": "Обмен с талисманом",
+            "uses": 1,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -30,6 +30,7 @@ type ClassAsiDialogProps = {
   raceSlug?: string | null
   raceParentSlug?: string | null
   size?: string | null
+  characterLevel?: number
   takenFeatSlugs?: string[]
   onConfirm: (entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) => void
   onSkip: () => void
@@ -51,6 +52,7 @@ export function ClassAsiDialog({
   raceSlug = null,
   raceParentSlug = null,
   size = null,
+  characterLevel = 1,
   takenFeatSlugs = [],
   onConfirm,
   onSkip,
@@ -227,6 +229,7 @@ export function ClassAsiDialog({
         raceSlug={raceSlug}
         raceParentSlug={raceParentSlug}
         size={size}
+        characterLevel={characterLevel}
         takenSlugs={takenFeatSlugs}
         onClose={() => setFeatOpen(false)}
         onConfirm={confirmFeat}

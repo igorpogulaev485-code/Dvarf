@@ -94,6 +94,10 @@ export type FeatGrantDef = {
     racesAny?: string[]
     /** OR-group with racesAny: character size (e.g. Squat Nimbleness). */
     sizeAny?: string[]
+    /** Minimum total character level (Strixhaven Mascot = 4). */
+    minLevel?: number
+    /** Required feat slugs already on the sheet (e.g. strixhaven_initiate). */
+    featsAll?: string[]
   }
   choices: FeatChoiceDef[]
   fixedGrants: FeatGrantsPackage
@@ -407,6 +411,12 @@ export function featGrantDefFromCatalog(input: {
   const sizeAny = parseStringList(prereq.size_any ?? prereq.sizeAny).map((item) =>
     item.toLowerCase(),
   )
+  const featsAll = parseStringList(prereq.feats_all ?? prereq.featsAll)
+  const minLevelRaw = prereq.min_level ?? prereq.minLevel
+  const minLevel =
+    typeof minLevelRaw === 'number' && Number.isFinite(minLevelRaw)
+      ? Math.max(1, Math.floor(minLevelRaw))
+      : undefined
 
   return {
     slug: input.slug,
@@ -419,6 +429,8 @@ export function featGrantDefFromCatalog(input: {
       flagsAny: flagsAny.length ? flagsAny : undefined,
       racesAny: racesAny.length ? racesAny : undefined,
       sizeAny: sizeAny.length ? sizeAny : undefined,
+      minLevel,
+      featsAll: featsAll.length ? featsAll : undefined,
     },
     choices: parseChoices(data.choices),
     fixedGrants: emptyPackage({
@@ -467,6 +479,8 @@ export function validateFeatGrantPicks(input: {
   raceSlug?: string | null
   raceParentSlug?: string | null
   size?: string | null
+  characterLevel?: number
+  ownedFeatSlugs?: string[]
 }): string | null {
   const { def, picks, abilities, armor, hasSpellcasting } = input
   const need = def.prerequisites
@@ -494,6 +508,23 @@ export function validateFeatGrantPicks(input: {
   }
   if (need.flagsAny?.includes('martial_weapon_prof') && !input.hasMartialWeapons) {
     return 'Требуется владение воинским оружием'
+  }
+  if (need.minLevel != null) {
+    const level = Math.max(1, Math.floor(input.characterLevel ?? 1))
+    if (level < need.minLevel) {
+      return `Требуется ${need.minLevel}-й уровень персонажа`
+    }
+  }
+  if (need.featsAll?.length) {
+    const owned = new Set(
+      (input.ownedFeatSlugs ?? []).map((slug) => slug.trim().toLowerCase()),
+    )
+    const missing = need.featsAll.filter((slug) => !owned.has(slug.toLowerCase()))
+    if (missing.length) {
+      return def.prerequisitesRu
+        ? `Требования: ${def.prerequisitesRu}`
+        : `Сначала возьми черту: ${missing.join(', ')}`
+    }
   }
   if (need.racesAny?.length || need.sizeAny?.length) {
     const raceOk = matchRacePrerequisite({

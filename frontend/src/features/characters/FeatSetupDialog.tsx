@@ -35,7 +35,8 @@ type FeatSetupDialogProps = {
   raceSlug?: string | null
   raceParentSlug?: string | null
   size?: string | null
-  /** Already taken feat slugs (optional soft filter). */
+  characterLevel?: number
+  /** Already taken feat slugs (optional soft filter + prereq checks). */
   takenSlugs?: string[]
   onConfirm: (result: FeatSetupResult) => void
   onClose: () => void
@@ -52,6 +53,7 @@ export function FeatSetupDialog({
   raceSlug = null,
   raceParentSlug = null,
   size = null,
+  characterLevel = 1,
   takenSlugs = [],
   onConfirm,
   onClose,
@@ -190,6 +192,8 @@ export function FeatSetupDialog({
       raceSlug,
       raceParentSlug,
       size,
+      characterLevel,
+      ownedFeatSlugs: takenSlugs,
     })
     if (check) {
       setError(check)
@@ -216,7 +220,7 @@ export function FeatSetupDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Каталог черт 2014 (PHB + TCE…). Гранты лягут на лист; боевые флаги — в тексте.
+          Каталог черт 2014 (PHB → TCE → XGE → FTD → ERLW → SCC…). Гранты — на лист.
         </Text>
 
         <Field label="Черта">
