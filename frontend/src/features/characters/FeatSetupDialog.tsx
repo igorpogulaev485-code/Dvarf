@@ -220,7 +220,7 @@ export function FeatSetupDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Каталог черт 2014 (PHB → TCE → XGE → FTD → ERLW → SCC…). Гранты — на лист.
+          Каталог черт 2014 (PHB → … → SCC → SDQ…). Гранты — на лист.
         </Text>
 
         <Field label="Черта">
