@@ -1,0 +1,303 @@
+{
+  "rules_edition": "2014",
+  "notes_ru": "Волна BPGG (Bigby Presents: Glory of the Giants). Удар великанов → 6 наследных черт великанов (4 ур.); Ваятель рун отдельно. Совпадение типа удара с наследной чертой — мягко в тексте. При расхождении dnd.su/ttg — решать с Игорем.",
+  "wave": "bpgg",
+  "feats": [
+    {
+      "id": "7650abce-50a3-5d81-aaa2-1d7e38a18cac",
+      "slug": "strike_of_the_giants",
+      "name_ru": "Удар великанов",
+      "name_en": "Strike of the Giants",
+      "source": "bpgg",
+      "sort_order": 8010,
+      "data": {
+        "source": "bpgg",
+        "wave": "bpgg",
+        "prerequisites_ru": "Владение воинским оружием или предыстория «Великанский подкидыш»",
+        "summary_ru": "Один раз за ход: доп. эффект удара по типу великана.",
+        "benefits_ru": "Выберите один тип удара. Один раз за ход при попадании рукопашной атакой оружием или дальнобойной атакой метательным оружием можете добавить эффект выбранного типа (холмовой/каменный/ледяной/огненный/облачный/штормовой). Сл спасбросков = 8 + БМ + мод Сил или Тел.",
+        "prerequisites": {
+          "flags_any": ["martial_weapon_prof"]
+        },
+        "choices": [
+          {
+            "id": "strike",
+            "type": "enum",
+            "label_ru": "Тип удара",
+            "options": [
+              { "id": "hill", "label_ru": "Холмовой — +1к6 урона оружия; спас Сил или сбит" },
+              { "id": "stone", "label_ru": "Каменный — +1к6 силовым; спас Сил или отталкивание 10 фт" },
+              { "id": "frost", "label_ru": "Ледяной — +1к6 холодом; спас Тел или скорость 0" },
+              { "id": "fire", "label_ru": "Огненный — +1к10 огнём" },
+              { "id": "cloud", "label_ru": "Облачный — +1к4 звуком; спас Муд или невидимость для цели" },
+              { "id": "storm", "label_ru": "Штормовой — +1к6 электричеством; спас Тел или помеха на атаки" }
+            ]
+          }
+        ],
+        "grants": {
+          "flags": ["strike_of_the_giants"]
+        }
+      }
+    },
+    {
+      "id": "f5d99477-401e-5ee0-a8dc-c0ea53d7a082",
+      "slug": "rune_shaper",
+      "name_ru": "Ваятель рун",
+      "name_en": "Rune Shaper",
+      "source": "bpgg",
+      "sort_order": 8020,
+      "data": {
+        "source": "bpgg",
+        "wave": "bpgg",
+        "prerequisites_ru": "Умение «Использование заклинаний» или предыстория «Резчик рун»",
+        "summary_ru": "Понимание языков; руны (½ БМ) → заклинания 1 круга на предмете.",
+        "benefits_ru": "Выучите Понимание языков (1/длинный отдых без ячейки). Знаете число рун = половина БМ (вниз) из таблицы рунических заклинаний; после длинного отдыха можете отметить ими предмет и временно знать связанные заклинания 1 круга. Один раз / длинный отдых можете наложить одно такое заклинание без ячейки. Характеристика — Инт, Муд или Хар.",
+        "prerequisites": {
+          "flags_any": ["spellcasting"]
+        },
+        "choices": [
+          {
+            "id": "cast",
+            "type": "enum",
+            "label_ru": "Характеристика сотворения",
+            "options": [
+              { "id": "int", "label_ru": "Интеллект" },
+              { "id": "wis", "label_ru": "Мудрость" },
+              { "id": "cha", "label_ru": "Харизма" }
+            ]
+          },
+          {
+            "id": "rune_note",
+            "type": "note",
+            "label_ru": "Руны",
+            "text_ru": "Выбери руны по таблице Bigby (число = ½ БМ). Автоподбор — позже."
+          }
+        ],
+        "grants": {
+          "flags": ["rune_shaper"]
+        }
+      }
+    },
+    {
+      "id": "80e6803d-6a4c-5044-bbbf-cd094f0811fb",
+      "slug": "vigor_of_the_hill_giant",
+      "name_ru": "Стойкость холмового великана",
+      "name_en": "Vigor of the Hill Giant",
+      "source": "bpgg",
+      "sort_order": 8030,
+      "data": {
+        "source": "bpgg",
+        "wave": "bpgg",
+        "prerequisites_ru": "4-й уровень; Удар великанов (холмовой)",
+        "summary_ru": "+1 Сил/Тел/Муд; реакция против толчков; доп. хиты от еды на коротком отдыхе.",
+        "benefits_ru": "Увеличьте Силу, Телосложение или Мудрость на 1 (макс. 20). Бастион: реакцией устоять при перемещении ≥5 фт или опрокидывании. Железный желудок: при еде на коротком отдыхе и трате костей хитов — доп. хиты = мод Тел + БМ.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["strike_of_the_giants"]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": ["str", "con", "wis"],
+            "label_ru": "+1 к Сил, Тел или Муд"
+          }
+        ],
+        "grants": {
+          "flags": ["vigor_of_the_hill_giant"]
+        }
+      }
+    },
+    {
+      "id": "e8a1d1a0-eb43-51fb-8c4a-5553c85ed230",
+      "slug": "keenness_of_the_stone_giant",
+      "name_ru": "Чуткость каменного великана",
+      "name_en": "Keenness of the Stone Giant",
+      "source": "bpgg",
+      "sort_order": 8040,
+      "data": {
+        "source": "bpgg",
+        "wave": "bpgg",
+        "prerequisites_ru": "4-й уровень; Удар великанов (каменный)",
+        "summary_ru": "+1 Сил/Тел/Муд; тёмное зрение; бросок камня (PB).",
+        "benefits_ru": "Увеличьте Силу, Телосложение или Мудрость на 1 (макс. 20). Горное зрение: тёмное зрение 60 фт (или +60 фт). Бросок камня: бонусным действием дальнобойная атака заклинанием 60 фт, 1к10 силовым, спас Сил или сбит. Число использований = БМ.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["strike_of_the_giants"]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": ["str", "con", "wis"],
+            "label_ru": "+1 к Сил, Тел или Муд"
+          }
+        ],
+        "grants": {
+          "flags": ["keenness_of_the_stone_giant"],
+          "resource": {
+            "pool_id": "stone_throw",
+            "pool_name_ru": "Бросок камня",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "4ca6be31-6d95-5cd9-85df-5498323894a8",
+      "slug": "fury_of_the_frost_giant",
+      "name_ru": "Неистовство ледяного великана",
+      "name_en": "Fury of the Frost Giant",
+      "source": "bpgg",
+      "sort_order": 8050,
+      "data": {
+        "source": "bpgg",
+        "wave": "bpgg",
+        "prerequisites_ru": "4-й уровень; Удар великанов (ледяной)",
+        "summary_ru": "+1 Сил/Тел/Муд; сопротивление холоду; холодное возмездие (PB).",
+        "benefits_ru": "Увеличьте Силу, Телосложение или Мудрость на 1 (макс. 20). Сопротивление холоду. Холодное возмездие: реакцией после попадания по вам в 30 фт — спас Тел; при провале 1к8+БМ холодом и скорость 0. Число использований = БМ.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["strike_of_the_giants"]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": ["str", "con", "wis"],
+            "label_ru": "+1 к Сил, Тел или Муд"
+          }
+        ],
+        "grants": {
+          "flags": ["fury_of_the_frost_giant", "resist_cold"],
+          "resource": {
+            "pool_id": "frost_revenge",
+            "pool_name_ru": "Холодное возмездие",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "fe8cc935-29ff-5ab1-a475-67104254c349",
+      "slug": "ember_of_the_fire_giant",
+      "name_ru": "Пылкость огненного великана",
+      "name_en": "Ember of the Fire Giant",
+      "source": "bpgg",
+      "sort_order": 8060,
+      "data": {
+        "source": "bpgg",
+        "wave": "bpgg",
+        "prerequisites_ru": "4-й уровень; Удар великанов (огненный)",
+        "summary_ru": "+1 Сил/Тел/Муд; сопротивление огню; пылающее воспламенение (PB).",
+        "benefits_ru": "Увеличьте Силу, Телосложение или Мудрость на 1 (макс. 20). Сопротивление огню. Пылающее воспламенение: вместо одной атаки в действие Атака — сфера 15 фт; спас Лов; при провале 1к8+БМ огнём и ослепление. Число использований = БМ (не чаще 1/ход).",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["strike_of_the_giants"]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": ["str", "con", "wis"],
+            "label_ru": "+1 к Сил, Тел или Муд"
+          }
+        ],
+        "grants": {
+          "flags": ["ember_of_the_fire_giant", "resist_fire"],
+          "resource": {
+            "pool_id": "blazing_ignition",
+            "pool_name_ru": "Пылающее воспламенение",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "27d13c0d-ab97-5c4e-8c10-6cfb0722e6d5",
+      "slug": "guile_of_the_cloud_giant",
+      "name_ru": "Коварство облачного великана",
+      "name_en": "Guile of the Cloud Giant",
+      "source": "bpgg",
+      "sort_order": 8070,
+      "data": {
+        "source": "bpgg",
+        "wave": "bpgg",
+        "prerequisites_ru": "4-й уровень; Удар великанов (облачный)",
+        "summary_ru": "+1 Сил/Тел/Хар; облачный побег (реакция, PB).",
+        "benefits_ru": "Увеличьте Силу, Телосложение или Харизму на 1 (макс. 20). Облачный побег: когда по вам попадаеют атакой, реакцией получите сопротивление урону этой атаки и телепортируйтесь в свободное пространство в 30 фт. Число использований = БМ.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["strike_of_the_giants"]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": ["str", "con", "cha"],
+            "label_ru": "+1 к Сил, Тел или Хар"
+          }
+        ],
+        "grants": {
+          "flags": ["guile_of_the_cloud_giant"],
+          "resource": {
+            "pool_id": "cloudy_escape",
+            "pool_name_ru": "Облачный побег",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "f43c5b9c-ef0b-5b6b-bd29-7f261c3b4249",
+      "slug": "soul_of_the_storm_giant",
+      "name_ru": "Душа штормового великана",
+      "name_en": "Soul of the Storm Giant",
+      "source": "bpgg",
+      "sort_order": 8080,
+      "data": {
+        "source": "bpgg",
+        "wave": "bpgg",
+        "prerequisites_ru": "4-й уровень; Удар великанов (штормовой)",
+        "summary_ru": "+1 Сил/Муд/Хар; аура водоворота (PB).",
+        "benefits_ru": "Увеличьте Силу, Мудрость или Харизму на 1 (макс. 20). Аура водоворота: бонусным действием аура 10 фт до начала вашего следующего хода — сопротивление звуку и электричеству, помеха на атаки по вам; существа в ауре могут получить спас Сил или половину скорости. Число использований = БМ.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": ["strike_of_the_giants"]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": ["str", "wis", "cha"],
+            "label_ru": "+1 к Сил, Муд или Хар"
+          }
+        ],
+        "grants": {
+          "flags": ["soul_of_the_storm_giant"],
+          "resource": {
+            "pool_id": "maelstrom_aura",
+            "pool_name_ru": "Аура водоворота",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    }
+  ]
+}
