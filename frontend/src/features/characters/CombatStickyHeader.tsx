@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { NumberInput } from '../../ui'
 import type { ConcentrationState } from './play'
 import {
@@ -73,6 +74,18 @@ export function CombatStickyHeader({
       ? `от ЛОВ ${formatModifier(autoInitiative)}`
       : 'задано вручную'
   const hpTitle = hpTemp > 0 ? `врем. +${hpTemp}` : undefined
+  const [hpPulse, setHpPulse] = useState(false)
+  const prevHpRef = useRef(hpCurrent)
+
+  useEffect(() => {
+    const prev = prevHpRef.current
+    prevHpRef.current = hpCurrent
+    if (prev == null || hpCurrent == null) return
+    if (hpCurrent <= prev) return
+    setHpPulse(true)
+    const timer = window.setTimeout(() => setHpPulse(false), 900)
+    return () => window.clearTimeout(timer)
+  }, [hpCurrent])
 
   return (
     <section className="combat-sticky" aria-label="Боевой статус">
@@ -171,7 +184,10 @@ export function CombatStickyHeader({
           />
         </label>
 
-        <label className="combat-stat" title={hpTitle}>
+        <label
+          className={`combat-stat${hpPulse ? ' combat-stat--pulse' : ''}`}
+          title={hpTitle}
+        >
           <span className="combat-stat__label">HP</span>
           <div className="combat-sticky__hp">
             <NumberInput

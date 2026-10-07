@@ -299,14 +299,18 @@ export function PlayPanel({
       return
     }
     const amount = Math.max(0, Math.floor(healAmount ?? suggestedHeal ?? 0))
+    const beforeHp = hpCurrent ?? 0
     const nextHp = applyHitDieHeal({
       hpCurrent,
       hpMax,
       healAmount: amount,
     })
-    patchPlay({ hitDiceCurrent: spendHitDie(play.hitDiceCurrent) })
+    const nextDice = spendHitDie(play.hitDiceCurrent)
+    patchPlay({ hitDiceCurrent: nextDice })
     onCombatChange({ hpCurrent: nextHp })
-    onToast(`Короткий отдых: +${amount} HP (${play.hitDie})`)
+    onToast(
+      `Кость ${play.hitDie}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax}) · кости ${nextDice}/${hitDiceMax}`,
+    )
   }
 
   function doLongRest() {
@@ -376,19 +380,26 @@ export function PlayPanel({
         </div>
 
         <div className="play-rest-block">
-          <Text>
-            <strong>Короткий отдых</strong>
-          </Text>
+          <div className="play-rest-block__head">
+            <Text>
+              <strong>Короткий отдых</strong>
+            </Text>
+            <span className="play-rest-block__count" aria-live="polite">
+              кости {play.hitDiceCurrent}/{hitDiceMax}
+              {play.hitDie ? ` · ${play.hitDie}` : ''}
+            </span>
+          </div>
           <Text tone="muted">
-            За короткий отдых можно потратить кости хитов (HP) и сбросить ресурсы со сбросом
-            «короткий». Кости: {play.hitDiceCurrent} / {hitDiceMax}
-            {play.hitDie ? ` (${play.hitDie})` : ''}.
+            Потрать кость → получишь HP (вверху в шапке). Отдельно можно сбросить ресурсы со сбросом
+            «короткий».
           </Text>
           <div className="play-hit-dice">
             <SlotPips
               max={hitDiceMax}
               used={Math.max(0, hitDiceMax - play.hitDiceCurrent)}
-              label="Потраченные кости хитов"
+              fillMode="available"
+              label="Доступные кости хитов"
+              summary={`${play.hitDiceCurrent} из ${hitDiceMax} осталось`}
               onChange={(used) =>
                 patchPlay({
                   hitDiceCurrent: clampHitDiceCurrent(hitDiceMax - used, hitDiceMax),
@@ -399,9 +410,11 @@ export function PlayPanel({
               <Field
                 label="HP за кость"
                 hint={
-                  play.hitDie
-                    ? `Среднее ${play.hitDie} + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod})`
-                    : 'Сначала выбери кость хитов выше'
+                  !play.hitDie
+                    ? 'Сначала выбери кость хитов выше'
+                    : hpMax == null
+                      ? 'Задай максимум HP в шапке листа'
+                      : `Среднее ${play.hitDie} + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) · сейчас HP ${hpCurrent ?? '—'}/${hpMax}`
                 }
               >
                 <NumberInput
@@ -420,7 +433,9 @@ export function PlayPanel({
                   }
                   onClick={spendHitDieOnShortRest}
                 >
-                  Потратить кость
+                  {play.hitDie && (healAmount ?? suggestedHeal) != null
+                    ? `Потратить кость · +${Math.max(0, Math.floor(healAmount ?? suggestedHeal ?? 0))} HP`
+                    : 'Потратить кость'}
                 </Button>
                 <Button type="button" variant="secondary" onClick={doShortRestResources}>
                   Сбросить короткие ресурсы
