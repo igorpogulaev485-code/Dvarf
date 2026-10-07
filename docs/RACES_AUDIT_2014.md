@@ -1,8 +1,7 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/mobile-sheet-compact-acbe` · http://201.34.132.252/ · alembic `b1c2d3e4f5a6`  
-Волна 3 (в работе): `cursor/race-setting-wave-f10e` · alembic `c2d3e4f5a6b1`
+Прод tip: `cursor/race-setting-wave-f10e` · http://201.34.132.252/ · alembic `c2d3e4f5a6b1`
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
@@ -33,12 +32,12 @@
 
 | Блок | Расы | Prod verify |
 |------|------|-------------|
-| SAS/AAG | хадози, плазмоид, три-крин, автогном | ⏳ |
-| VRGtR | дампир, ведьмакровка, возрождённый | ⏳ |
-| ERLW | калаштар, кованый | ⏳ |
-| GGR | локсодон, ведалкен, гибрид Симик | ⏳ |
-| MOT/SCC | леонин, соволин | ⏳ |
-| Прочее | грунг, локата, вердан, кендер | ⏳ |
+| SAS/AAG | хадози, плазмоид, три-крин, автогном | ✅ |
+| VRGtR | дампир, ведьмакровка, возрождённый | ✅ |
+| ERLW | калаштар, кованый | ✅ |
+| GGR | локсодон, ведалкен, гибрид Симик | ✅ |
+| MOT/SCC | леонин, соволин | ✅ |
+| Прочее | грунг, локата, вердан, кендер | ✅ |
 
 ## Чеклист на расу
 
@@ -50,5 +49,4 @@
 
 ## Инфра-заметка
 
-Актуальный tip head: `b1c2d3e4f5a6` влит в `cursor/mobile-sheet-compact-acbe`.  
-Волна setting (ещё не tip): `c2d3e4f5a6b1` на `cursor/race-setting-wave-f10e`.
+Актуальный tip head: `c2d3e4f5a6b1` (setting wave) на `cursor/race-setting-wave-f10e`.
