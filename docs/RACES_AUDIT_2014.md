@@ -35,4 +35,4 @@
 
 ## Инфра-заметка
 
-Актуальный tip head: `b1c2d3e4f5a6` (MPMM wave) на `cursor/race-mpmm-wave-f10e`.
+Актуальный tip head: `b1c2d3e4f5a6` (MPMM wave) влит в `cursor/mobile-sheet-compact-acbe`.
