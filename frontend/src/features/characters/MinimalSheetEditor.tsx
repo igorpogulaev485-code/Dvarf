@@ -118,6 +118,20 @@ import {
   type FeatGrantDraftSlice,
 } from './featEffects'
 import {
+  backgroundGrantDefFromCatalog,
+  backgroundNeedsSetup,
+  buildAppliedBackgroundGrant,
+  emptyBackgroundPicks,
+  readAppliedBackgroundGrant,
+  type AppliedBackgroundGrant,
+} from '../../shared/dnd/backgroundGrants'
+import {
+  applyBackgroundGrantToDraft,
+  revokeBackgroundGrantFromDraft,
+  type BackgroundGrantDraftSlice,
+} from './backgroundEffects'
+import { BackgroundSetupDialog } from './BackgroundSetupDialog'
+import {
   migrateLegacyHitDice,
   syncHitDicePools,
 } from '../../shared/dnd/classHitDice'
@@ -236,6 +250,7 @@ type Draft = {
   featurePicks: FeaturePicksState
   classAsi: AppliedClassAsi[]
   featGrants: AppliedFeatGrant[]
+  backgroundGrant: AppliedBackgroundGrant | null
 }
 
 function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -361,6 +376,7 @@ function buildDraft(character: CharacterDetail): Draft {
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classAsi: readClassAsiLedger(sheet.class_asi),
     featGrants: readFeatGrantLedger(sheet.feat_grants),
+    backgroundGrant: readAppliedBackgroundGrant(sheet.background_grant),
   }
 }
 
@@ -421,6 +437,9 @@ export function MinimalSheetEditor({
   } | null>(null)
   const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
   const [backgroundFeatSlug, setBackgroundFeatSlug] = useState<string | null>(null)
+  const [backgroundSetupEntry, setBackgroundSetupEntry] = useState<CatalogEntry | null>(
+    null,
+  )
   const [subclassSetup, setSubclassSetup] = useState<{
     classEntryId: string
     selected: CatalogEntry
@@ -785,6 +804,99 @@ export function MinimalSheetEditor({
       resources: prev.play.resources,
       spells: prev.spells,
       totalLevel: totalCharacterLevel(prev.classes),
+    }
+  }
+
+  function backgroundSliceFrom(prev: Draft): BackgroundGrantDraftSlice {
+    const classSkills = new Set(prev.classGrants.flatMap((row) => row.skills))
+    const raceSkills = new Set(prev.raceGrant?.skills ?? [])
+    const featSkills = new Set(
+      prev.featGrants.flatMap((row) => row.applied.skills),
+    )
+    const classTools = new Set(
+      prev.classGrants.flatMap((row) => row.tools).map((name) => name.toLowerCase()),
+    )
+    const raceTools = new Set(
+      (prev.raceGrant?.tools ?? []).map((name) => name.toLowerCase()),
+    )
+    const featTools = new Set(
+      prev.featGrants
+        .flatMap((row) => row.applied.tools)
+        .map((name) => name.toLowerCase()),
+    )
+    const raceLang = new Set(
+      (prev.raceGrant?.languages ?? []).map((name) => name.toLowerCase()),
+    )
+    const featLang = new Set(
+      prev.featGrants
+        .flatMap((row) => row.applied.languages)
+        .map((name) => name.toLowerCase()),
+    )
+    return {
+      skills: prev.skills,
+      identity: {
+        languages: prev.identity.languages,
+        tools: prev.identity.tools,
+        armor: prev.identity.armor,
+      },
+      textBlocks: prev.textBlocks,
+      backgroundGrant: prev.backgroundGrant,
+      protectedSkills: new Set([...classSkills, ...raceSkills, ...featSkills]),
+      protectedTools: new Set([...classTools, ...raceTools, ...featTools]),
+      protectedLanguages: new Set([...raceLang, ...featLang]),
+    }
+  }
+
+  function mergeBackgroundSlice(prev: Draft, slice: BackgroundGrantDraftSlice): Draft {
+    return {
+      ...prev,
+      skills: slice.skills,
+      backgroundGrant: slice.backgroundGrant,
+      textBlocks: slice.textBlocks,
+      identity: {
+        ...prev.identity,
+        languages: slice.identity.languages,
+        tools: slice.identity.tools,
+        armor: slice.identity.armor,
+      },
+    }
+  }
+
+  function commitBackgroundGrant(input: {
+    entry: CatalogEntry
+    applied: AppliedBackgroundGrant
+    grantedFeatSlug: string | null
+  }) {
+    setDraft((prev) => {
+      let slice = backgroundSliceFrom(prev)
+      slice = applyBackgroundGrantToDraft({ draft: slice, grant: input.applied })
+      let next = mergeBackgroundSlice(prev, slice)
+      // Revoke old background-sourced feats when slug changes.
+      const prevSlug = prev.identity.backgroundSlug
+      if (prevSlug && prevSlug !== input.entry.slug) {
+        next = mergeFeatSlice(
+          next,
+          revokeFeatGrantsForBackground({
+            draft: featSliceFrom(next),
+            backgroundSlug: prevSlug,
+          }),
+        )
+      }
+      return {
+        ...next,
+        identity: {
+          ...next.identity,
+          background: input.entry.name_ru,
+          backgroundSlug: input.entry.slug,
+        },
+      }
+    })
+    onToast(`Предыстория «${input.entry.name_ru}»`)
+    if (
+      input.grantedFeatSlug &&
+      !draft.featGrants.some((row) => row.slug === input.grantedFeatSlug)
+    ) {
+      setBackgroundFeatSlug(input.grantedFeatSlug)
     }
   }
 
@@ -1585,6 +1697,7 @@ export function MinimalSheetEditor({
       sheet.feature_picks = featurePicksToSheet(draft.featurePicks)
       sheet.class_asi = draft.classAsi
       sheet.feat_grants = draft.featGrants
+      sheet.background_grant = draft.backgroundGrant
 
       for (const key of ABILITY_KEYS) {
         abilities[key] = { ...asRecord(abilities[key]), score: draft.abilities[key] }
@@ -2065,41 +2178,51 @@ export function MinimalSheetEditor({
                 kind="background"
                 edition={baseCharacter.rules_edition as RulesEdition}
                 value={draft.identity.background}
-                placeholder="Солдат, Соламнийский рыцарь…"
+                placeholder="Солдат, Послушник, Соламнийский рыцарь…"
                 onChange={(next, entry) => {
-                  const prevSlug = draft.identity.backgroundSlug
-                  const nextSlug = entry?.slug ?? null
-                  const data = entry?.data ? asRecord(entry.data) : {}
-                  const grantedRaw = data.granted_feat_slug ?? data.grantedFeatSlug
-                  const granted =
-                    typeof grantedRaw === 'string' && grantedRaw.trim()
-                      ? grantedRaw.trim()
-                      : null
-                  setDraft((prev) => {
-                    let slice = featSliceFrom(prev)
-                    if (prevSlug && prevSlug !== nextSlug) {
-                      slice = revokeFeatGrantsForBackground({
-                        draft: slice,
-                        backgroundSlug: prevSlug,
-                      })
-                    }
-                    const merged = mergeFeatSlice(prev, slice)
-                    return {
-                      ...merged,
-                      identity: {
-                        ...merged.identity,
-                        background: next,
-                        backgroundSlug: nextSlug,
-                      },
-                    }
-                  })
-                  if (
-                    granted &&
-                    nextSlug &&
-                    !draft.featGrants.some((row) => row.slug === granted)
-                  ) {
-                    setBackgroundFeatSlug(granted)
+                  if (!entry) {
+                    setDraft((prev) => {
+                      let slice = backgroundSliceFrom(prev)
+                      slice = revokeBackgroundGrantFromDraft(slice)
+                      let merged = mergeBackgroundSlice(prev, slice)
+                      const prevSlug = prev.identity.backgroundSlug
+                      if (prevSlug) {
+                        merged = mergeFeatSlice(
+                          merged,
+                          revokeFeatGrantsForBackground({
+                            draft: featSliceFrom(merged),
+                            backgroundSlug: prevSlug,
+                          }),
+                        )
+                      }
+                      return {
+                        ...merged,
+                        identity: {
+                          ...merged.identity,
+                          background: next,
+                          backgroundSlug: null,
+                        },
+                      }
+                    })
+                    return
                   }
+                  const def = backgroundGrantDefFromCatalog({
+                    slug: entry.slug,
+                    nameRu: entry.name_ru,
+                    data: entry.data,
+                  })
+                  if (backgroundNeedsSetup(def)) {
+                    setBackgroundSetupEntry(entry)
+                    return
+                  }
+                  commitBackgroundGrant({
+                    entry,
+                    applied: buildAppliedBackgroundGrant({
+                      def,
+                      picks: emptyBackgroundPicks(),
+                    }),
+                    grantedFeatSlug: def.grantedFeatSlug,
+                  })
                 }}
               />
             </Field>
@@ -2541,6 +2664,20 @@ export function MinimalSheetEditor({
             featResult: result.featResult,
           })
           setRaceGrantPicker(null)
+        }}
+      />
+
+      <BackgroundSetupDialog
+        open={backgroundSetupEntry != null}
+        entry={backgroundSetupEntry}
+        onClose={() => setBackgroundSetupEntry(null)}
+        onConfirm={(result) => {
+          setBackgroundSetupEntry(null)
+          commitBackgroundGrant({
+            entry: result.entry,
+            applied: result.applied,
+            grantedFeatSlug: result.def.grantedFeatSlug,
+          })
         }}
       />
 
