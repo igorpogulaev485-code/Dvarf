@@ -13,6 +13,7 @@ import {
   type FeatGrantDef,
   type FeatGrantPicks,
   type FeatGrantsPackage,
+  type OwnedFeatEnumSnapshot,
 } from '../../shared/dnd/featGrants'
 import { CatalogCombobox } from '../catalog'
 import { ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
@@ -41,6 +42,7 @@ type FeatSetupDialogProps = {
   takenSlugs?: string[]
   classSlugs?: string[]
   backgroundSlug?: string | null
+  ownedFeatEnums?: OwnedFeatEnumSnapshot[]
   /** Lock picker to one feat (background / race grant). */
   forcedSlug?: string | null
   onConfirm: (result: FeatSetupResult) => void
@@ -62,6 +64,7 @@ export function FeatSetupDialog({
   takenSlugs = [],
   classSlugs = [],
   backgroundSlug = null,
+  ownedFeatEnums = [],
   forcedSlug = null,
   onConfirm,
   onClose,
@@ -99,6 +102,7 @@ export function FeatSetupDialog({
       ownedFeatSlugs: takenSlugs,
       classSlugs,
       backgroundSlug,
+      ownedFeatEnums,
     }),
     [
       abilities,
@@ -112,6 +116,7 @@ export function FeatSetupDialog({
       takenSlugs,
       classSlugs,
       backgroundSlug,
+      ownedFeatEnums,
     ],
   )
 
@@ -248,6 +253,7 @@ export function FeatSetupDialog({
       ownedFeatSlugs: takenSlugs,
       classSlugs,
       backgroundSlug,
+      ownedFeatEnums,
     })
     if (check) {
       setError(check)

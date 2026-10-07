@@ -23,11 +23,26 @@
             "type": "enum",
             "label_ru": "Планарное влияние",
             "options": [
-              { "id": "chaos", "label_ru": "Хаотичный — сопротивление яду; малая иллюзия" },
-              { "id": "evil", "label_ru": "Злой — сопротивление некротике; леденящее прикосновение" },
-              { "id": "good", "label_ru": "Добрый — сопротивление излучению; священное пламя" },
-              { "id": "law", "label_ru": "Законный — сопротивление силовому полю; указание" },
-              { "id": "outlands", "label_ru": "Внешние земли — сопротивление психике; волшебная рука" }
+              {
+                "id": "chaos",
+                "label_ru": "Хаотичный — сопротивление яду; малая иллюзия"
+              },
+              {
+                "id": "evil",
+                "label_ru": "Злой — сопротивление некротике; леденящее прикосновение"
+              },
+              {
+                "id": "good",
+                "label_ru": "Добрый — сопротивление излучению; священное пламя"
+              },
+              {
+                "id": "law",
+                "label_ru": "Законный — сопротивление силовому полю; указание"
+              },
+              {
+                "id": "outlands",
+                "label_ru": "Внешние земли — сопротивление психике; волшебная рука"
+              }
             ]
           },
           {
@@ -35,14 +50,25 @@
             "type": "enum",
             "label_ru": "Характеристика сотворения",
             "options": [
-              { "id": "int", "label_ru": "Интеллект" },
-              { "id": "wis", "label_ru": "Мудрость" },
-              { "id": "cha", "label_ru": "Харизма" }
+              {
+                "id": "int",
+                "label_ru": "Интеллект"
+              },
+              {
+                "id": "wis",
+                "label_ru": "Мудрость"
+              },
+              {
+                "id": "cha",
+                "label_ru": "Харизма"
+              }
             ]
           }
         ],
         "grants": {
-          "flags": ["scion_of_the_outer_planes"]
+          "flags": [
+            "scion_of_the_outer_planes"
+          ]
         }
       }
     },
@@ -61,12 +87,23 @@
         "benefits_ru": "Увеличьте одну характеристику на 1 (макс. 20). Один раз за ход при уроне существу в 60 фт: +1к8 силовым и спас Муд или опутано до начала вашего следующего хода. Число использований = БМ.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["scion_of_the_outer_planes"],
+          "feats_all": [
+            "scion_of_the_outer_planes"
+          ],
           "feats_none": [
             "baleful_scion",
             "cohort_of_chaos",
             "righteous_heritor",
             "outlands_envoy"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "scion_of_the_outer_planes",
+              "choice": "plane",
+              "ids_any": [
+                "law"
+              ]
+            }
           ]
         },
         "choices": [
@@ -74,12 +111,21 @@
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "dex", "con", "int", "wis", "cha"],
+            "from": [
+              "str",
+              "dex",
+              "con",
+              "int",
+              "wis",
+              "cha"
+            ],
             "label_ru": "+1 к любой характеристике"
           }
         ],
         "grants": {
-          "flags": ["agent_of_order"],
+          "flags": [
+            "agent_of_order"
+          ],
           "resource": {
             "pool_id": "stasis_strike",
             "pool_name_ru": "Стазисный удар",
@@ -105,12 +151,23 @@
         "benefits_ru": "Увеличьте одну характеристику на 1 (макс. 20). Один раз за ход при уроне существу в 60 фт: доп. некротика 1к6+БМ и столько же хитов себе. Число использований = БМ.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["scion_of_the_outer_planes"],
+          "feats_all": [
+            "scion_of_the_outer_planes"
+          ],
           "feats_none": [
             "agent_of_order",
             "cohort_of_chaos",
             "righteous_heritor",
             "outlands_envoy"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "scion_of_the_outer_planes",
+              "choice": "plane",
+              "ids_any": [
+                "evil"
+              ]
+            }
           ]
         },
         "choices": [
@@ -118,12 +175,21 @@
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "dex", "con", "int", "wis", "cha"],
+            "from": [
+              "str",
+              "dex",
+              "con",
+              "int",
+              "wis",
+              "cha"
+            ],
             "label_ru": "+1 к любой характеристике"
           }
         ],
         "grants": {
-          "flags": ["baleful_scion"],
+          "flags": [
+            "baleful_scion"
+          ],
           "resource": {
             "pool_id": "grasp_of_avarice",
             "pool_name_ru": "Хватка алчности",
@@ -149,12 +215,23 @@
         "benefits_ru": "Увеличьте одну характеристику на 1 (макс. 20). Когда на атаке или спасброске выпадает 1 или 20, бросьте по таблице «Хаотические вспышки» (пока не кончится эффект — новая не начинается).",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["scion_of_the_outer_planes"],
+          "feats_all": [
+            "scion_of_the_outer_planes"
+          ],
           "feats_none": [
             "agent_of_order",
             "baleful_scion",
             "righteous_heritor",
             "outlands_envoy"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "scion_of_the_outer_planes",
+              "choice": "plane",
+              "ids_any": [
+                "chaos"
+              ]
+            }
           ]
         },
         "choices": [
@@ -162,7 +239,14 @@
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "dex", "con", "int", "wis", "cha"],
+            "from": [
+              "str",
+              "dex",
+              "con",
+              "int",
+              "wis",
+              "cha"
+            ],
             "label_ru": "+1 к любой характеристике"
           },
           {
@@ -173,7 +257,9 @@
           }
         ],
         "grants": {
-          "flags": ["cohort_of_chaos"]
+          "flags": [
+            "cohort_of_chaos"
+          ]
         }
       }
     },
@@ -192,12 +278,23 @@
         "benefits_ru": "Увеличьте одну характеристику на 1 (макс. 20). Когда вы или существо в 30 фт получает урон, реакцией уменьшите урон на 1к10+БМ. Число использований = БМ.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["scion_of_the_outer_planes"],
+          "feats_all": [
+            "scion_of_the_outer_planes"
+          ],
           "feats_none": [
             "agent_of_order",
             "baleful_scion",
             "cohort_of_chaos",
             "outlands_envoy"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "scion_of_the_outer_planes",
+              "choice": "plane",
+              "ids_any": [
+                "good"
+              ]
+            }
           ]
         },
         "choices": [
@@ -205,12 +302,21 @@
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "dex", "con", "int", "wis", "cha"],
+            "from": [
+              "str",
+              "dex",
+              "con",
+              "int",
+              "wis",
+              "cha"
+            ],
             "label_ru": "+1 к любой характеристике"
           }
         ],
         "grants": {
-          "flags": ["righteous_heritor"],
+          "flags": [
+            "righteous_heritor"
+          ],
           "resource": {
             "pool_id": "soothe_pain",
             "pool_name_ru": "Успокоить боль",
@@ -236,12 +342,23 @@
         "benefits_ru": "Увеличьте одну характеристику на 1 (макс. 20). Выучите Туманный шаг и Языки; каждое 1/длинный отдых без ячейки (также за ячейки). Характеристика — как у Наследника.",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["scion_of_the_outer_planes"],
+          "feats_all": [
+            "scion_of_the_outer_planes"
+          ],
           "feats_none": [
             "agent_of_order",
             "baleful_scion",
             "cohort_of_chaos",
             "righteous_heritor"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "scion_of_the_outer_planes",
+              "choice": "plane",
+              "ids_any": [
+                "outlands"
+              ]
+            }
           ]
         },
         "choices": [
@@ -249,7 +366,14 @@
             "id": "ability",
             "type": "ability_one",
             "amount": 1,
-            "from": ["str", "dex", "con", "int", "wis", "cha"],
+            "from": [
+              "str",
+              "dex",
+              "con",
+              "int",
+              "wis",
+              "cha"
+            ],
             "label_ru": "+1 к любой характеристике"
           },
           {
@@ -260,7 +384,9 @@
           }
         ],
         "grants": {
-          "flags": ["outlands_envoy"]
+          "flags": [
+            "outlands_envoy"
+          ]
         }
       }
     },
@@ -279,7 +405,9 @@
         "benefits_ru": "После длинного отдыха выберите сопротивление кислоте, холоду или огню до следующего длинного отдыха. Взломщик порталов: действие, проверка Инт (Магия) Сл 20 у портала в 5 фт. Чувство порталов: направление к последнему порталу; действием найти порталы в 30 фт (1/длинный отдых).",
         "prerequisites": {
           "min_level": 4,
-          "feats_all": ["scion_of_the_outer_planes"]
+          "feats_all": [
+            "scion_of_the_outer_planes"
+          ]
         },
         "choices": [
           {
@@ -290,7 +418,9 @@
           }
         ],
         "grants": {
-          "flags": ["planar_wanderer"],
+          "flags": [
+            "planar_wanderer"
+          ],
           "resource": {
             "pool_id": "portal_sense",
             "pool_name_ru": "Чувство порталов",

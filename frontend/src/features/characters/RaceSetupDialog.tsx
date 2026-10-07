@@ -17,7 +17,11 @@ import {
   type RaceGrantPicks,
   type RaceSize,
 } from '../../shared/dnd/raceGrants'
-import { raceRequiresFeatPick, type ArmorProfKey } from '../../shared/dnd/featGrants'
+import {
+  raceRequiresFeatPick,
+  type ArmorProfKey,
+  type OwnedFeatEnumSnapshot,
+} from '../../shared/dnd/featGrants'
 import { LANGUAGE_PRESETS } from './languagesTools'
 import { ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
@@ -44,6 +48,7 @@ type RaceSetupDialogProps = {
   takenSlugs?: string[]
   classSlugs?: string[]
   backgroundSlug?: string | null
+  ownedFeatEnums?: OwnedFeatEnumSnapshot[]
   onConfirm: (result: RaceSetupConfirm) => void
   onClose: () => void
 }
@@ -77,6 +82,7 @@ export function RaceSetupDialog({
   takenSlugs = [],
   classSlugs = [],
   backgroundSlug = null,
+  ownedFeatEnums = [],
   onConfirm,
   onClose,
 }: RaceSetupDialogProps) {
@@ -679,6 +685,7 @@ export function RaceSetupDialog({
       takenSlugs={takenSlugs}
       classSlugs={classSlugs}
       backgroundSlug={backgroundSlug}
+      ownedFeatEnums={ownedFeatEnums}
       onClose={() => setFeatPickerOpen(false)}
       onConfirm={(result) => {
         setFeatResult(result)

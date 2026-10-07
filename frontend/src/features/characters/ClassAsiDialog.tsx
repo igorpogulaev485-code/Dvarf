@@ -11,6 +11,7 @@ import {
   newFeatGrantId,
   type ArmorProfKey,
   type AppliedFeatGrant,
+  type OwnedFeatEnumSnapshot,
 } from '../../shared/dnd/featGrants'
 import { ABILITY_KEYS, ABILITY_LABELS } from './sheetTypes'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
@@ -34,6 +35,7 @@ type ClassAsiDialogProps = {
   takenFeatSlugs?: string[]
   classSlugs?: string[]
   backgroundSlug?: string | null
+  ownedFeatEnums?: OwnedFeatEnumSnapshot[]
   onConfirm: (entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) => void
   onSkip: () => void
 }
@@ -58,6 +60,7 @@ export function ClassAsiDialog({
   takenFeatSlugs = [],
   classSlugs = [],
   backgroundSlug = null,
+  ownedFeatEnums = [],
   onConfirm,
   onSkip,
 }: ClassAsiDialogProps) {
@@ -237,6 +240,7 @@ export function ClassAsiDialog({
         takenSlugs={takenFeatSlugs}
         classSlugs={classSlugs}
         backgroundSlug={backgroundSlug}
+        ownedFeatEnums={ownedFeatEnums}
         onClose={() => setFeatOpen(false)}
         onConfirm={confirmFeat}
       />

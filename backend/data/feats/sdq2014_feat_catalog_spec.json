@@ -168,6 +168,15 @@
           "feats_none": [
             "adept_of_the_red_robes",
             "adept_of_the_white_robes"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "initiate_of_high_sorcery",
+              "choice": "moon",
+              "ids_any": [
+                "nuitari"
+              ]
+            }
           ]
         },
         "choices": [
@@ -206,6 +215,15 @@
           "feats_none": [
             "adept_of_the_black_robes",
             "adept_of_the_white_robes"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "initiate_of_high_sorcery",
+              "choice": "moon",
+              "ids_any": [
+                "lunitari"
+              ]
+            }
           ]
         },
         "choices": [
@@ -251,6 +269,15 @@
           "feats_none": [
             "adept_of_the_black_robes",
             "adept_of_the_red_robes"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "initiate_of_high_sorcery",
+              "choice": "moon",
+              "ids_any": [
+                "solinari"
+              ]
+            }
           ]
         },
         "choices": [

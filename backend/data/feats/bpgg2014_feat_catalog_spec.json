@@ -143,6 +143,15 @@
             "ember_of_the_fire_giant",
             "guile_of_the_cloud_giant",
             "soul_of_the_storm_giant"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "strike_of_the_giants",
+              "choice": "strike",
+              "ids_any": [
+                "hill"
+              ]
+            }
           ]
         },
         "choices": [
@@ -189,6 +198,15 @@
             "ember_of_the_fire_giant",
             "guile_of_the_cloud_giant",
             "soul_of_the_storm_giant"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "strike_of_the_giants",
+              "choice": "strike",
+              "ids_any": [
+                "stone"
+              ]
+            }
           ]
         },
         "choices": [
@@ -242,6 +260,15 @@
             "ember_of_the_fire_giant",
             "guile_of_the_cloud_giant",
             "soul_of_the_storm_giant"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "strike_of_the_giants",
+              "choice": "strike",
+              "ids_any": [
+                "frost"
+              ]
+            }
           ]
         },
         "choices": [
@@ -296,6 +323,15 @@
             "fury_of_the_frost_giant",
             "guile_of_the_cloud_giant",
             "soul_of_the_storm_giant"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "strike_of_the_giants",
+              "choice": "strike",
+              "ids_any": [
+                "fire"
+              ]
+            }
           ]
         },
         "choices": [
@@ -350,6 +386,15 @@
             "fury_of_the_frost_giant",
             "ember_of_the_fire_giant",
             "soul_of_the_storm_giant"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "strike_of_the_giants",
+              "choice": "strike",
+              "ids_any": [
+                "cloud"
+              ]
+            }
           ]
         },
         "choices": [
@@ -403,6 +448,15 @@
             "fury_of_the_frost_giant",
             "ember_of_the_fire_giant",
             "guile_of_the_cloud_giant"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "strike_of_the_giants",
+              "choice": "strike",
+              "ids_any": [
+                "storm"
+              ]
+            }
           ]
         },
         "choices": [

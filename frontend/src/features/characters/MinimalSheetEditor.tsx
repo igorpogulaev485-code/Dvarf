@@ -102,6 +102,7 @@ import {
   fightingStyleFromFeatGrants,
   naturalArmorFromFeatGrants,
   newFeatGrantId,
+  ownedFeatEnumsFromLedger,
   readFeatGrantLedger,
   sumFeatHpPerLevel,
   sumFeatInitiativeBonus,
@@ -442,6 +443,10 @@ export function MinimalSheetEditor({
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
     [draft.classes],
+  )
+  const ownedFeatEnums = useMemo(
+    () => ownedFeatEnumsFromLedger(draft.featGrants),
+    [draft.featGrants],
   )
   const classSummary = useMemo(
     () => formatClassSummary(draft.classes),
@@ -2474,6 +2479,7 @@ export function MinimalSheetEditor({
         takenFeatSlugs={draft.featGrants.map((row) => row.slug)}
         classSlugs={draft.classGrants.map((row) => row.slug)}
         backgroundSlug={draft.identity.backgroundSlug}
+        ownedFeatEnums={ownedFeatEnums}
         onConfirm={confirmClassAsi}
         onSkip={() => setPendingAsi(null)}
       />
@@ -2523,6 +2529,7 @@ export function MinimalSheetEditor({
         takenSlugs={draft.featGrants.map((row) => row.slug)}
         classSlugs={draft.classGrants.map((row) => row.slug)}
         backgroundSlug={draft.identity.backgroundSlug}
+        ownedFeatEnums={ownedFeatEnums}
         onClose={() => setRaceGrantPicker(null)}
         onConfirm={(result) => {
           commitRaceGrant({
@@ -2550,6 +2557,7 @@ export function MinimalSheetEditor({
         takenSlugs={draft.featGrants.map((row) => row.slug)}
         classSlugs={draft.classGrants.map((row) => row.slug)}
         backgroundSlug={draft.identity.backgroundSlug}
+        ownedFeatEnums={ownedFeatEnums}
         forcedSlug={backgroundFeatSlug}
         onClose={() => setBackgroundFeatSlug(null)}
         onConfirm={(result: FeatSetupResult) => {
