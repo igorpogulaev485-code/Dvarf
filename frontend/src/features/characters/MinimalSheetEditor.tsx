@@ -362,17 +362,19 @@ export function MinimalSheetEditor({
       unlockFeaturesForClasses({
         classes: draft.classes,
         characterLevel,
+        abilities: draft.abilities,
         subclassSlugByEntryId,
       }),
-    [draft.classes, characterLevel, subclassSlugByEntryId],
+    [draft.classes, characterLevel, draft.abilities, subclassSlugByEntryId],
   )
   const featureDesiredResources = useMemo(
     () =>
       desiredResourcesFromFeatures({
         features: unlockedFeatures,
         characterLevel,
+        abilities: draft.abilities,
       }),
-    [unlockedFeatures, characterLevel],
+    [unlockedFeatures, characterLevel, draft.abilities],
   )
   const primaryClass = draft.classes[0]
 
@@ -1580,6 +1582,7 @@ export function MinimalSheetEditor({
       <ClassFeaturesPanel
         classes={draft.classes}
         characterLevel={characterLevel}
+        abilities={draft.abilities}
         subclassSlugByEntryId={subclassSlugByEntryId}
         resources={draft.play.resources}
         onResourcesChange={(resources) =>

@@ -2,9 +2,16 @@
 
 import type { ClassLevelEntry } from './classLevels'
 import barbarianPack from './data/barbarian_2014.json'
+import clericPack from './data/cleric_2014.json'
 import fighterPack from './data/fighter_2014.json'
 import monkPack from './data/monk_2014.json'
 import roguePack from './data/rogue_2014.json'
+
+export type AbilityScoreKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
+
+function abilityModifierFromScore(score: number): number {
+  return Math.floor((Math.max(1, Math.floor(score)) - 10) / 2)
+}
 
 export type FeatureKind = 'passive' | 'action' | 'bonus' | 'reaction' | 'resource'
 
@@ -17,7 +24,13 @@ export type FeatureResource = {
   /** Fallback / fixed max when uses_from is absent or 'fixed'. */
   uses: number
   /** Resolve max from character proficiency bonus (Phantom Wails / soul trinkets). */
-  uses_from?: 'fixed' | 'proficiency_bonus' | 'twice_proficiency_bonus'
+  uses_from?:
+    | 'fixed'
+    | 'proficiency_bonus'
+    | 'twice_proficiency_bonus'
+    | 'ability_modifier'
+  /** For uses_from: ability_modifier (Warding Flare / War Priest = wis). */
+  ability?: AbilityScoreKey
   recharge: 'short_rest' | 'long_rest' | 'dawn' | 'manual'
   scale_uses?: Record<string, number>
   /** Stable pool key for sheet.resources sync (`feat:{slug}:{pool_id}:{entry}`). */
@@ -81,6 +94,7 @@ type FeaturePack = {
 
 const LOCAL_PACKS: Record<string, FeaturePack> = {
   barbarian: barbarianPack as FeaturePack,
+  cleric: clericPack as FeaturePack,
   fighter: fighterPack as FeaturePack,
   monk: monkPack as FeaturePack,
   rogue: roguePack as FeaturePack,
@@ -169,16 +183,30 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
       ? 'twice_proficiency_bonus'
       : resourceRaw.uses_from === 'proficiency_bonus'
         ? 'proficiency_bonus'
-        : resourceRaw.uses_from === 'fixed'
-          ? 'fixed'
-          : undefined
+        : resourceRaw.uses_from === 'ability_modifier'
+          ? 'ability_modifier'
+          : resourceRaw.uses_from === 'fixed'
+            ? 'fixed'
+            : undefined
   if (
     !hasUses &&
     usesFrom !== 'proficiency_bonus' &&
-    usesFrom !== 'twice_proficiency_bonus'
+    usesFrom !== 'twice_proficiency_bonus' &&
+    usesFrom !== 'ability_modifier'
   ) {
     return undefined
   }
+
+  const abilityRaw = resourceRaw.ability
+  const ability: AbilityScoreKey | undefined =
+    abilityRaw === 'str' ||
+    abilityRaw === 'dex' ||
+    abilityRaw === 'con' ||
+    abilityRaw === 'int' ||
+    abilityRaw === 'wis' ||
+    abilityRaw === 'cha'
+      ? abilityRaw
+      : undefined
 
   const linkedRaw =
     resourceRaw.linked_spend && typeof resourceRaw.linked_spend === 'object'
@@ -192,6 +220,7 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
   return {
     uses: hasUses ? (resourceRaw.uses as number) : 0,
     uses_from: usesFrom,
+    ability,
     recharge:
       resourceRaw.recharge === 'short_rest' ||
       resourceRaw.recharge === 'long_rest' ||
@@ -255,6 +284,7 @@ function resolveResourceUses(
   resource: FeatureResource | undefined,
   classLevel: number,
   proficiencyBonus?: number,
+  abilities?: Partial<Record<AbilityScoreKey, number>>,
 ): number | null {
   if (!resource) return null
   if (resource.uses_from === 'proficiency_bonus') {
@@ -266,6 +296,12 @@ function resolveResourceUses(
     return typeof proficiencyBonus === 'number'
       ? Math.max(0, Math.floor(proficiencyBonus) * 2)
       : null
+  }
+  if (resource.uses_from === 'ability_modifier') {
+    const key = resource.ability ?? 'wis'
+    const score = abilities?.[key]
+    if (typeof score !== 'number') return Math.max(1, resource.uses || 1)
+    return Math.max(1, abilityModifierFromScore(score))
   }
   let uses = resource.uses
   if (resource.scale_uses) {
@@ -291,6 +327,8 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   воин: 'fighter',
   monk: 'monk',
   монах: 'monk',
+  cleric: 'cleric',
+  жрец: 'cleric',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {
@@ -332,6 +370,20 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   'четыре стихии': 'way_of_the_four_elements',
   'путь четырёх стихий': 'way_of_the_four_elements',
   'путь четырех стихий': 'way_of_the_four_elements',
+  knowledge_domain: 'knowledge_domain',
+  'домен знания': 'knowledge_domain',
+  life_domain: 'life_domain',
+  'домен жизни': 'life_domain',
+  light_domain: 'light_domain',
+  'домен света': 'light_domain',
+  nature_domain: 'nature_domain',
+  'домен природы': 'nature_domain',
+  tempest_domain: 'tempest_domain',
+  'домен бури': 'tempest_domain',
+  trickery_domain: 'trickery_domain',
+  'домен обмана': 'trickery_domain',
+  war_domain: 'war_domain',
+  'домен войны': 'war_domain',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -346,6 +398,13 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'way_of_the_open_hand',
   'way_of_shadow',
   'way_of_the_four_elements',
+  'knowledge_domain',
+  'life_domain',
+  'light_domain',
+  'nature_domain',
+  'tempest_domain',
+  'trickery_domain',
+  'war_domain',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {
@@ -365,6 +424,8 @@ export function unlockFeaturesForClasses(input: {
   classes: ClassLevelEntry[]
   /** Total character level — for proficiency-scaled resources. */
   characterLevel?: number
+  /** Ability scores — for uses_from: ability_modifier. */
+  abilities?: Partial<Record<AbilityScoreKey, number>>
   /** classEntryId → subclass slug from grant/catalog */
   subclassSlugByEntryId?: Record<string, string | null | undefined>
   classFeaturesByEntryId?: Record<string, ClassFeatureDef[]>
@@ -375,6 +436,7 @@ export function unlockFeaturesForClasses(input: {
     input.characterLevel ??
     input.classes.reduce((sum, row) => sum + Math.max(0, Math.floor(row.level)), 0)
   const pb = proficiencyBonusForTotalLevel(totalLevel)
+  const abilities = input.abilities
 
   for (const row of input.classes) {
     if (!row.name.trim() || row.level <= 0) continue
@@ -396,7 +458,7 @@ export function unlockFeaturesForClasses(input: {
         subclassSlug: null,
         subclassName: null,
         scaleValue: resolveScaleValue(feature.scale, classLevel),
-        resourceUses: resolveResourceUses(feature.resource, classLevel, pb),
+        resourceUses: resolveResourceUses(feature.resource, classLevel, pb, abilities),
       })
     }
 
@@ -423,7 +485,7 @@ export function unlockFeaturesForClasses(input: {
         subclassSlug,
         subclassName: row.subclass_name.trim() || null,
         scaleValue: resolveScaleValue(feature.scale, classLevel),
-        resourceUses: resolveResourceUses(feature.resource, classLevel, pb),
+        resourceUses: resolveResourceUses(feature.resource, classLevel, pb, abilities),
       })
     }
   }

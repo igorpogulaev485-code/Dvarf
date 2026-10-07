@@ -4,6 +4,7 @@ import {
   kindLabelRu,
   resolveClassFeatureSlug,
   unlockFeaturesForClasses,
+  type AbilityScoreKey,
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
 import {
@@ -22,6 +23,7 @@ import { SlotPips } from '../../ui/SlotPips'
 type ClassFeaturesPanelProps = {
   classes: ClassLevelEntry[]
   characterLevel: number
+  abilities?: Partial<Record<AbilityScoreKey, number>>
   subclassSlugByEntryId?: Record<string, string | null | undefined>
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
@@ -300,6 +302,7 @@ function FeatureRow({
 export function ClassFeaturesPanel({
   classes,
   characterLevel,
+  abilities,
   subclassSlugByEntryId,
   resources,
   onResourcesChange,
@@ -310,9 +313,10 @@ export function ClassFeaturesPanel({
       unlockFeaturesForClasses({
         classes,
         characterLevel,
+        abilities,
         subclassSlugByEntryId,
       }),
-    [classes, characterLevel, subclassSlugByEntryId],
+    [classes, characterLevel, abilities, subclassSlugByEntryId],
   )
 
   const initiativeGrantByPool = useMemo(() => {
@@ -352,7 +356,7 @@ export function ClassFeaturesPanel({
 
         {byClass.length === 0 ? (
           <Text tone="muted">
-            Пока заполнены: Плут, Воин, Варвар (см. H4 в docs/feature_resource_contract.md).
+            Пока заполнены: Плут, Воин, Варвар, Монах, Жрец (H4 в docs/feature_resource_contract.md).
           </Text>
         ) : null}
 

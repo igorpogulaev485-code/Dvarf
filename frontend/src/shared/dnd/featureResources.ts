@@ -6,8 +6,13 @@ import {
   proficiencyBonusForTotalLevel,
   recoverPoolId,
   resolveClassFeatureSlug,
+  type AbilityScoreKey,
   type UnlockedFeature,
 } from './classFeatures'
+
+function abilityModifierFromScore(score: number): number {
+  return Math.floor((Math.max(1, Math.floor(score)) - 10) / 2)
+}
 
 export const FEATURE_RESOURCE_PREFIX = 'feat:'
 
@@ -37,6 +42,7 @@ export function featureResourceId(
 export function desiredResourcesFromFeatures(input: {
   features: UnlockedFeature[]
   characterLevel: number
+  abilities?: Partial<Record<AbilityScoreKey, number>>
   classSlugByEntryId?: Record<string, string | null | undefined>
 }): DesiredFeatureResource[] {
   const pb = proficiencyBonusForTotalLevel(input.characterLevel)
@@ -51,12 +57,21 @@ export function desiredResourcesFromFeatures(input: {
       'class'
     const id = featureResourceId(classSlug, resource.pool_id, feature.classEntryId)
 
-    const max =
-      resource.uses_from === 'twice_proficiency_bonus'
-        ? pb * 2
-        : resource.uses_from === 'proficiency_bonus'
-          ? pb
-          : feature.resourceUses ?? resource.uses
+    let max: number
+    if (resource.uses_from === 'twice_proficiency_bonus') {
+      max = pb * 2
+    } else if (resource.uses_from === 'proficiency_bonus') {
+      max = pb
+    } else if (resource.uses_from === 'ability_modifier') {
+      const key = resource.ability ?? 'wis'
+      const score = input.abilities?.[key]
+      max =
+        typeof score === 'number'
+          ? Math.max(1, abilityModifierFromScore(score))
+          : feature.resourceUses ?? Math.max(1, resource.uses || 1)
+    } else {
+      max = feature.resourceUses ?? resource.uses
+    }
 
     const next: DesiredFeatureResource = {
       id,

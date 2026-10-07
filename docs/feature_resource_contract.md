@@ -18,7 +18,8 @@
 2. **Spend / rest** — N×, сброс short/long (Second Wind, Action Surge, Ghost Walk)
 3. **PB-gated spend** — `uses_from: proficiency_bonus` (Могильные вопли)
 4. **2×PB spend** — `uses_from: twice_proficiency_bonus` (пси-кости Soulknife)
-5. **Level table spend** — `scale_uses` по уровню класса (кости превосходства BM)
+4b. **Ability-mod spend** — `uses_from: ability_modifier` + `ability: wis` (Warding Flare, War Priest)
+5. **Level table spend** — `scale_uses` по уровню класса (кости превосходства BM, Channel Divinity)
 6. **Stock / event** — `track: stock`, ручной +/− (частицы души)
 7. **Linked spend** — `linked_spend` на другой pool (вопль ← частица)
 8. **Recover one** — `recover_one` (Soulknife: бонусным вернуть 1 кость / short)
@@ -33,7 +34,8 @@
 ```json
 {
   "uses": 0,
-  "uses_from": "fixed | proficiency_bonus | twice_proficiency_bonus",
+  "uses_from": "fixed | proficiency_bonus | twice_proficiency_bonus | ability_modifier",
+  "ability": "wis",
   "scale_uses": { "3": 4, "7": 5, "15": 6 },
   "recharge": "short_rest | long_rest | dawn | manual",
   "pool_id": "superiority_dice",
@@ -86,6 +88,7 @@
 | Battle Master | 1, 5, 9 (+ Fighter 2) |
 | Barbarian / Berserker / Totem | 1, 5 (+ Rage table) |
 | Monk / Open Hand / Shadow / Elements | 1, 5, 9 (+ Ki = level, Perfect Self +4) |
+| Cleric / 7 PHB domains | 2, 4b, 5 (Channel Divinity shared; Wis-mod flares) |
 
 ## H4 — порядок пакетов классов
 
@@ -94,8 +97,8 @@
 1. ~~Плут~~ + ~~Воин~~ (готово)
 2. ~~Варвар~~ (готово)
 3. ~~Монах~~ (готово)
-4. **Жрец** ← следующий
-5. Паладин (возложение рук = stock/points, CD)
+4. ~~Жрец~~ (готово)
+5. **Паладин** ← следующий (возложение рук = stock/points, CD)
 6. Следопыт / остальные PHB
 7. Чародей, Колдун, Бард, Друид, Волшебник, Изобретатель
 
