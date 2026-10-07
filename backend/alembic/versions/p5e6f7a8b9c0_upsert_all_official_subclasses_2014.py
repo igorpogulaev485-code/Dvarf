@@ -1,8 +1,8 @@
-"""Upsert PHB/Tasha 2014 subclass catalog from subclass catalog spec.
+"""Upsert all official 2014 subclasses from merged subclass seed (118).
 
-Revision ID: e2f3a4b5c6d7
-Revises: d1e2f3a4b5c6
-Create Date: 2026-10-07 01:40:00.000000
+Revision ID: p5e6f7a8b9c0
+Revises: o4d5e6f7a8b9
+Create Date: 2026-10-07 03:20:00.000000
 
 """
 
@@ -16,15 +16,13 @@ from typing import Any, Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-# revision identifiers, used by Alembic.
-revision: str = "e2f3a4b5c6d7"
-down_revision: Union[str, Sequence[str], None] = "d1e2f3a4b5c6"
+revision: str = "p5e6f7a8b9c0"
+down_revision: Union[str, Sequence[str], None] = "o4d5e6f7a8b9"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-SPEC_REL = Path("data/classes/phb2014_subclass_catalog_spec.json")
+SPEC_REL = Path("data/classes/subclass_catalog_seed_2014.json")
 
-# Same stable class UUIDs as b9d0e1f2a3c4.
 CLASS_STABLE_IDS: dict[str, str] = {
     "barbarian": "22222222-2222-4222-8222-222222222201",
     "bard": "22222222-2222-4222-8222-222222222202",
@@ -57,7 +55,7 @@ def _load_spec() -> list[dict[str, Any]]:
         if path.is_file():
             payload = json.loads(path.read_text(encoding="utf-8"))
             return list(payload.get("classes") or [])
-    raise FileNotFoundError(f"Subclass catalog spec not found; tried {candidates}")
+    raise FileNotFoundError(f"Subclass seed not found; tried {candidates}")
 
 
 def _catalog_data(parent_slug: str, grants_level: int, sub: dict[str, Any]) -> dict[str, Any]:
@@ -65,14 +63,16 @@ def _catalog_data(parent_slug: str, grants_level: int, sub: dict[str, Any]) -> d
         "parent_slug": parent_slug,
         "grants_level": grants_level,
         "source": sub.get("source") or "phb",
+        "source_books": sub.get("source_books"),
         "sheet_grants": sub.get("sheet_grants") or {},
         "choices": sub.get("choices") or [],
         "notes_ru": sub.get("notes_ru"),
+        "always_prepared_spells": sub.get("always_prepared_spells") or [],
+        "features_by_level": sub.get("features_by_level") or {},
+        "detail_status": sub.get("detail_status"),
     }
     if sub.get("domain_spells_note"):
         data["domain_spells_note"] = sub["domain_spells_note"]
-    if sub.get("future_choices"):
-        data["future_choices"] = sub["future_choices"]
     return data
 
 
@@ -138,6 +138,15 @@ def upgrade() -> None:
                 {"slug": slug},
             ).mappings().first()
 
+            params = {
+                "name_ru": sub["name_ru"],
+                "name_en": sub.get("name_en"),
+                "parent_id": parent_id,
+                "source": sub.get("source") or "phb",
+                "data": json.dumps(data, ensure_ascii=False),
+                "sort_order": sort_order,
+            }
+
             if existing:
                 conn.execute(
                     sa.text(
@@ -154,15 +163,7 @@ def upgrade() -> None:
                         WHERE id = :id
                         """
                     ),
-                    {
-                        "id": str(existing["id"]),
-                        "name_ru": sub["name_ru"],
-                        "name_en": sub.get("name_en"),
-                        "parent_id": parent_id,
-                        "source": sub.get("source") or "phb",
-                        "data": json.dumps(data, ensure_ascii=False),
-                        "sort_order": sort_order,
-                    },
+                    {**params, "id": str(existing["id"])},
                 )
                 continue
 
@@ -188,32 +189,38 @@ def upgrade() -> None:
                     )
                     """
                 ),
-                {
-                    "id": entry_id,
-                    "slug": slug,
-                    "name_ru": sub["name_ru"],
-                    "name_en": sub.get("name_en"),
-                    "parent_id": parent_id,
-                    "source": sub.get("source") or "phb",
-                    "data": json.dumps(data, ensure_ascii=False),
-                    "sort_order": sort_order,
-                },
+                {**params, "id": entry_id, "slug": slug},
             )
 
 
 def downgrade() -> None:
+    # Keep PHB/Tasha 44 from e2f3; remove only rows not in that first seed.
     conn = op.get_bind()
-    classes = _load_spec()
-    for cls in classes:
-        for sub in cls.get("subclasses") or []:
-            conn.execute(
-                sa.text(
-                    """
-                    DELETE FROM catalog_entries
-                    WHERE kind = 'subclass'
-                      AND rules_edition = '2014'
-                      AND slug = :slug
-                    """
-                ),
-                {"slug": sub["slug"]},
-            )
+    phb_path_candidates = [
+        Path.cwd() / "data/classes/phb2014_subclass_catalog_spec.json",
+        Path.cwd() / "backend/data/classes/phb2014_subclass_catalog_spec.json",
+        Path(__file__).resolve().parents[2] / "data/classes/phb2014_subclass_catalog_spec.json",
+    ]
+    keep: set[str] = set()
+    for path in phb_path_candidates:
+        if path.is_file():
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            for cls in payload.get("classes") or []:
+                for sub in cls.get("subclasses") or []:
+                    keep.add(sub["slug"])
+            break
+    rows = conn.execute(
+        sa.text(
+            """
+            SELECT id, slug FROM catalog_entries
+            WHERE kind = 'subclass' AND rules_edition = '2014'
+            """
+        )
+    ).mappings()
+    for row in rows:
+        if row["slug"] in keep:
+            continue
+        conn.execute(
+            sa.text("DELETE FROM catalog_entries WHERE id = :id"),
+            {"id": str(row["id"])},
+        )

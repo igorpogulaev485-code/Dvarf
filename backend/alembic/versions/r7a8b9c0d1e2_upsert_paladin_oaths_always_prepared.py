@@ -1,8 +1,8 @@
-"""Upsert cleric domain always-prepared spells + sheet grants (14 domains).
+"""Upsert paladin oath always-prepared spells + sheet grants (9 oaths).
 
-Revision ID: a6b7c8d9e0f1
-Revises: f3a4b5c6d7e8
-Create Date: 2026-10-07 04:30:00.000000
+Revision ID: r7a8b9c0d1e2
+Revises: q6f7a8b9c0d1
+Create Date: 2026-10-07 04:45:00.000000
 
 """
 
@@ -16,30 +16,25 @@ from typing import Any, Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "a6b7c8d9e0f1"
-down_revision: Union[str, Sequence[str], None] = "f3a4b5c6d7e8"
+revision: str = "r7a8b9c0d1e2"
+down_revision: Union[str, Sequence[str], None] = "q6f7a8b9c0d1"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 SPEC_REL = Path("data/classes/subclass_catalog_seed_2014.json")
 
-CLERIC_STABLE_ID = "22222222-2222-4222-8222-222222222203"
+PALADIN_STABLE_ID = "22222222-2222-4222-8222-222222222207"
 
-CLERIC_DOMAIN_SLUGS = {
-    "knowledge_domain",
-    "life_domain",
-    "light_domain",
-    "nature_domain",
-    "tempest_domain",
-    "trickery_domain",
-    "war_domain",
-    "death_domain",
-    "arcana_domain",
-    "forge_domain",
-    "grave_domain",
-    "order_domain",
-    "peace_domain",
-    "twilight_domain",
+PALADIN_OATH_SLUGS = {
+    "oath_of_devotion",
+    "oath_of_the_ancients",
+    "oath_of_vengeance",
+    "oathbreaker",
+    "oath_of_the_crown",
+    "oath_of_conquest",
+    "oath_of_redemption",
+    "oath_of_glory",
+    "oath_of_the_watchers",
 }
 
 
@@ -48,7 +43,7 @@ def _stable_subclass_id(slug: str) -> str:
     return f"33333333-3333-4333-a333-{digest[:12]}"
 
 
-def _load_cleric_subs() -> tuple[int, list[dict[str, Any]]]:
+def _load_paladin_subs() -> tuple[int, list[dict[str, Any]]]:
     candidates = [
         Path.cwd() / SPEC_REL,
         Path.cwd() / "backend" / SPEC_REL,
@@ -58,16 +53,16 @@ def _load_cleric_subs() -> tuple[int, list[dict[str, Any]]]:
         if path.is_file():
             payload = json.loads(path.read_text(encoding="utf-8"))
             for cls in payload.get("classes") or []:
-                if cls.get("parent_slug") == "cleric":
-                    grants_level = int(cls.get("grants_level") or 1)
+                if cls.get("parent_slug") == "paladin":
+                    grants_level = int(cls.get("grants_level") or 3)
                     return grants_level, list(cls.get("subclasses") or [])
-            raise ValueError("cleric parent not found in subclass seed")
+            raise ValueError("paladin parent not found in subclass seed")
     raise FileNotFoundError(f"Subclass seed not found; tried {candidates}")
 
 
 def _catalog_data(grants_level: int, sub: dict[str, Any]) -> dict[str, Any]:
     data: dict[str, Any] = {
-        "parent_slug": "cleric",
+        "parent_slug": "paladin",
         "grants_level": grants_level,
         "source": sub.get("source") or "phb",
         "source_books": sub.get("source_books"),
@@ -78,12 +73,10 @@ def _catalog_data(grants_level: int, sub: dict[str, Any]) -> dict[str, Any]:
         "features_by_level": sub.get("features_by_level") or {},
         "detail_status": sub.get("detail_status"),
     }
-    if sub.get("domain_spells_note"):
-        data["domain_spells_note"] = sub["domain_spells_note"]
     return data
 
 
-def _resolve_cleric_id(conn: Any) -> str | None:
+def _resolve_paladin_id(conn: Any) -> str | None:
     row = conn.execute(
         sa.text(
             """
@@ -94,7 +87,7 @@ def _resolve_cleric_id(conn: Any) -> str | None:
             LIMIT 1
             """
         ),
-        {"id": CLERIC_STABLE_ID},
+        {"id": PALADIN_STABLE_ID},
     ).first()
     if row:
         return str(row[0])
@@ -103,7 +96,7 @@ def _resolve_cleric_id(conn: Any) -> str | None:
             """
             SELECT id FROM catalog_entries
             WHERE kind = 'class'
-              AND slug = 'cleric'
+              AND slug = 'paladin'
               AND rules_edition = '2014'
               AND is_active = true
             ORDER BY sort_order ASC
@@ -111,20 +104,20 @@ def _resolve_cleric_id(conn: Any) -> str | None:
             """
         )
     ).first()
-    return str(row[0]) if row else CLERIC_STABLE_ID
+    return str(row[0]) if row else PALADIN_STABLE_ID
 
 
 def upgrade() -> None:
     conn = op.get_bind()
-    grants_level, subclasses = _load_cleric_subs()
-    parent_id = _resolve_cleric_id(conn)
+    grants_level, subclasses = _load_paladin_subs()
+    parent_id = _resolve_paladin_id(conn)
     if not parent_id:
         return
 
-    sort_order = 3000
+    sort_order = 4000
     for sub in subclasses:
         slug = sub.get("slug")
-        if slug not in CLERIC_DOMAIN_SLUGS:
+        if slug not in PALADIN_OATH_SLUGS:
             continue
         sort_order += 10
         data = _catalog_data(grants_level, sub)

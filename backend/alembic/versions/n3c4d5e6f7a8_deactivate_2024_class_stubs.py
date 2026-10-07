@@ -1,7 +1,7 @@
 """Deactivate stub 2024 class rows that mirror 2014 names.
 
-Revision ID: d1e2f3a4b5c6
-Revises: c0d1e2f3a4b5
+Revision ID: n3c4d5e6f7a8
+Revises: m2b3c4d5e6f7
 Create Date: 2026-10-06 18:05:00.000000
 
 SRD 5.2 seeded kind=class for 2024 with the same Russian names as PHB 2014.
@@ -19,8 +19,8 @@ from typing import Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "d1e2f3a4b5c6"
-down_revision: Union[str, Sequence[str], None] = "c0d1e2f3a4b5"
+revision: str = "n3c4d5e6f7a8"
+down_revision: Union[str, Sequence[str], None] = "m2b3c4d5e6f7"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
