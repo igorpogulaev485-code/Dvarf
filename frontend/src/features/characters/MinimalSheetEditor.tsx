@@ -1330,6 +1330,13 @@ export function MinimalSheetEditor({
       <TextBlocksPanel
         blocks={draft.textBlocks}
         onChange={(textBlocks) => setDraft((prev) => ({ ...prev, textBlocks }))}
+        resources={draft.play.resources}
+        onResourcesChange={(resources) =>
+          setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, resources },
+          }))
+        }
       />
 
       {error ? <Text tone="danger">{error}</Text> : null}

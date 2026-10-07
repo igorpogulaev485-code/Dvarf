@@ -22,7 +22,6 @@ import {
   applyLongRest,
   applyShortRest,
   clampExhaustion,
-  type ResourceReset,
 } from '../../shared/dnd/rest'
 import {
   listCatalogEntries,
@@ -33,7 +32,6 @@ import {
   Button,
   Combobox,
   Field,
-  Input,
   NumberInput,
   Panel,
   SlotPips,
@@ -41,11 +39,7 @@ import {
   Text,
   type ComboboxOption,
 } from '../../ui'
-import {
-  RESET_LABELS,
-  createResource,
-  type PlayState,
-} from './play'
+import { type PlayState } from './play'
 import type { SpellsState } from './spells'
 
 type ConditionOption = {
@@ -68,8 +62,6 @@ type PlayPanelProps = {
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
   onToast: (message: string) => void
 }
-
-const RESET_OPTIONS: ResourceReset[] = ['short', 'long', 'manual']
 
 function DeathTrack({
   label,
@@ -267,26 +259,10 @@ export function PlayPanel({
     })
   }
 
-  function updateResource(id: string, patch: Partial<PlayState['resources'][number]>) {
-    patchPlay({
-      resources: play.resources.map((item) =>
-        item.id === id ? { ...item, ...patch } : item,
-      ),
-    })
-  }
-
-  function addResource() {
-    patchPlay({ resources: [...play.resources, createResource({ name: 'Ресурс' })] })
-  }
-
-  function removeResource(id: string) {
-    patchPlay({ resources: play.resources.filter((item) => item.id !== id) })
-  }
-
   function doShortRestResources() {
     const result = applyShortRest({ resources: play.resources })
     patchPlay({ resources: result.resources })
-    onToast('Короткий отдых: сброшены ресурсы «короткий»')
+    onToast('Сброшены ресурсы со сбросом «короткий» (в текстовых блоках)')
   }
 
   function spendHitDieOnShortRest() {
@@ -390,8 +366,8 @@ export function PlayPanel({
             </span>
           </div>
           <Text tone="muted">
-            Потрать кость → получишь HP (вверху в шапке). Отдельно можно сбросить ресурсы со сбросом
-            «короткий».
+            Потрать кость → получишь HP (вверху в шапке). Классовые ресурсы живут в текстовых блоках
+            ниже.
           </Text>
           <div className="play-hit-dice">
             <SlotPips
@@ -436,9 +412,6 @@ export function PlayPanel({
                   {play.hitDie && (healAmount ?? suggestedHeal) != null
                     ? `Потратить кость · +${Math.max(0, Math.floor(healAmount ?? suggestedHeal ?? 0))} HP`
                     : 'Потратить кость'}
-                </Button>
-                <Button type="button" variant="secondary" onClick={doShortRestResources}>
-                  Сбросить короткие ресурсы
                 </Button>
               </div>
             </div>
@@ -577,93 +550,22 @@ export function PlayPanel({
 
         <div className="play-rest-block">
           <Text>
-            <strong>Продолжительный отдых</strong>
+            <strong>Отдых целиком</strong>
           </Text>
           <Text tone="muted">
-            Полные HP, половина костей хитов, ячейки и pact, ресурсы «короткий»/«продолжительный»,
-            −1 истощение, сброс спасбросков от смерти.
+            Продолжительный: полные HP, половина костей, ячейки/pact, ресурсы «короткий» и
+            «продолжительный», −1 истощение, сброс спасбросков. Короткий (только ресурсы) — пипсы в
+            текстовых блоках со сбросом «короткий».
           </Text>
           <div className="play-rest-actions">
             <Button type="button" onClick={doLongRest}>
               Продолжительный отдых
             </Button>
-          </div>
-        </div>
-
-        <Stack gap={10}>
-          <div className="play-resources-head">
-            <Text>Ограниченные ресурсы</Text>
-            <Button type="button" onClick={addResource}>
-              + ресурс
+            <Button type="button" variant="secondary" onClick={doShortRestResources}>
+              Сброс коротких ресурсов
             </Button>
           </div>
-          {play.resources.length === 0 ? (
-            <Text tone="muted">
-              Например: ярость, превосходство, ки — пипсы и сброс на отдыхе.
-            </Text>
-          ) : (
-            play.resources.map((resource) => (
-              <div key={resource.id} className="play-resource">
-                <div className="sheet-grid sheet-grid--2">
-                  <Field label="Название">
-                    <Input
-                      value={resource.name}
-                      onChange={(event) =>
-                        updateResource(resource.id, { name: event.target.value })
-                      }
-                    />
-                  </Field>
-                  <Field label="Макс">
-                    <NumberInput
-                      min={0}
-                      max={20}
-                      emptyValue={0}
-                      value={resource.max}
-                      onValueChange={(value) =>
-                        updateResource(resource.id, {
-                          max: value ?? 0,
-                          used: Math.min(resource.used, value ?? 0),
-                        })
-                      }
-                    />
-                  </Field>
-                </div>
-                <SlotPips
-                  max={resource.max}
-                  used={resource.used}
-                  label={`${resource.name || 'Ресурс'}: потрачено`}
-                  onChange={(used) => updateResource(resource.id, { used })}
-                />
-                <div className="play-resource__meta">
-                  <label className="play-resource__reset">
-                    Сброс
-                    <select
-                      value={resource.reset}
-                      onChange={(event) =>
-                        updateResource(resource.id, {
-                          reset: event.target.value as ResourceReset,
-                        })
-                      }
-                    >
-                      {RESET_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                          {RESET_LABELS[option]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button
-                    type="button"
-                    className="linkish"
-                    onClick={() => removeResource(resource.id)}
-                  >
-                    Удалить
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </Stack>
+        </div>
       </Stack>
     </Panel>
   )
