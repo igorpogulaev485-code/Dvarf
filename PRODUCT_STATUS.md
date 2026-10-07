@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/race-racial-spells-f10e`  
+**Prod tip (ветка линии прода):** `cursor/race-custom-lineage-f10e`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -357,13 +357,23 @@
 |--------|--------------|-------------------------|
 | Врождённые заклинания | Выбор расы кладёт заклинания в «Известные» с чипом «Раса» | Аасимар/тифлинг/фэйри… без ручного ввода |
 
-На проде: **да** · ветка `cursor/race-racial-spells-f10e` · PR #47 · это **новый prod tip**
+На проде: **да** · ветка `cursor/race-racial-spells-f10e` · PR #47 · затем tip → `cursor/race-custom-lineage-f10e`
+
+### 2026-10-07 — Custom Lineage (Свой род)
+
+Проверено на живом http://201.34.132.252/ (alembic `k0f1a2b3c4d5`; slug `custom_lineage`; бандл `index-BjglO0Vg.js`).
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Свой род (TCE) | Combobox + попап: размер M/S, +2 к одной хар-ке, ТЗ 60 или навык, язык, заметка про черту | Можно играть Tasha Custom Lineage без хомбрю |
+
+На проде: **да** · ветка `cursor/race-custom-lineage-f10e` · PR #48 · это **новый prod tip**
 
 ---
 
 ## В ветках / ещё не на проде
 
-<!-- пусто после racial spells; дальше Custom Lineage -->
+<!-- очередь по расам закрыта (размер → скорости → заклинания → Custom Lineage) -->
 
 <!-- пример:
 ### 2026-10-06 — подтверждение email при регистрации
@@ -439,3 +449,4 @@
 | 2026-10-07 | `cursor/race-size-choice-f10e` · PR #45 | Размер M/S в попапе; tip → эта ветка; alembic `h7c8` |
 | 2026-10-07 | `cursor/race-movement-speeds-f10e` · PR #46 | Лазание/плавание/полёт на лист; tip → эта ветка; alembic `i8d9` |
 | 2026-10-07 | `cursor/race-racial-spells-f10e` · PR #47 | Расовые заклинания → известные; tip → эта ветка; alembic `j9e0` |
+| 2026-10-07 | `cursor/race-custom-lineage-f10e` · PR #48 | Свой род (TCE); tip → эта ветка; alembic `k0f1` |
