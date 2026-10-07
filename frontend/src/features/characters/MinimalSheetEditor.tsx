@@ -98,6 +98,7 @@ import {
   type AppliedClassAsi,
 } from '../../shared/dnd/classAsi'
 import {
+  fightingStyleFromFeatGrants,
   newFeatGrantId,
   readFeatGrantLedger,
   sumFeatHpPerLevel,
@@ -1486,7 +1487,9 @@ export function MinimalSheetEditor({
       naturalArmor,
       unarmoredDefense,
     })
-    const styleId = findFightingStylePick(draft.featurePicks)
+    const styleId =
+      findFightingStylePick(draft.featurePicks) ??
+      fightingStyleFromFeatGrants(draft.featGrants)
     const styleBonus = fightingStyleAcBonus({
       styleId,
       wearingArmor: Boolean(pieces.armor),
@@ -1501,6 +1504,7 @@ export function MinimalSheetEditor({
     draft.inventory.items,
     draft.raceGrant,
     draft.featurePicks,
+    draft.featGrants,
     raceCatalogRows,
     unlockedFeatures,
   ])
@@ -2404,6 +2408,10 @@ export function MinimalSheetEditor({
         abilities={draft.abilities}
         armor={draft.identity.armor}
         hasSpellcasting={characterHasCasterClass(draft.classes)}
+        hasMartialWeapons={draft.identity.weapons.martial}
+        raceSlug={draft.raceGrant?.slug ?? null}
+        raceParentSlug={draft.raceGrant?.parentSlug ?? null}
+        size={draft.identity.size}
         takenFeatSlugs={draft.featGrants.map((row) => row.slug)}
         onConfirm={confirmClassAsi}
         onSkip={() => setPendingAsi(null)}
@@ -2449,6 +2457,7 @@ export function MinimalSheetEditor({
         abilities={draft.abilities}
         armor={draft.identity.armor}
         hasSpellcasting={characterHasCasterClass(draft.classes)}
+        hasMartialWeapons={draft.identity.weapons.martial}
         onClose={() => setRaceGrantPicker(null)}
         onConfirm={(result) => {
           commitRaceGrant({

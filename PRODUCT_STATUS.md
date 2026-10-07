@@ -430,6 +430,16 @@
 
 ## В ветках / ещё не на проде
 
+### 2026-10-07 — FEATS TCE wave (Котёл Таши)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Каталог TCE | 26 черт Таши (общие + расовые) в `kind=feat` | Fey Touched, Skill Expert, Elven Accuracy… |
+| Расовые требования | Проверка slug/родителя (+ размер для Squat Nimbleness) | Нельзя взять дварфийскую черту человеком |
+| Fighting Initiate | Выбор стиля воина; Defense даёт +1 КД | Стиль без мультикласса в воина |
+
+На проде: **нет** · ветка `cursor/feats-tce-wave-ef23` · tip не менять до «залей»
+
 ### 2026-10-07 — FEATS PHB wave + ASI/Custom Lineage
 
 | Функция | Как работает | Эффект для пользователя |
@@ -524,3 +534,4 @@
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 (долив) | H4b глубина 118 архетипов; снаряжение→атаки/КД; ярость vs heavy; normalize packs build fix |
 | 2026-10-07 | `cursor/class-asi-hitdice-mc-ef23` · PR #53 | ASI popup, hit dice by class, MC polish; gear catalog RU+dedupe (не wipe); tip → эта ветка; alembic `s8b9` |
 | 2026-10-07 | `cursor/feats-phb-wave1-ef23` · PR #54 | PHB feats catalog + ASI/Custom Lineage feat picks; alembic `w2x3`; на проде нет |
+| 2026-10-07 | `cursor/feats-tce-wave-ef23` | TCE feats catalog (26) + race prereqs; alembic `x3y4`; на проде нет |

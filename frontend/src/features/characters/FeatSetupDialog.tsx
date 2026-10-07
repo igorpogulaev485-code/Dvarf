@@ -31,6 +31,10 @@ type FeatSetupDialogProps = {
   abilities: Record<AbilityKey, number>
   armor: Partial<Record<ArmorProfKey, boolean>>
   hasSpellcasting: boolean
+  hasMartialWeapons?: boolean
+  raceSlug?: string | null
+  raceParentSlug?: string | null
+  size?: string | null
   /** Already taken feat slugs (optional soft filter). */
   takenSlugs?: string[]
   onConfirm: (result: FeatSetupResult) => void
@@ -44,6 +48,10 @@ export function FeatSetupDialog({
   abilities,
   armor,
   hasSpellcasting,
+  hasMartialWeapons = false,
+  raceSlug = null,
+  raceParentSlug = null,
+  size = null,
   takenSlugs = [],
   onConfirm,
   onClose,
@@ -178,6 +186,10 @@ export function FeatSetupDialog({
       abilities,
       armor,
       hasSpellcasting,
+      hasMartialWeapons,
+      raceSlug,
+      raceParentSlug,
+      size,
     })
     if (check) {
       setError(check)
@@ -204,8 +216,7 @@ export function FeatSetupDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Каталог PHB 2014. Гранты (характеристики, навыки, скорость, хиты…) лягут на лист;
-          боевые флаги — подсказка в тексте черты.
+          Каталог черт 2014 (PHB + TCE…). Гранты лягут на лист; боевые флаги — в тексте.
         </Text>
 
         <Field label="Черта">

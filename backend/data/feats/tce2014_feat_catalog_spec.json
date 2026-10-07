@@ -1,0 +1,972 @@
+{
+  "rules_edition": "2014",
+  "notes_ru": "Волна TCE (Котёл Таши) 2014. Имена/текст — привычные RU-формулировки. При расхождении с ttg/dnd.su — решать с Игорем. Расовые требования проверяются по slug/родителю расы.",
+  "wave": "tce",
+  "feats": [
+    {
+      "id": "6c78df92-3a64-58d1-ad7c-d52c7a1e6ed0",
+      "slug": "artificer_initiate",
+      "name_ru": "Посвящённый в изобретатели",
+      "name_en": "Artificer Initiate",
+      "source": "tce",
+      "sort_order": 2010,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "Заговор и заклинание 1 круга изобретателя + инструмент.",
+        "benefits_ru": "Выучите один заговор из списка изобретателя. Также выучите одно заклинание 1 уровня изобретателя; можете накладывать его без ячейки 1 раз / длинный отдых (ИНТ). Получаете владение одним инструментом ремесленника на выбор.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "tool",
+            "type": "skill_or_tool",
+            "count": 1,
+            "label_ru": "Инструмент ремесленника"
+          },
+          {
+            "id": "spells_note",
+            "type": "note",
+            "label_ru": "Заговор и заклинание 1 круга",
+            "text_ru": "Запиши заговор и заклинание 1 круга изобретателя (ИНТ). Автоподбор — позже."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "artificer_initiate"
+          ]
+        }
+      }
+    },
+    {
+      "id": "79294259-e685-5e6f-91e0-031e01c7c6ac",
+      "slug": "chef",
+      "name_ru": "Шеф-повар",
+      "name_en": "Chef",
+      "source": "tce",
+      "sort_order": 2020,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Тел или Муд; готовка еды с временными хитами / костями хитов.",
+        "benefits_ru": "Увеличьте Телосложение или Мудрость на 1 (макс. 20). Владение кухонной утварью. В рамках короткого отдыха можете приготовить еду для числа союзников = 4 + бонус мастерства: съевшие тратят Кость Хитов и восстанавливают дополнительный 1к8. Можете приготовить питательные закуски (число = бонус мастерства) после длинного отдыха; съевший получает 1 временный хит за ваш бонус мастерства (бонусным действием, одна закуска за раз, портятся после следующего длинного отдыха).",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "con",
+              "wis"
+            ],
+            "label_ru": "+1 к Тел или Муд"
+          }
+        ],
+        "grants": {
+          "tool_proficiencies": [
+            "Кухонная утварь"
+          ],
+          "flags": [
+            "chef"
+          ]
+        }
+      }
+    },
+    {
+      "id": "e6d54e4b-b92a-5ea5-8253-31e78bedf026",
+      "slug": "crusher",
+      "name_ru": "Дробитель",
+      "name_en": "Crusher",
+      "source": "tce",
+      "sort_order": 2030,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Сил или Тел; дробящие удары сдвигают и усиливают криты.",
+        "benefits_ru": "Увеличьте Силу или Телосложение на 1 (макс. 20). Раз за ход, попадая дробящим уроном, можете сдвинуть цель на 5 футов. Когда наносите критический удар дробящим уроном, атаки по цели получают преимущество до начала вашего следующего хода.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "str",
+              "con"
+            ],
+            "label_ru": "+1 к Сил или Тел"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "crusher"
+          ]
+        }
+      }
+    },
+    {
+      "id": "77d6405f-f10a-5b0b-99b2-8162eaffa778",
+      "slug": "eldritch_adept",
+      "name_ru": "Адепт тайных искусств",
+      "name_en": "Eldritch Adept",
+      "source": "tce",
+      "sort_order": 2040,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Умение накладывать заклинания или магия договора",
+        "summary_ru": "Одно воззвание колдуна (с выполнением требований).",
+        "benefits_ru": "Выучите одно воззвание колдуна на выбор, для которого выполняете требования. Если воззвание имеет требование по уровню колдуна, используйте свой уровень персонажа. При повышении уровня можете заменить воззвание другим.",
+        "prerequisites": {
+          "flags_any": [
+            "spellcasting"
+          ]
+        },
+        "choices": [
+          {
+            "id": "invocation_note",
+            "type": "note",
+            "label_ru": "Воззвание",
+            "text_ru": "Запиши выбранное воззвание колдуна. Полный пикер — позже."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "eldritch_adept"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ed77f487-42de-5a68-a536-ef444224723e",
+      "slug": "fey_touched",
+      "name_ru": "Отмеченный феями",
+      "name_en": "Fey Touched",
+      "source": "tce",
+      "sort_order": 2050,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Инт/Муд/Хар; Туманный шаг + одно заклинание 1 круга (прорицание/очарование).",
+        "benefits_ru": "Увеличьте Интеллект, Мудрость или Харизму на 1 (макс. 20). Выучите Туманный шаг и одно заклинание 1 уровня школы Прорицания или Очарования. Каждое можете накладывать без ячейки 1 раз / длинный отдых; также можете тратить ячейки. Характеристика сотворения — увеличенная этой чертой.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "int",
+              "wis",
+              "cha"
+            ],
+            "label_ru": "+1 к Инт, Муд или Хар"
+          },
+          {
+            "id": "spell_note",
+            "type": "note",
+            "label_ru": "Заклинание 1 круга",
+            "text_ru": "Туманный шаг + одно прорицание/очарование 1 круга. Запиши в список. Автоподбор — позже."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "fey_touched"
+          ]
+        }
+      }
+    },
+    {
+      "id": "458e4fac-df78-5c94-a28f-430702132f90",
+      "slug": "fighting_initiate",
+      "name_ru": "Посвящённый в боевые стили",
+      "name_en": "Fighting Initiate",
+      "source": "tce",
+      "sort_order": 2060,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Владение воинским оружием",
+        "summary_ru": "Один боевой стиль воина.",
+        "benefits_ru": "Выучите один боевой стиль из списка воина. Нельзя взять стиль, который уже есть. При повышении уровня можете заменить стиль другим из списка воина.",
+        "prerequisites": {
+          "flags_any": [
+            "martial_weapon_prof"
+          ]
+        },
+        "choices": [
+          {
+            "id": "style",
+            "type": "enum",
+            "label_ru": "Боевой стиль",
+            "options": [
+              {
+                "id": "archery",
+                "label_ru": "Стрельба"
+              },
+              {
+                "id": "defense",
+                "label_ru": "Оборона"
+              },
+              {
+                "id": "dueling",
+                "label_ru": "Дуэлянт"
+              },
+              {
+                "id": "great_weapon_fighting",
+                "label_ru": "Сражение большим оружием"
+              },
+              {
+                "id": "protection",
+                "label_ru": "Защита"
+              },
+              {
+                "id": "two_weapon_fighting",
+                "label_ru": "Сражение двумя оружиями"
+              }
+            ]
+          }
+        ],
+        "grants": {
+          "flags": [
+            "fighting_initiate"
+          ]
+        }
+      }
+    },
+    {
+      "id": "3eb6942b-716c-5864-9c91-512d339cd3d9",
+      "slug": "gunner",
+      "name_ru": "Стрелок",
+      "name_en": "Gunner",
+      "source": "tce",
+      "sort_order": 2070,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Лов; огнестрел без перезарядки и без помехи в упор.",
+        "benefits_ru": "Увеличьте Ловкость на 1 (макс. 20). Владение огнестрельным оружием. Игнорируете свойство «перезарядка» у огнестрела. Нахождение в пределах 5 футов от врага не даёт помеху на ваши дальнобойные атаки.",
+        "prerequisites": {},
+        "choices": [],
+        "grants": {
+          "ability_bonuses": {
+            "dex": 1
+          },
+          "flags": [
+            "gunner"
+          ]
+        }
+      }
+    },
+    {
+      "id": "3a9aa4ed-eb39-599d-b6c8-efdff1ab1423",
+      "slug": "metamagic_adept",
+      "name_ru": "Адепт метамагии",
+      "name_en": "Metamagic Adept",
+      "source": "tce",
+      "sort_order": 2080,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Умение накладывать заклинания",
+        "summary_ru": "Два варианта метамагии и 2 пункта чародейства.",
+        "benefits_ru": "Выучите два варианта метамагии чародея. Получаете 2 пункта чародейства для них (восстанавливаются после длинного отдыха; не увеличивают ваши пункты, если они уже есть — добавляются отдельно). При повышении уровня можете заменить один вариант метамагии.",
+        "prerequisites": {
+          "flags_any": [
+            "spellcasting"
+          ]
+        },
+        "choices": [
+          {
+            "id": "metamagic_note",
+            "type": "note",
+            "label_ru": "Метамагия",
+            "text_ru": "Выбери два варианта метамагии и запиши. Пикер — позже."
+          }
+        ],
+        "grants": {
+          "resource": {
+            "pool_id": "metamagic_adept",
+            "pool_name_ru": "Пункты чародейства (адепт)",
+            "uses": 2,
+            "recovery": "long_rest"
+          },
+          "flags": [
+            "metamagic_adept"
+          ]
+        }
+      }
+    },
+    {
+      "id": "6f0baa27-b12d-586e-b588-57a11ead1e0b",
+      "slug": "piercer",
+      "name_ru": "Пронзатель",
+      "name_en": "Piercer",
+      "source": "tce",
+      "sort_order": 2090,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Сил или Лов; колющий урон с перебросом и усиленным критом.",
+        "benefits_ru": "Увеличьте Силу или Ловкость на 1 (макс. 20). Раз за ход, нанося колющий урон, можете перебросить одну кость урона (новый результат обязателен). При критическом ударе колющим уроном можете бросить одну дополнительную кость урона оружия.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "str",
+              "dex"
+            ],
+            "label_ru": "+1 к Сил или Лов"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "piercer"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ee7206bb-5c41-5d8e-884c-d056fadda633",
+      "slug": "poisoner",
+      "name_ru": "Отравитель",
+      "name_en": "Poisoner",
+      "source": "tce",
+      "sort_order": 2100,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "Яды игнорируют сопротивление; набор отравителя; быстрое нанесение яда.",
+        "benefits_ru": "Владение набором отравителя. Когда действием наносите яд на оружие/боеприпас, можете нанести его на число боеприпасов = бонус мастерства. Существа получают урон ядом от ваших ядов, игнорируя сопротивление яду. Действием можете создать число доз сильнодействующего яда = бонус мастерства (50 зм / набор отравителя / 1 час; нанести бонусным действием; при попадании — 2к8 яда, спас Тел Сл 14 на половину; яд сохнет после 1 минуты или попадания).",
+        "prerequisites": {},
+        "choices": [],
+        "grants": {
+          "tool_proficiencies": [
+            "Набор отравителя"
+          ],
+          "flags": [
+            "poisoner"
+          ]
+        }
+      }
+    },
+    {
+      "id": "62f6bd36-d808-512d-aca7-ed120e01898c",
+      "slug": "shadow_touched",
+      "name_ru": "Отмеченный тенями",
+      "name_en": "Shadow Touched",
+      "source": "tce",
+      "sort_order": 2110,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Инт/Муд/Хар; Невидимость + одно некромантия/иллюзия 1 круга.",
+        "benefits_ru": "Увеличьте Интеллект, Мудрость или Харизму на 1 (макс. 20). Выучите Невидимость и одно заклинание 1 уровня школы Некромантии или Иллюзии. Каждое — без ячейки 1/длинный отдых или за ячейку. Характеристика сотворения — увеличенная этой чертой.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "int",
+              "wis",
+              "cha"
+            ],
+            "label_ru": "+1 к Инт, Муд или Хар"
+          },
+          {
+            "id": "spell_note",
+            "type": "note",
+            "label_ru": "Заклинание 1 круга",
+            "text_ru": "Невидимость + одно некромантия/иллюзия 1 круга. Запиши в список."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "shadow_touched"
+          ]
+        }
+      }
+    },
+    {
+      "id": "818dc505-8c72-5337-b8d7-e80ed89efc50",
+      "slug": "skill_expert",
+      "name_ru": "Эксперт в навыке",
+      "name_en": "Skill Expert",
+      "source": "tce",
+      "sort_order": 2120,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 к любой характеристике; владение навыком + экспертиза.",
+        "benefits_ru": "Увеличьте одну характеристику на 1 (макс. 20). Получаете владение одним навыком на выбор. Выберите один навык, которым владеете: получаете экспертизу (удвоенный бонус мастерства).",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "str",
+              "dex",
+              "con",
+              "int",
+              "wis",
+              "cha"
+            ],
+            "label_ru": "+1 к характеристике"
+          },
+          {
+            "id": "proficiencies",
+            "type": "skill_or_tool",
+            "count": 1,
+            "label_ru": "Новый навык (владение)"
+          },
+          {
+            "id": "expertise_note",
+            "type": "note",
+            "label_ru": "Экспертиза",
+            "text_ru": "Отметь экспертизу у одного навыка, которым уже владеешь (включая только что взятый)."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "skill_expert"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ce9ba91e-f876-5b31-a6eb-49e2cc15dcd4",
+      "slug": "slasher",
+      "name_ru": "Рубака",
+      "name_en": "Slasher",
+      "source": "tce",
+      "sort_order": 2130,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Сил или Лов; рубящие удары режут скорость и криты.",
+        "benefits_ru": "Увеличьте Силу или Ловкость на 1 (макс. 20). Раз за ход, попадая рубящим уроном, можете снизить скорость цели на 10 футов до вашего следующего хода. При критическом ударе рубящим уроном цель совершает броски атаки с помехой до начала вашего следующего хода.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "str",
+              "dex"
+            ],
+            "label_ru": "+1 к Сил или Лов"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "slasher"
+          ]
+        }
+      }
+    },
+    {
+      "id": "5e9cbfd4-139f-59b7-aa9a-05796be87db1",
+      "slug": "telekinetic",
+      "name_ru": "Телекинез",
+      "name_en": "Telekinetic",
+      "source": "tce",
+      "sort_order": 2140,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Инт/Муд/Хар; улучшенная волшебная рука; бонусный телекинетический толчок.",
+        "benefits_ru": "Увеличьте Интеллект, Мудрость или Харизму на 1 (макс. 20). Выучите Волшебную руку (можно без компонентов; невидима; дальность +30 фт; если уже есть — эти улучшения). Бонусным действием можете попытаться телекинетически толкнуть/притянуть существо в 30 фт на 5 фт (спорт/акробатика против вашей хар-ки сотворения).",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "int",
+              "wis",
+              "cha"
+            ],
+            "label_ru": "+1 к Инт, Муд или Хар"
+          },
+          {
+            "id": "hand_note",
+            "type": "note",
+            "label_ru": "Волшебная рука",
+            "text_ru": "Добавь Волшебную руку (или усиль существующую) в известные заговоры."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "telekinetic"
+          ]
+        }
+      }
+    },
+    {
+      "id": "426b455d-8aa2-5a86-a261-09d87a111be9",
+      "slug": "telepathic",
+      "name_ru": "Телепат",
+      "name_en": "Telepathic",
+      "source": "tce",
+      "sort_order": 2150,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Инт/Муд/Хар; телепатия; Обнаружение мыслей 1/длинный отдых.",
+        "benefits_ru": "Увеличьте Интеллект, Мудрость или Харизму на 1 (макс. 20). Можете телепатически говорить с любым существом в пределах 60 фт, которое знает хотя бы один язык (или вы можете общаться с ним магически). Выучите Обнаружение мыслей; можете накладывать без ячейки 1/длинный отдых или за ячейку. Характеристика сотворения — увеличенная этой чертой.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "int",
+              "wis",
+              "cha"
+            ],
+            "label_ru": "+1 к Инт, Муд или Хар"
+          },
+          {
+            "id": "spell_note",
+            "type": "note",
+            "label_ru": "Обнаружение мыслей",
+            "text_ru": "Добавь заклинание в список известных."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "telepathic"
+          ]
+        }
+      }
+    },
+    {
+      "id": "7001a26b-e916-58e9-babe-b0559680d8dd",
+      "slug": "elven_accuracy",
+      "name_ru": "Эльфийская точность",
+      "name_en": "Elven Accuracy",
+      "source": "tce",
+      "sort_order": 2160,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Эльф или полуэльф",
+        "summary_ru": "+1 Лов/Инт/Муд/Хар; при преимуществе на d20 можете перебросить одну кость.",
+        "benefits_ru": "Увеличьте Ловкость, Интеллект, Мудрость или Харизму на 1 (макс. 20). Когда у вас есть преимущество на бросок атаки, проверку характеристики или спасбросок с d20 и используется Лов/Инт/Муд/Хар, можете перебросить одну из костей.",
+        "prerequisites": {
+          "races_any": [
+            "elf",
+            "half_elf"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "dex",
+              "int",
+              "wis",
+              "cha"
+            ],
+            "label_ru": "+1 к Лов/Инт/Муд/Хар"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "elven_accuracy"
+          ]
+        }
+      }
+    },
+    {
+      "id": "821d463f-90c8-5558-8793-8aca21515f56",
+      "slug": "fade_away",
+      "name_ru": "Исчезновение",
+      "name_en": "Fade Away",
+      "source": "tce",
+      "sort_order": 2170,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Гном",
+        "summary_ru": "+1 Лов или Инт; реакцией становитесь невидимы после урона.",
+        "benefits_ru": "Увеличьте Ловкость или Интеллект на 1 (макс. 20). Сразу после получения урона можете реакцией стать невидимым до конца вашего следующего хода / до атаки / до накладывания заклинания / до урона. Использование снова — после короткого или длинного отдыха.",
+        "prerequisites": {
+          "races_any": [
+            "gnome"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "dex",
+              "int"
+            ],
+            "label_ru": "+1 к Лов или Инт"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "fade_away"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ad0ff303-e225-55db-8c95-d9c9c29183df",
+      "slug": "bountiful_luck",
+      "name_ru": "Обильная удача",
+      "name_en": "Bountiful Luck",
+      "source": "tce",
+      "sort_order": 2180,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Полурослик",
+        "summary_ru": "Реакцией даёте союзнику переброс 1 на d20.",
+        "benefits_ru": "Когда союзник в пределах 30 фт, которого вы видите, выбрасывает 1 на d20 для атаки/проверки/спасброска, можете реакцией позволить перебросить d20. Не можете снова использовать до следующего хода после того, как сработала ваша Удачливость полурослика.",
+        "prerequisites": {
+          "races_any": [
+            "halfling"
+          ]
+        },
+        "choices": [],
+        "grants": {
+          "flags": [
+            "bountiful_luck"
+          ]
+        }
+      }
+    },
+    {
+      "id": "4295ff6f-a489-5039-8510-868096d2e032",
+      "slug": "drow_high_magic",
+      "name_ru": "Высшая магия дроу",
+      "name_en": "Drow High Magic",
+      "source": "tce",
+      "sort_order": 2190,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Эльф (дроу)",
+        "summary_ru": "Обнаружение магии неограниченно; Левитация и Рассеивание 1/длинный отдых.",
+        "benefits_ru": "Можете неограниченно накладывать Обнаружение магии. Также выучите Левитацию и Рассеивание магии; каждое — без ячейки 1/длинный отдых (ИНТ). Можете тратить ячейки.",
+        "prerequisites": {
+          "races_any": [
+            "drow",
+            "elf_drow"
+          ]
+        },
+        "choices": [
+          {
+            "id": "spell_note",
+            "type": "note",
+            "label_ru": "Заклинания",
+            "text_ru": "Добавь Обнаружение магии (at will), Левитацию и Рассеивание магии."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "drow_high_magic"
+          ]
+        }
+      }
+    },
+    {
+      "id": "c1ceb39e-0fec-5e17-9d4f-02853dba7e79",
+      "slug": "dwarven_fortitude",
+      "name_ru": "Дварфийская стойкость",
+      "name_en": "Dwarven Fortitude",
+      "source": "tce",
+      "sort_order": 2200,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Дварф",
+        "summary_ru": "+1 Тел; при Уклонении можно тратить Кость Хитов.",
+        "benefits_ru": "Увеличьте Телосложение на 1 (макс. 20). Когда в ход действием совершаете Уклонение, можете потратить одну Кость Хитов: бросьте её, добавьте модификатор Тел и восстановите столько хитов.",
+        "prerequisites": {
+          "races_any": [
+            "dwarf"
+          ]
+        },
+        "choices": [],
+        "grants": {
+          "ability_bonuses": {
+            "con": 1
+          },
+          "flags": [
+            "dwarven_fortitude"
+          ]
+        }
+      }
+    },
+    {
+      "id": "f385c0af-b33d-51b3-8717-995b0fe48488",
+      "slug": "flames_of_phlegethos",
+      "name_ru": "Пламя Флегетоса",
+      "name_en": "Flames of Phlegethos",
+      "source": "tce",
+      "sort_order": 2210,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Тифлинг",
+        "summary_ru": "+1 Инт или Хар; переброс 1 на огне; ответный огонь.",
+        "benefits_ru": "Увеличьте Интеллект или Харизму на 1 (макс. 20). Когда бросаете кость урона огнём для заклинания, 1 можно перебросить (новый результат обязателен). Когда проваливаете спасбросок и получаете огненный урон, можете реакцией: все в пределах 5 фт (кроме вас) получают огонь = ваш бонус мастерства; пока не погасите (действием), светитесь.",
+        "prerequisites": {
+          "races_any": [
+            "tiefling"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "int",
+              "cha"
+            ],
+            "label_ru": "+1 к Инт или Хар"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "flames_of_phlegethos"
+          ]
+        }
+      }
+    },
+    {
+      "id": "183f807c-7369-5af4-88a9-9549e9fa10eb",
+      "slug": "infernal_constitution",
+      "name_ru": "Инфернальная конституция",
+      "name_en": "Infernal Constitution",
+      "source": "tce",
+      "sort_order": 2220,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Тифлинг",
+        "summary_ru": "+1 Тел; сопротивление холоду и яду; преимущество vs яд.",
+        "benefits_ru": "Увеличьте Телосложение на 1 (макс. 20). Сопротивление урону холодом и ядом. Преимущество на спасброски против отравления.",
+        "prerequisites": {
+          "races_any": [
+            "tiefling"
+          ]
+        },
+        "choices": [],
+        "grants": {
+          "ability_bonuses": {
+            "con": 1
+          },
+          "flags": [
+            "infernal_constitution"
+          ]
+        }
+      }
+    },
+    {
+      "id": "a4b35f47-65fc-5d43-b881-324b392c1fe2",
+      "slug": "orcish_fury",
+      "name_ru": "Орочья ярость",
+      "name_en": "Orcish Fury",
+      "source": "tce",
+      "sort_order": 2230,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Полуорк",
+        "summary_ru": "+1 Сил или Тел; доп. кость урона; реакция атакой при Непреклонной стойкости.",
+        "benefits_ru": "Увеличьте Силу или Телосложение на 1 (макс. 20). Когда атакой оружием попадаете и наносите урон, можете доп. кость урона оружия (1 раз / короткий или длинный отдых). Сразу после Непреклонной стойкости можете реакцией совершить одну атаку оружием.",
+        "prerequisites": {
+          "races_any": [
+            "half_orc"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "str",
+              "con"
+            ],
+            "label_ru": "+1 к Сил или Тел"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "orcish_fury"
+          ]
+        }
+      }
+    },
+    {
+      "id": "bb83dc8c-84ff-5ec5-9bf0-5fe57964b17b",
+      "slug": "prodigy",
+      "name_ru": "Вундеркинд",
+      "name_en": "Prodigy",
+      "source": "tce",
+      "sort_order": 2240,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Полуэльф, полуорк или человек",
+        "summary_ru": "Навык, инструмент, язык и экспертиза.",
+        "benefits_ru": "Получаете владение одним навыком, одним инструментом и одним языком на выбор. Выберите один навык, которым владеете: получаете экспертизу.",
+        "prerequisites": {
+          "races_any": [
+            "half_elf",
+            "half_orc",
+            "human"
+          ]
+        },
+        "choices": [
+          {
+            "id": "proficiencies",
+            "type": "skill_or_tool",
+            "count": 2,
+            "label_ru": "Навык + инструмент (2 выбора)"
+          },
+          {
+            "id": "languages",
+            "type": "languages",
+            "count": 1,
+            "label_ru": "Язык"
+          },
+          {
+            "id": "expertise_note",
+            "type": "note",
+            "label_ru": "Экспертиза",
+            "text_ru": "Отметь экспертизу у одного навыка, которым владеешь."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "prodigy"
+          ]
+        }
+      }
+    },
+    {
+      "id": "d7be5a83-82ac-5647-89f2-2c7d4f167864",
+      "slug": "squat_nimbleness",
+      "name_ru": "Коренастая проворность",
+      "name_en": "Squat Nimbleness",
+      "source": "tce",
+      "sort_order": 2250,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Дварф или раса Маленького размера",
+        "summary_ru": "+1 Сил или Лов; +5 скорости; Акробатика или Атлетика; преимущество против опрокидывания.",
+        "benefits_ru": "Увеличьте Силу или Ловкость на 1 (макс. 20). Скорость +5 футов. Владение Акробатикой или Атлетикой (если уже владеете — экспертиза). Преимущество на проверки/спасброски против опрокидывания.",
+        "prerequisites": {
+          "races_any": [
+            "dwarf"
+          ],
+          "size_any": [
+            "small"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "str",
+              "dex"
+            ],
+            "label_ru": "+1 к Сил или Лов"
+          },
+          {
+            "id": "skill",
+            "type": "enum",
+            "label_ru": "Акробатика или Атлетика",
+            "options": [
+              {
+                "id": "acrobatics",
+                "label_ru": "Акробатика"
+              },
+              {
+                "id": "athletics",
+                "label_ru": "Атлетика"
+              }
+            ]
+          }
+        ],
+        "grants": {
+          "speed_bonus": 5,
+          "flags": [
+            "squat_nimbleness"
+          ]
+        }
+      }
+    },
+    {
+      "id": "f23b9943-69a9-5930-809d-89b2ccb30dcd",
+      "slug": "wood_elf_magic",
+      "name_ru": "Магия лесного эльфа",
+      "name_en": "Wood Elf Magic",
+      "source": "tce",
+      "sort_order": 2260,
+      "data": {
+        "source": "tce",
+        "wave": "tce",
+        "prerequisites_ru": "Эльф (лесной)",
+        "summary_ru": "Заговор друида; Длинный шаг и Без следов 1/длинный отдых.",
+        "benefits_ru": "Выучите один заговор друида (Муд). Также выучите Длинный шаг и Передвижение без следов; каждое без ячейки 1/длинный отдых (Муд) или за ячейку.",
+        "prerequisites": {
+          "races_any": [
+            "wood_elf",
+            "elf_wood"
+          ]
+        },
+        "choices": [
+          {
+            "id": "spell_note",
+            "type": "note",
+            "label_ru": "Заклинания",
+            "text_ru": "Заговор друида + Длинный шаг + Передвижение без следов (Муд)."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "wood_elf_magic"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -39,6 +39,7 @@ type RaceSetupDialogProps = {
   abilities: Record<AbilityKey, number>
   armor: Partial<Record<ArmorProfKey, boolean>>
   hasSpellcasting: boolean
+  hasMartialWeapons?: boolean
   onConfirm: (result: RaceSetupConfirm) => void
   onClose: () => void
 }
@@ -67,6 +68,7 @@ export function RaceSetupDialog({
   abilities,
   armor,
   hasSpellcasting,
+  hasMartialWeapons = false,
   onConfirm,
   onClose,
 }: RaceSetupDialogProps) {
@@ -659,6 +661,12 @@ export function RaceSetupDialog({
       abilities={abilities}
       armor={armor}
       hasSpellcasting={hasSpellcasting}
+      hasMartialWeapons={hasMartialWeapons}
+      raceSlug={effectiveEntry?.slug ?? root.slug}
+      raceParentSlug={
+        effectiveEntry && effectiveEntry.id !== root.id ? root.slug : null
+      }
+      size={sizeNeed ? sizePick : def?.size ?? null}
       onClose={() => setFeatPickerOpen(false)}
       onConfirm={(result) => {
         setFeatResult(result)

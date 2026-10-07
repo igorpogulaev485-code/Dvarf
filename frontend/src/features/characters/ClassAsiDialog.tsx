@@ -26,6 +26,10 @@ type ClassAsiDialogProps = {
   abilities: Record<AbilityKey, number>
   armor: Partial<Record<ArmorProfKey, boolean>>
   hasSpellcasting: boolean
+  hasMartialWeapons?: boolean
+  raceSlug?: string | null
+  raceParentSlug?: string | null
+  size?: string | null
   takenFeatSlugs?: string[]
   onConfirm: (entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) => void
   onSkip: () => void
@@ -43,6 +47,10 @@ export function ClassAsiDialog({
   abilities,
   armor,
   hasSpellcasting,
+  hasMartialWeapons = false,
+  raceSlug = null,
+  raceParentSlug = null,
+  size = null,
   takenFeatSlugs = [],
   onConfirm,
   onSkip,
@@ -215,6 +223,10 @@ export function ClassAsiDialog({
         abilities={abilities}
         armor={armor}
         hasSpellcasting={hasSpellcasting}
+        hasMartialWeapons={hasMartialWeapons}
+        raceSlug={raceSlug}
+        raceParentSlug={raceParentSlug}
+        size={size}
         takenSlugs={takenFeatSlugs}
         onClose={() => setFeatOpen(false)}
         onConfirm={confirmFeat}
