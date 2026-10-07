@@ -47,19 +47,19 @@
       "kind": "passive"
     },
     {
-      "id": "reckless_attack",
-      "level": 2,
-      "name_ru": "Безрассудная атака",
-      "name_en": "Reckless Attack",
-      "summary_ru": "В свой ход: преимущество на атаки Силой оружием ближнего боя; до твоего следующего хода атаки по тебе тоже с преимуществом.",
-      "kind": "passive"
-    },
-    {
       "id": "danger_sense",
       "level": 2,
       "name_ru": "Чувство опасности",
       "name_en": "Danger Sense",
       "summary_ru": "Преимущество на спас Ловкости от видимых эффектов (если не ослеплён/оглушён/недееспособен).",
+      "kind": "passive"
+    },
+    {
+      "id": "reckless_attack",
+      "level": 2,
+      "name_ru": "Безрассудная атака",
+      "name_en": "Reckless Attack",
+      "summary_ru": "В свой ход: преимущество на атаки Силой оружием ближнего боя; до твоего следующего хода атаки по тебе тоже с преимуществом.",
       "kind": "passive"
     },
     {
@@ -75,8 +75,17 @@
       "level": 4,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_4_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "extra_attack",
@@ -103,6 +112,23 @@
       "kind": "passive"
     },
     {
+      "id": "asi_8",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_8_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
       "id": "brutal_critical",
       "level": 9,
       "name_ru": "Жестокий критический удар",
@@ -127,6 +153,23 @@
       "kind": "passive"
     },
     {
+      "id": "asi_12",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_12_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
       "id": "persistent_rage",
       "level": 15,
       "name_ru": "Стойкая ярость",
@@ -135,12 +178,46 @@
       "kind": "passive"
     },
     {
+      "id": "asi_16",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_16_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
       "id": "indomitable_might",
       "level": 18,
       "name_ru": "Неукротимая мощь",
       "name_en": "Indomitable Might",
       "summary_ru": "Проверка Силы не может быть ниже значения Силы.",
       "kind": "passive"
+    },
+    {
+      "id": "asi_19",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_19_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "primal_champion",
@@ -266,7 +343,13 @@
         "name_ru": "Странник духов",
         "name_en": "Spirit Walker",
         "summary_ru": "Ритуально: commune with nature.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Commune",
+          "by_level": {
+            "10": "cast commune with nature как ритуал"
+          }
+        }
       },
       {
         "id": "totemic_attunement",
@@ -283,6 +366,12 @@
             "eagle",
             "wolf"
           ]
+        },
+        "scale": {
+          "label_ru": "Тотем в ярости",
+          "by_level": {
+            "14": "медведь/орёл/волк — аура"
+          }
         }
       }
     ],

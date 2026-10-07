@@ -1,5 +1,9 @@
 /** Pure rest helpers — sheet now, party frame later. */
 
+import {
+  recoverHitDicePoolsOnLongRest,
+  type ClassHitDicePool,
+} from './classHitDice'
 import { recoverHitDiceOnLongRest } from './hitDice'
 import { clampSlot, type SpellSlotState } from './spells'
 
@@ -70,6 +74,7 @@ export type RestResult = {
   hp_current?: number | null
   hp_temp?: number
   hit_dice_current?: number
+  hit_dice_by_class?: ClassHitDicePool[]
   is_dying?: boolean
   death_successes?: number
   death_fails?: number
@@ -91,8 +96,12 @@ export function applyLongRest(input: {
   hp_max: number | null
   hit_dice_current: number
   hit_dice_max: number
+  hit_dice_by_class?: ClassHitDicePool[]
 }): RestResult {
   const pact = input.pact_slots
+  const pools = input.hit_dice_by_class
+  const recoveredPools =
+    pools && pools.length > 0 ? recoverHitDicePoolsOnLongRest(pools) : undefined
   return {
     resources: resetResourcesOnRest(input.resources, 'long'),
     slots: recoverSpellSlotsOnLongRest(input.slots),
@@ -100,10 +109,10 @@ export function applyLongRest(input: {
     exhaustion: reduceExhaustionOnLongRest(input.exhaustion),
     hp_current: input.hp_max,
     hp_temp: 0,
-    hit_dice_current: recoverHitDiceOnLongRest(
-      input.hit_dice_current,
-      input.hit_dice_max,
-    ),
+    hit_dice_current: recoveredPools
+      ? recoveredPools.reduce((sum, pool) => sum + pool.current, 0)
+      : recoverHitDiceOnLongRest(input.hit_dice_current, input.hit_dice_max),
+    hit_dice_by_class: recoveredPools,
     is_dying: false,
     death_successes: 0,
     death_fails: 0,

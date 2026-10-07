@@ -192,6 +192,8 @@ export type RaceGrantPicks = {
   skills: string[]
   tools: string[]
   ancestryId: string | null
+  /** Feat catalog id when race grants a feat (Custom Lineage). */
+  featCatalogId: string | null
 }
 
 export type AppliedRaceGrant = {
@@ -831,6 +833,7 @@ export function emptyRacePicks(): RaceGrantPicks {
     skills: [],
     tools: [],
     ancestryId: null,
+    featCatalogId: null,
   }
 }
 
@@ -965,6 +968,15 @@ export function validateRaceGrantPicks(input: {
     if (!def.ancestryChoices.some((row) => row.id === picks.ancestryId)) {
       return 'Неизвестное происхождение'
     }
+  }
+
+  const needsFeat =
+    def.slug === 'custom_lineage' || Boolean(def.featNoteRu && def.featNoteRu.trim())
+  if (needsFeat && !picks.featCatalogId) {
+    return 'Выбери черту'
+  }
+  if (!needsFeat && picks.featCatalogId) {
+    return 'Лишний выбор черты'
   }
 
   return null

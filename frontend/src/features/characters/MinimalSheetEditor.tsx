@@ -86,8 +86,40 @@ import {
 import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
 import { LanguagesToolsPanel } from './LanguagesToolsPanel'
+import { ClassAsiDialog } from './ClassAsiDialog'
 import { LevelUpDialog, type LevelUpChoice } from './LevelUpDialog'
 import { PlayPanel } from './PlayPanel'
+import {
+  applyClassAsiBonuses,
+  asiAlreadyApplied,
+  isAsiFeature,
+  readClassAsiLedger,
+  revokeClassAsiBonuses,
+  type AppliedClassAsi,
+} from '../../shared/dnd/classAsi'
+import {
+  newFeatGrantId,
+  readFeatGrantLedger,
+  sumFeatHpPerLevel,
+  sumFeatInitiativeBonus,
+  sumFeatPassiveBonus,
+  type AppliedFeatGrant,
+} from '../../shared/dnd/featGrants'
+import {
+  applyFeatGrantToDraft,
+  revokeFeatGrantsForAsi,
+  revokeFeatGrantsForRace,
+  type FeatGrantDraftSlice,
+} from './featEffects'
+import {
+  migrateLegacyHitDice,
+  syncHitDicePools,
+} from '../../shared/dnd/classHitDice'
+import {
+  averageHpGain,
+  hitDieForClass,
+} from '../../shared/dnd/multiclassRules'
+import { withSyncedHitDiceSummary } from './play'
 import { SpellsPanel } from './SpellsPanel'
 import {
   desiredResourcesFromFeatures,
@@ -95,6 +127,7 @@ import {
 } from '../../shared/dnd/featureResources'
 import { unlockFeaturesForClasses } from '../../shared/dnd/classFeatures'
 import {
+  clearFeaturePicksForClass,
   findFightingStylePick,
   featurePicksToSheet,
   readFeaturePicks,
@@ -195,6 +228,8 @@ type Draft = {
   raceGrant: AppliedRaceGrant | null
   companions: CompanionEntry[]
   featurePicks: FeaturePicksState
+  classAsi: AppliedClassAsi[]
+  featGrants: AppliedFeatGrant[]
 }
 
 function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -275,6 +310,15 @@ function buildDraft(character: CharacterDetail): Draft {
       typeof identity.class_catalog_id === 'string' ? identity.class_catalog_id : null,
   })
   const level = totalCharacterLevel(classes)
+  const play = readPlay(sheet, level)
+  const hitDiceByClass =
+    play.hitDiceByClass.length > 0
+      ? syncHitDicePools({ classes, previous: play.hitDiceByClass })
+      : migrateLegacyHitDice({
+          classes,
+          legacyDie: play.hitDie,
+          legacyCurrent: play.hitDiceCurrent,
+        })
 
   return {
     name: character.name,
@@ -299,13 +343,18 @@ function buildDraft(character: CharacterDetail): Draft {
     inventory: readInventory(sheet),
     attunements: readAttunements(sheet),
     spells: readSpells(sheet),
-    play: readPlay(sheet, level),
+    play: withSyncedHitDiceSummary({
+      ...play,
+      hitDiceByClass,
+    }),
     textBlocks: readTextBlocks(sheet),
     classGrants: readAppliedClassGrants(sheet.class_grants),
     subclassGrants: readAppliedSubclassGrants(sheet.subclass_grants),
     raceGrant: readAppliedRaceGrant(sheet.race_grant),
     companions: readCompanions(sheet.companions),
     featurePicks: readFeaturePicks(sheet.feature_picks),
+    classAsi: readClassAsiLedger(sheet.class_asi),
+    featGrants: readFeatGrantLedger(sheet.feat_grants),
   }
 }
 
@@ -341,6 +390,12 @@ export function MinimalSheetEditor({
   const [error, setError] = useState<string | null>(null)
   const [conflictOpen, setConflictOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
+  const [pendingAsi, setPendingAsi] = useState<{
+    classEntryId: string
+    className: string
+    classLevel: number
+    featureId: string
+  } | null>(null)
   const [grantPicker, setGrantPicker] = useState<{
     classEntryId: string
     className: string
@@ -701,6 +756,50 @@ export function MinimalSheetEditor({
     }
   }
 
+  function featSliceFrom(prev: Draft): FeatGrantDraftSlice {
+    return {
+      abilities: prev.abilities,
+      saves: prev.saves,
+      skills: prev.skills,
+      speed: prev.speed,
+      hpMax: prev.hpMax,
+      hpCurrent: prev.hpCurrent,
+      featGrants: prev.featGrants,
+      identity: {
+        languages: prev.identity.languages,
+        tools: prev.identity.tools,
+        armor: prev.identity.armor,
+      },
+      textBlocks: prev.textBlocks,
+      resources: prev.play.resources,
+      totalLevel: totalCharacterLevel(prev.classes),
+    }
+  }
+
+  function mergeFeatSlice(prev: Draft, slice: FeatGrantDraftSlice): Draft {
+    return {
+      ...prev,
+      abilities: slice.abilities,
+      saves: slice.saves,
+      skills: slice.skills,
+      speed: slice.speed,
+      hpMax: slice.hpMax,
+      hpCurrent: slice.hpCurrent,
+      featGrants: slice.featGrants,
+      textBlocks: slice.textBlocks,
+      identity: {
+        ...prev.identity,
+        languages: slice.identity.languages,
+        tools: slice.identity.tools,
+        armor: slice.identity.armor,
+      },
+      play: {
+        ...prev.play,
+        resources: slice.resources,
+      },
+    }
+  }
+
   function subclassSliceFrom(prev: Draft): SubclassGrantDraftSlice {
     return {
       identity: prev.identity,
@@ -752,6 +851,8 @@ export function MinimalSheetEditor({
       const withGrant = mergeSubclassSlice(prev, applied.draft)
       return {
         ...withGrant,
+        // Subclass swap: drop old archetype feature picks (totem, style, …)
+        featurePicks: clearFeaturePicksForClass(withGrant.featurePicks, input.classEntryId),
         classes: withGrant.classes.map((row) =>
           row.id === input.classEntryId
             ? {
@@ -872,6 +973,7 @@ export function MinimalSheetEditor({
       const merged = mergeSubclassSlice(prev, cleared)
       return {
         ...merged,
+        featurePicks: clearFeaturePicksForClass(merged.featurePicks, classEntryId),
         classes: merged.classes.map((row) =>
           row.id === classEntryId
             ? { ...row, subclass_name: name, subclass_catalog_id: null }
@@ -1028,24 +1130,55 @@ export function MinimalSheetEditor({
     selected: CatalogEntry
     picks: RaceGrantPicks
     def?: RaceGrantDef | null
+    featResult?: import('./FeatSetupDialog').FeatSetupResult | null
   }) {
     let summary: string | null = null
     setDraft((prev) => {
+      const clearedFeats = prev.raceCatalogId
+        ? revokeFeatGrantsForRace({
+            draft: featSliceFrom(prev),
+            raceCatalogId: prev.raceCatalogId,
+          })
+        : featSliceFrom(prev)
+      const base = mergeFeatSlice(prev, clearedFeats)
       const applied = applyRaceGrantToDraft({
-        draft: raceSliceFrom(prev),
+        draft: raceSliceFrom(base),
         selected: input.selected,
         picks: input.picks,
         def: input.def,
-        characterLevel: totalCharacterLevel(prev.classes),
-        hasCasterClass: characterHasCasterClass(prev.classes),
+        characterLevel: totalCharacterLevel(base.classes),
+        hasCasterClass: characterHasCasterClass(base.classes),
       })
       if (!applied) return prev
       summary = applied.summary
-      return {
-        ...mergeRaceSlice(prev, applied.draft),
+      let next: Draft = {
+        ...mergeRaceSlice(base, applied.draft),
         raceName: input.selected.name_ru,
         raceCatalogId: input.selected.id,
       }
+      if (input.featResult) {
+        const grant: AppliedFeatGrant = {
+          id: newFeatGrantId(),
+          featCatalogId: input.featResult.entry.id,
+          slug: input.featResult.entry.slug,
+          nameRu: input.featResult.entry.name_ru,
+          source: {
+            kind: 'race',
+            raceCatalogId: input.selected.id,
+            raceSlug: input.selected.slug,
+          },
+          applied: input.featResult.applied,
+          picks: input.featResult.picks,
+        }
+        next = mergeFeatSlice(
+          next,
+          applyFeatGrantToDraft({ draft: featSliceFrom(next), grant }),
+        )
+        summary = summary
+          ? `${summary}; черта «${grant.nameRu}»`
+          : `черта «${grant.nameRu}»`
+      }
+      return next
     })
     if (summary) onToast(`Раса «${input.selected.name_ru}»: ${summary}`)
   }
@@ -1144,25 +1277,37 @@ export function MinimalSheetEditor({
 
     const nextLevel = totalCharacterLevel(nextClasses)
     const gain = Math.max(0, Math.floor(choice.hpGain))
+    const leveledRow =
+      choice.type === 'same'
+        ? nextClasses.find((row) => row.id === choice.classId) ?? null
+        : newMulticlassRow ??
+          nextClasses.find(
+            (row) => row.name.trim().toLowerCase() === choice.name.trim().toLowerCase(),
+          ) ??
+          null
 
     setDraft((prev) => {
+      const toughBonus = sumFeatHpPerLevel(prev.featGrants)
       const prevMax = prev.hpMax
-      const nextMax = prevMax == null ? gain : prevMax + gain
+      const nextMax = prevMax == null ? gain + toughBonus : prevMax + gain + toughBonus
       const prevCurrent = prev.hpCurrent
       const nextCurrent =
-        prevCurrent == null ? nextMax : Math.min(nextMax, prevCurrent + gain)
+        prevCurrent == null ? nextMax : Math.min(nextMax, prevCurrent + gain + toughBonus)
+      const hitDiceByClass = syncHitDicePools({
+        classes: nextClasses,
+        previous: prev.play.hitDiceByClass,
+      })
       const withClasses: Draft = {
         ...prev,
         classes: nextClasses,
         hpMax: nextMax,
         hpCurrent: nextCurrent,
-        play: {
+        play: withSyncedHitDiceSummary({
           ...prev.play,
-          hitDiceCurrent: Math.min(prev.play.hitDiceCurrent + 1, nextLevel),
+          hitDiceByClass,
           hitDie: choice.hitDie ?? prev.play.hitDie,
-        },
+        }),
       }
-      // Unlock innate racial spells / refresh mark list when caster status changes.
       if (!withClasses.raceGrant) return withClasses
       const spells = syncRaceSpellsForSheetState({
         spells: withClasses.spells,
@@ -1188,20 +1333,80 @@ export function MinimalSheetEditor({
         catalogSlug: choice.type === 'multiclass' ? choice.catalog_slug : null,
         catalogData: choice.type === 'multiclass' ? choice.catalog_data : null,
       })
-    } else if (choice.type === 'same') {
-      const leveled = nextClasses.find((row) => row.id === choice.classId)
+    } else if (choice.type === 'same' && leveledRow) {
       if (
-        leveled &&
-        !leveled.subclass_catalog_id &&
-        !leveled.subclass_name.trim() &&
-        leveled.level >= 3
+        !leveledRow.subclass_catalog_id &&
+        !leveledRow.subclass_name.trim() &&
+        leveledRow.level >= 3
       ) {
         onToast(
-          `У «${leveled.name}» с ${leveled.level} ур. можно выбрать архетип в поле ниже`,
+          `У «${leveledRow.name}» с ${leveledRow.level} ур. выбери архетип в поле ниже`,
         )
       }
     }
+
+    if (leveledRow && choice.type === 'same') {
+      const unlocked = unlockFeaturesForClasses({
+        classes: nextClasses,
+        characterLevel: nextLevel,
+        abilities: draft.abilities,
+        subclassSlugByEntryId,
+      })
+      const asiAtLevel = unlocked.find(
+        (feature) =>
+          feature.classEntryId === leveledRow.id &&
+          feature.source === 'class' &&
+          feature.level === leveledRow.level &&
+          isAsiFeature(feature),
+      )
+      if (
+        asiAtLevel &&
+        !asiAlreadyApplied(draft.classAsi, leveledRow.id, asiAtLevel.id)
+      ) {
+        setPendingAsi({
+          classEntryId: leveledRow.id,
+          className: leveledRow.name,
+          classLevel: leveledRow.level,
+          featureId: asiAtLevel.id,
+        })
+      }
+    }
   }
+
+  function confirmClassAsi(entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) {
+    setDraft((prev) => {
+      let next: Draft = {
+        ...prev,
+        abilities: applyClassAsiBonuses(prev.abilities, entry.bonuses),
+        classAsi: [...prev.classAsi, entry],
+      }
+      if (featGrant) {
+        next = mergeFeatSlice(
+          next,
+          applyFeatGrantToDraft({ draft: featSliceFrom(next), grant: featGrant }),
+        )
+      }
+      return next
+    })
+    setPendingAsi(null)
+    if (featGrant) {
+      onToast(`ASI → черта «${featGrant.nameRu}»`)
+      return
+    }
+    const bits = Object.entries(entry.bonuses)
+      .filter(([, amount]) => amount)
+      .map(([key, amount]) => `${ABILITY_LABELS[key as AbilityKey]}+${amount}`)
+    onToast(bits.length ? `ASI: ${bits.join(', ')}` : 'ASI записан')
+  }
+
+  const featPassiveBonus = useMemo(
+    () => sumFeatPassiveBonus(draft.featGrants),
+    [draft.featGrants],
+  )
+  const featInitiativeBonus = useMemo(
+    () => sumFeatInitiativeBonus(draft.featGrants),
+    [draft.featGrants],
+  )
 
   const passives = useMemo(() => {
     const modFor = (skillKey: string) => {
@@ -1216,11 +1421,11 @@ export function MinimalSheetEditor({
       })
     }
     return {
-      perception: passiveScore(modFor('perception')),
-      investigation: passiveScore(modFor('investigation')),
+      perception: passiveScore(modFor('perception')) + featPassiveBonus,
+      investigation: passiveScore(modFor('investigation')) + featPassiveBonus,
       insight: passiveScore(modFor('insight')),
     }
-  }, [draft.abilities, draft.skills, proficiencyBonus])
+  }, [draft.abilities, draft.skills, proficiencyBonus, featPassiveBonus])
 
   const auraSaveBonus = useMemo(
     () =>
@@ -1351,6 +1556,8 @@ export function MinimalSheetEditor({
       sheet.race_grant = draft.raceGrant
       sheet.companions = draft.companions
       sheet.feature_picks = featurePicksToSheet(draft.featurePicks)
+      sheet.class_asi = draft.classAsi
+      sheet.feat_grants = draft.featGrants
 
       for (const key of ABILITY_KEYS) {
         abilities[key] = { ...asRecord(abilities[key]), score: draft.abilities[key] }
@@ -1389,6 +1596,7 @@ export function MinimalSheetEditor({
       combat.hp_temp = playSheet.combatPatch.hp_temp
       combat.hit_die = playSheet.combatPatch.hit_die
       combat.hp_dice_current = playSheet.combatPatch.hp_dice_current
+      combat.hit_dice_by_class = playSheet.combatPatch.hit_dice_by_class
       combat.is_dying = playSheet.combatPatch.is_dying
       combat.death_successes = playSheet.combatPatch.death_successes
       combat.death_fails = playSheet.combatPatch.death_fails
@@ -1463,6 +1671,7 @@ export function MinimalSheetEditor({
           fly: draft.flySpeed,
         })}
         initiativeOverride={draft.initiativeOverride}
+        initiativeBonus={featInitiativeBonus}
         inspiration={draft.inspiration}
         exhaustion={draft.play.exhaustion}
         isDying={draft.play.isDying}
@@ -1587,18 +1796,78 @@ export function MinimalSheetEditor({
                           disabled={draft.classes.length === 1 && row.level <= 1}
                           onClick={() =>
                             setDraft((prev) => {
+                              const beforeLevel = row.level
+                              const die =
+                                hitDieForClass({ className: row.name, catalogData: null }) ??
+                                'd8'
+                              const conMod = abilityModifier(prev.abilities.con)
+                              const hpLoss = averageHpGain(die, conMod)
                               const nextClasses = reduceClassLevel(prev.classes, row.id)
                               const removed = !nextClasses.some((item) => item.id === row.id)
+                              const hitDiceByClass = syncHitDicePools({
+                                classes: nextClasses,
+                                previous: prev.play.hitDiceByClass,
+                              })
+                              const nextHpMax =
+                                prev.hpMax == null
+                                  ? null
+                                  : Math.max(1, prev.hpMax - hpLoss)
+                              const nextHpCurrent =
+                                prev.hpCurrent == null || nextHpMax == null
+                                  ? prev.hpCurrent
+                                  : Math.min(prev.hpCurrent, nextHpMax)
+
+                              // Drop ASI ledger entries for this class above new level
+                              const keptAsi = prev.classAsi.filter((entry) => {
+                                if (entry.classEntryId !== row.id) return true
+                                if (removed) return false
+                                return entry.atClassLevel < beforeLevel
+                              })
+                              const revokedAsi = prev.classAsi.filter(
+                                (entry) => !keptAsi.includes(entry),
+                              )
+                              let abilities = prev.abilities
+                              for (const entry of revokedAsi) {
+                                abilities = revokeClassAsiBonuses(abilities, entry.bonuses)
+                              }
+                              let featBase: Draft = {
+                                ...prev,
+                                classes: nextClasses,
+                                abilities,
+                                classAsi: keptAsi,
+                                hpMax: nextHpMax,
+                                hpCurrent: nextHpCurrent,
+                              }
+                              for (const entry of revokedAsi) {
+                                featBase = mergeFeatSlice(
+                                  featBase,
+                                  revokeFeatGrantsForAsi({
+                                    draft: featSliceFrom(featBase),
+                                    classEntryId: entry.classEntryId,
+                                    featureId: entry.featureId,
+                                  }),
+                                )
+                              }
+
                               if (!removed) {
-                                return withRaceSpellsSynced(prev, nextClasses)
+                                return withRaceSpellsSynced(
+                                  {
+                                    ...featBase,
+                                    play: withSyncedHitDiceSummary({
+                                      ...featBase.play,
+                                      hitDiceByClass,
+                                    }),
+                                  },
+                                  nextClasses,
+                                )
                               }
                               const withoutClass = revokeClassGrant(
-                                draftSliceFrom({ ...prev, classes: nextClasses }),
+                                draftSliceFrom(featBase),
                                 row.id,
                               )
                               const withoutSubclass = revokeSubclassGrant(
                                 {
-                                  ...subclassSliceFrom(prev),
+                                  ...subclassSliceFrom(featBase),
                                   identity: withoutClass.identity,
                                   skills: withoutClass.skills,
                                   classGrants: withoutClass.classGrants,
@@ -1609,20 +1878,24 @@ export function MinimalSheetEditor({
                               return withRaceSpellsSynced(
                                 mergeSubclassSlice(
                                   {
-                                    ...prev,
-                                    classes: nextClasses,
+                                    ...featBase,
+                                    featurePicks: clearFeaturePicksForClass(
+                                      featBase.featurePicks,
+                                      row.id,
+                                    ),
                                     classGrants: withoutClass.classGrants,
                                     saves: withoutClass.saves,
                                     skills: withoutClass.skills,
                                     identity: withoutClass.identity,
-                                    hpMax: withoutClass.hpMax,
-                                    hpCurrent: withoutClass.hpCurrent,
+                                    hpMax: withoutClass.hpMax ?? featBase.hpMax,
+                                    hpCurrent: withoutClass.hpCurrent ?? featBase.hpCurrent,
                                     inventory: withoutClass.inventory,
                                     weapons: withoutClass.weapons,
-                                    play: {
-                                      ...prev.play,
-                                      hitDie: withoutClass.playHitDie,
-                                    },
+                                    play: withSyncedHitDiceSummary({
+                                      ...featBase.play,
+                                      hitDiceByClass,
+                                      hitDie: withoutClass.playHitDie ?? prev.play.hitDie,
+                                    }),
                                   },
                                   withoutSubclass,
                                 ),
@@ -2121,6 +2394,21 @@ export function MinimalSheetEditor({
         onClose={() => setLevelUpOpen(false)}
       />
 
+      <ClassAsiDialog
+        open={pendingAsi != null}
+        edition={baseCharacter.rules_edition as RulesEdition}
+        className={pendingAsi?.className ?? ''}
+        classLevel={pendingAsi?.classLevel ?? 1}
+        featureId={pendingAsi?.featureId ?? ''}
+        classEntryId={pendingAsi?.classEntryId ?? ''}
+        abilities={draft.abilities}
+        armor={draft.identity.armor}
+        hasSpellcasting={characterHasCasterClass(draft.classes)}
+        takenFeatSlugs={draft.featGrants.map((row) => row.slug)}
+        onConfirm={confirmClassAsi}
+        onSkip={() => setPendingAsi(null)}
+      />
+
       <ClassSetupDialog
         open={grantPicker != null}
         def={grantPicker?.def ?? null}
@@ -2154,15 +2442,20 @@ export function MinimalSheetEditor({
 
       <RaceSetupDialog
         open={raceGrantPicker != null}
+        edition={baseCharacter.rules_edition as RulesEdition}
         root={raceGrantPicker?.root ?? null}
         subraces={raceGrantPicker?.subraces ?? []}
         subraceRequired={raceGrantPicker?.subraceRequired ?? false}
+        abilities={draft.abilities}
+        armor={draft.identity.armor}
+        hasSpellcasting={characterHasCasterClass(draft.classes)}
         onClose={() => setRaceGrantPicker(null)}
         onConfirm={(result) => {
           commitRaceGrant({
             selected: result.entry,
             picks: result.picks,
             def: result.def,
+            featResult: result.featResult,
           })
           setRaceGrantPicker(null)
         }}

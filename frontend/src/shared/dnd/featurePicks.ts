@@ -69,6 +69,19 @@ export function setFeaturePick(
   return { values: next }
 }
 
+/** Drop picks for a class entry (e.g. subclass swap / class removed). */
+export function clearFeaturePicksForClass(
+  picks: FeaturePicksState,
+  classEntryId: string,
+): FeaturePicksState {
+  const prefix = `${classEntryId}:`
+  const next: Record<string, string> = {}
+  for (const [key, value] of Object.entries(picks.values)) {
+    if (!key.startsWith(prefix)) next[key] = value
+  }
+  return { values: next }
+}
+
 export function toggleFeaturePickInList(
   picks: FeaturePicksState,
   classEntryId: string,
