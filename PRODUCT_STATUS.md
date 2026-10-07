@@ -247,7 +247,8 @@
 | Умения на листе | Панель: Плут, Воин, Варвар, Монах, Жрец | СА/ярость/ки/канал/вопли |
 | Жрец домены | Все **14** оф. + always-prepared + sheet_grants | Доменные заклинания в known; владения с setup |
 | Жрец миграция | `a6b7c8d9e0f1` upsert доменов | Сид → catalog.data |
-| Связанные ресурсы | PB / 2×PB / Wis-mod / stock / linked / recover | Фантом, Soulknife, BM, домены |
+| Жрец CD / DI | Shared `channel_divinity`; DI success_lock 7 дней | Кнопка на Изгнании/домене тратит канал; успех DI → manual |
+| Связанные ресурсы | PB / 2×PB / Wis-mod / stock / linked / recover / success_lock | Фантом, Soulknife, BM, домены, DI |
 | H4 очередь | … Жрец ✓ → **Паладин** → … | Порядок в контракте |
 | Контракт | [`docs/feature_resource_contract.md`](docs/feature_resource_contract.md) | Чеклист паттернов для новых архетипов |
 

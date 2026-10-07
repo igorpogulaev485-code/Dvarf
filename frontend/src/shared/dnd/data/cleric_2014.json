@@ -3,7 +3,7 @@
     "purpose": "2014 Cleric + all 14 official domains for sheet unlock",
     "edition": "2014",
     "source": "phb+dmg+scag+xgte+tcoe",
-    "notes_ru": "14 доменов как в каталоге. Channel Divinity — общий пул. Always-prepared PHB — в грантах."
+    "notes_ru": "14 доменов. Channel Divinity — общий пул (Turn Undead + cd_*). DI: success_lock 7 дней. Always-prepared/grants — в каталоге."
   },
   "class_slug": "cleric",
   "features": [
@@ -33,7 +33,11 @@
       "resource": {
         "uses": 1,
         "recharge": "short_rest",
-        "scale_uses": { "2": 1, "6": 2, "18": 3 },
+        "scale_uses": {
+          "2": 1,
+          "6": 2,
+          "18": 3
+        },
         "pool_id": "channel_divinity",
         "pool_name_ru": "Божественный канал",
         "track": "spend"
@@ -45,7 +49,19 @@
       "name_ru": "Изгнание нежити",
       "name_en": "Turn Undead",
       "summary_ru": "Действием Channel Divinity: нежить в 30 фт. спас Мудрости или изгнана 1 мин.",
-      "kind": "action"
+      "kind": "action",
+      "resource": {
+        "uses": 1,
+        "recharge": "short_rest",
+        "scale_uses": {
+          "2": 1,
+          "6": 2,
+          "18": 3
+        },
+        "pool_id": "channel_divinity",
+        "pool_name_ru": "Божественный канал",
+        "track": "spend"
+      }
     },
     {
       "id": "destroy_undead",
@@ -70,14 +86,19 @@
       "level": 10,
       "name_ru": "Божественное вмешательство",
       "name_en": "Divine Intervention",
-      "summary_ru": "Действием: d100 ≤ ур. жреца — божество вмешивается. Успех → нельзя 7 дней; провал → снова после прод. отдыха. На 20 ур. — всегда успех.",
+      "summary_ru": "Действием: d100 ≤ ур. жреца — божество вмешивается. Провал → снова после прод. отдыха. Успех → блок 7 дней (сброс вручную). На 20 ур. — всегда успех.",
       "kind": "action",
       "resource": {
         "uses": 1,
         "recharge": "long_rest",
         "pool_id": "divine_intervention",
         "pool_name_ru": "Божественное вмешательство",
-        "track": "spend"
+        "track": "spend",
+        "success_lock": {
+          "label_ru": "Успех → блок 7 дней",
+          "recharge": "manual"
+        },
+        "failure_spend_label_ru": "Провал (сброс на отдыхе)"
       }
     }
   ],
@@ -97,7 +118,19 @@
         "name_ru": "Канал: Знание веков",
         "name_en": "Channel Divinity: Knowledge of the Ages",
         "summary_ru": "Действием (тратит канал): владение одним навыком или инструментом на 10 мин.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "cd_read_thoughts",
@@ -105,7 +138,19 @@
         "name_ru": "Канал: Чтение мыслей",
         "name_en": "Channel Divinity: Read Thoughts",
         "summary_ru": "Действием (тратит канал): читать мысли; затем suggestion без ячейки.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "potent_spellcasting_knowledge",
@@ -139,7 +184,19 @@
         "name_ru": "Канал: Сохранение жизни",
         "name_en": "Channel Divinity: Preserve Life",
         "summary_ru": "Действием (тратит канал): раздай хиты = 5×ур. жреца существам в 30 фт. (каждое — не выше половины макс.).",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "blessed_healer",
@@ -158,7 +215,10 @@
         "kind": "passive",
         "scale": {
           "label_ru": "Урон",
-          "by_level": { "8": "+1к8", "14": "+2к8" }
+          "by_level": {
+            "8": "+1к8",
+            "14": "+2к8"
+          }
         }
       },
       {
@@ -202,7 +262,19 @@
         "name_ru": "Канал: Сияние рассвета",
         "name_en": "Channel Divinity: Radiance of the Dawn",
         "summary_ru": "Действием (тратит канал): магический свет гаснет; враги в 30 фт. спас Телосложения или 2к10+ур. лучистого.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "improved_flare",
@@ -244,7 +316,19 @@
         "name_ru": "Канал: Очарование зверей и растений",
         "name_en": "Channel Divinity: Charm Animals and Plants",
         "summary_ru": "Действием (тратит канал): звери и растения в 30 фт. спас Мудрости или очарованы 1 мин.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "dampen_elements",
@@ -263,7 +347,10 @@
         "kind": "passive",
         "scale": {
           "label_ru": "Урон",
-          "by_level": { "8": "+1к8", "14": "+2к8" }
+          "by_level": {
+            "8": "+1к8",
+            "14": "+2к8"
+          }
         }
       },
       {
@@ -299,7 +386,19 @@
         "name_ru": "Канал: Разрушительный гнев",
         "name_en": "Channel Divinity: Destructive Wrath",
         "summary_ru": "При уроне звуком/электричеством (тратит канал): максимум на костях вместо броска.",
-        "kind": "passive"
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "thunderbolt_strike",
@@ -318,7 +417,10 @@
         "kind": "passive",
         "scale": {
           "label_ru": "Урон",
-          "by_level": { "8": "+1к8", "14": "+2к8" }
+          "by_level": {
+            "8": "+1к8",
+            "14": "+2к8"
+          }
         }
       },
       {
@@ -345,7 +447,19 @@
         "name_ru": "Канал: Призыв двойника",
         "name_en": "Channel Divinity: Invoke Duplicity",
         "summary_ru": "Действием (тратит канал): иллюзорный двойник на 1 мин; можно кастовать из его пространства; преимущество на атаки если оба рядом с целью.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "cd_cloak_of_shadows",
@@ -353,7 +467,19 @@
         "name_ru": "Канал: Плащ теней",
         "name_en": "Channel Divinity: Cloak of Shadows",
         "summary_ru": "Действием (тратит канал): невидимость до конца твоего следующего хода (атака/заклинание снимает).",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "divine_strike_trickery",
@@ -364,7 +490,10 @@
         "kind": "passive",
         "scale": {
           "label_ru": "Урон",
-          "by_level": { "8": "+1к8", "14": "+2к8" }
+          "by_level": {
+            "8": "+1к8",
+            "14": "+2к8"
+          }
         }
       },
       {
@@ -400,7 +529,19 @@
         "name_ru": "Канал: Ведомый удар",
         "name_en": "Channel Divinity: Guided Strike",
         "summary_ru": "При атаке (тратит канал): +10 к броску атаки.",
-        "kind": "passive"
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "cd_war_gods_blessing",
@@ -408,7 +549,19 @@
         "name_ru": "Канал: Благословение бога войны",
         "name_en": "Channel Divinity: War God's Blessing",
         "summary_ru": "Реакция (тратит канал): существо в 30 фт. получает +10 к атаке.",
-        "kind": "reaction"
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "divine_strike_war",
@@ -419,7 +572,10 @@
         "kind": "passive",
         "scale": {
           "label_ru": "Урон",
-          "by_level": { "8": "+1к8", "14": "+2к8" }
+          "by_level": {
+            "8": "+1к8",
+            "14": "+2к8"
+          }
         }
       },
       {
@@ -446,7 +602,19 @@
         "name_ru": "Канал: Касание смерти",
         "name_en": "Channel Divinity: Touch of Death",
         "summary_ru": "При попадании рукопашной (тратит канал): +некротика = 5 + 2×ур. жреца.",
-        "kind": "passive"
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "inescapable_destruction",
@@ -465,7 +633,10 @@
         "kind": "passive",
         "scale": {
           "label_ru": "Урон",
-          "by_level": { "8": "+1к8", "14": "+2к8" }
+          "by_level": {
+            "8": "+1к8",
+            "14": "+2к8"
+          }
         }
       },
       {
@@ -492,7 +663,19 @@
         "name_ru": "Канал: Чародейское изгнание",
         "name_en": "Channel Divinity: Arcane Abjuration",
         "summary_ru": "Действием (тратит канал): изгнать небожителя/элементаля/фею/исчадие (как Turn Undead). С 5 ур. — банш при провале по КР.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "spell_breaker",
@@ -534,7 +717,19 @@
         "name_ru": "Канал: Благословение ремесленника",
         "name_en": "Channel Divinity: Artisan's Blessing",
         "summary_ru": "Ритуал 1 ч (тратит канал): создать простой/военный металл. предмет стоимостью ≤100 зм.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "soul_of_the_forge",
@@ -553,7 +748,10 @@
         "kind": "passive",
         "scale": {
           "label_ru": "Урон",
-          "by_level": { "8": "+1к8", "14": "+2к8" }
+          "by_level": {
+            "8": "+1к8",
+            "14": "+2к8"
+          }
         }
       },
       {
@@ -597,7 +795,19 @@
         "name_ru": "Канал: Путь в могилу",
         "name_en": "Channel Divinity: Path to the Grave",
         "summary_ru": "Действием (тратит канал): проклятие — следующее попадание по цели до конца твоего хода критично уязвимо ко всему урону этой атаки.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "sentinel_at_deaths_door",
@@ -648,7 +858,19 @@
         "name_ru": "Канал: Требование порядка",
         "name_en": "Channel Divinity: Order's Demand",
         "summary_ru": "Действием (тратит канал): существа на твой выбор в 30 фт. спас Мудрости или очарованы; можно заставить бросить оружие.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "embodiment_of_the_law",
@@ -676,7 +898,10 @@
         "kind": "passive",
         "scale": {
           "label_ru": "Урон",
-          "by_level": { "8": "+1к8", "14": "+2к8" }
+          "by_level": {
+            "8": "+1к8",
+            "14": "+2к8"
+          }
         }
       },
       {
@@ -719,7 +944,19 @@
         "name_ru": "Канал: Бальзам мира",
         "name_en": "Channel Divinity: Balm of Peace",
         "summary_ru": "Действием (тратит канал): переместись без провоцирования; каждое существо, мимо которого проходишь, может получить 2к6+Мудр. хитов (1× на существо).",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "protective_bond",
@@ -776,7 +1013,19 @@
         "name_ru": "Канал: Сумеречное святилище",
         "name_en": "Channel Divinity: Twilight Sanctuary",
         "summary_ru": "Действием (тратит канал): сфера 30 фт. на 1 мин; в конце хода существо в сфере — 1к6+ур. вр. хитов или снять очарование/испуг.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "2": 1,
+            "6": 2,
+            "18": 3
+          },
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
       },
       {
         "id": "steps_of_night",
@@ -803,7 +1052,10 @@
         "kind": "passive",
         "scale": {
           "label_ru": "Урон",
-          "by_level": { "8": "+1к8", "14": "+2к8" }
+          "by_level": {
+            "8": "+1к8",
+            "14": "+2к8"
+          }
         }
       },
       {

@@ -140,6 +140,8 @@ export function syncFeatureResources(
     const want = desiredById.get(item.id)
     if (!want) continue
     desiredById.delete(item.id)
+    // Preserve manual reset while the pool is still expended (success_lock).
+    const preserveManualLock = item.reset === 'manual' && item.used > 0
     if (want.track === 'stock') {
       // used = current holdings
       next.push(
@@ -148,7 +150,7 @@ export function syncFeatureResources(
           name: want.name,
           max: want.max,
           used: Math.min(want.max, item.used),
-          reset: want.reset,
+          reset: preserveManualLock ? 'manual' : want.reset,
         }),
       )
     } else {
@@ -158,7 +160,7 @@ export function syncFeatureResources(
           name: want.name,
           max: want.max,
           used: Math.min(want.max, item.used),
-          reset: want.reset,
+          reset: preserveManualLock ? 'manual' : want.reset,
         }),
       )
     }
@@ -317,6 +319,97 @@ export function spendFeatureUse(input: {
     message: linked
       ? `Нет использований и нет запаса (${linked.label_ru})`
       : 'Нет использований',
+  }
+}
+
+/**
+ * Spend with dual outcome (Divine Intervention):
+ * - failure: normal spend, keep pool reset from sync (long/short)
+ * - success: spend and lock pool to manual until GM/player clears
+ */
+export function spendFeatureUseWithOutcome(input: {
+  resources: SheetResource[]
+  feature: UnlockedFeature
+  classSlug: string
+  outcome: 'failure' | 'success'
+}): SpendFeatureResult {
+  const base = spendFeatureUse({
+    resources: input.resources,
+    feature: input.feature,
+    classSlug: input.classSlug,
+  })
+  if (!base.ok) return base
+
+  const lock = input.feature.resource?.success_lock
+  if (input.outcome !== 'success' || !lock || !input.feature.resource?.pool_id) {
+    return {
+      ...base,
+      message:
+        input.feature.resource?.failure_spend_label_ru ||
+        base.message ||
+        'Провал',
+    }
+  }
+
+  const poolId = featureResourceId(
+    input.classSlug,
+    input.feature.resource.pool_id,
+    input.feature.classEntryId,
+  )
+  return {
+    resources: base.resources.map((row) =>
+      row.id === poolId
+        ? clampResource({ ...row, used: row.max, reset: 'manual' })
+        : row,
+    ),
+    ok: true,
+    via: 'pool',
+    message: lock.label_ru,
+  }
+}
+
+/** Clear a success_lock (7-day block): restore uses and intended rest reset. */
+export function clearSuccessLock(input: {
+  resources: SheetResource[]
+  feature: UnlockedFeature
+  classSlug: string
+}): SpendFeatureResult {
+  const resource = input.feature.resource
+  if (!resource?.pool_id || !resource.success_lock) {
+    return {
+      resources: input.resources,
+      ok: false,
+      via: null,
+      message: 'Нет блокировки успеха',
+    }
+  }
+  const pool = findFeatureResource(
+    input.resources,
+    input.classSlug,
+    resource.pool_id,
+    input.feature.classEntryId,
+  )
+  if (!pool) {
+    return {
+      resources: input.resources,
+      ok: false,
+      via: null,
+      message: 'Пул не синхронизирован',
+    }
+  }
+  const reset: SheetResource['reset'] =
+    resource.recharge === 'short_rest'
+      ? 'short'
+      : resource.recharge === 'manual'
+        ? 'manual'
+        : 'long'
+  return {
+    resources: input.resources.map((row) =>
+      row.id === pool.id ? clampResource({ ...row, used: 0, reset }) : row,
+    ),
+    ok: true,
+    via: 'pool',
+    message: 'Блок снят — вмешательство снова доступно',
   }
 }
 

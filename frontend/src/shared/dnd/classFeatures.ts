@@ -59,6 +59,16 @@ export type FeatureResource = {
   grant_stock_on_long_rest_if_empty?: boolean
   stock_gain_label_ru?: string
   stock_spend_label_ru?: string
+  /**
+   * Dual-outcome spend (Divine Intervention): failure uses normal recharge;
+   * success spends and switches the pool reset to manual until cleared.
+   */
+  success_lock?: {
+    label_ru: string
+    recharge: 'manual'
+  }
+  /** Label for the failure/normal spend button when success_lock is set. */
+  failure_spend_label_ru?: string
 }
 
 export type ClassFeatureDef = {
@@ -276,6 +286,21 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
     stock_spend_label_ru:
       typeof resourceRaw.stock_spend_label_ru === 'string'
         ? resourceRaw.stock_spend_label_ru
+        : undefined,
+    success_lock: (() => {
+      const raw =
+        resourceRaw.success_lock && typeof resourceRaw.success_lock === 'object'
+          ? (resourceRaw.success_lock as Record<string, unknown>)
+          : null
+      if (!raw || typeof raw.label_ru !== 'string') return undefined
+      return {
+        label_ru: raw.label_ru,
+        recharge: 'manual' as const,
+      }
+    })(),
+    failure_spend_label_ru:
+      typeof resourceRaw.failure_spend_label_ru === 'string'
+        ? resourceRaw.failure_spend_label_ru
         : undefined,
   }
 }

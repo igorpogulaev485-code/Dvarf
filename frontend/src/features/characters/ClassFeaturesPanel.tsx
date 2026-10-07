@@ -8,11 +8,13 @@ import {
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
 import {
+  clearSuccessLock,
   consumeStock,
   findFeatureResource,
   grantOneOnInitiativeIfEmpty,
   recoverOneFromPool,
   spendFeatureUse,
+  spendFeatureUseWithOutcome,
   spendRemaining,
   stockCurrent,
 } from '../../shared/dnd/featureResources'
@@ -131,6 +133,8 @@ function FeatureResourceControls({
     initiativeGrantByPool.has(poolId)
   const canInitiativeGrant =
     hasInitiativeGrant && remaining <= 0 && pool.used > 0
+  const successLock = resource.success_lock
+  const lockedBySuccess = Boolean(successLock) && pool.reset === 'manual' && pool.used > 0
 
   return (
     <div className="feature-resource">
@@ -155,26 +159,78 @@ function FeatureResourceControls({
           {linkedPool ? ` (${linkedLeft} доступно)` : ''}
         </Text>
       ) : null}
+      {lockedBySuccess ? (
+        <Text tone="muted">Заблокировано после успеха — снимите блок через 7 дней.</Text>
+      ) : null}
       <div className="feature-resource__actions">
-        <Button
-          type="button"
-          disabled={remaining <= 0 && !canViaLinked}
-          onClick={() => {
-            const result = spendFeatureUse({ resources, feature, classSlug })
-            onResourcesChange(result.resources)
-            if (result.ok) {
-              const via =
-                result.via === 'linked_stock' ? ` (${linked?.label_ru})` : ''
-              onToast?.(
-                `${feature.name_ru}${via}${feature.scaleValue ? ` · ${feature.scaleValue}` : ''}`,
-              )
-            } else {
-              onToast?.(result.message)
-            }
-          }}
-        >
-          {canViaLinked ? linked?.label_ru || 'Сверх лимита' : 'Использовать'}
-        </Button>
+        {successLock ? (
+          <>
+            <Button
+              type="button"
+              disabled={remaining <= 0 || lockedBySuccess}
+              onClick={() => {
+                const result = spendFeatureUseWithOutcome({
+                  resources,
+                  feature,
+                  classSlug,
+                  outcome: 'failure',
+                })
+                onResourcesChange(result.resources)
+                onToast?.(result.message)
+              }}
+            >
+              {resource.failure_spend_label_ru || 'Провал'}
+            </Button>
+            <Button
+              type="button"
+              disabled={remaining <= 0 || lockedBySuccess}
+              onClick={() => {
+                const result = spendFeatureUseWithOutcome({
+                  resources,
+                  feature,
+                  classSlug,
+                  outcome: 'success',
+                })
+                onResourcesChange(result.resources)
+                onToast?.(result.message)
+              }}
+            >
+              {successLock.label_ru}
+            </Button>
+            {lockedBySuccess ? (
+              <Button
+                type="button"
+                onClick={() => {
+                  const result = clearSuccessLock({ resources, feature, classSlug })
+                  onResourcesChange(result.resources)
+                  onToast?.(result.message)
+                }}
+              >
+                Снять блок (7 дней)
+              </Button>
+            ) : null}
+          </>
+        ) : (
+          <Button
+            type="button"
+            disabled={remaining <= 0 && !canViaLinked}
+            onClick={() => {
+              const result = spendFeatureUse({ resources, feature, classSlug })
+              onResourcesChange(result.resources)
+              if (result.ok) {
+                const via =
+                  result.via === 'linked_stock' ? ` (${linked?.label_ru})` : ''
+                onToast?.(
+                  `${feature.name_ru}${via}${feature.scaleValue ? ` · ${feature.scaleValue}` : ''}`,
+                )
+              } else {
+                onToast?.(result.message)
+              }
+            }}
+          >
+            {canViaLinked ? linked?.label_ru || 'Сверх лимита' : 'Использовать'}
+          </Button>
+        )}
         {resource.recover_one ? (
           <Button
             type="button"

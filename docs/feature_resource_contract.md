@@ -26,6 +26,8 @@
 9. **Initiative grant** — `grant_one_on_initiative_if_empty` (Relentless BM)
 10. **Long-rest stock grant** — `grant_stock_on_long_rest_if_empty` (Друг смерти)
 11. **Choice / pick** — не сюда; это subclass/class grants
+12. **Shared pool** — несколько умений с одним `pool_id` (Turn Undead + доменные Channel Divinity)
+13. **Success lock** — `success_lock` + `failure_spend_label_ru` (Divine Intervention: провал → long rest; успех → manual 7 дней)
 
 Если не ложится — сначала расширь контракт, потом UI. Не one-off компонент на архетип.
 
@@ -49,13 +51,16 @@
   "grant_one_on_initiative_if_empty": true,
   "grant_stock_on_long_rest_if_empty": true,
   "stock_gain_label_ru": "+ частица (смерть рядом)",
-  "stock_spend_label_ru": "Сжечь частицу"
+  "stock_spend_label_ru": "Сжечь частицу",
+  "success_lock": { "label_ru": "Успех → блок 7 дней", "recharge": "manual" },
+  "failure_spend_label_ru": "Провал (сброс на отдыхе)"
 }
 ```
 
 - **spend**: `used` = потрачено; remaining = max − used  
 - **stock**: `used` = текущий запас (0…max)  
 - Один `pool_id` на сущность; несколько умений могут ссылаться на него (merge флагов)
+- **success_lock**: успех ставит `reset=manual` и `used=max`; sync сохраняет manual, пока used > 0; «Снять блок» возвращает intended recharge
 
 ## Пайплайн
 
@@ -88,7 +93,7 @@
 | Battle Master | 1, 5, 9 (+ Fighter 2) |
 | Barbarian / Berserker / Totem | 1, 5 (+ Rage table) |
 | Monk / Open Hand / Shadow / Elements | 1, 5, 9 (+ Ki = level, Perfect Self +4) |
-| Cleric / **14** оф. доменов | 2, 4b, 5 (CD shared; Wis-mod; PHB+DMG+SCAG+XGtE+TCoE) |
+| Cleric / **14** оф. доменов | 2, 4b, 5, 12, 13 (CD shared; Wis-mod; DI success lock; PHB+DMG+SCAG+XGtE+TCoE) |
 
 ## H4 — порядок пакетов классов
 
@@ -97,7 +102,7 @@
 1. ~~Плут~~ + ~~Воин~~ (готово)
 2. ~~Варвар~~ (готово)
 3. ~~Монах~~ (готово)
-4. ~~Жрец~~ (умения + 14 доменов + always-prepared/grants)
+4. ~~Жрец~~ (умения + 14 доменов + always-prepared/grants + CD shared + DI lock)
 5. **Паладин** ← следующий (возложение рук = stock/points, CD)
 6. Следопыт / остальные PHB
 7. Чародей, Колдун, Бард, Друид, Волшебник, Изобретатель
