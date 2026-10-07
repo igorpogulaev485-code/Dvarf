@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Wizard + official traditions for sheet unlock",
     "edition": "2014",
     "source": "phb+scag+xgte+tcoe+egtw",
-    "notes_ru": "Все 13 оф. традиций вкл. Chronurgy/Graviturgy. Portent stock; Bladesong PB."
+    "notes_ru": "Все 13 оф. традиций вкл. Chronurgy/Graviturgy. Portent stock; Bladesong PB. H4b depth wave: pools/scales/linked ki·BI. H4b depth wave 2: casters/artificer/druid scales·pools."
   },
   "class_slug": "wizard",
   "features": [
@@ -110,7 +110,13 @@
         "name_ru": "Знаток ограждения",
         "name_en": "Abjuration Savant",
         "summary_ru": "Копирование заклинаний ограждения в книгу — полцены времени и золота.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Копирование",
+          "by_level": {
+            "2": "ограждение — ½ времени и золота"
+          }
+        }
       },
       {
         "id": "arcane_ward",
@@ -156,7 +162,13 @@
         "name_ru": "Проекция щита",
         "name_en": "Projected Ward",
         "summary_ru": "Реакция: союзник в 30 фт. получает урон — перенаправь на Магический щит.",
-        "kind": "reaction"
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Реакция",
+          "by_level": {
+            "6": "союзник в 30 фт. — урон на Arcane Ward"
+          }
+        }
       },
       {
         "id": "improved_abjuration",
@@ -164,7 +176,13 @@
         "name_ru": "Улучшенное ограждение",
         "name_en": "Improved Abjuration",
         "summary_ru": "К проверкам способностей заклинаний ограждения добавляй бонус мастерства.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Способности заклинаний",
+          "by_level": {
+            "10": "+БМ к проверкам ограждения"
+          }
+        }
       },
       {
         "id": "spell_resistance",
@@ -172,7 +190,13 @@
         "name_ru": "Сопротивление заклинаниям",
         "name_en": "Spell Resistance",
         "summary_ru": "Преимущество на спас vs заклинаний; сопротивление урону от заклинаний.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "vs заклинаний",
+          "by_level": {
+            "14": "преим. на спас; сопротивление урону"
+          }
+        }
       }
     ],
     "school_of_conjuration": [
@@ -182,7 +206,13 @@
         "name_ru": "Знаток вызова",
         "name_en": "Conjuration Savant",
         "summary_ru": "Копирование заклинаний школы вызова в книгу заклинаний стоит половину времени и золота.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Копирование",
+          "by_level": {
+            "2": "вызов — ½ времени и золота"
+          }
+        }
       },
       {
         "id": "minor_conjuration",
@@ -190,7 +220,13 @@
         "name_ru": "Малый вызов",
         "name_en": "Minor Conjuration",
         "summary_ru": "Действием создать немагический объект в руке/на земле в 10 фт.: ≤3 фута по стороне, ≤10 фунтов, на 1 ч. / до каста снова / до урона объекту.",
-        "kind": "action"
+        "kind": "action",
+        "scale": {
+          "label_ru": "Объект",
+          "by_level": {
+            "2": "≤3 фт. / ≤10 фунтов; 1 ч. или до каста вызова"
+          }
+        }
       },
       {
         "id": "benign_transposition",
@@ -213,7 +249,13 @@
         "name_ru": "Сосредоточенный вызов",
         "name_en": "Focused Conjuration",
         "summary_ru": "Концентрация на заклинании школы вызова не прерывается от получения урона.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Концентрация",
+          "by_level": {
+            "10": "вызов не срывается от урона"
+          }
+        }
       },
       {
         "id": "durable_summons",
@@ -221,7 +263,13 @@
         "name_ru": "Стойкие призывы",
         "name_en": "Durable Summons",
         "summary_ru": "Любое существо, призванное тобой заклинанием вызова, получает 30 временных хитов.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Призыв",
+          "by_level": {
+            "14": "+30 вр. хитов"
+          }
+        }
       }
     ],
     "school_of_divination": [
@@ -231,7 +279,13 @@
         "name_ru": "Знаток прорицания",
         "name_en": "Divination Savant",
         "summary_ru": "Копирование прорицания — полцены времени и золота.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Копирование",
+          "by_level": {
+            "2": "прорицание — ½ времени и золота"
+          }
+        }
       },
       {
         "id": "portent",
@@ -260,7 +314,13 @@
         "name_ru": "Эксперт прорицания",
         "name_en": "Expert Divination",
         "summary_ru": "При касте прорицания ≥2 ур. ячейкой — восстанови ячейку ниже уровня (мин. 1).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При касте прорицания ≥2",
+          "by_level": {
+            "6": "вернуть ячейку ниже уровня (мин. 1)"
+          }
+        }
       },
       {
         "id": "the_third_eye",
@@ -283,7 +343,13 @@
         "name_ru": "Великое знамение",
         "name_en": "Greater Portent",
         "summary_ru": "После прод. отдыха — 3 кости знамения вместо 2.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Знамение",
+          "by_level": {
+            "14": "3 кости вместо 2"
+          }
+        }
       }
     ],
     "school_of_enchantment": [
@@ -293,7 +359,13 @@
         "name_ru": "Знаток очарования",
         "name_en": "Enchantment Savant",
         "summary_ru": "Копирование очарования — полцены времени и золота.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Копирование",
+          "by_level": {
+            "2": "очарование — ½ времени и золота"
+          }
+        }
       },
       {
         "id": "hypnotic_gaze",
@@ -331,7 +403,13 @@
         "name_ru": "Разделённое очарование",
         "name_en": "Split Enchantment",
         "summary_ru": "Одноцелевое очарование ≥1 ур. может затронуть вторую цель.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Одноцель ≥1",
+          "by_level": {
+            "10": "вторая цель"
+          }
+        }
       },
       {
         "id": "alter_memories",
@@ -339,7 +417,13 @@
         "name_ru": "Изменение воспоминаний",
         "name_en": "Alter Memories",
         "summary_ru": "При очаровании: цель не знает, что была очарована; можешь потратить действие на ложные воспоминания (спас).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При очаровании",
+          "by_level": {
+            "14": "цель не знает; ложные воспоминания действием"
+          }
+        }
       }
     ],
     "school_of_evocation": [
@@ -349,7 +433,13 @@
         "name_ru": "Знаток воплощения",
         "name_en": "Evocation Savant",
         "summary_ru": "Копирование заклинаний воплощения в книгу стоит половину времени и золота.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Копирование",
+          "by_level": {
+            "2": "воплощение — ½ времени и золота"
+          }
+        }
       },
       {
         "id": "sculpt_spells",
@@ -357,7 +447,13 @@
         "name_ru": "Лепка заклинаний",
         "name_en": "Sculpt Spells",
         "summary_ru": "При воплощении с областью: число существ = 1 + уровень ячейки автоматически преуспевают в спасе и получают 0 урона.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Союзников без урона",
+          "by_level": {
+            "2": "1 + ур. ячейки"
+          }
+        }
       },
       {
         "id": "potent_cantrip",
@@ -365,7 +461,13 @@
         "name_ru": "Мощный заговор",
         "name_en": "Potent Cantrip",
         "summary_ru": "Когда существо преуспевает в спасе от твоего заговора и получило бы половину урона — оно всё равно получает половину (если обычно 0 — получает половину).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заговор",
+          "by_level": {
+            "6": "при успехе спаса vs пол. урона — всё равно пол. урона"
+          }
+        }
       },
       {
         "id": "empowered_evocation",
@@ -373,15 +475,28 @@
         "name_ru": "Усиленное воплощение",
         "name_en": "Empowered Evocation",
         "summary_ru": "К одному броску урона заклинания воплощения волшебника добавляй свой модификатор Интеллекта.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Воплощение",
+          "by_level": {
+            "10": "+Инт к одному броску урона"
+          }
+        }
       },
       {
         "id": "overchannel",
         "level": 14,
         "name_ru": "Перегрузка",
         "name_en": "Overchannel",
-        "summary_ru": "При касте волшебного заклинания урона 1–5 ур. ячейкой: макс. урон на костях. Первый раз в день без цены; далее получаешь 2к12 некротического × уровень заклинания за повтор (накопительно до long rest).",
-        "kind": "passive"
+        "summary_ru": "При касте волшебного заклинания урона 1–5 ур. ячейкой: макс. урон на костях. 1× / день бесплатно (пул ниже); далее — 2к12 некротического × уровень заклинания за каждый повтор до long rest.",
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "overchannel_free",
+          "pool_name_ru": "Перегрузка (бесплатно)",
+          "track": "spend"
+        }
       }
     ],
     "school_of_illusion": [
@@ -391,7 +506,13 @@
         "name_ru": "Знаток иллюзии",
         "name_en": "Illusion Savant",
         "summary_ru": "Копирование иллюзии — полцены времени и золота.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Копирование",
+          "by_level": {
+            "2": "иллюзия — ½ времени и золота"
+          }
+        }
       },
       {
         "id": "improved_minor_illusion",
@@ -399,7 +520,13 @@
         "name_ru": "Улучшенная малая иллюзия",
         "name_en": "Improved Minor Illusion",
         "summary_ru": "Выучи minor illusion (не в лимит заговоров); можешь создавать звук и образ одновременно.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Minor Illusion",
+          "by_level": {
+            "2": "бесплатно; звук+образ одновременно"
+          }
+        }
       },
       {
         "id": "malleable_illusions",
@@ -407,7 +534,13 @@
         "name_ru": "Гибкие иллюзии",
         "name_en": "Malleable Illusions",
         "summary_ru": "Действием измени параметры своей иллюзии ≥1 мин. длительности (в пределах заклинания).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Действием",
+          "by_level": {
+            "6": "изменить свою иллюзию ≥1 мин."
+          }
+        }
       },
       {
         "id": "illusory_self",
@@ -430,7 +563,13 @@
         "name_ru": "Иллюзорная реальность",
         "name_en": "Illusory Reality",
         "summary_ru": "Бонусным после иллюзии ≥1 ур.: один неживой объект иллюзии становится реальным на 1 мин. (без урона).",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Бонусным",
+          "by_level": {
+            "14": "1 объект иллюзии реален 1 мин. (без урона)"
+          }
+        }
       }
     ],
     "school_of_necromancy": [
@@ -448,7 +587,13 @@
         "name_ru": "Мрачная жатва",
         "name_en": "Grim Harvest",
         "summary_ru": "1× / ход: убив существо заклинанием ≥1 ур. — хиты = 2× уровень ячейки (некромантия: 3×). Не работает на конструктов и нежить.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Лечение",
+          "by_level": {
+            "2": "2× ур. ячейки (некро: 3×)"
+          }
+        }
       },
       {
         "id": "undead_thralls",
@@ -456,7 +601,13 @@
         "name_ru": "Рабы-нежить",
         "name_en": "Undead Thralls",
         "summary_ru": "Выучи animate dead бесплатно. При создании нежити через animate dead: +1 цель; у нежити +хиты = ур. волшебника и +урону = бонус мастерства.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Нежить",
+          "by_level": {
+            "6": "+1 цель; +хиты = ур.; +урон = БМ"
+          }
+        }
       },
       {
         "id": "inured_to_undeath",
@@ -472,7 +623,14 @@
         "name_ru": "Повелевать нежитью",
         "name_en": "Command Undead",
         "summary_ru": "Действием: одна нежить в 60 фт. спас Харизмы или под твоим контролем (правила по Интеллекту цели — см. PHB).",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "command_undead",
+          "pool_name_ru": "Повелевать нежитью",
+          "track": "spend"
+        }
       }
     ],
     "school_of_transmutation": [
@@ -482,7 +640,13 @@
         "name_ru": "Знаток преобразования",
         "name_en": "Transmutation Savant",
         "summary_ru": "Копирование преобразования — полцены времени и золота.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Копирование",
+          "by_level": {
+            "2": "преобразование — ½ времени и золота"
+          }
+        }
       },
       {
         "id": "minor_alchemy",
@@ -490,7 +654,13 @@
         "name_ru": "Малая алхимия",
         "name_en": "Minor Alchemy",
         "summary_ru": "10 мин.: преобразуй объект из дерева/камня/железа/меди/серебра (1 фут³ / ур.) на 1 ч.",
-        "kind": "action"
+        "kind": "action",
+        "scale": {
+          "label_ru": "Объём",
+          "by_level": {
+            "2": "1 фут³ / ур.; 10 мин.; дерево/камень/железо/медь/серебро"
+          }
+        }
       },
       {
         "id": "transmuters_stone",
@@ -498,7 +668,23 @@
         "name_ru": "Камень преобразующего",
         "name_en": "Transmuter's Stone",
         "summary_ru": "Создай камень с бонусом (скорость / тёмное зрение / сопр. урону / +владение Тел спас). При касте преобразования ≥1 — можешь сменить эффект.",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "transmuters_stone_bonus",
+          "label_ru": "Бонус камня",
+          "options": [
+            "speed_10",
+            "darkvision_60",
+            "resistance_acid_cold_fire_lightning_thunder",
+            "con_save_proficiency"
+          ]
+        },
+        "scale": {
+          "label_ru": "Камень",
+          "by_level": {
+            "6": "создай; при касте преобразования ≥1 можно сменить бонус"
+          }
+        }
       },
       {
         "id": "shapechanger",
@@ -521,7 +707,24 @@
         "name_ru": "Мастер преобразования",
         "name_en": "Master Transmuter",
         "summary_ru": "Действием уничтожь камень: Major Transformation / Panacea / Restore Life / Restore Youth (см. PHB).",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "master_transmuter",
+          "pool_name_ru": "Мастер преобразования (уничтожить камень)",
+          "track": "spend"
+        },
+        "choice": {
+          "id": "master_transmuter_effect",
+          "label_ru": "Эффект",
+          "options": [
+            "major_transformation",
+            "panacea",
+            "restore_life",
+            "restore_youth"
+          ]
+        }
       }
     ],
     "bladesinging": [
@@ -531,7 +734,13 @@
         "name_ru": "Обучение войне и песни",
         "name_en": "Training in War and Song",
         "summary_ru": "Владение лёгкими доспехами; одно оружие ближнего боя (одноручное); навык Выступление.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Владения",
+          "by_level": {
+            "2": "лёгкие доспехи; 1 одноручное оружие; Выступление"
+          }
+        }
       },
       {
         "id": "bladesong",
@@ -555,7 +764,13 @@
         "name_ru": "Доп. атака",
         "name_en": "Extra Attack",
         "summary_ru": "При Атаке — две атаки; одну можно заменить на cantrip.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Атаки",
+          "by_level": {
+            "6": "2; одну можно заменить на cantrip"
+          }
+        }
       },
       {
         "id": "song_of_defense",
@@ -576,7 +791,13 @@
         "name_ru": "Песнь победы",
         "name_en": "Song of Victory",
         "summary_ru": "Пока активна Песнь клинка, добавляй мод. Интеллекта к урону рукопашным оружием.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Урон рукопашным",
+          "by_level": {
+            "14": "+мод. Инт пока Песнь клинка"
+          }
+        }
       }
     ],
     "war_magic": [
@@ -586,7 +807,13 @@
         "name_ru": "Магическое отклонение",
         "name_en": "Arcane Deflection",
         "summary_ru": "Реакция при попадании/провале спаса: +2 КД или +4 к спас. Затем до конца след. хода только cantrip.",
-        "kind": "reaction"
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Реакция",
+          "by_level": {
+            "2": "+2 КД или +4 к спас; затем только cantrip до конца след. хода"
+          }
+        }
       },
       {
         "id": "tactical_wit",
@@ -594,7 +821,13 @@
         "name_ru": "Тактическая смекалка",
         "name_en": "Tactical Wit",
         "summary_ru": "+мод. Инт к инициативе.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Инициатива",
+          "by_level": {
+            "2": "+мод. Инт"
+          }
+        }
       },
       {
         "id": "power_surge",
@@ -621,7 +854,13 @@
         "name_ru": "Стойкая магия",
         "name_en": "Durable Magic",
         "summary_ru": "Пока концентрируешься: +2 КД и ко всем спасам.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Пока концентрируешься",
+          "by_level": {
+            "10": "+2 КД и ко всем спасам"
+          }
+        }
       },
       {
         "id": "deflecting_shroud",
@@ -629,7 +868,13 @@
         "name_ru": "Отклоняющий покров",
         "name_en": "Deflecting Shroud",
         "summary_ru": "При Arcane Deflection: до 3 существ в 60 фт. получают силовой урон = ½ ур. волшебника.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При Arcane Deflection",
+          "by_level": {
+            "14": "до 3 существ в 60 фт. — силовой = ½ ур."
+          }
+        }
       }
     ],
     "order_of_scribes": [
@@ -639,7 +884,13 @@
         "name_ru": "Перо волшебника",
         "name_en": "Wizardly Quill",
         "summary_ru": "Магическое перо: копирование в книгу — 2 мин за уровень ячейки; золотые чернила без стоимости; стирание действием.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Перо",
+          "by_level": {
+            "2": "2 мин./ур. ячейки; без золотых чернил"
+          }
+        }
       },
       {
         "id": "awakened_spellbook",
@@ -647,7 +898,13 @@
         "name_ru": "Пробуждённая книга",
         "name_en": "Awakened Spellbook",
         "summary_ru": "Книга — фокус; при касте можешь заменить тип урона на тип другого заклинания того же ур. в книге; ритуал — время как действие.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Книга-фокус",
+          "by_level": {
+            "2": "замена типа урона; ритуал из книги"
+          }
+        }
       },
       {
         "id": "manifest_mind",
@@ -671,7 +928,13 @@
         "name_ru": "Мастер-писец",
         "name_en": "Master Scrivener",
         "summary_ru": "После прод. отдыха создай свиток заклинания ≤2 ур. из книги (усилен на 1 ур.); копирование свитков — полцены.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "После long rest",
+          "by_level": {
+            "10": "свиток ≤2 ур. (+1 ур.); копирование свитков ускорено"
+          }
+        }
       },
       {
         "id": "one_with_the_word",
@@ -768,7 +1031,13 @@
         "name_ru": "Изменить плотность",
         "name_en": "Adjust Density",
         "summary_ru": "Действием: Large или меньше в 30 фт. — вдвое тяжелее (скорость −10, ×2 урон падения) или легче (скорость +10, ×½ падение) на 1 мин./конц.",
-        "kind": "action"
+        "kind": "action",
+        "scale": {
+          "label_ru": "Действием",
+          "by_level": {
+            "2": "Large≤ в 30 фт. — ×2 масса или лёгкость"
+          }
+        }
       },
       {
         "id": "gravity_well",
@@ -776,7 +1045,13 @@
         "name_ru": "Гравитационный колодец",
         "name_en": "Gravity Well",
         "summary_ru": "При попадании заклинанием по существу: переместить цель на 5 фт. в свободное место.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При попадании заклинанием",
+          "by_level": {
+            "6": "сдвинуть цель на 5 фт."
+          }
+        }
       },
       {
         "id": "violent_attraction",

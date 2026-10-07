@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Bard + official colleges for sheet unlock",
     "edition": "2014",
     "source": "phb+xgte+tcoe+vrgr",
-    "notes_ru": "Bardic Inspiration = мод. Хар (мин. 1); кость d6→d12. Font@5 → short rest (тот же pool). Superior Inspiration@20. 8 коллегий каркас."
+    "notes_ru": "Bardic Inspiration = мод. Хар (мин. 1); кость d6→d12. Font@5 → short rest (тот же pool). Superior Inspiration@20. 8 коллегий каркас. H4b depth: martial/half-caster pools/scales/linked ki·BI."
   },
   "class_slug": "bard",
   "features": [
@@ -206,7 +206,13 @@
         "name_ru": "Доп. владения",
         "name_en": "Bonus Proficiencies",
         "summary_ru": "Владение тремя навыками на выбор (поверх классовых).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Навыки",
+          "by_level": {
+            "3": "+3 на выбор"
+          }
+        }
       },
       {
         "id": "cutting_words",
@@ -214,7 +220,19 @@
         "name_ru": "Острые слова",
         "name_en": "Cutting Words",
         "summary_ru": "Реакция: потрать кость Бардовского вдохновения — вычти из броска атаки/проверки/урона врага в 60 фт., который тебя слышит.",
-        "kind": "reaction"
+        "kind": "reaction",
+        "resource": {
+          "uses": 0,
+          "recharge": "long_rest",
+          "pool_id": "cutting_words",
+          "pool_name_ru": "Острые слова",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "bardic_inspiration",
+            "label_ru": "кость Бардовского вдохновения",
+            "mode": "spend"
+          }
+        }
       },
       {
         "id": "additional_magical_secrets",
@@ -222,7 +240,13 @@
         "name_ru": "Доп. магические тайны",
         "name_en": "Additional Magical Secrets",
         "summary_ru": "2 заклинания любого класса (ур. ≤ твоих ячеек). Не занимают слоты известных барда.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заклинания",
+          "by_level": {
+            "6": "2 любого класса ≤ твоих ячеек"
+          }
+        }
       },
       {
         "id": "peerless_skill",
@@ -230,7 +254,19 @@
         "name_ru": "Бесподобный навык",
         "name_en": "Peerless Skill",
         "summary_ru": "При проверке характеристики: потрать вдохновение и добавь к броску; если всё равно провал — кость не тратится.",
-        "kind": "passive"
+        "kind": "passive",
+        "resource": {
+          "uses": 0,
+          "recharge": "long_rest",
+          "pool_id": "peerless_skill",
+          "pool_name_ru": "Бесподобный навык",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "bardic_inspiration",
+            "label_ru": "кость Бардовского вдохновения",
+            "mode": "spend"
+          }
+        }
       }
     ],
     "college_of_valor": [
@@ -240,7 +276,13 @@
         "name_ru": "Доп. владения",
         "name_en": "Bonus Proficiencies",
         "summary_ru": "Средние доспехи, щиты, воинское оружие.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Владения",
+          "by_level": {
+            "3": "средние доспехи, щиты, воинское оружие"
+          }
+        }
       },
       {
         "id": "combat_inspiration",
@@ -248,7 +290,25 @@
         "name_ru": "Боевое вдохновение",
         "name_en": "Combat Inspiration",
         "summary_ru": "Союзник с твоей костью вдохновения может добавить её к урону оружия или (реакцией) к КД против атаки.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Варианты кости",
+          "by_level": {
+            "3": "к урону оружия или реакцией к КД"
+          }
+        },
+        "resource": {
+          "uses": 0,
+          "recharge": "long_rest",
+          "pool_id": "combat_inspiration",
+          "pool_name_ru": "Боевое вдохновение",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "bardic_inspiration",
+            "label_ru": "кость Бардовского вдохновения",
+            "mode": "spend"
+          }
+        }
       },
       {
         "id": "extra_attack_valor",
@@ -256,7 +316,13 @@
         "name_ru": "Доп. атака",
         "name_en": "Extra Attack",
         "summary_ru": "При действии Атака — две атаки вместо одной.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Атаки",
+          "by_level": {
+            "6": "2 при действии Атака"
+          }
+        }
       },
       {
         "id": "battle_magic",
@@ -264,7 +330,13 @@
         "name_ru": "Боевая магия",
         "name_en": "Battle Magic",
         "summary_ru": "После заклинания действием — бонусная атака оружием.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Связка",
+          "by_level": {
+            "14": "заклинание действием → бонусная атака оружием"
+          }
+        }
       }
     ],
     "college_of_glamour": [
@@ -351,7 +423,34 @@
         "name_ru": "Расцвет клинка",
         "name_en": "Blade Flourish",
         "summary_ru": "1× / ход при попадании оружием: потрать вдохновение — доп. урон кости + Defensive (+КД), Slashing (второе существо) или Mobile Flourish (толчок + перемещение).",
-        "kind": "passive"
+        "kind": "passive",
+        "resource": {
+          "uses": 0,
+          "recharge": "long_rest",
+          "pool_id": "blade_flourish",
+          "pool_name_ru": "Клинок-flourish",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "bardic_inspiration",
+            "label_ru": "кость Бардовского вдохновения",
+            "mode": "spend"
+          }
+        },
+        "choice": {
+          "id": "blade_flourish_option",
+          "label_ru": "Вариант flourish (1×/ход)",
+          "options": [
+            "defensive_flourish",
+            "slashing_flourish",
+            "mobile_flourish"
+          ]
+        },
+        "scale": {
+          "label_ru": "Доп. урон",
+          "by_level": {
+            "3": "кость вдохновения"
+          }
+        }
       },
       {
         "id": "extra_attack_swords",
@@ -359,7 +458,13 @@
         "name_ru": "Доп. атака",
         "name_en": "Extra Attack",
         "summary_ru": "При действии Атака — две атаки вместо одной.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Атаки",
+          "by_level": {
+            "6": "2 при действии Атака"
+          }
+        }
       },
       {
         "id": "masters_flourish",
@@ -367,7 +472,13 @@
         "name_ru": "Мастерский росчерк",
         "name_en": "Master's Flourish",
         "summary_ru": "При Blade Flourish можешь бросить d6 вместо кости вдохновения (не тратя вдохновение).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Без кости BI",
+          "by_level": {
+            "14": "можно d6 вместо кости вдохновения"
+          }
+        }
       }
     ],
     "college_of_whispers": [
@@ -441,7 +552,13 @@
         "name_ru": "Серебряный язык",
         "name_en": "Silver Tongue",
         "summary_ru": "При Обмане/Убеждении: результат d20 ≤9 считается 10.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Обман / Убеждение",
+          "by_level": {
+            "3": "d20 ≤9 → 10"
+          }
+        }
       },
       {
         "id": "unsettling_words",
@@ -449,7 +566,25 @@
         "name_ru": "Тревожные слова",
         "name_en": "Unsettling Words",
         "summary_ru": "Бонусным: потрать вдохновение — существо в 60 фт. вычитает кость из след. спас. до нач. твоего след. хода.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "resource": {
+          "uses": 0,
+          "recharge": "short_rest",
+          "pool_id": "unsettling_words",
+          "pool_name_ru": "Тревожные слова",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "bardic_inspiration",
+            "label_ru": "кость Бардовского вдохновения",
+            "mode": "spend"
+          }
+        },
+        "scale": {
+          "label_ru": "Эффект",
+          "by_level": {
+            "3": "вычесть кость из след. спаса цели"
+          }
+        }
       },
       {
         "id": "unfailing_inspiration",
@@ -457,7 +592,13 @@
         "name_ru": "Неиссякаемое вдохновение",
         "name_en": "Unfailing Inspiration",
         "summary_ru": "Если существо добавляет твою кость вдохновения к броску и всё равно проваливает — кость не тратится.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Кость BI",
+          "by_level": {
+            "6": "не тратится при провале броска с костью"
+          }
+        }
       },
       {
         "id": "universal_speech",
@@ -499,7 +640,13 @@
         "name_ru": "Частица потенциала",
         "name_en": "Mote of Potential",
         "summary_ru": "Когда даёшь вдохновение — нота кружит. При использовании кости: атака — доп. урон; проверка — брось кость дважды; спас — вр. хиты союзнику в 5 фт.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "С костью BI",
+          "by_level": {
+            "3": "атака→урон / проверка→переброс / спас→вр. хиты"
+          }
+        }
       },
       {
         "id": "performance_of_creation",
@@ -537,7 +684,13 @@
         "name_ru": "Творческий крещендо",
         "name_en": "Creative Crescendo",
         "summary_ru": "При Performance of Creation: число предметов = мод. Хар. (мин. 2); один может быть Large; без лимита gp.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Performance of Creation",
+          "by_level": {
+            "14": "предметов = Хар. (мин. 2); один Large; без gp-лимита"
+          }
+        }
       }
     ],
     "college_of_spirits": [
@@ -547,7 +700,13 @@
         "name_ru": "Направляющие шёпоты",
         "name_en": "Guiding Whispers",
         "summary_ru": "Выучи guidance; дальность 60 фт.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Guidance",
+          "by_level": {
+            "3": "известен; дальность 60 фт."
+          }
+        }
       },
       {
         "id": "spiritual_focus",
@@ -570,7 +729,19 @@
         "name_ru": "Сказания извне",
         "name_en": "Tales from Beyond",
         "summary_ru": "Бонусным: потрать вдохновение, брось кость — эффект рассказа (таблица VRGtR). Пока не использован — хранится.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "resource": {
+          "uses": 0,
+          "recharge": "short_rest",
+          "pool_id": "tales_from_beyond",
+          "pool_name_ru": "Рассказы из-за грани",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "bardic_inspiration",
+            "label_ru": "кость → бросок таблицы VRGtR",
+            "mode": "spend"
+          }
+        }
       },
       {
         "id": "spirit_session",
@@ -593,7 +764,13 @@
         "name_ru": "Мистическая связь",
         "name_en": "Mystical Connection",
         "summary_ru": "При Tales from Beyond бросай две кости и выбери результат (или оба по правилам VRGtR).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Tales from Beyond",
+          "by_level": {
+            "14": "две кости, выбери (или оба)"
+          }
+        }
       }
     ]
   }

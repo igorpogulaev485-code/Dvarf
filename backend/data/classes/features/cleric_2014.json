@@ -3,7 +3,7 @@
     "purpose": "2014 Cleric + all 14 official domains for sheet unlock",
     "edition": "2014",
     "source": "phb+dmg+scag+xgte+tcoe",
-    "notes_ru": "14 доменов. Channel Divinity — общий пул (Turn Undead + cd_*). DI: success_lock 7 дней. Always-prepared/grants — в каталоге."
+    "notes_ru": "14 доменов. Channel Divinity — общий пул (Turn Undead + cd_*). DI: success_lock 7 дней. Always-prepared/grants — в каталоге. H4b depth wave 2: casters/artificer/druid scales·pools."
   },
   "class_slug": "cleric",
   "features": [
@@ -110,7 +110,23 @@
         "name_ru": "Благословение знания",
         "name_en": "Blessings of Knowledge",
         "summary_ru": "Выучи два языка. Выбери 2 навыка из: Arcana, History, Nature, Religion — владение и компетентность.",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "knowledge_skills",
+          "label_ru": "2 навыка (владение + компетентность)",
+          "options": [
+            "arcana",
+            "history",
+            "nature",
+            "religion"
+          ]
+        },
+        "scale": {
+          "label_ru": "Языки",
+          "by_level": {
+            "1": "+2 языка"
+          }
+        }
       },
       {
         "id": "cd_knowledge_of_the_ages",
@@ -158,7 +174,13 @@
         "name_ru": "Мощное колдовство",
         "name_en": "Potent Spellcasting",
         "summary_ru": "+Мудр. к урону заговоров жреца.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заговоры",
+          "by_level": {
+            "8": "+Мудр. к урону"
+          }
+        }
       },
       {
         "id": "visions_of_the_past",
@@ -166,7 +188,20 @@
         "name_ru": "Видения прошлого",
         "name_en": "Visions of the Past",
         "summary_ru": "Медитация: читать историю предмета или места (см. PHB). (Channel Divinity / доменное умение — см. PHB).",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "visions_of_the_past",
+          "pool_name_ru": "Видения прошлого",
+          "track": "spend"
+        },
+        "scale": {
+          "label_ru": "Медитация",
+          "by_level": {
+            "17": "история предмета или места"
+          }
+        }
       }
     ],
     "life_domain": [
@@ -176,7 +211,13 @@
         "name_ru": "Ученик жизни",
         "name_en": "Disciple of Life",
         "summary_ru": "Заклинания лечения ≥1 ур.: цель дополнительно получает 2 + уровень ячейки хитов.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Доп. лечение",
+          "by_level": {
+            "1": "2 + ур. ячейки"
+          }
+        }
       },
       {
         "id": "cd_preserve_life",
@@ -204,7 +245,13 @@
         "name_ru": "Благословенный целитель",
         "name_en": "Blessed Healer",
         "summary_ru": "Когда лечишь других заклинанием ≥1 ур.: ты тоже получаешь 2 + уровень ячейки хитов.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Самолечение",
+          "by_level": {
+            "6": "2 + ур. ячейки при лечении других"
+          }
+        }
       },
       {
         "id": "divine_strike_life",
@@ -227,7 +274,13 @@
         "name_ru": "Высшее исцеление",
         "name_en": "Supreme Healing",
         "summary_ru": "Лечение заклинаниями и Channel Divinity всегда использует максимум на костях.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Кости лечения",
+          "by_level": {
+            "17": "всегда максимум"
+          }
+        }
       }
     ],
     "light_domain": [
@@ -237,7 +290,13 @@
         "name_ru": "Доп. заговор",
         "name_en": "Bonus Cantrip",
         "summary_ru": "Знаешь свет (light).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заговор",
+          "by_level": {
+            "1": "light"
+          }
+        }
       },
       {
         "id": "warding_flare",
@@ -282,7 +341,13 @@
         "name_ru": "Улучшенная вспышка",
         "name_en": "Improved Flare",
         "summary_ru": "Оберегающую вспышку можно использовать, когда атакуют другое существо в 30 фт.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Warding Flare",
+          "by_level": {
+            "6": "можно на союзника в 30 фт."
+          }
+        }
       },
       {
         "id": "potent_spellcasting_light",
@@ -290,7 +355,13 @@
         "name_ru": "Мощное колдовство",
         "name_en": "Potent Spellcasting",
         "summary_ru": "+Мудр. к урону заговоров жреца.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заговоры",
+          "by_level": {
+            "8": "+Мудр. к урону"
+          }
+        }
       },
       {
         "id": "corona_of_light",
@@ -298,7 +369,20 @@
         "name_ru": "Корона света",
         "name_en": "Corona of Light",
         "summary_ru": "Действием: аура яркого света 60 фт.; враги с помехой на спас от огненных/лучистых твоих заклинаний.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "corona_of_light",
+          "pool_name_ru": "Корона света",
+          "track": "spend"
+        },
+        "scale": {
+          "label_ru": "Аура",
+          "by_level": {
+            "17": "яркий свет 60 фт.; помеха на спас vs твой огонь/луч"
+          }
+        }
       }
     ],
     "nature_domain": [
@@ -308,7 +392,22 @@
         "name_ru": "Служитель природы",
         "name_en": "Acolyte of Nature",
         "summary_ru": "Один заговор друида + владение Природой / Уходом за животными / Выживанием.",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "nature_skill",
+          "label_ru": "Навык",
+          "options": [
+            "nature",
+            "animal_handling",
+            "survival"
+          ]
+        },
+        "scale": {
+          "label_ru": "Заговор",
+          "by_level": {
+            "1": "+1 заговор друида"
+          }
+        }
       },
       {
         "id": "cd_charm_animals_and_plants",
@@ -336,7 +435,24 @@
         "name_ru": "Приглушение стихий",
         "name_en": "Dampen Elements",
         "summary_ru": "Реакция: существо в 30 фт. получает сопротивление выбранному типу урона (огонь/холод/…).",
-        "kind": "reaction"
+        "kind": "reaction",
+        "choice": {
+          "id": "dampen_element_type",
+          "label_ru": "Тип сопротивления (реакция)",
+          "options": [
+            "acid",
+            "cold",
+            "fire",
+            "lightning",
+            "thunder"
+          ]
+        },
+        "scale": {
+          "label_ru": "Реакция",
+          "by_level": {
+            "6": "существо в 30 фт. — сопротивление выбранному типу"
+          }
+        }
       },
       {
         "id": "divine_strike_nature",
@@ -359,7 +475,13 @@
         "name_ru": "Владыка природы",
         "name_en": "Master of Nature",
         "summary_ru": "Можешь командовать очарованными звездами/растениями телепатически.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Очарованные звери/растения",
+          "by_level": {
+            "17": "телепатические команды"
+          }
+        }
       }
     ],
     "tempest_domain": [
@@ -594,7 +716,13 @@
         "name_ru": "Жнец",
         "name_en": "Reaper",
         "summary_ru": "Выучи один некромантийный заговор. Заговор некромантии с одной целью живого существа можешь нацелить на второе в 5 фт. от первого.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Некро-заговор",
+          "by_level": {
+            "1": "+1 заговор; одноцель → две цели в 5 фт."
+          }
+        }
       },
       {
         "id": "cd_touch_of_death",
@@ -622,7 +750,13 @@
         "name_ru": "Неотвратимое разрушение",
         "name_en": "Inescapable Destruction",
         "summary_ru": "Некротический урон от твоих заклинаний и Channel Divinity игнорирует сопротивление некротическому.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Некротика",
+          "by_level": {
+            "6": "игнорирует сопротивление (заклинания + Channel)"
+          }
+        }
       },
       {
         "id": "divine_strike_death",
@@ -645,7 +779,13 @@
         "name_ru": "Улучшенный жнец",
         "name_en": "Improved Reaper",
         "summary_ru": "Некромантийное заклинание 1–5 ур. с одной целью живого: можешь нацелить второе в 5 фт. (отдельные спас/атака).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Некро 1–5 ур.",
+          "by_level": {
+            "17": "вторая цель в 5 фт."
+          }
+        }
       }
     ],
     "arcana_domain": [
@@ -655,7 +795,13 @@
         "name_ru": "Чародейский посвящённый",
         "name_en": "Arcane Initiate",
         "summary_ru": "Владение Магией; два заговора волшебника (считаются заговорами жреца).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Владения / заговоры",
+          "by_level": {
+            "1": "Магия; 2 заговора волшебника как жреца"
+          }
+        }
       },
       {
         "id": "cd_arcane_abjuration",
@@ -683,7 +829,13 @@
         "name_ru": "Разрушитель заклинаний",
         "name_en": "Spell Breaker",
         "summary_ru": "Когда восстанавливаешь хиты заклинанием ≥1 ур. существу: также можешь окончить одно заклинание на нём уровня ≤ уровня ячейки лечения.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При лечении заклинанием ≥1",
+          "by_level": {
+            "6": "снять заклинание ур. ≤ слота лечения"
+          }
+        }
       },
       {
         "id": "potent_spellcasting_arcana",
@@ -691,7 +843,13 @@
         "name_ru": "Мощное колдовство",
         "name_en": "Potent Spellcasting",
         "summary_ru": "+Мудр. к урону заговоров жреца.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заговоры",
+          "by_level": {
+            "8": "+Мудр. к урону"
+          }
+        }
       },
       {
         "id": "arcane_mastery",
@@ -699,7 +857,23 @@
         "name_ru": "Мастерство тайной магии",
         "name_en": "Arcane Mastery",
         "summary_ru": "Выбери по одному заклинанию волшебника 6/7/8/9 круга — всегда подготовлены, считаются заклинаниями жреца.",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "arcane_mastery_picks",
+          "label_ru": "Заклинания волшебника (всегда подготовлены)",
+          "options": [
+            "wizard_6th",
+            "wizard_7th",
+            "wizard_8th",
+            "wizard_9th"
+          ]
+        },
+        "scale": {
+          "label_ru": "Круги",
+          "by_level": {
+            "17": "по одному 6/7/8/9"
+          }
+        }
       }
     ],
     "forge_domain": [
@@ -777,7 +951,13 @@
         "name_ru": "Круг смертности",
         "name_en": "Circle of Mortality",
         "summary_ru": "Лечение существа с 0 хитов — максимум на костях. Заговор spare the dying на 30 фт. бонусным действием.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Лечение с 0",
+          "by_level": {
+            "1": "макс. на костях; spare the dying 30 фт. бонусным"
+          }
+        }
       },
       {
         "id": "eyes_of_the_grave",
@@ -839,7 +1019,13 @@
         "name_ru": "Мощное колдовство",
         "name_en": "Potent Spellcasting",
         "summary_ru": "+Мудр. к урону заговоров жреца.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заговоры",
+          "by_level": {
+            "8": "+Мудр. к урону"
+          }
+        }
       },
       {
         "id": "keeper_of_souls",
@@ -847,7 +1033,13 @@
         "name_ru": "Хранитель душ",
         "name_en": "Keeper of Souls",
         "summary_ru": "Когда видимое существо в 60 фт. умирает: ты или союзник в 60 фт. получает хиты = ур. жреца (1×/ход).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При смерти в 60 фт.",
+          "by_level": {
+            "17": "ты/союзник получают хиты = ур. жреца (1×/ход)"
+          }
+        }
       }
     ],
     "order_domain": [
@@ -927,7 +1119,16 @@
         "name_ru": "Орудие мира",
         "name_en": "Implement of Peace",
         "summary_ru": "Владение Проницательностью / Выступлением / Убеждением (на выбор).",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "implement_of_peace_skill",
+          "label_ru": "Навык",
+          "options": [
+            "insight",
+            "performance",
+            "persuasion"
+          ]
+        }
       },
       {
         "id": "emboldening_bond",
@@ -971,7 +1172,13 @@
         "name_ru": "Защитная связь",
         "name_en": "Protective Bond",
         "summary_ru": "Пока действует Укрепляющая связь: связанный может реакцией телепорт к союзнику в связи, получившему урон, и принять этот урон на себя.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Реакция связанного",
+          "by_level": {
+            "6": "телепорт к союзнику под уроном и принять урон"
+          }
+        }
       },
       {
         "id": "potent_spellcasting_peace",
@@ -979,7 +1186,13 @@
         "name_ru": "Мощное колдовство",
         "name_en": "Potent Spellcasting",
         "summary_ru": "+Мудр. к урону заговоров жреца.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заговоры",
+          "by_level": {
+            "8": "+Мудр. к урону"
+          }
+        }
       },
       {
         "id": "expansive_bond",
@@ -987,7 +1200,13 @@
         "name_ru": "Обширная связь",
         "name_en": "Expansive Bond",
         "summary_ru": "Дистанция связи 60 фт.; Protective Bond даёт сопротивление принятому урону.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Связь",
+          "by_level": {
+            "17": "60 фт.; Protective Bond → сопротивление принятому урону"
+          }
+        }
       }
     ],
     "twilight_domain": [

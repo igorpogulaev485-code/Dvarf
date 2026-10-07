@@ -3,7 +3,7 @@
     "purpose": "TCoE/ERftLW Artificer + 4 specialists for sheet unlock",
     "edition": "2014",
     "source": "erftlw+tcoe",
-    "notes_ru": "Half caster already in casterProgression. Infusions multi-pick. Flash of Genius = Int-mod. 4 специалиста каркас."
+    "notes_ru": "Half caster already in casterProgression. Infusions multi-pick. Flash of Genius = Int-mod. 4 специалиста каркас. H4b depth wave 2: casters/artificer/druid scales·pools."
   },
   "class_slug": "artificer",
   "features": [
@@ -183,7 +183,13 @@
         "name_ru": "Владение инструментами",
         "name_en": "Tool Proficiency",
         "summary_ru": "Инструменты алхимика.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Владения",
+          "by_level": {
+            "3": "инструменты алхимика"
+          }
+        }
       },
       {
         "id": "alchemist_spells",
@@ -191,7 +197,13 @@
         "name_ru": "Заклинания алхимика",
         "name_en": "Alchemist Spells",
         "summary_ru": "Всегда подготовлены заклинания алхимика (3/5/9/13/17).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Всегда подготовлены",
+          "by_level": {
+            "3": "список алхимика"
+          }
+        }
       },
       {
         "id": "experimental_elixir",
@@ -227,7 +239,13 @@
         "name_ru": "Знаток алхимии",
         "name_en": "Alchemical Savant",
         "summary_ru": "К одному броску урона/лечения заклинания изобретателя (кислота/огонь/некро/яд/лечение) +мод. Инт.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Урон/лечение",
+          "by_level": {
+            "5": "+Инт к одному броску (кислота/огонь/некро/яд/лечение)"
+          }
+        }
       },
       {
         "id": "restorative_reagents",
@@ -268,7 +286,13 @@
         "name_ru": "Владение инструментами",
         "name_en": "Tool Proficiency",
         "summary_ru": "Инструменты резчика по дереву.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Владения",
+          "by_level": {
+            "3": "резчик по дереву"
+          }
+        }
       },
       {
         "id": "artillerist_spells",
@@ -276,7 +300,13 @@
         "name_ru": "Заклинания артиллериста",
         "name_en": "Artillerist Spells",
         "summary_ru": "Всегда подготовлены заклинания артиллериста.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Всегда подготовлены",
+          "by_level": {
+            "3": "список артиллериста"
+          }
+        }
       },
       {
         "id": "eldritch_cannon",
@@ -308,7 +338,13 @@
         "name_ru": "Магическое огнестрельное",
         "name_en": "Arcane Firearm",
         "summary_ru": "После прод. отдыха начертай на жезле/посохе/ижезле знаки: при использовании как фокуса к одному броску урона заклинания изобретателя +1к8.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Фокус",
+          "by_level": {
+            "5": "+1к8 к одному броску урона заклинания"
+          }
+        }
       },
       {
         "id": "explosive_cannon",
@@ -316,7 +352,13 @@
         "name_ru": "Взрывная пушка",
         "name_en": "Explosive Cannon",
         "summary_ru": "Урон пушки +1к8. Действием уничтожить пушку: существа в 20 фт. — 3к8 силового (спас Ловк. пол.).",
-        "kind": "action"
+        "kind": "action",
+        "scale": {
+          "label_ru": "Пушка",
+          "by_level": {
+            "9": "+1к8 урона; взрыв 3к8 силового в 20 фт."
+          }
+        }
       },
       {
         "id": "fortified_position",
@@ -324,7 +366,13 @@
         "name_ru": "Укреплённая позиция",
         "name_en": "Fortified Position",
         "summary_ru": "Можешь иметь две пушки сразу. Ты и союзники в 10 фт. от твоей пушки получаете полуукрытие.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Пушки",
+          "by_level": {
+            "15": "до 2 сразу; полуукрытие в 10 фт."
+          }
+        }
       }
     ],
     "battle_smith": [
@@ -334,7 +382,13 @@
         "name_ru": "Владение инструментами",
         "name_en": "Tool Proficiency",
         "summary_ru": "Инструменты кузнеца; воинское оружие.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Владения",
+          "by_level": {
+            "3": "кузнец; воинское оружие"
+          }
+        }
       },
       {
         "id": "battle_smith_spells",
@@ -342,7 +396,13 @@
         "name_ru": "Заклинания боевого кузнеца",
         "name_en": "Battle Smith Spells",
         "summary_ru": "Всегда подготовлены заклинания боевого кузнеца.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Всегда подготовлены",
+          "by_level": {
+            "3": "список боевого кузнеца"
+          }
+        }
       },
       {
         "id": "battle_ready",
@@ -350,7 +410,13 @@
         "name_ru": "Готов к бою",
         "name_en": "Battle Ready",
         "summary_ru": "Владение воинским оружием. Для магического оружия атака и урон используют Интеллект вместо Силы/Ловкости.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Маг. оружие",
+          "by_level": {
+            "3": "атака/урон от Интеллекта"
+          }
+        }
       },
       {
         "id": "steel_defender",
@@ -358,7 +424,22 @@
         "name_ru": "Стальной защитник",
         "name_en": "Steel Defender",
         "summary_ru": "Спутник Steel Defender (статблок). Бонусным командовать. Repair бонусным. При смерти: 1 ч. с smith's tools или ячейка ≥1 — вернуть с 1 хитом.",
-        "kind": "passive"
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "steel_defender",
+          "pool_name_ru": "Стальной защитник",
+          "track": "stock",
+          "stock_gain_label_ru": "Создать / вернуть (1 ч. + smith's tools или заклинание)",
+          "stock_spend_label_ru": "Защитник уничтожен"
+        },
+        "scale": {
+          "label_ru": "Команда",
+          "by_level": {
+            "3": "бонусным; Repair бонусным"
+          }
+        }
       },
       {
         "id": "extra_attack_battle_smith",
@@ -366,7 +447,13 @@
         "name_ru": "Доп. атака",
         "name_en": "Extra Attack",
         "summary_ru": "При действии Атака — две атаки.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Атаки",
+          "by_level": {
+            "5": "2 при действии Атака"
+          }
+        }
       },
       {
         "id": "arcane_jolt",
@@ -397,7 +484,13 @@
         "name_ru": "Улучшенный защитник",
         "name_en": "Improved Defender",
         "summary_ru": "Arcane Jolt 4к6. Защитник +2 КД; его Deflect Attack наносит 1к4+Инт силового.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Улучшения",
+          "by_level": {
+            "15": "Jolt 4к6; защитник +2 КД; Deflect 1к4+Инт"
+          }
+        }
       }
     ],
     "armorer": [
@@ -407,7 +500,13 @@
         "name_ru": "Инструменты ремесла",
         "name_en": "Tools of the Trade",
         "summary_ru": "Тяжёлые доспехи; инструменты кузнеца. 1 ч.: модифицировать доспех в Arcane Armor.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Владения",
+          "by_level": {
+            "3": "тяжёлые доспехи; кузнец; Arcane Armor за 1 ч."
+          }
+        }
       },
       {
         "id": "armorer_spells",
@@ -415,7 +514,13 @@
         "name_ru": "Заклинания бронника",
         "name_en": "Armorer Spells",
         "summary_ru": "Всегда подготовлены заклинания бронника.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Всегда подготовлены",
+          "by_level": {
+            "3": "список бронника"
+          }
+        }
       },
       {
         "id": "arcane_armor",
@@ -423,7 +528,13 @@
         "name_ru": "Магический доспех",
         "name_en": "Arcane Armor",
         "summary_ru": "Доспех как фокус; нет требования Силы; снимается действием; шлем — нет глухоты от шлема; карманы Extra Dimensional.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Доспех",
+          "by_level": {
+            "3": "фокус; без требования Силы; снять действием"
+          }
+        }
       },
       {
         "id": "armor_model",
@@ -444,7 +555,13 @@
         "name_ru": "Доп. атака",
         "name_en": "Extra Attack",
         "summary_ru": "При Атаке — две атаки.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Атаки",
+          "by_level": {
+            "5": "2 при действии Атака"
+          }
+        }
       },
       {
         "id": "armor_modifications",
@@ -452,7 +569,13 @@
         "name_ru": "Модификации доспеха",
         "name_en": "Armor Modifications",
         "summary_ru": "+2 известных инфузии и +2 инфузированных предмета — только на части Arcane Armor (считаются отдельно).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Инфузии на доспех",
+          "by_level": {
+            "9": "+2 известных и +2 предметов (только части Arcane Armor)"
+          }
+        }
       },
       {
         "id": "perfected_armor",

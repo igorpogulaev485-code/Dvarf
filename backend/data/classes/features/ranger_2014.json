@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Ranger class + official archetypes for sheet unlock",
     "edition": "2014",
     "source": "phb+xgte+tcoe+ftd",
-    "notes_ru": "Класс: Favored Enemy / Natural Explorer (picks), Fighting Style, half-caster, Primeval Awareness (slot). Архетипы — каркас умений; глубокая полировка позже."
+    "notes_ru": "Класс: Favored Enemy / Natural Explorer (picks), Fighting Style, half-caster, Primeval Awareness (slot). Архетипы — каркас умений; глубокая полировка позже. H4b depth: martial/half-caster pools/scales/linked ki·BI."
   },
   "class_slug": "ranger",
   "features": [
@@ -260,12 +260,20 @@
         "summary_ru": "PHB: зверь КР≤¼ с бонусами мастерства. Tasha: Primal Companion (Beast of the Land/Sea/Sky). Команда бонусным.",
         "kind": "passive",
         "choice": {
-          "id": "companion_variant",
-          "label_ru": "Вариант спутника",
+          "id": "companion_type",
+          "label_ru": "Спутник",
           "options": [
-            "beast_phb",
-            "primal_companion_tasha"
+            "phb_beast_cr_1_4",
+            "beast_of_the_land",
+            "beast_of_the_sea",
+            "beast_of_the_sky"
           ]
+        },
+        "scale": {
+          "label_ru": "Команда",
+          "by_level": {
+            "3": "бонусным; КР≤¼ или Primal Companion (Tasha)"
+          }
         }
       },
       {
@@ -274,7 +282,13 @@
         "name_ru": "Исключительная дрессировка",
         "name_en": "Exceptional Training",
         "summary_ru": "Пока спутник не атакует, можешь командовать бонусным: Рывок/Отход/Помощь. Атаки спутника считаются магическими для сопротивления/иммунитета.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Спутник",
+          "by_level": {
+            "7": "бонусным Рывок/Отход/Помощь; атаки магические"
+          }
+        }
       },
       {
         "id": "bestial_fury",
@@ -282,7 +296,13 @@
         "name_ru": "Звериная ярость",
         "name_en": "Bestial Fury",
         "summary_ru": "При команде Атака спутник делает две атаки.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Атаки спутника",
+          "by_level": {
+            "11": "2 при команде Атака"
+          }
+        }
       },
       {
         "id": "share_spells",
@@ -290,7 +310,13 @@
         "name_ru": "Общие заклинания",
         "name_en": "Share Spells",
         "summary_ru": "Заклинания с дистанцией «на себя» можешь наложить и на спутника при касании.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "На себя + спутник",
+          "by_level": {
+            "15": "касанием при касте на себя"
+          }
+        }
       }
     ],
     "gloom_stalker": [
@@ -300,7 +326,13 @@
         "name_ru": "Ужасный засаденик",
         "name_en": "Dread Ambusher",
         "summary_ru": "+мод. Мудр. к инициативе. В первый ход боя: скорость +10 фт.; при действии Атака — одна доп. атака оружием, при попадании +1к8 урона оружия.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Доп. атака (1-й ход)",
+          "by_level": {
+            "3": "+1к8 урона оружия"
+          }
+        }
       },
       {
         "id": "umbral_sight",
@@ -308,7 +340,13 @@
         "name_ru": "Сумрачное зрение",
         "name_en": "Umbral Sight",
         "summary_ru": "Тёмное зрение 60 фт. (или +30, если уже есть). В темноте невидимы для существ, полагающихся только на тёмное зрение.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Тёмное зрение",
+          "by_level": {
+            "3": "60 фт. (или +30)"
+          }
+        }
       },
       {
         "id": "iron_mind",
@@ -316,7 +354,16 @@
         "name_ru": "Железный разум",
         "name_en": "Iron Mind",
         "summary_ru": "Владение спасом Мудрости (или Интеллекта/Харизмы, если Мудрость уже есть).",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "iron_mind_save",
+          "label_ru": "Владение спасом",
+          "options": [
+            "wisdom",
+            "intelligence",
+            "charisma"
+          ]
+        }
       },
       {
         "id": "stalkers_flurry",
@@ -324,7 +371,13 @@
         "name_ru": "Шквал сталкера",
         "name_en": "Stalker's Flurry",
         "summary_ru": "При промахе атакой оружием в свой ход — одна доп. атака оружием.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При промахе",
+          "by_level": {
+            "11": "1 доп. атака оружием в свой ход"
+          }
+        }
       },
       {
         "id": "shadowy_dodge",
@@ -332,7 +385,13 @@
         "name_ru": "Теневое уклонение",
         "name_en": "Shadowy Dodge",
         "summary_ru": "Реакция при атаке по тебе: помеха атакующему (если не спрятан/невидим для тебя).",
-        "kind": "reaction"
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Реакция",
+          "by_level": {
+            "15": "помеха атакующему (если видишь)"
+          }
+        }
       }
     ],
     "horizon_walker": [
@@ -422,7 +481,22 @@
         "name_ru": "Добыча истребителя",
         "name_en": "Slayer's Prey",
         "summary_ru": "Бонусным: пометить существо в 60 фт. 1× / ход первый урон оружием по метке +1к6.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "manual",
+          "pool_id": "slayers_prey",
+          "pool_name_ru": "Добыча истребителя",
+          "track": "stock",
+          "stock_gain_label_ru": "Пометить (бонусным)",
+          "stock_spend_label_ru": "Снять метку"
+        },
+        "scale": {
+          "label_ru": "Доп. урон",
+          "by_level": {
+            "3": "+1к6 (1×/ход, первая атака оружием)"
+          }
+        }
       },
       {
         "id": "supernatural_defense",
@@ -430,7 +504,13 @@
         "name_ru": "Сверхъестественная защита",
         "name_en": "Supernatural Defense",
         "summary_ru": "Спас или проверка против помеченной добычи / её способности: +1к6.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Против добычи",
+          "by_level": {
+            "7": "+1к6 к спас/проверке"
+          }
+        }
       },
       {
         "id": "magic_users_nemesis",
@@ -453,7 +533,13 @@
         "name_ru": "Контрудар истребителя",
         "name_en": "Slayer's Counter",
         "summary_ru": "Реакция при провале спаса vs добычи: атака оружием по ней.",
-        "kind": "reaction"
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Реакция",
+          "by_level": {
+            "15": "при провале спаса vs добычи — атака оружием"
+          }
+        }
       }
     ],
     "fey_wanderer": [
@@ -478,7 +564,13 @@
         "name_ru": "Магия странника фей",
         "name_en": "Fey Wanderer Magic",
         "summary_ru": "Доп. известные заклинания архетипа. +мод. Мудрости к проверкам Харизмы.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заклинания / Хар.",
+          "by_level": {
+            "3": "доп. список; +Мудр. к проверкам Харизмы"
+          }
+        }
       },
       {
         "id": "otherworldly_glamour",
@@ -486,7 +578,16 @@
         "name_ru": "Иной блеск",
         "name_en": "Otherworldly Glamour",
         "summary_ru": "Владение Обманом, Исполнением или Убеждением (выбор).",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "fey_glamour_skill",
+          "label_ru": "Навык",
+          "options": [
+            "deception",
+            "performance",
+            "persuasion"
+          ]
+        }
       },
       {
         "id": "beguiling_twist",
@@ -494,7 +595,13 @@
         "name_ru": "Обманный поворот",
         "name_en": "Beguiling Twist",
         "summary_ru": "Преимущество на спас vs очарования/испуг. Реакция при успехе — передать очар./испуг другому.",
-        "kind": "reaction"
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Реакция",
+          "by_level": {
+            "7": "преим. vs очар./испуг; при успехе — передать другому в 120 фт."
+          }
+        }
       },
       {
         "id": "fey_reinforcements",
@@ -536,7 +643,23 @@
         "name_ru": "Собранный рой",
         "name_en": "Gathered Swarm",
         "summary_ru": "1× / ход при попадании атакой: рой — +1к6 колющего; или сдвиг цели 5 фт.; или сдвиг себя 5 фт.",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "swarm_effect",
+          "label_ru": "Эффект роя 1×/ход",
+          "options": [
+            "damage_1d6",
+            "push_target_5",
+            "self_move_5"
+          ]
+        },
+        "scale": {
+          "label_ru": "Урон",
+          "by_level": {
+            "3": "1к6",
+            "11": "1к8 (Mighty Swarm)"
+          }
+        }
       },
       {
         "id": "swarmkeeper_magic",
@@ -544,7 +667,13 @@
         "name_ru": "Магия хранителя роя",
         "name_en": "Swarmkeeper Magic",
         "summary_ru": "Доп. известные заклинания архетипа.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заклинания",
+          "by_level": {
+            "3": "доп. известные архетипа"
+          }
+        }
       },
       {
         "id": "writhing_tide",
@@ -568,7 +697,13 @@
         "name_ru": "Могучий рой",
         "name_en": "Mighty Swarm",
         "summary_ru": "Урон роя 1к8; усиленные эффекты сдвига/прикрытия.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Рой",
+          "by_level": {
+            "11": "1к8; усиленный сдвиг/прикрытие"
+          }
+        }
       },
       {
         "id": "swarming_dispersal",
