@@ -11,6 +11,11 @@ import {
   type AbilityScoreKey,
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
+import {
+  ARMORER_ARMOR_MODELS,
+  infusionById,
+  infusionLabel,
+} from '../../shared/dnd/artificerInfusions'
 import { druidLandLabel } from '../../shared/dnd/druidLandChoices'
 import { rangerChoiceLabel } from '../../shared/dnd/rangerChoices'
 import {
@@ -309,13 +314,16 @@ function FeatureResourceControls({
 
 function choiceOptionLabel(optionId: string): string {
   const pact = WARLOCK_PACT_BOONS.find((row) => row.id === optionId)
+  const armorModel = ARMORER_ARMOR_MODELS.find((row) => row.id === optionId)
   return (
     fightingStyleById(optionId)?.nameRu ||
     rangerChoiceLabel(optionId) ||
     druidLandLabel(optionId) ||
     metamagicLabel(optionId) ||
     invocationLabel(optionId) ||
+    infusionLabel(optionId) ||
     pact?.nameRu ||
+    armorModel?.nameRu ||
     optionId
   )
 }
@@ -388,6 +396,18 @@ function FeatureChoiceControls({
               <Text key={id} tone="muted">
                 {inv.nameRu}
                 {prereq ? ` (${prereq})` : ''}: {inv.summaryRu}
+              </Text>
+            )
+          })
+        : null}
+      {choice?.options_from === 'artificer_infusions'
+        ? selectedList.map((id) => {
+            const inf = infusionById(id)
+            if (!inf) return null
+            return (
+              <Text key={id} tone="muted">
+                {inf.nameRu}
+                {inf.minLevel ? ` (с ${inf.minLevel} ур.)` : ''}: {inf.summaryRu}
               </Text>
             )
           })
@@ -945,7 +965,7 @@ export function ClassFeaturesPanel({
 
         {byClass.length === 0 ? (
           <Text tone="muted">
-            Пока заполнены: … Друид, Волшебник (H4 в docs/feature_resource_contract.md).
+            Пока заполнены: … Волшебник, Изобретатель (H4 в docs/feature_resource_contract.md).
           </Text>
         ) : null}
 

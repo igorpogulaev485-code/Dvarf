@@ -104,6 +104,7 @@
 | Bard / **8** оф. коллегий | 2, 4b, 5, 8, 11 (BI Cha-mod; Font upgrades reset long→short; Superior Inspiration; Swords style) |
 | Druid / **7** оф. кругов | 2, 3, 4b, 5, 11 (Wild Shape 2× short; Land type pick; PB/Wis pools on circles) |
 | Wizard / **11** оф. традиций | 2, 5, 6, 11 (Arcane Recovery; Portent stock 2→3; Bladesong PB; Signature Spells) |
+| Artificer / **4** оф. специалиста | 2, 4b, 5, 11 (Infusions multi-pick 4→12; Flash of Genius Int; Armorer model) |
 
 ## H4 — порядок пакетов классов
 
@@ -120,7 +121,9 @@
 9. ~~Бард~~ (BI + Font short + Superior Inspiration; 8 коллегий каркас)
 10. ~~Друид~~ (Wild Shape + Land pick; 7 кругов каркас)
 11. ~~Волшебник~~ (Arcane Recovery + Portent/Bladesong; 11 традиций каркас)
-12. **Изобретатель** ← следующий
+12. ~~Изобретатель~~ (инфузии + Flash of Genius; 4 специалиста каркас)
+
+Далее: **полировка архетипов** общим проходом (без деплоя).
 
 ## Не в v1
 

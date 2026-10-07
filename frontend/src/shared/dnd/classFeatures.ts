@@ -1,6 +1,11 @@
 /** Class/subclass feature unlock for the digital sheet (2014). */
 
 import type { ClassLevelEntry } from './classLevels'
+import {
+  ARMORER_ARMOR_MODELS,
+  ARTIFICER_INFUSIONS,
+} from './artificerInfusions'
+import artificerPack from './data/artificer_2014.json'
 import barbarianPack from './data/barbarian_2014.json'
 import bardPack from './data/bard_2014.json'
 import clericPack from './data/cleric_2014.json'
@@ -110,6 +115,8 @@ export type FeatureChoiceDef = {
     | 'warlock_pact_boons'
     | 'bard_swords_fighting_styles'
     | 'druid_land_types'
+    | 'artificer_infusions'
+    | 'armorer_armor_models'
   options?: string[]
   /** Multi-select cap by class level (Metamagic 2/3/4). */
   max_picks_by_level?: Record<string, number>
@@ -171,6 +178,7 @@ type FeaturePack = {
 }
 
 const LOCAL_PACKS: Record<string, FeaturePack> = {
+  artificer: artificerPack as FeaturePack,
   barbarian: barbarianPack as FeaturePack,
   bard: bardPack as FeaturePack,
   cleric: clericPack as FeaturePack,
@@ -233,7 +241,9 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         choiceRaw.options_from === 'warlock_invocations' ||
         choiceRaw.options_from === 'warlock_pact_boons' ||
         choiceRaw.options_from === 'bard_swords_fighting_styles' ||
-        choiceRaw.options_from === 'druid_land_types'
+        choiceRaw.options_from === 'druid_land_types' ||
+        choiceRaw.options_from === 'artificer_infusions' ||
+        choiceRaw.options_from === 'armorer_armor_models'
           ? choiceRaw.options_from
           : undefined
       const options = Array.isArray(choiceRaw.options)
@@ -361,6 +371,12 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
   }
   if (choice.options_from === 'druid_land_types') {
     return DRUID_LAND_TYPES.map((row) => row.id)
+  }
+  if (choice.options_from === 'artificer_infusions') {
+    return ARTIFICER_INFUSIONS.map((row) => row.id)
+  }
+  if (choice.options_from === 'armorer_armor_models') {
+    return ARMORER_ARMOR_MODELS.map((row) => row.id)
   }
   return choice.options ? [...choice.options] : []
 }
@@ -609,6 +625,8 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   друид: 'druid',
   wizard: 'wizard',
   волшебник: 'wizard',
+  artificer: 'artificer',
+  изобретатель: 'artificer',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {
@@ -811,6 +829,14 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   'военная магия': 'war_magic',
   order_of_scribes: 'order_of_scribes',
   'орден писцов': 'order_of_scribes',
+  alchemist: 'alchemist',
+  алхимик: 'alchemist',
+  artillerist: 'artillerist',
+  артиллерист: 'artillerist',
+  battle_smith: 'battle_smith',
+  'боевой кузнец': 'battle_smith',
+  armorer: 'armorer',
+  бронник: 'armorer',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -899,6 +925,10 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'bladesinging',
   'war_magic',
   'order_of_scribes',
+  'alchemist',
+  'artillerist',
+  'battle_smith',
+  'armorer',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {

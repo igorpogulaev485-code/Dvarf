@@ -1,0 +1,466 @@
+{
+  "meta": {
+    "purpose": "TCoE/ERftLW Artificer + 4 specialists for sheet unlock",
+    "edition": "2014",
+    "source": "erftlw+tcoe",
+    "notes_ru": "Half caster already in casterProgression. Infusions multi-pick. Flash of Genius = Int-mod. 4 специалиста каркас."
+  },
+  "class_slug": "artificer",
+  "features": [
+    {
+      "id": "magical_tinkering",
+      "level": 1,
+      "name_ru": "Магическое мастерство",
+      "name_en": "Magical Tinkering",
+      "summary_ru": "Действием на Tiny немагический объект: свет / сообщение / запах / звук. Число объектов = мод. Инт (мин. 1).",
+      "kind": "action"
+    },
+    {
+      "id": "spellcasting_artificer",
+      "level": 1,
+      "name_ru": "Использование заклинаний",
+      "name_en": "Spellcasting",
+      "summary_ru": "Half-up кастер с 1 ур. Интеллект — базовая. Подготовка = Инт + ½ ур. изобретателя. Фокус — инструменты изобретателя.",
+      "kind": "passive"
+    },
+    {
+      "id": "infuse_item",
+      "level": 2,
+      "name_ru": "Инфузия предмета",
+      "name_en": "Infuse Item",
+      "summary_ru": "Выучи инфузии; в конце прод. отдыха отметь предметы (лимит по таблице). При замене инфузии старая гаснет.",
+      "kind": "passive",
+      "choice": {
+        "id": "infusions",
+        "label_ru": "Инфузии",
+        "options_from": "artificer_infusions",
+        "max_picks_by_level": {
+          "2": 4,
+          "6": 6,
+          "10": 8,
+          "14": 10,
+          "18": 12
+        }
+      },
+      "scale": {
+        "label_ru": "Известно / предметов",
+        "by_level": {
+          "2": "4 / 2",
+          "6": "6 / 3",
+          "10": "8 / 4",
+          "14": "10 / 5",
+          "18": "12 / 6"
+        }
+      }
+    },
+    {
+      "id": "artificer_specialist",
+      "level": 3,
+      "name_ru": "Специализация изобретателя",
+      "name_en": "Artificer Specialist",
+      "summary_ru": "Выбери специалиста (Алхимик, Артиллерист, Боевой кузнец, Бронник).",
+      "kind": "passive"
+    },
+    {
+      "id": "the_right_tool_for_the_job",
+      "level": 3,
+      "name_ru": "Нужный инструмент",
+      "name_en": "The Right Tool for the Job",
+      "summary_ru": "1 ч. с инструментами вора: создать любой набор ремесленных инструментов; существует пока не создашь новый.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_4_artificer",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "tool_expertise",
+      "level": 6,
+      "name_ru": "Компетентность в инструментах",
+      "name_en": "Tool Expertise",
+      "summary_ru": "Бонус мастерства удвоен для любых проверок с инструментами, которыми владеешь.",
+      "kind": "passive"
+    },
+    {
+      "id": "flash_of_genius",
+      "level": 7,
+      "name_ru": "Вспышка гениальности",
+      "name_en": "Flash of Genius",
+      "summary_ru": "Реакция: когда ты или существо в 30 фт. проходит проверку/спас — добавь мод. Инт. Число = мод. Инт / прод. отдых.",
+      "kind": "reaction",
+      "resource": {
+        "uses": 1,
+        "uses_from": "ability_modifier",
+        "ability": "int",
+        "recharge": "long_rest",
+        "pool_id": "flash_of_genius",
+        "pool_name_ru": "Вспышка гениальности",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "asi_8_artificer",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "magic_item_adept",
+      "level": 10,
+      "name_ru": "Адепт магических предметов",
+      "name_en": "Magic Item Adept",
+      "summary_ru": "Attunement: до 4 предметов. Крафт common/uncommon — четверть времени и полцены золота.",
+      "kind": "passive"
+    },
+    {
+      "id": "spell_storing_item",
+      "level": 11,
+      "name_ru": "Предмет, хранящий заклинание",
+      "name_en": "Spell-Storing Item",
+      "summary_ru": "После прод. отдыха вложить в оружие/предмет заклинание ≤1/2 ур. изобретателя (1 действие, ≤2 ур. слота). Заряды = 2×Инт. Пока не вложишь снова.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_12_artificer",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "magic_item_savant",
+      "level": 14,
+      "name_ru": "Знаток магических предметов",
+      "name_en": "Magic Item Savant",
+      "summary_ru": "Attunement до 5. Игнорируй требования расы/класса/уровня/заклинателя для attunement и использования.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_16_artificer",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "magic_item_master",
+      "level": 18,
+      "name_ru": "Мастер магических предметов",
+      "name_en": "Magic Item Master",
+      "summary_ru": "Attunement до 6 предметов.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_19_artificer",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "soul_of_artifice",
+      "level": 20,
+      "name_ru": "Душа изобретения",
+      "name_en": "Soul of Artifice",
+      "summary_ru": "+1 ко всем спасам за каждый attuned магический предмет. При 0 хитов реакцией: прекратить одну инфузию → стабилизация на 1 хите.",
+      "kind": "reaction"
+    }
+  ],
+  "subclasses": {
+    "alchemist": [
+      {
+        "id": "tool_proficiency_alchemist",
+        "level": 3,
+        "name_ru": "Владение инструментами",
+        "name_en": "Tool Proficiency",
+        "summary_ru": "Инструменты алхимика.",
+        "kind": "passive"
+      },
+      {
+        "id": "alchemist_spells",
+        "level": 3,
+        "name_ru": "Заклинания алхимика",
+        "name_en": "Alchemist Spells",
+        "summary_ru": "Всегда подготовлены заклинания алхимика (3/5/9/13/17).",
+        "kind": "passive"
+      },
+      {
+        "id": "experimental_elixir",
+        "level": 3,
+        "name_ru": "Экспериментальный эликсир",
+        "name_en": "Experimental Elixir",
+        "summary_ru": "После прод. отдыха создай эликсир(ы) (d6 эффект). Число свободных = см. ур.; доп. за ячейку. Сброс на прод. отдыхе.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "scale_uses": {
+            "3": 1,
+            "6": 2,
+            "15": 3
+          },
+          "pool_id": "experimental_elixir",
+          "pool_name_ru": "Экспериментальный эликсир",
+          "track": "spend"
+        },
+        "scale": {
+          "label_ru": "Бесплатных эликсиров",
+          "by_level": {
+            "3": "1",
+            "6": "2",
+            "15": "3"
+          }
+        }
+      },
+      {
+        "id": "alchemical_savant",
+        "level": 5,
+        "name_ru": "Знаток алхимии",
+        "name_en": "Alchemical Savant",
+        "summary_ru": "К одному броску урона/лечения заклинания изобретателя (кислота/огонь/некро/яд/лечение) +мод. Инт.",
+        "kind": "passive"
+      },
+      {
+        "id": "restorative_reagents",
+        "level": 9,
+        "name_ru": "Восстанавливающие реагенты",
+        "name_en": "Restorative Reagents",
+        "summary_ru": "Эликсир даёт 2к6+Инт вр. хитов. Бесплатный lesser restoration PB раз / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "restorative_reagents",
+          "pool_name_ru": "Lesser Restoration (реагенты)",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "chemical_mastery",
+        "level": 15,
+        "name_ru": "Химическое мастерство",
+        "name_en": "Chemical Mastery",
+        "summary_ru": "Сопр. кислоте и яду; иммунитет к отравленному. Бесплатные greater restoration и heal 1× / прод. отдых каждое.",
+        "kind": "action",
+        "resource": {
+          "uses": 2,
+          "recharge": "long_rest",
+          "pool_id": "chemical_mastery",
+          "pool_name_ru": "Химическое мастерство",
+          "track": "spend"
+        }
+      }
+    ],
+    "artillerist": [
+      {
+        "id": "tool_proficiency_artillerist",
+        "level": 3,
+        "name_ru": "Владение инструментами",
+        "name_en": "Tool Proficiency",
+        "summary_ru": "Инструменты резчика по дереву.",
+        "kind": "passive"
+      },
+      {
+        "id": "artillerist_spells",
+        "level": 3,
+        "name_ru": "Заклинания артиллериста",
+        "name_en": "Artillerist Spells",
+        "summary_ru": "Всегда подготовлены заклинания артиллериста.",
+        "kind": "passive"
+      },
+      {
+        "id": "eldritch_cannon",
+        "level": 3,
+        "name_ru": "Мистическая пушка",
+        "name_en": "Eldritch Cannon",
+        "summary_ru": "Действием создай пушку (Flamethrower / Force Ballista / Protector) на 1 ч. 1× / короткий или прод.; сброс ячейкой.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "eldritch_cannon",
+          "pool_name_ru": "Мистическая пушка",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "arcane_firearm",
+        "level": 5,
+        "name_ru": "Магическое огнестрельное",
+        "name_en": "Arcane Firearm",
+        "summary_ru": "Жезл/посох/ижезл как фокус: к одному броску урона заклинания изобретателя +1к8.",
+        "kind": "passive"
+      },
+      {
+        "id": "explosive_cannon",
+        "level": 9,
+        "name_ru": "Взрывная пушка",
+        "name_en": "Explosive Cannon",
+        "summary_ru": "Урон пушки +1к8. Действием взорвать пушку: 3к8 силового в 20 фт., спас Ловк.",
+        "kind": "action"
+      },
+      {
+        "id": "fortified_position",
+        "level": 15,
+        "name_ru": "Укреплённая позиция",
+        "name_en": "Fortified Position",
+        "summary_ru": "Две пушки сразу. Ты и союзники в 10 фт. от пушки — полуукрытие.",
+        "kind": "passive"
+      }
+    ],
+    "battle_smith": [
+      {
+        "id": "tool_proficiency_battle_smith",
+        "level": 3,
+        "name_ru": "Владение инструментами",
+        "name_en": "Tool Proficiency",
+        "summary_ru": "Инструменты кузнеца; воинское оружие.",
+        "kind": "passive"
+      },
+      {
+        "id": "battle_smith_spells",
+        "level": 3,
+        "name_ru": "Заклинания боевого кузнеца",
+        "name_en": "Battle Smith Spells",
+        "summary_ru": "Всегда подготовлены заклинания боевого кузнеца.",
+        "kind": "passive"
+      },
+      {
+        "id": "battle_ready",
+        "level": 3,
+        "name_ru": "Готов к бою",
+        "name_en": "Battle Ready",
+        "summary_ru": "Для магического оружия атака/урон — мод. Интеллекта вместо Силы/Ловкости.",
+        "kind": "passive"
+      },
+      {
+        "id": "steel_defender",
+        "level": 3,
+        "name_ru": "Стальной защитник",
+        "name_en": "Steel Defender",
+        "summary_ru": "Спутник-защитник (статблок TCoE). Починка бонусным. При смерти — 1 ч. с инструментами кузнеца или ячейка ≥1.",
+        "kind": "passive"
+      },
+      {
+        "id": "extra_attack_battle_smith",
+        "level": 5,
+        "name_ru": "Доп. атака",
+        "name_en": "Extra Attack",
+        "summary_ru": "При действии Атака — две атаки.",
+        "kind": "passive"
+      },
+      {
+        "id": "arcane_jolt",
+        "level": 9,
+        "name_ru": "Магический импульс",
+        "name_en": "Arcane Jolt",
+        "summary_ru": "При попадании магическим оружием или атаке защитника: +2к6 силового или лечение 2к6 союзнику в 30 фт. от цели. PB раз / прод. отдых. С 15 — 4к6.",
+        "kind": "passive",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "arcane_jolt",
+          "pool_name_ru": "Магический импульс",
+          "track": "spend"
+        },
+        "scale": {
+          "label_ru": "Импульс",
+          "by_level": {
+            "9": "2к6",
+            "15": "4к6"
+          }
+        }
+      },
+      {
+        "id": "improved_defender",
+        "level": 15,
+        "name_ru": "Улучшенный защитник",
+        "name_en": "Improved Defender",
+        "summary_ru": "Arcane Jolt 4к6. Защитник +2 КД; его Deflect Attack наносит 1к4+Инт силового.",
+        "kind": "passive"
+      }
+    ],
+    "armorer": [
+      {
+        "id": "tools_of_the_trade",
+        "level": 3,
+        "name_ru": "Инструменты ремесла",
+        "name_en": "Tools of the Trade",
+        "summary_ru": "Тяжёлые доспехи; инструменты кузнеца. 1 ч.: модифицировать доспех в Arcane Armor.",
+        "kind": "passive"
+      },
+      {
+        "id": "armorer_spells",
+        "level": 3,
+        "name_ru": "Заклинания бронника",
+        "name_en": "Armorer Spells",
+        "summary_ru": "Всегда подготовлены заклинания бронника.",
+        "kind": "passive"
+      },
+      {
+        "id": "arcane_armor",
+        "level": 3,
+        "name_ru": "Магический доспех",
+        "name_en": "Arcane Armor",
+        "summary_ru": "Доспех как фокус; нет требования Силы; снимается действием; шлем — нет глухоты от шлема; карманы Extra Dimensional.",
+        "kind": "passive"
+      },
+      {
+        "id": "armor_model",
+        "level": 3,
+        "name_ru": "Модель доспеха",
+        "name_en": "Armor Model",
+        "summary_ru": "Выбери модель: Страж (громовые перчатки, поле угрозы) или Диверсант (молниевый пусковой, затемнение).",
+        "kind": "passive",
+        "choice": {
+          "id": "armor_model",
+          "label_ru": "Модель доспеха",
+          "options_from": "armorer_armor_models"
+        }
+      },
+      {
+        "id": "extra_attack_armorer",
+        "level": 5,
+        "name_ru": "Доп. атака",
+        "name_en": "Extra Attack",
+        "summary_ru": "При Атаке — две атаки.",
+        "kind": "passive"
+      },
+      {
+        "id": "armor_modifications",
+        "level": 9,
+        "name_ru": "Модификации доспеха",
+        "name_en": "Armor Modifications",
+        "summary_ru": "+2 известных инфузии и +2 инфузированных предмета — только на части Arcane Armor (считаются отдельно).",
+        "kind": "passive"
+      },
+      {
+        "id": "perfected_armor",
+        "level": 15,
+        "name_ru": "Совершенный доспех",
+        "name_en": "Perfected Armor",
+        "summary_ru": "Страж: реакцией притянуть существо в 30 фт. (спас Сил.). Диверсант: атака пусковой даёт вр. хиты = Инт+½ ур. (окр. вверх). PB раз / прод. (Страж).",
+        "kind": "reaction",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "perfected_armor",
+          "pool_name_ru": "Совершенный доспех",
+          "track": "spend"
+        }
+      }
+    ]
+  }
+}

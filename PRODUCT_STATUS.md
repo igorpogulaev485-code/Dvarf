@@ -244,7 +244,7 @@
 | Always-prepared | Домены жреца + **9** клятв паладина → в known | Заклинания клятвы/домена сразу в гримуаре |
 | Спутники | Зверь, защитник, дрейк, пушка, дух огня + ручное «+» | Карточка с HP/КД/скоростью |
 | Фичи (stub) | `features_by_level` + краткий текст в setup | Каркас под полные описания |
-| Умения на листе | Панель: … Бард, Друид, **Волшебник** | СА/ярость/ки/канал/LoH/очки/BI/WS |
+| Умения на листе | Панель: все H4-классы до **Изобретателя** | СА/ярость/ки/канал/LoH/очки/BI/WS/инфузии |
 | Жрец домены | Все **14** оф. + always-prepared + sheet_grants | Доменные заклинания в known; владения с setup |
 | Жрец миграция | `a6b7c8d9e0f1` upsert доменов | Сид → catalog.data |
 | Жрец CD / DI | Shared `channel_divinity`; DI success_lock 7 дней | Кнопка на Изгнании/домене тратит канал; успех DI → manual |
@@ -258,7 +258,8 @@
 | Бард | BI = Cha; Font→short; Superior Inspiration; 8 коллегий | Swords fighting style; Song of Rest scale |
 | Друид | Wild Shape 2× short; Land pick; 7 кругов | Moon/Stars/Spores/Wildfire тратят WS |
 | Волшебник | Arcane Recovery; Portent stock; 11 традиций | Bladesong PB; Signature Spells |
-| H4 очередь | … Волшебник ✓ → **Изобретатель** → … | Порядок в контракте |
+| Изобретатель | Infusions multi-pick; Flash of Genius; 4 спец. | Armorer model; пушка/эликсир/импульс |
+| H4 очередь | … Изобретатель ✓ → полировка архетипов | Без деплоя до полной готовности |
 | Контракт | [`docs/feature_resource_contract.md`](docs/feature_resource_contract.md) | Чеклист паттернов для новых архетипов |
 
 На проде: **нет** · ветка `cursor/subclass-wave-a-ef23` · PR #37
