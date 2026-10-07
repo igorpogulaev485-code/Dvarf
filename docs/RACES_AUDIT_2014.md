@@ -1,9 +1,8 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/race-custom-lineage-f10e` · http://201.34.132.252/  
-Гибкий ASI: `preset=tasha_flexible` (+2/+1 **или** три +1).  
-Срез forks MPMM: ветка `cursor/race-mpmm-subrace-forks-f10e` · alembic `l1a2b3c4d5e6`.
+Прод tip: `cursor/race-mpmm-subrace-forks-f10e` · http://201.34.132.252/ · alembic `l1a2b3c4d5e6`  
+Гибкий ASI: `preset=tasha_flexible` (+2/+1 **или** три +1).
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
@@ -26,10 +25,10 @@
 |------|------------|-------------|-------------|---------|
 | Ааракокра, багбир, … (корни без forks) | ✅ | — | ✅ | flexible ASI + Common+1 |
 | Дженази | ✅ parent + 4 | ✅ `subrace_required` | ✅ | воздух / земля / огонь / вода |
-| Аасимар | ✅ parent + 3 | ✅ `subrace_required` | ⏳ | Volo: защитник / каратель / падший; размер M/S |
-| Шифтер | ✅ parent + 4 | ✅ `subrace_required` | ⏳ | зверошкур / длиннозуб / быстроног / дикий охотник |
-| Гит | ✅ parent + 2 | ✅ `subrace_required` | ⏳ | гитъянки / гитцерай (больше не два корня) |
-| Кобольд | ✅ parent + 3 | ✅ `subrace_required` | ⏳ | наследия: хитрость / неповиновение / драконье чародейство |
+| Аасимар | ✅ parent + 3 | ✅ `subrace_required` | ✅ | Volo: защитник / каратель / падший; размер M/S |
+| Шифтер | ✅ parent + 4 | ✅ `subrace_required` | ✅ | зверошкур / длиннозуб / быстроног / дикий охотник |
+| Гит | ✅ parent + 2 | ✅ `subrace_required` | ✅ | гитъянки / гитцерай (больше не два корня) |
+| Кобольд | ✅ parent + 3 | ✅ `subrace_required` | ✅ | наследия: хитрость / неповиновение / драконье чародейство |
 
 ## Волна 3 — setting books (корни combobox)
 
@@ -55,4 +54,4 @@
 
 ## Инфра-заметка
 
-Prod tip: `cursor/race-custom-lineage-f10e`. Срез forks: `l1a2b3c4d5e6` на `cursor/race-mpmm-subrace-forks-f10e`.
+Prod tip: `cursor/race-mpmm-subrace-forks-f10e` · alembic `l1a2b3c4d5e6`.
