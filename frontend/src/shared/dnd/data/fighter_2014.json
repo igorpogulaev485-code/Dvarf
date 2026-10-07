@@ -114,10 +114,10 @@
         "level": 3,
         "name_ru": "Боевое превосходство",
         "name_en": "Combat Superiority",
-        "summary_ru": "Кости превосходства + манёвры. Все кости восстанавливаются на коротком или продолжительном отдыхе.",
+        "summary_ru": "Кости превосходства + манёвры (3 на 3 ур., +2 на 7/10/15). Кости на коротком/прод. отдыхе.",
         "kind": "resource",
         "scale": {
-          "label_ru": "Кость",
+          "label_ru": "Кость / манёвры",
           "by_level": {
             "3": "к8",
             "10": "к10",
@@ -135,6 +135,17 @@
           "pool_id": "superiority_dice",
           "pool_name_ru": "Кости превосходства",
           "track": "spend"
+        },
+        "choice": {
+          "id": "maneuvers",
+          "label_ru": "Манёвры",
+          "options_from": "battle_master_maneuvers",
+          "max_picks_by_level": {
+            "3": 3,
+            "7": 5,
+            "10": 7,
+            "15": 9
+          }
         }
       },
       {

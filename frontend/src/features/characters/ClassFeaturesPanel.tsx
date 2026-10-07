@@ -17,6 +17,10 @@ import {
   infusionLabel,
 } from '../../shared/dnd/artificerInfusions'
 import {
+  maneuverById,
+  maneuverLabel,
+} from '../../shared/dnd/battleMasterManeuvers'
+import {
   elementalDisciplineById,
   elementalDisciplineLabel,
 } from '../../shared/dnd/monkElementalDisciplines'
@@ -342,6 +346,19 @@ const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
   evasion: 'Уклонение',
   stand_against_the_tide: 'Стойкость против волны',
   uncanny_dodge: 'Невероятное уклонение',
+  black: 'Чёрный (кислота)',
+  blue: 'Синий (молния)',
+  brass: 'Латунный (огонь)',
+  bronze: 'Бронзовый (молния)',
+  copper: 'Медный (кислота)',
+  gold: 'Золотой (огонь)',
+  green: 'Зелёный (яд)',
+  red: 'Красный (огонь)',
+  silver: 'Серебряный (холод)',
+  white: 'Белый (холод)',
+  full_moon: 'Полная луна',
+  new_moon: 'Новолуние',
+  crescent_moon: 'Полумесяц',
 }
 
 function choiceOptionLabel(optionId: string): string {
@@ -355,6 +372,7 @@ function choiceOptionLabel(optionId: string): string {
     invocationLabel(optionId) ||
     infusionLabel(optionId) ||
     elementalDisciplineLabel(optionId) ||
+    maneuverLabel(optionId) ||
     pact?.nameRu ||
     armorModel?.nameRu ||
     FEATURE_OPTION_LABELS_RU[optionId] ||
@@ -457,6 +475,17 @@ function FeatureChoiceControls({
               <Text key={id} tone="muted">
                 {disc.nameRu} ({prereq}
                 {cost}): {disc.summaryRu}
+              </Text>
+            )
+          })
+        : null}
+      {choice?.options_from === 'battle_master_maneuvers'
+        ? selectedList.map((id) => {
+            const man = maneuverById(id)
+            if (!man) return null
+            return (
+              <Text key={id} tone="muted">
+                {man.nameRu}: {man.summaryRu}
               </Text>
             )
           })

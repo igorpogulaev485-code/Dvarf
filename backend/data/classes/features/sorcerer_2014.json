@@ -150,7 +150,23 @@
         "name_ru": "Предок-дракон",
         "name_en": "Dragon Ancestor",
         "summary_ru": "Выбери тип дракона (язык драконий; тематика урона). Двойной мод. Хар. к Харизме (Убеждение) vs драконов.",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "draconic_ancestry",
+          "label_ru": "Драконий предок",
+          "options": [
+            "black",
+            "blue",
+            "brass",
+            "bronze",
+            "copper",
+            "gold",
+            "green",
+            "red",
+            "silver",
+            "white"
+          ]
+        }
       },
       {
         "id": "draconic_resilience",
@@ -370,7 +386,14 @@
         "name_ru": "Пёс дурного предзнаменования",
         "name_en": "Hound of Ill Omen",
         "summary_ru": "Бонусным 3 очка: призвать пса к существу в 120 фт. (статы волка).",
-        "kind": "bonus"
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "hound_of_ill_omen",
+          "pool_name_ru": "Гончая дурного знамения",
+          "track": "spend"
+        }
       },
       {
         "id": "shadow_walk",
@@ -518,7 +541,16 @@
         "name_ru": "Лунное воплощение",
         "name_en": "Lunar Embodiment",
         "summary_ru": "Выбери фазу (полная/новая/серп); доп. заклинания; бонусным смена фазы.",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "moon_phase",
+          "label_ru": "Фаза луны",
+          "options": [
+            "full_moon",
+            "new_moon",
+            "crescent_moon"
+          ]
+        }
       },
       {
         "id": "moon_fire",
