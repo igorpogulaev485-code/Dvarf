@@ -1,7 +1,8 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/race-setting-wave-f10e` · http://201.34.132.252/ · alembic `c2d3e4f5a6b1`
+Прод tip: `cursor/race-asi-flexible-f10e` · http://201.34.132.252/ · alembic `d3e4f5a6b1c2`  
+Гибкий ASI: `preset=tasha_flexible` (+2/+1 **или** три +1) у 51 расы.
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
@@ -49,4 +50,4 @@
 
 ## Инфра-заметка
 
-Актуальный tip head: `c2d3e4f5a6b1` (setting wave) на `cursor/race-setting-wave-f10e`.
+Актуальный tip head: `d3e4f5a6b1c2` (ASI flexible) на `cursor/race-asi-flexible-f10e`.
