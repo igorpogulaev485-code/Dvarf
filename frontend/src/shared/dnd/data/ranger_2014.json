@@ -257,8 +257,16 @@
         "level": 3,
         "name_ru": "Спутник следопыта",
         "name_en": "Ranger's Companion",
-        "summary_ru": "Зверь КР ≤ ¼. Добавляет твой мод. мастерства к КД/атакам/урону/спасам/навыкам. Хиты = макс(8×ур. следопыта, обычные). Команда бонусным. Спутник — карточка на листе.",
-        "kind": "passive"
+        "summary_ru": "PHB: зверь КР≤¼ с бонусами мастерства. Tasha: Primal Companion (Beast of the Land/Sea/Sky). Команда бонусным.",
+        "kind": "passive",
+        "choice": {
+          "id": "companion_variant",
+          "label_ru": "Вариант спутника",
+          "options": [
+            "beast_phb",
+            "primal_companion_tasha"
+          ]
+        }
       },
       {
         "id": "exceptional_training",
@@ -291,7 +299,7 @@
         "level": 3,
         "name_ru": "Ужасный засаденик",
         "name_en": "Dread Ambusher",
-        "summary_ru": "+мод. Мудрости к инициативе. В первый ход боя: +10 фт. скорости; при Атаке — доп. атака оружием (+1к8).",
+        "summary_ru": "+мод. Мудр. к инициативе. В первый ход боя: скорость +10 фт.; при действии Атака — одна доп. атака оружием, при попадании +1к8 урона оружия.",
         "kind": "passive"
       },
       {
@@ -299,7 +307,7 @@
         "level": 3,
         "name_ru": "Сумрачное зрение",
         "name_en": "Umbral Sight",
-        "summary_ru": "Тёмное зрение 60 фт. (или +30). В темноте невидимые для существ, полагающихся на тёмное зрение.",
+        "summary_ru": "Тёмное зрение 60 фт. (или +30, если уже есть). В темноте невидимы для существ, полагающихся только на тёмное зрение.",
         "kind": "passive"
       },
       {
@@ -583,18 +591,29 @@
       {
         "id": "draconic_gift",
         "level": 3,
-        "name_ru": "Дар дракона",
+        "name_ru": "Дар драконов",
         "name_en": "Draconic Gift",
-        "summary_ru": "Тауматургия; язык драконов; позже — полёт (крылья).",
-        "kind": "passive"
+        "summary_ru": "Thaumaturgy; язык Draconic. Выбери тип урона дрейка (кислота/холод/огонь/молния/яд).",
+        "kind": "passive",
+        "choice": {
+          "id": "drake_damage_type",
+          "label_ru": "Тип урона дрейка",
+          "options": [
+            "acid",
+            "cold",
+            "fire",
+            "lightning",
+            "poison"
+          ]
+        }
       },
       {
-        "id": "drake_companion",
+        "id": "summon_drake",
         "level": 3,
-        "name_ru": "Дрейк-спутник",
+        "name_ru": "Призыв дрейка",
         "name_en": "Drake Companion",
-        "summary_ru": "Призвать дрейка (карточка спутника). Сущность стихии — выбор. Команда бонусным.",
-        "kind": "bonus",
+        "summary_ru": "Действием призвать дрейка на 1 ч. (статблок TCoE). 1× / прод. отдых или ячейка ≥1.",
+        "kind": "action",
         "resource": {
           "uses": 1,
           "recharge": "long_rest",
@@ -608,16 +627,31 @@
         "level": 7,
         "name_ru": "Связь клыка и чешуи",
         "name_en": "Bond of Fang and Scale",
-        "summary_ru": "Сопротивление урону сущности дрейка; дрейк крупнее / урон больше; езда.",
+        "summary_ru": "Сопр. типу урона дрейка. Дрейк: кусает сильнее; можешь дать ему крылья (полёт).",
         "kind": "passive"
+      },
+      {
+        "id": "drake_mount",
+        "level": 11,
+        "name_ru": "Дрейк-маунт",
+        "name_en": "Drake's Breath",
+        "summary_ru": "Дрейк: дыхание конусом/линией (урона по типу). Ты можешь ездить на Large дрейке.",
+        "kind": "action",
+        "scale": {
+          "label_ru": "Дыхание",
+          "by_level": {
+            "11": "6к6",
+            "15": "8к6"
+          }
+        }
       },
       {
         "id": "perfected_bond",
         "level": 15,
         "name_ru": "Совершенная связь",
         "name_en": "Perfected Bond",
-        "summary_ru": "Дрейк ещё сильнее; дыхание; реакция — отразить урон сущности.",
-        "kind": "passive"
+        "summary_ru": "Дрейк +2 КД, укус сильнее. Реакция: когда ты попадаешь атакой — дрейк в 30 фт. тоже атакует цель.",
+        "kind": "reaction"
       }
     ]
   }

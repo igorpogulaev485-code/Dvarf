@@ -359,6 +359,16 @@ const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
   full_moon: 'Полная луна',
   new_moon: 'Новолуние',
   crescent_moon: 'Полумесяц',
+  beast_phb: 'Зверь (PHB)',
+  primal_companion_tasha: 'Первобытный спутник (Tasha)',
+  poison: 'Яд',
+  dao: 'Дао (земля)',
+  djinni: 'Джинн (воздух)',
+  efreeti: 'Ифрит (огонь)',
+  marid: 'Марид (вода)',
+  flamethrower: 'Огнемёт',
+  force_ballista: 'Силовая баллиста',
+  protector: 'Защитник',
 }
 
 function choiceOptionLabel(optionId: string): string {
