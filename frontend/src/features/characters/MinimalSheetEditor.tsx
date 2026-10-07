@@ -654,6 +654,7 @@ export function MinimalSheetEditor({
               armor: [],
               weapons: { simple: false, martial: false, extras: [] },
               toolsFixed: [],
+              skillsFixed: [],
               languagesFixed: [],
               skillChoices: null,
               languageChoices: null,

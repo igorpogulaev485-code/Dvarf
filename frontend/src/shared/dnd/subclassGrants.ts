@@ -50,6 +50,8 @@ export type SubclassSheetGrants = {
   armor: ArmorProfKey[]
   weapons: { simple: boolean; martial: boolean; extras: string[] }
   toolsFixed: string[]
+  /** Fixed skill proficiencies (e.g. Arcana domain → arcana). */
+  skillsFixed: string[]
   languagesFixed: string[]
   skillChoices: { count: number; from: string[] | 'any' } | null
   languageChoices: { count: number; from: string[] | 'any' } | null
@@ -122,6 +124,7 @@ function emptySheetGrants(): SubclassSheetGrants {
     armor: [],
     weapons: { simple: false, martial: false, extras: [] },
     toolsFixed: [],
+    skillsFixed: [],
     languagesFixed: [],
     skillChoices: null,
     languageChoices: null,
@@ -311,6 +314,7 @@ export function parseSubclassGrantDef(input: {
         extras: asStringArray(weaponsRaw.extras),
       },
       toolsFixed: asStringArray(grantsRaw.tools_fixed),
+      skillsFixed: asStringArray(grantsRaw.skills_fixed),
       languagesFixed: asStringArray(grantsRaw.languages_fixed),
       skillChoices,
       languageChoices,
@@ -385,6 +389,7 @@ export function formatSubclassGrantSummary(input: {
   else if (g.weapons.simple) parts.push('простое оружие')
   if (g.weapons.extras.length) parts.push(g.weapons.extras.join(', '))
   if (g.toolsFixed.length) parts.push(g.toolsFixed.join(', '))
+  if (g.skillsFixed.length) parts.push(`навыки: ${g.skillsFixed.join(', ')}`)
 
   for (const choice of input.def.choices) {
     const value = input.picks.values[choice.id]

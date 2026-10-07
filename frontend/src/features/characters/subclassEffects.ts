@@ -346,7 +346,10 @@ export function applySubclassGrantToDraft(input: {
     def: input.previousDef ?? null,
   })
 
-  const skillsApplied = resolveSkillsFromPicks(input.def, picks)
+  const skillsApplied = uniqueStrings([
+    ...input.def.sheetGrants.skillsFixed,
+    ...resolveSkillsFromPicks(input.def, picks),
+  ])
   const languagesApplied = uniqueStrings([
     ...input.def.sheetGrants.languagesFixed,
     ...resolveLanguagesFromPicks(input.def, picks),

@@ -9,7 +9,8 @@
     "sources": [
       "official5e_subclass_catalog_spec.json",
       "phb2014_subclass_catalog_spec.json"
-    ]
+    ],
+    "with_always_prepared": 17
   },
   "classes": [
     {
@@ -1147,16 +1148,61 @@
             }
           },
           "choices": [],
-          "notes_ru": "DMG; martial weapons. Domain spells → later.",
-          "detail_status": "forks_stub",
+          "notes_ru": "Воинское оружие. Заклинания домена всегда подготовлены.",
+          "detail_status": "detailed",
           "features_by_level": {
             "1": [
               {
                 "title_ru": "Домен смерти",
-                "summary_ru": "DMG; martial weapons. Domain spells → later."
+                "summary_ru": "Воинское оружие. Заклинания домена всегда подготовлены."
               }
             ]
-          }
+          },
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "always_prepared_spells": [
+            {
+              "name": "False Life",
+              "level": 1
+            },
+            {
+              "name": "Ray of Sickness",
+              "level": 1
+            },
+            {
+              "name": "Blindness/Deafness",
+              "level": 2
+            },
+            {
+              "name": "Ray of Enfeeblement",
+              "level": 2
+            },
+            {
+              "name": "Animate Dead",
+              "level": 3
+            },
+            {
+              "name": "Vampiric Touch",
+              "level": 3
+            },
+            {
+              "name": "Blight",
+              "level": 4
+            },
+            {
+              "name": "Death Ward",
+              "level": 4
+            },
+            {
+              "name": "Antilife Shell",
+              "level": 5
+            },
+            {
+              "name": "Cloudkill",
+              "level": 5
+            }
+          ],
+          "domain_spells_note": "Всегда подготовлены — в known при выборе домена"
         },
         {
           "slug": "arcana_domain",
@@ -1165,15 +1211,9 @@
           "source": "scag",
           "source_books": "SCAG",
           "sheet_grants": {
-            "skill_choices": {
-              "count": 2,
-              "from": [
-                "arcana",
-                "history",
-                "nature",
-                "religion"
-              ]
-            }
+            "skills_fixed": [
+              "arcana"
+            ]
           },
           "choices": [
             {
@@ -1186,16 +1226,61 @@
               "required": true
             }
           ],
-          "notes_ru": "2 навыка из списка; 2 wizard cantrips.",
-          "detail_status": "forks_stub",
+          "notes_ru": "Владение Магией; 2 заговора волшебника. Заклинания домена всегда подготовлены.",
+          "detail_status": "detailed",
           "features_by_level": {
             "1": [
               {
                 "title_ru": "Домен магии",
-                "summary_ru": "2 навыка из списка; 2 wizard cantrips."
+                "summary_ru": "Владение Магией; 2 заговора волшебника. Заклинания домена всегда подготовлены."
               }
             ]
-          }
+          },
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "always_prepared_spells": [
+            {
+              "name": "Detect Magic",
+              "level": 1
+            },
+            {
+              "name": "Magic Missile",
+              "level": 1
+            },
+            {
+              "name": "Nystul's Magic Aura",
+              "level": 2
+            },
+            {
+              "name": "Magic Weapon",
+              "level": 2
+            },
+            {
+              "name": "Dispel Magic",
+              "level": 3
+            },
+            {
+              "name": "Magic Circle",
+              "level": 3
+            },
+            {
+              "name": "Arcane Eye",
+              "level": 4
+            },
+            {
+              "name": "Leomund's Secret Chest",
+              "level": 4
+            },
+            {
+              "name": "Planar Binding",
+              "level": 5
+            },
+            {
+              "name": "Teleportation Circle",
+              "level": 5
+            }
+          ],
+          "domain_spells_note": "Всегда подготовлены — в known при выборе домена"
         },
         {
           "slug": "forge_domain",
@@ -1208,20 +1293,65 @@
               "heavy"
             ],
             "tools_fixed": [
-              "smiths_tools"
+              "Инструменты кузнеца"
             ]
           },
           "choices": [],
-          "notes_ru": "Тяжёлые доспехи + инструменты кузнеца.",
-          "detail_status": "forks_stub",
+          "notes_ru": "Тяжёлые доспехи + инструменты кузнеца. Заклинания домена всегда подготовлены.",
+          "detail_status": "detailed",
           "features_by_level": {
             "1": [
               {
                 "title_ru": "Домен кузни",
-                "summary_ru": "Тяжёлые доспехи + инструменты кузнеца."
+                "summary_ru": "Тяжёлые доспехи + инструменты кузнеца. Заклинания домена всегда подготовлены."
               }
             ]
-          }
+          },
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "always_prepared_spells": [
+            {
+              "name": "Identify",
+              "level": 1
+            },
+            {
+              "name": "Searing Smite",
+              "level": 1
+            },
+            {
+              "name": "Heat Metal",
+              "level": 2
+            },
+            {
+              "name": "Magic Weapon",
+              "level": 2
+            },
+            {
+              "name": "Elemental Weapon",
+              "level": 3
+            },
+            {
+              "name": "Protection from Energy",
+              "level": 3
+            },
+            {
+              "name": "Fabricate",
+              "level": 4
+            },
+            {
+              "name": "Wall of Fire",
+              "level": 4
+            },
+            {
+              "name": "Animate Objects",
+              "level": 5
+            },
+            {
+              "name": "Creation",
+              "level": 5
+            }
+          ],
+          "domain_spells_note": "Всегда подготовлены — в known при выборе домена"
         },
         {
           "slug": "grave_domain",
@@ -1231,16 +1361,61 @@
           "source_books": "XGtE",
           "sheet_grants": {},
           "choices": [],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "notes_ru": "Без доп. владений доспехами. Заклинания домена всегда подготовлены.",
+          "detail_status": "detailed",
           "features_by_level": {
             "1": [
               {
                 "title_ru": "Домен упокоения",
-                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+                "summary_ru": "Без доп. владений доспехами. Заклинания домена всегда подготовлены."
               }
             ]
-          }
+          },
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "always_prepared_spells": [
+            {
+              "name": "Bane",
+              "level": 1
+            },
+            {
+              "name": "False Life",
+              "level": 1
+            },
+            {
+              "name": "Gentle Repose",
+              "level": 2
+            },
+            {
+              "name": "Ray of Enfeeblement",
+              "level": 2
+            },
+            {
+              "name": "Revivify",
+              "level": 3
+            },
+            {
+              "name": "Vampiric Touch",
+              "level": 3
+            },
+            {
+              "name": "Blight",
+              "level": 4
+            },
+            {
+              "name": "Death Ward",
+              "level": 4
+            },
+            {
+              "name": "Antilife Shell",
+              "level": 5
+            },
+            {
+              "name": "Raise Dead",
+              "level": 5
+            }
+          ],
+          "domain_spells_note": "Всегда подготовлены — в known при выборе домена"
         },
         {
           "slug": "order_domain",
@@ -1260,17 +1435,75 @@
               ]
             }
           },
-          "choices": [],
-          "notes_ru": "Тяжёлые доспехи + Intimidation или Persuasion.",
-          "detail_status": "forks_stub",
+          "choices": [
+            {
+              "id": "order_skill",
+              "label_ru": "Навык порядка",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "intimidation",
+                "persuasion"
+              ],
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "notes_ru": "Тяжёлые доспехи + Запугивание или Убеждение. Заклинания домена всегда подготовлены.",
+          "detail_status": "detailed",
           "features_by_level": {
             "1": [
               {
                 "title_ru": "Домен порядка",
-                "summary_ru": "Тяжёлые доспехи + Intimidation или Persuasion."
+                "summary_ru": "Тяжёлые доспехи + Запугивание или Убеждение. Заклинания домена всегда подготовлены."
               }
             ]
-          }
+          },
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "always_prepared_spells": [
+            {
+              "name": "Command",
+              "level": 1
+            },
+            {
+              "name": "Heroism",
+              "level": 1
+            },
+            {
+              "name": "Hold Person",
+              "level": 2
+            },
+            {
+              "name": "Zone of Truth",
+              "level": 2
+            },
+            {
+              "name": "Mass Healing Word",
+              "level": 3
+            },
+            {
+              "name": "Slow",
+              "level": 3
+            },
+            {
+              "name": "Compulsion",
+              "level": 4
+            },
+            {
+              "name": "Locate Creature",
+              "level": 4
+            },
+            {
+              "name": "Commune",
+              "level": 5
+            },
+            {
+              "name": "Dominate Person",
+              "level": 5
+            }
+          ],
+          "domain_spells_note": "Всегда подготовлены — в known при выборе домена"
         },
         {
           "slug": "peace_domain",
@@ -1278,18 +1511,86 @@
           "name_en": "Peace Domain",
           "source": "tasha",
           "source_books": "TCoE",
-          "sheet_grants": {},
-          "choices": [],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "sheet_grants": {
+            "skill_choices": {
+              "count": 1,
+              "from": [
+                "insight",
+                "performance",
+                "persuasion"
+              ]
+            }
+          },
+          "choices": [
+            {
+              "id": "peace_skill",
+              "label_ru": "Орудие мира",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "insight",
+                "performance",
+                "persuasion"
+              ],
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "notes_ru": "Insight / Performance / Persuasion (выбор). Заклинания домена всегда подготовлены.",
+          "detail_status": "detailed",
           "features_by_level": {
             "1": [
               {
                 "title_ru": "Домен мира",
-                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+                "summary_ru": "Insight / Performance / Persuasion (выбор). Заклинания домена всегда подготовлены."
               }
             ]
-          }
+          },
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "always_prepared_spells": [
+            {
+              "name": "Heroism",
+              "level": 1
+            },
+            {
+              "name": "Sanctuary",
+              "level": 1
+            },
+            {
+              "name": "Aid",
+              "level": 2
+            },
+            {
+              "name": "Warding Bond",
+              "level": 2
+            },
+            {
+              "name": "Beacon of Hope",
+              "level": 3
+            },
+            {
+              "name": "Sending",
+              "level": 3
+            },
+            {
+              "name": "Aura of Purity",
+              "level": 4
+            },
+            {
+              "name": "Otiluke's Resilient Sphere",
+              "level": 4
+            },
+            {
+              "name": "Greater Restoration",
+              "level": 5
+            },
+            {
+              "name": "Rary's Telepathic Bond",
+              "level": 5
+            }
+          ],
+          "domain_spells_note": "Всегда подготовлены — в known при выборе домена"
         },
         {
           "slug": "twilight_domain",
@@ -1306,16 +1607,61 @@
             }
           },
           "choices": [],
-          "notes_ru": "Тяжёлые доспехи + martial weapons.",
-          "detail_status": "forks_stub",
+          "notes_ru": "Тяжёлые доспехи + воинское оружие. Заклинания домена всегда подготовлены.",
+          "detail_status": "detailed",
           "features_by_level": {
             "1": [
               {
                 "title_ru": "Домен сумерек",
-                "summary_ru": "Тяжёлые доспехи + martial weapons."
+                "summary_ru": "Тяжёлые доспехи + воинское оружие. Заклинания домена всегда подготовлены."
               }
             ]
-          }
+          },
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "always_prepared_spells": [
+            {
+              "name": "Faerie Fire",
+              "level": 1
+            },
+            {
+              "name": "Sleep",
+              "level": 1
+            },
+            {
+              "name": "Moonbeam",
+              "level": 2
+            },
+            {
+              "name": "See Invisibility",
+              "level": 2
+            },
+            {
+              "name": "Aura of Vitality",
+              "level": 3
+            },
+            {
+              "name": "Leomund's Tiny Hut",
+              "level": 3
+            },
+            {
+              "name": "Aura of Life",
+              "level": 4
+            },
+            {
+              "name": "Greater Invisibility",
+              "level": 4
+            },
+            {
+              "name": "Circle of Power",
+              "level": 5
+            },
+            {
+              "name": "Mislead",
+              "level": 5
+            }
+          ],
+          "domain_spells_note": "Всегда подготовлены — в known при выборе домена"
         }
       ]
     },
