@@ -1,4 +1,4 @@
-"""Re-upsert feats with fixed spell grants (wave1).
+"""Re-upsert feats with fixed/partial spell grants.
 
 Revision ID: j6e7f8a9b0c1
 Revises: i5d6e7f8a9b0
@@ -29,7 +29,7 @@ WAVE_SPECS: list[tuple[str, str]] = [
     ("data/feats/pam2014_feat_catalog_spec.json", "pam"),
 ]
 
-# Only re-upsert rows that gained grants.spells in this wave.
+# Re-upsert rows that gained grants.spells and/or spell_one picks.
 SPELL_GRANT_SLUGS = {
     "fey_teleportation",
     "svirfneblin_magic",
@@ -38,6 +38,9 @@ SPELL_GRANT_SLUGS = {
     "drow_high_magic",
     "gift_of_the_metallic_dragon",
     "outlands_envoy",
+    "fey_touched",
+    "shadow_touched",
+    "wood_elf_magic",
 }
 
 

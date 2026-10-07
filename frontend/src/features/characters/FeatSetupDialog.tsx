@@ -333,7 +333,7 @@ export function FeatSetupDialog({
                   </Field>
                 )
               }
-              if (choice.type === 'enum') {
+              if (choice.type === 'enum' || choice.type === 'spell_one') {
                 const current = picks.enumIds[choice.id]
                 return (
                   <Field key={choice.id} label={choice.label_ru}>

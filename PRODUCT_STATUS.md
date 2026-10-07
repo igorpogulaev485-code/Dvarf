@@ -430,12 +430,13 @@
 
 ## В ветках / ещё не на проде
 
-### 2026-10-07 — FEATS spell grants wave1 (фиксированные заклинания)
+### 2026-10-07 — FEATS spell grants (фиксированные + выбор)
 
 | Функция | Как работает | Эффект для пользователя |
 |--------|--------------|-------------------------|
 | Apply/revoke | `grants.spells` → `spells.known` с чипом «Черта»; id `feat-spell:{grantId}:{id}` | Черта сама кладёт заклинания на лист |
-| Wave1 | Fey Teleportation, Svirfneblin Magic, Telekinetic, Telepathic, Drow High Magic, Gift of the Metallic Dragon, Outlands Envoy | Без ручного ввода misty step / mage hand / cure wounds… |
+| Wave1 fixed | Fey Teleportation, Svirfneblin Magic, Telekinetic, Telepathic, Drow High Magic, Gift of the Metallic Dragon, Outlands Envoy | Без ручного misty step / mage hand / cure wounds… |
+| Wave2 pick | `spell_one`: Fey/Shadow Touched + Wood Elf Magic (заговор) | Туманный шаг/Невидимость + выбор 1 круга в попапе |
 | Prepare cap | `feat_grant: innate` не считаются в лимит подготовки | Как расовые врождённые |
 
 На проде: **нет** · ветка `cursor/feats-spell-grants-592a` · PR #66 · tip не менять до «залей»

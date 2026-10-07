@@ -6,6 +6,9 @@ export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
 export type ArmorProfKey = 'light' | 'medium' | 'heavy' | 'shields'
 
+/** Innate / spell-list grant mode for feat spells. */
+export type FeatSpellGrant = 'innate' | 'spell_list'
+
 export type FeatChoiceDef =
   | {
       id: string
@@ -44,6 +47,16 @@ export type FeatChoiceDef =
       label_ru: string
       text_ru: string
     }
+  | {
+      id: string
+      /** Pick one spell; option id becomes spell slug on the sheet. */
+      type: 'spell_one'
+      label_ru: string
+      level: number
+      grant: FeatSpellGrant
+      notesRu: string | null
+      options: Array<{ id: string; label_ru: string; level?: number }>
+    }
 
 export type FeatResourceGrant = {
   pool_id: string
@@ -55,8 +68,6 @@ export type FeatResourceGrant = {
 }
 
 /** Fixed spell granted by a feat (mirrors race racial_spells). */
-export type FeatSpellGrant = 'innate' | 'spell_list'
-
 export type FeatSpell = {
   id: string
   spellSlug: string | null
@@ -335,6 +346,37 @@ function parseChoices(raw: unknown): FeatChoiceDef[] {
         type: 'note',
         label_ru: label,
         text_ru: readString(row.text_ru) ?? readString(row.textRu) ?? '',
+      })
+      continue
+    }
+    if (type === 'spell_one') {
+      const options = Array.isArray(row.options)
+        ? row.options
+            .map((opt) => {
+              const o = asRecord(opt)
+              const optId = readString(o.id)
+              const optLabel = readString(o.label_ru) ?? readString(o.labelRu)
+              if (!optId || !optLabel) return null
+              const optLevelRaw = o.level
+              const level =
+                typeof optLevelRaw === 'number' && Number.isFinite(optLevelRaw)
+                  ? Math.max(0, Math.min(9, Math.floor(optLevelRaw)))
+                  : undefined
+              return { id: optId, label_ru: optLabel, ...(level != null ? { level } : {}) }
+            })
+            .filter(
+              (opt): opt is { id: string; label_ru: string; level?: number } => opt != null,
+            )
+        : []
+      const grantRaw = row.grant ?? row.grant_mode ?? row.grantMode
+      out.push({
+        id,
+        type: 'spell_one',
+        label_ru: label,
+        level: Math.max(0, Math.min(9, Math.floor(readNumber(row.level, 1)))),
+        grant: grantRaw === 'spell_list' ? 'spell_list' : 'innate',
+        notesRu: readString(row.notes_ru) ?? readString(row.notesRu),
+        options,
       })
     }
   }
@@ -785,7 +827,7 @@ export function validateFeatGrantPicks(input: {
       }
       continue
     }
-    if (choice.type === 'enum') {
+    if (choice.type === 'enum' || choice.type === 'spell_one') {
       const id = picks.enumIds[choice.id]
       if (!id || !choice.options.some((opt) => opt.id === id)) {
         return `Выбери: ${choice.label_ru}`
@@ -850,6 +892,7 @@ export function buildAppliedFeatPackage(input: {
   const savingThrows: AbilityKey[] = [...def.fixedGrants.savingThrows]
   const enumPicks: Record<string, string> = {}
   const skillsFromEnum: string[] = []
+  const pickedSpells: FeatSpell[] = []
 
   for (const choice of def.choices) {
     if (choice.type === 'ability_one') {
@@ -869,6 +912,24 @@ export function buildAppliedFeatPackage(input: {
           skillsFromEnum.push(id)
         }
       }
+      continue
+    }
+    if (choice.type === 'spell_one') {
+      const id = picks.enumIds[choice.id]
+      if (!id) continue
+      const opt = choice.options.find((row) => row.id === id)
+      if (!opt) continue
+      enumPicks[choice.id] = id
+      pickedSpells.push({
+        id: opt.id,
+        spellSlug: opt.id,
+        nameRu: opt.label_ru,
+        level: opt.level ?? choice.level,
+        castingAbility: null,
+        notesRu: choice.notesRu,
+        unlockLevel: 1,
+        grant: choice.grant,
+      })
     }
   }
 
@@ -889,6 +950,7 @@ export function buildAppliedFeatPackage(input: {
     tools: uniqueStrings([...def.fixedGrants.tools, ...picks.tools]),
     languages: uniqueStrings([...def.fixedGrants.languages, ...picks.languages]),
     weaponNames: uniqueStrings([...def.fixedGrants.weaponNames, ...picks.weapons]),
+    spells: [...def.fixedGrants.spells, ...pickedSpells],
     enumPicks,
   })
 }
