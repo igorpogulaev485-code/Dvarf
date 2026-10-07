@@ -49,7 +49,14 @@ export type FeatResourceGrant = {
   pool_id: string
   pool_name_ru: string
   uses: number
+  /** When true, pool max = character proficiency bonus (FTD dragon gifts). */
+  usesProficiencyBonus: boolean
   recovery: 'short_rest' | 'long_rest'
+}
+
+export function proficiencyBonusForLevel(level: number): number {
+  const lvl = Math.max(1, Math.floor(level))
+  return Math.max(2, Math.min(6, 2 + Math.floor((lvl - 1) / 4)))
 }
 
 export type FeatGrantsPackage = {
@@ -360,12 +367,26 @@ function parseResource(raw: unknown): FeatResourceGrant | null {
     obj.recovery === 'short_rest' || obj.recovery === 'long_rest'
       ? obj.recovery
       : 'long_rest'
+  const usesProficiencyBonus = Boolean(
+    obj.uses_proficiency_bonus ?? obj.usesProficiencyBonus,
+  )
   return {
     pool_id: poolId,
     pool_name_ru: name,
-    uses: Math.max(1, Math.floor(readNumber(obj.uses, 1))),
+    uses: Math.max(usesProficiencyBonus ? 0 : 1, Math.floor(readNumber(obj.uses, 1))),
+    usesProficiencyBonus,
     recovery,
   }
+}
+
+export function resolveFeatResourceMax(
+  resource: FeatResourceGrant,
+  characterLevel: number,
+): number {
+  if (resource.usesProficiencyBonus) {
+    return proficiencyBonusForLevel(characterLevel)
+  }
+  return Math.max(1, resource.uses)
 }
 
 export function featGrantDefFromCatalog(input: {

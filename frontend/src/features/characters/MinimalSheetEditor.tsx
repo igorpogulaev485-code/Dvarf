@@ -111,6 +111,7 @@ import {
   applyFeatGrantToDraft,
   revokeFeatGrantsForAsi,
   revokeFeatGrantsForRace,
+  syncFeatProficiencyResources,
   type FeatGrantDraftSlice,
 } from './featEffects'
 import {
@@ -1310,14 +1311,21 @@ export function MinimalSheetEditor({
           hitDie: choice.hitDie ?? prev.play.hitDie,
         }),
       }
-      if (!withClasses.raceGrant) return withClasses
+      const withFeatPools = mergeFeatSlice(
+        withClasses,
+        syncFeatProficiencyResources({
+          ...featSliceFrom(withClasses),
+          totalLevel: nextLevel,
+        }),
+      )
+      if (!withFeatPools.raceGrant) return withFeatPools
       const spells = syncRaceSpellsForSheetState({
-        spells: withClasses.spells,
-        grant: withClasses.raceGrant,
+        spells: withFeatPools.spells,
+        grant: withFeatPools.raceGrant,
         characterLevel: nextLevel,
         hasCasterClass: characterHasCasterClass(nextClasses),
       })
-      return { ...withClasses, spells }
+      return { ...withFeatPools, spells }
     })
     setLevelUpOpen(false)
     const hpNote = ` · HP +${Math.max(0, Math.floor(choice.hpGain))}`
@@ -1859,7 +1867,7 @@ export function MinimalSheetEditor({
                               }
 
                               if (!removed) {
-                                return withRaceSpellsSynced(
+                                const synced = mergeFeatSlice(
                                   {
                                     ...featBase,
                                     play: withSyncedHitDiceSummary({
@@ -1867,8 +1875,14 @@ export function MinimalSheetEditor({
                                       hitDiceByClass,
                                     }),
                                   },
-                                  nextClasses,
+                                  syncFeatProficiencyResources(
+                                    featSliceFrom({
+                                      ...featBase,
+                                      classes: nextClasses,
+                                    }),
+                                  ),
                                 )
+                                return withRaceSpellsSynced(synced, nextClasses)
                               }
                               const withoutClass = revokeClassGrant(
                                 draftSliceFrom(featBase),

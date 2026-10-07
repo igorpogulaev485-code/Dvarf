@@ -430,6 +430,15 @@
 
 ## В ветках / ещё не на проде
 
+### 2026-10-07 — FEATS FTD wave (Фицбан)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Дары драконов | Chromatic / Metallic / Gem — без расового требования | Любой класс может взять «драконью» черту |
+| Пулы от мастерства | Реакции масштабируются с бонусом мастерства | На 5 ур. больше использований, чем на 1 |
+
+На проде: **нет** · ветка `cursor/feats-ftd-wave-ef23` · tip не менять до «залей»
+
 ### 2026-10-07 — FEATS XGE wave (Занатар)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -546,3 +555,4 @@
 | 2026-10-07 | `cursor/feats-phb-wave1-ef23` · PR #54 | PHB feats catalog + ASI/Custom Lineage feat picks; alembic `w2x3`; на проде нет |
 | 2026-10-07 | `cursor/feats-tce-wave-ef23` · PR #55 | TCE feats catalog (26) + race prereqs; alembic `x3y4`; на проде нет |
 | 2026-10-07 | `cursor/feats-xge-wave-ef23` · PR #56 | XGE unique feats (5) + Dragon Hide AC; alembic `y4z5`; на проде нет |
+| 2026-10-07 | `cursor/feats-ftd-wave-ef23` | FTD dragon gift feats (3) + PB-scaled pools; alembic `z5a6`; на проде нет |
