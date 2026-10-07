@@ -16,6 +16,10 @@ import {
   infusionById,
   infusionLabel,
 } from '../../shared/dnd/artificerInfusions'
+import {
+  elementalDisciplineById,
+  elementalDisciplineLabel,
+} from '../../shared/dnd/monkElementalDisciplines'
 import { druidLandLabel } from '../../shared/dnd/druidLandChoices'
 import { rangerChoiceLabel } from '../../shared/dnd/rangerChoices'
 import {
@@ -327,6 +331,17 @@ const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
   fire: 'Огонь',
   lightning: 'Молния',
   thunder: 'Гром',
+  colossus_slayer: 'Убийца колосса',
+  giant_killer: 'Убийца великанов',
+  horde_breaker: 'Крушитель орды',
+  escape_the_horde: 'Побег от орды',
+  multiattack_defense: 'Защита от мультиатаки',
+  steel_will: 'Стальная воля',
+  volley: 'Залп',
+  whirlwind: 'Вихрь',
+  evasion: 'Уклонение',
+  stand_against_the_tide: 'Стойкость против волны',
+  uncanny_dodge: 'Невероятное уклонение',
 }
 
 function choiceOptionLabel(optionId: string): string {
@@ -339,6 +354,7 @@ function choiceOptionLabel(optionId: string): string {
     metamagicLabel(optionId) ||
     invocationLabel(optionId) ||
     infusionLabel(optionId) ||
+    elementalDisciplineLabel(optionId) ||
     pact?.nameRu ||
     armorModel?.nameRu ||
     FEATURE_OPTION_LABELS_RU[optionId] ||
@@ -426,6 +442,21 @@ function FeatureChoiceControls({
               <Text key={id} tone="muted">
                 {inf.nameRu}
                 {inf.minLevel ? ` (с ${inf.minLevel} ур.)` : ''}: {inf.summaryRu}
+              </Text>
+            )
+          })
+        : null}
+      {choice?.options_from === 'monk_elemental_disciplines'
+        ? selectedList.map((id) => {
+            const disc = elementalDisciplineById(id)
+            if (!disc) return null
+            const cost =
+              disc.kiCost == null ? 'бесплатно' : `${disc.kiCost} ки`
+            const prereq = disc.minLevel ? `с ${disc.minLevel} ур.; ` : ''
+            return (
+              <Text key={id} tone="muted">
+                {disc.nameRu} ({prereq}
+                {cost}): {disc.summaryRu}
               </Text>
             )
           })

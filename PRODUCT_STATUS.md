@@ -260,7 +260,7 @@
 | Волшебник | Arcane Recovery; Portent stock; 11 традиций | Bladesong PB; Signature Spells |
 | Изобретатель | Infusions multi-pick; Flash of Genius; 4 спец. | Armorer model; пушка/эликсир/импульс |
 | H4 покрытие архетипов | **118/118** оф. в feature-паках | Закрыты дыры fighter/barb/monk/rogue/wizard |
-| H4b полировка | Чеклист в контракте; totem/storm/beast picks | Дальше — thin scaffolds → пулы/scale |
+| H4b полировка | Чеклист; totem/Hunter picks; Four Elements дисциплины | Дальше — thin scaffolds → пулы/scale |
 | H4 очередь | Изобретатель ✓ → **полировка глубины** | Без деплоя |
 | Контракт | [`docs/feature_resource_contract.md`](docs/feature_resource_contract.md) | Чеклист паттернов для новых архетипов |
 

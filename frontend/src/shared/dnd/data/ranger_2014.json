@@ -188,16 +188,34 @@
         "level": 3,
         "name_ru": "Добыча охотника",
         "name_en": "Hunter's Prey",
-        "summary_ru": "Выбери: Убийца колоссов (+1к8 раз/ход по раненой цели), Сокрушитель орд (доп. атака по другому в 5 фт.) или Убийца великанов (реакция-атака при промахе Large+ в ближнем бою).",
-        "kind": "passive"
+        "summary_ru": "Выбери: Убийца колосса (+1к8 1×/ход по раненой), Убийца великанов (реакция атака по Large+), Крушитель орды (доп. атака по другому в 5 фт. от цели).",
+        "kind": "passive",
+        "choice": {
+          "id": "hunters_prey",
+          "label_ru": "Добыча охотника",
+          "options": [
+            "colossus_slayer",
+            "giant_killer",
+            "horde_breaker"
+          ]
+        }
       },
       {
         "id": "defensive_tactics",
         "level": 7,
         "name_ru": "Оборонительная тактика",
         "name_en": "Defensive Tactics",
-        "summary_ru": "Выбери: Побег (сложнее схватить/сбить), Защита от множества (уклонение vs 2+ атак) или Стальная воля (преимущество vs испуга).",
-        "kind": "passive"
+        "summary_ru": "Выбери: Побег от орды (нет провоцированных от существ в 5+), Защита от мультиатаки (+4 КД после попадания до нач. хода), Стальная воля (преимущество vs страх).",
+        "kind": "passive",
+        "choice": {
+          "id": "defensive_tactics",
+          "label_ru": "Оборонительная тактика",
+          "options": [
+            "escape_the_horde",
+            "multiattack_defense",
+            "steel_will"
+          ]
+        }
       },
       {
         "id": "multiattack_hunter",
@@ -205,7 +223,15 @@
         "name_ru": "Мультиатака",
         "name_en": "Multiattack",
         "summary_ru": "Выбери: Залп (атаки дальнобойным по всем в 10 фт. от точки в пределах дистанции) или Вихрь (атаки ближним по всем в 5 фт.).",
-        "kind": "action"
+        "kind": "action",
+        "choice": {
+          "id": "multiattack",
+          "label_ru": "Мультиатака",
+          "options": [
+            "volley",
+            "whirlwind"
+          ]
+        }
       },
       {
         "id": "superior_hunters_defense",
@@ -213,7 +239,16 @@
         "name_ru": "Превосходная защита охотника",
         "name_en": "Superior Hunter's Defense",
         "summary_ru": "Выбери: Уклонение (реакция − урон атаки), Стойкость или Увёртливость.",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "superior_hunters_defense",
+          "label_ru": "Превосходная защита",
+          "options": [
+            "evasion",
+            "stand_against_the_tide",
+            "uncanny_dodge"
+          ]
+        }
       }
     ],
     "beast_master": [
@@ -559,7 +594,14 @@
         "name_ru": "Дрейк-спутник",
         "name_en": "Drake Companion",
         "summary_ru": "Призвать дрейка (карточка спутника). Сущность стихии — выбор. Команда бонусным.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "summon_drake",
+          "pool_name_ru": "Призыв дрейка",
+          "track": "spend"
+        }
       },
       {
         "id": "bond_of_fang_and_scale",

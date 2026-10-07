@@ -30,6 +30,7 @@ import rangerPack from './data/ranger_2014.json'
 import sorcererPack from './data/sorcerer_2014.json'
 import warlockPack from './data/warlock_2014.json'
 import { SORCERER_METAMAGIC } from './sorcererMetamagic'
+import { MONK_ELEMENTAL_DISCIPLINES } from './monkElementalDisciplines'
 import {
   WARLOCK_INVOCATIONS,
   WARLOCK_PACT_BOONS,
@@ -117,6 +118,7 @@ export type FeatureChoiceDef = {
     | 'druid_land_types'
     | 'artificer_infusions'
     | 'armorer_armor_models'
+    | 'monk_elemental_disciplines'
   options?: string[]
   /** Multi-select cap by class level (Metamagic 2/3/4). */
   max_picks_by_level?: Record<string, number>
@@ -243,7 +245,8 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         choiceRaw.options_from === 'bard_swords_fighting_styles' ||
         choiceRaw.options_from === 'druid_land_types' ||
         choiceRaw.options_from === 'artificer_infusions' ||
-        choiceRaw.options_from === 'armorer_armor_models'
+        choiceRaw.options_from === 'armorer_armor_models' ||
+        choiceRaw.options_from === 'monk_elemental_disciplines'
           ? choiceRaw.options_from
           : undefined
       const options = Array.isArray(choiceRaw.options)
@@ -377,6 +380,9 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
   }
   if (choice.options_from === 'armorer_armor_models') {
     return ARMORER_ARMOR_MODELS.map((row) => row.id)
+  }
+  if (choice.options_from === 'monk_elemental_disciplines') {
+    return MONK_ELEMENTAL_DISCIPLINES.map((row) => row.id)
   }
   return choice.options ? [...choice.options] : []
 }

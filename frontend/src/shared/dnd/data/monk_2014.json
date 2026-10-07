@@ -335,15 +335,35 @@
         "level": 3,
         "name_ru": "Ученик стихий",
         "name_en": "Disciple of the Elements",
-        "summary_ru": "Выучи elemental disciplines (включая Elemental Attunement). Список — в заметках; траты ки по дисциплине.",
-        "kind": "passive"
+        "summary_ru": "Выучи дисциплины стихий (1 на 3 ур., +1 на 6/11/17). Можно заменять при получении новой. Каст за ки (см. список).",
+        "kind": "passive",
+        "choice": {
+          "id": "elemental_disciplines",
+          "label_ru": "Дисциплины стихий",
+          "options_from": "monk_elemental_disciplines",
+          "max_picks_by_level": {
+            "3": 1,
+            "6": 2,
+            "11": 3,
+            "17": 4
+          }
+        },
+        "scale": {
+          "label_ru": "Известно дисциплин",
+          "by_level": {
+            "3": "1",
+            "6": "2",
+            "11": "3",
+            "17": "4"
+          }
+        }
       },
       {
-        "id": "extra_elemental_discipline",
-        "level": 6,
-        "name_ru": "Доп. дисциплина стихий",
-        "name_en": "Extra Elemental Discipline",
-        "summary_ru": "Выучи ещё одну дисциплину (и на 11, 17).",
+        "id": "elemental_attunement_note",
+        "level": 3,
+        "name_ru": "Гармония стихий",
+        "name_en": "Elemental Attunement",
+        "summary_ru": "Входит в список дисциплин (бесплатно). Мелкие стихийные эффекты.",
         "kind": "passive"
       }
     ],
