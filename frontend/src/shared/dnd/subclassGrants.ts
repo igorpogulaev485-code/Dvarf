@@ -1,6 +1,30 @@
 /** PHB/Tasha 2014 subclass grant defs (sheet forks only — no feature text). */
 
-import type { ArmorProfKey, WeaponProfKey } from './classGrants'
+import {
+  ARTISAN_TOOL_CHOICES,
+  type ArmorProfKey,
+  type WeaponProfKey,
+} from './classGrants'
+
+/** PHB Battle Master maneuvers (RU labels for picker). */
+export const PHB_MANEUVERS: Array<{ id: string; labelRu: string }> = [
+  { id: 'commanders_strike', labelRu: 'Удар командира' },
+  { id: 'disarming_attack', labelRu: 'Разоружающая атака' },
+  { id: 'distracting_strike', labelRu: 'Отвлекающий удар' },
+  { id: 'evasive_footwork', labelRu: 'Увёртливая работа ног' },
+  { id: 'feinting_attack', labelRu: 'Обманная атака' },
+  { id: 'goading_attack', labelRu: 'Провокационная атака' },
+  { id: 'lunging_attack', labelRu: 'Выпад' },
+  { id: 'maneuvering_attack', labelRu: 'Маневренная атака' },
+  { id: 'menacing_attack', labelRu: 'Устрашающая атака' },
+  { id: 'parry', labelRu: 'Парирование' },
+  { id: 'precision_attack', labelRu: 'Точная атака' },
+  { id: 'pushing_attack', labelRu: 'Толкающая атака' },
+  { id: 'rally', labelRu: 'Сплочение' },
+  { id: 'riposte', labelRu: 'Ответный удар' },
+  { id: 'sweeping_attack', labelRu: 'Размашистая атака' },
+  { id: 'trip_attack', labelRu: 'Опрокидывающая атака' },
+]
 
 export type SubclassChoiceKind = 'single' | 'multi' | 'open_text'
 export type SubclassChoiceAppliesTo =
@@ -26,6 +50,7 @@ export type SubclassSheetGrants = {
   armor: ArmorProfKey[]
   weapons: { simple: boolean; martial: boolean; extras: string[] }
   toolsFixed: string[]
+  languagesFixed: string[]
   skillChoices: { count: number; from: string[] | 'any' } | null
   languageChoices: { count: number; from: string[] | 'any' } | null
   caster: { progression: 'third' | 'none'; ability: 'int' | 'wis' | 'cha' | null } | null
@@ -83,10 +108,43 @@ function emptySheetGrants(): SubclassSheetGrants {
     armor: [],
     weapons: { simple: false, martial: false, extras: [] },
     toolsFixed: [],
+    languagesFixed: [],
     skillChoices: null,
     languageChoices: null,
     caster: null,
   }
+}
+
+/** Expand choice `from` presets used in subclass catalog specs. */
+export function resolveSubclassChoiceOptions(
+  from: string[] | 'any' | string,
+): string[] | 'any' {
+  if (from === 'any') return 'any'
+  if (typeof from === 'string') {
+    if (from === 'artisan_tools') return [...ARTISAN_TOOL_CHOICES]
+    if (from === 'maneuver_catalog_phb') return PHB_MANEUVERS.map((item) => item.id)
+    return from ? [from] : []
+  }
+  if (Array.isArray(from)) {
+    if (from.length === 1 && from[0] === 'artisan_tools') {
+      return [...ARTISAN_TOOL_CHOICES]
+    }
+    if (from.length === 1 && from[0] === 'maneuver_catalog_phb') {
+      return PHB_MANEUVERS.map((item) => item.id)
+    }
+    return from
+  }
+  return []
+}
+
+export function subclassChoiceLabel(
+  key: string,
+  labels?: Record<string, string>,
+): string {
+  if (labels?.[key]) return labels[key]
+  const maneuver = PHB_MANEUVERS.find((item) => item.id === key)
+  if (maneuver) return maneuver.labelRu
+  return key
 }
 
 export function emptySubclassPicks(): SubclassGrantPicks {
@@ -157,8 +215,14 @@ export function parseSubclassGrantDef(input: {
       row.applies_to === 'companion'
         ? row.applies_to
         : 'flavor_only'
-    const from = row.from === 'any' ? 'any' : asStringArray(row.from)
-    const fromLabelsRu =
+    const rawFrom =
+      row.from === 'any'
+        ? 'any'
+        : typeof row.from === 'string'
+          ? row.from
+          : asStringArray(row.from)
+    const from = resolveSubclassChoiceOptions(rawFrom)
+    let fromLabelsRu =
       row.from_labels_ru && typeof row.from_labels_ru === 'object'
         ? Object.fromEntries(
             Object.entries(row.from_labels_ru as Record<string, unknown>).filter(
@@ -166,6 +230,15 @@ export function parseSubclassGrantDef(input: {
             ),
           )
         : undefined
+    if (
+      (rawFrom === 'maneuver_catalog_phb' ||
+        (Array.isArray(rawFrom) && rawFrom[0] === 'maneuver_catalog_phb')) &&
+      !fromLabelsRu
+    ) {
+      fromLabelsRu = Object.fromEntries(
+        PHB_MANEUVERS.map((item) => [item.id, item.labelRu]),
+      )
+    }
     choices.push({
       id: row.id,
       labelRu: row.label_ru,
@@ -195,6 +268,7 @@ export function parseSubclassGrantDef(input: {
         extras: asStringArray(weaponsRaw.extras),
       },
       toolsFixed: asStringArray(grantsRaw.tools_fixed),
+      languagesFixed: asStringArray(grantsRaw.languages_fixed),
       skillChoices,
       languageChoices,
       caster,

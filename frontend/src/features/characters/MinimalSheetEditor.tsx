@@ -83,6 +83,7 @@ import { LanguagesToolsPanel } from './LanguagesToolsPanel'
 import { LevelUpDialog, type LevelUpChoice } from './LevelUpDialog'
 import { PlayPanel } from './PlayPanel'
 import { SpellsPanel } from './SpellsPanel'
+import { CompanionsPanel } from './CompanionsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import {
   ARMOR_PROF_OPTIONS,
@@ -587,6 +588,7 @@ export function MinimalSheetEditor({
               armor: [],
               weapons: { simple: false, martial: false, extras: [] },
               toolsFixed: [],
+              languagesFixed: [],
               skillChoices: null,
               languageChoices: null,
               caster: null,
@@ -1513,6 +1515,13 @@ export function MinimalSheetEditor({
         className={classSummary || primaryClass?.name || ''}
         level={characterLevel}
         classes={draft.classes}
+        subclassCasters={draft.subclassGrants
+          .filter((row) => row.caster?.progression === 'third')
+          .map((row) => ({
+            classEntryId: row.classEntryId,
+            progression: 'third' as const,
+            ability: row.caster?.ability ?? null,
+          }))}
         spells={draft.spells}
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
@@ -1524,6 +1533,11 @@ export function MinimalSheetEditor({
           }))
         }
         onToast={onToast}
+      />
+
+      <CompanionsPanel
+        companions={draft.companions}
+        onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
       />
 
       <Panel title="Спасброски">

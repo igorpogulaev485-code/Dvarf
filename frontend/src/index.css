@@ -773,6 +773,31 @@ input {
   margin-top: 3px;
 }
 
+.companion-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.companion-card:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sheet-grid--3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .sheet-grid--3 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .skill-row.is-expert {
   background: #173528;
   border-color: #173528;

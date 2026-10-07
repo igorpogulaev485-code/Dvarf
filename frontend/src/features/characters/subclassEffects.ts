@@ -15,7 +15,7 @@ import {
 import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
 import type { AppliedRaceGrant } from '../../shared/dnd/raceGrants'
 import type { CompanionEntry } from './companions'
-import { revokeCompanionsForSubclass } from './companions'
+import { createCompanion, revokeCompanionsForSubclass } from './companions'
 import type { TextBlock } from './textBlocks'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
@@ -75,6 +75,24 @@ function unionSubclassExcept(
   return grants.filter((row) => row.classEntryId !== exceptClassEntryId)
 }
 
+const SKILL_KEY_RE =
+  /^(acrobatics|animal_handling|arcana|athletics|deception|history|insight|intimidation|investigation|medicine|nature|perception|performance|persuasion|religion|sleight_of_hand|stealth|survival)$/
+
+function pickValues(value: string | string[] | undefined): string[] {
+  if (Array.isArray(value)) return value
+  if (typeof value === 'string' && value.trim()) return [value]
+  return []
+}
+
+function isToolChoice(choice: { id: string; from: string[] | 'any' }): boolean {
+  const id = choice.id.toLowerCase()
+  if (id.includes('tool')) return true
+  if (choice.from === 'any') return false
+  return choice.from.some(
+    (item) => item.toLowerCase().includes('инструмент') || item === 'artisan_tools',
+  )
+}
+
 function resolveSkillsFromPicks(
   def: SubclassGrantDef,
   picks: SubclassGrantPicks,
@@ -82,19 +100,32 @@ function resolveSkillsFromPicks(
   const skills: string[] = []
   for (const choice of def.choices) {
     if (choice.appliesTo !== 'grant') continue
-    const value = picks.values[choice.id]
     if (choice.kind === 'open_text') continue
-    // Heuristic: skill keys look like snake_case skill ids
-    const values = Array.isArray(value) ? value : typeof value === 'string' ? [value] : []
-    for (const item of values) {
-      if (choice.from === 'any' || (Array.isArray(choice.from) && choice.from.includes(item))) {
-        // language choices also use grant+from any — filter by choice id
-        if (choice.id.toLowerCase().includes('lang')) continue
+    if (choice.id.toLowerCase().includes('lang')) continue
+    if (isToolChoice(choice)) continue
+    for (const item of pickValues(picks.values[choice.id])) {
+      if (choice.from === 'any' || SKILL_KEY_RE.test(item)) {
+        if (choice.from === 'any' || choice.from.includes(item)) skills.push(item)
+      } else if (Array.isArray(choice.from) && choice.from.includes(item) && SKILL_KEY_RE.test(item)) {
         skills.push(item)
       }
     }
   }
   return uniqueStrings(skills)
+}
+
+function resolveToolsFromPicks(
+  def: SubclassGrantDef,
+  picks: SubclassGrantPicks,
+): string[] {
+  const tools: string[] = []
+  for (const choice of def.choices) {
+    if (choice.appliesTo !== 'grant') continue
+    if (choice.kind === 'open_text') continue
+    if (!isToolChoice(choice)) continue
+    tools.push(...pickValues(picks.values[choice.id]))
+  }
+  return uniqueStrings(tools)
 }
 
 function resolveLanguagesFromPicks(
@@ -105,9 +136,7 @@ function resolveLanguagesFromPicks(
   for (const choice of def.choices) {
     if (choice.appliesTo !== 'grant') continue
     if (!choice.id.toLowerCase().includes('lang')) continue
-    const value = picks.values[choice.id]
-    const values = Array.isArray(value) ? value : typeof value === 'string' ? [value] : []
-    languages.push(...values)
+    languages.push(...pickValues(picks.values[choice.id]))
   }
   return uniqueStrings(languages)
 }
@@ -309,8 +338,14 @@ export function applySubclassGrantToDraft(input: {
   })
 
   const skillsApplied = resolveSkillsFromPicks(input.def, picks)
-  const languagesApplied = resolveLanguagesFromPicks(input.def, picks)
-  const toolsApplied = [...input.def.sheetGrants.toolsFixed]
+  const languagesApplied = uniqueStrings([
+    ...input.def.sheetGrants.languagesFixed,
+    ...resolveLanguagesFromPicks(input.def, picks),
+  ])
+  const toolsApplied = uniqueStrings([
+    ...input.def.sheetGrants.toolsFixed,
+    ...resolveToolsFromPicks(input.def, picks),
+  ])
   const armorKeys = [...input.def.sheetGrants.armor]
   const weaponKeys: WeaponProfKey[] = []
   if (input.def.sheetGrants.weapons.simple) weaponKeys.push('simple')
@@ -344,6 +379,42 @@ export function applySubclassGrantToDraft(input: {
     caster: input.def.sheetGrants.caster,
   }
 
+  const companionsFromPicks: CompanionEntry[] = []
+  for (const choice of input.def.choices) {
+    const value = picks.values[choice.id]
+    if (typeof value !== 'string' || !value.trim()) continue
+    const id = choice.id.toLowerCase()
+    const isCompanion =
+      choice.appliesTo === 'companion' ||
+      id.includes('companion') ||
+      id.includes('defender') ||
+      id.includes('drake') ||
+      id.includes('cannon')
+    if (!isCompanion && choice.kind !== 'open_text') continue
+    if (!isCompanion) continue
+    const kind =
+      id.includes('defender')
+        ? 'steel_defender'
+        : id.includes('drake')
+          ? 'drake'
+          : id.includes('cannon')
+            ? 'eldritch_cannon'
+            : id.includes('familiar')
+              ? 'familiar'
+              : 'beast_companion'
+    companionsFromPicks.push(
+      createCompanion({
+        kind,
+        name: value.trim(),
+        source: {
+          classEntryId: input.classEntryId,
+          subclassSlug: input.def.slug,
+          feature: choice.id,
+        },
+      }),
+    )
+  }
+
   const draft: SubclassGrantDraftSlice = {
     ...cleared,
     skills,
@@ -351,6 +422,7 @@ export function applySubclassGrantToDraft(input: {
       ...cleared.subclassGrants.filter((row) => row.classEntryId !== input.classEntryId),
       nextGrant,
     ],
+    companions: [...cleared.companions, ...companionsFromPicks],
     identity: {
       ...cleared.identity,
       armor,

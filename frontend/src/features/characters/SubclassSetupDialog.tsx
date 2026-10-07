@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   emptySubclassPicks,
+  subclassChoiceLabel,
   validateSubclassPicks,
   type SubclassGrantDef,
   type SubclassGrantPicks,
@@ -16,15 +17,11 @@ type SubclassSetupDialogProps = {
   onClose: () => void
 }
 
-function skillLabel(key: string): string {
-  return SKILL_DEFS.find((item) => item.key === key)?.label ?? key
-}
-
-function optionLabel(
-  key: string,
-  labels?: Record<string, string>,
-): string {
-  return labels?.[key] ?? skillLabel(key)
+function optionLabel(key: string, labels?: Record<string, string>): string {
+  if (labels?.[key]) return labels[key]
+  const skill = SKILL_DEFS.find((item) => item.key === key)
+  if (skill) return skill.label
+  return subclassChoiceLabel(key)
 }
 
 export function SubclassSetupDialog({
