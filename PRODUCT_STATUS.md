@@ -438,7 +438,7 @@
 | Наследные черты | 6 × (4 ур. + Удар): холм/камень/лёд/огонь/облако/шторм | PB-пулы реакций и аур |
 | Ваятель рун | Spellcasting prereq; руны ½ БМ | Понимание языков + рунические слоты |
 
-На проде: **нет** · ветка `cursor/feats-bpgg-wave-ef23` · tip не менять до «залей»
+На проде: **нет** · ветка `cursor/feats-bpgg-wave-ef23` · PR #61 · tip не менять до «залей»
 
 ### 2026-10-07 — FEATS SDQ wave (Драконье копьё / Сага о Копье)
 
@@ -600,4 +600,4 @@
 | 2026-10-07 | `cursor/feats-erlw-wave-ef23` · PR #58 | ERLW Aberrant Dragonmark + WGTE Revenant Blade; alembic `a7b8`; на проде нет |
 | 2026-10-07 | `cursor/feats-scc-wave-ef23` · PR #59 | SCC Strixhaven Initiate/Mascot + min_level/feats_all; GGtR skip; alembic `b8c9`; на проде нет |
 | 2026-10-07 | `cursor/feats-dsotdq-wave-ef23` · PR #60 | SDQ Dragonlance 9 feats + knight/mage chains; alembic `d0e1`; на проде нет |
-| 2026-10-07 | `cursor/feats-bpgg-wave-ef23` | BPGG Strike of the Giants chain + Rune Shaper; alembic `e1f2`; на проде нет |
+| 2026-10-07 | `cursor/feats-bpgg-wave-ef23` · PR #61 | BPGG Strike of the Giants chain + Rune Shaper; alembic `e1f2`; на проде нет |
