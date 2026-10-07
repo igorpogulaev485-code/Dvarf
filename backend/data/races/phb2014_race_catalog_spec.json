@@ -531,9 +531,8 @@
       "darkvision": 60,
       "ability_bonuses": {},
       "ability_bonus_choices": {
-        "count": 3,
-        "amount": 1,
-        "from": "any"
+        "from": "any",
+        "preset": "tasha_flexible"
       },
       "languages": [
         "Общий"
@@ -999,9 +998,8 @@
       "darkvision": 0,
       "ability_bonuses": {},
       "ability_bonus_choices": {
-        "count": 3,
-        "amount": 1,
-        "from": "any"
+        "from": "any",
+        "preset": "tasha_flexible"
       },
       "languages": [
         "Общий"
@@ -1054,9 +1052,8 @@
       "darkvision": 0,
       "ability_bonuses": {},
       "ability_bonus_choices": {
-        "count": 3,
-        "amount": 1,
-        "from": "any"
+        "from": "any",
+        "preset": "tasha_flexible"
       },
       "languages": [
         "Общий"
@@ -1109,9 +1106,8 @@
       "darkvision": 0,
       "ability_bonuses": {},
       "ability_bonus_choices": {
-        "count": 3,
-        "amount": 1,
-        "from": "any"
+        "from": "any",
+        "preset": "tasha_flexible"
       },
       "languages": [
         "Общий"

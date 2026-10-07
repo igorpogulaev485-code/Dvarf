@@ -141,6 +141,7 @@ export function applyRaceGrantToDraft(input: {
     def.abilityBonuses,
     def.abilityBonusChoices,
     picks.abilityBonusKeys,
+    picks.abilityBonusModeId,
   )
   const traitsText = buildTraitsWithPicks({ def, picks })
   const languagesApplied = uniqueStrings([...def.languages, ...picks.languages])

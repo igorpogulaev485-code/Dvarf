@@ -627,7 +627,14 @@ export function MinimalSheetEditor({
 
     commitRaceGrant({
       selected,
-      picks: { abilityBonusKeys: [], languages: [], skills: [], tools: [], ancestryId: null },
+      picks: {
+        abilityBonusModeId: null,
+        abilityBonusKeys: [],
+        languages: [],
+        skills: [],
+        tools: [],
+        ancestryId: null,
+      },
       def: rootDef,
     })
   }

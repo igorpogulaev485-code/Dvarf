@@ -4,12 +4,54 @@ export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
 export type RaceSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan'
 
-export type AbilityBonusChoice = {
-  count: number
+/** One ASI bucket inside a mode, e.g. «+2 to one ability». */
+export type AbilityBonusBucket = {
   amount: number
+  count: number
+}
+
+/** Tasha/MPMM fork: pick one mode, then fill its buckets. */
+export type AbilityBonusMode = {
+  id: string
+  labelRu: string
+  buckets: AbilityBonusBucket[]
+}
+
+/**
+ * ASI choice package.
+ * - Legacy: `{ count, amount, from }` — N picks of the same amount.
+ * - Flexible: `{ from, preset: 'tasha_flexible' }` or explicit `modes`.
+ */
+export type AbilityBonusChoice = {
   from: AbilityKey[] | 'any'
   exclude?: AbilityKey[]
+  /** Legacy single-mode pick count (all get `amount`). */
+  count?: number
+  /** Legacy single-mode amount per pick. */
+  amount?: number
+  /** Named preset expanded in `resolveAbilityBonusModes`. */
+  preset?: 'tasha_flexible'
+  modes?: AbilityBonusMode[]
 }
+
+/** Official MPMM / Tasha flexible ASI: +2/+1 or three +1. */
+export const TASHA_FLEXIBLE_ASI_MODES: AbilityBonusMode[] = [
+  {
+    id: 'plus2_plus1',
+    labelRu:
+      'Увеличьте одну любую характеристику на +2 и любую другую характеристику на +1',
+    buckets: [
+      { amount: 2, count: 1 },
+      { amount: 1, count: 1 },
+    ],
+  },
+  {
+    id: 'plus1x3',
+    labelRu:
+      'Увеличьте одну любую характеристику на +1, любую другую на +1 и третью на +1',
+    buckets: [{ amount: 1, count: 3 }],
+  },
+]
 
 export type SkillChoice = {
   count: number
@@ -52,7 +94,12 @@ export type RaceGrantDef = {
 }
 
 export type RaceGrantPicks = {
-  /** Extra ASI keys chosen via ability_bonus_choices (each gets `amount`). */
+  /** Selected ASI mode id when `ability_bonus_choices` has modes/preset. */
+  abilityBonusModeId: string | null
+  /**
+   * Ability keys in bucket order for the selected mode
+   * (e.g. plus2_plus1 → [keyFor+2, keyFor+1]; plus1x3 → three +1 keys).
+   */
   abilityBonusKeys: AbilityKey[]
   languages: string[]
   skills: string[]
@@ -133,21 +180,105 @@ function readSize(value: unknown): RaceSize {
   return SIZE_VALUES.includes(value as RaceSize) ? (value as RaceSize) : 'medium'
 }
 
+function readAbilityBonusBuckets(raw: unknown): AbilityBonusBucket[] {
+  if (!Array.isArray(raw)) return []
+  const out: AbilityBonusBucket[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    const amount = Math.trunc(readNumber(row.amount, 0))
+    const count = Math.max(0, Math.floor(readNumber(row.count, 0)))
+    if (!amount || count <= 0) continue
+    out.push({ amount, count })
+  }
+  return out
+}
+
+function readAbilityBonusModes(raw: unknown): AbilityBonusMode[] {
+  if (!Array.isArray(raw)) return []
+  const out: AbilityBonusMode[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    if (typeof row.id !== 'string' || !row.id.trim()) continue
+    const buckets = readAbilityBonusBuckets(row.buckets)
+    if (buckets.length === 0) continue
+    const labelRu =
+      typeof row.label_ru === 'string'
+        ? row.label_ru
+        : typeof row.labelRu === 'string'
+          ? row.labelRu
+          : row.id
+    out.push({ id: row.id.trim(), labelRu, buckets })
+  }
+  return out
+}
+
 function readAbilityBonusChoices(raw: unknown): AbilityBonusChoice | null {
   const obj = asRecord(raw)
-  const count = Math.max(0, Math.floor(readNumber(obj.count, 0)))
-  if (count <= 0) return null
-  const amount = Math.trunc(readNumber(obj.amount, 1)) || 1
   const exclude = Array.isArray(obj.exclude)
     ? obj.exclude.filter(isAbilityKey)
     : undefined
-  if (obj.from === 'any' || obj.from == null) {
-    return { count, amount, from: 'any', exclude }
+
+  let from: AbilityKey[] | 'any' = 'any'
+  if (obj.from !== 'any' && obj.from != null) {
+    if (!Array.isArray(obj.from)) return null
+    const keys = obj.from.filter(isAbilityKey)
+    if (keys.length === 0) return null
+    from = keys
   }
-  if (!Array.isArray(obj.from)) return null
-  const from = obj.from.filter(isAbilityKey)
-  if (from.length === 0) return null
+
+  const modes = readAbilityBonusModes(obj.modes)
+  const preset = obj.preset === 'tasha_flexible' ? 'tasha_flexible' : undefined
+  if (preset || modes.length > 0) {
+    return { from, exclude, preset, modes: modes.length > 0 ? modes : undefined }
+  }
+
+  const count = Math.max(0, Math.floor(readNumber(obj.count, 0)))
+  if (count <= 0) return null
+  const amount = Math.trunc(readNumber(obj.amount, 1)) || 1
   return { count, amount, from, exclude }
+}
+
+/** Resolve concrete modes (preset / explicit / legacy count+amount). */
+export function resolveAbilityBonusModes(
+  choice: AbilityBonusChoice | null,
+): AbilityBonusMode[] {
+  if (!choice) return []
+  if (choice.preset === 'tasha_flexible') return TASHA_FLEXIBLE_ASI_MODES
+  if (choice.modes && choice.modes.length > 0) return choice.modes
+  const count = choice.count ?? 0
+  const amount = choice.amount ?? 1
+  if (count <= 0) return []
+  return [
+    {
+      id: 'default',
+      labelRu: `+${amount} к ${count} характеристикам`,
+      buckets: [{ amount, count }],
+    },
+  ]
+}
+
+export function abilityBonusModeSlotCount(mode: AbilityBonusMode): number {
+  return mode.buckets.reduce((sum, bucket) => sum + bucket.count, 0)
+}
+
+/** Expand buckets to a flat amount list matching `abilityBonusKeys` order. */
+export function expandAbilityBonusAmounts(mode: AbilityBonusMode): number[] {
+  const amounts: number[] = []
+  for (const bucket of mode.buckets) {
+    for (let i = 0; i < bucket.count; i += 1) amounts.push(bucket.amount)
+  }
+  return amounts
+}
+
+export function resolveSelectedAbilityBonusMode(input: {
+  choice: AbilityBonusChoice | null
+  modeId: string | null | undefined
+}): AbilityBonusMode | null {
+  const modes = resolveAbilityBonusModes(input.choice)
+  if (modes.length === 0) return null
+  if (modes.length === 1) return modes[0] ?? null
+  if (!input.modeId) return null
+  return modes.find((mode) => mode.id === input.modeId) ?? null
 }
 
 function readSkillChoice(raw: unknown): SkillChoice | null {
@@ -305,6 +436,7 @@ export function resolveRaceGrantDef(input: {
 
 export function emptyRacePicks(): RaceGrantPicks {
   return {
+    abilityBonusModeId: null,
     abilityBonusKeys: [],
     languages: [],
     skills: [],
@@ -314,7 +446,7 @@ export function emptyRacePicks(): RaceGrantPicks {
 }
 
 export function raceGrantNeedsSetupDialog(def: RaceGrantDef): boolean {
-  if ((def.abilityBonusChoices?.count ?? 0) > 0) return true
+  if (resolveAbilityBonusModes(def.abilityBonusChoices).length > 0) return true
   if (def.languagesChoose > 0) return true
   if ((def.skillChoices?.count ?? 0) > 0) return true
   if ((def.toolChoices?.count ?? 0) > 0) return true
@@ -339,18 +471,27 @@ export function validateRaceGrantPicks(input: {
 }): string | null {
   const { def, picks } = input
   const asi = def.abilityBonusChoices
-  if (asi) {
-    if (picks.abilityBonusKeys.length !== asi.count) {
-      return `Выбери характеристики: ${asi.count}`
+  const modes = resolveAbilityBonusModes(asi)
+  if (modes.length > 0) {
+    const mode = resolveSelectedAbilityBonusMode({
+      choice: asi,
+      modeId: picks.abilityBonusModeId,
+    })
+    if (!mode) {
+      return modes.length > 1 ? 'Выбери вариант увеличения характеристик' : 'Нет режима ASI'
     }
-    const allowed = new Set(abilityKeysForBonusChoice(asi))
+    const need = abilityBonusModeSlotCount(mode)
+    if (picks.abilityBonusKeys.length !== need) {
+      return `Выбери характеристики: ${need}`
+    }
+    const allowed = new Set(abilityKeysForBonusChoice(asi!))
     if (picks.abilityBonusKeys.some((key) => !allowed.has(key))) {
       return 'Характеристика вне списка расы'
     }
     if (new Set(picks.abilityBonusKeys).size !== picks.abilityBonusKeys.length) {
       return 'Нельзя выбрать одну характеристику дважды'
     }
-  } else if (picks.abilityBonusKeys.length > 0) {
+  } else if (picks.abilityBonusKeys.length > 0 || picks.abilityBonusModeId) {
     return 'Лишние бонусы характеристик'
   }
 
@@ -394,11 +535,17 @@ export function mergeAbilityBonuses(
   fixed: Partial<Record<AbilityKey, number>>,
   choice: AbilityBonusChoice | null,
   picks: AbilityKey[],
+  modeId?: string | null,
 ): Partial<Record<AbilityKey, number>> {
   const result: Partial<Record<AbilityKey, number>> = { ...fixed }
-  if (!choice) return result
-  for (const key of picks) {
-    result[key] = (result[key] ?? 0) + choice.amount
+  const mode = resolveSelectedAbilityBonusMode({ choice, modeId: modeId ?? null })
+  if (!mode) return result
+  const amounts = expandAbilityBonusAmounts(mode)
+  for (let i = 0; i < picks.length; i += 1) {
+    const key = picks[i]
+    const amount = amounts[i]
+    if (!key || !amount) continue
+    result[key] = (result[key] ?? 0) + amount
   }
   return result
 }
