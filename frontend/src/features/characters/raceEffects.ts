@@ -56,6 +56,7 @@ export type RaceGrantDraftSlice = {
   classGrantedSkills: Set<string>
   classGrantedTools: Set<string>
   classGrantedArmor: Set<keyof ArmorProficiency>
+  classGrantedWeaponExtras: Set<string>
 }
 
 function racialSpellToSheetSpell(
@@ -210,6 +211,13 @@ export function revokeRaceGrant(draft: RaceGrantDraftSlice): RaceGrantDraftSlice
     armor[key] = draft.classGrantedArmor.has(key)
   }
 
+  const weaponExtras = (draft.identity.weapons.extras ?? []).filter((name) => {
+    const key = name.trim().toLowerCase()
+    const wasFromRace = previous.weaponNames.some((item) => item.toLowerCase() === key)
+    if (!wasFromRace) return true
+    return draft.classGrantedWeaponExtras.has(key)
+  })
+
   const textBlocks = draft.textBlocks.map((block) => {
     if (block.key !== 'traits') return block
     return { ...block, value: upsertRaceTraitsBlock(block.value, '') }
@@ -236,6 +244,10 @@ export function revokeRaceGrant(draft: RaceGrantDraftSlice): RaceGrantDraftSlice
       languages,
       tools,
       armor,
+      weapons: {
+        ...draft.identity.weapons,
+        extras: weaponExtras,
+      },
       raceAppliedLanguages: [],
     },
     textBlocks,
@@ -371,6 +383,13 @@ export function applyRaceGrantToDraft(input: {
       languages,
       tools: uniqueStrings([...cleared.identity.tools, ...toolsApplied]),
       armor,
+      weapons: {
+        ...cleared.identity.weapons,
+        extras: uniqueStrings([
+          ...(cleared.identity.weapons.extras ?? []),
+          ...def.weaponProficiencies,
+        ]),
+      },
       raceAppliedLanguages: [...languagesApplied],
     },
     textBlocks,

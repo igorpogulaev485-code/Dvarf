@@ -7,6 +7,7 @@ import {
   emptyFeatPicks,
   featGrantDefFromCatalog,
   featPrerequisitesUnmet,
+  resolveEnumMultiCount,
   spellOneOptionsForPicks,
   validateFeatGrantPicks,
   type AbilityKey,
@@ -44,6 +45,8 @@ type FeatSetupDialogProps = {
   classSlugs?: string[]
   backgroundSlug?: string | null
   ownedFeatEnums?: OwnedFeatEnumSnapshot[]
+  /** Skill keys the character is already proficient in (expertise picker). */
+  proficientSkills?: string[]
   /** Lock picker to one feat (background / race grant). */
   forcedSlug?: string | null
   onConfirm: (result: FeatSetupResult) => void
@@ -66,6 +69,7 @@ export function FeatSetupDialog({
   classSlugs = [],
   backgroundSlug = null,
   ownedFeatEnums = [],
+  proficientSkills = [],
   forcedSlug = null,
   onConfirm,
   onClose,
@@ -175,6 +179,57 @@ export function FeatSetupDialog({
     }))
   }
 
+  function toggleEnumList(choiceId: string, optionId: string, need: number) {
+    setError(null)
+    setPicks((prev) => {
+      const current = prev.enumLists[choiceId] ?? []
+      if (current.includes(optionId)) {
+        return {
+          ...prev,
+          enumLists: {
+            ...prev.enumLists,
+            [choiceId]: current.filter((id) => id !== optionId),
+          },
+        }
+      }
+      if (current.length >= need) {
+        return {
+          ...prev,
+          enumLists: {
+            ...prev.enumLists,
+            [choiceId]: [...current.slice(1), optionId],
+          },
+        }
+      }
+      return {
+        ...prev,
+        enumLists: {
+          ...prev.enumLists,
+          [choiceId]: [...current, optionId],
+        },
+      }
+    })
+  }
+
+  function toggleExpertise(skillKey: string, need: number) {
+    setError(null)
+    setPicks((prev) => {
+      if (prev.expertiseSkills.includes(skillKey)) {
+        return {
+          ...prev,
+          expertiseSkills: prev.expertiseSkills.filter((key) => key !== skillKey),
+        }
+      }
+      if (prev.expertiseSkills.length >= need) {
+        return {
+          ...prev,
+          expertiseSkills: [...prev.expertiseSkills.slice(1), skillKey],
+        }
+      }
+      return { ...prev, expertiseSkills: [...prev.expertiseSkills, skillKey] }
+    })
+  }
+
   function toggleLanguage(name: string) {
     setError(null)
     setPicks((prev) => {
@@ -255,6 +310,7 @@ export function FeatSetupDialog({
       classSlugs,
       backgroundSlug,
       ownedFeatEnums,
+      proficientSkills,
     })
     if (check) {
       setError(check)
@@ -264,7 +320,7 @@ export function FeatSetupDialog({
       entry: selected,
       def,
       picks,
-      applied: buildAppliedFeatPackage({ def, picks }),
+      applied: buildAppliedFeatPackage({ def, picks, characterLevel }),
     })
   }
 
@@ -392,6 +448,62 @@ export function FeatSetupDialog({
                         </Button>
                       ))}
                     </div>
+                  </Field>
+                )
+              }
+              if (choice.type === 'enum_multi') {
+                const need = resolveEnumMultiCount(choice, characterLevel)
+                const selectedIds = picks.enumLists[choice.id] ?? []
+                return (
+                  <Field
+                    key={choice.id}
+                    label={`${choice.label_ru} (${selectedIds.length}/${need})`}
+                  >
+                    <div className="chip-row" role="group">
+                      {choice.options.map((opt) => (
+                        <Button
+                          key={opt.id}
+                          type="button"
+                          variant={selectedIds.includes(opt.id) ? 'primary' : 'ghost'}
+                          onClick={() => toggleEnumList(choice.id, opt.id, need)}
+                        >
+                          {opt.label_ru}
+                        </Button>
+                      ))}
+                    </div>
+                  </Field>
+                )
+              }
+              if (choice.type === 'expertise') {
+                const owned = new Set([...proficientSkills, ...picks.skills])
+                const options = SKILL_DEFS.filter((skill) => owned.has(skill.key))
+                return (
+                  <Field
+                    key={choice.id}
+                    label={`${choice.label_ru} (${picks.expertiseSkills.length}/${choice.count})`}
+                  >
+                    {options.length ? (
+                      <div className="chip-row" role="group">
+                        {options.map((skill) => (
+                          <Button
+                            key={skill.key}
+                            type="button"
+                            variant={
+                              picks.expertiseSkills.includes(skill.key)
+                                ? 'primary'
+                                : 'ghost'
+                            }
+                            onClick={() => toggleExpertise(skill.key, choice.count)}
+                          >
+                            {skill.label}
+                          </Button>
+                        ))}
+                      </div>
+                    ) : (
+                      <Text tone="muted">
+                        Сначала возьми владение навыком (выше) или отметь навыки на листе.
+                      </Text>
+                    )}
                   </Field>
                 )
               }

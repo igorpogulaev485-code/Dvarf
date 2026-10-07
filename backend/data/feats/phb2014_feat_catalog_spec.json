@@ -694,10 +694,28 @@
         "prerequisites": {},
         "choices": [
           {
-            "id": "maneuvers_note",
-            "type": "note",
-            "label_ru": "Приёмы",
-            "text_ru": "Выбери два приёма Battle Master и запиши их (полный пикер приёмов — стык с H4b позже)."
+            "id": "maneuvers",
+            "type": "enum_multi",
+            "label_ru": "Приёмы мастера боевых искусств",
+            "count": 2,
+            "options": [
+              { "id": "commanders_strike", "label_ru": "Удар командира" },
+              { "id": "disarming_attack", "label_ru": "Обезоруживающая атака" },
+              { "id": "distracting_strike", "label_ru": "Отвлекающий удар" },
+              { "id": "evasive_footwork", "label_ru": "Уклончивая работа ног" },
+              { "id": "feinting_attack", "label_ru": "Обманная атака" },
+              { "id": "goading_attack", "label_ru": "Провокационная атака" },
+              { "id": "lunging_attack", "label_ru": "Выпад" },
+              { "id": "maneuvering_attack", "label_ru": "Маневренная атака" },
+              { "id": "menacing_attack", "label_ru": "Устрашающая атака" },
+              { "id": "parry", "label_ru": "Парирование" },
+              { "id": "precision_attack", "label_ru": "Точная атака" },
+              { "id": "pushing_attack", "label_ru": "Отталкивающая атака" },
+              { "id": "rally", "label_ru": "Сплочение" },
+              { "id": "riposte", "label_ru": "Ответный удар" },
+              { "id": "sweeping_attack", "label_ru": "Сметающая атака" },
+              { "id": "trip_attack", "label_ru": "Атака с подножкой" }
+            ]
           }
         ],
         "grants": {
