@@ -102,6 +102,7 @@
 | Sorcerer / **8** оф. происхождений | 2, 5, 11 + Flexible Casting UI + Metamagic SP spend (Twinned = ур. ячейки) |
 | Warlock / **9** оф. покровителей | 2, 5, 11 (Pact Magic already in caster; Invocations multi-pick; Pact Boon; Arcanum 6–9) |
 | Bard / **8** оф. коллегий | 2, 4b, 5, 8, 11 (BI Cha-mod; Font upgrades reset long→short; Superior Inspiration; Swords style) |
+| Druid / **7** оф. кругов | 2, 3, 4b, 5, 11 (Wild Shape 2× short; Land type pick; PB/Wis pools on circles) |
 
 ## H4 — порядок пакетов классов
 
@@ -116,7 +117,8 @@
 7. ~~Чародей~~ (очки + метамагия + каркас 8 происхождений)
 8. ~~Колдун~~ (инвокации + pact boon + арканумы; 9 покровителей каркас)
 9. ~~Бард~~ (BI + Font short + Superior Inspiration; 8 коллегий каркас)
-10. **Друид** ← следующий / Волшебник, Изобретатель
+10. ~~Друид~~ (Wild Shape + Land pick; 7 кругов каркас)
+11. **Волшебник** ← следующий / Изобретатель
 
 ## Не в v1
 

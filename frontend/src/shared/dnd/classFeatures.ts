@@ -4,6 +4,7 @@ import type { ClassLevelEntry } from './classLevels'
 import barbarianPack from './data/barbarian_2014.json'
 import bardPack from './data/bard_2014.json'
 import clericPack from './data/cleric_2014.json'
+import druidPack from './data/druid_2014.json'
 import fighterPack from './data/fighter_2014.json'
 import monkPack from './data/monk_2014.json'
 import paladinPack from './data/paladin_2014.json'
@@ -14,6 +15,7 @@ import {
   PALADIN_FIGHTING_STYLES,
   RANGER_FIGHTING_STYLES,
 } from './fightingStyles'
+import { DRUID_LAND_TYPES } from './druidLandChoices'
 import {
   RANGER_FAVORED_ENEMIES,
   RANGER_FAVORED_TERRAINS,
@@ -106,6 +108,7 @@ export type FeatureChoiceDef = {
     | 'warlock_invocations'
     | 'warlock_pact_boons'
     | 'bard_swords_fighting_styles'
+    | 'druid_land_types'
   options?: string[]
   /** Multi-select cap by class level (Metamagic 2/3/4). */
   max_picks_by_level?: Record<string, number>
@@ -170,6 +173,7 @@ const LOCAL_PACKS: Record<string, FeaturePack> = {
   barbarian: barbarianPack as FeaturePack,
   bard: bardPack as FeaturePack,
   cleric: clericPack as FeaturePack,
+  druid: druidPack as FeaturePack,
   fighter: fighterPack as FeaturePack,
   monk: monkPack as FeaturePack,
   paladin: paladinPack as FeaturePack,
@@ -226,7 +230,8 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         choiceRaw.options_from === 'sorcerer_metamagic' ||
         choiceRaw.options_from === 'warlock_invocations' ||
         choiceRaw.options_from === 'warlock_pact_boons' ||
-        choiceRaw.options_from === 'bard_swords_fighting_styles'
+        choiceRaw.options_from === 'bard_swords_fighting_styles' ||
+        choiceRaw.options_from === 'druid_land_types'
           ? choiceRaw.options_from
           : undefined
       const options = Array.isArray(choiceRaw.options)
@@ -351,6 +356,9 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
   }
   if (choice.options_from === 'bard_swords_fighting_styles') {
     return [...BARD_SWORDS_FIGHTING_STYLES]
+  }
+  if (choice.options_from === 'druid_land_types') {
+    return DRUID_LAND_TYPES.map((row) => row.id)
   }
   return choice.options ? [...choice.options] : []
 }
@@ -595,6 +603,8 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   колдун: 'warlock',
   bard: 'bard',
   бард: 'bard',
+  druid: 'druid',
+  друид: 'druid',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {
@@ -760,6 +770,21 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   'коллегия созидания': 'college_of_creation',
   college_of_spirits: 'college_of_spirits',
   'коллегия духов': 'college_of_spirits',
+  circle_of_the_land: 'circle_of_the_land',
+  'круг земли': 'circle_of_the_land',
+  circle_of_the_moon: 'circle_of_the_moon',
+  'круг луны': 'circle_of_the_moon',
+  circle_of_dreams: 'circle_of_dreams',
+  'круг снов': 'circle_of_dreams',
+  circle_of_the_shepherd: 'circle_of_the_shepherd',
+  'круг пастыря': 'circle_of_the_shepherd',
+  circle_of_spores: 'circle_of_spores',
+  'круг спор': 'circle_of_spores',
+  circle_of_stars: 'circle_of_stars',
+  'круг звёзд': 'circle_of_stars',
+  'круг звезд': 'circle_of_stars',
+  circle_of_wildfire: 'circle_of_wildfire',
+  'круг дикого огня': 'circle_of_wildfire',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -830,6 +855,13 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'college_of_eloquence',
   'college_of_creation',
   'college_of_spirits',
+  'circle_of_the_land',
+  'circle_of_the_moon',
+  'circle_of_dreams',
+  'circle_of_the_shepherd',
+  'circle_of_spores',
+  'circle_of_stars',
+  'circle_of_wildfire',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {

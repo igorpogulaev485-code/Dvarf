@@ -11,6 +11,7 @@ import {
   type AbilityScoreKey,
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
+import { druidLandLabel } from '../../shared/dnd/druidLandChoices'
 import { rangerChoiceLabel } from '../../shared/dnd/rangerChoices'
 import {
   FLEXIBLE_CASTING_SLOT_COST,
@@ -311,6 +312,7 @@ function choiceOptionLabel(optionId: string): string {
   return (
     fightingStyleById(optionId)?.nameRu ||
     rangerChoiceLabel(optionId) ||
+    druidLandLabel(optionId) ||
     metamagicLabel(optionId) ||
     invocationLabel(optionId) ||
     pact?.nameRu ||
@@ -943,7 +945,7 @@ export function ClassFeaturesPanel({
 
         {byClass.length === 0 ? (
           <Text tone="muted">
-            Пока заполнены: … Колдун, Бард (H4 в docs/feature_resource_contract.md).
+            Пока заполнены: … Бард, Друид (H4 в docs/feature_resource_contract.md).
           </Text>
         ) : null}
 
