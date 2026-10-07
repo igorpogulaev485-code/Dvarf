@@ -1,8 +1,7 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/race-elf-halfling-gaps-f10e` · http://201.34.132.252/  
-Волна 2 (в работе): `cursor/race-mpmm-wave-f10e` · alembic `b1c2d3e4f5a6`
+Прод tip: `cursor/race-mpmm-wave-f10e` · http://201.34.132.252/ · alembic `b1c2d3e4f5a6`
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
@@ -23,8 +22,8 @@
 
 | Раса | В каталоге | Попап forks | Prod verify | Заметки |
 |------|------------|-------------|-------------|---------|
-| Ааракокра … юань-ти (24 корня без дженази) | ✅ | — (нет children) | ⏳ | flexible ASI + Common+1 |
-| Дженази | ✅ parent + 4 | ✅ `subrace_required` | ⏳ | воздух / земля / огонь / вода |
+| Ааракокра … юань-ти (24 корня без дженази) | ✅ | — (нет children) | ✅ | flexible ASI + Common+1 |
+| Дженази | ✅ parent + 4 | ✅ `subrace_required` | ✅ | воздух / земля / огонь / вода |
 
 ## Чеклист на расу
 
@@ -36,5 +35,4 @@
 
 ## Инфра-заметка
 
-Актуальный tip head: `a0b1c2d3e4f5` (эльф/полурослик gaps).  
-Волна MPMM (ещё не tip): `b1c2d3e4f5a6` на ветке `cursor/race-mpmm-wave-f10e`.
+Актуальный tip head: `b1c2d3e4f5a6` (MPMM wave) на `cursor/race-mpmm-wave-f10e`.
