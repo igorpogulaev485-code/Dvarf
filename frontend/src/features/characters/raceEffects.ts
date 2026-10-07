@@ -192,6 +192,7 @@ export function applyRaceGrantToDraft(input: {
     traitsText,
     ancestryId: picks.ancestryId,
     featNoteRu: def.featNoteRu,
+    naturalArmor: def.naturalArmor,
   }
 
   const draft: RaceGrantDraftSlice = {

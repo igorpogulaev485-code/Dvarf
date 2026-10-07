@@ -1,9 +1,24 @@
-/** 2014 armor class from equipped armor + shield. No unarmored defense / mage armor. */
+/** 2014 armor class from equipped armor + shield + race natural armor. */
 
 export const ARMOR_KINDS = ['none', 'light', 'medium', 'heavy', 'shield'] as const
 export type ArmorKind = (typeof ARMOR_KINDS)[number]
 
 export type BodyArmorKind = 'light' | 'medium' | 'heavy'
+
+export type AbilityModKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
+
+/** Race natural armor (tortle shell, loxodon hide, etc.). */
+export type NaturalArmor = {
+  base: number
+  /** Ability mod added to base; null = flat (tortle 17). */
+  mod: AbilityModKey | null
+  /** Optional cap on the ability mod (medium-armor style). */
+  modCap?: number | null
+  allowsShield: boolean
+  /** Extra AC while wearing body armor (warforged integrated protection). */
+  armoredBonus?: number
+  labelRu: string
+}
 
 export type ArmorPiece = {
   kind: BodyArmorKind
@@ -133,19 +148,50 @@ export function bodyArmorAc(kind: BodyArmorKind, baseAc: number, dexMod: number)
   return base
 }
 
+const MOD_LABEL: Record<AbilityModKey, string> = {
+  str: 'СИЛ',
+  dex: 'ЛОВ',
+  con: 'ТЕЛ',
+  int: 'ИНТ',
+  wis: 'МУД',
+  cha: 'ХАР',
+}
+
+export function naturalArmorValue(
+  natural: NaturalArmor,
+  mods: Partial<Record<AbilityModKey, number>>,
+): number {
+  let ac = Math.max(0, Math.floor(natural.base))
+  if (natural.mod) {
+    let bonus = Math.floor(mods[natural.mod] ?? 0)
+    if (typeof natural.modCap === 'number' && Number.isFinite(natural.modCap)) {
+      bonus = Math.min(Math.floor(natural.modCap), bonus)
+    }
+    ac += bonus
+  }
+  return ac
+}
+
 export function computeArmorClass(input: {
   dexMod: number
+  /** Full ability mods when natural armor uses CON/etc. */
+  abilityMods?: Partial<Record<AbilityModKey, number>>
   armor: ArmorPiece | null
   shield: ShieldPiece | null
+  naturalArmor?: NaturalArmor | null
 }): { ac: number; summary: string } {
   const dex = Math.floor(input.dexMod)
+  const mods: Partial<Record<AbilityModKey, number>> = {
+    dex,
+    ...(input.abilityMods ?? {}),
+  }
+  mods.dex = dex
+
   let ac: number
   const parts: string[] = []
+  const natural = input.naturalArmor ?? null
 
-  if (!input.armor) {
-    ac = 10 + dex
-    parts.push(`10+ЛОВ ${dex >= 0 ? '+' : ''}${dex}`)
-  } else {
+  if (input.armor) {
     ac = bodyArmorAc(input.armor.kind, input.armor.baseAc, dex)
     const name = input.armor.name || armorKindLabel(input.armor.kind)
     if (input.armor.kind === 'heavy') {
@@ -155,12 +201,39 @@ export function computeArmorClass(input: {
     } else {
       parts.push(`${name} ${input.armor.baseAc}+ЛОВ`)
     }
+    const armoredBonus = natural?.armoredBonus
+    if (typeof armoredBonus === 'number' && armoredBonus !== 0) {
+      ac += Math.floor(armoredBonus)
+      parts.push(`${natural?.labelRu ?? 'раса'} +${Math.floor(armoredBonus)}`)
+    }
+  } else if (natural) {
+    ac = naturalArmorValue(natural, mods)
+    if (!natural.mod) {
+      parts.push(`${natural.labelRu} ${natural.base}`)
+    } else {
+      const modVal = Math.floor(mods[natural.mod] ?? 0)
+      const capped =
+        typeof natural.modCap === 'number' ? Math.min(natural.modCap, modVal) : modVal
+      const capNote =
+        typeof natural.modCap === 'number' ? `≤${natural.modCap}` : ''
+      parts.push(
+        `${natural.labelRu} ${natural.base}+${MOD_LABEL[natural.mod]}${capNote} ${
+          capped >= 0 ? '+' : ''
+        }${capped}`,
+      )
+    }
+  } else {
+    ac = 10 + dex
+    parts.push(`10+ЛОВ ${dex >= 0 ? '+' : ''}${dex}`)
   }
 
   if (input.shield) {
-    const bonus = Math.max(0, Math.floor(input.shield.baseAc || 2))
-    ac += bonus
-    parts.push(`щит +${bonus}`)
+    const shieldOk = !natural || Boolean(input.armor) || natural.allowsShield
+    if (shieldOk) {
+      const bonus = Math.max(0, Math.floor(input.shield.baseAc || 2))
+      ac += bonus
+      parts.push(`щит +${bonus}`)
+    }
   }
 
   return { ac, summary: parts.join(' · ') }
