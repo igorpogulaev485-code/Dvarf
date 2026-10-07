@@ -1,7 +1,7 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/race-mpmm-wave-f10e` · http://201.34.132.252/ · alembic `b1c2d3e4f5a6`
+Прод tip: `cursor/mobile-sheet-compact-acbe` · http://201.34.132.252/ · alembic `b1c2d3e4f5a6`
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
