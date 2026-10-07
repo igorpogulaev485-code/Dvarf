@@ -33,21 +33,66 @@
             "casting_ability": "int",
             "notes_ru": "ИНТ",
             "options": [
-              { "id": "acid_splash", "label_ru": "Брызги кислоты" },
-              { "id": "booming_blade", "label_ru": "Громовой клинок" },
-              { "id": "fire_bolt", "label_ru": "Огненный снаряд" },
-              { "id": "guidance", "label_ru": "Наставление" },
-              { "id": "light", "label_ru": "Свет" },
-              { "id": "mage_hand", "label_ru": "Волшебная рука" },
-              { "id": "mending", "label_ru": "Починка" },
-              { "id": "message", "label_ru": "Сообщение" },
-              { "id": "poison_spray", "label_ru": "Ядовитые брызги" },
-              { "id": "prestidigitation", "label_ru": "Фокусы" },
-              { "id": "ray_of_frost", "label_ru": "Луч холода" },
-              { "id": "resistance", "label_ru": "Сопротивление" },
-              { "id": "shocking_grasp", "label_ru": "Шокирующее касание" },
-              { "id": "spare_the_dying", "label_ru": "Уход за умирающим" },
-              { "id": "thorn_whip", "label_ru": "Терновый кнут" }
+              {
+                "id": "acid_splash",
+                "label_ru": "Брызги кислоты"
+              },
+              {
+                "id": "booming_blade",
+                "label_ru": "Громовой клинок"
+              },
+              {
+                "id": "fire_bolt",
+                "label_ru": "Огненный снаряд"
+              },
+              {
+                "id": "guidance",
+                "label_ru": "Наставление"
+              },
+              {
+                "id": "light",
+                "label_ru": "Свет"
+              },
+              {
+                "id": "mage_hand",
+                "label_ru": "Волшебная рука"
+              },
+              {
+                "id": "mending",
+                "label_ru": "Починка"
+              },
+              {
+                "id": "message",
+                "label_ru": "Сообщение"
+              },
+              {
+                "id": "poison_spray",
+                "label_ru": "Ядовитые брызги"
+              },
+              {
+                "id": "prestidigitation",
+                "label_ru": "Фокусы"
+              },
+              {
+                "id": "ray_of_frost",
+                "label_ru": "Луч холода"
+              },
+              {
+                "id": "resistance",
+                "label_ru": "Сопротивление"
+              },
+              {
+                "id": "shocking_grasp",
+                "label_ru": "Шокирующее касание"
+              },
+              {
+                "id": "spare_the_dying",
+                "label_ru": "Уход за умирающим"
+              },
+              {
+                "id": "thorn_whip",
+                "label_ru": "Терновый кнут"
+              }
             ]
           },
           {
@@ -59,24 +104,78 @@
             "casting_ability": "int",
             "notes_ru": "1/длинный отдых без ячейки (ИНТ)",
             "options": [
-              { "id": "absorb_elements", "label_ru": "Поглощение стихий" },
-              { "id": "alarm", "label_ru": "Тревога" },
-              { "id": "catapult", "label_ru": "Катапульта" },
-              { "id": "cure_wounds", "label_ru": "Лечение ран" },
-              { "id": "detect_magic", "label_ru": "Обнаружение магии" },
-              { "id": "disguise_self", "label_ru": "Маскировка" },
-              { "id": "expeditious_retreat", "label_ru": "Ускоренное отступление" },
-              { "id": "faerie_fire", "label_ru": "Огонь фей" },
-              { "id": "false_life", "label_ru": "Псевдожизнь" },
-              { "id": "feather_fall", "label_ru": "Падение пёрышком" },
-              { "id": "grease", "label_ru": "Смазка" },
-              { "id": "identify", "label_ru": "Опознание" },
-              { "id": "jump", "label_ru": "Прыжок" },
-              { "id": "longstrider", "label_ru": "Длинный шаг" },
-              { "id": "purify_food_and_drink", "label_ru": "Очищение пищи и питья" },
-              { "id": "sanctuary", "label_ru": "Святилище" },
-              { "id": "snare", "label_ru": "Силок" },
-              { "id": "tashas_caustic_brew", "label_ru": "Едкое варево Таши" }
+              {
+                "id": "absorb_elements",
+                "label_ru": "Поглощение стихий"
+              },
+              {
+                "id": "alarm",
+                "label_ru": "Тревога"
+              },
+              {
+                "id": "catapult",
+                "label_ru": "Катапульта"
+              },
+              {
+                "id": "cure_wounds",
+                "label_ru": "Лечение ран"
+              },
+              {
+                "id": "detect_magic",
+                "label_ru": "Обнаружение магии"
+              },
+              {
+                "id": "disguise_self",
+                "label_ru": "Маскировка"
+              },
+              {
+                "id": "expeditious_retreat",
+                "label_ru": "Ускоренное отступление"
+              },
+              {
+                "id": "faerie_fire",
+                "label_ru": "Огонь фей"
+              },
+              {
+                "id": "false_life",
+                "label_ru": "Псевдожизнь"
+              },
+              {
+                "id": "feather_fall",
+                "label_ru": "Падение пёрышком"
+              },
+              {
+                "id": "grease",
+                "label_ru": "Смазка"
+              },
+              {
+                "id": "identify",
+                "label_ru": "Опознание"
+              },
+              {
+                "id": "jump",
+                "label_ru": "Прыжок"
+              },
+              {
+                "id": "longstrider",
+                "label_ru": "Длинный шаг"
+              },
+              {
+                "id": "purify_food_and_drink",
+                "label_ru": "Очищение пищи и питья"
+              },
+              {
+                "id": "sanctuary",
+                "label_ru": "Святилище"
+              },
+              {
+                "id": "snare",
+                "label_ru": "Силок"
+              },
+              {
+                "id": "tashas_caustic_brew",
+                "label_ru": "Едкое варево Таши"
+              }
             ]
           }
         ],
@@ -224,21 +323,66 @@
             "grant": "innate",
             "notes_ru": "1/длинный отдых без ячейки",
             "options": [
-              { "id": "bless", "label_ru": "Благословение" },
-              { "id": "charm_person", "label_ru": "Очарование личности" },
-              { "id": "command", "label_ru": "Приказ" },
-              { "id": "comprehend_languages", "label_ru": "Понимание языков" },
-              { "id": "detect_evil_and_good", "label_ru": "Обнаружение добра и зла" },
-              { "id": "detect_magic", "label_ru": "Обнаружение магии" },
-              { "id": "detect_poison_and_disease", "label_ru": "Обнаружение яда и болезни" },
-              { "id": "dissonant_whispers", "label_ru": "Диссонирующий шёпот" },
-              { "id": "heroism", "label_ru": "Героизм" },
-              { "id": "hex", "label_ru": "Сглаз" },
-              { "id": "hunter_mark", "label_ru": "Метка охотника" },
-              { "id": "identify", "label_ru": "Опознание" },
-              { "id": "sleep", "label_ru": "Усыпление" },
-              { "id": "speak_with_animals", "label_ru": "Разговор с животными" },
-              { "id": "tashas_hideous_laughter", "label_ru": "Ужасный смех Таши" }
+              {
+                "id": "bless",
+                "label_ru": "Благословение"
+              },
+              {
+                "id": "charm_person",
+                "label_ru": "Очарование личности"
+              },
+              {
+                "id": "command",
+                "label_ru": "Приказ"
+              },
+              {
+                "id": "comprehend_languages",
+                "label_ru": "Понимание языков"
+              },
+              {
+                "id": "detect_evil_and_good",
+                "label_ru": "Обнаружение добра и зла"
+              },
+              {
+                "id": "detect_magic",
+                "label_ru": "Обнаружение магии"
+              },
+              {
+                "id": "detect_poison_and_disease",
+                "label_ru": "Обнаружение яда и болезни"
+              },
+              {
+                "id": "dissonant_whispers",
+                "label_ru": "Диссонирующий шёпот"
+              },
+              {
+                "id": "heroism",
+                "label_ru": "Героизм"
+              },
+              {
+                "id": "hex",
+                "label_ru": "Сглаз"
+              },
+              {
+                "id": "hunter_mark",
+                "label_ru": "Метка охотника"
+              },
+              {
+                "id": "identify",
+                "label_ru": "Опознание"
+              },
+              {
+                "id": "sleep",
+                "label_ru": "Усыпление"
+              },
+              {
+                "id": "speak_with_animals",
+                "label_ru": "Разговор с животными"
+              },
+              {
+                "id": "tashas_hideous_laughter",
+                "label_ru": "Ужасный смех Таши"
+              }
             ]
           }
         ],
@@ -473,14 +617,38 @@
             "grant": "innate",
             "notes_ru": "1/длинный отдых без ячейки",
             "options": [
-              { "id": "cause_fear", "label_ru": "Вызов страха" },
-              { "id": "color_spray", "label_ru": "Цветной шарик" },
-              { "id": "disguise_self", "label_ru": "Маскировка" },
-              { "id": "false_life", "label_ru": "Псевдожизнь" },
-              { "id": "illusory_script", "label_ru": "Невидимое письмо" },
-              { "id": "inflict_wounds", "label_ru": "Нанесение ран" },
-              { "id": "ray_of_sickness", "label_ru": "Луч болезни" },
-              { "id": "silent_image", "label_ru": "Бесшумный образ" }
+              {
+                "id": "cause_fear",
+                "label_ru": "Вызов страха"
+              },
+              {
+                "id": "color_spray",
+                "label_ru": "Цветной шарик"
+              },
+              {
+                "id": "disguise_self",
+                "label_ru": "Маскировка"
+              },
+              {
+                "id": "false_life",
+                "label_ru": "Псевдожизнь"
+              },
+              {
+                "id": "illusory_script",
+                "label_ru": "Невидимое письмо"
+              },
+              {
+                "id": "inflict_wounds",
+                "label_ru": "Нанесение ран"
+              },
+              {
+                "id": "ray_of_sickness",
+                "label_ru": "Луч болезни"
+              },
+              {
+                "id": "silent_image",
+                "label_ru": "Бесшумный образ"
+              }
             ]
           }
         ],
@@ -658,12 +826,6 @@
               "cha"
             ],
             "label_ru": "+1 к Инт, Муд или Хар"
-          },
-          {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Обнаружение мыслей",
-            "text_ru": "Добавь заклинание в список известных."
           }
         ],
         "grants": {
@@ -805,14 +967,7 @@
             "elf_drow"
           ]
         },
-        "choices": [
-          {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Заклинания",
-            "text_ru": "Добавь Обнаружение магии (at will), Левитацию и Рассеивание магии."
-          }
-        ],
+        "choices": [],
         "grants": {
           "flags": [
             "drow_high_magic"
@@ -1113,14 +1268,38 @@
             "casting_ability": "wis",
             "notes_ru": "заговор друида (Муд)",
             "options": [
-              { "id": "druidcraft", "label_ru": "Друидизм" },
-              { "id": "guidance", "label_ru": "Наставление" },
-              { "id": "mending", "label_ru": "Починка" },
-              { "id": "poison_spray", "label_ru": "Ядовитые брызги" },
-              { "id": "produce_flame", "label_ru": "Сотворение пламени" },
-              { "id": "resistance", "label_ru": "Сопротивление" },
-              { "id": "shillelagh", "label_ru": "Дубинка" },
-              { "id": "thorn_whip", "label_ru": "Терновый кнут" }
+              {
+                "id": "druidcraft",
+                "label_ru": "Друидизм"
+              },
+              {
+                "id": "guidance",
+                "label_ru": "Наставление"
+              },
+              {
+                "id": "mending",
+                "label_ru": "Починка"
+              },
+              {
+                "id": "poison_spray",
+                "label_ru": "Ядовитые брызги"
+              },
+              {
+                "id": "produce_flame",
+                "label_ru": "Сотворение пламени"
+              },
+              {
+                "id": "resistance",
+                "label_ru": "Сопротивление"
+              },
+              {
+                "id": "shillelagh",
+                "label_ru": "Дубинка"
+              },
+              {
+                "id": "thorn_whip",
+                "label_ru": "Терновый кнут"
+              }
             ]
           }
         ],

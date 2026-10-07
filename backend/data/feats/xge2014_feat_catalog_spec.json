@@ -146,12 +146,6 @@
               "cha"
             ],
             "label_ru": "+1 к Инт или Хар"
-          },
-          {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Туманный шаг",
-            "text_ru": "Добавь Туманный шаг (1/короткий отдых без ячейки)."
           }
         ],
         "grants": {
@@ -236,14 +230,7 @@
             "deep_gnome"
           ]
         },
-        "choices": [
-          {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Заклинания",
-            "text_ru": "Необнаружение (на себя, at will) + Слепота/глухота, Размытый образ, Маскировка (1/длинный отдых, ИНТ)."
-          }
-        ],
+        "choices": [],
         "grants": {
           "flags": [
             "svirfneblin_magic"
