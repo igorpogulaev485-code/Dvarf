@@ -1,7 +1,7 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/race-setup-grants-f10e` · http://201.34.132.252/
+Прод tip: `cursor/race-human-marks-f10e` · http://201.34.132.252/
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
@@ -9,8 +9,8 @@
 | Эльф | PHB высший/лесной/дроу + MToF эладрин/морской/шадар-кай | ✅ 6 | ✅ | ✅ | alembic `a4b5`; астральный — отдельная раса; метка тени/бледный — вне среза |
 | Полурослик | PHB + SCAG призрачный + ERLW исцеление/гостеприимство | ✅ 5 | ✅ | ✅ | EGW лотосденский — вне среза; `b5c6` |
 | Гном | PHB + глубинный + ERLW метка письма | ✅ 4 | ✅ | ✅ | `b5c6` |
-| Человек | base + variant (+ ERLW метки) | 1 child | — | — | Метки ERLW — gap |
-| Драконорождённый | ancestry choice | 0 subrace | — | — | FTD/EGW — gap |
+| Человек | PHB base + variant + 5 меток ERLW | ✅ 6 children | ✅ optional | ✅ | поиск/уход/создание/проход/страж; `e8f9` |
+| Драконорождённый | ancestry choice (PHB) | 0 subrace | ancestry в попапе | ✅ PHB | FTD/EGW варианты — вне среза |
 | Полуэльф | PHB + SCAG наследия + ERLW метки | ✅ 6 children | ✅ optional | ✅ | optional forks; `c6d7` |
 | Полуорк | PHB + ERLW метка поиска | ✅ 1 child | ✅ optional | ✅ | `d7e8` |
 | Тифлинг | PHB base + MTF bloodlines + SCAG feral | ✅ 9 children | ✅ optional | ✅ | optional forks; `c6d7` |
@@ -25,4 +25,4 @@
 
 ## Инфра-заметка
 
-2026-10-06: чужой stamp `c0nd1t10nru1` на проде ломал alembic после sync (файла нет в tip). Лечение: `UPDATE alembic_version` на известный head tip → `alembic upgrade head`.
+2026-10-06: tip сдвинут на `cursor/mobile-sheet-compact-acbe` (условия `c0nd1t10nru1` после `d7e8`). Дальнейшие race-миграции: `down_revision = c0nd1t10nru1` (или актуальный head tip).
