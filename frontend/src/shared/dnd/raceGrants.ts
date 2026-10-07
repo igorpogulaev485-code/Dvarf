@@ -168,6 +168,8 @@ export type RaceGrantDef = {
   armorProficiencies: Array<'light' | 'medium' | 'heavy' | 'shields'>
   ancestryChoices: RaceAncestryOption[]
   featNoteRu: string | null
+  /** Explicit feat grant at race setup (Custom Lineage / human variant). */
+  featPick: boolean
   traitsText: string
   naturalArmor: NaturalArmor | null
   naturalWeapons: RaceNaturalWeapon[]
@@ -785,6 +787,7 @@ export function raceGrantDefFromCatalog(input: {
         : typeof data.featNoteRu === 'string'
           ? data.featNoteRu
           : null,
+    featPick: Boolean(data.feat_pick ?? data.featPick),
     traitsText:
       typeof data.traits_text === 'string'
         ? data.traits_text.trim()
@@ -874,7 +877,9 @@ export function raceGrantNeedsSetupDialog(def: RaceGrantDef): boolean {
   if ((def.skillChoices?.count ?? 0) > 0) return true
   if ((def.toolChoices?.count ?? 0) > 0) return true
   if (def.ancestryChoices.length > 0) return true
-  if (def.featNoteRu) return true
+  if (def.featPick || def.slug === 'custom_lineage' || def.slug === 'human_variant') {
+    return true
+  }
   // Still open once so user confirms traits/ASI even without picks.
   return true
 }
@@ -971,7 +976,7 @@ export function validateRaceGrantPicks(input: {
   }
 
   const needsFeat =
-    def.slug === 'custom_lineage' || Boolean(def.featNoteRu && def.featNoteRu.trim())
+    def.featPick || def.slug === 'custom_lineage' || def.slug === 'human_variant'
   if (needsFeat && !picks.featCatalogId) {
     return 'Выбери черту'
   }

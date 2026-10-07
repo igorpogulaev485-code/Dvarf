@@ -1246,7 +1246,8 @@
       },
       "feat_note_ru": "Черта 1 уровня — выбери вручную на листе.",
       "traits_text": "Человек, вариант (2014): +1 к двум разным характеристикам. Навык на выбор. Черта. Язык на выбор.",
-      "subrace_required": false
+      "subrace_required": false,
+      "feat_pick": true
     },
     {
       "slug": "mark_of_finding_human",

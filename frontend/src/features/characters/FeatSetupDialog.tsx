@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { RulesEdition } from '../../shared/api/characters'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
@@ -6,6 +6,7 @@ import {
   commonLanguageOptions,
   emptyFeatPicks,
   featGrantDefFromCatalog,
+  featPrerequisitesUnmet,
   validateFeatGrantPicks,
   type AbilityKey,
   type ArmorProfKey,
@@ -38,6 +39,10 @@ type FeatSetupDialogProps = {
   characterLevel?: number
   /** Already taken feat slugs (optional soft filter + prereq checks). */
   takenSlugs?: string[]
+  classSlugs?: string[]
+  backgroundSlug?: string | null
+  /** Lock picker to one feat (background / race grant). */
+  forcedSlug?: string | null
   onConfirm: (result: FeatSetupResult) => void
   onClose: () => void
 }
@@ -55,6 +60,9 @@ export function FeatSetupDialog({
   size = null,
   characterLevel = 1,
   takenSlugs = [],
+  classSlugs = [],
+  backgroundSlug = null,
+  forcedSlug = null,
   onConfirm,
   onClose,
 }: FeatSetupDialogProps) {
@@ -76,6 +84,50 @@ export function FeatSetupDialog({
           })
         : null,
     [selected],
+  )
+
+  const prereqContext = useMemo(
+    () => ({
+      abilities,
+      armor,
+      hasSpellcasting,
+      hasMartialWeapons,
+      raceSlug,
+      raceParentSlug,
+      size,
+      characterLevel,
+      ownedFeatSlugs: takenSlugs,
+      classSlugs,
+      backgroundSlug,
+    }),
+    [
+      abilities,
+      armor,
+      hasSpellcasting,
+      hasMartialWeapons,
+      raceSlug,
+      raceParentSlug,
+      size,
+      characterLevel,
+      takenSlugs,
+      classSlugs,
+      backgroundSlug,
+    ],
+  )
+
+  const filterEligibleFeat = useCallback(
+    (entry: CatalogEntry) => {
+      if (forcedSlug) return entry.slug === forcedSlug
+      if (takenSlugs.includes(entry.slug)) return false
+      const entryDef = featGrantDefFromCatalog({
+        slug: entry.slug,
+        nameRu: entry.name_ru,
+        data: entry.data,
+      })
+      if (!entryDef) return false
+      return featPrerequisitesUnmet(entryDef, prereqContext) == null
+    },
+    [forcedSlug, takenSlugs, prereqContext],
   )
 
   useEffect(() => {
@@ -194,6 +246,8 @@ export function FeatSetupDialog({
       size,
       characterLevel,
       ownedFeatSlugs: takenSlugs,
+      classSlugs,
+      backgroundSlug,
     })
     if (check) {
       setError(check)
@@ -220,7 +274,7 @@ export function FeatSetupDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Каталог черт 2014 (PHB → … → SDQ → BPGG…). Гранты — на лист.
+          Только доступные тебе черты (требования уже отфильтрованы). Гранты — на лист.
         </Text>
 
         <Field label="Черта">
@@ -229,13 +283,16 @@ export function FeatSetupDialog({
             edition={edition}
             value={value}
             placeholder="Начни вводить название…"
-            filterEntry={(entry) => !takenSlugs.includes(entry.slug)}
+            filterEntry={filterEligibleFeat}
             onChange={(next, entry) => {
               setValue(next)
               setSelected(entry)
             }}
           />
         </Field>
+        {forcedSlug ? (
+          <Text tone="muted">Черта предыстории / расы: выбери «{forcedSlug}» в списке.</Text>
+        ) : null}
 
         {def ? (
           <>

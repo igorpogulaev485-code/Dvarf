@@ -300,6 +300,24 @@ export function revokeFeatGrantsForAsi(input: {
   return next
 }
 
+export function revokeFeatGrantsForBackground(input: {
+  draft: FeatGrantDraftSlice
+  backgroundSlug?: string | null
+}): FeatGrantDraftSlice {
+  const ids = input.draft.featGrants
+    .filter((row) => {
+      if (row.source.kind !== 'background') return false
+      if (!input.backgroundSlug) return true
+      return row.source.backgroundSlug === input.backgroundSlug
+    })
+    .map((row) => row.id)
+  let next = input.draft
+  for (const id of ids) {
+    next = revokeFeatGrantFromDraft({ draft: next, grantId: id })
+  }
+  return next
+}
+
 /** Rescale PB-based feat pools after level-up / level-down. */
 export function syncFeatProficiencyResources(
   draft: FeatGrantDraftSlice,

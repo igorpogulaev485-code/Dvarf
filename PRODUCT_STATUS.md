@@ -430,6 +430,18 @@
 
 ## В ветках / ещё не на проде
 
+### 2026-10-07 — FEATS prereq engine + feat-linked backgrounds
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Access OR | `classes_any` ∨ `backgrounds_any` ∨ flags (martial/spellcasting) | Соламния: воин **или** предыстория |
+| Цепочки / mutex | `feats_all` + `feats_none` | Нельзя взять двух адептов одежд |
+| Уровень / раса | `min_level`, `races_any`, `size_any` | Как раньше, жёстко в попапе |
+| Расовая черта | `feat_pick` / human_variant / custom_lineage | Кобольд-заговор больше не требует черту |
+| Предыстория | `identity.background_slug` + 4 сида с `granted_feat_slug` | Выбор фона → попап гранта черты |
+
+На проде: **нет** · ветка `cursor/feats-prereq-engine-592a` · PR #62 · tip не менять до «залей»
+
 ### 2026-10-07 — FEATS BPGG wave (Bigby / великаны)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -601,3 +613,4 @@
 | 2026-10-07 | `cursor/feats-scc-wave-ef23` · PR #59 | SCC Strixhaven Initiate/Mascot + min_level/feats_all; GGtR skip; alembic `b8c9`; на проде нет |
 | 2026-10-07 | `cursor/feats-dsotdq-wave-ef23` · PR #60 | SDQ Dragonlance 9 feats + knight/mage chains; alembic `d0e1`; на проде нет |
 | 2026-10-07 | `cursor/feats-bpgg-wave-ef23` · PR #61 | BPGG Strike of the Giants chain + Rune Shaper; alembic `e1f2`; на проде нет |
+| 2026-10-07 | `cursor/feats-prereq-engine-592a` · PR #62 | Feat prereq engine (class/bg/mutex) + feat-linked backgrounds; alembic `f2a3`; на проде нет |
