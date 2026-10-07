@@ -1,7 +1,7 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/mobile-sheet-compact-acbe` · http://201.34.132.252/
+Прод tip: `cursor/race-dragonborn-ftd-f10e` · http://201.34.132.252/
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
@@ -10,7 +10,7 @@
 | Полурослик | PHB + SCAG призрачный + ERLW исцеление/гостеприимство | ✅ 5 | ✅ | ✅ | EGW лотосденский — вне среза; `b5c6` |
 | Гном | PHB + глубинный + ERLW метка письма | ✅ 4 | ✅ | ✅ | `b5c6` |
 | Человек | PHB base + variant + 5 меток ERLW | ✅ 6 children | ✅ optional | ✅ | поиск/уход/создание/проход/страж; `e8f9` |
-| Драконорождённый | PHB base + FTD цветной/драгоцветный/металлический (ttg) | ✅ 3 children | ✅ optional | ⏳ | `f9a0`; PHB ancestry 10 типов на корне; EGW — вне среза |
+| Драконорождённый | PHB base + FTD цветной/драгоцветный/металлический (ttg) | ✅ 3 children | ✅ optional | ✅ | `f9a0`; PHB ancestry 10 типов на корне; EGW — вне среза |
 | Полуэльф | PHB + SCAG наследия + ERLW метки | ✅ 6 children | ✅ optional | ✅ | optional forks; `c6d7` |
 | Полуорк | PHB + ERLW метка поиска | ✅ 1 child | ✅ optional | ✅ | `d7e8` |
 | Тифлинг | PHB base + MTF bloodlines + SCAG feral | ✅ 9 children | ✅ optional | ✅ | optional forks; `c6d7` |
