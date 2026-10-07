@@ -78,6 +78,8 @@ import {
 } from './identity'
 import {
   applyRaceGrantToDraft,
+  ensureRaceNaturalWeaponAttacks,
+  raceNaturalWeaponAttacksMatch,
   readAppliedRaceGrant,
   reapplyRaceOverlays,
   revokeRaceGrant,
@@ -160,11 +162,16 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
       ? (row.ability as AbilityKey)
       : 'str'
     const sourceKind =
-      row.source_kind === 'weapon' || row.source_kind === 'artifact' || row.source_kind === 'custom'
+      row.source_kind === 'weapon' ||
+      row.source_kind === 'artifact' ||
+      row.source_kind === 'custom' ||
+      row.source_kind === 'race'
         ? row.source_kind
-        : row.catalog_id
-          ? 'weapon'
-          : 'custom'
+        : typeof row.id === 'string' && row.id.startsWith('race-nw:')
+          ? 'race'
+          : row.catalog_id
+            ? 'weapon'
+            : 'custom'
     return {
       id: typeof row.id === 'string' ? row.id : `weapon-${index}`,
       name: typeof row.name === 'string' ? row.name : '',
@@ -331,6 +338,49 @@ export function MinimalSheetEditor({
         if (!active) return
         raceCatalogCacheRef.current = rows
         setRaceCatalogRows(rows)
+        // Backfill natural-weapon attack cards for races chosen before this feature.
+        setDraft((prev) => {
+          if (!prev.raceGrant) return prev
+          const entry =
+            rows.find((row) => row.id === prev.raceGrant!.raceCatalogId) ??
+            rows.find((row) => row.slug === prev.raceGrant!.slug)
+          const catalogWeapons = entry
+            ? resolveRaceGrantDef({
+                raceName: entry.name_ru,
+                catalogSlug: entry.slug,
+                catalogData: entry.data,
+                nameRu: entry.name_ru,
+              })?.naturalWeapons ?? null
+            : null
+          const weaponsSource =
+            catalogWeapons && catalogWeapons.length > 0
+              ? catalogWeapons
+              : prev.raceGrant.naturalWeapons ?? []
+          if (
+            weaponsSource.length > 0 &&
+            raceNaturalWeaponAttacksMatch({
+              weapons: prev.weapons,
+              raceSlug: prev.raceGrant.slug,
+              naturalWeapons: weaponsSource,
+            })
+          ) {
+            return prev
+          }
+          const nextWeapons = ensureRaceNaturalWeaponAttacks({
+            weapons: prev.weapons,
+            grant: prev.raceGrant,
+            catalogWeapons,
+          })
+          if (nextWeapons === prev.weapons) return prev
+          return {
+            ...prev,
+            weapons: nextWeapons,
+            raceGrant:
+              catalogWeapons && catalogWeapons.length > 0
+                ? { ...prev.raceGrant, naturalWeapons: catalogWeapons }
+                : prev.raceGrant,
+          }
+        })
       })
       .catch(() => {
         if (!active) return
@@ -420,6 +470,7 @@ export function MinimalSheetEditor({
       abilities: prev.abilities,
       speed: prev.speed,
       textBlocks: prev.textBlocks,
+      weapons: prev.weapons,
       raceGrant: prev.raceGrant,
       classGrantedSkills: classSkills,
       classGrantedTools: classTools,
@@ -454,6 +505,7 @@ export function MinimalSheetEditor({
       abilities: slice.abilities,
       speed: slice.speed,
       textBlocks: slice.textBlocks,
+      weapons: slice.weapons,
       raceGrant: slice.raceGrant,
     }
   }

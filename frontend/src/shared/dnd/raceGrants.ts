@@ -6,6 +6,17 @@ export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
 export type { NaturalArmor }
 
+/** Race natural weapon that becomes an attack card on the sheet. */
+export type RaceNaturalWeapon = {
+  id: string
+  nameRu: string
+  damage: string
+  damageType: string
+  ability: AbilityKey
+  proficient: boolean
+  notesRu: string | null
+}
+
 export type RaceSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan'
 
 /** One ASI bucket inside a mode, e.g. «+2 to one ability». */
@@ -96,6 +107,7 @@ export type RaceGrantDef = {
   featNoteRu: string | null
   traitsText: string
   naturalArmor: NaturalArmor | null
+  naturalWeapons: RaceNaturalWeapon[]
 }
 
 export type RaceGrantPicks = {
@@ -129,6 +141,7 @@ export type AppliedRaceGrant = {
   ancestryId: string | null
   featNoteRu: string | null
   naturalArmor: NaturalArmor | null
+  naturalWeapons: RaceNaturalWeapon[]
 }
 
 const ABILITY_KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
@@ -333,6 +346,50 @@ function readArmor(raw: unknown): RaceGrantDef['armorProficiencies'] {
   )
 }
 
+function readNaturalWeapons(raw: unknown): RaceNaturalWeapon[] {
+  if (!Array.isArray(raw)) return []
+  const out: RaceNaturalWeapon[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    const id = typeof row.id === 'string' ? row.id.trim() : ''
+    const nameRu =
+      typeof row.name_ru === 'string'
+        ? row.name_ru.trim()
+        : typeof row.nameRu === 'string'
+          ? row.nameRu.trim()
+          : ''
+    const damage = typeof row.damage === 'string' ? row.damage.trim() : ''
+    if (!id || !nameRu || !damage) continue
+    const abilityRaw = row.ability
+    const ability =
+      typeof abilityRaw === 'string' && ABILITY_KEYS.includes(abilityRaw as AbilityKey)
+        ? (abilityRaw as AbilityKey)
+        : 'str'
+    const damageType =
+      typeof row.damage_type === 'string'
+        ? row.damage_type.trim()
+        : typeof row.damageType === 'string'
+          ? row.damageType.trim()
+          : ''
+    const notesRu =
+      typeof row.notes_ru === 'string'
+        ? row.notes_ru.trim()
+        : typeof row.notesRu === 'string'
+          ? row.notesRu.trim()
+          : null
+    out.push({
+      id,
+      nameRu,
+      damage,
+      damageType,
+      ability,
+      proficient: row.proficient !== false,
+      notesRu: notesRu || null,
+    })
+  }
+  return out
+}
+
 function readNaturalArmor(raw: unknown): NaturalArmor | null {
   const obj = asRecord(raw)
   const base = Math.floor(readNumber(obj.base, NaN))
@@ -453,6 +510,7 @@ export function raceGrantDefFromCatalog(input: {
           ? data.traitsText.trim()
           : '',
     naturalArmor: readNaturalArmor(data.natural_armor ?? data.naturalArmor),
+    naturalWeapons: readNaturalWeapons(data.natural_weapons ?? data.naturalWeapons),
   }
 }
 
@@ -627,11 +685,16 @@ export function formatRaceGrantSummary(input: {
   const asi = Object.entries(input.bonuses)
     .map(([key, value]) => `${key.toUpperCase()} ${value! > 0 ? '+' : ''}${value}`)
     .join(', ')
+  const naturalWeapons =
+    input.def.naturalWeapons.length > 0
+      ? `атаки: ${input.def.naturalWeapons.map((row) => row.nameRu).join(', ')}`
+      : null
   const bits = [
     `скорость ${input.def.speed}`,
     `ТЗ ${input.def.darkvision || 'нет'}`,
     `языки: ${langs}`,
     asi ? `ASI: ${asi}` : null,
+    naturalWeapons,
   ]
   return bits.filter(Boolean).join(' · ')
 }
@@ -658,5 +721,6 @@ export function readAppliedRaceGrant(raw: unknown): AppliedRaceGrant | null {
     ancestryId: typeof row.ancestryId === 'string' ? row.ancestryId : null,
     featNoteRu: typeof row.featNoteRu === 'string' ? row.featNoteRu : null,
     naturalArmor: readNaturalArmor(row.naturalArmor ?? row.natural_armor),
+    naturalWeapons: readNaturalWeapons(row.naturalWeapons ?? row.natural_weapons),
   }
 }

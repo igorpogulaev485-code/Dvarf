@@ -13,6 +13,7 @@ import {
   type AppliedRaceGrant,
   type RaceGrantDef,
   type RaceGrantPicks,
+  type RaceNaturalWeapon,
 } from '../../shared/dnd/raceGrants'
 import {
   mergeRaceLanguages,
@@ -20,6 +21,11 @@ import {
 } from '../../shared/dnd/race'
 import type { ArmorProficiency, IdentityExtras } from './identity'
 import type { TextBlock } from './textBlocks'
+import {
+  isRaceNaturalWeaponAttack,
+  raceNaturalWeaponAttackId,
+  type WeaponAttack,
+} from './AttacksPanel'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 
@@ -29,6 +35,7 @@ export type RaceGrantDraftSlice = {
   abilities: Record<AbilityKey, number>
   speed: number | null
   textBlocks: TextBlock[]
+  weapons: WeaponAttack[]
   raceGrant: AppliedRaceGrant | null
   /** Still covered by class grants — do not strip on race revoke. */
   classGrantedSkills: Set<string>
@@ -52,6 +59,38 @@ function uniqueStrings(items: string[]): string[] {
 
 function clampScore(value: number): number {
   return Math.min(30, Math.max(1, Math.trunc(value)))
+}
+
+function stripRaceNaturalWeaponAttacks(weapons: WeaponAttack[]): WeaponAttack[] {
+  return weapons.filter((item) => !isRaceNaturalWeaponAttack(item))
+}
+
+function naturalWeaponToAttack(
+  raceSlug: string,
+  weapon: RaceNaturalWeapon,
+): WeaponAttack {
+  return {
+    id: raceNaturalWeaponAttackId(raceSlug, weapon.id),
+    name: weapon.nameRu,
+    catalog_id: null,
+    source_kind: 'race',
+    ability: weapon.ability,
+    is_proficient: weapon.proficient,
+    damage: weapon.damage,
+    damage_type: weapon.damageType,
+  }
+}
+
+function syncRaceNaturalWeaponAttacks(input: {
+  weapons: WeaponAttack[]
+  raceSlug: string
+  naturalWeapons: RaceNaturalWeapon[]
+}): WeaponAttack[] {
+  const withoutRace = stripRaceNaturalWeaponAttacks(input.weapons)
+  const next = input.naturalWeapons.map((weapon) =>
+    naturalWeaponToAttack(input.raceSlug, weapon),
+  )
+  return [...withoutRace, ...next]
 }
 
 export function revokeRaceGrant(draft: RaceGrantDraftSlice): RaceGrantDraftSlice {
@@ -102,6 +141,7 @@ export function revokeRaceGrant(draft: RaceGrantDraftSlice): RaceGrantDraftSlice
     abilities,
     skills,
     speed: null,
+    weapons: stripRaceNaturalWeaponAttacks(draft.weapons),
     identity: {
       ...draft.identity,
       darkvision: 0,
@@ -176,6 +216,13 @@ export function applyRaceGrantToDraft(input: {
     return { ...block, value: upsertRaceTraitsBlock(block.value, traitsText) }
   })
 
+  const naturalWeapons = def.naturalWeapons
+  const weapons = syncRaceNaturalWeaponAttacks({
+    weapons: cleared.weapons,
+    raceSlug: def.slug,
+    naturalWeapons,
+  })
+
   const nextGrant: AppliedRaceGrant = {
     raceCatalogId: input.selected.id,
     slug: def.slug,
@@ -193,6 +240,7 @@ export function applyRaceGrantToDraft(input: {
     ancestryId: picks.ancestryId,
     featNoteRu: def.featNoteRu,
     naturalArmor: def.naturalArmor,
+    naturalWeapons,
   }
 
   const draft: RaceGrantDraftSlice = {
@@ -201,6 +249,7 @@ export function applyRaceGrantToDraft(input: {
     abilities,
     skills,
     speed: def.speed,
+    weapons,
     identity: {
       ...cleared.identity,
       darkvision: def.darkvision,
@@ -235,9 +284,16 @@ export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftS
     armor[key] = true
   }
 
+  const weapons = syncRaceNaturalWeaponAttacks({
+    weapons: draft.weapons,
+    raceSlug: grant.slug,
+    naturalWeapons: grant.naturalWeapons ?? [],
+  })
+
   return {
     ...draft,
     skills,
+    weapons,
     identity: {
       ...draft.identity,
       armor,
@@ -247,6 +303,62 @@ export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftS
     },
     speed: grant.speed,
   }
+}
+
+/**
+ * Ensure race natural-weapon attack cards exist for an already-applied grant
+ * (backfill when catalog gained natural_weapons after the race was chosen,
+ * and refresh dice/ability when the catalog corrects them).
+ */
+export function ensureRaceNaturalWeaponAttacks(input: {
+  weapons: WeaponAttack[]
+  grant: AppliedRaceGrant | null
+  catalogWeapons?: RaceNaturalWeapon[] | null
+}): WeaponAttack[] {
+  const grant = input.grant
+  if (!grant) return input.weapons
+  const catalog = input.catalogWeapons
+  const naturalWeapons =
+    (catalog && catalog.length > 0
+      ? catalog
+      : grant.naturalWeapons && grant.naturalWeapons.length > 0
+        ? grant.naturalWeapons
+        : null) ?? []
+  if (naturalWeapons.length === 0) return input.weapons
+  return syncRaceNaturalWeaponAttacks({
+    weapons: input.weapons,
+    raceSlug: grant.slug,
+    naturalWeapons,
+  })
+}
+
+/** True when race attack cards already match the catalog natural weapons. */
+export function raceNaturalWeaponAttacksMatch(input: {
+  weapons: WeaponAttack[]
+  raceSlug: string
+  naturalWeapons: RaceNaturalWeapon[]
+}): boolean {
+  const expected = input.naturalWeapons.map((weapon) =>
+    naturalWeaponToAttack(input.raceSlug, weapon),
+  )
+  if (expected.length === 0) return true
+  const byId = new Map(
+    input.weapons
+      .filter((row) => row.source_kind === 'race')
+      .map((row) => [row.id, row]),
+  )
+  if (byId.size !== expected.length) return false
+  return expected.every((want) => {
+    const got = byId.get(want.id)
+    if (!got) return false
+    return (
+      got.name === want.name &&
+      got.ability === want.ability &&
+      got.damage === want.damage &&
+      got.damage_type === want.damage_type &&
+      got.is_proficient === want.is_proficient
+    )
+  })
 }
 
 export { readAppliedRaceGrant, emptyRacePicks, resolveRaceGrantDef }
