@@ -94,6 +94,23 @@ export type RaceAncestryOption = {
   breath: string
 }
 
+/** One alt speed: fixed ft or same as walking speed. */
+export type RaceMovementValue = number | 'walk'
+
+/** Catalog movement package (climb / swim / fly). Omitted keys = none. */
+export type RaceMovementSpec = {
+  climb: RaceMovementValue | null
+  swim: RaceMovementValue | null
+  fly: RaceMovementValue | null
+}
+
+/** Resolved ft for sheet combat (null = no that speed). */
+export type RaceMovementResolved = {
+  climb: number | null
+  swim: number | null
+  fly: number | null
+}
+
 export type RaceGrantDef = {
   slug: string
   labelRu: string
@@ -120,6 +137,7 @@ export type RaceGrantDef = {
   traitsText: string
   naturalArmor: NaturalArmor | null
   naturalWeapons: RaceNaturalWeapon[]
+  movement: RaceMovementSpec
 }
 
 export type RaceGrantPicks = {
@@ -156,6 +174,7 @@ export type AppliedRaceGrant = {
   featNoteRu: string | null
   naturalArmor: NaturalArmor | null
   naturalWeapons: RaceNaturalWeapon[]
+  movement: RaceMovementResolved
 }
 
 const ABILITY_KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
@@ -211,6 +230,69 @@ function readAbilityBonuses(raw: unknown): Partial<Record<AbilityKey, number>> {
 
 function readSize(value: unknown): RaceSize {
   return SIZE_VALUES.includes(value as RaceSize) ? (value as RaceSize) : 'medium'
+}
+
+function readMovementValue(raw: unknown): RaceMovementValue | null {
+  if (raw === 'walk' || raw === 'WALK') return 'walk'
+  if (typeof raw === 'number' && Number.isFinite(raw) && raw > 0) {
+    return Math.max(0, Math.floor(raw))
+  }
+  if (typeof raw === 'string' && /^\d+$/.test(raw.trim())) {
+    const n = Number(raw.trim())
+    return n > 0 ? n : null
+  }
+  return null
+}
+
+function readMovementSpec(raw: unknown): RaceMovementSpec {
+  const obj = asRecord(raw)
+  return {
+    climb: readMovementValue(obj.climb),
+    swim: readMovementValue(obj.swim),
+    fly: readMovementValue(obj.fly),
+  }
+}
+
+function readMovementResolved(raw: unknown): RaceMovementResolved {
+  const obj = asRecord(raw)
+  const readFt = (value: unknown): number | null => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return null
+    return Math.max(0, Math.floor(value))
+  }
+  return {
+    climb: readFt(obj.climb),
+    swim: readFt(obj.swim),
+    fly: readFt(obj.fly),
+  }
+}
+
+/** Resolve catalog movement against walk speed (for apply). */
+export function resolveRaceMovement(input: {
+  walk: number
+  movement: RaceMovementSpec
+}): RaceMovementResolved {
+  const resolve = (value: RaceMovementValue | null): number | null => {
+    if (value == null) return null
+    if (value === 'walk') return Math.max(0, Math.floor(input.walk))
+    return value
+  }
+  return {
+    climb: resolve(input.movement.climb),
+    swim: resolve(input.movement.swim),
+    fly: resolve(input.movement.fly),
+  }
+}
+
+export function formatRaceMovementHint(movement: RaceMovementResolved): string | null {
+  const bits: string[] = []
+  if (movement.climb != null) bits.push(`лаз. ${movement.climb}`)
+  if (movement.swim != null) bits.push(`плав. ${movement.swim}`)
+  if (movement.fly != null) bits.push(`полёт ${movement.fly}`)
+  return bits.length > 0 ? bits.join(' · ') : null
+}
+
+export function movementSpecHasAny(movement: RaceMovementSpec): boolean {
+  return movement.climb != null || movement.swim != null || movement.fly != null
 }
 
 function readSizeChoices(raw: unknown, fallback: RaceSize): RaceSize[] {
@@ -565,6 +647,7 @@ export function raceGrantDefFromCatalog(input: {
           : '',
     naturalArmor: readNaturalArmor(data.natural_armor ?? data.naturalArmor),
     naturalWeapons: readNaturalWeapons(data.natural_weapons ?? data.naturalWeapons),
+    movement: readMovementSpec(data.movement),
   }
 }
 
@@ -759,8 +842,12 @@ export function formatRaceGrantSummary(input: {
       ? `атаки: ${input.def.naturalWeapons.map((row) => row.nameRu).join(', ')}`
       : null
   const size = resolveRaceSize(input)
+  const movementHint = formatRaceMovementHint(
+    resolveRaceMovement({ walk: input.def.speed, movement: input.def.movement }),
+  )
   const bits = [
     `скорость ${input.def.speed}`,
+    movementHint,
     `размер ${RACE_SIZE_LABELS[size]}`,
     `ТЗ ${input.def.darkvision || 'нет'}`,
     `языки: ${langs}`,
@@ -793,5 +880,6 @@ export function readAppliedRaceGrant(raw: unknown): AppliedRaceGrant | null {
     featNoteRu: typeof row.featNoteRu === 'string' ? row.featNoteRu : null,
     naturalArmor: readNaturalArmor(row.naturalArmor ?? row.natural_armor),
     naturalWeapons: readNaturalWeapons(row.naturalWeapons ?? row.natural_weapons),
+    movement: readMovementResolved(row.movement),
   }
 }

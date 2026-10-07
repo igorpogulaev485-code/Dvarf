@@ -8,6 +8,7 @@ import {
   mergeAbilityBonuses,
   readAppliedRaceGrant,
   resolveRaceGrantDef,
+  resolveRaceMovement,
   resolveRaceSize,
   validateRaceGrantPicks,
   type AbilityKey,
@@ -35,6 +36,9 @@ export type RaceGrantDraftSlice = {
   skills: SkillState
   abilities: Record<AbilityKey, number>
   speed: number | null
+  climbSpeed: number | null
+  swimSpeed: number | null
+  flySpeed: number | null
   textBlocks: TextBlock[]
   weapons: WeaponAttack[]
   raceGrant: AppliedRaceGrant | null
@@ -142,6 +146,9 @@ export function revokeRaceGrant(draft: RaceGrantDraftSlice): RaceGrantDraftSlice
     abilities,
     skills,
     speed: null,
+    climbSpeed: null,
+    swimSpeed: null,
+    flySpeed: null,
     weapons: stripRaceNaturalWeaponAttacks(draft.weapons),
     identity: {
       ...draft.identity,
@@ -225,6 +232,10 @@ export function applyRaceGrantToDraft(input: {
   })
 
   const size = resolveRaceSize({ def, picks })
+  const movement = resolveRaceMovement({
+    walk: def.speed,
+    movement: def.movement,
+  })
 
   const nextGrant: AppliedRaceGrant = {
     raceCatalogId: input.selected.id,
@@ -244,6 +255,7 @@ export function applyRaceGrantToDraft(input: {
     featNoteRu: def.featNoteRu,
     naturalArmor: def.naturalArmor,
     naturalWeapons,
+    movement,
   }
 
   const draft: RaceGrantDraftSlice = {
@@ -252,6 +264,9 @@ export function applyRaceGrantToDraft(input: {
     abilities,
     skills,
     speed: def.speed,
+    climbSpeed: movement.climb,
+    swimSpeed: movement.swim,
+    flySpeed: movement.fly,
     weapons,
     identity: {
       ...cleared.identity,
@@ -305,6 +320,9 @@ export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftS
       size: grant.size || draft.identity.size,
     },
     speed: grant.speed,
+    climbSpeed: grant.movement?.climb ?? null,
+    swimSpeed: grant.movement?.swim ?? null,
+    flySpeed: grant.movement?.fly ?? null,
   }
 }
 

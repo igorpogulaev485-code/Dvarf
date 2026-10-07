@@ -30,7 +30,10 @@
       "size_choices": [
         "medium",
         "small"
-      ]
+      ],
+      "movement": {
+        "climb": "walk"
+      }
     },
     {
       "slug": "plasmoid",
@@ -161,7 +164,10 @@
       "size_choices": [
         "medium",
         "small"
-      ]
+      ],
+      "movement": {
+        "climb": "walk"
+      }
     },
     {
       "slug": "hexblood",
@@ -427,7 +433,10 @@
       "size_choices": [
         "medium",
         "small"
-      ]
+      ],
+      "movement": {
+        "fly": "walk"
+      }
     },
     {
       "slug": "grung",
@@ -450,7 +459,10 @@
       ],
       "languages_choose": 1,
       "traits_text": "Грунг (One Grung Above): ASI гибкий. Маленький. Скорость 25 + лазание 25. Ядовитая кожа (контактный яд; оружие/безоружные могут нести яд). Прыгун. Водная зависимость. Иммунитет к яду; амфибия.",
-      "subrace_required": false
+      "subrace_required": false,
+      "movement": {
+        "climb": 25
+      }
     },
     {
       "slug": "locathah",
@@ -482,6 +494,9 @@
         "mod": "dex",
         "allows_shield": true,
         "label_ru": "Природная броня"
+      },
+      "movement": {
+        "swim": 30
       }
     },
     {

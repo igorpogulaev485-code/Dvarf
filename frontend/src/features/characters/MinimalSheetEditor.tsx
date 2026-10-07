@@ -43,10 +43,12 @@ import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '.
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
   emptyRacePicks,
+  formatRaceMovementHint,
   isRaceComboboxRoot,
   raceGrantNeedsSetupDialog,
   raceSubraceRequired,
   resolveRaceGrantDef,
+  resolveRaceMovement,
   type AppliedRaceGrant,
   type RaceGrantDef,
   type RaceGrantPicks,
@@ -140,6 +142,9 @@ type Draft = {
   hpMax: number | null
   ac: number | null
   speed: number | null
+  climbSpeed: number | null
+  swimSpeed: number | null
+  flySpeed: number | null
   initiativeOverride: number | null
   inspiration: boolean
   weapons: WeaponAttack[]
@@ -245,6 +250,9 @@ function buildDraft(character: CharacterDetail): Draft {
     hpMax: character.hp_max ?? readNullableNumber(combat.hp_max),
     ac: readNullableNumber(combat.ac),
     speed: readNullableNumber(combat.speed),
+    climbSpeed: readNullableNumber(combat.climb_speed ?? combat.climbSpeed),
+    swimSpeed: readNullableNumber(combat.swim_speed ?? combat.swimSpeed),
+    flySpeed: readNullableNumber(combat.fly_speed ?? combat.flySpeed),
     initiativeOverride: readNullableNumber(combat.initiative),
     inspiration: Boolean(combat.inspiration),
     weapons: readWeapons(sheet),
@@ -339,47 +347,89 @@ export function MinimalSheetEditor({
         if (!active) return
         raceCatalogCacheRef.current = rows
         setRaceCatalogRows(rows)
-        // Backfill natural-weapon attack cards for races chosen before this feature.
+        // Backfill natural-weapon cards + movement speeds for races chosen earlier.
         setDraft((prev) => {
           if (!prev.raceGrant) return prev
           const entry =
             rows.find((row) => row.id === prev.raceGrant!.raceCatalogId) ??
             rows.find((row) => row.slug === prev.raceGrant!.slug)
-          const catalogWeapons = entry
+          const catalogDef = entry
             ? resolveRaceGrantDef({
                 raceName: entry.name_ru,
                 catalogSlug: entry.slug,
                 catalogData: entry.data,
                 nameRu: entry.name_ru,
-              })?.naturalWeapons ?? null
+              })
             : null
+          const catalogWeapons = catalogDef?.naturalWeapons ?? null
           const weaponsSource =
             catalogWeapons && catalogWeapons.length > 0
               ? catalogWeapons
               : prev.raceGrant.naturalWeapons ?? []
-          if (
-            weaponsSource.length > 0 &&
+          const weaponsMatch =
+            weaponsSource.length === 0 ||
             raceNaturalWeaponAttacksMatch({
               weapons: prev.weapons,
               raceSlug: prev.raceGrant.slug,
               naturalWeapons: weaponsSource,
             })
+          const nextWeapons = weaponsMatch
+            ? prev.weapons
+            : ensureRaceNaturalWeaponAttacks({
+                weapons: prev.weapons,
+                grant: prev.raceGrant,
+                catalogWeapons,
+              })
+
+          let nextGrant = prev.raceGrant
+          let climbSpeed = prev.climbSpeed
+          let swimSpeed = prev.swimSpeed
+          let flySpeed = prev.flySpeed
+          if (catalogDef) {
+            const movement = resolveRaceMovement({
+              walk: catalogDef.speed,
+              movement: catalogDef.movement,
+            })
+            const grantMove = prev.raceGrant.movement
+            const grantEmpty =
+              grantMove == null ||
+              (grantMove.climb == null &&
+                grantMove.swim == null &&
+                grantMove.fly == null)
+            const draftEmpty =
+              climbSpeed == null && swimSpeed == null && flySpeed == null
+            const hasCatalogMove =
+              movement.climb != null ||
+              movement.swim != null ||
+              movement.fly != null
+            // Only fill when both ledger and draft lack alt speeds (pre-feature sheets).
+            if (hasCatalogMove && grantEmpty && draftEmpty) {
+              nextGrant = { ...nextGrant, movement }
+              climbSpeed = movement.climb
+              swimSpeed = movement.swim
+              flySpeed = movement.fly
+            }
+          }
+          if (catalogWeapons && catalogWeapons.length > 0) {
+            nextGrant = { ...nextGrant, naturalWeapons: catalogWeapons }
+          }
+
+          if (
+            nextWeapons === prev.weapons &&
+            nextGrant === prev.raceGrant &&
+            climbSpeed === prev.climbSpeed &&
+            swimSpeed === prev.swimSpeed &&
+            flySpeed === prev.flySpeed
           ) {
             return prev
           }
-          const nextWeapons = ensureRaceNaturalWeaponAttacks({
-            weapons: prev.weapons,
-            grant: prev.raceGrant,
-            catalogWeapons,
-          })
-          if (nextWeapons === prev.weapons) return prev
           return {
             ...prev,
             weapons: nextWeapons,
-            raceGrant:
-              catalogWeapons && catalogWeapons.length > 0
-                ? { ...prev.raceGrant, naturalWeapons: catalogWeapons }
-                : prev.raceGrant,
+            raceGrant: nextGrant,
+            climbSpeed,
+            swimSpeed,
+            flySpeed,
           }
         })
       })
@@ -470,6 +520,9 @@ export function MinimalSheetEditor({
       skills: prev.skills,
       abilities: prev.abilities,
       speed: prev.speed,
+      climbSpeed: prev.climbSpeed,
+      swimSpeed: prev.swimSpeed,
+      flySpeed: prev.flySpeed,
       textBlocks: prev.textBlocks,
       weapons: prev.weapons,
       raceGrant: prev.raceGrant,
@@ -505,6 +558,9 @@ export function MinimalSheetEditor({
       skills: slice.skills,
       abilities: slice.abilities,
       speed: slice.speed,
+      climbSpeed: slice.climbSpeed,
+      swimSpeed: slice.swimSpeed,
+      flySpeed: slice.flySpeed,
       textBlocks: slice.textBlocks,
       weapons: slice.weapons,
       raceGrant: slice.raceGrant,
@@ -898,6 +954,9 @@ export function MinimalSheetEditor({
       combat.hp_max = draft.hpMax
       combat.ac = draft.ac
       combat.speed = draft.speed
+      combat.climb_speed = draft.climbSpeed
+      combat.swim_speed = draft.swimSpeed
+      combat.fly_speed = draft.flySpeed
       combat.initiative = draft.initiativeOverride
       combat.inspiration = draft.inspiration
       combat.darkvision = identityExtras.combatPatch.darkvision
@@ -975,6 +1034,11 @@ export function MinimalSheetEditor({
         autoAc={armorClass.ac}
         acHint={armorClass.summary}
         speed={draft.speed}
+        movementHint={formatRaceMovementHint({
+          climb: draft.climbSpeed,
+          swim: draft.swimSpeed,
+          fly: draft.flySpeed,
+        })}
         initiativeOverride={draft.initiativeOverride}
         inspiration={draft.inspiration}
         exhaustion={draft.play.exhaustion}
@@ -1216,6 +1280,32 @@ export function MinimalSheetEditor({
               }
             />
           </Field>
+          <div className="sheet-grid sheet-grid--3">
+            <Field label="Лазание, фт" htmlFor="sheet-climb" hint="пусто = нет">
+              <NumberInput
+                id="sheet-climb"
+                min={0}
+                value={draft.climbSpeed}
+                onValueChange={(climbSpeed) => setDraft((prev) => ({ ...prev, climbSpeed }))}
+              />
+            </Field>
+            <Field label="Плавание, фт" htmlFor="sheet-swim" hint="пусто = нет">
+              <NumberInput
+                id="sheet-swim"
+                min={0}
+                value={draft.swimSpeed}
+                onValueChange={(swimSpeed) => setDraft((prev) => ({ ...prev, swimSpeed }))}
+              />
+            </Field>
+            <Field label="Полёт, фт" htmlFor="sheet-fly" hint="пусто = нет">
+              <NumberInput
+                id="sheet-fly"
+                min={0}
+                value={draft.flySpeed}
+                onValueChange={(flySpeed) => setDraft((prev) => ({ ...prev, flySpeed }))}
+              />
+            </Field>
+          </div>
           <Text tone="muted">Пассивы = 10 + модификатор навыка (с учётом владения/экспертизы).</Text>
         </Stack>
       </Panel>
