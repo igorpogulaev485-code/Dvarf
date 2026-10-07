@@ -25,6 +25,7 @@ BACKEND_ROOT = Path(__file__).resolve().parents[2]
 WAVE_SPECS: list[tuple[str, str]] = [
     ("data/feats/phb2014_feat_catalog_spec.json", "phb"),
     ("data/feats/tce2014_feat_catalog_spec.json", "tce"),
+    ("data/feats/scc2014_feat_catalog_spec.json", "scc"),
     ("data/feats/bpgg2014_feat_catalog_spec.json", "bpgg"),
     ("data/feats/pam2014_feat_catalog_spec.json", "pam"),
     ("data/feats/bmt2014_feat_catalog_spec.json", "bmt"),
@@ -36,6 +37,8 @@ PICKER_SLUGS = {
     "metamagic_adept",
     "skill_expert",
     "prodigy",
+    "telekinetic",
+    "strixhaven_mascot",
     "rune_shaper",
     "planar_wanderer",
     "cartomancer",
