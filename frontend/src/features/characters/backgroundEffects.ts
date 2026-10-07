@@ -1,77 +1,145 @@
-/** Apply / revoke background grants on a sheet draft slice. */
+/** Apply / revoke background grants on the digital sheet draft. */
 
-import type { AppliedBackgroundGrant } from '../../shared/dnd/backgroundGrants'
-import type { ArmorProficiency } from './identity'
+import type { CatalogEntry } from '../../shared/api/catalog'
+import {
+  buildBackgroundFeatureText,
+  emptyBackgroundPicks,
+  formatBackgroundGrantSummary,
+  formatChoiceTableSummary,
+  mergeBackgroundLanguages,
+  readAppliedBackgroundGrant,
+  resolveBackgroundGrantDef,
+  upsertBackgroundFeatureBlock,
+  upsertMarkedTextBlock,
+  validateBackgroundGrantPicks,
+  type AppliedBackgroundGrant,
+  type BackgroundGrantDef,
+  type BackgroundGrantPicks,
+} from '../../shared/dnd/backgroundGrants'
+import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
+import type { IdentityExtras } from './identity'
+import {
+  createInventoryItem,
+  equipInventoryItem,
+  type InventoryState,
+} from './inventory'
 import type { TextBlock } from './textBlocks'
+import {
+  backgroundEquipmentAttackId,
+  type WeaponAttack,
+} from './AttacksPanel'
+import { resolveWeaponExtraName } from './weaponProficiencyExtras'
+
+export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 
 export type BackgroundGrantDraftSlice = {
-  skills: Record<string, { is_proficient: boolean; is_expertise: boolean }>
-  identity: {
-    languages: string[]
-    tools: string[]
-    armor: ArmorProficiency
-  }
+  identity: IdentityExtras
+  skills: SkillState
+  inventory: InventoryState
   textBlocks: TextBlock[]
+  weapons: WeaponAttack[]
   backgroundGrant: AppliedBackgroundGrant | null
-  /** Skills still covered by class / race / feats — do not strip on revoke. */
+  /** Skills still covered by class/subclass/race — do not strip on revoke. */
   protectedSkills: Set<string>
   protectedTools: Set<string>
   protectedLanguages: Set<string>
+  protectedWeaponExtras: Set<string>
 }
 
-const BG_TRAITS_MARK_START = '<!-- dvarf:background-feature -->'
-const BG_TRAITS_MARK_END = '<!-- /dvarf:background-feature -->'
-
-function uniqueStrings(values: string[]): string[] {
+function uniqueStrings(items: string[]): string[] {
   const seen = new Set<string>()
   const out: string[] = []
-  for (const value of values) {
-    const trimmed = value.trim()
-    if (!trimmed) continue
-    const key = trimmed.toLowerCase()
+  for (const item of items) {
+    const normalized = item.trim()
+    if (!normalized) continue
+    const key = normalized.toLowerCase()
     if (seen.has(key)) continue
     seen.add(key)
-    out.push(trimmed)
+    out.push(normalized)
   }
   return out
 }
 
-function upsertBackgroundFeatureBlock(value: string, snippet: string): string {
-  const start = value.indexOf(BG_TRAITS_MARK_START)
-  const end = value.indexOf(BG_TRAITS_MARK_END)
-  const block = snippet
-    ? `${BG_TRAITS_MARK_START}\n${snippet}\n${BG_TRAITS_MARK_END}`
-    : ''
-  if (start >= 0 && end > start) {
-    const before = value.slice(0, start).trimEnd()
-    const after = value.slice(end + BG_TRAITS_MARK_END.length).trimStart()
-    return [before, block, after].filter(Boolean).join('\n\n')
+function addGearItem(input: {
+  inventory: InventoryState
+  weapons: WeaponAttack[]
+  name: string
+  qty?: number
+  armor_kind?: 'none' | 'light' | 'medium' | 'heavy' | 'shield'
+  base_ac?: number | null
+  weight_lb?: number | null
+  notes?: string
+  backgroundSlug: string
+}): {
+  inventory: InventoryState
+  weapons: WeaponAttack[]
+  itemId: string
+  attackId: string | null
+} {
+  const created = createInventoryItem()
+  created.name = input.name
+  created.qty = Math.max(1, Math.floor(input.qty ?? 1))
+  created.armor_kind = (input.armor_kind ?? 'none') as typeof created.armor_kind
+  created.base_ac = input.base_ac ?? null
+  created.weight_lb = input.weight_lb ?? null
+  created.notes = input.notes ?? 'Снаряжение предыстории'
+
+  let inventory: InventoryState = {
+    ...input.inventory,
+    items: [...input.inventory.items, created],
   }
-  if (!block) return value
-  return value.trim() ? `${value.trim()}\n\n${block}` : block
-}
 
-function featureSnippet(grant: AppliedBackgroundGrant | null): string {
-  if (!grant) return ''
-  const body = grant.featureRu || grant.summaryRu
-  return body
-    ? `Предыстория «${grant.nameRu}»: ${body}`
-    : `Предыстория «${grant.nameRu}»`
-}
-
-function syncFeatureText(draft: BackgroundGrantDraftSlice): BackgroundGrantDraftSlice {
-  const snippet = featureSnippet(draft.backgroundGrant)
-  const textBlocks = draft.textBlocks.map((block) => {
-    if (block.key !== 'traits' && block.key !== 'background') return block
-    if (block.key === 'traits' && draft.textBlocks.some((row) => row.key === 'background')) {
-      return block
+  if (
+    created.armor_kind === 'light' ||
+    created.armor_kind === 'medium' ||
+    created.armor_kind === 'heavy' ||
+    created.armor_kind === 'shield'
+  ) {
+    inventory = {
+      ...inventory,
+      items: equipInventoryItem(inventory.items, created.id, true),
     }
-    return { ...block, value: upsertBackgroundFeatureBlock(block.value, snippet) }
-  })
-  return { ...draft, textBlocks }
+  }
+
+  let weapons = [...input.weapons]
+  let attackId: string | null = null
+  const weapon = findWeaponPreset(input.name)
+  if (weapon) {
+    attackId = backgroundEquipmentAttackId(input.backgroundSlug, created.id)
+    weapons.push({
+      id: attackId,
+      name:
+        created.qty > 1 ? `${weapon.labelRu} ×${created.qty}` : weapon.labelRu,
+      catalog_id: null,
+      source_kind: 'weapon',
+      ability: weapon.ability,
+      is_proficient: true,
+      damage: weapon.damage,
+      damage_type: weapon.damageType,
+    })
+  }
+
+  return { inventory, weapons, itemId: created.id, attackId }
 }
 
-export function revokeBackgroundGrantFromDraft(
+/** Weapon OR picks that grant a named proficiency (gladiator exotic weapons). */
+function weaponExtrasFromPicks(
+  def: BackgroundGrantDef,
+  picks: BackgroundGrantPicks,
+): string[] {
+  const out: string[] = []
+  for (const choice of def.equipmentOrChoices) {
+    const picked = picks.equipmentOrPicks[choice.id]
+    if (!picked) continue
+    if (findWeaponPreset(picked)) {
+      const name = resolveWeaponExtraName(picked)
+      if (name) out.push(name)
+    }
+  }
+  return uniqueStrings(out)
+}
+
+export function revokeBackgroundGrant(
   draft: BackgroundGrantDraftSlice,
 ): BackgroundGrantDraftSlice {
   const previous = draft.backgroundGrant
@@ -91,48 +159,303 @@ export function revokeBackgroundGrantFromDraft(
     return draft.protectedTools.has(key)
   })
 
-  const languages = draft.identity.languages.filter((name) => {
-    const key = name.trim().toLowerCase()
-    const wasFromBg = previous.languages.some((item) => item.toLowerCase() === key)
-    if (!wasFromBg) return true
-    return draft.protectedLanguages.has(key)
+  const languages = mergeBackgroundLanguages({
+    current: draft.identity.languages,
+    previousApplied: previous.languages.filter(
+      (lang) => !draft.protectedLanguages.has(lang.toLowerCase()),
+    ),
+    next: [],
   })
 
-  return syncFeatureText({
+  const weaponExtras = (draft.identity.weapons.extras ?? []).filter((name) => {
+    const key = name.trim().toLowerCase()
+    const wasFromBg = (previous.weaponExtras ?? []).some(
+      (item) => item.toLowerCase() === key,
+    )
+    if (!wasFromBg) return true
+    return draft.protectedWeaponExtras.has(key)
+  })
+
+  const removeIds = new Set(previous.equipmentItemIds)
+  const removeAttackIds = new Set(previous.equipmentAttackIds ?? [])
+  const inventory: InventoryState = {
+    coins: { ...draft.inventory.coins },
+    items: draft.inventory.items.filter((item) => !removeIds.has(item.id)),
+  }
+  if (previous.equipmentCoinsGp > 0) {
+    inventory.coins.gp = Math.max(0, inventory.coins.gp - previous.equipmentCoinsGp)
+  }
+
+  const textBlocks = draft.textBlocks.map((block) => {
+    if (block.key === 'traits') {
+      return { ...block, value: upsertBackgroundFeatureBlock(block.value, '') }
+    }
+    if (block.key === 'personality') {
+      return { ...block, value: upsertMarkedTextBlock(block.value, 'personality', '') }
+    }
+    if (block.key === 'ideals') {
+      return { ...block, value: upsertMarkedTextBlock(block.value, 'ideals', '') }
+    }
+    if (block.key === 'bonds') {
+      return { ...block, value: upsertMarkedTextBlock(block.value, 'bonds', '') }
+    }
+    if (block.key === 'flaws') {
+      return { ...block, value: upsertMarkedTextBlock(block.value, 'flaws', '') }
+    }
+    if (block.key === 'background') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'backgroundStory', ''),
+      }
+    }
+    return block
+  })
+
+  return {
     ...draft,
-    skills,
     backgroundGrant: null,
+    skills,
+    inventory,
+    textBlocks,
+    weapons: draft.weapons.filter((row) => !removeAttackIds.has(row.id)),
     identity: {
       ...draft.identity,
       tools,
       languages,
+      weapons: {
+        ...draft.identity.weapons,
+        extras: weaponExtras,
+      },
     },
-  })
+  }
 }
 
 export function applyBackgroundGrantToDraft(input: {
   draft: BackgroundGrantDraftSlice
-  grant: AppliedBackgroundGrant
-}): BackgroundGrantDraftSlice {
-  const cleared = revokeBackgroundGrantFromDraft(input.draft)
+  selected: CatalogEntry
+  picks?: BackgroundGrantPicks
+  def?: BackgroundGrantDef | null
+}): { draft: BackgroundGrantDraftSlice; summary: string } | null {
+  const def =
+    input.def ??
+    resolveBackgroundGrantDef({
+      backgroundName: input.selected.name_ru,
+      catalogSlug: input.selected.slug,
+      catalogData: input.selected.data,
+      nameRu: input.selected.name_ru,
+    })
+  if (!def) return null
+
+  const picks = input.picks ?? emptyBackgroundPicks()
+  const pickError = validateBackgroundGrantPicks({ def, picks })
+  if (pickError) return null
+
+  const cleared = revokeBackgroundGrant(input.draft)
+  const skillsApplied = uniqueStrings([...def.skillProficiencies, ...picks.skills])
+  let toolsApplied = uniqueStrings([...def.toolProficiencies, ...picks.tools])
+  const languagesApplied = uniqueStrings([...def.languages, ...picks.languages])
+  const weaponExtras = weaponExtrasFromPicks(def, picks)
+  const featureText = buildBackgroundFeatureText(def)
+
+  // OR pick of musical instrument → tool proficiency for entertainer/gladiator.
+  for (const choice of def.equipmentOrChoices) {
+    const picked = picks.equipmentOrPicks[choice.id]
+    if (!picked) continue
+    if (/инструмент/i.test(picked) && !findWeaponPreset(picked)) {
+      toolsApplied = uniqueStrings([...toolsApplied, picked])
+    }
+  }
+
   const skills = { ...cleared.skills }
-  for (const key of input.grant.skills) {
+  for (const key of skillsApplied) {
     const current = skills[key] ?? { is_proficient: false, is_expertise: false }
     skills[key] = { ...current, is_proficient: true }
   }
-  const tools = uniqueStrings([...cleared.identity.tools, ...input.grant.tools])
-  const languages = uniqueStrings([
-    ...cleared.identity.languages,
-    ...input.grant.languages,
-  ])
-  return syncFeatureText({
+
+  const languages = mergeBackgroundLanguages({
+    current: cleared.identity.languages,
+    previousApplied: [],
+    next: languagesApplied,
+  })
+
+  const equipmentItemIds: string[] = []
+  const equipmentAttackIds: string[] = []
+  let equipmentCoinsGp = 0
+  let inventory: InventoryState = {
+    coins: { ...cleared.inventory.coins },
+    items: [...cleared.inventory.items],
+  }
+  let nextWeapons: WeaponAttack[] = [...cleared.weapons]
+  const equipmentPackageId = picks.equipmentPackageId
+  if (equipmentPackageId && equipmentPackageId !== 'skip') {
+    const pack = def.equipment.find((row) => row.id === equipmentPackageId)
+    if (pack) {
+      for (const spec of pack.items) {
+        const added = addGearItem({
+          inventory,
+          weapons: nextWeapons,
+          name: spec.name,
+          qty: spec.qty,
+          armor_kind: spec.armor_kind,
+          base_ac: spec.base_ac,
+          weight_lb: spec.weight_lb,
+          notes: spec.notes ?? 'Снаряжение предыстории',
+          backgroundSlug: def.slug,
+        })
+        inventory = added.inventory
+        nextWeapons = added.weapons
+        equipmentItemIds.push(added.itemId)
+        if (added.attackId) equipmentAttackIds.push(added.attackId)
+      }
+      for (const choice of def.equipmentOrChoices) {
+        const picked = picks.equipmentOrPicks[choice.id]
+        if (!picked) continue
+        const added = addGearItem({
+          inventory,
+          weapons: nextWeapons,
+          name: picked,
+          notes: 'Снаряжение предыстории',
+          backgroundSlug: def.slug,
+        })
+        inventory = added.inventory
+        nextWeapons = added.weapons
+        equipmentItemIds.push(added.itemId)
+        if (added.attackId) equipmentAttackIds.push(added.attackId)
+      }
+      if (pack.coinsGp && pack.coinsGp > 0) {
+        equipmentCoinsGp = pack.coinsGp
+        inventory.coins.gp += pack.coinsGp
+      }
+    }
+  }
+
+  const personalityText = picks.personalityTraits.join('\n')
+  const storyBits = [
+    def.notesRu,
+    formatChoiceTableSummary(def, picks),
+    def.equipmentNoteRu,
+  ].filter(Boolean)
+  const storyText = storyBits.join('\n')
+  const textBlocks = cleared.textBlocks.map((block) => {
+    if (block.key === 'traits') {
+      return { ...block, value: upsertBackgroundFeatureBlock(block.value, featureText) }
+    }
+    if (block.key === 'personality') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'personality', personalityText),
+      }
+    }
+    if (block.key === 'ideals') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'ideals', picks.ideal ?? ''),
+      }
+    }
+    if (block.key === 'bonds') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'bonds', picks.bond ?? ''),
+      }
+    }
+    if (block.key === 'flaws') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'flaws', picks.flaw ?? ''),
+      }
+    }
+    if (block.key === 'background') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'backgroundStory', storyText),
+      }
+    }
+    return block
+  })
+
+  const nextGrant: AppliedBackgroundGrant = {
+    backgroundCatalogId: input.selected.id,
+    slug: def.slug,
+    skills: skillsApplied,
+    tools: toolsApplied,
+    languages: languagesApplied,
+    weaponExtras,
+    featureNameRu: def.featureNameRu,
+    featureTextRu: def.featureTextRu,
+    featNoteRu: def.featNoteRu,
+    equipmentPackageId,
+    equipmentOrPicks: { ...picks.equipmentOrPicks },
+    equipmentItemIds,
+    equipmentAttackIds,
+    equipmentCoinsGp,
+    choiceTablePicks: { ...picks.choiceTablePicks },
+    personalityTraits: [...picks.personalityTraits],
+    ideal: picks.ideal,
+    bond: picks.bond,
+    flaw: picks.flaw,
+  }
+
+  const draft: BackgroundGrantDraftSlice = {
     ...cleared,
+    backgroundGrant: nextGrant,
     skills,
-    backgroundGrant: input.grant,
+    inventory,
+    textBlocks,
+    weapons: nextWeapons,
     identity: {
       ...cleared.identity,
-      tools,
+      background: def.labelRu,
       languages,
+      tools: uniqueStrings([...cleared.identity.tools, ...toolsApplied]),
+      weapons: {
+        ...cleared.identity.weapons,
+        extras: uniqueStrings([
+          ...(cleared.identity.weapons.extras ?? []),
+          ...weaponExtras,
+        ]),
+      },
     },
-  })
+  }
+
+  return {
+    draft,
+    summary: formatBackgroundGrantSummary({ def, picks }),
+  }
 }
+
+/** Re-apply background skill/tool overlays after class/race mutations. */
+export function reapplyBackgroundOverlays(
+  draft: BackgroundGrantDraftSlice,
+): BackgroundGrantDraftSlice {
+  const grant = draft.backgroundGrant
+  if (!grant) return draft
+
+  const skills = { ...draft.skills }
+  for (const key of grant.skills) {
+    const current = skills[key] ?? { is_proficient: false, is_expertise: false }
+    skills[key] = { ...current, is_proficient: true }
+  }
+
+  return {
+    ...draft,
+    skills,
+    identity: {
+      ...draft.identity,
+      tools: uniqueStrings([...draft.identity.tools, ...grant.tools]),
+      languages: mergeBackgroundLanguages({
+        current: draft.identity.languages,
+        previousApplied: [],
+        next: grant.languages,
+      }),
+      weapons: {
+        ...draft.identity.weapons,
+        extras: uniqueStrings([
+          ...(draft.identity.weapons.extras ?? []),
+          ...(grant.weaponExtras ?? []),
+        ]),
+      },
+    },
+  }
+}
+
+export { readAppliedBackgroundGrant }

@@ -28,6 +28,26 @@
   font-size: 0.75rem;
 }
 
+.classic-background-picker {
+  max-width: 8.5in;
+  margin: 0 auto 0.75rem;
+  padding: 0.9rem 1rem;
+  background: #f3efe6;
+  border: 1px solid #c9c0b0;
+  border-radius: 8px;
+}
+
+.classic-background-picker__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.classic-background-picker__row > *:first-child {
+  flex: 1 1 16rem;
+}
+
 .classic-stack {
   display: grid;
   gap: 1.25rem;
