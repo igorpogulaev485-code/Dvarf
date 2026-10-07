@@ -186,22 +186,6 @@ type FeaturePack = {
   subclasses: Record<string, ClassFeatureDef[]>
 }
 
-const LOCAL_PACKS: Record<string, FeaturePack> = {
-  artificer: artificerPack as FeaturePack,
-  barbarian: barbarianPack as FeaturePack,
-  bard: bardPack as FeaturePack,
-  cleric: clericPack as FeaturePack,
-  druid: druidPack as FeaturePack,
-  fighter: fighterPack as FeaturePack,
-  wizard: wizardPack as FeaturePack,
-  monk: monkPack as FeaturePack,
-  paladin: paladinPack as FeaturePack,
-  ranger: rangerPack as FeaturePack,
-  rogue: roguePack as FeaturePack,
-  sorcerer: sorcererPack as FeaturePack,
-  warlock: warlockPack as FeaturePack,
-}
-
 function asFeatureList(raw: unknown): ClassFeatureDef[] {
   if (!Array.isArray(raw)) return []
   const out: ClassFeatureDef[] = []
@@ -350,6 +334,41 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
     })
   }
   return out
+}
+
+/** Normalize JSON packs (label_ru → labelRu, resource parsing) once at module load. */
+function normalizeFeaturePack(raw: unknown): FeaturePack {
+  const data =
+    raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {}
+  const subclassesRaw =
+    data.subclasses && typeof data.subclasses === 'object'
+      ? (data.subclasses as Record<string, unknown>)
+      : {}
+  const subclasses: Record<string, ClassFeatureDef[]> = {}
+  for (const [slug, list] of Object.entries(subclassesRaw)) {
+    subclasses[slug] = asFeatureList(list)
+  }
+  return {
+    class_slug: typeof data.class_slug === 'string' ? data.class_slug : '',
+    features: asFeatureList(data.features),
+    subclasses,
+  }
+}
+
+const LOCAL_PACKS: Record<string, FeaturePack> = {
+  artificer: normalizeFeaturePack(artificerPack),
+  barbarian: normalizeFeaturePack(barbarianPack),
+  bard: normalizeFeaturePack(bardPack),
+  cleric: normalizeFeaturePack(clericPack),
+  druid: normalizeFeaturePack(druidPack),
+  fighter: normalizeFeaturePack(fighterPack),
+  wizard: normalizeFeaturePack(wizardPack),
+  monk: normalizeFeaturePack(monkPack),
+  paladin: normalizeFeaturePack(paladinPack),
+  ranger: normalizeFeaturePack(rangerPack),
+  rogue: normalizeFeaturePack(roguePack),
+  sorcerer: normalizeFeaturePack(sorcererPack),
+  warlock: normalizeFeaturePack(warlockPack),
 }
 
 export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] {
