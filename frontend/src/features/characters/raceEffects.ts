@@ -307,7 +307,8 @@ export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftS
 
 /**
  * Ensure race natural-weapon attack cards exist for an already-applied grant
- * (backfill when catalog gained natural_weapons after the race was chosen).
+ * (backfill when catalog gained natural_weapons after the race was chosen,
+ * and refresh dice/ability when the catalog corrects them).
  */
 export function ensureRaceNaturalWeaponAttacks(input: {
   weapons: WeaponAttack[]
@@ -316,15 +317,47 @@ export function ensureRaceNaturalWeaponAttacks(input: {
 }): WeaponAttack[] {
   const grant = input.grant
   if (!grant) return input.weapons
+  const catalog = input.catalogWeapons
   const naturalWeapons =
-    (grant.naturalWeapons && grant.naturalWeapons.length > 0
-      ? grant.naturalWeapons
-      : input.catalogWeapons) ?? []
+    (catalog && catalog.length > 0
+      ? catalog
+      : grant.naturalWeapons && grant.naturalWeapons.length > 0
+        ? grant.naturalWeapons
+        : null) ?? []
   if (naturalWeapons.length === 0) return input.weapons
   return syncRaceNaturalWeaponAttacks({
     weapons: input.weapons,
     raceSlug: grant.slug,
     naturalWeapons,
+  })
+}
+
+/** True when race attack cards already match the catalog natural weapons. */
+export function raceNaturalWeaponAttacksMatch(input: {
+  weapons: WeaponAttack[]
+  raceSlug: string
+  naturalWeapons: RaceNaturalWeapon[]
+}): boolean {
+  const expected = input.naturalWeapons.map((weapon) =>
+    naturalWeaponToAttack(input.raceSlug, weapon),
+  )
+  if (expected.length === 0) return true
+  const byId = new Map(
+    input.weapons
+      .filter((row) => row.source_kind === 'race')
+      .map((row) => [row.id, row]),
+  )
+  if (byId.size !== expected.length) return false
+  return expected.every((want) => {
+    const got = byId.get(want.id)
+    if (!got) return false
+    return (
+      got.name === want.name &&
+      got.ability === want.ability &&
+      got.damage === want.damage &&
+      got.damage_type === want.damage_type &&
+      got.is_proficient === want.is_proficient
+    )
   })
 }
 

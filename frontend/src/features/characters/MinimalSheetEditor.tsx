@@ -79,6 +79,7 @@ import {
 import {
   applyRaceGrantToDraft,
   ensureRaceNaturalWeaponAttacks,
+  raceNaturalWeaponAttacksMatch,
   readAppliedRaceGrant,
   reapplyRaceOverlays,
   revokeRaceGrant,
@@ -351,17 +352,34 @@ export function MinimalSheetEditor({
                 nameRu: entry.name_ru,
               })?.naturalWeapons ?? null
             : null
+          const weaponsSource =
+            catalogWeapons && catalogWeapons.length > 0
+              ? catalogWeapons
+              : prev.raceGrant.naturalWeapons ?? []
+          if (
+            weaponsSource.length > 0 &&
+            raceNaturalWeaponAttacksMatch({
+              weapons: prev.weapons,
+              raceSlug: prev.raceGrant.slug,
+              naturalWeapons: weaponsSource,
+            })
+          ) {
+            return prev
+          }
           const nextWeapons = ensureRaceNaturalWeaponAttacks({
             weapons: prev.weapons,
             grant: prev.raceGrant,
             catalogWeapons,
           })
           if (nextWeapons === prev.weapons) return prev
-          const same =
-            nextWeapons.length === prev.weapons.length &&
-            nextWeapons.every((item, index) => item.id === prev.weapons[index]?.id)
-          if (same) return prev
-          return { ...prev, weapons: nextWeapons }
+          return {
+            ...prev,
+            weapons: nextWeapons,
+            raceGrant:
+              catalogWeapons && catalogWeapons.length > 0
+                ? { ...prev.raceGrant, naturalWeapons: catalogWeapons }
+                : prev.raceGrant,
+          }
         })
       })
       .catch(() => {
