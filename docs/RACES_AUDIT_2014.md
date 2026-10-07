@@ -1,7 +1,8 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/mobile-sheet-compact-acbe` · http://201.34.132.252/ · alembic `b1c2d3e4f5a6`
+Прод tip: `cursor/race-level-unlocks-f10e` · http://201.34.132.252/ · alembic `m2b3c4d5e6f7`  
+Гибкий ASI: `preset=tasha_flexible` (+2/+1 **или** три +1).
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
@@ -17,13 +18,31 @@
 
 ## Волна 2 — MPMM (корни combobox)
 
-Спека: `backend/data/races/mpmm_race_catalog_spec.json` (29 строк: 25 корней + 4 наследия дженази).  
+Спека: `backend/data/races/mpmm_race_catalog_spec.json` (40 строк: 24 корня + forks).  
 Без дублей PHB-подрас: дуэргар / эладрин / морской эльф / шадар-кай / глубинный гном — остаются forks у PHB-родителей.
 
 | Раса | В каталоге | Попап forks | Prod verify | Заметки |
 |------|------------|-------------|-------------|---------|
-| Ааракокра … юань-ти (24 корня без дженази) | ✅ | — (нет children) | ✅ | flexible ASI + Common+1 |
+| Ааракокра, багбир, … (корни без forks) | ✅ | — | ✅ | flexible ASI + Common+1 |
 | Дженази | ✅ parent + 4 | ✅ `subrace_required` | ✅ | воздух / земля / огонь / вода |
+| Аасимар | ✅ parent + 3 | ✅ `subrace_required` | ✅ | Volo: защитник / каратель / падший; размер M/S |
+| Шифтер | ✅ parent + 4 | ✅ `subrace_required` | ✅ | зверошкур / длиннозуб / быстроног / дикий охотник |
+| Гит | ✅ parent + 2 | ✅ `subrace_required` | ✅ | гитъянки / гитцерай (больше не два корня) |
+| Кобольд | ✅ parent + 3 | ✅ `subrace_required` | ✅ | наследия: хитрость / неповиновение / драконье чародейство |
+
+## Волна 3 — setting books (корни combobox)
+
+Спека: `backend/data/races/setting_race_catalog_spec.json` (18 корней).  
+Срез с dnd.su минус уже залитые PHB/MPMM; без UA/Plane Shift/homebrew.
+
+| Блок | Расы | Prod verify |
+|------|------|-------------|
+| SAS/AAG | хадози, плазмоид, три-крин, автогном | ✅ |
+| VRGtR | дампир, ведьмакровка, возрождённый | ✅ |
+| ERLW | калаштар, кованый | ✅ |
+| GGR | локсодон, ведалкен, гибрид Симик | ✅ |
+| MOT/SCC | леонин, соволин | ✅ |
+| Прочее | грунг, локата, вердан, кендер | ✅ |
 
 ## Чеклист на расу
 
@@ -32,7 +51,22 @@
 3. В попапе: только корни в combobox; forks внутри Dialog с меткой source.
 4. Apply/revoke ASI + ledger (`race_grant`).
 5. Deploy + DB/UI: число children, `subrace_required`.
+6. Уровневые/метовые заклинания: `racial_spells[].unlock_level` + `grant` (`innate` | `spell_list`).
+
+## Расовые заклинания: innate vs список метки
+
+| `grant` | Когда на лист | Подготовка |
+|---------|---------------|------------|
+| `innate` | `уровень ≥ unlock_level` | всегда готово, вне лимита подготовки |
+| `spell_list` | есть Spellcasting/Pact Magic | чип «Метка»; игрок готовит как классовое |
+
+Детект кастера (`characterHasCasterClass`):
+1. Базовый класс с фичей Spellcasting/Pact (full/pact/half_up с 1 ур.; half-паладин/следопыт с 2 ур.).
+2. Иначе архетип: EK / Arcane Trickster с 3 ур. класса (по тексту `subclass_name`).
+3. Мультикласс: достаточно **одного** подходящего класса — пересинк на level-up / смене класса / подкласса / −1 уровня.
+
+Пример: `mark_of_shadow` — малая иллюзия + невидимость@3 (innate); таблица 1–5 круга только кастеру (`spell_list`).
 
 ## Инфра-заметка
 
-Актуальный tip head: `b1c2d3e4f5a6` (MPMM wave) влит в `cursor/mobile-sheet-compact-acbe`.
+Prod tip: `cursor/race-level-unlocks-f10e` · alembic `m2b3c4d5e6f7`.

@@ -42,10 +42,13 @@ import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
+  emptyRacePicks,
+  formatRaceMovementHint,
   isRaceComboboxRoot,
   raceGrantNeedsSetupDialog,
   raceSubraceRequired,
   resolveRaceGrantDef,
+  resolveRaceMovement,
   type AppliedRaceGrant,
   type RaceGrantDef,
   type RaceGrantPicks,
@@ -78,11 +81,15 @@ import {
 } from './identity'
 import {
   applyRaceGrantToDraft,
+  ensureRaceNaturalWeaponAttacks,
+  raceNaturalWeaponAttacksMatch,
   readAppliedRaceGrant,
   reapplyRaceOverlays,
   revokeRaceGrant,
+  syncRaceSpellsForSheetState,
   type RaceGrantDraftSlice,
 } from './raceEffects'
+import { characterHasCasterClass } from '../../shared/dnd/casterProgression'
 import {
   equippedArmorPieces,
   inventoryToSheet,
@@ -137,6 +144,9 @@ type Draft = {
   hpMax: number | null
   ac: number | null
   speed: number | null
+  climbSpeed: number | null
+  swimSpeed: number | null
+  flySpeed: number | null
   initiativeOverride: number | null
   inspiration: boolean
   weapons: WeaponAttack[]
@@ -160,11 +170,16 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
       ? (row.ability as AbilityKey)
       : 'str'
     const sourceKind =
-      row.source_kind === 'weapon' || row.source_kind === 'artifact' || row.source_kind === 'custom'
+      row.source_kind === 'weapon' ||
+      row.source_kind === 'artifact' ||
+      row.source_kind === 'custom' ||
+      row.source_kind === 'race'
         ? row.source_kind
-        : row.catalog_id
-          ? 'weapon'
-          : 'custom'
+        : typeof row.id === 'string' && row.id.startsWith('race-nw:')
+          ? 'race'
+          : row.catalog_id
+            ? 'weapon'
+            : 'custom'
     return {
       id: typeof row.id === 'string' ? row.id : `weapon-${index}`,
       name: typeof row.name === 'string' ? row.name : '',
@@ -237,6 +252,9 @@ function buildDraft(character: CharacterDetail): Draft {
     hpMax: character.hp_max ?? readNullableNumber(combat.hp_max),
     ac: readNullableNumber(combat.ac),
     speed: readNullableNumber(combat.speed),
+    climbSpeed: readNullableNumber(combat.climb_speed ?? combat.climbSpeed),
+    swimSpeed: readNullableNumber(combat.swim_speed ?? combat.swimSpeed),
+    flySpeed: readNullableNumber(combat.fly_speed ?? combat.flySpeed),
     initiativeOverride: readNullableNumber(combat.initiative),
     inspiration: Boolean(combat.inspiration),
     weapons: readWeapons(sheet),
@@ -300,6 +318,7 @@ export function MinimalSheetEditor({
   const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
   const channelRef = useRef<BroadcastChannel | null>(null)
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
+  const [raceCatalogRows, setRaceCatalogRows] = useState<CatalogEntry[]>([])
 
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
@@ -324,14 +343,115 @@ export function MinimalSheetEditor({
   useEffect(() => {
     let active = true
     raceCatalogCacheRef.current = null
+    setRaceCatalogRows([])
     listCatalogEntries({ kind: 'race', edition: rulesEdition })
       .then((rows) => {
         if (!active) return
         raceCatalogCacheRef.current = rows
+        setRaceCatalogRows(rows)
+        // Backfill natural-weapon cards + movement speeds for races chosen earlier.
+        setDraft((prev) => {
+          if (!prev.raceGrant) return prev
+          const entry =
+            rows.find((row) => row.id === prev.raceGrant!.raceCatalogId) ??
+            rows.find((row) => row.slug === prev.raceGrant!.slug)
+          const catalogDef = entry
+            ? resolveRaceGrantDef({
+                raceName: entry.name_ru,
+                catalogSlug: entry.slug,
+                catalogData: entry.data,
+                nameRu: entry.name_ru,
+              })
+            : null
+          const catalogWeapons = catalogDef?.naturalWeapons ?? null
+          const weaponsSource =
+            catalogWeapons && catalogWeapons.length > 0
+              ? catalogWeapons
+              : prev.raceGrant.naturalWeapons ?? []
+          const weaponsMatch =
+            weaponsSource.length === 0 ||
+            raceNaturalWeaponAttacksMatch({
+              weapons: prev.weapons,
+              raceSlug: prev.raceGrant.slug,
+              naturalWeapons: weaponsSource,
+            })
+          const nextWeapons = weaponsMatch
+            ? prev.weapons
+            : ensureRaceNaturalWeaponAttacks({
+                weapons: prev.weapons,
+                grant: prev.raceGrant,
+                catalogWeapons,
+              })
+
+          let nextGrant = prev.raceGrant
+          let climbSpeed = prev.climbSpeed
+          let swimSpeed = prev.swimSpeed
+          let flySpeed = prev.flySpeed
+          if (catalogDef) {
+            const movement = resolveRaceMovement({
+              walk: catalogDef.speed,
+              movement: catalogDef.movement,
+            })
+            const grantMove = prev.raceGrant.movement
+            const grantEmpty =
+              grantMove == null ||
+              (grantMove.climb == null &&
+                grantMove.swim == null &&
+                grantMove.fly == null)
+            const draftEmpty =
+              climbSpeed == null && swimSpeed == null && flySpeed == null
+            const hasCatalogMove =
+              movement.climb != null ||
+              movement.swim != null ||
+              movement.fly != null
+            // Only fill when both ledger and draft lack alt speeds (pre-feature sheets).
+            if (hasCatalogMove && grantEmpty && draftEmpty) {
+              nextGrant = { ...nextGrant, movement }
+              climbSpeed = movement.climb
+              swimSpeed = movement.swim
+              flySpeed = movement.fly
+            }
+          }
+          if (catalogWeapons && catalogWeapons.length > 0) {
+            nextGrant = { ...nextGrant, naturalWeapons: catalogWeapons }
+          }
+          if (catalogDef?.racialSpells && catalogDef.racialSpells.length > 0) {
+            nextGrant = { ...nextGrant, racialSpells: catalogDef.racialSpells }
+          }
+
+          const nextSpells = syncRaceSpellsForSheetState({
+            spells: prev.spells,
+            grant: nextGrant,
+            characterLevel: totalCharacterLevel(prev.classes),
+            hasCasterClass: characterHasCasterClass(prev.classes),
+            catalogSpells: catalogDef?.racialSpells ?? null,
+          })
+
+          if (
+            nextWeapons === prev.weapons &&
+            nextGrant === prev.raceGrant &&
+            nextSpells === prev.spells &&
+            climbSpeed === prev.climbSpeed &&
+            swimSpeed === prev.swimSpeed &&
+            flySpeed === prev.flySpeed
+          ) {
+            return prev
+          }
+          return {
+            ...prev,
+            weapons: nextWeapons,
+            spells: nextSpells,
+            raceGrant: nextGrant,
+            climbSpeed,
+            swimSpeed,
+            flySpeed,
+          }
+        })
       })
       .catch(() => {
         if (!active) return
         raceCatalogCacheRef.current = null
+        setRaceCatalogRows([])
       })
     return () => {
       active = false
@@ -372,17 +492,34 @@ export function MinimalSheetEditor({
     [characterLevel],
   )
 
+  /** Refresh mark-list racial spells after class / subclass / level changes. */
+  function withRaceSpellsSynced(prev: Draft, nextClasses: ClassLevelEntry[]): Draft {
+    if (!prev.raceGrant) {
+      return { ...prev, classes: nextClasses }
+    }
+    const spells = syncRaceSpellsForSheetState({
+      spells: prev.spells,
+      grant: prev.raceGrant,
+      characterLevel: totalCharacterLevel(nextClasses),
+      hasCasterClass: characterHasCasterClass(nextClasses),
+    })
+    return { ...prev, classes: nextClasses, spells }
+  }
+
   function patchClass(classId: string, patch: Partial<ClassLevelEntry>) {
-    setDraft((prev) => ({
-      ...prev,
-      classes: prev.classes.map((row) =>
+    setDraft((prev) => {
+      const nextClasses = prev.classes.map((row) =>
         row.id === classId ? { ...row, ...patch } : row,
-      ),
-      identity:
-        prev.classes[0]?.id === classId && patch.subclass_name !== undefined
-          ? { ...prev.identity, subclassName: patch.subclass_name }
-          : prev.identity,
-    }))
+      )
+      const next = withRaceSpellsSynced(prev, nextClasses)
+      return {
+        ...next,
+        identity:
+          prev.classes[0]?.id === classId && patch.subclass_name !== undefined
+            ? { ...next.identity, subclassName: patch.subclass_name }
+            : next.identity,
+      }
+    })
   }
 
   function draftSliceFrom(prev: Draft): ClassGrantDraftSlice {
@@ -415,7 +552,12 @@ export function MinimalSheetEditor({
       skills: prev.skills,
       abilities: prev.abilities,
       speed: prev.speed,
+      climbSpeed: prev.climbSpeed,
+      swimSpeed: prev.swimSpeed,
+      flySpeed: prev.flySpeed,
       textBlocks: prev.textBlocks,
+      weapons: prev.weapons,
+      spells: prev.spells,
       raceGrant: prev.raceGrant,
       classGrantedSkills: classSkills,
       classGrantedTools: classTools,
@@ -438,7 +580,10 @@ export function MinimalSheetEditor({
         hitDie: slice.playHitDie,
       },
     }
-    const restored = reapplyRaceOverlays(raceSliceFrom(merged))
+    const restored = reapplyRaceOverlays(raceSliceFrom(merged), {
+      characterLevel: totalCharacterLevel(merged.classes),
+      hasCasterClass: characterHasCasterClass(merged.classes),
+    })
     return mergeRaceSlice(merged, restored)
   }
 
@@ -449,7 +594,12 @@ export function MinimalSheetEditor({
       skills: slice.skills,
       abilities: slice.abilities,
       speed: slice.speed,
+      climbSpeed: slice.climbSpeed,
+      swimSpeed: slice.swimSpeed,
+      flySpeed: slice.flySpeed,
       textBlocks: slice.textBlocks,
+      weapons: slice.weapons,
+      spells: slice.spells,
       raceGrant: slice.raceGrant,
     }
   }
@@ -564,6 +714,8 @@ export function MinimalSheetEditor({
         selected: input.selected,
         picks: input.picks,
         def: input.def,
+        characterLevel: totalCharacterLevel(prev.classes),
+        hasCasterClass: characterHasCasterClass(prev.classes),
       })
       if (!applied) return prev
       summary = applied.summary
@@ -627,7 +779,7 @@ export function MinimalSheetEditor({
 
     commitRaceGrant({
       selected,
-      picks: { abilityBonusKeys: [], languages: [], skills: [], tools: [], ancestryId: null },
+      picks: emptyRacePicks(),
       def: rootDef,
     })
   }
@@ -681,7 +833,7 @@ export function MinimalSheetEditor({
         prevCurrent == null
           ? nextEffective
           : Math.min(nextEffective, prevCurrent + gain)
-      return {
+      const withClasses: Draft = {
         ...prev,
         classes: nextClasses,
         hpMax: nextMax,
@@ -692,6 +844,15 @@ export function MinimalSheetEditor({
           hitDie: choice.hitDie ?? prev.play.hitDie,
         },
       }
+      // Unlock innate racial spells / refresh mark list when caster status changes.
+      if (!withClasses.raceGrant) return withClasses
+      const spells = syncRaceSpellsForSheetState({
+        spells: withClasses.spells,
+        grant: withClasses.raceGrant,
+        characterLevel: nextLevel,
+        hasCasterClass: characterHasCasterClass(nextClasses),
+      })
+      return { ...withClasses, spells }
     })
     setLevelUpOpen(false)
     const hpNote = ` · HP +${Math.max(0, Math.floor(choice.hpGain))}`
@@ -733,12 +894,43 @@ export function MinimalSheetEditor({
 
   const armorClass = useMemo(() => {
     const pieces = equippedArmorPieces(draft.inventory.items)
+    const mods = {
+      str: abilityModifier(draft.abilities.str),
+      dex: abilityModifier(draft.abilities.dex),
+      con: abilityModifier(draft.abilities.con),
+      int: abilityModifier(draft.abilities.int),
+      wis: abilityModifier(draft.abilities.wis),
+      cha: abilityModifier(draft.abilities.cha),
+    }
+    let naturalArmor = draft.raceGrant?.naturalArmor ?? null
+    // Backfill for sheets that applied the race before natural_armor was catalogued.
+    if (!naturalArmor && draft.raceGrant) {
+      const entry =
+        raceCatalogRows.find((row) => row.id === draft.raceGrant!.raceCatalogId) ??
+        raceCatalogRows.find((row) => row.slug === draft.raceGrant!.slug)
+      if (entry) {
+        naturalArmor =
+          resolveRaceGrantDef({
+            raceName: entry.name_ru,
+            catalogSlug: entry.slug,
+            catalogData: entry.data,
+            nameRu: entry.name_ru,
+          })?.naturalArmor ?? null
+      }
+    }
     return computeArmorClass({
-      dexMod: abilityModifier(draft.abilities.dex),
+      dexMod: mods.dex,
+      abilityMods: mods,
       armor: pieces.armor,
       shield: pieces.shield,
+      naturalArmor,
     })
-  }, [draft.abilities.dex, draft.inventory.items])
+  }, [
+    draft.abilities,
+    draft.inventory.items,
+    draft.raceGrant,
+    raceCatalogRows,
+  ])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
     setDraft((prev) => ({ ...prev, identity: { ...prev.identity, ...patch } }))
@@ -814,6 +1006,9 @@ export function MinimalSheetEditor({
       combat.hp_max = draft.hpMax
       combat.ac = draft.ac
       combat.speed = draft.speed
+      combat.climb_speed = draft.climbSpeed
+      combat.swim_speed = draft.swimSpeed
+      combat.fly_speed = draft.flySpeed
       combat.initiative = draft.initiativeOverride
       combat.inspiration = draft.inspiration
       combat.darkvision = identityExtras.combatPatch.darkvision
@@ -893,6 +1088,11 @@ export function MinimalSheetEditor({
         autoAc={armorClass.ac}
         acHint={armorClass.summary}
         speed={draft.speed}
+        movementHint={formatRaceMovementHint({
+          climb: draft.climbSpeed,
+          swim: draft.swimSpeed,
+          fly: draft.flySpeed,
+        })}
         initiativeOverride={draft.initiativeOverride}
         inspiration={draft.inspiration}
         exhaustion={draft.play.exhaustion}
@@ -1069,10 +1269,12 @@ export function MinimalSheetEditor({
                           variant="ghost"
                           disabled={draft.classes.length === 1 && row.level <= 1}
                           onClick={() =>
-                            setDraft((prev) => ({
-                              ...prev,
-                              classes: reduceClassLevel(prev.classes, row.id),
-                            }))
+                            setDraft((prev) =>
+                              withRaceSpellsSynced(
+                                prev,
+                                reduceClassLevel(prev.classes, row.id),
+                              ),
+                            )
                           }
                         >
                           −1
@@ -1146,6 +1348,32 @@ export function MinimalSheetEditor({
               }
             />
           </Field>
+          <div className="sheet-grid sheet-grid--3">
+            <Field label="Лазание, фт" htmlFor="sheet-climb" hint="пусто = нет">
+              <NumberInput
+                id="sheet-climb"
+                min={0}
+                value={draft.climbSpeed}
+                onValueChange={(climbSpeed) => setDraft((prev) => ({ ...prev, climbSpeed }))}
+              />
+            </Field>
+            <Field label="Плавание, фт" htmlFor="sheet-swim" hint="пусто = нет">
+              <NumberInput
+                id="sheet-swim"
+                min={0}
+                value={draft.swimSpeed}
+                onValueChange={(swimSpeed) => setDraft((prev) => ({ ...prev, swimSpeed }))}
+              />
+            </Field>
+            <Field label="Полёт, фт" htmlFor="sheet-fly" hint="пусто = нет">
+              <NumberInput
+                id="sheet-fly"
+                min={0}
+                value={draft.flySpeed}
+                onValueChange={(flySpeed) => setDraft((prev) => ({ ...prev, flySpeed }))}
+              />
+            </Field>
+          </div>
           <Text tone="muted">Пассивы = 10 + модификатор навыка (с учётом владения/экспертизы).</Text>
         </Stack>
       </Panel>

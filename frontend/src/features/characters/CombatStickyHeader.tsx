@@ -29,6 +29,8 @@ type CombatStickyHeaderProps = {
   autoAc: number
   acHint: string
   speed: number | null
+  /** Compact alt speeds from race (climb/swim/fly), shown under walk speed. */
+  movementHint?: string | null
   initiativeOverride: number | null
   inspiration: boolean
   exhaustion: number
@@ -66,6 +68,7 @@ export function CombatStickyHeader({
   autoAc,
   acHint,
   speed,
+  movementHint = null,
   initiativeOverride,
   inspiration,
   exhaustion,
@@ -197,13 +200,16 @@ export function CombatStickyHeader({
           </div>
         </label>
 
-        <label className="combat-stat">
+        <label className="combat-stat" title={movementHint || undefined}>
           <span className="combat-stat__label">Скор.</span>
           <NumberInput
             value={speed}
             aria-label="Скорость"
             onValueChange={(value) => onChange({ speed: value })}
           />
+          {movementHint ? (
+            <span className="combat-stat__hint">{movementHint}</span>
+          ) : null}
         </label>
 
         <label className="combat-stat" title={initTitle}>

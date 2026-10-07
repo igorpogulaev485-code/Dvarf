@@ -685,6 +685,10 @@ input {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.sheet-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .sheet-grid--4 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1000,6 +1004,12 @@ input {
   border-color: #fdba74;
 }
 
+.attack-source--race {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #6ee7b7;
+}
+
 .combat-sticky {
   position: sticky;
   top: 0;
@@ -1060,6 +1070,15 @@ input {
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.combat-stat__hint {
+  font-size: 0.68rem;
+  line-height: 1.2;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .combat-stat .ui-input {
@@ -2371,6 +2390,7 @@ input {
   }
 
   .sheet-grid--2,
+  .sheet-grid--3,
   .ability-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

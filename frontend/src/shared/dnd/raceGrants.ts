@@ -1,15 +1,107 @@
 /** PHB 2014 race grants: catalog.data → picks → ledger (mirrors classGrants). */
 
+import type { NaturalArmor } from './armor'
+
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
+
+export type { NaturalArmor }
+
+/** Race natural weapon that becomes an attack card on the sheet. */
+export type RaceNaturalWeapon = {
+  id: string
+  nameRu: string
+  damage: string
+  damageType: string
+  ability: AbilityKey
+  proficient: boolean
+  notesRu: string | null
+}
+
+/**
+ * How a racial spell lands on the sheet.
+ * - innate: always known when unlocked; free racial cast (does not eat prepare cap).
+ * - spell_list: only if the character has Spellcasting/Pact Magic; added to class list
+ *   (prepare/learn like class spells; not auto-prepared).
+ */
+export type RaceSpellGrant = 'innate' | 'spell_list'
+
+/** Innate / mark-list racial spell entry from catalog.data.racial_spells. */
+export type RaceRacialSpell = {
+  id: string
+  /** Optional SRD/catalog slug for enrichment later. */
+  spellSlug: string | null
+  nameRu: string
+  /** Spell circle 0–9 (not character unlock level). */
+  level: number
+  castingAbility: AbilityKey | null
+  notesRu: string | null
+  /**
+   * Minimum total character level before this entry applies.
+   * Omitted / 1 = available from level 1. Used mainly for innate unlocks.
+   */
+  unlockLevel: number
+  grant: RaceSpellGrant
+}
 
 export type RaceSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan'
 
-export type AbilityBonusChoice = {
-  count: number
+export const RACE_SIZE_LABELS: Record<RaceSize, string> = {
+  tiny: 'Крошечный',
+  small: 'Маленький',
+  medium: 'Средний',
+  large: 'Большой',
+  huge: 'Огромный',
+  gargantuan: 'Громадный',
+}
+
+/** One ASI bucket inside a mode, e.g. «+2 to one ability». */
+export type AbilityBonusBucket = {
   amount: number
+  count: number
+}
+
+/** Tasha/MPMM fork: pick one mode, then fill its buckets. */
+export type AbilityBonusMode = {
+  id: string
+  labelRu: string
+  buckets: AbilityBonusBucket[]
+}
+
+/**
+ * ASI choice package.
+ * - Legacy: `{ count, amount, from }` — N picks of the same amount.
+ * - Flexible: `{ from, preset: 'tasha_flexible' }` or explicit `modes`.
+ */
+export type AbilityBonusChoice = {
   from: AbilityKey[] | 'any'
   exclude?: AbilityKey[]
+  /** Legacy single-mode pick count (all get `amount`). */
+  count?: number
+  /** Legacy single-mode amount per pick. */
+  amount?: number
+  /** Named preset expanded in `resolveAbilityBonusModes`. */
+  preset?: 'tasha_flexible'
+  modes?: AbilityBonusMode[]
 }
+
+/** Official MPMM / Tasha flexible ASI: +2/+1 or three +1. */
+export const TASHA_FLEXIBLE_ASI_MODES: AbilityBonusMode[] = [
+  {
+    id: 'plus2_plus1',
+    labelRu:
+      'Увеличьте одну любую характеристику на +2 и любую другую характеристику на +1',
+    buckets: [
+      { amount: 2, count: 1 },
+      { amount: 1, count: 1 },
+    ],
+  },
+  {
+    id: 'plus1x3',
+    labelRu:
+      'Увеличьте одну любую характеристику на +1, любую другую на +1 и третью на +1',
+    buckets: [{ amount: 1, count: 3 }],
+  },
+]
 
 export type SkillChoice = {
   count: number
@@ -28,13 +120,41 @@ export type RaceAncestryOption = {
   breath: string
 }
 
+/** Custom Lineage-style fork: darkvision OR a skill (etc.). */
+export type VariableTraitChoice = {
+  id: string
+  labelRu: string
+  darkvision: number | null
+  skillChoices: SkillChoice | null
+}
+
+/** One alt speed: fixed ft or same as walking speed. */
+export type RaceMovementValue = number | 'walk'
+
+/** Catalog movement package (climb / swim / fly). Omitted keys = none. */
+export type RaceMovementSpec = {
+  climb: RaceMovementValue | null
+  swim: RaceMovementValue | null
+  fly: RaceMovementValue | null
+}
+
+/** Resolved ft for sheet combat (null = no that speed). */
+export type RaceMovementResolved = {
+  climb: number | null
+  swim: number | null
+  fly: number | null
+}
+
 export type RaceGrantDef = {
   slug: string
   labelRu: string
   parentSlug: string | null
   selectable: boolean
   speed: number
+  /** Default / fixed size when there is no choice fork. */
   size: RaceSize
+  /** When length > 1, player picks one size in the setup dialog. */
+  sizeChoices: RaceSize[]
   darkvision: number
   abilityBonuses: Partial<Record<AbilityKey, number>>
   abilityBonusChoices: AbilityBonusChoice | null
@@ -49,11 +169,25 @@ export type RaceGrantDef = {
   ancestryChoices: RaceAncestryOption[]
   featNoteRu: string | null
   traitsText: string
+  naturalArmor: NaturalArmor | null
+  naturalWeapons: RaceNaturalWeapon[]
+  movement: RaceMovementSpec
+  racialSpells: RaceRacialSpell[]
+  variableTraitChoices: VariableTraitChoice[]
 }
 
 export type RaceGrantPicks = {
-  /** Extra ASI keys chosen via ability_bonus_choices (each gets `amount`). */
+  /** Selected ASI mode id when `ability_bonus_choices` has modes/preset. */
+  abilityBonusModeId: string | null
+  /**
+   * Ability keys in bucket order for the selected mode
+   * (e.g. plus2_plus1 → [keyFor+2, keyFor+1]; plus1x3 → three +1 keys).
+   */
   abilityBonusKeys: AbilityKey[]
+  /** Chosen size when `sizeChoices` offers Medium/Small (etc.). */
+  size: RaceSize | null
+  /** Custom Lineage variable trait (darkvision vs skill). */
+  variableTraitId: string | null
   languages: string[]
   skills: string[]
   tools: string[]
@@ -76,6 +210,10 @@ export type AppliedRaceGrant = {
   traitsText: string
   ancestryId: string | null
   featNoteRu: string | null
+  naturalArmor: NaturalArmor | null
+  naturalWeapons: RaceNaturalWeapon[]
+  movement: RaceMovementResolved
+  racialSpells: RaceRacialSpell[]
 }
 
 const ABILITY_KEYS: AbilityKey[] = ['str', 'dex', 'con', 'int', 'wis', 'cha']
@@ -133,21 +271,232 @@ function readSize(value: unknown): RaceSize {
   return SIZE_VALUES.includes(value as RaceSize) ? (value as RaceSize) : 'medium'
 }
 
+function readMovementValue(raw: unknown): RaceMovementValue | null {
+  if (raw === 'walk' || raw === 'WALK') return 'walk'
+  if (typeof raw === 'number' && Number.isFinite(raw) && raw > 0) {
+    return Math.max(0, Math.floor(raw))
+  }
+  if (typeof raw === 'string' && /^\d+$/.test(raw.trim())) {
+    const n = Number(raw.trim())
+    return n > 0 ? n : null
+  }
+  return null
+}
+
+function readMovementSpec(raw: unknown): RaceMovementSpec {
+  const obj = asRecord(raw)
+  return {
+    climb: readMovementValue(obj.climb),
+    swim: readMovementValue(obj.swim),
+    fly: readMovementValue(obj.fly),
+  }
+}
+
+function readMovementResolved(raw: unknown): RaceMovementResolved {
+  const obj = asRecord(raw)
+  const readFt = (value: unknown): number | null => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return null
+    return Math.max(0, Math.floor(value))
+  }
+  return {
+    climb: readFt(obj.climb),
+    swim: readFt(obj.swim),
+    fly: readFt(obj.fly),
+  }
+}
+
+/** Resolve catalog movement against walk speed (for apply). */
+export function resolveRaceMovement(input: {
+  walk: number
+  movement: RaceMovementSpec
+}): RaceMovementResolved {
+  const resolve = (value: RaceMovementValue | null): number | null => {
+    if (value == null) return null
+    if (value === 'walk') return Math.max(0, Math.floor(input.walk))
+    return value
+  }
+  return {
+    climb: resolve(input.movement.climb),
+    swim: resolve(input.movement.swim),
+    fly: resolve(input.movement.fly),
+  }
+}
+
+export function formatRaceMovementHint(movement: RaceMovementResolved): string | null {
+  const bits: string[] = []
+  if (movement.climb != null) bits.push(`лаз. ${movement.climb}`)
+  if (movement.swim != null) bits.push(`плав. ${movement.swim}`)
+  if (movement.fly != null) bits.push(`полёт ${movement.fly}`)
+  return bits.length > 0 ? bits.join(' · ') : null
+}
+
+export function movementSpecHasAny(movement: RaceMovementSpec): boolean {
+  return movement.climb != null || movement.swim != null || movement.fly != null
+}
+
+function readSizeChoices(raw: unknown, fallback: RaceSize): RaceSize[] {
+  if (!Array.isArray(raw)) return []
+  const seen = new Set<RaceSize>()
+  const out: RaceSize[] = []
+  for (const item of raw) {
+    if (!SIZE_VALUES.includes(item as RaceSize)) continue
+    const size = item as RaceSize
+    if (seen.has(size)) continue
+    seen.add(size)
+    out.push(size)
+  }
+  if (out.length <= 1) return out
+  // Prefer medium then small for stable chip order when both present.
+  const rank = (size: RaceSize) =>
+    size === 'medium' ? 0 : size === 'small' ? 1 : SIZE_VALUES.indexOf(size) + 2
+  out.sort((a, b) => rank(a) - rank(b))
+  if (!out.includes(fallback)) {
+    // keep fallback as default only; do not inject into choices
+  }
+  return out
+}
+
+/** Resolved size after picks (choice fork or fixed catalog size). */
+export function resolveRaceSize(input: {
+  def: Pick<RaceGrantDef, 'size' | 'sizeChoices'>
+  picks: Pick<RaceGrantPicks, 'size'>
+}): RaceSize {
+  const choices = input.def.sizeChoices
+  if (choices.length > 1) {
+    if (input.picks.size && choices.includes(input.picks.size)) {
+      return input.picks.size
+    }
+  }
+  return input.def.size
+}
+
+function readAbilityBonusBuckets(raw: unknown): AbilityBonusBucket[] {
+  if (!Array.isArray(raw)) return []
+  const out: AbilityBonusBucket[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    const amount = Math.trunc(readNumber(row.amount, 0))
+    const count = Math.max(0, Math.floor(readNumber(row.count, 0)))
+    if (!amount || count <= 0) continue
+    out.push({ amount, count })
+  }
+  return out
+}
+
+function readAbilityBonusModes(raw: unknown): AbilityBonusMode[] {
+  if (!Array.isArray(raw)) return []
+  const out: AbilityBonusMode[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    if (typeof row.id !== 'string' || !row.id.trim()) continue
+    const buckets = readAbilityBonusBuckets(row.buckets)
+    if (buckets.length === 0) continue
+    const labelRu =
+      typeof row.label_ru === 'string'
+        ? row.label_ru
+        : typeof row.labelRu === 'string'
+          ? row.labelRu
+          : row.id
+    out.push({ id: row.id.trim(), labelRu, buckets })
+  }
+  return out
+}
+
 function readAbilityBonusChoices(raw: unknown): AbilityBonusChoice | null {
   const obj = asRecord(raw)
-  const count = Math.max(0, Math.floor(readNumber(obj.count, 0)))
-  if (count <= 0) return null
-  const amount = Math.trunc(readNumber(obj.amount, 1)) || 1
   const exclude = Array.isArray(obj.exclude)
     ? obj.exclude.filter(isAbilityKey)
     : undefined
-  if (obj.from === 'any' || obj.from == null) {
-    return { count, amount, from: 'any', exclude }
+
+  let from: AbilityKey[] | 'any' = 'any'
+  if (obj.from !== 'any' && obj.from != null) {
+    if (!Array.isArray(obj.from)) return null
+    const keys = obj.from.filter(isAbilityKey)
+    if (keys.length === 0) return null
+    from = keys
   }
-  if (!Array.isArray(obj.from)) return null
-  const from = obj.from.filter(isAbilityKey)
-  if (from.length === 0) return null
+
+  const modes = readAbilityBonusModes(obj.modes)
+  const preset = obj.preset === 'tasha_flexible' ? 'tasha_flexible' : undefined
+  if (preset || modes.length > 0) {
+    return { from, exclude, preset, modes: modes.length > 0 ? modes : undefined }
+  }
+
+  const count = Math.max(0, Math.floor(readNumber(obj.count, 0)))
+  if (count <= 0) return null
+  const amount = Math.trunc(readNumber(obj.amount, 1)) || 1
   return { count, amount, from, exclude }
+}
+
+/** Resolve concrete modes (preset / explicit / legacy count+amount). */
+export function resolveAbilityBonusModes(
+  choice: AbilityBonusChoice | null,
+): AbilityBonusMode[] {
+  if (!choice) return []
+  if (choice.preset === 'tasha_flexible') return TASHA_FLEXIBLE_ASI_MODES
+  if (choice.modes && choice.modes.length > 0) return choice.modes
+  const count = choice.count ?? 0
+  const amount = choice.amount ?? 1
+  if (count <= 0) return []
+  return [
+    {
+      id: 'default',
+      labelRu: `+${amount} к ${count} характеристикам`,
+      buckets: [{ amount, count }],
+    },
+  ]
+}
+
+export function abilityBonusModeSlotCount(mode: AbilityBonusMode): number {
+  return mode.buckets.reduce((sum, bucket) => sum + bucket.count, 0)
+}
+
+/** Expand buckets to a flat amount list matching `abilityBonusKeys` order. */
+export function expandAbilityBonusAmounts(mode: AbilityBonusMode): number[] {
+  const amounts: number[] = []
+  for (const bucket of mode.buckets) {
+    for (let i = 0; i < bucket.count; i += 1) amounts.push(bucket.amount)
+  }
+  return amounts
+}
+
+export function resolveSelectedAbilityBonusMode(input: {
+  choice: AbilityBonusChoice | null
+  modeId: string | null | undefined
+}): AbilityBonusMode | null {
+  const modes = resolveAbilityBonusModes(input.choice)
+  if (modes.length === 0) return null
+  if (modes.length === 1) return modes[0] ?? null
+  if (!input.modeId) return null
+  return modes.find((mode) => mode.id === input.modeId) ?? null
+}
+
+function readVariableTraitChoices(raw: unknown): VariableTraitChoice[] {
+  if (!Array.isArray(raw)) return []
+  const out: VariableTraitChoice[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    if (typeof row.id !== 'string' || !row.id.trim()) continue
+    const labelRu =
+      typeof row.label_ru === 'string'
+        ? row.label_ru
+        : typeof row.labelRu === 'string'
+          ? row.labelRu
+          : row.id
+    const dvRaw = row.darkvision
+    const darkvision =
+      typeof dvRaw === 'number' && Number.isFinite(dvRaw) && dvRaw > 0
+        ? Math.floor(dvRaw)
+        : null
+    const skillChoices = readSkillChoice(row.skill_choices ?? row.skillChoices)
+    out.push({
+      id: row.id.trim(),
+      labelRu,
+      darkvision,
+      skillChoices,
+    })
+  }
+  return out
 }
 
 function readSkillChoice(raw: unknown): SkillChoice | null {
@@ -194,6 +543,164 @@ function readArmor(raw: unknown): RaceGrantDef['armorProficiencies'] {
       typeof item === 'string' &&
       (ARMOR_KEYS as readonly string[]).includes(item),
   )
+}
+
+function readNaturalWeapons(raw: unknown): RaceNaturalWeapon[] {
+  if (!Array.isArray(raw)) return []
+  const out: RaceNaturalWeapon[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    const id = typeof row.id === 'string' ? row.id.trim() : ''
+    const nameRu =
+      typeof row.name_ru === 'string'
+        ? row.name_ru.trim()
+        : typeof row.nameRu === 'string'
+          ? row.nameRu.trim()
+          : ''
+    const damage = typeof row.damage === 'string' ? row.damage.trim() : ''
+    if (!id || !nameRu || !damage) continue
+    const abilityRaw = row.ability
+    const ability =
+      typeof abilityRaw === 'string' && ABILITY_KEYS.includes(abilityRaw as AbilityKey)
+        ? (abilityRaw as AbilityKey)
+        : 'str'
+    const damageType =
+      typeof row.damage_type === 'string'
+        ? row.damage_type.trim()
+        : typeof row.damageType === 'string'
+          ? row.damageType.trim()
+          : ''
+    const notesRu =
+      typeof row.notes_ru === 'string'
+        ? row.notes_ru.trim()
+        : typeof row.notesRu === 'string'
+          ? row.notesRu.trim()
+          : null
+    out.push({
+      id,
+      nameRu,
+      damage,
+      damageType,
+      ability,
+      proficient: row.proficient !== false,
+      notesRu: notesRu || null,
+    })
+  }
+  return out
+}
+
+function readRaceSpellGrant(raw: unknown): RaceSpellGrant {
+  if (raw === 'spell_list' || raw === 'spellList' || raw === 'mark_list') {
+    return 'spell_list'
+  }
+  return 'innate'
+}
+
+function readRacialSpells(raw: unknown): RaceRacialSpell[] {
+  if (!Array.isArray(raw)) return []
+  const out: RaceRacialSpell[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    const id = typeof row.id === 'string' ? row.id.trim() : ''
+    const nameRu =
+      typeof row.name_ru === 'string'
+        ? row.name_ru.trim()
+        : typeof row.nameRu === 'string'
+          ? row.nameRu.trim()
+          : ''
+    if (!id || !nameRu) continue
+    const spellSlugRaw = row.spell_slug ?? row.spellSlug ?? row.slug
+    const spellSlug =
+      typeof spellSlugRaw === 'string' && spellSlugRaw.trim()
+        ? spellSlugRaw.trim()
+        : null
+    const level = Math.max(0, Math.min(9, Math.floor(readNumber(row.level, 0))))
+    const abilityRaw = row.casting_ability ?? row.castingAbility
+    const castingAbility =
+      typeof abilityRaw === 'string' && ABILITY_KEYS.includes(abilityRaw as AbilityKey)
+        ? (abilityRaw as AbilityKey)
+        : null
+    const notesRu =
+      typeof row.notes_ru === 'string'
+        ? row.notes_ru.trim()
+        : typeof row.notesRu === 'string'
+          ? row.notesRu.trim()
+          : null
+    const unlockRaw = row.unlock_level ?? row.unlockLevel ?? row.min_level ?? row.minLevel
+    const unlockLevel = Math.max(
+      1,
+      Math.min(20, Math.floor(readNumber(unlockRaw, 1))),
+    )
+    out.push({
+      id,
+      spellSlug,
+      nameRu,
+      level,
+      castingAbility,
+      notesRu: notesRu || null,
+      unlockLevel,
+      grant: readRaceSpellGrant(row.grant ?? row.grant_mode ?? row.grantMode),
+    })
+  }
+  return out
+}
+
+/** True when character level is high enough for this racial spell entry. */
+export function racialSpellUnlocked(
+  spell: RaceRacialSpell,
+  characterLevel: number,
+): boolean {
+  return Math.max(1, Math.floor(characterLevel)) >= spell.unlockLevel
+}
+
+/** Filter catalog racial spells for the current sheet state. */
+export function selectActiveRacialSpells(input: {
+  racialSpells: RaceRacialSpell[]
+  characterLevel: number
+  hasCasterClass: boolean
+}): RaceRacialSpell[] {
+  return input.racialSpells.filter((spell) => {
+    if (!racialSpellUnlocked(spell, input.characterLevel)) return false
+    if (spell.grant === 'spell_list' && !input.hasCasterClass) return false
+    return true
+  })
+}
+
+function readNaturalArmor(raw: unknown): NaturalArmor | null {
+  const obj = asRecord(raw)
+  const base = Math.floor(readNumber(obj.base, NaN))
+  if (!Number.isFinite(base)) return null
+  const modRaw = obj.mod ?? obj.ability
+  const mod =
+    typeof modRaw === 'string' && ABILITY_KEYS.includes(modRaw as AbilityKey)
+      ? (modRaw as AbilityKey)
+      : null
+  const modCapRaw = obj.mod_cap ?? obj.modCap
+  const modCap =
+    typeof modCapRaw === 'number' && Number.isFinite(modCapRaw)
+      ? Math.floor(modCapRaw)
+      : null
+  const armoredBonusRaw = obj.armored_bonus ?? obj.armoredBonus
+  const armoredBonus =
+    typeof armoredBonusRaw === 'number' && Number.isFinite(armoredBonusRaw)
+      ? Math.floor(armoredBonusRaw)
+      : undefined
+  const labelRu =
+    typeof obj.label_ru === 'string'
+      ? obj.label_ru
+      : typeof obj.labelRu === 'string'
+        ? obj.labelRu
+        : 'Природная броня'
+  const allowsShield =
+    obj.allows_shield === false || obj.allowsShield === false ? false : true
+  return {
+    base,
+    mod,
+    modCap,
+    allowsShield,
+    armoredBonus,
+    labelRu,
+  }
 }
 
 export function catalogHasRaceGrantData(data: Record<string, unknown>): boolean {
@@ -246,6 +753,10 @@ export function raceGrantDefFromCatalog(input: {
     selectable: isRaceSelectable(data),
     speed: Math.max(0, Math.floor(readNumber(data.speed, 30))),
     size: readSize(data.size),
+    sizeChoices: readSizeChoices(
+      data.size_choices ?? data.sizeChoices,
+      readSize(data.size),
+    ),
     darkvision: Math.max(0, Math.floor(readNumber(data.darkvision, 0))),
     abilityBonuses: readAbilityBonuses(data.ability_bonuses ?? data.abilityBonuses),
     abilityBonusChoices: readAbilityBonusChoices(
@@ -278,6 +789,13 @@ export function raceGrantDefFromCatalog(input: {
         : typeof data.traitsText === 'string'
           ? data.traitsText.trim()
           : '',
+    naturalArmor: readNaturalArmor(data.natural_armor ?? data.naturalArmor),
+    naturalWeapons: readNaturalWeapons(data.natural_weapons ?? data.naturalWeapons),
+    movement: readMovementSpec(data.movement),
+    racialSpells: readRacialSpells(data.racial_spells ?? data.racialSpells),
+    variableTraitChoices: readVariableTraitChoices(
+      data.variable_trait_choices ?? data.variableTraitChoices,
+    ),
   }
 }
 
@@ -305,7 +823,10 @@ export function resolveRaceGrantDef(input: {
 
 export function emptyRacePicks(): RaceGrantPicks {
   return {
+    abilityBonusModeId: null,
     abilityBonusKeys: [],
+    size: null,
+    variableTraitId: null,
     languages: [],
     skills: [],
     tools: [],
@@ -313,8 +834,39 @@ export function emptyRacePicks(): RaceGrantPicks {
   }
 }
 
+export function resolveVariableTraitChoice(input: {
+  def: RaceGrantDef
+  picks: Pick<RaceGrantPicks, 'variableTraitId'>
+}): VariableTraitChoice | null {
+  if (input.def.variableTraitChoices.length === 0) return null
+  const id = input.picks.variableTraitId
+  if (!id) return null
+  return input.def.variableTraitChoices.find((row) => row.id === id) ?? null
+}
+
+/** Effective skill choice after variable-trait fork (Custom Lineage). */
+export function effectiveRaceSkillChoices(
+  def: RaceGrantDef,
+  picks: Pick<RaceGrantPicks, 'variableTraitId'>,
+): SkillChoice | null {
+  const fork = resolveVariableTraitChoice({ def, picks })
+  if (fork) return fork.skillChoices
+  return def.skillChoices
+}
+
+export function resolveRaceDarkvision(input: {
+  def: RaceGrantDef
+  picks: Pick<RaceGrantPicks, 'variableTraitId'>
+}): number {
+  const fork = resolveVariableTraitChoice(input)
+  if (fork?.darkvision != null) return fork.darkvision
+  return input.def.darkvision
+}
+
 export function raceGrantNeedsSetupDialog(def: RaceGrantDef): boolean {
-  if ((def.abilityBonusChoices?.count ?? 0) > 0) return true
+  if (def.sizeChoices.length > 1) return true
+  if (def.variableTraitChoices.length > 0) return true
+  if (resolveAbilityBonusModes(def.abilityBonusChoices).length > 0) return true
   if (def.languagesChoose > 0) return true
   if ((def.skillChoices?.count ?? 0) > 0) return true
   if ((def.toolChoices?.count ?? 0) > 0) return true
@@ -339,18 +891,27 @@ export function validateRaceGrantPicks(input: {
 }): string | null {
   const { def, picks } = input
   const asi = def.abilityBonusChoices
-  if (asi) {
-    if (picks.abilityBonusKeys.length !== asi.count) {
-      return `Выбери характеристики: ${asi.count}`
+  const modes = resolveAbilityBonusModes(asi)
+  if (modes.length > 0) {
+    const mode = resolveSelectedAbilityBonusMode({
+      choice: asi,
+      modeId: picks.abilityBonusModeId,
+    })
+    if (!mode) {
+      return modes.length > 1 ? 'Выбери вариант увеличения характеристик' : 'Нет режима ASI'
     }
-    const allowed = new Set(abilityKeysForBonusChoice(asi))
+    const need = abilityBonusModeSlotCount(mode)
+    if (picks.abilityBonusKeys.length !== need) {
+      return `Выбери характеристики: ${need}`
+    }
+    const allowed = new Set(abilityKeysForBonusChoice(asi!))
     if (picks.abilityBonusKeys.some((key) => !allowed.has(key))) {
       return 'Характеристика вне списка расы'
     }
     if (new Set(picks.abilityBonusKeys).size !== picks.abilityBonusKeys.length) {
       return 'Нельзя выбрать одну характеристику дважды'
     }
-  } else if (picks.abilityBonusKeys.length > 0) {
+  } else if (picks.abilityBonusKeys.length > 0 || picks.abilityBonusModeId) {
     return 'Лишние бонусы характеристик'
   }
 
@@ -358,12 +919,22 @@ export function validateRaceGrantPicks(input: {
     return `Выбери языки: ${def.languagesChoose}`
   }
 
-  const skillNeed = def.skillChoices?.count ?? 0
+  if (def.variableTraitChoices.length > 0) {
+    if (!picks.variableTraitId) return 'Выбери переменную черту'
+    if (!def.variableTraitChoices.some((row) => row.id === picks.variableTraitId)) {
+      return 'Неизвестная переменная черта'
+    }
+  } else if (picks.variableTraitId) {
+    return 'Лишний выбор переменной черты'
+  }
+
+  const skillChoice = effectiveRaceSkillChoices(def, picks)
+  const skillNeed = skillChoice?.count ?? 0
   if (picks.skills.length !== skillNeed) {
     return `Выбери навыки: ${skillNeed}`
   }
-  if (def.skillChoices && def.skillChoices.from !== 'any') {
-    const allowed = new Set(def.skillChoices.from)
+  if (skillChoice && skillChoice.from !== 'any') {
+    const allowed = new Set(skillChoice.from)
     if (picks.skills.some((key) => !allowed.has(key))) {
       return 'Навык вне списка расы'
     }
@@ -380,6 +951,15 @@ export function validateRaceGrantPicks(input: {
     }
   }
 
+  if (def.sizeChoices.length > 1) {
+    if (!picks.size) return 'Выбери размер'
+    if (!def.sizeChoices.includes(picks.size)) {
+      return 'Размер вне списка расы'
+    }
+  } else if (picks.size && picks.size !== def.size) {
+    return 'Лишний выбор размера'
+  }
+
   if (def.ancestryChoices.length > 0) {
     if (!picks.ancestryId) return 'Выбери драконье происхождение'
     if (!def.ancestryChoices.some((row) => row.id === picks.ancestryId)) {
@@ -394,11 +974,17 @@ export function mergeAbilityBonuses(
   fixed: Partial<Record<AbilityKey, number>>,
   choice: AbilityBonusChoice | null,
   picks: AbilityKey[],
+  modeId?: string | null,
 ): Partial<Record<AbilityKey, number>> {
   const result: Partial<Record<AbilityKey, number>> = { ...fixed }
-  if (!choice) return result
-  for (const key of picks) {
-    result[key] = (result[key] ?? 0) + choice.amount
+  const mode = resolveSelectedAbilityBonusMode({ choice, modeId: modeId ?? null })
+  if (!mode) return result
+  const amounts = expandAbilityBonusAmounts(mode)
+  for (let i = 0; i < picks.length; i += 1) {
+    const key = picks[i]
+    const amount = amounts[i]
+    if (!key || !amount) continue
+    result[key] = (result[key] ?? 0) + amount
   }
   return result
 }
@@ -408,6 +994,10 @@ export function buildTraitsWithPicks(input: {
   picks: RaceGrantPicks
 }): string {
   const parts = [input.def.traitsText]
+  if (input.def.sizeChoices.length > 1) {
+    const size = resolveRaceSize(input)
+    parts.push(`Размер: ${RACE_SIZE_LABELS[size]}.`)
+  }
   if (input.picks.ancestryId) {
     const ancestry = input.def.ancestryChoices.find(
       (row) => row.id === input.picks.ancestryId,
@@ -436,11 +1026,27 @@ export function formatRaceGrantSummary(input: {
   const asi = Object.entries(input.bonuses)
     .map(([key, value]) => `${key.toUpperCase()} ${value! > 0 ? '+' : ''}${value}`)
     .join(', ')
+  const naturalWeapons =
+    input.def.naturalWeapons.length > 0
+      ? `атаки: ${input.def.naturalWeapons.map((row) => row.nameRu).join(', ')}`
+      : null
+  const racialSpells =
+    input.def.racialSpells.length > 0
+      ? `закл.: ${input.def.racialSpells.map((row) => row.nameRu).join(', ')}`
+      : null
+  const size = resolveRaceSize(input)
+  const movementHint = formatRaceMovementHint(
+    resolveRaceMovement({ walk: input.def.speed, movement: input.def.movement }),
+  )
   const bits = [
     `скорость ${input.def.speed}`,
+    movementHint,
+    `размер ${RACE_SIZE_LABELS[size]}`,
     `ТЗ ${input.def.darkvision || 'нет'}`,
     `языки: ${langs}`,
     asi ? `ASI: ${asi}` : null,
+    naturalWeapons,
+    racialSpells,
   ]
   return bits.filter(Boolean).join(' · ')
 }
@@ -466,5 +1072,9 @@ export function readAppliedRaceGrant(raw: unknown): AppliedRaceGrant | null {
     traitsText: typeof row.traitsText === 'string' ? row.traitsText : '',
     ancestryId: typeof row.ancestryId === 'string' ? row.ancestryId : null,
     featNoteRu: typeof row.featNoteRu === 'string' ? row.featNoteRu : null,
+    naturalArmor: readNaturalArmor(row.naturalArmor ?? row.natural_armor),
+    naturalWeapons: readNaturalWeapons(row.naturalWeapons ?? row.natural_weapons),
+    movement: readMovementResolved(row.movement),
+    racialSpells: readRacialSpells(row.racialSpells ?? row.racial_spells),
   }
 }

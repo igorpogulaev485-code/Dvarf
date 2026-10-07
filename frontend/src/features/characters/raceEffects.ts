@@ -7,19 +7,36 @@ import {
   formatRaceGrantSummary,
   mergeAbilityBonuses,
   readAppliedRaceGrant,
+  resolveRaceDarkvision,
   resolveRaceGrantDef,
+  resolveRaceMovement,
+  resolveRaceSize,
+  selectActiveRacialSpells,
   validateRaceGrantPicks,
   type AbilityKey,
   type AppliedRaceGrant,
   type RaceGrantDef,
   type RaceGrantPicks,
+  type RaceNaturalWeapon,
+  type RaceRacialSpell,
 } from '../../shared/dnd/raceGrants'
+import {
+  raceSpellId,
+  stripRaceSheetSpells,
+  type SheetSpell,
+  type SpellsState,
+} from './spells'
 import {
   mergeRaceLanguages,
   upsertRaceTraitsBlock,
 } from '../../shared/dnd/race'
 import type { ArmorProficiency, IdentityExtras } from './identity'
 import type { TextBlock } from './textBlocks'
+import {
+  isRaceNaturalWeaponAttack,
+  raceNaturalWeaponAttackId,
+  type WeaponAttack,
+} from './AttacksPanel'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 
@@ -28,12 +45,82 @@ export type RaceGrantDraftSlice = {
   skills: SkillState
   abilities: Record<AbilityKey, number>
   speed: number | null
+  climbSpeed: number | null
+  swimSpeed: number | null
+  flySpeed: number | null
   textBlocks: TextBlock[]
+  weapons: WeaponAttack[]
+  spells: SpellsState
   raceGrant: AppliedRaceGrant | null
   /** Still covered by class grants — do not strip on race revoke. */
   classGrantedSkills: Set<string>
   classGrantedTools: Set<string>
   classGrantedArmor: Set<keyof ArmorProficiency>
+}
+
+function racialSpellToSheetSpell(
+  raceSlug: string,
+  spell: RaceRacialSpell,
+): SheetSpell {
+  const abilityNote = spell.castingAbility
+    ? `хар-ка: ${spell.castingAbility.toUpperCase()}`
+    : null
+  const unlockNote =
+    spell.unlockLevel > 1 ? `с ${spell.unlockLevel} ур.` : null
+  const grantNote =
+    spell.grant === 'spell_list'
+      ? 'список метки/расы — готовь как классовое'
+      : 'врождённое'
+  const notes = [spell.notesRu, unlockNote, grantNote, abilityNote]
+    .filter(Boolean)
+    .join(' · ')
+  const innate = spell.grant === 'innate'
+  return {
+    id: raceSpellId(raceSlug, spell.id),
+    name: spell.nameRu,
+    catalog_id: null,
+    level: spell.level,
+    // Innate: always ready. Mark list: player prepares (cantrips stay ready).
+    prepared: innate || spell.level <= 0,
+    notes,
+    casting_time: '',
+    range: '',
+    attack_or_save: '',
+    damage: '',
+    concentration: false,
+    source_kind: 'race',
+    race_grant: spell.grant,
+  }
+}
+
+function syncRaceRacialSpells(input: {
+  spells: SpellsState
+  raceSlug: string
+  racialSpells: RaceRacialSpell[]
+  characterLevel: number
+  hasCasterClass: boolean
+}): SpellsState {
+  const active = selectActiveRacialSpells({
+    racialSpells: input.racialSpells,
+    characterLevel: input.characterLevel,
+    hasCasterClass: input.hasCasterClass,
+  })
+  const previousById = new Map(
+    input.spells.known
+      .filter((row) => row.source_kind === 'race' || row.id.startsWith('race-spell:'))
+      .map((row) => [row.id, row]),
+  )
+  const withoutRace = stripRaceSheetSpells(input.spells.known)
+  const nextRaceRows = active.map((spell) => {
+    const next = racialSpellToSheetSpell(input.raceSlug, spell)
+    const prev = previousById.get(next.id)
+    // Preserve player's prepare toggle for mark-list leveled spells.
+    if (prev && next.race_grant === 'spell_list' && next.level > 0) {
+      return { ...next, prepared: prev.prepared }
+    }
+    return next
+  })
+  return { ...input.spells, known: [...withoutRace, ...nextRaceRows] }
 }
 
 function uniqueStrings(items: string[]): string[] {
@@ -52,6 +139,38 @@ function uniqueStrings(items: string[]): string[] {
 
 function clampScore(value: number): number {
   return Math.min(30, Math.max(1, Math.trunc(value)))
+}
+
+function stripRaceNaturalWeaponAttacks(weapons: WeaponAttack[]): WeaponAttack[] {
+  return weapons.filter((item) => !isRaceNaturalWeaponAttack(item))
+}
+
+function naturalWeaponToAttack(
+  raceSlug: string,
+  weapon: RaceNaturalWeapon,
+): WeaponAttack {
+  return {
+    id: raceNaturalWeaponAttackId(raceSlug, weapon.id),
+    name: weapon.nameRu,
+    catalog_id: null,
+    source_kind: 'race',
+    ability: weapon.ability,
+    is_proficient: weapon.proficient,
+    damage: weapon.damage,
+    damage_type: weapon.damageType,
+  }
+}
+
+function syncRaceNaturalWeaponAttacks(input: {
+  weapons: WeaponAttack[]
+  raceSlug: string
+  naturalWeapons: RaceNaturalWeapon[]
+}): WeaponAttack[] {
+  const withoutRace = stripRaceNaturalWeaponAttacks(input.weapons)
+  const next = input.naturalWeapons.map((weapon) =>
+    naturalWeaponToAttack(input.raceSlug, weapon),
+  )
+  return [...withoutRace, ...next]
 }
 
 export function revokeRaceGrant(draft: RaceGrantDraftSlice): RaceGrantDraftSlice {
@@ -102,6 +221,14 @@ export function revokeRaceGrant(draft: RaceGrantDraftSlice): RaceGrantDraftSlice
     abilities,
     skills,
     speed: null,
+    climbSpeed: null,
+    swimSpeed: null,
+    flySpeed: null,
+    weapons: stripRaceNaturalWeaponAttacks(draft.weapons),
+    spells: {
+      ...draft.spells,
+      known: stripRaceSheetSpells(draft.spells.known),
+    },
     identity: {
       ...draft.identity,
       darkvision: 0,
@@ -120,6 +247,10 @@ export function applyRaceGrantToDraft(input: {
   selected: CatalogEntry
   picks?: RaceGrantPicks
   def?: RaceGrantDef | null
+  /** Total character level (all classes). Defaults to 1. */
+  characterLevel?: number
+  /** Spellcasting or Pact Magic present on any class. */
+  hasCasterClass?: boolean
 }): { draft: RaceGrantDraftSlice; summary: string } | null {
   const def =
     input.def ??
@@ -141,6 +272,7 @@ export function applyRaceGrantToDraft(input: {
     def.abilityBonuses,
     def.abilityBonusChoices,
     picks.abilityBonusKeys,
+    picks.abilityBonusModeId,
   )
   const traitsText = buildTraitsWithPicks({ def, picks })
   const languagesApplied = uniqueStrings([...def.languages, ...picks.languages])
@@ -175,13 +307,37 @@ export function applyRaceGrantToDraft(input: {
     return { ...block, value: upsertRaceTraitsBlock(block.value, traitsText) }
   })
 
+  const naturalWeapons = def.naturalWeapons
+  const weapons = syncRaceNaturalWeaponAttacks({
+    weapons: cleared.weapons,
+    raceSlug: def.slug,
+    naturalWeapons,
+  })
+  const racialSpells = def.racialSpells
+  const characterLevel = Math.max(1, Math.floor(input.characterLevel ?? 1))
+  const hasCasterClass = Boolean(input.hasCasterClass)
+  const spells = syncRaceRacialSpells({
+    spells: cleared.spells,
+    raceSlug: def.slug,
+    racialSpells,
+    characterLevel,
+    hasCasterClass,
+  })
+
+  const size = resolveRaceSize({ def, picks })
+  const darkvision = resolveRaceDarkvision({ def, picks })
+  const movement = resolveRaceMovement({
+    walk: def.speed,
+    movement: def.movement,
+  })
+
   const nextGrant: AppliedRaceGrant = {
     raceCatalogId: input.selected.id,
     slug: def.slug,
     parentSlug: def.parentSlug,
     speed: def.speed,
-    size: def.size,
-    darkvision: def.darkvision,
+    size,
+    darkvision,
     abilityBonuses: bonuses,
     languages: languagesApplied,
     skills: skillsApplied,
@@ -191,6 +347,10 @@ export function applyRaceGrantToDraft(input: {
     traitsText,
     ancestryId: picks.ancestryId,
     featNoteRu: def.featNoteRu,
+    naturalArmor: def.naturalArmor,
+    naturalWeapons,
+    movement,
+    racialSpells,
   }
 
   const draft: RaceGrantDraftSlice = {
@@ -199,10 +359,15 @@ export function applyRaceGrantToDraft(input: {
     abilities,
     skills,
     speed: def.speed,
+    climbSpeed: movement.climb,
+    swimSpeed: movement.swim,
+    flySpeed: movement.fly,
+    weapons,
+    spells,
     identity: {
       ...cleared.identity,
-      darkvision: def.darkvision,
-      size: def.size,
+      darkvision,
+      size,
       languages,
       tools: uniqueStrings([...cleared.identity.tools, ...toolsApplied]),
       armor,
@@ -217,8 +382,11 @@ export function applyRaceGrantToDraft(input: {
   }
 }
 
-/** Re-apply race ledger overlays after class grant mutations (skills/tools/armor). */
-export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftSlice {
+/** Re-apply race ledger overlays after class/level mutations (skills/tools/armor/spells). */
+export function reapplyRaceOverlays(
+  draft: RaceGrantDraftSlice,
+  options?: { characterLevel?: number; hasCasterClass?: boolean },
+): RaceGrantDraftSlice {
   const grant = draft.raceGrant
   if (!grant) return draft
 
@@ -233,9 +401,24 @@ export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftS
     armor[key] = true
   }
 
+  const weapons = syncRaceNaturalWeaponAttacks({
+    weapons: draft.weapons,
+    raceSlug: grant.slug,
+    naturalWeapons: grant.naturalWeapons ?? [],
+  })
+  const spells = syncRaceRacialSpells({
+    spells: draft.spells,
+    raceSlug: grant.slug,
+    racialSpells: grant.racialSpells ?? [],
+    characterLevel: Math.max(1, Math.floor(options?.characterLevel ?? 1)),
+    hasCasterClass: Boolean(options?.hasCasterClass),
+  })
+
   return {
     ...draft,
     skills,
+    weapons,
+    spells,
     identity: {
       ...draft.identity,
       armor,
@@ -244,7 +427,90 @@ export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftS
       size: grant.size || draft.identity.size,
     },
     speed: grant.speed,
+    climbSpeed: grant.movement?.climb ?? null,
+    swimSpeed: grant.movement?.swim ?? null,
+    flySpeed: grant.movement?.fly ?? null,
   }
+}
+
+/** Refresh race spell rows after level-up / class change (unlock + mark list). */
+export function syncRaceSpellsForSheetState(input: {
+  spells: SpellsState
+  grant: AppliedRaceGrant | null
+  characterLevel: number
+  hasCasterClass: boolean
+  /** Prefer fresher catalog spells when available. */
+  catalogSpells?: RaceRacialSpell[] | null
+}): SpellsState {
+  const grant = input.grant
+  if (!grant) return input.spells
+  const racialSpells =
+    input.catalogSpells && input.catalogSpells.length > 0
+      ? input.catalogSpells
+      : grant.racialSpells ?? []
+  return syncRaceRacialSpells({
+    spells: input.spells,
+    raceSlug: grant.slug,
+    racialSpells,
+    characterLevel: input.characterLevel,
+    hasCasterClass: input.hasCasterClass,
+  })
+}
+
+/**
+ * Ensure race natural-weapon attack cards exist for an already-applied grant
+ * (backfill when catalog gained natural_weapons after the race was chosen,
+ * and refresh dice/ability when the catalog corrects them).
+ */
+export function ensureRaceNaturalWeaponAttacks(input: {
+  weapons: WeaponAttack[]
+  grant: AppliedRaceGrant | null
+  catalogWeapons?: RaceNaturalWeapon[] | null
+}): WeaponAttack[] {
+  const grant = input.grant
+  if (!grant) return input.weapons
+  const catalog = input.catalogWeapons
+  const naturalWeapons =
+    (catalog && catalog.length > 0
+      ? catalog
+      : grant.naturalWeapons && grant.naturalWeapons.length > 0
+        ? grant.naturalWeapons
+        : null) ?? []
+  if (naturalWeapons.length === 0) return input.weapons
+  return syncRaceNaturalWeaponAttacks({
+    weapons: input.weapons,
+    raceSlug: grant.slug,
+    naturalWeapons,
+  })
+}
+
+/** True when race attack cards already match the catalog natural weapons. */
+export function raceNaturalWeaponAttacksMatch(input: {
+  weapons: WeaponAttack[]
+  raceSlug: string
+  naturalWeapons: RaceNaturalWeapon[]
+}): boolean {
+  const expected = input.naturalWeapons.map((weapon) =>
+    naturalWeaponToAttack(input.raceSlug, weapon),
+  )
+  if (expected.length === 0) return true
+  const byId = new Map(
+    input.weapons
+      .filter((row) => row.source_kind === 'race')
+      .map((row) => [row.id, row]),
+  )
+  if (byId.size !== expected.length) return false
+  return expected.every((want) => {
+    const got = byId.get(want.id)
+    if (!got) return false
+    return (
+      got.name === want.name &&
+      got.ability === want.ability &&
+      got.damage === want.damage &&
+      got.damage_type === want.damage_type &&
+      got.is_proficient === want.is_proficient
+    )
+  })
 }
 
 export { readAppliedRaceGrant, emptyRacePicks, resolveRaceGrantDef }
