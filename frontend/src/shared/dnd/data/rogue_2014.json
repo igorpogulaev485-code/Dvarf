@@ -121,6 +121,23 @@
       }
     },
     {
+      "id": "asi_10",
+      "level": 10,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_10_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
       "id": "reliable_talent",
       "level": 11,
       "name_ru": "Надёжный талант",
