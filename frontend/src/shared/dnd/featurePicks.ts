@@ -59,7 +59,12 @@ export function setFeaturePick(
 /** First fighting-style pick across class entries (Defense AC, etc.). */
 export function findFightingStylePick(
   picks: FeaturePicksState,
-  featureIds: string[] = ['fighting_style_paladin', 'fighting_style', 'fighting_style_fighter'],
+  featureIds: string[] = [
+    'fighting_style_paladin',
+    'fighting_style_ranger',
+    'fighting_style',
+    'fighting_style_fighter',
+  ],
 ): string | null {
   for (const [key, value] of Object.entries(picks.values)) {
     const featureId = key.split(':').slice(1).join(':')

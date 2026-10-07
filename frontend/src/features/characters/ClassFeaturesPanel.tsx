@@ -5,10 +5,12 @@ import {
   resolveClassFeatureSlug,
   resolveFeatureChoiceOptions,
   slotSpendDiceCount,
+  slotSpendHasDice,
   unlockFeaturesForClasses,
   type AbilityScoreKey,
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
+import { rangerChoiceLabel } from '../../shared/dnd/rangerChoices'
 import {
   clearSuccessLock,
   consumeStock,
@@ -288,6 +290,14 @@ function FeatureResourceControls({
   )
 }
 
+function choiceOptionLabel(optionId: string): string {
+  return (
+    fightingStyleById(optionId)?.nameRu ||
+    rangerChoiceLabel(optionId) ||
+    optionId
+  )
+}
+
 function FeatureChoiceControls({
   feature,
   featurePicks,
@@ -304,42 +314,66 @@ function FeatureChoiceControls({
   const options = resolveFeatureChoiceOptions(choice)
   const selected = getFeaturePick(featurePicks, feature.classEntryId, feature.id)
   const selectedDef = fightingStyleById(selected)
+  const selectedLabel = selected ? choiceOptionLabel(selected) : null
+  const useSelect = options.length > 6
 
   return (
     <div className="feature-resource">
       <Text>
         {choice.label_ru}
-        {selectedDef ? (
+        {selectedLabel ? (
           <>
-            : <strong>{selectedDef.nameRu}</strong>
+            : <strong>{selectedLabel}</strong>
           </>
         ) : (
           ' — не выбран'
         )}
       </Text>
       {selectedDef ? <Text tone="muted">{selectedDef.summaryRu}</Text> : null}
-      <div className="feature-resource__actions">
-        {options.map((optionId) => {
-          const def = fightingStyleById(optionId)
-          const label = def?.nameRu || optionId
-          const active = selected === optionId
-          return (
-            <Button
-              key={optionId}
-              type="button"
-              disabled={active}
-              onClick={() => {
-                onFeaturePicksChange(
-                  setFeaturePick(featurePicks, feature.classEntryId, feature.id, optionId),
-                )
-                onToast?.(`${choice.label_ru}: ${label}`)
-              }}
-            >
-              {label}
-            </Button>
-          )
-        })}
-      </div>
+      {useSelect ? (
+        <label className="feature-resource__select">
+          <span className="sr-only">{choice.label_ru}</span>
+          <select
+            value={selected ?? ''}
+            onChange={(event) => {
+              const optionId = event.target.value || null
+              onFeaturePicksChange(
+                setFeaturePick(featurePicks, feature.classEntryId, feature.id, optionId),
+              )
+              if (optionId) onToast?.(`${choice.label_ru}: ${choiceOptionLabel(optionId)}`)
+            }}
+          >
+            <option value="">— выбрать —</option>
+            {options.map((optionId) => (
+              <option key={optionId} value={optionId}>
+                {choiceOptionLabel(optionId)}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <div className="feature-resource__actions">
+          {options.map((optionId) => {
+            const label = choiceOptionLabel(optionId)
+            const active = selected === optionId
+            return (
+              <Button
+                key={optionId}
+                type="button"
+                disabled={active}
+                onClick={() => {
+                  onFeaturePicksChange(
+                    setFeaturePick(featurePicks, feature.classEntryId, feature.id, optionId),
+                  )
+                  onToast?.(`${choice.label_ru}: ${label}`)
+                }}
+              >
+                {label}
+              </Button>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -371,7 +405,8 @@ function FeatureSlotSpendControls({
       </Text>
       <div className="feature-resource__actions">
         {levels.map((level) => {
-          const dice = slotSpendDiceCount(spend, level)
+          const withDice = slotSpendHasDice(spend)
+          const dice = withDice ? slotSpendDiceCount(spend, level) : 0
           const available = canSpendSlot(spells.slots, level)
           return (
             <Button
@@ -386,11 +421,15 @@ function FeatureSlotSpendControls({
                 }
                 onSpellsChange({ ...spells, slots: result.slots })
                 onToast?.(
-                  `${spend.label_ru}: ячейка ${level} → +${dice}к${spend.dice_size} лучистого`,
+                  withDice
+                    ? `${spend.label_ru}: ячейка ${level} → +${dice}к${spend.dice_size}`
+                    : `${spend.label_ru}: ячейка ${level} ур.`,
                 )
               }}
             >
-              {level} ур. (+{dice}к{spend.dice_size})
+              {withDice
+                ? `${level} ур. (+${dice}к${spend.dice_size})`
+                : `${level} ур.`}
             </Button>
           )
         })}
@@ -437,14 +476,14 @@ function FeatureRow({
       )
     : null
 
-  const stylePick = feature.choice
+  const choicePick = feature.choice
     ? getFeaturePick(featurePicks, feature.classEntryId, feature.id)
     : null
-  const styleDef = fightingStyleById(stylePick)
+  const choiceLabel = choicePick ? choiceOptionLabel(choicePick) : null
 
   let metaExtra = ''
-  if (styleDef) {
-    metaExtra = ` · ${styleDef.nameRu}`
+  if (choiceLabel) {
+    metaExtra = ` · ${choiceLabel}`
   } else if (feature.resource?.track === 'stock' && pool) {
     metaExtra = ` · ${stockCurrent(pool)}/${pool.max}`
   } else if (feature.resourceUses != null) {
@@ -588,8 +627,8 @@ export function ClassFeaturesPanel({
 
         {byClass.length === 0 ? (
           <Text tone="muted">
-            Пока заполнены: Плут, Воин, Варвар, Монах, Жрец, Паладин (H4 в
-            docs/feature_resource_contract.md).
+            Пока заполнены: Плут, Воин, Варвар, Монах, Жрец, Паладин, Следопыт
+            (H4 в docs/feature_resource_contract.md).
           </Text>
         ) : null}
 

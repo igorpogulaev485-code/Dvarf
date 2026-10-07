@@ -1,0 +1,582 @@
+{
+  "meta": {
+    "purpose": "PHB 2014 Ranger class + official archetypes for sheet unlock",
+    "edition": "2014",
+    "source": "phb+xgte+tcoe+ftd",
+    "notes_ru": "Класс: Favored Enemy / Natural Explorer (picks), Fighting Style, half-caster, Primeval Awareness (slot). Архетипы — каркас умений; глубокая полировка позже."
+  },
+  "class_slug": "ranger",
+  "features": [
+    {
+      "id": "favored_enemy",
+      "level": 1,
+      "name_ru": "Избранный враг",
+      "name_en": "Favored Enemy",
+      "summary_ru": "Выбери тип существ (или две расы гуманоидов). Преимущество на проверки Мудрости (Выживание) для выслеживания и на Интеллект для знаний о них. Язык врага — по возможности. Доп. враги на 6 и 14 ур.",
+      "kind": "passive",
+      "choice": {
+        "id": "favored_enemy",
+        "label_ru": "Избранный враг",
+        "options_from": "ranger_favored_enemies"
+      },
+      "scale": {
+        "label_ru": "Число избранных врагов",
+        "by_level": {
+          "1": "1",
+          "6": "2",
+          "14": "3"
+        }
+      }
+    },
+    {
+      "id": "natural_explorer",
+      "level": 1,
+      "name_ru": "Исследователь природы",
+      "name_en": "Natural Explorer",
+      "summary_ru": "Выбери избранную местность. Преимущества передвижения, выслеживания, фуражирования; труднопроходимая местность не замедляет при путешествии; нельзя заблудиться (кроме магии). Доп. местности на 6 и 10 ур.",
+      "kind": "passive",
+      "choice": {
+        "id": "favored_terrain",
+        "label_ru": "Избранная местность",
+        "options_from": "ranger_favored_terrains"
+      },
+      "scale": {
+        "label_ru": "Число местностей",
+        "by_level": {
+          "1": "1",
+          "6": "2",
+          "10": "3"
+        }
+      }
+    },
+    {
+      "id": "fighting_style_ranger",
+      "level": 2,
+      "name_ru": "Боевой стиль",
+      "name_en": "Fighting Style",
+      "summary_ru": "Выбери боевой стиль: Стрельба, Оборона, Дуэлянт или Сражение двумя оружиями.",
+      "kind": "passive",
+      "choice": {
+        "id": "fighting_style",
+        "label_ru": "Боевой стиль",
+        "options_from": "ranger_fighting_styles"
+      }
+    },
+    {
+      "id": "spellcasting_ranger",
+      "level": 2,
+      "name_ru": "Использование заклинаний",
+      "name_en": "Spellcasting",
+      "summary_ru": "Половина кастера. Мудрость — базовая. Известные заклинания по таблице следопыта (не подготовка).",
+      "kind": "passive"
+    },
+    {
+      "id": "ranger_archetype",
+      "level": 3,
+      "name_ru": "Архетип следопыта",
+      "name_en": "Ranger Archetype",
+      "summary_ru": "Выбери архетип (Охотник, Повелитель зверей, …).",
+      "kind": "passive"
+    },
+    {
+      "id": "primeval_awareness",
+      "level": 3,
+      "name_ru": "Первобытная осведомлённость",
+      "name_en": "Primeval Awareness",
+      "summary_ru": "Действием потрать ячейку заклинания: на 1 мин. × уровень ячейки чувствуешь в 1 миле (6 в избранной местности) наличие видов: аберрации, небожители, драконы, элементали, феи, фиенды, нежить.",
+      "kind": "action",
+      "slot_spend": {
+        "label_ru": "Первобытная осведомлённость",
+        "min_slot": 1,
+        "max_slot": 5,
+        "extra_vs_note_ru": "1 мин. × ур. ячейки; 1 миля (6 в избранной местности)"
+      }
+    },
+    {
+      "id": "asi_4_ranger",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "extra_attack_ranger",
+      "level": 5,
+      "name_ru": "Дополнительная атака",
+      "name_en": "Extra Attack",
+      "summary_ru": "При действии Атака — две атаки вместо одной.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_8_ranger",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "lands_stride",
+      "level": 8,
+      "name_ru": "Шаг по земле",
+      "name_en": "Land's Stride",
+      "summary_ru": "Перемещение по немагической труднопроходимой местности без штрафа; проходишь через немагические растения без помех; преимущество на спас vs магических растений, которые мешают движению.",
+      "kind": "passive"
+    },
+    {
+      "id": "hide_in_plain_sight",
+      "level": 10,
+      "name_ru": "Скрытность на виду",
+      "name_en": "Hide in Plain Sight",
+      "summary_ru": "1 мин. маскировки природными материалами: КД +10 к проверкам Скрытности, пока неподвижен и не сделал что-то, выдающее позицию.",
+      "kind": "action"
+    },
+    {
+      "id": "asi_12_ranger",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "vanish",
+      "level": 14,
+      "name_ru": "Исчезновение",
+      "name_en": "Vanish",
+      "summary_ru": "Бонусным действием — действие Скрыться. Нельзя выследить немагическими средствами, пока не видишься добровольно или не издаёшь звук.",
+      "kind": "bonus"
+    },
+    {
+      "id": "asi_16_ranger",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "feral_senses",
+      "level": 18,
+      "name_ru": "Звериные чувства",
+      "name_en": "Feral Senses",
+      "summary_ru": "Атаки по существам, которых не видишь в 30 фт., без помехи (если не спрятаны от тебя). Знаешь местоположение невидимых существ в 30 фт., если не спрятаны и ты не ослеплён/оглушён.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_19_ranger",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "foe_slayer",
+      "level": 20,
+      "name_ru": "Истребитель врагов",
+      "name_en": "Foe Slayer",
+      "summary_ru": "1× / ход: к броску атаки или урона по избранному врагу добавить мод. Мудрости.",
+      "kind": "passive"
+    }
+  ],
+  "subclasses": {
+    "hunter": [
+      {
+        "id": "hunters_prey",
+        "level": 3,
+        "name_ru": "Добыча охотника",
+        "name_en": "Hunter's Prey",
+        "summary_ru": "Выбери: Убийца колоссов (+1к8 раз/ход по раненой цели), Сокрушитель орд (доп. атака по другому в 5 фт.) или Убийца великанов (реакция-атака при промахе Large+ в ближнем бою).",
+        "kind": "passive"
+      },
+      {
+        "id": "defensive_tactics",
+        "level": 7,
+        "name_ru": "Оборонительная тактика",
+        "name_en": "Defensive Tactics",
+        "summary_ru": "Выбери: Побег (сложнее схватить/сбить), Защита от множества (уклонение vs 2+ атак) или Стальная воля (преимущество vs испуга).",
+        "kind": "passive"
+      },
+      {
+        "id": "multiattack_hunter",
+        "level": 11,
+        "name_ru": "Мультиатака",
+        "name_en": "Multiattack",
+        "summary_ru": "Выбери: Залп (атаки дальнобойным по всем в 10 фт. от точки в пределах дистанции) или Вихрь (атаки ближним по всем в 5 фт.).",
+        "kind": "action"
+      },
+      {
+        "id": "superior_hunters_defense",
+        "level": 15,
+        "name_ru": "Превосходная защита охотника",
+        "name_en": "Superior Hunter's Defense",
+        "summary_ru": "Выбери: Уклонение (реакция − урон атаки), Стойкость или Увёртливость.",
+        "kind": "passive"
+      }
+    ],
+    "beast_master": [
+      {
+        "id": "rangers_companion",
+        "level": 3,
+        "name_ru": "Спутник следопыта",
+        "name_en": "Ranger's Companion",
+        "summary_ru": "Зверь КР ≤ ¼. Добавляет твой мод. мастерства к КД/атакам/урону/спасам/навыкам. Хиты = макс(8×ур. следопыта, обычные). Команда бонусным. Спутник — карточка на листе.",
+        "kind": "passive"
+      },
+      {
+        "id": "exceptional_training",
+        "level": 7,
+        "name_ru": "Исключительная дрессировка",
+        "name_en": "Exceptional Training",
+        "summary_ru": "Пока спутник не атакует, можешь командовать бонусным: Рывок/Отход/Помощь. Атаки спутника считаются магическими для сопротивления/иммунитета.",
+        "kind": "bonus"
+      },
+      {
+        "id": "bestial_fury",
+        "level": 11,
+        "name_ru": "Звериная ярость",
+        "name_en": "Bestial Fury",
+        "summary_ru": "При команде Атака спутник делает две атаки.",
+        "kind": "passive"
+      },
+      {
+        "id": "share_spells",
+        "level": 15,
+        "name_ru": "Общие заклинания",
+        "name_en": "Share Spells",
+        "summary_ru": "Заклинания с дистанцией «на себя» можешь наложить и на спутника при касании.",
+        "kind": "passive"
+      }
+    ],
+    "gloom_stalker": [
+      {
+        "id": "dread_ambusher",
+        "level": 3,
+        "name_ru": "Ужасный засаденик",
+        "name_en": "Dread Ambusher",
+        "summary_ru": "+мод. Мудрости к инициативе. В первый ход боя: +10 фт. скорости; при Атаке — доп. атака оружием (+1к8).",
+        "kind": "passive"
+      },
+      {
+        "id": "umbral_sight",
+        "level": 3,
+        "name_ru": "Сумрачное зрение",
+        "name_en": "Umbral Sight",
+        "summary_ru": "Тёмное зрение 60 фт. (или +30). В темноте невидимые для существ, полагающихся на тёмное зрение.",
+        "kind": "passive"
+      },
+      {
+        "id": "iron_mind",
+        "level": 7,
+        "name_ru": "Железный разум",
+        "name_en": "Iron Mind",
+        "summary_ru": "Владение спасом Мудрости (или Интеллекта/Харизмы, если Мудрость уже есть).",
+        "kind": "passive"
+      },
+      {
+        "id": "stalkers_flurry",
+        "level": 11,
+        "name_ru": "Шквал сталкера",
+        "name_en": "Stalker's Flurry",
+        "summary_ru": "При промахе атакой оружием в свой ход — одна доп. атака оружием.",
+        "kind": "passive"
+      },
+      {
+        "id": "shadowy_dodge",
+        "level": 15,
+        "name_ru": "Теневое уклонение",
+        "name_en": "Shadowy Dodge",
+        "summary_ru": "Реакция при атаке по тебе: помеха атакующему (если не спрятан/невидим для тебя).",
+        "kind": "reaction"
+      }
+    ],
+    "horizon_walker": [
+      {
+        "id": "detect_portal",
+        "level": 3,
+        "name_ru": "Обнаружение портала",
+        "name_en": "Detect Portal",
+        "summary_ru": "Действием: узнать направление ближайшего портала в 1 миле. 1× / короткий или продолжительный отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "detect_portal",
+          "pool_name_ru": "Обнаружение портала",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "planar_warrior",
+        "level": 3,
+        "name_ru": "Планарный воин",
+        "name_en": "Planar Warrior",
+        "summary_ru": "Бонусным: одно существо в 30 фт. — следующий твой урон оружием по нему в этом ходу становится силовым +1к8 (с 11 ур. +2к8).",
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Силовой бонус",
+          "by_level": {
+            "3": "+1к8",
+            "11": "+2к8"
+          }
+        }
+      },
+      {
+        "id": "ethereal_step",
+        "level": 7,
+        "name_ru": "Эфирный шаг",
+        "name_en": "Ethereal Step",
+        "summary_ru": "Бонусным: etherealness на себя до конца хода. 1× / короткий или продолжительный отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "ethereal_step",
+          "pool_name_ru": "Эфирный шаг",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "distant_strike",
+        "level": 11,
+        "name_ru": "Удар издалека",
+        "name_en": "Distant Strike",
+        "summary_ru": "Перед атакой можешь телепортироваться до 10 фт. При атаке по ≥2 существам за одно действие Атака — ещё одна атака по третьему.",
+        "kind": "passive"
+      },
+      {
+        "id": "spectral_defense",
+        "level": 15,
+        "name_ru": "Призрачная защита",
+        "name_en": "Spectral Defense",
+        "summary_ru": "Реакция при попадании по тебе: сопротивление этому урону до начала твоего следующего хода (пока в сознании).",
+        "kind": "reaction"
+      }
+    ],
+    "monster_slayer": [
+      {
+        "id": "hunters_sense",
+        "level": 3,
+        "name_ru": "Чутьё охотника",
+        "name_en": "Hunter's Sense",
+        "summary_ru": "Действием: одно существо в 60 фт. — узнать иммунитеты/сопротивления/уязвимости. Число = мод. Мудрости (мин. 1) / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "wis",
+          "recharge": "long_rest",
+          "pool_id": "hunters_sense",
+          "pool_name_ru": "Чутьё охотника",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "slayers_prey",
+        "level": 3,
+        "name_ru": "Добыча истребителя",
+        "name_en": "Slayer's Prey",
+        "summary_ru": "Бонусным: пометить существо в 60 фт. 1× / ход первый урон оружием по метке +1к6.",
+        "kind": "bonus"
+      },
+      {
+        "id": "supernatural_defense",
+        "level": 7,
+        "name_ru": "Сверхъестественная защита",
+        "name_en": "Supernatural Defense",
+        "summary_ru": "Спас или проверка против помеченной добычи / её способности: +1к6.",
+        "kind": "passive"
+      },
+      {
+        "id": "magic_users_nemesis",
+        "level": 11,
+        "name_ru": "Каратель колдунов",
+        "name_en": "Magic-User's Nemesis",
+        "summary_ru": "Реакция 1× / короткий или прод. отдых: срыв каста/телепорта в 60 фт. (спас Мудрости).",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "magic_users_nemesis",
+          "pool_name_ru": "Каратель колдунов",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "slayers_counter",
+        "level": 15,
+        "name_ru": "Контрудар истребителя",
+        "name_en": "Slayer's Counter",
+        "summary_ru": "Реакция при провале спаса vs добычи: атака оружием по ней.",
+        "kind": "reaction"
+      }
+    ],
+    "fey_wanderer": [
+      {
+        "id": "dreadful_strikes",
+        "level": 3,
+        "name_ru": "Ужасающие удары",
+        "name_en": "Dreadful Strikes",
+        "summary_ru": "1× / ход при попадании оружием: +1к4 психического (с 11 ур. 1к6).",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Психический урон",
+          "by_level": {
+            "3": "1к4",
+            "11": "1к6"
+          }
+        }
+      },
+      {
+        "id": "fey_wanderer_magic",
+        "level": 3,
+        "name_ru": "Магия странника фей",
+        "name_en": "Fey Wanderer Magic",
+        "summary_ru": "Доп. известные заклинания архетипа. +мод. Мудрости к проверкам Харизмы.",
+        "kind": "passive"
+      },
+      {
+        "id": "otherworldly_glamour",
+        "level": 3,
+        "name_ru": "Иной блеск",
+        "name_en": "Otherworldly Glamour",
+        "summary_ru": "Владение Обманом, Исполнением или Убеждением (выбор).",
+        "kind": "passive"
+      },
+      {
+        "id": "beguiling_twist",
+        "level": 7,
+        "name_ru": "Обманный поворот",
+        "name_en": "Beguiling Twist",
+        "summary_ru": "Преимущество на спас vs очарования/испуг. Реакция при успехе — передать очар./испуг другому.",
+        "kind": "reaction"
+      },
+      {
+        "id": "fey_reinforcements",
+        "level": 11,
+        "name_ru": "Подкрепление фей",
+        "name_en": "Fey Reinforcements",
+        "summary_ru": "Бесплатный summon fey 1× / прод. отдых (без концентрации) или с ячейкой.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "fey_reinforcements",
+          "pool_name_ru": "Подкрепление фей",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "misty_wanderer",
+        "level": 15,
+        "name_ru": "Туманный странник",
+        "name_en": "Misty Wanderer",
+        "summary_ru": "Бесплатный misty step = мод. Мудрости × / прод. отдых; можешь взять согласного в 5 фт.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "wis",
+          "recharge": "long_rest",
+          "pool_id": "misty_wanderer",
+          "pool_name_ru": "Туманный странник",
+          "track": "spend"
+        }
+      }
+    ],
+    "swarmkeeper": [
+      {
+        "id": "gathered_swarm",
+        "level": 3,
+        "name_ru": "Собранный рой",
+        "name_en": "Gathered Swarm",
+        "summary_ru": "1× / ход при попадании атакой: рой — +1к6 колющего; или сдвиг цели 5 фт.; или сдвиг себя 5 фт.",
+        "kind": "passive"
+      },
+      {
+        "id": "swarmkeeper_magic",
+        "level": 3,
+        "name_ru": "Магия хранителя роя",
+        "name_en": "Swarmkeeper Magic",
+        "summary_ru": "Доп. известные заклинания архетипа.",
+        "kind": "passive"
+      },
+      {
+        "id": "writhing_tide",
+        "level": 7,
+        "name_ru": "Извивающийся прилив",
+        "name_en": "Writhing Tide",
+        "summary_ru": "Бонусным: 1 мин. полёт 10 фт. / парение. Число = мод. мастерства / прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 0,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "writhing_tide",
+          "pool_name_ru": "Извивающийся прилив",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "mighty_swarm",
+        "level": 11,
+        "name_ru": "Могучий рой",
+        "name_en": "Mighty Swarm",
+        "summary_ru": "Урон роя 1к8; усиленные эффекты сдвига/прикрытия.",
+        "kind": "passive"
+      },
+      {
+        "id": "swarming_dispersal",
+        "level": 15,
+        "name_ru": "Рассеяние роем",
+        "name_en": "Swarming Dispersal",
+        "summary_ru": "Реакция при уроне: сопротивление + телепорт до 30 фт. Число = мод. мастерства / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 0,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "swarming_dispersal",
+          "pool_name_ru": "Рассеяние роем",
+          "track": "spend"
+        }
+      }
+    ],
+    "drakewarden": [
+      {
+        "id": "draconic_gift",
+        "level": 3,
+        "name_ru": "Дар дракона",
+        "name_en": "Draconic Gift",
+        "summary_ru": "Тауматургия; язык драконов; позже — полёт (крылья).",
+        "kind": "passive"
+      },
+      {
+        "id": "drake_companion",
+        "level": 3,
+        "name_ru": "Дрейк-спутник",
+        "name_en": "Drake Companion",
+        "summary_ru": "Призвать дрейка (карточка спутника). Сущность стихии — выбор. Команда бонусным.",
+        "kind": "bonus"
+      },
+      {
+        "id": "bond_of_fang_and_scale",
+        "level": 7,
+        "name_ru": "Связь клыка и чешуи",
+        "name_en": "Bond of Fang and Scale",
+        "summary_ru": "Сопротивление урону сущности дрейка; дрейк крупнее / урон больше; езда.",
+        "kind": "passive"
+      },
+      {
+        "id": "perfected_bond",
+        "level": 15,
+        "name_ru": "Совершенная связь",
+        "name_en": "Perfected Bond",
+        "summary_ru": "Дрейк ещё сильнее; дыхание; реакция — отразить урон сущности.",
+        "kind": "passive"
+      }
+    ]
+  }
+}

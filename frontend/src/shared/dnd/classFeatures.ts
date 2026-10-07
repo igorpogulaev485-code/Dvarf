@@ -10,7 +10,13 @@ import roguePack from './data/rogue_2014.json'
 import {
   FIGHTER_FIGHTING_STYLES,
   PALADIN_FIGHTING_STYLES,
+  RANGER_FIGHTING_STYLES,
 } from './fightingStyles'
+import {
+  RANGER_FAVORED_ENEMIES,
+  RANGER_FAVORED_TERRAINS,
+} from './rangerChoices'
+import rangerPack from './data/ranger_2014.json'
 
 export type AbilityScoreKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
@@ -84,6 +90,9 @@ export type FeatureChoiceDef = {
   options_from?:
     | 'paladin_fighting_styles'
     | 'fighter_fighting_styles'
+    | 'ranger_fighting_styles'
+    | 'ranger_favored_enemies'
+    | 'ranger_favored_terrains'
   options?: string[]
 }
 
@@ -91,10 +100,11 @@ export type FeatureSlotSpendDef = {
   label_ru: string
   min_slot: number
   max_slot: number
-  dice_base: number
-  dice_per_slot_above: number
-  dice_cap: number
-  dice_size: number
+  /** When set with dice fields — show Smite-style damage; omit for slot-only spends. */
+  dice_base?: number
+  dice_per_slot_above?: number
+  dice_cap?: number
+  dice_size?: number
   extra_vs_note_ru?: string
 }
 
@@ -147,6 +157,7 @@ const LOCAL_PACKS: Record<string, FeaturePack> = {
   fighter: fighterPack as FeaturePack,
   monk: monkPack as FeaturePack,
   paladin: paladinPack as FeaturePack,
+  ranger: rangerPack as FeaturePack,
   rogue: roguePack as FeaturePack,
 }
 
@@ -190,7 +201,10 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
     if (choiceRaw && typeof choiceRaw.id === 'string' && typeof choiceRaw.label_ru === 'string') {
       const optionsFrom =
         choiceRaw.options_from === 'paladin_fighting_styles' ||
-        choiceRaw.options_from === 'fighter_fighting_styles'
+        choiceRaw.options_from === 'fighter_fighting_styles' ||
+        choiceRaw.options_from === 'ranger_fighting_styles' ||
+        choiceRaw.options_from === 'ranger_favored_enemies' ||
+        choiceRaw.options_from === 'ranger_favored_terrains'
           ? choiceRaw.options_from
           : undefined
       const options = Array.isArray(choiceRaw.options)
@@ -206,17 +220,23 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
 
     let slot_spend: FeatureSlotSpendDef | undefined
     if (slotSpendRaw && typeof slotSpendRaw.label_ru === 'string') {
+      const hasDice = typeof slotSpendRaw.dice_base === 'number'
       slot_spend = {
         label_ru: slotSpendRaw.label_ru,
         min_slot: Math.max(1, Math.floor(Number(slotSpendRaw.min_slot) || 1)),
         max_slot: Math.max(1, Math.floor(Number(slotSpendRaw.max_slot) || 9)),
-        dice_base: Math.max(1, Math.floor(Number(slotSpendRaw.dice_base) || 2)),
-        dice_per_slot_above: Math.max(
-          0,
-          Math.floor(Number(slotSpendRaw.dice_per_slot_above) || 1),
-        ),
-        dice_cap: Math.max(1, Math.floor(Number(slotSpendRaw.dice_cap) || 5)),
-        dice_size: Math.max(2, Math.floor(Number(slotSpendRaw.dice_size) || 8)),
+        dice_base: hasDice
+          ? Math.max(1, Math.floor(Number(slotSpendRaw.dice_base)))
+          : undefined,
+        dice_per_slot_above: hasDice
+          ? Math.max(0, Math.floor(Number(slotSpendRaw.dice_per_slot_above) || 1))
+          : undefined,
+        dice_cap: hasDice
+          ? Math.max(1, Math.floor(Number(slotSpendRaw.dice_cap) || 5))
+          : undefined,
+        dice_size: hasDice
+          ? Math.max(2, Math.floor(Number(slotSpendRaw.dice_size) || 8))
+          : undefined,
         extra_vs_note_ru:
           typeof slotSpendRaw.extra_vs_note_ru === 'string'
             ? slotSpendRaw.extra_vs_note_ru
@@ -278,13 +298,28 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
   if (choice.options_from === 'fighter_fighting_styles') {
     return [...FIGHTER_FIGHTING_STYLES]
   }
+  if (choice.options_from === 'ranger_fighting_styles') {
+    return [...RANGER_FIGHTING_STYLES]
+  }
+  if (choice.options_from === 'ranger_favored_enemies') {
+    return RANGER_FAVORED_ENEMIES.map((row) => row.id)
+  }
+  if (choice.options_from === 'ranger_favored_terrains') {
+    return RANGER_FAVORED_TERRAINS.map((row) => row.id)
+  }
   return choice.options ? [...choice.options] : []
 }
 
+export function slotSpendHasDice(def: FeatureSlotSpendDef): boolean {
+  return typeof def.dice_base === 'number'
+}
+
 export function slotSpendDiceCount(def: FeatureSlotSpendDef, slotLevel: number): number {
+  if (!slotSpendHasDice(def)) return 0
   const lvl = Math.max(def.min_slot, Math.min(def.max_slot, Math.floor(slotLevel)))
-  const dice = def.dice_base + def.dice_per_slot_above * (lvl - def.min_slot)
-  return Math.min(def.dice_cap, Math.max(1, dice))
+  const dice =
+    (def.dice_base ?? 0) + (def.dice_per_slot_above ?? 0) * (lvl - def.min_slot)
+  return Math.min(def.dice_cap ?? dice, Math.max(1, dice))
 }
 
 export function parseClassFeaturesFromCatalogData(
@@ -493,6 +528,8 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   жрец: 'cleric',
   paladin: 'paladin',
   паладин: 'paladin',
+  ranger: 'ranger',
+  следопыт: 'ranger',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {
@@ -589,6 +626,22 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   oath_of_the_watchers: 'oath_of_the_watchers',
   'клятва смотрителей': 'oath_of_the_watchers',
   смотрителей: 'oath_of_the_watchers',
+  hunter: 'hunter',
+  охотник: 'hunter',
+  beast_master: 'beast_master',
+  'повелитель зверей': 'beast_master',
+  gloom_stalker: 'gloom_stalker',
+  'сумрачный охотник': 'gloom_stalker',
+  horizon_walker: 'horizon_walker',
+  'странник горизонта': 'horizon_walker',
+  monster_slayer: 'monster_slayer',
+  'истребитель чудовищ': 'monster_slayer',
+  fey_wanderer: 'fey_wanderer',
+  'странник фей': 'fey_wanderer',
+  swarmkeeper: 'swarmkeeper',
+  'хранитель роя': 'swarmkeeper',
+  drakewarden: 'drakewarden',
+  'хранитель дрейка': 'drakewarden',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -626,6 +679,14 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'oath_of_redemption',
   'oath_of_glory',
   'oath_of_the_watchers',
+  'hunter',
+  'beast_master',
+  'gloom_stalker',
+  'horizon_walker',
+  'monster_slayer',
+  'fey_wanderer',
+  'swarmkeeper',
+  'drakewarden',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {

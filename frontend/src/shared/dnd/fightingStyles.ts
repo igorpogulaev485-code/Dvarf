@@ -73,6 +73,13 @@ export const FIGHTER_FIGHTING_STYLES: FightingStyleId[] = [
   'two_weapon_fighting',
 ]
 
+export const RANGER_FIGHTING_STYLES: FightingStyleId[] = [
+  'archery',
+  'defense',
+  'dueling',
+  'two_weapon_fighting',
+]
+
 export function fightingStyleById(id: string | null | undefined): FightingStyleDef | null {
   if (!id) return null
   return FIGHTING_STYLES[id as FightingStyleId] ?? null
