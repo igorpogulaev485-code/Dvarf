@@ -550,13 +550,18 @@ export type FeatPrereqContext = {
 export function ownedFeatEnumsFromLedger(
   ledger: AppliedFeatGrant[],
 ): OwnedFeatEnumSnapshot[] {
-  return ledger.map((row) => ({
-    slug: row.slug,
-    enumIds: {
+  return ledger.map((row) => {
+    const enumIds: Record<string, string> = {}
+    for (const [key, value] of Object.entries({
       ...row.applied.enumPicks,
       ...row.picks.enumIds,
-    },
-  }))
+    })) {
+      if (typeof value === 'string' && value.trim()) {
+        enumIds[key] = value
+      }
+    }
+    return { slug: row.slug, enumIds }
+  })
 }
 
 /** Prerequisites only (no choice picks). Used to hide ineligible feats in the picker. */
@@ -693,6 +698,7 @@ export function validateFeatGrantPicks(input: {
   classSlugs?: string[]
   /** Background catalog slug from identity.backgroundSlug. */
   backgroundSlug?: string | null
+  ownedFeatEnums?: OwnedFeatEnumSnapshot[]
 }): string | null {
   const { def, picks } = input
   const prereqFail = featPrerequisitesUnmet(def, input)
