@@ -69,6 +69,13 @@ export function desiredResourcesFromFeatures(input: {
         typeof score === 'number'
           ? Math.max(1, abilityModifierFromScore(score))
           : feature.resourceUses ?? Math.max(1, resource.uses || 1)
+    } else if (resource.uses_from === 'one_plus_ability_modifier') {
+      const key = resource.ability ?? 'cha'
+      const score = input.abilities?.[key]
+      max =
+        typeof score === 'number'
+          ? Math.max(1, 1 + abilityModifierFromScore(score))
+          : feature.resourceUses ?? Math.max(1, resource.uses || 1)
     } else {
       max = feature.resourceUses ?? resource.uses
     }

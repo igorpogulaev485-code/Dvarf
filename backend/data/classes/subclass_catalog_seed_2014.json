@@ -2654,16 +2654,58 @@
           "source_books": "DMG",
           "sheet_grants": {},
           "choices": [],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "notes_ru": "Клятво-заклинания always-prepared; Channel Divinity — в пакете умений.",
+          "detail_status": "detailed",
           "features_by_level": {
             "3": [
               {
                 "title_ru": "Клятвопреступник",
-                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+                "summary_ru": "Клятво-заклинания всегда подготовлены; Channel Divinity — в пакете умений."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Hellish Rebuke",
+              "level": 1
+            },
+            {
+              "name": "Inflict Wounds",
+              "level": 1
+            },
+            {
+              "name": "Crown of Madness",
+              "level": 2
+            },
+            {
+              "name": "Darkness",
+              "level": 2
+            },
+            {
+              "name": "Animate Dead",
+              "level": 3
+            },
+            {
+              "name": "Bestow Curse",
+              "level": 3
+            },
+            {
+              "name": "Blight",
+              "level": 4
+            },
+            {
+              "name": "Confusion",
+              "level": 4
+            },
+            {
+              "name": "Contagion",
+              "level": 5
+            },
+            {
+              "name": "Dominate Person",
+              "level": 5
+            }
+          ]
         },
         {
           "slug": "oath_of_the_crown",
@@ -2673,16 +2715,58 @@
           "source_books": "SCAG",
           "sheet_grants": {},
           "choices": [],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "notes_ru": "Клятво-заклинания always-prepared; Channel Divinity — в пакете умений.",
+          "detail_status": "detailed",
           "features_by_level": {
             "3": [
               {
                 "title_ru": "Клятва короны",
-                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+                "summary_ru": "Клятво-заклинания всегда подготовлены; Channel Divinity — в пакете умений."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Command",
+              "level": 1
+            },
+            {
+              "name": "Compelled Duel",
+              "level": 1
+            },
+            {
+              "name": "Warding Bond",
+              "level": 2
+            },
+            {
+              "name": "Zone of Truth",
+              "level": 2
+            },
+            {
+              "name": "Aura of Vitality",
+              "level": 3
+            },
+            {
+              "name": "Spirit Guardians",
+              "level": 3
+            },
+            {
+              "name": "Banishment",
+              "level": 4
+            },
+            {
+              "name": "Guardian of Faith",
+              "level": 4
+            },
+            {
+              "name": "Circle of Power",
+              "level": 5
+            },
+            {
+              "name": "Geas",
+              "level": 5
+            }
+          ]
         },
         {
           "slug": "oath_of_conquest",
@@ -2692,16 +2776,58 @@
           "source_books": "XGtE",
           "sheet_grants": {},
           "choices": [],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "notes_ru": "Клятво-заклинания always-prepared; Channel Divinity — в пакете умений.",
+          "detail_status": "detailed",
           "features_by_level": {
             "3": [
               {
                 "title_ru": "Клятва покорения",
-                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+                "summary_ru": "Клятво-заклинания всегда подготовлены; Channel Divinity — в пакете умений."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Armor of Agathys",
+              "level": 1
+            },
+            {
+              "name": "Command",
+              "level": 1
+            },
+            {
+              "name": "Hold Person",
+              "level": 2
+            },
+            {
+              "name": "Spiritual Weapon",
+              "level": 2
+            },
+            {
+              "name": "Bestow Curse",
+              "level": 3
+            },
+            {
+              "name": "Fear",
+              "level": 3
+            },
+            {
+              "name": "Dominate Beast",
+              "level": 4
+            },
+            {
+              "name": "Stoneskin",
+              "level": 4
+            },
+            {
+              "name": "Cloudkill",
+              "level": 5
+            },
+            {
+              "name": "Dominate Person",
+              "level": 5
+            }
+          ]
         },
         {
           "slug": "oath_of_redemption",
@@ -2711,16 +2837,58 @@
           "source_books": "XGtE",
           "sheet_grants": {},
           "choices": [],
-          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
-          "detail_status": "inventory_only",
+          "notes_ru": "Клятво-заклинания always-prepared; Channel Divinity — в пакете умений.",
+          "detail_status": "detailed",
           "features_by_level": {
             "3": [
               {
                 "title_ru": "Клятва искупления",
-                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+                "summary_ru": "Клятво-заклинания всегда подготовлены; Channel Divinity — в пакете умений."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Sanctuary",
+              "level": 1
+            },
+            {
+              "name": "Sleep",
+              "level": 1
+            },
+            {
+              "name": "Calm Emotions",
+              "level": 2
+            },
+            {
+              "name": "Hold Person",
+              "level": 2
+            },
+            {
+              "name": "Counterspell",
+              "level": 3
+            },
+            {
+              "name": "Hypnotic Pattern",
+              "level": 3
+            },
+            {
+              "name": "Otiluke's Resilient Sphere",
+              "level": 4
+            },
+            {
+              "name": "Stoneskin",
+              "level": 4
+            },
+            {
+              "name": "Hold Monster",
+              "level": 5
+            },
+            {
+              "name": "Wall of Force",
+              "level": 5
+            }
+          ]
         },
         {
           "slug": "oath_of_glory",
@@ -2737,17 +2905,72 @@
               ]
             }
           },
-          "choices": [],
-          "notes_ru": "Athletics или Acrobatics.",
-          "detail_status": "forks_stub",
+          "choices": [
+            {
+              "id": "glory_skill",
+              "label_ru": "Навык клятвы славы",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "athletics",
+                "acrobatics"
+              ],
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "notes_ru": "Athletics или Acrobatics; always-prepared + пакет умений.",
+          "detail_status": "detailed",
           "features_by_level": {
             "3": [
               {
                 "title_ru": "Клятва славы",
-                "summary_ru": "Athletics или Acrobatics."
+                "summary_ru": "Клятво-заклинания всегда подготовлены; Channel Divinity — в пакете умений."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Guiding Bolt",
+              "level": 1
+            },
+            {
+              "name": "Heroism",
+              "level": 1
+            },
+            {
+              "name": "Enhance Ability",
+              "level": 2
+            },
+            {
+              "name": "Magic Weapon",
+              "level": 2
+            },
+            {
+              "name": "Haste",
+              "level": 3
+            },
+            {
+              "name": "Protection from Energy",
+              "level": 3
+            },
+            {
+              "name": "Compulsion",
+              "level": 4
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4
+            },
+            {
+              "name": "Commune",
+              "level": 5
+            },
+            {
+              "name": "Flame Strike",
+              "level": 5
+            }
+          ]
         },
         {
           "slug": "oath_of_the_watchers",
@@ -2784,16 +3007,58 @@
               "required": true
             }
           ],
-          "notes_ru": "2 из skills/tools + 2 языка.",
-          "detail_status": "forks_stub",
+          "notes_ru": "2 навыка/инструмента + 2 языка; always-prepared + пакет умений.",
+          "detail_status": "detailed",
           "features_by_level": {
             "3": [
               {
                 "title_ru": "Клятва смотрителей",
-                "summary_ru": "2 из skills/tools + 2 языка."
+                "summary_ru": "Клятво-заклинания всегда подготовлены; Channel Divinity — в пакете умений."
               }
             ]
-          }
+          },
+          "always_prepared_spells": [
+            {
+              "name": "Alarm",
+              "level": 1
+            },
+            {
+              "name": "Detect Magic",
+              "level": 1
+            },
+            {
+              "name": "Moonbeam",
+              "level": 2
+            },
+            {
+              "name": "See Invisibility",
+              "level": 2
+            },
+            {
+              "name": "Counterspell",
+              "level": 3
+            },
+            {
+              "name": "Nondetection",
+              "level": 3
+            },
+            {
+              "name": "Aura of Purity",
+              "level": 4
+            },
+            {
+              "name": "Banishment",
+              "level": 4
+            },
+            {
+              "name": "Hold Monster",
+              "level": 5
+            },
+            {
+              "name": "Scrying",
+              "level": 5
+            }
+          ]
         }
       ]
     },

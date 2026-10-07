@@ -1,0 +1,858 @@
+{
+  "meta": {
+    "purpose": "2014 Paladin + all 9 official oaths for sheet unlock",
+    "edition": "2014",
+    "source": "phb+dmg+scag+xgte+tcoe",
+    "notes_ru": "9 клятв. Lay on Hands = spend 5×ур. Channel Divinity общий (1× short). Divine Sense / Cleansing Touch = Cha-mod. Always-prepared — в каталоге."
+  },
+  "class_slug": "paladin",
+  "features": [
+    {
+      "id": "divine_sense",
+      "level": 1,
+      "name_ru": "Божественное чувство",
+      "name_en": "Divine Sense",
+      "summary_ru": "Действием: знать местоположение небожителей/фиендов/нежити в 60 фт. и освящённые/осквернённые места. Число использований = 1 + модификатор Харизмы / прод. отдых.",
+      "kind": "action",
+      "resource": {
+        "uses": 1,
+        "uses_from": "one_plus_ability_modifier",
+        "ability": "cha",
+        "recharge": "long_rest",
+        "pool_id": "divine_sense",
+        "pool_name_ru": "Божественное чувство",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "lay_on_hands",
+      "level": 1,
+      "name_ru": "Возложение рук",
+      "name_en": "Lay on Hands",
+      "summary_ru": "Пул хитов = 5 × ур. паладина. Действием касанием лечить хиты или потратить 5 хитов пула, чтобы снять одну болезнь или яд. Сброс на продолжительном отдыхе. Кружки — точная трата.",
+      "kind": "action",
+      "resource": {
+        "uses": 5,
+        "recharge": "long_rest",
+        "scale_uses": {
+          "1": 5,
+          "2": 10,
+          "3": 15,
+          "4": 20,
+          "5": 25,
+          "6": 30,
+          "7": 35,
+          "8": 40,
+          "9": 45,
+          "10": 50,
+          "11": 55,
+          "12": 60,
+          "13": 65,
+          "14": 70,
+          "15": 75,
+          "16": 80,
+          "17": 85,
+          "18": 90,
+          "19": 95,
+          "20": 100
+        },
+        "pool_id": "lay_on_hands",
+        "pool_name_ru": "Возложение рук",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "fighting_style_paladin",
+      "level": 2,
+      "name_ru": "Боевой стиль",
+      "name_en": "Fighting Style",
+      "summary_ru": "Выбери боевой стиль (Defense, Dueling, Great Weapon Fighting, Protection).",
+      "kind": "passive"
+    },
+    {
+      "id": "spellcasting_paladin",
+      "level": 2,
+      "name_ru": "Использование заклинаний",
+      "name_en": "Spellcasting",
+      "summary_ru": "Половина кастера. Харизма — базовая. Подготовка = Харизма + ½ ур. паладина (мин. 1).",
+      "kind": "passive"
+    },
+    {
+      "id": "divine_smite",
+      "level": 2,
+      "name_ru": "Божественная кара",
+      "name_en": "Divine Smite",
+      "summary_ru": "При попадании оружием ближнего боя: потратить ячейку → +2к8 лучистого (+1к8 за уровень ячейки выше 1-го, макс. +5к8); +1к8 vs нежить/фиенд.",
+      "kind": "passive"
+    },
+    {
+      "id": "divine_health",
+      "level": 3,
+      "name_ru": "Божественное здоровье",
+      "name_en": "Divine Health",
+      "summary_ru": "Иммунитет к болезням.",
+      "kind": "passive"
+    },
+    {
+      "id": "sacred_oath",
+      "level": 3,
+      "name_ru": "Священная клятва",
+      "name_en": "Sacred Oath",
+      "summary_ru": "Выбери клятву. Клятво-заклинания всегда подготовлены (см. грант). Channel Divinity — опции клятвы.",
+      "kind": "passive"
+    },
+    {
+      "id": "channel_divinity_paladin",
+      "level": 3,
+      "name_ru": "Божественный канал",
+      "name_en": "Channel Divinity",
+      "summary_ru": "1 использование между коротким или продолжительным отдыхом. Общий пул на опции клятвы.",
+      "kind": "resource",
+      "resource": {
+        "uses": 1,
+        "recharge": "short_rest",
+        "pool_id": "channel_divinity",
+        "pool_name_ru": "Божественный канал",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "asi_4",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "extra_attack_paladin",
+      "level": 5,
+      "name_ru": "Дополнительная атака",
+      "name_en": "Extra Attack",
+      "summary_ru": "При действии Атака — две атаки вместо одной.",
+      "kind": "passive"
+    },
+    {
+      "id": "aura_of_protection",
+      "level": 6,
+      "name_ru": "Аура защиты",
+      "name_en": "Aura of Protection",
+      "summary_ru": "Ты и союзники в ауре (нач. 10 фт.) добавляют твой мод. Харизмы к спасброскам (мин. +1).",
+      "kind": "passive",
+      "scale": {
+        "label_ru": "Радиус",
+        "by_level": {
+          "6": "10 фт.",
+          "18": "30 фт."
+        }
+      }
+    },
+    {
+      "id": "asi_8",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "aura_of_courage",
+      "level": 10,
+      "name_ru": "Аура отваги",
+      "name_en": "Aura of Courage",
+      "summary_ru": "Ты и союзники в ауре не могут быть испуганы, пока ты в сознании.",
+      "kind": "passive",
+      "scale": {
+        "label_ru": "Радиус",
+        "by_level": {
+          "10": "10 фт.",
+          "18": "30 фт."
+        }
+      }
+    },
+    {
+      "id": "improved_divine_smite",
+      "level": 11,
+      "name_ru": "Улучшенная божественная кара",
+      "name_en": "Improved Divine Smite",
+      "summary_ru": "Все атаки оружием ближнего боя несут +1к8 лучистого (складывается с Divine Smite).",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_12",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "cleansing_touch",
+      "level": 14,
+      "name_ru": "Очищающее касание",
+      "name_en": "Cleansing Touch",
+      "summary_ru": "Действием касанием снять одно заклинание с себя или согласного существа. Число = модификатор Харизмы (мин. 1) / прод. отдых.",
+      "kind": "action",
+      "resource": {
+        "uses": 1,
+        "uses_from": "ability_modifier",
+        "ability": "cha",
+        "recharge": "long_rest",
+        "pool_id": "cleansing_touch",
+        "pool_name_ru": "Очищающее касание",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "asi_16",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "aura_improvements",
+      "level": 18,
+      "name_ru": "Улучшение аур",
+      "name_en": "Aura Improvements",
+      "summary_ru": "Аура защиты и аура отваги — 30 фт.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_19",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    }
+  ],
+  "subclasses": {
+    "oath_of_devotion": [
+      {
+        "id": "cd_sacred_weapon",
+        "level": 3,
+        "name_ru": "Канал: Священное оружие",
+        "name_en": "Channel Divinity: Sacred Weapon",
+        "summary_ru": "Действием (тратит канал): оружие на 1 мин. светится; атаки Харизмой; +мод. Хар. к броскам атаки; магическое.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "cd_turn_the_unholy",
+        "level": 3,
+        "name_ru": "Канал: Изгнание нечисти",
+        "name_en": "Channel Divinity: Turn the Unholy",
+        "summary_ru": "Действием (тратит канал): фиенды и нежить в 30 фт. спас Мудрости или изгнаны 1 мин.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "aura_of_devotion",
+        "level": 7,
+        "name_ru": "Аура преданности",
+        "name_en": "Aura of Devotion",
+        "summary_ru": "Ты и союзники в ауре не могут быть очарованы, пока ты в сознании.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Радиус",
+          "by_level": {
+            "7": "10 фт.",
+            "18": "30 фт."
+          }
+        }
+      },
+      {
+        "id": "purity_of_spirit",
+        "level": 15,
+        "name_ru": "Чистота духа",
+        "name_en": "Purity of Spirit",
+        "summary_ru": "Постоянный эффект protection from evil and good на себе.",
+        "kind": "passive"
+      },
+      {
+        "id": "holy_nimbus",
+        "level": 20,
+        "name_ru": "Священный нимб",
+        "name_en": "Holy Nimbus",
+        "summary_ru": "Действием: 1 мин. аура 30 фт. — враги в начале хода 1к8 лучистого; преимущество на спас vs фиенд/нежить заклинаний. 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "holy_nimbus",
+          "pool_name_ru": "Священный нимб",
+          "track": "spend"
+        }
+      }
+    ],
+    "oath_of_the_ancients": [
+      {
+        "id": "cd_natures_wrath",
+        "level": 3,
+        "name_ru": "Канал: Гнев природы",
+        "name_en": "Channel Divinity: Nature's Wrath",
+        "summary_ru": "Действием (тратит канал): лозы опутывают существо (спас Силы или Ловкости) — состояние опутан, пока не освободится.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "cd_turn_the_faithless",
+        "level": 3,
+        "name_ru": "Канал: Изгнание безверных",
+        "name_en": "Channel Divinity: Turn the Faithless",
+        "summary_ru": "Действием (тратит канал): феи и фиенды в 30 фт. спас Мудрости или изгнаны 1 мин.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "aura_of_warding",
+        "level": 7,
+        "name_ru": "Аура защиты от магии",
+        "name_en": "Aura of Warding",
+        "summary_ru": "Ты и союзники в ауре сопротивляются урону от заклинаний.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Радиус",
+          "by_level": {
+            "7": "10 фт.",
+            "18": "30 фт."
+          }
+        }
+      },
+      {
+        "id": "undying_sentinel",
+        "level": 15,
+        "name_ru": "Бессмертный страж",
+        "name_en": "Undying Sentinel",
+        "summary_ru": "1× / прод. отдых: при снижении до 0 хитов без мгновенной смерти — остаёшься с 1 хитом. С 15 ур. также не стареешь магически.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "undying_sentinel",
+          "pool_name_ru": "Бессмертный страж",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "elder_champion",
+        "level": 20,
+        "name_ru": "Древний чемпион",
+        "name_en": "Elder Champion",
+        "summary_ru": "Действием: 1 мин. — реген 10 хитов в начале хода; каст паладина действием-заклинанием как бонусное; враги в 10 фт. с помехой на спас vs твоих заклинаний. 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "elder_champion",
+          "pool_name_ru": "Древний чемпион",
+          "track": "spend"
+        }
+      }
+    ],
+    "oath_of_vengeance": [
+      {
+        "id": "cd_abjure_enemy",
+        "level": 3,
+        "name_ru": "Канал: Отрёкшийся враг",
+        "name_en": "Channel Divinity: Abjure Enemy",
+        "summary_ru": "Действием (тратит канал): одно существо спас Мудрости или испугано и скорость 0 (нежить/фиенд — помеха на спас).",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "cd_vow_of_enmity",
+        "level": 3,
+        "name_ru": "Канал: Обет вражды",
+        "name_en": "Channel Divinity: Vow of Enmity",
+        "summary_ru": "Бонусным (тратит канал): преимущество на атаки по одному существу на 1 мин.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "relentless_avenger",
+        "level": 7,
+        "name_ru": "Неумолимый мститель",
+        "name_en": "Relentless Avenger",
+        "summary_ru": "При попадании по существу возможностью: часть реакции — переместиться на половину скорости без провокации.",
+        "kind": "passive"
+      },
+      {
+        "id": "soul_of_vengeance",
+        "level": 15,
+        "name_ru": "Душа мести",
+        "name_en": "Soul of Vengeance",
+        "summary_ru": "Пока действует Обет вражды: реакция — атака оружием ближнего боя, когда цель атакует не тебя.",
+        "kind": "reaction"
+      },
+      {
+        "id": "avenging_angel",
+        "level": 20,
+        "name_ru": "Ангел возмездия",
+        "name_en": "Avenging Angel",
+        "summary_ru": "Действием: 1 час — полёт 60 фт.; аура 30 фт. страх (спас Мудрости); преимущество на атаки по испуганным. 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "avenging_angel",
+          "pool_name_ru": "Ангел возмездия",
+          "track": "spend"
+        }
+      }
+    ],
+    "oathbreaker": [
+      {
+        "id": "cd_control_undead",
+        "level": 3,
+        "name_ru": "Канал: Контроль нежити",
+        "name_en": "Channel Divinity: Control Undead",
+        "summary_ru": "Действием (тратит канал): одна нежить спас Мудрости или под твоим контролем 24 ч. (КР ≤ ур. паладина).",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "cd_dreadful_aspect",
+        "level": 3,
+        "name_ru": "Канал: Ужасающий лик",
+        "name_en": "Channel Divinity: Dreadful Aspect",
+        "summary_ru": "Действием (тратит канал): враги в 30 фт. спас Мудрости или испуганы 1 мин.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "aura_of_hate",
+        "level": 7,
+        "name_ru": "Аура ненависти",
+        "name_en": "Aura of Hate",
+        "summary_ru": "Ты и дружественная нежить в ауре получают бонус к урону оружием ближнего боя = мод. Хар. (мин. +1).",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Радиус",
+          "by_level": {
+            "7": "10 фт.",
+            "18": "30 фт."
+          }
+        }
+      },
+      {
+        "id": "supernatural_resistance",
+        "level": 15,
+        "name_ru": "Сверхъестественное сопротивление",
+        "name_en": "Supernatural Resistance",
+        "summary_ru": "Сопротивление дробящему, колющему и рубящему от немагических атак.",
+        "kind": "passive"
+      },
+      {
+        "id": "dread_lord",
+        "level": 20,
+        "name_ru": "Повелитель ужаса",
+        "name_en": "Dread Lord",
+        "summary_ru": "Действием: 1 мин. — аура 30 фт. тьма/помеха; реакция 3к10 + Хар. некротического при атаке по тебе в ауре; бонусным — дух-атака. 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "dread_lord",
+          "pool_name_ru": "Повелитель ужаса",
+          "track": "spend"
+        }
+      }
+    ],
+    "oath_of_the_crown": [
+      {
+        "id": "cd_champion_challenge",
+        "level": 3,
+        "name_ru": "Канал: Вызов чемпиона",
+        "name_en": "Channel Divinity: Champion Challenge",
+        "summary_ru": "Действием (тратит канал): существа по выбору в 30 фт. спас Мудрости или не могут добровольно отойти более чем на 30 фт. от тебя.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "cd_turn_the_tide",
+        "level": 3,
+        "name_ru": "Канал: Переломный момент",
+        "name_en": "Channel Divinity: Turn the Tide",
+        "summary_ru": "Бонусным (тратит канал): существа по выбору в 30 фт. с ≤½ хитов получают 1к6 + Хар. временных хитов.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "divine_allegiance",
+        "level": 7,
+        "name_ru": "Божественная верность",
+        "name_en": "Divine Allegiance",
+        "summary_ru": "Реакция: когда существо в 5 фт. получает урон — принять этот урон на себя (сопротивления/уязвимости не применяются).",
+        "kind": "reaction"
+      },
+      {
+        "id": "unyielding_spirit",
+        "level": 15,
+        "name_ru": "Непреклонный дух",
+        "name_en": "Unyielding Spirit",
+        "summary_ru": "Преимущество на спас против паралича и оглушения.",
+        "kind": "passive"
+      },
+      {
+        "id": "exalted_champion",
+        "level": 20,
+        "name_ru": "Возвышенный чемпион",
+        "name_en": "Exalted Champion",
+        "summary_ru": "Действием: 1 час — сопр. дроб/кол/руб; ты и союзники в 30 фт. — преимущество на спас Мудрости/смерти. 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "exalted_champion",
+          "pool_name_ru": "Возвышенный чемпион",
+          "track": "spend"
+        }
+      }
+    ],
+    "oath_of_conquest": [
+      {
+        "id": "cd_conquering_presence",
+        "level": 3,
+        "name_ru": "Канал: Присутствие завоевателя",
+        "name_en": "Channel Divinity: Conquering Presence",
+        "summary_ru": "Действием (тратит канал): существа по выбору в 30 фт. спас Мудрости или испуганы 1 мин.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "cd_guided_strike_paladin",
+        "level": 3,
+        "name_ru": "Канал: Направляющий удар",
+        "name_en": "Channel Divinity: Guided Strike",
+        "summary_ru": "При атаке (тратит канал): +10 к броску атаки (после броска, до результата).",
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "aura_of_conquest",
+        "level": 7,
+        "name_ru": "Аура покорения",
+        "name_en": "Aura of Conquest",
+        "summary_ru": "Испуганные тобой враги в ауре: скорость 0; в начале хода получают психический урон = ½ ур. паладина.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Радиус",
+          "by_level": {
+            "7": "10 фт.",
+            "18": "30 фт."
+          }
+        }
+      },
+      {
+        "id": "scornful_rebuke",
+        "level": 15,
+        "name_ru": "Презрительный укор",
+        "name_en": "Scornful Rebuke",
+        "summary_ru": "Когда тебя ранят: атакующий получает психический урон = мод. Хар. (мин. 1), если не недееспособен.",
+        "kind": "passive"
+      },
+      {
+        "id": "invincible_conqueror",
+        "level": 20,
+        "name_ru": "Непобедимый завоеватель",
+        "name_en": "Invincible Conqueror",
+        "summary_ru": "Действием: 1 мин. — сопр. ко всем уронам; доп. атака при Атаке; крит. на 19–20. 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "invincible_conqueror",
+          "pool_name_ru": "Непобедимый завоеватель",
+          "track": "spend"
+        }
+      }
+    ],
+    "oath_of_redemption": [
+      {
+        "id": "cd_emissary_of_peace",
+        "level": 3,
+        "name_ru": "Канал: Посланник мира",
+        "name_en": "Channel Divinity: Emissary of Peace",
+        "summary_ru": "Бонусным (тратит канал): на 10 мин. +5 к проверкам Харизмы (Убеждение).",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "cd_rebuke_the_violent",
+        "level": 3,
+        "name_ru": "Канал: Укор насильнику",
+        "name_en": "Channel Divinity: Rebuke the Violent",
+        "summary_ru": "Реакция (тратит канал): когда враг в 30 фт. наносит урон атакой — спас Мудрости или получает лучистый урон = нанесённому.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "aura_of_the_guardian",
+        "level": 7,
+        "name_ru": "Аура стража",
+        "name_en": "Aura of the Guardian",
+        "summary_ru": "Реакция: когда существо в ауре получает урон — принять урон на себя.",
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Радиус",
+          "by_level": {
+            "7": "10 фт.",
+            "18": "30 фт."
+          }
+        }
+      },
+      {
+        "id": "protective_spirit",
+        "level": 15,
+        "name_ru": "Защитный дух",
+        "name_en": "Protective Spirit",
+        "summary_ru": "В начале хода при ≤½ хитов: восстанавливаешь 1к6 + ½ ур. паладина хитов (если не недееспособен).",
+        "kind": "passive"
+      },
+      {
+        "id": "emissary_of_redemption",
+        "level": 20,
+        "name_ru": "Посланник искупления",
+        "name_en": "Emissary of Redemption",
+        "summary_ru": "Сопротивление ко всему урону от других существ; если бьёшь существо атакой/заклинанием (не по его согласию) — до отдыха теряешь сопротивление и оно получает уязвимость к твоему урону.",
+        "kind": "passive"
+      }
+    ],
+    "oath_of_glory": [
+      {
+        "id": "cd_peerless_athlete",
+        "level": 3,
+        "name_ru": "Канал: Непревзойдённый атлет",
+        "name_en": "Channel Divinity: Peerless Athlete",
+        "summary_ru": "Бонусным (тратит канал): 1 час — преимущество на Атлетику/Акробатику; прыжки +10 фт.; скорость ношения ×2.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "cd_inspiring_smite",
+        "level": 3,
+        "name_ru": "Канал: Воодушевляющая кара",
+        "name_en": "Channel Divinity: Inspiring Smite",
+        "summary_ru": "После Divine Smite (тратит канал бонусным): раздать временные хиты = 2к8 + ур. паладина существам в 30 фт.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "aura_of_alacrity",
+        "level": 7,
+        "name_ru": "Аура рвения",
+        "name_en": "Aura of Alacrity",
+        "summary_ru": "Твоя скорость +10 фт.; союзники, входящие в ауру впервые в ход, получают +скорость = твой бонус до конца хода.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Радиус",
+          "by_level": {
+            "7": "5 фт.",
+            "18": "10 фт."
+          }
+        }
+      },
+      {
+        "id": "glorious_defense",
+        "level": 15,
+        "name_ru": "Славная оборона",
+        "name_en": "Glorious Defense",
+        "summary_ru": "Реакция, Хар. × / прод. отдых: когда существо в 10 фт. атакуют — +мод. Хар. к КД; при промахе можешь атаковать атакующего, если в досягаемости.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "cha",
+          "recharge": "long_rest",
+          "pool_id": "glorious_defense",
+          "pool_name_ru": "Славная оборона",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "living_legend",
+        "level": 20,
+        "name_ru": "Живая легенда",
+        "name_en": "Living Legend",
+        "summary_ru": "Действием: 1 мин. — преимущество на все спасброски; реакцией перебросить провал проверки характеристики. 1× / прод. отдых (или ячейка 5+ ур.).",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "living_legend",
+          "pool_name_ru": "Живая легенда",
+          "track": "spend"
+        }
+      }
+    ],
+    "oath_of_the_watchers": [
+      {
+        "id": "cd_watchers_will",
+        "level": 3,
+        "name_ru": "Канал: Воля смотрителя",
+        "name_en": "Channel Divinity: Watcher's Will",
+        "summary_ru": "Действием (тратит канал): ты и союзники по выбору в 30 фт. — преимущество на спас Инт/Мудр/Хар. на 1 мин.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "cd_abjure_the_extraplanar",
+        "level": 3,
+        "name_ru": "Канал: Отречение внетелесных",
+        "name_en": "Channel Divinity: Abjure the Extraplanar",
+        "summary_ru": "Действием (тратит канал): аберрации/небожители/элементали/феи/фиенды в 30 фт. спас Мудрости или изгнаны 1 мин.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "channel_divinity",
+          "pool_name_ru": "Божественный канал",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "aura_of_the_sentinel",
+        "level": 7,
+        "name_ru": "Аура часового",
+        "name_en": "Aura of the Sentinel",
+        "summary_ru": "Ты и союзники в ауре добавляют мод. мастерства к инициативе (пока в сознании).",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Радиус",
+          "by_level": {
+            "7": "10 фт.",
+            "18": "30 фт."
+          }
+        }
+      },
+      {
+        "id": "vigilant_rebuke",
+        "level": 15,
+        "name_ru": "Бдительный укор",
+        "name_en": "Vigilant Rebuke",
+        "summary_ru": "Реакция: когда ты или существо в 30 фт. преуспевает в спас Инт/Мудр/Хар. — наложить 2к8 + Хар. силового на существа, вынудившие спас.",
+        "kind": "reaction"
+      },
+      {
+        "id": "mortal_bulwark",
+        "level": 20,
+        "name_ru": "Смертный бастион",
+        "name_en": "Mortal Bulwark",
+        "summary_ru": "Действием: 1 мин. — истинное зрение 120 фт.; преимущество на атаки vs аберраций/небожителей/элементалей/фей/фиендов; реакция при провале их спас vs изгнания — доп. атака. 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "mortal_bulwark",
+          "pool_name_ru": "Смертный бастион",
+          "track": "spend"
+        }
+      }
+    ]
+  }
+}

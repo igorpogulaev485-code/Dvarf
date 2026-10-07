@@ -18,8 +18,9 @@
 2. **Spend / rest** — N×, сброс short/long (Second Wind, Action Surge, Ghost Walk)
 3. **PB-gated spend** — `uses_from: proficiency_bonus` (Могильные вопли)
 4. **2×PB spend** — `uses_from: twice_proficiency_bonus` (пси-кости Soulknife)
-4b. **Ability-mod spend** — `uses_from: ability_modifier` + `ability: wis` (Warding Flare, War Priest)
-5. **Level table spend** — `scale_uses` по уровню класса (кости превосходства BM, Channel Divinity)
+4b. **Ability-mod spend** — `uses_from: ability_modifier` + `ability: wis` (Warding Flare, War Priest, Cleansing Touch)
+4c. **1+ability-mod spend** — `uses_from: one_plus_ability_modifier` + `ability: cha` (Divine Sense)
+5. **Level table spend** — `scale_uses` по уровню класса (кости превосходства BM, Channel Divinity, Lay on Hands 5×ур.)
 6. **Stock / event** — `track: stock`, ручной +/− (частицы души)
 7. **Linked spend** — `linked_spend` на другой pool (вопль ← частица)
 8. **Recover one** — `recover_one` (Soulknife: бонусным вернуть 1 кость / short)
@@ -36,7 +37,7 @@
 ```json
 {
   "uses": 0,
-  "uses_from": "fixed | proficiency_bonus | twice_proficiency_bonus | ability_modifier",
+  "uses_from": "fixed | proficiency_bonus | twice_proficiency_bonus | ability_modifier | one_plus_ability_modifier",
   "ability": "wis",
   "scale_uses": { "3": 4, "7": 5, "15": 6 },
   "recharge": "short_rest | long_rest | dawn | manual",
@@ -94,6 +95,7 @@
 | Barbarian / Berserker / Totem | 1, 5 (+ Rage table) |
 | Monk / Open Hand / Shadow / Elements | 1, 5, 9 (+ Ki = level, Perfect Self +4) |
 | Cleric / **14** оф. доменов | 2, 4b, 5, 12, 13 (CD shared; Wis-mod; DI success lock; PHB+DMG+SCAG+XGtE+TCoE) |
+| Paladin / **9** оф. клятв | 2, 4b, 4c, 5, 12 (LoH 5×ур.; Divine Sense 1+Cha; CD shared; PHB+DMG+SCAG+XGtE+TCoE) |
 
 ## H4 — порядок пакетов классов
 
@@ -103,8 +105,8 @@
 2. ~~Варвар~~ (готово)
 3. ~~Монах~~ (готово)
 4. ~~Жрец~~ (умения + 14 доменов + always-prepared/grants + CD shared + DI lock)
-5. **Паладин** ← следующий (возложение рук = stock/points, CD)
-6. Следопыт / остальные PHB
+5. ~~Паладин~~ (LoH + CD + 9 клятв + always-prepared)
+6. **Следопыт** ← следующий / остальные PHB
 7. Чародей, Колдун, Бард, Друид, Волшебник, Изобретатель
 
 ## Не в v1

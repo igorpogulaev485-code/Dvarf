@@ -5,6 +5,7 @@ import barbarianPack from './data/barbarian_2014.json'
 import clericPack from './data/cleric_2014.json'
 import fighterPack from './data/fighter_2014.json'
 import monkPack from './data/monk_2014.json'
+import paladinPack from './data/paladin_2014.json'
 import roguePack from './data/rogue_2014.json'
 
 export type AbilityScoreKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
@@ -29,7 +30,8 @@ export type FeatureResource = {
     | 'proficiency_bonus'
     | 'twice_proficiency_bonus'
     | 'ability_modifier'
-  /** For uses_from: ability_modifier (Warding Flare / War Priest = wis). */
+    | 'one_plus_ability_modifier'
+  /** For uses_from: ability_modifier / one_plus_ability_modifier (Divine Sense = 1+cha). */
   ability?: AbilityScoreKey
   recharge: 'short_rest' | 'long_rest' | 'dawn' | 'manual'
   scale_uses?: Record<string, number>
@@ -107,6 +109,7 @@ const LOCAL_PACKS: Record<string, FeaturePack> = {
   cleric: clericPack as FeaturePack,
   fighter: fighterPack as FeaturePack,
   monk: monkPack as FeaturePack,
+  paladin: paladinPack as FeaturePack,
   rogue: roguePack as FeaturePack,
 }
 
@@ -193,16 +196,19 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
       ? 'twice_proficiency_bonus'
       : resourceRaw.uses_from === 'proficiency_bonus'
         ? 'proficiency_bonus'
-        : resourceRaw.uses_from === 'ability_modifier'
-          ? 'ability_modifier'
-          : resourceRaw.uses_from === 'fixed'
-            ? 'fixed'
-            : undefined
+        : resourceRaw.uses_from === 'one_plus_ability_modifier'
+          ? 'one_plus_ability_modifier'
+          : resourceRaw.uses_from === 'ability_modifier'
+            ? 'ability_modifier'
+            : resourceRaw.uses_from === 'fixed'
+              ? 'fixed'
+              : undefined
   if (
     !hasUses &&
     usesFrom !== 'proficiency_bonus' &&
     usesFrom !== 'twice_proficiency_bonus' &&
-    usesFrom !== 'ability_modifier'
+    usesFrom !== 'ability_modifier' &&
+    usesFrom !== 'one_plus_ability_modifier'
   ) {
     return undefined
   }
@@ -328,6 +334,12 @@ function resolveResourceUses(
     if (typeof score !== 'number') return Math.max(1, resource.uses || 1)
     return Math.max(1, abilityModifierFromScore(score))
   }
+  if (resource.uses_from === 'one_plus_ability_modifier') {
+    const key = resource.ability ?? 'cha'
+    const score = abilities?.[key]
+    if (typeof score !== 'number') return Math.max(1, resource.uses || 1)
+    return Math.max(1, 1 + abilityModifierFromScore(score))
+  }
   let uses = resource.uses
   if (resource.scale_uses) {
     for (const [lvlRaw, value] of Object.entries(resource.scale_uses)) {
@@ -354,6 +366,8 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   монах: 'monk',
   cleric: 'cleric',
   жрец: 'cleric',
+  paladin: 'paladin',
+  паладин: 'paladin',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {
@@ -424,6 +438,32 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   'домен мира': 'peace_domain',
   twilight_domain: 'twilight_domain',
   'домен сумерек': 'twilight_domain',
+  oath_of_devotion: 'oath_of_devotion',
+  'клятва преданности': 'oath_of_devotion',
+  преданность: 'oath_of_devotion',
+  oath_of_the_ancients: 'oath_of_the_ancients',
+  'клятва древних': 'oath_of_the_ancients',
+  древних: 'oath_of_the_ancients',
+  oath_of_vengeance: 'oath_of_vengeance',
+  'клятва мести': 'oath_of_vengeance',
+  мести: 'oath_of_vengeance',
+  oathbreaker: 'oathbreaker',
+  клятвопреступник: 'oathbreaker',
+  oath_of_the_crown: 'oath_of_the_crown',
+  'клятва короны': 'oath_of_the_crown',
+  короны: 'oath_of_the_crown',
+  oath_of_conquest: 'oath_of_conquest',
+  'клятва покорения': 'oath_of_conquest',
+  покорения: 'oath_of_conquest',
+  oath_of_redemption: 'oath_of_redemption',
+  'клятва искупления': 'oath_of_redemption',
+  искупления: 'oath_of_redemption',
+  oath_of_glory: 'oath_of_glory',
+  'клятва славы': 'oath_of_glory',
+  славы: 'oath_of_glory',
+  oath_of_the_watchers: 'oath_of_the_watchers',
+  'клятва смотрителей': 'oath_of_the_watchers',
+  смотрителей: 'oath_of_the_watchers',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -452,6 +492,15 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'order_domain',
   'peace_domain',
   'twilight_domain',
+  'oath_of_devotion',
+  'oath_of_the_ancients',
+  'oath_of_vengeance',
+  'oathbreaker',
+  'oath_of_the_crown',
+  'oath_of_conquest',
+  'oath_of_redemption',
+  'oath_of_glory',
+  'oath_of_the_watchers',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {
