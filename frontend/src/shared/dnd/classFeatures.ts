@@ -18,7 +18,12 @@ import {
 } from './rangerChoices'
 import rangerPack from './data/ranger_2014.json'
 import sorcererPack from './data/sorcerer_2014.json'
+import warlockPack from './data/warlock_2014.json'
 import { SORCERER_METAMAGIC } from './sorcererMetamagic'
+import {
+  WARLOCK_INVOCATIONS,
+  WARLOCK_PACT_BOONS,
+} from './warlockInvocations'
 
 export type AbilityScoreKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
@@ -96,6 +101,8 @@ export type FeatureChoiceDef = {
     | 'ranger_favored_enemies'
     | 'ranger_favored_terrains'
     | 'sorcerer_metamagic'
+    | 'warlock_invocations'
+    | 'warlock_pact_boons'
   options?: string[]
   /** Multi-select cap by class level (Metamagic 2/3/4). */
   max_picks_by_level?: Record<string, number>
@@ -165,6 +172,7 @@ const LOCAL_PACKS: Record<string, FeaturePack> = {
   ranger: rangerPack as FeaturePack,
   rogue: roguePack as FeaturePack,
   sorcerer: sorcererPack as FeaturePack,
+  warlock: warlockPack as FeaturePack,
 }
 
 function asFeatureList(raw: unknown): ClassFeatureDef[] {
@@ -211,7 +219,9 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         choiceRaw.options_from === 'ranger_fighting_styles' ||
         choiceRaw.options_from === 'ranger_favored_enemies' ||
         choiceRaw.options_from === 'ranger_favored_terrains' ||
-        choiceRaw.options_from === 'sorcerer_metamagic'
+        choiceRaw.options_from === 'sorcerer_metamagic' ||
+        choiceRaw.options_from === 'warlock_invocations' ||
+        choiceRaw.options_from === 'warlock_pact_boons'
           ? choiceRaw.options_from
           : undefined
       const options = Array.isArray(choiceRaw.options)
@@ -327,6 +337,12 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
   }
   if (choice.options_from === 'sorcerer_metamagic') {
     return SORCERER_METAMAGIC.map((row) => row.id)
+  }
+  if (choice.options_from === 'warlock_invocations') {
+    return WARLOCK_INVOCATIONS.map((row) => row.id)
+  }
+  if (choice.options_from === 'warlock_pact_boons') {
+    return WARLOCK_PACT_BOONS.map((row) => row.id)
   }
   return choice.options ? [...choice.options] : []
 }
@@ -567,6 +583,8 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   следопыт: 'ranger',
   sorcerer: 'sorcerer',
   чародей: 'sorcerer',
+  warlock: 'warlock',
+  колдун: 'warlock',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {
@@ -696,6 +714,25 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   'душа часового механизма': 'clockwork_soul',
   lunar_sorcery: 'lunar_sorcery',
   'лунная магия': 'lunar_sorcery',
+  the_archfey: 'the_archfey',
+  архифея: 'the_archfey',
+  the_fiend: 'the_fiend',
+  исчадие: 'the_fiend',
+  the_great_old_one: 'the_great_old_one',
+  'старший': 'the_great_old_one',
+  'великий древний': 'the_great_old_one',
+  the_undying: 'the_undying',
+  бессмертный: 'the_undying',
+  the_celestial: 'the_celestial',
+  небожитель: 'the_celestial',
+  the_hexblade: 'the_hexblade',
+  хексблейд: 'the_hexblade',
+  the_fathomless: 'the_fathomless',
+  бездонный: 'the_fathomless',
+  the_genie: 'the_genie',
+  джинн: 'the_genie',
+  the_undead: 'the_undead',
+  нежить: 'the_undead',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -749,6 +786,15 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'aberrant_mind',
   'clockwork_soul',
   'lunar_sorcery',
+  'the_archfey',
+  'the_fiend',
+  'the_great_old_one',
+  'the_undying',
+  'the_celestial',
+  'the_hexblade',
+  'the_fathomless',
+  'the_genie',
+  'the_undead',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {

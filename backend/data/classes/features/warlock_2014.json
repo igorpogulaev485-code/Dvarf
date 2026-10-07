@@ -1,0 +1,706 @@
+{
+  "meta": {
+    "purpose": "PHB 2014 Warlock + official patrons for sheet unlock",
+    "edition": "2014",
+    "source": "phb+scag+xgte+tcoe+vrgr",
+    "notes_ru": "Pact Magic — в casterProgression (short rest). Инвокации multi-pick. Pact Boon choice. Mystic Arcanum 6–9 = 1× long. Архетипы — каркас."
+  },
+  "class_slug": "warlock",
+  "features": [
+    {
+      "id": "otherworldly_patron",
+      "level": 1,
+      "name_ru": "Иной покровитель",
+      "name_en": "Otherworldly Patron",
+      "summary_ru": "Выбери покровителя (Архифея, Исчадие, Старший …).",
+      "kind": "passive"
+    },
+    {
+      "id": "pact_magic",
+      "level": 1,
+      "name_ru": "Магия договора",
+      "name_en": "Pact Magic",
+      "summary_ru": "Ячейки договора по таблице колдуна; сброс на коротком или продолжительном отдыхе. Харизма — базовая. Известные заклинания.",
+      "kind": "passive"
+    },
+    {
+      "id": "eldritch_invocations",
+      "level": 2,
+      "name_ru": "Мистические воззвания",
+      "name_en": "Eldritch Invocations",
+      "summary_ru": "Выбери воззвания (2 на 2 ур., затем больше по таблице). Можно заменять при получении нового.",
+      "kind": "passive",
+      "choice": {
+        "id": "eldritch_invocations",
+        "label_ru": "Воззвания",
+        "options_from": "warlock_invocations",
+        "max_picks_by_level": {
+          "2": 2,
+          "5": 3,
+          "7": 4,
+          "9": 5,
+          "12": 6,
+          "15": 7,
+          "18": 8
+        }
+      },
+      "scale": {
+        "label_ru": "Известно воззваний",
+        "by_level": {
+          "2": "2",
+          "5": "3",
+          "7": "4",
+          "9": "5",
+          "12": "6",
+          "15": "7",
+          "18": "8"
+        }
+      }
+    },
+    {
+      "id": "pact_boon",
+      "level": 3,
+      "name_ru": "Дар договора",
+      "name_en": "Pact Boon",
+      "summary_ru": "Выбери: Клинок, Цепь или Гримуар.",
+      "kind": "passive",
+      "choice": {
+        "id": "pact_boon",
+        "label_ru": "Дар договора",
+        "options_from": "warlock_pact_boons"
+      }
+    },
+    {
+      "id": "asi_4_warlock",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_8_warlock",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "mystic_arcanum_6",
+      "level": 11,
+      "name_ru": "Мистический арканум (6)",
+      "name_en": "Mystic Arcanum (6th)",
+      "summary_ru": "Одно заклинание 6 ур. из списка колдуна; кастуй 1× / прод. отдых без ячейки.",
+      "kind": "action",
+      "resource": {
+        "uses": 1,
+        "recharge": "long_rest",
+        "pool_id": "mystic_arcanum_6",
+        "pool_name_ru": "Арканум 6",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "asi_12_warlock",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "mystic_arcanum_7",
+      "level": 13,
+      "name_ru": "Мистический арканум (7)",
+      "name_en": "Mystic Arcanum (7th)",
+      "summary_ru": "Одно заклинание 7 ур.; 1× / прод. отдых.",
+      "kind": "action",
+      "resource": {
+        "uses": 1,
+        "recharge": "long_rest",
+        "pool_id": "mystic_arcanum_7",
+        "pool_name_ru": "Арканум 7",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "mystic_arcanum_8",
+      "level": 15,
+      "name_ru": "Мистический арканум (8)",
+      "name_en": "Mystic Arcanum (8th)",
+      "summary_ru": "Одно заклинание 8 ур.; 1× / прод. отдых.",
+      "kind": "action",
+      "resource": {
+        "uses": 1,
+        "recharge": "long_rest",
+        "pool_id": "mystic_arcanum_8",
+        "pool_name_ru": "Арканум 8",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "asi_16_warlock",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "mystic_arcanum_9",
+      "level": 17,
+      "name_ru": "Мистический арканум (9)",
+      "name_en": "Mystic Arcanum (9th)",
+      "summary_ru": "Одно заклинание 9 ур.; 1× / прод. отдых.",
+      "kind": "action",
+      "resource": {
+        "uses": 1,
+        "recharge": "long_rest",
+        "pool_id": "mystic_arcanum_9",
+        "pool_name_ru": "Арканум 9",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "asi_19_warlock",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "eldritch_master",
+      "level": 20,
+      "name_ru": "Мистический мастер",
+      "name_en": "Eldritch Master",
+      "summary_ru": "1 мин. молитвы покровителю: восстанавливаешь все ячейки договора. 1× / прод. отдых.",
+      "kind": "action",
+      "resource": {
+        "uses": 1,
+        "recharge": "long_rest",
+        "pool_id": "eldritch_master",
+        "pool_name_ru": "Мистический мастер",
+        "track": "spend"
+      }
+    }
+  ],
+  "subclasses": {
+    "the_archfey": [
+      {
+        "id": "fey_presence",
+        "level": 1,
+        "name_ru": "Присутствие фей",
+        "name_en": "Fey Presence",
+        "summary_ru": "Действием: куб 10 фт. — спас Мудр. или очарован/испуган до конца твоего след. хода. 1× / короткий или прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "fey_presence",
+          "pool_name_ru": "Присутствие фей",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "misty_escape",
+        "level": 6,
+        "name_ru": "Туманный побег",
+        "name_en": "Misty Escape",
+        "summary_ru": "Реакция при получении урона: невидимость + телепорт 60 фт. до нач. след. хода. 1× / короткий или прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "misty_escape",
+          "pool_name_ru": "Туманный побег",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "beguiling_defenses",
+        "level": 10,
+        "name_ru": "Обманчивая защита",
+        "name_en": "Beguiling Defenses",
+        "summary_ru": "Иммунитет к очарованию; при попытке очар. — спас Мудр. атакующего или он очарован 1 мин.",
+        "kind": "passive"
+      },
+      {
+        "id": "dark_delirium",
+        "level": 14,
+        "name_ru": "Тёмный бред",
+        "name_en": "Dark Delirium",
+        "summary_ru": "Действием: существо в 60 фт. спас Мудр. или очарован/испуган + иллюзия. 1× / короткий или прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "dark_delirium",
+          "pool_name_ru": "Тёмный бред",
+          "track": "spend"
+        }
+      }
+    ],
+    "the_fiend": [
+      {
+        "id": "dark_ones_blessing",
+        "level": 1,
+        "name_ru": "Благословение Тёмного",
+        "name_en": "Dark One's Blessing",
+        "summary_ru": "При убийстве врага: временные хиты = мод. Хар. + ур. колдуна.",
+        "kind": "passive"
+      },
+      {
+        "id": "dark_ones_own_luck",
+        "level": 6,
+        "name_ru": "Удача Тёмного",
+        "name_en": "Dark One's Own Luck",
+        "summary_ru": "К проверке/спасу добавь 1к10. 1× / короткий или прод. отдых.",
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "dark_ones_own_luck",
+          "pool_name_ru": "Удача Тёмного",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "fiendish_resilience",
+        "level": 10,
+        "name_ru": "Дьявольская стойкость",
+        "name_en": "Fiendish Resilience",
+        "summary_ru": "После короткого/продолжительного отдыха выбери тип урона — сопротивление (кроме силового/с серебром).",
+        "kind": "passive"
+      },
+      {
+        "id": "hurl_through_hell",
+        "level": 14,
+        "name_ru": "Бросок сквозь Ад",
+        "name_en": "Hurl through Hell",
+        "summary_ru": "При попадании атакой: цель исчезает в адских видениях, 10к10 психического, возвращается в конце твоего след. хода. 1× / прод. отдых.",
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "hurl_through_hell",
+          "pool_name_ru": "Бросок сквозь Ад",
+          "track": "spend"
+        }
+      }
+    ],
+    "the_great_old_one": [
+      {
+        "id": "awakened_mind",
+        "level": 1,
+        "name_ru": "Пробуждённый разум",
+        "name_en": "Awakened Mind",
+        "summary_ru": "Телепатия 30 фт. с существом, понимающим язык.",
+        "kind": "passive"
+      },
+      {
+        "id": "entropic_ward",
+        "level": 6,
+        "name_ru": "Энтропийный щит",
+        "name_en": "Entropic Ward",
+        "summary_ru": "Реакция: помеха на атаку по тебе; при промахе — преимущество на твою след. атаку до конца след. хода. 1× / короткий или прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "entropic_ward",
+          "pool_name_ru": "Энтропийный щит",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "thought_shield",
+        "level": 10,
+        "name_ru": "Мысленный щит",
+        "name_en": "Thought Shield",
+        "summary_ru": "Сопр. психическому; отражаешь психический урон атакующему; разум нельзя читать без согласия.",
+        "kind": "passive"
+      },
+      {
+        "id": "create_thrall",
+        "level": 14,
+        "name_ru": "Создать раба",
+        "name_en": "Create Thrall",
+        "summary_ru": "Действием коснись недееспособного гуманоида: очарован тобой, пока не снимешь / не применишь снова. Телепатия на любом расстоянии.",
+        "kind": "passive"
+      }
+    ],
+    "the_undying": [
+      {
+        "id": "among_the_dead",
+        "level": 1,
+        "name_ru": "Среди мёртвых",
+        "name_en": "Among the Dead",
+        "summary_ru": "spare the dying; преимущество vs болезней; нежить с помехой атаковать тебя (спас Мудр.).",
+        "kind": "passive"
+      },
+      {
+        "id": "defy_death",
+        "level": 6,
+        "name_ru": "Бросок смерти",
+        "name_en": "Defy Death",
+        "summary_ru": "1× / прод. отдых: при 0 хитов или spare the dying — 1к8+Тел хитов.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "defy_death",
+          "pool_name_ru": "Бросок смерти",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "undying_nature",
+        "level": 10,
+        "name_ru": "Нетленная природа",
+        "name_en": "Undying Nature",
+        "summary_ru": "Не нужна еда/вода/воздух; возраст медленнее; иммунитет к эффектам старения.",
+        "kind": "passive"
+      },
+      {
+        "id": "indestructible_life",
+        "level": 14,
+        "name_ru": "Несокрушимая жизнь",
+        "name_en": "Indestructible Life",
+        "summary_ru": "Бонусным: хиты = 1к8+ур. колдуна; можешь реаттачить конечность. 1× / короткий или прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "indestructible_life",
+          "pool_name_ru": "Несокрушимая жизнь",
+          "track": "spend"
+        }
+      }
+    ],
+    "the_celestial": [
+      {
+        "id": "bonus_cantrips_celestial",
+        "level": 1,
+        "name_ru": "Доп. заговоры",
+        "name_en": "Bonus Cantrips",
+        "summary_ru": "light и sacred flame известны.",
+        "kind": "passive"
+      },
+      {
+        "id": "healing_light",
+        "level": 1,
+        "name_ru": "Исцеляющий свет",
+        "name_en": "Healing Light",
+        "summary_ru": "Пул костей d6 = 1+ур. колдуна. Бонусным: существо в 60 фт. тратит кости (≤ Хар.). Сброс на прод. отдыхе.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 2,
+          "recharge": "long_rest",
+          "scale_uses": {
+            "1": 2,
+            "2": 3,
+            "3": 4,
+            "4": 5,
+            "5": 6,
+            "6": 7,
+            "7": 8,
+            "8": 9,
+            "9": 10,
+            "10": 11,
+            "11": 12,
+            "12": 13,
+            "13": 14,
+            "14": 15,
+            "15": 16,
+            "16": 17,
+            "17": 18,
+            "18": 19,
+            "19": 20,
+            "20": 21
+          },
+          "pool_id": "healing_light",
+          "pool_name_ru": "Исцеляющий свет",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "radiant_soul",
+        "level": 6,
+        "name_ru": "Сияющая душа",
+        "name_en": "Radiant Soul",
+        "summary_ru": "Сопр. лучистому; к одному броску лучистого/огненного урона заклинания добавь мод. Хар.",
+        "kind": "passive"
+      },
+      {
+        "id": "celestial_resilience",
+        "level": 10,
+        "name_ru": "Небесная стойкость",
+        "name_en": "Celestial Resilience",
+        "summary_ru": "После короткого/продолжительного отдыха: временные хиты себе и союзникам.",
+        "kind": "passive"
+      },
+      {
+        "id": "searing_vengeance",
+        "level": 14,
+        "name_ru": "Жгучая месть",
+        "name_en": "Searing Vengeance",
+        "summary_ru": "При спасброске от смерти: встаёшь с ½ хитов; враги в 30 фт. — лучистый + ослепление. 1× / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "searing_vengeance",
+          "pool_name_ru": "Жгучая месть",
+          "track": "spend"
+        }
+      }
+    ],
+    "the_hexblade": [
+      {
+        "id": "hexblade_warrior",
+        "level": 1,
+        "name_ru": "Воин хексблейда",
+        "name_en": "Hexblade's Warrior",
+        "summary_ru": "Владение средними доспехами, щитами, воинским оружием.",
+        "kind": "passive"
+      },
+      {
+        "id": "hexblades_curse",
+        "level": 1,
+        "name_ru": "Проклятие хексблейда",
+        "name_en": "Hexblade's Curse",
+        "summary_ru": "Бонусным: проклясть в 30 фт. — бонус к урону = PB, крит. на 19–20, при смерти цели — хиты = ур. колдуна+Хар. 1× / короткий или прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "hexblades_curse",
+          "pool_name_ru": "Проклятие хексблейда",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "hex_warrior",
+        "level": 1,
+        "name_ru": "Хекс-воин",
+        "name_en": "Hex Warrior",
+        "summary_ru": "Одно оружие: атаки/урон Харизмой; с Пактным клинком — любое подходящее.",
+        "kind": "passive"
+      },
+      {
+        "id": "accursed_specter",
+        "level": 6,
+        "name_ru": "Проклятый спектр",
+        "name_en": "Accursed Specter",
+        "summary_ru": "При убийстве гуманоида: спектр на 24 ч. (бонус к атакам = Хар.). 1× / прод. отдых.",
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "accursed_specter",
+          "pool_name_ru": "Проклятый спектр",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "armor_of_hexes",
+        "level": 10,
+        "name_ru": "Доспех проклятий",
+        "name_en": "Armor of Hexes",
+        "summary_ru": "При попадании проклятой цели: d6, на 4+ — промах.",
+        "kind": "passive"
+      },
+      {
+        "id": "master_of_hexes",
+        "level": 14,
+        "name_ru": "Мастер проклятий",
+        "name_en": "Master of Hexes",
+        "summary_ru": "При смерти проклятой цели можешь перенести проклятие на другую в 30 фт. без траты использования.",
+        "kind": "passive"
+      }
+    ],
+    "the_fathomless": [
+      {
+        "id": "tentacle_of_the_deeps",
+        "level": 1,
+        "name_ru": "Щупальце глубин",
+        "name_en": "Tentacle of the Deeps",
+        "summary_ru": "Бонусным: щупальце 1 мин. — атака 1к8 холод (с 10 ур. 2к8), скорость цели −10. Число = мод. Хар. (мин. 1) / прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "cha",
+          "recharge": "long_rest",
+          "pool_id": "tentacle_of_the_deeps",
+          "pool_name_ru": "Щупальце глубин",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "gift_of_the_sea",
+        "level": 1,
+        "name_ru": "Дар моря",
+        "name_en": "Gift of the Sea",
+        "summary_ru": "Скорость плавания 40 фт.; дыхание водой.",
+        "kind": "passive"
+      },
+      {
+        "id": "oceanic_soul",
+        "level": 6,
+        "name_ru": "Океанская душа",
+        "name_en": "Oceanic Soul",
+        "summary_ru": "Сопр. холоду; речь с любым дышащим водой; при холодном уроне по тебе — союзник в 30 фт. тоже сопротивляется этому урону.",
+        "kind": "passive"
+      },
+      {
+        "id": "guardian_coil",
+        "level": 6,
+        "name_ru": "Страж-спираль",
+        "name_en": "Guardian Coil",
+        "summary_ru": "Реакция: щупальце снижает урон союзнику/себе в 10 фт. на 1к8 (с 10 — 2к8).",
+        "kind": "reaction"
+      },
+      {
+        "id": "grasping_tentacles",
+        "level": 10,
+        "name_ru": "Хватающие щупальца",
+        "name_en": "Grasping Tentacles",
+        "summary_ru": "При Evard's black tentacles: хиты = мод. Хар. при касте; концентрация не от урона; бонусным — урон+замедление.",
+        "kind": "passive"
+      },
+      {
+        "id": "fathomless_plunge",
+        "level": 14,
+        "name_ru": "Погружение в бездну",
+        "name_en": "Fathomless Plunge",
+        "summary_ru": "Действием телепорт себя+до 5 согласных ≤60 фт. через водный тоннель. 1× / короткий или прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "fathomless_plunge",
+          "pool_name_ru": "Погружение в бездну",
+          "track": "spend"
+        }
+      }
+    ],
+    "the_genie": [
+      {
+        "id": "genies_vessel",
+        "level": 1,
+        "name_ru": "Сосуд джинна",
+        "name_en": "Genie's Vessel",
+        "summary_ru": "Крошечный сосуд; бонусным вход/выход; хиты внутри; бутылочный отдых 1× / прод. отдых.",
+        "kind": "passive"
+      },
+      {
+        "id": "genies_wrath",
+        "level": 1,
+        "name_ru": "Гнев джинна",
+        "name_en": "Genie's Wrath",
+        "summary_ru": "1× / ход при попадании атакой: +PB урона типа джинна.",
+        "kind": "passive"
+      },
+      {
+        "id": "elemental_gift",
+        "level": 6,
+        "name_ru": "Стихийный дар",
+        "name_en": "Elemental Gift",
+        "summary_ru": "Сопр. типу джинна; бонусным полёт 10 мин. Число = мод. Хар. (мин. 1) / прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "cha",
+          "recharge": "long_rest",
+          "pool_id": "elemental_gift",
+          "pool_name_ru": "Стихийный дар",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "sanctuary_vessel",
+        "level": 10,
+        "name_ru": "Убежище сосуда",
+        "name_en": "Sanctuary Vessel",
+        "summary_ru": "В сосуд до 5 согласных; при бутылочном отдыхе — доп. временные хиты.",
+        "kind": "passive"
+      },
+      {
+        "id": "limited_wish",
+        "level": 14,
+        "name_ru": "Ограниченное желание",
+        "name_en": "Limited Wish",
+        "summary_ru": "Действием 1× / 1d4 прод. отдыха: эффект заклинания 6 ур. или ниже без слотов/компонентов (кроме стоимостных).",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "limited_wish",
+          "pool_name_ru": "Ограниченное желание",
+          "track": "spend"
+        }
+      }
+    ],
+    "the_undead": [
+      {
+        "id": "form_of_dread",
+        "level": 1,
+        "name_ru": "Облик ужаса",
+        "name_en": "Form of Dread",
+        "summary_ru": "Бонусным 1 мин.: временные хиты = 1к10+ур.; иммунитет к испугу; при атакой в ближнем — цель спас Мудр. или испугана. Число = мод. Хар. (мин. 1) / прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "cha",
+          "recharge": "long_rest",
+          "pool_id": "form_of_dread",
+          "pool_name_ru": "Облик ужаса",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "grave_touched",
+        "level": 6,
+        "name_ru": "Коснутый могилой",
+        "name_en": "Grave Touched",
+        "summary_ru": "Не нужна еда/дыхание/сон (покой 4 ч.); 1× / ход некротический урон атаки вместо обычного; в облике ужаса +доп. кость некротического.",
+        "kind": "passive"
+      },
+      {
+        "id": "necrotic_husk",
+        "level": 10,
+        "name_ru": "Некротическая оболочка",
+        "name_en": "Necrotic Husk",
+        "summary_ru": "Сопр. некротическому (в облике — иммунитет). 1× / прод. отдых при 0 хитов: взрыв 2к10+ур. некротического, встаёшь с 1 хитом.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "necrotic_husk",
+          "pool_name_ru": "Некротическая оболочка",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "spirit_projection",
+        "level": 14,
+        "name_ru": "Проекция духа",
+        "name_en": "Spirit Projection",
+        "summary_ru": "Действием 1× / прод. отдых: тело без сознания, дух на 1 час — полёт, сопротивление, проход сквозь предметы; в облике ужаса — доп. эффекты.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "spirit_projection",
+          "pool_name_ru": "Проекция духа",
+          "track": "spend"
+        }
+      }
+    ]
+  }
+}

@@ -100,6 +100,7 @@
 | Paladin / **9** оф. клятв | 2, 4b, 4c, 5, 11, 12, 14, 15 (LoH; Sense; CD; Fighting Style; Smite slots; Aura saves) |
 | Ranger / **8** оф. архетипов | 2, 3, 4b, 11, 14 (Favored Enemy/Terrain; Fighting Style; Primeval Awareness slot) |
 | Sorcerer / **8** оф. происхождений | 2, 5, 11 + Flexible Casting UI + Metamagic SP spend (Twinned = ур. ячейки) |
+| Warlock / **9** оф. покровителей | 2, 5, 11 (Pact Magic already in caster; Invocations multi-pick; Pact Boon; Arcanum 6–9) |
 
 ## H4 — порядок пакетов классов
 
@@ -112,7 +113,8 @@
 5. ~~Паладин~~ (класс: LoH/CD/Sense + Fighting Style + Smite + Aura saves; клятвы в пакете, полировка архетипов — общим проходом)
 6. ~~Следопыт~~ (класс + каркас 8 архетипов; полировка архетипов — общим проходом)
 7. ~~Чародей~~ (очки + метамагия + каркас 8 происхождений)
-8. **Колдун** ← следующий / Бард, Друид, Волшебник, Изобретатель
+8. ~~Колдун~~ (инвокации + pact boon + арканумы; 9 покровителей каркас)
+9. **Бард** ← следующий / Друид, Волшебник, Изобретатель
 
 ## Не в v1
 

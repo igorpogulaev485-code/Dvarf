@@ -18,6 +18,11 @@ import {
   metamagicLabel,
   metamagicSpendCost,
 } from '../../shared/dnd/sorcererMetamagic'
+import {
+  invocationById,
+  invocationLabel,
+  WARLOCK_PACT_BOONS,
+} from '../../shared/dnd/warlockInvocations'
 import { canSpendSlot, spendSpellSlot, slotsRemaining } from '../../shared/dnd/spells'
 import {
   clearSuccessLock,
@@ -302,10 +307,13 @@ function FeatureResourceControls({
 }
 
 function choiceOptionLabel(optionId: string): string {
+  const pact = WARLOCK_PACT_BOONS.find((row) => row.id === optionId)
   return (
     fightingStyleById(optionId)?.nameRu ||
     rangerChoiceLabel(optionId) ||
     metamagicLabel(optionId) ||
+    invocationLabel(optionId) ||
+    pact?.nameRu ||
     optionId
   )
 }
@@ -362,6 +370,26 @@ function FeatureChoiceControls({
           </Text>
         ) : null,
       )}
+      {choice?.options_from === 'warlock_invocations'
+        ? selectedList.map((id) => {
+            const inv = invocationById(id)
+            if (!inv) return null
+            const prereq = [
+              inv.minLevel ? `с ${inv.minLevel} ур.` : null,
+              inv.requiresPact
+                ? `договор: ${WARLOCK_PACT_BOONS.find((p) => p.id === inv.requiresPact)?.nameRu || inv.requiresPact}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(', ')
+            return (
+              <Text key={id} tone="muted">
+                {inv.nameRu}
+                {prereq ? ` (${prereq})` : ''}: {inv.summaryRu}
+              </Text>
+            )
+          })
+        : null}
       {useSelect ? (
         <label className="feature-resource__select">
           <span className="sr-only">{choice.label_ru}</span>
@@ -915,7 +943,7 @@ export function ClassFeaturesPanel({
 
         {byClass.length === 0 ? (
           <Text tone="muted">
-            Пока заполнены: … Следопыт, Чародей (H4 в docs/feature_resource_contract.md).
+            Пока заполнены: … Чародей, Колдун (H4 в docs/feature_resource_contract.md).
           </Text>
         ) : null}
 

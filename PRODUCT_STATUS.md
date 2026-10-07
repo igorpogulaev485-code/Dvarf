@@ -254,7 +254,8 @@
 | Связанные ресурсы | PB / 2×PB / Wis-mod / 1+Cha / stock / linked / recover / success_lock | Фантом, Soulknife, BM, домены, DI, LoH |
 | Следопыт | Пакет класса + 8 архетипов (каркас) | Enemy/Terrain picks; стиль; Primeval Awareness |
 | Чародей | Очки = ур.; метамагия pick+трата; гибкое колдовство UI | 8 PHB метамагий; слот↔очки; каркас происхождений |
-| H4 очередь | … Чародей ✓ → **Колдун** → … | Порядок в контракте |
+| Колдун | Инвокации multi-pick; Pact Boon; Arcanum 6–9; Eldritch Master | Pact Magic уже в кастере; 9 покровителей каркас |
+| H4 очередь | … Колдун ✓ → **Бард** → … | Порядок в контракте |
 | Контракт | [`docs/feature_resource_contract.md`](docs/feature_resource_contract.md) | Чеклист паттернов для новых архетипов |
 
 На проде: **нет** · ветка `cursor/subclass-wave-a-ef23` · PR #37
