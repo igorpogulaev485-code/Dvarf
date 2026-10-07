@@ -511,3 +511,4 @@
 | 2026-10-07 | `cursor/race-level-unlocks-f10e` · PR #50 | Unlock по уровню + spell_list меток + детект кастера; tip → эта ветка; alembic `m2b3` |
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 | Стык рас+классов/архетипов; feature packs; caster via slug; class-first UX; tip → эта ветка; alembic `r7a8` |
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 (долив) | H4b глубина 118 архетипов; снаряжение→атаки/КД; ярость vs heavy; normalize packs build fix |
+| 2026-10-07 | `cursor/class-asi-hitdice-mc-ef23` · PR #53 | ASI popup, hit dice by class, MC polish; gear catalog RU+dedupe (не wipe); tip → эта ветка; alembic `s8b9` |
