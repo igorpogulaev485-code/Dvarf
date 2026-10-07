@@ -36,6 +36,24 @@ import {
 } from './classEffects'
 import { ClassSetupDialog, HomebrewClassDialog } from './ClassSetupDialog'
 import { RaceSetupDialog, HomebrewRaceDialog } from './RaceSetupDialog'
+import {
+  collectGrantTextSnippets,
+  type AppliedSubclassGrant,
+  type SubclassGrantDef,
+  type SubclassGrantPicks,
+} from '../../shared/dnd/subclassGrants'
+import {
+  applySubclassGrantToDraft,
+  emptySubclassPicks,
+  readAppliedSubclassGrants,
+  resolveSubclassDefFromCatalog,
+  revokeSubclassGrant,
+  subclassNeedsSetupDialog,
+  type SubclassGrantDraftSlice,
+} from './subclassEffects'
+import { SubclassSetupDialog } from './SubclassSetupDialog'
+import { SubclassChangeConfirmDialog } from './SubclassChangeConfirmDialog'
+import { readCompanions, type CompanionEntry } from './companions'
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import type { CatalogEntry } from '../../shared/api/catalog'
@@ -143,7 +161,9 @@ type Draft = {
   play: PlayState
   textBlocks: TextBlock[]
   classGrants: AppliedClassGrant[]
+  subclassGrants: AppliedSubclassGrant[]
   raceGrant: AppliedRaceGrant | null
+  companions: CompanionEntry[]
 }
 
 function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -243,7 +263,9 @@ function buildDraft(character: CharacterDetail): Draft {
     play: readPlay(sheet, level),
     textBlocks: readTextBlocks(sheet),
     classGrants: readAppliedClassGrants(sheet.class_grants),
+    subclassGrants: readAppliedSubclassGrants(sheet.subclass_grants),
     raceGrant: readAppliedRaceGrant(sheet.race_grant),
+    companions: readCompanions(sheet.companions),
   }
 }
 
@@ -294,6 +316,21 @@ export function MinimalSheetEditor({
     def: RaceGrantDef
   } | null>(null)
   const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
+  const [subclassSetup, setSubclassSetup] = useState<{
+    classEntryId: string
+    selected: CatalogEntry
+    def: SubclassGrantDef
+    copyOldTextToNotes: boolean
+    previousDef: SubclassGrantDef | null
+  } | null>(null)
+  const [subclassChange, setSubclassChange] = useState<{
+    classEntryId: string
+    selected: CatalogEntry
+    def: SubclassGrantDef
+    fromName: string
+    textSnippets: string[]
+    previousDef: SubclassGrantDef | null
+  } | null>(null)
   const channelRef = useRef<BroadcastChannel | null>(null)
 
   const characterLevel = useMemo(
@@ -377,15 +414,24 @@ export function MinimalSheetEditor({
   }
 
   function raceSliceFrom(prev: Draft): RaceGrantDraftSlice {
-    const classSkills = new Set(prev.classGrants.flatMap((row) => row.skills))
-    const classTools = new Set(
-      prev.classGrants.flatMap((row) =>
+    const classSkills = new Set([
+      ...prev.classGrants.flatMap((row) => row.skills),
+      ...prev.subclassGrants.flatMap((row) => row.skills),
+    ])
+    const classTools = new Set([
+      ...prev.classGrants.flatMap((row) =>
         row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
       ),
-    )
-    const classArmor = new Set(
-      prev.classGrants.flatMap((row) => row.armorKeys),
-    ) as Set<keyof IdentityExtras['armor']>
+      ...prev.subclassGrants.flatMap((row) =>
+        [...row.tools, ...row.weaponExtras]
+          .map((item) => item.trim().toLowerCase())
+          .filter(Boolean),
+      ),
+    ])
+    const classArmor = new Set([
+      ...prev.classGrants.flatMap((row) => row.armorKeys),
+      ...prev.subclassGrants.flatMap((row) => row.armorKeys),
+    ]) as Set<keyof IdentityExtras['armor']>
     return {
       identity: prev.identity,
       skills: prev.skills,
@@ -397,6 +443,185 @@ export function MinimalSheetEditor({
       classGrantedTools: classTools,
       classGrantedArmor: classArmor,
     }
+  }
+
+  function subclassSliceFrom(prev: Draft): SubclassGrantDraftSlice {
+    return {
+      identity: prev.identity,
+      skills: prev.skills,
+      classGrants: prev.classGrants,
+      subclassGrants: prev.subclassGrants,
+      raceGrant: prev.raceGrant,
+      companions: prev.companions,
+      textBlocks: prev.textBlocks,
+    }
+  }
+
+  function mergeSubclassSlice(prev: Draft, slice: SubclassGrantDraftSlice): Draft {
+    const merged: Draft = {
+      ...prev,
+      identity: slice.identity,
+      skills: slice.skills,
+      subclassGrants: slice.subclassGrants,
+      companions: slice.companions,
+      textBlocks: slice.textBlocks,
+    }
+    const restored = reapplyRaceOverlays(raceSliceFrom(merged))
+    return mergeRaceSlice(merged, restored)
+  }
+
+  function commitSubclassGrant(input: {
+    classEntryId: string
+    selected: CatalogEntry
+    def: SubclassGrantDef
+    picks: SubclassGrantPicks
+    copyOldTextToNotes?: boolean
+    previousDef?: SubclassGrantDef | null
+  }) {
+    let summary: string | null = null
+    setDraft((prev) => {
+      const applied = applySubclassGrantToDraft({
+        draft: subclassSliceFrom(prev),
+        classEntryId: input.classEntryId,
+        catalogId: input.selected.id,
+        def: input.def,
+        picks: input.picks,
+        copyOldTextToNotes: input.copyOldTextToNotes,
+        previousDef: input.previousDef ?? null,
+      })
+      if (!applied) return prev
+      summary = applied.summary
+      const withGrant = mergeSubclassSlice(prev, applied.draft)
+      return {
+        ...withGrant,
+        classes: withGrant.classes.map((row) =>
+          row.id === input.classEntryId
+            ? {
+                ...row,
+                subclass_name: input.selected.name_ru,
+                subclass_catalog_id: input.selected.id,
+              }
+            : row,
+        ),
+        identity:
+          withGrant.classes[0]?.id === input.classEntryId
+            ? { ...withGrant.identity, subclassName: input.selected.name_ru }
+            : withGrant.identity,
+      }
+    })
+    if (summary) {
+      onToast(`Архетип «${input.selected.name_ru}»: ${summary}`)
+    }
+  }
+
+  function beginSubclassSelection(input: {
+    classEntryId: string
+    selected: CatalogEntry
+    copyOldTextToNotes?: boolean
+    previousDef?: SubclassGrantDef | null
+  }) {
+    const def = resolveSubclassDefFromCatalog({
+      nameRu: input.selected.name_ru,
+      slug: input.selected.slug,
+      catalogData: input.selected.data,
+    })
+    if (!def) {
+      patchClass(input.classEntryId, {
+        subclass_name: input.selected.name_ru,
+        subclass_catalog_id: input.selected.id,
+      })
+      onToast(`Архетип «${input.selected.name_ru}» без пакета грантов — только имя`)
+      return
+    }
+    if (subclassNeedsSetupDialog(def)) {
+      setSubclassSetup({
+        classEntryId: input.classEntryId,
+        selected: input.selected,
+        def,
+        copyOldTextToNotes: Boolean(input.copyOldTextToNotes),
+        previousDef: input.previousDef ?? null,
+      })
+      return
+    }
+    commitSubclassGrant({
+      classEntryId: input.classEntryId,
+      selected: input.selected,
+      def,
+      picks: emptySubclassPicks(),
+      copyOldTextToNotes: input.copyOldTextToNotes,
+      previousDef: input.previousDef ?? null,
+    })
+  }
+
+  function requestSubclassChange(classEntryId: string, selected: CatalogEntry) {
+    const existing = draft.subclassGrants.find((row) => row.classEntryId === classEntryId)
+    const row = draft.classes.find((item) => item.id === classEntryId)
+    if (
+      existing &&
+      existing.catalogId &&
+      existing.catalogId !== selected.id
+    ) {
+      const previousDef = resolveSubclassDefFromCatalog({
+        nameRu: row?.subclass_name || existing.slug,
+        slug: existing.slug,
+        catalogData: null,
+        parentSlug: existing.parentSlug,
+      })
+      setSubclassChange({
+        classEntryId,
+        selected,
+        def:
+          resolveSubclassDefFromCatalog({
+            nameRu: selected.name_ru,
+            slug: selected.slug,
+            catalogData: selected.data,
+          }) ??
+          ({
+            slug: selected.slug,
+            labelRu: selected.name_ru,
+            nameEn: selected.name_en ?? '',
+            parentSlug: '',
+            grantsLevel: 3,
+            source: 'phb',
+            sheetGrants: {
+              armor: [],
+              weapons: { simple: false, martial: false, extras: [] },
+              toolsFixed: [],
+              skillChoices: null,
+              languageChoices: null,
+              caster: null,
+            },
+            choices: [],
+          } satisfies SubclassGrantDef),
+        fromName: row?.subclass_name || existing.slug,
+        textSnippets: collectGrantTextSnippets({ def: previousDef, grant: existing }),
+        previousDef,
+      })
+      return
+    }
+    beginSubclassSelection({ classEntryId, selected })
+  }
+
+  function applyHomebrewSubclass(classEntryId: string, name: string) {
+    setDraft((prev) => {
+      const cleared = revokeSubclassGrant(subclassSliceFrom(prev), classEntryId, {
+        copyTextToNotes: true,
+      })
+      const merged = mergeSubclassSlice(prev, cleared)
+      return {
+        ...merged,
+        classes: merged.classes.map((row) =>
+          row.id === classEntryId
+            ? { ...row, subclass_name: name, subclass_catalog_id: null }
+            : row,
+        ),
+        identity:
+          merged.classes[0]?.id === classEntryId
+            ? { ...merged.identity, subclassName: name }
+            : merged.identity,
+      }
+    })
+    onToast(`Хомбрю-архетип «${name}»: только имя на листе`)
   }
 
   function mergeGrantSlice(prev: Draft, slice: ClassGrantDraftSlice): Draft {
@@ -656,6 +881,18 @@ export function MinimalSheetEditor({
         catalogSlug: choice.type === 'multiclass' ? choice.catalog_slug : null,
         catalogData: choice.type === 'multiclass' ? choice.catalog_data : null,
       })
+    } else if (choice.type === 'same') {
+      const leveled = nextClasses.find((row) => row.id === choice.classId)
+      if (
+        leveled &&
+        !leveled.subclass_catalog_id &&
+        !leveled.subclass_name.trim() &&
+        leveled.level >= 3
+      ) {
+        onToast(
+          `У «${leveled.name}» с ${leveled.level} ур. можно выбрать архетип в поле ниже`,
+        )
+      }
     }
   }
 
@@ -734,7 +971,9 @@ export function MinimalSheetEditor({
       sheet.identity = identity
       Object.assign(sheet, classLevelsToSheet(draft.classes))
       sheet.class_grants = draft.classGrants
+      sheet.subclass_grants = draft.subclassGrants
       sheet.race_grant = draft.raceGrant
+      sheet.companions = draft.companions
 
       for (const key of ABILITY_KEYS) {
         abilities[key] = { ...asRecord(abilities[key]), score: draft.abilities[key] }
@@ -998,10 +1237,45 @@ export function MinimalSheetEditor({
                           variant="ghost"
                           disabled={draft.classes.length === 1 && row.level <= 1}
                           onClick={() =>
-                            setDraft((prev) => ({
-                              ...prev,
-                              classes: reduceClassLevel(prev.classes, row.id),
-                            }))
+                            setDraft((prev) => {
+                              const nextClasses = reduceClassLevel(prev.classes, row.id)
+                              const removed = !nextClasses.some((item) => item.id === row.id)
+                              if (!removed) {
+                                return { ...prev, classes: nextClasses }
+                              }
+                              const withoutClass = revokeClassGrant(
+                                draftSliceFrom({ ...prev, classes: nextClasses }),
+                                row.id,
+                              )
+                              const withoutSubclass = revokeSubclassGrant(
+                                {
+                                  ...subclassSliceFrom(prev),
+                                  identity: withoutClass.identity,
+                                  skills: withoutClass.skills,
+                                  classGrants: withoutClass.classGrants,
+                                },
+                                row.id,
+                                { copyTextToNotes: true },
+                              )
+                              return {
+                                ...mergeSubclassSlice(
+                                  {
+                                    ...prev,
+                                    classes: nextClasses,
+                                    classGrants: withoutClass.classGrants,
+                                    saves: withoutClass.saves,
+                                    hpMax: withoutClass.hpMax,
+                                    hpCurrent: withoutClass.hpCurrent,
+                                    inventory: withoutClass.inventory,
+                                    play: {
+                                      ...prev.play,
+                                      hitDie: withoutClass.playHitDie,
+                                    },
+                                  },
+                                  withoutSubclass,
+                                ),
+                              }
+                            })
                           }
                         >
                           −1
@@ -1009,14 +1283,50 @@ export function MinimalSheetEditor({
                       </div>
                     </Field>
                   </div>
-                  <Field label="Подкласс" hint="У этого класса">
-                    <Input
-                      value={row.subclass_name}
-                      placeholder="Например: Школа воплощения"
-                      onChange={(event) =>
-                        patchClass(row.id, { subclass_name: event.target.value })
-                      }
-                    />
+                  <Field
+                    label="Архетип"
+                    hint={
+                      row.catalog_id
+                        ? 'Из справочника — с грантами; хомбрю — только имя'
+                        : 'Сначала выбери класс из справочника, чтобы фильтровать архетипы'
+                    }
+                  >
+                    <div className="languages-tools-add">
+                      <CatalogCombobox
+                        kind="subclass"
+                        edition={baseCharacter.rules_edition as RulesEdition}
+                        parentId={row.catalog_id}
+                        disabled={!row.catalog_id}
+                        value={row.subclass_name}
+                        placeholder="Например: Клятва мести"
+                        onChange={(value, selected) => {
+                          if (selected) {
+                            requestSubclassChange(row.id, selected)
+                            return
+                          }
+                          patchClass(row.id, {
+                            subclass_name: value,
+                            subclass_catalog_id: null,
+                          })
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => {
+                          const name = window.prompt(
+                            'Хомбрю-архетип (только имя на листе):',
+                            row.subclass_name,
+                          )
+                          if (name == null) return
+                          const trimmed = name.trim()
+                          if (!trimmed) return
+                          applyHomebrewSubclass(row.id, trimmed)
+                        }}
+                      >
+                        Хомбрю
+                      </Button>
+                    </div>
                   </Field>
                 </div>
               ))}
@@ -1372,6 +1682,43 @@ export function MinimalSheetEditor({
         onConfirm={(name) => {
           applyHomebrewRace(name)
           setRaceHomebrewOpen(false)
+        }}
+      />
+
+      <SubclassChangeConfirmDialog
+        open={subclassChange != null}
+        fromName={subclassChange?.fromName ?? ''}
+        toName={subclassChange?.selected.name_ru ?? ''}
+        textSnippets={subclassChange?.textSnippets ?? []}
+        onClose={() => setSubclassChange(null)}
+        onConfirm={(copyTextToNotes) => {
+          if (!subclassChange) return
+          const pending = subclassChange
+          setSubclassChange(null)
+          beginSubclassSelection({
+            classEntryId: pending.classEntryId,
+            selected: pending.selected,
+            copyOldTextToNotes: copyTextToNotes,
+            previousDef: pending.previousDef,
+          })
+        }}
+      />
+
+      <SubclassSetupDialog
+        open={subclassSetup != null}
+        def={subclassSetup?.def ?? null}
+        onClose={() => setSubclassSetup(null)}
+        onConfirm={(picks) => {
+          if (!subclassSetup) return
+          commitSubclassGrant({
+            classEntryId: subclassSetup.classEntryId,
+            selected: subclassSetup.selected,
+            def: subclassSetup.def,
+            picks,
+            copyOldTextToNotes: subclassSetup.copyOldTextToNotes,
+            previousDef: subclassSetup.previousDef,
+          })
+          setSubclassSetup(null)
         }}
       />
     </Stack>

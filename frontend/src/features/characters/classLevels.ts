@@ -31,6 +31,12 @@ export function readClassLevels(
             : typeof row.subclassName === 'string'
               ? row.subclassName
               : '',
+        subclass_catalog_id:
+          typeof row.subclass_catalog_id === 'string'
+            ? row.subclass_catalog_id
+            : typeof row.subclassCatalogId === 'string'
+              ? row.subclassCatalogId
+              : null,
       })
     })
   }
@@ -51,6 +57,7 @@ export function classLevelsToSheet(classes: ClassLevelEntry[]): {
     catalog_id: string | null
     level: number
     subclass_name: string
+    subclass_catalog_id: string | null
   }>
 } {
   return {
@@ -60,6 +67,7 @@ export function classLevelsToSheet(classes: ClassLevelEntry[]): {
       catalog_id: row.catalog_id,
       level: Math.max(1, Math.floor(row.level)),
       subclass_name: row.subclass_name.trim(),
+      subclass_catalog_id: row.subclass_catalog_id,
     })),
   }
 }

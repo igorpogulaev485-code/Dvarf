@@ -760,6 +760,19 @@ input {
   color: var(--accent);
 }
 
+.sheet-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.sheet-check input {
+  margin-top: 3px;
+}
+
 .skill-row.is-expert {
   background: #173528;
   border-color: #173528;

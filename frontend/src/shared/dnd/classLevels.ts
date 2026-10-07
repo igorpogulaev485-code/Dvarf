@@ -6,6 +6,7 @@ export type ClassLevelEntry = {
   catalog_id: string | null
   level: number
   subclass_name: string
+  subclass_catalog_id: string | null
 }
 
 export function createClassLevel(partial?: Partial<ClassLevelEntry>): ClassLevelEntry {
@@ -19,6 +20,7 @@ export function createClassLevel(partial?: Partial<ClassLevelEntry>): ClassLevel
     catalog_id: partial?.catalog_id ?? null,
     level: Math.max(1, Math.floor(partial?.level ?? 1)),
     subclass_name: partial?.subclass_name ?? '',
+    subclass_catalog_id: partial?.subclass_catalog_id ?? null,
   }
 }
 

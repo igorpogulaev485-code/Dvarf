@@ -15,6 +15,8 @@ type CatalogComboboxProps = {
   value: string
   placeholder?: string
   disabled?: boolean
+  /** Limit list to children of this catalog parent (e.g. subclasses of a class). */
+  parentId?: string | null
   optionLabel?: (entry: CatalogEntry) => string
   /** Keep only matching catalog rows in the dropdown. */
   filterEntry?: (entry: CatalogEntry) => boolean
@@ -72,6 +74,7 @@ export function CatalogCombobox({
   value,
   placeholder,
   disabled,
+  parentId,
   optionLabel,
   filterEntry,
   onChange,
@@ -96,7 +99,12 @@ export function CatalogCombobox({
       setLoading(true)
       Promise.all(
         resolvedKinds.map((entryKind) =>
-          listCatalogEntries({ kind: entryKind, edition, q: query || undefined }),
+          listCatalogEntries({
+            kind: entryKind,
+            edition,
+            q: query || undefined,
+            parentId: parentId || undefined,
+          }),
         ),
       )
         .then((groups) => {
@@ -134,7 +142,7 @@ export function CatalogCombobox({
       active = false
       window.clearTimeout(timer)
     }
-  }, [edition, filterEntry, optionLabel, query, resolvedKinds])
+  }, [edition, filterEntry, optionLabel, parentId, query, resolvedKinds])
 
   return (
     <Combobox
