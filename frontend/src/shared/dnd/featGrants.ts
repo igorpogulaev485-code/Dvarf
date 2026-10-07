@@ -80,6 +80,10 @@ export type FeatGrantDef = {
     abilitiesOneOf?: Array<Partial<Record<AbilityKey, number>>>
     armor?: ArmorProfKey[]
     flagsAny?: string[]
+    /** Match race slug or parent slug (elf covers wood_elf via parent). */
+    racesAny?: string[]
+    /** OR-group with racesAny: character size (e.g. Squat Nimbleness). */
+    sizeAny?: string[]
   }
   choices: FeatChoiceDef[]
   fixedGrants: FeatGrantsPackage
@@ -339,6 +343,10 @@ export function featGrantDefFromCatalog(input: {
       ? prereq.abilitiesOneOf.map((row) => parseAbilityMap(row))
       : undefined
   const flagsAny = parseStringList(prereq.flags_any ?? prereq.flagsAny)
+  const racesAny = parseStringList(prereq.races_any ?? prereq.racesAny)
+  const sizeAny = parseStringList(prereq.size_any ?? prereq.sizeAny).map((item) =>
+    item.toLowerCase(),
+  )
 
   return {
     slug: input.slug,
@@ -349,6 +357,8 @@ export function featGrantDefFromCatalog(input: {
       abilitiesOneOf,
       armor: parseArmorList(prereq.armor),
       flagsAny: flagsAny.length ? flagsAny : undefined,
+      racesAny: racesAny.length ? racesAny : undefined,
+      sizeAny: sizeAny.length ? sizeAny : undefined,
     },
     choices: parseChoices(data.choices),
     fixedGrants: emptyPackage({
@@ -389,6 +399,11 @@ export function validateFeatGrantPicks(input: {
   abilities: Record<AbilityKey, number>
   armor: Partial<Record<ArmorProfKey, boolean>>
   hasSpellcasting: boolean
+  /** Martial weapon proficiency (Fighting Initiate). */
+  hasMartialWeapons?: boolean
+  raceSlug?: string | null
+  raceParentSlug?: string | null
+  size?: string | null
 }): string | null {
   const { def, picks, abilities, armor, hasSpellcasting } = input
   const need = def.prerequisites
@@ -413,6 +428,34 @@ export function validateFeatGrantPicks(input: {
   }
   if (need.flagsAny?.includes('spellcasting') && !hasSpellcasting) {
     return 'Нужно уметь накладывать хотя бы одно заклинание'
+  }
+  if (need.flagsAny?.includes('martial_weapon_prof') && !input.hasMartialWeapons) {
+    return 'Требуется владение воинским оружием'
+  }
+  if (need.racesAny?.length || need.sizeAny?.length) {
+    const raceOk = matchRacePrerequisite({
+      allowed: need.racesAny ?? [],
+      raceSlug: input.raceSlug,
+      raceParentSlug: input.raceParentSlug,
+    })
+    const sizeOk =
+      Boolean(need.sizeAny?.length) &&
+      Boolean(input.size) &&
+      need.sizeAny!.includes(String(input.size).toLowerCase())
+    // racesAny OR sizeAny (Squat Nimbleness); if only racesAny — require race
+    if (need.racesAny?.length && need.sizeAny?.length) {
+      if (!raceOk && !sizeOk) {
+        return def.prerequisitesRu
+          ? `Требования: ${def.prerequisitesRu}`
+          : 'Раса или размер не подходят'
+      }
+    } else if (need.racesAny?.length && !raceOk) {
+      return def.prerequisitesRu
+        ? `Требования: ${def.prerequisitesRu}`
+        : 'Раса не подходит для этой черты'
+    } else if (need.sizeAny?.length && !sizeOk) {
+      return 'Размер не подходит для этой черты'
+    }
   }
 
   for (const choice of def.choices) {
@@ -452,6 +495,29 @@ export function validateFeatGrantPicks(input: {
   return null
 }
 
+export function matchRacePrerequisite(input: {
+  allowed: string[]
+  raceSlug?: string | null
+  raceParentSlug?: string | null
+}): boolean {
+  if (!input.allowed.length) return true
+  const candidates = [input.raceSlug, input.raceParentSlug]
+    .filter((value): value is string => Boolean(value && value.trim()))
+    .map((value) => value.trim().toLowerCase())
+  if (!candidates.length) return false
+  const allowed = new Set(input.allowed.map((item) => item.toLowerCase()))
+  for (const slug of candidates) {
+    if (allowed.has(slug)) return true
+    // wood_elf → elf, elf_drow → drow/elf, mark_of_* keep full slug
+    for (const allow of allowed) {
+      if (slug === allow || slug.startsWith(`${allow}_`) || slug.endsWith(`_${allow}`)) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
 export function buildAppliedFeatPackage(input: {
   def: FeatGrantDef
   picks: FeatGrantPicks
@@ -462,28 +528,29 @@ export function buildAppliedFeatPackage(input: {
   }
   const savingThrows: AbilityKey[] = [...def.fixedGrants.savingThrows]
   const enumPicks: Record<string, string> = {}
+  const skillsFromEnum: string[] = []
 
   for (const choice of def.choices) {
     if (choice.type === 'ability_one') {
       const key = picks.abilityKeys[choice.id]
       if (!key || !choice.amount) continue
       abilityBonuses[key] = (abilityBonuses[key] ?? 0) + choice.amount
-      if (def.fixedGrants.flags.includes('resilient') || def.slug === 'resilient') {
+      if (def.slug === 'resilient') {
         if (!savingThrows.includes(key)) savingThrows.push(key)
       }
-      // Resilient uses saving_throw_from_ability_choice flag in JSON — honor slug too
       continue
     }
     if (choice.type === 'enum') {
       const id = picks.enumIds[choice.id]
-      if (id) enumPicks[choice.id] = id
+      if (id) {
+        enumPicks[choice.id] = id
+        if (choice.id === 'skill' || choice.id === 'skills') {
+          skillsFromEnum.push(id)
+        }
+      }
     }
   }
 
-  // Explicit resilient marker from catalog grants
-  const rawSavingFromChoice =
-    (def as unknown as { fixedGrants: FeatGrantsPackage }).fixedGrants
-  void rawSavingFromChoice
   if (def.slug === 'resilient') {
     const key = picks.abilityKeys.ability
     if (key && !savingThrows.includes(key)) savingThrows.push(key)
@@ -493,12 +560,28 @@ export function buildAppliedFeatPackage(input: {
     ...def.fixedGrants,
     abilityBonuses,
     savingThrows,
-    skills: uniqueStrings([...def.fixedGrants.skills, ...picks.skills]),
+    skills: uniqueStrings([
+      ...def.fixedGrants.skills,
+      ...picks.skills,
+      ...skillsFromEnum,
+    ]),
     tools: uniqueStrings([...def.fixedGrants.tools, ...picks.tools]),
     languages: uniqueStrings([...def.fixedGrants.languages, ...picks.languages]),
     weaponNames: uniqueStrings([...def.fixedGrants.weaponNames, ...picks.weapons]),
     enumPicks,
   })
+}
+
+/** Fighting style id from Fighting Initiate feat grant, if any. */
+export function fightingStyleFromFeatGrants(
+  ledger: AppliedFeatGrant[],
+): string | null {
+  for (const row of ledger) {
+    if (row.slug !== 'fighting_initiate') continue
+    const style = row.applied.enumPicks.style ?? row.picks.enumIds.style
+    if (typeof style === 'string' && style.trim()) return style
+  }
+  return null
 }
 
 export function newFeatGrantId(): string {
