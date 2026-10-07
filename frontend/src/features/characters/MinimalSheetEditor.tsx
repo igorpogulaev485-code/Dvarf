@@ -83,6 +83,7 @@ import { LanguagesToolsPanel } from './LanguagesToolsPanel'
 import { LevelUpDialog, type LevelUpChoice } from './LevelUpDialog'
 import { PlayPanel } from './PlayPanel'
 import { SpellsPanel } from './SpellsPanel'
+import { ClassFeaturesPanel } from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import {
@@ -342,6 +343,15 @@ export function MinimalSheetEditor({
     () => formatClassSummary(draft.classes),
     [draft.classes],
   )
+  const subclassSlugByEntryId = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const grant of draft.subclassGrants) {
+      if (grant.classEntryId && grant.slug) {
+        map[grant.classEntryId] = grant.slug
+      }
+    }
+    return map
+  }, [draft.subclassGrants])
   const primaryClass = draft.classes[0]
 
   useEffect(() => {
@@ -1512,6 +1522,11 @@ export function MinimalSheetEditor({
         attunements={draft.attunements}
         inventoryItems={draft.inventory.items}
         onChange={(attunements) => setDraft((prev) => ({ ...prev, attunements }))}
+      />
+
+      <ClassFeaturesPanel
+        classes={draft.classes}
+        subclassSlugByEntryId={subclassSlugByEntryId}
       />
 
       <SpellsPanel

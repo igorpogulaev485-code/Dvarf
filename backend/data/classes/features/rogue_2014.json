@@ -1,0 +1,300 @@
+{
+  "meta": {
+    "purpose": "PHB 2014 Rogue class + PHB subclass features for sheet unlock",
+    "edition": "2014",
+    "source": "phb",
+    "notes_ru": "Краткие summary для листа, не полный копирайт PHB."
+  },
+  "class_slug": "rogue",
+  "features": [
+    {
+      "id": "expertise_1",
+      "level": 1,
+      "name_ru": "Компетентность",
+      "name_en": "Expertise",
+      "summary_ru": "Выбери 2 владения навыками/воровскими инструментами — удвой бонус мастерства.",
+      "kind": "passive"
+    },
+    {
+      "id": "sneak_attack",
+      "level": 1,
+      "name_ru": "Скрытая атака",
+      "name_en": "Sneak Attack",
+      "summary_ru": "Раз в ход доп. урон атакой с преимуществом или если союзник в 5 фт. от цели (без помехи).",
+      "kind": "passive",
+      "scale": {
+        "label_ru": "Урон",
+        "by_level": {
+          "1": "1к6",
+          "3": "2к6",
+          "5": "3к6",
+          "7": "4к6",
+          "9": "5к6",
+          "11": "6к6",
+          "13": "7к6",
+          "15": "8к6",
+          "17": "9к6",
+          "19": "10к6"
+        }
+      }
+    },
+    {
+      "id": "thieves_cant",
+      "level": 1,
+      "name_ru": "Воровской жаргон",
+      "name_en": "Thieves' Cant",
+      "summary_ru": "Тайный язык и знаки. Дополнительно выучи один язык.",
+      "kind": "passive"
+    },
+    {
+      "id": "cunning_action",
+      "level": 2,
+      "name_ru": "Хитрое действие",
+      "name_en": "Cunning Action",
+      "summary_ru": "Бонусным действием: Рывок, Отход или Засада.",
+      "kind": "bonus"
+    },
+    {
+      "id": "roguish_archetype",
+      "level": 3,
+      "name_ru": "Архетип плута",
+      "name_en": "Roguish Archetype",
+      "summary_ru": "Выбери архетип (Вор / Убийца / Мистический ловкач).",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_4",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "uncanny_dodge",
+      "level": 5,
+      "name_ru": "Невероятное уклонение",
+      "name_en": "Uncanny Dodge",
+      "summary_ru": "Реакция: когда тебя попаданием бьют и ты видишь атакующего — урон пополам.",
+      "kind": "reaction"
+    },
+    {
+      "id": "expertise_6",
+      "level": 6,
+      "name_ru": "Компетентность",
+      "name_en": "Expertise",
+      "summary_ru": "Ещё 2 навыка/воровские инструменты с удвоенным мастерством.",
+      "kind": "passive"
+    },
+    {
+      "id": "evasion",
+      "level": 7,
+      "name_ru": "Увёртливость",
+      "name_en": "Evasion",
+      "summary_ru": "От эффектов со спасброском Ловкости на половину урона: успех = 0, провал = половина.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_8",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 / +1+1 или черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "reliable_talent",
+      "level": 11,
+      "name_ru": "Надёжный талант",
+      "name_en": "Reliable Talent",
+      "summary_ru": "В проверках навыков с владением d20 ниже 10 считается как 10.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_12",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 / +1+1 или черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "blindsense",
+      "level": 14,
+      "name_ru": "Чутьё слепца",
+      "name_en": "Blindsense",
+      "summary_ru": "Если слышишь — знаешь расположение скрытых/невидимых существ в 10 фт.",
+      "kind": "passive"
+    },
+    {
+      "id": "slippery_mind",
+      "level": 15,
+      "name_ru": "Скользкий ум",
+      "name_en": "Slippery Mind",
+      "summary_ru": "Владение спасбросками Мудрости.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_16",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 / +1+1 или черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "elusive",
+      "level": 18,
+      "name_ru": "Неуловимость",
+      "name_en": "Elusive",
+      "summary_ru": "Пока не недееспособен — по тебе нет бросков атаки с преимуществом.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_19",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 / +1+1 или черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "stroke_of_luck",
+      "level": 20,
+      "name_ru": "Удача",
+      "name_en": "Stroke of Luck",
+      "summary_ru": "Промах атаки → попадание; или провал проверки → 20. Восстанавливается на коротком/длинном отдыхе.",
+      "kind": "resource",
+      "resource": { "uses": 1, "recharge": "short_rest" }
+    }
+  ],
+  "subclasses": {
+    "thief": [
+      {
+        "id": "fast_hands",
+        "level": 3,
+        "name_ru": "Быстрые руки",
+        "name_en": "Fast Hands",
+        "summary_ru": "Хитрое действие: использовать предмет; Взлом (воровские инструменты); Ловкость рук.",
+        "kind": "bonus"
+      },
+      {
+        "id": "second_story_work",
+        "level": 3,
+        "name_ru": "Работа на высоте",
+        "name_en": "Second-Story Work",
+        "summary_ru": "Лазание без доп. стоимости скорости; +кв. Ловкости к дистанции прыжка с разбега.",
+        "kind": "passive"
+      },
+      {
+        "id": "supreme_sneak",
+        "level": 9,
+        "name_ru": "Превосходная маскировка",
+        "name_en": "Supreme Sneak",
+        "summary_ru": "Преимущество на Скрытность, если в ход перемещаешься не больше половины скорости.",
+        "kind": "passive"
+      },
+      {
+        "id": "use_magic_device",
+        "level": 13,
+        "name_ru": "Использование магических устройств",
+        "name_en": "Use Magic Device",
+        "summary_ru": "Игнорируешь требования класса/расы/уровня к использованию магических предметов.",
+        "kind": "passive"
+      },
+      {
+        "id": "thiefs_reflexes",
+        "level": 17,
+        "name_ru": "Рефлексы вора",
+        "name_en": "Thief's Reflexes",
+        "summary_ru": "В первом раунде боя два хода: обычная инициатива и инициатива −10.",
+        "kind": "passive"
+      }
+    ],
+    "assassin": [
+      {
+        "id": "bonus_proficiencies_assassin",
+        "level": 3,
+        "name_ru": "Доп. владения",
+        "name_en": "Bonus Proficiencies",
+        "summary_ru": "Владение набором грима и набором для отравления.",
+        "kind": "passive"
+      },
+      {
+        "id": "assassinate",
+        "level": 3,
+        "name_ru": "Убийство",
+        "name_en": "Assassinate",
+        "summary_ru": "Преимущество на атаки по тем, кто ещё не ходил в бою; крит по застигнутым врасплох.",
+        "kind": "passive"
+      },
+      {
+        "id": "infiltration_expertise",
+        "level": 9,
+        "name_ru": "Мастер проникновения",
+        "name_en": "Infiltration Expertise",
+        "summary_ru": "Можешь создать фальшивую личность (7 дней + 25 зм).",
+        "kind": "passive"
+      },
+      {
+        "id": "impostor",
+        "level": 13,
+        "name_ru": "Самозванец",
+        "name_en": "Impostor",
+        "summary_ru": "Безупречно копируешь речь/письмо/поведение после 3 часов изучения; преимущество на обман «быть им».",
+        "kind": "passive"
+      },
+      {
+        "id": "death_strike",
+        "level": 17,
+        "name_ru": "Смертельный удар",
+        "name_en": "Death Strike",
+        "summary_ru": "По застигнутому врасплох: спасбросок Телосложения Сл 8+масстерство+Ловк. или удвой урон атаки.",
+        "kind": "passive"
+      }
+    ],
+    "arcane_trickster": [
+      {
+        "id": "spellcasting_at",
+        "level": 3,
+        "name_ru": "Использование заклинаний",
+        "name_en": "Spellcasting",
+        "summary_ru": "Заклинания волшебника (⅓ кастер). Int — базовая характеристика. Mage Hand бесплатно.",
+        "kind": "passive"
+      },
+      {
+        "id": "mage_hand_legerdemain",
+        "level": 3,
+        "name_ru": "Ловкость волшебной руки",
+        "name_en": "Mage Hand Legerdemain",
+        "summary_ru": "Невидимая Mage Hand; бонусным действием управление; карманные кражи/отмычки на расстоянии.",
+        "kind": "bonus"
+      },
+      {
+        "id": "magical_ambush",
+        "level": 9,
+        "name_ru": "Магическая засада",
+        "name_en": "Magical Ambush",
+        "summary_ru": "Если скрыт от цели при наложении заклинания — у цели помеха на спасбросок.",
+        "kind": "passive"
+      },
+      {
+        "id": "versatile_trickster",
+        "level": 13,
+        "name_ru": "Универсальный ловкач",
+        "name_en": "Versatile Trickster",
+        "summary_ru": "Бонусным действием направь Mage Hand: до конца хода преимущество на атаки по существу в 5 фт. от руки.",
+        "kind": "bonus"
+      },
+      {
+        "id": "spell_thief",
+        "level": 17,
+        "name_ru": "Похититель заклинаний",
+        "name_en": "Spell Thief",
+        "summary_ru": "Реакция на заклинание по тебе: спас Int цели; при успехе — заклинание не действует и ты можешь читать его 8 ч.",
+        "kind": "reaction",
+        "resource": { "uses": 1, "recharge": "long_rest" }
+      }
+    ]
+  }
+}
