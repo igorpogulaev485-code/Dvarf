@@ -1,6 +1,7 @@
 /** Class/subclass feature unlock for the digital sheet (2014). */
 
 import type { ClassLevelEntry } from './classLevels'
+import barbarianPack from './data/barbarian_2014.json'
 import fighterPack from './data/fighter_2014.json'
 import roguePack from './data/rogue_2014.json'
 
@@ -76,6 +77,7 @@ type FeaturePack = {
 }
 
 const LOCAL_PACKS: Record<string, FeaturePack> = {
+  barbarian: barbarianPack as FeaturePack,
   rogue: roguePack as FeaturePack,
   fighter: fighterPack as FeaturePack,
 }
@@ -273,6 +275,8 @@ export function proficiencyBonusForTotalLevel(totalLevel: number): number {
 }
 
 const CLASS_NAME_TO_SLUG: Record<string, string> = {
+  barbarian: 'barbarian',
+  варвар: 'barbarian',
   rogue: 'rogue',
   плут: 'rogue',
   fighter: 'fighter',
@@ -300,6 +304,14 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   battle_master: 'battle_master',
   'мастер боевых искусств': 'battle_master',
   'боевой мастер': 'battle_master',
+  path_of_the_berserker: 'path_of_the_berserker',
+  berserker: 'path_of_the_berserker',
+  берсерк: 'path_of_the_berserker',
+  'путь берсерка': 'path_of_the_berserker',
+  path_of_the_totem_warrior: 'path_of_the_totem_warrior',
+  totem_warrior: 'path_of_the_totem_warrior',
+  'тотемный воин': 'path_of_the_totem_warrior',
+  'путь тотемного воина': 'path_of_the_totem_warrior',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -309,6 +321,8 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'phantom',
   'soulknife',
   'battle_master',
+  'path_of_the_berserker',
+  'path_of_the_totem_warrior',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {

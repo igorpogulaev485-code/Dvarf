@@ -1,0 +1,231 @@
+{
+  "meta": {
+    "purpose": "PHB 2014 Barbarian class + Berserker/Totem features for sheet unlock",
+    "edition": "2014",
+    "source": "phb",
+    "notes_ru": "Ярость: uses по таблице класса. На 20 ур. безлимит — пока текст, пул до 6."
+  },
+  "class_slug": "barbarian",
+  "features": [
+    {
+      "id": "rage",
+      "level": 1,
+      "name_ru": "Ярость",
+      "name_en": "Rage",
+      "summary_ru": "Бонусным действием: преимущество на проверки/спас Силы; бонус урона к атакам Силой; сопротивление дробящему/колющему/рубящему. 1 мин. Сброс на продолжительном отдыхе.",
+      "kind": "bonus",
+      "scale": {
+        "label_ru": "Урон ярости",
+        "by_level": {
+          "1": "+2",
+          "9": "+3",
+          "16": "+4"
+        }
+      },
+      "resource": {
+        "uses": 2,
+        "recharge": "long_rest",
+        "scale_uses": {
+          "1": 2,
+          "3": 3,
+          "6": 4,
+          "12": 5,
+          "17": 6
+        },
+        "pool_id": "rage",
+        "pool_name_ru": "Ярость",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "unarmored_defense_barb",
+      "level": 1,
+      "name_ru": "Защита без доспехов",
+      "name_en": "Unarmored Defense",
+      "summary_ru": "Без доспеха КД = 10 + Ловк. + Телосложение (щит можно).",
+      "kind": "passive"
+    },
+    {
+      "id": "reckless_attack",
+      "level": 2,
+      "name_ru": "Безрассудная атака",
+      "name_en": "Reckless Attack",
+      "summary_ru": "В свой ход: преимущество на атаки Силой оружием ближнего боя; до твоего следующего хода атаки по тебе тоже с преимуществом.",
+      "kind": "passive"
+    },
+    {
+      "id": "danger_sense",
+      "level": 2,
+      "name_ru": "Чувство опасности",
+      "name_en": "Danger Sense",
+      "summary_ru": "Преимущество на спас Ловкости от видимых эффектов (если не ослеплён/оглушён/недееспособен).",
+      "kind": "passive"
+    },
+    {
+      "id": "primal_path",
+      "level": 3,
+      "name_ru": "Путь дикости",
+      "name_en": "Primal Path",
+      "summary_ru": "Выбери путь (Берсерк / Тотемный воин / …).",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_4",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "extra_attack",
+      "level": 5,
+      "name_ru": "Дополнительная атака",
+      "name_en": "Extra Attack",
+      "summary_ru": "Атакой: две атаки оружием.",
+      "kind": "passive"
+    },
+    {
+      "id": "fast_movement",
+      "level": 5,
+      "name_ru": "Быстрое движение",
+      "name_en": "Fast Movement",
+      "summary_ru": "+10 фт. скорости, если не в тяжёлом доспехе.",
+      "kind": "passive"
+    },
+    {
+      "id": "feral_instinct",
+      "level": 7,
+      "name_ru": "Звериный инстинкт",
+      "name_en": "Feral Instinct",
+      "summary_ru": "Преимущество на инициативу; если застигнут врасплох и не недееспособен — можешь действовать нормально, войдя в ярость.",
+      "kind": "passive"
+    },
+    {
+      "id": "brutal_critical",
+      "level": 9,
+      "name_ru": "Жестокий критический удар",
+      "name_en": "Brutal Critical",
+      "summary_ru": "Крит оружием ближнего боя: +1 доп. кость урона оружия (+2 на 13, +3 на 17).",
+      "kind": "passive",
+      "scale": {
+        "label_ru": "Доп. кости крита",
+        "by_level": {
+          "9": "+1",
+          "13": "+2",
+          "17": "+3"
+        }
+      }
+    },
+    {
+      "id": "relentless_rage",
+      "level": 11,
+      "name_ru": "Непреклонная ярость",
+      "name_en": "Relentless Rage",
+      "summary_ru": "При 0 хитов в ярости: спас Телосложения Сл 10 (затем +5), успех → 1 хит. Сл сбрасывается после отдыха.",
+      "kind": "passive"
+    },
+    {
+      "id": "persistent_rage",
+      "level": 15,
+      "name_ru": "Стойкая ярость",
+      "name_en": "Persistent Rage",
+      "summary_ru": "Ярость кончается досрочно только если без сознания или сам прекратишь.",
+      "kind": "passive"
+    },
+    {
+      "id": "indomitable_might",
+      "level": 18,
+      "name_ru": "Неукротимая мощь",
+      "name_en": "Indomitable Might",
+      "summary_ru": "Проверка Силы не может быть ниже значения Силы.",
+      "kind": "passive"
+    },
+    {
+      "id": "primal_champion",
+      "level": 20,
+      "name_ru": "Изначальный чемпион",
+      "name_en": "Primal Champion",
+      "summary_ru": "+4 Сила и Телосложение (макс. 24). Ярость без лимита использований (на листе пул пока до 6 — трать без учёта или не снижай).",
+      "kind": "passive"
+    }
+  ],
+  "subclasses": {
+    "path_of_the_berserker": [
+      {
+        "id": "frenzy",
+        "level": 3,
+        "name_ru": "Безумие",
+        "name_en": "Frenzy",
+        "summary_ru": "В ярости можешь бонусным действием атаковать рукопашным оружием. После ярости — 1 уровень истощения.",
+        "kind": "bonus"
+      },
+      {
+        "id": "mindless_rage",
+        "level": 6,
+        "name_ru": "Безумная ярость",
+        "name_en": "Mindless Rage",
+        "summary_ru": "Пока в ярости — нельзя очаровать или испугать; такие эффекты приостанавливаются на время ярости.",
+        "kind": "passive"
+      },
+      {
+        "id": "intimidating_presence",
+        "level": 10,
+        "name_ru": "Устрашающее присутствие",
+        "name_en": "Intimidating Presence",
+        "summary_ru": "Действием: одно существо в 30 фт. спас Мудрости или испугано до конца твоего следующего хода (можно продлевать).",
+        "kind": "action"
+      },
+      {
+        "id": "retaliation",
+        "level": 14,
+        "name_ru": "Возмездие",
+        "name_en": "Retaliation",
+        "summary_ru": "Реакция при уроне в ближнем бою: атака рукопашным оружием по обидчику.",
+        "kind": "reaction"
+      }
+    ],
+    "path_of_the_totem_warrior": [
+      {
+        "id": "spirit_seeker",
+        "level": 3,
+        "name_ru": "Искатель духов",
+        "name_en": "Spirit Seeker",
+        "summary_ru": "Ритуально: звериные чувства и общение с животными.",
+        "kind": "passive"
+      },
+      {
+        "id": "totem_spirit",
+        "level": 3,
+        "name_ru": "Тотемный дух",
+        "name_en": "Totem Spirit",
+        "summary_ru": "Выбери тотем (медведь / орёл / волк) — бонус в ярости. Выбор — в заметках/грантах.",
+        "kind": "passive"
+      },
+      {
+        "id": "aspect_of_the_beast",
+        "level": 6,
+        "name_ru": "Аспект зверя",
+        "name_en": "Aspect of the Beast",
+        "summary_ru": "Второй тотемный аспект (медведь / орёл / волк) — исследование/путешествие.",
+        "kind": "passive"
+      },
+      {
+        "id": "spirit_walker",
+        "level": 10,
+        "name_ru": "Странник духов",
+        "name_en": "Spirit Walker",
+        "summary_ru": "Ритуально: общение с природой.",
+        "kind": "passive"
+      },
+      {
+        "id": "totemic_attunement",
+        "level": 14,
+        "name_ru": "Тотемная гармония",
+        "name_en": "Totemic Attunement",
+        "summary_ru": "Третий тотемный аспект — усиление в ярости.",
+        "kind": "passive"
+      }
+    ]
+  }
+}

@@ -345,7 +345,7 @@ export function ClassFeaturesPanel({
 
         {byClass.length === 0 ? (
           <Text tone="muted">
-            Пока заполнены пакеты: Плут (PHB + Фантом + Клинок души) и Воин (PHB + Боевой мастер).
+            Пока заполнены: Плут, Воин, Варвар (см. H4 в docs/feature_resource_contract.md).
           </Text>
         ) : null}
 
