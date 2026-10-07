@@ -438,7 +438,7 @@
 | Enum-цепи | `feat_enums_all`: луна / план / тип удара | В попапе только ветка твоего выбора |
 | Фильтр | Недоступные черты скрыты | Игрок не видит запрещённое |
 
-На проде: **нет** · ветка `cursor/feats-assemble-592a` · tip не менять до «залей» · ждать явного «залей»
+На проде: **нет** · ветка `cursor/feats-assemble-592a` · PR #65 · tip не менять до «залей» · ждать явного «залей»
 
 ### 2026-10-07 — FEATS BMT wave (Книга многих вещей)
 
@@ -644,4 +644,4 @@
 | 2026-10-07 | `cursor/feats-prereq-engine-592a` · PR #62 | Feat prereq engine (class/bg/mutex) + feat-linked backgrounds; alembic `f2a3`; на проде нет |
 | 2026-10-07 | `cursor/feats-pam-wave-592a` · PR #63 | PAM Planescape 7 feats + plane branches; alembic `g3b4`; на проде нет |
 | 2026-10-07 | `cursor/feats-bmt-wave-592a` · PR #64 | BMT Cartomancer; alembic `h4c5`; на проде нет |
-| 2026-10-07 | `cursor/feats-assemble-592a` | Assemble tip + feat_enums_all (moon/plane/strike); alembic `i5d6`; на проде нет · ждать «залей» |
+| 2026-10-07 | `cursor/feats-assemble-592a` · PR #65 | Assemble tip + feat_enums_all (moon/plane/strike); alembic `i5d6`; на проде нет · ждать «залей» |
