@@ -88,7 +88,7 @@
 | Battle Master | 1, 5, 9 (+ Fighter 2) |
 | Barbarian / Berserker / Totem | 1, 5 (+ Rage table) |
 | Monk / Open Hand / Shadow / Elements | 1, 5, 9 (+ Ki = level, Perfect Self +4) |
-| Cleric / 7 PHB domains | 2, 4b, 5 (Channel Divinity shared; Wis-mod flares) |
+| Cleric / **14** оф. доменов | 2, 4b, 5 (CD shared; Wis-mod; PHB+DMG+SCAG+XGtE+TCoE) |
 
 ## H4 — порядок пакетов классов
 

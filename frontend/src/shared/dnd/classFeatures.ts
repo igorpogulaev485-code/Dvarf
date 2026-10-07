@@ -384,6 +384,21 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   'домен обмана': 'trickery_domain',
   war_domain: 'war_domain',
   'домен войны': 'war_domain',
+  death_domain: 'death_domain',
+  'домен смерти': 'death_domain',
+  arcana_domain: 'arcana_domain',
+  'домен тайной магии': 'arcana_domain',
+  'домен магии': 'arcana_domain',
+  forge_domain: 'forge_domain',
+  'домен кузницы': 'forge_domain',
+  grave_domain: 'grave_domain',
+  'домен могилы': 'grave_domain',
+  order_domain: 'order_domain',
+  'домен порядка': 'order_domain',
+  peace_domain: 'peace_domain',
+  'домен мира': 'peace_domain',
+  twilight_domain: 'twilight_domain',
+  'домен сумерек': 'twilight_domain',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -405,6 +420,13 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'tempest_domain',
   'trickery_domain',
   'war_domain',
+  'death_domain',
+  'arcana_domain',
+  'forge_domain',
+  'grave_domain',
+  'order_domain',
+  'peace_domain',
+  'twilight_domain',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {
