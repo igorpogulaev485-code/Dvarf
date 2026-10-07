@@ -7,6 +7,10 @@ import fighterPack from './data/fighter_2014.json'
 import monkPack from './data/monk_2014.json'
 import paladinPack from './data/paladin_2014.json'
 import roguePack from './data/rogue_2014.json'
+import {
+  FIGHTER_FIGHTING_STYLES,
+  PALADIN_FIGHTING_STYLES,
+} from './fightingStyles'
 
 export type AbilityScoreKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
@@ -73,6 +77,33 @@ export type FeatureResource = {
   failure_spend_label_ru?: string
 }
 
+export type FeatureChoiceDef = {
+  id: string
+  label_ru: string
+  /** Preset catalog key or explicit option ids. */
+  options_from?:
+    | 'paladin_fighting_styles'
+    | 'fighter_fighting_styles'
+  options?: string[]
+}
+
+export type FeatureSlotSpendDef = {
+  label_ru: string
+  min_slot: number
+  max_slot: number
+  dice_base: number
+  dice_per_slot_above: number
+  dice_cap: number
+  dice_size: number
+  extra_vs_note_ru?: string
+}
+
+export type FeatureSaveBonusSelfDef = {
+  ability: AbilityScoreKey
+  min_bonus: number
+  label_ru: string
+}
+
 export type ClassFeatureDef = {
   id: string
   level: number
@@ -83,6 +114,12 @@ export type ClassFeatureDef = {
   kind: FeatureKind
   scale?: FeatureScale
   resource?: FeatureResource
+  /** Persistent pick (fighting style). */
+  choice?: FeatureChoiceDef
+  /** Spend a spell slot from the feature row (Divine Smite). */
+  slot_spend?: FeatureSlotSpendDef
+  /** Add ability mod (min) to own saves while unlocked (Aura of Protection). */
+  save_bonus_self?: FeatureSaveBonusSelfDef
 }
 
 export type UnlockedFeature = ClassFeatureDef & {
@@ -136,6 +173,75 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       row.resource && typeof row.resource === 'object'
         ? (row.resource as Record<string, unknown>)
         : null
+    const choiceRaw =
+      row.choice && typeof row.choice === 'object'
+        ? (row.choice as Record<string, unknown>)
+        : null
+    const slotSpendRaw =
+      row.slot_spend && typeof row.slot_spend === 'object'
+        ? (row.slot_spend as Record<string, unknown>)
+        : null
+    const saveBonusRaw =
+      row.save_bonus_self && typeof row.save_bonus_self === 'object'
+        ? (row.save_bonus_self as Record<string, unknown>)
+        : null
+
+    let choice: FeatureChoiceDef | undefined
+    if (choiceRaw && typeof choiceRaw.id === 'string' && typeof choiceRaw.label_ru === 'string') {
+      const optionsFrom =
+        choiceRaw.options_from === 'paladin_fighting_styles' ||
+        choiceRaw.options_from === 'fighter_fighting_styles'
+          ? choiceRaw.options_from
+          : undefined
+      const options = Array.isArray(choiceRaw.options)
+        ? choiceRaw.options.filter((item): item is string => typeof item === 'string')
+        : undefined
+      choice = {
+        id: choiceRaw.id,
+        label_ru: choiceRaw.label_ru,
+        options_from: optionsFrom,
+        options,
+      }
+    }
+
+    let slot_spend: FeatureSlotSpendDef | undefined
+    if (slotSpendRaw && typeof slotSpendRaw.label_ru === 'string') {
+      slot_spend = {
+        label_ru: slotSpendRaw.label_ru,
+        min_slot: Math.max(1, Math.floor(Number(slotSpendRaw.min_slot) || 1)),
+        max_slot: Math.max(1, Math.floor(Number(slotSpendRaw.max_slot) || 9)),
+        dice_base: Math.max(1, Math.floor(Number(slotSpendRaw.dice_base) || 2)),
+        dice_per_slot_above: Math.max(
+          0,
+          Math.floor(Number(slotSpendRaw.dice_per_slot_above) || 1),
+        ),
+        dice_cap: Math.max(1, Math.floor(Number(slotSpendRaw.dice_cap) || 5)),
+        dice_size: Math.max(2, Math.floor(Number(slotSpendRaw.dice_size) || 8)),
+        extra_vs_note_ru:
+          typeof slotSpendRaw.extra_vs_note_ru === 'string'
+            ? slotSpendRaw.extra_vs_note_ru
+            : undefined,
+      }
+    }
+
+    let save_bonus_self: FeatureSaveBonusSelfDef | undefined
+    if (saveBonusRaw && typeof saveBonusRaw.label_ru === 'string') {
+      const ability =
+        saveBonusRaw.ability === 'str' ||
+        saveBonusRaw.ability === 'dex' ||
+        saveBonusRaw.ability === 'con' ||
+        saveBonusRaw.ability === 'int' ||
+        saveBonusRaw.ability === 'wis' ||
+        saveBonusRaw.ability === 'cha'
+          ? saveBonusRaw.ability
+          : 'cha'
+      save_bonus_self = {
+        ability,
+        min_bonus: Math.max(0, Math.floor(Number(saveBonusRaw.min_bonus) || 1)),
+        label_ru: saveBonusRaw.label_ru,
+      }
+    }
+
     out.push({
       id: row.id,
       level: typeof row.level === 'number' ? Math.max(1, row.level) : 1,
@@ -156,10 +262,29 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
               ),
             }
           : undefined,
-      resource: parseFeatureResource(resourceRaw)
+      resource: parseFeatureResource(resourceRaw),
+      choice,
+      slot_spend,
+      save_bonus_self,
     })
   }
   return out
+}
+
+export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] {
+  if (choice.options_from === 'paladin_fighting_styles') {
+    return [...PALADIN_FIGHTING_STYLES]
+  }
+  if (choice.options_from === 'fighter_fighting_styles') {
+    return [...FIGHTER_FIGHTING_STYLES]
+  }
+  return choice.options ? [...choice.options] : []
+}
+
+export function slotSpendDiceCount(def: FeatureSlotSpendDef, slotLevel: number): number {
+  const lvl = Math.max(def.min_slot, Math.min(def.max_slot, Math.floor(slotLevel)))
+  const dice = def.dice_base + def.dice_per_slot_above * (lvl - def.min_slot)
+  return Math.min(def.dice_cap, Math.max(1, dice))
 }
 
 export function parseClassFeaturesFromCatalogData(

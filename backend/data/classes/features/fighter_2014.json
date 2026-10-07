@@ -12,8 +12,13 @@
       "level": 1,
       "name_ru": "Боевой стиль",
       "name_en": "Fighting Style",
-      "summary_ru": "Выбери боевой стиль (см. гранты класса).",
-      "kind": "passive"
+      "summary_ru": "Выбери боевой стиль (см. список PHB).",
+      "kind": "passive",
+      "choice": {
+        "id": "fighting_style",
+        "label_ru": "Боевой стиль",
+        "options_from": "fighter_fighting_styles"
+      }
     },
     {
       "id": "second_wind",
@@ -40,7 +45,10 @@
       "resource": {
         "uses": 1,
         "recharge": "short_rest",
-        "scale_uses": { "2": 1, "17": 2 },
+        "scale_uses": {
+          "2": 1,
+          "17": 2
+        },
         "pool_id": "action_surge",
         "pool_name_ru": "Всплеск действий",
         "track": "spend"
@@ -88,7 +96,11 @@
       "resource": {
         "uses": 1,
         "recharge": "long_rest",
-        "scale_uses": { "9": 1, "13": 2, "17": 3 },
+        "scale_uses": {
+          "9": 1,
+          "13": 2,
+          "17": 3
+        },
         "pool_id": "indomitable",
         "pool_name_ru": "Непоколебимость",
         "track": "spend"
@@ -115,7 +127,11 @@
         "resource": {
           "uses": 4,
           "recharge": "short_rest",
-          "scale_uses": { "3": 4, "7": 5, "15": 6 },
+          "scale_uses": {
+            "3": 4,
+            "7": 5,
+            "15": 6
+          },
           "pool_id": "superiority_dice",
           "pool_name_ru": "Кости превосходства",
           "track": "spend"
@@ -155,7 +171,11 @@
         "resource": {
           "uses": 4,
           "recharge": "short_rest",
-          "scale_uses": { "3": 4, "7": 5, "15": 6 },
+          "scale_uses": {
+            "3": 4,
+            "7": 5,
+            "15": 6
+          },
           "pool_id": "superiority_dice",
           "pool_name_ru": "Кости превосходства",
           "track": "spend",

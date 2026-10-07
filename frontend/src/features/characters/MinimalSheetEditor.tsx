@@ -88,7 +88,14 @@ import {
   syncFeatureResources,
 } from '../../shared/dnd/featureResources'
 import { unlockFeaturesForClasses } from '../../shared/dnd/classFeatures'
-import { ClassFeaturesPanel } from './ClassFeaturesPanel'
+import {
+  findFightingStylePick,
+  featurePicksToSheet,
+  readFeaturePicks,
+  type FeaturePicksState,
+} from '../../shared/dnd/featurePicks'
+import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
+import { ClassFeaturesPanel, saveBonusFromFeatures } from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import {
@@ -171,6 +178,7 @@ type Draft = {
   subclassGrants: AppliedSubclassGrant[]
   raceGrant: AppliedRaceGrant | null
   companions: CompanionEntry[]
+  featurePicks: FeaturePicksState
 }
 
 function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -273,6 +281,7 @@ function buildDraft(character: CharacterDetail): Draft {
     subclassGrants: readAppliedSubclassGrants(sheet.subclass_grants),
     raceGrant: readAppliedRaceGrant(sheet.race_grant),
     companions: readCompanions(sheet.companions),
+    featurePicks: readFeaturePicks(sheet.feature_picks),
   }
 }
 
@@ -986,14 +995,33 @@ export function MinimalSheetEditor({
     }
   }, [draft.abilities, draft.skills, proficiencyBonus])
 
+  const auraSaveBonus = useMemo(
+    () =>
+      saveBonusFromFeatures({
+        features: unlockedFeatures,
+        abilities: draft.abilities,
+      }),
+    [unlockedFeatures, draft.abilities],
+  )
+
   const armorClass = useMemo(() => {
     const pieces = equippedArmorPieces(draft.inventory.items)
-    return computeArmorClass({
+    const base = computeArmorClass({
       dexMod: abilityModifier(draft.abilities.dex),
       armor: pieces.armor,
       shield: pieces.shield,
     })
-  }, [draft.abilities.dex, draft.inventory.items])
+    const styleId = findFightingStylePick(draft.featurePicks)
+    const styleBonus = fightingStyleAcBonus({
+      styleId,
+      wearingArmor: Boolean(pieces.armor),
+    })
+    if (styleBonus <= 0) return base
+    return {
+      ac: base.ac + styleBonus,
+      summary: `${base.summary} · стиль +${styleBonus}`,
+    }
+  }, [draft.abilities.dex, draft.inventory.items, draft.featurePicks])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
     setDraft((prev) => ({ ...prev, identity: { ...prev.identity, ...patch } }))
@@ -1045,6 +1073,7 @@ export function MinimalSheetEditor({
       sheet.subclass_grants = draft.subclassGrants
       sheet.race_grant = draft.raceGrant
       sheet.companions = draft.companions
+      sheet.feature_picks = featurePicksToSheet(draft.featurePicks)
 
       for (const key of ABILITY_KEYS) {
         abilities[key] = { ...asRecord(abilities[key]), score: draft.abilities[key] }
@@ -1592,6 +1621,12 @@ export function MinimalSheetEditor({
             play: { ...prev.play, resources },
           }))
         }
+        featurePicks={draft.featurePicks}
+        onFeaturePicksChange={(featurePicks) =>
+          setDraft((prev) => ({ ...prev, featurePicks }))
+        }
+        spells={draft.spells}
+        onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onToast={onToast}
       />
 
@@ -1641,12 +1676,19 @@ export function MinimalSheetEditor({
             >
               {ABILITY_LABELS[key]}{' '}
               {formatModifier(
-                abilityModifier(draft.abilities[key]) + (draft.saves[key] ? proficiencyBonus : 0),
+                abilityModifier(draft.abilities[key]) +
+                  (draft.saves[key] ? proficiencyBonus : 0) +
+                  auraSaveBonus,
               )}
             </button>
           ))}
         </div>
-        <Text tone="muted">Нажми, чтобы включить/выключить владение</Text>
+        <Text tone="muted">
+          Нажми, чтобы включить/выключить владение
+          {auraSaveBonus > 0
+            ? ` · аура защиты +${auraSaveBonus} ко всем спасам`
+            : ''}
+        </Text>
       </Panel>
 
       <Panel title="Навыки">

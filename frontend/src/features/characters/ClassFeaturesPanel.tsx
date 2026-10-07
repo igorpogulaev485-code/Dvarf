@@ -3,6 +3,8 @@ import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   kindLabelRu,
   resolveClassFeatureSlug,
+  resolveFeatureChoiceOptions,
+  slotSpendDiceCount,
   unlockFeaturesForClasses,
   type AbilityScoreKey,
   type UnlockedFeature,
@@ -18,9 +20,18 @@ import {
   spendRemaining,
   stockCurrent,
 } from '../../shared/dnd/featureResources'
+import {
+  getFeaturePick,
+  setFeaturePick,
+  type FeaturePicksState,
+} from '../../shared/dnd/featurePicks'
+import { fightingStyleById } from '../../shared/dnd/fightingStyles'
 import type { SheetResource } from '../../shared/dnd/rest'
+import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import { Button, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
+import type { SpellsState } from './spells'
+import { abilityModifier } from './sheetTypes'
 
 type ClassFeaturesPanelProps = {
   classes: ClassLevelEntry[]
@@ -29,6 +40,10 @@ type ClassFeaturesPanelProps = {
   subclassSlugByEntryId?: Record<string, string | null | undefined>
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
+  featurePicks: FeaturePicksState
+  onFeaturePicksChange: (picks: FeaturePicksState) => void
+  spells: SpellsState
+  onSpellsChange: (spells: SpellsState) => void
   onToast?: (message: string) => void
 }
 
@@ -273,11 +288,126 @@ function FeatureResourceControls({
   )
 }
 
+function FeatureChoiceControls({
+  feature,
+  featurePicks,
+  onFeaturePicksChange,
+  onToast,
+}: {
+  feature: UnlockedFeature
+  featurePicks: FeaturePicksState
+  onFeaturePicksChange: (picks: FeaturePicksState) => void
+  onToast?: (message: string) => void
+}) {
+  const choice = feature.choice
+  if (!choice) return null
+  const options = resolveFeatureChoiceOptions(choice)
+  const selected = getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+  const selectedDef = fightingStyleById(selected)
+
+  return (
+    <div className="feature-resource">
+      <Text>
+        {choice.label_ru}
+        {selectedDef ? (
+          <>
+            : <strong>{selectedDef.nameRu}</strong>
+          </>
+        ) : (
+          ' — не выбран'
+        )}
+      </Text>
+      {selectedDef ? <Text tone="muted">{selectedDef.summaryRu}</Text> : null}
+      <div className="feature-resource__actions">
+        {options.map((optionId) => {
+          const def = fightingStyleById(optionId)
+          const label = def?.nameRu || optionId
+          const active = selected === optionId
+          return (
+            <Button
+              key={optionId}
+              type="button"
+              disabled={active}
+              onClick={() => {
+                onFeaturePicksChange(
+                  setFeaturePick(featurePicks, feature.classEntryId, feature.id, optionId),
+                )
+                onToast?.(`${choice.label_ru}: ${label}`)
+              }}
+            >
+              {label}
+            </Button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function FeatureSlotSpendControls({
+  feature,
+  spells,
+  onSpellsChange,
+  onToast,
+}: {
+  feature: UnlockedFeature
+  spells: SpellsState
+  onSpellsChange: (spells: SpellsState) => void
+  onToast?: (message: string) => void
+}) {
+  const spend = feature.slot_spend
+  if (!spend) return null
+
+  const levels: number[] = []
+  for (let level = spend.min_slot; level <= spend.max_slot; level += 1) {
+    levels.push(level)
+  }
+
+  return (
+    <div className="feature-resource">
+      <Text tone="muted">
+        {spend.label_ru}
+        {spend.extra_vs_note_ru ? ` · ${spend.extra_vs_note_ru}` : ''}
+      </Text>
+      <div className="feature-resource__actions">
+        {levels.map((level) => {
+          const dice = slotSpendDiceCount(spend, level)
+          const available = canSpendSlot(spells.slots, level)
+          return (
+            <Button
+              key={level}
+              type="button"
+              disabled={!available}
+              onClick={() => {
+                const result = spendSpellSlot(spells.slots, level)
+                if (!result.ok) {
+                  onToast?.(`Нет ячейки ${level} ур.`)
+                  return
+                }
+                onSpellsChange({ ...spells, slots: result.slots })
+                onToast?.(
+                  `${spend.label_ru}: ячейка ${level} → +${dice}к${spend.dice_size} лучистого`,
+                )
+              }}
+            >
+              {level} ур. (+{dice}к{spend.dice_size})
+            </Button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function FeatureRow({
   feature,
   classSlug,
   resources,
   onResourcesChange,
+  featurePicks,
+  onFeaturePicksChange,
+  spells,
+  onSpellsChange,
   onToast,
   initiativeGrantByPool,
 }: {
@@ -285,6 +415,10 @@ function FeatureRow({
   classSlug: string
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
+  featurePicks: FeaturePicksState
+  onFeaturePicksChange: (picks: FeaturePicksState) => void
+  spells: SpellsState
+  onSpellsChange: (spells: SpellsState) => void
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
 }) {
@@ -303,13 +437,22 @@ function FeatureRow({
       )
     : null
 
+  const stylePick = feature.choice
+    ? getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+    : null
+  const styleDef = fightingStyleById(stylePick)
+
   let metaExtra = ''
-  if (feature.resource?.track === 'stock' && pool) {
+  if (styleDef) {
+    metaExtra = ` · ${styleDef.nameRu}`
+  } else if (feature.resource?.track === 'stock' && pool) {
     metaExtra = ` · ${stockCurrent(pool)}/${pool.max}`
   } else if (feature.resourceUses != null) {
     metaExtra = pool
       ? ` · ${spendRemaining(pool)}/${pool.max}`
       : ` · ${feature.resourceUses}×`
+  } else if (feature.save_bonus_self) {
+    metaExtra = ` · ${feature.save_bonus_self.label_ru}`
   }
 
   return (
@@ -341,6 +484,18 @@ function FeatureRow({
               {feature.scale.labelRu}: сейчас <strong>{feature.scaleValue}</strong>
             </Text>
           ) : null}
+          <FeatureChoiceControls
+            feature={feature}
+            featurePicks={featurePicks}
+            onFeaturePicksChange={onFeaturePicksChange}
+            onToast={onToast}
+          />
+          <FeatureSlotSpendControls
+            feature={feature}
+            spells={spells}
+            onSpellsChange={onSpellsChange}
+            onToast={onToast}
+          />
           <FeatureResourceControls
             feature={feature}
             classSlug={classSlug}
@@ -355,6 +510,23 @@ function FeatureRow({
   )
 }
 
+/** Cha (or other) bonus from unlocked aura_of_protection-style features. */
+export function saveBonusFromFeatures(input: {
+  features: UnlockedFeature[]
+  abilities: Partial<Record<AbilityScoreKey, number>>
+}): number {
+  let bonus = 0
+  for (const feature of input.features) {
+    const spec = feature.save_bonus_self
+    if (!spec) continue
+    const score = input.abilities[spec.ability]
+    const mod =
+      typeof score === 'number' ? abilityModifier(score) : spec.min_bonus
+    bonus = Math.max(bonus, Math.max(spec.min_bonus, mod))
+  }
+  return bonus
+}
+
 export function ClassFeaturesPanel({
   classes,
   characterLevel,
@@ -362,6 +534,10 @@ export function ClassFeaturesPanel({
   subclassSlugByEntryId,
   resources,
   onResourcesChange,
+  featurePicks,
+  onFeaturePicksChange,
+  spells,
+  onSpellsChange,
   onToast,
 }: ClassFeaturesPanelProps) {
   const features = useMemo(
@@ -412,7 +588,8 @@ export function ClassFeaturesPanel({
 
         {byClass.length === 0 ? (
           <Text tone="muted">
-            Пока заполнены: Плут, Воин, Варвар, Монах, Жрец (H4 в docs/feature_resource_contract.md).
+            Пока заполнены: Плут, Воин, Варвар, Монах, Жрец, Паладин (H4 в
+            docs/feature_resource_contract.md).
           </Text>
         ) : null}
 
@@ -430,6 +607,10 @@ export function ClassFeaturesPanel({
                   classSlug={group.classSlug}
                   resources={resources}
                   onResourcesChange={onResourcesChange}
+                  featurePicks={featurePicks}
+                  onFeaturePicksChange={onFeaturePicksChange}
+                  spells={spells}
+                  onSpellsChange={onSpellsChange}
                   onToast={onToast}
                   initiativeGrantByPool={initiativeGrantByPool}
                 />

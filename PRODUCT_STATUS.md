@@ -248,7 +248,8 @@
 | Жрец домены | Все **14** оф. + always-prepared + sheet_grants | Доменные заклинания в known; владения с setup |
 | Жрец миграция | `a6b7c8d9e0f1` upsert доменов | Сид → catalog.data |
 | Жрец CD / DI | Shared `channel_divinity`; DI success_lock 7 дней | Кнопка на Изгнании/домене тратит канал; успех DI → manual |
-| Паладин | Пакет + **9** клятв; LoH 5×ур.; CD shared; Divine Sense 1+Cha | Клятво-заклинания + умения на листе |
+| Паладин | Пакет + **9** клятв; LoH 5×ур.; CD; Sense 1+Cha | Клятво-заклинания + умения на листе |
+| Паладин класс | Fighting Style pick; Divine Smite → ячейка; Aura → спас | Defense +1 КД; кара с кнопками 1–4 ур.; +Хар к спасам |
 | Паладин миграция | `a7b8c9d0e1f2` upsert клятв | Сид → catalog.data |
 | Связанные ресурсы | PB / 2×PB / Wis-mod / 1+Cha / stock / linked / recover / success_lock | Фантом, Soulknife, BM, домены, DI, LoH |
 | H4 очередь | … Паладин ✓ → **Следопыт** → … | Порядок в контракте |

@@ -66,8 +66,13 @@
       "level": 2,
       "name_ru": "Боевой стиль",
       "name_en": "Fighting Style",
-      "summary_ru": "Выбери боевой стиль (Defense, Dueling, Great Weapon Fighting, Protection).",
-      "kind": "passive"
+      "summary_ru": "Выбери боевой стиль: Оборона, Дуэлянт, Сражение большим оружием или Защита.",
+      "kind": "passive",
+      "choice": {
+        "id": "fighting_style",
+        "label_ru": "Боевой стиль",
+        "options_from": "paladin_fighting_styles"
+      }
     },
     {
       "id": "spellcasting_paladin",
@@ -82,8 +87,18 @@
       "level": 2,
       "name_ru": "Божественная кара",
       "name_en": "Divine Smite",
-      "summary_ru": "При попадании оружием ближнего боя: потратить ячейку → +2к8 лучистого (+1к8 за уровень ячейки выше 1-го, макс. +5к8); +1к8 vs нежить/фиенд.",
-      "kind": "passive"
+      "summary_ru": "При попадании оружием ближнего боя: потратить ячейку → +2к8 лучистого (+1к8 за уровень ячейки выше 1-го, макс. 5к8 от ячейки); +1к8 vs нежить/фиенд.",
+      "kind": "action",
+      "slot_spend": {
+        "label_ru": "Божественная кара",
+        "min_slot": 1,
+        "max_slot": 4,
+        "dice_base": 2,
+        "dice_per_slot_above": 1,
+        "dice_cap": 5,
+        "dice_size": 8,
+        "extra_vs_note_ru": "+1к8 vs нежить/фиенд"
+      }
     },
     {
       "id": "divine_health",
@@ -137,7 +152,7 @@
       "level": 6,
       "name_ru": "Аура защиты",
       "name_en": "Aura of Protection",
-      "summary_ru": "Ты и союзники в ауре (нач. 10 фт.) добавляют твой мод. Харизмы к спасброскам (мин. +1).",
+      "summary_ru": "Ты и союзники в ауре добавляют твой мод. Харизмы к спасброскам (мин. +1). На листе — бонус к твоим спасам, пока умение открыто.",
       "kind": "passive",
       "scale": {
         "label_ru": "Радиус",
@@ -145,6 +160,11 @@
           "6": "10 фт.",
           "18": "30 фт."
         }
+      },
+      "save_bonus_self": {
+        "ability": "cha",
+        "min_bonus": 1,
+        "label_ru": "Аура защиты → спас (+Хар.)"
       }
     },
     {

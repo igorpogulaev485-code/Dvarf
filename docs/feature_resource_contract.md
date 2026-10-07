@@ -26,9 +26,11 @@
 8. **Recover one** — `recover_one` (Soulknife: бонусным вернуть 1 кость / short)
 9. **Initiative grant** — `grant_one_on_initiative_if_empty` (Relentless BM)
 10. **Long-rest stock grant** — `grant_stock_on_long_rest_if_empty` (Друг смерти)
-11. **Choice / pick** — не сюда; это subclass/class grants
+11. **Choice / pick** — subclass/class grants **или** `choice` на умении → `sheet.feature_picks` (Fighting Style)
 12. **Shared pool** — несколько умений с одним `pool_id` (Turn Undead + доменные Channel Divinity)
 13. **Success lock** — `success_lock` + `failure_spend_label_ru` (Divine Intervention: провал → long rest; успех → manual 7 дней)
+14. **Slot spend** — `slot_spend` тратит ячейку заклинаний с ряда умения (Divine Smite)
+15. **Save bonus self** — `save_bonus_self` добавляет мод. характеристики к спасам на листе (Aura of Protection)
 
 Если не ложится — сначала расширь контракт, потом UI. Не one-off компонент на архетип.
 
@@ -95,7 +97,7 @@
 | Barbarian / Berserker / Totem | 1, 5 (+ Rage table) |
 | Monk / Open Hand / Shadow / Elements | 1, 5, 9 (+ Ki = level, Perfect Self +4) |
 | Cleric / **14** оф. доменов | 2, 4b, 5, 12, 13 (CD shared; Wis-mod; DI success lock; PHB+DMG+SCAG+XGtE+TCoE) |
-| Paladin / **9** оф. клятв | 2, 4b, 4c, 5, 12 (LoH 5×ур.; Divine Sense 1+Cha; CD shared; PHB+DMG+SCAG+XGtE+TCoE) |
+| Paladin / **9** оф. клятв | 2, 4b, 4c, 5, 11, 12, 14, 15 (LoH; Sense; CD; Fighting Style; Smite slots; Aura saves) |
 
 ## H4 — порядок пакетов классов
 
@@ -105,7 +107,7 @@
 2. ~~Варвар~~ (готово)
 3. ~~Монах~~ (готово)
 4. ~~Жрец~~ (умения + 14 доменов + always-prepared/grants + CD shared + DI lock)
-5. ~~Паладин~~ (LoH + CD + 9 клятв + always-prepared)
+5. ~~Паладин~~ (класс: LoH/CD/Sense + Fighting Style + Smite + Aura saves; клятвы в пакете, полировка архетипов — общим проходом)
 6. **Следопыт** ← следующий / остальные PHB
 7. Чародей, Колдун, Бард, Друид, Волшебник, Изобретатель
 
