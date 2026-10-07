@@ -5,6 +5,7 @@ import barbarianPack from './data/barbarian_2014.json'
 import bardPack from './data/bard_2014.json'
 import clericPack from './data/cleric_2014.json'
 import druidPack from './data/druid_2014.json'
+import wizardPack from './data/wizard_2014.json'
 import fighterPack from './data/fighter_2014.json'
 import monkPack from './data/monk_2014.json'
 import paladinPack from './data/paladin_2014.json'
@@ -175,6 +176,7 @@ const LOCAL_PACKS: Record<string, FeaturePack> = {
   cleric: clericPack as FeaturePack,
   druid: druidPack as FeaturePack,
   fighter: fighterPack as FeaturePack,
+  wizard: wizardPack as FeaturePack,
   monk: monkPack as FeaturePack,
   paladin: paladinPack as FeaturePack,
   ranger: rangerPack as FeaturePack,
@@ -605,6 +607,8 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   бард: 'bard',
   druid: 'druid',
   друид: 'druid',
+  wizard: 'wizard',
+  волшебник: 'wizard',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {
@@ -785,6 +789,28 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   'круг звезд': 'circle_of_stars',
   circle_of_wildfire: 'circle_of_wildfire',
   'круг дикого огня': 'circle_of_wildfire',
+  school_of_abjuration: 'school_of_abjuration',
+  'школа ограждения': 'school_of_abjuration',
+  school_of_conjuration: 'school_of_conjuration',
+  'школа вызова': 'school_of_conjuration',
+  school_of_divination: 'school_of_divination',
+  'школа прорицания': 'school_of_divination',
+  school_of_enchantment: 'school_of_enchantment',
+  'школа очарования': 'school_of_enchantment',
+  school_of_evocation: 'school_of_evocation',
+  'школа воплощения': 'school_of_evocation',
+  school_of_illusion: 'school_of_illusion',
+  'школа иллюзии': 'school_of_illusion',
+  school_of_necromancy: 'school_of_necromancy',
+  'школа некромантии': 'school_of_necromancy',
+  school_of_transmutation: 'school_of_transmutation',
+  'школа преобразования': 'school_of_transmutation',
+  bladesinging: 'bladesinging',
+  'песнь клинка': 'bladesinging',
+  war_magic: 'war_magic',
+  'военная магия': 'war_magic',
+  order_of_scribes: 'order_of_scribes',
+  'орден писцов': 'order_of_scribes',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -862,6 +888,17 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'circle_of_spores',
   'circle_of_stars',
   'circle_of_wildfire',
+  'school_of_abjuration',
+  'school_of_conjuration',
+  'school_of_divination',
+  'school_of_enchantment',
+  'school_of_evocation',
+  'school_of_illusion',
+  'school_of_necromancy',
+  'school_of_transmutation',
+  'bladesinging',
+  'war_magic',
+  'order_of_scribes',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {

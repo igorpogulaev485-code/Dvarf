@@ -103,6 +103,7 @@
 | Warlock / **9** оф. покровителей | 2, 5, 11 (Pact Magic already in caster; Invocations multi-pick; Pact Boon; Arcanum 6–9) |
 | Bard / **8** оф. коллегий | 2, 4b, 5, 8, 11 (BI Cha-mod; Font upgrades reset long→short; Superior Inspiration; Swords style) |
 | Druid / **7** оф. кругов | 2, 3, 4b, 5, 11 (Wild Shape 2× short; Land type pick; PB/Wis pools on circles) |
+| Wizard / **11** оф. традиций | 2, 5, 6, 11 (Arcane Recovery; Portent stock 2→3; Bladesong PB; Signature Spells) |
 
 ## H4 — порядок пакетов классов
 
@@ -118,7 +119,8 @@
 8. ~~Колдун~~ (инвокации + pact boon + арканумы; 9 покровителей каркас)
 9. ~~Бард~~ (BI + Font short + Superior Inspiration; 8 коллегий каркас)
 10. ~~Друид~~ (Wild Shape + Land pick; 7 кругов каркас)
-11. **Волшебник** ← следующий / Изобретатель
+11. ~~Волшебник~~ (Arcane Recovery + Portent/Bladesong; 11 традиций каркас)
+12. **Изобретатель** ← следующий
 
 ## Не в v1
 

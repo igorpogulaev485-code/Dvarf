@@ -945,7 +945,7 @@ export function ClassFeaturesPanel({
 
         {byClass.length === 0 ? (
           <Text tone="muted">
-            Пока заполнены: … Бард, Друид (H4 в docs/feature_resource_contract.md).
+            Пока заполнены: … Друид, Волшебник (H4 в docs/feature_resource_contract.md).
           </Text>
         ) : null}
 
