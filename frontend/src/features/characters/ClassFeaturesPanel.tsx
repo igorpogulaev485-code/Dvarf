@@ -34,22 +34,23 @@ function FeatureResourceControls({
   resources,
   onResourcesChange,
   onToast,
-  initiativePoolIds,
+  initiativeGrantByPool,
 }: {
   feature: UnlockedFeature
   classSlug: string
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
   onToast?: (message: string) => void
-  initiativePoolIds: Set<string>
+  initiativeGrantByPool: Map<string, number>
 }) {
   const resource = feature.resource
   if (!resource?.pool_id) return null
+  const poolId = resource.pool_id
 
   const pool = findFeatureResource(
     resources,
     classSlug,
-    resource.pool_id,
+    poolId,
     feature.classEntryId,
   )
   if (!pool) {
@@ -119,9 +120,13 @@ function FeatureResourceControls({
   const canViaLinked = remaining <= 0 && linkedLeft > 0
   const canRecover =
     Boolean(resource.recover_one) && pool.used > 0
+  const initiativeAmount =
+    resource.grant_amount_on_initiative_if_empty ??
+    initiativeGrantByPool.get(poolId) ??
+    1
   const hasInitiativeGrant =
     Boolean(resource.grant_one_on_initiative_if_empty) ||
-    initiativePoolIds.has(resource.pool_id)
+    initiativeGrantByPool.has(poolId)
   const canInitiativeGrant =
     hasInitiativeGrant && remaining <= 0 && pool.used > 0
 
@@ -193,6 +198,7 @@ function FeatureResourceControls({
                   resource: {
                     ...resource,
                     grant_one_on_initiative_if_empty: true,
+                    grant_amount_on_initiative_if_empty: initiativeAmount,
                   },
                 },
                 classSlug,
@@ -201,7 +207,7 @@ function FeatureResourceControls({
               onToast?.(result.message)
             }}
           >
-            Инициатива: +1 кость
+            Инициатива: +{initiativeAmount}
           </Button>
         ) : null}
       </div>
@@ -215,14 +221,14 @@ function FeatureRow({
   resources,
   onResourcesChange,
   onToast,
-  initiativePoolIds,
+  initiativeGrantByPool,
 }: {
   feature: UnlockedFeature
   classSlug: string
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
   onToast?: (message: string) => void
-  initiativePoolIds: Set<string>
+  initiativeGrantByPool: Map<string, number>
 }) {
   const [open, setOpen] = useState(false)
   const sourceLabel =
@@ -283,7 +289,7 @@ function FeatureRow({
             resources={resources}
             onResourcesChange={onResourcesChange}
             onToast={onToast}
-            initiativePoolIds={initiativePoolIds}
+            initiativeGrantByPool={initiativeGrantByPool}
           />
         </div>
       ) : null}
@@ -309,16 +315,17 @@ export function ClassFeaturesPanel({
     [classes, characterLevel, subclassSlugByEntryId],
   )
 
-  const initiativePoolIds = useMemo(() => {
-    const set = new Set<string>()
+  const initiativeGrantByPool = useMemo(() => {
+    const map = new Map<string, number>()
     for (const feature of features) {
       if (feature.resource?.grant_one_on_initiative_if_empty && feature.resource.pool_id) {
-        set.add(feature.resource.pool_id)
+        const amount = feature.resource.grant_amount_on_initiative_if_empty ?? 1
+        const prev = map.get(feature.resource.pool_id) ?? 0
+        map.set(feature.resource.pool_id, Math.max(prev, amount))
       }
     }
-    return set
+    return map
   }, [features])
-
   const byClass = useMemo(() => {
     const map = new Map<string, UnlockedFeature[]>()
     for (const feature of features) {
@@ -364,7 +371,7 @@ export function ClassFeaturesPanel({
                   resources={resources}
                   onResourcesChange={onResourcesChange}
                   onToast={onToast}
-                  initiativePoolIds={initiativePoolIds}
+                  initiativeGrantByPool={initiativeGrantByPool}
                 />
               ))}
             </div>

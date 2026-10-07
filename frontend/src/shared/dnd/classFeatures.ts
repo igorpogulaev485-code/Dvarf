@@ -3,6 +3,7 @@
 import type { ClassLevelEntry } from './classLevels'
 import barbarianPack from './data/barbarian_2014.json'
 import fighterPack from './data/fighter_2014.json'
+import monkPack from './data/monk_2014.json'
 import roguePack from './data/rogue_2014.json'
 
 export type FeatureKind = 'passive' | 'action' | 'bonus' | 'reaction' | 'resource'
@@ -37,8 +38,10 @@ export type FeatureResource = {
     label_ru: string
     recharge: 'short_rest' | 'long_rest'
   }
-  /** Battle Master Relentless: when pool empty at initiative, regain 1. */
+  /** Battle Master Relentless / Perfect Self: when pool empty at initiative, regain N. */
   grant_one_on_initiative_if_empty?: boolean
+  /** How many to restore (default 1). Perfect Self = 4. */
+  grant_amount_on_initiative_if_empty?: number
   /** Death's Friend: after long rest, if stock empty → grant 1. */
   grant_stock_on_long_rest_if_empty?: boolean
   stock_gain_label_ru?: string
@@ -78,8 +81,9 @@ type FeaturePack = {
 
 const LOCAL_PACKS: Record<string, FeaturePack> = {
   barbarian: barbarianPack as FeaturePack,
-  rogue: roguePack as FeaturePack,
   fighter: fighterPack as FeaturePack,
+  monk: monkPack as FeaturePack,
+  rogue: roguePack as FeaturePack,
 }
 
 function asFeatureList(raw: unknown): ClassFeatureDef[] {
@@ -229,6 +233,10 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
     grant_one_on_initiative_if_empty: Boolean(
       resourceRaw.grant_one_on_initiative_if_empty,
     ),
+    grant_amount_on_initiative_if_empty:
+      typeof resourceRaw.grant_amount_on_initiative_if_empty === 'number'
+        ? Math.max(1, Math.floor(resourceRaw.grant_amount_on_initiative_if_empty))
+        : undefined,
     grant_stock_on_long_rest_if_empty: Boolean(
       resourceRaw.grant_stock_on_long_rest_if_empty,
     ),
@@ -281,6 +289,8 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   плут: 'rogue',
   fighter: 'fighter',
   воин: 'fighter',
+  monk: 'monk',
+  монах: 'monk',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {
@@ -312,6 +322,16 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   totem_warrior: 'path_of_the_totem_warrior',
   'тотемный воин': 'path_of_the_totem_warrior',
   'путь тотемного воина': 'path_of_the_totem_warrior',
+  way_of_the_open_hand: 'way_of_the_open_hand',
+  'открытая ладонь': 'way_of_the_open_hand',
+  'путь открытой ладони': 'way_of_the_open_hand',
+  way_of_shadow: 'way_of_shadow',
+  тень: 'way_of_shadow',
+  'путь тени': 'way_of_shadow',
+  way_of_the_four_elements: 'way_of_the_four_elements',
+  'четыре стихии': 'way_of_the_four_elements',
+  'путь четырёх стихий': 'way_of_the_four_elements',
+  'путь четырех стихий': 'way_of_the_four_elements',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -323,6 +343,9 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'battle_master',
   'path_of_the_berserker',
   'path_of_the_totem_warrior',
+  'way_of_the_open_hand',
+  'way_of_shadow',
+  'way_of_the_four_elements',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {

@@ -1,0 +1,319 @@
+{
+  "meta": {
+    "purpose": "PHB 2014 Monk class + Open Hand / Shadow / Four Elements for sheet unlock",
+    "edition": "2014",
+    "source": "phb",
+    "notes_ru": "Ки = уровень монаха с 2 ур. Perfect Self: +4 ки на инициативе при 0."
+  },
+  "class_slug": "monk",
+  "features": [
+    {
+      "id": "unarmored_defense_monk",
+      "level": 1,
+      "name_ru": "Защита без доспехов",
+      "name_en": "Unarmored Defense",
+      "summary_ru": "Без доспеха и щита КД = 10 + Ловк. + Мудрость.",
+      "kind": "passive"
+    },
+    {
+      "id": "martial_arts",
+      "level": 1,
+      "name_ru": "Боевые искусства",
+      "name_en": "Martial Arts",
+      "summary_ru": "Ловкость вместо Силы для безоружных/monk weapon; кость боевых искусств вместо обычного урона; бонусная безоружная после атаки.",
+      "kind": "passive",
+      "scale": {
+        "label_ru": "Кость БИ",
+        "by_level": {
+          "1": "1к4",
+          "5": "1к6",
+          "11": "1к8",
+          "17": "1к10"
+        }
+      }
+    },
+    {
+      "id": "ki",
+      "level": 2,
+      "name_ru": "Ки",
+      "name_en": "Ki",
+      "summary_ru": "Очки ки = уровень монаха. Сброс на коротком/продолжительном отдыхе (≥30 мин медитации). Сл ки = 8+мастерство+Мудр.",
+      "kind": "resource",
+      "resource": {
+        "uses": 2,
+        "recharge": "short_rest",
+        "scale_uses": {
+          "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10,
+          "11": 11, "12": 12, "13": 13, "14": 14, "15": 15, "16": 16, "17": 17,
+          "18": 18, "19": 19, "20": 20
+        },
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "flurry_of_blows",
+      "level": 2,
+      "name_ru": "Шквал ударов",
+      "name_en": "Flurry of Blows",
+      "summary_ru": "После атаки: 1 ки → бонусным две безоружные атаки.",
+      "kind": "bonus"
+    },
+    {
+      "id": "patient_defense",
+      "level": 2,
+      "name_ru": "Терпеливая оборона",
+      "name_en": "Patient Defense",
+      "summary_ru": "1 ки → бонусным действие Уклонение.",
+      "kind": "bonus"
+    },
+    {
+      "id": "step_of_the_wind",
+      "level": 2,
+      "name_ru": "Шаг ветра",
+      "name_en": "Step of the Wind",
+      "summary_ru": "1 ки → бонусным Отход или Рывок; прыжок удваивается в этот ход.",
+      "kind": "bonus"
+    },
+    {
+      "id": "unarmored_movement",
+      "level": 2,
+      "name_ru": "Движение без доспехов",
+      "name_en": "Unarmored Movement",
+      "summary_ru": "+скорость без доспеха и щита. С 9 ур. — по вертикали и по жидкости в свой ход.",
+      "kind": "passive",
+      "scale": {
+        "label_ru": "Бонус скорости",
+        "by_level": {
+          "2": "+10 фт.",
+          "6": "+15 фт.",
+          "10": "+20 фт.",
+          "14": "+25 фт.",
+          "18": "+30 фт."
+        }
+      }
+    },
+    {
+      "id": "monastic_tradition",
+      "level": 3,
+      "name_ru": "Монастырская традиция",
+      "name_en": "Monastic Tradition",
+      "summary_ru": "Выбери традицию (Открытая ладонь / Тень / Четыре стихии / …).",
+      "kind": "passive"
+    },
+    {
+      "id": "deflect_missiles",
+      "level": 3,
+      "name_ru": "Отклонение снарядов",
+      "name_en": "Deflect Missiles",
+      "summary_ru": "Реакция: урон снаряда − 1к10+Ловк.+ур. монаха. При 0 можно поймать и за 1 ки метнуть обратно.",
+      "kind": "reaction"
+    },
+    {
+      "id": "slow_fall",
+      "level": 4,
+      "name_ru": "Медленное падение",
+      "name_en": "Slow Fall",
+      "summary_ru": "Реакция при падении: уменьши урон на 5×ур. монаха.",
+      "kind": "reaction"
+    },
+    {
+      "id": "extra_attack_monk",
+      "level": 5,
+      "name_ru": "Дополнительная атака",
+      "name_en": "Extra Attack",
+      "summary_ru": "Атакой: две атаки.",
+      "kind": "passive"
+    },
+    {
+      "id": "stunning_strike",
+      "level": 5,
+      "name_ru": "Оглушающий удар",
+      "name_en": "Stunning Strike",
+      "summary_ru": "При попадании рукопашной: 1 ки → спас Телосложения или оглушён до конца твоего следующего хода.",
+      "kind": "passive"
+    },
+    {
+      "id": "ki_empowered_strikes",
+      "level": 6,
+      "name_ru": "Удары, усиленные ки",
+      "name_en": "Ki-Empowered Strikes",
+      "summary_ru": "Безоружные атаки считаются магическими против сопротивления/иммунитета.",
+      "kind": "passive"
+    },
+    {
+      "id": "evasion",
+      "level": 7,
+      "name_ru": "Увёртливость",
+      "name_en": "Evasion",
+      "summary_ru": "Спас Ловкости на половину урона: успех → 0, провал → половина.",
+      "kind": "passive"
+    },
+    {
+      "id": "stillness_of_mind",
+      "level": 7,
+      "name_ru": "Спокойствие разума",
+      "name_en": "Stillness of Mind",
+      "summary_ru": "Действием заверши эффект очарования или испуга на себе.",
+      "kind": "action"
+    },
+    {
+      "id": "purity_of_body",
+      "level": 10,
+      "name_ru": "Чистота тела",
+      "name_en": "Purity of Body",
+      "summary_ru": "Иммунитет к болезням и яду.",
+      "kind": "passive"
+    },
+    {
+      "id": "tongue_of_the_sun_and_moon",
+      "level": 13,
+      "name_ru": "Язык солнца и луны",
+      "name_en": "Tongue of the Sun and Moon",
+      "summary_ru": "Понимаешь любую речь и тебя понимают все существа, знающие язык.",
+      "kind": "passive"
+    },
+    {
+      "id": "diamond_soul",
+      "level": 14,
+      "name_ru": "Алмазная душа",
+      "name_en": "Diamond Soul",
+      "summary_ru": "Владение всеми спасбросками; 1 ки → переброс спасброска.",
+      "kind": "passive"
+    },
+    {
+      "id": "timeless_body",
+      "level": 15,
+      "name_ru": "Вечное тело",
+      "name_en": "Timeless Body",
+      "summary_ru": "Нельзя состарить магией; не нужды в еде/воде.",
+      "kind": "passive"
+    },
+    {
+      "id": "empty_body",
+      "level": 18,
+      "name_ru": "Пустое тело",
+      "name_en": "Empty Body",
+      "summary_ru": "4 ки → невидимость 1 мин (+сопротивление всем уронам кроме силового). 8 ки → проекция в астрал.",
+      "kind": "action"
+    },
+    {
+      "id": "perfect_self",
+      "level": 20,
+      "name_ru": "Идеальное я",
+      "name_en": "Perfect Self",
+      "summary_ru": "В начале боя при 0 ки получаешь 4 очка ки.",
+      "kind": "passive",
+      "resource": {
+        "uses": 20,
+        "recharge": "short_rest",
+        "scale_uses": {
+          "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10,
+          "11": 11, "12": 12, "13": 13, "14": 14, "15": 15, "16": 16, "17": 17,
+          "18": 18, "19": 19, "20": 20
+        },
+        "pool_id": "ki",
+        "pool_name_ru": "Ки",
+        "track": "spend",
+        "grant_one_on_initiative_if_empty": true,
+        "grant_amount_on_initiative_if_empty": 4
+      }
+    }
+  ],
+  "subclasses": {
+    "way_of_the_open_hand": [
+      {
+        "id": "open_hand_technique",
+        "level": 3,
+        "name_ru": "Техника открытой ладони",
+        "name_en": "Open Hand Technique",
+        "summary_ru": "При попадании Шквалом: сбить с ног / оттолкнуть / запретить реакции до конца твоего следующего хода.",
+        "kind": "passive"
+      },
+      {
+        "id": "wholeness_of_body",
+        "level": 6,
+        "name_ru": "Целостность тела",
+        "name_en": "Wholeness of Body",
+        "summary_ru": "Действием: хиты = 3×ур. монаха. 1× / продолжительный отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "wholeness_of_body",
+          "pool_name_ru": "Целостность тела",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "tranquility",
+        "level": 11,
+        "name_ru": "Спокойствие",
+        "name_en": "Tranquility",
+        "summary_ru": "После продолжительного отдыха — эффект святилища (Сл ки) до следующего отдыха.",
+        "kind": "passive"
+      },
+      {
+        "id": "quivering_palm",
+        "level": 17,
+        "name_ru": "Дрожащая ладонь",
+        "name_en": "Quivering Palm",
+        "summary_ru": "При безоружном попадании: 3 ки → вибрации до 3×Мудр. дней; действием спас Телосложения или 0 хитов (при успехе — 10к10 некротики).",
+        "kind": "action"
+      }
+    ],
+    "way_of_shadow": [
+      {
+        "id": "shadow_arts",
+        "level": 3,
+        "name_ru": "Искусство тени",
+        "name_en": "Shadow Arts",
+        "summary_ru": "2 ки → тьма / тёмное зрение / тишина / шаг сквозь тень (как заклинания без компонентов).",
+        "kind": "action"
+      },
+      {
+        "id": "shadow_step",
+        "level": 6,
+        "name_ru": "Шаг тени",
+        "name_en": "Shadow Step",
+        "summary_ru": "В тусклом свете/тьме: бонусным телепорт 60 фт. в тусклый/тьму; преимущество на следующую рукопашную до конца хода.",
+        "kind": "bonus"
+      },
+      {
+        "id": "cloak_of_shadows",
+        "level": 11,
+        "name_ru": "Плащ теней",
+        "name_en": "Cloak of Shadows",
+        "summary_ru": "В тусклом/тьме действием: невидимость до атаки, заклинания или яркого света.",
+        "kind": "action"
+      },
+      {
+        "id": "opportunist",
+        "level": 17,
+        "name_ru": "Оппортунист",
+        "name_en": "Opportunist",
+        "summary_ru": "Реакция: когда существо в 5 фт. получает урон от кого-то другого — безоружная атака по нему.",
+        "kind": "reaction"
+      }
+    ],
+    "way_of_the_four_elements": [
+      {
+        "id": "disciple_of_the_elements",
+        "level": 3,
+        "name_ru": "Ученик стихий",
+        "name_en": "Disciple of the Elements",
+        "summary_ru": "Выучи elemental disciplines (включая Elemental Attunement). Список — в заметках; траты ки по дисциплине.",
+        "kind": "passive"
+      },
+      {
+        "id": "extra_elemental_discipline",
+        "level": 6,
+        "name_ru": "Доп. дисциплина стихий",
+        "name_en": "Extra Elemental Discipline",
+        "summary_ru": "Выучи ещё одну дисциплину (и на 11, 17).",
+        "kind": "passive"
+      }
+    ]
+  }
+}

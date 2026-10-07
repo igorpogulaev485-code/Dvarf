@@ -417,15 +417,20 @@ export function grantOneOnInitiativeIfEmpty(input: {
       message: 'Нечего возвращать',
     }
   }
+  const amount = Math.max(
+    1,
+    Math.floor(resource.grant_amount_on_initiative_if_empty ?? 1),
+  )
+  const restored = Math.min(amount, pool.used)
   return {
     resources: input.resources.map((row) =>
       row.id === pool.id
-        ? clampResource({ ...row, used: Math.max(0, row.used - 1) })
+        ? clampResource({ ...row, used: Math.max(0, row.used - restored) })
         : row,
     ),
     ok: true,
     via: 'pool',
-    message: `${pool.name}: +1 на инициативе`,
+    message: `${pool.name}: +${restored} на инициативе`,
   }
 }
 
