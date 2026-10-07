@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   FALLBACK_CONDITIONS,
+  conditionKey,
+  conditionMaxLevel,
   hasCondition,
+  resolveConditionName,
+  setConditionLevel,
   toggleCondition,
   type ConditionRef,
 } from '../../shared/dnd/conditions'
@@ -15,22 +19,40 @@ import {
   type HitDie,
 } from '../../shared/dnd/hitDice'
 import {
+  applyHpMaxBonusChange,
+  clampHpMaxBonus,
+  effectiveHpMax,
+} from '../../shared/dnd/hp'
+import {
   applyLongRest,
   applyShortRest,
-  type ResourceReset,
+  clampExhaustion,
 } from '../../shared/dnd/rest'
 import {
   listCatalogEntries,
   type CatalogEntry,
 } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
-import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import {
-  RESET_LABELS,
-  createResource,
-  type PlayState,
-} from './play'
+  Button,
+  Combobox,
+  Field,
+  NumberInput,
+  Panel,
+  SlotPips,
+  Stack,
+  Text,
+  type ComboboxOption,
+} from '../../ui'
+import { type PlayState } from './play'
 import type { SpellsState } from './spells'
+
+type ConditionOption = {
+  slug: string
+  name: string
+  catalog_id: string | null
+  maxLevel: number | null
+}
 
 type PlayPanelProps = {
   edition: RulesEdition
@@ -45,8 +67,6 @@ type PlayPanelProps = {
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
   onToast: (message: string) => void
 }
-
-const RESET_OPTIONS: ResourceReset[] = ['short', 'long', 'manual']
 
 function DeathTrack({
   label,
@@ -96,6 +116,7 @@ export function PlayPanel({
 }: PlayPanelProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
   const hitDiceMax = Math.max(1, Math.floor(level))
+  const combatHpMax = effectiveHpMax(hpMax, play.hpMaxBonus)
   const suggestedHeal = play.hitDie
     ? suggestedHitDieHeal(play.hitDie, constitutionMod)
     : null
@@ -119,53 +140,135 @@ export function PlayPanel({
     }
   }, [edition])
 
-  const conditionOptions = useMemo(() => {
-    if (catalogConditions.length > 0) {
-      return catalogConditions.map((entry) => ({
-        slug: entry.slug,
-        name: entry.name_ru,
-        catalog_id: entry.id,
-      }))
+  const conditionOptions = useMemo((): ConditionOption[] => {
+    const fromCatalog =
+      catalogConditions.length > 0
+        ? catalogConditions.map((entry) => ({
+            slug: entry.slug,
+            name: resolveConditionName({
+              slug: entry.slug,
+              name_ru: entry.name_ru,
+              name_en: entry.name_en,
+            }),
+            catalog_id: entry.id,
+            maxLevel: conditionMaxLevel(entry.slug),
+          }))
+        : []
+
+    const bySlug = new Map<string, ConditionOption>(
+      fromCatalog.map((item) => [item.slug, item]),
+    )
+    for (const item of FALLBACK_CONDITIONS) {
+      if (!bySlug.has(item.slug)) {
+        bySlug.set(item.slug, {
+          slug: item.slug,
+          name: item.name_ru,
+          catalog_id: null,
+          maxLevel: item.maxLevel ?? null,
+        })
+      } else {
+        const existing = bySlug.get(item.slug)!
+        bySlug.set(item.slug, {
+          ...existing,
+          name: resolveConditionName({
+            slug: item.slug,
+            name_ru: existing.name,
+            name_en: item.name_en,
+          }),
+          maxLevel: existing.maxLevel ?? item.maxLevel ?? null,
+        })
+      }
     }
-    return FALLBACK_CONDITIONS.map((item) => ({
-      slug: item.slug,
-      name: item.name_ru,
-      catalog_id: null as string | null,
-    }))
+    return Array.from(bySlug.values()).sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   }, [catalogConditions])
+
+  const [conditionQuery, setConditionQuery] = useState('')
+
+  const activeConditions = useMemo(
+    () => play.conditions.filter((item) => item.slug !== 'exhaustion'),
+    [play.conditions],
+  )
+
+  const pickerOptions = useMemo((): ComboboxOption[] => {
+    const q = conditionQuery.trim().toLowerCase()
+    const available = conditionOptions.filter((option) => {
+      if (option.slug === 'exhaustion') {
+        return play.exhaustion <= 0
+      }
+      return !hasCondition(activeConditions, option.catalog_id ?? option.slug)
+    })
+    const filtered = available
+      .filter((option) => !q || option.name.toLowerCase().includes(q) || option.slug.includes(q))
+      .map((option) => ({ id: option.catalog_id ?? option.slug, label: option.name }))
+
+    const custom = conditionQuery.trim()
+    if (
+      custom &&
+      !filtered.some((option) => option.label.toLowerCase() === custom.toLowerCase()) &&
+      !activeConditions.some((item) => item.name.toLowerCase() === custom.toLowerCase())
+    ) {
+      filtered.push({ id: `custom:${custom}`, label: custom })
+    }
+    return filtered
+  }, [activeConditions, conditionOptions, conditionQuery, play.exhaustion])
 
   function patchPlay(patch: Partial<PlayState>) {
     onPlayChange({ ...play, ...patch })
   }
 
   function setExhaustion(next: number) {
-    patchPlay({ exhaustion: next })
+    patchPlay({ exhaustion: clampExhaustion(next) })
   }
 
-  function toggle(ref: ConditionRef) {
-    patchPlay({ conditions: toggleCondition(play.conditions, ref) })
-  }
+  function addConditionOption(option: ComboboxOption) {
+    const preset = conditionOptions.find(
+      (item) => (item.catalog_id ?? item.slug) === option.id || item.name === option.label,
+    )
+    if (preset?.slug === 'exhaustion') {
+      if (play.exhaustion <= 0) setExhaustion(1)
+      setConditionQuery('')
+      return
+    }
 
-  function updateResource(id: string, patch: Partial<PlayState['resources'][number]>) {
+    const ref: ConditionRef = preset
+      ? {
+          slug: preset.slug,
+          name: preset.name,
+          catalog_id: preset.catalog_id,
+          level: preset.maxLevel ? 1 : null,
+        }
+      : {
+          slug: option.label.trim().toLowerCase().replace(/\s+/g, '-'),
+          name: option.label.trim(),
+          catalog_id: null,
+          level: null,
+        }
+
     patchPlay({
-      resources: play.resources.map((item) =>
-        item.id === id ? { ...item, ...patch } : item,
-      ),
+      conditions: toggleCondition(
+        activeConditions,
+        ref,
+      ).filter((item) => item.slug !== 'exhaustion'),
+    })
+    setConditionQuery('')
+  }
+
+  function removeCondition(ref: ConditionRef) {
+    patchPlay({
+      conditions: activeConditions.filter((item) => conditionKey(item) !== conditionKey(ref)),
     })
   }
 
-  function addResource() {
-    patchPlay({ resources: [...play.resources, createResource({ name: 'Ресурс' })] })
-  }
-
-  function removeResource(id: string) {
-    patchPlay({ resources: play.resources.filter((item) => item.id !== id) })
+  function changeConditionLevel(ref: ConditionRef, level: number) {
+    patchPlay({
+      conditions: setConditionLevel(activeConditions, conditionKey(ref), level),
+    })
   }
 
   function doShortRestResources() {
     const result = applyShortRest({ resources: play.resources })
     patchPlay({ resources: result.resources })
-    onToast('Короткий отдых: сброшены ресурсы «короткий»')
+    onToast('Сброшены ресурсы со сбросом «короткий» (в текстовых блоках)')
   }
 
   function spendHitDieOnShortRest() {
@@ -173,19 +276,23 @@ export function PlayPanel({
       onToast('Нужна кость хитов и хотя бы 1 доступная')
       return
     }
-    if (hpMax == null) {
+    if (combatHpMax == null) {
       onToast('Задай максимум HP перед коротким отдыхом')
       return
     }
     const amount = Math.max(0, Math.floor(healAmount ?? suggestedHeal ?? 0))
+    const beforeHp = hpCurrent ?? 0
     const nextHp = applyHitDieHeal({
       hpCurrent,
-      hpMax,
+      hpMax: combatHpMax,
       healAmount: amount,
     })
-    patchPlay({ hitDiceCurrent: spendHitDie(play.hitDiceCurrent) })
+    const nextDice = spendHitDie(play.hitDiceCurrent)
+    patchPlay({ hitDiceCurrent: nextDice })
     onCombatChange({ hpCurrent: nextHp })
-    onToast(`Короткий отдых: +${amount} HP (${play.hitDie})`)
+    onToast(
+      `Кость ${play.hitDie}: +${amount} HP (${beforeHp} → ${nextHp}/${combatHpMax}) · кости ${nextDice}/${hitDiceMax}`,
+    )
   }
 
   function doLongRest() {
@@ -203,6 +310,7 @@ export function PlayPanel({
       resources: result.resources,
       exhaustion: result.exhaustion ?? play.exhaustion,
       hpTemp: result.hp_temp ?? 0,
+      hpMaxBonus: result.hp_max_bonus ?? 0,
       hitDiceCurrent: result.hit_dice_current ?? play.hitDiceCurrent,
       isDying: false,
       deathSuccesses: 0,
@@ -218,7 +326,7 @@ export function PlayPanel({
       onCombatChange({ hpCurrent: result.hp_current })
     }
     onToast(
-      'Продолжительный отдых: HP, кости, ячейки, ресурсы, −1 истощение, спасброски сброшены',
+      'Продолжительный отдых: HP до базы, сброс врем. HP и бонуса к макс., кости, ячейки, ресурсы, −1 истощение',
     )
   }
 
@@ -226,12 +334,43 @@ export function PlayPanel({
     <Panel title="Состояния и ресурсы">
       <Stack gap={14}>
         <div className="sheet-grid sheet-grid--2">
-          <Field label="Временные HP">
+          <Field
+            label="Временные HP"
+            hint="Буфер поверх HP · сбрасывается после продолжительного отдыха"
+          >
             <NumberInput
               min={0}
               emptyValue={0}
               value={play.hpTemp}
               onValueChange={(value) => patchPlay({ hpTemp: Math.max(0, value ?? 0) })}
+            />
+          </Field>
+          <Field
+            label="Бонус к макс. HP"
+            hint={
+              combatHpMax != null && play.hpMaxBonus > 0
+                ? `В бою ${combatHpMax} (база ${hpMax} · +${play.hpMaxBonus}) · сброс после продолжит. отдыха`
+                : 'Aid и т.п. · сбрасывается после продолжительного отдыха'
+            }
+          >
+            <NumberInput
+              min={0}
+              emptyValue={0}
+              value={play.hpMaxBonus}
+              onValueChange={(value) => {
+                const nextBonus = clampHpMaxBonus(value ?? 0)
+                const nextCurrent = applyHpMaxBonusChange({
+                  hpCurrent,
+                  hpMax,
+                  previousBonus: play.hpMaxBonus,
+                  nextBonus,
+                  raiseCurrentWithBonus: true,
+                })
+                patchPlay({ hpMaxBonus: nextBonus })
+                if (nextCurrent !== hpCurrent) {
+                  onCombatChange({ hpCurrent: nextCurrent })
+                }
+              }}
             />
           </Field>
           <Field label="Кость хитов">
@@ -255,19 +394,26 @@ export function PlayPanel({
         </div>
 
         <div className="play-rest-block">
-          <Text>
-            <strong>Короткий отдых</strong>
-          </Text>
+          <div className="play-rest-block__head">
+            <Text>
+              <strong>Короткий отдых</strong>
+            </Text>
+            <span className="play-rest-block__count" aria-live="polite">
+              кости {play.hitDiceCurrent}/{hitDiceMax}
+              {play.hitDie ? ` · ${play.hitDie}` : ''}
+            </span>
+          </div>
           <Text tone="muted">
-            За короткий отдых можно потратить кости хитов (HP) и сбросить ресурсы со сбросом
-            «короткий». Кости: {play.hitDiceCurrent} / {hitDiceMax}
-            {play.hitDie ? ` (${play.hitDie})` : ''}.
+            Потрать кость → получишь HP (вверху в шапке). Классовые ресурсы живут в текстовых блоках
+            ниже.
           </Text>
           <div className="play-hit-dice">
             <SlotPips
               max={hitDiceMax}
               used={Math.max(0, hitDiceMax - play.hitDiceCurrent)}
-              label="Потраченные кости хитов"
+              fillMode="available"
+              label="Доступные кости хитов"
+              summary={`${play.hitDiceCurrent} из ${hitDiceMax} осталось`}
               onChange={(used) =>
                 patchPlay({
                   hitDiceCurrent: clampHitDiceCurrent(hitDiceMax - used, hitDiceMax),
@@ -278,9 +424,11 @@ export function PlayPanel({
               <Field
                 label="HP за кость"
                 hint={
-                  play.hitDie
-                    ? `Среднее ${play.hitDie} + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod})`
-                    : 'Сначала выбери кость хитов выше'
+                  !play.hitDie
+                    ? 'Сначала выбери кость хитов выше'
+                    : combatHpMax == null
+                      ? 'Задай максимум HP в шапке листа'
+                      : `Среднее ${play.hitDie} + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) · сейчас HP ${hpCurrent ?? '—'}/${combatHpMax}`
                 }
               >
                 <NumberInput
@@ -295,14 +443,13 @@ export function PlayPanel({
                 <Button
                   type="button"
                   disabled={
-                    !play.hitDie || play.hitDiceCurrent <= 0 || hpMax == null
+                    !play.hitDie || play.hitDiceCurrent <= 0 || combatHpMax == null
                   }
                   onClick={spendHitDieOnShortRest}
                 >
-                  Потратить кость
-                </Button>
-                <Button type="button" variant="secondary" onClick={doShortRestResources}>
-                  Сбросить короткие ресурсы
+                  {play.hitDie && (healAmount ?? suggestedHeal) != null
+                    ? `Потратить кость · +${Math.max(0, Math.floor(healAmount ?? suggestedHeal ?? 0))} HP`
+                    : 'Потратить кость'}
                 </Button>
               </div>
             </div>
@@ -356,134 +503,107 @@ export function PlayPanel({
           ) : null}
         </div>
 
-        <div>
-          <Text tone="muted">Состояния — чипы вкл/выкл</Text>
-          <div className="chip-row play-conditions">
-            {conditionOptions.map((option) => {
-              const key = option.catalog_id ?? option.slug
-              const on =
-                hasCondition(play.conditions, key) || hasCondition(play.conditions, option.slug)
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  className={`sheet-chip${on ? ' is-on' : ''}`}
-                  onClick={() => toggle(option)}
-                >
-                  {option.name}
-                </button>
-              )
-            })}
-          </div>
-        </div>
+        <div className="multi-pick">
+          <Field
+            label="Состояния"
+            hint="Выберите активные. У истощения и опьянения — уровень на плашке. Продолжительный отдых −1 истощение."
+          >
+            <Combobox
+              value={conditionQuery}
+              options={pickerOptions}
+              placeholder="Найти состояние…"
+              emptyHint="Введите название и выберите из списка"
+              onChange={setConditionQuery}
+              onSelectOption={addConditionOption}
+            />
+          </Field>
 
-        <div>
-          <Text tone="muted">Истощение 0–6 (продолжительный отдых −1)</Text>
-          <div className="exhaustion-track" role="group" aria-label="Уровень истощения">
-            {Array.from({ length: 7 }, (_, nextLevel) => (
-              <button
-                key={nextLevel}
-                type="button"
-                className={`exhaustion-pip${play.exhaustion === nextLevel ? ' is-on' : ''}${play.exhaustion > nextLevel ? ' is-filled' : ''}`}
-                aria-pressed={play.exhaustion === nextLevel}
-                aria-label={`Истощение ${nextLevel}`}
-                onClick={() => setExhaustion(nextLevel)}
-              >
-                {nextLevel}
-              </button>
-            ))}
-          </div>
+          {play.exhaustion > 0 || activeConditions.length > 0 ? (
+            <div className="tag-row" aria-label="Активные состояния">
+              {play.exhaustion > 0 ? (
+                <span className="tag-chip tag-chip--leveled">
+                  <span>Истощение</span>
+                  <select
+                    className="tag-chip__level"
+                    aria-label="Уровень истощения"
+                    value={play.exhaustion}
+                    onChange={(event) => setExhaustion(Number(event.target.value))}
+                  >
+                    {Array.from({ length: 6 }, (_, index) => index + 1).map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="tag-chip__remove"
+                    title="Снять"
+                    onClick={() => setExhaustion(0)}
+                  >
+                    ×
+                  </button>
+                </span>
+              ) : null}
+
+              {activeConditions.map((ref) => {
+                const max = conditionMaxLevel(ref.slug)
+                return (
+                  <span key={conditionKey(ref)} className="tag-chip tag-chip--leveled">
+                    <span>{resolveConditionName(ref)}</span>
+                    {max ? (
+                      <select
+                        className="tag-chip__level"
+                        aria-label={`Уровень: ${resolveConditionName(ref)}`}
+                        value={ref.level ?? 1}
+                        onChange={(event) =>
+                          changeConditionLevel(ref, Number(event.target.value))
+                        }
+                      >
+                        {Array.from({ length: max }, (_, index) => index + 1).map((level) => (
+                          <option key={level} value={level}>
+                            {level}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="tag-chip__remove"
+                      title="Снять"
+                      onClick={() => removeCondition(ref)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                )
+              })}
+            </div>
+          ) : (
+            <Text tone="muted" className="multi-pick__empty">
+              Нет активных состояний
+            </Text>
+          )}
         </div>
 
         <div className="play-rest-block">
           <Text>
-            <strong>Продолжительный отдых</strong>
+            <strong>Отдых целиком</strong>
           </Text>
           <Text tone="muted">
-            Полные HP, половина костей хитов, ячейки и pact, ресурсы «короткий»/«продолжительный»,
-            −1 истощение, сброс спасбросков от смерти.
+            Продолжительный: HP до базового макс., сброс временных HP и бонуса к макс., половина
+            костей, ячейки/pact, ресурсы «короткий» и «продолжительный», −1 истощение, сброс
+            спасбросков. Короткий (только ресурсы) — пипсы в текстовых блоках со сбросом «короткий».
           </Text>
           <div className="play-rest-actions">
             <Button type="button" onClick={doLongRest}>
               Продолжительный отдых
             </Button>
-          </div>
-        </div>
-
-        <Stack gap={10}>
-          <div className="play-resources-head">
-            <Text>Ограниченные ресурсы</Text>
-            <Button type="button" onClick={addResource}>
-              + ресурс
+            <Button type="button" variant="secondary" onClick={doShortRestResources}>
+              Сброс коротких ресурсов
             </Button>
           </div>
-          {play.resources.length === 0 ? (
-            <Text tone="muted">
-              Например: ярость, превосходство, ки — пипсы и сброс на отдыхе.
-            </Text>
-          ) : (
-            play.resources.map((resource) => (
-              <div key={resource.id} className="play-resource">
-                <div className="sheet-grid sheet-grid--2">
-                  <Field label="Название">
-                    <Input
-                      value={resource.name}
-                      onChange={(event) =>
-                        updateResource(resource.id, { name: event.target.value })
-                      }
-                    />
-                  </Field>
-                  <Field label="Макс">
-                    <NumberInput
-                      min={0}
-                      max={20}
-                      emptyValue={0}
-                      value={resource.max}
-                      onValueChange={(value) =>
-                        updateResource(resource.id, {
-                          max: value ?? 0,
-                          used: Math.min(resource.used, value ?? 0),
-                        })
-                      }
-                    />
-                  </Field>
-                </div>
-                <SlotPips
-                  max={resource.max}
-                  used={resource.used}
-                  label={`${resource.name || 'Ресурс'}: потрачено`}
-                  onChange={(used) => updateResource(resource.id, { used })}
-                />
-                <div className="play-resource__meta">
-                  <label className="play-resource__reset">
-                    Сброс
-                    <select
-                      value={resource.reset}
-                      onChange={(event) =>
-                        updateResource(resource.id, {
-                          reset: event.target.value as ResourceReset,
-                        })
-                      }
-                    >
-                      {RESET_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                          {RESET_LABELS[option]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button
-                    type="button"
-                    className="linkish"
-                    onClick={() => removeResource(resource.id)}
-                  >
-                    Удалить
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </Stack>
+        </div>
       </Stack>
     </Panel>
   )

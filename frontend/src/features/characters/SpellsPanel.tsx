@@ -29,6 +29,7 @@ import type { ConcentrationState } from './play'
 import {
   countPreparedLeveled,
   createSheetSpell,
+  isRaceSheetSpell,
   groupSpellsByLevel,
   isReadyInCombat,
   readCatalogSpellFields,
@@ -579,25 +580,46 @@ export function SpellsPanel({
                       </div>
                       <div className="spell-card__footer">
                         {spell.level > 0 ? (
-                          <button
-                            type="button"
-                            className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
-                            onClick={() =>
-                              patch({
-                                known: setSpellPrepared(
-                                  spells.known,
-                                  spell.id,
-                                  !spell.prepared,
-                                  spells.max_prepared,
-                                ),
-                              })
-                            }
-                          >
-                            {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
-                          </button>
+                          spell.race_grant === 'innate' ? (
+                            <span
+                              className="sheet-chip is-on"
+                              title="Врождённый расовый каст — вне лимита подготовки"
+                            >
+                              Врождённое
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
+                              onClick={() =>
+                                patch({
+                                  known: setSpellPrepared(
+                                    spells.known,
+                                    spell.id,
+                                    !spell.prepared,
+                                    spells.max_prepared,
+                                  ),
+                                })
+                              }
+                            >
+                              {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
+                            </button>
+                          )
                         ) : (
                           <span className="sheet-chip is-on">Заговор</span>
                         )}
+                        {isRaceSheetSpell(spell) ? (
+                          <span
+                            className="sheet-chip is-on"
+                            title={
+                              spell.race_grant === 'spell_list'
+                                ? 'Список метки/расы — готовь как классовое'
+                                : 'Врождённое расовое заклинание'
+                            }
+                          >
+                            {spell.race_grant === 'spell_list' ? 'Метка' : 'Раса'}
+                          </span>
+                        ) : null}
                         <button
                           type="button"
                           className={`sheet-chip${spell.concentration ? ' is-on' : ''}`}

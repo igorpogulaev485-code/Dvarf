@@ -1,5 +1,10 @@
-import { Field, NumberInput } from '../../ui'
+import { useEffect, useRef, useState } from 'react'
+import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import { effectiveHpMax } from '../../shared/dnd/hp'
+import type { HitDie } from '../../shared/dnd/hitDice'
+import { NumberInput, NumberPadDialog } from '../../ui'
 import type { ConcentrationState } from './play'
+import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
 import {
   abilityModifier,
   formatModifier,
@@ -12,14 +17,20 @@ type CombatStickyHeaderProps = {
   className: string
   level: number
   abilities: Record<AbilityKey, number>
+  classes: ClassLevelEntry[]
+  hitDie: HitDie | null
+  constitutionMod: number
   hpCurrent: number | null
   hpMax: number | null
+  hpMaxBonus: number
   hpTemp: number
   /** Manual AC override; null = use autoAc from armor. */
   acOverride: number | null
   autoAc: number
   acHint: string
   speed: number | null
+  /** Compact alt speeds from race (climb/swim/fly), shown under walk speed. */
+  movementHint?: string | null
   initiativeOverride: number | null
   inspiration: boolean
   exhaustion: number
@@ -32,6 +43,7 @@ type CombatStickyHeaderProps = {
   onChange: (patch: {
     hpCurrent?: number | null
     hpMax?: number | null
+    hpMaxBonus?: number
     ac?: number | null
     speed?: number | null
     initiativeOverride?: number | null
@@ -45,13 +57,18 @@ export function CombatStickyHeader({
   className,
   level,
   abilities,
+  classes,
+  hitDie,
+  constitutionMod,
   hpCurrent,
   hpMax,
+  hpMaxBonus,
   hpTemp,
   acOverride,
   autoAc,
   acHint,
   speed,
+  movementHint = null,
   initiativeOverride,
   inspiration,
   exhaustion,
@@ -65,13 +82,40 @@ export function CombatStickyHeader({
 }: CombatStickyHeaderProps) {
   const autoInitiative = abilityModifier(abilities.dex)
   const subtitle = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
-  const conditionsLabel =
-    conditionNames.length > 0 ? conditionNames.join(', ') : 'нет состояний'
+  const hasConditions = conditionNames.length > 0
+  const conditionsLabel = hasConditions ? conditionNames.join(', ') : ''
+  const acTitle = acOverride == null ? acHint : 'задано вручную'
+  const initTitle =
+    initiativeOverride == null
+      ? `от ЛОВ ${formatModifier(autoInitiative)}`
+      : 'задано вручную'
+  const effectiveMax = effectiveHpMax(hpMax, hpMaxBonus)
+  const hpTitleParts = [
+    hpMaxBonus > 0 && hpMax != null ? `база ${hpMax} · +${hpMaxBonus}` : null,
+    hpTemp > 0 ? `врем. +${hpTemp}` : null,
+  ].filter(Boolean)
+  const hpTitle = hpTitleParts.length > 0 ? hpTitleParts.join(' · ') : undefined
+  const [hpPulse, setHpPulse] = useState(false)
+  const [currentPadOpen, setCurrentPadOpen] = useState(false)
+  const [maxDialogOpen, setMaxDialogOpen] = useState(false)
+  const prevHpRef = useRef(hpCurrent)
+
+  useEffect(() => {
+    const prev = prevHpRef.current
+    prevHpRef.current = hpCurrent
+    if (prev == null || hpCurrent == null) return
+    if (hpCurrent <= prev) return
+    setHpPulse(true)
+    const timer = window.setTimeout(() => setHpPulse(false), 900)
+    return () => window.clearTimeout(timer)
+  }, [hpCurrent])
+
+  const currentValue = hpCurrent ?? 0
 
   return (
     <section className="combat-sticky" aria-label="Боевой статус">
       <div className="combat-sticky__identity">
-        <div>
+        <div className="combat-sticky__who">
           <h1 className="combat-sticky__name">{name || 'Без имени'}</h1>
           <p className="combat-sticky__sub">
             {subtitle} · ур. {level}
@@ -83,29 +127,43 @@ export function CombatStickyHeader({
             className={`combat-chip${inspiration ? ' is-on' : ''}`}
             onClick={() => onChange({ inspiration: !inspiration })}
             aria-pressed={inspiration}
+            title="Вдохновение"
           >
-            Вдохновение
+            <span className="combat-chip__full">Вдохновение</span>
+            <span className="combat-chip__short" aria-hidden>
+              Вдохн.
+            </span>
           </button>
           <span
             className={`combat-chip combat-chip--static${exhaustion > 0 ? ' is-on' : ''}`}
             title="Меняется в блоке «Состояния и ресурсы»"
           >
-            Истощение {exhaustion}
+            <span className="combat-chip__full">Истощение {exhaustion}</span>
+            <span className="combat-chip__short" aria-hidden>
+              Ист. {exhaustion}
+            </span>
           </span>
           {isDying ? (
-            <span className="combat-chip combat-chip--static is-danger" title="Спасброски от смерти">
+            <span
+              className="combat-chip combat-chip--static is-danger"
+              title="Спасброски от смерти"
+            >
               Смерть {deathSuccesses}/{deathFails}
             </span>
           ) : null}
         </div>
       </div>
-      <p className="combat-sticky__conditions" title={conditionsLabel}>
-        {conditionsLabel}
-      </p>
+
+      {hasConditions ? (
+        <p className="combat-sticky__conditions" title={conditionsLabel}>
+          {conditionsLabel}
+        </p>
+      ) : null}
+
       {concentration ? (
         <div className="combat-sticky__concentration">
           <span>
-            Концентрация: <strong>{concentration.name}</strong>
+            Конц.: <strong>{concentration.name}</strong>
           </span>
           {onClearConcentration ? (
             <button type="button" className="linkish" onClick={onClearConcentration}>
@@ -116,10 +174,8 @@ export function CombatStickyHeader({
       ) : null}
 
       <div className="combat-sticky__stats">
-        <Field
-          label="КД"
-          hint={acOverride == null ? acHint : 'задано вручную'}
-        >
+        <label className="combat-stat" title={acTitle}>
+          <span className="combat-stat__label">КД</span>
           <div className="combat-sticky__init">
             <NumberInput
               value={acOverride ?? autoAc}
@@ -142,36 +198,26 @@ export function CombatStickyHeader({
               </button>
             ) : null}
           </div>
-        </Field>
-        <Field label="Скорость">
-          <NumberInput value={speed} onValueChange={(value) => onChange({ speed: value })} />
-        </Field>
-        <Field label="HP" hint={hpTemp > 0 ? `врем. +${hpTemp}` : undefined}>
-          <div className="combat-sticky__hp">
-            <NumberInput
-              value={hpCurrent}
-              aria-label="Текущие HP"
-              onValueChange={(value) => onChange({ hpCurrent: value })}
-            />
-            <span className="combat-sticky__hp-sep">/</span>
-            <NumberInput
-              value={hpMax}
-              aria-label="Максимум HP"
-              onValueChange={(value) => onChange({ hpMax: value })}
-            />
-          </div>
-        </Field>
-        <Field
-          label="Инициатива"
-          hint={
-            initiativeOverride == null
-              ? `от ЛОВ ${formatModifier(autoInitiative)}`
-              : 'задано вручную'
-          }
-        >
+        </label>
+
+        <label className="combat-stat" title={movementHint || undefined}>
+          <span className="combat-stat__label">Скор.</span>
+          <NumberInput
+            value={speed}
+            aria-label="Скорость"
+            onValueChange={(value) => onChange({ speed: value })}
+          />
+          {movementHint ? (
+            <span className="combat-stat__hint">{movementHint}</span>
+          ) : null}
+        </label>
+
+        <label className="combat-stat" title={initTitle}>
+          <span className="combat-stat__label">Иниц.</span>
           <div className="combat-sticky__init">
             <NumberInput
               value={initiativeOverride ?? autoInitiative}
+              aria-label="Инициатива"
               onValueChange={(value) => {
                 if (value == null || value === autoInitiative) {
                   onChange({ initiativeOverride: null })
@@ -190,8 +236,95 @@ export function CombatStickyHeader({
               </button>
             ) : null}
           </div>
-        </Field>
+        </label>
+
+        <div
+          className={`combat-stat combat-stat--hp${hpPulse ? ' combat-stat--pulse' : ''}`}
+          title={hpTitle}
+        >
+          <span className="combat-stat__label">HP</span>
+          <div className="combat-sticky__hp">
+            <button
+              type="button"
+              className="combat-hp-open"
+              aria-label={`Текущие HP ${hpCurrent ?? 'не заданы'}. Прибавить или отнять`}
+              onClick={() => setCurrentPadOpen(true)}
+            >
+              <span className="combat-hp-open__meta">текущие ±</span>
+              <span className="combat-hp-open__value">
+                {hpCurrent == null ? '—' : hpCurrent}
+              </span>
+            </button>
+            <span className="combat-sticky__hp-sep" aria-hidden>
+              /
+            </span>
+            <button
+              type="button"
+              className={`combat-hp-open combat-hp-open--max${hpMaxBonus > 0 ? ' has-bonus' : ''}`}
+              aria-label={`Максимум HP ${effectiveMax ?? 'не задан'}${
+                hpMaxBonus > 0 ? `, из них бонус +${hpMaxBonus}` : ''
+              }. Настроить базу и временный бонус`}
+              onClick={() => setMaxDialogOpen(true)}
+            >
+              <span className="combat-hp-open__meta">
+                {hpMaxBonus > 0 ? `макс +${hpMaxBonus}` : 'максимум'}
+              </span>
+              <span className="combat-hp-open__value">
+                {effectiveMax == null ? '—' : effectiveMax}
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
+
+      <NumberPadDialog
+        open={currentPadOpen}
+        title="Текущие HP"
+        current={currentValue}
+        min={0}
+        max={effectiveMax ?? undefined}
+        addLabel="Вылечить"
+        subtractLabel="Урон"
+        onClose={() => setCurrentPadOpen(false)}
+        onAdd={(delta) => {
+          const next = currentValue + delta
+          const capped = effectiveMax == null ? next : Math.min(effectiveMax, next)
+          onChange({ hpCurrent: Math.max(0, capped) })
+        }}
+        onSubtract={(delta) => {
+          onChange({ hpCurrent: Math.max(0, currentValue - delta) })
+        }}
+        header={
+          <p className="combat-hp-pad-header">
+            сейчас {hpCurrent ?? 0}
+            {effectiveMax != null
+              ? ` / ${effectiveMax}${
+                  hpMaxBonus > 0 && hpMax != null ? ` (база ${hpMax} · +${hpMaxBonus})` : ''
+                }`
+              : ' · макс не задан'}
+            {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
+          </p>
+        }
+      />
+
+      <MaxHpByLevelsDialog
+        open={maxDialogOpen}
+        classes={classes}
+        constitutionMod={constitutionMod}
+        hitDie={hitDie}
+        hpMax={hpMax}
+        hpMaxBonus={hpMaxBonus}
+        hpCurrent={hpCurrent}
+        onClose={() => setMaxDialogOpen(false)}
+        onApply={({ hpMax: nextMax, hpMaxBonus: nextBonus, hpCurrent: nextCurrent }) => {
+          onChange({
+            hpMax: nextMax,
+            hpMaxBonus: nextBonus,
+            hpCurrent: nextCurrent,
+          })
+          setMaxDialogOpen(false)
+        }}
+      />
     </section>
   )
 }

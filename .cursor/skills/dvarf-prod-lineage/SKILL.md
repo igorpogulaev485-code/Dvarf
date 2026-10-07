@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/sheet-multiclass-rules-ef23
+cursor/mobile-sheet-compact-acbe
 ```
 
 URL: http://201.34.132.252/
@@ -38,7 +38,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-acbe origin/cursor/sheet-multiclass-rules-ef23
+git checkout -b cursor/<descriptive>-acbe origin/cursor/race-level-unlocks-f10e
 # если tip уже другой — подставь актуальный из AGENTS.md / этого skill
 ```
 
@@ -46,11 +46,10 @@ git checkout -b cursor/<descriptive>-acbe origin/cursor/sheet-multiclass-rules-e
 
 ```bash
 git fetch origin
-git merge origin/cursor/sheet-multiclass-rules-ef23
+git merge origin/cursor/race-level-unlocks-f10e
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```
-
 ## Обязательные маркеры (preflight)
 
 Скрипт `deploy/preflight-prod.sh` проверяет наличие файлов. Минимум на 2026-10-06:

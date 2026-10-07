@@ -92,6 +92,62 @@ export function averageHpGain(die: HitDie, constitutionMod: number): number {
   return avg + Math.floor(constitutionMod)
 }
 
+/** PHB level 1: maximum of hit die + CON (min 1). */
+export function firstLevelHpMax(die: HitDie, constitutionMod: number): number {
+  return Math.max(1, hitDieSides(die) + Math.floor(constitutionMod))
+}
+
+export type MaxHpLevelRow = {
+  label: string
+  die: HitDie
+  gain: number
+  kind: 'max' | 'average'
+}
+
+/**
+ * Rebuild max HP from class levels (2014):
+ * first class level 1 → max die + CON; every other class level → average + CON
+ * (including 1st level of a multiclass).
+ */
+export function buildMaxHpByLevels(input: {
+  classes: Array<{ name: string; level: number }>
+  constitutionMod: number
+  fallbackDie?: HitDie | null
+}): { rows: MaxHpLevelRow[]; total: number } | null {
+  const rows: MaxHpLevelRow[] = []
+  const named = input.classes.filter((row) => row.name.trim() && row.level > 0)
+  if (named.length === 0) {
+    const die = input.fallbackDie ?? null
+    if (!die) return null
+    const gain = firstLevelHpMax(die, input.constitutionMod)
+    rows.push({ label: 'Ур. 1', die, gain, kind: 'max' })
+    return { rows, total: gain }
+  }
+
+  named.forEach((cls, classIndex) => {
+    const die =
+      hitDieForClass({ className: cls.name }) ?? input.fallbackDie ?? null
+    if (!die) return
+    const levels = Math.max(0, Math.floor(cls.level))
+    for (let lvl = 1; lvl <= levels; lvl += 1) {
+      const isOriginFirst = classIndex === 0 && lvl === 1
+      const gain = isOriginFirst
+        ? firstLevelHpMax(die, input.constitutionMod)
+        : averageHpGain(die, input.constitutionMod)
+      rows.push({
+        label: `${cls.name.trim()} ${lvl}`,
+        die,
+        gain,
+        kind: isOriginFirst ? 'max' : 'average',
+      })
+    }
+  })
+
+  if (rows.length === 0) return null
+  const total = rows.reduce((acc, row) => acc + row.gain, 0)
+  return { rows, total }
+}
+
 export function meetsPrerequisite(
   prerequisite: MulticlassPrerequisite,
   abilities: AbilityScores,

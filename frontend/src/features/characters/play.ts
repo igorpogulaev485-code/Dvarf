@@ -1,5 +1,6 @@
 import {
-  FALLBACK_CONDITIONS,
+  clampConditionLevel,
+  resolveConditionName,
   type ConditionRef,
 } from '../../shared/dnd/conditions'
 import {
@@ -19,6 +20,7 @@ import {
   type ResourceReset,
   type SheetResource,
 } from '../../shared/dnd/rest'
+import { clampHpMaxBonus } from '../../shared/dnd/hp'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
 export type PlayState = {
@@ -26,6 +28,8 @@ export type PlayState = {
   exhaustion: number
   resources: SheetResource[]
   hpTemp: number
+  /** Temporary increase to HP maximum (Aid, feast, etc.). Not temporary HP. */
+  hpMaxBonus: number
   hitDie: HitDie | null
   hitDiceCurrent: number
   isDying: boolean
@@ -53,11 +57,11 @@ export function createResource(partial?: Partial<SheetResource>): SheetResource 
 function readCondition(raw: unknown, index: number): ConditionRef | null {
   if (typeof raw === 'string' && raw.trim()) {
     const slug = raw.trim()
-    const fallback = FALLBACK_CONDITIONS.find((item) => item.slug === slug)
     return {
       slug,
-      name: fallback?.name_ru ?? slug,
+      name: resolveConditionName({ slug }),
       catalog_id: null,
+      level: clampConditionLevel(slug, 1),
     }
   }
   const row = asRecord(raw)
@@ -67,14 +71,13 @@ function readCondition(raw: unknown, index: number): ConditionRef | null {
       : typeof row.name === 'string' && row.name.trim()
         ? row.name.trim()
         : `condition-${index}`
-  const name =
-    typeof row.name === 'string' && row.name.trim()
-      ? row.name.trim()
-      : FALLBACK_CONDITIONS.find((item) => item.slug === slug)?.name_ru ?? slug
+  const nameRaw = typeof row.name === 'string' ? row.name : null
+  const levelRaw = readNullableNumber(row.level)
   return {
     slug,
-    name,
+    name: resolveConditionName({ slug, name: nameRaw }),
     catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+    level: clampConditionLevel(slug, levelRaw ?? 1),
   }
 }
 
@@ -130,6 +133,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     exhaustion: clampExhaustion(readNumber(combat.exhaustion, 0)),
     resources,
     hpTemp: Math.max(0, Math.floor(readNumber(combat.hp_temp, 0))),
+    hpMaxBonus: clampHpMaxBonus(readNumber(combat.hp_max_bonus, 0)),
     hitDie: isHitDie(combat.hit_die) ? combat.hit_die : null,
     hitDiceCurrent: clampHitDiceCurrent(
       hitDiceRaw ?? hitDiceMax,
@@ -147,6 +151,7 @@ export function playToSheet(play: PlayState): {
     conditions: ConditionRef[]
     exhaustion: number
     hp_temp: number
+    hp_max_bonus: number
     hit_die: HitDie | null
     hp_dice_current: number
     is_dying: boolean
@@ -162,9 +167,11 @@ export function playToSheet(play: PlayState): {
         slug: item.slug,
         name: item.name,
         catalog_id: item.catalog_id,
+        level: item.level ?? null,
       })),
       exhaustion: clampExhaustion(play.exhaustion),
       hp_temp: Math.max(0, Math.floor(play.hpTemp)),
+      hp_max_bonus: clampHpMaxBonus(play.hpMaxBonus),
       hit_die: play.hitDie,
       hp_dice_current: Math.max(0, Math.floor(play.hitDiceCurrent)),
       is_dying: play.isDying,

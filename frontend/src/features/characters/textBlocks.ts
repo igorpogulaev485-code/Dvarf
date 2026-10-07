@@ -7,6 +7,8 @@ export type TextBlock = {
   isHidden: boolean
   value: string
   isCustom: boolean
+  /** Links to `play.resources[].id` — LSS-style pips on a feature/note block. */
+  resourceId: string | null
 }
 
 export const DEFAULT_TEXT_BLOCKS: Array<{ key: string; defaultLabel: string }> = [
@@ -52,6 +54,7 @@ function readBlock(
       isHidden: false,
       value: raw,
       isCustom,
+      resourceId: null,
     }
   }
   const obj = asRecord(raw)
@@ -64,6 +67,10 @@ function readBlock(
     isHidden: Boolean(obj.isHidden),
     value: readStringValue(obj.value !== undefined ? obj.value : obj),
     isCustom,
+    resourceId:
+      typeof obj.resourceId === 'string' && obj.resourceId.trim()
+        ? obj.resourceId.trim()
+        : null,
   }
 }
 
@@ -167,6 +174,7 @@ export function textBlocksToSheet(blocks: TextBlock[]): Record<string, unknown> 
       customLabel: block.customLabel,
       isHidden: block.isHidden,
       value: block.value,
+      resourceId: block.resourceId,
     }
     if (block.key in features_text) features_text[block.key] = block.value
     if (block.key in personality) personality[block.key] = block.value
@@ -187,6 +195,7 @@ export function createCustomTextBlock(existing: TextBlock[]): TextBlock {
     isHidden: false,
     value: '',
     isCustom: true,
+    resourceId: null,
   }
 }
 

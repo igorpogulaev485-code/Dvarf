@@ -19,6 +19,8 @@ import {
   reduceClassLevel,
   totalCharacterLevel,
 } from '../../shared/dnd/classLevels'
+import { XpProgressField } from './XpProgressField'
+import { formatConditionLabel } from '../../shared/dnd/conditions'
 import type {
   AppliedClassGrant,
   ClassGrantDef,
@@ -35,8 +37,22 @@ import {
   type ClassGrantDraftSlice,
 } from './classEffects'
 import { ClassSetupDialog, HomebrewClassDialog } from './ClassSetupDialog'
+import { RaceSetupDialog, HomebrewRaceDialog } from './RaceSetupDialog'
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
+import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
+import {
+  emptyRacePicks,
+  formatRaceMovementHint,
+  isRaceComboboxRoot,
+  raceGrantNeedsSetupDialog,
+  raceSubraceRequired,
+  resolveRaceGrantDef,
+  resolveRaceMovement,
+  type AppliedRaceGrant,
+  type RaceGrantDef,
+  type RaceGrantPicks,
+} from '../../shared/dnd/raceGrants'
 import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
 import { AttunementPanel } from './AttunementPanel'
 import {
@@ -63,7 +79,17 @@ import {
   readIdentityExtras,
   type IdentityExtras,
 } from './identity'
-import { applyRaceCatalogToDraft } from './raceEffects'
+import {
+  applyRaceGrantToDraft,
+  ensureRaceNaturalWeaponAttacks,
+  raceNaturalWeaponAttacksMatch,
+  readAppliedRaceGrant,
+  reapplyRaceOverlays,
+  revokeRaceGrant,
+  syncRaceSpellsForSheetState,
+  type RaceGrantDraftSlice,
+} from './raceEffects'
+import { characterHasCasterClass } from '../../shared/dnd/casterProgression'
 import {
   equippedArmorPieces,
   inventoryToSheet,
@@ -118,6 +144,9 @@ type Draft = {
   hpMax: number | null
   ac: number | null
   speed: number | null
+  climbSpeed: number | null
+  swimSpeed: number | null
+  flySpeed: number | null
   initiativeOverride: number | null
   inspiration: boolean
   weapons: WeaponAttack[]
@@ -127,6 +156,7 @@ type Draft = {
   play: PlayState
   textBlocks: TextBlock[]
   classGrants: AppliedClassGrant[]
+  raceGrant: AppliedRaceGrant | null
 }
 
 function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -140,11 +170,16 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
       ? (row.ability as AbilityKey)
       : 'str'
     const sourceKind =
-      row.source_kind === 'weapon' || row.source_kind === 'artifact' || row.source_kind === 'custom'
+      row.source_kind === 'weapon' ||
+      row.source_kind === 'artifact' ||
+      row.source_kind === 'custom' ||
+      row.source_kind === 'race'
         ? row.source_kind
-        : row.catalog_id
-          ? 'weapon'
-          : 'custom'
+        : typeof row.id === 'string' && row.id.startsWith('race-nw:')
+          ? 'race'
+          : row.catalog_id
+            ? 'weapon'
+            : 'custom'
     return {
       id: typeof row.id === 'string' ? row.id : `weapon-${index}`,
       name: typeof row.name === 'string' ? row.name : '',
@@ -217,6 +252,9 @@ function buildDraft(character: CharacterDetail): Draft {
     hpMax: character.hp_max ?? readNullableNumber(combat.hp_max),
     ac: readNullableNumber(combat.ac),
     speed: readNullableNumber(combat.speed),
+    climbSpeed: readNullableNumber(combat.climb_speed ?? combat.climbSpeed),
+    swimSpeed: readNullableNumber(combat.swim_speed ?? combat.swimSpeed),
+    flySpeed: readNullableNumber(combat.fly_speed ?? combat.flySpeed),
     initiativeOverride: readNullableNumber(combat.initiative),
     inspiration: Boolean(combat.inspiration),
     weapons: readWeapons(sheet),
@@ -226,6 +264,7 @@ function buildDraft(character: CharacterDetail): Draft {
     play: readPlay(sheet, level),
     textBlocks: readTextBlocks(sheet),
     classGrants: readAppliedClassGrants(sheet.class_grants),
+    raceGrant: readAppliedRaceGrant(sheet.race_grant),
   }
 }
 
@@ -271,7 +310,15 @@ export function MinimalSheetEditor({
     classEntryId: string
     initialName: string
   } | null>(null)
+  const [raceGrantPicker, setRaceGrantPicker] = useState<{
+    root: CatalogEntry
+    subraces: CatalogEntry[]
+    subraceRequired: boolean
+  } | null>(null)
+  const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
   const channelRef = useRef<BroadcastChannel | null>(null)
+  const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
+  const [raceCatalogRows, setRaceCatalogRows] = useState<CatalogEntry[]>([])
 
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
@@ -282,6 +329,7 @@ export function MinimalSheetEditor({
     [draft.classes],
   )
   const primaryClass = draft.classes[0]
+  const rulesEdition = baseCharacter.rules_edition as RulesEdition
 
   useEffect(() => {
     setBaseCharacter(character)
@@ -290,6 +338,125 @@ export function MinimalSheetEditor({
     setConflictOpen(false)
     setError(null)
   }, [character])
+
+  // Prefetch full race catalog so subrace popup opens without a second network round-trip.
+  useEffect(() => {
+    let active = true
+    raceCatalogCacheRef.current = null
+    setRaceCatalogRows([])
+    listCatalogEntries({ kind: 'race', edition: rulesEdition })
+      .then((rows) => {
+        if (!active) return
+        raceCatalogCacheRef.current = rows
+        setRaceCatalogRows(rows)
+        // Backfill natural-weapon cards + movement speeds for races chosen earlier.
+        setDraft((prev) => {
+          if (!prev.raceGrant) return prev
+          const entry =
+            rows.find((row) => row.id === prev.raceGrant!.raceCatalogId) ??
+            rows.find((row) => row.slug === prev.raceGrant!.slug)
+          const catalogDef = entry
+            ? resolveRaceGrantDef({
+                raceName: entry.name_ru,
+                catalogSlug: entry.slug,
+                catalogData: entry.data,
+                nameRu: entry.name_ru,
+              })
+            : null
+          const catalogWeapons = catalogDef?.naturalWeapons ?? null
+          const weaponsSource =
+            catalogWeapons && catalogWeapons.length > 0
+              ? catalogWeapons
+              : prev.raceGrant.naturalWeapons ?? []
+          const weaponsMatch =
+            weaponsSource.length === 0 ||
+            raceNaturalWeaponAttacksMatch({
+              weapons: prev.weapons,
+              raceSlug: prev.raceGrant.slug,
+              naturalWeapons: weaponsSource,
+            })
+          const nextWeapons = weaponsMatch
+            ? prev.weapons
+            : ensureRaceNaturalWeaponAttacks({
+                weapons: prev.weapons,
+                grant: prev.raceGrant,
+                catalogWeapons,
+              })
+
+          let nextGrant = prev.raceGrant
+          let climbSpeed = prev.climbSpeed
+          let swimSpeed = prev.swimSpeed
+          let flySpeed = prev.flySpeed
+          if (catalogDef) {
+            const movement = resolveRaceMovement({
+              walk: catalogDef.speed,
+              movement: catalogDef.movement,
+            })
+            const grantMove = prev.raceGrant.movement
+            const grantEmpty =
+              grantMove == null ||
+              (grantMove.climb == null &&
+                grantMove.swim == null &&
+                grantMove.fly == null)
+            const draftEmpty =
+              climbSpeed == null && swimSpeed == null && flySpeed == null
+            const hasCatalogMove =
+              movement.climb != null ||
+              movement.swim != null ||
+              movement.fly != null
+            // Only fill when both ledger and draft lack alt speeds (pre-feature sheets).
+            if (hasCatalogMove && grantEmpty && draftEmpty) {
+              nextGrant = { ...nextGrant, movement }
+              climbSpeed = movement.climb
+              swimSpeed = movement.swim
+              flySpeed = movement.fly
+            }
+          }
+          if (catalogWeapons && catalogWeapons.length > 0) {
+            nextGrant = { ...nextGrant, naturalWeapons: catalogWeapons }
+          }
+          if (catalogDef?.racialSpells && catalogDef.racialSpells.length > 0) {
+            nextGrant = { ...nextGrant, racialSpells: catalogDef.racialSpells }
+          }
+
+          const nextSpells = syncRaceSpellsForSheetState({
+            spells: prev.spells,
+            grant: nextGrant,
+            characterLevel: totalCharacterLevel(prev.classes),
+            hasCasterClass: characterHasCasterClass(prev.classes),
+            catalogSpells: catalogDef?.racialSpells ?? null,
+          })
+
+          if (
+            nextWeapons === prev.weapons &&
+            nextGrant === prev.raceGrant &&
+            nextSpells === prev.spells &&
+            climbSpeed === prev.climbSpeed &&
+            swimSpeed === prev.swimSpeed &&
+            flySpeed === prev.flySpeed
+          ) {
+            return prev
+          }
+          return {
+            ...prev,
+            weapons: nextWeapons,
+            spells: nextSpells,
+            raceGrant: nextGrant,
+            climbSpeed,
+            swimSpeed,
+            flySpeed,
+          }
+        })
+      })
+      .catch(() => {
+        if (!active) return
+        raceCatalogCacheRef.current = null
+        setRaceCatalogRows([])
+      })
+    return () => {
+      active = false
+    }
+  }, [rulesEdition, character.id])
 
   const onRemoteSaveRef = useRef(onRemoteSave)
   useEffect(() => {
@@ -325,17 +492,34 @@ export function MinimalSheetEditor({
     [characterLevel],
   )
 
+  /** Refresh mark-list racial spells after class / subclass / level changes. */
+  function withRaceSpellsSynced(prev: Draft, nextClasses: ClassLevelEntry[]): Draft {
+    if (!prev.raceGrant) {
+      return { ...prev, classes: nextClasses }
+    }
+    const spells = syncRaceSpellsForSheetState({
+      spells: prev.spells,
+      grant: prev.raceGrant,
+      characterLevel: totalCharacterLevel(nextClasses),
+      hasCasterClass: characterHasCasterClass(nextClasses),
+    })
+    return { ...prev, classes: nextClasses, spells }
+  }
+
   function patchClass(classId: string, patch: Partial<ClassLevelEntry>) {
-    setDraft((prev) => ({
-      ...prev,
-      classes: prev.classes.map((row) =>
+    setDraft((prev) => {
+      const nextClasses = prev.classes.map((row) =>
         row.id === classId ? { ...row, ...patch } : row,
-      ),
-      identity:
-        prev.classes[0]?.id === classId && patch.subclass_name !== undefined
-          ? { ...prev.identity, subclassName: patch.subclass_name }
-          : prev.identity,
-    }))
+      )
+      const next = withRaceSpellsSynced(prev, nextClasses)
+      return {
+        ...next,
+        identity:
+          prev.classes[0]?.id === classId && patch.subclass_name !== undefined
+            ? { ...next.identity, subclassName: patch.subclass_name }
+            : next.identity,
+      }
+    })
   }
 
   function draftSliceFrom(prev: Draft): ClassGrantDraftSlice {
@@ -353,8 +537,36 @@ export function MinimalSheetEditor({
     }
   }
 
-  function mergeGrantSlice(prev: Draft, slice: ClassGrantDraftSlice): Draft {
+  function raceSliceFrom(prev: Draft): RaceGrantDraftSlice {
+    const classSkills = new Set(prev.classGrants.flatMap((row) => row.skills))
+    const classTools = new Set(
+      prev.classGrants.flatMap((row) =>
+        row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
+      ),
+    )
+    const classArmor = new Set(
+      prev.classGrants.flatMap((row) => row.armorKeys),
+    ) as Set<keyof IdentityExtras['armor']>
     return {
+      identity: prev.identity,
+      skills: prev.skills,
+      abilities: prev.abilities,
+      speed: prev.speed,
+      climbSpeed: prev.climbSpeed,
+      swimSpeed: prev.swimSpeed,
+      flySpeed: prev.flySpeed,
+      textBlocks: prev.textBlocks,
+      weapons: prev.weapons,
+      spells: prev.spells,
+      raceGrant: prev.raceGrant,
+      classGrantedSkills: classSkills,
+      classGrantedTools: classTools,
+      classGrantedArmor: classArmor,
+    }
+  }
+
+  function mergeGrantSlice(prev: Draft, slice: ClassGrantDraftSlice): Draft {
+    const merged: Draft = {
       ...prev,
       identity: slice.identity,
       saves: slice.saves,
@@ -367,6 +579,28 @@ export function MinimalSheetEditor({
         ...prev.play,
         hitDie: slice.playHitDie,
       },
+    }
+    const restored = reapplyRaceOverlays(raceSliceFrom(merged), {
+      characterLevel: totalCharacterLevel(merged.classes),
+      hasCasterClass: characterHasCasterClass(merged.classes),
+    })
+    return mergeRaceSlice(merged, restored)
+  }
+
+  function mergeRaceSlice(prev: Draft, slice: RaceGrantDraftSlice): Draft {
+    return {
+      ...prev,
+      identity: slice.identity,
+      skills: slice.skills,
+      abilities: slice.abilities,
+      speed: slice.speed,
+      climbSpeed: slice.climbSpeed,
+      swimSpeed: slice.swimSpeed,
+      flySpeed: slice.flySpeed,
+      textBlocks: slice.textBlocks,
+      weapons: slice.weapons,
+      spells: slice.spells,
+      raceGrant: slice.raceGrant,
     }
   }
 
@@ -468,6 +702,100 @@ export function MinimalSheetEditor({
     onToast(`Хомбрю-класс «${name}»: название на листе. Остальное заполни сам.`)
   }
 
+  function commitRaceGrant(input: {
+    selected: CatalogEntry
+    picks: RaceGrantPicks
+    def?: RaceGrantDef | null
+  }) {
+    let summary: string | null = null
+    setDraft((prev) => {
+      const applied = applyRaceGrantToDraft({
+        draft: raceSliceFrom(prev),
+        selected: input.selected,
+        picks: input.picks,
+        def: input.def,
+        characterLevel: totalCharacterLevel(prev.classes),
+        hasCasterClass: characterHasCasterClass(prev.classes),
+      })
+      if (!applied) return prev
+      summary = applied.summary
+      return {
+        ...mergeRaceSlice(prev, applied.draft),
+        raceName: input.selected.name_ru,
+        raceCatalogId: input.selected.id,
+      }
+    })
+    if (summary) onToast(`Раса «${input.selected.name_ru}»: ${summary}`)
+  }
+
+  async function requestOrApplyRaceGrant(selected: CatalogEntry) {
+    if (!isRaceComboboxRoot(selected)) {
+      onToast(`«${selected.name_ru}» — выбери корневую расу; подраса будет в попапе`)
+      return
+    }
+    const rootDef = resolveRaceGrantDef({
+      raceName: selected.name_ru,
+      catalogSlug: selected.slug,
+      catalogData: selected.data,
+      nameRu: selected.name_ru,
+    })
+    if (!rootDef) {
+      onToast(`Раса «${selected.name_ru}» пока без пакета эффектов — выставь вручную`)
+      setDraft((prev) => ({
+        ...prev,
+        raceName: selected.name_ru,
+        raceCatalogId: selected.id,
+      }))
+      return
+    }
+
+    let allRaces = raceCatalogCacheRef.current
+    if (!allRaces) {
+      try {
+        allRaces = await listCatalogEntries({
+          kind: 'race',
+          edition: rulesEdition,
+        })
+        raceCatalogCacheRef.current = allRaces
+      } catch {
+        onToast('Не удалось загрузить справочник рас — попробуй ещё раз')
+        return
+      }
+    }
+
+    const subraces = allRaces
+      .filter((row) => row.parent_id === selected.id)
+      .sort((a, b) => a.sort_order - b.sort_order || a.name_ru.localeCompare(b.name_ru, 'ru'))
+    const subraceRequired = raceSubraceRequired(selected.data)
+
+    if (subraces.length > 0 || raceGrantNeedsSetupDialog(rootDef)) {
+      setRaceGrantPicker({
+        root: selected,
+        subraces,
+        subraceRequired,
+      })
+      return
+    }
+
+    commitRaceGrant({
+      selected,
+      picks: emptyRacePicks(),
+      def: rootDef,
+    })
+  }
+
+  function applyHomebrewRace(name: string) {
+    setDraft((prev) => {
+      const cleared = revokeRaceGrant(raceSliceFrom(prev))
+      return {
+        ...mergeRaceSlice(prev, cleared),
+        raceName: name,
+        raceCatalogId: null,
+      }
+    })
+    onToast(`Хомбрю-раса «${name}»: название на листе. Остальное заполни сам.`)
+  }
+
   function applyLevelUp(choice: LevelUpChoice) {
     if (totalCharacterLevel(draft.classes) >= 20) return
 
@@ -498,10 +826,14 @@ export function MinimalSheetEditor({
     setDraft((prev) => {
       const prevMax = prev.hpMax
       const nextMax = prevMax == null ? gain : prevMax + gain
+      const nextEffective =
+        nextMax + Math.max(0, Math.floor(prev.play.hpMaxBonus))
       const prevCurrent = prev.hpCurrent
       const nextCurrent =
-        prevCurrent == null ? nextMax : Math.min(nextMax, prevCurrent + gain)
-      return {
+        prevCurrent == null
+          ? nextEffective
+          : Math.min(nextEffective, prevCurrent + gain)
+      const withClasses: Draft = {
         ...prev,
         classes: nextClasses,
         hpMax: nextMax,
@@ -512,6 +844,15 @@ export function MinimalSheetEditor({
           hitDie: choice.hitDie ?? prev.play.hitDie,
         },
       }
+      // Unlock innate racial spells / refresh mark list when caster status changes.
+      if (!withClasses.raceGrant) return withClasses
+      const spells = syncRaceSpellsForSheetState({
+        spells: withClasses.spells,
+        grant: withClasses.raceGrant,
+        characterLevel: nextLevel,
+        hasCasterClass: characterHasCasterClass(nextClasses),
+      })
+      return { ...withClasses, spells }
     })
     setLevelUpOpen(false)
     const hpNote = ` · HP +${Math.max(0, Math.floor(choice.hpGain))}`
@@ -553,12 +894,43 @@ export function MinimalSheetEditor({
 
   const armorClass = useMemo(() => {
     const pieces = equippedArmorPieces(draft.inventory.items)
+    const mods = {
+      str: abilityModifier(draft.abilities.str),
+      dex: abilityModifier(draft.abilities.dex),
+      con: abilityModifier(draft.abilities.con),
+      int: abilityModifier(draft.abilities.int),
+      wis: abilityModifier(draft.abilities.wis),
+      cha: abilityModifier(draft.abilities.cha),
+    }
+    let naturalArmor = draft.raceGrant?.naturalArmor ?? null
+    // Backfill for sheets that applied the race before natural_armor was catalogued.
+    if (!naturalArmor && draft.raceGrant) {
+      const entry =
+        raceCatalogRows.find((row) => row.id === draft.raceGrant!.raceCatalogId) ??
+        raceCatalogRows.find((row) => row.slug === draft.raceGrant!.slug)
+      if (entry) {
+        naturalArmor =
+          resolveRaceGrantDef({
+            raceName: entry.name_ru,
+            catalogSlug: entry.slug,
+            catalogData: entry.data,
+            nameRu: entry.name_ru,
+          })?.naturalArmor ?? null
+      }
+    }
     return computeArmorClass({
-      dexMod: abilityModifier(draft.abilities.dex),
+      dexMod: mods.dex,
+      abilityMods: mods,
       armor: pieces.armor,
       shield: pieces.shield,
+      naturalArmor,
     })
-  }, [draft.abilities.dex, draft.inventory.items])
+  }, [
+    draft.abilities,
+    draft.inventory.items,
+    draft.raceGrant,
+    raceCatalogRows,
+  ])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
     setDraft((prev) => ({ ...prev, identity: { ...prev.identity, ...patch } }))
@@ -607,6 +979,7 @@ export function MinimalSheetEditor({
       sheet.identity = identity
       Object.assign(sheet, classLevelsToSheet(draft.classes))
       sheet.class_grants = draft.classGrants
+      sheet.race_grant = draft.raceGrant
 
       for (const key of ABILITY_KEYS) {
         abilities[key] = { ...asRecord(abilities[key]), score: draft.abilities[key] }
@@ -633,6 +1006,9 @@ export function MinimalSheetEditor({
       combat.hp_max = draft.hpMax
       combat.ac = draft.ac
       combat.speed = draft.speed
+      combat.climb_speed = draft.climbSpeed
+      combat.swim_speed = draft.swimSpeed
+      combat.fly_speed = draft.flySpeed
       combat.initiative = draft.initiativeOverride
       combat.inspiration = draft.inspiration
       combat.darkvision = identityExtras.combatPatch.darkvision
@@ -640,6 +1016,7 @@ export function MinimalSheetEditor({
       combat.conditions = playSheet.combatPatch.conditions
       combat.exhaustion = playSheet.combatPatch.exhaustion
       combat.hp_temp = playSheet.combatPatch.hp_temp
+      combat.hp_max_bonus = playSheet.combatPatch.hp_max_bonus
       combat.hit_die = playSheet.combatPatch.hit_die
       combat.hp_dice_current = playSheet.combatPatch.hp_dice_current
       combat.is_dying = playSheet.combatPatch.is_dying
@@ -700,20 +1077,34 @@ export function MinimalSheetEditor({
         className={classSummary || primaryClass?.name || ''}
         level={characterLevel}
         abilities={draft.abilities}
+        classes={draft.classes}
+        hitDie={draft.play.hitDie}
+        constitutionMod={abilityModifier(draft.abilities.con)}
         hpCurrent={draft.hpCurrent}
         hpMax={draft.hpMax}
+        hpMaxBonus={draft.play.hpMaxBonus}
         hpTemp={draft.play.hpTemp}
         acOverride={draft.ac}
         autoAc={armorClass.ac}
         acHint={armorClass.summary}
         speed={draft.speed}
+        movementHint={formatRaceMovementHint({
+          climb: draft.climbSpeed,
+          swim: draft.swimSpeed,
+          fly: draft.flySpeed,
+        })}
         initiativeOverride={draft.initiativeOverride}
         inspiration={draft.inspiration}
         exhaustion={draft.play.exhaustion}
         isDying={draft.play.isDying}
         deathSuccesses={draft.play.deathSuccesses}
         deathFails={draft.play.deathFails}
-        conditionNames={draft.play.conditions.map((item) => item.name)}
+        conditionNames={[
+          ...(draft.play.exhaustion > 0 ? [`Истощение ${draft.play.exhaustion}`] : []),
+          ...draft.play.conditions
+            .filter((item) => item.slug !== 'exhaustion')
+            .map((item) => formatConditionLabel(item)),
+        ]}
         concentration={draft.play.concentration}
         onClearConcentration={() =>
           setDraft((prev) => ({
@@ -721,7 +1112,19 @@ export function MinimalSheetEditor({
             play: { ...prev.play, concentration: null },
           }))
         }
-        onChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
+        onChange={(patch) =>
+          setDraft((prev) => {
+            const { hpMaxBonus, ...rest } = patch
+            return {
+              ...prev,
+              ...rest,
+              play:
+                hpMaxBonus !== undefined
+                  ? { ...prev.play, hpMaxBonus: Math.max(0, Math.floor(hpMaxBonus)) }
+                  : prev.play,
+            }
+          })
+        }
       />
 
       <Panel title="Основное">
@@ -751,14 +1154,10 @@ export function MinimalSheetEditor({
               </div>
             </Field>
             <Field label="Опыт (XP)" htmlFor="sheet-xp">
-              <NumberInput
-                id="sheet-xp"
-                min={0}
-                emptyValue={0}
-                value={draft.identity.experience}
-                onValueChange={(experience) =>
-                  patchIdentity({ experience: experience ?? 0 })
-                }
+              <XpProgressField
+                xp={draft.identity.experience}
+                level={characterLevel}
+                onChange={(experience) => patchIdentity({ experience })}
               />
             </Field>
           </div>
@@ -769,7 +1168,7 @@ export function MinimalSheetEditor({
             <Field
               label="Раса"
               htmlFor="sheet-race"
-              hint="Выбор из каталога подставляет скорость, ТЗ, языки и блок особенностей"
+              hint="В списке — раса; подрасу и остальные развилки выбираешь в попапе"
             >
               <CatalogCombobox
                 id="sheet-race"
@@ -777,6 +1176,7 @@ export function MinimalSheetEditor({
                 edition={baseCharacter.rules_edition as RulesEdition}
                 value={draft.raceName}
                 placeholder="Начните вводить расу"
+                filterEntry={(entry) => isRaceComboboxRoot(entry)}
                 onChange={(value, selected) => {
                   if (!selected) {
                     setDraft((prev) => ({
@@ -786,34 +1186,18 @@ export function MinimalSheetEditor({
                     }))
                     return
                   }
-                  let toast: string | null = null
-                  setDraft((prev) => {
-                    const applied = applyRaceCatalogToDraft({
-                      selected,
-                      identity: prev.identity,
-                      textBlocks: prev.textBlocks,
-                      previousRaceLanguages: prev.identity.raceAppliedLanguages,
-                    })
-                    if (!applied) {
-                      return {
-                        ...prev,
-                        raceName: selected.name_ru,
-                        raceCatalogId: selected.id,
-                      }
-                    }
-                    toast = `Раса «${selected.name_ru}»: ${applied.summary}`
-                    return {
-                      ...prev,
-                      raceName: selected.name_ru,
-                      raceCatalogId: selected.id,
-                      speed: applied.speed,
-                      identity: applied.identity,
-                      textBlocks: applied.textBlocks,
-                    }
-                  })
-                  if (toast) onToast(toast)
+                  void requestOrApplyRaceGrant(selected)
                 }}
               />
+              <div className="languages-tools-add" style={{ marginTop: 8 }}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setRaceHomebrewOpen(true)}
+                >
+                  Хомбрю
+                </Button>
+              </div>
             </Field>
             <Field label="Размер" htmlFor="sheet-size">
               <select
@@ -885,10 +1269,12 @@ export function MinimalSheetEditor({
                           variant="ghost"
                           disabled={draft.classes.length === 1 && row.level <= 1}
                           onClick={() =>
-                            setDraft((prev) => ({
-                              ...prev,
-                              classes: reduceClassLevel(prev.classes, row.id),
-                            }))
+                            setDraft((prev) =>
+                              withRaceSpellsSynced(
+                                prev,
+                                reduceClassLevel(prev.classes, row.id),
+                              ),
+                            )
                           }
                         >
                           −1
@@ -962,6 +1348,32 @@ export function MinimalSheetEditor({
               }
             />
           </Field>
+          <div className="sheet-grid sheet-grid--3">
+            <Field label="Лазание, фт" htmlFor="sheet-climb" hint="пусто = нет">
+              <NumberInput
+                id="sheet-climb"
+                min={0}
+                value={draft.climbSpeed}
+                onValueChange={(climbSpeed) => setDraft((prev) => ({ ...prev, climbSpeed }))}
+              />
+            </Field>
+            <Field label="Плавание, фт" htmlFor="sheet-swim" hint="пусто = нет">
+              <NumberInput
+                id="sheet-swim"
+                min={0}
+                value={draft.swimSpeed}
+                onValueChange={(swimSpeed) => setDraft((prev) => ({ ...prev, swimSpeed }))}
+              />
+            </Field>
+            <Field label="Полёт, фт" htmlFor="sheet-fly" hint="пусто = нет">
+              <NumberInput
+                id="sheet-fly"
+                min={0}
+                value={draft.flySpeed}
+                onValueChange={(flySpeed) => setDraft((prev) => ({ ...prev, flySpeed }))}
+              />
+            </Field>
+          </div>
           <Text tone="muted">Пассивы = 10 + модификатор навыка (с учётом владения/экспертизы).</Text>
         </Stack>
       </Panel>
@@ -1167,6 +1579,13 @@ export function MinimalSheetEditor({
       <TextBlocksPanel
         blocks={draft.textBlocks}
         onChange={(textBlocks) => setDraft((prev) => ({ ...prev, textBlocks }))}
+        resources={draft.play.resources}
+        onResourcesChange={(resources) =>
+          setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, resources },
+          }))
+        }
       />
 
       {error ? <Text tone="danger">{error}</Text> : null}
@@ -1234,6 +1653,32 @@ export function MinimalSheetEditor({
           if (!homebrewPicker) return
           applyHomebrewClass(homebrewPicker.classEntryId, name)
           setHomebrewPicker(null)
+        }}
+      />
+
+      <RaceSetupDialog
+        open={raceGrantPicker != null}
+        root={raceGrantPicker?.root ?? null}
+        subraces={raceGrantPicker?.subraces ?? []}
+        subraceRequired={raceGrantPicker?.subraceRequired ?? false}
+        onClose={() => setRaceGrantPicker(null)}
+        onConfirm={(result) => {
+          commitRaceGrant({
+            selected: result.entry,
+            picks: result.picks,
+            def: result.def,
+          })
+          setRaceGrantPicker(null)
+        }}
+      />
+
+      <HomebrewRaceDialog
+        open={raceHomebrewOpen}
+        initialName={draft.raceName}
+        onClose={() => setRaceHomebrewOpen(false)}
+        onConfirm={(name) => {
+          applyHomebrewRace(name)
+          setRaceHomebrewOpen(false)
         }}
       />
     </Stack>
