@@ -439,7 +439,7 @@
 | Любимец богов | 4 ур.; заклинания по мировоззрению | Божественный бэкап без клирика |
 | Имена | RU как на dnd.su (plaque SDQ) | «Оруженосец рыцаря Соламнии», не EN |
 
-На проде: **нет** · ветка `cursor/feats-dsotdq-wave-ef23` · tip не менять до «залей»
+На проде: **нет** · ветка `cursor/feats-dsotdq-wave-ef23` · PR #60 · tip не менять до «залей»
 
 ### 2026-10-07 — FEATS SCC wave (Стриксхейвен; GGtR пропуск)
 
@@ -589,4 +589,4 @@
 | 2026-10-07 | `cursor/feats-ftd-wave-ef23` · PR #57 | FTD dragon gift feats (3) + PB-scaled pools; alembic `z5a6`; на проде нет |
 | 2026-10-07 | `cursor/feats-erlw-wave-ef23` · PR #58 | ERLW Aberrant Dragonmark + WGTE Revenant Blade; alembic `a7b8`; на проде нет |
 | 2026-10-07 | `cursor/feats-scc-wave-ef23` · PR #59 | SCC Strixhaven Initiate/Mascot + min_level/feats_all; GGtR skip; alembic `b8c9`; на проде нет |
-| 2026-10-07 | `cursor/feats-dsotdq-wave-ef23` | SDQ Dragonlance 9 feats + knight/mage chains; alembic `d0e1`; на проде нет |
+| 2026-10-07 | `cursor/feats-dsotdq-wave-ef23` · PR #60 | SDQ Dragonlance 9 feats + knight/mage chains; alembic `d0e1`; на проде нет |
