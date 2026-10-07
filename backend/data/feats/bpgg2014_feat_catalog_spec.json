@@ -115,6 +115,16 @@
         "grants": {
           "flags": [
             "rune_shaper"
+          ],
+          "spells": [
+            {
+              "id": "comprehend_languages",
+              "spell_slug": "comprehend_languages",
+              "name_ru": "Понимание языков",
+              "level": 1,
+              "grant": "innate",
+              "notes_ru": "1/длинный отдых без ячейки"
+            }
           ]
         }
       }

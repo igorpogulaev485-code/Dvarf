@@ -27,8 +27,12 @@ WAVE_SPECS: list[tuple[str, str]] = [
     ("data/feats/xge2014_feat_catalog_spec.json", "xge"),
     ("data/feats/tce2014_feat_catalog_spec.json", "tce"),
     ("data/feats/ftd2014_feat_catalog_spec.json", "ftd"),
+    ("data/feats/erlw2014_feat_catalog_spec.json", "erlw"),
     ("data/feats/scc2014_feat_catalog_spec.json", "scc"),
+    ("data/feats/sdq2014_feat_catalog_spec.json", "sdq"),
+    ("data/feats/bpgg2014_feat_catalog_spec.json", "bpgg"),
     ("data/feats/pam2014_feat_catalog_spec.json", "pam"),
+    ("data/feats/bmt2014_feat_catalog_spec.json", "bmt"),
 ]
 
 # Re-upsert rows that gained grants.spells and/or spell_one picks.
@@ -47,6 +51,17 @@ SPELL_GRANT_SLUGS = {
     "artificer_initiate",
     "strixhaven_initiate",
     "strixhaven_mascot",
+    "ritual_caster",
+    "spell_sniper",
+    "aberrant_dragonmark",
+    "cartomancer",
+    "rune_shaper",
+    "divinely_favored",
+    "initiate_of_high_sorcery",
+    "adept_of_the_black_robes",
+    "adept_of_the_red_robes",
+    "adept_of_the_white_robes",
+    "scion_of_the_outer_planes",
 }
 
 

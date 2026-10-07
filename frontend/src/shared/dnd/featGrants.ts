@@ -1031,14 +1031,80 @@ export function buildAppliedFeatPackage(input: {
   }
   const listKey = enumPicks.list ?? picks.enumIds.list
   const castEnum = enumPicks.cast ?? picks.enumIds.cast
+  const abilityCast = picks.abilityKeys.ability
   const castingAbility: AbilityKey | null =
     castEnum && ABILITY_KEYS.includes(castEnum as AbilityKey)
       ? (castEnum as AbilityKey)
-      : listKey
-        ? (castingFromList[listKey] ?? null)
-        : null
+      : abilityCast && !def.choices.some((c) => c.type === 'ability_one' && c.amount > 0)
+        ? abilityCast
+        : listKey
+          ? (castingFromList[listKey] ?? null)
+          : null
 
-  const allSpells = [...def.fixedGrants.spells, ...pickedSpells].map((spell) =>
+  /** Plane → cantrip for Scion of the Outer Planes. */
+  const planeCantrips: Record<string, FeatSpell> = {
+    chaos: {
+      id: 'minor_illusion',
+      spellSlug: 'minor_illusion',
+      nameRu: 'Малая иллюзия',
+      level: 0,
+      castingAbility: null,
+      notesRu: 'планарное влияние (хаос)',
+      unlockLevel: 1,
+      grant: 'innate',
+    },
+    evil: {
+      id: 'chill_touch',
+      spellSlug: 'chill_touch',
+      nameRu: 'Леденящее прикосновение',
+      level: 0,
+      castingAbility: null,
+      notesRu: 'планарное влияние (зло)',
+      unlockLevel: 1,
+      grant: 'innate',
+    },
+    good: {
+      id: 'sacred_flame',
+      spellSlug: 'sacred_flame',
+      nameRu: 'Священное пламя',
+      level: 0,
+      castingAbility: null,
+      notesRu: 'планарное влияние (добро)',
+      unlockLevel: 1,
+      grant: 'innate',
+    },
+    law: {
+      id: 'guidance',
+      spellSlug: 'guidance',
+      nameRu: 'Указание',
+      level: 0,
+      castingAbility: null,
+      notesRu: 'планарное влияние (закон)',
+      unlockLevel: 1,
+      grant: 'innate',
+    },
+    outlands: {
+      id: 'mage_hand',
+      spellSlug: 'mage_hand',
+      nameRu: 'Волшебная рука',
+      level: 0,
+      castingAbility: null,
+      notesRu: 'планарное влияние (Внешние земли)',
+      unlockLevel: 1,
+      grant: 'innate',
+    },
+  }
+  const planeKey = enumPicks.plane ?? picks.enumIds.plane
+  const planeSpell =
+    def.slug === 'scion_of_the_outer_planes' && planeKey
+      ? planeCantrips[planeKey] ?? null
+      : null
+
+  const allSpells = [
+    ...def.fixedGrants.spells,
+    ...pickedSpells,
+    ...(planeSpell ? [planeSpell] : []),
+  ].map((spell) =>
     spell.castingAbility || !castingAbility
       ? spell
       : { ...spell, castingAbility },

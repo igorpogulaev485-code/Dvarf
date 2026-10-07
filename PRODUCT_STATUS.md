@@ -438,6 +438,7 @@
 | Wave1 fixed | Fey Teleportation, Svirfneblin Magic, Telekinetic, Telepathic, Drow High Magic, Gift of the Metallic Dragon, Outlands Envoy | Без ручного misty step / mage hand / cure wounds… |
 | Wave2 pick | `spell_one`: Fey/Shadow Touched + Wood Elf Magic (заговор) | Туманный шаг/Невидимость + выбор 1 круга в попапе |
 | Wave3 lists | Magic Initiate / Artificer Initiate / Strixhaven (+ mascot familiar) | Список/колледж → 2 заговора + 1 круг на лист |
+| Wave4 | Ritual/Spell Sniper, Aberrant Dragonmark, SDQ moons/adepts, Scion plane cantrip, Cartomancer/Rune Shaper | Почти все spell_note черты закрыты |
 | Prepare cap | `feat_grant: innate` не считаются в лимит подготовки | Как расовые врождённые |
 
 На проде: **нет** · ветка `cursor/feats-spell-grants-592a` · PR #66 · tip не менять до «залей»

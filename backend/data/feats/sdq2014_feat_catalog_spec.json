@@ -59,15 +59,60 @@
             ]
           },
           {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Заклинания",
-            "text_ru": "Запиши заговор клирика, заклинание 1 круга по мировоззрению и Предсказание. Автоподбор — позже."
+            "id": "cantrip",
+            "type": "spell_one",
+            "label_ru": "Заговор клирика",
+            "level": 0,
+            "grant": "innate",
+            "options": [
+              { "id": "guidance", "label_ru": "Наставление" },
+              { "id": "light", "label_ru": "Свет" },
+              { "id": "mending", "label_ru": "Починка" },
+              { "id": "resistance", "label_ru": "Сопротивление" },
+              { "id": "sacred_flame", "label_ru": "Священное пламя" },
+              { "id": "spare_the_dying", "label_ru": "Уход за умирающим" },
+              { "id": "thaumaturgy", "label_ru": "Чудотворство" }
+            ]
+          },
+          {
+            "id": "l1_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 1 круга (по мировоззрению)",
+            "level": 1,
+            "grant": "innate",
+            "filter_enum": "alignment",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "bless", "label_ru": "Благословение", "lists": ["good"] },
+              { "id": "cure_wounds", "label_ru": "Лечение ран", "lists": ["good"] },
+              { "id": "detect_evil_and_good", "label_ru": "Обнаружение добра и зла", "lists": ["good"] },
+              { "id": "guiding_bolt", "label_ru": "Направляющий снаряд", "lists": ["good"] },
+              { "id": "healing_word", "label_ru": "Целебное слово", "lists": ["good"] },
+              { "id": "shield_of_faith", "label_ru": "Щит веры", "lists": ["good"] },
+              { "id": "entangle", "label_ru": "Опутывание", "lists": ["neutral"] },
+              { "id": "faerie_fire", "label_ru": "Огонь фей", "lists": ["neutral"] },
+              { "id": "goodberry", "label_ru": "Ягоды доброго", "lists": ["neutral"] },
+              { "id": "speak_with_animals", "label_ru": "Разговор с животными", "lists": ["neutral"] },
+              { "id": "armor_of_agathys", "label_ru": "Доспех Агатиса", "lists": ["evil"] },
+              { "id": "arms_of_hadar", "label_ru": "Руки Хадара", "lists": ["evil"] },
+              { "id": "hellish_rebuke", "label_ru": "Адское возмездие", "lists": ["evil"] },
+              { "id": "hex", "label_ru": "Сглаз", "lists": ["evil"] }
+            ]
           }
         ],
         "grants": {
           "flags": [
             "divinely_favored"
+          ],
+          "spells": [
+            {
+              "id": "augury",
+              "spell_slug": "augury",
+              "name_ru": "Предсказание",
+              "level": 2,
+              "grant": "innate",
+              "notes_ru": "1/длинный отдых без ячейки"
+            }
           ]
         }
       }
@@ -134,10 +179,74 @@
             ]
           },
           {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Заговор и 2 заклинания",
-            "text_ru": "Запиши заговор волшебника и два заклинания 1 круга по выбранной луне. Автоподбор — позже."
+            "id": "cantrip",
+            "type": "spell_one",
+            "label_ru": "Заговор волшебника",
+            "level": 0,
+            "grant": "innate",
+            "options": [
+              { "id": "acid_splash", "label_ru": "Брызги кислоты" },
+              { "id": "chill_touch", "label_ru": "Леденящее прикосновение" },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд" },
+              { "id": "light", "label_ru": "Свет" },
+              { "id": "mage_hand", "label_ru": "Волшебная рука" },
+              { "id": "mending", "label_ru": "Починка" },
+              { "id": "message", "label_ru": "Сообщение" },
+              { "id": "minor_illusion", "label_ru": "Малая иллюзия" },
+              { "id": "poison_spray", "label_ru": "Ядовитые брызги" },
+              { "id": "prestidigitation", "label_ru": "Фокусы" },
+              { "id": "ray_of_frost", "label_ru": "Луч холода" },
+              { "id": "shocking_grasp", "label_ru": "Шокирующее касание" },
+              { "id": "true_strike", "label_ru": "Меткий удар" }
+            ]
+          },
+          {
+            "id": "moon_spell1",
+            "type": "spell_one",
+            "label_ru": "Заклинание луны 1",
+            "level": 1,
+            "grant": "innate",
+            "filter_enum": "moon",
+            "unique_group": "moon_spells",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "dissonant_whispers", "label_ru": "Диссонирующий шёпот", "lists": ["nuitari"] },
+              { "id": "false_life", "label_ru": "Псевдожизнь", "lists": ["nuitari"] },
+              { "id": "hex", "label_ru": "Сглаз", "lists": ["nuitari"] },
+              { "id": "ray_of_sickness", "label_ru": "Луч болезни", "lists": ["nuitari"] },
+              { "id": "color_spray", "label_ru": "Цветной шарик", "lists": ["lunitari"] },
+              { "id": "disguise_self", "label_ru": "Маскировка", "lists": ["lunitari"] },
+              { "id": "feather_fall", "label_ru": "Падение пёрышком", "lists": ["lunitari"] },
+              { "id": "longstrider", "label_ru": "Длинный шаг", "lists": ["lunitari"] },
+              { "id": "comprehend_languages", "label_ru": "Понимание языков", "lists": ["solinari"] },
+              { "id": "detect_evil_and_good", "label_ru": "Обнаружение добра и зла", "lists": ["solinari"] },
+              { "id": "protection_from_evil_and_good", "label_ru": "Защита от зла и добра", "lists": ["solinari"] },
+              { "id": "shield", "label_ru": "Щит", "lists": ["solinari"] }
+            ]
+          },
+          {
+            "id": "moon_spell2",
+            "type": "spell_one",
+            "label_ru": "Заклинание луны 2",
+            "level": 1,
+            "grant": "innate",
+            "filter_enum": "moon",
+            "unique_group": "moon_spells",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "dissonant_whispers", "label_ru": "Диссонирующий шёпот", "lists": ["nuitari"] },
+              { "id": "false_life", "label_ru": "Псевдожизнь", "lists": ["nuitari"] },
+              { "id": "hex", "label_ru": "Сглаз", "lists": ["nuitari"] },
+              { "id": "ray_of_sickness", "label_ru": "Луч болезни", "lists": ["nuitari"] },
+              { "id": "color_spray", "label_ru": "Цветной шарик", "lists": ["lunitari"] },
+              { "id": "disguise_self", "label_ru": "Маскировка", "lists": ["lunitari"] },
+              { "id": "feather_fall", "label_ru": "Падение пёрышком", "lists": ["lunitari"] },
+              { "id": "longstrider", "label_ru": "Длинный шаг", "lists": ["lunitari"] },
+              { "id": "comprehend_languages", "label_ru": "Понимание языков", "lists": ["solinari"] },
+              { "id": "detect_evil_and_good", "label_ru": "Обнаружение добра и зла", "lists": ["solinari"] },
+              { "id": "protection_from_evil_and_good", "label_ru": "Защита от зла и добра", "lists": ["solinari"] },
+              { "id": "shield", "label_ru": "Щит", "lists": ["solinari"] }
+            ]
           }
         ],
         "grants": {
@@ -181,10 +290,19 @@
         },
         "choices": [
           {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Заклинание 2 круга",
-            "text_ru": "Очарование или некромантия. Луна Посвящённого должна быть Нуитари."
+            "id": "l2_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 2 круга (очарование / некромантия)",
+            "level": 2,
+            "grant": "innate",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "blindness_deafness", "label_ru": "Слепота/глухота" },
+              { "id": "crown_of_madness", "label_ru": "Корона безумия" },
+              { "id": "hold_person", "label_ru": "Удержание личности" },
+              { "id": "ray_of_enfeeblement", "label_ru": "Луч слабости" },
+              { "id": "suggestion", "label_ru": "Внушение" }
+            ]
           }
         ],
         "grants": {
@@ -228,10 +346,22 @@
         },
         "choices": [
           {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Заклинание 2 круга",
-            "text_ru": "Иллюзия или преобразование. Луна Посвящённого должна быть Лунитари."
+            "id": "l2_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 2 круга (иллюзия / преобразование)",
+            "level": 2,
+            "grant": "innate",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "alter_self", "label_ru": "Смена обличья" },
+              { "id": "blur", "label_ru": "Размытый образ" },
+              { "id": "enlarge_reduce", "label_ru": "Увеличение/уменьшение" },
+              { "id": "invisibility", "label_ru": "Невидимость" },
+              { "id": "knock", "label_ru": "Кнок" },
+              { "id": "mirror_image", "label_ru": "Зеркальное отражение" },
+              { "id": "misty_step", "label_ru": "Туманный шаг" },
+              { "id": "spider_climb", "label_ru": "Паучье лазание" }
+            ]
           }
         ],
         "grants": {
@@ -282,10 +412,19 @@
         },
         "choices": [
           {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Заклинание 2 круга",
-            "text_ru": "Ограждение или прорицание. Луна Посвящённого должна быть Солинари."
+            "id": "l2_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 2 круга (ограждение / прорицание)",
+            "level": 2,
+            "grant": "innate",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "augury", "label_ru": "Предсказание" },
+              { "id": "detect_thoughts", "label_ru": "Обнаружение мыслей" },
+              { "id": "locate_object", "label_ru": "Поиск предмета" },
+              { "id": "see_invisibility", "label_ru": "Видение невидимого" },
+              { "id": "warding_bond", "label_ru": "Оберегающая связь" }
+            ]
           }
         ],
         "grants": {

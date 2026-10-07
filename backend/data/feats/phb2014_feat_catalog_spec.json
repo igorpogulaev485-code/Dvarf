@@ -967,10 +967,50 @@
             ]
           },
           {
-            "id": "rituals_note",
-            "type": "note",
-            "label_ru": "Два ритуала 1 круга",
-            "text_ru": "Запиши два ритуала 1 круга в гримуар/заметки. Автоподбор — позже."
+            "id": "ritual1",
+            "type": "spell_one",
+            "label_ru": "Ритуал 1",
+            "level": 1,
+            "grant": "innate",
+            "filter_enum": "list",
+            "unique_group": "rituals",
+            "notes_ru": "ритуал (книга ритуалов)",
+            "options": [
+              { "id": "alarm", "label_ru": "Тревога", "lists": ["wizard"] },
+              { "id": "comprehend_languages", "label_ru": "Понимание языков", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "detect_magic", "label_ru": "Обнаружение магии", "lists": ["bard", "cleric", "druid", "wizard"] },
+              { "id": "detect_poison_and_disease", "label_ru": "Обнаружение яда и болезни", "lists": ["cleric", "druid"] },
+              { "id": "find_familiar", "label_ru": "Поиск фамильяра", "lists": ["wizard"] },
+              { "id": "identify", "label_ru": "Опознание", "lists": ["bard", "wizard"] },
+              { "id": "illusory_script", "label_ru": "Невидимое письмо", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "purify_food_and_drink", "label_ru": "Очищение пищи и питья", "lists": ["cleric", "druid"] },
+              { "id": "speak_with_animals", "label_ru": "Разговор с животными", "lists": ["bard", "druid"] },
+              { "id": "tensers_floating_disk", "label_ru": "Парящий диск Тенсера", "lists": ["wizard"] },
+              { "id": "unseen_servant", "label_ru": "Невидимый слуга", "lists": ["bard", "warlock", "wizard"] }
+            ]
+          },
+          {
+            "id": "ritual2",
+            "type": "spell_one",
+            "label_ru": "Ритуал 2",
+            "level": 1,
+            "grant": "innate",
+            "filter_enum": "list",
+            "unique_group": "rituals",
+            "notes_ru": "ритуал (книга ритуалов)",
+            "options": [
+              { "id": "alarm", "label_ru": "Тревога", "lists": ["wizard"] },
+              { "id": "comprehend_languages", "label_ru": "Понимание языков", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "detect_magic", "label_ru": "Обнаружение магии", "lists": ["bard", "cleric", "druid", "wizard"] },
+              { "id": "detect_poison_and_disease", "label_ru": "Обнаружение яда и болезни", "lists": ["cleric", "druid"] },
+              { "id": "find_familiar", "label_ru": "Поиск фамильяра", "lists": ["wizard"] },
+              { "id": "identify", "label_ru": "Опознание", "lists": ["bard", "wizard"] },
+              { "id": "illusory_script", "label_ru": "Невидимое письмо", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "purify_food_and_drink", "label_ru": "Очищение пищи и питья", "lists": ["cleric", "druid"] },
+              { "id": "speak_with_animals", "label_ru": "Разговор с животными", "lists": ["bard", "druid"] },
+              { "id": "tensers_floating_disk", "label_ru": "Парящий диск Тенсера", "lists": ["wizard"] },
+              { "id": "unseen_servant", "label_ru": "Невидимый слуга", "lists": ["bard", "warlock", "wizard"] }
+            ]
           }
         ],
         "grants": {
@@ -1163,10 +1203,25 @@
             ]
           },
           {
-            "id": "cantrip_note",
-            "type": "note",
+            "id": "cantrip",
+            "type": "spell_one",
             "label_ru": "Атакующий заговор",
-            "text_ru": "Запиши выбранный атакующий заговор в список известных. Автоподбор — позже."
+            "level": 0,
+            "grant": "innate",
+            "filter_enum": "list",
+            "notes_ru": "атакующий заговор (Spell Sniper)",
+            "options": [
+              { "id": "eldritch_blast", "label_ru": "Мистический заряд", "lists": ["warlock"] },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд", "lists": ["sorcerer", "wizard"] },
+              { "id": "ray_of_frost", "label_ru": "Луч холода", "lists": ["sorcerer", "wizard"] },
+              { "id": "shocking_grasp", "label_ru": "Шокирующее касание", "lists": ["sorcerer", "wizard"] },
+              { "id": "chill_touch", "label_ru": "Леденящее прикосновение", "lists": ["sorcerer", "warlock", "wizard"] },
+              { "id": "sacred_flame", "label_ru": "Священное пламя", "lists": ["cleric"] },
+              { "id": "produce_flame", "label_ru": "Сотворение пламени", "lists": ["druid"] },
+              { "id": "thorn_whip", "label_ru": "Терновый кнут", "lists": ["druid"] },
+              { "id": "poison_spray", "label_ru": "Ядовитые брызги", "lists": ["druid", "sorcerer", "warlock", "wizard"] },
+              { "id": "vicious_mockery", "label_ru": "Злая насмешка", "lists": ["bard"] }
+            ]
           }
         ],
         "grants": {
