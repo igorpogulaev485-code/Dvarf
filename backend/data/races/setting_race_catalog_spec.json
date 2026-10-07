@@ -1,0 +1,472 @@
+{
+  "meta": {
+    "edition": "2014",
+    "source": "setting_wave",
+    "notes_ru": "Волна 3: SAS/AAG + VRGtR lineages + ERLW + GGR + MOT/SCC + грунг/локата/вердан/кендер. Без дублей PHB/MPMM."
+  },
+  "races": [
+    {
+      "slug": "hadozee",
+      "name_ru": "Хадози",
+      "name_en": "Hadozee",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "aag",
+      "sort_order": 300,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Хадози (AAG/SAS): ASI гибкий. Размер Средний или Маленький. Скорость 30 + лазание = ходьбе. Ловкие ступни (бонус: манипуляции ногами). Планирование (реакция при падении ≥10 фт: гориз. сдвиг = скорость, 0 урона). Уклонение хадози (реакция: 1к6+ПБ снижение урона, ПБ раз / длинный отдых).",
+      "subrace_required": false
+    },
+    {
+      "slug": "plasmoid",
+      "name_ru": "Плазмоид",
+      "name_en": "Plasmoid",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "aag",
+      "sort_order": 301,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Плазмоид (AAG/SAS): ASI гибкий. Тип — слизь. Размер Средний или Маленький. Тёмное зрение 60. Аморфный (пролезает в 1 дюйм без снаряжения). Задержка дыхания 1 час. Природная устойчивость (кислота + яд; преимущество к спас. от отравления). Форма себя (псевдоподия / лицо).",
+      "subrace_required": false
+    },
+    {
+      "slug": "thri_kreen",
+      "name_ru": "Три-крин",
+      "name_en": "Thri-kreen",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "aag",
+      "sort_order": 302,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Три-крин (AAG/SAS): ASI гибкий. Тип — чудовище. Размер Средний или Маленький. Тёмное зрение 60. Хамелеоновый панцирь (КАМ; преимущество Скрытности; КД 13+ЛВК без доспеха). Вторичные руки (лёгкое оружие / предмет; не щит/тяжёлое). Бессонный. Телепатия три-крина (120 фт).",
+      "subrace_required": false
+    },
+    {
+      "slug": "autognome",
+      "name_ru": "Автогном",
+      "name_en": "Autognome",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "aag",
+      "sort_order": 303,
+      "speed": 30,
+      "size": "small",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Автогном (AAG/SAS): ASI гибкий. Тип — конструкт. Маленький. Броня автогнома (КД 13+ЛВК). Построен для успеха (к20 на проверку/атаку/спас. до броска, ПБ раз). Исцеляющая машина (mending на себя = 1к8×ПБ хитов). Механическая природа (яд/болезни/еда/питьё/дыхание; преимущество к спас. от паралича/отравления; сопротивление яду).",
+      "subrace_required": false
+    },
+    {
+      "slug": "dhampir",
+      "name_ru": "Дампир",
+      "name_en": "Dhampir",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "vrgr",
+      "sort_order": 310,
+      "speed": 35,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Дампир (VRGtR): ASI гибкий. Размер Средний или Маленький. Скорость 35. Тёмное зрение 60. Наследие предка (навык). Паучья ходьба (лазание = ходьбе; руки свободны). Укус вампира (безоружный пронзающий; исцеление/бонус к проверке; ПБ раз / длинный отдых).",
+      "subrace_required": false,
+      "skill_choices": {
+        "count": 1,
+        "from": "any"
+      }
+    },
+    {
+      "slug": "hexblood",
+      "name_ru": "Ведьмакровка",
+      "name_en": "Hexblood",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "vrgr",
+      "sort_order": 311,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Ведьмакровка (VRGtR): ASI гибкий. Размер Средний или Маленький. Тёмное зрение 60. Наследие предка. Едкая магия (малая иллюзия + маскировка, ПБ раз / длинный отдых). Токен ведьмы (телепатия 10 миль; удалённый взгляд; смерть токена → бессознательность).",
+      "subrace_required": false,
+      "skill_choices": {
+        "count": 1,
+        "from": "any"
+      }
+    },
+    {
+      "slug": "reborn",
+      "name_ru": "Возрождённый",
+      "name_en": "Reborn",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "vrgr",
+      "sort_order": 312,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Возрождённый (VRGtR): ASI гибкий. Размер Средний или Маленький. Наследие предка. Знание смерти (сопротивление яду; преимущество к спас. от болезней/отравления; еда/питьё/сон не обязательны). Знание прошлого (к6 к проверке навыка/инструмента, ПБ раз).",
+      "subrace_required": false,
+      "skill_choices": {
+        "count": 1,
+        "from": "any"
+      }
+    },
+    {
+      "slug": "kalashtar",
+      "name_ru": "Калаштар",
+      "name_en": "Kalashtar",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "erlw",
+      "sort_order": 320,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Калаштар (ERLW): ASI гибкий. Двойной разум (преимущество к спас. от очарования). Ментальная дисциплина (сопротивление психическому). Связь с духом (телепатия 60 фт). Раскол разума (реакция: сопротивление психическому; повтор спас. от очарования/испуганности).",
+      "subrace_required": false
+    },
+    {
+      "slug": "warforged",
+      "name_ru": "Кованый",
+      "name_en": "Warforged",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "erlw",
+      "sort_order": 321,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Кованый (ERLW): ASI гибкий. Конструкт-гуманоид. Встроенная защита (КД 13+ЛВК; можно встроить доспех). Специализированный дизайн (навык). Неутомимый (не нужно есть/пить/дышать; 6 ч инертности вместо сна). Сопротивление яду; преимущество к спас. от отравления; иммунитет к болезням.",
+      "subrace_required": false,
+      "skill_choices": {
+        "count": 1,
+        "from": "any"
+      }
+    },
+    {
+      "slug": "loxodon",
+      "name_ru": "Локсодон",
+      "name_en": "Loxodon",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "ggr",
+      "sort_order": 330,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Локсодон (GGR): ASI гибкий. Мощное телосложение. Природная броня (КД 12+ТЕЛ). Хобот (предмет / толчок бонусом; нюх — преимущество Восприятия/Выживания/Расследования по запаху). Спокойный (преимущество к спас. от испуганности).",
+      "subrace_required": false
+    },
+    {
+      "slug": "vedalken",
+      "name_ru": "Ведалкен",
+      "name_en": "Vedalken",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "ggr",
+      "sort_order": 331,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Ведалкен (GGR): ASI гибкий. Ведалкенская внимательность (преимущество к ИНТ/МУД/ХАР спас. от магии). Неутомимая сосредоточенность (1к4 к проваленной проверке ИНТ/МУД/навыка/инструмента, ПБ раз). Частично амфибия (дыхание под водой 1 час).",
+      "subrace_required": false
+    },
+    {
+      "slug": "simic_hybrid",
+      "name_ru": "Гибрид Симик",
+      "name_en": "Simic Hybrid",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "ggr",
+      "sort_order": 332,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Гибрид Симик (GGR): ASI гибкий. Тёмное зрение 60. Зверские улучшения 1 ур. (лазание ИЛИ плавание+амфибия ИЛИ прыжок×2). Доп. улучшение с 5 ур. (панцирь / кислотное жало / подводная адаптация / нюх).",
+      "subrace_required": false
+    },
+    {
+      "slug": "leonin",
+      "name_ru": "Леонин",
+      "name_en": "Leonin",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "mot",
+      "sort_order": 340,
+      "speed": 35,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Леонин (MOT): ASI гибкий. Скорость 35. Тёмное зрение 60. Когти (1к4 рубящий). Охотничий инстинкт (навык: Атлетика/Запугивание/Восприятие/Выживание). Рёв (60 фт: спас. МУД или испуганы, ПБ раз / длинный отдых).",
+      "subrace_required": false,
+      "skill_choices": {
+        "count": 1,
+        "from": [
+          "athletics",
+          "intimidation",
+          "perception",
+          "survival"
+        ]
+      }
+    },
+    {
+      "slug": "owlin",
+      "name_ru": "Соволин",
+      "name_en": "Owlin",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "scc",
+      "sort_order": 350,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 120,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Соволин (SCC): ASI гибкий. Размер Средний или Маленький. Тёмное зрение 120. Полёт = скорость ходьбы (не в среднем/тяжёлом доспехе). Тихие перья (Скрытность).",
+      "subrace_required": false,
+      "skill_proficiencies": [
+        "stealth"
+      ]
+    },
+    {
+      "slug": "grung",
+      "name_ru": "Грунг",
+      "name_en": "Grung",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "otoa",
+      "sort_order": 360,
+      "speed": 25,
+      "size": "small",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Грунг (One Grung Above): ASI гибкий. Маленький. Скорость 25 + лазание 25. Ядовитая кожа (контактный яд; оружие/безоружные могут нести яд). Прыгун. Водная зависимость. Иммунитет к яду; амфибия.",
+      "subrace_required": false
+    },
+    {
+      "slug": "locathah",
+      "name_ru": "Локата",
+      "name_en": "Locathah",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "lr",
+      "sort_order": 361,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Локата (Locathah Rising): ASI гибкий. Скорость 30 + плавание 30. Тёмное зрение 60. Природная броня (КД 12+ЛВК). Острое зрение/слух (Восприятие; преимущество по зрению/слуху). Ограниченная амфибия (вне воды со временем получаете отравление).",
+      "subrace_required": false,
+      "skill_proficiencies": [
+        "perception"
+      ]
+    },
+    {
+      "slug": "verdan",
+      "name_ru": "Вердан",
+      "name_en": "Verdan",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "ai",
+      "sort_order": 370,
+      "speed": 30,
+      "size": "small",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Вердан (Acquisitions Incorporated): ASI гибкий. Размер Маленький или Средний. Чёрная кровь (преимущество к спас. от болезней; сопротивление яду). Телепатия ограниченная (30 фт). Устойчивость разума (преимущество к спас. от очарования/испуганности).",
+      "subrace_required": false
+    },
+    {
+      "slug": "kender",
+      "name_ru": "Кендер",
+      "name_en": "Kender",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "dlag",
+      "sort_order": 380,
+      "speed": 30,
+      "size": "small",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "count": 3,
+        "amount": 1,
+        "from": "any"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Кендер (Dragonlance): ASI гибкий. Маленький. Бесстрашный (иммунитет к испуганности). Кендерская ловкость (реакция: 1к8+ПБ снижение урона, ПБ раз). Таена (бонус: малый полезный предмет «оказывается» у вас).",
+      "subrace_required": false
+    }
+  ]
+}

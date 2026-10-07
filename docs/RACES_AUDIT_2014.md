@@ -1,7 +1,8 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/mobile-sheet-compact-acbe` · http://201.34.132.252/ · alembic `b1c2d3e4f5a6`
+Прод tip: `cursor/mobile-sheet-compact-acbe` · http://201.34.132.252/ · alembic `b1c2d3e4f5a6`  
+Волна 3 (в работе): `cursor/race-setting-wave-f10e` · alembic `c2d3e4f5a6b1`
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
@@ -25,6 +26,20 @@
 | Ааракокра … юань-ти (24 корня без дженази) | ✅ | — (нет children) | ✅ | flexible ASI + Common+1 |
 | Дженази | ✅ parent + 4 | ✅ `subrace_required` | ✅ | воздух / земля / огонь / вода |
 
+## Волна 3 — setting books (корни combobox)
+
+Спека: `backend/data/races/setting_race_catalog_spec.json` (18 корней).  
+Срез с dnd.su минус уже залитые PHB/MPMM; без UA/Plane Shift/homebrew.
+
+| Блок | Расы | Prod verify |
+|------|------|-------------|
+| SAS/AAG | хадози, плазмоид, три-крин, автогном | ⏳ |
+| VRGtR | дампир, ведьмакровка, возрождённый | ⏳ |
+| ERLW | калаштар, кованый | ⏳ |
+| GGR | локсодон, ведалкен, гибрид Симик | ⏳ |
+| MOT/SCC | леонин, соволин | ⏳ |
+| Прочее | грунг, локата, вердан, кендер | ⏳ |
+
 ## Чеклист на расу
 
 1. Список разновидностей на ttg (или dnd.su как зеркало).
@@ -35,4 +50,5 @@
 
 ## Инфра-заметка
 
-Актуальный tip head: `b1c2d3e4f5a6` (MPMM wave) влит в `cursor/mobile-sheet-compact-acbe`.
+Актуальный tip head: `b1c2d3e4f5a6` влит в `cursor/mobile-sheet-compact-acbe`.  
+Волна setting (ещё не tip): `c2d3e4f5a6b1` на `cursor/race-setting-wave-f10e`.
