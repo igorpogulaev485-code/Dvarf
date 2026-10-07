@@ -1,9 +1,9 @@
 {
   "meta": {
-    "purpose": "PHB 2014 Rogue class + PHB subclass features for sheet unlock",
+    "purpose": "PHB/Tasha 2014 Rogue class + subclass features for sheet unlock",
     "edition": "2014",
-    "source": "phb",
-    "notes_ru": "Краткие summary для листа, не полный копирайт PHB."
+    "source": "phb+tasha",
+    "notes_ru": "Краткие summary для листа, не полный копирайт PHB/TCoE. Phantom: вопли↔частицы души."
   },
   "class_slug": "rogue",
   "features": [
@@ -293,7 +293,105 @@
         "name_en": "Spell Thief",
         "summary_ru": "Реакция на заклинание по тебе: спас Int цели; при успехе — заклинание не действует и ты можешь читать его 8 ч.",
         "kind": "reaction",
-        "resource": { "uses": 1, "recharge": "long_rest" }
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "spell_thief",
+          "pool_name_ru": "Похититель заклинаний",
+          "track": "spend"
+        }
+      }
+    ],
+    "phantom": [
+      {
+        "id": "whispers_of_the_dead",
+        "level": 3,
+        "name_ru": "Шёпот мёртвых",
+        "name_en": "Whispers of the Dead",
+        "summary_ru": "После короткого/продолжительного отдыха получи одно владение навыком или инструментом до следующего такого отдыха.",
+        "kind": "passive"
+      },
+      {
+        "id": "wails_from_the_grave",
+        "level": 3,
+        "name_ru": "Могильные вопли",
+        "name_en": "Wails from the Grave",
+        "summary_ru": "После Скрытой атаки: некротический урон второй цели в 30 фт. (половина костей СА, вверх). Использований = бонус мастерства / прод. отдых. С 9 ур. можно сжечь частицу души вместо использования.",
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Урон вопля",
+          "by_level": {
+            "3": "1к6",
+            "5": "2к6",
+            "7": "2к6",
+            "9": "3к6",
+            "11": "3к6",
+            "13": "4к6",
+            "15": "4к6",
+            "17": "5к6",
+            "19": "5к6"
+          }
+        },
+        "resource": {
+          "uses": 0,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "wails_from_the_grave",
+          "pool_name_ru": "Могильные вопли",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "soul_trinkets",
+            "label_ru": "сжечь частицу души"
+          }
+        }
+      },
+      {
+        "id": "tokens_of_the_departed",
+        "level": 9,
+        "name_ru": "Частица души усопшего",
+        "name_en": "Tokens of the Departed",
+        "summary_ru": "Реакция, когда существо умирает в 30 фт.: частица души (макс. = бонус мастерства). Пока есть частица — преимущество на спасброски от смерти и Телосложения. Можно сжечь частицу: бесплатный Могильный вопль после СА, или действием задать духу вопрос.",
+        "kind": "resource",
+        "resource": {
+          "uses": 0,
+          "uses_from": "proficiency_bonus",
+          "recharge": "manual",
+          "pool_id": "soul_trinkets",
+          "pool_name_ru": "Частицы души",
+          "track": "stock"
+        }
+      },
+      {
+        "id": "ghost_walk",
+        "level": 13,
+        "name_ru": "Призрачная походка",
+        "name_en": "Ghost Walk",
+        "summary_ru": "Бонусным действием: частичная бестелесность (10 фт. полёт, проход сквозь существ/предметы как труднопроходимая; в конце хода в занятой клетке — 1к10 силового). 1× / короткий или продолжительный отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "ghost_walk",
+          "pool_name_ru": "Призрачная походка",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "deaths_friend",
+        "level": 17,
+        "name_ru": "Друг смерти",
+        "name_en": "Death's Friend",
+        "summary_ru": "Могильные вопли бьют и первую, и вторую цель. Если после продолжительного отдыха у тебя 0 частиц души — появляется одна.",
+        "kind": "passive",
+        "resource": {
+          "uses": 0,
+          "uses_from": "proficiency_bonus",
+          "recharge": "manual",
+          "pool_id": "soul_trinkets",
+          "pool_name_ru": "Частицы души",
+          "track": "stock",
+          "grant_stock_on_long_rest_if_empty": true
+        }
       }
     ]
   }

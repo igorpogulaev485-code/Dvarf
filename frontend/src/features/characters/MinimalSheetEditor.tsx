@@ -83,6 +83,11 @@ import { LanguagesToolsPanel } from './LanguagesToolsPanel'
 import { LevelUpDialog, type LevelUpChoice } from './LevelUpDialog'
 import { PlayPanel } from './PlayPanel'
 import { SpellsPanel } from './SpellsPanel'
+import {
+  desiredResourcesFromFeatures,
+  syncFeatureResources,
+} from '../../shared/dnd/featureResources'
+import { unlockFeaturesForClasses } from '../../shared/dnd/classFeatures'
 import { ClassFeaturesPanel } from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
@@ -352,6 +357,23 @@ export function MinimalSheetEditor({
     }
     return map
   }, [draft.subclassGrants])
+  const unlockedFeatures = useMemo(
+    () =>
+      unlockFeaturesForClasses({
+        classes: draft.classes,
+        characterLevel,
+        subclassSlugByEntryId,
+      }),
+    [draft.classes, characterLevel, subclassSlugByEntryId],
+  )
+  const featureDesiredResources = useMemo(
+    () =>
+      desiredResourcesFromFeatures({
+        features: unlockedFeatures,
+        characterLevel,
+      }),
+    [unlockedFeatures, characterLevel],
+  )
   const primaryClass = draft.classes[0]
 
   useEffect(() => {
@@ -361,6 +383,36 @@ export function MinimalSheetEditor({
     setConflictOpen(false)
     setError(null)
   }, [character])
+
+  // Keep feat:* pools in play.resources aligned with unlocked features (PB, archetype).
+  useEffect(() => {
+    setDraft((prev) => {
+      const nextResources = syncFeatureResources(
+        prev.play.resources,
+        featureDesiredResources,
+      )
+      if (
+        nextResources.length === prev.play.resources.length &&
+        nextResources.every((row, index) => {
+          const cur = prev.play.resources[index]
+          return (
+            cur &&
+            cur.id === row.id &&
+            cur.name === row.name &&
+            cur.max === row.max &&
+            cur.used === row.used &&
+            cur.reset === row.reset
+          )
+        })
+      ) {
+        return prev
+      }
+      return {
+        ...prev,
+        play: { ...prev.play, resources: nextResources },
+      }
+    })
+  }, [featureDesiredResources])
 
   const onRemoteSaveRef = useRef(onRemoteSave)
   useEffect(() => {
@@ -1497,6 +1549,7 @@ export function MinimalSheetEditor({
         constitutionMod={abilityModifier(draft.abilities.con)}
         play={draft.play}
         spells={draft.spells}
+        featureDesiredResources={featureDesiredResources}
         onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onCombatChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
@@ -1526,7 +1579,16 @@ export function MinimalSheetEditor({
 
       <ClassFeaturesPanel
         classes={draft.classes}
+        characterLevel={characterLevel}
         subclassSlugByEntryId={subclassSlugByEntryId}
+        resources={draft.play.resources}
+        onResourcesChange={(resources) =>
+          setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, resources },
+          }))
+        }
+        onToast={onToast}
       />
 
       <SpellsPanel

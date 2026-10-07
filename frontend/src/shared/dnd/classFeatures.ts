@@ -11,9 +11,25 @@ export type FeatureScale = {
 }
 
 export type FeatureResource = {
+  /** Fallback / fixed max when uses_from is absent or 'fixed'. */
   uses: number
+  /** Resolve max from character proficiency bonus (Phantom Wails / soul trinkets). */
+  uses_from?: 'fixed' | 'proficiency_bonus'
   recharge: 'short_rest' | 'long_rest' | 'dawn' | 'manual'
   scale_uses?: Record<string, number>
+  /** Stable pool key for sheet.resources sync (`feat:{slug}:{pool_id}:{entry}`). */
+  pool_id?: string
+  /** Display name on the resource tracker (defaults to feature name). */
+  pool_name_ru?: string
+  /** spend = expended uses; stock = current holdings (soul trinkets). */
+  track?: 'spend' | 'stock'
+  /** If spend pool is empty, burn one linked stock to use anyway. */
+  linked_spend?: {
+    pool_id: string
+    label_ru: string
+  }
+  /** Death's Friend: after long rest, if stock empty → grant 1. */
+  grant_stock_on_long_rest_if_empty?: boolean
 }
 
 export type ClassFeatureDef = {
@@ -94,27 +110,7 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
               ),
             }
           : undefined,
-      resource:
-        resourceRaw && typeof resourceRaw.uses === 'number'
-          ? {
-              uses: resourceRaw.uses,
-              recharge:
-                resourceRaw.recharge === 'short_rest' ||
-                resourceRaw.recharge === 'long_rest' ||
-                resourceRaw.recharge === 'dawn' ||
-                resourceRaw.recharge === 'manual'
-                  ? resourceRaw.recharge
-                  : 'long_rest',
-              scale_uses:
-                resourceRaw.scale_uses && typeof resourceRaw.scale_uses === 'object'
-                  ? Object.fromEntries(
-                      Object.entries(
-                        resourceRaw.scale_uses as Record<string, unknown>,
-                      ).filter((e): e is [string, number] => typeof e[1] === 'number'),
-                    )
-                  : undefined,
-            }
-          : undefined,
+      resource: parseFeatureResource(resourceRaw)
     })
   }
   return out
@@ -146,11 +142,71 @@ function resolveScaleValue(scale: FeatureScale | undefined, classLevel: number):
   return best
 }
 
+function parseFeatureResource(resourceRaw: Record<string, unknown> | null): FeatureResource | undefined {
+  if (!resourceRaw) return undefined
+  const hasUses = typeof resourceRaw.uses === 'number'
+  const usesFrom =
+    resourceRaw.uses_from === 'proficiency_bonus'
+      ? 'proficiency_bonus'
+      : resourceRaw.uses_from === 'fixed'
+        ? 'fixed'
+        : undefined
+  if (!hasUses && usesFrom !== 'proficiency_bonus') return undefined
+
+  const linkedRaw =
+    resourceRaw.linked_spend && typeof resourceRaw.linked_spend === 'object'
+      ? (resourceRaw.linked_spend as Record<string, unknown>)
+      : null
+
+  return {
+    uses: hasUses ? (resourceRaw.uses as number) : 0,
+    uses_from: usesFrom,
+    recharge:
+      resourceRaw.recharge === 'short_rest' ||
+      resourceRaw.recharge === 'long_rest' ||
+      resourceRaw.recharge === 'dawn' ||
+      resourceRaw.recharge === 'manual'
+        ? resourceRaw.recharge
+        : 'long_rest',
+    scale_uses:
+      resourceRaw.scale_uses && typeof resourceRaw.scale_uses === 'object'
+        ? Object.fromEntries(
+            Object.entries(resourceRaw.scale_uses as Record<string, unknown>).filter(
+              (e): e is [string, number] => typeof e[1] === 'number',
+            ),
+          )
+        : undefined,
+    pool_id: typeof resourceRaw.pool_id === 'string' ? resourceRaw.pool_id : undefined,
+    pool_name_ru:
+      typeof resourceRaw.pool_name_ru === 'string' ? resourceRaw.pool_name_ru : undefined,
+    track: resourceRaw.track === 'stock' ? 'stock' : resourceRaw.track === 'spend' ? 'spend' : undefined,
+    linked_spend:
+      linkedRaw && typeof linkedRaw.pool_id === 'string'
+        ? {
+            pool_id: linkedRaw.pool_id,
+            label_ru:
+              typeof linkedRaw.label_ru === 'string'
+                ? linkedRaw.label_ru
+                : 'сжечь частицу души',
+          }
+        : undefined,
+    grant_stock_on_long_rest_if_empty: Boolean(
+      resourceRaw.grant_stock_on_long_rest_if_empty,
+    ),
+  }
+}
+
 function resolveResourceUses(
   resource: FeatureResource | undefined,
   classLevel: number,
+  proficiencyBonus?: number,
 ): number | null {
   if (!resource) return null
+  if (resource.uses_from === 'proficiency_bonus') {
+    return typeof proficiencyBonus === 'number'
+      ? Math.max(0, Math.floor(proficiencyBonus))
+      : null
+  }
   let uses = resource.uses
   if (resource.scale_uses) {
     for (const [lvlRaw, value] of Object.entries(resource.scale_uses)) {
@@ -160,6 +216,10 @@ function resolveResourceUses(
     }
   }
   return uses
+}
+
+export function proficiencyBonusForTotalLevel(totalLevel: number): number {
+  return 2 + Math.floor((Math.max(totalLevel, 1) - 1) / 4)
 }
 
 const CLASS_NAME_TO_SLUG: Record<string, string> = {
@@ -181,6 +241,8 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   arcane_trickster: 'arcane_trickster',
   'мистический ловкач': 'arcane_trickster',
   'arcane trickster': 'arcane_trickster',
+  phantom: 'phantom',
+  фантом: 'phantom',
 }
 
 export function resolveSubclassFeatureSlug(input: string): string | null {
@@ -188,18 +250,31 @@ export function resolveSubclassFeatureSlug(input: string): string | null {
   if (!key) return null
   if (SUBCLASS_NAME_TO_SLUG[key]) return SUBCLASS_NAME_TO_SLUG[key]
   // already a slug
-  if (key === 'thief' || key === 'assassin' || key === 'arcane_trickster') return key
+  if (
+    key === 'thief' ||
+    key === 'assassin' ||
+    key === 'arcane_trickster' ||
+    key === 'phantom'
+  ) {
+    return key
+  }
   return null
 }
 
 export function unlockFeaturesForClasses(input: {
   classes: ClassLevelEntry[]
+  /** Total character level — for proficiency-scaled resources. */
+  characterLevel?: number
   /** classEntryId → subclass slug from grant/catalog */
   subclassSlugByEntryId?: Record<string, string | null | undefined>
   classFeaturesByEntryId?: Record<string, ClassFeatureDef[]>
   subclassFeaturesByEntryId?: Record<string, ClassFeatureDef[]>
 }): UnlockedFeature[] {
   const unlocked: UnlockedFeature[] = []
+  const totalLevel =
+    input.characterLevel ??
+    input.classes.reduce((sum, row) => sum + Math.max(0, Math.floor(row.level)), 0)
+  const pb = proficiencyBonusForTotalLevel(totalLevel)
 
   for (const row of input.classes) {
     if (!row.name.trim() || row.level <= 0) continue
@@ -221,7 +296,7 @@ export function unlockFeaturesForClasses(input: {
         subclassSlug: null,
         subclassName: null,
         scaleValue: resolveScaleValue(feature.scale, classLevel),
-        resourceUses: resolveResourceUses(feature.resource, classLevel),
+        resourceUses: resolveResourceUses(feature.resource, classLevel, pb),
       })
     }
 
@@ -248,7 +323,7 @@ export function unlockFeaturesForClasses(input: {
         subclassSlug,
         subclassName: row.subclass_name.trim() || null,
         scaleValue: resolveScaleValue(feature.scale, classLevel),
-        resourceUses: resolveResourceUses(feature.resource, classLevel),
+        resourceUses: resolveResourceUses(feature.resource, classLevel, pb),
       })
     }
   }

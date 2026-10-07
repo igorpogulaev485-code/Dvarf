@@ -20,6 +20,11 @@ import {
   type ResourceReset,
 } from '../../shared/dnd/rest'
 import {
+  grantStockOnLongRestIfEmpty,
+  isFeatureManagedResourceId,
+  type DesiredFeatureResource,
+} from '../../shared/dnd/featureResources'
+import {
   listCatalogEntries,
   type CatalogEntry,
 } from '../../shared/api/catalog'
@@ -40,6 +45,8 @@ type PlayPanelProps = {
   constitutionMod: number
   play: PlayState
   spells: SpellsState
+  /** Feature pools (Wails, soul trinkets…) — synced from class features; not edited here. */
+  featureDesiredResources?: DesiredFeatureResource[]
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
@@ -89,6 +96,7 @@ export function PlayPanel({
   constitutionMod,
   play,
   spells,
+  featureDesiredResources = [],
   onPlayChange,
   onSpellsChange,
   onCombatChange,
@@ -96,6 +104,11 @@ export function PlayPanel({
 }: PlayPanelProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
   const hitDiceMax = Math.max(1, Math.floor(level))
+  const manualResources = useMemo(
+    () => play.resources.filter((row) => !isFeatureManagedResourceId(row.id)),
+    [play.resources],
+  )
+  const featureResourceCount = play.resources.length - manualResources.length
   const suggestedHeal = play.hitDie
     ? suggestedHitDieHeal(play.hitDie, constitutionMod)
     : null
@@ -198,9 +211,13 @@ export function PlayPanel({
       hit_dice_current: play.hitDiceCurrent,
       hit_dice_max: hitDiceMax,
     })
+    const resources = grantStockOnLongRestIfEmpty(
+      result.resources,
+      featureDesiredResources,
+    )
     onPlayChange({
       ...play,
-      resources: result.resources,
+      resources,
       exhaustion: result.exhaustion ?? play.exhaustion,
       hpTemp: result.hp_temp ?? 0,
       hitDiceCurrent: result.hit_dice_current ?? play.hitDiceCurrent,
@@ -417,12 +434,18 @@ export function PlayPanel({
               + ресурс
             </Button>
           </div>
-          {play.resources.length === 0 ? (
+          {featureResourceCount > 0 ? (
+            <Text tone="muted">
+              Классовые пулы ({featureResourceCount}): умения на листе (вопли, частицы души…). Сброс
+              на отдыхе учитывается и здесь.
+            </Text>
+          ) : null}
+          {manualResources.length === 0 ? (
             <Text tone="muted">
               Например: ярость, превосходство, ки — пипсы и сброс на отдыхе.
             </Text>
           ) : (
-            play.resources.map((resource) => (
+            manualResources.map((resource) => (
               <div key={resource.id} className="play-resource">
                 <div className="sheet-grid sheet-grid--2">
                   <Field label="Название">

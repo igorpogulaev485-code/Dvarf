@@ -864,6 +864,19 @@ input {
   padding: 0 12px 12px 58px;
 }
 
+.feature-resource {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.feature-resource__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .sheet-grid--3 {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
