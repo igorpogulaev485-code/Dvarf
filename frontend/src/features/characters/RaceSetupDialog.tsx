@@ -5,9 +5,11 @@ import {
   abilityKeysForBonusChoice,
   emptyRacePicks,
   RACE_SIZE_LABELS,
+  effectiveRaceSkillChoices,
   resolveAbilityBonusModes,
   resolveRaceGrantDef,
   resolveSelectedAbilityBonusMode,
+  resolveVariableTraitChoice,
   type AbilityBonusMode,
   type AbilityKey,
   type RaceGrantDef,
@@ -77,18 +79,11 @@ export function RaceSetupDialog({
     [def],
   )
   const langNeed = def?.languagesChoose ?? 0
-  const skillNeed = def?.skillChoices?.count ?? 0
   const toolNeed = def?.toolChoices?.count ?? 0
 
   const asiOptions = useMemo(() => {
     if (!def?.abilityBonusChoices) return []
     return abilityKeysForBonusChoice(def.abilityBonusChoices)
-  }, [def])
-
-  const skillOptions = useMemo(() => {
-    if (!def?.skillChoices) return []
-    if (def.skillChoices.from === 'any') return SKILL_DEFS.map((item) => item.key)
-    return def.skillChoices.from
   }, [def])
 
   const toolOptions = def?.toolChoices?.from ?? []
@@ -101,6 +96,7 @@ export function RaceSetupDialog({
   /** Per-bucket ability picks for the selected ASI mode (flattened on confirm). */
   const [asiBucketPicks, setAsiBucketPicks] = useState<AbilityKey[][]>([])
   const [sizePick, setSizePick] = useState<RaceSize | null>(null)
+  const [variableTraitId, setVariableTraitId] = useState<string | null>(null)
   const [languages, setLanguages] = useState<string[]>([])
   const [skills, setSkills] = useState<string[]>([])
   const [tools, setTools] = useState<string[]>([])
@@ -108,6 +104,31 @@ export function RaceSetupDialog({
 
   const sizeChoices = def?.sizeChoices ?? []
   const sizeNeed = sizeChoices.length > 1
+  const variableTraitChoices = def?.variableTraitChoices ?? []
+  const variableTraitNeed = variableTraitChoices.length > 0
+  const selectedVariableTrait = useMemo(
+    () =>
+      def
+        ? resolveVariableTraitChoice({
+            def,
+            picks: { variableTraitId },
+          })
+        : null,
+    [def, variableTraitId],
+  )
+  const skillChoice = useMemo(
+    () =>
+      def
+        ? effectiveRaceSkillChoices(def, { variableTraitId })
+        : null,
+    [def, variableTraitId],
+  )
+  const skillNeed = skillChoice?.count ?? 0
+  const skillOptions = useMemo(() => {
+    if (!skillChoice) return []
+    if (skillChoice.from === 'any') return SKILL_DEFS.map((item) => item.key)
+    return skillChoice.from
+  }, [skillChoice])
 
   const selectedAsiMode: AbilityBonusMode | null = useMemo(
     () =>
@@ -133,6 +154,7 @@ export function RaceSetupDialog({
     setAbilityBonusModeId(empty.abilityBonusModeId)
     setAsiBucketPicks([])
     setSizePick(empty.size)
+    setVariableTraitId(empty.variableTraitId)
     setLanguages(empty.languages)
     setSkills(empty.skills)
     setTools(empty.tools)
@@ -145,11 +167,17 @@ export function RaceSetupDialog({
     setAbilityBonusModeId(empty.abilityBonusModeId)
     setAsiBucketPicks([])
     setSizePick(empty.size)
+    setVariableTraitId(empty.variableTraitId)
     setLanguages(empty.languages)
     setSkills(empty.skills)
     setTools(empty.tools)
     setAncestryId(empty.ancestryId)
   }, [subraceKey])
+
+  useEffect(() => {
+    // Clear skills when variable trait no longer needs them.
+    if (skillNeed === 0 && skills.length > 0) setSkills([])
+  }, [skillNeed, skills.length])
 
   useEffect(() => {
     // Auto-select sole ASI mode (legacy count/amount); clear keys when mode changes.
@@ -230,6 +258,8 @@ export function RaceSetupDialog({
   const ancestryOk = !def || def.ancestryChoices.length === 0 || Boolean(ancestryId)
 
   const sizeOk = !sizeNeed || (sizePick != null && sizeChoices.includes(sizePick))
+  const variableTraitOk =
+    !variableTraitNeed || Boolean(selectedVariableTrait)
 
   const asiModeOk =
     asiModes.length === 0 ||
@@ -239,6 +269,7 @@ export function RaceSetupDialog({
     Boolean(root && def && effectiveEntry) &&
     subraceOk &&
     sizeOk &&
+    variableTraitOk &&
     asiModeOk &&
     languages.length === langNeed &&
     skills.length === skillNeed &&
@@ -273,6 +304,7 @@ export function RaceSetupDialog({
               selectedAsiMode?.id ?? abilityBonusModeId,
             abilityBonusKeys,
             size: sizeNeed ? sizePick : null,
+            variableTraitId: variableTraitNeed ? variableTraitId : null,
             languages,
             skills,
             tools,
@@ -373,6 +405,27 @@ export function RaceSetupDialog({
                     )
                   })}
                 </div>
+              </Field>
+            ) : null}
+
+            {variableTraitNeed ? (
+              <Field label="Переменная черта" hint="Выбери одно">
+                <Stack gap={8}>
+                  {variableTraitChoices.map((row) => {
+                    const on = variableTraitId === row.id
+                    return (
+                      <button
+                        key={row.id}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                        onClick={() => setVariableTraitId(row.id)}
+                      >
+                        {row.labelRu}
+                      </button>
+                    )
+                  })}
+                </Stack>
               </Field>
             ) : null}
 

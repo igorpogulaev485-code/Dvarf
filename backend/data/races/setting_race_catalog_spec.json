@@ -566,6 +566,50 @@
       "languages_choose": 1,
       "traits_text": "Кендер (Dragonlance): ASI гибкий. Маленький. Бесстрашный (иммунитет к испуганности). Кендерская ловкость (реакция: 1к8+ПБ снижение урона, ПБ раз). Таена (бонус: малый полезный предмет «оказывается» у вас).",
       "subrace_required": false
+    },
+    {
+      "slug": "custom_lineage",
+      "name_ru": "Свой род",
+      "name_en": "Custom Lineage",
+      "parent_slug": null,
+      "selectable": true,
+      "source": "tce",
+      "sort_order": 390,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "count": 1,
+        "amount": 2
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Свой род (TCE): гуманоид. Размер Средний или Маленький. Скорость 30. ASI +2 к одной характеристике. Черта на выбор. Переменная черта: тёмное зрение 60 ИЛИ владение одним навыком. Языки: Общий + ещё один.",
+      "subrace_required": false,
+      "size_choices": [
+        "medium",
+        "small"
+      ],
+      "feat_note_ru": "Черта: получи одну черту на выбор, для которой выполняешь требования (TCE).",
+      "variable_trait_choices": [
+        {
+          "id": "darkvision",
+          "label_ru": "Тёмное зрение 60 фт",
+          "darkvision": 60
+        },
+        {
+          "id": "skill",
+          "label_ru": "Владение одним навыком",
+          "skill_choices": {
+            "count": 1,
+            "from": "any"
+          }
+        }
+      ]
     }
   ]
 }

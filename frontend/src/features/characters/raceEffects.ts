@@ -7,6 +7,7 @@ import {
   formatRaceGrantSummary,
   mergeAbilityBonuses,
   readAppliedRaceGrant,
+  resolveRaceDarkvision,
   resolveRaceGrantDef,
   resolveRaceMovement,
   resolveRaceSize,
@@ -289,6 +290,7 @@ export function applyRaceGrantToDraft(input: {
   })
 
   const size = resolveRaceSize({ def, picks })
+  const darkvision = resolveRaceDarkvision({ def, picks })
   const movement = resolveRaceMovement({
     walk: def.speed,
     movement: def.movement,
@@ -300,7 +302,7 @@ export function applyRaceGrantToDraft(input: {
     parentSlug: def.parentSlug,
     speed: def.speed,
     size,
-    darkvision: def.darkvision,
+    darkvision,
     abilityBonuses: bonuses,
     languages: languagesApplied,
     skills: skillsApplied,
@@ -329,7 +331,7 @@ export function applyRaceGrantToDraft(input: {
     spells,
     identity: {
       ...cleared.identity,
-      darkvision: def.darkvision,
+      darkvision,
       size,
       languages,
       tools: uniqueStrings([...cleared.identity.tools, ...toolsApplied]),
