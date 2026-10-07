@@ -327,4 +327,4 @@
 | 2026-10-06 | `cursor/mobile-sheet-compact-acbe` · PR #32 | Залито на Timeweb; tip → эта ветка; мобильный UX + merge race-setup |
 | 2026-10-06 | `cursor/race-human-marks-f10e` · PR #36 | Человек: 5 меток ERLW; tip → эта ветка; alembic `e8f9` |
 | 2026-10-07 | `cursor/mobile-sheet-compact-acbe` · PR #32 | XP-пад, кости, ресурсы в текстах; merge human-marks; tip → эта ветка |
-| 2026-10-07 | `cursor/race-dragonborn-ftd-f10e` | FTD драконорождённый ×3; tip → эта ветка; alembic `f9a0` |
+| 2026-10-07 | `cursor/race-dragonborn-ftd-f10e` · PR #38 | FTD драконорождённый ×3; tip → эта ветка; alembic `f9a0` |
