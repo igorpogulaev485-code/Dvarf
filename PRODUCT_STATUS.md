@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/race-level-unlocks-f10e`  
+**Prod tip (ветка линии прода):** `cursor/mobile-sheet-compact-acbe`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -492,3 +492,4 @@
 | 2026-10-07 | `cursor/race-custom-lineage-f10e` · PR #48 | Свой род (TCE); tip → эта ветка; alembic `k0f1` |
 | 2026-10-07 | `cursor/race-mpmm-subrace-forks-f10e` · PR #49 | Аасимар/шифтер/гит/кобольд forks; tip → эта ветка; alembic `l1a2` |
 | 2026-10-07 | `cursor/race-level-unlocks-f10e` · PR #50 | Unlock по уровню + spell_list меток + детект кастера; tip → эта ветка; alembic `m2b3` |
+| 2026-10-07 | `cursor/mobile-sheet-compact-acbe` · PR #32 | HP bonus + sticky/пад; merge race-level-unlocks; tip → эта ветка; бандл `index-CLORzBbg.js` |
