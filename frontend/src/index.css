@@ -1000,6 +1000,12 @@ input {
   border-color: #fdba74;
 }
 
+.attack-source--race {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: #6ee7b7;
+}
+
 .combat-sticky {
   position: sticky;
   top: 0;

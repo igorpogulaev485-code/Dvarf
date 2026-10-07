@@ -134,7 +134,18 @@
       "skill_choices": {
         "count": 1,
         "from": "any"
-      }
+      },
+      "natural_weapons": [
+        {
+          "id": "bite",
+          "name_ru": "Укус вампира",
+          "damage": "1к4",
+          "damage_type": "колющий",
+          "ability": "str",
+          "proficient": true,
+          "notes_ru": "Безоружная атака; исцеление/бонус — по правилам VRGtR"
+        }
+      ]
     },
     {
       "slug": "hexblood",
@@ -352,7 +363,17 @@
           "perception",
           "survival"
         ]
-      }
+      },
+      "natural_weapons": [
+        {
+          "id": "claws",
+          "name_ru": "Когти",
+          "damage": "1к4",
+          "damage_type": "рубящий",
+          "ability": "str",
+          "proficient": true
+        }
+      ]
     },
     {
       "slug": "owlin",

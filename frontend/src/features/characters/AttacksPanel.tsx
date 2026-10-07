@@ -10,7 +10,7 @@ import {
   type AbilityKey,
 } from './sheetTypes'
 
-export type AttackSourceKind = 'weapon' | 'artifact' | 'custom'
+export type AttackSourceKind = 'weapon' | 'artifact' | 'custom' | 'race'
 
 export type WeaponAttack = {
   id: string
@@ -21,6 +21,15 @@ export type WeaponAttack = {
   is_proficient: boolean
   damage: string
   damage_type: string
+}
+
+/** Stable attack id for race natural weapons (revoke on race change). */
+export function raceNaturalWeaponAttackId(raceSlug: string, weaponId: string): string {
+  return `race-nw:${raceSlug}:${weaponId}`
+}
+
+export function isRaceNaturalWeaponAttack(attack: Pick<WeaponAttack, 'id' | 'source_kind'>): boolean {
+  return attack.source_kind === 'race' || attack.id.startsWith('race-nw:')
 }
 
 type AttacksPanelProps = {
@@ -61,6 +70,7 @@ function sourceFromCatalog(entry: CatalogEntry): AttackSourceKind {
 function sourceLabel(kind: AttackSourceKind): string {
   if (kind === 'weapon') return 'Оружие'
   if (kind === 'artifact') return 'Артефакт'
+  if (kind === 'race') return 'Раса'
   return 'Своё'
 }
 
