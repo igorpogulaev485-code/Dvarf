@@ -10,7 +10,7 @@
 | Полурослик | PHB + SCAG призрачный + ERLW исцеление/гостеприимство | ✅ 5 | ✅ | ✅ | EGW лотосденский — вне среза; `b5c6` |
 | Гном | PHB + глубинный + ERLW метка письма | ✅ 4 | ✅ | ✅ | `b5c6` |
 | Человек | PHB base + variant + 5 меток ERLW | ✅ 6 children | ✅ optional | ✅ | поиск/уход/создание/проход/страж; `e8f9` |
-| Драконорождённый | ancestry choice (PHB) | 0 subrace | ancestry в попапе | ✅ PHB | FTD/EGW варианты — вне среза |
+| Драконорождённый | PHB base + FTD цветной/драгоцветный/металлический (ttg) | ✅ 3 children | ✅ optional | ⏳ | `f9a0`; PHB ancestry 10 типов на корне; EGW — вне среза |
 | Полуэльф | PHB + SCAG наследия + ERLW метки | ✅ 6 children | ✅ optional | ✅ | optional forks; `c6d7` |
 | Полуорк | PHB + ERLW метка поиска | ✅ 1 child | ✅ optional | ✅ | `d7e8` |
 | Тифлинг | PHB base + MTF bloodlines + SCAG feral | ✅ 9 children | ✅ optional | ✅ | optional forks; `c6d7` |
@@ -25,4 +25,4 @@
 
 ## Инфра-заметка
 
-2026-10-06: tip сдвинут на `cursor/mobile-sheet-compact-acbe` (условия `c0nd1t10nru1` после `d7e8`). Дальнейшие race-миграции: `down_revision = c0nd1t10nru1` (или актуальный head tip).
+2026-10-07: tip снова `cursor/mobile-sheet-compact-acbe` (merge human marks `e8f9`). Новые миграции: `down_revision = e8f9a0b1c2d3` (или актуальный head tip).
