@@ -430,6 +430,16 @@
 
 ## В ветках / ещё не на проде
 
+### 2026-10-07 — FEATS XGE wave (Занатар)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Уникальные XGE | Dragon Fear/Hide, Fey Teleportation, Second Chance, Svirfneblin Magic | Драконорождённый/высший эльф/полурослик/свирфнеблин |
+| Репринты | 11 расовых черт XGE уже в волне TCE | Не дублируем slug |
+| Dragon Hide | Природный КД 13+Лов с черты | Работает в авто-КД без доспеха |
+
+На проде: **нет** · ветка `cursor/feats-xge-wave-ef23` · tip не менять до «залей»
+
 ### 2026-10-07 — FEATS TCE wave (Котёл Таши)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -535,3 +545,4 @@
 | 2026-10-07 | `cursor/class-asi-hitdice-mc-ef23` · PR #53 | ASI popup, hit dice by class, MC polish; gear catalog RU+dedupe (не wipe); tip → эта ветка; alembic `s8b9` |
 | 2026-10-07 | `cursor/feats-phb-wave1-ef23` · PR #54 | PHB feats catalog + ASI/Custom Lineage feat picks; alembic `w2x3`; на проде нет |
 | 2026-10-07 | `cursor/feats-tce-wave-ef23` · PR #55 | TCE feats catalog (26) + race prereqs; alembic `x3y4`; на проде нет |
+| 2026-10-07 | `cursor/feats-xge-wave-ef23` | XGE unique feats (5) + Dragon Hide AC; alembic `y4z5`; на проде нет |

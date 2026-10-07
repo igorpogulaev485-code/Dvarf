@@ -99,6 +99,7 @@ import {
 } from '../../shared/dnd/classAsi'
 import {
   fightingStyleFromFeatGrants,
+  naturalArmorFromFeatGrants,
   newFeatGrantId,
   readFeatGrantLedger,
   sumFeatHpPerLevel,
@@ -1462,6 +1463,10 @@ export function MinimalSheetEditor({
             nameRu: entry.name_ru,
           })?.naturalArmor ?? null
       }
+    }
+    const featNatural = naturalArmorFromFeatGrants(draft.featGrants)
+    if (featNatural && (!naturalArmor || featNatural.base > naturalArmor.base)) {
+      naturalArmor = featNatural
     }
     const unarmoredDefense = (() => {
       if (pieces.armor) return null
