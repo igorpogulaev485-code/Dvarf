@@ -17,6 +17,8 @@ import {
   RANGER_FAVORED_TERRAINS,
 } from './rangerChoices'
 import rangerPack from './data/ranger_2014.json'
+import sorcererPack from './data/sorcerer_2014.json'
+import { SORCERER_METAMAGIC } from './sorcererMetamagic'
 
 export type AbilityScoreKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
@@ -93,7 +95,10 @@ export type FeatureChoiceDef = {
     | 'ranger_fighting_styles'
     | 'ranger_favored_enemies'
     | 'ranger_favored_terrains'
+    | 'sorcerer_metamagic'
   options?: string[]
+  /** Multi-select cap by class level (Metamagic 2/3/4). */
+  max_picks_by_level?: Record<string, number>
 }
 
 export type FeatureSlotSpendDef = {
@@ -159,6 +164,7 @@ const LOCAL_PACKS: Record<string, FeaturePack> = {
   paladin: paladinPack as FeaturePack,
   ranger: rangerPack as FeaturePack,
   rogue: roguePack as FeaturePack,
+  sorcerer: sorcererPack as FeaturePack,
 }
 
 function asFeatureList(raw: unknown): ClassFeatureDef[] {
@@ -204,17 +210,29 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         choiceRaw.options_from === 'fighter_fighting_styles' ||
         choiceRaw.options_from === 'ranger_fighting_styles' ||
         choiceRaw.options_from === 'ranger_favored_enemies' ||
-        choiceRaw.options_from === 'ranger_favored_terrains'
+        choiceRaw.options_from === 'ranger_favored_terrains' ||
+        choiceRaw.options_from === 'sorcerer_metamagic'
           ? choiceRaw.options_from
           : undefined
       const options = Array.isArray(choiceRaw.options)
         ? choiceRaw.options.filter((item): item is string => typeof item === 'string')
         : undefined
+      const maxPicksRaw =
+        choiceRaw.max_picks_by_level && typeof choiceRaw.max_picks_by_level === 'object'
+          ? (choiceRaw.max_picks_by_level as Record<string, unknown>)
+          : null
       choice = {
         id: choiceRaw.id,
         label_ru: choiceRaw.label_ru,
         options_from: optionsFrom,
         options,
+        max_picks_by_level: maxPicksRaw
+          ? Object.fromEntries(
+              Object.entries(maxPicksRaw).filter(
+                (e): e is [string, number] => typeof e[1] === 'number',
+              ),
+            )
+          : undefined,
       }
     }
 
@@ -307,7 +325,24 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
   if (choice.options_from === 'ranger_favored_terrains') {
     return RANGER_FAVORED_TERRAINS.map((row) => row.id)
   }
+  if (choice.options_from === 'sorcerer_metamagic') {
+    return SORCERER_METAMAGIC.map((row) => row.id)
+  }
   return choice.options ? [...choice.options] : []
+}
+
+export function resolveChoiceMaxPicks(
+  choice: FeatureChoiceDef,
+  classLevel: number,
+): number {
+  if (!choice.max_picks_by_level) return 1
+  let best = 1
+  for (const [lvlRaw, value] of Object.entries(choice.max_picks_by_level)) {
+    const lvl = Number(lvlRaw)
+    if (!Number.isFinite(lvl) || lvl > classLevel) continue
+    if (value > best) best = value
+  }
+  return Math.max(1, best)
 }
 
 export function slotSpendHasDice(def: FeatureSlotSpendDef): boolean {
@@ -530,6 +565,8 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   паладин: 'paladin',
   ranger: 'ranger',
   следопыт: 'ranger',
+  sorcerer: 'sorcerer',
+  чародей: 'sorcerer',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {
@@ -642,6 +679,23 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   'хранитель роя': 'swarmkeeper',
   drakewarden: 'drakewarden',
   'хранитель дрейка': 'drakewarden',
+  draconic_bloodline: 'draconic_bloodline',
+  'драконья кровь': 'draconic_bloodline',
+  'драконья родословная': 'draconic_bloodline',
+  wild_magic: 'wild_magic',
+  'дикая магия': 'wild_magic',
+  storm_sorcery: 'storm_sorcery',
+  'магия бури': 'storm_sorcery',
+  divine_soul: 'divine_soul',
+  'божественная душа': 'divine_soul',
+  shadow_magic: 'shadow_magic',
+  'магия тени': 'shadow_magic',
+  aberrant_mind: 'aberrant_mind',
+  'аберрантный разум': 'aberrant_mind',
+  clockwork_soul: 'clockwork_soul',
+  'душа часового механизма': 'clockwork_soul',
+  lunar_sorcery: 'lunar_sorcery',
+  'лунная магия': 'lunar_sorcery',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -687,6 +741,14 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'fey_wanderer',
   'swarmkeeper',
   'drakewarden',
+  'draconic_bloodline',
+  'wild_magic',
+  'storm_sorcery',
+  'divine_soul',
+  'shadow_magic',
+  'aberrant_mind',
+  'clockwork_soul',
+  'lunar_sorcery',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {

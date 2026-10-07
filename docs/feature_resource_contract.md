@@ -99,6 +99,7 @@
 | Cleric / **14** оф. доменов | 2, 4b, 5, 12, 13 (CD shared; Wis-mod; DI success lock; PHB+DMG+SCAG+XGtE+TCoE) |
 | Paladin / **9** оф. клятв | 2, 4b, 4c, 5, 11, 12, 14, 15 (LoH; Sense; CD; Fighting Style; Smite slots; Aura saves) |
 | Ranger / **8** оф. архетипов | 2, 3, 4b, 11, 14 (Favored Enemy/Terrain; Fighting Style; Primeval Awareness slot) |
+| Sorcerer / **8** оф. происхождений | 2, 5, 11 (Sorcery Points = ур.; Metamagic multi-pick 2/3/4) |
 
 ## H4 — порядок пакетов классов
 
@@ -110,7 +111,8 @@
 4. ~~Жрец~~ (умения + 14 доменов + always-prepared/grants + CD shared + DI lock)
 5. ~~Паладин~~ (класс: LoH/CD/Sense + Fighting Style + Smite + Aura saves; клятвы в пакете, полировка архетипов — общим проходом)
 6. ~~Следопыт~~ (класс + каркас 8 архетипов; полировка архетипов — общим проходом)
-7. **Чародей** ← следующий / Колдун, Бард, Друид, Волшебник, Изобретатель
+7. ~~Чародей~~ (очки + метамагия + каркас 8 происхождений)
+8. **Колдун** ← следующий / Бард, Друид, Волшебник, Изобретатель
 
 ## Не в v1
 

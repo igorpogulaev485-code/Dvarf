@@ -43,6 +43,19 @@ export function getFeaturePick(
   return value && value.trim() ? value : null
 }
 
+export function getFeaturePickList(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  featureId: string,
+): string[] {
+  const raw = getFeaturePick(picks, classEntryId, featureId)
+  if (!raw) return []
+  return raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
 export function setFeaturePick(
   picks: FeaturePicksState,
   classEntryId: string,
@@ -54,6 +67,31 @@ export function setFeaturePick(
   if (!value || !value.trim()) delete next[key]
   else next[key] = value.trim()
   return { values: next }
+}
+
+export function toggleFeaturePickInList(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  featureId: string,
+  optionId: string,
+  maxPicks: number,
+): FeaturePicksState {
+  const current = getFeaturePickList(picks, classEntryId, featureId)
+  const exists = current.includes(optionId)
+  let nextList: string[]
+  if (exists) {
+    nextList = current.filter((item) => item !== optionId)
+  } else if (current.length >= maxPicks) {
+    nextList = [...current.slice(1), optionId]
+  } else {
+    nextList = [...current, optionId]
+  }
+  return setFeaturePick(
+    picks,
+    classEntryId,
+    featureId,
+    nextList.length ? nextList.join(',') : null,
+  )
 }
 
 /** First fighting-style pick across class entries (Defense AC, etc.). */

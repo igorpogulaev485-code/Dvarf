@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   kindLabelRu,
+  resolveChoiceMaxPicks,
   resolveClassFeatureSlug,
   resolveFeatureChoiceOptions,
   slotSpendDiceCount,
@@ -11,6 +12,7 @@ import {
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
 import { rangerChoiceLabel } from '../../shared/dnd/rangerChoices'
+import { metamagicById, metamagicLabel } from '../../shared/dnd/sorcererMetamagic'
 import {
   clearSuccessLock,
   consumeStock,
@@ -24,7 +26,9 @@ import {
 } from '../../shared/dnd/featureResources'
 import {
   getFeaturePick,
+  getFeaturePickList,
   setFeaturePick,
+  toggleFeaturePickInList,
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
@@ -294,6 +298,7 @@ function choiceOptionLabel(optionId: string): string {
   return (
     fightingStyleById(optionId)?.nameRu ||
     rangerChoiceLabel(optionId) ||
+    metamagicLabel(optionId) ||
     optionId
   )
 }
@@ -312,15 +317,28 @@ function FeatureChoiceControls({
   const choice = feature.choice
   if (!choice) return null
   const options = resolveFeatureChoiceOptions(choice)
-  const selected = getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+  const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
+  const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level)
+  const selectedList = multi
+    ? getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
+    : []
+  const selected = multi
+    ? null
+    : getFeaturePick(featurePicks, feature.classEntryId, feature.id)
   const selectedDef = fightingStyleById(selected)
-  const selectedLabel = selected ? choiceOptionLabel(selected) : null
-  const useSelect = options.length > 6
+  const selectedMeta = selectedList.map((id) => metamagicById(id)).filter(Boolean)
+  const selectedLabel = multi
+    ? selectedList.map(choiceOptionLabel).join(', ')
+    : selected
+      ? choiceOptionLabel(selected)
+      : null
+  const useSelect = !multi && options.length > 6
 
   return (
     <div className="feature-resource">
       <Text>
         {choice.label_ru}
+        {multi ? ` (${selectedList.length}/${maxPicks})` : ''}
         {selectedLabel ? (
           <>
             : <strong>{selectedLabel}</strong>
@@ -330,6 +348,13 @@ function FeatureChoiceControls({
         )}
       </Text>
       {selectedDef ? <Text tone="muted">{selectedDef.summaryRu}</Text> : null}
+      {selectedMeta.map((row) =>
+        row ? (
+          <Text key={row.id} tone="muted">
+            {row.nameRu} ({row.costRu} очк.): {row.summaryRu}
+          </Text>
+        ) : null,
+      )}
       {useSelect ? (
         <label className="feature-resource__select">
           <span className="sr-only">{choice.label_ru}</span>
@@ -355,20 +380,36 @@ function FeatureChoiceControls({
         <div className="feature-resource__actions">
           {options.map((optionId) => {
             const label = choiceOptionLabel(optionId)
-            const active = selected === optionId
+            const active = multi
+              ? selectedList.includes(optionId)
+              : selected === optionId
             return (
               <Button
                 key={optionId}
                 type="button"
-                disabled={active}
+                disabled={!multi && active}
                 onClick={() => {
+                  if (multi) {
+                    const next = toggleFeaturePickInList(
+                      featurePicks,
+                      feature.classEntryId,
+                      feature.id,
+                      optionId,
+                      maxPicks,
+                    )
+                    onFeaturePicksChange(next)
+                    onToast?.(
+                      `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+                    )
+                    return
+                  }
                   onFeaturePicksChange(
                     setFeaturePick(featurePicks, feature.classEntryId, feature.id, optionId),
                   )
                   onToast?.(`${choice.label_ru}: ${label}`)
                 }}
               >
-                {label}
+                {active && multi ? `✓ ${label}` : label}
               </Button>
             )
           })}
@@ -476,10 +517,23 @@ function FeatureRow({
       )
     : null
 
+  const choiceMulti =
+    feature.choice &&
+    (Boolean(feature.choice.max_picks_by_level) ||
+      resolveChoiceMaxPicks(feature.choice, feature.classLevel) > 1)
   const choicePick = feature.choice
-    ? getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+    ? choiceMulti
+      ? getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
+          .map(choiceOptionLabel)
+          .join(', ')
+      : getFeaturePick(featurePicks, feature.classEntryId, feature.id)
     : null
-  const choiceLabel = choicePick ? choiceOptionLabel(choicePick) : null
+  const choiceLabel =
+    typeof choicePick === 'string' && choicePick
+      ? choiceMulti
+        ? choicePick
+        : choiceOptionLabel(choicePick)
+      : null
 
   let metaExtra = ''
   if (choiceLabel) {
@@ -627,8 +681,7 @@ export function ClassFeaturesPanel({
 
         {byClass.length === 0 ? (
           <Text tone="muted">
-            Пока заполнены: Плут, Воин, Варвар, Монах, Жрец, Паладин, Следопыт
-            (H4 в docs/feature_resource_contract.md).
+            Пока заполнены: … Следопыт, Чародей (H4 в docs/feature_resource_contract.md).
           </Text>
         ) : null}
 
