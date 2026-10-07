@@ -25,16 +25,66 @@
             "label_ru": "Инструмент ремесленника"
           },
           {
-            "id": "spells_note",
-            "type": "note",
-            "label_ru": "Заговор и заклинание 1 круга",
-            "text_ru": "Запиши заговор и заклинание 1 круга изобретателя (ИНТ). Автоподбор — позже."
+            "id": "cantrip",
+            "type": "spell_one",
+            "label_ru": "Заговор изобретателя",
+            "level": 0,
+            "grant": "innate",
+            "casting_ability": "int",
+            "notes_ru": "ИНТ",
+            "options": [
+              { "id": "acid_splash", "label_ru": "Брызги кислоты" },
+              { "id": "booming_blade", "label_ru": "Громовой клинок" },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд" },
+              { "id": "guidance", "label_ru": "Наставление" },
+              { "id": "light", "label_ru": "Свет" },
+              { "id": "mage_hand", "label_ru": "Волшебная рука" },
+              { "id": "mending", "label_ru": "Починка" },
+              { "id": "message", "label_ru": "Сообщение" },
+              { "id": "poison_spray", "label_ru": "Ядовитые брызги" },
+              { "id": "prestidigitation", "label_ru": "Фокусы" },
+              { "id": "ray_of_frost", "label_ru": "Луч холода" },
+              { "id": "resistance", "label_ru": "Сопротивление" },
+              { "id": "shocking_grasp", "label_ru": "Шокирующее касание" },
+              { "id": "spare_the_dying", "label_ru": "Уход за умирающим" },
+              { "id": "thorn_whip", "label_ru": "Терновый кнут" }
+            ]
+          },
+          {
+            "id": "l1_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 1 круга изобретателя",
+            "level": 1,
+            "grant": "innate",
+            "casting_ability": "int",
+            "notes_ru": "1/длинный отдых без ячейки (ИНТ)",
+            "options": [
+              { "id": "absorb_elements", "label_ru": "Поглощение стихий" },
+              { "id": "alarm", "label_ru": "Тревога" },
+              { "id": "catapult", "label_ru": "Катапульта" },
+              { "id": "cure_wounds", "label_ru": "Лечение ран" },
+              { "id": "detect_magic", "label_ru": "Обнаружение магии" },
+              { "id": "disguise_self", "label_ru": "Маскировка" },
+              { "id": "expeditious_retreat", "label_ru": "Ускоренное отступление" },
+              { "id": "faerie_fire", "label_ru": "Огонь фей" },
+              { "id": "false_life", "label_ru": "Псевдожизнь" },
+              { "id": "feather_fall", "label_ru": "Падение пёрышком" },
+              { "id": "grease", "label_ru": "Смазка" },
+              { "id": "identify", "label_ru": "Опознание" },
+              { "id": "jump", "label_ru": "Прыжок" },
+              { "id": "longstrider", "label_ru": "Длинный шаг" },
+              { "id": "purify_food_and_drink", "label_ru": "Очищение пищи и питья" },
+              { "id": "sanctuary", "label_ru": "Святилище" },
+              { "id": "snare", "label_ru": "Силок" },
+              { "id": "tashas_caustic_brew", "label_ru": "Едкое варево Таши" }
+            ]
           }
         ],
         "grants": {
           "flags": [
             "artificer_initiate"
-          ]
+          ],
+          "spells": []
         }
       }
     },
@@ -1060,6 +1110,7 @@
             "label_ru": "Заговор друида",
             "level": 0,
             "grant": "innate",
+            "casting_ability": "wis",
             "notes_ru": "заговор друида (Муд)",
             "options": [
               { "id": "druidcraft", "label_ru": "Друидизм" },

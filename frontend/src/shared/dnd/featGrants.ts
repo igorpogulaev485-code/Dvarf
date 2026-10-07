@@ -55,7 +55,21 @@ export type FeatChoiceDef =
       level: number
       grant: FeatSpellGrant
       notesRu: string | null
-      options: Array<{ id: string; label_ru: string; level?: number }>
+      /**
+       * When set, only options whose `lists` include picks.enumIds[filterEnum]
+       * are valid (Magic Initiate / Strixhaven college lists).
+       */
+      filterEnum: string | null
+      /** Picks in the same uniqueGroup must be distinct spell ids. */
+      uniqueGroup: string | null
+      /** Fixed casting ability for this pick (e.g. artificer INT). */
+      castingAbility: AbilityKey | null
+      options: Array<{
+        id: string
+        label_ru: string
+        level?: number
+        lists?: string[]
+      }>
     }
 
 export type FeatResourceGrant = {
@@ -362,13 +376,31 @@ function parseChoices(raw: unknown): FeatChoiceDef[] {
                 typeof optLevelRaw === 'number' && Number.isFinite(optLevelRaw)
                   ? Math.max(0, Math.min(9, Math.floor(optLevelRaw)))
                   : undefined
-              return { id: optId, label_ru: optLabel, ...(level != null ? { level } : {}) }
+              const lists = parseStringList(o.lists ?? o.list)
+              return {
+                id: optId,
+                label_ru: optLabel,
+                ...(level != null ? { level } : {}),
+                ...(lists.length ? { lists } : {}),
+              }
             })
             .filter(
-              (opt): opt is { id: string; label_ru: string; level?: number } => opt != null,
+              (
+                opt,
+              ): opt is {
+                id: string
+                label_ru: string
+                level?: number
+                lists?: string[]
+              } => opt != null,
             )
         : []
       const grantRaw = row.grant ?? row.grant_mode ?? row.grantMode
+      const abilityRaw = row.casting_ability ?? row.castingAbility
+      const castingAbility =
+        typeof abilityRaw === 'string' && ABILITY_KEYS.includes(abilityRaw as AbilityKey)
+          ? (abilityRaw as AbilityKey)
+          : null
       out.push({
         id,
         type: 'spell_one',
@@ -376,11 +408,30 @@ function parseChoices(raw: unknown): FeatChoiceDef[] {
         level: Math.max(0, Math.min(9, Math.floor(readNumber(row.level, 1)))),
         grant: grantRaw === 'spell_list' ? 'spell_list' : 'innate',
         notesRu: readString(row.notes_ru) ?? readString(row.notesRu),
+        filterEnum:
+          readString(row.filter_enum) ?? readString(row.filterEnum) ?? null,
+        uniqueGroup:
+          readString(row.unique_group) ?? readString(row.uniqueGroup) ?? null,
+        castingAbility,
         options,
       })
     }
   }
   return out
+}
+
+/** Options visible for a spell_one choice given current enum picks. */
+export function spellOneOptionsForPicks(
+  choice: Extract<FeatChoiceDef, { type: 'spell_one' }>,
+  enumIds: Partial<Record<string, string>>,
+): Array<{ id: string; label_ru: string; level?: number; lists?: string[] }> {
+  if (!choice.filterEnum) return choice.options
+  const selected = enumIds[choice.filterEnum]?.trim().toLowerCase()
+  if (!selected) return []
+  return choice.options.filter((opt) => {
+    if (!opt.lists?.length) return true
+    return opt.lists.some((list) => list.toLowerCase() === selected)
+  })
 }
 
 function emptyPackage(partial?: Partial<FeatGrantsPackage>): FeatGrantsPackage {
@@ -827,9 +878,23 @@ export function validateFeatGrantPicks(input: {
       }
       continue
     }
-    if (choice.type === 'enum' || choice.type === 'spell_one') {
+    if (choice.type === 'enum') {
       const id = picks.enumIds[choice.id]
       if (!id || !choice.options.some((opt) => opt.id === id)) {
+        return `Выбери: ${choice.label_ru}`
+      }
+      continue
+    }
+    if (choice.type === 'spell_one') {
+      const id = picks.enumIds[choice.id]
+      const allowed = spellOneOptionsForPicks(choice, picks.enumIds)
+      if (!id || !allowed.some((opt) => opt.id === id)) {
+        if (choice.filterEnum && !picks.enumIds[choice.filterEnum]) {
+          return `Сначала выбери: ${
+            def.choices.find((row) => row.id === choice.filterEnum)?.label_ru ??
+            'список'
+          }`
+        }
         return `Выбери: ${choice.label_ru}`
       }
       continue
@@ -850,6 +915,21 @@ export function validateFeatGrantPicks(input: {
       if (picks.weapons.length !== choice.count) {
         return `Выбери ${choice.count} вида оружия`
       }
+    }
+  }
+
+  const uniqueGroups = new Map<string, string[]>()
+  for (const choice of def.choices) {
+    if (choice.type !== 'spell_one' || !choice.uniqueGroup) continue
+    const id = picks.enumIds[choice.id]
+    if (!id) continue
+    const list = uniqueGroups.get(choice.uniqueGroup) ?? []
+    list.push(id)
+    uniqueGroups.set(choice.uniqueGroup, list)
+  }
+  for (const [group, ids] of uniqueGroups) {
+    if (new Set(ids).size !== ids.length) {
+      return `Заговоры/заклинания в группе «${group}» должны быть разными`
     }
   }
   return null
@@ -917,15 +997,17 @@ export function buildAppliedFeatPackage(input: {
     if (choice.type === 'spell_one') {
       const id = picks.enumIds[choice.id]
       if (!id) continue
-      const opt = choice.options.find((row) => row.id === id)
+      const opt = spellOneOptionsForPicks(choice, picks.enumIds).find(
+        (row) => row.id === id,
+      )
       if (!opt) continue
       enumPicks[choice.id] = id
       pickedSpells.push({
-        id: opt.id,
+        id: `${choice.id}:${opt.id}`,
         spellSlug: opt.id,
         nameRu: opt.label_ru,
         level: opt.level ?? choice.level,
-        castingAbility: null,
+        castingAbility: choice.castingAbility,
         notesRu: choice.notesRu,
         unlockLevel: 1,
         grant: choice.grant,
@@ -937,6 +1019,30 @@ export function buildAppliedFeatPackage(input: {
     const key = picks.abilityKeys.ability
     if (key && !savingThrows.includes(key)) savingThrows.push(key)
   }
+
+  const castingFromList: Partial<Record<string, AbilityKey>> = {
+    bard: 'cha',
+    cleric: 'wis',
+    druid: 'wis',
+    warlock: 'cha',
+    wizard: 'int',
+    sorcerer: 'cha',
+    artificer: 'int',
+  }
+  const listKey = enumPicks.list ?? picks.enumIds.list
+  const castEnum = enumPicks.cast ?? picks.enumIds.cast
+  const castingAbility: AbilityKey | null =
+    castEnum && ABILITY_KEYS.includes(castEnum as AbilityKey)
+      ? (castEnum as AbilityKey)
+      : listKey
+        ? (castingFromList[listKey] ?? null)
+        : null
+
+  const allSpells = [...def.fixedGrants.spells, ...pickedSpells].map((spell) =>
+    spell.castingAbility || !castingAbility
+      ? spell
+      : { ...spell, castingAbility },
+  )
 
   return emptyPackage({
     ...def.fixedGrants,
@@ -950,7 +1056,7 @@ export function buildAppliedFeatPackage(input: {
     tools: uniqueStrings([...def.fixedGrants.tools, ...picks.tools]),
     languages: uniqueStrings([...def.fixedGrants.languages, ...picks.languages]),
     weaponNames: uniqueStrings([...def.fixedGrants.weaponNames, ...picks.weapons]),
-    spells: [...def.fixedGrants.spells, ...pickedSpells],
+    spells: allSpells,
     enumPicks,
   })
 }

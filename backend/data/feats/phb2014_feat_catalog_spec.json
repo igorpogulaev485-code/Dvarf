@@ -570,33 +570,106 @@
             "type": "enum",
             "label_ru": "Список заклинаний",
             "options": [
-              {
-                "id": "bard",
-                "label_ru": "Бард (Хар)"
-              },
-              {
-                "id": "cleric",
-                "label_ru": "Жрец (Муд)"
-              },
-              {
-                "id": "druid",
-                "label_ru": "Друид (Муд)"
-              },
-              {
-                "id": "warlock",
-                "label_ru": "Колдун (Хар)"
-              },
-              {
-                "id": "wizard",
-                "label_ru": "Волшебник (Инт)"
-              }
+              { "id": "bard", "label_ru": "Бард (Хар)" },
+              { "id": "cleric", "label_ru": "Жрец (Муд)" },
+              { "id": "druid", "label_ru": "Друид (Муд)" },
+              { "id": "warlock", "label_ru": "Колдун (Хар)" },
+              { "id": "wizard", "label_ru": "Волшебник (Инт)" }
             ]
           },
           {
-            "id": "spells_note",
-            "type": "note",
-            "label_ru": "Заговоры и заклинание 1 круга",
-            "text_ru": "Запиши выбранные заговоры (2) и заклинание 1 круга в блок заклинаний / заметок. Автоподбор из каталога — в следующем слайсе."
+            "id": "cantrip1",
+            "type": "spell_one",
+            "label_ru": "Заговор 1",
+            "level": 0,
+            "grant": "innate",
+            "filter_enum": "list",
+            "unique_group": "cantrips",
+            "options": [
+              { "id": "vicious_mockery", "label_ru": "Злая насмешка", "lists": ["bard"] },
+              { "id": "minor_illusion", "label_ru": "Малая иллюзия", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "prestidigitation", "label_ru": "Фокусы", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "mage_hand", "label_ru": "Волшебная рука", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "friends", "label_ru": "Дружба", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "sacred_flame", "label_ru": "Священное пламя", "lists": ["cleric"] },
+              { "id": "thaumaturgy", "label_ru": "Чудотворство", "lists": ["cleric"] },
+              { "id": "guidance", "label_ru": "Наставление", "lists": ["cleric", "druid"] },
+              { "id": "light", "label_ru": "Свет", "lists": ["bard", "cleric", "wizard"] },
+              { "id": "spare_the_dying", "label_ru": "Уход за умирающим", "lists": ["cleric"] },
+              { "id": "druidcraft", "label_ru": "Друидизм", "lists": ["druid"] },
+              { "id": "shillelagh", "label_ru": "Дубинка", "lists": ["druid"] },
+              { "id": "produce_flame", "label_ru": "Сотворение пламени", "lists": ["druid"] },
+              { "id": "thorn_whip", "label_ru": "Терновый кнут", "lists": ["druid"] },
+              { "id": "eldritch_blast", "label_ru": "Мистический заряд", "lists": ["warlock"] },
+              { "id": "chill_touch", "label_ru": "Леденящее прикосновение", "lists": ["warlock", "wizard"] },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд", "lists": ["wizard"] },
+              { "id": "ray_of_frost", "label_ru": "Луч холода", "lists": ["wizard"] },
+              { "id": "shocking_grasp", "label_ru": "Шокирующее касание", "lists": ["wizard"] },
+              { "id": "acid_splash", "label_ru": "Брызги кислоты", "lists": ["wizard"] }
+            ]
+          },
+          {
+            "id": "cantrip2",
+            "type": "spell_one",
+            "label_ru": "Заговор 2",
+            "level": 0,
+            "grant": "innate",
+            "filter_enum": "list",
+            "unique_group": "cantrips",
+            "options": [
+              { "id": "vicious_mockery", "label_ru": "Злая насмешка", "lists": ["bard"] },
+              { "id": "minor_illusion", "label_ru": "Малая иллюзия", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "prestidigitation", "label_ru": "Фокусы", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "mage_hand", "label_ru": "Волшебная рука", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "friends", "label_ru": "Дружба", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "sacred_flame", "label_ru": "Священное пламя", "lists": ["cleric"] },
+              { "id": "thaumaturgy", "label_ru": "Чудотворство", "lists": ["cleric"] },
+              { "id": "guidance", "label_ru": "Наставление", "lists": ["cleric", "druid"] },
+              { "id": "light", "label_ru": "Свет", "lists": ["bard", "cleric", "wizard"] },
+              { "id": "spare_the_dying", "label_ru": "Уход за умирающим", "lists": ["cleric"] },
+              { "id": "druidcraft", "label_ru": "Друидизм", "lists": ["druid"] },
+              { "id": "shillelagh", "label_ru": "Дубинка", "lists": ["druid"] },
+              { "id": "produce_flame", "label_ru": "Сотворение пламени", "lists": ["druid"] },
+              { "id": "thorn_whip", "label_ru": "Терновый кнут", "lists": ["druid"] },
+              { "id": "eldritch_blast", "label_ru": "Мистический заряд", "lists": ["warlock"] },
+              { "id": "chill_touch", "label_ru": "Леденящее прикосновение", "lists": ["warlock", "wizard"] },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд", "lists": ["wizard"] },
+              { "id": "ray_of_frost", "label_ru": "Луч холода", "lists": ["wizard"] },
+              { "id": "shocking_grasp", "label_ru": "Шокирующее касание", "lists": ["wizard"] },
+              { "id": "acid_splash", "label_ru": "Брызги кислоты", "lists": ["wizard"] }
+            ]
+          },
+          {
+            "id": "l1_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 1 круга",
+            "level": 1,
+            "grant": "innate",
+            "filter_enum": "list",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "charm_person", "label_ru": "Очарование личности", "lists": ["bard", "warlock", "wizard"] },
+              { "id": "cure_wounds", "label_ru": "Лечение ран", "lists": ["bard", "cleric", "druid"] },
+              { "id": "healing_word", "label_ru": "Целебное слово", "lists": ["bard", "cleric", "druid"] },
+              { "id": "detect_magic", "label_ru": "Обнаружение магии", "lists": ["bard", "cleric", "druid", "wizard"] },
+              { "id": "disguise_self", "label_ru": "Маскировка", "lists": ["bard", "wizard"] },
+              { "id": "sleep", "label_ru": "Усыпление", "lists": ["bard", "wizard"] },
+              { "id": "bless", "label_ru": "Благословение", "lists": ["cleric"] },
+              { "id": "command", "label_ru": "Приказ", "lists": ["cleric"] },
+              { "id": "guiding_bolt", "label_ru": "Направляющий снаряд", "lists": ["cleric"] },
+              { "id": "shield_of_faith", "label_ru": "Щит веры", "lists": ["cleric"] },
+              { "id": "entangle", "label_ru": "Опутывание", "lists": ["druid"] },
+              { "id": "faerie_fire", "label_ru": "Огонь фей", "lists": ["druid", "bard"] },
+              { "id": "goodberry", "label_ru": "Ягоды доброго", "lists": ["druid"] },
+              { "id": "speak_with_animals", "label_ru": "Разговор с животными", "lists": ["bard", "druid"] },
+              { "id": "hex", "label_ru": "Сглаз", "lists": ["warlock"] },
+              { "id": "armor_of_agathys", "label_ru": "Доспех Агатиса", "lists": ["warlock"] },
+              { "id": "hellish_rebuke", "label_ru": "Адское возмездие", "lists": ["warlock"] },
+              { "id": "mage_armor", "label_ru": "Доспехи мага", "lists": ["wizard"] },
+              { "id": "magic_missile", "label_ru": "Волшебная стрела", "lists": ["wizard"] },
+              { "id": "shield", "label_ru": "Щит", "lists": ["wizard"] },
+              { "id": "find_familiar", "label_ru": "Поиск фамильяра", "lists": ["wizard"] }
+            ]
           }
         ],
         "grants": {

@@ -23,9 +23,11 @@ depends_on: Union[str, Sequence[str], None] = None
 BACKEND_ROOT = Path(__file__).resolve().parents[2]
 
 WAVE_SPECS: list[tuple[str, str]] = [
+    ("data/feats/phb2014_feat_catalog_spec.json", "phb"),
     ("data/feats/xge2014_feat_catalog_spec.json", "xge"),
     ("data/feats/tce2014_feat_catalog_spec.json", "tce"),
     ("data/feats/ftd2014_feat_catalog_spec.json", "ftd"),
+    ("data/feats/scc2014_feat_catalog_spec.json", "scc"),
     ("data/feats/pam2014_feat_catalog_spec.json", "pam"),
 ]
 
@@ -41,6 +43,10 @@ SPELL_GRANT_SLUGS = {
     "fey_touched",
     "shadow_touched",
     "wood_elf_magic",
+    "magic_initiate",
+    "artificer_initiate",
+    "strixhaven_initiate",
+    "strixhaven_mascot",
 }
 
 

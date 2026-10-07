@@ -7,6 +7,7 @@ import {
   emptyFeatPicks,
   featGrantDefFromCatalog,
   featPrerequisitesUnmet,
+  spellOneOptionsForPicks,
   validateFeatGrantPicks,
   type AbilityKey,
   type ArmorProfKey,
@@ -333,12 +334,54 @@ export function FeatSetupDialog({
                   </Field>
                 )
               }
-              if (choice.type === 'enum' || choice.type === 'spell_one') {
+              if (choice.type === 'enum') {
                 const current = picks.enumIds[choice.id]
                 return (
                   <Field key={choice.id} label={choice.label_ru}>
                     <div className="chip-row" role="group">
                       {choice.options.map((opt) => (
+                        <Button
+                          key={opt.id}
+                          type="button"
+                          variant={current === opt.id ? 'primary' : 'ghost'}
+                          onClick={() => {
+                            setError(null)
+                            // Clear dependent spell_one picks when list/college changes.
+                            setPicks((prev) => {
+                              const nextEnum = { ...prev.enumIds, [choice.id]: opt.id }
+                              for (const row of def.choices) {
+                                if (
+                                  row.type === 'spell_one' &&
+                                  row.filterEnum === choice.id
+                                ) {
+                                  delete nextEnum[row.id]
+                                }
+                              }
+                              return { ...prev, enumIds: nextEnum }
+                            })
+                          }}
+                        >
+                          {opt.label_ru}
+                        </Button>
+                      ))}
+                    </div>
+                  </Field>
+                )
+              }
+              if (choice.type === 'spell_one') {
+                const options = spellOneOptionsForPicks(choice, picks.enumIds)
+                const current = picks.enumIds[choice.id]
+                if (choice.filterEnum && !picks.enumIds[choice.filterEnum]) {
+                  return (
+                    <Text key={choice.id} tone="muted">
+                      {choice.label_ru}: сначала выбери список / колледж выше.
+                    </Text>
+                  )
+                }
+                return (
+                  <Field key={choice.id} label={choice.label_ru}>
+                    <div className="chip-row" role="group">
+                      {options.map((opt) => (
                         <Button
                           key={opt.id}
                           type="button"
