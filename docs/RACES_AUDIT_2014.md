@@ -1,7 +1,7 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/race-elf-halfling-gaps-f10e` · http://201.34.132.252/
+Прод tip: `cursor/race-mpmm-wave-f10e` · http://201.34.132.252/ · alembic `b1c2d3e4f5a6`
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
@@ -15,6 +15,16 @@
 | Полуорк | PHB + метка поиска | ✅ 1 | ✅ optional | ✅ | |
 | Тифлинг | PHB + MToF 8 + SCAG feral | ✅ 9 | ✅ optional | ✅ | |
 
+## Волна 2 — MPMM (корни combobox)
+
+Спека: `backend/data/races/mpmm_race_catalog_spec.json` (29 строк: 25 корней + 4 наследия дженази).  
+Без дублей PHB-подрас: дуэргар / эладрин / морской эльф / шадар-кай / глубинный гном — остаются forks у PHB-родителей.
+
+| Раса | В каталоге | Попап forks | Prod verify | Заметки |
+|------|------------|-------------|-------------|---------|
+| Ааракокра … юань-ти (24 корня без дженази) | ✅ | — (нет children) | ✅ | flexible ASI + Common+1 |
+| Дженази | ✅ parent + 4 | ✅ `subrace_required` | ✅ | воздух / земля / огонь / вода |
+
 ## Чеклист на расу
 
 1. Список разновидностей на ttg (или dnd.su как зеркало).
@@ -25,4 +35,4 @@
 
 ## Инфра-заметка
 
-Актуальный tip head: `a0b1c2d3e4f5` (эльф/полурослик gaps).
+Актуальный tip head: `b1c2d3e4f5a6` (MPMM wave) на `cursor/race-mpmm-wave-f10e`.
