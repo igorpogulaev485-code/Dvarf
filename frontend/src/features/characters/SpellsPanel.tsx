@@ -24,6 +24,7 @@ import {
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
+import { formatSpellComponents, spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import type { ConcentrationState } from './play'
@@ -553,7 +554,7 @@ export function SpellsPanel({
                         <Field label="Время">
                           <Input
                             value={spell.casting_time}
-                            placeholder="Д / БД…"
+                            placeholder="1 действие…"
                             onChange={(event) =>
                               updateSpell(spell.id, { casting_time: event.target.value })
                             }
@@ -565,6 +566,17 @@ export function SpellsPanel({
                             placeholder="60 футов"
                             onChange={(event) =>
                               updateSpell(spell.id, { range: event.target.value })
+                            }
+                          />
+                        </Field>
+                        <Field label="Длительность">
+                          <Input
+                            value={spell.duration ?? ''}
+                            placeholder="Мгновенная / 1 мин…"
+                            onChange={(event) =>
+                              updateSpell(spell.id, {
+                                duration: event.target.value || undefined,
+                              })
                             }
                           />
                         </Field>
@@ -587,6 +599,20 @@ export function SpellsPanel({
                           />
                         </Field>
                       </div>
+                      {spell.components || spell.school || spell.source_book || spell.higher_levels ? (
+                        <Text tone="muted" className="spell-card__extras">
+                          {[
+                            spell.components
+                              ? formatSpellComponents(spell.components)
+                              : '',
+                            spell.school ? spellSchoolLabelRu(spell.school) : '',
+                            spell.source_book ?? '',
+                            spell.higher_levels ? `↑ ${spell.higher_levels}` : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </Text>
+                      ) : null}
                       <div className="spell-card__footer">
                         {spell.level > 0 ? (
                           spell.race_grant === 'innate' ? (
@@ -637,6 +663,14 @@ export function SpellsPanel({
                           }
                         >
                           К
+                        </button>
+                        <button
+                          type="button"
+                          className={`sheet-chip${spell.ritual ? ' is-on' : ''}`}
+                          onClick={() => updateSpell(spell.id, { ritual: !spell.ritual })}
+                          title="Ритуал"
+                        >
+                          Ритуал
                         </button>
                         <Button
                           variant="ghost"
