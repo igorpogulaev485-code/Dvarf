@@ -42,6 +42,7 @@ import {
   BackgroundSetupDialog,
   HomebrewBackgroundDialog,
 } from './BackgroundSetupDialog'
+import { EquipmentProficienciesPanel } from './EquipmentProficienciesPanel'
 import {
   applyBackgroundGrantToDraft,
   readAppliedBackgroundGrant,
@@ -126,8 +127,6 @@ import { ClassFeaturesPanel, saveBonusFromFeatures } from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import {
-  ARMOR_PROF_OPTIONS,
-  WEAPON_PROF_OPTIONS,
   identityExtrasToSheet,
   readIdentityExtras,
   type IdentityExtras,
@@ -726,9 +725,7 @@ export function MinimalSheetEditor({
         row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
       ),
       ...prev.subclassGrants.flatMap((row) =>
-        [...row.tools, ...row.weaponExtras]
-          .map((item) => item.trim().toLowerCase())
-          .filter(Boolean),
+        row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
       ),
       ...(prev.backgroundGrant?.tools ?? []).map((item) =>
         item.trim().toLowerCase(),
@@ -738,6 +735,17 @@ export function MinimalSheetEditor({
       ...prev.classGrants.flatMap((row) => row.armorKeys),
       ...prev.subclassGrants.flatMap((row) => row.armorKeys),
     ]) as Set<keyof IdentityExtras['armor']>
+    const classGrantedWeaponExtras = new Set([
+      ...prev.classGrants.flatMap((row) =>
+        (row.weaponExtras ?? []).map((item) => item.trim().toLowerCase()),
+      ),
+      ...prev.subclassGrants.flatMap((row) =>
+        (row.weaponExtras ?? []).map((item) => item.trim().toLowerCase()),
+      ),
+      ...(prev.backgroundGrant?.weaponExtras ?? []).map((item) =>
+        item.trim().toLowerCase(),
+      ),
+    ])
     return {
       identity: prev.identity,
       skills: prev.skills,
@@ -753,6 +761,7 @@ export function MinimalSheetEditor({
       classGrantedSkills: classSkills,
       classGrantedTools: classTools,
       classGrantedArmor: classArmor,
+      classGrantedWeaponExtras,
     }
   }
 
@@ -767,24 +776,33 @@ export function MinimalSheetEditor({
         row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
       ),
       ...prev.subclassGrants.flatMap((row) =>
-        [...row.tools, ...row.weaponExtras]
-          .map((item) => item.trim().toLowerCase())
-          .filter(Boolean),
+        row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
       ),
       ...(prev.raceGrant?.tools ?? []).map((item) => item.trim().toLowerCase()),
     ])
     const protectedLanguages = new Set([
       ...(prev.raceGrant?.languages ?? []).map((item) => item.toLowerCase()),
     ])
+    const protectedWeaponExtras = new Set([
+      ...prev.classGrants.flatMap((row) =>
+        (row.weaponExtras ?? []).map((item) => item.trim().toLowerCase()),
+      ),
+      ...prev.subclassGrants.flatMap((row) =>
+        (row.weaponExtras ?? []).map((item) => item.trim().toLowerCase()),
+      ),
+      ...(prev.raceGrant?.weaponNames ?? []).map((item) => item.toLowerCase()),
+    ])
     return {
       identity: prev.identity,
       skills: prev.skills,
       inventory: prev.inventory,
       textBlocks: prev.textBlocks,
+      weapons: prev.weapons,
       backgroundGrant: prev.backgroundGrant,
       protectedSkills,
       protectedTools,
       protectedLanguages,
+      protectedWeaponExtras,
     }
   }
 
@@ -795,6 +813,7 @@ export function MinimalSheetEditor({
       skills: slice.skills,
       inventory: slice.inventory,
       textBlocks: slice.textBlocks,
+      weapons: slice.weapons,
       backgroundGrant: slice.backgroundGrant,
       backgroundCatalogId: slice.backgroundGrant?.backgroundCatalogId ?? null,
     }
@@ -2055,54 +2074,11 @@ export function MinimalSheetEditor({
         </Stack>
       </Panel>
 
-      <Panel title="Владения снаряжением">
-        <Stack gap={12}>
-          <div>
-            <Text tone="muted">Доспехи</Text>
-            <div className="chip-row">
-              {ARMOR_PROF_OPTIONS.map((option) => (
-                <button
-                  key={option.key}
-                  type="button"
-                  className={`sheet-chip${draft.identity.armor[option.key] ? ' is-on' : ''}`}
-                  onClick={() =>
-                    patchIdentity({
-                      armor: {
-                        ...draft.identity.armor,
-                        [option.key]: !draft.identity.armor[option.key],
-                      },
-                    })
-                  }
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <Text tone="muted">Оружие</Text>
-            <div className="chip-row">
-              {WEAPON_PROF_OPTIONS.map((option) => (
-                <button
-                  key={option.key}
-                  type="button"
-                  className={`sheet-chip${draft.identity.weapons[option.key] ? ' is-on' : ''}`}
-                  onClick={() =>
-                    patchIdentity({
-                      weapons: {
-                        ...draft.identity.weapons,
-                        [option.key]: !draft.identity.weapons[option.key],
-                      },
-                    })
-                  }
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </Stack>
-      </Panel>
+      <EquipmentProficienciesPanel
+        armor={draft.identity.armor}
+        weapons={draft.identity.weapons}
+        onChange={(patch) => patchIdentity(patch)}
+      />
 
       <LanguagesToolsPanel
         languages={draft.identity.languages}

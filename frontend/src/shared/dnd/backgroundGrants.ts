@@ -82,12 +82,16 @@ export type AppliedBackgroundGrant = {
   skills: string[]
   tools: string[]
   languages: string[]
+  /** Specific weapon proficiencies granted (e.g. gladiator exotic weapon). */
+  weaponExtras: string[]
   featureNameRu: string | null
   featureTextRu: string | null
   featNoteRu: string | null
   equipmentPackageId: string | null
   equipmentOrPicks: Record<string, string>
   equipmentItemIds: string[]
+  /** Attack cards from background gear weapons. */
+  equipmentAttackIds: string[]
   equipmentCoinsGp: number
   choiceTablePicks: Record<string, string[]>
   personalityTraits: string[]
@@ -592,7 +596,9 @@ export function readAppliedBackgroundGrant(raw: unknown): AppliedBackgroundGrant
       typeof row.equipmentPackageId === 'string' ? row.equipmentPackageId : null,
     equipmentOrPicks: readStringMap(row.equipmentOrPicks),
     equipmentItemIds: readStringList(row.equipmentItemIds),
+    equipmentAttackIds: readStringList(row.equipmentAttackIds),
     equipmentCoinsGp: Math.max(0, Math.floor(readNumber(row.equipmentCoinsGp, 0))),
+    weaponExtras: readStringList(row.weaponExtras),
     choiceTablePicks: readStringListMap(row.choiceTablePicks),
     personalityTraits: readStringList(row.personalityTraits),
     ideal: typeof row.ideal === 'string' ? row.ideal : null,

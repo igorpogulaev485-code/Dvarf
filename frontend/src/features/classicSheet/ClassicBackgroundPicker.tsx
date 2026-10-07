@@ -11,11 +11,14 @@ import {
   type BackgroundGrantDraftSlice,
 } from '../characters/backgroundEffects'
 import {
+  identityExtrasToSheet,
   readIdentityExtras,
   type IdentityExtras,
 } from '../characters/identity'
 import { readInventory } from '../characters/inventory'
 import { readTextBlocks } from '../characters/textBlocks'
+import type { WeaponAttack } from '../characters/AttacksPanel'
+import { ABILITY_KEYS, type AbilityKey } from '../characters/sheetTypes'
 import {
   backgroundGrantNeedsSetupDialog,
   backgroundVariantsForRoot,
@@ -43,6 +46,33 @@ type Props = {
   onToast?: (message: string) => void
 }
 
+function readSheetWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
+  const raw = sheet.weapons
+  if (!Array.isArray(raw)) return []
+  return raw.map((item, index) => {
+    const row = asRecord(item)
+    const ability = ABILITY_KEYS.includes(row.ability as AbilityKey)
+      ? (row.ability as AbilityKey)
+      : 'str'
+    return {
+      id: typeof row.id === 'string' ? row.id : `weapon-${index}`,
+      name: typeof row.name === 'string' ? row.name : '',
+      catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+      source_kind:
+        row.source_kind === 'weapon' ||
+        row.source_kind === 'artifact' ||
+        row.source_kind === 'custom' ||
+        row.source_kind === 'race'
+          ? row.source_kind
+          : 'weapon',
+      ability,
+      is_proficient: Boolean(row.is_proficient),
+      damage: typeof row.damage === 'string' ? row.damage : '',
+      damage_type: typeof row.damage_type === 'string' ? row.damage_type : '',
+    }
+  })
+}
+
 function sliceFromCharacter(character: CharacterDetail): BackgroundGrantDraftSlice {
   const sheet = asRecord(character.sheet)
   const identity = readIdentityExtras(sheet)
@@ -61,15 +91,22 @@ function sliceFromCharacter(character: CharacterDetail): BackgroundGrantDraftSli
       row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
     ),
     ...subclassGrants.flatMap((row) =>
-      [...row.tools, ...row.weaponExtras]
-        .map((item) => item.trim().toLowerCase())
-        .filter(Boolean),
+      row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
     ),
     ...(raceGrant?.tools ?? []).map((item) => item.trim().toLowerCase()),
   ])
   const protectedLanguages = new Set(
     (raceGrant?.languages ?? []).map((item) => item.toLowerCase()),
   )
+  const protectedWeaponExtras = new Set([
+    ...classGrants.flatMap((row) =>
+      (row.weaponExtras ?? []).map((item) => item.trim().toLowerCase()),
+    ),
+    ...subclassGrants.flatMap((row) =>
+      (row.weaponExtras ?? []).map((item) => item.trim().toLowerCase()),
+    ),
+    ...(raceGrant?.weaponNames ?? []).map((item) => item.toLowerCase()),
+  ])
 
   return {
     identity,
@@ -87,10 +124,12 @@ function sliceFromCharacter(character: CharacterDetail): BackgroundGrantDraftSli
     ),
     inventory: readInventory(sheet),
     textBlocks: readTextBlocks(sheet),
+    weapons: readSheetWeapons(sheet),
     backgroundGrant,
     protectedSkills,
     protectedTools,
     protectedLanguages,
+    protectedWeaponExtras,
   }
 }
 
@@ -100,14 +139,18 @@ function writeSliceToSheet(
   backgroundCatalogId: string | null,
 ): Record<string, unknown> {
   const sheet = cloneSheet(asRecord(character.sheet))
+  const extras = identityExtrasToSheet(slice.identity)
   const identity = asRecord(sheet.identity)
+  Object.assign(identity, extras.identityPatch)
   identity.background = slice.identity.background.trim() || null
   identity.background_catalog_id = backgroundCatalogId
   sheet.identity = identity
 
   const proficiency = asRecord(sheet.proficiency)
-  proficiency.languages = slice.identity.languages
-  proficiency.tools = slice.identity.tools
+  proficiency.armor = extras.proficiencyPatch.armor
+  proficiency.weapons = extras.proficiencyPatch.weapons
+  proficiency.languages = extras.proficiencyPatch.languages
+  proficiency.tools = extras.proficiencyPatch.tools
   sheet.proficiency = proficiency
 
   const skills = asRecord(sheet.skills)
@@ -123,6 +166,7 @@ function writeSliceToSheet(
     coins: slice.inventory.coins,
     items: slice.inventory.items,
   }
+  sheet.weapons = slice.weapons
   sheet.background_grant = slice.backgroundGrant
 
   const textBlocks = asRecord(sheet.text_blocks)
