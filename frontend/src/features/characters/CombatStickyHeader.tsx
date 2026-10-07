@@ -198,6 +198,32 @@ export function CombatStickyHeader({
           />
         </label>
 
+        <label className="combat-stat" title={initTitle}>
+          <span className="combat-stat__label">Иниц.</span>
+          <div className="combat-sticky__init">
+            <NumberInput
+              value={initiativeOverride ?? autoInitiative}
+              aria-label="Инициатива"
+              onValueChange={(value) => {
+                if (value == null || value === autoInitiative) {
+                  onChange({ initiativeOverride: null })
+                  return
+                }
+                onChange({ initiativeOverride: value })
+              }}
+            />
+            {initiativeOverride != null ? (
+              <button
+                type="button"
+                className="combat-sticky__reset"
+                onClick={() => onChange({ initiativeOverride: null })}
+              >
+                авто
+              </button>
+            ) : null}
+          </div>
+        </label>
+
         <div
           className={`combat-stat combat-stat--hp${hpPulse ? ' combat-stat--pulse' : ''}`}
           title={hpTitle}
@@ -231,32 +257,6 @@ export function CombatStickyHeader({
             </button>
           </div>
         </div>
-
-        <label className="combat-stat" title={initTitle}>
-          <span className="combat-stat__label">Иниц.</span>
-          <div className="combat-sticky__init">
-            <NumberInput
-              value={initiativeOverride ?? autoInitiative}
-              aria-label="Инициатива"
-              onValueChange={(value) => {
-                if (value == null || value === autoInitiative) {
-                  onChange({ initiativeOverride: null })
-                  return
-                }
-                onChange({ initiativeOverride: value })
-              }}
-            />
-            {initiativeOverride != null ? (
-              <button
-                type="button"
-                className="combat-sticky__reset"
-                onClick={() => onChange({ initiativeOverride: null })}
-              >
-                авто
-              </button>
-            ) : null}
-          </div>
-        </label>
       </div>
 
       <NumberPadDialog
