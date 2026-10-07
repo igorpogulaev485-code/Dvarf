@@ -439,7 +439,7 @@
 | Свой род | Обязательный выбор черты в попапе расы | Tasha Custom Lineage без ручной записи |
 | Apply/revoke | Ledger `feat_grants`; смена/−уровень откатывает | Можно передумать без ручной чистки |
 
-На проде: **нет** · ветка `cursor/feats-phb-wave1-ef23` · (PR после push) · tip не менять до «залей»
+На проде: **нет** · ветка `cursor/feats-phb-wave1-ef23` · PR #54 · tip не менять до «залей»
 
 <!-- tip class-race-join live; class-asi+feats собраны в ветке feats -->
 
@@ -523,4 +523,4 @@
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 | Стык рас+классов/архетипов; feature packs; caster via slug; class-first UX; tip → эта ветка; alembic `r7a8` |
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 (долив) | H4b глубина 118 архетипов; снаряжение→атаки/КД; ярость vs heavy; normalize packs build fix |
 | 2026-10-07 | `cursor/class-asi-hitdice-mc-ef23` · PR #53 | ASI popup, hit dice by class, MC polish; gear catalog RU+dedupe (не wipe); tip → эта ветка; alembic `s8b9` |
-| 2026-10-07 | `cursor/feats-phb-wave1-ef23` | PHB feats catalog + ASI/Custom Lineage feat picks; alembic `w2x3`; на проде нет |
+| 2026-10-07 | `cursor/feats-phb-wave1-ef23` · PR #54 | PHB feats catalog + ASI/Custom Lineage feat picks; alembic `w2x3`; на проде нет |
