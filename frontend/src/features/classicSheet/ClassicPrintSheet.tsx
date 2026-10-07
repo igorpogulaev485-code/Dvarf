@@ -118,6 +118,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
               <span>Предыстория</span>
               <input
                 value={String(identityField(c, 'background') ?? '')}
+                title="Выбор из справочника — в панели над листом (не печатается)"
                 onChange={(e) => patch({ identity: { background: e.target.value || null } })}
               />
             </label>
