@@ -32,6 +32,11 @@ export type BackgroundGrantDef = {
   featureTextRu: string | null
   featNoteRu: string | null
   equipment: StartingEquipmentPackage[]
+  /** Suggested characteristics tables (optional RP picks). */
+  personalityTraits: string[]
+  ideals: string[]
+  bonds: string[]
+  flaws: string[]
 }
 
 export type BackgroundGrantPicks = {
@@ -39,6 +44,11 @@ export type BackgroundGrantPicks = {
   tools: string[]
   languages: string[]
   equipmentPackageId: string | null
+  /** 0 or personalityPickCount (usually 2). */
+  personalityTraits: string[]
+  ideal: string | null
+  bond: string | null
+  flaw: string | null
 }
 
 export type AppliedBackgroundGrant = {
@@ -53,6 +63,10 @@ export type AppliedBackgroundGrant = {
   equipmentPackageId: string | null
   equipmentItemIds: string[]
   equipmentCoinsGp: number
+  personalityTraits: string[]
+  ideal: string | null
+  bond: string | null
+  flaw: string | null
 }
 
 export const GAMING_SET_CHOICES = [
@@ -223,7 +237,27 @@ export function backgroundGrantDefFromCatalog(input: {
       typeof data.feature_text_ru === 'string' ? data.feature_text_ru : null,
     featNoteRu: typeof data.feat_note_ru === 'string' ? data.feat_note_ru : null,
     equipment: readEquipmentPackages(data.starting_equipment),
+    personalityTraits: readStringList(data.personality_traits),
+    ideals: readStringList(data.ideals),
+    bonds: readStringList(data.bonds),
+    flaws: readStringList(data.flaws),
   }
+}
+
+/** PHB: usually two personality traits when the table exists. */
+export function personalityPickCount(def: BackgroundGrantDef): number {
+  if (def.personalityTraits.length >= 2) return 2
+  if (def.personalityTraits.length === 1) return 1
+  return 0
+}
+
+export function backgroundHasRoleplayTables(def: BackgroundGrantDef): boolean {
+  return (
+    def.personalityTraits.length > 0 ||
+    def.ideals.length > 0 ||
+    def.bonds.length > 0 ||
+    def.flaws.length > 0
+  )
 }
 
 export function resolveBackgroundGrantDef(input: {
@@ -252,6 +286,10 @@ export function emptyBackgroundPicks(): BackgroundGrantPicks {
     tools: [],
     languages: [],
     equipmentPackageId: null,
+    personalityTraits: [],
+    ideal: null,
+    bond: null,
+    flaw: null,
   }
 }
 
@@ -345,6 +383,30 @@ export function validateBackgroundGrantPicks(input: {
     }
   }
 
+  // RP tables are optional (0 = skip), but partial picks must be complete/valid.
+  const traitNeed = personalityPickCount(def)
+  if (picks.personalityTraits.length > 0) {
+    if (picks.personalityTraits.length !== traitNeed) {
+      return `Выбери черты характера: ${traitNeed} (или ни одной — заполнишь позже)`
+    }
+    const allowed = new Set(def.personalityTraits)
+    if (picks.personalityTraits.some((row) => !allowed.has(row))) {
+      return 'Черта характера вне таблицы предыстории'
+    }
+    if (new Set(picks.personalityTraits).size !== picks.personalityTraits.length) {
+      return 'Нельзя выбрать одну черту дважды'
+    }
+  }
+  if (picks.ideal) {
+    if (!def.ideals.includes(picks.ideal)) return 'Идеал вне таблицы предыстории'
+  }
+  if (picks.bond) {
+    if (!def.bonds.includes(picks.bond)) return 'Привязанность вне таблицы предыстории'
+  }
+  if (picks.flaw) {
+    if (!def.flaws.includes(picks.flaw)) return 'Слабость вне таблицы предыстории'
+  }
+
   return null
 }
 
@@ -362,6 +424,12 @@ export function formatBackgroundGrantSummary(input: {
     input.def.featureNameRu ? `умение: ${input.def.featureNameRu}` : null,
     input.picks.equipmentPackageId && input.picks.equipmentPackageId !== 'skip'
       ? 'снаряжение'
+      : null,
+    input.picks.personalityTraits.length ||
+    input.picks.ideal ||
+    input.picks.bond ||
+    input.picks.flaw
+      ? 'черты/идеалы'
       : null,
   ]
   return bits.filter(Boolean).join(' · ')
@@ -391,7 +459,54 @@ export function readAppliedBackgroundGrant(raw: unknown): AppliedBackgroundGrant
       typeof row.equipmentPackageId === 'string' ? row.equipmentPackageId : null,
     equipmentItemIds: readStringList(row.equipmentItemIds),
     equipmentCoinsGp: Math.max(0, Math.floor(readNumber(row.equipmentCoinsGp, 0))),
+    personalityTraits: readStringList(row.personalityTraits),
+    ideal: typeof row.ideal === 'string' ? row.ideal : null,
+    bond: typeof row.bond === 'string' ? row.bond : null,
+    flaw: typeof row.flaw === 'string' ? row.flaw : null,
   }
+}
+
+const RP_MARKERS: Record<
+  'personality' | 'ideals' | 'bonds' | 'flaws',
+  { start: string; end: string }
+> = {
+  personality: {
+    start: '<!-- dvarf-bg-personality -->',
+    end: '<!-- /dvarf-bg-personality -->',
+  },
+  ideals: {
+    start: '<!-- dvarf-bg-ideals -->',
+    end: '<!-- /dvarf-bg-ideals -->',
+  },
+  bonds: {
+    start: '<!-- dvarf-bg-bonds -->',
+    end: '<!-- /dvarf-bg-bonds -->',
+  },
+  flaws: {
+    start: '<!-- dvarf-bg-flaws -->',
+    end: '<!-- /dvarf-bg-flaws -->',
+  },
+}
+
+export function upsertMarkedTextBlock(
+  current: string,
+  markerKey: keyof typeof RP_MARKERS,
+  body: string,
+): string {
+  const { start, end } = RP_MARKERS[markerKey]
+  const text = body.trim()
+  const block = text ? `${start}\n${text}\n${end}` : ''
+  const from = current.indexOf(start)
+  const to = current.indexOf(end)
+  if (from >= 0 && to > from) {
+    const afterEnd = to + end.length
+    const before = current.slice(0, from).trimEnd()
+    const after = current.slice(afterEnd).trimStart()
+    return [before, block, after].filter(Boolean).join('\n\n').trim()
+  }
+  if (!block) return current.trim()
+  if (!current.trim()) return block
+  return `${current.trim()}\n\n${block}`
 }
 
 const FEATURE_START = '<!-- dvarf-background-feature -->'

@@ -9,6 +9,7 @@ import {
   readAppliedBackgroundGrant,
   resolveBackgroundGrantDef,
   upsertBackgroundFeatureBlock,
+  upsertMarkedTextBlock,
   validateBackgroundGrantPicks,
   type AppliedBackgroundGrant,
   type BackgroundGrantDef,
@@ -84,8 +85,22 @@ export function revokeBackgroundGrant(
   }
 
   const textBlocks = draft.textBlocks.map((block) => {
-    if (block.key !== 'traits') return block
-    return { ...block, value: upsertBackgroundFeatureBlock(block.value, '') }
+    if (block.key === 'traits') {
+      return { ...block, value: upsertBackgroundFeatureBlock(block.value, '') }
+    }
+    if (block.key === 'personality') {
+      return { ...block, value: upsertMarkedTextBlock(block.value, 'personality', '') }
+    }
+    if (block.key === 'ideals') {
+      return { ...block, value: upsertMarkedTextBlock(block.value, 'ideals', '') }
+    }
+    if (block.key === 'bonds') {
+      return { ...block, value: upsertMarkedTextBlock(block.value, 'bonds', '') }
+    }
+    if (block.key === 'flaws') {
+      return { ...block, value: upsertMarkedTextBlock(block.value, 'flaws', '') }
+    }
+    return block
   })
 
   return {
@@ -168,9 +183,36 @@ export function applyBackgroundGrantToDraft(input: {
     }
   }
 
+  const personalityText = picks.personalityTraits.join('\n')
   const textBlocks = cleared.textBlocks.map((block) => {
-    if (block.key !== 'traits') return block
-    return { ...block, value: upsertBackgroundFeatureBlock(block.value, featureText) }
+    if (block.key === 'traits') {
+      return { ...block, value: upsertBackgroundFeatureBlock(block.value, featureText) }
+    }
+    if (block.key === 'personality') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'personality', personalityText),
+      }
+    }
+    if (block.key === 'ideals') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'ideals', picks.ideal ?? ''),
+      }
+    }
+    if (block.key === 'bonds') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'bonds', picks.bond ?? ''),
+      }
+    }
+    if (block.key === 'flaws') {
+      return {
+        ...block,
+        value: upsertMarkedTextBlock(block.value, 'flaws', picks.flaw ?? ''),
+      }
+    }
+    return block
   })
 
   const nextGrant: AppliedBackgroundGrant = {
@@ -185,6 +227,10 @@ export function applyBackgroundGrantToDraft(input: {
     equipmentPackageId,
     equipmentItemIds,
     equipmentCoinsGp,
+    personalityTraits: [...picks.personalityTraits],
+    ideal: picks.ideal,
+    bond: picks.bond,
+    flaw: picks.flaw,
   }
 
   const draft: BackgroundGrantDraftSlice = {
