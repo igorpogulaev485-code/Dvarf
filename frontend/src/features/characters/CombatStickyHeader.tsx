@@ -210,7 +210,7 @@ export function CombatStickyHeader({
               aria-label={`Текущие HP ${hpCurrent ?? 'не заданы'}. Прибавить или отнять`}
               onClick={() => setCurrentPadOpen(true)}
             >
-              <span className="combat-hp-open__meta">тек · ±</span>
+              <span className="combat-hp-open__meta">текущие ±</span>
               <span className="combat-hp-open__value">
                 {hpCurrent == null ? '—' : hpCurrent}
               </span>
@@ -224,7 +224,7 @@ export function CombatStickyHeader({
               aria-label={`Максимум HP ${hpMax ?? 'не задан'}. Собрать по уровням`}
               onClick={() => setMaxDialogOpen(true)}
             >
-              <span className="combat-hp-open__meta">макс</span>
+              <span className="combat-hp-open__meta">максимум</span>
               <span className="combat-hp-open__value">
                 {hpMax == null ? '—' : hpMax}
               </span>

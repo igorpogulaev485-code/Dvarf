@@ -2251,20 +2251,20 @@ input {
   }
 
   .combat-hp-open {
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 7px 10px;
-    min-height: 40px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 10px;
+    min-height: 44px;
   }
 
   .combat-hp-open__meta {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
   }
 
   .combat-hp-open__value {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
   }
 
   .combat-sticky__reset {
