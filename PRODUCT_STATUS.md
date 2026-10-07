@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/race-setting-wave-f10e`  
+**Prod tip (ветка линии прода):** `cursor/race-asi-flexible-f10e`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -294,13 +294,24 @@
 | 18 новых корней | SAS/AAG, VRGtR lineages, калаштар/кованый, Равника, леонин/соволин, грунг/локата/вердан/кендер | Почти полный список dnd.su без UA/homebrew |
 | Тот же попап | Гибкий ASI + Common+1; без обязательных forks | Как MPMM-корни |
 
-На проде: **да** · ветка `cursor/race-setting-wave-f10e` · PR #41 · это **новый prod tip**
+На проде: **да** · ветка `cursor/race-setting-wave-f10e` · PR #41 · затем tip → `cursor/race-asi-flexible-f10e`
+
+
+### 2026-10-07 — ASI гибкий: +2/+1 или три +1
+
+Проверено на живом http://201.34.132.252/ (alembic `d3e4f5a6b1c2`; 51 раса с `preset=tasha_flexible`; harengon ok; бандл `index-B12nzEPh.js`).
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Развилка ASI | У MPMM/setting и части FTD/астрального эльфа — как на ttg: сначала режим, потом характеристики | Можно взять +2/+1, а не только три +1 |
+
+На проде: **да** · ветка `cursor/race-asi-flexible-f10e` · PR #42 · это **новый prod tip**
 
 ---
 
 ## В ветках / ещё не на проде
 
-<!-- пусто после деплоя setting wave -->
+<!-- пусто после деплоя ASI flexible -->
 
 <!-- пример:
 ### 2026-10-06 — подтверждение email при регистрации
@@ -369,3 +380,4 @@
 | 2026-10-07 | `cursor/race-mpmm-wave-f10e` · PR #40 | MPMM 25 корней + дженази ×4; tip → эта ветка; alembic `b1c2` |
 | 2026-10-07 | `cursor/mobile-sheet-compact-acbe` · PR #32 | HP пад + макс по уровням; merge MPMM tip; tip → эта ветка |
 | 2026-10-07 | `cursor/race-setting-wave-f10e` · PR #41 | Setting 18 корней (SAS/VRG/ERLW/GGR/…); tip → эта ветка; alembic `c2d3` |
+| 2026-10-07 | `cursor/race-asi-flexible-f10e` · PR #42 | ASI +2/+1 или три +1; tip → эта ветка; alembic `d3e4` |
