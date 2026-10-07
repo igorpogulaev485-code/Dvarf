@@ -19,6 +19,15 @@ export type RaceNaturalWeapon = {
 
 export type RaceSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan'
 
+export const RACE_SIZE_LABELS: Record<RaceSize, string> = {
+  tiny: 'Крошечный',
+  small: 'Маленький',
+  medium: 'Средний',
+  large: 'Большой',
+  huge: 'Огромный',
+  gargantuan: 'Громадный',
+}
+
 /** One ASI bucket inside a mode, e.g. «+2 to one ability». */
 export type AbilityBonusBucket = {
   amount: number
@@ -91,7 +100,10 @@ export type RaceGrantDef = {
   parentSlug: string | null
   selectable: boolean
   speed: number
+  /** Default / fixed size when there is no choice fork. */
   size: RaceSize
+  /** When length > 1, player picks one size in the setup dialog. */
+  sizeChoices: RaceSize[]
   darkvision: number
   abilityBonuses: Partial<Record<AbilityKey, number>>
   abilityBonusChoices: AbilityBonusChoice | null
@@ -118,6 +130,8 @@ export type RaceGrantPicks = {
    * (e.g. plus2_plus1 → [keyFor+2, keyFor+1]; plus1x3 → three +1 keys).
    */
   abilityBonusKeys: AbilityKey[]
+  /** Chosen size when `sizeChoices` offers Medium/Small (etc.). */
+  size: RaceSize | null
   languages: string[]
   skills: string[]
   tools: string[]
@@ -197,6 +211,42 @@ function readAbilityBonuses(raw: unknown): Partial<Record<AbilityKey, number>> {
 
 function readSize(value: unknown): RaceSize {
   return SIZE_VALUES.includes(value as RaceSize) ? (value as RaceSize) : 'medium'
+}
+
+function readSizeChoices(raw: unknown, fallback: RaceSize): RaceSize[] {
+  if (!Array.isArray(raw)) return []
+  const seen = new Set<RaceSize>()
+  const out: RaceSize[] = []
+  for (const item of raw) {
+    if (!SIZE_VALUES.includes(item as RaceSize)) continue
+    const size = item as RaceSize
+    if (seen.has(size)) continue
+    seen.add(size)
+    out.push(size)
+  }
+  if (out.length <= 1) return out
+  // Prefer medium then small for stable chip order when both present.
+  const rank = (size: RaceSize) =>
+    size === 'medium' ? 0 : size === 'small' ? 1 : SIZE_VALUES.indexOf(size) + 2
+  out.sort((a, b) => rank(a) - rank(b))
+  if (!out.includes(fallback)) {
+    // keep fallback as default only; do not inject into choices
+  }
+  return out
+}
+
+/** Resolved size after picks (choice fork or fixed catalog size). */
+export function resolveRaceSize(input: {
+  def: Pick<RaceGrantDef, 'size' | 'sizeChoices'>
+  picks: Pick<RaceGrantPicks, 'size'>
+}): RaceSize {
+  const choices = input.def.sizeChoices
+  if (choices.length > 1) {
+    if (input.picks.size && choices.includes(input.picks.size)) {
+      return input.picks.size
+    }
+  }
+  return input.def.size
 }
 
 function readAbilityBonusBuckets(raw: unknown): AbilityBonusBucket[] {
@@ -477,6 +527,10 @@ export function raceGrantDefFromCatalog(input: {
     selectable: isRaceSelectable(data),
     speed: Math.max(0, Math.floor(readNumber(data.speed, 30))),
     size: readSize(data.size),
+    sizeChoices: readSizeChoices(
+      data.size_choices ?? data.sizeChoices,
+      readSize(data.size),
+    ),
     darkvision: Math.max(0, Math.floor(readNumber(data.darkvision, 0))),
     abilityBonuses: readAbilityBonuses(data.ability_bonuses ?? data.abilityBonuses),
     abilityBonusChoices: readAbilityBonusChoices(
@@ -540,6 +594,7 @@ export function emptyRacePicks(): RaceGrantPicks {
   return {
     abilityBonusModeId: null,
     abilityBonusKeys: [],
+    size: null,
     languages: [],
     skills: [],
     tools: [],
@@ -548,6 +603,7 @@ export function emptyRacePicks(): RaceGrantPicks {
 }
 
 export function raceGrantNeedsSetupDialog(def: RaceGrantDef): boolean {
+  if (def.sizeChoices.length > 1) return true
   if (resolveAbilityBonusModes(def.abilityBonusChoices).length > 0) return true
   if (def.languagesChoose > 0) return true
   if ((def.skillChoices?.count ?? 0) > 0) return true
@@ -623,6 +679,15 @@ export function validateRaceGrantPicks(input: {
     }
   }
 
+  if (def.sizeChoices.length > 1) {
+    if (!picks.size) return 'Выбери размер'
+    if (!def.sizeChoices.includes(picks.size)) {
+      return 'Размер вне списка расы'
+    }
+  } else if (picks.size && picks.size !== def.size) {
+    return 'Лишний выбор размера'
+  }
+
   if (def.ancestryChoices.length > 0) {
     if (!picks.ancestryId) return 'Выбери драконье происхождение'
     if (!def.ancestryChoices.some((row) => row.id === picks.ancestryId)) {
@@ -657,6 +722,10 @@ export function buildTraitsWithPicks(input: {
   picks: RaceGrantPicks
 }): string {
   const parts = [input.def.traitsText]
+  if (input.def.sizeChoices.length > 1) {
+    const size = resolveRaceSize(input)
+    parts.push(`Размер: ${RACE_SIZE_LABELS[size]}.`)
+  }
   if (input.picks.ancestryId) {
     const ancestry = input.def.ancestryChoices.find(
       (row) => row.id === input.picks.ancestryId,
@@ -689,8 +758,10 @@ export function formatRaceGrantSummary(input: {
     input.def.naturalWeapons.length > 0
       ? `атаки: ${input.def.naturalWeapons.map((row) => row.nameRu).join(', ')}`
       : null
+  const size = resolveRaceSize(input)
   const bits = [
     `скорость ${input.def.speed}`,
+    `размер ${RACE_SIZE_LABELS[size]}`,
     `ТЗ ${input.def.darkvision || 'нет'}`,
     `языки: ${langs}`,
     asi ? `ASI: ${asi}` : null,

@@ -148,7 +148,11 @@
           "performance",
           "persuasion"
         ]
-      }
+      },
+      "size_choices": [
+        "medium",
+        "small"
+      ]
     },
     {
       "slug": "fairy",
@@ -335,6 +339,10 @@
       "subrace_required": false,
       "skill_proficiencies": [
         "perception"
+      ],
+      "size_choices": [
+        "medium",
+        "small"
       ]
     },
     {
@@ -385,7 +393,11 @@
       "skill_choices": {
         "count": 2,
         "from": "any"
-      }
+      },
+      "size_choices": [
+        "medium",
+        "small"
+      ]
     },
     {
       "slug": "kobold",
@@ -653,6 +665,10 @@
           "ability": "str",
           "proficient": true
         }
+      ],
+      "size_choices": [
+        "medium",
+        "small"
       ]
     },
     {
@@ -699,7 +715,11 @@
       ],
       "languages_choose": 1,
       "traits_text": "Юань-ти (MPMM): ASI гибкий. Размер Средний или Маленький. Тёмное зрение 60. Сопротивление магии. Устойчивость к яду. Змеиное колдовство: ядовитый укус (poison spray); Дружба с животными (только змеи); с 3 ур. Внушение (ХАР).",
-      "subrace_required": false
+      "subrace_required": false,
+      "size_choices": [
+        "medium",
+        "small"
+      ]
     },
     {
       "slug": "genasi_air",

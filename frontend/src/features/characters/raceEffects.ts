@@ -8,6 +8,7 @@ import {
   mergeAbilityBonuses,
   readAppliedRaceGrant,
   resolveRaceGrantDef,
+  resolveRaceSize,
   validateRaceGrantPicks,
   type AbilityKey,
   type AppliedRaceGrant,
@@ -223,12 +224,14 @@ export function applyRaceGrantToDraft(input: {
     naturalWeapons,
   })
 
+  const size = resolveRaceSize({ def, picks })
+
   const nextGrant: AppliedRaceGrant = {
     raceCatalogId: input.selected.id,
     slug: def.slug,
     parentSlug: def.parentSlug,
     speed: def.speed,
-    size: def.size,
+    size,
     darkvision: def.darkvision,
     abilityBonuses: bonuses,
     languages: languagesApplied,
@@ -253,7 +256,7 @@ export function applyRaceGrantToDraft(input: {
     identity: {
       ...cleared.identity,
       darkvision: def.darkvision,
-      size: def.size,
+      size,
       languages,
       tools: uniqueStrings([...cleared.identity.tools, ...toolsApplied]),
       armor,

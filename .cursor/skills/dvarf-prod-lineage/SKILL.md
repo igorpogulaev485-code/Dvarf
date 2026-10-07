@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/race-natural-weapons-f10e
+cursor/race-size-choice-f10e
 ```
 
 URL: http://201.34.132.252/
@@ -38,7 +38,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-acbe origin/cursor/race-natural-weapons-f10e
+git checkout -b cursor/<descriptive>-acbe origin/cursor/race-size-choice-f10e
 # если tip уже другой — подставь актуальный из AGENTS.md / этого skill
 ```
 
@@ -46,7 +46,7 @@ git checkout -b cursor/<descriptive>-acbe origin/cursor/race-natural-weapons-f10
 
 ```bash
 git fetch origin
-git merge origin/cursor/race-natural-weapons-f10e
+git merge origin/cursor/race-size-choice-f10e
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```

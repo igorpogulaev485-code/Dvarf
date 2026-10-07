@@ -26,7 +26,11 @@
       ],
       "languages_choose": 1,
       "traits_text": "Хадози (AAG/SAS): ASI гибкий. Размер Средний или Маленький. Скорость 30 + лазание = ходьбе. Ловкие ступни (бонус: манипуляции ногами). Планирование (реакция при падении ≥10 фт: гориз. сдвиг = скорость, 0 урона). Уклонение хадози (реакция: 1к6+ПБ снижение урона, ПБ раз / длинный отдых).",
-      "subrace_required": false
+      "subrace_required": false,
+      "size_choices": [
+        "medium",
+        "small"
+      ]
     },
     {
       "slug": "plasmoid",
@@ -49,7 +53,11 @@
       ],
       "languages_choose": 1,
       "traits_text": "Плазмоид (AAG/SAS): ASI гибкий. Тип — слизь. Размер Средний или Маленький. Тёмное зрение 60. Аморфный (пролезает в 1 дюйм без снаряжения). Задержка дыхания 1 час. Природная устойчивость (кислота + яд; преимущество к спас. от отравления). Форма себя (псевдоподия / лицо).",
-      "subrace_required": false
+      "subrace_required": false,
+      "size_choices": [
+        "medium",
+        "small"
+      ]
     },
     {
       "slug": "thri_kreen",
@@ -78,7 +86,11 @@
         "mod": "dex",
         "allows_shield": true,
         "label_ru": "Хамелеоновый панцирь"
-      }
+      },
+      "size_choices": [
+        "medium",
+        "small"
+      ]
     },
     {
       "slug": "autognome",
@@ -145,6 +157,10 @@
           "proficient": true,
           "notes_ru": "Атака и урон от ТЕЛ; исцеление/бонус — по правилам VRGtR"
         }
+      ],
+      "size_choices": [
+        "medium",
+        "small"
       ]
     },
     {
@@ -172,7 +188,11 @@
       "skill_choices": {
         "count": 1,
         "from": "any"
-      }
+      },
+      "size_choices": [
+        "medium",
+        "small"
+      ]
     },
     {
       "slug": "reborn",
@@ -199,7 +219,11 @@
       "skill_choices": {
         "count": 1,
         "from": "any"
-      }
+      },
+      "size_choices": [
+        "medium",
+        "small"
+      ]
     },
     {
       "slug": "kalashtar",
@@ -399,6 +423,10 @@
       "subrace_required": false,
       "skill_proficiencies": [
         "stealth"
+      ],
+      "size_choices": [
+        "medium",
+        "small"
       ]
     },
     {
@@ -477,7 +505,11 @@
       ],
       "languages_choose": 1,
       "traits_text": "Вердан (Acquisitions Incorporated): ASI гибкий. Размер Маленький или Средний. Чёрная кровь (преимущество к спас. от болезней; сопротивление яду). Телепатия ограниченная (30 фт). Устойчивость разума (преимущество к спас. от очарования/испуганности).",
-      "subrace_required": false
+      "subrace_required": false,
+      "size_choices": [
+        "medium",
+        "small"
+      ]
     },
     {
       "slug": "kender",
