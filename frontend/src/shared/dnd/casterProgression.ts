@@ -142,17 +142,102 @@ export function resolveClassCasterSlug(className: string): string | null {
 }
 
 /**
- * True if any class level grants Spellcasting or Pact Magic
- * (needed for dragonmark «Spells of the Mark» list expansion).
+ * Subclass free-text → ⅓-caster Spellcasting feature (PHB 2014).
+ * Matched against `ClassLevelEntry.subclass_name` (RU/EN aliases).
+ * Only entries that actually grant the Spellcasting class feature.
  */
-export function characterHasCasterClass(classes: ClassLevelEntry[]): boolean {
-  for (const row of classes) {
-    if (Math.max(0, Math.floor(row.level)) <= 0) continue
-    const def = classCasterDef(resolveClassCasterSlug(row.name))
-    if (!def) continue
-    if (def.progression !== 'none') return true
+type SubclassCasterUnlock = {
+  /** Parent class slug(s) this archetype belongs to. */
+  classSlugs: string[]
+  /** Minimum class level when Spellcasting appears. */
+  minLevel: number
+  /** Normalized name fragments (lowercase). */
+  aliases: string[]
+}
+
+const SUBCLASS_SPELLCASTING: SubclassCasterUnlock[] = [
+  {
+    classSlugs: ['fighter'],
+    minLevel: 3,
+    aliases: [
+      'eldritch knight',
+      'мистический рыцарь',
+      'эльдрический рыцарь',
+      'рыцарь-колдун',
+    ],
+  },
+  {
+    classSlugs: ['rogue'],
+    minLevel: 3,
+    aliases: [
+      'arcane trickster',
+      'мистический ловкач',
+      'мистический плут',
+      'арканный плут',
+      'чародейский плут',
+    ],
+  },
+]
+
+function normalizeName(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+/** True when free-text subclass name matches a known spellcasting archetype. */
+export function subclassGrantsSpellcasting(input: {
+  classSlug: string | null
+  subclassName: string
+  classLevel: number
+}): boolean {
+  if (!input.classSlug) return false
+  const lv = Math.max(0, Math.floor(input.classLevel))
+  const name = normalizeName(input.subclassName)
+  if (!name) return false
+  for (const row of SUBCLASS_SPELLCASTING) {
+    if (!row.classSlugs.includes(input.classSlug)) continue
+    if (lv < row.minLevel) continue
+    if (row.aliases.some((alias) => name.includes(alias) || alias.includes(name))) {
+      return true
+    }
   }
   return false
+}
+
+/**
+ * True when this single class row currently has Spellcasting or Pact Magic.
+ * Order: base class feature (with level gate) → subclass unlock.
+ */
+export function classRowHasSpellcastingFeature(row: ClassLevelEntry): boolean {
+  const lv = Math.max(0, Math.floor(row.level))
+  if (lv <= 0) return false
+  const slug = resolveClassCasterSlug(row.name)
+  const def = classCasterDef(slug)
+  if (def) {
+    if (def.progression === 'full' || def.progression === 'pact' || def.progression === 'half_up') {
+      return true
+    }
+    // Paladin / ranger: Spellcasting feature from level 2.
+    if (def.progression === 'half' && lv >= 2) return true
+  }
+  return subclassGrantsSpellcasting({
+    classSlug: slug,
+    subclassName: row.subclass_name,
+    classLevel: lv,
+  })
+}
+
+/**
+ * True if any class (including multiclass / archetype) grants Spellcasting or Pact Magic.
+ * Used for dragonmark «Spells of the Mark» list expansion.
+ *
+ * Cases covered:
+ * - wizard 1 → yes
+ * - paladin 1 → no; paladin 2 → yes
+ * - fighter 5 → no; fighter 3 Eldritch Knight → yes
+ * - fighter 3 + wizard 1 multiclass → yes
+ */
+export function characterHasCasterClass(classes: ClassLevelEntry[]): boolean {
+  return classes.some((row) => classRowHasSpellcastingFeature(row))
 }
 
 export function classCasterDef(slug: string | null): ClassCasterDef | null {

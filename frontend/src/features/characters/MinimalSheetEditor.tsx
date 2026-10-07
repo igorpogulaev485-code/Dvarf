@@ -492,17 +492,34 @@ export function MinimalSheetEditor({
     [characterLevel],
   )
 
+  /** Refresh mark-list racial spells after class / subclass / level changes. */
+  function withRaceSpellsSynced(prev: Draft, nextClasses: ClassLevelEntry[]): Draft {
+    if (!prev.raceGrant) {
+      return { ...prev, classes: nextClasses }
+    }
+    const spells = syncRaceSpellsForSheetState({
+      spells: prev.spells,
+      grant: prev.raceGrant,
+      characterLevel: totalCharacterLevel(nextClasses),
+      hasCasterClass: characterHasCasterClass(nextClasses),
+    })
+    return { ...prev, classes: nextClasses, spells }
+  }
+
   function patchClass(classId: string, patch: Partial<ClassLevelEntry>) {
-    setDraft((prev) => ({
-      ...prev,
-      classes: prev.classes.map((row) =>
+    setDraft((prev) => {
+      const nextClasses = prev.classes.map((row) =>
         row.id === classId ? { ...row, ...patch } : row,
-      ),
-      identity:
-        prev.classes[0]?.id === classId && patch.subclass_name !== undefined
-          ? { ...prev.identity, subclassName: patch.subclass_name }
-          : prev.identity,
-    }))
+      )
+      const next = withRaceSpellsSynced(prev, nextClasses)
+      return {
+        ...next,
+        identity:
+          prev.classes[0]?.id === classId && patch.subclass_name !== undefined
+            ? { ...next.identity, subclassName: patch.subclass_name }
+            : next.identity,
+      }
+    })
   }
 
   function draftSliceFrom(prev: Draft): ClassGrantDraftSlice {
@@ -1234,10 +1251,12 @@ export function MinimalSheetEditor({
                           variant="ghost"
                           disabled={draft.classes.length === 1 && row.level <= 1}
                           onClick={() =>
-                            setDraft((prev) => ({
-                              ...prev,
-                              classes: reduceClassLevel(prev.classes, row.id),
-                            }))
+                            setDraft((prev) =>
+                              withRaceSpellsSynced(
+                                prev,
+                                reduceClassLevel(prev.classes, row.id),
+                              ),
+                            )
                           }
                         >
                           −1
