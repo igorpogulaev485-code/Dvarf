@@ -674,9 +674,13 @@ export function MinimalSheetEditor({
     setDraft((prev) => {
       const prevMax = prev.hpMax
       const nextMax = prevMax == null ? gain : prevMax + gain
+      const nextEffective =
+        nextMax + Math.max(0, Math.floor(prev.play.hpMaxBonus))
       const prevCurrent = prev.hpCurrent
       const nextCurrent =
-        prevCurrent == null ? nextMax : Math.min(nextMax, prevCurrent + gain)
+        prevCurrent == null
+          ? nextEffective
+          : Math.min(nextEffective, prevCurrent + gain)
       return {
         ...prev,
         classes: nextClasses,
