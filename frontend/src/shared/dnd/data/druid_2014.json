@@ -1,0 +1,535 @@
+{
+  "meta": {
+    "purpose": "PHB 2014 Druid + official circles for sheet unlock",
+    "edition": "2014",
+    "source": "phb+xgte+tcoe",
+    "notes_ru": "Wild Shape 2× short. Circle of the Land — pick земли. Moon/Stars/Spores/Wildfire тратят WS. 7 кругов каркас."
+  },
+  "class_slug": "druid",
+  "features": [
+    {
+      "id": "druidic",
+      "level": 1,
+      "name_ru": "Друидический язык",
+      "name_en": "Druidic",
+      "summary_ru": "Тайный язык друидов; оставляешь скрытые знаки.",
+      "kind": "passive"
+    },
+    {
+      "id": "spellcasting_druid",
+      "level": 1,
+      "name_ru": "Использование заклинаний",
+      "name_en": "Spellcasting",
+      "summary_ru": "Полный кастер. Мудрость — базовая. Подготовка = Мудр. + ур. друида (мин. 1). Ритуалы.",
+      "kind": "passive"
+    },
+    {
+      "id": "wild_shape",
+      "level": 2,
+      "name_ru": "Дикий облик",
+      "name_en": "Wild Shape",
+      "summary_ru": "Действием принят звериный облик (2× / короткий или прод. отдых). Лимиты CR/плавания/полёта по таблице. С 20 ур. — безлимит (Архидруид).",
+      "kind": "action",
+      "resource": {
+        "uses": 2,
+        "recharge": "short_rest",
+        "pool_id": "wild_shape",
+        "pool_name_ru": "Дикий облик",
+        "track": "spend"
+      },
+      "scale": {
+        "label_ru": "Лимит облика",
+        "by_level": {
+          "2": "CR 1/4, без плав./полёта",
+          "4": "CR 1/2, плавание",
+          "8": "CR 1, полёт"
+        }
+      }
+    },
+    {
+      "id": "druid_circle",
+      "level": 2,
+      "name_ru": "Круг друидов",
+      "name_en": "Druid Circle",
+      "summary_ru": "Выбери круг (Земля, Луна, …).",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_4_druid",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_8_druid",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_12_druid",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_16_druid",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "timeless_body",
+      "level": 18,
+      "name_ru": "Вневременное тело",
+      "name_en": "Timeless Body",
+      "summary_ru": "Старение замедлено в 10 раз; иммунитет к магическому старению.",
+      "kind": "passive"
+    },
+    {
+      "id": "beast_spells",
+      "level": 18,
+      "name_ru": "Звериные заклинания",
+      "name_en": "Beast Spells",
+      "summary_ru": "Можешь кастовать друидские заклинания в Диком облике (без материальных с ценой / поглощаемых).",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_19_druid",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "archdruid",
+      "level": 20,
+      "name_ru": "Архидруид",
+      "name_en": "Archdruid",
+      "summary_ru": "Дикий облик неограниченно. Игнорируешь вербальный и соматический компоненты друидских заклинаний; материальные без цены/поглощения — тоже.",
+      "kind": "passive"
+    }
+  ],
+  "subclasses": {
+    "circle_of_the_land": [
+      {
+        "id": "bonus_cantrip_land",
+        "level": 2,
+        "name_ru": "Доп. заговор",
+        "name_en": "Bonus Cantrip",
+        "summary_ru": "Один дополнительный заговор друида.",
+        "kind": "passive"
+      },
+      {
+        "id": "natural_recovery",
+        "level": 2,
+        "name_ru": "Природное восстановление",
+        "name_en": "Natural Recovery",
+        "summary_ru": "Во время короткого отдыха восстанови ячейки суммарного уровня ≤ ½ ур. друида (окр. вверх), без 6+. 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "natural_recovery",
+          "pool_name_ru": "Природное восстановление",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "circle_spells_land",
+        "level": 3,
+        "name_ru": "Заклинания круга",
+        "name_en": "Circle Spells",
+        "summary_ru": "Выбери тип земли — всегда подготовленные заклинания круга (3/5/7/9 ур.).",
+        "kind": "passive",
+        "choice": {
+          "id": "land_type",
+          "label_ru": "Земля круга",
+          "options_from": "druid_land_types"
+        }
+      },
+      {
+        "id": "lands_stride",
+        "level": 6,
+        "name_ru": "Поступь земли",
+        "name_en": "Land's Stride",
+        "summary_ru": "Нет затруднённой местности от растений; преимущество vs магических растений, затрудняющих движение.",
+        "kind": "passive"
+      },
+      {
+        "id": "natures_ward",
+        "level": 10,
+        "name_ru": "Страж природы",
+        "name_en": "Nature's Ward",
+        "summary_ru": "Иммунитет к яду и болезни; иммунитет к очарованию/страху элементалей и фей.",
+        "kind": "passive"
+      },
+      {
+        "id": "natures_sanctuary",
+        "level": 14,
+        "name_ru": "Святилище природы",
+        "name_en": "Nature's Sanctuary",
+        "summary_ru": "Звери и растения, атакующие тебя, должны пройти спас Мудр. или выбрать другую цель.",
+        "kind": "passive"
+      }
+    ],
+    "circle_of_the_moon": [
+      {
+        "id": "combat_wild_shape",
+        "level": 2,
+        "name_ru": "Боевой дикий облик",
+        "name_en": "Combat Wild Shape",
+        "summary_ru": "Дикий облик бонусным действием. В облике бонусным: потратить ячейку → 1к8 хитов за уровень ячейки.",
+        "kind": "bonus"
+      },
+      {
+        "id": "circle_forms",
+        "level": 2,
+        "name_ru": "Облики круга",
+        "name_en": "Circle Forms",
+        "summary_ru": "Лимит CR Дикого облика: CR 1 на 2 ур.; с 6 ур. CR = ⅓ уровня друида (окр. вниз).",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Макс. CR",
+          "by_level": {
+            "2": "1",
+            "6": "2",
+            "9": "3",
+            "12": "4",
+            "15": "5",
+            "18": "6"
+          }
+        }
+      },
+      {
+        "id": "primal_strike",
+        "level": 6,
+        "name_ru": "Первобытный удар",
+        "name_en": "Primal Strike",
+        "summary_ru": "Атаки зверя в Диком облике считаются магическими против сопротивления/иммунитета к немагическому.",
+        "kind": "passive"
+      },
+      {
+        "id": "elemental_wild_shape",
+        "level": 10,
+        "name_ru": "Элементальный дикий облик",
+        "name_en": "Elemental Wild Shape",
+        "summary_ru": "Потрать оба использования Дикого облика → воздушный, земляной, огненный или водный элементаль.",
+        "kind": "action"
+      },
+      {
+        "id": "thousand_forms",
+        "level": 14,
+        "name_ru": "Тысяча обликов",
+        "name_en": "Thousand Forms",
+        "summary_ru": "Кастуй alter self по желанию без ячейки и компонентов.",
+        "kind": "passive"
+      }
+    ],
+    "circle_of_dreams": [
+      {
+        "id": "balm_of_the_summer_court",
+        "level": 2,
+        "name_ru": "Бальзам Летнего Двора",
+        "name_en": "Balm of the Summer Court",
+        "summary_ru": "Пул костей d6 = бонус мастерства. Бонусным: существо в 120 фт. тратит кости → хиты + снятие 1 уровня истощения за кость. Сброс на прод. отдыхе.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "balm_of_the_summer_court",
+          "pool_name_ru": "Бальзам Летнего Двора",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "hearth_of_moonlight_and_shadow",
+        "level": 6,
+        "name_ru": "Очаг лунного света и тени",
+        "name_en": "Hearth of Moonlight and Shadow",
+        "summary_ru": "На отдыхе: сфера 30 фт. — +5 к спас/проверкам Скрытности; свет снаружи не проникает.",
+        "kind": "passive"
+      },
+      {
+        "id": "hidden_paths",
+        "level": 10,
+        "name_ru": "Скрытые тропы",
+        "name_en": "Hidden Paths",
+        "summary_ru": "Бонусным: телепорт себя 60 фт. или согласного в 30 → 30 фт. Число = мод. Мудр. / прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "wis",
+          "recharge": "long_rest",
+          "pool_id": "hidden_paths",
+          "pool_name_ru": "Скрытые тропы",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "walker_in_dreams",
+        "level": 14,
+        "name_ru": "Странник снов",
+        "name_en": "Walker in Dreams",
+        "summary_ru": "Раз / прод. отдых: бесплатный dreaming / scrying / teleportation circle (домой) после короткого отдыха ≥10 мин. (см. XGtE).",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "walker_in_dreams",
+          "pool_name_ru": "Странник снов",
+          "track": "spend"
+        }
+      }
+    ],
+    "circle_of_the_shepherd": [
+      {
+        "id": "speech_of_the_woods",
+        "level": 2,
+        "name_ru": "Речь лесов",
+        "name_en": "Speech of the Woods",
+        "summary_ru": "Язык Сильван; через speak with animals — звери могут отвечать (ограниченно).",
+        "kind": "passive"
+      },
+      {
+        "id": "spirit_totem",
+        "level": 2,
+        "name_ru": "Дух-тотем",
+        "name_en": "Spirit Totem",
+        "summary_ru": "Бонусным: призвать дух (Медведь/Ястреб/Единорог) на 1 мин. в 60 фт. 1× / короткий или прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "spirit_totem",
+          "pool_name_ru": "Дух-тотем",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "mighty_summoner",
+        "level": 6,
+        "name_ru": "Могучий призыватель",
+        "name_en": "Mighty Summoner",
+        "summary_ru": "Призванные звери/феи: +2 хита/кд хитов; атаки считаются магическими.",
+        "kind": "passive"
+      },
+      {
+        "id": "guardian_spirit",
+        "level": 10,
+        "name_ru": "Дух-страж",
+        "name_en": "Guardian Spirit",
+        "summary_ru": "Пока тотем активен: упавшие призванные звери/феи в ауре в начале хода получают хиты = ½ ур. друида.",
+        "kind": "passive"
+      },
+      {
+        "id": "faithful_summons",
+        "level": 14,
+        "name_ru": "Верные призывы",
+        "name_en": "Faithful Summons",
+        "summary_ru": "При 0 хитов или недееспособности: conjure animals (4× CR 2) на 1 ч. без концентрации. 1× / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "faithful_summons",
+          "pool_name_ru": "Верные призывы",
+          "track": "spend"
+        }
+      }
+    ],
+    "circle_of_spores": [
+      {
+        "id": "circle_spells_spores",
+        "level": 2,
+        "name_ru": "Заклинания круга",
+        "name_en": "Circle Spells",
+        "summary_ru": "Всегда подготовлены: chill touch + список спор (2/3/5/7/9).",
+        "kind": "passive"
+      },
+      {
+        "id": "halo_of_spores",
+        "level": 2,
+        "name_ru": "Ореол спор",
+        "name_en": "Halo of Spores",
+        "summary_ru": "Реакция: существо в 10 фт. начинает ход — некротический урон (1к4 → 1к6@6 → 1к8@10 → 1к10@14), спас Тел. пол.",
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Урон",
+          "by_level": {
+            "2": "1к4",
+            "6": "1к6",
+            "10": "1к8",
+            "14": "1к10"
+          }
+        }
+      },
+      {
+        "id": "symbiotic_entity",
+        "level": 2,
+        "name_ru": "Симбиотическая сущность",
+        "name_en": "Symbiotic Entity",
+        "summary_ru": "Действием: потрать 1 Дикий облик — 10 мин. вр. хиты = 4×ур. друида; удвоенный Halo; к оружию ближ. +1к6 некротического.",
+        "kind": "action"
+      },
+      {
+        "id": "fungal_infestation",
+        "level": 6,
+        "name_ru": "Грибковое заражение",
+        "name_en": "Fungal Infestation",
+        "summary_ru": "Реакция: гуманоид ≤10 фт. умирает — подними как зомби на 1 ч. Число = мод. Мудр. / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "wis",
+          "recharge": "long_rest",
+          "pool_id": "fungal_infestation",
+          "pool_name_ru": "Грибковое заражение",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "spreading_spores",
+        "level": 10,
+        "name_ru": "Распространяющиеся споры",
+        "name_en": "Spreading Spores",
+        "summary_ru": "В Symbiotic Entity бонусным: куб 10 фт. в 30 фт. — урон Halo в начале хода в зоне (без реакции Halo).",
+        "kind": "bonus"
+      },
+      {
+        "id": "fungal_body",
+        "level": 14,
+        "name_ru": "Грибковое тело",
+        "name_en": "Fungal Body",
+        "summary_ru": "Нельзя ослепить/оглушить/испугать/отравить; крит. попадание по тебе — обычное, пока есть ≥1 хит.",
+        "kind": "passive"
+      }
+    ],
+    "circle_of_stars": [
+      {
+        "id": "star_map",
+        "level": 2,
+        "name_ru": "Звёздная карта",
+        "name_en": "Star Map",
+        "summary_ru": "Фокус заклинаний; бесплатный guidance; выучи constellations (guiding bolt 2× / прод. без ячейки — см. TCoE).",
+        "kind": "action",
+        "resource": {
+          "uses": 2,
+          "recharge": "long_rest",
+          "pool_id": "star_map_guiding_bolt",
+          "pool_name_ru": "Guiding Bolt (карта)",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "starry_form",
+        "level": 2,
+        "name_ru": "Звёздная форма",
+        "name_en": "Starry Form",
+        "summary_ru": "Бонусным: потрать Дикий облик → форма Лучника/Чаши/Дракона на 10 мин.",
+        "kind": "bonus"
+      },
+      {
+        "id": "cosmic_omen",
+        "level": 6,
+        "name_ru": "Космическое знамение",
+        "name_en": "Cosmic Omen",
+        "summary_ru": "После продолжительного отдыха брось d6: чёт — Weal, нечёт — Woe. Реакция PB раз: бонус/штраф 1к6 к броску в 30 фт.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "cosmic_omen",
+          "pool_name_ru": "Космическое знамение",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "twinkling_constellations",
+        "level": 10,
+        "name_ru": "Мерцающие созвездия",
+        "name_en": "Twinkling Constellations",
+        "summary_ru": "Улучшенные созвездия; в конце хода можешь сменить созвездие.",
+        "kind": "passive"
+      },
+      {
+        "id": "full_of_stars",
+        "level": 14,
+        "name_ru": "Полон звёзд",
+        "name_en": "Full of Stars",
+        "summary_ru": "В Звёздной форме: сопротивление дробящему/колющему/рубящему.",
+        "kind": "passive"
+      }
+    ],
+    "circle_of_wildfire": [
+      {
+        "id": "circle_spells_wildfire",
+        "level": 2,
+        "name_ru": "Заклинания круга",
+        "name_en": "Circle Spells",
+        "summary_ru": "Всегда подготовлены заклинания дикого огня (2/3/5/7/9).",
+        "kind": "passive"
+      },
+      {
+        "id": "summon_wildfire_spirit",
+        "level": 2,
+        "name_ru": "Призыв духа дикого огня",
+        "name_en": "Summon Wildfire Spirit",
+        "summary_ru": "Действием: потрать Дикий облик — призвать духа на 1 ч. (см. TCoE).",
+        "kind": "action"
+      },
+      {
+        "id": "enhanced_bond",
+        "level": 6,
+        "name_ru": "Усиленная связь",
+        "name_en": "Enhanced Bond",
+        "summary_ru": "Пока дух рядом: к урону/лечению огнём или друидским заклинанием +1к8; каст через пространство духа.",
+        "kind": "passive"
+      },
+      {
+        "id": "cauterizing_flames",
+        "level": 10,
+        "name_ru": "Прижигающее пламя",
+        "name_en": "Cauterizing Flames",
+        "summary_ru": "Когда существо ≤30 фт. от тебя/духа умирает: отметь пространство. Союзник/враг в зоне — лечение или огонь 2к10+Мудр. PB раз / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "cauterizing_flames",
+          "pool_name_ru": "Прижигающее пламя",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "blazing_revival",
+        "level": 14,
+        "name_ru": "Пылающее возрождение",
+        "name_en": "Blazing Revival",
+        "summary_ru": "Если дух в 120 фт. и ты падаешь на 0: дух уничтожается, ты на ½ хитов. 1× / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "blazing_revival",
+          "pool_name_ru": "Пылающее возрождение",
+          "track": "spend"
+        }
+      }
+    ]
+  }
+}

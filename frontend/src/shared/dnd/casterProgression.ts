@@ -9,7 +9,14 @@ import {
   type SpellcastingAbility,
 } from './spells'
 
-export type CasterProgression = 'full' | 'half' | 'half_up' | 'pact' | 'none'
+export type CasterProgression = 'full' | 'half' | 'half_up' | 'third' | 'pact' | 'none'
+
+/** Subclass overlays that unlock caster math (EK / Arcane Trickster). */
+export type SubclassCasterOverlay = {
+  classEntryId: string
+  progression: 'third'
+  ability: SpellcastingAbility | null
+}
 
 export type ClassCasterDef = {
   slug: string
@@ -119,6 +126,47 @@ function halfCasterRow(level: number): number[] | null {
 function halfUpCasterRow(level: number): number[] | null {
   const lv = clampLevel(level)
   return fullCasterRow(Math.ceil(lv / 2))
+}
+
+/**
+ * Eldritch Knight / Arcane Trickster slot table by class level (PHB).
+ * Levels 1–2: no slots (subclass not yet chosen).
+ */
+const THIRD_CASTER_SLOTS: number[][] = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [2, 0, 0, 0, 0, 0, 0, 0, 0],
+  [3, 0, 0, 0, 0, 0, 0, 0, 0],
+  [3, 0, 0, 0, 0, 0, 0, 0, 0],
+  [3, 0, 0, 0, 0, 0, 0, 0, 0],
+  [4, 2, 0, 0, 0, 0, 0, 0, 0],
+  [4, 2, 0, 0, 0, 0, 0, 0, 0],
+  [4, 2, 0, 0, 0, 0, 0, 0, 0],
+  [4, 2, 0, 0, 0, 0, 0, 0, 0],
+  [4, 3, 0, 0, 0, 0, 0, 0, 0],
+  [4, 3, 0, 0, 0, 0, 0, 0, 0],
+  [4, 3, 0, 0, 0, 0, 0, 0, 0],
+  [4, 3, 0, 0, 0, 0, 0, 0, 0],
+  [4, 3, 2, 0, 0, 0, 0, 0, 0],
+  [4, 3, 2, 0, 0, 0, 0, 0, 0],
+  [4, 3, 3, 0, 0, 0, 0, 0, 0],
+  [4, 3, 3, 0, 0, 0, 0, 0, 0],
+  [4, 3, 3, 1, 0, 0, 0, 0, 0],
+  [4, 3, 3, 1, 0, 0, 0, 0, 0],
+]
+
+function thirdCasterRow(level: number): number[] | null {
+  const lv = clampLevel(level)
+  const row = THIRD_CASTER_SLOTS[lv - 1]
+  if (!row || row.every((n) => n === 0)) return null
+  return row
+}
+
+function overlayForClass(
+  overlays: SubclassCasterOverlay[] | undefined,
+  classEntryId: string,
+): SubclassCasterOverlay | undefined {
+  return overlays?.find((row) => row.classEntryId === classEntryId)
 }
 
 export function warlockPactForLevel(level: number): PactSlotState {
@@ -266,12 +314,20 @@ export function prepareLimitFromClass(input: {
 }
 
 /** PHB multiclass spellcaster level (warlock pact is separate). */
-export function multiclassCasterLevel(classes: ClassLevelEntry[]): number {
+export function multiclassCasterLevel(
+  classes: ClassLevelEntry[],
+  subclassCasters?: SubclassCasterOverlay[],
+): number {
   let total = 0
   for (const row of classes) {
+    const lv = Math.max(0, Math.floor(row.level))
+    const overlay = overlayForClass(subclassCasters, row.id)
+    if (overlay?.progression === 'third') {
+      total += Math.floor(lv / 3)
+      continue
+    }
     const def = classCasterDef(resolveClassCasterSlug(row.name))
     if (!def) continue
-    const lv = Math.max(0, Math.floor(row.level))
     if (def.progression === 'full') total += lv
     else if (def.progression === 'half') total += Math.floor(lv / 2)
     else if (def.progression === 'half_up') total += Math.ceil(lv / 2)
@@ -291,11 +347,13 @@ export function suggestSpellcasting(input: {
   level: number
   abilityModFor: (ability: SpellcastingAbility) => number
   classes?: ClassLevelEntry[]
+  subclassCasters?: SubclassCasterOverlay[]
 }): SpellcastingSuggestion | null {
   if (input.classes && input.classes.length > 0) {
     return suggestSpellcastingFromClasses({
       classes: input.classes,
       abilityModFor: input.abilityModFor,
+      subclassCasters: input.subclassCasters,
     })
   }
 
@@ -339,12 +397,38 @@ export function suggestSpellcasting(input: {
 export function suggestSpellcastingFromClasses(input: {
   classes: ClassLevelEntry[]
   abilityModFor: (ability: SpellcastingAbility) => number
+  subclassCasters?: SubclassCasterOverlay[]
 }): SpellcastingSuggestion | null {
   const classes = input.classes.filter((row) => row.name.trim() && row.level > 0)
   if (classes.length === 0) return null
 
-  const casterLvl = multiclassCasterLevel(classes)
+  const overlays = input.subclassCasters ?? []
   const warlockLvl = warlockLevels(classes)
+
+  // Pure third-caster (only EK/AT, no other slot casters): use PHB subclass table.
+  const onlyThird =
+    classes.length === 1 &&
+    overlayForClass(overlays, classes[0].id)?.progression === 'third' &&
+    warlockLvl <= 0 &&
+    classCasterDef(resolveClassCasterSlug(classes[0].name))?.progression === 'none'
+
+  if (onlyThird) {
+    const row = classes[0]
+    const overlay = overlayForClass(overlays, row.id)!
+    const level = clampLevel(row.level)
+    const ability = overlay.ability
+    return {
+      slug: resolveClassCasterSlug(row.name) ?? 'third',
+      labelRu: `${row.name.trim()} (⅓ заклинатель)`,
+      progression: 'third',
+      casting_ability: ability,
+      max_prepared: null,
+      slots: slotsFromRow(thirdCasterRow(level)),
+      pact_slots: null,
+    }
+  }
+
+  const casterLvl = multiclassCasterLevel(classes, overlays)
   const slots =
     casterLvl > 0 ? slotsFromRow(fullCasterRow(casterLvl)) : emptySlots()
   const pact_slots = warlockLvl > 0 ? warlockPactForLevel(warlockLvl) : null
@@ -359,6 +443,12 @@ export function suggestSpellcastingFromClasses(input: {
   else if (warlockLvl > 0) progression = 'pact'
 
   for (const row of classes) {
+    const overlay = overlayForClass(overlays, row.id)
+    if (overlay?.ability && !casting_ability) {
+      casting_ability = overlay.ability
+      slug = resolveClassCasterSlug(row.name) ?? slug
+      labelRu = `${row.name.trim()} (⅓)`
+    }
     const def = classCasterDef(resolveClassCasterSlug(row.name))
     if (!def?.ability) continue
     if (!casting_ability) {
@@ -380,13 +470,20 @@ export function suggestSpellcastingFromClasses(input: {
     }
   }
 
-  if (casterLvl <= 0 && warlockLvl <= 0 && !classes.some((row) => classCasterDef(resolveClassCasterSlug(row.name)))) {
+  const hasClassDef = classes.some((row) =>
+    classCasterDef(resolveClassCasterSlug(row.name)),
+  )
+  const hasThird = overlays.some((row) => row.progression === 'third')
+  if (casterLvl <= 0 && warlockLvl <= 0 && !hasClassDef && !hasThird) {
     return null
   }
 
   return {
     slug,
-    labelRu: classes.length > 1 ? `Мультикласс (${casterLvl || '—'}/${warlockLvl || '—'})` : labelRu,
+    labelRu:
+      classes.length > 1
+        ? `Мультикласс (${casterLvl || '—'}/${warlockLvl || '—'})`
+        : labelRu,
     progression,
     casting_ability,
     max_prepared,

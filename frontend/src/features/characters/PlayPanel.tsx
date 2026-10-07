@@ -24,6 +24,10 @@ import {
   clampExhaustion,
 } from '../../shared/dnd/rest'
 import {
+  grantStockOnLongRestIfEmpty,
+  type DesiredFeatureResource,
+} from '../../shared/dnd/featureResources'
+import {
   listCatalogEntries,
   type CatalogEntry,
 } from '../../shared/api/catalog'
@@ -57,6 +61,8 @@ type PlayPanelProps = {
   constitutionMod: number
   play: PlayState
   spells: SpellsState
+  /** Feature pools (Wails, soul trinkets…) — synced from class features; not edited here. */
+  featureDesiredResources?: DesiredFeatureResource[]
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
@@ -104,6 +110,7 @@ export function PlayPanel({
   constitutionMod,
   play,
   spells,
+  featureDesiredResources = [],
   onPlayChange,
   onSpellsChange,
   onCombatChange,
@@ -299,9 +306,13 @@ export function PlayPanel({
       hit_dice_current: play.hitDiceCurrent,
       hit_dice_max: hitDiceMax,
     })
+    const resources = grantStockOnLongRestIfEmpty(
+      result.resources,
+      featureDesiredResources,
+    )
     onPlayChange({
       ...play,
-      resources: result.resources,
+      resources,
       exhaustion: result.exhaustion ?? play.exhaustion,
       hpTemp: result.hp_temp ?? 0,
       hitDiceCurrent: result.hit_dice_current ?? play.hitDiceCurrent,
@@ -565,6 +576,12 @@ export function PlayPanel({
               Сброс коротких ресурсов
             </Button>
           </div>
+          {featureDesiredResources.length > 0 ? (
+            <Text tone="muted">
+              Классовые пулы ({featureDesiredResources.length}) сбрасываются здесь вместе с
+              отдыхом; управление — в блоке умений класса.
+            </Text>
+          ) : null}
         </div>
       </Stack>
     </Panel>

@@ -1,0 +1,679 @@
+{
+  "meta": {
+    "purpose": "PHB 2014 Rogue + all official archetypes",
+    "edition": "2014",
+    "source": "phb+xgte+scag+tcoe",
+    "notes_ru": "Все 9 оф. архетипов. Phantom/Soulknife уже с пулами. Swashbuckler/Inquisitive/Scout/Mastermind — донабор."
+  },
+  "class_slug": "rogue",
+  "features": [
+    {
+      "id": "expertise_1",
+      "level": 1,
+      "name_ru": "Компетентность",
+      "name_en": "Expertise",
+      "summary_ru": "Выбери 2 владения навыками/воровскими инструментами — удвой бонус мастерства.",
+      "kind": "passive"
+    },
+    {
+      "id": "sneak_attack",
+      "level": 1,
+      "name_ru": "Скрытая атака",
+      "name_en": "Sneak Attack",
+      "summary_ru": "Раз в ход доп. урон атакой с преимуществом или если союзник в 5 фт. от цели (без помехи).",
+      "kind": "passive",
+      "scale": {
+        "label_ru": "Урон",
+        "by_level": {
+          "1": "1к6",
+          "3": "2к6",
+          "5": "3к6",
+          "7": "4к6",
+          "9": "5к6",
+          "11": "6к6",
+          "13": "7к6",
+          "15": "8к6",
+          "17": "9к6",
+          "19": "10к6"
+        }
+      }
+    },
+    {
+      "id": "thieves_cant",
+      "level": 1,
+      "name_ru": "Воровской жаргон",
+      "name_en": "Thieves' Cant",
+      "summary_ru": "Тайный язык и знаки. Дополнительно выучи один язык.",
+      "kind": "passive"
+    },
+    {
+      "id": "cunning_action",
+      "level": 2,
+      "name_ru": "Хитрое действие",
+      "name_en": "Cunning Action",
+      "summary_ru": "Бонусным действием: Рывок, Отход или Засада.",
+      "kind": "bonus"
+    },
+    {
+      "id": "roguish_archetype",
+      "level": 3,
+      "name_ru": "Архетип плута",
+      "name_en": "Roguish Archetype",
+      "summary_ru": "Выбери архетип (Вор / Убийца / Мистический ловкач).",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_4",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "uncanny_dodge",
+      "level": 5,
+      "name_ru": "Невероятное уклонение",
+      "name_en": "Uncanny Dodge",
+      "summary_ru": "Реакция: когда тебя попаданием бьют и ты видишь атакующего — урон пополам.",
+      "kind": "reaction"
+    },
+    {
+      "id": "expertise_6",
+      "level": 6,
+      "name_ru": "Компетентность",
+      "name_en": "Expertise",
+      "summary_ru": "Ещё 2 навыка/воровские инструменты с удвоенным мастерством.",
+      "kind": "passive"
+    },
+    {
+      "id": "evasion",
+      "level": 7,
+      "name_ru": "Увёртливость",
+      "name_en": "Evasion",
+      "summary_ru": "От эффектов со спасброском Ловкости на половину урона: успех = 0, провал = половина.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_8",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 / +1+1 или черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "reliable_talent",
+      "level": 11,
+      "name_ru": "Надёжный талант",
+      "name_en": "Reliable Talent",
+      "summary_ru": "В проверках навыков с владением d20 ниже 10 считается как 10.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_12",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 / +1+1 или черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "blindsense",
+      "level": 14,
+      "name_ru": "Чутьё слепца",
+      "name_en": "Blindsense",
+      "summary_ru": "Если слышишь — знаешь расположение скрытых/невидимых существ в 10 фт.",
+      "kind": "passive"
+    },
+    {
+      "id": "slippery_mind",
+      "level": 15,
+      "name_ru": "Скользкий ум",
+      "name_en": "Slippery Mind",
+      "summary_ru": "Владение спасбросками Мудрости.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_16",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 / +1+1 или черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "elusive",
+      "level": 18,
+      "name_ru": "Неуловимость",
+      "name_en": "Elusive",
+      "summary_ru": "Пока не недееспособен — по тебе нет бросков атаки с преимуществом.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_19",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 / +1+1 или черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "stroke_of_luck",
+      "level": 20,
+      "name_ru": "Удача",
+      "name_en": "Stroke of Luck",
+      "summary_ru": "Промах атаки → попадание; или провал проверки → 20. Восстанавливается на коротком/длинном отдыхе.",
+      "kind": "resource",
+      "resource": {
+        "uses": 1,
+        "recharge": "short_rest"
+      }
+    }
+  ],
+  "subclasses": {
+    "thief": [
+      {
+        "id": "fast_hands",
+        "level": 3,
+        "name_ru": "Быстрые руки",
+        "name_en": "Fast Hands",
+        "summary_ru": "Бонусным: Use an Object; ловкость рук (карманная кража, обезоруживание ловушек, вскрытие замков), Use Object.",
+        "kind": "bonus"
+      },
+      {
+        "id": "second_story_work",
+        "level": 3,
+        "name_ru": "Работа на высоте",
+        "name_en": "Second-Story Work",
+        "summary_ru": "Лазание без доп. стоимости движения; разбег для прыжка +мод. Ловк. (футы).",
+        "kind": "passive"
+      },
+      {
+        "id": "supreme_sneak",
+        "level": 9,
+        "name_ru": "Превосходная скрытность",
+        "name_en": "Supreme Sneak",
+        "summary_ru": "При движении ≤½ скорости: преимущество на Скрытность.",
+        "kind": "passive"
+      },
+      {
+        "id": "use_magic_device",
+        "level": 13,
+        "name_ru": "Использование магических устройств",
+        "name_en": "Use Magic Device",
+        "summary_ru": "Игнорируй требования класса/расы/уровня для использования магических предметов.",
+        "kind": "passive"
+      },
+      {
+        "id": "thiefs_reflexes",
+        "level": 17,
+        "name_ru": "Рефлексы вора",
+        "name_en": "Thief's Reflexes",
+        "summary_ru": "В первый раунд боя два хода: обычная инициатива и инициатива −10 (не при удивлении).",
+        "kind": "passive"
+      }
+    ],
+    "assassin": [
+      {
+        "id": "bonus_proficiencies_assassin",
+        "level": 3,
+        "name_ru": "Доп. владения",
+        "name_en": "Bonus Proficiencies",
+        "summary_ru": "Набор для грима и набор отравителя.",
+        "kind": "passive"
+      },
+      {
+        "id": "assassinate",
+        "level": 3,
+        "name_ru": "Убийство",
+        "name_en": "Assassinate",
+        "summary_ru": "Преимущество на атаки по существам, ещё не ходившим в бою. Любое попадание по застигнутому врасплох — крит.",
+        "kind": "passive"
+      },
+      {
+        "id": "infiltration_expertise",
+        "level": 9,
+        "name_ru": "Мастерство внедрения",
+        "name_en": "Infiltration Expertise",
+        "summary_ru": "За 7 дней и 25 зм создать ложную личность с документами и знакомствами.",
+        "kind": "passive"
+      },
+      {
+        "id": "impostor",
+        "level": 13,
+        "name_ru": "Самозванец",
+        "name_en": "Impostor",
+        "summary_ru": "После 3 ч изучения человека копируешь речь/письмо/манеры; преимущество на Обман для выдачи себя за него.",
+        "kind": "passive"
+      },
+      {
+        "id": "death_strike",
+        "level": 17,
+        "name_ru": "Смертельный удар",
+        "name_en": "Death Strike",
+        "summary_ru": "При попадании по застигнутому врасплох: спас Тел. Сл заклинаний или удвоенный урон атаки.",
+        "kind": "passive"
+      }
+    ],
+    "arcane_trickster": [
+      {
+        "id": "spellcasting_at",
+        "level": 3,
+        "name_ru": "Использование заклинаний",
+        "name_en": "Spellcasting",
+        "summary_ru": "Заклинания волшебника (⅓ кастер). Int — базовая характеристика. Mage Hand бесплатно.",
+        "kind": "passive"
+      },
+      {
+        "id": "mage_hand_legerdemain",
+        "level": 3,
+        "name_ru": "Ловкость волшебной руки",
+        "name_en": "Mage Hand Legerdemain",
+        "summary_ru": "Невидимая Mage Hand; бонусным действием управление; карманные кражи/отмычки на расстоянии.",
+        "kind": "bonus"
+      },
+      {
+        "id": "magical_ambush",
+        "level": 9,
+        "name_ru": "Магическая засада",
+        "name_en": "Magical Ambush",
+        "summary_ru": "Если скрыт от цели при наложении заклинания — у цели помеха на спасбросок.",
+        "kind": "passive"
+      },
+      {
+        "id": "versatile_trickster",
+        "level": 13,
+        "name_ru": "Универсальный ловкач",
+        "name_en": "Versatile Trickster",
+        "summary_ru": "Бонусным действием направь Mage Hand: до конца хода преимущество на атаки по существу в 5 фт. от руки.",
+        "kind": "bonus"
+      },
+      {
+        "id": "spell_thief",
+        "level": 17,
+        "name_ru": "Похититель заклинаний",
+        "name_en": "Spell Thief",
+        "summary_ru": "Реакция на заклинание по тебе: спас Int цели; при успехе — заклинание не действует и ты можешь читать его 8 ч.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "spell_thief",
+          "pool_name_ru": "Похититель заклинаний",
+          "track": "spend"
+        }
+      }
+    ],
+    "phantom": [
+      {
+        "id": "whispers_of_the_dead",
+        "level": 3,
+        "name_ru": "Шёпот мёртвых",
+        "name_en": "Whispers of the Dead",
+        "summary_ru": "После короткого/продолжительного отдыха получи одно владение навыком или инструментом до следующего такого отдыха.",
+        "kind": "passive"
+      },
+      {
+        "id": "wails_from_the_grave",
+        "level": 3,
+        "name_ru": "Могильные вопли",
+        "name_en": "Wails from the Grave",
+        "summary_ru": "После Скрытой атаки: некротический урон второй цели в 30 фт. (половина костей СА, вверх). Использований = бонус мастерства / прод. отдых. С 9 ур. можно сжечь частицу души вместо использования.",
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Урон вопля",
+          "by_level": {
+            "3": "1к6",
+            "5": "2к6",
+            "7": "2к6",
+            "9": "3к6",
+            "11": "3к6",
+            "13": "4к6",
+            "15": "4к6",
+            "17": "5к6",
+            "19": "5к6"
+          }
+        },
+        "resource": {
+          "uses": 0,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "wails_from_the_grave",
+          "pool_name_ru": "Могильные вопли",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "soul_trinkets",
+            "label_ru": "сжечь частицу души"
+          }
+        }
+      },
+      {
+        "id": "tokens_of_the_departed",
+        "level": 9,
+        "name_ru": "Частица души усопшего",
+        "name_en": "Tokens of the Departed",
+        "summary_ru": "Реакция, когда существо умирает в 30 фт.: частица души (макс. = бонус мастерства). Пока есть частица — преимущество на спасброски от смерти и Телосложения. Можно сжечь частицу: бесплатный Могильный вопль после СА, или действием задать духу вопрос.",
+        "kind": "resource",
+        "resource": {
+          "uses": 0,
+          "uses_from": "proficiency_bonus",
+          "recharge": "manual",
+          "pool_id": "soul_trinkets",
+          "pool_name_ru": "Частицы души",
+          "track": "stock",
+          "stock_gain_label_ru": "+ частица (смерть рядом)",
+          "stock_spend_label_ru": "Сжечь частицу"
+        }
+      },
+      {
+        "id": "ghost_walk",
+        "level": 13,
+        "name_ru": "Призрачная походка",
+        "name_en": "Ghost Walk",
+        "summary_ru": "Бонусным действием: частичная бестелесность (10 фт. полёт, проход сквозь существ/предметы как труднопроходимая; в конце хода в занятой клетке — 1к10 силового). 1× / короткий или продолжительный отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "ghost_walk",
+          "pool_name_ru": "Призрачная походка",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "deaths_friend",
+        "level": 17,
+        "name_ru": "Друг смерти",
+        "name_en": "Death's Friend",
+        "summary_ru": "Могильные вопли бьют и первую, и вторую цель. Если после продолжительного отдыха у тебя 0 частиц души — появляется одна.",
+        "kind": "passive",
+        "resource": {
+          "uses": 0,
+          "uses_from": "proficiency_bonus",
+          "recharge": "manual",
+          "pool_id": "soul_trinkets",
+          "pool_name_ru": "Частицы души",
+          "track": "stock",
+          "grant_stock_on_long_rest_if_empty": true,
+          "stock_gain_label_ru": "+ частица (смерть рядом)",
+          "stock_spend_label_ru": "Сжечь частицу"
+        }
+      }
+    ],
+    "soulknife": [
+      {
+        "id": "psionic_power",
+        "level": 3,
+        "name_ru": "Псионическая сила",
+        "name_en": "Psionic Power",
+        "summary_ru": "Пси-кости: число = 2× бонус мастерства. Все восстанавливаются на прод. отдыхе. Бонусным действием можно вернуть 1 кость (1× до короткого/продолжительного).",
+        "kind": "resource",
+        "scale": {
+          "label_ru": "Кость",
+          "by_level": {
+            "3": "к6",
+            "5": "к8",
+            "11": "к10",
+            "17": "к12"
+          }
+        },
+        "resource": {
+          "uses": 0,
+          "uses_from": "twice_proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "psionic_energy_dice",
+          "pool_name_ru": "Пси-кости",
+          "track": "spend",
+          "recover_one": {
+            "label_ru": "Вернуть 1 кость (бонусное)",
+            "recharge": "short_rest"
+          }
+        }
+      },
+      {
+        "id": "psychic_blades",
+        "level": 3,
+        "name_ru": "Психические клинки",
+        "name_en": "Psychic Blades",
+        "summary_ru": "Бонусным действием проявить простой клинок (магический, фехтовальный, лёгкий). Урон — психический. Можно метнуть (30/60).",
+        "kind": "bonus"
+      },
+      {
+        "id": "soul_blades",
+        "level": 9,
+        "name_ru": "Клинки души",
+        "name_en": "Soul Blades",
+        "summary_ru": "Homings Strikes / Psychic Teleportation за пси-кость (см. TCoE).",
+        "kind": "passive"
+      },
+      {
+        "id": "psychic_veil",
+        "level": 13,
+        "name_ru": "Психическая завеса",
+        "name_en": "Psychic Veil",
+        "summary_ru": "Действием: невидимость 1 час (или до атаки/заклинания). 1× / прод. отдых; можно потратить пси-кость, чтобы использовать снова.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "psychic_veil",
+          "pool_name_ru": "Психическая завеса",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "psionic_energy_dice",
+            "label_ru": "потратить пси-кость",
+            "mode": "spend"
+          }
+        }
+      },
+      {
+        "id": "rend_mind",
+        "level": 17,
+        "name_ru": "Разрыв разума",
+        "name_en": "Rend Mind",
+        "summary_ru": "При СА психическим клинком: цель спас Мудрости или оглушена на 1 мин. 1× / прод. отдых; повтор — за 3 пси-кости.",
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "rend_mind",
+          "pool_name_ru": "Разрыв разума",
+          "track": "spend"
+        }
+      }
+    ],
+    "mastermind": [
+      {
+        "id": "master_of_intrigue",
+        "level": 3,
+        "name_ru": "Мастер интриг",
+        "name_en": "Master of Intrigue",
+        "summary_ru": "Владение набором игрока, маскировки и подделки; два языка. Можешь копировать акцент после 1 минуты слушания.",
+        "kind": "passive"
+      },
+      {
+        "id": "master_of_tactics",
+        "level": 3,
+        "name_ru": "Мастер тактики",
+        "name_en": "Master of Tactics",
+        "summary_ru": "Help бонусным; дальность Help для атаки — 30 фт.",
+        "kind": "bonus"
+      },
+      {
+        "id": "insightful_manipulator",
+        "level": 9,
+        "name_ru": "Проницательный манипулятор",
+        "name_en": "Insightful Manipulator",
+        "summary_ru": "После 1 минуты наблюдения за существом вне боя узнаёшь, выше/ниже/равны ли его Инт, Мудр., Хар. или уровень класса относительно тебя (на выбор МИ — два факта).",
+        "kind": "passive"
+      },
+      {
+        "id": "misdirection",
+        "level": 13,
+        "name_ru": "Отвод внимания",
+        "name_en": "Misdirection",
+        "summary_ru": "Реакция: когда по тебе попадают атакой, пока существо в 5 фт. от тебя — атака попадает в это существо вместо тебя (если атакующий видит его).",
+        "kind": "reaction"
+      },
+      {
+        "id": "soul_of_deceit",
+        "level": 17,
+        "name_ru": "Душа обмана",
+        "name_en": "Soul of Deceit",
+        "summary_ru": "Чтение мыслей/телепатия показывают только то, что ты разрешишь; преимущество на спас vs зондов истины; можешь выдавать ложные мысли при чтении.",
+        "kind": "passive"
+      }
+    ],
+    "swashbuckler": [
+      {
+        "id": "fancy_footwork",
+        "level": 3,
+        "name_ru": "Лихая работа ног",
+        "name_en": "Fancy Footwork",
+        "summary_ru": "Если в свой ход атаковал существо рукопашным — оно не получает провоцированных атак от тебя до конца хода.",
+        "kind": "passive"
+      },
+      {
+        "id": "rakish_audacity",
+        "level": 3,
+        "name_ru": "Лихая дерзость",
+        "name_en": "Rakish Audacity",
+        "summary_ru": "+мод. Хар. к инициативе. Скрытая атака 1v1: нет союзников в 5 фт. от цели и ты не в помехе.",
+        "kind": "passive"
+      },
+      {
+        "id": "panache",
+        "level": 9,
+        "name_ru": "Лоск",
+        "name_en": "Panache",
+        "summary_ru": "Действием: проверка Харизмы (Убеждение/Обман) vs Проницательность. Враг: помеха атаковать других + не провоцирует тебя. Друг: очарован 1 мин.",
+        "kind": "action"
+      },
+      {
+        "id": "elegant_maneuver",
+        "level": 13,
+        "name_ru": "Изящный манёвр",
+        "name_en": "Elegant Maneuver",
+        "summary_ru": "Бонусным: преимущество на след. проверку Акробатики или Атлетики в этом ходу.",
+        "kind": "bonus"
+      },
+      {
+        "id": "master_duelist",
+        "level": 17,
+        "name_ru": "Мастер дуэлянт",
+        "name_en": "Master Duelist",
+        "summary_ru": "При промахе атакой: перебросить с преимуществом. 1× / короткий или прод. отдых.",
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "master_duelist",
+          "pool_name_ru": "Мастер дуэлянт",
+          "track": "spend"
+        }
+      }
+    ],
+    "inquisitive": [
+      {
+        "id": "ear_for_deceit",
+        "level": 3,
+        "name_ru": "Чутьё на обман",
+        "name_en": "Ear for Deceit",
+        "summary_ru": "При проверке Проницательности для выявления лжи результат d20 ≤ 7 считается 8.",
+        "kind": "passive"
+      },
+      {
+        "id": "eye_for_detail",
+        "level": 3,
+        "name_ru": "Глаз на детали",
+        "name_en": "Eye for Detail",
+        "summary_ru": "Бонусным действием: проверка Восприятия для поиска скрытого или Анализ (Investigation) для изучения детали.",
+        "kind": "bonus"
+      },
+      {
+        "id": "insightful_fighting",
+        "level": 3,
+        "name_ru": "Проницательный бой",
+        "name_en": "Insightful Fighting",
+        "summary_ru": "Бонусным: Проницательность vs Обман существа — при успехе можешь использовать Скрытую атаку без преимущества 1 мин., пока цель в 30 фт. и не недееспособна.",
+        "kind": "bonus"
+      },
+      {
+        "id": "steady_eye",
+        "level": 9,
+        "name_ru": "Верный глаз",
+        "name_en": "Steady Eye",
+        "summary_ru": "При движении ≤½ скорости: преимущество Perception и Investigation.",
+        "kind": "passive"
+      },
+      {
+        "id": "unerring_eye",
+        "level": 13,
+        "name_ru": "Безошибочный глаз",
+        "name_en": "Unerring Eye",
+        "summary_ru": "Действием: знать иллюзии/маскировки/превращения в 30 фт. до конца след. хода. Мод. Мудр. раз / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "wis",
+          "recharge": "long_rest",
+          "pool_id": "unerring_eye",
+          "pool_name_ru": "Безошибочный глаз",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "eye_for_weakness",
+        "level": 17,
+        "name_ru": "Глаз на слабость",
+        "name_en": "Eye for Weakness",
+        "summary_ru": "Пока действует Insightful Fighting против цели, Скрытая атака по ней наносит дополнительно 3к6 урона.",
+        "kind": "passive"
+      }
+    ],
+    "scout": [
+      {
+        "id": "skirmisher",
+        "level": 3,
+        "name_ru": "Стрелок-застрельщик",
+        "name_en": "Skirmisher",
+        "summary_ru": "Реакция: когда враг входит в 5 фт. от тебя — переместиться на ½ скорости без провоцированных атак.",
+        "kind": "reaction"
+      },
+      {
+        "id": "survivalist",
+        "level": 3,
+        "name_ru": "Выживальщик",
+        "name_en": "Survivalist",
+        "summary_ru": "Владение Природой и Выживанием; компетентность в них.",
+        "kind": "passive"
+      },
+      {
+        "id": "superior_mobility",
+        "level": 9,
+        "name_ru": "Превосходная мобильность",
+        "name_en": "Superior Mobility",
+        "summary_ru": "Скорость ходьбы +10 фт. (также плавание/лазание, если они у тебя есть).",
+        "kind": "passive"
+      },
+      {
+        "id": "ambush_master",
+        "level": 13,
+        "name_ru": "Мастер засады",
+        "name_en": "Ambush Master",
+        "summary_ru": "Преимущество на инициативу. Первая атака по тебе в первом раунде боя от существ, ещё не ходивших — с помехой.",
+        "kind": "passive"
+      },
+      {
+        "id": "sudden_strike",
+        "level": 17,
+        "name_ru": "Внезапный удар",
+        "name_en": "Sudden Strike",
+        "summary_ru": "При действии Атака: доп. атака по другому существу; если преимущество — можно Скрытую атаку и на него (если ещё не использовал в ход).",
+        "kind": "passive"
+      }
+    ]
+  }
+}

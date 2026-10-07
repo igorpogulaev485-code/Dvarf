@@ -1,0 +1,600 @@
+{
+  "meta": {
+    "purpose": "PHB 2014 Bard + official colleges for sheet unlock",
+    "edition": "2014",
+    "source": "phb+xgte+tcoe+vrgr",
+    "notes_ru": "Bardic Inspiration = мод. Хар (мин. 1); кость d6→d12. Font@5 → short rest (тот же pool). Superior Inspiration@20. 8 коллегий каркас."
+  },
+  "class_slug": "bard",
+  "features": [
+    {
+      "id": "spellcasting_bard",
+      "level": 1,
+      "name_ru": "Использование заклинаний",
+      "name_en": "Spellcasting",
+      "summary_ru": "Полный кастер. Харизма — базовая. Известные заклинания (не подготовка).",
+      "kind": "passive"
+    },
+    {
+      "id": "bardic_inspiration",
+      "level": 1,
+      "name_ru": "Бардовское вдохновение",
+      "name_en": "Bardic Inspiration",
+      "summary_ru": "Бонусным действием дай союзнику кость вдохновения (число = мод. Хар., мин. 1). Кость: d6 (1), d8 (5), d10 (10), d12 (15). До 5 ур. сброс на прод. отдыхе; с Font — и на коротком.",
+      "kind": "bonus",
+      "resource": {
+        "uses": 1,
+        "uses_from": "ability_modifier",
+        "ability": "cha",
+        "recharge": "long_rest",
+        "pool_id": "bardic_inspiration",
+        "pool_name_ru": "Бардовское вдохновение",
+        "track": "spend"
+      },
+      "scale": {
+        "label_ru": "Кость вдохновения",
+        "by_level": {
+          "1": "1к6",
+          "5": "1к8",
+          "10": "1к10",
+          "15": "1к12"
+        }
+      }
+    },
+    {
+      "id": "jack_of_all_trades",
+      "level": 2,
+      "name_ru": "Мастер на все руки",
+      "name_en": "Jack of All Trades",
+      "summary_ru": "К проверкам характеристик без владения добавляй половину бонуса мастерства (округл. вниз).",
+      "kind": "passive"
+    },
+    {
+      "id": "song_of_rest",
+      "level": 2,
+      "name_ru": "Песнь отдыха",
+      "name_en": "Song of Rest",
+      "summary_ru": "Во время короткого отдыха: союзники, тратящие Hit Dice, получают доп. хиты = кости песни.",
+      "kind": "passive",
+      "scale": {
+        "label_ru": "Кость песни",
+        "by_level": {
+          "2": "1к6",
+          "9": "1к8",
+          "13": "1к10",
+          "17": "1к12"
+        }
+      }
+    },
+    {
+      "id": "bard_college",
+      "level": 3,
+      "name_ru": "Коллегия бардов",
+      "name_en": "Bard College",
+      "summary_ru": "Выбери коллегию (Знания, Доблесть, …).",
+      "kind": "passive"
+    },
+    {
+      "id": "expertise_bard_3",
+      "level": 3,
+      "name_ru": "Компетентность",
+      "name_en": "Expertise",
+      "summary_ru": "Выбери 2 навыка, которыми владеешь: удвой бонус мастерства для них. Ещё 2 на 10 ур.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_4_bard",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "font_of_inspiration",
+      "level": 5,
+      "name_ru": "Источник вдохновения",
+      "name_en": "Font of Inspiration",
+      "summary_ru": "Восстанавливаешь все использования Бардовского вдохновения после короткого или продолжительного отдыха.",
+      "kind": "passive",
+      "resource": {
+        "uses": 1,
+        "uses_from": "ability_modifier",
+        "ability": "cha",
+        "recharge": "short_rest",
+        "pool_id": "bardic_inspiration",
+        "pool_name_ru": "Бардовское вдохновение",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "countercharm",
+      "level": 6,
+      "name_ru": "Контрчары",
+      "name_en": "Countercharm",
+      "summary_ru": "Действием: до конца твоего след. хода ты и союзники в 30 фт. с преимуществом на спас vs очарование/страх.",
+      "kind": "action"
+    },
+    {
+      "id": "asi_8_bard",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "magical_secrets_10",
+      "level": 10,
+      "name_ru": "Магические тайны",
+      "name_en": "Magical Secrets",
+      "summary_ru": "Выучи 2 заклинания любого класса (ур. ≤ ячеек барда). Считаются заклинаниями барда. Ещё на 14 и 18.",
+      "kind": "passive"
+    },
+    {
+      "id": "expertise_bard_10",
+      "level": 10,
+      "name_ru": "Компетентность",
+      "name_en": "Expertise",
+      "summary_ru": "Ещё 2 навыка с удвоенным бонусом мастерства.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_12_bard",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "magical_secrets_14",
+      "level": 14,
+      "name_ru": "Магические тайны",
+      "name_en": "Magical Secrets",
+      "summary_ru": "Ещё 2 заклинания любого класса.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_16_bard",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "magical_secrets_18",
+      "level": 18,
+      "name_ru": "Магические тайны",
+      "name_en": "Magical Secrets",
+      "summary_ru": "Ещё 2 заклинания любого класса.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_19_bard",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "superior_inspiration",
+      "level": 20,
+      "name_ru": "Превосходное вдохновение",
+      "name_en": "Superior Inspiration",
+      "summary_ru": "В начале боя (инициатива): если нет использований Бардовского вдохновения — восстанавливаешь 1.",
+      "kind": "passive",
+      "resource": {
+        "uses": 1,
+        "uses_from": "ability_modifier",
+        "ability": "cha",
+        "recharge": "short_rest",
+        "pool_id": "bardic_inspiration",
+        "pool_name_ru": "Бардовское вдохновение",
+        "track": "spend",
+        "grant_one_on_initiative_if_empty": true
+      }
+    }
+  ],
+  "subclasses": {
+    "college_of_lore": [
+      {
+        "id": "bonus_proficiencies_lore",
+        "level": 3,
+        "name_ru": "Доп. владения",
+        "name_en": "Bonus Proficiencies",
+        "summary_ru": "Владение тремя навыками на выбор (поверх классовых).",
+        "kind": "passive"
+      },
+      {
+        "id": "cutting_words",
+        "level": 3,
+        "name_ru": "Острые слова",
+        "name_en": "Cutting Words",
+        "summary_ru": "Реакция: потрать кость Бардовского вдохновения — вычти из броска атаки/проверки/урона врага в 60 фт., который тебя слышит.",
+        "kind": "reaction"
+      },
+      {
+        "id": "additional_magical_secrets",
+        "level": 6,
+        "name_ru": "Доп. магические тайны",
+        "name_en": "Additional Magical Secrets",
+        "summary_ru": "2 заклинания любого класса (ур. ≤ твоих ячеек). Не занимают слоты известных барда.",
+        "kind": "passive"
+      },
+      {
+        "id": "peerless_skill",
+        "level": 14,
+        "name_ru": "Бесподобный навык",
+        "name_en": "Peerless Skill",
+        "summary_ru": "При проверке характеристики: потрать вдохновение и добавь к броску; если всё равно провал — кость не тратится.",
+        "kind": "passive"
+      }
+    ],
+    "college_of_valor": [
+      {
+        "id": "bonus_proficiencies_valor",
+        "level": 3,
+        "name_ru": "Доп. владения",
+        "name_en": "Bonus Proficiencies",
+        "summary_ru": "Средние доспехи, щиты, воинское оружие.",
+        "kind": "passive"
+      },
+      {
+        "id": "combat_inspiration",
+        "level": 3,
+        "name_ru": "Боевое вдохновение",
+        "name_en": "Combat Inspiration",
+        "summary_ru": "Союзник с твоей костью вдохновения может добавить её к урону оружия или (реакцией) к КД против атаки.",
+        "kind": "passive"
+      },
+      {
+        "id": "extra_attack_valor",
+        "level": 6,
+        "name_ru": "Доп. атака",
+        "name_en": "Extra Attack",
+        "summary_ru": "При действии Атака — две атаки вместо одной.",
+        "kind": "passive"
+      },
+      {
+        "id": "battle_magic",
+        "level": 14,
+        "name_ru": "Боевая магия",
+        "name_en": "Battle Magic",
+        "summary_ru": "После заклинания действием — бонусная атака оружием.",
+        "kind": "passive"
+      }
+    ],
+    "college_of_glamour": [
+      {
+        "id": "mantle_of_inspiration",
+        "level": 3,
+        "name_ru": "Мантия вдохновения",
+        "name_en": "Mantle of Inspiration",
+        "summary_ru": "Бонусным: потрать вдохновение — до мод. Хар. существ в 60 фт. получают вр. хиты (5/8/11/14 по ур.) и реакцией могут переместиться без провоцированных атак.",
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Вр. хиты",
+          "by_level": {
+            "3": "5",
+            "5": "8",
+            "10": "11",
+            "15": "14"
+          }
+        }
+      },
+      {
+        "id": "enthralling_performance",
+        "level": 3,
+        "name_ru": "Завораживающее выступление",
+        "name_en": "Enthralling Performance",
+        "summary_ru": "После 1 мин. выступления: до мод. Хар. гуманоидов в 60 фт. спас Мудр. или очарованы 1 ч. 1× / короткий или прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "enthralling_performance",
+          "pool_name_ru": "Завораживающее выступление",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "mantle_of_majesty",
+        "level": 6,
+        "name_ru": "Мантия величия",
+        "name_en": "Mantle of Majesty",
+        "summary_ru": "Бонусным: command без ячейки; 1 мин. можешь бонусным снова. Не тратит концентрацию. 1× / прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "mantle_of_majesty",
+          "pool_name_ru": "Мантия величия",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "unbreakable_majesty",
+        "level": 14,
+        "name_ru": "Несокрушимое величие",
+        "name_en": "Unbreakable Majesty",
+        "summary_ru": "Бонусным: 1 мин. величественный облик. Атакующий в ближнем должен спас Хар. или выбрать другую цель. 1× / короткий или прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "unbreakable_majesty",
+          "pool_name_ru": "Несокрушимое величие",
+          "track": "spend"
+        }
+      }
+    ],
+    "college_of_swords": [
+      {
+        "id": "bonus_proficiencies_swords",
+        "level": 3,
+        "name_ru": "Доп. владения",
+        "name_en": "Bonus Proficiencies",
+        "summary_ru": "Средние доспехи; скимитар. Боевой стиль: Дуэлянт или Два оружия.",
+        "kind": "passive",
+        "choice": {
+          "id": "fighting_style",
+          "label_ru": "Боевой стиль",
+          "options_from": "bard_swords_fighting_styles"
+        }
+      },
+      {
+        "id": "blade_flourish",
+        "level": 3,
+        "name_ru": "Расцвет клинка",
+        "name_en": "Blade Flourish",
+        "summary_ru": "1× / ход при попадании оружием: потрать вдохновение — доп. урон кости + Defensive (+КД), Slashing (второе существо) или Mobile Flourish (толчок + перемещение).",
+        "kind": "passive"
+      },
+      {
+        "id": "extra_attack_swords",
+        "level": 6,
+        "name_ru": "Доп. атака",
+        "name_en": "Extra Attack",
+        "summary_ru": "При действии Атака — две атаки вместо одной.",
+        "kind": "passive"
+      },
+      {
+        "id": "masters_flourish",
+        "level": 14,
+        "name_ru": "Мастерский росчерк",
+        "name_en": "Master's Flourish",
+        "summary_ru": "При Blade Flourish можешь бросить d6 вместо кости вдохновения (не тратя вдохновение).",
+        "kind": "passive"
+      }
+    ],
+    "college_of_whispers": [
+      {
+        "id": "psychic_blades",
+        "level": 3,
+        "name_ru": "Психические клинки",
+        "name_en": "Psychic Blades",
+        "summary_ru": "1× / ход при попадании оружием: потрать вдохновение — доп. психический урон (2к6 → 3к6@5 → 5к6@10 → 8к6@15).",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Урон",
+          "by_level": {
+            "3": "2к6",
+            "5": "3к6",
+            "10": "5к6",
+            "15": "8к6"
+          }
+        }
+      },
+      {
+        "id": "words_of_terror",
+        "level": 3,
+        "name_ru": "Слова ужаса",
+        "name_en": "Words of Terror",
+        "summary_ru": "После 1 мин. разговора с гуманоидом наедине: спас Мудр. или испуган тобой/союзником 1 ч. 1× / короткий или прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "words_of_terror",
+          "pool_name_ru": "Слова ужаса",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "mantle_of_whispers",
+        "level": 6,
+        "name_ru": "Мантия шёпотов",
+        "name_en": "Mantle of Whispers",
+        "summary_ru": "Реакция при смерти гуманоида в 30 фт.: захвати тень — маска на 1 ч. 1× / короткий или прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "mantle_of_whispers",
+          "pool_name_ru": "Мантия шёпотов",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "shadow_lore",
+        "level": 14,
+        "name_ru": "Теневые предания",
+        "name_en": "Shadow Lore",
+        "summary_ru": "Действием: существо в 30 фт. спас Мудр. или очаровано 8 ч. и делится секретом. 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "shadow_lore",
+          "pool_name_ru": "Теневые предания",
+          "track": "spend"
+        }
+      }
+    ],
+    "college_of_eloquence": [
+      {
+        "id": "silver_tongue",
+        "level": 3,
+        "name_ru": "Серебряный язык",
+        "name_en": "Silver Tongue",
+        "summary_ru": "При Обмане/Убеждении: результат d20 ≤9 считается 10.",
+        "kind": "passive"
+      },
+      {
+        "id": "unsettling_words",
+        "level": 3,
+        "name_ru": "Тревожные слова",
+        "name_en": "Unsettling Words",
+        "summary_ru": "Бонусным: потрать вдохновение — существо в 60 фт. вычитает кость из след. спас. до нач. твоего след. хода.",
+        "kind": "bonus"
+      },
+      {
+        "id": "unfailing_inspiration",
+        "level": 6,
+        "name_ru": "Неиссякаемое вдохновение",
+        "name_en": "Unfailing Inspiration",
+        "summary_ru": "Если существо добавляет твою кость вдохновения к броску и всё равно проваливает — кость не тратится.",
+        "kind": "passive"
+      },
+      {
+        "id": "universal_speech",
+        "level": 6,
+        "name_ru": "Всеобщий язык",
+        "name_en": "Universal Speech",
+        "summary_ru": "Действием: до мод. Хар. существ понимают тебя 1 ч. 1× / прод. отдых (или ячейка любого ур.).",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "universal_speech",
+          "pool_name_ru": "Всеобщий язык",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "infectious_inspiration",
+        "level": 14,
+        "name_ru": "Заразное вдохновение",
+        "name_en": "Infectious Inspiration",
+        "summary_ru": "Когда союзник использует твою кость и преуспевает — реакцией дай другому союзнику в 60 фт. новую кость (без траты использования). Число = мод. Хар. / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "cha",
+          "recharge": "long_rest",
+          "pool_id": "infectious_inspiration",
+          "pool_name_ru": "Заразное вдохновение",
+          "track": "spend"
+        }
+      }
+    ],
+    "college_of_creation": [
+      {
+        "id": "mote_of_potential",
+        "level": 3,
+        "name_ru": "Частица потенциала",
+        "name_en": "Mote of Potential",
+        "summary_ru": "Когда даёшь вдохновение — нота кружит. При использовании кости: атака — доп. урон; проверка — брось кость дважды; спас — вр. хиты союзнику в 5 фт.",
+        "kind": "passive"
+      },
+      {
+        "id": "performance_of_creation",
+        "level": 3,
+        "name_ru": "Выступление созидания",
+        "name_en": "Performance of Creation",
+        "summary_ru": "Действием: создать немагический предмет (gp ≤ 20×ур. барда, размер по ур.). 1× / прод. отдых (или ячейка ≥2).",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "performance_of_creation",
+          "pool_name_ru": "Выступление созидания",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "animating_performance",
+        "level": 6,
+        "name_ru": "Оживляющее выступление",
+        "name_en": "Animating Performance",
+        "summary_ru": "Действием: оживить Large-или-меньше предмет на 1 ч. (танцующий предмет). 1× / прод. отдых (или ячейка ≥3).",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "animating_performance",
+          "pool_name_ru": "Оживляющее выступление",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "creative_crescendo",
+        "level": 14,
+        "name_ru": "Творческий крещендо",
+        "name_en": "Creative Crescendo",
+        "summary_ru": "При Performance of Creation: число предметов = мод. Хар. (мин. 2); один может быть Large; без лимита gp.",
+        "kind": "passive"
+      }
+    ],
+    "college_of_spirits": [
+      {
+        "id": "guiding_whispers",
+        "level": 3,
+        "name_ru": "Направляющие шёпоты",
+        "name_en": "Guiding Whispers",
+        "summary_ru": "Выучи guidance; дальность 60 фт.",
+        "kind": "passive"
+      },
+      {
+        "id": "spiritual_focus",
+        "level": 3,
+        "name_ru": "Духовный фокус",
+        "name_en": "Spiritual Focus",
+        "summary_ru": "Используя духовный фокус как фокус заклинания: к урону/лечению заклинания барда +1к6 (с 6: +1к6; с 14: +1к8 — см. VRGtR).",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Бонус",
+          "by_level": {
+            "6": "+1к6",
+            "14": "+1к8"
+          }
+        }
+      },
+      {
+        "id": "tales_from_beyond",
+        "level": 3,
+        "name_ru": "Сказания извне",
+        "name_en": "Tales from Beyond",
+        "summary_ru": "Бонусным: потрать вдохновение, брось кость — эффект рассказа (таблица VRGtR). Пока не использован — хранится.",
+        "kind": "bonus"
+      },
+      {
+        "id": "spirit_session",
+        "level": 6,
+        "name_ru": "Сеанс духов",
+        "name_en": "Spirit Session",
+        "summary_ru": "Ритуал 1 ч. с ≥1 существом: временно выучи заклинание любого класса (ур. ≤ ½ ур. барда, окр. вверх). 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "spirit_session",
+          "pool_name_ru": "Сеанс духов",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "mystical_connection",
+        "level": 14,
+        "name_ru": "Мистическая связь",
+        "name_en": "Mystical Connection",
+        "summary_ru": "При Tales from Beyond бросай две кости и выбери результат (или оба по правилам VRGtR).",
+        "kind": "passive"
+      }
+    ]
+  }
+}

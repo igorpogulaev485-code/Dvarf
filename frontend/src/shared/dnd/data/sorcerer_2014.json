@@ -1,0 +1,619 @@
+{
+  "meta": {
+    "purpose": "PHB 2014 Sorcerer + official origins for sheet unlock",
+    "edition": "2014",
+    "source": "phb+xgte+tcoe+dragonlance",
+    "notes_ru": "Очки чародейства = ур. с 2. Метамагия — picks. Гибкое колдовство — вручную через очки/ячейки. Архетипы — каркас."
+  },
+  "class_slug": "sorcerer",
+  "features": [
+    {
+      "id": "spellcasting_sorcerer",
+      "level": 1,
+      "name_ru": "Использование заклинаний",
+      "name_en": "Spellcasting",
+      "summary_ru": "Полный кастер. Харизма — базовая. Известные заклинания (не подготовка).",
+      "kind": "passive"
+    },
+    {
+      "id": "sorcerous_origin",
+      "level": 1,
+      "name_ru": "Происхождение чародея",
+      "name_en": "Sorcerous Origin",
+      "summary_ru": "Выбери происхождение (Драконья кровь, Дикая магия, …).",
+      "kind": "passive"
+    },
+    {
+      "id": "font_of_magic",
+      "level": 2,
+      "name_ru": "Источник магии",
+      "name_en": "Font of Magic",
+      "summary_ru": "Очки чародейства = уровень чародея. Сброс на продолжительном отдыхе. Гибкое колдовство: ячейки ↔ очки (см. таблицу PHB).",
+      "kind": "resource",
+      "resource": {
+        "uses": 2,
+        "recharge": "long_rest",
+        "scale_uses": {
+          "2": 2,
+          "3": 3,
+          "4": 4,
+          "5": 5,
+          "6": 6,
+          "7": 7,
+          "8": 8,
+          "9": 9,
+          "10": 10,
+          "11": 11,
+          "12": 12,
+          "13": 13,
+          "14": 14,
+          "15": 15,
+          "16": 16,
+          "17": 17,
+          "18": 18,
+          "19": 19,
+          "20": 20
+        },
+        "pool_id": "sorcery_points",
+        "pool_name_ru": "Очки чародейства",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "flexible_casting",
+      "level": 2,
+      "name_ru": "Гибкое колдовство",
+      "name_en": "Flexible Casting",
+      "summary_ru": "Бонусным: ячейка→очки (= ур.) или очки→ячейка (1→2, 2→3, 3→5, 4→6, 5→7). Кнопки на умении; очки→ячейка восстанавливает потраченную ячейку.",
+      "kind": "bonus"
+    },
+    {
+      "id": "metamagic",
+      "level": 3,
+      "name_ru": "Метамагия",
+      "name_en": "Metamagic",
+      "summary_ru": "Выбери варианты (2 на 3 ур., +1 на 10, +1 на 17). При касте жми стоимость на умении (тратит очки). Обычно 1 метамагия/заклинание; Усиленное можно добавить.",
+      "kind": "passive",
+      "choice": {
+        "id": "metamagic",
+        "label_ru": "Метамагия",
+        "options_from": "sorcerer_metamagic",
+        "max_picks_by_level": {
+          "3": 2,
+          "10": 3,
+          "17": 4
+        }
+      },
+      "scale": {
+        "label_ru": "Известно вариантов",
+        "by_level": {
+          "3": "2",
+          "10": "3",
+          "17": "4"
+        }
+      }
+    },
+    {
+      "id": "asi_4_sorcerer",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_8_sorcerer",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_12_sorcerer",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_16_sorcerer",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_19_sorcerer",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
+      "kind": "passive"
+    },
+    {
+      "id": "sorcerous_restoration",
+      "level": 20,
+      "name_ru": "Восстановление чародея",
+      "name_en": "Sorcerous Restoration",
+      "summary_ru": "На коротком отдыхе восстанавливаешь 4 очка чародейства — нажми «Использовать» обратно на кружках очков (−used) или поправь вручную.",
+      "kind": "passive"
+    }
+  ],
+  "subclasses": {
+    "draconic_bloodline": [
+      {
+        "id": "dragon_ancestor",
+        "level": 1,
+        "name_ru": "Предок-дракон",
+        "name_en": "Dragon Ancestor",
+        "summary_ru": "Выбери тип дракона (язык драконий; тематика урона). Двойной мод. Хар. к Харизме (Убеждение) vs драконов.",
+        "kind": "passive",
+        "choice": {
+          "id": "draconic_ancestry",
+          "label_ru": "Драконий предок",
+          "options": [
+            "black",
+            "blue",
+            "brass",
+            "bronze",
+            "copper",
+            "gold",
+            "green",
+            "red",
+            "silver",
+            "white"
+          ]
+        }
+      },
+      {
+        "id": "draconic_resilience",
+        "level": 1,
+        "name_ru": "Драконья стойкость",
+        "name_en": "Draconic Resilience",
+        "summary_ru": "+1 макс. хитов за уровень чародея. Без доспеха КД = 13 + Ловк.",
+        "kind": "passive"
+      },
+      {
+        "id": "elemental_affinity",
+        "level": 6,
+        "name_ru": "Стихийное сродство",
+        "name_en": "Elemental Affinity",
+        "summary_ru": "При нанесении урона типа предка заклинанием: добавь мод. Хар. к одному броску урона; можешь потратить 1 очко чародейства → сопротивление этому типу на 1 ч.",
+        "kind": "passive"
+      },
+      {
+        "id": "dragon_wings",
+        "level": 14,
+        "name_ru": "Крылья дракона",
+        "name_en": "Dragon Wings",
+        "summary_ru": "Бонусным отрастить крылья (если доспех позволяет): полёт = скорость ходьбы. Бонусным убрать.",
+        "kind": "passive"
+      },
+      {
+        "id": "draconic_presence",
+        "level": 18,
+        "name_ru": "Драконье присутствие",
+        "name_en": "Draconic Presence",
+        "summary_ru": "Действием: потрать 5 очков чародейства — аура 60 фт. 1 мин./конц.: враги спас Мудр. или очарованы/испуганы (твой выбор) на время.",
+        "kind": "action"
+      }
+    ],
+    "wild_magic": [
+      {
+        "id": "wild_magic_surge",
+        "level": 1,
+        "name_ru": "Всплеск дикой магии",
+        "name_en": "Wild Magic Surge",
+        "summary_ru": "При касте заклинания чародея ≥1 ур. МИ может потребовать d20: на 1 — бросок таблицы Wild Magic Surge.",
+        "kind": "passive"
+      },
+      {
+        "id": "tides_of_chaos",
+        "level": 1,
+        "name_ru": "Приливы хаоса",
+        "name_en": "Tides of Chaos",
+        "summary_ru": "Преимущество на одну проверку/атаку/спас. 1× / прод. отдых; после всплеска может восстановиться.",
+        "kind": "resource",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "tides_of_chaos",
+          "pool_name_ru": "Приливы хаоса",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "bend_luck",
+        "level": 6,
+        "name_ru": "Изгиб удачи",
+        "name_en": "Bend Luck",
+        "summary_ru": "Реакция: существо в 60 фт. бросает атаку/проверку/спас — потрать 2 очка чародейства, добавь или вычти 1к4.",
+        "kind": "reaction"
+      },
+      {
+        "id": "controlled_chaos",
+        "level": 14,
+        "name_ru": "Контролируемый хаос",
+        "name_en": "Controlled Chaos",
+        "summary_ru": "При броске по таблице Wild Magic Surge кидай дважды и выбери результат.",
+        "kind": "passive"
+      },
+      {
+        "id": "spell_bombardment",
+        "level": 18,
+        "name_ru": "Бомбардировка заклинанием",
+        "name_en": "Spell Bombardment",
+        "summary_ru": "1× / ход: когда бросаешь урон заклинания и на кости выпадает максимум — брось эту кость ещё раз и добавь к урону.",
+        "kind": "passive"
+      }
+    ],
+    "storm_sorcery": [
+      {
+        "id": "wind_speaker",
+        "level": 1,
+        "name_ru": "Голос ветра",
+        "name_en": "Wind Speaker",
+        "summary_ru": "Язык Primordial (и диалекты Auran/Aquan/Ignan/Terran).",
+        "kind": "passive"
+      },
+      {
+        "id": "tempestuous_magic",
+        "level": 1,
+        "name_ru": "Буревая магия",
+        "name_en": "Tempestuous Magic",
+        "summary_ru": "После заклинания ≥1 ур. бонусным: левитирующий полёт 10 фт. без провоцированных.",
+        "kind": "bonus"
+      },
+      {
+        "id": "heart_of_the_storm",
+        "level": 6,
+        "name_ru": "Сердце бури",
+        "name_en": "Heart of the Storm",
+        "summary_ru": "Сопр. молнии и грому. При касте заклинания с молнией/громом ≥1 ур.: существа по выбору в 10 фт. получают половину ур. чародея урона молнией/громом.",
+        "kind": "passive"
+      },
+      {
+        "id": "storm_guide",
+        "level": 6,
+        "name_ru": "Проводник бури",
+        "name_en": "Storm Guide",
+        "summary_ru": "Действием прекратить дождь в 20 фт. (на себя). Бонусным направить ветер средней силы в 100 фт. до конца хода.",
+        "kind": "bonus"
+      },
+      {
+        "id": "storms_fury",
+        "level": 14,
+        "name_ru": "Ярость бури",
+        "name_en": "Storm's Fury",
+        "summary_ru": "Реакция при попадании рукопашной: молния = ур. чародея; спас Сил. или отталкивание 20 фт.",
+        "kind": "reaction"
+      },
+      {
+        "id": "wind_soul",
+        "level": 18,
+        "name_ru": "Душа ветра",
+        "name_en": "Wind Soul",
+        "summary_ru": "Иммунитет к молнии и грому. Магический полёт 60 фт. Действием: на 1 ч. снизить полёт до 30 и дать полёт до 3+Хар. существам в 30 фт. 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "wind_soul",
+          "pool_name_ru": "Душа ветра",
+          "track": "spend"
+        }
+      }
+    ],
+    "divine_soul": [
+      {
+        "id": "divine_magic",
+        "level": 1,
+        "name_ru": "Божественная магия",
+        "name_en": "Divine Magic",
+        "summary_ru": "Доп. заклинания жреца по родству (добро/зло/закон/хаос/нейтрал).",
+        "kind": "passive"
+      },
+      {
+        "id": "favored_by_the_gods",
+        "level": 1,
+        "name_ru": "Любимец богов",
+        "name_en": "Favored by the Gods",
+        "summary_ru": "При провале атаки/спаса: +2к4 к броску. 1× / короткий или прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "favored_by_the_gods",
+          "pool_name_ru": "Любимец богов",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "empowered_healing",
+        "level": 6,
+        "name_ru": "Усиленное лечение",
+        "name_en": "Empowered Healing",
+        "summary_ru": "1× / ход: когда ты или союзник в 5 фт. бросает кости лечения заклинанием, можешь перебросить любое число костей (новые результаты).",
+        "kind": "passive"
+      },
+      {
+        "id": "otherworldly_wings",
+        "level": 14,
+        "name_ru": "Иные крылья",
+        "name_en": "Otherworldly Wings",
+        "summary_ru": "Бонусным: крылья (полёт = скорость); вид по родству.",
+        "kind": "passive"
+      },
+      {
+        "id": "unearthly_recovery",
+        "level": 18,
+        "name_ru": "Неземное восстановление",
+        "name_en": "Unearthly Recovery",
+        "summary_ru": "Бонусным при ≤½ хитов: восстановить хиты = ½ макс. 1× / прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "unearthly_recovery",
+          "pool_name_ru": "Неземное восстановление",
+          "track": "spend"
+        }
+      }
+    ],
+    "shadow_magic": [
+      {
+        "id": "eyes_of_the_dark",
+        "level": 1,
+        "name_ru": "Глаза тьмы",
+        "name_en": "Eyes of the Dark",
+        "summary_ru": "Тёмное зрение 120 фт.; с 3 ур. darkness за 2 очка — видишь сквозь свою тьму.",
+        "kind": "passive"
+      },
+      {
+        "id": "strength_of_the_grave",
+        "level": 1,
+        "name_ru": "Сила могилы",
+        "name_en": "Strength of the Grave",
+        "summary_ru": "1× / прод. отдых: при 0 хитов без мгновенной смерти — спас Харизмы Сл 5+урон, успех → 1 хит.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "strength_of_the_grave",
+          "pool_name_ru": "Сила могилы",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "hound_of_ill_omen",
+        "level": 6,
+        "name_ru": "Пёс дурного предзнаменования",
+        "name_en": "Hound of Ill Omen",
+        "summary_ru": "Бонусным 3 очка: призвать пса к существу в 120 фт. (статы волка).",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "hound_of_ill_omen",
+          "pool_name_ru": "Гончая дурного знамения",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "shadow_walk",
+        "level": 14,
+        "name_ru": "Теневой шаг",
+        "name_en": "Shadow Walk",
+        "summary_ru": "В тусклом/тьме бонусным: телепорт до 120 фт. в тусклое/тьму.",
+        "kind": "bonus"
+      },
+      {
+        "id": "umbral_form",
+        "level": 18,
+        "name_ru": "Умбральная форма",
+        "name_en": "Umbral Form",
+        "summary_ru": "Бонусным 6 очков: 1 мин. сопротивление не силовому урону; проход сквозь существ/предметы.",
+        "kind": "bonus"
+      }
+    ],
+    "aberrant_mind": [
+      {
+        "id": "psionic_spells",
+        "level": 1,
+        "name_ru": "Псионические заклинания",
+        "name_en": "Psionic Spells",
+        "summary_ru": "Доп. известные заклинания архетипа; замены при ASI.",
+        "kind": "passive"
+      },
+      {
+        "id": "telepathic_speech",
+        "level": 1,
+        "name_ru": "Телепатическая речь",
+        "name_en": "Telepathic Speech",
+        "summary_ru": "Бонусным: связь с существом в 30 фт. на мин. = ур. чародея.",
+        "kind": "bonus"
+      },
+      {
+        "id": "psionic_sorcery",
+        "level": 6,
+        "name_ru": "Псионическое чародейство",
+        "name_en": "Psionic Sorcery",
+        "summary_ru": "При касте заклинания псионического списка: можешь тратить очки чародейства вместо ячейки (стоимость = 1+уровень); без вербальных/соматических (и материальных без цены).",
+        "kind": "passive"
+      },
+      {
+        "id": "psychic_defenses",
+        "level": 6,
+        "name_ru": "Психическая защита",
+        "name_en": "Psychic Defenses",
+        "summary_ru": "Сопр. психическому; преимущество на спас vs очарования/испуг.",
+        "kind": "passive"
+      },
+      {
+        "id": "revelation_in_flesh",
+        "level": 14,
+        "name_ru": "Откровение во плоти",
+        "name_en": "Revelation in Flesh",
+        "summary_ru": "Бонусным: потрать 1 очко чародейства или использование — мутация на 10 мин. (плавание/полёт/скольжение/видеть невидимое). PB раз / прод. как альтернатива очкам.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "revelation_in_flesh",
+          "pool_name_ru": "Откровение во плоти",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "warping_implosion",
+        "level": 18,
+        "name_ru": "Искажающий коллапс",
+        "name_en": "Warping Implosion",
+        "summary_ru": "Действием телепорт ≤120 фт.; существа в 30 фт. от старта — спас Силы или 3к10 силового + притяжение. 1× / прод. отдых или 5 очков.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "warping_implosion",
+          "pool_name_ru": "Искажающий коллапс",
+          "track": "spend"
+        }
+      }
+    ],
+    "clockwork_soul": [
+      {
+        "id": "clockwork_magic",
+        "level": 1,
+        "name_ru": "Магия часового механизма",
+        "name_en": "Clockwork Magic",
+        "summary_ru": "Доп. известные заклинания порядка; замены при ASI.",
+        "kind": "passive"
+      },
+      {
+        "id": "restore_balance",
+        "level": 1,
+        "name_ru": "Восстановить баланс",
+        "name_en": "Restore Balance",
+        "summary_ru": "Реакция: отменить преимущество или помеху на броске в 60 фт. Число = мод. Хар. (мин. 1) / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "cha",
+          "recharge": "long_rest",
+          "pool_id": "restore_balance",
+          "pool_name_ru": "Восстановить баланс",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "bastion_of_law",
+        "level": 6,
+        "name_ru": "Бастион закона",
+        "name_en": "Bastion of Law",
+        "summary_ru": "Действием 1–5 очков: кубы равенства на существо (поглощают урон).",
+        "kind": "action"
+      },
+      {
+        "id": "trance_of_order",
+        "level": 14,
+        "name_ru": "Транс порядка",
+        "name_en": "Trance of Order",
+        "summary_ru": "Бонусным 1× / прод. отдых (или 5 очков): 1 мин. — d20 ≤9 считается 10 для атак/проверок/спасов.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "trance_of_order",
+          "pool_name_ru": "Транс порядка",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "clockwork_cavalcade",
+        "level": 18,
+        "name_ru": "Часовой кортеж",
+        "name_en": "Clockwork Cavalcade",
+        "summary_ru": "Действием 1× / прод. отдых (или 7 очков): духи в кубе 30 фт. — лечение, снятие проклятий/болезней, развеивание 6 ур.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "clockwork_cavalcade",
+          "pool_name_ru": "Часовой кортеж",
+          "track": "spend"
+        }
+      }
+    ],
+    "lunar_sorcery": [
+      {
+        "id": "lunar_embodiment",
+        "level": 1,
+        "name_ru": "Лунное воплощение",
+        "name_en": "Lunar Embodiment",
+        "summary_ru": "Выбери фазу (полная/новая/серп); доп. заклинания; бонусным смена фазы.",
+        "kind": "passive",
+        "choice": {
+          "id": "moon_phase",
+          "label_ru": "Фаза луны",
+          "options": [
+            "full_moon",
+            "new_moon",
+            "crescent_moon"
+          ]
+        }
+      },
+      {
+        "id": "moon_fire",
+        "level": 1,
+        "name_ru": "Лунный огонь",
+        "name_en": "Moon Fire",
+        "summary_ru": "Священное пламя бьёт две цели в пределах дистанции.",
+        "kind": "passive"
+      },
+      {
+        "id": "lunar_boons",
+        "level": 6,
+        "name_ru": "Лунные дары",
+        "name_en": "Lunar Boons",
+        "summary_ru": "Метамагия дешевле для школ фазы (1 очко скидки, 1× / ход).",
+        "kind": "passive"
+      },
+      {
+        "id": "waxing_and_waning",
+        "level": 6,
+        "name_ru": "Прибывание и убывание",
+        "name_en": "Waxing and Waning",
+        "summary_ru": "После короткого/прод. отдыха можешь сменить фазу луны. 1 очко чародейства — сменить фазу бонусным.",
+        "kind": "passive"
+      },
+      {
+        "id": "lunar_empowerment",
+        "level": 14,
+        "name_ru": "Лунное усиление",
+        "name_en": "Lunar Empowerment",
+        "summary_ru": "Аура/эффекты по текущей фазе (свет, сопротивление, перемещение).",
+        "kind": "passive"
+      },
+      {
+        "id": "lunar_phenomenon",
+        "level": 18,
+        "name_ru": "Лунное явление",
+        "name_en": "Lunar Phenomenon",
+        "summary_ru": "Бонусным эффект фазы 1× / прод. отдых (или 5 очков); сразу сменить фазу бесплатно.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "lunar_phenomenon",
+          "pool_name_ru": "Лунное явление",
+          "track": "spend"
+        }
+      }
+    ]
+  }
+}

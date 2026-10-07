@@ -5,6 +5,7 @@ import type { RulesEdition } from '../../shared/api/characters'
 import {
   applySpellcastingSuggestion,
   suggestSpellcasting,
+  type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { setConcentration } from '../../shared/dnd/concentration'
@@ -43,6 +44,8 @@ type SpellsPanelProps = {
   className: string
   level: number
   classes?: ClassLevelEntry[]
+  /** EK / Arcane Trickster etc. — unlocks ⅓ caster slot math. */
+  subclassCasters?: SubclassCasterOverlay[]
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
@@ -56,6 +59,7 @@ export function SpellsPanel({
   className,
   level,
   classes,
+  subclassCasters,
   spells,
   abilities,
   proficiencyBonus,
@@ -102,9 +106,10 @@ export function SpellsPanel({
         className,
         level,
         classes,
+        subclassCasters,
         abilityModFor: (ability) => abilityModifier(abilities[ability]),
       }),
-    [className, level, classes, abilities],
+    [className, level, classes, subclassCasters, abilities],
   )
 
   function patch(next: Partial<SpellsState>) {
@@ -126,12 +131,16 @@ export function SpellsPanel({
     onToast?.(`${suggestion.labelRu}: ячейки 2014${prep}`)
   }
 
+  const subclassCasterKey = (subclassCasters ?? [])
+    .map((row) => `${row.classEntryId}:third:${row.ability ?? ''}`)
+    .sort()
+    .join('|')
   const classLevelKey =
-    classes && classes.length > 0
+    (classes && classes.length > 0
       ? classes
           .map((row) => `${row.name.trim().toLowerCase()}:${row.level}`)
           .join('|')
-      : `${className.trim().toLowerCase()}|${level}`
+      : `${className.trim().toLowerCase()}|${level}`) + `::${subclassCasterKey}`
   const appliedClassLevel = useRef<string | null>(null)
   useEffect(() => {
     if (appliedClassLevel.current == null) {
@@ -143,7 +152,7 @@ export function SpellsPanel({
     if (!suggestion) return
     onChange({ ...spells, ...applySpellcastingSuggestion(spells, suggestion) })
     onToast?.(`${suggestion.labelRu}: ячейки обновлены по таблице 2014`)
-    // Apply once per class/level change; skip the first paint so saved sheets stay intact.
+    // Apply once per class/level/subclass-caster change; skip first paint for saved sheets.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classLevelKey])
 
