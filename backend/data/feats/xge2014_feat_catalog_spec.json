@@ -146,12 +146,6 @@
               "cha"
             ],
             "label_ru": "+1 к Инт или Хар"
-          },
-          {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Туманный шаг",
-            "text_ru": "Добавь Туманный шаг (1/короткий отдых без ячейки)."
           }
         ],
         "grants": {
@@ -160,6 +154,22 @@
           ],
           "flags": [
             "fey_teleportation"
+          ],
+          "resource": {
+            "pool_id": "fey_misty_step",
+            "pool_name_ru": "Туманный шаг (черта)",
+            "uses": 1,
+            "recovery": "short_rest"
+          },
+          "spells": [
+            {
+              "id": "misty_step",
+              "spell_slug": "misty_step",
+              "name_ru": "Туманный шаг",
+              "level": 2,
+              "grant": "innate",
+              "notes_ru": "1/короткий или длинный отдых без ячейки"
+            }
           ]
         }
       }
@@ -220,17 +230,48 @@
             "deep_gnome"
           ]
         },
-        "choices": [
-          {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Заклинания",
-            "text_ru": "Необнаружение (на себя, at will) + Слепота/глухота, Размытый образ, Маскировка (1/длинный отдых, ИНТ)."
-          }
-        ],
+        "choices": [],
         "grants": {
           "flags": [
             "svirfneblin_magic"
+          ],
+          "spells": [
+            {
+              "id": "nondetection",
+              "spell_slug": "nondetection",
+              "name_ru": "Необнаружение",
+              "level": 2,
+              "grant": "innate",
+              "casting_ability": "int",
+              "notes_ru": "на себя, без материального компонента, неограниченно"
+            },
+            {
+              "id": "blindness_deafness",
+              "spell_slug": "blindness_deafness",
+              "name_ru": "Слепота/глухота",
+              "level": 2,
+              "grant": "innate",
+              "casting_ability": "int",
+              "notes_ru": "1/длинный отдых без ячейки"
+            },
+            {
+              "id": "blur",
+              "spell_slug": "blur",
+              "name_ru": "Размытый образ",
+              "level": 2,
+              "grant": "innate",
+              "casting_ability": "int",
+              "notes_ru": "1/длинный отдых без ячейки"
+            },
+            {
+              "id": "disguise_self",
+              "spell_slug": "disguise_self",
+              "name_ru": "Маскировка",
+              "level": 1,
+              "grant": "innate",
+              "casting_ability": "int",
+              "notes_ru": "1/длинный отдых без ячейки"
+            }
           ]
         }
       }

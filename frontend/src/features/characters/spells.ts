@@ -9,7 +9,7 @@ import {
 } from '../../shared/dnd/spells'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
-export type SpellSourceKind = 'catalog' | 'custom' | 'race'
+export type SpellSourceKind = 'catalog' | 'custom' | 'race' | 'feat'
 
 export type SheetSpell = {
   id: string
@@ -23,7 +23,7 @@ export type SheetSpell = {
   attack_or_save: string
   damage: string
   concentration: boolean
-  /** Race innate / granted spells; stripped on race revoke. */
+  /** Race / feat innate / granted spells; stripped on revoke. */
   source_kind?: SpellSourceKind
   /**
    * Race grant mode mirrored from catalog.
@@ -31,6 +31,8 @@ export type SheetSpell = {
    * spell_list: mark/class-list expansion; player prepares like class spells.
    */
   race_grant?: 'innate' | 'spell_list'
+  /** Feat grant mode (same semantics as race_grant). */
+  feat_grant?: 'innate' | 'spell_list'
 }
 
 export type SpellsState = {
@@ -74,8 +76,11 @@ function readSlot(raw: unknown): SpellSlotState {
 }
 
 function readSpellSourceKind(raw: unknown, id: string): SpellSourceKind | undefined {
-  if (raw === 'race' || raw === 'catalog' || raw === 'custom') return raw
+  if (raw === 'race' || raw === 'feat' || raw === 'catalog' || raw === 'custom') {
+    return raw
+  }
   if (id.startsWith('race-spell:')) return 'race'
+  if (id.startsWith('feat-spell:')) return 'feat'
   return undefined
 }
 
@@ -90,6 +95,7 @@ function readSpell(raw: unknown, index: number): SheetSpell {
   const id = typeof row.id === 'string' ? row.id : `spell-${index}`
   const sourceKind = readSpellSourceKind(row.source_kind ?? row.sourceKind, id)
   const raceGrant = readRaceGrantMode(row.race_grant ?? row.raceGrant)
+  const featGrant = readRaceGrantMode(row.feat_grant ?? row.featGrant)
   return {
     id,
     name: typeof row.name === 'string' ? row.name : '',
@@ -109,6 +115,7 @@ function readSpell(raw: unknown, index: number): SheetSpell {
     concentration: Boolean(row.concentration),
     ...(sourceKind ? { source_kind: sourceKind } : {}),
     ...(raceGrant ? { race_grant: raceGrant } : {}),
+    ...(featGrant ? { feat_grant: featGrant } : {}),
   }
 }
 
@@ -116,12 +123,34 @@ export function raceSpellId(raceSlug: string, spellId: string): string {
   return `race-spell:${raceSlug}:${spellId}`
 }
 
+export function featSpellId(grantId: string, spellId: string): string {
+  return `feat-spell:${grantId}:${spellId}`
+}
+
 export function isRaceSheetSpell(spell: SheetSpell): boolean {
   return spell.source_kind === 'race' || spell.id.startsWith('race-spell:')
 }
 
+export function isFeatSheetSpell(spell: SheetSpell): boolean {
+  return spell.source_kind === 'feat' || spell.id.startsWith('feat-spell:')
+}
+
 export function stripRaceSheetSpells(known: SheetSpell[]): SheetSpell[] {
   return known.filter((spell) => !isRaceSheetSpell(spell))
+}
+
+export function stripFeatSheetSpells(known: SheetSpell[]): SheetSpell[] {
+  return known.filter((spell) => !isFeatSheetSpell(spell))
+}
+
+export function stripFeatSheetSpellsForGrant(
+  known: SheetSpell[],
+  grantId: string,
+): SheetSpell[] {
+  const prefix = `feat-spell:${grantId}:`
+  return known.filter(
+    (spell) => !(isFeatSheetSpell(spell) && spell.id.startsWith(prefix)),
+  )
 }
 
 export function readSpells(sheet: Record<string, unknown>): SpellsState {
@@ -191,6 +220,7 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         concentration: spell.concentration,
         ...(spell.source_kind ? { source_kind: spell.source_kind } : {}),
         ...(spell.race_grant ? { race_grant: spell.race_grant } : {}),
+        ...(spell.feat_grant ? { feat_grant: spell.feat_grant } : {}),
       })),
       prepared: state.known
         .filter((spell) => spell.level <= 0 || spell.prepared)
@@ -228,11 +258,12 @@ export function groupSpellsByLevel(spells: SheetSpell[]): Array<{ level: number;
     .map(([level, grouped]) => ({ level, spells: grouped }))
 }
 
-/** Innate racial casts do not consume the class prepare budget. */
+/** Innate racial / feat casts do not consume the class prepare budget. */
 export function spellCountsTowardPrepareCap(spell: SheetSpell): boolean {
   if (!countsTowardPrepareLimit(spell.level)) return false
   if (!spell.prepared) return false
   if (spell.race_grant === 'innate') return false
+  if (spell.feat_grant === 'innate') return false
   return true
 }
 
@@ -251,6 +282,7 @@ export function canPrepareSpell(
   maxPrepared: number | null,
 ): boolean {
   if (spell.race_grant === 'innate') return true
+  if (spell.feat_grant === 'innate') return true
   if (!countsTowardPrepareLimit(spell.level)) return true
   if (spell.prepared) return true
   if (maxPrepared == null) return true
@@ -265,7 +297,11 @@ export function setSpellPrepared(
 ): SheetSpell[] {
   return known.map((spell) => {
     if (spell.id !== spellId) return spell
-    if (spell.level <= 0 || spell.race_grant === 'innate') {
+    if (
+      spell.level <= 0 ||
+      spell.race_grant === 'innate' ||
+      spell.feat_grant === 'innate'
+    ) {
       return { ...spell, prepared: true }
     }
     if (prepared && !canPrepareSpell(known, spell, maxPrepared)) return spell

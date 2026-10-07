@@ -38,10 +38,54 @@
             ]
           },
           {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Заговор и заклинание 1 круга",
-            "text_ru": "Запиши заговор и заклинание 1 круга чародея. Автоподбор — позже."
+            "id": "cantrip",
+            "type": "spell_one",
+            "label_ru": "Заговор чародея",
+            "level": 0,
+            "grant": "innate",
+            "options": [
+              { "id": "acid_splash", "label_ru": "Брызги кислоты" },
+              { "id": "chill_touch", "label_ru": "Леденящее прикосновение" },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд" },
+              { "id": "light", "label_ru": "Свет" },
+              { "id": "mage_hand", "label_ru": "Волшебная рука" },
+              { "id": "mending", "label_ru": "Починка" },
+              { "id": "message", "label_ru": "Сообщение" },
+              { "id": "minor_illusion", "label_ru": "Малая иллюзия" },
+              { "id": "poison_spray", "label_ru": "Ядовитые брызги" },
+              { "id": "prestidigitation", "label_ru": "Фокусы" },
+              { "id": "ray_of_frost", "label_ru": "Луч холода" },
+              { "id": "shocking_grasp", "label_ru": "Шокирующее касание" },
+              { "id": "true_strike", "label_ru": "Меткий удар" }
+            ]
+          },
+          {
+            "id": "l1_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 1 круга чародея",
+            "level": 1,
+            "grant": "innate",
+            "notes_ru": "1/короткий или длинный отдых без ячейки",
+            "options": [
+              { "id": "burning_hands", "label_ru": "Горящие руки" },
+              { "id": "charm_person", "label_ru": "Очарование личности" },
+              { "id": "chromatic_orb", "label_ru": "Цветной шар" },
+              { "id": "color_spray", "label_ru": "Цветной шарик" },
+              { "id": "detect_magic", "label_ru": "Обнаружение магии" },
+              { "id": "disguise_self", "label_ru": "Маскировка" },
+              { "id": "expeditious_retreat", "label_ru": "Ускоренное отступление" },
+              { "id": "false_life", "label_ru": "Псевдожизнь" },
+              { "id": "feather_fall", "label_ru": "Падение пёрышком" },
+              { "id": "fog_cloud", "label_ru": "Туманное облако" },
+              { "id": "jump", "label_ru": "Прыжок" },
+              { "id": "mage_armor", "label_ru": "Доспехи мага" },
+              { "id": "magic_missile", "label_ru": "Волшебная стрела" },
+              { "id": "ray_of_sickness", "label_ru": "Луч болезни" },
+              { "id": "shield", "label_ru": "Щит" },
+              { "id": "silent_image", "label_ru": "Бесшумный образ" },
+              { "id": "sleep", "label_ru": "Усыпление" },
+              { "id": "thunderwave", "label_ru": "Волна грома" }
+            ]
           }
         ],
         "grants": {
@@ -50,7 +94,13 @@
           },
           "flags": [
             "aberrant_dragonmark"
-          ]
+          ],
+          "resource": {
+            "pool_id": "aberrant_l1",
+            "pool_name_ru": "Аберрантный знак (1 круг)",
+            "uses": 1,
+            "recovery": "short_rest"
+          }
         }
       }
     },

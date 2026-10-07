@@ -6,11 +6,18 @@ import {
   type AppliedFeatGrant,
   type ArmorProfKey,
   type FeatGrantsPackage,
+  type FeatSpell,
   featTraitsSnippet,
   resolveFeatResourceMax,
 } from '../../shared/dnd/featGrants'
 import type { ArmorProficiency } from './identity'
 import type { TextBlock } from './textBlocks'
+import {
+  featSpellId,
+  stripFeatSheetSpellsForGrant,
+  type SheetSpell,
+  type SpellsState,
+} from './spells'
 
 export type FeatGrantDraftSlice = {
   abilities: Record<AbilityKey, number>
@@ -27,6 +34,7 @@ export type FeatGrantDraftSlice = {
   }
   textBlocks: TextBlock[]
   resources: SheetResource[]
+  spells: SpellsState
   totalLevel: number
 }
 
@@ -69,6 +77,80 @@ function upsertFeatTraitsBlock(value: string, snippet: string): string {
 
 function resourceId(grantId: string, poolId: string): string {
   return `${FEAT_RESOURCE_PREFIX}${grantId}:${poolId}`
+}
+
+function resolveFeatSpellCastingAbility(
+  spell: FeatSpell,
+  grant: AppliedFeatGrant,
+): AbilityKey | null {
+  if (spell.castingAbility) return spell.castingAbility
+  const fromAbility = grant.picks.abilityKeys.ability
+  if (fromAbility) return fromAbility
+  for (const key of Object.values(grant.picks.abilityKeys)) {
+    if (key) return key
+  }
+  return null
+}
+
+function featSpellToSheetSpell(
+  grant: AppliedFeatGrant,
+  spell: FeatSpell,
+): SheetSpell {
+  const casting = resolveFeatSpellCastingAbility(spell, grant)
+  const abilityNote = casting ? `хар-ка: ${casting.toUpperCase()}` : null
+  const unlockNote =
+    spell.unlockLevel > 1 ? `с ${spell.unlockLevel} ур.` : null
+  const grantNote =
+    spell.grant === 'spell_list'
+      ? 'список черты — готовь как классовое'
+      : 'врождённое (черта)'
+  const notes = [spell.notesRu, unlockNote, grantNote, abilityNote]
+    .filter(Boolean)
+    .join(' · ')
+  const innate = spell.grant === 'innate'
+  return {
+    id: featSpellId(grant.id, spell.id),
+    name: spell.nameRu,
+    catalog_id: null,
+    level: spell.level,
+    prepared: innate || spell.level <= 0,
+    notes,
+    casting_time: '',
+    range: '',
+    attack_or_save: '',
+    damage: '',
+    concentration: false,
+    source_kind: 'feat',
+    feat_grant: spell.grant,
+  }
+}
+
+function syncFeatSpellsForGrant(input: {
+  spells: SpellsState
+  grant: AppliedFeatGrant
+  characterLevel: number
+}): SpellsState {
+  const active = (input.grant.applied.spells ?? []).filter(
+    (spell) => Math.max(1, Math.floor(input.characterLevel)) >= spell.unlockLevel,
+  )
+  const previousById = new Map(
+    input.spells.known
+      .filter((row) => row.id.startsWith(`feat-spell:${input.grant.id}:`))
+      .map((row) => [row.id, row]),
+  )
+  const withoutGrant = stripFeatSheetSpellsForGrant(
+    input.spells.known,
+    input.grant.id,
+  )
+  const nextRows = active.map((spell) => {
+    const next = featSpellToSheetSpell(input.grant, spell)
+    const prev = previousById.get(next.id)
+    if (prev && next.feat_grant === 'spell_list' && next.level > 0) {
+      return { ...next, prepared: prev.prepared }
+    }
+    return next
+  })
+  return { ...input.spells, known: [...withoutGrant, ...nextRows] }
 }
 
 function applyPackage(input: {
@@ -238,7 +320,16 @@ export function applyFeatGrantToDraft(input: {
     applied: input.grant.applied,
     direction: 1,
   })
-  return syncFeatTraitsText({ ...applied, featGrants: withGrant.featGrants })
+  const withSpells = {
+    ...applied,
+    spells: syncFeatSpellsForGrant({
+      spells: applied.spells,
+      grant: input.grant,
+      characterLevel: applied.totalLevel,
+    }),
+    featGrants: withGrant.featGrants,
+  }
+  return syncFeatTraitsText(withSpells)
 }
 
 export function revokeFeatGrantFromDraft(input: {
@@ -259,6 +350,10 @@ export function revokeFeatGrantFromDraft(input: {
   })
   return syncFeatTraitsText({
     ...revoked,
+    spells: {
+      ...revoked.spells,
+      known: stripFeatSheetSpellsForGrant(revoked.spells.known, grant.id),
+    },
     featGrants: withoutLedger.featGrants,
   })
 }

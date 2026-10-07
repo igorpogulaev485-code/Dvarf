@@ -109,12 +109,22 @@
             "id": "rune_note",
             "type": "note",
             "label_ru": "Руны",
-            "text_ru": "Выбери руны по таблице Bigby (число = ½ БМ). Автоподбор — позже."
+            "text_ru": "Понимание языков уже на листе. Руны (½ БМ) и связанные заклинания 1 круга — отметь вручную / позже автовыбор."
           }
         ],
         "grants": {
           "flags": [
             "rune_shaper"
+          ],
+          "spells": [
+            {
+              "id": "comprehend_languages",
+              "spell_slug": "comprehend_languages",
+              "name_ru": "Понимание языков",
+              "level": 1,
+              "grant": "innate",
+              "notes_ru": "1/длинный отдых без ячейки"
+            }
           ]
         }
       }

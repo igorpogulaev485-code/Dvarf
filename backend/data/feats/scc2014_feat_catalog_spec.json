@@ -71,10 +71,77 @@
             ]
           },
           {
-            "id": "spell_note",
-            "type": "note",
-            "label_ru": "Заговоры и заклинание",
-            "text_ru": "Запиши 2 заговора и заклинание 1 круга по правилам выбранного колледжа. Автоподбор — позже."
+            "id": "cantrip1",
+            "type": "spell_one",
+            "label_ru": "Заговор 1 (колледж)",
+            "level": 0,
+            "grant": "innate",
+            "filter_enum": "college",
+            "unique_group": "cantrips",
+            "options": [
+              { "id": "light", "label_ru": "Свет", "lists": ["lorehold", "silverquill"] },
+              { "id": "sacred_flame", "label_ru": "Священное пламя", "lists": ["lorehold", "silverquill"] },
+              { "id": "thaumaturgy", "label_ru": "Чудотворство", "lists": ["lorehold", "silverquill"] },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд", "lists": ["prismari"] },
+              { "id": "prestidigitation", "label_ru": "Фокусы", "lists": ["prismari"] },
+              { "id": "ray_of_frost", "label_ru": "Луч холода", "lists": ["prismari"] },
+              { "id": "druidcraft", "label_ru": "Друидизм", "lists": ["quandrix", "witherbloom"] },
+              { "id": "guidance", "label_ru": "Наставление", "lists": ["quandrix"] },
+              { "id": "mage_hand", "label_ru": "Волшебная рука", "lists": ["quandrix"] },
+              { "id": "vicious_mockery", "label_ru": "Злая насмешка", "lists": ["silverquill"] },
+              { "id": "chill_touch", "label_ru": "Леденящее прикосновение", "lists": ["witherbloom"] },
+              { "id": "spare_the_dying", "label_ru": "Уход за умирающим", "lists": ["witherbloom"] }
+            ]
+          },
+          {
+            "id": "cantrip2",
+            "type": "spell_one",
+            "label_ru": "Заговор 2 (колледж)",
+            "level": 0,
+            "grant": "innate",
+            "filter_enum": "college",
+            "unique_group": "cantrips",
+            "options": [
+              { "id": "light", "label_ru": "Свет", "lists": ["lorehold", "silverquill"] },
+              { "id": "sacred_flame", "label_ru": "Священное пламя", "lists": ["lorehold", "silverquill"] },
+              { "id": "thaumaturgy", "label_ru": "Чудотворство", "lists": ["lorehold", "silverquill"] },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд", "lists": ["prismari"] },
+              { "id": "prestidigitation", "label_ru": "Фокусы", "lists": ["prismari"] },
+              { "id": "ray_of_frost", "label_ru": "Луч холода", "lists": ["prismari"] },
+              { "id": "druidcraft", "label_ru": "Друидизм", "lists": ["quandrix", "witherbloom"] },
+              { "id": "guidance", "label_ru": "Наставление", "lists": ["quandrix"] },
+              { "id": "mage_hand", "label_ru": "Волшебная рука", "lists": ["quandrix"] },
+              { "id": "vicious_mockery", "label_ru": "Злая насмешка", "lists": ["silverquill"] },
+              { "id": "chill_touch", "label_ru": "Леденящее прикосновение", "lists": ["witherbloom"] },
+              { "id": "spare_the_dying", "label_ru": "Уход за умирающим", "lists": ["witherbloom"] }
+            ]
+          },
+          {
+            "id": "l1_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 1 круга (колледж)",
+            "level": 1,
+            "grant": "innate",
+            "filter_enum": "college",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "bless", "label_ru": "Благословение (жрец)", "lists": ["lorehold"] },
+              { "id": "command", "label_ru": "Приказ (жрец)", "lists": ["lorehold"] },
+              { "id": "identify", "label_ru": "Опознание (волшебник)", "lists": ["lorehold"] },
+              { "id": "mage_armor", "label_ru": "Доспехи мага (волшебник)", "lists": ["lorehold"] },
+              { "id": "chromatic_orb", "label_ru": "Цветной шар (чародей)", "lists": ["prismari"] },
+              { "id": "thunderwave", "label_ru": "Волна грома (бард/чародей)", "lists": ["prismari"] },
+              { "id": "silent_image", "label_ru": "Бесшумный образ (бард)", "lists": ["prismari"] },
+              { "id": "detect_magic", "label_ru": "Обнаружение магии", "lists": ["quandrix"] },
+              { "id": "entangle", "label_ru": "Опутывание (друид)", "lists": ["quandrix"] },
+              { "id": "mage_armor", "label_ru": "Доспехи мага (волшебник)", "lists": ["quandrix"] },
+              { "id": "dissonant_whispers", "label_ru": "Диссонирующий шёпот (бард)", "lists": ["silverquill"] },
+              { "id": "guiding_bolt", "label_ru": "Направляющий снаряд (жрец)", "lists": ["silverquill"] },
+              { "id": "heroism", "label_ru": "Героизм (бард)", "lists": ["silverquill"] },
+              { "id": "cure_wounds", "label_ru": "Лечение ран (друид)", "lists": ["witherbloom"] },
+              { "id": "inflict_wounds", "label_ru": "Нанесение ран", "lists": ["witherbloom"] },
+              { "id": "ray_of_sickness", "label_ru": "Луч болезни (волшебник)", "lists": ["witherbloom"] }
+            ]
           }
         ],
         "grants": {
@@ -114,6 +181,16 @@
         "grants": {
           "flags": [
             "strixhaven_mascot"
+          ],
+          "spells": [
+            {
+              "id": "find_familiar",
+              "spell_slug": "find_familiar",
+              "name_ru": "Поиск фамильяра",
+              "level": 1,
+              "grant": "innate",
+              "notes_ru": "ритуал; форма — талисман колледжа"
+            }
           ],
           "resource": {
             "pool_id": "mascot_swap",

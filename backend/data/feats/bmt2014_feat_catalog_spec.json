@@ -22,14 +22,24 @@
         },
         "choices": [
           {
-            "id": "spell_note",
+            "id": "ace_note",
             "type": "note",
             "label_ru": "Туз в рукаве",
-            "text_ru": "После длинного отдыха запиши заклинание, вложенное в карту (1 действие, уровень ≤ твоих ячеек)."
+            "text_ru": "После длинного отдыха запиши заклинание класса, вложенное в карту (1 действие, уровень ≤ твоих ячеек)."
           }
         ],
         "grants": {
-          "flags": ["cartomancer"]
+          "flags": ["cartomancer"],
+          "spells": [
+            {
+              "id": "prestidigitation",
+              "spell_slug": "prestidigitation",
+              "name_ru": "Фокусы",
+              "level": 0,
+              "grant": "innate",
+              "notes_ru": "карточные фокусы / сценическая магия"
+            }
+          ]
         }
       }
     }

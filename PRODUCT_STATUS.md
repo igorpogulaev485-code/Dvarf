@@ -430,6 +430,19 @@
 
 ## В ветках / ещё не на проде
 
+### 2026-10-07 — FEATS spell grants (фиксированные + выбор)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Apply/revoke | `grants.spells` → `spells.known` с чипом «Черта»; id `feat-spell:{grantId}:{id}` | Черта сама кладёт заклинания на лист |
+| Wave1 fixed | Fey Teleportation, Svirfneblin Magic, Telekinetic, Telepathic, Drow High Magic, Gift of the Metallic Dragon, Outlands Envoy | Без ручного misty step / mage hand / cure wounds… |
+| Wave2 pick | `spell_one`: Fey/Shadow Touched + Wood Elf Magic (заговор) | Туманный шаг/Невидимость + выбор 1 круга в попапе |
+| Wave3 lists | Magic Initiate / Artificer Initiate / Strixhaven (+ mascot familiar) | Список/колледж → 2 заговора + 1 круг на лист |
+| Wave4 | Ritual/Spell Sniper, Aberrant Dragonmark, SDQ moons/adepts, Scion plane cantrip, Cartomancer/Rune Shaper | Почти все spell_note черты закрыты |
+| Prepare cap | `feat_grant: innate` не считаются в лимит подготовки | Как расовые врождённые |
+
+На проде: **нет** · ветка `cursor/feats-spell-grants-592a` · PR #66 · tip не менять до «залей»
+
 ### 2026-10-07 — FEATS assemble (готово к «залей»)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -645,3 +658,4 @@
 | 2026-10-07 | `cursor/feats-pam-wave-592a` · PR #63 | PAM Planescape 7 feats + plane branches; alembic `g3b4`; на проде нет |
 | 2026-10-07 | `cursor/feats-bmt-wave-592a` · PR #64 | BMT Cartomancer; alembic `h4c5`; на проде нет |
 | 2026-10-07 | `cursor/feats-assemble-592a` · PR #65 | Assemble tip + feat_enums_all (moon/plane/strike); alembic `i5d6`; на проде нет · ждать «залей» |
+| 2026-10-07 | `cursor/feats-spell-grants-592a` · PR #66 | Feat fixed spell grants → known; alembic `j6e7`; на проде нет |
