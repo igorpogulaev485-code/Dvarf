@@ -117,7 +117,7 @@ export function MaxHpByLevelsDialog({
       <Stack gap={12}>
         <Text tone="muted" className="hp-levels__lead">
           Ур. {level} · ТЕЛ {conLabel}. База — по уровням; бонус — временный баф к максимуму
-          (Aid и т.п.), не путать с временными HP.
+          (Aid и т.п.), сбрасывается после продолжительного отдыха вместе с временными HP.
         </Text>
 
         <div className="chip-row">
@@ -175,7 +175,7 @@ export function MaxHpByLevelsDialog({
 
         <Field
           label="Временный бонус к макс."
-          hint="Снимается вручную, когда эффект кончился"
+          hint="Сбрасывается после продолжительного отдыха (как временные HP)"
         >
           <div className="hp-levels__bonus-row">
             <NumberInput

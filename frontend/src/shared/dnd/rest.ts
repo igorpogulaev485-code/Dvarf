@@ -69,6 +69,8 @@ export type RestResult = {
   exhaustion?: number
   hp_current?: number | null
   hp_temp?: number
+  /** Cleared on long rest together with temporary HP. */
+  hp_max_bonus?: number
   hit_dice_current?: number
   is_dying?: boolean
   death_successes?: number
@@ -88,6 +90,7 @@ export function applyLongRest(input: {
   slots: Record<string, SpellSlotState>
   pact_slots: { max: number; used: number; level: number } | null
   exhaustion: number
+  /** Base HP max (without temporary max bonus). */
   hp_max: number | null
   hit_dice_current: number
   hit_dice_max: number
@@ -98,8 +101,10 @@ export function applyLongRest(input: {
     slots: recoverSpellSlotsOnLongRest(input.slots),
     pact_slots: pact ? { ...pact, used: 0 } : null,
     exhaustion: reduceExhaustionOnLongRest(input.exhaustion),
+    // Heal to base max; temp HP and temp max bonus end with the long rest.
     hp_current: input.hp_max,
     hp_temp: 0,
+    hp_max_bonus: 0,
     hit_dice_current: recoverHitDiceOnLongRest(
       input.hit_dice_current,
       input.hit_dice_max,

@@ -301,7 +301,7 @@ export function PlayPanel({
       slots: spells.slots,
       pact_slots: spells.pact_slots,
       exhaustion: play.exhaustion,
-      hp_max: combatHpMax,
+      hp_max: hpMax,
       hit_dice_current: play.hitDiceCurrent,
       hit_dice_max: hitDiceMax,
     })
@@ -310,6 +310,7 @@ export function PlayPanel({
       resources: result.resources,
       exhaustion: result.exhaustion ?? play.exhaustion,
       hpTemp: result.hp_temp ?? 0,
+      hpMaxBonus: result.hp_max_bonus ?? 0,
       hitDiceCurrent: result.hit_dice_current ?? play.hitDiceCurrent,
       isDying: false,
       deathSuccesses: 0,
@@ -325,7 +326,7 @@ export function PlayPanel({
       onCombatChange({ hpCurrent: result.hp_current })
     }
     onToast(
-      'Продолжительный отдых: HP, кости, ячейки, ресурсы, −1 истощение, спасброски сброшены',
+      'Продолжительный отдых: HP до базы, сброс врем. HP и бонуса к макс., кости, ячейки, ресурсы, −1 истощение',
     )
   }
 
@@ -335,7 +336,7 @@ export function PlayPanel({
         <div className="sheet-grid sheet-grid--2">
           <Field
             label="Временные HP"
-            hint="Буфер поверх HP, не увеличивает максимум"
+            hint="Буфер поверх HP · сбрасывается после продолжительного отдыха"
           >
             <NumberInput
               min={0}
@@ -348,8 +349,8 @@ export function PlayPanel({
             label="Бонус к макс. HP"
             hint={
               combatHpMax != null && play.hpMaxBonus > 0
-                ? `В бою ${combatHpMax} (база ${hpMax} · +${play.hpMaxBonus})`
-                : 'Aid и т.п. · отдельно от временных HP'
+                ? `В бою ${combatHpMax} (база ${hpMax} · +${play.hpMaxBonus}) · сброс после продолжит. отдыха`
+                : 'Aid и т.п. · сбрасывается после продолжительного отдыха'
             }
           >
             <NumberInput
@@ -590,9 +591,9 @@ export function PlayPanel({
             <strong>Отдых целиком</strong>
           </Text>
           <Text tone="muted">
-            Продолжительный: полные HP, половина костей, ячейки/pact, ресурсы «короткий» и
-            «продолжительный», −1 истощение, сброс спасбросков. Короткий (только ресурсы) — пипсы в
-            текстовых блоках со сбросом «короткий».
+            Продолжительный: HP до базового макс., сброс временных HP и бонуса к макс., половина
+            костей, ячейки/pact, ресурсы «короткий» и «продолжительный», −1 истощение, сброс
+            спасбросков. Короткий (только ресурсы) — пипсы в текстовых блоках со сбросом «короткий».
           </Text>
           <div className="play-rest-actions">
             <Button type="button" onClick={doLongRest}>
