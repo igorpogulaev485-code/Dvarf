@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Warlock + official patrons for sheet unlock",
     "edition": "2014",
     "source": "phb+scag+xgte+tcoe+vrgr",
-    "notes_ru": "Pact Magic — в casterProgression (short rest). Инвокации multi-pick. Pact Boon choice. Mystic Arcanum 6–9 = 1× long. Архетипы — каркас."
+    "notes_ru": "Pact Magic — в casterProgression (short rest). Инвокации multi-pick. Pact Boon choice. Mystic Arcanum 6–9 = 1× long. Архетипы — каркас. H4b depth wave 2: casters/artificer/druid scales·pools."
   },
   "class_slug": "warlock",
   "features": [
@@ -249,7 +249,13 @@
         "name_ru": "Благословение Тёмного",
         "name_en": "Dark One's Blessing",
         "summary_ru": "При убийстве врага: временные хиты = мод. Хар. + ур. колдуна.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При убийстве",
+          "by_level": {
+            "1": "вр. хиты = Хар. + ур. колдуна"
+          }
+        }
       },
       {
         "id": "dark_ones_own_luck",
@@ -272,7 +278,32 @@
         "name_ru": "Дьявольская стойкость",
         "name_en": "Fiendish Resilience",
         "summary_ru": "После короткого/продолжительного отдыха выбери тип урона — сопротивление (кроме силового/с серебром).",
-        "kind": "passive"
+        "kind": "passive",
+        "choice": {
+          "id": "fiendish_resilience_type",
+          "label_ru": "Тип сопротивления (после отдыха)",
+          "options": [
+            "acid",
+            "cold",
+            "fire",
+            "force",
+            "lightning",
+            "necrotic",
+            "poison",
+            "psychic",
+            "radiant",
+            "thunder",
+            "bludgeoning",
+            "piercing",
+            "slashing"
+          ]
+        },
+        "scale": {
+          "label_ru": "После отдыха",
+          "by_level": {
+            "10": "1 тип (кроме серебряного/магического физ. по правилам PHB)"
+          }
+        }
       },
       {
         "id": "hurl_through_hell",
@@ -297,7 +328,13 @@
         "name_ru": "Пробуждённый разум",
         "name_en": "Awakened Mind",
         "summary_ru": "Телепатия 30 фт. с существом, понимающим язык.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Телепатия",
+          "by_level": {
+            "1": "30 фт. с существом, понимающим язык"
+          }
+        }
       },
       {
         "id": "entropic_ward",
@@ -320,7 +357,13 @@
         "name_ru": "Мысленный щит",
         "name_en": "Thought Shield",
         "summary_ru": "Сопр. психическому; отражаешь психический урон атакующему; разум нельзя читать без согласия.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Разум",
+          "by_level": {
+            "10": "сопр. психическому; отражение; нельзя читать без согласия"
+          }
+        }
       },
       {
         "id": "create_thrall",
@@ -328,7 +371,22 @@
         "name_ru": "Создать раба",
         "name_en": "Create Thrall",
         "summary_ru": "Действием коснись недееспособного гуманоида: очарован тобой, пока не снимешь / не применишь снова. Телепатия на любом расстоянии.",
-        "kind": "passive"
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "manual",
+          "pool_id": "create_thrall",
+          "pool_name_ru": "Создать раба",
+          "track": "stock",
+          "stock_gain_label_ru": "Очаровать недееспособного гуманоида",
+          "stock_spend_label_ru": "Снять / заменить раба"
+        },
+        "scale": {
+          "label_ru": "Телепатия",
+          "by_level": {
+            "14": "неограниченная дистанция к рабу"
+          }
+        }
       }
     ],
     "the_undying": [
@@ -338,7 +396,13 @@
         "name_ru": "Среди мёртвых",
         "name_en": "Among the Dead",
         "summary_ru": "spare the dying; преимущество vs болезней; нежить с помехой атаковать тебя (спас Мудр.).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Нежить",
+          "by_level": {
+            "1": "spare the dying; преим. vs болезней; нежить с помехой атаковать"
+          }
+        }
       },
       {
         "id": "defy_death",
@@ -361,7 +425,13 @@
         "name_ru": "Нетленная природа",
         "name_en": "Undying Nature",
         "summary_ru": "Не нужна еда/вода/воздух; возраст медленнее; иммунитет к эффектам старения.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Тело",
+          "by_level": {
+            "10": "без еды/воды/воздуха; медленный возраст; иммун. к старению"
+          }
+        }
       },
       {
         "id": "indestructible_life",
@@ -386,7 +456,13 @@
         "name_ru": "Доп. заговоры",
         "name_en": "Bonus Cantrips",
         "summary_ru": "light и sacred flame известны.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заговоры",
+          "by_level": {
+            "1": "light + sacred flame"
+          }
+        }
       },
       {
         "id": "healing_light",
@@ -411,7 +487,13 @@
         "name_ru": "Сияющая душа",
         "name_en": "Radiant Soul",
         "summary_ru": "Сопр. лучистому; к одному броску лучистого/огненного урона заклинания добавь мод. Хар.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Лучистый",
+          "by_level": {
+            "6": "сопр.; +Хар. к одному броску луч/огонь"
+          }
+        }
       },
       {
         "id": "celestial_resilience",
@@ -419,7 +501,13 @@
         "name_ru": "Небесная стойкость",
         "name_en": "Celestial Resilience",
         "summary_ru": "После короткого/продолжительного отдыха: временные хиты себе и союзникам.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "После отдыха",
+          "by_level": {
+            "10": "вр. хиты себе и союзникам"
+          }
+        }
       },
       {
         "id": "searing_vengeance",
@@ -444,7 +532,13 @@
         "name_ru": "Воин хексблейда",
         "name_en": "Hexblade's Warrior",
         "summary_ru": "Владение средними доспехами, щитами, воинским оружием.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Владения",
+          "by_level": {
+            "1": "средние доспехи, щиты, воинское оружие"
+          }
+        }
       },
       {
         "id": "hexblades_curse",
@@ -467,7 +561,13 @@
         "name_ru": "Хекс-воин",
         "name_en": "Hex Warrior",
         "summary_ru": "Одно оружие: атаки/урон Харизмой; с Пактным клинком — любое подходящее.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Оружие",
+          "by_level": {
+            "1": "атака/урон от Харизмы (1 оружие или Pact Blade)"
+          }
+        }
       },
       {
         "id": "accursed_specter",
@@ -490,7 +590,13 @@
         "name_ru": "Доспех проклятий",
         "name_en": "Armor of Hexes",
         "summary_ru": "При попадании проклятой цели: d6, на 4+ — промах.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При попадании проклятой",
+          "by_level": {
+            "10": "d6: 4+ → промах"
+          }
+        }
       },
       {
         "id": "master_of_hexes",
@@ -498,7 +604,13 @@
         "name_ru": "Мастер проклятий",
         "name_en": "Master of Hexes",
         "summary_ru": "При смерти проклятой цели можешь перенести проклятие на другую в 30 фт. без траты использования.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При смерти цели",
+          "by_level": {
+            "14": "перенести проклятие на другую в 30 фт. без траты"
+          }
+        }
       }
     ],
     "the_fathomless": [
@@ -524,7 +636,13 @@
         "name_ru": "Дар моря",
         "name_en": "Gift of the Sea",
         "summary_ru": "Скорость плавания 40 фт.; дыхание водой.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Плавание",
+          "by_level": {
+            "1": "40 фт.; дыхание водой"
+          }
+        }
       },
       {
         "id": "oceanic_soul",
@@ -532,7 +650,13 @@
         "name_ru": "Океанская душа",
         "name_en": "Oceanic Soul",
         "summary_ru": "Сопр. холоду; речь с любым дышащим водой; при холодном уроне по тебе — союзник в 30 фт. тоже сопротивляется этому урону.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Холод",
+          "by_level": {
+            "6": "сопр.; речь с водными; делёж сопр. союзнику в 30 фт."
+          }
+        }
       },
       {
         "id": "guardian_coil",
@@ -540,7 +664,14 @@
         "name_ru": "Страж-спираль",
         "name_en": "Guardian Coil",
         "summary_ru": "Реакция: щупальце снижает урон союзнику/себе в 10 фт. на 1к8 (с 10 — 2к8).",
-        "kind": "reaction"
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Реакция щупальца",
+          "by_level": {
+            "6": "−1к8 урона",
+            "10": "−2к8 урона"
+          }
+        }
       },
       {
         "id": "grasping_tentacles",
@@ -548,7 +679,13 @@
         "name_ru": "Хватающие щупальца",
         "name_en": "Grasping Tentacles",
         "summary_ru": "При Evard's black tentacles: хиты = мод. Хар. при касте; концентрация не от урона; бонусным — урон+замедление.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Evard's",
+          "by_level": {
+            "10": "хиты = Хар. при касте; конц. не от урона; бонусным урон+замедление"
+          }
+        }
       },
       {
         "id": "fathomless_plunge",

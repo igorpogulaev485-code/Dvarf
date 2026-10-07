@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Druid + official circles for sheet unlock",
     "edition": "2014",
     "source": "phb+xgte+tcoe",
-    "notes_ru": "Wild Shape 2× short. Circle of the Land — pick земли. Moon/Stars/Spores/Wildfire тратят WS. 7 кругов каркас."
+    "notes_ru": "Wild Shape 2× short. Circle of the Land — pick земли. Moon/Stars/Spores/Wildfire тратят WS. 7 кругов каркас. H4b depth wave 2: casters/artificer/druid scales·pools."
   },
   "class_slug": "druid",
   "features": [
@@ -127,7 +127,13 @@
         "name_ru": "Доп. заговор",
         "name_en": "Bonus Cantrip",
         "summary_ru": "Один дополнительный заговор друида.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Заговор",
+          "by_level": {
+            "2": "+1 заговор друида"
+          }
+        }
       },
       {
         "id": "natural_recovery",
@@ -163,7 +169,13 @@
         "name_ru": "Поступь земли",
         "name_en": "Land's Stride",
         "summary_ru": "Нет затруднённой местности от растений; преимущество vs магических растений, затрудняющих движение.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Местность",
+          "by_level": {
+            "6": "нет затруднённой от растений; преим. vs маг. растений"
+          }
+        }
       },
       {
         "id": "natures_ward",
@@ -171,7 +183,13 @@
         "name_ru": "Страж природы",
         "name_en": "Nature's Ward",
         "summary_ru": "Иммунитет к яду и болезни; иммунитет к очарованию/страху элементалей и фей.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Иммунитеты",
+          "by_level": {
+            "10": "яд/болезнь; очарование/страх от элементалей и фей"
+          }
+        }
       },
       {
         "id": "natures_sanctuary",
@@ -179,7 +197,13 @@
         "name_ru": "Святилище природы",
         "name_en": "Nature's Sanctuary",
         "summary_ru": "Звери и растения, атакующие тебя, должны пройти спас Мудр. или выбрать другую цель.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Звери/растения",
+          "by_level": {
+            "14": "спас Мудр. или другая цель атаки"
+          }
+        }
       }
     ],
     "circle_of_the_moon": [
@@ -189,7 +213,18 @@
         "name_ru": "Боевой дикий облик",
         "name_en": "Combat Wild Shape",
         "summary_ru": "Дикий облик бонусным действием. В облике бонусным: потратить ячейку → 1к8 хитов за уровень ячейки.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Дикий облик",
+          "by_level": {
+            "2": "бонусным; лечение ячейкой в облике"
+          }
+        },
+        "slot_spend": {
+          "label_ru": "Исцеление в облике (1к8 × ур. ячейки)",
+          "min_slot": 1,
+          "max_slot": 9
+        }
       },
       {
         "id": "circle_forms",
@@ -202,7 +237,7 @@
           "label_ru": "Макс. CR",
           "by_level": {
             "2": "1",
-            "6": "2",
+            "6": "⅓ ур. друида",
             "9": "3",
             "12": "4",
             "15": "5",
@@ -216,7 +251,13 @@
         "name_ru": "Первобытный удар",
         "name_en": "Primal Strike",
         "summary_ru": "Атаки зверя в Диком облике считаются магическими против сопротивления/иммунитета к немагическому.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Атаки зверя",
+          "by_level": {
+            "6": "магические vs сопротивление/иммунитет"
+          }
+        }
       },
       {
         "id": "elemental_wild_shape",
@@ -224,7 +265,29 @@
         "name_ru": "Элементальный дикий облик",
         "name_en": "Elemental Wild Shape",
         "summary_ru": "Потрать оба использования Дикого облика → воздушный, земляной, огненный или водный элементаль.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 0,
+          "recharge": "short_rest",
+          "pool_id": "elemental_wild_shape",
+          "pool_name_ru": "Стихийный облик",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "wild_shape",
+            "label_ru": "оба использования Дикого облика → элементаль",
+            "mode": "spend"
+          }
+        },
+        "choice": {
+          "id": "elemental_form",
+          "label_ru": "Элементаль",
+          "options": [
+            "air",
+            "earth",
+            "fire",
+            "water"
+          ]
+        }
       },
       {
         "id": "thousand_forms",
@@ -232,7 +295,13 @@
         "name_ru": "Тысяча обликов",
         "name_en": "Thousand Forms",
         "summary_ru": "Кастуй alter self по желанию без ячейки и компонентов.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Alter Self",
+          "by_level": {
+            "14": "по желанию без ячейки и компонентов"
+          }
+        }
       }
     ],
     "circle_of_dreams": [
@@ -300,7 +369,13 @@
         "name_ru": "Речь лесов",
         "name_en": "Speech of the Woods",
         "summary_ru": "Язык Сильван; через speak with animals — звери могут отвечать (ограниченно).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Язык",
+          "by_level": {
+            "2": "Сильван; звери отвечают через speak with animals"
+          }
+        }
       },
       {
         "id": "spirit_totem",
@@ -323,7 +398,13 @@
         "name_ru": "Могучий призыватель",
         "name_en": "Mighty Summoner",
         "summary_ru": "Призванные звери/феи: +2 хита/кд хитов; атаки считаются магическими.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Призывы",
+          "by_level": {
+            "6": "+2 хита/кд; атаки магические"
+          }
+        }
       },
       {
         "id": "guardian_spirit",
@@ -331,7 +412,13 @@
         "name_ru": "Дух-страж",
         "name_en": "Guardian Spirit",
         "summary_ru": "Пока тотем активен: упавшие призванные звери/феи в ауре в начале хода получают хиты = ½ ур. друида.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Пока тотем",
+          "by_level": {
+            "10": "упавшие призывы в ауре: ½ ур. друида хитов в начале хода"
+          }
+        }
       },
       {
         "id": "faithful_summons",
@@ -356,7 +443,13 @@
         "name_ru": "Заклинания круга",
         "name_en": "Circle Spells",
         "summary_ru": "Всегда подготовлены: chill touch + список спор (2/3/5/7/9).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Всегда подготовлены",
+          "by_level": {
+            "2": "chill touch + список спор"
+          }
+        }
       },
       {
         "id": "halo_of_spores",
@@ -381,7 +474,25 @@
         "name_ru": "Симбиотическая сущность",
         "name_en": "Symbiotic Entity",
         "summary_ru": "Действием: потрать 1 Дикий облик — 10 мин. вр. хиты = 4×ур. друида; удвоенный Halo; к оружию ближ. +1к6 некротического.",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 0,
+          "recharge": "short_rest",
+          "pool_id": "symbiotic_entity",
+          "pool_name_ru": "Симбиотическая сущность",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "wild_shape",
+            "label_ru": "1 Дикий облик → 10 мин.",
+            "mode": "spend"
+          }
+        },
+        "scale": {
+          "label_ru": "Вр. хиты / урон",
+          "by_level": {
+            "2": "4×ур. друида; удвоенный Halo; +1к6 некрот. к оружию"
+          }
+        }
       },
       {
         "id": "fungal_infestation",
@@ -406,7 +517,13 @@
         "name_ru": "Распространяющиеся споры",
         "name_en": "Spreading Spores",
         "summary_ru": "В Symbiotic Entity бонусным: куб 10 фт. в 30 фт. — урон Halo в начале хода в зоне (без реакции Halo).",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Куб 10 фт.",
+          "by_level": {
+            "10": "в 30 фт.; урон Halo в начале хода в зоне"
+          }
+        }
       },
       {
         "id": "fungal_body",
@@ -414,7 +531,13 @@
         "name_ru": "Грибковое тело",
         "name_en": "Fungal Body",
         "summary_ru": "Нельзя ослепить/оглушить/испугать/отравить; крит. попадание по тебе — обычное, пока есть ≥1 хит.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Пока ≥1 хит",
+          "by_level": {
+            "14": "нельзя ослепить/оглушить/испугать/отравить; крит→обычный"
+          }
+        }
       }
     ],
     "circle_of_stars": [
@@ -439,7 +562,28 @@
         "name_ru": "Звёздная форма",
         "name_en": "Starry Form",
         "summary_ru": "Бонусным: потрать Дикий облик → форма Лучника/Чаши/Дракона на 10 мин.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "resource": {
+          "uses": 0,
+          "recharge": "short_rest",
+          "pool_id": "starry_form",
+          "pool_name_ru": "Звёздная форма",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "wild_shape",
+            "label_ru": "1 Дикий облик → 10 мин.",
+            "mode": "spend"
+          }
+        },
+        "choice": {
+          "id": "starry_constellation",
+          "label_ru": "Созвездие",
+          "options": [
+            "archer",
+            "chalice",
+            "dragon"
+          ]
+        }
       },
       {
         "id": "cosmic_omen",
@@ -463,7 +607,13 @@
         "name_ru": "Мерцающие созвездия",
         "name_en": "Twinkling Constellations",
         "summary_ru": "Улучшенные созвездия; в конце хода можешь сменить созвездие.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Улучшения",
+          "by_level": {
+            "10": "усиленные созвездия; смена в конце хода"
+          }
+        }
       },
       {
         "id": "full_of_stars",
@@ -471,7 +621,13 @@
         "name_ru": "Полон звёзд",
         "name_en": "Full of Stars",
         "summary_ru": "В Звёздной форме: сопротивление дробящему/колющему/рубящему.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "В Звёздной форме",
+          "by_level": {
+            "14": "сопр. дробящему/колющему/рубящему"
+          }
+        }
       }
     ],
     "circle_of_wildfire": [
@@ -481,7 +637,13 @@
         "name_ru": "Заклинания круга",
         "name_en": "Circle Spells",
         "summary_ru": "Всегда подготовлены заклинания дикого огня (2/3/5/7/9).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Всегда подготовлены",
+          "by_level": {
+            "2": "список дикого огня"
+          }
+        }
       },
       {
         "id": "summon_wildfire_spirit",
@@ -489,7 +651,19 @@
         "name_ru": "Призыв духа дикого огня",
         "name_en": "Summon Wildfire Spirit",
         "summary_ru": "Действием: потрать Дикий облик — призвать духа на 1 ч. (см. TCoE).",
-        "kind": "action"
+        "kind": "action",
+        "resource": {
+          "uses": 0,
+          "recharge": "short_rest",
+          "pool_id": "summon_wildfire_spirit",
+          "pool_name_ru": "Дух дикого огня",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "wild_shape",
+            "label_ru": "1 Дикий облик → дух 1 ч.",
+            "mode": "spend"
+          }
+        }
       },
       {
         "id": "enhanced_bond",
@@ -497,7 +671,13 @@
         "name_ru": "Усиленная связь",
         "name_en": "Enhanced Bond",
         "summary_ru": "Пока дух рядом: к урону/лечению огнём или друидским заклинанием +1к8; каст через пространство духа.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Пока дух рядом",
+          "by_level": {
+            "6": "+1к8 к огню/лечению; каст через дух"
+          }
+        }
       },
       {
         "id": "cauterizing_flames",

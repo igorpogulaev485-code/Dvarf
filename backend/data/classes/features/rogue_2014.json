@@ -3,7 +3,7 @@
     "purpose": "PHB 2014 Rogue + all official archetypes",
     "edition": "2014",
     "source": "phb+xgte+scag+tcoe",
-    "notes_ru": "Все 9 оф. архетипов. Phantom/Soulknife уже с пулами. Swashbuckler/Inquisitive/Scout/Mastermind — донабор."
+    "notes_ru": "Все 9 оф. архетипов. Phantom/Soulknife уже с пулами. Swashbuckler/Inquisitive/Scout/Mastermind — донабор. H4b depth: martial/half-caster pools/scales/linked ki·BI."
   },
   "class_slug": "rogue",
   "features": [
@@ -179,7 +179,13 @@
         "name_ru": "Быстрые руки",
         "name_en": "Fast Hands",
         "summary_ru": "Бонусным: Use an Object; ловкость рук (карманная кража, обезоруживание ловушек, вскрытие замков), Use Object.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Бонусным",
+          "by_level": {
+            "3": "Use Object / ловкость рук / отмычки"
+          }
+        }
       },
       {
         "id": "second_story_work",
@@ -187,7 +193,13 @@
         "name_ru": "Работа на высоте",
         "name_en": "Second-Story Work",
         "summary_ru": "Лазание без доп. стоимости движения; разбег для прыжка +мод. Ловк. (футы).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Бонус к прыжку",
+          "by_level": {
+            "3": "+мод. Ловк. фт."
+          }
+        }
       },
       {
         "id": "supreme_sneak",
@@ -195,7 +207,13 @@
         "name_ru": "Превосходная скрытность",
         "name_en": "Supreme Sneak",
         "summary_ru": "При движении ≤½ скорости: преимущество на Скрытность.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При ≤½ скорости",
+          "by_level": {
+            "9": "преимущество Скрытность"
+          }
+        }
       },
       {
         "id": "use_magic_device",
@@ -203,7 +221,13 @@
         "name_ru": "Использование магических устройств",
         "name_en": "Use Magic Device",
         "summary_ru": "Игнорируй требования класса/расы/уровня для использования магических предметов.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Маг. предметы",
+          "by_level": {
+            "13": "игнор. требования класса/расы/уровня"
+          }
+        }
       },
       {
         "id": "thiefs_reflexes",
@@ -211,7 +235,13 @@
         "name_ru": "Рефлексы вора",
         "name_en": "Thief's Reflexes",
         "summary_ru": "В первый раунд боя два хода: обычная инициатива и инициатива −10 (не при удивлении).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Первый раунд",
+          "by_level": {
+            "17": "2 хода: init и init−10"
+          }
+        }
       }
     ],
     "assassin": [
@@ -221,7 +251,13 @@
         "name_ru": "Доп. владения",
         "name_en": "Bonus Proficiencies",
         "summary_ru": "Набор для грима и набор отравителя.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Инструменты",
+          "by_level": {
+            "3": "грим + отравитель"
+          }
+        }
       },
       {
         "id": "assassinate",
@@ -229,7 +265,13 @@
         "name_ru": "Убийство",
         "name_en": "Assassinate",
         "summary_ru": "Преимущество на атаки по существам, ещё не ходившим в бою. Любое попадание по застигнутому врасплох — крит.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Засада",
+          "by_level": {
+            "3": "преим. до хода цели; crit vs surprised"
+          }
+        }
       },
       {
         "id": "infiltration_expertise",
@@ -237,7 +279,13 @@
         "name_ru": "Мастерство внедрения",
         "name_en": "Infiltration Expertise",
         "summary_ru": "За 7 дней и 25 зм создать ложную личность с документами и знакомствами.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Ложная личность",
+          "by_level": {
+            "9": "7 дней + 25 зм"
+          }
+        }
       },
       {
         "id": "impostor",
@@ -245,7 +293,13 @@
         "name_ru": "Самозванец",
         "name_en": "Impostor",
         "summary_ru": "После 3 ч изучения человека копируешь речь/письмо/манеры; преимущество на Обман для выдачи себя за него.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Изучение",
+          "by_level": {
+            "13": "3 ч → преим. Обман «я — он»"
+          }
+        }
       },
       {
         "id": "death_strike",
@@ -253,7 +307,13 @@
         "name_ru": "Смертельный удар",
         "name_en": "Death Strike",
         "summary_ru": "При попадании по застигнутому врасплох: спас Тел. Сл заклинаний или удвоенный урон атаки.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Урон vs surprised",
+          "by_level": {
+            "17": "спас Тел. (Сл закл.) или ×2 урон"
+          }
+        }
       }
     ],
     "arcane_trickster": [
@@ -263,7 +323,13 @@
         "name_ru": "Использование заклинаний",
         "name_en": "Spellcasting",
         "summary_ru": "Заклинания волшебника (⅓ кастер). Int — базовая характеристика. Mage Hand бесплатно.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Прогрессия",
+          "by_level": {
+            "3": "⅓ кастер (волшебник); Int; Mage Hand"
+          }
+        }
       },
       {
         "id": "mage_hand_legerdemain",
@@ -271,7 +337,13 @@
         "name_ru": "Ловкость волшебной руки",
         "name_en": "Mage Hand Legerdemain",
         "summary_ru": "Невидимая Mage Hand; бонусным действием управление; карманные кражи/отмычки на расстоянии.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Mage Hand",
+          "by_level": {
+            "3": "невидима; бонусным; кражи/отмычки на дистанции"
+          }
+        }
       },
       {
         "id": "magical_ambush",
@@ -279,7 +351,13 @@
         "name_ru": "Магическая засада",
         "name_en": "Magical Ambush",
         "summary_ru": "Если скрыт от цели при наложении заклинания — у цели помеха на спасбросок.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Из скрытности",
+          "by_level": {
+            "9": "помеха на спас цели vs твоего заклинания"
+          }
+        }
       },
       {
         "id": "versatile_trickster",
@@ -287,7 +365,13 @@
         "name_ru": "Универсальный ловкач",
         "name_en": "Versatile Trickster",
         "summary_ru": "Бонусным действием направь Mage Hand: до конца хода преимущество на атаки по существу в 5 фт. от руки.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Mage Hand",
+          "by_level": {
+            "13": "бонусным → преим. атаки по цели в 5 фт. от руки"
+          }
+        }
       },
       {
         "id": "spell_thief",
@@ -490,7 +574,13 @@
         "name_ru": "Мастер интриг",
         "name_en": "Master of Intrigue",
         "summary_ru": "Владение набором игрока, маскировки и подделки; два языка. Можешь копировать акцент после 1 минуты слушания.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Инструменты / языки",
+          "by_level": {
+            "3": "игрок+маска+подделка; +2 языка; акцент за 1 мин."
+          }
+        }
       },
       {
         "id": "master_of_tactics",
@@ -498,7 +588,13 @@
         "name_ru": "Мастер тактики",
         "name_en": "Master of Tactics",
         "summary_ru": "Help бонусным; дальность Help для атаки — 30 фт.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Help",
+          "by_level": {
+            "3": "бонусным, дистанция 30 фт."
+          }
+        }
       },
       {
         "id": "insightful_manipulator",
@@ -506,7 +602,13 @@
         "name_ru": "Проницательный манипулятор",
         "name_en": "Insightful Manipulator",
         "summary_ru": "После 1 минуты наблюдения за существом вне боя узнаёшь, выше/ниже/равны ли его Инт, Мудр., Хар. или уровень класса относительно тебя (на выбор МИ — два факта).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Наблюдение 1 мин.",
+          "by_level": {
+            "9": "сравнить Инт/Мудр./Хар./класс/уровень"
+          }
+        }
       },
       {
         "id": "misdirection",
@@ -514,7 +616,13 @@
         "name_ru": "Отвод внимания",
         "name_en": "Misdirection",
         "summary_ru": "Реакция: когда по тебе попадают атакой, пока существо в 5 фт. от тебя — атака попадает в это существо вместо тебя (если атакующий видит его).",
-        "kind": "reaction"
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Реакция",
+          "by_level": {
+            "13": "атака по тебе → по существу в 5 фт."
+          }
+        }
       },
       {
         "id": "soul_of_deceit",
@@ -522,7 +630,13 @@
         "name_ru": "Душа обмана",
         "name_en": "Soul of Deceit",
         "summary_ru": "Чтение мыслей/телепатия показывают только то, что ты разрешишь; преимущество на спас vs зондов истины; можешь выдавать ложные мысли при чтении.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Щит разума",
+          "by_level": {
+            "17": "мысли/правда по желанию"
+          }
+        }
       }
     ],
     "swashbuckler": [
@@ -532,7 +646,13 @@
         "name_ru": "Лихая работа ног",
         "name_en": "Fancy Footwork",
         "summary_ru": "Если в свой ход атаковал существо рукопашным — оно не получает провоцированных атак от тебя до конца хода.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "После рукопашной атаки",
+          "by_level": {
+            "3": "цель не провоцирует тебя до конца хода"
+          }
+        }
       },
       {
         "id": "rakish_audacity",
@@ -540,7 +660,13 @@
         "name_ru": "Лихая дерзость",
         "name_en": "Rakish Audacity",
         "summary_ru": "+мод. Хар. к инициативе. Скрытая атака 1v1: нет союзников в 5 фт. от цели и ты не в помехе.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Инициатива / SA",
+          "by_level": {
+            "3": "+Хар. к init; SA 1v1 без преим."
+          }
+        }
       },
       {
         "id": "panache",
@@ -548,7 +674,13 @@
         "name_ru": "Лоск",
         "name_en": "Panache",
         "summary_ru": "Действием: проверка Харизмы (Убеждение/Обман) vs Проницательность. Враг: помеха атаковать других + не провоцирует тебя. Друг: очарован 1 мин.",
-        "kind": "action"
+        "kind": "action",
+        "scale": {
+          "label_ru": "Проверка Хар.",
+          "by_level": {
+            "9": "vs Проницательность → помеха чужим атакам / очарование союзника"
+          }
+        }
       },
       {
         "id": "elegant_maneuver",
@@ -556,7 +688,13 @@
         "name_ru": "Изящный манёвр",
         "name_en": "Elegant Maneuver",
         "summary_ru": "Бонусным: преимущество на след. проверку Акробатики или Атлетики в этом ходу.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Бонусным",
+          "by_level": {
+            "13": "преим. на след. Акробатику или Атлетику"
+          }
+        }
       },
       {
         "id": "master_duelist",
@@ -581,7 +719,13 @@
         "name_ru": "Чутьё на обман",
         "name_en": "Ear for Deceit",
         "summary_ru": "При проверке Проницательности для выявления лжи результат d20 ≤ 7 считается 8.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Пол d20 (ложь)",
+          "by_level": {
+            "3": "≤7 → 8"
+          }
+        }
       },
       {
         "id": "eye_for_detail",
@@ -589,7 +733,13 @@
         "name_ru": "Глаз на детали",
         "name_en": "Eye for Detail",
         "summary_ru": "Бонусным действием: проверка Восприятия для поиска скрытого или Анализ (Investigation) для изучения детали.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Бонусным",
+          "by_level": {
+            "3": "Perception (скрытое) или Investigation (деталь)"
+          }
+        }
       },
       {
         "id": "insightful_fighting",
@@ -597,7 +747,13 @@
         "name_ru": "Проницательный бой",
         "name_en": "Insightful Fighting",
         "summary_ru": "Бонусным: Проницательность vs Обман существа — при успехе можешь использовать Скрытую атаку без преимущества 1 мин., пока цель в 30 фт. и не недееспособна.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Скрытая атака",
+          "by_level": {
+            "3": "1 мин. без преимущества (Проницательность vs Обман)"
+          }
+        }
       },
       {
         "id": "steady_eye",
@@ -605,7 +761,13 @@
         "name_ru": "Верный глаз",
         "name_en": "Steady Eye",
         "summary_ru": "При движении ≤½ скорости: преимущество Perception и Investigation.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При ≤½ скорости",
+          "by_level": {
+            "9": "преимущество Perception / Investigation"
+          }
+        }
       },
       {
         "id": "unerring_eye",
@@ -630,7 +792,13 @@
         "name_ru": "Глаз на слабость",
         "name_en": "Eye for Weakness",
         "summary_ru": "Пока действует Insightful Fighting против цели, Скрытая атака по ней наносит дополнительно 3к6 урона.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Доп. Скрытая атака",
+          "by_level": {
+            "17": "+3к6 по цели Insightful Fighting"
+          }
+        }
       }
     ],
     "scout": [
@@ -640,7 +808,13 @@
         "name_ru": "Стрелок-застрельщик",
         "name_en": "Skirmisher",
         "summary_ru": "Реакция: когда враг входит в 5 фт. от тебя — переместиться на ½ скорости без провоцированных атак.",
-        "kind": "reaction"
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Отход",
+          "by_level": {
+            "3": "½ скорости реакцией"
+          }
+        }
       },
       {
         "id": "survivalist",
@@ -648,7 +822,13 @@
         "name_ru": "Выживальщик",
         "name_en": "Survivalist",
         "summary_ru": "Владение Природой и Выживанием; компетентность в них.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Компетентность",
+          "by_level": {
+            "3": "Природа + Выживание"
+          }
+        }
       },
       {
         "id": "superior_mobility",
@@ -656,7 +836,13 @@
         "name_ru": "Превосходная мобильность",
         "name_en": "Superior Mobility",
         "summary_ru": "Скорость ходьбы +10 фт. (также плавание/лазание, если они у тебя есть).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Скорость",
+          "by_level": {
+            "9": "+10 фт."
+          }
+        }
       },
       {
         "id": "ambush_master",
