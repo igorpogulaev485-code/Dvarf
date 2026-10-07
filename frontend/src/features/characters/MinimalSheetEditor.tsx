@@ -42,6 +42,7 @@ import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
+  emptyRacePicks,
   isRaceComboboxRoot,
   raceGrantNeedsSetupDialog,
   raceSubraceRequired,
@@ -683,14 +684,7 @@ export function MinimalSheetEditor({
 
     commitRaceGrant({
       selected,
-      picks: {
-        abilityBonusModeId: null,
-        abilityBonusKeys: [],
-        languages: [],
-        skills: [],
-        tools: [],
-        ancestryId: null,
-      },
+      picks: emptyRacePicks(),
       def: rootDef,
     })
   }

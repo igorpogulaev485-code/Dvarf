@@ -4,6 +4,7 @@ import {
   abilityBonusModeSlotCount,
   abilityKeysForBonusChoice,
   emptyRacePicks,
+  RACE_SIZE_LABELS,
   resolveAbilityBonusModes,
   resolveRaceGrantDef,
   resolveSelectedAbilityBonusMode,
@@ -11,6 +12,7 @@ import {
   type AbilityKey,
   type RaceGrantDef,
   type RaceGrantPicks,
+  type RaceSize,
 } from '../../shared/dnd/raceGrants'
 import { LANGUAGE_PRESETS } from './languagesTools'
 import { ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
@@ -98,10 +100,14 @@ export function RaceSetupDialog({
   const [abilityBonusModeId, setAbilityBonusModeId] = useState<string | null>(null)
   /** Per-bucket ability picks for the selected ASI mode (flattened on confirm). */
   const [asiBucketPicks, setAsiBucketPicks] = useState<AbilityKey[][]>([])
+  const [sizePick, setSizePick] = useState<RaceSize | null>(null)
   const [languages, setLanguages] = useState<string[]>([])
   const [skills, setSkills] = useState<string[]>([])
   const [tools, setTools] = useState<string[]>([])
   const [ancestryId, setAncestryId] = useState<string | null>(null)
+
+  const sizeChoices = def?.sizeChoices ?? []
+  const sizeNeed = sizeChoices.length > 1
 
   const selectedAsiMode: AbilityBonusMode | null = useMemo(
     () =>
@@ -126,6 +132,7 @@ export function RaceSetupDialog({
     const empty = emptyRacePicks()
     setAbilityBonusModeId(empty.abilityBonusModeId)
     setAsiBucketPicks([])
+    setSizePick(empty.size)
     setLanguages(empty.languages)
     setSkills(empty.skills)
     setTools(empty.tools)
@@ -137,6 +144,7 @@ export function RaceSetupDialog({
     const empty = emptyRacePicks()
     setAbilityBonusModeId(empty.abilityBonusModeId)
     setAsiBucketPicks([])
+    setSizePick(empty.size)
     setLanguages(empty.languages)
     setSkills(empty.skills)
     setTools(empty.tools)
@@ -221,6 +229,8 @@ export function RaceSetupDialog({
 
   const ancestryOk = !def || def.ancestryChoices.length === 0 || Boolean(ancestryId)
 
+  const sizeOk = !sizeNeed || (sizePick != null && sizeChoices.includes(sizePick))
+
   const asiModeOk =
     asiModes.length === 0 ||
     (Boolean(selectedAsiMode) && abilityBonusKeys.length === asiNeed)
@@ -228,6 +238,7 @@ export function RaceSetupDialog({
   const canConfirm =
     Boolean(root && def && effectiveEntry) &&
     subraceOk &&
+    sizeOk &&
     asiModeOk &&
     languages.length === langNeed &&
     skills.length === skillNeed &&
@@ -261,6 +272,7 @@ export function RaceSetupDialog({
             abilityBonusModeId:
               selectedAsiMode?.id ?? abilityBonusModeId,
             abilityBonusKeys,
+            size: sizeNeed ? sizePick : null,
             languages,
             skills,
             tools,
@@ -344,6 +356,26 @@ export function RaceSetupDialog({
 
         {def ? (
           <>
+            {sizeNeed ? (
+              <Field label="Размер" hint="Средний или Маленький — выбери при создании персонажа">
+                <div className="chip-row">
+                  {sizeChoices.map((size) => {
+                    const on = sizePick === size
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        onClick={() => setSizePick(size)}
+                      >
+                        {RACE_SIZE_LABELS[size]}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+            ) : null}
+
             {fixedAsi ? (
               <Text>
                 Фиксированные бонусы: <strong>{fixedAsi}</strong>
