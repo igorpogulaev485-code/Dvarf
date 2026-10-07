@@ -99,8 +99,15 @@ export function desiredResourcesFromFeatures(input: {
       byId.set(id, {
         ...prev,
         // Prefer explicit pool label; keep higher max; OR the long-rest grant flag.
+        // Prefer shorter reset (Font of Inspiration: long → short at L5).
         name: resource.pool_name_ru || prev.name,
         max: Math.max(prev.max, next.max),
+        reset:
+          prev.reset === 'short' || next.reset === 'short'
+            ? 'short'
+            : prev.reset === 'manual' || next.reset === 'manual'
+              ? 'manual'
+              : 'long',
         grantStockOnLongRestIfEmpty:
           prev.grantStockOnLongRestIfEmpty || next.grantStockOnLongRestIfEmpty,
       })

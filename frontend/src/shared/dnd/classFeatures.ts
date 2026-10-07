@@ -2,12 +2,14 @@
 
 import type { ClassLevelEntry } from './classLevels'
 import barbarianPack from './data/barbarian_2014.json'
+import bardPack from './data/bard_2014.json'
 import clericPack from './data/cleric_2014.json'
 import fighterPack from './data/fighter_2014.json'
 import monkPack from './data/monk_2014.json'
 import paladinPack from './data/paladin_2014.json'
 import roguePack from './data/rogue_2014.json'
 import {
+  BARD_SWORDS_FIGHTING_STYLES,
   FIGHTER_FIGHTING_STYLES,
   PALADIN_FIGHTING_STYLES,
   RANGER_FIGHTING_STYLES,
@@ -103,6 +105,7 @@ export type FeatureChoiceDef = {
     | 'sorcerer_metamagic'
     | 'warlock_invocations'
     | 'warlock_pact_boons'
+    | 'bard_swords_fighting_styles'
   options?: string[]
   /** Multi-select cap by class level (Metamagic 2/3/4). */
   max_picks_by_level?: Record<string, number>
@@ -165,6 +168,7 @@ type FeaturePack = {
 
 const LOCAL_PACKS: Record<string, FeaturePack> = {
   barbarian: barbarianPack as FeaturePack,
+  bard: bardPack as FeaturePack,
   cleric: clericPack as FeaturePack,
   fighter: fighterPack as FeaturePack,
   monk: monkPack as FeaturePack,
@@ -221,7 +225,8 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         choiceRaw.options_from === 'ranger_favored_terrains' ||
         choiceRaw.options_from === 'sorcerer_metamagic' ||
         choiceRaw.options_from === 'warlock_invocations' ||
-        choiceRaw.options_from === 'warlock_pact_boons'
+        choiceRaw.options_from === 'warlock_pact_boons' ||
+        choiceRaw.options_from === 'bard_swords_fighting_styles'
           ? choiceRaw.options_from
           : undefined
       const options = Array.isArray(choiceRaw.options)
@@ -343,6 +348,9 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
   }
   if (choice.options_from === 'warlock_pact_boons') {
     return WARLOCK_PACT_BOONS.map((row) => row.id)
+  }
+  if (choice.options_from === 'bard_swords_fighting_styles') {
+    return [...BARD_SWORDS_FIGHTING_STYLES]
   }
   return choice.options ? [...choice.options] : []
 }
@@ -585,6 +593,8 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   чародей: 'sorcerer',
   warlock: 'warlock',
   колдун: 'warlock',
+  bard: 'bard',
+  бард: 'bard',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {
@@ -733,6 +743,23 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   джинн: 'the_genie',
   the_undead: 'the_undead',
   нежить: 'the_undead',
+  college_of_lore: 'college_of_lore',
+  'коллегия знаний': 'college_of_lore',
+  college_of_valor: 'college_of_valor',
+  'коллегия доблести': 'college_of_valor',
+  college_of_glamour: 'college_of_glamour',
+  'коллегия очарования': 'college_of_glamour',
+  college_of_swords: 'college_of_swords',
+  'коллегия мечей': 'college_of_swords',
+  college_of_whispers: 'college_of_whispers',
+  'коллегия шёпотов': 'college_of_whispers',
+  'коллегия шепотов': 'college_of_whispers',
+  college_of_eloquence: 'college_of_eloquence',
+  'коллегия красноречия': 'college_of_eloquence',
+  college_of_creation: 'college_of_creation',
+  'коллегия созидания': 'college_of_creation',
+  college_of_spirits: 'college_of_spirits',
+  'коллегия духов': 'college_of_spirits',
 }
 
 const KNOWN_SUBCLASS_SLUGS = new Set([
@@ -795,6 +822,14 @@ const KNOWN_SUBCLASS_SLUGS = new Set([
   'the_fathomless',
   'the_genie',
   'the_undead',
+  'college_of_lore',
+  'college_of_valor',
+  'college_of_glamour',
+  'college_of_swords',
+  'college_of_whispers',
+  'college_of_eloquence',
+  'college_of_creation',
+  'college_of_spirits',
 ])
 
 export function resolveSubclassFeatureSlug(input: string): string | null {

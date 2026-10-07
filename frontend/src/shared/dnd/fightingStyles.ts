@@ -80,6 +80,12 @@ export const RANGER_FIGHTING_STYLES: FightingStyleId[] = [
   'two_weapon_fighting',
 ]
 
+/** College of Swords (XGtE). */
+export const BARD_SWORDS_FIGHTING_STYLES: FightingStyleId[] = [
+  'dueling',
+  'two_weapon_fighting',
+]
+
 export function fightingStyleById(id: string | null | undefined): FightingStyleDef | null {
   if (!id) return null
   return FIGHTING_STYLES[id as FightingStyleId] ?? null

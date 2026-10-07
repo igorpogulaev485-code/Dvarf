@@ -101,6 +101,7 @@
 | Ranger / **8** оф. архетипов | 2, 3, 4b, 11, 14 (Favored Enemy/Terrain; Fighting Style; Primeval Awareness slot) |
 | Sorcerer / **8** оф. происхождений | 2, 5, 11 + Flexible Casting UI + Metamagic SP spend (Twinned = ур. ячейки) |
 | Warlock / **9** оф. покровителей | 2, 5, 11 (Pact Magic already in caster; Invocations multi-pick; Pact Boon; Arcanum 6–9) |
+| Bard / **8** оф. коллегий | 2, 4b, 5, 8, 11 (BI Cha-mod; Font upgrades reset long→short; Superior Inspiration; Swords style) |
 
 ## H4 — порядок пакетов классов
 
@@ -114,7 +115,8 @@
 6. ~~Следопыт~~ (класс + каркас 8 архетипов; полировка архетипов — общим проходом)
 7. ~~Чародей~~ (очки + метамагия + каркас 8 происхождений)
 8. ~~Колдун~~ (инвокации + pact boon + арканумы; 9 покровителей каркас)
-9. **Бард** ← следующий / Друид, Волшебник, Изобретатель
+9. ~~Бард~~ (BI + Font short + Superior Inspiration; 8 коллегий каркас)
+10. **Друид** ← следующий / Волшебник, Изобретатель
 
 ## Не в v1
 

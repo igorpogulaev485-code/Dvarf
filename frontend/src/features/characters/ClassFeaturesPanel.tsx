@@ -943,7 +943,7 @@ export function ClassFeaturesPanel({
 
         {byClass.length === 0 ? (
           <Text tone="muted">
-            Пока заполнены: … Чародей, Колдун (H4 в docs/feature_resource_contract.md).
+            Пока заполнены: … Колдун, Бард (H4 в docs/feature_resource_contract.md).
           </Text>
         ) : null}
 
