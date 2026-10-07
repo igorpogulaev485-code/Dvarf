@@ -386,6 +386,24 @@
         "grants": {
           "flags": [
             "outlands_envoy"
+          ],
+          "spells": [
+            {
+              "id": "misty_step",
+              "spell_slug": "misty_step",
+              "name_ru": "Туманный шаг",
+              "level": 2,
+              "grant": "innate",
+              "notes_ru": "1/длинный отдых без ячейки"
+            },
+            {
+              "id": "tongues",
+              "spell_slug": "tongues",
+              "name_ru": "Языки",
+              "level": 3,
+              "grant": "innate",
+              "notes_ru": "1/длинный отдых без ячейки"
+            }
           ]
         }
       }

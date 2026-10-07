@@ -518,6 +518,16 @@
         "grants": {
           "flags": [
             "telekinetic"
+          ],
+          "spells": [
+            {
+              "id": "mage_hand",
+              "spell_slug": "mage_hand",
+              "name_ru": "Волшебная рука",
+              "level": 0,
+              "grant": "innate",
+              "notes_ru": "без компонентов; невидима; дальность +30 фт"
+            }
           ]
         }
       }
@@ -558,6 +568,16 @@
         "grants": {
           "flags": [
             "telepathic"
+          ],
+          "spells": [
+            {
+              "id": "detect_thoughts",
+              "spell_slug": "detect_thoughts",
+              "name_ru": "Обнаружение мыслей",
+              "level": 2,
+              "grant": "innate",
+              "notes_ru": "1/длинный отдых без ячейки"
+            }
           ]
         }
       }
@@ -695,6 +715,35 @@
         "grants": {
           "flags": [
             "drow_high_magic"
+          ],
+          "spells": [
+            {
+              "id": "detect_magic",
+              "spell_slug": "detect_magic",
+              "name_ru": "Обнаружение магии",
+              "level": 1,
+              "grant": "innate",
+              "casting_ability": "int",
+              "notes_ru": "неограниченно"
+            },
+            {
+              "id": "levitate",
+              "spell_slug": "levitate",
+              "name_ru": "Левитация",
+              "level": 2,
+              "grant": "innate",
+              "casting_ability": "int",
+              "notes_ru": "1/длинный отдых без ячейки"
+            },
+            {
+              "id": "dispel_magic",
+              "spell_slug": "dispel_magic",
+              "name_ru": "Рассеивание магии",
+              "level": 3,
+              "grant": "innate",
+              "casting_ability": "int",
+              "notes_ru": "1/длинный отдых без ячейки"
+            }
           ]
         }
       }

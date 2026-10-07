@@ -82,7 +82,17 @@
             "uses": 0,
             "uses_proficiency_bonus": true,
             "recovery": "long_rest"
-          }
+          },
+          "spells": [
+            {
+              "id": "cure_wounds",
+              "spell_slug": "cure_wounds",
+              "name_ru": "Лечение ран",
+              "level": 1,
+              "grant": "innate",
+              "notes_ru": "1/длинный отдых без ячейки"
+            }
+          ]
         }
       }
     },

@@ -30,6 +30,7 @@ import type { ConcentrationState } from './play'
 import {
   countPreparedLeveled,
   createSheetSpell,
+  isFeatSheetSpell,
   isRaceSheetSpell,
   groupSpellsByLevel,
   isReadyInCombat,
@@ -589,10 +590,11 @@ export function SpellsPanel({
                       </div>
                       <div className="spell-card__footer">
                         {spell.level > 0 ? (
-                          spell.race_grant === 'innate' ? (
+                          spell.race_grant === 'innate' ||
+                          spell.feat_grant === 'innate' ? (
                             <span
                               className="sheet-chip is-on"
-                              title="Врождённый расовый каст — вне лимита подготовки"
+                              title="Врождённый каст — вне лимита подготовки"
                             >
                               Врождённое
                             </span>
@@ -627,6 +629,18 @@ export function SpellsPanel({
                             }
                           >
                             {spell.race_grant === 'spell_list' ? 'Метка' : 'Раса'}
+                          </span>
+                        ) : null}
+                        {isFeatSheetSpell(spell) ? (
+                          <span
+                            className="sheet-chip is-on"
+                            title={
+                              spell.feat_grant === 'spell_list'
+                                ? 'Список черты — готовь как классовое'
+                                : 'Врождённое заклинание черты'
+                            }
+                          >
+                            Черта
                           </span>
                         ) : null}
                         <button

@@ -54,6 +54,20 @@ export type FeatResourceGrant = {
   recovery: 'short_rest' | 'long_rest'
 }
 
+/** Fixed spell granted by a feat (mirrors race racial_spells). */
+export type FeatSpellGrant = 'innate' | 'spell_list'
+
+export type FeatSpell = {
+  id: string
+  spellSlug: string | null
+  nameRu: string
+  level: number
+  castingAbility: AbilityKey | null
+  notesRu: string | null
+  unlockLevel: number
+  grant: FeatSpellGrant
+}
+
 export function proficiencyBonusForLevel(level: number): number {
   const lvl = Math.max(1, Math.floor(level))
   return Math.max(2, Math.min(6, 2 + Math.floor((lvl - 1) / 4)))
@@ -76,6 +90,8 @@ export type FeatGrantsPackage = {
   resource: FeatResourceGrant | null
   unarmedDamage: string | null
   naturalArmor: NaturalArmor | null
+  /** Fixed spells / cantrips applied to sheet.known on grant. */
+  spells: FeatSpell[]
   benefitsRu: string
   summaryRu: string
   enumPicks: Record<string, string>
@@ -343,11 +359,66 @@ function emptyPackage(partial?: Partial<FeatGrantsPackage>): FeatGrantsPackage {
     resource: null,
     unarmedDamage: null,
     naturalArmor: null,
+    spells: [],
     benefitsRu: '',
     summaryRu: '',
     enumPicks: {},
     ...partial,
   }
+}
+
+function readFeatSpellGrant(raw: unknown): FeatSpellGrant {
+  if (raw === 'spell_list') return 'spell_list'
+  return 'innate'
+}
+
+function parseFeatSpells(raw: unknown): FeatSpell[] {
+  if (!Array.isArray(raw)) return []
+  const out: FeatSpell[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    const id = typeof row.id === 'string' ? row.id.trim() : ''
+    const nameRu =
+      typeof row.name_ru === 'string'
+        ? row.name_ru.trim()
+        : typeof row.nameRu === 'string'
+          ? row.nameRu.trim()
+          : ''
+    if (!id || !nameRu) continue
+    const spellSlugRaw = row.spell_slug ?? row.spellSlug ?? row.slug
+    const spellSlug =
+      typeof spellSlugRaw === 'string' && spellSlugRaw.trim()
+        ? spellSlugRaw.trim()
+        : null
+    const level = Math.max(0, Math.min(9, Math.floor(readNumber(row.level, 0))))
+    const abilityRaw = row.casting_ability ?? row.castingAbility
+    const castingAbility =
+      typeof abilityRaw === 'string' && ABILITY_KEYS.includes(abilityRaw as AbilityKey)
+        ? (abilityRaw as AbilityKey)
+        : null
+    const notesRu =
+      typeof row.notes_ru === 'string'
+        ? row.notes_ru.trim()
+        : typeof row.notesRu === 'string'
+          ? row.notesRu.trim()
+          : null
+    const unlockRaw = row.unlock_level ?? row.unlockLevel ?? row.min_level ?? row.minLevel
+    const unlockLevel = Math.max(
+      1,
+      Math.min(20, Math.floor(readNumber(unlockRaw, 1))),
+    )
+    out.push({
+      id,
+      spellSlug,
+      nameRu,
+      level,
+      castingAbility,
+      notesRu: notesRu || null,
+      unlockLevel,
+      grant: readFeatSpellGrant(row.grant ?? row.grant_mode ?? row.grantMode),
+    })
+  }
+  return out
 }
 
 function parseNaturalArmor(raw: unknown): NaturalArmor | null {
@@ -519,6 +590,7 @@ export function featGrantDefFromCatalog(input: {
       naturalArmor: parseNaturalArmor(
         grants.natural_armor ?? grants.naturalArmor,
       ),
+      spells: parseFeatSpells(grants.spells ?? grants.feat_spells ?? grants.featSpells),
       benefitsRu: readString(data.benefits_ru) ?? readString(data.benefitsRu) ?? '',
       summaryRu: readString(data.summary_ru) ?? readString(data.summaryRu) ?? '',
     }),
@@ -922,6 +994,7 @@ export function readFeatGrantLedger(raw: unknown): AppliedFeatGrant[] {
       naturalArmor: parseNaturalArmor(
         appliedRaw.naturalArmor ?? appliedRaw.natural_armor,
       ),
+      spells: parseFeatSpells(appliedRaw.spells ?? appliedRaw.feat_spells ?? appliedRaw.featSpells),
       benefitsRu: readString(appliedRaw.benefitsRu) ?? readString(appliedRaw.benefits_ru) ?? '',
       summaryRu: readString(appliedRaw.summaryRu) ?? readString(appliedRaw.summary_ru) ?? '',
       enumPicks: Object.fromEntries(

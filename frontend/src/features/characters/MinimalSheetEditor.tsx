@@ -783,6 +783,7 @@ export function MinimalSheetEditor({
       },
       textBlocks: prev.textBlocks,
       resources: prev.play.resources,
+      spells: prev.spells,
       totalLevel: totalCharacterLevel(prev.classes),
     }
   }
@@ -798,6 +799,7 @@ export function MinimalSheetEditor({
       hpCurrent: slice.hpCurrent,
       featGrants: slice.featGrants,
       textBlocks: slice.textBlocks,
+      spells: slice.spells,
       identity: {
         ...prev.identity,
         languages: slice.identity.languages,
