@@ -253,7 +253,7 @@
 | Паладин миграция | `a7b8c9d0e1f2` upsert клятв | Сид → catalog.data |
 | Связанные ресурсы | PB / 2×PB / Wis-mod / 1+Cha / stock / linked / recover / success_lock | Фантом, Soulknife, BM, домены, DI, LoH |
 | Следопыт | Пакет класса + 8 архетипов (каркас) | Enemy/Terrain picks; стиль; Primeval Awareness |
-| Чародей | Очки = ур.; метамагия multi-pick; 8 происхождений | Font of Magic + каркас архетипов |
+| Чародей | Очки = ур.; метамагия pick+трата; гибкое колдовство UI | 8 PHB метамагий; слот↔очки; каркас происхождений |
 | H4 очередь | … Чародей ✓ → **Колдун** → … | Порядок в контракте |
 | Контракт | [`docs/feature_resource_contract.md`](docs/feature_resource_contract.md) | Чеклист паттернов для новых архетипов |
 

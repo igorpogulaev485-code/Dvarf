@@ -99,7 +99,7 @@
 | Cleric / **14** оф. доменов | 2, 4b, 5, 12, 13 (CD shared; Wis-mod; DI success lock; PHB+DMG+SCAG+XGtE+TCoE) |
 | Paladin / **9** оф. клятв | 2, 4b, 4c, 5, 11, 12, 14, 15 (LoH; Sense; CD; Fighting Style; Smite slots; Aura saves) |
 | Ranger / **8** оф. архетипов | 2, 3, 4b, 11, 14 (Favored Enemy/Terrain; Fighting Style; Primeval Awareness slot) |
-| Sorcerer / **8** оф. происхождений | 2, 5, 11 (Sorcery Points = ур.; Metamagic multi-pick 2/3/4) |
+| Sorcerer / **8** оф. происхождений | 2, 5, 11 + Flexible Casting UI + Metamagic SP spend (Twinned = ур. ячейки) |
 
 ## H4 — порядок пакетов классов
 

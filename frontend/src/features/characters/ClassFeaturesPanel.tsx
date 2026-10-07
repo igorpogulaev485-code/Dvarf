@@ -12,15 +12,23 @@ import {
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
 import { rangerChoiceLabel } from '../../shared/dnd/rangerChoices'
-import { metamagicById, metamagicLabel } from '../../shared/dnd/sorcererMetamagic'
+import {
+  FLEXIBLE_CASTING_SLOT_COST,
+  metamagicById,
+  metamagicLabel,
+  metamagicSpendCost,
+} from '../../shared/dnd/sorcererMetamagic'
+import { canSpendSlot, spendSpellSlot, slotsRemaining } from '../../shared/dnd/spells'
 import {
   clearSuccessLock,
   consumeStock,
   findFeatureResource,
   grantOneOnInitiativeIfEmpty,
   recoverOneFromPool,
+  regainPoolUses,
   spendFeatureUse,
   spendFeatureUseWithOutcome,
+  spendPoolUses,
   spendRemaining,
   stockCurrent,
 } from '../../shared/dnd/featureResources'
@@ -33,7 +41,6 @@ import {
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
 import type { SheetResource } from '../../shared/dnd/rest'
-import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import { Button, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
 import type { SpellsState } from './spells'
@@ -419,6 +426,216 @@ function FeatureChoiceControls({
   )
 }
 
+function MetamagicSpendControls({
+  feature,
+  featurePicks,
+  classSlug,
+  resources,
+  onResourcesChange,
+  onToast,
+}: {
+  feature: UnlockedFeature
+  featurePicks: FeaturePicksState
+  classSlug: string
+  resources: SheetResource[]
+  onResourcesChange: (resources: SheetResource[]) => void
+  onToast?: (message: string) => void
+}) {
+  if (feature.id !== 'metamagic') return null
+  const selected = getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
+  if (!selected.length) return null
+
+  const pool = findFeatureResource(
+    resources,
+    classSlug,
+    'sorcery_points',
+    feature.classEntryId,
+  )
+  const left = spendRemaining(pool)
+  const [twinnedSlot, setTwinnedSlot] = useState(1)
+
+  return (
+    <div className="feature-resource">
+      <Text tone="muted">
+        Потратить очки на метамагию
+        {pool ? ` · очков: ${left}/${pool.max}` : ''}
+      </Text>
+      <Text tone="muted">Обычно одна метамагия на заклинание; Усиленное можно добавить второй.</Text>
+      <div className="feature-resource__actions">
+        {selected.map((id) => {
+          const def = metamagicById(id)
+          if (!def) return null
+          const cost =
+            def.costPoints == null
+              ? metamagicSpendCost(def, twinnedSlot)
+              : def.costPoints
+          return (
+            <Button
+              key={id}
+              type="button"
+              disabled={left < cost}
+              onClick={() => {
+                const result = spendPoolUses({
+                  resources,
+                  classSlug,
+                  poolId: 'sorcery_points',
+                  classEntryId: feature.classEntryId,
+                  amount: cost,
+                  label: def.nameRu,
+                })
+                onResourcesChange(result.resources)
+                onToast?.(result.message)
+              }}
+            >
+              {def.nameRu} (−{cost})
+            </Button>
+          )
+        })}
+      </div>
+      {selected.includes('twinned') ? (
+        <label className="feature-resource__select">
+          <Text tone="muted">Разделённое: ур. ячейки (заговор = 1)</Text>
+          <select
+            value={twinnedSlot}
+            onChange={(event) => setTwinnedSlot(Number(event.target.value) || 1)}
+          >
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => (
+              <option key={level} value={level}>
+                {level === 1 ? '1 (заговор/1 ур.)' : `${level} ур.`}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+    </div>
+  )
+}
+
+function FlexibleCastingControls({
+  feature,
+  classSlug,
+  resources,
+  onResourcesChange,
+  spells,
+  onSpellsChange,
+  onToast,
+}: {
+  feature: UnlockedFeature
+  classSlug: string
+  resources: SheetResource[]
+  onResourcesChange: (resources: SheetResource[]) => void
+  spells: SpellsState
+  onSpellsChange: (spells: SpellsState) => void
+  onToast?: (message: string) => void
+}) {
+  if (feature.id !== 'flexible_casting') return null
+  const pool = findFeatureResource(
+    resources,
+    classSlug,
+    'sorcery_points',
+    feature.classEntryId,
+  )
+  const left = spendRemaining(pool)
+
+  return (
+    <div className="feature-resource">
+      <Text tone="muted">Ячейка → очки (= ур. ячейки)</Text>
+      <div className="feature-resource__actions">
+        {[1, 2, 3, 4, 5].map((level) => {
+          const available = canSpendSlot(spells.slots, level)
+          return (
+            <Button
+              key={`to-sp-${level}`}
+              type="button"
+              disabled={!available || !pool}
+              onClick={() => {
+                const slotResult = spendSpellSlot(spells.slots, level)
+                if (!slotResult.ok) {
+                  onToast?.(`Нет ячейки ${level} ур.`)
+                  return
+                }
+                const spResult = regainPoolUses({
+                  resources,
+                  classSlug,
+                  poolId: 'sorcery_points',
+                  classEntryId: feature.classEntryId,
+                  amount: level,
+                  label: `Ячейка ${level}→очки`,
+                })
+                if (!spResult.ok) {
+                  onToast?.(spResult.message)
+                  return
+                }
+                onSpellsChange({ ...spells, slots: slotResult.slots })
+                onResourcesChange(spResult.resources)
+                onToast?.(spResult.message)
+              }}
+            >
+              {level}→+{level} очк.
+            </Button>
+          )
+        })}
+      </div>
+      <Text tone="muted">Очки → ячейка (стоимость PHB)</Text>
+      <div className="feature-resource__actions">
+        {[1, 2, 3, 4, 5].map((level) => {
+          const cost = FLEXIBLE_CASTING_SLOT_COST[level] ?? 99
+          const slot = spells.slots[String(level)]
+          const canRegain = Boolean(slot && slot.used > 0)
+          return (
+            <Button
+              key={`to-slot-${level}`}
+              type="button"
+              disabled={left < cost || !canRegain}
+              title={
+                canRegain
+                  ? undefined
+                  : 'Нет потраченной ячейки этого уровня — сначала потрать ячейку или увеличь max вручную'
+              }
+              onClick={() => {
+                const spResult = spendPoolUses({
+                  resources,
+                  classSlug,
+                  poolId: 'sorcery_points',
+                  classEntryId: feature.classEntryId,
+                  amount: cost,
+                  label: `Очки→ячейка ${level}`,
+                })
+                if (!spResult.ok) {
+                  onToast?.(spResult.message)
+                  return
+                }
+                const key = String(level)
+                const current = spells.slots[key] ?? { max: 0, used: 0 }
+                if (current.used <= 0) {
+                  onToast?.('Нет потраченной ячейки для восстановления')
+                  return
+                }
+                onResourcesChange(spResult.resources)
+                onSpellsChange({
+                  ...spells,
+                  slots: {
+                    ...spells.slots,
+                    [key]: {
+                      max: current.max,
+                      used: Math.max(0, current.used - 1),
+                    },
+                  },
+                })
+                onToast?.(
+                  `Очки→ячейка ${level}: −${cost} очк., ячейка восстановлена (${slotsRemaining({ max: current.max, used: current.used - 1 })} св.)`,
+                )
+              }}
+            >
+              −{cost}→{level} ур.
+            </Button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function FeatureSlotSpendControls({
   feature,
   spells,
@@ -581,6 +798,23 @@ function FeatureRow({
             feature={feature}
             featurePicks={featurePicks}
             onFeaturePicksChange={onFeaturePicksChange}
+            onToast={onToast}
+          />
+          <MetamagicSpendControls
+            feature={feature}
+            featurePicks={featurePicks}
+            classSlug={classSlug}
+            resources={resources}
+            onResourcesChange={onResourcesChange}
+            onToast={onToast}
+          />
+          <FlexibleCastingControls
+            feature={feature}
+            classSlug={classSlug}
+            resources={resources}
+            onResourcesChange={onResourcesChange}
+            spells={spells}
+            onSpellsChange={onSpellsChange}
             onToast={onToast}
           />
           <FeatureSlotSpendControls

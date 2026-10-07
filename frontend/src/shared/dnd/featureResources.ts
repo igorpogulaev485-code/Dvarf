@@ -218,6 +218,99 @@ export type SpendFeatureResult = {
   message: string
 }
 
+/** Spend N uses from a named spend-pool (Sorcery Points / Metamagic). */
+export function spendPoolUses(input: {
+  resources: SheetResource[]
+  classSlug: string
+  poolId: string
+  classEntryId: string
+  amount: number
+  label?: string
+}): SpendFeatureResult {
+  const amount = Math.max(1, Math.floor(input.amount))
+  const pool = findFeatureResource(
+    input.resources,
+    input.classSlug,
+    input.poolId,
+    input.classEntryId,
+  )
+  if (!pool) {
+    return {
+      resources: input.resources,
+      ok: false,
+      via: null,
+      message: 'Пул не синхронизирован',
+    }
+  }
+  if (spendRemaining(pool) < amount) {
+    return {
+      resources: input.resources,
+      ok: false,
+      via: null,
+      message: `Нужно ${amount}, есть ${spendRemaining(pool)}`,
+    }
+  }
+  return {
+    resources: input.resources.map((row) =>
+      row.id === pool.id
+        ? clampResource({ ...row, used: row.used + amount })
+        : row,
+    ),
+    ok: true,
+    via: 'pool',
+    message: input.label
+      ? `${input.label}: −${amount} ${pool.name}`
+      : `${pool.name}: −${amount}`,
+  }
+}
+
+/** Regain N expended uses on a spend-pool (Flexible Casting: slot → points). */
+export function regainPoolUses(input: {
+  resources: SheetResource[]
+  classSlug: string
+  poolId: string
+  classEntryId: string
+  amount: number
+  label?: string
+}): SpendFeatureResult {
+  const amount = Math.max(1, Math.floor(input.amount))
+  const pool = findFeatureResource(
+    input.resources,
+    input.classSlug,
+    input.poolId,
+    input.classEntryId,
+  )
+  if (!pool) {
+    return {
+      resources: input.resources,
+      ok: false,
+      via: null,
+      message: 'Пул не синхронизирован',
+    }
+  }
+  const regained = Math.min(amount, pool.used)
+  if (regained <= 0) {
+    return {
+      resources: input.resources,
+      ok: false,
+      via: null,
+      message: `${pool.name} уже полны`,
+    }
+  }
+  return {
+    resources: input.resources.map((row) =>
+      row.id === pool.id
+        ? clampResource({ ...row, used: Math.max(0, row.used - regained) })
+        : row,
+    ),
+    ok: true,
+    via: 'pool',
+    message: input.label
+      ? `${input.label}: +${regained} ${pool.name}`
+      : `${pool.name}: +${regained}`,
+  }
+}
+
 /**
  * Spend one use from a spend-pool. If empty and feature has linked_spend stock,
  * consume one stock token instead (Phantom Wails + soul trinket).
