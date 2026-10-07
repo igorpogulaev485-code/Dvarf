@@ -7,6 +7,7 @@ import {
   type ArmorProfKey,
   type FeatGrantsPackage,
   featTraitsSnippet,
+  resolveFeatResourceMax,
 } from '../../shared/dnd/featGrants'
 import type { ArmorProficiency } from './identity'
 import type { TextBlock } from './textBlocks'
@@ -173,10 +174,14 @@ function applyPackage(input: {
     const id = resourceId(input.grantId, input.applied.resource.pool_id)
     if (sign > 0) {
       if (!resources.some((row) => row.id === id)) {
+        const max = resolveFeatResourceMax(
+          input.applied.resource,
+          input.draft.totalLevel,
+        )
         resources.push({
           id,
           name: input.applied.resource.pool_name_ru,
-          max: input.applied.resource.uses,
+          max,
           used: 0,
           reset: input.applied.resource.recovery === 'short_rest' ? 'short' : 'long',
         })
@@ -293,4 +298,28 @@ export function revokeFeatGrantsForAsi(input: {
     next = revokeFeatGrantFromDraft({ draft: next, grantId: id })
   }
   return next
+}
+
+/** Rescale PB-based feat pools after level-up / level-down. */
+export function syncFeatProficiencyResources(
+  draft: FeatGrantDraftSlice,
+): FeatGrantDraftSlice {
+  let resources = [...draft.resources]
+  let changed = false
+  for (const grant of draft.featGrants) {
+    const resource = grant.applied.resource
+    if (!resource?.usesProficiencyBonus) continue
+    const id = resourceId(grant.id, resource.pool_id)
+    const max = resolveFeatResourceMax(resource, draft.totalLevel)
+    resources = resources.map((row) => {
+      if (row.id !== id || row.max === max) return row
+      changed = true
+      return {
+        ...row,
+        max,
+        used: Math.min(row.used, max),
+      }
+    })
+  }
+  return changed ? { ...draft, resources } : draft
 }
