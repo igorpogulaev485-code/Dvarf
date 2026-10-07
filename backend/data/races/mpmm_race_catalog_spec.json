@@ -2,7 +2,7 @@
   "meta": {
     "edition": "2014",
     "source": "mpmm",
-    "notes_ru": "Волна 2: расы MPMM как корни combobox. Без дублей PHB-подрас (дуэргар/эладрин/морской/шадар-кай/глубинный гном — уже forks). Дженази: 4 наследия обязательны."
+    "notes_ru": "Волна 2: расы MPMM как корни combobox. Без дублей PHB-подрас (дуэргар/эладрин/морской/шадар-кай/глубинный гном — уже forks). Обязательные forks: дженази×4, аасимар×3 (Volo), шифтер×4, гит×2, кобольд×3 наследия."
   },
   "races": [
     {
@@ -51,6 +51,10 @@
       "sort_order": 201,
       "speed": 30,
       "size": "medium",
+      "size_choices": [
+        "medium",
+        "small"
+      ],
       "darkvision": 60,
       "ability_bonuses": {},
       "ability_bonus_choices": {
@@ -61,7 +65,121 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Аасимар (MPMM): ASI гибкий. Тёмное зрение 60. Сопротивление некротическому и излучению. Целительные руки (ПБ к10 хитов, 1/длинный отдых). Носитель света (свет). Небесное откровение с 3 ур. (излучающий / некротический / крылья — на выбор при активации).",
+      "traits_text": "Аасимар (MPMM): ASI гибкий. Размер Средний или Маленький. Тёмное зрение 60. Сопротивление некротическому и излучению. Целительные руки (ПБ к4 хитов, 1/длинный отдых). Носитель света (свет). Выбери разновидность в попапе (защитник / каратель / падший — Volo).",
+      "subrace_required": true,
+      "racial_spells": [
+        {
+          "id": "light",
+          "spell_slug": "light",
+          "name_ru": "Свет",
+          "level": 0,
+          "casting_ability": "cha",
+          "notes_ru": "Носитель света"
+        }
+      ]
+    },
+    {
+      "slug": "aasimar_protector",
+      "name_ru": "Аасимар-защитник",
+      "name_en": "Protector Aasimar",
+      "parent_slug": "aasimar",
+      "selectable": true,
+      "source": "vgtm",
+      "sort_order": 2011,
+      "speed": 30,
+      "size": "medium",
+      "size_choices": [
+        "medium",
+        "small"
+      ],
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "preset": "tasha_flexible"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Аасимар-защитник (Volo): ASI гибкий. Общие черты аасимара. С 3 ур. Сияющая душа (действие, 1 мин / длинный отдых): полёт 30 фт; раз за ход доп. урон излучением = уровень.",
+      "subrace_required": false,
+      "movement": {
+        "fly": 30
+      },
+      "racial_spells": [
+        {
+          "id": "light",
+          "spell_slug": "light",
+          "name_ru": "Свет",
+          "level": 0,
+          "casting_ability": "cha",
+          "notes_ru": "Носитель света"
+        }
+      ]
+    },
+    {
+      "slug": "aasimar_scourge",
+      "name_ru": "Аасимар-каратель",
+      "name_en": "Scourge Aasimar",
+      "parent_slug": "aasimar",
+      "selectable": true,
+      "source": "vgtm",
+      "sort_order": 2012,
+      "speed": 30,
+      "size": "medium",
+      "size_choices": [
+        "medium",
+        "small"
+      ],
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "preset": "tasha_flexible"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Аасимар-каратель (Volo): ASI гибкий. Общие черты аасимара. С 3 ур. Испускание сияния (действие, 1 мин / длинный отдых): яркий свет 10 / тусклый +10; в конце хода вы и существа в 10 фт — урон излучением = пол-уровня; раз за ход доп. излучение = уровень.",
+      "subrace_required": false,
+      "racial_spells": [
+        {
+          "id": "light",
+          "spell_slug": "light",
+          "name_ru": "Свет",
+          "level": 0,
+          "casting_ability": "cha",
+          "notes_ru": "Носитель света"
+        }
+      ]
+    },
+    {
+      "slug": "aasimar_fallen",
+      "name_ru": "Падший аасимар",
+      "name_en": "Fallen Aasimar",
+      "parent_slug": "aasimar",
+      "selectable": true,
+      "source": "vgtm",
+      "sort_order": 2013,
+      "speed": 30,
+      "size": "medium",
+      "size_choices": [
+        "medium",
+        "small"
+      ],
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "preset": "tasha_flexible"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Падший аасимар (Volo): ASI гибкий. Общие черты аасимара. С 3 ур. Саван смерти (действие, 1 мин / длинный отдых): существа в 10 фт спас Харизмы или испуганы; раз за ход доп. некротический урон = уровень.",
       "subrace_required": false,
       "racial_spells": [
         {
@@ -140,6 +258,10 @@
       "sort_order": 204,
       "speed": 30,
       "size": "medium",
+      "size_choices": [
+        "medium",
+        "small"
+      ],
       "darkvision": 0,
       "ability_bonuses": {},
       "ability_bonus_choices": {
@@ -150,8 +272,6 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Чейнджлинг (MPMM): ASI гибкий. Размер Средний или Маленький. Перевёртыш: действием менять внешность (и голос). Инстинкты чейнджлинга: 2 навыка из Обмана / Проницательности / Запугивания / Выступления / Убеждения.",
-      "subrace_required": false,
       "skill_choices": {
         "count": 2,
         "from": [
@@ -162,10 +282,8 @@
           "persuasion"
         ]
       },
-      "size_choices": [
-        "medium",
-        "small"
-      ]
+      "traits_text": "Чейнджлинг (MPMM): ASI гибкий. Размер Средний или Маленький. Перевёртыш: действием менять внешность (и голос). Инстинкты чейнджлинга: 2 навыка из Обмана / Проницательности / Запугивания / Выступления / Убеждения.",
+      "subrace_required": false
     },
     {
       "slug": "fairy",
@@ -258,13 +376,36 @@
       "subrace_required": true
     },
     {
-      "slug": "githyanki",
-      "name_ru": "Гитъянки",
-      "name_en": "Githyanki",
+      "slug": "gith",
+      "name_ru": "Гит",
+      "name_en": "Gith",
       "parent_slug": null,
       "selectable": true,
       "source": "mpmm",
       "sort_order": 220,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 0,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "preset": "tasha_flexible"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Гит (MPMM): ASI гибкий. Выбери подрасу в попапе — гитъянки или гитцерай.",
+      "subrace_required": true
+    },
+    {
+      "slug": "githyanki",
+      "name_ru": "Гитъянки",
+      "name_en": "Githyanki",
+      "parent_slug": "gith",
+      "selectable": true,
+      "source": "mpmm",
+      "sort_order": 221,
       "speed": 30,
       "size": "medium",
       "darkvision": 0,
@@ -310,10 +451,10 @@
       "slug": "githzerai",
       "name_ru": "Гитцерай",
       "name_en": "Githzerai",
-      "parent_slug": null,
+      "parent_slug": "gith",
       "selectable": true,
       "source": "mpmm",
-      "sort_order": 221,
+      "sort_order": 222,
       "speed": 30,
       "size": "medium",
       "darkvision": 0,
@@ -327,7 +468,33 @@
       ],
       "languages_choose": 1,
       "traits_text": "Гитцерай (MPMM): ASI гибкий. Ментальная дисциплина (преимущество к спас. от очарования/испуганности). Псионика гитцерай: волшебная рука; с 3 ур. Щит; с 5 ур. Обнаружение мыслей (МУД).",
-      "subrace_required": false
+      "subrace_required": false,
+      "racial_spells": [
+        {
+          "id": "mage_hand",
+          "spell_slug": "mage_hand",
+          "name_ru": "Волшебная рука",
+          "level": 0,
+          "casting_ability": "wis",
+          "notes_ru": "псионика"
+        },
+        {
+          "id": "shield",
+          "spell_slug": "shield",
+          "name_ru": "Щит",
+          "level": 1,
+          "casting_ability": "wis",
+          "notes_ru": "с 3 ур."
+        },
+        {
+          "id": "detect_thoughts",
+          "spell_slug": "detect_thoughts",
+          "name_ru": "Обнаружение мыслей",
+          "level": 2,
+          "casting_ability": "wis",
+          "notes_ru": "с 5 ур."
+        }
+      ]
     },
     {
       "slug": "goblin",
@@ -385,6 +552,10 @@
       "sort_order": 224,
       "speed": 30,
       "size": "medium",
+      "size_choices": [
+        "medium",
+        "small"
+      ],
       "darkvision": 0,
       "ability_bonuses": {},
       "ability_bonus_choices": {
@@ -395,15 +566,11 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Зайцегон (MPMM): ASI гибкий. Размер Средний или Маленький. Заячья реакция (бонус инициативы = ПБ). Заячьи чувства (Восприятие). Удачливая поступь (d4 к спас. Ловкости при провале, ПБ раз). Кроличий прыжок (бонусное прыжок, ПБ раз).",
-      "subrace_required": false,
       "skill_proficiencies": [
         "perception"
       ],
-      "size_choices": [
-        "medium",
-        "small"
-      ]
+      "traits_text": "Зайцегон (MPMM): ASI гибкий. Размер Средний или Маленький. Заячья реакция (бонус инициативы = ПБ). Заячьи чувства (Восприятие). Удачливая поступь (d4 к спас. Ловкости при провале, ПБ раз). Кроличий прыжок (бонусное прыжок, ПБ раз).",
+      "subrace_required": false
     },
     {
       "slug": "hobgoblin",
@@ -438,6 +605,10 @@
       "sort_order": 226,
       "speed": 30,
       "size": "medium",
+      "size_choices": [
+        "medium",
+        "small"
+      ],
       "darkvision": 0,
       "ability_bonuses": {},
       "ability_bonus_choices": {
@@ -448,16 +619,12 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Кенку (MPMM): ASI гибкий. Размер Средний или Маленький. Экспертное копирование (подделка письма/ремесла). Память кенку (преимущество проверок на повтор/изученное; 2 навыка на выбор). Мимикрия (звуки/голоса).",
-      "subrace_required": false,
       "skill_choices": {
         "count": 2,
         "from": "any"
       },
-      "size_choices": [
-        "medium",
-        "small"
-      ]
+      "traits_text": "Кенку (MPMM): ASI гибкий. Размер Средний или Маленький. Экспертное копирование (подделка письма/ремесла). Память кенку (преимущество проверок на повтор/изученное; 2 навыка на выбор). Мимикрия (звуки/голоса).",
+      "subrace_required": false
     },
     {
       "slug": "kobold",
@@ -479,7 +646,87 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Кобольд (MPMM): ASI гибкий. Маленький. Тёмное зрение 60. Драконий крик (союзники в 10 фт получают преимущество к атакам по выбранному существу; ПБ раз). Наследие кобольда (навыбор: сопротивление состоянию / заговор волшебника / мастерство одного навыка).",
+      "traits_text": "Кобольд (MPMM): ASI гибкий. Маленький. Тёмное зрение 60. Рёв дракона (бонусом: вы и союзники — преимущество к атакам по выбранным врагам в 10 фт до конца след. хода; ПБ раз). Выбери наследие кобольда в попапе.",
+      "subrace_required": true
+    },
+    {
+      "slug": "kobold_craftiness",
+      "name_ru": "Кобольд (хитрость)",
+      "name_en": "Kobold Craftiness",
+      "parent_slug": "kobold",
+      "selectable": true,
+      "source": "mpmm",
+      "sort_order": 2271,
+      "speed": 30,
+      "size": "small",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "preset": "tasha_flexible"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "skill_choices": {
+        "count": 1,
+        "from": [
+          "arcana",
+          "investigation",
+          "medicine",
+          "sleight_of_hand",
+          "survival"
+        ]
+      },
+      "traits_text": "Наследие «Хитрость» (MPMM): ASI гибкий. Общие черты кобольда. Владение одним навыком: Магия / Расследование / Медицина / Ловкость рук / Выживание.",
+      "subrace_required": false
+    },
+    {
+      "slug": "kobold_defiance",
+      "name_ru": "Кобольд (неповиновение)",
+      "name_en": "Kobold Defiance",
+      "parent_slug": "kobold",
+      "selectable": true,
+      "source": "mpmm",
+      "sort_order": 2272,
+      "speed": 30,
+      "size": "small",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "preset": "tasha_flexible"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "traits_text": "Наследие «Неповиновение» (MPMM): ASI гибкий. Общие черты кобольда. Преимущество к спасброскам против состояния «Испуган» и чтобы окончить его.",
+      "subrace_required": false
+    },
+    {
+      "slug": "kobold_draconic_sorcery",
+      "name_ru": "Кобольд (драконье чародейство)",
+      "name_en": "Kobold Draconic Sorcery",
+      "parent_slug": "kobold",
+      "selectable": true,
+      "source": "mpmm",
+      "sort_order": 2273,
+      "speed": 30,
+      "size": "small",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "preset": "tasha_flexible"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "feat_note_ru": "Выбери любой заговор чародея; базовая характеристика — ИНТ, МУД или ХАР.",
+      "traits_text": "Наследие «Драконье чародейство» (MPMM): ASI гибкий. Общие черты кобольда. Один заговор из списка чародея (базовая хар-ка ИНТ/МУД/ХАР — на выбор; укажи в заметках).",
       "subrace_required": false
     },
     {
@@ -502,8 +749,6 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Людоящер (MPMM): ASI гибкий. Укус (1к6+СИЛ рубящий). Голодные челюсти (бонус: укус + временные хиты). Задержка дыхания 15 мин. Природный доспех (13+Лов без доспеха). Природная интуиция: 2 навыка из списка природы/выживания.",
-      "subrace_required": false,
       "skill_choices": {
         "count": 2,
         "from": [
@@ -515,6 +760,8 @@
           "survival"
         ]
       },
+      "traits_text": "Людоящер (MPMM): ASI гибкий. Укус (1к6+СИЛ рубящий). Голодные челюсти (бонус: укус + временные хиты). Задержка дыхания 15 мин. Природный доспех (13+Лов без доспеха). Природная интуиция: 2 навыка из списка природы/выживания.",
+      "subrace_required": false,
       "natural_armor": {
         "base": 13,
         "mod": "dex",
@@ -608,12 +855,12 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Сатир (MPMM): ASI гибкий. Скорость 35. Фея. Таран (1к6+СИЛ дробящий). Сопротивление магии (преимущество спас. против заклинаний). Радостные прыжки (удлинённый прыжок). Гуляка: Выступление и Убеждение.",
-      "subrace_required": false,
       "skill_proficiencies": [
         "performance",
         "persuasion"
       ],
+      "traits_text": "Сатир (MPMM): ASI гибкий. Скорость 35. Фея. Таран (1к6+СИЛ дробящий). Сопротивление магии (преимущество спас. против заклинаний). Радостные прыжки (удлинённый прыжок). Гуляка: Выступление и Убеждение.",
+      "subrace_required": false,
       "natural_weapons": [
         {
           "id": "ram",
@@ -645,7 +892,155 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Шифтер (MPMM): ASI гибкий. Тёмное зрение 60. Звериный инстинкт (навык на выбор: Акробатика/Атлетика/Запугивание/Выживание — в тексте; выбери вручную). Перевёртыш: бонусом смена облика (временные хиты + бонус по типу: проворство / укус / скорость / проверки — см. PHB/MPMM таблицу сдвигов).",
+      "skill_choices": {
+        "count": 1,
+        "from": [
+          "acrobatics",
+          "athletics",
+          "intimidation",
+          "survival"
+        ]
+      },
+      "traits_text": "Шифтер (MPMM): ASI гибкий. Тёмное зрение 60. Звериный инстинкт (1 навык: Акробатика/Атлетика/Запугивание/Выживание). Смена формы бонусом (1 мин, врем. хиты = 2×ПБ). Выбери вариант смены в попапе.",
+      "subrace_required": true
+    },
+    {
+      "slug": "shifter_beasthide",
+      "name_ru": "Шифтер (зверошкур)",
+      "name_en": "Beasthide Shifter",
+      "parent_slug": "shifter",
+      "selectable": true,
+      "source": "mpmm",
+      "sort_order": 2321,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "preset": "tasha_flexible"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "skill_choices": {
+        "count": 1,
+        "from": [
+          "acrobatics",
+          "athletics",
+          "intimidation",
+          "survival"
+        ]
+      },
+      "traits_text": "Зверошкур (MPMM): ASI гибкий. Тёмное зрение 60. Звериный инстинкт. Смена формы: +1к6 врем. хитов; пока изменён — +1 КД.",
+      "subrace_required": false
+    },
+    {
+      "slug": "shifter_longtooth",
+      "name_ru": "Шифтер (длиннозуб)",
+      "name_en": "Longtooth Shifter",
+      "parent_slug": "shifter",
+      "selectable": true,
+      "source": "mpmm",
+      "sort_order": 2322,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "preset": "tasha_flexible"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "skill_choices": {
+        "count": 1,
+        "from": [
+          "acrobatics",
+          "athletics",
+          "intimidation",
+          "survival"
+        ]
+      },
+      "traits_text": "Длиннозуб (MPMM): ASI гибкий. Тёмное зрение 60. Звериный инстинкт. Смена формы: бонусом укус (1к6+СИЛ колющий) при входе и на последующих ходах пока изменён.",
+      "subrace_required": false,
+      "natural_weapons": [
+        {
+          "id": "longtooth_bite",
+          "name_ru": "Укус",
+          "damage": "1к6",
+          "damage_type": "колющий",
+          "ability": "str",
+          "proficient": true,
+          "notes_ru": "бонусом в смене формы"
+        }
+      ]
+    },
+    {
+      "slug": "shifter_swiftstride",
+      "name_ru": "Шифтер (быстроног)",
+      "name_en": "Swiftstride Shifter",
+      "parent_slug": "shifter",
+      "selectable": true,
+      "source": "mpmm",
+      "sort_order": 2323,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "preset": "tasha_flexible"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "skill_choices": {
+        "count": 1,
+        "from": [
+          "acrobatics",
+          "athletics",
+          "intimidation",
+          "survival"
+        ]
+      },
+      "traits_text": "Быстроног (MPMM): ASI гибкий. Тёмное зрение 60. Звериный инстинкт. Смена формы: скорость +10 фт; реакцией отойти до 10 фт, когда существо заканчивает ход рядом (без провоцированной атаки).",
+      "subrace_required": false
+    },
+    {
+      "slug": "shifter_wildhunt",
+      "name_ru": "Шифтер (дикий охотник)",
+      "name_en": "Wildhunt Shifter",
+      "parent_slug": "shifter",
+      "selectable": true,
+      "source": "mpmm",
+      "sort_order": 2324,
+      "speed": 30,
+      "size": "medium",
+      "darkvision": 60,
+      "ability_bonuses": {},
+      "ability_bonus_choices": {
+        "from": "any",
+        "preset": "tasha_flexible"
+      },
+      "languages": [
+        "Общий"
+      ],
+      "languages_choose": 1,
+      "skill_choices": {
+        "count": 1,
+        "from": [
+          "acrobatics",
+          "athletics",
+          "intimidation",
+          "survival"
+        ]
+      },
+      "traits_text": "Дикий охотник (MPMM): ASI гибкий. Тёмное зрение 60. Звериный инстинкт. Смена формы: преимущество к проверкам Мудрости; существа в 30 фт не атакуют вас с преимуществом, пока вы дееспособны.",
       "subrace_required": false
     },
     {
@@ -668,12 +1063,12 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Табакси (MPMM): ASI гибкий. Скорость 30 + лазание 30. Тёмное зрение 60. Кошачьи когти (1к6 рубящий; лазание). Кошачий талант: Восприятие и Скрытность. Кошачья ловкость (удвоение скорости на ход; перезарядка после 0 футов в ход).",
-      "subrace_required": false,
       "skill_proficiencies": [
         "perception",
         "stealth"
       ],
+      "traits_text": "Табакси (MPMM): ASI гибкий. Скорость 30 + лазание 30. Тёмное зрение 60. Кошачьи когти (1к6 рубящий; лазание). Кошачий талант: Восприятие и Скрытность. Кошачья ловкость (удвоение скорости на ход; перезарядка после 0 футов в ход).",
+      "subrace_required": false,
       "natural_weapons": [
         {
           "id": "claws",
@@ -698,6 +1093,10 @@
       "sort_order": 234,
       "speed": 30,
       "size": "medium",
+      "size_choices": [
+        "medium",
+        "small"
+      ],
       "darkvision": 0,
       "ability_bonuses": {},
       "ability_bonus_choices": {
@@ -708,11 +1107,11 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Тортл (MPMM): ASI гибкий. Размер Средний или Маленький. Коготь (1к4+СИЛ рубящий). Задержка дыхания 1 час. Природный доспех (КД 17, щит ок; без доспехов). Укрытие панцирем (бонус: +4 КД, скорость 0, преимущество Сил/Тел спас., помеха Лов; действие встать). Инстинкт выживания: Выживание.",
-      "subrace_required": false,
       "skill_proficiencies": [
         "survival"
       ],
+      "traits_text": "Тортл (MPMM): ASI гибкий. Размер Средний или Маленький. Коготь (1к4+СИЛ рубящий). Задержка дыхания 1 час. Природный доспех (КД 17, щит ок; без доспехов). Укрытие панцирем (бонус: +4 КД, скорость 0, преимущество Сил/Тел спас., помеха Лов; действие встать). Инстинкт выживания: Выживание.",
+      "subrace_required": false,
       "natural_armor": {
         "base": 17,
         "mod": null,
@@ -728,10 +1127,6 @@
           "ability": "str",
           "proficient": true
         }
-      ],
-      "size_choices": [
-        "medium",
-        "small"
       ]
     },
     {
@@ -788,6 +1183,10 @@
       "sort_order": 236,
       "speed": 30,
       "size": "medium",
+      "size_choices": [
+        "medium",
+        "small"
+      ],
       "darkvision": 60,
       "ability_bonuses": {},
       "ability_bonus_choices": {
@@ -800,10 +1199,6 @@
       "languages_choose": 1,
       "traits_text": "Юань-ти (MPMM): ASI гибкий. Размер Средний или Маленький. Тёмное зрение 60. Сопротивление магии. Устойчивость к яду. Змеиное колдовство: ядовитый укус (poison spray); Дружба с животными (только змеи); с 3 ур. Внушение (ХАР).",
       "subrace_required": false,
-      "size_choices": [
-        "medium",
-        "small"
-      ],
       "racial_spells": [
         {
           "id": "poison_spray",

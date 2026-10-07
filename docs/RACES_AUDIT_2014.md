@@ -1,8 +1,9 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/race-asi-flexible-f10e` · http://201.34.132.252/ · alembic `d3e4f5a6b1c2`  
-Гибкий ASI: `preset=tasha_flexible` (+2/+1 **или** три +1) у 51 расы.
+Прод tip: `cursor/race-custom-lineage-f10e` · http://201.34.132.252/  
+Гибкий ASI: `preset=tasha_flexible` (+2/+1 **или** три +1).  
+Срез forks MPMM: ветка `cursor/race-mpmm-subrace-forks-f10e` · alembic `l1a2b3c4d5e6`.
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
@@ -18,13 +19,17 @@
 
 ## Волна 2 — MPMM (корни combobox)
 
-Спека: `backend/data/races/mpmm_race_catalog_spec.json` (29 строк: 25 корней + 4 наследия дженази).  
+Спека: `backend/data/races/mpmm_race_catalog_spec.json` (40 строк: 24 корня + forks).  
 Без дублей PHB-подрас: дуэргар / эладрин / морской эльф / шадар-кай / глубинный гном — остаются forks у PHB-родителей.
 
 | Раса | В каталоге | Попап forks | Prod verify | Заметки |
 |------|------------|-------------|-------------|---------|
-| Ааракокра … юань-ти (24 корня без дженази) | ✅ | — (нет children) | ✅ | flexible ASI + Common+1 |
+| Ааракокра, багбир, … (корни без forks) | ✅ | — | ✅ | flexible ASI + Common+1 |
 | Дженази | ✅ parent + 4 | ✅ `subrace_required` | ✅ | воздух / земля / огонь / вода |
+| Аасимар | ✅ parent + 3 | ✅ `subrace_required` | ⏳ | Volo: защитник / каратель / падший; размер M/S |
+| Шифтер | ✅ parent + 4 | ✅ `subrace_required` | ⏳ | зверошкур / длиннозуб / быстроног / дикий охотник |
+| Гит | ✅ parent + 2 | ✅ `subrace_required` | ⏳ | гитъянки / гитцерай (больше не два корня) |
+| Кобольд | ✅ parent + 3 | ✅ `subrace_required` | ⏳ | наследия: хитрость / неповиновение / драконье чародейство |
 
 ## Волна 3 — setting books (корни combobox)
 
@@ -50,4 +55,4 @@
 
 ## Инфра-заметка
 
-Актуальный tip head: `d3e4f5a6b1c2` (ASI flexible) на `cursor/race-asi-flexible-f10e`.
+Prod tip: `cursor/race-custom-lineage-f10e`. Срез forks: `l1a2b3c4d5e6` на `cursor/race-mpmm-subrace-forks-f10e`.
