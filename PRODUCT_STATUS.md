@@ -418,6 +418,16 @@
 
 <!-- tip class-race-join: H4b + снаряжение залиты 2026-10-07 -->
 
+### 2026-10-07 — SPELLS: pact на коротком отдыхе + half-caster таблица
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Короткий отдых → pact | Кнопка «Короткий отдых» сбрасывает ресурсы «короткий» и восстанавливает pact-ячейки колдуна | Как в PHB: warlock replenish на short rest |
+| Один Spellcasting-класс | Паладин/следопыт без второго кастера берут классовую таблицу (ceil), не MC floor | Паладин 5 → 4/2, а не 3 ячейки 1-го |
+| MC + pact | Несколько Spellcasting-классов → multiclass caster level; warlock всегда отдельно | Паладин+волшебник и паладин+колдун считаются по правилам |
+
+На проде: нет · ветка `cursor/spell-pact-rest-ef23` · PR (цепочка от cast-scaling)
+
 <!-- пример:
 ### 2026-10-06 — подтверждение email при регистрации
 - Обязательный никнейм
@@ -497,3 +507,4 @@
 | 2026-10-07 | `cursor/race-level-unlocks-f10e` · PR #50 | Unlock по уровню + spell_list меток + детект кастера; tip → эта ветка; alembic `m2b3` |
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 | Стык рас+классов/архетипов; feature packs; caster via slug; class-first UX; tip → эта ветка; alembic `r7a8` |
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 (долив) | H4b глубина 118 архетипов; снаряжение→атаки/КД; ярость vs heavy; normalize packs build fix |
+| 2026-10-07 | `cursor/spell-pact-rest-ef23` | SPELLS slice 4: short-rest pact + half-caster class table → «В ветках» |

@@ -267,9 +267,22 @@ export function PlayPanel({
   }
 
   function doShortRestResources() {
-    const result = applyShortRest({ resources: play.resources })
+    const result = applyShortRest({
+      resources: play.resources,
+      pact_slots: spells.pact_slots,
+    })
     patchPlay({ resources: result.resources })
-    onToast('Сброшены ресурсы со сбросом «короткий» (в текстовых блоках)')
+    if (result.pact_slots !== undefined) {
+      onSpellsChange({
+        ...spells,
+        pact_slots: result.pact_slots,
+      })
+    }
+    onToast(
+      spells.pact_slots
+        ? 'Короткий отдых: ресурсы «короткий» + pact-ячейки восстановлены'
+        : 'Сброшены ресурсы со сбросом «короткий» (в текстовых блоках)',
+    )
   }
 
   function spendHitDieOnShortRest() {
@@ -565,15 +578,15 @@ export function PlayPanel({
           </Text>
           <Text tone="muted">
             Продолжительный: полные HP, половина костей, ячейки/pact, ресурсы «короткий» и
-            «продолжительный», −1 истощение, сброс спасбросков. Короткий (только ресурсы) — пипсы в
-            текстовых блоках со сбросом «короткий».
+            «продолжительный», −1 истощение, сброс спасбросков. Короткий: ресурсы «короткий» и
+            pact-ячейки колдуна (обычные ячейки Spellcasting — только после продолжительного).
           </Text>
           <div className="play-rest-actions">
             <Button type="button" onClick={doLongRest}>
               Продолжительный отдых
             </Button>
             <Button type="button" variant="secondary" onClick={doShortRestResources}>
-              Сброс коротких ресурсов
+              Короткий отдых
             </Button>
           </div>
           {featureDesiredResources.length > 0 ? (

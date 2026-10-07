@@ -438,6 +438,46 @@ export function suggestSpellcasting(input: {
   }
 }
 
+/**
+ * Classes that contribute Spellcasting slots (not Pact Magic).
+ * PHB: if exactly one such class, use that class's slot table — even with warlock levels.
+ */
+type SlotContributor =
+  | {
+      kind: 'base'
+      row: ClassLevelEntry
+      def: ClassCasterDef
+    }
+  | {
+      kind: 'third'
+      row: ClassLevelEntry
+      ability: SpellcastingAbility | null
+    }
+
+function slotContributors(
+  classes: ClassLevelEntry[],
+  overlays: SubclassCasterOverlay[],
+): SlotContributor[] {
+  const out: SlotContributor[] = []
+  for (const row of classes) {
+    const overlay = overlayForClass(overlays, row.id)
+    if (overlay?.progression === 'third') {
+      out.push({ kind: 'third', row, ability: overlay.ability })
+      continue
+    }
+    const def = classCasterDef(resolveClassCasterSlug(row.name))
+    if (!def) continue
+    if (
+      def.progression === 'full' ||
+      def.progression === 'half' ||
+      def.progression === 'half_up'
+    ) {
+      out.push({ kind: 'base', row, def })
+    }
+  }
+  return out
+}
+
 export function suggestSpellcastingFromClasses(input: {
   classes: ClassLevelEntry[]
   abilityModFor: (ability: SpellcastingAbility) => number
@@ -448,34 +488,61 @@ export function suggestSpellcastingFromClasses(input: {
 
   const overlays = input.subclassCasters ?? []
   const warlockLvl = warlockLevels(classes)
+  const contributors = slotContributors(classes, overlays)
+  const pact_slots = warlockLvl > 0 ? warlockPactForLevel(warlockLvl) : null
 
-  // Pure third-caster (only EK/AT, no other slot casters): use PHB subclass table.
-  const onlyThird =
-    classes.length === 1 &&
-    overlayForClass(overlays, classes[0].id)?.progression === 'third' &&
-    warlockLvl <= 0 &&
-    classCasterDef(resolveClassCasterSlug(classes[0].name))?.progression === 'none'
+  // Exactly one Spellcasting source → class/subclass table (not MC floor formula).
+  // Warlock may coexist: pact is separate and does not force the multiclass slot table.
+  if (contributors.length === 1) {
+    const only = contributors[0]
+    if (only.kind === 'third') {
+      const level = clampLevel(only.row.level)
+      return {
+        slug: resolveClassCasterSlug(only.row.name) ?? 'third',
+        labelRu: `${only.row.name.trim()} (⅓ заклинатель)`,
+        progression: 'third',
+        casting_ability: only.ability,
+        max_prepared: null,
+        slots: slotsFromRow(thirdCasterRow(level)),
+        pact_slots,
+      }
+    }
 
-  if (onlyThird) {
-    const row = classes[0]
-    const overlay = overlayForClass(overlays, row.id)!
-    const level = clampLevel(row.level)
-    const ability = overlay.ability
+    const level = clampLevel(only.row.level)
+    let slots = emptySlots()
+    if (only.def.progression === 'full') {
+      slots = slotsFromRow(fullCasterRow(level))
+    } else if (only.def.progression === 'half') {
+      slots = slotsFromRow(halfCasterRow(level))
+    } else if (only.def.progression === 'half_up') {
+      slots = slotsFromRow(halfUpCasterRow(level))
+    }
+
+    const abilityMod = only.def.ability ? input.abilityModFor(only.def.ability) : 0
+    const max_prepared = prepareLimitFromClass({
+      prepare: only.def.prepare,
+      level,
+      abilityMod,
+      progression: only.def.progression,
+    })
+
     return {
-      slug: resolveClassCasterSlug(row.name) ?? 'third',
-      labelRu: `${row.name.trim()} (⅓ заклинатель)`,
-      progression: 'third',
-      casting_ability: ability,
-      max_prepared: null,
-      slots: slotsFromRow(thirdCasterRow(level)),
-      pact_slots: null,
+      slug: only.def.slug,
+      labelRu:
+        warlockLvl > 0 && classes.length > 1
+          ? `${only.def.labelRu} + pact`
+          : only.def.labelRu,
+      progression: only.def.progression,
+      casting_ability: only.def.ability,
+      max_prepared,
+      slots,
+      pact_slots,
     }
   }
 
   const casterLvl = multiclassCasterLevel(classes, overlays)
   const slots =
     casterLvl > 0 ? slotsFromRow(fullCasterRow(casterLvl)) : emptySlots()
-  const pact_slots = warlockLvl > 0 ? warlockPactForLevel(warlockLvl) : null
 
   let casting_ability: SpellcastingAbility | null = null
   let max_prepared: number | null = null
@@ -525,7 +592,7 @@ export function suggestSpellcastingFromClasses(input: {
   return {
     slug,
     labelRu:
-      classes.length > 1
+      classes.length > 1 || contributors.length > 1
         ? `Мультикласс (${casterLvl || '—'}/${warlockLvl || '—'})`
         : labelRu,
     progression,

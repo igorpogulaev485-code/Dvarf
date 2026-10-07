@@ -75,12 +75,23 @@ export type RestResult = {
   death_fails?: number
 }
 
+/**
+ * 2014 PHB: short rest recovers short-reset resources and warlock pact slots.
+ * Spell slots (Spellcasting) stay spent until a long rest.
+ */
 export function applyShortRest(input: {
   resources: SheetResource[]
+  /** When provided, pact `used` is cleared (PHB Pact Magic). Omit to leave spells untouched. */
+  pact_slots?: { max: number; used: number; level: number } | null
 }): RestResult {
-  return {
+  const result: RestResult = {
     resources: resetResourcesOnRest(input.resources, 'short'),
   }
+  if (input.pact_slots !== undefined) {
+    const pact = input.pact_slots
+    result.pact_slots = pact ? { ...pact, used: 0 } : null
+  }
+  return result
 }
 
 export function applyLongRest(input: {
