@@ -438,7 +438,7 @@
 | Ветки 4 ур. | Порядок / зло / хаос / добро / Внешние земли + Странник | PB-пулы и mutex между ветками |
 | Фильтр | Недоступные черты скрыты в combobox | Игрок не видит «запрещённое» |
 
-На проде: **нет** · ветка `cursor/feats-pam-wave-592a` · tip не менять до «залей»
+На проде: **нет** · ветка `cursor/feats-pam-wave-592a` · PR #63 · tip не менять до «залей»
 
 ### 2026-10-07 — FEATS prereq engine + feat-linked backgrounds
 
@@ -624,4 +624,4 @@
 | 2026-10-07 | `cursor/feats-dsotdq-wave-ef23` · PR #60 | SDQ Dragonlance 9 feats + knight/mage chains; alembic `d0e1`; на проде нет |
 | 2026-10-07 | `cursor/feats-bpgg-wave-ef23` · PR #61 | BPGG Strike of the Giants chain + Rune Shaper; alembic `e1f2`; на проде нет |
 | 2026-10-07 | `cursor/feats-prereq-engine-592a` · PR #62 | Feat prereq engine (class/bg/mutex) + feat-linked backgrounds; alembic `f2a3`; на проде нет |
-| 2026-10-07 | `cursor/feats-pam-wave-592a` | PAM Planescape 7 feats + plane branches; alembic `g3b4`; на проде нет |
+| 2026-10-07 | `cursor/feats-pam-wave-592a` · PR #63 | PAM Planescape 7 feats + plane branches; alembic `g3b4`; на проде нет |
