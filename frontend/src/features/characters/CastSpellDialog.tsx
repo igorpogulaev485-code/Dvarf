@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { resolveCastEffect } from '../../shared/dnd/spellCatalog'
 import {
   availableCastSlotLevels,
   canSpendPactSlot,
@@ -17,6 +18,8 @@ type CastSpellDialogProps = {
   open: boolean
   spell: SheetSpell | null
   spells: SpellsState
+  /** Total character level — cantrip scaling 1/5/11/17. */
+  characterLevel: number
   busy?: boolean
   onConfirm: (choice: CastChoice) => void
   onClose: () => void
@@ -26,6 +29,7 @@ export function CastSpellDialog({
   open,
   spell,
   spells,
+  characterLevel,
   busy = false,
   onConfirm,
   onClose,
@@ -49,6 +53,20 @@ export function CastSpellDialog({
     setSlotLevel(slotLevels[0] ?? spellLevel)
   }, [spell?.id, spellLevel, isCantrip, pactOk, slotLevels.join(','), spells.pact_slots?.level])
 
+  const effectiveSlotLevel = useMemo(() => {
+    if (!spell || isCantrip) return 0
+    if (usePact && spells.pact_slots) return spells.pact_slots.level
+    return slotLevel
+  }, [spell, isCantrip, usePact, spells.pact_slots, slotLevel])
+
+  const castEffect = useMemo(() => {
+    if (!spell) return { effect: '', scaled: false }
+    return resolveCastEffect(spell, {
+      characterLevel,
+      slotLevel: effectiveSlotLevel || spell.level,
+    })
+  }, [spell, characterLevel, effectiveSlotLevel])
+
   if (!spell) {
     return null
   }
@@ -59,6 +77,13 @@ export function CastSpellDialog({
   const pactRemaining = spells.pact_slots
     ? Math.max(0, spells.pact_slots.max - spells.pact_slots.used)
     : 0
+
+  const metaParts = [
+    spell.casting_time,
+    spell.range,
+    spell.attack_or_save,
+    castEffect.effect || spell.damage,
+  ].filter(Boolean)
 
   return (
     <Dialog
@@ -83,11 +108,15 @@ export function CastSpellDialog({
           {levelLabel(spell.level)}
           {spell.concentration ? ' · концентрация' : ''}
         </Text>
-        {spell.damage || spell.attack_or_save || spell.range ? (
-          <Text tone="muted">
-            {[spell.casting_time, spell.range, spell.attack_or_save, spell.damage]
-              .filter(Boolean)
-              .join(' · ')}
+        {metaParts.length > 0 ? <Text tone="muted">{metaParts.join(' · ')}</Text> : null}
+        {castEffect.scaled && castEffect.effect ? (
+          <Text>
+            Эффект сейчас: <strong>{castEffect.effect}</strong>
+            {isCantrip
+              ? ` (ур. персонажа ${Math.max(1, characterLevel)})`
+              : effectiveSlotLevel > spell.level
+                ? ` (ячейка ${effectiveSlotLevel})`
+                : ''}
           </Text>
         ) : null}
 
