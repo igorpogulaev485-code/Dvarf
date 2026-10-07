@@ -1,19 +1,19 @@
 # Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
 
 Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
-Прод tip: `cursor/race-dragonborn-ftd-f10e` · http://201.34.132.252/
+Прод tip: `cursor/race-elf-halfling-gaps-f10e` · http://201.34.132.252/
 
 | Раса | ttg/dnd.su разновидности | В каталоге | Попап forks | Prod verify | Заметки |
 |------|--------------------------|------------|-------------|-------------|---------|
-| Дварф | 6: горный/холмовой PHB, дуэргар MTF, щитовой/золотой SCAG, метка опеки ERLW | ✅ 6 | ✅ `subrace_required` | ✅ | Smoke 2026-10-06 |
-| Эльф | PHB высший/лесной/дроу + MToF эладрин/морской/шадар-кай | ✅ 6 | ✅ | ✅ | alembic `a4b5`; астральный — отдельная раса; метка тени/бледный — вне среза |
-| Полурослик | PHB + SCAG призрачный + ERLW исцеление/гостеприимство | ✅ 5 | ✅ | ✅ | EGW лотосденский — вне среза; `b5c6` |
-| Гном | PHB + глубинный + ERLW метка письма | ✅ 4 | ✅ | ✅ | `b5c6` |
-| Человек | PHB base + variant + 5 меток ERLW | ✅ 6 children | ✅ optional | ✅ | поиск/уход/создание/проход/страж; `e8f9` |
-| Драконорождённый | PHB base + FTD цветной/драгоцветный/металлический (ttg) | ✅ 3 children | ✅ optional | ✅ | `f9a0`; PHB ancestry 10 типов на корне; EGW — вне среза |
-| Полуэльф | PHB + SCAG наследия + ERLW метки | ✅ 6 children | ✅ optional | ✅ | optional forks; `c6d7` |
-| Полуорк | PHB + ERLW метка поиска | ✅ 1 child | ✅ optional | ✅ | `d7e8` |
-| Тифлинг | PHB base + MTF bloodlines + SCAG feral | ✅ 9 children | ✅ optional | ✅ | optional forks; `c6d7` |
+| Дварф | 6: горный/холмовой PHB, дуэргар MTF, щитовой/золотой SCAG, метка опеки ERLW | ✅ 6 | ✅ `subrace_required` | ✅ | |
+| Эльф | PHB 3 + MToF 3 + метка тени ERLW + бледный EGW + астральный AAG | ✅ 9 | ✅ | ✅ | `a0b1` |
+| Полурослик | PHB 2 + SCAG + ERLW 2 + лотосден EGW | ✅ 6 | ✅ | ✅ | `a0b1` |
+| Гном | PHB 2 + глубинный + метка письма | ✅ 4 | ✅ | ✅ | |
+| Человек | PHB + variant + 5 меток ERLW | ✅ 6 | ✅ optional | ✅ | |
+| Драконорождённый | PHB + 3 FTD | ✅ 3 | ✅ optional | ✅ | |
+| Полуэльф | PHB + SCAG 4 + ERLW 2 | ✅ 6 | ✅ optional | ✅ | |
+| Полуорк | PHB + метка поиска | ✅ 1 | ✅ optional | ✅ | |
+| Тифлинг | PHB + MToF 8 + SCAG feral | ✅ 9 | ✅ optional | ✅ | |
 
 ## Чеклист на расу
 
@@ -25,4 +25,4 @@
 
 ## Инфра-заметка
 
-2026-10-07: tip снова `cursor/mobile-sheet-compact-acbe` (merge human marks `e8f9`). Новые миграции: `down_revision = e8f9a0b1c2d3` (или актуальный head tip).
+Актуальный tip head: `a0b1c2d3e4f5` (эльф/полурослик gaps).
