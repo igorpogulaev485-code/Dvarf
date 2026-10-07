@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { totalCharacterLevel } from '../../shared/dnd/classLevels'
 import {
+  applyHpMaxBonusChange,
+  clampHpMaxBonus,
+  effectiveHpMax,
+} from '../../shared/dnd/hp'
+import {
   buildMaxHpByLevels,
   type MaxHpLevelRow,
 } from '../../shared/dnd/multiclassRules'
@@ -14,8 +19,13 @@ type MaxHpByLevelsDialogProps = {
   constitutionMod: number
   hitDie: HitDie | null
   hpMax: number | null
+  hpMaxBonus: number
   hpCurrent: number | null
-  onApply: (next: { hpMax: number; hpCurrent: number }) => void
+  onApply: (next: {
+    hpMax: number
+    hpMaxBonus: number
+    hpCurrent: number
+  }) => void
   onClose: () => void
 }
 
@@ -27,13 +37,16 @@ export function MaxHpByLevelsDialog({
   constitutionMod,
   hitDie,
   hpMax,
+  hpMaxBonus,
   hpCurrent,
   onApply,
   onClose,
 }: MaxHpByLevelsDialogProps) {
   const [mode, setMode] = useState<Mode>('rules')
   const [manualTotal, setManualTotal] = useState<number | null>(hpMax)
+  const [bonus, setBonus] = useState(hpMaxBonus)
   const [fillCurrent, setFillCurrent] = useState(true)
+  const [raiseWithBonus, setRaiseWithBonus] = useState(true)
 
   const built = useMemo(
     () =>
@@ -49,46 +62,62 @@ export function MaxHpByLevelsDialog({
     if (!open) return
     setMode('rules')
     setManualTotal(built?.total ?? hpMax)
+    setBonus(clampHpMaxBonus(hpMaxBonus))
+    setRaiseWithBonus(true)
+    const prevEffective = effectiveHpMax(hpMax, hpMaxBonus)
     const wasFull =
-      hpMax != null && hpCurrent != null && hpCurrent >= hpMax
+      prevEffective != null && hpCurrent != null && hpCurrent >= prevEffective
     setFillCurrent(hpCurrent == null || wasFull)
-  }, [open, built?.total, hpMax, hpCurrent])
+  }, [open, built?.total, hpMax, hpMaxBonus, hpCurrent])
 
   const rulesTotal = built?.total ?? null
-  const nextMax =
+  const nextBase =
     mode === 'rules'
-      ? rulesTotal
+      ? (rulesTotal ?? hpMax)
       : manualTotal == null
         ? null
         : Math.max(1, Math.floor(manualTotal))
-  const canApply = nextMax != null && Number.isFinite(nextMax)
+  const nextBonus = clampHpMaxBonus(bonus)
+  const nextEffective = effectiveHpMax(nextBase, nextBonus)
+  const canApply = nextBase != null && nextEffective != null
 
   const nextCurrent = (() => {
-    if (nextMax == null) return null
-    if (fillCurrent) return nextMax
-    if (hpCurrent == null) return nextMax
-    return Math.min(nextMax, Math.max(0, hpCurrent))
+    if (nextBase == null || nextEffective == null) return null
+    if (fillCurrent) return nextEffective
+    return applyHpMaxBonusChange({
+      hpCurrent,
+      hpMax: nextBase,
+      previousBonus: hpMaxBonus,
+      nextBonus,
+      raiseCurrentWithBonus: raiseWithBonus,
+    })
   })()
 
   const level = totalCharacterLevel(classes)
   const conLabel = `${constitutionMod >= 0 ? '+' : ''}${constitutionMod}`
+  const prevEffective = effectiveHpMax(hpMax, hpMaxBonus)
 
   return (
     <Dialog
       open={open}
-      title="Макс. HP по уровням"
+      title="Максимум HP"
       primaryLabel="Применить"
       secondaryLabel="Отмена"
       primaryDisabled={!canApply}
       onPrimary={() => {
-        if (!canApply || nextMax == null || nextCurrent == null) return
-        onApply({ hpMax: nextMax, hpCurrent: nextCurrent })
+        if (!canApply || nextBase == null || nextCurrent == null) return
+        onApply({
+          hpMax: nextBase,
+          hpMaxBonus: nextBonus,
+          hpCurrent: nextCurrent,
+        })
       }}
       onSecondary={onClose}
     >
       <Stack gap={12}>
         <Text tone="muted" className="hp-levels__lead">
-          Ур. {level} · ТЕЛ {conLabel}. Первый уровень — макс. кости, дальше — среднее.
+          Ур. {level} · ТЕЛ {conLabel}. База — по уровням; бонус — временный баф к максимуму
+          (Aid и т.п.), не путать с временными HP.
         </Text>
 
         <div className="chip-row">
@@ -120,17 +149,21 @@ export function MaxHpByLevelsDialog({
                 ))}
               </ul>
               <p className="hp-levels__total">
-                Итого: <strong>{built.total}</strong>
+                База: <strong>{built.total}</strong>
                 {hpMax != null ? ` · было ${hpMax}` : ''}
               </p>
             </div>
+          ) : hpMax != null ? (
+            <Text tone="muted">
+              Кость хитов не задана — база останется {hpMax}. Задай кость или вкладку «Вручную».
+            </Text>
           ) : (
             <Text tone="muted">
               Нужна кость хитов (класс или блок отдыха) — иначе вкладка «Вручную».
             </Text>
           )
         ) : (
-          <Field label="Максимум HP" hint="Если бросал кости или хоумбрю">
+          <Field label="Базовый максимум" hint="Уровни, броски костей или хоумбрю">
             <NumberInput
               min={1}
               emptyValue={null}
@@ -140,6 +173,39 @@ export function MaxHpByLevelsDialog({
           </Field>
         )}
 
+        <Field
+          label="Временный бонус к макс."
+          hint="Снимается вручную, когда эффект кончился"
+        >
+          <div className="hp-levels__bonus-row">
+            <NumberInput
+              min={0}
+              emptyValue={0}
+              value={bonus}
+              onValueChange={(value) => setBonus(clampHpMaxBonus(value ?? 0))}
+            />
+            {nextBonus > 0 ? (
+              <button
+                type="button"
+                className="linkish"
+                onClick={() => setBonus(0)}
+              >
+                Сбросить
+              </button>
+            ) : null}
+          </div>
+        </Field>
+
+        {nextEffective != null ? (
+          <p className="hp-levels__effective">
+            В бою: <strong>{nextEffective}</strong>
+            {nextBonus > 0 ? ` (база ${nextBase} · +${nextBonus})` : ''}
+            {prevEffective != null && prevEffective !== nextEffective
+              ? ` · было ${prevEffective}`
+              : ''}
+          </p>
+        ) : null}
+
         <label className="hp-levels__fill">
           <input
             type="checkbox"
@@ -147,12 +213,23 @@ export function MaxHpByLevelsDialog({
             onChange={(event) => setFillCurrent(event.target.checked)}
           />
           <span>
-            Текущие = макс.
-            {nextMax != null && nextCurrent != null
+            Текущие = эффективный макс.
+            {nextEffective != null && nextCurrent != null
               ? ` (${hpCurrent ?? '—'} → ${nextCurrent})`
               : ''}
           </span>
         </label>
+
+        {!fillCurrent ? (
+          <label className="hp-levels__fill">
+            <input
+              type="checkbox"
+              checked={raiseWithBonus}
+              onChange={(event) => setRaiseWithBonus(event.target.checked)}
+            />
+            <span>При росте бонуса поднять текущие на ту же величину</span>
+          </label>
+        ) : null}
       </Stack>
     </Dialog>
   )

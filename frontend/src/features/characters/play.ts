@@ -20,6 +20,7 @@ import {
   type ResourceReset,
   type SheetResource,
 } from '../../shared/dnd/rest'
+import { clampHpMaxBonus } from '../../shared/dnd/hp'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
 export type PlayState = {
@@ -27,6 +28,8 @@ export type PlayState = {
   exhaustion: number
   resources: SheetResource[]
   hpTemp: number
+  /** Temporary increase to HP maximum (Aid, feast, etc.). Not temporary HP. */
+  hpMaxBonus: number
   hitDie: HitDie | null
   hitDiceCurrent: number
   isDying: boolean
@@ -130,6 +133,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     exhaustion: clampExhaustion(readNumber(combat.exhaustion, 0)),
     resources,
     hpTemp: Math.max(0, Math.floor(readNumber(combat.hp_temp, 0))),
+    hpMaxBonus: clampHpMaxBonus(readNumber(combat.hp_max_bonus, 0)),
     hitDie: isHitDie(combat.hit_die) ? combat.hit_die : null,
     hitDiceCurrent: clampHitDiceCurrent(
       hitDiceRaw ?? hitDiceMax,
@@ -147,6 +151,7 @@ export function playToSheet(play: PlayState): {
     conditions: ConditionRef[]
     exhaustion: number
     hp_temp: number
+    hp_max_bonus: number
     hit_die: HitDie | null
     hp_dice_current: number
     is_dying: boolean
@@ -166,6 +171,7 @@ export function playToSheet(play: PlayState): {
       })),
       exhaustion: clampExhaustion(play.exhaustion),
       hp_temp: Math.max(0, Math.floor(play.hpTemp)),
+      hp_max_bonus: clampHpMaxBonus(play.hpMaxBonus),
       hit_die: play.hitDie,
       hp_dice_current: Math.max(0, Math.floor(play.hitDiceCurrent)),
       is_dying: play.isDying,

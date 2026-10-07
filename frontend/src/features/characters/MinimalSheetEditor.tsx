@@ -817,6 +817,7 @@ export function MinimalSheetEditor({
       combat.conditions = playSheet.combatPatch.conditions
       combat.exhaustion = playSheet.combatPatch.exhaustion
       combat.hp_temp = playSheet.combatPatch.hp_temp
+      combat.hp_max_bonus = playSheet.combatPatch.hp_max_bonus
       combat.hit_die = playSheet.combatPatch.hit_die
       combat.hp_dice_current = playSheet.combatPatch.hp_dice_current
       combat.is_dying = playSheet.combatPatch.is_dying
@@ -882,6 +883,7 @@ export function MinimalSheetEditor({
         constitutionMod={abilityModifier(draft.abilities.con)}
         hpCurrent={draft.hpCurrent}
         hpMax={draft.hpMax}
+        hpMaxBonus={draft.play.hpMaxBonus}
         hpTemp={draft.play.hpTemp}
         acOverride={draft.ac}
         autoAc={armorClass.ac}
@@ -906,7 +908,19 @@ export function MinimalSheetEditor({
             play: { ...prev.play, concentration: null },
           }))
         }
-        onChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
+        onChange={(patch) =>
+          setDraft((prev) => {
+            const { hpMaxBonus, ...rest } = patch
+            return {
+              ...prev,
+              ...rest,
+              play:
+                hpMaxBonus !== undefined
+                  ? { ...prev.play, hpMaxBonus: Math.max(0, Math.floor(hpMaxBonus)) }
+                  : prev.play,
+            }
+          })
+        }
       />
 
       <Panel title="Основное">

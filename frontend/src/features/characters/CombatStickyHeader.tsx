@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import { effectiveHpMax } from '../../shared/dnd/hp'
 import type { HitDie } from '../../shared/dnd/hitDice'
 import { NumberInput, NumberPadDialog } from '../../ui'
 import type { ConcentrationState } from './play'
@@ -21,6 +22,7 @@ type CombatStickyHeaderProps = {
   constitutionMod: number
   hpCurrent: number | null
   hpMax: number | null
+  hpMaxBonus: number
   hpTemp: number
   /** Manual AC override; null = use autoAc from armor. */
   acOverride: number | null
@@ -39,6 +41,7 @@ type CombatStickyHeaderProps = {
   onChange: (patch: {
     hpCurrent?: number | null
     hpMax?: number | null
+    hpMaxBonus?: number
     ac?: number | null
     speed?: number | null
     initiativeOverride?: number | null
@@ -57,6 +60,7 @@ export function CombatStickyHeader({
   constitutionMod,
   hpCurrent,
   hpMax,
+  hpMaxBonus,
   hpTemp,
   acOverride,
   autoAc,
@@ -82,7 +86,12 @@ export function CombatStickyHeader({
     initiativeOverride == null
       ? `от ЛОВ ${formatModifier(autoInitiative)}`
       : 'задано вручную'
-  const hpTitle = hpTemp > 0 ? `врем. +${hpTemp}` : undefined
+  const effectiveMax = effectiveHpMax(hpMax, hpMaxBonus)
+  const hpTitleParts = [
+    hpMaxBonus > 0 && hpMax != null ? `база ${hpMax} · +${hpMaxBonus}` : null,
+    hpTemp > 0 ? `врем. +${hpTemp}` : null,
+  ].filter(Boolean)
+  const hpTitle = hpTitleParts.length > 0 ? hpTitleParts.join(' · ') : undefined
   const [hpPulse, setHpPulse] = useState(false)
   const [currentPadOpen, setCurrentPadOpen] = useState(false)
   const [maxDialogOpen, setMaxDialogOpen] = useState(false)
@@ -99,7 +108,6 @@ export function CombatStickyHeader({
   }, [hpCurrent])
 
   const currentValue = hpCurrent ?? 0
-  const maxValue = hpMax
 
   return (
     <section className="combat-sticky" aria-label="Боевой статус">
@@ -246,13 +254,17 @@ export function CombatStickyHeader({
             </span>
             <button
               type="button"
-              className="combat-hp-open combat-hp-open--max"
-              aria-label={`Максимум HP ${hpMax ?? 'не задан'}. Собрать по уровням`}
+              className={`combat-hp-open combat-hp-open--max${hpMaxBonus > 0 ? ' has-bonus' : ''}`}
+              aria-label={`Максимум HP ${effectiveMax ?? 'не задан'}${
+                hpMaxBonus > 0 ? `, из них бонус +${hpMaxBonus}` : ''
+              }. Настроить базу и временный бонус`}
               onClick={() => setMaxDialogOpen(true)}
             >
-              <span className="combat-hp-open__meta">максимум</span>
+              <span className="combat-hp-open__meta">
+                {hpMaxBonus > 0 ? `макс +${hpMaxBonus}` : 'максимум'}
+              </span>
               <span className="combat-hp-open__value">
-                {hpMax == null ? '—' : hpMax}
+                {effectiveMax == null ? '—' : effectiveMax}
               </span>
             </button>
           </div>
@@ -264,13 +276,13 @@ export function CombatStickyHeader({
         title="Текущие HP"
         current={currentValue}
         min={0}
-        max={maxValue ?? undefined}
+        max={effectiveMax ?? undefined}
         addLabel="Вылечить"
         subtractLabel="Урон"
         onClose={() => setCurrentPadOpen(false)}
         onAdd={(delta) => {
           const next = currentValue + delta
-          const capped = maxValue == null ? next : Math.min(maxValue, next)
+          const capped = effectiveMax == null ? next : Math.min(effectiveMax, next)
           onChange({ hpCurrent: Math.max(0, capped) })
         }}
         onSubtract={(delta) => {
@@ -279,7 +291,11 @@ export function CombatStickyHeader({
         header={
           <p className="combat-hp-pad-header">
             сейчас {hpCurrent ?? 0}
-            {hpMax != null ? ` / ${hpMax}` : ' · макс не задан'}
+            {effectiveMax != null
+              ? ` / ${effectiveMax}${
+                  hpMaxBonus > 0 && hpMax != null ? ` (база ${hpMax} · +${hpMaxBonus})` : ''
+                }`
+              : ' · макс не задан'}
             {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
           </p>
         }
@@ -291,10 +307,15 @@ export function CombatStickyHeader({
         constitutionMod={constitutionMod}
         hitDie={hitDie}
         hpMax={hpMax}
+        hpMaxBonus={hpMaxBonus}
         hpCurrent={hpCurrent}
         onClose={() => setMaxDialogOpen(false)}
-        onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
-          onChange({ hpMax: nextMax, hpCurrent: nextCurrent })
+        onApply={({ hpMax: nextMax, hpMaxBonus: nextBonus, hpCurrent: nextCurrent }) => {
+          onChange({
+            hpMax: nextMax,
+            hpMaxBonus: nextBonus,
+            hpCurrent: nextCurrent,
+          })
           setMaxDialogOpen(false)
         }}
       />

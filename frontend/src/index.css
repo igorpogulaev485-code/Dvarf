@@ -1204,6 +1204,28 @@ input {
   margin-top: 3px;
 }
 
+.hp-levels__bonus-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.hp-levels__bonus-row .ui-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.hp-levels__effective {
+  margin: 0;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.combat-hp-open.has-bonus {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, #fff);
+}
+
 .combat-sticky__hp .ui-input,
 .combat-sticky__init .ui-input {
   flex: 1 1 0;

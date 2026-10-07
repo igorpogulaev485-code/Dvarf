@@ -50,6 +50,7 @@ def empty_character_sheet() -> dict[str, Any]:
             "hp_current": None,
             "hp_max": None,
             "hp_temp": 0,
+            "hp_max_bonus": 0,
             "hit_die": None,
             "hp_dice_current": None,
             "ac": None,

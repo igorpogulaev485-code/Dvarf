@@ -291,6 +291,16 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
               <div className="classic-caption">Временные хиты</div>
             </div>
             <div className="classic-panel">
+              <input
+                className="classic-hp"
+                value={combatNum('hp_max_bonus')}
+                onChange={(e) =>
+                  patch({ combat: { hp_max_bonus: Number(e.target.value) || 0 } })
+                }
+              />
+              <div className="classic-caption">Бонус к макс. HP</div>
+            </div>
+            <div className="classic-panel">
               {weapons.map((row, idx) => (
                 <div className="classic-weapon" key={idx}>
                   <span>{row.name || '—'}</span>

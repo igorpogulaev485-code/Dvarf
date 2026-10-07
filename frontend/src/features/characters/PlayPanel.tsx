@@ -19,6 +19,11 @@ import {
   type HitDie,
 } from '../../shared/dnd/hitDice'
 import {
+  applyHpMaxBonusChange,
+  clampHpMaxBonus,
+  effectiveHpMax,
+} from '../../shared/dnd/hp'
+import {
   applyLongRest,
   applyShortRest,
   clampExhaustion,
@@ -111,6 +116,7 @@ export function PlayPanel({
 }: PlayPanelProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
   const hitDiceMax = Math.max(1, Math.floor(level))
+  const combatHpMax = effectiveHpMax(hpMax, play.hpMaxBonus)
   const suggestedHeal = play.hitDie
     ? suggestedHitDieHeal(play.hitDie, constitutionMod)
     : null
@@ -270,7 +276,7 @@ export function PlayPanel({
       onToast('Нужна кость хитов и хотя бы 1 доступная')
       return
     }
-    if (hpMax == null) {
+    if (combatHpMax == null) {
       onToast('Задай максимум HP перед коротким отдыхом')
       return
     }
@@ -278,14 +284,14 @@ export function PlayPanel({
     const beforeHp = hpCurrent ?? 0
     const nextHp = applyHitDieHeal({
       hpCurrent,
-      hpMax,
+      hpMax: combatHpMax,
       healAmount: amount,
     })
     const nextDice = spendHitDie(play.hitDiceCurrent)
     patchPlay({ hitDiceCurrent: nextDice })
     onCombatChange({ hpCurrent: nextHp })
     onToast(
-      `Кость ${play.hitDie}: +${amount} HP (${beforeHp} → ${nextHp}/${hpMax}) · кости ${nextDice}/${hitDiceMax}`,
+      `Кость ${play.hitDie}: +${amount} HP (${beforeHp} → ${nextHp}/${combatHpMax}) · кости ${nextDice}/${hitDiceMax}`,
     )
   }
 
@@ -295,7 +301,7 @@ export function PlayPanel({
       slots: spells.slots,
       pact_slots: spells.pact_slots,
       exhaustion: play.exhaustion,
-      hp_max: hpMax,
+      hp_max: combatHpMax,
       hit_dice_current: play.hitDiceCurrent,
       hit_dice_max: hitDiceMax,
     })
@@ -327,12 +333,43 @@ export function PlayPanel({
     <Panel title="Состояния и ресурсы">
       <Stack gap={14}>
         <div className="sheet-grid sheet-grid--2">
-          <Field label="Временные HP">
+          <Field
+            label="Временные HP"
+            hint="Буфер поверх HP, не увеличивает максимум"
+          >
             <NumberInput
               min={0}
               emptyValue={0}
               value={play.hpTemp}
               onValueChange={(value) => patchPlay({ hpTemp: Math.max(0, value ?? 0) })}
+            />
+          </Field>
+          <Field
+            label="Бонус к макс. HP"
+            hint={
+              combatHpMax != null && play.hpMaxBonus > 0
+                ? `В бою ${combatHpMax} (база ${hpMax} · +${play.hpMaxBonus})`
+                : 'Aid и т.п. · отдельно от временных HP'
+            }
+          >
+            <NumberInput
+              min={0}
+              emptyValue={0}
+              value={play.hpMaxBonus}
+              onValueChange={(value) => {
+                const nextBonus = clampHpMaxBonus(value ?? 0)
+                const nextCurrent = applyHpMaxBonusChange({
+                  hpCurrent,
+                  hpMax,
+                  previousBonus: play.hpMaxBonus,
+                  nextBonus,
+                  raiseCurrentWithBonus: true,
+                })
+                patchPlay({ hpMaxBonus: nextBonus })
+                if (nextCurrent !== hpCurrent) {
+                  onCombatChange({ hpCurrent: nextCurrent })
+                }
+              }}
             />
           </Field>
           <Field label="Кость хитов">
@@ -388,9 +425,9 @@ export function PlayPanel({
                 hint={
                   !play.hitDie
                     ? 'Сначала выбери кость хитов выше'
-                    : hpMax == null
+                    : combatHpMax == null
                       ? 'Задай максимум HP в шапке листа'
-                      : `Среднее ${play.hitDie} + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) · сейчас HP ${hpCurrent ?? '—'}/${hpMax}`
+                      : `Среднее ${play.hitDie} + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) · сейчас HP ${hpCurrent ?? '—'}/${combatHpMax}`
                 }
               >
                 <NumberInput
@@ -405,7 +442,7 @@ export function PlayPanel({
                 <Button
                   type="button"
                   disabled={
-                    !play.hitDie || play.hitDiceCurrent <= 0 || hpMax == null
+                    !play.hitDie || play.hitDiceCurrent <= 0 || combatHpMax == null
                   }
                   onClick={spendHitDieOnShortRest}
                 >
