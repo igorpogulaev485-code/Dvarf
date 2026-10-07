@@ -105,6 +105,14 @@ export type RaceAncestryOption = {
   breath: string
 }
 
+/** Custom Lineage-style fork: darkvision OR a skill (etc.). */
+export type VariableTraitChoice = {
+  id: string
+  labelRu: string
+  darkvision: number | null
+  skillChoices: SkillChoice | null
+}
+
 /** One alt speed: fixed ft or same as walking speed. */
 export type RaceMovementValue = number | 'walk'
 
@@ -150,6 +158,7 @@ export type RaceGrantDef = {
   naturalWeapons: RaceNaturalWeapon[]
   movement: RaceMovementSpec
   racialSpells: RaceRacialSpell[]
+  variableTraitChoices: VariableTraitChoice[]
 }
 
 export type RaceGrantPicks = {
@@ -162,6 +171,8 @@ export type RaceGrantPicks = {
   abilityBonusKeys: AbilityKey[]
   /** Chosen size when `sizeChoices` offers Medium/Small (etc.). */
   size: RaceSize | null
+  /** Custom Lineage variable trait (darkvision vs skill). */
+  variableTraitId: string | null
   languages: string[]
   skills: string[]
   tools: string[]
@@ -445,6 +456,34 @@ export function resolveSelectedAbilityBonusMode(input: {
   return modes.find((mode) => mode.id === input.modeId) ?? null
 }
 
+function readVariableTraitChoices(raw: unknown): VariableTraitChoice[] {
+  if (!Array.isArray(raw)) return []
+  const out: VariableTraitChoice[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    if (typeof row.id !== 'string' || !row.id.trim()) continue
+    const labelRu =
+      typeof row.label_ru === 'string'
+        ? row.label_ru
+        : typeof row.labelRu === 'string'
+          ? row.labelRu
+          : row.id
+    const dvRaw = row.darkvision
+    const darkvision =
+      typeof dvRaw === 'number' && Number.isFinite(dvRaw) && dvRaw > 0
+        ? Math.floor(dvRaw)
+        : null
+    const skillChoices = readSkillChoice(row.skill_choices ?? row.skillChoices)
+    out.push({
+      id: row.id.trim(),
+      labelRu,
+      darkvision,
+      skillChoices,
+    })
+  }
+  return out
+}
+
 function readSkillChoice(raw: unknown): SkillChoice | null {
   const obj = asRecord(raw)
   const count = Math.max(0, Math.floor(readNumber(obj.count, 0)))
@@ -704,6 +743,9 @@ export function raceGrantDefFromCatalog(input: {
     naturalWeapons: readNaturalWeapons(data.natural_weapons ?? data.naturalWeapons),
     movement: readMovementSpec(data.movement),
     racialSpells: readRacialSpells(data.racial_spells ?? data.racialSpells),
+    variableTraitChoices: readVariableTraitChoices(
+      data.variable_trait_choices ?? data.variableTraitChoices,
+    ),
   }
 }
 
@@ -734,6 +776,7 @@ export function emptyRacePicks(): RaceGrantPicks {
     abilityBonusModeId: null,
     abilityBonusKeys: [],
     size: null,
+    variableTraitId: null,
     languages: [],
     skills: [],
     tools: [],
@@ -741,8 +784,38 @@ export function emptyRacePicks(): RaceGrantPicks {
   }
 }
 
+export function resolveVariableTraitChoice(input: {
+  def: RaceGrantDef
+  picks: Pick<RaceGrantPicks, 'variableTraitId'>
+}): VariableTraitChoice | null {
+  if (input.def.variableTraitChoices.length === 0) return null
+  const id = input.picks.variableTraitId
+  if (!id) return null
+  return input.def.variableTraitChoices.find((row) => row.id === id) ?? null
+}
+
+/** Effective skill choice after variable-trait fork (Custom Lineage). */
+export function effectiveRaceSkillChoices(
+  def: RaceGrantDef,
+  picks: Pick<RaceGrantPicks, 'variableTraitId'>,
+): SkillChoice | null {
+  const fork = resolveVariableTraitChoice({ def, picks })
+  if (fork) return fork.skillChoices
+  return def.skillChoices
+}
+
+export function resolveRaceDarkvision(input: {
+  def: RaceGrantDef
+  picks: Pick<RaceGrantPicks, 'variableTraitId'>
+}): number {
+  const fork = resolveVariableTraitChoice(input)
+  if (fork?.darkvision != null) return fork.darkvision
+  return input.def.darkvision
+}
+
 export function raceGrantNeedsSetupDialog(def: RaceGrantDef): boolean {
   if (def.sizeChoices.length > 1) return true
+  if (def.variableTraitChoices.length > 0) return true
   if (resolveAbilityBonusModes(def.abilityBonusChoices).length > 0) return true
   if (def.languagesChoose > 0) return true
   if ((def.skillChoices?.count ?? 0) > 0) return true
@@ -796,12 +869,22 @@ export function validateRaceGrantPicks(input: {
     return `Выбери языки: ${def.languagesChoose}`
   }
 
-  const skillNeed = def.skillChoices?.count ?? 0
+  if (def.variableTraitChoices.length > 0) {
+    if (!picks.variableTraitId) return 'Выбери переменную черту'
+    if (!def.variableTraitChoices.some((row) => row.id === picks.variableTraitId)) {
+      return 'Неизвестная переменная черта'
+    }
+  } else if (picks.variableTraitId) {
+    return 'Лишний выбор переменной черты'
+  }
+
+  const skillChoice = effectiveRaceSkillChoices(def, picks)
+  const skillNeed = skillChoice?.count ?? 0
   if (picks.skills.length !== skillNeed) {
     return `Выбери навыки: ${skillNeed}`
   }
-  if (def.skillChoices && def.skillChoices.from !== 'any') {
-    const allowed = new Set(def.skillChoices.from)
+  if (skillChoice && skillChoice.from !== 'any') {
+    const allowed = new Set(skillChoice.from)
     if (picks.skills.some((key) => !allowed.has(key))) {
       return 'Навык вне списка расы'
     }
