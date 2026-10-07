@@ -123,7 +123,24 @@
 11. ~~Волшебник~~ (Arcane Recovery + Portent/Bladesong; 11 традиций каркас)
 12. ~~Изобретатель~~ (инфузии + Flash of Genius; 4 специалиста каркас)
 
-Далее: **полировка архетипов** общим проходом (без деплоя).
+## H4b — полировка архетипов (общий проход)
+
+**Цель:** каждый официальный подкласс в пакете класса = unlock + scale + pool/choice где правило даёт лимит/выбор.
+
+**Чеклист на архетип**
+1. Все уровни фич PHB/источника (не только L3 stub)
+2. Limited-use → `resource` + стабильный `pool_id`
+3. Числовой прогресс → `scale` / `scale_uses`
+4. Выбор (тотем, стиль, земля, модель…) → `choice` + labels в UI
+5. Shared pool / initiative grant / recover_one — если правило требует
+6. Slug + RU-алиас в `classFeatures.ts`
+7. Smoke: unlock @ cap level; pools max; choices resolve
+
+**Покрытие каталога:** 118/118 оф. подклассов в feature-паках (после волны покрытия fighter/barb/monk/rogue/wizard).
+
+**Глубина:** дальше — донасыщение thin scaffolds (короткие summary без пулов) по классам, начиная с martial/полкастеров с явными лимитами.
+
+Без деплоя.
 
 ## Не в v1
 

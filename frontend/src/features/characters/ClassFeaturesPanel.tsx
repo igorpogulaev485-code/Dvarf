@@ -312,6 +312,23 @@ function FeatureResourceControls({
   )
 }
 
+const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
+  bear: 'Медведь',
+  eagle: 'Орёл',
+  wolf: 'Волк',
+  desert: 'Пустыня',
+  sea: 'Море',
+  tundra: 'Тундра',
+  bite: 'Укус',
+  claws: 'Когти',
+  tail: 'Хвост',
+  acid: 'Кислота',
+  cold: 'Холод',
+  fire: 'Огонь',
+  lightning: 'Молния',
+  thunder: 'Гром',
+}
+
 function choiceOptionLabel(optionId: string): string {
   const pact = WARLOCK_PACT_BOONS.find((row) => row.id === optionId)
   const armorModel = ARMORER_ARMOR_MODELS.find((row) => row.id === optionId)
@@ -324,6 +341,7 @@ function choiceOptionLabel(optionId: string): string {
     infusionLabel(optionId) ||
     pact?.nameRu ||
     armorModel?.nameRu ||
+    FEATURE_OPTION_LABELS_RU[optionId] ||
     optionId
   )
 }

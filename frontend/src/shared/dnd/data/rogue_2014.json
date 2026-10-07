@@ -1,9 +1,9 @@
 {
   "meta": {
-    "purpose": "PHB/Tasha 2014 Rogue class + subclass features for sheet unlock",
+    "purpose": "PHB 2014 Rogue + all official archetypes",
     "edition": "2014",
-    "source": "phb+tasha",
-    "notes_ru": "Краткие summary для листа, не полный копирайт PHB/TCoE. Phantom: вопли↔частицы души."
+    "source": "phb+xgte+scag+tcoe",
+    "notes_ru": "Все 9 оф. архетипов. Phantom/Soulknife уже с пулами. Swashbuckler/Inquisitive/Scout/Mastermind — донабор."
   },
   "class_slug": "rogue",
   "features": [
@@ -165,7 +165,10 @@
       "name_en": "Stroke of Luck",
       "summary_ru": "Промах атаки → попадание; или провал проверки → 20. Восстанавливается на коротком/длинном отдыхе.",
       "kind": "resource",
-      "resource": { "uses": 1, "recharge": "short_rest" }
+      "resource": {
+        "uses": 1,
+        "recharge": "short_rest"
+      }
     }
   ],
   "subclasses": {
@@ -478,6 +481,198 @@
           "pool_name_ru": "Разрыв разума",
           "track": "spend"
         }
+      }
+    ],
+    "mastermind": [
+      {
+        "id": "master_of_intrigue",
+        "level": 3,
+        "name_ru": "Мастер интриг",
+        "name_en": "Master of Intrigue",
+        "summary_ru": "Набор игрока + маскировка/подделка; 2 языка; имитация акцентов после 1 мин. слушания.",
+        "kind": "passive"
+      },
+      {
+        "id": "master_of_tactics",
+        "level": 3,
+        "name_ru": "Мастер тактики",
+        "name_en": "Master of Tactics",
+        "summary_ru": "Help бонусным; дальность Help для атаки — 30 фт.",
+        "kind": "bonus"
+      },
+      {
+        "id": "insightful_manipulator",
+        "level": 9,
+        "name_ru": "Проницательный манипулятор",
+        "name_en": "Insightful Manipulator",
+        "summary_ru": "1 мин. наблюдения: сравни Инт/Мудр./Хар./класс с целью (или два факта на выбор МИ).",
+        "kind": "passive"
+      },
+      {
+        "id": "misdirection",
+        "level": 13,
+        "name_ru": "Отвод внимания",
+        "name_en": "Misdirection",
+        "summary_ru": "Реакция при атаке по тебе, пока рядом существо: атака попадает в него вместо тебя (если оно — цель возможности).",
+        "kind": "reaction"
+      },
+      {
+        "id": "soul_of_deceit",
+        "level": 17,
+        "name_ru": "Душа обмана",
+        "name_en": "Soul of Deceit",
+        "summary_ru": "Телепатию/правду читают только то, что ты разрешишь; преимущество vs зондов; можно выдавать ложные мысли.",
+        "kind": "passive"
+      }
+    ],
+    "swashbuckler": [
+      {
+        "id": "fancy_footwork",
+        "level": 3,
+        "name_ru": "Лихая работа ног",
+        "name_en": "Fancy Footwork",
+        "summary_ru": "Если в свой ход атаковал существо рукопашным — оно не получает провоцированных атак от тебя до конца хода.",
+        "kind": "passive"
+      },
+      {
+        "id": "rakish_audacity",
+        "level": 3,
+        "name_ru": "Лихая дерзость",
+        "name_en": "Rakish Audacity",
+        "summary_ru": "+мод. Хар. к инициативе. Скрытая атака 1v1: нет союзников в 5 фт. от цели и ты не в помехе.",
+        "kind": "passive"
+      },
+      {
+        "id": "panache",
+        "level": 9,
+        "name_ru": "Лоск",
+        "name_en": "Panache",
+        "summary_ru": "Действием: проверка Харизмы (Убеждение/Обман) vs Проницательность. Враг: помеха атаковать других + не провоцирует тебя. Друг: очарован 1 мин.",
+        "kind": "action"
+      },
+      {
+        "id": "elegant_maneuver",
+        "level": 13,
+        "name_ru": "Изящный манёвр",
+        "name_en": "Elegant Maneuver",
+        "summary_ru": "Бонусным: преимущество на след. проверку Акробатики или Атлетики в этом ходу.",
+        "kind": "bonus"
+      },
+      {
+        "id": "master_duelist",
+        "level": 17,
+        "name_ru": "Мастер дуэлянт",
+        "name_en": "Master Duelist",
+        "summary_ru": "При промахе атакой: перебросить с преимуществом. 1× / короткий или прод. отдых.",
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "master_duelist",
+          "pool_name_ru": "Мастер дуэлянт",
+          "track": "spend"
+        }
+      }
+    ],
+    "inquisitive": [
+      {
+        "id": "ear_for_deceit",
+        "level": 3,
+        "name_ru": "Чутьё на обман",
+        "name_en": "Ear for Deceit",
+        "summary_ru": "При Проницательности vs ложь: d20 ≤7 считается 8.",
+        "kind": "passive"
+      },
+      {
+        "id": "eye_for_detail",
+        "level": 3,
+        "name_ru": "Глаз на детали",
+        "name_en": "Eye for Detail",
+        "summary_ru": "Бонусным: Perception поиск скрытого или Investigation анализ.",
+        "kind": "bonus"
+      },
+      {
+        "id": "insightful_fighting",
+        "level": 3,
+        "name_ru": "Проницательный бой",
+        "name_en": "Insightful Fighting",
+        "summary_ru": "Бонусным: Проницательность vs Обман цели — при успехе Скрытая атака без преимущества, пока цель в 30 фт. и видна (1 мин.).",
+        "kind": "bonus"
+      },
+      {
+        "id": "steady_eye",
+        "level": 9,
+        "name_ru": "Верный глаз",
+        "name_en": "Steady Eye",
+        "summary_ru": "При движении ≤½ скорости: преимущество Perception и Investigation.",
+        "kind": "passive"
+      },
+      {
+        "id": "unerring_eye",
+        "level": 13,
+        "name_ru": "Безошибочный глаз",
+        "name_en": "Unerring Eye",
+        "summary_ru": "Действием: знать иллюзии/маскировки/превращения в 30 фт. до конца след. хода. Мод. Мудр. раз / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "wis",
+          "recharge": "long_rest",
+          "pool_id": "unerring_eye",
+          "pool_name_ru": "Безошибочный глаз",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "eye_for_weakness",
+        "level": 17,
+        "name_ru": "Глаз на слабость",
+        "name_en": "Eye for Weakness",
+        "summary_ru": "Пока Insightful Fighting активен: +3к6 к Скрытой атаке по цели.",
+        "kind": "passive"
+      }
+    ],
+    "scout": [
+      {
+        "id": "skirmisher",
+        "level": 3,
+        "name_ru": "Стрелок-застрельщик",
+        "name_en": "Skirmisher",
+        "summary_ru": "Реакция: существо входит в 5 фт. — переместиться на ½ скорости без провоцированных.",
+        "kind": "reaction"
+      },
+      {
+        "id": "survivalist",
+        "level": 3,
+        "name_ru": "Выживальщик",
+        "name_en": "Survivalist",
+        "summary_ru": "Владение Природой и Выживанием; компетентность в них.",
+        "kind": "passive"
+      },
+      {
+        "id": "superior_mobility",
+        "level": 9,
+        "name_ru": "Превосходная мобильность",
+        "name_en": "Superior Mobility",
+        "summary_ru": "Скорость +10 фт. (и плавание/лазание, если есть).",
+        "kind": "passive"
+      },
+      {
+        "id": "ambush_master",
+        "level": 13,
+        "name_ru": "Мастер засады",
+        "name_en": "Ambush Master",
+        "summary_ru": "Преимущество на инициативу. Первая атака по тебе в первом раунде боя от существ, ещё не ходивших — с помехой.",
+        "kind": "passive"
+      },
+      {
+        "id": "sudden_strike",
+        "level": 17,
+        "name_ru": "Внезапный удар",
+        "name_en": "Sudden Strike",
+        "summary_ru": "При действии Атака: доп. атака по другому существу; если преимущество — можно Скрытую атаку и на него (если ещё не использовал в ход).",
+        "kind": "passive"
       }
     ]
   }

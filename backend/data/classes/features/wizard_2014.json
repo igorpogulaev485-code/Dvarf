@@ -2,8 +2,8 @@
   "meta": {
     "purpose": "PHB 2014 Wizard + official traditions for sheet unlock",
     "edition": "2014",
-    "source": "phb+scag+xgte+tcoe",
-    "notes_ru": "Arcane Recovery 1× long. Portent = stock костей. Bladesong PB/long (TCoE). 8 школ + Bladesinging + War Magic + Scribes."
+    "source": "phb+scag+xgte+tcoe+egtw",
+    "notes_ru": "Все 13 оф. традиций вкл. Chronurgy/Graviturgy. Portent stock; Bladesong PB."
   },
   "class_slug": "wizard",
   "features": [
@@ -680,6 +680,128 @@
           "recharge": "long_rest",
           "pool_id": "one_with_the_word",
           "pool_name_ru": "Един с словом",
+          "track": "spend"
+        }
+      }
+    ],
+    "chronurgy_magic": [
+      {
+        "id": "chronal_shift",
+        "level": 2,
+        "name_ru": "Хрональный сдвиг",
+        "name_en": "Chronal Shift",
+        "summary_ru": "Реакция: существо в 30 фт. (после броска атаки/проверки/спаса) перебрасывает — обязано взять новый. 2× / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 2,
+          "recharge": "long_rest",
+          "pool_id": "chronal_shift",
+          "pool_name_ru": "Хрональный сдвиг",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "temporal_awareness",
+        "level": 2,
+        "name_ru": "Временная осведомлённость",
+        "name_en": "Temporal Awareness",
+        "summary_ru": "+мод. Инт к инициативе.",
+        "kind": "passive"
+      },
+      {
+        "id": "momentary_stasis",
+        "level": 6,
+        "name_ru": "Краткий стазис",
+        "name_en": "Momentary Stasis",
+        "summary_ru": "Действием: Large или меньше в 60 фт. спас Тел. или в стазисе до конца твоего след. хода. Инт раз / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "int",
+          "recharge": "long_rest",
+          "pool_id": "momentary_stasis",
+          "pool_name_ru": "Краткий стазис",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "arcane_abeyance",
+        "level": 10,
+        "name_ru": "Магическая отсрочка",
+        "name_en": "Arcane Abeyance",
+        "summary_ru": "При касте ≤4 ур.: сжать в серый шарик 1 ч.; существо действием выпустить эффект. 1× / короткий или прод. отдых.",
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "arcane_abeyance",
+          "pool_name_ru": "Магическая отсрочка",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "convergent_future",
+        "level": 14,
+        "name_ru": "Сходящееся будущее",
+        "name_en": "Convergent Future",
+        "summary_ru": "Реакция: заменить бросок атаки/проверки/спаса в 60 фт. на успех или провал. Затем 1 уровень истощения (пока не long rest).",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "convergent_future",
+          "pool_name_ru": "Сходящееся будущее",
+          "track": "spend"
+        }
+      }
+    ],
+    "graviturgy_magic": [
+      {
+        "id": "adjust_density",
+        "level": 2,
+        "name_ru": "Изменить плотность",
+        "name_en": "Adjust Density",
+        "summary_ru": "Действием: Large или меньше в 30 фт. — вдвое тяжелее (скорость −10, ×2 урон падения) или легче (скорость +10, ×½ падение) на 1 мин./конц.",
+        "kind": "action"
+      },
+      {
+        "id": "gravity_well",
+        "level": 6,
+        "name_ru": "Гравитационный колодец",
+        "name_en": "Gravity Well",
+        "summary_ru": "При попадании заклинанием по существу: переместить цель на 5 фт. в свободное место.",
+        "kind": "passive"
+      },
+      {
+        "id": "violent_attraction",
+        "level": 10,
+        "name_ru": "Жестокое притяжение",
+        "name_en": "Violent Attraction",
+        "summary_ru": "Реакция: союзник в 60 фт. попал оружием — +1к10 урона; или существо падает — +2к10. Инт раз / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "uses_from": "ability_modifier",
+          "ability": "int",
+          "recharge": "long_rest",
+          "pool_id": "violent_attraction",
+          "pool_name_ru": "Жестокое притяжение",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "event_horizon",
+        "level": 14,
+        "name_ru": "Горизонт событий",
+        "name_en": "Event Horizon",
+        "summary_ru": "Действием: сфера 30 фт. 1 мин./конц. — затруднённая местность; начало хода в сфере — спас Сил. или 2к10 силового + обездвижен. 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "event_horizon",
+          "pool_name_ru": "Горизонт событий",
           "track": "spend"
         }
       }

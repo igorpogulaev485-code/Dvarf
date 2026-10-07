@@ -1,9 +1,9 @@
 {
   "meta": {
-    "purpose": "PHB 2014 Monk class + Open Hand / Shadow / Four Elements for sheet unlock",
+    "purpose": "PHB 2014 Monk + all official monastic traditions",
     "edition": "2014",
-    "source": "phb",
-    "notes_ru": "Ки = уровень монаха с 2 ур. Perfect Self: +4 ки на инициативе при 0."
+    "source": "phb+scag+xgte+tcoe+ftd",
+    "notes_ru": "Все 10 оф. традиций. Ki на классе. Long Death/Mercy/Astral/Dragon — пулы."
   },
   "class_slug": "monk",
   "features": [
@@ -43,9 +43,25 @@
         "uses": 2,
         "recharge": "short_rest",
         "scale_uses": {
-          "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10,
-          "11": 11, "12": 12, "13": 13, "14": 14, "15": 15, "16": 16, "17": 17,
-          "18": 18, "19": 19, "20": 20
+          "2": 2,
+          "3": 3,
+          "4": 4,
+          "5": 5,
+          "6": 6,
+          "7": 7,
+          "8": 8,
+          "9": 9,
+          "10": 10,
+          "11": 11,
+          "12": 12,
+          "13": 13,
+          "14": 14,
+          "15": 15,
+          "16": 16,
+          "17": 17,
+          "18": 18,
+          "19": 19,
+          "20": 20
         },
         "pool_id": "ki",
         "pool_name_ru": "Ки",
@@ -209,9 +225,25 @@
         "uses": 20,
         "recharge": "short_rest",
         "scale_uses": {
-          "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10,
-          "11": 11, "12": 12, "13": 13, "14": 14, "15": 15, "16": 16, "17": 17,
-          "18": 18, "19": 19, "20": 20
+          "2": 2,
+          "3": 3,
+          "4": 4,
+          "5": 5,
+          "6": 6,
+          "7": 7,
+          "8": 8,
+          "9": 9,
+          "10": 10,
+          "11": 11,
+          "12": 12,
+          "13": 13,
+          "14": 14,
+          "15": 15,
+          "16": 16,
+          "17": 17,
+          "18": 18,
+          "19": 19,
+          "20": 20
         },
         "pool_id": "ki",
         "pool_name_ru": "Ки",
@@ -312,6 +344,306 @@
         "name_ru": "Доп. дисциплина стихий",
         "name_en": "Extra Elemental Discipline",
         "summary_ru": "Выучи ещё одну дисциплину (и на 11, 17).",
+        "kind": "passive"
+      }
+    ],
+    "way_of_the_long_death": [
+      {
+        "id": "touch_of_death",
+        "level": 3,
+        "name_ru": "Касание смерти",
+        "name_en": "Touch of Death",
+        "summary_ru": "При снижении существа до 0 хитов рукопашной атакой в 5 фт.: вр. хиты = мод. Мудр. + ур. монаха.",
+        "kind": "passive"
+      },
+      {
+        "id": "hour_of_reaping",
+        "level": 6,
+        "name_ru": "Час жатвы",
+        "name_en": "Hour of Reaping",
+        "summary_ru": "Действием: существа по выбору в 30 фт. спас Мудр. или испуганы до конца твоего след. хода.",
+        "kind": "action"
+      },
+      {
+        "id": "mastery_of_death",
+        "level": 11,
+        "name_ru": "Мастерство смерти",
+        "name_en": "Mastery of Death",
+        "summary_ru": "При сбросе до 0 хитов: потрать 1 ки → 1 хит вместо падения.",
+        "kind": "passive"
+      },
+      {
+        "id": "touch_of_the_long_death",
+        "level": 17,
+        "name_ru": "Касание долгой смерти",
+        "name_en": "Touch of the Long Death",
+        "summary_ru": "Действием: коснись существа, потрать 1–10 ки → 2к10 некротического за ки (спас Тел. пол.).",
+        "kind": "action"
+      }
+    ],
+    "way_of_the_sun_soul": [
+      {
+        "id": "radiant_sun_bolt",
+        "level": 3,
+        "name_ru": "Снаряд лучезарного солнца",
+        "name_en": "Radiant Sun Bolt",
+        "summary_ru": "Дальнобойная атака заклинанием 30 фт.: урон кости боевых искусств лучистый. При Атаке — доп. болты за ки (как Flurry).",
+        "kind": "action"
+      },
+      {
+        "id": "searing_arc_strike",
+        "level": 6,
+        "name_ru": "Обжигающая дуга",
+        "name_en": "Searing Arc Strike",
+        "summary_ru": "После Атаки: потрать 2 ки → casting burning hands как бонусное (ур. +1 за доп. ки, макс. ½ ур. монаха).",
+        "kind": "bonus"
+      },
+      {
+        "id": "searing_sunburst",
+        "level": 11,
+        "name_ru": "Обжигающее солнце",
+        "name_en": "Searing Sunburst",
+        "summary_ru": "Действием: сфера 20 фт. в 150 фт. — 2к6 лучистого (спас Ловк. пол.); +2к6 за ки (макс. 3 ки).",
+        "kind": "action"
+      },
+      {
+        "id": "sun_shield",
+        "level": 17,
+        "name_ru": "Солнечный щит",
+        "name_en": "Sun Shield",
+        "summary_ru": "Яркий свет 30 / тусклый 30. Реакция при рукопашной атаке: лучистый = 5 + мод. Мудр.",
+        "kind": "reaction"
+      }
+    ],
+    "way_of_the_drunken_master": [
+      {
+        "id": "bonus_proficiencies_drunken",
+        "level": 3,
+        "name_ru": "Доп. владения",
+        "name_en": "Bonus Proficiencies",
+        "summary_ru": "Выступление; инструменты пивовара.",
+        "kind": "passive"
+      },
+      {
+        "id": "drunken_technique",
+        "level": 3,
+        "name_ru": "Пьяная техника",
+        "name_en": "Drunken Technique",
+        "summary_ru": "При Flurry of Blows: Disengage бесплатно; скорость +10 фт. на этот ход.",
+        "kind": "passive"
+      },
+      {
+        "id": "tipsy_sway",
+        "level": 6,
+        "name_ru": "Хмельное покачивание",
+        "name_en": "Tipsy Sway",
+        "summary_ru": "Встать с земли за 5 фт. скорости. Реакция при промахе по тебе: потрать 1 ки — атака попадает в другое существо в 5 фт.",
+        "kind": "reaction"
+      },
+      {
+        "id": "drunkards_luck",
+        "level": 11,
+        "name_ru": "Удача пьяницы",
+        "name_en": "Drunkard's Luck",
+        "summary_ru": "При проверке/атаке/спасе с помехой: потрать 1 ки — бросай без помехи.",
+        "kind": "passive"
+      },
+      {
+        "id": "intoxicated_frenzy",
+        "level": 17,
+        "name_ru": "Хмельное бешенство",
+        "name_en": "Intoxicated Frenzy",
+        "summary_ru": "При Flurry: до 3 доп. атак безоружным, каждая по разной цели.",
+        "kind": "passive"
+      }
+    ],
+    "way_of_the_kensei": [
+      {
+        "id": "path_of_the_kensei",
+        "level": 3,
+        "name_ru": "Путь кэнсэя",
+        "name_en": "Path of the Kensei",
+        "summary_ru": "Выбери 1 рукопашное + 1 дальнобойное оружие кэнсэя (не тяжёлое). Agile Parry / Kensei's Shot / инструменты каллиграфа или художника.",
+        "kind": "passive"
+      },
+      {
+        "id": "one_with_the_blade",
+        "level": 6,
+        "name_ru": "Един с клинком",
+        "name_en": "One with the Blade",
+        "summary_ru": "Оружие кэнсэя — монашеское и магическое. Deft Strike: 1×/ход потрать 1 ки → +кость боевых искусств к урону кэнсэя.",
+        "kind": "passive"
+      },
+      {
+        "id": "sharpen_the_blade",
+        "level": 11,
+        "name_ru": "Заточить клинок",
+        "name_en": "Sharpen the Blade",
+        "summary_ru": "Бонусным: потрать 1–3 ки — оружие кэнсэя +ки к атаке и урону на 1 мин.",
+        "kind": "bonus"
+      },
+      {
+        "id": "unerring_accuracy",
+        "level": 17,
+        "name_ru": "Безошибочная точность",
+        "name_en": "Unerring Accuracy",
+        "summary_ru": "1× / ход: перебросить промах атакой монашеским оружием.",
+        "kind": "passive"
+      }
+    ],
+    "way_of_mercy": [
+      {
+        "id": "implements_of_mercy",
+        "level": 3,
+        "name_ru": "Орудия милосердия",
+        "name_en": "Implements of Mercy",
+        "summary_ru": "Владение Insight/Medicine; набор травника; маска милосердия.",
+        "kind": "passive"
+      },
+      {
+        "id": "hand_of_healing",
+        "level": 3,
+        "name_ru": "Рука исцеления",
+        "name_en": "Hand of Healing",
+        "summary_ru": "Действием: потрать 1 ки — хиты = кость боевых искусств + Мудр. Flurry: заменить одну атаку на исцеление без доп. ки.",
+        "kind": "action"
+      },
+      {
+        "id": "hand_of_harm",
+        "level": 3,
+        "name_ru": "Рука вреда",
+        "name_en": "Hand of Harm",
+        "summary_ru": "1× / ход при попадании безоружным: потрать 1 ки → +некротический = кость БИ + Мудр.",
+        "kind": "passive"
+      },
+      {
+        "id": "physicians_touch",
+        "level": 6,
+        "name_ru": "Касание врача",
+        "name_en": "Physician's Touch",
+        "summary_ru": "Healing снимает болезнь/яд/ослепление/глухоту/паралич/отравление. Harm: цель не может получать хиты до конца твоего след. хода.",
+        "kind": "passive"
+      },
+      {
+        "id": "flurry_of_healing_and_harm",
+        "level": 11,
+        "name_ru": "Шквал исцеления и вреда",
+        "name_en": "Flurry of Healing and Harm",
+        "summary_ru": "Flurry: каждую атаку можно заменить на Hand of Healing без ки. Hand of Harm при Flurry — без ки (PB раз / прод.).",
+        "kind": "passive",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "flurry_harm_free",
+          "pool_name_ru": "Harm без ки (Flurry)",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "hand_of_ultimate_mercy",
+        "level": 17,
+        "name_ru": "Рука высшего милосердия",
+        "name_en": "Hand of Ultimate Mercy",
+        "summary_ru": "Действием: потрать 5 ки — вернуть к жизни существо ≤24 ч. мёртвое (хиты = 4к10+Мудр.). 1× / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "hand_of_ultimate_mercy",
+          "pool_name_ru": "Рука высшего милосердия",
+          "track": "spend"
+        }
+      }
+    ],
+    "way_of_the_astral_self": [
+      {
+        "id": "arms_of_the_astral_self",
+        "level": 3,
+        "name_ru": "Руки астрального я",
+        "name_en": "Arms of the Astral Self",
+        "summary_ru": "Бонусным: потрать 1 ки — астральные руки 10 мин. (досягаемость, Мудр. вместо Силы/Ловк., в т.ч. Flurry).",
+        "kind": "bonus"
+      },
+      {
+        "id": "visage_of_the_astral_self",
+        "level": 6,
+        "name_ru": "Лик астрального я",
+        "name_en": "Visage of the Astral Self",
+        "summary_ru": "Бонусным: потрать 1 ки — лик 10 мин. (тёмное зрение, без глухоты, телепатия Word of Hearing).",
+        "kind": "bonus"
+      },
+      {
+        "id": "body_of_the_astral_self",
+        "level": 11,
+        "name_ru": "Тело астрального я",
+        "name_en": "Body of the Astral Self",
+        "summary_ru": "При руках/лике: тело — Deflect Energy / Empowered Arms (+2×Мудр. урона 1×/ход).",
+        "kind": "passive"
+      },
+      {
+        "id": "awakened_astral_self",
+        "level": 17,
+        "name_ru": "Пробуждённое астральное я",
+        "name_en": "Awakened Astral Self",
+        "summary_ru": "Бонусным: потрать 5 ки — полное астральное я 10 мин. (+2 КД, преимущество на атаки Мудр.).",
+        "kind": "bonus"
+      }
+    ],
+    "way_of_the_ascendant_dragon": [
+      {
+        "id": "draconic_disciple",
+        "level": 3,
+        "name_ru": "Ученик драконов",
+        "name_en": "Draconic Disciple",
+        "summary_ru": "Безоружные могут наносить кислоту/холод/огонь/молнию/яд. Draconic Presence: менять реакцию на обаяние. Язык Draconic или навык.",
+        "kind": "passive"
+      },
+      {
+        "id": "breath_of_the_dragon",
+        "level": 3,
+        "name_ru": "Дыхание дракона",
+        "name_en": "Breath of the Dragon",
+        "summary_ru": "Действием (или вместо атаки Attack): конус/линия — кости БИ × PB выбранным типом (спас Ловк./Тел.). 1× free / short; далее за 1 ки.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "breath_of_the_dragon",
+          "pool_name_ru": "Дыхание дракона",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "wings_unfurled",
+        "level": 6,
+        "name_ru": "Раскрытые крылья",
+        "name_en": "Wings Unfurled",
+        "summary_ru": "При Step of the Wind: потратить ки можно на полёт = скорость до конца хода (вместо шага/отступления).",
+        "kind": "passive"
+      },
+      {
+        "id": "aspect_of_the_wyrm",
+        "level": 11,
+        "name_ru": "Аспект змия",
+        "name_en": "Aspect of the Wyrm",
+        "summary_ru": "Бонусным: аура 10 фт. 1 мин. — сопр. выбранному типу себе; Frightful Presence. PB раз / прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "aspect_of_the_wyrm",
+          "pool_name_ru": "Аспект змия",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "ascendant_aspect",
+        "level": 17,
+        "name_ru": "Вознесённый аспект",
+        "name_en": "Ascendant Aspect",
+        "summary_ru": "Сопр. выбранному типу постоянно. Breath взрывает на доп. цели. При Aspect — вр. хиты = 1+Мудр. союзникам в ауре.",
         "kind": "passive"
       }
     ]

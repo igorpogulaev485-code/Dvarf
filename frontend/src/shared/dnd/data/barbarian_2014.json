@@ -1,9 +1,9 @@
 {
   "meta": {
-    "purpose": "PHB 2014 Barbarian class + Berserker/Totem features for sheet unlock",
+    "purpose": "PHB 2014 Barbarian + all official paths for sheet unlock",
     "edition": "2014",
-    "source": "phb",
-    "notes_ru": "Ярость: uses по таблице класса. На 20 ур. безлимит — пока текст, пул до 6."
+    "source": "phb+scag+xgte+tcoe+bmt",
+    "notes_ru": "Все 9 оф. путей. Totem — picks. Zealot/Beast/Wild Magic/Giant/Storm — пулы где нужно."
   },
   "class_slug": "barbarian",
   "features": [
@@ -191,7 +191,7 @@
         "level": 3,
         "name_ru": "Искатель духов",
         "name_en": "Spirit Seeker",
-        "summary_ru": "Ритуально: звериные чувства и общение с животными.",
+        "summary_ru": "Ритуально: beast sense и speak with animals.",
         "kind": "passive"
       },
       {
@@ -199,23 +199,41 @@
         "level": 3,
         "name_ru": "Тотемный дух",
         "name_en": "Totem Spirit",
-        "summary_ru": "Выбери тотем (медведь / орёл / волк) — бонус в ярости. Выбор — в заметках/грантах.",
-        "kind": "passive"
+        "summary_ru": "В ярости: Медведь — сопр. всем кроме психического; Орёл — без провоцированных + даш бонусным; Волк — союзники с преимуществом vs врагов в 5 фт. от тебя.",
+        "kind": "passive",
+        "choice": {
+          "id": "totem_spirit",
+          "label_ru": "Тотемный дух",
+          "options": [
+            "bear",
+            "eagle",
+            "wolf"
+          ]
+        }
       },
       {
         "id": "aspect_of_the_beast",
         "level": 6,
         "name_ru": "Аспект зверя",
         "name_en": "Aspect of the Beast",
-        "summary_ru": "Второй тотемный аспект (медведь / орёл / волк) — исследование/путешествие.",
-        "kind": "passive"
+        "summary_ru": "Медведь — грузоподъёмность/толкание; Орёл — видение вдаль/тусклое; Волк — следопыт (выслеживание).",
+        "kind": "passive",
+        "choice": {
+          "id": "aspect_of_the_beast",
+          "label_ru": "Аспект зверя",
+          "options": [
+            "bear",
+            "eagle",
+            "wolf"
+          ]
+        }
       },
       {
         "id": "spirit_walker",
         "level": 10,
         "name_ru": "Странник духов",
         "name_en": "Spirit Walker",
-        "summary_ru": "Ритуально: общение с природой.",
+        "summary_ru": "Ритуально: commune with nature.",
         "kind": "passive"
       },
       {
@@ -223,7 +241,378 @@
         "level": 14,
         "name_ru": "Тотемная гармония",
         "name_en": "Totemic Attunement",
-        "summary_ru": "Третий тотемный аспект — усиление в ярости.",
+        "summary_ru": "В ярости: Медведь — враги в 5 фт. с помехой на атаки не по тебе; Орёл — полёт = скорость; Волк — бонусным сбить с ног крупную или меньше при попадании.",
+        "kind": "passive",
+        "choice": {
+          "id": "totemic_attunement",
+          "label_ru": "Тотемная гармония",
+          "options": [
+            "bear",
+            "eagle",
+            "wolf"
+          ]
+        }
+      }
+    ],
+    "path_of_the_battlerager": [
+      {
+        "id": "battlerager_armor",
+        "level": 3,
+        "name_ru": "Доспех яростного бойца",
+        "name_en": "Battlerager Armor",
+        "summary_ru": "В шипастом доспехе: бонусным атака шипами (1к4 колющий + Сила); в ярости при захвате — 3 колющих.",
+        "kind": "bonus"
+      },
+      {
+        "id": "reckless_abandon",
+        "level": 6,
+        "name_ru": "Безрассудная отвага",
+        "name_en": "Reckless Abandon",
+        "summary_ru": "При Reckless Attack в ярости: вр. хиты = мод. Тел.",
+        "kind": "passive"
+      },
+      {
+        "id": "battlerager_charge",
+        "level": 10,
+        "name_ru": "Рывок яростного бойца",
+        "name_en": "Battlerager Charge",
+        "summary_ru": "В ярости бонусным — Dash.",
+        "kind": "bonus"
+      },
+      {
+        "id": "spiked_retribution",
+        "level": 14,
+        "name_ru": "Шипастая месть",
+        "name_en": "Spiked Retribution",
+        "summary_ru": "В ярости в шипастом доспехе: атакующий в ближнем получает 3 колющих.",
+        "kind": "passive"
+      }
+    ],
+    "path_of_the_ancestral_guardian": [
+      {
+        "id": "ancestral_protectors",
+        "level": 3,
+        "name_ru": "Предки-защитники",
+        "name_en": "Ancestral Protectors",
+        "summary_ru": "Первая атака в ярости по ходу: цель с помехой на атаки не по тебе; сопр. урону другим до твоего след. хода.",
+        "kind": "passive"
+      },
+      {
+        "id": "spirit_shield",
+        "level": 6,
+        "name_ru": "Духовный щит",
+        "name_en": "Spirit Shield",
+        "summary_ru": "В ярости реакция: союзник в 30 фт. получает урон — снизить на 2к6 (3к6@10, 4к6@14).",
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Снижение",
+          "by_level": {
+            "6": "2к6",
+            "10": "3к6",
+            "14": "4к6"
+          }
+        }
+      },
+      {
+        "id": "consult_the_spirits",
+        "level": 10,
+        "name_ru": "Совет духов",
+        "name_en": "Consult the Spirits",
+        "summary_ru": "Бесплатный augury или clairvoyance (Мудрость). 1× / короткий или прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "consult_the_spirits",
+          "pool_name_ru": "Совет духов",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "vengeful_ancestors",
+        "level": 14,
+        "name_ru": "Мстительные предки",
+        "name_en": "Vengeful Ancestors",
+        "summary_ru": "При Spirit Shield: агрессор получает силовой урон = сниженному количеству.",
+        "kind": "passive"
+      }
+    ],
+    "path_of_the_storm_herald": [
+      {
+        "id": "storm_aura",
+        "level": 3,
+        "name_ru": "Аура бури",
+        "name_en": "Storm Aura",
+        "summary_ru": "В ярости аура 10 фт.: Desert — огонь 2 / Tundra — вр. хиты / Sea — молния (спас Ловк.). Выбор среды; можно сменить на long rest.",
+        "kind": "passive",
+        "choice": {
+          "id": "storm_aura",
+          "label_ru": "Среда ауры",
+          "options": [
+            "desert",
+            "sea",
+            "tundra"
+          ]
+        },
+        "scale": {
+          "label_ru": "Сила ауры",
+          "by_level": {
+            "3": "2",
+            "5": "4",
+            "10": "6",
+            "15": "8",
+            "20": "10"
+          }
+        }
+      },
+      {
+        "id": "storm_soul",
+        "level": 6,
+        "name_ru": "Душа бури",
+        "name_en": "Storm Soul",
+        "summary_ru": "Desert: сопр. огню, не поджигаешься. Sea: сопр. молнии, дыхание в воде. Tundra: сопр. холоду, огнеупорность воды/грязи.",
+        "kind": "passive"
+      },
+      {
+        "id": "shielding_storm",
+        "level": 10,
+        "name_ru": "Защищающая буря",
+        "name_en": "Shielding Storm",
+        "summary_ru": "Пока в ярости: союзники в ауре получают твоё сопротивление Storm Soul.",
+        "kind": "passive"
+      },
+      {
+        "id": "raging_storm",
+        "level": 14,
+        "name_ru": "Яростная буря",
+        "name_en": "Raging Storm",
+        "summary_ru": "Desert: реакция огонь по атакующему в ауре. Sea: реакция сбить атакующего (спас Сил.). Tundra: бонусным затруднённая местность ледяными шипами.",
+        "kind": "reaction"
+      }
+    ],
+    "path_of_the_zealot": [
+      {
+        "id": "divine_fury",
+        "level": 3,
+        "name_ru": "Божественная ярость",
+        "name_en": "Divine Fury",
+        "summary_ru": "1× / ход в ярости: первая атака оружием +1к6+½ ур. варвара лучистого или некротического.",
+        "kind": "passive"
+      },
+      {
+        "id": "warrior_of_the_gods",
+        "level": 3,
+        "name_ru": "Воин богов",
+        "name_en": "Warrior of the Gods",
+        "summary_ru": "Заклинания воскрешения на тебя без материальных компонентов.",
+        "kind": "passive"
+      },
+      {
+        "id": "fanatical_focus",
+        "level": 6,
+        "name_ru": "Фанатичный фокус",
+        "name_en": "Fanatical Focus",
+        "summary_ru": "В ярости 1×: перебросить спас (новый результат). Сброс при новой ярости.",
+        "kind": "passive",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "fanatical_focus",
+          "pool_name_ru": "Фанатичный фокус",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "zealous_presence",
+        "level": 10,
+        "name_ru": "Ревностное присутствие",
+        "name_en": "Zealous Presence",
+        "summary_ru": "Бонусным: союзники в 60 фт. с преимуществом на атаки и спас до нач. твоего след. хода. 1× / прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "zealous_presence",
+          "pool_name_ru": "Ревностное присутствие",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "rage_beyond_death",
+        "level": 14,
+        "name_ru": "Ярость за гранью смерти",
+        "name_en": "Rage Beyond Death",
+        "summary_ru": "В ярости при 0 хитах не без сознания; смертельные спасы делаешь, но падаешь только если ярость кончилась с 3 провалами.",
+        "kind": "passive"
+      }
+    ],
+    "path_of_the_beast": [
+      {
+        "id": "form_of_the_beast",
+        "level": 3,
+        "name_ru": "Облик зверя",
+        "name_en": "Form of the Beast",
+        "summary_ru": "При входе в ярость выбери натуральное оружие: Укус / Когти / Хвост (см. TCoE).",
+        "kind": "passive",
+        "choice": {
+          "id": "beast_form",
+          "label_ru": "Оружие зверя (на ярость)",
+          "options": [
+            "bite",
+            "claws",
+            "tail"
+          ]
+        }
+      },
+      {
+        "id": "bestial_soul",
+        "level": 6,
+        "name_ru": "Звериная душа",
+        "name_en": "Bestial Soul",
+        "summary_ru": "Атаки облика — магические. После short/long: лазание/прыжок/плавание до следующего отдыха.",
+        "kind": "passive"
+      },
+      {
+        "id": "infectious_fury",
+        "level": 10,
+        "name_ru": "Заразная ярость",
+        "name_en": "Infectious Fury",
+        "summary_ru": "При попадании оружием зверя: спас Мудр. или доп. психический 2к6 / атака союзника. PB раз / прод. отдых.",
+        "kind": "passive",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "infectious_fury",
+          "pool_name_ru": "Заразная ярость",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "call_the_hunt",
+        "level": 14,
+        "name_ru": "Зов охоты",
+        "name_en": "Call the Hunt",
+        "summary_ru": "При ярости: до мод. Тел. союзников в 30 фт. +1к6 урона 1×/ход; ты вр. хиты = 5×число. PB раз / прод. отдых.",
+        "kind": "passive",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "call_the_hunt",
+          "pool_name_ru": "Зов охоты",
+          "track": "spend"
+        }
+      }
+    ],
+    "path_of_wild_magic": [
+      {
+        "id": "magic_awareness",
+        "level": 3,
+        "name_ru": "Магическое чутьё",
+        "name_en": "Magic Awareness",
+        "summary_ru": "Действием: знать присутствие заклинаний/маг. предметов в 60 фт. PB раз / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "magic_awareness",
+          "pool_name_ru": "Магическое чутьё",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "wild_surge",
+        "level": 3,
+        "name_ru": "Дикий всплеск",
+        "name_en": "Wild Surge",
+        "summary_ru": "При входе в ярость — бросок таблицы магических эффектов (TCoE).",
+        "kind": "passive"
+      },
+      {
+        "id": "bolstering_magic",
+        "level": 6,
+        "name_ru": "Подкрепляющая магия",
+        "name_en": "Bolstering Magic",
+        "summary_ru": "Действием: себе/союзнику d3 к атаке/проверке или восстановить ячейки. PB раз / прод. отдых.",
+        "kind": "action",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "bolstering_magic",
+          "pool_name_ru": "Подкрепляющая магия",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "unstable_backlash",
+        "level": 10,
+        "name_ru": "Нестабильный отклик",
+        "name_en": "Unstable Backlash",
+        "summary_ru": "В ярости реакция при получении урона / провале спаса — новый бросок Wild Surge вместо текущего эффекта.",
+        "kind": "reaction"
+      },
+      {
+        "id": "controlled_surge",
+        "level": 14,
+        "name_ru": "Контролируемый всплеск",
+        "name_en": "Controlled Surge",
+        "summary_ru": "При Wild Surge бросай d8 дважды и выбери; 8 → выбрать любой эффект 1–7.",
+        "kind": "passive"
+      }
+    ],
+    "path_of_the_giant": [
+      {
+        "id": "giants_power",
+        "level": 3,
+        "name_ru": "Сила великана",
+        "name_en": "Giant's Power",
+        "summary_ru": "Выучи Giant / речь; бонусным при ярости — стать Large (если место).",
+        "kind": "passive"
+      },
+      {
+        "id": "giants_havoc",
+        "level": 3,
+        "name_ru": "Хаос великана",
+        "name_en": "Giant's Havoc",
+        "summary_ru": "В ярости: досягаемость +5; бонусный урон ярости может быть громом/элементом (выбор типа).",
+        "kind": "passive",
+        "choice": {
+          "id": "giant_damage_type",
+          "label_ru": "Тип урона ярости",
+          "options": [
+            "acid",
+            "cold",
+            "fire",
+            "lightning",
+            "thunder"
+          ]
+        }
+      },
+      {
+        "id": "elemental_cleave",
+        "level": 6,
+        "name_ru": "Стихийный разруб",
+        "name_en": "Elemental Cleave",
+        "summary_ru": "При попадании оружием/безоружным в ярости: бонусным ударить второго в досягаемости на бонусный урон ярости выбранным типом.",
+        "kind": "bonus"
+      },
+      {
+        "id": "mighty_impel",
+        "level": 10,
+        "name_ru": "Мощный бросок",
+        "name_en": "Mighty Impel",
+        "summary_ru": "В ярости бонусным: телекинетически метнуть Medium или меньше в 30 фт. (спас Сил. при враждебности).",
+        "kind": "bonus"
+      },
+      {
+        "id": "demigod_size",
+        "level": 14,
+        "name_ru": "Размер полубога",
+        "name_en": "Demigod Size",
+        "summary_ru": "В ярости можешь стать Huge; Mighty Impel — Large; досягаемость +10.",
         "kind": "passive"
       }
     ]
