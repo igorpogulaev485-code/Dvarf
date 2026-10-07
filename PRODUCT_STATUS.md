@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/class-asi-hitdice-mc-ef23`  
+**Prod tip (ветка линии прода):** `cursor/class-race-join-ef23`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -410,7 +410,7 @@
 | Детект кастера (метки) | Slug + `spellcasting_*` в feature-pack (EK/AT); aliases — fallback | Список метки у кастера/EK/AT, не у чистого воина 1 |
 | Создание class-first | На новом листе: сначала класс, раса закрыта до выбора класса | Метки/расовые списки сразу видят, кастер ты или нет |
 
-На проде: **да** · ветка `cursor/class-race-join-ef23` · PR #51 · затем tip → `cursor/class-asi-hitdice-mc-ef23`
+На проде: **да** · ветка `cursor/class-race-join-ef23` · PR #51 · это **текущий live tip**
 
 ### 2026-10-07 — ASI / кости хитов по классам / MC / справочник снаряжения
 
@@ -424,13 +424,24 @@
 | Extra Attack | Берётся максимум среди классов, уровни не складываются | Подсказка на листе, без ложного «×4 атаки» |
 | Справочник снаряжения | Сопоставлен с листом: RU-имена PHB, кости `1к8`, удалены 55 дублей item∩weapon/armor (2024); магические EN-предметы оставлены | В пикере «Рапира», не «Rapier ×2» |
 
-На проде: **да** · ветка `cursor/class-asi-hitdice-mc-ef23` · PR #53 · это **новый prod tip**
+На проде: **нет** (сборка в ветке; live tip остаётся `class-race-join`) · ветка `cursor/class-asi-hitdice-mc-ef23` · PR #53
 
 ---
 
 ## В ветках / ещё не на проде
 
-<!-- tip class-asi-hitdice-mc: залито 2026-10-07 -->
+### 2026-10-07 — FEATS PHB wave + ASI/Custom Lineage
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Каталог черт PHB | 42 черты Книги игрока в `kind=feat` (2014) | Combobox показывает Бдительный, Везучий, Живучий… |
+| Выбор на ASI | В попапе ASI кнопка «Черта» → гранты на лист | На 4/6/8… можно взять черту вместо +2/+1 |
+| Свой род | Обязательный выбор черты в попапе расы | Tasha Custom Lineage без ручной записи |
+| Apply/revoke | Ledger `feat_grants`; смена/−уровень откатывает | Можно передумать без ручной чистки |
+
+На проде: **нет** · ветка `cursor/feats-phb-wave1-ef23` · (PR после push) · tip не менять до «залей»
+
+<!-- tip class-race-join live; class-asi+feats собраны в ветке feats -->
 
 <!-- пример:
 ### 2026-10-06 — подтверждение email при регистрации
@@ -512,3 +523,4 @@
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 | Стык рас+классов/архетипов; feature packs; caster via slug; class-first UX; tip → эта ветка; alembic `r7a8` |
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 (долив) | H4b глубина 118 архетипов; снаряжение→атаки/КД; ярость vs heavy; normalize packs build fix |
 | 2026-10-07 | `cursor/class-asi-hitdice-mc-ef23` · PR #53 | ASI popup, hit dice by class, MC polish; gear catalog RU+dedupe (не wipe); tip → эта ветка; alembic `s8b9` |
+| 2026-10-07 | `cursor/feats-phb-wave1-ef23` | PHB feats catalog + ASI/Custom Lineage feat picks; alembic `w2x3`; на проде нет |

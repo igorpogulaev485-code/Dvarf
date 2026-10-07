@@ -21,7 +21,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/class-asi-hitdice-mc-ef23` |
+| Prod tip (сейчас) | `cursor/class-race-join-ef23` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
