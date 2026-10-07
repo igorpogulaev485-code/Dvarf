@@ -56,6 +56,16 @@ export type SubclassSheetGrants = {
   caster: { progression: 'third' | 'none'; ability: 'int' | 'wis' | 'cha' | null } | null
 }
 
+export type AlwaysPreparedSpell = {
+  name: string
+  level: number
+}
+
+export type SubclassFeatureCard = {
+  titleRu: string
+  summaryRu: string
+}
+
 export type SubclassGrantDef = {
   slug: string
   labelRu: string
@@ -65,6 +75,8 @@ export type SubclassGrantDef = {
   source: string
   sheetGrants: SubclassSheetGrants
   choices: SubclassChoiceDef[]
+  alwaysPreparedSpells: AlwaysPreparedSpell[]
+  featuresByLevel: Record<string, SubclassFeatureCard[]>
   notesRu?: string
 }
 
@@ -86,6 +98,8 @@ export type AppliedSubclassGrant = {
   languages: string[]
   picks: Record<string, string | string[]>
   caster: { progression: 'third' | 'none'; ability: 'int' | 'wis' | 'cha' | null } | null
+  /** Sheet spell ids injected as always-prepared from this grant. */
+  grantedSpellIds: string[]
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -252,6 +266,35 @@ export function parseSubclassGrantDef(input: {
     })
   }
 
+  const alwaysPreparedSpells: AlwaysPreparedSpell[] = []
+  const rawAlways = Array.isArray(data.always_prepared_spells)
+    ? data.always_prepared_spells
+    : []
+  for (const item of rawAlways) {
+    const row = asRecord(item)
+    if (typeof row.name !== 'string' || !row.name.trim()) continue
+    alwaysPreparedSpells.push({
+      name: row.name.trim(),
+      level: typeof row.level === 'number' ? Math.max(0, Math.min(9, row.level)) : 1,
+    })
+  }
+
+  const featuresByLevel: Record<string, SubclassFeatureCard[]> = {}
+  const rawFeatures = asRecord(data.features_by_level)
+  for (const [levelKey, list] of Object.entries(rawFeatures)) {
+    if (!Array.isArray(list)) continue
+    const cards: SubclassFeatureCard[] = []
+    for (const item of list) {
+      const row = asRecord(item)
+      if (typeof row.title_ru !== 'string') continue
+      cards.push({
+        titleRu: row.title_ru,
+        summaryRu: typeof row.summary_ru === 'string' ? row.summary_ru : '',
+      })
+    }
+    if (cards.length) featuresByLevel[levelKey] = cards
+  }
+
   return {
     slug: input.slug,
     labelRu: input.nameRu,
@@ -274,6 +317,8 @@ export function parseSubclassGrantDef(input: {
       caster,
     },
     choices,
+    alwaysPreparedSpells,
+    featuresByLevel,
     notesRu: typeof data.notes_ru === 'string' ? data.notes_ru : undefined,
   }
 }
@@ -388,6 +433,7 @@ export function emptyAppliedSubclassGrant(): AppliedSubclassGrant {
     languages: [],
     picks: {},
     caster: null,
+    grantedSpellIds: [],
   }
 }
 

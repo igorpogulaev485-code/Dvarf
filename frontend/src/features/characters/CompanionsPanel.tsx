@@ -1,5 +1,5 @@
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
-import type { CompanionEntry, CompanionKind } from './companions'
+import { createCompanion, type CompanionEntry, type CompanionKind } from './companions'
 
 type CompanionsPanelProps = {
   companions: CompanionEntry[]
@@ -34,15 +34,32 @@ export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) 
     onChange(companions.filter((row) => row.id !== id))
   }
 
+  function addManual() {
+    onChange([
+      ...companions,
+      createCompanion({
+        kind: 'other',
+        name: 'Спутник',
+        notes: 'Добавлен вручную',
+      }),
+    ])
+  }
+
   return (
     <Panel title="Спутники">
       <Stack gap={14}>
         {companions.length === 0 ? (
           <Text tone="muted">
-            Пока пусто. Появятся при выборе архетипа со спутником (Повелитель зверей, Боевой
-            кузнец…) или добавь вручную позже.
+            Пока пусто. Появятся при выборе архетипа со спутником (зверь, дрейк, пушка, защитник…)
+            или добавь вручную.
           </Text>
         ) : null}
+
+        <div className="sheet-actions">
+          <Button type="button" variant="secondary" onClick={addManual}>
+            + Спутник
+          </Button>
+        </div>
 
         {companions.map((row) => (
           <div key={row.id} className="companion-card">
@@ -54,7 +71,19 @@ export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) 
                 />
               </Field>
               <Field label="Тип">
-                <Input value={KIND_LABELS[row.kind]} readOnly />
+                <select
+                  className="ui-input"
+                  value={row.kind}
+                  onChange={(event) =>
+                    update(row.id, { kind: event.target.value as CompanionKind })
+                  }
+                >
+                  {(Object.keys(KIND_LABELS) as CompanionKind[]).map((kind) => (
+                    <option key={kind} value={kind}>
+                      {KIND_LABELS[kind]}
+                    </option>
+                  ))}
+                </select>
               </Field>
             </div>
             <div className="sheet-grid sheet-grid--3">

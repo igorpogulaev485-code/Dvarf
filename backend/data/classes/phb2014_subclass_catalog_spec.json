@@ -780,8 +780,24 @@
           "sheet_grants": {
             "tools_fixed": ["Инструменты резчика по дереву"]
           },
-          "choices": [],
-          "notes_ru": "Woodcarver's tools; Eldritch Cannon — фича/компаньон later."
+          "choices": [
+            {
+              "id": "eldritch_cannon",
+              "label_ru": "Мистическая пушка",
+              "kind": "single",
+              "count": 1,
+              "from": ["flamethrower", "force_ballista", "protector"],
+              "from_labels_ru": {
+                "flamethrower": "Огнемёт",
+                "force_ballista": "Силовая баллиста",
+                "protector": "Защитник"
+              },
+              "applies_to": "companion",
+              "required": true,
+              "notes_ru": "Тип пушки → карточка спутника."
+            }
+          ],
+          "notes_ru": "Woodcarver's tools; Eldritch Cannon как спутник на листе."
         },
         {
           "slug": "battle_smith",

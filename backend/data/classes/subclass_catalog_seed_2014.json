@@ -1,0 +1,3576 @@
+{
+  "meta": {
+    "purpose": "Canonical seed for kind=subclass 2014 (all official WotC archetypes)",
+    "edition_tag": "2014",
+    "counts": {
+      "subclasses_total": 118,
+      "with_always_prepared": 10
+    },
+    "sources": [
+      "official5e_subclass_catalog_spec.json",
+      "phb2014_subclass_catalog_spec.json"
+    ]
+  },
+  "classes": [
+    {
+      "parent_slug": "artificer",
+      "name_ru": "Изобретатель",
+      "grants_level": 3,
+      "subclasses": [
+        {
+          "slug": "alchemist",
+          "name_ru": "Алхимик",
+          "name_en": "Alchemist",
+          "source": "tasha",
+          "sheet_grants": {
+            "tools_fixed": [
+              "Инструменты алхимика"
+            ]
+          },
+          "choices": [],
+          "notes_ru": "Tool proficiency + experimental elixir — фича.",
+          "parent_slug": "artificer",
+          "grants_level": 3,
+          "source_books": "ERftLW/TCoE",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Алхимик",
+                "summary_ru": "Tool proficiency + experimental elixir — фича."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "artillerist",
+          "name_ru": "Артиллерист",
+          "name_en": "Artillerist",
+          "source": "tasha",
+          "sheet_grants": {
+            "tools_fixed": [
+              "Инструменты резчика по дереву"
+            ]
+          },
+          "choices": [
+            {
+              "id": "eldritch_cannon",
+              "label_ru": "Мистическая пушка",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "flamethrower",
+                "force_ballista",
+                "protector"
+              ],
+              "from_labels_ru": {
+                "flamethrower": "Огнемёт",
+                "force_ballista": "Силовая баллиста",
+                "protector": "Защитник"
+              },
+              "applies_to": "companion",
+              "required": true,
+              "notes_ru": "Тип пушки; на лист — карточка спутника (можно менять при создании новой)."
+            }
+          ],
+          "notes_ru": "Woodcarver tools + Eldritch Cannon как спутник/объект.",
+          "parent_slug": "artificer",
+          "grants_level": 3,
+          "source_books": "ERftLW/TCoE",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Артиллерист",
+                "summary_ru": "Woodcarver tools + Eldritch Cannon как спутник/объект."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "battle_smith",
+          "name_ru": "Боевой кузнец",
+          "name_en": "Battle Smith",
+          "source": "tasha",
+          "sheet_grants": {
+            "weapons": {
+              "simple": false,
+              "martial": true,
+              "extras": []
+            },
+            "tools_fixed": [
+              "Инструменты кузнеца"
+            ]
+          },
+          "choices": [
+            {
+              "id": "steel_defender_name",
+              "label_ru": "Стальной защитник",
+              "kind": "open_text",
+              "count": 1,
+              "from": [],
+              "applies_to": "flavor_only",
+              "required": false,
+              "notes_ru": "Имя компаньона — опционально."
+            }
+          ],
+          "notes_ru": "Martial weapons + smith's tools; INT вместо STR/DEX для magic weapons — правило атаки later.",
+          "parent_slug": "artificer",
+          "grants_level": 3,
+          "source_books": "ERftLW/TCoE",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Боевой кузнец",
+                "summary_ru": "Martial weapons + smith's tools; INT вместо STR/DEX для magic weapons — правило атаки later."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "armorer",
+          "name_ru": "Бронник",
+          "name_en": "Armorer",
+          "source": "tasha",
+          "sheet_grants": {
+            "armor": [
+              "heavy"
+            ],
+            "tools_fixed": [
+              "Инструменты кузнеца"
+            ]
+          },
+          "choices": [
+            {
+              "id": "armor_model",
+              "label_ru": "Модель доспеха",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "guardian",
+                "infiltrator"
+              ],
+              "from_labels_ru": {
+                "guardian": "Страж",
+                "infiltrator": "Лазутчик"
+              },
+              "applies_to": "flavor_only",
+              "required": true,
+              "notes_ru": "Влияет на оружие доспеха / скорость; сохранить pick; смена при long rest — later."
+            }
+          ],
+          "parent_slug": "artificer",
+          "grants_level": 3,
+          "source_books": "TCoE",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        }
+      ]
+    },
+    {
+      "parent_slug": "barbarian",
+      "name_ru": "Варвар",
+      "grants_level": 3,
+      "subclasses": [
+        {
+          "slug": "path_of_the_berserker",
+          "name_ru": "Путь берсерка",
+          "name_en": "Path of the Berserker",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Только фичи (Frenzy и т.д.) — без владений/выборов на листе.",
+          "parent_slug": "barbarian",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь берсерка",
+                "summary_ru": "Только фичи (Frenzy и т.д.) — без владений/выборов на листе."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "path_of_the_totem_warrior",
+          "name_ru": "Путь тотемного воина",
+          "name_en": "Path of the Totem Warrior",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "totem_spirit_3",
+              "label_ru": "Тотемный дух (3 ур.)",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "bear",
+                "eagle",
+                "wolf"
+              ],
+              "from_labels_ru": {
+                "bear": "Медведь",
+                "eagle": "Орёл",
+                "wolf": "Волк"
+              },
+              "applies_to": "flavor_only",
+              "required": true,
+              "notes_ru": "Эффект боевой/ролевой; на лист — сохранить выбор в subclass_grant.picks. Позже 6/14 ур. — отдельные тотемы."
+            }
+          ],
+          "notes_ru": "На 6 и 14 — ещё выборы Aspect / Totemic Attunement (заложить в data как future_choices).",
+          "parent_slug": "barbarian",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь тотемного воина",
+                "summary_ru": "На 6 и 14 — ещё выборы Aspect / Totemic Attunement (заложить в data как future_choices)."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "path_of_the_battlerager",
+          "name_ru": "Путь бушующего в бою",
+          "name_en": "Path of the Battlerager",
+          "source": "scag",
+          "source_books": "SCAG",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь бушующего в бою",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "path_of_the_ancestral_guardian",
+          "name_ru": "Путь предка-хранителя",
+          "name_en": "Path of the Ancestral Guardian",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь предка-хранителя",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "path_of_the_storm_herald",
+          "name_ru": "Путь буревестника",
+          "name_en": "Path of the Storm Herald",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "storm_aura",
+              "label_ru": "Аура бури",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "desert",
+                "sea",
+                "tundra"
+              ],
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "notes_ru": "Выбор ауры (можно менять при long rest — на листе зафиксировать текущую).",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь буревестника",
+                "summary_ru": "Выбор ауры (можно менять при long rest — на листе зафиксировать текущую)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "path_of_the_zealot",
+          "name_ru": "Путь фанатика",
+          "name_en": "Path of the Zealot",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь фанатика",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "path_of_the_beast",
+          "name_ru": "Путь зверя",
+          "name_en": "Path of the Beast",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь зверя",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "path_of_wild_magic",
+          "name_ru": "Путь дикой магии",
+          "name_en": "Path of Wild Magic",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь дикой магии",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "path_of_the_giant",
+          "name_ru": "Путь великана",
+          "name_en": "Path of the Giant",
+          "source": "bigby",
+          "source_books": "BGG",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "giant_damage_type",
+              "label_ru": "Тип урона великана",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "thunder"
+              ],
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "notes_ru": "Тип урона (можно менять при level-up / long rest по правилам BGG).",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь великана",
+                "summary_ru": "Тип урона (можно менять при level-up / long rest по правилам BGG)."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "parent_slug": "bard",
+      "name_ru": "Бард",
+      "grants_level": 3,
+      "subclasses": [
+        {
+          "slug": "college_of_lore",
+          "name_ru": "Коллегия знаний",
+          "name_en": "College of Lore",
+          "source": "phb",
+          "sheet_grants": {
+            "skill_choices": {
+              "count": 3,
+              "from": "any"
+            }
+          },
+          "choices": [
+            {
+              "id": "bonus_skills",
+              "label_ru": "Доп. навыки коллегии",
+              "kind": "multi",
+              "count": 3,
+              "from": "any",
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "notes_ru": "3 любых навыка поверх классовых.",
+          "parent_slug": "bard",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Коллегия знаний",
+                "summary_ru": "3 любых навыка поверх классовых."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "college_of_valor",
+          "name_ru": "Коллегия доблести",
+          "name_en": "College of Valor",
+          "source": "phb",
+          "sheet_grants": {
+            "armor": [
+              "medium",
+              "shields"
+            ],
+            "weapons": {
+              "simple": false,
+              "martial": true,
+              "extras": []
+            }
+          },
+          "choices": [],
+          "notes_ru": "Сразу: средние доспехи, щиты, воинское оружие.",
+          "parent_slug": "bard",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Коллегия доблести",
+                "summary_ru": "Сразу: средние доспехи, щиты, воинское оружие."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "college_of_glamour",
+          "name_ru": "Коллегия очарования",
+          "name_en": "College of Glamour",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Коллегия очарования",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "college_of_swords",
+          "name_ru": "Коллегия мечей",
+          "name_en": "College of Swords",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {
+            "armor": [
+              "medium"
+            ],
+            "weapons": {
+              "extras": [
+                "scimitar"
+              ]
+            }
+          },
+          "choices": [
+            {
+              "id": "fighting_style",
+              "label_ru": "Боевой стиль",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "dueling",
+                "two_weapon_fighting"
+              ],
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "notes_ru": "Средние доспехи + скимитар; Fighting Style.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Коллегия мечей",
+                "summary_ru": "Средние доспехи + скимитар; Fighting Style."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "college_of_whispers",
+          "name_ru": "Коллегия шёпотов",
+          "name_en": "College of Whispers",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Коллегия шёпотов",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "college_of_eloquence",
+          "name_ru": "Коллегия красноречия",
+          "name_en": "College of Eloquence",
+          "source": "tasha",
+          "source_books": "MOoT/TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Коллегия красноречия",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "college_of_creation",
+          "name_ru": "Коллегия созидания",
+          "name_en": "College of Creation",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Коллегия созидания",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "college_of_spirits",
+          "name_ru": "Коллегия духов",
+          "name_en": "College of Spirits",
+          "source": "vrgr",
+          "source_books": "VRGtR",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Коллегия духов",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "parent_slug": "cleric",
+      "name_ru": "Жрец",
+      "grants_level": 1,
+      "subclasses": [
+        {
+          "slug": "knowledge_domain",
+          "name_ru": "Домен знаний",
+          "name_en": "Knowledge Domain",
+          "source": "phb",
+          "sheet_grants": {
+            "skill_choices": {
+              "count": 2,
+              "from": [
+                "arcana",
+                "history",
+                "nature",
+                "religion"
+              ]
+            },
+            "language_choices": {
+              "count": 2,
+              "from": "any"
+            }
+          },
+          "choices": [
+            {
+              "id": "blessings_of_knowledge_skills",
+              "label_ru": "Навыки Благословения знания",
+              "kind": "multi",
+              "count": 2,
+              "from": [
+                "arcana",
+                "history",
+                "nature",
+                "religion"
+              ],
+              "applies_to": "grant",
+              "required": true
+            },
+            {
+              "id": "blessings_of_knowledge_langs",
+              "label_ru": "Языки",
+              "kind": "multi",
+              "count": 2,
+              "from": "any",
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "domain_spells_note": "Всегда подготовлены — авто в гримуар позже",
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "always_prepared_spells": [
+            {
+              "name": "Command",
+              "level": 1
+            },
+            {
+              "name": "Identify",
+              "level": 1
+            },
+            {
+              "name": "Augury",
+              "level": 2
+            },
+            {
+              "name": "Suggestion",
+              "level": 2
+            },
+            {
+              "name": "Nondetection",
+              "level": 3
+            },
+            {
+              "name": "Speak with Dead",
+              "level": 3
+            },
+            {
+              "name": "Arcane Eye",
+              "level": 4
+            },
+            {
+              "name": "Confusion",
+              "level": 4
+            },
+            {
+              "name": "Legend Lore",
+              "level": 5
+            },
+            {
+              "name": "Scrying",
+              "level": 5
+            }
+          ],
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "life_domain",
+          "name_ru": "Домен жизни",
+          "name_en": "Life Domain",
+          "source": "phb",
+          "sheet_grants": {
+            "armor": [
+              "heavy"
+            ]
+          },
+          "choices": [],
+          "notes_ru": "Тяжёлые доспехи.",
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "always_prepared_spells": [
+            {
+              "name": "Bless",
+              "level": 1
+            },
+            {
+              "name": "Cure Wounds",
+              "level": 1
+            },
+            {
+              "name": "Lesser Restoration",
+              "level": 2
+            },
+            {
+              "name": "Spiritual Weapon",
+              "level": 2
+            },
+            {
+              "name": "Beacon of Hope",
+              "level": 3
+            },
+            {
+              "name": "Revivify",
+              "level": 3
+            },
+            {
+              "name": "Death Ward",
+              "level": 4
+            },
+            {
+              "name": "Guardian of Faith",
+              "level": 4
+            },
+            {
+              "name": "Mass Cure Wounds",
+              "level": 5
+            },
+            {
+              "name": "Raise Dead",
+              "level": 5
+            }
+          ],
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен жизни",
+                "summary_ru": "Тяжёлые доспехи."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "light_domain",
+          "name_ru": "Домен света",
+          "name_en": "Light Domain",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Бонусный cantrip light — фича/заговор, не владение.",
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "always_prepared_spells": [
+            {
+              "name": "Burning Hands",
+              "level": 1
+            },
+            {
+              "name": "Faerie Fire",
+              "level": 1
+            },
+            {
+              "name": "Flaming Sphere",
+              "level": 2
+            },
+            {
+              "name": "Scorching Ray",
+              "level": 2
+            },
+            {
+              "name": "Daylight",
+              "level": 3
+            },
+            {
+              "name": "Fireball",
+              "level": 3
+            },
+            {
+              "name": "Guardian of Faith",
+              "level": 4
+            },
+            {
+              "name": "Wall of Fire",
+              "level": 4
+            },
+            {
+              "name": "Flame Strike",
+              "level": 5
+            },
+            {
+              "name": "Scrying",
+              "level": 5
+            }
+          ],
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен света",
+                "summary_ru": "Бонусный cantrip light — фича/заговор, не владение."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "nature_domain",
+          "name_ru": "Домен природы",
+          "name_en": "Nature Domain",
+          "source": "phb",
+          "sheet_grants": {
+            "armor": [
+              "heavy"
+            ],
+            "skill_choices": {
+              "count": 1,
+              "from": [
+                "animal_handling",
+                "nature",
+                "survival"
+              ]
+            }
+          },
+          "choices": [
+            {
+              "id": "acolyte_of_nature_skill",
+              "label_ru": "Навык послушника природы",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "animal_handling",
+                "nature",
+                "survival"
+              ],
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "notes_ru": "Также 1 заговор друида — later_spells / traits.",
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "always_prepared_spells": [
+            {
+              "name": "Animal Friendship",
+              "level": 1
+            },
+            {
+              "name": "Speak with Animals",
+              "level": 1
+            },
+            {
+              "name": "Barkskin",
+              "level": 2
+            },
+            {
+              "name": "Spike Growth",
+              "level": 2
+            },
+            {
+              "name": "Plant Growth",
+              "level": 3
+            },
+            {
+              "name": "Wind Wall",
+              "level": 3
+            },
+            {
+              "name": "Dominate Beast",
+              "level": 4
+            },
+            {
+              "name": "Grasping Vine",
+              "level": 4
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5
+            },
+            {
+              "name": "Tree Stride",
+              "level": 5
+            }
+          ],
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен природы",
+                "summary_ru": "Также 1 заговор друида — later_spells / traits."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "tempest_domain",
+          "name_ru": "Домен бури",
+          "name_en": "Tempest Domain",
+          "source": "phb",
+          "sheet_grants": {
+            "armor": [
+              "heavy"
+            ],
+            "weapons": {
+              "simple": false,
+              "martial": true,
+              "extras": []
+            }
+          },
+          "choices": [],
+          "notes_ru": "Воинское оружие + тяжёлые доспехи.",
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "always_prepared_spells": [
+            {
+              "name": "Fog Cloud",
+              "level": 1
+            },
+            {
+              "name": "Thunderwave",
+              "level": 1
+            },
+            {
+              "name": "Gust of Wind",
+              "level": 2
+            },
+            {
+              "name": "Shatter",
+              "level": 2
+            },
+            {
+              "name": "Call Lightning",
+              "level": 3
+            },
+            {
+              "name": "Sleet Storm",
+              "level": 3
+            },
+            {
+              "name": "Control Water",
+              "level": 4
+            },
+            {
+              "name": "Ice Storm",
+              "level": 4
+            },
+            {
+              "name": "Destructive Wave",
+              "level": 5
+            },
+            {
+              "name": "Insect Plague",
+              "level": 5
+            }
+          ],
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен бури",
+                "summary_ru": "Воинское оружие + тяжёлые доспехи."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "trickery_domain",
+          "name_ru": "Домен обмана",
+          "name_en": "Trickery Domain",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Без доп. владений.",
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "always_prepared_spells": [
+            {
+              "name": "Charm Person",
+              "level": 1
+            },
+            {
+              "name": "Disguise Self",
+              "level": 1
+            },
+            {
+              "name": "Mirror Image",
+              "level": 2
+            },
+            {
+              "name": "Pass Without Trace",
+              "level": 2
+            },
+            {
+              "name": "Blink",
+              "level": 3
+            },
+            {
+              "name": "Dispel Magic",
+              "level": 3
+            },
+            {
+              "name": "Dimension Door",
+              "level": 4
+            },
+            {
+              "name": "Polymorph",
+              "level": 4
+            },
+            {
+              "name": "Dominate Person",
+              "level": 5
+            },
+            {
+              "name": "Modify Memory",
+              "level": 5
+            }
+          ],
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен обмана",
+                "summary_ru": "Без доп. владений."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "war_domain",
+          "name_ru": "Домен войны",
+          "name_en": "War Domain",
+          "source": "phb",
+          "sheet_grants": {
+            "armor": [
+              "heavy"
+            ],
+            "weapons": {
+              "simple": false,
+              "martial": true,
+              "extras": []
+            }
+          },
+          "choices": [],
+          "notes_ru": "Воинское оружие + тяжёлые доспехи.",
+          "parent_slug": "cleric",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "always_prepared_spells": [
+            {
+              "name": "Divine Favor",
+              "level": 1
+            },
+            {
+              "name": "Shield of Faith",
+              "level": 1
+            },
+            {
+              "name": "Magic Weapon",
+              "level": 2
+            },
+            {
+              "name": "Spiritual Weapon",
+              "level": 2
+            },
+            {
+              "name": "Crusader's Mantle",
+              "level": 3
+            },
+            {
+              "name": "Spirit Guardians",
+              "level": 3
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4
+            },
+            {
+              "name": "Stoneskin",
+              "level": 4
+            },
+            {
+              "name": "Flame Strike",
+              "level": 5
+            },
+            {
+              "name": "Hold Monster",
+              "level": 5
+            }
+          ],
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен войны",
+                "summary_ru": "Воинское оружие + тяжёлые доспехи."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "death_domain",
+          "name_ru": "Домен смерти",
+          "name_en": "Death Domain",
+          "source": "dmg",
+          "source_books": "DMG",
+          "sheet_grants": {
+            "weapons": {
+              "martial": true
+            }
+          },
+          "choices": [],
+          "notes_ru": "DMG; martial weapons. Domain spells → later.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен смерти",
+                "summary_ru": "DMG; martial weapons. Domain spells → later."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "arcana_domain",
+          "name_ru": "Домен магии",
+          "name_en": "Arcana Domain",
+          "source": "scag",
+          "source_books": "SCAG",
+          "sheet_grants": {
+            "skill_choices": {
+              "count": 2,
+              "from": [
+                "arcana",
+                "history",
+                "nature",
+                "religion"
+              ]
+            }
+          },
+          "choices": [
+            {
+              "id": "wizard_cantrips",
+              "label_ru": "2 заговора волшебника",
+              "kind": "multi",
+              "count": 2,
+              "from": "wizard_cantrips",
+              "applies_to": "later_spells",
+              "required": true
+            }
+          ],
+          "notes_ru": "2 навыка из списка; 2 wizard cantrips.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен магии",
+                "summary_ru": "2 навыка из списка; 2 wizard cantrips."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "forge_domain",
+          "name_ru": "Домен кузни",
+          "name_en": "Forge Domain",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {
+            "armor": [
+              "heavy"
+            ],
+            "tools_fixed": [
+              "smiths_tools"
+            ]
+          },
+          "choices": [],
+          "notes_ru": "Тяжёлые доспехи + инструменты кузнеца.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен кузни",
+                "summary_ru": "Тяжёлые доспехи + инструменты кузнеца."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "grave_domain",
+          "name_ru": "Домен упокоения",
+          "name_en": "Grave Domain",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен упокоения",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "order_domain",
+          "name_ru": "Домен порядка",
+          "name_en": "Order Domain",
+          "source": "tasha",
+          "source_books": "GGtR/TCoE",
+          "sheet_grants": {
+            "armor": [
+              "heavy"
+            ],
+            "skill_choices": {
+              "count": 1,
+              "from": [
+                "intimidation",
+                "persuasion"
+              ]
+            }
+          },
+          "choices": [],
+          "notes_ru": "Тяжёлые доспехи + Intimidation или Persuasion.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен порядка",
+                "summary_ru": "Тяжёлые доспехи + Intimidation или Persuasion."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "peace_domain",
+          "name_ru": "Домен мира",
+          "name_en": "Peace Domain",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен мира",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "twilight_domain",
+          "name_ru": "Домен сумерек",
+          "name_en": "Twilight Domain",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {
+            "armor": [
+              "heavy"
+            ],
+            "weapons": {
+              "martial": true
+            }
+          },
+          "choices": [],
+          "notes_ru": "Тяжёлые доспехи + martial weapons.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Домен сумерек",
+                "summary_ru": "Тяжёлые доспехи + martial weapons."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "parent_slug": "druid",
+      "name_ru": "Друид",
+      "grants_level": 2,
+      "subclasses": [
+        {
+          "slug": "circle_of_the_land",
+          "name_ru": "Круг земли",
+          "name_en": "Circle of the Land",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "land_type",
+              "label_ru": "Земля круга",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "arctic",
+                "coast",
+                "desert",
+                "forest",
+                "grassland",
+                "mountain",
+                "swamp",
+                "underdark"
+              ],
+              "from_labels_ru": {
+                "arctic": "Арктика",
+                "coast": "Побережье",
+                "desert": "Пустыня",
+                "forest": "Лес",
+                "grassland": "Луга",
+                "mountain": "Горы",
+                "swamp": "Болото",
+                "underdark": "Подземье"
+              },
+              "applies_to": "later_spells",
+              "required": true,
+              "notes_ru": "Определяет Circle Spells — сохранить pick; авто-гримуар позже."
+            }
+          ],
+          "notes_ru": "Bonus cantrip — later. Natural Recovery — фича.",
+          "parent_slug": "druid",
+          "grants_level": 2,
+          "source_books": "PHB",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Круг земли",
+                "summary_ru": "Bonus cantrip — later. Natural Recovery — фича."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "circle_of_the_moon",
+          "name_ru": "Круг луны",
+          "name_en": "Circle of the Moon",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Только фичи Wild Shape — без владений.",
+          "parent_slug": "druid",
+          "grants_level": 2,
+          "source_books": "PHB",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Круг луны",
+                "summary_ru": "Только фичи Wild Shape — без владений."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "circle_of_dreams",
+          "name_ru": "Круг снов",
+          "name_en": "Circle of Dreams",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Круг снов",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "circle_of_the_shepherd",
+          "name_ru": "Круг пастыря",
+          "name_en": "Circle of the Shepherd",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Круг пастыря",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "circle_of_spores",
+          "name_ru": "Круг спор",
+          "name_en": "Circle of Spores",
+          "source": "tasha",
+          "source_books": "GGtR/TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Круг спор",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "circle_of_stars",
+          "name_ru": "Круг звёзд",
+          "name_en": "Circle of Stars",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "star_map",
+              "label_ru": "Звёздная карта (фокус)",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "open_text"
+              ],
+              "applies_to": "flavor_only",
+              "required": true
+            },
+            {
+              "id": "starry_form",
+              "label_ru": "Звёздная форма (за использование)",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "archer",
+                "chalice",
+                "dragon"
+              ],
+              "applies_to": "flavor_only",
+              "required": false
+            }
+          ],
+          "notes_ru": "Выбор формы — боевой, на листе опционально.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Круг звёзд",
+                "summary_ru": "Выбор формы — боевой, на листе опционально."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "circle_of_wildfire",
+          "name_ru": "Круг дикого огня",
+          "name_en": "Circle of Wildfire",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "wildfire_spirit",
+              "label_ru": "Дух дикого огня",
+              "kind": "open_text",
+              "count": 1,
+              "from": [],
+              "applies_to": "companion",
+              "required": false,
+              "notes_ru": "Имя духа — карточка спутника."
+            }
+          ],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Круг дикого огня",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "parent_slug": "fighter",
+      "name_ru": "Воин",
+      "grants_level": 3,
+      "subclasses": [
+        {
+          "slug": "champion",
+          "name_ru": "Чемпион",
+          "name_en": "Champion",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Без развилок владений.",
+          "parent_slug": "fighter",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Чемпион",
+                "summary_ru": "Без развилок владений."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "battle_master",
+          "name_ru": "Мастер боевых искусств",
+          "name_en": "Battle Master",
+          "source": "phb",
+          "sheet_grants": {
+            "tools_fixed": [],
+            "tool_choices": {
+              "count": 1,
+              "from": "artisan_tools"
+            }
+          },
+          "choices": [
+            {
+              "id": "student_of_war_tool",
+              "label_ru": "Инструменты ремесленника",
+              "kind": "single",
+              "count": 1,
+              "from": "artisan_tools",
+              "applies_to": "grant",
+              "required": true
+            },
+            {
+              "id": "maneuvers_3",
+              "label_ru": "Приёмы (3 ур.)",
+              "kind": "multi",
+              "count": 3,
+              "from": "maneuver_catalog_phb",
+              "applies_to": "flavor_only",
+              "required": true,
+              "notes_ru": "Список приёмов PHB — отдельный мини-каталог в следующей подволне; на листе сохранить picks + superiority dice в play/resources позже."
+            }
+          ],
+          "notes_ru": "Student of War: 1 artisan tool. Maneuvers — выбор, не владение.",
+          "parent_slug": "fighter",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Мастер боевых искусств",
+                "summary_ru": "Student of War: 1 artisan tool. Maneuvers — выбор, не владение."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "eldritch_knight",
+          "name_ru": "Мистический рыцарь",
+          "name_en": "Eldritch Knight",
+          "source": "phb",
+          "sheet_grants": {
+            "caster": {
+              "progression": "third",
+              "ability": "int",
+              "prepare": null,
+              "note": "Известные заклинания волшебника (абдж/воплощение с оговорками); в MC — floor(level/3)"
+            }
+          },
+          "choices": [],
+          "notes_ru": "Включает third caster на листе слотов. Weapon Bond — фича.",
+          "parent_slug": "fighter",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Мистический рыцарь",
+                "summary_ru": "Включает third caster на листе слотов. Weapon Bond — фича."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "purple_dragon_knight",
+          "name_ru": "Рыцарь Пурпурного дракона",
+          "name_en": "Purple Dragon Knight (Banneret)",
+          "source": "scag",
+          "source_books": "SCAG",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Рыцарь Пурпурного дракона",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "arcane_archer",
+          "name_ru": "Мистический лучник",
+          "name_en": "Arcane Archer",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "arcane_shot",
+              "label_ru": "Тайные выстрелы",
+              "kind": "multi",
+              "count": 2,
+              "from": "arcane_shots",
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "notes_ru": "+ cantrip (prestidigitation/druidcraft) — later_spells.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Мистический лучник",
+                "summary_ru": "+ cantrip (prestidigitation/druidcraft) — later_spells."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "cavalier",
+          "name_ru": "Кавалерист",
+          "name_en": "Cavalier",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {
+            "skill_choices": {
+              "count": 1,
+              "from": [
+                "animal_handling",
+                "history",
+                "insight",
+                "performance",
+                "persuasion"
+              ]
+            }
+          },
+          "choices": [
+            {
+              "id": "language",
+              "label_ru": "Язык",
+              "kind": "single",
+              "count": 1,
+              "from": "any",
+              "applies_to": "sheet_field",
+              "required": true
+            }
+          ],
+          "notes_ru": "Навык + язык (или Unarmed Fighting Style вместо — уточнить UI).",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Кавалерист",
+                "summary_ru": "Навык + язык (или Unarmed Fighting Style вместо — уточнить UI)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "samurai",
+          "name_ru": "Самурай",
+          "name_en": "Samurai",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {
+            "skill_choices": {
+              "count": 1,
+              "from": [
+                "history",
+                "insight",
+                "performance",
+                "persuasion"
+              ]
+            }
+          },
+          "choices": [
+            {
+              "id": "language",
+              "label_ru": "Язык",
+              "kind": "single",
+              "count": 1,
+              "from": "any",
+              "applies_to": "sheet_field",
+              "required": true
+            }
+          ],
+          "notes_ru": "Навык + язык.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Самурай",
+                "summary_ru": "Навык + язык."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "echo_knight",
+          "name_ru": "Рыцарь Эха",
+          "name_en": "Echo Knight",
+          "source": "egtw",
+          "source_books": "EGtW",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Рыцарь Эха",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "psi_warrior",
+          "name_ru": "Пси-воин",
+          "name_en": "Psi Warrior",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Пси-воин",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "rune_knight",
+          "name_ru": "Рунный рыцарь",
+          "name_en": "Rune Knight",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {
+            "tools_fixed": []
+          },
+          "choices": [
+            {
+              "id": "artisans_tools",
+              "label_ru": "Инструменты ремесленника",
+              "kind": "single",
+              "count": 1,
+              "from": "artisan_tools",
+              "applies_to": "sheet_field",
+              "required": true
+            },
+            {
+              "id": "runes",
+              "label_ru": "Руны",
+              "kind": "multi",
+              "count": 2,
+              "from": [
+                "cloud",
+                "fire",
+                "frost",
+                "hill",
+                "storm",
+                "stone"
+              ],
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "notes_ru": "Инструменты + 2 руны на 3 ур.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Рунный рыцарь",
+                "summary_ru": "Инструменты + 2 руны на 3 ур."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "parent_slug": "monk",
+      "name_ru": "Монах",
+      "grants_level": 3,
+      "subclasses": [
+        {
+          "slug": "way_of_the_open_hand",
+          "name_ru": "Путь открытой ладони",
+          "name_en": "Way of the Open Hand",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Без владений.",
+          "parent_slug": "monk",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь открытой ладони",
+                "summary_ru": "Без владений."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "way_of_shadow",
+          "name_ru": "Путь тени",
+          "name_en": "Way of Shadow",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Без владений; заклинания пути — later_spells.",
+          "parent_slug": "monk",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь тени",
+                "summary_ru": "Без владений; заклинания пути — later_spells."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "way_of_the_four_elements",
+          "name_ru": "Путь четырёх стихий",
+          "name_en": "Way of the Four Elements",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "elemental_disciplines_3",
+              "label_ru": "Стихийные дисциплины",
+              "kind": "multi",
+              "count": 1,
+              "from": "elemental_disciplines_phb",
+              "applies_to": "flavor_only",
+              "required": true,
+              "notes_ru": "На 3 ур. + Elemental Attunement бесплатно; полный каталог дисциплин — подволна. Сохранить picks."
+            }
+          ],
+          "parent_slug": "monk",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "way_of_the_long_death",
+          "name_ru": "Путь долгой смерти",
+          "name_en": "Way of the Long Death",
+          "source": "scag",
+          "source_books": "SCAG",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь долгой смерти",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "way_of_the_sun_soul",
+          "name_ru": "Путь солнечной души",
+          "name_en": "Way of the Sun Soul",
+          "source": "xgte",
+          "source_books": "SCAG/XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь солнечной души",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "way_of_the_drunken_master",
+          "name_ru": "Путь пьяного мастера",
+          "name_en": "Way of the Drunken Master",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {
+            "skill_choices": {
+              "count": 1,
+              "from": [
+                "performance"
+              ]
+            },
+            "tools_fixed": [
+              "brewers_supplies"
+            ]
+          },
+          "choices": [],
+          "notes_ru": "Performance + Brewer's Supplies (если уже есть Performance — другой навык из PHB list? XGtE: proficiency in Performance + Brewer's).",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь пьяного мастера",
+                "summary_ru": "Performance + Brewer's Supplies (если уже есть Performance — другой навык из PHB list? XGtE: proficiency in Performance + Brewer's)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "way_of_the_kensei",
+          "name_ru": "Путь кэнсэя",
+          "name_en": "Way of the Kensei",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "kensei_weapons",
+              "label_ru": "Оружие кэнсэя",
+              "kind": "multi",
+              "count": 2,
+              "from": "kensei_eligible",
+              "applies_to": "sheet_field",
+              "required": true
+            },
+            {
+              "id": "calligraphers_or_painters",
+              "label_ru": "Инструмент",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "calligraphers_supplies",
+                "painters_supplies"
+              ],
+              "applies_to": "sheet_field",
+              "required": true
+            }
+          ],
+          "notes_ru": "2 оружия кэнсэя + инструменты каллиграфа/живописца.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь кэнсэя",
+                "summary_ru": "2 оружия кэнсэя + инструменты каллиграфа/живописца."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "way_of_mercy",
+          "name_ru": "Путь милосердия",
+          "name_en": "Way of Mercy",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {
+            "skill_choices": {
+              "count": 1,
+              "from": [
+                "insight",
+                "medicine",
+                "religion"
+              ]
+            },
+            "tools_fixed": [
+              "herbalism_kit"
+            ]
+          },
+          "choices": [],
+          "notes_ru": "Insight/Medicine/Religion + herbalism kit.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь милосердия",
+                "summary_ru": "Insight/Medicine/Religion + herbalism kit."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "way_of_the_astral_self",
+          "name_ru": "Путь астрального тела",
+          "name_en": "Way of the Astral Self",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь астрального тела",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "way_of_the_ascendant_dragon",
+          "name_ru": "Путь восходящего дракона",
+          "name_en": "Way of the Ascendant Dragon",
+          "source": "ftd",
+          "source_books": "FTD",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "draconic_language",
+              "label_ru": "Язык (или навык)",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "draconic",
+                "skill_choice"
+              ],
+              "applies_to": "sheet_field",
+              "required": true
+            },
+            {
+              "id": "breath_damage",
+              "label_ru": "Тип урона дыхания",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison"
+              ],
+              "applies_to": "grant",
+              "required": true
+            }
+          ],
+          "notes_ru": "Draconic или навык; тип дыхания.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Путь восходящего дракона",
+                "summary_ru": "Draconic или навык; тип дыхания."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "parent_slug": "paladin",
+      "name_ru": "Паладин",
+      "grants_level": 3,
+      "subclasses": [
+        {
+          "slug": "oath_of_devotion",
+          "name_ru": "Клятва преданности",
+          "name_en": "Oath of Devotion",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Клятво-заклинания — later_spells; Channel Divinity — фича.",
+          "parent_slug": "paladin",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "always_prepared_spells": [
+            {
+              "name": "Protection from Evil and Good",
+              "level": 1
+            },
+            {
+              "name": "Sanctuary",
+              "level": 1
+            },
+            {
+              "name": "Lesser Restoration",
+              "level": 2
+            },
+            {
+              "name": "Zone of Truth",
+              "level": 2
+            },
+            {
+              "name": "Beacon of Hope",
+              "level": 3
+            },
+            {
+              "name": "Dispel Magic",
+              "level": 3
+            },
+            {
+              "name": "Freedom of Movement",
+              "level": 4
+            },
+            {
+              "name": "Guardian of Faith",
+              "level": 4
+            },
+            {
+              "name": "Commune",
+              "level": 5
+            },
+            {
+              "name": "Flame Strike",
+              "level": 5
+            }
+          ],
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Клятва преданности",
+                "summary_ru": "Клятво-заклинания — later_spells; Channel Divinity — фича."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "oath_of_the_ancients",
+          "name_ru": "Клятва древних",
+          "name_en": "Oath of the Ancients",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "paladin",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "always_prepared_spells": [
+            {
+              "name": "Ensnaring Strike",
+              "level": 1
+            },
+            {
+              "name": "Speak with Animals",
+              "level": 1
+            },
+            {
+              "name": "Moonbeam",
+              "level": 2
+            },
+            {
+              "name": "Misty Step",
+              "level": 2
+            },
+            {
+              "name": "Plant Growth",
+              "level": 3
+            },
+            {
+              "name": "Protection from Energy",
+              "level": 3
+            },
+            {
+              "name": "Ice Storm",
+              "level": 4
+            },
+            {
+              "name": "Stoneskin",
+              "level": 4
+            },
+            {
+              "name": "Commune with Nature",
+              "level": 5
+            },
+            {
+              "name": "Tree Stride",
+              "level": 5
+            }
+          ],
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "oath_of_vengeance",
+          "name_ru": "Клятва мести",
+          "name_en": "Oath of Vengeance",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "paladin",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "always_prepared_spells": [
+            {
+              "name": "Bane",
+              "level": 1
+            },
+            {
+              "name": "Hunter's Mark",
+              "level": 1
+            },
+            {
+              "name": "Hold Person",
+              "level": 2
+            },
+            {
+              "name": "Misty Step",
+              "level": 2
+            },
+            {
+              "name": "Haste",
+              "level": 3
+            },
+            {
+              "name": "Protection from Energy",
+              "level": 3
+            },
+            {
+              "name": "Banishment",
+              "level": 4
+            },
+            {
+              "name": "Dimension Door",
+              "level": 4
+            },
+            {
+              "name": "Hold Monster",
+              "level": 5
+            },
+            {
+              "name": "Scrying",
+              "level": 5
+            }
+          ],
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "oathbreaker",
+          "name_ru": "Клятвопреступник",
+          "name_en": "Oathbreaker",
+          "source": "dmg",
+          "source_books": "DMG",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Клятвопреступник",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "oath_of_the_crown",
+          "name_ru": "Клятва короны",
+          "name_en": "Oath of the Crown",
+          "source": "scag",
+          "source_books": "SCAG",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Клятва короны",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "oath_of_conquest",
+          "name_ru": "Клятва покорения",
+          "name_en": "Oath of Conquest",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Клятва покорения",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "oath_of_redemption",
+          "name_ru": "Клятва искупления",
+          "name_en": "Oath of Redemption",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Клятва искупления",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "oath_of_glory",
+          "name_ru": "Клятва славы",
+          "name_en": "Oath of Glory",
+          "source": "tasha",
+          "source_books": "MOoT/TCoE",
+          "sheet_grants": {
+            "skill_choices": {
+              "count": 1,
+              "from": [
+                "athletics",
+                "acrobatics"
+              ]
+            }
+          },
+          "choices": [],
+          "notes_ru": "Athletics или Acrobatics.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Клятва славы",
+                "summary_ru": "Athletics или Acrobatics."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "oath_of_the_watchers",
+          "name_ru": "Клятва смотрителей",
+          "name_en": "Oath of the Watchers",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "skills_or_tools",
+              "label_ru": "2 навыка/инструмента из списка",
+              "kind": "multi",
+              "count": 2,
+              "from": [
+                "insight",
+                "intimidation",
+                "medicine",
+                "perception",
+                "religion",
+                "artisans_tools",
+                "musical_instrument"
+              ],
+              "applies_to": "sheet_field",
+              "required": true
+            },
+            {
+              "id": "languages",
+              "label_ru": "2 языка",
+              "kind": "multi",
+              "count": 2,
+              "from": "any",
+              "applies_to": "sheet_field",
+              "required": true
+            }
+          ],
+          "notes_ru": "2 из skills/tools + 2 языка.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Клятва смотрителей",
+                "summary_ru": "2 из skills/tools + 2 языка."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "parent_slug": "ranger",
+      "name_ru": "Следопыт",
+      "grants_level": 3,
+      "subclasses": [
+        {
+          "slug": "hunter",
+          "name_ru": "Охотник",
+          "name_en": "Hunter",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "hunters_prey",
+              "label_ru": "Добыча охотника",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "colossus_slayer",
+                "giant_killer",
+                "horde_breaker"
+              ],
+              "from_labels_ru": {
+                "colossus_slayer": "Убийца колоссов",
+                "giant_killer": "Убийца великанов",
+                "horde_breaker": "Гроза орд"
+              },
+              "applies_to": "flavor_only",
+              "required": true,
+              "notes_ru": "На 7/11/15 — ещё ветки Defensive/Multiattack/Superior; future_choices."
+            }
+          ],
+          "parent_slug": "ranger",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "beast_master",
+          "name_ru": "Повелитель зверей",
+          "name_en": "Beast Master",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "rangers_companion",
+              "label_ru": "Спутник",
+              "kind": "open_text",
+              "count": 1,
+              "from": [],
+              "applies_to": "flavor_only",
+              "required": true,
+              "notes_ru": "Имя/вид зверя CR ≤ 1/4, размер ≤ Medium — свободный текст на лист (потом сущность компаньона)."
+            }
+          ],
+          "parent_slug": "ranger",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "gloom_stalker",
+          "name_ru": "Сумрачный охотник",
+          "name_en": "Gloom Stalker",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Сумрачный охотник",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "horizon_walker",
+          "name_ru": "Странник горизонта",
+          "name_en": "Horizon Walker",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Странник горизонта",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "monster_slayer",
+          "name_ru": "Убийца чудовищ",
+          "name_en": "Monster Slayer",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Убийца чудовищ",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "fey_wanderer",
+          "name_ru": "Странник фей",
+          "name_en": "Fey Wanderer",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Странник фей",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "swarmkeeper",
+          "name_ru": "Хранитель роя",
+          "name_en": "Swarmkeeper",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Хранитель роя",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "drakewarden",
+          "name_ru": "Наездник на дрейке",
+          "name_en": "Drakewarden",
+          "source": "ftd",
+          "source_books": "FTD",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "drake_essence",
+              "label_ru": "Сущность дрейка",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison"
+              ],
+              "from_labels_ru": {
+                "acid": "Кислота",
+                "cold": "Холод",
+                "fire": "Огонь",
+                "lightning": "Молния",
+                "poison": "Яд"
+              },
+              "applies_to": "flavor_only",
+              "required": true
+            },
+            {
+              "id": "drake_companion",
+              "label_ru": "Имя дрейка",
+              "kind": "open_text",
+              "count": 1,
+              "from": [],
+              "applies_to": "companion",
+              "required": true,
+              "notes_ru": "Создаёт карточку спутника kind=drake."
+            }
+          ],
+          "notes_ru": "Drakewarden: сущность + спутник-дрейк.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Наездник на дрейке",
+                "summary_ru": "Drakewarden: сущность + спутник-дрейк."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "parent_slug": "rogue",
+      "name_ru": "Плут",
+      "grants_level": 3,
+      "subclasses": [
+        {
+          "slug": "thief",
+          "name_ru": "Вор",
+          "name_en": "Thief",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Без новых владений.",
+          "parent_slug": "rogue",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Вор",
+                "summary_ru": "Без новых владений."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "assassin",
+          "name_ru": "Убийца",
+          "name_en": "Assassin",
+          "source": "phb",
+          "sheet_grants": {
+            "tools_fixed": [
+              "Набор для грима",
+              "Набор отравителя"
+            ]
+          },
+          "choices": [],
+          "notes_ru": "Disguise kit + poisoner's kit.",
+          "parent_slug": "rogue",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Убийца",
+                "summary_ru": "Disguise kit + poisoner's kit."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "arcane_trickster",
+          "name_ru": "Мистический ловкач",
+          "name_en": "Arcane Trickster",
+          "source": "phb",
+          "sheet_grants": {
+            "caster": {
+              "progression": "third",
+              "ability": "int",
+              "prepare": null,
+              "note": "Известные заклинания волшебника (школа очарования/иллюзии); MC floor(level/3)"
+            }
+          },
+          "choices": [],
+          "notes_ru": "Third caster на листе.",
+          "parent_slug": "rogue",
+          "grants_level": 3,
+          "source_books": "PHB",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Мистический ловкач",
+                "summary_ru": "Third caster на листе."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "mastermind",
+          "name_ru": "Комбинатор",
+          "name_en": "Mastermind",
+          "source": "xgte",
+          "source_books": "SCAG/XGtE",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "gaming_set",
+              "label_ru": "Игровой набор",
+              "kind": "single",
+              "count": 1,
+              "from": "gaming_sets",
+              "applies_to": "sheet_field",
+              "required": true
+            },
+            {
+              "id": "disguise_or_forgery",
+              "label_ru": "Маскировка или подделка",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "disguise_kit",
+                "forgery_kit"
+              ],
+              "applies_to": "sheet_field",
+              "required": true
+            },
+            {
+              "id": "languages",
+              "label_ru": "2 языка",
+              "kind": "multi",
+              "count": 2,
+              "from": "any",
+              "applies_to": "sheet_field",
+              "required": true
+            }
+          ],
+          "notes_ru": "Gaming set + disguise/forgery + 2 языка.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Комбинатор",
+                "summary_ru": "Gaming set + disguise/forgery + 2 языка."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "swashbuckler",
+          "name_ru": "Дуэлянт",
+          "name_en": "Swashbuckler",
+          "source": "xgte",
+          "source_books": "SCAG/XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Дуэлянт",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "inquisitive",
+          "name_ru": "Сыщик",
+          "name_en": "Inquisitive",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Сыщик",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "scout",
+          "name_ru": "Скаут",
+          "name_en": "Scout",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {
+            "skill_choices": {
+              "count": 2,
+              "from": [
+                "nature",
+                "survival"
+              ]
+            }
+          },
+          "choices": [],
+          "notes_ru": "Nature + Survival (и expertise на них).",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Скаут",
+                "summary_ru": "Nature + Survival (и expertise на них)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "phantom",
+          "name_ru": "Фантом",
+          "name_en": "Phantom",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Фантом",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "soulknife",
+          "name_ru": "Клинок души",
+          "name_en": "Soulknife",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "3": [
+              {
+                "title_ru": "Клинок души",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "parent_slug": "sorcerer",
+      "name_ru": "Чародей",
+      "grants_level": 1,
+      "subclasses": [
+        {
+          "slug": "draconic_bloodline",
+          "name_ru": "Наследие драконьей крови",
+          "name_en": "Draconic Bloodline",
+          "source": "phb",
+          "sheet_grants": {
+            "languages_fixed": [
+              "Драконий"
+            ],
+            "notes": "Draconic Resilience: если нет доспеха — AC = 13 + DEX (override на листе); +1 HP за уровень чародея"
+          },
+          "choices": [
+            {
+              "id": "dragon_ancestor",
+              "label_ru": "Драконий предок",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "black",
+                "blue",
+                "brass",
+                "bronze",
+                "copper",
+                "gold",
+                "green",
+                "red",
+                "silver",
+                "white"
+              ],
+              "from_labels_ru": {
+                "black": "Чёрный (кислота)",
+                "blue": "Синий (молния)",
+                "brass": "Латунный (огонь)",
+                "bronze": "Бронзовый (молния)",
+                "copper": "Медный (кислота)",
+                "gold": "Золотой (огонь)",
+                "green": "Зелёный (яд)",
+                "red": "Красный (огонь)",
+                "silver": "Серебряный (холод)",
+                "white": "Белый (холод)"
+              },
+              "applies_to": "grant",
+              "required": true,
+              "notes_ru": "Тип урона Elemental Affinity; язык драконий — сразу."
+            }
+          ],
+          "notes_ru": "На лист: язык; флаг unarmored_ac_13_dex; hp_per_sorcerer_level +1.",
+          "parent_slug": "sorcerer",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Наследие драконьей крови",
+                "summary_ru": "На лист: язык; флаг unarmored_ac_13_dex; hp_per_sorcerer_level +1."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "wild_magic",
+          "name_ru": "Дикая магия",
+          "name_en": "Wild Magic",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Только фичи / таблица всплесков.",
+          "parent_slug": "sorcerer",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Дикая магия",
+                "summary_ru": "Только фичи / таблица всплесков."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "storm_sorcery",
+          "name_ru": "Штормовое колдовство",
+          "name_en": "Storm Sorcery",
+          "source": "xgte",
+          "source_books": "SCAG/XGtE",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "language",
+              "label_ru": "Язык (Primordial/Auran/…)",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "primordial",
+                "aquan",
+                "auran",
+                "ignan",
+                "terran"
+              ],
+              "applies_to": "sheet_field",
+              "required": true
+            }
+          ],
+          "notes_ru": "Язык первородной группы.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Штормовое колдовство",
+                "summary_ru": "Язык первородной группы."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "divine_soul",
+          "name_ru": "Божественная душа",
+          "name_en": "Divine Soul",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "divine_affinity",
+              "label_ru": "Божественное сродство",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "good",
+                "evil",
+                "law",
+                "chaos",
+                "neutrality"
+              ],
+              "applies_to": "later_spells",
+              "required": true
+            }
+          ],
+          "notes_ru": "Affinity даёт бонусное заклинание 1 ур.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Божественная душа",
+                "summary_ru": "Affinity даёт бонусное заклинание 1 ур."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "shadow_magic",
+          "name_ru": "Теневая магия",
+          "name_en": "Shadow Magic",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Теневая магия",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "aberrant_mind",
+          "name_ru": "Аберрантный разум",
+          "name_en": "Aberrant Mind",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Аберрантный разум",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "clockwork_soul",
+          "name_ru": "Заводная душа",
+          "name_en": "Clockwork Soul",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Заводная душа",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "lunar_sorcery",
+          "name_ru": "Лунное чародейство",
+          "name_en": "Lunar Sorcery",
+          "source": "dragonlance",
+          "source_books": "DSotDQ",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "lunar_phase",
+              "label_ru": "Фаза луны",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "full",
+                "new",
+                "crescent"
+              ],
+              "applies_to": "later_spells",
+              "required": true
+            }
+          ],
+          "notes_ru": "Фаза влияет наspell list / бонусы.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Лунное чародейство",
+                "summary_ru": "Фаза влияет наspell list / бонусы."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "parent_slug": "warlock",
+      "name_ru": "Колдун",
+      "grants_level": 1,
+      "subclasses": [
+        {
+          "slug": "the_archfey",
+          "name_ru": "Архифея",
+          "name_en": "The Archfey",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Expanded spells — later. Patron at 1.",
+          "parent_slug": "warlock",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Архифея",
+                "summary_ru": "Expanded spells — later. Patron at 1."
+              }
+            ]
+          },
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "the_fiend",
+          "name_ru": "Исчадие",
+          "name_en": "The Fiend",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "warlock",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "the_great_old_one",
+          "name_ru": "Великий Древний",
+          "name_en": "The Great Old One",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "warlock",
+          "grants_level": 1,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "the_undying",
+          "name_ru": "Бессмертный",
+          "name_en": "The Undying",
+          "source": "scag",
+          "source_books": "SCAG",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Бессмертный",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "the_celestial",
+          "name_ru": "Небожитель",
+          "name_en": "The Celestial",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Небожитель",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "the_hexblade",
+          "name_ru": "Ведьмовской клинок",
+          "name_en": "The Hexblade",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {
+            "armor": [
+              "medium",
+              "shields"
+            ],
+            "weapons": {
+              "martial": true
+            }
+          },
+          "choices": [
+            {
+              "id": "hex_weapon",
+              "label_ru": "Оружие Hex Warrior",
+              "kind": "single",
+              "count": 1,
+              "from": "eligible_weapons",
+              "applies_to": "sheet_field",
+              "required": false
+            }
+          ],
+          "notes_ru": "Средние доспехи, щиты, martial; Hex Weapon (Cha to hit).",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Ведьмовской клинок",
+                "summary_ru": "Средние доспехи, щиты, martial; Hex Weapon (Cha to hit)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "the_fathomless",
+          "name_ru": "Бездонный",
+          "name_en": "The Fathomless",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Бездонный",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "the_genie",
+          "name_ru": "Гений",
+          "name_en": "The Genie",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [
+            {
+              "id": "genie_kind",
+              "label_ru": "Вид джинна",
+              "kind": "single",
+              "count": 1,
+              "from": [
+                "dao",
+                "djinni",
+                "efreeti",
+                "marid"
+              ],
+              "applies_to": "later_spells",
+              "required": true
+            }
+          ],
+          "notes_ru": "Вид джинна → expanded spells + damage type.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Гений",
+                "summary_ru": "Вид джинна → expanded spells + damage type."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "the_undead",
+          "name_ru": "Нежить",
+          "name_en": "The Undead",
+          "source": "vrgr",
+          "source_books": "VRGtR",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "1": [
+              {
+                "title_ru": "Нежить",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "parent_slug": "wizard",
+      "name_ru": "Волшебник",
+      "grants_level": 2,
+      "subclasses": [
+        {
+          "slug": "school_of_abjuration",
+          "name_ru": "Школа ограждения",
+          "name_en": "School of Abjuration",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "wizard",
+          "grants_level": 2,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "school_of_conjuration",
+          "name_ru": "Школа вызова",
+          "name_en": "School of Conjuration",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "wizard",
+          "grants_level": 2,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "school_of_divination",
+          "name_ru": "Школа прорицания",
+          "name_en": "School of Divination",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "wizard",
+          "grants_level": 2,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "school_of_enchantment",
+          "name_ru": "Школа очарования",
+          "name_en": "School of Enchantment",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "wizard",
+          "grants_level": 2,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "school_of_evocation",
+          "name_ru": "Школа воплощения",
+          "name_en": "School of Evocation",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "wizard",
+          "grants_level": 2,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "school_of_illusion",
+          "name_ru": "Школа иллюзии",
+          "name_en": "School of Illusion",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "wizard",
+          "grants_level": 2,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "school_of_necromancy",
+          "name_ru": "Школа некромантии",
+          "name_en": "School of Necromancy",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "wizard",
+          "grants_level": 2,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "school_of_transmutation",
+          "name_ru": "Школа преобразования",
+          "name_en": "School of Transmutation",
+          "source": "phb",
+          "sheet_grants": {},
+          "choices": [],
+          "parent_slug": "wizard",
+          "grants_level": 2,
+          "source_books": "PHB",
+          "features_by_level": {},
+          "detail_status": "detailed"
+        },
+        {
+          "slug": "bladesinging",
+          "name_ru": "Песнь клинка",
+          "name_en": "Bladesinging",
+          "source": "tasha",
+          "source_books": "SCAG/TCoE",
+          "sheet_grants": {
+            "armor": [
+              "light"
+            ],
+            "skill_choices": {
+              "count": 1,
+              "from": [
+                "performance"
+              ]
+            }
+          },
+          "choices": [
+            {
+              "id": "bladesinger_weapon",
+              "label_ru": "Владение одноручным оружием ближнего боя",
+              "kind": "single",
+              "count": 1,
+              "from": "one_handed_melee",
+              "applies_to": "sheet_field",
+              "required": true
+            }
+          ],
+          "notes_ru": "Лёгкие доспехи + Performance + одноручное оружие.",
+          "detail_status": "forks_stub",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Песнь клинка",
+                "summary_ru": "Лёгкие доспехи + Performance + одноручное оружие."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "war_magic",
+          "name_ru": "Военная магия",
+          "name_en": "War Magic",
+          "source": "xgte",
+          "source_books": "XGtE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Военная магия",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "order_of_scribes",
+          "name_ru": "Орден писцов",
+          "name_en": "Order of Scribes",
+          "source": "tasha",
+          "source_books": "TCoE",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Орден писцов",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "chronurgy_magic",
+          "name_ru": "Магия хронургии",
+          "name_en": "Chronurgy Magic",
+          "source": "egtw",
+          "source_books": "EGtW",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Магия хронургии",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        },
+        {
+          "slug": "graviturgy_magic",
+          "name_ru": "Магия гравитургии",
+          "name_en": "Graviturgy Magic",
+          "source": "egtw",
+          "source_books": "EGtW",
+          "sheet_grants": {},
+          "choices": [],
+          "notes_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания).",
+          "detail_status": "inventory_only",
+          "features_by_level": {
+            "2": [
+              {
+                "title_ru": "Магия гравитургии",
+                "summary_ru": "Официальный подкласс; развилки листа — уточнить при имплементации (часто только фичи/заклинания)."
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -78,6 +78,23 @@ export function SubclassSetupDialog({
           персонажа не трогаем.
         </Text>
         {def.notesRu ? <Text tone="muted">{def.notesRu}</Text> : null}
+        {def.alwaysPreparedSpells.length > 0 ? (
+          <Text tone="muted">
+            Всегда подготовлены ({def.alwaysPreparedSpells.length}):{' '}
+            {def.alwaysPreparedSpells.map((spell) => spell.name).join(', ')}
+          </Text>
+        ) : null}
+        {Object.keys(def.featuresByLevel).length > 0 ? (
+          <Stack gap={6}>
+            <Text tone="muted">Фичи (черновик текстов):</Text>
+            {Object.entries(def.featuresByLevel).map(([level, cards]) => (
+              <Text key={level} tone="muted">
+                {level} ур.: {cards.map((card) => card.titleRu).join(', ')}
+                {cards[0]?.summaryRu ? ` — ${cards[0].summaryRu}` : ''}
+              </Text>
+            ))}
+          </Stack>
+        ) : null}
 
         {def.choices.map((choice) => {
           const value = picks.values[choice.id]

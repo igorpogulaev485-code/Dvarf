@@ -455,6 +455,7 @@ export function MinimalSheetEditor({
       raceGrant: prev.raceGrant,
       companions: prev.companions,
       textBlocks: prev.textBlocks,
+      spells: prev.spells,
     }
   }
 
@@ -466,6 +467,7 @@ export function MinimalSheetEditor({
       subclassGrants: slice.subclassGrants,
       companions: slice.companions,
       textBlocks: slice.textBlocks,
+      spells: slice.spells,
     }
     const restored = reapplyRaceOverlays(raceSliceFrom(merged))
     return mergeRaceSlice(merged, restored)
@@ -594,6 +596,8 @@ export function MinimalSheetEditor({
               caster: null,
             },
             choices: [],
+            alwaysPreparedSpells: [],
+            featuresByLevel: {},
           } satisfies SubclassGrantDef),
         fromName: row?.subclass_name || existing.slug,
         textSnippets: collectGrantTextSnippets({ def: previousDef, grant: existing }),

@@ -17,6 +17,7 @@ import type { AppliedRaceGrant } from '../../shared/dnd/raceGrants'
 import type { CompanionEntry } from './companions'
 import { createCompanion, revokeCompanionsForSubclass } from './companions'
 import type { TextBlock } from './textBlocks'
+import { createSheetSpell, type SpellsState } from './spells'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 
@@ -28,6 +29,7 @@ export type SubclassGrantDraftSlice = {
   raceGrant: AppliedRaceGrant | null
   companions: CompanionEntry[]
   textBlocks: TextBlock[]
+  spells: SpellsState
 }
 
 function uniqueStrings(items: string[]): string[] {
@@ -210,6 +212,9 @@ export function readAppliedSubclassGrants(raw: unknown): AppliedSubclassGrant[] 
                   : null,
             }
           : null,
+      grantedSpellIds: Array.isArray(row.grantedSpellIds)
+        ? row.grantedSpellIds.filter((v): v is string => typeof v === 'string')
+        : [],
     })
   }
   return result
@@ -303,12 +308,16 @@ export function revokeSubclassGrant(
     previous.slug,
   )
 
+  const removeSpellIds = new Set(previous.grantedSpellIds)
+  const known = draft.spells.known.filter((spell) => !removeSpellIds.has(spell.id))
+
   return {
     ...draft,
     skills,
     subclassGrants: remaining,
     companions,
     textBlocks,
+    spells: { ...draft.spells, known },
     identity: {
       ...draft.identity,
       armor,
@@ -364,6 +373,65 @@ export function applySubclassGrantToDraft(input: {
   const weapons: WeaponProficiency = { ...cleared.identity.weapons }
   for (const key of weaponKeys) weapons[key] = true
 
+  const companionsFromPicks: CompanionEntry[] = []
+  for (const choice of input.def.choices) {
+    const raw = picks.values[choice.id]
+    const value = typeof raw === 'string' ? raw.trim() : ''
+    if (!value) continue
+    const id = choice.id.toLowerCase()
+    const isCompanion =
+      choice.appliesTo === 'companion' ||
+      id.includes('companion') ||
+      id.includes('defender') ||
+      id.includes('drake') ||
+      id.includes('cannon') ||
+      id.includes('spirit')
+    if (!isCompanion) continue
+    const kind =
+      id.includes('defender')
+        ? 'steel_defender'
+        : id.includes('drake')
+          ? 'drake'
+          : id.includes('cannon')
+            ? 'eldritch_cannon'
+            : id.includes('familiar')
+              ? 'familiar'
+              : id.includes('spirit') || id.includes('wildfire')
+                ? 'other'
+                : 'beast_companion'
+    const displayName =
+      choice.kind === 'single'
+        ? choice.fromLabelsRu?.[value] ?? value
+        : value
+    companionsFromPicks.push(
+      createCompanion({
+        kind,
+        name: displayName,
+        notes:
+          choice.kind === 'single' && choice.fromLabelsRu?.[value]
+            ? `Вариант: ${choice.fromLabelsRu[value]}`
+            : '',
+        source: {
+          classEntryId: input.classEntryId,
+          subclassSlug: input.def.slug,
+          feature: choice.id,
+        },
+      }),
+    )
+  }
+
+  const grantedSpellIds: string[] = []
+  const known = [...cleared.spells.known]
+  for (const spell of input.def.alwaysPreparedSpells) {
+    const created = createSheetSpell()
+    created.name = spell.name
+    created.level = spell.level
+    created.prepared = true
+    created.notes = `Всегда подготовлено · ${input.def.labelRu}`
+    known.push(created)
+    grantedSpellIds.push(created.id)
+  }
+
   const nextGrant: AppliedSubclassGrant = {
     classEntryId: input.classEntryId,
     catalogId: input.catalogId,
@@ -377,42 +445,7 @@ export function applySubclassGrantToDraft(input: {
     languages: languagesApplied,
     picks: { ...picks.values },
     caster: input.def.sheetGrants.caster,
-  }
-
-  const companionsFromPicks: CompanionEntry[] = []
-  for (const choice of input.def.choices) {
-    const value = picks.values[choice.id]
-    if (typeof value !== 'string' || !value.trim()) continue
-    const id = choice.id.toLowerCase()
-    const isCompanion =
-      choice.appliesTo === 'companion' ||
-      id.includes('companion') ||
-      id.includes('defender') ||
-      id.includes('drake') ||
-      id.includes('cannon')
-    if (!isCompanion && choice.kind !== 'open_text') continue
-    if (!isCompanion) continue
-    const kind =
-      id.includes('defender')
-        ? 'steel_defender'
-        : id.includes('drake')
-          ? 'drake'
-          : id.includes('cannon')
-            ? 'eldritch_cannon'
-            : id.includes('familiar')
-              ? 'familiar'
-              : 'beast_companion'
-    companionsFromPicks.push(
-      createCompanion({
-        kind,
-        name: value.trim(),
-        source: {
-          classEntryId: input.classEntryId,
-          subclassSlug: input.def.slug,
-          feature: choice.id,
-        },
-      }),
-    )
+    grantedSpellIds,
   }
 
   const draft: SubclassGrantDraftSlice = {
@@ -423,6 +456,7 @@ export function applySubclassGrantToDraft(input: {
       nextGrant,
     ],
     companions: [...cleared.companions, ...companionsFromPicks],
+    spells: { ...cleared.spells, known },
     identity: {
       ...cleared.identity,
       armor,
