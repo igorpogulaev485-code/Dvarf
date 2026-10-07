@@ -338,3 +338,45 @@ export function scaleAtSlotLevel(
   if (thresholds.length === 0) return fallback
   return table[String(thresholds[thresholds.length - 1])] ?? fallback
 }
+
+export type CastEffectSpell = {
+  level: number
+  damage?: string | null
+  damage_at_character_level?: SpellScaleTable
+  damage_at_slot_level?: SpellScaleTable
+}
+
+/**
+ * Resolve effect dice/text for a cast.
+ * Cantrips scale by character level; leveled spells by slot level (upcast).
+ * If the scale table is bare `NdM` and `damage` has a type suffix (`8d6 огонь`),
+ * keep the suffix.
+ */
+export function resolveCastEffect(
+  spell: CastEffectSpell,
+  options: { characterLevel: number; slotLevel: number },
+): { effect: string; scaled: boolean } {
+  const base = typeof spell.damage === 'string' ? spell.damage.trim() : ''
+  const isCantrip = spell.level <= 0
+  const scaledRaw = isCantrip
+    ? scaleAtCharacterLevel(
+        spell.damage_at_character_level,
+        options.characterLevel,
+        '',
+      )
+    : scaleAtSlotLevel(spell.damage_at_slot_level, options.slotLevel, '')
+
+  if (!scaledRaw) {
+    return { effect: base, scaled: false }
+  }
+
+  const bareDice = /^\d+d\d+$/i.test(scaledRaw.trim())
+  if (bareDice && base) {
+    const suffix = base.match(/^\d+d\d+(\b.*)$/i)
+    if (suffix) {
+      return { effect: `${scaledRaw.trim()}${suffix[1]}`, scaled: true }
+    }
+  }
+
+  return { effect: scaledRaw.trim(), scaled: true }
+}

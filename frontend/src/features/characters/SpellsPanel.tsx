@@ -24,7 +24,11 @@ import {
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
-import { formatSpellComponents, spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
+import {
+  formatSpellComponents,
+  resolveCastEffect,
+  spellSchoolLabelRu,
+} from '../../shared/dnd/spellCatalog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import type { ConcentrationState } from './play'
@@ -238,10 +242,24 @@ export function SpellsPanel({
   function confirmCast(choice: CastChoice) {
     if (!castSpell) return
     const name = castSpell.name || 'Заклинание'
+    const slotForEffect =
+      castSpell.level <= 0
+        ? 0
+        : choice.usePact
+          ? (spells.pact_slots?.level ?? castSpell.level)
+          : choice.slotLevel
+    const { effect, scaled } = resolveCastEffect(castSpell, {
+      characterLevel: level,
+      slotLevel: slotForEffect || castSpell.level,
+    })
+    const effectNote = scaled && effect ? ` · ${effect}` : ''
+
     if (castSpell.level <= 0) {
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
-        castSpell.concentration ? `Каст: ${name} (концентрация)` : `Каст: ${name}`,
+        castSpell.concentration
+          ? `Каст: ${name}${effectNote} (концентрация)`
+          : `Каст: ${name}${effectNote}`,
       )
       setCastSpell(null)
       return
@@ -255,7 +273,7 @@ export function SpellsPanel({
       patch({ pact_slots: pactResult.pact })
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
-        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${
+        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${effectNote}${
           castSpell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -272,7 +290,7 @@ export function SpellsPanel({
     const upcast =
       choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast?.(
-      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${
         castSpell.concentration ? ' · концентрация' : ''
       }`,
     )
@@ -734,6 +752,7 @@ export function SpellsPanel({
         open={castSpell != null}
         spell={castSpell}
         spells={spells}
+        characterLevel={level}
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />
