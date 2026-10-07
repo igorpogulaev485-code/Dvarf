@@ -92,6 +92,9 @@ export function BackgroundSetupDialog({
   const [tools, setTools] = useState<string[]>([])
   const [languages, setLanguages] = useState<string[]>([])
   const [equipmentPackageId, setEquipmentPackageId] = useState<string | null>(null)
+  const [equipmentOrPicks, setEquipmentOrPicks] = useState<Record<string, string>>(
+    {},
+  )
   const [personalityTraits, setPersonalityTraits] = useState<string[]>([])
   const [ideal, setIdeal] = useState<string | null>(null)
   const [bond, setBond] = useState<string | null>(null)
@@ -103,6 +106,7 @@ export function BackgroundSetupDialog({
     setTools([])
     setLanguages([])
     setEquipmentPackageId(null)
+    setEquipmentOrPicks({})
     setPersonalityTraits([])
     setIdeal(null)
     setBond(null)
@@ -143,6 +147,11 @@ export function BackgroundSetupDialog({
 
   const equipmentOk =
     equipmentPackages.length === 0 || Boolean(equipmentPackageId)
+  const orNeed =
+    equipmentPackageId && equipmentPackageId !== 'skip'
+      ? def?.equipmentOrChoices ?? []
+      : []
+  const orOk = orNeed.every((choice) => Boolean(equipmentOrPicks[choice.id]))
 
   // RP optional: either untouched (0) or complete set.
   const traitsOk =
@@ -154,6 +163,7 @@ export function BackgroundSetupDialog({
     tools.length === toolNeed &&
     languages.length === langNeed &&
     equipmentOk &&
+    orOk &&
     traitsOk
 
   if (!def || !entry) return null
@@ -182,6 +192,7 @@ export function BackgroundSetupDialog({
             languages,
             equipmentPackageId:
               equipmentPackages.length > 0 ? equipmentPackageId : null,
+            equipmentOrPicks,
             personalityTraits,
             ideal,
             bond,
@@ -301,7 +312,10 @@ export function BackgroundSetupDialog({
                 type="button"
                 className={`sheet-chip${equipmentPackageId === 'skip' ? ' is-on' : ''}`}
                 style={{ display: 'block', width: '100%', textAlign: 'left' }}
-                onClick={() => setEquipmentPackageId('skip')}
+                onClick={() => {
+                  setEquipmentPackageId('skip')
+                  setEquipmentOrPicks({})
+                }}
               >
                 <strong>Без снаряжения</strong>
                 <div style={{ opacity: 0.85, fontWeight: 400 }}>
@@ -311,6 +325,33 @@ export function BackgroundSetupDialog({
             </Stack>
           </Field>
         ) : null}
+
+        {orNeed.length > 0
+          ? orNeed.map((choice) => (
+              <Field key={choice.id} label={`Снаряжение: ${choice.labelRu}`}>
+                <div className="chip-row">
+                  {choice.options.map((option) => {
+                    const on = equipmentOrPicks[choice.id] === option
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        onClick={() =>
+                          setEquipmentOrPicks((prev) => ({
+                            ...prev,
+                            [choice.id]: option,
+                          }))
+                        }
+                      >
+                        {option}
+                      </button>
+                    )
+                  })}
+                </div>
+              </Field>
+            ))
+          : null}
 
         {hasRp ? (
           <Stack gap={12}>

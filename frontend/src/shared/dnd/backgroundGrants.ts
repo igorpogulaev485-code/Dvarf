@@ -17,6 +17,13 @@ export type ToolChoice = {
   from: string[]
 }
 
+/** «Молитвенник или молитвенный барабан» style forks inside background gear. */
+export type EquipmentOrChoice = {
+  id: string
+  labelRu: string
+  options: string[]
+}
+
 export type BackgroundGrantDef = {
   slug: string
   labelRu: string
@@ -32,6 +39,7 @@ export type BackgroundGrantDef = {
   featureTextRu: string | null
   featNoteRu: string | null
   equipment: StartingEquipmentPackage[]
+  equipmentOrChoices: EquipmentOrChoice[]
   /** Suggested characteristics tables (optional RP picks). */
   personalityTraits: string[]
   ideals: string[]
@@ -44,6 +52,8 @@ export type BackgroundGrantPicks = {
   tools: string[]
   languages: string[]
   equipmentPackageId: string | null
+  /** choiceId → selected option name */
+  equipmentOrPicks: Record<string, string>
   /** 0 or personalityPickCount (usually 2). */
   personalityTraits: string[]
   ideal: string | null
@@ -61,6 +71,7 @@ export type AppliedBackgroundGrant = {
   featureTextRu: string | null
   featNoteRu: string | null
   equipmentPackageId: string | null
+  equipmentOrPicks: Record<string, string>
   equipmentItemIds: string[]
   equipmentCoinsGp: number
   personalityTraits: string[]
@@ -210,6 +221,23 @@ function readEquipmentPackages(raw: unknown): StartingEquipmentPackage[] {
   return packs
 }
 
+function readEquipmentOrChoices(raw: unknown): EquipmentOrChoice[] {
+  if (!Array.isArray(raw)) return []
+  const out: EquipmentOrChoice[] = []
+  for (const item of raw) {
+    const row = asRecord(item)
+    const id = typeof row.id === 'string' && row.id.trim() ? row.id.trim() : ''
+    const labelRu =
+      typeof row.labelRu === 'string' && row.labelRu.trim()
+        ? row.labelRu.trim()
+        : ''
+    const options = readStringList(row.options)
+    if (!id || options.length < 2) continue
+    out.push({ id, labelRu: labelRu || options.join(' или '), options })
+  }
+  return out
+}
+
 export function backgroundGrantDefFromCatalog(input: {
   slug: string
   nameRu: string
@@ -237,6 +265,7 @@ export function backgroundGrantDefFromCatalog(input: {
       typeof data.feature_text_ru === 'string' ? data.feature_text_ru : null,
     featNoteRu: typeof data.feat_note_ru === 'string' ? data.feat_note_ru : null,
     equipment: readEquipmentPackages(data.starting_equipment),
+    equipmentOrChoices: readEquipmentOrChoices(data.equipment_or_choices),
     personalityTraits: readStringList(data.personality_traits),
     ideals: readStringList(data.ideals),
     bonds: readStringList(data.bonds),
@@ -286,6 +315,7 @@ export function emptyBackgroundPicks(): BackgroundGrantPicks {
     tools: [],
     languages: [],
     equipmentPackageId: null,
+    equipmentOrPicks: {},
     personalityTraits: [],
     ideal: null,
     bond: null,
@@ -381,6 +411,15 @@ export function validateBackgroundGrantPicks(input: {
     if (id !== 'skip' && !def.equipment.some((pack) => pack.id === id)) {
       return 'Неизвестный пакет снаряжения'
     }
+    if (id !== 'skip' && def.equipmentOrChoices.length > 0) {
+      for (const choice of def.equipmentOrChoices) {
+        const picked = picks.equipmentOrPicks[choice.id]
+        if (!picked) return `Выбери вариант: ${choice.labelRu}`
+        if (!choice.options.includes(picked)) {
+          return `Неизвестный вариант снаряжения: ${choice.labelRu}`
+        }
+      }
+    }
   }
 
   // RP tables are optional (0 = skip), but partial picks must be complete/valid.
@@ -457,6 +496,7 @@ export function readAppliedBackgroundGrant(raw: unknown): AppliedBackgroundGrant
     featNoteRu: typeof row.featNoteRu === 'string' ? row.featNoteRu : null,
     equipmentPackageId:
       typeof row.equipmentPackageId === 'string' ? row.equipmentPackageId : null,
+    equipmentOrPicks: readStringMap(row.equipmentOrPicks),
     equipmentItemIds: readStringList(row.equipmentItemIds),
     equipmentCoinsGp: Math.max(0, Math.floor(readNumber(row.equipmentCoinsGp, 0))),
     personalityTraits: readStringList(row.personalityTraits),
@@ -464,6 +504,15 @@ export function readAppliedBackgroundGrant(raw: unknown): AppliedBackgroundGrant
     bond: typeof row.bond === 'string' ? row.bond : null,
     flaw: typeof row.flaw === 'string' ? row.flaw : null,
   }
+}
+
+function readStringMap(raw: unknown): Record<string, string> {
+  const row = asRecord(raw)
+  const out: Record<string, string> = {}
+  for (const [key, value] of Object.entries(row)) {
+    if (typeof value === 'string' && value.trim()) out[key] = value.trim()
+  }
+  return out
 }
 
 const RP_MARKERS: Record<

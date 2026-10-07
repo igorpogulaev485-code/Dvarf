@@ -176,6 +176,16 @@ export function applyBackgroundGrantToDraft(input: {
         inventory.items.push(created)
         equipmentItemIds.push(created.id)
       }
+      for (const choice of def.equipmentOrChoices) {
+        const picked = picks.equipmentOrPicks[choice.id]
+        if (!picked) continue
+        const created = createInventoryItem()
+        created.name = picked
+        created.qty = 1
+        created.notes = 'Снаряжение предыстории'
+        inventory.items.push(created)
+        equipmentItemIds.push(created.id)
+      }
       if (pack.coinsGp && pack.coinsGp > 0) {
         equipmentCoinsGp = pack.coinsGp
         inventory.coins.gp += pack.coinsGp
@@ -225,6 +235,7 @@ export function applyBackgroundGrantToDraft(input: {
     featureTextRu: def.featureTextRu,
     featNoteRu: def.featNoteRu,
     equipmentPackageId,
+    equipmentOrPicks: { ...picks.equipmentOrPicks },
     equipmentItemIds,
     equipmentCoinsGp,
     personalityTraits: [...picks.personalityTraits],
