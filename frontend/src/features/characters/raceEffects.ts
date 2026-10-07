@@ -11,6 +11,7 @@ import {
   resolveRaceGrantDef,
   resolveRaceMovement,
   resolveRaceSize,
+  selectActiveRacialSpells,
   validateRaceGrantPicks,
   type AbilityKey,
   type AppliedRaceGrant,
@@ -64,13 +65,23 @@ function racialSpellToSheetSpell(
   const abilityNote = spell.castingAbility
     ? `хар-ка: ${spell.castingAbility.toUpperCase()}`
     : null
-  const notes = [spell.notesRu, abilityNote].filter(Boolean).join(' · ')
+  const unlockNote =
+    spell.unlockLevel > 1 ? `с ${spell.unlockLevel} ур.` : null
+  const grantNote =
+    spell.grant === 'spell_list'
+      ? 'список метки/расы — готовь как классовое'
+      : 'врождённое'
+  const notes = [spell.notesRu, unlockNote, grantNote, abilityNote]
+    .filter(Boolean)
+    .join(' · ')
+  const innate = spell.grant === 'innate'
   return {
     id: raceSpellId(raceSlug, spell.id),
     name: spell.nameRu,
     catalog_id: null,
     level: spell.level,
-    prepared: true,
+    // Innate: always ready. Mark list: player prepares (cantrips stay ready).
+    prepared: innate || spell.level <= 0,
     notes,
     casting_time: '',
     range: '',
@@ -78,6 +89,7 @@ function racialSpellToSheetSpell(
     damage: '',
     concentration: false,
     source_kind: 'race',
+    race_grant: spell.grant,
   }
 }
 
@@ -85,15 +97,30 @@ function syncRaceRacialSpells(input: {
   spells: SpellsState
   raceSlug: string
   racialSpells: RaceRacialSpell[]
+  characterLevel: number
+  hasCasterClass: boolean
 }): SpellsState {
+  const active = selectActiveRacialSpells({
+    racialSpells: input.racialSpells,
+    characterLevel: input.characterLevel,
+    hasCasterClass: input.hasCasterClass,
+  })
+  const previousById = new Map(
+    input.spells.known
+      .filter((row) => row.source_kind === 'race' || row.id.startsWith('race-spell:'))
+      .map((row) => [row.id, row]),
+  )
   const withoutRace = stripRaceSheetSpells(input.spells.known)
-  const nextKnown = [
-    ...withoutRace,
-    ...input.racialSpells.map((spell) =>
-      racialSpellToSheetSpell(input.raceSlug, spell),
-    ),
-  ]
-  return { ...input.spells, known: nextKnown }
+  const nextRaceRows = active.map((spell) => {
+    const next = racialSpellToSheetSpell(input.raceSlug, spell)
+    const prev = previousById.get(next.id)
+    // Preserve player's prepare toggle for mark-list leveled spells.
+    if (prev && next.race_grant === 'spell_list' && next.level > 0) {
+      return { ...next, prepared: prev.prepared }
+    }
+    return next
+  })
+  return { ...input.spells, known: [...withoutRace, ...nextRaceRows] }
 }
 
 function uniqueStrings(items: string[]): string[] {
@@ -220,6 +247,10 @@ export function applyRaceGrantToDraft(input: {
   selected: CatalogEntry
   picks?: RaceGrantPicks
   def?: RaceGrantDef | null
+  /** Total character level (all classes). Defaults to 1. */
+  characterLevel?: number
+  /** Spellcasting or Pact Magic present on any class. */
+  hasCasterClass?: boolean
 }): { draft: RaceGrantDraftSlice; summary: string } | null {
   const def =
     input.def ??
@@ -283,10 +314,14 @@ export function applyRaceGrantToDraft(input: {
     naturalWeapons,
   })
   const racialSpells = def.racialSpells
+  const characterLevel = Math.max(1, Math.floor(input.characterLevel ?? 1))
+  const hasCasterClass = Boolean(input.hasCasterClass)
   const spells = syncRaceRacialSpells({
     spells: cleared.spells,
     raceSlug: def.slug,
     racialSpells,
+    characterLevel,
+    hasCasterClass,
   })
 
   const size = resolveRaceSize({ def, picks })
@@ -347,8 +382,11 @@ export function applyRaceGrantToDraft(input: {
   }
 }
 
-/** Re-apply race ledger overlays after class grant mutations (skills/tools/armor). */
-export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftSlice {
+/** Re-apply race ledger overlays after class/level mutations (skills/tools/armor/spells). */
+export function reapplyRaceOverlays(
+  draft: RaceGrantDraftSlice,
+  options?: { characterLevel?: number; hasCasterClass?: boolean },
+): RaceGrantDraftSlice {
   const grant = draft.raceGrant
   if (!grant) return draft
 
@@ -372,6 +410,8 @@ export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftS
     spells: draft.spells,
     raceSlug: grant.slug,
     racialSpells: grant.racialSpells ?? [],
+    characterLevel: Math.max(1, Math.floor(options?.characterLevel ?? 1)),
+    hasCasterClass: Boolean(options?.hasCasterClass),
   })
 
   return {
@@ -391,6 +431,30 @@ export function reapplyRaceOverlays(draft: RaceGrantDraftSlice): RaceGrantDraftS
     swimSpeed: grant.movement?.swim ?? null,
     flySpeed: grant.movement?.fly ?? null,
   }
+}
+
+/** Refresh race spell rows after level-up / class change (unlock + mark list). */
+export function syncRaceSpellsForSheetState(input: {
+  spells: SpellsState
+  grant: AppliedRaceGrant | null
+  characterLevel: number
+  hasCasterClass: boolean
+  /** Prefer fresher catalog spells when available. */
+  catalogSpells?: RaceRacialSpell[] | null
+}): SpellsState {
+  const grant = input.grant
+  if (!grant) return input.spells
+  const racialSpells =
+    input.catalogSpells && input.catalogSpells.length > 0
+      ? input.catalogSpells
+      : grant.racialSpells ?? []
+  return syncRaceRacialSpells({
+    spells: input.spells,
+    raceSlug: grant.slug,
+    racialSpells,
+    characterLevel: input.characterLevel,
+    hasCasterClass: input.hasCasterClass,
+  })
 }
 
 /**

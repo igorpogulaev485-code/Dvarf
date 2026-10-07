@@ -86,8 +86,10 @@ import {
   readAppliedRaceGrant,
   reapplyRaceOverlays,
   revokeRaceGrant,
+  syncRaceSpellsForSheetState,
   type RaceGrantDraftSlice,
 } from './raceEffects'
+import { characterHasCasterClass } from '../../shared/dnd/casterProgression'
 import {
   equippedArmorPieces,
   inventoryToSheet,
@@ -413,10 +415,22 @@ export function MinimalSheetEditor({
           if (catalogWeapons && catalogWeapons.length > 0) {
             nextGrant = { ...nextGrant, naturalWeapons: catalogWeapons }
           }
+          if (catalogDef?.racialSpells && catalogDef.racialSpells.length > 0) {
+            nextGrant = { ...nextGrant, racialSpells: catalogDef.racialSpells }
+          }
+
+          const nextSpells = syncRaceSpellsForSheetState({
+            spells: prev.spells,
+            grant: nextGrant,
+            characterLevel: totalCharacterLevel(prev.classes),
+            hasCasterClass: characterHasCasterClass(prev.classes),
+            catalogSpells: catalogDef?.racialSpells ?? null,
+          })
 
           if (
             nextWeapons === prev.weapons &&
             nextGrant === prev.raceGrant &&
+            nextSpells === prev.spells &&
             climbSpeed === prev.climbSpeed &&
             swimSpeed === prev.swimSpeed &&
             flySpeed === prev.flySpeed
@@ -426,6 +440,7 @@ export function MinimalSheetEditor({
           return {
             ...prev,
             weapons: nextWeapons,
+            spells: nextSpells,
             raceGrant: nextGrant,
             climbSpeed,
             swimSpeed,
@@ -548,7 +563,10 @@ export function MinimalSheetEditor({
         hitDie: slice.playHitDie,
       },
     }
-    const restored = reapplyRaceOverlays(raceSliceFrom(merged))
+    const restored = reapplyRaceOverlays(raceSliceFrom(merged), {
+      characterLevel: totalCharacterLevel(merged.classes),
+      hasCasterClass: characterHasCasterClass(merged.classes),
+    })
     return mergeRaceSlice(merged, restored)
   }
 
@@ -679,6 +697,8 @@ export function MinimalSheetEditor({
         selected: input.selected,
         picks: input.picks,
         def: input.def,
+        characterLevel: totalCharacterLevel(prev.classes),
+        hasCasterClass: characterHasCasterClass(prev.classes),
       })
       if (!applied) return prev
       summary = applied.summary
@@ -792,7 +812,7 @@ export function MinimalSheetEditor({
       const prevCurrent = prev.hpCurrent
       const nextCurrent =
         prevCurrent == null ? nextMax : Math.min(nextMax, prevCurrent + gain)
-      return {
+      const withClasses: Draft = {
         ...prev,
         classes: nextClasses,
         hpMax: nextMax,
@@ -803,6 +823,15 @@ export function MinimalSheetEditor({
           hitDie: choice.hitDie ?? prev.play.hitDie,
         },
       }
+      // Unlock innate racial spells / refresh mark list when caster status changes.
+      if (!withClasses.raceGrant) return withClasses
+      const spells = syncRaceSpellsForSheetState({
+        spells: withClasses.spells,
+        grant: withClasses.raceGrant,
+        characterLevel: nextLevel,
+        hasCasterClass: characterHasCasterClass(nextClasses),
+      })
+      return { ...withClasses, spells }
     })
     setLevelUpOpen(false)
     const hpNote = ` · HP +${Math.max(0, Math.floor(choice.hpGain))}`

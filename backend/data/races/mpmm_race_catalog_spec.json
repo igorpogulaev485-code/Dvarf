@@ -73,6 +73,8 @@
           "spell_slug": "light",
           "name_ru": "Свет",
           "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "cha",
           "notes_ru": "Носитель света"
         }
@@ -113,6 +115,8 @@
           "spell_slug": "light",
           "name_ru": "Свет",
           "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "cha",
           "notes_ru": "Носитель света"
         }
@@ -150,6 +154,8 @@
           "spell_slug": "light",
           "name_ru": "Свет",
           "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "cha",
           "notes_ru": "Носитель света"
         }
@@ -187,6 +193,8 @@
           "spell_slug": "light",
           "name_ru": "Свет",
           "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "cha",
           "notes_ru": "Носитель света"
         }
@@ -316,6 +324,8 @@
           "spell_slug": "druidcraft",
           "name_ru": "Искусство друида",
           "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "cha",
           "notes_ru": "Магия фэйри"
         },
@@ -324,8 +334,20 @@
           "spell_slug": "enlarge_reduce",
           "name_ru": "Увеличение/уменьшение",
           "level": 2,
+          "grant": "innate",
+          "unlock_level": 3,
           "casting_ability": "cha",
-          "notes_ru": "с 3 ур.; ПБ раз / длинный отдых"
+          "notes_ru": "ПБ раз / длинный отдых"
+        },
+        {
+          "id": "charm_person",
+          "spell_slug": "charm_person",
+          "name_ru": "Очарование личности",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha",
+          "notes_ru": "ПБ раз / длинный отдых"
         }
       ]
     },
@@ -426,6 +448,8 @@
           "spell_slug": "mage_hand",
           "name_ru": "Волшебная рука",
           "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "int",
           "notes_ru": "невидимая; псионика"
         },
@@ -434,16 +458,18 @@
           "spell_slug": "jump",
           "name_ru": "Прыжок",
           "level": 1,
-          "casting_ability": "int",
-          "notes_ru": "с 3 ур."
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "int"
         },
         {
           "id": "misty_step",
           "spell_slug": "misty_step",
           "name_ru": "Туманный шаг",
           "level": 2,
-          "casting_ability": "int",
-          "notes_ru": "с 5 ур."
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "int"
         }
       ]
     },
@@ -475,6 +501,8 @@
           "spell_slug": "mage_hand",
           "name_ru": "Волшебная рука",
           "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "wis",
           "notes_ru": "псионика"
         },
@@ -483,16 +511,18 @@
           "spell_slug": "shield",
           "name_ru": "Щит",
           "level": 1,
-          "casting_ability": "wis",
-          "notes_ru": "с 3 ур."
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "wis"
         },
         {
           "id": "detect_thoughts",
           "spell_slug": "detect_thoughts",
           "name_ru": "Обнаружение мыслей",
           "level": 2,
-          "casting_ability": "wis",
-          "notes_ru": "с 5 ур."
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "wis"
         }
       ]
     },
@@ -1160,16 +1190,30 @@
           "spell_slug": "fog_cloud",
           "name_ru": "Туманное облако",
           "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "cha",
-          "notes_ru": "Контроль воздуха и воды; ПБ раз / длинный отдых"
+          "notes_ru": "ПБ раз / длинный отдых"
         },
         {
           "id": "gust_of_wind",
           "spell_slug": "gust_of_wind",
           "name_ru": "Порыв ветра",
           "level": 2,
+          "grant": "innate",
+          "unlock_level": 3,
           "casting_ability": "cha",
-          "notes_ru": "с 3 ур.; ПБ раз / длинный отдых"
+          "notes_ru": "ПБ раз / длинный отдых"
+        },
+        {
+          "id": "wall_of_water",
+          "spell_slug": "wall_of_water",
+          "name_ru": "Стена воды",
+          "level": 3,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha",
+          "notes_ru": "ПБ раз / длинный отдых"
         }
       ]
     },
@@ -1205,6 +1249,8 @@
           "spell_slug": "poison_spray",
           "name_ru": "Ядовитые брызги",
           "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "cha",
           "notes_ru": "Змеиное колдовство"
         },
@@ -1213,6 +1259,8 @@
           "spell_slug": "animal_friendship",
           "name_ru": "Дружба с животными",
           "level": 1,
+          "grant": "innate",
+          "unlock_level": 1,
           "casting_ability": "cha",
           "notes_ru": "только змеи"
         },
@@ -1221,8 +1269,9 @@
           "spell_slug": "suggestion",
           "name_ru": "Внушение",
           "level": 2,
-          "casting_ability": "cha",
-          "notes_ru": "с 3 ур."
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
         }
       ]
     },
@@ -1246,7 +1295,37 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Дженази воздуха (MPMM): ASI гибкий. Скорость 35. Тёмное зрение 60. Невздыхаемый (не дышишь; сопротивление урону молнии). Знание воздуха: шок; с 3 ур. Пёрышко; с 5 ур. Порыв ветра (ТЕЛ)."
+      "traits_text": "Дженази воздуха (MPMM): ASI гибкий. Скорость 35. Тёмное зрение 60. Невздыхаемый (не дышишь; сопротивление урону молнии). Знание воздуха: шок; с 3 ур. Пёрышко; с 5 ур. Порыв ветра (ТЕЛ).",
+      "racial_spells": [
+        {
+          "id": "shocking_grasp",
+          "spell_slug": "shocking_grasp",
+          "name_ru": "Шоковое касание",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "con",
+          "notes_ru": "Знание воздуха"
+        },
+        {
+          "id": "feather_fall",
+          "spell_slug": "feather_fall",
+          "name_ru": "Падение пёрышком",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "con"
+        },
+        {
+          "id": "gust_of_wind",
+          "spell_slug": "gust_of_wind",
+          "name_ru": "Порыв ветра",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "con"
+        }
+      ]
     },
     {
       "slug": "genasi_earth",
@@ -1268,7 +1347,36 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Дженази земли (MPMM): ASI гибкий. Тёмное зрение 60. Хождение по земле (немагическая земля/камень не затрудняет). Знание земли: защита от клинков; с 3 ур. Бесследное передвижение; с 5 ур. Форма камня (ТЕЛ)."
+      "traits_text": "Дженази земли (MPMM): ASI гибкий. Тёмное зрение 60. Хождение по земле (немагическая земля/камень не затрудняет). Знание земли: защита от клинков; с 3 ур. Бесследное передвижение; с 5 ур. Форма камня (ТЕЛ).",
+      "racial_spells": [
+        {
+          "id": "blade_ward",
+          "spell_slug": "blade_ward",
+          "name_ru": "Защита от клинков",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "con"
+        },
+        {
+          "id": "pass_without_trace",
+          "spell_slug": "pass_without_trace",
+          "name_ru": "Бесследное передвижение",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "con"
+        },
+        {
+          "id": "stone_shape",
+          "spell_slug": "stone_shape",
+          "name_ru": "Форма камня",
+          "level": 4,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "con"
+        }
+      ]
     },
     {
       "slug": "genasi_fire",
@@ -1290,7 +1398,36 @@
         "Общий"
       ],
       "languages_choose": 1,
-      "traits_text": "Дженази огня (MPMM): ASI гибкий. Тёмное зрение 60. Сопротивление огню. Знание огня: огонёк; с 3 ур. Огненные ладони; с 5 ур. Пылающий клинок (ТЕЛ)."
+      "traits_text": "Дженази огня (MPMM): ASI гибкий. Тёмное зрение 60. Сопротивление огню. Знание огня: огонёк; с 3 ур. Огненные ладони; с 5 ур. Пылающий клинок (ТЕЛ).",
+      "racial_spells": [
+        {
+          "id": "produce_flame",
+          "spell_slug": "produce_flame",
+          "name_ru": "Огонёк",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "con"
+        },
+        {
+          "id": "burning_hands",
+          "spell_slug": "burning_hands",
+          "name_ru": "Огненные ладони",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "con"
+        },
+        {
+          "id": "flame_blade",
+          "spell_slug": "flame_blade",
+          "name_ru": "Пылающий клинок",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "con"
+        }
+      ]
     },
     {
       "slug": "genasi_water",
@@ -1315,7 +1452,36 @@
       "traits_text": "Дженази воды (MPMM): ASI гибкий. Скорость 30 + плавание 30. Тёмное зрение 60. Амфибия. Сопротивление кислоте. Знание воды: кислота всплеск? (acid splash); с 3 ур. Создание/уничтожение воды; с 5 ур. Управление водой (МУД).",
       "movement": {
         "swim": 30
-      }
+      },
+      "racial_spells": [
+        {
+          "id": "acid_splash",
+          "spell_slug": "acid_splash",
+          "name_ru": "Брызги кислоты",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "wis"
+        },
+        {
+          "id": "create_or_destroy_water",
+          "spell_slug": "create_or_destroy_water",
+          "name_ru": "Сотворение или уничтожение воды",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "wis"
+        },
+        {
+          "id": "control_water",
+          "spell_slug": "control_water",
+          "name_ru": "Управление водой",
+          "level": 4,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "wis"
+        }
+      ]
     }
   ]
 }

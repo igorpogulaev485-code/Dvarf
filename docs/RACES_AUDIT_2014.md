@@ -51,6 +51,16 @@
 3. В попапе: только корни в combobox; forks внутри Dialog с меткой source.
 4. Apply/revoke ASI + ledger (`race_grant`).
 5. Deploy + DB/UI: число children, `subrace_required`.
+6. Уровневые/метовые заклинания: `racial_spells[].unlock_level` + `grant` (`innate` | `spell_list`).
+
+## Расовые заклинания: innate vs список метки
+
+| `grant` | Когда на лист | Подготовка |
+|---------|---------------|------------|
+| `innate` | `уровень ≥ unlock_level` | всегда готово, вне лимита подготовки |
+| `spell_list` | есть Spellcasting/Pact Magic | чип «Метка»; игрок готовит как классовое |
+
+Пример: `mark_of_shadow` — малая иллюзия + невидимость@3 (innate); таблица 1–5 круга только кастеру (`spell_list`).
 
 ## Инфра-заметка
 

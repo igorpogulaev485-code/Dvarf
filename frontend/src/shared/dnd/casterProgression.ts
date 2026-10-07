@@ -141,6 +141,20 @@ export function resolveClassCasterSlug(className: string): string | null {
   return NAME_TO_SLUG[key] ?? null
 }
 
+/**
+ * True if any class level grants Spellcasting or Pact Magic
+ * (needed for dragonmark «Spells of the Mark» list expansion).
+ */
+export function characterHasCasterClass(classes: ClassLevelEntry[]): boolean {
+  for (const row of classes) {
+    if (Math.max(0, Math.floor(row.level)) <= 0) continue
+    const def = classCasterDef(resolveClassCasterSlug(row.name))
+    if (!def) continue
+    if (def.progression !== 'none') return true
+  }
+  return false
+}
+
 export function classCasterDef(slug: string | null): ClassCasterDef | null {
   if (!slug) return null
   return CLASS_DEFS.find((item) => item.slug === slug) ?? null
