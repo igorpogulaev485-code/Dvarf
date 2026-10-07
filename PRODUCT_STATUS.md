@@ -670,4 +670,4 @@
 | 2026-10-07 | `cursor/feats-bmt-wave-592a` · PR #64 | BMT Cartomancer; alembic `h4c5`; на проде нет |
 | 2026-10-07 | `cursor/feats-assemble-592a` · PR #65 | Assemble tip + feat_enums_all (moon/plane/strike); alembic `i5d6`; на проде нет · ждать «залей» |
 | 2026-10-07 | `cursor/feats-spell-grants-592a` · PR #66 | Feat fixed spell grants → known; alembic `j6e7`; на проде нет |
-| 2026-10-07 | `cursor/feats-backgrounds-phb-592a` | PHB backgrounds apply skills/tools/langs; alembic `j7f8`; на проде нет |
+| 2026-10-07 | `cursor/feats-backgrounds-phb-592a` · PR #67 | PHB backgrounds apply skills/tools/langs; alembic `j7f8`; на проде нет |
