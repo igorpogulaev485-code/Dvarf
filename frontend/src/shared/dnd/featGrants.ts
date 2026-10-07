@@ -25,6 +25,33 @@ export type FeatChoiceDef =
     }
   | {
       id: string
+      /** Pick N distinct options (maneuvers, metamagic, runes…). */
+      type: 'enum_multi'
+      label_ru: string
+      count: number
+      /** When true, count = max(1, floor(PB/2)) from character level. */
+      countFromHalfPb: boolean
+      /** Each option becomes an innate spell (Rune Shaper). */
+      grantSpells: boolean
+      spellLevel: number
+      spellNotesRu: string | null
+      options: Array<{
+        id: string
+        label_ru: string
+        /** Spell name on sheet when grantSpells; defaults to label_ru. */
+        spellNameRu?: string
+        level?: number
+      }>
+    }
+  | {
+      id: string
+      /** Expertise on a skill you are (or will become) proficient in. */
+      type: 'expertise'
+      count: number
+      label_ru: string
+    }
+  | {
+      id: string
       type: 'languages'
       count: number
       label_ru: string
@@ -117,9 +144,13 @@ export type FeatGrantsPackage = {
   naturalArmor: NaturalArmor | null
   /** Fixed spells / cantrips applied to sheet.known on grant. */
   spells: FeatSpell[]
+  /** Skills that gain expertise from this feat. */
+  expertiseSkills: string[]
   benefitsRu: string
   summaryRu: string
   enumPicks: Record<string, string>
+  /** Multi-select enum picks (maneuvers / metamagic / runes…). */
+  enumMultiPicks: Record<string, string[]>
 }
 
 export type FeatGrantDef = {
@@ -166,6 +197,8 @@ export type FeatGrantDef = {
 export type FeatGrantPicks = {
   abilityKeys: Partial<Record<string, AbilityKey>>
   enumIds: Partial<Record<string, string>>
+  enumLists: Partial<Record<string, string[]>>
+  expertiseSkills: string[]
   languages: string[]
   skills: string[]
   tools: string[]
@@ -229,11 +262,23 @@ export function emptyFeatPicks(): FeatGrantPicks {
   return {
     abilityKeys: {},
     enumIds: {},
+    enumLists: {},
+    expertiseSkills: [],
     languages: [],
     skills: [],
     tools: [],
     weapons: [],
   }
+}
+
+export function resolveEnumMultiCount(
+  choice: Extract<FeatChoiceDef, { type: 'enum_multi' }>,
+  characterLevel: number,
+): number {
+  if (choice.countFromHalfPb) {
+    return Math.max(1, Math.floor(proficiencyBonusForLevel(characterLevel) / 2))
+  }
+  return Math.max(1, choice.count)
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -325,6 +370,63 @@ function parseChoices(raw: unknown): FeatChoiceDef[] {
             .filter((opt): opt is { id: string; label_ru: string } => opt != null)
         : []
       out.push({ id, type: 'enum', label_ru: label, options })
+      continue
+    }
+    if (type === 'enum_multi') {
+      const options = Array.isArray(row.options)
+        ? row.options
+            .map((opt) => {
+              const o = asRecord(opt)
+              const optId = readString(o.id)
+              const optLabel = readString(o.label_ru) ?? readString(o.labelRu)
+              if (!optId || !optLabel) return null
+              const spellName =
+                readString(o.spell_name_ru) ?? readString(o.spellNameRu) ?? undefined
+              const optLevelRaw = o.level
+              const level =
+                typeof optLevelRaw === 'number' && Number.isFinite(optLevelRaw)
+                  ? Math.max(0, Math.min(9, Math.floor(optLevelRaw)))
+                  : undefined
+              return {
+                id: optId,
+                label_ru: optLabel,
+                ...(spellName ? { spellNameRu: spellName } : {}),
+                ...(level != null ? { level } : {}),
+              }
+            })
+            .filter(
+              (
+                opt,
+              ): opt is {
+                id: string
+                label_ru: string
+                spellNameRu?: string
+                level?: number
+              } => opt != null,
+            )
+        : []
+      out.push({
+        id,
+        type: 'enum_multi',
+        label_ru: label,
+        count: Math.max(1, Math.floor(readNumber(row.count, 1))),
+        countFromHalfPb: Boolean(
+          row.count_from_half_pb ?? row.countFromHalfPb ?? row.count_from === 'half_pb',
+        ),
+        grantSpells: Boolean(row.grant_spells ?? row.grantSpells),
+        spellLevel: Math.max(0, Math.min(9, Math.floor(readNumber(row.spell_level ?? row.spellLevel, 1)))),
+        spellNotesRu: readString(row.spell_notes_ru) ?? readString(row.spellNotesRu),
+        options,
+      })
+      continue
+    }
+    if (type === 'expertise') {
+      out.push({
+        id,
+        type: 'expertise',
+        count: Math.max(1, Math.floor(readNumber(row.count, 1))),
+        label_ru: label,
+      })
       continue
     }
     if (type === 'languages') {
@@ -453,9 +555,11 @@ function emptyPackage(partial?: Partial<FeatGrantsPackage>): FeatGrantsPackage {
     unarmedDamage: null,
     naturalArmor: null,
     spells: [],
+    expertiseSkills: [],
     benefitsRu: '',
     summaryRu: '',
     enumPicks: {},
+    enumMultiPicks: {},
     ...partial,
   }
 }
@@ -864,6 +968,8 @@ export function validateFeatGrantPicks(input: {
   /** Background catalog slug from identity.backgroundSlug. */
   backgroundSlug?: string | null
   ownedFeatEnums?: OwnedFeatEnumSnapshot[]
+  /** Skill keys the character is proficient in (for expertise). */
+  proficientSkills?: string[]
 }): string | null {
   const { def, picks } = input
   const prereqFail = featPrerequisitesUnmet(def, input)
@@ -882,6 +988,39 @@ export function validateFeatGrantPicks(input: {
       const id = picks.enumIds[choice.id]
       if (!id || !choice.options.some((opt) => opt.id === id)) {
         return `Выбери: ${choice.label_ru}`
+      }
+      continue
+    }
+    if (choice.type === 'enum_multi') {
+      const need = resolveEnumMultiCount(choice, input.characterLevel ?? 1)
+      const list = picks.enumLists[choice.id] ?? []
+      if (list.length !== need) {
+        return `Выбери ${need}: ${choice.label_ru}`
+      }
+      const allowed = new Set(choice.options.map((opt) => opt.id))
+      if (list.some((id) => !allowed.has(id))) {
+        return `Некорректный выбор: ${choice.label_ru}`
+      }
+      if (new Set(list).size !== list.length) {
+        return `Выборы в «${choice.label_ru}» должны быть разными`
+      }
+      continue
+    }
+    if (choice.type === 'expertise') {
+      if (picks.expertiseSkills.length !== choice.count) {
+        return `Выбери: ${choice.label_ru}`
+      }
+      const owned = new Set([
+        ...(input.proficientSkills ?? []),
+        ...picks.skills,
+      ])
+      for (const skill of picks.expertiseSkills) {
+        if (!owned.has(skill)) {
+          return 'Экспертиза только для навыка, которым владеешь'
+        }
+      }
+      if (new Set(picks.expertiseSkills).size !== picks.expertiseSkills.length) {
+        return 'Экспертиза: навыки должны быть разными'
       }
       continue
     }
@@ -964,6 +1103,7 @@ export function matchRacePrerequisite(input: {
 export function buildAppliedFeatPackage(input: {
   def: FeatGrantDef
   picks: FeatGrantPicks
+  characterLevel?: number
 }): FeatGrantsPackage {
   const { def, picks } = input
   const abilityBonuses: Partial<Record<AbilityKey, number>> = {
@@ -971,8 +1111,10 @@ export function buildAppliedFeatPackage(input: {
   }
   const savingThrows: AbilityKey[] = [...def.fixedGrants.savingThrows]
   const enumPicks: Record<string, string> = {}
+  const enumMultiPicks: Record<string, string[]> = {}
   const skillsFromEnum: string[] = []
   const pickedSpells: FeatSpell[] = []
+  const expertiseSkills = [...picks.expertiseSkills]
 
   for (const choice of def.choices) {
     if (choice.type === 'ability_one') {
@@ -990,6 +1132,28 @@ export function buildAppliedFeatPackage(input: {
         enumPicks[choice.id] = id
         if (choice.id === 'skill' || choice.id === 'skills') {
           skillsFromEnum.push(id)
+        }
+      }
+      continue
+    }
+    if (choice.type === 'enum_multi') {
+      const list = picks.enumLists[choice.id] ?? []
+      if (!list.length) continue
+      enumMultiPicks[choice.id] = [...list]
+      if (choice.grantSpells) {
+        for (const optId of list) {
+          const opt = choice.options.find((row) => row.id === optId)
+          if (!opt) continue
+          pickedSpells.push({
+            id: `${choice.id}:${opt.id}`,
+            spellSlug: opt.id,
+            nameRu: opt.spellNameRu ?? opt.label_ru,
+            level: opt.level ?? choice.spellLevel,
+            castingAbility: null,
+            notesRu: choice.spellNotesRu,
+            unlockLevel: 1,
+            grant: 'innate',
+          })
         }
       }
       continue
@@ -1123,8 +1287,23 @@ export function buildAppliedFeatPackage(input: {
     languages: uniqueStrings([...def.fixedGrants.languages, ...picks.languages]),
     weaponNames: uniqueStrings([...def.fixedGrants.weaponNames, ...picks.weapons]),
     spells: allSpells,
+    expertiseSkills: uniqueStrings(expertiseSkills),
     enumPicks,
+    enumMultiPicks,
   })
+}
+
+function parseEnumMultiMap(raw: unknown): Record<string, string[]> {
+  const obj = asRecord(raw)
+  const out: Record<string, string[]> = {}
+  for (const [key, value] of Object.entries(obj)) {
+    if (!Array.isArray(value)) continue
+    const list = uniqueStrings(
+      value.filter((item): item is string => typeof item === 'string'),
+    )
+    if (list.length) out[key] = list
+  }
+  return out
 }
 
 /** Fighting style id from Fighting Initiate feat grant, if any. */
@@ -1229,12 +1408,18 @@ export function readFeatGrantLedger(raw: unknown): AppliedFeatGrant[] {
         appliedRaw.naturalArmor ?? appliedRaw.natural_armor,
       ),
       spells: parseFeatSpells(appliedRaw.spells ?? appliedRaw.feat_spells ?? appliedRaw.featSpells),
+      expertiseSkills: parseStringList(
+        appliedRaw.expertiseSkills ?? appliedRaw.expertise_skills,
+      ),
       benefitsRu: readString(appliedRaw.benefitsRu) ?? readString(appliedRaw.benefits_ru) ?? '',
       summaryRu: readString(appliedRaw.summaryRu) ?? readString(appliedRaw.summary_ru) ?? '',
       enumPicks: Object.fromEntries(
         Object.entries(asRecord(appliedRaw.enumPicks ?? appliedRaw.enum_picks)).filter(
           (entry): entry is [string, string] => typeof entry[1] === 'string',
         ),
+      ),
+      enumMultiPicks: parseEnumMultiMap(
+        appliedRaw.enumMultiPicks ?? appliedRaw.enum_multi_picks,
       ),
     })
     const abilityKeys: Partial<Record<string, AbilityKey>> = {}
@@ -1256,6 +1441,10 @@ export function readFeatGrantLedger(raw: unknown): AppliedFeatGrant[] {
           Object.entries(asRecord(picksRaw.enumIds)).filter(
             (entry): entry is [string, string] => typeof entry[1] === 'string',
           ),
+        ),
+        enumLists: parseEnumMultiMap(picksRaw.enumLists ?? picksRaw.enum_lists),
+        expertiseSkills: parseStringList(
+          picksRaw.expertiseSkills ?? picksRaw.expertise_skills,
         ),
         languages: parseStringList(picksRaw.languages),
         skills: parseStringList(picksRaw.skills),
@@ -1288,7 +1477,17 @@ export function featTraitsSnippet(ledger: AppliedFeatGrant[]): string {
   return ledger
     .map((row) => {
       const body = row.applied.summaryRu || row.applied.benefitsRu
-      return body ? `Черта «${row.nameRu}»: ${body}` : `Черта «${row.nameRu}»`
+      const extras: string[] = []
+      if (row.applied.expertiseSkills.length) {
+        extras.push(`экспертиза: ${row.applied.expertiseSkills.join(', ')}`)
+      }
+      for (const [choiceId, list] of Object.entries(row.applied.enumMultiPicks)) {
+        if (list.length) extras.push(`${choiceId}: ${list.join(', ')}`)
+      }
+      const adapt = row.applied.enumPicks.adapt
+      if (adapt) extras.push(`адаптация: ${adapt}`)
+      const head = body ? `Черта «${row.nameRu}»: ${body}` : `Черта «${row.nameRu}»`
+      return extras.length ? `${head} (${extras.join('; ')})` : head
     })
     .join('\n\n')
 }

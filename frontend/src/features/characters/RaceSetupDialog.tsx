@@ -49,6 +49,7 @@ type RaceSetupDialogProps = {
   classSlugs?: string[]
   backgroundSlug?: string | null
   ownedFeatEnums?: OwnedFeatEnumSnapshot[]
+  proficientSkills?: string[]
   onConfirm: (result: RaceSetupConfirm) => void
   onClose: () => void
 }
@@ -83,6 +84,7 @@ export function RaceSetupDialog({
   classSlugs = [],
   backgroundSlug = null,
   ownedFeatEnums = [],
+  proficientSkills = [],
   onConfirm,
   onClose,
 }: RaceSetupDialogProps) {
@@ -686,6 +688,7 @@ export function RaceSetupDialog({
       classSlugs={classSlugs}
       backgroundSlug={backgroundSlug}
       ownedFeatEnums={ownedFeatEnums}
+      proficientSkills={proficientSkills}
       onClose={() => setFeatPickerOpen(false)}
       onConfirm={(result) => {
         setFeatResult(result)

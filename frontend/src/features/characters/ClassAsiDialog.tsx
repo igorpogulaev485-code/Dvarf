@@ -36,6 +36,7 @@ type ClassAsiDialogProps = {
   classSlugs?: string[]
   backgroundSlug?: string | null
   ownedFeatEnums?: OwnedFeatEnumSnapshot[]
+  proficientSkills?: string[]
   onConfirm: (entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) => void
   onSkip: () => void
 }
@@ -61,6 +62,7 @@ export function ClassAsiDialog({
   classSlugs = [],
   backgroundSlug = null,
   ownedFeatEnums = [],
+  proficientSkills = [],
   onConfirm,
   onSkip,
 }: ClassAsiDialogProps) {
@@ -241,6 +243,7 @@ export function ClassAsiDialog({
         classSlugs={classSlugs}
         backgroundSlug={backgroundSlug}
         ownedFeatEnums={ownedFeatEnums}
+        proficientSkills={proficientSkills}
         onClose={() => setFeatOpen(false)}
         onConfirm={confirmFeat}
       />

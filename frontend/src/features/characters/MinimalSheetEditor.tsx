@@ -467,6 +467,13 @@ export function MinimalSheetEditor({
     () => ownedFeatEnumsFromLedger(draft.featGrants),
     [draft.featGrants],
   )
+  const proficientSkills = useMemo(
+    () =>
+      Object.entries(draft.skills)
+        .filter(([, state]) => state.is_proficient)
+        .map(([key]) => key),
+    [draft.skills],
+  )
   const classSummary = useMemo(
     () => formatClassSummary(draft.classes),
     [draft.classes],
@@ -2605,6 +2612,7 @@ export function MinimalSheetEditor({
         classSlugs={draft.classGrants.map((row) => row.slug)}
         backgroundSlug={draft.identity.backgroundSlug}
         ownedFeatEnums={ownedFeatEnums}
+        proficientSkills={proficientSkills}
         onConfirm={confirmClassAsi}
         onSkip={() => setPendingAsi(null)}
       />
@@ -2655,6 +2663,7 @@ export function MinimalSheetEditor({
         classSlugs={draft.classGrants.map((row) => row.slug)}
         backgroundSlug={draft.identity.backgroundSlug}
         ownedFeatEnums={ownedFeatEnums}
+        proficientSkills={proficientSkills}
         onClose={() => setRaceGrantPicker(null)}
         onConfirm={(result) => {
           commitRaceGrant({
@@ -2697,6 +2706,7 @@ export function MinimalSheetEditor({
         classSlugs={draft.classGrants.map((row) => row.slug)}
         backgroundSlug={draft.identity.backgroundSlug}
         ownedFeatEnums={ownedFeatEnums}
+        proficientSkills={proficientSkills}
         forcedSlug={backgroundFeatSlug}
         onClose={() => setBackgroundFeatSlug(null)}
         onConfirm={(result: FeatSetupResult) => {

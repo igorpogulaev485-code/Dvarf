@@ -276,10 +276,25 @@
         },
         "choices": [
           {
-            "id": "invocation_note",
-            "type": "note",
-            "label_ru": "Воззвание",
-            "text_ru": "Запиши выбранное воззвание колдуна. Полный пикер — позже."
+            "id": "invocation",
+            "type": "enum_multi",
+            "label_ru": "Воззвание колдуна (без требований)",
+            "count": 1,
+            "options": [
+              { "id": "agonizing_blast", "label_ru": "Мучительный заговор" },
+              { "id": "armor_of_shadows", "label_ru": "Доспех теней" },
+              { "id": "beast_speech", "label_ru": "Речь зверей" },
+              { "id": "beguiling_influence", "label_ru": "Обманчивое влияние" },
+              { "id": "devils_sight", "label_ru": "Дьявольское зрение" },
+              { "id": "eldritch_sight", "label_ru": "Мистическое зрение" },
+              { "id": "eldritch_spear", "label_ru": "Мистическое копьё" },
+              { "id": "eyes_of_the_rune_keeper", "label_ru": "Глаза хранителя рун" },
+              { "id": "fiendish_vigor", "label_ru": "Дьявольская мощь" },
+              { "id": "gaze_of_two_minds", "label_ru": "Взгляд двух разумов" },
+              { "id": "mask_of_many_faces", "label_ru": "Маска многих лиц" },
+              { "id": "misty_visions", "label_ru": "Туманные видения" },
+              { "id": "repelling_blast", "label_ru": "Отталкивающий заговор" }
+            ]
           }
         ],
         "grants": {
@@ -506,10 +521,20 @@
         },
         "choices": [
           {
-            "id": "metamagic_note",
-            "type": "note",
-            "label_ru": "Метамагия",
-            "text_ru": "Выбери два варианта метамагии и запиши. Пикер — позже."
+            "id": "metamagic",
+            "type": "enum_multi",
+            "label_ru": "Варианты метамагии",
+            "count": 2,
+            "options": [
+              { "id": "careful", "label_ru": "Осторожное заклинание" },
+              { "id": "distant", "label_ru": "Далёкое заклинание" },
+              { "id": "empowered", "label_ru": "Усиленное заклинание" },
+              { "id": "extended", "label_ru": "Продлённое заклинание" },
+              { "id": "heightened", "label_ru": "Напряжённое заклинание" },
+              { "id": "quickened", "label_ru": "Ускоренное заклинание" },
+              { "id": "subtle", "label_ru": "Тонкое заклинание" },
+              { "id": "twinned", "label_ru": "Разделённое заклинание" }
+            ]
           }
         ],
         "grants": {
@@ -705,10 +730,10 @@
             "label_ru": "Новый навык (владение)"
           },
           {
-            "id": "expertise_note",
-            "type": "note",
-            "label_ru": "Экспертиза",
-            "text_ru": "Отметь экспертизу у одного навыка, которым уже владеешь (включая только что взятый)."
+            "id": "expertise",
+            "type": "expertise",
+            "count": 1,
+            "label_ru": "Экспертиза (навык, которым владеешь)"
           }
         ],
         "grants": {
@@ -1170,10 +1195,10 @@
             "label_ru": "Язык"
           },
           {
-            "id": "expertise_note",
-            "type": "note",
-            "label_ru": "Экспертиза",
-            "text_ru": "Отметь экспертизу у одного навыка, которым владеешь."
+            "id": "expertise",
+            "type": "expertise",
+            "count": 1,
+            "label_ru": "Экспертиза (навык, которым владеешь)"
           }
         ],
         "grants": {

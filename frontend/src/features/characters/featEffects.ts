@@ -180,6 +180,21 @@ function applyPackage(input: {
       if (!still) skills[key] = { ...current, is_proficient: false }
     }
   }
+  for (const key of input.applied.expertiseSkills ?? []) {
+    const current = skills[key] ?? { is_proficient: false, is_expertise: false }
+    if (sign > 0) {
+      skills[key] = { is_proficient: true, is_expertise: true }
+    } else {
+      const stillExpertise = input.draft.featGrants.some(
+        (row) =>
+          row.id !== input.grantId &&
+          (row.applied.expertiseSkills ?? []).includes(key),
+      )
+      if (!stillExpertise) {
+        skills[key] = { ...current, is_expertise: false }
+      }
+    }
+  }
 
   let languages = [...input.draft.identity.languages]
   let tools = [...input.draft.identity.tools]

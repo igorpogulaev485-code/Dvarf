@@ -106,10 +106,29 @@
             ]
           },
           {
-            "id": "rune_note",
-            "type": "note",
-            "label_ru": "Руны",
-            "text_ru": "Понимание языков уже на листе. Руны (½ БМ) и связанные заклинания 1 круга — отметь вручную / позже автовыбор."
+            "id": "runes",
+            "type": "enum_multi",
+            "label_ru": "Руны (½ бонуса мастерства)",
+            "count": 1,
+            "count_from_half_pb": true,
+            "grant_spells": true,
+            "spell_level": 1,
+            "spell_notes_ru": "руна; 1/длинный отдых без ячейки",
+            "options": [
+              { "id": "fog_cloud", "label_ru": "Облако — Туманное облако", "spell_name_ru": "Туманное облако" },
+              { "id": "inflict_wounds", "label_ru": "Смерть — Нанесение ран", "spell_name_ru": "Нанесение ран" },
+              { "id": "chromatic_orb", "label_ru": "Дракон — Цветной шар", "spell_name_ru": "Цветной шар" },
+              { "id": "disguise_self", "label_ru": "Враг — Маскировка", "spell_name_ru": "Маскировка" },
+              { "id": "burning_hands", "label_ru": "Огонь — Огненные ладони", "spell_name_ru": "Огненные ладони" },
+              { "id": "speak_with_animals", "label_ru": "Друг — Разговор с животными", "spell_name_ru": "Разговор с животными" },
+              { "id": "armor_of_agathys", "label_ru": "Мороз — Доспех Агатиса", "spell_name_ru": "Доспех Агатиса" },
+              { "id": "goodberry", "label_ru": "Холм — Чудо-ягоды", "spell_name_ru": "Чудо-ягоды" },
+              { "id": "longstrider", "label_ru": "Путь — Скороход", "spell_name_ru": "Скороход" },
+              { "id": "command", "label_ru": "Король — Приказ", "spell_name_ru": "Приказ" },
+              { "id": "entangle", "label_ru": "Гора — Опутывание", "spell_name_ru": "Опутывание" },
+              { "id": "sanctuary", "label_ru": "Камень — Святилище", "spell_name_ru": "Святилище" },
+              { "id": "thunderwave", "label_ru": "Шторм — Волна грома", "spell_name_ru": "Волна грома" }
+            ]
           }
         ],
         "grants": {
