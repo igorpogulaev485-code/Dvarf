@@ -64,7 +64,10 @@ type SpellsPanelProps = {
   subclassCasters?: SubclassCasterOverlay[]
   spells: SpellsState
   companions?: CompanionEntry[]
-  onCompanionsChange?: (companions: CompanionEntry[]) => void
+  /** Prefer functional update so cast+concentration dismiss don't clobber each other. */
+  onCompanionsChange?: (
+    update: CompanionEntry[] | ((prev: CompanionEntry[]) => CompanionEntry[]),
+  ) => void
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   onChange: (spells: SpellsState) => void
@@ -283,16 +286,24 @@ export function SpellsPanel({
 
   function applyNaparnikFromCast(spell: SheetSpell, slotLevel: number): string {
     if (!onCompanionsChange) return ''
-    const result = applySpellCastToCompanions({
+    // Compute toast from current props; apply against latest draft via updater.
+    const preview = applySpellCastToCompanions({
       companions,
       spell,
       slotLevel,
     })
-    if (!result) return ''
-    onCompanionsChange(result.companions)
-    return result.refreshed
-      ? ` · напарник «${result.name}» снова в строю`
-      : ` · напарник «${result.name}»`
+    if (!preview) return ''
+    onCompanionsChange((prev) => {
+      const result = applySpellCastToCompanions({
+        companions: prev,
+        spell,
+        slotLevel,
+      })
+      return result?.companions ?? prev
+    })
+    return preview.refreshed
+      ? ` · напарник «${preview.name}» снова в строю`
+      : ` · напарник «${preview.name}»`
   }
 
   function confirmCast(choice: CastChoice) {

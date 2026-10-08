@@ -42,6 +42,8 @@ export type CompanionSource = {
   classEntryId?: string
   subclassSlug?: string
   feature?: string
+  /** Sheet spell id — used to dismiss naparnik when concentration ends. */
+  spellId?: string
 }
 
 export type CompanionEntry = {
@@ -238,6 +240,7 @@ function readSource(raw: unknown): CompanionSource | null {
   if (typeof row.classEntryId === 'string') source.classEntryId = row.classEntryId
   if (typeof row.subclassSlug === 'string') source.subclassSlug = row.subclassSlug
   if (typeof row.feature === 'string') source.feature = row.feature
+  if (typeof row.spellId === 'string') source.spellId = row.spellId
   return source
 }
 

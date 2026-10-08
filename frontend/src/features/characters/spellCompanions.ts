@@ -1,5 +1,6 @@
 /** Cast → Напарники: summon/familiar spells create or refresh a companion card. */
 
+import type { ConcentrationState } from '../../shared/dnd/concentration'
 import {
   createCompanion,
   type CompanionEntry,
@@ -214,8 +215,17 @@ export function applySpellCastToCompanions(input: {
   const concNote = input.spell.concentration ? ' · концентрация' : ''
   const notes = `${labelRu}${slotNote}${concNote}. Статы — из бестиария или вручную.`
 
+  const spellSource = {
+    kind: 'spell' as const,
+    labelRu,
+    feature,
+    spellId: input.spell.id,
+  }
+
   const existing = input.companions.find(
-    (row) => row.source?.kind === 'spell' && row.source.feature === feature,
+    (row) =>
+      row.source?.kind === 'spell' &&
+      (row.source.spellId === input.spell.id || row.source.feature === feature),
   )
 
   if (existing) {
@@ -235,11 +245,7 @@ export function applySpellCastToCompanions(input: {
               : 1,
       },
       notes,
-      source: {
-        kind: 'spell',
-        labelRu,
-        feature,
-      },
+      source: spellSource,
     }
     return {
       companions: input.companions.map((row) =>
@@ -261,11 +267,7 @@ export function applySpellCastToCompanions(input: {
       slug === 'find_familiar'
         ? 'Не атакует; телепатия 100 фт.; передача касания'
         : 'Команды устно; статы по заклинанию / бестиарию',
-    source: {
-      kind: 'spell',
-      labelRu,
-      feature,
-    },
+    source: spellSource,
   })
 
   return {
@@ -273,4 +275,80 @@ export function applySpellCastToCompanions(input: {
     name: created.name,
     refreshed: false,
   }
+}
+
+function matchesEndedConcentration(
+  row: CompanionEntry,
+  ended: ConcentrationState,
+): boolean {
+  if (row.source?.kind !== 'spell') return false
+  if (ended.spell_id && row.source.spellId === ended.spell_id) return true
+  const slug = resolveSpellNaparnikSlug({
+    id: ended.spell_id,
+    name: ended.name,
+    catalog_id: null,
+    level: 1,
+    prepared: true,
+    notes: '',
+    casting_time: '',
+    range: '',
+    attack_or_save: '',
+    damage: '',
+    concentration: true,
+  })
+  if (!slug) return false
+  return row.source.feature === spellSourceFeature(slug)
+}
+
+/** When concentration ends or switches: dismiss matching summoned naparniki (keep card). */
+export function dismissCompanionsForEndedConcentration(input: {
+  companions: CompanionEntry[]
+  ended: ConcentrationState | null | undefined
+}): { companions: CompanionEntry[]; dismissedNames: string[] } {
+  if (!input.ended) {
+    return { companions: input.companions, dismissedNames: [] }
+  }
+  const dismissedNames: string[] = []
+  const companions = input.companions.map((row) => {
+    if (!matchesEndedConcentration(row, input.ended!)) return row
+    if (!row.active && (row.stats.hp ?? 1) <= 0) return row
+    dismissedNames.push(row.name.trim() || row.source?.labelRu || 'Напарник')
+    return {
+      ...row,
+      active: false,
+      death: null,
+      stats: {
+        ...row.stats,
+        hp: 0,
+      },
+      notes: row.notes.includes('концентрация снята')
+        ? row.notes
+        : `${row.notes}${row.notes.trim() ? ' · ' : ''}концентрация снята`,
+    }
+  })
+  return { companions, dismissedNames }
+}
+
+/**
+ * Apply a concentration change: dismiss naparniki tied to the previous spell
+ * when it ends or is replaced.
+ */
+export function applyConcentrationChangeToCompanions(input: {
+  companions: CompanionEntry[]
+  previous: ConcentrationState | null | undefined
+  next: ConcentrationState | null | undefined
+}): { companions: CompanionEntry[]; dismissedNames: string[] } {
+  if (!input.previous) {
+    return { companions: input.companions, dismissedNames: [] }
+  }
+  if (
+    input.next &&
+    input.next.spell_id === input.previous.spell_id
+  ) {
+    return { companions: input.companions, dismissedNames: [] }
+  }
+  return dismissCompanionsForEndedConcentration({
+    companions: input.companions,
+    ended: input.previous,
+  })
 }

@@ -15,6 +15,7 @@ import {
   resolveCompanionTemplate,
 } from '../src/features/characters/companionTemplates.ts'
 import {
+  applyConcentrationChangeToCompanions,
   applySpellCastToCompanions,
   isSpellNaparnikCast,
   resolveSpellNaparnikSlug,
@@ -227,5 +228,53 @@ const animals = applySpellCastToCompanions({
 })
 assert(animals?.companions.length === 2, 'second spell adds second card')
 assert(animals?.companions.some((c) => c.name === 'Призванные звери'), 'animals card')
+
+const animalsSpell = {
+  ...createSheetSpell(),
+  id: 'spell-animals-1',
+  name: 'Призыв животных',
+  level: 3,
+  concentration: true,
+}
+const castAnimals = applySpellCastToCompanions({
+  companions: [],
+  spell: animalsSpell,
+  slotLevel: 3,
+})
+assert(castAnimals?.companions[0]?.source?.spellId === 'spell-animals-1', 'stores spellId')
+const afterConcEnd = applyConcentrationChangeToCompanions({
+  companions: castAnimals!.companions,
+  previous: { spell_id: 'spell-animals-1', name: 'Призыв животных' },
+  next: null,
+})
+assert(afterConcEnd.dismissedNames.length === 1, 'dismisses on concentration end')
+assert(afterConcEnd.companions[0]?.active === false, 'inactive')
+assert(afterConcEnd.companions[0]?.stats.hp === 0, 'hp 0')
+
+const familiarKept = applySpellCastToCompanions({
+  companions: afterConcEnd.companions,
+  spell: { ...createSheetSpell(), id: 'fam-1', name: 'Поиск фамильяра', level: 1 },
+  slotLevel: 1,
+})
+const clearOtherConc = applyConcentrationChangeToCompanions({
+  companions: familiarKept!.companions,
+  previous: { spell_id: 'spell-animals-1', name: 'Призыв животных' },
+  next: null,
+})
+assert(
+  clearOtherConc.companions.some((c) => c.kind === 'familiar' && c.active),
+  'familiar not dismissed by unrelated conc clear',
+)
+
+const switchConc = applyConcentrationChangeToCompanions({
+  companions: castAnimals!.companions.map((c) => ({
+    ...c,
+    active: true,
+    stats: { ...c.stats, hp: 10 },
+  })),
+  previous: { spell_id: 'spell-animals-1', name: 'Призыв животных' },
+  next: { spell_id: 'other-spell', name: 'Удержание личности' },
+})
+assert(switchConc.dismissedNames.length === 1, 'dismiss on concentration switch')
 
 console.log('smoke-companions: ok')
