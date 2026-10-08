@@ -490,10 +490,12 @@
 |--------|--------------|-------------------------|
 | Раскрыть набор | «Раскрыть набор» → содержимое отдельными строками (из catalog `contents`) | Можно тратить бурдюк/паёк по одному |
 | Вес без двойного счёта | Свёрнутый набор = его вес; раскрытый = 0 на оболочке + сумма детей | Перегруз (СИЛ×15) сразу реагирует на траты |
-| Свернуть / удалить | Свернуть собирает вес обратно; удалить набор снимает детей | Инвентарь не засоряется |
+| Стартовый набор без веса | Грант «Набор исследователя» подтягивает вес/contents из каталога | Перегруз живёт сразу, не только после раскрытия |
+| Свернуть после трат | Вес оболочки = сумма *оставшихся* детей (выпитый бурдюк не возвращается) | Как кастом в ЛСС — но само |
+| Свернуть / удалить | Свернуть собирает текущий вес; удалить набор снимает детей | Инвентарь не засоряется |
 | 20 бурдюков | Обычная строка с qty — не набор | Покупка стопкой как просил |
 
-На проде: **нет** · ветка `cursor/gear-packs-expand-db96` · tip не менять до «залей» · нужен G2 backfill (`contents`) на сервере
+На проде: **нет** · ветка `cursor/gear-packs-expand-db96` · PR #85 · tip не менять до «залей» · нужен G2 backfill (`contents`) на сервере
 
 ### 2026-10-08 — GEAR slice 3: атаки/КД из снаряжения (без «×N»)
 
@@ -818,4 +820,4 @@
 | 2026-10-08 | `cursor/gear-schema-2014-db96` · PR #82 | GEAR slice 1: catalog data contract + readers (weapon/armor/item) → «В ветках» |
 | 2026-10-08 | `cursor/gear-backfill-2014-db96` · PR #83 | GEAR slice 2: backfill RU/cost/params + healing potion family; alembic `c5d6` → «В ветках» |
 | 2026-10-08 | `cursor/gear-sheet-weapons-db96` · PR #84 | GEAR slice 3: starting gear attacks (light×N / stack qty) + armor maxDex on sheet → «В ветках» |
-| 2026-10-08 | `cursor/gear-packs-expand-db96` | GEAR slice 4: pack expand/collapse + nested weight for encumbrance → «В ветках» |
+| 2026-10-08 | `cursor/gear-packs-expand-db96` · PR #85 | GEAR slice 4: pack expand/collapse + nested weight for encumbrance → «В ветках» |

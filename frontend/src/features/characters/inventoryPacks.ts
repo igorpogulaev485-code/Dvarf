@@ -5,7 +5,7 @@
  */
 
 import { parseItemCatalogData, type PackContentRef } from '../../shared/dnd/gearCatalog'
-import { itemLineWeightLb, type WeighableItem } from '../../shared/dnd/weight'
+import { itemLineWeightLb } from '../../shared/dnd/weight'
 import { createInventoryItem, type InventoryItem } from './inventory'
 
 export type PackCatalogLookup = {
@@ -21,20 +21,6 @@ export type ResolvedPackContent = {
   qty: number
   weight_lb: number | null
   catalog_id: string | null
-}
-
-/** Weigh inventory without double-counting expanded packs. */
-export function weighableInventoryItems(items: InventoryItem[]): WeighableItem[] {
-  const parentIdsWithChildren = new Set(
-    items.filter((item) => item.parent_id).map((item) => item.parent_id as string),
-  )
-  return items.map((item) => {
-    if (parentIdsWithChildren.has(item.id)) {
-      // Expanded container shell — contents carry the mass.
-      return { qty: item.qty, weight_lb: 0 }
-    }
-    return { qty: item.qty, weight_lb: item.weight_lb }
-  })
 }
 
 export function childrenOf(items: InventoryItem[], parentId: string): InventoryItem[] {
@@ -146,6 +132,49 @@ export function sumContentsWeightLb(contents: ResolvedPackContent[]): number {
   )
 }
 
+/**
+ * Fill missing weight / pack kind on collapsed grant packs («Набор исследователя» без weight_lb).
+ * Returns null when nothing to change. Caller must skip expanded packs (children own the mass).
+ */
+export function hydrateCollapsedPackMeta(
+  item: InventoryItem,
+  catalogItems: PackCatalogLookup[],
+): Partial<InventoryItem> | null {
+  if (item.parent_id) return null
+  const hit = findCatalogPackEntry(item, catalogItems)
+  if (!hit || !hasPackContents(hit.data ?? undefined)) return null
+  const parsed = parseItemCatalogData(hit.data ?? {})
+  const resolved = resolvePackContents(parsed.contents, catalogItems)
+  const fromCatalog = parsed.weight_lb
+  const fromContents = sumContentsWeightLb(resolved)
+  const weight =
+    fromCatalog != null && fromCatalog > 0
+      ? fromCatalog
+      : fromContents > 0
+        ? fromContents
+        : null
+  const patch: Partial<InventoryItem> = {}
+  let changed = false
+  if (
+    (item.weight_lb == null || item.weight_lb === 0) &&
+    weight != null &&
+    weight > 0
+  ) {
+    patch.weight_lb = weight
+    patch.pack_weight_lb = weight
+    changed = true
+  }
+  if (item.container_kind !== 'pack' && item.container_kind !== 'kit') {
+    patch.container_kind = 'pack'
+    changed = true
+  }
+  if (!item.catalog_id) {
+    patch.catalog_id = hit.id
+    changed = true
+  }
+  return changed ? patch : null
+}
+
 function newId(): string {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto
     ? crypto.randomUUID()
@@ -199,7 +228,10 @@ export function expandPack(input: {
   ]
 }
 
-/** Collapse: remove children, restore pack weight (snapshot or sum of children). */
+/**
+ * Collapse: remove children, put their *current* total weight back on the pack.
+ * Spent waterskins / eaten rations stay reflected — we do not restore the pre-expand snapshot.
+ */
 export function collapsePack(input: {
   items: InventoryItem[]
   packId: string
@@ -218,8 +250,11 @@ export function collapsePack(input: {
     (sum, row) => sum + itemLineWeightLb({ qty: row.qty, weight_lb: row.weight_lb }),
     0,
   )
-  const restored =
-    pack.pack_weight_lb != null && Number.isFinite(pack.pack_weight_lb)
+  // Prefer live contents sum (after spends). Snapshot only if every child lacks weight.
+  const anyChildWeighed = kids.some((row) => row.weight_lb != null)
+  const restored = anyChildWeighed
+    ? kidsWeight
+    : pack.pack_weight_lb != null && Number.isFinite(pack.pack_weight_lb)
       ? pack.pack_weight_lb
       : kidsWeight
 

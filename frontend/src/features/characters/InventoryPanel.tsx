@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
@@ -33,6 +33,7 @@ import {
   expandPack,
   findCatalogPackEntry,
   hasPackContents,
+  hydrateCollapsedPackMeta,
   isExpandedPack,
   orderInventoryItems,
   readPackContents,
@@ -64,6 +65,10 @@ export function InventoryPanel({
 }: InventoryPanelProps) {
   const [catalogItems, setCatalogItems] = useState<CatalogEntry[]>([])
   const [packBusyId, setPackBusyId] = useState<string | null>(null)
+  const inventoryRef = useRef(inventory)
+  const onChangeRef = useRef(onChange)
+  inventoryRef.current = inventory
+  onChangeRef.current = onChange
 
   useEffect(() => {
     let cancelled = false
@@ -78,6 +83,24 @@ export function InventoryPanel({
       cancelled = true
     }
   }, [edition])
+
+  // Starting grants often ship packs as bare names with null weight — fill from catalog
+  // so encumbrance works before the player expands the pack.
+  useEffect(() => {
+    if (catalogItems.length === 0) return
+    const current = inventoryRef.current
+    let changed = false
+    const nextItems = current.items.map((item) => {
+      if (isExpandedPack(current.items, item.id)) return item
+      const patch = hydrateCollapsedPackMeta(item, catalogItems)
+      if (!patch) return item
+      changed = true
+      return { ...item, ...patch }
+    })
+    if (changed) {
+      onChangeRef.current({ ...current, items: nextItems })
+    }
+  }, [catalogItems])
 
   const weighable = asWeighableItems(inventory.items)
   const itemsLb = itemsWeightLb(weighable)
