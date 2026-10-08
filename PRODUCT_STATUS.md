@@ -492,7 +492,7 @@
 | Семьи вариантов (как на ТТГ) | `family_slug` + rarity: зелья лечения ×4 (обычное→превосходное), оружие/доспех +1/+2/+3, чешуя дракона | Разные эффекты и ценность — отдельные записи одной семьи |
 | Артефакты-заглушки | RU + rarity + attunement flag (эффекты движка — следующие слайсы) | В списке видно «редкий / нужна настройка», не голый EN |
 
-На проде: **нет** · ветка `cursor/gear-backfill-2014-db96` · tip не менять до «залей» · alembic `c5d6` (после prod `b4c5` bestiary)
+На проде: **нет** · ветка `cursor/gear-backfill-2014-db96` · PR #83 · tip не менять до «залей» · alembic `c5d6` (после prod `b4c5` bestiary)
 
 ### 2026-10-08 — GEAR slice 1: контракт data weapon/armor/item
 
@@ -794,4 +794,4 @@
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS: cast-via-feat/race grant charges in picker → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
 | 2026-10-08 | `cursor/gear-schema-2014-db96` · PR #82 | GEAR slice 1: catalog data contract + readers (weapon/armor/item) → «В ветках» |
-| 2026-10-08 | `cursor/gear-backfill-2014-db96` | GEAR slice 2: backfill RU/cost/params + healing potion family; alembic `c5d6` → «В ветках» |
+| 2026-10-08 | `cursor/gear-backfill-2014-db96` · PR #83 | GEAR slice 2: backfill RU/cost/params + healing potion family; alembic `c5d6` → «В ветках» |
