@@ -491,7 +491,7 @@
 | Слот ношения | `wear_slot` на вещи (плащ, кольцо, шея…) · кольца до 2 | Не надеть два плаща сразу |
 | Настройка | Флаг на предмете + панель attunement предпочитает такие строки | Видно, сколько из нуждающихся уже в слотах 3 |
 
-На проде: **нет** · ветка `cursor/gear-wear-slots-db96` · tip не менять до «залей»
+На проде: **нет** · ветка `cursor/gear-wear-slots-db96` · PR #89 · tip не менять до «залей»
 
 ### 2026-10-08 — GEAR slice 7: фокус / мешочек + материальные компоненты
 
@@ -866,4 +866,4 @@
 | 2026-10-08 | `cursor/gear-picker-db96` · PR #86 | GEAR slice 5: catalog gear picker + family variants → «В ветках» |
 | 2026-10-08 | `cursor/gear-held-slots-db96` · PR #87 | GEAR slice 6: held hands (2H vs 1H×2) + attack sync → «В ветках» |
 | 2026-10-08 | `cursor/gear-spell-focus-db96` · PR #88 | GEAR slice 7: spell focus flags + costly material consume → «В ветках» |
-| 2026-10-08 | `cursor/gear-wear-slots-db96` | GEAR slice 8: wear slots + attunement inventory link → «В ветках» |
+| 2026-10-08 | `cursor/gear-wear-slots-db96` · PR #89 | GEAR slice 8: wear slots + attunement inventory link → «В ветках» |
