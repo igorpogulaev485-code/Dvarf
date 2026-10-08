@@ -493,7 +493,7 @@
 | Спутник с предмета | `companion` → карточка в «Спутники» пока предмет активен | Фигурка / рог → спутник появляется и пропадает со снятием |
 | Заклинание / ячейки | `grant_spell` (+ uses) и `spell_slots` delta на надетом | Предмет даёт каст/заряд или +ячейку |
 
-На проде: **нет** · ветка `cursor/gear-race-nw-effects-db96` · tip не менять до «залей»
+На проде: **нет** · ветка `cursor/gear-race-nw-effects-db96` · PR #92 · tip не менять до «залей»
 
 ### 2026-10-08 — GEAR: владения → доспех/атаки + Effects+ (skill/save/speed)
 
@@ -900,4 +900,4 @@
 | 2026-10-08 | `cursor/gear-wear-slots-db96` · PR #89 | GEAR slice 8: wear slots + attunement inventory link → «В ветках» |
 | 2026-10-08 | `cursor/gear-effects-mvp-db96` · PR #90 | GEAR slice 9: gear effects engine MVP → «В ветках» |
 | 2026-10-08 | `cursor/gear-proficiency-effects-db96` · PR #91 | GEAR: armor/weapon proficiency gates + Effects+ skill/save/speed → «В ветках» |
-| 2026-10-08 | `cursor/gear-race-nw-effects-db96` | GEAR: race natural weapons + gear grant_spell/resource/companion → «В ветках» |
+| 2026-10-08 | `cursor/gear-race-nw-effects-db96` · PR #92 | GEAR: race natural weapons + gear grant_spell/resource/companion → «В ветках» |
