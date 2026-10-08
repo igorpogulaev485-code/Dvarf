@@ -491,7 +491,7 @@
 | Каталог W6 | ~91 оф. предметов DMG: посохи, палочки, мантии, камни Иоун, зелья силы великана, ковры, рога, утилита | Посох силы / палочка огненных шаров / камни послания — из справочника |
 | Семьи | Мешок трюков · ковёр-самолёт · самоцвет элементаля · рог Валгаллы · Иоун · зелье силы великана | Варианты (+размер/металл/тип) в одной строке пикера |
 
-На проде: **нет** · ветка `cursor/gear-dmg-polish-db96` · PR — · tip не менять до «залей» · alembic `i1c2` (после `h0b1`)
+На проде: **нет** · ветка `cursor/gear-dmg-polish-db96` · PR #99 · tip не менять до «залей» · alembic `i1c2` (после `h0b1`)
 
 ### 2026-10-08 — GEAR W5: сеттинги (EGW/FTD/SCC/ERLW/GGR/…)
 
@@ -965,4 +965,4 @@
 | 2026-10-08 | `cursor/gear-wondrous-srd-db96` · PR #96 | GEAR W3: SRD wondrous/rings/potions insert + picker chips; alembic `f8a9` → «В ветках» |
 | 2026-10-08 | `cursor/gear-xge-tce-items-db96` · PR #97 | GEAR W4: XGE/TCE magic items + source_book filter; alembic `g9a0` → «В ветках» |
 | 2026-10-08 | `cursor/gear-settings-items-db96` · PR #98 | GEAR W5: setting-book magic (EGW/FTD/SCC/…) + book chips; alembic `h0b1` → «В ветках» |
-| 2026-10-08 | `cursor/gear-dmg-polish-db96` | GEAR W6: DMG polish leftovers (staves/wands/ioun/…); alembic `i1c2` → «В ветках» |
+| 2026-10-08 | `cursor/gear-dmg-polish-db96` · PR #99 | GEAR W6: DMG polish leftovers (staves/wands/ioun/…); alembic `i1c2` → «В ветках» |
