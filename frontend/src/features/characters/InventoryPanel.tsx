@@ -32,6 +32,8 @@ import {
   SPELL_TOOLING_LABEL_RU,
   type SpellTooling,
 } from './spellFocus'
+import { isWornMagicSlot, WEAR_SLOT_LABEL_RU } from './wearEquip'
+import { WEAR_SLOTS, type WearSlot } from '../../shared/dnd/gearCatalog'
 import { FocusCatalogSelect } from './FocusCatalogSelect'
 import {
   applyFocusSelectionToItemFields,
@@ -235,6 +237,18 @@ export function InventoryPanel({
             item_category: parsedItem.item_category,
           }) ?? 'any'
         : null
+    const wear =
+      selected.kind === 'weapon'
+        ? parseWeaponCatalogData(data).wear_slot
+        : selected.kind === 'armor'
+          ? parseArmorCatalogData(data).wear_slot
+          : parsedItem.wear_slot
+    const attune =
+      selected.kind === 'weapon'
+        ? parseWeaponCatalogData(data).requires_attunement
+        : selected.kind === 'armor'
+          ? parseArmorCatalogData(data).requires_attunement
+          : parsedItem.requires_attunement
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
@@ -255,6 +269,8 @@ export function InventoryPanel({
       cost_gp: cost,
       spell_tooling: spellTooling,
       focus_kind: focusKind,
+      wear_slot: wear,
+      requires_attunement: attune,
     })
   }
 
@@ -559,6 +575,46 @@ export function InventoryPanel({
                       updateItem(item.id, fields)
                     }}
                   />
+                ) : null}
+
+                {!nested && item.armor_kind === 'none' && !item.weapon_grip ? (
+                  <div className="sheet-grid sheet-grid--2">
+                    <Field label="Слот ношения" hint="Плащ, кольцо×2…">
+                      <select
+                        className="play-select"
+                        value={item.wear_slot ?? 'none'}
+                        onChange={(event) =>
+                          updateItem(item.id, {
+                            wear_slot: event.target.value as WearSlot,
+                          })
+                        }
+                      >
+                        {WEAR_SLOTS.filter(
+                          (slot) =>
+                            slot === 'none' ||
+                            isWornMagicSlot(slot) ||
+                            slot === item.wear_slot,
+                        ).map((slot) => (
+                          <option key={slot} value={slot}>
+                            {WEAR_SLOT_LABEL_RU[slot]}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Настройка">
+                      <button
+                        type="button"
+                        className={`sheet-chip${item.requires_attunement ? ' is-on' : ''}`}
+                        onClick={() =>
+                          updateItem(item.id, {
+                            requires_attunement: !item.requires_attunement,
+                          })
+                        }
+                      >
+                        {item.requires_attunement ? 'Нужна настройка' : 'Без настройки'}
+                      </button>
+                    </Field>
+                  </div>
                 ) : null}
 
                 <Field label="Заметка">

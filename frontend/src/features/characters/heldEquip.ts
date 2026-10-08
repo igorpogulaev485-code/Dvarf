@@ -133,7 +133,20 @@ export function isHeldItem(item: InventoryItem): boolean {
 export function canShowEquipChip(item: InventoryItem): boolean {
   if (item.parent_id) return false
   if (item.armor_kind !== 'none') return true
-  return isWeaponItem(item)
+  if (isWeaponItem(item)) return true
+  // Worn wondrous / magic (cloak, ring, …).
+  const slot = item.wear_slot
+  if (
+    slot &&
+    slot !== 'none' &&
+    slot !== 'held_main' &&
+    slot !== 'held_off' &&
+    slot !== 'body_armor' &&
+    slot !== 'shield'
+  ) {
+    return true
+  }
+  return Boolean(item.requires_attunement)
 }
 
 /** How many hands this item needs while equipped. */
@@ -200,5 +213,5 @@ export function equipLabel(item: InventoryItem): { on: string; off: string } {
   if (item.armor_kind === 'shield') {
     return { on: 'В руке', off: 'Не в руке' }
   }
-  return { on: 'Надето', off: 'Не надето' }
+  return { on: 'Надето', off: 'Снято' }
 }

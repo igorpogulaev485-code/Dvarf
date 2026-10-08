@@ -6,6 +6,7 @@ import {
   filledAttunementCount,
   type AttunementSlot,
 } from './attunement'
+import { attunementEligibleItems } from './wearEquip'
 
 type AttunementPanelProps = {
   attunements: AttunementSlot[]
@@ -19,6 +20,13 @@ export function AttunementPanel({
   onChange,
 }: AttunementPanelProps) {
   const filled = filledAttunementCount(attunements)
+  const eligible = attunementEligibleItems(inventoryItems)
+  const needingAttune = inventoryItems.filter(
+    (item) => !item.parent_id && item.requires_attunement,
+  )
+  const linkedNeeding = needingAttune.filter((item) =>
+    attunements.some((slot) => slot.item_id === item.id),
+  )
 
   function updateSlot(id: string, patch: Partial<AttunementSlot>) {
     onChange(attunements.map((slot) => (slot.id === id ? { ...slot, ...patch } : slot)))
@@ -49,9 +57,20 @@ export function AttunementPanel({
     <Panel title="Настройка (attunement)">
       <Stack gap={12}>
         <Text tone="muted">
-          До {MAX_ATTUNEMENTS} предметов · занято {filled}/{MAX_ATTUNEMENTS}. Можно привязать к
-          строке инвентаря.
+          До {MAX_ATTUNEMENTS} предметов · занято {filled}/{MAX_ATTUNEMENTS}. Привяжи строку
+          инвентаря с «нужна настройка» или чудо-предмет со слотом ношения.
         </Text>
+
+        {needingAttune.length > 0 ? (
+          <Text tone={linkedNeeding.length < needingAttune.length ? 'danger' : 'muted'}>
+            В инвентаре с настройкой: {linkedNeeding.length}/{needingAttune.length} привязано к
+            слотам
+            {needingAttune.length > MAX_ATTUNEMENTS
+              ? ` · лимит PHB ${MAX_ATTUNEMENTS}, выбери какие активны`
+              : ''}
+            .
+          </Text>
+        ) : null}
 
         {attunements.length === 0 ? (
           <Text tone="muted">Пока пусто — добавь слот настройки.</Text>
@@ -71,9 +90,10 @@ export function AttunementPanel({
                   onChange={(event) => linkItem(slot.id, event.target.value)}
                 >
                   <option value="">— вручную —</option>
-                  {inventoryItems.map((item) => (
+                  {(eligible.length > 0 ? eligible : inventoryItems).map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name || 'Без названия'}
+                      {item.requires_attunement ? ' · настройка' : ''}
                     </option>
                   ))}
                 </select>

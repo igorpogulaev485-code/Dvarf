@@ -21,6 +21,8 @@ import {
   type FocusKind,
   type SpellTooling,
 } from './spellFocus'
+import { equipWornItem, isWornMagicSlot, readWearSlot } from './wearEquip'
+import type { WearSlot } from '../../shared/dnd/gearCatalog'
 
 export type InventoryContainerKind = 'none' | 'pack' | 'kit' | 'container'
 
@@ -56,6 +58,10 @@ export type InventoryItem = {
   spell_tooling?: SpellTooling | null
   /** Optional focus family (arcane / druidic / holy) — suggestions only. */
   focus_kind?: FocusKind | null
+  /** Worn / wielded slot from catalog (cloak, ring, …). */
+  wear_slot?: WearSlot | null
+  /** Magic item needs attunement. */
+  requires_attunement?: boolean
 }
 
 export type InventoryState = {
@@ -87,6 +93,8 @@ export function createInventoryItem(): InventoryItem {
     cost_gp: null,
     spell_tooling: null,
     focus_kind: null,
+    wear_slot: null,
+    requires_attunement: false,
   }
 }
 
@@ -136,6 +144,8 @@ function readItem(raw: unknown, index: number): InventoryItem {
     cost_gp: readNullableNumber(row.cost_gp),
     spell_tooling: readSpellTooling(row.spell_tooling),
     focus_kind: readFocusKind(row.focus_kind),
+    wear_slot: readWearSlot(row.wear_slot),
+    requires_attunement: Boolean(row.requires_attunement),
   }
 }
 
@@ -180,6 +190,8 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         cost_gp: item.cost_gp ?? null,
         spell_tooling: item.spell_tooling ?? null,
         focus_kind: item.focus_kind ?? null,
+        wear_slot: item.wear_slot ?? null,
+        requires_attunement: Boolean(item.requires_attunement),
       })),
     },
   }
@@ -270,6 +282,10 @@ export function equipInventoryItem(
 
   if (isHeldItem(target)) {
     return equipHeldItem(items, id)
+  }
+
+  if (isWornMagicSlot(target.wear_slot)) {
+    return equipWornItem(items, id)
   }
 
   return items.map((item) => (item.id === id ? { ...item, equipped: true } : item))
