@@ -1862,6 +1862,12 @@ export function MinimalSheetEditor({
           ) : null}
           <div>
             <Text tone="muted">Классы</Text>
+            {pendingStartingLevel > 1 ? (
+              <Text tone="muted">
+                Старт с {pendingStartingLevel} ур.: выбери класс — мастер поднимет уровень и проведёт
+                через умения/ASI.
+              </Text>
+            ) : null}
             <Stack gap={10}>
               {draft.classes.map((row, index) => (
                 <div key={row.id} className="inventory-card">
