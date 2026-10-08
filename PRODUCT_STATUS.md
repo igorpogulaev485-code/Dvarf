@@ -495,7 +495,7 @@
 | Блок после траты | Исчерпанный заряд disabled до отдыха; слоты всё ещё доступны | Нельзя спамить Fey Touched / Hellish Rebuke бесплатно |
 | Отдых | Короткий/длинный сбрасывает `used` по `reset` | Как в PHB: восстановление после отдыха |
 
-На проде: нет · ветка `cursor/spell-cast-grant-picker-7737`
+На проде: нет · ветка `cursor/spell-cast-grant-picker-7737` · PR #80
 
 <!-- пример:
 ### 2026-10-06 — подтверждение email при регистрации
@@ -583,4 +583,4 @@
 | 2026-10-08 | `cursor/spell-rest-books-wave-ef23` | SPELLS slice 6 wave3: +68 TCE/EGW/… → 527; оф. gap 0; alembic `v1e2` |
 | 2026-10-08 | `cursor/spell-known-prepare-polish-ef23` · PR #78 | SPELLS slice 7: known vs prepared UX + book filter in grimoire → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-ui-polish-7737` · PR #79 | SPELLS slice 8: cast dialog ritual + meta/higher_levels → «В ветках» |
-| 2026-10-08 | `cursor/spell-cast-grant-picker-7737` | SPELLS: cast-via-feat/race grant charges in picker → «В ветках» |
+| 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS: cast-via-feat/race grant charges in picker → «В ветках» |
