@@ -17,8 +17,13 @@ import type { AppliedRaceGrant } from '../../shared/dnd/raceGrants'
 import type { CompanionEntry } from './companions'
 import { createCompanion, revokeCompanionsForSubclass } from './companions'
 import type { TextBlock } from './textBlocks'
-import { createSheetSpell, type SpellsState } from './spells'
-import { resolveWeaponExtraList } from './weaponProficiencyExtras'
+import {
+  asAlwaysPreparedSpell,
+  createSheetSpell,
+  spellKeyFromName,
+  subclassSpellId,
+  type SpellsState,
+} from './spells'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 
@@ -259,32 +264,23 @@ export function revokeSubclassGrant(
     armor[key] = false
   }
 
-  const classWeaponExtras = setOfLower(
-    draft.classGrants.flatMap((row) => row.weaponExtras ?? []),
-  )
-  const raceWeaponExtras = setOfLower(draft.raceGrant?.weaponNames ?? [])
-  const weapons: WeaponProficiency = {
-    ...draft.identity.weapons,
-    extras: (draft.identity.weapons.extras ?? []).filter((item) => {
-      const lower = item.trim().toLowerCase()
-      const wasOurs = previous.weaponExtras.some((t) => t.toLowerCase() === lower)
-      if (!wasOurs) return true
-      return (
-        remainingExtras.has(lower) ||
-        classWeaponExtras.has(lower) ||
-        raceWeaponExtras.has(lower)
-      )
-    }),
-  }
+  const weapons: WeaponProficiency = { ...draft.identity.weapons }
   for (const key of previous.weaponKeys) {
     if (classWeapons.has(key) || remainingSubWeapons.has(key)) continue
     weapons[key] = false
   }
 
-  const keepTools = new Set<string>([...classTools, ...raceTools, ...remainingSubTools])
+  const keepTools = new Set<string>([
+    ...classTools,
+    ...raceTools,
+    ...remainingSubTools,
+    ...remainingExtras,
+  ])
   const tools = draft.identity.tools.filter((item) => {
     const lower = item.trim().toLowerCase()
-    const wasOurs = previous.tools.some((t) => t.toLowerCase() === lower)
+    const wasOurs =
+      previous.tools.some((t) => t.toLowerCase() === lower) ||
+      previous.weaponExtras.some((t) => t.toLowerCase() === lower)
     if (!wasOurs) return true
     return keepTools.has(lower)
   })
@@ -372,7 +368,7 @@ export function applySubclassGrantToDraft(input: {
   const weaponKeys: WeaponProfKey[] = []
   if (input.def.sheetGrants.weapons.simple) weaponKeys.push('simple')
   if (input.def.sheetGrants.weapons.martial) weaponKeys.push('martial')
-  const weaponExtras = resolveWeaponExtraList(input.def.sheetGrants.weapons.extras)
+  const weaponExtras = [...input.def.sheetGrants.weapons.extras]
 
   const skills = { ...cleared.skills }
   for (const key of skillsApplied) {
@@ -383,13 +379,7 @@ export function applySubclassGrantToDraft(input: {
   const armor: ArmorProficiency = { ...cleared.identity.armor }
   for (const key of armorKeys) armor[key] = true
 
-  const weapons: WeaponProficiency = {
-    ...cleared.identity.weapons,
-    extras: uniqueStrings([
-      ...(cleared.identity.weapons.extras ?? []),
-      ...weaponExtras,
-    ]),
-  }
+  const weapons: WeaponProficiency = { ...cleared.identity.weapons }
   for (const key of weaponKeys) weapons[key] = true
 
   const companionsFromPicks: CompanionEntry[] = []
@@ -442,11 +432,19 @@ export function applySubclassGrantToDraft(input: {
   const grantedSpellIds: string[] = []
   const known = [...cleared.spells.known]
   for (const spell of input.def.alwaysPreparedSpells) {
-    const created = createSheetSpell()
-    created.name = spell.name
-    created.level = spell.level
-    created.prepared = true
-    created.notes = `Всегда подготовлено · ${input.def.labelRu}`
+    const key = spellKeyFromName(spell.name)
+    const created = asAlwaysPreparedSpell(
+      {
+        ...createSheetSpell(),
+        id: subclassSpellId(input.classEntryId, input.def.slug, key || spell.name),
+        name: spell.name,
+        level: spell.level,
+      },
+      {
+        source_kind: 'subclass',
+        label: input.def.labelRu,
+      },
+    )
     known.push(created)
     grantedSpellIds.push(created.id)
   }
@@ -480,7 +478,11 @@ export function applySubclassGrantToDraft(input: {
       ...cleared.identity,
       armor,
       weapons,
-      tools: uniqueStrings([...cleared.identity.tools, ...toolsApplied]),
+      tools: uniqueStrings([
+        ...cleared.identity.tools,
+        ...toolsApplied,
+        ...weaponExtras,
+      ]),
       languages: uniqueStrings([...cleared.identity.languages, ...languagesApplied]),
     },
   }

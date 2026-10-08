@@ -8,7 +8,12 @@ export type ClassAsiModeId = 'plus2' | 'plus1x2'
 
 export type ClassAsiResolution =
   | { kind: 'scores'; modeId: ClassAsiModeId; keys: AbilityKey[] }
-  | { kind: 'feat'; featId: string | null; status: 'coming_soon' }
+  | {
+      kind: 'feat'
+      featCatalogId: string
+      featSlug: string
+      featGrantId: string
+    }
 
 export type AppliedClassAsi = {
   classEntryId: string
@@ -120,11 +125,17 @@ export function readClassAsiLedger(raw: unknown): AppliedClassAsi[] {
         ? (row.resolution as Record<string, unknown>)
         : null
     let resolution: ClassAsiResolution
-    if (resolutionRaw?.kind === 'feat') {
+    if (
+      resolutionRaw?.kind === 'feat' &&
+      typeof resolutionRaw.featCatalogId === 'string' &&
+      typeof resolutionRaw.featSlug === 'string' &&
+      typeof resolutionRaw.featGrantId === 'string'
+    ) {
       resolution = {
         kind: 'feat',
-        featId: typeof resolutionRaw.featId === 'string' ? resolutionRaw.featId : null,
-        status: 'coming_soon',
+        featCatalogId: resolutionRaw.featCatalogId,
+        featSlug: resolutionRaw.featSlug,
+        featGrantId: resolutionRaw.featGrantId,
       }
     } else if (
       resolutionRaw?.kind === 'scores' &&

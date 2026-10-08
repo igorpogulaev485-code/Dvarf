@@ -15,6 +15,12 @@ Before writing or changing product code:
 
 Do not start coding, scaffolding, or migrations until the plan is approved for that slice.
 
+## Friends announce (когда просят)
+
+Если Игорь пишет **«сделай сообщение для друзей»** / пост / анонс «в стандартном формате» — не changelog и не PRODUCT_STATUS. Готовый пост в чат:
+
+→ [`.cursor/skills/dvarf-friends-announce/SKILL.md`](../dvarf-friends-announce/SKILL.md)
+
 ## Hard rule — prod lineage (не затирать прод)
 
 Перед **любым** деплоем на Timeweb и перед веткой «под прод» прочитай и выполни:

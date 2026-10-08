@@ -21,7 +21,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/class-asi-hitdice-mc-ef23` |
+| Prod tip (сейчас) | `cursor/gear-dmg-polish-db96` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
@@ -89,6 +89,16 @@
 Skill: [`.cursor/skills/dvarf-dev-workflow/SKILL.md`](.cursor/skills/dvarf-dev-workflow/SKILL.md).
 
 Деплой на Timeweb — **только** по явной просьбе («залей на сервер»).
+
+---
+
+## 6b. Сообщение для друзей
+
+Если Игорь просит **«сообщение для друзей»** / пост / анонс в стандартном формате — пиши готовый текст по skill:
+
+→ [`.cursor/skills/dvarf-friends-announce/SKILL.md`](.cursor/skills/dvarf-friends-announce/SKILL.md)
+
+Не подменяй changelog’ом. Цифры и tip — после проверки прода (или явно пометь черновик).
 
 ---
 

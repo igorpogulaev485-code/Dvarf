@@ -729,6 +729,162 @@ input {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.inventory-card--nested {
+  margin-left: 14px;
+  border-style: dashed;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.inventory-card--pack-open {
+  border-color: color-mix(in srgb, var(--accent, #0f766e) 45%, var(--line));
+}
+
+.inventory-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.gear-picker-list {
+  display: grid;
+  gap: 6px;
+  max-height: min(42vh, 360px);
+  overflow: auto;
+  padding: 4px 2px;
+}
+
+.gear-picker-family {
+  display: grid;
+  gap: 4px;
+}
+
+.gear-picker-row {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.gear-picker-row:hover {
+  border-color: color-mix(in srgb, var(--accent, #0f766e) 40%, var(--line));
+}
+
+.gear-picker-row.is-selected,
+.gear-picker-row.is-open {
+  border-color: color-mix(in srgb, var(--accent, #0f766e) 55%, var(--line));
+  background: color-mix(in srgb, var(--accent, #0f766e) 10%, white);
+}
+
+.gear-picker-row--family {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.gear-picker-row--variant {
+  margin-left: 12px;
+  border-style: dashed;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.gear-picker-row__name {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  font-weight: 600;
+}
+
+.gear-picker-row__badge {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted, #64748b);
+}
+
+.gear-picker-row__meta {
+  font-size: 0.85rem;
+  color: var(--muted, #64748b);
+}
+
+.gear-picker-selected {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--accent, #0f766e) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent, #0f766e) 6%, white);
+}
+
+.gear-picker-selected__desc {
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.gear-rarity-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 1px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  color: var(--muted, #64748b);
+  background: rgba(255, 255, 255, 0.7);
+  vertical-align: middle;
+}
+
+.gear-rarity-badge--mundane {
+  color: #57534e;
+  border-color: #d6d3d1;
+  background: #f5f5f4;
+}
+
+.gear-rarity-badge--common {
+  color: #3f6212;
+  border-color: #d9f99d;
+  background: #f7fee7;
+}
+
+.gear-rarity-badge--uncommon {
+  color: #166534;
+  border-color: #bbf7d0;
+  background: #ecfdf5;
+}
+
+.gear-rarity-badge--rare {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.gear-rarity-badge--very_rare {
+  color: #a16207;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.gear-rarity-badge--legendary {
+  color: #9a3412;
+  border-color: #fdba74;
+  background: #fff7ed;
+}
+
+.gear-rarity-badge--artifact {
+  color: #9f1239;
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
+.inventory-card__nest-label {
+  font-size: 0.8rem;
+}
+
 .inventory-card__grid {
   display: grid;
   gap: 10px;
@@ -794,6 +950,12 @@ input {
 .sheet-chip {
   padding: 10px 12px;
   font-weight: 600;
+}
+
+.sheet-chip.is-blocked {
+  opacity: 0.65;
+  border-style: dashed;
+  cursor: not-allowed;
 }
 
 .sheet-chip.is-on,
@@ -1123,9 +1285,38 @@ input {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.attack-card--stowed {
+  opacity: 0.72;
+  border-style: dashed;
+}
+
 .attack-card__meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
+}
+
+.attack-held-tag {
+  font-size: 0.78rem;
+  color: var(--muted, #64748b);
+}
+
+.spells-focus-chips {
+  align-items: center;
+}
+
+.spells-focus-chips .sheet-chip {
+  cursor: default;
+}
+
+.cast-material-box {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--accent, #0f766e) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent, #0f766e) 6%, white);
 }
 
 .attack-source {
@@ -2803,3 +2994,55 @@ input {
     max-height: none;
   }
 }
+
+/* Spell catalog contract details (grimoire / sheet) */
+.spell-catalog-details {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.spell-catalog-details__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.spell-catalog-details__toggle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--accent, #1d4ed8);
+  padding: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.spell-catalog-details__body {
+  font-size: 0.9rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.spell-catalog-details__body p {
+  margin: 0 0 8px;
+}
+
+.prepare-row--spell {
+  align-items: flex-start;
+}
+
+.prepare-row__main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.spell-card__extras {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+}
+

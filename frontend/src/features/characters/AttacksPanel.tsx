@@ -1,7 +1,8 @@
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
-import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
+import { parseWeaponCatalogData } from '../../shared/dnd/gearCatalog'
+import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
@@ -9,6 +10,8 @@ import {
   formatModifier,
   type AbilityKey,
 } from './sheetTypes'
+import { isWeaponProficient } from './equipmentProficiency'
+import type { WeaponProficiency } from './identity'
 
 export type AttackSourceKind = 'weapon' | 'artifact' | 'custom' | 'race'
 
@@ -21,6 +24,12 @@ export type WeaponAttack = {
   is_proficient: boolean
   damage: string
   damage_type: string
+  /** Stack size (javelins ×4); omit/null when each card is one weapon. */
+  qty?: number | null
+  /** Linked inventory row — held state mirrors item.equipped. */
+  inventory_item_id?: string | null
+  /** In hand right now (synced from inventory when linked). */
+  held?: boolean
 }
 
 /** Stable attack id for race natural weapons (revoke on race change). */
@@ -58,7 +67,13 @@ type AttacksPanelProps = {
   weapons: WeaponAttack[]
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  /** Sheet weapon categories + named extras — drives attack PB automatically. */
+  weaponProficiency: WeaponProficiency
   onChange: (weapons: WeaponAttack[]) => void
+  /** Toggle in-hand for an attack linked to inventory (hand-slot rules). */
+  onToggleHeld?: (attack: WeaponAttack) => void
+  /** Per inventory item: magic attack/damage from active gear effects. */
+  gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
 }
 
 function createAttack(): WeaponAttack {
@@ -74,12 +89,27 @@ function createAttack(): WeaponAttack {
     is_proficient: true,
     damage: '',
     damage_type: '',
+    qty: null,
+    inventory_item_id: null,
+    held: false,
   }
 }
 
-function readCatalogAbility(data: Record<string, unknown>): AbilityKey {
-  const value = data.ability
-  return ABILITY_KEYS.includes(value as AbilityKey) ? (value as AbilityKey) : 'str'
+/** Mirror inventory.equipped onto linked attack cards. */
+export function syncAttacksHeldFromInventory(
+  weapons: WeaponAttack[],
+  items: Array<{ id: string; equipped: boolean }>,
+): WeaponAttack[] {
+  const equippedById = new Map(items.map((item) => [item.id, item.equipped]))
+  let changed = false
+  const next = weapons.map((attack) => {
+    if (!attack.inventory_item_id) return attack
+    const held = Boolean(equippedById.get(attack.inventory_item_id))
+    if (attack.held === held) return attack
+    changed = true
+    return { ...attack, held }
+  })
+  return changed ? next : weapons
 }
 
 function sourceFromCatalog(entry: CatalogEntry): AttackSourceKind {
@@ -100,7 +130,10 @@ export function AttacksPanel({
   weapons,
   abilities,
   proficiencyBonus,
+  weaponProficiency,
   onChange,
+  onToggleHeld,
+  gearBonusesByItem,
 }: AttacksPanelProps) {
   function updateAttack(id: string, patch: Partial<WeaponAttack>) {
     onChange(weapons.map((item) => (item.id === id ? { ...item, ...patch } : item)))
@@ -111,14 +144,14 @@ export function AttacksPanel({
       updateAttack(id, { name: value, catalog_id: null, source_kind: 'custom' })
       return
     }
-    const data = selected.data ?? {}
+    const parsed = parseWeaponCatalogData(selected.data ?? {})
     updateAttack(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
       source_kind: sourceFromCatalog(selected),
-      ability: readCatalogAbility(data),
-      damage: typeof data.damage === 'string' ? data.damage : '',
-      damage_type: typeof data.damage_type === 'string' ? data.damage_type : '',
+      ability: parsed.ability,
+      damage: parsed.damage,
+      damage_type: parsed.damage_type,
     })
   }
 
@@ -126,8 +159,10 @@ export function AttacksPanel({
     <Panel title="Атаки">
       <Stack gap={12}>
         <Text tone="muted">
-          Атака может быть обычным оружием или артефактом — у обоих есть урон. Можно выбрать из
-          справочника или вписать своё название.
+          Атака может быть обычным оружием или артефактом. «В руках» — сейчас держишь (двуручное
+          занимает обе руки; иначе до двух одноручных / одноручное+щит). Убрать = убрать в ножны
+          (в бою это действие). Владение (бонус мастерства) — от блока «Владения снаряжением».
+          Природное оружие расы всегда с владением и не занимает слоты рук инвентаря.
         </Text>
 
         {weapons.length === 0 ? (
@@ -135,25 +170,64 @@ export function AttacksPanel({
         ) : null}
 
         {weapons.map((attack) => {
+          const raceNatural = isRaceNaturalWeaponAttack(attack)
+          const gear =
+            !raceNatural && attack.inventory_item_id && attack.held
+              ? gearBonusesByItem?.[attack.inventory_item_id]
+              : undefined
+          const magicAtk = gear?.attackBonus ?? 0
+          const magicDmg = gear?.damageBonus ?? 0
+          const proficient = isWeaponProficient({
+            name: attack.name,
+            weapons: weaponProficiency,
+            sourceKind: attack.source_kind,
+            attackId: attack.id,
+          })
           const attackBonus =
             abilityModifier(abilities[attack.ability]) +
-            (attack.is_proficient ? proficiencyBonus : 0)
+            (proficient ? proficiencyBonus : 0) +
+            magicAtk
+          const damageDisplay =
+            magicDmg && attack.damage
+              ? `${attack.damage}${magicDmg >= 0 ? '+' : ''}${magicDmg}`
+              : attack.damage
           return (
-            <div key={attack.id} className="attack-card">
+            <div
+              key={attack.id}
+              className={`attack-card${
+                !raceNatural && attack.inventory_item_id && !attack.held
+                  ? ' attack-card--stowed'
+                  : ''
+              }`}
+            >
               <div className="attack-card__meta">
                 <span className={`attack-source attack-source--${attack.source_kind}`}>
                   {sourceLabel(attack.source_kind)}
                 </span>
+                {raceNatural ? (
+                  <span className="attack-held-tag">природное</span>
+                ) : attack.inventory_item_id ? (
+                  <span className="attack-held-tag">
+                    {attack.held ? 'в руках' : 'убран'}
+                  </span>
+                ) : null}
               </div>
               <div className="attack-card__grid">
-                <Field label="Оружие или артефакт">
-                  <CatalogCombobox
-                    kinds={['weapon', 'item']}
-                    edition={edition}
-                    value={attack.name}
-                    placeholder="Боевой молот, Молот бури…"
-                    onChange={(value, selected) => applyCatalog(attack.id, value, selected)}
-                  />
+                <Field
+                  label="Оружие или артефакт"
+                  hint={raceNatural ? 'От расы — не из инвентаря' : undefined}
+                >
+                  {raceNatural ? (
+                    <Input value={attack.name} readOnly />
+                  ) : (
+                    <CatalogCombobox
+                      kinds={['weapon', 'item']}
+                      edition={edition}
+                      value={attack.name}
+                      placeholder="Боевой молот, Молот бури…"
+                      onChange={(value, selected) => applyCatalog(attack.id, value, selected)}
+                    />
+                  )}
                 </Field>
                 <Field label="Характеристика">
                   <select
@@ -172,10 +246,20 @@ export function AttacksPanel({
                     ))}
                   </select>
                 </Field>
-                <Field label="Бонус атаки">
+                <Field
+                  label="Бонус атаки"
+                  hint={magicAtk ? `магия ${magicAtk >= 0 ? '+' : ''}${magicAtk}` : undefined}
+                >
                   <Input value={formatModifier(attackBonus)} readOnly />
                 </Field>
-                <Field label="Урон">
+                <Field
+                  label="Урон"
+                  hint={
+                    magicDmg
+                      ? `с магией ${damageDisplay} (${magicDmg >= 0 ? '+' : ''}${magicDmg})`
+                      : undefined
+                  }
+                >
                   <Input
                     value={attack.damage}
                     placeholder="1d8"
@@ -191,23 +275,49 @@ export function AttacksPanel({
                     }
                   />
                 </Field>
+                <Field label="Кол-во" hint="для метательных / запасов">
+                  <NumberInput
+                    min={1}
+                    emptyValue={null}
+                    value={attack.qty ?? null}
+                    onValueChange={(qty) =>
+                      updateAttack(attack.id, {
+                        qty: qty == null || qty <= 1 ? null : qty,
+                      })
+                    }
+                  />
+                </Field>
               </div>
               <div className="attack-card__footer">
-                <button
-                  type="button"
-                  className={`sheet-chip${attack.is_proficient ? ' is-on' : ''}`}
-                  onClick={() =>
-                    updateAttack(attack.id, { is_proficient: !attack.is_proficient })
+                {!raceNatural && attack.inventory_item_id && onToggleHeld ? (
+                  <button
+                    type="button"
+                    className={`sheet-chip${attack.held ? ' is-on' : ''}`}
+                    onClick={() => onToggleHeld(attack)}
+                  >
+                    {attack.held ? 'В руках' : 'Убран'}
+                  </button>
+                ) : null}
+                <span
+                  className={`sheet-chip${proficient ? ' is-on' : ''}`}
+                  title={
+                    raceNatural
+                      ? 'Природное оружие расы — всегда владение'
+                      : 'Из владений снаряжением на листе'
                   }
                 >
-                  {attack.is_proficient ? 'Владение' : 'Без владения'}
-                </button>
-                <Button
-                  variant="ghost"
-                  onClick={() => onChange(weapons.filter((item) => item.id !== attack.id))}
-                >
-                  Удалить
-                </Button>
+                  {proficient ? 'Владение' : 'Нет владения'}
+                </span>
+                {raceNatural ? (
+                  <Text tone="muted">С расы</Text>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    onClick={() => onChange(weapons.filter((item) => item.id !== attack.id))}
+                  >
+                    Удалить
+                  </Button>
+                )}
               </div>
             </div>
           )

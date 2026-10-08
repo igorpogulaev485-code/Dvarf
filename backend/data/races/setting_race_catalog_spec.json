@@ -613,7 +613,8 @@
             "from": "any"
           }
         }
-      ]
+      ],
+      "feat_pick": true
     }
   ]
 }

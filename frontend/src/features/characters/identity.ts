@@ -19,6 +19,8 @@ export type IdentityExtras = {
   experience: number
   subclassName: string
   background: string
+  /** Catalog slug when picked from kind=background; used for feat prereqs. */
+  backgroundSlug: string | null
   alignment: string
   size: string
   darkvision: number
@@ -54,6 +56,12 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
     experience: Math.max(0, Math.floor(readNumber(identity.experience, 0))),
     subclassName: typeof identity.subclass_name === 'string' ? identity.subclass_name : '',
     background: typeof identity.background === 'string' ? identity.background : '',
+    backgroundSlug:
+      typeof identity.background_slug === 'string' && identity.background_slug.trim()
+        ? identity.background_slug.trim()
+        : typeof identity.backgroundSlug === 'string' && identity.backgroundSlug.trim()
+          ? identity.backgroundSlug.trim()
+          : null,
     alignment: typeof identity.alignment === 'string' ? identity.alignment : '',
     size: typeof identity.size === 'string' && identity.size.trim() ? identity.size : 'medium',
     darkvision: Math.max(0, Math.floor(readNumber(combat.darkvision, 0))),
@@ -89,6 +97,7 @@ export function identityExtrasToSheet(extras: IdentityExtras): {
       experience: Math.max(0, Math.floor(extras.experience)),
       subclass_name: extras.subclassName.trim() || null,
       background: extras.background.trim() || null,
+      background_slug: extras.backgroundSlug?.trim() || null,
       alignment: extras.alignment.trim() || null,
       size: extras.size.trim() || 'medium',
       race_applied_languages: extras.raceAppliedLanguages

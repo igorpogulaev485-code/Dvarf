@@ -16,7 +16,6 @@ import {
   type WeaponProfKey,
 } from '../../shared/dnd/classGrants'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
-import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import { abilityModifier } from './sheetTypes'
 import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
 import {
@@ -25,10 +24,19 @@ import {
   type InventoryState,
 } from './inventory'
 import type { ArmorKind } from '../../shared/dnd/armor'
+import { type WeaponAttack } from './AttacksPanel'
+import { resolveWeaponGrip } from './heldEquip'
+import { canWearArmor, isWeaponProficient } from './equipmentProficiency'
+import { classifySpellTooling, inferFocusKind } from './spellFocus'
 import {
-  classEquipmentAttackId,
-  type WeaponAttack,
-} from './AttacksPanel'
+  applyFocusSelectionToItemFields,
+  isFocusPlaceholderItem,
+} from './focusCatalog'
+import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
+import {
+  buildStartingWeaponAttacks,
+  classEquipmentAttackIdAt,
+} from './startingGearAttacks'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 export type SaveState = Record<AbilityKey, boolean>
@@ -234,6 +242,13 @@ export function validateClassGrantPicks(input: {
       if (id !== 'skip' && !packs.some((pack) => pack.id === id)) {
         return 'Неизвестный пакет снаряжения'
       }
+      if (id && id !== 'skip') {
+        const pack = packs.find((row) => row.id === id)
+        const needsFocus = pack?.items.some((item) => isFocusPlaceholderItem(item.name))
+        if (needsFocus && !input.picks.equipmentFocusPick?.name?.trim()) {
+          return 'Выбери фокус из справочника или своё название'
+        }
+      }
     }
   }
   return null
@@ -274,6 +289,18 @@ export function applyClassGrantToDraft(input: {
   const saves = [...pkg.saves]
   const skills = [...input.picks.skills]
   const tools = uniqueStrings([...pkg.toolsFixed, ...input.picks.tools])
+  const mergedArmorProf = {
+    ...cleared.identity.armor,
+    ...Object.fromEntries(armorKeys.map((key) => [key, true])),
+  } as typeof cleared.identity.armor
+  const mergedWeaponProf = {
+    simple: cleared.identity.weapons.simple || weaponKeys.includes('simple'),
+    martial: cleared.identity.weapons.martial || weaponKeys.includes('martial'),
+    extras: uniqueStrings([
+      ...(cleared.identity.weapons.extras ?? []),
+      ...weaponExtras,
+    ]),
+  }
 
   let hpMax = cleared.hpMax
   let hpCurrent = cleared.hpCurrent
@@ -298,6 +325,7 @@ export function applyClassGrantToDraft(input: {
   if (input.mode === 'start' && equipmentPackageId && equipmentPackageId !== 'skip') {
     const pack = equipmentPackagesFor(def).find((row) => row.id === equipmentPackageId)
     if (pack) {
+      const focusPick = input.picks.equipmentFocusPick
       for (const spec of pack.items) {
         const created = createInventoryItem()
         created.name = spec.name
@@ -306,15 +334,44 @@ export function applyClassGrantToDraft(input: {
         created.base_ac = spec.base_ac ?? null
         created.weight_lb = spec.weight_lb ?? null
         created.notes = spec.notes ?? 'Стартовое снаряжение класса'
+        if (focusPick && isFocusPlaceholderItem(spec.name)) {
+          const fields = applyFocusSelectionToItemFields({
+            name: focusPick.name,
+            catalog_id: focusPick.catalog_id,
+            cost_gp: focusPick.cost_gp,
+            weight_lb: focusPick.weight_lb,
+            focus_kind: focusPick.focus_kind,
+            custom: focusPick.custom,
+          })
+          created.name = fields.name
+          created.catalog_id = fields.catalog_id
+          created.cost_gp = fields.cost_gp
+          created.weight_lb = fields.weight_lb
+          created.spell_tooling = fields.spell_tooling
+          created.focus_kind = fields.focus_kind
+          created.notes = focusPick.custom
+            ? 'Свой фокус · стартовое снаряжение класса'
+            : 'Стартовое снаряжение класса'
+        } else {
+          if (created.armor_kind === 'none' && findWeaponPreset(created.name)) {
+            created.weapon_grip = resolveWeaponGrip({ name: created.name })
+          }
+          created.spell_tooling = classifySpellTooling({ name: created.name })
+          if (created.spell_tooling === 'focus') {
+            created.focus_kind = inferFocusKind({ name: created.name }) ?? 'any'
+          }
+        }
         inventory.items.push(created)
         equipmentItemIds.push(created.id)
 
-        // Auto-wear body armor / shield so AC updates immediately.
+        // Auto-wear body armor / shield only when the class grants that proficiency.
+        // Weapons stay stowed — draw into hands is a separate toggle.
         if (
-          created.armor_kind === 'light' ||
-          created.armor_kind === 'medium' ||
-          created.armor_kind === 'heavy' ||
-          created.armor_kind === 'shield'
+          (created.armor_kind === 'light' ||
+            created.armor_kind === 'medium' ||
+            created.armor_kind === 'heavy' ||
+            created.armor_kind === 'shield') &&
+          canWearArmor(created.armor_kind, mergedArmorProf)
         ) {
           inventory = {
             ...inventory,
@@ -322,25 +379,24 @@ export function applyClassGrantToDraft(input: {
           }
         }
 
-        // Weapons → Attacks panel cards (one card per distinct weapon item).
-        const weapon = findWeaponPreset(spec.name)
-        if (weapon) {
-          const attackId = classEquipmentAttackId(input.classEntryId, created.id)
-          nextWeapons.push({
-            id: attackId,
-            name:
-              created.qty > 1
-                ? `${weapon.labelRu} ×${created.qty}`
-                : weapon.labelRu,
-            catalog_id: null,
-            source_kind: 'weapon',
-            ability: weapon.ability,
-            is_proficient: true,
-            damage: weapon.damage,
-            damage_type: weapon.damageType,
-          })
-          equipmentAttackIds.push(attackId)
-        }
+        // Weapons → Attacks: light×N → N cards; stacks → one card + qty (no "×N" in name).
+        const built = buildStartingWeaponAttacks({
+          name: spec.name,
+          qty: created.qty,
+          makeId: (index, cardCount) =>
+            classEquipmentAttackIdAt(input.classEntryId, created.id, index, cardCount),
+          inventoryItemId: created.id,
+          held: false,
+        })
+        const withProf = built.attacks.map((attack) => ({
+          ...attack,
+          is_proficient: isWeaponProficient({
+            name: attack.name,
+            weapons: mergedWeaponProf,
+          }),
+        }))
+        nextWeapons.push(...withProf)
+        equipmentAttackIds.push(...built.attackIds)
       }
       if (pack.coinsGp && pack.coinsGp > 0) {
         equipmentCoinsGp = pack.coinsGp
@@ -450,7 +506,12 @@ export function pendingGrantRequest(input: {
 }
 
 export function emptyPicks(): ClassGrantPicks {
-  return { skills: [], tools: [], equipmentPackageId: null }
+  return {
+    skills: [],
+    tools: [],
+    equipmentPackageId: null,
+    equipmentFocusPick: null,
+  }
 }
 
 export function readAppliedClassGrants(raw: unknown): AppliedClassGrant[] {

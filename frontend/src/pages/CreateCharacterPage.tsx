@@ -1282,6 +1282,7 @@ export function CreateCharacterPage() {
         mode={classSetup?.mode ?? 'start'}
         blockedSkillKeys={blockedSkillKeys}
         blockedToolNames={blockedToolNames}
+        edition="2014"
         onClose={() => setClassSetup(null)}
         onConfirm={(picks: ClassGrantPicks) => {
           const entryId = classSetup?.classEntryId ?? state.classEntryId

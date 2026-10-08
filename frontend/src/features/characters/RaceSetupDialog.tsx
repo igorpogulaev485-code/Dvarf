@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { RulesEdition } from '../../shared/api/characters'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
   abilityBonusModeSlotCount,
@@ -16,21 +17,39 @@ import {
   type RaceGrantPicks,
   type RaceSize,
 } from '../../shared/dnd/raceGrants'
+import {
+  raceRequiresFeatPick,
+  type ArmorProfKey,
+  type OwnedFeatEnumSnapshot,
+} from '../../shared/dnd/featGrants'
 import { LANGUAGE_PRESETS } from './languagesTools'
 import { ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
-import { Dialog, Field, Input, Stack, Text } from '../../ui'
+import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
+import { Button, Dialog, Field, Input, Stack, Text } from '../../ui'
 
 export type RaceSetupConfirm = {
   entry: CatalogEntry
   def: RaceGrantDef
   picks: RaceGrantPicks
+  featResult: FeatSetupResult | null
 }
 
 type RaceSetupDialogProps = {
   open: boolean
+  edition: RulesEdition
   root: CatalogEntry | null
   subraces: CatalogEntry[]
   subraceRequired: boolean
+  abilities: Record<AbilityKey, number>
+  armor: Partial<Record<ArmorProfKey, boolean>>
+  hasSpellcasting: boolean
+  hasMartialWeapons?: boolean
+  characterLevel?: number
+  takenSlugs?: string[]
+  classSlugs?: string[]
+  backgroundSlug?: string | null
+  ownedFeatEnums?: OwnedFeatEnumSnapshot[]
+  proficientSkills?: string[]
   onConfirm: (result: RaceSetupConfirm) => void
   onClose: () => void
 }
@@ -52,9 +71,20 @@ function defForEntry(entry: CatalogEntry): RaceGrantDef | null {
 
 export function RaceSetupDialog({
   open,
+  edition,
   root,
   subraces,
   subraceRequired,
+  abilities,
+  armor,
+  hasSpellcasting,
+  hasMartialWeapons = false,
+  characterLevel = 1,
+  takenSlugs = [],
+  classSlugs = [],
+  backgroundSlug = null,
+  ownedFeatEnums = [],
+  proficientSkills = [],
   onConfirm,
   onClose,
 }: RaceSetupDialogProps) {
@@ -97,6 +127,8 @@ export function RaceSetupDialog({
   const [asiBucketPicks, setAsiBucketPicks] = useState<AbilityKey[][]>([])
   const [sizePick, setSizePick] = useState<RaceSize | null>(null)
   const [variableTraitId, setVariableTraitId] = useState<string | null>(null)
+  const [featResult, setFeatResult] = useState<FeatSetupResult | null>(null)
+  const [featPickerOpen, setFeatPickerOpen] = useState(false)
   const [languages, setLanguages] = useState<string[]>([])
   const [skills, setSkills] = useState<string[]>([])
   const [tools, setTools] = useState<string[]>([])
@@ -155,6 +187,8 @@ export function RaceSetupDialog({
     setAsiBucketPicks([])
     setSizePick(empty.size)
     setVariableTraitId(empty.variableTraitId)
+    setFeatResult(null)
+    setFeatPickerOpen(false)
     setLanguages(empty.languages)
     setSkills(empty.skills)
     setTools(empty.tools)
@@ -168,6 +202,8 @@ export function RaceSetupDialog({
     setAsiBucketPicks([])
     setSizePick(empty.size)
     setVariableTraitId(empty.variableTraitId)
+    setFeatResult(null)
+    setFeatPickerOpen(false)
     setLanguages(empty.languages)
     setSkills(empty.skills)
     setTools(empty.tools)
@@ -265,6 +301,9 @@ export function RaceSetupDialog({
     asiModes.length === 0 ||
     (Boolean(selectedAsiMode) && abilityBonusKeys.length === asiNeed)
 
+  const featNeed = Boolean(def && raceRequiresFeatPick(def))
+  const featOk = !featNeed || Boolean(featResult)
+
   const canConfirm =
     Boolean(root && def && effectiveEntry) &&
     subraceOk &&
@@ -274,7 +313,8 @@ export function RaceSetupDialog({
     languages.length === langNeed &&
     skills.length === skillNeed &&
     tools.length === toolNeed &&
-    ancestryOk
+    ancestryOk &&
+    featOk
 
   if (!root) return null
 
@@ -288,8 +328,9 @@ export function RaceSetupDialog({
     : ''
 
   return (
+    <>
     <Dialog
-      open={open}
+      open={open && !featPickerOpen}
       title={`${root.name_ru}: настройка расы`}
       primaryLabel="Применить"
       secondaryLabel="Отмена"
@@ -309,7 +350,9 @@ export function RaceSetupDialog({
             skills,
             tools,
             ancestryId,
+            featCatalogId: featResult?.entry.id ?? null,
           },
+          featResult,
         })
       }}
       onSecondary={onClose}
@@ -593,7 +636,23 @@ export function RaceSetupDialog({
               </Field>
             ) : null}
 
-            {def.featNoteRu ? <Text tone="muted">{def.featNoteRu}</Text> : null}
+            {featNeed ? (
+              <Field label="Черта (обязательно)">
+                <Stack gap={8}>
+                  {def.featNoteRu ? <Text tone="muted">{def.featNoteRu}</Text> : null}
+                  <Text>
+                    {featResult
+                      ? `Выбрано: ${featResult.entry.name_ru}`
+                      : 'Черта ещё не выбрана'}
+                  </Text>
+                  <Button type="button" variant="ghost" onClick={() => setFeatPickerOpen(true)}>
+                    {featResult ? 'Сменить черту' : 'Выбрать черту'}
+                  </Button>
+                </Stack>
+              </Field>
+            ) : def.featNoteRu ? (
+              <Text tone="muted">{def.featNoteRu}</Text>
+            ) : null}
           </>
         ) : null}
 
@@ -603,11 +662,40 @@ export function RaceSetupDialog({
               ? subraceRequired
                 ? 'Выбери разновидность, чтобы продолжить.'
                 : 'Выбери разновидность или «Без подрасы».'
-              : 'Отметь все обязательные развилки, чтобы продолжить.'}
+              : !featOk
+                ? 'Выбери черту, чтобы продолжить.'
+                : 'Отметь все обязательные развилки, чтобы продолжить.'}
           </Text>
         ) : null}
       </Stack>
     </Dialog>
+
+    <FeatSetupDialog
+      open={featPickerOpen}
+      edition={edition}
+      title="Черта расы"
+      abilities={abilities}
+      armor={armor}
+      hasSpellcasting={hasSpellcasting}
+      hasMartialWeapons={hasMartialWeapons}
+      raceSlug={effectiveEntry?.slug ?? root.slug}
+      raceParentSlug={
+        effectiveEntry && effectiveEntry.id !== root.id ? root.slug : null
+      }
+      size={sizeNeed ? sizePick : def?.size ?? null}
+      characterLevel={characterLevel}
+      takenSlugs={takenSlugs}
+      classSlugs={classSlugs}
+      backgroundSlug={backgroundSlug}
+      ownedFeatEnums={ownedFeatEnums}
+      proficientSkills={proficientSkills}
+      onClose={() => setFeatPickerOpen(false)}
+      onConfirm={(result) => {
+        setFeatResult(result)
+        setFeatPickerOpen(false)
+      }}
+    />
+    </>
   )
 }
 

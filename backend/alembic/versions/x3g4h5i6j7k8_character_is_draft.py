@@ -1,7 +1,7 @@
 """Add characters.is_draft for create-pipeline drafts.
 
 Revision ID: x3g4h5i6j7k8
-Revises: v1e2f3a4b5c6
+Revises: j2d3e4f5a6b7
 Create Date: 2026-10-08
 """
 
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "x3g4h5i6j7k8"
-down_revision = "v1e2f3a4b5c6"
+down_revision = "j2d3e4f5a6b7"
 branch_labels = None
 depends_on = None
 
