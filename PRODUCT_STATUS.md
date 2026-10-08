@@ -475,9 +475,22 @@
 | Грант-заряд | Раса/черта: чип N/M в пикере, отдых восстанавливает | Hellish Rebuke / Fey Touched без слота, но с лимитом |
 | Pact short rest | Короткий отдых чинит pact | Как PHB |
 
-На проде: **да** · ветка `cursor/spell-cast-grant-picker-7737` · PR #80 · это **новый prod tip**
+На проде: **да** · ветка `cursor/spell-cast-grant-picker-7737` · PR #80 · затем tip → `cursor/companions-naparniki-b378`
 
+### 2026-10-08 — Напарники залиты на Timeweb (новый tip)
 
+Проверено на живом http://201.34.132.252/ (alembic `b4c5d6e7f8a9`; бандл `index-CvF4mAUN.js`; строки `Напарники` / `Основной` / `Снова в строю` / `bestiary`; маркеры Лобби / Опасная зона / Концентрация / Классический / grant_cast на месте; на диске companions*.ts + preflight YES).
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Блок «Напарники» | Кличка, статы, активен/основной, природа, действия | Свита и призывы в одном месте на листе |
+| Архетип / каст | Спутник архетипа и Summon/Conjure/Familiar → карточка; концентрация гасит призыв | Не теряется после каста |
+| Автостаты | Tasha Summon* + шаблоны архетипа; Conjure* — группа | Цифры без ручного MM |
+| Ресурсы / отдых | Repair и т.п.; сброс с отдыхом хозяина | Пулы спутника живут рядом |
+| Аватарка | У постоянных (не у разовых summon) | Портрет «своих» |
+| Бестиарий | kind=`bestiary` в каталоге, записей пока 0 | Готово к отдельному агенту |
+
+На проде: **да** · ветка `cursor/companions-naparniki-b378` · PR #81 · это **новый prod tip** · alembic `b4c5`
 
 ---
 
@@ -775,4 +788,4 @@
 | 2026-10-08 | `cursor/spell-cast-ui-polish-7737` · PR #79 | SPELLS slice 8: cast dialog ritual + meta/higher_levels → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS: cast-via-feat/race grant charges in picker → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
-| 2026-10-08 | `cursor/companions-naparniki-b378` · PR #81 | Напарники: каркас + bestiary + шаблоны + каст + отзыв по концентрации → «В ветках»; alembic `b4c5` |
+| 2026-10-08 | `cursor/companions-naparniki-b378` · PR #81 | Напарники A–D3 + аватарки залиты; tip → эта ветка; alembic `b4c5` |
