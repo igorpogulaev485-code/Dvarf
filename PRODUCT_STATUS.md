@@ -492,7 +492,7 @@
 | Атаки и БМ | Владение на карточке атаки — только чтение из блока «Владения снаряжением» (категория / отдельные виды) | Не руками кликать «Владение» на каждом мече |
 | Effects+ | `skill_bonus`, `save_bonus`, `speed` с надетых (+ attuned) предметов | Плащ защиты / ботинки скорости правят цифры на листе |
 
-На проде: **нет** · ветка `cursor/gear-proficiency-effects-db96` · tip не менять до «залей»
+На проде: **нет** · ветка `cursor/gear-proficiency-effects-db96` · PR #91 · tip не менять до «залей»
 
 ### 2026-10-08 — GEAR slice 9: движок эффектов MVP
 
@@ -888,4 +888,4 @@
 | 2026-10-08 | `cursor/gear-spell-focus-db96` · PR #88 | GEAR slice 7: spell focus flags + costly material consume → «В ветках» |
 | 2026-10-08 | `cursor/gear-wear-slots-db96` · PR #89 | GEAR slice 8: wear slots + attunement inventory link → «В ветках» |
 | 2026-10-08 | `cursor/gear-effects-mvp-db96` · PR #90 | GEAR slice 9: gear effects engine MVP → «В ветках» |
-| 2026-10-08 | `cursor/gear-proficiency-effects-db96` | GEAR: armor/weapon proficiency gates + Effects+ skill/save/speed → «В ветках» |
+| 2026-10-08 | `cursor/gear-proficiency-effects-db96` · PR #91 | GEAR: armor/weapon proficiency gates + Effects+ skill/save/speed → «В ветках» |
