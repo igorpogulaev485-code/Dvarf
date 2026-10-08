@@ -202,24 +202,33 @@ export function LevelUpDialog({
             </select>
           </Field>
         ) : (
-          <Field
-            label="Новый класс"
-            hint="Только из справочника классов. В списке — классы, которым хватает характеристик (новый + уже взятые)."
-          >
-            <CatalogCombobox
-              kind="class"
-              edition={edition}
-              value={newClassName}
-              placeholder="Начните вводить класс"
-              filterEntry={filterEligibleClassStable}
-              onChange={(value, selected) => {
-                setNewClassName(value)
-                setNewCatalogId(selected?.id ?? null)
-                setNewCatalogSlug(selected?.slug ?? null)
-                setNewCatalogData(selected?.data ?? null)
-              }}
-            />
-          </Field>
+          <Stack gap={8}>
+            <Field
+              label="Новый класс"
+              hint="Только из справочника. В списке — классы, которым хватает характеристик (новый + уже взятые)."
+            >
+              <CatalogCombobox
+                kind="class"
+                edition={edition}
+                value={newClassName}
+                placeholder="Начните вводить класс"
+                filterEntry={filterEligibleClassStable}
+                onChange={(value, selected) => {
+                  setNewClassName(value)
+                  setNewCatalogId(selected?.id ?? null)
+                  setNewCatalogSlug(selected?.slug ?? null)
+                  setNewCatalogData(selected?.data ?? null)
+                }}
+              />
+            </Field>
+            {multiclassGate && !multiclassGate.ok ? (
+              <Text tone="danger">{multiclassGate.reason}</Text>
+            ) : null}
+            <Text tone="muted">
+              Как на create: пороги PHB на новый класс и на уже взятые. Не хватает характеристик —
+              класс не выбрать, пока не поднимешь ASI / не перераспределишь.
+            </Text>
+          </Stack>
         )}
 
         <Field label="Хиты за уровень">

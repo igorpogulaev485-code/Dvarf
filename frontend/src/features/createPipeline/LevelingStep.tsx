@@ -18,6 +18,7 @@ import {
   type ClassLevelEntry,
 } from '../../shared/dnd/classLevels'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
+import { pruneInvalidMulticlassRows } from '../../shared/dnd/multiclassPrune'
 import type { HpLevelChoice } from './createPipelineTypes'
 
 type LevelingStepProps = {
@@ -80,7 +81,30 @@ export function LevelingStep({
   onOpenSpells,
 }: LevelingStepProps) {
   const [mcOpen, setMcOpen] = useState(false)
+  const [pruneWarn, setPruneWarn] = useState<{
+    next: ClassLevelEntry[]
+    removed: ClassLevelEntry[]
+    reasons: string[]
+  } | null>(null)
   const totalLevel = totalCharacterLevel(classes)
+
+  function commitClasses(next: ClassLevelEntry[]) {
+    const pruned = pruneInvalidMulticlassRows({
+      classes: next,
+      abilities,
+      primaryClassEntryId,
+    })
+    if (pruned.removed.length > 0) {
+      setPruneWarn({
+        next: pruned.classes,
+        removed: pruned.removed,
+        reasons: pruned.reasons,
+      })
+      return
+    }
+    onClassesChange(next)
+    onHpChoicesChange(ensureHpChoices(next, hpChoices))
+  }
 
   const mcOptions = useMemo(() => {
     return classCatalog
@@ -110,22 +134,13 @@ export function LevelingStep({
       row.id === classId ? { ...row, level: Math.max(1, clamped) } : row,
     )
     if (clamped <= 0) {
-      // Attempt remove — protect primary if it's the only class.
       if (classes.length === 1) {
         next = classes.map((row) => (row.id === classId ? { ...row, level: 1 } : row))
       } else {
         next = reduceClassLevel(classes, classId)
       }
     }
-    // Drop MC that no longer meet prereqs after level-down on primary abilities unchanged —
-    // ability ASI might be undone by parent; here we only check class list integrity.
-    const removed = classes.filter((row) => !next.some((n) => n.id === row.id))
-    if (removed.length) {
-      // ok
-    }
-    const withHp = ensureHpChoices(next, hpChoices)
-    onClassesChange(next)
-    onHpChoicesChange(withHp)
+    commitClasses(next)
   }
 
   function addMulticlass(entry: CatalogEntry) {
@@ -144,8 +159,7 @@ export function LevelingStep({
         ? { ...row, catalog_id: entry.id }
         : row,
     )
-    onClassesChange(normalized)
-    onHpChoicesChange(ensureHpChoices(normalized, hpChoices))
+    commitClasses(normalized)
     setMcOpen(false)
   }
 
@@ -200,8 +214,7 @@ export function LevelingStep({
                   onClick={() => {
                     if (classes.length <= 1) return
                     const next = classes.filter((item) => item.id !== row.id)
-                    onClassesChange(next.length ? next : [createClassLevel({ level: 1 })])
-                    onHpChoicesChange(ensureHpChoices(next, hpChoices))
+                    commitClasses(next.length ? next : [createClassLevel({ level: 1 })])
                   }}
                 >
                   Убрать класс
@@ -283,9 +296,39 @@ export function LevelingStep({
       </Button>
 
       <Text tone="muted">
-        Минус уровня: если после смены характеристик/порогов мультикласс перестанет подходить —
-        покажем предупреждение и снимем лишнее (логика на шаге характеристик / подтверждении).
+        Если мультикласс перестанет проходить по характеристикам — покажем предупреждение и снимем
+        лишние классы после подтверждения.
       </Text>
+
+      {pruneWarn ? (
+        <div className="create-pipeline__modal">
+          <Stack gap={12}>
+            <Text as="h3">Мультикласс больше не подходит</Text>
+            <Text>
+              Будут сняты: {pruneWarn.removed.map((row) => row.name).join(', ')}.
+            </Text>
+            {pruneWarn.reasons.map((reason) => (
+              <Text key={reason} tone="muted">
+                {reason}
+              </Text>
+            ))}
+            <div className="create-pipeline__method-row">
+              <Button variant="ghost" onClick={() => setPruneWarn(null)}>
+                Отмена
+              </Button>
+              <Button
+                onClick={() => {
+                  onClassesChange(pruneWarn.next)
+                  onHpChoicesChange(ensureHpChoices(pruneWarn.next, hpChoices))
+                  setPruneWarn(null)
+                }}
+              >
+                Подтвердить и снять
+              </Button>
+            </div>
+          </Stack>
+        </div>
+      ) : null}
     </Stack>
   )
 }
