@@ -86,17 +86,24 @@ import {
 import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
 import { LanguagesToolsPanel } from './LanguagesToolsPanel'
-import { ClassAsiDialog } from './ClassAsiDialog'
+import { GuidedWizardDialog, type GuidedWizardSession } from './GuidedWizardDialog'
 import { LevelUpDialog, type LevelUpChoice } from './LevelUpDialog'
 import { PlayPanel } from './PlayPanel'
 import {
   applyClassAsiBonuses,
-  asiAlreadyApplied,
-  isAsiFeature,
   readClassAsiLedger,
   revokeClassAsiBonuses,
   type AppliedClassAsi,
 } from '../../shared/dnd/classAsi'
+import {
+  syncSkillsExpertiseFromPicks,
+} from '../../shared/dnd/expertise'
+import {
+  buildPendingWizardSteps,
+  clearFeaturePicksAboveClassLevel,
+  listUnlockedExpertiseKeys,
+  type GuidedWizardStep,
+} from '../../shared/dnd/pendingFeatureChoices'
 import {
   migrateLegacyHitDice,
   syncHitDicePools,
@@ -374,12 +381,7 @@ export function MinimalSheetEditor({
   const [error, setError] = useState<string | null>(null)
   const [conflictOpen, setConflictOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
-  const [pendingAsi, setPendingAsi] = useState<{
-    classEntryId: string
-    className: string
-    classLevel: number
-    featureId: string
-  } | null>(null)
+  const [guidedWizard, setGuidedWizard] = useState<GuidedWizardSession | null>(null)
   const [grantPicker, setGrantPicker] = useState<{
     classEntryId: string
     className: string
@@ -444,6 +446,17 @@ export function MinimalSheetEditor({
       }),
     [draft.classes, characterLevel, draft.abilities, subclassSlugByEntryId],
   )
+  const expertiseKeys = useMemo(
+    () => listUnlockedExpertiseKeys(unlockedFeatures),
+    [unlockedFeatures],
+  )
+  const hasSubclassByEntryId = useMemo(() => {
+    const map: Record<string, boolean> = {}
+    for (const row of draft.classes) {
+      map[row.id] = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
+    }
+    return map
+  }, [draft.classes])
   const featureDesiredResources = useMemo(
     () =>
       desiredResourcesFromFeatures({
@@ -976,6 +989,60 @@ export function MinimalSheetEditor({
     return index <= 0 ? 'start' : 'multiclass'
   }
 
+  function applyFeaturePicksWithExpertise(featurePicks: FeaturePicksState) {
+    setDraft((prev) => {
+      const unlocked = unlockFeaturesForClasses({
+        classes: prev.classes,
+        characterLevel: totalCharacterLevel(prev.classes),
+        abilities: prev.abilities,
+        subclassSlugByEntryId: Object.fromEntries(
+          prev.subclassGrants
+            .filter((row) => row.classEntryId && row.slug)
+            .map((row) => [row.classEntryId, row.slug]),
+        ),
+      })
+      const keys = listUnlockedExpertiseKeys(unlocked)
+      return {
+        ...prev,
+        featurePicks,
+        skills: syncSkillsExpertiseFromPicks({
+          skills: prev.skills,
+          featurePicks,
+          expertiseKeys: keys,
+        }),
+      }
+    })
+  }
+
+  function openGuidedWizard(session: GuidedWizardSession) {
+    if (session.steps.length === 0) {
+      setGuidedWizard(null)
+      return
+    }
+    setGuidedWizard({ ...session, index: Math.min(session.index, session.steps.length - 1) })
+  }
+
+  function buildChoiceStepsForClass(input: {
+    classEntryId: string
+    classLevel: number
+    featurePicks?: FeaturePicksState
+    classAsi?: AppliedClassAsi[]
+    unlocked?: typeof unlockedFeatures
+    hasSubclass?: Record<string, boolean>
+  }): GuidedWizardStep[] {
+    return buildPendingWizardSteps({
+      unlocked: input.unlocked ?? unlockedFeatures,
+      featurePicks: input.featurePicks ?? draft.featurePicks,
+      classAsi: input.classAsi ?? draft.classAsi,
+      filter: {
+        mode: 'at_class_level',
+        classEntryId: input.classEntryId,
+        classLevel: input.classLevel,
+      },
+      hasSubclassByEntryId: input.hasSubclass ?? hasSubclassByEntryId,
+    })
+  }
+
   function commitClassGrant(input: {
     classEntryId: string
     className: string
@@ -1014,6 +1081,8 @@ export function MinimalSheetEditor({
     mode: 'start' | 'multiclass'
     catalogSlug?: string | null
     catalogData?: Record<string, unknown> | null
+    /** When setDraft for the class row hasn't flushed yet (MC / catalog pick). */
+    classesOverride?: ClassLevelEntry[]
   }) {
     const def = resolveClassGrantDef({
       className: input.className,
@@ -1024,14 +1093,42 @@ export function MinimalSheetEditor({
       onToast(`Класс «${input.className}» пока без пакета владений — выставь вручную`)
       return
     }
+    const baseClasses = input.classesOverride ?? draft.classes
+    const classRow = baseClasses.find((row) => row.id === input.classEntryId)
+    const classLevel = classRow?.level ?? 1
+    // Имя класса могло только что смениться в setDraft — для unlock берём input.className.
+    const classesForUnlock = baseClasses.map((row) =>
+      row.id === input.classEntryId ? { ...row, name: input.className } : row,
+    )
+    const unlockedForGrant = unlockFeaturesForClasses({
+      classes: classesForUnlock,
+      characterLevel: totalCharacterLevel(classesForUnlock),
+      abilities: draft.abilities,
+      subclassSlugByEntryId,
+    })
+    const choiceSteps = buildChoiceStepsForClass({
+      classEntryId: input.classEntryId,
+      classLevel,
+      unlocked: unlockedForGrant,
+    })
     if (grantNeedsSetupDialog(def, input.mode)) {
-      setGrantPicker({
-        classEntryId: input.classEntryId,
-        className: input.className,
-        mode: input.mode,
-        def,
-        catalogSlug: input.catalogSlug ?? null,
-        catalogData: input.catalogData ?? null,
+      openGuidedWizard({
+        steps: [
+          {
+            id: `class_grant:${input.classEntryId}`,
+            kind: 'class_grant',
+            classEntryId: input.classEntryId,
+            className: input.className,
+            mode: input.mode,
+          },
+          ...choiceSteps,
+        ],
+        index: 0,
+        grant: {
+          def,
+          catalogSlug: input.catalogSlug ?? null,
+          catalogData: input.catalogData ?? null,
+        },
       })
       return
     }
@@ -1044,6 +1141,9 @@ export function MinimalSheetEditor({
       catalogSlug: input.catalogSlug,
       catalogData: input.catalogData,
     })
+    if (choiceSteps.length > 0) {
+      openGuidedWizard({ steps: choiceSteps, index: 0 })
+    }
   }
 
   function applyHomebrewClass(classEntryId: string, name: string) {
@@ -1072,6 +1172,7 @@ export function MinimalSheetEditor({
     def?: RaceGrantDef | null
   }) {
     let summary: string | null = null
+    let incompleteExpertise: GuidedWizardStep[] = []
     setDraft((prev) => {
       const applied = applyRaceGrantToDraft({
         draft: raceSliceFrom(prev),
@@ -1083,13 +1184,43 @@ export function MinimalSheetEditor({
       })
       if (!applied) return prev
       summary = applied.summary
-      return {
+      const merged: Draft = {
         ...mergeRaceSlice(prev, applied.draft),
         raceName: input.selected.name_ru,
         raceCatalogId: input.selected.id,
       }
+      const unlocked = unlockFeaturesForClasses({
+        classes: merged.classes,
+        characterLevel: totalCharacterLevel(merged.classes),
+        abilities: merged.abilities,
+        subclassSlugByEntryId: Object.fromEntries(
+          merged.subclassGrants
+            .filter((row) => row.classEntryId && row.slug)
+            .map((row) => [row.classEntryId, row.slug]),
+        ),
+      })
+      const hasSubclass: Record<string, boolean> = {}
+      for (const row of merged.classes) {
+        hasSubclass[row.id] = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
+      }
+      incompleteExpertise = buildPendingWizardSteps({
+        unlocked,
+        featurePicks: merged.featurePicks,
+        classAsi: merged.classAsi,
+        filter: { mode: 'all_empty' },
+        hasSubclassByEntryId: hasSubclass,
+      }).filter(
+        (step) =>
+          step.kind === 'feature_choice' &&
+          step.choice.options_from === 'expertise_skills_tools',
+      )
+      return merged
     })
     if (summary) onToast(`Раса «${input.selected.name_ru}»: ${summary}`)
+    // Довыбор: Expertise была «Позже» — предложить снова, опции уже с расовыми навыками.
+    if (incompleteExpertise.length > 0 && !guidedWizard) {
+      openGuidedWizard({ steps: incompleteExpertise, index: 0 })
+    }
   }
 
   async function requestOrApplyRaceGrant(selected: CatalogEntry) {
@@ -1240,6 +1371,7 @@ export function MinimalSheetEditor({
         mode: 'multiclass',
         catalogSlug: choice.type === 'multiclass' ? choice.catalog_slug : null,
         catalogData: choice.type === 'multiclass' ? choice.catalog_data : null,
+        classesOverride: nextClasses,
       })
     } else if (choice.type === 'same' && leveledRow) {
       if (
@@ -1260,23 +1392,23 @@ export function MinimalSheetEditor({
         abilities: draft.abilities,
         subclassSlugByEntryId,
       })
-      const asiAtLevel = unlocked.find(
-        (feature) =>
-          feature.classEntryId === leveledRow.id &&
-          feature.source === 'class' &&
-          feature.level === leveledRow.level &&
-          isAsiFeature(feature),
-      )
-      if (
-        asiAtLevel &&
-        !asiAlreadyApplied(draft.classAsi, leveledRow.id, asiAtLevel.id)
-      ) {
-        setPendingAsi({
+      const hasSubclass: Record<string, boolean> = {}
+      for (const row of nextClasses) {
+        hasSubclass[row.id] = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
+      }
+      const steps = buildPendingWizardSteps({
+        unlocked,
+        featurePicks: draft.featurePicks,
+        classAsi: draft.classAsi,
+        filter: {
+          mode: 'at_class_level',
           classEntryId: leveledRow.id,
-          className: leveledRow.name,
           classLevel: leveledRow.level,
-          featureId: asiAtLevel.id,
-        })
+        },
+        hasSubclassByEntryId: hasSubclass,
+      })
+      if (steps.length > 0) {
+        openGuidedWizard({ steps, index: 0 })
       }
     }
   }
@@ -1287,7 +1419,6 @@ export function MinimalSheetEditor({
       abilities: applyClassAsiBonuses(prev.abilities, entry.bonuses),
       classAsi: [...prev.classAsi, entry],
     }))
-    setPendingAsi(null)
     const bits = Object.entries(entry.bonuses)
       .filter(([, amount]) => amount)
       .map(([key, amount]) => `${ABILITY_LABELS[key as AbilityKey]}+${amount}`)
@@ -1296,6 +1427,23 @@ export function MinimalSheetEditor({
         ? `ASI: ${bits.join(', ')}`
         : 'ASI записан (черта — когда появится каталог)',
     )
+  }
+
+  function advanceGuidedWizard(nextIndex: number) {
+    setGuidedWizard((prev) => {
+      if (!prev) return null
+      if (nextIndex >= prev.steps.length) return null
+      return { ...prev, index: nextIndex }
+    })
+  }
+
+  function skipGuidedWizardStep() {
+    setGuidedWizard((prev) => {
+      if (!prev) return null
+      const nextIndex = prev.index + 1
+      if (nextIndex >= prev.steps.length) return null
+      return { ...prev, index: nextIndex }
+    })
   }
 
   const passives = useMemo(() => {
@@ -1657,6 +1805,15 @@ export function MinimalSheetEditor({
                             mode,
                             catalogSlug: selected.slug,
                             catalogData: selected.data,
+                            classesOverride: draft.classes.map((item) =>
+                              item.id === row.id
+                                ? {
+                                    ...item,
+                                    name: selected.name_ru,
+                                    catalog_id: selected.id,
+                                  }
+                                : item,
+                            ),
                           })
                         }}
                       />
@@ -1720,12 +1877,40 @@ export function MinimalSheetEditor({
                               }
 
                               if (!removed) {
+                                const newLevel = beforeLevel - 1
+                                const packFeatures = unlockFeaturesForClasses({
+                                  classes: prev.classes,
+                                  characterLevel: totalCharacterLevel(prev.classes),
+                                  abilities: prev.abilities,
+                                  subclassSlugByEntryId,
+                                })
+                                  .filter((feature) => feature.classEntryId === row.id)
+                                  .map((feature) => ({ id: feature.id, level: feature.level }))
+                                const nextPicks = clearFeaturePicksAboveClassLevel({
+                                  featurePicks: prev.featurePicks,
+                                  classEntryId: row.id,
+                                  features: packFeatures,
+                                  newClassLevel: newLevel,
+                                })
+                                const nextUnlocked = unlockFeaturesForClasses({
+                                  classes: nextClasses,
+                                  characterLevel: totalCharacterLevel(nextClasses),
+                                  abilities,
+                                  subclassSlugByEntryId,
+                                })
+                                const nextSkills = syncSkillsExpertiseFromPicks({
+                                  skills: prev.skills,
+                                  featurePicks: nextPicks,
+                                  expertiseKeys: listUnlockedExpertiseKeys(nextUnlocked),
+                                })
                                 return withRaceSpellsSynced(
                                   {
                                     ...prev,
                                     classes: nextClasses,
                                     abilities,
                                     classAsi: keptAsi,
+                                    featurePicks: nextPicks,
+                                    skills: nextSkills,
                                     hpMax: nextHpMax,
                                     hpCurrent: nextHpCurrent,
                                     play: withSyncedHitDiceSummary({
@@ -2120,9 +2305,9 @@ export function MinimalSheetEditor({
           }))
         }
         featurePicks={draft.featurePicks}
-        onFeaturePicksChange={(featurePicks) =>
-          setDraft((prev) => ({ ...prev, featurePicks }))
-        }
+        onFeaturePicksChange={applyFeaturePicksWithExpertise}
+        skills={draft.skills}
+        tools={draft.identity.tools}
         spells={draft.spells}
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         wearingHeavyArmor={
@@ -2278,15 +2463,37 @@ export function MinimalSheetEditor({
         onClose={() => setLevelUpOpen(false)}
       />
 
-      <ClassAsiDialog
-        open={pendingAsi != null}
-        className={pendingAsi?.className ?? ''}
-        classLevel={pendingAsi?.classLevel ?? 1}
-        featureId={pendingAsi?.featureId ?? ''}
-        classEntryId={pendingAsi?.classEntryId ?? ''}
+      <GuidedWizardDialog
+        open={guidedWizard != null}
+        session={guidedWizard}
         abilities={draft.abilities}
-        onConfirm={confirmClassAsi}
-        onSkip={() => setPendingAsi(null)}
+        skills={draft.skills}
+        tools={draft.identity.tools}
+        featurePicks={draft.featurePicks}
+        expertiseKeys={expertiseKeys}
+        onFeaturePicksChange={applyFeaturePicksWithExpertise}
+        onConfirmClassGrant={(picks) => {
+          if (!guidedWizard?.grant || !guidedWizard.steps[guidedWizard.index]) return
+          const step = guidedWizard.steps[guidedWizard.index]
+          if (step.kind !== 'class_grant') return
+          commitClassGrant({
+            classEntryId: step.classEntryId,
+            className: step.className,
+            mode: step.mode,
+            picks,
+            def: guidedWizard.grant.def,
+            catalogSlug: guidedWizard.grant.catalogSlug,
+            catalogData: guidedWizard.grant.catalogData,
+          })
+        }}
+        onConfirmAsi={confirmClassAsi}
+        onAdvance={advanceGuidedWizard}
+        onSkipStep={skipGuidedWizardStep}
+        onClose={() => setGuidedWizard(null)}
+        onToast={onToast}
+        onFocusSubclass={() => {
+          onToast('Выбери архетип в поле ниже на листе')
+        }}
       />
 
       <ClassSetupDialog
@@ -2306,6 +2513,14 @@ export function MinimalSheetEditor({
             catalogData: grantPicker.catalogData,
           })
           setGrantPicker(null)
+          const choiceSteps = buildChoiceStepsForClass({
+            classEntryId: grantPicker.classEntryId,
+            classLevel:
+              draft.classes.find((row) => row.id === grantPicker.classEntryId)?.level ?? 1,
+          })
+          if (choiceSteps.length > 0) {
+            openGuidedWizard({ steps: choiceSteps, index: 0 })
+          }
         }}
       />
 

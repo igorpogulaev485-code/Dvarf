@@ -52,12 +52,24 @@ import {
   stockCurrent,
 } from '../../shared/dnd/featureResources'
 import {
+  collectExpertiseOptionIdsFromPicks,
+  isExpertiseChoice,
+  listExpertiseOptions,
+  THIEVES_TOOLS_LABEL_RU,
+  THIEVES_TOOLS_OPTION_ID,
+  type SkillExpertiseState,
+} from '../../shared/dnd/expertise'
+import {
   getFeaturePick,
   getFeaturePickList,
   setFeaturePick,
   toggleFeaturePickInList,
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
+import {
+  isFeatureChoiceComplete,
+  listUnlockedExpertiseKeys,
+} from '../../shared/dnd/pendingFeatureChoices'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
 import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Panel, Stack, Text } from '../../ui'
@@ -76,6 +88,9 @@ type ClassFeaturesPanelProps = {
   onFeaturePicksChange: (picks: FeaturePicksState) => void
   spells: SpellsState
   onSpellsChange: (spells: SpellsState) => void
+  /** For Expertise pickers — proficient skills + tools on the sheet. */
+  skills?: SkillExpertiseState
+  tools?: string[]
   /** Equipped heavy body armor — blocks Rage benefits (PHB). */
   wearingHeavyArmor?: boolean
   onToast?: (message: string) => void
@@ -456,6 +471,7 @@ const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
 }
 
 function choiceOptionLabel(optionId: string): string {
+  if (optionId === THIEVES_TOOLS_OPTION_ID) return THIEVES_TOOLS_LABEL_RU
   const pact = WARLOCK_PACT_BOONS.find((row) => row.id === optionId)
   const armorModel = ARMORER_ARMOR_MODELS.find((row) => row.id === optionId)
   const skill = SKILL_DEFS.find((row) => row.key === optionId)
@@ -480,18 +496,34 @@ function FeatureChoiceControls({
   feature,
   featurePicks,
   onFeaturePicksChange,
+  skills,
+  tools,
+  expertiseKeys,
   onToast,
 }: {
   feature: UnlockedFeature
   featurePicks: FeaturePicksState
   onFeaturePicksChange: (picks: FeaturePicksState) => void
+  skills: SkillExpertiseState
+  tools: string[]
+  expertiseKeys: Array<{ classEntryId: string; featureId: string }>
   onToast?: (message: string) => void
 }) {
   const choice = feature.choice
   if (!choice) return null
-  const options = resolveFeatureChoiceOptions(choice)
+  const options = isExpertiseChoice(choice)
+    ? listExpertiseOptions({
+        skills,
+        tools,
+        excludeOptionIds: collectExpertiseOptionIdsFromPicks({
+          featurePicks,
+          expertiseKeys,
+          except: { classEntryId: feature.classEntryId, featureId: feature.id },
+        }),
+      }).map((row) => row.id)
+    : resolveFeatureChoiceOptions(choice)
   const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
-  const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level)
+  const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level) || Boolean(choice.max_picks && choice.max_picks > 1)
   const selectedList = multi
     ? getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
     : []
@@ -517,7 +549,10 @@ function FeatureChoiceControls({
             : <strong>{selectedLabel}</strong>
           </>
         ) : (
-          ' — не выбран'
+          <>
+            {' '}
+            <span className="feature-choice-badge">не выбрано</span>
+          </>
         )}
       </Text>
       {selectedDef ? <Text tone="muted">{selectedDef.summaryRu}</Text> : null}
@@ -929,6 +964,9 @@ function FeatureRow({
   onFeaturePicksChange,
   spells,
   onSpellsChange,
+  skills,
+  tools,
+  expertiseKeys,
   onToast,
   initiativeGrantByPool,
   wearingHeavyArmor,
@@ -941,6 +979,9 @@ function FeatureRow({
   onFeaturePicksChange: (picks: FeaturePicksState) => void
   spells: SpellsState
   onSpellsChange: (spells: SpellsState) => void
+  skills: SkillExpertiseState
+  tools: string[]
+  expertiseKeys: Array<{ classEntryId: string; featureId: string }>
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
@@ -963,6 +1004,7 @@ function FeatureRow({
   const choiceMulti =
     feature.choice &&
     (Boolean(feature.choice.max_picks_by_level) ||
+      Boolean(feature.choice.max_picks && feature.choice.max_picks > 1) ||
       resolveChoiceMaxPicks(feature.choice, feature.classLevel) > 1)
   const choicePick = feature.choice
     ? choiceMulti
@@ -977,10 +1019,14 @@ function FeatureRow({
         ? choicePick
         : choiceOptionLabel(choicePick)
       : null
+  const choicePending =
+    Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)
 
   let metaExtra = ''
   if (choiceLabel) {
     metaExtra = ` · ${choiceLabel}`
+  } else if (choicePending) {
+    metaExtra = ' · не выбрано'
   } else if (feature.resource?.track === 'stock' && pool) {
     metaExtra = ` · ${stockCurrent(pool)}/${pool.max}`
   } else if (feature.resourceUses != null) {
@@ -1024,6 +1070,9 @@ function FeatureRow({
             feature={feature}
             featurePicks={featurePicks}
             onFeaturePicksChange={onFeaturePicksChange}
+            skills={skills}
+            tools={tools}
+            expertiseKeys={expertiseKeys}
             onToast={onToast}
           />
           <MetamagicSpendControls
@@ -1092,6 +1141,8 @@ export function ClassFeaturesPanel({
   onFeaturePicksChange,
   spells,
   onSpellsChange,
+  skills = {},
+  tools = [],
   wearingHeavyArmor = false,
   onToast,
 }: ClassFeaturesPanelProps) {
@@ -1105,6 +1156,7 @@ export function ClassFeaturesPanel({
       }),
     [classes, characterLevel, abilities, subclassSlugByEntryId],
   )
+  const expertiseKeys = useMemo(() => listUnlockedExpertiseKeys(features), [features])
 
   const initiativeGrantByPool = useMemo(() => {
     const map = new Map<string, number>()
@@ -1183,6 +1235,9 @@ export function ClassFeaturesPanel({
                   onFeaturePicksChange={onFeaturePicksChange}
                   spells={spells}
                   onSpellsChange={onSpellsChange}
+                  skills={skills}
+                  tools={tools}
+                  expertiseKeys={expertiseKeys}
                   onToast={onToast}
                   initiativeGrantByPool={initiativeGrantByPool}
                   wearingHeavyArmor={wearingHeavyArmor}

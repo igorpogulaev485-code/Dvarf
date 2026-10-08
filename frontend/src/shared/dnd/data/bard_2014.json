@@ -80,7 +80,13 @@
       "name_ru": "Компетентность",
       "name_en": "Expertise",
       "summary_ru": "Выбери 2 навыка, которыми владеешь: удвой бонус мастерства для них. Ещё 2 на 10 ур.",
-      "kind": "passive"
+      "kind": "passive",
+      "choice": {
+        "id": "expertise_bard_3",
+        "label_ru": "Компетентность",
+        "options_from": "expertise_skills_tools",
+        "max_picks": 2
+      }
     },
     {
       "id": "asi_4_bard",
@@ -155,7 +161,13 @@
       "name_ru": "Компетентность",
       "name_en": "Expertise",
       "summary_ru": "Ещё 2 навыка с удвоенным бонусом мастерства.",
-      "kind": "passive"
+      "kind": "passive",
+      "choice": {
+        "id": "expertise_bard_10",
+        "label_ru": "Компетентность",
+        "options_from": "expertise_skills_tools",
+        "max_picks": 2
+      }
     },
     {
       "id": "asi_12_bard",

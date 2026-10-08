@@ -126,7 +126,11 @@ export type FeatureChoiceDef = {
     | 'armorer_armor_models'
     | 'monk_elemental_disciplines'
     | 'battle_master_maneuvers'
+    /** Runtime: proficient skills + thieves' tools from sheet. */
+    | 'expertise_skills_tools'
   options?: string[]
+  /** Fixed multi-select cap (Expertise 2). Overrides default 1 when set. */
+  max_picks?: number
   /** Multi-select cap by class level (Metamagic 2/3/4). */
   max_picks_by_level?: Record<string, number>
 }
@@ -238,7 +242,8 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         choiceRaw.options_from === 'artificer_infusions' ||
         choiceRaw.options_from === 'armorer_armor_models' ||
         choiceRaw.options_from === 'monk_elemental_disciplines' ||
-        choiceRaw.options_from === 'battle_master_maneuvers'
+        choiceRaw.options_from === 'battle_master_maneuvers' ||
+        choiceRaw.options_from === 'expertise_skills_tools'
           ? choiceRaw.options_from
           : undefined
       const options = Array.isArray(choiceRaw.options)
@@ -248,11 +253,16 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         choiceRaw.max_picks_by_level && typeof choiceRaw.max_picks_by_level === 'object'
           ? (choiceRaw.max_picks_by_level as Record<string, unknown>)
           : null
+      const maxPicksFixed =
+        typeof choiceRaw.max_picks === 'number' && Number.isFinite(choiceRaw.max_picks)
+          ? Math.max(1, Math.floor(choiceRaw.max_picks))
+          : undefined
       choice = {
         id: choiceRaw.id,
         label_ru: choiceRaw.label_ru,
         options_from: optionsFrom,
         options,
+        max_picks: maxPicksFixed,
         max_picks_by_level: maxPicksRaw
           ? Object.fromEntries(
               Object.entries(maxPicksRaw).filter(
@@ -372,6 +382,10 @@ const LOCAL_PACKS: Record<string, FeaturePack> = {
 }
 
 export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] {
+  if (choice.options_from === 'expertise_skills_tools') {
+    // Resolved at runtime from sheet proficiencies (see expertise.ts / wizard).
+    return choice.options ? [...choice.options] : []
+  }
   if (choice.options_from === 'paladin_fighting_styles') {
     return [...PALADIN_FIGHTING_STYLES]
   }
@@ -421,8 +435,10 @@ export function resolveChoiceMaxPicks(
   choice: FeatureChoiceDef,
   classLevel: number,
 ): number {
-  if (!choice.max_picks_by_level) return 1
-  let best = 1
+  if (!choice.max_picks_by_level) {
+    return choice.max_picks != null ? Math.max(1, choice.max_picks) : 1
+  }
+  let best = choice.max_picks != null ? Math.max(1, choice.max_picks) : 1
   for (const [lvlRaw, value] of Object.entries(choice.max_picks_by_level)) {
     const lvl = Number(lvlRaw)
     if (!Number.isFinite(lvl) || lvl > classLevel) continue

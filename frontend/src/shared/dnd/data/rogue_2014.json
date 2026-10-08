@@ -13,7 +13,13 @@
       "name_ru": "Компетентность",
       "name_en": "Expertise",
       "summary_ru": "Выбери 2 владения навыками/воровскими инструментами — удвой бонус мастерства.",
-      "kind": "passive"
+      "kind": "passive",
+      "choice": {
+        "id": "expertise_1",
+        "label_ru": "Компетентность",
+        "options_from": "expertise_skills_tools",
+        "max_picks": 2
+      }
     },
     {
       "id": "sneak_attack",
@@ -93,7 +99,13 @@
       "name_ru": "Компетентность",
       "name_en": "Expertise",
       "summary_ru": "Ещё 2 навыка/воровские инструменты с удвоенным мастерством.",
-      "kind": "passive"
+      "kind": "passive",
+      "choice": {
+        "id": "expertise_6",
+        "label_ru": "Компетентность",
+        "options_from": "expertise_skills_tools",
+        "max_picks": 2
+      }
     },
     {
       "id": "evasion",

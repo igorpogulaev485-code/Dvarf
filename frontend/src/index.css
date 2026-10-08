@@ -894,6 +894,18 @@ input {
   color: var(--accent);
 }
 
+.feature-choice-badge {
+  display: inline-block;
+  margin-left: 0.25rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #7a3b00;
+  background: #ffe8c2;
+}
+
 .feature-row__meta {
   font-size: 0.85rem;
   color: var(--muted);
