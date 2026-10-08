@@ -990,6 +990,7 @@ export function MinimalSheetEditor({
   }) {
     let summary: string | null = null
     setDraft((prev) => {
+      const hostClass = prev.classes.find((row) => row.id === input.classEntryId)
       const applied = applySubclassGrantToDraft({
         draft: subclassSliceFrom(prev),
         classEntryId: input.classEntryId,
@@ -998,6 +999,9 @@ export function MinimalSheetEditor({
         picks: input.picks,
         copyOldTextToNotes: input.copyOldTextToNotes,
         previousDef: input.previousDef ?? null,
+        hostClassLevel: hostClass?.level ?? 3,
+        characterLevel: totalCharacterLevel(prev.classes),
+        hostIntMod: abilityModifier(prev.abilities.int),
       })
       if (!applied) return prev
       summary = applied.summary
@@ -2608,6 +2612,7 @@ export function MinimalSheetEditor({
 
       <CompanionsPanel
         companions={draft.companions}
+        edition={rulesEdition}
         onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
       />
 

@@ -26,6 +26,7 @@ type CatalogComboboxProps = {
 function kindLabel(kind: CatalogKind): string {
   if (kind === 'weapon') return 'оружие'
   if (kind === 'item') return 'артефакт'
+  if (kind === 'bestiary') return 'бестиарий'
   return kind
 }
 

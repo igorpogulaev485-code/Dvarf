@@ -1,3 +1,5 @@
+import { CatalogCombobox } from '../catalog/CatalogCombobox'
+import type { RulesEdition } from '../../shared/api/characters'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
   COMPANION_CONTROL_LABELS,
@@ -20,6 +22,7 @@ import {
 type CompanionsPanelProps = {
   companions: CompanionEntry[]
   onChange: (companions: CompanionEntry[]) => void
+  edition: RulesEdition
   /** Optional override; defaults to product title constant. */
   title?: string
 }
@@ -71,6 +74,7 @@ function statusLine(row: CompanionEntry): string {
 export function CompanionsPanel({
   companions,
   onChange,
+  edition,
   title = COMPANIONS_PANEL_TITLE,
 }: CompanionsPanelProps) {
   function replace(id: string, next: CompanionEntry) {
@@ -177,6 +181,33 @@ export function CompanionsPanel({
                   </select>
                 </Field>
               </div>
+
+              <Field label="Бестиарий">
+                <CatalogCombobox
+                  kind="bestiary"
+                  edition={edition}
+                  value={row.bestiary_name_ru ?? ''}
+                  placeholder="Бестиарий пока пуст"
+                  onChange={(label, selected) => {
+                    if (selected) {
+                      update(row.id, {
+                        bestiary_ref: selected.id,
+                        bestiary_name_ru: selected.name_ru,
+                      })
+                      return
+                    }
+                    const trimmed = label.trim()
+                    update(row.id, {
+                      bestiary_ref: trimmed ? row.bestiary_ref : null,
+                      bestiary_name_ru: trimmed || null,
+                    })
+                  }}
+                />
+                <Text tone="muted">
+                  Справочник бестиария пока пуст — статы можно заполнить вручную. Кличка не
+                  меняется при выборе.
+                </Text>
+              </Field>
 
               <div className="sheet-grid sheet-grid--2">
                 <Field label="Природа">

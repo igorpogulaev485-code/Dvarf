@@ -1,4 +1,4 @@
-/** Naparniki / companions model: HP lifecycle, revoke, name merge. */
+/** Naparniki / companions model: HP lifecycle, revoke, name merge, templates. */
 import {
   applyHpChange,
   createCompanion,
@@ -10,6 +10,10 @@ import {
   revokeCompanionsForSubclass,
   setCompanionActive,
 } from '../src/features/characters/companions.ts'
+import {
+  companionFromTemplate,
+  resolveCompanionTemplate,
+} from '../src/features/characters/companionTemplates.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
@@ -23,6 +27,7 @@ const dog = createCompanion({
   source: { kind: 'manual', labelRu: 'Вручную' },
 })
 assert(dog.active, 'dog starts active')
+assert(dog.bestiary_ref === null, 'no bestiary yet')
 
 const dying = applyHpChange(dog, 0)
 assert(!dying.active, '0 HP deactivates')
@@ -65,7 +70,7 @@ const legacy = readCompanions([
     id: 'legacy-1',
     kind: 'drake',
     name: 'Искорка',
-    catalog_ref: null,
+    catalog_ref: 'old-catalog-id',
     source: {
       classEntryId: 'cls-1',
       subclassSlug: 'drakewarden',
@@ -76,6 +81,7 @@ const legacy = readCompanions([
   },
 ])
 assert(legacy[0]?.source?.kind === 'subclass', 'legacy source migrates')
+assert(legacy[0]?.bestiary_ref === 'old-catalog-id', 'catalog_ref → bestiary_ref')
 assert(legacy[0]?.nature === 'living', 'drake default living')
 assert(legacy[0]?.name === 'Искорка', 'name kept')
 
@@ -106,6 +112,8 @@ const previousNamed = createCompanion({
   id: 'stable-id',
   kind: 'beast_companion',
   name: 'Волчок',
+  bestiary_ref: 'bestiary-uuid',
+  bestiary_name_ru: 'Волк',
   stats: { hp: 7, hp_max: 15, ac: 13, speed: 40 },
   notes: 'любит сыр',
   source: {
@@ -116,9 +124,18 @@ const previousNamed = createCompanion({
     feature: 'companion_type',
   },
 })
-const reapplied = createCompanion({
-  kind: 'beast_companion',
-  name: 'beast_of_the_sea',
+const land = resolveCompanionTemplate({
+  choiceId: 'companion_type',
+  pickValue: 'beast_of_the_land',
+  ctx: { hostClassLevel: 5, characterLevel: 5 },
+})
+assert(land != null, 'land template')
+assert(land!.stats.hp_max === 30, '5+5*5 HP')
+assert(land!.stats.ac === 16, '13+PB3')
+
+const reapplied = companionFromTemplate({
+  template: land!,
+  name: 'beast_of_the_land',
   source: {
     kind: 'subclass',
     labelRu: 'Архетип: Повелитель зверей',
@@ -134,6 +151,24 @@ const merged = mergeSubclassCompanions({
 assert(merged[0]?.id === 'stable-id', 'id stable')
 assert(merged[0]?.name === 'Волчок', 'custom name not overwritten')
 assert(merged[0]?.stats.hp === 7, 'current HP kept')
+assert(merged[0]?.stats.hp_max === 30, 'template refreshes hp_max')
+assert(merged[0]?.bestiary_ref === 'bestiary-uuid', 'bestiary_ref kept')
 assert(merged[0]?.notes === 'любит сыр', 'notes kept')
+
+const defender = resolveCompanionTemplate({
+  choiceId: 'steel_defender_name',
+  pickValue: 'Гвоздь',
+  ctx: { hostClassLevel: 3, characterLevel: 3, hostIntMod: 3 },
+})
+assert(defender?.kind === 'steel_defender', 'defender kind')
+assert(defender?.stats.hp_max === 2 + 3 + 15, 'steel HP formula')
+
+const ballista = resolveCompanionTemplate({
+  choiceId: 'eldritch_cannon',
+  pickValue: 'force_ballista',
+  ctx: { hostClassLevel: 3, characterLevel: 3 },
+})
+assert(ballista?.stats.hp_max === 15, 'cannon HP 5*level')
+assert(ballista?.stats.ac === 18, 'cannon AC 18')
 
 console.log('smoke-companions: ok')

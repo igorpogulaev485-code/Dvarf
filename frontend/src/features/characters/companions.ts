@@ -48,7 +48,10 @@ export type CompanionEntry = {
   id: string
   kind: CompanionKind
   name: string
-  catalog_ref: string | null
+  /** Catalog entry id from kind=bestiary (empty until Bestiary agent seeds). */
+  bestiary_ref: string | null
+  /** Cached RU name for the bestiary pick (display when catalog is empty/offline). */
+  bestiary_name_ru: string | null
   nature: CompanionNature
   active: boolean
   control: CompanionControlMode
@@ -193,7 +196,8 @@ export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEnt
         : `companion-${Date.now()}`),
     kind,
     name: partial?.name ?? '',
-    catalog_ref: partial?.catalog_ref ?? null,
+    bestiary_ref: partial?.bestiary_ref ?? null,
+    bestiary_name_ru: partial?.bestiary_name_ru ?? null,
     nature,
     active: partial?.active ?? true,
     control,
@@ -271,11 +275,19 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
       typeof row.control === 'string' && CONTROL_SET.has(row.control)
         ? (row.control as CompanionControlMode)
         : defaultControlForKind(kind)
+    const bestiaryRef =
+      typeof row.bestiary_ref === 'string'
+        ? row.bestiary_ref
+        : typeof row.catalog_ref === 'string'
+          ? row.catalog_ref
+          : null
     result.push({
       id: row.id,
       kind,
       name: typeof row.name === 'string' ? row.name : '',
-      catalog_ref: typeof row.catalog_ref === 'string' ? row.catalog_ref : null,
+      bestiary_ref: bestiaryRef,
+      bestiary_name_ru:
+        typeof row.bestiary_name_ru === 'string' ? row.bestiary_name_ru : null,
       nature,
       active: typeof row.active === 'boolean' ? row.active : true,
       control,
@@ -385,18 +397,20 @@ export function mergeSubclassCompanions(input: {
       ...created,
       id: prev.id,
       name: customName || created.name,
-      catalog_ref: prev.catalog_ref ?? created.catalog_ref,
+      bestiary_ref: prev.bestiary_ref ?? created.bestiary_ref,
+      bestiary_name_ru: prev.bestiary_name_ru ?? created.bestiary_name_ru,
       nature: prev.nature,
       active: prev.active,
       control: prev.control,
+      // Template refresh: hp_max/ac/speed/actions from grant; keep current HP + death.
       stats: {
         hp: prev.stats.hp,
-        hp_max: prev.stats.hp_max ?? created.stats.hp_max,
-        ac: prev.stats.ac ?? created.stats.ac,
-        speed: prev.stats.speed ?? created.stats.speed,
+        hp_max: created.stats.hp_max ?? prev.stats.hp_max,
+        ac: created.stats.ac ?? prev.stats.ac,
+        speed: created.stats.speed ?? prev.stats.speed,
       },
       death: prev.death,
-      actions: prev.actions || created.actions,
+      actions: created.actions || prev.actions,
       notes: prev.notes || created.notes,
     }
   })

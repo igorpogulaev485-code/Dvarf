@@ -23,6 +23,11 @@ import {
   revokeCompanionsForSubclass,
   type CompanionKind,
 } from './companions'
+import {
+  companionFromTemplate,
+  resolveCompanionTemplate,
+  type CompanionTemplateContext,
+} from './companionTemplates'
 import type { TextBlock } from './textBlocks'
 import {
   asAlwaysPreparedSpell,
@@ -349,10 +354,21 @@ export function applySubclassGrantToDraft(input: {
   picks?: SubclassGrantPicks
   copyOldTextToNotes?: boolean
   previousDef?: SubclassGrantDef | null
+  /** Host class level for companion templates (default 3). */
+  hostClassLevel?: number
+  /** Total character level for proficiency bonus. */
+  characterLevel?: number
+  /** INT mod for Steel Defender HP. */
+  hostIntMod?: number
 }): { draft: SubclassGrantDraftSlice; summary: string } | null {
   const picks = input.picks ?? emptySubclassPicks()
   const pickError = validateSubclassPicks(input.def, picks)
   if (pickError) return null
+  const templateCtx: CompanionTemplateContext = {
+    hostClassLevel: input.hostClassLevel ?? 3,
+    characterLevel: input.characterLevel ?? input.hostClassLevel ?? 3,
+    hostIntMod: input.hostIntMod ?? 0,
+  }
 
   const cleared = revokeSubclassGrant(input.draft, input.classEntryId, {
     copyTextToNotes: input.copyOldTextToNotes,
@@ -396,8 +412,7 @@ export function applySubclassGrantToDraft(input: {
   const companionsFromPicks: CompanionEntry[] = []
   for (const choice of input.def.choices) {
     const raw = picks.values[choice.id]
-    const value = typeof raw === 'string' ? raw.trim() : ''
-    if (!value) continue
+    let value = typeof raw === 'string' ? raw.trim() : ''
     const id = choice.id.toLowerCase()
     const isCompanion =
       choice.appliesTo === 'companion' ||
@@ -407,6 +422,38 @@ export function applySubclassGrantToDraft(input: {
       id.includes('cannon') ||
       id.includes('spirit')
     if (!isCompanion) continue
+    if (!value && choice.kind === 'open_text') {
+      value = choice.labelRu || 'Напарник'
+    }
+    if (!value) continue
+    const source = {
+      kind: 'subclass' as const,
+      labelRu: `Архетип: ${input.def.labelRu}`,
+      classEntryId: input.classEntryId,
+      subclassSlug: input.def.slug,
+      feature: choice.id,
+    }
+    const template = resolveCompanionTemplate({
+      choiceId: choice.id,
+      pickValue: value,
+      ctx: templateCtx,
+    })
+    if (template) {
+      const displayName =
+        choice.kind === 'open_text'
+          ? value
+          : choice.kind === 'single'
+            ? choice.fromLabelsRu?.[value] ?? template.defaultName
+            : template.defaultName
+      companionsFromPicks.push(
+        companionFromTemplate({
+          template,
+          name: displayName,
+          source,
+        }),
+      )
+      continue
+    }
     const kind: CompanionKind =
       id.includes('defender')
         ? 'steel_defender'
@@ -435,13 +482,7 @@ export function applySubclassGrantToDraft(input: {
           choice.kind === 'single' && choice.fromLabelsRu?.[value]
             ? `Вариант: ${choice.fromLabelsRu[value]}`
             : '',
-        source: {
-          kind: 'subclass',
-          labelRu: `Архетип: ${input.def.labelRu}`,
-          classEntryId: input.classEntryId,
-          subclassSlug: input.def.slug,
-          feature: choice.id,
-        },
+        source,
       }),
     )
   }
