@@ -499,7 +499,7 @@
 | Лист ↔ экипировка | Руки · слоты ношения · attunement · КД/атаки/эффекты с надетого | Два топора, плащ +1 КД, фокус для каста |
 | Каталог 2014 | PHB mundane + DMG/XGE/TCE/сеттинги (EGW/FTD/SCC/ERLW/GGR/…) | Посох силы, печатки гильдий, обмотки монаха — из справочника |
 
-На проде: **да** · ветка `cursor/gear-dmg-polish-db96` · PR #99 · это **новый prod tip** · alembic `j2d3`
+На проде: **да** · ветка `cursor/gear-dmg-polish-db96` · PR #99 · затем tip → `cursor/create-pipeline-page-2223` · alembic `j2d3`
 
 ---
 
@@ -516,7 +516,7 @@
 | Семьи | Мешок трюков · ковёр-самолёт · самоцвет элементаля · рог Валгаллы · Иоун · зелье силы великана | Варианты (+размер/металл/тип) в одной строке пикера |
 | Родительские slug | `bag_of_tricks` / `carpet_of_flying` / `elemental_gem` / `horn_of_valhalla` / `ioun_stone` / `potion_of_giant_strength` = базовый вариант семьи (как `potion_of_healing`) | Поиск по каноническому slug находит предмет |
 
-На проде: **да** · ветка `cursor/gear-dmg-polish-db96` · PR #99 · это **новый prod tip** · alembic `j2d3`
+На проде: **да** · ветка `cursor/gear-dmg-polish-db96` · PR #99 · затем tip → `cursor/create-pipeline-page-2223` · alembic `j2d3`
 
 ### 2026-10-08 — GEAR W5: сеттинги (EGW/FTD/SCC/ERLW/GGR/…)
 
@@ -1022,3 +1022,4 @@
 | 2026-10-08 | `cursor/gear-xge-tce-items-db96` · PR #97 | GEAR W4: XGE/TCE magic items + source_book filter; alembic `g9a0` → «В ветках» |
 | 2026-10-08 | `cursor/gear-settings-items-db96` · PR #98 | GEAR W5: setting-book magic (EGW/FTD/SCC/…) + book chips; alembic `h0b1` → «В ветках» |
 | 2026-10-08 | `cursor/gear-dmg-polish-db96` · PR #99 | GEAR G1–G9 + W1–W6 залиты на Timeweb; tip → эта ветка; alembic `j2d3` |
+| 2026-10-08 | `cursor/create-pipeline-page-2223` · PR #100 | Create-pipeline 2014 + merge gear tip; tip → эта ветка; alembic `x3g4` (`is_draft`) |
