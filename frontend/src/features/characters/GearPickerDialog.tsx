@@ -43,6 +43,8 @@ const ITEM_CATEGORY_FILTERS: Array<{
   { id: 'tack', label: GEAR_ITEM_CATEGORY_LABEL_RU.tack },
   { id: 'vehicle', label: GEAR_ITEM_CATEGORY_LABEL_RU.vehicle },
   { id: 'pack', label: GEAR_ITEM_CATEGORY_LABEL_RU.pack },
+  { id: 'wondrous', label: GEAR_ITEM_CATEGORY_LABEL_RU.wondrous },
+  { id: 'consumable', label: GEAR_ITEM_CATEGORY_LABEL_RU.consumable },
   { id: 'other', label: GEAR_ITEM_CATEGORY_LABEL_RU.other },
 ]
 
@@ -146,7 +148,9 @@ export function GearPickerDialog({
             cat === 'mount' ||
             cat === 'tack' ||
             cat === 'vehicle' ||
-            cat === 'pack'
+            cat === 'pack' ||
+            cat === 'wondrous' ||
+            cat === 'consumable'
           ) {
             return false
           }

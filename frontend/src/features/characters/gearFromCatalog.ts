@@ -35,6 +35,8 @@ export type GearPickerItemCategoryFilter =
   | 'tack'
   | 'vehicle'
   | 'pack'
+  | 'wondrous'
+  | 'consumable'
   | 'other'
 
 export const GEAR_ITEM_CATEGORY_LABEL_RU: Record<
@@ -46,6 +48,8 @@ export const GEAR_ITEM_CATEGORY_LABEL_RU: Record<
   tack: 'Сбруя',
   vehicle: 'Транспорт',
   pack: 'Наборы',
+  wondrous: 'Чудесные',
+  consumable: 'Зелья',
   other: 'Прочее',
 }
 
@@ -165,9 +169,13 @@ export function summarizeGearEntry(entry: CatalogEntry): GearCatalogSummary | nu
             ? GEAR_ITEM_CATEGORY_LABEL_RU.vehicle
             : parsed.item_category === 'pack'
               ? GEAR_ITEM_CATEGORY_LABEL_RU.pack
-              : parsed.item_category !== 'other'
-                ? parsed.item_category
-                : ''
+              : parsed.item_category === 'wondrous'
+                ? GEAR_ITEM_CATEGORY_LABEL_RU.wondrous
+                : parsed.item_category === 'consumable'
+                  ? GEAR_ITEM_CATEGORY_LABEL_RU.consumable
+                  : parsed.item_category !== 'other'
+                    ? parsed.item_category
+                    : ''
   const bits = [
     categoryLabel,
     parsed.weight_lb != null ? `${parsed.weight_lb} фнт` : '',
