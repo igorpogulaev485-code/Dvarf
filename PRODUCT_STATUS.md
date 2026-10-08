@@ -475,7 +475,16 @@
 | Prepared-кастеры | Жрец / друид / паладин / волшебник / изобретатель: кнопка подготовки и лимит как раньше | Бюджет подготовки остаётся |
 | Гримуар | Known: одно «Добавить» (сразу к касту); prepared: «В известные» / «Подготовить»; чипы книг PHB/XGE/TCE/… | Быстрее найти и взять заклинание из нужной книги |
 
-На проде: нет · ветка `cursor/spell-known-prepare-polish-ef23`
+На проде: нет · ветка `cursor/spell-known-prepare-polish-ef23` · PR #78
+
+### 2026-10-08 — SPELLS: UI каста (ритуал + метаданные)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Диалог каста | Длительность, компоненты, школа, книга; «на больших уровнях» при upcast | Видно, что кастуешь, до подтверждения |
+| Ритуал | Чип «Ритуал» — каст без ячейки/pact; кнопка Каст доступна без слотов | Detect Magic и т.п. вне боя без траты ячейки |
+
+На проде: нет · ветка `cursor/spell-cast-ui-polish-7737`
 
 <!-- пример:
 ### 2026-10-06 — подтверждение email при регистрации
@@ -561,4 +570,5 @@
 | 2026-10-08 | `cursor/spell-phb-wave-ef23` | SPELLS slice 6 wave1: +45 PHB non-SRD → «В ветках»; alembic `t9c0` |
 | 2026-10-08 | `cursor/spell-xge-wave-ef23` | SPELLS slice 6 wave2: +95 XGE → «В ветках»; alembic `u0d1` |
 | 2026-10-08 | `cursor/spell-rest-books-wave-ef23` | SPELLS slice 6 wave3: +68 TCE/EGW/… → 527; оф. gap 0; alembic `v1e2` |
-| 2026-10-08 | `cursor/spell-known-prepare-polish-ef23` | SPELLS slice 7: known vs prepared UX + book filter in grimoire → «В ветках» |
+| 2026-10-08 | `cursor/spell-known-prepare-polish-ef23` · PR #78 | SPELLS slice 7: known vs prepared UX + book filter in grimoire → «В ветках» |
+| 2026-10-08 | `cursor/spell-cast-ui-polish-7737` | SPELLS slice 8: cast dialog ritual + meta/higher_levels → «В ветках» |

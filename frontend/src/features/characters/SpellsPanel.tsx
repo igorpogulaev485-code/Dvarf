@@ -261,9 +261,10 @@ export function SpellsPanel({
   function confirmCast(choice: CastChoice) {
     if (!castSpell) return
     const name = castSpell.name || 'Заклинание'
+    const ritualCast = Boolean(choice.ritual && castSpell.ritual && castSpell.level > 0)
     const slotForEffect =
-      castSpell.level <= 0
-        ? 0
+      castSpell.level <= 0 || ritualCast
+        ? castSpell.level
         : choice.usePact
           ? (spells.pact_slots?.level ?? castSpell.level)
           : choice.slotLevel
@@ -279,6 +280,16 @@ export function SpellsPanel({
         castSpell.concentration
           ? `Каст: ${name}${effectNote} (концентрация)`
           : `Каст: ${name}${effectNote}`,
+      )
+      setCastSpell(null)
+      return
+    }
+    if (ritualCast) {
+      applyConcentrationIfNeeded(castSpell)
+      onToast?.(
+        `Ритуал: ${name} (без ячейки)${effectNote}${
+          castSpell.concentration ? ' · концентрация' : ''
+        }`,
       )
       setCastSpell(null)
       return
@@ -750,6 +761,7 @@ export function SpellsPanel({
                           disabled={
                             (spell.level > 0 && !spell.prepared) ||
                             (spell.level > 0 &&
+                              !spell.ritual &&
                               !canCastLeveledSpell(
                                 spells.slots,
                                 spells.pact_slots,
