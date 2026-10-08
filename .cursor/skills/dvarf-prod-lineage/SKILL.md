@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/spell-cast-grant-picker-7737
+cursor/companions-naparniki-b378
 ```
 
 URL: http://201.34.132.252/
@@ -38,7 +38,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-acbe origin/cursor/spell-cast-grant-picker-7737
+git checkout -b cursor/<descriptive>-acbe origin/cursor/companions-naparniki-b378
 # если tip уже другой — подставь актуальный из AGENTS.md / этого skill
 ```
 
@@ -46,7 +46,7 @@ git checkout -b cursor/<descriptive>-acbe origin/cursor/spell-cast-grant-picker-
 
 ```bash
 git fetch origin
-git merge origin/cursor/spell-cast-grant-picker-7737
+git merge origin/cursor/companions-naparniki-b378
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```
