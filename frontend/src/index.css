@@ -837,6 +837,18 @@ input {
   gap: 8px;
 }
 
+.companion-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.companion-resources {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .companion-card--inactive {
   opacity: 0.78;
 }

@@ -77,7 +77,11 @@ import {
 } from './subclassEffects'
 import { SubclassSetupDialog } from './SubclassSetupDialog'
 import { SubclassChangeConfirmDialog } from './SubclassChangeConfirmDialog'
-import { readCompanions, type CompanionEntry } from './companions'
+import {
+  readCompanions,
+  resetCompanionResourcesOnRest,
+  type CompanionEntry,
+} from './companions'
 import { applyConcentrationChangeToCompanions } from './spellCompanions'
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
@@ -2566,6 +2570,12 @@ export function MinimalSheetEditor({
         }
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onCombatChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
+        onCompanionRest={(kind) =>
+          setDraft((prev) => ({
+            ...prev,
+            companions: resetCompanionResourcesOnRest(prev.companions, kind),
+          }))
+        }
         onToast={onToast}
       />
 

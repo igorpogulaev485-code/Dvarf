@@ -3,9 +3,15 @@
 import type { ConcentrationState } from '../../shared/dnd/concentration'
 import {
   createCompanion,
+  mergeCompanionResources,
   type CompanionEntry,
   type CompanionKind,
 } from './companions'
+import {
+  companionFromTemplate,
+  resolveSpellCompanionTemplate,
+  type CompanionTemplateContext,
+} from './companionTemplates'
 import { spellKeyFromName, type SheetSpell } from './spells'
 
 /** Spells that look like "conjure/summon" but are not naparnik entities. */
@@ -196,6 +202,8 @@ export function applySpellCastToCompanions(input: {
   companions: CompanionEntry[]
   spell: SheetSpell
   slotLevel: number
+  characterLevel?: number
+  spellMod?: number
 }): { companions: CompanionEntry[]; name: string; refreshed: boolean } | null {
   const slug = resolveSpellNaparnikSlug(input.spell)
   if (!slug) return null
@@ -213,7 +221,15 @@ export function applySpellCastToCompanions(input: {
         ? ` · ${input.slotLevel} ур.`
         : ''
   const concNote = input.spell.concentration ? ' · концентрация' : ''
-  const notes = `${labelRu}${slotNote}${concNote}. Статы — из бестиария или вручную.`
+  const templateCtx: CompanionTemplateContext = {
+    hostClassLevel: input.characterLevel ?? 1,
+    characterLevel: input.characterLevel ?? 1,
+    spellMod: input.spellMod ?? 0,
+    slotLevel: input.slotLevel,
+  }
+  const template = resolveSpellCompanionTemplate({ slug, ctx: templateCtx })
+  const baseNotes = template?.notes ?? 'Статы — из бестиария или вручную'
+  const notes = `${labelRu}${slotNote}${concNote}. ${baseNotes}`
 
   const spellSource = {
     kind: 'spell' as const,
@@ -229,21 +245,31 @@ export function applySpellCastToCompanions(input: {
   )
 
   if (existing) {
-    const hpMax = existing.stats.hp_max
+    const fromTemplate = template
+      ? companionFromTemplate({
+          template,
+          name: existing.name.trim() || template.defaultName,
+          source: spellSource,
+        })
+      : null
+    const hpMax = fromTemplate?.stats.hp_max ?? existing.stats.hp_max
     const refreshed: CompanionEntry = {
       ...existing,
+      kind: fromTemplate?.kind ?? existing.kind,
       nature: 'summoned',
       active: true,
       death: null,
+      control: fromTemplate?.control ?? existing.control,
       stats: {
-        ...existing.stats,
-        hp:
-          hpMax != null
-            ? hpMax
-            : existing.stats.hp != null && existing.stats.hp > 0
-              ? existing.stats.hp
-              : 1,
+        hp: hpMax != null ? hpMax : existing.stats.hp != null && existing.stats.hp > 0 ? existing.stats.hp : 1,
+        hp_max: hpMax,
+        ac: fromTemplate?.stats.ac ?? existing.stats.ac,
+        speed: fromTemplate?.stats.speed ?? existing.stats.speed,
       },
+      actions: fromTemplate?.actions || existing.actions,
+      resources: fromTemplate
+        ? mergeCompanionResources(existing.resources, fromTemplate.resources)
+        : existing.resources,
       notes,
       source: spellSource,
     }
@@ -256,23 +282,27 @@ export function applySpellCastToCompanions(input: {
     }
   }
 
-  const created = createCompanion({
-    kind: defaults.kind,
-    name: defaults.titleRu,
-    nature: 'summoned',
-    control: defaults.control,
-    active: true,
-    notes,
-    actions:
-      slug === 'find_familiar'
-        ? 'Не атакует; телепатия 100 фт.; передача касания'
-        : 'Команды устно; статы по заклинанию / бестиарию',
-    source: spellSource,
-  })
+  const created = template
+    ? companionFromTemplate({
+        template,
+        name: defaults.titleRu,
+        source: spellSource,
+      })
+    : createCompanion({
+        kind: defaults.kind,
+        name: defaults.titleRu,
+        nature: 'summoned',
+        control: defaults.control,
+        active: true,
+        notes,
+        actions: 'Команды устно; статы по заклинанию / бестиарию',
+        source: spellSource,
+      })
+  const withNotes = { ...created, notes, source: spellSource, active: true }
 
   return {
-    companions: [...input.companions, created],
-    name: created.name,
+    companions: [...input.companions, withNotes],
+    name: withNotes.name,
     refreshed: false,
   }
 }

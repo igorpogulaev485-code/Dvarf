@@ -286,18 +286,22 @@ export function SpellsPanel({
 
   function applyNaparnikFromCast(spell: SheetSpell, slotLevel: number): string {
     if (!onCompanionsChange) return ''
+    const castCtx = {
+      spell,
+      slotLevel,
+      characterLevel: level,
+      spellMod: abilityMod,
+    }
     // Compute toast from current props; apply against latest draft via updater.
     const preview = applySpellCastToCompanions({
       companions,
-      spell,
-      slotLevel,
+      ...castCtx,
     })
     if (!preview) return ''
     onCompanionsChange((prev) => {
       const result = applySpellCastToCompanions({
         companions: prev,
-        spell,
-        slotLevel,
+        ...castCtx,
       })
       return result?.companions ?? prev
     })

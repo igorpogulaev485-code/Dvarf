@@ -6,13 +6,16 @@ import {
   isCompanionStable,
   mergeSubclassCompanions,
   readCompanions,
+  resetCompanionResourcesOnRest,
   restoreCompanion,
   revokeCompanionsForSubclass,
   setCompanionActive,
+  setPrimaryCompanion,
 } from '../src/features/characters/companions.ts'
 import {
   companionFromTemplate,
   resolveCompanionTemplate,
+  resolveSpellCompanionTemplate,
 } from '../src/features/characters/companionTemplates.ts'
 import {
   applyConcentrationChangeToCompanions,
@@ -208,7 +211,7 @@ assert(afterFamiliar!.companions[0]?.source?.kind === 'spell', 'source spell')
 const named = {
   ...afterFamiliar!.companions[0]!,
   name: 'Тень',
-  stats: { hp: 0, hp_max: 4, ac: 12, speed: 40 },
+  stats: { hp: 0, hp_max: 2, ac: 12, speed: 40 },
   active: false,
 }
 const recast = applySpellCastToCompanions({
@@ -219,7 +222,7 @@ const recast = applySpellCastToCompanions({
 assert(recast?.refreshed === true, 'recast refreshes')
 assert(recast?.companions[0]?.name === 'Тень', 'keeps nickname')
 assert(recast?.companions[0]?.active === true, 'reactivates')
-assert(recast?.companions[0]?.stats.hp === 4, 'restores to hp_max')
+assert(recast?.companions[0]?.stats.hp === 2, 'restores to template hp_max')
 
 const animals = applySpellCastToCompanions({
   companions: recast!.companions,
@@ -276,5 +279,58 @@ const switchConc = applyConcentrationChangeToCompanions({
   next: { spell_id: 'other-spell', name: 'Удержание личности' },
 })
 assert(switchConc.dismissedNames.length === 1, 'dismiss on concentration switch')
+
+const beastSpirit = resolveSpellCompanionTemplate({
+  slug: 'summon_beast',
+  ctx: { hostClassLevel: 5, characterLevel: 5, spellMod: 4, slotLevel: 4 },
+})
+assert(beastSpirit != null, 'summon beast template')
+assert(beastSpirit!.stats.ac === 11 + 4, 'AC 11+slot')
+assert(beastSpirit!.stats.hp_max === 30 + 5 * 2, 'HP 30+5×above2')
+assert(beastSpirit!.actions.includes('+7'), 'spell attack PB3+mod4')
+
+const castBeast = applySpellCastToCompanions({
+  companions: [],
+  spell: {
+    ...createSheetSpell(),
+    id: 'sb-1',
+    name: 'Призыв духа зверя',
+    level: 2,
+    concentration: true,
+  },
+  slotLevel: 4,
+  characterLevel: 5,
+  spellMod: 4,
+})
+assert(castBeast?.companions[0]?.stats.hp_max === 40, 'cast applies HP')
+assert(castBeast?.companions[0]?.stats.ac === 15, 'cast applies AC')
+
+const withRepair = companionFromTemplate({
+  template: resolveCompanionTemplate({
+    choiceId: 'steel_defender_name',
+    pickValue: 'Гвоздь',
+    ctx: { hostClassLevel: 3, characterLevel: 3, hostIntMod: 3 },
+  })!,
+  name: 'Гвоздь',
+  source: { kind: 'subclass', labelRu: 'Архетип', feature: 'steel_defender_name' },
+})
+assert(withRepair.resources.some((r) => r.id === 'repair' && r.max === 3), 'repair pool')
+const spent = {
+  ...withRepair,
+  resources: withRepair.resources.map((r) =>
+    r.id === 'repair' ? { ...r, used: 2 } : r,
+  ),
+}
+const afterShort = resetCompanionResourcesOnRest([spent], 'short')
+assert(afterShort[0]?.resources[0]?.used === 2, 'short does not clear long')
+const afterLong = resetCompanionResourcesOnRest([spent], 'long')
+assert(afterLong[0]?.resources[0]?.used === 0, 'long clears repair')
+
+const a = createCompanion({ id: 'a', name: 'A' })
+const b = createCompanion({ id: 'b', name: 'B' })
+const primed = setPrimaryCompanion([a, b], 'b')
+assert(primed[0]?.is_primary === false && primed[1]?.is_primary === true, 'one primary')
+const cleared = setPrimaryCompanion(primed, null)
+assert(cleared.every((c) => !c.is_primary), 'clear primary')
 
 console.log('smoke-companions: ok')

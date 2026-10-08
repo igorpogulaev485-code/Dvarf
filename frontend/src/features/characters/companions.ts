@@ -36,6 +36,17 @@ export type CompanionDeathState = {
   failures: number
 }
 
+export type CompanionResourceReset = 'short' | 'long' | 'manual'
+
+/** Per-naparnik resource pool (Repair, cannon charges, …). */
+export type CompanionResource = {
+  id: string
+  name: string
+  max: number
+  used: number
+  reset: CompanionResourceReset
+}
+
 export type CompanionSource = {
   kind: CompanionSourceKind
   labelRu: string
@@ -55,7 +66,13 @@ export type CompanionEntry = {
   /** Cached RU name for the bestiary pick (display when catalog is empty/offline). */
   bestiary_name_ru: string | null
   nature: CompanionNature
+  /** Combat/scene: alive and present. */
   active: boolean
+  /**
+   * Multiclass / multi-companion: which naparnik is the player's focus («Основной»).
+   * At most one should be true; enforced in UI helpers.
+   */
+  is_primary: boolean
   control: CompanionControlMode
   source: CompanionSource | null
   stats: {
@@ -65,6 +82,7 @@ export type CompanionEntry = {
     speed: number | null
   }
   death: CompanionDeathState | null
+  resources: CompanionResource[]
   actions: string
   notes: string
 }
@@ -182,6 +200,86 @@ export function companionSourceLabel(source: CompanionSource | null): string {
   }
 }
 
+export function clampCompanionResource(resource: CompanionResource): CompanionResource {
+  const max = Math.max(0, Math.floor(resource.max))
+  const used = Math.min(max, Math.max(0, Math.floor(resource.used)))
+  const reset: CompanionResourceReset =
+    resource.reset === 'short' || resource.reset === 'long' || resource.reset === 'manual'
+      ? resource.reset
+      : 'long'
+  return {
+    id: resource.id,
+    name: resource.name,
+    max,
+    used,
+    reset,
+  }
+}
+
+export function readCompanionResources(raw: unknown): CompanionResource[] {
+  if (!Array.isArray(raw)) return []
+  const out: CompanionResource[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue
+    const row = item as Record<string, unknown>
+    if (typeof row.id !== 'string' || typeof row.name !== 'string') continue
+    out.push(
+      clampCompanionResource({
+        id: row.id,
+        name: row.name,
+        max: typeof row.max === 'number' ? row.max : 0,
+        used: typeof row.used === 'number' ? row.used : 0,
+        reset:
+          row.reset === 'short' || row.reset === 'long' || row.reset === 'manual'
+            ? row.reset
+            : 'long',
+      }),
+    )
+  }
+  return out
+}
+
+/** Merge template resource defs: keep used for same id, refresh max/name/reset. */
+export function mergeCompanionResources(
+  previous: CompanionResource[],
+  next: CompanionResource[],
+): CompanionResource[] {
+  if (next.length === 0) return previous
+  return next.map((tmpl) => {
+    const prev = previous.find((row) => row.id === tmpl.id)
+    return clampCompanionResource({
+      ...tmpl,
+      used: prev ? prev.used : tmpl.used,
+    })
+  })
+}
+
+export function resetCompanionResourcesOnRest(
+  companions: CompanionEntry[],
+  kind: 'short' | 'long',
+): CompanionEntry[] {
+  return companions.map((row) => ({
+    ...row,
+    resources: row.resources.map((raw) => {
+      const resource = clampCompanionResource(raw)
+      if (resource.reset === 'manual') return resource
+      if (kind === 'short' && resource.reset !== 'short') return resource
+      return { ...resource, used: 0 }
+    }),
+  }))
+}
+
+/** Mark one companion as primary; clears others. */
+export function setPrimaryCompanion(
+  companions: CompanionEntry[],
+  id: string | null,
+): CompanionEntry[] {
+  return companions.map((row) => ({
+    ...row,
+    is_primary: id != null && row.id === id,
+  }))
+}
+
 export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEntry {
   const kind = partial?.kind ?? 'other'
   const nature = partial?.nature ?? defaultNatureForKind(kind)
@@ -202,6 +300,7 @@ export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEnt
     bestiary_name_ru: partial?.bestiary_name_ru ?? null,
     nature,
     active: partial?.active ?? true,
+    is_primary: partial?.is_primary ?? false,
     control,
     source,
     stats: {
@@ -211,6 +310,7 @@ export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEnt
       speed: partial?.stats?.speed ?? null,
     },
     death: partial?.death ?? null,
+    resources: (partial?.resources ?? []).map(clampCompanionResource),
     actions: partial?.actions ?? '',
     notes: partial?.notes ?? '',
   }
@@ -293,6 +393,7 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
         typeof row.bestiary_name_ru === 'string' ? row.bestiary_name_ru : null,
       nature,
       active: typeof row.active === 'boolean' ? row.active : true,
+      is_primary: typeof row.is_primary === 'boolean' ? row.is_primary : false,
       control,
       source: readSource(row.source),
       stats: {
@@ -302,6 +403,7 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
         speed: typeof statsRaw.speed === 'number' ? statsRaw.speed : null,
       },
       death: readDeath(row.death),
+      resources: readCompanionResources(row.resources),
       actions: typeof row.actions === 'string' ? row.actions : '',
       notes: typeof row.notes === 'string' ? row.notes : '',
     })
@@ -404,6 +506,7 @@ export function mergeSubclassCompanions(input: {
       bestiary_name_ru: prev.bestiary_name_ru ?? created.bestiary_name_ru,
       nature: prev.nature,
       active: prev.active,
+      is_primary: prev.is_primary,
       control: prev.control,
       // Template refresh: hp_max/ac/speed/actions from grant; keep current HP + death.
       stats: {
@@ -413,6 +516,7 @@ export function mergeSubclassCompanions(input: {
         speed: created.stats.speed ?? prev.stats.speed,
       },
       death: prev.death,
+      resources: mergeCompanionResources(prev.resources, created.resources),
       actions: created.actions || prev.actions,
       notes: prev.notes || created.notes,
     }

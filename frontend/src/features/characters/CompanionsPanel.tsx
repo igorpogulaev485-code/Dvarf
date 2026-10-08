@@ -13,6 +13,7 @@ import {
   isCompanionStable,
   restoreCompanion,
   setCompanionActive,
+  setPrimaryCompanion,
   type CompanionControlMode,
   type CompanionEntry,
   type CompanionKind,
@@ -61,14 +62,18 @@ function DeathPips({
 }
 
 function statusLine(row: CompanionEntry): string {
-  if (isCompanionDead(row)) return 'Мёртв'
-  if (isCompanionStable(row)) return 'Стабилен (0 HP)'
-  if (!row.active) {
-    if (row.nature === 'living' && (row.stats.hp ?? 1) <= 0) return 'При смерти'
-    if (row.nature !== 'living' && (row.stats.hp ?? 1) <= 0) return 'Неактивен (0 HP)'
-    return 'Неактивен'
+  const bits: string[] = []
+  if (row.is_primary) bits.push('Основной')
+  if (isCompanionDead(row)) bits.push('Мёртв')
+  else if (isCompanionStable(row)) bits.push('Стабилен (0 HP)')
+  else if (!row.active) {
+    if (row.nature === 'living' && (row.stats.hp ?? 1) <= 0) bits.push('При смерти')
+    else if (row.nature !== 'living' && (row.stats.hp ?? 1) <= 0) bits.push('Неактивен (0 HP)')
+    else bits.push('Неактивен')
+  } else {
+    bits.push('Активен')
   }
-  return 'Активен'
+  return bits.join(' · ')
 }
 
 export function CompanionsPanel({
@@ -145,15 +150,30 @@ export function CompanionsPanel({
                   {' · '}
                   {statusLine(row)}
                 </Text>
-                <button
-                  type="button"
-                  className={`combat-chip${row.active ? ' is-on' : ''}`}
-                  aria-pressed={row.active}
-                  disabled={dead || ((row.stats.hp ?? 1) <= 0 && row.nature !== 'living')}
-                  onClick={() => replace(row.id, setCompanionActive(row, !row.active))}
-                >
-                  Активен
-                </button>
+                <div className="companion-card__chips">
+                  <button
+                    type="button"
+                    className={`combat-chip${row.is_primary ? ' is-on' : ''}`}
+                    aria-pressed={row.is_primary}
+                    title="Основной напарник при нескольких (мультикласс / свита)"
+                    onClick={() =>
+                      onChange(
+                        setPrimaryCompanion(companions, row.is_primary ? null : row.id),
+                      )
+                    }
+                  >
+                    Основной
+                  </button>
+                  <button
+                    type="button"
+                    className={`combat-chip${row.active ? ' is-on' : ''}`}
+                    aria-pressed={row.active}
+                    disabled={dead || ((row.stats.hp ?? 1) <= 0 && row.nature !== 'living')}
+                    onClick={() => replace(row.id, setCompanionActive(row, !row.active))}
+                  >
+                    Активен
+                  </button>
+                </div>
               </div>
 
               <div className="sheet-grid sheet-grid--2">
@@ -302,6 +322,72 @@ export function CompanionsPanel({
                   onChange={(event) => update(row.id, { actions: event.target.value })}
                 />
               </Field>
+
+              {row.resources.length > 0 ? (
+                <div className="companion-resources">
+                  <Text>Ресурсы напарника</Text>
+                  {row.resources.map((resource) => (
+                    <div key={resource.id} className="sheet-grid sheet-grid--3">
+                      <Field label={resource.name}>
+                        <NumberInput
+                          min={0}
+                          max={resource.max}
+                          emptyValue={0}
+                          value={resource.used}
+                          onValueChange={(used) =>
+                            update(row.id, {
+                              resources: row.resources.map((item) =>
+                                item.id === resource.id
+                                  ? {
+                                      ...item,
+                                      used: Math.max(
+                                        0,
+                                        Math.min(resource.max, used ?? 0),
+                                      ),
+                                    }
+                                  : item,
+                              ),
+                            })
+                          }
+                        />
+                      </Field>
+                      <Field label="Макс.">
+                        <NumberInput
+                          min={0}
+                          emptyValue={0}
+                          value={resource.max}
+                          onValueChange={(max) =>
+                            update(row.id, {
+                              resources: row.resources.map((item) =>
+                                item.id === resource.id
+                                  ? {
+                                      ...item,
+                                      max: Math.max(0, max ?? 0),
+                                      used: Math.min(
+                                        item.used,
+                                        Math.max(0, max ?? 0),
+                                      ),
+                                    }
+                                  : item,
+                              ),
+                            })
+                          }
+                        />
+                      </Field>
+                      <Field label="Сброс">
+                        <Text tone="muted">
+                          {resource.reset === 'short'
+                            ? 'короткий'
+                            : resource.reset === 'long'
+                              ? 'долгий'
+                              : 'вручную'}
+                        </Text>
+                      </Field>
+                    </div>
+                  ))}
+                  <Text tone="muted">Потрачено / макс. Сброс вместе с отдыхом хозяина.</Text>
+                </div>
+              ) : null}
 
               <Field label="Заметки">
                 <Input
