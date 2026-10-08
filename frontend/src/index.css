@@ -729,6 +729,20 @@ input {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.inventory-card--nested {
+  margin-left: 14px;
+  border-style: dashed;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.inventory-card--pack-open {
+  border-color: color-mix(in srgb, var(--accent, #0f766e) 45%, var(--line));
+}
+
+.inventory-card__nest-label {
+  font-size: 0.8rem;
+}
+
 .inventory-card__grid {
   display: grid;
   gap: 10px;

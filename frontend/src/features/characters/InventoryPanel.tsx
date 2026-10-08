@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
-import type { CatalogEntry } from '../../shared/api/catalog'
+import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
   ARMOR_KINDS,
@@ -7,6 +8,7 @@ import {
   armorKindLabel,
   type ArmorKind,
 } from '../../shared/dnd/armor'
+import { parseItemCatalogData } from '../../shared/dnd/gearCatalog'
 import {
   coinWeightLb,
   carryingCapacityLb,
@@ -26,6 +28,18 @@ import {
   type InventoryItem,
   type InventoryState,
 } from './inventory'
+import {
+  collapsePack,
+  expandPack,
+  findCatalogPackEntry,
+  hasPackContents,
+  isExpandedPack,
+  orderInventoryItems,
+  readPackContents,
+  removeInventoryItem,
+  resolvePackContents,
+  sumContentsWeightLb,
+} from './inventoryPacks'
 
 const COIN_FIELDS: Array<{ key: keyof CoinPurse; label: string }> = [
   { key: 'cp', label: 'ММ' },
@@ -48,12 +62,30 @@ export function InventoryPanel({
   strengthScore,
   onChange,
 }: InventoryPanelProps) {
+  const [catalogItems, setCatalogItems] = useState<CatalogEntry[]>([])
+  const [packBusyId, setPackBusyId] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    listCatalogEntries({ kind: 'item', edition })
+      .then((rows) => {
+        if (!cancelled) setCatalogItems(rows)
+      })
+      .catch(() => {
+        if (!cancelled) setCatalogItems([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [edition])
+
   const weighable = asWeighableItems(inventory.items)
   const itemsLb = itemsWeightLb(weighable)
   const coinsLb = coinWeightLb(inventory.coins)
   const totalLb = totalCarriedLb(inventory.coins, weighable)
   const capacityLb = carryingCapacityLb(strengthScore)
   const overEncumbered = totalLb > capacityLb
+  const ordered = orderInventoryItems(inventory.items)
 
   function setCoins(patch: Partial<CoinPurse>) {
     onChange({
@@ -76,18 +108,36 @@ export function InventoryPanel({
     }
     const data = selected.data ?? {}
     const armor = armorFieldsFromCatalog(selected)
+    const parsedItem = parseItemCatalogData(data)
+    const isPack =
+      selected.kind === 'item' &&
+      (parsedItem.item_category === 'pack' || parsedItem.contents.length > 0)
+    let weight =
+      armor.weight_lb ??
+      readCatalogWeightLb(data) ??
+      inventory.items.find((item) => item.id === id)?.weight_lb ??
+      null
+    if (isPack && (weight == null || weight === 0) && parsedItem.contents.length > 0) {
+      const resolved = resolvePackContents(parsedItem.contents, catalogItems)
+      const sum = sumContentsWeightLb(resolved)
+      if (sum > 0) weight = sum
+    }
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
-      weight_lb:
-        armor.weight_lb ??
-        readCatalogWeightLb(data) ??
-        inventory.items.find((item) => item.id === id)?.weight_lb ??
-        null,
+      weight_lb: weight,
       armor_kind: armor.armor_kind ?? 'none',
       base_ac: armor.base_ac ?? null,
       max_dex_bonus: armor.max_dex_bonus ?? null,
       strength_requirement: armor.strength_requirement ?? null,
+      container_kind: isPack
+        ? 'pack'
+        : parsedItem.item_category === 'tool'
+          ? 'kit'
+          : parsedItem.item_category === 'container'
+            ? 'container'
+            : 'none',
+      container_expanded: false,
     })
   }
 
@@ -130,8 +180,69 @@ export function InventoryPanel({
       strength_requirement:
         armor_kind === 'heavy'
           ? (item.strength_requirement ??
-            (preset?.key === 'chain_mail' ? 13 : preset?.key === 'splint' || preset?.key === 'plate' ? 15 : null))
+            (preset?.key === 'chain_mail'
+              ? 13
+              : preset?.key === 'splint' || preset?.key === 'plate'
+                ? 15
+                : null))
           : null,
+    })
+  }
+
+  function canExpand(item: InventoryItem): boolean {
+    if (item.parent_id) return false
+    if (isExpandedPack(inventory.items, item.id)) return false
+    if (item.container_kind === 'pack' || item.container_kind === 'kit') return true
+    const hit = findCatalogPackEntry(item, catalogItems)
+    if (hit && hasPackContents(hit.data ?? undefined)) return true
+    // Grant names before catalog loads — still show the button.
+    return /набор/i.test(item.name)
+  }
+
+  async function onExpandPack(item: InventoryItem) {
+    setPackBusyId(item.id)
+    try {
+      let rows = catalogItems
+      if (rows.length === 0) {
+        rows = await listCatalogEntries({ kind: 'item', edition })
+        setCatalogItems(rows)
+      }
+      const hit = findCatalogPackEntry(item, rows)
+      const contents = readPackContents(hit?.data ?? undefined)
+      if (contents.length === 0) return
+      const resolved = resolvePackContents(contents, rows)
+      let items = inventory.items.map((row) =>
+        row.id === item.id && hit
+          ? {
+              ...row,
+              catalog_id: row.catalog_id ?? hit.id,
+              name: row.name || hit.name_ru,
+              container_kind: 'pack' as const,
+            }
+          : row,
+      )
+      const current = items.find((row) => row.id === item.id)
+      if (current && (current.weight_lb == null || current.weight_lb === 0)) {
+        const sum = sumContentsWeightLb(resolved)
+        if (sum > 0) {
+          items = items.map((row) =>
+            row.id === item.id ? { ...row, weight_lb: sum, pack_weight_lb: sum } : row,
+          )
+        }
+      }
+      onChange({
+        ...inventory,
+        items: expandPack({ items, packId: item.id, contents: resolved }),
+      })
+    } finally {
+      setPackBusyId(null)
+    }
+  }
+
+  function onCollapsePack(item: InventoryItem) {
+    onChange({
+      ...inventory,
+      items: collapsePack({ items: inventory.items, packId: item.id }),
     })
   }
 
@@ -139,8 +250,8 @@ export function InventoryPanel({
     <Panel title="Инвентарь">
       <Stack gap={14}>
         <Text tone="muted">
-          Монеты, вещи, броня. Надетый доспех/щит считают КД в шапке (10+ЛОВ без брони). Контейнеры —
-          позже.
+          Монеты, вещи, броня. Наборы можно раскрыть — содержимое идёт отдельными строками и считает
+          вес/перегруз. 20 бурдюков = одна строка с кол-вом, не набор.
         </Text>
 
         <div className="inventory-summary">
@@ -180,129 +291,170 @@ export function InventoryPanel({
         </div>
 
         <Stack gap={12}>
-          {inventory.items.map((item) => (
-            <div key={item.id} className="inventory-card">
-              <div className="inventory-card__grid">
-                <Field label="Предмет" hint="Справочник или своё название">
-                  <CatalogCombobox
-                    kinds={['item', 'weapon', 'armor']}
-                    edition={edition}
-                    value={item.name}
-                    placeholder="Название вещи"
-                    onChange={(value, selected) => applyCatalog(item.id, value, selected)}
-                  />
-                </Field>
-                <Field label="Кол-во">
-                  <NumberInput
-                    min={0}
-                    emptyValue={1}
-                    value={item.qty}
-                    onValueChange={(qty) => updateItem(item.id, { qty: qty ?? 0 })}
-                  />
-                </Field>
-                <Field label="Вес, фнт" hint="за 1 шт.">
-                  <NumberInput
-                    min={0}
-                    step={0.1}
-                    integer={false}
-                    emptyValue={null}
-                    value={item.weight_lb}
-                    onValueChange={(weight_lb) => updateItem(item.id, { weight_lb })}
-                  />
-                </Field>
-              </div>
+          {ordered.map((item) => {
+            const nested = Boolean(item.parent_id)
+            const expanded = isExpandedPack(inventory.items, item.id)
+            return (
+              <div
+                key={item.id}
+                className={`inventory-card${nested ? ' inventory-card--nested' : ''}${
+                  expanded ? ' inventory-card--pack-open' : ''
+                }`}
+              >
+                {nested ? (
+                  <Text tone="muted" className="inventory-card__nest-label">
+                    в наборе
+                  </Text>
+                ) : null}
+                <div className="inventory-card__grid">
+                  <Field label="Предмет" hint="Справочник или своё название">
+                    <CatalogCombobox
+                      kinds={['item', 'weapon', 'armor']}
+                      edition={edition}
+                      value={item.name}
+                      placeholder="Название вещи"
+                      onChange={(value, selected) => applyCatalog(item.id, value, selected)}
+                    />
+                  </Field>
+                  <Field label="Кол-во">
+                    <NumberInput
+                      min={0}
+                      emptyValue={1}
+                      value={item.qty}
+                      onValueChange={(qty) => updateItem(item.id, { qty: qty ?? 0 })}
+                    />
+                  </Field>
+                  <Field label="Вес, фнт" hint="за 1 шт.">
+                    <NumberInput
+                      min={0}
+                      step={0.1}
+                      integer={false}
+                      emptyValue={null}
+                      value={item.weight_lb}
+                      onValueChange={(weight_lb) => updateItem(item.id, { weight_lb })}
+                    />
+                  </Field>
+                </div>
 
-              <div className="sheet-grid sheet-grid--2">
-                <Field label="Шаблон брони">
-                  <select
-                    className="play-select"
-                    value=""
-                    onChange={(event) => applyPreset(item.id, event.target.value)}
+                {!nested ? (
+                  <div className="sheet-grid sheet-grid--2">
+                    <Field label="Шаблон брони">
+                      <select
+                        className="play-select"
+                        value=""
+                        onChange={(event) => applyPreset(item.id, event.target.value)}
+                      >
+                        <option value="">— выбрать —</option>
+                        {ARMOR_PRESETS.map((preset) => (
+                          <option key={preset.key} value={preset.key}>
+                            {preset.labelRu} (
+                            {preset.kind === 'shield' ? `+${preset.baseAc}` : preset.baseAc})
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Тип для КД">
+                      <select
+                        className="play-select"
+                        value={item.armor_kind}
+                        onChange={(event) =>
+                          setArmorKind(item.id, event.target.value as ArmorKind)
+                        }
+                      >
+                        {ARMOR_KINDS.map((kind) => (
+                          <option key={kind} value={kind}>
+                            {armorKindLabel(kind)}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+                ) : null}
+
+                {!nested && item.armor_kind !== 'none' ? (
+                  <Field
+                    label={
+                      item.armor_kind === 'shield' ? 'Бонус КД щита' : 'Базовый КД доспеха'
+                    }
                   >
-                    <option value="">— выбрать —</option>
-                    {ARMOR_PRESETS.map((preset) => (
-                      <option key={preset.key} value={preset.key}>
-                        {preset.labelRu} (
-                        {preset.kind === 'shield' ? `+${preset.baseAc}` : preset.baseAc})
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-                <Field label="Тип для КД">
-                  <select
-                    className="play-select"
-                    value={item.armor_kind}
-                    onChange={(event) => setArmorKind(item.id, event.target.value as ArmorKind)}
-                  >
-                    {ARMOR_KINDS.map((kind) => (
-                      <option key={kind} value={kind}>
-                        {armorKindLabel(kind)}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
+                    <NumberInput
+                      min={0}
+                      max={30}
+                      emptyValue={item.armor_kind === 'shield' ? 2 : 10}
+                      value={item.base_ac}
+                      onValueChange={(base_ac) => updateItem(item.id, { base_ac })}
+                    />
+                  </Field>
+                ) : null}
 
-              {item.armor_kind !== 'none' ? (
-                <Field
-                  label={item.armor_kind === 'shield' ? 'Бонус КД щита' : 'Базовый КД доспеха'}
-                >
-                  <NumberInput
-                    min={0}
-                    max={30}
-                    emptyValue={item.armor_kind === 'shield' ? 2 : 10}
-                    value={item.base_ac}
-                    onValueChange={(base_ac) => updateItem(item.id, { base_ac })}
+                <Field label="Заметка">
+                  <Input
+                    value={item.notes}
+                    placeholder="Где лежит, для чего…"
+                    onChange={(event) => updateItem(item.id, { notes: event.target.value })}
                   />
                 </Field>
-              ) : null}
-
-              <Field label="Заметка">
-                <Input
-                  value={item.notes}
-                  placeholder="Где лежит, для чего…"
-                  onChange={(event) => updateItem(item.id, { notes: event.target.value })}
-                />
-              </Field>
-              <div className="inventory-card__footer">
-                <button
-                  type="button"
-                  className={`sheet-chip${item.equipped ? ' is-on' : ''}`}
-                  onClick={() =>
-                    onChange({
-                      ...inventory,
-                      items: equipInventoryItem(inventory.items, item.id, !item.equipped),
-                    })
-                  }
-                >
-                  {item.equipped ? 'Надето' : 'Не надето'}
-                </button>
-                <Text tone="muted">
-                  Строка: {formatLb(itemLineWeightLb(item))} фнт
-                  {item.armor_kind !== 'none'
-                    ? ` · ${armorKindLabel(item.armor_kind)}${
-                        item.base_ac != null
-                          ? item.armor_kind === 'shield'
-                            ? ` +${item.base_ac}`
-                            : ` ${item.base_ac}`
-                          : ''
-                      }`
-                    : ''}
-                </Text>
-                <Button
-                  variant="ghost"
-                  onClick={() =>
-                    onChange({
-                      ...inventory,
-                      items: inventory.items.filter((row) => row.id !== item.id),
-                    })
-                  }
-                >
-                  Удалить
-                </Button>
+                <div className="inventory-card__footer">
+                  {!nested ? (
+                    <button
+                      type="button"
+                      className={`sheet-chip${item.equipped ? ' is-on' : ''}`}
+                      onClick={() =>
+                        onChange({
+                          ...inventory,
+                          items: equipInventoryItem(
+                            inventory.items,
+                            item.id,
+                            !item.equipped,
+                          ),
+                        })
+                      }
+                    >
+                      {item.equipped ? 'Надето' : 'Не надето'}
+                    </button>
+                  ) : null}
+                  {canExpand(item) ? (
+                    <Button
+                      variant="secondary"
+                      disabled={packBusyId === item.id}
+                      onClick={() => void onExpandPack(item)}
+                    >
+                      {packBusyId === item.id ? 'Раскрываю…' : 'Раскрыть набор'}
+                    </Button>
+                  ) : null}
+                  {expanded ? (
+                    <Button variant="secondary" onClick={() => onCollapsePack(item)}>
+                      Свернуть набор
+                    </Button>
+                  ) : null}
+                  <Text tone="muted">
+                    Строка: {formatLb(itemLineWeightLb(item))} фнт
+                    {expanded ? ' · вес в содержимом' : ''}
+                    {item.armor_kind !== 'none'
+                      ? ` · ${armorKindLabel(item.armor_kind)}${
+                          item.base_ac != null
+                            ? item.armor_kind === 'shield'
+                              ? ` +${item.base_ac}`
+                              : ` ${item.base_ac}`
+                            : ''
+                        }`
+                      : ''}
+                  </Text>
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      onChange({
+                        ...inventory,
+                        items: removeInventoryItem(inventory.items, item.id),
+                      })
+                    }
+                  >
+                    Удалить
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </Stack>
 
         <div>

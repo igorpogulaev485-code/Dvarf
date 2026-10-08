@@ -15,6 +15,8 @@ import {
 } from '../../shared/dnd/weight'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
+export type InventoryContainerKind = 'none' | 'pack' | 'kit' | 'container'
+
 export type InventoryItem = {
   id: string
   name: string
@@ -29,6 +31,13 @@ export type InventoryItem = {
   /** Heavy armor STR gate (PHB). */
   strength_requirement?: number | null
   notes: string
+  /** Nested under an expanded pack / kit. */
+  parent_id?: string | null
+  container_kind?: InventoryContainerKind
+  /** True after «Раскрыть набор» — children carry weight. */
+  container_expanded?: boolean
+  /** Collapsed bulk weight snapshot (restored on collapse). */
+  pack_weight_lb?: number | null
 }
 
 export type InventoryState = {
@@ -52,7 +61,18 @@ export function createInventoryItem(): InventoryItem {
     max_dex_bonus: null,
     strength_requirement: null,
     notes: '',
+    parent_id: null,
+    container_kind: 'none',
+    container_expanded: false,
+    pack_weight_lb: null,
   }
+}
+
+function readContainerKind(value: unknown): InventoryContainerKind {
+  if (value === 'pack' || value === 'kit' || value === 'container' || value === 'none') {
+    return value
+  }
+  return 'none'
 }
 
 function readCoins(raw: unknown): CoinPurse {
@@ -81,6 +101,10 @@ function readItem(raw: unknown, index: number): InventoryItem {
     max_dex_bonus: readNullableNumber(row.max_dex_bonus),
     strength_requirement: readNullableNumber(row.strength_requirement),
     notes: typeof row.notes === 'string' ? row.notes : '',
+    parent_id: typeof row.parent_id === 'string' ? row.parent_id : null,
+    container_kind: readContainerKind(row.container_kind),
+    container_expanded: Boolean(row.container_expanded),
+    pack_weight_lb: readNullableNumber(row.pack_weight_lb),
   }
 }
 
@@ -117,13 +141,26 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         max_dex_bonus: item.max_dex_bonus ?? null,
         strength_requirement: item.strength_requirement ?? null,
         notes: item.notes,
+        parent_id: item.parent_id ?? null,
+        container_kind: item.container_kind ?? 'none',
+        container_expanded: Boolean(item.container_expanded),
+        pack_weight_lb: item.pack_weight_lb ?? null,
       })),
     },
   }
 }
 
 export function asWeighableItems(items: InventoryItem[]): WeighableItem[] {
-  return items.map((item) => ({ qty: item.qty, weight_lb: item.weight_lb }))
+  // Expanded pack shell weighs 0 — children carry mass (no double-count).
+  const parentIdsWithChildren = new Set(
+    items.filter((item) => item.parent_id).map((item) => item.parent_id as string),
+  )
+  return items.map((item) => {
+    if (parentIdsWithChildren.has(item.id)) {
+      return { qty: item.qty, weight_lb: 0 }
+    }
+    return { qty: item.qty, weight_lb: item.weight_lb }
+  })
 }
 
 export function readCatalogWeightLb(data: Record<string, unknown>): number | null {
