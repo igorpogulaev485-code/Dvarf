@@ -493,6 +493,8 @@
 | Живое vs призыв | Живое — спасброски; призыв/конструкция — «Снова в строю» | Собака партии ≠ повторный Conjure |
 | Бестиарий | Поле через `CatalogCombobox` / `kind=bestiary`; справочник пока пуст; `bestiary_ref` + имя | Готово к агенту бестиария; кличку не затирает |
 | Шаблоны архетипа | Primal land/sea/sky, steel defender, cannon, drake — HP/КД/скорость/действия от уровня | Не пустая карточка при выборе архетипа |
+| Каст → напарник | Find Familiar / Conjure… / Summon… создают или освежают карточку; кличка сохраняется | После каста сразу видно в «Напарниках» |
+| Не сущности | Spiritual Weapon, Conjure Barrage/Volley — не создают карточку | Не путаем эффект с напарником |
 | Ручное + / revoke | Как раньше; кличка и current HP сохраняются при re-apply | |
 
 На проде: **нет** · ветка `cursor/companions-naparniki-b378` · PR #81 · alembic `b4c5` · tip не менять до «залей»
@@ -787,3 +789,4 @@
 | 2026-10-08 | `cursor/spell-cast-ui-polish-7737` · PR #79 | SPELLS slice 8: cast dialog ritual + meta/higher_levels → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS: cast-via-feat/race grant charges in picker → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
+| 2026-10-08 | `cursor/companions-naparniki-b378` · PR #81 | Напарники: каркас + bestiary kind/ref + шаблоны архетипа → «В ветках»; alembic `b4c5` |

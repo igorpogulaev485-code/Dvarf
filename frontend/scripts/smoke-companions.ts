@@ -14,6 +14,12 @@ import {
   companionFromTemplate,
   resolveCompanionTemplate,
 } from '../src/features/characters/companionTemplates.ts'
+import {
+  applySpellCastToCompanions,
+  isSpellNaparnikCast,
+  resolveSpellNaparnikSlug,
+} from '../src/features/characters/spellCompanions.ts'
+import { createSheetSpell } from '../src/features/characters/spells.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
@@ -170,5 +176,56 @@ const ballista = resolveCompanionTemplate({
 })
 assert(ballista?.stats.hp_max === 15, 'cannon HP 5*level')
 assert(ballista?.stats.ac === 18, 'cannon AC 18')
+
+const familiarSpell = {
+  ...createSheetSpell(),
+  name: 'Поиск фамильяра',
+  level: 1,
+  ritual: true,
+}
+assert(resolveSpellNaparnikSlug(familiarSpell) === 'find_familiar', 'familiar slug')
+assert(isSpellNaparnikCast(familiarSpell), 'familiar is naparnik cast')
+assert(
+  !isSpellNaparnikCast({ ...createSheetSpell(), name: 'Духовное оружие', level: 2 }),
+  'spiritual weapon excluded',
+)
+assert(
+  !isSpellNaparnikCast({ ...createSheetSpell(), name: 'Conjure Barrage', level: 3 }),
+  'barrage excluded',
+)
+
+const afterFamiliar = applySpellCastToCompanions({
+  companions: [],
+  spell: familiarSpell,
+  slotLevel: 1,
+})
+assert(afterFamiliar != null, 'creates familiar card')
+assert(afterFamiliar!.companions[0]?.kind === 'familiar', 'kind familiar')
+assert(afterFamiliar!.companions[0]?.nature === 'summoned', 'summoned')
+assert(afterFamiliar!.companions[0]?.source?.kind === 'spell', 'source spell')
+
+const named = {
+  ...afterFamiliar!.companions[0]!,
+  name: 'Тень',
+  stats: { hp: 0, hp_max: 4, ac: 12, speed: 40 },
+  active: false,
+}
+const recast = applySpellCastToCompanions({
+  companions: [named],
+  spell: familiarSpell,
+  slotLevel: 1,
+})
+assert(recast?.refreshed === true, 'recast refreshes')
+assert(recast?.companions[0]?.name === 'Тень', 'keeps nickname')
+assert(recast?.companions[0]?.active === true, 'reactivates')
+assert(recast?.companions[0]?.stats.hp === 4, 'restores to hp_max')
+
+const animals = applySpellCastToCompanions({
+  companions: recast!.companions,
+  spell: { ...createSheetSpell(), name: 'Призыв животных', level: 3, concentration: true },
+  slotLevel: 5,
+})
+assert(animals?.companions.length === 2, 'second spell adds second card')
+assert(animals?.companions.some((c) => c.name === 'Призванные звери'), 'animals card')
 
 console.log('smoke-companions: ok')

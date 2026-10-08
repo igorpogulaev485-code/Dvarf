@@ -2598,6 +2598,10 @@ export function MinimalSheetEditor({
             ability: row.caster?.ability ?? null,
           }))}
         spells={draft.spells}
+        companions={draft.companions}
+        onCompanionsChange={(companions) =>
+          setDraft((prev) => ({ ...prev, companions }))
+        }
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
         onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
