@@ -13,6 +13,11 @@ import {
   equipLabel,
   resolveWeaponGrip,
 } from './heldEquip'
+import {
+  armorProficiencyHint,
+  canWearArmor,
+} from './equipmentProficiency'
+import type { ArmorProficiency } from './identity'
 import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import {
   ARMOR_KINDS,
@@ -113,19 +118,24 @@ type InventoryPanelProps = {
   edition: RulesEdition
   inventory: InventoryState
   strengthScore: number
+  /** Sheet armor proficiencies — blocks wearing untrained armor/shields. */
+  armorProficiency: ArmorProficiency
   weapons?: WeaponAttack[]
   onChange: (inventory: InventoryState) => void
   /** When set, catalog weapon picks also append attack cards. */
   onWeaponsChange?: (weapons: WeaponAttack[]) => void
+  onToast?: (message: string) => void
 }
 
 export function InventoryPanel({
   edition,
   inventory,
   strengthScore,
+  armorProficiency,
   weapons = [],
   onChange,
   onWeaponsChange,
+  onToast,
 }: InventoryPanelProps) {
   const [catalogItems, setCatalogItems] = useState<CatalogEntry[]>([])
   const [packBusyId, setPackBusyId] = useState<string | null>(null)
@@ -276,7 +286,16 @@ export function InventoryPanel({
   }
 
   function toggleEquip(item: InventoryItem) {
-    const items = equipInventoryItem(inventory.items, item.id, !item.equipped)
+    const nextEquipped = !item.equipped
+    if (
+      nextEquipped &&
+      item.armor_kind !== 'none' &&
+      !canWearArmor(item.armor_kind, armorProficiency)
+    ) {
+      onToast?.(armorProficiencyHint(item.armor_kind))
+      return
+    }
+    const items = equipInventoryItem(inventory.items, item.id, nextEquipped)
     onChange({ ...inventory, items })
     if (onWeaponsChange) {
       onWeaponsChange(syncAttacksHeldFromInventory(weapons, items))
@@ -639,6 +658,16 @@ export function InventoryPanel({
                           const value = (effect as { value?: number }).value
                           return `${ability ?? '?'}${t === 'ability_mod' ? (value != null && value >= 0 ? '+' : '') : '→'}${value ?? '?'}`
                         }
+                        if (t === 'skill_bonus') {
+                          return `${(effect as { skill?: string }).skill ?? 'навык'}+${(effect as { value?: number }).value ?? '?'}`
+                        }
+                        if (t === 'save_bonus') {
+                          const ability = (effect as { ability?: string }).ability
+                          return `спас ${ability ?? 'все'}+${(effect as { value?: number }).value ?? '?'}`
+                        }
+                        if (t === 'speed') {
+                          return `скор.+${(effect as { value_ft?: number }).value_ft ?? '?'}фт`
+                        }
                         return t
                       })
                       .join(' · ')}
@@ -657,10 +686,28 @@ export function InventoryPanel({
                   {!nested && canShowEquipChip(item) ? (
                     <button
                       type="button"
-                      className={`sheet-chip${item.equipped ? ' is-on' : ''}`}
+                      className={`sheet-chip${item.equipped ? ' is-on' : ''}${
+                        !item.equipped &&
+                        item.armor_kind !== 'none' &&
+                        !canWearArmor(item.armor_kind, armorProficiency)
+                          ? ' is-blocked'
+                          : ''
+                      }`}
+                      title={
+                        !item.equipped &&
+                        item.armor_kind !== 'none' &&
+                        !canWearArmor(item.armor_kind, armorProficiency)
+                          ? armorProficiencyHint(item.armor_kind)
+                          : undefined
+                      }
                       onClick={() => toggleEquip(item)}
                     >
-                      {item.equipped ? equipLabel(item).on : equipLabel(item).off}
+                      {item.equipped
+                        ? equipLabel(item).on
+                        : item.armor_kind !== 'none' &&
+                            !canWearArmor(item.armor_kind, armorProficiency)
+                          ? 'Нет владения'
+                          : equipLabel(item).off}
                     </button>
                   ) : null}
                   {canExpand(item) ? (
@@ -730,10 +777,25 @@ export function InventoryPanel({
         edition={edition}
         onClose={() => setPickerOpen(false)}
         onConfirm={(result: GearAddResult) => {
+          let toAdd = result
+          if (
+            result.equip &&
+            result.item.armor_kind !== 'none' &&
+            !canWearArmor(result.item.armor_kind, armorProficiency)
+          ) {
+            toAdd = {
+              ...result,
+              equip: false,
+              item: { ...result.item, equipped: false },
+            }
+            onToast?.(
+              `${armorProficiencyHint(result.item.armor_kind)} — добавлено снятым`,
+            )
+          }
           const next = applyGearAdd({
             items: inventory.items,
             weapons,
-            result,
+            result: toAdd,
           })
           onChange({ ...inventory, items: next.items })
           if (result.attacks.length > 0 && onWeaponsChange) {

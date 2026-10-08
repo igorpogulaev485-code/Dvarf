@@ -26,6 +26,7 @@ import {
 import type { ArmorKind } from '../../shared/dnd/armor'
 import { type WeaponAttack } from './AttacksPanel'
 import { resolveWeaponGrip } from './heldEquip'
+import { canWearArmor, isWeaponProficient } from './equipmentProficiency'
 import { classifySpellTooling, inferFocusKind } from './spellFocus'
 import {
   applyFocusSelectionToItemFields,
@@ -288,6 +289,18 @@ export function applyClassGrantToDraft(input: {
   const saves = [...pkg.saves]
   const skills = [...input.picks.skills]
   const tools = uniqueStrings([...pkg.toolsFixed, ...input.picks.tools])
+  const mergedArmorProf = {
+    ...cleared.identity.armor,
+    ...Object.fromEntries(armorKeys.map((key) => [key, true])),
+  } as typeof cleared.identity.armor
+  const mergedWeaponProf = {
+    simple: cleared.identity.weapons.simple || weaponKeys.includes('simple'),
+    martial: cleared.identity.weapons.martial || weaponKeys.includes('martial'),
+    extras: uniqueStrings([
+      ...(cleared.identity.weapons.extras ?? []),
+      ...weaponExtras,
+    ]),
+  }
 
   let hpMax = cleared.hpMax
   let hpCurrent = cleared.hpCurrent
@@ -351,13 +364,14 @@ export function applyClassGrantToDraft(input: {
         inventory.items.push(created)
         equipmentItemIds.push(created.id)
 
-        // Auto-wear body armor / shield so AC updates immediately.
+        // Auto-wear body armor / shield only when the class grants that proficiency.
         // Weapons stay stowed — draw into hands is a separate toggle.
         if (
-          created.armor_kind === 'light' ||
-          created.armor_kind === 'medium' ||
-          created.armor_kind === 'heavy' ||
-          created.armor_kind === 'shield'
+          (created.armor_kind === 'light' ||
+            created.armor_kind === 'medium' ||
+            created.armor_kind === 'heavy' ||
+            created.armor_kind === 'shield') &&
+          canWearArmor(created.armor_kind, mergedArmorProf)
         ) {
           inventory = {
             ...inventory,
@@ -374,7 +388,14 @@ export function applyClassGrantToDraft(input: {
           inventoryItemId: created.id,
           held: false,
         })
-        nextWeapons.push(...built.attacks)
+        const withProf = built.attacks.map((attack) => ({
+          ...attack,
+          is_proficient: isWeaponProficient({
+            name: attack.name,
+            weapons: mergedWeaponProf,
+          }),
+        }))
+        nextWeapons.push(...withProf)
         equipmentAttackIds.push(...built.attackIds)
       }
       if (pack.coinsGp && pack.coinsGp > 0) {

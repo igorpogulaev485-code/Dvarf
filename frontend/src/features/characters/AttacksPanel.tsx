@@ -10,6 +10,8 @@ import {
   formatModifier,
   type AbilityKey,
 } from './sheetTypes'
+import { isWeaponProficient } from './equipmentProficiency'
+import type { WeaponProficiency } from './identity'
 
 export type AttackSourceKind = 'weapon' | 'artifact' | 'custom' | 'race'
 
@@ -65,6 +67,8 @@ type AttacksPanelProps = {
   weapons: WeaponAttack[]
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  /** Sheet weapon categories + named extras — drives attack PB automatically. */
+  weaponProficiency: WeaponProficiency
   onChange: (weapons: WeaponAttack[]) => void
   /** Toggle in-hand for an attack linked to inventory (hand-slot rules). */
   onToggleHeld?: (attack: WeaponAttack) => void
@@ -126,6 +130,7 @@ export function AttacksPanel({
   weapons,
   abilities,
   proficiencyBonus,
+  weaponProficiency,
   onChange,
   onToggleHeld,
   gearBonusesByItem,
@@ -156,7 +161,8 @@ export function AttacksPanel({
         <Text tone="muted">
           Атака может быть обычным оружием или артефактом. «В руках» — сейчас держишь (двуручное
           занимает обе руки; иначе до двух одноручных / одноручное+щит). Убрать = убрать в ножны
-          (в бою это действие).
+          (в бою это действие). Владение (бонус мастерства) — от блока «Владения снаряжением», не
+          вручную на карточке.
         </Text>
 
         {weapons.length === 0 ? (
@@ -170,9 +176,13 @@ export function AttacksPanel({
               : undefined
           const magicAtk = gear?.attackBonus ?? 0
           const magicDmg = gear?.damageBonus ?? 0
+          const proficient = isWeaponProficient({
+            name: attack.name,
+            weapons: weaponProficiency,
+          })
           const attackBonus =
             abilityModifier(abilities[attack.ability]) +
-            (attack.is_proficient ? proficiencyBonus : 0) +
+            (proficient ? proficiencyBonus : 0) +
             magicAtk
           const damageDisplay =
             magicDmg && attack.damage
@@ -274,15 +284,12 @@ export function AttacksPanel({
                     {attack.held ? 'В руках' : 'Убран'}
                   </button>
                 ) : null}
-                <button
-                  type="button"
-                  className={`sheet-chip${attack.is_proficient ? ' is-on' : ''}`}
-                  onClick={() =>
-                    updateAttack(attack.id, { is_proficient: !attack.is_proficient })
-                  }
+                <span
+                  className={`sheet-chip${proficient ? ' is-on' : ''}`}
+                  title="Из владений снаряжением на листе"
                 >
-                  {attack.is_proficient ? 'Владение' : 'Без владения'}
-                </button>
+                  {proficient ? 'Владение' : 'Нет владения'}
+                </span>
                 <Button
                   variant="ghost"
                   onClick={() => onChange(weapons.filter((item) => item.id !== attack.id))}

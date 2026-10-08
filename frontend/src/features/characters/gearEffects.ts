@@ -24,6 +24,12 @@ export type AggregatedGearEffects = {
   abilityMods: Partial<Record<AbilityScoreKey, number>>
   /** Per inventory item: attack / damage bonuses (weapon +1 while held). */
   byItem: Record<string, { attackBonus: number; damageBonus: number }>
+  /** Skill key → flat bonus (cloak of elvenkind stealth, …). */
+  skillBonuses: Record<string, number>
+  /** Ability save bonuses; `all` applies to every save. */
+  saveBonuses: Partial<Record<AbilityScoreKey | 'all', number>>
+  /** Walk speed delta (ft), summed. */
+  speedBonusFt: number
   /** Human-readable lines for UI. */
   notes: string[]
   active: ActiveGearEffect[]
@@ -68,9 +74,16 @@ export function emptyAggregatedGearEffects(): AggregatedGearEffects {
     abilityScores: {},
     abilityMods: {},
     byItem: {},
+    skillBonuses: {},
+    saveBonuses: {},
+    speedBonusFt: 0,
     notes: [],
     active: [],
   }
+}
+
+function normalizeSkillKey(raw: string): string {
+  return raw.trim().toLowerCase().replace(/[\s-]+/g, '_')
 }
 
 /**
@@ -148,6 +161,44 @@ export function aggregateGearEffects(input: {
           `${item.name || 'предмет'}: ${ability.toUpperCase()} ${
             value >= 0 ? '+' : ''
           }${Math.floor(value)}`,
+        )
+        continue
+      }
+
+      if (type === 'skill_bonus') {
+        const skillRaw = String((effect as { skill?: unknown }).skill ?? '').trim()
+        const value = asNumber((effect as { value?: unknown }).value) ?? 0
+        if (!skillRaw || !value) continue
+        const skill = normalizeSkillKey(skillRaw)
+        out.skillBonuses[skill] = (out.skillBonuses[skill] ?? 0) + Math.floor(value)
+        out.notes.push(
+          `${item.name || 'предмет'}: ${skill} ${value >= 0 ? '+' : ''}${Math.floor(value)}`,
+        )
+        continue
+      }
+
+      if (type === 'save_bonus') {
+        const value = asNumber((effect as { value?: unknown }).value) ?? 0
+        if (!value) continue
+        const abilityRaw = (effect as { ability?: unknown }).ability
+        const key: AbilityScoreKey | 'all' = isAbilityKey(abilityRaw)
+          ? abilityRaw
+          : 'all'
+        out.saveBonuses[key] = (out.saveBonuses[key] ?? 0) + Math.floor(value)
+        out.notes.push(
+          `${item.name || 'предмет'}: спас ${key === 'all' ? 'все' : key.toUpperCase()} ${
+            value >= 0 ? '+' : ''
+          }${Math.floor(value)}`,
+        )
+        continue
+      }
+
+      if (type === 'speed') {
+        const value = asNumber((effect as { value_ft?: unknown }).value_ft) ?? 0
+        if (!value) continue
+        out.speedBonusFt += Math.floor(value)
+        out.notes.push(
+          `${item.name || 'предмет'}: скорость ${value >= 0 ? '+' : ''}${Math.floor(value)} фт`,
         )
       }
     }

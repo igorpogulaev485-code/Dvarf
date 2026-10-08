@@ -103,6 +103,7 @@ import {
   applyGearAbilityScores,
   gearDarkvisionFt,
 } from './gearEffects'
+import { canWearArmor } from './equipmentProficiency'
 import { AttunementPanel } from './AttunementPanel'
 import {
   attunementsToSheet,
@@ -2042,12 +2043,23 @@ export function MinimalSheetEditor({
         acOverride={draft.ac}
         autoAc={armorClass.ac}
         acHint={armorClass.summary}
-        speed={draft.speed}
-        movementHint={formatRaceMovementHint({
-          climb: draft.climbSpeed,
-          swim: draft.swimSpeed,
-          fly: draft.flySpeed,
-        })}
+        speed={
+          draft.speed == null && !gearEffects.speedBonusFt
+            ? null
+            : (draft.speed ?? 0) + gearEffects.speedBonusFt
+        }
+        movementHint={[
+          formatRaceMovementHint({
+            climb: draft.climbSpeed,
+            swim: draft.swimSpeed,
+            fly: draft.flySpeed,
+          }),
+          gearEffects.speedBonusFt
+            ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(' · ') || null}
         initiativeOverride={draft.initiativeOverride}
         initiativeBonus={featInitiativeBonus}
         inspiration={draft.inspiration}
@@ -2068,7 +2080,19 @@ export function MinimalSheetEditor({
             play: { ...prev.play, concentration: null },
           }))
         }
-        onChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
+        onChange={(patch) =>
+          setDraft((prev) => {
+            const next = { ...prev, ...patch }
+            // Sticky shows walk + gear; persist base without item bonus.
+            if (patch.speed !== undefined && gearEffects.speedBonusFt) {
+              next.speed =
+                patch.speed == null
+                  ? null
+                  : Math.max(0, patch.speed - gearEffects.speedBonusFt)
+            }
+            return next
+          })
+        }
       />
 
       <Panel title="Основное">
@@ -2573,7 +2597,45 @@ export function MinimalSheetEditor({
       <EquipmentProficienciesPanel
         armor={draft.identity.armor}
         weapons={draft.identity.weapons}
-        onChange={(patch) => patchIdentity(patch)}
+        onChange={(patch) => {
+          let dropped = 0
+          setDraft((prev) => {
+            const nextArmor = patch.armor ?? prev.identity.armor
+            const nextWeapons = patch.weapons ?? prev.identity.weapons
+            let items = prev.inventory.items
+            // Drop armor/shield that the character can no longer wear.
+            if (patch.armor) {
+              items = items.map((item) => {
+                if (
+                  item.equipped &&
+                  item.armor_kind !== 'none' &&
+                  !canWearArmor(item.armor_kind, nextArmor)
+                ) {
+                  dropped += 1
+                  return { ...item, equipped: false }
+                }
+                return item
+              })
+            }
+            return {
+              ...prev,
+              identity: {
+                ...prev.identity,
+                armor: nextArmor,
+                weapons: nextWeapons,
+              },
+              inventory: { ...prev.inventory, items },
+              weapons: syncAttacksHeldFromInventory(prev.weapons, items),
+            }
+          })
+          if (dropped > 0) {
+            onToast(
+              dropped === 1
+                ? 'Доспех снят — нет владения'
+                : `Снято без владения: ${dropped}`,
+            )
+          }
+        }}
       />
 
       <LanguagesToolsPanel
@@ -2639,6 +2701,7 @@ export function MinimalSheetEditor({
         weapons={draft.weapons}
         abilities={effectiveAbilities}
         proficiencyBonus={proficiencyBonus}
+        weaponProficiency={draft.identity.weapons}
         gearBonusesByItem={gearEffects.byItem}
         onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
         onToggleHeld={(attack) => {
@@ -2666,7 +2729,9 @@ export function MinimalSheetEditor({
         edition={baseCharacter.rules_edition as RulesEdition}
         inventory={draft.inventory}
         strengthScore={draft.abilities.str}
+        armorProficiency={draft.identity.armor}
         weapons={draft.weapons}
+        onToast={onToast}
         onChange={(inventory) =>
           setDraft((prev) => ({
             ...prev,
@@ -2749,31 +2814,39 @@ export function MinimalSheetEditor({
 
       <Panel title="Спасброски">
         <div className="chip-row">
-          {ABILITY_KEYS.map((key) => (
-            <button
-              key={key}
-              type="button"
-              className={`sheet-chip${draft.saves[key] ? ' is-on' : ''}`}
-              onClick={() =>
-                setDraft((prev) => ({
-                  ...prev,
-                  saves: { ...prev.saves, [key]: !prev.saves[key] },
-                }))
-              }
-            >
-              {ABILITY_LABELS[key]}{' '}
-              {formatModifier(
-                abilityModifier(draft.abilities[key]) +
-                  (draft.saves[key] ? proficiencyBonus : 0) +
-                  auraSaveBonus,
-              )}
-            </button>
-          ))}
+          {ABILITY_KEYS.map((key) => {
+            const gearSave =
+              (gearEffects.saveBonuses.all ?? 0) + (gearEffects.saveBonuses[key] ?? 0)
+            return (
+              <button
+                key={key}
+                type="button"
+                className={`sheet-chip${draft.saves[key] ? ' is-on' : ''}`}
+                onClick={() =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    saves: { ...prev.saves, [key]: !prev.saves[key] },
+                  }))
+                }
+              >
+                {ABILITY_LABELS[key]}{' '}
+                {formatModifier(
+                  abilityModifier(effectiveAbilities[key]) +
+                    (draft.saves[key] ? proficiencyBonus : 0) +
+                    auraSaveBonus +
+                    gearSave,
+                )}
+              </button>
+            )
+          })}
         </div>
         <Text tone="muted">
           Нажми, чтобы включить/выключить владение
           {auraSaveBonus > 0
             ? ` · аура защиты +${auraSaveBonus} ко всем спасам`
+            : ''}
+          {(gearEffects.saveBonuses.all ?? 0) > 0
+            ? ` · предметы +${gearEffects.saveBonuses.all}`
             : ''}
         </Text>
       </Panel>
@@ -2782,13 +2855,15 @@ export function MinimalSheetEditor({
         <div className="skill-list">
           {SKILL_DEFS.map((skill) => {
             const state = draft.skills[skill.key]
+            const gearSkill = gearEffects.skillBonuses[skill.key] ?? 0
             const mod =
-              abilityModifier(draft.abilities[skill.base]) +
+              abilityModifier(effectiveAbilities[skill.base]) +
               (state.is_expertise
                 ? proficiencyBonus * 2
                 : state.is_proficient
                   ? proficiencyBonus
-                  : 0)
+                  : 0) +
+              gearSkill
             return (
               <button
                 key={skill.key}
@@ -2807,6 +2882,7 @@ export function MinimalSheetEditor({
                 <span>{skill.label}</span>
                 <span className="skill-row__meta">
                   {ABILITY_LABELS[skill.base]} · {skillMark(state)} · {formatModifier(mod)}
+                  {gearSkill ? ` · предм. ${formatModifier(gearSkill)}` : ''}
                 </span>
               </button>
             )
