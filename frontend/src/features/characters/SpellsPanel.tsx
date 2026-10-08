@@ -31,7 +31,9 @@ import {
 } from '../../shared/dnd/spellCatalog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import type { CompanionEntry } from './companions'
 import type { ConcentrationState } from './play'
+import { applySpellCastToCompanions } from './spellCompanions'
 import {
   canRemoveSheetSpell,
   canSpendGrantCast,
@@ -61,6 +63,11 @@ type SpellsPanelProps = {
   /** EK / Arcane Trickster etc. — unlocks ⅓ caster slot math. */
   subclassCasters?: SubclassCasterOverlay[]
   spells: SpellsState
+  companions?: CompanionEntry[]
+  /** Prefer functional update so cast+concentration dismiss don't clobber each other. */
+  onCompanionsChange?: (
+    update: CompanionEntry[] | ((prev: CompanionEntry[]) => CompanionEntry[]),
+  ) => void
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   onChange: (spells: SpellsState) => void
@@ -75,6 +82,8 @@ export function SpellsPanel({
   classes,
   subclassCasters,
   spells,
+  companions = [],
+  onCompanionsChange,
   abilities,
   proficiencyBonus,
   onChange,
@@ -275,6 +284,32 @@ export function SpellsPanel({
     )
   }
 
+  function applyNaparnikFromCast(spell: SheetSpell, slotLevel: number): string {
+    if (!onCompanionsChange) return ''
+    const castCtx = {
+      spell,
+      slotLevel,
+      characterLevel: level,
+      spellMod: abilityMod,
+    }
+    // Compute toast from current props; apply against latest draft via updater.
+    const preview = applySpellCastToCompanions({
+      companions,
+      ...castCtx,
+    })
+    if (!preview) return ''
+    onCompanionsChange((prev) => {
+      const result = applySpellCastToCompanions({
+        companions: prev,
+        ...castCtx,
+      })
+      return result?.companions ?? prev
+    })
+    return preview.refreshed
+      ? ` · напарник «${preview.name}» снова в строю`
+      : ` · напарник «${preview.name}»`
+  }
+
   function confirmCast(choice: CastChoice) {
     if (!castSpell) return
     const name = castSpell.name || 'Заклинание'
@@ -291,13 +326,15 @@ export function SpellsPanel({
       slotLevel: slotForEffect || castSpell.level,
     })
     const effectNote = scaled && effect ? ` · ${effect}` : ''
+    const naparnikSlot = slotForEffect || castSpell.level
 
     if (castSpell.level <= 0) {
       applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
         castSpell.concentration
-          ? `Каст: ${name}${effectNote} (концентрация)`
-          : `Каст: ${name}${effectNote}`,
+          ? `Каст: ${name}${effectNote} (концентрация)${naparnikNote}`
+          : `Каст: ${name}${effectNote}${naparnikNote}`,
       )
       setCastSpell(null)
       return
@@ -309,20 +346,22 @@ export function SpellsPanel({
         known: spendGrantCast(spells.known, castSpell.id),
       })
       applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
         `Каст: ${name} (−1 ${label})${effectNote}${
           castSpell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}`,
       )
       setCastSpell(null)
       return
     }
     if (ritualCast) {
       applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
         `Ритуал: ${name} (без ячейки)${effectNote}${
           castSpell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}`,
       )
       setCastSpell(null)
       return
@@ -335,10 +374,11 @@ export function SpellsPanel({
       }
       patch({ pact_slots: pactResult.pact })
       applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = applyNaparnikFromCast(castSpell, pactResult.pact.level)
       onToast?.(
         `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${effectNote}${
           castSpell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}`,
       )
       setCastSpell(null)
       return
@@ -350,12 +390,13 @@ export function SpellsPanel({
     }
     patch({ slots: result.slots })
     applyConcentrationIfNeeded(castSpell)
+    const naparnikNote = applyNaparnikFromCast(castSpell, choice.slotLevel)
     const upcast =
       choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast?.(
       `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${
         castSpell.concentration ? ' · концентрация' : ''
-      }`,
+      }${naparnikNote}`,
     )
     setCastSpell(null)
   }

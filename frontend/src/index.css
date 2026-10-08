@@ -829,6 +829,77 @@ input {
   padding-bottom: 0;
 }
 
+.companion-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.companion-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.companion-card__identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.companion-avatar {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--line) 65%, transparent);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+}
+
+.companion-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.companion-avatar__placeholder {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.companion-avatar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.companion-resources {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.companion-card--inactive {
+  opacity: 0.78;
+}
+
+.companion-card--dead {
+  opacity: 0.62;
+}
+
+.companion-death {
+  margin-top: 4px;
+}
+
 .feature-group {
   display: flex;
   flex-direction: column;

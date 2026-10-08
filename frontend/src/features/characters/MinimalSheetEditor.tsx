@@ -77,7 +77,12 @@ import {
 } from './subclassEffects'
 import { SubclassSetupDialog } from './SubclassSetupDialog'
 import { SubclassChangeConfirmDialog } from './SubclassChangeConfirmDialog'
-import { readCompanions, type CompanionEntry } from './companions'
+import {
+  readCompanions,
+  resetCompanionResourcesOnRest,
+  type CompanionEntry,
+} from './companions'
+import { applyConcentrationChangeToCompanions } from './spellCompanions'
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
@@ -990,6 +995,7 @@ export function MinimalSheetEditor({
   }) {
     let summary: string | null = null
     setDraft((prev) => {
+      const hostClass = prev.classes.find((row) => row.id === input.classEntryId)
       const applied = applySubclassGrantToDraft({
         draft: subclassSliceFrom(prev),
         classEntryId: input.classEntryId,
@@ -998,6 +1004,9 @@ export function MinimalSheetEditor({
         picks: input.picks,
         copyOldTextToNotes: input.copyOldTextToNotes,
         previousDef: input.previousDef ?? null,
+        hostClassLevel: hostClass?.level ?? 3,
+        characterLevel: totalCharacterLevel(prev.classes),
+        hostIntMod: abilityModifier(prev.abilities.int),
       })
       if (!applied) return prev
       summary = applied.summary
@@ -1983,12 +1992,27 @@ export function MinimalSheetEditor({
             .map((item) => formatConditionLabel(item)),
         ]}
         concentration={draft.play.concentration}
-        onClearConcentration={() =>
-          setDraft((prev) => ({
-            ...prev,
-            play: { ...prev.play, concentration: null },
-          }))
-        }
+        onClearConcentration={() => {
+          let dismissed: string[] = []
+          setDraft((prev) => {
+            const result = applyConcentrationChangeToCompanions({
+              companions: prev.companions,
+              previous: prev.play.concentration,
+              next: null,
+            })
+            dismissed = result.dismissedNames
+            return {
+              ...prev,
+              companions: result.companions,
+              play: { ...prev.play, concentration: null },
+            }
+          })
+          if (dismissed.length) {
+            onToast?.(
+              `Концентрация снята · напарник неактивен: ${dismissed.join(', ')}`,
+            )
+          }
+        }}
         onChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
       />
 
@@ -2530,9 +2554,28 @@ export function MinimalSheetEditor({
         play={draft.play}
         spells={draft.spells}
         featureDesiredResources={featureDesiredResources}
-        onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
+        onPlayChange={(play) =>
+          setDraft((prev) => {
+            const result = applyConcentrationChangeToCompanions({
+              companions: prev.companions,
+              previous: prev.play.concentration,
+              next: play.concentration,
+            })
+            return {
+              ...prev,
+              play,
+              companions: result.companions,
+            }
+          })
+        }
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onCombatChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
+        onCompanionRest={(kind) =>
+          setDraft((prev) => ({
+            ...prev,
+            companions: resetCompanionResourcesOnRest(prev.companions, kind),
+          }))
+        }
         onToast={onToast}
       />
 
@@ -2594,20 +2637,37 @@ export function MinimalSheetEditor({
             ability: row.caster?.ability ?? null,
           }))}
         spells={draft.spells}
+        companions={draft.companions}
+        onCompanionsChange={(update) =>
+          setDraft((prev) => ({
+            ...prev,
+            companions:
+              typeof update === 'function' ? update(prev.companions) : update,
+          }))
+        }
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
         onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onConcentrationChange={(concentration) =>
-          setDraft((prev) => ({
-            ...prev,
-            play: { ...prev.play, concentration },
-          }))
+          setDraft((prev) => {
+            const result = applyConcentrationChangeToCompanions({
+              companions: prev.companions,
+              previous: prev.play.concentration,
+              next: concentration,
+            })
+            return {
+              ...prev,
+              companions: result.companions,
+              play: { ...prev.play, concentration },
+            }
+          })
         }
         onToast={onToast}
       />
 
       <CompanionsPanel
         companions={draft.companions}
+        edition={rulesEdition}
         onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
       />
 

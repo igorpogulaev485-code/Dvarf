@@ -71,6 +71,8 @@ type PlayPanelProps = {
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
+  /** Reset naparnik resource pools on short/long rest. */
+  onCompanionRest?: (kind: 'short' | 'long') => void
   onToast: (message: string) => void
 }
 
@@ -119,6 +121,7 @@ export function PlayPanel({
   onPlayChange,
   onSpellsChange,
   onCombatChange,
+  onCompanionRest,
   onToast,
 }: PlayPanelProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
@@ -305,6 +308,7 @@ export function PlayPanel({
         known,
       })
     }
+    onCompanionRest?.('short')
     onToast(
       spells.pact_slots
         ? 'Короткий отдых: ресурсы «короткий» + pact-ячейки восстановлены'
@@ -402,6 +406,7 @@ export function PlayPanel({
     if (result.hp_current !== undefined) {
       onCombatChange({ hpCurrent: result.hp_current })
     }
+    onCompanionRest?.('long')
     onToast(
       'Продолжительный отдых: HP, кости, ячейки, ресурсы, −1 истощение, спасброски сброшены',
     )
