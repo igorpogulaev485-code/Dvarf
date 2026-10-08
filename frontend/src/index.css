@@ -803,6 +803,13 @@ input {
   color: var(--accent);
 }
 
+.sheet-chip.is-blocked,
+.sheet-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
 .sheet-check {
   display: flex;
   align-items: flex-start;

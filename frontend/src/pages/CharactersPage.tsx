@@ -77,8 +77,8 @@ export function CharactersPage() {
           : ''
       navigate(`/characters/${created.id}`, {
         state: {
-          toast: `Персонаж создан${levelNote} — сначала выбери класс, потом расу`,
-          createGuide: 'class-first',
+          toast: `Персонаж создан${levelNote} — сначала предыстория, потом класс, потом раса`,
+          createGuide: 'background-first',
           startingLevel: request.startingLevel,
         },
       })

@@ -58,17 +58,33 @@ export type GuidedWizardStep =
       kind: 'background'
       promptRu: string
     }
+  | {
+      id: string
+      kind: 'feat'
+      promptRu: string
+      noteRu: string | null
+    }
 
 export function backgroundWizardStep(): GuidedWizardStep {
   return {
     id: 'background',
     kind: 'background',
     promptRu:
-      'Выбери предысторию — навыки, языки, инструменты и снаряжение лягут на лист. Потом мастер предложит компетентность уже с учётом этих владений.',
+      'Сначала предыстория (прошлое): навыки и владения лягут на лист. Потом класс — возьмёшь другие навыки, без дублей.',
   }
 }
 
-/** Prepend background step for create flow when grant is still empty. */
+export function featWizardStep(input: { noteRu: string | null }): GuidedWizardStep {
+  return {
+    id: 'feat',
+    kind: 'feat',
+    promptRu:
+      'Эта раса даёт черту с 1 уровня. Каталог черт ещё собирается — пока зафиксируй выбор вручную или вернись сюда позже.',
+    noteRu: input.noteRu,
+  }
+}
+
+/** Put background before class_grant / choices when create still has no background. */
 export function withBackgroundStepIfNeeded(
   steps: GuidedWizardStep[],
   input: { include: boolean },

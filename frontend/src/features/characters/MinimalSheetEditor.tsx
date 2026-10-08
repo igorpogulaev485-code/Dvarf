@@ -121,8 +121,10 @@ import {
   syncSkillsExpertiseFromPicks,
 } from '../../shared/dnd/expertise'
 import {
+  backgroundWizardStep,
   buildPendingWizardSteps,
   clearFeaturePicksAboveClassLevel,
+  featWizardStep,
   listUnlockedExpertiseKeys,
   withBackgroundStepIfNeeded,
   type GuidedWizardStep,
@@ -207,8 +209,8 @@ import { passiveScore, skillModifierFromState } from '../../shared/dnd/passives'
 
 type MinimalSheetEditorProps = {
   character: CharacterDetail
-  /** Fresh create: highlight class-before-race path once. */
-  createGuide?: 'class-first' | null
+  /** Fresh create: highlight background → class → race path once. */
+  createGuide?: 'background-first' | 'class-first' | null
   /** Create at level N — after class grant, jump and queue picks 1…N. */
   startingLevel?: number
   onCreateGuideConsumed?: () => void
@@ -524,13 +526,19 @@ export function MinimalSheetEditor({
   }, [character])
 
   useEffect(() => {
-    if (createGuide !== 'class-first') return
-    const node = document.getElementById('sheet-class-primary')
+    if (createGuide !== 'background-first' && createGuide !== 'class-first') return
+    const targetId =
+      createGuide === 'background-first' ? 'sheet-background' : 'sheet-class-primary'
+    const node = document.getElementById(targetId)
     if (node instanceof HTMLElement) {
       node.scrollIntoView({ behavior: 'smooth', block: 'center' })
       window.setTimeout(() => node.focus(), 120)
     }
+    if (createGuide === 'background-first' && !draft.backgroundGrant) {
+      openGuidedWizard({ steps: [backgroundWizardStep()], index: 0 })
+    }
     onCreateGuideConsumed?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot create guide
   }, [createGuide, onCreateGuideConsumed])
 
   // Prefetch backgrounds so variant fork popup does not wait on a second fetch.
@@ -1286,26 +1294,31 @@ export function MinimalSheetEditor({
       abilities: draft.abilities,
       subclassSlugByEntryId,
     })
+    // Feature/ASI picks only — background is prepended before class_grant when needed.
     const choiceSteps = buildChoiceStepsForClass({
       classEntryId: input.classEntryId,
       classLevel,
       unlocked: unlockedForGrant,
-      includeBackground: input.mode === 'start',
-      hasBackgroundGrant: Boolean(draft.backgroundGrant),
     })
     if (grantNeedsSetupDialog(def, input.mode)) {
-      // Only class_grant first — after confirm we jump to startingLevel and rebuild the queue.
+      // Background first (if missing), then class_grant; after confirm rebuild choices.
+      const classGrantStep: GuidedWizardStep = {
+        id: `class_grant:${input.classEntryId}`,
+        kind: 'class_grant',
+        classEntryId: input.classEntryId,
+        className: input.className,
+        mode: input.mode,
+      }
       openGuidedWizard({
-        steps: [
+        steps: withBackgroundStepIfNeeded(
+          [
+            classGrantStep,
+            ...(input.mode === 'start' && pendingStartingLevel > 1 ? [] : choiceSteps),
+          ],
           {
-            id: `class_grant:${input.classEntryId}`,
-            kind: 'class_grant',
-            classEntryId: input.classEntryId,
-            className: input.className,
-            mode: input.mode,
+            include: input.mode === 'start' && !draft.backgroundGrant,
           },
-          ...(input.mode === 'start' && pendingStartingLevel > 1 ? [] : choiceSteps),
-        ],
+        ),
         index: 0,
         grant: {
           def,
@@ -1342,20 +1355,18 @@ export function MinimalSheetEditor({
         for (const row of jumped.classes) {
           hasSubclass[row.id] = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
         }
-        remaining = withBackgroundStepIfNeeded(
-          buildPendingWizardSteps({
-            unlocked,
-            featurePicks: jumped.featurePicks,
-            classAsi: jumped.classAsi,
-            filter: {
-              mode: 'up_to_class_level',
-              classEntryId: input.classEntryId,
-              maxClassLevel: pendingStartingLevel,
-            },
-            hasSubclassByEntryId: hasSubclass,
-          }),
-          { include: !jumped.backgroundGrant },
-        )
+        // Background already done (or was earlier in queue) — only feature/ASI picks.
+        remaining = buildPendingWizardSteps({
+          unlocked,
+          featurePicks: jumped.featurePicks,
+          classAsi: jumped.classAsi,
+          filter: {
+            mode: 'up_to_class_level',
+            classEntryId: input.classEntryId,
+            maxClassLevel: pendingStartingLevel,
+          },
+          hasSubclassByEntryId: hasSubclass,
+        })
         return jumped
       })
       setPendingStartingLevel(1)
@@ -1365,12 +1376,14 @@ export function MinimalSheetEditor({
       return
     }
     if (choiceSteps.length > 0) {
-      openGuidedWizard({ steps: choiceSteps, index: 0 })
-    } else if (input.mode === 'start' && !draft.backgroundGrant) {
       openGuidedWizard({
-        steps: withBackgroundStepIfNeeded([], { include: true }),
+        steps: withBackgroundStepIfNeeded(choiceSteps, {
+          include: input.mode === 'start' && !draft.backgroundGrant,
+        }),
         index: 0,
       })
+    } else if (input.mode === 'start' && !draft.backgroundGrant) {
+      openGuidedWizard({ steps: [backgroundWizardStep()], index: 0 })
     }
   }
 
@@ -1445,9 +1458,14 @@ export function MinimalSheetEditor({
       return merged
     })
     if (summary) onToast(`Раса «${input.selected.name_ru}»: ${summary}`)
-    // Довыбор: Expertise была «Позже» — предложить снова, опции уже с расовыми навыками.
-    if (incompleteExpertise.length > 0 && !guidedWizard) {
-      openGuidedWizard({ steps: incompleteExpertise, index: 0 })
+    const featNote = input.def?.featNoteRu ?? null
+    const followUp: GuidedWizardStep[] = [...incompleteExpertise]
+    if (featNote) {
+      followUp.push(featWizardStep({ noteRu: featNote }))
+    }
+    // Довыбор Expertise + черта с 1 ур. (человек и др.), если ещё в мастере.
+    if (followUp.length > 0 && !guidedWizard) {
+      openGuidedWizard({ steps: followUp, index: 0 })
     }
   }
 
@@ -1525,6 +1543,7 @@ export function MinimalSheetEditor({
       const bgIndex = paused.steps.findIndex((step) => step.kind === 'background')
       const nextIndex = bgIndex >= 0 ? bgIndex + 1 : paused.index + 1
       if (nextIndex >= paused.steps.length) {
+        onToast('Теперь выбери класс — навыки предыстории уже на листе, дубли не предложим')
         setGuidedWizard(null)
         return null
       }
@@ -1802,10 +1821,22 @@ export function MinimalSheetEditor({
     )
   }
 
+  function finishWizardQueue(prev: GuidedWizardSession) {
+    const last = prev.steps[prev.index]
+    if (last?.kind === 'background') {
+      onToast('Теперь выбери класс — навыки предыстории уже на листе, дубли не предложим')
+    } else if (last?.kind === 'feature_choice' || last?.kind === 'asi' || last?.kind === 'class_grant') {
+      if (!draft.raceName.trim()) {
+        onToast('Класс готов. Дальше — раса (если даст черту, мастер подскажет)')
+      }
+    }
+    return null
+  }
+
   function advanceGuidedWizard(nextIndex: number) {
     setGuidedWizard((prev) => {
       if (!prev) return null
-      if (nextIndex >= prev.steps.length) return null
+      if (nextIndex >= prev.steps.length) return finishWizardQueue(prev)
       return { ...prev, index: nextIndex }
     })
   }
@@ -1814,7 +1845,7 @@ export function MinimalSheetEditor({
     setGuidedWizard((prev) => {
       if (!prev) return null
       const nextIndex = prev.index + 1
-      if (nextIndex >= prev.steps.length) return null
+      if (nextIndex >= prev.steps.length) return finishWizardQueue(prev)
       return { ...prev, index: nextIndex }
     })
   }
@@ -2148,7 +2179,7 @@ export function MinimalSheetEditor({
             </Text>
           ) : null}
           <div>
-            <Text tone="muted">Классы</Text>
+            <Text tone="muted">Классы · шаг 2 (после предыстории)</Text>
             {pendingStartingLevel > 1 ? (
               <Text tone="muted">
                 Старт с {pendingStartingLevel} ур.: выбери класс — мастер поднимет уровень и проведёт
@@ -2419,8 +2450,8 @@ export function MinimalSheetEditor({
               htmlFor="sheet-race"
               hint={
                 primaryClass?.name.trim()
-                  ? 'Шаг 2 · в списке — раса; подрасу и развилки выбираешь в попапе'
-                  : 'Сначала выбери класс выше — потом откроется выбор расы'
+                  ? 'Шаг 3 · подраса и развилки — в попапе; если раса даёт черту — мастер подскажет'
+                  : 'Шаг 3 · сначала предыстория и класс, потом раса'
               }
             >
               <CatalogCombobox
@@ -2479,7 +2510,7 @@ export function MinimalSheetEditor({
             <Field
               label="Предыстория"
               htmlFor="sheet-background"
-              hint="В списке — корень; вариант, таблицы и гранты — в попапе"
+              hint="Шаг 1 · прошлое: навыки с фона учтутся при выборе класса (без дублей)"
             >
               <CatalogCombobox
                 id="sheet-background"
@@ -2846,6 +2877,17 @@ export function MinimalSheetEditor({
           const grantMeta = guidedWizard.grant
           const jumpTo =
             step.mode === 'start' && pendingStartingLevel > 1 ? pendingStartingLevel : 1
+          const blockedSkill = new Set(draft.backgroundGrant?.skills ?? [])
+          const blockedTool = new Set(
+            (draft.backgroundGrant?.tools ?? []).map((name) => name.trim().toLowerCase()),
+          )
+          const cleanPicks = {
+            ...picks,
+            skills: picks.skills.filter((key) => !blockedSkill.has(key)),
+            tools: picks.tools.filter(
+              (name) => !blockedTool.has(name.trim().toLowerCase()),
+            ),
+          }
           let remaining: GuidedWizardStep[] = []
           let summary: string | null = null
           setDraft((prev) => {
@@ -2854,7 +2896,7 @@ export function MinimalSheetEditor({
               classEntryId: step.classEntryId,
               className: step.className,
               mode: step.mode,
-              picks,
+              picks: cleanPicks,
               def: grantMeta.def,
               catalogSlug: grantMeta.catalogSlug,
               catalogData: grantMeta.catalogData,
@@ -2883,29 +2925,24 @@ export function MinimalSheetEditor({
             }
             const classLevel =
               next.classes.find((row) => row.id === step.classEntryId)?.level ?? 1
-            remaining = withBackgroundStepIfNeeded(
-              buildPendingWizardSteps({
-                unlocked,
-                featurePicks: next.featurePicks,
-                classAsi: next.classAsi,
-                filter:
-                  jumpTo > 1
-                    ? {
-                        mode: 'up_to_class_level',
-                        classEntryId: step.classEntryId,
-                        maxClassLevel: jumpTo,
-                      }
-                    : {
-                        mode: 'at_class_level',
-                        classEntryId: step.classEntryId,
-                        classLevel,
-                      },
-                hasSubclassByEntryId: hasSubclass,
-              }),
-              {
-                include: step.mode === 'start' && !next.backgroundGrant,
-              },
-            )
+            remaining = buildPendingWizardSteps({
+              unlocked,
+              featurePicks: next.featurePicks,
+              classAsi: next.classAsi,
+              filter:
+                jumpTo > 1
+                  ? {
+                      mode: 'up_to_class_level',
+                      classEntryId: step.classEntryId,
+                      maxClassLevel: jumpTo,
+                    }
+                  : {
+                      mode: 'at_class_level',
+                      classEntryId: step.classEntryId,
+                      classLevel,
+                    },
+              hasSubclassByEntryId: hasSubclass,
+            })
             return next
           })
           if (summary) {
@@ -2914,7 +2951,7 @@ export function MinimalSheetEditor({
             )
           }
           if (jumpTo > 1) {
-            onToast(`Уровень класса → ${jumpTo}. Дальше — предыстория, умения и ASI.`)
+            onToast(`Уровень класса → ${jumpTo}. Дальше — умения и ASI.`)
             setPendingStartingLevel(1)
             onCreateGuideConsumed?.()
           }
@@ -2922,6 +2959,8 @@ export function MinimalSheetEditor({
         }}
         edition={rulesEdition}
         backgroundName={draft.identity.background}
+        blockedSkillKeys={draft.backgroundGrant?.skills ?? []}
+        blockedToolNames={draft.backgroundGrant?.tools ?? []}
         onSelectBackground={(entry) => {
           if (guidedWizard) {
             setPausedWizardForBackground(guidedWizard)
@@ -2943,6 +2982,8 @@ export function MinimalSheetEditor({
         open={grantPicker != null}
         def={grantPicker?.def ?? null}
         mode={grantPicker?.mode ?? 'start'}
+        blockedSkillKeys={draft.backgroundGrant?.skills ?? []}
+        blockedToolNames={draft.backgroundGrant?.tools ?? []}
         onClose={() => setGrantPicker(null)}
         onConfirm={(picks) => {
           if (!grantPicker) return

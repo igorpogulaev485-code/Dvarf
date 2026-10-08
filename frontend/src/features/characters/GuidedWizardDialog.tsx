@@ -65,6 +65,9 @@ type GuidedWizardDialogProps = {
   expertiseKeys: Array<{ classEntryId: string; featureId: string }>
   /** Current background name on the sheet (after grant). */
   backgroundName?: string
+  /** Skills/tools already granted by background — blocked on class step. */
+  blockedSkillKeys?: string[]
+  blockedToolNames?: string[]
   onFeaturePicksChange: (picks: FeaturePicksState) => void
   onConfirmClassGrant: (picks: ClassGrantPicks) => void
   onConfirmAsi: (entry: AppliedClassAsi) => void
@@ -99,11 +102,16 @@ function ClassGrantStepBody({
   mode,
   picks,
   onChange,
+  blockedSkillKeys = [],
+  blockedToolNames = [],
 }: {
   def: ClassGrantDef
   mode: 'start' | 'multiclass'
   picks: ClassGrantPicks
   onChange: (picks: ClassGrantPicks) => void
+  /** Already from background — cannot pick again on class. */
+  blockedSkillKeys?: string[]
+  blockedToolNames?: string[]
 }) {
   const pkg = packageForMode(def, mode)
   const skillNeed = pkg.skillChoices?.count ?? 0
@@ -111,8 +119,13 @@ function ClassGrantStepBody({
   const skillOptions = skillOptionsForPackage(pkg)
   const toolOptions = pkg.toolChoices?.from ?? []
   const equipmentPackages = mode === 'start' ? equipmentPackagesFor(def) : []
+  const blockedSkills = new Set(blockedSkillKeys)
+  const blockedTools = new Set(
+    blockedToolNames.map((name) => name.trim().toLowerCase()),
+  )
 
   function toggleSkill(key: string) {
+    if (blockedSkills.has(key)) return
     const skills = picks.skills.includes(key)
       ? picks.skills.filter((item) => item !== key)
       : picks.skills.length >= skillNeed
@@ -122,6 +135,7 @@ function ClassGrantStepBody({
   }
 
   function toggleTool(name: string) {
+    if (blockedTools.has(name.trim().toLowerCase())) return
     const tools = picks.tools.includes(name)
       ? picks.tools.filter((item) => item !== name)
       : picks.tools.length >= toolNeed
@@ -134,22 +148,26 @@ function ClassGrantStepBody({
     <Stack gap={14}>
       <Text tone="muted">
         {mode === 'start'
-          ? 'Выбери навыки, инструменты и стартовое снаряжение. Дальше мастер предложит умения с выбором.'
+          ? 'Выбери навыки, инструменты и стартовое снаряжение. Серые — уже с предыстории, не дублируй.'
           : 'Мультикласс: только владения из таблицы PHB.'}
       </Text>
       {skillNeed > 0 ? (
         <Field label={`Навыки (${picks.skills.length}/${skillNeed})`}>
           <div className="chip-row">
             {skillOptions.map((key) => {
-              const on = picks.skills.includes(key)
+              const blocked = blockedSkills.has(key)
+              const on = !blocked && picks.skills.includes(key)
               return (
                 <button
                   key={key}
                   type="button"
-                  className={`sheet-chip${on ? ' is-on' : ''}`}
+                  disabled={blocked}
+                  title={blocked ? 'Уже есть с предыстории' : undefined}
+                  className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                   onClick={() => toggleSkill(key)}
                 >
                   {skillLabel(key)}
+                  {blocked ? ' · уже есть' : ''}
                 </button>
               )
             })}
@@ -160,15 +178,19 @@ function ClassGrantStepBody({
         <Field label={`Инструменты (${picks.tools.length}/${toolNeed})`}>
           <div className="chip-row">
             {toolOptions.map((name) => {
-              const on = picks.tools.includes(name)
+              const blocked = blockedTools.has(name.trim().toLowerCase())
+              const on = !blocked && picks.tools.includes(name)
               return (
                 <button
                   key={name}
                   type="button"
-                  className={`sheet-chip${on ? ' is-on' : ''}`}
+                  disabled={blocked}
+                  title={blocked ? 'Уже есть с предыстории' : undefined}
+                  className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                   onClick={() => toggleTool(name)}
                 >
                   {name}
+                  {blocked ? ' · уже есть' : ''}
                 </button>
               )
             })}
@@ -389,6 +411,8 @@ export function GuidedWizardDialog({
   featurePicks,
   expertiseKeys,
   backgroundName = '',
+  blockedSkillKeys = [],
+  blockedToolNames = [],
   onFeaturePicksChange,
   onConfirmClassGrant,
   onConfirmAsi,
@@ -486,9 +510,11 @@ export function GuidedWizardDialog({
           ? `${step.featureNameRu} · ${step.className}`
           : step.kind === 'background'
             ? 'Предыстория'
-            : step.kind === 'feature_choice'
-              ? `${step.choice.label_ru} · ${step.className}`
-              : 'Настройка персонажа'
+            : step.kind === 'feat'
+              ? 'Черта'
+              : step.kind === 'feature_choice'
+                ? `${step.choice.label_ru} · ${step.className}`
+                : 'Настройка персонажа'
 
   const primaryLabel =
     step?.kind === 'subclass'
@@ -548,9 +574,15 @@ export function GuidedWizardDialog({
       if (!backgroundReady) return
       onToast?.(
         backgroundName.trim()
-          ? `Предыстория «${backgroundName.trim()}» записана`
-          : 'Предыстория выбрана',
+          ? `Предыстория «${backgroundName.trim()}» записана. Дальше — класс.`
+          : 'Предыстория выбрана. Дальше — класс.',
       )
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'feat') {
+      onToast?.('Черта: каталог скоро; можешь отметить в заметках')
       onAdvance(index + 1)
     }
   }
@@ -578,6 +610,8 @@ export function GuidedWizardDialog({
             mode={step.mode}
             picks={grantPicks}
             onChange={setGrantPicks}
+            blockedSkillKeys={blockedSkillKeys}
+            blockedToolNames={blockedToolNames}
           />
         ) : null}
         {step.kind === 'feature_choice' ? (
@@ -648,6 +682,15 @@ export function GuidedWizardDialog({
                 можно взять предысторию на листе.
               </Text>
             )}
+          </Stack>
+        ) : null}
+        {step.kind === 'feat' ? (
+          <Stack gap={10}>
+            <Text>{step.promptRu}</Text>
+            {step.noteRu ? <Text tone="muted">{step.noteRu}</Text> : null}
+            <Button type="button" variant="ghost" disabled title="Каталог черт ещё собирается">
+              Черта (скоро)
+            </Button>
           </Stack>
         ) : null}
       </Stack>

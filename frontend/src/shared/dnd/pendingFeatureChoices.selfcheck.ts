@@ -202,6 +202,17 @@ assert(
   'start@13 includes archetype gate',
 )
 
+const withBg = withBackgroundStepIfNeeded(
+  [{ id: 'class_grant:c1', kind: 'class_grant', classEntryId: 'c1', className: 'Плут', mode: 'start' }],
+  { include: true },
+)
+assert(withBg[0]?.kind === 'background', 'background before class_grant')
+assert(withBg[1]?.kind === 'class_grant', 'class_grant follows background')
+assert(
+  withBackgroundStepIfNeeded(withBg, { include: true })[0]?.kind === 'background',
+  'background step not duplicated',
+)
+
 picks = setFeaturePick(picks, 'c1', 'expertise_6', 'investigation,thieves_tools')
 const cleared = clearFeaturePicksAboveClassLevel({
   featurePicks: picks,

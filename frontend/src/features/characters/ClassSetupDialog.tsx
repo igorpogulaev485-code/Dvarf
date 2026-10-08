@@ -13,6 +13,9 @@ type ClassSetupDialogProps = {
   open: boolean
   def: ClassGrantDef | null
   mode: 'start' | 'multiclass'
+  /** Already from background — cannot pick again. */
+  blockedSkillKeys?: string[]
+  blockedToolNames?: string[]
   onConfirm: (picks: ClassGrantPicks) => void
   onClose: () => void
 }
@@ -25,6 +28,8 @@ export function ClassSetupDialog({
   open,
   def,
   mode,
+  blockedSkillKeys = [],
+  blockedToolNames = [],
   onConfirm,
   onClose,
 }: ClassSetupDialogProps) {
@@ -37,6 +42,11 @@ export function ClassSetupDialog({
   }, [def, mode])
   const toolOptions = def ? packageForMode(def, mode).toolChoices?.from ?? [] : []
   const equipmentPackages = def && mode === 'start' ? equipmentPackagesFor(def) : []
+  const blockedSkills = useMemo(() => new Set(blockedSkillKeys), [blockedSkillKeys])
+  const blockedTools = useMemo(
+    () => new Set(blockedToolNames.map((name) => name.trim().toLowerCase())),
+    [blockedToolNames],
+  )
 
   const [skills, setSkills] = useState<string[]>([])
   const [tools, setTools] = useState<string[]>([])
@@ -50,6 +60,7 @@ export function ClassSetupDialog({
   }, [open, def?.slug, mode])
 
   function toggleSkill(key: string) {
+    if (blockedSkills.has(key)) return
     setSkills((prev) => {
       if (prev.includes(key)) return prev.filter((item) => item !== key)
       if (prev.length >= skillNeed) return prev
@@ -58,6 +69,7 @@ export function ClassSetupDialog({
   }
 
   function toggleTool(name: string) {
+    if (blockedTools.has(name.trim().toLowerCase())) return
     setTools((prev) => {
       if (prev.includes(name)) return prev.filter((item) => item !== name)
       if (prev.length >= toolNeed) return prev
@@ -98,7 +110,7 @@ export function ClassSetupDialog({
       <Stack gap={14}>
         <Text tone="muted">
           {mode === 'start'
-            ? 'Выбери все развилки старта: навыки, инструменты и стартовое снаряжение (или золото). Классовые способности пока вручную.'
+            ? 'Выбери навыки, инструменты и снаряжение. Серые — уже с предыстории.'
             : 'Мультикласс: только владения из таблицы PHB (без стартового снаряжения).'}
         </Text>
 
@@ -106,15 +118,19 @@ export function ClassSetupDialog({
           <Field label={`Навыки (${skills.length}/${skillNeed})`}>
             <div className="chip-row">
               {skillOptions.map((key) => {
-                const on = skills.includes(key)
+                const blocked = blockedSkills.has(key)
+                const on = !blocked && skills.includes(key)
                 return (
                   <button
                     key={key}
                     type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
+                    disabled={blocked}
+                    title={blocked ? 'Уже есть с предыстории' : undefined}
+                    className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                     onClick={() => toggleSkill(key)}
                   >
                     {skillLabel(key)}
+                    {blocked ? ' · уже есть' : ''}
                   </button>
                 )
               })}
@@ -126,15 +142,19 @@ export function ClassSetupDialog({
           <Field label={`Инструменты (${tools.length}/${toolNeed})`}>
             <div className="chip-row">
               {toolOptions.map((name) => {
-                const on = tools.includes(name)
+                const blocked = blockedTools.has(name.trim().toLowerCase())
+                const on = !blocked && tools.includes(name)
                 return (
                   <button
                     key={name}
                     type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
+                    disabled={blocked}
+                    title={blocked ? 'Уже есть с предыстории' : undefined}
+                    className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                     onClick={() => toggleTool(name)}
                   >
                     {name}
+                    {blocked ? ' · уже есть' : ''}
                   </button>
                 )
               })}
