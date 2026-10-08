@@ -501,7 +501,7 @@
 | Контракт снаряжения | Единый v1 `data` для оружия / брони / предметов (цена, вес, слоты, rarity, contents, effects) + читалки с legacy fallback | База для нормального справочника и листа; старые записи SRD не ломаются |
 | КД / атаки | Броня и оружие из справочника идут через новые parsers | Подготовка к max Dex / range / packs; поведение листа как раньше |
 
-На проде: **нет** · ветка `cursor/gear-schema-2014-db96` · PR #82 · tip не менять до «залей» |
+На проде: **нет** · ветка `cursor/gear-schema-2014-db96` · PR #82 · tip не менять до «залей»
 
 ### 2026-10-07 — FEATS BMT wave (Книга многих вещей)
 
@@ -793,4 +793,5 @@
 | 2026-10-08 | `cursor/spell-cast-ui-polish-7737` · PR #79 | SPELLS slice 8: cast dialog ritual + meta/higher_levels → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS: cast-via-feat/race grant charges in picker → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
-| 2026-10-08 | `cursor/gear-schema-2014-db96` | GEAR slice 1: catalog data contract + readers (weapon/armor/item) → «В ветках» |
+| 2026-10-08 | `cursor/gear-schema-2014-db96` · PR #82 | GEAR slice 1: catalog data contract + readers (weapon/armor/item) → «В ветках» |
+| 2026-10-08 | `cursor/gear-backfill-2014-db96` | GEAR slice 2: backfill RU/cost/params + healing potion family; alembic `c5d6` → «В ветках» |
