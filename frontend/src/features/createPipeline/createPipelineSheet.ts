@@ -83,6 +83,9 @@ export function buildSheetFromPipeline(
     classRef: state.classRef,
     race: state.race,
     subrace: state.subrace,
+    backgroundSetup: state.backgroundSetup,
+    raceSetup: state.raceSetup,
+    classGrantPicks: state.classGrantPicks,
   }
 
   combat.hp_max = combat.hp_max ?? null
@@ -98,6 +101,11 @@ export function hydratePipelineFromSheet(
 ): CreatePipelineState {
   const meta = asRecord(sheet.create_pipeline)
   if (meta.version !== 1) return fallback
+  const classGrantPicks =
+    meta.classGrantPicks && typeof meta.classGrantPicks === 'object'
+      ? (meta.classGrantPicks as CreatePipelineState['classGrantPicks'])
+      : fallback.classGrantPicks
+
   return {
     ...fallback,
     step: (meta.step as CreatePipelineState['step']) || fallback.step,
@@ -114,14 +122,21 @@ export function hydratePipelineFromSheet(
       typeof meta.classEntryId === 'string' ? meta.classEntryId : fallback.classEntryId,
     background:
       (meta.background as CreatePipelineState['background']) || fallback.background,
+    backgroundSetup:
+      (meta.backgroundSetup as CreatePipelineState['backgroundSetup']) ||
+      fallback.backgroundSetup,
     classRef: (meta.classRef as CreatePipelineState['classRef']) || fallback.classRef,
+    classGrantPicks,
     race: (meta.race as CreatePipelineState['race']) || fallback.race,
     subrace: (meta.subrace as CreatePipelineState['subrace']) || fallback.subrace,
+    raceSetup:
+      (meta.raceSetup as CreatePipelineState['raceSetup']) || fallback.raceSetup,
     sheetDraft: {
       background_grant: sheet.background_grant,
       race_grant: sheet.race_grant,
       class_grants: sheet.class_grants,
       subclass_grants: sheet.subclass_grants,
+      class_grant_picks: classGrantPicks,
       feature_picks: sheet.feature_picks,
       class_asi: sheet.class_asi,
       skills: sheet.skills,

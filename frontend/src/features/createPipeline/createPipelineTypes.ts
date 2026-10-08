@@ -1,10 +1,14 @@
 /** State for the 2014 create-pipeline page. */
 
+import type { CatalogEntry } from '../../shared/api/catalog'
 import type { AbilityScores } from '../../shared/dnd/multiclassRules'
 import type { AbilityMethod } from '../../shared/dnd/pointBuy'
 import { emptyBaseScores } from '../../shared/dnd/pointBuy'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { createClassLevel } from '../../shared/dnd/classLevels'
+import type { BackgroundGrantPicks } from '../../shared/dnd/backgroundGrants'
+import type { RaceGrantPicks } from '../../shared/dnd/raceGrants'
+import type { ClassGrantPicks } from '../../shared/dnd/classGrants'
 
 export const CREATE_PIPELINE_STEPS = [
   'background',
@@ -30,6 +34,30 @@ export type PipelineCatalogRef = {
   nameRu: string
 }
 
+/** Serializable catalog snapshot so apply can re-run without a network round-trip. */
+export type PipelineCatalogSnapshot = {
+  id: string
+  slug: string
+  name_ru: string
+  name_en: string | null
+  parent_id: string | null
+  data: Record<string, unknown>
+  source?: string | null
+}
+
+export type BackgroundSetupStored = {
+  entry: PipelineCatalogSnapshot
+  picks: BackgroundGrantPicks
+}
+
+export type RaceSetupStored = {
+  /** Applied race or subrace entry. */
+  entry: PipelineCatalogSnapshot
+  /** Root race when `entry` is a subrace. */
+  rootEntry: PipelineCatalogSnapshot | null
+  picks: RaceGrantPicks
+}
+
 export type HpGainMode = 'average' | 'roll'
 
 export type HpLevelChoice = {
@@ -50,11 +78,16 @@ export type CreatePipelineState = {
   characterId: string | null
   sheetVersion: number | null
   background: PipelineCatalogRef | null
-  /** Applied background grant blob lives in sheetDraft. */
+  /** Full background confirm payload for re-apply on save. */
+  backgroundSetup: BackgroundSetupStored | null
   classRef: PipelineCatalogRef | null
   classEntryId: string
+  /** Class grant picks keyed by class entry id. */
+  classGrantPicks: Record<string, ClassGrantPicks>
   race: PipelineCatalogRef | null
   subrace: PipelineCatalogRef | null
+  /** Full race confirm payload for re-apply on save. */
+  raceSetup: RaceSetupStored | null
   abilityMethod: AbilityMethod
   /** Scores before racial bonuses. */
   baseAbilities: AbilityScores
@@ -66,6 +99,18 @@ export type CreatePipelineState = {
   stepDirty: Partial<Record<CreatePipelineStepId, boolean>>
 }
 
+export function catalogSnapshot(entry: CatalogEntry): PipelineCatalogSnapshot {
+  return {
+    id: entry.id,
+    slug: entry.slug,
+    name_ru: entry.name_ru,
+    name_en: entry.name_en,
+    parent_id: entry.parent_id,
+    data: entry.data ?? {},
+    source: entry.source,
+  }
+}
+
 export function createEmptyPipelineState(): CreatePipelineState {
   const classEntry = createClassLevel({ level: 1 })
   return {
@@ -75,10 +120,13 @@ export function createEmptyPipelineState(): CreatePipelineState {
     characterId: null,
     sheetVersion: null,
     background: null,
+    backgroundSetup: null,
     classRef: null,
     classEntryId: classEntry.id,
+    classGrantPicks: {},
     race: null,
     subrace: null,
+    raceSetup: null,
     abilityMethod: 'standard_array',
     baseAbilities: emptyBaseScores(8),
     classes: [classEntry],

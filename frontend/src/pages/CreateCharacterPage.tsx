@@ -14,10 +14,8 @@ import { PrepareSpellsDialog } from '../features/characters/PrepareSpellsDialog'
 import { AbilitiesStep } from '../features/createPipeline/AbilitiesStep'
 import { CatalogCardList } from '../features/createPipeline/CatalogCardList'
 import { CreatePipelineShell } from '../features/createPipeline/CreatePipelineShell'
-import {
-  buildSheetFromPipeline,
-  hydratePipelineFromSheet,
-} from '../features/createPipeline/createPipelineSheet'
+import { hydratePipelineFromSheet } from '../features/createPipeline/createPipelineSheet'
+import { applyPipelineToSheet } from '../features/createPipeline/pipelineApply'
 import {
   clearPipelineState,
   loadOrCreatePipelineState,
@@ -26,6 +24,7 @@ import {
 import { LevelingStep, ensureHpChoices } from '../features/createPipeline/LevelingStep'
 import {
   CREATE_PIPELINE_STEPS,
+  catalogSnapshot,
   createEmptyPipelineState,
   stepIndex,
   type CreatePipelineState,
@@ -48,10 +47,12 @@ import {
   isManualScoresValid,
   mergeRacialBonuses,
 } from '../shared/dnd/pointBuy'
+import type { ClassGrantPicks } from '../shared/dnd/classGrants'
 import {
   isRaceComboboxRoot,
   mergeAbilityBonuses,
   raceSubraceRequired,
+  resolveRaceGrantDef,
 } from '../shared/dnd/raceGrants'
 import { emptyFeaturePicks, type FeaturePicksState } from '../shared/dnd/featurePicks'
 import { readSpells, spellsToSheet, type SpellsState } from '../features/characters/spells'
@@ -107,11 +108,31 @@ export function CreateCharacterPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [spellWarnOpen, setSpellWarnOpen] = useState(false)
-  const [baseSheet, setBaseSheet] = useState<Record<string, unknown>>({})
 
   useEffect(() => {
     savePipelineState(state)
   }, [state])
+
+  // Restore racial ASI from stored race setup (F5 / draft reload).
+  useEffect(() => {
+    const setup = state.raceSetup
+    if (!setup) return
+    const def = resolveRaceGrantDef({
+      raceName: setup.entry.name_ru,
+      catalogSlug: setup.entry.slug,
+      catalogData: setup.entry.data,
+      nameRu: setup.entry.name_ru,
+    })
+    if (!def) return
+    setRacialBonuses(
+      mergeAbilityBonuses(
+        def.abilityBonuses,
+        def.abilityBonusChoices,
+        setup.picks.abilityBonusKeys,
+        setup.picks.abilityBonusModeId,
+      ),
+    )
+  }, [state.raceSetup])
 
   useEffect(() => {
     let active = true
@@ -155,7 +176,6 @@ export function CreateCharacterPage() {
           sheetVersion: character.sheet_version,
           characterName: character.name !== 'Новый персонаж' ? character.name : hydrated.characterName,
         })
-        setBaseSheet(character.sheet)
         setSpells(readSpells(character.sheet))
         setFeaturePicks(
           (character.sheet.feature_picks as FeaturePicksState) ?? emptyFeaturePicks(),
@@ -214,6 +234,7 @@ export function CreateCharacterPage() {
           step: next,
           race: null,
           subrace: null,
+          raceSetup: null,
           characterName: state.characterName,
           stepDirty: { ...state.stepDirty, race: false },
         })
@@ -225,6 +246,7 @@ export function CreateCharacterPage() {
         patchState({
           step: next,
           classRef: null,
+          classGrantPicks: {},
           stepDirty: { ...state.stepDirty, class: false },
         })
         setSelectedClass(null)
@@ -244,22 +266,22 @@ export function CreateCharacterPage() {
     setBusy(true)
     setError(null)
     try {
-      const sheet = buildSheetFromPipeline(
-        {
+      const applied = await applyPipelineToSheet({
+        state: {
           ...state,
           sheetDraft: {
             ...state.sheetDraft,
             feature_picks: featurePicks,
             spells: spellsToSheet(spells),
+            class_asi: state.sheetDraft.class_asi,
+            class_grant_picks: state.classGrantPicks,
           },
         },
-        baseSheet,
-        racialBonuses,
-      )
-      const name = state.characterName.trim() || state.classRef?.nameRu || 'Новый персонаж'
-      const level = totalCharacterLevel(state.classes)
-      const className = state.classes.map((row) => row.name).filter(Boolean).join(' / ') || null
-      const raceName = state.subrace?.nameRu || state.race?.nameRu || null
+        featurePicks,
+        spells,
+        catalog: { backgrounds, races, classes },
+      })
+      const { sheet, name, level, class_name, race_name, hp } = applied
 
       let saved: CharacterDetail
       if (state.characterId && state.sheetVersion != null) {
@@ -267,8 +289,10 @@ export function CreateCharacterPage() {
           sheet_version: state.sheetVersion,
           name,
           level,
-          class_name: className,
-          race_name: raceName,
+          class_name,
+          race_name,
+          hp_current: hp,
+          hp_max: hp,
           is_draft: options.asDraft,
           sheet,
         })
@@ -278,8 +302,10 @@ export function CreateCharacterPage() {
           sheet_version: saved.sheet_version,
           name,
           level,
-          class_name: className,
-          race_name: raceName,
+          class_name,
+          race_name,
+          hp_current: hp,
+          hp_max: hp,
           is_draft: options.asDraft,
           sheet,
         })
@@ -661,6 +687,10 @@ export function CreateCharacterPage() {
         onConfirm={(result: BackgroundSetupConfirm) => {
           patchState({
             background: catalogRef(result.entry),
+            backgroundSetup: {
+              entry: catalogSnapshot(result.entry),
+              picks: result.picks,
+            },
             sheetDraft: {
               ...state.sheetDraft,
               background_grant: {
@@ -692,12 +722,18 @@ export function CreateCharacterPage() {
             ),
           )
           const isSub = Boolean(result.entry.parent_id)
+          const rootEntry = raceSetup?.root ?? null
           patchState({
             race: isSub
               ? state.race ??
-                (raceSetup?.root ? catalogRef(raceSetup.root) : catalogRef(result.entry))
+                (rootEntry ? catalogRef(rootEntry) : catalogRef(result.entry))
               : catalogRef(result.entry),
             subrace: isSub ? catalogRef(result.entry) : null,
+            raceSetup: {
+              entry: catalogSnapshot(result.entry),
+              rootEntry: rootEntry ? catalogSnapshot(rootEntry) : null,
+              picks: result.picks,
+            },
             sheetDraft: {
               ...state.sheetDraft,
               race_grant: {
@@ -722,15 +758,17 @@ export function CreateCharacterPage() {
         mode={classSetup?.mode ?? 'start'}
         blockedSkillKeys={[]}
         onClose={() => setClassSetup(null)}
-        onConfirm={(picks) => {
+        onConfirm={(picks: ClassGrantPicks) => {
+          const entryId = classSetup?.classEntryId ?? state.classEntryId
+          const nextPicks = {
+            ...state.classGrantPicks,
+            [entryId]: picks,
+          }
           patchState({
+            classGrantPicks: nextPicks,
             sheetDraft: {
               ...state.sheetDraft,
-              // Picks stored; full apply happens on sheet via later grant engine pass.
-              class_grant_picks: {
-                ...(asRecord(state.sheetDraft.class_grant_picks) as Record<string, unknown>),
-                [classSetup?.classEntryId ?? '']: picks,
-              },
+              class_grant_picks: nextPicks,
             },
           })
           setClassSetup(null)
@@ -786,10 +824,4 @@ export function CreateCharacterPage() {
       <Toast message={toast} onClose={() => setToast(null)} />
     </main>
   )
-}
-
-function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {}
 }
