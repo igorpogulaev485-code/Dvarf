@@ -40,6 +40,7 @@ class CharacterService:
             rules_edition=payload.rules_edition,
             name=name,
             sheet=empty_character_sheet(),
+            is_draft=bool(payload.is_draft),
         )
         self.db.commit()
         self.db.refresh(character)
@@ -83,6 +84,8 @@ class CharacterService:
             character.hp_max = payload.hp_max
         if payload.rules_edition is not None:
             character.rules_edition = payload.rules_edition
+        if payload.is_draft is not None:
+            character.is_draft = payload.is_draft
 
         if payload.sheet is not None:
             character.sheet = payload.sheet

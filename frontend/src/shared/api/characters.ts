@@ -13,6 +13,8 @@ export type CharacterSummary = {
   hp_max: number | null
   rules_edition: RulesEdition
   sheet_version: number
+  /** Incomplete create-pipeline character. */
+  is_draft?: boolean
   created_at: string
   updated_at: string
 }
@@ -32,12 +34,14 @@ export async function listCharacters(): Promise<CharacterSummary[]> {
 export async function createCharacter(
   rulesEdition: RulesEdition,
   name?: string,
+  options?: { isDraft?: boolean },
 ): Promise<CharacterDetail> {
   return apiRequest<CharacterDetail>('/characters', {
     method: 'POST',
     body: JSON.stringify({
       rules_edition: rulesEdition,
       name: name || undefined,
+      is_draft: options?.isDraft ?? false,
     }),
   })
 }
@@ -54,6 +58,7 @@ export type CharacterUpdatePayload = {
   race_name?: string | null
   hp_current?: number | null
   hp_max?: number | null
+  is_draft?: boolean
   sheet?: Record<string, unknown>
 }
 

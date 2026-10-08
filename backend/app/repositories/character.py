@@ -41,6 +41,7 @@ class CharacterRepository:
         rules_edition: RulesEdition,
         name: str,
         sheet: dict,
+        is_draft: bool = False,
     ) -> Character:
         character = Character(
             user_id=user_id,
@@ -48,6 +49,7 @@ class CharacterRepository:
             rules_edition=rules_edition,
             sheet=sheet,
             level=1,
+            is_draft=is_draft,
         )
         self.db.add(character)
         self.db.flush()

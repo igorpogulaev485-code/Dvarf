@@ -3,6 +3,7 @@ import { AuthDebugPage } from './pages/AuthDebugPage'
 import { CabinetPage } from './pages/CabinetPage'
 import { CharacterDetailPage } from './pages/CharacterDetailPage'
 import { CharactersPage } from './pages/CharactersPage'
+import { CreateCharacterPage } from './pages/CreateCharacterPage'
 import { ClassicSheetPage } from './pages/ClassicSheetPage'
 import { ConfirmEmailPage } from './pages/ConfirmEmailPage'
 import { JoinLobbyPage } from './pages/JoinLobbyPage'
@@ -45,6 +46,22 @@ export default function App() {
           element={
             <RequireAuth>
               <CharactersPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/characters/create"
+          element={
+            <RequireAuth>
+              <CreateCharacterPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/characters/create/:characterId"
+          element={
+            <RequireAuth>
+              <CreateCharacterPage />
             </RequireAuth>
           }
         />

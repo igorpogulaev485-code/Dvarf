@@ -67,19 +67,18 @@ export function CharactersPage() {
   }, [navigate])
 
   async function handleCreate(request: CreateCharacterRequest) {
+    if (request.edition === '2014') {
+      navigate('/characters/create')
+      return
+    }
     setCreating(true)
     setError(null)
     try {
       const created = await createCharacter(request.edition)
-      const levelNote =
-        request.startingLevel > 1
-          ? ` со стартом с ${request.startingLevel} ур.`
-          : ''
       navigate(`/characters/${created.id}`, {
         state: {
-          toast: `Персонаж создан${levelNote} — сначала предыстория, потом класс, потом раса`,
+          toast: 'Персонаж создан — сначала предыстория, потом класс, потом раса',
           createGuide: 'background-first',
-          startingLevel: request.startingLevel,
         },
       })
     } catch (err) {
