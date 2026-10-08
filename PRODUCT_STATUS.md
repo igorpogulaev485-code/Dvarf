@@ -571,4 +571,4 @@
 | 2026-10-08 | `cursor/spell-xge-wave-ef23` | SPELLS slice 6 wave2: +95 XGE → «В ветках»; alembic `u0d1` |
 | 2026-10-08 | `cursor/spell-rest-books-wave-ef23` | SPELLS slice 6 wave3: +68 TCE/EGW/… → 527; оф. gap 0; alembic `v1e2` |
 | 2026-10-08 | `cursor/spell-known-prepare-polish-ef23` · PR #78 | SPELLS slice 7: known vs prepared UX + book filter in grimoire → «В ветках» |
-| 2026-10-08 | `cursor/spell-cast-ui-polish-7737` | SPELLS slice 8: cast dialog ritual + meta/higher_levels → «В ветках» |
+| 2026-10-08 | `cursor/spell-cast-ui-polish-7737` · PR #79 | SPELLS slice 8: cast dialog ritual + meta/higher_levels → «В ветках» |
