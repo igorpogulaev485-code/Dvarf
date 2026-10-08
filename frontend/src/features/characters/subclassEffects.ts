@@ -17,7 +17,13 @@ import type { AppliedRaceGrant } from '../../shared/dnd/raceGrants'
 import type { CompanionEntry } from './companions'
 import { createCompanion, revokeCompanionsForSubclass } from './companions'
 import type { TextBlock } from './textBlocks'
-import { createSheetSpell, type SpellsState } from './spells'
+import {
+  asAlwaysPreparedSpell,
+  createSheetSpell,
+  spellKeyFromName,
+  subclassSpellId,
+  type SpellsState,
+} from './spells'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 
@@ -426,11 +432,19 @@ export function applySubclassGrantToDraft(input: {
   const grantedSpellIds: string[] = []
   const known = [...cleared.spells.known]
   for (const spell of input.def.alwaysPreparedSpells) {
-    const created = createSheetSpell()
-    created.name = spell.name
-    created.level = spell.level
-    created.prepared = true
-    created.notes = `Всегда подготовлено · ${input.def.labelRu}`
+    const key = spellKeyFromName(spell.name)
+    const created = asAlwaysPreparedSpell(
+      {
+        ...createSheetSpell(),
+        id: subclassSpellId(input.classEntryId, input.def.slug, key || spell.name),
+        name: spell.name,
+        level: spell.level,
+      },
+      {
+        source_kind: 'subclass',
+        label: input.def.labelRu,
+      },
+    )
     known.push(created)
     grantedSpellIds.push(created.id)
   }

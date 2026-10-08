@@ -430,6 +430,16 @@
 
 На проде: нет · ветка `cursor/spell-pact-rest-ef23` · PR #73
 
+### 2026-10-08 — SPELLS: locked auto-prepare (архетип / черта / раса)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Всегда подготовлено | Домен/клятва/врождённое/черта (innate): `prepared_locked`, чип с причиной | Нельзя снять подготовку / удалить грант с листа |
+| Вне лимита | Locked не ест `max_prepared` | Жрец с доменом не теряет слоты подготовки на domain spells |
+| Источники | `subclass` · `feat` · `race` · `feature` — одна модель | Черта (Fey Touched и т.п.) учитывается так же, как архетип |
+
+На проде: нет · ветка `cursor/spell-locked-prepare-ef23`
+
 <!-- пример:
 ### 2026-10-06 — подтверждение email при регистрации
 - Обязательный никнейм
@@ -510,3 +520,4 @@
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 | Стык рас+классов/архетипов; feature packs; caster via slug; class-first UX; tip → эта ветка; alembic `r7a8` |
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 (долив) | H4b глубина 118 архетипов; снаряжение→атаки/КД; ярость vs heavy; normalize packs build fix |
 | 2026-10-07 | `cursor/spell-pact-rest-ef23` | SPELLS slice 4: short-rest pact + half-caster class table → «В ветках» |
+| 2026-10-08 | `cursor/spell-locked-prepare-ef23` | SPELLS slice 5: locked auto-prepare (subclass/feat/race) → «В ветках» |

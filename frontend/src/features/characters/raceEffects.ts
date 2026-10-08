@@ -90,6 +90,9 @@ function racialSpellToSheetSpell(
     concentration: false,
     source_kind: 'race',
     race_grant: spell.grant,
+    ...(innate
+      ? { prepared_locked: true as const, prepare_source_label: 'Раса' }
+      : {}),
   }
 }
 

@@ -14,7 +14,13 @@ import {
 } from '../../shared/dnd/spells'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
-export type SpellSourceKind = 'catalog' | 'custom' | 'race'
+export type SpellSourceKind =
+  | 'catalog'
+  | 'custom'
+  | 'race'
+  | 'feat'
+  | 'subclass'
+  | 'feature'
 
 export type SheetSpell = {
   id: string
@@ -37,7 +43,10 @@ export type SheetSpell = {
   damage_at_character_level?: SpellScaleTable
   damage_at_slot_level?: SpellScaleTable
   higher_levels?: string
-  /** Race innate / granted spells; stripped on race revoke. */
+  /**
+   * Who put this row on the sheet (race / feat / subclass domain…).
+   * Manual adds stay `catalog` / `custom` / unset.
+   */
   source_kind?: SpellSourceKind
   /**
    * Race grant mode mirrored from catalog.
@@ -45,6 +54,15 @@ export type SheetSpell = {
    * spell_list: mark/class-list expansion; player prepares like class spells.
    */
   race_grant?: 'innate' | 'spell_list'
+  /** Feat grant mode (same semantics as race_grant). */
+  feat_grant?: 'innate' | 'spell_list'
+  /**
+   * Always-prepared / granted: cannot unprepare; excluded from max_prepared.
+   * Used for domain/oath lists, feat innate, class features, etc.
+   */
+  prepared_locked?: boolean
+  /** Short RU reason for the lock chip («Домен жизни», «Fey Touched», …). */
+  prepare_source_label?: string
 }
 
 export type SpellsState = {
@@ -88,12 +106,24 @@ function readSlot(raw: unknown): SpellSlotState {
 }
 
 function readSpellSourceKind(raw: unknown, id: string): SpellSourceKind | undefined {
-  if (raw === 'race' || raw === 'catalog' || raw === 'custom') return raw
+  if (
+    raw === 'race' ||
+    raw === 'feat' ||
+    raw === 'subclass' ||
+    raw === 'feature' ||
+    raw === 'catalog' ||
+    raw === 'custom'
+  ) {
+    return raw
+  }
   if (id.startsWith('race-spell:')) return 'race'
+  if (id.startsWith('feat-spell:')) return 'feat'
+  if (id.startsWith('subclass-spell:')) return 'subclass'
+  if (id.startsWith('feature-spell:')) return 'feature'
   return undefined
 }
 
-function readRaceGrantMode(raw: unknown): 'innate' | 'spell_list' | undefined {
+function readGrantMode(raw: unknown): 'innate' | 'spell_list' | undefined {
   if (raw === 'innate' || raw === 'spell_list') return raw
   return undefined
 }
@@ -120,7 +150,20 @@ function readSpell(raw: unknown, index: number): SheetSpell {
   const level = Math.max(0, Math.min(9, Math.floor(readNumber(row.level, 0))))
   const id = typeof row.id === 'string' ? row.id : `spell-${index}`
   const sourceKind = readSpellSourceKind(row.source_kind ?? row.sourceKind, id)
-  const raceGrant = readRaceGrantMode(row.race_grant ?? row.raceGrant)
+  const raceGrant = readGrantMode(row.race_grant ?? row.raceGrant)
+  const featGrant = readGrantMode(row.feat_grant ?? row.featGrant)
+  const preparedLocked =
+    row.prepared_locked === true ||
+    row.preparedLocked === true ||
+    raceGrant === 'innate' ||
+    featGrant === 'innate' ||
+    sourceKind === 'subclass'
+  const prepareSourceLabel =
+    typeof row.prepare_source_label === 'string'
+      ? row.prepare_source_label
+      : typeof row.prepareSourceLabel === 'string'
+        ? row.prepareSourceLabel
+        : undefined
   const components = readComponents(row.components)
   const damageAtCharacter = readScaleTable(row.damage_at_character_level)
   const damageAtSlot = readScaleTable(row.damage_at_slot_level)
@@ -129,7 +172,7 @@ function readSpell(raw: unknown, index: number): SheetSpell {
     name: typeof row.name === 'string' ? row.name : '',
     catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
     level,
-    prepared: row.prepared !== false,
+    prepared: row.prepared !== false || preparedLocked,
     notes: typeof row.notes === 'string' ? row.notes : '',
     casting_time: typeof row.casting_time === 'string' ? row.casting_time : '',
     range: typeof row.range === 'string' ? row.range : '',
@@ -157,6 +200,9 @@ function readSpell(raw: unknown, index: number): SheetSpell {
       : {}),
     ...(sourceKind ? { source_kind: sourceKind } : {}),
     ...(raceGrant ? { race_grant: raceGrant } : {}),
+    ...(featGrant ? { feat_grant: featGrant } : {}),
+    ...(preparedLocked ? { prepared_locked: true } : {}),
+    ...(prepareSourceLabel ? { prepare_source_label: prepareSourceLabel } : {}),
   }
 }
 
@@ -164,12 +210,119 @@ export function raceSpellId(raceSlug: string, spellId: string): string {
   return `race-spell:${raceSlug}:${spellId}`
 }
 
+export function featSpellId(grantId: string, spellId: string): string {
+  return `feat-spell:${grantId}:${spellId}`
+}
+
+export function subclassSpellId(
+  classEntryId: string,
+  subclassSlug: string,
+  spellKey: string,
+): string {
+  return `subclass-spell:${classEntryId}:${subclassSlug}:${spellKey}`
+}
+
+export function featureSpellId(featureId: string, spellKey: string): string {
+  return `feature-spell:${featureId}:${spellKey}`
+}
+
+export function spellKeyFromName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9а-яё]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 export function isRaceSheetSpell(spell: SheetSpell): boolean {
   return spell.source_kind === 'race' || spell.id.startsWith('race-spell:')
 }
 
+export function isFeatSheetSpell(spell: SheetSpell): boolean {
+  return spell.source_kind === 'feat' || spell.id.startsWith('feat-spell:')
+}
+
+export function isSubclassSheetSpell(spell: SheetSpell): boolean {
+  return spell.source_kind === 'subclass' || spell.id.startsWith('subclass-spell:')
+}
+
+/** Always-prepared from any source: race innate, feat innate, domain/oath, feature. */
+export function isPreparedLocked(spell: SheetSpell): boolean {
+  if (spell.prepared_locked) return true
+  if (spell.race_grant === 'innate') return true
+  if (spell.feat_grant === 'innate') return true
+  return false
+}
+
+export function preparedLockChip(spell: SheetSpell): {
+  label: string
+  title: string
+} | null {
+  if (!isPreparedLocked(spell)) return null
+  if (spell.prepare_source_label) {
+    return {
+      label: spell.prepare_source_label,
+      title: `Всегда подготовлено · ${spell.prepare_source_label} — вне лимита подготовки`,
+    }
+  }
+  if (spell.feat_grant === 'innate' || spell.source_kind === 'feat') {
+    return {
+      label: 'Черта',
+      title: 'Заклинание от черты — всегда подготовлено, вне лимита',
+    }
+  }
+  if (spell.race_grant === 'innate' || spell.source_kind === 'race') {
+    return {
+      label: 'Врождённое',
+      title: 'Врождённый расовый каст — вне лимита подготовки',
+    }
+  }
+  if (spell.source_kind === 'subclass') {
+    return {
+      label: 'Архетип',
+      title: 'Заклинание домена/клятвы — всегда подготовлено, вне лимита',
+    }
+  }
+  if (spell.source_kind === 'feature') {
+    return {
+      label: 'Умение',
+      title: 'Заклинание от классового умения — всегда подготовлено, вне лимита',
+    }
+  }
+  return {
+    label: 'Всегда',
+    title: 'Всегда подготовлено — вне лимита подготовки',
+  }
+}
+
+/** Mark a sheet row as always-prepared from a grant source (subclass / feat / feature). */
+export function asAlwaysPreparedSpell(
+  spell: SheetSpell,
+  input: {
+    source_kind: Extract<SpellSourceKind, 'subclass' | 'feat' | 'feature'>
+    label: string
+    feat_grant?: 'innate' | 'spell_list'
+  },
+): SheetSpell {
+  return {
+    ...spell,
+    prepared: true,
+    prepared_locked: true,
+    source_kind: input.source_kind,
+    prepare_source_label: input.label,
+    notes: spell.notes?.trim()
+      ? spell.notes
+      : `Всегда подготовлено · ${input.label}`,
+    ...(input.feat_grant ? { feat_grant: input.feat_grant } : {}),
+  }
+}
+
 export function stripRaceSheetSpells(known: SheetSpell[]): SheetSpell[] {
   return known.filter((spell) => !isRaceSheetSpell(spell))
+}
+
+export function stripFeatSheetSpells(known: SheetSpell[]): SheetSpell[] {
+  return known.filter((spell) => !isFeatSheetSpell(spell))
 }
 
 export function readSpells(sheet: Record<string, unknown>): SpellsState {
@@ -251,6 +404,13 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         ...(spell.higher_levels ? { higher_levels: spell.higher_levels } : {}),
         ...(spell.source_kind ? { source_kind: spell.source_kind } : {}),
         ...(spell.race_grant ? { race_grant: spell.race_grant } : {}),
+        ...(spell.feat_grant ? { feat_grant: spell.feat_grant } : {}),
+        ...(spell.prepared_locked || isPreparedLocked(spell)
+          ? { prepared_locked: true }
+          : {}),
+        ...(spell.prepare_source_label
+          ? { prepare_source_label: spell.prepare_source_label }
+          : {}),
       })),
       prepared: state.known
         .filter((spell) => spell.level <= 0 || spell.prepared)
@@ -295,11 +455,14 @@ export function groupSpellsByLevel(spells: SheetSpell[]): Array<{ level: number;
     .map(([level, grouped]) => ({ level, spells: grouped }))
 }
 
-/** Innate racial casts do not consume the class prepare budget. */
+/**
+ * Class prepare budget: leveled + prepared, excluding locked grants
+ * (race/feat innate, domain/oath, class-feature always-prepared).
+ */
 export function spellCountsTowardPrepareCap(spell: SheetSpell): boolean {
   if (!countsTowardPrepareLimit(spell.level)) return false
   if (!spell.prepared) return false
-  if (spell.race_grant === 'innate') return false
+  if (isPreparedLocked(spell)) return false
   return true
 }
 
@@ -317,7 +480,7 @@ export function canPrepareSpell(
   spell: SheetSpell,
   maxPrepared: number | null,
 ): boolean {
-  if (spell.race_grant === 'innate') return true
+  if (isPreparedLocked(spell)) return true
   if (!countsTowardPrepareLimit(spell.level)) return true
   if (spell.prepared) return true
   if (maxPrepared == null) return true
@@ -332,12 +495,17 @@ export function setSpellPrepared(
 ): SheetSpell[] {
   return known.map((spell) => {
     if (spell.id !== spellId) return spell
-    if (spell.level <= 0 || spell.race_grant === 'innate') {
+    if (spell.level <= 0 || isPreparedLocked(spell)) {
       return { ...spell, prepared: true }
     }
     if (prepared && !canPrepareSpell(known, spell, maxPrepared)) return spell
     return { ...spell, prepared }
   })
+}
+
+/** Drop locked grant rows (player cannot delete them from the list). */
+export function canRemoveSheetSpell(spell: SheetSpell): boolean {
+  return !isPreparedLocked(spell) && !isRaceSheetSpell(spell) && !isFeatSheetSpell(spell)
 }
 
 export function sheetSpellFromCatalog(entry: {
