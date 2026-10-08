@@ -458,6 +458,15 @@
 
 На проде: нет · ветка `cursor/spell-xge-wave-ef23` · alembic `u0d1`
 
+### 2026-10-08 — SPELLS: rest books (TCE + сеттинги) — оф. gap закрыт
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| +68 оф. | TCE 21, EGW 15, AI/FTD/SCC/… | Mind Sliver, Silvery Barbs, summon-ы Tasha… |
+| Каталог 2014 | 459 → **527** | Весь оф. список dnd.su 2014 (без homebrew) |
+
+На проде: нет · ветка `cursor/spell-rest-books-wave-ef23` · alembic `v1e2`
+
 <!-- пример:
 ### 2026-10-06 — подтверждение email при регистрации
 - Обязательный никнейм
@@ -541,3 +550,4 @@
 | 2026-10-08 | `cursor/spell-locked-prepare-ef23` | SPELLS slice 5: locked auto-prepare (subclass/feat/race) → «В ветках» |
 | 2026-10-08 | `cursor/spell-phb-wave-ef23` | SPELLS slice 6 wave1: +45 PHB non-SRD → «В ветках»; alembic `t9c0` |
 | 2026-10-08 | `cursor/spell-xge-wave-ef23` | SPELLS slice 6 wave2: +95 XGE → «В ветках»; alembic `u0d1` |
+| 2026-10-08 | `cursor/spell-rest-books-wave-ef23` | SPELLS slice 6 wave3: +68 TCE/EGW/… → 527; оф. gap 0; alembic `v1e2` |
