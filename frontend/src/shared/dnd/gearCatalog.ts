@@ -2,7 +2,7 @@
  * Catalog gear `data` contract (D&D 2014) — weapon / armor / item.
  * JSONB on catalog_entries — readers must accept legacy SRD shapes.
  *
- * GEAR slice G1: schema + parsers only. Backfill / UI effects come later.
+ * GEAR G1: schema + parsers. G2: family/variant fields (TTG-style potions etc.).
  */
 
 export const GEAR_DATA_SCHEMA_VERSION = 1 as const
@@ -119,12 +119,29 @@ export type GearEffect =
   | { type: 'speed'; mode?: string; value_ft: number }
   | { type: 'spell_slots'; level: number; delta: number }
   | { type: 'grant_spell'; slug: string; uses?: number }
+  /** Potion of Healing family — dice string like "2к4+2" / "2d4+2". */
+  | { type: 'heal'; dice: string }
   | { type: 'resistance'; damage_type: string }
   | { type: 'resource'; id: string; max: number; restore?: ChargeRestore }
   | { type: 'companion'; kind: string; name_ru?: string }
   | { type: 'sheet_flag'; flag: string; value?: boolean | string | number }
   | { type: 'custom_note'; text: string }
   | { type: string; [key: string]: unknown }
+
+/**
+ * TTG-style variant family (potions of healing, weapon +1/+2/+3, …).
+ * Each catalog row is one concrete variant; family groups them in UI.
+ */
+export type GearFamilyMeta = {
+  /** Shared family id, e.g. "potion_of_healing", "weapon_bonus". */
+  family_slug: string
+  /** Family display title RU, e.g. "Зелья лечения". */
+  family_label_ru?: string
+  /** Variant key inside family, e.g. "greater", "1", "2". */
+  variant_key?: string
+  /** Short variant label RU, e.g. "Большое". */
+  variant_label_ru?: string
+}
 
 /** Canonical weapon payload in catalog_entries.data (kind=weapon). */
 export type WeaponCatalogData = {
@@ -150,6 +167,10 @@ export type WeaponCatalogData = {
   ammo_slug?: string
   charges?: GearCharges
   effects?: GearEffect[]
+  family_slug?: string
+  family_label_ru?: string
+  variant_key?: string
+  variant_label_ru?: string
 }
 
 /** Canonical armor payload (kind=armor). */
@@ -172,6 +193,10 @@ export type ArmorCatalogData = {
   base_armor_slug?: string
   charges?: GearCharges
   effects?: GearEffect[]
+  family_slug?: string
+  family_label_ru?: string
+  variant_key?: string
+  variant_label_ru?: string
 }
 
 /** Canonical item / gear / tool / pack payload (kind=item). */
@@ -191,6 +216,10 @@ export type ItemCatalogData = {
   wear_slot?: WearSlot
   charges?: GearCharges
   effects?: GearEffect[]
+  family_slug?: string
+  family_label_ru?: string
+  variant_key?: string
+  variant_label_ru?: string
 }
 
 export type ParsedWeaponCatalog = {
@@ -216,6 +245,10 @@ export type ParsedWeaponCatalog = {
   ammo_slug: string
   charges: GearCharges | null
   effects: GearEffect[]
+  family_slug: string
+  family_label_ru: string
+  variant_key: string
+  variant_label_ru: string
 }
 
 export type ParsedArmorCatalog = {
@@ -236,6 +269,10 @@ export type ParsedArmorCatalog = {
   base_armor_slug: string
   charges: GearCharges | null
   effects: GearEffect[]
+  family_slug: string
+  family_label_ru: string
+  variant_key: string
+  variant_label_ru: string
 }
 
 export type ParsedItemCatalog = {
@@ -254,6 +291,10 @@ export type ParsedItemCatalog = {
   wear_slot: WearSlot
   charges: GearCharges | null
   effects: GearEffect[]
+  family_slug: string
+  family_label_ru: string
+  variant_key: string
+  variant_label_ru: string
 }
 
 // —— helpers ——
@@ -498,6 +539,30 @@ function readRarity(row: Record<string, unknown>): GearRarity {
   return 'mundane'
 }
 
+function readFamilyFields(row: Record<string, unknown>): GearFamilyMeta & {
+  family_slug: string
+  family_label_ru: string
+  variant_key: string
+  variant_label_ru: string
+} {
+  return {
+    family_slug: readString(row.family_slug) ?? '',
+    family_label_ru: readString(row.family_label_ru) ?? '',
+    variant_key: readString(row.variant_key) ?? '',
+    variant_label_ru: readString(row.variant_label_ru) ?? '',
+  }
+}
+
+export const GEAR_RARITY_LABEL_RU: Record<GearRarity, string> = {
+  mundane: 'обыденный',
+  common: 'обычный',
+  uncommon: 'необычный',
+  rare: 'редкий',
+  very_rare: 'очень редкий',
+  legendary: 'легендарный',
+  artifact: 'артефакт',
+}
+
 function readProperties(value: unknown): string[] {
   if (!Array.isArray(value)) return []
   return value.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
@@ -556,6 +621,7 @@ export function parseWeaponCatalogData(
     ammo_slug: readString(row.ammo_slug) ?? '',
     charges: parseCharges(row.charges),
     effects: parseEffects(row.effects),
+    ...readFamilyFields(row),
   }
 }
 
@@ -594,6 +660,7 @@ export function parseArmorCatalogData(
     base_armor_slug: readString(row.base_armor_slug) ?? '',
     charges: parseCharges(row.charges),
     effects: parseEffects(row.effects),
+    ...readFamilyFields(row),
   }
 }
 
@@ -627,6 +694,7 @@ export function parseItemCatalogData(
     wear_slot: wearExplicit ?? 'none',
     charges: parseCharges(row.charges),
     effects: parseEffects(row.effects),
+    ...readFamilyFields(row),
   }
 }
 
