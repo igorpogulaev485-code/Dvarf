@@ -491,7 +491,7 @@
 | Каталог W5 | ~76 оф. предметов: Wildemount, Fizban, Strixhaven, Eberron, Ravnica, BMT/PAM/SDQ/BPGG, AI | Обмотки монаха, буквари колледжей, печатки гильдий — из справочника |
 | Фильтр книг | Чипы EGW / FTD / SCC / ERLW / GGR (+ др. в «др.») | Кампания в Равнике или Эберроне не тонет в PHB |
 
-На проде: **нет** · ветка `cursor/gear-settings-items-db96` · PR — · tip не менять до «залей» · alembic `h0b1` (после `g9a0`)
+На проде: **нет** · ветка `cursor/gear-settings-items-db96` · PR #98 · tip не менять до «залей» · alembic `h0b1` (после `g9a0`)
 
 ### 2026-10-08 — GEAR W4: XGE / TCE (+ EGW) магия
 
@@ -955,4 +955,4 @@
 | 2026-10-08 | `cursor/gear-magic-enrich-db96` · PR #95 | GEAR W2: DMG magic enrich (stats/effects/slots) + rarity badges; alembic `e7f8` → «В ветках» |
 | 2026-10-08 | `cursor/gear-wondrous-srd-db96` · PR #96 | GEAR W3: SRD wondrous/rings/potions insert + picker chips; alembic `f8a9` → «В ветках» |
 | 2026-10-08 | `cursor/gear-xge-tce-items-db96` · PR #97 | GEAR W4: XGE/TCE magic items + source_book filter; alembic `g9a0` → «В ветках» |
-| 2026-10-08 | `cursor/gear-settings-items-db96` | GEAR W5: setting-book magic (EGW/FTD/SCC/…) + book chips; alembic `h0b1` → «В ветках» |
+| 2026-10-08 | `cursor/gear-settings-items-db96` · PR #98 | GEAR W5: setting-book magic (EGW/FTD/SCC/…) + book chips; alembic `h0b1` → «В ветках» |
