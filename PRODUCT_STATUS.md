@@ -449,6 +449,15 @@
 
 На проде: нет · ветка `cursor/spell-phb-wave-ef23` · alembic `t9c0`
 
+### 2026-10-08 — SPELLS: волна XGE
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| +95 XGE | Absorb Elements, Chaos Bolt, Shadow Blade, Healing Spirit… (+ EE reprints с тегом XGE на dnd.su) | Гримуар закрывает Xanathar’s |
+| Каталог 2014 | 364 → **459** spell entries | Ещё ближе к полному оф. 2014 (~522) |
+
+На проде: нет · ветка `cursor/spell-xge-wave-ef23` · alembic `u0d1`
+
 <!-- пример:
 ### 2026-10-06 — подтверждение email при регистрации
 - Обязательный никнейм
@@ -530,3 +539,5 @@
 | 2026-10-07 | `cursor/class-race-join-ef23` · PR #51 (долив) | H4b глубина 118 архетипов; снаряжение→атаки/КД; ярость vs heavy; normalize packs build fix |
 | 2026-10-07 | `cursor/spell-pact-rest-ef23` | SPELLS slice 4: short-rest pact + half-caster class table → «В ветках» |
 | 2026-10-08 | `cursor/spell-locked-prepare-ef23` | SPELLS slice 5: locked auto-prepare (subclass/feat/race) → «В ветках» |
+| 2026-10-08 | `cursor/spell-phb-wave-ef23` | SPELLS slice 6 wave1: +45 PHB non-SRD → «В ветках»; alembic `t9c0` |
+| 2026-10-08 | `cursor/spell-xge-wave-ef23` | SPELLS slice 6 wave2: +95 XGE → «В ветках»; alembic `u0d1` |
