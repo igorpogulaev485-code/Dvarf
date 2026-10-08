@@ -2846,6 +2846,7 @@ export function MinimalSheetEditor({
         open={grantPicker != null}
         def={grantPicker?.def ?? null}
         mode={grantPicker?.mode ?? 'start'}
+        edition={baseCharacter.rules_edition as RulesEdition}
         onClose={() => setGrantPicker(null)}
         onConfirm={(picks) => {
           if (!grantPicker) return

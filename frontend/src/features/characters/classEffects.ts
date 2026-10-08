@@ -27,6 +27,10 @@ import type { ArmorKind } from '../../shared/dnd/armor'
 import { type WeaponAttack } from './AttacksPanel'
 import { resolveWeaponGrip } from './heldEquip'
 import { classifySpellTooling, inferFocusKind } from './spellFocus'
+import {
+  applyFocusSelectionToItemFields,
+  isFocusPlaceholderItem,
+} from './focusCatalog'
 import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import {
   buildStartingWeaponAttacks,
@@ -237,6 +241,13 @@ export function validateClassGrantPicks(input: {
       if (id !== 'skip' && !packs.some((pack) => pack.id === id)) {
         return 'Неизвестный пакет снаряжения'
       }
+      if (id && id !== 'skip') {
+        const pack = packs.find((row) => row.id === id)
+        const needsFocus = pack?.items.some((item) => isFocusPlaceholderItem(item.name))
+        if (needsFocus && !input.picks.equipmentFocusPick?.name?.trim()) {
+          return 'Выбери фокус из справочника или своё название'
+        }
+      }
     }
   }
   return null
@@ -301,6 +312,7 @@ export function applyClassGrantToDraft(input: {
   if (input.mode === 'start' && equipmentPackageId && equipmentPackageId !== 'skip') {
     const pack = equipmentPackagesFor(def).find((row) => row.id === equipmentPackageId)
     if (pack) {
+      const focusPick = input.picks.equipmentFocusPick
       for (const spec of pack.items) {
         const created = createInventoryItem()
         created.name = spec.name
@@ -309,12 +321,32 @@ export function applyClassGrantToDraft(input: {
         created.base_ac = spec.base_ac ?? null
         created.weight_lb = spec.weight_lb ?? null
         created.notes = spec.notes ?? 'Стартовое снаряжение класса'
-        if (created.armor_kind === 'none' && findWeaponPreset(created.name)) {
-          created.weapon_grip = resolveWeaponGrip({ name: created.name })
-        }
-        created.spell_tooling = classifySpellTooling({ name: created.name })
-        if (created.spell_tooling === 'focus') {
-          created.focus_kind = inferFocusKind({ name: created.name }) ?? 'any'
+        if (focusPick && isFocusPlaceholderItem(spec.name)) {
+          const fields = applyFocusSelectionToItemFields({
+            name: focusPick.name,
+            catalog_id: focusPick.catalog_id,
+            cost_gp: focusPick.cost_gp,
+            weight_lb: focusPick.weight_lb,
+            focus_kind: focusPick.focus_kind,
+            custom: focusPick.custom,
+          })
+          created.name = fields.name
+          created.catalog_id = fields.catalog_id
+          created.cost_gp = fields.cost_gp
+          created.weight_lb = fields.weight_lb
+          created.spell_tooling = fields.spell_tooling
+          created.focus_kind = fields.focus_kind
+          created.notes = focusPick.custom
+            ? 'Свой фокус · стартовое снаряжение класса'
+            : 'Стартовое снаряжение класса'
+        } else {
+          if (created.armor_kind === 'none' && findWeaponPreset(created.name)) {
+            created.weapon_grip = resolveWeaponGrip({ name: created.name })
+          }
+          created.spell_tooling = classifySpellTooling({ name: created.name })
+          if (created.spell_tooling === 'focus') {
+            created.focus_kind = inferFocusKind({ name: created.name }) ?? 'any'
+          }
         }
         inventory.items.push(created)
         equipmentItemIds.push(created.id)
@@ -453,7 +485,12 @@ export function pendingGrantRequest(input: {
 }
 
 export function emptyPicks(): ClassGrantPicks {
-  return { skills: [], tools: [], equipmentPackageId: null }
+  return {
+    skills: [],
+    tools: [],
+    equipmentPackageId: null,
+    equipmentFocusPick: null,
+  }
 }
 
 export function readAppliedClassGrants(raw: unknown): AppliedClassGrant[] {
