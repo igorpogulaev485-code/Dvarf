@@ -1,6 +1,7 @@
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
+import { parseWeaponCatalogData } from '../../shared/dnd/gearCatalog'
 import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
 import {
   ABILITY_KEYS,
@@ -77,11 +78,6 @@ function createAttack(): WeaponAttack {
   }
 }
 
-function readCatalogAbility(data: Record<string, unknown>): AbilityKey {
-  const value = data.ability
-  return ABILITY_KEYS.includes(value as AbilityKey) ? (value as AbilityKey) : 'str'
-}
-
 function sourceFromCatalog(entry: CatalogEntry): AttackSourceKind {
   if (entry.kind === 'weapon') return 'weapon'
   if (entry.kind === 'item') return 'artifact'
@@ -111,14 +107,14 @@ export function AttacksPanel({
       updateAttack(id, { name: value, catalog_id: null, source_kind: 'custom' })
       return
     }
-    const data = selected.data ?? {}
+    const parsed = parseWeaponCatalogData(selected.data ?? {})
     updateAttack(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
       source_kind: sourceFromCatalog(selected),
-      ability: readCatalogAbility(data),
-      damage: typeof data.damage === 'string' ? data.damage : '',
-      damage_type: typeof data.damage_type === 'string' ? data.damage_type : '',
+      ability: parsed.ability,
+      damage: parsed.damage,
+      damage_type: parsed.damage_type,
     })
   }
 

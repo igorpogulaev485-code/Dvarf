@@ -7,6 +7,7 @@ import {
   type ArmorPiece,
   type ShieldPiece,
 } from '../../shared/dnd/armor'
+import { readGearWeightLb } from '../../shared/dnd/gearCatalog'
 import {
   EMPTY_COINS,
   type CoinPurse,
@@ -116,7 +117,7 @@ export function asWeighableItems(items: InventoryItem[]): WeighableItem[] {
 }
 
 export function readCatalogWeightLb(data: Record<string, unknown>): number | null {
-  return readNullableNumber(data.weight_lb ?? data.weight)
+  return readGearWeightLb(data)
 }
 
 export function armorFieldsFromCatalog(
@@ -197,6 +198,7 @@ export function equippedArmorPieces(items: InventoryItem[]): {
         kind: item.armor_kind,
         baseAc: item.base_ac ?? 10,
         name: item.name || armorKindFallback(item.armor_kind),
+        // Sheet rows do not store max_dex yet (GEAR G2/G3); kind defaults apply.
       }
     }
   }
