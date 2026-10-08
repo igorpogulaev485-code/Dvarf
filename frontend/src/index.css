@@ -1200,9 +1200,21 @@ input {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.attack-card--stowed {
+  opacity: 0.72;
+  border-style: dashed;
+}
+
 .attack-card__meta {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
+}
+
+.attack-held-tag {
+  font-size: 0.78rem;
+  color: var(--muted, #64748b);
 }
 
 .attack-source {

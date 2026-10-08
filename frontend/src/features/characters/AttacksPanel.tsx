@@ -24,6 +24,10 @@ export type WeaponAttack = {
   damage_type: string
   /** Stack size (javelins ×4); omit/null when each card is one weapon. */
   qty?: number | null
+  /** Linked inventory row — held state mirrors item.equipped. */
+  inventory_item_id?: string | null
+  /** In hand right now (synced from inventory when linked). */
+  held?: boolean
 }
 
 /** Stable attack id for race natural weapons (revoke on race change). */
@@ -62,6 +66,8 @@ type AttacksPanelProps = {
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   onChange: (weapons: WeaponAttack[]) => void
+  /** Toggle in-hand for an attack linked to inventory (hand-slot rules). */
+  onToggleHeld?: (attack: WeaponAttack) => void
 }
 
 function createAttack(): WeaponAttack {
@@ -78,7 +84,26 @@ function createAttack(): WeaponAttack {
     damage: '',
     damage_type: '',
     qty: null,
+    inventory_item_id: null,
+    held: false,
   }
+}
+
+/** Mirror inventory.equipped onto linked attack cards. */
+export function syncAttacksHeldFromInventory(
+  weapons: WeaponAttack[],
+  items: Array<{ id: string; equipped: boolean }>,
+): WeaponAttack[] {
+  const equippedById = new Map(items.map((item) => [item.id, item.equipped]))
+  let changed = false
+  const next = weapons.map((attack) => {
+    if (!attack.inventory_item_id) return attack
+    const held = Boolean(equippedById.get(attack.inventory_item_id))
+    if (attack.held === held) return attack
+    changed = true
+    return { ...attack, held }
+  })
+  return changed ? next : weapons
 }
 
 function sourceFromCatalog(entry: CatalogEntry): AttackSourceKind {
@@ -100,6 +125,7 @@ export function AttacksPanel({
   abilities,
   proficiencyBonus,
   onChange,
+  onToggleHeld,
 }: AttacksPanelProps) {
   function updateAttack(id: string, patch: Partial<WeaponAttack>) {
     onChange(weapons.map((item) => (item.id === id ? { ...item, ...patch } : item)))
@@ -125,8 +151,9 @@ export function AttacksPanel({
     <Panel title="Атаки">
       <Stack gap={12}>
         <Text tone="muted">
-          Атака может быть обычным оружием или артефактом — у обоих есть урон. Можно выбрать из
-          справочника или вписать своё название.
+          Атака может быть обычным оружием или артефактом. «В руках» — сейчас держишь (двуручное
+          занимает обе руки; иначе до двух одноручных / одноручное+щит). Убрать = убрать в ножны
+          (в бою это действие).
         </Text>
 
         {weapons.length === 0 ? (
@@ -138,11 +165,21 @@ export function AttacksPanel({
             abilityModifier(abilities[attack.ability]) +
             (attack.is_proficient ? proficiencyBonus : 0)
           return (
-            <div key={attack.id} className="attack-card">
+            <div
+              key={attack.id}
+              className={`attack-card${
+                attack.inventory_item_id && !attack.held ? ' attack-card--stowed' : ''
+              }`}
+            >
               <div className="attack-card__meta">
                 <span className={`attack-source attack-source--${attack.source_kind}`}>
                   {sourceLabel(attack.source_kind)}
                 </span>
+                {attack.inventory_item_id ? (
+                  <span className="attack-held-tag">
+                    {attack.held ? 'в руках' : 'убран'}
+                  </span>
+                ) : null}
               </div>
               <div className="attack-card__grid">
                 <Field label="Оружие или артефакт">
@@ -204,6 +241,15 @@ export function AttacksPanel({
                 </Field>
               </div>
               <div className="attack-card__footer">
+                {attack.inventory_item_id && onToggleHeld ? (
+                  <button
+                    type="button"
+                    className={`sheet-chip${attack.held ? ' is-on' : ''}`}
+                    onClick={() => onToggleHeld(attack)}
+                  >
+                    {attack.held ? 'В руках' : 'Убран'}
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   className={`sheet-chip${attack.is_proficient ? ' is-on' : ''}`}

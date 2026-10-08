@@ -131,6 +131,10 @@ export function buildStartingWeaponAttacks(input: {
   name: string
   qty: number
   makeId: (index: number, cardCount: number) => string
+  /** Link attacks to inventory so «В руках» syncs. */
+  inventoryItemId?: string | null
+  /** Default false — starting gear is carried, not drawn. */
+  held?: boolean
 }): { attacks: WeaponAttack[]; attackIds: string[] } {
   const resolved = resolveStartingWeaponAttacks(input.name, input.qty)
   if (!resolved) return { attacks: [], attackIds: [] }
@@ -148,6 +152,8 @@ export function buildStartingWeaponAttacks(input: {
       damage: resolved.damage,
       damage_type: resolved.damageType,
       qty: resolved.stackQty,
+      inventory_item_id: input.inventoryItemId ?? null,
+      held: Boolean(input.held),
     })
     attackIds.push(id)
   }

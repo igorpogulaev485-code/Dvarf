@@ -25,6 +25,7 @@ import {
 } from './inventory'
 import type { TextBlock } from './textBlocks'
 import { type WeaponAttack } from './AttacksPanel'
+import { resolveWeaponGrip } from './heldEquip'
 import {
   backgroundEquipmentAttackIdAt,
   buildStartingWeaponAttacks,
@@ -85,6 +86,9 @@ function addGearItem(input: {
   created.base_ac = input.base_ac ?? null
   created.weight_lb = input.weight_lb ?? null
   created.notes = input.notes ?? 'Снаряжение предыстории'
+  if (created.armor_kind === 'none' && findWeaponPreset(created.name)) {
+    created.weapon_grip = resolveWeaponGrip({ name: created.name })
+  }
 
   let inventory: InventoryState = {
     ...input.inventory,
@@ -109,6 +113,8 @@ function addGearItem(input: {
     qty: created.qty,
     makeId: (index, cardCount) =>
       backgroundEquipmentAttackIdAt(input.backgroundSlug, created.id, index, cardCount),
+    inventoryItemId: created.id,
+    held: false,
   })
   weapons.push(...built.attacks)
   const attackId = built.attackIds[0] ?? null

@@ -14,6 +14,7 @@ import {
   type ItemCategory,
 } from '../../shared/dnd/gearCatalog'
 import type { WeaponAttack } from './AttacksPanel'
+import { resolveWeaponGrip } from './heldEquip'
 import {
   armorFieldsFromCatalog,
   createInventoryItem,
@@ -161,10 +162,18 @@ export function inventoryItemFromCatalog(input: {
   if (entry.kind === 'weapon') {
     const parsed = parseWeaponCatalogData(entry.data ?? {})
     created.weight_lb = parsed.weight_lb
+    created.weapon_grip = resolveWeaponGrip({
+      name: entry.name_ru,
+      data: entry.data ?? {},
+    })
+    // Carried in pack by default — draw («В руках») is a separate action.
+    created.equipped = false
     const built = buildStartingWeaponAttacks({
       name: entry.name_ru,
       qty,
       makeId: (index, cardCount) => newAttackId(created.id, index, cardCount),
+      inventoryItemId: created.id,
+      held: false,
     })
     // Prefer catalog damage/ability when preset missed or is empty.
     const attacks: WeaponAttack[] = built.attacks.map((attack) => ({
@@ -174,6 +183,8 @@ export function inventoryItemFromCatalog(input: {
       damage: parsed.damage || attack.damage,
       damage_type: parsed.damage_type || attack.damage_type,
       source_kind: 'weapon',
+      inventory_item_id: created.id,
+      held: false,
     }))
     // If preset didn't resolve, still add one attack from catalog stats when present.
     if (attacks.length === 0 && (parsed.damage || parsed.damage_type)) {
@@ -187,6 +198,8 @@ export function inventoryItemFromCatalog(input: {
         damage: parsed.damage,
         damage_type: parsed.damage_type,
         qty: qty > 1 ? qty : null,
+        inventory_item_id: created.id,
+        held: false,
       })
     }
     return { item: created, attacks, equip: false }

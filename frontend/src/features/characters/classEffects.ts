@@ -25,6 +25,8 @@ import {
 } from './inventory'
 import type { ArmorKind } from '../../shared/dnd/armor'
 import { type WeaponAttack } from './AttacksPanel'
+import { resolveWeaponGrip } from './heldEquip'
+import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import {
   buildStartingWeaponAttacks,
   classEquipmentAttackIdAt,
@@ -306,10 +308,14 @@ export function applyClassGrantToDraft(input: {
         created.base_ac = spec.base_ac ?? null
         created.weight_lb = spec.weight_lb ?? null
         created.notes = spec.notes ?? 'Стартовое снаряжение класса'
+        if (created.armor_kind === 'none' && findWeaponPreset(created.name)) {
+          created.weapon_grip = resolveWeaponGrip({ name: created.name })
+        }
         inventory.items.push(created)
         equipmentItemIds.push(created.id)
 
         // Auto-wear body armor / shield so AC updates immediately.
+        // Weapons stay stowed — draw into hands is a separate toggle.
         if (
           created.armor_kind === 'light' ||
           created.armor_kind === 'medium' ||
@@ -328,6 +334,8 @@ export function applyClassGrantToDraft(input: {
           qty: created.qty,
           makeId: (index, cardCount) =>
             classEquipmentAttackIdAt(input.classEntryId, created.id, index, cardCount),
+          inventoryItemId: created.id,
+          held: false,
         })
         nextWeapons.push(...built.attacks)
         equipmentAttackIds.push(...built.attackIds)

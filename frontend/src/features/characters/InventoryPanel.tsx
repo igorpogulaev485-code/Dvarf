@@ -7,7 +7,13 @@ import {
   applyGearAdd,
   type GearAddResult,
 } from './gearFromCatalog'
-import type { WeaponAttack } from './AttacksPanel'
+import { syncAttacksHeldFromInventory, type WeaponAttack } from './AttacksPanel'
+import {
+  canShowEquipChip,
+  equipLabel,
+  resolveWeaponGrip,
+} from './heldEquip'
+import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import {
   ARMOR_KINDS,
   ARMOR_PRESETS,
@@ -138,7 +144,8 @@ export function InventoryPanel({
 
   function applyCatalog(id: string, value: string, selected: CatalogEntry | null) {
     if (!selected) {
-      updateItem(id, { name: value, catalog_id: null })
+      const grip = findWeaponPreset(value) ? resolveWeaponGrip({ name: value }) : null
+      updateItem(id, { name: value, catalog_id: null, weapon_grip: grip })
       return
     }
     const data = selected.data ?? {}
@@ -157,6 +164,10 @@ export function InventoryPanel({
       const sum = sumContentsWeightLb(resolved)
       if (sum > 0) weight = sum
     }
+    const weaponGrip =
+      selected.kind === 'weapon'
+        ? resolveWeaponGrip({ name: selected.name_ru, data })
+        : null
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
@@ -173,7 +184,16 @@ export function InventoryPanel({
             ? 'container'
             : 'none',
       container_expanded: false,
+      weapon_grip: weaponGrip,
     })
+  }
+
+  function toggleEquip(item: InventoryItem) {
+    const items = equipInventoryItem(inventory.items, item.id, !item.equipped)
+    onChange({ ...inventory, items })
+    if (onWeaponsChange) {
+      onWeaponsChange(syncAttacksHeldFromInventory(weapons, items))
+    }
   }
 
   function applyPreset(id: string, presetKey: string) {
@@ -431,22 +451,13 @@ export function InventoryPanel({
                   />
                 </Field>
                 <div className="inventory-card__footer">
-                  {!nested ? (
+                  {!nested && canShowEquipChip(item) ? (
                     <button
                       type="button"
                       className={`sheet-chip${item.equipped ? ' is-on' : ''}`}
-                      onClick={() =>
-                        onChange({
-                          ...inventory,
-                          items: equipInventoryItem(
-                            inventory.items,
-                            item.id,
-                            !item.equipped,
-                          ),
-                        })
-                      }
+                      onClick={() => toggleEquip(item)}
                     >
-                      {item.equipped ? 'Надето' : 'Не надето'}
+                      {item.equipped ? equipLabel(item).on : equipLabel(item).off}
                     </button>
                   ) : null}
                   {canExpand(item) ? (

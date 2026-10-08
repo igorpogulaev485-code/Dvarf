@@ -14,6 +14,7 @@ import {
   type WeighableItem,
 } from '../../shared/dnd/weight'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
+import { equipHeldItem, isHeldItem, type WeaponGrip } from './heldEquip'
 
 export type InventoryContainerKind = 'none' | 'pack' | 'kit' | 'container'
 
@@ -38,6 +39,8 @@ export type InventoryItem = {
   container_expanded?: boolean
   /** Collapsed bulk weight snapshot (restored on collapse). */
   pack_weight_lb?: number | null
+  /** Weapon hand grip — drives held-slot exclusivity. */
+  weapon_grip?: WeaponGrip | null
 }
 
 export type InventoryState = {
@@ -65,7 +68,13 @@ export function createInventoryItem(): InventoryItem {
     container_kind: 'none',
     container_expanded: false,
     pack_weight_lb: null,
+    weapon_grip: null,
   }
+}
+
+function readWeaponGrip(value: unknown): WeaponGrip | null {
+  if (value === 'one_hand' || value === 'two_hand') return value
+  return null
 }
 
 function readContainerKind(value: unknown): InventoryContainerKind {
@@ -105,6 +114,7 @@ function readItem(raw: unknown, index: number): InventoryItem {
     container_kind: readContainerKind(row.container_kind),
     container_expanded: Boolean(row.container_expanded),
     pack_weight_lb: readNullableNumber(row.pack_weight_lb),
+    weapon_grip: readWeaponGrip(row.weapon_grip),
   }
 }
 
@@ -145,6 +155,7 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         container_kind: item.container_kind ?? 'none',
         container_expanded: Boolean(item.container_expanded),
         pack_weight_lb: item.pack_weight_lb ?? null,
+        weapon_grip: item.weapon_grip ?? null,
       })),
     },
   }
@@ -202,7 +213,11 @@ export function armorFieldsFromCatalog(
   return {}
 }
 
-/** Equip item; unequip other body armor or shields of the same role. */
+/**
+ * Equip item with role exclusivity:
+ * - body armor ↔ body armor
+ * - held (weapons + shield): max 2 hands (1× two-hand XOR 2× one-hand / shield)
+ */
 export function equipInventoryItem(
   items: InventoryItem[],
   id: string,
@@ -215,19 +230,25 @@ export function equipInventoryItem(
   }
 
   const kind = target.armor_kind
-  return items.map((item) => {
-    if (item.id === id) return { ...item, equipped: true }
-    if (kind === 'shield' && item.armor_kind === 'shield') {
-      return { ...item, equipped: false }
-    }
-    if (
-      (kind === 'light' || kind === 'medium' || kind === 'heavy') &&
-      (item.armor_kind === 'light' || item.armor_kind === 'medium' || item.armor_kind === 'heavy')
-    ) {
-      return { ...item, equipped: false }
-    }
-    return item
-  })
+  if (kind === 'light' || kind === 'medium' || kind === 'heavy') {
+    return items.map((item) => {
+      if (item.id === id) return { ...item, equipped: true }
+      if (
+        item.armor_kind === 'light' ||
+        item.armor_kind === 'medium' ||
+        item.armor_kind === 'heavy'
+      ) {
+        return { ...item, equipped: false }
+      }
+      return item
+    })
+  }
+
+  if (isHeldItem(target)) {
+    return equipHeldItem(items, id)
+  }
+
+  return items.map((item) => (item.id === id ? { ...item, equipped: true } : item))
 }
 
 export function equippedArmorPieces(items: InventoryItem[]): {

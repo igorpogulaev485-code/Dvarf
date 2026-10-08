@@ -93,7 +93,11 @@ import {
   type RaceGrantDef,
   type RaceGrantPicks,
 } from '../../shared/dnd/raceGrants'
-import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
+import {
+  AttacksPanel,
+  syncAttacksHeldFromInventory,
+  type WeaponAttack,
+} from './AttacksPanel'
 import { AttunementPanel } from './AttunementPanel'
 import {
   attunementsToSheet,
@@ -182,6 +186,7 @@ import {
 } from './raceEffects'
 import { characterHasCasterClass } from '../../shared/dnd/casterProgression'
 import {
+  equipInventoryItem,
   equippedArmorPieces,
   inventoryToSheet,
   readInventory,
@@ -294,6 +299,9 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
         typeof row.qty === 'number' && Number.isFinite(row.qty) && row.qty > 1
           ? Math.floor(row.qty)
           : null,
+      inventory_item_id:
+        typeof row.inventory_item_id === 'string' ? row.inventory_item_id : null,
+      held: Boolean(row.held),
     }
   })
 }
@@ -371,8 +379,13 @@ function buildDraft(character: CharacterDetail): Draft {
     flySpeed: readNullableNumber(combat.fly_speed ?? combat.flySpeed),
     initiativeOverride: readNullableNumber(combat.initiative),
     inspiration: Boolean(combat.inspiration),
-    weapons: readWeapons(sheet),
-    inventory: readInventory(sheet),
+    ...(() => {
+      const inventory = readInventory(sheet)
+      return {
+        inventory,
+        weapons: syncAttacksHeldFromInventory(readWeapons(sheet), inventory.items),
+      }
+    })(),
     attunements: readAttunements(sheet),
     spells: readSpells(sheet),
     play: withSyncedHitDiceSummary({
@@ -2546,6 +2559,25 @@ export function MinimalSheetEditor({
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
         onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
+        onToggleHeld={(attack) => {
+          if (!attack.inventory_item_id) return
+          setDraft((prev) => {
+            const item = prev.inventory.items.find(
+              (row) => row.id === attack.inventory_item_id,
+            )
+            if (!item) return prev
+            const items = equipInventoryItem(
+              prev.inventory.items,
+              item.id,
+              !item.equipped,
+            )
+            return {
+              ...prev,
+              inventory: { ...prev.inventory, items },
+              weapons: syncAttacksHeldFromInventory(prev.weapons, items),
+            }
+          })
+        }}
       />
 
       <InventoryPanel
@@ -2553,7 +2585,13 @@ export function MinimalSheetEditor({
         inventory={draft.inventory}
         strengthScore={draft.abilities.str}
         weapons={draft.weapons}
-        onChange={(inventory) => setDraft((prev) => ({ ...prev, inventory }))}
+        onChange={(inventory) =>
+          setDraft((prev) => ({
+            ...prev,
+            inventory,
+            weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
+          }))
+        }
         onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
       />
 
