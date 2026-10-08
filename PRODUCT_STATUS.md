@@ -493,7 +493,7 @@
 | КД из каталога | max Dex / тип брони с листа (и из справочника при выборе) | Средний доспех ≤2 ЛОВ как в PHB; готовность к Str req |
 | Пресеты оружия | Расширены до полного PHB mundane | Стартовое снаряжение чаще попадает в «Атаки» |
 
-На проде: **нет** · ветка `cursor/gear-sheet-weapons-db96` · tip не менять до «залей»
+На проде: **нет** · ветка `cursor/gear-sheet-weapons-db96` · PR #84 · tip не менять до «залей»
 
 ### 2026-10-08 — GEAR slice 2: backfill параметров + семья зелий лечения
 
@@ -806,4 +806,4 @@
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
 | 2026-10-08 | `cursor/gear-schema-2014-db96` · PR #82 | GEAR slice 1: catalog data contract + readers (weapon/armor/item) → «В ветках» |
 | 2026-10-08 | `cursor/gear-backfill-2014-db96` · PR #83 | GEAR slice 2: backfill RU/cost/params + healing potion family; alembic `c5d6` → «В ветках» |
-| 2026-10-08 | `cursor/gear-sheet-weapons-db96` | GEAR slice 3: starting gear attacks (light×N / stack qty) + armor maxDex on sheet → «В ветках» |
+| 2026-10-08 | `cursor/gear-sheet-weapons-db96` · PR #84 | GEAR slice 3: starting gear attacks (light×N / stack qty) + armor maxDex on sheet → «В ветках» |
