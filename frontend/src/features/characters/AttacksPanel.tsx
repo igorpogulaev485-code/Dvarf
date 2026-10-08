@@ -41,6 +41,18 @@ export function isClassEquipmentAttack(attack: Pick<WeaponAttack, 'id'>): boolea
   return attack.id.startsWith('class-eq:')
 }
 
+/** Stable attack id for background starting-equipment weapons. */
+export function backgroundEquipmentAttackId(
+  backgroundSlug: string,
+  inventoryItemId: string,
+): string {
+  return `bg-eq:${backgroundSlug}:${inventoryItemId}`
+}
+
+export function isBackgroundEquipmentAttack(attack: Pick<WeaponAttack, 'id'>): boolean {
+  return attack.id.startsWith('bg-eq:')
+}
+
 type AttacksPanelProps = {
   edition: RulesEdition
   weapons: WeaponAttack[]

@@ -39,6 +39,28 @@ import {
 import { ClassSetupDialog, HomebrewClassDialog } from './ClassSetupDialog'
 import { RaceSetupDialog, HomebrewRaceDialog } from './RaceSetupDialog'
 import {
+  BackgroundSetupDialog,
+  HomebrewBackgroundDialog,
+} from './BackgroundSetupDialog'
+import { EquipmentProficienciesPanel } from './EquipmentProficienciesPanel'
+import {
+  applyBackgroundGrantToDraft,
+  readAppliedBackgroundGrant,
+  reapplyBackgroundOverlays,
+  revokeBackgroundGrant,
+  type BackgroundGrantDraftSlice,
+} from './backgroundEffects'
+import {
+  backgroundGrantNeedsSetupDialog,
+  backgroundVariantsForRoot,
+  emptyBackgroundPicks,
+  isBackgroundComboboxRoot,
+  resolveBackgroundGrantDef,
+  type AppliedBackgroundGrant,
+  type BackgroundGrantDef,
+  type BackgroundGrantPicks,
+} from '../../shared/dnd/backgroundGrants'
+import {
   collectGrantTextSnippets,
   type AppliedSubclassGrant,
   type SubclassGrantDef,
@@ -133,8 +155,6 @@ import { ClassFeaturesPanel, saveBonusFromFeatures } from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import {
-  ARMOR_PROF_OPTIONS,
-  WEAPON_PROF_OPTIONS,
   identityExtrasToSheet,
   readIdentityExtras,
   type IdentityExtras,
@@ -223,6 +243,8 @@ type Draft = {
   classGrants: AppliedClassGrant[]
   subclassGrants: AppliedSubclassGrant[]
   raceGrant: AppliedRaceGrant | null
+  backgroundGrant: AppliedBackgroundGrant | null
+  backgroundCatalogId: string | null
   companions: CompanionEntry[]
   featurePicks: FeaturePicksState
   classAsi: AppliedClassAsi[]
@@ -347,6 +369,11 @@ function buildDraft(character: CharacterDetail): Draft {
     classGrants: readAppliedClassGrants(sheet.class_grants),
     subclassGrants: readAppliedSubclassGrants(sheet.subclass_grants),
     raceGrant: readAppliedRaceGrant(sheet.race_grant),
+    backgroundGrant: readAppliedBackgroundGrant(sheet.background_grant),
+    backgroundCatalogId:
+      typeof identity.background_catalog_id === 'string'
+        ? identity.background_catalog_id
+        : null,
     companions: readCompanions(sheet.companions),
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classAsi: readClassAsiLedger(sheet.class_asi),
@@ -409,6 +436,11 @@ export function MinimalSheetEditor({
     subraceRequired: boolean
   } | null>(null)
   const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
+  const [backgroundGrantPicker, setBackgroundGrantPicker] = useState<{
+    root: CatalogEntry
+    variants: CatalogEntry[]
+  } | null>(null)
+  const [backgroundHomebrewOpen, setBackgroundHomebrewOpen] = useState(false)
   const [subclassSetup, setSubclassSetup] = useState<{
     classEntryId: string
     selected: CatalogEntry
@@ -426,6 +458,7 @@ export function MinimalSheetEditor({
   } | null>(null)
   const channelRef = useRef<BroadcastChannel | null>(null)
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
+  const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const [raceCatalogRows, setRaceCatalogRows] = useState<CatalogEntry[]>([])
 
   const characterLevel = useMemo(
@@ -495,6 +528,23 @@ export function MinimalSheetEditor({
     }
     onCreateGuideConsumed?.()
   }, [createGuide, onCreateGuideConsumed])
+
+  // Prefetch backgrounds so variant fork popup does not wait on a second fetch.
+  useEffect(() => {
+    let active = true
+    backgroundCatalogCacheRef.current = null
+    listCatalogEntries({ kind: 'background', edition: rulesEdition })
+      .then((rows) => {
+        if (!active) return
+        backgroundCatalogCacheRef.current = rows
+      })
+      .catch(() => {
+        /* picker will retry on demand */
+      })
+    return () => {
+      active = false
+    }
+  }, [rulesEdition])
 
   // Prefetch full race catalog so subrace popup opens without a second network round-trip.
   useEffect(() => {
@@ -729,21 +779,34 @@ export function MinimalSheetEditor({
     const classSkills = new Set([
       ...prev.classGrants.flatMap((row) => row.skills),
       ...prev.subclassGrants.flatMap((row) => row.skills),
+      ...(prev.backgroundGrant?.skills ?? []),
     ])
     const classTools = new Set([
       ...prev.classGrants.flatMap((row) =>
         row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
       ),
       ...prev.subclassGrants.flatMap((row) =>
-        [...row.tools, ...row.weaponExtras]
-          .map((item) => item.trim().toLowerCase())
-          .filter(Boolean),
+        row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
+      ),
+      ...(prev.backgroundGrant?.tools ?? []).map((item) =>
+        item.trim().toLowerCase(),
       ),
     ])
     const classArmor = new Set([
       ...prev.classGrants.flatMap((row) => row.armorKeys),
       ...prev.subclassGrants.flatMap((row) => row.armorKeys),
     ]) as Set<keyof IdentityExtras['armor']>
+    const classGrantedWeaponExtras = new Set([
+      ...prev.classGrants.flatMap((row) =>
+        (row.weaponExtras ?? []).map((item) => item.trim().toLowerCase()),
+      ),
+      ...prev.subclassGrants.flatMap((row) =>
+        (row.weaponExtras ?? []).map((item) => item.trim().toLowerCase()),
+      ),
+      ...(prev.backgroundGrant?.weaponExtras ?? []).map((item) =>
+        item.trim().toLowerCase(),
+      ),
+    ])
     return {
       identity: prev.identity,
       skills: prev.skills,
@@ -759,6 +822,61 @@ export function MinimalSheetEditor({
       classGrantedSkills: classSkills,
       classGrantedTools: classTools,
       classGrantedArmor: classArmor,
+      classGrantedWeaponExtras,
+    }
+  }
+
+  function backgroundSliceFrom(prev: Draft): BackgroundGrantDraftSlice {
+    const protectedSkills = new Set([
+      ...prev.classGrants.flatMap((row) => row.skills),
+      ...prev.subclassGrants.flatMap((row) => row.skills),
+      ...(prev.raceGrant?.skills ?? []),
+    ])
+    const protectedTools = new Set([
+      ...prev.classGrants.flatMap((row) =>
+        row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
+      ),
+      ...prev.subclassGrants.flatMap((row) =>
+        row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
+      ),
+      ...(prev.raceGrant?.tools ?? []).map((item) => item.trim().toLowerCase()),
+    ])
+    const protectedLanguages = new Set([
+      ...(prev.raceGrant?.languages ?? []).map((item) => item.toLowerCase()),
+    ])
+    const protectedWeaponExtras = new Set([
+      ...prev.classGrants.flatMap((row) =>
+        (row.weaponExtras ?? []).map((item) => item.trim().toLowerCase()),
+      ),
+      ...prev.subclassGrants.flatMap((row) =>
+        (row.weaponExtras ?? []).map((item) => item.trim().toLowerCase()),
+      ),
+      ...(prev.raceGrant?.weaponNames ?? []).map((item) => item.toLowerCase()),
+    ])
+    return {
+      identity: prev.identity,
+      skills: prev.skills,
+      inventory: prev.inventory,
+      textBlocks: prev.textBlocks,
+      weapons: prev.weapons,
+      backgroundGrant: prev.backgroundGrant,
+      protectedSkills,
+      protectedTools,
+      protectedLanguages,
+      protectedWeaponExtras,
+    }
+  }
+
+  function mergeBackgroundSlice(prev: Draft, slice: BackgroundGrantDraftSlice): Draft {
+    return {
+      ...prev,
+      identity: slice.identity,
+      skills: slice.skills,
+      inventory: slice.inventory,
+      textBlocks: slice.textBlocks,
+      weapons: slice.weapons,
+      backgroundGrant: slice.backgroundGrant,
+      backgroundCatalogId: slice.backgroundGrant?.backgroundCatalogId ?? null,
     }
   }
 
@@ -974,7 +1092,7 @@ export function MinimalSheetEditor({
   }
 
   function mergeRaceSlice(prev: Draft, slice: RaceGrantDraftSlice): Draft {
-    return {
+    const merged: Draft = {
       ...prev,
       identity: slice.identity,
       skills: slice.skills,
@@ -988,6 +1106,8 @@ export function MinimalSheetEditor({
       spells: slice.spells,
       raceGrant: slice.raceGrant,
     }
+    const restoredBg = reapplyBackgroundOverlays(backgroundSliceFrom(merged))
+    return mergeBackgroundSlice(merged, restoredBg)
   }
 
   function grantModeForClassRow(prev: Draft, classEntryId: string): 'start' | 'multiclass' {
@@ -1379,6 +1499,99 @@ export function MinimalSheetEditor({
     onToast(`Хомбрю-раса «${name}»: название на листе. Остальное заполни сам.`)
   }
 
+  function commitBackgroundGrant(input: {
+    selected: CatalogEntry
+    picks: BackgroundGrantPicks
+    def?: BackgroundGrantDef | null
+  }) {
+    let summary: string | null = null
+    setDraft((prev) => {
+      const applied = applyBackgroundGrantToDraft({
+        draft: backgroundSliceFrom(prev),
+        selected: input.selected,
+        picks: input.picks,
+        def: input.def,
+      })
+      if (!applied) return prev
+      summary = applied.summary
+      return {
+        ...mergeBackgroundSlice(prev, applied.draft),
+        backgroundCatalogId: input.selected.id,
+      }
+    })
+    if (summary) onToast(`Предыстория «${input.selected.name_ru}»: ${summary}`)
+  }
+
+  async function requestOrApplyBackgroundGrant(selected: CatalogEntry) {
+    if (!isBackgroundComboboxRoot(selected)) {
+      onToast(
+        `«${selected.name_ru}» — выбери корневую предысторию; вариант будет в попапе`,
+      )
+      return
+    }
+
+    let allBackgrounds = backgroundCatalogCacheRef.current
+    if (!allBackgrounds) {
+      try {
+        allBackgrounds = await listCatalogEntries({
+          kind: 'background',
+          edition: rulesEdition,
+        })
+        backgroundCatalogCacheRef.current = allBackgrounds
+      } catch {
+        onToast('Не удалось загрузить справочник предысторий — попробуй ещё раз')
+        return
+      }
+    }
+
+    const variants = backgroundVariantsForRoot(selected, allBackgrounds)
+    const def = resolveBackgroundGrantDef({
+      backgroundName: selected.name_ru,
+      catalogSlug: selected.slug,
+      catalogData: selected.data,
+      nameRu: selected.name_ru,
+    })
+    if (!def) {
+      onToast(
+        `Предыстория «${selected.name_ru}» пока без пакета эффектов — выставь вручную`,
+      )
+      setDraft((prev) => {
+        const cleared = revokeBackgroundGrant(backgroundSliceFrom(prev))
+        return {
+          ...mergeBackgroundSlice(prev, cleared),
+          identity: { ...cleared.identity, background: selected.name_ru },
+          backgroundCatalogId: selected.id,
+        }
+      })
+      return
+    }
+
+    if (variants.length > 0 || backgroundGrantNeedsSetupDialog(def)) {
+      setBackgroundGrantPicker({ root: selected, variants })
+      return
+    }
+
+    commitBackgroundGrant({
+      selected,
+      picks: emptyBackgroundPicks(),
+      def,
+    })
+  }
+
+  function applyHomebrewBackground(name: string) {
+    setDraft((prev) => {
+      const cleared = revokeBackgroundGrant(backgroundSliceFrom(prev))
+      return {
+        ...mergeBackgroundSlice(prev, cleared),
+        identity: { ...cleared.identity, background: name },
+        backgroundCatalogId: null,
+      }
+    })
+    onToast(
+      `Хомбрю-предыстория «${name}»: название на листе. Остальное заполни сам.`,
+    )
+  }
+
   function applyLevelUp(choice: LevelUpChoice) {
     if (totalCharacterLevel(draft.classes) >= 20) return
 
@@ -1673,6 +1886,7 @@ export function MinimalSheetEditor({
       }
       const identityExtras = identityExtrasToSheet(identityForSave)
       identity.race_catalog_id = draft.raceCatalogId
+      identity.background_catalog_id = draft.backgroundCatalogId
       identity.class_catalog_id = primary?.catalog_id ?? null
       Object.assign(identity, identityExtras.identityPatch)
       sheet.identity = identity
@@ -1680,6 +1894,7 @@ export function MinimalSheetEditor({
       sheet.class_grants = draft.classGrants
       sheet.subclass_grants = draft.subclassGrants
       sheet.race_grant = draft.raceGrant
+      sheet.background_grant = draft.backgroundGrant
       sheet.companions = draft.companions
       sheet.feature_picks = featurePicksToSheet(draft.featurePicks)
       sheet.class_asi = draft.classAsi
@@ -2189,13 +2404,42 @@ export function MinimalSheetEditor({
             </Field>
           </div>
           <div className="sheet-grid sheet-grid--2">
-            <Field label="Предыстория" htmlFor="sheet-background">
-              <Input
+            <Field
+              label="Предыстория"
+              htmlFor="sheet-background"
+              hint="В списке — корень; вариант, таблицы и гранты — в попапе"
+            >
+              <CatalogCombobox
                 id="sheet-background"
+                kind="background"
+                edition={baseCharacter.rules_edition as RulesEdition}
                 value={draft.identity.background}
-                placeholder="Солдат, мудрец…"
-                onChange={(event) => patchIdentity({ background: event.target.value })}
+                placeholder="Начните вводить предысторию"
+                filterEntry={(entry) => isBackgroundComboboxRoot(entry)}
+                onChange={(value, selected) => {
+                  if (!selected) {
+                    setDraft((prev) => {
+                      const cleared = revokeBackgroundGrant(backgroundSliceFrom(prev))
+                      return {
+                        ...mergeBackgroundSlice(prev, cleared),
+                        identity: { ...cleared.identity, background: value },
+                        backgroundCatalogId: null,
+                      }
+                    })
+                    return
+                  }
+                  void requestOrApplyBackgroundGrant(selected)
+                }}
               />
+              <div className="languages-tools-add" style={{ marginTop: 8 }}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setBackgroundHomebrewOpen(true)}
+                >
+                  Хомбрю
+                </Button>
+              </div>
             </Field>
             <Field label="Мировоззрение" htmlFor="sheet-alignment">
               <Input
@@ -2266,54 +2510,11 @@ export function MinimalSheetEditor({
         </Stack>
       </Panel>
 
-      <Panel title="Владения снаряжением">
-        <Stack gap={12}>
-          <div>
-            <Text tone="muted">Доспехи</Text>
-            <div className="chip-row">
-              {ARMOR_PROF_OPTIONS.map((option) => (
-                <button
-                  key={option.key}
-                  type="button"
-                  className={`sheet-chip${draft.identity.armor[option.key] ? ' is-on' : ''}`}
-                  onClick={() =>
-                    patchIdentity({
-                      armor: {
-                        ...draft.identity.armor,
-                        [option.key]: !draft.identity.armor[option.key],
-                      },
-                    })
-                  }
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <Text tone="muted">Оружие</Text>
-            <div className="chip-row">
-              {WEAPON_PROF_OPTIONS.map((option) => (
-                <button
-                  key={option.key}
-                  type="button"
-                  className={`sheet-chip${draft.identity.weapons[option.key] ? ' is-on' : ''}`}
-                  onClick={() =>
-                    patchIdentity({
-                      weapons: {
-                        ...draft.identity.weapons,
-                        [option.key]: !draft.identity.weapons[option.key],
-                      },
-                    })
-                  }
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </Stack>
-      </Panel>
+      <EquipmentProficienciesPanel
+        armor={draft.identity.armor}
+        weapons={draft.identity.weapons}
+        onChange={(patch) => patchIdentity(patch)}
+      />
 
       <LanguagesToolsPanel
         languages={draft.identity.languages}
@@ -2714,6 +2915,31 @@ export function MinimalSheetEditor({
         onConfirm={(name) => {
           applyHomebrewRace(name)
           setRaceHomebrewOpen(false)
+        }}
+      />
+
+      <BackgroundSetupDialog
+        open={backgroundGrantPicker != null}
+        root={backgroundGrantPicker?.root ?? null}
+        variants={backgroundGrantPicker?.variants ?? []}
+        onClose={() => setBackgroundGrantPicker(null)}
+        onConfirm={(result) => {
+          commitBackgroundGrant({
+            selected: result.entry,
+            picks: result.picks,
+            def: result.def,
+          })
+          setBackgroundGrantPicker(null)
+        }}
+      />
+
+      <HomebrewBackgroundDialog
+        open={backgroundHomebrewOpen}
+        initialName={draft.identity.background}
+        onClose={() => setBackgroundHomebrewOpen(false)}
+        onConfirm={(name) => {
+          applyHomebrewBackground(name)
+          setBackgroundHomebrewOpen(false)
         }}
       />
 

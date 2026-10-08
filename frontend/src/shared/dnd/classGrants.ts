@@ -23,6 +23,8 @@ export type ClassProficiencyPackage = {
   saves: AbilityKey[]
   armor: ArmorProfKey[]
   weapons: WeaponProfKey[]
+  /** Specific weapons beyond simple/martial (RU labels). */
+  weaponExtras: string[]
   skillChoices: SkillChoice | null
   toolsFixed: string[]
   toolChoices: ToolChoice | null
@@ -406,6 +408,7 @@ function pkg(
     saves: partial.saves,
     armor: partial.armor,
     weapons: partial.weapons,
+    weaponExtras: partial.weaponExtras ?? [],
     skillChoices: partial.skillChoices ?? null,
     toolsFixed: partial.toolsFixed ?? [],
     toolChoices: partial.toolChoices ?? null,
@@ -448,6 +451,7 @@ export const CLASS_GRANT_DEFS: Record<string, ClassGrantDef> = {
       saves: ['dex', 'cha'],
       armor: ['light'],
       weapons: ['simple'],
+      weaponExtras: ['Ручной арбалет', 'Длинный меч', 'Рапира', 'Короткий меч'],
       skillChoices: {
         count: 3,
         from: 'any',
@@ -489,6 +493,7 @@ export const CLASS_GRANT_DEFS: Record<string, ClassGrantDef> = {
       saves: ['int', 'wis'],
       armor: ['light', 'medium', 'shields'],
       weapons: ['simple'],
+      weaponExtras: ['Ятаган'],
       skillChoices: {
         count: 2,
         from: [
@@ -546,6 +551,7 @@ export const CLASS_GRANT_DEFS: Record<string, ClassGrantDef> = {
       saves: ['str', 'dex'],
       armor: [],
       weapons: ['simple'],
+      weaponExtras: ['Короткий меч'],
       skillChoices: {
         count: 2,
         from: ['acrobatics', 'athletics', 'history', 'insight', 'religion', 'stealth'],
@@ -559,6 +565,7 @@ export const CLASS_GRANT_DEFS: Record<string, ClassGrantDef> = {
       saves: [],
       armor: [],
       weapons: ['simple'],
+      weaponExtras: ['Короткий меч'],
     }),
   },
   paladin: {
@@ -636,6 +643,7 @@ export const CLASS_GRANT_DEFS: Record<string, ClassGrantDef> = {
       saves: ['dex', 'int'],
       armor: ['light'],
       weapons: ['simple'],
+      weaponExtras: ['Ручной арбалет', 'Длинный меч', 'Рапира', 'Короткий меч'],
       skillChoices: {
         count: 4,
         from: [
@@ -797,6 +805,7 @@ export type AppliedClassGrant = {
   tools: string[]
   armorKeys: ArmorProfKey[]
   weaponKeys: WeaponProfKey[]
+  weaponExtras: string[]
   /** HP set at character level 1 from max hit die + CON (start only). */
   level1Hp: number | null
   equipmentPackageId: string | null
@@ -854,6 +863,51 @@ function parseWeaponKeys(raw: unknown): WeaponProfKey[] {
   if (row.simple === true) keys.push('simple')
   if (row.martial === true) keys.push('martial')
   return keys
+}
+
+function parseWeaponExtras(raw: unknown): string[] {
+  if (!raw || typeof raw !== 'object') return []
+  const row = raw as Record<string, unknown>
+  if (!Array.isArray(row.extras)) return []
+  // Lazy import avoided: resolve tokens inline via shared map in FE characters.
+  // Catalog uses EN tokens; resolveWeaponExtraList lives in characters/ — duplicate
+  // minimal mapping here to keep classGrants free of feature imports.
+  const TOKEN: Record<string, string> = {
+    hand_crossbow: 'Ручной арбалет',
+    longsword: 'Длинный меч',
+    shortsword: 'Короткий меч',
+    rapier: 'Рапира',
+    scimitar: 'Ятаган',
+    dagger: 'Кинжал',
+    shortbow: 'Короткий лук',
+    longbow: 'Длинный лук',
+    light_crossbow: 'Лёгкий арбалет',
+    quarterstaff: 'Боевой посох',
+    spear: 'Копьё',
+    javelin: 'Метательное копьё',
+    mace: 'Булава',
+    warhammer: 'Боевой молот',
+    handaxe: 'Ручной топор',
+    greataxe: 'Секира',
+    club: 'Дубинка',
+    dart: 'Дротик',
+    trident: 'Трезубец',
+    net: 'Сеть',
+    battleaxe: 'Боевой топор',
+    light_hammer: 'Лёгкий молот',
+  }
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const item of row.extras) {
+    if (typeof item !== 'string' || !item.trim()) continue
+    const key = item.trim().toLowerCase().replace(/[\s-]+/g, '_')
+    const name = TOKEN[key] ?? item.trim().replace(/\s+/g, ' ')
+    const lower = name.toLowerCase()
+    if (seen.has(lower)) continue
+    seen.add(lower)
+    out.push(name)
+  }
+  return out
 }
 
 function parseSkillChoice(raw: unknown): SkillChoice | null {
@@ -938,6 +992,7 @@ function parseProficiencyPackage(
     saves,
     armor: parseArmorList(source.armor),
     weapons: parseWeaponKeys(source.weapons),
+    weaponExtras: parseWeaponExtras(source.weapons),
     skillChoices: parseSkillChoice(source.skill_choices),
     toolsFixed: parseStringList(source.tools_fixed),
     toolChoices: parseToolChoice(source.tool_choices),
