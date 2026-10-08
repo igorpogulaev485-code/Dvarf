@@ -484,6 +484,16 @@
 
 <!-- tip feats-pickers: FEATS стек залит 2026-10-07; мягкие note (туз/хроматика/хаос-таблица) — динамика, не заглушки пикеров -->
 
+### 2026-10-08 — GEAR W1: инструменты / скакуны / сбруя / транспорт
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Backfill PHB | Ремесленные инструменты, наборы, игры, инструменты музыканта, скакуны, сбруя, повозки/корабли — RU + цена + вес + `item_category` | В справочнике не «English stub», а нормальные строки PHB |
+| Недостающие строки | Узда, вьючное седло, перемётные сумки, конюшня/день — insert; остальное upsert | Локально и на проде каталог добирается без wipe |
+| Пикер | Чипы «Инструменты / Скакуны / Сбруя / Транспорт / Наборы» | Быстро найти лютню или лошадь, не листая всё |
+
+На проде: **нет** · ветка `cursor/gear-tools-mounts-db96` · PR — · tip не менять до «залей» · alembic `d6e7` (после `c5d6`)
+
 ### 2026-10-08 — GEAR: природное оружие рас + Effects+ (заряды/спутники/заклинания)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -901,3 +911,4 @@
 | 2026-10-08 | `cursor/gear-effects-mvp-db96` · PR #90 | GEAR slice 9: gear effects engine MVP → «В ветках» |
 | 2026-10-08 | `cursor/gear-proficiency-effects-db96` · PR #91 | GEAR: armor/weapon proficiency gates + Effects+ skill/save/speed → «В ветках» |
 | 2026-10-08 | `cursor/gear-race-nw-effects-db96` · PR #92 | GEAR: race natural weapons + gear grant_spell/resource/companion → «В ветках» |
+| 2026-10-08 | `cursor/gear-tools-mounts-db96` | GEAR W1: tools/mounts/tack/vehicles RU backfill + picker filters; alembic `d6e7` → «В ветках» |

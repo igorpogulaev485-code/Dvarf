@@ -4,10 +4,12 @@ import type { RulesEdition } from '../../shared/api/characters'
 import { GEAR_RARITY_LABEL_RU, type GearRarity } from '../../shared/dnd/gearCatalog'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 import {
+  GEAR_ITEM_CATEGORY_LABEL_RU,
   groupGearByFamily,
   inventoryItemFromCatalog,
   summarizeGearEntry,
   type GearAddResult,
+  type GearPickerItemCategoryFilter,
   type GearPickerKindFilter,
 } from './gearFromCatalog'
 
@@ -23,6 +25,19 @@ const KIND_TABS: Array<{ id: GearPickerKindFilter; label: string }> = [
   { id: 'weapon', label: 'Оружие' },
   { id: 'armor', label: 'Доспехи' },
   { id: 'item', label: 'Вещи' },
+]
+
+const ITEM_CATEGORY_FILTERS: Array<{
+  id: GearPickerItemCategoryFilter
+  label: string
+}> = [
+  { id: 'all', label: 'Все вещи' },
+  { id: 'tool', label: GEAR_ITEM_CATEGORY_LABEL_RU.tool },
+  { id: 'mount', label: GEAR_ITEM_CATEGORY_LABEL_RU.mount },
+  { id: 'tack', label: GEAR_ITEM_CATEGORY_LABEL_RU.tack },
+  { id: 'vehicle', label: GEAR_ITEM_CATEGORY_LABEL_RU.vehicle },
+  { id: 'pack', label: GEAR_ITEM_CATEGORY_LABEL_RU.pack },
+  { id: 'other', label: GEAR_ITEM_CATEGORY_LABEL_RU.other },
 ]
 
 const RARITY_FILTERS: Array<{ id: GearRarity | 'all'; label: string }> = [
@@ -55,6 +70,8 @@ export function GearPickerDialog({
   const [loading, setLoading] = useState(false)
   const [entries, setEntries] = useState<CatalogEntry[]>([])
   const [kind, setKind] = useState<GearPickerKindFilter>('all')
+  const [itemCategory, setItemCategory] =
+    useState<GearPickerItemCategoryFilter>('all')
   const [rarity, setRarity] = useState<GearRarity | 'all'>('all')
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -66,6 +83,7 @@ export function GearPickerDialog({
   useEffect(() => {
     if (!open) return
     setKind('all')
+    setItemCategory('all')
     setRarity('all')
     setQuery('')
     setSelectedId(null)
@@ -102,6 +120,8 @@ export function GearPickerDialog({
     }
   }, [open, edition])
 
+  const showItemCategoryFilters = kind === 'all' || kind === 'item'
+
   const filtered = useMemo(() => {
     return entries.filter((entry) => {
       if (kind !== 'all' && entry.kind !== kind) return false
@@ -109,9 +129,26 @@ export function GearPickerDialog({
       const summary = summarizeGearEntry(entry)
       if (!summary) return false
       if (rarity !== 'all' && summary.rarity !== rarity) return false
+      if (itemCategory !== 'all') {
+        if (entry.kind !== 'item') return false
+        const cat = summary.item_category
+        if (itemCategory === 'other') {
+          if (
+            cat === 'tool' ||
+            cat === 'mount' ||
+            cat === 'tack' ||
+            cat === 'vehicle' ||
+            cat === 'pack'
+          ) {
+            return false
+          }
+        } else if (cat !== itemCategory) {
+          return false
+        }
+      }
       return true
     })
-  }, [entries, kind, query, rarity])
+  }, [entries, kind, itemCategory, query, rarity])
 
   const groups = useMemo(() => groupGearByFamily(filtered), [filtered])
 
@@ -167,12 +204,35 @@ export function GearPickerDialog({
               key={tab.id}
               type="button"
               className={`sheet-chip${kind === tab.id ? ' is-on' : ''}`}
-              onClick={() => setKind(tab.id)}
+              onClick={() => {
+                setKind(tab.id)
+                if (tab.id !== 'all' && tab.id !== 'item') {
+                  setItemCategory('all')
+                }
+              }}
             >
               {tab.label}
             </button>
           ))}
         </div>
+
+        {showItemCategoryFilters ? (
+          <div className="chip-row">
+            {ITEM_CATEGORY_FILTERS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`sheet-chip${itemCategory === tab.id ? ' is-on' : ''}`}
+                onClick={() => {
+                  setItemCategory(tab.id)
+                  if (tab.id !== 'all' && kind === 'all') setKind('item')
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         <Field label="Поиск">
           <input

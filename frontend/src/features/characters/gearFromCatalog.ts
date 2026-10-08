@@ -27,6 +27,28 @@ import { buildStartingWeaponAttacks } from './startingGearAttacks'
 
 export type GearPickerKindFilter = 'all' | 'weapon' | 'armor' | 'item'
 
+/** Optional item_category chips inside the gear picker (W1 tools/mounts). */
+export type GearPickerItemCategoryFilter =
+  | 'all'
+  | 'tool'
+  | 'mount'
+  | 'tack'
+  | 'vehicle'
+  | 'pack'
+  | 'other'
+
+export const GEAR_ITEM_CATEGORY_LABEL_RU: Record<
+  Exclude<GearPickerItemCategoryFilter, 'all'>,
+  string
+> = {
+  tool: 'Инструменты',
+  mount: 'Скакуны',
+  tack: 'Сбруя',
+  vehicle: 'Транспорт',
+  pack: 'Наборы',
+  other: 'Прочее',
+}
+
 export type GearCatalogSummary = {
   kind: 'weapon' | 'armor' | 'item'
   name_ru: string
@@ -107,8 +129,22 @@ export function summarizeGearEntry(entry: CatalogEntry): GearCatalogSummary | nu
     }
   }
   const parsed = parseItemCatalogData(data)
+  const categoryLabel =
+    parsed.item_category === 'tool'
+      ? GEAR_ITEM_CATEGORY_LABEL_RU.tool
+      : parsed.item_category === 'mount'
+        ? GEAR_ITEM_CATEGORY_LABEL_RU.mount
+        : parsed.item_category === 'tack'
+          ? GEAR_ITEM_CATEGORY_LABEL_RU.tack
+          : parsed.item_category === 'vehicle'
+            ? GEAR_ITEM_CATEGORY_LABEL_RU.vehicle
+            : parsed.item_category === 'pack'
+              ? GEAR_ITEM_CATEGORY_LABEL_RU.pack
+              : parsed.item_category !== 'other'
+                ? parsed.item_category
+                : ''
   const bits = [
-    parsed.item_category !== 'other' ? parsed.item_category : '',
+    categoryLabel,
     parsed.weight_lb != null ? `${parsed.weight_lb} фнт` : '',
     formatGearCostRu(parsed.cost),
     parsed.contents.length > 0 ? `набор ×${parsed.contents.length}` : '',
