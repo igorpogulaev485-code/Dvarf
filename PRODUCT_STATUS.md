@@ -843,4 +843,4 @@
 | 2026-10-08 | `cursor/gear-sheet-weapons-db96` · PR #84 | GEAR slice 3: starting gear attacks (light×N / stack qty) + armor maxDex on sheet → «В ветках» |
 | 2026-10-08 | `cursor/gear-packs-expand-db96` · PR #85 | GEAR slice 4: pack expand/collapse + nested weight for encumbrance → «В ветках» |
 | 2026-10-08 | `cursor/gear-picker-db96` · PR #86 | GEAR slice 5: catalog gear picker + family variants → «В ветках» |
-| 2026-10-08 | `cursor/gear-held-slots-db96` | GEAR slice 6: held hands (2H vs 1H×2) + attack sync → «В ветках» |
+| 2026-10-08 | `cursor/gear-held-slots-db96` · PR #87 | GEAR slice 6: held hands (2H vs 1H×2) + attack sync → «В ветках» |
