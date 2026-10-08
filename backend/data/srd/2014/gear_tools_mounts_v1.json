@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "notes": "PHB 2014 tools / gaming / instruments / mounts / tack / vehicles — RU + cost + item_category backfill; insert missing tack rows.",
+  "notes": "PHB 2014 tools / gaming / instruments / mounts / tack / vehicles — RU + cost + item_category backfill; insert missing tack rows. Canonical short slugs only (no musical_instrument_* / gaming_set_dice|cards aliases).",
   "updates": [
     {
       "op": "update",
@@ -707,32 +707,6 @@
     {
       "op": "update",
       "kind": "item",
-      "slug": "gaming_set_dice",
-      "name_ru": "Игральные кости",
-      "name_en": "Gaming Set, Dice",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 0,
-        "cost": {
-          "amount": 1,
-          "unit": "sp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "gaming"
-      },
-      "id": "c3a3b4c6-fcee-557a-9c5e-cdc567e32e2a",
-      "sort_order": 4527
-    },
-    {
-      "op": "update",
-      "kind": "item",
       "slug": "playing_card_set",
       "name_ru": "Игральные карты",
       "name_en": "Playing card set",
@@ -755,32 +729,6 @@
       },
       "id": "5132053b-65c2-53c0-9038-dee9d48f5025",
       "sort_order": 4528
-    },
-    {
-      "op": "update",
-      "kind": "item",
-      "slug": "gaming_set_playing_cards",
-      "name_ru": "Игральные карты",
-      "name_en": "Gaming Set, Playing Cards",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 0,
-        "cost": {
-          "amount": 5,
-          "unit": "sp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "gaming"
-      },
-      "id": "303fc857-91f2-584a-b5e1-73f29be30862",
-      "sort_order": 4529
     },
     {
       "op": "update",
@@ -863,32 +811,6 @@
     {
       "op": "update",
       "kind": "item",
-      "slug": "musical_instrument_bagpipes",
-      "name_ru": "Волынка",
-      "name_en": "Musical Instrument, Bagpipes",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 6,
-        "cost": {
-          "amount": 30,
-          "unit": "gp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "musical"
-      },
-      "id": "274a41f3-97c1-5046-b8a0-b620558d478f",
-      "sort_order": 4533
-    },
-    {
-      "op": "update",
-      "kind": "item",
       "slug": "drum",
       "name_ru": "Барабан",
       "name_en": "Drum",
@@ -911,32 +833,6 @@
       },
       "id": "3c4221e6-7d55-52cd-85cb-f3313beb023e",
       "sort_order": 4534
-    },
-    {
-      "op": "update",
-      "kind": "item",
-      "slug": "musical_instrument_drum",
-      "name_ru": "Барабан",
-      "name_en": "Musical Instrument, Drum",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 3,
-        "cost": {
-          "amount": 6,
-          "unit": "gp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "musical"
-      },
-      "id": "ea8ff5b0-9006-544a-ac0c-d98254828af5",
-      "sort_order": 4535
     },
     {
       "op": "update",
@@ -967,32 +863,6 @@
     {
       "op": "update",
       "kind": "item",
-      "slug": "musical_instrument_dulcimer",
-      "name_ru": "Цимбалы",
-      "name_en": "Musical Instrument, Dulcimer",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 10,
-        "cost": {
-          "amount": 25,
-          "unit": "gp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "musical"
-      },
-      "id": "f80f44a0-5322-55d1-bc27-b95553826f61",
-      "sort_order": 4537
-    },
-    {
-      "op": "update",
-      "kind": "item",
       "slug": "flute",
       "name_ru": "Флейта",
       "name_en": "Flute",
@@ -1015,32 +885,6 @@
       },
       "id": "2f3e9e03-e650-5e47-903e-1058c3463d71",
       "sort_order": 4538
-    },
-    {
-      "op": "update",
-      "kind": "item",
-      "slug": "musical_instrument_flute",
-      "name_ru": "Флейта",
-      "name_en": "Musical Instrument, Flute",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 1,
-        "cost": {
-          "amount": 2,
-          "unit": "gp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "musical"
-      },
-      "id": "565f16e6-4116-5a49-8220-88047686539e",
-      "sort_order": 4539
     },
     {
       "op": "update",
@@ -1071,32 +915,6 @@
     {
       "op": "update",
       "kind": "item",
-      "slug": "musical_instrument_lute",
-      "name_ru": "Лютня",
-      "name_en": "Musical Instrument, Lute",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 2,
-        "cost": {
-          "amount": 35,
-          "unit": "gp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "musical"
-      },
-      "id": "ef398589-9c3b-55c4-aa58-d04a08e95433",
-      "sort_order": 4541
-    },
-    {
-      "op": "update",
-      "kind": "item",
       "slug": "lyre",
       "name_ru": "Лира",
       "name_en": "Lyre",
@@ -1119,32 +937,6 @@
       },
       "id": "2352436f-491e-52a5-92ae-f294103fd3b9",
       "sort_order": 4542
-    },
-    {
-      "op": "update",
-      "kind": "item",
-      "slug": "musical_instrument_lyre",
-      "name_ru": "Лира",
-      "name_en": "Musical Instrument, Lyre",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 2,
-        "cost": {
-          "amount": 30,
-          "unit": "gp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "musical"
-      },
-      "id": "a7b915d9-2ab0-5de9-b5e9-09ca34618fa1",
-      "sort_order": 4543
     },
     {
       "op": "update",
@@ -1175,32 +967,6 @@
     {
       "op": "update",
       "kind": "item",
-      "slug": "musical_instrument_horn",
-      "name_ru": "Рожок",
-      "name_en": "Musical Instrument, Horn",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 2,
-        "cost": {
-          "amount": 3,
-          "unit": "gp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "musical"
-      },
-      "id": "91a9536e-7bec-5559-a583-e383217d6683",
-      "sort_order": 4545
-    },
-    {
-      "op": "update",
-      "kind": "item",
       "slug": "pan_flute",
       "name_ru": "Свирель",
       "name_en": "Pan flute",
@@ -1223,32 +989,6 @@
       },
       "id": "c3d903e7-fa6d-5ce8-a905-753893e206db",
       "sort_order": 4546
-    },
-    {
-      "op": "update",
-      "kind": "item",
-      "slug": "musical_instrument_pan_flute",
-      "name_ru": "Свирель",
-      "name_en": "Musical Instrument, Pan Flute",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 2,
-        "cost": {
-          "amount": 12,
-          "unit": "gp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "musical"
-      },
-      "id": "5e5b06af-177d-578c-a1b5-94d8286a779d",
-      "sort_order": 4547
     },
     {
       "op": "update",
@@ -1279,32 +1019,6 @@
     {
       "op": "update",
       "kind": "item",
-      "slug": "musical_instrument_shawm",
-      "name_ru": "Шалмей",
-      "name_en": "Musical Instrument, Shawm",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 1,
-        "cost": {
-          "amount": 2,
-          "unit": "gp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "musical"
-      },
-      "id": "51aa72b3-4ca1-5bdf-bc41-eaddd06fe3cd",
-      "sort_order": 4549
-    },
-    {
-      "op": "update",
-      "kind": "item",
       "slug": "viol",
       "name_ru": "Виола",
       "name_en": "Viol",
@@ -1327,32 +1041,6 @@
       },
       "id": "3ee1a849-b68e-5bd5-bc68-253c7c49879f",
       "sort_order": 4550
-    },
-    {
-      "op": "update",
-      "kind": "item",
-      "slug": "musical_instrument_viol",
-      "name_ru": "Виола",
-      "name_en": "Musical Instrument, Viol",
-      "source": "PHB 2014",
-      "data": {
-        "schema_version": 1,
-        "weight_lb": 1,
-        "cost": {
-          "amount": 30,
-          "unit": "gp"
-        },
-        "item_category": "tool",
-        "stackable": false,
-        "source_book": "PHB",
-        "rarity": "mundane",
-        "requires_attunement": false,
-        "wear_slot": "none",
-        "description_ru": "",
-        "tool_type": "musical"
-      },
-      "id": "0910ffee-1ba4-5900-92ba-6cbd494af538",
-      "sort_order": 4551
     },
     {
       "op": "update",

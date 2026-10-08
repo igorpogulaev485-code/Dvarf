@@ -34,6 +34,22 @@ INSERT_SLUGS = (
     "stabling_per_day",
 )
 
+# Alias stubs that may exist beside canonical short PHB slugs — remove on upgrade.
+ALIAS_SLUGS = (
+    "musical_instrument_bagpipes",
+    "musical_instrument_drum",
+    "musical_instrument_dulcimer",
+    "musical_instrument_flute",
+    "musical_instrument_lute",
+    "musical_instrument_lyre",
+    "musical_instrument_horn",
+    "musical_instrument_pan_flute",
+    "musical_instrument_shawm",
+    "musical_instrument_viol",
+    "gaming_set_dice",
+    "gaming_set_playing_cards",
+)
+
 
 def _load_payload() -> dict[str, Any]:
     candidates = [
@@ -148,8 +164,8 @@ def upgrade() -> None:
     payload = _load_payload()
     updates = payload.get("updates") or []
     inserts = payload.get("inserts") or []
-    if len(updates) < 70:
-        raise RuntimeError(f"Expected ~76 tool/mount updates, got {len(updates)}")
+    if len(updates) < 60:
+        raise RuntimeError(f"Expected ~64 tool/mount updates, got {len(updates)}")
     if len(inserts) < 4:
         raise RuntimeError(f"Expected 4 tack inserts, got {len(inserts)}")
 
@@ -162,10 +178,22 @@ def upgrade() -> None:
         else:
             inserted += 1
 
-    if updated + inserted < 74:
+    if updated + inserted < 60:
         raise RuntimeError(
             f"Expected to upsert many tool/mount rows; only touched {updated + inserted}"
         )
+
+    conn.execute(
+        sa.text(
+            """
+            DELETE FROM catalog_entries
+            WHERE kind = 'item'
+              AND rules_edition IN ('2014', 'both')
+              AND slug = ANY(:slugs)
+            """
+        ),
+        {"slugs": list(ALIAS_SLUGS)},
+    )
     _ = (updated, inserted)
 
 
