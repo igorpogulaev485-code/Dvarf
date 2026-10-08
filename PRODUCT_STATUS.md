@@ -492,7 +492,7 @@
 | Фокусы классов | `item_category: focus` + attunement для волшебника/чародея/друида/изобретателя | Классовый фокус с бонусом виден в пикере «Фокусы» |
 | Фильтр книги | Чипы PHB / DMG / XGE / TCE / EGW в справочнике | Не смешивать Xanathar с PHB-мунданом |
 
-На проде: **нет** · ветка `cursor/gear-xge-tce-items-db96` · PR — · tip не менять до «залей» · alembic `g9a0` (после `f8a9`)
+На проде: **нет** · ветка `cursor/gear-xge-tce-items-db96` · PR #97 · tip не менять до «залей» · alembic `g9a0` (после `f8a9`)
 
 ### 2026-10-08 — GEAR W3: чудесные предметы / кольца / зелья (SRD)
 
@@ -945,4 +945,4 @@
 | 2026-10-08 | `cursor/gear-tools-mounts-db96` · PR #94 | GEAR W1: tools/mounts/tack/vehicles RU backfill + picker filters; alembic `d6e7` → «В ветках» |
 | 2026-10-08 | `cursor/gear-magic-enrich-db96` · PR #95 | GEAR W2: DMG magic enrich (stats/effects/slots) + rarity badges; alembic `e7f8` → «В ветках» |
 | 2026-10-08 | `cursor/gear-wondrous-srd-db96` · PR #96 | GEAR W3: SRD wondrous/rings/potions insert + picker chips; alembic `f8a9` → «В ветках» |
-| 2026-10-08 | `cursor/gear-xge-tce-items-db96` | GEAR W4: XGE/TCE magic items + source_book filter; alembic `g9a0` → «В ветках» |
+| 2026-10-08 | `cursor/gear-xge-tce-items-db96` · PR #97 | GEAR W4: XGE/TCE magic items + source_book filter; alembic `g9a0` → «В ветках» |
