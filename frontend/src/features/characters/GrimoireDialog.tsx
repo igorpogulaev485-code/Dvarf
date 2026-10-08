@@ -29,6 +29,8 @@ type GrimoireDialogProps = {
   open: boolean
   edition: RulesEdition
   spells: SpellsState
+  /** Known casters: one «Добавить» that also marks ready; no prepare step. */
+  knownCaster?: boolean
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
@@ -42,6 +44,7 @@ export function GrimoireDialog({
   open,
   edition,
   spells,
+  knownCaster = false,
   onChange,
   onClose,
   onToast,
@@ -52,6 +55,7 @@ export function GrimoireDialog({
   const [query, setQuery] = useState('')
   const [classFilter, setClassFilter] = useState('all')
   const [levelFilter, setLevelFilter] = useState<'all' | number>('all')
+  const [bookFilter, setBookFilter] = useState('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -76,17 +80,29 @@ export function GrimoireDialog({
     }
   }, [open, edition])
 
+  const bookOptions = useMemo(() => {
+    const books = new Set<string>()
+    for (const entry of entries) {
+      const book = parseSpellCatalogData(entry.data).source_book?.trim()
+      if (book) books.add(book)
+    }
+    const preferred = ['PHB', 'XGE', 'TCE', 'EEPC', 'EGW', 'FTD', 'SCC', 'AI']
+    const rest = [...books].filter((b) => !preferred.includes(b)).sort()
+    return ['all', ...preferred.filter((b) => books.has(b)), ...rest]
+  }, [entries])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return entries.filter((entry) => {
       const parsed = parseSpellCatalogData(entry.data)
       if (levelFilter !== 'all' && parsed.level !== levelFilter) return false
       if (classFilter !== 'all' && !parsed.classes.includes(classFilter)) return false
+      if (bookFilter !== 'all' && parsed.source_book !== bookFilter) return false
       if (!q) return true
       const hay = `${entry.name_ru} ${entry.name_en ?? ''} ${entry.slug} ${parsed.source_book}`.toLowerCase()
       return hay.includes(q)
     })
-  }, [entries, query, classFilter, levelFilter])
+  }, [entries, query, classFilter, levelFilter, bookFilter])
 
   const groups = useMemo(() => {
     const asSpells = filtered.map((entry) => {
@@ -146,8 +162,9 @@ export function GrimoireDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          Справочник заклинаний 2014 (SRD + схема v1). Добавляй на лист, затем готовь через
-          «Подготовить».
+          {knownCaster
+            ? 'Официальные заклинания 2014. «Добавить» сразу делает заклинание доступным для каста.'
+            : 'Официальные заклинания 2014. Добавь на лист, затем подготовь (если класс готовит список).'}
         </Text>
 
         <Field label="Поиск">
@@ -167,6 +184,19 @@ export function GrimoireDialog({
               onClick={() => setClassFilter(item.id)}
             >
               {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="chip-row">
+          {bookOptions.map((book) => (
+            <button
+              key={book}
+              type="button"
+              className={`sheet-chip${bookFilter === book ? ' is-on' : ''}`}
+              onClick={() => setBookFilter(book)}
+            >
+              {book === 'all' ? 'Все книги' : book}
             </button>
           ))}
         </div>
@@ -255,6 +285,14 @@ export function GrimoireDialog({
                       <div className="grimoire-row__actions">
                         {onSheet ? (
                           <span className="sheet-chip is-on">На листе</span>
+                        ) : knownCaster ? (
+                          <button
+                            type="button"
+                            className="sheet-chip"
+                            onClick={() => addSpell(entry, true)}
+                          >
+                            Добавить
+                          </button>
                         ) : (
                           <>
                             <button

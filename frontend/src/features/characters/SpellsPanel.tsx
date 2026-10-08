@@ -36,7 +36,9 @@ import {
   canRemoveSheetSpell,
   countPreparedLeveled,
   createSheetSpell,
+  ensureKnownSpellsReady,
   isFeatSheetSpell,
+  isKnownSpellcastingMode,
   isRaceSheetSpell,
   groupSpellsByLevel,
   isReadyInCombat,
@@ -119,6 +121,20 @@ export function SpellsPanel({
       }),
     [className, level, classes, subclassCasters, abilities],
   )
+
+  const knownCaster = isKnownSpellcastingMode({
+    maxPrepared: spells.max_prepared,
+    hasCasterSuggestion: suggestion != null && suggestion.progression !== 'none',
+  })
+
+  useEffect(() => {
+    if (!knownCaster) return
+    const next = ensureKnownSpellsReady(spells.known)
+    if (next === spells.known) return
+    onChange({ ...spells, known: next })
+    // Keep known-list spells combat-ready when class has no prepare budget.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [knownCaster, spells.known.map((s) => `${s.id}:${s.prepared}`).join('|')])
 
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })
@@ -324,8 +340,9 @@ export function SpellsPanel({
     <Panel title="Заклинания">
       <Stack gap={14}>
         <Text tone="muted">
-          Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые заклинания — из
-          гримуара.
+          {knownCaster
+            ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку/pact. Новые — из гримуара.'
+            : 'Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые — из гримуара, затем подготовь.'}
         </Text>
 
         <div className="spells-summary">
@@ -338,8 +355,12 @@ export function SpellsPanel({
             <strong>{attack == null ? '—' : formatModifier(attack)}</strong>
           </div>
           <div className="spells-summary__stat">
-            <Text tone="muted">Подготовлено</Text>
-            <strong>{prepareLimitLabel}</strong>
+            <Text tone="muted">{knownCaster ? 'Известно' : 'Подготовлено'}</Text>
+            <strong>
+              {knownCaster
+                ? String(spells.known.filter((s) => s.level > 0).length)
+                : prepareLimitLabel}
+            </strong>
           </div>
         </div>
 
@@ -347,9 +368,11 @@ export function SpellsPanel({
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
           </Button>
-          <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
-            Подготовить заклинания
-          </Button>
+          {!knownCaster ? (
+            <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
+              Подготовить заклинания
+            </Button>
+          ) : null}
           <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
             Гримуар
           </Button>
@@ -645,6 +668,16 @@ export function SpellsPanel({
                                 </span>
                               )
                             }
+                            if (knownCaster) {
+                              return (
+                                <span
+                                  className="sheet-chip is-on"
+                                  title="Известное заклинание — всегда доступно"
+                                >
+                                  Известно
+                                </span>
+                              )
+                            }
                             return (
                               <button
                                 type="button"
@@ -756,6 +789,7 @@ export function SpellsPanel({
         open={grimoireOpen}
         edition={edition}
         spells={spells}
+        knownCaster={knownCaster}
         onChange={onChange}
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}
