@@ -9,8 +9,19 @@ import {
   type RaceSetupConfirm,
 } from '../features/characters/RaceSetupDialog'
 import { ClassSetupDialog } from '../features/characters/ClassSetupDialog'
+import {
+  GuidedWizardDialog,
+  type GuidedWizardSession,
+} from '../features/characters/GuidedWizardDialog'
+import { SubclassSetupDialog } from '../features/characters/SubclassSetupDialog'
 import { GrimoireDialog } from '../features/characters/GrimoireDialog'
 import { PrepareSpellsDialog } from '../features/characters/PrepareSpellsDialog'
+import { ABILITY_LABELS, SKILL_DEFS } from '../features/characters/sheetTypes'
+import {
+  emptySubclassPicks,
+  resolveSubclassDefFromCatalog,
+  subclassNeedsSetupDialog,
+} from '../features/characters/subclassEffects'
 import { AbilitiesStep } from '../features/createPipeline/AbilitiesStep'
 import { CatalogCardList } from '../features/createPipeline/CatalogCardList'
 import { CreatePipelineShell } from '../features/createPipeline/CreatePipelineShell'
@@ -38,9 +49,24 @@ import {
   type CharacterDetail,
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
+import {
+  applyClassAsiBonuses,
+  type AbilityKey,
+  type AppliedClassAsi,
+} from '../shared/dnd/classAsi'
+import { unlockFeaturesForClasses } from '../shared/dnd/classFeatures'
 import { resolveClassGrantDef } from '../shared/dnd/classGrants'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
+import {
+  syncSkillsExpertiseFromPicks,
+  type SkillExpertiseState,
+} from '../shared/dnd/expertise'
 import type { AbilityScores } from '../shared/dnd/multiclassRules'
+import {
+  buildPendingWizardSteps,
+  isSubclassGateFeature,
+  listUnlockedExpertiseKeys,
+} from '../shared/dnd/pendingFeatureChoices'
 import {
   isPointBuyValid,
   isStandardArrayComplete,
@@ -54,7 +80,11 @@ import {
   raceSubraceRequired,
   resolveRaceGrantDef,
 } from '../shared/dnd/raceGrants'
-import { emptyFeaturePicks, type FeaturePicksState } from '../shared/dnd/featurePicks'
+import type { SubclassGrantDef, SubclassGrantPicks } from '../shared/dnd/subclassGrants'
+import {
+  emptyFeaturePicks,
+  type FeaturePicksState,
+} from '../shared/dnd/featurePicks'
 import { readSpells, spellsToSheet, type SpellsState } from '../features/characters/spells'
 import { Button, Field, Input, Stack, Text, Toast } from '../ui'
 
@@ -74,6 +104,104 @@ function shortBlurb(entry: CatalogEntry | null): string {
     return summary.length > 420 ? `${summary.slice(0, 420)}…` : summary
   }
   return `${entry.name_ru}${entry.name_en ? ` (${entry.name_en})` : ''}. Подробности применятся после подтверждения шага.`
+}
+
+function emptyWizardSkills(): SkillExpertiseState {
+  return Object.fromEntries(
+    SKILL_DEFS.map((skill) => [
+      skill.key,
+      { is_proficient: false, is_expertise: false },
+    ]),
+  )
+}
+
+function markProficient(skills: SkillExpertiseState, keys: string[]): SkillExpertiseState {
+  const next = { ...skills }
+  for (const key of keys) {
+    const current = next[key] ?? { is_proficient: false, is_expertise: false }
+    next[key] = { ...current, is_proficient: true }
+  }
+  return next
+}
+
+/** Provisional skills/tools for GuidedWizard expertise (before full sheet apply). */
+function buildWizardProficiencies(state: CreatePipelineState): {
+  skills: SkillExpertiseState
+  tools: string[]
+} {
+  let skills = emptyWizardSkills()
+  const tools: string[] = []
+  const pushTools = (items: string[]) => {
+    for (const item of items) {
+      const trimmed = item.trim()
+      if (!trimmed) continue
+      if (!tools.some((row) => row.toLowerCase() === trimmed.toLowerCase())) {
+        tools.push(trimmed)
+      }
+    }
+  }
+
+  if (state.backgroundSetup?.picks) {
+    skills = markProficient(skills, state.backgroundSetup.picks.skills)
+    pushTools(state.backgroundSetup.picks.tools)
+  }
+  if (state.raceSetup?.picks) {
+    skills = markProficient(skills, state.raceSetup.picks.skills)
+    pushTools(state.raceSetup.picks.tools)
+  }
+  for (const picks of Object.values(state.classGrantPicks ?? {})) {
+    skills = markProficient(skills, picks.skills)
+    pushTools(picks.tools)
+  }
+  for (const setup of Object.values(state.subclassSetups ?? {})) {
+    const def = resolveSubclassDefFromCatalog({
+      nameRu: setup.entry.name_ru,
+      slug: setup.entry.slug,
+      catalogData: setup.entry.data,
+    })
+    if (!def) continue
+    skills = markProficient(skills, def.sheetGrants.skillsFixed)
+    pushTools(def.sheetGrants.toolsFixed)
+    for (const [choiceId, value] of Object.entries(setup.picks.values)) {
+      const choice = def.choices.find((row) => row.id === choiceId)
+      if (!choice || choice.appliesTo !== 'grant') continue
+      const values = Array.isArray(value) ? value : typeof value === 'string' ? [value] : []
+      const idLower = choice.id.toLowerCase()
+      if (idLower.includes('tool')) {
+        pushTools(values)
+        continue
+      }
+      if (idLower.includes('lang')) continue
+      skills = markProficient(
+        skills,
+        values.filter((key) => SKILL_DEFS.some((skill) => skill.key === key)),
+      )
+    }
+  }
+
+  const subclassSlugByEntryId: Record<string, string> = {}
+  for (const [entryId, setup] of Object.entries(state.subclassSetups ?? {})) {
+    if (setup.entry.slug) subclassSlugByEntryId[entryId] = setup.entry.slug
+  }
+  const unlocked = unlockFeaturesForClasses({
+    classes: state.classes,
+    characterLevel: totalCharacterLevel(state.classes),
+    abilities: state.baseAbilities,
+    subclassSlugByEntryId,
+  })
+  skills = syncSkillsExpertiseFromPicks({
+    skills,
+    featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+    expertiseKeys: listUnlockedExpertiseKeys(unlocked),
+  })
+  return { skills, tools }
+}
+
+function hasSubclassSelected(row: {
+  subclass_name: string
+  subclass_catalog_id: string | null
+}): boolean {
+  return Boolean(row.subclass_catalog_id || row.subclass_name.trim())
 }
 
 export function CreateCharacterPage() {
@@ -100,9 +228,20 @@ export function CreateCharacterPage() {
     mode: 'start' | 'multiclass'
     classEntryId: string
   } | null>(null)
+  const [subclassPicker, setSubclassPicker] = useState<{
+    classEntryId: string
+    parentCatalogId: string
+    className: string
+    options: CatalogEntry[]
+  } | null>(null)
+  const [subclassSetup, setSubclassSetup] = useState<{
+    classEntryId: string
+    selected: CatalogEntry
+    def: SubclassGrantDef
+  } | null>(null)
+  const [guidedWizard, setGuidedWizard] = useState<GuidedWizardSession | null>(null)
   const [spellsOpen, setSpellsOpen] = useState<'prepare' | 'grimoire' | null>(null)
   const [spells, setSpells] = useState<SpellsState>(() => readSpells({}))
-  const [featurePicks, setFeaturePicks] = useState<FeaturePicksState>(emptyFeaturePicks())
   const [racialBonuses, setRacialBonuses] = useState<Partial<AbilityScores>>({})
   const [toast, setToast] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -177,9 +316,6 @@ export function CreateCharacterPage() {
           characterName: character.name !== 'Новый персонаж' ? character.name : hydrated.characterName,
         })
         setSpells(readSpells(character.sheet))
-        setFeaturePicks(
-          (character.sheet.feature_picks as FeaturePicksState) ?? emptyFeaturePicks(),
-        )
       })
       .catch((err: unknown) => {
         if (!active) return
@@ -195,9 +331,183 @@ export function CreateCharacterPage() {
     [racialBonuses, state.baseAbilities],
   )
 
+  const wizardAbilities = useMemo(() => {
+    let scores = { ...finalAbilities } as Record<AbilityKey, number>
+    for (const entry of state.classAsi ?? []) {
+      scores = applyClassAsiBonuses(scores, entry.bonuses)
+    }
+    return scores
+  }, [finalAbilities, state.classAsi])
+
+  const wizardProficiencies = useMemo(
+    () => buildWizardProficiencies(state),
+    [state],
+  )
+
+  const subclassSlugByEntryId = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const [entryId, setup] of Object.entries(state.subclassSetups ?? {})) {
+      if (setup.entry.slug) map[entryId] = setup.entry.slug
+    }
+    return map
+  }, [state.subclassSetups])
+
+  const unlockedFeatures = useMemo(
+    () =>
+      unlockFeaturesForClasses({
+        classes: state.classes,
+        characterLevel: totalCharacterLevel(state.classes),
+        abilities: wizardAbilities,
+        subclassSlugByEntryId,
+      }),
+    [state.classes, subclassSlugByEntryId, wizardAbilities],
+  )
+
+  const expertiseKeys = useMemo(
+    () => listUnlockedExpertiseKeys(unlockedFeatures),
+    [unlockedFeatures],
+  )
+
+  const hasSubclassByEntryId = useMemo(() => {
+    const map: Record<string, boolean> = {}
+    for (const row of state.classes) {
+      map[row.id] = hasSubclassSelected(row)
+    }
+    return map
+  }, [state.classes])
+
+  const hasClassGrantPicks = useMemo(() => {
+    const map: Record<string, boolean> = {}
+    for (const row of state.classes) {
+      map[row.id] = Boolean(state.classGrantPicks?.[row.id])
+    }
+    return map
+  }, [state.classGrantPicks, state.classes])
+
   const patchState = useCallback((patch: Partial<CreatePipelineState>) => {
     setState((prev) => ({ ...prev, ...patch }))
   }, [])
+
+  function openGuidedWizard(session: GuidedWizardSession) {
+    if (session.steps.length === 0) {
+      setGuidedWizard(null)
+      return
+    }
+    setGuidedWizard({
+      ...session,
+      index: Math.min(session.index, session.steps.length - 1),
+    })
+  }
+
+  function openFeatureWizardForClass(classEntryId: string) {
+    const row = state.classes.find((item) => item.id === classEntryId)
+    if (!row) {
+      setToast('Сначала зафиксируйте класс')
+      return
+    }
+    if (!state.classGrantPicks?.[classEntryId]) {
+      setToast('Сначала выберите навыки и снаряжение класса')
+      return
+    }
+    const steps = buildPendingWizardSteps({
+      unlocked: unlockedFeatures,
+      featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+      classAsi: state.classAsi ?? [],
+      filter: {
+        mode: 'up_to_class_level',
+        classEntryId,
+        maxClassLevel: row.level,
+      },
+      hasSubclassByEntryId,
+    }).filter((step) => step.kind !== 'class_grant' && step.kind !== 'background')
+    if (steps.length === 0) {
+      setToast('Все развилки и ASI для этого класса закрыты')
+      return
+    }
+    openGuidedWizard({ steps, index: 0 })
+  }
+
+  function beginSubclassSelection(classEntryId: string, selected: CatalogEntry) {
+    const def = resolveSubclassDefFromCatalog({
+      nameRu: selected.name_ru,
+      slug: selected.slug,
+      catalogData: selected.data,
+    })
+    if (def && subclassNeedsSetupDialog(def)) {
+      setSubclassSetup({ classEntryId, selected, def })
+      return
+    }
+    commitSubclassSetup(classEntryId, selected, emptySubclassPicks(), def)
+  }
+
+  function commitSubclassSetup(
+    classEntryId: string,
+    selected: CatalogEntry,
+    picks: SubclassGrantPicks,
+    def: SubclassGrantDef | null,
+  ) {
+    const nextClasses = state.classes.map((row) =>
+      row.id === classEntryId
+        ? {
+            ...row,
+            subclass_name: selected.name_ru,
+            subclass_catalog_id: selected.id,
+          }
+        : row,
+    )
+    const nextSetups = {
+      ...state.subclassSetups,
+      [classEntryId]: {
+        entry: catalogSnapshot(selected),
+        picks,
+      },
+    }
+    patchState({
+      classes: nextClasses,
+      subclassSetups: nextSetups,
+      sheetDraft: {
+        ...state.sheetDraft,
+        subclass_setups: nextSetups,
+      },
+      stepDirty: { ...state.stepDirty, leveling: true },
+    })
+    setSubclassSetup(null)
+    setSubclassPicker(null)
+    setToast(
+      def
+        ? `Архетип «${selected.name_ru}» сохранён`
+        : `Архетип «${selected.name_ru}» (без пакета грантов)`,
+    )
+  }
+
+  async function openArchetypePicker(classEntryId: string) {
+    const row = state.classes.find((item) => item.id === classEntryId)
+    if (!row?.catalog_id) {
+      setToast('Сначала зафиксируйте класс из справочника')
+      return
+    }
+    try {
+      const options = await listCatalogEntries({
+        kind: 'subclass',
+        edition: '2014',
+        parentId: row.catalog_id,
+      })
+      if (!options.length) {
+        setToast('В справочнике нет архетипов для этого класса')
+        return
+      }
+      setSubclassPicker({
+        classEntryId,
+        parentCatalogId: row.catalog_id,
+        className: row.name,
+        options: options.filter((entry) => entry.is_active).sort((a, b) =>
+          a.name_ru.localeCompare(b.name_ru, 'ru'),
+        ),
+      })
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить архетипы')
+    }
+  }
 
   function goToStep(next: CreatePipelineStepId) {
     const current = state.step
@@ -225,8 +535,14 @@ export function CreateCharacterPage() {
             }),
           ],
           hpChoices: [],
+          subclassSetups: {},
+          featurePicks: emptyFeaturePicks(),
+          classAsi: [],
           stepDirty: { ...state.stepDirty, leveling: false },
         })
+        setGuidedWizard(null)
+        setSubclassPicker(null)
+        setSubclassSetup(null)
         return
       }
       if (current === 'race') {
@@ -247,6 +563,9 @@ export function CreateCharacterPage() {
           step: next,
           classRef: null,
           classGrantPicks: {},
+          subclassSetups: {},
+          featurePicks: emptyFeaturePicks(),
+          classAsi: [],
           stepDirty: { ...state.stepDirty, class: false },
         })
         setSelectedClass(null)
@@ -271,13 +590,15 @@ export function CreateCharacterPage() {
           ...state,
           sheetDraft: {
             ...state.sheetDraft,
-            feature_picks: featurePicks,
+            feature_picks: state.featurePicks,
             spells: spellsToSheet(spells),
-            class_asi: state.sheetDraft.class_asi,
+            class_asi: state.classAsi,
             class_grant_picks: state.classGrantPicks,
+            subclass_setups: state.subclassSetups,
           },
         },
-        featurePicks,
+        featurePicks: state.featurePicks,
+        classAsi: state.classAsi,
         spells,
         catalog: { backgrounds, races, classes },
       })
@@ -342,6 +663,15 @@ export function CreateCharacterPage() {
     if (!abilitiesValid()) return 'Закройте характеристики'
     if (!state.classes.some((row) => row.level > 0 && row.name.trim())) {
       return 'Задайте уровни в прокачке'
+    }
+    if (!state.classGrantPicks?.[state.classEntryId]) {
+      return 'Выберите навыки и снаряжение основного класса (Развилки и умения)'
+    }
+    for (const feature of unlockedFeatures) {
+      if (!isSubclassGateFeature(feature)) continue
+      const row = state.classes.find((item) => item.id === feature.classEntryId)
+      if (!row || hasSubclassSelected(row)) continue
+      return `Выберите архетип для «${row.name || feature.className}» (${feature.name_ru})`
     }
     return null
   }
@@ -604,9 +934,10 @@ export function CreateCharacterPage() {
       <LevelingStep
         classes={state.classes}
         classCatalog={classes}
-        abilities={finalAbilities}
+        abilities={wizardAbilities}
         hpChoices={state.hpChoices}
         primaryClassEntryId={state.classEntryId}
+        hasClassGrantPicks={hasClassGrantPicks}
         onClassesChange={(next) =>
           patchState({
             classes: next,
@@ -615,6 +946,9 @@ export function CreateCharacterPage() {
           })
         }
         onHpChoicesChange={(hpChoices) => patchState({ hpChoices })}
+        onOpenArchetype={(classEntryId) => {
+          void openArchetypePicker(classEntryId)
+        }}
         onOpenChoices={(classEntryId) => {
           const row = state.classes.find((item) => item.id === classEntryId)
           const catalog =
@@ -627,20 +961,24 @@ export function CreateCharacterPage() {
             setToast('Сначала зафиксируйте класс')
             return
           }
-          const def = resolveClassGrantDef({
-            className: catalog.name_ru,
-            catalogSlug: catalog.slug,
-            catalogData: catalog.data,
-          })
-          if (!def) {
-            setToast('Нет пакета владений для класса')
+          if (!state.classGrantPicks?.[classEntryId]) {
+            const def = resolveClassGrantDef({
+              className: catalog.name_ru,
+              catalogSlug: catalog.slug,
+              catalogData: catalog.data,
+            })
+            if (!def) {
+              setToast('Нет пакета владений для класса')
+              return
+            }
+            setClassSetup({
+              def,
+              mode: classEntryId === state.classEntryId ? 'start' : 'multiclass',
+              classEntryId,
+            })
             return
           }
-          setClassSetup({
-            def,
-            mode: classEntryId === state.classEntryId ? 'start' : 'multiclass',
-            classEntryId,
-          })
+          openFeatureWizardForClass(classEntryId)
         }}
         onOpenSpells={() => setSpellsOpen('grimoire')}
       />
@@ -756,7 +1094,8 @@ export function CreateCharacterPage() {
         open={Boolean(classSetup)}
         def={classSetup?.def ?? null}
         mode={classSetup?.mode ?? 'start'}
-        blockedSkillKeys={[]}
+        blockedSkillKeys={state.backgroundSetup?.picks.skills ?? []}
+        blockedToolNames={state.backgroundSetup?.picks.tools ?? []}
         onClose={() => setClassSetup(null)}
         onConfirm={(picks: ClassGrantPicks) => {
           const entryId = classSetup?.classEntryId ?? state.classEntryId
@@ -764,17 +1103,156 @@ export function CreateCharacterPage() {
             ...state.classGrantPicks,
             [entryId]: picks,
           }
-          patchState({
+          const nextState: CreatePipelineState = {
+            ...state,
             classGrantPicks: nextPicks,
             sheetDraft: {
               ...state.sheetDraft,
               class_grant_picks: nextPicks,
             },
-          })
+          }
+          setState(nextState)
           setClassSetup(null)
           setToast('Выборы класса сохранены')
+          // Open feature/ASI wizard for remaining pending steps.
+          const row = nextState.classes.find((item) => item.id === entryId)
+          if (!row) return
+          const unlocked = unlockFeaturesForClasses({
+            classes: nextState.classes,
+            characterLevel: totalCharacterLevel(nextState.classes),
+            abilities: wizardAbilities,
+            subclassSlugByEntryId,
+          })
+          const hasSubclass: Record<string, boolean> = {}
+          for (const item of nextState.classes) {
+            hasSubclass[item.id] = hasSubclassSelected(item)
+          }
+          const steps = buildPendingWizardSteps({
+            unlocked,
+            featurePicks: nextState.featurePicks ?? emptyFeaturePicks(),
+            classAsi: nextState.classAsi ?? [],
+            filter: {
+              mode: 'up_to_class_level',
+              classEntryId: entryId,
+              maxClassLevel: row.level,
+            },
+            hasSubclassByEntryId: hasSubclass,
+          }).filter((step) => step.kind !== 'class_grant' && step.kind !== 'background')
+          if (steps.length > 0) openGuidedWizard({ steps, index: 0 })
         }}
       />
+
+      <SubclassSetupDialog
+        open={Boolean(subclassSetup)}
+        def={subclassSetup?.def ?? null}
+        onClose={() => setSubclassSetup(null)}
+        onConfirm={(picks: SubclassGrantPicks) => {
+          if (!subclassSetup) return
+          commitSubclassSetup(
+            subclassSetup.classEntryId,
+            subclassSetup.selected,
+            picks,
+            subclassSetup.def,
+          )
+        }}
+      />
+
+      <GuidedWizardDialog
+        open={guidedWizard != null}
+        session={guidedWizard}
+        edition="2014"
+        abilities={wizardAbilities}
+        skills={wizardProficiencies.skills}
+        tools={wizardProficiencies.tools}
+        featurePicks={state.featurePicks ?? emptyFeaturePicks()}
+        expertiseKeys={expertiseKeys}
+        backgroundName={state.background?.nameRu ?? ''}
+        blockedSkillKeys={state.backgroundSetup?.picks.skills ?? []}
+        blockedToolNames={state.backgroundSetup?.picks.tools ?? []}
+        onFeaturePicksChange={(featurePicks: FeaturePicksState) => {
+          patchState({
+            featurePicks,
+            sheetDraft: {
+              ...state.sheetDraft,
+              feature_picks: featurePicks,
+            },
+          })
+        }}
+        onConfirmClassGrant={() => {
+          // Class grants are handled by ClassSetupDialog in the pipeline.
+        }}
+        onConfirmAsi={(entry: AppliedClassAsi) => {
+          const nextAsi = [...(state.classAsi ?? []), entry]
+          patchState({
+            classAsi: nextAsi,
+            sheetDraft: {
+              ...state.sheetDraft,
+              class_asi: nextAsi,
+            },
+          })
+          const bits = Object.entries(entry.bonuses)
+            .filter(([, amount]) => amount)
+            .map(([key, amount]) => `${ABILITY_LABELS[key as AbilityKey]}+${amount}`)
+          setToast(bits.length ? `ASI: ${bits.join(', ')}` : 'ASI записан')
+        }}
+        onSelectBackground={() => {
+          setToast('Предыстория уже выбрана на предыдущем шаге')
+        }}
+        onAdvance={(nextIndex) => {
+          setGuidedWizard((prev) => {
+            if (!prev) return null
+            if (nextIndex >= prev.steps.length) {
+              setToast('Развилки сохранены')
+              return null
+            }
+            return { ...prev, index: nextIndex }
+          })
+        }}
+        onSkipStep={() => {
+          setGuidedWizard((prev) => {
+            if (!prev) return null
+            const nextIndex = prev.index + 1
+            if (nextIndex >= prev.steps.length) return null
+            return { ...prev, index: nextIndex }
+          })
+        }}
+        onClose={() => setGuidedWizard(null)}
+        onToast={setToast}
+        onFocusSubclass={(classEntryId) => {
+          setGuidedWizard(null)
+          void openArchetypePicker(classEntryId)
+        }}
+      />
+
+      {subclassPicker ? (
+        <div className="create-pipeline__modal">
+          <Stack gap={12}>
+            <Text as="h3">Архетип · {subclassPicker.className}</Text>
+            <Text tone="muted">Выберите подкласс из справочника.</Text>
+            <ul className="create-pipeline__card-list">
+              {subclassPicker.options.map((entry) => (
+                <li key={entry.id}>
+                  <button
+                    type="button"
+                    className="create-pipeline__card"
+                    onClick={() => {
+                      beginSubclassSelection(subclassPicker.classEntryId, entry)
+                    }}
+                  >
+                    <span className="create-pipeline__card-title">{entry.name_ru}</span>
+                    <span className="create-pipeline__card-sub">
+                      {entry.name_en ?? entry.source ?? entry.slug}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <Button variant="secondary" onClick={() => setSubclassPicker(null)}>
+              Отмена
+            </Button>
+          </Stack>
+        </div>
+      ) : null}
 
       <GrimoireDialog
         open={spellsOpen === 'grimoire'}

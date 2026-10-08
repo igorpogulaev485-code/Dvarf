@@ -9,6 +9,9 @@ import { createClassLevel } from '../../shared/dnd/classLevels'
 import type { BackgroundGrantPicks } from '../../shared/dnd/backgroundGrants'
 import type { RaceGrantPicks } from '../../shared/dnd/raceGrants'
 import type { ClassGrantPicks } from '../../shared/dnd/classGrants'
+import type { SubclassGrantPicks } from '../../shared/dnd/subclassGrants'
+import type { AppliedClassAsi } from '../../shared/dnd/classAsi'
+import { emptyFeaturePicks, type FeaturePicksState } from '../../shared/dnd/featurePicks'
 
 export const CREATE_PIPELINE_STEPS = [
   'background',
@@ -58,6 +61,11 @@ export type RaceSetupStored = {
   picks: RaceGrantPicks
 }
 
+export type SubclassSetupStored = {
+  entry: PipelineCatalogSnapshot
+  picks: SubclassGrantPicks
+}
+
 export type HpGainMode = 'average' | 'roll'
 
 export type HpLevelChoice = {
@@ -84,6 +92,8 @@ export type CreatePipelineState = {
   classEntryId: string
   /** Class grant picks keyed by class entry id. */
   classGrantPicks: Record<string, ClassGrantPicks>
+  /** Subclass grant setups keyed by class entry id. */
+  subclassSetups: Record<string, SubclassSetupStored>
   race: PipelineCatalogRef | null
   subrace: PipelineCatalogRef | null
   /** Full race confirm payload for re-apply on save. */
@@ -93,6 +103,10 @@ export type CreatePipelineState = {
   baseAbilities: AbilityScores
   classes: ClassLevelEntry[]
   hpChoices: HpLevelChoice[]
+  /** Feature choice / expertise picks from GuidedWizard. */
+  featurePicks: FeaturePicksState
+  /** Class ASI ledger from GuidedWizard. */
+  classAsi: AppliedClassAsi[]
   /** Full sheet-shaped draft for grants / picks / spells. */
   sheetDraft: Record<string, unknown>
   /** Step-local dirty flags — clearing on back navigation. */
@@ -124,6 +138,7 @@ export function createEmptyPipelineState(): CreatePipelineState {
     classRef: null,
     classEntryId: classEntry.id,
     classGrantPicks: {},
+    subclassSetups: {},
     race: null,
     subrace: null,
     raceSetup: null,
@@ -131,6 +146,8 @@ export function createEmptyPipelineState(): CreatePipelineState {
     baseAbilities: emptyBaseScores(8),
     classes: [classEntry],
     hpChoices: [],
+    featurePicks: emptyFeaturePicks(),
+    classAsi: [],
     sheetDraft: {},
     stepDirty: {},
   }

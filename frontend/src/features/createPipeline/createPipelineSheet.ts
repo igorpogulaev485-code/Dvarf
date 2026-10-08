@@ -3,7 +3,9 @@
 import type { AbilityScores } from '../../shared/dnd/multiclassRules'
 import { mergeRacialBonuses } from '../../shared/dnd/pointBuy'
 import { totalCharacterLevel } from '../../shared/dnd/classLevels'
-import { classLevelsToSheet } from '../characters/classLevels'
+import { emptyFeaturePicks, readFeaturePicks } from '../../shared/dnd/featurePicks'
+import { readClassAsiLedger } from '../../shared/dnd/classAsi'
+import { classLevelsToSheet, readClassLevels } from '../characters/classLevels'
 import { xpToReachLevel } from '../../shared/dnd/experience'
 import type { CreatePipelineState } from './createPipelineTypes'
 
@@ -86,6 +88,9 @@ export function buildSheetFromPipeline(
     backgroundSetup: state.backgroundSetup,
     raceSetup: state.raceSetup,
     classGrantPicks: state.classGrantPicks,
+    subclassSetups: state.subclassSetups,
+    featurePicks: state.featurePicks,
+    classAsi: state.classAsi,
   }
 
   combat.hp_max = combat.hp_max ?? null
@@ -105,6 +110,26 @@ export function hydratePipelineFromSheet(
     meta.classGrantPicks && typeof meta.classGrantPicks === 'object'
       ? (meta.classGrantPicks as CreatePipelineState['classGrantPicks'])
       : fallback.classGrantPicks
+  const subclassSetups =
+    meta.subclassSetups && typeof meta.subclassSetups === 'object'
+      ? (meta.subclassSetups as CreatePipelineState['subclassSetups'])
+      : fallback.subclassSetups
+  const featurePicks = meta.featurePicks
+    ? readFeaturePicks(meta.featurePicks)
+    : sheet.feature_picks
+      ? readFeaturePicks(sheet.feature_picks)
+      : fallback.featurePicks ?? emptyFeaturePicks()
+  const classAsi = Array.isArray(meta.classAsi)
+    ? readClassAsiLedger(meta.classAsi)
+    : sheet.class_asi
+      ? readClassAsiLedger(sheet.class_asi)
+      : fallback.classAsi
+  const classes = readClassLevels(sheet, {
+    className: (meta.classRef as CreatePipelineState['classRef'])?.nameRu ?? '',
+    level: 1,
+    subclassName: '',
+    classCatalogId: (meta.classRef as CreatePipelineState['classRef'])?.id ?? null,
+  })
 
   return {
     ...fallback,
@@ -127,18 +152,22 @@ export function hydratePipelineFromSheet(
       fallback.backgroundSetup,
     classRef: (meta.classRef as CreatePipelineState['classRef']) || fallback.classRef,
     classGrantPicks,
+    subclassSetups,
     race: (meta.race as CreatePipelineState['race']) || fallback.race,
     subrace: (meta.subrace as CreatePipelineState['subrace']) || fallback.subrace,
     raceSetup:
       (meta.raceSetup as CreatePipelineState['raceSetup']) || fallback.raceSetup,
+    classes: classes.length ? classes : fallback.classes,
+    featurePicks,
+    classAsi,
     sheetDraft: {
       background_grant: sheet.background_grant,
       race_grant: sheet.race_grant,
       class_grants: sheet.class_grants,
       subclass_grants: sheet.subclass_grants,
       class_grant_picks: classGrantPicks,
-      feature_picks: sheet.feature_picks,
-      class_asi: sheet.class_asi,
+      feature_picks: featurePicks,
+      class_asi: classAsi,
       skills: sheet.skills,
       inventory: sheet.inventory,
       weapons: sheet.weapons,

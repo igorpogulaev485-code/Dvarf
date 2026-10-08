@@ -30,7 +30,23 @@ import {
   readFeaturePicks,
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
-import { readClassAsiLedger, type AppliedClassAsi } from '../../shared/dnd/classAsi'
+import {
+  applyClassAsiBonuses,
+  readClassAsiLedger,
+  type AppliedClassAsi,
+} from '../../shared/dnd/classAsi'
+import {
+  emptySubclassPicks,
+  type AppliedSubclassGrant,
+  type SubclassGrantPicks,
+} from '../../shared/dnd/subclassGrants'
+import {
+  unlockFeaturesForClasses,
+} from '../../shared/dnd/classFeatures'
+import {
+  syncSkillsExpertiseFromPicks,
+} from '../../shared/dnd/expertise'
+import { listUnlockedExpertiseKeys } from '../../shared/dnd/pendingFeatureChoices'
 import {
   applyBackgroundGrantToDraft,
   type BackgroundGrantDraftSlice,
@@ -45,6 +61,11 @@ import {
   type ClassGrantDraftSlice,
   type SaveState,
 } from '../characters/classEffects'
+import {
+  applySubclassGrantToDraft,
+  resolveSubclassDefFromCatalog,
+  type SubclassGrantDraftSlice,
+} from '../characters/subclassEffects'
 import {
   EMPTY_ARMOR,
   EMPTY_WEAPONS,
@@ -108,6 +129,8 @@ type WorkingDraft = {
   weapons: WeaponAttack[]
   spells: SpellsState
   classGrants: ClassGrantDraftSlice['classGrants']
+  subclassGrants: AppliedSubclassGrant[]
+  companions: SubclassGrantDraftSlice['companions']
   backgroundGrant: BackgroundGrantDraftSlice['backgroundGrant']
   raceGrant: RaceGrantDraftSlice['raceGrant']
   playHitDie: HitDie | null
@@ -175,6 +198,8 @@ function createWorkingDraft(baseAbilities: AbilityScores): WorkingDraft {
     weapons: [],
     spells: readSpells({}),
     classGrants: [],
+    subclassGrants: [],
+    companions: [],
     backgroundGrant: null,
     raceGrant: null,
     playHitDie: null,
@@ -361,6 +386,22 @@ function normalizeClassPicks(raw: unknown): ClassGrantPicks {
   }
 }
 
+function normalizeSubclassPicks(raw: unknown): SubclassGrantPicks {
+  if (!raw || typeof raw !== 'object') return emptySubclassPicks()
+  const row = raw as { values?: unknown }
+  if (!row.values || typeof row.values !== 'object' || Array.isArray(row.values)) {
+    return emptySubclassPicks()
+  }
+  const values: Record<string, string | string[]> = {}
+  for (const [key, value] of Object.entries(row.values as Record<string, unknown>)) {
+    if (typeof value === 'string') values[key] = value
+    else if (Array.isArray(value) && value.every((item) => typeof item === 'string')) {
+      values[key] = value as string[]
+    }
+  }
+  return { values }
+}
+
 function readStoredClassPicks(state: CreatePipelineState): Record<string, ClassGrantPicks> {
   const fromState = state.classGrantPicks ?? {}
   const fromDraft = asRecord(state.sheetDraft.class_grant_picks)
@@ -372,6 +413,31 @@ function readStoredClassPicks(state: CreatePipelineState): Record<string, ClassG
     merged[key] = normalizeClassPicks(value)
   }
   return merged
+}
+
+function subclassSlice(draft: WorkingDraft): SubclassGrantDraftSlice {
+  return {
+    identity: draft.identity,
+    skills: draft.skills,
+    classGrants: draft.classGrants,
+    subclassGrants: draft.subclassGrants,
+    raceGrant: draft.raceGrant,
+    companions: draft.companions,
+    textBlocks: draft.textBlocks,
+    spells: draft.spells,
+  }
+}
+
+function mergeSubclass(draft: WorkingDraft, slice: SubclassGrantDraftSlice): WorkingDraft {
+  return {
+    ...draft,
+    identity: slice.identity,
+    skills: slice.skills,
+    subclassGrants: slice.subclassGrants,
+    companions: slice.companions,
+    textBlocks: slice.textBlocks,
+    spells: slice.spells,
+  }
 }
 
 function backgroundSlice(draft: WorkingDraft): BackgroundGrantDraftSlice {
@@ -538,10 +604,10 @@ function serializeSheet(input: {
   sheet.identity = identity
   Object.assign(sheet, classLevelsToSheet(classes))
   sheet.class_grants = draft.classGrants
-  sheet.subclass_grants = []
+  sheet.subclass_grants = draft.subclassGrants
   sheet.race_grant = draft.raceGrant
   sheet.background_grant = draft.backgroundGrant
-  sheet.companions = []
+  sheet.companions = draft.companions
   sheet.feature_picks = featurePicksToSheet(input.featurePicks)
   sheet.class_asi = input.classAsi
 
@@ -626,6 +692,9 @@ function serializeSheet(input: {
     backgroundSetup: state.backgroundSetup,
     raceSetup: state.raceSetup,
     classGrantPicks: state.classGrantPicks,
+    subclassSetups: state.subclassSetups,
+    featurePicks: state.featurePicks,
+    classAsi: state.classAsi,
   }
 
   return sheet
@@ -638,6 +707,7 @@ function serializeSheet(input: {
 export async function applyPipelineToSheet(input: {
   state: CreatePipelineState
   featurePicks?: FeaturePicksState
+  classAsi?: AppliedClassAsi[]
   spells?: SpellsState
   catalog?: PipelineApplyCatalogCache
 }): Promise<PipelineApplyResult> {
@@ -737,7 +807,76 @@ export async function applyPipelineToSheet(input: {
     if (applied) Object.assign(draft, mergeClass(draft, applied.draft))
   }
 
-  // 4) HP from pipeline choices (override class L1 max)
+  // 4) Subclass grants (after class grants)
+  for (const row of classes) {
+    const setup = state.subclassSetups?.[row.id]
+    if (!setup) continue
+    const entry = snapshotToEntry(setup.entry, 'subclass')
+    const def = resolveSubclassDefFromCatalog({
+      nameRu: entry.name_ru,
+      slug: entry.slug,
+      catalogData: entry.data,
+    })
+    if (!def) {
+      draft.identity = {
+        ...draft.identity,
+        subclassName:
+          row.id === state.classEntryId || row.id === classes[0]?.id
+            ? entry.name_ru
+            : draft.identity.subclassName,
+      }
+      continue
+    }
+    const applied = applySubclassGrantToDraft({
+      draft: subclassSlice(draft),
+      classEntryId: row.id,
+      catalogId: entry.id,
+      def,
+      picks: normalizeSubclassPicks(setup.picks),
+    })
+    if (applied) Object.assign(draft, mergeSubclass(draft, applied.draft))
+  }
+
+  // 5) Feature picks / class ASI / expertise
+  const featurePicks =
+    input.featurePicks ??
+    state.featurePicks ??
+    readFeaturePicks(state.sheetDraft.feature_picks) ??
+    emptyFeaturePicks()
+  const classAsi =
+    input.classAsi ??
+    (Array.isArray(state.classAsi) && state.classAsi.length
+      ? state.classAsi
+      : readClassAsiLedger(state.sheetDraft.class_asi))
+
+  for (const entry of classAsi) {
+    draft.abilities = applyClassAsiBonuses(draft.abilities, entry.bonuses)
+  }
+
+  const subclassSlugByEntryId: Record<string, string> = {}
+  for (const grant of draft.subclassGrants) {
+    if (grant.classEntryId && grant.slug) {
+      subclassSlugByEntryId[grant.classEntryId] = grant.slug
+    }
+  }
+  for (const [entryId, setup] of Object.entries(state.subclassSetups ?? {})) {
+    if (!subclassSlugByEntryId[entryId] && setup.entry.slug) {
+      subclassSlugByEntryId[entryId] = setup.entry.slug
+    }
+  }
+  const unlocked = unlockFeaturesForClasses({
+    classes,
+    characterLevel: totalCharacterLevel(classes),
+    abilities: draft.abilities,
+    subclassSlugByEntryId,
+  })
+  draft.skills = syncSkillsExpertiseFromPicks({
+    skills: draft.skills,
+    featurePicks,
+    expertiseKeys: listUnlockedExpertiseKeys(unlocked),
+  })
+
+  // 6) HP from pipeline choices (override class L1 max; after ASI so CON is final)
   const hp = computeHpFromChoices({
     classes,
     primaryClassEntryId: state.classEntryId,
@@ -747,23 +886,24 @@ export async function applyPipelineToSheet(input: {
   draft.hpMax = hp
   draft.hpCurrent = hp
 
-  // 5) Feature picks / spells / class ASI from pipeline state
-  const featurePicks =
-    input.featurePicks ??
-    readFeaturePicks(state.sheetDraft.feature_picks) ??
-    emptyFeaturePicks()
+  // 7) Spells merge
   const spells =
     input.spells ??
     (state.sheetDraft.spells ? readSpells({ spells: state.sheetDraft.spells }) : draft.spells)
-  // Keep race-granted spells if player spells empty of race rows.
+  const subclassGrantedIds = new Set(
+    draft.subclassGrants.flatMap((row) => row.grantedSpellIds ?? []),
+  )
   const mergedSpells: SpellsState = {
     ...spells,
     known: [
-      ...spells.known.filter((row) => row.source_kind !== 'race'),
-      ...draft.spells.known.filter((row) => row.source_kind === 'race'),
+      ...spells.known.filter(
+        (row) => row.source_kind !== 'race' && !subclassGrantedIds.has(row.id),
+      ),
+      ...draft.spells.known.filter(
+        (row) => row.source_kind === 'race' || subclassGrantedIds.has(row.id),
+      ),
     ],
   }
-  const classAsi = readClassAsiLedger(state.sheetDraft.class_asi)
 
   const raceName = state.subrace?.nameRu || state.race?.nameRu || null
   const className = formatClassSummary(classes) || null

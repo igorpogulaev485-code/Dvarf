@@ -26,9 +26,14 @@ type LevelingStepProps = {
   abilities: AbilityScores
   hpChoices: HpLevelChoice[]
   primaryClassEntryId: string
+  /** classEntryId → whether class grant picks (skills/equipment) are saved. */
+  hasClassGrantPicks?: Record<string, boolean>
   onClassesChange: (classes: ClassLevelEntry[]) => void
   onHpChoicesChange: (choices: HpLevelChoice[]) => void
+  /** Opens GuidedWizard (feature_choice / ASI / expertise) after grants exist. */
   onOpenChoices: (classEntryId: string) => void
+  /** Opens subclass catalog picker → SubclassSetupDialog. */
+  onOpenArchetype: (classEntryId: string) => void
   onOpenSpells: () => void
 }
 
@@ -67,9 +72,11 @@ export function LevelingStep({
   abilities,
   hpChoices,
   primaryClassEntryId,
+  hasClassGrantPicks = {},
   onClassesChange,
   onHpChoicesChange,
   onOpenChoices,
+  onOpenArchetype,
   onOpenSpells,
 }: LevelingStepProps) {
   const [mcOpen, setMcOpen] = useState(false)
@@ -179,8 +186,13 @@ export function LevelingStep({
               </Field>
             </div>
             <div className="create-pipeline__level-actions">
+              <Button variant="secondary" onClick={() => onOpenArchetype(row.id)}>
+                Архетип
+                {row.subclass_name.trim() ? `: ${row.subclass_name}` : ''}
+              </Button>
               <Button variant="secondary" onClick={() => onOpenChoices(row.id)}>
                 Развилки и умения
+                {hasClassGrantPicks[row.id] ? '' : ' · владения'}
               </Button>
               {!isPrimary ? (
                 <Button
