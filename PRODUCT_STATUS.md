@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/feats-pickers-592a`  
+**Prod tip (ветка линии прода):** `cursor/spell-cast-grant-picker-7737`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -107,7 +107,7 @@
 
 ### Справочник (seed на сервере)
 - Расы PHB+дополнения: дварф 6 · эльф 9 · полурослик 6 · гном 4 · человек 6 · драконорождённый 3 FTD · полуэльф 6 · тифлинг 9 · полуорк 1; подраса в попапе · аудит: [`docs/RACES_AUDIT_2014.md`](docs/RACES_AUDIT_2014.md)
-- Классы 2014: 13 (PHB + Изобретатель); **архетипы 2014: 118** в каталоге; оружие, снаряжение/артефакты, заклинания (sample), состояния SRD
+- Классы 2014: 13 (PHB + Изобретатель); **архетипы 2014: 118** в каталоге; оружие, снаряжение/артефакты, **заклинания 2014×527**, состояния SRD
 - **Предыстории 2014:** 70 корней + 5 вариантов (шпион/гладиатор/рыцарь/гильд. купец/пират); гранты + revoke; таблицы выбора в попапе
 
 ### Инфра
@@ -428,7 +428,7 @@
 | Revoke ledger | `sheet.background_grant`; смена/очистка откатывает пакет | Не копятся навыки от старой предыстории |
 | Classic | Панель над бланком; поле «Предыстория» read-only | Без ручного хаоса на бланке |
 
-На проде: **да** · ветка `cursor/background-grants-ef23` · PR #52 · затем tip → `cursor/feats-pickers-592a`
+На проде: **да** · ветка `cursor/background-grants-ef23` · PR #52 · затем tip → `cursor/spell-cast-grant-picker-7737`
 
 ---
 
@@ -460,7 +460,23 @@
 | Пикеры | `expertise`, `enum_multi` (приёмы/метамагия/воззвания/руны), planar adapt | Без «запиши сам» для закрытых выборов |
 | Предыстории tip | Сохранён стек #52 (варианты, choice tables, `bg-eq:`) | Не затёрли фоны при деплое черт |
 
-На проде: **да** · ветка `cursor/feats-pickers-592a` · PR #68 · это **новый prod tip**
+На проде: **да** · ветка `cursor/feats-pickers-592a` · PR #68 · затем tip → `cursor/spell-cast-grant-picker-7737`
+
+### 2026-10-08 — SPELLS линия залита на Timeweb (новый tip)
+
+Проверено на живом http://201.34.132.252/ (alembic `a3b4c5d6e7f8`; бандл `index-FHMkx_ry.js`; spells 2014×**527**; маркеры `grant_cast` / Известно / Ритуал / Все книги / Лобби / Опасная зона / Концентрация / Классический / Черта на месте).
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Каталог заклинаний 2014 | 527 оф. (schema v1 + PHB/XGE/TCE/…) | Полный гримуар без homebrew |
+| Known vs prepared | Бард/чародей/колдун/следопыт без «Подготовить» | Список всегда готов к касту |
+| Каст UI | Мета + ритуал без ячейки + upcast higher_levels | Понятный диалог каста |
+| Грант-заряд | Раса/черта: чип N/M в пикере, отдых восстанавливает | Hellish Rebuke / Fey Touched без слота, но с лимитом |
+| Pact short rest | Короткий отдых чинит pact | Как PHB |
+
+На проде: **да** · ветка `cursor/spell-cast-grant-picker-7737` · PR #80 · это **новый prod tip**
+
+
 
 ---
 
@@ -591,7 +607,7 @@
 | Воин EK / плут AT | ⅓-таблица с 3 ур. (и по гранту каталога, и по имени архетипа) | Мистический рыцарь/ловкач получают ячейки без ручного ввода |
 | Аудит 13 классов | Smoke: full / half / half_up / pact / none + EK/AT + MC | Таблицы сверены с dnd.su PHB 2014 |
 
-На проде: нет · ветка `cursor/spell-pact-rest-ef23` · PR #73
+На проде: **да** · ветка `cursor/spell-pact-rest-ef23` · PR #73 · tip → `cursor/spell-cast-grant-picker-7737`
 
 ### 2026-10-08 — SPELLS: locked auto-prepare (архетип / черта / раса)
 
@@ -601,7 +617,7 @@
 | Вне лимита | Locked не ест `max_prepared` | Жрец с доменом не теряет слоты подготовки на domain spells |
 | Источники | `subclass` · `feat` · `race` · `feature` — одна модель | Черта (Fey Touched и т.п.) учитывается так же, как архетип |
 
-На проде: нет · ветка `cursor/spell-locked-prepare-ef23`
+На проде: **да** · ветка `cursor/spell-locked-prepare-ef23` · tip → `cursor/spell-cast-grant-picker-7737`
 
 ### 2026-10-08 — SPELLS: волна PHB gap (не-SRD)
 
@@ -610,7 +626,7 @@
 | +45 PHB заклинаний | Добивка PHB с dnd.su: Hex, smite-ы, Witch Bolt, Aura of Vitality… | Гримуар ближе к полной PHB, не только SRD 319 |
 | Каталог 2014 | 319 SRD → **364** spell entries | Больше выбора в гримуаре |
 
-На проде: нет · ветка `cursor/spell-phb-wave-ef23` · alembic `t9c0`
+На проде: **да** · ветка `cursor/spell-phb-wave-ef23` · tip → `cursor/spell-cast-grant-picker-7737` · alembic `t9c0`
 
 ### 2026-10-08 — SPELLS: волна XGE
 
@@ -619,7 +635,7 @@
 | +95 XGE | Absorb Elements, Chaos Bolt, Shadow Blade, Healing Spirit… (+ EE reprints с тегом XGE на dnd.su) | Гримуар закрывает Xanathar’s |
 | Каталог 2014 | 364 → **459** spell entries | Ещё ближе к полному оф. 2014 (~522) |
 
-На проде: нет · ветка `cursor/spell-xge-wave-ef23` · alembic `u0d1`
+На проде: **да** · ветка `cursor/spell-xge-wave-ef23` · tip → `cursor/spell-cast-grant-picker-7737` · alembic `u0d1`
 
 ### 2026-10-08 — SPELLS: rest books (TCE + сеттинги) — оф. gap закрыт
 
@@ -628,7 +644,7 @@
 | +68 оф. | TCE 21, EGW 15, AI/FTD/SCC/… | Mind Sliver, Silvery Barbs, summon-ы Tasha… |
 | Каталог 2014 | 459 → **527** | Весь оф. список dnd.su 2014 (без homebrew) |
 
-На проде: нет · ветка `cursor/spell-rest-books-wave-ef23` · alembic `v1e2`
+На проде: **да** · ветка `cursor/spell-rest-books-wave-ef23` · tip → `cursor/spell-cast-grant-picker-7737` · alembic `v1e2`
 
 ### 2026-10-08 — SPELLS: known vs prepared + фильтр книги в гримуаре
 
@@ -638,7 +654,7 @@
 | Prepared-кастеры | Жрец / друид / паладин / волшебник / изобретатель: кнопка подготовки и лимит как раньше | Бюджет подготовки остаётся |
 | Гримуар | Known: одно «Добавить» (сразу к касту); prepared: «В известные» / «Подготовить»; чипы книг PHB/XGE/TCE/… | Быстрее найти и взять заклинание из нужной книги |
 
-На проде: нет · ветка `cursor/spell-known-prepare-polish-ef23` · PR #78
+На проде: **да** · ветка `cursor/spell-known-prepare-polish-ef23` · PR #78 · tip → `cursor/spell-cast-grant-picker-7737`
 
 ### 2026-10-08 — SPELLS: UI каста (ритуал + метаданные)
 
@@ -647,7 +663,7 @@
 | Диалог каста | Длительность, компоненты, школа, книга; «на больших уровнях» при upcast | Видно, что кастуешь, до подтверждения |
 | Ритуал | Чип «Ритуал» — каст без ячейки/pact; кнопка Каст доступна без слотов | Detect Magic и т.п. вне боя без траты ячейки |
 
-На проде: нет · ветка `cursor/spell-cast-ui-polish-7737` · PR #79
+На проде: **да** · ветка `cursor/spell-cast-ui-polish-7737` · PR #79 · tip → `cursor/spell-cast-grant-picker-7737`
 
 ### 2026-10-08 — SPELLS: пикер каста через грант (черта / раса)
 
@@ -658,7 +674,7 @@
 | Блок после траты | Исчерпанный заряд disabled до отдыха; слоты всё ещё доступны | Нельзя спамить Fey Touched / Hellish Rebuke бесплатно |
 | Отдых | Короткий/длинный сбрасывает `used` по `reset` | Как в PHB: восстановление после отдыха |
 
-На проде: нет · ветка `cursor/spell-cast-grant-picker-7737` · PR #80
+На проде: **да** · ветка `cursor/spell-cast-grant-picker-7737` · PR #80 · tip → `cursor/spell-cast-grant-picker-7737`
 
 
 ## Убрано / заменено
@@ -757,3 +773,4 @@
 | 2026-10-08 | `cursor/spell-known-prepare-polish-ef23` · PR #78 | SPELLS slice 7: known vs prepared UX + book filter in grimoire → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-ui-polish-7737` · PR #79 | SPELLS slice 8: cast dialog ritual + meta/higher_levels → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS: cast-via-feat/race grant charges in picker → «В ветках» |
+| 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
