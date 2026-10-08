@@ -237,18 +237,18 @@ export function InventoryPanel({
             item_category: parsedItem.item_category,
           }) ?? 'any'
         : null
+    const weaponParsed =
+      selected.kind === 'weapon' ? parseWeaponCatalogData(data) : null
+    const armorParsed =
+      selected.kind === 'armor' ? parseArmorCatalogData(data) : null
     const wear =
-      selected.kind === 'weapon'
-        ? parseWeaponCatalogData(data).wear_slot
-        : selected.kind === 'armor'
-          ? parseArmorCatalogData(data).wear_slot
-          : parsedItem.wear_slot
+      weaponParsed?.wear_slot ?? armorParsed?.wear_slot ?? parsedItem.wear_slot
     const attune =
-      selected.kind === 'weapon'
-        ? parseWeaponCatalogData(data).requires_attunement
-        : selected.kind === 'armor'
-          ? parseArmorCatalogData(data).requires_attunement
-          : parsedItem.requires_attunement
+      weaponParsed?.requires_attunement ??
+      armorParsed?.requires_attunement ??
+      parsedItem.requires_attunement
+    const effects =
+      weaponParsed?.effects ?? armorParsed?.effects ?? parsedItem.effects
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
@@ -271,6 +271,7 @@ export function InventoryPanel({
       focus_kind: focusKind,
       wear_slot: wear,
       requires_attunement: attune,
+      effects,
     })
   }
 
@@ -615,6 +616,34 @@ export function InventoryPanel({
                       </button>
                     </Field>
                   </div>
+                ) : null}
+
+                {item.effects && item.effects.length > 0 ? (
+                  <Text tone="muted">
+                    Эффекты:{" "}
+                    {item.effects
+                      .map((effect) => {
+                        const t = String(effect.type)
+                        if (t === 'ac_bonus') return `КД+${(effect as { value?: number }).value ?? '?'}`
+                        if (t === 'attack_bonus')
+                          return `атака+${(effect as { value?: number }).value ?? '?'}`
+                        if (t === 'damage_bonus')
+                          return `урон+${(effect as { value?: number }).value ?? '?'}`
+                        if (t === 'sense') {
+                          const sense = (effect as { sense?: string; range_ft?: number }).sense
+                          const range = (effect as { range_ft?: number }).range_ft
+                          return `${sense ?? 'чувство'}${range ? ` ${range}фт` : ''}`
+                        }
+                        if (t === 'ability_score' || t === 'ability_mod') {
+                          const ability = (effect as { ability?: string; value?: number }).ability
+                          const value = (effect as { value?: number }).value
+                          return `${ability ?? '?'}${t === 'ability_mod' ? (value != null && value >= 0 ? '+' : '') : '→'}${value ?? '?'}`
+                        }
+                        return t
+                      })
+                      .join(' · ')}
+                    {item.requires_attunement ? ' · нужна настройка' : ''}
+                  </Text>
                 ) : null}
 
                 <Field label="Заметка">

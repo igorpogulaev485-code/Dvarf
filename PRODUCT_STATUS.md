@@ -484,6 +484,16 @@
 
 <!-- tip feats-pickers: FEATS стек залит 2026-10-07; мягкие note (туз/хроматика/хаос-таблица) — динамика, не заглушки пикеров -->
 
+### 2026-10-08 — GEAR slice 9: движок эффектов MVP
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Активные эффекты | Только с **надетого** предмета; если «нужна настройка» — ещё и слот attunement | Плащ в рюкзаке не даёт КД |
+| MVP типы | `ac_bonus`, `sense` (ТЗ), `attack`/`damage_bonus` на атаке в руках, `ability_score` / `ability_mod` | Очки ночного зрения, оружие +1, пояс силы |
+| С листа | КД и атаки учитывают магию; характеристики показывают итоговый мод | Не руками плюсовать +1 к КД |
+
+На проде: **нет** · ветка `cursor/gear-effects-mvp-db96` · tip не менять до «залей»
+
 ### 2026-10-08 — GEAR slice 8: слоты ношения + attunement из инвентаря
 
 | Функция | Как работает | Эффект для пользователя |
@@ -867,3 +877,4 @@
 | 2026-10-08 | `cursor/gear-held-slots-db96` · PR #87 | GEAR slice 6: held hands (2H vs 1H×2) + attack sync → «В ветках» |
 | 2026-10-08 | `cursor/gear-spell-focus-db96` · PR #88 | GEAR slice 7: spell focus flags + costly material consume → «В ветках» |
 | 2026-10-08 | `cursor/gear-wear-slots-db96` · PR #89 | GEAR slice 8: wear slots + attunement inventory link → «В ветках» |
+| 2026-10-08 | `cursor/gear-effects-mvp-db96` | GEAR slice 9: gear effects engine MVP → «В ветках» |

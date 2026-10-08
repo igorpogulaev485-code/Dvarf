@@ -22,7 +22,22 @@ import {
   type SpellTooling,
 } from './spellFocus'
 import { equipWornItem, isWornMagicSlot, readWearSlot } from './wearEquip'
-import type { WearSlot } from '../../shared/dnd/gearCatalog'
+import {
+  type GearEffect,
+  type WearSlot,
+} from '../../shared/dnd/gearCatalog'
+
+function readEffects(value: unknown): GearEffect[] {
+  if (!Array.isArray(value)) return []
+  const out: GearEffect[] = []
+  for (const item of value) {
+    if (!item || typeof item !== 'object') continue
+    const type = (item as { type?: unknown }).type
+    if (typeof type !== 'string' || !type.trim()) continue
+    out.push(item as GearEffect)
+  }
+  return out
+}
 
 export type InventoryContainerKind = 'none' | 'pack' | 'kit' | 'container'
 
@@ -62,6 +77,8 @@ export type InventoryItem = {
   wear_slot?: WearSlot | null
   /** Magic item needs attunement. */
   requires_attunement?: boolean
+  /** Typed catalog effects (ac_bonus, sense, …) — active when equipped (+ attuned). */
+  effects?: GearEffect[]
 }
 
 export type InventoryState = {
@@ -95,6 +112,7 @@ export function createInventoryItem(): InventoryItem {
     focus_kind: null,
     wear_slot: null,
     requires_attunement: false,
+    effects: [],
   }
 }
 
@@ -146,6 +164,7 @@ function readItem(raw: unknown, index: number): InventoryItem {
     focus_kind: readFocusKind(row.focus_kind),
     wear_slot: readWearSlot(row.wear_slot),
     requires_attunement: Boolean(row.requires_attunement),
+    effects: readEffects(row.effects),
   }
 }
 
@@ -192,6 +211,7 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         focus_kind: item.focus_kind ?? null,
         wear_slot: item.wear_slot ?? null,
         requires_attunement: Boolean(item.requires_attunement),
+        effects: item.effects ?? [],
       })),
     },
   }

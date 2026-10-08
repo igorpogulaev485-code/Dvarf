@@ -172,6 +172,7 @@ export function inventoryItemFromCatalog(input: {
     created.spell_tooling = 'none'
     created.wear_slot = parsed.wear_slot
     created.requires_attunement = parsed.requires_attunement
+    created.effects = parsed.effects
     // Carried in pack by default — draw («В руках») is a separate action.
     created.equipped = false
     const built = buildStartingWeaponAttacks({
@@ -223,6 +224,7 @@ export function inventoryItemFromCatalog(input: {
     created.spell_tooling = 'none'
     created.wear_slot = parsed.wear_slot
     created.requires_attunement = parsed.requires_attunement
+    created.effects = parsed.effects
     const equip =
       input.equipArmor !== false &&
       (created.armor_kind === 'light' ||
@@ -256,6 +258,7 @@ export function inventoryItemFromCatalog(input: {
       : null
   created.wear_slot = parsed.wear_slot
   created.requires_attunement = parsed.requires_attunement
+  created.effects = parsed.effects
   created.container_kind =
     parsed.item_category === 'pack' || parsed.contents.length > 0
       ? 'pack'

@@ -98,6 +98,11 @@ import {
   syncAttacksHeldFromInventory,
   type WeaponAttack,
 } from './AttacksPanel'
+import {
+  aggregateGearEffects,
+  applyGearAbilityScores,
+  gearDarkvisionFt,
+} from './gearEffects'
 import { AttunementPanel } from './AttunementPanel'
 import {
   attunementsToSheet,
@@ -1779,15 +1784,29 @@ export function MinimalSheetEditor({
     [unlockedFeatures, draft.abilities],
   )
 
+  const gearEffects = useMemo(
+    () =>
+      aggregateGearEffects({
+        items: draft.inventory.items,
+        attunements: draft.attunements,
+      }),
+    [draft.inventory.items, draft.attunements],
+  )
+
+  const effectiveAbilities = useMemo(
+    () => applyGearAbilityScores(draft.abilities, gearEffects),
+    [draft.abilities, gearEffects],
+  )
+
   const armorClass = useMemo(() => {
     const pieces = equippedArmorPieces(draft.inventory.items)
     const mods = {
-      str: abilityModifier(draft.abilities.str),
-      dex: abilityModifier(draft.abilities.dex),
-      con: abilityModifier(draft.abilities.con),
-      int: abilityModifier(draft.abilities.int),
-      wis: abilityModifier(draft.abilities.wis),
-      cha: abilityModifier(draft.abilities.cha),
+      str: abilityModifier(effectiveAbilities.str),
+      dex: abilityModifier(effectiveAbilities.dex),
+      con: abilityModifier(effectiveAbilities.con),
+      int: abilityModifier(effectiveAbilities.int),
+      wis: abilityModifier(effectiveAbilities.wis),
+      cha: abilityModifier(effectiveAbilities.cha),
     }
     let naturalArmor = draft.raceGrant?.naturalArmor ?? null
     // Backfill for sheets that applied the race before natural_armor was catalogued.
@@ -1840,19 +1859,26 @@ export function MinimalSheetEditor({
       styleId,
       wearingArmor: Boolean(pieces.armor),
     })
-    if (styleBonus <= 0) return base
-    return {
-      ac: base.ac + styleBonus,
-      summary: `${base.summary} · стиль +${styleBonus}`,
+    let ac = base.ac
+    let summary = base.summary
+    if (styleBonus > 0) {
+      ac += styleBonus
+      summary = `${summary} · стиль +${styleBonus}`
     }
+    if (gearEffects.acBonus) {
+      ac += gearEffects.acBonus
+      summary = `${summary} · магия +${gearEffects.acBonus}`
+    }
+    return { ac, summary }
   }, [
-    draft.abilities,
+    effectiveAbilities,
     draft.inventory.items,
     draft.raceGrant,
     draft.featurePicks,
     draft.featGrants,
     raceCatalogRows,
     unlockedFeatures,
+    gearEffects.acBonus,
   ])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
@@ -2492,7 +2518,18 @@ export function MinimalSheetEditor({
               <strong>{passives.insight}</strong>
             </div>
           </div>
-          <Field label="Тёмное зрение, фт" htmlFor="sheet-darkvision" hint="0 = нет">
+          <Field
+            label="Тёмное зрение, фт"
+            htmlFor="sheet-darkvision"
+            hint={
+              gearDarkvisionFt(gearEffects) > 0
+                ? `предметы: ${gearDarkvisionFt(gearEffects)} фт · итого ${Math.max(
+                    draft.identity.darkvision,
+                    gearDarkvisionFt(gearEffects),
+                  )}`
+                : '0 = нет'
+            }
+          >
             <NumberInput
               id="sheet-darkvision"
               min={0}
@@ -2546,9 +2583,14 @@ export function MinimalSheetEditor({
       />
 
       <Panel title="Характеристики">
+        {gearEffects.notes.some((line) => /STR|DEX|CON|INT|WIS|CHA/.test(line)) ? (
+          <Text tone="muted">С предметами: итоговые значения ниже в модификаторе.</Text>
+        ) : null}
         <div className="ability-grid">
           {ABILITY_KEYS.map((key) => {
-            const score = draft.abilities[key]
+            const baseScore = draft.abilities[key]
+            const score = effectiveAbilities[key]
+            const gearTouched = score !== baseScore
             return (
               <label key={key} className="ability-card">
                 <span className="ability-card__label">{ABILITY_LABELS[key]}</span>
@@ -2556,7 +2598,7 @@ export function MinimalSheetEditor({
                   min={1}
                   max={30}
                   emptyValue={10}
-                  value={score}
+                  value={baseScore}
                   onValueChange={(next) =>
                     setDraft((prev) => ({
                       ...prev,
@@ -2567,7 +2609,10 @@ export function MinimalSheetEditor({
                     }))
                   }
                 />
-                <span className="ability-card__mod">{formatModifier(abilityModifier(score))}</span>
+                <span className="ability-card__mod">
+                  {formatModifier(abilityModifier(score))}
+                  {gearTouched ? ` · ${score}` : ''}
+                </span>
               </label>
             )
           })}
@@ -2592,8 +2637,9 @@ export function MinimalSheetEditor({
       <AttacksPanel
         edition={baseCharacter.rules_edition as RulesEdition}
         weapons={draft.weapons}
-        abilities={draft.abilities}
+        abilities={effectiveAbilities}
         proficiencyBonus={proficiencyBonus}
+        gearBonusesByItem={gearEffects.byItem}
         onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
         onToggleHeld={(attack) => {
           if (!attack.inventory_item_id) return

@@ -68,6 +68,8 @@ type AttacksPanelProps = {
   onChange: (weapons: WeaponAttack[]) => void
   /** Toggle in-hand for an attack linked to inventory (hand-slot rules). */
   onToggleHeld?: (attack: WeaponAttack) => void
+  /** Per inventory item: magic attack/damage from active gear effects. */
+  gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
 }
 
 function createAttack(): WeaponAttack {
@@ -126,6 +128,7 @@ export function AttacksPanel({
   proficiencyBonus,
   onChange,
   onToggleHeld,
+  gearBonusesByItem,
 }: AttacksPanelProps) {
   function updateAttack(id: string, patch: Partial<WeaponAttack>) {
     onChange(weapons.map((item) => (item.id === id ? { ...item, ...patch } : item)))
@@ -161,9 +164,20 @@ export function AttacksPanel({
         ) : null}
 
         {weapons.map((attack) => {
+          const gear =
+            attack.inventory_item_id && attack.held
+              ? gearBonusesByItem?.[attack.inventory_item_id]
+              : undefined
+          const magicAtk = gear?.attackBonus ?? 0
+          const magicDmg = gear?.damageBonus ?? 0
           const attackBonus =
             abilityModifier(abilities[attack.ability]) +
-            (attack.is_proficient ? proficiencyBonus : 0)
+            (attack.is_proficient ? proficiencyBonus : 0) +
+            magicAtk
+          const damageDisplay =
+            magicDmg && attack.damage
+              ? `${attack.damage}${magicDmg >= 0 ? '+' : ''}${magicDmg}`
+              : attack.damage
           return (
             <div
               key={attack.id}
@@ -208,10 +222,20 @@ export function AttacksPanel({
                     ))}
                   </select>
                 </Field>
-                <Field label="Бонус атаки">
+                <Field
+                  label="Бонус атаки"
+                  hint={magicAtk ? `магия ${magicAtk >= 0 ? '+' : ''}${magicAtk}` : undefined}
+                >
                   <Input value={formatModifier(attackBonus)} readOnly />
                 </Field>
-                <Field label="Урон">
+                <Field
+                  label="Урон"
+                  hint={
+                    magicDmg
+                      ? `с магией ${damageDisplay} (${magicDmg >= 0 ? '+' : ''}${magicDmg})`
+                      : undefined
+                  }
+                >
                   <Input
                     value={attack.damage}
                     placeholder="1d8"
