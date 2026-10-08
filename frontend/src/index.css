@@ -829,6 +829,26 @@ input {
   padding-bottom: 0;
 }
 
+.companion-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.companion-card--inactive {
+  opacity: 0.78;
+}
+
+.companion-card--dead {
+  opacity: 0.62;
+}
+
+.companion-death {
+  margin-top: 4px;
+}
+
 .feature-group {
   display: flex;
   flex-direction: column;

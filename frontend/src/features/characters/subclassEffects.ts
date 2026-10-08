@@ -15,7 +15,14 @@ import {
 import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
 import type { AppliedRaceGrant } from '../../shared/dnd/raceGrants'
 import type { CompanionEntry } from './companions'
-import { createCompanion, revokeCompanionsForSubclass } from './companions'
+import {
+  createCompanion,
+  defaultControlForKind,
+  defaultNatureForKind,
+  mergeSubclassCompanions,
+  revokeCompanionsForSubclass,
+  type CompanionKind,
+} from './companions'
 import type { TextBlock } from './textBlocks'
 import {
   asAlwaysPreparedSpell,
@@ -382,6 +389,10 @@ export function applySubclassGrantToDraft(input: {
   const weapons: WeaponProficiency = { ...cleared.identity.weapons }
   for (const key of weaponKeys) weapons[key] = true
 
+  const previousCompanions = input.draft.companions.filter(
+    (row) => row.source?.classEntryId === input.classEntryId,
+  )
+
   const companionsFromPicks: CompanionEntry[] = []
   for (const choice of input.def.choices) {
     const raw = picks.values[choice.id]
@@ -396,7 +407,7 @@ export function applySubclassGrantToDraft(input: {
       id.includes('cannon') ||
       id.includes('spirit')
     if (!isCompanion) continue
-    const kind =
+    const kind: CompanionKind =
       id.includes('defender')
         ? 'steel_defender'
         : id.includes('drake')
@@ -405,9 +416,11 @@ export function applySubclassGrantToDraft(input: {
             ? 'eldritch_cannon'
             : id.includes('familiar')
               ? 'familiar'
-              : id.includes('spirit') || id.includes('wildfire')
-                ? 'other'
-                : 'beast_companion'
+              : id.includes('primal')
+                ? 'primal_companion'
+                : id.includes('spirit') || id.includes('wildfire')
+                  ? 'other'
+                  : 'beast_companion'
     const displayName =
       choice.kind === 'single'
         ? choice.fromLabelsRu?.[value] ?? value
@@ -416,11 +429,15 @@ export function applySubclassGrantToDraft(input: {
       createCompanion({
         kind,
         name: displayName,
+        nature: defaultNatureForKind(kind),
+        control: defaultControlForKind(kind),
         notes:
           choice.kind === 'single' && choice.fromLabelsRu?.[value]
             ? `Вариант: ${choice.fromLabelsRu[value]}`
             : '',
         source: {
+          kind: 'subclass',
+          labelRu: `Архетип: ${input.def.labelRu}`,
           classEntryId: input.classEntryId,
           subclassSlug: input.def.slug,
           feature: choice.id,
@@ -428,6 +445,11 @@ export function applySubclassGrantToDraft(input: {
       }),
     )
   }
+
+  const companionsMerged = mergeSubclassCompanions({
+    previous: previousCompanions,
+    next: companionsFromPicks,
+  })
 
   const grantedSpellIds: string[] = []
   const known = [...cleared.spells.known]
@@ -472,7 +494,7 @@ export function applySubclassGrantToDraft(input: {
       ...cleared.subclassGrants.filter((row) => row.classEntryId !== input.classEntryId),
       nextGrant,
     ],
-    companions: [...cleared.companions, ...companionsFromPicks],
+    companions: [...cleared.companions, ...companionsMerged],
     spells: { ...cleared.spells, known },
     identity: {
       ...cleared.identity,
