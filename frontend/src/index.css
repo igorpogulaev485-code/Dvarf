@@ -803,6 +803,13 @@ input {
   color: var(--accent);
 }
 
+.sheet-chip.is-blocked,
+.sheet-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
 .sheet-check {
   display: flex;
   align-items: flex-start;
@@ -892,6 +899,18 @@ input {
 .feature-row__scale {
   font-weight: 700;
   color: var(--accent);
+}
+
+.feature-choice-badge {
+  display: inline-block;
+  margin-left: 0.25rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #7a3b00;
+  background: #ffe8c2;
 }
 
 .feature-row__meta {

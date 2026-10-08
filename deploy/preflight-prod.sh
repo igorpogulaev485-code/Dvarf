@@ -47,9 +47,13 @@ require "frontend/src/shared/dnd/armor.ts" "лист P3 КД"
 require "frontend/src/features/characters/LanguagesToolsPanel.tsx" "лист P4"
 require "frontend/src/shared/dnd/concentration.ts" "лист P1 концентрация"
 require "frontend/src/features/characters/CastSpellDialog.tsx" "каст / upcast"
+require "frontend/src/shared/dnd/backgroundGrants.ts" "предыстории: гранты"
+require "frontend/src/features/characters/BackgroundSetupDialog.tsx" "предыстории: попап"
+require "backend/data/backgrounds/phb2014_background_catalog_spec.json" "предыстории: каталог"
 
 require "frontend/src/pages/ClassicSheetPage.tsx" "classic 2014"
 require "frontend/src/features/classicSheet/ClassicPrintSheet.tsx" "classic sheet UI"
+require "frontend/src/features/classicSheet/ClassicBackgroundPicker.tsx" "classic: предыстории"
 
 require "backend/app/api/routers/catalog.py" "справочник API"
 

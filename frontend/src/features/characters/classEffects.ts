@@ -82,10 +82,13 @@ function unionArmor(grants: AppliedClassGrant[]): ArmorProficiency {
 }
 
 function unionWeapons(grants: AppliedClassGrant[]): WeaponProficiency {
-  const next: WeaponProficiency = { simple: false, martial: false }
+  const next: WeaponProficiency = { simple: false, martial: false, extras: [] }
+  const extras: string[] = []
   for (const grant of grants) {
     for (const key of grant.weaponKeys) next[key] = true
+    extras.push(...(grant.weaponExtras ?? []))
   }
+  next.extras = uniqueStrings(extras)
   return next
 }
 
@@ -141,7 +144,19 @@ export function revokeClassGrant(
     armor[key] = remainingArmor[key]
   }
 
-  const weapons = { ...draft.identity.weapons }
+  const remainingExtraKeys = setOfLower(remainingWeapons.extras)
+  const weapons: WeaponProficiency = {
+    simple: remainingWeapons.simple,
+    martial: remainingWeapons.martial,
+    extras: (draft.identity.weapons.extras ?? []).filter((name) => {
+      const key = name.trim().toLowerCase()
+      const wasFromPrevious = (previous.weaponExtras ?? []).some(
+        (item) => item.toLowerCase() === key,
+      )
+      if (!wasFromPrevious) return true
+      return remainingExtraKeys.has(key)
+    }),
+  }
   for (const key of previous.weaponKeys) {
     weapons[key] = remainingWeapons[key]
   }
@@ -255,6 +270,7 @@ export function applyClassGrantToDraft(input: {
 
   const armorKeys = [...pkg.armor] as ArmorProfKey[]
   const weaponKeys = [...pkg.weapons] as WeaponProfKey[]
+  const weaponExtras = uniqueStrings([...(pkg.weaponExtras ?? [])])
   const saves = [...pkg.saves]
   const skills = [...input.picks.skills]
   const tools = uniqueStrings([...pkg.toolsFixed, ...input.picks.tools])
@@ -342,6 +358,7 @@ export function applyClassGrantToDraft(input: {
     tools,
     armorKeys,
     weaponKeys,
+    weaponExtras,
     level1Hp,
     equipmentPackageId,
     equipmentItemIds,
@@ -375,8 +392,12 @@ export function applyClassGrantToDraft(input: {
         ...Object.fromEntries(armorKeys.map((key) => [key, true])),
       },
       weapons: {
-        ...cleared.identity.weapons,
-        ...Object.fromEntries(weaponKeys.map((key) => [key, true])),
+        simple: cleared.identity.weapons.simple || weaponKeys.includes('simple'),
+        martial: cleared.identity.weapons.martial || weaponKeys.includes('martial'),
+        extras: uniqueStrings([
+          ...(cleared.identity.weapons.extras ?? []),
+          ...weaponExtras,
+        ]),
       },
       tools: uniqueStrings([...cleared.identity.tools, ...tools]),
     },
@@ -458,6 +479,9 @@ export function readAppliedClassGrants(raw: unknown): AppliedClassGrant[] {
         : [],
       weaponKeys: Array.isArray(row.weaponKeys)
         ? row.weaponKeys.filter((value): value is WeaponProfKey => typeof value === 'string')
+        : [],
+      weaponExtras: Array.isArray(row.weaponExtras)
+        ? row.weaponExtras.filter((value): value is string => typeof value === 'string')
         : [],
       level1Hp: typeof row.level1Hp === 'number' ? row.level1Hp : null,
       equipmentPackageId:

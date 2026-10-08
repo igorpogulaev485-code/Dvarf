@@ -8,8 +8,10 @@ import { Button, Dialog, Field, Input, Stack, Text, Toast } from '../ui'
 
 type LocationState = {
   toast?: string
-  /** Fresh create: nudge class-before-race path on the sheet. */
-  createGuide?: 'class-first'
+  /** Fresh create: nudge background → class → race path on the sheet. */
+  createGuide?: 'background-first' | 'class-first'
+  /** Create at level N (1–20); wizard covers picks up to N. */
+  startingLevel?: number
 }
 
 export function CharacterDetailPage() {
@@ -27,13 +29,19 @@ export function CharacterDetailPage() {
   const [joining, setJoining] = useState(false)
   const initialState = location.state as LocationState | null
   const [toast, setToast] = useState<string | null>(initialState?.toast ?? null)
-  const [createGuide, setCreateGuide] = useState<'class-first' | null>(
+  const [createGuide, setCreateGuide] = useState<'background-first' | 'class-first' | null>(
     initialState?.createGuide ?? null,
+  )
+  const [startingLevel, setStartingLevel] = useState<number>(
+    initialState?.startingLevel && initialState.startingLevel > 1
+      ? initialState.startingLevel
+      : 1,
   )
   const closeToast = useCallback(() => setToast(null), [])
 
   useEffect(() => {
-    if ((location.state as LocationState | null)?.toast || (location.state as LocationState | null)?.createGuide) {
+    const state = location.state as LocationState | null
+    if (state?.toast || state?.createGuide || state?.startingLevel) {
       navigate(location.pathname, { replace: true, state: null })
     }
   }, [location.pathname, location.state, navigate])
@@ -165,7 +173,11 @@ export function CharacterDetailPage() {
             key={character.id}
             character={character}
             createGuide={createGuide}
-            onCreateGuideConsumed={() => setCreateGuide(null)}
+            startingLevel={startingLevel}
+            onCreateGuideConsumed={() => {
+              setCreateGuide(null)
+              setStartingLevel(1)
+            }}
             onSaved={(item) => {
               setCharacter(item)
               setRemoteNotice(null)
