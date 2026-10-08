@@ -11,13 +11,20 @@ import {
   slotsRemaining,
 } from '../../shared/dnd/spells'
 import { Dialog, Stack, Text } from '../../ui'
-import type { SheetSpell, SpellsState } from './spells'
+import {
+  canSpendGrantCast,
+  grantCastRemaining,
+  type SheetSpell,
+  type SpellsState,
+} from './spells'
 
 export type CastChoice = {
   usePact: boolean
   slotLevel: number
   /** Ritual: no slot / pact spent (PHB +10 min). */
   ritual?: boolean
+  /** Spend race/feat grant free-cast charge instead of a slot. */
+  useGrant?: boolean
 }
 
 type CastSpellDialogProps = {
@@ -43,21 +50,33 @@ export function CastSpellDialog({
   const isCantrip = spell != null && spell.level <= 0
   const spellLevel = spell?.level ?? 0
   const isRitual = Boolean(spell?.ritual && !isCantrip)
+  const grantOk = spell != null && !isCantrip && canSpendGrantCast(spell)
+  const grantRemaining = spell ? grantCastRemaining(spell) : 0
   const slotLevels = spell && !isCantrip ? availableCastSlotLevels(spells.slots, spellLevel) : []
   const pactOk =
     spell != null && !isCantrip && canSpendPactSlot(spells.pact_slots, spellLevel)
   const hasSlotPath = pactOk || slotLevels.length > 0
   const [usePact, setUsePact] = useState(false)
   const [useRitual, setUseRitual] = useState(false)
+  const [useGrant, setUseGrant] = useState(false)
   const [slotLevel, setSlotLevel] = useState(1)
 
   useEffect(() => {
     if (!spell || isCantrip) {
       setUseRitual(false)
+      setUseGrant(false)
       return
     }
-    // Prefer slots/pact when available; fall back to ritual if tagged and no slots.
+    // Prefer grant free cast when available; else slots/pact; else ritual.
+    if (grantOk) {
+      setUseGrant(true)
+      setUseRitual(false)
+      setUsePact(false)
+      setSlotLevel(spellLevel)
+      return
+    }
     if (hasSlotPath) {
+      setUseGrant(false)
       setUseRitual(false)
       if (pactOk) {
         setUsePact(true)
@@ -68,6 +87,7 @@ export function CastSpellDialog({
       }
       return
     }
+    setUseGrant(false)
     setUsePact(false)
     setUseRitual(isRitual)
     setSlotLevel(spellLevel)
@@ -76,6 +96,7 @@ export function CastSpellDialog({
     spellLevel,
     isCantrip,
     isRitual,
+    grantOk,
     hasSlotPath,
     pactOk,
     slotLevels.join(','),
@@ -83,10 +104,10 @@ export function CastSpellDialog({
   ])
 
   const effectiveSlotLevel = useMemo(() => {
-    if (!spell || isCantrip || useRitual) return spell?.level ?? 0
+    if (!spell || isCantrip || useRitual || useGrant) return spell?.level ?? 0
     if (usePact && spells.pact_slots) return spells.pact_slots.level
     return slotLevel
-  }, [spell, isCantrip, useRitual, usePact, spells.pact_slots, slotLevel])
+  }, [spell, isCantrip, useRitual, useGrant, usePact, spells.pact_slots, slotLevel])
 
   const castEffect = useMemo(() => {
     if (!spell) return { effect: '', scaled: false }
@@ -100,8 +121,13 @@ export function CastSpellDialog({
     return null
   }
 
-  const canCast = isCantrip || (useRitual && isRitual) || hasSlotPath
-  const selectedSlot = !usePact && !useRitual ? spells.slots[String(slotLevel)] : null
+  const canCast =
+    isCantrip ||
+    (useGrant && grantOk) ||
+    (useRitual && isRitual) ||
+    (!useGrant && !useRitual && hasSlotPath)
+  const selectedSlot =
+    !usePact && !useRitual && !useGrant ? spells.slots[String(slotLevel)] : null
   const remaining = selectedSlot ? slotsRemaining(selectedSlot) : 0
   const pactRemaining = spells.pact_slots
     ? Math.max(0, spells.pact_slots.max - spells.pact_slots.used)
@@ -121,24 +147,41 @@ export function CastSpellDialog({
     Boolean(spell.higher_levels) &&
     !isCantrip &&
     !useRitual &&
+    !useGrant &&
     effectiveSlotLevel > spell.level
+
+  const grantLabel = spell.grant_cast?.label ?? 'Грант'
+  const grantExhausted =
+    Boolean(spell.grant_cast && spell.grant_cast.max > 0 && !grantOk)
+
+  const primaryLabel = !canCast
+    ? 'Нет ячеек'
+    : busy
+      ? 'Кастуем…'
+      : useGrant
+        ? `Каст (${grantLabel})`
+        : useRitual
+          ? 'Ритуал'
+          : 'Каст'
 
   return (
     <Dialog
       open={open}
       title={isCantrip ? 'Использовать заговор?' : 'Кастовать заклинание?'}
-      primaryLabel={canCast ? (busy ? 'Кастуем…' : useRitual ? 'Ритуал' : 'Каст') : 'Нет ячеек'}
+      primaryLabel={primaryLabel}
       secondaryLabel="Отмена"
       onPrimary={() => {
         if (!canCast || busy) return
         onConfirm({
-          ritual: !isCantrip && useRitual && isRitual,
-          usePact: !isCantrip && !useRitual && usePact && pactOk,
-          slotLevel: isCantrip || useRitual
-            ? spellLevel
-            : usePact
-              ? (spells.pact_slots?.level ?? spellLevel)
-              : slotLevel,
+          useGrant: !isCantrip && useGrant && grantOk,
+          ritual: !isCantrip && !useGrant && useRitual && isRitual,
+          usePact: !isCantrip && !useGrant && !useRitual && usePact && pactOk,
+          slotLevel:
+            isCantrip || useRitual || useGrant
+              ? spellLevel
+              : usePact
+                ? (spells.pact_slots?.level ?? spellLevel)
+                : slotLevel,
         })
       }}
       onSecondary={onClose}
@@ -159,7 +202,7 @@ export function CastSpellDialog({
             Эффект сейчас: <strong>{castEffect.effect}</strong>
             {isCantrip
               ? ` (ур. персонажа ${Math.max(1, characterLevel)})`
-              : !useRitual && effectiveSlotLevel > spell.level
+              : !useRitual && !useGrant && effectiveSlotLevel > spell.level
                 ? ` (ячейка ${effectiveSlotLevel})`
                 : ''}
           </Text>
@@ -175,12 +218,35 @@ export function CastSpellDialog({
             <div>
               <Text tone="muted">Источник каста</Text>
               <div className="chip-row" style={{ marginTop: 8 }}>
+                {spell.grant_cast && spell.grant_cast.max > 0 ? (
+                  <button
+                    type="button"
+                    className={`sheet-chip${useGrant ? ' is-on' : ''}${
+                      grantExhausted ? ' is-disabled' : ''
+                    }`}
+                    disabled={grantExhausted}
+                    title={
+                      grantExhausted
+                        ? `${grantLabel}: заряд исчерпан до отдыха`
+                        : `${grantLabel}: без ячейки`
+                    }
+                    onClick={() => {
+                      if (grantExhausted) return
+                      setUseGrant(true)
+                      setUseRitual(false)
+                      setUsePact(false)
+                    }}
+                  >
+                    {grantLabel} {grantRemaining}/{spell.grant_cast.max}
+                  </button>
+                ) : null}
                 {isRitual ? (
                   <button
                     type="button"
                     className={`sheet-chip${useRitual ? ' is-on' : ''}`}
                     onClick={() => {
                       setUseRitual(true)
+                      setUseGrant(false)
                       setUsePact(false)
                     }}
                   >
@@ -190,9 +256,12 @@ export function CastSpellDialog({
                 {pactOk && spells.pact_slots ? (
                   <button
                     type="button"
-                    className={`sheet-chip${!useRitual && usePact ? ' is-on' : ''}`}
+                    className={`sheet-chip${
+                      !useRitual && !useGrant && usePact ? ' is-on' : ''
+                    }`}
                     onClick={() => {
                       setUseRitual(false)
+                      setUseGrant(false)
                       setUsePact(true)
                       setSlotLevel(spells.pact_slots?.level ?? spellLevel)
                     }}
@@ -205,10 +274,13 @@ export function CastSpellDialog({
                     key={level}
                     type="button"
                     className={`sheet-chip${
-                      !useRitual && !usePact && slotLevel === level ? ' is-on' : ''
+                      !useRitual && !useGrant && !usePact && slotLevel === level
+                        ? ' is-on'
+                        : ''
                     }`}
                     onClick={() => {
                       setUseRitual(false)
+                      setUseGrant(false)
                       setUsePact(false)
                       setSlotLevel(level)
                     }}
@@ -219,7 +291,15 @@ export function CastSpellDialog({
                 ))}
               </div>
             </div>
-            {useRitual ? (
+            {useGrant ? (
+              <Text tone="muted">
+                Каст через {grantLabel}: ячейка не тратится. Останется {grantRemaining - 1} из{' '}
+                {spell.grant_cast?.max ?? 0}
+                {spell.grant_cast?.reset === 'short'
+                  ? ' (сброс на коротком отдыхе)'
+                  : ' (сброс на продолжительном)'}.
+              </Text>
+            ) : useRitual ? (
               <Text tone="muted">
                 Ритуал: ячейка не тратится (+10 минут к времени каста по PHB). Upcast недоступен.
               </Text>
@@ -240,7 +320,10 @@ export function CastSpellDialog({
               <Text tone="danger">
                 Нет свободных ячеек {spell.level}-го уровня или выше
                 {spells.pact_slots ? ' и подходящего pact' : ''}. Верни пипс или сделай отдых
-                {isRitual ? ', либо выбери ритуал' : ''}.
+                {isRitual || grantExhausted
+                  ? `, либо ${grantExhausted ? 'восстанови заряд гранта' : 'выбери ритуал'}`
+                  : ''}
+                .
               </Text>
             )}
           </>

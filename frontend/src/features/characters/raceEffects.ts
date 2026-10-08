@@ -21,8 +21,10 @@ import {
   type RaceRacialSpell,
 } from '../../shared/dnd/raceGrants'
 import {
+  proficiencyBonusForLevel,
   raceSpellId,
   stripRaceSheetSpells,
+  withInnateGrantCast,
   type SheetSpell,
   type SpellsState,
 } from './spells'
@@ -75,7 +77,7 @@ function racialSpellToSheetSpell(
     .filter(Boolean)
     .join(' · ')
   const innate = spell.grant === 'innate'
-  return {
+  const base = {
     id: raceSpellId(raceSlug, spell.id),
     name: spell.nameRu,
     catalog_id: null,
@@ -88,12 +90,14 @@ function racialSpellToSheetSpell(
     attack_or_save: '',
     damage: '',
     concentration: false,
-    source_kind: 'race',
+    source_kind: 'race' as const,
     race_grant: spell.grant,
     ...(innate
       ? { prepared_locked: true as const, prepare_source_label: 'Раса' }
       : {}),
   }
+  // Free-cast charges attached later via withInnateGrantCast (needs PB / preserve used).
+  return base
 }
 
 function syncRaceRacialSpells(input: {
@@ -114,13 +118,18 @@ function syncRaceRacialSpells(input: {
       .map((row) => [row.id, row]),
   )
   const withoutRace = stripRaceSheetSpells(input.spells.known)
+  const pb = proficiencyBonusForLevel(input.characterLevel)
   const nextRaceRows = active.map((spell) => {
-    const next = racialSpellToSheetSpell(input.raceSlug, spell)
+    let next = racialSpellToSheetSpell(input.raceSlug, spell)
     const prev = previousById.get(next.id)
     // Preserve player's prepare toggle for mark-list leveled spells.
     if (prev && next.race_grant === 'spell_list' && next.level > 0) {
-      return { ...next, prepared: prev.prepared }
+      next = { ...next, prepared: prev.prepared }
     }
+    if (prev?.grant_cast) {
+      next = { ...next, grant_cast: prev.grant_cast }
+    }
+    next = withInnateGrantCast(next, { proficiencyBonus: pb, label: 'Раса' })
     return next
   })
   return { ...input.spells, known: [...withoutRace, ...nextRaceRows] }

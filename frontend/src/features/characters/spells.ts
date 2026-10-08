@@ -63,6 +63,20 @@ export type SheetSpell = {
   prepared_locked?: boolean
   /** Short RU reason for the lock chip («Домен жизни», «Fey Touched», …). */
   prepare_source_label?: string
+  /**
+   * Limited free casts from race/feat/feature (1/long rest, PB/long rest…).
+   * Cast picker can spend this instead of a slot/pact; rest recovers `used`.
+   */
+  grant_cast?: SpellGrantCast
+}
+
+/** Free cast charge from a grant source (race innate, Fey Touched, …). */
+export type SpellGrantCast = {
+  max: number
+  used: number
+  reset: 'short' | 'long'
+  /** Chip label in cast picker («Раса», «Черта», …). */
+  label: string
 }
 
 export type SpellsState = {
@@ -167,6 +181,7 @@ function readSpell(raw: unknown, index: number): SheetSpell {
   const components = readComponents(row.components)
   const damageAtCharacter = readScaleTable(row.damage_at_character_level)
   const damageAtSlot = readScaleTable(row.damage_at_slot_level)
+  const grantCast = readGrantCast(row.grant_cast ?? row.grantCast)
   return {
     id,
     name: typeof row.name === 'string' ? row.name : '',
@@ -203,7 +218,159 @@ function readSpell(raw: unknown, index: number): SheetSpell {
     ...(featGrant ? { feat_grant: featGrant } : {}),
     ...(preparedLocked ? { prepared_locked: true } : {}),
     ...(prepareSourceLabel ? { prepare_source_label: prepareSourceLabel } : {}),
+    ...(grantCast ? { grant_cast: grantCast } : {}),
   }
+}
+
+function readGrantCast(raw: unknown): SpellGrantCast | undefined {
+  const row = asRecord(raw)
+  const max = Math.floor(readNumber(row.max, 0))
+  if (max <= 0) return undefined
+  const resetRaw = row.reset
+  const reset: 'short' | 'long' = resetRaw === 'short' ? 'short' : 'long'
+  const label =
+    typeof row.label === 'string' && row.label.trim() ? row.label.trim() : 'Грант'
+  return {
+    max,
+    used: Math.min(max, Math.max(0, Math.floor(readNumber(row.used, 0)))),
+    reset,
+    label,
+  }
+}
+
+/** Proficiency bonus for character level (PHB 2014). */
+export function proficiencyBonusForLevel(level: number): number {
+  const lvl = Math.max(1, Math.floor(level))
+  return Math.max(2, Math.min(6, 2 + Math.floor((lvl - 1) / 4)))
+}
+
+/**
+ * Parse free-cast limit from grant notes («1/длинный отдых», «ПБ раз / длинный отдых»).
+ * Returns null when notes don't describe a limited free cast.
+ */
+export function parseGrantCastLimitFromNotes(
+  notes: string | null | undefined,
+  proficiencyBonus: number,
+): { max: number; reset: 'short' | 'long' } | null {
+  const text = (notes ?? '').toLowerCase()
+  if (!text.trim()) return null
+  const reset: 'short' | 'long' = /коротк/.test(text) ? 'short' : 'long'
+  const pb = Math.max(1, Math.floor(proficiencyBonus))
+  if (/пб\s*раз|пб\s*\/|prof(?:iciency)?\s*bonus/i.test(text)) {
+    return { max: pb, reset }
+  }
+  const numbered = text.match(/(\d+)\s*\/\s*(?:длинн|коротк|день|long|short)/)
+  if (numbered) {
+    return { max: Math.max(1, Math.floor(Number(numbered[1]))), reset }
+  }
+  if (/без\s+ячейк|без\s+слота|once\s+per|1\s*раз/.test(text)) {
+    return { max: 1, reset }
+  }
+  return null
+}
+
+/** Whether this sheet spell is an innate race/feat grant that can get free casts. */
+export function isInnateGrantSpell(spell: SheetSpell): boolean {
+  if (spell.level <= 0) return false
+  if (spell.race_grant === 'innate') return true
+  if (spell.feat_grant === 'innate') return true
+  return false
+}
+
+export function grantCastRemaining(spell: SheetSpell): number {
+  const grant = spell.grant_cast
+  if (!grant || grant.max <= 0) return 0
+  return Math.max(0, grant.max - grant.used)
+}
+
+export function canSpendGrantCast(spell: SheetSpell): boolean {
+  return grantCastRemaining(spell) > 0
+}
+
+/** Build / refresh grant_cast for an innate leveled grant spell. Preserves used. */
+export function withInnateGrantCast(
+  spell: SheetSpell,
+  options: { proficiencyBonus: number; label?: string },
+): SheetSpell {
+  if (!isInnateGrantSpell(spell)) {
+    if (!spell.grant_cast) return spell
+    const { grant_cast: _drop, ...rest } = spell
+    return rest
+  }
+  const parsed = parseGrantCastLimitFromNotes(spell.notes, options.proficiencyBonus)
+  const max = parsed?.max ?? 1
+  const reset = parsed?.reset ?? 'long'
+  const label =
+    options.label ??
+    spell.prepare_source_label ??
+    (spell.source_kind === 'feat'
+      ? 'Черта'
+      : spell.source_kind === 'race'
+        ? 'Раса'
+        : 'Грант')
+  const prevUsed = spell.grant_cast?.used ?? 0
+  return {
+    ...spell,
+    grant_cast: {
+      max,
+      used: Math.min(max, Math.max(0, prevUsed)),
+      reset,
+      label,
+    },
+  }
+}
+
+/** Ensure innate race/feat leveled spells carry grant_cast charges. */
+export function ensureInnateGrantCasts(
+  known: SheetSpell[],
+  proficiencyBonus: number,
+): SheetSpell[] {
+  let changed = false
+  const next = known.map((spell) => {
+    if (!isInnateGrantSpell(spell)) return spell
+    const updated = withInnateGrantCast(spell, { proficiencyBonus })
+    if (
+      updated.grant_cast?.max !== spell.grant_cast?.max ||
+      updated.grant_cast?.reset !== spell.grant_cast?.reset ||
+      updated.grant_cast?.label !== spell.grant_cast?.label ||
+      (spell.grant_cast == null && updated.grant_cast != null)
+    ) {
+      changed = true
+      return updated
+    }
+    return spell
+  })
+  return changed ? next : known
+}
+
+export function spendGrantCast(known: SheetSpell[], spellId: string): SheetSpell[] {
+  return known.map((spell) => {
+    if (spell.id !== spellId || !spell.grant_cast) return spell
+    if (grantCastRemaining(spell) <= 0) return spell
+    return {
+      ...spell,
+      grant_cast: {
+        ...spell.grant_cast,
+        used: Math.min(spell.grant_cast.max, spell.grant_cast.used + 1),
+      },
+    }
+  })
+}
+
+/** Recover grant_cast.used on short/long rest (long also clears short). */
+export function recoverGrantCastsOnRest(
+  known: SheetSpell[],
+  kind: 'short' | 'long',
+): SheetSpell[] {
+  let changed = false
+  const next = known.map((spell) => {
+    const grant = spell.grant_cast
+    if (!grant || grant.used <= 0) return spell
+    if (kind === 'short' && grant.reset !== 'short') return spell
+    changed = true
+    return { ...spell, grant_cast: { ...grant, used: 0 } }
+  })
+  return changed ? next : known
 }
 
 export function raceSpellId(raceSlug: string, spellId: string): string {
@@ -410,6 +577,16 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
           : {}),
         ...(spell.prepare_source_label
           ? { prepare_source_label: spell.prepare_source_label }
+          : {}),
+        ...(spell.grant_cast
+          ? {
+              grant_cast: {
+                max: spell.grant_cast.max,
+                used: spell.grant_cast.used,
+                reset: spell.grant_cast.reset,
+                label: spell.grant_cast.label,
+              },
+            }
           : {}),
       })),
       prepared: state.known

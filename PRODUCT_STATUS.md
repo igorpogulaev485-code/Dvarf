@@ -486,6 +486,17 @@
 
 На проде: нет · ветка `cursor/spell-cast-ui-polish-7737` · PR #79
 
+### 2026-10-08 — SPELLS: пикер каста через грант (черта / раса)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Заряд гранта | Innate раса/черта: `grant_cast` (1/long, ПБ/long…) на карточке | Видно, сколько бесплатных кастов осталось |
+| Пикер каста | Чип «Раса/Черта N/M» рядом с ячейками/pact/ритуалом | Можно кастануть через черту без ячейки |
+| Блок после траты | Исчерпанный заряд disabled до отдыха; слоты всё ещё доступны | Нельзя спамить Fey Touched / Hellish Rebuke бесплатно |
+| Отдых | Короткий/длинный сбрасывает `used` по `reset` | Как в PHB: восстановление после отдыха |
+
+На проде: нет · ветка `cursor/spell-cast-grant-picker-7737`
+
 <!-- пример:
 ### 2026-10-06 — подтверждение email при регистрации
 - Обязательный никнейм
@@ -572,3 +583,4 @@
 | 2026-10-08 | `cursor/spell-rest-books-wave-ef23` | SPELLS slice 6 wave3: +68 TCE/EGW/… → 527; оф. gap 0; alembic `v1e2` |
 | 2026-10-08 | `cursor/spell-known-prepare-polish-ef23` · PR #78 | SPELLS slice 7: known vs prepared UX + book filter in grimoire → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-ui-polish-7737` · PR #79 | SPELLS slice 8: cast dialog ritual + meta/higher_levels → «В ветках» |
+| 2026-10-08 | `cursor/spell-cast-grant-picker-7737` | SPELLS: cast-via-feat/race grant charges in picker → «В ветках» |

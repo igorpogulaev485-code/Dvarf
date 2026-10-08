@@ -44,7 +44,7 @@ import {
   type ComboboxOption,
 } from '../../ui'
 import { type PlayState } from './play'
-import type { SpellsState } from './spells'
+import { recoverGrantCastsOnRest, type SpellsState } from './spells'
 
 type ConditionOption = {
   slug: string
@@ -272,10 +272,14 @@ export function PlayPanel({
       pact_slots: spells.pact_slots,
     })
     patchPlay({ resources: result.resources })
-    if (result.pact_slots !== undefined) {
+    const known = recoverGrantCastsOnRest(spells.known, 'short')
+    const spellsTouched =
+      result.pact_slots !== undefined || known !== spells.known
+    if (spellsTouched) {
       onSpellsChange({
         ...spells,
-        pact_slots: result.pact_slots,
+        ...(result.pact_slots !== undefined ? { pact_slots: result.pact_slots } : {}),
+        known,
       })
     }
     onToast(
@@ -338,6 +342,7 @@ export function PlayPanel({
       ...spells,
       slots: result.slots ?? spells.slots,
       pact_slots: result.pact_slots === undefined ? spells.pact_slots : result.pact_slots,
+      known: recoverGrantCastsOnRest(spells.known, 'long'),
     })
     if (result.hp_current !== undefined) {
       onCombatChange({ hpCurrent: result.hp_current })
