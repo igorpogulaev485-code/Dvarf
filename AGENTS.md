@@ -92,6 +92,16 @@ Skill: [`.cursor/skills/dvarf-dev-workflow/SKILL.md`](.cursor/skills/dvarf-dev-w
 
 ---
 
+## 6b. Сообщение для друзей
+
+Если Игорь просит **«сообщение для друзей»** / пост / анонс в стандартном формате — пиши готовый текст по skill:
+
+→ [`.cursor/skills/dvarf-friends-announce/SKILL.md`](.cursor/skills/dvarf-friends-announce/SKILL.md)
+
+Не подменяй changelog’ом. Цифры и tip — после проверки прода (или явно пометь черновик).
+
+---
+
 ## 7. Секреты
 
 Не коммитить `.env`. Cloud Agent: secret `DVARF_SSH_PRIVATE_KEY` = полный OpenSSH PEM (`BEGIN`…`END`).
