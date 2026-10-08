@@ -821,6 +821,66 @@ input {
   background: color-mix(in srgb, var(--accent, #0f766e) 6%, white);
 }
 
+.gear-picker-selected__desc {
+  margin-top: 2px;
+  line-height: 1.35;
+}
+
+.gear-rarity-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 1px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  color: var(--muted, #64748b);
+  background: rgba(255, 255, 255, 0.7);
+  vertical-align: middle;
+}
+
+.gear-rarity-badge--mundane {
+  color: #57534e;
+  border-color: #d6d3d1;
+  background: #f5f5f4;
+}
+
+.gear-rarity-badge--common {
+  color: #3f6212;
+  border-color: #d9f99d;
+  background: #f7fee7;
+}
+
+.gear-rarity-badge--uncommon {
+  color: #166534;
+  border-color: #bbf7d0;
+  background: #ecfdf5;
+}
+
+.gear-rarity-badge--rare {
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.gear-rarity-badge--very_rare {
+  color: #a16207;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.gear-rarity-badge--legendary {
+  color: #9a3412;
+  border-color: #fdba74;
+  background: #fff7ed;
+}
+
+.gear-rarity-badge--artifact {
+  color: #9f1239;
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
 .inventory-card__nest-label {
   font-size: 0.8rem;
 }

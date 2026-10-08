@@ -484,6 +484,17 @@
 
 <!-- tip feats-pickers: FEATS стек залит 2026-10-07; мягкие note (туз/хроматика/хаос-таблица) — динамика, не заглушки пикеров -->
 
+### 2026-10-08 — GEAR W2: магия SRD — статы / эффекты / rarity UI
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Боевые статы | У DMG оружия/брони — урон/КД/слот/`magic_bonus` с базового шаблона (длинный меч, латы…) | Flame Tongue и Эльфийская кольчуга снова «играбельны», не пустые stub |
+| Эффекты MVP | `attack`/`damage`/`ac_bonus`, resistance, resource, custom_note | +N и заметки движка; сложное — текстом, без падения |
+| Семьи | `weapon`/`armor` «+1,+2 или +3» выключены; остаются варианты +1/+2/+3 и чешуя дракона | В пикере нет бесполезной заглушки «варьируется» |
+| Rarity UI | Цветной бейдж редкости + описание в карточке выбора; сортировка по редкости | Сразу видно «редкий / легендарный» и краткий текст |
+
+На проде: **нет** · ветка `cursor/gear-magic-enrich-db96` · PR — · tip не менять до «залей» · alembic `e7f8` (после `d6e7`)
+
 ### 2026-10-08 — GEAR W1: инструменты / скакуны / сбруя / транспорт
 
 | Функция | Как работает | Эффект для пользователя |
@@ -912,3 +923,4 @@
 | 2026-10-08 | `cursor/gear-proficiency-effects-db96` · PR #91 | GEAR: armor/weapon proficiency gates + Effects+ skill/save/speed → «В ветках» |
 | 2026-10-08 | `cursor/gear-race-nw-effects-db96` · PR #92 | GEAR: race natural weapons + gear grant_spell/resource/companion → «В ветках» |
 | 2026-10-08 | `cursor/gear-tools-mounts-db96` · PR #94 | GEAR W1: tools/mounts/tack/vehicles RU backfill + picker filters; alembic `d6e7` → «В ветках» |
+| 2026-10-08 | `cursor/gear-magic-enrich-db96` | GEAR W2: DMG magic enrich (stats/effects/slots) + rarity badges; alembic `e7f8` → «В ветках» |

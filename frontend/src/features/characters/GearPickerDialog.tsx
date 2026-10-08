@@ -13,6 +13,12 @@ import {
   type GearPickerKindFilter,
 } from './gearFromCatalog'
 
+function RarityBadge({ rarity, label }: { rarity: GearRarity; label: string }) {
+  return (
+    <span className={`gear-rarity-badge gear-rarity-badge--${rarity}`}>{label}</span>
+  )
+}
+
 type GearPickerDialogProps = {
   open: boolean
   edition: RulesEdition
@@ -124,10 +130,12 @@ export function GearPickerDialog({
 
   const filtered = useMemo(() => {
     return entries.filter((entry) => {
+      if (!entry.is_active) return false
       if (kind !== 'all' && entry.kind !== kind) return false
       if (!matchesQuery(entry, query)) return false
       const summary = summarizeGearEntry(entry)
       if (!summary) return false
+      if (summary.variant_key === 'varies') return false
       if (rarity !== 'all' && summary.rarity !== rarity) return false
       if (itemCategory !== 'all') {
         if (entry.kind !== 'item') return false
@@ -279,10 +287,16 @@ export function GearPickerDialog({
                       className={`gear-picker-row${active ? ' is-selected' : ''}`}
                       onClick={() => pickEntry(entry)}
                     >
-                      <span className="gear-picker-row__name">{summary.name_ru}</span>
+                      <span className="gear-picker-row__name">
+                        {summary.name_ru}
+                        <RarityBadge
+                          rarity={summary.rarity}
+                          label={summary.rarity_label}
+                        />
+                      </span>
                       <span className="gear-picker-row__meta">
-                        {summary.rarity_label}
-                        {summary.meta_line ? ` · ${summary.meta_line}` : ''}
+                        {summary.meta_line}
+                        {summary.requires_attunement ? ' · нужна настройка' : ''}
                       </span>
                     </button>
                   )
@@ -328,7 +342,13 @@ export function GearPickerDialog({
                               }`}
                               onClick={() => pickEntry(entry)}
                             >
-                              <span className="gear-picker-row__name">{variant}</span>
+                              <span className="gear-picker-row__name">
+                                {variant}
+                                <RarityBadge
+                                  rarity={summary.rarity}
+                                  label={summary.rarity_label}
+                                />
+                              </span>
                               <span className="gear-picker-row__meta">
                                 {entry.name_ru}
                                 {summary.meta_line ? ` · ${summary.meta_line}` : ''}
@@ -348,11 +368,19 @@ export function GearPickerDialog({
             <Text>
               <strong>{selectedSummary.name_ru}</strong>
               {' · '}
-              {selectedSummary.rarity_label}
+              <RarityBadge
+                rarity={selectedSummary.rarity}
+                label={selectedSummary.rarity_label}
+              />
               {selectedSummary.requires_attunement ? ' · нужна настройка' : ''}
             </Text>
             {selectedSummary.meta_line ? (
               <Text tone="muted">{selectedSummary.meta_line}</Text>
+            ) : null}
+            {selectedSummary.description_ru ? (
+              <Text tone="muted" className="gear-picker-selected__desc">
+                {selectedSummary.description_ru}
+              </Text>
             ) : null}
           </div>
         ) : null}

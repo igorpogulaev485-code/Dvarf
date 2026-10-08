@@ -63,8 +63,20 @@ export type GearCatalogSummary = {
   variant_key: string
   variant_label_ru: string
   magic_bonus: number
+  description_ru: string
   /** Short meta line for list rows. */
   meta_line: string
+}
+
+/** Rarity sort key for picker lists (mundane → artifact). */
+export const GEAR_RARITY_RANK: Record<GearRarity, number> = {
+  mundane: 0,
+  common: 1,
+  uncommon: 2,
+  rare: 3,
+  very_rare: 4,
+  legendary: 5,
+  artifact: 6,
 }
 
 export function summarizeGearEntry(entry: CatalogEntry): GearCatalogSummary | null {
@@ -95,18 +107,30 @@ export function summarizeGearEntry(entry: CatalogEntry): GearCatalogSummary | nu
       variant_key: parsed.variant_key,
       variant_label_ru: parsed.variant_label_ru,
       magic_bonus: parsed.magic_bonus,
+      description_ru: parsed.description_ru?.trim() || '',
       meta_line: bits.join(' · '),
     }
   }
   if (entry.kind === 'armor') {
     const parsed = parseArmorCatalogData(data)
+    const armorKindRu =
+      parsed.armor_kind === 'light'
+        ? 'лёгкий'
+        : parsed.armor_kind === 'medium'
+          ? 'средний'
+          : parsed.armor_kind === 'heavy'
+            ? 'тяжёлый'
+            : parsed.armor_kind === 'shield'
+              ? 'щит'
+              : ''
     const bits = [
-      parsed.armor_kind !== 'none' ? parsed.armor_kind : '',
+      armorKindRu,
       parsed.base_ac != null
         ? parsed.armor_kind === 'shield'
           ? `+${parsed.base_ac}`
           : `КД ${parsed.base_ac}`
         : '',
+      parsed.magic_bonus ? `+${parsed.magic_bonus}` : '',
       parsed.weight_lb != null ? `${parsed.weight_lb} фнт` : '',
       formatGearCostRu(parsed.cost),
       parsed.requires_attunement ? 'настройка' : '',
@@ -125,6 +149,7 @@ export function summarizeGearEntry(entry: CatalogEntry): GearCatalogSummary | nu
       variant_key: parsed.variant_key,
       variant_label_ru: parsed.variant_label_ru,
       magic_bonus: parsed.magic_bonus,
+      description_ru: parsed.description_ru?.trim() || '',
       meta_line: bits.join(' · '),
     }
   }
@@ -164,6 +189,7 @@ export function summarizeGearEntry(entry: CatalogEntry): GearCatalogSummary | nu
     variant_key: parsed.variant_key,
     variant_label_ru: parsed.variant_label_ru,
     magic_bonus: 0,
+    description_ru: parsed.description_ru?.trim() || '',
     meta_line: bits.join(' · '),
   }
 }
@@ -328,6 +354,12 @@ export type GearFamilyGroup = {
   entries: CatalogEntry[]
 }
 
+function rarityRankOf(entry: CatalogEntry): number {
+  const summary = summarizeGearEntry(entry)
+  if (!summary) return 0
+  return GEAR_RARITY_RANK[summary.rarity] ?? 0
+}
+
 /** Group catalog rows that share family_slug; singles stay as one-entry groups. */
 export function groupGearByFamily(entries: CatalogEntry[]): GearFamilyGroup[] {
   const families = new Map<string, GearFamilyGroup>()
@@ -335,6 +367,8 @@ export function groupGearByFamily(entries: CatalogEntry[]): GearFamilyGroup[] {
   for (const entry of entries) {
     const summary = summarizeGearEntry(entry)
     if (!summary) continue
+    // Family stub rows ("+1, +2 или +3") — hide; use concrete variants.
+    if (summary.variant_key === 'varies') continue
     if (!summary.family_slug) {
       singles.push({
         family_slug: entry.slug,
@@ -359,9 +393,16 @@ export function groupGearByFamily(entries: CatalogEntry[]): GearFamilyGroup[] {
   }
   const grouped = [...families.values()].map((group) => ({
     ...group,
-    entries: [...group.entries].sort((a, b) => a.sort_order - b.sort_order),
+    entries: [...group.entries].sort((a, b) => {
+      const byRarity = rarityRankOf(a) - rarityRankOf(b)
+      if (byRarity !== 0) return byRarity
+      return a.sort_order - b.sort_order
+    }),
   }))
-  return [...grouped, ...singles].sort((a, b) =>
-    a.family_label_ru.localeCompare(b.family_label_ru, 'ru'),
-  )
+  return [...grouped, ...singles].sort((a, b) => {
+    const aRank = Math.min(...a.entries.map(rarityRankOf))
+    const bRank = Math.min(...b.entries.map(rarityRankOf))
+    if (aRank !== bRank) return aRank - bRank
+    return a.family_label_ru.localeCompare(b.family_label_ru, 'ru')
+  })
 }
