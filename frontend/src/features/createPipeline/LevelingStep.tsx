@@ -19,7 +19,9 @@ import {
 } from '../../shared/dnd/classLevels'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
 import { pruneInvalidMulticlassRows } from '../../shared/dnd/multiclassPrune'
+import type { RaceRacialSpell } from '../../shared/dnd/raceGrants'
 import type { HpLevelChoice } from './createPipelineTypes'
+import { RacialEffectsPanel } from './RacialEffectsPanel'
 
 type LevelingStepProps = {
   classes: ClassLevelEntry[]
@@ -29,9 +31,12 @@ type LevelingStepProps = {
   primaryClassEntryId: string
   /** classEntryId → whether class grant picks (skills/equipment) are saved. */
   hasClassGrantPicks?: Record<string, boolean>
+  racialSpells?: RaceRacialSpell[]
+  hasCasterClass?: boolean
+  featNoteRu?: string | null
   onClassesChange: (classes: ClassLevelEntry[]) => void
   onHpChoicesChange: (choices: HpLevelChoice[]) => void
-  /** Opens GuidedWizard (feature_choice / ASI / expertise) after grants exist. */
+  /** Opens GuidedWizard (feature_choice / ASI / expertise). MC may open ClassSetup first. */
   onOpenChoices: (classEntryId: string) => void
   /** Opens subclass catalog picker → SubclassSetupDialog. */
   onOpenArchetype: (classEntryId: string) => void
@@ -74,6 +79,9 @@ export function LevelingStep({
   hpChoices,
   primaryClassEntryId,
   hasClassGrantPicks = {},
+  racialSpells = [],
+  hasCasterClass = false,
+  featNoteRu = null,
   onClassesChange,
   onHpChoicesChange,
   onOpenChoices,
@@ -176,14 +184,23 @@ export function LevelingStep({
       <div>
         <Text as="h2">Прокачка</Text>
         <Text tone="muted">
-          Крути уровни классов. Сумма = уровень персонажа ({totalLevel}). Здесь же умения, архетип,
-          ASI, снаряжение и заклинания.
+          Уровни, HP (среднее/бросок), архетип, GuidedWizard для умений L1+ / ASI / expertise,
+          мультикласс и заклинания. Стартовые навыки и снаряжение основного класса уже выбраны на
+          шаге «Класс».
         </Text>
       </div>
+
+      <RacialEffectsPanel
+        racialSpells={racialSpells}
+        characterLevel={totalLevel}
+        hasCasterClass={hasCasterClass}
+        featNoteRu={featNoteRu}
+      />
 
       {classes.map((row, index) => {
         const die = hitDieForClass({ className: row.name }) ?? 'd8'
         const isPrimary = row.id === primaryClassEntryId || index === 0
+        const hasGrants = Boolean(hasClassGrantPicks[row.id])
         return (
           <div key={row.id} className="create-pipeline__level-block">
             <div className="create-pipeline__level-head">
@@ -205,8 +222,13 @@ export function LevelingStep({
                 {row.subclass_name.trim() ? `: ${row.subclass_name}` : ''}
               </Button>
               <Button variant="secondary" onClick={() => onOpenChoices(row.id)}>
-                Развилки и умения
-                {hasClassGrantPicks[row.id] ? '' : ' · владения'}
+                {isPrimary && hasGrants
+                  ? 'Развилки и умения'
+                  : hasGrants
+                    ? 'Развилки и умения'
+                    : isPrimary
+                      ? 'Развилки и умения'
+                      : 'Владения мультикласса'}
               </Button>
               {!isPrimary ? (
                 <Button

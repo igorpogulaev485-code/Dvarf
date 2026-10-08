@@ -8,15 +8,18 @@ import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { createClassLevel } from '../../shared/dnd/classLevels'
 import type { BackgroundGrantPicks } from '../../shared/dnd/backgroundGrants'
 import type { RaceGrantPicks } from '../../shared/dnd/raceGrants'
+import { resolveRaceGrantDef } from '../../shared/dnd/raceGrants'
 import type { ClassGrantPicks } from '../../shared/dnd/classGrants'
 import type { SubclassGrantPicks } from '../../shared/dnd/subclassGrants'
 import type { AppliedClassAsi } from '../../shared/dnd/classAsi'
 import { emptyFeaturePicks, type FeaturePicksState } from '../../shared/dnd/featurePicks'
 
+/** Canonical order. `feat` is skipped when the race has no featNoteRu. */
 export const CREATE_PIPELINE_STEPS = [
+  'race',
+  'feat',
   'background',
   'class',
-  'race',
   'abilities',
   'leveling',
 ] as const
@@ -24,12 +27,15 @@ export const CREATE_PIPELINE_STEPS = [
 export type CreatePipelineStepId = (typeof CREATE_PIPELINE_STEPS)[number]
 
 export const CREATE_PIPELINE_STEP_LABELS: Record<CreatePipelineStepId, string> = {
+  race: 'Раса',
+  feat: 'Черта',
   background: 'Предыстория',
   class: 'Класс',
-  race: 'Раса',
   abilities: 'Характеристики',
   leveling: 'Прокачка',
 }
+
+export const CREATE_PIPELINE_VERSION = 2 as const
 
 export type PipelineCatalogRef = {
   id: string
@@ -79,7 +85,7 @@ export type HpLevelChoice = {
 }
 
 export type CreatePipelineState = {
-  version: 1
+  version: typeof CREATE_PIPELINE_VERSION
   step: CreatePipelineStepId
   characterName: string
   /** Persisted draft character id, if saved. */
@@ -98,6 +104,10 @@ export type CreatePipelineState = {
   subrace: PipelineCatalogRef | null
   /** Full race confirm payload for re-apply on save. */
   raceSetup: RaceSetupStored | null
+  /** Feat from race (featNoteRu path); optional catalog pick. */
+  feat: PipelineCatalogRef | null
+  /** User acknowledged racial feat note without a catalog card. */
+  featAcknowledged: boolean
   abilityMethod: AbilityMethod
   /** Scores before racial bonuses. */
   baseAbilities: AbilityScores
@@ -125,11 +135,34 @@ export function catalogSnapshot(entry: CatalogEntry): PipelineCatalogSnapshot {
   }
 }
 
+/** Racial feat note from stored race setup (if any). */
+export function raceFeatNoteRu(raceSetup: RaceSetupStored | null): string | null {
+  if (!raceSetup) return null
+  const def = resolveRaceGrantDef({
+    raceName: raceSetup.entry.name_ru,
+    catalogSlug: raceSetup.entry.slug,
+    catalogData: raceSetup.entry.data,
+    nameRu: raceSetup.entry.name_ru,
+  })
+  const note = def?.featNoteRu?.trim()
+  return note || null
+}
+
+export function raceNeedsFeatStep(raceSetup: RaceSetupStored | null): boolean {
+  return Boolean(raceFeatNoteRu(raceSetup))
+}
+
+/** Steps shown in the shell / used for next/back (skips feat when not needed). */
+export function visiblePipelineSteps(raceSetup: RaceSetupStored | null): CreatePipelineStepId[] {
+  const needsFeat = raceNeedsFeatStep(raceSetup)
+  return CREATE_PIPELINE_STEPS.filter((id) => id !== 'feat' || needsFeat)
+}
+
 export function createEmptyPipelineState(): CreatePipelineState {
   const classEntry = createClassLevel({ level: 1 })
   return {
-    version: 1,
-    step: 'background',
+    version: CREATE_PIPELINE_VERSION,
+    step: 'race',
     characterName: '',
     characterId: null,
     sheetVersion: null,
@@ -142,6 +175,8 @@ export function createEmptyPipelineState(): CreatePipelineState {
     race: null,
     subrace: null,
     raceSetup: null,
+    feat: null,
+    featAcknowledged: false,
     abilityMethod: 'standard_array',
     baseAbilities: emptyBaseScores(8),
     classes: [classEntry],
@@ -153,6 +188,9 @@ export function createEmptyPipelineState(): CreatePipelineState {
   }
 }
 
-export function stepIndex(step: CreatePipelineStepId): number {
-  return CREATE_PIPELINE_STEPS.indexOf(step)
+export function stepIndex(
+  step: CreatePipelineStepId,
+  steps: readonly CreatePipelineStepId[] = CREATE_PIPELINE_STEPS,
+): number {
+  return steps.indexOf(step)
 }

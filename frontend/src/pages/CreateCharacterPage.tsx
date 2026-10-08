@@ -24,6 +24,7 @@ import {
 } from '../features/characters/subclassEffects'
 import { AbilitiesStep } from '../features/createPipeline/AbilitiesStep'
 import { CatalogCardList } from '../features/createPipeline/CatalogCardList'
+import { CatalogDetailPanel } from '../features/createPipeline/CatalogDetailPanel'
 import { CreatePipelineShell } from '../features/createPipeline/CreatePipelineShell'
 import { hydratePipelineFromSheet } from '../features/createPipeline/createPipelineSheet'
 import { applyPipelineToSheet } from '../features/createPipeline/pipelineApply'
@@ -34,10 +35,12 @@ import {
 } from '../features/createPipeline/createPipelineStorage'
 import { LevelingStep, ensureHpChoices } from '../features/createPipeline/LevelingStep'
 import {
-  CREATE_PIPELINE_STEPS,
   catalogSnapshot,
   createEmptyPipelineState,
+  raceFeatNoteRu,
+  raceNeedsFeatStep,
   stepIndex,
+  visiblePipelineSteps,
   type CreatePipelineState,
   type CreatePipelineStepId,
 } from '../features/createPipeline/createPipelineTypes'
@@ -88,22 +91,11 @@ import {
 import { readSpells, spellsToSheet, type SpellsState } from '../features/characters/spells'
 import { Button, Field, Input, Stack, Text, Toast } from '../ui'
 
+const CASTER_NAME_RE =
+  /бард|жрец|друид|паладин|следопыт|чародей|колдун|волшебник|изобретатель/i
+
 function catalogRef(entry: CatalogEntry) {
   return { id: entry.id, slug: entry.slug, nameRu: entry.name_ru }
-}
-
-function shortBlurb(entry: CatalogEntry | null): string {
-  if (!entry) return 'Выберите карточку слева.'
-  const data = entry.data ?? {}
-  const summary =
-    (typeof data.summary_ru === 'string' && data.summary_ru) ||
-    (typeof data.description_ru === 'string' && data.description_ru) ||
-    (typeof data.feature_text_ru === 'string' && data.feature_text_ru) ||
-    null
-  if (summary) {
-    return summary.length > 420 ? `${summary.slice(0, 420)}…` : summary
-  }
-  return `${entry.name_ru}${entry.name_en ? ` (${entry.name_en})` : ''}. Подробности применятся после подтверждения шага.`
 }
 
 function emptyWizardSkills(): SkillExpertiseState {
@@ -204,6 +196,26 @@ function hasSubclassSelected(row: {
   return Boolean(row.subclass_catalog_id || row.subclass_name.trim())
 }
 
+function nextVisibleStep(
+  current: CreatePipelineStepId,
+  raceSetup: CreatePipelineState['raceSetup'],
+): CreatePipelineStepId | null {
+  const steps = visiblePipelineSteps(raceSetup)
+  const index = steps.indexOf(current)
+  if (index < 0) return steps[0] ?? null
+  return steps[index + 1] ?? null
+}
+
+function prevVisibleStep(
+  current: CreatePipelineStepId,
+  raceSetup: CreatePipelineState['raceSetup'],
+): CreatePipelineStepId | null {
+  const steps = visiblePipelineSteps(raceSetup)
+  const index = steps.indexOf(current)
+  if (index <= 0) return null
+  return steps[index - 1] ?? null
+}
+
 export function CreateCharacterPage() {
   const navigate = useNavigate()
   const { characterId: routeCharacterId } = useParams<{ characterId?: string }>()
@@ -211,9 +223,11 @@ export function CreateCharacterPage() {
   const [backgrounds, setBackgrounds] = useState<CatalogEntry[]>([])
   const [classes, setClasses] = useState<CatalogEntry[]>([])
   const [races, setRaces] = useState<CatalogEntry[]>([])
+  const [feats, setFeats] = useState<CatalogEntry[]>([])
   const [selectedBackground, setSelectedBackground] = useState<CatalogEntry | null>(null)
   const [selectedClass, setSelectedClass] = useState<CatalogEntry | null>(null)
   const [selectedRace, setSelectedRace] = useState<CatalogEntry | null>(null)
+  const [selectedFeat, setSelectedFeat] = useState<CatalogEntry | null>(null)
   const [bgSetup, setBgSetup] = useState<{
     root: CatalogEntry
     variants: CatalogEntry[]
@@ -227,6 +241,8 @@ export function CreateCharacterPage() {
     def: NonNullable<ReturnType<typeof resolveClassGrantDef>>
     mode: 'start' | 'multiclass'
     classEntryId: string
+    /** When true, open GuidedWizard after confirm (leveling / MC). */
+    openWizardAfter: boolean
   } | null>(null)
   const [subclassPicker, setSubclassPicker] = useState<{
     classEntryId: string
@@ -279,12 +295,14 @@ export function CreateCharacterPage() {
       listCatalogEntries({ kind: 'background', edition: '2014' }),
       listCatalogEntries({ kind: 'class', edition: '2014' }),
       listCatalogEntries({ kind: 'race', edition: '2014' }),
+      listCatalogEntries({ kind: 'feat', edition: '2014' }),
     ])
-      .then(([bg, cls, race]) => {
+      .then(([bg, cls, race, featRows]) => {
         if (!active) return
         setBackgrounds(bg.filter((row) => !row.parent_id))
         setClasses(cls.filter((row) => !row.parent_id && row.is_active))
         setRaces(race.filter((row) => isRaceComboboxRoot(row) && row.is_active))
+        setFeats(featRows.filter((row) => row.is_active))
       })
       .catch((err: unknown) => {
         if (!active) return
@@ -383,6 +401,45 @@ export function CreateCharacterPage() {
     }
     return map
   }, [state.classGrantPicks, state.classes])
+
+  const visibleSteps = useMemo(
+    () => visiblePipelineSteps(state.raceSetup),
+    [state.raceSetup],
+  )
+
+  const raceGrantDef = useMemo(() => {
+    const setup = state.raceSetup
+    if (!setup) return null
+    return resolveRaceGrantDef({
+      raceName: setup.entry.name_ru,
+      catalogSlug: setup.entry.slug,
+      catalogData: setup.entry.data,
+      nameRu: setup.entry.name_ru,
+    })
+  }, [state.raceSetup])
+
+  const hasCasterClass = useMemo(
+    () => state.classes.some((row) => CASTER_NAME_RE.test(row.name)),
+    [state.classes],
+  )
+
+  const blockedSkillKeys = useMemo(() => {
+    const keys = new Set<string>()
+    for (const key of state.backgroundSetup?.picks.skills ?? []) keys.add(key)
+    for (const key of state.raceSetup?.picks.skills ?? []) keys.add(key)
+    return [...keys]
+  }, [state.backgroundSetup?.picks.skills, state.raceSetup?.picks.skills])
+
+  const blockedToolNames = useMemo(() => {
+    const tools = new Set<string>()
+    for (const name of state.backgroundSetup?.picks.tools ?? []) {
+      if (name.trim()) tools.add(name.trim())
+    }
+    for (const name of state.raceSetup?.picks.tools ?? []) {
+      if (name.trim()) tools.add(name.trim())
+    }
+    return [...tools]
+  }, [state.backgroundSetup?.picks.tools, state.raceSetup?.picks.tools])
 
   const patchState = useCallback((patch: Partial<CreatePipelineState>) => {
     setState((prev) => ({ ...prev, ...patch }))
@@ -509,75 +566,108 @@ export function CreateCharacterPage() {
     }
   }
 
+  function clearStepFields(step: CreatePipelineStepId, nextStep: CreatePipelineStepId) {
+    if (step === 'abilities') {
+      patchState({
+        step: nextStep,
+        baseAbilities: createEmptyPipelineState().baseAbilities,
+        abilityMethod: 'standard_array',
+        stepDirty: { ...state.stepDirty, abilities: false },
+      })
+      return
+    }
+    if (step === 'leveling') {
+      patchState({
+        step: nextStep,
+        classes: [
+          createClassLevel({
+            id: state.classEntryId,
+            name: state.classRef?.nameRu ?? '',
+            catalog_id: state.classRef?.id ?? null,
+            level: 1,
+          }),
+        ],
+        hpChoices: [],
+        subclassSetups: {},
+        featurePicks: emptyFeaturePicks(),
+        classAsi: [],
+        stepDirty: { ...state.stepDirty, leveling: false },
+      })
+      setGuidedWizard(null)
+      setSubclassPicker(null)
+      setSubclassSetup(null)
+      return
+    }
+    if (step === 'class') {
+      patchState({
+        step: nextStep,
+        classRef: null,
+        classGrantPicks: {},
+        subclassSetups: {},
+        featurePicks: emptyFeaturePicks(),
+        classAsi: [],
+        classes: [createClassLevel({ id: state.classEntryId, level: 1 })],
+        hpChoices: [],
+        stepDirty: { ...state.stepDirty, class: false },
+      })
+      setSelectedClass(null)
+      setClassSetup(null)
+      return
+    }
+    if (step === 'background') {
+      patchState({
+        step: nextStep,
+        background: null,
+        backgroundSetup: null,
+        stepDirty: { ...state.stepDirty, background: false },
+      })
+      setSelectedBackground(null)
+      return
+    }
+    if (step === 'feat') {
+      patchState({
+        step: nextStep,
+        feat: null,
+        featAcknowledged: false,
+        stepDirty: { ...state.stepDirty, feat: false },
+      })
+      setSelectedFeat(null)
+      return
+    }
+    if (step === 'race') {
+      patchState({
+        step: nextStep,
+        race: null,
+        subrace: null,
+        raceSetup: null,
+        feat: null,
+        featAcknowledged: false,
+        characterName: state.characterName,
+        stepDirty: { ...state.stepDirty, race: false, feat: false },
+      })
+      setRacialBonuses({})
+      setSelectedRace(null)
+      setSelectedFeat(null)
+      return
+    }
+    patchState({ step: nextStep })
+  }
+
   function goToStep(next: CreatePipelineStepId) {
     const current = state.step
-    if (stepIndex(next) > stepIndex(current)) return
-    if (stepIndex(next) < stepIndex(current)) {
-      // Drop only the step we leave (current), keep later data if any.
-      if (current === 'abilities') {
-        patchState({
-          step: next,
-          baseAbilities: createEmptyPipelineState().baseAbilities,
-          abilityMethod: 'standard_array',
-          stepDirty: { ...state.stepDirty, abilities: false },
-        })
-        return
-      }
-      if (current === 'leveling') {
-        patchState({
-          step: next,
-          classes: [
-            createClassLevel({
-              id: state.classEntryId,
-              name: state.classRef?.nameRu ?? '',
-              catalog_id: state.classRef?.id ?? null,
-              level: 1,
-            }),
-          ],
-          hpChoices: [],
-          subclassSetups: {},
-          featurePicks: emptyFeaturePicks(),
-          classAsi: [],
-          stepDirty: { ...state.stepDirty, leveling: false },
-        })
-        setGuidedWizard(null)
-        setSubclassPicker(null)
-        setSubclassSetup(null)
-        return
-      }
-      if (current === 'race') {
-        patchState({
-          step: next,
-          race: null,
-          subrace: null,
-          raceSetup: null,
-          characterName: state.characterName,
-          stepDirty: { ...state.stepDirty, race: false },
-        })
-        setRacialBonuses({})
-        setSelectedRace(null)
-        return
-      }
-      if (current === 'class') {
-        patchState({
-          step: next,
-          classRef: null,
-          classGrantPicks: {},
-          subclassSetups: {},
-          featurePicks: emptyFeaturePicks(),
-          classAsi: [],
-          stepDirty: { ...state.stepDirty, class: false },
-        })
-        setSelectedClass(null)
-        return
-      }
+    const steps = visiblePipelineSteps(state.raceSetup)
+    const nextIdx = stepIndex(next, steps)
+    const curIdx = stepIndex(current, steps)
+    if (nextIdx < 0 || nextIdx > curIdx) return
+    if (nextIdx < curIdx) {
+      clearStepFields(current, next)
+      return
     }
     patchState({ step: next })
   }
 
   function advanceFrom(step: CreatePipelineStepId) {
-    const index = stepIndex(step)
-    const next = CREATE_PIPELINE_STEPS[index + 1]
+    const next = nextVisibleStep(step, state.raceSetup)
     if (next) patchState({ step: next })
   }
 
@@ -656,16 +746,19 @@ export function CreateCharacterPage() {
   }
 
   function canFinishHardBlocks(): string | null {
+    if (!state.race) return 'Выберите расу'
+    if (raceNeedsFeatStep(state.raceSetup) && !state.feat && !state.featAcknowledged) {
+      return 'Закройте шаг черты'
+    }
     if (!state.background) return 'Выберите предысторию'
     if (!state.classRef) return 'Выберите класс'
-    if (!state.race) return 'Выберите расу'
+    if (!state.classGrantPicks?.[state.classEntryId]) {
+      return 'Выберите навыки и снаряжение класса'
+    }
     if (!state.characterName.trim()) return 'Укажите имя на шаге расы'
     if (!abilitiesValid()) return 'Закройте характеристики'
     if (!state.classes.some((row) => row.level > 0 && row.name.trim())) {
       return 'Задайте уровни в прокачке'
-    }
-    if (!state.classGrantPicks?.[state.classEntryId]) {
-      return 'Выберите навыки и снаряжение основного класса (Развилки и умения)'
     }
     for (const feature of unlockedFeatures) {
       if (!isSubclassGateFeature(feature)) continue
@@ -682,12 +775,7 @@ export function CreateCharacterPage() {
       setToast(hard)
       return
     }
-    // Soft: spells — warn if caster-looking class and known empty.
-    const maybeCaster = state.classes.some((row) =>
-      /бард|жрец|друид|паладин|следопыт|чародей|колдун|волшебник|изобретатель/i.test(
-        row.name,
-      ),
-    )
+    const maybeCaster = state.classes.some((row) => CASTER_NAME_RE.test(row.name))
     const hasSpells = (spells.known?.length ?? 0) > 0
     if (maybeCaster && !hasSpells) {
       setSpellWarnOpen(true)
@@ -697,119 +785,11 @@ export function CreateCharacterPage() {
   }
 
   const step = state.step
+  const featNote = raceFeatNoteRu(state.raceSetup)
 
   let cards = null
   let detail = null
   let footer = null
-
-  if (step === 'background') {
-    cards = (
-      <CatalogCardList
-        items={backgrounds.map((entry) => ({
-          id: entry.id,
-          title: entry.name_ru,
-          subtitle: entry.source ?? undefined,
-        }))}
-        selectedId={selectedBackground?.id ?? state.background?.id ?? null}
-        onSelect={(id) => {
-          const entry = backgrounds.find((row) => row.id === id) ?? null
-          setSelectedBackground(entry)
-        }}
-      />
-    )
-    detail = (
-      <Stack gap={12}>
-        <Text as="h2">{selectedBackground?.name_ru ?? state.background?.nameRu ?? 'Предыстория'}</Text>
-        <Text>{shortBlurb(selectedBackground)}</Text>
-        {state.background ? (
-          <Text tone="muted">Выбрано: {state.background.nameRu}</Text>
-        ) : null}
-        <Button
-          disabled={!selectedBackground}
-          onClick={() => {
-            if (!selectedBackground) return
-            const variants = backgrounds.filter(
-              // variants may be separate roots in catalog; dialog loads by parent when needed
-              (row) => row.parent_id === selectedBackground.id,
-            )
-            setBgSetup({ root: selectedBackground, variants })
-          }}
-        >
-          Выбрать и настроить
-        </Button>
-      </Stack>
-    )
-    footer = (
-      <Button
-        disabled={!state.background}
-        onClick={() => advanceFrom('background')}
-      >
-        Далее · Класс
-      </Button>
-    )
-  }
-
-  if (step === 'class') {
-    cards = (
-      <CatalogCardList
-        items={classes.map((entry) => ({
-          id: entry.id,
-          title: entry.name_ru,
-          subtitle: entry.name_en ?? undefined,
-        }))}
-        selectedId={selectedClass?.id ?? state.classRef?.id ?? null}
-        onSelect={(id) => setSelectedClass(classes.find((row) => row.id === id) ?? null)}
-      />
-    )
-    detail = (
-      <Stack gap={12}>
-        <Text as="h2">{selectedClass?.name_ru ?? state.classRef?.nameRu ?? 'Класс'}</Text>
-        <Text>{shortBlurb(selectedClass)}</Text>
-        <Text tone="muted">
-          Здесь только фиксируем класс. Навыки, снаряжение и умения — в прокачке.
-        </Text>
-        <Button
-          disabled={!selectedClass}
-          onClick={() => {
-            if (!selectedClass) return
-            const entryId = state.classEntryId || createClassLevel().id
-            patchState({
-              classRef: catalogRef(selectedClass),
-              classEntryId: entryId,
-              classes: [
-                createClassLevel({
-                  id: entryId,
-                  name: selectedClass.name_ru,
-                  catalog_id: selectedClass.id,
-                  level: 1,
-                }),
-              ],
-              hpChoices: ensureHpChoices(
-                [
-                  createClassLevel({
-                    id: entryId,
-                    name: selectedClass.name_ru,
-                    catalog_id: selectedClass.id,
-                    level: 1,
-                  }),
-                ],
-                [],
-              ),
-              stepDirty: { ...state.stepDirty, class: true },
-            })
-            setToast(`Класс «${selectedClass.name_ru}» зафиксирован`)
-          }}
-        >
-          Зафиксировать класс
-        </Button>
-      </Stack>
-    )
-    footer = (
-      <Button disabled={!state.classRef} onClick={() => advanceFrom('class')}>
-        Далее · Раса
-      </Button>
-    )
-  }
 
   if (step === 'race') {
     cards = (
@@ -818,14 +798,18 @@ export function CreateCharacterPage() {
           id: entry.id,
           title: entry.name_ru,
           subtitle: entry.name_en ?? undefined,
+          source: entry.source,
         }))}
         selectedId={selectedRace?.id ?? state.race?.id ?? null}
         onSelect={(id) => setSelectedRace(races.find((row) => row.id === id) ?? null)}
       />
     )
     detail = (
-      <Stack gap={12}>
-        <Text as="h2">{selectedRace?.name_ru ?? state.race?.nameRu ?? 'Раса'}</Text>
+      <CatalogDetailPanel
+        kind="race"
+        entry={selectedRace}
+        emptyTitle={state.race?.nameRu ?? 'Раса'}
+      >
         <Field label="Имя персонажа">
           <Input
             value={state.characterName}
@@ -833,7 +817,6 @@ export function CreateCharacterPage() {
             placeholder="Имя героя"
           />
         </Field>
-        <Text>{shortBlurb(selectedRace)}</Text>
         <Button
           disabled={!selectedRace}
           onClick={async () => {
@@ -855,12 +838,209 @@ export function CreateCharacterPage() {
           Выбрать и настроить
         </Button>
         {state.race ? <Text tone="muted">Выбрано: {state.race.nameRu}</Text> : null}
-      </Stack>
+      </CatalogDetailPanel>
     )
     footer = (
       <Button
         disabled={!state.race || !state.characterName.trim()}
         onClick={() => advanceFrom('race')}
+      >
+        {raceNeedsFeatStep(state.raceSetup) ? 'Далее · Черта' : 'Далее · Предыстория'}
+      </Button>
+    )
+  }
+
+  if (step === 'feat') {
+    cards = (
+      <CatalogCardList
+        items={feats.map((entry) => ({
+          id: entry.id,
+          title: entry.name_ru,
+          subtitle: entry.name_en ?? undefined,
+          source: entry.source,
+        }))}
+        selectedId={selectedFeat?.id ?? state.feat?.id ?? null}
+        onSelect={(id) => setSelectedFeat(feats.find((row) => row.id === id) ?? null)}
+        emptyText="В каталоге пока мало черт — можно отметить заметку расы и продолжить"
+      />
+    )
+    detail = (
+      <CatalogDetailPanel
+        kind="feat"
+        entry={selectedFeat}
+        emptyTitle="Черта"
+        emptyHint={featNote || 'Раса даёт черту с 1 уровня.'}
+      >
+        {featNote ? (
+          <Text>
+            Заметка расы: {featNote}
+          </Text>
+        ) : null}
+        <div className="create-pipeline__method-row">
+          <Button
+            disabled={!selectedFeat}
+            onClick={() => {
+              if (!selectedFeat) return
+              patchState({
+                feat: catalogRef(selectedFeat),
+                featAcknowledged: true,
+                stepDirty: { ...state.stepDirty, feat: true },
+              })
+              setToast(`Черта «${selectedFeat.name_ru}»`)
+            }}
+          >
+            Выбрать черту
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              patchState({
+                feat: null,
+                featAcknowledged: true,
+                stepDirty: { ...state.stepDirty, feat: true },
+              })
+              setToast('Черта: отметьте на листе / в заметках')
+            }}
+          >
+            Отметить без каталога
+          </Button>
+        </div>
+        {state.feat ? (
+          <Text tone="muted">Выбрано: {state.feat.nameRu}</Text>
+        ) : state.featAcknowledged ? (
+          <Text tone="muted">Черта отмечена без карточки каталога</Text>
+        ) : null}
+      </CatalogDetailPanel>
+    )
+    footer = (
+      <Button
+        disabled={!state.feat && !state.featAcknowledged}
+        onClick={() => advanceFrom('feat')}
+      >
+        Далее · Предыстория
+      </Button>
+    )
+  }
+
+  if (step === 'background') {
+    cards = (
+      <CatalogCardList
+        items={backgrounds.map((entry) => ({
+          id: entry.id,
+          title: entry.name_ru,
+          subtitle: entry.name_en ?? undefined,
+          source: entry.source,
+        }))}
+        selectedId={selectedBackground?.id ?? state.background?.id ?? null}
+        onSelect={(id) => {
+          const entry = backgrounds.find((row) => row.id === id) ?? null
+          setSelectedBackground(entry)
+        }}
+      />
+    )
+    detail = (
+      <CatalogDetailPanel
+        kind="background"
+        entry={selectedBackground}
+        emptyTitle={state.background?.nameRu ?? 'Предыстория'}
+      >
+        <Button
+          disabled={!selectedBackground}
+          onClick={() => {
+            if (!selectedBackground) return
+            const variants = backgrounds.filter(
+              (row) => row.parent_id === selectedBackground.id,
+            )
+            setBgSetup({ root: selectedBackground, variants })
+          }}
+        >
+          Выбрать и настроить
+        </Button>
+        {state.background ? (
+          <Text tone="muted">Выбрано: {state.background.nameRu}</Text>
+        ) : null}
+      </CatalogDetailPanel>
+    )
+    footer = (
+      <Button disabled={!state.background} onClick={() => advanceFrom('background')}>
+        Далее · Класс
+      </Button>
+    )
+  }
+
+  if (step === 'class') {
+    cards = (
+      <CatalogCardList
+        items={classes.map((entry) => ({
+          id: entry.id,
+          title: entry.name_ru,
+          subtitle: entry.name_en ?? undefined,
+          source: entry.source,
+        }))}
+        selectedId={selectedClass?.id ?? state.classRef?.id ?? null}
+        onSelect={(id) => setSelectedClass(classes.find((row) => row.id === id) ?? null)}
+      />
+    )
+    detail = (
+      <CatalogDetailPanel
+        kind="class"
+        entry={selectedClass}
+        emptyTitle={state.classRef?.nameRu ?? 'Класс'}
+      >
+        <Button
+          disabled={!selectedClass}
+          onClick={() => {
+            if (!selectedClass) return
+            const def = resolveClassGrantDef({
+              className: selectedClass.name_ru,
+              catalogSlug: selectedClass.slug,
+              catalogData: selectedClass.data,
+            })
+            if (!def) {
+              setToast('Нет пакета владений для класса')
+              return
+            }
+            const entryId = state.classEntryId || createClassLevel().id
+            const nextClasses = [
+              createClassLevel({
+                id: entryId,
+                name: selectedClass.name_ru,
+                catalog_id: selectedClass.id,
+                level: 1,
+              }),
+            ]
+            patchState({
+              classRef: catalogRef(selectedClass),
+              classEntryId: entryId,
+              classes: nextClasses,
+              hpChoices: ensureHpChoices(nextClasses, []),
+              // Re-picking class clears prior primary grant picks.
+              classGrantPicks: {},
+              stepDirty: { ...state.stepDirty, class: true },
+            })
+            setClassSetup({
+              def,
+              mode: 'start',
+              classEntryId: entryId,
+              openWizardAfter: false,
+            })
+          }}
+        >
+          Выбрать и настроить
+        </Button>
+        {state.classRef && state.classGrantPicks?.[state.classEntryId] ? (
+          <Text tone="muted">
+            Класс «{state.classRef.nameRu}»: навыки и снаряжение сохранены
+          </Text>
+        ) : state.classRef ? (
+          <Text tone="muted">Класс зафиксирован — завершите диалог владений</Text>
+        ) : null}
+      </CatalogDetailPanel>
+    )
+    footer = (
+      <Button
+        disabled={!state.classRef || !state.classGrantPicks?.[state.classEntryId]}
+        onClick={() => advanceFrom('class')}
       >
         Далее · Характеристики
       </Button>
@@ -895,20 +1075,6 @@ export function CreateCharacterPage() {
         disabled={!abilitiesValid()}
         onClick={() => {
           patchState({
-            classes: ensureHpChoices(
-              state.classes.map((row) =>
-                row.id === state.classEntryId && state.classRef
-                  ? {
-                      ...row,
-                      name: state.classRef.nameRu,
-                      catalog_id: state.classRef.id,
-                    }
-                  : row,
-              ),
-              state.hpChoices,
-            )
-              ? state.classes
-              : state.classes,
             hpChoices: ensureHpChoices(state.classes, state.hpChoices),
           })
           advanceFrom('abilities')
@@ -938,6 +1104,9 @@ export function CreateCharacterPage() {
         hpChoices={state.hpChoices}
         primaryClassEntryId={state.classEntryId}
         hasClassGrantPicks={hasClassGrantPicks}
+        racialSpells={raceGrantDef?.racialSpells ?? []}
+        hasCasterClass={hasCasterClass}
+        featNoteRu={featNote}
         onClassesChange={(next) =>
           patchState({
             classes: next,
@@ -961,7 +1130,13 @@ export function CreateCharacterPage() {
             setToast('Сначала зафиксируйте класс')
             return
           }
+          const isPrimary = classEntryId === state.classEntryId
           if (!state.classGrantPicks?.[classEntryId]) {
+            // Primary should already have picks from the class step; MC still opens setup.
+            if (isPrimary) {
+              setToast('Вернитесь на шаг «Класс» и настройте владения')
+              return
+            }
             const def = resolveClassGrantDef({
               className: catalog.name_ru,
               catalogSlug: catalog.slug,
@@ -973,8 +1148,9 @@ export function CreateCharacterPage() {
             }
             setClassSetup({
               def,
-              mode: classEntryId === state.classEntryId ? 'start' : 'multiclass',
+              mode: 'multiclass',
               classEntryId,
+              openWizardAfter: true,
             })
             return
           }
@@ -995,6 +1171,8 @@ export function CreateCharacterPage() {
     )
   }
 
+  const backTarget = prevVisibleStep(step, state.raceSetup)
+
   return (
     <main className="page page--app page--create-pipeline">
       <div className="create-pipeline__topbar">
@@ -1004,15 +1182,16 @@ export function CreateCharacterPage() {
       {error ? <Text tone="danger">{error}</Text> : null}
       <CreatePipelineShell
         step={step}
+        steps={visibleSteps}
         title="Создание персонажа"
-        subtitle="Предыстория → класс → раса → характеристики → прокачка"
+        subtitle="Раса → черта* → предыстория → класс → характеристики → прокачка"
         cards={cards}
         detail={detail}
         footer={footer}
         onStepClick={goToStep}
         onBack={
-          stepIndex(step) > 0
-            ? () => goToStep(CREATE_PIPELINE_STEPS[stepIndex(step) - 1]!)
+          backTarget
+            ? () => goToStep(backTarget)
             : () => navigate('/characters')
         }
       />
@@ -1061,17 +1240,21 @@ export function CreateCharacterPage() {
           )
           const isSub = Boolean(result.entry.parent_id)
           const rootEntry = raceSetup?.root ?? null
+          const nextRaceSetup = {
+            entry: catalogSnapshot(result.entry),
+            rootEntry: rootEntry ? catalogSnapshot(rootEntry) : null,
+            picks: result.picks,
+          }
+          const needsFeat = Boolean(result.def.featNoteRu?.trim())
           patchState({
             race: isSub
               ? state.race ??
                 (rootEntry ? catalogRef(rootEntry) : catalogRef(result.entry))
               : catalogRef(result.entry),
             subrace: isSub ? catalogRef(result.entry) : null,
-            raceSetup: {
-              entry: catalogSnapshot(result.entry),
-              rootEntry: rootEntry ? catalogSnapshot(rootEntry) : null,
-              picks: result.picks,
-            },
+            raceSetup: nextRaceSetup,
+            feat: needsFeat ? state.feat : null,
+            featAcknowledged: needsFeat ? state.featAcknowledged : false,
             sheetDraft: {
               ...state.sheetDraft,
               race_grant: {
@@ -1081,11 +1264,14 @@ export function CreateCharacterPage() {
               },
             },
             stepDirty: { ...state.stepDirty, race: true },
+            // Auto-advance past feat when race does not grant one.
+            step: needsFeat ? 'feat' : 'background',
           })
           setRaceSetup(null)
-          setToast(`Раса «${result.entry.name_ru}»`)
-          if (result.def.featNoteRu) {
-            setToast(`Раса «${result.entry.name_ru}». Черта: ${result.def.featNoteRu}`)
+          if (needsFeat) {
+            setToast(`Раса «${result.entry.name_ru}». Далее — черта.`)
+          } else {
+            setToast(`Раса «${result.entry.name_ru}»`)
           }
         }}
       />
@@ -1094,11 +1280,12 @@ export function CreateCharacterPage() {
         open={Boolean(classSetup)}
         def={classSetup?.def ?? null}
         mode={classSetup?.mode ?? 'start'}
-        blockedSkillKeys={state.backgroundSetup?.picks.skills ?? []}
-        blockedToolNames={state.backgroundSetup?.picks.tools ?? []}
+        blockedSkillKeys={blockedSkillKeys}
+        blockedToolNames={blockedToolNames}
         onClose={() => setClassSetup(null)}
         onConfirm={(picks: ClassGrantPicks) => {
           const entryId = classSetup?.classEntryId ?? state.classEntryId
+          const openWizardAfter = classSetup?.openWizardAfter ?? false
           const nextPicks = {
             ...state.classGrantPicks,
             [entryId]: picks,
@@ -1110,11 +1297,12 @@ export function CreateCharacterPage() {
               ...state.sheetDraft,
               class_grant_picks: nextPicks,
             },
+            stepDirty: { ...state.stepDirty, class: true },
           }
           setState(nextState)
           setClassSetup(null)
           setToast('Выборы класса сохранены')
-          // Open feature/ASI wizard for remaining pending steps.
+          if (!openWizardAfter) return
           const row = nextState.classes.find((item) => item.id === entryId)
           if (!row) return
           const unlocked = unlockFeaturesForClasses({
@@ -1137,7 +1325,7 @@ export function CreateCharacterPage() {
               maxClassLevel: row.level,
             },
             hasSubclassByEntryId: hasSubclass,
-          }).filter((step) => step.kind !== 'class_grant' && step.kind !== 'background')
+          }).filter((stepRow) => stepRow.kind !== 'class_grant' && stepRow.kind !== 'background')
           if (steps.length > 0) openGuidedWizard({ steps, index: 0 })
         }}
       />
@@ -1167,8 +1355,8 @@ export function CreateCharacterPage() {
         featurePicks={state.featurePicks ?? emptyFeaturePicks()}
         expertiseKeys={expertiseKeys}
         backgroundName={state.background?.nameRu ?? ''}
-        blockedSkillKeys={state.backgroundSetup?.picks.skills ?? []}
-        blockedToolNames={state.backgroundSetup?.picks.tools ?? []}
+        blockedSkillKeys={blockedSkillKeys}
+        blockedToolNames={blockedToolNames}
         onFeaturePicksChange={(featurePicks: FeaturePicksState) => {
           patchState({
             featurePicks,

@@ -8,6 +8,8 @@ import {
 
 type CreatePipelineShellProps = {
   step: CreatePipelineStepId
+  /** Visible steps (feat may be omitted). Defaults to full canonical list. */
+  steps?: readonly CreatePipelineStepId[]
   title: string
   subtitle?: string
   cards: ReactNode
@@ -20,6 +22,7 @@ type CreatePipelineShellProps = {
 
 export function CreatePipelineShell({
   step,
+  steps = CREATE_PIPELINE_STEPS,
   title,
   subtitle,
   cards,
@@ -29,7 +32,7 @@ export function CreatePipelineShell({
   onBack,
   backDisabled,
 }: CreatePipelineShellProps) {
-  const currentIndex = CREATE_PIPELINE_STEPS.indexOf(step)
+  const currentIndex = steps.indexOf(step)
 
   return (
     <div className="create-pipeline">
@@ -41,7 +44,7 @@ export function CreatePipelineShell({
           {subtitle ? <Text tone="muted">{subtitle}</Text> : null}
         </Stack>
         <nav className="create-pipeline__steps" aria-label="Шаги создания">
-          {CREATE_PIPELINE_STEPS.map((id, index) => {
+          {steps.map((id, index) => {
             const active = id === step
             const reachable = index <= currentIndex
             return (

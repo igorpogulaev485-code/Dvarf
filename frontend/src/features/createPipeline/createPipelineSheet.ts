@@ -7,7 +7,10 @@ import { emptyFeaturePicks, readFeaturePicks } from '../../shared/dnd/featurePic
 import { readClassAsiLedger } from '../../shared/dnd/classAsi'
 import { classLevelsToSheet, readClassLevels } from '../characters/classLevels'
 import { xpToReachLevel } from '../../shared/dnd/experience'
-import type { CreatePipelineState } from './createPipelineTypes'
+import {
+  CREATE_PIPELINE_VERSION,
+  type CreatePipelineState,
+} from './createPipelineTypes'
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
@@ -74,7 +77,7 @@ export function buildSheetFromPipeline(
   }
 
   sheet.create_pipeline = {
-    version: 1,
+    version: CREATE_PIPELINE_VERSION,
     step: state.step,
     abilityMethod: state.abilityMethod,
     baseAbilities: state.baseAbilities,
@@ -85,6 +88,8 @@ export function buildSheetFromPipeline(
     classRef: state.classRef,
     race: state.race,
     subrace: state.subrace,
+    feat: state.feat,
+    featAcknowledged: state.featAcknowledged,
     backgroundSetup: state.backgroundSetup,
     raceSetup: state.raceSetup,
     classGrantPicks: state.classGrantPicks,
@@ -105,7 +110,7 @@ export function hydratePipelineFromSheet(
   fallback: CreatePipelineState,
 ): CreatePipelineState {
   const meta = asRecord(sheet.create_pipeline)
-  if (meta.version !== 1) return fallback
+  if (meta.version !== CREATE_PIPELINE_VERSION) return fallback
   const classGrantPicks =
     meta.classGrantPicks && typeof meta.classGrantPicks === 'object'
       ? (meta.classGrantPicks as CreatePipelineState['classGrantPicks'])
@@ -157,6 +162,8 @@ export function hydratePipelineFromSheet(
     subrace: (meta.subrace as CreatePipelineState['subrace']) || fallback.subrace,
     raceSetup:
       (meta.raceSetup as CreatePipelineState['raceSetup']) || fallback.raceSetup,
+    feat: (meta.feat as CreatePipelineState['feat']) || fallback.feat,
+    featAcknowledged: Boolean(meta.featAcknowledged),
     classes: classes.length ? classes : fallback.classes,
     featurePicks,
     classAsi,
