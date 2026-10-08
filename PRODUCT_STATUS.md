@@ -443,7 +443,7 @@
 | Раса после класса | Если Expertise была «Позже» — после расы мастер предлагает довыбор с новыми навыками | Class-first не ломает компетентность |
 
 Спека: `docs/guided-onboarding-wizard.md`.  
-На проде: нет · ветка `cursor/guided-onboarding-wizard-ef23`
+На проде: нет · ветка `cursor/guided-onboarding-wizard-ef23` · PR #93
 
 ## Убрано / заменено
 
