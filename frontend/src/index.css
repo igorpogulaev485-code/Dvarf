@@ -739,6 +739,88 @@ input {
   border-color: color-mix(in srgb, var(--accent, #0f766e) 45%, var(--line));
 }
 
+.inventory-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.gear-picker-list {
+  display: grid;
+  gap: 6px;
+  max-height: min(42vh, 360px);
+  overflow: auto;
+  padding: 4px 2px;
+}
+
+.gear-picker-family {
+  display: grid;
+  gap: 4px;
+}
+
+.gear-picker-row {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.gear-picker-row:hover {
+  border-color: color-mix(in srgb, var(--accent, #0f766e) 40%, var(--line));
+}
+
+.gear-picker-row.is-selected,
+.gear-picker-row.is-open {
+  border-color: color-mix(in srgb, var(--accent, #0f766e) 55%, var(--line));
+  background: color-mix(in srgb, var(--accent, #0f766e) 10%, white);
+}
+
+.gear-picker-row--family {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.gear-picker-row--variant {
+  margin-left: 12px;
+  border-style: dashed;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.gear-picker-row__name {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+  font-weight: 600;
+}
+
+.gear-picker-row__badge {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted, #64748b);
+}
+
+.gear-picker-row__meta {
+  font-size: 0.85rem;
+  color: var(--muted, #64748b);
+}
+
+.gear-picker-selected {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--accent, #0f766e) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent, #0f766e) 6%, white);
+}
+
 .inventory-card__nest-label {
   font-size: 0.8rem;
 }

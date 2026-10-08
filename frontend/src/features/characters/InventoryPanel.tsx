@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
+import { GearPickerDialog } from './GearPickerDialog'
+import {
+  applyGearAdd,
+  type GearAddResult,
+} from './gearFromCatalog'
+import type { WeaponAttack } from './AttacksPanel'
 import {
   ARMOR_KINDS,
   ARMOR_PRESETS,
@@ -54,17 +60,23 @@ type InventoryPanelProps = {
   edition: RulesEdition
   inventory: InventoryState
   strengthScore: number
+  weapons?: WeaponAttack[]
   onChange: (inventory: InventoryState) => void
+  /** When set, catalog weapon picks also append attack cards. */
+  onWeaponsChange?: (weapons: WeaponAttack[]) => void
 }
 
 export function InventoryPanel({
   edition,
   inventory,
   strengthScore,
+  weapons = [],
   onChange,
+  onWeaponsChange,
 }: InventoryPanelProps) {
   const [catalogItems, setCatalogItems] = useState<CatalogEntry[]>([])
   const [packBusyId, setPackBusyId] = useState<string | null>(null)
+  const [pickerOpen, setPickerOpen] = useState(false)
   const inventoryRef = useRef(inventory)
   const onChangeRef = useRef(onChange)
   inventoryRef.current = inventory
@@ -273,8 +285,9 @@ export function InventoryPanel({
     <Panel title="Инвентарь">
       <Stack gap={14}>
         <Text tone="muted">
-          Монеты, вещи, броня. Наборы можно раскрыть — содержимое идёт отдельными строками и считает
-          вес/перегруз. 20 бурдюков = одна строка с кол-вом, не набор.
+          Монеты, вещи, броня. «Из справочника» — поиск с редкостью и семьями вариантов. Наборы
+          можно раскрыть — содержимое считает вес/перегруз. 20 бурдюков = одна строка с кол-вом, не
+          набор.
         </Text>
 
         <div className="inventory-summary">
@@ -480,9 +493,12 @@ export function InventoryPanel({
           })}
         </Stack>
 
-        <div>
+        <div className="inventory-add-row">
+          <Button variant="secondary" onClick={() => setPickerOpen(true)}>
+            Из справочника
+          </Button>
           <Button
-            variant="secondary"
+            variant="ghost"
             onClick={() =>
               onChange({
                 ...inventory,
@@ -490,10 +506,28 @@ export function InventoryPanel({
               })
             }
           >
-            Добавить предмет
+            Своя строка
           </Button>
         </div>
       </Stack>
+
+      <GearPickerDialog
+        open={pickerOpen}
+        edition={edition}
+        onClose={() => setPickerOpen(false)}
+        onConfirm={(result: GearAddResult) => {
+          const next = applyGearAdd({
+            items: inventory.items,
+            weapons,
+            result,
+          })
+          onChange({ ...inventory, items: next.items })
+          if (result.attacks.length > 0 && onWeaponsChange) {
+            onWeaponsChange(next.weapons)
+          }
+          setPickerOpen(false)
+        }}
+      />
     </Panel>
   )
 }

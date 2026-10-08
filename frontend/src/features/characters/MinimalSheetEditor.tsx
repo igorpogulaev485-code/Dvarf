@@ -2552,7 +2552,9 @@ export function MinimalSheetEditor({
         edition={baseCharacter.rules_edition as RulesEdition}
         inventory={draft.inventory}
         strengthScore={draft.abilities.str}
+        weapons={draft.weapons}
         onChange={(inventory) => setDraft((prev) => ({ ...prev, inventory }))}
+        onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
       />
 
       <AttunementPanel
