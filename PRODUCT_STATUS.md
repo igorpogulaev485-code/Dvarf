@@ -467,6 +467,16 @@
 
 На проде: нет · ветка `cursor/spell-rest-books-wave-ef23` · alembic `v1e2`
 
+### 2026-10-08 — SPELLS: known vs prepared + фильтр книги в гримуаре
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Known-кастеры | Бард / чародей / колдун / следопыт / EK / AT: без кнопки «Подготовить», счётчик «Известно», заклинания всегда ready | Не нужно «готовить» список каждый день |
+| Prepared-кастеры | Жрец / друид / паладин / волшебник / изобретатель: кнопка подготовки и лимит как раньше | Бюджет подготовки остаётся |
+| Гримуар | Known: одно «Добавить» (сразу к касту); prepared: «В известные» / «Подготовить»; чипы книг PHB/XGE/TCE/… | Быстрее найти и взять заклинание из нужной книги |
+
+На проде: нет · ветка `cursor/spell-known-prepare-polish-ef23`
+
 <!-- пример:
 ### 2026-10-06 — подтверждение email при регистрации
 - Обязательный никнейм
@@ -551,3 +561,4 @@
 | 2026-10-08 | `cursor/spell-phb-wave-ef23` | SPELLS slice 6 wave1: +45 PHB non-SRD → «В ветках»; alembic `t9c0` |
 | 2026-10-08 | `cursor/spell-xge-wave-ef23` | SPELLS slice 6 wave2: +95 XGE → «В ветках»; alembic `u0d1` |
 | 2026-10-08 | `cursor/spell-rest-books-wave-ef23` | SPELLS slice 6 wave3: +68 TCE/EGW/… → 527; оф. gap 0; alembic `v1e2` |
+| 2026-10-08 | `cursor/spell-known-prepare-polish-ef23` | SPELLS slice 7: known vs prepared UX + book filter in grimoire → «В ветках» |

@@ -508,6 +508,34 @@ export function canRemoveSheetSpell(spell: SheetSpell): boolean {
   return !isPreparedLocked(spell) && !isRaceSheetSpell(spell) && !isFeatSheetSpell(spell)
 }
 
+/**
+ * Known casters (bard / sorcerer / warlock / ranger / EK / AT): no daily prepare
+ * budget — spells on the list are always available. Prepared casters
+ * (cleric / druid / paladin / wizard / artificer) use max_prepared.
+ */
+export function isKnownSpellcastingMode(input: {
+  maxPrepared: number | null
+  /** From suggestSpellcasting; omit when unknown. */
+  hasCasterSuggestion?: boolean
+}): boolean {
+  if (input.maxPrepared != null) return false
+  if (input.hasCasterSuggestion === false) return false
+  return true
+}
+
+/** Ensure known-list spells are combat-ready (prepared=true). */
+export function ensureKnownSpellsReady(known: SheetSpell[]): SheetSpell[] {
+  let changed = false
+  const next = known.map((spell) => {
+    if (spell.level > 0 && !spell.prepared) {
+      changed = true
+      return { ...spell, prepared: true }
+    }
+    return spell
+  })
+  return changed ? next : known
+}
+
 export function sheetSpellFromCatalog(entry: {
   id: string
   name_ru: string
