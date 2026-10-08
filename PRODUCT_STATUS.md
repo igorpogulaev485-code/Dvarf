@@ -493,7 +493,7 @@
 | М с ценой | Кандидаты в инвентаре `cost ≥ min`, самый дешёвый достаточный | Алмаз 200 не проходит на 300; 500 не берём, если есть 300 |
 | Расход | Вопрос «Списать?» (можно нет — для теста); списание `qty` | Не теряешь камень при проверке каста |
 
-На проде: **нет** · ветка `cursor/gear-spell-focus-db96` · tip не менять до «залей»
+На проде: **нет** · ветка `cursor/gear-spell-focus-db96` · PR #88 · tip не менять до «залей»
 
 ### 2026-10-08 — GEAR slice 6: «В руках» — слоты рук + sync атак
 
@@ -855,4 +855,4 @@
 | 2026-10-08 | `cursor/gear-packs-expand-db96` · PR #85 | GEAR slice 4: pack expand/collapse + nested weight for encumbrance → «В ветках» |
 | 2026-10-08 | `cursor/gear-picker-db96` · PR #86 | GEAR slice 5: catalog gear picker + family variants → «В ветках» |
 | 2026-10-08 | `cursor/gear-held-slots-db96` · PR #87 | GEAR slice 6: held hands (2H vs 1H×2) + attack sync → «В ветках» |
-| 2026-10-08 | `cursor/gear-spell-focus-db96` | GEAR slice 7: spell focus flags + costly material consume → «В ветках» |
+| 2026-10-08 | `cursor/gear-spell-focus-db96` · PR #88 | GEAR slice 7: spell focus flags + costly material consume → «В ветках» |
