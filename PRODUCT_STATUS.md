@@ -496,6 +496,7 @@
 | Автостаты Summon* | Tasha/Fizban spirit: HP/AC/атака от ячейки + мод. хозяина; Conjure* — групповая карточка | Не пустая карточка после каста |
 | Каст / концентрация | Create/refresh; снятие концентрации → неактивен | |
 | Ресурсы / отдых | Пулы на карточке; short/long rest хозяина сбрасывает | Repair 3/день и т.п. |
+| Аватарка | Опционально у living/construct/familiar/вручную; не у временных Summon/Conjure | Портрет «своих», без шума у разовых призывов |
 | Не сущности | Spiritual Weapon, Barrage/Volley | |
 
 На проде: **нет** · ветка `cursor/companions-naparniki-b378` · PR #81 · alembic `b4c5` · tip не менять до «залей»

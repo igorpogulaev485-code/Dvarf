@@ -65,6 +65,11 @@ export type CompanionEntry = {
   bestiary_ref: string | null
   /** Cached RU name for the bestiary pick (display when catalog is empty/offline). */
   bestiary_name_ru: string | null
+  /**
+   * Optional portrait for long-lived naparniki (data URL or https).
+   * Not shown for temporary spell summons — see companionAllowsAvatar.
+   */
+  avatar_url: string | null
   nature: CompanionNature
   /** Combat/scene: alive and present. */
   active: boolean
@@ -85,6 +90,19 @@ export type CompanionEntry = {
   resources: CompanionResource[]
   actions: string
   notes: string
+}
+
+/**
+ * Portrait UI for durable naparniki only:
+ * living / construct / familiar / manual — yes;
+ * temporary spell summons (summoned + source spell) — no.
+ */
+export function companionAllowsAvatar(row: CompanionEntry): boolean {
+  if (row.kind === 'familiar') return true
+  if (row.source?.kind === 'manual') return true
+  if (row.nature === 'summoned' && row.source?.kind === 'spell') return false
+  if (row.nature === 'living' || row.nature === 'construct') return true
+  return false
 }
 
 export const COMPANION_KIND_LABELS: Record<CompanionKind, string> = {
@@ -298,6 +316,7 @@ export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEnt
     name: partial?.name ?? '',
     bestiary_ref: partial?.bestiary_ref ?? null,
     bestiary_name_ru: partial?.bestiary_name_ru ?? null,
+    avatar_url: partial?.avatar_url ?? null,
     nature,
     active: partial?.active ?? true,
     is_primary: partial?.is_primary ?? false,
@@ -391,6 +410,7 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
       bestiary_ref: bestiaryRef,
       bestiary_name_ru:
         typeof row.bestiary_name_ru === 'string' ? row.bestiary_name_ru : null,
+      avatar_url: typeof row.avatar_url === 'string' ? row.avatar_url : null,
       nature,
       active: typeof row.active === 'boolean' ? row.active : true,
       is_primary: typeof row.is_primary === 'boolean' ? row.is_primary : false,
@@ -504,6 +524,7 @@ export function mergeSubclassCompanions(input: {
       name: customName || created.name,
       bestiary_ref: prev.bestiary_ref ?? created.bestiary_ref,
       bestiary_name_ru: prev.bestiary_name_ru ?? created.bestiary_name_ru,
+      avatar_url: prev.avatar_url ?? created.avatar_url,
       nature: prev.nature,
       active: prev.active,
       is_primary: prev.is_primary,

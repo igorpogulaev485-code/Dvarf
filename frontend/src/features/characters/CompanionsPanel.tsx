@@ -1,12 +1,18 @@
+import { useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog/CatalogCombobox'
 import type { RulesEdition } from '../../shared/api/characters'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
+import {
+  COMPANION_AVATAR_ACCEPT,
+  fileToCompanionAvatarDataUrl,
+} from './companionAvatar'
 import {
   COMPANION_CONTROL_LABELS,
   COMPANION_KIND_LABELS,
   COMPANION_NATURE_LABELS,
   COMPANIONS_PANEL_TITLE,
   applyHpChange,
+  companionAllowsAvatar,
   companionSourceLabel,
   createCompanion,
   isCompanionDead,
@@ -82,8 +88,29 @@ export function CompanionsPanel({
   edition,
   title = COMPANIONS_PANEL_TITLE,
 }: CompanionsPanelProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [avatarTargetId, setAvatarTargetId] = useState<string | null>(null)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
+  const [avatarPending, setAvatarPending] = useState(false)
+
   function replace(id: string, next: CompanionEntry) {
     onChange(companions.map((row) => (row.id === id ? next : row)))
+  }
+
+  async function handleAvatarFile(id: string, file: File | undefined) {
+    if (!file) return
+    setAvatarError(null)
+    setAvatarPending(true)
+    try {
+      const dataUrl = await fileToCompanionAvatarDataUrl(file)
+      update(id, { avatar_url: dataUrl })
+    } catch (err) {
+      setAvatarError(err instanceof Error ? err.message : 'Не удалось загрузить')
+    } finally {
+      setAvatarPending(false)
+      setAvatarTargetId(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
   }
 
   function update(id: string, patch: Partial<CompanionEntry>) {
@@ -132,10 +159,24 @@ export function CompanionsPanel({
           </Button>
         </div>
 
+        <input
+          ref={fileInputRef}
+          className="visually-hidden"
+          type="file"
+          accept={COMPANION_AVATAR_ACCEPT}
+          disabled={avatarPending}
+          onChange={(event) => {
+            if (!avatarTargetId) return
+            void handleAvatarFile(avatarTargetId, event.target.files?.[0])
+          }}
+        />
+        {avatarError ? <Text tone="danger">{avatarError}</Text> : null}
+
         {companions.map((row) => {
           const dead = isCompanionDead(row)
           const showDeath =
             row.nature === 'living' && ((row.stats.hp ?? 1) <= 0 || Boolean(row.death))
+          const showAvatar = companionAllowsAvatar(row)
 
           return (
             <div
@@ -145,11 +186,24 @@ export function CompanionsPanel({
               }`}
             >
               <div className="companion-card__head">
-                <Text>
-                  <strong>{row.name.trim() || 'Без имени'}</strong>
-                  {' · '}
-                  {statusLine(row)}
-                </Text>
+                <div className="companion-card__identity">
+                  {showAvatar ? (
+                    <div className="companion-avatar" aria-hidden={!row.avatar_url}>
+                      {row.avatar_url ? (
+                        <img src={row.avatar_url} alt="" className="companion-avatar__img" />
+                      ) : (
+                        <span className="companion-avatar__placeholder">
+                          {(row.name.trim() || '?').slice(0, 1).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                  ) : null}
+                  <Text>
+                    <strong>{row.name.trim() || 'Без имени'}</strong>
+                    {' · '}
+                    {statusLine(row)}
+                  </Text>
+                </div>
                 <div className="companion-card__chips">
                   <button
                     type="button"
@@ -201,6 +255,38 @@ export function CompanionsPanel({
                   </select>
                 </Field>
               </div>
+
+              {showAvatar ? (
+                <div className="companion-avatar-actions">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={avatarPending}
+                    onClick={() => {
+                      setAvatarError(null)
+                      setAvatarTargetId(row.id)
+                      fileInputRef.current?.click()
+                    }}
+                  >
+                    {avatarPending && avatarTargetId === row.id
+                      ? 'Загружаем…'
+                      : row.avatar_url
+                        ? 'Сменить фото'
+                        : 'Добавить фото'}
+                  </Button>
+                  {row.avatar_url ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      disabled={avatarPending}
+                      onClick={() => update(row.id, { avatar_url: null })}
+                    >
+                      Убрать фото
+                    </Button>
+                  ) : null}
+                  <Text tone="muted">JPEG/PNG/WebP до 2 МБ · только для постоянных напарников</Text>
+                </div>
+              ) : null}
 
               <Field label="Бестиарий">
                 <CatalogCombobox

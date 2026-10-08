@@ -1,6 +1,7 @@
 /** Naparniki / companions model: HP lifecycle, revoke, name merge, templates. */
 import {
   applyHpChange,
+  companionAllowsAvatar,
   createCompanion,
   isCompanionDead,
   isCompanionStable,
@@ -332,5 +333,30 @@ const primed = setPrimaryCompanion([a, b], 'b')
 assert(primed[0]?.is_primary === false && primed[1]?.is_primary === true, 'one primary')
 const cleared = setPrimaryCompanion(primed, null)
 assert(cleared.every((c) => !c.is_primary), 'clear primary')
+
+assert(companionAllowsAvatar(dog), 'manual living allows avatar')
+assert(
+  companionAllowsAvatar(
+    createCompanion({ kind: 'familiar', nature: 'summoned', name: 'Тень' }),
+  ),
+  'familiar allows avatar',
+)
+assert(
+  companionAllowsAvatar(
+    createCompanion({ kind: 'steel_defender', nature: 'construct', name: 'Гвоздь' }),
+  ),
+  'construct allows avatar',
+)
+assert(
+  !companionAllowsAvatar(
+    createCompanion({
+      kind: 'other',
+      nature: 'summoned',
+      name: 'Дух зверя',
+      source: { kind: 'spell', labelRu: 'Заклинание', feature: 'spell:summon_beast' },
+    }),
+  ),
+  'spell summon denies avatar',
+)
 
 console.log('smoke-companions: ok')
