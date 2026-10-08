@@ -2,7 +2,7 @@ import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { parseWeaponCatalogData } from '../../shared/dnd/gearCatalog'
-import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
+import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
@@ -22,6 +22,8 @@ export type WeaponAttack = {
   is_proficient: boolean
   damage: string
   damage_type: string
+  /** Stack size (javelins ×4); omit/null when each card is one weapon. */
+  qty?: number | null
 }
 
 /** Stable attack id for race natural weapons (revoke on race change). */
@@ -75,6 +77,7 @@ function createAttack(): WeaponAttack {
     is_proficient: true,
     damage: '',
     damage_type: '',
+    qty: null,
   }
 }
 
@@ -184,6 +187,18 @@ export function AttacksPanel({
                     placeholder="дробящий"
                     onChange={(event) =>
                       updateAttack(attack.id, { damage_type: event.target.value })
+                    }
+                  />
+                </Field>
+                <Field label="Кол-во" hint="для метательных / запасов">
+                  <NumberInput
+                    min={1}
+                    emptyValue={null}
+                    value={attack.qty ?? null}
+                    onValueChange={(qty) =>
+                      updateAttack(attack.id, {
+                        qty: qty == null || qty <= 1 ? null : qty,
+                      })
                     }
                   />
                 </Field>

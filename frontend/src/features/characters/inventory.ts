@@ -24,6 +24,10 @@ export type InventoryItem = {
   equipped: boolean
   armor_kind: ArmorKind
   base_ac: number | null
+  /** From catalog; null = uncapped (light). Omitted on legacy sheets. */
+  max_dex_bonus?: number | null
+  /** Heavy armor STR gate (PHB). */
+  strength_requirement?: number | null
   notes: string
 }
 
@@ -45,6 +49,8 @@ export function createInventoryItem(): InventoryItem {
     equipped: false,
     armor_kind: 'none',
     base_ac: null,
+    max_dex_bonus: null,
+    strength_requirement: null,
     notes: '',
   }
 }
@@ -72,6 +78,8 @@ function readItem(raw: unknown, index: number): InventoryItem {
     equipped: Boolean(row.equipped),
     armor_kind,
     base_ac: readNullableNumber(row.base_ac ?? row.ac_bonus),
+    max_dex_bonus: readNullableNumber(row.max_dex_bonus),
+    strength_requirement: readNullableNumber(row.strength_requirement),
     notes: typeof row.notes === 'string' ? row.notes : '',
   }
 }
@@ -106,6 +114,8 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         equipped: item.equipped,
         armor_kind: item.armor_kind,
         base_ac: item.base_ac,
+        max_dex_bonus: item.max_dex_bonus ?? null,
+        strength_requirement: item.strength_requirement ?? null,
         notes: item.notes,
       })),
     },
@@ -135,13 +145,21 @@ export function armorFieldsFromCatalog(
       armor_kind: fromData.armor_kind,
       base_ac: fromData.base_ac ?? preset?.baseAc ?? (fromData.armor_kind === 'shield' ? 2 : null),
       weight_lb: fromData.weight_lb ?? preset?.weight_lb ?? null,
+      max_dex_bonus: fromData.max_dex_bonus,
+      strength_requirement: fromData.strength_requirement,
     }
   }
   if (preset) {
+    const maxDex =
+      preset.kind === 'medium' ? 2 : preset.kind === 'heavy' ? 0 : null
+    const strReq =
+      preset.key === 'chain_mail' ? 13 : preset.key === 'splint' || preset.key === 'plate' ? 15 : null
     return {
       armor_kind: preset.kind,
       base_ac: preset.baseAc,
       weight_lb: preset.weight_lb,
+      max_dex_bonus: maxDex,
+      strength_requirement: strReq,
     }
   }
   return {}
@@ -198,7 +216,14 @@ export function equippedArmorPieces(items: InventoryItem[]): {
         kind: item.armor_kind,
         baseAc: item.base_ac ?? 10,
         name: item.name || armorKindFallback(item.armor_kind),
-        // Sheet rows do not store max_dex yet (GEAR G2/G3); kind defaults apply.
+        maxDexBonus:
+          item.max_dex_bonus !== undefined
+            ? item.max_dex_bonus
+            : item.armor_kind === 'medium'
+              ? 2
+              : item.armor_kind === 'heavy'
+                ? 0
+                : null,
       }
     }
   }

@@ -24,10 +24,11 @@ import {
   type InventoryState,
 } from './inventory'
 import type { TextBlock } from './textBlocks'
+import { type WeaponAttack } from './AttacksPanel'
 import {
-  backgroundEquipmentAttackId,
-  type WeaponAttack,
-} from './AttacksPanel'
+  backgroundEquipmentAttackIdAt,
+  buildStartingWeaponAttacks,
+} from './startingGearAttacks'
 import { resolveWeaponExtraName } from './weaponProficiencyExtras'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
@@ -75,6 +76,7 @@ function addGearItem(input: {
   weapons: WeaponAttack[]
   itemId: string
   attackId: string | null
+  attackIds: string[]
 } {
   const created = createInventoryItem()
   created.name = input.name
@@ -102,24 +104,22 @@ function addGearItem(input: {
   }
 
   let weapons = [...input.weapons]
-  let attackId: string | null = null
-  const weapon = findWeaponPreset(input.name)
-  if (weapon) {
-    attackId = backgroundEquipmentAttackId(input.backgroundSlug, created.id)
-    weapons.push({
-      id: attackId,
-      name:
-        created.qty > 1 ? `${weapon.labelRu} ×${created.qty}` : weapon.labelRu,
-      catalog_id: null,
-      source_kind: 'weapon',
-      ability: weapon.ability,
-      is_proficient: true,
-      damage: weapon.damage,
-      damage_type: weapon.damageType,
-    })
-  }
+  const built = buildStartingWeaponAttacks({
+    name: input.name,
+    qty: created.qty,
+    makeId: (index, cardCount) =>
+      backgroundEquipmentAttackIdAt(input.backgroundSlug, created.id, index, cardCount),
+  })
+  weapons.push(...built.attacks)
+  const attackId = built.attackIds[0] ?? null
 
-  return { inventory, weapons, itemId: created.id, attackId }
+  return {
+    inventory,
+    weapons,
+    itemId: created.id,
+    attackId,
+    attackIds: built.attackIds,
+  }
 }
 
 /** Weapon OR picks that grant a named proficiency (gladiator exotic weapons). */
@@ -305,7 +305,7 @@ export function applyBackgroundGrantToDraft(input: {
         inventory = added.inventory
         nextWeapons = added.weapons
         equipmentItemIds.push(added.itemId)
-        if (added.attackId) equipmentAttackIds.push(added.attackId)
+        equipmentAttackIds.push(...added.attackIds)
       }
       for (const choice of def.equipmentOrChoices) {
         const picked = picks.equipmentOrPicks[choice.id]
@@ -320,7 +320,7 @@ export function applyBackgroundGrantToDraft(input: {
         inventory = added.inventory
         nextWeapons = added.weapons
         equipmentItemIds.push(added.itemId)
-        if (added.attackId) equipmentAttackIds.push(added.attackId)
+        equipmentAttackIds.push(...added.attackIds)
       }
       if (pack.coinsGp && pack.coinsGp > 0) {
         equipmentCoinsGp = pack.coinsGp

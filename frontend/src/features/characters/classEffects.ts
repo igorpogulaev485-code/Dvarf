@@ -16,7 +16,6 @@ import {
   type WeaponProfKey,
 } from '../../shared/dnd/classGrants'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
-import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import { abilityModifier } from './sheetTypes'
 import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
 import {
@@ -25,10 +24,11 @@ import {
   type InventoryState,
 } from './inventory'
 import type { ArmorKind } from '../../shared/dnd/armor'
+import { type WeaponAttack } from './AttacksPanel'
 import {
-  classEquipmentAttackId,
-  type WeaponAttack,
-} from './AttacksPanel'
+  buildStartingWeaponAttacks,
+  classEquipmentAttackIdAt,
+} from './startingGearAttacks'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
 export type SaveState = Record<AbilityKey, boolean>
@@ -322,25 +322,15 @@ export function applyClassGrantToDraft(input: {
           }
         }
 
-        // Weapons → Attacks panel cards (one card per distinct weapon item).
-        const weapon = findWeaponPreset(spec.name)
-        if (weapon) {
-          const attackId = classEquipmentAttackId(input.classEntryId, created.id)
-          nextWeapons.push({
-            id: attackId,
-            name:
-              created.qty > 1
-                ? `${weapon.labelRu} ×${created.qty}`
-                : weapon.labelRu,
-            catalog_id: null,
-            source_kind: 'weapon',
-            ability: weapon.ability,
-            is_proficient: true,
-            damage: weapon.damage,
-            damage_type: weapon.damageType,
-          })
-          equipmentAttackIds.push(attackId)
-        }
+        // Weapons → Attacks: light×N → N cards; stacks → one card + qty (no "×N" in name).
+        const built = buildStartingWeaponAttacks({
+          name: spec.name,
+          qty: created.qty,
+          makeId: (index, cardCount) =>
+            classEquipmentAttackIdAt(input.classEntryId, created.id, index, cardCount),
+        })
+        nextWeapons.push(...built.attacks)
+        equipmentAttackIds.push(...built.attackIds)
       }
       if (pack.coinsGp && pack.coinsGp > 0) {
         equipmentCoinsGp = pack.coinsGp

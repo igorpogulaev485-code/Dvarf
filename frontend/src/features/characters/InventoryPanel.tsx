@@ -86,6 +86,8 @@ export function InventoryPanel({
         null,
       armor_kind: armor.armor_kind ?? 'none',
       base_ac: armor.base_ac ?? null,
+      max_dex_bonus: armor.max_dex_bonus ?? null,
+      strength_requirement: armor.strength_requirement ?? null,
     })
   }
 
@@ -93,11 +95,17 @@ export function InventoryPanel({
     if (!presetKey) return
     const preset = ARMOR_PRESETS.find((item) => item.key === presetKey)
     if (!preset) return
+    const maxDex =
+      preset.kind === 'medium' ? 2 : preset.kind === 'heavy' ? 0 : null
+    const strReq =
+      preset.key === 'chain_mail' ? 13 : preset.key === 'splint' || preset.key === 'plate' ? 15 : null
     updateItem(id, {
       name: preset.labelRu,
       armor_kind: preset.kind,
       base_ac: preset.baseAc,
       weight_lb: preset.weight_lb,
+      max_dex_bonus: maxDex,
+      strength_requirement: strReq,
     })
   }
 
@@ -105,13 +113,25 @@ export function InventoryPanel({
     const item = inventory.items.find((row) => row.id === id)
     if (!item) return
     if (armor_kind === 'none') {
-      updateItem(id, { armor_kind, base_ac: null })
+      updateItem(id, {
+        armor_kind,
+        base_ac: null,
+        max_dex_bonus: null,
+        strength_requirement: null,
+      })
       return
     }
     const preset = ARMOR_PRESETS.find((row) => row.kind === armor_kind)
     updateItem(id, {
       armor_kind,
       base_ac: item.base_ac ?? preset?.baseAc ?? (armor_kind === 'shield' ? 2 : 10),
+      max_dex_bonus:
+        armor_kind === 'medium' ? 2 : armor_kind === 'heavy' ? 0 : null,
+      strength_requirement:
+        armor_kind === 'heavy'
+          ? (item.strength_requirement ??
+            (preset?.key === 'chain_mail' ? 13 : preset?.key === 'splint' || preset?.key === 'plate' ? 15 : null))
+          : null,
     })
   }
 

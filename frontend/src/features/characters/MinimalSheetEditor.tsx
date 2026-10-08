@@ -290,6 +290,10 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
       is_proficient: Boolean(row.is_proficient),
       damage: typeof row.damage === 'string' ? row.damage : '',
       damage_type: typeof row.damage_type === 'string' ? row.damage_type : '',
+      qty:
+        typeof row.qty === 'number' && Number.isFinite(row.qty) && row.qty > 1
+          ? Math.floor(row.qty)
+          : null,
     }
   })
 }
