@@ -492,7 +492,7 @@
 | Слоты + эффекты | `wear_slot` (ring/cloak/feet…) + `ac_bonus` / sense / ability / resource / companion | Надел — КД/тёмное зрение/сила огра считаются движком |
 | Пикер | Чипы «Чудесные» и «Зелья»; семьи поясов/зелий силы и сопротивления | Быстрый фильтр магии без простыни mundane |
 
-На проде: **нет** · ветка `cursor/gear-wondrous-srd-db96` · PR — · tip не менять до «залей» · alembic `f8a9` (после `e7f8`)
+На проде: **нет** · ветка `cursor/gear-wondrous-srd-db96` · PR #96 · tip не менять до «залей» · alembic `f8a9` (после `e7f8`)
 
 ### 2026-10-08 — GEAR W2: магия SRD — статы / эффекты / rarity UI
 
@@ -934,4 +934,4 @@
 | 2026-10-08 | `cursor/gear-race-nw-effects-db96` · PR #92 | GEAR: race natural weapons + gear grant_spell/resource/companion → «В ветках» |
 | 2026-10-08 | `cursor/gear-tools-mounts-db96` · PR #94 | GEAR W1: tools/mounts/tack/vehicles RU backfill + picker filters; alembic `d6e7` → «В ветках» |
 | 2026-10-08 | `cursor/gear-magic-enrich-db96` · PR #95 | GEAR W2: DMG magic enrich (stats/effects/slots) + rarity badges; alembic `e7f8` → «В ветках» |
-| 2026-10-08 | `cursor/gear-wondrous-srd-db96` | GEAR W3: SRD wondrous/rings/potions insert + picker chips; alembic `f8a9` → «В ветках» |
+| 2026-10-08 | `cursor/gear-wondrous-srd-db96` · PR #96 | GEAR W3: SRD wondrous/rings/potions insert + picker chips; alembic `f8a9` → «В ветках» |
