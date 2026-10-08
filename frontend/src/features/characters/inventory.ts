@@ -15,7 +15,12 @@ import {
 } from '../../shared/dnd/weight'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 import { equipHeldItem, isHeldItem, type WeaponGrip } from './heldEquip'
-import { readSpellTooling, type SpellTooling } from './spellFocus'
+import {
+  readFocusKind,
+  readSpellTooling,
+  type FocusKind,
+  type SpellTooling,
+} from './spellFocus'
 
 export type InventoryContainerKind = 'none' | 'pack' | 'kit' | 'container'
 
@@ -44,8 +49,13 @@ export type InventoryItem = {
   weapon_grip?: WeaponGrip | null
   /** Unit price in gp (from catalog) — costly spell components. */
   cost_gp?: number | null
-  /** Cached spell tooling role for O(1) focus sync. */
+  /**
+   * Role for spells: focus / component pouch / none.
+   * Cast sync looks at this *type* — display name may be custom.
+   */
   spell_tooling?: SpellTooling | null
+  /** Optional focus family (arcane / druidic / holy) — suggestions only. */
+  focus_kind?: FocusKind | null
 }
 
 export type InventoryState = {
@@ -76,6 +86,7 @@ export function createInventoryItem(): InventoryItem {
     weapon_grip: null,
     cost_gp: null,
     spell_tooling: null,
+    focus_kind: null,
   }
 }
 
@@ -124,6 +135,7 @@ function readItem(raw: unknown, index: number): InventoryItem {
     weapon_grip: readWeaponGrip(row.weapon_grip),
     cost_gp: readNullableNumber(row.cost_gp),
     spell_tooling: readSpellTooling(row.spell_tooling),
+    focus_kind: readFocusKind(row.focus_kind),
   }
 }
 
@@ -167,6 +179,7 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         weapon_grip: item.weapon_grip ?? null,
         cost_gp: item.cost_gp ?? null,
         spell_tooling: item.spell_tooling ?? null,
+        focus_kind: item.focus_kind ?? null,
       })),
     },
   }

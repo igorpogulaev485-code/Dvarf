@@ -16,7 +16,7 @@ import {
 } from '../../shared/dnd/gearCatalog'
 import type { WeaponAttack } from './AttacksPanel'
 import { resolveWeaponGrip } from './heldEquip'
-import { classifySpellTooling } from './spellFocus'
+import { classifySpellTooling, inferFocusKind } from './spellFocus'
 import {
   armorFieldsFromCatalog,
   createInventoryItem,
@@ -242,6 +242,14 @@ export function inventoryItemFromCatalog(input: {
     catalog_slug: entry.slug,
     item_category: parsed.item_category,
   })
+  created.focus_kind =
+    created.spell_tooling === 'focus'
+      ? inferFocusKind({
+          name: entry.name_ru,
+          catalog_slug: entry.slug,
+          item_category: parsed.item_category,
+        }) ?? 'any'
+      : null
   created.container_kind =
     parsed.item_category === 'pack' || parsed.contents.length > 0
       ? 'pack'

@@ -26,7 +26,15 @@ import {
   parseItemCatalogData,
   parseWeaponCatalogData,
 } from '../../shared/dnd/gearCatalog'
-import { classifySpellTooling } from './spellFocus'
+import {
+  classifySpellTooling,
+  FOCUS_KIND_LABEL_RU,
+  focusSuggestionsFor,
+  inferFocusKind,
+  SPELL_TOOLING_LABEL_RU,
+  type FocusKind,
+  type SpellTooling,
+} from './spellFocus'
 import {
   coinWeightLb,
   carryingCapacityLb,
@@ -188,6 +196,14 @@ export function InventoryPanel({
             item_category: parsedItem.item_category,
           })
         : ('none' as const)
+    const focusKind =
+      spellTooling === 'focus'
+        ? inferFocusKind({
+            name: selected.name_ru,
+            catalog_slug: selected.slug,
+            item_category: parsedItem.item_category,
+          }) ?? 'any'
+        : null
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
@@ -207,6 +223,7 @@ export function InventoryPanel({
       weapon_grip: weaponGrip,
       cost_gp: cost,
       spell_tooling: spellTooling,
+      focus_kind: focusKind,
     })
   }
 
@@ -463,6 +480,83 @@ export function InventoryPanel({
                       onValueChange={(base_ac) => updateItem(item.id, { base_ac })}
                     />
                   </Field>
+                ) : null}
+
+                {!nested && item.armor_kind === 'none' ? (
+                  <div className="sheet-grid sheet-grid--2">
+                    <Field
+                      label="Для заклинаний"
+                      hint="Тип, не название — свой вид фокуса ок"
+                    >
+                      <select
+                        className="play-select"
+                        value={item.spell_tooling ?? 'none'}
+                        onChange={(event) => {
+                          const spell_tooling = event.target.value as SpellTooling
+                          updateItem(item.id, {
+                            spell_tooling,
+                            focus_kind:
+                              spell_tooling === 'focus'
+                                ? item.focus_kind ?? 'any'
+                                : null,
+                          })
+                        }}
+                      >
+                        {(Object.keys(SPELL_TOOLING_LABEL_RU) as SpellTooling[]).map(
+                          (key) => (
+                            <option key={key} value={key}>
+                              {SPELL_TOOLING_LABEL_RU[key]}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </Field>
+                    {item.spell_tooling === 'focus' ? (
+                      <Field label="Семья фокуса" hint="Только подсказки вариантов">
+                        <select
+                          className="play-select"
+                          value={item.focus_kind ?? 'any'}
+                          onChange={(event) =>
+                            updateItem(item.id, {
+                              focus_kind: event.target.value as FocusKind,
+                            })
+                          }
+                        >
+                          {(Object.keys(FOCUS_KIND_LABEL_RU) as FocusKind[]).map((key) => (
+                            <option key={key} value={key}>
+                              {FOCUS_KIND_LABEL_RU[key]}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    ) : (
+                      <div />
+                    )}
+                  </div>
+                ) : null}
+
+                {!nested && item.spell_tooling === 'focus' ? (
+                  <div>
+                    <Text tone="muted">Варианты (по желанию — имя можно своё)</Text>
+                    <div className="chip-row" style={{ marginTop: 8 }}>
+                      {focusSuggestionsFor(item.focus_kind).map((variant) => (
+                        <button
+                          key={variant.slug ?? variant.labelRu}
+                          type="button"
+                          className="sheet-chip"
+                          onClick={() =>
+                            updateItem(item.id, {
+                              name: variant.labelRu,
+                              spell_tooling: 'focus',
+                              focus_kind: item.focus_kind ?? 'any',
+                            })
+                          }
+                        >
+                          {variant.labelRu}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ) : null}
 
                 <Field label="Заметка">

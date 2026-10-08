@@ -192,7 +192,11 @@ import {
   readInventory,
   type InventoryState,
 } from './inventory'
-import { classifySpellTooling, withSpellFocusFlags } from './spellFocus'
+import {
+  classifySpellTooling,
+  inferFocusKind,
+  withSpellFocusFlags,
+} from './spellFocus'
 import {
   playToSheet,
   readPlay,
@@ -382,11 +386,31 @@ function buildDraft(character: CharacterDetail): Draft {
     inspiration: Boolean(combat.inspiration),
     ...(() => {
       const inventory = readInventory(sheet)
-      // Hydrate spell_tooling for legacy rows (one pass on load).
+      // Hydrate spell_tooling type for legacy rows (one pass on load).
+      // Cast later looks at type — custom names keep working once typed as focus.
       const items = inventory.items.map((item) => {
-        if (item.spell_tooling) return item
+        if (item.spell_tooling) {
+          if (
+            item.spell_tooling === 'focus' &&
+            !item.focus_kind
+          ) {
+            return {
+              ...item,
+              focus_kind: inferFocusKind({ name: item.name }) ?? 'any',
+            }
+          }
+          return item
+        }
         const tooling = classifySpellTooling({ name: item.name })
-        return tooling === 'none' ? item : { ...item, spell_tooling: tooling }
+        if (tooling === 'none') return item
+        return {
+          ...item,
+          spell_tooling: tooling,
+          focus_kind:
+            tooling === 'focus'
+              ? inferFocusKind({ name: item.name }) ?? 'any'
+              : null,
+        }
       })
       const nextInventory = { ...inventory, items }
       const spells = withSpellFocusFlags(readSpells(sheet), items)
