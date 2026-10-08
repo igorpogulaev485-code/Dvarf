@@ -1,7 +1,7 @@
 """Insert XGE (and EE reprints tagged XGE) 2014 spells.
 
-Revision ID: u0d1e2f3a4b5
-Revises: t9c0d1e2f3a4
+Revision ID: z2a3b4c5d6e7
+Revises: y1z2a3b4c5d6
 Create Date: 2026-10-08 01:50:00.000000
 
 Adds ~95 spells from Xanathar's Guide to Everything (dnd.su source 109).
@@ -17,8 +17,8 @@ from typing import Any, Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "u0d1e2f3a4b5"
-down_revision: Union[str, Sequence[str], None] = "t9c0d1e2f3a4"
+revision: str = "z2a3b4c5d6e7"
+down_revision: Union[str, Sequence[str], None] = "y1z2a3b4c5d6"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

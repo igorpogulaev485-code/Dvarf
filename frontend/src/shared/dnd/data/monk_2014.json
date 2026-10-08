@@ -8,14 +8,6 @@
   "class_slug": "monk",
   "features": [
     {
-      "id": "unarmored_defense_monk",
-      "level": 1,
-      "name_ru": "Защита без доспехов",
-      "name_en": "Unarmored Defense",
-      "summary_ru": "Без доспеха и щита КД = 10 + Ловк. + Мудрость.",
-      "kind": "passive"
-    },
-    {
       "id": "martial_arts",
       "level": 1,
       "name_ru": "Боевые искусства",
@@ -31,6 +23,22 @@
           "17": "1к10"
         }
       }
+    },
+    {
+      "id": "unarmored_defense_monk",
+      "level": 1,
+      "name_ru": "Защита без доспехов",
+      "name_en": "Unarmored Defense",
+      "summary_ru": "Без доспеха и щита КД = 10 + Ловк. + Мудрость.",
+      "kind": "passive"
+    },
+    {
+      "id": "flurry_of_blows",
+      "level": 2,
+      "name_ru": "Шквал ударов",
+      "name_en": "Flurry of Blows",
+      "summary_ru": "После атаки: 1 ки → бонусным две безоружные атаки.",
+      "kind": "bonus"
     },
     {
       "id": "ki",
@@ -69,14 +77,6 @@
       }
     },
     {
-      "id": "flurry_of_blows",
-      "level": 2,
-      "name_ru": "Шквал ударов",
-      "name_en": "Flurry of Blows",
-      "summary_ru": "После атаки: 1 ки → бонусным две безоружные атаки.",
-      "kind": "bonus"
-    },
-    {
       "id": "patient_defense",
       "level": 2,
       "name_ru": "Терпеливая оборона",
@@ -111,6 +111,14 @@
       }
     },
     {
+      "id": "deflect_missiles",
+      "level": 3,
+      "name_ru": "Отклонение снарядов",
+      "name_en": "Deflect Missiles",
+      "summary_ru": "Реакция: урон снаряда − 1к10+Ловк.+ур. монаха. При 0 можно поймать и за 1 ки метнуть обратно.",
+      "kind": "reaction"
+    },
+    {
       "id": "monastic_tradition",
       "level": 3,
       "name_ru": "Монастырская традиция",
@@ -119,12 +127,21 @@
       "kind": "passive"
     },
     {
-      "id": "deflect_missiles",
-      "level": 3,
-      "name_ru": "Отклонение снарядов",
-      "name_en": "Deflect Missiles",
-      "summary_ru": "Реакция: урон снаряда − 1к10+Ловк.+ур. монаха. При 0 можно поймать и за 1 ки метнуть обратно.",
-      "kind": "reaction"
+      "id": "asi_4_monk",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_4_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "slow_fall",
@@ -175,12 +192,46 @@
       "kind": "action"
     },
     {
+      "id": "asi_8_monk",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_8_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
       "id": "purity_of_body",
       "level": 10,
       "name_ru": "Чистота тела",
       "name_en": "Purity of Body",
       "summary_ru": "Иммунитет к болезням и яду.",
       "kind": "passive"
+    },
+    {
+      "id": "asi_12_monk",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_12_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "tongue_of_the_sun_and_moon",
@@ -207,12 +258,46 @@
       "kind": "passive"
     },
     {
+      "id": "asi_16_monk",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_16_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
       "id": "empty_body",
       "level": 18,
       "name_ru": "Пустое тело",
       "name_en": "Empty Body",
       "summary_ru": "4 ки → невидимость 1 мин (+сопротивление всем уронам кроме силового). 8 ки → проекция в астрал.",
       "kind": "action"
+    },
+    {
+      "id": "asi_19_monk",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_19_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "perfect_self",
@@ -596,7 +681,13 @@
         "name_ru": "Доп. владения",
         "name_en": "Bonus Proficiencies",
         "summary_ru": "Выступление; инструменты пивовара.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Владения",
+          "by_level": {
+            "3": "Выступление; набор пивовара"
+          }
+        }
       },
       {
         "id": "drunken_technique",
@@ -604,7 +695,13 @@
         "name_ru": "Пьяная техника",
         "name_en": "Drunken Technique",
         "summary_ru": "При Flurry of Blows: Disengage бесплатно; скорость +10 фт. до конца хода.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Flurry",
+          "by_level": {
+            "3": "Disengage + 10 фт. скорости"
+          }
+        }
       },
       {
         "id": "tipsy_sway",
@@ -673,7 +770,7 @@
           "id": "kensei_weapons",
           "label_ru": "Оружие кэнсэя (заметка)",
           "options": [
-            "рукопашное + дальнобойное (заполни в заметках)"
+            "kensei_melee_ranged_note"
           ]
         }
       },

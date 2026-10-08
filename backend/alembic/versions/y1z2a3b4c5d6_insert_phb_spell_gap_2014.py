@@ -1,11 +1,11 @@
-"""Insert remaining official 2014 spells (TCE + setting books).
+"""Insert missing PHB 2014 spells (non-SRD gap from dnd.su).
 
-Revision ID: v1e2f3a4b5c6
-Revises: u0d1e2f3a4b5
-Create Date: 2026-10-08 01:55:00.000000
+Revision ID: y1z2a3b4c5d6
+Revises: x0y1z2a3b4c5
+Create Date: 2026-10-08 01:40:00.000000
 
-Adds ~68 spells: TCE, EGW, AI, FTD, SCC, etc. Closes official dnd.su gap
-(homebrew excluded). Idempotent upsert by slug.
+Adds ~45 PHB spells absent from SRD 5.1 seed (smite spells, Hex, Witch Bolt, …).
+Does not touch 2024. Idempotent upsert by slug.
 """
 
 from __future__ import annotations
@@ -17,12 +17,12 @@ from typing import Any, Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "v1e2f3a4b5c6"
-down_revision: Union[str, Sequence[str], None] = "u0d1e2f3a4b5"
+revision: str = "y1z2a3b4c5d6"
+down_revision: Union[str, Sequence[str], None] = "x0y1z2a3b4c5"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-DATA_REL = Path("data/srd/2014/spells_rest_books_v1.json")
+DATA_REL = Path("data/srd/2014/spells_phb_gap_v1.json")
 
 
 def _load() -> list[dict[str, Any]]:
@@ -37,14 +37,14 @@ def _load() -> list[dict[str, Any]]:
             if not isinstance(payload, list):
                 raise RuntimeError(f"Expected list in {path}")
             return payload
-    raise FileNotFoundError(f"Rest-books spell file not found; tried {candidates}")
+    raise FileNotFoundError(f"PHB gap file not found; tried {candidates}")
 
 
 def upgrade() -> None:
     conn = op.get_bind()
     spells = _load()
-    if len(spells) < 50:
-        raise RuntimeError(f"Expected ~68 rest-book spells, got {len(spells)}")
+    if len(spells) < 30:
+        raise RuntimeError(f"Expected ~45 PHB gap spells, got {len(spells)}")
 
     inserted = 0
     updated = 0
@@ -63,14 +63,6 @@ def upgrade() -> None:
             {"slug": slug},
         ).mappings().first()
 
-        payload = {
-            "name_ru": item.get("name_ru"),
-            "name_en": item.get("name_en"),
-            "source": item.get("source") or "official-2014",
-            "external_ref": json.dumps(item.get("external_ref") or {}, ensure_ascii=False),
-            "data": json.dumps(data, ensure_ascii=False),
-        }
-
         if existing:
             conn.execute(
                 sa.text(
@@ -87,7 +79,14 @@ def upgrade() -> None:
                     WHERE id = :id
                     """
                 ),
-                {**payload, "id": str(existing["id"])},
+                {
+                    "id": str(existing["id"]),
+                    "name_ru": item.get("name_ru"),
+                    "name_en": item.get("name_en"),
+                    "source": item.get("source") or "phb-2014",
+                    "external_ref": json.dumps(item.get("external_ref") or {}, ensure_ascii=False),
+                    "data": json.dumps(data, ensure_ascii=False),
+                },
             )
             updated += 1
             continue
@@ -115,17 +114,21 @@ def upgrade() -> None:
                 """
             ),
             {
-                **payload,
                 "id": item["id"],
                 "slug": slug,
-                "sort_order": int(item.get("sort_order") or 7000),
+                "name_ru": item.get("name_ru"),
+                "name_en": item.get("name_en"),
+                "source": item.get("source") or "phb-2014",
+                "external_ref": json.dumps(item.get("external_ref") or {}, ensure_ascii=False),
+                "data": json.dumps(data, ensure_ascii=False),
+                "sort_order": int(item.get("sort_order") or 5000),
             },
         )
         inserted += 1
 
-    if inserted + updated < 50:
+    if inserted + updated < 30:
         raise RuntimeError(
-            f"Rest-books upsert too small: inserted={inserted} updated={updated}"
+            f"PHB gap upsert too small: inserted={inserted} updated={updated}"
         )
 
 
@@ -141,9 +144,8 @@ def downgrade() -> None:
             DELETE FROM catalog_entries
             WHERE kind = 'spell'
               AND rules_edition = '2014'
+              AND source = 'phb-2014'
               AND slug = ANY(:slugs)
-              AND source LIKE '%-2014'
-              AND source NOT IN ('srd-5.1', 'phb-2014', 'xge-2014')
             """
         ),
         {"slugs": slugs},

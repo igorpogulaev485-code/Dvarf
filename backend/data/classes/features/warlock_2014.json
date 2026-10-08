@@ -75,16 +75,34 @@
       "level": 4,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_4_warlock_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "asi_8_warlock",
       "level": 8,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_8_warlock_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "mystic_arcanum_6",
@@ -106,8 +124,17 @@
       "level": 12,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_12_warlock_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "mystic_arcanum_7",
@@ -144,8 +171,17 @@
       "level": 16,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_16_warlock_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "mystic_arcanum_9",
@@ -167,8 +203,17 @@
       "level": 19,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_19_warlock_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "eldritch_master",
@@ -728,7 +773,13 @@
         "name_ru": "Гнев джинна",
         "name_en": "Genie's Wrath",
         "summary_ru": "1× / ход при попадании атакой: +PB урона типа джинна.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Урон 1×/ход",
+          "by_level": {
+            "1": "БМ выбранным типом патрона"
+          }
+        }
       },
       {
         "id": "elemental_gift",
@@ -745,6 +796,12 @@
           "pool_id": "elemental_gift",
           "pool_name_ru": "Стихийный дар",
           "track": "spend"
+        },
+        "scale": {
+          "label_ru": "Полёт / сопр.",
+          "by_level": {
+            "6": "PB раз / long rest: полёт 10 мин + сопр."
+          }
         }
       },
       {
@@ -753,7 +810,13 @@
         "name_ru": "Убежище сосуда",
         "name_en": "Sanctuary Vessel",
         "summary_ru": "В сосуд до 5 согласных; при бутылочном отдыхе — доп. временные хиты.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Сосуд",
+          "by_level": {
+            "10": "вместимость растёт; spying"
+          }
+        }
       },
       {
         "id": "limited_wish",

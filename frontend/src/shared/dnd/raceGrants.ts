@@ -168,6 +168,8 @@ export type RaceGrantDef = {
   armorProficiencies: Array<'light' | 'medium' | 'heavy' | 'shields'>
   ancestryChoices: RaceAncestryOption[]
   featNoteRu: string | null
+  /** Explicit feat grant at race setup (Custom Lineage / human variant). */
+  featPick: boolean
   traitsText: string
   naturalArmor: NaturalArmor | null
   naturalWeapons: RaceNaturalWeapon[]
@@ -192,6 +194,8 @@ export type RaceGrantPicks = {
   skills: string[]
   tools: string[]
   ancestryId: string | null
+  /** Feat catalog id when race grants a feat (Custom Lineage). */
+  featCatalogId: string | null
 }
 
 export type AppliedRaceGrant = {
@@ -783,6 +787,7 @@ export function raceGrantDefFromCatalog(input: {
         : typeof data.featNoteRu === 'string'
           ? data.featNoteRu
           : null,
+    featPick: Boolean(data.feat_pick ?? data.featPick),
     traitsText:
       typeof data.traits_text === 'string'
         ? data.traits_text.trim()
@@ -831,6 +836,7 @@ export function emptyRacePicks(): RaceGrantPicks {
     skills: [],
     tools: [],
     ancestryId: null,
+    featCatalogId: null,
   }
 }
 
@@ -871,7 +877,9 @@ export function raceGrantNeedsSetupDialog(def: RaceGrantDef): boolean {
   if ((def.skillChoices?.count ?? 0) > 0) return true
   if ((def.toolChoices?.count ?? 0) > 0) return true
   if (def.ancestryChoices.length > 0) return true
-  if (def.featNoteRu) return true
+  if (def.featPick || def.slug === 'custom_lineage' || def.slug === 'human_variant') {
+    return true
+  }
   // Still open once so user confirms traits/ASI even without picks.
   return true
 }
@@ -965,6 +973,15 @@ export function validateRaceGrantPicks(input: {
     if (!def.ancestryChoices.some((row) => row.id === picks.ancestryId)) {
       return 'Неизвестное происхождение'
     }
+  }
+
+  const needsFeat =
+    def.featPick || def.slug === 'custom_lineage' || def.slug === 'human_variant'
+  if (needsFeat && !picks.featCatalogId) {
+    return 'Выбери черту'
+  }
+  if (!needsFeat && picks.featCatalogId) {
+    return 'Лишний выбор черты'
   }
 
   return null

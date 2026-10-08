@@ -87,8 +87,17 @@
       "level": 4,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_4_bard_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "font_of_inspiration",
@@ -120,8 +129,17 @@
       "level": 8,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_8_bard_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "magical_secrets_10",
@@ -144,8 +162,17 @@
       "level": 12,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_12_bard_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "magical_secrets_14",
@@ -160,8 +187,17 @@
       "level": 16,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_16_bard_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "magical_secrets_18",
@@ -176,8 +212,17 @@
       "level": 19,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_19_bard_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "superior_inspiration",
@@ -490,12 +535,9 @@
         "summary_ru": "1× / ход при попадании оружием: потрать вдохновение — доп. психический урон (2к6 → 3к6@5 → 5к6@10 → 8к6@15).",
         "kind": "passive",
         "scale": {
-          "label_ru": "Урон",
+          "label_ru": "Клинки",
           "by_level": {
-            "3": "2к6",
-            "5": "3к6",
-            "10": "5к6",
-            "15": "8к6"
+            "3": "кость пси-энергии; магические; бросок/возврат"
           }
         }
       },

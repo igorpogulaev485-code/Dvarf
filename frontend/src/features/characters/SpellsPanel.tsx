@@ -34,9 +34,12 @@ import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import type { ConcentrationState } from './play'
 import {
   canRemoveSheetSpell,
+  canSpendGrantCast,
   countPreparedLeveled,
   createSheetSpell,
+  ensureInnateGrantCasts,
   ensureKnownSpellsReady,
+  grantCastRemaining,
   isFeatSheetSpell,
   isKnownSpellcastingMode,
   isRaceSheetSpell,
@@ -45,6 +48,7 @@ import {
   preparedLockChip,
   readCatalogSpellFields,
   setSpellPrepared,
+  spendGrantCast,
   type SheetSpell,
   type SpellsState,
 } from './spells'
@@ -135,6 +139,19 @@ export function SpellsPanel({
     // Keep known-list spells combat-ready when class has no prepare budget.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [knownCaster, spells.known.map((s) => `${s.id}:${s.prepared}`).join('|')])
+
+  useEffect(() => {
+    const next = ensureInnateGrantCasts(spells.known, proficiencyBonus)
+    if (next === spells.known) return
+    onChange({ ...spells, known: next })
+    // Backfill grant_cast on innate race/feat spells (PB / notes).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    proficiencyBonus,
+    spells.known
+      .map((s) => `${s.id}:${s.race_grant ?? ''}:${s.feat_grant ?? ''}:${s.notes}:${s.grant_cast?.max ?? ''}`)
+      .join('|'),
+  ])
 
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })
@@ -262,8 +279,9 @@ export function SpellsPanel({
     if (!castSpell) return
     const name = castSpell.name || 'Заклинание'
     const ritualCast = Boolean(choice.ritual && castSpell.ritual && castSpell.level > 0)
+    const grantCast = Boolean(choice.useGrant && canSpendGrantCast(castSpell))
     const slotForEffect =
-      castSpell.level <= 0 || ritualCast
+      castSpell.level <= 0 || ritualCast || grantCast
         ? castSpell.level
         : choice.usePact
           ? (spells.pact_slots?.level ?? castSpell.level)
@@ -280,6 +298,21 @@ export function SpellsPanel({
         castSpell.concentration
           ? `Каст: ${name}${effectNote} (концентрация)`
           : `Каст: ${name}${effectNote}`,
+      )
+      setCastSpell(null)
+      return
+    }
+    if (grantCast) {
+      const label = castSpell.grant_cast?.label ?? 'Грант'
+      onChange({
+        ...spells,
+        known: spendGrantCast(spells.known, castSpell.id),
+      })
+      applyConcentrationIfNeeded(castSpell)
+      onToast?.(
+        `Каст: ${name} (−1 ${label})${effectNote}${
+          castSpell.concentration ? ' · концентрация' : ''
+        }`,
       )
       setCastSpell(null)
       return
@@ -711,6 +744,17 @@ export function SpellsPanel({
                         ) : (
                           <span className="sheet-chip is-on">Заговор</span>
                         )}
+                        {spell.grant_cast && spell.grant_cast.max > 0 ? (
+                          <span
+                            className={`sheet-chip${
+                              grantCastRemaining(spell) > 0 ? ' is-on' : ''
+                            }`}
+                            title={`${spell.grant_cast.label}: бесплатный каст без ячейки`}
+                          >
+                            {spell.grant_cast.label} {grantCastRemaining(spell)}/
+                            {spell.grant_cast.max}
+                          </span>
+                        ) : null}
                         {isRaceSheetSpell(spell) && spell.race_grant === 'spell_list' ? (
                           <span
                             className="sheet-chip is-on"
@@ -762,6 +806,7 @@ export function SpellsPanel({
                             (spell.level > 0 && !spell.prepared) ||
                             (spell.level > 0 &&
                               !spell.ritual &&
+                              !canSpendGrantCast(spell) &&
                               !canCastLeveledSpell(
                                 spells.slots,
                                 spells.pact_slots,

@@ -1,7 +1,7 @@
 """Backfill 2014 SRD spells to catalog schema v1.
 
-Revision ID: s8b9c0d1e2f3
-Revises: r7a8b9c0d1e2
+Revision ID: x0y1z2a3b4c5
+Revises: w9x0y1z2a3b4
 Create Date: 2026-10-07 17:30:00.000000
 
 Updates kind=spell / rules_edition=2014 rows with duration, components object,
@@ -18,8 +18,8 @@ from typing import Any, Sequence, Union
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "s8b9c0d1e2f3"
-down_revision: Union[str, Sequence[str], None] = "r7a8b9c0d1e2"
+revision: str = "x0y1z2a3b4c5"
+down_revision: Union[str, Sequence[str], None] = "w9x0y1z2a3b4"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

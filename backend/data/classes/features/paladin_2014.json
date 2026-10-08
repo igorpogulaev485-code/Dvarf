@@ -136,8 +136,17 @@
       "level": 4,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_4_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "extra_attack_paladin",
@@ -172,8 +181,17 @@
       "level": 8,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_8_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "aura_of_courage",
@@ -203,8 +221,17 @@
       "level": 12,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_12_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "cleansing_touch",
@@ -228,8 +255,17 @@
       "level": 16,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_16_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "aura_improvements",
@@ -244,8 +280,17 @@
       "level": 19,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_19_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     }
   ],
   "subclasses": {
@@ -433,7 +478,13 @@
         "name_ru": "Неумолимый мститель",
         "name_en": "Relentless Avenger",
         "summary_ru": "При попадании по существу возможностью: часть реакции — переместиться на половину скорости без провокации.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "После OA",
+          "by_level": {
+            "7": "перемещение ½ скорости без провоцированных"
+          }
+        }
       },
       {
         "id": "soul_of_vengeance",
@@ -456,6 +507,12 @@
           "pool_id": "avenging_angel",
           "pool_name_ru": "Ангел возмездия",
           "track": "spend"
+        },
+        "scale": {
+          "label_ru": "Трансформация",
+          "by_level": {
+            "20": "полёт; аура испуга 1 ч.; 1× long rest"
+          }
         }
       }
     ],
@@ -566,7 +623,13 @@
         "name_ru": "Божественная верность",
         "name_en": "Divine Allegiance",
         "summary_ru": "Реакция: когда существо в 5 фт. получает урон — принять этот урон на себя (сопротивления/уязвимости не применяются).",
-        "kind": "reaction"
+        "kind": "reaction",
+        "scale": {
+          "label_ru": "Реакция",
+          "by_level": {
+            "7": "принять урон союзника в 5 фт."
+          }
+        }
       },
       {
         "id": "unyielding_spirit",
@@ -589,6 +652,12 @@
           "pool_id": "exalted_champion",
           "pool_name_ru": "Возвышенный чемпион",
           "track": "spend"
+        },
+        "scale": {
+          "label_ru": "Трансформация",
+          "by_level": {
+            "20": "сопр. немаг. физ.; аура спас; 1× long rest"
+          }
         }
       }
     ],
@@ -701,10 +770,9 @@
         "summary_ru": "Реакция: когда существо в ауре получает урон — принять урон на себя.",
         "kind": "reaction",
         "scale": {
-          "label_ru": "Радиус",
+          "label_ru": "Реакция",
           "by_level": {
-            "7": "10 фт.",
-            "18": "30 фт."
+            "7": "принять урон союзника в 10/30 фт."
           }
         }
       },

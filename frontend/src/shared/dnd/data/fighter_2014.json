@@ -67,8 +67,17 @@
       "level": 4,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум, либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_4_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "extra_attack_1",
@@ -84,6 +93,40 @@
           "11": "3",
           "20": "4"
         }
+      }
+    },
+    {
+      "id": "asi_6",
+      "level": 6,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_6_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "asi_8",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_8_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
       }
     },
     {
@@ -104,6 +147,74 @@
         "pool_id": "indomitable",
         "pool_name_ru": "Непоколебимость",
         "track": "spend"
+      }
+    },
+    {
+      "id": "asi_12",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_12_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "asi_14",
+      "level": 14,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_14_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "asi_16",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_16_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "asi_19",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_19_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
       }
     }
   ],
@@ -887,7 +998,13 @@
         "name_ru": "Телекинетический адепт",
         "name_en": "Telekinetic Adept",
         "summary_ru": "Psi-Powered Leap (без кости, 1× short). Telekinetic Thrust: при Psionic Strike — спас Сил. или сбить/толкнуть 10 фт.",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Psi-powered Leap / Telekinetic Thrust",
+          "by_level": {
+            "7": "за пси-энергию"
+          }
+        }
       },
       {
         "id": "guarded_mind",
@@ -895,7 +1012,13 @@
         "name_ru": "Охраняемый разум",
         "name_en": "Guarded Mind",
         "summary_ru": "Сопр. психическому; действием потратить кость — снять очарование/испуг.",
-        "kind": "action"
+        "kind": "action",
+        "scale": {
+          "label_ru": "Разум",
+          "by_level": {
+            "10": "преим. vs очарования; снять очарование/испуг за кость"
+          }
+        }
       },
       {
         "id": "bulwark_of_force",
