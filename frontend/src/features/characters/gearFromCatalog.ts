@@ -47,6 +47,10 @@ export type GearPickerSourceBookFilter =
   | 'XGE'
   | 'TCE'
   | 'EGW'
+  | 'FTD'
+  | 'SCC'
+  | 'ERLW'
+  | 'GGR'
   | 'other'
 
 export const GEAR_ITEM_CATEGORY_LABEL_RU: Record<
@@ -73,8 +77,29 @@ export const GEAR_SOURCE_BOOK_LABEL_RU: Record<
   XGE: 'XGE',
   TCE: 'TCE',
   EGW: 'EGW',
+  FTD: 'FTD',
+  SCC: 'SCC',
+  ERLW: 'ERLW',
+  GGR: 'GGR',
   other: 'др.',
 }
+
+const KNOWN_SOURCE_BOOKS = [
+  'PHB',
+  'DMG',
+  'XGE',
+  'TCE',
+  'EGW',
+  'FTD',
+  'SCC',
+  'AI',
+  'BMT',
+  'PAM',
+  'ERLW',
+  'GGR',
+  'SDQ',
+  'BPGG',
+] as const
 
 export function gearSourceBookOf(entry: {
   data?: Record<string, unknown> | null
@@ -83,7 +108,7 @@ export function gearSourceBookOf(entry: {
   const fromData = entry.data?.source_book
   if (typeof fromData === 'string' && fromData.trim()) return fromData.trim().toUpperCase()
   const src = (entry.source ?? '').toUpperCase()
-  for (const book of ['PHB', 'DMG', 'XGE', 'TCE', 'EGW', 'FTD', 'SCC', 'AI', 'BMT', 'PAM']) {
+  for (const book of KNOWN_SOURCE_BOOKS) {
     if (src.startsWith(book) || src.includes(` ${book}`) || src.includes(`${book} `)) {
       return book
     }

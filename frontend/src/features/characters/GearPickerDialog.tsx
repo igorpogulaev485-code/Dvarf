@@ -62,6 +62,10 @@ const SOURCE_BOOK_FILTERS: Array<{
   { id: 'XGE', label: GEAR_SOURCE_BOOK_LABEL_RU.XGE },
   { id: 'TCE', label: GEAR_SOURCE_BOOK_LABEL_RU.TCE },
   { id: 'EGW', label: GEAR_SOURCE_BOOK_LABEL_RU.EGW },
+  { id: 'FTD', label: GEAR_SOURCE_BOOK_LABEL_RU.FTD },
+  { id: 'SCC', label: GEAR_SOURCE_BOOK_LABEL_RU.SCC },
+  { id: 'ERLW', label: GEAR_SOURCE_BOOK_LABEL_RU.ERLW },
+  { id: 'GGR', label: GEAR_SOURCE_BOOK_LABEL_RU.GGR },
   { id: 'other', label: GEAR_SOURCE_BOOK_LABEL_RU.other },
 ]
 
@@ -161,7 +165,13 @@ export function GearPickerDialog({
       if (sourceBook !== 'all') {
         const book = gearSourceBookOf(entry)
         if (sourceBook === 'other') {
-          if (['PHB', 'DMG', 'XGE', 'TCE', 'EGW'].includes(book)) return false
+          if (
+            ['PHB', 'DMG', 'XGE', 'TCE', 'EGW', 'FTD', 'SCC', 'ERLW', 'GGR'].includes(
+              book,
+            )
+          ) {
+            return false
+          }
         } else if (book !== sourceBook) {
           return false
         }
