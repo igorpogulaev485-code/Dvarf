@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/gear-dmg-polish-db96`  
+**Prod tip (ветка линии прода):** `cursor/create-pipeline-page-2223`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -893,7 +893,7 @@
 \*Шаг черты пропускается, если раса не даёт черту.
 
 Спека: `docs/create-pipeline.md`.  
-На проде: нет · ветка `cursor/create-pipeline-page-2223`
+На проде: **да** · ветка `cursor/create-pipeline-page-2223` · PR #100 · это **новый prod tip** · alembic `x3g4` (после gear `j2d3`) · проверено 2026-10-08: `/health` ok, `is_draft` в БД, бандл «Создание · D&D 2014»
 
 ### 2026-10-08 — единый wizard create/level-up (Expertise и др.)
 
