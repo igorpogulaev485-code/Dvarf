@@ -668,6 +668,18 @@ export function InventoryPanel({
                         if (t === 'speed') {
                           return `скор.+${(effect as { value_ft?: number }).value_ft ?? '?'}фт`
                         }
+                        if (t === 'resource') {
+                          return `заряды ${(effect as { id?: string }).id ?? ''}×${(effect as { max?: number }).max ?? '?'}`
+                        }
+                        if (t === 'companion') {
+                          return `спутник ${(effect as { name_ru?: string }).name_ru || (effect as { kind?: string }).kind || ''}`
+                        }
+                        if (t === 'grant_spell') {
+                          return `заклин. ${(effect as { slug?: string }).slug ?? '?'}`
+                        }
+                        if (t === 'spell_slots') {
+                          return `ячейки ${(effect as { level?: number }).level}+${(effect as { delta?: number }).delta ?? '?'}`
+                        }
                         return t
                       })
                       .join(' · ')}

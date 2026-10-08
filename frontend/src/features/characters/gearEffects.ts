@@ -30,6 +30,32 @@ export type AggregatedGearEffects = {
   saveBonuses: Partial<Record<AbilityScoreKey | 'all', number>>
   /** Walk speed delta (ft), summed. */
   speedBonusFt: number
+  /** Extra spell slots by level (Ring of Spell Storing–style deltas). */
+  spellSlotDeltas: Record<number, number>
+  /** Charge pools from `resource` effects. */
+  resources: Array<{
+    key: string
+    name: string
+    max: number
+    reset: 'short' | 'long' | 'manual'
+    itemId: string
+  }>
+  /** Companions granted while item is active. */
+  companions: Array<{
+    key: string
+    kind: string
+    nameRu: string
+    itemId: string
+  }>
+  /** Spells granted with optional free charges. */
+  grantSpells: Array<{
+    key: string
+    slug: string
+    uses: number | null
+    reset: 'short' | 'long'
+    itemId: string
+    itemName: string
+  }>
   /** Human-readable lines for UI. */
   notes: string[]
   active: ActiveGearEffect[]
@@ -77,9 +103,22 @@ export function emptyAggregatedGearEffects(): AggregatedGearEffects {
     skillBonuses: {},
     saveBonuses: {},
     speedBonusFt: 0,
+    spellSlotDeltas: {},
+    resources: [],
+    companions: [],
+    grantSpells: [],
     notes: [],
     active: [],
   }
+}
+
+function readReset(value: unknown): 'short' | 'long' | 'manual' {
+  if (value === 'short' || value === 'long' || value === 'manual') return value
+  if (value && typeof value === 'object') {
+    const restore = (value as { restore?: unknown }).restore
+    if (restore === 'short' || restore === 'long' || restore === 'manual') return restore
+  }
+  return 'long'
 }
 
 function normalizeSkillKey(raw: string): string {
@@ -199,6 +238,71 @@ export function aggregateGearEffects(input: {
         out.speedBonusFt += Math.floor(value)
         out.notes.push(
           `${item.name || 'предмет'}: скорость ${value >= 0 ? '+' : ''}${Math.floor(value)} фт`,
+        )
+        continue
+      }
+
+      if (type === 'spell_slots') {
+        const level = asNumber((effect as { level?: unknown }).level)
+        const delta = asNumber((effect as { delta?: unknown }).delta) ?? 0
+        if (level == null || level < 1 || level > 9 || !delta) continue
+        const key = Math.floor(level)
+        out.spellSlotDeltas[key] = (out.spellSlotDeltas[key] ?? 0) + Math.floor(delta)
+        out.notes.push(
+          `${item.name || 'предмет'}: ячейки ${key} ${delta >= 0 ? '+' : ''}${Math.floor(delta)}`,
+        )
+        continue
+      }
+
+      if (type === 'resource') {
+        const id = String((effect as { id?: unknown }).id ?? '').trim() || 'charges'
+        const max = asNumber((effect as { max?: unknown }).max) ?? 0
+        if (max <= 0) continue
+        const reset = readReset(
+          (effect as { restore?: unknown }).restore ?? effect,
+        )
+        const key = `gear-res:${item.id}:${id}`
+        out.resources.push({
+          key,
+          name: `${item.name || 'Предмет'} · ${id}`,
+          max: Math.floor(max),
+          reset,
+          itemId: item.id,
+        })
+        out.notes.push(`${item.name || 'предмет'}: ресурс ${id} ×${Math.floor(max)}`)
+        continue
+      }
+
+      if (type === 'companion') {
+        const kind = String((effect as { kind?: unknown }).kind ?? 'other').trim() || 'other'
+        const nameRu =
+          String((effect as { name_ru?: unknown }).name_ru ?? '').trim() ||
+          item.name ||
+          'Спутник'
+        const key = `gear-companion:${item.id}:${kind}`
+        out.companions.push({ key, kind, nameRu, itemId: item.id })
+        out.notes.push(`${item.name || 'предмет'}: спутник ${nameRu}`)
+        continue
+      }
+
+      if (type === 'grant_spell') {
+        const slug = String((effect as { slug?: unknown }).slug ?? '').trim()
+        if (!slug) continue
+        const uses = asNumber((effect as { uses?: unknown }).uses)
+        const reset = readReset((effect as { restore?: unknown }).restore) 
+        const key = `gear-spell:${item.id}:${slug}`
+        out.grantSpells.push({
+          key,
+          slug,
+          uses: uses != null && uses > 0 ? Math.floor(uses) : null,
+          reset: reset === 'short' ? 'short' : 'long',
+          itemId: item.id,
+          itemName: item.name || 'Предмет',
+        })
+        out.notes.push(
+          `${item.name || 'предмет'}: заклинание ${slug}${
+            uses != null && uses > 0 ? ` ×${Math.floor(uses)}` : ''
+          }`,
         )
       }
     }

@@ -103,6 +103,11 @@ import {
   applyGearAbilityScores,
   gearDarkvisionFt,
 } from './gearEffects'
+import {
+  syncGearCompanions,
+  syncGearGrantSpells,
+  syncGearResources,
+} from './gearGrantsSync'
 import { canWearArmor } from './equipmentProficiency'
 import { AttunementPanel } from './AttunementPanel'
 import {
@@ -1793,6 +1798,47 @@ export function MinimalSheetEditor({
       }),
     [draft.inventory.items, draft.attunements],
   )
+
+  // Keep gear-granted companions / charge pools / spells / slot deltas in sync.
+  useEffect(() => {
+    setDraft((prev) => {
+      const resources = syncGearResources(prev.play.resources, gearEffects)
+      const companions = syncGearCompanions(prev.companions, gearEffects)
+      const spells = syncGearGrantSpells(prev.spells, gearEffects)
+      const sameRes =
+        resources.length === prev.play.resources.length &&
+        resources.every((row, index) => {
+          const cur = prev.play.resources[index]
+          return (
+            cur &&
+            cur.id === row.id &&
+            cur.max === row.max &&
+            cur.name === row.name &&
+            cur.reset === row.reset
+          )
+        })
+      const sameComp =
+        companions.length === prev.companions.length &&
+        companions.every((row, index) => prev.companions[index]?.id === row.id)
+      const sameSpells =
+        spells.known.length === prev.spells.known.length &&
+        spells.known.every((row, index) => prev.spells.known[index]?.id === row.id) &&
+        JSON.stringify(spells.gear_slot_deltas ?? {}) ===
+          JSON.stringify(prev.spells.gear_slot_deltas ?? {}) &&
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].every((level) => {
+          const a = spells.slots[String(level)]
+          const b = prev.spells.slots[String(level)]
+          return (a?.max ?? 0) === (b?.max ?? 0)
+        })
+      if (sameRes && sameComp && sameSpells) return prev
+      return {
+        ...prev,
+        companions,
+        spells,
+        play: { ...prev.play, resources },
+      }
+    })
+  }, [gearEffects])
 
   const effectiveAbilities = useMemo(
     () => applyGearAbilityScores(draft.abilities, gearEffects),

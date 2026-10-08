@@ -92,6 +92,8 @@ export type SpellsState = {
    */
   has_spell_focus?: boolean
   has_component_pouch?: boolean
+  /** Last applied gear spell_slots deltas — unequip restores base max. */
+  gear_slot_deltas?: Record<string, number>
 }
 
 const EMPTY_SLOTS: Record<string, SpellSlotState> = Object.fromEntries(
@@ -537,6 +539,14 @@ export function readSpells(sheet: Record<string, unknown>): SpellsState {
   const pactNormalized =
     pact_slots && pact_slots.max <= 0 && pactRaw.enabled !== true ? null : pact_slots
 
+  const gearDeltasRaw = asRecord(spells.gear_slot_deltas)
+  const gear_slot_deltas: Record<string, number> = {}
+  for (const [key, value] of Object.entries(gearDeltasRaw)) {
+    if (typeof value === 'number' && Number.isFinite(value) && value !== 0) {
+      gear_slot_deltas[key] = Math.floor(value)
+    }
+  }
+
   return {
     casting_ability: isSpellcastingAbility(spells.casting_ability)
       ? spells.casting_ability
@@ -547,6 +557,7 @@ export function readSpells(sheet: Record<string, unknown>): SpellsState {
     known: knownRaw.map((item, index) => readSpell(item, index)),
     has_spell_focus: Boolean(spells.has_spell_focus),
     has_component_pouch: Boolean(spells.has_component_pouch),
+    ...(Object.keys(gear_slot_deltas).length > 0 ? { gear_slot_deltas } : {}),
   }
 }
 
@@ -566,6 +577,9 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
       pact_slots: state.pact_slots,
       has_spell_focus: Boolean(state.has_spell_focus),
       has_component_pouch: Boolean(state.has_component_pouch),
+      ...(state.gear_slot_deltas && Object.keys(state.gear_slot_deltas).length > 0
+        ? { gear_slot_deltas: state.gear_slot_deltas }
+        : {}),
       known: state.known.map((spell) => ({
         id: spell.id,
         name: spell.name,

@@ -100,7 +100,21 @@ export function isWeaponProficient(input: {
   name: string
   catalogData?: Record<string, unknown> | null
   weapons: WeaponProficiency
+  /**
+   * Race natural weapons (claws, bite, …) are not inventory gear — always proficient
+   * and ignore simple/martial / held-slot rules.
+   */
+  sourceKind?: string | null
+  attackId?: string | null
 }): boolean {
+  // Natural weapons from race grants: always trained (PHB), never gated by inventory.
+  if (
+    input.sourceKind === 'race' ||
+    (typeof input.attackId === 'string' && input.attackId.startsWith('race-nw:'))
+  ) {
+    return true
+  }
+
   const extras = input.weapons.extras ?? []
   for (const extra of extras) {
     if (namesMatch(input.name, extra)) return true

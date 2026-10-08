@@ -168,9 +168,12 @@ function naturalWeaponToAttack(
     catalog_id: null,
     source_kind: 'race',
     ability: weapon.ability,
-    is_proficient: weapon.proficient,
+    // Always proficient — natural weapons are a racial bonus, not inventory gear.
+    is_proficient: true,
     damage: weapon.damage,
     damage_type: weapon.damageType,
+    inventory_item_id: null,
+    held: true,
   }
 }
 

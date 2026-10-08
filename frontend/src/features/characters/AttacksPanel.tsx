@@ -161,8 +161,8 @@ export function AttacksPanel({
         <Text tone="muted">
           Атака может быть обычным оружием или артефактом. «В руках» — сейчас держишь (двуручное
           занимает обе руки; иначе до двух одноручных / одноручное+щит). Убрать = убрать в ножны
-          (в бою это действие). Владение (бонус мастерства) — от блока «Владения снаряжением», не
-          вручную на карточке.
+          (в бою это действие). Владение (бонус мастерства) — от блока «Владения снаряжением».
+          Природное оружие расы всегда с владением и не занимает слоты рук инвентаря.
         </Text>
 
         {weapons.length === 0 ? (
@@ -170,8 +170,9 @@ export function AttacksPanel({
         ) : null}
 
         {weapons.map((attack) => {
+          const raceNatural = isRaceNaturalWeaponAttack(attack)
           const gear =
-            attack.inventory_item_id && attack.held
+            !raceNatural && attack.inventory_item_id && attack.held
               ? gearBonusesByItem?.[attack.inventory_item_id]
               : undefined
           const magicAtk = gear?.attackBonus ?? 0
@@ -179,6 +180,8 @@ export function AttacksPanel({
           const proficient = isWeaponProficient({
             name: attack.name,
             weapons: weaponProficiency,
+            sourceKind: attack.source_kind,
+            attackId: attack.id,
           })
           const attackBonus =
             abilityModifier(abilities[attack.ability]) +
@@ -192,28 +195,39 @@ export function AttacksPanel({
             <div
               key={attack.id}
               className={`attack-card${
-                attack.inventory_item_id && !attack.held ? ' attack-card--stowed' : ''
+                !raceNatural && attack.inventory_item_id && !attack.held
+                  ? ' attack-card--stowed'
+                  : ''
               }`}
             >
               <div className="attack-card__meta">
                 <span className={`attack-source attack-source--${attack.source_kind}`}>
                   {sourceLabel(attack.source_kind)}
                 </span>
-                {attack.inventory_item_id ? (
+                {raceNatural ? (
+                  <span className="attack-held-tag">природное</span>
+                ) : attack.inventory_item_id ? (
                   <span className="attack-held-tag">
                     {attack.held ? 'в руках' : 'убран'}
                   </span>
                 ) : null}
               </div>
               <div className="attack-card__grid">
-                <Field label="Оружие или артефакт">
-                  <CatalogCombobox
-                    kinds={['weapon', 'item']}
-                    edition={edition}
-                    value={attack.name}
-                    placeholder="Боевой молот, Молот бури…"
-                    onChange={(value, selected) => applyCatalog(attack.id, value, selected)}
-                  />
+                <Field
+                  label="Оружие или артефакт"
+                  hint={raceNatural ? 'От расы — не из инвентаря' : undefined}
+                >
+                  {raceNatural ? (
+                    <Input value={attack.name} readOnly />
+                  ) : (
+                    <CatalogCombobox
+                      kinds={['weapon', 'item']}
+                      edition={edition}
+                      value={attack.name}
+                      placeholder="Боевой молот, Молот бури…"
+                      onChange={(value, selected) => applyCatalog(attack.id, value, selected)}
+                    />
+                  )}
                 </Field>
                 <Field label="Характеристика">
                   <select
@@ -275,7 +289,7 @@ export function AttacksPanel({
                 </Field>
               </div>
               <div className="attack-card__footer">
-                {attack.inventory_item_id && onToggleHeld ? (
+                {!raceNatural && attack.inventory_item_id && onToggleHeld ? (
                   <button
                     type="button"
                     className={`sheet-chip${attack.held ? ' is-on' : ''}`}
@@ -286,16 +300,24 @@ export function AttacksPanel({
                 ) : null}
                 <span
                   className={`sheet-chip${proficient ? ' is-on' : ''}`}
-                  title="Из владений снаряжением на листе"
+                  title={
+                    raceNatural
+                      ? 'Природное оружие расы — всегда владение'
+                      : 'Из владений снаряжением на листе'
+                  }
                 >
                   {proficient ? 'Владение' : 'Нет владения'}
                 </span>
-                <Button
-                  variant="ghost"
-                  onClick={() => onChange(weapons.filter((item) => item.id !== attack.id))}
-                >
-                  Удалить
-                </Button>
+                {raceNatural ? (
+                  <Text tone="muted">С расы</Text>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    onClick={() => onChange(weapons.filter((item) => item.id !== attack.id))}
+                  >
+                    Удалить
+                  </Button>
+                )}
               </div>
             </div>
           )
