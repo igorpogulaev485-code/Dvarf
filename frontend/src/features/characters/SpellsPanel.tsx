@@ -33,11 +33,14 @@ import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import type { ConcentrationState } from './play'
 import {
+  canRemoveSheetSpell,
   countPreparedLeveled,
   createSheetSpell,
+  isFeatSheetSpell,
   isRaceSheetSpell,
   groupSpellsByLevel,
   isReadyInCombat,
+  preparedLockChip,
   readCatalogSpellFields,
   setSpellPrepared,
   type SheetSpell,
@@ -633,44 +636,51 @@ export function SpellsPanel({
                       ) : null}
                       <div className="spell-card__footer">
                         {spell.level > 0 ? (
-                          spell.race_grant === 'innate' ? (
-                            <span
-                              className="sheet-chip is-on"
-                              title="Врождённый расовый каст — вне лимита подготовки"
-                            >
-                              Врождённое
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
-                              onClick={() =>
-                                patch({
-                                  known: setSpellPrepared(
-                                    spells.known,
-                                    spell.id,
-                                    !spell.prepared,
-                                    spells.max_prepared,
-                                  ),
-                                })
-                              }
-                            >
-                              {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
-                            </button>
-                          )
+                          (() => {
+                            const lock = preparedLockChip(spell)
+                            if (lock) {
+                              return (
+                                <span className="sheet-chip is-on" title={lock.title}>
+                                  {lock.label}
+                                </span>
+                              )
+                            }
+                            return (
+                              <button
+                                type="button"
+                                className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
+                                onClick={() =>
+                                  patch({
+                                    known: setSpellPrepared(
+                                      spells.known,
+                                      spell.id,
+                                      !spell.prepared,
+                                      spells.max_prepared,
+                                    ),
+                                  })
+                                }
+                              >
+                                {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
+                              </button>
+                            )
+                          })()
                         ) : (
                           <span className="sheet-chip is-on">Заговор</span>
                         )}
-                        {isRaceSheetSpell(spell) ? (
+                        {isRaceSheetSpell(spell) && spell.race_grant === 'spell_list' ? (
                           <span
                             className="sheet-chip is-on"
-                            title={
-                              spell.race_grant === 'spell_list'
-                                ? 'Список метки/расы — готовь как классовое'
-                                : 'Врождённое расовое заклинание'
-                            }
+                            title="Список метки/расы — готовь как классовое"
                           >
-                            {spell.race_grant === 'spell_list' ? 'Метка' : 'Раса'}
+                            Метка
+                          </span>
+                        ) : null}
+                        {isFeatSheetSpell(spell) && spell.feat_grant === 'spell_list' ? (
+                          <span
+                            className="sheet-chip is-on"
+                            title="Список черты — готовь как классовое"
+                          >
+                            Черта
                           </span>
                         ) : null}
                         <button
@@ -690,16 +700,18 @@ export function SpellsPanel({
                         >
                           Ритуал
                         </button>
-                        <Button
-                          variant="ghost"
-                          onClick={() =>
-                            patch({
-                              known: spells.known.filter((item) => item.id !== spell.id),
-                            })
-                          }
-                        >
-                          Удалить
-                        </Button>
+                        {canRemoveSheetSpell(spell) ? (
+                          <Button
+                            variant="ghost"
+                            onClick={() =>
+                              patch({
+                                known: spells.known.filter((item) => item.id !== spell.id),
+                              })
+                            }
+                          >
+                            Удалить
+                          </Button>
+                        ) : null}
                         <Button
                           className="spell-card__cast"
                           disabled={
