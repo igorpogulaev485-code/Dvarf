@@ -61,6 +61,12 @@ export type PendingChoiceFilter =
       classEntryId: string
       classLevel: number
     }
+  /** All incomplete picks for a class with feature.level ≤ maxClassLevel (start at N). */
+  | {
+      mode: 'up_to_class_level'
+      classEntryId: string
+      maxClassLevel: number
+    }
 
 function stepIdForFeature(feature: UnlockedFeature, kind: string): string {
   return `${kind}:${feature.classEntryId}:${feature.id}`
@@ -107,6 +113,12 @@ export function isSubclassGateFeature(feature: Pick<UnlockedFeature, 'choice' | 
 
 function matchesFilter(feature: UnlockedFeature, filter: PendingChoiceFilter): boolean {
   if (filter.mode === 'all_empty') return true
+  if (filter.mode === 'up_to_class_level') {
+    return (
+      feature.classEntryId === filter.classEntryId &&
+      feature.level <= filter.maxClassLevel
+    )
+  }
   return (
     feature.classEntryId === filter.classEntryId &&
     feature.level === filter.classLevel
@@ -164,7 +176,8 @@ export function buildPendingWizardSteps(input: {
         kind: 'asi',
         classEntryId: feature.classEntryId,
         className: feature.className,
-        classLevel: feature.classLevel,
+        // Ledger / −1 level: level when ASI was gained (4/8/12…), not current class level.
+        classLevel: feature.level,
         featureId: feature.id,
       })
       continue

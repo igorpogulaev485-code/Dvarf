@@ -481,9 +481,8 @@ export function GuidedWizardDialog({
 
     if (step.kind === 'class_grant') {
       if (!grantReady) return
+      // Parent applies grant (+ optional jump to starting level) and replaces the wizard queue.
       onConfirmClassGrant(grantPicks)
-      onToast?.('Владения класса записаны')
-      onAdvance(index + 1)
       return
     }
 

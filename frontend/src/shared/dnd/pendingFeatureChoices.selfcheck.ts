@@ -167,6 +167,40 @@ assert(
   'warlock patron subclass step at L1',
 )
 
+const rogueL13 = [{ ...rogueClasses[0], level: 13 }]
+const unlockedL13 = unlockFeaturesForClasses({
+  classes: rogueL13,
+  characterLevel: 13,
+  abilities: { str: 10, dex: 16, con: 12, int: 12, wis: 10, cha: 10 },
+})
+const startAt13 = buildPendingWizardSteps({
+  unlocked: unlockedL13,
+  featurePicks: emptyFeaturePicks(),
+  classAsi: [],
+  filter: { mode: 'up_to_class_level', classEntryId: 'c1', maxClassLevel: 13 },
+  hasSubclassByEntryId: { c1: false },
+})
+assert(
+  startAt13.some((s) => s.kind === 'feature_choice' && s.featureId === 'expertise_1'),
+  'start@13 includes expertise_1',
+)
+assert(
+  startAt13.some((s) => s.kind === 'feature_choice' && s.featureId === 'expertise_6'),
+  'start@13 includes expertise_6',
+)
+assert(
+  startAt13.filter((s) => s.kind === 'asi').length >= 3,
+  'start@13 includes multiple ASI steps',
+)
+assert(
+  startAt13.some((s) => s.kind === 'asi' && s.classLevel === 4),
+  'ASI step ledger level is feature level 4, not 13',
+)
+assert(
+  startAt13.some((s) => s.kind === 'subclass'),
+  'start@13 includes archetype gate',
+)
+
 picks = setFeaturePick(picks, 'c1', 'expertise_6', 'investigation,thieves_tools')
 const cleared = clearFeaturePicksAboveClassLevel({
   featurePicks: picks,

@@ -4,13 +4,13 @@ import {
   AppHeader,
   CharacterList,
   CreateCharacterButton,
+  type CreateCharacterRequest,
 } from '../features/characters'
 import { getMe, type User } from '../shared/api/auth'
 import {
   createCharacter,
   listCharacters,
   type CharacterSummary,
-  type RulesEdition,
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import { Stack, Text, Toast } from '../ui'
@@ -66,15 +66,20 @@ export function CharactersPage() {
     }
   }, [navigate])
 
-  async function handleCreate(edition: RulesEdition) {
+  async function handleCreate(request: CreateCharacterRequest) {
     setCreating(true)
     setError(null)
     try {
-      const created = await createCharacter(edition)
+      const created = await createCharacter(request.edition)
+      const levelNote =
+        request.startingLevel > 1
+          ? ` со стартом с ${request.startingLevel} ур.`
+          : ''
       navigate(`/characters/${created.id}`, {
         state: {
-          toast: 'Персонаж создан — сначала выбери класс, потом расу',
+          toast: `Персонаж создан${levelNote} — сначала выбери класс, потом расу`,
           createGuide: 'class-first',
+          startingLevel: request.startingLevel,
         },
       })
     } catch (err) {

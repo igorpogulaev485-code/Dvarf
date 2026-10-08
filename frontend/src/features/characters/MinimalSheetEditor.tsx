@@ -110,8 +110,10 @@ import {
 } from '../../shared/dnd/classHitDice'
 import {
   averageHpGain,
+  buildMaxHpByLevels,
   hitDieForClass,
 } from '../../shared/dnd/multiclassRules'
+import { clampCharacterLevel, xpToReachLevel } from '../../shared/dnd/experience'
 import { withSyncedHitDiceSummary } from './play'
 import { SpellsPanel } from './SpellsPanel'
 import {
@@ -186,6 +188,8 @@ type MinimalSheetEditorProps = {
   character: CharacterDetail
   /** Fresh create: highlight class-before-race path once. */
   createGuide?: 'class-first' | null
+  /** Create at level N — after class grant, jump and queue picks 1…N. */
+  startingLevel?: number
   onCreateGuideConsumed?: () => void
   onSaved: (character: CharacterDetail) => void
   onToast: (message: string) => void
@@ -368,6 +372,7 @@ function skillMark(state: { is_proficient: boolean; is_expertise: boolean }) {
 export function MinimalSheetEditor({
   character,
   createGuide = null,
+  startingLevel: startingLevelProp = 1,
   onCreateGuideConsumed,
   onSaved,
   onToast,
@@ -382,6 +387,10 @@ export function MinimalSheetEditor({
   const [conflictOpen, setConflictOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
   const [guidedWizard, setGuidedWizard] = useState<GuidedWizardSession | null>(null)
+  /** Consumed once after first start-mode class grant (create at N). */
+  const [pendingStartingLevel, setPendingStartingLevel] = useState(() =>
+    clampCharacterLevel(startingLevelProp || 1),
+  )
   const [grantPicker, setGrantPicker] = useState<{
     classEntryId: string
     className: string
@@ -1022,23 +1031,64 @@ export function MinimalSheetEditor({
     setGuidedWizard({ ...session, index: Math.min(session.index, session.steps.length - 1) })
   }
 
+  function jumpDraftToClassLevel(prev: Draft, classEntryId: string, targetLevel: number): Draft {
+    const level = clampCharacterLevel(targetLevel)
+    const nextClasses = prev.classes.map((row) =>
+      row.id === classEntryId ? { ...row, level } : row,
+    )
+    const conMod = abilityModifier(prev.abilities.con)
+    const hpBuilt = buildMaxHpByLevels({
+      classes: nextClasses.map((row) => ({ name: row.name, level: row.level })),
+      constitutionMod: conMod,
+    })
+    const hitDiceByClass = syncHitDicePools({
+      classes: nextClasses,
+      previous: prev.play.hitDiceByClass,
+    })
+    const totalLevel = totalCharacterLevel(nextClasses)
+    return {
+      ...prev,
+      classes: nextClasses,
+      hpMax: hpBuilt?.total ?? prev.hpMax,
+      hpCurrent: hpBuilt?.total ?? prev.hpCurrent,
+      identity: {
+        ...prev.identity,
+        experience: xpToReachLevel(totalLevel),
+      },
+      play: withSyncedHitDiceSummary({
+        ...prev.play,
+        hitDiceByClass,
+      }),
+    }
+  }
+
   function buildChoiceStepsForClass(input: {
     classEntryId: string
     classLevel: number
+    /** When set, queue all incomplete picks with feature.level ≤ max (start at N). */
+    upToLevel?: number
     featurePicks?: FeaturePicksState
     classAsi?: AppliedClassAsi[]
     unlocked?: typeof unlockedFeatures
     hasSubclass?: Record<string, boolean>
   }): GuidedWizardStep[] {
+    const maxLevel = input.upToLevel ?? input.classLevel
     return buildPendingWizardSteps({
       unlocked: input.unlocked ?? unlockedFeatures,
       featurePicks: input.featurePicks ?? draft.featurePicks,
       classAsi: input.classAsi ?? draft.classAsi,
-      filter: {
-        mode: 'at_class_level',
-        classEntryId: input.classEntryId,
-        classLevel: input.classLevel,
-      },
+      filter:
+        maxLevel > input.classLevel || input.upToLevel != null
+          ? {
+              mode: 'up_to_class_level',
+              classEntryId: input.classEntryId,
+              maxClassLevel: maxLevel,
+            }
+          : {
+              mode: 'at_class_level',
+              classEntryId: input.classEntryId,
+              classLevel: input.classLevel,
+            },
       hasSubclassByEntryId: input.hasSubclass ?? hasSubclassByEntryId,
     })
   }
@@ -1112,6 +1162,7 @@ export function MinimalSheetEditor({
       unlocked: unlockedForGrant,
     })
     if (grantNeedsSetupDialog(def, input.mode)) {
+      // Only class_grant first — after confirm we jump to startingLevel and rebuild the queue.
       openGuidedWizard({
         steps: [
           {
@@ -1121,7 +1172,7 @@ export function MinimalSheetEditor({
             className: input.className,
             mode: input.mode,
           },
-          ...choiceSteps,
+          ...(input.mode === 'start' && pendingStartingLevel > 1 ? [] : choiceSteps),
         ],
         index: 0,
         grant: {
@@ -1141,6 +1192,43 @@ export function MinimalSheetEditor({
       catalogSlug: input.catalogSlug,
       catalogData: input.catalogData,
     })
+    if (input.mode === 'start' && pendingStartingLevel > 1) {
+      let remaining: GuidedWizardStep[] = []
+      setDraft((prev) => {
+        const jumped = jumpDraftToClassLevel(prev, input.classEntryId, pendingStartingLevel)
+        const unlocked = unlockFeaturesForClasses({
+          classes: jumped.classes,
+          characterLevel: totalCharacterLevel(jumped.classes),
+          abilities: jumped.abilities,
+          subclassSlugByEntryId: Object.fromEntries(
+            jumped.subclassGrants
+              .filter((row) => row.classEntryId && row.slug)
+              .map((row) => [row.classEntryId, row.slug]),
+          ),
+        })
+        const hasSubclass: Record<string, boolean> = {}
+        for (const row of jumped.classes) {
+          hasSubclass[row.id] = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
+        }
+        remaining = buildPendingWizardSteps({
+          unlocked,
+          featurePicks: jumped.featurePicks,
+          classAsi: jumped.classAsi,
+          filter: {
+            mode: 'up_to_class_level',
+            classEntryId: input.classEntryId,
+            maxClassLevel: pendingStartingLevel,
+          },
+          hasSubclassByEntryId: hasSubclass,
+        })
+        return jumped
+      })
+      setPendingStartingLevel(1)
+      onCreateGuideConsumed?.()
+      onToast(`Старт с ${pendingStartingLevel} ур. — пройди выборы умений`)
+      openGuidedWizard({ steps: remaining, index: 0 })
+      return
+    }
     if (choiceSteps.length > 0) {
       openGuidedWizard({ steps: choiceSteps, index: 0 })
     }
@@ -2476,15 +2564,77 @@ export function MinimalSheetEditor({
           if (!guidedWizard?.grant || !guidedWizard.steps[guidedWizard.index]) return
           const step = guidedWizard.steps[guidedWizard.index]
           if (step.kind !== 'class_grant') return
-          commitClassGrant({
-            classEntryId: step.classEntryId,
-            className: step.className,
-            mode: step.mode,
-            picks,
-            def: guidedWizard.grant.def,
-            catalogSlug: guidedWizard.grant.catalogSlug,
-            catalogData: guidedWizard.grant.catalogData,
+          const grantMeta = guidedWizard.grant
+          const jumpTo =
+            step.mode === 'start' && pendingStartingLevel > 1 ? pendingStartingLevel : 1
+          let remaining: GuidedWizardStep[] = []
+          let summary: string | null = null
+          setDraft((prev) => {
+            const applied = applyClassGrantToDraft({
+              draft: draftSliceFrom(prev),
+              classEntryId: step.classEntryId,
+              className: step.className,
+              mode: step.mode,
+              picks,
+              def: grantMeta.def,
+              catalogSlug: grantMeta.catalogSlug,
+              catalogData: grantMeta.catalogData,
+            })
+            if (!applied) return prev
+            summary = applied.summary
+            let next = mergeGrantSlice(prev, applied.draft)
+            if (jumpTo > 1) {
+              next = jumpDraftToClassLevel(next, step.classEntryId, jumpTo)
+            }
+            const unlocked = unlockFeaturesForClasses({
+              classes: next.classes,
+              characterLevel: totalCharacterLevel(next.classes),
+              abilities: next.abilities,
+              subclassSlugByEntryId: Object.fromEntries(
+                next.subclassGrants
+                  .filter((row) => row.classEntryId && row.slug)
+                  .map((row) => [row.classEntryId, row.slug]),
+              ),
+            })
+            const hasSubclass: Record<string, boolean> = {}
+            for (const row of next.classes) {
+              hasSubclass[row.id] = Boolean(
+                row.subclass_catalog_id || row.subclass_name.trim(),
+              )
+            }
+            const classLevel =
+              next.classes.find((row) => row.id === step.classEntryId)?.level ?? 1
+            remaining = buildPendingWizardSteps({
+              unlocked,
+              featurePicks: next.featurePicks,
+              classAsi: next.classAsi,
+              filter:
+                jumpTo > 1
+                  ? {
+                      mode: 'up_to_class_level',
+                      classEntryId: step.classEntryId,
+                      maxClassLevel: jumpTo,
+                    }
+                  : {
+                      mode: 'at_class_level',
+                      classEntryId: step.classEntryId,
+                      classLevel,
+                    },
+              hasSubclassByEntryId: hasSubclass,
+            })
+            return next
           })
+          if (summary) {
+            onToast(
+              `${step.mode === 'start' ? 'Старт' : 'Мультикласс'} «${step.className}»: ${summary}`,
+            )
+          }
+          if (jumpTo > 1) {
+            onToast(`Уровень класса → ${jumpTo}. Дальше — выборы умений и ASI.`)
+            setPendingStartingLevel(1)
+            onCreateGuideConsumed?.()
+          }
+          openGuidedWizard({ steps: remaining, index: 0 })
         }}
         onConfirmAsi={confirmClassAsi}
         onAdvance={advanceGuidedWizard}
