@@ -1,0 +1,205 @@
+{
+  "rules_edition": "2014",
+  "notes_ru": "Волна SCC (Strixhaven: Curriculum of Chaos). GGtR официальных черт не содержит — пропуск; следующая сеттинговая книга с чертами — Strixhaven. При расхождении dnd.su/ttg — решать с Игорем.",
+  "wave": "scc",
+  "skipped_books": [
+    {
+      "slug": "ggtr",
+      "reason_ru": "Guildmasters' Guide to Ravnica — нет официальных player feats"
+    }
+  ],
+  "feats": [
+    {
+      "id": "589e42cb-ce9a-567d-8f70-d15bd23167a7",
+      "slug": "strixhaven_initiate",
+      "name_ru": "Посвящённый Стриксхейвена",
+      "name_en": "Strixhaven Initiate",
+      "source": "scc",
+      "sort_order": 6010,
+      "data": {
+        "source": "scc",
+        "wave": "scc",
+        "prerequisites_ru": null,
+        "summary_ru": "Колледж Стриксхейвена: 2 заговора + заклинание 1 круга (1/длинный отдых без ячейки).",
+        "benefits_ru": "Выберите один колледж Стриксхейвена. Выучите два заговора и одно заклинание 1 уровня по таблице колледжа. Заклинание 1 круга можете накладывать без ячейки 1 раз / длинный отдых (также за ячейки). Характеристика сотворения — Инт, Муд или Хар (выбор при взятии черты).",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "college",
+            "type": "enum",
+            "label_ru": "Колледж",
+            "options": [
+              {
+                "id": "lorehold",
+                "label_ru": "Лорхолд — Light / Sacred Flame / Thaumaturgy → клирик или волшебник 1 круга"
+              },
+              {
+                "id": "prismari",
+                "label_ru": "Призмари — Fire Bolt / Prestidigitation / Ray of Frost → бард или чародей 1 круга"
+              },
+              {
+                "id": "quandrix",
+                "label_ru": "Квандрикс — Druidcraft / Guidance / Mage Hand → друид или волшебник 1 круга"
+              },
+              {
+                "id": "silverquill",
+                "label_ru": "Сильверквилл — Sacred Flame / Thaumaturgy / Vicious Mockery → бард или клирик 1 круга"
+              },
+              {
+                "id": "witherbloom",
+                "label_ru": "Уизерблум — Chill Touch / Druidcraft / Spare the Dying → друид или волшебник 1 круга"
+              }
+            ]
+          },
+          {
+            "id": "cast",
+            "type": "enum",
+            "label_ru": "Характеристика сотворения",
+            "options": [
+              {
+                "id": "int",
+                "label_ru": "Интеллект"
+              },
+              {
+                "id": "wis",
+                "label_ru": "Мудрость"
+              },
+              {
+                "id": "cha",
+                "label_ru": "Харизма"
+              }
+            ]
+          },
+          {
+            "id": "cantrip1",
+            "type": "spell_one",
+            "label_ru": "Заговор 1 (колледж)",
+            "level": 0,
+            "grant": "innate",
+            "filter_enum": "college",
+            "unique_group": "cantrips",
+            "options": [
+              { "id": "light", "label_ru": "Свет", "lists": ["lorehold", "silverquill"] },
+              { "id": "sacred_flame", "label_ru": "Священное пламя", "lists": ["lorehold", "silverquill"] },
+              { "id": "thaumaturgy", "label_ru": "Чудотворство", "lists": ["lorehold", "silverquill"] },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд", "lists": ["prismari"] },
+              { "id": "prestidigitation", "label_ru": "Фокусы", "lists": ["prismari"] },
+              { "id": "ray_of_frost", "label_ru": "Луч холода", "lists": ["prismari"] },
+              { "id": "druidcraft", "label_ru": "Друидизм", "lists": ["quandrix", "witherbloom"] },
+              { "id": "guidance", "label_ru": "Наставление", "lists": ["quandrix"] },
+              { "id": "mage_hand", "label_ru": "Волшебная рука", "lists": ["quandrix"] },
+              { "id": "vicious_mockery", "label_ru": "Злая насмешка", "lists": ["silverquill"] },
+              { "id": "chill_touch", "label_ru": "Леденящее прикосновение", "lists": ["witherbloom"] },
+              { "id": "spare_the_dying", "label_ru": "Уход за умирающим", "lists": ["witherbloom"] }
+            ]
+          },
+          {
+            "id": "cantrip2",
+            "type": "spell_one",
+            "label_ru": "Заговор 2 (колледж)",
+            "level": 0,
+            "grant": "innate",
+            "filter_enum": "college",
+            "unique_group": "cantrips",
+            "options": [
+              { "id": "light", "label_ru": "Свет", "lists": ["lorehold", "silverquill"] },
+              { "id": "sacred_flame", "label_ru": "Священное пламя", "lists": ["lorehold", "silverquill"] },
+              { "id": "thaumaturgy", "label_ru": "Чудотворство", "lists": ["lorehold", "silverquill"] },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд", "lists": ["prismari"] },
+              { "id": "prestidigitation", "label_ru": "Фокусы", "lists": ["prismari"] },
+              { "id": "ray_of_frost", "label_ru": "Луч холода", "lists": ["prismari"] },
+              { "id": "druidcraft", "label_ru": "Друидизм", "lists": ["quandrix", "witherbloom"] },
+              { "id": "guidance", "label_ru": "Наставление", "lists": ["quandrix"] },
+              { "id": "mage_hand", "label_ru": "Волшебная рука", "lists": ["quandrix"] },
+              { "id": "vicious_mockery", "label_ru": "Злая насмешка", "lists": ["silverquill"] },
+              { "id": "chill_touch", "label_ru": "Леденящее прикосновение", "lists": ["witherbloom"] },
+              { "id": "spare_the_dying", "label_ru": "Уход за умирающим", "lists": ["witherbloom"] }
+            ]
+          },
+          {
+            "id": "l1_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 1 круга (колледж)",
+            "level": 1,
+            "grant": "innate",
+            "filter_enum": "college",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "bless", "label_ru": "Благословение (жрец)", "lists": ["lorehold"] },
+              { "id": "command", "label_ru": "Приказ (жрец)", "lists": ["lorehold"] },
+              { "id": "identify", "label_ru": "Опознание (волшебник)", "lists": ["lorehold"] },
+              { "id": "mage_armor", "label_ru": "Доспехи мага (волшебник)", "lists": ["lorehold"] },
+              { "id": "chromatic_orb", "label_ru": "Цветной шар (чародей)", "lists": ["prismari"] },
+              { "id": "thunderwave", "label_ru": "Волна грома (бард/чародей)", "lists": ["prismari"] },
+              { "id": "silent_image", "label_ru": "Бесшумный образ (бард)", "lists": ["prismari"] },
+              { "id": "detect_magic", "label_ru": "Обнаружение магии", "lists": ["quandrix"] },
+              { "id": "entangle", "label_ru": "Опутывание (друид)", "lists": ["quandrix"] },
+              { "id": "mage_armor", "label_ru": "Доспехи мага (волшебник)", "lists": ["quandrix"] },
+              { "id": "dissonant_whispers", "label_ru": "Диссонирующий шёпот (бард)", "lists": ["silverquill"] },
+              { "id": "guiding_bolt", "label_ru": "Направляющий снаряд (жрец)", "lists": ["silverquill"] },
+              { "id": "heroism", "label_ru": "Героизм (бард)", "lists": ["silverquill"] },
+              { "id": "cure_wounds", "label_ru": "Лечение ран (друид)", "lists": ["witherbloom"] },
+              { "id": "inflict_wounds", "label_ru": "Нанесение ран", "lists": ["witherbloom"] },
+              { "id": "ray_of_sickness", "label_ru": "Луч болезни (волшебник)", "lists": ["witherbloom"] }
+            ]
+          }
+        ],
+        "grants": {
+          "flags": [
+            "strixhaven_initiate"
+          ]
+        }
+      }
+    },
+    {
+      "id": "8b268478-2106-51f0-bdc3-9772ff5a403c",
+      "slug": "strixhaven_mascot",
+      "name_ru": "Талисман Стриксхейвена",
+      "name_en": "Strixhaven Mascot",
+      "source": "scc",
+      "sort_order": 6020,
+      "data": {
+        "source": "scc",
+        "wave": "scc",
+        "prerequisites_ru": "4-й уровень, черта «Посвящённый Стриксхейвена»",
+        "summary_ru": "Familiar-талисман колледжа; атака вместо своей; обмен местами 1/длинный отдых.",
+        "benefits_ru": "Можете накладывать Поиск фамильяра как ритуал; форма — талисман колледжа из Посвящённого Стриксхейвена (статуя-дух / арт-элементаль / фрактал / чернильный / вредитель). Когда действием атакуете, можете отказаться от одной атаки, чтобы талисман атаковал своей реакцией. Действием можете поменяться местами с талисманом в пределах 60 фт (1/длинный отдых или за ячейку 2+ круга).",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": [
+            "strixhaven_initiate"
+          ]
+        },
+        "choices": [
+          {
+            "id": "mascot_note",
+            "type": "note",
+            "label_ru": "Форма талисмана",
+            "text_ru": "Поиск фамильяра уже на листе. Форма = колледж из черты «Посвящённый Стриксхейвена» (не отдельный пикер)."
+          }
+        ],
+        "grants": {
+          "flags": [
+            "strixhaven_mascot"
+          ],
+          "spells": [
+            {
+              "id": "find_familiar",
+              "spell_slug": "find_familiar",
+              "name_ru": "Поиск фамильяра",
+              "level": 1,
+              "grant": "innate",
+              "notes_ru": "ритуал; форма — талисман колледжа"
+            }
+          ],
+          "resource": {
+            "pool_id": "mascot_swap",
+            "pool_name_ru": "Обмен с талисманом",
+            "uses": 1,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    }
+  ]
+}

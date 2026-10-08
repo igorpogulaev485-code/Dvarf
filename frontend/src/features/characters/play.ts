@@ -9,6 +9,12 @@ import {
   type ConcentrationState,
 } from '../../shared/dnd/concentration'
 import {
+  primaryHitDie,
+  readHitDicePools,
+  totalHitDiceCurrent,
+  type ClassHitDicePool,
+} from '../../shared/dnd/classHitDice'
+import {
   clampDeathMarks,
   clampHitDiceCurrent,
   isHitDie,
@@ -27,8 +33,12 @@ export type PlayState = {
   exhaustion: number
   resources: SheetResource[]
   hpTemp: number
+  /** @deprecated Prefer hitDiceByClass; kept as derived summary for sticky header / legacy. */
   hitDie: HitDie | null
+  /** @deprecated Prefer hitDiceByClass totals. */
   hitDiceCurrent: number
+  /** Per-class hit-dice pools (PHB multiclass). */
+  hitDiceByClass: ClassHitDicePool[]
   isDying: boolean
   deathSuccesses: number
   deathFails: number
@@ -124,17 +134,23 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
 
   const hitDiceMax = Math.max(1, Math.floor(level))
   const hitDiceRaw = readNullableNumber(combat.hp_dice_current)
+  const poolsFromSheet = readHitDicePools(combat.hit_dice_by_class)
+  const legacyDie = isHitDie(combat.hit_die) ? combat.hit_die : null
+  const legacyCurrent = clampHitDiceCurrent(hitDiceRaw ?? hitDiceMax, hitDiceMax)
+  const hitDiceByClass = poolsFromSheet ?? []
+  const derivedCurrent =
+    hitDiceByClass.length > 0 ? totalHitDiceCurrent(hitDiceByClass) : legacyCurrent
+  const derivedDie =
+    hitDiceByClass.length > 0 ? primaryHitDie(hitDiceByClass) : legacyDie
 
   return {
     conditions,
     exhaustion: clampExhaustion(readNumber(combat.exhaustion, 0)),
     resources,
     hpTemp: Math.max(0, Math.floor(readNumber(combat.hp_temp, 0))),
-    hitDie: isHitDie(combat.hit_die) ? combat.hit_die : null,
-    hitDiceCurrent: clampHitDiceCurrent(
-      hitDiceRaw ?? hitDiceMax,
-      hitDiceMax,
-    ),
+    hitDie: derivedDie,
+    hitDiceCurrent: derivedCurrent,
+    hitDiceByClass,
     isDying: Boolean(combat.is_dying),
     deathSuccesses: clampDeathMarks(readNumber(combat.death_successes, 0)),
     deathFails: clampDeathMarks(readNumber(combat.death_fails, 0)),
@@ -149,6 +165,7 @@ export function playToSheet(play: PlayState): {
     hp_temp: number
     hit_die: HitDie | null
     hp_dice_current: number
+    hit_dice_by_class: ClassHitDicePool[]
     is_dying: boolean
     death_successes: number
     death_fails: number
@@ -156,6 +173,10 @@ export function playToSheet(play: PlayState): {
   }
   resources: SheetResource[]
 } {
+  const pools = play.hitDiceByClass ?? []
+  const hitDie = pools.length > 0 ? primaryHitDie(pools) : play.hitDie
+  const hitDiceCurrent =
+    pools.length > 0 ? totalHitDiceCurrent(pools) : Math.max(0, Math.floor(play.hitDiceCurrent))
   return {
     combatPatch: {
       conditions: play.conditions.map((item) => ({
@@ -166,8 +187,9 @@ export function playToSheet(play: PlayState): {
       })),
       exhaustion: clampExhaustion(play.exhaustion),
       hp_temp: Math.max(0, Math.floor(play.hpTemp)),
-      hit_die: play.hitDie,
-      hp_dice_current: Math.max(0, Math.floor(play.hitDiceCurrent)),
+      hit_die: hitDie,
+      hp_dice_current: hitDiceCurrent,
+      hit_dice_by_class: pools,
       is_dying: play.isDying,
       death_successes: clampDeathMarks(play.deathSuccesses),
       death_fails: clampDeathMarks(play.deathFails),
@@ -179,6 +201,30 @@ export function playToSheet(play: PlayState): {
         : clearConcentration(),
     },
     resources: play.resources.map((item) => clampResource(item)),
+  }
+}
+
+export function withSyncedHitDiceSummary(play: PlayState): PlayState {
+  const pools = play.hitDiceByClass ?? []
+  if (pools.length === 0) return play
+  return {
+    ...play,
+    hitDie: primaryHitDie(pools),
+    hitDiceCurrent: totalHitDiceCurrent(pools),
+    hitDiceByClass: pools,
+  }
+}
+
+export function emptyHitDiceTotals(level: number): {
+  hitDie: HitDie | null
+  hitDiceCurrent: number
+  hitDiceByClass: ClassHitDicePool[]
+} {
+  const max = Math.max(0, Math.floor(level))
+  return {
+    hitDie: null,
+    hitDiceCurrent: max,
+    hitDiceByClass: [],
   }
 }
 

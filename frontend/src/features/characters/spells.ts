@@ -492,6 +492,17 @@ export function stripFeatSheetSpells(known: SheetSpell[]): SheetSpell[] {
   return known.filter((spell) => !isFeatSheetSpell(spell))
 }
 
+/** Drop sheet rows for one applied feat grant (keep other feats). */
+export function stripFeatSheetSpellsForGrant(
+  known: SheetSpell[],
+  grantId: string,
+): SheetSpell[] {
+  const prefix = `feat-spell:${grantId}:`
+  return known.filter(
+    (spell) => !(isFeatSheetSpell(spell) && spell.id.startsWith(prefix)),
+  )
+}
+
 export function readSpells(sheet: Record<string, unknown>): SpellsState {
   const spells = asRecord(sheet.spells)
   const slotsRaw = asRecord(spells.slots)

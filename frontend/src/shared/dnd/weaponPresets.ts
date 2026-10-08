@@ -14,6 +14,8 @@ export type WeaponPreset = {
 
 const PRESETS: WeaponPreset[] = [
   { labelRu: 'Секира', damage: '1к12', damageType: 'рубящий', ability: 'str', aliases: ['большое топорище', 'greataxe'] },
+  { labelRu: 'Боевой топор', damage: '1к8', damageType: 'рубящий', ability: 'str', aliases: ['battleaxe'] },
+  { labelRu: 'Молот', damage: '2к6', damageType: 'дробящий', ability: 'str', aliases: ['maul', 'двуручный молот'] },
   { labelRu: 'Ручной топор', damage: '1к6', damageType: 'рубящий', ability: 'str', aliases: ['handaxe'] },
   { labelRu: 'Метательное копьё', damage: '1к6', damageType: 'колющий', ability: 'str', aliases: ['метательное копье', 'javelin'] },
   { labelRu: 'Длинный меч', damage: '1к8', damageType: 'рубящий', ability: 'str', aliases: ['длинный меч', 'longsword'] },
@@ -28,8 +30,13 @@ const PRESETS: WeaponPreset[] = [
   { labelRu: 'Дротик', damage: '1к4', damageType: 'колющий', ability: 'dex', aliases: ['dart'] },
   { labelRu: 'Копьё', damage: '1к6', damageType: 'колющий', ability: 'str', aliases: ['копье', 'spear'] },
   { labelRu: 'Лёгкий арбалет', damage: '1к8', damageType: 'колющий', ability: 'dex', aliases: ['легкий арбалет', 'light crossbow'] },
+  { labelRu: 'Ручной арбалет', damage: '1к6', damageType: 'колющий', ability: 'dex', aliases: ['hand crossbow', 'handcrossbow'] },
   { labelRu: 'Короткий лук', damage: '1к6', damageType: 'колющий', ability: 'dex', aliases: ['shortbow'] },
   { labelRu: 'Длинный лук', damage: '1к8', damageType: 'колющий', ability: 'dex', aliases: ['longbow'] },
+  { labelRu: 'Трезубец', damage: '1к6', damageType: 'колющий', ability: 'str', aliases: ['trident'] },
+  { labelRu: 'Сеть', damage: '—', damageType: 'особый', ability: 'dex', aliases: ['net'] },
+  { labelRu: 'Боевой топор', damage: '1к8', damageType: 'рубящий', ability: 'str', aliases: ['battleaxe'] },
+  { labelRu: 'Лёгкий молот', damage: '1к4', damageType: 'дробящий', ability: 'str', aliases: ['light hammer', 'lighthammer'] },
 ]
 
 function normalize(value: string): string {

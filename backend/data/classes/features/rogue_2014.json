@@ -67,8 +67,17 @@
       "level": 4,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_4_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "uncanny_dodge",
@@ -99,8 +108,34 @@
       "level": 8,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 / +1+1 или черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_8_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "asi_10",
+      "level": 10,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_10_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "reliable_talent",
@@ -115,8 +150,17 @@
       "level": 12,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 / +1+1 или черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_12_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "blindsense",
@@ -139,8 +183,17 @@
       "level": 16,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 / +1+1 или черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_16_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "elusive",
@@ -155,8 +208,17 @@
       "level": 19,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 / +1+1 или черта.",
-      "kind": "passive"
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_19_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
     },
     {
       "id": "stroke_of_luck",
@@ -521,7 +583,13 @@
         "name_ru": "Психические клинки",
         "name_en": "Psychic Blades",
         "summary_ru": "Бонусным действием проявить простой клинок (магический, фехтовальный, лёгкий). Урон — психический. Можно метнуть (30/60).",
-        "kind": "bonus"
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Клинки",
+          "by_level": {
+            "3": "кость пси-энергии; магические; бросок/возврат"
+          }
+        }
       },
       {
         "id": "soul_blades",
@@ -529,7 +597,13 @@
         "name_ru": "Клинки души",
         "name_en": "Soul Blades",
         "summary_ru": "Homings Strikes / Psychic Teleportation за пси-кость (см. TCoE).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Улучшения",
+          "by_level": {
+            "9": "Homining Strikes / Psychic Teleportation"
+          }
+        }
       },
       {
         "id": "psychic_veil",
@@ -850,7 +924,13 @@
         "name_ru": "Мастер засады",
         "name_en": "Ambush Master",
         "summary_ru": "Преимущество на инициативу. Первая атака по тебе в первом раунде боя от существ, ещё не ходивших — с помехой.",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Инициатива союзников",
+          "by_level": {
+            "13": "в первом раунде преимущество"
+          }
+        }
       },
       {
         "id": "sudden_strike",
@@ -858,7 +938,13 @@
         "name_ru": "Внезапный удар",
         "name_en": "Sudden Strike",
         "summary_ru": "При действии Атака: доп. атака по другому существу; если преимущество — можно Скрытую атаку и на него (если ещё не использовал в ход).",
-        "kind": "passive"
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Доп. атака",
+          "by_level": {
+            "17": "бонусным по другому существу; SA если есть"
+          }
+        }
       }
     ]
   }

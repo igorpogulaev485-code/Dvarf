@@ -1309,7 +1309,7 @@
     "id": "dcf11845-a4ca-514d-a513-fbab3ab74cee",
     "kind": "weapon",
     "slug": "battleaxe",
-    "name_ru": "Battleaxe",
+    "name_ru": "Боевой топор",
     "name_en": "Battleaxe",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1320,7 +1320,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "рубящий",
       "category": "martial",
       "finesse": false,
@@ -1337,7 +1337,7 @@
     "id": "24c3677f-fe5b-5159-92ef-5ca6daae2283",
     "kind": "weapon",
     "slug": "blowgun",
-    "name_ru": "Blowgun",
+    "name_ru": "Духовая трубка",
     "name_en": "Blowgun",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1366,7 +1366,7 @@
     "id": "c788f98b-0705-5c93-98ad-a7931bfb904d",
     "kind": "weapon",
     "slug": "club",
-    "name_ru": "Club",
+    "name_ru": "Дубинка",
     "name_en": "Club",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1377,7 +1377,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d4",
+      "damage": "1к4",
       "damage_type": "дробящий",
       "category": "simple",
       "finesse": false,
@@ -1394,7 +1394,7 @@
     "id": "b26d2e9a-928e-5d96-8380-7100191a67f0",
     "kind": "weapon",
     "slug": "dagger",
-    "name_ru": "Dagger",
+    "name_ru": "Кинжал",
     "name_en": "Dagger",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1405,7 +1405,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d4",
+      "damage": "1к4",
       "damage_type": "колющий",
       "category": "simple",
       "finesse": true,
@@ -1424,7 +1424,7 @@
     "id": "7f94b9f5-d663-52d0-811c-b7fb266bf2bd",
     "kind": "weapon",
     "slug": "dart",
-    "name_ru": "Dart",
+    "name_ru": "Дротик",
     "name_en": "Dart",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1435,7 +1435,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d4",
+      "damage": "1к4",
       "damage_type": "колющий",
       "category": "simple",
       "finesse": true,
@@ -1453,7 +1453,7 @@
     "id": "bf361437-e928-5259-adf3-be28dd69f2d2",
     "kind": "weapon",
     "slug": "flail",
-    "name_ru": "Flail",
+    "name_ru": "Цеп",
     "name_en": "Flail",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1464,7 +1464,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "дробящий",
       "category": "martial",
       "finesse": false,
@@ -1480,7 +1480,7 @@
     "id": "3b11b0db-c90a-550a-b6ff-d9c6c0ebc975",
     "kind": "weapon",
     "slug": "glaive",
-    "name_ru": "Glaive",
+    "name_ru": "Глефа",
     "name_en": "Glaive",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1491,7 +1491,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d10",
+      "damage": "1к10",
       "damage_type": "рубящий",
       "category": "martial",
       "finesse": false,
@@ -1510,7 +1510,7 @@
     "id": "05dc5679-1584-5591-bcc2-b341cc8ea6b2",
     "kind": "weapon",
     "slug": "greataxe",
-    "name_ru": "Greataxe",
+    "name_ru": "Секира",
     "name_en": "Greataxe",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1521,7 +1521,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d12",
+      "damage": "1к12",
       "damage_type": "рубящий",
       "category": "martial",
       "finesse": false,
@@ -1539,7 +1539,7 @@
     "id": "f4c4ec6e-f70f-5e5e-9b25-9466adebe417",
     "kind": "weapon",
     "slug": "greatclub",
-    "name_ru": "Greatclub",
+    "name_ru": "Двуручная дубина",
     "name_en": "Greatclub",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1550,7 +1550,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "дробящий",
       "category": "simple",
       "finesse": false,
@@ -1567,7 +1567,7 @@
     "id": "27af6353-fd5f-5ca0-af88-a239996c8315",
     "kind": "weapon",
     "slug": "greatsword",
-    "name_ru": "Greatsword",
+    "name_ru": "Двуручный меч",
     "name_en": "Greatsword",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1578,7 +1578,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "2d6",
+      "damage": "2к6",
       "damage_type": "рубящий",
       "category": "martial",
       "finesse": false,
@@ -1596,7 +1596,7 @@
     "id": "00ca0867-42fe-52a3-8bf6-6de6f7041eb4",
     "kind": "weapon",
     "slug": "halberd",
-    "name_ru": "Halberd",
+    "name_ru": "Алебарда",
     "name_en": "Halberd",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1607,7 +1607,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d10",
+      "damage": "1к10",
       "damage_type": "рубящий",
       "category": "martial",
       "finesse": false,
@@ -1626,7 +1626,7 @@
     "id": "a72b9dd4-4981-53ee-89ed-1ba6a41caaa2",
     "kind": "weapon",
     "slug": "hand_crossbow",
-    "name_ru": "Hand Crossbow",
+    "name_ru": "Ручной арбалет",
     "name_en": "Hand Crossbow",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1637,7 +1637,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d6",
+      "damage": "1к6",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -1656,7 +1656,7 @@
     "id": "8adde847-6916-526d-89c9-cb3bb7d1e0e7",
     "kind": "weapon",
     "slug": "handaxe",
-    "name_ru": "Handaxe",
+    "name_ru": "Ручной топор",
     "name_en": "Handaxe",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1667,7 +1667,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d6",
+      "damage": "1к6",
       "damage_type": "рубящий",
       "category": "simple",
       "finesse": false,
@@ -1685,7 +1685,7 @@
     "id": "8d006726-1d16-5fca-a24e-cfde84d0698d",
     "kind": "weapon",
     "slug": "heavy_crossbow",
-    "name_ru": "Heavy Crossbow",
+    "name_ru": "Тяжёлый арбалет",
     "name_en": "Heavy Crossbow",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1696,7 +1696,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d10",
+      "damage": "1к10",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -1716,7 +1716,7 @@
     "id": "48882d4e-42d7-5447-8e01-8e47c6efde44",
     "kind": "weapon",
     "slug": "javelin",
-    "name_ru": "Javelin",
+    "name_ru": "Метательное копьё",
     "name_en": "Javelin",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1727,7 +1727,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d6",
+      "damage": "1к6",
       "damage_type": "колющий",
       "category": "simple",
       "finesse": false,
@@ -1744,7 +1744,7 @@
     "id": "2a38ae46-9c99-5ce1-b539-0ca6a54fef63",
     "kind": "weapon",
     "slug": "lance",
-    "name_ru": "Lance",
+    "name_ru": "Длинное копьё",
     "name_en": "Lance",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1755,7 +1755,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d10",
+      "damage": "1к10",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -1774,7 +1774,7 @@
     "id": "9024bf96-ba09-519e-87c8-dbd06ec24a6a",
     "kind": "weapon",
     "slug": "light_crossbow",
-    "name_ru": "Light Crossbow",
+    "name_ru": "Лёгкий арбалет",
     "name_en": "Light Crossbow",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1785,7 +1785,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "колющий",
       "category": "simple",
       "finesse": false,
@@ -1804,7 +1804,7 @@
     "id": "d6089517-59be-5767-82bf-69da1e541b73",
     "kind": "weapon",
     "slug": "light_hammer",
-    "name_ru": "Light Hammer",
+    "name_ru": "Лёгкий молот",
     "name_en": "Light Hammer",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1815,7 +1815,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d4",
+      "damage": "1к4",
       "damage_type": "дробящий",
       "category": "simple",
       "finesse": false,
@@ -1833,7 +1833,7 @@
     "id": "bc86daaa-3bd4-5b8f-bf11-2b810659aa2c",
     "kind": "weapon",
     "slug": "longbow",
-    "name_ru": "Longbow",
+    "name_ru": "Длинный лук",
     "name_en": "Longbow",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1844,7 +1844,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -1863,7 +1863,7 @@
     "id": "4ec1bf3d-2a1d-5c74-8d6e-ec62041f8215",
     "kind": "weapon",
     "slug": "longsword",
-    "name_ru": "Longsword",
+    "name_ru": "Длинный меч",
     "name_en": "Longsword",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1874,7 +1874,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "рубящий",
       "category": "martial",
       "finesse": false,
@@ -1891,7 +1891,7 @@
     "id": "8090748a-ede3-5859-b53b-294065afde41",
     "kind": "weapon",
     "slug": "mace",
-    "name_ru": "Mace",
+    "name_ru": "Булава",
     "name_en": "Mace",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1902,7 +1902,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d6",
+      "damage": "1к6",
       "damage_type": "дробящий",
       "category": "simple",
       "finesse": false,
@@ -1918,7 +1918,7 @@
     "id": "38799860-8450-5d5d-a116-bc597d90ab4f",
     "kind": "weapon",
     "slug": "maul",
-    "name_ru": "Maul",
+    "name_ru": "Молот",
     "name_en": "Maul",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1929,7 +1929,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "2d6",
+      "damage": "2к6",
       "damage_type": "дробящий",
       "category": "martial",
       "finesse": false,
@@ -1947,7 +1947,7 @@
     "id": "72c8e50c-fa53-5ac6-a635-e00cc9438f04",
     "kind": "weapon",
     "slug": "morningstar",
-    "name_ru": "Morningstar",
+    "name_ru": "Моргенштерн",
     "name_en": "Morningstar",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1958,7 +1958,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -1974,7 +1974,7 @@
     "id": "e58a10f8-a992-54b0-a061-641bd9ec5756",
     "kind": "weapon",
     "slug": "musket",
-    "name_ru": "Musket",
+    "name_ru": "Мушкет",
     "name_en": "Musket",
     "rules_edition": "2024",
     "parent_id": null,
@@ -1985,7 +1985,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d12",
+      "damage": "1к12",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -2004,7 +2004,7 @@
     "id": "fbb3b41b-ed2a-52a9-90df-579c657c3070",
     "kind": "weapon",
     "slug": "pike",
-    "name_ru": "Pike",
+    "name_ru": "Пика",
     "name_en": "Pike",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2015,7 +2015,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d10",
+      "damage": "1к10",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -2034,7 +2034,7 @@
     "id": "e98d48aa-3a5c-5994-a805-d6768fb62c73",
     "kind": "weapon",
     "slug": "pistol",
-    "name_ru": "Pistol",
+    "name_ru": "Пистолет",
     "name_en": "Pistol",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2045,7 +2045,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d10",
+      "damage": "1к10",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -2063,7 +2063,7 @@
     "id": "8b1524d0-f977-5cf0-80df-31874d2d5fbf",
     "kind": "weapon",
     "slug": "quarterstaff",
-    "name_ru": "Quarterstaff",
+    "name_ru": "Боевой посох",
     "name_en": "Quarterstaff",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2074,7 +2074,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d6",
+      "damage": "1к6",
       "damage_type": "дробящий",
       "category": "simple",
       "finesse": false,
@@ -2091,7 +2091,7 @@
     "id": "efb9a64c-eb64-5c52-96a7-a0dde6f3856e",
     "kind": "weapon",
     "slug": "rapier",
-    "name_ru": "Rapier",
+    "name_ru": "Рапира",
     "name_en": "Rapier",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2102,7 +2102,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": true,
@@ -2119,7 +2119,7 @@
     "id": "250cd4e1-3836-5d78-a0d2-7162749c4941",
     "kind": "weapon",
     "slug": "scimitar",
-    "name_ru": "Scimitar",
+    "name_ru": "Ятаган",
     "name_en": "Scimitar",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2130,7 +2130,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d6",
+      "damage": "1к6",
       "damage_type": "рубящий",
       "category": "martial",
       "finesse": true,
@@ -2148,7 +2148,7 @@
     "id": "803eb866-54dc-51bd-a68d-37895a7748f3",
     "kind": "weapon",
     "slug": "shortbow",
-    "name_ru": "Shortbow",
+    "name_ru": "Короткий лук",
     "name_en": "Shortbow",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2159,7 +2159,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d6",
+      "damage": "1к6",
       "damage_type": "колющий",
       "category": "simple",
       "finesse": false,
@@ -2177,7 +2177,7 @@
     "id": "53bc9675-3dc4-59e2-b6a2-1ea3c6604d3a",
     "kind": "weapon",
     "slug": "shortsword",
-    "name_ru": "Shortsword",
+    "name_ru": "Короткий меч",
     "name_en": "Shortsword",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2188,7 +2188,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d6",
+      "damage": "1к6",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": true,
@@ -2206,7 +2206,7 @@
     "id": "ec1cc74d-460a-5fa3-af0b-6eb11061d107",
     "kind": "weapon",
     "slug": "sickle",
-    "name_ru": "Sickle",
+    "name_ru": "Серп",
     "name_en": "Sickle",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2217,7 +2217,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d4",
+      "damage": "1к4",
       "damage_type": "рубящий",
       "category": "simple",
       "finesse": false,
@@ -2234,7 +2234,7 @@
     "id": "b5ca869e-3430-5fac-81f5-c5b4c49f74f8",
     "kind": "weapon",
     "slug": "sling",
-    "name_ru": "Sling",
+    "name_ru": "Праща",
     "name_en": "Sling",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2245,7 +2245,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d4",
+      "damage": "1к4",
       "damage_type": "дробящий",
       "category": "simple",
       "finesse": false,
@@ -2262,7 +2262,7 @@
     "id": "34294027-2ebd-5554-a094-c49d7c183725",
     "kind": "weapon",
     "slug": "spear",
-    "name_ru": "Spear",
+    "name_ru": "Копьё",
     "name_en": "Spear",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2273,7 +2273,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d6",
+      "damage": "1к6",
       "damage_type": "колющий",
       "category": "simple",
       "finesse": false,
@@ -2291,7 +2291,7 @@
     "id": "29a6df9a-a488-5241-bf48-6046190fa5de",
     "kind": "weapon",
     "slug": "trident",
-    "name_ru": "Trident",
+    "name_ru": "Трезубец",
     "name_en": "Trident",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2302,7 +2302,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -2320,7 +2320,7 @@
     "id": "7cae3c7c-1325-5f23-9047-aa0ad5de6476",
     "kind": "weapon",
     "slug": "war_pick",
-    "name_ru": "War Pick",
+    "name_ru": "Клевец",
     "name_en": "War Pick",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2331,7 +2331,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -2348,7 +2348,7 @@
     "id": "b746d02b-61de-599c-9f44-9b08b33db934",
     "kind": "weapon",
     "slug": "warhammer",
-    "name_ru": "Warhammer",
+    "name_ru": "Боевой молот",
     "name_en": "Warhammer",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2359,7 +2359,7 @@
     },
     "data": {
       "ability": "str",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "дробящий",
       "category": "martial",
       "finesse": false,
@@ -2376,7 +2376,7 @@
     "id": "777efd1c-538a-5f7f-8c42-cc4477fd45f3",
     "kind": "weapon",
     "slug": "whip",
-    "name_ru": "Whip",
+    "name_ru": "Кнут",
     "name_en": "Whip",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2387,7 +2387,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d4",
+      "damage": "1к4",
       "damage_type": "рубящий",
       "category": "martial",
       "finesse": true,
@@ -2405,7 +2405,7 @@
     "id": "979f4d58-cf00-58bc-a322-e26c8337cde8",
     "kind": "weapon",
     "slug": "crossbow_hand",
-    "name_ru": "Crossbow, hand",
+    "name_ru": "Ручной арбалет",
     "name_en": "Crossbow, hand",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2416,7 +2416,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d6",
+      "damage": "1к6",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -2434,7 +2434,7 @@
     "id": "bedd2cd8-87a7-5b53-947e-3091b0155da5",
     "kind": "weapon",
     "slug": "crossbow_heavy",
-    "name_ru": "Crossbow, heavy",
+    "name_ru": "Тяжёлый арбалет",
     "name_en": "Crossbow, heavy",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2445,7 +2445,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d10",
+      "damage": "1к10",
       "damage_type": "колющий",
       "category": "martial",
       "finesse": false,
@@ -2462,7 +2462,7 @@
     "id": "e81b8ab6-4cc7-5d31-946b-fc9ea2b81116",
     "kind": "weapon",
     "slug": "crossbow_light",
-    "name_ru": "Crossbow, light",
+    "name_ru": "Лёгкий арбалет",
     "name_en": "Crossbow, light",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2473,7 +2473,7 @@
     },
     "data": {
       "ability": "dex",
-      "damage": "1d8",
+      "damage": "1к8",
       "damage_type": "колющий",
       "category": "simple",
       "finesse": false,
@@ -2490,7 +2490,7 @@
     "id": "d1784d3c-a3a9-5cf7-8a9a-6f5d139bd727",
     "kind": "weapon",
     "slug": "net",
-    "name_ru": "Net",
+    "name_ru": "Сеть",
     "name_en": "Net",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2518,7 +2518,7 @@
     "id": "86ad1648-d640-533f-a2d0-60cb924aa142",
     "kind": "armor",
     "slug": "breastplate",
-    "name_ru": "Breastplate",
+    "name_ru": "Кираса",
     "name_en": "Breastplate",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2539,7 +2539,7 @@
     "id": "0fc4dc65-5f5e-5591-a789-fd8f582ab27a",
     "kind": "armor",
     "slug": "chain_mail",
-    "name_ru": "Chain Mail",
+    "name_ru": "Кольчуга",
     "name_en": "Chain Mail",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2560,7 +2560,7 @@
     "id": "9bfb5970-1180-5e40-bd02-946d6b231a43",
     "kind": "armor",
     "slug": "chain_shirt",
-    "name_ru": "Chain Shirt",
+    "name_ru": "Кольчужная рубаха",
     "name_en": "Chain Shirt",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2581,7 +2581,7 @@
     "id": "3f18cd51-59f3-52a6-b984-07aa9a540021",
     "kind": "armor",
     "slug": "half_plate_armor",
-    "name_ru": "Half Plate Armor",
+    "name_ru": "Полулаты",
     "name_en": "Half Plate Armor",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2602,7 +2602,7 @@
     "id": "5abfc04c-922d-5a5f-9020-1df55d0f7fc7",
     "kind": "armor",
     "slug": "hide_armor",
-    "name_ru": "Hide Armor",
+    "name_ru": "Шкурный доспех",
     "name_en": "Hide Armor",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2623,7 +2623,7 @@
     "id": "74605dad-8d52-57b9-815b-6159de689410",
     "kind": "armor",
     "slug": "leather_armor",
-    "name_ru": "Leather Armor",
+    "name_ru": "Кожаный доспех",
     "name_en": "Leather Armor",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2644,7 +2644,7 @@
     "id": "2dafc540-d624-5992-8967-2cc4ee493822",
     "kind": "armor",
     "slug": "padded_armor",
-    "name_ru": "Padded Armor",
+    "name_ru": "Стёганый доспех",
     "name_en": "Padded Armor",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2665,7 +2665,7 @@
     "id": "b3b53c10-6372-51b4-a445-ba49195078f7",
     "kind": "armor",
     "slug": "plate_armor",
-    "name_ru": "Plate Armor",
+    "name_ru": "Латы",
     "name_en": "Plate Armor",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2686,7 +2686,7 @@
     "id": "3ae12885-801e-508f-aaf2-658772c25583",
     "kind": "armor",
     "slug": "ring_mail",
-    "name_ru": "Ring Mail",
+    "name_ru": "Колечный доспех",
     "name_en": "Ring Mail",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2707,7 +2707,7 @@
     "id": "77a2b86c-693f-566f-956e-f8a157768eb6",
     "kind": "armor",
     "slug": "scale_mail",
-    "name_ru": "Scale Mail",
+    "name_ru": "Чешуйчатый доспех",
     "name_en": "Scale Mail",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2728,7 +2728,7 @@
     "id": "b7cc232f-abfd-55b8-ae0c-3f47597d2447",
     "kind": "armor",
     "slug": "shield",
-    "name_ru": "Shield",
+    "name_ru": "Щит",
     "name_en": "Shield",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2749,7 +2749,7 @@
     "id": "a3451b81-8a22-5b61-b02c-12868c0a1a65",
     "kind": "armor",
     "slug": "splint_armor",
-    "name_ru": "Splint Armor",
+    "name_ru": "Наборный доспех",
     "name_en": "Splint Armor",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2770,7 +2770,7 @@
     "id": "82aa3f3b-5f93-56eb-bc26-6f6d08f3f4f1",
     "kind": "armor",
     "slug": "studded_leather_armor",
-    "name_ru": "Studded Leather Armor",
+    "name_ru": "Клёпаный кожаный доспех",
     "name_en": "Studded Leather Armor",
     "rules_edition": "2024",
     "parent_id": null,
@@ -2978,25 +2978,6 @@
     "is_active": true
   },
   {
-    "id": "6d7d361c-4c2b-5b43-a3b8-a4811eebe661",
-    "kind": "item",
-    "slug": "battleaxe",
-    "name_ru": "Battleaxe",
-    "name_en": "Battleaxe",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_battleaxe",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "4.000"
-    },
-    "sort_order": 110,
-    "is_active": true
-  },
-  {
     "id": "311bf208-3776-58dc-aeba-2eb2d670b06a",
     "kind": "item",
     "slug": "bedroll",
@@ -3073,25 +3054,6 @@
     "is_active": true
   },
   {
-    "id": "7b369048-54c2-5d26-ac8f-91285be11852",
-    "kind": "item",
-    "slug": "blowgun",
-    "name_ru": "Blowgun",
-    "name_en": "Blowgun",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_blowgun",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "1.000"
-    },
-    "sort_order": 160,
-    "is_active": true
-  },
-  {
     "id": "c5673855-716f-5a27-b8b9-0e3ce9056c5b",
     "kind": "item",
     "slug": "bolts_20",
@@ -3146,25 +3108,6 @@
       "weight_lb": "2.000"
     },
     "sort_order": 190,
-    "is_active": true
-  },
-  {
-    "id": "b9222ff3-19a4-53fe-9076-f3af4a135f55",
-    "kind": "item",
-    "slug": "breastplate",
-    "name_ru": "Breastplate",
-    "name_en": "Breastplate",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_breastplate",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "20.000"
-    },
-    "sort_order": 200,
     "is_active": true
   },
   {
@@ -3472,44 +3415,6 @@
     "is_active": true
   },
   {
-    "id": "78475879-ce7d-5f9e-8369-22cd11c1bd01",
-    "kind": "item",
-    "slug": "chain_mail",
-    "name_ru": "Chain Mail",
-    "name_en": "Chain Mail",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_chain-mail",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "55.000"
-    },
-    "sort_order": 370,
-    "is_active": true
-  },
-  {
-    "id": "cc0ac142-53e6-5aa1-858f-43dd2b9894db",
-    "kind": "item",
-    "slug": "chain_shirt",
-    "name_ru": "Chain Shirt",
-    "name_en": "Chain Shirt",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_chain-shirt",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "20.000"
-    },
-    "sort_order": 380,
-    "is_active": true
-  },
-  {
     "id": "a68faa5f-9100-5832-a802-2f879b611809",
     "kind": "item",
     "slug": "chariot",
@@ -3605,25 +3510,6 @@
     "is_active": true
   },
   {
-    "id": "d15927cd-60ad-5894-a364-8161db5999ce",
-    "kind": "item",
-    "slug": "club",
-    "name_ru": "Club",
-    "name_en": "Club",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_club",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "2.000"
-    },
-    "sort_order": 440,
-    "is_active": true
-  },
-  {
     "id": "256bd468-0273-5d86-93b5-ba73ec95cffe",
     "kind": "item",
     "slug": "cobblers_tools",
@@ -3716,44 +3602,6 @@
       "weight_lb": "5.000"
     },
     "sort_order": 490,
-    "is_active": true
-  },
-  {
-    "id": "c7d1b480-e3a5-5da3-aa66-378388c7e627",
-    "kind": "item",
-    "slug": "dagger",
-    "name_ru": "Dagger",
-    "name_en": "Dagger",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_dagger",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "1.000"
-    },
-    "sort_order": 500,
-    "is_active": true
-  },
-  {
-    "id": "fe2b86bc-ee17-5efd-aeae-289f2efe7c54",
-    "kind": "item",
-    "slug": "dart",
-    "name_ru": "Dart",
-    "name_en": "Dart",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_dart",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "1.000"
-    },
-    "sort_order": 510,
     "is_active": true
   },
   {
@@ -3947,25 +3795,6 @@
     "is_active": true
   },
   {
-    "id": "847ea89b-dd56-5742-8da5-8924958f855d",
-    "kind": "item",
-    "slug": "flail",
-    "name_ru": "Flail",
-    "name_en": "Flail",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_flail",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "2.000"
-    },
-    "sort_order": 620,
-    "is_active": true
-  },
-  {
     "id": "5be3d90f-cec6-59bd-ab5a-7ddc4f6080b9",
     "kind": "item",
     "slug": "flask",
@@ -4099,25 +3928,6 @@
     "is_active": true
   },
   {
-    "id": "6f62e8ca-9075-5e50-a217-8abb64cce0af",
-    "kind": "item",
-    "slug": "glaive",
-    "name_ru": "Glaive",
-    "name_en": "Glaive",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_glaive",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "6.000"
-    },
-    "sort_order": 700,
-    "is_active": true
-  },
-  {
     "id": "6fa2f92e-d225-5464-8b3d-be2ea3dac5f6",
     "kind": "item",
     "slug": "glassblowers_tools",
@@ -4156,139 +3966,6 @@
     "is_active": true
   },
   {
-    "id": "0ae9feec-947a-59c8-97b2-7a458f062c2f",
-    "kind": "item",
-    "slug": "greataxe",
-    "name_ru": "Greataxe",
-    "name_en": "Greataxe",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_greataxe",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "7.000"
-    },
-    "sort_order": 730,
-    "is_active": true
-  },
-  {
-    "id": "2cf3c81b-dd30-5bfa-b1ac-29eb78cb2cd2",
-    "kind": "item",
-    "slug": "greatclub",
-    "name_ru": "Greatclub",
-    "name_en": "Greatclub",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_greatclub",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "10.000"
-    },
-    "sort_order": 740,
-    "is_active": true
-  },
-  {
-    "id": "9996112c-c84e-545c-aa27-f312af599261",
-    "kind": "item",
-    "slug": "greatsword",
-    "name_ru": "Greatsword",
-    "name_en": "Greatsword",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_greatsword",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "6.000"
-    },
-    "sort_order": 750,
-    "is_active": true
-  },
-  {
-    "id": "7b0ab218-24b2-5963-8a19-3c4bebfb0406",
-    "kind": "item",
-    "slug": "halberd",
-    "name_ru": "Halberd",
-    "name_en": "Halberd",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_halberd",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "6.000"
-    },
-    "sort_order": 760,
-    "is_active": true
-  },
-  {
-    "id": "a555b904-360d-5f23-ba6f-53a0a81b2742",
-    "kind": "item",
-    "slug": "half_plate_armor",
-    "name_ru": "Half Plate Armor",
-    "name_en": "Half Plate Armor",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_half-plate-armor",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "40.000"
-    },
-    "sort_order": 770,
-    "is_active": true
-  },
-  {
-    "id": "ccf9baad-3487-5425-b1cf-a9f342943d0f",
-    "kind": "item",
-    "slug": "hand_crossbow",
-    "name_ru": "Hand Crossbow",
-    "name_en": "Hand Crossbow",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_hand-crossbow",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "3.000"
-    },
-    "sort_order": 780,
-    "is_active": true
-  },
-  {
-    "id": "6e5d1f81-4c41-5a17-a8fe-be302b3850e1",
-    "kind": "item",
-    "slug": "handaxe",
-    "name_ru": "Handaxe",
-    "name_en": "Handaxe",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_handaxe",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "2.000"
-    },
-    "sort_order": 790,
-    "is_active": true
-  },
-  {
     "id": "7026cec7-a136-50b7-bf73-548dcae532f5",
     "kind": "item",
     "slug": "healers_kit",
@@ -4308,25 +3985,6 @@
     "is_active": true
   },
   {
-    "id": "34f6a09a-4b81-5359-8c6b-6ec2e16a9274",
-    "kind": "item",
-    "slug": "heavy_crossbow",
-    "name_ru": "Heavy Crossbow",
-    "name_en": "Heavy Crossbow",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_heavy-crossbow",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "18.000"
-    },
-    "sort_order": 810,
-    "is_active": true
-  },
-  {
     "id": "9fb344fd-4005-509c-9a3d-6d63afa4645d",
     "kind": "item",
     "slug": "herbalism_kit",
@@ -4343,25 +4001,6 @@
       "weight_lb": "3.000"
     },
     "sort_order": 820,
-    "is_active": true
-  },
-  {
-    "id": "16d5475c-6637-5bb0-b293-9b47825dc1de",
-    "kind": "item",
-    "slug": "hide_armor",
-    "name_ru": "Hide Armor",
-    "name_en": "Hide Armor",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_hide-armor",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "12.000"
-    },
-    "sort_order": 830,
     "is_active": true
   },
   {
@@ -4555,25 +4194,6 @@
     "is_active": true
   },
   {
-    "id": "8953aa3d-529a-53b3-aee5-2bf79a49a8c2",
-    "kind": "item",
-    "slug": "javelin",
-    "name_ru": "Javelin",
-    "name_en": "Javelin",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_javelin",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "2.000"
-    },
-    "sort_order": 940,
-    "is_active": true
-  },
-  {
     "id": "b26c4633-c9f7-5024-bb5b-c55499a145b5",
     "kind": "item",
     "slug": "jewelers_tools",
@@ -4669,25 +4289,6 @@
     "is_active": true
   },
   {
-    "id": "aa6abd85-3662-5752-94f6-fb3b8f2c7e95",
-    "kind": "item",
-    "slug": "lance",
-    "name_ru": "Lance",
-    "name_en": "Lance",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_lance",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "6.000"
-    },
-    "sort_order": 1000,
-    "is_active": true
-  },
-  {
     "id": "f58489f7-2b60-5ee2-ac44-a71775ee45c3",
     "kind": "item",
     "slug": "lantern_bullseye",
@@ -4726,25 +4327,6 @@
     "is_active": true
   },
   {
-    "id": "4a1e24a1-b5de-58b9-9ddf-fb07fc3f0ef1",
-    "kind": "item",
-    "slug": "leather_armor",
-    "name_ru": "Leather Armor",
-    "name_en": "Leather Armor",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_leather-armor",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "10.000"
-    },
-    "sort_order": 1030,
-    "is_active": true
-  },
-  {
     "id": "e3aa695c-5eef-5ab8-9d64-2e801687158f",
     "kind": "item",
     "slug": "leatherworkers_tools",
@@ -4761,44 +4343,6 @@
       "weight_lb": "5.000"
     },
     "sort_order": 1040,
-    "is_active": true
-  },
-  {
-    "id": "0ab4ce25-b07e-5f8f-b54a-bfbe52600172",
-    "kind": "item",
-    "slug": "light_crossbow",
-    "name_ru": "Light Crossbow",
-    "name_en": "Light Crossbow",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_light-crossbow",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "5.000"
-    },
-    "sort_order": 1050,
-    "is_active": true
-  },
-  {
-    "id": "e60a4cca-a531-5fd7-bd07-e836f7dc2089",
-    "kind": "item",
-    "slug": "light_hammer",
-    "name_ru": "Light Hammer",
-    "name_en": "Light Hammer",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_light-hammer",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "2.000"
-    },
-    "sort_order": 1060,
     "is_active": true
   },
   {
@@ -4821,25 +4365,6 @@
     "is_active": true
   },
   {
-    "id": "01270b91-fe16-5bf6-86dd-c3de4cf036c3",
-    "kind": "item",
-    "slug": "longbow",
-    "name_ru": "Longbow",
-    "name_en": "Longbow",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_longbow",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "2.000"
-    },
-    "sort_order": 1080,
-    "is_active": true
-  },
-  {
     "id": "edeeeab3-707a-5be1-a551-fb5c3256fa6a",
     "kind": "item",
     "slug": "longship",
@@ -4856,44 +4381,6 @@
       "weight_lb": "0.000"
     },
     "sort_order": 1090,
-    "is_active": true
-  },
-  {
-    "id": "33a0cbc7-d82d-5b5c-9c2e-6367b14f08b6",
-    "kind": "item",
-    "slug": "longsword",
-    "name_ru": "Longsword",
-    "name_en": "Longsword",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_longsword",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "3.000"
-    },
-    "sort_order": 1100,
-    "is_active": true
-  },
-  {
-    "id": "47624225-6da5-508d-808a-219e0827b34c",
-    "kind": "item",
-    "slug": "mace",
-    "name_ru": "Mace",
-    "name_en": "Mace",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_mace",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "4.000"
-    },
-    "sort_order": 1110,
     "is_active": true
   },
   {
@@ -4992,25 +4479,6 @@
     "is_active": true
   },
   {
-    "id": "36d1be08-c1b0-5416-8533-aa2e957fd133",
-    "kind": "item",
-    "slug": "maul",
-    "name_ru": "Maul",
-    "name_en": "Maul",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_maul",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "10.000"
-    },
-    "sort_order": 1170,
-    "is_active": true
-  },
-  {
     "id": "34a8e326-b8ba-5092-b1ae-df83c3cce540",
     "kind": "item",
     "slug": "mirror",
@@ -5027,25 +4495,6 @@
       "weight_lb": "0.500"
     },
     "sort_order": 1180,
-    "is_active": true
-  },
-  {
-    "id": "f7f3b3bf-93b3-52da-bfef-75e2c6ceb0ea",
-    "kind": "item",
-    "slug": "morningstar",
-    "name_ru": "Morningstar",
-    "name_en": "Morningstar",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_morningstar",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "4.000"
-    },
-    "sort_order": 1190,
     "is_active": true
   },
   {
@@ -5258,25 +4707,6 @@
     "is_active": true
   },
   {
-    "id": "499b8905-06b0-5e19-a62c-4db00c01eaed",
-    "kind": "item",
-    "slug": "musket",
-    "name_ru": "Musket",
-    "name_en": "Musket",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_musket",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "10.000"
-    },
-    "sort_order": 1310,
-    "is_active": true
-  },
-  {
     "id": "9eb25099-e559-5924-90ce-9ace4038f68f",
     "kind": "item",
     "slug": "navigators_tools",
@@ -5315,25 +4745,6 @@
     "is_active": true
   },
   {
-    "id": "af51e72a-4bac-5c14-8980-5ec53dfa530d",
-    "kind": "item",
-    "slug": "net",
-    "name_ru": "Net",
-    "name_en": "Net",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_net",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "3.000"
-    },
-    "sort_order": 1340,
-    "is_active": true
-  },
-  {
     "id": "e0616dbd-ce2f-5da3-a13a-bb2b6b02676b",
     "kind": "item",
     "slug": "oil",
@@ -5350,25 +4761,6 @@
       "weight_lb": "1.000"
     },
     "sort_order": 1350,
-    "is_active": true
-  },
-  {
-    "id": "7d50527d-7332-510f-b13d-bd9e170a7f3d",
-    "kind": "item",
-    "slug": "padded_armor",
-    "name_ru": "Padded Armor",
-    "name_en": "Padded Armor",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_padded-armor",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "8.000"
-    },
-    "sort_order": 1360,
     "is_active": true
   },
   {
@@ -5445,63 +4837,6 @@
       "weight_lb": "0.000"
     },
     "sort_order": 1400,
-    "is_active": true
-  },
-  {
-    "id": "e7c76a15-97f8-5798-8eb1-e6dc7eb29161",
-    "kind": "item",
-    "slug": "pike",
-    "name_ru": "Pike",
-    "name_en": "Pike",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_pike",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "18.000"
-    },
-    "sort_order": 1410,
-    "is_active": true
-  },
-  {
-    "id": "6c5294c7-b1aa-5fa5-a1e1-fe8e83bd2db8",
-    "kind": "item",
-    "slug": "pistol",
-    "name_ru": "Pistol",
-    "name_en": "Pistol",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_pistol",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "3.000"
-    },
-    "sort_order": 1420,
-    "is_active": true
-  },
-  {
-    "id": "89f336ec-f07c-52bb-8433-378f92ab12d5",
-    "kind": "item",
-    "slug": "plate_armor",
-    "name_ru": "Plate Armor",
-    "name_en": "Plate Armor",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_plate-armor",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "65.000"
-    },
-    "sort_order": 1430,
     "is_active": true
   },
   {
@@ -5714,25 +5049,6 @@
     "is_active": true
   },
   {
-    "id": "f132a209-e9ef-5b1d-a98a-0a35fd6b6a14",
-    "kind": "item",
-    "slug": "quarterstaff",
-    "name_ru": "Quarterstaff",
-    "name_en": "Quarterstaff",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_quarterstaff",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "4.000"
-    },
-    "sort_order": 1550,
-    "is_active": true
-  },
-  {
     "id": "757b9356-d420-5ca0-bdb5-ad9b9ba1f736",
     "kind": "item",
     "slug": "quiver",
@@ -5771,25 +5087,6 @@
     "is_active": true
   },
   {
-    "id": "676453af-862f-5b4a-afce-4897de6f7fc5",
-    "kind": "item",
-    "slug": "rapier",
-    "name_ru": "Rapier",
-    "name_en": "Rapier",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_rapier",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "2.000"
-    },
-    "sort_order": 1580,
-    "is_active": true
-  },
-  {
     "id": "d6d50e75-1fdb-54fc-89ff-585fa752f9fe",
     "kind": "item",
     "slug": "rations",
@@ -5806,25 +5103,6 @@
       "weight_lb": "2.000"
     },
     "sort_order": 1590,
-    "is_active": true
-  },
-  {
-    "id": "9660f12a-835b-5afc-9d89-c747873bef29",
-    "kind": "item",
-    "slug": "ring_mail",
-    "name_ru": "Ring Mail",
-    "name_en": "Ring Mail",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_ring-mail",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "40.000"
-    },
-    "sort_order": 1600,
     "is_active": true
   },
   {
@@ -5980,25 +5258,6 @@
     "is_active": true
   },
   {
-    "id": "4d470d49-9da6-5100-982d-b7a8907c2f56",
-    "kind": "item",
-    "slug": "scale_mail",
-    "name_ru": "Scale Mail",
-    "name_en": "Scale Mail",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_scale-mail",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "45.000"
-    },
-    "sort_order": 1690,
-    "is_active": true
-  },
-  {
     "id": "87e95c8a-0fad-5bf8-9d57-fb1f1eed971c",
     "kind": "item",
     "slug": "scholars_pack",
@@ -6018,82 +5277,6 @@
     "is_active": true
   },
   {
-    "id": "2b513737-5a1a-51d9-95a9-987369c7e742",
-    "kind": "item",
-    "slug": "scimitar",
-    "name_ru": "Scimitar",
-    "name_en": "Scimitar",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_scimitar",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "3.000"
-    },
-    "sort_order": 1710,
-    "is_active": true
-  },
-  {
-    "id": "2ff85ef5-f32c-553b-8d06-c5e7425538fc",
-    "kind": "item",
-    "slug": "shield",
-    "name_ru": "Shield",
-    "name_en": "Shield",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_shield",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "6.000"
-    },
-    "sort_order": 1720,
-    "is_active": true
-  },
-  {
-    "id": "32a970b0-3d56-5cdc-9c6c-b4302e8cc1a3",
-    "kind": "item",
-    "slug": "shortbow",
-    "name_ru": "Shortbow",
-    "name_en": "Shortbow",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_shortbow",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "2.000"
-    },
-    "sort_order": 1730,
-    "is_active": true
-  },
-  {
-    "id": "7cb6619a-0989-55b6-899a-8d38766e450a",
-    "kind": "item",
-    "slug": "shortsword",
-    "name_ru": "Shortsword",
-    "name_en": "Shortsword",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_shortsword",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "2.000"
-    },
-    "sort_order": 1740,
-    "is_active": true
-  },
-  {
     "id": "edc27fc1-1904-5498-a052-ca01d983710a",
     "kind": "item",
     "slug": "shovel",
@@ -6110,25 +5293,6 @@
       "weight_lb": "5.000"
     },
     "sort_order": 1750,
-    "is_active": true
-  },
-  {
-    "id": "f1760160-80d3-52bf-ae32-644a646271d0",
-    "kind": "item",
-    "slug": "sickle",
-    "name_ru": "Sickle",
-    "name_en": "Sickle",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_sickle",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "2.000"
-    },
-    "sort_order": 1760,
     "is_active": true
   },
   {
@@ -6170,25 +5334,6 @@
     "is_active": true
   },
   {
-    "id": "38f9b540-b099-543f-bdc2-7fccbb473ccd",
-    "kind": "item",
-    "slug": "sling",
-    "name_ru": "Sling",
-    "name_en": "Sling",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_sling",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "0.000"
-    },
-    "sort_order": 1790,
-    "is_active": true
-  },
-  {
     "id": "656cf85d-9859-5b2e-abe8-5b3023717a3a",
     "kind": "item",
     "slug": "smiths_tools",
@@ -6205,25 +5350,6 @@
       "weight_lb": "8.000"
     },
     "sort_order": 1800,
-    "is_active": true
-  },
-  {
-    "id": "734e5222-113c-55f9-b0bb-3c2f0a448c4d",
-    "kind": "item",
-    "slug": "spear",
-    "name_ru": "Spear",
-    "name_en": "Spear",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_spear",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "3.000"
-    },
-    "sort_order": 1810,
     "is_active": true
   },
   {
@@ -6265,25 +5391,6 @@
     "is_active": true
   },
   {
-    "id": "09e480e3-72e9-507f-87ca-a97b0a1341c9",
-    "kind": "item",
-    "slug": "splint_armor",
-    "name_ru": "Splint Armor",
-    "name_en": "Splint Armor",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_splint-armor",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "60.000"
-    },
-    "sort_order": 1840,
-    "is_active": true
-  },
-  {
     "id": "f90e0822-ba7e-509d-999f-9700742fe0ae",
     "kind": "item",
     "slug": "spyglass",
@@ -6319,25 +5426,6 @@
       "weight_lb": "0.000"
     },
     "sort_order": 1860,
-    "is_active": true
-  },
-  {
-    "id": "3a6df213-f9fb-5282-af26-d7be0b5a4927",
-    "kind": "item",
-    "slug": "studded_leather_armor",
-    "name_ru": "Studded Leather Armor",
-    "name_en": "Studded Leather Armor",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_studded-leather-armor",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "13.000"
-    },
-    "sort_order": 1870,
     "is_active": true
   },
   {
@@ -6436,25 +5524,6 @@
     "is_active": true
   },
   {
-    "id": "f4efb040-48ee-52eb-9c5e-d2ea735a1692",
-    "kind": "item",
-    "slug": "trident",
-    "name_ru": "Trident",
-    "name_en": "Trident",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_trident",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "4.000"
-    },
-    "sort_order": 1930,
-    "is_active": true
-  },
-  {
     "id": "7959c30e-539a-54aa-80e8-ab8f33b1ed0b",
     "kind": "item",
     "slug": "vial",
@@ -6490,44 +5559,6 @@
       "weight_lb": "400.000"
     },
     "sort_order": 1950,
-    "is_active": true
-  },
-  {
-    "id": "01c0eb21-f701-586f-8691-6e6ebf6e4ff2",
-    "kind": "item",
-    "slug": "war_pick",
-    "name_ru": "War Pick",
-    "name_en": "War Pick",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_war-pick",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "2.000"
-    },
-    "sort_order": 1960,
-    "is_active": true
-  },
-  {
-    "id": "e788511b-70fc-5185-94f0-1e1f80fec2bf",
-    "kind": "item",
-    "slug": "warhammer",
-    "name_ru": "Warhammer",
-    "name_en": "Warhammer",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_warhammer",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "5.000"
-    },
-    "sort_order": 1970,
     "is_active": true
   },
   {
@@ -6604,25 +5635,6 @@
       "weight_lb": "5.000"
     },
     "sort_order": 2010,
-    "is_active": true
-  },
-  {
-    "id": "264b7d22-7492-587e-96d3-3be49463e3f9",
-    "kind": "item",
-    "slug": "whip",
-    "name_ru": "Whip",
-    "name_en": "Whip",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd-2024_whip",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "3.000"
-    },
-    "sort_order": 2020,
     "is_active": true
   },
   {
@@ -7136,63 +6148,6 @@
       "weight_lb": "0.080"
     },
     "sort_order": 2640,
-    "is_active": true
-  },
-  {
-    "id": "fe0df4c1-f474-57c1-813a-ed6ea9437987",
-    "kind": "item",
-    "slug": "crossbow_hand",
-    "name_ru": "Crossbow, hand",
-    "name_en": "Crossbow, hand",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd_crossbow-hand",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "3.000"
-    },
-    "sort_order": 2650,
-    "is_active": true
-  },
-  {
-    "id": "4df8417e-4a9d-529d-bd4d-d12909e9553b",
-    "kind": "item",
-    "slug": "crossbow_heavy",
-    "name_ru": "Crossbow, heavy",
-    "name_en": "Crossbow, heavy",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd_crossbow-heavy",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "18.000"
-    },
-    "sort_order": 2660,
-    "is_active": true
-  },
-  {
-    "id": "37148e20-32fc-5ec3-9739-caf499394d1a",
-    "kind": "item",
-    "slug": "crossbow_light",
-    "name_ru": "Crossbow, light",
-    "name_en": "Crossbow, light",
-    "rules_edition": "2024",
-    "parent_id": null,
-    "source": "srd-5.2",
-    "external_ref": {
-      "open5e_key": "srd_crossbow-light",
-      "document": "srd-2024"
-    },
-    "data": {
-      "weight_lb": "5.000"
-    },
-    "sort_order": 2670,
     "is_active": true
   },
   {

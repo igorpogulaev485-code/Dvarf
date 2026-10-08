@@ -1,0 +1,63 @@
+{
+  "rules_edition": "2014",
+  "notes_ru": "Предыстории, которые открывают / дают черту (SDQ, BPGG). Полный каталог предысторий — отдельной волной; эти сиды нужны сразу для prereq engine и гранта черты.",
+  "wave": "feat_linked",
+  "backgrounds": [
+    {
+      "id": "9a75e805-01c1-5a6a-824f-647d5ef94213",
+      "slug": "mage_of_high_sorcery",
+      "name_ru": "Маг Высшего волшебства",
+      "name_en": "Mage of High Sorcery",
+      "source": "sdq",
+      "sort_order": 9100,
+      "data": {
+        "source": "sdq",
+        "summary_ru": "Обучение у Магов Высшего волшебства Кринна.",
+        "granted_feat_slug": "initiate_of_high_sorcery",
+        "granted_feat_note_ru": "Получи черту «Посвящённый в Высшее волшебство» (выбери луну)."
+      }
+    },
+    {
+      "id": "776c6e15-8fd3-598f-84e3-c430d8caabfc",
+      "slug": "knight_of_solamnia",
+      "name_ru": "Соламнийский рыцарь",
+      "name_en": "Knight of Solamnia",
+      "source": "sdq",
+      "sort_order": 9110,
+      "data": {
+        "source": "sdq",
+        "summary_ru": "Путь рыцарей Соламнии.",
+        "granted_feat_slug": "squire_of_solamnia",
+        "granted_feat_note_ru": "Получи черту «Оруженосец рыцаря Соламнии»."
+      }
+    },
+    {
+      "id": "c9315fb5-7e57-5a9f-9f98-69163127d18c",
+      "slug": "giant_foundling",
+      "name_ru": "Великанский подкидыш",
+      "name_en": "Giant Foundling",
+      "source": "bpgg",
+      "sort_order": 9120,
+      "data": {
+        "source": "bpgg",
+        "summary_ru": "Связь с великанами с детства.",
+        "granted_feat_slug": "strike_of_the_giants",
+        "granted_feat_note_ru": "Получи черту «Удар великанов» (выбери тип удара)."
+      }
+    },
+    {
+      "id": "cf7bf8f1-cb0c-5202-8751-6e3d6c5644cc",
+      "slug": "runecarver",
+      "name_ru": "Резчик рун",
+      "name_en": "Runecarver",
+      "source": "bpgg",
+      "sort_order": 9130,
+      "data": {
+        "source": "bpgg",
+        "summary_ru": "Изучение рун великанов.",
+        "granted_feat_slug": "rune_shaper",
+        "granted_feat_note_ru": "Получи черту «Ваятель рун»."
+      }
+    }
+  ]
+}

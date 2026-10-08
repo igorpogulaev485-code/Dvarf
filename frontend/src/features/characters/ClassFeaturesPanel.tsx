@@ -63,7 +63,7 @@ import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
 import type { SpellsState } from './spells'
-import { abilityModifier } from './sheetTypes'
+import { abilityModifier, SKILL_DEFS } from './sheetTypes'
 
 type ClassFeaturesPanelProps = {
   classes: ClassLevelEntry[]
@@ -387,11 +387,78 @@ const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
   flamethrower: 'Огнемёт',
   force_ballista: 'Силовая баллиста',
   protector: 'Защитник',
+  // ASI scaffold
+  plus2: '+2 к одной характеристике',
+  plus1x2: '+1 к двум характеристикам',
+  feat_coming_soon: 'Черта (скоро)',
+  // Open Hand / flourish / swarm / companion
+  trip: 'Сбить с ног',
+  push_15ft: 'Оттолкнуть на 15 фт.',
+  no_reactions: 'Без реакций',
+  defensive_flourish: 'Защитный flourish',
+  slashing_flourish: 'Рубящий flourish',
+  mobile_flourish: 'Подвижный flourish',
+  damage_1d6: '+1к6 урона',
+  push_target_5: 'Сдвинуть цель на 5 фт.',
+  self_move_5: 'Сдвинуть себя на 5 фт.',
+  phb_beast_cr_1_4: 'Зверь PHB (КР ≤ ¼)',
+  beast_of_the_land: 'Зверь суши (Tasha)',
+  beast_of_the_sea: 'Зверь моря (Tasha)',
+  beast_of_the_sky: 'Зверь неба (Tasha)',
+  // Starry / elemental / affinity
+  archer: 'Лучник',
+  chalice: 'Чаша',
+  dragon: 'Дракон',
+  air: 'Воздух',
+  earth: 'Земля',
+  water: 'Вода',
+  good: 'Добро',
+  evil: 'Зло',
+  law: 'Закон',
+  chaos: 'Хаос',
+  neutral: 'Нейтралитет',
+  // Saves / skills / damage types
+  wisdom: 'Мудрость',
+  intelligence: 'Интеллект',
+  charisma: 'Харизма',
+  nature: 'Природа',
+  arcana: 'Магия',
+  history: 'История',
+  insight: 'Проницательность',
+  religion: 'Религия',
+  animal_handling: 'Уход за животными',
+  survival: 'Выживание',
+  deception: 'Обман',
+  performance: 'Выступление',
+  persuasion: 'Убеждение',
+  unarmed_fighting: 'Безоружный бой',
+  necrotic: 'Некротический',
+  radiant: 'Лучистый',
+  psychic: 'Психический',
+  force: 'Силовой',
+  bludgeoning: 'Дробящий',
+  piercing: 'Колющий',
+  slashing: 'Рубящий',
+  // Transmuter / Arcana mastery
+  speed_10: '+10 фт. скорости',
+  darkvision_60: 'Тёмное зрение 60 фт.',
+  resistance_acid_cold_fire_lightning_thunder: 'Сопр. кислоте/холоду/огню/молнии/грому',
+  con_save_proficiency: 'Владение спасом Тел.',
+  major_transformation: 'Большое преобразование',
+  panacea: 'Панацея',
+  restore_life: 'Вернуть жизнь',
+  restore_youth: 'Вернуть молодость',
+  wizard_6th: 'Заклинание волшебника 6 круга',
+  wizard_7th: 'Заклинание волшебника 7 круга',
+  wizard_8th: 'Заклинание волшебника 8 круга',
+  wizard_9th: 'Заклинание волшебника 9 круга',
+  kensei_melee_ranged_note: 'Рукопашное + дальнобойное (заметка)',
 }
 
 function choiceOptionLabel(optionId: string): string {
   const pact = WARLOCK_PACT_BOONS.find((row) => row.id === optionId)
   const armorModel = ARMORER_ARMOR_MODELS.find((row) => row.id === optionId)
+  const skill = SKILL_DEFS.find((row) => row.key === optionId)
   return (
     fightingStyleById(optionId)?.nameRu ||
     rangerChoiceLabel(optionId) ||
@@ -403,6 +470,7 @@ function choiceOptionLabel(optionId: string): string {
     maneuverLabel(optionId) ||
     pact?.nameRu ||
     armorModel?.nameRu ||
+    skill?.label ||
     FEATURE_OPTION_LABELS_RU[optionId] ||
     optionId
   )
@@ -1065,6 +1133,23 @@ export function ClassFeaturesPanel({
     }))
   }, [features])
 
+  const extraAttackNote = useMemo(() => {
+    const attacks = features.filter(
+      (feature) =>
+        feature.id.includes('extra_attack') ||
+        feature.name_en?.toLowerCase() === 'extra attack',
+    )
+    if (attacks.length === 0) return null
+    let best = 1
+    for (const feature of attacks) {
+      const raw = feature.scaleValue ?? feature.scale?.by_level?.[String(feature.level)]
+      const n = raw ? Number(String(raw).replace(/[^\d]/g, '')) : 2
+      if (Number.isFinite(n) && n > best) best = n
+    }
+    if (attacks.length === 1 && best <= 2) return null
+    return `Атак за действие: ${best} (берётся максимум среди Extra Attack; уровни разных классов не складываются).`
+  }, [features])
+
   return (
     <Panel title="Умения классов">
       <Stack gap={14}>
@@ -1072,6 +1157,7 @@ export function ClassFeaturesPanel({
           Unlock по уровню и архетипу. Ресурсы (PB, 2×PB, кости, частицы) синхронизируются в лист;
           отдых — в блоке боя. Контракт: docs/feature_resource_contract.md
         </Text>
+        {extraAttackNote ? <Text tone="muted">{extraAttackNote}</Text> : null}
 
         {byClass.length === 0 ? (
           <Text tone="muted">

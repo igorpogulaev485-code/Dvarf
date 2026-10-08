@@ -30,6 +30,8 @@ type CombatStickyHeaderProps = {
   /** Compact alt speeds from race (climb/swim/fly), shown under walk speed. */
   movementHint?: string | null
   initiativeOverride: number | null
+  /** Flat bonus from feats (Alert +5, etc.), applied when override is null. */
+  initiativeBonus?: number
   inspiration: boolean
   exhaustion: number
   isDying: boolean
@@ -66,6 +68,7 @@ export function CombatStickyHeader({
   speed,
   movementHint = null,
   initiativeOverride,
+  initiativeBonus = 0,
   inspiration,
   exhaustion,
   isDying,
@@ -76,14 +79,16 @@ export function CombatStickyHeader({
   onClearConcentration,
   onChange,
 }: CombatStickyHeaderProps) {
-  const autoInitiative = abilityModifier(abilities.dex)
+  const autoInitiative = abilityModifier(abilities.dex) + initiativeBonus
   const subtitle = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
   const hasConditions = conditionNames.length > 0
   const conditionsLabel = hasConditions ? conditionNames.join(', ') : ''
   const acTitle = acOverride == null ? acHint : 'задано вручную'
   const initTitle =
     initiativeOverride == null
-      ? `от ЛОВ ${formatModifier(autoInitiative)}`
+      ? initiativeBonus
+        ? `от ЛОВ ${formatModifier(abilityModifier(abilities.dex))} · черты ${formatModifier(initiativeBonus)}`
+        : `от ЛОВ ${formatModifier(autoInitiative)}`
       : 'задано вручную'
   const hpTitle = hpTemp > 0 ? `врем. +${hpTemp}` : undefined
   const [hpPulse, setHpPulse] = useState(false)
