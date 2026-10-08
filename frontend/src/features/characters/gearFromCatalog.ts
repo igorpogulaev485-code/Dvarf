@@ -37,6 +37,16 @@ export type GearPickerItemCategoryFilter =
   | 'pack'
   | 'wondrous'
   | 'consumable'
+  | 'focus'
+  | 'other'
+
+export type GearPickerSourceBookFilter =
+  | 'all'
+  | 'PHB'
+  | 'DMG'
+  | 'XGE'
+  | 'TCE'
+  | 'EGW'
   | 'other'
 
 export const GEAR_ITEM_CATEGORY_LABEL_RU: Record<
@@ -50,7 +60,35 @@ export const GEAR_ITEM_CATEGORY_LABEL_RU: Record<
   pack: 'Наборы',
   wondrous: 'Чудесные',
   consumable: 'Зелья',
+  focus: 'Фокусы',
   other: 'Прочее',
+}
+
+export const GEAR_SOURCE_BOOK_LABEL_RU: Record<
+  Exclude<GearPickerSourceBookFilter, 'all'>,
+  string
+> = {
+  PHB: 'PHB',
+  DMG: 'DMG',
+  XGE: 'XGE',
+  TCE: 'TCE',
+  EGW: 'EGW',
+  other: 'др.',
+}
+
+export function gearSourceBookOf(entry: {
+  data?: Record<string, unknown> | null
+  source?: string | null
+}): string {
+  const fromData = entry.data?.source_book
+  if (typeof fromData === 'string' && fromData.trim()) return fromData.trim().toUpperCase()
+  const src = (entry.source ?? '').toUpperCase()
+  for (const book of ['PHB', 'DMG', 'XGE', 'TCE', 'EGW', 'FTD', 'SCC', 'AI', 'BMT', 'PAM']) {
+    if (src.startsWith(book) || src.includes(` ${book}`) || src.includes(`${book} `)) {
+      return book
+    }
+  }
+  return ''
 }
 
 export type GearCatalogSummary = {
@@ -173,9 +211,11 @@ export function summarizeGearEntry(entry: CatalogEntry): GearCatalogSummary | nu
                 ? GEAR_ITEM_CATEGORY_LABEL_RU.wondrous
                 : parsed.item_category === 'consumable'
                   ? GEAR_ITEM_CATEGORY_LABEL_RU.consumable
-                  : parsed.item_category !== 'other'
-                    ? parsed.item_category
-                    : ''
+                  : parsed.item_category === 'focus'
+                    ? GEAR_ITEM_CATEGORY_LABEL_RU.focus
+                    : parsed.item_category !== 'other'
+                      ? parsed.item_category
+                      : ''
   const bits = [
     categoryLabel,
     parsed.weight_lb != null ? `${parsed.weight_lb} фнт` : '',

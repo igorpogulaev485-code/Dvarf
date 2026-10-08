@@ -5,12 +5,15 @@ import { GEAR_RARITY_LABEL_RU, type GearRarity } from '../../shared/dnd/gearCata
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 import {
   GEAR_ITEM_CATEGORY_LABEL_RU,
+  GEAR_SOURCE_BOOK_LABEL_RU,
+  gearSourceBookOf,
   groupGearByFamily,
   inventoryItemFromCatalog,
   summarizeGearEntry,
   type GearAddResult,
   type GearPickerItemCategoryFilter,
   type GearPickerKindFilter,
+  type GearPickerSourceBookFilter,
 } from './gearFromCatalog'
 
 function RarityBadge({ rarity, label }: { rarity: GearRarity; label: string }) {
@@ -45,7 +48,21 @@ const ITEM_CATEGORY_FILTERS: Array<{
   { id: 'pack', label: GEAR_ITEM_CATEGORY_LABEL_RU.pack },
   { id: 'wondrous', label: GEAR_ITEM_CATEGORY_LABEL_RU.wondrous },
   { id: 'consumable', label: GEAR_ITEM_CATEGORY_LABEL_RU.consumable },
+  { id: 'focus', label: GEAR_ITEM_CATEGORY_LABEL_RU.focus },
   { id: 'other', label: GEAR_ITEM_CATEGORY_LABEL_RU.other },
+]
+
+const SOURCE_BOOK_FILTERS: Array<{
+  id: GearPickerSourceBookFilter
+  label: string
+}> = [
+  { id: 'all', label: 'Все книги' },
+  { id: 'PHB', label: GEAR_SOURCE_BOOK_LABEL_RU.PHB },
+  { id: 'DMG', label: GEAR_SOURCE_BOOK_LABEL_RU.DMG },
+  { id: 'XGE', label: GEAR_SOURCE_BOOK_LABEL_RU.XGE },
+  { id: 'TCE', label: GEAR_SOURCE_BOOK_LABEL_RU.TCE },
+  { id: 'EGW', label: GEAR_SOURCE_BOOK_LABEL_RU.EGW },
+  { id: 'other', label: GEAR_SOURCE_BOOK_LABEL_RU.other },
 ]
 
 const RARITY_FILTERS: Array<{ id: GearRarity | 'all'; label: string }> = [
@@ -80,6 +97,7 @@ export function GearPickerDialog({
   const [kind, setKind] = useState<GearPickerKindFilter>('all')
   const [itemCategory, setItemCategory] =
     useState<GearPickerItemCategoryFilter>('all')
+  const [sourceBook, setSourceBook] = useState<GearPickerSourceBookFilter>('all')
   const [rarity, setRarity] = useState<GearRarity | 'all'>('all')
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -92,6 +110,7 @@ export function GearPickerDialog({
     if (!open) return
     setKind('all')
     setItemCategory('all')
+    setSourceBook('all')
     setRarity('all')
     setQuery('')
     setSelectedId(null)
@@ -139,6 +158,14 @@ export function GearPickerDialog({
       if (!summary) return false
       if (summary.variant_key === 'varies') return false
       if (rarity !== 'all' && summary.rarity !== rarity) return false
+      if (sourceBook !== 'all') {
+        const book = gearSourceBookOf(entry)
+        if (sourceBook === 'other') {
+          if (['PHB', 'DMG', 'XGE', 'TCE', 'EGW'].includes(book)) return false
+        } else if (book !== sourceBook) {
+          return false
+        }
+      }
       if (itemCategory !== 'all') {
         if (entry.kind !== 'item') return false
         const cat = summary.item_category
@@ -150,7 +177,8 @@ export function GearPickerDialog({
             cat === 'vehicle' ||
             cat === 'pack' ||
             cat === 'wondrous' ||
-            cat === 'consumable'
+            cat === 'consumable' ||
+            cat === 'focus'
           ) {
             return false
           }
@@ -160,7 +188,7 @@ export function GearPickerDialog({
       }
       return true
     })
-  }, [entries, kind, itemCategory, query, rarity])
+  }, [entries, kind, itemCategory, query, rarity, sourceBook])
 
   const groups = useMemo(() => groupGearByFamily(filtered), [filtered])
 
@@ -254,6 +282,19 @@ export function GearPickerDialog({
             onChange={(event) => setQuery(event.target.value)}
           />
         </Field>
+
+        <div className="chip-row">
+          {SOURCE_BOOK_FILTERS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={`sheet-chip${sourceBook === tab.id ? ' is-on' : ''}`}
+              onClick={() => setSourceBook(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
         <div className="chip-row">
           {RARITY_FILTERS.map((tab) => (
