@@ -1,7 +1,7 @@
 """Upsert background personality/ideals/bonds/flaws tables into catalog data.
 
 Revision ID: t9c0d1e2f3a4
-Revises: s8b9c0d1e2f3
+Revises: w2f3a4b5c6d7
 Create Date: 2026-10-07 09:50:00.000000
 
 """
@@ -17,7 +17,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "t9c0d1e2f3a4"
-down_revision: Union[str, Sequence[str], None] = "s8b9c0d1e2f3"
+down_revision: Union[str, Sequence[str], None] = "w2f3a4b5c6d7"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

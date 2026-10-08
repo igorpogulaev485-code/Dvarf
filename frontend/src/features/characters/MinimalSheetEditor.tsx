@@ -124,6 +124,7 @@ import {
   buildPendingWizardSteps,
   clearFeaturePicksAboveClassLevel,
   listUnlockedExpertiseKeys,
+  withBackgroundStepIfNeeded,
   type GuidedWizardStep,
 } from '../../shared/dnd/pendingFeatureChoices'
 import {
@@ -414,6 +415,9 @@ export function MinimalSheetEditor({
   const [conflictOpen, setConflictOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
   const [guidedWizard, setGuidedWizard] = useState<GuidedWizardSession | null>(null)
+  /** Wizard paused while BackgroundSetupDialog is open from a wizard step. */
+  const [pausedWizardForBackground, setPausedWizardForBackground] =
+    useState<GuidedWizardSession | null>(null)
   /** Consumed once after first start-mode class grant (create at N). */
   const [pendingStartingLevel, setPendingStartingLevel] = useState(() =>
     clampCharacterLevel(startingLevelProp || 1),
@@ -1191,9 +1195,12 @@ export function MinimalSheetEditor({
     classAsi?: AppliedClassAsi[]
     unlocked?: typeof unlockedFeatures
     hasSubclass?: Record<string, boolean>
+    /** Create flow: insert background before Expertise / ASI. */
+    includeBackground?: boolean
+    hasBackgroundGrant?: boolean
   }): GuidedWizardStep[] {
     const maxLevel = input.upToLevel ?? input.classLevel
-    return buildPendingWizardSteps({
+    const steps = buildPendingWizardSteps({
       unlocked: input.unlocked ?? unlockedFeatures,
       featurePicks: input.featurePicks ?? draft.featurePicks,
       classAsi: input.classAsi ?? draft.classAsi,
@@ -1210,6 +1217,9 @@ export function MinimalSheetEditor({
               classLevel: input.classLevel,
             },
       hasSubclassByEntryId: input.hasSubclass ?? hasSubclassByEntryId,
+    })
+    return withBackgroundStepIfNeeded(steps, {
+      include: Boolean(input.includeBackground) && !input.hasBackgroundGrant,
     })
   }
 
@@ -1280,6 +1290,8 @@ export function MinimalSheetEditor({
       classEntryId: input.classEntryId,
       classLevel,
       unlocked: unlockedForGrant,
+      includeBackground: input.mode === 'start',
+      hasBackgroundGrant: Boolean(draft.backgroundGrant),
     })
     if (grantNeedsSetupDialog(def, input.mode)) {
       // Only class_grant first — after confirm we jump to startingLevel and rebuild the queue.
@@ -1330,17 +1342,20 @@ export function MinimalSheetEditor({
         for (const row of jumped.classes) {
           hasSubclass[row.id] = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
         }
-        remaining = buildPendingWizardSteps({
-          unlocked,
-          featurePicks: jumped.featurePicks,
-          classAsi: jumped.classAsi,
-          filter: {
-            mode: 'up_to_class_level',
-            classEntryId: input.classEntryId,
-            maxClassLevel: pendingStartingLevel,
-          },
-          hasSubclassByEntryId: hasSubclass,
-        })
+        remaining = withBackgroundStepIfNeeded(
+          buildPendingWizardSteps({
+            unlocked,
+            featurePicks: jumped.featurePicks,
+            classAsi: jumped.classAsi,
+            filter: {
+              mode: 'up_to_class_level',
+              classEntryId: input.classEntryId,
+              maxClassLevel: pendingStartingLevel,
+            },
+            hasSubclassByEntryId: hasSubclass,
+          }),
+          { include: !jumped.backgroundGrant },
+        )
         return jumped
       })
       setPendingStartingLevel(1)
@@ -1351,6 +1366,11 @@ export function MinimalSheetEditor({
     }
     if (choiceSteps.length > 0) {
       openGuidedWizard({ steps: choiceSteps, index: 0 })
+    } else if (input.mode === 'start' && !draft.backgroundGrant) {
+      openGuidedWizard({
+        steps: withBackgroundStepIfNeeded([], { include: true }),
+        index: 0,
+      })
     }
   }
 
@@ -1499,12 +1519,27 @@ export function MinimalSheetEditor({
     onToast(`Хомбрю-раса «${name}»: название на листе. Остальное заполни сам.`)
   }
 
+  function resumeWizardAfterBackground() {
+    setPausedWizardForBackground((paused) => {
+      if (!paused) return null
+      const bgIndex = paused.steps.findIndex((step) => step.kind === 'background')
+      const nextIndex = bgIndex >= 0 ? bgIndex + 1 : paused.index + 1
+      if (nextIndex >= paused.steps.length) {
+        setGuidedWizard(null)
+        return null
+      }
+      setGuidedWizard({ ...paused, index: nextIndex })
+      return null
+    })
+  }
+
   function commitBackgroundGrant(input: {
     selected: CatalogEntry
     picks: BackgroundGrantPicks
     def?: BackgroundGrantDef | null
   }) {
     let summary: string | null = null
+    let incompleteExpertise: GuidedWizardStep[] = []
     setDraft((prev) => {
       const applied = applyBackgroundGrantToDraft({
         draft: backgroundSliceFrom(prev),
@@ -1514,12 +1549,48 @@ export function MinimalSheetEditor({
       })
       if (!applied) return prev
       summary = applied.summary
-      return {
+      const merged = {
         ...mergeBackgroundSlice(prev, applied.draft),
         backgroundCatalogId: input.selected.id,
       }
+      // Довыбор Expertise после фона (если ещё не выбрана) — навыки фона уже в пуле.
+      if (!pausedWizardForBackground) {
+        const unlocked = unlockFeaturesForClasses({
+          classes: merged.classes,
+          characterLevel: totalCharacterLevel(merged.classes),
+          abilities: merged.abilities,
+          subclassSlugByEntryId: Object.fromEntries(
+            merged.subclassGrants
+              .filter((row) => row.classEntryId && row.slug)
+              .map((row) => [row.classEntryId, row.slug]),
+          ),
+        })
+        const hasSubclass: Record<string, boolean> = {}
+        for (const row of merged.classes) {
+          hasSubclass[row.id] = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
+        }
+        incompleteExpertise = buildPendingWizardSteps({
+          unlocked,
+          featurePicks: merged.featurePicks,
+          classAsi: merged.classAsi,
+          filter: { mode: 'all_empty' },
+          hasSubclassByEntryId: hasSubclass,
+        }).filter(
+          (step) =>
+            step.kind === 'feature_choice' &&
+            step.choice.options_from === 'expertise_skills_tools',
+        )
+      }
+      return merged
     })
     if (summary) onToast(`Предыстория «${input.selected.name_ru}»: ${summary}`)
+    if (pausedWizardForBackground) {
+      resumeWizardAfterBackground()
+      return
+    }
+    if (incompleteExpertise.length > 0 && !guidedWizard) {
+      openGuidedWizard({ steps: incompleteExpertise, index: 0 })
+    }
   }
 
   async function requestOrApplyBackgroundGrant(selected: CatalogEntry) {
@@ -1563,6 +1634,7 @@ export function MinimalSheetEditor({
           backgroundCatalogId: selected.id,
         }
       })
+      resumeWizardAfterBackground()
       return
     }
 
@@ -2811,24 +2883,29 @@ export function MinimalSheetEditor({
             }
             const classLevel =
               next.classes.find((row) => row.id === step.classEntryId)?.level ?? 1
-            remaining = buildPendingWizardSteps({
-              unlocked,
-              featurePicks: next.featurePicks,
-              classAsi: next.classAsi,
-              filter:
-                jumpTo > 1
-                  ? {
-                      mode: 'up_to_class_level',
-                      classEntryId: step.classEntryId,
-                      maxClassLevel: jumpTo,
-                    }
-                  : {
-                      mode: 'at_class_level',
-                      classEntryId: step.classEntryId,
-                      classLevel,
-                    },
-              hasSubclassByEntryId: hasSubclass,
-            })
+            remaining = withBackgroundStepIfNeeded(
+              buildPendingWizardSteps({
+                unlocked,
+                featurePicks: next.featurePicks,
+                classAsi: next.classAsi,
+                filter:
+                  jumpTo > 1
+                    ? {
+                        mode: 'up_to_class_level',
+                        classEntryId: step.classEntryId,
+                        maxClassLevel: jumpTo,
+                      }
+                    : {
+                        mode: 'at_class_level',
+                        classEntryId: step.classEntryId,
+                        classLevel,
+                      },
+                hasSubclassByEntryId: hasSubclass,
+              }),
+              {
+                include: step.mode === 'start' && !next.backgroundGrant,
+              },
+            )
             return next
           })
           if (summary) {
@@ -2837,11 +2914,20 @@ export function MinimalSheetEditor({
             )
           }
           if (jumpTo > 1) {
-            onToast(`Уровень класса → ${jumpTo}. Дальше — выборы умений и ASI.`)
+            onToast(`Уровень класса → ${jumpTo}. Дальше — предыстория, умения и ASI.`)
             setPendingStartingLevel(1)
             onCreateGuideConsumed?.()
           }
           openGuidedWizard({ steps: remaining, index: 0 })
+        }}
+        edition={rulesEdition}
+        backgroundName={draft.identity.background}
+        onSelectBackground={(entry) => {
+          if (guidedWizard) {
+            setPausedWizardForBackground(guidedWizard)
+            setGuidedWizard(null)
+          }
+          void requestOrApplyBackgroundGrant(entry)
         }}
         onConfirmAsi={confirmClassAsi}
         onAdvance={advanceGuidedWizard}
@@ -2922,7 +3008,14 @@ export function MinimalSheetEditor({
         open={backgroundGrantPicker != null}
         root={backgroundGrantPicker?.root ?? null}
         variants={backgroundGrantPicker?.variants ?? []}
-        onClose={() => setBackgroundGrantPicker(null)}
+        onClose={() => {
+          setBackgroundGrantPicker(null)
+          // Cancel from wizard: restore queue on the background step.
+          if (pausedWizardForBackground) {
+            setGuidedWizard(pausedWizardForBackground)
+            setPausedWizardForBackground(null)
+          }
+        }}
         onConfirm={(result) => {
           commitBackgroundGrant({
             selected: result.entry,

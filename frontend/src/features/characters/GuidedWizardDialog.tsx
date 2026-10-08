@@ -37,6 +37,9 @@ import {
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
+import type { RulesEdition } from '../../shared/api/characters'
+import type { CatalogEntry } from '../../shared/api/catalog'
+import { CatalogCombobox } from '../catalog'
 import { ABILITY_KEYS, ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
 import { Button, Dialog, Field, Stack, Text } from '../../ui'
 
@@ -54,14 +57,19 @@ export type GuidedWizardSession = {
 type GuidedWizardDialogProps = {
   open: boolean
   session: GuidedWizardSession | null
+  edition: RulesEdition
   abilities: Record<AbilityKey, number>
   skills: SkillExpertiseState
   tools: string[]
   featurePicks: FeaturePicksState
   expertiseKeys: Array<{ classEntryId: string; featureId: string }>
+  /** Current background name on the sheet (after grant). */
+  backgroundName?: string
   onFeaturePicksChange: (picks: FeaturePicksState) => void
   onConfirmClassGrant: (picks: ClassGrantPicks) => void
   onConfirmAsi: (entry: AppliedClassAsi) => void
+  /** User picked a catalog background — parent opens setup / applies grant. */
+  onSelectBackground: (entry: CatalogEntry) => void
   onAdvance: (nextIndex: number) => void
   onSkipStep: () => void
   onClose: () => void
@@ -374,14 +382,17 @@ function AsiStepBody({
 export function GuidedWizardDialog({
   open,
   session,
+  edition,
   abilities,
   skills,
   tools,
   featurePicks,
   expertiseKeys,
+  backgroundName = '',
   onFeaturePicksChange,
   onConfirmClassGrant,
   onConfirmAsi,
+  onSelectBackground,
   onAdvance,
   onSkipStep,
   onClose,
@@ -400,6 +411,7 @@ export function GuidedWizardDialog({
   const [asiModeId, setAsiModeId] = useState<ClassAsiModeId>('plus2')
   const [asiKeys, setAsiKeys] = useState<AbilityKey[]>([])
   const [asiError, setAsiError] = useState<string | null>(null)
+  const [backgroundDraftName, setBackgroundDraftName] = useState('')
 
   useEffect(() => {
     if (!open || !step) return
@@ -411,7 +423,10 @@ export function GuidedWizardDialog({
       setAsiKeys([])
       setAsiError(null)
     }
-  }, [open, step?.id, step?.kind])
+    if (step.kind === 'background') {
+      setBackgroundDraftName(backgroundName)
+    }
+  }, [open, step?.id, step?.kind, backgroundName])
 
   const grantDef = session?.grant?.def ?? null
   const grantReady = useMemo(() => {
@@ -448,6 +463,8 @@ export function GuidedWizardDialog({
     asiKeys.length ===
       (CLASS_ASI_MODE_OPTIONS.find((row) => row.id === asiModeId)?.amounts.length ?? 1)
 
+  const backgroundReady = Boolean(backgroundName.trim())
+
   const primaryDisabled =
     step?.kind === 'class_grant'
       ? !grantReady
@@ -455,7 +472,9 @@ export function GuidedWizardDialog({
         ? !featureChoiceReady
         : step?.kind === 'asi'
           ? !asiReady
-          : false
+          : step?.kind === 'background'
+            ? !backgroundReady
+            : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -465,7 +484,11 @@ export function GuidedWizardDialog({
         ? `Увеличение характеристик · ${step.className} ${step.classLevel}`
         : step.kind === 'subclass'
           ? `${step.featureNameRu} · ${step.className}`
-          : `${step.choice.label_ru} · ${step.className}`
+          : step.kind === 'background'
+            ? 'Предыстория'
+            : step.kind === 'feature_choice'
+              ? `${step.choice.label_ru} · ${step.className}`
+              : 'Настройка персонажа'
 
   const primaryLabel =
     step?.kind === 'subclass'
@@ -517,6 +540,17 @@ export function GuidedWizardDialog({
     if (step.kind === 'subclass') {
       onFocusSubclass?.(step.classEntryId)
       onToast?.(step.promptRu)
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'background') {
+      if (!backgroundReady) return
+      onToast?.(
+        backgroundName.trim()
+          ? `Предыстория «${backgroundName.trim()}» записана`
+          : 'Предыстория выбрана',
+      )
       onAdvance(index + 1)
     }
   }
@@ -585,6 +619,35 @@ export function GuidedWizardDialog({
               После выбора архетипа на листе мастер подхватит новые выборы (воззвания, дар и т.п.)
               при level-up или с умения.
             </Text>
+          </Stack>
+        ) : null}
+        {step.kind === 'background' ? (
+          <Stack gap={12}>
+            <Text>{step.promptRu}</Text>
+            <Field label="Предыстория из справочника">
+              <CatalogCombobox
+                id="wizard-background"
+                kind="background"
+                edition={edition}
+                value={backgroundDraftName || backgroundName}
+                placeholder="Начни вводить: преступник, мудрец…"
+                filterEntry={(entry) => !entry.parent_id}
+                onChange={(value, selected) => {
+                  setBackgroundDraftName(value)
+                  if (selected) onSelectBackground(selected)
+                }}
+              />
+            </Field>
+            {backgroundName.trim() ? (
+              <Text>
+                Выбрано: <strong>{backgroundName.trim()}</strong> — жми «Далее».
+              </Text>
+            ) : (
+              <Text tone="muted">
+                После выбора откроется настройка развилок (навыки, языки, снаряжение). «Позже» —
+                можно взять предысторию на листе.
+              </Text>
+            )}
           </Stack>
         ) : null}
       </Stack>

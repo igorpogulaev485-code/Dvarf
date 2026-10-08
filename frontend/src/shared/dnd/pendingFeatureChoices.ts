@@ -53,6 +53,30 @@ export type GuidedWizardStep =
       featureNameRu: string
       promptRu: string
     }
+  | {
+      id: string
+      kind: 'background'
+      promptRu: string
+    }
+
+export function backgroundWizardStep(): GuidedWizardStep {
+  return {
+    id: 'background',
+    kind: 'background',
+    promptRu:
+      'Выбери предысторию — навыки, языки, инструменты и снаряжение лягут на лист. Потом мастер предложит компетентность уже с учётом этих владений.',
+  }
+}
+
+/** Prepend background step for create flow when grant is still empty. */
+export function withBackgroundStepIfNeeded(
+  steps: GuidedWizardStep[],
+  input: { include: boolean },
+): GuidedWizardStep[] {
+  if (!input.include) return steps
+  if (steps.some((step) => step.kind === 'background')) return steps
+  return [backgroundWizardStep(), ...steps]
+}
 
 export type PendingChoiceFilter =
   | { mode: 'all_empty' }

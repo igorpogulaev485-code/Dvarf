@@ -22,6 +22,7 @@ import {
   clearFeaturePicksAboveClassLevel,
   isFeatureChoiceComplete,
   listUnlockedExpertiseKeys,
+  withBackgroundStepIfNeeded,
 } from './pendingFeatureChoices'
 
 function assert(cond: unknown, message: string): asserts cond {
