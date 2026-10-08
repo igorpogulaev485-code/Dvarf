@@ -88,6 +88,7 @@ import {
   emptyFeaturePicks,
   type FeaturePicksState,
 } from '../shared/dnd/featurePicks'
+import { EMPTY_ARMOR } from '../features/characters/identity'
 import { readSpells, spellsToSheet, type SpellsState } from '../features/characters/spells'
 import { Button, Field, Input, Stack, Text, Toast } from '../ui'
 
@@ -1225,9 +1226,14 @@ export function CreateCharacterPage() {
 
       <RaceSetupDialog
         open={Boolean(raceSetup)}
+        edition="2014"
         root={raceSetup?.root ?? null}
         subraces={raceSetup?.subraces ?? []}
         subraceRequired={raceSetup?.required ?? false}
+        abilities={state.baseAbilities as Record<AbilityKey, number>}
+        armor={EMPTY_ARMOR}
+        hasSpellcasting={hasCasterClass}
+        backgroundSlug={state.backgroundSetup?.entry.slug ?? null}
         onClose={() => setRaceSetup(null)}
         onConfirm={(result: RaceSetupConfirm) => {
           setRacialBonuses(

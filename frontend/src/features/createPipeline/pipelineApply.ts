@@ -172,6 +172,7 @@ function emptyIdentity(): IdentityExtras {
     experience: 0,
     subclassName: '',
     background: '',
+    backgroundSlug: null,
     alignment: '',
     size: 'medium',
     darkvision: 0,
@@ -372,6 +373,7 @@ function normalizeRacePicks(raw: unknown): RaceGrantPicks {
     skills: Array.isArray(row.skills) ? row.skills.filter((v) => typeof v === 'string') : empty.skills,
     tools: Array.isArray(row.tools) ? row.tools.filter((v) => typeof v === 'string') : empty.tools,
     ancestryId: typeof row.ancestryId === 'string' ? row.ancestryId : empty.ancestryId,
+    featCatalogId: typeof row.featCatalogId === 'string' ? row.featCatalogId : empty.featCatalogId,
   }
 }
 
