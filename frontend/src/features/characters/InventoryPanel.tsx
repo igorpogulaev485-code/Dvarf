@@ -20,7 +20,13 @@ import {
   armorKindLabel,
   type ArmorKind,
 } from '../../shared/dnd/armor'
-import { parseItemCatalogData } from '../../shared/dnd/gearCatalog'
+import {
+  gearCostToGp,
+  parseArmorCatalogData,
+  parseItemCatalogData,
+  parseWeaponCatalogData,
+} from '../../shared/dnd/gearCatalog'
+import { classifySpellTooling } from './spellFocus'
 import {
   coinWeightLb,
   carryingCapacityLb,
@@ -168,6 +174,20 @@ export function InventoryPanel({
       selected.kind === 'weapon'
         ? resolveWeaponGrip({ name: selected.name_ru, data })
         : null
+    const cost =
+      selected.kind === 'weapon'
+        ? gearCostToGp(parseWeaponCatalogData(data).cost)
+        : selected.kind === 'armor'
+          ? gearCostToGp(parseArmorCatalogData(data).cost)
+          : gearCostToGp(parsedItem.cost)
+    const spellTooling =
+      selected.kind === 'item'
+        ? classifySpellTooling({
+            name: selected.name_ru,
+            catalog_slug: selected.slug,
+            item_category: parsedItem.item_category,
+          })
+        : ('none' as const)
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
@@ -185,6 +205,8 @@ export function InventoryPanel({
             : 'none',
       container_expanded: false,
       weapon_grip: weaponGrip,
+      cost_gp: cost,
+      spell_tooling: spellTooling,
     })
   }
 

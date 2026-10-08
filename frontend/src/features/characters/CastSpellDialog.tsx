@@ -17,6 +17,7 @@ import {
   type SheetSpell,
   type SpellsState,
 } from './spells'
+import { checkSpellMaterials, type MaterialInventoryItem } from './spellMaterials'
 
 export type CastChoice = {
   usePact: boolean
@@ -25,12 +26,18 @@ export type CastChoice = {
   ritual?: boolean
   /** Spend race/feat grant free-cast charge instead of a slot. */
   useGrant?: boolean
+  /** When material is consumed — whether to decrement inventory. */
+  consumeMaterial?: boolean
+  /** Inventory item id to consume (cheapest sufficient). */
+  consumeItemId?: string | null
 }
 
 type CastSpellDialogProps = {
   open: boolean
   spell: SheetSpell | null
   spells: SpellsState
+  /** Inventory snapshot for costly / fallback free components. */
+  inventoryItems: MaterialInventoryItem[]
   /** Total character level — cantrip scaling 1/5/11/17. */
   characterLevel: number
   busy?: boolean
@@ -42,6 +49,7 @@ export function CastSpellDialog({
   open,
   spell,
   spells,
+  inventoryItems,
   characterLevel,
   busy = false,
   onConfirm,
@@ -60,6 +68,32 @@ export function CastSpellDialog({
   const [useRitual, setUseRitual] = useState(false)
   const [useGrant, setUseGrant] = useState(false)
   const [slotLevel, setSlotLevel] = useState(1)
+  const [consumeMaterial, setConsumeMaterial] = useState(true)
+
+  const materialText = spell?.components?.m
+
+  const materialCheck = useMemo(
+    () =>
+      checkSpellMaterials({
+        material: materialText,
+        flags: {
+          has_spell_focus: Boolean(spells.has_spell_focus),
+          has_component_pouch: Boolean(spells.has_component_pouch),
+        },
+        items: inventoryItems,
+      }),
+    [
+      materialText,
+      spells.has_spell_focus,
+      spells.has_component_pouch,
+      inventoryItems,
+    ],
+  )
+
+  useEffect(() => {
+    if (!open) return
+    setConsumeMaterial(true)
+  }, [open, spell?.id])
 
   useEffect(() => {
     if (!spell || isCantrip) {
@@ -121,11 +155,21 @@ export function CastSpellDialog({
     return null
   }
 
+  const materialsOk = materialCheck.ok
+  const needsConsumeChoice = Boolean(
+    materialCheck.ok &&
+      materialCheck.requirement &&
+      materialCheck.requirement.minCostGp > 0 &&
+      materialCheck.requirement.consumed &&
+      materialCheck.cheapest,
+  )
+
   const canCast =
-    isCantrip ||
-    (useGrant && grantOk) ||
-    (useRitual && isRitual) ||
-    (!useGrant && !useRitual && hasSlotPath)
+    materialsOk &&
+    (isCantrip ||
+      (useGrant && grantOk) ||
+      (useRitual && isRitual) ||
+      (!useGrant && !useRitual && hasSlotPath))
   const selectedSlot =
     !usePact && !useRitual && !useGrant ? spells.slots[String(slotLevel)] : null
   const remaining = selectedSlot ? slotsRemaining(selectedSlot) : 0
@@ -154,15 +198,17 @@ export function CastSpellDialog({
   const grantExhausted =
     Boolean(spell.grant_cast && spell.grant_cast.max > 0 && !grantOk)
 
-  const primaryLabel = !canCast
-    ? 'Нет ячеек'
-    : busy
-      ? 'Кастуем…'
-      : useGrant
-        ? `Каст (${grantLabel})`
-        : useRitual
-          ? 'Ритуал'
-          : 'Каст'
+  const primaryLabel = !materialsOk
+    ? 'Нет компонента'
+    : !canCast
+      ? 'Нет ячеек'
+      : busy
+        ? 'Кастуем…'
+        : useGrant
+          ? `Каст (${grantLabel})`
+          : useRitual
+            ? 'Ритуал'
+            : 'Каст'
 
   return (
     <Dialog
@@ -182,10 +228,16 @@ export function CastSpellDialog({
               : usePact
                 ? (spells.pact_slots?.level ?? spellLevel)
                 : slotLevel,
+          consumeMaterial: needsConsumeChoice ? consumeMaterial : false,
+          consumeItemId:
+            needsConsumeChoice && consumeMaterial
+              ? materialCheck.cheapest?.item.id ?? null
+              : null,
         })
       }}
       onSecondary={onClose}
       busy={busy || !canCast}
+      primaryDisabled={!canCast}
     >
       <Stack gap={10}>
         <Text>
@@ -209,6 +261,26 @@ export function CastSpellDialog({
         ) : null}
         {showHigherLevels ? (
           <Text tone="muted">На больших уровнях: {spell.higher_levels}</Text>
+        ) : null}
+
+        {materialCheck.requirement ? (
+          <div className="cast-material-box">
+            <Text tone={materialsOk ? 'muted' : 'danger'}>{materialCheck.message}</Text>
+            {materialCheck.requirement.raw ? (
+              <Text tone="muted">М: {materialCheck.requirement.raw}</Text>
+            ) : null}
+            {needsConsumeChoice ? (
+              <button
+                type="button"
+                className={`sheet-chip${consumeMaterial ? ' is-on' : ''}`}
+                onClick={() => setConsumeMaterial((prev) => !prev)}
+              >
+                {consumeMaterial
+                  ? `Списать «${materialCheck.cheapest?.item.name}»`
+                  : 'Не списывать (тест)'}
+              </button>
+            ) : null}
+          </div>
         ) : null}
 
         {isCantrip ? (
@@ -297,7 +369,8 @@ export function CastSpellDialog({
                 {spell.grant_cast?.max ?? 0}
                 {spell.grant_cast?.reset === 'short'
                   ? ' (сброс на коротком отдыхе)'
-                  : ' (сброс на продолжительном)'}.
+                  : ' (сброс на продолжительном)'}
+                .
               </Text>
             ) : useRitual ? (
               <Text tone="muted">

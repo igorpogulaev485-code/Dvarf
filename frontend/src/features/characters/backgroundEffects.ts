@@ -26,6 +26,7 @@ import {
 import type { TextBlock } from './textBlocks'
 import { type WeaponAttack } from './AttacksPanel'
 import { resolveWeaponGrip } from './heldEquip'
+import { classifySpellTooling } from './spellFocus'
 import {
   backgroundEquipmentAttackIdAt,
   buildStartingWeaponAttacks,
@@ -89,6 +90,7 @@ function addGearItem(input: {
   if (created.armor_kind === 'none' && findWeaponPreset(created.name)) {
     created.weapon_grip = resolveWeaponGrip({ name: created.name })
   }
+  created.spell_tooling = classifySpellTooling({ name: created.name })
 
   let inventory: InventoryState = {
     ...input.inventory,

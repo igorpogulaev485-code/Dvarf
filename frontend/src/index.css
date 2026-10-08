@@ -1217,6 +1217,23 @@ input {
   color: var(--muted, #64748b);
 }
 
+.spells-focus-chips {
+  align-items: center;
+}
+
+.spells-focus-chips .sheet-chip {
+  cursor: default;
+}
+
+.cast-material-box {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--accent, #0f766e) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent, #0f766e) 6%, white);
+}
+
 .attack-source {
   display: inline-flex;
   align-items: center;

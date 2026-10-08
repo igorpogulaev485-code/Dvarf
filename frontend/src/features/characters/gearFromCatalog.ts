@@ -7,6 +7,7 @@ import type { CatalogEntry } from '../../shared/api/catalog'
 import {
   formatGearCostRu,
   GEAR_RARITY_LABEL_RU,
+  gearCostToGp,
   parseArmorCatalogData,
   parseItemCatalogData,
   parseWeaponCatalogData,
@@ -15,6 +16,7 @@ import {
 } from '../../shared/dnd/gearCatalog'
 import type { WeaponAttack } from './AttacksPanel'
 import { resolveWeaponGrip } from './heldEquip'
+import { classifySpellTooling } from './spellFocus'
 import {
   armorFieldsFromCatalog,
   createInventoryItem,
@@ -162,10 +164,12 @@ export function inventoryItemFromCatalog(input: {
   if (entry.kind === 'weapon') {
     const parsed = parseWeaponCatalogData(entry.data ?? {})
     created.weight_lb = parsed.weight_lb
+    created.cost_gp = gearCostToGp(parsed.cost)
     created.weapon_grip = resolveWeaponGrip({
       name: entry.name_ru,
       data: entry.data ?? {},
     })
+    created.spell_tooling = 'none'
     // Carried in pack by default — draw («В руках») is a separate action.
     created.equipped = false
     const built = buildStartingWeaponAttacks({
@@ -207,11 +211,14 @@ export function inventoryItemFromCatalog(input: {
 
   if (entry.kind === 'armor') {
     const armor = armorFieldsFromCatalog(entry)
+    const parsed = parseArmorCatalogData(entry.data ?? {})
     created.armor_kind = armor.armor_kind ?? 'none'
     created.base_ac = armor.base_ac ?? null
     created.weight_lb = armor.weight_lb ?? null
     created.max_dex_bonus = armor.max_dex_bonus ?? null
     created.strength_requirement = armor.strength_requirement ?? null
+    created.cost_gp = gearCostToGp(parsed.cost)
+    created.spell_tooling = 'none'
     const equip =
       input.equipArmor !== false &&
       (created.armor_kind === 'light' ||
@@ -229,6 +236,12 @@ export function inventoryItemFromCatalog(input: {
     weight = parsed.weight_lb
   }
   created.weight_lb = weight
+  created.cost_gp = gearCostToGp(parsed.cost)
+  created.spell_tooling = classifySpellTooling({
+    name: entry.name_ru,
+    catalog_slug: entry.slug,
+    item_category: parsed.item_category,
+  })
   created.container_kind =
     parsed.item_category === 'pack' || parsed.contents.length > 0
       ? 'pack'

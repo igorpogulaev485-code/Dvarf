@@ -52,6 +52,8 @@ import {
   type SheetSpell,
   type SpellsState,
 } from './spells'
+import type { InventoryItem, InventoryState } from './inventory'
+import { consumeMaterialItem } from './spellMaterials'
 
 type SpellsPanelProps = {
   edition: RulesEdition
@@ -63,7 +65,10 @@ type SpellsPanelProps = {
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  inventoryItems: InventoryItem[]
   onChange: (spells: SpellsState) => void
+  onInventoryChange?: (inventory: InventoryState) => void
+  inventory?: InventoryState
   onConcentrationChange?: (concentration: ConcentrationState | null) => void
   onToast?: (message: string) => void
 }
@@ -77,7 +82,10 @@ export function SpellsPanel({
   spells,
   abilities,
   proficiencyBonus,
+  inventoryItems,
+  inventory,
   onChange,
+  onInventoryChange,
   onConcentrationChange,
   onToast,
 }: SpellsPanelProps) {
@@ -275,6 +283,19 @@ export function SpellsPanel({
     )
   }
 
+  function applyMaterialConsume(choice: CastChoice): string {
+    if (!choice.consumeMaterial || !choice.consumeItemId || !inventory || !onInventoryChange) {
+      return ''
+    }
+    const target = inventory.items.find((row) => row.id === choice.consumeItemId)
+    if (!target) return ''
+    onInventoryChange({
+      ...inventory,
+      items: consumeMaterialItem(inventory.items, choice.consumeItemId, 1),
+    })
+    return ` · −1 «${target.name}»`
+  }
+
   function confirmCast(choice: CastChoice) {
     if (!castSpell) return
     const name = castSpell.name || 'Заклинание'
@@ -291,13 +312,14 @@ export function SpellsPanel({
       slotLevel: slotForEffect || castSpell.level,
     })
     const effectNote = scaled && effect ? ` · ${effect}` : ''
+    const consumeNote = applyMaterialConsume(choice)
 
     if (castSpell.level <= 0) {
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
         castSpell.concentration
-          ? `Каст: ${name}${effectNote} (концентрация)`
-          : `Каст: ${name}${effectNote}`,
+          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)`
+          : `Каст: ${name}${effectNote}${consumeNote}`,
       )
       setCastSpell(null)
       return
@@ -310,7 +332,7 @@ export function SpellsPanel({
       })
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
-        `Каст: ${name} (−1 ${label})${effectNote}${
+        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
           castSpell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -320,7 +342,7 @@ export function SpellsPanel({
     if (ritualCast) {
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
-        `Ритуал: ${name} (без ячейки)${effectNote}${
+        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
           castSpell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -336,7 +358,7 @@ export function SpellsPanel({
       patch({ pact_slots: pactResult.pact })
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
-        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${effectNote}${
+        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
           castSpell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -353,7 +375,7 @@ export function SpellsPanel({
     const upcast =
       choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast?.(
-      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${
         castSpell.concentration ? ' · концентрация' : ''
       }`,
     )
@@ -406,6 +428,24 @@ export function SpellsPanel({
                 : prepareLimitLabel}
             </strong>
           </div>
+        </div>
+
+        <div className="chip-row spells-focus-chips">
+          <span
+            className={`sheet-chip${spells.has_spell_focus ? ' is-on' : ''}`}
+            title="Магический / друидический фокус в инвентаре"
+          >
+            {spells.has_spell_focus ? 'Фокус ✓' : 'Фокус ✗'}
+          </span>
+          <span
+            className={`sheet-chip${spells.has_component_pouch ? ' is-on' : ''}`}
+            title="Мешочек с компонентами в инвентаре"
+          >
+            {spells.has_component_pouch ? 'Мешочек ✓' : 'Мешочек ✗'}
+          </span>
+          <Text tone="muted">
+            Закрывают материальные компоненты без цены. С ценой — отдельный предмет в инвентаре.
+          </Text>
         </div>
 
         <div className="spells-toolbar">
@@ -855,6 +895,7 @@ export function SpellsPanel({
         open={castSpell != null}
         spell={castSpell}
         spells={spells}
+        inventoryItems={inventoryItems}
         characterLevel={level}
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}

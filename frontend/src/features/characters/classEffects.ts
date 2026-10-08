@@ -26,6 +26,7 @@ import {
 import type { ArmorKind } from '../../shared/dnd/armor'
 import { type WeaponAttack } from './AttacksPanel'
 import { resolveWeaponGrip } from './heldEquip'
+import { classifySpellTooling } from './spellFocus'
 import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import {
   buildStartingWeaponAttacks,
@@ -311,6 +312,7 @@ export function applyClassGrantToDraft(input: {
         if (created.armor_kind === 'none' && findWeaponPreset(created.name)) {
           created.weapon_grip = resolveWeaponGrip({ name: created.name })
         }
+        created.spell_tooling = classifySpellTooling({ name: created.name })
         inventory.items.push(created)
         equipmentItemIds.push(created.id)
 

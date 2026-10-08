@@ -15,6 +15,7 @@ import {
 } from '../../shared/dnd/weight'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 import { equipHeldItem, isHeldItem, type WeaponGrip } from './heldEquip'
+import { readSpellTooling, type SpellTooling } from './spellFocus'
 
 export type InventoryContainerKind = 'none' | 'pack' | 'kit' | 'container'
 
@@ -41,6 +42,10 @@ export type InventoryItem = {
   pack_weight_lb?: number | null
   /** Weapon hand grip — drives held-slot exclusivity. */
   weapon_grip?: WeaponGrip | null
+  /** Unit price in gp (from catalog) — costly spell components. */
+  cost_gp?: number | null
+  /** Cached spell tooling role for O(1) focus sync. */
+  spell_tooling?: SpellTooling | null
 }
 
 export type InventoryState = {
@@ -69,6 +74,8 @@ export function createInventoryItem(): InventoryItem {
     container_expanded: false,
     pack_weight_lb: null,
     weapon_grip: null,
+    cost_gp: null,
+    spell_tooling: null,
   }
 }
 
@@ -115,6 +122,8 @@ function readItem(raw: unknown, index: number): InventoryItem {
     container_expanded: Boolean(row.container_expanded),
     pack_weight_lb: readNullableNumber(row.pack_weight_lb),
     weapon_grip: readWeaponGrip(row.weapon_grip),
+    cost_gp: readNullableNumber(row.cost_gp),
+    spell_tooling: readSpellTooling(row.spell_tooling),
   }
 }
 
@@ -156,6 +165,8 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         container_expanded: Boolean(item.container_expanded),
         pack_weight_lb: item.pack_weight_lb ?? null,
         weapon_grip: item.weapon_grip ?? null,
+        cost_gp: item.cost_gp ?? null,
+        spell_tooling: item.spell_tooling ?? null,
       })),
     },
   }

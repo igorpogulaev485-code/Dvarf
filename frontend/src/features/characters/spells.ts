@@ -86,6 +86,12 @@ export type SpellsState = {
   slots: Record<string, SpellSlotState>
   pact_slots: PactSlotState | null
   known: SheetSpell[]
+  /**
+   * Derived from inventory (sync on inventory change — not at every cast).
+   * Free material components covered by focus / component pouch.
+   */
+  has_spell_focus?: boolean
+  has_component_pouch?: boolean
 }
 
 const EMPTY_SLOTS: Record<string, SpellSlotState> = Object.fromEntries(
@@ -539,6 +545,8 @@ export function readSpells(sheet: Record<string, unknown>): SpellsState {
     slots,
     pact_slots: pactNormalized,
     known: knownRaw.map((item, index) => readSpell(item, index)),
+    has_spell_focus: Boolean(spells.has_spell_focus),
+    has_component_pouch: Boolean(spells.has_component_pouch),
   }
 }
 
@@ -556,6 +564,8 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
       max_prepared: state.max_prepared,
       slots,
       pact_slots: state.pact_slots,
+      has_spell_focus: Boolean(state.has_spell_focus),
+      has_component_pouch: Boolean(state.has_component_pouch),
       known: state.known.map((spell) => ({
         id: spell.id,
         name: spell.name,

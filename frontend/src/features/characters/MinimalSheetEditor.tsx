@@ -192,6 +192,7 @@ import {
   readInventory,
   type InventoryState,
 } from './inventory'
+import { classifySpellTooling, withSpellFocusFlags } from './spellFocus'
 import {
   playToSheet,
   readPlay,
@@ -381,13 +382,21 @@ function buildDraft(character: CharacterDetail): Draft {
     inspiration: Boolean(combat.inspiration),
     ...(() => {
       const inventory = readInventory(sheet)
+      // Hydrate spell_tooling for legacy rows (one pass on load).
+      const items = inventory.items.map((item) => {
+        if (item.spell_tooling) return item
+        const tooling = classifySpellTooling({ name: item.name })
+        return tooling === 'none' ? item : { ...item, spell_tooling: tooling }
+      })
+      const nextInventory = { ...inventory, items }
+      const spells = withSpellFocusFlags(readSpells(sheet), items)
       return {
-        inventory,
-        weapons: syncAttacksHeldFromInventory(readWeapons(sheet), inventory.items),
+        inventory: nextInventory,
+        weapons: syncAttacksHeldFromInventory(readWeapons(sheet), items),
+        spells,
       }
     })(),
     attunements: readAttunements(sheet),
-    spells: readSpells(sheet),
     play: withSyncedHitDiceSummary({
       ...play,
       hitDiceByClass,
@@ -919,6 +928,7 @@ export function MinimalSheetEditor({
       inventory: slice.inventory,
       textBlocks: slice.textBlocks,
       weapons: slice.weapons,
+      spells: withSpellFocusFlags(prev.spells, slice.inventory.items),
       backgroundGrant: slice.backgroundGrant,
       backgroundCatalogId: slice.backgroundGrant?.backgroundCatalogId ?? null,
     }
@@ -1169,6 +1179,7 @@ export function MinimalSheetEditor({
       hpCurrent: slice.hpCurrent,
       inventory: slice.inventory,
       weapons: slice.weapons,
+      spells: withSpellFocusFlags(prev.spells, slice.inventory.items),
       play: {
         ...prev.play,
         hitDie: slice.playHitDie,
@@ -1193,7 +1204,8 @@ export function MinimalSheetEditor({
       flySpeed: slice.flySpeed,
       textBlocks: slice.textBlocks,
       weapons: slice.weapons,
-      spells: slice.spells,
+      // Race spells replace known list — re-attach focus flags from current inventory.
+      spells: withSpellFocusFlags(slice.spells, prev.inventory.items),
       raceGrant: slice.raceGrant,
     }
     const restoredBg = reapplyBackgroundOverlays(backgroundSliceFrom(merged))
@@ -2590,6 +2602,7 @@ export function MinimalSheetEditor({
             ...prev,
             inventory,
             weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
+            spells: withSpellFocusFlags(prev.spells, inventory.items),
           }))
         }
         onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
@@ -2640,7 +2653,16 @@ export function MinimalSheetEditor({
         spells={draft.spells}
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
+        inventoryItems={draft.inventory.items}
+        inventory={draft.inventory}
         onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        onInventoryChange={(inventory) =>
+          setDraft((prev) => ({
+            ...prev,
+            inventory,
+            spells: withSpellFocusFlags(prev.spells, inventory.items),
+          }))
+        }
         onConcentrationChange={(concentration) =>
           setDraft((prev) => ({
             ...prev,
