@@ -647,6 +647,85 @@ export function suggestSpellcastingFromClasses(input: {
   }
 }
 
+/** Highest spell level with at least one slot (or pact slot level). 0 = none. */
+export function highestSpellSlotLevel(
+  slots: Record<string, SpellSlotState>,
+  pactSlots?: PactSlotState | null,
+): number {
+  let hi = 0
+  for (let level = 1; level <= 9; level += 1) {
+    if ((slots[String(level)]?.max ?? 0) > 0) hi = level
+  }
+  if (pactSlots && (pactSlots.max ?? 0) > 0) {
+    hi = Math.max(hi, Math.max(1, Math.floor(pactSlots.level) || 1))
+  }
+  return hi
+}
+
+/**
+ * Class spell-list slugs this character may learn from (union for multiclass).
+ * Third-casters (EK / Arcane Trickster) use the wizard list.
+ */
+export function characterSpellListSlugs(
+  classes: ClassLevelEntry[],
+  subclassCasters?: SubclassCasterOverlay[],
+): string[] {
+  const out = new Set<string>()
+  const overlays = resolveSubclassCasterOverlays(classes, subclassCasters ?? [])
+  for (const row of classes) {
+    if (!row.name.trim() || row.level <= 0) continue
+    const slug = resolveClassCasterSlug(row.name)
+    const def = classCasterDef(slug)
+    if (def && def.progression !== 'none') {
+      out.add(def.slug)
+    }
+    const overlay = overlays.find((item) => item.classEntryId === row.id)
+    if (overlay?.progression === 'third') {
+      out.add('wizard')
+    }
+  }
+  return [...out]
+}
+
+/**
+ * School gate for ⅓ casters who only have the wizard list via archetype
+ * (no wizard levels). Cantrips stay unrestricted; leveled spells must match.
+ * Returns null when no school gate applies.
+ */
+export function thirdCasterSchoolGate(
+  classes: ClassLevelEntry[],
+  subclassCasters?: SubclassCasterOverlay[],
+): string[] | null {
+  const hasWizardLevels = classes.some(
+    (row) => resolveClassCasterSlug(row.name) === 'wizard' && row.level > 0,
+  )
+  if (hasWizardLevels) return null
+
+  const overlays = resolveSubclassCasterOverlays(classes, subclassCasters ?? [])
+  const schools = new Set<string>()
+  for (const row of classes) {
+    const overlay = overlays.find((item) => item.classEntryId === row.id)
+    if (!overlay || overlay.progression !== 'third') continue
+    const classSlug = resolveClassCasterSlug(row.name)
+    const sub =
+      resolveSubclassFeatureSlug(row.subclass_name)?.toLowerCase() ??
+      normalizeName(row.subclass_name)
+    if (classSlug === 'fighter' || sub.includes('eldritch') || sub.includes('рыцар')) {
+      schools.add('abjuration')
+      schools.add('evocation')
+    } else if (
+      classSlug === 'rogue' ||
+      sub.includes('trickster') ||
+      sub.includes('ловкач') ||
+      sub.includes('плут')
+    ) {
+      schools.add('enchantment')
+      schools.add('illusion')
+    }
+  }
+  return schools.size ? [...schools] : null
+}
+
 export function applySpellcastingSuggestion(
   current: {
     slots: Record<string, SpellSlotState>
