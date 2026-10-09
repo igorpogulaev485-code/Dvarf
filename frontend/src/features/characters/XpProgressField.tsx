@@ -1,34 +1,61 @@
 import { useState } from 'react'
-import { NumberPadDialog, Text } from '../../ui'
+import { Button, NumberPadDialog, Text } from '../../ui'
 import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
 
 type XpProgressFieldProps = {
   xp: number
   level: number
   onChange: (xp: number) => void
+  /** Open level-up / прокачка when XP threshold is met (or user asks). */
+  onRequestLevelUp?: () => void
+  levelUpDisabled?: boolean
 }
 
-export function XpProgressField({ xp, level, onChange }: XpProgressFieldProps) {
+export function XpProgressField({
+  xp,
+  level,
+  onChange,
+  onRequestLevelUp,
+  levelUpDisabled = false,
+}: XpProgressFieldProps) {
   const [padOpen, setPadOpen] = useState(false)
   const progress = xpProgress(xp, level)
+  const readyToLevel =
+    progress.nextThreshold != null && progress.remaining === 0 && !levelUpDisabled
   const meta =
     progress.nextThreshold == null
       ? `${formatXp(progress.xp)} · макс.`
       : `${formatXp(progress.xp)} / ${formatXp(progress.nextThreshold)}`
-  const hint =
-    progress.nextThreshold == null
-      ? 'Уровень 20 — дальше расти некуда'
-      : progress.remaining === 0
-        ? `Порог ур. ${progress.level + 1} набран — можно +1 уровень`
-        : `До ур. ${progress.level + 1}: ещё ${formatXp(progress.remaining ?? 0)}`
+  const hint = (() => {
+    if (progress.nextThreshold == null) return 'Уровень 20 — дальше расти некуда'
+    if (readyToLevel) {
+      return `Порог ур. ${progress.level + 1} набран — жми «Повысить уровень»`
+    }
+    return `До порога ур. ${progress.level + 1}: ещё ${formatXp(progress.remaining ?? 0)}. XP — учёт; прокачка — отдельной кнопкой.`
+  })()
 
   const nextLevel = progress.level >= 20 ? null : progress.level + 1
   const floorLabel = formatXp(progress.floor)
   const nextLabel =
     progress.nextThreshold == null ? '—' : formatXp(progress.nextThreshold)
 
+  function applyAdd(delta: number) {
+    const nextXp = progress.xp + delta
+    onChange(nextXp)
+    setPadOpen(false)
+    if (
+      onRequestLevelUp &&
+      !levelUpDisabled &&
+      progress.nextThreshold != null &&
+      progress.xp < progress.nextThreshold &&
+      nextXp >= progress.nextThreshold
+    ) {
+      onRequestLevelUp()
+    }
+  }
+
   return (
-    <div className="xp-progress">
+    <div className={`xp-progress${readyToLevel ? ' xp-progress--ready' : ''}`}>
       <div className="xp-progress__row">
         <button
           type="button"
@@ -54,6 +81,11 @@ export function XpProgressField({ xp, level, onChange }: XpProgressFieldProps) {
       <Text as="p" tone="muted" className="xp-progress__hint">
         {hint}
       </Text>
+      {readyToLevel && onRequestLevelUp ? (
+        <Button type="button" className="xp-progress__level-up" onClick={onRequestLevelUp}>
+          Повысить уровень →
+        </Button>
+      ) : null}
 
       <NumberPadDialog
         open={padOpen}
@@ -62,8 +94,11 @@ export function XpProgressField({ xp, level, onChange }: XpProgressFieldProps) {
         min={0}
         formatValue={formatXp}
         onClose={() => setPadOpen(false)}
-        onAdd={(delta) => onChange(progress.xp + delta)}
-        onSubtract={(delta) => onChange(Math.max(0, progress.xp - delta))}
+        onAdd={applyAdd}
+        onSubtract={(delta) => {
+          onChange(Math.max(0, progress.xp - delta))
+          setPadOpen(false)
+        }}
         header={
           <div className="xp-pad-header">
             <div className="xp-pad-header__ends">
@@ -92,6 +127,21 @@ export function XpProgressField({ xp, level, onChange }: XpProgressFieldProps) {
                 ? ` · порог ${formatXp(xpToReachLevel(progress.level + 1))}`
                 : ''}
             </p>
+            <p className="xp-pad-header__note">
+              Сюда только XP от мастера. Сама прокачка — кнопкой «Прокачать» / «Повысить уровень».
+            </p>
+            {readyToLevel && onRequestLevelUp ? (
+              <Button
+                type="button"
+                className="xp-progress__level-up"
+                onClick={() => {
+                  setPadOpen(false)
+                  onRequestLevelUp()
+                }}
+              >
+                Повысить уровень →
+              </Button>
+            ) : null}
           </div>
         }
       />

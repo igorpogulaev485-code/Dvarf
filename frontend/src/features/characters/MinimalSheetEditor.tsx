@@ -127,6 +127,10 @@ import { GuidedWizardDialog, type GuidedWizardSession } from './GuidedWizardDial
 import { ClassAsiDialog } from './ClassAsiDialog'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
 import { LevelUpDialog, type LevelUpChoice } from './LevelUpDialog'
+import {
+  LevelUpRecapDialog,
+  type LevelUpRecapFeature,
+} from './LevelUpRecapDialog'
 import { PlayPanel } from './PlayPanel'
 import {
   applyClassAsiBonuses,
@@ -507,6 +511,13 @@ export function MinimalSheetEditor({
   const [error, setError] = useState<string | null>(null)
   const [conflictOpen, setConflictOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
+  const [levelUpRecap, setLevelUpRecap] = useState<{
+    characterLevel: number
+    className: string
+    classLevel: number
+    hpGain: number
+    features: LevelUpRecapFeature[]
+  } | null>(null)
   const [pendingAsi, setPendingAsi] = useState<{
     classEntryId: string
     className: string
@@ -2075,7 +2086,28 @@ export function MinimalSheetEditor({
           classLevel: leveledRow.level,
           featureId: asiAtLevel.id,
         })
+        return
       }
+      // No picks this level — still show a proкачка recap (auto features / HP).
+      const gained = unlocked
+        .filter(
+          (feature) =>
+            feature.classEntryId === leveledRow.id &&
+            feature.level === leveledRow.level,
+        )
+        .map((feature) => ({
+          id: feature.id,
+          nameRu: feature.name_ru,
+          summaryRu: feature.summary_ru,
+          source: feature.source,
+        }))
+      setLevelUpRecap({
+        characterLevel: nextLevel,
+        className: leveledRow.name,
+        classLevel: leveledRow.level,
+        hpGain: Math.max(0, Math.floor(choice.hpGain)),
+        features: gained,
+      })
     }
   }
 
@@ -2534,17 +2566,16 @@ export function MinimalSheetEditor({
           <div className="sheet-grid sheet-grid--2">
             <Field
               label="Уровень персонажа"
-              hint="Сумма уровней классов. +1 — этот класс или мультикласс."
+              hint="Сумма уровней классов. «Прокачать» — мастер уровня (HP → умения/ASI). XP справа только для учёта."
             >
               <div className="languages-tools-add">
                 <Input value={String(characterLevel)} readOnly />
                 <Button
                   type="button"
-                  variant="secondary"
                   disabled={characterLevel >= 20}
                   onClick={() => setLevelUpOpen(true)}
                 >
-                  +1 уровень
+                  Прокачать
                 </Button>
               </div>
             </Field>
@@ -2553,6 +2584,8 @@ export function MinimalSheetEditor({
                 xp={draft.identity.experience}
                 level={characterLevel}
                 onChange={(experience) => patchIdentity({ experience })}
+                onRequestLevelUp={() => setLevelUpOpen(true)}
+                levelUpDisabled={characterLevel >= 20}
               />
             </Field>
           </div>
@@ -3452,6 +3485,16 @@ export function MinimalSheetEditor({
         constitutionMod={abilityModifier(draft.abilities.con)}
         onConfirm={applyLevelUp}
         onClose={() => setLevelUpOpen(false)}
+      />
+
+      <LevelUpRecapDialog
+        open={levelUpRecap != null}
+        characterLevel={levelUpRecap?.characterLevel ?? characterLevel}
+        className={levelUpRecap?.className ?? ''}
+        classLevel={levelUpRecap?.classLevel ?? 1}
+        hpGain={levelUpRecap?.hpGain ?? 0}
+        features={levelUpRecap?.features ?? []}
+        onClose={() => setLevelUpRecap(null)}
       />
 
       <GuidedWizardDialog
