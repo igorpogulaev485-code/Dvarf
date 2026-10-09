@@ -1195,15 +1195,14 @@ export function buildAppliedFeatPackage(input: {
   }
   const listKey = enumPicks.list ?? picks.enumIds.list
   const castEnum = enumPicks.cast ?? picks.enumIds.cast
+  // Fey/Shadow Touched: the +1 ability IS the casting ability for Misty Step / Darkness etc.
   const abilityCast = picks.abilityKeys.ability
   const castingAbility: AbilityKey | null =
     castEnum && ABILITY_KEYS.includes(castEnum as AbilityKey)
       ? (castEnum as AbilityKey)
-      : abilityCast && !def.choices.some((c) => c.type === 'ability_one' && c.amount > 0)
-        ? abilityCast
-        : listKey
-          ? (castingFromList[listKey] ?? null)
-          : null
+      : listKey
+        ? (castingFromList[listKey] ?? abilityCast ?? null)
+        : (abilityCast ?? null)
 
   /** Plane → cantrip for Scion of the Outer Planes. */
   const planeCantrips: Record<string, FeatSpell> = {
@@ -1274,6 +1273,30 @@ export function buildAppliedFeatPackage(input: {
       : { ...spell, castingAbility },
   )
 
+  const pickSummaryParts: string[] = []
+  for (const [key, amount] of Object.entries(abilityBonuses)) {
+    if (!amount) continue
+    const label =
+      key === 'str'
+        ? 'Сил'
+        : key === 'dex'
+          ? 'Лов'
+          : key === 'con'
+            ? 'Тел'
+            : key === 'int'
+              ? 'Инт'
+              : key === 'wis'
+                ? 'Муд'
+                : key === 'cha'
+                  ? 'Хар'
+                  : key
+    pickSummaryParts.push(`+${amount} ${label}`)
+  }
+  for (const spell of pickedSpells) {
+    pickSummaryParts.push(spell.nameRu)
+  }
+  const pickSummary = pickSummaryParts.join(' · ')
+
   return emptyPackage({
     ...def.fixedGrants,
     abilityBonuses,
@@ -1290,6 +1313,7 @@ export function buildAppliedFeatPackage(input: {
     expertiseSkills: uniqueStrings(expertiseSkills),
     enumPicks,
     enumMultiPicks,
+    summaryRu: pickSummary || def.fixedGrants.summaryRu,
   })
 }
 
