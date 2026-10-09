@@ -26,14 +26,21 @@ export const XP_TO_REACH_LEVEL: readonly number[] = [
 export type XpProgress = {
   xp: number
   level: number
-  /** XP needed to be at the current level. */
+  /** XP needed to be at the current level (cumulative floor). */
   floor: number
   /** XP needed for next level; null at level 20. */
   nextThreshold: number | null
-  /** 0..1 within the current level band. */
+  /** 0..1 within the current level band (capped at 1 even with surplus). */
   ratio: number
-  /** XP still needed for next level; null at 20. */
+  /** XP still needed for next level; 0 when at/past threshold; null at 20. */
   remaining: number | null
+  /**
+   * XP already past the next-level threshold while still at `level`
+   * (e.g. 100 short + DM awards 200 → surplus 100 after the add).
+   */
+  surplus: number
+  /** How many character levels the total XP could support beyond `level` (0–19). */
+  levelsReady: number
 }
 
 export function clampCharacterLevel(level: number): number {
@@ -45,11 +52,26 @@ export function xpToReachLevel(level: number): number {
   return XP_TO_REACH_LEVEL[lvl] ?? 0
 }
 
+/** Highest level whose cumulative threshold is ≤ xp (1–20). */
+export function levelForTotalXp(xpRaw: number): number {
+  const xp = Math.max(0, Math.floor(xpRaw) || 0)
+  let level = 1
+  for (let lvl = 20; lvl >= 1; lvl -= 1) {
+    if (xp >= xpToReachLevel(lvl)) {
+      level = lvl
+      break
+    }
+  }
+  return level
+}
+
 export function xpProgress(xpRaw: number, levelRaw: number): XpProgress {
   const level = clampCharacterLevel(levelRaw)
   const xp = Math.max(0, Math.floor(xpRaw) || 0)
   const floor = xpToReachLevel(level)
   const nextThreshold = level >= 20 ? null : xpToReachLevel(level + 1)
+  const maxByXp = levelForTotalXp(xp)
+  const levelsReady = Math.max(0, maxByXp - level)
 
   if (nextThreshold == null) {
     return {
@@ -59,12 +81,15 @@ export function xpProgress(xpRaw: number, levelRaw: number): XpProgress {
       nextThreshold: null,
       ratio: 1,
       remaining: null,
+      surplus: 0,
+      levelsReady: 0,
     }
   }
 
   const span = Math.max(1, nextThreshold - floor)
   const ratio = Math.min(1, Math.max(0, (xp - floor) / span))
   const remaining = Math.max(0, nextThreshold - xp)
+  const surplus = Math.max(0, xp - nextThreshold)
 
   return {
     xp,
@@ -73,9 +98,20 @@ export function xpProgress(xpRaw: number, levelRaw: number): XpProgress {
     nextThreshold,
     ratio,
     remaining,
+    surplus,
+    levelsReady,
   }
 }
 
 export function formatXp(n: number): string {
   return n.toLocaleString('ru-RU')
+}
+
+/** Keep cumulative XP: never drop below the floor for the new level; keep surplus. */
+export function experienceAfterLevelUp(input: {
+  experience: number
+  newCharacterLevel: number
+}): number {
+  const floor = xpToReachLevel(input.newCharacterLevel)
+  return Math.max(Math.max(0, Math.floor(input.experience) || 0), floor)
 }

@@ -180,7 +180,11 @@ import {
   buildMaxHpByLevels,
   hitDieForClass,
 } from '../../shared/dnd/multiclassRules'
-import { clampCharacterLevel, xpToReachLevel } from '../../shared/dnd/experience'
+import {
+  clampCharacterLevel,
+  experienceAfterLevelUp,
+  xpToReachLevel,
+} from '../../shared/dnd/experience'
 import { withSyncedHitDiceSummary } from './play'
 import { SpellsPanel } from './SpellsPanel'
 import {
@@ -1991,6 +1995,14 @@ export function MinimalSheetEditor({
         classes: nextClasses,
         hpMax: nextMax,
         hpCurrent: nextCurrent,
+        identity: {
+          ...prev.identity,
+          // Cumulative PHB track: bump to new floor if behind, keep surplus if ahead.
+          experience: experienceAfterLevelUp({
+            experience: prev.identity.experience,
+            newCharacterLevel: nextLevel,
+          }),
+        },
         play: withSyncedHitDiceSummary({
           ...prev.play,
           hitDiceByClass,

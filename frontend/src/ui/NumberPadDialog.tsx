@@ -17,6 +17,13 @@ type NumberPadDialogProps = {
   addLabel?: string
   subtractLabel?: string
   formatValue?: (n: number) => string
+  /** Extra live note under the ± preview (e.g. XP threshold surplus). */
+  describePreview?: (input: {
+    current: number
+    delta: number
+    previewAdd: number
+    previewSub: number
+  }) => string | null
 }
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
@@ -34,6 +41,7 @@ export function NumberPadDialog({
   addLabel = 'Прибавить',
   subtractLabel = 'Отнять',
   formatValue = (n) => String(n),
+  describePreview,
 }: NumberPadDialogProps) {
   const [digits, setDigits] = useState('')
 
@@ -77,6 +85,10 @@ export function NumberPadDialog({
   const previewAdd = max == null ? uncappedAdd : Math.min(max, uncappedAdd)
   const previewSub = Math.max(min, current - delta)
   const addDisabled = !canApply || (max != null && current >= max)
+  const previewNote =
+    canApply && describePreview
+      ? describePreview({ current, delta, previewAdd, previewSub })
+      : null
 
   function press(key: (typeof KEYS)[number]) {
     if (key === 'C') {
@@ -126,6 +138,9 @@ export function NumberPadDialog({
               ? ` · + → ${formatValue(previewAdd)} · − → ${formatValue(previewSub)}`
               : ''}
           </span>
+          {previewNote ? (
+            <span className="number-pad__display-note">{previewNote}</span>
+          ) : null}
         </div>
 
         <div className="number-pad__keys" role="group" aria-label="Цифровая клавиатура">

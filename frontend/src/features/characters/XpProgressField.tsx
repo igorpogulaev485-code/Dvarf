@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { Button, NumberPadDialog, Text } from '../../ui'
-import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
+import {
+  formatXp,
+  xpProgress,
+  xpToReachLevel,
+} from '../../shared/dnd/experience'
 
 type XpProgressFieldProps = {
   xp: number
@@ -21,17 +25,31 @@ export function XpProgressField({
   const [padOpen, setPadOpen] = useState(false)
   const progress = xpProgress(xp, level)
   const readyToLevel =
-    progress.nextThreshold != null && progress.remaining === 0 && !levelUpDisabled
+    progress.nextThreshold != null &&
+    progress.remaining === 0 &&
+    !levelUpDisabled
   const meta =
     progress.nextThreshold == null
       ? `${formatXp(progress.xp)} · макс.`
-      : `${formatXp(progress.xp)} / ${formatXp(progress.nextThreshold)}`
+      : progress.surplus > 0
+        ? `${formatXp(progress.xp)} / ${formatXp(progress.nextThreshold)} (+${formatXp(progress.surplus)})`
+        : `${formatXp(progress.xp)} / ${formatXp(progress.nextThreshold)}`
   const hint = (() => {
-    if (progress.nextThreshold == null) return 'Уровень 20 — дальше расти некуда'
-    if (readyToLevel) {
-      return `Порог ур. ${progress.level + 1} набран — жми «Повысить уровень»`
+    if (progress.nextThreshold == null) {
+      return 'Уровень 20 — сквозная шкала PHB закончена'
     }
-    return `До порога ур. ${progress.level + 1}: ещё ${formatXp(progress.remaining ?? 0)}. XP — учёт; прокачка — отдельной кнопкой.`
+    if (readyToLevel) {
+      const surplusNote =
+        progress.surplus > 0
+          ? ` · +${formatXp(progress.surplus)} сверх порога останутся на шкале`
+          : ''
+      const multi =
+        progress.levelsReady > 1
+          ? ` · XP хватает ещё на ${progress.levelsReady} ур.`
+          : ''
+      return `Порог ур. ${progress.level + 1} набран${surplusNote}${multi} — жми «Повысить уровень»`
+    }
+    return `До порога ур. ${progress.level + 1}: ещё ${formatXp(progress.remaining ?? 0)}. Сквозная шкала 1–20: выданные XP не сгорают.`
   })()
 
   const nextLevel = progress.level >= 20 ? null : progress.level + 1
@@ -99,6 +117,23 @@ export function XpProgressField({
           onChange(Math.max(0, progress.xp - delta))
           setPadOpen(false)
         }}
+        describePreview={({ current, previewAdd }) => {
+          if (level >= 20) return 'Сквозная сумма XP (PHB 1–20)'
+          const thr = xpToReachLevel(level + 1)
+          if (current < thr && previewAdd >= thr) {
+            const surplus = previewAdd - thr
+            return surplus > 0
+              ? `Порог ур. ${level + 1} · сверх +${formatXp(surplus)} (не сгорает)`
+              : `Порог ур. ${level + 1} ровно`
+          }
+          if (previewAdd > thr) {
+            return `Уже сверх порога ур. ${level + 1}: +${formatXp(previewAdd - thr)}`
+          }
+          if (previewAdd < thr) {
+            return `После прибавки до порога ещё ${formatXp(thr - previewAdd)}`
+          }
+          return null
+        }}
         header={
           <div className="xp-pad-header">
             <div className="xp-pad-header__ends">
@@ -119,16 +154,23 @@ export function XpProgressField({
               aria-valuenow={Math.round(progress.ratio * 100)}
               aria-label="Прогресс опыта"
             >
-              <div className="xp-progress__fill" style={{ width: `${progress.ratio * 100}%` }} />
+              <div
+                className="xp-progress__fill"
+                style={{ width: `${progress.ratio * 100}%` }}
+              />
             </div>
             <p className="xp-pad-header__current">
               сейчас {formatXp(progress.xp)}
               {progress.nextThreshold != null
                 ? ` · порог ${formatXp(xpToReachLevel(progress.level + 1))}`
                 : ''}
+              {progress.surplus > 0
+                ? ` · сверх +${formatXp(progress.surplus)}`
+                : ''}
             </p>
             <p className="xp-pad-header__note">
-              Сюда только XP от мастера. Сама прокачка — кнопкой «Прокачать» / «Повысить уровень».
+              Сквозная шкала PHB: XP копится от 1 до 20. Если до уровня 100, а мастер дал 200 —
+              на листе будет порог +100 сверх; лишнее не сгорает после прокачки.
             </p>
             {readyToLevel && onRequestLevelUp ? (
               <Button
