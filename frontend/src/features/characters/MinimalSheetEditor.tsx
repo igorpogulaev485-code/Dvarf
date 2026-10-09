@@ -3061,7 +3061,11 @@ export function MinimalSheetEditor({
                 </>
               )}
             </Field>
-            <Field label="Мировоззрение" htmlFor="sheet-alignment">
+            <Field
+              label="Мировоззрение"
+              htmlFor="sheet-alignment"
+              hint="Подставляется из идеала предыстории; можно переписать как угодно"
+            >
               <Input
                 id="sheet-alignment"
                 value={draft.identity.alignment}
