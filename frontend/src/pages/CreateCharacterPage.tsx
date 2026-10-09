@@ -86,6 +86,7 @@ import {
   isManualScoresValid,
   mergeRacialBonuses,
 } from '../shared/dnd/pointBuy'
+import { featGrantDefFromCatalog } from '../shared/dnd/featGrants'
 import {
   isRaceComboboxRoot,
   mergeAbilityBonuses,
@@ -106,6 +107,16 @@ const CASTER_NAME_RE =
 
 function catalogRef(entry: CatalogEntry) {
   return { id: entry.id, slug: entry.slug, nameRu: entry.name_ru }
+}
+
+/** Feat has ASI / spell / other forks that must be picked in FeatSetupDialog. */
+function featCatalogNeedsSetup(entry: CatalogEntry): boolean {
+  const def = featGrantDefFromCatalog({
+    slug: entry.slug,
+    nameRu: entry.name_ru,
+    data: entry.data,
+  })
+  return Boolean(def && def.choices.length > 0)
 }
 
 function emptyWizardSkills(): SkillExpertiseState {
@@ -981,7 +992,14 @@ export function CreateCharacterPage() {
           source: entry.source,
         }))}
         selectedId={selectedFeat?.id ?? state.feat?.id ?? null}
-        onSelect={(id) => setSelectedFeat(feats.find((row) => row.id === id) ?? null)}
+        onSelect={(id) => {
+          const entry = feats.find((row) => row.id === id) ?? null
+          setSelectedFeat(entry)
+          // Feats with ASI/spell forks need the setup dialog — open immediately.
+          if (entry && featCatalogNeedsSetup(entry)) {
+            setFeatSetupOpen(true)
+          }
+        }}
         emptyText="В каталоге пока мало черт — можно отметить заметку расы и продолжить"
       />
     )
@@ -997,9 +1015,17 @@ export function CreateCharacterPage() {
             Заметка расы: {featNote}
           </Text>
         ) : null}
-        <Text tone="muted">
-          Открой настройку черты, чтобы выбрать ASI / заклинание / другие развилки — как на листе.
-        </Text>
+        {selectedFeat && featCatalogNeedsSetup(selectedFeat) ? (
+          <Text tone="muted">
+            У этой черты есть выбор (ASI / заклинание / другое) — нажми «Настроить и взять» и
+            укажи развилки, иначе гранты не попадут на лист.
+          </Text>
+        ) : (
+          <Text tone="muted">
+            Открой настройку черты, чтобы зафиксировать гранты на листе — как в редакторе
+            персонажа.
+          </Text>
+        )}
         <div className="create-pipeline__method-row">
           <Button
             disabled={!selectedFeat}
@@ -1032,8 +1058,6 @@ export function CreateCharacterPage() {
               ? ` · ${state.featSetup.applied.summaryRu}`
               : ''}
           </Text>
-        ) : state.feat ? (
-          <Text tone="muted">Выбрано: {state.feat.nameRu}</Text>
         ) : state.featAcknowledged ? (
           <Text tone="muted">Черта отмечена без карточки каталога</Text>
         ) : null}
