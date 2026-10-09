@@ -27,6 +27,10 @@ export function EquipmentProficienciesPanel({
   return (
     <Panel title="Владения снаряжением">
       <Stack gap={14}>
+        <Text tone="muted">
+          Отсюда считается, можно ли надеть доспех/щит и даёт ли оружие бонус мастерства в атаках —
+          на карточке атаки это не переключается вручную.
+        </Text>
         <div>
           <Text tone="muted">Доспехи</Text>
           <div className="chip-row">

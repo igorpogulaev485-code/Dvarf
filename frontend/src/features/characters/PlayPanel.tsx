@@ -49,7 +49,7 @@ import {
   type ComboboxOption,
 } from '../../ui'
 import { withSyncedHitDiceSummary, type PlayState } from './play'
-import type { SpellsState } from './spells'
+import { recoverGrantCastsOnRest, type SpellsState } from './spells'
 
 type ConditionOption = {
   slug: string
@@ -290,9 +290,26 @@ export function PlayPanel({
   }
 
   function doShortRestResources() {
-    const result = applyShortRest({ resources: play.resources })
+    const result = applyShortRest({
+      resources: play.resources,
+      pact_slots: spells.pact_slots,
+    })
     patchPlay({ resources: result.resources })
-    onToast('Сброшены ресурсы со сбросом «короткий» (в текстовых блоках)')
+    const known = recoverGrantCastsOnRest(spells.known, 'short')
+    const spellsTouched =
+      result.pact_slots !== undefined || known !== spells.known
+    if (spellsTouched) {
+      onSpellsChange({
+        ...spells,
+        ...(result.pact_slots !== undefined ? { pact_slots: result.pact_slots } : {}),
+        known,
+      })
+    }
+    onToast(
+      spells.pact_slots
+        ? 'Короткий отдых: ресурсы «короткий» + pact-ячейки восстановлены'
+        : 'Сброшены ресурсы со сбросом «короткий» (в текстовых блоках)',
+    )
   }
 
   function spendHitDieOnShortRest() {
@@ -380,6 +397,7 @@ export function PlayPanel({
       ...spells,
       slots: result.slots ?? spells.slots,
       pact_slots: result.pact_slots === undefined ? spells.pact_slots : result.pact_slots,
+      known: recoverGrantCastsOnRest(spells.known, 'long'),
     })
     if (result.hp_current !== undefined) {
       onCombatChange({ hpCurrent: result.hp_current })

@@ -815,11 +815,23 @@ export type AppliedClassGrant = {
   equipmentCoinsGp: number
 }
 
+/** Focus chosen for a generic «Магический фокус» / «фокус друида» package line. */
+export type ClassEquipmentFocusPick = {
+  name: string
+  catalog_id: string | null
+  cost_gp: number | null
+  weight_lb: number | null
+  focus_kind: 'arcane' | 'druidic' | 'holy' | 'any'
+  custom: boolean
+}
+
 export type ClassGrantPicks = {
   skills: string[]
   tools: string[]
   /** Required for start mode when class has packages; 'skip' = без снаряжения. */
   equipmentPackageId: string | null
+  /** When the package has a focus placeholder — catalog row or custom look. */
+  equipmentFocusPick?: ClassEquipmentFocusPick | null
 }
 
 export function classGrantDef(slug: string | null | undefined): ClassGrantDef | null {

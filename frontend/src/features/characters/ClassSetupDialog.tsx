@@ -3,11 +3,19 @@ import {
   equipmentPackagesFor,
   packageForMode,
   skillOptionsForPackage,
+  type ClassEquipmentFocusPick,
   type ClassGrantDef,
   type ClassGrantPicks,
 } from '../../shared/dnd/classGrants'
+import type { RulesEdition } from '../../shared/api/characters'
 import { SKILL_DEFS } from './sheetTypes'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
+import { FocusCatalogSelect } from './FocusCatalogSelect'
+import {
+  detectFocusPlaceholder,
+  type FocusSelection,
+} from './focusCatalog'
+import type { FocusKind } from './spellFocus'
 
 type ClassSetupDialogProps = {
   open: boolean
@@ -16,6 +24,7 @@ type ClassSetupDialogProps = {
   /** Already from background — cannot pick again. */
   blockedSkillKeys?: string[]
   blockedToolNames?: string[]
+  edition: RulesEdition
   onConfirm: (picks: ClassGrantPicks) => void
   onClose: () => void
 }
@@ -24,12 +33,24 @@ function skillLabel(key: string): string {
   return SKILL_DEFS.find((item) => item.key === key)?.label ?? key
 }
 
+function toPick(selection: FocusSelection): ClassEquipmentFocusPick {
+  return {
+    name: selection.name,
+    catalog_id: selection.catalog_id,
+    cost_gp: selection.cost_gp,
+    weight_lb: selection.weight_lb,
+    focus_kind: selection.focus_kind,
+    custom: selection.custom,
+  }
+}
+
 export function ClassSetupDialog({
   open,
   def,
   mode,
   blockedSkillKeys = [],
   blockedToolNames = [],
+  edition,
   onConfirm,
   onClose,
 }: ClassSetupDialogProps) {
@@ -51,13 +72,33 @@ export function ClassSetupDialog({
   const [skills, setSkills] = useState<string[]>([])
   const [tools, setTools] = useState<string[]>([])
   const [equipmentPackageId, setEquipmentPackageId] = useState<string | null>(null)
+  const [focusSelection, setFocusSelection] = useState<FocusSelection | null>(null)
 
   useEffect(() => {
     if (!open) return
     setSkills([])
     setTools([])
     setEquipmentPackageId(null)
+    setFocusSelection(null)
   }, [open, def?.slug, mode])
+
+  const selectedPack = useMemo(
+    () => equipmentPackages.find((row) => row.id === equipmentPackageId) ?? null,
+    [equipmentPackages, equipmentPackageId],
+  )
+
+  const focusPlaceholder = useMemo(() => {
+    if (!selectedPack) return null
+    for (const item of selectedPack.items) {
+      const kind = detectFocusPlaceholder(item.name)
+      if (kind) return { name: item.name, kind }
+    }
+    return null
+  }, [selectedPack])
+
+  useEffect(() => {
+    setFocusSelection(null)
+  }, [equipmentPackageId])
 
   function toggleSkill(key: string) {
     if (blockedSkills.has(key)) return
@@ -82,11 +123,14 @@ export function ClassSetupDialog({
     equipmentPackages.length === 0 ||
     Boolean(equipmentPackageId)
 
+  const focusOk = !focusPlaceholder || focusSelection != null
+
   const canConfirm =
     Boolean(def && pkg) &&
     skills.length === skillNeed &&
     tools.length === toolNeed &&
-    equipmentOk
+    equipmentOk &&
+    focusOk
 
   if (!def || !pkg) return null
 
@@ -97,12 +141,14 @@ export function ClassSetupDialog({
       primaryLabel="Применить"
       secondaryLabel="Отмена"
       size="wide"
+      primaryDisabled={!canConfirm}
       onPrimary={() => {
         if (!canConfirm) return
         onConfirm({
           skills,
           tools,
           equipmentPackageId: mode === 'start' ? equipmentPackageId : null,
+          equipmentFocusPick: focusSelection ? toPick(focusSelection) : null,
         })
       }}
       onSecondary={onClose}
@@ -195,6 +241,23 @@ export function ClassSetupDialog({
           </Field>
         ) : null}
 
+        {focusPlaceholder ? (
+          <Stack gap={8}>
+            <Text>
+              В пакете «{focusPlaceholder.name}» — выбери конкретный предмет из справочника
+              или своё название.
+            </Text>
+            <FocusCatalogSelect
+              edition={edition}
+              family={focusPlaceholder.kind as FocusKind}
+              value={focusSelection}
+              onChange={setFocusSelection}
+              label="Фокус / символ"
+              allowFamilyPick={focusPlaceholder.kind === 'any'}
+            />
+          </Stack>
+        ) : null}
+
         {!canConfirm ? (
           <Text tone="muted">Отметь все обязательные развилки, чтобы продолжить.</Text>
         ) : null}
@@ -239,18 +302,13 @@ export function HomebrewClassDialog({
       onSecondary={onClose}
     >
       <Stack gap={12}>
-        <Text tone="muted">
-          Свой класс: укажи, как он будет называться на листе. Владения, навыки, снаряжение и
-          способности задаёшь сам — ничего из PHB не подставляем.
-        </Text>
-        <Field label="Название на листе" hint="Например: Ведьмак, Рыцарь пустоты…">
+        <Field label="Название класса">
           <Input
             value={name}
-            placeholder="Название класса"
+            placeholder="Например: Ведьмак"
             onChange={(event) => setName(event.target.value)}
           />
         </Field>
-        {!canConfirm ? <Text tone="muted">Введи название класса.</Text> : null}
       </Stack>
     </Dialog>
   )

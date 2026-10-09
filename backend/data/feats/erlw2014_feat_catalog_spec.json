@@ -1,0 +1,149 @@
+{
+  "rules_edition": "2014",
+  "notes_ru": "Волна Эберрон: ERLW (Rising from the Last War) + WGTE (Wayfinder's Guide). ERLW даёт Aberrant Dragonmark; Revenant Blade — из WGTE (тот же сеттинг). Драконьи знаки домов — расовые подрасы/метки, не черты. При расхождении dnd.su/ttg — решать с Игорем.",
+  "wave": "erlw",
+  "feats": [
+    {
+      "id": "2b9ac5a9-f9a1-5437-959e-ab727f607d80",
+      "slug": "aberrant_dragonmark",
+      "name_ru": "Аберрантный драконий знак",
+      "name_en": "Aberrant Dragonmark",
+      "source": "erlw",
+      "sort_order": 5010,
+      "data": {
+        "source": "erlw",
+        "wave": "erlw",
+        "prerequisites_ru": null,
+        "summary_ru": "+1 Тел; заговор и заклинание 1 круга чародея; 1/короткий отдых без ячейки.",
+        "benefits_ru": "Увеличьте Телосложение на 1 (макс. 20). Выучите один заговор из списка чародея. Также выучите одно заклинание 1 уровня из списка чародея; можете накладывать его без ячейки один раз, затем нужен короткий или длинный отдых (также можете тратить ячейки). Характеристика сотворения — Интеллект, Мудрость или Харизма (выбор при взятии черты). Когда накладываете это заклинание 1 круга этой чертой, можете (по желанию) бросить по таблице эффектов аберрантного знака.",
+        "prerequisites": {},
+        "choices": [
+          {
+            "id": "cast",
+            "type": "enum",
+            "label_ru": "Характеристика сотворения",
+            "options": [
+              {
+                "id": "int",
+                "label_ru": "Интеллект"
+              },
+              {
+                "id": "wis",
+                "label_ru": "Мудрость"
+              },
+              {
+                "id": "cha",
+                "label_ru": "Харизма"
+              }
+            ]
+          },
+          {
+            "id": "cantrip",
+            "type": "spell_one",
+            "label_ru": "Заговор чародея",
+            "level": 0,
+            "grant": "innate",
+            "options": [
+              { "id": "acid_splash", "label_ru": "Брызги кислоты" },
+              { "id": "chill_touch", "label_ru": "Леденящее прикосновение" },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд" },
+              { "id": "light", "label_ru": "Свет" },
+              { "id": "mage_hand", "label_ru": "Волшебная рука" },
+              { "id": "mending", "label_ru": "Починка" },
+              { "id": "message", "label_ru": "Сообщение" },
+              { "id": "minor_illusion", "label_ru": "Малая иллюзия" },
+              { "id": "poison_spray", "label_ru": "Ядовитые брызги" },
+              { "id": "prestidigitation", "label_ru": "Фокусы" },
+              { "id": "ray_of_frost", "label_ru": "Луч холода" },
+              { "id": "shocking_grasp", "label_ru": "Шокирующее касание" },
+              { "id": "true_strike", "label_ru": "Меткий удар" }
+            ]
+          },
+          {
+            "id": "l1_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 1 круга чародея",
+            "level": 1,
+            "grant": "innate",
+            "notes_ru": "1/короткий или длинный отдых без ячейки",
+            "options": [
+              { "id": "burning_hands", "label_ru": "Горящие руки" },
+              { "id": "charm_person", "label_ru": "Очарование личности" },
+              { "id": "chromatic_orb", "label_ru": "Цветной шар" },
+              { "id": "color_spray", "label_ru": "Цветной шарик" },
+              { "id": "detect_magic", "label_ru": "Обнаружение магии" },
+              { "id": "disguise_self", "label_ru": "Маскировка" },
+              { "id": "expeditious_retreat", "label_ru": "Ускоренное отступление" },
+              { "id": "false_life", "label_ru": "Псевдожизнь" },
+              { "id": "feather_fall", "label_ru": "Падение пёрышком" },
+              { "id": "fog_cloud", "label_ru": "Туманное облако" },
+              { "id": "jump", "label_ru": "Прыжок" },
+              { "id": "mage_armor", "label_ru": "Доспехи мага" },
+              { "id": "magic_missile", "label_ru": "Волшебная стрела" },
+              { "id": "ray_of_sickness", "label_ru": "Луч болезни" },
+              { "id": "shield", "label_ru": "Щит" },
+              { "id": "silent_image", "label_ru": "Бесшумный образ" },
+              { "id": "sleep", "label_ru": "Усыпление" },
+              { "id": "thunderwave", "label_ru": "Волна грома" }
+            ]
+          }
+        ],
+        "grants": {
+          "ability_bonuses": {
+            "con": 1
+          },
+          "flags": [
+            "aberrant_dragonmark"
+          ],
+          "resource": {
+            "pool_id": "aberrant_l1",
+            "pool_name_ru": "Аберрантный знак (1 круг)",
+            "uses": 1,
+            "recovery": "short_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "640e133e-2f2e-5092-a710-95970fe3dcb2",
+      "slug": "revenant_blade",
+      "name_ru": "Клинок вернувшегося",
+      "name_en": "Revenant Blade",
+      "source": "wgte",
+      "sort_order": 5020,
+      "data": {
+        "source": "wgte",
+        "wave": "erlw",
+        "prerequisites_ru": "Эльф",
+        "summary_ru": "+1 Сил или Лов; двуклинковый ятаган как фехтовальное; удар вторым концом.",
+        "benefits_ru": "Увеличьте Силу или Ловкость на 1 (макс. 20). Владение двуклинковым ятаганом. Пока держите его двумя руками, он получает свойство «фехтовальное». Когда атакуете им действием Атака, можете бонусным действием ударить другим концом: 1к4 + модификатор характеристики колющего урона (свойства оружия те же).",
+        "prerequisites": {
+          "races_any": [
+            "elf",
+            "half_elf"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "str",
+              "dex"
+            ],
+            "label_ru": "+1 к Сил или Лов"
+          }
+        ],
+        "grants": {
+          "weapon_proficiencies": [
+            "Двуклинковый ятаган"
+          ],
+          "flags": [
+            "revenant_blade"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -24,20 +24,36 @@ import {
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
+import {
+  formatSpellComponents,
+  resolveCastEffect,
+  spellSchoolLabelRu,
+} from '../../shared/dnd/spellCatalog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import type { ConcentrationState } from './play'
 import {
+  canRemoveSheetSpell,
+  canSpendGrantCast,
   countPreparedLeveled,
   createSheetSpell,
+  ensureInnateGrantCasts,
+  ensureKnownSpellsReady,
+  grantCastRemaining,
+  isFeatSheetSpell,
+  isKnownSpellcastingMode,
   isRaceSheetSpell,
   groupSpellsByLevel,
   isReadyInCombat,
+  preparedLockChip,
   readCatalogSpellFields,
   setSpellPrepared,
+  spendGrantCast,
   type SheetSpell,
   type SpellsState,
 } from './spells'
+import type { InventoryItem, InventoryState } from './inventory'
+import { consumeMaterialItem } from './spellMaterials'
 
 type SpellsPanelProps = {
   edition: RulesEdition
@@ -49,7 +65,10 @@ type SpellsPanelProps = {
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  inventoryItems: InventoryItem[]
   onChange: (spells: SpellsState) => void
+  onInventoryChange?: (inventory: InventoryState) => void
+  inventory?: InventoryState
   onConcentrationChange?: (concentration: ConcentrationState | null) => void
   onToast?: (message: string) => void
 }
@@ -63,7 +82,10 @@ export function SpellsPanel({
   spells,
   abilities,
   proficiencyBonus,
+  inventoryItems,
+  inventory,
   onChange,
+  onInventoryChange,
   onConcentrationChange,
   onToast,
 }: SpellsPanelProps) {
@@ -111,6 +133,33 @@ export function SpellsPanel({
       }),
     [className, level, classes, subclassCasters, abilities],
   )
+
+  const knownCaster = isKnownSpellcastingMode({
+    maxPrepared: spells.max_prepared,
+    hasCasterSuggestion: suggestion != null && suggestion.progression !== 'none',
+  })
+
+  useEffect(() => {
+    if (!knownCaster) return
+    const next = ensureKnownSpellsReady(spells.known)
+    if (next === spells.known) return
+    onChange({ ...spells, known: next })
+    // Keep known-list spells combat-ready when class has no prepare budget.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [knownCaster, spells.known.map((s) => `${s.id}:${s.prepared}`).join('|')])
+
+  useEffect(() => {
+    const next = ensureInnateGrantCasts(spells.known, proficiencyBonus)
+    if (next === spells.known) return
+    onChange({ ...spells, known: next })
+    // Backfill grant_cast on innate race/feat spells (PB / notes).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    proficiencyBonus,
+    spells.known
+      .map((s) => `${s.id}:${s.race_grant ?? ''}:${s.feat_grant ?? ''}:${s.notes}:${s.grant_cast?.max ?? ''}`)
+      .join('|'),
+  ])
 
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })
@@ -234,13 +283,68 @@ export function SpellsPanel({
     )
   }
 
+  function applyMaterialConsume(choice: CastChoice): string {
+    if (!choice.consumeMaterial || !choice.consumeItemId || !inventory || !onInventoryChange) {
+      return ''
+    }
+    const target = inventory.items.find((row) => row.id === choice.consumeItemId)
+    if (!target) return ''
+    onInventoryChange({
+      ...inventory,
+      items: consumeMaterialItem(inventory.items, choice.consumeItemId, 1),
+    })
+    return ` · −1 «${target.name}»`
+  }
+
   function confirmCast(choice: CastChoice) {
     if (!castSpell) return
     const name = castSpell.name || 'Заклинание'
+    const ritualCast = Boolean(choice.ritual && castSpell.ritual && castSpell.level > 0)
+    const grantCast = Boolean(choice.useGrant && canSpendGrantCast(castSpell))
+    const slotForEffect =
+      castSpell.level <= 0 || ritualCast || grantCast
+        ? castSpell.level
+        : choice.usePact
+          ? (spells.pact_slots?.level ?? castSpell.level)
+          : choice.slotLevel
+    const { effect, scaled } = resolveCastEffect(castSpell, {
+      characterLevel: level,
+      slotLevel: slotForEffect || castSpell.level,
+    })
+    const effectNote = scaled && effect ? ` · ${effect}` : ''
+    const consumeNote = applyMaterialConsume(choice)
+
     if (castSpell.level <= 0) {
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
-        castSpell.concentration ? `Каст: ${name} (концентрация)` : `Каст: ${name}`,
+        castSpell.concentration
+          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)`
+          : `Каст: ${name}${effectNote}${consumeNote}`,
+      )
+      setCastSpell(null)
+      return
+    }
+    if (grantCast) {
+      const label = castSpell.grant_cast?.label ?? 'Грант'
+      onChange({
+        ...spells,
+        known: spendGrantCast(spells.known, castSpell.id),
+      })
+      applyConcentrationIfNeeded(castSpell)
+      onToast?.(
+        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
+          castSpell.concentration ? ' · концентрация' : ''
+        }`,
+      )
+      setCastSpell(null)
+      return
+    }
+    if (ritualCast) {
+      applyConcentrationIfNeeded(castSpell)
+      onToast?.(
+        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
+          castSpell.concentration ? ' · концентрация' : ''
+        }`,
       )
       setCastSpell(null)
       return
@@ -254,7 +358,7 @@ export function SpellsPanel({
       patch({ pact_slots: pactResult.pact })
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
-        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${
+        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
           castSpell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -271,7 +375,7 @@ export function SpellsPanel({
     const upcast =
       choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast?.(
-      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${
         castSpell.concentration ? ' · концентрация' : ''
       }`,
     )
@@ -302,8 +406,9 @@ export function SpellsPanel({
     <Panel title="Заклинания">
       <Stack gap={14}>
         <Text tone="muted">
-          Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые заклинания — из
-          гримуара.
+          {knownCaster
+            ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку/pact. Новые — из гримуара.'
+            : 'Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые — из гримуара, затем подготовь.'}
         </Text>
 
         <div className="spells-summary">
@@ -316,18 +421,43 @@ export function SpellsPanel({
             <strong>{attack == null ? '—' : formatModifier(attack)}</strong>
           </div>
           <div className="spells-summary__stat">
-            <Text tone="muted">Подготовлено</Text>
-            <strong>{prepareLimitLabel}</strong>
+            <Text tone="muted">{knownCaster ? 'Известно' : 'Подготовлено'}</Text>
+            <strong>
+              {knownCaster
+                ? String(spells.known.filter((s) => s.level > 0).length)
+                : prepareLimitLabel}
+            </strong>
           </div>
+        </div>
+
+        <div className="chip-row spells-focus-chips">
+          <span
+            className={`sheet-chip${spells.has_spell_focus ? ' is-on' : ''}`}
+            title="Магический / друидический фокус в инвентаре"
+          >
+            {spells.has_spell_focus ? 'Фокус ✓' : 'Фокус ✗'}
+          </span>
+          <span
+            className={`sheet-chip${spells.has_component_pouch ? ' is-on' : ''}`}
+            title="Мешочек с компонентами в инвентаре"
+          >
+            {spells.has_component_pouch ? 'Мешочек ✓' : 'Мешочек ✗'}
+          </span>
+          <Text tone="muted">
+            Ищем в инвентаре тип «Фокус» / «Мешочек» (имя может быть любым). М с ценой — отдельный
+            предмет.
+          </Text>
         </div>
 
         <div className="spells-toolbar">
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
           </Button>
-          <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
-            Подготовить заклинания
-          </Button>
+          {!knownCaster ? (
+            <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
+              Подготовить заклинания
+            </Button>
+          ) : null}
           <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
             Гримуар
           </Button>
@@ -553,7 +683,7 @@ export function SpellsPanel({
                         <Field label="Время">
                           <Input
                             value={spell.casting_time}
-                            placeholder="Д / БД…"
+                            placeholder="1 действие…"
                             onChange={(event) =>
                               updateSpell(spell.id, { casting_time: event.target.value })
                             }
@@ -565,6 +695,17 @@ export function SpellsPanel({
                             placeholder="60 футов"
                             onChange={(event) =>
                               updateSpell(spell.id, { range: event.target.value })
+                            }
+                          />
+                        </Field>
+                        <Field label="Длительность">
+                          <Input
+                            value={spell.duration ?? ''}
+                            placeholder="Мгновенная / 1 мин…"
+                            onChange={(event) =>
+                              updateSpell(spell.id, {
+                                duration: event.target.value || undefined,
+                              })
                             }
                           />
                         </Field>
@@ -587,46 +728,88 @@ export function SpellsPanel({
                           />
                         </Field>
                       </div>
+                      {spell.components || spell.school || spell.source_book || spell.higher_levels ? (
+                        <Text tone="muted" className="spell-card__extras">
+                          {[
+                            spell.components
+                              ? formatSpellComponents(spell.components)
+                              : '',
+                            spell.school ? spellSchoolLabelRu(spell.school) : '',
+                            spell.source_book ?? '',
+                            spell.higher_levels ? `↑ ${spell.higher_levels}` : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </Text>
+                      ) : null}
                       <div className="spell-card__footer">
                         {spell.level > 0 ? (
-                          spell.race_grant === 'innate' ? (
-                            <span
-                              className="sheet-chip is-on"
-                              title="Врождённый расовый каст — вне лимита подготовки"
-                            >
-                              Врождённое
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
-                              onClick={() =>
-                                patch({
-                                  known: setSpellPrepared(
-                                    spells.known,
-                                    spell.id,
-                                    !spell.prepared,
-                                    spells.max_prepared,
-                                  ),
-                                })
-                              }
-                            >
-                              {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
-                            </button>
-                          )
+                          (() => {
+                            const lock = preparedLockChip(spell)
+                            if (lock) {
+                              return (
+                                <span className="sheet-chip is-on" title={lock.title}>
+                                  {lock.label}
+                                </span>
+                              )
+                            }
+                            if (knownCaster) {
+                              return (
+                                <span
+                                  className="sheet-chip is-on"
+                                  title="Известное заклинание — всегда доступно"
+                                >
+                                  Известно
+                                </span>
+                              )
+                            }
+                            return (
+                              <button
+                                type="button"
+                                className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
+                                onClick={() =>
+                                  patch({
+                                    known: setSpellPrepared(
+                                      spells.known,
+                                      spell.id,
+                                      !spell.prepared,
+                                      spells.max_prepared,
+                                    ),
+                                  })
+                                }
+                              >
+                                {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
+                              </button>
+                            )
+                          })()
                         ) : (
                           <span className="sheet-chip is-on">Заговор</span>
                         )}
-                        {isRaceSheetSpell(spell) ? (
+                        {spell.grant_cast && spell.grant_cast.max > 0 ? (
+                          <span
+                            className={`sheet-chip${
+                              grantCastRemaining(spell) > 0 ? ' is-on' : ''
+                            }`}
+                            title={`${spell.grant_cast.label}: бесплатный каст без ячейки`}
+                          >
+                            {spell.grant_cast.label} {grantCastRemaining(spell)}/
+                            {spell.grant_cast.max}
+                          </span>
+                        ) : null}
+                        {isRaceSheetSpell(spell) && spell.race_grant === 'spell_list' ? (
                           <span
                             className="sheet-chip is-on"
-                            title={
-                              spell.race_grant === 'spell_list'
-                                ? 'Список метки/расы — готовь как классовое'
-                                : 'Врождённое расовое заклинание'
-                            }
+                            title="Список метки/расы — готовь как классовое"
                           >
-                            {spell.race_grant === 'spell_list' ? 'Метка' : 'Раса'}
+                            Метка
+                          </span>
+                        ) : null}
+                        {isFeatSheetSpell(spell) && spell.feat_grant === 'spell_list' ? (
+                          <span
+                            className="sheet-chip is-on"
+                            title="Список черты — готовь как классовое"
+                          >
+                            Черта
                           </span>
                         ) : null}
                         <button
@@ -638,21 +821,33 @@ export function SpellsPanel({
                         >
                           К
                         </button>
-                        <Button
-                          variant="ghost"
-                          onClick={() =>
-                            patch({
-                              known: spells.known.filter((item) => item.id !== spell.id),
-                            })
-                          }
+                        <button
+                          type="button"
+                          className={`sheet-chip${spell.ritual ? ' is-on' : ''}`}
+                          onClick={() => updateSpell(spell.id, { ritual: !spell.ritual })}
+                          title="Ритуал"
                         >
-                          Удалить
-                        </Button>
+                          Ритуал
+                        </button>
+                        {canRemoveSheetSpell(spell) ? (
+                          <Button
+                            variant="ghost"
+                            onClick={() =>
+                              patch({
+                                known: spells.known.filter((item) => item.id !== spell.id),
+                              })
+                            }
+                          >
+                            Удалить
+                          </Button>
+                        ) : null}
                         <Button
                           className="spell-card__cast"
                           disabled={
                             (spell.level > 0 && !spell.prepared) ||
                             (spell.level > 0 &&
+                              !spell.ritual &&
+                              !canSpendGrantCast(spell) &&
                               !canCastLeveledSpell(
                                 spells.slots,
                                 spells.pact_slots,
@@ -692,6 +887,7 @@ export function SpellsPanel({
         open={grimoireOpen}
         edition={edition}
         spells={spells}
+        knownCaster={knownCaster}
         onChange={onChange}
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}
@@ -700,6 +896,8 @@ export function SpellsPanel({
         open={castSpell != null}
         spell={castSpell}
         spells={spells}
+        inventoryItems={inventoryItems}
+        characterLevel={level}
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />

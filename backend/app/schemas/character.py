@@ -22,6 +22,7 @@ class CharacterSummary(BaseModel):
     hp_max: int | None = None
     rules_edition: RulesEdition
     sheet_version: int
+    is_draft: bool = False
     created_at: datetime
     updated_at: datetime
 
@@ -33,6 +34,7 @@ class CharacterDetail(CharacterSummary):
 class CharacterCreateRequest(BaseModel):
     rules_edition: RulesEdition
     name: str | None = Field(default=None, min_length=1, max_length=120)
+    is_draft: bool = False
 
 
 class CharacterUpdateRequest(BaseModel):
@@ -44,5 +46,6 @@ class CharacterUpdateRequest(BaseModel):
     hp_current: int | None = None
     hp_max: int | None = None
     rules_edition: RulesEdition | None = None
+    is_draft: bool | None = None
     sheet: dict[str, Any] | None = None
     sheet_version: int = Field(ge=1)

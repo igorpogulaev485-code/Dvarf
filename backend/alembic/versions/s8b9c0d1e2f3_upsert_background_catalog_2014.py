@@ -1,7 +1,7 @@
 """Upsert official 2014 background catalog grants from spec.
 
-Revision ID: w2f3a4b5c6d7
-Revises: s8b9c0d1e2f3
+Revision ID: s8b9c0d1e2f3
+Revises: r7a8b9c0d1e2
 Create Date: 2026-10-07 09:20:00.000000
 
 """
@@ -17,8 +17,8 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "w2f3a4b5c6d7"
-down_revision: Union[str, Sequence[str], None] = "s8b9c0d1e2f3"
+revision: str = "s8b9c0d1e2f3"
+down_revision: Union[str, Sequence[str], None] = "r7a8b9c0d1e2"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

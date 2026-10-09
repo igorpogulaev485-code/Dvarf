@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "notes": "W6b: promote one variant per family to parent slug (== family_slug), like potion_of_healing. Deactivate duplicate giant-strength potion aliases.",
+  "renames": [
+    {
+      "from_slug": "bag_of_tricks_gray",
+      "to_slug": "bag_of_tricks",
+      "variant_key": "base",
+      "variant_label_ru": "Серый",
+      "family_label_ru": "Мешок трюков"
+    },
+    {
+      "from_slug": "carpet_of_flying_3x5",
+      "to_slug": "carpet_of_flying",
+      "variant_key": "base",
+      "variant_label_ru": "3×5 (80 фт.)",
+      "family_label_ru": "Ковёр-самолёт"
+    },
+    {
+      "from_slug": "elemental_gem_fire",
+      "to_slug": "elemental_gem",
+      "variant_key": "base",
+      "variant_label_ru": "Огня",
+      "family_label_ru": "Самоцвет элементаля"
+    },
+    {
+      "from_slug": "horn_of_valhalla_silver",
+      "to_slug": "horn_of_valhalla",
+      "variant_key": "base",
+      "variant_label_ru": "Серебряный",
+      "family_label_ru": "Рог Валгаллы"
+    },
+    {
+      "from_slug": "ioun_stone_protection",
+      "to_slug": "ioun_stone",
+      "variant_key": "base",
+      "variant_label_ru": "Защиты",
+      "family_label_ru": "Камень Иоун"
+    },
+    {
+      "from_slug": "potion_of_giant_strength_hill",
+      "to_slug": "potion_of_giant_strength",
+      "variant_key": "base",
+      "variant_label_ru": "Холмового (21)",
+      "family_label_ru": "Зелье силы великана"
+    }
+  ],
+  "deactivate_slugs": [
+    "potion_of_hill_giant_strength",
+    "potion_of_fire_giant_strength",
+    "potion_of_cloud_giant_strength"
+  ]
+}

@@ -4,6 +4,8 @@ import { Dialog, Stack, Text } from '../../ui'
 import {
   countPreparedLeveled,
   groupSpellsByLevel,
+  isPreparedLocked,
+  preparedLockChip,
   setSpellPrepared,
   type SheetSpell,
   type SpellsState,
@@ -50,6 +52,7 @@ export function PrepareSpellsDialog({
 
   function togglePrepared(spell: SheetSpell) {
     if (!countsTowardPrepareLimit(spell.level)) return
+    if (isPreparedLocked(spell)) return
     const nextPrepared = !spell.prepared
     onChange({
       ...spells,
@@ -69,8 +72,8 @@ export function PrepareSpellsDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          Заговоры всегда доступны. Лимит подготовки пока задаётся вручную в настройках (таблицы
-          класса — позже). Гримуар на все SRD — в S4.
+          Заговоры всегда доступны. Лимит подготовки — из таблицы класса (кнопка «От класса») или
+          вручную в настройках. Новые заклинания — из гримуара.
         </Text>
 
         <div className="chip-row">
@@ -116,8 +119,10 @@ export function PrepareSpellsDialog({
               <strong>{levelLabel(group.level)}</strong>
               <ul className="prepare-list">
                 {group.spells.map((spell) => {
+                  const lock = preparedLockChip(spell)
                   const atCap =
                     !spell.prepared &&
+                    !lock &&
                     spells.max_prepared != null &&
                     preparedCount >= spells.max_prepared
                   return (
@@ -128,14 +133,20 @@ export function PrepareSpellsDialog({
                           <span className="prepare-row__badge">К</span>
                         ) : null}
                       </div>
-                      <button
-                        type="button"
-                        className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
-                        disabled={atCap}
-                        onClick={() => togglePrepared(spell)}
-                      >
-                        {spell.prepared ? 'Убрать' : atCap ? 'Лимит' : 'Подготовить'}
-                      </button>
+                      {lock ? (
+                        <span className="sheet-chip is-on" title={lock.title}>
+                          {lock.label}
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
+                          disabled={atCap}
+                          onClick={() => togglePrepared(spell)}
+                        >
+                          {spell.prepared ? 'Убрать' : atCap ? 'Лимит' : 'Подготовить'}
+                        </button>
+                      )}
                     </li>
                   )
                 })}

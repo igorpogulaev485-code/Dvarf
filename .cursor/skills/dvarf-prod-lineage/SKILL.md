@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/class-asi-hitdice-mc-ef23
+cursor/create-pipeline-page-2223
 ```
 
 URL: http://201.34.132.252/
@@ -38,7 +38,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-acbe origin/cursor/class-asi-hitdice-mc-ef23
+git checkout -b cursor/<descriptive>-acbe origin/cursor/create-pipeline-page-2223
 # если tip уже другой — подставь актуальный из AGENTS.md / этого skill
 ```
 
@@ -46,7 +46,7 @@ git checkout -b cursor/<descriptive>-acbe origin/cursor/class-asi-hitdice-mc-ef2
 
 ```bash
 git fetch origin
-git merge origin/cursor/class-asi-hitdice-mc-ef23
+git merge origin/cursor/create-pipeline-page-2223
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```

@@ -1,0 +1,625 @@
+{
+  "rules_edition": "2014",
+  "notes_ru": "Волна SDQ / DSotDQ (Dragonlance: Shadow of the Dragon Queen). 9 официальных черт кампании «Сага о Копье» (dnd.su plaque SDQ). Цепочки: Посвящённый → Адепт одежд (луна); Оруженосец → Рыцарь ордена. Классы/предыстории — в prerequisites.classes_any / backgrounds_any. При расхождении dnd.su/ttg — решать с Игорем.",
+  "wave": "sdq",
+  "feats": [
+    {
+      "id": "5a84da89-f9f1-5e41-ac8f-f0bf3cbaeec3",
+      "slug": "divinely_favored",
+      "name_ru": "Любимец богов",
+      "name_en": "Divinely Favored",
+      "source": "sdq",
+      "sort_order": 7010,
+      "data": {
+        "source": "sdq",
+        "wave": "sdq",
+        "prerequisites_ru": "4-й уровень; кампания «Сага о Копье»",
+        "summary_ru": "Заговор клирика + заклинание 1 круга по мировоззрению + Предсказание.",
+        "benefits_ru": "Выучите один заговор клирика и одно заклинание 1 уровня по мировоззрению (зло — колдун; добро — клирик; нейтральное — друид). Также выучите Предсказание. Можете накладывать выбранное заклинание 1 круга и Предсказание без ячейки 1 раз / длинный отдых (также за ячейки). Характеристика сотворения — Инт, Муд или Хар. Можете использовать священный символ как фокус для заклинаний этой характеристики.",
+        "prerequisites": {
+          "min_level": 4
+        },
+        "choices": [
+          {
+            "id": "alignment",
+            "type": "enum",
+            "label_ru": "Мировоззрение (таблица заклинаний)",
+            "options": [
+              {
+                "id": "good",
+                "label_ru": "Доброе — заклинание 1 круга клирика"
+              },
+              {
+                "id": "neutral",
+                "label_ru": "Нейтральное — заклинание 1 круга друида"
+              },
+              {
+                "id": "evil",
+                "label_ru": "Злое — заклинание 1 круга колдуна"
+              }
+            ]
+          },
+          {
+            "id": "cast",
+            "type": "enum",
+            "label_ru": "Характеристика сотворения",
+            "options": [
+              {
+                "id": "int",
+                "label_ru": "Интеллект"
+              },
+              {
+                "id": "wis",
+                "label_ru": "Мудрость"
+              },
+              {
+                "id": "cha",
+                "label_ru": "Харизма"
+              }
+            ]
+          },
+          {
+            "id": "cantrip",
+            "type": "spell_one",
+            "label_ru": "Заговор клирика",
+            "level": 0,
+            "grant": "innate",
+            "options": [
+              { "id": "guidance", "label_ru": "Наставление" },
+              { "id": "light", "label_ru": "Свет" },
+              { "id": "mending", "label_ru": "Починка" },
+              { "id": "resistance", "label_ru": "Сопротивление" },
+              { "id": "sacred_flame", "label_ru": "Священное пламя" },
+              { "id": "spare_the_dying", "label_ru": "Уход за умирающим" },
+              { "id": "thaumaturgy", "label_ru": "Чудотворство" }
+            ]
+          },
+          {
+            "id": "l1_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 1 круга (по мировоззрению)",
+            "level": 1,
+            "grant": "innate",
+            "filter_enum": "alignment",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "bless", "label_ru": "Благословение", "lists": ["good"] },
+              { "id": "cure_wounds", "label_ru": "Лечение ран", "lists": ["good"] },
+              { "id": "detect_evil_and_good", "label_ru": "Обнаружение добра и зла", "lists": ["good"] },
+              { "id": "guiding_bolt", "label_ru": "Направляющий снаряд", "lists": ["good"] },
+              { "id": "healing_word", "label_ru": "Целебное слово", "lists": ["good"] },
+              { "id": "shield_of_faith", "label_ru": "Щит веры", "lists": ["good"] },
+              { "id": "entangle", "label_ru": "Опутывание", "lists": ["neutral"] },
+              { "id": "faerie_fire", "label_ru": "Огонь фей", "lists": ["neutral"] },
+              { "id": "goodberry", "label_ru": "Ягоды доброго", "lists": ["neutral"] },
+              { "id": "speak_with_animals", "label_ru": "Разговор с животными", "lists": ["neutral"] },
+              { "id": "armor_of_agathys", "label_ru": "Доспех Агатиса", "lists": ["evil"] },
+              { "id": "arms_of_hadar", "label_ru": "Руки Хадара", "lists": ["evil"] },
+              { "id": "hellish_rebuke", "label_ru": "Адское возмездие", "lists": ["evil"] },
+              { "id": "hex", "label_ru": "Сглаз", "lists": ["evil"] }
+            ]
+          }
+        ],
+        "grants": {
+          "flags": [
+            "divinely_favored"
+          ],
+          "spells": [
+            {
+              "id": "augury",
+              "spell_slug": "augury",
+              "name_ru": "Предсказание",
+              "level": 2,
+              "grant": "innate",
+              "notes_ru": "1/длинный отдых без ячейки"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cec36f5a-39de-5196-ba13-4c222f75cd45",
+      "slug": "initiate_of_high_sorcery",
+      "name_ru": "Посвящённый в Высшее волшебство",
+      "name_en": "Initiate of High Sorcery",
+      "source": "sdq",
+      "sort_order": 7020,
+      "data": {
+        "source": "sdq",
+        "wave": "sdq",
+        "prerequisites_ru": "Кампания «Сага о Копье»; чародей, волшебник или предыстория «Маг Высшего волшебства»",
+        "summary_ru": "Луна Кринна: заговор волшебника + 2 заклинания 1 круга.",
+        "benefits_ru": "Выберите луну: Нуитари, Лунитари или Солинари. Выучите один заговор волшебника и два заклинания 1 уровня по таблице луны. Можете накладывать эти заклинания 1 круга без ячейки 1 раз / длинный отдых каждое (также за ячейки). Характеристика сотворения — Инт, Муд или Хар (выбор при взятии). Луна определяет доступ к адептам одежд.",
+        "prerequisites": {
+          "classes_any": [
+            "sorcerer",
+            "wizard"
+          ],
+          "backgrounds_any": [
+            "mage_of_high_sorcery"
+          ]
+        },
+        "choices": [
+          {
+            "id": "moon",
+            "type": "enum",
+            "label_ru": "Луна Кринна",
+            "options": [
+              {
+                "id": "nuitari",
+                "label_ru": "Нуитари — dissonant whispers / false life / hex / ray of sickness"
+              },
+              {
+                "id": "lunitari",
+                "label_ru": "Лунитари — color spray / disguise self / feather fall / longstrider"
+              },
+              {
+                "id": "solinari",
+                "label_ru": "Солинари — comprehend languages / detect evil and good / protection from evil and good / shield"
+              }
+            ]
+          },
+          {
+            "id": "cast",
+            "type": "enum",
+            "label_ru": "Характеристика сотворения",
+            "options": [
+              {
+                "id": "int",
+                "label_ru": "Интеллект"
+              },
+              {
+                "id": "wis",
+                "label_ru": "Мудрость"
+              },
+              {
+                "id": "cha",
+                "label_ru": "Харизма"
+              }
+            ]
+          },
+          {
+            "id": "cantrip",
+            "type": "spell_one",
+            "label_ru": "Заговор волшебника",
+            "level": 0,
+            "grant": "innate",
+            "options": [
+              { "id": "acid_splash", "label_ru": "Брызги кислоты" },
+              { "id": "chill_touch", "label_ru": "Леденящее прикосновение" },
+              { "id": "fire_bolt", "label_ru": "Огненный снаряд" },
+              { "id": "light", "label_ru": "Свет" },
+              { "id": "mage_hand", "label_ru": "Волшебная рука" },
+              { "id": "mending", "label_ru": "Починка" },
+              { "id": "message", "label_ru": "Сообщение" },
+              { "id": "minor_illusion", "label_ru": "Малая иллюзия" },
+              { "id": "poison_spray", "label_ru": "Ядовитые брызги" },
+              { "id": "prestidigitation", "label_ru": "Фокусы" },
+              { "id": "ray_of_frost", "label_ru": "Луч холода" },
+              { "id": "shocking_grasp", "label_ru": "Шокирующее касание" },
+              { "id": "true_strike", "label_ru": "Меткий удар" }
+            ]
+          },
+          {
+            "id": "moon_spell1",
+            "type": "spell_one",
+            "label_ru": "Заклинание луны 1",
+            "level": 1,
+            "grant": "innate",
+            "filter_enum": "moon",
+            "unique_group": "moon_spells",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "dissonant_whispers", "label_ru": "Диссонирующий шёпот", "lists": ["nuitari"] },
+              { "id": "false_life", "label_ru": "Псевдожизнь", "lists": ["nuitari"] },
+              { "id": "hex", "label_ru": "Сглаз", "lists": ["nuitari"] },
+              { "id": "ray_of_sickness", "label_ru": "Луч болезни", "lists": ["nuitari"] },
+              { "id": "color_spray", "label_ru": "Цветной шарик", "lists": ["lunitari"] },
+              { "id": "disguise_self", "label_ru": "Маскировка", "lists": ["lunitari"] },
+              { "id": "feather_fall", "label_ru": "Падение пёрышком", "lists": ["lunitari"] },
+              { "id": "longstrider", "label_ru": "Длинный шаг", "lists": ["lunitari"] },
+              { "id": "comprehend_languages", "label_ru": "Понимание языков", "lists": ["solinari"] },
+              { "id": "detect_evil_and_good", "label_ru": "Обнаружение добра и зла", "lists": ["solinari"] },
+              { "id": "protection_from_evil_and_good", "label_ru": "Защита от зла и добра", "lists": ["solinari"] },
+              { "id": "shield", "label_ru": "Щит", "lists": ["solinari"] }
+            ]
+          },
+          {
+            "id": "moon_spell2",
+            "type": "spell_one",
+            "label_ru": "Заклинание луны 2",
+            "level": 1,
+            "grant": "innate",
+            "filter_enum": "moon",
+            "unique_group": "moon_spells",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "dissonant_whispers", "label_ru": "Диссонирующий шёпот", "lists": ["nuitari"] },
+              { "id": "false_life", "label_ru": "Псевдожизнь", "lists": ["nuitari"] },
+              { "id": "hex", "label_ru": "Сглаз", "lists": ["nuitari"] },
+              { "id": "ray_of_sickness", "label_ru": "Луч болезни", "lists": ["nuitari"] },
+              { "id": "color_spray", "label_ru": "Цветной шарик", "lists": ["lunitari"] },
+              { "id": "disguise_self", "label_ru": "Маскировка", "lists": ["lunitari"] },
+              { "id": "feather_fall", "label_ru": "Падение пёрышком", "lists": ["lunitari"] },
+              { "id": "longstrider", "label_ru": "Длинный шаг", "lists": ["lunitari"] },
+              { "id": "comprehend_languages", "label_ru": "Понимание языков", "lists": ["solinari"] },
+              { "id": "detect_evil_and_good", "label_ru": "Обнаружение добра и зла", "lists": ["solinari"] },
+              { "id": "protection_from_evil_and_good", "label_ru": "Защита от зла и добра", "lists": ["solinari"] },
+              { "id": "shield", "label_ru": "Щит", "lists": ["solinari"] }
+            ]
+          }
+        ],
+        "grants": {
+          "flags": [
+            "initiate_of_high_sorcery"
+          ]
+        }
+      }
+    },
+    {
+      "id": "517d99f3-408d-5d7f-8111-1c9a1dfbfb5a",
+      "slug": "adept_of_the_black_robes",
+      "name_ru": "Адепт Чёрных одежд",
+      "name_en": "Adept of the Black Robes",
+      "source": "sdq",
+      "sort_order": 7030,
+      "data": {
+        "source": "sdq",
+        "wave": "sdq",
+        "prerequisites_ru": "4-й уровень; Посвящённый в Высшее волшебство (Нуитари)",
+        "summary_ru": "Заклинание 2 круга (очарование/некромантия) + Канал жизни.",
+        "benefits_ru": "Выучите одно заклинание 2 уровня школы очарования или некромантии; 1/длинный отдых без ячейки (также за ячейки); характеристика — как у Посвящённого. Канал жизни: когда существо в 60 фт проваливает спасбросок против вашего наносящего урон заклинания, можете потратить кости хитов = уровню заклинания и добавить сумму бросков к урону.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": [
+            "initiate_of_high_sorcery"
+          ],
+          "feats_none": [
+            "adept_of_the_red_robes",
+            "adept_of_the_white_robes"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "initiate_of_high_sorcery",
+              "choice": "moon",
+              "ids_any": [
+                "nuitari"
+              ]
+            }
+          ]
+        },
+        "choices": [
+          {
+            "id": "l2_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 2 круга (очарование / некромантия)",
+            "level": 2,
+            "grant": "innate",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "blindness_deafness", "label_ru": "Слепота/глухота" },
+              { "id": "crown_of_madness", "label_ru": "Корона безумия" },
+              { "id": "hold_person", "label_ru": "Удержание личности" },
+              { "id": "ray_of_enfeeblement", "label_ru": "Луч слабости" },
+              { "id": "suggestion", "label_ru": "Внушение" }
+            ]
+          }
+        ],
+        "grants": {
+          "flags": [
+            "adept_of_the_black_robes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "8af98c6c-4eaf-512d-ac91-67ed92dc1f39",
+      "slug": "adept_of_the_red_robes",
+      "name_ru": "Адепт Красных одежд",
+      "name_en": "Adept of the Red Robes",
+      "source": "sdq",
+      "sort_order": 7040,
+      "data": {
+        "source": "sdq",
+        "wave": "sdq",
+        "prerequisites_ru": "4-й уровень; Посвящённый в Высшее волшебство (Лунитари)",
+        "summary_ru": "Заклинание 2 круга (иллюзия/преобразование) + Магический баланс (PB).",
+        "benefits_ru": "Выучите одно заклинание 2 уровня школы иллюзии или преобразования; 1/длинный отдых без ячейки. Магический баланс: при атаке или проверке характеристики, если на d20 выпало 9 или меньше, можете считать результат 10. Число использований = бонус мастерства; восстанавливаются после длинного отдыха.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": [
+            "initiate_of_high_sorcery"
+          ],
+          "feats_none": [
+            "adept_of_the_black_robes",
+            "adept_of_the_white_robes"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "initiate_of_high_sorcery",
+              "choice": "moon",
+              "ids_any": [
+                "lunitari"
+              ]
+            }
+          ]
+        },
+        "choices": [
+          {
+            "id": "l2_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 2 круга (иллюзия / преобразование)",
+            "level": 2,
+            "grant": "innate",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "alter_self", "label_ru": "Смена обличья" },
+              { "id": "blur", "label_ru": "Размытый образ" },
+              { "id": "enlarge_reduce", "label_ru": "Увеличение/уменьшение" },
+              { "id": "invisibility", "label_ru": "Невидимость" },
+              { "id": "knock", "label_ru": "Кнок" },
+              { "id": "mirror_image", "label_ru": "Зеркальное отражение" },
+              { "id": "misty_step", "label_ru": "Туманный шаг" },
+              { "id": "spider_climb", "label_ru": "Паучье лазание" }
+            ]
+          }
+        ],
+        "grants": {
+          "flags": [
+            "adept_of_the_red_robes"
+          ],
+          "resource": {
+            "pool_id": "magical_balance",
+            "pool_name_ru": "Магический баланс",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "0ff626b7-c631-5986-8df2-73bd1edbf184",
+      "slug": "adept_of_the_white_robes",
+      "name_ru": "Адепт Белых одежд",
+      "name_en": "Adept of the White Robes",
+      "source": "sdq",
+      "sort_order": 7050,
+      "data": {
+        "source": "sdq",
+        "wave": "sdq",
+        "prerequisites_ru": "4-й уровень; Посвящённый в Высшее волшебство (Солинари)",
+        "summary_ru": "Заклинание 2 круга (ограждение/прорицание) + Защитный оплот.",
+        "benefits_ru": "Выучите одно заклинание 2 уровня школы ограждения или прорицания; 1/длинный отдых без ячейки. Защитный оплот: когда вы или существо в 30 фт получаете урон, реакцией потратьте ячейку — уменьшите урон на (к6 × уровень ячейки) + модификатор характеристики сотворения Посвящённого.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": [
+            "initiate_of_high_sorcery"
+          ],
+          "feats_none": [
+            "adept_of_the_black_robes",
+            "adept_of_the_red_robes"
+          ],
+          "feat_enums_all": [
+            {
+              "slug": "initiate_of_high_sorcery",
+              "choice": "moon",
+              "ids_any": [
+                "solinari"
+              ]
+            }
+          ]
+        },
+        "choices": [
+          {
+            "id": "l2_spell",
+            "type": "spell_one",
+            "label_ru": "Заклинание 2 круга (ограждение / прорицание)",
+            "level": 2,
+            "grant": "innate",
+            "notes_ru": "1/длинный отдых без ячейки",
+            "options": [
+              { "id": "augury", "label_ru": "Предсказание" },
+              { "id": "detect_thoughts", "label_ru": "Обнаружение мыслей" },
+              { "id": "locate_object", "label_ru": "Поиск предмета" },
+              { "id": "see_invisibility", "label_ru": "Видение невидимого" },
+              { "id": "warding_bond", "label_ru": "Оберегающая связь" }
+            ]
+          }
+        ],
+        "grants": {
+          "flags": [
+            "adept_of_the_white_robes"
+          ]
+        }
+      }
+    },
+    {
+      "id": "b090bdb2-7881-522f-a06f-84f6620990c9",
+      "slug": "squire_of_solamnia",
+      "name_ru": "Оруженосец рыцаря Соламнии",
+      "name_en": "Squire of Solamnia",
+      "source": "sdq",
+      "sort_order": 7060,
+      "data": {
+        "source": "sdq",
+        "wave": "sdq",
+        "prerequisites_ru": "Кампания «Сага о Копье»; воин, паладин или предыстория «Соламнийский рыцарь»",
+        "summary_ru": "Посадка 5 фт; Точный удар (преимущество + к8, PB).",
+        "benefits_ru": "Посадка и спешивание стоят вам только 5 футов перемещения. Точный удар: один раз за ход, когда атакуете оружием, можете дать преимущество на бросок; при попадании +1к8 урона. Число использований = бонус мастерства (тратится только при попадании); восстанавливаются после длинного отдыха.",
+        "prerequisites": {
+          "classes_any": [
+            "fighter",
+            "paladin"
+          ],
+          "backgrounds_any": [
+            "knight_of_solamnia"
+          ]
+        },
+        "choices": [],
+        "grants": {
+          "flags": [
+            "squire_of_solamnia"
+          ],
+          "resource": {
+            "pool_id": "precise_strike",
+            "pool_name_ru": "Точный удар",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "c7168eff-19be-5bd6-a267-315c92bc7312",
+      "slug": "knight_of_the_crown",
+      "name_ru": "Рыцарь Короны",
+      "name_en": "Knight of the Crown",
+      "source": "sdq",
+      "sort_order": 7070,
+      "data": {
+        "source": "sdq",
+        "wave": "sdq",
+        "prerequisites_ru": "4-й уровень; Оруженосец рыцаря Соламнии",
+        "summary_ru": "+1 Сил/Лов/Тел; Командный призыв (атака союзника, PB).",
+        "benefits_ru": "Увеличьте Силу, Ловкость или Телосложение на 1 (макс. 20). Бонусным действием можете приказать союзнику в 30 фт атаковать реакцией оружием; при попадании +1к8 урона. Число использований = бонус мастерства; восстанавливаются после длинного отдыха.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": [
+            "squire_of_solamnia"
+          ],
+          "feats_none": [
+            "knight_of_the_rose",
+            "knight_of_the_sword"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "str",
+              "dex",
+              "con"
+            ],
+            "label_ru": "+1 к Сил, Лов или Тел"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "knight_of_the_crown"
+          ],
+          "resource": {
+            "pool_id": "commanding_rally",
+            "pool_name_ru": "Командный призыв",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "fbe1f67b-c193-5cb4-8316-e023230f05c9",
+      "slug": "knight_of_the_rose",
+      "name_ru": "Рыцарь Розы",
+      "name_en": "Knight of the Rose",
+      "source": "sdq",
+      "sort_order": 7080,
+      "data": {
+        "source": "sdq",
+        "wave": "sdq",
+        "prerequisites_ru": "4-й уровень; Оруженосец рыцаря Соламнии",
+        "summary_ru": "+1 Тел/Муд/Хар; Укрепляющий призыв (врем. хиты, PB).",
+        "benefits_ru": "Увеличьте Телосложение, Мудрость или Харизму на 1 (макс. 20). Бонусным действием можете воодушевить существо в 30 фт (включая себя): временные хиты = 1к8 + бонус мастерства + модификатор выбранной характеристики. Число использований = бонус мастерства; восстанавливаются после длинного отдыха.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": [
+            "squire_of_solamnia"
+          ],
+          "feats_none": [
+            "knight_of_the_crown",
+            "knight_of_the_sword"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "con",
+              "wis",
+              "cha"
+            ],
+            "label_ru": "+1 к Тел, Муд или Хар"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "knight_of_the_rose"
+          ],
+          "resource": {
+            "pool_id": "bolstering_rally",
+            "pool_name_ru": "Укрепляющий призыв",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    },
+    {
+      "id": "ef8ab376-2d1f-5c5f-a387-290bb2b55b9f",
+      "slug": "knight_of_the_sword",
+      "name_ru": "Рыцарь Меча",
+      "name_en": "Knight of the Sword",
+      "source": "sdq",
+      "sort_order": 7090,
+      "data": {
+        "source": "sdq",
+        "wave": "sdq",
+        "prerequisites_ru": "4-й уровень; Оруженосец рыцаря Соламнии",
+        "summary_ru": "+1 Инт/Муд/Хар; Деморализующий удар (испуг, PB).",
+        "benefits_ru": "Увеличьте Интеллект, Мудрость или Харизму на 1 (макс. 20). Один раз за ход при попадании оружием можете напугать цель (спас Муд DC 8+БМ+мод выбранной характеристики): при провале испуг до конца вашего следующего хода; при успехе — помеха на следующую атаку цели. Число использований = бонус мастерства; восстанавливаются после длинного отдыха.",
+        "prerequisites": {
+          "min_level": 4,
+          "feats_all": [
+            "squire_of_solamnia"
+          ],
+          "feats_none": [
+            "knight_of_the_crown",
+            "knight_of_the_rose"
+          ]
+        },
+        "choices": [
+          {
+            "id": "ability",
+            "type": "ability_one",
+            "amount": 1,
+            "from": [
+              "int",
+              "wis",
+              "cha"
+            ],
+            "label_ru": "+1 к Инт, Муд или Хар"
+          }
+        ],
+        "grants": {
+          "flags": [
+            "knight_of_the_sword"
+          ],
+          "resource": {
+            "pool_id": "demoralizing_strike",
+            "pool_name_ru": "Деморализующий удар",
+            "uses": 0,
+            "uses_proficiency_bonus": true,
+            "recovery": "long_rest"
+          }
+        }
+      }
+    }
+  ]
+}

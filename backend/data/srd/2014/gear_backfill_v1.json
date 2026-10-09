@@ -1,0 +1,5871 @@
+{
+  "version": 1,
+  "notes": "GEAR G2 backfill: PHB mundane params + RU; DMG stub rarities; potion of healing family (TTG-style variants).",
+  "updates": [
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "club",
+      "name_ru": "Дубинка",
+      "name_en": "Club",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к4",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [
+          "light",
+          "monk"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "dagger",
+      "name_ru": "Кинжал",
+      "name_en": "Dagger",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": true,
+        "ranged": false,
+        "weight_lb": 1,
+        "properties": [
+          "finesse",
+          "light",
+          "monk",
+          "thrown"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 20,
+          "long": 60
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "greatclub",
+      "name_ru": "Палица",
+      "name_en": "Greatclub",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 10,
+        "properties": [
+          "two-handed"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "sp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "handaxe",
+      "name_ru": "Ручной топор",
+      "name_en": "Handaxe",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "рубящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [
+          "light",
+          "monk",
+          "thrown"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 20,
+          "long": 60
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "javelin",
+      "name_ru": "Метательное копьё",
+      "name_en": "Javelin",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [
+          "monk",
+          "thrown"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 30,
+          "long": 120
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "light_hammer",
+      "name_ru": "Лёгкий молот",
+      "name_en": "Light hammer",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к4",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [
+          "light",
+          "monk",
+          "thrown"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 20,
+          "long": 60
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "mace",
+      "name_ru": "Булава",
+      "name_en": "Mace",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 4,
+        "properties": [
+          "monk"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "quarterstaff",
+      "name_ru": "Боевой посох",
+      "name_en": "Quarterstaff",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 4,
+        "properties": [
+          "monk",
+          "versatile"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "sp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "versatile_damage": "1к8"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "sickle",
+      "name_ru": "Серп",
+      "name_en": "Sickle",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к4",
+        "damage_type": "рубящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [
+          "light",
+          "monk"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "spear",
+      "name_ru": "Копьё",
+      "name_en": "Spear",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "monk",
+          "thrown",
+          "versatile"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 20,
+          "long": 60
+        },
+        "versatile_damage": "1к8"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "crossbow_light",
+      "name_ru": "Лёгкий арбалет",
+      "name_en": "Crossbow, light",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 5,
+        "properties": [
+          "ammunition",
+          "loading",
+          "two-handed"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 80,
+          "long": 320
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "dart",
+      "name_ru": "Дротик",
+      "name_en": "Dart",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": true,
+        "ranged": true,
+        "weight_lb": 0.25,
+        "properties": [
+          "finesse",
+          "thrown"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 20,
+          "long": 60
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "shortbow",
+      "name_ru": "Короткий лук",
+      "name_en": "Shortbow",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 2,
+        "properties": [
+          "ammunition",
+          "two-handed"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 80,
+          "long": 320
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "sling",
+      "name_ru": "Праща",
+      "name_en": "Sling",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 0,
+        "properties": [
+          "ammunition"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 30,
+          "long": 120
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "battleaxe",
+      "name_ru": "Боевой топор",
+      "name_en": "Battleaxe",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 4,
+        "properties": [
+          "versatile"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "versatile_damage": "1к10"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "flail",
+      "name_ru": "Цеп",
+      "name_en": "Flail",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [],
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "glaive",
+      "name_ru": "Глефа",
+      "name_en": "Glaive",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к10",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 6,
+        "properties": [
+          "heavy",
+          "reach",
+          "two-handed"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "greataxe",
+      "name_ru": "Секира",
+      "name_en": "Greataxe",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к12",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 7,
+        "properties": [
+          "heavy",
+          "two-handed"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "greatsword",
+      "name_ru": "Двуручный меч",
+      "name_en": "Greatsword",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "2к6",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 6,
+        "properties": [
+          "heavy",
+          "two-handed"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "halberd",
+      "name_ru": "Алебарда",
+      "name_en": "Halberd",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к10",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 6,
+        "properties": [
+          "heavy",
+          "reach",
+          "two-handed"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "lance",
+      "name_ru": "Длинное копьё",
+      "name_en": "Lance",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к12",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 6,
+        "properties": [
+          "reach",
+          "special"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "longsword",
+      "name_ru": "Длинный меч",
+      "name_en": "Longsword",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "versatile_damage": "1к10"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "maul",
+      "name_ru": "Молот",
+      "name_en": "Maul",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "2к6",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 10,
+        "properties": [
+          "heavy",
+          "two-handed"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "morningstar",
+      "name_ru": "Моргенштерн",
+      "name_en": "Morningstar",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 4,
+        "properties": [],
+        "schema_version": 1,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "pike",
+      "name_ru": "Пика",
+      "name_en": "Pike",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к10",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 18,
+        "properties": [
+          "heavy",
+          "reach",
+          "two-handed"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "rapier",
+      "name_ru": "Рапира",
+      "name_en": "Rapier",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": true,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [
+          "finesse"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "scimitar",
+      "name_ru": "Скимитар",
+      "name_en": "Scimitar",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к6",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": true,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "finesse",
+          "light"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "shortsword",
+      "name_ru": "Короткий меч",
+      "name_en": "Shortsword",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": true,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [
+          "finesse",
+          "light",
+          "monk"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "trident",
+      "name_ru": "Трезубец",
+      "name_en": "Trident",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 4,
+        "properties": [
+          "thrown",
+          "versatile"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 20,
+          "long": 60
+        },
+        "versatile_damage": "1к8"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "war_pick",
+      "name_ru": "Боевая кирка",
+      "name_en": "War pick",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [],
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "warhammer",
+      "name_ru": "Боевой молот",
+      "name_en": "Warhammer",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [
+          "versatile"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "versatile_damage": "1к10"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "whip",
+      "name_ru": "Кнут",
+      "name_en": "Whip",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": true,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "finesse",
+          "reach"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "blowgun",
+      "name_ru": "Духовая трубка",
+      "name_en": "Blowgun",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 1,
+        "properties": [
+          "ammunition",
+          "loading"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 25,
+          "long": 100
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "crossbow_hand",
+      "name_ru": "Ручной арбалет",
+      "name_en": "Crossbow, hand",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 3,
+        "properties": [
+          "ammunition",
+          "light",
+          "loading"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 75,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 30,
+          "long": 120
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "crossbow_heavy",
+      "name_ru": "Тяжёлый арбалет",
+      "name_en": "Crossbow, heavy",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к10",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 18,
+        "properties": [
+          "ammunition",
+          "heavy",
+          "loading",
+          "two-handed"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 100,
+          "long": 400
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "longbow",
+      "name_ru": "Длинный лук",
+      "name_en": "Longbow",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 2,
+        "properties": [
+          "ammunition",
+          "heavy",
+          "two-handed"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 150,
+          "long": 600
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "net",
+      "name_ru": "Сеть",
+      "name_en": "Net",
+      "source": "PHB 2014",
+      "data": {
+        "ability": "dex",
+        "damage": "",
+        "damage_type": "",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 3,
+        "properties": [
+          "special",
+          "thrown"
+        ],
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "range": {
+          "normal": 5,
+          "long": 15
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "berserker_axe",
+      "name_ru": "Топор берсерка",
+      "name_en": "Berserker Axe",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "dagger_of_venom",
+      "name_ru": "Кинжал яда",
+      "name_en": "Dagger of Venom",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "dancing_sword",
+      "name_ru": "Пляшущий меч",
+      "name_en": "Dancing Sword",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "defender",
+      "name_ru": "Защитник",
+      "name_en": "Defender",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "dragon_slayer",
+      "name_ru": "Убийца драконов",
+      "name_en": "Dragon Slayer",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "dwarven_thrower",
+      "name_ru": "Метательный молот дварфов",
+      "name_en": "Dwarven Thrower",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "flame_tongue",
+      "name_ru": "Язык пламени",
+      "name_en": "Flame Tongue",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "frost_brand",
+      "name_ru": "Морозный клинок",
+      "name_en": "Frost Brand",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "giant_slayer",
+      "name_ru": "Убийца великанов",
+      "name_en": "Giant Slayer",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "hammer_of_thunderbolts",
+      "name_ru": "Молот громовых ударов",
+      "name_en": "Hammer of Thunderbolts",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "holy_avenger",
+      "name_ru": "Святой мститель",
+      "name_en": "Holy Avenger",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "javelin_of_lightning",
+      "name_ru": "Молниевое копьё",
+      "name_en": "Javelin of Lightning",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "luck_blade",
+      "name_ru": "Клинок удачи",
+      "name_en": "Luck Blade",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "mace_of_disruption",
+      "name_ru": "Булава распада",
+      "name_en": "Mace of Disruption",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "mace_of_smiting",
+      "name_ru": "Булава кары",
+      "name_en": "Mace of Smiting",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "mace_of_terror",
+      "name_ru": "Булава ужаса",
+      "name_en": "Mace of Terror",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "nine_lives_stealer",
+      "name_ru": "Похититель девяти жизней",
+      "name_en": "Nine Lives Stealer",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "oathbow",
+      "name_ru": "Клятволук",
+      "name_en": "Oathbow",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "scimitar_of_speed",
+      "name_ru": "Скимитар скорости",
+      "name_en": "Scimitar of Speed",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "sun_blade",
+      "name_ru": "Солнечный клинок",
+      "name_en": "Sun Blade",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "sword_of_life_stealing",
+      "name_ru": "Меч похищения жизни",
+      "name_en": "Sword of Life Stealing",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "sword_of_sharpness",
+      "name_ru": "Меч остроты",
+      "name_en": "Sword of Sharpness",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "sword_of_wounding",
+      "name_ru": "Меч ранения",
+      "name_en": "Sword of Wounding",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "trident_of_fish_command",
+      "name_ru": "Трезубец власти над рыбами",
+      "name_en": "Trident of Fish Command",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "vicious_weapon",
+      "name_ru": "Жестокое оружие",
+      "name_en": "Vicious Weapon",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "vorpal_sword",
+      "name_ru": "Меч отсечения",
+      "name_en": "Vorpal Sword",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "weapon",
+      "name_ru": "Оружие +1, +2 или +3",
+      "name_en": "Weapon, +1, +2, or +3",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "",
+        "family_slug": "weapon_bonus",
+        "family_label_ru": "Оружие +1 / +2 / +3",
+        "variant_key": "varies",
+        "variant_label_ru": "варьируется",
+        "magic_bonus": 0,
+        "effects": []
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "weapon_1",
+      "name_ru": "Оружие +1",
+      "name_en": "Weapon, +1",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": "",
+        "family_slug": "weapon_bonus",
+        "family_label_ru": "Оружие +1 / +2 / +3",
+        "variant_key": "1",
+        "variant_label_ru": "+1",
+        "magic_bonus": 1,
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "weapon_2",
+      "name_ru": "Оружие +2",
+      "name_en": "Weapon, +2",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "",
+        "family_slug": "weapon_bonus",
+        "family_label_ru": "Оружие +1 / +2 / +3",
+        "variant_key": "2",
+        "variant_label_ru": "+2",
+        "magic_bonus": 2,
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "weapon",
+      "slug": "weapon_3",
+      "name_ru": "Оружие +3",
+      "name_en": "Weapon, +3",
+      "source": "DMG 2014",
+      "data": {
+        "ability": "str",
+        "damage": "",
+        "damage_type": "",
+        "category": "simple",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": null,
+        "properties": [],
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "",
+        "family_slug": "weapon_bonus",
+        "family_label_ru": "Оружие +1 / +2 / +3",
+        "variant_key": "3",
+        "variant_label_ru": "+3",
+        "magic_bonus": 3,
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "padded_armor",
+      "name_ru": "Стёганый доспех",
+      "name_en": "Padded Armor",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "light",
+        "base_ac": 11,
+        "weight_lb": 8,
+        "stealth_disadvantage": true,
+        "schema_version": 1,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "leather_armor",
+      "name_ru": "Кожаный доспех",
+      "name_en": "Leather Armor",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "light",
+        "base_ac": 11,
+        "weight_lb": 10,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "studded_leather_armor",
+      "name_ru": "Проклёпанный кожаный доспех",
+      "name_en": "Studded Leather Armor",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "light",
+        "base_ac": 12,
+        "weight_lb": 13,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "cost": {
+          "amount": 45,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "hide_armor",
+      "name_ru": "Шкурный доспех",
+      "name_en": "Hide Armor",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "medium",
+        "base_ac": 12,
+        "weight_lb": 12,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "chain_shirt",
+      "name_ru": "Кольчужная рубаха",
+      "name_en": "Chain Shirt",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "medium",
+        "base_ac": 13,
+        "weight_lb": 20,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "scale_mail",
+      "name_ru": "Чешуйчатый доспех",
+      "name_en": "Scale Mail",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "medium",
+        "base_ac": 14,
+        "weight_lb": 45,
+        "stealth_disadvantage": true,
+        "schema_version": 1,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "breastplate",
+      "name_ru": "Кираса",
+      "name_en": "Breastplate",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "medium",
+        "base_ac": 14,
+        "weight_lb": 20,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "cost": {
+          "amount": 400,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "half_plate_armor",
+      "name_ru": "Полулаты",
+      "name_en": "Half Plate Armor",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "weight_lb": 40,
+        "stealth_disadvantage": true,
+        "schema_version": 1,
+        "max_dex_bonus": 2,
+        "strength_requirement": null,
+        "cost": {
+          "amount": 750,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "ring_mail",
+      "name_ru": "Колечный доспех",
+      "name_en": "Ring Mail",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "heavy",
+        "base_ac": 14,
+        "weight_lb": 40,
+        "stealth_disadvantage": true,
+        "schema_version": 1,
+        "max_dex_bonus": 0,
+        "strength_requirement": null,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "chain_mail",
+      "name_ru": "Кольчуга",
+      "name_en": "Chain Mail",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "heavy",
+        "base_ac": 16,
+        "weight_lb": 55,
+        "stealth_disadvantage": true,
+        "schema_version": 1,
+        "max_dex_bonus": 0,
+        "strength_requirement": 13,
+        "cost": {
+          "amount": 75,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "splint_armor",
+      "name_ru": "Наборный доспех",
+      "name_en": "Splint Armor",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "heavy",
+        "base_ac": 17,
+        "weight_lb": 60,
+        "stealth_disadvantage": true,
+        "schema_version": 1,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "cost": {
+          "amount": 200,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "plate_armor",
+      "name_ru": "Латы",
+      "name_en": "Plate Armor",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "weight_lb": 65,
+        "stealth_disadvantage": true,
+        "schema_version": 1,
+        "max_dex_bonus": 0,
+        "strength_requirement": 15,
+        "cost": {
+          "amount": 1500,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "body_armor"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "shield",
+      "name_ru": "Щит",
+      "name_en": "Shield",
+      "source": "PHB 2014",
+      "data": {
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "weight_lb": 6,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "max_dex_bonus": null,
+        "strength_requirement": null,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "wear_slot": "shield"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "adamantine_armor",
+      "name_ru": "Адамантиновый доспех",
+      "name_en": "Adamantine Armor",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "animated_shield",
+      "name_ru": "Оживший щит",
+      "name_en": "Animated Shield",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor",
+      "name_ru": "Доспех +1, +2 или +3",
+      "name_en": "Armor, +1, +2, or +3",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "",
+        "family_slug": "armor_bonus",
+        "family_label_ru": "Доспех +1 / +2 / +3",
+        "variant_key": "varies",
+        "variant_label_ru": "варьируется",
+        "magic_bonus": 0,
+        "effects": []
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_of_invulnerability",
+      "name_ru": "Доспех неуязвимости",
+      "name_en": "Armor of Invulnerability",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_of_resistance",
+      "name_ru": "Доспех сопротивления",
+      "name_en": "Armor of Resistance",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_of_vulnerability",
+      "name_ru": "Доспех уязвимости",
+      "name_en": "Armor of Vulnerability",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "arrow_catching_shield",
+      "name_ru": "Щит ловли стрел",
+      "name_en": "Arrow-Catching Shield",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "demon_armor",
+      "name_ru": "Демонический доспех",
+      "name_en": "Demon Armor",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail",
+      "name_ru": "Доспех из чешуи дракона",
+      "name_en": "Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "",
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "generic",
+        "variant_label_ru": "базовый"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dwarven_plate",
+      "name_ru": "Дварфийские латы",
+      "name_en": "Dwarven Plate",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "elven_chain",
+      "name_ru": "Эльфийская кольчуга",
+      "name_en": "Elven Chain",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "glamoured_studded_leather_armor",
+      "name_ru": "Иллюзорный клёпаный кожаный доспех",
+      "name_en": "Glamoured Studded Leather Armor",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "mithral_armor",
+      "name_ru": "Мифриловый доспех",
+      "name_en": "Mithral Armor",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "plate_armor_of_etherealness",
+      "name_ru": "Латы эфирности",
+      "name_en": "Plate Armor of Etherealness",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "shield_of_missile_attraction",
+      "name_ru": "Щит притяжения снарядов",
+      "name_en": "Shield of Missile Attraction",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "spellguard_shield",
+      "name_ru": "Щит защиты от заклинаний",
+      "name_en": "Spellguard Shield",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_1",
+      "name_ru": "Доспех +1",
+      "name_en": "Armor, +1",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "description_ru": "",
+        "family_slug": "armor_bonus",
+        "family_label_ru": "Доспех +1 / +2 / +3",
+        "variant_key": "1",
+        "variant_label_ru": "+1",
+        "magic_bonus": 1,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_2",
+      "name_ru": "Доспех +2",
+      "name_en": "Armor, +2",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "description_ru": "",
+        "family_slug": "armor_bonus",
+        "family_label_ru": "Доспех +1 / +2 / +3",
+        "variant_key": "2",
+        "variant_label_ru": "+2",
+        "magic_bonus": 2,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "armor_3",
+      "name_ru": "Доспех +3",
+      "name_en": "Armor, +3",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "description_ru": "",
+        "family_slug": "armor_bonus",
+        "family_label_ru": "Доспех +1 / +2 / +3",
+        "variant_key": "3",
+        "variant_label_ru": "+3",
+        "magic_bonus": 3,
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 3
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_black",
+      "name_ru": "Доспех из чешуи чёрного дракона",
+      "name_en": "Black Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "",
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "black",
+        "variant_label_ru": "чёрного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_blue",
+      "name_ru": "Доспех из чешуи синего дракона",
+      "name_en": "Blue Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "",
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "blue",
+        "variant_label_ru": "синего"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_brass",
+      "name_ru": "Доспех из чешуи латунного дракона",
+      "name_en": "Brass Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "",
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "brass",
+        "variant_label_ru": "латунного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_bronze",
+      "name_ru": "Доспех из чешуи бронзового дракона",
+      "name_en": "Bronze Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "",
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "bronze",
+        "variant_label_ru": "бронзового"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_copper",
+      "name_ru": "Доспех из чешуи медного дракона",
+      "name_en": "Copper Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "",
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "copper",
+        "variant_label_ru": "медного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_gold",
+      "name_ru": "Доспех из чешуи золотого дракона",
+      "name_en": "Gold Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "",
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "gold",
+        "variant_label_ru": "золотого"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_green",
+      "name_ru": "Доспех из чешуи зелёного дракона",
+      "name_en": "Green Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "",
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "green",
+        "variant_label_ru": "зелёного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_red",
+      "name_ru": "Доспех из чешуи красного дракона",
+      "name_en": "Red Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "",
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "red",
+        "variant_label_ru": "красного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_silver",
+      "name_ru": "Доспех из чешуи серебряного дракона",
+      "name_en": "Silver Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "",
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "silver",
+        "variant_label_ru": "серебряного"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "armor",
+      "slug": "dragon_scale_mail_white",
+      "name_ru": "Доспех из чешуи белого дракона",
+      "name_en": "White Dragon Scale Mail",
+      "source": "DMG 2014",
+      "data": {
+        "armor_kind": "none",
+        "base_ac": null,
+        "weight_lb": null,
+        "stealth_disadvantage": false,
+        "schema_version": 1,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "description_ru": "",
+        "family_slug": "dragon_scale_mail",
+        "family_label_ru": "Доспех из чешуи дракона",
+        "variant_key": "white",
+        "variant_label_ru": "белого"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "abacus",
+      "name_ru": "Абак",
+      "name_en": "Abacus",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "acid_vial",
+      "name_ru": "Кислота (флакон)",
+      "name_en": "Acid (vial)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "alchemists_fire_flask",
+      "name_ru": "Алхимический огонь (фляга)",
+      "name_en": "Alchemist's fire (flask)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "arrow",
+      "name_ru": "Стрела",
+      "name_en": "Arrow",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        },
+        "item_category": "ammo",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "blowgun_needle",
+      "name_ru": "Игла для духовой трубки",
+      "name_en": "Blowgun needle",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "cp"
+        },
+        "item_category": "ammo",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "crossbow_bolt",
+      "name_ru": "Арбалетный болт",
+      "name_en": "Crossbow bolt",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1.5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        },
+        "item_category": "ammo",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "sling_bullet",
+      "name_ru": "Снаряд для пращи",
+      "name_en": "Sling bullet",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1.5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "cp"
+        },
+        "item_category": "ammo",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "alms_box",
+      "name_ru": "Кружка для пожертвований",
+      "name_en": "Alms box",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "amulet",
+      "name_ru": "Амулет",
+      "name_en": "Amulet",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "symbol",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "antitoxin_vial",
+      "name_ru": "Противоядие (флакон)",
+      "name_en": "Antitoxin (vial)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "backpack",
+      "name_ru": "Рюкзак",
+      "name_en": "Backpack",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "ball_bearings_bag_of_1000",
+      "name_ru": "Металлические шарики (1000)",
+      "name_en": "Ball bearings (bag of 1,000)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "barrel",
+      "name_ru": "Бочка",
+      "name_en": "Barrel",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 70,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "basket",
+      "name_ru": "Корзина",
+      "name_en": "Basket",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 4,
+          "unit": "sp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "bedroll",
+      "name_ru": "Спальник",
+      "name_en": "Bedroll",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 7,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "bell",
+      "name_ru": "Колокольчик",
+      "name_en": "Bell",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "blanket",
+      "name_ru": "Одеяло",
+      "name_en": "Blanket",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 3,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "block_and_tackle",
+      "name_ru": "Блок и лебёдка",
+      "name_en": "Block and tackle",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "block_of_incense",
+      "name_ru": "Благовоние (блок)",
+      "name_en": "Block of incense",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "book",
+      "name_ru": "Книга",
+      "name_en": "Book",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "bottle_glass",
+      "name_ru": "Бутылка стеклянная",
+      "name_en": "Bottle, glass",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "bucket",
+      "name_ru": "Ведро",
+      "name_en": "Bucket",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "caltrops",
+      "name_ru": "Калтропы (сумка)",
+      "name_en": "Caltrops",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "candle",
+      "name_ru": "Свеча",
+      "name_en": "Candle",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "cp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "case_crossbow_bolt",
+      "name_ru": "Контейнер для арбалетных болтов",
+      "name_en": "Case, crossbow bolt",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "case_map_or_scroll",
+      "name_ru": "Контейнер для карт и свитков",
+      "name_en": "Case, map or scroll",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "censer",
+      "name_ru": "Кадило",
+      "name_en": "Censer",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "chain_10_feet",
+      "name_ru": "Цепь (10 футов)",
+      "name_en": "Chain (10 feet)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 10,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "chalk_1_piece",
+      "name_ru": "Мел (1 кусок)",
+      "name_en": "Chalk (1 piece)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "cp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "chest",
+      "name_ru": "Сундук",
+      "name_en": "Chest",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 25,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "clothes_common",
+      "name_ru": "Одежда, обычная",
+      "name_en": "Clothes, common",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 3,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "clothes_costume",
+      "name_ru": "Одежда, костюм",
+      "name_en": "Clothes, costume",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 4,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "clothes_fine",
+      "name_ru": "Одежда, отличная",
+      "name_en": "Clothes, fine",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 6,
+        "schema_version": 1,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "clothes_travelers",
+      "name_ru": "Одежда путешественника",
+      "name_en": "Clothes, traveler's",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 4,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "component_pouch",
+      "name_ru": "Мешочек с компонентами",
+      "name_en": "Component pouch",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "crowbar",
+      "name_ru": "Ломик",
+      "name_en": "Crowbar",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "emblem",
+      "name_ru": "Эмблема",
+      "name_en": "Emblem",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "symbol",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "fishing_tackle",
+      "name_ru": "Комплект для рыбалки",
+      "name_en": "Fishing tackle",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 4,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "flask_or_tankard",
+      "name_ru": "Фляга или кружка",
+      "name_en": "Flask or tankard",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "cp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "grappling_hook",
+      "name_ru": "Крюк-кошка",
+      "name_en": "Grappling hook",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 4,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "hammer",
+      "name_ru": "Молоток",
+      "name_en": "Hammer",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 3,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "hammer_sledge",
+      "name_ru": "Кувалда",
+      "name_en": "Hammer, sledge",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 10,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "holy_water_flask",
+      "name_ru": "Святая вода (фляга)",
+      "name_en": "Holy water (flask)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "hourglass",
+      "name_ru": "Песочные часы",
+      "name_en": "Hourglass",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "hunting_trap",
+      "name_ru": "Охотничий капкан",
+      "name_en": "Hunting trap",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 25,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "ink_1_ounce_bottle",
+      "name_ru": "Чернила (бутылочка 30 г)",
+      "name_en": "Ink (1 ounce bottle)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "ink_pen",
+      "name_ru": "Писчее перо",
+      "name_en": "Ink pen",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "cp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "jug_or_pitcher",
+      "name_ru": "Кувшин или графин",
+      "name_en": "Jug or pitcher",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 4,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "cp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "climbers_kit",
+      "name_ru": "Комплект для лазания",
+      "name_en": "Climber's Kit",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 12,
+        "schema_version": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "tool_type": "kit"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "disguise_kit",
+      "name_ru": "Набор для грима",
+      "name_en": "Disguise Kit",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 3,
+        "schema_version": 1,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "tool_type": "kit"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "forgery_kit",
+      "name_ru": "Набор фальшивомонетчика",
+      "name_en": "Forgery Kit",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "tool_type": "kit"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "herbalism_kit",
+      "name_ru": "Набор травника",
+      "name_en": "Herbalism Kit",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 3,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "tool_type": "kit"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "healers_kit",
+      "name_ru": "Комплект целителя",
+      "name_en": "Healer's Kit",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 3,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "10 использований. Действием стабилизировать существо с 0 хитов (без проверки Медицины).",
+        "tool_type": "kit",
+        "charges": {
+          "max": 10,
+          "restore": "never"
+        }
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "mess_kit",
+      "name_ru": "Столовый набор",
+      "name_en": "Mess Kit",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "sp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "tool_type": "kit"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "poisoners_kit",
+      "name_ru": "Набор отравителя",
+      "name_en": "Poisoner's Kit",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "tool",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "tool_type": "kit"
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "ladder_10_foot",
+      "name_ru": "Лестница (10 футов)",
+      "name_en": "Ladder (10-foot)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 25,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "lamp",
+      "name_ru": "Лампа",
+      "name_en": "Lamp",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "lantern_bullseye",
+      "name_ru": "Фонарь направленный",
+      "name_en": "Lantern, bullseye",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "lantern_hooded",
+      "name_ru": "Фонарь закрытый",
+      "name_en": "Lantern, hooded",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "little_bag_of_sand",
+      "name_ru": "Маленький мешочек с песком",
+      "name_en": "Little bag of sand",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "lock",
+      "name_ru": "Замок",
+      "name_en": "Lock",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "magnifying_glass",
+      "name_ru": "Увеличительное стекло",
+      "name_en": "Magnifying glass",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "manacles",
+      "name_ru": "Кандалы",
+      "name_en": "Manacles",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 6,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "mirror_steel",
+      "name_ru": "Зеркало стальное",
+      "name_en": "Mirror, steel",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0.5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "oil_flask",
+      "name_ru": "Масло (фляга)",
+      "name_en": "Oil (flask)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "paper_one_sheet",
+      "name_ru": "Бумага (лист)",
+      "name_en": "Paper (one sheet)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "sp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "parchment_one_sheet",
+      "name_ru": "Пергамент (лист)",
+      "name_en": "Parchment (one sheet)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "perfume_vial",
+      "name_ru": "Духи (флакон)",
+      "name_en": "Perfume (vial)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "pick_miners",
+      "name_ru": "Кирка горняцкая",
+      "name_en": "Pick, miner's",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 10,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "piton",
+      "name_ru": "Шлямбур",
+      "name_en": "Piton",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0.25,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "poison_basic_vial",
+      "name_ru": "Яд простой (флакон)",
+      "name_en": "Poison, basic (vial)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "pole_10_foot",
+      "name_ru": "Шест (10 футов)",
+      "name_en": "Pole (10-foot)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 7,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "pot_iron",
+      "name_ru": "Горшок железный",
+      "name_en": "Pot, iron",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 10,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "pouch",
+      "name_ru": "Кошель",
+      "name_en": "Pouch",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "quiver",
+      "name_ru": "Колчан",
+      "name_en": "Quiver",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "ram_portable",
+      "name_ru": "Таран переносной",
+      "name_en": "Ram, portable",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 35,
+        "schema_version": 1,
+        "cost": {
+          "amount": 4,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "rations_1_day",
+      "name_ru": "Сухой паёк (1 день)",
+      "name_en": "Rations (1 day)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "reliquary",
+      "name_ru": "Реликварий",
+      "name_en": "Reliquary",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "symbol",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "robes",
+      "name_ru": "Мантия",
+      "name_en": "Robes",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 4,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "rope_hempen_50_feet",
+      "name_ru": "Верёвка пеньковая (50 футов)",
+      "name_en": "Rope, hempen (50 feet)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 10,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "rope_silk_50_feet",
+      "name_ru": "Верёвка шёлковая (50 футов)",
+      "name_en": "Rope, silk (50 feet)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "sack",
+      "name_ru": "Мешок",
+      "name_en": "Sack",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0.5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "cp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "scale_merchants",
+      "name_ru": "Весы торговые",
+      "name_en": "Scale, merchant's",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 3,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "sealing_wax",
+      "name_ru": "Сургуч",
+      "name_en": "Sealing wax",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "shovel",
+      "name_ru": "Лопата",
+      "name_en": "Shovel",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "signal_whistle",
+      "name_ru": "Сигнальный свисток",
+      "name_en": "Signal whistle",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "signet_ring",
+      "name_ru": "Перстень-печатка",
+      "name_en": "Signet ring",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "small_knife",
+      "name_ru": "Небольшой нож",
+      "name_en": "Small knife",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "soap",
+      "name_ru": "Мыло",
+      "name_en": "Soap",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "cp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "spellbook",
+      "name_ru": "Книга заклинаний",
+      "name_en": "Spellbook",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 3,
+        "schema_version": 1,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "spike_iron",
+      "name_ru": "Шип железный",
+      "name_en": "Spike, iron",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "spyglass",
+      "name_ru": "Подзорная труба",
+      "name_en": "Spyglass",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1000,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "string_10_feet",
+      "name_ru": "Леска (10 футов)",
+      "name_en": "String (10 feet)",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "tent_two_person",
+      "name_ru": "Палатка двухместная",
+      "name_en": "Tent, two-person",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 20,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "tinderbox",
+      "name_ru": "Трутница",
+      "name_en": "Tinderbox",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "torch",
+      "name_ru": "Факел",
+      "name_en": "Torch",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "cp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "vestments",
+      "name_ru": "Облачение",
+      "name_en": "Vestments",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "vial",
+      "name_ru": "Флакон",
+      "name_en": "Vial",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "waterskin",
+      "name_ru": "Бурдюк",
+      "name_en": "Waterskin",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 5,
+        "schema_version": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "sp"
+        },
+        "item_category": "container",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "whetstone",
+      "name_ru": "Оселок",
+      "name_en": "Whetstone",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "cp"
+        },
+        "item_category": "gear",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "burglars_pack",
+      "name_ru": "Набор взломщика",
+      "name_en": "Burglar's Pack",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": null,
+        "schema_version": 1,
+        "cost": {
+          "amount": 16,
+          "unit": "gp"
+        },
+        "item_category": "pack",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "contents": [
+          {
+            "slug": "backpack",
+            "qty": 1
+          },
+          {
+            "slug": "ball_bearings_bag_of_1000",
+            "qty": 1
+          },
+          {
+            "slug": "string_10_feet",
+            "qty": 1
+          },
+          {
+            "slug": "bell",
+            "qty": 1
+          },
+          {
+            "slug": "candle",
+            "qty": 5
+          },
+          {
+            "slug": "crowbar",
+            "qty": 1
+          },
+          {
+            "slug": "hammer",
+            "qty": 1
+          },
+          {
+            "slug": "piton",
+            "qty": 10
+          },
+          {
+            "slug": "lantern_hooded",
+            "qty": 1
+          },
+          {
+            "slug": "oil_flask",
+            "qty": 2
+          },
+          {
+            "slug": "rations_1_day",
+            "qty": 5
+          },
+          {
+            "slug": "tinderbox",
+            "qty": 1
+          },
+          {
+            "slug": "waterskin",
+            "qty": 1
+          },
+          {
+            "slug": "rope_hempen_50_feet",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "diplomats_pack",
+      "name_ru": "Набор дипломата",
+      "name_en": "Diplomat's Pack",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": null,
+        "schema_version": 1,
+        "cost": {
+          "amount": 39,
+          "unit": "gp"
+        },
+        "item_category": "pack",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "contents": [
+          {
+            "slug": "chest",
+            "qty": 1
+          },
+          {
+            "slug": "case_map_or_scroll",
+            "qty": 2
+          },
+          {
+            "slug": "clothes_fine",
+            "qty": 1
+          },
+          {
+            "slug": "ink_1_ounce_bottle",
+            "qty": 1
+          },
+          {
+            "slug": "ink_pen",
+            "qty": 1
+          },
+          {
+            "slug": "lamp",
+            "qty": 1
+          },
+          {
+            "slug": "oil_flask",
+            "qty": 2
+          },
+          {
+            "slug": "paper_one_sheet",
+            "qty": 5
+          },
+          {
+            "slug": "perfume_vial",
+            "qty": 1
+          },
+          {
+            "slug": "sealing_wax",
+            "qty": 1
+          },
+          {
+            "slug": "soap",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "dungeoneers_pack",
+      "name_ru": "Набор исследователя подземелий",
+      "name_en": "Dungeoneer's Pack",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": null,
+        "schema_version": 1,
+        "cost": {
+          "amount": 12,
+          "unit": "gp"
+        },
+        "item_category": "pack",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "contents": [
+          {
+            "slug": "backpack",
+            "qty": 1
+          },
+          {
+            "slug": "crowbar",
+            "qty": 1
+          },
+          {
+            "slug": "hammer",
+            "qty": 1
+          },
+          {
+            "slug": "piton",
+            "qty": 10
+          },
+          {
+            "slug": "torch",
+            "qty": 10
+          },
+          {
+            "slug": "tinderbox",
+            "qty": 1
+          },
+          {
+            "slug": "rations_1_day",
+            "qty": 10
+          },
+          {
+            "slug": "waterskin",
+            "qty": 1
+          },
+          {
+            "slug": "rope_hempen_50_feet",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "entertainers_pack",
+      "name_ru": "Набор артиста",
+      "name_en": "Entertainer's Pack",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": null,
+        "schema_version": 1,
+        "cost": {
+          "amount": 40,
+          "unit": "gp"
+        },
+        "item_category": "pack",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "contents": [
+          {
+            "slug": "backpack",
+            "qty": 1
+          },
+          {
+            "slug": "bedroll",
+            "qty": 1
+          },
+          {
+            "slug": "clothes_costume",
+            "qty": 2
+          },
+          {
+            "slug": "candle",
+            "qty": 5
+          },
+          {
+            "slug": "rations_1_day",
+            "qty": 5
+          },
+          {
+            "slug": "waterskin",
+            "qty": 1
+          },
+          {
+            "slug": "disguise_kit",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "explorers_pack",
+      "name_ru": "Набор путешественника",
+      "name_en": "Explorer's Pack",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": null,
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "pack",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "contents": [
+          {
+            "slug": "backpack",
+            "qty": 1
+          },
+          {
+            "slug": "bedroll",
+            "qty": 1
+          },
+          {
+            "slug": "mess_kit",
+            "qty": 1
+          },
+          {
+            "slug": "tinderbox",
+            "qty": 1
+          },
+          {
+            "slug": "torch",
+            "qty": 10
+          },
+          {
+            "slug": "rations_1_day",
+            "qty": 10
+          },
+          {
+            "slug": "waterskin",
+            "qty": 1
+          },
+          {
+            "slug": "rope_hempen_50_feet",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "priests_pack",
+      "name_ru": "Набор священника",
+      "name_en": "Priest's Pack",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": null,
+        "schema_version": 1,
+        "cost": {
+          "amount": 19,
+          "unit": "gp"
+        },
+        "item_category": "pack",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "contents": [
+          {
+            "slug": "backpack",
+            "qty": 1
+          },
+          {
+            "slug": "blanket",
+            "qty": 1
+          },
+          {
+            "slug": "candle",
+            "qty": 10
+          },
+          {
+            "slug": "tinderbox",
+            "qty": 1
+          },
+          {
+            "slug": "alms_box",
+            "qty": 1
+          },
+          {
+            "slug": "block_of_incense",
+            "qty": 2
+          },
+          {
+            "slug": "censer",
+            "qty": 1
+          },
+          {
+            "slug": "vestments",
+            "qty": 1
+          },
+          {
+            "slug": "rations_1_day",
+            "qty": 2
+          },
+          {
+            "slug": "waterskin",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "scholars_pack",
+      "name_ru": "Набор учёного",
+      "name_en": "Scholar's Pack",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": null,
+        "schema_version": 1,
+        "cost": {
+          "amount": 40,
+          "unit": "gp"
+        },
+        "item_category": "pack",
+        "stackable": false,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": "",
+        "contents": [
+          {
+            "slug": "backpack",
+            "qty": 1
+          },
+          {
+            "slug": "book",
+            "qty": 1
+          },
+          {
+            "slug": "ink_1_ounce_bottle",
+            "qty": 1
+          },
+          {
+            "slug": "ink_pen",
+            "qty": 1
+          },
+          {
+            "slug": "parchment_one_sheet",
+            "qty": 10
+          },
+          {
+            "slug": "little_bag_of_sand",
+            "qty": 1
+          },
+          {
+            "slug": "small_knife",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "crystal",
+      "name_ru": "Кристалл",
+      "name_en": "Crystal",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "orb",
+      "name_ru": "Сфера",
+      "name_en": "Orb",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 3,
+        "schema_version": 1,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "rod",
+      "name_ru": "Жезл",
+      "name_en": "Rod",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 2,
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "staff",
+      "name_ru": "Посох",
+      "name_en": "Staff",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 4,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "wand",
+      "name_ru": "Волшебная палочка",
+      "name_en": "Wand",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "sprig_of_mistletoe",
+      "name_ru": "Веточка омелы",
+      "name_en": "Sprig of mistletoe",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "totem",
+      "name_ru": "Тотем",
+      "name_en": "Totem",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 0,
+        "schema_version": 1,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "wooden_staff",
+      "name_ru": "Деревянный посох",
+      "name_en": "Wooden staff",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 4,
+        "schema_version": 1,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    },
+    {
+      "op": "update",
+      "kind": "item",
+      "slug": "yew_wand",
+      "name_ru": "Тисовая палочка",
+      "name_en": "Yew wand",
+      "source": "PHB 2014",
+      "data": {
+        "weight_lb": 1,
+        "schema_version": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": true,
+        "source_book": "PHB",
+        "rarity": "mundane",
+        "requires_attunement": false,
+        "description_ru": ""
+      }
+    }
+  ],
+  "inserts": [
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "fe221f54-b3d2-5ce0-b3f6-53f3ff032417",
+      "slug": "potion_of_healing",
+      "name_ru": "Зелье лечения",
+      "name_en": "Potion of Healing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9000,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "common",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "family_slug": "potion_of_healing",
+        "family_label_ru": "Зелья лечения",
+        "variant_key": "base",
+        "variant_label_ru": "Обычное",
+        "description_ru": "Вы восстанавливаете 2к4 + 2 хитов, выпив это зелье. Красная жидкость мерцает при встряхивании.",
+        "effects": [
+          {
+            "type": "heal",
+            "dice": "2к4+2"
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "1d0aca66-241b-5355-b391-f5944c754f55",
+      "slug": "potion_of_greater_healing",
+      "name_ru": "Большое зелье лечения",
+      "name_en": "Potion of Greater Healing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9010,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "family_slug": "potion_of_healing",
+        "family_label_ru": "Зелья лечения",
+        "variant_key": "greater",
+        "variant_label_ru": "Большое",
+        "description_ru": "Вы восстанавливаете 4к4 + 4 хитов, выпив это зелье. Красная жидкость мерцает при встряхивании.",
+        "effects": [
+          {
+            "type": "heal",
+            "dice": "4к4+4"
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b0e3353a-e618-508a-9384-e2df93de790f",
+      "slug": "potion_of_superior_healing",
+      "name_ru": "Отличное зелье лечения",
+      "name_en": "Potion of Superior Healing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9020,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "family_slug": "potion_of_healing",
+        "family_label_ru": "Зелья лечения",
+        "variant_key": "superior",
+        "variant_label_ru": "Отличное",
+        "description_ru": "Вы восстанавливаете 8к4 + 8 хитов, выпив это зелье. Красная жидкость мерцает при встряхивании.",
+        "effects": [
+          {
+            "type": "heal",
+            "dice": "8к4+8"
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "5f4aed55-f353-520e-92e0-2ea32847612d",
+      "slug": "potion_of_supreme_healing",
+      "name_ru": "Превосходное зелье лечения",
+      "name_en": "Potion of Supreme Healing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9030,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "family_slug": "potion_of_healing",
+        "family_label_ru": "Зелья лечения",
+        "variant_key": "supreme",
+        "variant_label_ru": "Превосходное",
+        "description_ru": "Вы восстанавливаете 10к4 + 20 хитов, выпив это зелье. Красная жидкость мерцает при встряхивании.",
+        "effects": [
+          {
+            "type": "heal",
+            "dice": "10к4+20"
+          }
+        ]
+      }
+    }
+  ]
+}

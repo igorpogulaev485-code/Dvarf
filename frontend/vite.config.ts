@@ -9,6 +9,28 @@ function spaBypass(req: { headers: { accept?: string } }) {
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (
+              id.includes('/react/') ||
+              id.includes('/react-dom/') ||
+              id.includes('/scheduler/') ||
+              id.includes('/react-router')
+            ) {
+              return 'react-vendor'
+            }
+            return 'vendor'
+          }
+          if (id.includes('/shared/dnd/data/')) {
+            return 'class-feature-data'
+          }
+        },
+      },
+    },
+  },
   server: {
     host: '127.0.0.1',
     port: 5173,

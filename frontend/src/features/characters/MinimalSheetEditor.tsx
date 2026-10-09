@@ -93,7 +93,22 @@ import {
   type RaceGrantDef,
   type RaceGrantPicks,
 } from '../../shared/dnd/raceGrants'
-import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
+import {
+  AttacksPanel,
+  syncAttacksHeldFromInventory,
+  type WeaponAttack,
+} from './AttacksPanel'
+import {
+  aggregateGearEffects,
+  applyGearAbilityScores,
+  gearDarkvisionFt,
+} from './gearEffects'
+import {
+  syncGearCompanions,
+  syncGearGrantSpells,
+  syncGearResources,
+} from './gearGrantsSync'
+import { canWearArmor } from './equipmentProficiency'
 import { AttunementPanel } from './AttunementPanel'
 import {
   attunementsToSheet,
@@ -109,10 +124,14 @@ import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
 import { LanguagesToolsPanel } from './LanguagesToolsPanel'
 import { GuidedWizardDialog, type GuidedWizardSession } from './GuidedWizardDialog'
+import { ClassAsiDialog } from './ClassAsiDialog'
+import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
 import { LevelUpDialog, type LevelUpChoice } from './LevelUpDialog'
 import { PlayPanel } from './PlayPanel'
 import {
   applyClassAsiBonuses,
+  asiAlreadyApplied,
+  isAsiFeature,
   readClassAsiLedger,
   revokeClassAsiBonuses,
   type AppliedClassAsi,
@@ -129,6 +148,25 @@ import {
   withBackgroundStepIfNeeded,
   type GuidedWizardStep,
 } from '../../shared/dnd/pendingFeatureChoices'
+import {
+  fightingStyleFromFeatGrants,
+  naturalArmorFromFeatGrants,
+  newFeatGrantId,
+  ownedFeatEnumsFromLedger,
+  readFeatGrantLedger,
+  sumFeatHpPerLevel,
+  sumFeatInitiativeBonus,
+  sumFeatPassiveBonus,
+  type AppliedFeatGrant,
+} from '../../shared/dnd/featGrants'
+import {
+  applyFeatGrantToDraft,
+  revokeFeatGrantsForAsi,
+  revokeFeatGrantsForBackground,
+  revokeFeatGrantsForRace,
+  syncFeatProficiencyResources,
+  type FeatGrantDraftSlice,
+} from './featEffects'
 import {
   migrateLegacyHitDice,
   syncHitDicePools,
@@ -174,11 +212,17 @@ import {
 } from './raceEffects'
 import { characterHasCasterClass } from '../../shared/dnd/casterProgression'
 import {
+  equipInventoryItem,
   equippedArmorPieces,
   inventoryToSheet,
   readInventory,
   type InventoryState,
 } from './inventory'
+import {
+  classifySpellTooling,
+  inferFocusKind,
+  withSpellFocusFlags,
+} from './spellFocus'
 import {
   playToSheet,
   readPlay,
@@ -251,6 +295,7 @@ type Draft = {
   companions: CompanionEntry[]
   featurePicks: FeaturePicksState
   classAsi: AppliedClassAsi[]
+  featGrants: AppliedFeatGrant[]
 }
 
 function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -283,6 +328,13 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
       is_proficient: Boolean(row.is_proficient),
       damage: typeof row.damage === 'string' ? row.damage : '',
       damage_type: typeof row.damage_type === 'string' ? row.damage_type : '',
+      qty:
+        typeof row.qty === 'number' && Number.isFinite(row.qty) && row.qty > 1
+          ? Math.floor(row.qty)
+          : null,
+      inventory_item_id:
+        typeof row.inventory_item_id === 'string' ? row.inventory_item_id : null,
+      held: Boolean(row.held),
     }
   })
 }
@@ -360,10 +412,43 @@ function buildDraft(character: CharacterDetail): Draft {
     flySpeed: readNullableNumber(combat.fly_speed ?? combat.flySpeed),
     initiativeOverride: readNullableNumber(combat.initiative),
     inspiration: Boolean(combat.inspiration),
-    weapons: readWeapons(sheet),
-    inventory: readInventory(sheet),
+    ...(() => {
+      const inventory = readInventory(sheet)
+      // Hydrate spell_tooling type for legacy rows (one pass on load).
+      // Cast later looks at type — custom names keep working once typed as focus.
+      const items = inventory.items.map((item) => {
+        if (item.spell_tooling) {
+          if (
+            item.spell_tooling === 'focus' &&
+            !item.focus_kind
+          ) {
+            return {
+              ...item,
+              focus_kind: inferFocusKind({ name: item.name }) ?? 'any',
+            }
+          }
+          return item
+        }
+        const tooling = classifySpellTooling({ name: item.name })
+        if (tooling === 'none') return item
+        return {
+          ...item,
+          spell_tooling: tooling,
+          focus_kind:
+            tooling === 'focus'
+              ? inferFocusKind({ name: item.name }) ?? 'any'
+              : null,
+        }
+      })
+      const nextInventory = { ...inventory, items }
+      const spells = withSpellFocusFlags(readSpells(sheet), items)
+      return {
+        inventory: nextInventory,
+        weapons: syncAttacksHeldFromInventory(readWeapons(sheet), items),
+        spells,
+      }
+    })(),
     attunements: readAttunements(sheet),
-    spells: readSpells(sheet),
     play: withSyncedHitDiceSummary({
       ...play,
       hitDiceByClass,
@@ -380,7 +465,13 @@ function buildDraft(character: CharacterDetail): Draft {
     companions: readCompanions(sheet.companions),
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classAsi: readClassAsiLedger(sheet.class_asi),
+    featGrants: readFeatGrantLedger(sheet.feat_grants),
   }
+}
+
+function grantedFeatSlugFromCatalog(entry: CatalogEntry): string | null {
+  const raw = asRecord(entry.data).granted_feat_slug
+  return typeof raw === 'string' && raw.trim() ? raw.trim() : null
 }
 
 function cycleSkill(state: { is_proficient: boolean; is_expertise: boolean }) {
@@ -416,6 +507,12 @@ export function MinimalSheetEditor({
   const [error, setError] = useState<string | null>(null)
   const [conflictOpen, setConflictOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
+  const [pendingAsi, setPendingAsi] = useState<{
+    classEntryId: string
+    className: string
+    classLevel: number
+    featureId: string
+  } | null>(null)
   const [guidedWizard, setGuidedWizard] = useState<GuidedWizardSession | null>(null)
   /** Wizard paused while BackgroundSetupDialog is open from a wizard step. */
   const [pausedWizardForBackground, setPausedWizardForBackground] =
@@ -442,6 +539,7 @@ export function MinimalSheetEditor({
     subraceRequired: boolean
   } | null>(null)
   const [raceHomebrewOpen, setRaceHomebrewOpen] = useState(false)
+  const [backgroundFeatSlug, setBackgroundFeatSlug] = useState<string | null>(null)
   const [backgroundGrantPicker, setBackgroundGrantPicker] = useState<{
     root: CatalogEntry
     variants: CatalogEntry[]
@@ -470,6 +568,17 @@ export function MinimalSheetEditor({
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
     [draft.classes],
+  )
+  const ownedFeatEnums = useMemo(
+    () => ownedFeatEnumsFromLedger(draft.featGrants),
+    [draft.featGrants],
+  )
+  const proficientSkills = useMemo(
+    () =>
+      Object.entries(draft.skills)
+        .filter(([, state]) => state.is_proficient)
+        .map(([key]) => key),
+    [draft.skills],
   )
   const classSummary = useMemo(
     () => formatClassSummary(draft.classes),
@@ -839,10 +948,18 @@ export function MinimalSheetEditor({
   }
 
   function backgroundSliceFrom(prev: Draft): BackgroundGrantDraftSlice {
+    const featSkills = prev.featGrants.flatMap((row) => row.applied.skills)
+    const featTools = prev.featGrants
+      .flatMap((row) => row.applied.tools)
+      .map((item) => item.trim().toLowerCase())
+    const featLang = prev.featGrants
+      .flatMap((row) => row.applied.languages)
+      .map((item) => item.toLowerCase())
     const protectedSkills = new Set([
       ...prev.classGrants.flatMap((row) => row.skills),
       ...prev.subclassGrants.flatMap((row) => row.skills),
       ...(prev.raceGrant?.skills ?? []),
+      ...featSkills,
     ])
     const protectedTools = new Set([
       ...prev.classGrants.flatMap((row) =>
@@ -852,9 +969,11 @@ export function MinimalSheetEditor({
         row.tools.map((item) => item.trim().toLowerCase()).filter(Boolean),
       ),
       ...(prev.raceGrant?.tools ?? []).map((item) => item.trim().toLowerCase()),
+      ...featTools,
     ])
     const protectedLanguages = new Set([
       ...(prev.raceGrant?.languages ?? []).map((item) => item.toLowerCase()),
+      ...featLang,
     ])
     const protectedWeaponExtras = new Set([
       ...prev.classGrants.flatMap((row) =>
@@ -887,8 +1006,55 @@ export function MinimalSheetEditor({
       inventory: slice.inventory,
       textBlocks: slice.textBlocks,
       weapons: slice.weapons,
+      spells: withSpellFocusFlags(prev.spells, slice.inventory.items),
       backgroundGrant: slice.backgroundGrant,
       backgroundCatalogId: slice.backgroundGrant?.backgroundCatalogId ?? null,
+    }
+  }
+
+  function featSliceFrom(prev: Draft): FeatGrantDraftSlice {
+    return {
+      abilities: prev.abilities,
+      saves: prev.saves,
+      skills: prev.skills,
+      speed: prev.speed,
+      hpMax: prev.hpMax,
+      hpCurrent: prev.hpCurrent,
+      featGrants: prev.featGrants,
+      identity: {
+        languages: prev.identity.languages,
+        tools: prev.identity.tools,
+        armor: prev.identity.armor,
+      },
+      textBlocks: prev.textBlocks,
+      resources: prev.play.resources,
+      spells: prev.spells,
+      totalLevel: totalCharacterLevel(prev.classes),
+    }
+  }
+
+  function mergeFeatSlice(prev: Draft, slice: FeatGrantDraftSlice): Draft {
+    return {
+      ...prev,
+      abilities: slice.abilities,
+      saves: slice.saves,
+      skills: slice.skills,
+      speed: slice.speed,
+      hpMax: slice.hpMax,
+      hpCurrent: slice.hpCurrent,
+      featGrants: slice.featGrants,
+      textBlocks: slice.textBlocks,
+      spells: slice.spells,
+      identity: {
+        ...prev.identity,
+        languages: slice.identity.languages,
+        tools: slice.identity.tools,
+        armor: slice.identity.armor,
+      },
+      play: {
+        ...prev.play,
+        resources: slice.resources,
+      },
     }
   }
 
@@ -1091,6 +1257,7 @@ export function MinimalSheetEditor({
       hpCurrent: slice.hpCurrent,
       inventory: slice.inventory,
       weapons: slice.weapons,
+      spells: withSpellFocusFlags(prev.spells, slice.inventory.items),
       play: {
         ...prev.play,
         hitDie: slice.playHitDie,
@@ -1115,7 +1282,8 @@ export function MinimalSheetEditor({
       flySpeed: slice.flySpeed,
       textBlocks: slice.textBlocks,
       weapons: slice.weapons,
-      spells: slice.spells,
+      // Race spells replace known list — re-attach focus flags from current inventory.
+      spells: withSpellFocusFlags(slice.spells, prev.inventory.items),
       raceGrant: slice.raceGrant,
     }
     const restoredBg = reapplyBackgroundOverlays(backgroundSliceFrom(merged))
@@ -1411,43 +1579,73 @@ export function MinimalSheetEditor({
     selected: CatalogEntry
     picks: RaceGrantPicks
     def?: RaceGrantDef | null
+    featResult?: import('./FeatSetupDialog').FeatSetupResult | null
   }) {
     let summary: string | null = null
     let incompleteExpertise: GuidedWizardStep[] = []
     setDraft((prev) => {
+      const clearedFeats = prev.raceCatalogId
+        ? revokeFeatGrantsForRace({
+            draft: featSliceFrom(prev),
+            raceCatalogId: prev.raceCatalogId,
+          })
+        : featSliceFrom(prev)
+      const base = mergeFeatSlice(prev, clearedFeats)
       const applied = applyRaceGrantToDraft({
-        draft: raceSliceFrom(prev),
+        draft: raceSliceFrom(base),
         selected: input.selected,
         picks: input.picks,
         def: input.def,
-        characterLevel: totalCharacterLevel(prev.classes),
-        hasCasterClass: characterHasCasterClass(prev.classes),
+        characterLevel: totalCharacterLevel(base.classes),
+        hasCasterClass: characterHasCasterClass(base.classes),
       })
       if (!applied) return prev
       summary = applied.summary
-      const merged: Draft = {
-        ...mergeRaceSlice(prev, applied.draft),
+      let next: Draft = {
+        ...mergeRaceSlice(base, applied.draft),
         raceName: input.selected.name_ru,
         raceCatalogId: input.selected.id,
       }
+      if (input.featResult) {
+        const grant: AppliedFeatGrant = {
+          id: newFeatGrantId(),
+          featCatalogId: input.featResult.entry.id,
+          slug: input.featResult.entry.slug,
+          nameRu: input.featResult.entry.name_ru,
+          source: {
+            kind: 'race',
+            raceCatalogId: input.selected.id,
+            raceSlug: input.selected.slug,
+          },
+          applied: input.featResult.applied,
+          picks: input.featResult.picks,
+        }
+        next = mergeFeatSlice(
+          next,
+          applyFeatGrantToDraft({ draft: featSliceFrom(next), grant }),
+        )
+        summary = summary
+          ? `${summary}; черта «${grant.nameRu}»`
+          : `черта «${grant.nameRu}»`
+      }
       const unlocked = unlockFeaturesForClasses({
-        classes: merged.classes,
-        characterLevel: totalCharacterLevel(merged.classes),
-        abilities: merged.abilities,
+        classes: next.classes,
+        characterLevel: totalCharacterLevel(next.classes),
+        abilities: next.abilities,
         subclassSlugByEntryId: Object.fromEntries(
-          merged.subclassGrants
+          next.subclassGrants
             .filter((row) => row.classEntryId && row.slug)
             .map((row) => [row.classEntryId, row.slug]),
         ),
       })
       const hasSubclass: Record<string, boolean> = {}
-      for (const row of merged.classes) {
+      for (const row of next.classes) {
         hasSubclass[row.id] = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
       }
       incompleteExpertise = buildPendingWizardSteps({
         unlocked,
-        featurePicks: merged.featurePicks,
-        classAsi: merged.classAsi,
+        featurePicks: next.featurePicks,
+        classAsi: next.classAsi,
         filter: { mode: 'all_empty' },
         hasSubclassByEntryId: hasSubclass,
       }).filter(
@@ -1455,7 +1653,7 @@ export function MinimalSheetEditor({
           step.kind === 'feature_choice' &&
           step.choice.options_from === 'expertise_skills_tools',
       )
-      return merged
+      return next
     })
     if (summary) onToast(`Раса «${input.selected.name_ru}»: ${summary}`)
     const featNote = input.def?.featNoteRu ?? null
@@ -1559,18 +1757,36 @@ export function MinimalSheetEditor({
   }) {
     let summary: string | null = null
     let incompleteExpertise: GuidedWizardStep[] = []
+    const grantedFeatSlug = grantedFeatSlugFromCatalog(input.selected)
     setDraft((prev) => {
+      const prevSlug = prev.identity.backgroundSlug
+      let base: Draft = prev
+      if (prevSlug && prevSlug !== input.selected.slug) {
+        base = mergeFeatSlice(
+          base,
+          revokeFeatGrantsForBackground({
+            draft: featSliceFrom(base),
+            backgroundSlug: prevSlug,
+          }),
+        )
+      }
       const applied = applyBackgroundGrantToDraft({
-        draft: backgroundSliceFrom(prev),
+        draft: backgroundSliceFrom(base),
         selected: input.selected,
         picks: input.picks,
         def: input.def,
       })
       if (!applied) return prev
       summary = applied.summary
+      const backgroundMerged = mergeBackgroundSlice(base, applied.draft)
       const merged = {
-        ...mergeBackgroundSlice(prev, applied.draft),
+        ...backgroundMerged,
         backgroundCatalogId: input.selected.id,
+        identity: {
+          ...backgroundMerged.identity,
+          background: input.selected.name_ru,
+          backgroundSlug: input.selected.slug,
+        },
       }
       // Довыбор Expertise после фона (если ещё не выбрана) — навыки фона уже в пуле.
       if (!pausedWizardForBackground) {
@@ -1609,6 +1825,12 @@ export function MinimalSheetEditor({
     }
     if (incompleteExpertise.length > 0 && !guidedWizard) {
       openGuidedWizard({ steps: incompleteExpertise, index: 0 })
+    }
+    if (
+      grantedFeatSlug &&
+      !draft.featGrants.some((row) => row.slug === grantedFeatSlug)
+    ) {
+      setBackgroundFeatSlug(grantedFeatSlug)
     }
   }
 
@@ -1672,9 +1894,20 @@ export function MinimalSheetEditor({
   function applyHomebrewBackground(name: string) {
     setDraft((prev) => {
       const cleared = revokeBackgroundGrant(backgroundSliceFrom(prev))
+      let merged = mergeBackgroundSlice(prev, cleared)
+      const prevSlug = prev.identity.backgroundSlug
+      if (prevSlug) {
+        merged = mergeFeatSlice(
+          merged,
+          revokeFeatGrantsForBackground({
+            draft: featSliceFrom(merged),
+            backgroundSlug: prevSlug,
+          }),
+        )
+      }
       return {
-        ...mergeBackgroundSlice(prev, cleared),
-        identity: { ...cleared.identity, background: name },
+        ...merged,
+        identity: { ...merged.identity, background: name, backgroundSlug: null },
         backgroundCatalogId: null,
       }
     })
@@ -1719,11 +1952,12 @@ export function MinimalSheetEditor({
           null
 
     setDraft((prev) => {
+      const toughBonus = sumFeatHpPerLevel(prev.featGrants)
       const prevMax = prev.hpMax
-      const nextMax = prevMax == null ? gain : prevMax + gain
+      const nextMax = prevMax == null ? gain + toughBonus : prevMax + gain + toughBonus
       const prevCurrent = prev.hpCurrent
       const nextCurrent =
-        prevCurrent == null ? nextMax : Math.min(nextMax, prevCurrent + gain)
+        prevCurrent == null ? nextMax : Math.min(nextMax, prevCurrent + gain + toughBonus)
       const hitDiceByClass = syncHitDicePools({
         classes: nextClasses,
         previous: prev.play.hitDiceByClass,
@@ -1739,14 +1973,21 @@ export function MinimalSheetEditor({
           hitDie: choice.hitDie ?? prev.play.hitDie,
         }),
       }
-      if (!withClasses.raceGrant) return withClasses
+      const withFeatPools = mergeFeatSlice(
+        withClasses,
+        syncFeatProficiencyResources({
+          ...featSliceFrom(withClasses),
+          totalLevel: nextLevel,
+        }),
+      )
+      if (!withFeatPools.raceGrant) return withFeatPools
       const spells = syncRaceSpellsForSheetState({
-        spells: withClasses.spells,
-        grant: withClasses.raceGrant,
+        spells: withFeatPools.spells,
+        grant: withFeatPools.raceGrant,
         characterLevel: nextLevel,
         hasCasterClass: characterHasCasterClass(nextClasses),
       })
-      return { ...withClasses, spells }
+      return { ...withFeatPools, spells }
     })
     setLevelUpOpen(false)
     const hpNote = ` · HP +${Math.max(0, Math.floor(choice.hpGain))}`
@@ -1801,24 +2042,54 @@ export function MinimalSheetEditor({
       })
       if (steps.length > 0) {
         openGuidedWizard({ steps, index: 0 })
+        return
+      }
+      // Gear path: ClassAsiDialog (feat pick) when wizard has nothing pending.
+      const asiAtLevel = unlocked.find(
+        (feature) =>
+          feature.classEntryId === leveledRow.id &&
+          feature.source === 'class' &&
+          feature.level === leveledRow.level &&
+          isAsiFeature(feature),
+      )
+      if (
+        asiAtLevel &&
+        !asiAlreadyApplied(draft.classAsi, leveledRow.id, asiAtLevel.id)
+      ) {
+        setPendingAsi({
+          classEntryId: leveledRow.id,
+          className: leveledRow.name,
+          classLevel: leveledRow.level,
+          featureId: asiAtLevel.id,
+        })
       }
     }
   }
 
-  function confirmClassAsi(entry: AppliedClassAsi) {
-    setDraft((prev) => ({
-      ...prev,
-      abilities: applyClassAsiBonuses(prev.abilities, entry.bonuses),
-      classAsi: [...prev.classAsi, entry],
-    }))
+  function confirmClassAsi(entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) {
+    setDraft((prev) => {
+      let next: Draft = {
+        ...prev,
+        abilities: applyClassAsiBonuses(prev.abilities, entry.bonuses),
+        classAsi: [...prev.classAsi, entry],
+      }
+      if (featGrant) {
+        next = mergeFeatSlice(
+          next,
+          applyFeatGrantToDraft({ draft: featSliceFrom(next), grant: featGrant }),
+        )
+      }
+      return next
+    })
+    setPendingAsi(null)
+    if (featGrant) {
+      onToast(`ASI → черта «${featGrant.nameRu}»`)
+      return
+    }
     const bits = Object.entries(entry.bonuses)
       .filter(([, amount]) => amount)
       .map(([key, amount]) => `${ABILITY_LABELS[key as AbilityKey]}+${amount}`)
-    onToast(
-      bits.length
-        ? `ASI: ${bits.join(', ')}`
-        : 'ASI записан (черта — когда появится каталог)',
-    )
+    onToast(bits.length ? `ASI: ${bits.join(', ')}` : 'ASI записан')
   }
 
   function finishWizardQueue(prev: GuidedWizardSession) {
@@ -1850,6 +2121,15 @@ export function MinimalSheetEditor({
     })
   }
 
+  const featPassiveBonus = useMemo(
+    () => sumFeatPassiveBonus(draft.featGrants),
+    [draft.featGrants],
+  )
+  const featInitiativeBonus = useMemo(
+    () => sumFeatInitiativeBonus(draft.featGrants),
+    [draft.featGrants],
+  )
+
   const passives = useMemo(() => {
     const modFor = (skillKey: string) => {
       const def = SKILL_DEFS.find((skill) => skill.key === skillKey)
@@ -1863,11 +2143,11 @@ export function MinimalSheetEditor({
       })
     }
     return {
-      perception: passiveScore(modFor('perception')),
-      investigation: passiveScore(modFor('investigation')),
+      perception: passiveScore(modFor('perception')) + featPassiveBonus,
+      investigation: passiveScore(modFor('investigation')) + featPassiveBonus,
       insight: passiveScore(modFor('insight')),
     }
-  }, [draft.abilities, draft.skills, proficiencyBonus])
+  }, [draft.abilities, draft.skills, proficiencyBonus, featPassiveBonus])
 
   const auraSaveBonus = useMemo(
     () =>
@@ -1878,15 +2158,70 @@ export function MinimalSheetEditor({
     [unlockedFeatures, draft.abilities],
   )
 
+  const gearEffects = useMemo(
+    () =>
+      aggregateGearEffects({
+        items: draft.inventory.items,
+        attunements: draft.attunements,
+      }),
+    [draft.inventory.items, draft.attunements],
+  )
+
+  // Keep gear-granted companions / charge pools / spells / slot deltas in sync.
+  useEffect(() => {
+    setDraft((prev) => {
+      const resources = syncGearResources(prev.play.resources, gearEffects)
+      const companions = syncGearCompanions(prev.companions, gearEffects)
+      const spells = syncGearGrantSpells(prev.spells, gearEffects)
+      const sameRes =
+        resources.length === prev.play.resources.length &&
+        resources.every((row, index) => {
+          const cur = prev.play.resources[index]
+          return (
+            cur &&
+            cur.id === row.id &&
+            cur.max === row.max &&
+            cur.name === row.name &&
+            cur.reset === row.reset
+          )
+        })
+      const sameComp =
+        companions.length === prev.companions.length &&
+        companions.every((row, index) => prev.companions[index]?.id === row.id)
+      const sameSpells =
+        spells.known.length === prev.spells.known.length &&
+        spells.known.every((row, index) => prev.spells.known[index]?.id === row.id) &&
+        JSON.stringify(spells.gear_slot_deltas ?? {}) ===
+          JSON.stringify(prev.spells.gear_slot_deltas ?? {}) &&
+        [1, 2, 3, 4, 5, 6, 7, 8, 9].every((level) => {
+          const a = spells.slots[String(level)]
+          const b = prev.spells.slots[String(level)]
+          return (a?.max ?? 0) === (b?.max ?? 0)
+        })
+      if (sameRes && sameComp && sameSpells) return prev
+      return {
+        ...prev,
+        companions,
+        spells,
+        play: { ...prev.play, resources },
+      }
+    })
+  }, [gearEffects])
+
+  const effectiveAbilities = useMemo(
+    () => applyGearAbilityScores(draft.abilities, gearEffects),
+    [draft.abilities, gearEffects],
+  )
+
   const armorClass = useMemo(() => {
     const pieces = equippedArmorPieces(draft.inventory.items)
     const mods = {
-      str: abilityModifier(draft.abilities.str),
-      dex: abilityModifier(draft.abilities.dex),
-      con: abilityModifier(draft.abilities.con),
-      int: abilityModifier(draft.abilities.int),
-      wis: abilityModifier(draft.abilities.wis),
-      cha: abilityModifier(draft.abilities.cha),
+      str: abilityModifier(effectiveAbilities.str),
+      dex: abilityModifier(effectiveAbilities.dex),
+      con: abilityModifier(effectiveAbilities.con),
+      int: abilityModifier(effectiveAbilities.int),
+      wis: abilityModifier(effectiveAbilities.wis),
+      cha: abilityModifier(effectiveAbilities.cha),
     }
     let naturalArmor = draft.raceGrant?.naturalArmor ?? null
     // Backfill for sheets that applied the race before natural_armor was catalogued.
@@ -1903,6 +2238,10 @@ export function MinimalSheetEditor({
             nameRu: entry.name_ru,
           })?.naturalArmor ?? null
       }
+    }
+    const featNatural = naturalArmorFromFeatGrants(draft.featGrants)
+    if (featNatural && (!naturalArmor || featNatural.base > naturalArmor.base)) {
+      naturalArmor = featNatural
     }
     const unarmoredDefense = (() => {
       if (pieces.armor) return null
@@ -1928,23 +2267,33 @@ export function MinimalSheetEditor({
       naturalArmor,
       unarmoredDefense,
     })
-    const styleId = findFightingStylePick(draft.featurePicks)
+    const styleId =
+      findFightingStylePick(draft.featurePicks) ??
+      fightingStyleFromFeatGrants(draft.featGrants)
     const styleBonus = fightingStyleAcBonus({
       styleId,
       wearingArmor: Boolean(pieces.armor),
     })
-    if (styleBonus <= 0) return base
-    return {
-      ac: base.ac + styleBonus,
-      summary: `${base.summary} · стиль +${styleBonus}`,
+    let ac = base.ac
+    let summary = base.summary
+    if (styleBonus > 0) {
+      ac += styleBonus
+      summary = `${summary} · стиль +${styleBonus}`
     }
+    if (gearEffects.acBonus) {
+      ac += gearEffects.acBonus
+      summary = `${summary} · магия +${gearEffects.acBonus}`
+    }
+    return { ac, summary }
   }, [
-    draft.abilities,
+    effectiveAbilities,
     draft.inventory.items,
     draft.raceGrant,
     draft.featurePicks,
+    draft.featGrants,
     raceCatalogRows,
     unlockedFeatures,
+    gearEffects.acBonus,
   ])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
@@ -2001,6 +2350,7 @@ export function MinimalSheetEditor({
       sheet.companions = draft.companions
       sheet.feature_picks = featurePicksToSheet(draft.featurePicks)
       sheet.class_asi = draft.classAsi
+      sheet.feat_grants = draft.featGrants
 
       for (const key of ABILITY_KEYS) {
         abilities[key] = { ...asRecord(abilities[key]), score: draft.abilities[key] }
@@ -2107,13 +2457,25 @@ export function MinimalSheetEditor({
         acOverride={draft.ac}
         autoAc={armorClass.ac}
         acHint={armorClass.summary}
-        speed={draft.speed}
-        movementHint={formatRaceMovementHint({
-          climb: draft.climbSpeed,
-          swim: draft.swimSpeed,
-          fly: draft.flySpeed,
-        })}
+        speed={
+          draft.speed == null && !gearEffects.speedBonusFt
+            ? null
+            : (draft.speed ?? 0) + gearEffects.speedBonusFt
+        }
+        movementHint={[
+          formatRaceMovementHint({
+            climb: draft.climbSpeed,
+            swim: draft.swimSpeed,
+            fly: draft.flySpeed,
+          }),
+          gearEffects.speedBonusFt
+            ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join(' · ') || null}
         initiativeOverride={draft.initiativeOverride}
+        initiativeBonus={featInitiativeBonus}
         inspiration={draft.inspiration}
         exhaustion={draft.play.exhaustion}
         isDying={draft.play.isDying}
@@ -2132,7 +2494,19 @@ export function MinimalSheetEditor({
             play: { ...prev.play, concentration: null },
           }))
         }
-        onChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
+        onChange={(patch) =>
+          setDraft((prev) => {
+            const next = { ...prev, ...patch }
+            // Sticky shows walk + gear; persist base without item bonus.
+            if (patch.speed !== undefined && gearEffects.speedBonusFt) {
+              next.speed =
+                patch.speed == null
+                  ? null
+                  : Math.max(0, patch.speed - gearEffects.speedBonusFt)
+            }
+            return next
+          })
+        }
       />
 
       <Panel title="Основное">
@@ -2287,6 +2661,24 @@ export function MinimalSheetEditor({
                               for (const entry of revokedAsi) {
                                 abilities = revokeClassAsiBonuses(abilities, entry.bonuses)
                               }
+                              let featBase: Draft = {
+                                ...prev,
+                                classes: nextClasses,
+                                abilities,
+                                classAsi: keptAsi,
+                                hpMax: nextHpMax,
+                                hpCurrent: nextHpCurrent,
+                              }
+                              for (const entry of revokedAsi) {
+                                featBase = mergeFeatSlice(
+                                  featBase,
+                                  revokeFeatGrantsForAsi({
+                                    draft: featSliceFrom(featBase),
+                                    classEntryId: entry.classEntryId,
+                                    featureId: entry.featureId,
+                                  }),
+                                )
+                              }
 
                               if (!removed) {
                                 const newLevel = beforeLevel - 1
@@ -2299,7 +2691,7 @@ export function MinimalSheetEditor({
                                   .filter((feature) => feature.classEntryId === row.id)
                                   .map((feature) => ({ id: feature.id, level: feature.level }))
                                 const nextPicks = clearFeaturePicksAboveClassLevel({
-                                  featurePicks: prev.featurePicks,
+                                  featurePicks: featBase.featurePicks,
                                   classEntryId: row.id,
                                   features: packFeatures,
                                   newClassLevel: newLevel,
@@ -2311,41 +2703,38 @@ export function MinimalSheetEditor({
                                   subclassSlugByEntryId,
                                 })
                                 const nextSkills = syncSkillsExpertiseFromPicks({
-                                  skills: prev.skills,
+                                  skills: featBase.skills,
                                   featurePicks: nextPicks,
                                   expertiseKeys: listUnlockedExpertiseKeys(nextUnlocked),
                                 })
-                                return withRaceSpellsSynced(
+                                const synced = mergeFeatSlice(
                                   {
-                                    ...prev,
-                                    classes: nextClasses,
-                                    abilities,
-                                    classAsi: keptAsi,
+                                    ...featBase,
                                     featurePicks: nextPicks,
                                     skills: nextSkills,
-                                    hpMax: nextHpMax,
-                                    hpCurrent: nextHpCurrent,
                                     play: withSyncedHitDiceSummary({
-                                      ...prev.play,
+                                      ...featBase.play,
                                       hitDiceByClass,
                                     }),
                                   },
-                                  nextClasses,
+                                  syncFeatProficiencyResources(
+                                    featSliceFrom({
+                                      ...featBase,
+                                      classes: nextClasses,
+                                      featurePicks: nextPicks,
+                                      skills: nextSkills,
+                                    }),
+                                  ),
                                 )
+                                return withRaceSpellsSynced(synced, nextClasses)
                               }
                               const withoutClass = revokeClassGrant(
-                                draftSliceFrom({
-                                  ...prev,
-                                  classes: nextClasses,
-                                  abilities,
-                                  hpMax: nextHpMax,
-                                  hpCurrent: nextHpCurrent,
-                                }),
+                                draftSliceFrom(featBase),
                                 row.id,
                               )
                               const withoutSubclass = revokeSubclassGrant(
                                 {
-                                  ...subclassSliceFrom(prev),
+                                  ...subclassSliceFrom(featBase),
                                   identity: withoutClass.identity,
                                   skills: withoutClass.skills,
                                   classGrants: withoutClass.classGrants,
@@ -2356,24 +2745,21 @@ export function MinimalSheetEditor({
                               return withRaceSpellsSynced(
                                 mergeSubclassSlice(
                                   {
-                                    ...prev,
-                                    classes: nextClasses,
-                                    abilities,
-                                    classAsi: keptAsi,
+                                    ...featBase,
                                     featurePicks: clearFeaturePicksForClass(
-                                      prev.featurePicks,
+                                      featBase.featurePicks,
                                       row.id,
                                     ),
                                     classGrants: withoutClass.classGrants,
                                     saves: withoutClass.saves,
                                     skills: withoutClass.skills,
                                     identity: withoutClass.identity,
-                                    hpMax: withoutClass.hpMax ?? nextHpMax,
-                                    hpCurrent: withoutClass.hpCurrent ?? nextHpCurrent,
+                                    hpMax: withoutClass.hpMax ?? featBase.hpMax,
+                                    hpCurrent: withoutClass.hpCurrent ?? featBase.hpCurrent,
                                     inventory: withoutClass.inventory,
                                     weapons: withoutClass.weapons,
                                     play: withSyncedHitDiceSummary({
-                                      ...prev.play,
+                                      ...featBase.play,
                                       hitDiceByClass,
                                       hitDie: withoutClass.playHitDie ?? prev.play.hitDie,
                                     }),
@@ -2411,9 +2797,37 @@ export function MinimalSheetEditor({
                             requestSubclassChange(row.id, selected)
                             return
                           }
-                          patchClass(row.id, {
-                            subclass_name: value,
-                            subclass_catalog_id: null,
+                          // Free-text / clear: drop catalog subclass grant (EK/AT caster etc.)
+                          // so stale third-caster overlays do not linger without an archetype.
+                          setDraft((prev) => {
+                            const hadGrant = prev.subclassGrants.some(
+                              (grant) => grant.classEntryId === row.id,
+                            )
+                            const cleared = hadGrant
+                              ? revokeSubclassGrant(subclassSliceFrom(prev), row.id, {
+                                  copyTextToNotes: true,
+                                })
+                              : subclassSliceFrom(prev)
+                            const merged = hadGrant
+                              ? mergeSubclassSlice(prev, cleared)
+                              : prev
+                            const nextClasses = merged.classes.map((item) =>
+                              item.id === row.id
+                                ? {
+                                    ...item,
+                                    subclass_name: value,
+                                    subclass_catalog_id: null,
+                                  }
+                                : item,
+                            )
+                            const next = withRaceSpellsSynced(merged, nextClasses)
+                            return {
+                              ...next,
+                              identity:
+                                next.classes[0]?.id === row.id
+                                  ? { ...next.identity, subclassName: value }
+                                  : next.identity,
+                            }
                           })
                         }}
                       />
@@ -2523,9 +2937,24 @@ export function MinimalSheetEditor({
                   if (!selected) {
                     setDraft((prev) => {
                       const cleared = revokeBackgroundGrant(backgroundSliceFrom(prev))
+                      let merged = mergeBackgroundSlice(prev, cleared)
+                      const prevSlug = prev.identity.backgroundSlug
+                      if (prevSlug) {
+                        merged = mergeFeatSlice(
+                          merged,
+                          revokeFeatGrantsForBackground({
+                            draft: featSliceFrom(merged),
+                            backgroundSlug: prevSlug,
+                          }),
+                        )
+                      }
                       return {
-                        ...mergeBackgroundSlice(prev, cleared),
-                        identity: { ...cleared.identity, background: value },
+                        ...merged,
+                        identity: {
+                          ...merged.identity,
+                          background: value,
+                          backgroundSlug: null,
+                        },
                         backgroundCatalogId: null,
                       }
                     })
@@ -2572,7 +3001,18 @@ export function MinimalSheetEditor({
               <strong>{passives.insight}</strong>
             </div>
           </div>
-          <Field label="Тёмное зрение, фт" htmlFor="sheet-darkvision" hint="0 = нет">
+          <Field
+            label="Тёмное зрение, фт"
+            htmlFor="sheet-darkvision"
+            hint={
+              gearDarkvisionFt(gearEffects) > 0
+                ? `предметы: ${gearDarkvisionFt(gearEffects)} фт · итого ${Math.max(
+                    draft.identity.darkvision,
+                    gearDarkvisionFt(gearEffects),
+                  )}`
+                : '0 = нет'
+            }
+          >
             <NumberInput
               id="sheet-darkvision"
               min={0}
@@ -2616,7 +3056,45 @@ export function MinimalSheetEditor({
       <EquipmentProficienciesPanel
         armor={draft.identity.armor}
         weapons={draft.identity.weapons}
-        onChange={(patch) => patchIdentity(patch)}
+        onChange={(patch) => {
+          let dropped = 0
+          setDraft((prev) => {
+            const nextArmor = patch.armor ?? prev.identity.armor
+            const nextWeapons = patch.weapons ?? prev.identity.weapons
+            let items = prev.inventory.items
+            // Drop armor/shield that the character can no longer wear.
+            if (patch.armor) {
+              items = items.map((item) => {
+                if (
+                  item.equipped &&
+                  item.armor_kind !== 'none' &&
+                  !canWearArmor(item.armor_kind, nextArmor)
+                ) {
+                  dropped += 1
+                  return { ...item, equipped: false }
+                }
+                return item
+              })
+            }
+            return {
+              ...prev,
+              identity: {
+                ...prev.identity,
+                armor: nextArmor,
+                weapons: nextWeapons,
+              },
+              inventory: { ...prev.inventory, items },
+              weapons: syncAttacksHeldFromInventory(prev.weapons, items),
+            }
+          })
+          if (dropped > 0) {
+            onToast(
+              dropped === 1
+                ? 'Доспех снят — нет владения'
+                : `Снято без владения: ${dropped}`,
+            )
+          }
+        }}
       />
 
       <LanguagesToolsPanel
@@ -2626,9 +3104,14 @@ export function MinimalSheetEditor({
       />
 
       <Panel title="Характеристики">
+        {gearEffects.notes.some((line) => /STR|DEX|CON|INT|WIS|CHA/.test(line)) ? (
+          <Text tone="muted">С предметами: итоговые значения ниже в модификаторе.</Text>
+        ) : null}
         <div className="ability-grid">
           {ABILITY_KEYS.map((key) => {
-            const score = draft.abilities[key]
+            const baseScore = draft.abilities[key]
+            const score = effectiveAbilities[key]
+            const gearTouched = score !== baseScore
             return (
               <label key={key} className="ability-card">
                 <span className="ability-card__label">{ABILITY_LABELS[key]}</span>
@@ -2636,7 +3119,7 @@ export function MinimalSheetEditor({
                   min={1}
                   max={30}
                   emptyValue={10}
-                  value={score}
+                  value={baseScore}
                   onValueChange={(next) =>
                     setDraft((prev) => ({
                       ...prev,
@@ -2647,7 +3130,10 @@ export function MinimalSheetEditor({
                     }))
                   }
                 />
-                <span className="ability-card__mod">{formatModifier(abilityModifier(score))}</span>
+                <span className="ability-card__mod">
+                  {formatModifier(abilityModifier(score))}
+                  {gearTouched ? ` · ${score}` : ''}
+                </span>
               </label>
             )
           })}
@@ -2672,16 +3158,48 @@ export function MinimalSheetEditor({
       <AttacksPanel
         edition={baseCharacter.rules_edition as RulesEdition}
         weapons={draft.weapons}
-        abilities={draft.abilities}
+        abilities={effectiveAbilities}
         proficiencyBonus={proficiencyBonus}
+        weaponProficiency={draft.identity.weapons}
+        gearBonusesByItem={gearEffects.byItem}
         onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
+        onToggleHeld={(attack) => {
+          if (!attack.inventory_item_id) return
+          setDraft((prev) => {
+            const item = prev.inventory.items.find(
+              (row) => row.id === attack.inventory_item_id,
+            )
+            if (!item) return prev
+            const items = equipInventoryItem(
+              prev.inventory.items,
+              item.id,
+              !item.equipped,
+            )
+            return {
+              ...prev,
+              inventory: { ...prev.inventory, items },
+              weapons: syncAttacksHeldFromInventory(prev.weapons, items),
+            }
+          })
+        }}
       />
 
       <InventoryPanel
         edition={baseCharacter.rules_edition as RulesEdition}
         inventory={draft.inventory}
         strengthScore={draft.abilities.str}
-        onChange={(inventory) => setDraft((prev) => ({ ...prev, inventory }))}
+        armorProficiency={draft.identity.armor}
+        weapons={draft.weapons}
+        onToast={onToast}
+        onChange={(inventory) =>
+          setDraft((prev) => ({
+            ...prev,
+            inventory,
+            weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
+            spells: withSpellFocusFlags(prev.spells, inventory.items),
+          }))
+        }
+        onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
       />
 
       <AttunementPanel
@@ -2729,7 +3247,16 @@ export function MinimalSheetEditor({
         spells={draft.spells}
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
+        inventoryItems={draft.inventory.items}
+        inventory={draft.inventory}
         onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        onInventoryChange={(inventory) =>
+          setDraft((prev) => ({
+            ...prev,
+            inventory,
+            spells: withSpellFocusFlags(prev.spells, inventory.items),
+          }))
+        }
         onConcentrationChange={(concentration) =>
           setDraft((prev) => ({
             ...prev,
@@ -2746,31 +3273,39 @@ export function MinimalSheetEditor({
 
       <Panel title="Спасброски">
         <div className="chip-row">
-          {ABILITY_KEYS.map((key) => (
-            <button
-              key={key}
-              type="button"
-              className={`sheet-chip${draft.saves[key] ? ' is-on' : ''}`}
-              onClick={() =>
-                setDraft((prev) => ({
-                  ...prev,
-                  saves: { ...prev.saves, [key]: !prev.saves[key] },
-                }))
-              }
-            >
-              {ABILITY_LABELS[key]}{' '}
-              {formatModifier(
-                abilityModifier(draft.abilities[key]) +
-                  (draft.saves[key] ? proficiencyBonus : 0) +
-                  auraSaveBonus,
-              )}
-            </button>
-          ))}
+          {ABILITY_KEYS.map((key) => {
+            const gearSave =
+              (gearEffects.saveBonuses.all ?? 0) + (gearEffects.saveBonuses[key] ?? 0)
+            return (
+              <button
+                key={key}
+                type="button"
+                className={`sheet-chip${draft.saves[key] ? ' is-on' : ''}`}
+                onClick={() =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    saves: { ...prev.saves, [key]: !prev.saves[key] },
+                  }))
+                }
+              >
+                {ABILITY_LABELS[key]}{' '}
+                {formatModifier(
+                  abilityModifier(effectiveAbilities[key]) +
+                    (draft.saves[key] ? proficiencyBonus : 0) +
+                    auraSaveBonus +
+                    gearSave,
+                )}
+              </button>
+            )
+          })}
         </div>
         <Text tone="muted">
           Нажми, чтобы включить/выключить владение
           {auraSaveBonus > 0
             ? ` · аура защиты +${auraSaveBonus} ко всем спасам`
+            : ''}
+          {(gearEffects.saveBonuses.all ?? 0) > 0
+            ? ` · предметы +${gearEffects.saveBonuses.all}`
             : ''}
         </Text>
       </Panel>
@@ -2779,13 +3314,15 @@ export function MinimalSheetEditor({
         <div className="skill-list">
           {SKILL_DEFS.map((skill) => {
             const state = draft.skills[skill.key]
+            const gearSkill = gearEffects.skillBonuses[skill.key] ?? 0
             const mod =
-              abilityModifier(draft.abilities[skill.base]) +
+              abilityModifier(effectiveAbilities[skill.base]) +
               (state.is_expertise
                 ? proficiencyBonus * 2
                 : state.is_proficient
                   ? proficiencyBonus
-                  : 0)
+                  : 0) +
+              gearSkill
             return (
               <button
                 key={skill.key}
@@ -2804,6 +3341,7 @@ export function MinimalSheetEditor({
                 <span>{skill.label}</span>
                 <span className="skill-row__meta">
                   {ABILITY_LABELS[skill.base]} · {skillMark(state)} · {formatModifier(mod)}
+                  {gearSkill ? ` · предм. ${formatModifier(gearSkill)}` : ''}
                 </span>
               </button>
             )
@@ -2978,12 +3516,37 @@ export function MinimalSheetEditor({
         }}
       />
 
+      <ClassAsiDialog
+        open={pendingAsi != null}
+        edition={baseCharacter.rules_edition as RulesEdition}
+        className={pendingAsi?.className ?? ''}
+        classLevel={pendingAsi?.classLevel ?? 1}
+        featureId={pendingAsi?.featureId ?? ''}
+        classEntryId={pendingAsi?.classEntryId ?? ''}
+        abilities={draft.abilities}
+        armor={draft.identity.armor}
+        hasSpellcasting={characterHasCasterClass(draft.classes)}
+        hasMartialWeapons={draft.identity.weapons.martial}
+        raceSlug={draft.raceGrant?.slug ?? null}
+        raceParentSlug={draft.raceGrant?.parentSlug ?? null}
+        size={draft.identity.size}
+        characterLevel={characterLevel}
+        takenFeatSlugs={draft.featGrants.map((row) => row.slug)}
+        classSlugs={draft.classGrants.map((row) => row.slug)}
+        backgroundSlug={draft.identity.backgroundSlug}
+        ownedFeatEnums={ownedFeatEnums}
+        proficientSkills={proficientSkills}
+        onConfirm={confirmClassAsi}
+        onSkip={() => setPendingAsi(null)}
+      />
+
       <ClassSetupDialog
         open={grantPicker != null}
         def={grantPicker?.def ?? null}
         mode={grantPicker?.mode ?? 'start'}
         blockedSkillKeys={draft.backgroundGrant?.skills ?? []}
         blockedToolNames={draft.backgroundGrant?.tools ?? []}
+        edition={baseCharacter.rules_edition as RulesEdition}
         onClose={() => setGrantPicker(null)}
         onConfirm={(picks) => {
           if (!grantPicker) return
@@ -3021,17 +3584,74 @@ export function MinimalSheetEditor({
 
       <RaceSetupDialog
         open={raceGrantPicker != null}
+        edition={baseCharacter.rules_edition as RulesEdition}
         root={raceGrantPicker?.root ?? null}
         subraces={raceGrantPicker?.subraces ?? []}
         subraceRequired={raceGrantPicker?.subraceRequired ?? false}
+        abilities={draft.abilities}
+        armor={draft.identity.armor}
+        hasSpellcasting={characterHasCasterClass(draft.classes)}
+        hasMartialWeapons={draft.identity.weapons.martial}
+        characterLevel={characterLevel}
+        takenSlugs={draft.featGrants.map((row) => row.slug)}
+        classSlugs={draft.classGrants.map((row) => row.slug)}
+        backgroundSlug={draft.identity.backgroundSlug}
+        ownedFeatEnums={ownedFeatEnums}
+        proficientSkills={proficientSkills}
         onClose={() => setRaceGrantPicker(null)}
         onConfirm={(result) => {
           commitRaceGrant({
             selected: result.entry,
             picks: result.picks,
             def: result.def,
+            featResult: result.featResult,
           })
           setRaceGrantPicker(null)
+        }}
+      />
+
+      <FeatSetupDialog
+        open={backgroundFeatSlug != null}
+        edition={baseCharacter.rules_edition as RulesEdition}
+        title="Черта предыстории"
+        abilities={draft.abilities}
+        armor={draft.identity.armor}
+        hasSpellcasting={characterHasCasterClass(draft.classes)}
+        hasMartialWeapons={draft.identity.weapons.martial}
+        raceSlug={draft.raceGrant?.slug ?? null}
+        raceParentSlug={draft.raceGrant?.parentSlug ?? null}
+        size={draft.identity.size}
+        characterLevel={characterLevel}
+        takenSlugs={draft.featGrants.map((row) => row.slug)}
+        classSlugs={draft.classGrants.map((row) => row.slug)}
+        backgroundSlug={draft.identity.backgroundSlug}
+        ownedFeatEnums={ownedFeatEnums}
+        proficientSkills={proficientSkills}
+        forcedSlug={backgroundFeatSlug}
+        onClose={() => setBackgroundFeatSlug(null)}
+        onConfirm={(result: FeatSetupResult) => {
+          const bgSlug = draft.identity.backgroundSlug
+          if (!bgSlug) {
+            setBackgroundFeatSlug(null)
+            return
+          }
+          const grant: AppliedFeatGrant = {
+            id: newFeatGrantId(),
+            featCatalogId: result.entry.id,
+            slug: result.entry.slug,
+            nameRu: result.entry.name_ru,
+            source: { kind: 'background', backgroundSlug: bgSlug },
+            applied: result.applied,
+            picks: result.picks,
+          }
+          setDraft((prev) =>
+            mergeFeatSlice(
+              prev,
+              applyFeatGrantToDraft({ draft: featSliceFrom(prev), grant }),
+            ),
+          )
+          setBackgroundFeatSlug(null)
+          onToast(`Предыстория: черта «${grant.nameRu}»`)
         }}
       />
 

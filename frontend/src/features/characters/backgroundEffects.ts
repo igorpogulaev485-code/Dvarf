@@ -17,17 +17,21 @@ import {
   type BackgroundGrantPicks,
 } from '../../shared/dnd/backgroundGrants'
 import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
-import type { IdentityExtras } from './identity'
+import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
 import {
   createInventoryItem,
   equipInventoryItem,
   type InventoryState,
 } from './inventory'
 import type { TextBlock } from './textBlocks'
+import { type WeaponAttack } from './AttacksPanel'
+import { resolveWeaponGrip } from './heldEquip'
+import { canWearArmor, isWeaponProficient } from './equipmentProficiency'
+import { classifySpellTooling, inferFocusKind } from './spellFocus'
 import {
-  backgroundEquipmentAttackId,
-  type WeaponAttack,
-} from './AttacksPanel'
+  backgroundEquipmentAttackIdAt,
+  buildStartingWeaponAttacks,
+} from './startingGearAttacks'
 import { resolveWeaponExtraName } from './weaponProficiencyExtras'
 
 export type SkillState = Record<string, { is_proficient: boolean; is_expertise: boolean }>
@@ -70,11 +74,14 @@ function addGearItem(input: {
   weight_lb?: number | null
   notes?: string
   backgroundSlug: string
+  armorProficiency: ArmorProficiency
+  weaponProficiency: WeaponProficiency
 }): {
   inventory: InventoryState
   weapons: WeaponAttack[]
   itemId: string
   attackId: string | null
+  attackIds: string[]
 } {
   const created = createInventoryItem()
   created.name = input.name
@@ -83,6 +90,13 @@ function addGearItem(input: {
   created.base_ac = input.base_ac ?? null
   created.weight_lb = input.weight_lb ?? null
   created.notes = input.notes ?? 'Снаряжение предыстории'
+  if (created.armor_kind === 'none' && findWeaponPreset(created.name)) {
+    created.weapon_grip = resolveWeaponGrip({ name: created.name })
+  }
+  created.spell_tooling = classifySpellTooling({ name: created.name })
+  if (created.spell_tooling === 'focus') {
+    created.focus_kind = inferFocusKind({ name: created.name }) ?? 'any'
+  }
 
   let inventory: InventoryState = {
     ...input.inventory,
@@ -90,10 +104,11 @@ function addGearItem(input: {
   }
 
   if (
-    created.armor_kind === 'light' ||
-    created.armor_kind === 'medium' ||
-    created.armor_kind === 'heavy' ||
-    created.armor_kind === 'shield'
+    (created.armor_kind === 'light' ||
+      created.armor_kind === 'medium' ||
+      created.armor_kind === 'heavy' ||
+      created.armor_kind === 'shield') &&
+    canWearArmor(created.armor_kind, input.armorProficiency)
   ) {
     inventory = {
       ...inventory,
@@ -102,24 +117,31 @@ function addGearItem(input: {
   }
 
   let weapons = [...input.weapons]
-  let attackId: string | null = null
-  const weapon = findWeaponPreset(input.name)
-  if (weapon) {
-    attackId = backgroundEquipmentAttackId(input.backgroundSlug, created.id)
-    weapons.push({
-      id: attackId,
-      name:
-        created.qty > 1 ? `${weapon.labelRu} ×${created.qty}` : weapon.labelRu,
-      catalog_id: null,
-      source_kind: 'weapon',
-      ability: weapon.ability,
-      is_proficient: true,
-      damage: weapon.damage,
-      damage_type: weapon.damageType,
-    })
-  }
+  const built = buildStartingWeaponAttacks({
+    name: input.name,
+    qty: created.qty,
+    makeId: (index, cardCount) =>
+      backgroundEquipmentAttackIdAt(input.backgroundSlug, created.id, index, cardCount),
+    inventoryItemId: created.id,
+    held: false,
+  })
+  const withProf = built.attacks.map((attack) => ({
+    ...attack,
+    is_proficient: isWeaponProficient({
+      name: attack.name,
+      weapons: input.weaponProficiency,
+    }),
+  }))
+  weapons.push(...withProf)
+  const attackId = built.attackIds[0] ?? null
 
-  return { inventory, weapons, itemId: created.id, attackId }
+  return {
+    inventory,
+    weapons,
+    itemId: created.id,
+    attackId,
+    attackIds: built.attackIds,
+  }
 }
 
 /** Weapon OR picks that grant a named proficiency (gladiator exotic weapons). */
@@ -286,6 +308,14 @@ export function applyBackgroundGrantToDraft(input: {
     items: [...cleared.inventory.items],
   }
   let nextWeapons: WeaponAttack[] = [...cleared.weapons]
+  const gearArmorProf = cleared.identity.armor
+  const gearWeaponProf = {
+    ...cleared.identity.weapons,
+    extras: uniqueStrings([
+      ...(cleared.identity.weapons.extras ?? []),
+      ...weaponExtras,
+    ]),
+  }
   const equipmentPackageId = picks.equipmentPackageId
   if (equipmentPackageId && equipmentPackageId !== 'skip') {
     const pack = def.equipment.find((row) => row.id === equipmentPackageId)
@@ -301,11 +331,13 @@ export function applyBackgroundGrantToDraft(input: {
           weight_lb: spec.weight_lb,
           notes: spec.notes ?? 'Снаряжение предыстории',
           backgroundSlug: def.slug,
+          armorProficiency: gearArmorProf,
+          weaponProficiency: gearWeaponProf,
         })
         inventory = added.inventory
         nextWeapons = added.weapons
         equipmentItemIds.push(added.itemId)
-        if (added.attackId) equipmentAttackIds.push(added.attackId)
+        equipmentAttackIds.push(...added.attackIds)
       }
       for (const choice of def.equipmentOrChoices) {
         const picked = picks.equipmentOrPicks[choice.id]
@@ -316,11 +348,13 @@ export function applyBackgroundGrantToDraft(input: {
           name: picked,
           notes: 'Снаряжение предыстории',
           backgroundSlug: def.slug,
+          armorProficiency: gearArmorProf,
+          weaponProficiency: gearWeaponProf,
         })
         inventory = added.inventory
         nextWeapons = added.weapons
         equipmentItemIds.push(added.itemId)
-        if (added.attackId) equipmentAttackIds.push(added.attackId)
+        equipmentAttackIds.push(...added.attackIds)
       }
       if (pack.coinsGp && pack.coinsGp > 0) {
         equipmentCoinsGp = pack.coinsGp
