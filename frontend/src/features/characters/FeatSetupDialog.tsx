@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { RulesEdition } from '../../shared/api/characters'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
@@ -85,6 +85,7 @@ export function FeatSetupDialog({
   const [customWeapon, setCustomWeapon] = useState('')
   const [customLanguage, setCustomLanguage] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const picksAnchorRef = useRef<HTMLDivElement | null>(null)
 
   const def = useMemo(
     () =>
@@ -356,6 +357,7 @@ export function FeatSetupDialog({
     })
     if (check) {
       setError(check)
+      picksAnchorRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
       return
     }
     onConfirm({
@@ -366,99 +368,36 @@ export function FeatSetupDialog({
     })
   }
 
-  return (
-    <Dialog
-      open={open}
-      title={title}
-      primaryLabel="Взять черту"
-      secondaryLabel="Отмена"
-      size="wide"
-      onPrimary={confirm}
-      onSecondary={onClose}
-      primaryDisabled={!selected || !def}
-    >
-      <Stack gap={14}>
-        <Text tone="muted">
-          Только доступные тебе черты (требования уже отфильтрованы). Выбери карточку — как на
-          других шагах. Гранты попадут на лист.
-        </Text>
+  const picksIncomplete = Boolean(
+    def &&
+      validateFeatGrantPicks({
+        def,
+        picks,
+        abilities,
+        armor,
+        hasSpellcasting,
+        hasMartialWeapons,
+        raceSlug,
+        raceParentSlug,
+        size,
+        characterLevel,
+        ownedFeatSlugs: takenSlugs,
+        classSlugs,
+        backgroundSlug,
+        ownedFeatEnums,
+        proficientSkills,
+      }),
+  )
 
-        <Field label="Поиск">
-          <Input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Поиск по имени…"
-          />
-        </Field>
-        {forcedSlug ? (
-          <Text tone="muted">Черта предыстории / расы: выбери «{forcedSlug}» в списке.</Text>
-        ) : null}
+  const hasChoiceForks = Boolean(def && def.choices.length > 0)
 
-        {catalogLoading ? (
-          <Text tone="muted">Загружаем каталог черт…</Text>
-        ) : eligibleFeats.length === 0 ? (
-          <Text tone="muted">Нет доступных черт по текущим требованиям.</Text>
-        ) : (
-          <Field label={`Черта (${eligibleFeats.length})`}>
-            <div
-              className="feat-setup__list"
-              style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: 4 }}
-            >
-              <Stack gap={8}>
-                {eligibleFeats.map((entry) => {
-                  const on = selected?.id === entry.id
-                  const entryDef = featGrantDefFromCatalog({
-                    slug: entry.slug,
-                    nameRu: entry.name_ru,
-                    data: entry.data,
-                  })
-                  const summary =
-                    entryDef?.fixedGrants.summaryRu?.trim() ||
-                    entryDef?.prerequisitesRu?.trim() ||
-                    entry.name_en ||
-                    entry.source ||
-                    ''
-                  return (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      className={`sheet-chip${on ? ' is-on' : ''}`}
-                      style={{ display: 'block', width: '100%', textAlign: 'left' }}
-                      onClick={() => {
-                        setSelected(entry)
-                        setError(null)
-                      }}
-                    >
-                      <strong>{entry.name_ru}</strong>
-                      {summary ? (
-                        <div style={{ opacity: 0.85, fontWeight: 400 }}>{summary}</div>
-                      ) : null}
-                      {entry.source ? (
-                        <div style={{ opacity: 0.65, fontWeight: 400, fontSize: 12 }}>
-                          {entry.source}
-                        </div>
-                      ) : null}
-                    </button>
-                  )
-                })}
-              </Stack>
-            </div>
-          </Field>
-        )}
+  useEffect(() => {
+    if (!selected || !hasChoiceForks) return
+    picksAnchorRef.current?.scrollIntoView({ block: 'nearest' })
+  }, [selected?.id, hasChoiceForks])
 
-        {def ? (
-          <>
-            {def.prerequisitesRu ? (
-              <Text tone="muted">Требования: {def.prerequisitesRu}</Text>
-            ) : null}
-            {def.fixedGrants.summaryRu ? (
-              <Text>{def.fixedGrants.summaryRu}</Text>
-            ) : null}
-            {def.fixedGrants.benefitsRu ? (
-              <Text tone="muted">{def.fixedGrants.benefitsRu}</Text>
-            ) : null}
-
-            {def.choices.map((choice) => {
+  const choiceFields = def
+    ? def.choices.map((choice) => {
               if (choice.type === 'ability_one') {
                 const current = picks.abilityKeys[choice.id]
                 return (
@@ -712,9 +651,121 @@ export function FeatSetupDialog({
                   {choice.label_ru}: {choice.text_ru}
                 </Text>
               )
-            })}
-          </>
+            })
+    : null
+
+  const picksBlock =
+    def && selected ? (
+      <div ref={picksAnchorRef}>
+        <Stack gap={12}>
+          <Text>
+            <strong>{selected.name_ru}</strong>
+            {selected.name_en ? ` · ${selected.name_en}` : ''}
+          </Text>
+          {def.prerequisitesRu ? (
+            <Text tone="muted">Требования: {def.prerequisitesRu}</Text>
+          ) : null}
+          {def.fixedGrants.summaryRu ? <Text>{def.fixedGrants.summaryRu}</Text> : null}
+          {def.fixedGrants.benefitsRu ? (
+            <Text tone="muted">{def.fixedGrants.benefitsRu}</Text>
+          ) : null}
+          {hasChoiceForks ? (
+            <Text tone="muted">Сначала отметь развилки ниже — без них черту взять нельзя.</Text>
+          ) : null}
+          {choiceFields}
+        </Stack>
+      </div>
+    ) : null
+
+  return (
+    <Dialog
+      open={open}
+      title={title}
+      primaryLabel="Взять черту"
+      secondaryLabel="Отмена"
+      size="wide"
+      onPrimary={confirm}
+      onSecondary={onClose}
+      primaryDisabled={!selected || !def || picksIncomplete}
+    >
+      <Stack gap={14}>
+        <Text tone="muted">
+          Только доступные тебе черты (требования уже отфильтрованы). Выбери карточку — как на
+          других шагах. Гранты попадут на лист.
+        </Text>
+
+        {/* Picks first when a fork-feat is selected — list used to bury ASI/spell chips. */}
+        {hasChoiceForks ? picksBlock : null}
+
+        <Field label="Поиск">
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Поиск по имени…"
+          />
+        </Field>
+        {forcedSlug ? (
+          <Text tone="muted">Черта предыстории / расы: выбери «{forcedSlug}» в списке.</Text>
         ) : null}
+
+        {catalogLoading ? (
+          <Text tone="muted">Загружаем каталог черт…</Text>
+        ) : eligibleFeats.length === 0 ? (
+          <Text tone="muted">Нет доступных черт по текущим требованиям.</Text>
+        ) : (
+          <Field label={hasChoiceForks ? 'Сменить черту' : `Черта (${eligibleFeats.length})`}>
+            <div
+              className="feat-setup__list"
+              style={{
+                maxHeight: hasChoiceForks ? '22vh' : '40vh',
+                overflowY: 'auto',
+                paddingRight: 4,
+              }}
+            >
+              <Stack gap={8}>
+                {eligibleFeats.map((entry) => {
+                  const on = selected?.id === entry.id
+                  const entryDef = featGrantDefFromCatalog({
+                    slug: entry.slug,
+                    nameRu: entry.name_ru,
+                    data: entry.data,
+                  })
+                  const summary =
+                    entryDef?.fixedGrants.summaryRu?.trim() ||
+                    entryDef?.prerequisitesRu?.trim() ||
+                    entry.name_en ||
+                    entry.source ||
+                    ''
+                  return (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      className={`sheet-chip${on ? ' is-on' : ''}`}
+                      style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                      onClick={() => {
+                        setSelected(entry)
+                        setError(null)
+                      }}
+                    >
+                      <strong>{entry.name_ru}</strong>
+                      {summary ? (
+                        <div style={{ opacity: 0.85, fontWeight: 400 }}>{summary}</div>
+                      ) : null}
+                      {entry.source ? (
+                        <div style={{ opacity: 0.65, fontWeight: 400, fontSize: 12 }}>
+                          {entry.source}
+                        </div>
+                      ) : null}
+                    </button>
+                  )
+                })}
+              </Stack>
+            </div>
+          </Field>
+        )}
+
+        {/* Feats without forks still show summary under the list. */}
+        {!hasChoiceForks ? picksBlock : null}
 
         {error ? <Text tone="danger">{error}</Text> : null}
       </Stack>

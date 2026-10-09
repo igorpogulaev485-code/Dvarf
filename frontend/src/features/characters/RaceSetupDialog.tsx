@@ -642,11 +642,19 @@ export function RaceSetupDialog({
                   {def.featNoteRu ? <Text tone="muted">{def.featNoteRu}</Text> : null}
                   <Text>
                     {featResult
-                      ? `Выбрано: ${featResult.entry.name_ru}`
-                      : 'Черта ещё не выбрана'}
+                      ? `Выбрано: ${featResult.entry.name_ru}${
+                          featResult.applied.summaryRu
+                            ? ` · ${featResult.applied.summaryRu}`
+                            : ''
+                        }`
+                      : 'Черта ещё не выбрана — открой настройку, чтобы выбрать ASI / заклинание.'}
                   </Text>
-                  <Button type="button" variant="ghost" onClick={() => setFeatPickerOpen(true)}>
-                    {featResult ? 'Сменить черту' : 'Выбрать черту'}
+                  <Button
+                    type="button"
+                    variant={featResult ? 'secondary' : 'primary'}
+                    onClick={() => setFeatPickerOpen(true)}
+                  >
+                    {featResult ? 'Сменить черту' : 'Настроить и взять черту'}
                   </Button>
                 </Stack>
               </Field>
