@@ -110,7 +110,8 @@ export function hydratePipelineFromSheet(
   fallback: CreatePipelineState,
 ): CreatePipelineState {
   const meta = asRecord(sheet.create_pipeline)
-  if (meta.version !== CREATE_PIPELINE_VERSION) return fallback
+  // v1 drafts were written by an early serializeSheet; still hydrate them.
+  if (meta.version !== CREATE_PIPELINE_VERSION && meta.version !== 1) return fallback
   const classGrantPicks =
     meta.classGrantPicks && typeof meta.classGrantPicks === 'object'
       ? (meta.classGrantPicks as CreatePipelineState['classGrantPicks'])

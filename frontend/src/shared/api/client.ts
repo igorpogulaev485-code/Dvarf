@@ -46,12 +46,16 @@ async function tryRefreshAccessToken(): Promise<boolean> {
   refreshInFlight = (async () => {
     const refreshToken = getRefreshToken()
     if (!refreshToken) {
+      clearTokens()
       return false
     }
     try {
       const response = await fetch('/auth/refresh', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
         body: JSON.stringify({ refresh_token: refreshToken }),
       })
       if (!response.ok) {
@@ -96,6 +100,11 @@ export async function apiRequest<T>(
   if (!headers.has('Content-Type') && options.body && !isFormData) {
     headers.set('Content-Type', 'application/json')
   }
+  // Always ask for JSON so nginx never SPA-rewrites API paths when Safari
+  // sends Accept: text/html and the Bearer header is momentarily missing.
+  if (!headers.has('Accept')) {
+    headers.set('Accept', 'application/json')
+  }
 
   const accessToken = getAccessToken()
   if (accessToken) {
@@ -124,10 +133,22 @@ export async function apiRequest<T>(
     if (refreshed) {
       return apiRequest<T>(path, options, true)
     }
+    // Expired access without a usable refresh — drop the stale access token
+    // so LoginRoute does not bounce back into a RequireAuth dead-end.
+    clearTokens()
   }
 
   if (response.status === 204) {
     return undefined as T
+  }
+
+  const contentType = response.headers.get('content-type') || ''
+  if (contentType.includes('text/html')) {
+    throw new ApiRequestError(
+      'Сервер вернул страницу вместо API. Обновите страницу или войдите снова.',
+      response.status || 502,
+      'html_instead_of_json',
+    )
   }
 
   const data = (await response.json().catch(() => ({}))) as ApiError & T

@@ -1,4 +1,4 @@
-import { apiRequest } from './client'
+import { apiRequest, ApiRequestError } from './client'
 
 export type RulesEdition = '2014' | '2024'
 
@@ -26,7 +26,11 @@ export type CharacterDetail = CharacterSummary & {
 export async function listCharacters(): Promise<CharacterSummary[]> {
   const data = await apiRequest<CharacterSummary[] | unknown>('/characters')
   if (!Array.isArray(data)) {
-    throw new Error('Некорректный ответ списка персонажей')
+    throw new ApiRequestError(
+      'Некорректный ответ списка персонажей',
+      502,
+      'invalid_character_list',
+    )
   }
   return data
 }

@@ -98,6 +98,7 @@ import {
 } from '../characters/sheetTypes'
 import type { WeaponAttack } from '../characters/AttacksPanel'
 import {
+  CREATE_PIPELINE_VERSION,
   type CreatePipelineState,
   type HpLevelChoice,
   type PipelineCatalogSnapshot,
@@ -680,7 +681,7 @@ function serializeSheet(input: {
   Object.assign(sheet, textBlocksToSheet(draft.textBlocks))
 
   sheet.create_pipeline = {
-    version: 1,
+    version: CREATE_PIPELINE_VERSION,
     step: state.step,
     abilityMethod: state.abilityMethod,
     baseAbilities: state.baseAbilities,
