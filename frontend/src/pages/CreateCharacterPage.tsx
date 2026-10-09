@@ -58,7 +58,13 @@ import {
   type AppliedClassAsi,
 } from '../shared/dnd/classAsi'
 import { unlockFeaturesForClasses } from '../shared/dnd/classFeatures'
-import { resolveClassGrantDef } from '../shared/dnd/classGrants'
+import {
+  formatClassGrantSummary,
+  grantNeedsSetupDialog,
+  resolveClassGrantDef,
+  type ClassGrantDef,
+  type ClassGrantPicks,
+} from '../shared/dnd/classGrants'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import {
   syncSkillsExpertiseFromPicks,
@@ -76,7 +82,6 @@ import {
   isManualScoresValid,
   mergeRacialBonuses,
 } from '../shared/dnd/pointBuy'
-import type { ClassGrantPicks } from '../shared/dnd/classGrants'
 import {
   isRaceComboboxRoot,
   mergeAbilityBonuses,
@@ -245,6 +250,13 @@ export function CreateCharacterPage() {
     /** When true, open GuidedWizard after confirm (leveling / MC). */
     openWizardAfter: boolean
   } | null>(null)
+  /** Set after LevelingStep adds MC — apply once `state.classes` includes the row. */
+  const [pendingMcGrant, setPendingMcGrant] = useState<{
+    classEntryId: string
+    openWizardAfter: boolean
+  } | null>(null)
+  /** After auto MC grants, open feature wizard once picks are in state. */
+  const [pendingMcWizard, setPendingMcWizard] = useState<string | null>(null)
   const [subclassPicker, setSubclassPicker] = useState<{
     classEntryId: string
     parentCatalogId: string
@@ -472,7 +484,7 @@ export function CreateCharacterPage() {
       return
     }
     if (!state.classGrantPicks?.[classEntryId]) {
-      setToast('Сначала выберите навыки и снаряжение класса')
+      setToast('Сначала примените владения класса (старт или мультикласс)')
       return
     }
     const steps = buildPendingWizardSteps({
@@ -492,6 +504,92 @@ export function CreateCharacterPage() {
     }
     openGuidedWizard({ steps, index: 0 })
   }
+
+  const EMPTY_CLASS_PICKS: ClassGrantPicks = {
+    skills: [],
+    tools: [],
+    equipmentPackageId: null,
+    equipmentFocusPick: null,
+  }
+
+  /** Multiclass: open picks dialog only when PHB table needs skill/tool choices. */
+  function openOrApplyMulticlassGrant(classEntryId: string, openWizardAfter: boolean) {
+    const row = state.classes.find((item) => item.id === classEntryId)
+    const catalog =
+      classes.find((item) => item.id === row?.catalog_id) ||
+      classes.find(
+        (item) =>
+          item.name_ru.trim().toLowerCase() === (row?.name ?? '').trim().toLowerCase(),
+      )
+    if (!catalog || !row) {
+      setToast('Сначала зафиксируйте класс')
+      return
+    }
+    const def = resolveClassGrantDef({
+      className: catalog.name_ru,
+      catalogSlug: catalog.slug,
+      catalogData: catalog.data,
+    })
+    if (!def) {
+      setToast('Нет пакета владений для класса')
+      return
+    }
+    if (grantNeedsSetupDialog(def, 'multiclass')) {
+      setClassSetup({
+        def,
+        mode: 'multiclass',
+        classEntryId,
+        openWizardAfter,
+      })
+      return
+    }
+    // No skill/tool forks — apply PHB MC table immediately (no start gear/skills).
+    commitMulticlassGrantPicks(classEntryId, def, EMPTY_CLASS_PICKS)
+    if (openWizardAfter) setPendingMcWizard(classEntryId)
+  }
+
+  function commitMulticlassGrantPicks(
+    classEntryId: string,
+    def: ClassGrantDef,
+    picks: ClassGrantPicks,
+  ) {
+    setState((prev) => {
+      const nextPicks = {
+        ...prev.classGrantPicks,
+        [classEntryId]: picks,
+      }
+      return {
+        ...prev,
+        classGrantPicks: nextPicks,
+        sheetDraft: {
+          ...prev.sheetDraft,
+          class_grant_picks: nextPicks,
+        },
+        stepDirty: { ...prev.stepDirty, class: true },
+      }
+    })
+    setClassSetup(null)
+    const summary = formatClassGrantSummary({ def, mode: 'multiclass', picks })
+    setToast(`Мультикласс «${def.labelRu}»: ${summary}`)
+  }
+
+  useEffect(() => {
+    if (!pendingMcGrant) return
+    if (!state.classes.some((row) => row.id === pendingMcGrant.classEntryId)) return
+    const { classEntryId, openWizardAfter } = pendingMcGrant
+    setPendingMcGrant(null)
+    openOrApplyMulticlassGrant(classEntryId, openWizardAfter)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once the MC row lands in state
+  }, [pendingMcGrant, state.classes])
+
+  useEffect(() => {
+    if (!pendingMcWizard) return
+    if (!state.classGrantPicks?.[pendingMcWizard]) return
+    const classEntryId = pendingMcWizard
+    setPendingMcWizard(null)
+    openFeatureWizardForClass(classEntryId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once picks land after auto MC grant
+  }, [pendingMcWizard, state.classGrantPicks])
 
   function beginSubclassSelection(classEntryId: string, selected: CatalogEntry) {
     const def = resolveSubclassDefFromCatalog({
@@ -1128,42 +1226,19 @@ export function CreateCharacterPage() {
           void openArchetypePicker(classEntryId)
         }}
         onOpenChoices={(classEntryId) => {
-          const row = state.classes.find((item) => item.id === classEntryId)
-          const catalog =
-            classes.find((item) => item.id === row?.catalog_id) ||
-            classes.find(
-              (item) =>
-                item.name_ru.trim().toLowerCase() === (row?.name ?? '').trim().toLowerCase(),
-            )
-          if (!catalog || !row) {
-            setToast('Сначала зафиксируйте класс')
-            return
-          }
           const isPrimary = classEntryId === state.classEntryId
           if (!state.classGrantPicks?.[classEntryId]) {
-            // Primary should already have picks from the class step; MC still opens setup.
             if (isPrimary) {
               setToast('Вернитесь на шаг «Класс» и настройте владения')
               return
             }
-            const def = resolveClassGrantDef({
-              className: catalog.name_ru,
-              catalogSlug: catalog.slug,
-              catalogData: catalog.data,
-            })
-            if (!def) {
-              setToast('Нет пакета владений для класса')
-              return
-            }
-            setClassSetup({
-              def,
-              mode: 'multiclass',
-              classEntryId,
-              openWizardAfter: true,
-            })
+            openOrApplyMulticlassGrant(classEntryId, true)
             return
           }
           openFeatureWizardForClass(classEntryId)
+        }}
+        onMulticlassAdded={(classEntryId) => {
+          setPendingMcGrant({ classEntryId, openWizardAfter: false })
         }}
         onOpenSpells={() => setSpellsOpen('grimoire')}
       />
@@ -1316,7 +1391,21 @@ export function CreateCharacterPage() {
           }
           setState(nextState)
           setClassSetup(null)
-          setToast('Выборы класса сохранены')
+          const mode = classSetup?.mode ?? 'start'
+          const summary = classSetup
+            ? formatClassGrantSummary({
+                def: classSetup.def,
+                mode,
+                picks,
+              })
+            : null
+          setToast(
+            mode === 'multiclass'
+              ? `Мультикласс «${classSetup?.def.labelRu ?? ''}»: ${summary}`
+              : summary
+                ? `Старт класса: ${summary}`
+                : 'Выборы класса сохранены',
+          )
           if (!openWizardAfter) return
           const row = nextState.classes.find((item) => item.id === entryId)
           if (!row) return

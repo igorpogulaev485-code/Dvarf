@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   equipmentPackagesFor,
+  formatFixedGrantLines,
   packageForMode,
   skillOptionsForPackage,
   type ClassGrantDef,
@@ -144,13 +145,29 @@ function ClassGrantStepBody({
     onChange({ ...picks, tools })
   }
 
+  const fixedLines = formatFixedGrantLines(pkg)
+
   return (
     <Stack gap={14}>
       <Text tone="muted">
         {mode === 'start'
           ? 'Выбери навыки, инструменты и стартовое снаряжение. Серые — уже с предыстории, не дублируй.'
-          : 'Мультикласс: только владения из таблицы PHB.'}
+          : 'По PHB при мультиклассе даются только владения из таблицы (без сейвов и без стартового снаряжения).'}
       </Text>
+      {fixedLines.length > 0 ? (
+        <Stack gap={4}>
+          {mode === 'multiclass' ? <Text>Автоматически добавляются:</Text> : null}
+          {fixedLines.map((line) => (
+            <Text key={line} tone="muted">
+              {line}
+            </Text>
+          ))}
+        </Stack>
+      ) : mode === 'multiclass' && skillNeed === 0 && toolNeed === 0 ? (
+        <Text tone="muted">
+          У этого класса нет дополнительных владений при мультиклассе — только уровни и умения.
+        </Text>
+      ) : null}
       {skillNeed > 0 ? (
         <Field label={`Навыки (${picks.skills.length}/${skillNeed})`}>
           <div className="chip-row">
@@ -503,7 +520,9 @@ export function GuidedWizardDialog({
   const title = !step
     ? 'Настройка персонажа'
     : step.kind === 'class_grant'
-      ? `${grantDef?.labelRu ?? step.className}: настройка класса`
+      ? step.mode === 'multiclass'
+        ? `${grantDef?.labelRu ?? step.className}: владения мультикласса`
+        : `${grantDef?.labelRu ?? step.className}: старт класса`
       : step.kind === 'asi'
         ? `Увеличение характеристик · ${step.className} ${step.classLevel}`
         : step.kind === 'subclass'

@@ -40,6 +40,8 @@ type LevelingStepProps = {
   onOpenChoices: (classEntryId: string) => void
   /** Opens subclass catalog picker → SubclassSetupDialog. */
   onOpenArchetype: (classEntryId: string) => void
+  /** After adding a new multiclass row — parent opens MC proficiency setup. */
+  onMulticlassAdded?: (classEntryId: string) => void
   onOpenSpells: () => void
 }
 
@@ -86,6 +88,7 @@ export function LevelingStep({
   onHpChoicesChange,
   onOpenChoices,
   onOpenArchetype,
+  onMulticlassAdded,
   onOpenSpells,
 }: LevelingStepProps) {
   const [mcOpen, setMcOpen] = useState(false)
@@ -158,6 +161,7 @@ export function LevelingStep({
       abilities,
     })
     if (!check.ok) return
+    const beforeIds = new Set(classes.map((row) => row.id))
     const next = addMulticlassLevel(classes, {
       name: entry.name_ru,
       catalog_id: entry.id,
@@ -169,6 +173,12 @@ export function LevelingStep({
     )
     commitClasses(normalized)
     setMcOpen(false)
+    const newRow =
+      normalized.find((row) => !beforeIds.has(row.id)) ??
+      normalized.find(
+        (row) => row.name.trim().toLowerCase() === entry.name_ru.trim().toLowerCase(),
+      )
+    if (newRow) onMulticlassAdded?.(newRow.id)
   }
 
   function patchHp(key: string, patch: Partial<HpLevelChoice>) {
@@ -185,8 +195,8 @@ export function LevelingStep({
         <Text as="h2">Прокачка</Text>
         <Text tone="muted">
           Уровни, HP (среднее/бросок), архетип, GuidedWizard для умений L1+ / ASI / expertise,
-          мультикласс и заклинания. Стартовые навыки и снаряжение основного класса уже выбраны на
-          шаге «Класс».
+          мультикласс и заклинания. Стартовые навыки и снаряжение — только у основного класса (шаг
+          «Класс»). Мультикласс даёт владения из таблицы PHB, без стартового снаряжения.
         </Text>
       </div>
 

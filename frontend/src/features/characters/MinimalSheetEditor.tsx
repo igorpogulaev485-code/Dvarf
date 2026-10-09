@@ -1293,9 +1293,17 @@ export function MinimalSheetEditor({
   function grantModeForClassRow(prev: Draft, classEntryId: string): 'start' | 'multiclass' {
     const existing = prev.classGrants.find((row) => row.classEntryId === classEntryId)
     if (existing) return existing.mode
-    if (prev.classes.length <= 1) return 'start'
     const index = prev.classes.findIndex((row) => row.id === classEntryId)
-    return index <= 0 ? 'start' : 'multiclass'
+    // Only the origin class (index 0) ever gets the full start package.
+    // Any additional class row is multiclass — even if it's the only named class
+    // after a blank primary, or when re-picking into a secondary slot.
+    if (index > 0) return 'multiclass'
+    if (prev.classes.length > 1) {
+      // Replacing primary while other classes exist: still start for primary row,
+      // but never treat a non-primary as start.
+      return index === 0 ? 'start' : 'multiclass'
+    }
+    return 'start'
   }
 
   function applyFeaturePicksWithExpertise(featurePicks: FeaturePicksState) {

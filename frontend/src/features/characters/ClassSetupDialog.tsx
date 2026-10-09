@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   equipmentPackagesFor,
+  formatFixedGrantLines,
   packageForMode,
   skillOptionsForPackage,
   type ClassEquipmentFocusPick,
@@ -134,10 +135,16 @@ export function ClassSetupDialog({
 
   if (!def || !pkg) return null
 
+  const fixedLines = formatFixedGrantLines(pkg)
+  const dialogTitle =
+    mode === 'start'
+      ? `${def.labelRu}: старт класса`
+      : `${def.labelRu}: владения мультикласса`
+
   return (
     <Dialog
       open={open}
-      title={`${def.labelRu}: настройка класса`}
+      title={dialogTitle}
       primaryLabel="Применить"
       secondaryLabel="Отмена"
       size="wide"
@@ -148,7 +155,8 @@ export function ClassSetupDialog({
           skills,
           tools,
           equipmentPackageId: mode === 'start' ? equipmentPackageId : null,
-          equipmentFocusPick: focusSelection ? toPick(focusSelection) : null,
+          equipmentFocusPick:
+            mode === 'start' && focusSelection ? toPick(focusSelection) : null,
         })
       }}
       onSecondary={onClose}
@@ -157,8 +165,25 @@ export function ClassSetupDialog({
         <Text tone="muted">
           {mode === 'start'
             ? 'Выбери навыки, инструменты и снаряжение. Серые — уже с предыстории.'
-            : 'Мультикласс: только владения из таблицы PHB (без стартового снаряжения).'}
+            : 'По PHB при мультиклассе даются только владения из таблицы (без сейвов, без стартового снаряжения и без полного пакета навыков 1-го уровня).'}
         </Text>
+
+        {fixedLines.length > 0 ? (
+          <Stack gap={4}>
+            {mode === 'multiclass' ? (
+              <Text>Автоматически добавляются:</Text>
+            ) : null}
+            {fixedLines.map((line) => (
+              <Text key={line} tone="muted">
+                {line}
+              </Text>
+            ))}
+          </Stack>
+        ) : mode === 'multiclass' && skillNeed === 0 && toolNeed === 0 ? (
+          <Text tone="muted">
+            У этого класса нет дополнительных владений при мультиклассе — только уровни и умения.
+          </Text>
+        ) : null}
 
         {skillNeed > 0 ? (
           <Field label={`Навыки (${skills.length}/${skillNeed})`}>
