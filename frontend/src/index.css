@@ -1803,6 +1803,16 @@ input {
   font-variant-numeric: tabular-nums;
 }
 
+.number-pad__display-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+}
+
 .number-pad__keys {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
