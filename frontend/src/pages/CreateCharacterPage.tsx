@@ -477,14 +477,14 @@ export function CreateCharacterPage() {
     })
   }
 
-  function openFeatureWizardForClass(classEntryId: string) {
+  function openFeatureWizardForClass(classEntryId: string, opts?: { quiet?: boolean }) {
     const row = state.classes.find((item) => item.id === classEntryId)
     if (!row) {
-      setToast('Сначала зафиксируйте класс')
+      if (!opts?.quiet) setToast('Сначала зафиксируйте класс')
       return
     }
     if (!state.classGrantPicks?.[classEntryId]) {
-      setToast('Сначала примените владения класса (старт или мультикласс)')
+      if (!opts?.quiet) setToast('Сначала примените владения класса (старт или мультикласс)')
       return
     }
     const steps = buildPendingWizardSteps({
@@ -499,7 +499,7 @@ export function CreateCharacterPage() {
       hasSubclassByEntryId,
     }).filter((step) => step.kind !== 'class_grant' && step.kind !== 'background')
     if (steps.length === 0) {
-      setToast('Все развилки и ASI для этого класса закрыты')
+      if (!opts?.quiet) setToast('Все развилки и ASI для этого класса закрыты')
       return
     }
     openGuidedWizard({ steps, index: 0 })
@@ -587,7 +587,7 @@ export function CreateCharacterPage() {
     if (!state.classGrantPicks?.[pendingMcWizard]) return
     const classEntryId = pendingMcWizard
     setPendingMcWizard(null)
-    openFeatureWizardForClass(classEntryId)
+    openFeatureWizardForClass(classEntryId, { quiet: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once picks land after auto MC grant
   }, [pendingMcWizard, state.classGrantPicks])
 
