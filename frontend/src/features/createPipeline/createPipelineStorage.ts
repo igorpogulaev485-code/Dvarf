@@ -21,9 +21,11 @@ function normalizeLoadedState(parsed: CreatePipelineState): CreatePipelineState 
     subclassSetups: parsed.subclassSetups ?? {},
     featurePicks: parsed.featurePicks ?? emptyFeaturePicks(),
     classAsi: Array.isArray(parsed.classAsi) ? parsed.classAsi : [],
+    asiFeatGrants: Array.isArray(parsed.asiFeatGrants) ? parsed.asiFeatGrants : [],
     sheetDraft: parsed.sheetDraft ?? {},
     stepDirty: parsed.stepDirty ?? {},
     feat: parsed.feat ?? null,
+    featSetup: parsed.featSetup ?? null,
     featAcknowledged: Boolean(parsed.featAcknowledged),
   }
 }

@@ -3,6 +3,7 @@ import type { CatalogEntry } from '../../shared/api/catalog'
 import {
   backgroundHasRoleplayTables,
   emptyBackgroundPicks,
+  alignmentSuggestionFromIdeal,
   personalityPickCount,
   resolveBackgroundGrantDef,
   skillOptionsForBackground,
@@ -476,7 +477,18 @@ export function BackgroundSetupDialog({
                 ) : null}
 
                 {def.ideals.length > 0 ? (
-                  <Field label="Идеал">
+                  <Field
+                    label="Идеал"
+                    hint={(() => {
+                      if (!ideal) {
+                        return 'По идеалу подставим мировоззрение на лист; потом можно править руками'
+                      }
+                      const suggested = alignmentSuggestionFromIdeal(ideal)
+                      return suggested
+                        ? `Мировоззрение на лист: ${suggested} (можно поменять вручную)`
+                        : 'Идеал «любой» — мировоззрение задай сам на листе'
+                    })()}
+                  >
                     <ChipList
                       options={def.ideals}
                       selected={ideal ? [ideal] : []}

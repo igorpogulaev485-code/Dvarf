@@ -988,26 +988,42 @@ function parseHitDie(raw: unknown): HitDie | null {
   return null
 }
 
+function emptyProficiencyPackage(): ClassProficiencyPackage {
+  return pkg({ saves: [], armor: [], weapons: [] })
+}
+
+/**
+ * Parse catalog proficiency block.
+ * Multiclass MUST read only `multiclass_proficiencies` — never fall back to the
+ * start package (skills / armor / gear), or MC UI looks like creating a class from scratch.
+ */
 function parseProficiencyPackage(
   data: Record<string, unknown>,
   mode: 'start' | 'multiclass',
-): ClassProficiencyPackage {
-  const source =
-    mode === 'multiclass' &&
-    data.multiclass_proficiencies &&
-    typeof data.multiclass_proficiencies === 'object'
-      ? (data.multiclass_proficiencies as Record<string, unknown>)
-      : data
+): ClassProficiencyPackage | null {
+  if (mode === 'multiclass') {
+    const mc = data.multiclass_proficiencies
+    if (!mc || typeof mc !== 'object') return null
+    const source = mc as Record<string, unknown>
+    return pkg({
+      saves: [],
+      armor: parseArmorList(source.armor),
+      weapons: parseWeaponKeys(source.weapons),
+      weaponExtras: parseWeaponExtras(source.weapons),
+      skillChoices: parseSkillChoice(source.skill_choices),
+      toolsFixed: parseStringList(source.tools_fixed),
+      toolChoices: parseToolChoice(source.tool_choices),
+    })
+  }
 
-  const saves = mode === 'start' ? parseSaves(data.saving_throws) : []
   return pkg({
-    saves,
-    armor: parseArmorList(source.armor),
-    weapons: parseWeaponKeys(source.weapons),
-    weaponExtras: parseWeaponExtras(source.weapons),
-    skillChoices: parseSkillChoice(source.skill_choices),
-    toolsFixed: parseStringList(source.tools_fixed),
-    toolChoices: parseToolChoice(source.tool_choices),
+    saves: parseSaves(data.saving_throws),
+    armor: parseArmorList(data.armor),
+    weapons: parseWeaponKeys(data.weapons),
+    weaponExtras: parseWeaponExtras(data.weapons),
+    skillChoices: parseSkillChoice(data.skill_choices),
+    toolsFixed: parseStringList(data.tools_fixed),
+    toolChoices: parseToolChoice(data.tool_choices),
   })
 }
 
@@ -1108,12 +1124,19 @@ export function classGrantDefFromCatalog(input: {
   if (!hitDie) return null
 
   const equipment = parseStartingEquipment(input.data.starting_equipment)
+  const start =
+    parseProficiencyPackage(input.data, 'start') ?? emptyProficiencyPackage()
+  // Prefer catalog MC block; if absent, use local PHB table — never start package.
+  const multiclass =
+    parseProficiencyPackage(input.data, 'multiclass') ??
+    classGrantDef(input.slug)?.multiclass ??
+    emptyProficiencyPackage()
   return {
     slug: input.slug,
     labelRu: input.nameRu,
     hitDie,
-    start: parseProficiencyPackage(input.data, 'start'),
-    multiclass: parseProficiencyPackage(input.data, 'multiclass'),
+    start,
+    multiclass,
     equipment: equipment.length > 0 ? equipment : undefined,
   }
 }
@@ -1179,6 +1202,22 @@ export function hitDieForSlug(slug: string): HitDie | null {
   return CLASS_HIT_DIE[slug] ?? classGrantDef(slug)?.hitDie ?? null
 }
 
+/** Fixed MC/start grants shown before skill/tool picks (no choices). */
+export function formatFixedGrantLines(pkg: ClassProficiencyPackage): string[] {
+  const lines: string[] = []
+  if (pkg.saves.length) lines.push(`Сейвы: ${pkg.saves.join('/').toUpperCase()}`)
+  if (pkg.armor.length) lines.push(`Доспехи: ${pkg.armor.join(', ')}`)
+  if (pkg.weapons.length || pkg.weaponExtras.length) {
+    const parts = [
+      ...pkg.weapons,
+      ...pkg.weaponExtras,
+    ]
+    lines.push(`Оружие: ${parts.join(', ')}`)
+  }
+  if (pkg.toolsFixed.length) lines.push(`Инструменты: ${pkg.toolsFixed.join(', ')}`)
+  return lines
+}
+
 export function formatClassGrantSummary(input: {
   def: ClassGrantDef
   mode: 'start' | 'multiclass'
@@ -1189,6 +1228,7 @@ export function formatClassGrantSummary(input: {
   if (pkg.saves.length) bits.push(`сейвы ${pkg.saves.join('/').toUpperCase()}`)
   if (pkg.armor.length) bits.push(`доспехи ${pkg.armor.join(', ')}`)
   if (pkg.weapons.length) bits.push(`оружие ${pkg.weapons.join(', ')}`)
+  if (pkg.weaponExtras.length) bits.push(`оружие+: ${pkg.weaponExtras.join(', ')}`)
   if (input.picks.skills.length) bits.push(`навыки ×${input.picks.skills.length}`)
   const tools = [...pkg.toolsFixed, ...input.picks.tools]
   if (tools.length) bits.push(`инструменты: ${tools.join(', ')}`)
@@ -1198,6 +1238,6 @@ export function formatClassGrantSummary(input: {
     )
     if (pack) bits.push(`снаряжение: ${pack.labelRu}`)
   }
-  bits.push(`кость ${input.def.hitDie}`)
-  return bits.join(' · ')
+  if (input.mode === 'start') bits.push(`кость ${input.def.hitDie}`)
+  return bits.join(' · ') || (input.mode === 'multiclass' ? 'без доп. владений' : 'кость')
 }

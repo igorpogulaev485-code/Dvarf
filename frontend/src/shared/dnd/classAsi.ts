@@ -1,4 +1,4 @@
-/** Class level ASI (+2 / +1+1) with feat scaffold for later catalog. */
+/** Class level ASI (+2 / +1+1) or a feat from the catalog. */
 
 import type { ClassFeatureDef } from './classFeatures'
 

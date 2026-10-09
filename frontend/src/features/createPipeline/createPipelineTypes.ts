@@ -12,6 +12,11 @@ import { resolveRaceGrantDef } from '../../shared/dnd/raceGrants'
 import type { ClassGrantPicks } from '../../shared/dnd/classGrants'
 import type { SubclassGrantPicks } from '../../shared/dnd/subclassGrants'
 import type { AppliedClassAsi } from '../../shared/dnd/classAsi'
+import type {
+  AppliedFeatGrant,
+  FeatGrantPicks,
+  FeatGrantsPackage,
+} from '../../shared/dnd/featGrants'
 import { emptyFeaturePicks, type FeaturePicksState } from '../../shared/dnd/featurePicks'
 
 /** Canonical order. `feat` is skipped when the race has no featNoteRu. */
@@ -72,6 +77,13 @@ export type SubclassSetupStored = {
   picks: SubclassGrantPicks
 }
 
+/** Racial feat confirm: catalog entry + ASI/spell/tool forks for sheet apply. */
+export type FeatSetupStored = {
+  entry: PipelineCatalogSnapshot
+  picks: FeatGrantPicks
+  applied: FeatGrantsPackage
+}
+
 export type HpGainMode = 'average' | 'roll'
 
 export type HpLevelChoice = {
@@ -106,6 +118,8 @@ export type CreatePipelineState = {
   raceSetup: RaceSetupStored | null
   /** Feat from race (featNoteRu path); optional catalog pick. */
   feat: PipelineCatalogRef | null
+  /** Full feat confirm (picks + applied package) for re-apply on save. */
+  featSetup: FeatSetupStored | null
   /** User acknowledged racial feat note without a catalog card. */
   featAcknowledged: boolean
   abilityMethod: AbilityMethod
@@ -117,6 +131,8 @@ export type CreatePipelineState = {
   featurePicks: FeaturePicksState
   /** Class ASI ledger from GuidedWizard. */
   classAsi: AppliedClassAsi[]
+  /** Feat grants taken instead of ASI (+2 / +1+1). */
+  asiFeatGrants: AppliedFeatGrant[]
   /** Full sheet-shaped draft for grants / picks / spells. */
   sheetDraft: Record<string, unknown>
   /** Step-local dirty flags — clearing on back navigation. */
@@ -176,6 +192,7 @@ export function createEmptyPipelineState(): CreatePipelineState {
     subrace: null,
     raceSetup: null,
     feat: null,
+    featSetup: null,
     featAcknowledged: false,
     abilityMethod: 'standard_array',
     baseAbilities: emptyBaseScores(8),
@@ -183,6 +200,7 @@ export function createEmptyPipelineState(): CreatePipelineState {
     hpChoices: [],
     featurePicks: emptyFeaturePicks(),
     classAsi: [],
+    asiFeatGrants: [],
     sheetDraft: {},
     stepDirty: {},
   }

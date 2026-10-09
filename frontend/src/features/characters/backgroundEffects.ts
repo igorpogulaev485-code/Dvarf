@@ -2,6 +2,7 @@
 
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
+  alignmentSuggestionFromIdeal,
   buildBackgroundFeatureText,
   emptyBackgroundPicks,
   formatBackgroundGrantSummary,
@@ -9,6 +10,7 @@ import {
   mergeBackgroundLanguages,
   readAppliedBackgroundGrant,
   resolveBackgroundGrantDef,
+  shouldApplyAlignmentFromIdeal,
   upsertBackgroundFeatureBlock,
   upsertMarkedTextBlock,
   validateBackgroundGrantPicks,
@@ -429,6 +431,16 @@ export function applyBackgroundGrantToDraft(input: {
     flaw: picks.flaw,
   }
 
+  const alignmentSuggested = alignmentSuggestionFromIdeal(picks.ideal)
+  const nextAlignment = shouldApplyAlignmentFromIdeal({
+    suggested: alignmentSuggested,
+    currentAlignment: input.draft.identity.alignment,
+    previousIdeal: input.draft.backgroundGrant?.ideal ?? null,
+    nextIdeal: picks.ideal,
+  })
+    ? alignmentSuggested ?? cleared.identity.alignment
+    : cleared.identity.alignment
+
   const draft: BackgroundGrantDraftSlice = {
     ...cleared,
     backgroundGrant: nextGrant,
@@ -439,6 +451,8 @@ export function applyBackgroundGrantToDraft(input: {
     identity: {
       ...cleared.identity,
       background: def.labelRu,
+      backgroundSlug: def.slug,
+      alignment: nextAlignment,
       languages,
       tools: uniqueStrings([...cleared.identity.tools, ...toolsApplied]),
       weapons: {

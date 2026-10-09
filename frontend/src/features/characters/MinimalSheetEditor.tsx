@@ -127,6 +127,10 @@ import { GuidedWizardDialog, type GuidedWizardSession } from './GuidedWizardDial
 import { ClassAsiDialog } from './ClassAsiDialog'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
 import { LevelUpDialog, type LevelUpChoice } from './LevelUpDialog'
+import {
+  LevelUpRecapDialog,
+  type LevelUpRecapFeature,
+} from './LevelUpRecapDialog'
 import { PlayPanel } from './PlayPanel'
 import {
   applyClassAsiBonuses,
@@ -176,7 +180,11 @@ import {
   buildMaxHpByLevels,
   hitDieForClass,
 } from '../../shared/dnd/multiclassRules'
-import { clampCharacterLevel, xpToReachLevel } from '../../shared/dnd/experience'
+import {
+  clampCharacterLevel,
+  experienceAfterLevelUp,
+  xpToReachLevel,
+} from '../../shared/dnd/experience'
 import { withSyncedHitDiceSummary } from './play'
 import { SpellsPanel } from './SpellsPanel'
 import {
@@ -507,6 +515,13 @@ export function MinimalSheetEditor({
   const [error, setError] = useState<string | null>(null)
   const [conflictOpen, setConflictOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
+  const [levelUpRecap, setLevelUpRecap] = useState<{
+    characterLevel: number
+    className: string
+    classLevel: number
+    hpGain: number
+    features: LevelUpRecapFeature[]
+  } | null>(null)
   const [pendingAsi, setPendingAsi] = useState<{
     classEntryId: string
     className: string
@@ -625,6 +640,11 @@ export function MinimalSheetEditor({
   )
   const primaryClass = draft.classes[0]
   const rulesEdition = baseCharacter.rules_edition as RulesEdition
+  /** After create: race / background / primary class are informational — change only via recreate. */
+  const identityLocked =
+    Boolean(primaryClass?.name.trim()) &&
+    Boolean(draft.raceName.trim()) &&
+    Boolean(draft.identity.background.trim())
 
   useEffect(() => {
     setBaseCharacter(character)
@@ -1293,9 +1313,17 @@ export function MinimalSheetEditor({
   function grantModeForClassRow(prev: Draft, classEntryId: string): 'start' | 'multiclass' {
     const existing = prev.classGrants.find((row) => row.classEntryId === classEntryId)
     if (existing) return existing.mode
-    if (prev.classes.length <= 1) return 'start'
     const index = prev.classes.findIndex((row) => row.id === classEntryId)
-    return index <= 0 ? 'start' : 'multiclass'
+    // Only the origin class (index 0) ever gets the full start package.
+    // Any additional class row is multiclass — even if it's the only named class
+    // after a blank primary, or when re-picking into a secondary slot.
+    if (index > 0) return 'multiclass'
+    if (prev.classes.length > 1) {
+      // Replacing primary while other classes exist: still start for primary row,
+      // but never treat a non-primary as start.
+      return index === 0 ? 'start' : 'multiclass'
+    }
+    return 'start'
   }
 
   function applyFeaturePicksWithExpertise(featurePicks: FeaturePicksState) {
@@ -1967,6 +1995,14 @@ export function MinimalSheetEditor({
         classes: nextClasses,
         hpMax: nextMax,
         hpCurrent: nextCurrent,
+        identity: {
+          ...prev.identity,
+          // Cumulative PHB track: bump to new floor if behind, keep surplus if ahead.
+          experience: experienceAfterLevelUp({
+            experience: prev.identity.experience,
+            newCharacterLevel: nextLevel,
+          }),
+        },
         play: withSyncedHitDiceSummary({
           ...prev.play,
           hitDiceByClass,
@@ -2062,7 +2098,28 @@ export function MinimalSheetEditor({
           classLevel: leveledRow.level,
           featureId: asiAtLevel.id,
         })
+        return
       }
+      // No picks this level — still show a proкачка recap (auto features / HP).
+      const gained = unlocked
+        .filter(
+          (feature) =>
+            feature.classEntryId === leveledRow.id &&
+            feature.level === leveledRow.level,
+        )
+        .map((feature) => ({
+          id: feature.id,
+          nameRu: feature.name_ru,
+          summaryRu: feature.summary_ru,
+          source: feature.source,
+        }))
+      setLevelUpRecap({
+        characterLevel: nextLevel,
+        className: leveledRow.name,
+        classLevel: leveledRow.level,
+        hpGain: Math.max(0, Math.floor(choice.hpGain)),
+        features: gained,
+      })
     }
   }
 
@@ -2521,17 +2578,16 @@ export function MinimalSheetEditor({
           <div className="sheet-grid sheet-grid--2">
             <Field
               label="Уровень персонажа"
-              hint="Сумма уровней классов. +1 — этот класс или мультикласс."
+              hint="Сумма уровней классов. «Прокачать» — мастер уровня (HP → умения/ASI). XP справа только для учёта."
             >
               <div className="languages-tools-add">
                 <Input value={String(characterLevel)} readOnly />
                 <Button
                   type="button"
-                  variant="secondary"
                   disabled={characterLevel >= 20}
                   onClick={() => setLevelUpOpen(true)}
                 >
-                  +1 уровень
+                  Прокачать
                 </Button>
               </div>
             </Field>
@@ -2540,20 +2596,24 @@ export function MinimalSheetEditor({
                 xp={draft.identity.experience}
                 level={characterLevel}
                 onChange={(experience) => patchIdentity({ experience })}
+                onRequestLevelUp={() => setLevelUpOpen(true)}
+                levelUpDisabled={characterLevel >= 20}
               />
             </Field>
           </div>
           <Field label="Бонус мастерства">
             <Input value={formatModifier(proficiencyBonus)} readOnly />
           </Field>
-          {!primaryClass?.name.trim() ? (
+          {!identityLocked && !primaryClass?.name.trim() ? (
             <Text tone="muted">
               Создание: сначала класс (и архетип, если уже есть), потом раса — так метки и расовые
               списки заклинаний сразу видят, кастер ты или нет.
             </Text>
           ) : null}
           <div>
-            <Text tone="muted">Классы · шаг 2 (после предыстории)</Text>
+            <Text tone="muted">
+              {identityLocked ? 'Классы' : 'Классы · шаг 2 (после предыстории)'}
+            </Text>
             {pendingStartingLevel > 1 ? (
               <Text tone="muted">
                 Старт с {pendingStartingLevel} ур.: выбери класс — мастер поднимет уровень и проведёт
@@ -2565,58 +2625,76 @@ export function MinimalSheetEditor({
                 <div key={row.id} className="inventory-card">
                   <div className="sheet-grid sheet-grid--2">
                     <Field
-                      label={draft.classes.length > 1 ? `Класс ${index + 1}` : 'Класс'}
+                      label={
+                        draft.classes.length > 1
+                          ? index === 0
+                            ? 'Класс (основной)'
+                            : `Класс ${index + 1}`
+                          : 'Класс'
+                      }
                       hint={
-                        index === 0
-                          ? 'Шаг 1 · основной класс для карточки персонажа'
-                          : undefined
+                        index === 0 && identityLocked
+                          ? 'Задаётся при создании'
+                          : index === 0
+                            ? 'Шаг 1 · основной класс для карточки персонажа'
+                            : undefined
                       }
                     >
-                      <CatalogCombobox
-                        id={index === 0 ? 'sheet-class-primary' : undefined}
-                        kind="class"
-                        edition={baseCharacter.rules_edition as RulesEdition}
-                        value={row.name}
-                        placeholder="Начните вводить класс"
-                        onChange={(value, selected) => {
-                          patchClass(row.id, {
-                            name: value,
-                            catalog_id: selected?.id ?? null,
-                          })
-                          if (!selected) return
-                          const mode = grantModeForClassRow(draft, row.id)
-                          requestOrApplyClassGrant({
-                            classEntryId: row.id,
-                            className: selected.name_ru,
-                            mode,
-                            catalogSlug: selected.slug,
-                            catalogData: selected.data,
-                            classesOverride: draft.classes.map((item) =>
-                              item.id === row.id
-                                ? {
-                                    ...item,
-                                    name: selected.name_ru,
-                                    catalog_id: selected.id,
-                                  }
-                                : item,
-                            ),
-                          })
-                        }}
-                      />
-                      <div className="languages-tools-add" style={{ marginTop: 8 }}>
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() =>
-                            setHomebrewPicker({
-                              classEntryId: row.id,
-                              initialName: row.name,
-                            })
-                          }
-                        >
-                          Хомбрю
-                        </Button>
-                      </div>
+                      {index === 0 && identityLocked ? (
+                        <Input
+                          id="sheet-class-primary"
+                          value={row.name}
+                          readOnly
+                        />
+                      ) : (
+                        <>
+                          <CatalogCombobox
+                            id={index === 0 ? 'sheet-class-primary' : undefined}
+                            kind="class"
+                            edition={baseCharacter.rules_edition as RulesEdition}
+                            value={row.name}
+                            placeholder="Начните вводить класс"
+                            onChange={(value, selected) => {
+                              patchClass(row.id, {
+                                name: value,
+                                catalog_id: selected?.id ?? null,
+                              })
+                              if (!selected) return
+                              const mode = grantModeForClassRow(draft, row.id)
+                              requestOrApplyClassGrant({
+                                classEntryId: row.id,
+                                className: selected.name_ru,
+                                mode,
+                                catalogSlug: selected.slug,
+                                catalogData: selected.data,
+                                classesOverride: draft.classes.map((item) =>
+                                  item.id === row.id
+                                    ? {
+                                        ...item,
+                                        name: selected.name_ru,
+                                        catalog_id: selected.id,
+                                      }
+                                    : item,
+                                ),
+                              })
+                            }}
+                          />
+                          <div className="languages-tools-add" style={{ marginTop: 8 }}>
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              onClick={() =>
+                                setHomebrewPicker({
+                                  classEntryId: row.id,
+                                  initialName: row.name,
+                                })
+                              }
+                            >
+                              Хомбрю
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </Field>
                     <Field label="Уровней в классе">
                       <div className="languages-tools-add">
@@ -2853,9 +2931,9 @@ export function MinimalSheetEditor({
               ))}
             </Stack>
             <Text tone="muted">
-              Итого: {classSummary || 'класс не выбран'} · из справочника откроется попап со всеми
-              развилками (навыки, инструменты, стартовое снаряжение). «Хомбрю» — только название на
-              листе.
+              {identityLocked
+                ? `Итого: ${classSummary || 'класс не выбран'} · основной класс не меняется; архетип, уровни и мультикласс — как раньше`
+                : `Итого: ${classSummary || 'класс не выбран'} · из справочника откроется попап со всеми развилками (навыки, инструменты, стартовое снаряжение). «Хомбрю» — только название на листе.`}
             </Text>
           </div>
           <div className="sheet-grid sheet-grid--2">
@@ -2863,46 +2941,54 @@ export function MinimalSheetEditor({
               label="Раса"
               htmlFor="sheet-race"
               hint={
-                primaryClass?.name.trim()
-                  ? 'Шаг 3 · подраса и развилки — в попапе; если раса даёт черту — мастер подскажет'
-                  : 'Шаг 3 · сначала предыстория и класс, потом раса'
+                identityLocked
+                  ? 'Задаётся при создании'
+                  : primaryClass?.name.trim()
+                    ? 'Шаг 3 · подраса и развилки — в попапе; если раса даёт черту — мастер подскажет'
+                    : 'Шаг 3 · сначала предыстория и класс, потом раса'
               }
             >
-              <CatalogCombobox
-                id="sheet-race"
-                kind="race"
-                edition={baseCharacter.rules_edition as RulesEdition}
-                value={draft.raceName}
-                placeholder={
-                  primaryClass?.name.trim()
-                    ? 'Начните вводить расу'
-                    : 'Сначала выбери класс'
-                }
-                disabled={!primaryClass?.name.trim()}
-                filterEntry={(entry) => isRaceComboboxRoot(entry)}
-                onChange={(value, selected) => {
-                  if (!primaryClass?.name.trim()) return
-                  if (!selected) {
-                    setDraft((prev) => ({
-                      ...prev,
-                      raceName: value,
-                      raceCatalogId: null,
-                    }))
-                    return
-                  }
-                  void requestOrApplyRaceGrant(selected)
-                }}
-              />
-              <div className="languages-tools-add" style={{ marginTop: 8 }}>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={!primaryClass?.name.trim()}
-                  onClick={() => setRaceHomebrewOpen(true)}
-                >
-                  Хомбрю
-                </Button>
-              </div>
+              {identityLocked ? (
+                <Input id="sheet-race" value={draft.raceName} readOnly />
+              ) : (
+                <>
+                  <CatalogCombobox
+                    id="sheet-race"
+                    kind="race"
+                    edition={baseCharacter.rules_edition as RulesEdition}
+                    value={draft.raceName}
+                    placeholder={
+                      primaryClass?.name.trim()
+                        ? 'Начните вводить расу'
+                        : 'Сначала выбери класс'
+                    }
+                    disabled={!primaryClass?.name.trim()}
+                    filterEntry={(entry) => isRaceComboboxRoot(entry)}
+                    onChange={(value, selected) => {
+                      if (!primaryClass?.name.trim()) return
+                      if (!selected) {
+                        setDraft((prev) => ({
+                          ...prev,
+                          raceName: value,
+                          raceCatalogId: null,
+                        }))
+                        return
+                      }
+                      void requestOrApplyRaceGrant(selected)
+                    }}
+                  />
+                  <div className="languages-tools-add" style={{ marginTop: 8 }}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={!primaryClass?.name.trim()}
+                      onClick={() => setRaceHomebrewOpen(true)}
+                    >
+                      Хомбрю
+                    </Button>
+                  </div>
+                </>
+              )}
             </Field>
             <Field label="Размер" htmlFor="sheet-size">
               <select
@@ -2924,56 +3010,74 @@ export function MinimalSheetEditor({
             <Field
               label="Предыстория"
               htmlFor="sheet-background"
-              hint="Шаг 1 · прошлое: навыки с фона учтутся при выборе класса (без дублей)"
+              hint={
+                identityLocked
+                  ? 'Задаётся при создании'
+                  : 'Шаг 1 · прошлое: навыки с фона учтутся при выборе класса (без дублей)'
+              }
             >
-              <CatalogCombobox
-                id="sheet-background"
-                kind="background"
-                edition={baseCharacter.rules_edition as RulesEdition}
-                value={draft.identity.background}
-                placeholder="Начните вводить предысторию"
-                filterEntry={(entry) => isBackgroundComboboxRoot(entry)}
-                onChange={(value, selected) => {
-                  if (!selected) {
-                    setDraft((prev) => {
-                      const cleared = revokeBackgroundGrant(backgroundSliceFrom(prev))
-                      let merged = mergeBackgroundSlice(prev, cleared)
-                      const prevSlug = prev.identity.backgroundSlug
-                      if (prevSlug) {
-                        merged = mergeFeatSlice(
-                          merged,
-                          revokeFeatGrantsForBackground({
-                            draft: featSliceFrom(merged),
-                            backgroundSlug: prevSlug,
-                          }),
-                        )
+              {identityLocked ? (
+                <Input
+                  id="sheet-background"
+                  value={draft.identity.background}
+                  readOnly
+                />
+              ) : (
+                <>
+                  <CatalogCombobox
+                    id="sheet-background"
+                    kind="background"
+                    edition={baseCharacter.rules_edition as RulesEdition}
+                    value={draft.identity.background}
+                    placeholder="Начните вводить предысторию"
+                    filterEntry={(entry) => isBackgroundComboboxRoot(entry)}
+                    onChange={(value, selected) => {
+                      if (!selected) {
+                        setDraft((prev) => {
+                          const cleared = revokeBackgroundGrant(backgroundSliceFrom(prev))
+                          let merged = mergeBackgroundSlice(prev, cleared)
+                          const prevSlug = prev.identity.backgroundSlug
+                          if (prevSlug) {
+                            merged = mergeFeatSlice(
+                              merged,
+                              revokeFeatGrantsForBackground({
+                                draft: featSliceFrom(merged),
+                                backgroundSlug: prevSlug,
+                              }),
+                            )
+                          }
+                          return {
+                            ...merged,
+                            identity: {
+                              ...merged.identity,
+                              background: value,
+                              backgroundSlug: null,
+                            },
+                            backgroundCatalogId: null,
+                          }
+                        })
+                        return
                       }
-                      return {
-                        ...merged,
-                        identity: {
-                          ...merged.identity,
-                          background: value,
-                          backgroundSlug: null,
-                        },
-                        backgroundCatalogId: null,
-                      }
-                    })
-                    return
-                  }
-                  void requestOrApplyBackgroundGrant(selected)
-                }}
-              />
-              <div className="languages-tools-add" style={{ marginTop: 8 }}>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setBackgroundHomebrewOpen(true)}
-                >
-                  Хомбрю
-                </Button>
-              </div>
+                      void requestOrApplyBackgroundGrant(selected)
+                    }}
+                  />
+                  <div className="languages-tools-add" style={{ marginTop: 8 }}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setBackgroundHomebrewOpen(true)}
+                    >
+                      Хомбрю
+                    </Button>
+                  </div>
+                </>
+              )}
             </Field>
-            <Field label="Мировоззрение" htmlFor="sheet-alignment">
+            <Field
+              label="Мировоззрение"
+              htmlFor="sheet-alignment"
+              hint="Подставляется из идеала предыстории; можно переписать как угодно"
+            >
               <Input
                 id="sheet-alignment"
                 value={draft.identity.alignment}
@@ -3399,14 +3503,37 @@ export function MinimalSheetEditor({
         onClose={() => setLevelUpOpen(false)}
       />
 
+      <LevelUpRecapDialog
+        open={levelUpRecap != null}
+        characterLevel={levelUpRecap?.characterLevel ?? characterLevel}
+        className={levelUpRecap?.className ?? ''}
+        classLevel={levelUpRecap?.classLevel ?? 1}
+        hpGain={levelUpRecap?.hpGain ?? 0}
+        features={levelUpRecap?.features ?? []}
+        onClose={() => setLevelUpRecap(null)}
+      />
+
       <GuidedWizardDialog
         open={guidedWizard != null}
         session={guidedWizard}
+        edition={baseCharacter.rules_edition as RulesEdition}
         abilities={draft.abilities}
         skills={draft.skills}
         tools={draft.identity.tools}
         featurePicks={draft.featurePicks}
         expertiseKeys={expertiseKeys}
+        armor={draft.identity.armor}
+        hasSpellcasting={characterHasCasterClass(draft.classes)}
+        hasMartialWeapons={draft.identity.weapons.martial}
+        raceSlug={draft.raceGrant?.slug ?? null}
+        raceParentSlug={draft.raceGrant?.parentSlug ?? null}
+        size={draft.identity.size}
+        characterLevel={characterLevel}
+        takenFeatSlugs={draft.featGrants.map((row) => row.slug)}
+        classSlugs={draft.classGrants.map((row) => row.slug)}
+        backgroundSlug={draft.identity.backgroundSlug}
+        ownedFeatEnums={ownedFeatEnums}
+        proficientSkills={proficientSkills}
         onFeaturePicksChange={applyFeaturePicksWithExpertise}
         onConfirmClassGrant={(picks) => {
           if (!guidedWizard?.grant || !guidedWizard.steps[guidedWizard.index]) return
@@ -3495,7 +3622,6 @@ export function MinimalSheetEditor({
           }
           openGuidedWizard({ steps: remaining, index: 0 })
         }}
-        edition={rulesEdition}
         backgroundName={draft.identity.background}
         blockedSkillKeys={draft.backgroundGrant?.skills ?? []}
         blockedToolNames={draft.backgroundGrant?.tools ?? []}

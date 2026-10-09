@@ -143,9 +143,10 @@ export function LevelUpDialog({
   return (
     <Dialog
       open={open}
-      title="Повышение уровня"
-      primaryLabel="Повысить"
+      title="Прокачка"
+      primaryLabel="Дальше"
       secondaryLabel="Отмена"
+      primaryDisabled={!canConfirm}
       onPrimary={() => {
         if (!canConfirm || hpGain == null) return
         if (mode === 'same') {
@@ -166,8 +167,8 @@ export function LevelUpDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          Куда идёт новый уровень персонажа? Можно прокачать уже взятый класс или взять 1 уровень
-          другого (мультикласс). Характеристики должны удовлетворять требованиям PHB 2014.
+          Шаг 1: куда идёт уровень и сколько HP. Дальше откроется мастер умений / ASI (или итог
+          прокачки, если выборов нет). Мультикласс — пороги характеристик PHB 2014.
         </Text>
 
         <div className="chip-row">

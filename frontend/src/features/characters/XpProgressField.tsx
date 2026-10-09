@@ -1,34 +1,79 @@
 import { useState } from 'react'
-import { NumberPadDialog, Text } from '../../ui'
-import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
+import { Button, NumberPadDialog, Text } from '../../ui'
+import {
+  formatXp,
+  xpProgress,
+  xpToReachLevel,
+} from '../../shared/dnd/experience'
 
 type XpProgressFieldProps = {
   xp: number
   level: number
   onChange: (xp: number) => void
+  /** Open level-up / прокачка when XP threshold is met (or user asks). */
+  onRequestLevelUp?: () => void
+  levelUpDisabled?: boolean
 }
 
-export function XpProgressField({ xp, level, onChange }: XpProgressFieldProps) {
+export function XpProgressField({
+  xp,
+  level,
+  onChange,
+  onRequestLevelUp,
+  levelUpDisabled = false,
+}: XpProgressFieldProps) {
   const [padOpen, setPadOpen] = useState(false)
   const progress = xpProgress(xp, level)
+  const readyToLevel =
+    progress.nextThreshold != null &&
+    progress.remaining === 0 &&
+    !levelUpDisabled
   const meta =
     progress.nextThreshold == null
       ? `${formatXp(progress.xp)} · макс.`
-      : `${formatXp(progress.xp)} / ${formatXp(progress.nextThreshold)}`
-  const hint =
-    progress.nextThreshold == null
-      ? 'Уровень 20 — дальше расти некуда'
-      : progress.remaining === 0
-        ? `Порог ур. ${progress.level + 1} набран — можно +1 уровень`
-        : `До ур. ${progress.level + 1}: ещё ${formatXp(progress.remaining ?? 0)}`
+      : progress.surplus > 0
+        ? `${formatXp(progress.xp)} / ${formatXp(progress.nextThreshold)} (+${formatXp(progress.surplus)})`
+        : `${formatXp(progress.xp)} / ${formatXp(progress.nextThreshold)}`
+  const hint = (() => {
+    if (progress.nextThreshold == null) {
+      return 'Уровень 20 — сквозная шкала PHB закончена'
+    }
+    if (readyToLevel) {
+      const surplusNote =
+        progress.surplus > 0
+          ? ` · +${formatXp(progress.surplus)} сверх порога останутся на шкале`
+          : ''
+      const multi =
+        progress.levelsReady > 1
+          ? ` · XP хватает ещё на ${progress.levelsReady} ур.`
+          : ''
+      return `Порог ур. ${progress.level + 1} набран${surplusNote}${multi} — жми «Повысить уровень»`
+    }
+    return `До порога ур. ${progress.level + 1}: ещё ${formatXp(progress.remaining ?? 0)}. Сквозная шкала 1–20: выданные XP не сгорают.`
+  })()
 
   const nextLevel = progress.level >= 20 ? null : progress.level + 1
   const floorLabel = formatXp(progress.floor)
   const nextLabel =
     progress.nextThreshold == null ? '—' : formatXp(progress.nextThreshold)
 
+  function applyAdd(delta: number) {
+    const nextXp = progress.xp + delta
+    onChange(nextXp)
+    setPadOpen(false)
+    if (
+      onRequestLevelUp &&
+      !levelUpDisabled &&
+      progress.nextThreshold != null &&
+      progress.xp < progress.nextThreshold &&
+      nextXp >= progress.nextThreshold
+    ) {
+      onRequestLevelUp()
+    }
+  }
+
   return (
-    <div className="xp-progress">
+    <div className={`xp-progress${readyToLevel ? ' xp-progress--ready' : ''}`}>
       <div className="xp-progress__row">
         <button
           type="button"
@@ -54,6 +99,11 @@ export function XpProgressField({ xp, level, onChange }: XpProgressFieldProps) {
       <Text as="p" tone="muted" className="xp-progress__hint">
         {hint}
       </Text>
+      {readyToLevel && onRequestLevelUp ? (
+        <Button type="button" className="xp-progress__level-up" onClick={onRequestLevelUp}>
+          Повысить уровень →
+        </Button>
+      ) : null}
 
       <NumberPadDialog
         open={padOpen}
@@ -62,8 +112,28 @@ export function XpProgressField({ xp, level, onChange }: XpProgressFieldProps) {
         min={0}
         formatValue={formatXp}
         onClose={() => setPadOpen(false)}
-        onAdd={(delta) => onChange(progress.xp + delta)}
-        onSubtract={(delta) => onChange(Math.max(0, progress.xp - delta))}
+        onAdd={applyAdd}
+        onSubtract={(delta) => {
+          onChange(Math.max(0, progress.xp - delta))
+          setPadOpen(false)
+        }}
+        describePreview={({ current, previewAdd }) => {
+          if (level >= 20) return 'Сквозная сумма XP (PHB 1–20)'
+          const thr = xpToReachLevel(level + 1)
+          if (current < thr && previewAdd >= thr) {
+            const surplus = previewAdd - thr
+            return surplus > 0
+              ? `Порог ур. ${level + 1} · сверх +${formatXp(surplus)} (не сгорает)`
+              : `Порог ур. ${level + 1} ровно`
+          }
+          if (previewAdd > thr) {
+            return `Уже сверх порога ур. ${level + 1}: +${formatXp(previewAdd - thr)}`
+          }
+          if (previewAdd < thr) {
+            return `После прибавки до порога ещё ${formatXp(thr - previewAdd)}`
+          }
+          return null
+        }}
         header={
           <div className="xp-pad-header">
             <div className="xp-pad-header__ends">
@@ -84,14 +154,36 @@ export function XpProgressField({ xp, level, onChange }: XpProgressFieldProps) {
               aria-valuenow={Math.round(progress.ratio * 100)}
               aria-label="Прогресс опыта"
             >
-              <div className="xp-progress__fill" style={{ width: `${progress.ratio * 100}%` }} />
+              <div
+                className="xp-progress__fill"
+                style={{ width: `${progress.ratio * 100}%` }}
+              />
             </div>
             <p className="xp-pad-header__current">
               сейчас {formatXp(progress.xp)}
               {progress.nextThreshold != null
                 ? ` · порог ${formatXp(xpToReachLevel(progress.level + 1))}`
                 : ''}
+              {progress.surplus > 0
+                ? ` · сверх +${formatXp(progress.surplus)}`
+                : ''}
             </p>
+            <p className="xp-pad-header__note">
+              Сквозная шкала PHB: XP копится от 1 до 20. Если до уровня 100, а мастер дал 200 —
+              на листе будет порог +100 сверх; лишнее не сгорает после прокачки.
+            </p>
+            {readyToLevel && onRequestLevelUp ? (
+              <Button
+                type="button"
+                className="xp-progress__level-up"
+                onClick={() => {
+                  setPadOpen(false)
+                  onRequestLevelUp()
+                }}
+              >
+                Повысить уровень →
+              </Button>
+            ) : null}
           </div>
         }
       />

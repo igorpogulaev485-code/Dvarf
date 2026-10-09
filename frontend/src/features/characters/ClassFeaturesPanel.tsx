@@ -405,7 +405,8 @@ const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
   // ASI scaffold
   plus2: '+2 к одной характеристике',
   plus1x2: '+1 к двум характеристикам',
-  feat_coming_soon: 'Черта (скоро)',
+  feat_coming_soon: 'Черта',
+  feat: 'Черта',
   // Open Hand / flourish / swarm / companion
   trip: 'Сбить с ног',
   push_15ft: 'Оттолкнуть на 15 фт.',

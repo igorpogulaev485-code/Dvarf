@@ -1671,6 +1671,44 @@ input {
   color: var(--muted);
 }
 
+.xp-progress--ready .xp-progress__bar {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.xp-progress__level-up {
+  width: 100%;
+}
+
+.xp-pad-header__note {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.level-up-recap__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.level-up-recap__item {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.level-up-recap__summary {
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .ui-dialog--pad {
   width: min(400px, 100%);
 }
@@ -1763,6 +1801,16 @@ input {
   font-size: 0.78rem;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
+}
+
+.number-pad__display-note {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
 }
 
 .number-pad__keys {

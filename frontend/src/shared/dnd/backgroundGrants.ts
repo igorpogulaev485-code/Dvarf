@@ -372,6 +372,61 @@ export function backgroundHasRoleplayTables(def: BackgroundGrantDef): boolean {
   )
 }
 
+/**
+ * PHB ideals end with an alignment hint in parentheses, e.g. «… (Законный)».
+ * Returns a sheet-ready label, or null for «Любой» / unknown / missing tag.
+ */
+export function alignmentSuggestionFromIdeal(ideal: string | null | undefined): string | null {
+  if (!ideal || !ideal.trim()) return null
+  const match = ideal.trim().match(/\(([^)]+)\)\s*$/)
+  if (!match) return null
+  const raw = match[1].trim().toLowerCase().replace(/ё/g, 'е')
+  if (!raw) return null
+
+  // «Любой» / «Любое» — игрок выбирает сам.
+  if (raw === 'любой' || raw === 'любое') return null
+
+  const aliases: Record<string, string> = {
+    законный: 'Законный',
+    законное: 'Законный',
+    законно: 'Законный',
+    законопослушный: 'Законный',
+    закон: 'Законный',
+    хаотичный: 'Хаотичный',
+    хаотичное: 'Хаотичный',
+    хаос: 'Хаотичный',
+    добрый: 'Добрый',
+    доброе: 'Добрый',
+    добро: 'Добрый',
+    злой: 'Злой',
+    злое: 'Злой',
+    зло: 'Злой',
+    нейтральный: 'Нейтральный',
+    нейтральное: 'Нейтральный',
+  }
+  if (aliases[raw]) return aliases[raw]
+
+  // Already a compound / free-form tag — keep capitalization from source.
+  return match[1].trim()
+}
+
+/** Whether to push ideal-derived alignment onto the sheet (respects manual edit). */
+export function shouldApplyAlignmentFromIdeal(input: {
+  suggested: string | null
+  currentAlignment: string
+  previousIdeal: string | null
+  nextIdeal: string | null
+}): boolean {
+  if (!input.suggested) return false
+  const current = input.currentAlignment.trim()
+  const prevSuggested = alignmentSuggestionFromIdeal(input.previousIdeal)
+  const idealChanged = (input.previousIdeal ?? null) !== (input.nextIdeal ?? null)
+  if (!current) return true
+  if (current === prevSuggested) return true
+  if (idealChanged) return true
+  return false
+}
+
 export function resolveBackgroundGrantDef(input: {
   backgroundName: string
   catalogSlug?: string | null

@@ -17,6 +17,7 @@ import {
   localFeaturePack,
   resolveClassFeatureSlug,
 } from '../../shared/dnd/classFeatures'
+import { featGrantDefFromCatalog } from '../../shared/dnd/featGrants'
 import {
   RACE_SIZE_LABELS,
   resolveRaceGrantDef,
@@ -286,10 +287,19 @@ function ClassDetail({ entry, def }: { entry: CatalogEntry; def: ClassGrantDef }
 function FeatDetail({ entry }: { entry: CatalogEntry }) {
   const blurb = catalogBlurb(entry)
   const data = entry.data ?? {}
+  const def = featGrantDefFromCatalog({
+    slug: entry.slug,
+    nameRu: entry.name_ru,
+    data: entry.data,
+  })
   const prereq =
+    def?.prerequisitesRu ||
     (typeof data.prerequisite_ru === 'string' && data.prerequisite_ru) ||
     (typeof data.prerequisite === 'string' && data.prerequisite) ||
     null
+  const choiceLabels = (def?.choices ?? [])
+    .map((choice) => choice.label_ru?.trim())
+    .filter(Boolean)
   return (
     <Stack gap={12}>
       <Text as="h2">{entry.name_ru}</Text>
@@ -303,6 +313,15 @@ function FeatDetail({ entry }: { entry: CatalogEntry }) {
       {blurb ? <Text className="create-pipeline__detail-body">{blurb}</Text> : (
         <Text tone="muted">Краткое описание появится после расширения каталога черт.</Text>
       )}
+      {choiceLabels.length ? (
+        <DetailSection title="Нужно выбрать в настройке">
+          <ul className="create-pipeline__detail-list">
+            {choiceLabels.map((label) => (
+              <li key={label}>{label}</li>
+            ))}
+          </ul>
+        </DetailSection>
+      ) : null}
     </Stack>
   )
 }

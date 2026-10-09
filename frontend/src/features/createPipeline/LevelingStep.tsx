@@ -40,7 +40,12 @@ type LevelingStepProps = {
   onOpenChoices: (classEntryId: string) => void
   /** Opens subclass catalog picker → SubclassSetupDialog. */
   onOpenArchetype: (classEntryId: string) => void
+  /** After adding a new multiclass row — parent opens MC proficiency setup. */
+  onMulticlassAdded?: (classEntryId: string) => void
   onOpenSpells: () => void
+  /** Prepared casters / wizard — open prepare dialog from the book/list. */
+  onOpenPrepare?: () => void
+  spellsSummary?: string | null
 }
 
 function averageFace(die: HitDie): number {
@@ -86,7 +91,10 @@ export function LevelingStep({
   onHpChoicesChange,
   onOpenChoices,
   onOpenArchetype,
+  onMulticlassAdded,
   onOpenSpells,
+  onOpenPrepare,
+  spellsSummary = null,
 }: LevelingStepProps) {
   const [mcOpen, setMcOpen] = useState(false)
   const [pruneWarn, setPruneWarn] = useState<{
@@ -158,6 +166,7 @@ export function LevelingStep({
       abilities,
     })
     if (!check.ok) return
+    const beforeIds = new Set(classes.map((row) => row.id))
     const next = addMulticlassLevel(classes, {
       name: entry.name_ru,
       catalog_id: entry.id,
@@ -169,6 +178,12 @@ export function LevelingStep({
     )
     commitClasses(normalized)
     setMcOpen(false)
+    const newRow =
+      normalized.find((row) => !beforeIds.has(row.id)) ??
+      normalized.find(
+        (row) => row.name.trim().toLowerCase() === entry.name_ru.trim().toLowerCase(),
+      )
+    if (newRow) onMulticlassAdded?.(newRow.id)
   }
 
   function patchHp(key: string, patch: Partial<HpLevelChoice>) {
@@ -185,8 +200,8 @@ export function LevelingStep({
         <Text as="h2">Прокачка</Text>
         <Text tone="muted">
           Уровни, HP (среднее/бросок), архетип, GuidedWizard для умений L1+ / ASI / expertise,
-          мультикласс и заклинания. Стартовые навыки и снаряжение основного класса уже выбраны на
-          шаге «Класс».
+          мультикласс и заклинания. Стартовые навыки и снаряжение — только у основного класса (шаг
+          «Класс»). Мультикласс даёт владения из таблицы PHB, без стартового снаряжения.
         </Text>
       </div>
 
@@ -313,9 +328,17 @@ export function LevelingStep({
         ) : null}
       </div>
 
-      <Button variant="secondary" onClick={onOpenSpells}>
-        Заклинания
-      </Button>
+      <div className="create-pipeline__method-row">
+        <Button variant="secondary" onClick={onOpenSpells}>
+          Заклинания
+        </Button>
+        {onOpenPrepare ? (
+          <Button variant="secondary" onClick={onOpenPrepare}>
+            Подготовить
+          </Button>
+        ) : null}
+      </div>
+      {spellsSummary ? <Text tone="muted">{spellsSummary}</Text> : null}
 
       <Text tone="muted">
         Если мультикласс перестанет проходить по характеристикам — покажем предупреждение и снимем
