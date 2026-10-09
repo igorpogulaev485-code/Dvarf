@@ -36,13 +36,22 @@ import {
   toggleFeaturePickInList,
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
+import {
+  newFeatGrantId,
+  type ArmorProfKey,
+  type AppliedFeatGrant,
+  type OwnedFeatEnumSnapshot,
+} from '../../shared/dnd/featGrants'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import type { RulesEdition } from '../../shared/api/characters'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import { CatalogCombobox } from '../catalog'
+import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
 import { ABILITY_KEYS, ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
 import { Button, Dialog, Field, Stack, Text } from '../../ui'
+
+type AsiUiMode = 'scores' | 'feat'
 
 export type GuidedWizardSession = {
   steps: GuidedWizardStep[]
@@ -69,9 +78,22 @@ type GuidedWizardDialogProps = {
   /** Skills/tools already granted by background — blocked on class step. */
   blockedSkillKeys?: string[]
   blockedToolNames?: string[]
+  /** Context for ASI → feat catalog (FeatSetupDialog). */
+  armor?: Partial<Record<ArmorProfKey, boolean>>
+  hasSpellcasting?: boolean
+  hasMartialWeapons?: boolean
+  raceSlug?: string | null
+  raceParentSlug?: string | null
+  size?: string | null
+  characterLevel?: number
+  takenFeatSlugs?: string[]
+  classSlugs?: string[]
+  backgroundSlug?: string | null
+  ownedFeatEnums?: OwnedFeatEnumSnapshot[]
+  proficientSkills?: string[]
   onFeaturePicksChange: (picks: FeaturePicksState) => void
   onConfirmClassGrant: (picks: ClassGrantPicks) => void
-  onConfirmAsi: (entry: AppliedClassAsi) => void
+  onConfirmAsi: (entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) => void
   /** User picked a catalog background — parent opens setup / applies grant. */
   onSelectBackground: (entry: CatalogEntry) => void
   onAdvance: (nextIndex: number) => void
@@ -357,63 +379,92 @@ function FeatureChoiceStepBody({
 }
 
 function AsiStepBody({
+  uiMode,
   modeId,
   keys,
   abilities,
+  onUiMode,
   onModeId,
   onToggleKey,
+  onOpenFeatPicker,
+  featSummary,
   error,
 }: {
+  uiMode: AsiUiMode
   modeId: ClassAsiModeId
   keys: AbilityKey[]
   abilities: Record<AbilityKey, number>
+  onUiMode: (mode: AsiUiMode) => void
   onModeId: (mode: ClassAsiModeId) => void
   onToggleKey: (key: AbilityKey) => void
+  onOpenFeatPicker: () => void
+  featSummary: string | null
   error: string | null
 }) {
   const mode = CLASS_ASI_MODE_OPTIONS.find((row) => row.id === modeId) ?? CLASS_ASI_MODE_OPTIONS[0]
   return (
     <Stack gap={14}>
       <Text tone="muted">
-        +2 к одной характеристике или +1 к двум (максимум 20). Черты появятся здесь, когда каталог
-        будет готов.
+        +2 к одной характеристике, +1 к двум (максимум 20) или одна черта из каталога.
       </Text>
       <div className="chip-row" role="group" aria-label="Вариант ASI">
         {CLASS_ASI_MODE_OPTIONS.map((row) => (
           <Button
             key={row.id}
             type="button"
-            variant={modeId === row.id ? 'primary' : 'ghost'}
-            onClick={() => onModeId(row.id)}
+            variant={uiMode === 'scores' && modeId === row.id ? 'primary' : 'ghost'}
+            onClick={() => {
+              onUiMode('scores')
+              onModeId(row.id)
+            }}
           >
             {row.labelRu}
           </Button>
         ))}
-        <Button type="button" variant="ghost" disabled title="Каталог черт ещё собирается">
-          Черта (скоро)
+        <Button
+          type="button"
+          variant={uiMode === 'feat' ? 'primary' : 'ghost'}
+          onClick={() => onUiMode('feat')}
+        >
+          Черта
         </Button>
       </div>
-      <div className="chip-row" role="group" aria-label="Характеристики">
-        {ABILITY_KEYS.map((key) => {
-          const selected = keys.includes(key)
-          return (
-            <Button
-              key={key}
-              type="button"
-              variant={selected ? 'primary' : 'ghost'}
-              onClick={() => onToggleKey(key)}
-            >
-              {ABILITY_LABELS[key]} {abilities[key]}
-            </Button>
-          )
-        })}
-      </div>
-      {error ? <Text tone="danger">{error}</Text> : null}
-      {!error && mode ? (
-        <Text tone="muted">
-          Нужно выбрать: {mode.amounts.length} · сейчас {keys.length}
-        </Text>
-      ) : null}
+      {uiMode === 'scores' ? (
+        <>
+          <div className="chip-row" role="group" aria-label="Характеристики">
+            {ABILITY_KEYS.map((key) => {
+              const selected = keys.includes(key)
+              return (
+                <Button
+                  key={key}
+                  type="button"
+                  variant={selected ? 'primary' : 'ghost'}
+                  onClick={() => onToggleKey(key)}
+                >
+                  {ABILITY_LABELS[key]} {abilities[key]}
+                </Button>
+              )
+            })}
+          </div>
+          {error ? <Text tone="danger">{error}</Text> : null}
+          {!error && mode ? (
+            <Text tone="muted">
+              Нужно выбрать: {mode.amounts.length} · сейчас {keys.length}
+            </Text>
+          ) : null}
+        </>
+      ) : (
+        <Stack gap={10}>
+          <Text tone="muted">
+            Открой каталог черт — ASI / заклинание и другие развилки выбираются там, гранты лягут на
+            лист.
+          </Text>
+          {featSummary ? <Text>Выбрано: {featSummary}</Text> : null}
+          <Button type="button" variant={featSummary ? 'secondary' : 'primary'} onClick={onOpenFeatPicker}>
+            {featSummary ? 'Сменить черту' : 'Настроить и взять черту'}
+          </Button>
+        </Stack>
+      )}
     </Stack>
   )
 }
@@ -430,6 +481,18 @@ export function GuidedWizardDialog({
   backgroundName = '',
   blockedSkillKeys = [],
   blockedToolNames = [],
+  armor = {},
+  hasSpellcasting = false,
+  hasMartialWeapons = false,
+  raceSlug = null,
+  raceParentSlug = null,
+  size = null,
+  characterLevel = 1,
+  takenFeatSlugs = [],
+  classSlugs = [],
+  backgroundSlug = null,
+  ownedFeatEnums = [],
+  proficientSkills = [],
   onFeaturePicksChange,
   onConfirmClassGrant,
   onConfirmAsi,
@@ -449,9 +512,12 @@ export function GuidedWizardDialog({
     tools: [],
     equipmentPackageId: null,
   })
+  const [asiUiMode, setAsiUiMode] = useState<AsiUiMode>('scores')
   const [asiModeId, setAsiModeId] = useState<ClassAsiModeId>('plus2')
   const [asiKeys, setAsiKeys] = useState<AbilityKey[]>([])
   const [asiError, setAsiError] = useState<string | null>(null)
+  const [featPickerOpen, setFeatPickerOpen] = useState(false)
+  const [asiFeatResult, setAsiFeatResult] = useState<FeatSetupResult | null>(null)
   const [backgroundDraftName, setBackgroundDraftName] = useState('')
 
   useEffect(() => {
@@ -460,9 +526,12 @@ export function GuidedWizardDialog({
       setGrantPicks({ skills: [], tools: [], equipmentPackageId: null })
     }
     if (step.kind === 'asi') {
+      setAsiUiMode('scores')
       setAsiModeId('plus2')
       setAsiKeys([])
       setAsiError(null)
+      setFeatPickerOpen(false)
+      setAsiFeatResult(null)
     }
     if (step.kind === 'background') {
       setBackgroundDraftName(backgroundName)
@@ -499,10 +568,12 @@ export function GuidedWizardDialog({
     return Boolean(getFeaturePick(featurePicks, step.classEntryId, step.featureId))
   }, [step, featurePicks])
 
-  const asiReady =
-    step?.kind === 'asi' &&
+  const asiScoresReady =
+    asiUiMode === 'scores' &&
     asiKeys.length ===
       (CLASS_ASI_MODE_OPTIONS.find((row) => row.id === asiModeId)?.amounts.length ?? 1)
+  const asiFeatReady = asiUiMode === 'feat' && Boolean(asiFeatResult)
+  const asiReady = step?.kind === 'asi' && (asiScoresReady || asiFeatReady || asiUiMode === 'feat')
 
   const backgroundReady = Boolean(backgroundName.trim())
 
@@ -512,7 +583,9 @@ export function GuidedWizardDialog({
       : step?.kind === 'feature_choice'
         ? !featureChoiceReady
         : step?.kind === 'asi'
-          ? !asiReady
+          ? asiUiMode === 'feat'
+            ? false
+            : !asiScoresReady
           : step?.kind === 'background'
             ? !backgroundReady
             : false
@@ -538,9 +611,11 @@ export function GuidedWizardDialog({
   const primaryLabel =
     step?.kind === 'subclass'
       ? 'К полю архетипа'
-      : index >= total - 1
-        ? 'Готово'
-        : 'Далее'
+      : step?.kind === 'asi' && asiUiMode === 'feat' && !asiFeatResult
+        ? 'Выбрать черту'
+        : index >= total - 1
+          ? 'Готово'
+          : 'Далее'
 
   const canSkip = step?.kind !== 'class_grant'
 
@@ -562,6 +637,14 @@ export function GuidedWizardDialog({
     }
 
     if (step.kind === 'asi') {
+      if (asiUiMode === 'feat') {
+        if (!asiFeatResult) {
+          setFeatPickerOpen(true)
+          return
+        }
+        confirmAsiFeat(asiFeatResult)
+        return
+      }
       const check = validateClassAsiPicks({
         modeId: asiModeId,
         keys: asiKeys,
@@ -601,16 +684,54 @@ export function GuidedWizardDialog({
     }
 
     if (step.kind === 'feat') {
-      onToast?.('Черта: каталог скоро; можешь отметить в заметках')
+      onToast?.('Черта: открой настройку на шаге расы / ASI или на листе')
       onAdvance(index + 1)
     }
+  }
+
+  function confirmAsiFeat(result: FeatSetupResult) {
+    if (!step || step.kind !== 'asi') return
+    const grantId = newFeatGrantId()
+    const featGrant: AppliedFeatGrant = {
+      id: grantId,
+      featCatalogId: result.entry.id,
+      slug: result.entry.slug,
+      nameRu: result.entry.name_ru,
+      source: {
+        kind: 'asi',
+        classEntryId: step.classEntryId,
+        featureId: step.featureId,
+        atClassLevel: step.classLevel,
+      },
+      applied: result.applied,
+      picks: result.picks,
+    }
+    onConfirmAsi(
+      {
+        classEntryId: step.classEntryId,
+        featureId: step.featureId,
+        atClassLevel: step.classLevel,
+        resolution: {
+          kind: 'feat',
+          featCatalogId: result.entry.id,
+          featSlug: result.entry.slug,
+          featGrantId: grantId,
+        },
+        bonuses: {},
+      },
+      featGrant,
+    )
+    setFeatPickerOpen(false)
+    setAsiFeatResult(result)
+    onAdvance(index + 1)
   }
 
   if (!session || !step) return null
 
   return (
+    <>
     <Dialog
-      open={open}
+      open={open && !featPickerOpen}
       title={title}
       primaryLabel={primaryLabel}
       secondaryLabel={canSkip ? 'Позже' : 'Отмена'}
@@ -645,9 +766,16 @@ export function GuidedWizardDialog({
         ) : null}
         {step.kind === 'asi' ? (
           <AsiStepBody
+            uiMode={asiUiMode}
             modeId={asiModeId}
             keys={asiKeys}
             abilities={abilities}
+            onUiMode={(mode) => {
+              setAsiUiMode(mode)
+              setAsiKeys([])
+              setAsiError(null)
+              if (mode === 'scores') setAsiFeatResult(null)
+            }}
             onModeId={(mode) => {
               setAsiModeId(mode)
               setAsiKeys([])
@@ -662,6 +790,16 @@ export function GuidedWizardDialog({
                 return [...prev, key].slice(-limit)
               })
             }}
+            onOpenFeatPicker={() => setFeatPickerOpen(true)}
+            featSummary={
+              asiFeatResult
+                ? `${asiFeatResult.entry.name_ru}${
+                    asiFeatResult.applied.summaryRu
+                      ? ` · ${asiFeatResult.applied.summaryRu}`
+                      : ''
+                  }`
+                : null
+            }
             error={asiError}
           />
         ) : null}
@@ -707,12 +845,42 @@ export function GuidedWizardDialog({
           <Stack gap={10}>
             <Text>{step.promptRu}</Text>
             {step.noteRu ? <Text tone="muted">{step.noteRu}</Text> : null}
-            <Button type="button" variant="ghost" disabled title="Каталог черт ещё собирается">
-              Черта (скоро)
-            </Button>
+            <Text tone="muted">
+              Расовую черту бери на шаге «Черта» / в настройке расы; ASI-черту — в шаге увеличения
+              характеристик.
+            </Text>
           </Stack>
         ) : null}
       </Stack>
     </Dialog>
+
+    <FeatSetupDialog
+      open={featPickerOpen && step.kind === 'asi'}
+      edition={edition}
+      title={
+        step.kind === 'asi'
+          ? `Черта · ${step.className} ${step.classLevel}`
+          : 'Черта'
+      }
+      abilities={abilities}
+      armor={armor}
+      hasSpellcasting={hasSpellcasting}
+      hasMartialWeapons={hasMartialWeapons}
+      raceSlug={raceSlug}
+      raceParentSlug={raceParentSlug}
+      size={size}
+      characterLevel={characterLevel}
+      takenSlugs={takenFeatSlugs}
+      classSlugs={classSlugs}
+      backgroundSlug={backgroundSlug}
+      ownedFeatEnums={ownedFeatEnums}
+      proficientSkills={proficientSkills}
+      onClose={() => setFeatPickerOpen(false)}
+      onConfirm={(result) => {
+        setAsiFeatResult(result)
+        confirmAsiFeat(result)
+      }}
+    />
+    </>
   )
 }

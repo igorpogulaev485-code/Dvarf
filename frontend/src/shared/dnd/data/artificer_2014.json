@@ -74,7 +74,7 @@
       "level": 4,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта.",
       "kind": "passive",
       "choice": {
         "id": "asi_4_artificer_mode",
@@ -82,7 +82,7 @@
         "options": [
           "plus2",
           "plus1x2",
-          "feat_coming_soon"
+          "feat"
         ]
       }
     },
@@ -116,7 +116,7 @@
       "level": 8,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта.",
       "kind": "passive",
       "choice": {
         "id": "asi_8_artificer_mode",
@@ -124,7 +124,7 @@
         "options": [
           "plus2",
           "plus1x2",
-          "feat_coming_soon"
+          "feat"
         ]
       }
     },
@@ -149,7 +149,7 @@
       "level": 12,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта.",
       "kind": "passive",
       "choice": {
         "id": "asi_12_artificer_mode",
@@ -157,7 +157,7 @@
         "options": [
           "plus2",
           "plus1x2",
-          "feat_coming_soon"
+          "feat"
         ]
       }
     },
@@ -174,7 +174,7 @@
       "level": 16,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта.",
       "kind": "passive",
       "choice": {
         "id": "asi_16_artificer_mode",
@@ -182,7 +182,7 @@
         "options": [
           "plus2",
           "plus1x2",
-          "feat_coming_soon"
+          "feat"
         ]
       }
     },
@@ -199,7 +199,7 @@
       "level": 19,
       "name_ru": "Увеличение характеристик",
       "name_en": "Ability Score Improvement",
-      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта.",
       "kind": "passive",
       "choice": {
         "id": "asi_19_artificer_mode",
@@ -207,7 +207,7 @@
         "options": [
           "plus2",
           "plus1x2",
-          "feat_coming_soon"
+          "feat"
         ]
       }
     },

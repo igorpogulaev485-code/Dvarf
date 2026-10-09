@@ -945,6 +945,17 @@ export async function applyPipelineToSheet(input: {
     draft.abilities = applyClassAsiBonuses(draft.abilities, entry.bonuses)
   }
 
+  // ASI → feat picks (War Caster, Fey Touched, …) after score ASI bonuses
+  const asiFeatGrants = Array.isArray(state.asiFeatGrants) ? state.asiFeatGrants : []
+  for (const grant of asiFeatGrants) {
+    if (!grant?.id || !grant.applied) continue
+    const appliedFeat = applyFeatGrantToDraft({
+      draft: featSlice(draft, totalCharacterLevel(classes)),
+      grant,
+    })
+    Object.assign(draft, mergeFeat(draft, appliedFeat))
+  }
+
   const subclassSlugByEntryId: Record<string, string> = {}
   for (const grant of draft.subclassGrants) {
     if (grant.classEntryId && grant.slug) {

@@ -3410,11 +3410,24 @@ export function MinimalSheetEditor({
       <GuidedWizardDialog
         open={guidedWizard != null}
         session={guidedWizard}
+        edition={baseCharacter.rules_edition as RulesEdition}
         abilities={draft.abilities}
         skills={draft.skills}
         tools={draft.identity.tools}
         featurePicks={draft.featurePicks}
         expertiseKeys={expertiseKeys}
+        armor={draft.identity.armor}
+        hasSpellcasting={characterHasCasterClass(draft.classes)}
+        hasMartialWeapons={draft.identity.weapons.martial}
+        raceSlug={draft.raceGrant?.slug ?? null}
+        raceParentSlug={draft.raceGrant?.parentSlug ?? null}
+        size={draft.identity.size}
+        characterLevel={characterLevel}
+        takenFeatSlugs={draft.featGrants.map((row) => row.slug)}
+        classSlugs={draft.classGrants.map((row) => row.slug)}
+        backgroundSlug={draft.identity.backgroundSlug}
+        ownedFeatEnums={ownedFeatEnums}
+        proficientSkills={proficientSkills}
         onFeaturePicksChange={applyFeaturePicksWithExpertise}
         onConfirmClassGrant={(picks) => {
           if (!guidedWizard?.grant || !guidedWizard.steps[guidedWizard.index]) return

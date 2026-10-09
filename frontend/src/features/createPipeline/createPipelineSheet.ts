@@ -97,6 +97,7 @@ export function buildSheetFromPipeline(
     subclassSetups: state.subclassSetups,
     featurePicks: state.featurePicks,
     classAsi: state.classAsi,
+    asiFeatGrants: state.asiFeatGrants,
   }
 
   combat.hp_max = combat.hp_max ?? null
@@ -171,6 +172,9 @@ export function hydratePipelineFromSheet(
     classes: classes.length ? classes : fallback.classes,
     featurePicks,
     classAsi,
+    asiFeatGrants: Array.isArray(meta.asiFeatGrants)
+      ? (meta.asiFeatGrants as CreatePipelineState['asiFeatGrants'])
+      : fallback.asiFeatGrants ?? [],
     sheetDraft: {
       background_grant: sheet.background_grant,
       race_grant: sheet.race_grant,

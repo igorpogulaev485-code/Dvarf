@@ -12,7 +12,11 @@ import { resolveRaceGrantDef } from '../../shared/dnd/raceGrants'
 import type { ClassGrantPicks } from '../../shared/dnd/classGrants'
 import type { SubclassGrantPicks } from '../../shared/dnd/subclassGrants'
 import type { AppliedClassAsi } from '../../shared/dnd/classAsi'
-import type { FeatGrantPicks, FeatGrantsPackage } from '../../shared/dnd/featGrants'
+import type {
+  AppliedFeatGrant,
+  FeatGrantPicks,
+  FeatGrantsPackage,
+} from '../../shared/dnd/featGrants'
 import { emptyFeaturePicks, type FeaturePicksState } from '../../shared/dnd/featurePicks'
 
 /** Canonical order. `feat` is skipped when the race has no featNoteRu. */
@@ -127,6 +131,8 @@ export type CreatePipelineState = {
   featurePicks: FeaturePicksState
   /** Class ASI ledger from GuidedWizard. */
   classAsi: AppliedClassAsi[]
+  /** Feat grants taken instead of ASI (+2 / +1+1). */
+  asiFeatGrants: AppliedFeatGrant[]
   /** Full sheet-shaped draft for grants / picks / spells. */
   sheetDraft: Record<string, unknown>
   /** Step-local dirty flags — clearing on back navigation. */
@@ -194,6 +200,7 @@ export function createEmptyPipelineState(): CreatePipelineState {
     hpChoices: [],
     featurePicks: emptyFeaturePicks(),
     classAsi: [],
+    asiFeatGrants: [],
     sheetDraft: {},
     stepDirty: {},
   }

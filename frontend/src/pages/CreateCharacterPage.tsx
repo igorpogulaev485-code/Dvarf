@@ -1569,6 +1569,25 @@ export function CreateCharacterPage() {
         backgroundName={state.background?.nameRu ?? ''}
         blockedSkillKeys={blockedSkillKeys}
         blockedToolNames={blockedToolNames}
+        armor={EMPTY_ARMOR}
+        hasSpellcasting={hasCasterClass}
+        raceSlug={state.raceSetup?.entry.slug ?? state.race?.slug ?? null}
+        raceParentSlug={state.raceSetup?.rootEntry?.slug ?? null}
+        size={state.raceSetup?.picks.size ?? null}
+        characterLevel={totalCharacterLevel(state.classes)}
+        takenFeatSlugs={[
+          ...(state.featSetup?.entry.slug ? [state.featSetup.entry.slug] : []),
+          ...(state.asiFeatGrants ?? []).map((row) => row.slug),
+        ]}
+        classSlugs={state.classes
+          .map((row) =>
+            row.id === state.classEntryId ? state.classRef?.slug ?? null : null,
+          )
+          .filter((slug): slug is string => Boolean(slug))}
+        backgroundSlug={state.backgroundSetup?.entry.slug ?? state.background?.slug ?? null}
+        proficientSkills={Object.entries(wizardProficiencies.skills)
+          .filter(([, row]) => row.is_proficient)
+          .map(([key]) => key)}
         onFeaturePicksChange={(featurePicks: FeaturePicksState) => {
           patchState({
             featurePicks,
@@ -1581,15 +1600,24 @@ export function CreateCharacterPage() {
         onConfirmClassGrant={() => {
           // Class grants are handled by ClassSetupDialog in the pipeline.
         }}
-        onConfirmAsi={(entry: AppliedClassAsi) => {
+        onConfirmAsi={(entry: AppliedClassAsi, featGrant) => {
           const nextAsi = [...(state.classAsi ?? []), entry]
+          const nextFeatGrants = featGrant
+            ? [...(state.asiFeatGrants ?? []), featGrant]
+            : state.asiFeatGrants ?? []
           patchState({
             classAsi: nextAsi,
+            asiFeatGrants: nextFeatGrants,
             sheetDraft: {
               ...state.sheetDraft,
               class_asi: nextAsi,
+              feat_grants: nextFeatGrants,
             },
           })
+          if (featGrant) {
+            setToast(`ASI → черта «${featGrant.nameRu}»`)
+            return
+          }
           const bits = Object.entries(entry.bonuses)
             .filter(([, amount]) => amount)
             .map(([key, amount]) => `${ABILITY_LABELS[key as AbilityKey]}+${amount}`)
