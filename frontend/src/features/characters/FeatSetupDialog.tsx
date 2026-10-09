@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { RulesEdition } from '../../shared/api/characters'
-import type { CatalogEntry } from '../../shared/api/catalog'
+import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
   buildAppliedFeatPackage,
   commonLanguageOptions,
@@ -17,9 +17,8 @@ import {
   type FeatGrantsPackage,
   type OwnedFeatEnumSnapshot,
 } from '../../shared/dnd/featGrants'
-import { CatalogCombobox } from '../catalog'
 import { ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
-import { Button, Dialog, Field, Stack, Text } from '../../ui'
+import { Button, Dialog, Field, Input, Stack, Text } from '../../ui'
 
 export type FeatSetupResult = {
   entry: CatalogEntry
@@ -75,7 +74,9 @@ export function FeatSetupDialog({
   onClose,
 }: FeatSetupDialogProps) {
   const [selected, setSelected] = useState<CatalogEntry | null>(null)
-  const [value, setValue] = useState('')
+  const [catalog, setCatalog] = useState<CatalogEntry[]>([])
+  const [catalogLoading, setCatalogLoading] = useState(false)
+  const [query, setQuery] = useState('')
   const [picks, setPicks] = useState<FeatGrantPicks>(emptyFeatPicks())
   const [customTool, setCustomTool] = useState('')
   const [customWeapon, setCustomWeapon] = useState('')
@@ -143,18 +144,48 @@ export function FeatSetupDialog({
   useEffect(() => {
     if (!open) return
     setSelected(null)
-    setValue('')
+    setQuery('')
     setPicks(emptyFeatPicks())
     setCustomTool('')
     setCustomWeapon('')
     setCustomLanguage('')
     setError(null)
-  }, [open])
+    let active = true
+    setCatalogLoading(true)
+    void listCatalogEntries({ kind: 'feat', edition })
+      .then((rows) => {
+        if (!active) return
+        setCatalog(rows.filter((row) => row.is_active))
+      })
+      .catch(() => {
+        if (!active) return
+        setCatalog([])
+        setError('Не удалось загрузить каталог черт')
+      })
+      .finally(() => {
+        if (active) setCatalogLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [open, edition])
 
   useEffect(() => {
     setPicks(emptyFeatPicks())
     setError(null)
   }, [selected?.id])
+
+  const eligibleFeats = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return catalog
+      .filter((entry) => filterEligibleFeat(entry))
+      .filter((entry) => {
+        if (!q) return true
+        const hay = `${entry.name_ru} ${entry.name_en ?? ''} ${entry.source ?? ''} ${entry.slug}`
+        return hay.toLowerCase().includes(q)
+      })
+      .sort((a, b) => a.name_ru.localeCompare(b.name_ru, 'ru'))
+  }, [catalog, filterEligibleFeat, query])
 
   const languageNeed =
     def?.choices.find((choice) => choice.type === 'languages')?.count ?? 0
@@ -337,25 +368,67 @@ export function FeatSetupDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Только доступные тебе черты (требования уже отфильтрованы). Гранты — на лист.
+          Только доступные тебе черты (требования уже отфильтрованы). Выбери карточку — как на
+          других шагах. Гранты попадут на лист.
         </Text>
 
-        <Field label="Черта">
-          <CatalogCombobox
-            kind="feat"
-            edition={edition}
-            value={value}
-            placeholder="Начни вводить название…"
-            filterEntry={filterEligibleFeat}
-            onChange={(next, entry) => {
-              setValue(next)
-              setSelected(entry)
-            }}
+        <Field label="Поиск">
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Поиск по имени…"
           />
         </Field>
         {forcedSlug ? (
           <Text tone="muted">Черта предыстории / расы: выбери «{forcedSlug}» в списке.</Text>
         ) : null}
+
+        {catalogLoading ? (
+          <Text tone="muted">Загружаем каталог черт…</Text>
+        ) : eligibleFeats.length === 0 ? (
+          <Text tone="muted">Нет доступных черт по текущим требованиям.</Text>
+        ) : (
+          <Field label={`Черта (${eligibleFeats.length})`}>
+            <Stack gap={8} style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: 4 }}>
+              {eligibleFeats.map((entry) => {
+                const on = selected?.id === entry.id
+                const entryDef = featGrantDefFromCatalog({
+                  slug: entry.slug,
+                  nameRu: entry.name_ru,
+                  data: entry.data,
+                })
+                const summary =
+                  entryDef?.fixedGrants.summaryRu?.trim() ||
+                  entryDef?.prerequisitesRu?.trim() ||
+                  entry.name_en ||
+                  entry.source ||
+                  ''
+                return (
+                  <button
+                    key={entry.id}
+                    type="button"
+                    className={`sheet-chip${on ? ' is-on' : ''}`}
+                    style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                    onClick={() => {
+                      setSelected(entry)
+                      setError(null)
+                    }}
+                  >
+                    <strong>{entry.name_ru}</strong>
+                    {summary ? (
+                      <div style={{ opacity: 0.85, fontWeight: 400 }}>{summary}</div>
+                    ) : null}
+                    {entry.source ? (
+                      <div style={{ opacity: 0.65, fontWeight: 400, fontSize: 12 }}>
+                        {entry.source}
+                      </div>
+                    ) : null}
+                  </button>
+                )
+              })}
+            </Stack>
+          </Field>
+        )}
 
         {def ? (
           <>
