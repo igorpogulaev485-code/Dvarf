@@ -389,44 +389,49 @@ export function FeatSetupDialog({
           <Text tone="muted">Нет доступных черт по текущим требованиям.</Text>
         ) : (
           <Field label={`Черта (${eligibleFeats.length})`}>
-            <Stack gap={8} style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: 4 }}>
-              {eligibleFeats.map((entry) => {
-                const on = selected?.id === entry.id
-                const entryDef = featGrantDefFromCatalog({
-                  slug: entry.slug,
-                  nameRu: entry.name_ru,
-                  data: entry.data,
-                })
-                const summary =
-                  entryDef?.fixedGrants.summaryRu?.trim() ||
-                  entryDef?.prerequisitesRu?.trim() ||
-                  entry.name_en ||
-                  entry.source ||
-                  ''
-                return (
-                  <button
-                    key={entry.id}
-                    type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    style={{ display: 'block', width: '100%', textAlign: 'left' }}
-                    onClick={() => {
-                      setSelected(entry)
-                      setError(null)
-                    }}
-                  >
-                    <strong>{entry.name_ru}</strong>
-                    {summary ? (
-                      <div style={{ opacity: 0.85, fontWeight: 400 }}>{summary}</div>
-                    ) : null}
-                    {entry.source ? (
-                      <div style={{ opacity: 0.65, fontWeight: 400, fontSize: 12 }}>
-                        {entry.source}
-                      </div>
-                    ) : null}
-                  </button>
-                )
-              })}
-            </Stack>
+            <div
+              className="feat-setup__list"
+              style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: 4 }}
+            >
+              <Stack gap={8}>
+                {eligibleFeats.map((entry) => {
+                  const on = selected?.id === entry.id
+                  const entryDef = featGrantDefFromCatalog({
+                    slug: entry.slug,
+                    nameRu: entry.name_ru,
+                    data: entry.data,
+                  })
+                  const summary =
+                    entryDef?.fixedGrants.summaryRu?.trim() ||
+                    entryDef?.prerequisitesRu?.trim() ||
+                    entry.name_en ||
+                    entry.source ||
+                    ''
+                  return (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      className={`sheet-chip${on ? ' is-on' : ''}`}
+                      style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                      onClick={() => {
+                        setSelected(entry)
+                        setError(null)
+                      }}
+                    >
+                      <strong>{entry.name_ru}</strong>
+                      {summary ? (
+                        <div style={{ opacity: 0.85, fontWeight: 400 }}>{summary}</div>
+                      ) : null}
+                      {entry.source ? (
+                        <div style={{ opacity: 0.65, fontWeight: 400, fontSize: 12 }}>
+                          {entry.source}
+                        </div>
+                      ) : null}
+                    </button>
+                  )
+                })}
+              </Stack>
+            </div>
           </Field>
         )}
 
