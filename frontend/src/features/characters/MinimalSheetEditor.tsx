@@ -3516,7 +3516,6 @@ export function MinimalSheetEditor({
           }
           openGuidedWizard({ steps: remaining, index: 0 })
         }}
-        edition={rulesEdition}
         backgroundName={draft.identity.background}
         blockedSkillKeys={draft.backgroundGrant?.skills ?? []}
         blockedToolNames={draft.backgroundGrant?.tools ?? []}

@@ -572,8 +572,6 @@ export function GuidedWizardDialog({
     asiUiMode === 'scores' &&
     asiKeys.length ===
       (CLASS_ASI_MODE_OPTIONS.find((row) => row.id === asiModeId)?.amounts.length ?? 1)
-  const asiFeatReady = asiUiMode === 'feat' && Boolean(asiFeatResult)
-  const asiReady = step?.kind === 'asi' && (asiScoresReady || asiFeatReady || asiUiMode === 'feat')
 
   const backgroundReady = Boolean(backgroundName.trim())
 
