@@ -1034,3 +1034,4 @@
 | 2026-10-08 | `cursor/gear-settings-items-db96` · PR #98 | GEAR W5: setting-book magic (EGW/FTD/SCC/…) + book chips; alembic `h0b1` → «В ветках» |
 | 2026-10-08 | `cursor/gear-dmg-polish-db96` · PR #99 | GEAR G1–G9 + W1–W6 залиты на Timeweb; tip → эта ветка; alembic `j2d3` |
 | 2026-10-08 | `cursor/create-pipeline-page-2223` · PR #100 | Create-pipeline 2014 + merge gear tip; tip → эта ветка; alembic `x3g4` (`is_draft`) |
+| 2026-10-09 | `cursor/multiclass-grants-polish-2223` · PR #101 | MC grants = PHB table only (no start skills/gear); tip → эта ветка |
