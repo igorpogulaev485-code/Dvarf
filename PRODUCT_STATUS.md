@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/create-pipeline-page-2223`  
+**Prod tip (ветка линии прода):** `cursor/multiclass-grants-polish-2223`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -893,7 +893,18 @@
 \*Шаг черты пропускается, если раса не даёт черту.
 
 Спека: `docs/create-pipeline.md`.  
-На проде: **да** · ветка `cursor/create-pipeline-page-2223` · PR #100 · это **новый prod tip** · alembic `x3g4` (после gear `j2d3`) · проверено 2026-10-08: `/health` ok, `is_draft` в БД, бандл «Создание · D&D 2014»
+На проде: **да** · ветка `cursor/create-pipeline-page-2223` · PR #100 · alembic `x3g4` (после gear `j2d3`) · проверено 2026-10-08: `/health` ok, `is_draft` в БД, бандл «Создание · D&D 2014» · tip сменился на `cursor/multiclass-grants-polish-2223` (2026-10-09)
+
+### 2026-10-09 — шлифовка грантов мультикласса (PHB)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Только таблица MC | При добавлении класса в мультикласс — владения из PHB, не стартовый пакет | Нет выбора снаряжения и полного набора навыков 1 ур. |
+| Авто-гранты | Fighter/Wizard/Cleric и т.п. без skill-пиков применяются сразу (toast) | Не открывается пустой «старт класса» |
+| Пики по PHB | Rogue/Ranger — 1 навык; Bard — 1 навык + инструмент | Как в таблице Multiclassing Proficiencies |
+| UI | Заголовок «владения мультикласса» + список авто-владений | Понятно, что это не создание класса с нуля |
+
+На проде: **да** · ветка `cursor/multiclass-grants-polish-2223` · PR #101 · это **новый prod tip** · проверено 2026-10-09: `/health` ok; бандл `владения мультикласса` / `Автоматически добавляются`; диск YES (lobby/cabinet/avatar/concentration/classic + MC selfcheck)
 
 ### 2026-10-08 — единый wizard create/level-up (Expertise и др.)
 
