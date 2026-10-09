@@ -48,6 +48,8 @@ type FeatSetupDialogProps = {
   proficientSkills?: string[]
   /** Lock picker to one feat (background / race grant). */
   forcedSlug?: string | null
+  /** Pre-select this catalog row (create-pipeline feat step). */
+  presetEntry?: CatalogEntry | null
   onConfirm: (result: FeatSetupResult) => void
   onClose: () => void
 }
@@ -70,6 +72,7 @@ export function FeatSetupDialog({
   ownedFeatEnums = [],
   proficientSkills = [],
   forcedSlug = null,
+  presetEntry = null,
   onConfirm,
   onClose,
 }: FeatSetupDialogProps) {
@@ -143,8 +146,8 @@ export function FeatSetupDialog({
 
   useEffect(() => {
     if (!open) return
-    setSelected(null)
-    setQuery('')
+    setSelected(presetEntry)
+    setQuery(presetEntry?.name_ru ?? '')
     setPicks(emptyFeatPicks())
     setCustomTool('')
     setCustomWeapon('')
@@ -155,11 +158,19 @@ export function FeatSetupDialog({
     void listCatalogEntries({ kind: 'feat', edition })
       .then((rows) => {
         if (!active) return
-        setCatalog(rows.filter((row) => row.is_active))
+        const activeRows = rows.filter((row) => row.is_active)
+        setCatalog(activeRows)
+        if (presetEntry) {
+          const match =
+            activeRows.find((row) => row.id === presetEntry.id) ??
+            activeRows.find((row) => row.slug === presetEntry.slug) ??
+            presetEntry
+          setSelected(match)
+        }
       })
       .catch(() => {
         if (!active) return
-        setCatalog([])
+        setCatalog(presetEntry ? [presetEntry] : [])
         setError('Не удалось загрузить каталог черт')
       })
       .finally(() => {
@@ -168,7 +179,7 @@ export function FeatSetupDialog({
     return () => {
       active = false
     }
-  }, [open, edition])
+  }, [open, edition, presetEntry])
 
   useEffect(() => {
     setPicks(emptyFeatPicks())

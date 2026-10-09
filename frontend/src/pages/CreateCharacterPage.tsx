@@ -10,6 +10,10 @@ import {
 } from '../features/characters/RaceSetupDialog'
 import { ClassSetupDialog } from '../features/characters/ClassSetupDialog'
 import {
+  FeatSetupDialog,
+  type FeatSetupResult,
+} from '../features/characters/FeatSetupDialog'
+import {
   GuidedWizardDialog,
   type GuidedWizardSession,
 } from '../features/characters/GuidedWizardDialog'
@@ -257,6 +261,8 @@ export function CreateCharacterPage() {
   } | null>(null)
   /** After auto MC grants, open feature wizard once picks are in state. */
   const [pendingMcWizard, setPendingMcWizard] = useState<string | null>(null)
+  /** Feat step: configure ASI / spell forks for the chosen racial feat. */
+  const [featSetupOpen, setFeatSetupOpen] = useState(false)
   const [subclassPicker, setSubclassPicker] = useState<{
     classEntryId: string
     parentCatalogId: string
@@ -735,10 +741,12 @@ export function CreateCharacterPage() {
       patchState({
         step: nextStep,
         feat: null,
+        featSetup: null,
         featAcknowledged: false,
         stepDirty: { ...state.stepDirty, feat: false },
       })
       setSelectedFeat(null)
+      setFeatSetupOpen(false)
       return
     }
     if (step === 'race') {
@@ -748,6 +756,7 @@ export function CreateCharacterPage() {
         subrace: null,
         raceSetup: null,
         feat: null,
+        featSetup: null,
         featAcknowledged: false,
         characterName: state.characterName,
         stepDirty: { ...state.stepDirty, race: false, feat: false },
@@ -755,6 +764,7 @@ export function CreateCharacterPage() {
       setRacialBonuses({})
       setSelectedRace(null)
       setSelectedFeat(null)
+      setFeatSetupOpen(false)
       return
     }
     patchState({ step: nextStep })
@@ -854,7 +864,11 @@ export function CreateCharacterPage() {
 
   function canFinishHardBlocks(): string | null {
     if (!state.race) return 'Выберите расу'
-    if (raceNeedsFeatStep(state.raceSetup) && !state.feat && !state.featAcknowledged) {
+    if (
+      raceNeedsFeatStep(state.raceSetup) &&
+      !state.featSetup &&
+      !state.featAcknowledged
+    ) {
       return 'Закройте шаг черты'
     }
     if (!state.background) return 'Выберите предысторию'
@@ -983,26 +997,25 @@ export function CreateCharacterPage() {
             Заметка расы: {featNote}
           </Text>
         ) : null}
+        <Text tone="muted">
+          Открой настройку черты, чтобы выбрать ASI / заклинание / другие развилки — как на листе.
+        </Text>
         <div className="create-pipeline__method-row">
           <Button
             disabled={!selectedFeat}
             onClick={() => {
               if (!selectedFeat) return
-              patchState({
-                feat: catalogRef(selectedFeat),
-                featAcknowledged: true,
-                stepDirty: { ...state.stepDirty, feat: true },
-              })
-              setToast(`Черта «${selectedFeat.name_ru}»`)
+              setFeatSetupOpen(true)
             }}
           >
-            Выбрать черту
+            Настроить и взять
           </Button>
           <Button
             variant="secondary"
             onClick={() => {
               patchState({
                 feat: null,
+                featSetup: null,
                 featAcknowledged: true,
                 stepDirty: { ...state.stepDirty, feat: true },
               })
@@ -1012,7 +1025,14 @@ export function CreateCharacterPage() {
             Отметить без каталога
           </Button>
         </div>
-        {state.feat ? (
+        {state.featSetup ? (
+          <Text tone="muted">
+            Выбрано: {state.featSetup.entry.name_ru}
+            {state.featSetup.applied.summaryRu
+              ? ` · ${state.featSetup.applied.summaryRu}`
+              : ''}
+          </Text>
+        ) : state.feat ? (
           <Text tone="muted">Выбрано: {state.feat.nameRu}</Text>
         ) : state.featAcknowledged ? (
           <Text tone="muted">Черта отмечена без карточки каталога</Text>
@@ -1021,7 +1041,7 @@ export function CreateCharacterPage() {
     )
     footer = (
       <Button
-        disabled={!state.feat && !state.featAcknowledged}
+        disabled={!state.featSetup && !state.featAcknowledged}
         onClick={() => advanceFrom('feat')}
       >
         Далее · Предыстория
@@ -1307,6 +1327,52 @@ export function CreateCharacterPage() {
         }}
       />
 
+      <FeatSetupDialog
+        open={featSetupOpen}
+        edition="2014"
+        title="Черта расы"
+        abilities={wizardAbilities as Record<AbilityKey, number>}
+        armor={EMPTY_ARMOR}
+        hasSpellcasting={hasCasterClass}
+        raceSlug={state.raceSetup?.entry.slug ?? state.race?.slug ?? null}
+        raceParentSlug={state.raceSetup?.rootEntry?.slug ?? null}
+        size={state.raceSetup?.picks.size ?? null}
+        characterLevel={1}
+        backgroundSlug={state.backgroundSetup?.entry.slug ?? null}
+        proficientSkills={blockedSkillKeys}
+        presetEntry={selectedFeat}
+        forcedSlug={selectedFeat?.slug ?? null}
+        onClose={() => setFeatSetupOpen(false)}
+        onConfirm={(result: FeatSetupResult) => {
+          patchState({
+            feat: catalogRef(result.entry),
+            featSetup: {
+              entry: catalogSnapshot(result.entry),
+              picks: result.picks,
+              applied: result.applied,
+            },
+            featAcknowledged: true,
+            sheetDraft: {
+              ...state.sheetDraft,
+              feat_setup: {
+                entry: catalogSnapshot(result.entry),
+                picks: result.picks,
+                applied: result.applied,
+              },
+            },
+            stepDirty: { ...state.stepDirty, feat: true },
+          })
+          setSelectedFeat(result.entry)
+          setFeatSetupOpen(false)
+          const summary = result.applied.summaryRu?.trim()
+          setToast(
+            summary
+              ? `Черта «${result.entry.name_ru}»: ${summary}`
+              : `Черта «${result.entry.name_ru}»`,
+          )
+        }}
+      />
+
       <RaceSetupDialog
         open={Boolean(raceSetup)}
         edition="2014"
@@ -1335,6 +1401,7 @@ export function CreateCharacterPage() {
             picks: result.picks,
           }
           const needsFeat = Boolean(result.def.featNoteRu?.trim())
+          const raceFeat = result.featResult
           patchState({
             race: isSub
               ? state.race ??
@@ -1342,8 +1409,25 @@ export function CreateCharacterPage() {
               : catalogRef(result.entry),
             subrace: isSub ? catalogRef(result.entry) : null,
             raceSetup: nextRaceSetup,
-            feat: needsFeat ? state.feat : null,
-            featAcknowledged: needsFeat ? state.featAcknowledged : false,
+            feat: raceFeat
+              ? catalogRef(raceFeat.entry)
+              : needsFeat
+                ? state.feat
+                : null,
+            featSetup: raceFeat
+              ? {
+                  entry: catalogSnapshot(raceFeat.entry),
+                  picks: raceFeat.picks,
+                  applied: raceFeat.applied,
+                }
+              : needsFeat
+                ? state.featSetup
+                : null,
+            featAcknowledged: raceFeat
+              ? true
+              : needsFeat
+                ? state.featAcknowledged
+                : false,
             sheetDraft: {
               ...state.sheetDraft,
               race_grant: {

@@ -89,6 +89,7 @@ export function buildSheetFromPipeline(
     race: state.race,
     subrace: state.subrace,
     feat: state.feat,
+    featSetup: state.featSetup,
     featAcknowledged: state.featAcknowledged,
     backgroundSetup: state.backgroundSetup,
     raceSetup: state.raceSetup,
@@ -164,6 +165,8 @@ export function hydratePipelineFromSheet(
     raceSetup:
       (meta.raceSetup as CreatePipelineState['raceSetup']) || fallback.raceSetup,
     feat: (meta.feat as CreatePipelineState['feat']) || fallback.feat,
+    featSetup:
+      (meta.featSetup as CreatePipelineState['featSetup']) || fallback.featSetup,
     featAcknowledged: Boolean(meta.featAcknowledged),
     classes: classes.length ? classes : fallback.classes,
     featurePicks,

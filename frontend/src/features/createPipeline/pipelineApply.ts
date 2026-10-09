@@ -67,6 +67,15 @@ import {
   type SubclassGrantDraftSlice,
 } from '../characters/subclassEffects'
 import {
+  applyFeatGrantToDraft,
+  type FeatGrantDraftSlice,
+} from '../characters/featEffects'
+import {
+  newFeatGrantId,
+  type AppliedFeatGrant,
+} from '../../shared/dnd/featGrants'
+import type { SheetResource } from '../../shared/dnd/rest'
+import {
   EMPTY_ARMOR,
   EMPTY_WEAPONS,
   identityExtrasToSheet,
@@ -134,6 +143,8 @@ type WorkingDraft = {
   companions: SubclassGrantDraftSlice['companions']
   backgroundGrant: BackgroundGrantDraftSlice['backgroundGrant']
   raceGrant: RaceGrantDraftSlice['raceGrant']
+  featGrants: AppliedFeatGrant[]
+  resources: SheetResource[]
   playHitDie: HitDie | null
   hpMax: number | null
   hpCurrent: number | null
@@ -204,6 +215,8 @@ function createWorkingDraft(baseAbilities: AbilityScores): WorkingDraft {
     companions: [],
     backgroundGrant: null,
     raceGrant: null,
+    featGrants: [],
+    resources: [],
     playHitDie: null,
     hpMax: null,
     hpCurrent: null,
@@ -211,6 +224,49 @@ function createWorkingDraft(baseAbilities: AbilityScores): WorkingDraft {
     climbSpeed: null,
     swimSpeed: null,
     flySpeed: null,
+  }
+}
+
+function featSlice(draft: WorkingDraft, totalLevel: number): FeatGrantDraftSlice {
+  return {
+    abilities: draft.abilities,
+    saves: draft.saves,
+    skills: draft.skills,
+    speed: draft.speed,
+    hpMax: draft.hpMax,
+    hpCurrent: draft.hpCurrent,
+    featGrants: draft.featGrants,
+    identity: {
+      languages: draft.identity.languages,
+      tools: draft.identity.tools,
+      armor: draft.identity.armor,
+    },
+    textBlocks: draft.textBlocks,
+    resources: draft.resources,
+    spells: draft.spells,
+    totalLevel,
+  }
+}
+
+function mergeFeat(draft: WorkingDraft, slice: FeatGrantDraftSlice): WorkingDraft {
+  return {
+    ...draft,
+    abilities: slice.abilities,
+    saves: slice.saves,
+    skills: slice.skills,
+    speed: slice.speed,
+    hpMax: slice.hpMax,
+    hpCurrent: slice.hpCurrent,
+    featGrants: slice.featGrants,
+    identity: {
+      ...draft.identity,
+      languages: slice.identity.languages,
+      tools: slice.identity.tools,
+      armor: slice.identity.armor,
+    },
+    textBlocks: slice.textBlocks,
+    resources: slice.resources,
+    spells: slice.spells,
   }
 }
 
@@ -610,6 +666,7 @@ function serializeSheet(input: {
   sheet.subclass_grants = draft.subclassGrants
   sheet.race_grant = draft.raceGrant
   sheet.background_grant = draft.backgroundGrant
+  sheet.feat_grants = draft.featGrants
   sheet.companions = draft.companions
   sheet.feature_picks = featurePicksToSheet(input.featurePicks)
   sheet.class_asi = input.classAsi
@@ -641,7 +698,7 @@ function serializeSheet(input: {
   const play: PlayState = withSyncedHitDiceSummary({
     conditions: [],
     exhaustion: 0,
-    resources: [],
+    resources: draft.resources,
     hpTemp: 0,
     hitDie: draft.playHitDie,
     hitDiceCurrent: totalLevel,
@@ -692,6 +749,9 @@ function serializeSheet(input: {
     classRef: state.classRef,
     race: state.race,
     subrace: state.subrace,
+    feat: state.feat,
+    featSetup: state.featSetup,
+    featAcknowledged: state.featAcknowledged,
     backgroundSetup: state.backgroundSetup,
     raceSetup: state.raceSetup,
     classGrantPicks: state.classGrantPicks,
@@ -782,6 +842,35 @@ export async function applyPipelineToSheet(input: {
     ) as Record<AbilityKey, number>
   } else {
     draft.abilities = { ...state.baseAbilities } as Record<AbilityKey, number>
+  }
+
+  // 2b) Racial feat (Fey Touched etc.) — after racial ASI base, before class grants
+  const featSetup = state.featSetup
+  if (featSetup?.entry?.id && featSetup.applied && featSetup.picks) {
+    const raceCatalogId =
+      raceEntry?.id ?? state.subrace?.id ?? state.race?.id ?? featSetup.entry.id
+    const grant: AppliedFeatGrant = {
+      id: newFeatGrantId(),
+      featCatalogId: featSetup.entry.id,
+      slug: featSetup.entry.slug,
+      nameRu: featSetup.entry.name_ru,
+      source: {
+        kind: 'race',
+        raceCatalogId,
+        raceSlug:
+          raceEntry?.slug ??
+          state.subrace?.slug ??
+          state.race?.slug ??
+          featSetup.entry.slug,
+      },
+      applied: featSetup.applied,
+      picks: featSetup.picks,
+    }
+    const appliedFeat = applyFeatGrantToDraft({
+      draft: featSlice(draft, totalCharacterLevel(classes)),
+      grant,
+    })
+    Object.assign(draft, mergeFeat(draft, appliedFeat))
   }
 
   // 3) Class grants (primary start, others multiclass)
@@ -896,14 +985,27 @@ export async function applyPipelineToSheet(input: {
   const subclassGrantedIds = new Set(
     draft.subclassGrants.flatMap((row) => row.grantedSpellIds ?? []),
   )
+  const featGrantedIds = new Set(
+    draft.spells.known
+      .filter((row) => row.source_kind === 'feat' || Boolean(row.feat_grant))
+      .map((row) => row.id),
+  )
   const mergedSpells: SpellsState = {
     ...spells,
     known: [
       ...spells.known.filter(
-        (row) => row.source_kind !== 'race' && !subclassGrantedIds.has(row.id),
+        (row) =>
+          row.source_kind !== 'race' &&
+          row.source_kind !== 'feat' &&
+          !subclassGrantedIds.has(row.id) &&
+          !featGrantedIds.has(row.id),
       ),
       ...draft.spells.known.filter(
-        (row) => row.source_kind === 'race' || subclassGrantedIds.has(row.id),
+        (row) =>
+          row.source_kind === 'race' ||
+          row.source_kind === 'feat' ||
+          Boolean(row.feat_grant) ||
+          subclassGrantedIds.has(row.id),
       ),
     ],
   }
