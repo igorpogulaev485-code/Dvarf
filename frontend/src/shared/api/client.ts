@@ -34,6 +34,10 @@ export function setTokens(accessToken: string, refreshToken: string): void {
 export function clearTokens(): void {
   localStorage.removeItem(ACCESS_TOKEN_KEY)
   localStorage.removeItem(REFRESH_TOKEN_KEY)
+  // Avoid holding catalog lists across accounts on shared devices.
+  void import('./catalog')
+    .then((mod) => mod.clearCatalogCache())
+    .catch(() => undefined)
 }
 
 let refreshInFlight: Promise<boolean> | null = null

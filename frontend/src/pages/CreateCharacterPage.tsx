@@ -292,22 +292,30 @@ export function CreateCharacterPage() {
 
   useEffect(() => {
     let active = true
-    Promise.all([
-      listCatalogEntries({ kind: 'background', edition: '2014' }),
-      listCatalogEntries({ kind: 'class', edition: '2014' }),
-      listCatalogEntries({ kind: 'race', edition: '2014' }),
-      listCatalogEntries({ kind: 'feat', edition: '2014' }),
-    ])
-      .then(([bg, cls, race, featRows]) => {
+    // Race is step 1 — load it first so the create screen is usable ASAP.
+    listCatalogEntries({ kind: 'race', edition: '2014' })
+      .then((race) => {
         if (!active) return
-        setBackgrounds(bg.filter((row) => !row.parent_id))
-        setClasses(cls.filter((row) => !row.parent_id && row.is_active))
         setRaces(race.filter((row) => isRaceComboboxRoot(row) && row.is_active))
-        setFeats(featRows.filter((row) => row.is_active))
       })
       .catch((err: unknown) => {
         if (!active) return
         setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить каталоги')
+      })
+    // Warm the rest in parallel; shared catalog cache dedupes with the sheet.
+    void Promise.all([
+      listCatalogEntries({ kind: 'background', edition: '2014' }),
+      listCatalogEntries({ kind: 'class', edition: '2014' }),
+      listCatalogEntries({ kind: 'feat', edition: '2014' }),
+    ])
+      .then(([bg, cls, featRows]) => {
+        if (!active) return
+        setBackgrounds(bg.filter((row) => !row.parent_id))
+        setClasses(cls.filter((row) => !row.parent_id && row.is_active))
+        setFeats(featRows.filter((row) => row.is_active))
+      })
+      .catch(() => {
+        // Non-blocking warm; step handlers will surface errors if still empty.
       })
     return () => {
       active = false
