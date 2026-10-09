@@ -670,7 +670,7 @@ export function FeatSetupDialog({
             <Text tone="muted">{def.fixedGrants.benefitsRu}</Text>
           ) : null}
           {hasChoiceForks ? (
-            <Text tone="muted">Сначала отметь развилки ниже — без них черту взять нельзя.</Text>
+            <Text tone="muted">Отметь ASI / заклинание — без развилок черту взять нельзя.</Text>
           ) : null}
           {choiceFields}
         </Stack>
