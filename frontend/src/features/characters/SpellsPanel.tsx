@@ -888,6 +888,7 @@ export function SpellsPanel({
         edition={edition}
         spells={spells}
         knownCaster={knownCaster}
+        abilityModFor={(ability) => abilityModifier(abilities[ability])}
         classes={
           classes?.length
             ? classes

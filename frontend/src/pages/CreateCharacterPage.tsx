@@ -99,7 +99,21 @@ import {
   type FeaturePicksState,
 } from '../shared/dnd/featurePicks'
 import { EMPTY_ARMOR } from '../features/characters/identity'
-import { readSpells, spellsToSheet, type SpellsState } from '../features/characters/spells'
+import { abilityModifier } from '../features/characters/sheetTypes'
+import {
+  countLearnedCantrips,
+  countLearnedLeveled,
+  countPreparedLeveled,
+  readSpells,
+  spellsToSheet,
+  type SpellsState,
+} from '../features/characters/spells'
+import {
+  applySpellcastingSuggestion,
+  resolveSpellLearnBudget,
+  suggestSpellcastingFromClasses,
+} from '../shared/dnd/casterProgression'
+import type { SpellcastingAbility } from '../shared/dnd/spells'
 import { Button, Field, Input, Stack, Text, Toast } from '../ui'
 
 const CASTER_NAME_RE =
@@ -394,6 +408,56 @@ export function CreateCharacterPage() {
     }
     return scores
   }, [finalAbilities, state.classAsi])
+
+  const abilityModFor = useCallback(
+    (ability: SpellcastingAbility) => abilityModifier(wizardAbilities[ability] ?? 10),
+    [wizardAbilities],
+  )
+
+  const spellLearnBudget = useMemo(
+    () =>
+      resolveSpellLearnBudget({
+        classes: state.classes,
+        abilityModFor,
+      }),
+    [state.classes, abilityModFor],
+  )
+
+  const spellsSummary = useMemo(() => {
+    if (!spellLearnBudget) return null
+    const b = spellLearnBudget
+    const cantrips = countLearnedCantrips(spells.known)
+    const leveled = countLearnedLeveled(spells.known)
+    const prepared = countPreparedLeveled(spells.known)
+    if (b.mode === 'spellbook') {
+      return `${b.labelRu}: книга ${leveled}/${b.leveledKnown ?? '—'} · заговоры ${cantrips}/${b.cantrips} · подготовка ${prepared}/${b.maxPrepared ?? '—'}`
+    }
+    if (b.mode === 'prepared_list') {
+      return `${b.labelRu}: весь список · заговоры ${cantrips}/${b.cantrips} · подготовка ${prepared}/${b.maxPrepared ?? '—'}`
+    }
+    return `${b.labelRu}: известные ${leveled}/${b.leveledKnown ?? '—'} · заговоры ${cantrips}/${b.cantrips}`
+  }, [spellLearnBudget, spells.known])
+
+  // Keep slots / prepare cap in sync with class levels + casting ability.
+  useEffect(() => {
+    const suggestion = suggestSpellcastingFromClasses({
+      classes: state.classes,
+      abilityModFor,
+    })
+    if (!suggestion) return
+    setSpells((prev) => {
+      const applied = applySpellcastingSuggestion(prev, suggestion)
+      if (
+        prev.max_prepared === applied.max_prepared &&
+        prev.casting_ability === applied.casting_ability &&
+        JSON.stringify(prev.slots) === JSON.stringify(applied.slots) &&
+        JSON.stringify(prev.pact_slots) === JSON.stringify(applied.pact_slots)
+      ) {
+        return prev
+      }
+      return { ...prev, ...applied }
+    })
+  }, [state.classes, abilityModFor])
 
   const wizardProficiencies = useMemo(
     () => buildWizardProficiencies(state),
@@ -1287,6 +1351,12 @@ export function CreateCharacterPage() {
           setPendingMcGrant({ classEntryId, openWizardAfter: false })
         }}
         onOpenSpells={() => setSpellsOpen('grimoire')}
+        onOpenPrepare={
+          spellLearnBudget && spellLearnBudget.mode !== 'known'
+            ? () => setSpellsOpen('prepare')
+            : undefined
+        }
+        spellsSummary={spellsSummary}
       />
     )
     footer = (
@@ -1689,8 +1759,12 @@ export function CreateCharacterPage() {
         edition="2014"
         spells={spells}
         classes={state.classes}
+        knownCaster={spellLearnBudget?.mode === 'known'}
+        learnBudget={spellLearnBudget}
+        abilityModFor={abilityModFor}
         onChange={setSpells}
         onClose={() => setSpellsOpen(null)}
+        onToast={setToast}
       />
       <PrepareSpellsDialog
         open={spellsOpen === 'prepare'}

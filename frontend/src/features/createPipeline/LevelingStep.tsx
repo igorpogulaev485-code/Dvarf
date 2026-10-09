@@ -43,6 +43,9 @@ type LevelingStepProps = {
   /** After adding a new multiclass row — parent opens MC proficiency setup. */
   onMulticlassAdded?: (classEntryId: string) => void
   onOpenSpells: () => void
+  /** Prepared casters / wizard — open prepare dialog from the book/list. */
+  onOpenPrepare?: () => void
+  spellsSummary?: string | null
 }
 
 function averageFace(die: HitDie): number {
@@ -90,6 +93,8 @@ export function LevelingStep({
   onOpenArchetype,
   onMulticlassAdded,
   onOpenSpells,
+  onOpenPrepare,
+  spellsSummary = null,
 }: LevelingStepProps) {
   const [mcOpen, setMcOpen] = useState(false)
   const [pruneWarn, setPruneWarn] = useState<{
@@ -323,9 +328,17 @@ export function LevelingStep({
         ) : null}
       </div>
 
-      <Button variant="secondary" onClick={onOpenSpells}>
-        Заклинания
-      </Button>
+      <div className="create-pipeline__method-row">
+        <Button variant="secondary" onClick={onOpenSpells}>
+          Заклинания
+        </Button>
+        {onOpenPrepare ? (
+          <Button variant="secondary" onClick={onOpenPrepare}>
+            Подготовить
+          </Button>
+        ) : null}
+      </div>
+      {spellsSummary ? <Text tone="muted">{spellsSummary}</Text> : null}
 
       <Text tone="muted">
         Если мультикласс перестанет проходить по характеристикам — покажем предупреждение и снимем

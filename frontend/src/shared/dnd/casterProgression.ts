@@ -726,6 +726,145 @@ export function thirdCasterSchoolGate(
   return schools.size ? [...schools] : null
 }
 
+/**
+ * How the class learns spells (PHB 2014).
+ * - known: pick a limited list; always ready (bard / sorcerer / warlock / ranger).
+ * - prepared_list: whole class list available; pick cantrips + prepare up to cap
+ *   (cleric / druid / paladin / artificer).
+ * - spellbook: copy into the book (limited), then prepare from the book (wizard).
+ */
+export type SpellLearnMode = 'known' | 'prepared_list' | 'spellbook'
+
+export type SpellLearnBudget = {
+  mode: SpellLearnMode
+  slug: string
+  labelRu: string
+  /** Cantrips the player may choose (excludes locked racial/feat grants). */
+  cantrips: number
+  /**
+   * Max leveled spells on the known list / in the spellbook.
+   * null = no learn cap (full class list — only prepare matters).
+   */
+  leveledKnown: number | null
+  maxPrepared: number | null
+}
+
+/** PHB cantrips known by class level (index 0 = level 1). */
+const CANTRIPS_BY_LEVEL: Record<string, number[]> = {
+  wizard: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+  cleric: [3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+  druid: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+  bard: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+  sorcerer: [4, 4, 4, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6],
+  warlock: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4],
+  artificer: [2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4],
+  // PHB ranger / paladin: no cantrips.
+  ranger: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  paladin: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+}
+
+/** PHB spells known (leveled) by class level — known casters only. */
+const SPELLS_KNOWN_BY_LEVEL: Record<string, number[]> = {
+  bard: [4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 15, 16, 18, 19, 19, 20, 22, 22, 22],
+  sorcerer: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15],
+  warlock: [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15],
+  // Ranger spellcasting starts at 2.
+  ranger: [0, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11],
+}
+
+function tableAtLevel(table: number[] | undefined, level: number): number {
+  if (!table || table.length === 0) return 0
+  return table[clampLevel(level) - 1] ?? table[table.length - 1] ?? 0
+}
+
+/** Wizard spellbook: 6 at 1st, +2 each level after. */
+export function wizardSpellbookLeveledCap(wizardLevel: number): number {
+  const lv = clampLevel(wizardLevel)
+  return 6 + 2 * (lv - 1)
+}
+
+export function spellLearnModeForSlug(slug: string | null): SpellLearnMode | null {
+  if (!slug) return null
+  if (slug === 'wizard') return 'spellbook'
+  const def = classCasterDef(slug)
+  if (!def || def.progression === 'none') return null
+  if (def.prepare) return 'prepared_list'
+  return 'known'
+}
+
+/**
+ * Learn / prepare budget for create + grimoire.
+ * Single-class uses that class’s PHB table; multiclass prefers the first
+ * contributing caster for mode/cantrips/book size, and suggestion for prepare cap.
+ */
+export function resolveSpellLearnBudget(input: {
+  classes: ClassLevelEntry[]
+  abilityModFor: (ability: SpellcastingAbility) => number
+  subclassCasters?: SubclassCasterOverlay[]
+}): SpellLearnBudget | null {
+  const suggestion = suggestSpellcastingFromClasses(input)
+  if (!suggestion) return null
+
+  const classes = input.classes.filter((row) => row.name.trim() && row.level > 0)
+  const casterRows = classes
+    .map((row) => ({
+      row,
+      slug: resolveClassCasterSlug(row.name),
+      def: classCasterDef(resolveClassCasterSlug(row.name)),
+    }))
+    .filter((item) => item.def && item.def.progression !== 'none')
+
+  // Prefer an explicit class slug from the suggestion when it is a real class.
+  let focus =
+    casterRows.find((item) => item.slug === suggestion.slug) ?? casterRows[0] ?? null
+
+  // Pure third-caster (EK/AT) → treat like known (wizard list, no prepare).
+  if (!focus) {
+    const overlays = resolveSubclassCasterOverlays(
+      classes,
+      input.subclassCasters ?? [],
+    )
+    if (overlays.some((row) => row.progression === 'third')) {
+      const host = classes.find((row) =>
+        overlays.some((item) => item.classEntryId === row.id),
+      )
+      const level = clampLevel(host?.level ?? 1)
+      // EK/AT: 2 cantrips at 3, then grow slowly — approximate with warlock-ish 2–3.
+      const cantrips = level >= 10 ? 3 : level >= 3 ? 2 : 0
+      const known = level >= 3 ? Math.max(0, Math.floor((level - 1) / 2)) : 0
+      return {
+        mode: 'known',
+        slug: suggestion.slug,
+        labelRu: suggestion.labelRu,
+        cantrips,
+        leveledKnown: known,
+        maxPrepared: null,
+      }
+    }
+    return null
+  }
+
+  const slug = focus.slug ?? suggestion.slug
+  const level = clampLevel(focus.row.level)
+  const mode = spellLearnModeForSlug(slug) ?? 'known'
+  const cantrips = tableAtLevel(CANTRIPS_BY_LEVEL[slug], level)
+  let leveledKnown: number | null = null
+  if (mode === 'spellbook') {
+    leveledKnown = wizardSpellbookLeveledCap(level)
+  } else if (mode === 'known') {
+    leveledKnown = tableAtLevel(SPELLS_KNOWN_BY_LEVEL[slug], level)
+  }
+
+  return {
+    mode,
+    slug,
+    labelRu: focus.def?.labelRu ?? suggestion.labelRu,
+    cantrips,
+    leveledKnown,
+    maxPrepared: suggestion.max_prepared,
+  }
+}
+
 export function applySpellcastingSuggestion(
   current: {
     slots: Record<string, SpellSlotState>
