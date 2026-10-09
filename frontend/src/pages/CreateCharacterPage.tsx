@@ -715,6 +715,7 @@ export function CreateCharacterPage() {
         subclassSetups: {},
         featurePicks: emptyFeaturePicks(),
         classAsi: [],
+        asiFeatGrants: [],
         stepDirty: { ...state.stepDirty, leveling: false },
       })
       setGuidedWizard(null)
@@ -730,6 +731,7 @@ export function CreateCharacterPage() {
         subclassSetups: {},
         featurePicks: emptyFeaturePicks(),
         classAsi: [],
+        asiFeatGrants: [],
         classes: [createClassLevel({ id: state.classEntryId, level: 1 })],
         hpChoices: [],
         stepDirty: { ...state.stepDirty, class: false },
@@ -1686,6 +1688,7 @@ export function CreateCharacterPage() {
         open={spellsOpen === 'grimoire'}
         edition="2014"
         spells={spells}
+        classes={state.classes}
         onChange={setSpells}
         onClose={() => setSpellsOpen(null)}
       />

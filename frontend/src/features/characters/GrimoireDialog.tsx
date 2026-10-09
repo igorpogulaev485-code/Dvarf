@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
+import {
+  characterSpellListSlugs,
+  highestSpellSlotLevel,
+  suggestSpellcastingFromClasses,
+  thirdCasterSchoolGate,
+  type SubclassCasterOverlay,
+} from '../../shared/dnd/casterProgression'
+import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { parseSpellCatalogData } from '../../shared/dnd/spellCatalog'
 import { levelLabel } from '../../shared/dnd/spells'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
@@ -12,18 +20,17 @@ import {
   type SpellsState,
 } from './spells'
 
-const CLASS_FILTERS: Array<{ id: string; label: string }> = [
-  { id: 'all', label: 'Все классы' },
-  { id: 'bard', label: 'Бард' },
-  { id: 'cleric', label: 'Жрец' },
-  { id: 'druid', label: 'Друид' },
-  { id: 'paladin', label: 'Паладин' },
-  { id: 'ranger', label: 'Следопыт' },
-  { id: 'sorcerer', label: 'Чародей' },
-  { id: 'warlock', label: 'Колдун' },
-  { id: 'wizard', label: 'Волшебник' },
-  { id: 'artificer', label: 'Изобретатель' },
-]
+const CLASS_LABELS: Record<string, string> = {
+  bard: 'Бард',
+  cleric: 'Жрец',
+  druid: 'Друид',
+  paladin: 'Паладин',
+  ranger: 'Следопыт',
+  sorcerer: 'Чародей',
+  warlock: 'Колдун',
+  wizard: 'Волшебник',
+  artificer: 'Изобретатель',
+}
 
 type GrimoireDialogProps = {
   open: boolean
@@ -31,6 +38,9 @@ type GrimoireDialogProps = {
   spells: SpellsState
   /** Known casters: one «Добавить» that also marks ready; no prepare step. */
   knownCaster?: boolean
+  /** Character classes — restrict list to their spell lists + slot level. */
+  classes?: ClassLevelEntry[]
+  subclassCasters?: SubclassCasterOverlay[]
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
@@ -45,6 +55,8 @@ export function GrimoireDialog({
   edition,
   spells,
   knownCaster = false,
+  classes = [],
+  subclassCasters = [],
   onChange,
   onClose,
   onToast,
@@ -57,6 +69,48 @@ export function GrimoireDialog({
   const [levelFilter, setLevelFilter] = useState<'all' | number>('all')
   const [bookFilter, setBookFilter] = useState('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const access = useMemo(() => {
+    const activeClasses = classes.filter((row) => row.name.trim() && row.level > 0)
+    const classSlugs = characterSpellListSlugs(activeClasses, subclassCasters)
+    const suggestion =
+      activeClasses.length > 0
+        ? suggestSpellcastingFromClasses({
+            classes: activeClasses,
+            subclassCasters,
+            abilityModFor: () => 0,
+          })
+        : null
+    const fromSuggestion = suggestion
+      ? highestSpellSlotLevel(suggestion.slots, suggestion.pact_slots)
+      : 0
+    const fromSheet = highestSpellSlotLevel(spells.slots, spells.pact_slots)
+    const maxSpellLevel = Math.max(fromSuggestion, fromSheet)
+    const schoolGate = thirdCasterSchoolGate(activeClasses, subclassCasters)
+    return { classSlugs, maxSpellLevel, schoolGate, hasCaster: classSlugs.length > 0 }
+  }, [classes, subclassCasters, spells.slots, spells.pact_slots])
+
+  const classFilters = useMemo(() => {
+    if (!access.hasCaster) return []
+    const chips = access.classSlugs.map((id) => ({
+      id,
+      label: CLASS_LABELS[id] ?? id,
+    }))
+    if (chips.length > 1) {
+      return [{ id: 'all', label: 'Мои классы' }, ...chips]
+    }
+    return chips
+  }, [access.classSlugs, access.hasCaster])
+
+  useEffect(() => {
+    if (!open) return
+    // Default filter to the character's lists (not the full catalog).
+    if (access.classSlugs.length === 1) {
+      setClassFilter(access.classSlugs[0]!)
+    } else {
+      setClassFilter('all')
+    }
+  }, [open, access.classSlugs.join('|')])
 
   useEffect(() => {
     if (!open) return
@@ -91,9 +145,29 @@ export function GrimoireDialog({
     return ['all', ...preferred.filter((b) => books.has(b)), ...rest]
   }, [entries])
 
+  const available = useMemo(() => {
+    if (!access.hasCaster) return []
+    const slugSet = new Set(access.classSlugs)
+    const schoolSet = access.schoolGate
+      ? new Set(access.schoolGate.map((s) => s.toLowerCase()))
+      : null
+    return entries.filter((entry) => {
+      const parsed = parseSpellCatalogData(entry.data)
+      const onList = parsed.classes.some((slug) => slugSet.has(slug))
+      if (!onList) return false
+      // Cantrips (0) always if on a known list; leveled need a slot of that level.
+      if (parsed.level > 0 && parsed.level > access.maxSpellLevel) return false
+      if (schoolSet && parsed.level > 0) {
+        const school = (parsed.school || '').toLowerCase()
+        if (!schoolSet.has(school)) return false
+      }
+      return true
+    })
+  }, [entries, access])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return entries.filter((entry) => {
+    return available.filter((entry) => {
       const parsed = parseSpellCatalogData(entry.data)
       if (levelFilter !== 'all' && parsed.level !== levelFilter) return false
       if (classFilter !== 'all' && !parsed.classes.includes(classFilter)) return false
@@ -102,7 +176,7 @@ export function GrimoireDialog({
       const hay = `${entry.name_ru} ${entry.name_en ?? ''} ${entry.slug} ${parsed.source_book}`.toLowerCase()
       return hay.includes(q)
     })
-  }, [entries, query, classFilter, levelFilter, bookFilter])
+  }, [available, query, classFilter, levelFilter, bookFilter])
 
   const groups = useMemo(() => {
     const asSpells = filtered.map((entry) => {
@@ -129,9 +203,9 @@ export function GrimoireDialog({
   }, [filtered])
 
   const levelOptions = useMemo(() => {
-    const levels = new Set(entries.map(entryLevel))
+    const levels = new Set(available.map(entryLevel))
     return [...levels].sort((a, b) => a - b)
-  }, [entries])
+  }, [available])
 
   function addSpell(entry: CatalogEntry, prepare: boolean) {
     if (knownHasCatalogId(spells.known, entry.id)) {
@@ -150,6 +224,12 @@ export function GrimoireDialog({
     )
   }
 
+  const accessHint = !access.hasCaster
+    ? 'Нет класса с заклинаниями — гримуар пуст.'
+    : access.maxSpellLevel > 0
+      ? `Список классов персонажа · до ${access.maxSpellLevel} круга (ячейки / договор).`
+      : 'Пока только заговоры из списка класса (ячеек ещё нет).'
+
   return (
     <Dialog
       open={open}
@@ -163,8 +243,8 @@ export function GrimoireDialog({
       <Stack gap={12}>
         <Text tone="muted">
           {knownCaster
-            ? 'Официальные заклинания 2014. «Добавить» сразу делает заклинание доступным для каста.'
-            : 'Официальные заклинания 2014. Добавь на лист, затем подготовь (если класс готовит список).'}
+            ? `Только доступные по классу / архетипу / мультиклассу. «Добавить» сразу для каста. ${accessHint}`
+            : `Только доступные по классу / архетипу / мультиклассу. Добавь на лист, затем подготовь. ${accessHint}`}
         </Text>
 
         <Field label="Поиск">
@@ -175,18 +255,20 @@ export function GrimoireDialog({
           />
         </Field>
 
-        <div className="chip-row">
-          {CLASS_FILTERS.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={`sheet-chip${classFilter === item.id ? ' is-on' : ''}`}
-              onClick={() => setClassFilter(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+        {classFilters.length > 0 ? (
+          <div className="chip-row">
+            {classFilters.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`sheet-chip${classFilter === item.id ? ' is-on' : ''}`}
+                onClick={() => setClassFilter(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         <div className="chip-row">
           {bookOptions.map((book) => (
@@ -222,11 +304,17 @@ export function GrimoireDialog({
         </div>
 
         <Text tone="muted">
-          {loading ? 'Загружаем…' : `Найдено: ${filtered.length} / ${entries.length}`}
+          {loading
+            ? 'Загружаем…'
+            : `Найдено: ${filtered.length} / ${available.length} доступных`}
         </Text>
         {error ? <Text tone="danger">{error}</Text> : null}
 
-        {groups.length === 0 && !loading ? (
+        {!access.hasCaster && !loading ? (
+          <Text tone="muted">Возьми класс с заклинаниями (или архетип вроде Мистического рыцаря).</Text>
+        ) : null}
+
+        {groups.length === 0 && !loading && access.hasCaster ? (
           <Text tone="muted">Ничего не найдено.</Text>
         ) : (
           groups.map((group) => (

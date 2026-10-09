@@ -888,6 +888,21 @@ export function SpellsPanel({
         edition={edition}
         spells={spells}
         knownCaster={knownCaster}
+        classes={
+          classes?.length
+            ? classes
+            : [
+                {
+                  id: 'primary',
+                  name: className,
+                  catalog_id: null,
+                  level,
+                  subclass_name: '',
+                  subclass_catalog_id: null,
+                },
+              ]
+        }
+        subclassCasters={subclassCasters}
         onChange={onChange}
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}
