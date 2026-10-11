@@ -21,7 +21,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/create-pipeline-page-2223` |
+| Prod tip (сейчас) | `cursor/archetype-forks-setup-form-45d0` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 

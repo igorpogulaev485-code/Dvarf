@@ -309,6 +309,9 @@ export function CreateCharacterPage() {
     classLevel: number
   } | null>(null)
   const [guidedWizard, setGuidedWizard] = useState<GuidedWizardSession | null>(null)
+  /** Wizard paused while SubclassSetupDialog is open from a wizard archetype step. */
+  const [pausedWizardForSubclass, setPausedWizardForSubclass] =
+    useState<GuidedWizardSession | null>(null)
   const [advanceWizardAfterSubclass, setAdvanceWizardAfterSubclass] = useState(false)
   const [spellsOpen, setSpellsOpen] = useState<'prepare' | 'grimoire' | null>(null)
   const [spells, setSpells] = useState<SpellsState>(() => readSpells({}))
@@ -517,14 +520,6 @@ export function CreateCharacterPage() {
     [unlockedFeatures],
   )
 
-  const hasSubclassByEntryId = useMemo(() => {
-    const map: Record<string, boolean> = {}
-    for (const row of state.classes) {
-      map[row.id] = hasSubclassSelected(row)
-    }
-    return map
-  }, [state.classes])
-
   const hasClassGrantPicks = useMemo(() => {
     const map: Record<string, boolean> = {}
     for (const row of state.classes) {
@@ -724,6 +719,12 @@ export function CreateCharacterPage() {
       // Close the change-archetype list so Cancel on setup is not followed by
       // another modal that also needs «Отмена».
       setSubclassPicker(null)
+      // Pause the wizard (same as background setup) so archetype forks open in
+      // SubclassSetup alone — not under the wizard dialog at the same z-index.
+      if (options?.advanceWizardAfter && guidedWizard) {
+        setPausedWizardForSubclass(guidedWizard)
+        setGuidedWizard(null)
+      }
       setSubclassSetup({
         classEntryId,
         selected,
@@ -797,14 +798,29 @@ export function CreateCharacterPage() {
     )
     if (options?.advanceWizardAfter || advanceWizardAfterSubclass) {
       setAdvanceWizardAfterSubclass(false)
-      setGuidedWizard((prev) => {
-        if (!prev) return null
-        const nextIndex = prev.index + 1
-        if (nextIndex >= prev.steps.length) {
-          setToast('Развилки сохранены')
+      setPausedWizardForSubclass((paused) => {
+        if (paused) {
+          // Resume after confirming forks collected while wizard was paused.
+          const nextIndex = paused.index + 1
+          if (nextIndex >= paused.steps.length) {
+            setToast('Развилки сохранены')
+            setGuidedWizard(null)
+          } else {
+            setGuidedWizard({ ...paused, index: nextIndex })
+          }
           return null
         }
-        return { ...prev, index: nextIndex }
+        // No pause (empty pack auto-apply while wizard stayed open).
+        setGuidedWizard((prev) => {
+          if (!prev) return null
+          const nextIndex = prev.index + 1
+          if (nextIndex >= prev.steps.length) {
+            setToast('Развилки сохранены')
+            return null
+          }
+          return { ...prev, index: nextIndex }
+        })
+        return null
       })
     }
   }
@@ -1599,31 +1615,6 @@ export function CreateCharacterPage() {
         }}
       />
 
-      <SubclassSetupDialog
-        open={Boolean(subclassSetup)}
-        def={subclassSetup?.def ?? null}
-        onClose={() => {
-          setSubclassSetup(null)
-          setAdvanceWizardAfterSubclass(false)
-        }}
-        onConfirm={(picks: SubclassGrantPicks) => {
-          if (!subclassSetup) return
-          commitSubclassSetup(
-            subclassSetup.classEntryId,
-            subclassSetup.selected,
-            picks,
-            subclassSetup.def,
-            {
-              changeMode: subclassSetup.changeMode,
-              changedAtClassLevel: subclassSetup.changedAtClassLevel,
-              previousEntry: subclassSetup.previousEntry,
-              previousPicks: subclassSetup.previousPicks,
-              advanceWizardAfter: subclassSetup.advanceWizardAfter,
-            },
-          )
-        }}
-      />
-
       <GuidedWizardDialog
         open={guidedWizard != null}
         session={guidedWizard}
@@ -1694,6 +1685,36 @@ export function CreateCharacterPage() {
         onPickSubclass={(classEntryId, entry) => {
           setAdvanceWizardAfterSubclass(true)
           beginSubclassSelection(classEntryId, entry, { advanceWizardAfter: true })
+        }}
+      />
+
+      <SubclassSetupDialog
+        open={Boolean(subclassSetup)}
+        def={subclassSetup?.def ?? null}
+        onClose={() => {
+          setSubclassSetup(null)
+          setAdvanceWizardAfterSubclass(false)
+          // Cancel: put the wizard back on the archetype step.
+          if (pausedWizardForSubclass) {
+            setGuidedWizard(pausedWizardForSubclass)
+            setPausedWizardForSubclass(null)
+          }
+        }}
+        onConfirm={(picks: SubclassGrantPicks) => {
+          if (!subclassSetup) return
+          commitSubclassSetup(
+            subclassSetup.classEntryId,
+            subclassSetup.selected,
+            picks,
+            subclassSetup.def,
+            {
+              changeMode: subclassSetup.changeMode,
+              changedAtClassLevel: subclassSetup.changedAtClassLevel,
+              previousEntry: subclassSetup.previousEntry,
+              previousPicks: subclassSetup.previousPicks,
+              advanceWizardAfter: subclassSetup.advanceWizardAfter,
+            },
+          )
         }}
       />
 
