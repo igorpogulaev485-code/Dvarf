@@ -4,6 +4,8 @@ import {
   conditionKey,
   conditionLevelLabel,
   conditionMaxLevel,
+  conditionStatusToast,
+  exhaustionStatusToast,
   hasCondition,
   resolveConditionName,
   setConditionLevel,
@@ -254,7 +256,9 @@ export function PlayPanel({
   }
 
   function setExhaustion(next: number) {
-    patchPlay({ exhaustion: clampExhaustion(next) })
+    const level = clampExhaustion(next)
+    patchPlay({ exhaustion: level })
+    onToast(exhaustionStatusToast(level))
   }
 
   function addConditionOption(option: ComboboxOption) {
@@ -281,12 +285,16 @@ export function PlayPanel({
           level: null,
         }
 
-    patchPlay({
-      conditions: toggleCondition(
-        activeConditions,
-        ref,
-      ).filter((item) => item.slug !== 'exhaustion'),
-    })
+    const nextList = toggleCondition(activeConditions, ref).filter(
+      (item) => item.slug !== 'exhaustion',
+    )
+    patchPlay({ conditions: nextList })
+    const applied =
+      nextList.find((item) => conditionKey(item) === conditionKey(ref)) ?? {
+        ...ref,
+        level: ref.level ?? (preset?.maxLevel ? 1 : null),
+      }
+    onToast(conditionStatusToast({ action: 'add', ref: applied }))
     setConditionQuery('')
   }
 
@@ -294,12 +302,18 @@ export function PlayPanel({
     patchPlay({
       conditions: activeConditions.filter((item) => conditionKey(item) !== conditionKey(ref)),
     })
+    onToast(conditionStatusToast({ action: 'remove', ref }))
   }
 
   function changeConditionLevel(ref: ConditionRef, level: number) {
-    patchPlay({
-      conditions: setConditionLevel(activeConditions, conditionKey(ref), level),
-    })
+    const nextList = setConditionLevel(activeConditions, conditionKey(ref), level)
+    patchPlay({ conditions: nextList })
+    const updated =
+      nextList.find((item) => conditionKey(item) === conditionKey(ref)) ?? {
+        ...ref,
+        level,
+      }
+    onToast(conditionStatusToast({ action: 'level', ref: updated }))
   }
 
   function doShortRestResources() {
@@ -415,8 +429,15 @@ export function PlayPanel({
     if (result.hp_current !== undefined) {
       onCombatChange({ hpCurrent: result.hp_current })
     }
+    const nextExhaustion = result.exhaustion ?? play.exhaustion
+    const exhaustionNote =
+      nextExhaustion !== play.exhaustion
+        ? ` · ${exhaustionStatusToast(nextExhaustion)}`
+        : play.exhaustion > 0
+          ? ' · −1 истощение'
+          : ''
     onToast(
-      'Продолжительный отдых: HP, кости, ячейки, ресурсы, −1 истощение, спасброски сброшены',
+      `Продолжительный отдых: HP, кости, ячейки, ресурсы, спасброски сброшены${exhaustionNote}`,
     )
   }
 

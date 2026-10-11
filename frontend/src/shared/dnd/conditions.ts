@@ -147,6 +147,31 @@ export function formatConditionLabel(ref: ConditionRef): string {
   return name
 }
 
+/**
+ * Short toast so the player sees what just happened with a condition
+ * (added / level changed / cleared), including stage meaning when leveled.
+ */
+export function conditionStatusToast(input: {
+  action: 'add' | 'level' | 'remove'
+  ref: ConditionRef
+}): string {
+  if (input.action === 'remove') {
+    return `Снято: ${resolveConditionName(input.ref)}`
+  }
+  const label = formatConditionLabel(input.ref)
+  if (input.action === 'level') return `Уровень: ${label}`
+  return `Состояние: ${label}`
+}
+
+/** Toast for the dedicated exhaustion control (not in conditions[]). */
+export function exhaustionStatusToast(level: number): string {
+  if (level <= 0) return 'Снято: Истощение'
+  const stage = conditionLevelLabel('exhaustion', level)
+  return stage
+    ? `Состояние: Истощение ${level} (${stage})`
+    : `Состояние: Истощение ${level}`
+}
+
 export function clampConditionLevel(
   slug: string,
   level: number | null | undefined,

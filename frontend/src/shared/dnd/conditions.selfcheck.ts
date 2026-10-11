@@ -4,6 +4,8 @@ import {
   clampConditionLevel,
   conditionLevelLabel,
   conditionMaxLevel,
+  conditionStatusToast,
+  exhaustionStatusToast,
   formatConditionLabel,
   isLeveledCondition,
   leveledConditionSlugs,
@@ -55,6 +57,29 @@ assert(
   formatConditionLabel(list[0]!).includes('4') &&
     formatConditionLabel(list[0]!).includes('в стельку'),
   'format includes stage',
+)
+
+assert(
+  conditionStatusToast({ action: 'add', ref: list[0]! }).includes('в стельку'),
+  'add toast explains stage',
+)
+assert(
+  conditionStatusToast({ action: 'level', ref: { ...list[0]!, level: 2 } }).includes(
+    'подвыпивший',
+  ),
+  'level toast explains stage',
+)
+assert(
+  conditionStatusToast({
+    action: 'remove',
+    ref: { slug: 'poisoned', name: 'Отравленный', catalog_id: null },
+  }) === 'Снято: Отравленный',
+  'remove toast',
+)
+assert(exhaustionStatusToast(0) === 'Снято: Истощение', 'exhaustion clear toast')
+assert(
+  exhaustionStatusToast(3).includes('помеха к атакам и сейвам'),
+  'exhaustion level toast explains stage',
 )
 
 const binaryCount = FALLBACK_CONDITIONS.filter((row) => !row.maxLevel).length
