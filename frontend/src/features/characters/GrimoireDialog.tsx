@@ -7,8 +7,10 @@ import { Dialog, Field, Input, Stack, Text } from '../../ui'
 import { SpellCatalogDetails } from './SpellCatalogDetails'
 import {
   addCatalogSpellToKnown,
+  canRemoveSheetSpell,
   groupSpellsByLevel,
   knownHasCatalogId,
+  type SheetSpell,
   type SpellsState,
 } from './spells'
 
@@ -133,6 +135,10 @@ export function GrimoireDialog({
     return [...levels].sort((a, b) => a - b)
   }, [entries])
 
+  function knownSpellForCatalog(catalogId: string): SheetSpell | undefined {
+    return spells.known.find((spell) => spell.catalog_id === catalogId)
+  }
+
   function addSpell(entry: CatalogEntry, prepare: boolean) {
     if (knownHasCatalogId(spells.known, entry.id)) {
       onToast?.('Уже есть в списке известных')
@@ -150,6 +156,20 @@ export function GrimoireDialog({
     )
   }
 
+  function removeSpell(entry: CatalogEntry) {
+    const onSheet = knownSpellForCatalog(entry.id)
+    if (!onSheet) return
+    if (!canRemoveSheetSpell(onSheet)) {
+      onToast?.('Это заклинание нельзя снять с листа')
+      return
+    }
+    onChange({
+      ...spells,
+      known: spells.known.filter((spell) => spell.id !== onSheet.id),
+    })
+    onToast?.(`Снято с листа: ${entry.name_ru}`)
+  }
+
   return (
     <Dialog
       open={open}
@@ -163,8 +183,8 @@ export function GrimoireDialog({
       <Stack gap={12}>
         <Text tone="muted">
           {knownCaster
-            ? 'Официальные заклинания 2014. «Добавить» сразу делает заклинание доступным для каста.'
-            : 'Официальные заклинания 2014. Добавь на лист, затем подготовь (если класс готовит список).'}
+            ? 'Официальные заклинания 2014. «Добавить» сразу делает заклинание доступным для каста. Ошибку можно исправить кнопкой «Снять».'
+            : 'Официальные заклинания 2014. Добавь на лист, затем подготовь (если класс готовит список). Ошибку выбора можно исправить кнопкой «Снять».'}
         </Text>
 
         <Field label="Поиск">
@@ -238,7 +258,9 @@ export function GrimoireDialog({
                 {group.spells.map((spell) => {
                   const entry = entries.find((item) => item.id === spell.catalog_id)
                   if (!entry) return null
-                  const onSheet = knownHasCatalogId(spells.known, entry.id)
+                  const sheetSpell = knownSpellForCatalog(entry.id)
+                  const onSheet = sheetSpell != null
+                  const removable = onSheet && canRemoveSheetSpell(sheetSpell)
                   const parsed = parseSpellCatalogData(entry.data)
                   const expanded = expandedId === entry.id
                   return (
@@ -284,7 +306,23 @@ export function GrimoireDialog({
                       </div>
                       <div className="grimoire-row__actions">
                         {onSheet ? (
-                          <span className="sheet-chip is-on">На листе</span>
+                          removable ? (
+                            <button
+                              type="button"
+                              className="sheet-chip is-on"
+                              onClick={() => removeSpell(entry)}
+                              title="Убрать с листа и освободить слот выбора"
+                            >
+                              Снять
+                            </button>
+                          ) : (
+                            <span
+                              className="sheet-chip is-on"
+                              title="Выданное заклинание нельзя снять вручную"
+                            >
+                              На листе
+                            </span>
+                          )
                         ) : knownCaster ? (
                           <button
                             type="button"
