@@ -368,16 +368,16 @@ function subclassHasUnmirroredGrantChoices(def: SubclassGrantDef): boolean {
 }
 
 export function subclassNeedsSetup(def: SubclassGrantDef): boolean {
-  if (def.choices.some((choice) => choice.required)) return true
+  if (def.choices.length > 0) return true
   if (subclassHasUnmirroredGrantChoices(def)) return true
-  // Optional-only forks (имя духа wildfire…) do not block apply.
   return false
 }
 
 /**
- * True when SubclassSetupDialog must collect player forks.
- * Empty Champion/Moon and optional-only Wildfire spirit name → skip dialog
- * (auto-apply empty picks) so the form does not sit waiting for «Отмена».
+ * True when SubclassSetupDialog must collect player forks after archetype pick.
+ * Empty Champion/Moon → skip (auto-apply). Any choices (incl. optional Wildfire
+ * spirit name) → open the form. Parent also closes the change-archetype list
+ * when this opens so the player is not left with a second «Отмена» underneath.
  */
 export function subclassNeedsSetupDialog(def: SubclassGrantDef): boolean {
   return subclassNeedsSetup(def)

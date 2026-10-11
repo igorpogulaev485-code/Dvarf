@@ -38,8 +38,8 @@ export function SubclassSetupDialog({
     setPicks(emptySubclassPicks())
   }, [open, def?.slug])
 
-  // Archetypes with no required forks (Champion, Moon, optional Wildfire name…):
-  // apply empty picks immediately so the dialog does not sit waiting for «Отмена».
+  // Empty packs (Champion / Moon…): apply immediately so the dialog does not
+  // sit waiting for «Отмена». Archetypes with choices still show the form.
   useEffect(() => {
     if (!open || !def) return
     if (subclassNeedsSetupDialog(def)) return

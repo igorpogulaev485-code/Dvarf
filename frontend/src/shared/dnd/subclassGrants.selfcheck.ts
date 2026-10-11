@@ -50,8 +50,8 @@ const wildfire = parseSubclassGrantDef({
 })
 assert(wildfire, 'wildfire def parses')
 assert(
-  !subclassNeedsSetupDialog(wildfire),
-  'Wildfire: optional spirit name must not open SubclassSetup',
+  subclassNeedsSetupDialog(wildfire),
+  'Wildfire: optional spirit name still opens SubclassSetup (fork form)',
 )
 
 const land = parseSubclassGrantDef({
