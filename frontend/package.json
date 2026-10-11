@@ -11,7 +11,8 @@
     "selfcheck:pending-choices": "tsx src/shared/dnd/pendingFeatureChoices.selfcheck.ts",
     "selfcheck:spell-catalog": "tsx src/shared/dnd/spellCatalog.selfcheck.ts",
     "selfcheck:conditions": "tsx src/shared/dnd/conditions.selfcheck.ts",
-    "selfcheck:race-natural-weapons": "tsx src/shared/dnd/raceNaturalWeapons.selfcheck.ts && node --input-type=module -e \"import {readFileSync} from 'node:fs'; const j=JSON.parse(readFileSync('../backend/data/races/mpmm_race_catalog_spec.json','utf8')); const a=j.races.find(r=>r.slug==='aarakocra'); if(a?.natural_weapons?.[0]?.damage!=='1к4') { console.error('spec aarakocra talons must be 1к4'); process.exit(1);} console.log('spec aarakocra talons=1к4 ok');\""
+    "selfcheck:race-natural-weapons": "tsx src/shared/dnd/raceNaturalWeapons.selfcheck.ts && node --input-type=module -e \"import {readFileSync} from 'node:fs'; const j=JSON.parse(readFileSync('../backend/data/races/mpmm_race_catalog_spec.json','utf8')); const a=j.races.find(r=>r.slug==='aarakocra'); if(a?.natural_weapons?.[0]?.damage!=='1к4') { console.error('spec aarakocra talons must be 1к4'); process.exit(1);} console.log('spec aarakocra talons=1к4 ok');\"",
+    "selfcheck:inventory-packs": "tsx src/features/characters/inventoryPacks.selfcheck.ts"
   },
   "dependencies": {
     "react": "^19.2.8",

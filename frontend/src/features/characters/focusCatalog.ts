@@ -91,11 +91,22 @@ function kindForSlug(slug: string): FocusKind {
   return inferFocusKind({ name: '', catalog_slug: slug }) ?? 'any'
 }
 
+function phbStartingSlugs(family: FocusKind): Set<string> | null {
+  if (family === 'arcane') return ARCANE_SLUGS
+  if (family === 'druidic') return DRUIDIC_SLUGS
+  if (family === 'holy') return HOLY_SLUGS
+  return null
+}
+
 /** Build focus options from catalog item rows (kind=item). */
 export function focusOptionsFromCatalog(
   entries: CatalogEntry[],
   family: FocusKind | null | undefined,
+  options?: { phbStartingOnly?: boolean },
 ): FocusCatalogOption[] {
+  const phbOnly = Boolean(options?.phbStartingOnly)
+  const startingSlugs =
+    phbOnly && family && family !== 'any' ? phbStartingSlugs(family) : null
   const out: FocusCatalogOption[] = []
   for (const entry of entries) {
     if (entry.kind !== 'item') continue
@@ -114,7 +125,11 @@ export function focusOptionsFromCatalog(
         catalog_slug: entry.slug,
         item_category: parsed.item_category,
       }) ?? kindForSlug(entry.slug)
-    if (family && family !== 'any' && focus_kind !== family && focus_kind !== 'any') {
+    // Concrete class family must match — never leak unclassified magic «any».
+    if (family && family !== 'any' && focus_kind !== family) {
+      continue
+    }
+    if (startingSlugs && !startingSlugs.has(entry.slug)) {
       continue
     }
     out.push({

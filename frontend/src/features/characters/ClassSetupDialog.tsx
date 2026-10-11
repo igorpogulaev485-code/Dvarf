@@ -259,6 +259,7 @@ export function ClassSetupDialog({
               onChange={setFocusSelection}
               label="Фокус / символ"
               allowFamilyPick={focusPlaceholder.kind === 'any'}
+              phbStartingOnly
             />
           </Stack>
         ) : null}
