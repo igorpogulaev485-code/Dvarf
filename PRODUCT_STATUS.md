@@ -152,6 +152,16 @@
 
 На проде: **да** · ветка `cursor/mobile-load-perf-2c91` · PR #106 · это **новый prod tip** · проверено 2026-10-11: `/` и `/index.html` отдают `Cache-Control: no-cache, no-store, must-revalidate`; в HTML есть `#boot` / «Загрузка Dvarf…»; `/assets/` immutable; `/health` ok; бандл листа с `play-desk` на месте
 
+### 2026-10-11 — Mobile + VPN: MTU/MSS (белый экран в Safari)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| TCP MTU probing | На VPS `net.ipv4.tcp_mtu_probing=1` | Сервер сам подстраивает размер сегментов, если VPN режет MTU/ICMP |
+| Clamp MSS :80 | iptables TCPMSS 1360 на SYN с sport 80 | Рукопожатие сразу с «узким» MSS — меньше зависаний на телефоне с VPN |
+| Boot timeout | Если React не встал за 20с — текст ошибки на splash | Не вечный белый экран без подсказки (когда HTML уже дошёл) |
+
+На проде: **да** · ветка `cursor/mobile-load-perf-2c91` · PR #106 · tip · проверено 2026-10-11: `tcp_mtu_probing=1`, iptables TCPMSS 1360 на :80, boot timeout в HTML, `sendfile off`; `/health` ok · VPN не блокируем; HTTPS — когда будет домен
+
 ### 2026-10-06 — агент цифрового листа (весь объём работы → на проде)
 
 Ниже — **всё**, что этот агент дожал по листу и залил на сервер (P1→P6).  
@@ -1064,3 +1074,4 @@
 | 2026-10-11 | `cursor/archetype-forks-setup-form-45d0` · PR #103 | Архетип в развилках + SubclassSetup после выбора; tip → эта ветка; `/health` ok |
 | 2026-10-11 | `cursor/play-desk-layout-e788` · PR #105 | Игровой стол ≥960px + аватар персонажа; tip → эта ветка; `/health` ok, бандл `play-desk` |
 | 2026-10-11 | `cursor/mobile-load-perf-2c91` · PR #106 | Mobile anti-blank залит на Timeweb; tip → эта ветка; Cache-Control no-cache на HTML + boot splash; play-desk на месте |
+| 2026-10-11 | `cursor/mobile-load-perf-2c91` · PR #106 | Mobile+VPN MTU/MSS (`apply-vpn-mtu.sh`) + boot timeout → заливка/проверка |
