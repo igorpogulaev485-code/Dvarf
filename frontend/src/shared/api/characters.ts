@@ -75,3 +75,21 @@ export async function updateCharacter(
     body: JSON.stringify(payload),
   })
 }
+
+export async function uploadCharacterAvatar(
+  id: string,
+  file: File,
+): Promise<CharacterDetail> {
+  const body = new FormData()
+  body.append('file', file)
+  return apiRequest<CharacterDetail>(`/characters/${id}/avatar`, {
+    method: 'POST',
+    body,
+  })
+}
+
+export async function deleteCharacterAvatar(id: string): Promise<CharacterDetail> {
+  return apiRequest<CharacterDetail>(`/characters/${id}/avatar`, {
+    method: 'DELETE',
+  })
+}

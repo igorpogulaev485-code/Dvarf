@@ -203,6 +203,17 @@ import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
 import { ClassFeaturesPanel, saveBonusFromFeatures } from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
+import { AbilitySkillsColumn } from './AbilitySkillsColumn'
+import { CharacterAvatarControl } from './CharacterAvatarControl'
+import {
+  MODE_DEFAULT_PANEL,
+  PLAY_DESK_PANELS,
+  readSheetUi,
+  sheetUiToPatch,
+  type PlayDeskMode,
+  type PlayDeskPanelId,
+  type SheetUiState,
+} from './playDeskUi'
 import {
   identityExtrasToSheet,
   readIdentityExtras,
@@ -305,6 +316,7 @@ type Draft = {
   featurePicks: FeaturePicksState
   classAsi: AppliedClassAsi[]
   featGrants: AppliedFeatGrant[]
+  sheetUi: SheetUiState
 }
 
 function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -476,6 +488,7 @@ function buildDraft(character: CharacterDetail): Draft {
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classAsi: readClassAsiLedger(sheet.class_asi),
     featGrants: readFeatGrantLedger(sheet.feat_grants),
+    sheetUi: readSheetUi(sheet),
   }
 }
 
@@ -540,12 +553,6 @@ function cycleSkill(state: { is_proficient: boolean; is_expertise: boolean }) {
     return { is_proficient: true, is_expertise: true }
   }
   return { is_proficient: false, is_expertise: false }
-}
-
-function skillMark(state: { is_proficient: boolean; is_expertise: boolean }) {
-  if (state.is_expertise) return 'Эксп.'
-  if (state.is_proficient) return 'Влад.'
-  return '—'
 }
 
 export function MinimalSheetEditor({
@@ -2610,6 +2617,10 @@ export function MinimalSheetEditor({
       Object.assign(sheet, attunementsToSheet(draft.attunements))
       Object.assign(sheet, spellsToSheet(draft.spells))
       Object.assign(sheet, textBlocksToSheet(draft.textBlocks))
+      sheet.ui = {
+        ...asRecord(sheet.ui),
+        ...sheetUiToPatch(draft.sheetUi),
+      }
 
       const updated = await updateCharacter(baseCharacter.id, {
         sheet_version: sheetVersion,
@@ -2643,9 +2654,113 @@ export function MinimalSheetEditor({
     }
   }
 
+
+  const [ownershipOpen, setOwnershipOpen] = useState(false)
+  const [activePanel, setActivePanel] = useState<PlayDeskPanelId>(
+    () => MODE_DEFAULT_PANEL[draft.sheetUi.deskMode],
+  )
+  const [isPlayDesk, setIsPlayDesk] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches,
+  )
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 960px)')
+    const onChange = () => setIsPlayDesk(mq.matches)
+    onChange()
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  function patchSheetUi(patch: Partial<SheetUiState>) {
+    setDraft((prev) => ({
+      ...prev,
+      sheetUi: { ...prev.sheetUi, ...patch },
+    }))
+  }
+
+  function setDeskMode(mode: PlayDeskMode) {
+    patchSheetUi({ deskMode: mode })
+    setActivePanel(MODE_DEFAULT_PANEL[mode])
+  }
+
+  function stageHidden(id: PlayDeskPanelId): boolean {
+    return isPlayDesk && activePanel !== id
+  }
+
+  const abilityColumn = (
+    <AbilitySkillsColumn
+      abilityOrder={draft.sheetUi.abilityOrder}
+      collapsedAbilities={draft.sheetUi.collapsedAbilities}
+      abilities={draft.abilities}
+      displayAbilities={effectiveAbilities}
+      saves={draft.saves}
+      skills={draft.skills}
+      proficiencyBonus={proficiencyBonus}
+      auraSaveBonus={auraSaveBonus}
+      saveBonusExtra={gearEffects.saveBonuses}
+      skillBonusExtra={gearEffects.skillBonuses}
+      onAbilityScoreChange={(key, score) =>
+        setDraft((prev) => ({
+          ...prev,
+          abilities: { ...prev.abilities, [key]: score },
+        }))
+      }
+      onSaveToggle={(key) =>
+        setDraft((prev) => ({
+          ...prev,
+          saves: { ...prev.saves, [key]: !prev.saves[key] },
+        }))
+      }
+      onSkillCycle={(skillKey) =>
+        setDraft((prev) => ({
+          ...prev,
+          skills: {
+            ...prev.skills,
+            [skillKey]: cycleSkill(prev.skills[skillKey]),
+          },
+        }))
+      }
+      onReorder={(abilityOrder) => patchSheetUi({ abilityOrder })}
+      onCollapsedChange={(collapsedAbilities) => patchSheetUi({ collapsedAbilities })}
+    />
+  )
+
+  const passivesCompact = (
+    <div className="play-desk__passives">
+      <div className="play-desk__passives-label">Пассивы · всегда на виду</div>
+      <div className="passive-grid">
+        <div className="passive-card">
+          <span className="passive-card__label">Внимательность</span>
+          <strong>{passives.perception}</strong>
+        </div>
+        <div className="passive-card">
+          <span className="passive-card__label">Анализ</span>
+          <strong>{passives.investigation}</strong>
+        </div>
+        <div className="passive-card">
+          <span className="passive-card__label">Проницательность</span>
+          <strong>{passives.insight}</strong>
+        </div>
+      </div>
+    </div>
+  )
+
+  const dockCompanions = draft.companions.filter((row) => row.name.trim()).slice(0, 4)
+
   return (
-    <Stack gap={16}>
+    <div className="play-desk">
+      <div className="play-desk__top">
+        <CharacterAvatarControl
+          character={baseCharacter}
+          size={isPlayDesk ? 'md' : 'sm'}
+          showActions={!isPlayDesk}
+          onChanged={(updated) => {
+            setBaseCharacter(updated)
+            onSaved(updated)
+          }}
+        />
       <CombatStickyHeader
+
         name={draft.name}
         raceName={draft.raceName}
         className={classSummary || primaryClass?.name || ''}
@@ -2711,7 +2826,75 @@ export function MinimalSheetEditor({
           })
         }
       />
+      </div>
 
+      {isPlayDesk && dockCompanions.length > 0 ? (
+        <div className="play-desk__dock" aria-label="Напарники">
+          <span className="play-desk__dock-label">Напарники</span>
+          {dockCompanions.map((row) => (
+            <div key={row.id} className="play-desk__comp">
+              <b>{row.name || 'Без имени'}</b>
+              <span>HP {row.stats.hp ?? '—'}</span>
+              <span>
+                {[
+                  row.stats.ac != null ? `КД ${row.stats.ac}` : null,
+                  row.stats.speed != null ? `${row.stats.speed} фт` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ') || 'спутник'}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="play-desk__body">
+        <aside className="play-desk__left">
+          {abilityColumn}
+          {passivesCompact}
+          {isPlayDesk ? (
+            <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
+              Владения и языки
+            </Button>
+          ) : null}
+        </aside>
+
+        <div className="play-desk__stage">
+          {isPlayDesk ? (
+            <div className="play-desk__modes">
+              {(
+                [
+                  ['combat', 'Бой'],
+                  ['explore', 'Исследование'],
+                  ['social', 'Общение'],
+                  ['companions', 'Напарники'],
+                ] as const
+              ).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={`play-desk__mode${draft.sheetUi.deskMode === mode ? ' is-on' : ''}`}
+                  onClick={() => setDeskMode(mode)}
+                >
+                  {label}
+                </button>
+              ))}
+              <select
+                className="play-desk__panel-pick"
+                aria-label="Панель"
+                value={activePanel}
+                onChange={(event) => setActivePanel(event.target.value as PlayDeskPanelId)}
+              >
+                {PLAY_DESK_PANELS.map((panel) => (
+                  <option key={panel.id} value={panel.id}>
+                    {panel.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
+      <div className="play-desk__stage-panel" hidden={stageHidden('identity')}>
       <Panel title="Основное">
         <Stack gap={12}>
           <Field label="Имя" htmlFor="sheet-name">
@@ -3183,22 +3366,11 @@ export function MinimalSheetEditor({
         </Stack>
       </Panel>
 
-      <Panel title="Пассивные чувства">
+      </div>
+
+      <div className="play-desk__stage-panel" hidden={stageHidden('ownership')}>
+      <Panel title="Скорости и зрение">
         <Stack gap={12}>
-          <div className="passive-grid">
-            <div className="passive-card">
-              <span className="passive-card__label">Внимательность</span>
-              <strong>{passives.perception}</strong>
-            </div>
-            <div className="passive-card">
-              <span className="passive-card__label">Анализ</span>
-              <strong>{passives.investigation}</strong>
-            </div>
-            <div className="passive-card">
-              <span className="passive-card__label">Проницательность</span>
-              <strong>{passives.insight}</strong>
-            </div>
-          </div>
           <Field
             label="Тёмное зрение, фт"
             htmlFor="sheet-darkvision"
@@ -3247,9 +3419,8 @@ export function MinimalSheetEditor({
               />
             </Field>
           </div>
-          <Text tone="muted">Пассивы = 10 + модификатор навыка (с учётом владения/экспертизы).</Text>
         </Stack>
-      </Panel>
+            </Panel>
 
       <EquipmentProficienciesPanel
         armor={draft.identity.armor}
@@ -3301,43 +3472,9 @@ export function MinimalSheetEditor({
         onChange={(patch) => patchIdentity(patch)}
       />
 
-      <Panel title="Характеристики">
-        {gearEffects.notes.some((line) => /STR|DEX|CON|INT|WIS|CHA/.test(line)) ? (
-          <Text tone="muted">С предметами: итоговые значения ниже в модификаторе.</Text>
-        ) : null}
-        <div className="ability-grid">
-          {ABILITY_KEYS.map((key) => {
-            const baseScore = draft.abilities[key]
-            const score = effectiveAbilities[key]
-            const gearTouched = score !== baseScore
-            return (
-              <label key={key} className="ability-card">
-                <span className="ability-card__label">{ABILITY_LABELS[key]}</span>
-                <NumberInput
-                  min={1}
-                  max={30}
-                  emptyValue={10}
-                  value={baseScore}
-                  onValueChange={(next) =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      abilities: {
-                        ...prev.abilities,
-                        [key]: next ?? 10,
-                      },
-                    }))
-                  }
-                />
-                <span className="ability-card__mod">
-                  {formatModifier(abilityModifier(score))}
-                  {gearTouched ? ` · ${score}` : ''}
-                </span>
-              </label>
-            )
-          })}
-        </div>
-      </Panel>
+      </div>
 
+      <div className="play-desk__stage-panel" hidden={stageHidden('play')}>
       <PlayPanel
         edition={baseCharacter.rules_edition as RulesEdition}
         level={characterLevel}
@@ -3353,6 +3490,9 @@ export function MinimalSheetEditor({
         onToast={onToast}
       />
 
+      </div>
+
+      <div className="play-desk__stage-panel" hidden={stageHidden('attacks')}>
       <AttacksPanel
         edition={baseCharacter.rules_edition as RulesEdition}
         weapons={draft.weapons}
@@ -3382,6 +3522,9 @@ export function MinimalSheetEditor({
         }}
       />
 
+      </div>
+
+      <div className="play-desk__stage-panel" hidden={stageHidden('inventory')}>
       <InventoryPanel
         edition={baseCharacter.rules_edition as RulesEdition}
         inventory={draft.inventory}
@@ -3400,12 +3543,18 @@ export function MinimalSheetEditor({
         onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
       />
 
+      </div>
+
+      <div className="play-desk__stage-panel" hidden={stageHidden('attunement')}>
       <AttunementPanel
         attunements={draft.attunements}
         inventoryItems={draft.inventory.items}
         onChange={(attunements) => setDraft((prev) => ({ ...prev, attunements }))}
       />
 
+      </div>
+
+      <div className="play-desk__stage-panel" hidden={stageHidden('features')}>
       <ClassFeaturesPanel
         classes={draft.classes}
         characterLevel={characterLevel}
@@ -3435,6 +3584,9 @@ export function MinimalSheetEditor({
         onToast={onToast}
       />
 
+      </div>
+
+      <div className="play-desk__stage-panel" hidden={stageHidden('spells')}>
       <SpellsPanel
         edition={baseCharacter.rules_edition as RulesEdition}
         className={classSummary || primaryClass?.name || ''}
@@ -3469,90 +3621,17 @@ export function MinimalSheetEditor({
         onToast={onToast}
       />
 
+      </div>
+
+      <div className="play-desk__stage-panel" hidden={stageHidden('companions')}>
       <CompanionsPanel
         companions={draft.companions}
         onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
       />
 
-      <Panel title="Спасброски">
-        <div className="chip-row">
-          {ABILITY_KEYS.map((key) => {
-            const gearSave =
-              (gearEffects.saveBonuses.all ?? 0) + (gearEffects.saveBonuses[key] ?? 0)
-            return (
-              <button
-                key={key}
-                type="button"
-                className={`sheet-chip${draft.saves[key] ? ' is-on' : ''}`}
-                onClick={() =>
-                  setDraft((prev) => ({
-                    ...prev,
-                    saves: { ...prev.saves, [key]: !prev.saves[key] },
-                  }))
-                }
-              >
-                {ABILITY_LABELS[key]}{' '}
-                {formatModifier(
-                  abilityModifier(effectiveAbilities[key]) +
-                    (draft.saves[key] ? proficiencyBonus : 0) +
-                    auraSaveBonus +
-                    gearSave,
-                )}
-              </button>
-            )
-          })}
-        </div>
-        <Text tone="muted">
-          Нажми, чтобы включить/выключить владение
-          {auraSaveBonus > 0
-            ? ` · аура защиты +${auraSaveBonus} ко всем спасам`
-            : ''}
-          {(gearEffects.saveBonuses.all ?? 0) > 0
-            ? ` · предметы +${gearEffects.saveBonuses.all}`
-            : ''}
-        </Text>
-      </Panel>
+      </div>
 
-      <Panel title="Навыки">
-        <div className="skill-list">
-          {SKILL_DEFS.map((skill) => {
-            const state = draft.skills[skill.key]
-            const gearSkill = gearEffects.skillBonuses[skill.key] ?? 0
-            const mod =
-              abilityModifier(effectiveAbilities[skill.base]) +
-              (state.is_expertise
-                ? proficiencyBonus * 2
-                : state.is_proficient
-                  ? proficiencyBonus
-                  : 0) +
-              gearSkill
-            return (
-              <button
-                key={skill.key}
-                type="button"
-                className={`skill-row${state.is_proficient ? ' is-on' : ''}${state.is_expertise ? ' is-expert' : ''}`}
-                onClick={() =>
-                  setDraft((prev) => ({
-                    ...prev,
-                    skills: {
-                      ...prev.skills,
-                      [skill.key]: cycleSkill(prev.skills[skill.key]),
-                    },
-                  }))
-                }
-              >
-                <span>{skill.label}</span>
-                <span className="skill-row__meta">
-                  {ABILITY_LABELS[skill.base]} · {skillMark(state)} · {formatModifier(mod)}
-                  {gearSkill ? ` · предм. ${formatModifier(gearSkill)}` : ''}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-        <Text tone="muted">Клик: нет → владение → экспертиза → нет</Text>
-      </Panel>
-
+      <div className="play-desk__stage-panel" hidden={stageHidden('texts')}>
       <TextBlocksPanel
         blocks={draft.textBlocks}
         onChange={(textBlocks) => setDraft((prev) => ({ ...prev, textBlocks }))}
@@ -3565,6 +3644,8 @@ export function MinimalSheetEditor({
         }
       />
 
+      </div>
+
       {error ? <Text tone="danger">{error}</Text> : null}
 
       <div className="sheet-actions">
@@ -3575,6 +3656,39 @@ export function MinimalSheetEditor({
           Редакция {baseCharacter.rules_edition} · v{sheetVersion}
         </Text>
       </div>
+
+
+      </div>
+      </div>
+
+      {ownershipOpen ? (
+        <>
+          <div
+            className="play-desk-drawer-backdrop"
+            onClick={() => setOwnershipOpen(false)}
+          />
+          <aside className="play-desk-drawer" aria-label="Владения">
+            <div className="play-desk-drawer__head">
+              <h3>Владения</h3>
+              <Button type="button" variant="ghost" onClick={() => setOwnershipOpen(false)}>
+                Закрыть
+              </Button>
+            </div>
+            <div className="play-desk-drawer__body">
+              <EquipmentProficienciesPanel
+                armor={draft.identity.armor}
+                weapons={draft.identity.weapons}
+                onChange={(patch) => patchIdentity(patch)}
+              />
+              <LanguagesToolsPanel
+                languages={draft.identity.languages}
+                tools={draft.identity.tools}
+                onChange={(patch) => patchIdentity(patch)}
+              />
+            </div>
+          </aside>
+        </>
+      ) : null}
 
       <Dialog
         open={conflictOpen}
@@ -3963,6 +4077,6 @@ export function MinimalSheetEditor({
           setSubclassSetup(null)
         }}
       />
-    </Stack>
+    </div>
   )
 }

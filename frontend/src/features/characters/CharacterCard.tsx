@@ -18,6 +18,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
     .filter(Boolean)
     .join(' — ')
   const isDraft = Boolean(character.is_draft)
+  const initial = character.name.slice(0, 1).toUpperCase() || '?'
 
   return (
     <article className="character-card__wrap">
@@ -26,7 +27,11 @@ export function CharacterCard({ character }: CharacterCardProps) {
         to={isDraft ? `/characters/create/${character.id}` : `/characters/${character.id}`}
       >
         <div className="character-card__avatar" aria-hidden="true">
-          {character.name.slice(0, 1).toUpperCase()}
+          {character.avatar_url ? (
+            <img src={character.avatar_url} alt="" />
+          ) : (
+            initial
+          )}
         </div>
         <div className="character-card__body">
           <Text as="h3" className="character-card__name">

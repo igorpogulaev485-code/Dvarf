@@ -14,6 +14,11 @@ from app.schemas.character import (
     CharacterSummary,
     CharacterUpdateRequest,
 )
+from app.services.avatar import (
+    delete_character_avatar_file,
+    is_uploaded_character_avatar_url,
+    save_character_avatar_image,
+)
 from app.services.character_sheet import empty_character_sheet, extract_summary_from_sheet
 
 
@@ -100,9 +105,43 @@ class CharacterService:
         self.db.refresh(character)
         return to_detail(character)
 
+    def upload_avatar(
+        self,
+        user: User,
+        character_id: UUID,
+        data: bytes,
+        content_type: str | None,
+    ) -> CharacterDetail:
+        character = self.characters.get_for_user(character_id, user.id)
+        if character is None:
+            raise AppError("Персонаж не найден", code="character_not_found", status_code=404)
+        character.avatar_url = save_character_avatar_image(
+            character_id=character.id,
+            data=data,
+            content_type=content_type,
+        )
+        # Avatar is a column, not sheet JSON — do not bump sheet_version
+        # (avoids fighting an open sheet editor).
+        self.db.commit()
+        self.db.refresh(character)
+        return to_detail(character)
+
+    def delete_avatar(self, user: User, character_id: UUID) -> CharacterDetail:
+        character = self.characters.get_for_user(character_id, user.id)
+        if character is None:
+            raise AppError("Персонаж не найден", code="character_not_found", status_code=404)
+        if is_uploaded_character_avatar_url(character.avatar_url):
+            delete_character_avatar_file(character.id)
+        character.avatar_url = None
+        self.db.commit()
+        self.db.refresh(character)
+        return to_detail(character)
+
     def delete_mine(self, user: User, character_id: UUID) -> None:
         character = self.characters.get_for_user(character_id, user.id)
         if character is None:
             raise AppError("Персонаж не найден", code="character_not_found", status_code=404)
+        if is_uploaded_character_avatar_url(character.avatar_url):
+            delete_character_avatar_file(character.id)
         self.characters.soft_delete(character)
         self.db.commit()
