@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "selfcheck:pending-choices": "tsx src/shared/dnd/pendingFeatureChoices.selfcheck.ts",
-    "selfcheck:spell-catalog": "tsx src/shared/dnd/spellCatalog.selfcheck.ts"
+    "selfcheck:spell-catalog": "tsx src/shared/dnd/spellCatalog.selfcheck.ts",
+    "selfcheck:conditions": "tsx src/shared/dnd/conditions.selfcheck.ts"
   },
   "dependencies": {
     "react": "^19.2.8",

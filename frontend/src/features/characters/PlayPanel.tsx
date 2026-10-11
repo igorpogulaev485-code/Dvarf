@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FALLBACK_CONDITIONS,
   conditionKey,
+  conditionLevelLabel,
   conditionMaxLevel,
   hasCondition,
   resolveConditionName,
@@ -175,7 +176,8 @@ export function PlayPanel({
               name_en: entry.name_en,
             }),
             catalog_id: entry.id,
-            maxLevel: conditionMaxLevel(entry.slug),
+            // Prefer catalog data.max_level (intoxicated: 5, exhaustion: 6).
+            maxLevel: conditionMaxLevel(entry.slug, entry.data),
           }))
         : []
 
@@ -199,12 +201,23 @@ export function PlayPanel({
             name_ru: existing.name,
             name_en: item.name_en,
           }),
+          // Keep catalog max when set; otherwise FALLBACK (so offline still has levels).
           maxLevel: existing.maxLevel ?? item.maxLevel ?? null,
         })
       }
     }
     return Array.from(bySlug.values()).sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   }, [catalogConditions])
+
+  const maxLevelBySlug = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const option of conditionOptions) {
+      if (option.maxLevel != null && option.maxLevel > 0) {
+        map.set(option.slug, option.maxLevel)
+      }
+    }
+    return map
+  }, [conditionOptions])
 
   const [conditionQuery, setConditionQuery] = useState('')
 
@@ -604,7 +617,7 @@ export function PlayPanel({
         <div className="multi-pick">
           <Field
             label="Состояния"
-            hint="Выберите активные. У истощения и опьянения — уровень на плашке. Продолжительный отдых −1 истощение."
+            hint="Уровни только у истощения (1–6, PHB) и опьянения (1–5). Остальные — вкл/выкл. Продолжительный отдых −1 истощение."
           >
             <Combobox
               value={conditionQuery}
@@ -627,11 +640,14 @@ export function PlayPanel({
                     value={play.exhaustion}
                     onChange={(event) => setExhaustion(Number(event.target.value))}
                   >
-                    {Array.from({ length: 6 }, (_, index) => index + 1).map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
+                    {Array.from({ length: 6 }, (_, index) => index + 1).map((level) => {
+                      const stage = conditionLevelLabel('exhaustion', level)
+                      return (
+                        <option key={level} value={level}>
+                          {stage ? `${level} · ${stage}` : level}
+                        </option>
+                      )
+                    })}
                   </select>
                   <button
                     type="button"
@@ -645,7 +661,8 @@ export function PlayPanel({
               ) : null}
 
               {activeConditions.map((ref) => {
-                const max = conditionMaxLevel(ref.slug)
+                const max =
+                  maxLevelBySlug.get(ref.slug) ?? conditionMaxLevel(ref.slug)
                 return (
                   <span key={conditionKey(ref)} className="tag-chip tag-chip--leveled">
                     <span>{resolveConditionName(ref)}</span>
@@ -658,11 +675,14 @@ export function PlayPanel({
                           changeConditionLevel(ref, Number(event.target.value))
                         }
                       >
-                        {Array.from({ length: max }, (_, index) => index + 1).map((level) => (
-                          <option key={level} value={level}>
-                            {level}
-                          </option>
-                        ))}
+                        {Array.from({ length: max }, (_, index) => index + 1).map((level) => {
+                          const stage = conditionLevelLabel(ref.slug, level)
+                          return (
+                            <option key={level} value={level}>
+                              {stage ? `${level} · ${stage}` : level}
+                            </option>
+                          )
+                        })}
                       </select>
                     ) : null}
                     <button
