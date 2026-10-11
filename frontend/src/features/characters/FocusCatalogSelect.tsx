@@ -24,6 +24,8 @@ type FocusCatalogSelectProps = {
   label?: string
   /** Allow picking family when family prop is `any`. */
   allowFamilyPick?: boolean
+  /** Class starting gear: only PHB crystal/orb/… / mistletoe/… / amulet/… */
+  phbStartingOnly?: boolean
 }
 
 const CUSTOM_VALUE = '__custom__'
@@ -35,6 +37,7 @@ export function FocusCatalogSelect({
   onChange,
   label = 'Фокус из справочника',
   allowFamilyPick = false,
+  phbStartingOnly = false,
 }: FocusCatalogSelectProps) {
   const [entries, setEntries] = useState<CatalogEntry[]>([])
   const [loading, setLoading] = useState(false)
@@ -65,8 +68,11 @@ export function FocusCatalogSelect({
 
   const effectiveFamily = allowFamilyPick ? familyPick : family
   const options = useMemo(
-    () => focusOptionsFromCatalog(entries, effectiveFamily),
-    [entries, effectiveFamily],
+    () =>
+      focusOptionsFromCatalog(entries, effectiveFamily, {
+        phbStartingOnly,
+      }),
+    [entries, effectiveFamily, phbStartingOnly],
   )
 
   const selectValue = value?.custom

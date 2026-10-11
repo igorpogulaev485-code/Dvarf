@@ -26,11 +26,13 @@ function asCompanionKind(value: string): CompanionKind {
     value === 'drake' ||
     value === 'primal_companion' ||
     value === 'familiar' ||
+    value === 'ally' ||
     value === 'other'
   ) {
     return value
   }
-  if (value === 'familiar' || /familiar|фамилиар/i.test(value)) return 'familiar'
+  if (/familiar|фамилиар/i.test(value)) return 'familiar'
+  if (/ally|напарник|wildfire|дух/i.test(value)) return 'ally'
   return 'other'
 }
 

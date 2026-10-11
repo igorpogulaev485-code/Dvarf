@@ -1990,8 +1990,9 @@ input {
   font: inherit;
   font-size: 0.72rem;
   font-weight: 700;
-  padding: 1px 4px;
+  padding: 1px 6px;
   min-width: 2rem;
+  max-width: 11rem;
 }
 
 .tag-chip:hover,

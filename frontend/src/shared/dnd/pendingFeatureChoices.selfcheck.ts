@@ -10,6 +10,9 @@ import {
 import {
   setFeaturePick,
   emptyFeaturePicks,
+  getFeaturePick,
+  getFeaturePickList,
+  toggleFeaturePickInList,
   type FeaturePicksState,
 } from './featurePicks'
 import {
@@ -86,6 +89,30 @@ assert(options.some((o) => o.id === THIEVES_TOOLS_OPTION_ID), 'thieves tools in 
 
 picks = setFeaturePick(picks, 'c1', 'expertise_1', 'stealth,perception')
 assert(isFeatureChoiceComplete(expertiseFeature, picks), 'expertise complete after 2 picks')
+
+// Multi-select: full list ignores new click; deselect then pick replacement.
+let multi = emptyFeaturePicks()
+multi = toggleFeaturePickInList(multi, 'c1', 'expertise_1', 'stealth', 2)
+multi = toggleFeaturePickInList(multi, 'c1', 'expertise_1', 'perception', 2)
+multi = toggleFeaturePickInList(multi, 'c1', 'expertise_1', 'acrobatics', 2)
+assert(
+  getFeaturePickList(multi, 'c1', 'expertise_1').join(',') === 'stealth,perception',
+  'full multi-select ignores third click (no FIFO)',
+)
+multi = toggleFeaturePickInList(multi, 'c1', 'expertise_1', 'stealth', 2)
+multi = toggleFeaturePickInList(multi, 'c1', 'expertise_1', 'acrobatics', 2)
+assert(
+  getFeaturePickList(multi, 'c1', 'expertise_1').join(',') === 'perception,acrobatics',
+  'deselect then pick replaces one slot',
+)
+// Single-select replaces on click.
+let single = emptyFeaturePicks()
+single = toggleFeaturePickInList(single, 'c1', 'fighting_style', 'archery', 1)
+single = toggleFeaturePickInList(single, 'c1', 'fighting_style', 'defense', 1)
+assert(
+  getFeaturePick(single, 'c1', 'fighting_style') === 'defense',
+  'single-select click replaces current pick',
+)
 
 const synced = syncSkillsExpertiseFromPicks({
   skills: skillState(['stealth', 'perception', 'acrobatics', 'investigation']),
@@ -200,6 +227,56 @@ assert(
 assert(
   startAt13.some((s) => s.kind === 'subclass'),
   'start@13 includes archetype gate',
+)
+
+// future_only transition: keep previous subclass features ≤ watermark, new above it
+const fighterChamp = [
+  {
+    id: 'f1',
+    name: 'Воин',
+    level: 10,
+    catalog_id: null,
+    subclass_name: 'Мистический рыцарь',
+    subclass_catalog_id: 'ek',
+  },
+]
+const fighterFutureOnly = unlockFeaturesForClasses({
+  classes: fighterChamp,
+  characterLevel: 10,
+  abilities: { str: 16, dex: 12, con: 14, int: 14, wis: 10, cha: 10 },
+  subclassSlugByEntryId: { f1: 'eldritch_knight' },
+  subclassTransitionByEntryId: {
+    f1: {
+      mode: 'future_only',
+      changedAtClassLevel: 7,
+      previousSlug: 'champion',
+      previousNameRu: 'Чемпион',
+    },
+  },
+})
+assert(
+  fighterFutureOnly.some(
+    (f) => f.source === 'subclass' && f.subclassSlug === 'champion' && f.level <= 7,
+  ),
+  'future_only keeps champion features at/below watermark',
+)
+assert(
+  !fighterFutureOnly.some(
+    (f) => f.source === 'subclass' && f.subclassSlug === 'champion' && f.level > 7,
+  ),
+  'future_only drops champion features above watermark',
+)
+assert(
+  fighterFutureOnly.some(
+    (f) => f.source === 'subclass' && f.subclassSlug === 'eldritch_knight' && f.level > 7,
+  ),
+  'future_only unlocks new archetype features above watermark',
+)
+assert(
+  !fighterFutureOnly.some(
+    (f) => f.source === 'subclass' && f.subclassSlug === 'eldritch_knight' && f.level <= 7,
+  ),
+  'future_only does not grant new archetype features at/below watermark',
 )
 
 const withBg = withBackgroundStepIfNeeded(

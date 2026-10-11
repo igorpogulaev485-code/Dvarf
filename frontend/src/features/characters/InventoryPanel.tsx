@@ -66,6 +66,7 @@ import {
   type InventoryState,
 } from './inventory'
 import {
+  childrenOf,
   collapsePack,
   expandPack,
   findCatalogPackEntry,
@@ -353,11 +354,10 @@ export function InventoryPanel({
   function canExpand(item: InventoryItem): boolean {
     if (item.parent_id) return false
     if (isExpandedPack(inventory.items, item.id)) return false
-    if (item.container_kind === 'pack' || item.container_kind === 'kit') return true
     const hit = findCatalogPackEntry(item, catalogItems)
-    if (hit && hasPackContents(hit.data ?? undefined)) return true
-    // Grant names before catalog loads — still show the button.
-    return /набор/i.test(item.name)
+    if (!hit) return false
+    // Only real packs with nested contents — not tool kits / «наборный доспех».
+    return hasPackContents(hit.data ?? undefined)
   }
 
   async function onExpandPack(item: InventoryItem) {
@@ -737,8 +737,20 @@ export function InventoryPanel({
                     </Button>
                   ) : null}
                   <Text tone="muted">
-                    Строка: {formatLb(itemLineWeightLb(item))} фнт
-                    {expanded ? ' · вес в содержимом' : ''}
+                    Строка:{' '}
+                    {formatLb(
+                      expanded
+                        ? childrenOf(inventory.items, item.id).reduce(
+                            (sum, row) => sum + itemLineWeightLb(row),
+                            0,
+                          )
+                        : itemLineWeightLb(item),
+                    )}{' '}
+                    фнт
+                    {expanded ? ' · сумма содержимого' : ''}
+                    {nested && item.weight_lb != null
+                      ? ` · ${item.qty}×${formatLb(item.weight_lb)}`
+                      : ''}
                     {item.armor_kind !== 'none'
                       ? ` · ${armorKindLabel(item.armor_kind)}${
                           item.base_ac != null

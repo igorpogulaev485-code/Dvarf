@@ -238,16 +238,16 @@ export function validateClassGrantPicks(input: {
     const packs = equipmentPackagesFor(input.def)
     if (packs.length > 0) {
       const id = input.picks.equipmentPackageId
-      if (!id || id === '') return 'Выбери стартовое снаряжение или «Без снаряжения»'
-      if (id !== 'skip' && !packs.some((pack) => pack.id === id)) {
+      if (!id || id === '' || id === 'skip') {
+        return 'Выбери стартовое снаряжение или «Золото»'
+      }
+      if (!packs.some((pack) => pack.id === id)) {
         return 'Неизвестный пакет снаряжения'
       }
-      if (id && id !== 'skip') {
-        const pack = packs.find((row) => row.id === id)
-        const needsFocus = pack?.items.some((item) => isFocusPlaceholderItem(item.name))
-        if (needsFocus && !input.picks.equipmentFocusPick?.name?.trim()) {
-          return 'Выбери фокус из справочника или своё название'
-        }
+      const pack = packs.find((row) => row.id === id)
+      const needsFocus = pack?.items.some((item) => isFocusPlaceholderItem(item.name))
+      if (needsFocus && !input.picks.equipmentFocusPick?.name?.trim()) {
+        return 'Выбери фокус из справочника или своё название'
       }
     }
   }

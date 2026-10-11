@@ -695,7 +695,7 @@
         "level": 2,
         "name_ru": "Призыв духа дикого огня",
         "name_en": "Summon Wildfire Spirit",
-        "summary_ru": "Действием: потрать Дикий облик — призвать духа на 1 ч. (см. TCoE).",
+        "summary_ru": "Действием: потрать Дикий облик — призвать напарника (дух) на 1 ч. (см. TCoE).",
         "kind": "action",
         "resource": {
           "uses": 0,
@@ -708,6 +708,16 @@
             "label_ru": "1 Дикий облик → дух 1 ч.",
             "mode": "spend"
           }
+        },
+        "summon": {
+          "kind": "ally",
+          "name_ru": "Дух дикого огня",
+          "replace_existing": true,
+          "ac": 13,
+          "speed": 30,
+          "hp_base": 5,
+          "hp_per_level": 5,
+          "notes_ru": "Напарник · TCoE · 1 ч. · бонусным командовать; телепорт 15 фт. + огонь 1к6+Мудр."
         }
       },
       {

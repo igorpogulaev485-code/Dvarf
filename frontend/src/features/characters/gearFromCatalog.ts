@@ -370,13 +370,8 @@ export function inventoryItemFromCatalog(input: {
   }
 
   const parsed = parseItemCatalogData(entry.data ?? {})
-  let weight = parsed.weight_lb
-  if ((weight == null || weight === 0) && parsed.contents.length > 0) {
-    // Collapsed pack bulk unknown until catalog children resolve — leave null;
-    // InventoryPanel hydrate fills from contents when catalog loads.
-    weight = parsed.weight_lb
-  }
-  created.weight_lb = weight
+  // Pack bulk may be null in catalog — InventoryPanel hydrate fills from contents.
+  created.weight_lb = parsed.weight_lb
   created.cost_gp = gearCostToGp(parsed.cost)
   created.spell_tooling = classifySpellTooling({
     name: entry.name_ru,
@@ -402,6 +397,9 @@ export function inventoryItemFromCatalog(input: {
         : parsed.item_category === 'container'
           ? 'container'
           : 'none'
+  if (created.container_kind === 'pack') {
+    created.pack_weight_lb = parsed.weight_lb
+  }
   return { item: created, attacks: [], equip: false }
 }
 

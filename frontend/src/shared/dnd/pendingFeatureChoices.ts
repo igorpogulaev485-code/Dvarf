@@ -201,7 +201,7 @@ export function buildPendingWizardSteps(input: {
         className: feature.className,
         featureId: feature.id,
         featureNameRu: feature.name_ru,
-        promptRu: `Выбери «${feature.name_ru}» в поле архетипа на листе — без этого часть умений не откроется.`,
+        promptRu: `Выбери «${feature.name_ru}» — без архетипа часть умений этого уровня не откроется.`,
       })
       continue
     }

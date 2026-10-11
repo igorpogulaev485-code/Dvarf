@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Field, Input, Text } from '../../ui'
 
 export type CatalogCardItem = {
@@ -17,6 +17,11 @@ type CatalogCardListProps = {
   /** Show name search + source chips. Default true. */
   enableFilters?: boolean
   searchPlaceholder?: string
+  /**
+   * When this changes (create-pipeline step), clear search + source filters.
+   * Prefer passing the pipeline step id from the parent.
+   */
+  resetToken?: string | number
 }
 
 function normalize(value: string): string {
@@ -30,9 +35,16 @@ export function CatalogCardList({
   emptyText = 'Ничего не найдено',
   enableFilters = true,
   searchPlaceholder = 'Поиск по имени…',
+  resetToken,
 }: CatalogCardListProps) {
   const [query, setQuery] = useState('')
   const [sources, setSources] = useState<string[]>([])
+
+  useEffect(() => {
+    if (resetToken === undefined) return
+    setQuery('')
+    setSources([])
+  }, [resetToken])
 
   const sourceOptions = useMemo(() => {
     const set = new Set<string>()

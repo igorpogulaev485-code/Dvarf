@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Button, Field, NumberInput, Stack, Text } from '../../ui'
 import type { CatalogEntry } from '../../shared/api/catalog'
+import type { PactSlotState, SpellSlotState } from '../../shared/dnd/spells'
 import {
   canTakeMulticlassLevel,
   formatPrerequisite,
@@ -36,11 +37,34 @@ type LevelingStepProps = {
   featNoteRu?: string | null
   onClassesChange: (classes: ClassLevelEntry[]) => void
   onHpChoicesChange: (choices: HpLevelChoice[]) => void
-  /** Opens GuidedWizard (feature_choice / ASI / expertise). MC may open ClassSetup first. */
+  /** Opens GuidedWizard (subclass gate / feature_choice / ASI / expertise). MC may open ClassSetup first. */
   onOpenChoices: (classEntryId: string) => void
-  /** Opens subclass catalog picker → SubclassSetupDialog. */
-  onOpenArchetype: (classEntryId: string) => void
+  /**
+   * After a new multiclass row is added (not a level bump on an existing class).
+   * Parent applies / opens grant setup; empty MC packages should not leave a dialog open.
+   */
+  onMulticlassAdded?: (classEntryId: string, classes: ClassLevelEntry[]) => void
+  /** Change already-selected archetype (not the primary pick path). */
+  onChangeArchetype: (classEntryId: string) => void
   onOpenSpells: () => void
+  /** Live caster tables from class levels (slots / prepare / known mode). */
+  spellcasting?: {
+    labelRu: string
+    maxPrepared: number | null
+    knownLeveled: number
+    preparedLeveled: number
+    slots: Record<string, SpellSlotState>
+    pactSlots: PactSlotState | null
+  } | null
+}
+
+function formatSlotBrief(slots: Record<string, SpellSlotState>): string {
+  const parts: string[] = []
+  for (let level = 1; level <= 9; level += 1) {
+    const max = slots[String(level)]?.max ?? 0
+    if (max > 0) parts.push(`${level}×${max}`)
+  }
+  return parts.length ? parts.join(' · ') : 'нет ячеек'
 }
 
 function averageFace(die: HitDie): number {
@@ -85,8 +109,10 @@ export function LevelingStep({
   onClassesChange,
   onHpChoicesChange,
   onOpenChoices,
-  onOpenArchetype,
+  onMulticlassAdded,
+  onChangeArchetype,
   onOpenSpells,
+  spellcasting = null,
 }: LevelingStepProps) {
   const [mcOpen, setMcOpen] = useState(false)
   const [pruneWarn, setPruneWarn] = useState<{
@@ -96,7 +122,7 @@ export function LevelingStep({
   } | null>(null)
   const totalLevel = totalCharacterLevel(classes)
 
-  function commitClasses(next: ClassLevelEntry[]) {
+  function commitClasses(next: ClassLevelEntry[]): boolean {
     const pruned = pruneInvalidMulticlassRows({
       classes: next,
       abilities,
@@ -108,10 +134,11 @@ export function LevelingStep({
         removed: pruned.removed,
         reasons: pruned.reasons,
       })
-      return
+      return false
     }
     onClassesChange(next)
     onHpChoicesChange(ensureHpChoices(next, hpChoices))
+    return true
   }
 
   const mcOptions = useMemo(() => {
@@ -158,6 +185,7 @@ export function LevelingStep({
       abilities,
     })
     if (!check.ok) return
+    const prevIds = new Set(classes.map((row) => row.id))
     const next = addMulticlassLevel(classes, {
       name: entry.name_ru,
       catalog_id: entry.id,
@@ -167,8 +195,11 @@ export function LevelingStep({
         ? { ...row, catalog_id: entry.id }
         : row,
     )
-    commitClasses(normalized)
+    const applied = commitClasses(normalized)
     setMcOpen(false)
+    if (!applied) return
+    const added = normalized.find((row) => !prevIds.has(row.id))
+    if (added) onMulticlassAdded?.(added.id, normalized)
   }
 
   function patchHp(key: string, patch: Partial<HpLevelChoice>) {
@@ -184,9 +215,8 @@ export function LevelingStep({
       <div>
         <Text as="h2">Прокачка</Text>
         <Text tone="muted">
-          Уровни, HP (среднее/бросок), архетип, GuidedWizard для умений L1+ / ASI / expertise,
-          мультикласс и заклинания. Стартовые навыки и снаряжение основного класса уже выбраны на
-          шаге «Класс».
+          Уровни, HP (среднее/бросок), развилки (архетип на гейте уровня, умения, ASI), мультикласс и
+          заклинания. Стартовые навыки и снаряжение основного класса уже выбраны на шаге «Класс».
         </Text>
       </div>
 
@@ -217,10 +247,6 @@ export function LevelingStep({
               </Field>
             </div>
             <div className="create-pipeline__level-actions">
-              <Button variant="secondary" onClick={() => onOpenArchetype(row.id)}>
-                Архетип
-                {row.subclass_name.trim() ? `: ${row.subclass_name}` : ''}
-              </Button>
               <Button variant="secondary" onClick={() => onOpenChoices(row.id)}>
                 {isPrimary && hasGrants
                   ? 'Развилки и умения'
@@ -230,6 +256,13 @@ export function LevelingStep({
                       ? 'Развилки и умения'
                       : 'Владения мультикласса'}
               </Button>
+              {row.subclass_name.trim() || row.subclass_catalog_id ? (
+                <Button variant="ghost" onClick={() => onChangeArchetype(row.id)}>
+                  Сменить архетип: {row.subclass_name.trim() || '—'}
+                </Button>
+              ) : (
+                <Text tone="muted">Архетип — в развилках, когда откроется гейт класса</Text>
+              )}
               {!isPrimary ? (
                 <Button
                   variant="ghost"
@@ -313,9 +346,32 @@ export function LevelingStep({
         ) : null}
       </div>
 
-      <Button variant="secondary" onClick={onOpenSpells}>
-        Заклинания
-      </Button>
+      <div className="create-pipeline__spells-block">
+        <Button variant="secondary" onClick={onOpenSpells}>
+          Заклинания
+        </Button>
+        {spellcasting ? (
+          <Stack gap={4}>
+            <Text tone="muted">{spellcasting.labelRu}</Text>
+            <Text>
+              {spellcasting.maxPrepared == null
+                ? `Известно (на листе): ${spellcasting.knownLeveled}`
+                : `Подготовка: ${spellcasting.preparedLeveled}/${spellcasting.maxPrepared}`}
+              {' · '}
+              Ячейки: {formatSlotBrief(spellcasting.slots)}
+              {spellcasting.pactSlots && spellcasting.pactSlots.max > 0
+                ? ` · Pact ${spellcasting.pactSlots.max}×${spellcasting.pactSlots.level}`
+                : ''}
+            </Text>
+            <Text tone="muted">
+              При мультиклассе ячейки и лимит подготовки пересчитываются по таблицам PHB 2014.
+              Известные/подготовленные заклинания на листе выбираешь в гримуаре.
+            </Text>
+          </Stack>
+        ) : (
+          <Text tone="muted">Нет класса с заклинаниями — ячейки появятся после мультикласса-кастера.</Text>
+        )}
+      </div>
 
       <Text tone="muted">
         Если мультикласс перестанет проходить по характеристикам — покажем предупреждение и снимем

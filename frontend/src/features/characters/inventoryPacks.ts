@@ -32,8 +32,7 @@ export function isExpandedPack(items: InventoryItem[], packId: string): boolean 
 }
 
 export function hasPackContents(data: Record<string, unknown> | null | undefined): boolean {
-  const parsed = parseItemCatalogData(data)
-  return parsed.contents.length > 0 || parsed.item_category === 'pack'
+  return parseItemCatalogData(data).contents.length > 0
 }
 
 export function readPackContents(data: Record<string, unknown> | null | undefined): PackContentRef[] {
@@ -77,9 +76,22 @@ export function findCatalogPackEntry(
   if (!key) return null
   const byName = catalogItems.find((row) => normalizeName(row.name_ru) === key)
   if (byName) return byName
+  // Exact alias first, then longest substring — so «исследователя подземелий»
+  // does not steal the shorter «исследователя» → explorers_pack alias.
   for (const [slug, aliases] of Object.entries(PACK_NAME_ALIASES)) {
-    if (!aliases.some((alias) => alias === key || key.includes(alias))) continue
+    if (!aliases.some((alias) => alias === key)) continue
     const bySlug = catalogItems.find((row) => row.slug === slug)
+    if (bySlug) return bySlug
+  }
+  let best: { slug: string; len: number } | null = null
+  for (const [slug, aliases] of Object.entries(PACK_NAME_ALIASES)) {
+    for (const alias of aliases) {
+      if (!key.includes(alias)) continue
+      if (!best || alias.length > best.len) best = { slug, len: alias.length }
+    }
+  }
+  if (best) {
+    const bySlug = catalogItems.find((row) => row.slug === best.slug)
     if (bySlug) return bySlug
   }
   return null
@@ -191,13 +203,19 @@ export function expandPack(input: {
   packId: string
   contents: ResolvedPackContent[]
 }): InventoryItem[] {
-  const pack = input.items.find((item) => item.id === input.packId)
+  const packMatches = input.items.filter((item) => item.id === input.packId)
+  const pack = packMatches[0]
   if (!pack) return input.items
+  // Duplicate instance ids would mark every root with that id as expanded.
+  if (packMatches.length !== 1) return input.items
   if (isExpandedPack(input.items, input.packId)) return input.items
   if (input.contents.length === 0) return input.items
 
   const packQty = Math.max(1, Math.floor(pack.qty))
-  const priorWeight = pack.weight_lb
+  const priorWeight =
+    pack.weight_lb != null && pack.weight_lb > 0
+      ? pack.weight_lb
+      : sumContentsWeightLb(input.contents) * packQty
   const children: InventoryItem[] = input.contents.map((row) => {
     const created = createInventoryItem()
     created.id = newId()
@@ -219,7 +237,7 @@ export function expandPack(input: {
             qty: 1,
             weight_lb: 0,
             container_expanded: true,
-            pack_weight_lb: priorWeight,
+            pack_weight_lb: priorWeight > 0 ? priorWeight : pack.pack_weight_lb,
             container_kind: item.container_kind ?? 'pack',
           }
         : item,

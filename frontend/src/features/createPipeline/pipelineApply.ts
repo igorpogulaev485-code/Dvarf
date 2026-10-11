@@ -20,10 +20,18 @@ import {
   emptyBackgroundPicks,
   type BackgroundGrantPicks,
 } from '../../shared/dnd/backgroundGrants'
-import { emptyRacePicks, type RaceGrantPicks } from '../../shared/dnd/raceGrants'
+import {
+  emptyRacePicks,
+  resolveRaceGrantDef,
+  type RaceGrantPicks,
+} from '../../shared/dnd/raceGrants'
 import type { ClassGrantPicks } from '../../shared/dnd/classGrants'
 import { emptyPicks as emptyClassGrantPicks } from '../characters/classEffects'
-import { characterHasCasterClass } from '../../shared/dnd/casterProgression'
+import {
+  applySpellcastingSuggestion,
+  characterHasCasterClass,
+  suggestSpellcastingFromClasses,
+} from '../../shared/dnd/casterProgression'
 import {
   emptyFeaturePicks,
   featurePicksToSheet,
@@ -39,6 +47,7 @@ import {
   emptySubclassPicks,
   type AppliedSubclassGrant,
   type SubclassGrantPicks,
+  type SubclassTransition,
 } from '../../shared/dnd/subclassGrants'
 import {
   unlockFeaturesForClasses,
@@ -54,6 +63,7 @@ import {
 } from '../characters/backgroundEffects'
 import {
   applyRaceGrantToDraft,
+  ensureRaceNaturalWeaponAttacks,
   type RaceGrantDraftSlice,
 } from '../characters/raceEffects'
 import {
@@ -131,6 +141,7 @@ type WorkingDraft = {
   spells: SpellsState
   classGrants: ClassGrantDraftSlice['classGrants']
   subclassGrants: AppliedSubclassGrant[]
+  subclassTransitions: SubclassTransition[]
   companions: SubclassGrantDraftSlice['companions']
   backgroundGrant: BackgroundGrantDraftSlice['backgroundGrant']
   raceGrant: RaceGrantDraftSlice['raceGrant']
@@ -201,6 +212,7 @@ function createWorkingDraft(baseAbilities: AbilityScores): WorkingDraft {
     spells: readSpells({}),
     classGrants: [],
     subclassGrants: [],
+    subclassTransitions: [],
     companions: [],
     backgroundGrant: null,
     raceGrant: null,
@@ -424,6 +436,7 @@ function subclassSlice(draft: WorkingDraft): SubclassGrantDraftSlice {
     skills: draft.skills,
     classGrants: draft.classGrants,
     subclassGrants: draft.subclassGrants,
+    subclassTransitions: draft.subclassTransitions,
     raceGrant: draft.raceGrant,
     companions: draft.companions,
     textBlocks: draft.textBlocks,
@@ -437,6 +450,7 @@ function mergeSubclass(draft: WorkingDraft, slice: SubclassGrantDraftSlice): Wor
     identity: slice.identity,
     skills: slice.skills,
     subclassGrants: slice.subclassGrants,
+    subclassTransitions: slice.subclassTransitions,
     companions: slice.companions,
     textBlocks: slice.textBlocks,
     spells: slice.spells,
@@ -608,6 +622,7 @@ function serializeSheet(input: {
   Object.assign(sheet, classLevelsToSheet(classes))
   sheet.class_grants = draft.classGrants
   sheet.subclass_grants = draft.subclassGrants
+  sheet.subclass_transitions = draft.subclassTransitions
   sheet.race_grant = draft.raceGrant
   sheet.background_grant = draft.backgroundGrant
   sheet.companions = draft.companions
@@ -753,11 +768,21 @@ export async function applyPipelineToSheet(input: {
 
   // 2) Race
   const raceSetup = state.raceSetup
+  const raceId = raceSetup?.entry.id ?? state.subrace?.id ?? state.race?.id
+  const raceSlug = raceSetup?.entry.slug ?? state.subrace?.slug ?? state.race?.slug
   const raceEntry = await resolveCatalogEntry({
     kind: 'race',
-    id: raceSetup?.entry.id ?? state.subrace?.id ?? state.race?.id,
-    slug: raceSetup?.entry.slug ?? state.subrace?.slug ?? state.race?.slug,
+    id: raceId,
+    slug: raceSlug,
     snapshot: raceSetup?.entry ?? null,
+    cache: input.catalog?.races,
+  })
+  // Live catalog may have corrected natural_weapons after the create snapshot froze.
+  const liveRaceEntry = await resolveCatalogEntry({
+    kind: 'race',
+    id: raceId,
+    slug: raceSlug,
+    snapshot: null,
     cache: input.catalog?.races,
   })
   if (raceEntry) {
@@ -772,6 +797,25 @@ export async function applyPipelineToSheet(input: {
       hasCasterClass: characterHasCasterClass(classes),
     })
     if (applied) Object.assign(draft, mergeRace(draft, applied.draft))
+    const liveDef = liveRaceEntry
+      ? resolveRaceGrantDef({
+          raceName: liveRaceEntry.name_ru,
+          catalogSlug: liveRaceEntry.slug,
+          catalogData: liveRaceEntry.data,
+          nameRu: liveRaceEntry.name_ru,
+        })
+      : null
+    if (liveDef?.naturalWeapons.length && draft.raceGrant) {
+      draft.weapons = ensureRaceNaturalWeaponAttacks({
+        weapons: draft.weapons,
+        grant: draft.raceGrant,
+        catalogWeapons: liveDef.naturalWeapons,
+      })
+      draft.raceGrant = {
+        ...draft.raceGrant,
+        naturalWeapons: liveDef.naturalWeapons,
+      }
+    }
   }
 
   // Ensure abilities = base + racial (race apply already added bonuses onto base).
@@ -830,14 +874,50 @@ export async function applyPipelineToSheet(input: {
       }
       continue
     }
-    const applied = applySubclassGrantToDraft({
-      draft: subclassSlice(draft),
-      classEntryId: row.id,
-      catalogId: entry.id,
-      def,
-      picks: normalizeSubclassPicks(setup.picks),
-    })
-    if (applied) Object.assign(draft, mergeSubclass(draft, applied.draft))
+
+    if (setup.changeMode === 'future_only' && setup.previousEntry) {
+      const previousEntry = snapshotToEntry(setup.previousEntry, 'subclass')
+      const previousDef = resolveSubclassDefFromCatalog({
+        nameRu: previousEntry.name_ru,
+        slug: previousEntry.slug,
+        catalogData: previousEntry.data,
+      })
+      if (previousDef) {
+        const retained = applySubclassGrantToDraft({
+          draft: subclassSlice(draft),
+          classEntryId: row.id,
+          catalogId: previousEntry.id,
+          def: previousDef,
+          picks: normalizeSubclassPicks(setup.previousPicks ?? { values: {} }),
+          changeMode: 'initial',
+        })
+        if (retained) Object.assign(draft, mergeSubclass(draft, retained.draft))
+      }
+      const swapped = applySubclassGrantToDraft({
+        draft: subclassSlice(draft),
+        classEntryId: row.id,
+        catalogId: entry.id,
+        def,
+        picks: normalizeSubclassPicks(setup.picks),
+        changeMode: 'future_only',
+        changedAtClassLevel: setup.changedAtClassLevel ?? row.level,
+        previousNameRu: previousEntry.name_ru,
+        previousCatalogId: previousEntry.id,
+        previousSlug: previousEntry.slug,
+        previousDef: previousDef ?? null,
+      })
+      if (swapped) Object.assign(draft, mergeSubclass(draft, swapped.draft))
+    } else {
+      const applied = applySubclassGrantToDraft({
+        draft: subclassSlice(draft),
+        classEntryId: row.id,
+        catalogId: entry.id,
+        def,
+        picks: normalizeSubclassPicks(setup.picks),
+        changeMode: setup.changeMode === 'replace_all' ? 'replace_all' : 'initial',
+      })
+      if (applied) Object.assign(draft, mergeSubclass(draft, applied.draft))
+    }
   }
 
   // 5) Feature picks / class ASI / expertise
@@ -863,8 +943,23 @@ export async function applyPipelineToSheet(input: {
     }
   }
   for (const [entryId, setup] of Object.entries(state.subclassSetups ?? {})) {
-    if (!subclassSlugByEntryId[entryId] && setup.entry.slug) {
-      subclassSlugByEntryId[entryId] = setup.entry.slug
+    // Active slug is the selected setup entry (may differ from retained grant on future_only).
+    if (setup.entry.slug) subclassSlugByEntryId[entryId] = setup.entry.slug
+  }
+  const subclassTransitionByEntryId: Record<
+    string,
+    { mode: 'future_only'; changedAtClassLevel: number; previousSlug: string; previousNameRu?: string }
+  > = {}
+  for (const transition of draft.subclassTransitions) {
+    if (transition.mode !== 'future_only') continue
+    subclassTransitionByEntryId[transition.classEntryId] = {
+      mode: 'future_only',
+      changedAtClassLevel: transition.changedAtClassLevel,
+      previousSlug: transition.previousSlug,
+      previousNameRu: transition.previousNameRu,
+    }
+    if (transition.activeSlug) {
+      subclassSlugByEntryId[transition.classEntryId] = transition.activeSlug
     }
   }
   const unlocked = unlockFeaturesForClasses({
@@ -872,6 +967,7 @@ export async function applyPipelineToSheet(input: {
     characterLevel: totalCharacterLevel(classes),
     abilities: draft.abilities,
     subclassSlugByEntryId,
+    subclassTransitionByEntryId,
   })
   draft.skills = syncSkillsExpertiseFromPicks({
     skills: draft.skills,
@@ -908,6 +1004,27 @@ export async function applyPipelineToSheet(input: {
     ],
   }
 
+  // Keep slots / max_prepared aligned with class levels (create has no SpellsPanel effect).
+  const subclassCasters = draft.subclassGrants
+    .filter((row) => row.caster?.progression === 'third')
+    .map((row) => ({
+      classEntryId: row.classEntryId,
+      progression: 'third' as const,
+      ability: row.caster?.ability ?? null,
+    }))
+  const castingSuggestion = suggestSpellcastingFromClasses({
+    classes,
+    abilityModFor: (ability) => abilityModifier(draft.abilities[ability] ?? 10),
+    subclassCasters,
+  })
+  const finalSpells: SpellsState =
+    castingSuggestion && castingSuggestion.progression !== 'none'
+      ? {
+          ...mergedSpells,
+          ...applySpellcastingSuggestion(mergedSpells, castingSuggestion),
+        }
+      : mergedSpells
+
   const raceName = state.subrace?.nameRu || state.race?.nameRu || null
   const className = formatClassSummary(classes) || null
   const name =
@@ -919,7 +1036,7 @@ export async function applyPipelineToSheet(input: {
     classes,
     featurePicks,
     classAsi,
-    spells: mergedSpells,
+    spells: finalSpells,
     state,
     raceCatalogId: raceEntry?.id ?? state.subrace?.id ?? state.race?.id ?? null,
     backgroundCatalogId: bgEntry?.id ?? state.background?.id ?? null,

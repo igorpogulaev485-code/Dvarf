@@ -1,4 +1,4 @@
-/** Companion entities for subclass/feature summons (Wave C UI; Wave A stores empty list). */
+/** Companion / ally entities for subclass and feature summons. */
 
 export type CompanionKind =
   | 'beast_companion'
@@ -7,6 +7,8 @@ export type CompanionKind =
   | 'drake'
   | 'primal_companion'
   | 'familiar'
+  /** Temporary combat ally (Wildfire Spirit, etc.) — not a familiar/beast companion. */
+  | 'ally'
   | 'other'
 
 export type CompanionEntry = {
@@ -25,6 +27,15 @@ export type CompanionEntry = {
     speed: number | null
   }
   notes: string
+}
+
+/** Stable id for a feature-summoned ally/companion (replace on re-summon). */
+export function featureSummonId(classEntryId: string, featureId: string): string {
+  return `feature-summon:${classEntryId}:${featureId}`
+}
+
+export function isFeatureSummonId(id: string): boolean {
+  return id.startsWith('feature-summon:')
 }
 
 export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEntry {
@@ -62,6 +73,7 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
       kind === 'drake' ||
       kind === 'primal_companion' ||
       kind === 'familiar' ||
+      kind === 'ally' ||
       kind === 'other'
         ? kind
         : 'other'
@@ -112,4 +124,55 @@ export function revokeCompanionsForSubclass(
     if (subclassSlug && row.source.subclassSlug !== subclassSlug) return true
     return false
   })
+}
+
+export type FeatureSummonApply = {
+  kind: CompanionKind
+  nameRu: string
+  replaceExisting?: boolean
+  notesRu?: string | null
+  ac?: number | null
+  speed?: number | null
+  hpBase?: number | null
+  hpPerLevel?: number | null
+}
+
+/** Upsert a feature-summoned ally/companion onto the sheet list. */
+export function applyFeatureSummon(input: {
+  companions: CompanionEntry[]
+  classEntryId: string
+  subclassSlug: string
+  featureId: string
+  classLevel: number
+  summon: FeatureSummonApply
+}): CompanionEntry[] {
+  const id = featureSummonId(input.classEntryId, input.featureId)
+  const hp =
+    input.summon.hpBase != null
+      ? Math.max(
+          1,
+          Math.floor(input.summon.hpBase) +
+            Math.floor(input.summon.hpPerLevel ?? 0) *
+              Math.max(1, Math.floor(input.classLevel)),
+        )
+      : null
+  const next = createCompanion({
+    id,
+    kind: input.summon.kind,
+    name: input.summon.nameRu,
+    notes: input.summon.notesRu ?? '',
+    source: {
+      classEntryId: input.classEntryId,
+      subclassSlug: input.subclassSlug,
+      feature: input.featureId,
+    },
+    stats: {
+      hp,
+      ac: input.summon.ac ?? null,
+      speed: input.summon.speed ?? null,
+    },
+  })
+  // Always one active summon per feature id (Wildfire Spirit, Drake, …).
+  const without = input.companions.filter((row) => row.id !== id)
+  return [...without, next]
 }

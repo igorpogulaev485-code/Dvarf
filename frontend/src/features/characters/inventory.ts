@@ -86,12 +86,20 @@ export type InventoryState = {
   items: InventoryItem[]
 }
 
+function newInventoryItemId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID()
+  }
+  // Date.now() alone collides when class/BG grants mint several rows in one tick —
+  // shared ids make one pack expand look like every slot opened.
+  return `item-${Date.now()}-${Math.random().toString(16).slice(2)}-${Math.random()
+    .toString(16)
+    .slice(2)}`
+}
+
 export function createInventoryItem(): InventoryItem {
   return {
-    id:
-      typeof crypto !== 'undefined' && 'randomUUID' in crypto
-        ? crypto.randomUUID()
-        : `item-${Date.now()}`,
+    id: newInventoryItemId(),
     name: '',
     catalog_id: null,
     qty: 1,
@@ -168,14 +176,38 @@ function readItem(raw: unknown, index: number): InventoryItem {
   }
 }
 
+/** Remint colliding instance ids so pack expand stays scoped to one row. */
+export function dedupeInventoryItemIds(items: InventoryItem[]): InventoryItem[] {
+  const seen = new Set<string>()
+  const remap = new Map<string, string>()
+  const next = items.map((item, index) => {
+    let id = item.id?.trim() || `item-${index}`
+    if (seen.has(id)) {
+      const fresh = newInventoryItemId()
+      remap.set(`${id}#${index}`, fresh)
+      id = fresh
+    } else {
+      seen.add(id)
+    }
+    return id === item.id ? item : { ...item, id }
+  })
+  if (remap.size === 0) return next
+  // parent_id still points at the first occurrence of a duplicated id — leave it.
+  // Only remapped rows themselves get new ids (later duplicates).
+  return next
+}
+
 export function readInventory(sheet: Record<string, unknown>): InventoryState {
   const inventory = asRecord(sheet.inventory)
   const itemsRaw = inventory.items
+  const items = Array.isArray(itemsRaw)
+    ? dedupeInventoryItemIds(itemsRaw.map((item, index) => readItem(item, index)))
+    : []
   return {
     coins: Object.keys(asRecord(inventory.coins)).length
       ? readCoins(inventory.coins)
       : { ...EMPTY_COINS },
-    items: Array.isArray(itemsRaw) ? itemsRaw.map((item, index) => readItem(item, index)) : [],
+    items,
   }
 }
 

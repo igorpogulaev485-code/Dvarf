@@ -13,6 +13,7 @@ const KIND_LABELS: Record<CompanionKind, string> = {
   drake: 'Дрейк',
   primal_companion: 'Первобытный спутник',
   familiar: 'Фамилиар',
+  ally: 'Напарник',
   other: 'Спутник',
 }
 
@@ -34,30 +35,33 @@ export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) 
     onChange(companions.filter((row) => row.id !== id))
   }
 
-  function addManual() {
+  function addManual(kind: CompanionKind) {
     onChange([
       ...companions,
       createCompanion({
-        kind: 'other',
-        name: 'Спутник',
+        kind,
+        name: kind === 'ally' ? 'Напарник' : 'Спутник',
         notes: 'Добавлен вручную',
       }),
     ])
   }
 
   return (
-    <Panel title="Спутники">
+    <Panel title="Спутники и напарники">
       <Stack gap={14}>
         {companions.length === 0 ? (
           <Text tone="muted">
-            Пока пусто. Появятся при выборе архетипа со спутником (зверь, дрейк, пушка, защитник…)
-            или добавь вручную.
+            Пока пусто. Спутники — от архетипа (зверь, дрейк, пушка…). Напарники — от умений
+            вроде Духа дикого огня (кнопка «Использовать» на умении).
           </Text>
         ) : null}
 
         <div className="sheet-actions">
-          <Button type="button" variant="secondary" onClick={addManual}>
+          <Button type="button" variant="secondary" onClick={() => addManual('other')}>
             + Спутник
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => addManual('ally')}>
+            + Напарник
           </Button>
         </div>
 

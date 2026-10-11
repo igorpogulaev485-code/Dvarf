@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   BackgroundSetupDialog,
@@ -14,6 +14,7 @@ import {
   type GuidedWizardSession,
 } from '../features/characters/GuidedWizardDialog'
 import { SubclassSetupDialog } from '../features/characters/SubclassSetupDialog'
+import { SubclassChangeConfirmDialog } from '../features/characters/SubclassChangeConfirmDialog'
 import { GrimoireDialog } from '../features/characters/GrimoireDialog'
 import { PrepareSpellsDialog } from '../features/characters/PrepareSpellsDialog'
 import { ABILITY_LABELS, SKILL_DEFS } from '../features/characters/sheetTypes'
@@ -58,8 +59,13 @@ import {
   type AppliedClassAsi,
 } from '../shared/dnd/classAsi'
 import { unlockFeaturesForClasses } from '../shared/dnd/classFeatures'
-import { resolveClassGrantDef } from '../shared/dnd/classGrants'
+import {
+  grantNeedsSetupDialog,
+  resolveClassGrantDef,
+  type ClassGrantPicks,
+} from '../shared/dnd/classGrants'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
+import { emptyPicks as emptyClassGrantPicks } from '../features/characters/classEffects'
 import {
   syncSkillsExpertiseFromPicks,
   type SkillExpertiseState,
@@ -76,20 +82,34 @@ import {
   isManualScoresValid,
   mergeRacialBonuses,
 } from '../shared/dnd/pointBuy'
-import type { ClassGrantPicks } from '../shared/dnd/classGrants'
 import {
   isRaceComboboxRoot,
   mergeAbilityBonuses,
   raceSubraceRequired,
   resolveRaceGrantDef,
 } from '../shared/dnd/raceGrants'
-import type { SubclassGrantDef, SubclassGrantPicks } from '../shared/dnd/subclassGrants'
+import type {
+  SubclassChangeMode,
+  SubclassGrantDef,
+  SubclassGrantPicks,
+} from '../shared/dnd/subclassGrants'
 import {
   emptyFeaturePicks,
   type FeaturePicksState,
 } from '../shared/dnd/featurePicks'
 import { EMPTY_ARMOR } from '../features/characters/identity'
-import { readSpells, spellsToSheet, type SpellsState } from '../features/characters/spells'
+import { abilityModifier } from '../features/characters/sheetTypes'
+import {
+  ensureKnownSpellsReady,
+  isKnownSpellcastingMode,
+  readSpells,
+  spellsToSheet,
+  type SpellsState,
+} from '../features/characters/spells'
+import {
+  applySpellcastingSuggestion,
+  suggestSpellcastingFromClasses,
+} from '../shared/dnd/casterProgression'
 import { Button, Field, Input, Stack, Text, Toast } from '../ui'
 
 const CASTER_NAME_RE =
@@ -173,14 +193,32 @@ function buildWizardProficiencies(state: CreatePipelineState): {
   }
 
   const subclassSlugByEntryId: Record<string, string> = {}
+  const subclassTransitionByEntryId: Record<
+    string,
+    {
+      mode: 'future_only'
+      changedAtClassLevel: number
+      previousSlug: string
+      previousNameRu?: string
+    }
+  > = {}
   for (const [entryId, setup] of Object.entries(state.subclassSetups ?? {})) {
     if (setup.entry.slug) subclassSlugByEntryId[entryId] = setup.entry.slug
+    if (setup.changeMode === 'future_only' && setup.previousEntry) {
+      subclassTransitionByEntryId[entryId] = {
+        mode: 'future_only',
+        changedAtClassLevel: setup.changedAtClassLevel ?? 1,
+        previousSlug: setup.previousEntry.slug,
+        previousNameRu: setup.previousEntry.name_ru,
+      }
+    }
   }
   const unlocked = unlockFeaturesForClasses({
     classes: state.classes,
     characterLevel: totalCharacterLevel(state.classes),
     abilities: state.baseAbilities,
     subclassSlugByEntryId,
+    subclassTransitionByEntryId,
   })
   skills = syncSkillsExpertiseFromPicks({
     skills,
@@ -255,8 +293,23 @@ export function CreateCharacterPage() {
     classEntryId: string
     selected: CatalogEntry
     def: SubclassGrantDef
+    changeMode?: SubclassChangeMode
+    changedAtClassLevel?: number
+    previousEntry?: ReturnType<typeof catalogSnapshot> | null
+    previousPicks?: SubclassGrantPicks
+    advanceWizardAfter?: boolean
+  } | null>(null)
+  const [subclassChange, setSubclassChange] = useState<{
+    classEntryId: string
+    selected: CatalogEntry
+    fromName: string
+    textSnippets: string[]
+    previousEntry: ReturnType<typeof catalogSnapshot>
+    previousPicks: SubclassGrantPicks
+    classLevel: number
   } | null>(null)
   const [guidedWizard, setGuidedWizard] = useState<GuidedWizardSession | null>(null)
+  const [advanceWizardAfterSubclass, setAdvanceWizardAfterSubclass] = useState(false)
   const [spellsOpen, setSpellsOpen] = useState<'prepare' | 'grimoire' | null>(null)
   const [spells, setSpells] = useState<SpellsState>(() => readSpells({}))
   const [racialBonuses, setRacialBonuses] = useState<Partial<AbilityScores>>({})
@@ -366,6 +419,52 @@ export function CreateCharacterPage() {
     return scores
   }, [finalAbilities, state.classAsi])
 
+  /** Same tables as SpellsPanel — slots / max_prepared follow class levels (incl. MC). */
+  const spellcastingSuggestion = useMemo(
+    () =>
+      suggestSpellcastingFromClasses({
+        classes: state.classes,
+        abilityModFor: (ability) => abilityModifier(wizardAbilities[ability] ?? 10),
+      }),
+    [state.classes, wizardAbilities],
+  )
+
+  const spellcastingClassKey = useMemo(() => {
+    const classKey = state.classes
+      .map((row) => `${row.name.trim().toLowerCase()}:${row.level}`)
+      .join('|')
+    const abilityKey = (['str', 'dex', 'con', 'int', 'wis', 'cha'] as AbilityKey[])
+      .map((key) => wizardAbilities[key] ?? 10)
+      .join(',')
+    const subclassKey = Object.entries(state.subclassSetups ?? {})
+      .map(([entryId, setup]) => `${entryId}:${setup.entry.slug}`)
+      .sort()
+      .join('|')
+    return `${classKey}::${abilityKey}::${subclassKey}`
+  }, [state.classes, state.subclassSetups, wizardAbilities])
+
+  const appliedSpellcastingKey = useRef<string | null>(null)
+  useEffect(() => {
+    if (appliedSpellcastingKey.current === spellcastingClassKey) return
+    appliedSpellcastingKey.current = spellcastingClassKey
+    if (!spellcastingSuggestion || spellcastingSuggestion.progression === 'none') {
+      return
+    }
+    setSpells((prev) => {
+      const applied = {
+        ...prev,
+        ...applySpellcastingSuggestion(prev, spellcastingSuggestion),
+      }
+      const knownMode = isKnownSpellcastingMode({
+        maxPrepared: applied.max_prepared,
+        hasCasterSuggestion: true,
+      })
+      return knownMode
+        ? { ...applied, known: ensureKnownSpellsReady(applied.known) }
+        : applied
+    })
+  }, [spellcastingClassKey, spellcastingSuggestion])
+
   const wizardProficiencies = useMemo(
     () => buildWizardProficiencies(state),
     [state],
@@ -379,6 +478,28 @@ export function CreateCharacterPage() {
     return map
   }, [state.subclassSetups])
 
+  const subclassTransitionByEntryId = useMemo(() => {
+    const map: Record<
+      string,
+      {
+        mode: 'future_only'
+        changedAtClassLevel: number
+        previousSlug: string
+        previousNameRu?: string
+      }
+    > = {}
+    for (const [entryId, setup] of Object.entries(state.subclassSetups ?? {})) {
+      if (setup.changeMode !== 'future_only' || !setup.previousEntry) continue
+      map[entryId] = {
+        mode: 'future_only',
+        changedAtClassLevel: setup.changedAtClassLevel ?? 1,
+        previousSlug: setup.previousEntry.slug,
+        previousNameRu: setup.previousEntry.name_ru,
+      }
+    }
+    return map
+  }, [state.subclassSetups])
+
   const unlockedFeatures = useMemo(
     () =>
       unlockFeaturesForClasses({
@@ -386,8 +507,9 @@ export function CreateCharacterPage() {
         characterLevel: totalCharacterLevel(state.classes),
         abilities: wizardAbilities,
         subclassSlugByEntryId,
+        subclassTransitionByEntryId,
       }),
-    [state.classes, subclassSlugByEntryId, wizardAbilities],
+    [state.classes, subclassSlugByEntryId, subclassTransitionByEntryId, wizardAbilities],
   )
 
   const expertiseKeys = useMemo(
@@ -465,45 +587,156 @@ export function CreateCharacterPage() {
     })
   }
 
-  function openFeatureWizardForClass(classEntryId: string) {
-    const row = state.classes.find((item) => item.id === classEntryId)
+  function openFeatureWizardForClass(
+    classEntryId: string,
+    options?: { classes?: typeof state.classes; featurePicks?: FeaturePicksState; silentIfEmpty?: boolean },
+  ) {
+    const classRows = options?.classes ?? state.classes
+    const row = classRows.find((item) => item.id === classEntryId)
     if (!row) {
       setToast('Сначала зафиксируйте класс')
       return
     }
-    if (!state.classGrantPicks?.[classEntryId]) {
-      setToast('Сначала выберите навыки и снаряжение класса')
-      return
+    const picksState = options?.featurePicks ?? state.featurePicks ?? emptyFeaturePicks()
+    const unlocked = unlockFeaturesForClasses({
+      classes: classRows,
+      characterLevel: totalCharacterLevel(classRows),
+      abilities: wizardAbilities,
+      subclassSlugByEntryId,
+      subclassTransitionByEntryId,
+    })
+    const hasSubclass: Record<string, boolean> = {}
+    for (const item of classRows) {
+      hasSubclass[item.id] = hasSubclassSelected(item)
     }
     const steps = buildPendingWizardSteps({
-      unlocked: unlockedFeatures,
-      featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+      unlocked,
+      featurePicks: picksState,
       classAsi: state.classAsi ?? [],
       filter: {
         mode: 'up_to_class_level',
         classEntryId,
         maxClassLevel: row.level,
       },
-      hasSubclassByEntryId,
+      hasSubclassByEntryId: hasSubclass,
     }).filter((step) => step.kind !== 'class_grant' && step.kind !== 'background')
     if (steps.length === 0) {
-      setToast('Все развилки и ASI для этого класса закрыты')
+      if (!options?.silentIfEmpty) {
+        setToast('Все развилки и ASI для этого класса закрыты')
+      }
       return
     }
     openGuidedWizard({ steps, index: 0 })
   }
 
-  function beginSubclassSelection(classEntryId: string, selected: CatalogEntry) {
+  /** Save MC/class grant picks; optionally open feature wizard. */
+  function commitClassGrantPicks(
+    entryId: string,
+    picks: ClassGrantPicks,
+    options?: { openWizardAfter?: boolean; classes?: typeof state.classes; toast?: string },
+  ) {
+    const classesForWizard = options?.classes
+    setState((prev) => {
+      const nextPicks = {
+        ...prev.classGrantPicks,
+        [entryId]: picks,
+      }
+      return {
+        ...prev,
+        ...(classesForWizard ? { classes: classesForWizard } : {}),
+        classGrantPicks: nextPicks,
+        sheetDraft: {
+          ...prev.sheetDraft,
+          class_grant_picks: nextPicks,
+        },
+        stepDirty: { ...prev.stepDirty, class: true, leveling: true },
+      }
+    })
+    setClassSetup(null)
+    if (options?.toast) setToast(options.toast)
+    if (!options?.openWizardAfter) return
+    openFeatureWizardForClass(entryId, {
+      classes: classesForWizard ?? state.classes,
+      featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+      silentIfEmpty: true,
+    })
+  }
+
+  /**
+   * Multiclass without skill/tool forks (друид, колдун…): apply empty picks and close —
+   * do not leave an empty ClassSetup dialog that only has «Отмена».
+   */
+  function beginMulticlassGrant(classEntryId: string, classRows?: typeof state.classes) {
+    const rows = classRows ?? state.classes
+    const row = rows.find((item) => item.id === classEntryId)
+    const catalog =
+      classes.find((item) => item.id === row?.catalog_id) ||
+      classes.find(
+        (item) =>
+          item.name_ru.trim().toLowerCase() === (row?.name ?? '').trim().toLowerCase(),
+      )
+    if (!catalog || !row) {
+      setToast('Сначала зафиксируйте класс')
+      return
+    }
+    const def = resolveClassGrantDef({
+      className: catalog.name_ru,
+      catalogSlug: catalog.slug,
+      catalogData: catalog.data,
+    })
+    if (!def) {
+      setToast('Нет пакета владений для класса')
+      return
+    }
+    if (!grantNeedsSetupDialog(def, 'multiclass')) {
+      commitClassGrantPicks(classEntryId, emptyClassGrantPicks(), {
+        openWizardAfter: true,
+        classes: rows,
+        toast: `Мультикласс «${catalog.name_ru}»: владения применены`,
+      })
+      return
+    }
+    setClassSetup({
+      def,
+      mode: 'multiclass',
+      classEntryId,
+      openWizardAfter: true,
+    })
+  }
+
+  function beginSubclassSelection(
+    classEntryId: string,
+    selected: CatalogEntry,
+    options?: {
+      changeMode?: SubclassChangeMode
+      changedAtClassLevel?: number
+      previousEntry?: ReturnType<typeof catalogSnapshot> | null
+      previousPicks?: SubclassGrantPicks
+      advanceWizardAfter?: boolean
+    },
+  ) {
     const def = resolveSubclassDefFromCatalog({
       nameRu: selected.name_ru,
       slug: selected.slug,
       catalogData: selected.data,
     })
     if (def && subclassNeedsSetupDialog(def)) {
-      setSubclassSetup({ classEntryId, selected, def })
+      // Close the change-archetype list so Cancel on setup is not followed by
+      // another modal that also needs «Отмена».
+      setSubclassPicker(null)
+      setSubclassSetup({
+        classEntryId,
+        selected,
+        def,
+        changeMode: options?.changeMode,
+        changedAtClassLevel: options?.changedAtClassLevel,
+        previousEntry: options?.previousEntry ?? null,
+        previousPicks: options?.previousPicks,
+        advanceWizardAfter: options?.advanceWizardAfter,
+      })
       return
     }
-    commitSubclassSetup(classEntryId, selected, emptySubclassPicks(), def)
+    commitSubclassSetup(classEntryId, selected, emptySubclassPicks(), def, options)
   }
 
   function commitSubclassSetup(
@@ -511,6 +744,13 @@ export function CreateCharacterPage() {
     selected: CatalogEntry,
     picks: SubclassGrantPicks,
     def: SubclassGrantDef | null,
+    options?: {
+      changeMode?: SubclassChangeMode
+      changedAtClassLevel?: number
+      previousEntry?: ReturnType<typeof catalogSnapshot> | null
+      previousPicks?: SubclassGrantPicks
+      advanceWizardAfter?: boolean
+    },
   ) {
     const nextClasses = state.classes.map((row) =>
       row.id === classEntryId
@@ -526,6 +766,14 @@ export function CreateCharacterPage() {
       [classEntryId]: {
         entry: catalogSnapshot(selected),
         picks,
+        ...(options?.changeMode
+          ? {
+              changeMode: options.changeMode,
+              changedAtClassLevel: options.changedAtClassLevel,
+              previousEntry: options.previousEntry ?? null,
+              previousPicks: options.previousPicks,
+            }
+          : {}),
       },
     }
     patchState({
@@ -539,11 +787,44 @@ export function CreateCharacterPage() {
     })
     setSubclassSetup(null)
     setSubclassPicker(null)
+    setSubclassChange(null)
     setToast(
       def
-        ? `Архетип «${selected.name_ru}» сохранён`
+        ? options?.changeMode === 'future_only'
+          ? `Архетип «${selected.name_ru}»: только будущие уровни`
+          : `Архетип «${selected.name_ru}» сохранён`
         : `Архетип «${selected.name_ru}» (без пакета грантов)`,
     )
+    if (options?.advanceWizardAfter || advanceWizardAfterSubclass) {
+      setAdvanceWizardAfterSubclass(false)
+      setGuidedWizard((prev) => {
+        if (!prev) return null
+        const nextIndex = prev.index + 1
+        if (nextIndex >= prev.steps.length) {
+          setToast('Развилки сохранены')
+          return null
+        }
+        return { ...prev, index: nextIndex }
+      })
+    }
+  }
+
+  function requestSubclassChangeFromPicker(classEntryId: string, selected: CatalogEntry) {
+    const existing = state.subclassSetups?.[classEntryId]
+    const row = state.classes.find((item) => item.id === classEntryId)
+    if (existing && existing.entry.id && existing.entry.id !== selected.id) {
+      setSubclassChange({
+        classEntryId,
+        selected,
+        fromName: row?.subclass_name || existing.entry.name_ru,
+        textSnippets: [],
+        previousEntry: existing.entry,
+        previousPicks: existing.picks,
+        classLevel: row?.level ?? 1,
+      })
+      return
+    }
+    beginSubclassSelection(classEntryId, selected, { advanceWizardAfter: advanceWizardAfterSubclass })
   }
 
   async function openArchetypePicker(classEntryId: string) {
@@ -803,6 +1084,7 @@ export function CreateCharacterPage() {
   if (step === 'race') {
     cards = (
       <CatalogCardList
+        resetToken={step}
         items={races.map((entry) => ({
           id: entry.id,
           title: entry.name_ru,
@@ -862,6 +1144,7 @@ export function CreateCharacterPage() {
   if (step === 'feat') {
     cards = (
       <CatalogCardList
+        resetToken={step}
         items={feats.map((entry) => ({
           id: entry.id,
           title: entry.name_ru,
@@ -934,6 +1217,7 @@ export function CreateCharacterPage() {
   if (step === 'background') {
     cards = (
       <CatalogCardList
+        resetToken={step}
         items={backgrounds.map((entry) => ({
           id: entry.id,
           title: entry.name_ru,
@@ -980,6 +1264,7 @@ export function CreateCharacterPage() {
   if (step === 'class') {
     cards = (
       <CatalogCardList
+        resetToken={step}
         items={classes.map((entry) => ({
           id: entry.id,
           title: entry.name_ru,
@@ -1103,6 +1388,13 @@ export function CreateCharacterPage() {
             {row.name || '—'} {row.level}
           </Text>
         ))}
+        {spellcastingSuggestion && spellcastingSuggestion.progression !== 'none' ? (
+          <Text tone="muted">
+            {spellcastingSuggestion.max_prepared == null
+              ? `Известно: ${spells.known.filter((row) => row.level > 0).length}`
+              : `Подготовка: до ${spellcastingSuggestion.max_prepared}`}
+          </Text>
+        ) : null}
       </Stack>
     )
     detail = (
@@ -1124,18 +1416,15 @@ export function CreateCharacterPage() {
           })
         }
         onHpChoicesChange={(hpChoices) => patchState({ hpChoices })}
-        onOpenArchetype={(classEntryId) => {
+        onChangeArchetype={(classEntryId) => {
           void openArchetypePicker(classEntryId)
+        }}
+        onMulticlassAdded={(classEntryId, nextClasses) => {
+          beginMulticlassGrant(classEntryId, nextClasses)
         }}
         onOpenChoices={(classEntryId) => {
           const row = state.classes.find((item) => item.id === classEntryId)
-          const catalog =
-            classes.find((item) => item.id === row?.catalog_id) ||
-            classes.find(
-              (item) =>
-                item.name_ru.trim().toLowerCase() === (row?.name ?? '').trim().toLowerCase(),
-            )
-          if (!catalog || !row) {
+          if (!row) {
             setToast('Сначала зафиксируйте класс')
             return
           }
@@ -1146,26 +1435,28 @@ export function CreateCharacterPage() {
               setToast('Вернитесь на шаг «Класс» и настройте владения')
               return
             }
-            const def = resolveClassGrantDef({
-              className: catalog.name_ru,
-              catalogSlug: catalog.slug,
-              catalogData: catalog.data,
-            })
-            if (!def) {
-              setToast('Нет пакета владений для класса')
-              return
-            }
-            setClassSetup({
-              def,
-              mode: 'multiclass',
-              classEntryId,
-              openWizardAfter: true,
-            })
+            beginMulticlassGrant(classEntryId)
             return
           }
           openFeatureWizardForClass(classEntryId)
         }}
-        onOpenSpells={() => setSpellsOpen('grimoire')}
+        onOpenSpells={() =>
+          setSpellsOpen(spells.max_prepared != null ? 'prepare' : 'grimoire')
+        }
+        spellcasting={
+          spellcastingSuggestion && spellcastingSuggestion.progression !== 'none'
+            ? {
+                labelRu: spellcastingSuggestion.labelRu,
+                maxPrepared: spellcastingSuggestion.max_prepared,
+                knownLeveled: spells.known.filter((row) => row.level > 0).length,
+                preparedLeveled: spells.known.filter(
+                  (row) => row.level > 0 && row.prepared,
+                ).length,
+                slots: spellcastingSuggestion.slots,
+                pactSlots: spellcastingSuggestion.pact_slots,
+              }
+            : null
+        }
       />
     )
     footer = (
@@ -1301,54 +1592,20 @@ export function CreateCharacterPage() {
         onConfirm={(picks: ClassGrantPicks) => {
           const entryId = classSetup?.classEntryId ?? state.classEntryId
           const openWizardAfter = classSetup?.openWizardAfter ?? false
-          const nextPicks = {
-            ...state.classGrantPicks,
-            [entryId]: picks,
-          }
-          const nextState: CreatePipelineState = {
-            ...state,
-            classGrantPicks: nextPicks,
-            sheetDraft: {
-              ...state.sheetDraft,
-              class_grant_picks: nextPicks,
-            },
-            stepDirty: { ...state.stepDirty, class: true },
-          }
-          setState(nextState)
-          setClassSetup(null)
-          setToast('Выборы класса сохранены')
-          if (!openWizardAfter) return
-          const row = nextState.classes.find((item) => item.id === entryId)
-          if (!row) return
-          const unlocked = unlockFeaturesForClasses({
-            classes: nextState.classes,
-            characterLevel: totalCharacterLevel(nextState.classes),
-            abilities: wizardAbilities,
-            subclassSlugByEntryId,
+          commitClassGrantPicks(entryId, picks, {
+            openWizardAfter,
+            toast: 'Выборы класса сохранены',
           })
-          const hasSubclass: Record<string, boolean> = {}
-          for (const item of nextState.classes) {
-            hasSubclass[item.id] = hasSubclassSelected(item)
-          }
-          const steps = buildPendingWizardSteps({
-            unlocked,
-            featurePicks: nextState.featurePicks ?? emptyFeaturePicks(),
-            classAsi: nextState.classAsi ?? [],
-            filter: {
-              mode: 'up_to_class_level',
-              classEntryId: entryId,
-              maxClassLevel: row.level,
-            },
-            hasSubclassByEntryId: hasSubclass,
-          }).filter((stepRow) => stepRow.kind !== 'class_grant' && stepRow.kind !== 'background')
-          if (steps.length > 0) openGuidedWizard({ steps, index: 0 })
         }}
       />
 
       <SubclassSetupDialog
         open={Boolean(subclassSetup)}
         def={subclassSetup?.def ?? null}
-        onClose={() => setSubclassSetup(null)}
+        onClose={() => {
+          setSubclassSetup(null)
+          setAdvanceWizardAfterSubclass(false)
+        }}
         onConfirm={(picks: SubclassGrantPicks) => {
           if (!subclassSetup) return
           commitSubclassSetup(
@@ -1356,6 +1613,13 @@ export function CreateCharacterPage() {
             subclassSetup.selected,
             picks,
             subclassSetup.def,
+            {
+              changeMode: subclassSetup.changeMode,
+              changedAtClassLevel: subclassSetup.changedAtClassLevel,
+              previousEntry: subclassSetup.previousEntry,
+              previousPicks: subclassSetup.previousPicks,
+              advanceWizardAfter: subclassSetup.advanceWizardAfter,
+            },
           )
         }}
       />
@@ -1421,17 +1685,23 @@ export function CreateCharacterPage() {
         }}
         onClose={() => setGuidedWizard(null)}
         onToast={setToast}
-        onFocusSubclass={(classEntryId) => {
-          setGuidedWizard(null)
-          void openArchetypePicker(classEntryId)
+        subclassParentCatalogIdByEntryId={Object.fromEntries(
+          state.classes.map((row) => [row.id, row.catalog_id]),
+        )}
+        selectedSubclassNameByEntryId={Object.fromEntries(
+          state.classes.map((row) => [row.id, row.subclass_name]),
+        )}
+        onPickSubclass={(classEntryId, entry) => {
+          setAdvanceWizardAfterSubclass(true)
+          beginSubclassSelection(classEntryId, entry, { advanceWizardAfter: true })
         }}
       />
 
       {subclassPicker ? (
         <div className="create-pipeline__modal">
           <Stack gap={12}>
-            <Text as="h3">Архетип · {subclassPicker.className}</Text>
-            <Text tone="muted">Выберите подкласс из справочника.</Text>
+            <Text as="h3">Сменить архетип · {subclassPicker.className}</Text>
+            <Text tone="muted">Выберите новый подкласс из справочника.</Text>
             <ul className="create-pipeline__card-list">
               {subclassPicker.options.map((entry) => (
                 <li key={entry.id}>
@@ -1439,7 +1709,7 @@ export function CreateCharacterPage() {
                     type="button"
                     className="create-pipeline__card"
                     onClick={() => {
-                      beginSubclassSelection(subclassPicker.classEntryId, entry)
+                      requestSubclassChangeFromPicker(subclassPicker.classEntryId, entry)
                     }}
                   >
                     <span className="create-pipeline__card-title">{entry.name_ru}</span>
@@ -1456,6 +1726,27 @@ export function CreateCharacterPage() {
           </Stack>
         </div>
       ) : null}
+
+      <SubclassChangeConfirmDialog
+        open={subclassChange != null}
+        fromName={subclassChange?.fromName ?? ''}
+        toName={subclassChange?.selected.name_ru ?? ''}
+        classLevel={subclassChange?.classLevel ?? 1}
+        textSnippets={subclassChange?.textSnippets ?? []}
+        onClose={() => setSubclassChange(null)}
+        onConfirm={({ mode, copyTextToNotes: _copy }) => {
+          if (!subclassChange) return
+          const pending = subclassChange
+          setSubclassChange(null)
+          setSubclassPicker(null)
+          beginSubclassSelection(pending.classEntryId, pending.selected, {
+            changeMode: mode,
+            changedAtClassLevel: pending.classLevel,
+            previousEntry: pending.previousEntry,
+            previousPicks: pending.previousPicks,
+          })
+        }}
+      />
 
       <GrimoireDialog
         open={spellsOpen === 'grimoire'}

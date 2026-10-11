@@ -82,6 +82,29 @@ export function clearFeaturePicksForClass(
   return { values: next }
 }
 
+/** Drop picks for specific feature ids on a class entry. */
+export function clearFeaturePicksForFeatureIds(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  featureIds: Iterable<string>,
+): FeaturePicksState {
+  const drop = new Set(featureIds)
+  if (drop.size === 0) return picks
+  const prefix = `${classEntryId}:`
+  const next: Record<string, string> = {}
+  for (const [key, value] of Object.entries(picks.values)) {
+    if (key.startsWith(prefix) && drop.has(key.slice(prefix.length))) continue
+    next[key] = value
+  }
+  return { values: next }
+}
+
+/**
+ * Multi-select chips: click toggles membership.
+ * When the list is already full, clicking a new option is ignored —
+ * deselect one first, then pick a replacement (no FIFO eviction).
+ * Single-select (maxPicks === 1): clicking another option replaces the current.
+ */
 export function toggleFeaturePickInList(
   picks: FeaturePicksState,
   classEntryId: string,
@@ -94,8 +117,10 @@ export function toggleFeaturePickInList(
   let nextList: string[]
   if (exists) {
     nextList = current.filter((item) => item !== optionId)
+  } else if (maxPicks <= 1) {
+    nextList = [optionId]
   } else if (current.length >= maxPicks) {
-    nextList = [...current.slice(1), optionId]
+    nextList = current
   } else {
     nextList = [...current, optionId]
   }

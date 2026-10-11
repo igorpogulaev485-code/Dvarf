@@ -52,6 +52,10 @@ import {
   stockCurrent,
 } from '../../shared/dnd/featureResources'
 import {
+  applyFeatureSummon,
+  type CompanionEntry,
+} from './companions'
+import {
   collectExpertiseOptionIdsFromPicks,
   isExpertiseChoice,
   listExpertiseOptions,
@@ -82,6 +86,17 @@ type ClassFeaturesPanelProps = {
   characterLevel: number
   abilities?: Partial<Record<AbilityScoreKey, number>>
   subclassSlugByEntryId?: Record<string, string | null | undefined>
+  subclassTransitionByEntryId?: Record<
+    string,
+    | {
+        mode: 'future_only'
+        changedAtClassLevel: number
+        previousSlug: string
+        previousNameRu?: string
+      }
+    | null
+    | undefined
+  >
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
   featurePicks: FeaturePicksState
@@ -93,6 +108,8 @@ type ClassFeaturesPanelProps = {
   tools?: string[]
   /** Equipped heavy body armor — blocks Rage benefits (PHB). */
   wearingHeavyArmor?: boolean
+  companions?: CompanionEntry[]
+  onCompanionsChange?: (companions: CompanionEntry[]) => void
   onToast?: (message: string) => void
 }
 
@@ -101,6 +118,8 @@ function FeatureResourceControls({
   classSlug,
   resources,
   onResourcesChange,
+  companions,
+  onCompanionsChange,
   onToast,
   initiativeGrantByPool,
   wearingHeavyArmor,
@@ -109,6 +128,8 @@ function FeatureResourceControls({
   classSlug: string
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
+  companions?: CompanionEntry[]
+  onCompanionsChange?: (companions: CompanionEntry[]) => void
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
@@ -298,17 +319,48 @@ function FeatureResourceControls({
               const result = spendFeatureUse({ resources, feature, classSlug })
               onResourcesChange(result.resources)
               if (result.ok) {
+                const summon = feature.summon
+                if (summon && onCompanionsChange) {
+                  const next = applyFeatureSummon({
+                    companions: companions ?? [],
+                    classEntryId: feature.classEntryId,
+                    subclassSlug: feature.subclassSlug ?? 'feature',
+                    featureId: feature.id,
+                    classLevel: feature.classLevel,
+                    summon: {
+                      kind: summon.kind,
+                      nameRu: summon.name_ru,
+                      replaceExisting: summon.replace_existing !== false,
+                      notesRu: summon.notes_ru,
+                      ac: summon.ac,
+                      speed: summon.speed,
+                      hpBase: summon.hp_base,
+                      hpPerLevel: summon.hp_per_level,
+                    },
+                  })
+                  onCompanionsChange(next)
+                }
                 const via =
                   result.via === 'linked_stock' ? ` (${linked?.label_ru})` : ''
+                const summoned =
+                  summon && onCompanionsChange
+                    ? ` · ${summon.kind === 'ally' ? 'напарник' : 'спутник'}: ${summon.name_ru}`
+                    : ''
                 onToast?.(
-                  `${feature.name_ru}${via}${feature.scaleValue ? ` · ${feature.scaleValue}` : ''}`,
+                  `${feature.name_ru}${via}${feature.scaleValue ? ` · ${feature.scaleValue}` : ''}${summoned}`,
                 )
               } else {
                 onToast?.(result.message)
               }
             }}
           >
-            {canViaLinked ? linked?.label_ru || 'Сверх лимита' : 'Использовать'}
+            {canViaLinked
+              ? linked?.label_ru || 'Сверх лимита'
+              : feature.summon
+                ? feature.summon.kind === 'ally'
+                  ? 'Призвать напарника'
+                  : 'Призвать спутника'
+                : 'Использовать'}
           </Button>
         )}
         {resource.recover_one ? (
@@ -967,6 +1019,8 @@ function FeatureRow({
   skills,
   tools,
   expertiseKeys,
+  companions,
+  onCompanionsChange,
   onToast,
   initiativeGrantByPool,
   wearingHeavyArmor,
@@ -982,6 +1036,8 @@ function FeatureRow({
   skills: SkillExpertiseState
   tools: string[]
   expertiseKeys: Array<{ classEntryId: string; featureId: string }>
+  companions?: CompanionEntry[]
+  onCompanionsChange?: (companions: CompanionEntry[]) => void
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
@@ -1103,6 +1159,8 @@ function FeatureRow({
             classSlug={classSlug}
             resources={resources}
             onResourcesChange={onResourcesChange}
+            companions={companions}
+            onCompanionsChange={onCompanionsChange}
             onToast={onToast}
             initiativeGrantByPool={initiativeGrantByPool}
             wearingHeavyArmor={wearingHeavyArmor}
@@ -1135,6 +1193,7 @@ export function ClassFeaturesPanel({
   characterLevel,
   abilities,
   subclassSlugByEntryId,
+  subclassTransitionByEntryId,
   resources,
   onResourcesChange,
   featurePicks,
@@ -1144,6 +1203,8 @@ export function ClassFeaturesPanel({
   skills = {},
   tools = [],
   wearingHeavyArmor = false,
+  companions = [],
+  onCompanionsChange,
   onToast,
 }: ClassFeaturesPanelProps) {
   const features = useMemo(
@@ -1153,8 +1214,15 @@ export function ClassFeaturesPanel({
         characterLevel,
         abilities,
         subclassSlugByEntryId,
+        subclassTransitionByEntryId,
       }),
-    [classes, characterLevel, abilities, subclassSlugByEntryId],
+    [
+      classes,
+      characterLevel,
+      abilities,
+      subclassSlugByEntryId,
+      subclassTransitionByEntryId,
+    ],
   )
   const expertiseKeys = useMemo(() => listUnlockedExpertiseKeys(features), [features])
 
@@ -1238,6 +1306,8 @@ export function ClassFeaturesPanel({
                   skills={skills}
                   tools={tools}
                   expertiseKeys={expertiseKeys}
+                  companions={companions}
+                  onCompanionsChange={onCompanionsChange}
                   onToast={onToast}
                   initiativeGrantByPool={initiativeGrantByPool}
                   wearingHeavyArmor={wearingHeavyArmor}

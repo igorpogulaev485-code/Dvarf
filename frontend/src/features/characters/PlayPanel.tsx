@@ -2,7 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   FALLBACK_CONDITIONS,
   conditionKey,
+  conditionLevelLabel,
   conditionMaxLevel,
+  conditionStatusToast,
+  exhaustionStatusToast,
   hasCondition,
   resolveConditionName,
   setConditionLevel,
@@ -175,7 +178,8 @@ export function PlayPanel({
               name_en: entry.name_en,
             }),
             catalog_id: entry.id,
-            maxLevel: conditionMaxLevel(entry.slug),
+            // Prefer catalog data.max_level (intoxicated: 5, exhaustion: 6).
+            maxLevel: conditionMaxLevel(entry.slug, entry.data),
           }))
         : []
 
@@ -199,12 +203,23 @@ export function PlayPanel({
             name_ru: existing.name,
             name_en: item.name_en,
           }),
+          // Keep catalog max when set; otherwise FALLBACK (so offline still has levels).
           maxLevel: existing.maxLevel ?? item.maxLevel ?? null,
         })
       }
     }
     return Array.from(bySlug.values()).sort((a, b) => a.name.localeCompare(b.name, 'ru'))
   }, [catalogConditions])
+
+  const maxLevelBySlug = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const option of conditionOptions) {
+      if (option.maxLevel != null && option.maxLevel > 0) {
+        map.set(option.slug, option.maxLevel)
+      }
+    }
+    return map
+  }, [conditionOptions])
 
   const [conditionQuery, setConditionQuery] = useState('')
 
@@ -241,7 +256,9 @@ export function PlayPanel({
   }
 
   function setExhaustion(next: number) {
-    patchPlay({ exhaustion: clampExhaustion(next) })
+    const level = clampExhaustion(next)
+    patchPlay({ exhaustion: level })
+    onToast(exhaustionStatusToast(level))
   }
 
   function addConditionOption(option: ComboboxOption) {
@@ -268,12 +285,16 @@ export function PlayPanel({
           level: null,
         }
 
-    patchPlay({
-      conditions: toggleCondition(
-        activeConditions,
-        ref,
-      ).filter((item) => item.slug !== 'exhaustion'),
-    })
+    const nextList = toggleCondition(activeConditions, ref).filter(
+      (item) => item.slug !== 'exhaustion',
+    )
+    patchPlay({ conditions: nextList })
+    const applied =
+      nextList.find((item) => conditionKey(item) === conditionKey(ref)) ?? {
+        ...ref,
+        level: ref.level ?? (preset?.maxLevel ? 1 : null),
+      }
+    onToast(conditionStatusToast({ action: 'add', ref: applied }))
     setConditionQuery('')
   }
 
@@ -281,12 +302,18 @@ export function PlayPanel({
     patchPlay({
       conditions: activeConditions.filter((item) => conditionKey(item) !== conditionKey(ref)),
     })
+    onToast(conditionStatusToast({ action: 'remove', ref }))
   }
 
   function changeConditionLevel(ref: ConditionRef, level: number) {
-    patchPlay({
-      conditions: setConditionLevel(activeConditions, conditionKey(ref), level),
-    })
+    const nextList = setConditionLevel(activeConditions, conditionKey(ref), level)
+    patchPlay({ conditions: nextList })
+    const updated =
+      nextList.find((item) => conditionKey(item) === conditionKey(ref)) ?? {
+        ...ref,
+        level,
+      }
+    onToast(conditionStatusToast({ action: 'level', ref: updated }))
   }
 
   function doShortRestResources() {
@@ -402,8 +429,15 @@ export function PlayPanel({
     if (result.hp_current !== undefined) {
       onCombatChange({ hpCurrent: result.hp_current })
     }
+    const nextExhaustion = result.exhaustion ?? play.exhaustion
+    const exhaustionNote =
+      nextExhaustion !== play.exhaustion
+        ? ` · ${exhaustionStatusToast(nextExhaustion)}`
+        : play.exhaustion > 0
+          ? ' · −1 истощение'
+          : ''
     onToast(
-      'Продолжительный отдых: HP, кости, ячейки, ресурсы, −1 истощение, спасброски сброшены',
+      `Продолжительный отдых: HP, кости, ячейки, ресурсы, спасброски сброшены${exhaustionNote}`,
     )
   }
 
@@ -604,7 +638,7 @@ export function PlayPanel({
         <div className="multi-pick">
           <Field
             label="Состояния"
-            hint="Выберите активные. У истощения и опьянения — уровень на плашке. Продолжительный отдых −1 истощение."
+            hint="Уровни только у истощения (1–6, PHB) и опьянения (1–5). Остальные — вкл/выкл. Продолжительный отдых −1 истощение."
           >
             <Combobox
               value={conditionQuery}
@@ -627,11 +661,14 @@ export function PlayPanel({
                     value={play.exhaustion}
                     onChange={(event) => setExhaustion(Number(event.target.value))}
                   >
-                    {Array.from({ length: 6 }, (_, index) => index + 1).map((level) => (
-                      <option key={level} value={level}>
-                        {level}
-                      </option>
-                    ))}
+                    {Array.from({ length: 6 }, (_, index) => index + 1).map((level) => {
+                      const stage = conditionLevelLabel('exhaustion', level)
+                      return (
+                        <option key={level} value={level}>
+                          {stage ? `${level} · ${stage}` : level}
+                        </option>
+                      )
+                    })}
                   </select>
                   <button
                     type="button"
@@ -645,7 +682,8 @@ export function PlayPanel({
               ) : null}
 
               {activeConditions.map((ref) => {
-                const max = conditionMaxLevel(ref.slug)
+                const max =
+                  maxLevelBySlug.get(ref.slug) ?? conditionMaxLevel(ref.slug)
                 return (
                   <span key={conditionKey(ref)} className="tag-chip tag-chip--leveled">
                     <span>{resolveConditionName(ref)}</span>
@@ -658,11 +696,14 @@ export function PlayPanel({
                           changeConditionLevel(ref, Number(event.target.value))
                         }
                       >
-                        {Array.from({ length: max }, (_, index) => index + 1).map((level) => (
-                          <option key={level} value={level}>
-                            {level}
-                          </option>
-                        ))}
+                        {Array.from({ length: max }, (_, index) => index + 1).map((level) => {
+                          const stage = conditionLevelLabel(ref.slug, level)
+                          return (
+                            <option key={level} value={level}>
+                              {stage ? `${level} · ${stage}` : level}
+                            </option>
+                          )
+                        })}
                       </select>
                     ) : null}
                     <button

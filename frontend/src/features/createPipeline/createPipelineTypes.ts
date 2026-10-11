@@ -10,7 +10,10 @@ import type { BackgroundGrantPicks } from '../../shared/dnd/backgroundGrants'
 import type { RaceGrantPicks } from '../../shared/dnd/raceGrants'
 import { resolveRaceGrantDef } from '../../shared/dnd/raceGrants'
 import type { ClassGrantPicks } from '../../shared/dnd/classGrants'
-import type { SubclassGrantPicks } from '../../shared/dnd/subclassGrants'
+import type {
+  SubclassChangeMode,
+  SubclassGrantPicks,
+} from '../../shared/dnd/subclassGrants'
 import type { AppliedClassAsi } from '../../shared/dnd/classAsi'
 import { emptyFeaturePicks, type FeaturePicksState } from '../../shared/dnd/featurePicks'
 
@@ -70,6 +73,11 @@ export type RaceSetupStored = {
 export type SubclassSetupStored = {
   entry: PipelineCatalogSnapshot
   picks: SubclassGrantPicks
+  /** Present when this setup replaces a previous archetype choice. */
+  changeMode?: SubclassChangeMode
+  changedAtClassLevel?: number
+  previousEntry?: PipelineCatalogSnapshot | null
+  previousPicks?: SubclassGrantPicks
 }
 
 export type HpGainMode = 'average' | 'roll'

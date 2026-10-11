@@ -77,8 +77,15 @@ type GuidedWizardDialogProps = {
   onSkipStep: () => void
   onClose: () => void
   onToast?: (message: string) => void
-  /** Jump to subclass field after subclass step */
-  onFocusSubclass?: (classEntryId: string) => void
+  /**
+   * Pick archetype inside the subclass wizard step.
+   * Parent opens SubclassSetup / commits grant, then advances the wizard.
+   */
+  onPickSubclass?: (classEntryId: string, entry: CatalogEntry) => void
+  /** classEntryId → parent class catalog id (filters subclass combobox). */
+  subclassParentCatalogIdByEntryId?: Record<string, string | null | undefined>
+  /** classEntryId → already selected subclass display name. */
+  selectedSubclassNameByEntryId?: Record<string, string | undefined>
 }
 
 function skillLabel(key: string): string {
@@ -215,17 +222,6 @@ function ClassGrantStepBody({
                 </button>
               )
             })}
-            <button
-              type="button"
-              className={`sheet-chip${picks.equipmentPackageId === 'skip' ? ' is-on' : ''}`}
-              style={{ display: 'block', width: '100%', textAlign: 'left' }}
-              onClick={() => onChange({ ...picks, equipmentPackageId: 'skip' })}
-            >
-              <strong>Без снаряжения</strong>
-              <div style={{ opacity: 0.85, fontWeight: 400 }}>
-                Оставить инвентарь как есть — заполню сам
-              </div>
-            </button>
           </Stack>
         </Field>
       ) : null}
@@ -421,7 +417,9 @@ export function GuidedWizardDialog({
   onSkipStep,
   onClose,
   onToast,
-  onFocusSubclass,
+  onPickSubclass,
+  subclassParentCatalogIdByEntryId,
+  selectedSubclassNameByEntryId,
 }: GuidedWizardDialogProps) {
   const step = session?.steps[session.index] ?? null
   const total = session?.steps.length ?? 0
@@ -488,6 +486,15 @@ export function GuidedWizardDialog({
       (CLASS_ASI_MODE_OPTIONS.find((row) => row.id === asiModeId)?.amounts.length ?? 1)
 
   const backgroundReady = Boolean(backgroundName.trim())
+  const subclassSelectedName =
+    step?.kind === 'subclass'
+      ? selectedSubclassNameByEntryId?.[step.classEntryId]?.trim() || ''
+      : ''
+  const subclassReady = Boolean(subclassSelectedName)
+  const subclassParentId =
+    step?.kind === 'subclass'
+      ? subclassParentCatalogIdByEntryId?.[step.classEntryId] ?? null
+      : null
 
   const primaryDisabled =
     step?.kind === 'class_grant'
@@ -498,7 +505,9 @@ export function GuidedWizardDialog({
           ? !asiReady
           : step?.kind === 'background'
             ? !backgroundReady
-            : false
+            : step?.kind === 'subclass'
+              ? !subclassReady
+              : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -518,7 +527,9 @@ export function GuidedWizardDialog({
 
   const primaryLabel =
     step?.kind === 'subclass'
-      ? 'К полю архетипа'
+      ? index >= total - 1
+        ? 'Готово'
+        : 'Далее'
       : index >= total - 1
         ? 'Готово'
         : 'Далее'
@@ -564,8 +575,8 @@ export function GuidedWizardDialog({
     }
 
     if (step.kind === 'subclass') {
-      onFocusSubclass?.(step.classEntryId)
-      onToast?.(step.promptRu)
+      if (!subclassReady) return
+      onToast?.(`Архетип «${subclassSelectedName}» выбран`)
       onAdvance(index + 1)
       return
     }
@@ -647,12 +658,35 @@ export function GuidedWizardDialog({
           />
         ) : null}
         {step.kind === 'subclass' ? (
-          <Stack gap={10}>
+          <Stack gap={12}>
             <Text>{step.promptRu}</Text>
-            <Text tone="muted">
-              После выбора архетипа на листе мастер подхватит новые выборы (воззвания, дар и т.п.)
-              при level-up или с умения.
-            </Text>
+            <Field label="Архетип из справочника">
+              <CatalogCombobox
+                id={`wizard-subclass-${step.classEntryId}`}
+                kind="subclass"
+                edition={edition}
+                parentId={subclassParentId}
+                disabled={!subclassParentId}
+                value={subclassSelectedName}
+                placeholder="Начни вводить: Клятва мести, Школа воплощения…"
+                onChange={(_value, selected) => {
+                  if (!selected) return
+                  onPickSubclass?.(step.classEntryId, selected)
+                }}
+              />
+            </Field>
+            {!subclassParentId ? (
+              <Text tone="muted">Сначала зафиксируй класс из справочника — иначе архетипы не отфильтруются.</Text>
+            ) : subclassSelectedName ? (
+              <Text>
+                Выбрано: <strong>{subclassSelectedName}</strong> — жми «Далее».
+              </Text>
+            ) : (
+              <Text tone="muted">
+                Выбор откроет настройки архетипа (если нужны). «Позже» — можно вернуться через
+                развилки или сменить архетип отдельным действием.
+              </Text>
+            )}
           </Stack>
         ) : null}
         {step.kind === 'background' ? (

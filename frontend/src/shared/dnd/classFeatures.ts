@@ -153,6 +153,28 @@ export type FeatureSaveBonusSelfDef = {
   label_ru: string
 }
 
+/** Summon an ally/companion card when the feature is spent (Wildfire Spirit, …). */
+export type FeatureSummonDef = {
+  kind:
+    | 'beast_companion'
+    | 'steel_defender'
+    | 'eldritch_cannon'
+    | 'drake'
+    | 'primal_companion'
+    | 'familiar'
+    | 'ally'
+    | 'other'
+  name_ru: string
+  /** Replace prior summon from this feature (default true). */
+  replace_existing?: boolean
+  notes_ru?: string
+  ac?: number
+  speed?: number
+  /** HP = hp_base + hp_per_level × class level (Wildfire: 5 + 5×lvl). */
+  hp_base?: number
+  hp_per_level?: number
+}
+
 export type ClassFeatureDef = {
   id: string
   level: number
@@ -169,6 +191,8 @@ export type ClassFeatureDef = {
   slot_spend?: FeatureSlotSpendDef
   /** Add ability mod (min) to own saves while unlocked (Aura of Protection). */
   save_bonus_self?: FeatureSaveBonusSelfDef
+  /** On successful resource spend — create/replace companion or ally card. */
+  summon?: FeatureSummonDef
 }
 
 export type UnlockedFeature = ClassFeatureDef & {
@@ -224,6 +248,10 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
     const saveBonusRaw =
       row.save_bonus_self && typeof row.save_bonus_self === 'object'
         ? (row.save_bonus_self as Record<string, unknown>)
+        : null
+    const summonRaw =
+      row.summon && typeof row.summon === 'object'
+        ? (row.summon as Record<string, unknown>)
         : null
 
     let choice: FeatureChoiceDef | undefined
@@ -317,6 +345,38 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       }
     }
 
+    let summon: FeatureSummonDef | undefined
+    if (summonRaw && typeof summonRaw.name_ru === 'string') {
+      const kindRaw = summonRaw.kind
+      const kind: FeatureSummonDef['kind'] =
+        kindRaw === 'beast_companion' ||
+        kindRaw === 'steel_defender' ||
+        kindRaw === 'eldritch_cannon' ||
+        kindRaw === 'drake' ||
+        kindRaw === 'primal_companion' ||
+        kindRaw === 'familiar' ||
+        kindRaw === 'ally' ||
+        kindRaw === 'other'
+          ? kindRaw
+          : 'ally'
+      const readOptNum = (value: unknown): number | undefined =>
+        typeof value === 'number' && Number.isFinite(value)
+          ? Math.floor(value)
+          : undefined
+      summon = {
+        kind,
+        name_ru: summonRaw.name_ru.trim(),
+        replace_existing: summonRaw.replace_existing !== false,
+        notes_ru:
+          typeof summonRaw.notes_ru === 'string' ? summonRaw.notes_ru : undefined,
+        ac: readOptNum(summonRaw.ac),
+        speed: readOptNum(summonRaw.speed),
+        hp_base: readOptNum(summonRaw.hp_base),
+        hp_per_level: readOptNum(summonRaw.hp_per_level),
+      }
+      if (!summon.name_ru) summon = undefined
+    }
+
     out.push({
       id: row.id,
       level: typeof row.level === 'number' ? Math.max(1, row.level) : 1,
@@ -341,6 +401,7 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       choice,
       slot_spend,
       save_bonus_self,
+      summon,
     })
   }
   return out
@@ -1099,6 +1160,14 @@ export function recoverPoolId(poolId: string): string {
   return `${poolId}__recover`
 }
 
+/** Optional watermark when archetype was swapped with «только будущие уровни». */
+export type SubclassUnlockTransition = {
+  mode: 'future_only'
+  changedAtClassLevel: number
+  previousSlug: string
+  previousNameRu?: string
+}
+
 export function unlockFeaturesForClasses(input: {
   classes: ClassLevelEntry[]
   /** Total character level — for proficiency-scaled resources. */
@@ -1107,6 +1176,8 @@ export function unlockFeaturesForClasses(input: {
   abilities?: Partial<Record<AbilityScoreKey, number>>
   /** classEntryId → subclass slug from grant/catalog */
   subclassSlugByEntryId?: Record<string, string | null | undefined>
+  /** classEntryId → future_only transition (legacy slug ≤ watermark). */
+  subclassTransitionByEntryId?: Record<string, SubclassUnlockTransition | null | undefined>
   classFeaturesByEntryId?: Record<string, ClassFeatureDef[]>
   subclassFeaturesByEntryId?: Record<string, ClassFeatureDef[]>
 }): UnlockedFeature[] {
@@ -1144,28 +1215,72 @@ export function unlockFeaturesForClasses(input: {
     const hasSubclass = Boolean(row.subclass_name.trim() || row.subclass_catalog_id)
     if (!hasSubclass) continue
 
-    const subclassSlug =
+    const activeSlug =
       input.subclassSlugByEntryId?.[row.id] ||
       resolveSubclassFeatureSlug(row.subclass_name) ||
       null
+    const transition = input.subclassTransitionByEntryId?.[row.id]
+    const futureOnly =
+      transition?.mode === 'future_only' &&
+      Number.isFinite(transition.changedAtClassLevel) &&
+      transition.changedAtClassLevel >= 1
 
-    const subclassFeatures =
-      input.subclassFeaturesByEntryId?.[row.id] ??
-      (subclassSlug && pack ? pack.subclasses[subclassSlug] ?? [] : [])
+    const pushSubclassFeatures = (
+      features: ClassFeatureDef[],
+      subclassSlug: string | null,
+      subclassName: string | null,
+      levelOk: (level: number) => boolean,
+    ) => {
+      for (const feature of features) {
+        if (feature.level > classLevel) continue
+        if (!levelOk(feature.level)) continue
+        unlocked.push({
+          ...feature,
+          classEntryId: row.id,
+          className: row.name.trim(),
+          classLevel,
+          source: 'subclass',
+          subclassSlug,
+          subclassName,
+          scaleValue: resolveScaleValue(feature.scale, classLevel),
+          resourceUses: resolveResourceUses(feature.resource, classLevel, pb, abilities),
+        })
+      }
+    }
 
-    for (const feature of subclassFeatures) {
-      if (feature.level > classLevel) continue
-      unlocked.push({
-        ...feature,
-        classEntryId: row.id,
-        className: row.name.trim(),
-        classLevel,
-        source: 'subclass',
-        subclassSlug,
-        subclassName: row.subclass_name.trim() || null,
-        scaleValue: resolveScaleValue(feature.scale, classLevel),
-        resourceUses: resolveResourceUses(feature.resource, classLevel, pb, abilities),
-      })
+    if (futureOnly && transition) {
+      const watermark = Math.min(20, Math.floor(transition.changedAtClassLevel))
+      const previousSlug =
+        resolveSubclassFeatureSlug(transition.previousSlug) ||
+        transition.previousSlug.trim() ||
+        null
+      const previousFeatures =
+        previousSlug && pack ? pack.subclasses[previousSlug] ?? [] : []
+      pushSubclassFeatures(
+        previousFeatures,
+        previousSlug,
+        transition.previousNameRu?.trim() || previousSlug,
+        (level) => level <= watermark,
+      )
+      const activeFeatures =
+        input.subclassFeaturesByEntryId?.[row.id] ??
+        (activeSlug && pack ? pack.subclasses[activeSlug] ?? [] : [])
+      pushSubclassFeatures(
+        activeFeatures,
+        activeSlug,
+        row.subclass_name.trim() || null,
+        (level) => level > watermark,
+      )
+    } else {
+      const subclassFeatures =
+        input.subclassFeaturesByEntryId?.[row.id] ??
+        (activeSlug && pack ? pack.subclasses[activeSlug] ?? [] : [])
+      pushSubclassFeatures(
+        subclassFeatures,
+        activeSlug,
+        row.subclass_name.trim() || null,
+        () => true,
+      )
     }
   }
 
@@ -1179,6 +1294,25 @@ export function unlockFeaturesForClasses(input: {
   })
 
   return unlocked
+}
+
+/** Subclass feature ids with level > minLevel (exclusive) for pick clearing. */
+export function listSubclassFeatureIdsAboveLevel(input: {
+  className: string
+  subclassSlug: string | null | undefined
+  minLevel: number
+}): string[] {
+  const classSlug = resolveClassFeatureSlug(input.className)
+  const pack = localFeaturePack(classSlug)
+  const subclassSlug =
+    (input.subclassSlug && resolveSubclassFeatureSlug(input.subclassSlug)) ||
+    input.subclassSlug?.trim() ||
+    null
+  if (!pack || !subclassSlug) return []
+  const features = pack.subclasses[subclassSlug] ?? []
+  return features
+    .filter((feature) => feature.level > input.minLevel)
+    .map((feature) => feature.id)
 }
 
 export function kindLabelRu(kind: FeatureKind): string {

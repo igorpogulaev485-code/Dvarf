@@ -98,8 +98,14 @@ function readBool(value: unknown): boolean {
 }
 
 function readLevel(value: unknown): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return 0
-  return Math.max(0, Math.min(9, Math.floor(value)))
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.max(0, Math.min(9, Math.floor(value)))
+  }
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value.trim())
+    if (Number.isFinite(parsed)) return Math.max(0, Math.min(9, Math.floor(parsed)))
+  }
+  return 0
 }
 
 function readStringList(value: unknown): string[] {

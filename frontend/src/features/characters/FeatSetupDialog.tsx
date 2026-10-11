@@ -193,13 +193,8 @@ export function FeatSetupDialog({
         }
       }
       if (current.length >= need) {
-        return {
-          ...prev,
-          enumLists: {
-            ...prev.enumLists,
-            [choiceId]: [...current.slice(1), optionId],
-          },
-        }
+        // Full multi-select: ignore new pick until user deselects one.
+        return prev
       }
       return {
         ...prev,
@@ -221,10 +216,7 @@ export function FeatSetupDialog({
         }
       }
       if (prev.expertiseSkills.length >= need) {
-        return {
-          ...prev,
-          expertiseSkills: [...prev.expertiseSkills.slice(1), skillKey],
-        }
+        return prev
       }
       return { ...prev, expertiseSkills: [...prev.expertiseSkills, skillKey] }
     })
@@ -237,7 +229,7 @@ export function FeatSetupDialog({
         return { ...prev, languages: prev.languages.filter((row) => row !== name) }
       }
       if (prev.languages.length >= languageNeed) {
-        return { ...prev, languages: [...prev.languages.slice(1), name] }
+        return prev
       }
       return { ...prev, languages: [...prev.languages, name] }
     })
@@ -279,7 +271,7 @@ export function FeatSetupDialog({
         return prev
       }
       if (prev.weapons.length >= weaponNeed) {
-        return { ...prev, weapons: [...prev.weapons.slice(1), name] }
+        return prev
       }
       return { ...prev, weapons: [...prev.weapons, name] }
     })
