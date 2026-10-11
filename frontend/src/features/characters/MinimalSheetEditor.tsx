@@ -89,6 +89,7 @@ import {
   formatRaceMovementHint,
   isRaceComboboxRoot,
   raceGrantNeedsSetupDialog,
+  raceSizeLabel,
   raceSubraceRequired,
   resolveRaceGrantDef,
   resolveRaceMovement,
@@ -3087,20 +3088,13 @@ export function MinimalSheetEditor({
                 </Button>
               </div>
             </Field>
-            <Field label="Размер" htmlFor="sheet-size">
-              <select
-                id="sheet-size"
-                className="play-select"
-                value={draft.identity.size || 'medium'}
-                onChange={(event) => patchIdentity({ size: event.target.value })}
-              >
-                <option value="tiny">Крошечный</option>
-                <option value="small">Маленький</option>
-                <option value="medium">Средний</option>
-                <option value="large">Большой</option>
-                <option value="huge">Огромный</option>
-                <option value="gargantuan">Громадный</option>
-              </select>
+            <Field
+              label="Размер"
+              hint="Задаётся расой при создании (или при смене расы). Вручную не меняется."
+            >
+              <Text>
+                {raceSizeLabel(draft.raceGrant?.size || draft.identity.size)}
+              </Text>
             </Field>
           </div>
           <div className="sheet-grid sheet-grid--2">

@@ -54,6 +54,14 @@ export const RACE_SIZE_LABELS: Record<RaceSize, string> = {
   gargantuan: 'Громадный',
 }
 
+/** Display label for sheet size (race-driven; unknown → Средний). */
+export function raceSizeLabel(raw: string | null | undefined): string {
+  if (raw && raw in RACE_SIZE_LABELS) {
+    return RACE_SIZE_LABELS[raw as RaceSize]
+  }
+  return RACE_SIZE_LABELS.medium
+}
+
 /** One ASI bucket inside a mode, e.g. «+2 to one ability». */
 export type AbilityBonusBucket = {
   amount: number
