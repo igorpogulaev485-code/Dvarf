@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   BackgroundSetupDialog,
@@ -98,7 +98,18 @@ import {
   type FeaturePicksState,
 } from '../shared/dnd/featurePicks'
 import { EMPTY_ARMOR } from '../features/characters/identity'
-import { readSpells, spellsToSheet, type SpellsState } from '../features/characters/spells'
+import { abilityModifier } from '../features/characters/sheetTypes'
+import {
+  ensureKnownSpellsReady,
+  isKnownSpellcastingMode,
+  readSpells,
+  spellsToSheet,
+  type SpellsState,
+} from '../features/characters/spells'
+import {
+  applySpellcastingSuggestion,
+  suggestSpellcastingFromClasses,
+} from '../shared/dnd/casterProgression'
 import { Button, Field, Input, Stack, Text, Toast } from '../ui'
 
 const CASTER_NAME_RE =
@@ -407,6 +418,52 @@ export function CreateCharacterPage() {
     }
     return scores
   }, [finalAbilities, state.classAsi])
+
+  /** Same tables as SpellsPanel — slots / max_prepared follow class levels (incl. MC). */
+  const spellcastingSuggestion = useMemo(
+    () =>
+      suggestSpellcastingFromClasses({
+        classes: state.classes,
+        abilityModFor: (ability) => abilityModifier(wizardAbilities[ability] ?? 10),
+      }),
+    [state.classes, wizardAbilities],
+  )
+
+  const spellcastingClassKey = useMemo(() => {
+    const classKey = state.classes
+      .map((row) => `${row.name.trim().toLowerCase()}:${row.level}`)
+      .join('|')
+    const abilityKey = (['str', 'dex', 'con', 'int', 'wis', 'cha'] as AbilityKey[])
+      .map((key) => wizardAbilities[key] ?? 10)
+      .join(',')
+    const subclassKey = Object.entries(state.subclassSetups ?? {})
+      .map(([entryId, setup]) => `${entryId}:${setup.entry.slug}`)
+      .sort()
+      .join('|')
+    return `${classKey}::${abilityKey}::${subclassKey}`
+  }, [state.classes, state.subclassSetups, wizardAbilities])
+
+  const appliedSpellcastingKey = useRef<string | null>(null)
+  useEffect(() => {
+    if (appliedSpellcastingKey.current === spellcastingClassKey) return
+    appliedSpellcastingKey.current = spellcastingClassKey
+    if (!spellcastingSuggestion || spellcastingSuggestion.progression === 'none') {
+      return
+    }
+    setSpells((prev) => {
+      const applied = {
+        ...prev,
+        ...applySpellcastingSuggestion(prev, spellcastingSuggestion),
+      }
+      const knownMode = isKnownSpellcastingMode({
+        maxPrepared: applied.max_prepared,
+        hasCasterSuggestion: true,
+      })
+      return knownMode
+        ? { ...applied, known: ensureKnownSpellsReady(applied.known) }
+        : applied
+    })
+  }, [spellcastingClassKey, spellcastingSuggestion])
 
   const wizardProficiencies = useMemo(
     () => buildWizardProficiencies(state),
@@ -1328,6 +1385,13 @@ export function CreateCharacterPage() {
             {row.name || '—'} {row.level}
           </Text>
         ))}
+        {spellcastingSuggestion && spellcastingSuggestion.progression !== 'none' ? (
+          <Text tone="muted">
+            {spellcastingSuggestion.max_prepared == null
+              ? `Известно: ${spells.known.filter((row) => row.level > 0).length}`
+              : `Подготовка: до ${spellcastingSuggestion.max_prepared}`}
+          </Text>
+        ) : null}
       </Stack>
     )
     detail = (
@@ -1373,7 +1437,23 @@ export function CreateCharacterPage() {
           }
           openFeatureWizardForClass(classEntryId)
         }}
-        onOpenSpells={() => setSpellsOpen('grimoire')}
+        onOpenSpells={() =>
+          setSpellsOpen(spells.max_prepared != null ? 'prepare' : 'grimoire')
+        }
+        spellcasting={
+          spellcastingSuggestion && spellcastingSuggestion.progression !== 'none'
+            ? {
+                labelRu: spellcastingSuggestion.labelRu,
+                maxPrepared: spellcastingSuggestion.max_prepared,
+                knownLeveled: spells.known.filter((row) => row.level > 0).length,
+                preparedLeveled: spells.known.filter(
+                  (row) => row.level > 0 && row.prepared,
+                ).length,
+                slots: spellcastingSuggestion.slots,
+                pactSlots: spellcastingSuggestion.pact_slots,
+              }
+            : null
+        }
       />
     )
     footer = (

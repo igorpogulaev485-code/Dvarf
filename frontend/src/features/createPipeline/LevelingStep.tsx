@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Button, Field, NumberInput, Stack, Text } from '../../ui'
 import type { CatalogEntry } from '../../shared/api/catalog'
+import type { PactSlotState, SpellSlotState } from '../../shared/dnd/spells'
 import {
   canTakeMulticlassLevel,
   formatPrerequisite,
@@ -46,6 +47,24 @@ type LevelingStepProps = {
   /** Change already-selected archetype (not the primary pick path). */
   onChangeArchetype: (classEntryId: string) => void
   onOpenSpells: () => void
+  /** Live caster tables from class levels (slots / prepare / known mode). */
+  spellcasting?: {
+    labelRu: string
+    maxPrepared: number | null
+    knownLeveled: number
+    preparedLeveled: number
+    slots: Record<string, SpellSlotState>
+    pactSlots: PactSlotState | null
+  } | null
+}
+
+function formatSlotBrief(slots: Record<string, SpellSlotState>): string {
+  const parts: string[] = []
+  for (let level = 1; level <= 9; level += 1) {
+    const max = slots[String(level)]?.max ?? 0
+    if (max > 0) parts.push(`${level}×${max}`)
+  }
+  return parts.length ? parts.join(' · ') : 'нет ячеек'
 }
 
 function averageFace(die: HitDie): number {
@@ -93,6 +112,7 @@ export function LevelingStep({
   onMulticlassAdded,
   onChangeArchetype,
   onOpenSpells,
+  spellcasting = null,
 }: LevelingStepProps) {
   const [mcOpen, setMcOpen] = useState(false)
   const [pruneWarn, setPruneWarn] = useState<{
@@ -326,9 +346,32 @@ export function LevelingStep({
         ) : null}
       </div>
 
-      <Button variant="secondary" onClick={onOpenSpells}>
-        Заклинания
-      </Button>
+      <div className="create-pipeline__spells-block">
+        <Button variant="secondary" onClick={onOpenSpells}>
+          Заклинания
+        </Button>
+        {spellcasting ? (
+          <Stack gap={4}>
+            <Text tone="muted">{spellcasting.labelRu}</Text>
+            <Text>
+              {spellcasting.maxPrepared == null
+                ? `Известно (на листе): ${spellcasting.knownLeveled}`
+                : `Подготовка: ${spellcasting.preparedLeveled}/${spellcasting.maxPrepared}`}
+              {' · '}
+              Ячейки: {formatSlotBrief(spellcasting.slots)}
+              {spellcasting.pactSlots && spellcasting.pactSlots.max > 0
+                ? ` · Pact ${spellcasting.pactSlots.max}×${spellcasting.pactSlots.level}`
+                : ''}
+            </Text>
+            <Text tone="muted">
+              При мультиклассе ячейки и лимит подготовки пересчитываются по таблицам PHB 2014.
+              Известные/подготовленные заклинания на листе выбираешь в гримуаре.
+            </Text>
+          </Stack>
+        ) : (
+          <Text tone="muted">Нет класса с заклинаниями — ячейки появятся после мультикласса-кастера.</Text>
+        )}
+      </div>
 
       <Text tone="muted">
         Если мультикласс перестанет проходить по характеристикам — покажем предупреждение и снимем

@@ -23,7 +23,11 @@ import {
 import { emptyRacePicks, type RaceGrantPicks } from '../../shared/dnd/raceGrants'
 import type { ClassGrantPicks } from '../../shared/dnd/classGrants'
 import { emptyPicks as emptyClassGrantPicks } from '../characters/classEffects'
-import { characterHasCasterClass } from '../../shared/dnd/casterProgression'
+import {
+  applySpellcastingSuggestion,
+  characterHasCasterClass,
+  suggestSpellcastingFromClasses,
+} from '../../shared/dnd/casterProgression'
 import {
   emptyFeaturePicks,
   featurePicksToSheet,
@@ -966,6 +970,27 @@ export async function applyPipelineToSheet(input: {
     ],
   }
 
+  // Keep slots / max_prepared aligned with class levels (create has no SpellsPanel effect).
+  const subclassCasters = draft.subclassGrants
+    .filter((row) => row.caster?.progression === 'third')
+    .map((row) => ({
+      classEntryId: row.classEntryId,
+      progression: 'third' as const,
+      ability: row.caster?.ability ?? null,
+    }))
+  const castingSuggestion = suggestSpellcastingFromClasses({
+    classes,
+    abilityModFor: (ability) => abilityModifier(draft.abilities[ability] ?? 10),
+    subclassCasters,
+  })
+  const finalSpells: SpellsState =
+    castingSuggestion && castingSuggestion.progression !== 'none'
+      ? {
+          ...mergedSpells,
+          ...applySpellcastingSuggestion(mergedSpells, castingSuggestion),
+        }
+      : mergedSpells
+
   const raceName = state.subrace?.nameRu || state.race?.nameRu || null
   const className = formatClassSummary(classes) || null
   const name =
@@ -977,7 +1002,7 @@ export async function applyPipelineToSheet(input: {
     classes,
     featurePicks,
     classAsi,
-    spells: mergedSpells,
+    spells: finalSpells,
     state,
     raceCatalogId: raceEntry?.id ?? state.subrace?.id ?? state.race?.id ?? null,
     backgroundCatalogId: bgEntry?.id ?? state.background?.id ?? null,
