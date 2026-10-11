@@ -153,6 +153,28 @@ export type FeatureSaveBonusSelfDef = {
   label_ru: string
 }
 
+/** Summon an ally/companion card when the feature is spent (Wildfire Spirit, …). */
+export type FeatureSummonDef = {
+  kind:
+    | 'beast_companion'
+    | 'steel_defender'
+    | 'eldritch_cannon'
+    | 'drake'
+    | 'primal_companion'
+    | 'familiar'
+    | 'ally'
+    | 'other'
+  name_ru: string
+  /** Replace prior summon from this feature (default true). */
+  replace_existing?: boolean
+  notes_ru?: string
+  ac?: number
+  speed?: number
+  /** HP = hp_base + hp_per_level × class level (Wildfire: 5 + 5×lvl). */
+  hp_base?: number
+  hp_per_level?: number
+}
+
 export type ClassFeatureDef = {
   id: string
   level: number
@@ -169,6 +191,8 @@ export type ClassFeatureDef = {
   slot_spend?: FeatureSlotSpendDef
   /** Add ability mod (min) to own saves while unlocked (Aura of Protection). */
   save_bonus_self?: FeatureSaveBonusSelfDef
+  /** On successful resource spend — create/replace companion or ally card. */
+  summon?: FeatureSummonDef
 }
 
 export type UnlockedFeature = ClassFeatureDef & {
@@ -224,6 +248,10 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
     const saveBonusRaw =
       row.save_bonus_self && typeof row.save_bonus_self === 'object'
         ? (row.save_bonus_self as Record<string, unknown>)
+        : null
+    const summonRaw =
+      row.summon && typeof row.summon === 'object'
+        ? (row.summon as Record<string, unknown>)
         : null
 
     let choice: FeatureChoiceDef | undefined
@@ -317,6 +345,38 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       }
     }
 
+    let summon: FeatureSummonDef | undefined
+    if (summonRaw && typeof summonRaw.name_ru === 'string') {
+      const kindRaw = summonRaw.kind
+      const kind: FeatureSummonDef['kind'] =
+        kindRaw === 'beast_companion' ||
+        kindRaw === 'steel_defender' ||
+        kindRaw === 'eldritch_cannon' ||
+        kindRaw === 'drake' ||
+        kindRaw === 'primal_companion' ||
+        kindRaw === 'familiar' ||
+        kindRaw === 'ally' ||
+        kindRaw === 'other'
+          ? kindRaw
+          : 'ally'
+      const readOptNum = (value: unknown): number | undefined =>
+        typeof value === 'number' && Number.isFinite(value)
+          ? Math.floor(value)
+          : undefined
+      summon = {
+        kind,
+        name_ru: summonRaw.name_ru.trim(),
+        replace_existing: summonRaw.replace_existing !== false,
+        notes_ru:
+          typeof summonRaw.notes_ru === 'string' ? summonRaw.notes_ru : undefined,
+        ac: readOptNum(summonRaw.ac),
+        speed: readOptNum(summonRaw.speed),
+        hp_base: readOptNum(summonRaw.hp_base),
+        hp_per_level: readOptNum(summonRaw.hp_per_level),
+      }
+      if (!summon.name_ru) summon = undefined
+    }
+
     out.push({
       id: row.id,
       level: typeof row.level === 'number' ? Math.max(1, row.level) : 1,
@@ -341,6 +401,7 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       choice,
       slot_spend,
       save_bonus_self,
+      summon,
     })
   }
   return out

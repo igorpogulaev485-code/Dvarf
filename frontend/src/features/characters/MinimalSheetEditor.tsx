@@ -3407,6 +3407,10 @@ export function MinimalSheetEditor({
         wearingHeavyArmor={
           equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
         }
+        companions={draft.companions}
+        onCompanionsChange={(companions) =>
+          setDraft((prev) => ({ ...prev, companions }))
+        }
         onToast={onToast}
       />
 

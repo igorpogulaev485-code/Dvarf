@@ -490,7 +490,7 @@ export function applySubclassGrantToDraft(input: {
             : id.includes('familiar')
               ? 'familiar'
               : id.includes('spirit') || id.includes('wildfire')
-                ? 'other'
+                ? 'ally'
                 : 'beast_companion'
     const displayName =
       choice.kind === 'single'
