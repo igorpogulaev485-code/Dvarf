@@ -379,7 +379,7 @@ export function applyClassGrantToDraft(input: {
           }
         }
 
-        // Weapons → Attacks: light×N → N cards; stacks → one card + qty (no "×N" in name).
+        // Weapons → Attacks: qty>1 → one card + qty (handaxes like javelins; no "×N" in name).
         const built = buildStartingWeaponAttacks({
           name: spec.name,
           qty: created.qty,
