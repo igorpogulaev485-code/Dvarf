@@ -10,9 +10,9 @@ export type WeaponPreset = {
   ability: AbilityScoreKey
   /** Alternate RU labels that resolve to this preset. */
   aliases?: string[]
-  /** PHB light — qty>1 → separate attack cards. */
+  /** PHB light — dual-wield / held hands (qty≥2 costs 2 hands when drawn). */
   light?: boolean
-  /** Thrown/ammo stack — qty>1 → one card + qty field. */
+  /** Thrown/ammo flavour flag; attack rows always stack qty the same way. */
   ammoStack?: boolean
 }
 
