@@ -229,22 +229,29 @@ export function AttacksPanel({
                     />
                   )}
                 </Field>
-                <Field label="Характеристика">
-                  <select
-                    className="ui-input"
-                    value={attack.ability}
-                    onChange={(event) =>
-                      updateAttack(attack.id, {
-                        ability: event.target.value as AbilityKey,
-                      })
-                    }
-                  >
-                    {ABILITY_KEYS.map((key) => (
-                      <option key={key} value={key}>
-                        {ABILITY_LABELS[key]}
-                      </option>
-                    ))}
-                  </select>
+                <Field
+                  label="Характеристика"
+                  hint={raceNatural ? 'От расы' : undefined}
+                >
+                  {raceNatural ? (
+                    <Input value={ABILITY_LABELS[attack.ability]} readOnly />
+                  ) : (
+                    <select
+                      className="ui-input"
+                      value={attack.ability}
+                      onChange={(event) =>
+                        updateAttack(attack.id, {
+                          ability: event.target.value as AbilityKey,
+                        })
+                      }
+                    >
+                      {ABILITY_KEYS.map((key) => (
+                        <option key={key} value={key}>
+                          {ABILITY_LABELS[key]}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </Field>
                 <Field
                   label="Бонус атаки"
@@ -255,38 +262,51 @@ export function AttacksPanel({
                 <Field
                   label="Урон"
                   hint={
-                    magicDmg
-                      ? `с магией ${damageDisplay} (${magicDmg >= 0 ? '+' : ''}${magicDmg})`
-                      : undefined
+                    raceNatural
+                      ? `От расы (+${ABILITY_LABELS[attack.ability]})`
+                      : magicDmg
+                        ? `с магией ${damageDisplay} (${magicDmg >= 0 ? '+' : ''}${magicDmg})`
+                        : undefined
                   }
                 >
                   <Input
                     value={attack.damage}
-                    placeholder="1d8"
-                    onChange={(event) => updateAttack(attack.id, { damage: event.target.value })}
+                    placeholder="1к8"
+                    readOnly={raceNatural}
+                    onChange={
+                      raceNatural
+                        ? undefined
+                        : (event) => updateAttack(attack.id, { damage: event.target.value })
+                    }
                   />
                 </Field>
-                <Field label="Тип урона">
+                <Field label="Тип урона" hint={raceNatural ? 'От расы' : undefined}>
                   <Input
                     value={attack.damage_type}
                     placeholder="дробящий"
-                    onChange={(event) =>
-                      updateAttack(attack.id, { damage_type: event.target.value })
+                    readOnly={raceNatural}
+                    onChange={
+                      raceNatural
+                        ? undefined
+                        : (event) =>
+                            updateAttack(attack.id, { damage_type: event.target.value })
                     }
                   />
                 </Field>
-                <Field label="Кол-во" hint="для метательных / запасов">
-                  <NumberInput
-                    min={1}
-                    emptyValue={null}
-                    value={attack.qty ?? null}
-                    onValueChange={(qty) =>
-                      updateAttack(attack.id, {
-                        qty: qty == null || qty <= 1 ? null : qty,
-                      })
-                    }
-                  />
-                </Field>
+                {!raceNatural ? (
+                  <Field label="Кол-во" hint="для метательных / запасов">
+                    <NumberInput
+                      min={1}
+                      emptyValue={null}
+                      value={attack.qty ?? null}
+                      onValueChange={(qty) =>
+                        updateAttack(attack.id, {
+                          qty: qty == null || qty <= 1 ? null : qty,
+                        })
+                      }
+                    />
+                  </Field>
+                ) : null}
               </div>
               <div className="attack-card__footer">
                 {!raceNatural && attack.inventory_item_id && onToggleHeld ? (

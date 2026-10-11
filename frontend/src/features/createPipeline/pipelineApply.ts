@@ -20,7 +20,11 @@ import {
   emptyBackgroundPicks,
   type BackgroundGrantPicks,
 } from '../../shared/dnd/backgroundGrants'
-import { emptyRacePicks, type RaceGrantPicks } from '../../shared/dnd/raceGrants'
+import {
+  emptyRacePicks,
+  resolveRaceGrantDef,
+  type RaceGrantPicks,
+} from '../../shared/dnd/raceGrants'
 import type { ClassGrantPicks } from '../../shared/dnd/classGrants'
 import { emptyPicks as emptyClassGrantPicks } from '../characters/classEffects'
 import {
@@ -59,6 +63,7 @@ import {
 } from '../characters/backgroundEffects'
 import {
   applyRaceGrantToDraft,
+  ensureRaceNaturalWeaponAttacks,
   type RaceGrantDraftSlice,
 } from '../characters/raceEffects'
 import {
@@ -763,11 +768,21 @@ export async function applyPipelineToSheet(input: {
 
   // 2) Race
   const raceSetup = state.raceSetup
+  const raceId = raceSetup?.entry.id ?? state.subrace?.id ?? state.race?.id
+  const raceSlug = raceSetup?.entry.slug ?? state.subrace?.slug ?? state.race?.slug
   const raceEntry = await resolveCatalogEntry({
     kind: 'race',
-    id: raceSetup?.entry.id ?? state.subrace?.id ?? state.race?.id,
-    slug: raceSetup?.entry.slug ?? state.subrace?.slug ?? state.race?.slug,
+    id: raceId,
+    slug: raceSlug,
     snapshot: raceSetup?.entry ?? null,
+    cache: input.catalog?.races,
+  })
+  // Live catalog may have corrected natural_weapons after the create snapshot froze.
+  const liveRaceEntry = await resolveCatalogEntry({
+    kind: 'race',
+    id: raceId,
+    slug: raceSlug,
+    snapshot: null,
     cache: input.catalog?.races,
   })
   if (raceEntry) {
@@ -782,6 +797,25 @@ export async function applyPipelineToSheet(input: {
       hasCasterClass: characterHasCasterClass(classes),
     })
     if (applied) Object.assign(draft, mergeRace(draft, applied.draft))
+    const liveDef = liveRaceEntry
+      ? resolveRaceGrantDef({
+          raceName: liveRaceEntry.name_ru,
+          catalogSlug: liveRaceEntry.slug,
+          catalogData: liveRaceEntry.data,
+          nameRu: liveRaceEntry.name_ru,
+        })
+      : null
+    if (liveDef?.naturalWeapons.length && draft.raceGrant) {
+      draft.weapons = ensureRaceNaturalWeaponAttacks({
+        weapons: draft.weapons,
+        grant: draft.raceGrant,
+        catalogWeapons: liveDef.naturalWeapons,
+      })
+      draft.raceGrant = {
+        ...draft.raceGrant,
+        naturalWeapons: liveDef.naturalWeapons,
+      }
+    }
   }
 
   // Ensure abilities = base + racial (race apply already added bonuses onto base).
