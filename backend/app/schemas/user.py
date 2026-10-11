@@ -44,6 +44,7 @@ class UserResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     providers: list[str] = Field(default_factory=list)
+    is_admin: bool = False
 
 
 class UserUpdateRequest(BaseModel):

@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.api.routers import admin as admin_router
 from app.api.routers import auth as auth_router
 from app.api.routers import catalog as catalog_router
 from app.api.routers import characters as characters_router
@@ -23,6 +24,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router.router)
+app.include_router(admin_router.router)
 app.include_router(catalog_router.router)
 app.include_router(characters_router.router)
 app.include_router(lobbies_router.router)

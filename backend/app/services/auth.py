@@ -56,6 +56,7 @@ def serialize_user(user: User) -> UserResponse:
         created_at=user.created_at,
         updated_at=user.updated_at,
         providers=[identity.provider.value for identity in user.identities],
+        is_admin=settings.is_admin_email(user.email),
     )
 
 

@@ -80,6 +80,28 @@ def send_email_change_confirm(*, to: str, new_email: str, confirm_url: str) -> N
     )
 
 
+def send_admin_email_change_confirm(
+    *,
+    to: str,
+    current_email: str | None,
+    confirm_url: str,
+) -> None:
+    """Confirm to the NEW address — used when admin helps and old mail is unavailable."""
+    previous = current_email or "не указан"
+    send_email(
+        to=to,
+        subject="Dvarf — подтверждение нового email (помощь администратора)",
+        text_body=(
+            "Администратор Dvarf запросил смену email для вашего аккаунта.\n\n"
+            f"Прежний адрес: {previous}\n"
+            f"Новый адрес (это письмо): {to}\n\n"
+            "Email сменится только после перехода по ссылке:\n"
+            f"{confirm_url}\n\n"
+            "Если вы не просили об этом — проигнорируйте письмо, адрес не изменится.\n"
+        ),
+    )
+
+
 def send_registration_verify_email(*, to: str, verify_url: str) -> None:
     send_email(
         to=to,

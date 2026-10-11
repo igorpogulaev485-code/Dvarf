@@ -16,6 +16,11 @@ class UnauthorizedError(AppError):
         super().__init__(message, code=code, status_code=401)
 
 
+class ForbiddenError(AppError):
+    def __init__(self, message: str = "Forbidden", *, code: str = "forbidden") -> None:
+        super().__init__(message, code=code, status_code=403)
+
+
 class NotFoundError(AppError):
     def __init__(self, message: str = "Not found", *, code: str = "not_found") -> None:
         super().__init__(message, code=code, status_code=404)

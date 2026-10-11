@@ -3,9 +3,13 @@ import { BrowserRouter, Navigate, Route, Routes, useSearchParams } from 'react-r
 import { AuthDebugPage } from './pages/AuthDebugPage'
 import { CharactersPage } from './pages/CharactersPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
+import { RequireAdmin } from './shared/auth/RequireAdmin'
 import { getAccessToken } from './shared/api/client'
 import { safeNextPath } from './shared/auth/nextPath'
 
+const AdminPage = lazy(() =>
+  import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })),
+)
 const CabinetPage = lazy(() =>
   import('./pages/CabinetPage').then((m) => ({ default: m.CabinetPage })),
 )
@@ -202,6 +206,18 @@ export default function App() {
             <AuthLazy>
               <CabinetPage />
             </AuthLazy>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <RequireAuth>
+              <RequireAdmin>
+                <LazyPage>
+                  <AdminPage />
+                </LazyPage>
+              </RequireAdmin>
+            </RequireAuth>
           }
         />
         <Route path="*" element={<HomeRedirect />} />

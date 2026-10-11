@@ -6,7 +6,8 @@ from uuid import UUID
 from fastapi import Depends, Header, Request
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import UnauthorizedError
+from app.core.config import settings
+from app.core.exceptions import ForbiddenError, UnauthorizedError
 from app.core.security import decode_token
 from app.db.session import get_db
 from app.models.user import User
@@ -65,5 +66,12 @@ def get_current_session_id(
     return UUID(str(payload["sid"]))
 
 
+def require_admin(user: Annotated[User, Depends(get_current_user)]) -> User:
+    if not settings.is_admin_email(user.email):
+        raise ForbiddenError("Доступ только для администратора", code="admin_required")
+    return user
+
+
 CurrentUser = Annotated[User, Depends(get_current_user)]
 CurrentSessionId = Annotated[UUID, Depends(get_current_session_id)]
+CurrentAdmin = Annotated[User, Depends(require_admin)]

@@ -12,6 +12,7 @@ export type User = {
   created_at: string
   updated_at: string
   providers: string[]
+  is_admin?: boolean
 }
 
 export type UserUpdatePayload = {

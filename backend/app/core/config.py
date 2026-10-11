@@ -36,10 +36,25 @@ class Settings(BaseSettings):
     vk_redirect_uri: str = "http://localhost:8000/auth/oauth/vk/callback"
     vk_service_token: str = ""
     uploads_dir: str = "uploads"
+    # Comma-separated admin emails (lowercase compare). Only these see /admin.
+    admin_emails: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    @property
+    def admin_email_set(self) -> set[str]:
+        return {
+            email.strip().lower()
+            for email in self.admin_emails.split(",")
+            if email.strip()
+        }
+
+    def is_admin_email(self, email: str | None) -> bool:
+        if not email:
+            return False
+        return email.strip().lower() in self.admin_email_set
 
 
 settings = Settings()
