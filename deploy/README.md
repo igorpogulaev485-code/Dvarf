@@ -64,7 +64,8 @@ What `sync-and-up.sh` does:
 2. Packs the repo (no `.git`, no `node_modules`, no local `.env`)
 3. Extracts into `/opt/dvarf` while keeping the existing server `.env`
 4. Runs `docker compose -f docker-compose.prod.yml --env-file .env up -d --build`
-5. Curls `http://127.0.0.1/health` on the server (retries briefly)
+5. Runs `deploy/apply-vpn-mtu.sh` (tcp_mtu_probing + TCPMSS 1360 on :80 — mobile VPN; does **not** block VPN)
+6. Curls `http://127.0.0.1/health` on the server (retries briefly)
 
 Override host/key if needed:
 

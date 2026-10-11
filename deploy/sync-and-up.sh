@@ -78,6 +78,8 @@ if [[ -f /tmp/dvarf.env.bak ]]; then
 fi
 cd ${REMOTE_DIR}
 docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+# Mobile VPN / broken PMTUD: clamp MSS + tcp_mtu_probing (idempotent).
+bash ${REMOTE_DIR}/deploy/apply-vpn-mtu.sh
 # nginx/api may need a moment after recreate
 for i in 1 2 3 4 5 6 7 8 9 10; do
   if curl -fsS http://127.0.0.1/health; then

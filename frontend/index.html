@@ -32,14 +32,40 @@
     <div id="boot"><p>Загрузка Dvarf…</p></div>
     <div id="root"></div>
     <script>
-      window.addEventListener('error', function () {
-        var boot = document.getElementById('boot')
-        if (!boot || boot.hidden) return
-        var err = document.createElement('p')
-        err.className = 'err'
-        err.textContent = 'Не удалось загрузить приложение. Обновите страницу (сброс кэша).'
-        boot.appendChild(err)
-      })
+      (function () {
+        var shown = false
+        function showBootError(detail) {
+          var boot = document.getElementById('boot')
+          if (!boot || boot.hidden || shown) return
+          shown = true
+          var err = document.createElement('p')
+          err.className = 'err'
+          err.textContent =
+            'Не удалось загрузить приложение. Обновите страницу (сброс кэша).' +
+            (detail ? ' (' + detail + ')' : '')
+          boot.appendChild(err)
+        }
+        window.addEventListener('error', function (event) {
+          var detail = ''
+          if (event && event.filename) {
+            detail = String(event.filename).split('/').pop()
+          } else if (event && event.message) {
+            detail = String(event.message).slice(0, 80)
+          }
+          showBootError(detail)
+        })
+        window.addEventListener('unhandledrejection', function () {
+          showBootError('promise')
+        })
+        // If modules never arrive (VPN/MTU blackhole), leave a visible hint.
+        setTimeout(function () {
+          var boot = document.getElementById('boot')
+          var root = document.getElementById('root')
+          if (!boot || boot.hidden) return
+          if (root && root.childNodes.length > 0) return
+          showBootError('timeout 20s — проверьте сеть/VPN и обновите')
+        }, 20000)
+      })()
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
