@@ -226,17 +226,6 @@ export function ClassSetupDialog({
                   </button>
                 )
               })}
-              <button
-                type="button"
-                className={`sheet-chip${equipmentPackageId === 'skip' ? ' is-on' : ''}`}
-                style={{ display: 'block', width: '100%', textAlign: 'left' }}
-                onClick={() => setEquipmentPackageId('skip')}
-              >
-                <strong>Без снаряжения</strong>
-                <div style={{ opacity: 0.85, fontWeight: 400 }}>
-                  Оставить инвентарь как есть — заполню сам
-                </div>
-              </button>
             </Stack>
           </Field>
         ) : null}

@@ -222,17 +222,6 @@ function ClassGrantStepBody({
                 </button>
               )
             })}
-            <button
-              type="button"
-              className={`sheet-chip${picks.equipmentPackageId === 'skip' ? ' is-on' : ''}`}
-              style={{ display: 'block', width: '100%', textAlign: 'left' }}
-              onClick={() => onChange({ ...picks, equipmentPackageId: 'skip' })}
-            >
-              <strong>Без снаряжения</strong>
-              <div style={{ opacity: 0.85, fontWeight: 400 }}>
-                Оставить инвентарь как есть — заполню сам
-              </div>
-            </button>
           </Stack>
         </Field>
       ) : null}

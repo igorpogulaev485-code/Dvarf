@@ -828,7 +828,7 @@ export type ClassEquipmentFocusPick = {
 export type ClassGrantPicks = {
   skills: string[]
   tools: string[]
-  /** Required for start mode when class has packages; 'skip' = без снаряжения. */
+  /** Required for start mode when class has packages (gear pack or «Золото»). */
   equipmentPackageId: string | null
   /** When the package has a focus placeholder — catalog row or custom look. */
   equipmentFocusPick?: ClassEquipmentFocusPick | null

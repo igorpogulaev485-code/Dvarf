@@ -10,6 +10,9 @@ import {
 import {
   setFeaturePick,
   emptyFeaturePicks,
+  getFeaturePick,
+  getFeaturePickList,
+  toggleFeaturePickInList,
   type FeaturePicksState,
 } from './featurePicks'
 import {
@@ -86,6 +89,30 @@ assert(options.some((o) => o.id === THIEVES_TOOLS_OPTION_ID), 'thieves tools in 
 
 picks = setFeaturePick(picks, 'c1', 'expertise_1', 'stealth,perception')
 assert(isFeatureChoiceComplete(expertiseFeature, picks), 'expertise complete after 2 picks')
+
+// Multi-select: full list ignores new click; deselect then pick replacement.
+let multi = emptyFeaturePicks()
+multi = toggleFeaturePickInList(multi, 'c1', 'expertise_1', 'stealth', 2)
+multi = toggleFeaturePickInList(multi, 'c1', 'expertise_1', 'perception', 2)
+multi = toggleFeaturePickInList(multi, 'c1', 'expertise_1', 'acrobatics', 2)
+assert(
+  getFeaturePickList(multi, 'c1', 'expertise_1').join(',') === 'stealth,perception',
+  'full multi-select ignores third click (no FIFO)',
+)
+multi = toggleFeaturePickInList(multi, 'c1', 'expertise_1', 'stealth', 2)
+multi = toggleFeaturePickInList(multi, 'c1', 'expertise_1', 'acrobatics', 2)
+assert(
+  getFeaturePickList(multi, 'c1', 'expertise_1').join(',') === 'perception,acrobatics',
+  'deselect then pick replaces one slot',
+)
+// Single-select replaces on click.
+let single = emptyFeaturePicks()
+single = toggleFeaturePickInList(single, 'c1', 'fighting_style', 'archery', 1)
+single = toggleFeaturePickInList(single, 'c1', 'fighting_style', 'defense', 1)
+assert(
+  getFeaturePick(single, 'c1', 'fighting_style') === 'defense',
+  'single-select click replaces current pick',
+)
 
 const synced = syncSkillsExpertiseFromPicks({
   skills: skillState(['stealth', 'perception', 'acrobatics', 'investigation']),

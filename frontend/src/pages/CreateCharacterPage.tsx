@@ -931,6 +931,7 @@ export function CreateCharacterPage() {
   if (step === 'race') {
     cards = (
       <CatalogCardList
+        resetToken={step}
         items={races.map((entry) => ({
           id: entry.id,
           title: entry.name_ru,
@@ -990,6 +991,7 @@ export function CreateCharacterPage() {
   if (step === 'feat') {
     cards = (
       <CatalogCardList
+        resetToken={step}
         items={feats.map((entry) => ({
           id: entry.id,
           title: entry.name_ru,
@@ -1062,6 +1064,7 @@ export function CreateCharacterPage() {
   if (step === 'background') {
     cards = (
       <CatalogCardList
+        resetToken={step}
         items={backgrounds.map((entry) => ({
           id: entry.id,
           title: entry.name_ru,
@@ -1108,6 +1111,7 @@ export function CreateCharacterPage() {
   if (step === 'class') {
     cards = (
       <CatalogCardList
+        resetToken={step}
         items={classes.map((entry) => ({
           id: entry.id,
           title: entry.name_ru,

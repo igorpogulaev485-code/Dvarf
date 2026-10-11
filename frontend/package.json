@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "selfcheck:pending-choices": "tsx src/shared/dnd/pendingFeatureChoices.selfcheck.ts"
+    "selfcheck:pending-choices": "tsx src/shared/dnd/pendingFeatureChoices.selfcheck.ts",
+    "selfcheck:spell-catalog": "tsx src/shared/dnd/spellCatalog.selfcheck.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
