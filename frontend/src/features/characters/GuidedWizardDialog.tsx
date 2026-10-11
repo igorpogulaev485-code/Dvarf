@@ -79,7 +79,8 @@ type GuidedWizardDialogProps = {
   onToast?: (message: string) => void
   /**
    * Pick archetype inside the subclass wizard step.
-   * Parent opens SubclassSetup / commits grant, then advances the wizard.
+   * Parent pauses this wizard, opens SubclassSetup for forks (or commits empty
+   * packs immediately), then resumes / advances the queue.
    */
   onPickSubclass?: (classEntryId: string, entry: CatalogEntry) => void
   /** classEntryId → parent class catalog id (filters subclass combobox). */

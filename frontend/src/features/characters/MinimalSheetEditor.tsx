@@ -575,6 +575,9 @@ export function MinimalSheetEditor({
   /** Wizard paused while BackgroundSetupDialog is open from a wizard step. */
   const [pausedWizardForBackground, setPausedWizardForBackground] =
     useState<GuidedWizardSession | null>(null)
+  /** Wizard paused while SubclassSetupDialog collects archetype forks. */
+  const [pausedWizardForSubclass, setPausedWizardForSubclass] =
+    useState<GuidedWizardSession | null>(null)
   /** Consumed once after first start-mode class grant (create at N). */
   const [pendingStartingLevel, setPendingStartingLevel] = useState(() =>
     clampCharacterLevel(startingLevelProp || 1),
@@ -1278,11 +1281,23 @@ export function MinimalSheetEditor({
   }
 
   function advanceGuidedWizardAfterSubclass() {
-    setGuidedWizard((prev) => {
-      if (!prev) return null
-      const nextIndex = prev.index + 1
-      if (nextIndex >= prev.steps.length) return null
-      return { ...prev, index: nextIndex }
+    setPausedWizardForSubclass((paused) => {
+      if (paused) {
+        const nextIndex = paused.index + 1
+        if (nextIndex >= paused.steps.length) {
+          setGuidedWizard(null)
+        } else {
+          setGuidedWizard({ ...paused, index: nextIndex })
+        }
+        return null
+      }
+      setGuidedWizard((prev) => {
+        if (!prev) return null
+        const nextIndex = prev.index + 1
+        if (nextIndex >= prev.steps.length) return null
+        return { ...prev, index: nextIndex }
+      })
+      return null
     })
   }
 
@@ -1313,6 +1328,12 @@ export function MinimalSheetEditor({
       return
     }
     if (subclassNeedsSetupDialog(def)) {
+      // Pause wizard so archetype forks open in SubclassSetup alone (same as
+      // background setup — avoids stacking under the wizard at z-index 50).
+      if (input.advanceWizardAfter && guidedWizard) {
+        setPausedWizardForSubclass(guidedWizard)
+        setGuidedWizard(null)
+      }
       setSubclassSetup({
         classEntryId: input.classEntryId,
         selected: input.selected,
@@ -3916,7 +3937,13 @@ export function MinimalSheetEditor({
       <SubclassSetupDialog
         open={subclassSetup != null}
         def={subclassSetup?.def ?? null}
-        onClose={() => setSubclassSetup(null)}
+        onClose={() => {
+          setSubclassSetup(null)
+          if (pausedWizardForSubclass) {
+            setGuidedWizard(pausedWizardForSubclass)
+            setPausedWizardForSubclass(null)
+          }
+        }}
         onConfirm={(picks) => {
           if (!subclassSetup) return
           commitSubclassGrant({
