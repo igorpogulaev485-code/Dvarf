@@ -36,10 +36,10 @@ type LevelingStepProps = {
   featNoteRu?: string | null
   onClassesChange: (classes: ClassLevelEntry[]) => void
   onHpChoicesChange: (choices: HpLevelChoice[]) => void
-  /** Opens GuidedWizard (feature_choice / ASI / expertise). MC may open ClassSetup first. */
+  /** Opens GuidedWizard (subclass gate / feature_choice / ASI / expertise). MC may open ClassSetup first. */
   onOpenChoices: (classEntryId: string) => void
-  /** Opens subclass catalog picker → SubclassSetupDialog. */
-  onOpenArchetype: (classEntryId: string) => void
+  /** Change already-selected archetype (not the primary pick path). */
+  onChangeArchetype: (classEntryId: string) => void
   onOpenSpells: () => void
 }
 
@@ -85,7 +85,7 @@ export function LevelingStep({
   onClassesChange,
   onHpChoicesChange,
   onOpenChoices,
-  onOpenArchetype,
+  onChangeArchetype,
   onOpenSpells,
 }: LevelingStepProps) {
   const [mcOpen, setMcOpen] = useState(false)
@@ -184,9 +184,8 @@ export function LevelingStep({
       <div>
         <Text as="h2">Прокачка</Text>
         <Text tone="muted">
-          Уровни, HP (среднее/бросок), архетип, GuidedWizard для умений L1+ / ASI / expertise,
-          мультикласс и заклинания. Стартовые навыки и снаряжение основного класса уже выбраны на
-          шаге «Класс».
+          Уровни, HP (среднее/бросок), развилки (архетип на гейте уровня, умения, ASI), мультикласс и
+          заклинания. Стартовые навыки и снаряжение основного класса уже выбраны на шаге «Класс».
         </Text>
       </div>
 
@@ -217,10 +216,6 @@ export function LevelingStep({
               </Field>
             </div>
             <div className="create-pipeline__level-actions">
-              <Button variant="secondary" onClick={() => onOpenArchetype(row.id)}>
-                Архетип
-                {row.subclass_name.trim() ? `: ${row.subclass_name}` : ''}
-              </Button>
               <Button variant="secondary" onClick={() => onOpenChoices(row.id)}>
                 {isPrimary && hasGrants
                   ? 'Развилки и умения'
@@ -230,6 +225,13 @@ export function LevelingStep({
                       ? 'Развилки и умения'
                       : 'Владения мультикласса'}
               </Button>
+              {row.subclass_name.trim() || row.subclass_catalog_id ? (
+                <Button variant="ghost" onClick={() => onChangeArchetype(row.id)}>
+                  Сменить архетип: {row.subclass_name.trim() || '—'}
+                </Button>
+              ) : (
+                <Text tone="muted">Архетип — в развилках, когда откроется гейт класса</Text>
+              )}
               {!isPrimary ? (
                 <Button
                   variant="ghost"

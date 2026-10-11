@@ -62,6 +62,7 @@ export function buildSheetFromPipeline(
     'race_grant',
     'class_grants',
     'subclass_grants',
+    'subclass_transitions',
     'feature_picks',
     'class_asi',
     'skills',

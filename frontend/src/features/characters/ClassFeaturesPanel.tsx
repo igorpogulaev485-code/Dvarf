@@ -82,6 +82,17 @@ type ClassFeaturesPanelProps = {
   characterLevel: number
   abilities?: Partial<Record<AbilityScoreKey, number>>
   subclassSlugByEntryId?: Record<string, string | null | undefined>
+  subclassTransitionByEntryId?: Record<
+    string,
+    | {
+        mode: 'future_only'
+        changedAtClassLevel: number
+        previousSlug: string
+        previousNameRu?: string
+      }
+    | null
+    | undefined
+  >
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
   featurePicks: FeaturePicksState
@@ -1135,6 +1146,7 @@ export function ClassFeaturesPanel({
   characterLevel,
   abilities,
   subclassSlugByEntryId,
+  subclassTransitionByEntryId,
   resources,
   onResourcesChange,
   featurePicks,
@@ -1153,8 +1165,15 @@ export function ClassFeaturesPanel({
         characterLevel,
         abilities,
         subclassSlugByEntryId,
+        subclassTransitionByEntryId,
       }),
-    [classes, characterLevel, abilities, subclassSlugByEntryId],
+    [
+      classes,
+      characterLevel,
+      abilities,
+      subclassSlugByEntryId,
+      subclassTransitionByEntryId,
+    ],
   )
   const expertiseKeys = useMemo(() => listUnlockedExpertiseKeys(features), [features])
 

@@ -82,6 +82,23 @@ export function clearFeaturePicksForClass(
   return { values: next }
 }
 
+/** Drop picks for specific feature ids on a class entry. */
+export function clearFeaturePicksForFeatureIds(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  featureIds: Iterable<string>,
+): FeaturePicksState {
+  const drop = new Set(featureIds)
+  if (drop.size === 0) return picks
+  const prefix = `${classEntryId}:`
+  const next: Record<string, string> = {}
+  for (const [key, value] of Object.entries(picks.values)) {
+    if (key.startsWith(prefix) && drop.has(key.slice(prefix.length))) continue
+    next[key] = value
+  }
+  return { values: next }
+}
+
 export function toggleFeaturePickInList(
   picks: FeaturePicksState,
   classEntryId: string,

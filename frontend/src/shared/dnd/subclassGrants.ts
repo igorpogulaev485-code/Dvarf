@@ -104,6 +104,27 @@ export type AppliedSubclassGrant = {
   grantedSpellIds: string[]
 }
 
+/** How a mid-campaign archetype swap rewrites abilities. */
+export type SubclassChangeMode = 'replace_all' | 'future_only'
+
+/**
+ * Recorded when the player changes archetype after it was already chosen.
+ * `future_only`: keep sheet grants + features of the previous slug at
+ * `level ≤ changedAtClassLevel`; unlock the new slug only above that watermark.
+ * Starting grants of the new archetype are not applied in this mode.
+ */
+export type SubclassTransition = {
+  classEntryId: string
+  mode: SubclassChangeMode
+  changedAtClassLevel: number
+  previousSlug: string
+  previousCatalogId: string | null
+  previousNameRu: string
+  /** Active (new) slug after the change — used with class row name for unlock. */
+  activeSlug: string
+  activeCatalogId: string | null
+}
+
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -440,6 +461,47 @@ export function emptyAppliedSubclassGrant(): AppliedSubclassGrant {
     caster: null,
     grantedSpellIds: [],
   }
+}
+
+export function readSubclassTransitions(raw: unknown): SubclassTransition[] {
+  if (!Array.isArray(raw)) return []
+  const result: SubclassTransition[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue
+    const row = item as Record<string, unknown>
+    if (typeof row.classEntryId !== 'string') continue
+    if (row.mode !== 'replace_all' && row.mode !== 'future_only') continue
+    const changedAtClassLevel = Number(row.changedAtClassLevel)
+    if (!Number.isFinite(changedAtClassLevel) || changedAtClassLevel < 1) continue
+    if (typeof row.activeSlug !== 'string' || !row.activeSlug.trim()) continue
+    result.push({
+      classEntryId: row.classEntryId,
+      mode: row.mode,
+      changedAtClassLevel: Math.min(20, Math.floor(changedAtClassLevel)),
+      previousSlug: typeof row.previousSlug === 'string' ? row.previousSlug : '',
+      previousCatalogId:
+        typeof row.previousCatalogId === 'string' ? row.previousCatalogId : null,
+      previousNameRu: typeof row.previousNameRu === 'string' ? row.previousNameRu : '',
+      activeSlug: row.activeSlug.trim(),
+      activeCatalogId:
+        typeof row.activeCatalogId === 'string' ? row.activeCatalogId : null,
+    })
+  }
+  return result
+}
+
+export function upsertSubclassTransition(
+  list: SubclassTransition[],
+  next: SubclassTransition,
+): SubclassTransition[] {
+  return [...list.filter((row) => row.classEntryId !== next.classEntryId), next]
+}
+
+export function clearSubclassTransition(
+  list: SubclassTransition[],
+  classEntryId: string,
+): SubclassTransition[] {
+  return list.filter((row) => row.classEntryId !== classEntryId)
 }
 
 /** @deprecated parse only — empty sheet grants helper kept for tests */

@@ -2,15 +2,20 @@
 
 import type { AppliedClassGrant, ArmorProfKey, WeaponProfKey } from '../../shared/dnd/classGrants'
 import {
+  clearSubclassTransition,
   collectGrantTextSnippets,
   emptySubclassPicks,
   formatSubclassGrantSummary,
   parseSubclassGrantDef,
+  readSubclassTransitions,
   subclassNeedsSetupDialog,
+  upsertSubclassTransition,
   validateSubclassPicks,
   type AppliedSubclassGrant,
+  type SubclassChangeMode,
   type SubclassGrantDef,
   type SubclassGrantPicks,
+  type SubclassTransition,
 } from '../../shared/dnd/subclassGrants'
 import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
 import type { AppliedRaceGrant } from '../../shared/dnd/raceGrants'
@@ -32,6 +37,7 @@ export type SubclassGrantDraftSlice = {
   skills: SkillState
   classGrants: AppliedClassGrant[]
   subclassGrants: AppliedSubclassGrant[]
+  subclassTransitions: SubclassTransition[]
   raceGrant: AppliedRaceGrant | null
   companions: CompanionEntry[]
   textBlocks: TextBlock[]
@@ -232,7 +238,14 @@ export function revokeSubclassGrant(
   options?: { copyTextToNotes?: boolean; def?: SubclassGrantDef | null },
 ): SubclassGrantDraftSlice {
   const previous = draft.subclassGrants.find((row) => row.classEntryId === classEntryId)
-  if (!previous) return draft
+  const transitions = clearSubclassTransition(
+    draft.subclassTransitions ?? [],
+    classEntryId,
+  )
+  if (!previous) {
+    if (transitions.length === (draft.subclassTransitions ?? []).length) return draft
+    return { ...draft, subclassTransitions: transitions }
+  }
 
   const remaining = unionSubclassExcept(draft.subclassGrants, classEntryId)
   const classSkills = unionClassSkills(draft.classGrants)
@@ -321,6 +334,7 @@ export function revokeSubclassGrant(
     ...draft,
     skills,
     subclassGrants: remaining,
+    subclassTransitions: transitions,
     companions,
     textBlocks,
     spells: { ...draft.spells, known },
@@ -334,6 +348,12 @@ export function revokeSubclassGrant(
   }
 }
 
+/**
+ * Apply a new archetype.
+ * - `replace_all` / initial: revoke previous grants, apply new sheet grants.
+ * - `future_only`: keep previous sheet grants/spells/companions; do not apply
+ *   starting grants of the new archetype; record a transition watermark.
+ */
 export function applySubclassGrantToDraft(input: {
   draft: SubclassGrantDraftSlice
   classEntryId: string
@@ -342,15 +362,79 @@ export function applySubclassGrantToDraft(input: {
   picks?: SubclassGrantPicks
   copyOldTextToNotes?: boolean
   previousDef?: SubclassGrantDef | null
+  changeMode?: SubclassChangeMode | 'initial'
+  changedAtClassLevel?: number
+  previousNameRu?: string
+  previousCatalogId?: string | null
+  previousSlug?: string
 }): { draft: SubclassGrantDraftSlice; summary: string } | null {
   const picks = input.picks ?? emptySubclassPicks()
+  const changeMode = input.changeMode ?? 'initial'
+
+  if (changeMode === 'future_only') {
+    const watermark = Math.min(
+      20,
+      Math.max(1, Math.floor(input.changedAtClassLevel ?? 1)),
+    )
+    const previous = input.draft.subclassGrants.find(
+      (row) => row.classEntryId === input.classEntryId,
+    )
+    const previousSlug =
+      input.previousSlug ||
+      previous?.slug ||
+      input.previousDef?.slug ||
+      ''
+    const transition: SubclassTransition = {
+      classEntryId: input.classEntryId,
+      mode: 'future_only',
+      changedAtClassLevel: watermark,
+      previousSlug,
+      previousCatalogId:
+        input.previousCatalogId ?? previous?.catalogId ?? null,
+      previousNameRu: input.previousNameRu ?? input.previousDef?.labelRu ?? '',
+      activeSlug: input.def.slug,
+      activeCatalogId: input.catalogId,
+    }
+    let textBlocks = input.draft.textBlocks
+    if (input.copyOldTextToNotes) {
+      const snippets = collectGrantTextSnippets({
+        def: input.previousDef ?? null,
+        grant: previous ?? null,
+      })
+      if (snippets.length) {
+        textBlocks = appendNotesBlock(
+          textBlocks,
+          `Смена архетипа (только будущие уровни) «${previousSlug || '—'}» → «${input.def.slug}» с ${watermark} ур.:\n- ${snippets.join('\n- ')}\n(владения и уже открытые умения старого архетипа сохранены)`,
+        )
+      }
+    }
+    return {
+      draft: {
+        ...input.draft,
+        textBlocks,
+        subclassTransitions: upsertSubclassTransition(
+          input.draft.subclassTransitions ?? [],
+          transition,
+        ),
+      },
+      summary: `только будущие уровни (с ${watermark + 1}); владения «${previousSlug || 'старого'}» сохранены`,
+    }
+  }
+
   const pickError = validateSubclassPicks(input.def, picks)
   if (pickError) return null
 
-  const cleared = revokeSubclassGrant(input.draft, input.classEntryId, {
+  const clearedBase = revokeSubclassGrant(input.draft, input.classEntryId, {
     copyTextToNotes: input.copyOldTextToNotes,
     def: input.previousDef ?? null,
   })
+  const cleared: SubclassGrantDraftSlice = {
+    ...clearedBase,
+    subclassTransitions: clearSubclassTransition(
+      clearedBase.subclassTransitions ?? [],
+      input.classEntryId,
+    ),
+  }
 
   const skillsApplied = uniqueStrings([
     ...input.def.sheetGrants.skillsFixed,
@@ -512,4 +596,9 @@ export {
   subclassNeedsSetupDialog,
   validateSubclassPicks,
   parseSubclassGrantDef,
+  readSubclassTransitions,
+  clearSubclassTransition,
+  upsertSubclassTransition,
 }
+
+export type { SubclassChangeMode, SubclassTransition }

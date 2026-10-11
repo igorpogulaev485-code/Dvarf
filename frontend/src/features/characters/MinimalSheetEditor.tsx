@@ -63,13 +63,16 @@ import {
 import {
   collectGrantTextSnippets,
   type AppliedSubclassGrant,
+  type SubclassChangeMode,
   type SubclassGrantDef,
   type SubclassGrantPicks,
+  type SubclassTransition,
 } from '../../shared/dnd/subclassGrants'
 import {
   applySubclassGrantToDraft,
   emptySubclassPicks,
   readAppliedSubclassGrants,
+  readSubclassTransitions,
   resolveSubclassDefFromCatalog,
   revokeSubclassGrant,
   subclassNeedsSetupDialog,
@@ -183,9 +186,13 @@ import {
   desiredResourcesFromFeatures,
   syncFeatureResources,
 } from '../../shared/dnd/featureResources'
-import { unlockFeaturesForClasses } from '../../shared/dnd/classFeatures'
+import {
+  listSubclassFeatureIdsAboveLevel,
+  unlockFeaturesForClasses,
+} from '../../shared/dnd/classFeatures'
 import {
   clearFeaturePicksForClass,
+  clearFeaturePicksForFeatureIds,
   findFightingStylePick,
   featurePicksToSheet,
   readFeaturePicks,
@@ -289,6 +296,7 @@ type Draft = {
   textBlocks: TextBlock[]
   classGrants: AppliedClassGrant[]
   subclassGrants: AppliedSubclassGrant[]
+  subclassTransitions: SubclassTransition[]
   raceGrant: AppliedRaceGrant | null
   backgroundGrant: AppliedBackgroundGrant | null
   backgroundCatalogId: string | null
@@ -456,6 +464,7 @@ function buildDraft(character: CharacterDetail): Draft {
     textBlocks: readTextBlocks(sheet),
     classGrants: readAppliedClassGrants(sheet.class_grants),
     subclassGrants: readAppliedSubclassGrants(sheet.subclass_grants),
+    subclassTransitions: readSubclassTransitions(sheet.subclass_transitions),
     raceGrant: readAppliedRaceGrant(sheet.race_grant),
     backgroundGrant: readAppliedBackgroundGrant(sheet.background_grant),
     backgroundCatalogId:
@@ -472,6 +481,54 @@ function buildDraft(character: CharacterDetail): Draft {
 function grantedFeatSlugFromCatalog(entry: CatalogEntry): string | null {
   const raw = asRecord(entry.data).granted_feat_slug
   return typeof raw === 'string' && raw.trim() ? raw.trim() : null
+}
+
+function subclassSlugMapFromLedger(input: {
+  subclassGrants: AppliedSubclassGrant[]
+  subclassTransitions: SubclassTransition[]
+}): Record<string, string> {
+  const map: Record<string, string> = {}
+  for (const grant of input.subclassGrants) {
+    if (grant.classEntryId && grant.slug) map[grant.classEntryId] = grant.slug
+  }
+  for (const transition of input.subclassTransitions) {
+    if (transition.mode === 'future_only' && transition.activeSlug) {
+      map[transition.classEntryId] = transition.activeSlug
+    }
+  }
+  return map
+}
+
+function subclassTransitionMapFromLedger(
+  transitions: SubclassTransition[],
+): Record<
+  string,
+  {
+    mode: 'future_only'
+    changedAtClassLevel: number
+    previousSlug: string
+    previousNameRu?: string
+  }
+> {
+  const map: Record<
+    string,
+    {
+      mode: 'future_only'
+      changedAtClassLevel: number
+      previousSlug: string
+      previousNameRu?: string
+    }
+  > = {}
+  for (const transition of transitions) {
+    if (transition.mode !== 'future_only') continue
+    map[transition.classEntryId] = {
+      mode: 'future_only',
+      changedAtClassLevel: transition.changedAtClassLevel,
+      previousSlug: transition.previousSlug,
+      previousNameRu: transition.previousNameRu,
+    }
+  }
+  return map
 }
 
 function cycleSkill(state: { is_proficient: boolean; is_expertise: boolean }) {
@@ -551,6 +608,12 @@ export function MinimalSheetEditor({
     def: SubclassGrantDef
     copyOldTextToNotes: boolean
     previousDef: SubclassGrantDef | null
+    changeMode?: SubclassChangeMode | 'initial'
+    changedAtClassLevel?: number
+    previousNameRu?: string
+    previousCatalogId?: string | null
+    previousSlug?: string
+    advanceWizardAfter?: boolean
   } | null>(null)
   const [subclassChange, setSubclassChange] = useState<{
     classEntryId: string
@@ -559,6 +622,9 @@ export function MinimalSheetEditor({
     fromName: string
     textSnippets: string[]
     previousDef: SubclassGrantDef | null
+    previousSlug: string
+    previousCatalogId: string | null
+    classLevel: number
   } | null>(null)
   const channelRef = useRef<BroadcastChannel | null>(null)
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
@@ -591,8 +657,34 @@ export function MinimalSheetEditor({
         map[grant.classEntryId] = grant.slug
       }
     }
+    for (const transition of draft.subclassTransitions) {
+      if (transition.mode === 'future_only' && transition.activeSlug) {
+        map[transition.classEntryId] = transition.activeSlug
+      }
+    }
     return map
-  }, [draft.subclassGrants])
+  }, [draft.subclassGrants, draft.subclassTransitions])
+  const subclassTransitionByEntryId = useMemo(() => {
+    const map: Record<
+      string,
+      {
+        mode: 'future_only'
+        changedAtClassLevel: number
+        previousSlug: string
+        previousNameRu?: string
+      }
+    > = {}
+    for (const transition of draft.subclassTransitions) {
+      if (transition.mode !== 'future_only') continue
+      map[transition.classEntryId] = {
+        mode: 'future_only',
+        changedAtClassLevel: transition.changedAtClassLevel,
+        previousSlug: transition.previousSlug,
+        previousNameRu: transition.previousNameRu,
+      }
+    }
+    return map
+  }, [draft.subclassTransitions])
   const unlockedFeatures = useMemo(
     () =>
       unlockFeaturesForClasses({
@@ -600,8 +692,15 @@ export function MinimalSheetEditor({
         characterLevel,
         abilities: draft.abilities,
         subclassSlugByEntryId,
+        subclassTransitionByEntryId,
       }),
-    [draft.classes, characterLevel, draft.abilities, subclassSlugByEntryId],
+    [
+      draft.classes,
+      characterLevel,
+      draft.abilities,
+      subclassSlugByEntryId,
+      subclassTransitionByEntryId,
+    ],
   )
   const expertiseKeys = useMemo(
     () => listUnlockedExpertiseKeys(unlockedFeatures),
@@ -1064,6 +1163,7 @@ export function MinimalSheetEditor({
       skills: prev.skills,
       classGrants: prev.classGrants,
       subclassGrants: prev.subclassGrants,
+      subclassTransitions: prev.subclassTransitions,
       raceGrant: prev.raceGrant,
       companions: prev.companions,
       textBlocks: prev.textBlocks,
@@ -1077,6 +1177,7 @@ export function MinimalSheetEditor({
       identity: slice.identity,
       skills: slice.skills,
       subclassGrants: slice.subclassGrants,
+      subclassTransitions: slice.subclassTransitions,
       companions: slice.companions,
       textBlocks: slice.textBlocks,
       spells: slice.spells,
@@ -1092,8 +1193,15 @@ export function MinimalSheetEditor({
     picks: SubclassGrantPicks
     copyOldTextToNotes?: boolean
     previousDef?: SubclassGrantDef | null
+    changeMode?: SubclassChangeMode | 'initial'
+    changedAtClassLevel?: number
+    previousNameRu?: string
+    previousCatalogId?: string | null
+    previousSlug?: string
+    advanceWizardAfter?: boolean
   }) {
     let summary: string | null = null
+    const changeMode = input.changeMode ?? 'initial'
     setDraft((prev) => {
       const applied = applySubclassGrantToDraft({
         draft: subclassSliceFrom(prev),
@@ -1103,22 +1211,56 @@ export function MinimalSheetEditor({
         picks: input.picks,
         copyOldTextToNotes: input.copyOldTextToNotes,
         previousDef: input.previousDef ?? null,
+        changeMode,
+        changedAtClassLevel:
+          input.changedAtClassLevel ??
+          prev.classes.find((row) => row.id === input.classEntryId)?.level ??
+          1,
+        previousNameRu: input.previousNameRu,
+        previousCatalogId: input.previousCatalogId,
+        previousSlug: input.previousSlug,
       })
       if (!applied) return prev
       summary = applied.summary
       const withGrant = mergeSubclassSlice(prev, applied.draft)
+      const row = withGrant.classes.find((item) => item.id === input.classEntryId)
+      const watermark =
+        input.changedAtClassLevel ??
+        row?.level ??
+        1
+      let nextPicks = withGrant.featurePicks
+      if (changeMode === 'future_only') {
+        const dropIds = [
+          ...listSubclassFeatureIdsAboveLevel({
+            className: row?.name ?? '',
+            subclassSlug: input.previousSlug ?? input.previousDef?.slug,
+            minLevel: watermark,
+          }),
+          ...listSubclassFeatureIdsAboveLevel({
+            className: row?.name ?? '',
+            subclassSlug: input.def.slug,
+            minLevel: watermark,
+          }),
+        ]
+        nextPicks = clearFeaturePicksForFeatureIds(
+          withGrant.featurePicks,
+          input.classEntryId,
+          dropIds,
+        )
+      } else if (changeMode === 'replace_all') {
+        nextPicks = clearFeaturePicksForClass(withGrant.featurePicks, input.classEntryId)
+      }
       return {
         ...withGrant,
-        // Subclass swap: drop old archetype feature picks (totem, style, …)
-        featurePicks: clearFeaturePicksForClass(withGrant.featurePicks, input.classEntryId),
-        classes: withGrant.classes.map((row) =>
-          row.id === input.classEntryId
+        featurePicks: nextPicks,
+        classes: withGrant.classes.map((item) =>
+          item.id === input.classEntryId
             ? {
-                ...row,
+                ...item,
                 subclass_name: input.selected.name_ru,
                 subclass_catalog_id: input.selected.id,
               }
-            : row,
+            : item,
         ),
         identity:
           withGrant.classes[0]?.id === input.classEntryId
@@ -1129,6 +1271,18 @@ export function MinimalSheetEditor({
     if (summary) {
       onToast(`Архетип «${input.selected.name_ru}»: ${summary}`)
     }
+    if (input.advanceWizardAfter) {
+      advanceGuidedWizardAfterSubclass()
+    }
+  }
+
+  function advanceGuidedWizardAfterSubclass() {
+    setGuidedWizard((prev) => {
+      if (!prev) return null
+      const nextIndex = prev.index + 1
+      if (nextIndex >= prev.steps.length) return null
+      return { ...prev, index: nextIndex }
+    })
   }
 
   function beginSubclassSelection(input: {
@@ -1136,6 +1290,12 @@ export function MinimalSheetEditor({
     selected: CatalogEntry
     copyOldTextToNotes?: boolean
     previousDef?: SubclassGrantDef | null
+    changeMode?: SubclassChangeMode | 'initial'
+    changedAtClassLevel?: number
+    previousNameRu?: string
+    previousCatalogId?: string | null
+    previousSlug?: string
+    advanceWizardAfter?: boolean
   }) {
     const def = resolveSubclassDefFromCatalog({
       nameRu: input.selected.name_ru,
@@ -1148,6 +1308,7 @@ export function MinimalSheetEditor({
         subclass_catalog_id: input.selected.id,
       })
       onToast(`Архетип «${input.selected.name_ru}» без пакета грантов — только имя`)
+      if (input.advanceWizardAfter) advanceGuidedWizardAfterSubclass()
       return
     }
     if (subclassNeedsSetupDialog(def)) {
@@ -1157,6 +1318,12 @@ export function MinimalSheetEditor({
         def,
         copyOldTextToNotes: Boolean(input.copyOldTextToNotes),
         previousDef: input.previousDef ?? null,
+        changeMode: input.changeMode,
+        changedAtClassLevel: input.changedAtClassLevel,
+        previousNameRu: input.previousNameRu,
+        previousCatalogId: input.previousCatalogId,
+        previousSlug: input.previousSlug,
+        advanceWizardAfter: input.advanceWizardAfter,
       })
       return
     }
@@ -1167,22 +1334,36 @@ export function MinimalSheetEditor({
       picks: emptySubclassPicks(),
       copyOldTextToNotes: input.copyOldTextToNotes,
       previousDef: input.previousDef ?? null,
+      changeMode: input.changeMode,
+      changedAtClassLevel: input.changedAtClassLevel,
+      previousNameRu: input.previousNameRu,
+      previousCatalogId: input.previousCatalogId,
+      previousSlug: input.previousSlug,
+      advanceWizardAfter: input.advanceWizardAfter,
     })
   }
 
   function requestSubclassChange(classEntryId: string, selected: CatalogEntry) {
     const existing = draft.subclassGrants.find((row) => row.classEntryId === classEntryId)
+    const transition = draft.subclassTransitions.find(
+      (row) => row.classEntryId === classEntryId,
+    )
     const row = draft.classes.find((item) => item.id === classEntryId)
-    if (
-      existing &&
-      existing.catalogId &&
-      existing.catalogId !== selected.id
-    ) {
+    const currentCatalogId =
+      row?.subclass_catalog_id ||
+      transition?.activeCatalogId ||
+      existing?.catalogId ||
+      null
+    if (currentCatalogId && currentCatalogId !== selected.id) {
+      const previousSlug =
+        transition?.mode === 'future_only'
+          ? transition.previousSlug || existing?.slug || ''
+          : existing?.slug || transition?.previousSlug || ''
       const previousDef = resolveSubclassDefFromCatalog({
-        nameRu: row?.subclass_name || existing.slug,
-        slug: existing.slug,
+        nameRu: row?.subclass_name || existing?.slug || '',
+        slug: existing?.slug || previousSlug,
         catalogData: null,
-        parentSlug: existing.parentSlug,
+        parentSlug: existing?.parentSlug,
       })
       setSubclassChange({
         classEntryId,
@@ -1214,9 +1395,12 @@ export function MinimalSheetEditor({
             alwaysPreparedSpells: [],
             featuresByLevel: {},
           } satisfies SubclassGrantDef),
-        fromName: row?.subclass_name || existing.slug,
-        textSnippets: collectGrantTextSnippets({ def: previousDef, grant: existing }),
+        fromName: row?.subclass_name || existing?.slug || '',
+        textSnippets: collectGrantTextSnippets({ def: previousDef, grant: existing ?? null }),
         previousDef,
+        previousSlug: existing?.slug || previousSlug,
+        previousCatalogId: existing?.catalogId ?? null,
+        classLevel: row?.level ?? 1,
       })
       return
     }
@@ -1304,10 +1488,9 @@ export function MinimalSheetEditor({
         classes: prev.classes,
         characterLevel: totalCharacterLevel(prev.classes),
         abilities: prev.abilities,
-        subclassSlugByEntryId: Object.fromEntries(
-          prev.subclassGrants
-            .filter((row) => row.classEntryId && row.slug)
-            .map((row) => [row.classEntryId, row.slug]),
+        subclassSlugByEntryId: subclassSlugMapFromLedger(prev),
+        subclassTransitionByEntryId: subclassTransitionMapFromLedger(
+          prev.subclassTransitions,
         ),
       })
       const keys = listUnlockedExpertiseKeys(unlocked)
@@ -1461,6 +1644,7 @@ export function MinimalSheetEditor({
       characterLevel: totalCharacterLevel(classesForUnlock),
       abilities: draft.abilities,
       subclassSlugByEntryId,
+      subclassTransitionByEntryId,
     })
     // Feature/ASI picks only — background is prepended before class_grant when needed.
     const choiceSteps = buildChoiceStepsForClass({
@@ -1513,10 +1697,9 @@ export function MinimalSheetEditor({
           classes: jumped.classes,
           characterLevel: totalCharacterLevel(jumped.classes),
           abilities: jumped.abilities,
-          subclassSlugByEntryId: Object.fromEntries(
-            jumped.subclassGrants
-              .filter((row) => row.classEntryId && row.slug)
-              .map((row) => [row.classEntryId, row.slug]),
+          subclassSlugByEntryId: subclassSlugMapFromLedger(jumped),
+          subclassTransitionByEntryId: subclassTransitionMapFromLedger(
+            jumped.subclassTransitions,
           ),
         })
         const hasSubclass: Record<string, boolean> = {}
@@ -1632,10 +1815,9 @@ export function MinimalSheetEditor({
         classes: next.classes,
         characterLevel: totalCharacterLevel(next.classes),
         abilities: next.abilities,
-        subclassSlugByEntryId: Object.fromEntries(
-          next.subclassGrants
-            .filter((row) => row.classEntryId && row.slug)
-            .map((row) => [row.classEntryId, row.slug]),
+        subclassSlugByEntryId: subclassSlugMapFromLedger(next),
+        subclassTransitionByEntryId: subclassTransitionMapFromLedger(
+          next.subclassTransitions,
         ),
       })
       const hasSubclass: Record<string, boolean> = {}
@@ -1794,10 +1976,9 @@ export function MinimalSheetEditor({
           classes: merged.classes,
           characterLevel: totalCharacterLevel(merged.classes),
           abilities: merged.abilities,
-          subclassSlugByEntryId: Object.fromEntries(
-            merged.subclassGrants
-              .filter((row) => row.classEntryId && row.slug)
-              .map((row) => [row.classEntryId, row.slug]),
+          subclassSlugByEntryId: subclassSlugMapFromLedger(merged),
+          subclassTransitionByEntryId: subclassTransitionMapFromLedger(
+            merged.subclassTransitions,
           ),
         })
         const hasSubclass: Record<string, boolean> = {}
@@ -2006,16 +2187,6 @@ export function MinimalSheetEditor({
         catalogData: choice.type === 'multiclass' ? choice.catalog_data : null,
         classesOverride: nextClasses,
       })
-    } else if (choice.type === 'same' && leveledRow) {
-      if (
-        !leveledRow.subclass_catalog_id &&
-        !leveledRow.subclass_name.trim() &&
-        leveledRow.level >= 3
-      ) {
-        onToast(
-          `У «${leveledRow.name}» с ${leveledRow.level} ур. выбери архетип в поле ниже`,
-        )
-      }
     }
 
     if (leveledRow && choice.type === 'same') {
@@ -2024,6 +2195,7 @@ export function MinimalSheetEditor({
         characterLevel: nextLevel,
         abilities: draft.abilities,
         subclassSlugByEntryId,
+        subclassTransitionByEntryId,
       })
       const hasSubclass: Record<string, boolean> = {}
       for (const row of nextClasses) {
@@ -2040,6 +2212,14 @@ export function MinimalSheetEditor({
         },
         hasSubclassByEntryId: hasSubclass,
       })
+      if (
+        !hasSubclass[leveledRow.id] &&
+        steps.some((step) => step.kind === 'subclass')
+      ) {
+        onToast(
+          `У «${leveledRow.name}» на ${leveledRow.level} ур. выбери архетип в развилках`,
+        )
+      }
       if (steps.length > 0) {
         openGuidedWizard({ steps, index: 0 })
         return
@@ -2345,6 +2525,7 @@ export function MinimalSheetEditor({
       Object.assign(sheet, classLevelsToSheet(draft.classes))
       sheet.class_grants = draft.classGrants
       sheet.subclass_grants = draft.subclassGrants
+      sheet.subclass_transitions = draft.subclassTransitions
       sheet.race_grant = draft.raceGrant
       sheet.background_grant = draft.backgroundGrant
       sheet.companions = draft.companions
@@ -2687,6 +2868,7 @@ export function MinimalSheetEditor({
                                   characterLevel: totalCharacterLevel(prev.classes),
                                   abilities: prev.abilities,
                                   subclassSlugByEntryId,
+                                  subclassTransitionByEntryId,
                                 })
                                   .filter((feature) => feature.classEntryId === row.id)
                                   .map((feature) => ({ id: feature.id, level: feature.level }))
@@ -2701,6 +2883,7 @@ export function MinimalSheetEditor({
                                   characterLevel: totalCharacterLevel(nextClasses),
                                   abilities,
                                   subclassSlugByEntryId,
+                                  subclassTransitionByEntryId,
                                 })
                                 const nextSkills = syncSkillsExpertiseFromPicks({
                                   skills: featBase.skills,
@@ -2780,7 +2963,7 @@ export function MinimalSheetEditor({
                     label="Архетип"
                     hint={
                       row.catalog_id
-                        ? 'Из справочника — с грантами; хомбрю — только имя'
+                        ? 'Первый выбор — в развилках уровня; здесь — сменить (все способности или только будущие). Хомбрю — только имя'
                         : 'Сначала выбери класс из справочника, чтобы фильтровать архетипы'
                     }
                   >
@@ -3213,6 +3396,7 @@ export function MinimalSheetEditor({
         characterLevel={characterLevel}
         abilities={draft.abilities}
         subclassSlugByEntryId={subclassSlugByEntryId}
+        subclassTransitionByEntryId={subclassTransitionByEntryId}
         resources={draft.play.resources}
         onResourcesChange={(resources) =>
           setDraft((prev) => ({
@@ -3449,10 +3633,9 @@ export function MinimalSheetEditor({
               classes: next.classes,
               characterLevel: totalCharacterLevel(next.classes),
               abilities: next.abilities,
-              subclassSlugByEntryId: Object.fromEntries(
-                next.subclassGrants
-                  .filter((row) => row.classEntryId && row.slug)
-                  .map((row) => [row.classEntryId, row.slug]),
+              subclassSlugByEntryId: subclassSlugMapFromLedger(next),
+              subclassTransitionByEntryId: subclassTransitionMapFromLedger(
+                next.subclassTransitions,
               ),
             })
             const hasSubclass: Record<string, boolean> = {}
@@ -3511,8 +3694,18 @@ export function MinimalSheetEditor({
         onSkipStep={skipGuidedWizardStep}
         onClose={() => setGuidedWizard(null)}
         onToast={onToast}
-        onFocusSubclass={() => {
-          onToast('Выбери архетип в поле ниже на листе')
+        subclassParentCatalogIdByEntryId={Object.fromEntries(
+          draft.classes.map((row) => [row.id, row.catalog_id]),
+        )}
+        selectedSubclassNameByEntryId={Object.fromEntries(
+          draft.classes.map((row) => [row.id, row.subclass_name]),
+        )}
+        onPickSubclass={(classEntryId, entry) => {
+          beginSubclassSelection({
+            classEntryId,
+            selected: entry,
+            advanceWizardAfter: true,
+          })
         }}
       />
 
@@ -3701,9 +3894,10 @@ export function MinimalSheetEditor({
         open={subclassChange != null}
         fromName={subclassChange?.fromName ?? ''}
         toName={subclassChange?.selected.name_ru ?? ''}
+        classLevel={subclassChange?.classLevel ?? 1}
         textSnippets={subclassChange?.textSnippets ?? []}
         onClose={() => setSubclassChange(null)}
-        onConfirm={(copyTextToNotes) => {
+        onConfirm={({ mode, copyTextToNotes }) => {
           if (!subclassChange) return
           const pending = subclassChange
           setSubclassChange(null)
@@ -3712,6 +3906,11 @@ export function MinimalSheetEditor({
             selected: pending.selected,
             copyOldTextToNotes: copyTextToNotes,
             previousDef: pending.previousDef,
+            changeMode: mode,
+            changedAtClassLevel: pending.classLevel,
+            previousNameRu: pending.fromName,
+            previousCatalogId: pending.previousCatalogId,
+            previousSlug: pending.previousSlug,
           })
         }}
       />
@@ -3729,6 +3928,12 @@ export function MinimalSheetEditor({
             picks,
             copyOldTextToNotes: subclassSetup.copyOldTextToNotes,
             previousDef: subclassSetup.previousDef,
+            changeMode: subclassSetup.changeMode,
+            changedAtClassLevel: subclassSetup.changedAtClassLevel,
+            previousNameRu: subclassSetup.previousNameRu,
+            previousCatalogId: subclassSetup.previousCatalogId,
+            previousSlug: subclassSetup.previousSlug,
+            advanceWizardAfter: subclassSetup.advanceWizardAfter,
           })
           setSubclassSetup(null)
         }}

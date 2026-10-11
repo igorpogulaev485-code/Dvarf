@@ -202,6 +202,56 @@ assert(
   'start@13 includes archetype gate',
 )
 
+// future_only transition: keep previous subclass features ≤ watermark, new above it
+const fighterChamp = [
+  {
+    id: 'f1',
+    name: 'Воин',
+    level: 10,
+    catalog_id: null,
+    subclass_name: 'Мистический рыцарь',
+    subclass_catalog_id: 'ek',
+  },
+]
+const fighterFutureOnly = unlockFeaturesForClasses({
+  classes: fighterChamp,
+  characterLevel: 10,
+  abilities: { str: 16, dex: 12, con: 14, int: 14, wis: 10, cha: 10 },
+  subclassSlugByEntryId: { f1: 'eldritch_knight' },
+  subclassTransitionByEntryId: {
+    f1: {
+      mode: 'future_only',
+      changedAtClassLevel: 7,
+      previousSlug: 'champion',
+      previousNameRu: 'Чемпион',
+    },
+  },
+})
+assert(
+  fighterFutureOnly.some(
+    (f) => f.source === 'subclass' && f.subclassSlug === 'champion' && f.level <= 7,
+  ),
+  'future_only keeps champion features at/below watermark',
+)
+assert(
+  !fighterFutureOnly.some(
+    (f) => f.source === 'subclass' && f.subclassSlug === 'champion' && f.level > 7,
+  ),
+  'future_only drops champion features above watermark',
+)
+assert(
+  fighterFutureOnly.some(
+    (f) => f.source === 'subclass' && f.subclassSlug === 'eldritch_knight' && f.level > 7,
+  ),
+  'future_only unlocks new archetype features above watermark',
+)
+assert(
+  !fighterFutureOnly.some(
+    (f) => f.source === 'subclass' && f.subclassSlug === 'eldritch_knight' && f.level <= 7,
+  ),
+  'future_only does not grant new archetype features at/below watermark',
+)
+
 const withBg = withBackgroundStepIfNeeded(
   [{ id: 'class_grant:c1', kind: 'class_grant', classEntryId: 'c1', className: 'Плут', mode: 'start' }],
   { include: true },

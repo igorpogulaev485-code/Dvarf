@@ -14,6 +14,7 @@ import {
   type GuidedWizardSession,
 } from '../features/characters/GuidedWizardDialog'
 import { SubclassSetupDialog } from '../features/characters/SubclassSetupDialog'
+import { SubclassChangeConfirmDialog } from '../features/characters/SubclassChangeConfirmDialog'
 import { GrimoireDialog } from '../features/characters/GrimoireDialog'
 import { PrepareSpellsDialog } from '../features/characters/PrepareSpellsDialog'
 import { ABILITY_LABELS, SKILL_DEFS } from '../features/characters/sheetTypes'
@@ -83,7 +84,11 @@ import {
   raceSubraceRequired,
   resolveRaceGrantDef,
 } from '../shared/dnd/raceGrants'
-import type { SubclassGrantDef, SubclassGrantPicks } from '../shared/dnd/subclassGrants'
+import type {
+  SubclassChangeMode,
+  SubclassGrantDef,
+  SubclassGrantPicks,
+} from '../shared/dnd/subclassGrants'
 import {
   emptyFeaturePicks,
   type FeaturePicksState,
@@ -173,14 +178,32 @@ function buildWizardProficiencies(state: CreatePipelineState): {
   }
 
   const subclassSlugByEntryId: Record<string, string> = {}
+  const subclassTransitionByEntryId: Record<
+    string,
+    {
+      mode: 'future_only'
+      changedAtClassLevel: number
+      previousSlug: string
+      previousNameRu?: string
+    }
+  > = {}
   for (const [entryId, setup] of Object.entries(state.subclassSetups ?? {})) {
     if (setup.entry.slug) subclassSlugByEntryId[entryId] = setup.entry.slug
+    if (setup.changeMode === 'future_only' && setup.previousEntry) {
+      subclassTransitionByEntryId[entryId] = {
+        mode: 'future_only',
+        changedAtClassLevel: setup.changedAtClassLevel ?? 1,
+        previousSlug: setup.previousEntry.slug,
+        previousNameRu: setup.previousEntry.name_ru,
+      }
+    }
   }
   const unlocked = unlockFeaturesForClasses({
     classes: state.classes,
     characterLevel: totalCharacterLevel(state.classes),
     abilities: state.baseAbilities,
     subclassSlugByEntryId,
+    subclassTransitionByEntryId,
   })
   skills = syncSkillsExpertiseFromPicks({
     skills,
@@ -255,8 +278,23 @@ export function CreateCharacterPage() {
     classEntryId: string
     selected: CatalogEntry
     def: SubclassGrantDef
+    changeMode?: SubclassChangeMode
+    changedAtClassLevel?: number
+    previousEntry?: ReturnType<typeof catalogSnapshot> | null
+    previousPicks?: SubclassGrantPicks
+    advanceWizardAfter?: boolean
+  } | null>(null)
+  const [subclassChange, setSubclassChange] = useState<{
+    classEntryId: string
+    selected: CatalogEntry
+    fromName: string
+    textSnippets: string[]
+    previousEntry: ReturnType<typeof catalogSnapshot>
+    previousPicks: SubclassGrantPicks
+    classLevel: number
   } | null>(null)
   const [guidedWizard, setGuidedWizard] = useState<GuidedWizardSession | null>(null)
+  const [advanceWizardAfterSubclass, setAdvanceWizardAfterSubclass] = useState(false)
   const [spellsOpen, setSpellsOpen] = useState<'prepare' | 'grimoire' | null>(null)
   const [spells, setSpells] = useState<SpellsState>(() => readSpells({}))
   const [racialBonuses, setRacialBonuses] = useState<Partial<AbilityScores>>({})
@@ -379,6 +417,28 @@ export function CreateCharacterPage() {
     return map
   }, [state.subclassSetups])
 
+  const subclassTransitionByEntryId = useMemo(() => {
+    const map: Record<
+      string,
+      {
+        mode: 'future_only'
+        changedAtClassLevel: number
+        previousSlug: string
+        previousNameRu?: string
+      }
+    > = {}
+    for (const [entryId, setup] of Object.entries(state.subclassSetups ?? {})) {
+      if (setup.changeMode !== 'future_only' || !setup.previousEntry) continue
+      map[entryId] = {
+        mode: 'future_only',
+        changedAtClassLevel: setup.changedAtClassLevel ?? 1,
+        previousSlug: setup.previousEntry.slug,
+        previousNameRu: setup.previousEntry.name_ru,
+      }
+    }
+    return map
+  }, [state.subclassSetups])
+
   const unlockedFeatures = useMemo(
     () =>
       unlockFeaturesForClasses({
@@ -386,8 +446,9 @@ export function CreateCharacterPage() {
         characterLevel: totalCharacterLevel(state.classes),
         abilities: wizardAbilities,
         subclassSlugByEntryId,
+        subclassTransitionByEntryId,
       }),
-    [state.classes, subclassSlugByEntryId, wizardAbilities],
+    [state.classes, subclassSlugByEntryId, subclassTransitionByEntryId, wizardAbilities],
   )
 
   const expertiseKeys = useMemo(
@@ -493,17 +554,36 @@ export function CreateCharacterPage() {
     openGuidedWizard({ steps, index: 0 })
   }
 
-  function beginSubclassSelection(classEntryId: string, selected: CatalogEntry) {
+  function beginSubclassSelection(
+    classEntryId: string,
+    selected: CatalogEntry,
+    options?: {
+      changeMode?: SubclassChangeMode
+      changedAtClassLevel?: number
+      previousEntry?: ReturnType<typeof catalogSnapshot> | null
+      previousPicks?: SubclassGrantPicks
+      advanceWizardAfter?: boolean
+    },
+  ) {
     const def = resolveSubclassDefFromCatalog({
       nameRu: selected.name_ru,
       slug: selected.slug,
       catalogData: selected.data,
     })
     if (def && subclassNeedsSetupDialog(def)) {
-      setSubclassSetup({ classEntryId, selected, def })
+      setSubclassSetup({
+        classEntryId,
+        selected,
+        def,
+        changeMode: options?.changeMode,
+        changedAtClassLevel: options?.changedAtClassLevel,
+        previousEntry: options?.previousEntry ?? null,
+        previousPicks: options?.previousPicks,
+        advanceWizardAfter: options?.advanceWizardAfter,
+      })
       return
     }
-    commitSubclassSetup(classEntryId, selected, emptySubclassPicks(), def)
+    commitSubclassSetup(classEntryId, selected, emptySubclassPicks(), def, options)
   }
 
   function commitSubclassSetup(
@@ -511,6 +591,13 @@ export function CreateCharacterPage() {
     selected: CatalogEntry,
     picks: SubclassGrantPicks,
     def: SubclassGrantDef | null,
+    options?: {
+      changeMode?: SubclassChangeMode
+      changedAtClassLevel?: number
+      previousEntry?: ReturnType<typeof catalogSnapshot> | null
+      previousPicks?: SubclassGrantPicks
+      advanceWizardAfter?: boolean
+    },
   ) {
     const nextClasses = state.classes.map((row) =>
       row.id === classEntryId
@@ -526,6 +613,14 @@ export function CreateCharacterPage() {
       [classEntryId]: {
         entry: catalogSnapshot(selected),
         picks,
+        ...(options?.changeMode
+          ? {
+              changeMode: options.changeMode,
+              changedAtClassLevel: options.changedAtClassLevel,
+              previousEntry: options.previousEntry ?? null,
+              previousPicks: options.previousPicks,
+            }
+          : {}),
       },
     }
     patchState({
@@ -539,11 +634,44 @@ export function CreateCharacterPage() {
     })
     setSubclassSetup(null)
     setSubclassPicker(null)
+    setSubclassChange(null)
     setToast(
       def
-        ? `Архетип «${selected.name_ru}» сохранён`
+        ? options?.changeMode === 'future_only'
+          ? `Архетип «${selected.name_ru}»: только будущие уровни`
+          : `Архетип «${selected.name_ru}» сохранён`
         : `Архетип «${selected.name_ru}» (без пакета грантов)`,
     )
+    if (options?.advanceWizardAfter || advanceWizardAfterSubclass) {
+      setAdvanceWizardAfterSubclass(false)
+      setGuidedWizard((prev) => {
+        if (!prev) return null
+        const nextIndex = prev.index + 1
+        if (nextIndex >= prev.steps.length) {
+          setToast('Развилки сохранены')
+          return null
+        }
+        return { ...prev, index: nextIndex }
+      })
+    }
+  }
+
+  function requestSubclassChangeFromPicker(classEntryId: string, selected: CatalogEntry) {
+    const existing = state.subclassSetups?.[classEntryId]
+    const row = state.classes.find((item) => item.id === classEntryId)
+    if (existing && existing.entry.id && existing.entry.id !== selected.id) {
+      setSubclassChange({
+        classEntryId,
+        selected,
+        fromName: row?.subclass_name || existing.entry.name_ru,
+        textSnippets: [],
+        previousEntry: existing.entry,
+        previousPicks: existing.picks,
+        classLevel: row?.level ?? 1,
+      })
+      return
+    }
+    beginSubclassSelection(classEntryId, selected, { advanceWizardAfter: advanceWizardAfterSubclass })
   }
 
   async function openArchetypePicker(classEntryId: string) {
@@ -1124,7 +1252,7 @@ export function CreateCharacterPage() {
           })
         }
         onHpChoicesChange={(hpChoices) => patchState({ hpChoices })}
-        onOpenArchetype={(classEntryId) => {
+        onChangeArchetype={(classEntryId) => {
           void openArchetypePicker(classEntryId)
         }}
         onOpenChoices={(classEntryId) => {
@@ -1325,6 +1453,7 @@ export function CreateCharacterPage() {
             characterLevel: totalCharacterLevel(nextState.classes),
             abilities: wizardAbilities,
             subclassSlugByEntryId,
+            subclassTransitionByEntryId,
           })
           const hasSubclass: Record<string, boolean> = {}
           for (const item of nextState.classes) {
@@ -1348,7 +1477,10 @@ export function CreateCharacterPage() {
       <SubclassSetupDialog
         open={Boolean(subclassSetup)}
         def={subclassSetup?.def ?? null}
-        onClose={() => setSubclassSetup(null)}
+        onClose={() => {
+          setSubclassSetup(null)
+          setAdvanceWizardAfterSubclass(false)
+        }}
         onConfirm={(picks: SubclassGrantPicks) => {
           if (!subclassSetup) return
           commitSubclassSetup(
@@ -1356,6 +1488,13 @@ export function CreateCharacterPage() {
             subclassSetup.selected,
             picks,
             subclassSetup.def,
+            {
+              changeMode: subclassSetup.changeMode,
+              changedAtClassLevel: subclassSetup.changedAtClassLevel,
+              previousEntry: subclassSetup.previousEntry,
+              previousPicks: subclassSetup.previousPicks,
+              advanceWizardAfter: subclassSetup.advanceWizardAfter,
+            },
           )
         }}
       />
@@ -1421,17 +1560,23 @@ export function CreateCharacterPage() {
         }}
         onClose={() => setGuidedWizard(null)}
         onToast={setToast}
-        onFocusSubclass={(classEntryId) => {
-          setGuidedWizard(null)
-          void openArchetypePicker(classEntryId)
+        subclassParentCatalogIdByEntryId={Object.fromEntries(
+          state.classes.map((row) => [row.id, row.catalog_id]),
+        )}
+        selectedSubclassNameByEntryId={Object.fromEntries(
+          state.classes.map((row) => [row.id, row.subclass_name]),
+        )}
+        onPickSubclass={(classEntryId, entry) => {
+          setAdvanceWizardAfterSubclass(true)
+          beginSubclassSelection(classEntryId, entry, { advanceWizardAfter: true })
         }}
       />
 
       {subclassPicker ? (
         <div className="create-pipeline__modal">
           <Stack gap={12}>
-            <Text as="h3">Архетип · {subclassPicker.className}</Text>
-            <Text tone="muted">Выберите подкласс из справочника.</Text>
+            <Text as="h3">Сменить архетип · {subclassPicker.className}</Text>
+            <Text tone="muted">Выберите новый подкласс из справочника.</Text>
             <ul className="create-pipeline__card-list">
               {subclassPicker.options.map((entry) => (
                 <li key={entry.id}>
@@ -1439,7 +1584,7 @@ export function CreateCharacterPage() {
                     type="button"
                     className="create-pipeline__card"
                     onClick={() => {
-                      beginSubclassSelection(subclassPicker.classEntryId, entry)
+                      requestSubclassChangeFromPicker(subclassPicker.classEntryId, entry)
                     }}
                   >
                     <span className="create-pipeline__card-title">{entry.name_ru}</span>
@@ -1456,6 +1601,27 @@ export function CreateCharacterPage() {
           </Stack>
         </div>
       ) : null}
+
+      <SubclassChangeConfirmDialog
+        open={subclassChange != null}
+        fromName={subclassChange?.fromName ?? ''}
+        toName={subclassChange?.selected.name_ru ?? ''}
+        classLevel={subclassChange?.classLevel ?? 1}
+        textSnippets={subclassChange?.textSnippets ?? []}
+        onClose={() => setSubclassChange(null)}
+        onConfirm={({ mode, copyTextToNotes: _copy }) => {
+          if (!subclassChange) return
+          const pending = subclassChange
+          setSubclassChange(null)
+          setSubclassPicker(null)
+          beginSubclassSelection(pending.classEntryId, pending.selected, {
+            changeMode: mode,
+            changedAtClassLevel: pending.classLevel,
+            previousEntry: pending.previousEntry,
+            previousPicks: pending.previousPicks,
+          })
+        }}
+      />
 
       <GrimoireDialog
         open={spellsOpen === 'grimoire'}
