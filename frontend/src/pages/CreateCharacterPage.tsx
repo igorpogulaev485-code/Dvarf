@@ -59,8 +59,13 @@ import {
   type AppliedClassAsi,
 } from '../shared/dnd/classAsi'
 import { unlockFeaturesForClasses } from '../shared/dnd/classFeatures'
-import { resolveClassGrantDef } from '../shared/dnd/classGrants'
+import {
+  grantNeedsSetupDialog,
+  resolveClassGrantDef,
+  type ClassGrantPicks,
+} from '../shared/dnd/classGrants'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
+import { emptyPicks as emptyClassGrantPicks } from '../features/characters/classEffects'
 import {
   syncSkillsExpertiseFromPicks,
   type SkillExpertiseState,
@@ -77,7 +82,6 @@ import {
   isManualScoresValid,
   mergeRacialBonuses,
 } from '../shared/dnd/pointBuy'
-import type { ClassGrantPicks } from '../shared/dnd/classGrants'
 import {
   isRaceComboboxRoot,
   mergeAbilityBonuses,
@@ -526,32 +530,121 @@ export function CreateCharacterPage() {
     })
   }
 
-  function openFeatureWizardForClass(classEntryId: string) {
-    const row = state.classes.find((item) => item.id === classEntryId)
+  function openFeatureWizardForClass(
+    classEntryId: string,
+    options?: { classes?: typeof state.classes; featurePicks?: FeaturePicksState; silentIfEmpty?: boolean },
+  ) {
+    const classRows = options?.classes ?? state.classes
+    const row = classRows.find((item) => item.id === classEntryId)
     if (!row) {
       setToast('Сначала зафиксируйте класс')
       return
     }
-    if (!state.classGrantPicks?.[classEntryId]) {
-      setToast('Сначала выберите навыки и снаряжение класса')
-      return
+    const picksState = options?.featurePicks ?? state.featurePicks ?? emptyFeaturePicks()
+    const unlocked = unlockFeaturesForClasses({
+      classes: classRows,
+      characterLevel: totalCharacterLevel(classRows),
+      abilities: wizardAbilities,
+      subclassSlugByEntryId,
+      subclassTransitionByEntryId,
+    })
+    const hasSubclass: Record<string, boolean> = {}
+    for (const item of classRows) {
+      hasSubclass[item.id] = hasSubclassSelected(item)
     }
     const steps = buildPendingWizardSteps({
-      unlocked: unlockedFeatures,
-      featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+      unlocked,
+      featurePicks: picksState,
       classAsi: state.classAsi ?? [],
       filter: {
         mode: 'up_to_class_level',
         classEntryId,
         maxClassLevel: row.level,
       },
-      hasSubclassByEntryId,
+      hasSubclassByEntryId: hasSubclass,
     }).filter((step) => step.kind !== 'class_grant' && step.kind !== 'background')
     if (steps.length === 0) {
-      setToast('Все развилки и ASI для этого класса закрыты')
+      if (!options?.silentIfEmpty) {
+        setToast('Все развилки и ASI для этого класса закрыты')
+      }
       return
     }
     openGuidedWizard({ steps, index: 0 })
+  }
+
+  /** Save MC/class grant picks; optionally open feature wizard. */
+  function commitClassGrantPicks(
+    entryId: string,
+    picks: ClassGrantPicks,
+    options?: { openWizardAfter?: boolean; classes?: typeof state.classes; toast?: string },
+  ) {
+    const classesForWizard = options?.classes
+    setState((prev) => {
+      const nextPicks = {
+        ...prev.classGrantPicks,
+        [entryId]: picks,
+      }
+      return {
+        ...prev,
+        ...(classesForWizard ? { classes: classesForWizard } : {}),
+        classGrantPicks: nextPicks,
+        sheetDraft: {
+          ...prev.sheetDraft,
+          class_grant_picks: nextPicks,
+        },
+        stepDirty: { ...prev.stepDirty, class: true, leveling: true },
+      }
+    })
+    setClassSetup(null)
+    if (options?.toast) setToast(options.toast)
+    if (!options?.openWizardAfter) return
+    openFeatureWizardForClass(entryId, {
+      classes: classesForWizard ?? state.classes,
+      featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+      silentIfEmpty: true,
+    })
+  }
+
+  /**
+   * Multiclass without skill/tool forks (друид, колдун…): apply empty picks and close —
+   * do not leave an empty ClassSetup dialog that only has «Отмена».
+   */
+  function beginMulticlassGrant(classEntryId: string, classRows?: typeof state.classes) {
+    const rows = classRows ?? state.classes
+    const row = rows.find((item) => item.id === classEntryId)
+    const catalog =
+      classes.find((item) => item.id === row?.catalog_id) ||
+      classes.find(
+        (item) =>
+          item.name_ru.trim().toLowerCase() === (row?.name ?? '').trim().toLowerCase(),
+      )
+    if (!catalog || !row) {
+      setToast('Сначала зафиксируйте класс')
+      return
+    }
+    const def = resolveClassGrantDef({
+      className: catalog.name_ru,
+      catalogSlug: catalog.slug,
+      catalogData: catalog.data,
+    })
+    if (!def) {
+      setToast('Нет пакета владений для класса')
+      return
+    }
+    if (!grantNeedsSetupDialog(def, 'multiclass')) {
+      commitClassGrantPicks(classEntryId, emptyClassGrantPicks(), {
+        openWizardAfter: true,
+        classes: rows,
+        toast: `Мультикласс «${catalog.name_ru}»: владения применены`,
+      })
+      return
+    }
+    setClassSetup({
+      def,
+      mode: 'multiclass',
+      classEntryId,
+      openWizardAfter: true,
+    })
   }
 
   function beginSubclassSelection(
@@ -1259,15 +1352,12 @@ export function CreateCharacterPage() {
         onChangeArchetype={(classEntryId) => {
           void openArchetypePicker(classEntryId)
         }}
+        onMulticlassAdded={(classEntryId, nextClasses) => {
+          beginMulticlassGrant(classEntryId, nextClasses)
+        }}
         onOpenChoices={(classEntryId) => {
           const row = state.classes.find((item) => item.id === classEntryId)
-          const catalog =
-            classes.find((item) => item.id === row?.catalog_id) ||
-            classes.find(
-              (item) =>
-                item.name_ru.trim().toLowerCase() === (row?.name ?? '').trim().toLowerCase(),
-            )
-          if (!catalog || !row) {
+          if (!row) {
             setToast('Сначала зафиксируйте класс')
             return
           }
@@ -1278,21 +1368,7 @@ export function CreateCharacterPage() {
               setToast('Вернитесь на шаг «Класс» и настройте владения')
               return
             }
-            const def = resolveClassGrantDef({
-              className: catalog.name_ru,
-              catalogSlug: catalog.slug,
-              catalogData: catalog.data,
-            })
-            if (!def) {
-              setToast('Нет пакета владений для класса')
-              return
-            }
-            setClassSetup({
-              def,
-              mode: 'multiclass',
-              classEntryId,
-              openWizardAfter: true,
-            })
+            beginMulticlassGrant(classEntryId)
             return
           }
           openFeatureWizardForClass(classEntryId)
@@ -1433,48 +1509,10 @@ export function CreateCharacterPage() {
         onConfirm={(picks: ClassGrantPicks) => {
           const entryId = classSetup?.classEntryId ?? state.classEntryId
           const openWizardAfter = classSetup?.openWizardAfter ?? false
-          const nextPicks = {
-            ...state.classGrantPicks,
-            [entryId]: picks,
-          }
-          const nextState: CreatePipelineState = {
-            ...state,
-            classGrantPicks: nextPicks,
-            sheetDraft: {
-              ...state.sheetDraft,
-              class_grant_picks: nextPicks,
-            },
-            stepDirty: { ...state.stepDirty, class: true },
-          }
-          setState(nextState)
-          setClassSetup(null)
-          setToast('Выборы класса сохранены')
-          if (!openWizardAfter) return
-          const row = nextState.classes.find((item) => item.id === entryId)
-          if (!row) return
-          const unlocked = unlockFeaturesForClasses({
-            classes: nextState.classes,
-            characterLevel: totalCharacterLevel(nextState.classes),
-            abilities: wizardAbilities,
-            subclassSlugByEntryId,
-            subclassTransitionByEntryId,
+          commitClassGrantPicks(entryId, picks, {
+            openWizardAfter,
+            toast: 'Выборы класса сохранены',
           })
-          const hasSubclass: Record<string, boolean> = {}
-          for (const item of nextState.classes) {
-            hasSubclass[item.id] = hasSubclassSelected(item)
-          }
-          const steps = buildPendingWizardSteps({
-            unlocked,
-            featurePicks: nextState.featurePicks ?? emptyFeaturePicks(),
-            classAsi: nextState.classAsi ?? [],
-            filter: {
-              mode: 'up_to_class_level',
-              classEntryId: entryId,
-              maxClassLevel: row.level,
-            },
-            hasSubclassByEntryId: hasSubclass,
-          }).filter((stepRow) => stepRow.kind !== 'class_grant' && stepRow.kind !== 'background')
-          if (steps.length > 0) openGuidedWizard({ steps, index: 0 })
         }}
       />
 

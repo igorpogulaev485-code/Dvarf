@@ -38,6 +38,11 @@ type LevelingStepProps = {
   onHpChoicesChange: (choices: HpLevelChoice[]) => void
   /** Opens GuidedWizard (subclass gate / feature_choice / ASI / expertise). MC may open ClassSetup first. */
   onOpenChoices: (classEntryId: string) => void
+  /**
+   * After a new multiclass row is added (not a level bump on an existing class).
+   * Parent applies / opens grant setup; empty MC packages should not leave a dialog open.
+   */
+  onMulticlassAdded?: (classEntryId: string, classes: ClassLevelEntry[]) => void
   /** Change already-selected archetype (not the primary pick path). */
   onChangeArchetype: (classEntryId: string) => void
   onOpenSpells: () => void
@@ -85,6 +90,7 @@ export function LevelingStep({
   onClassesChange,
   onHpChoicesChange,
   onOpenChoices,
+  onMulticlassAdded,
   onChangeArchetype,
   onOpenSpells,
 }: LevelingStepProps) {
@@ -96,7 +102,7 @@ export function LevelingStep({
   } | null>(null)
   const totalLevel = totalCharacterLevel(classes)
 
-  function commitClasses(next: ClassLevelEntry[]) {
+  function commitClasses(next: ClassLevelEntry[]): boolean {
     const pruned = pruneInvalidMulticlassRows({
       classes: next,
       abilities,
@@ -108,10 +114,11 @@ export function LevelingStep({
         removed: pruned.removed,
         reasons: pruned.reasons,
       })
-      return
+      return false
     }
     onClassesChange(next)
     onHpChoicesChange(ensureHpChoices(next, hpChoices))
+    return true
   }
 
   const mcOptions = useMemo(() => {
@@ -158,6 +165,7 @@ export function LevelingStep({
       abilities,
     })
     if (!check.ok) return
+    const prevIds = new Set(classes.map((row) => row.id))
     const next = addMulticlassLevel(classes, {
       name: entry.name_ru,
       catalog_id: entry.id,
@@ -167,8 +175,11 @@ export function LevelingStep({
         ? { ...row, catalog_id: entry.id }
         : row,
     )
-    commitClasses(normalized)
+    const applied = commitClasses(normalized)
     setMcOpen(false)
+    if (!applied) return
+    const added = normalized.find((row) => !prevIds.has(row.id))
+    if (added) onMulticlassAdded?.(added.id, normalized)
   }
 
   function patchHp(key: string, patch: Partial<HpLevelChoice>) {

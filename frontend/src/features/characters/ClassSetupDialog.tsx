@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   equipmentPackagesFor,
+  grantNeedsSetupDialog,
   packageForMode,
   skillOptionsForPackage,
   type ClassEquipmentFocusPick,
@@ -81,6 +82,21 @@ export function ClassSetupDialog({
     setEquipmentPackageId(null)
     setFocusSelection(null)
   }, [open, def?.slug, mode])
+
+  // Multiclass with only fixed armor/weapons (друид, колдун…): nothing to pick —
+  // apply empty picks immediately so the dialog does not sit waiting for «Отмена».
+  useEffect(() => {
+    if (!open || !def || mode !== 'multiclass') return
+    if (grantNeedsSetupDialog(def, mode)) return
+    onConfirm({
+      skills: [],
+      tools: [],
+      equipmentPackageId: null,
+      equipmentFocusPick: null,
+    })
+    // Intentionally omit onConfirm: parent often passes an inline function.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open/def/mode gate the auto-apply
+  }, [open, def, mode])
 
   const selectedPack = useMemo(
     () => equipmentPackages.find((row) => row.id === equipmentPackageId) ?? null,
