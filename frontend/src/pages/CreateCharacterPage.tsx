@@ -721,6 +721,9 @@ export function CreateCharacterPage() {
       catalogData: selected.data,
     })
     if (def && subclassNeedsSetupDialog(def)) {
+      // Close the change-archetype list so Cancel on setup is not followed by
+      // another modal that also needs «Отмена».
+      setSubclassPicker(null)
       setSubclassSetup({
         classEntryId,
         selected,

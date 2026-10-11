@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   emptySubclassPicks,
   subclassChoiceLabel,
+  subclassNeedsSetupDialog,
   validateSubclassPicks,
   type SubclassGrantDef,
   type SubclassGrantPicks,
@@ -36,6 +37,16 @@ export function SubclassSetupDialog({
     if (!open) return
     setPicks(emptySubclassPicks())
   }, [open, def?.slug])
+
+  // Archetypes with no required forks (Champion, Moon, optional Wildfire name…):
+  // apply empty picks immediately so the dialog does not sit waiting for «Отмена».
+  useEffect(() => {
+    if (!open || !def) return
+    if (subclassNeedsSetupDialog(def)) return
+    onConfirm(emptySubclassPicks())
+    // Intentionally omit onConfirm: parent often passes an inline function.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- open/def gate the auto-apply
+  }, [open, def])
 
   const error = useMemo(
     () => (def ? validateSubclassPicks(def, picks) : 'Нет данных'),

@@ -348,8 +348,7 @@ export function parseSubclassGrantDef(input: {
   }
 }
 
-export function subclassNeedsSetup(def: SubclassGrantDef): boolean {
-  if (def.choices.some((choice) => choice.required)) return true
+function subclassHasUnmirroredGrantChoices(def: SubclassGrantDef): boolean {
   if (def.sheetGrants.skillChoices && def.sheetGrants.skillChoices.count > 0) {
     // skills may be mirrored in choices; if no choice covers them, still need setup
     const hasSkillChoice = def.choices.some(
@@ -365,12 +364,23 @@ export function subclassNeedsSetup(def: SubclassGrantDef): boolean {
     )
     if (!hasLangChoice) return true
   }
-  return def.choices.length > 0
+  return false
 }
 
-/** True when dialog is needed for player forks (not empty Champion/Berserker). */
+export function subclassNeedsSetup(def: SubclassGrantDef): boolean {
+  if (def.choices.some((choice) => choice.required)) return true
+  if (subclassHasUnmirroredGrantChoices(def)) return true
+  // Optional-only forks (имя духа wildfire…) do not block apply.
+  return false
+}
+
+/**
+ * True when SubclassSetupDialog must collect player forks.
+ * Empty Champion/Moon and optional-only Wildfire spirit name → skip dialog
+ * (auto-apply empty picks) so the form does not sit waiting for «Отмена».
+ */
 export function subclassNeedsSetupDialog(def: SubclassGrantDef): boolean {
-  return def.choices.length > 0
+  return subclassNeedsSetup(def)
 }
 
 export function validateSubclassPicks(
