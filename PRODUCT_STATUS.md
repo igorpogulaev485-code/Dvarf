@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/play-desk-layout-e788`  
+**Prod tip (ветка линии прода):** `cursor/mobile-load-perf-2c91`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -140,7 +140,17 @@
 | Стол (планшет/ПК ≥960px) | Слева статы, справа режимы Бой/Исслед./Общение/Напарники + выбор панели | Меньше скролла всей страницы |
 | Док напарников | Активные/частичный статус в полоске над сценой | Статус свиты без поиска по листу |
 
-На проде: **да** · ветка `cursor/play-desk-layout-e788` · PR #105 · это **новый prod tip** · проверено 2026-10-11: `/health` ok, бандл `CharacterDetailPage` содержит `play-desk` / `desk_mode` / режимы Бой·Исслед., nginx body 3m
+На проде: **да** · ветка `cursor/play-desk-layout-e788` · PR #105 · tip дальше → `cursor/mobile-load-perf-2c91` · проверено 2026-10-11: `/health` ok, бандл `CharacterDetailPage` содержит `play-desk` / `desk_mode` / режимы Бой·Исслед., nginx body 3m
+
+### 2026-10-11 — Mobile: вернуть anti-blank (кэш HTML + boot splash)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| HTML shell без долгого кэша | nginx: `no-cache` на `/` и `/index.html`; `/assets/` по-прежнему immutable | После деплоя tip телефон не залипает на пустом экране из-за старого `index.html` |
+| Boot splash | «Загрузка Dvarf…» до монтирования React; при ошибке чанка — текст «обновите страницу» | Видно, что приложение грузится / сломалось, а не белый `#root` |
+| CSS boot | Цвета только на `#boot` (не на `html/body`) | Карточки и светлая тема не «выцветают» |
+
+На проде: **да** · ветка `cursor/mobile-load-perf-2c91` · PR #106 · это **новый prod tip** · проверено 2026-10-11: `/` и `/index.html` отдают `Cache-Control: no-cache, no-store, must-revalidate`; в HTML есть `#boot` / «Загрузка Dvarf…»; `/assets/` immutable; `/health` ok; бандл листа с `play-desk` на месте
 
 ### 2026-10-06 — агент цифрового листа (весь объём работы → на проде)
 
@@ -534,16 +544,6 @@
 <!-- tip feats-pickers: FEATS стек залит 2026-10-07; мягкие note (туз/хроматика/хаос-таблица) — динамика, не заглушки пикеров -->
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → новый tip -->
-
-### 2026-10-11 — Mobile: вернуть anti-blank (кэш HTML + boot splash)
-
-| Функция | Как работает | Эффект для пользователя |
-|--------|--------------|-------------------------|
-| HTML shell без долгого кэша | nginx: `no-cache` на `/` и `/index.html`; `/assets/` по-прежнему immutable | После деплоя tip телефон не залипает на пустом экране из-за старого `index.html` |
-| Boot splash | «Загрузка Dvarf…» до монтирования React; при ошибке чанка — текст «обновите страницу» | Видно, что приложение грузится / сломалось, а не белый `#root` |
-| CSS boot | Цвета только на `#boot` (не на `html/body`) | Карточки и светлая тема не «выцветают» |
-
-На проде: **нет** · ветка `cursor/mobile-load-perf-2c91` · восстановление утраченного из `multiclass-grants-polish` (не в ancestry tip)
 
 ### 2026-10-08 — GEAR W6: DMG polish (остатки)
 
@@ -1063,4 +1063,4 @@
 | 2026-10-11 | `cursor/archetype-level-forks-45d0` · PR #102 | Ааракокра когти **1к4** (EEPC/POA / справочник); NW fields read-only; alembic `y4h5`; `selfcheck:race-natural-weapons` |
 | 2026-10-11 | `cursor/archetype-forks-setup-form-45d0` · PR #103 | Архетип в развилках + SubclassSetup после выбора; tip → эта ветка; `/health` ok |
 | 2026-10-11 | `cursor/play-desk-layout-e788` · PR #105 | Игровой стол ≥960px + аватар персонажа; tip → эта ветка; `/health` ok, бандл `play-desk` |
-| 2026-10-11 | `cursor/mobile-load-perf-2c91` | Mobile anti-blank: no-cache SPA shell + boot splash → «В ветках» (замер до деплоя: Cache-Control на HTML отсутствовал) |
+| 2026-10-11 | `cursor/mobile-load-perf-2c91` · PR #106 | Mobile anti-blank залит на Timeweb; tip → эта ветка; Cache-Control no-cache на HTML + boot splash; play-desk на месте |
