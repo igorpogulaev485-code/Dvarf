@@ -535,6 +535,16 @@
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → новый tip -->
 
+### 2026-10-11 — Mobile: вернуть anti-blank (кэш HTML + boot splash)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| HTML shell без долгого кэша | nginx: `no-cache` на `/` и `/index.html`; `/assets/` по-прежнему immutable | После деплоя tip телефон не залипает на пустом экране из-за старого `index.html` |
+| Boot splash | «Загрузка Dvarf…» до монтирования React; при ошибке чанка — текст «обновите страницу» | Видно, что приложение грузится / сломалось, а не белый `#root` |
+| CSS boot | Цвета только на `#boot` (не на `html/body`) | Карточки и светлая тема не «выцветают» |
+
+На проде: **нет** · ветка `cursor/mobile-load-perf-2c91` · восстановление утраченного из `multiclass-grants-polish` (не в ancestry tip)
+
 ### 2026-10-08 — GEAR W6: DMG polish (остатки)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -1053,3 +1063,4 @@
 | 2026-10-11 | `cursor/archetype-level-forks-45d0` · PR #102 | Ааракокра когти **1к4** (EEPC/POA / справочник); NW fields read-only; alembic `y4h5`; `selfcheck:race-natural-weapons` |
 | 2026-10-11 | `cursor/archetype-forks-setup-form-45d0` · PR #103 | Архетип в развилках + SubclassSetup после выбора; tip → эта ветка; `/health` ok |
 | 2026-10-11 | `cursor/play-desk-layout-e788` · PR #105 | Игровой стол ≥960px + аватар персонажа; tip → эта ветка; `/health` ok, бандл `play-desk` |
+| 2026-10-11 | `cursor/mobile-load-perf-2c91` | Mobile anti-blank: no-cache SPA shell + boot splash → «В ветках» (замер до деплоя: Cache-Control на HTML отсутствовал) |
