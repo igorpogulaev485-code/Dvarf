@@ -520,14 +520,6 @@ export function CreateCharacterPage() {
     [unlockedFeatures],
   )
 
-  const hasSubclassByEntryId = useMemo(() => {
-    const map: Record<string, boolean> = {}
-    for (const row of state.classes) {
-      map[row.id] = hasSubclassSelected(row)
-    }
-    return map
-  }, [state.classes])
-
   const hasClassGrantPicks = useMemo(() => {
     const map: Record<string, boolean> = {}
     for (const row of state.classes) {
