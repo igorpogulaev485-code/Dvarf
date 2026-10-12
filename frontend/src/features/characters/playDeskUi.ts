@@ -188,7 +188,7 @@ export function splitSecondaryPanel(
 
 /** Skills shown in mode chrome for combat / explore / social scenes. */
 export const MODE_SKILL_KEYS: Record<'combat' | 'explore' | 'social', string[]> = {
-  combat: ['athletics', 'acrobatics', 'stealth', 'perception', 'medicine'],
+  combat: ['athletics', 'acrobatics', 'stealth', 'perception', 'investigation', 'medicine'],
   explore: ['perception', 'investigation', 'stealth', 'survival', 'athletics'],
   social: ['persuasion', 'deception', 'insight', 'intimidation', 'performance'],
 }
