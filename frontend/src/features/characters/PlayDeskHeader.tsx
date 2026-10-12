@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import { clampExhaustion } from '../../shared/dnd/rest'
 import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
 import type { HitDie } from '../../shared/dnd/hitDice'
 import { NumberPadDialog } from '../../ui'
+import { HpPadDialog } from './HpPadDialog'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
+import type { PlayState } from './play'
 import { formatModifier } from './sheetTypes'
 
 type PlayDeskHeaderProps = {
@@ -17,8 +20,7 @@ type PlayDeskHeaderProps = {
   constitutionMod: number
   hpCurrent: number | null
   hpMax: number | null
-  hpTemp: number
-  acOverride: number | null
+  play: PlayState
   autoAc: number
   acHint: string
   speed: number | null
@@ -26,21 +28,20 @@ type PlayDeskHeaderProps = {
   proficiencyBonus: number
   initiative: number
   inspiration: boolean
-  exhaustion: number
   goldGp: number
-  isDying: boolean
-  deathSuccesses: number
-  deathFails: number
   onOpenRest: () => void
   onExperienceChange: (experience: number) => void
   onToggleInspiration: () => void
+  onExhaustionChange: (exhaustion: number) => void
   onInitiativeRoll?: () => void
-  onChange: (patch: {
+  onPlayChange: (play: PlayState) => void
+  onCombatChange: (patch: {
     hpCurrent?: number | null
     hpMax?: number | null
-    ac?: number | null
-    speed?: number | null
   }) => void
+  onToast: (message: string) => void
+  /** Called after real HP damage (after temp soak), for concentration check. */
+  onDamaged?: (damageToHp: number) => void
 }
 
 export function PlayDeskHeader({
@@ -54,8 +55,7 @@ export function PlayDeskHeader({
   constitutionMod,
   hpCurrent,
   hpMax,
-  hpTemp,
-  acOverride,
+  play,
   autoAc,
   acHint,
   speed,
@@ -63,23 +63,21 @@ export function PlayDeskHeader({
   proficiencyBonus,
   initiative,
   inspiration,
-  exhaustion,
   goldGp,
-  isDying,
-  deathSuccesses,
-  deathFails,
   onOpenRest,
   onExperienceChange,
   onToggleInspiration,
+  onExhaustionChange,
   onInitiativeRoll,
-  onChange,
+  onPlayChange,
+  onCombatChange,
+  onToast,
+  onDamaged,
 }: PlayDeskHeaderProps) {
   const subtitle = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
   const xp = xpProgress(experience, level)
-  const acValue = acOverride ?? autoAc
-  const acTitle = acOverride == null ? acHint : 'задано вручную'
   const [hpPulse, setHpPulse] = useState(false)
-  const [currentPadOpen, setCurrentPadOpen] = useState(false)
+  const [hpPadOpen, setHpPadOpen] = useState(false)
   const [xpPadOpen, setXpPadOpen] = useState(false)
   const [maxDialogOpen, setMaxDialogOpen] = useState(false)
   const prevHpRef = useRef(hpCurrent)
@@ -94,13 +92,47 @@ export function PlayDeskHeader({
     return () => window.clearTimeout(timer)
   }, [hpCurrent])
 
-  const currentValue = hpCurrent ?? 0
-  const maxValue = hpMax
   const xpLabel =
-    xp.nextThreshold == null
-      ? `${xp.xp}`
-      : `${xp.xp}/${xp.nextThreshold}`
+    xp.nextThreshold == null ? `${xp.xp}` : `${xp.xp}/${xp.nextThreshold}`
   const nextLevel = xp.level >= 20 ? null : xp.level + 1
+  const hpTemp = play.hpTemp
+
+  function applyHeal(amount: number) {
+    const current = hpCurrent ?? 0
+    const next = current + amount
+    const capped = hpMax == null ? next : Math.min(hpMax, next)
+    onCombatChange({ hpCurrent: Math.max(0, capped) })
+    if (play.isDying && capped > 0) {
+      onPlayChange({
+        ...play,
+        isDying: false,
+        deathSuccesses: 0,
+        deathFails: 0,
+      })
+    }
+  }
+
+  function applyDamage(amount: number) {
+    let remaining = Math.max(0, amount)
+    let nextTemp = hpTemp
+    if (nextTemp > 0 && remaining > 0) {
+      const absorbed = Math.min(nextTemp, remaining)
+      nextTemp -= absorbed
+      remaining -= absorbed
+    }
+    const current = hpCurrent ?? 0
+    const nextHp = Math.max(0, current - remaining)
+    if (nextTemp !== hpTemp) {
+      onPlayChange({ ...play, hpTemp: nextTemp })
+    }
+    onCombatChange({ hpCurrent: nextHp })
+    if (remaining > 0) {
+      onDamaged?.(remaining)
+    }
+    if (nextHp <= 0 && !play.isDying) {
+      onToast('HP ≤ 0 — включи «При смерти» в pad хитов, если идёт стабилизация')
+    }
+  }
 
   return (
     <section className="play-desk-header" aria-label="Шапка стола">
@@ -120,36 +152,20 @@ export function PlayDeskHeader({
           </div>
           <span>{xpLabel}</span>
         </button>
-        {isDying ? (
+        {play.isDying ? (
           <p className="play-desk-header__dying">
-            Смерть {deathSuccesses}/{deathFails}
+            Смерть {play.deathSuccesses}/{play.deathFails}
           </p>
         ) : null}
       </div>
 
       <div className="play-desk-header__mid">
         <div className="play-desk-header__vitals">
-          <button
-            type="button"
-            className="play-desk-vital play-desk-vital--shield"
-            title={acTitle}
-            onClick={() => {
-              const next = window.prompt('КД (пусто = авто)', String(acValue))
-              if (next == null) return
-              const trimmed = next.trim()
-              if (!trimmed) {
-                onChange({ ac: null })
-                return
-              }
-              const n = Number(trimmed)
-              if (!Number.isFinite(n)) return
-              onChange({ ac: n === autoAc ? null : Math.floor(n) })
-            }}
-          >
-            <b>{acValue}</b>
+          <div className="play-desk-vital play-desk-vital--shield" title={acHint}>
+            <b>{autoAc}</b>
             <span>КД</span>
-          </button>
-          <div className="play-desk-vital" title={movementHint || undefined}>
+          </div>
+          <div className="play-desk-vital" title={movementHint || 'Скорость (из расы / снаряжения)'}>
             <b>{speed ?? '—'}</b>
             <span>Скор.</span>
           </div>
@@ -157,22 +173,19 @@ export function PlayDeskHeader({
             <button
               type="button"
               className="play-desk-vital"
-              title="Бросок инициативы"
+              title="Бросок инициативы (значение считается автоматически)"
               onClick={onInitiativeRoll}
             >
               <b>{formatModifier(initiative)}</b>
               <span>Иниц.</span>
             </button>
           ) : (
-            <div className="play-desk-vital">
+            <div className="play-desk-vital" title="Инициатива (авто)">
               <b>{formatModifier(initiative)}</b>
               <span>Иниц.</span>
             </div>
           )}
-          <div
-            className="play-desk-vital"
-            title="Бонус мастерства"
-          >
+          <div className="play-desk-vital" title="Бонус мастерства (от уровня)">
             <b>{formatModifier(proficiencyBonus)}</b>
             <span>БМ</span>
           </div>
@@ -183,18 +196,23 @@ export function PlayDeskHeader({
             className={`play-desk-header__chip${inspiration ? ' is-on' : ''}`}
             onClick={onToggleInspiration}
             aria-pressed={inspiration}
-            title="Вдохновение"
+            title="Вдохновение — нажми, чтобы переключить"
           >
             <span>Вдохн.</span>
             <b>{inspiration ? 'да' : '—'}</b>
           </button>
-          <div
-            className={`play-desk-header__chip${exhaustion > 0 ? ' is-warn' : ''}`}
-            title="Истощение"
+          <button
+            type="button"
+            className={`play-desk-header__chip${play.exhaustion > 0 ? ' is-warn' : ''}`}
+            title="Истощение — нажми, чтобы изменить уровень (0–6)"
+            onClick={() => {
+              const next = play.exhaustion >= 6 ? 0 : play.exhaustion + 1
+              onExhaustionChange(clampExhaustion(next))
+            }}
           >
             <span>Истощ.</span>
-            <b>{exhaustion}</b>
-          </div>
+            <b>{play.exhaustion}</b>
+          </button>
         </div>
       </div>
 
@@ -208,8 +226,8 @@ export function PlayDeskHeader({
         <button
           type="button"
           className={`play-desk-header__hp${hpPulse ? ' is-pulse' : ''}`}
-          title={hpTemp > 0 ? `врем. +${hpTemp}` : 'Хиты'}
-          onClick={() => setCurrentPadOpen(true)}
+          title={hpTemp > 0 ? `врем. +${hpTemp}` : 'Хиты — лечение, урон, кости, смерть'}
+          onClick={() => setHpPadOpen(true)}
         >
           <strong>
             {hpCurrent ?? '—'} / {hpMax ?? '—'}
@@ -219,40 +237,26 @@ export function PlayDeskHeader({
             {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
           </small>
         </button>
-        <button
-          type="button"
-          className="play-desk-header__hp-max"
-          onClick={() => setMaxDialogOpen(true)}
-          title="Максимум HP по уровням"
-        >
-          макс.
-        </button>
       </div>
 
-      <NumberPadDialog
-        open={currentPadOpen}
-        title="Текущие HP"
-        current={currentValue}
-        min={0}
-        max={maxValue ?? undefined}
-        addLabel="Вылечить"
-        subtractLabel="Урон"
-        onClose={() => setCurrentPadOpen(false)}
-        onAdd={(delta) => {
-          const next = currentValue + delta
-          const capped = maxValue == null ? next : Math.min(maxValue, next)
-          onChange({ hpCurrent: Math.max(0, capped) })
+      <HpPadDialog
+        open={hpPadOpen}
+        hpCurrent={hpCurrent}
+        hpMax={hpMax}
+        hpTemp={hpTemp}
+        constitutionMod={constitutionMod}
+        play={play}
+        onClose={() => setHpPadOpen(false)}
+        onOpenMaxSettings={() => {
+          setHpPadOpen(false)
+          setMaxDialogOpen(true)
         }}
-        onSubtract={(delta) => {
-          onChange({ hpCurrent: Math.max(0, currentValue - delta) })
-        }}
-        header={
-          <p className="combat-hp-pad-header">
-            сейчас {hpCurrent ?? 0}
-            {hpMax != null ? ` / ${hpMax}` : ' · макс не задан'}
-            {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
-          </p>
-        }
+        onHeal={applyHeal}
+        onDamage={applyDamage}
+        onSetTemp={(temp) => onPlayChange({ ...play, hpTemp: Math.max(0, temp) })}
+        onPlayChange={onPlayChange}
+        onCombatChange={onCombatChange}
+        onToast={onToast}
       />
 
       <NumberPadDialog
@@ -306,7 +310,7 @@ export function PlayDeskHeader({
         hpCurrent={hpCurrent}
         onClose={() => setMaxDialogOpen(false)}
         onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
-          onChange({ hpMax: nextMax, hpCurrent: nextCurrent })
+          onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })
           setMaxDialogOpen(false)
         }}
       />

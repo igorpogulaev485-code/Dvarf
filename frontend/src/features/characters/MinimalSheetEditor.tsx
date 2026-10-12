@@ -2849,6 +2849,12 @@ export function MinimalSheetEditor({
   const [ownershipOpen, setOwnershipOpen] = useState(false)
   const [restOpen, setRestOpen] = useState(false)
   const [sorcerySpendId, setSorcerySpendId] = useState<string | null>(null)
+  const [concDamageAsk, setConcDamageAsk] = useState<{
+    damage: number
+    spellName: string
+    dc: number
+  } | null>(null)
+  const [deskCastSpellId, setDeskCastSpellId] = useState<string | null>(null)
   const [activePanel, setActivePanel] = useState<PlayDeskPanelId>(
     () => MODE_DEFAULT_PANEL[draft.sheetUi.deskMode],
   )
@@ -3105,8 +3111,7 @@ export function MinimalSheetEditor({
             constitutionMod={abilityModifier(draft.abilities.con)}
             hpCurrent={draft.hpCurrent}
             hpMax={draft.hpMax}
-            hpTemp={draft.play.hpTemp}
-            acOverride={draft.ac}
+            play={draft.play}
             autoAc={armorClass.ac}
             acHint={armorClass.summary}
             speed={
@@ -3129,33 +3134,40 @@ export function MinimalSheetEditor({
             proficiencyBonus={proficiencyBonus}
             initiative={initiativeValue}
             inspiration={draft.inspiration}
-            exhaustion={draft.play.exhaustion}
             goldGp={draft.inventory.coins.gp}
-            isDying={draft.play.isDying}
-            deathSuccesses={draft.play.deathSuccesses}
-            deathFails={draft.play.deathFails}
             onOpenRest={() => setRestOpen(true)}
             onExperienceChange={(experience) => patchIdentity({ experience })}
             onToggleInspiration={() =>
               setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
+            }
+            onExhaustionChange={(exhaustion) =>
+              setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, exhaustion },
+              }))
             }
             onInitiativeRoll={() =>
               onToast(
                 formatSkillRoll('Инициатива', initiativeValue, effectiveRollMode()),
               )
             }
-            onChange={(patch) =>
-              setDraft((prev) => {
-                const next = { ...prev, ...patch }
-                if (patch.speed !== undefined && gearEffects.speedBonusFt) {
-                  next.speed =
-                    patch.speed == null
-                      ? null
-                      : Math.max(0, patch.speed - gearEffects.speedBonusFt)
-                }
-                return next
-              })
+            onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
+            onCombatChange={(patch) =>
+              setDraft((prev) => ({
+                ...prev,
+                ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
+                ...(patch.hpMax !== undefined ? { hpMax: patch.hpMax } : {}),
+              }))
             }
+            onToast={onToast}
+            onDamaged={(damageToHp) => {
+              if (!draft.play.concentration || damageToHp <= 0) return
+              setConcDamageAsk({
+                damage: damageToHp,
+                spellName: draft.play.concentration.name,
+                dc: Math.max(10, Math.floor(damageToHp / 2)),
+              })
+            }}
           />
         ) : (
           <CombatStickyHeader
@@ -3999,16 +4011,8 @@ export function MinimalSheetEditor({
       <div className="play-desk__stage-panel" hidden={stageHidden('play')}>
       <PlayPanel
         edition={baseCharacter.rules_edition as RulesEdition}
-        level={characterLevel}
-        hpCurrent={draft.hpCurrent}
-        hpMax={draft.hpMax}
-        constitutionMod={abilityModifier(draft.abilities.con)}
         play={draft.play}
-        spells={draft.spells}
-        featureDesiredResources={featureDesiredResources}
         onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
-        onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
-        onCombatChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
         onToast={onToast}
       />
 
@@ -4216,8 +4220,15 @@ export function MinimalSheetEditor({
           learnBudget={spellLearnBudget}
           pinned={deskSplit && splitSecondary === 'spells'}
           rollMode={effectiveRollMode()}
+          concentration={draft.play.concentration}
           onOpenFull={() => setForceFullPanel('spells')}
           onToast={onToast}
+          onCastSpell={(spell) => {
+            // Full cast UI lives in SpellsPanel — jump there for leveled casts.
+            setForceFullPanel('spells')
+            setDeskCastSpellId(spell.id)
+            onToast(`Каст «${spell.name}» — в полной панели заклинаний`)
+          }}
           onClearSplit={
             deskSplit && splitSecondary === 'spells'
               ? () => patchSheetUi({ deskSplit: false })
@@ -4263,6 +4274,9 @@ export function MinimalSheetEditor({
             proficiencyBonus={proficiencyBonus}
             inventoryItems={draft.inventory.items}
             inventory={draft.inventory}
+            concentration={draft.play.concentration}
+            initialCastSpellId={deskCastSpellId}
+            onInitialCastConsumed={() => setDeskCastSpellId(null)}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
             onInventoryChange={(inventory) =>
               setDraft((prev) => ({
@@ -4422,6 +4436,32 @@ export function MinimalSheetEditor({
           На сервере уже есть более новая версия (другая вкладка, устройство или гонка автосейва).
           «Сохранить мои правки» запишет то, что на экране. «Взять с сервера» заменит экран
           серверной копией — локальные правки пропадут.
+        </Text>
+      </Dialog>
+
+      <Dialog
+        open={concDamageAsk != null}
+        title="Концентрация"
+        primaryLabel="Удержал"
+        secondaryLabel="Сорвалось"
+        primaryVariant="primary"
+        onPrimary={() => {
+          setConcDamageAsk(null)
+          onToast('Концентрация удержана')
+        }}
+        onSecondary={() => {
+          setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, concentration: null },
+          }))
+          setConcDamageAsk(null)
+          onToast('Концентрация сорвалась')
+        }}
+      >
+        <Text>
+          Урон {concDamageAsk?.damage ?? 0} HP. Спас концентрации Сл{' '}
+          {concDamageAsk?.dc ?? 10}
+          {concDamageAsk?.spellName ? ` («${concDamageAsk.spellName}»)` : ''}. Удержал?
         </Text>
       </Dialog>
 

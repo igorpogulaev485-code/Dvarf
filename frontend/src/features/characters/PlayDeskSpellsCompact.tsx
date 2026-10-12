@@ -4,6 +4,7 @@ import {
   type AbilityKey,
 } from './sheetTypes'
 import { formatCheckRoll, rollCheck, type DeskRollMode } from './deskRolls'
+import type { ConcentrationState } from './play'
 import {
   countLearnedCantrips,
   countLearnedLeveled,
@@ -26,10 +27,13 @@ type PlayDeskSpellsCompactProps = {
     maxPrepared: number | null
   } | null
   pinned?: boolean
+  concentration?: ConcentrationState | null
   onOpenFull: () => void
   onClearSplit?: () => void
   onSpendSlot?: (level: number) => void
   onToast?: (message: string) => void
+  /** Open full cast flow for this spell (spend slot / set concentration). */
+  onCastSpell?: (spell: SheetSpell) => void
   rollMode?: DeskRollMode
 }
 
@@ -39,10 +43,12 @@ export function PlayDeskSpellsCompact({
   proficiencyBonus,
   learnBudget = null,
   pinned = false,
+  concentration = null,
   onOpenFull,
   onClearSplit,
   onSpendSlot,
   onToast,
+  onCastSpell,
   rollMode = 'normal',
 }: PlayDeskSpellsCompactProps) {
   const ready = spells.known.filter(isReadyInCombat)
@@ -101,6 +107,9 @@ export function PlayDeskSpellsCompact({
           {attack != null ? <span>атака {formatModifier(attack)}</span> : null}
           {quotaLabel ? <span>{quotaLabel}</span> : null}
           {cantripLabel ? <span>{cantripLabel}</span> : null}
+          {concentration ? (
+            <span className="play-desk-compact__meta-conc">конц. {concentration.name}</span>
+          ) : null}
         </div>
       )}
 
@@ -134,16 +143,24 @@ export function PlayDeskSpellsCompact({
         {ready.length === 0 ? (
           <p className="play-desk-compact__empty">Нет готовых заклинаний</p>
         ) : (
-          ready.slice(0, 14).map((spell) => (
-            <SpellRow
-              key={spell.id}
-              spell={spell}
-              spellAttack={attack}
-              spellDc={dc}
-              rollMode={rollMode}
-              onToast={onToast}
-            />
-          ))
+          ready.slice(0, 14).map((spell) => {
+            const isActiveConc =
+              concentration != null &&
+              (concentration.spell_id === spell.id ||
+                concentration.name.trim() === (spell.name || '').trim())
+            return (
+              <SpellRow
+                key={spell.id}
+                spell={spell}
+                spellAttack={attack}
+                spellDc={dc}
+                rollMode={rollMode}
+                activeConcentration={isActiveConc}
+                onToast={onToast}
+                onCast={onCastSpell ? () => onCastSpell(spell) : undefined}
+              />
+            )
+          })
         )}
         {ready.length > 14 ? (
           <p className="play-desk-compact__more">+ ещё {ready.length - 14}</p>
@@ -158,13 +175,17 @@ function SpellRow({
   spellAttack,
   spellDc,
   rollMode,
+  activeConcentration,
   onToast,
+  onCast,
 }: {
   spell: SheetSpell
   spellAttack: number | null
   spellDc: number | null
   rollMode: DeskRollMode
+  activeConcentration: boolean
   onToast?: (message: string) => void
+  onCast?: () => void
 }) {
   const levelLabel = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
   const tags = [
@@ -174,9 +195,15 @@ function SpellRow({
   return (
     <button
       type="button"
-      className="play-desk-compact__row is-dense is-action"
-      title={spellAttack != null ? 'Бросок атаки заклинанием' : 'Инфо о заклинании'}
+      className={`play-desk-compact__row is-dense is-action${
+        activeConcentration ? ' is-conc-active' : ''
+      }`}
+      title={onCast ? 'Каст заклинания' : 'Инфо о заклинании'}
       onClick={() => {
+        if (onCast) {
+          onCast()
+          return
+        }
         const head = `${spell.name} · ${levelLabel}${
           tags.length ? ` · ${tags.join(', ')}` : ''
         }`
@@ -189,16 +216,16 @@ function SpellRow({
           )
           return
         }
-        onToast?.(
-          `${head}${spellDc != null ? ` · Сл ${spellDc}` : ''}`,
-        )
+        onToast?.(`${head}${spellDc != null ? ` · Сл ${spellDc}` : ''}`)
       }}
     >
       <div className="play-desk-compact__row-main">
         <b>{spell.name}</b>
       </div>
       <span className="play-desk-compact__dmg">{levelLabel}</span>
-      {spell.concentration ? (
+      {activeConcentration ? (
+        <span className="play-desk-compact__tag is-conc">держит</span>
+      ) : spell.concentration ? (
         <span className="play-desk-compact__tag is-conc">конц.</span>
       ) : spell.prepared && spell.level > 0 ? (
         <span className="play-desk-compact__tag is-on">готово</span>
