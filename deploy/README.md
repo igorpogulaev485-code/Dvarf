@@ -4,7 +4,8 @@
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
 **Current prod tip branch:** `cursor/mobile-play-desk-2c91`  
-(обновляй эту строку после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
+**Canonical tip file for scripts:** [`deploy/prod-tip`](prod-tip)  
+(обновляй tip после деплоя, который становится новым tip — в `prod-tip`, `AGENTS.md`, skill `dvarf-prod-lineage`, `PRODUCT_STATUS.md`)
 
 ---
 
@@ -14,17 +15,19 @@
 
 | Деплой с… | Результат на проде |
 |-----------|-------------------|
-| Полный tip + твой слайс | ОКый прод + новое |
+| Полный tip + твой слайс (HEAD ⊇ tip) | ОКый прод + новое |
 | Тонкая ветка без кабинета/листа/лобби | Эти контуры **исчезают** |
+| Старая tip-линия без позднего mobile/desktop | Поздние фичи tip **исчезают** (2026-10-12) |
 
-Именно так 2026-10-06 пропали аватар, кабинет, лист P1–P6 и classic.
+Именно так 2026-10-06 пропали аватар, кабинет, лист P1–P6 и classic;  
+2026-10-12 — mobile play-desk затёрли деплоем desktop catch-up без merge tip.
 
 **Правила:** [`AGENTS.md`](../AGENTS.md) · [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](../.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 Перед деплоем обязательно:
 
-1. Ветка = merge/rebase от **prod tip** (не параллельная развилка от старого Phase A).
-2. `./deploy/preflight-prod.sh` — зелёный (вызывается из `sync-and-up.sh` автоматически).
+1. Ветка = **потомок** tip из `deploy/prod-tip` (`git merge-base --is-ancestor`).
+2. `./deploy/preflight-prod.sh` — зелёный: tip ancestry + маркеры mobile/desktop/lobby/cabinet/sheet (вызывается из `sync-and-up.sh`).
 3. После деплоя — проверить живые маркеры + обновить `PRODUCT_STATUS.md`.
 
 Обход preflight только с явного ok Игоря: `DVARF_SKIP_PREFLIGHT=1`.

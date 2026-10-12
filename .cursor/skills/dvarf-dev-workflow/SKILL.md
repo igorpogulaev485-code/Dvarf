@@ -31,8 +31,8 @@ Do not start coding, scaffolding, or migrations until the plan is approved for t
 Кратко:
 
 - `sync-and-up.sh` **затирает весь** `/opt/dvarf` (кроме `.env`).
-- Работай и деплой **только от текущего prod tip** (сейчас `cursor/prod-lineage-rules-acbe`).
-- Перед деплоем: `./deploy/preflight-prod.sh` (вызывается из sync-and-up).
+- Работай и деплой **только от текущего prod tip** (см. `deploy/prod-tip` / `AGENTS.md`; сейчас `cursor/mobile-play-desk-2c91`).
+- Перед деплоем: `./deploy/preflight-prod.sh` — tip ancestry + маркеры (вызывается из sync-and-up).
 - В `PRODUCT_STATUS.md` пиши «на проде: да» только после проверки живого сервера.
 
 ## Plan format (keep short)

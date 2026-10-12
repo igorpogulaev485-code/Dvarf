@@ -12,8 +12,9 @@
 
 - Деплой с «тонкой» ветки = **удаление** всего, чего в ней нет.
 - «У меня в PR фича есть» ≠ «на проде она останется после чужого деплоя».
+- «Моя ветка новее по дате» ≠ «в ней есть tip» — опоздавший слайс без merge tip **сожжёт** то, что уже на проде (так 2026-10-12 mobile tip затёрли деплоем старого desktop catch-up).
 
-**Запрещено** деплоить с ветки, которая не содержит актуальный prod tip.
+**Запрещено** деплоить с ветки, которая не является потомком актуального prod tip (`git merge-base --is-ancestor`).
 
 ---
 
@@ -22,25 +23,26 @@
 | Поле | Значение |
 |------|----------|
 | Prod tip (сейчас) | `cursor/mobile-play-desk-2c91` |
+| Файл tip для скриптов | [`deploy/prod-tip`](deploy/prod-tip) |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
 Перед работой над продом / перед деплоем:
 
 1. `git fetch origin`
-2. Взять **prod tip** из таблицы выше (или из `PRODUCT_STATUS` / skill, если tip обновили).
+2. Взять **prod tip** из `deploy/prod-tip` (дублируется в таблице выше / `PRODUCT_STATUS` / skill).
 3. Свою ветку строить **от tip**: `git checkout -b cursor/<slice>-acbe origin/<prod-tip>`  
    или влить tip в свою ветку: `git merge origin/<prod-tip>` (без потери чужих файлов).
-4. Убедиться, что маркер-файлы tip на месте (см. preflight).
+4. Убедиться, что `./deploy/preflight-prod.sh` зелёный: **ancestry tip + маркеры** (mobile density, desktop catch-up, lobby, cabinet, sheet, classic).
 
 После успешного деплоя своего слайса, который **становится новым tip**:
 
-- обнови tip в этом файле, в skill `dvarf-prod-lineage`, в `deploy/README.md`, в `PRODUCT_STATUS.md`;
+- обнови tip в `deploy/prod-tip`, в этом файле, в skill `dvarf-prod-lineage`, в `deploy/README.md`, в `PRODUCT_STATUS.md`;
 - напиши в PR: «это новый prod tip».
 
 ---
 
-## 3. Чеклист ДО `sync-and-up.sh`
+## 3. Чеклист ДО `sync-and-up.sh` (обязательный)
 
 Обязательно:
 
@@ -48,12 +50,17 @@
 ./deploy/preflight-prod.sh
 ```
 
-Скрипт падает, если нет обязательных файлов текущего прода (lobby + cabinet + avatar + sheet P1–P6 + classic).  
+Скрипт **падает**, если:
+
+1. `HEAD` **не содержит** объявленный tip из `deploy/prod-tip` (не потомок tip);
+2. нет обязательных маркеров (lobby + cabinet + avatar + sheet P1–P6 + classic + **mobile play-desk** + **desktop PlayDesk\***).
+
 `sync-and-up.sh` вызывает preflight сам. Обход только так: `DVARF_SKIP_PREFLIGHT=1` — и только с явного ok Игоря.
 
 Дополнительно глазами:
 
-- [ ] Ветка содержит merge/rebase **prod tip**, не параллельную «пустую» развилку от старого Phase A
+- [ ] Ветка = merge/rebase **prod tip**, не параллельная «пустая» развилка и не старый tip без поздних mobile/desktop коммитов
+- [ ] Конфликты решены с сохранением **и** телефона, **и** стола ≥960px — не «взять нашу сторону целиком»
 - [ ] `PRODUCT_STATUS.md` актуален; не пишешь «на проде: да» заранее
 - [ ] Нет удаления чужих роутов/панелей «потому что мне не нужны»
 

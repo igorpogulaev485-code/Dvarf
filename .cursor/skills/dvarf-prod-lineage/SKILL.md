@@ -14,15 +14,19 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 
 ## Hard rules
 
-1. **Никогда не деплой** с ветки, которая не содержит текущий **prod tip**.
-2. **Перед деплоем** всегда: `./deploy/preflight-prod.sh` (его же вызывает `sync-and-up.sh`).
+1. **Никогда не деплой** с ветки, у которой `HEAD` не является потомком текущего **prod tip**  
+   (`git merge-base --is-ancestor <tip> HEAD`). Preflight это проверяет жёстко.
+2. **Перед деплоем** всегда: `./deploy/preflight-prod.sh` (его же вызывает `sync-and-up.sh`).  
+   Падает и без tip-ancestry, и без маркеров mobile/desktop/lobby/cabinet/sheet.
 3. **Один tip** — одна линия накопления. Новый успешный деплой-слайс обновляет tip в:
+   - `deploy/prod-tip` ← источник для скриптов
    - `AGENTS.md`
    - этот skill
    - `deploy/README.md`
    - `PRODUCT_STATUS.md` (история + «Сейчас в продукте»)
 4. **PRODUCT_STATUS** писать только после проверки живого сервера (бандл/диск/API). Не копировать «на проде: да» из другой ветки вслепую.
 5. Параллельные агенты: ветки от tip; на сервер — только после merge tip (или merge друг в друга), **один** деплой.
+6. **Опоздавший слайс** (mobile после desktop или наоборот): сначала `git merge origin/<prod-tip>` в свою ветку, сохранить оба контура, и только потом деплой. Деплой «моей старой tip-линии» поверх новой = wipe (инцидент 2026-10-12: desktop catch-up затёр mobile tip).
 
 ## Текущий prod tip
 
@@ -30,9 +34,10 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 cursor/mobile-play-desk-2c91
 ```
 
+Дублируется в [`deploy/prod-tip`](../../../deploy/prod-tip).  
 URL: http://201.34.132.252/
 
-Обновляй эту строку, когда tip сменился после твоего деплоя.
+Обновляй **все** tip-строки (включая `deploy/prod-tip`), когда tip сменился после твоего деплоя.
 
 ## Как начать слайс, который может попасть на прод
 
@@ -52,15 +57,21 @@ git merge origin/cursor/mobile-play-desk-2c91
 ```
 ## Обязательные маркеры (preflight)
 
-Скрипт `deploy/preflight-prod.sh` проверяет наличие файлов. Минимум на 2026-10-06:
+Скрипт `deploy/preflight-prod.sh` проверяет:
+
+1. **Tip ancestry** — `HEAD` содержит tip из `deploy/prod-tip`.
+2. **Файлы/строки** контуров на проде:
 
 | Контур | Маркер |
 |--------|--------|
+| Tip file | `deploy/prod-tip` |
 | Лобби | `frontend/src/pages/JoinLobbyPage.tsx`, `backend/app/api/routers/lobbies.py` |
 | Кабинет / SMTP | `frontend/src/features/cabinet/SessionsPanel.tsx`, `backend/app/services/mail.py` |
 | Аватар | `frontend/src/features/cabinet/AvatarEditor.tsx`, `backend/app/services/avatar.py` |
 | Лист P1–P6 | `raceEffects.ts`, `LevelUpDialog.tsx`, `casterProgression.ts`, `armor.ts`, `LanguagesToolsPanel.tsx`, `concentration.ts` |
 | Classic | `frontend/src/pages/ClassicSheetPage.tsx` |
+| Mobile play-desk | `CombatStickyHeader.tsx`, `id="boot"`, `play-desk__body--mobile`, `*-card__combat` в CSS |
+| Desktop play-desk | `PlayDeskHeader.tsx`, `PlayDeskHotBar.tsx`, `PlayDeskAttacksCompact.tsx`, `deskRolls.ts`, `desk_split` |
 | Статус | `PRODUCT_STATUS.md` |
 
 Если добавляешь новый «неубиваемый» контур на прод — **добавь маркер в preflight** в том же PR.

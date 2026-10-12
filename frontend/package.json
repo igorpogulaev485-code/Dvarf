@@ -15,7 +15,9 @@
     "selfcheck:inventory-packs": "tsx src/features/characters/inventoryPacks.selfcheck.ts",
     "selfcheck:feature-summon": "tsx src/features/characters/featureSummon.selfcheck.ts",
     "selfcheck:subclass-grants": "tsx src/shared/dnd/subclassGrants.selfcheck.ts",
-    "selfcheck:attunement": "tsx src/features/characters/attunement.selfcheck.ts"
+    "selfcheck:attunement": "tsx src/features/characters/attunement.selfcheck.ts",
+    "selfcheck:starting-gear-attacks": "tsx src/features/characters/startingGearAttacks.selfcheck.ts",
+    "selfcheck:desk-rolls": "tsx --tsconfig tsconfig.app.json src/features/characters/deskRolls.selfcheck.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
