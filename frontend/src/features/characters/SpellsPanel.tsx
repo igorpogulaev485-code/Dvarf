@@ -4,6 +4,7 @@ import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
   applySpellcastingSuggestion,
+  resolveSpellLearnBudget,
   suggestSpellcasting,
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
@@ -35,6 +36,7 @@ import type { ConcentrationState } from './play'
 import {
   canRemoveSheetSpell,
   canSpendGrantCast,
+  countLearnedCantrips,
   countPreparedLeveled,
   createSheetSpell,
   ensureInnateGrantCasts,
@@ -133,6 +135,16 @@ export function SpellsPanel({
       }),
     [className, level, classes, subclassCasters, abilities],
   )
+
+  const learnBudget = useMemo(() => {
+    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
+    if (rows.length === 0) return null
+    return resolveSpellLearnBudget({
+      classes: rows,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+    })
+  }, [classes, subclassCasters, abilities])
 
   const knownCaster = isKnownSpellcastingMode({
     maxPrepared: spells.max_prepared,
@@ -424,10 +436,22 @@ export function SpellsPanel({
             <Text tone="muted">{knownCaster ? 'Известно' : 'Подготовлено'}</Text>
             <strong>
               {knownCaster
-                ? String(spells.known.filter((s) => s.level > 0).length)
+                ? (() => {
+                    const n = spells.known.filter((s) => s.level > 0).length
+                    const cap = learnBudget?.leveledKnown
+                    return cap != null ? `${n}/${cap}` : String(n)
+                  })()
                 : prepareLimitLabel}
             </strong>
           </div>
+          {learnBudget?.cantrips != null ? (
+            <div className="spells-summary__stat">
+              <Text tone="muted">Заговоры</Text>
+              <strong>
+                {countLearnedCantrips(spells.known)}/{learnBudget.cantrips}
+              </strong>
+            </div>
+          ) : null}
         </div>
 
         <div className="chip-row spells-focus-chips">
@@ -872,7 +896,7 @@ export function SpellsPanel({
             variant="secondary"
             onClick={() => patch({ known: [...spells.known, createSheetSpell()] })}
           >
-            Добавить заклинание
+            Своё (homebrew)
           </Button>
         </div>
       </Stack>

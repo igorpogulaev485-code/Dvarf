@@ -1,31 +1,22 @@
-import { formatModifier } from './sheetTypes'
 import type { ConcentrationState } from './play'
 import type { SheetResource } from '../../shared/dnd/rest'
 
 type PlayDeskHotBarProps = {
-  initiative: number
-  inspiration: boolean
-  exhaustion: number
   conditionNames: string[]
   concentration: ConcentrationState | null
   resources: SheetResource[]
-  onToggleInspiration: () => void
   onClearConcentration?: () => void
   onResourceUsedChange: (id: string, used: number) => void
-  onInitiativeRoll?: () => void
 }
 
+/** Combat strip under modes: conditions, concentration, resource pips.
+ * Initiative / inspiration / exhaustion live in PlayDeskHeader. */
 export function PlayDeskHotBar({
-  initiative,
-  inspiration,
-  exhaustion,
   conditionNames,
   concentration,
   resources,
-  onToggleInspiration,
   onClearConcentration,
   onResourceUsedChange,
-  onInitiativeRoll,
 }: PlayDeskHotBarProps) {
   const conditionsLabel =
     conditionNames.length > 0 ? conditionNames.join(', ') : 'нет'
@@ -33,36 +24,6 @@ export function PlayDeskHotBar({
 
   return (
     <div className="play-desk__hot" aria-label="Боевая полоса">
-      {onInitiativeRoll ? (
-        <button
-          type="button"
-          className="play-desk__hot-item play-desk__hot-item--btn"
-          title="Бросок инициативы"
-          onClick={onInitiativeRoll}
-        >
-          <span>Иниц.</span>
-          <b>{formatModifier(initiative)}</b>
-        </button>
-      ) : (
-        <div className="play-desk__hot-item">
-          <span>Иниц.</span>
-          <b>{formatModifier(initiative)}</b>
-        </div>
-      )}
-      <button
-        type="button"
-        className={`play-desk__hot-item play-desk__hot-item--btn${inspiration ? ' is-on' : ''}`}
-        onClick={onToggleInspiration}
-        aria-pressed={inspiration}
-        title="Вдохновение"
-      >
-        <span>Вдохн.</span>
-        <b>{inspiration ? 'да' : '—'}</b>
-      </button>
-      <div className={`play-desk__hot-item${exhaustion > 0 ? ' is-warn' : ''}`}>
-        <span>Истощ.</span>
-        <b>{exhaustion}</b>
-      </div>
       <div className="play-desk__hot-item play-desk__hot-item--wide" title={conditionsLabel}>
         Состояния: {conditionsLabel}
       </div>
@@ -87,7 +48,11 @@ export function PlayDeskHotBar({
             <span className="play-desk__hot-res-name" title={row.name}>
               {row.name}
             </span>
-            <div className="play-desk__pips" role="group" aria-label={`${row.name}: ${remaining}/${row.max}`}>
+            <div
+              className="play-desk__pips"
+              role="group"
+              aria-label={`${row.name}: ${remaining}/${row.max}`}
+            >
               {Array.from({ length: row.max }, (_, index) => {
                 const isOn = index < remaining
                 return (

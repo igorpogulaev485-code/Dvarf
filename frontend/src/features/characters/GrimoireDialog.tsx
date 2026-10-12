@@ -104,11 +104,10 @@ export function GrimoireDialog({
             abilityModFor: modFor,
           })
         : null)
-    const fromSuggestion = suggestion
+    // Access circle from character rules — sheet slots must not open higher circles.
+    const maxSpellLevel = suggestion
       ? highestSpellSlotLevel(suggestion.slots, suggestion.pact_slots)
       : 0
-    const fromSheet = highestSpellSlotLevel(spells.slots, spells.pact_slots)
-    const maxSpellLevel = Math.max(fromSuggestion, fromSheet)
     const schoolGate = thirdCasterSchoolGate(activeClasses, subclassCasters)
     return {
       classSlugs,
@@ -118,14 +117,7 @@ export function GrimoireDialog({
       budget,
       suggestion,
     }
-  }, [
-    classes,
-    subclassCasters,
-    spells.slots,
-    spells.pact_slots,
-    learnBudgetProp,
-    abilityModFor,
-  ])
+  }, [classes, subclassCasters, learnBudgetProp, abilityModFor])
 
   const mode = access.budget?.mode ?? (knownCaster ? 'known' : 'prepared_list')
   const maxPrepared = access.budget?.maxPrepared ?? spells.max_prepared
@@ -272,7 +264,32 @@ export function GrimoireDialog({
       onToast?.('Уже есть в списке')
       return
     }
-    const level = entryLevel(entry)
+    const parsed = parseSpellCatalogData(entry.data)
+    const level = parsed.level
+    if (!access.hasCaster) {
+      onToast?.('Нет класса с заклинаниями')
+      return
+    }
+    const onList = parsed.classes.some((slug) => access.classSlugs.includes(slug))
+    if (!onList) {
+      onToast?.('Нет в списке заклинаний твоих классов')
+      return
+    }
+    if (level > 0 && level > access.maxSpellLevel) {
+      onToast?.(
+        access.maxSpellLevel > 0
+          ? `Доступен круг до ${access.maxSpellLevel}`
+          : 'Пока доступны только заговоры',
+      )
+      return
+    }
+    if (access.schoolGate && level > 0) {
+      const school = (parsed.school || '').toLowerCase()
+      if (!access.schoolGate.map((s) => s.toLowerCase()).includes(school)) {
+        onToast?.('Школа недоступна для этого кастера')
+        return
+      }
+    }
     if (level <= 0 && cantripCapReached()) {
       onToast?.(
         `Лимит заговоров: ${learnedCantrips}/${access.budget?.cantrips ?? '—'}`,
