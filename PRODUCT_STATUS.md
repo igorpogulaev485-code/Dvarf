@@ -607,6 +607,15 @@
 
 На проде: **да** · ветка `cursor/desk-scenes-no-select-a73e` · PR #117 · это **prod tip** · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-Q0HwNbnc.js` (`play-desk__more-tab`); dist→web
 
+### 2026-10-12 — Hotfix: «страница вместо API» на листе
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| nginx SPA | Rewrite только при `Sec-Fetch-Dest: document` | fetch листа больше не получает index.html |
+| API client | Всегда `Accept: application/json` + `X-Dvarf-Client` | Нет ложного html_instead_of_json |
+
+На проде: **да** · та же tip-ветка · nginx reload + dist→web; проверено: `Sec-Fetch-Dest: empty` + browser Accept → JSON 401
+
 ### 2026-10-12 — Play desk: догон макета (hot bar + split + визуал)
 
 | Функция | Как работает | Эффект для пользователя |
