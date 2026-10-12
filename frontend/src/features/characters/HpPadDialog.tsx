@@ -122,7 +122,7 @@ export function HpPadDialog({
         hpMax,
         healAmount: average,
       }) ?? current
-    onPlayChange(withSyncedHitDiceSummary({ ...play, hitDiceByClass: spent.pools }))
+    onPlayChange(withSyncedHitDiceSummary({ ...play, hitDiceByClass: spent }))
     onCombatChange({ hpCurrent: healed })
     onToast(
       `Кость ${pool.className} (${pool.die}): +${Math.max(0, healed - current)} HP (среднее + ТЕЛ)`,
