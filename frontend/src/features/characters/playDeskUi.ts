@@ -10,6 +10,7 @@ export type PlayDeskPanelId =
   | 'identity'
   | 'play'
   | 'attacks'
+  | 'abilities'
   | 'inventory'
   | 'attunement'
   | 'features'
@@ -81,6 +82,7 @@ export const MODE_DEFAULT_PANEL: Record<PlayDeskMode, PlayDeskPanelId> = {
 
 export const PLAY_DESK_PANELS: Array<{ id: PlayDeskPanelId; label: string }> = [
   { id: 'attacks', label: 'Атаки' },
+  { id: 'abilities', label: 'Характеристики' },
   { id: 'features', label: 'Способности' },
   { id: 'spells', label: 'Заклинания' },
   { id: 'inventory', label: 'Снаряжение' },

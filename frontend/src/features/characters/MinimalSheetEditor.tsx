@@ -2688,63 +2688,67 @@ export function MinimalSheetEditor({
     return activePanel !== id
   }
 
-  const abilityColumn = (
-    <AbilitySkillsColumn
-      abilityOrder={draft.sheetUi.abilityOrder}
-      collapsedAbilities={draft.sheetUi.collapsedAbilities}
-      abilities={draft.abilities}
-      displayAbilities={effectiveAbilities}
-      saves={draft.saves}
-      skills={draft.skills}
-      proficiencyBonus={proficiencyBonus}
-      auraSaveBonus={auraSaveBonus}
-      saveBonusExtra={gearEffects.saveBonuses}
-      skillBonusExtra={gearEffects.skillBonuses}
-      onAbilityScoreChange={(key, score) =>
-        setDraft((prev) => ({
-          ...prev,
-          abilities: { ...prev.abilities, [key]: score },
-        }))
-      }
-      onSaveToggle={(key) =>
-        setDraft((prev) => ({
-          ...prev,
-          saves: { ...prev.saves, [key]: !prev.saves[key] },
-        }))
-      }
-      onSkillCycle={(skillKey) =>
-        setDraft((prev) => ({
-          ...prev,
-          skills: {
-            ...prev.skills,
-            [skillKey]: cycleSkill(prev.skills[skillKey]),
-          },
-        }))
-      }
-      onReorder={(abilityOrder) => patchSheetUi({ abilityOrder })}
-      onCollapsedChange={(collapsedAbilities) => patchSheetUi({ collapsedAbilities })}
-    />
-  )
+  function renderAbilityColumn() {
+    return (
+      <AbilitySkillsColumn
+        abilityOrder={draft.sheetUi.abilityOrder}
+        collapsedAbilities={draft.sheetUi.collapsedAbilities}
+        abilities={draft.abilities}
+        displayAbilities={effectiveAbilities}
+        saves={draft.saves}
+        skills={draft.skills}
+        proficiencyBonus={proficiencyBonus}
+        auraSaveBonus={auraSaveBonus}
+        saveBonusExtra={gearEffects.saveBonuses}
+        skillBonusExtra={gearEffects.skillBonuses}
+        onAbilityScoreChange={(key, score) =>
+          setDraft((prev) => ({
+            ...prev,
+            abilities: { ...prev.abilities, [key]: score },
+          }))
+        }
+        onSaveToggle={(key) =>
+          setDraft((prev) => ({
+            ...prev,
+            saves: { ...prev.saves, [key]: !prev.saves[key] },
+          }))
+        }
+        onSkillCycle={(skillKey) =>
+          setDraft((prev) => ({
+            ...prev,
+            skills: {
+              ...prev.skills,
+              [skillKey]: cycleSkill(prev.skills[skillKey]),
+            },
+          }))
+        }
+        onReorder={(abilityOrder) => patchSheetUi({ abilityOrder })}
+        onCollapsedChange={(collapsedAbilities) => patchSheetUi({ collapsedAbilities })}
+      />
+    )
+  }
 
-  const passivesCompact = (
-    <div className="play-desk__passives">
-      <div className="play-desk__passives-label">Пассивы · всегда на виду</div>
-      <div className="passive-grid">
-        <div className="passive-card">
-          <span className="passive-card__label">Внимательность</span>
-          <strong>{passives.perception}</strong>
-        </div>
-        <div className="passive-card">
-          <span className="passive-card__label">Анализ</span>
-          <strong>{passives.investigation}</strong>
-        </div>
-        <div className="passive-card">
-          <span className="passive-card__label">Проницательность</span>
-          <strong>{passives.insight}</strong>
+  function renderPassivesCompact(label = 'Пассивы · всегда на виду') {
+    return (
+      <div className="play-desk__passives">
+        <div className="play-desk__passives-label">{label}</div>
+        <div className="passive-grid">
+          <div className="passive-card">
+            <span className="passive-card__label">Внимательность</span>
+            <strong>{passives.perception}</strong>
+          </div>
+          <div className="passive-card">
+            <span className="passive-card__label">Анализ</span>
+            <strong>{passives.investigation}</strong>
+          </div>
+          <div className="passive-card">
+            <span className="passive-card__label">Проницательность</span>
+            <strong>{passives.insight}</strong>
+          </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   const dockCompanions = draft.companions.filter((row) => row.name.trim()).slice(0, 4)
 
@@ -2849,26 +2853,16 @@ export function MinimalSheetEditor({
         </div>
       ) : null}
 
-      <div className="play-desk__body">
-        <aside className="play-desk__left">
-          {abilityColumn}
-          {passivesCompact}
-          {isPlayDesk ? (
+      <div className={`play-desk__body${isPlayDesk ? '' : ' play-desk__body--mobile'}`}>
+        {isPlayDesk ? (
+          <aside className="play-desk__left">
+            {renderAbilityColumn()}
+            {renderPassivesCompact()}
             <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
               Владения и языки
             </Button>
-          ) : (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setActivePanel('ownership')
-              }}
-            >
-              Владения и языки
-            </Button>
-          )}
-        </aside>
+          </aside>
+        ) : null}
 
         <div className="play-desk__stage">
           <div className="play-desk__modes" aria-label="Режим стола">
@@ -2902,6 +2896,17 @@ export function MinimalSheetEditor({
               ))}
             </select>
           </div>
+
+      {!isPlayDesk ? (
+        <div className="play-desk__stage-panel" hidden={stageHidden('abilities')}>
+          <Panel title="Характеристики" className="abilities-panel">
+            <Stack gap={12}>
+              {renderPassivesCompact('Пассивы')}
+              {renderAbilityColumn()}
+            </Stack>
+          </Panel>
+        </div>
+      ) : null}
 
       <div className="play-desk__stage-panel" hidden={stageHidden('identity')}>
       <Panel title="Основное">
