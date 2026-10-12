@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import {
   getCharacter,
@@ -601,7 +601,10 @@ export function MinimalSheetEditor({
   const [baseCharacter, setBaseCharacter] = useState(character)
   const [draft, setDraft] = useState(() => buildDraft(character))
   const [sheetVersion, setSheetVersion] = useState(character.sheet_version)
-  const [saving, setSaving] = useState(false)
+  /** Autosave status — no manual save button (LSS-style). */
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'dirty' | 'saving' | 'error'>(
+    'saved',
+  )
   const [reloading, setReloading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [conflictOpen, setConflictOpen] = useState(false)
@@ -674,6 +677,24 @@ export function MinimalSheetEditor({
   const channelRef = useRef<BroadcastChannel | null>(null)
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
+  const skipAutosaveRef = useRef(true)
+  const autosaveTimerRef = useRef<number | null>(null)
+  const saveInFlightRef = useRef(false)
+  const pendingResaveRef = useRef(false)
+  const sheetVersionRef = useRef(sheetVersion)
+  sheetVersionRef.current = sheetVersion
+  const draftRef = useRef(draft)
+  draftRef.current = draft
+  const baseCharacterRef = useRef(baseCharacter)
+  baseCharacterRef.current = baseCharacter
+  const conflictOpenRef = useRef(conflictOpen)
+  conflictOpenRef.current = conflictOpen
+  const saveStatusRef = useRef(saveStatus)
+  saveStatusRef.current = saveStatus
+  const onSavedRef = useRef(onSaved)
+  onSavedRef.current = onSaved
+  const onToastRef = useRef(onToast)
+  onToastRef.current = onToast
   const [raceCatalogRows, setRaceCatalogRows] = useState<CatalogEntry[]>([])
 
   const characterLevel = useMemo(
@@ -771,12 +792,31 @@ export function MinimalSheetEditor({
   const rulesEdition = baseCharacter.rules_edition as RulesEdition
 
   useEffect(() => {
-    setBaseCharacter(character)
-    setDraft(buildDraft(character))
-    setSheetVersion(character.sheet_version)
-    setConflictOpen(false)
-    setError(null)
-  }, [character])
+    // New character open — full reset.
+    if (character.id !== baseCharacter.id) {
+      setBaseCharacter(character)
+      setDraft(buildDraft(character))
+      setSheetVersion(character.sheet_version)
+      setConflictOpen(false)
+      setError(null)
+      setSaveStatus('saved')
+      skipAutosaveRef.current = true
+      return
+    }
+    // Same character: only pull when server is ahead (other tab / refresh).
+    // Do not rebuild draft when our own autosave echoes back via onSaved.
+    // If prop is behind local sheetVersion (save just landed, parent not yet), ignore.
+    if (character.sheet_version > sheetVersion) {
+      setBaseCharacter(character)
+      setDraft(buildDraft(character))
+      setSheetVersion(character.sheet_version)
+      setConflictOpen(false)
+      setSaveStatus('saved')
+      skipAutosaveRef.current = true
+    } else if (character.sheet_version === sheetVersion) {
+      setBaseCharacter(character)
+    }
+  }, [character, baseCharacter.id, sheetVersion])
 
   useEffect(() => {
     if (createGuide !== 'background-first' && createGuide !== 'class-first') return
@@ -2561,46 +2601,50 @@ export function MinimalSheetEditor({
     }
   }
 
-  async function handleSave() {
-    setSaving(true)
-    setError(null)
+  const persistDraft = useCallback(async (options?: { quiet?: boolean }) => {
+    const quiet = options?.quiet ?? false
+    const draftSnap = draftRef.current
+    const baseSnap = baseCharacterRef.current
+    const versionSnap = sheetVersionRef.current
+    setSaveStatus('saving')
+    if (!quiet) setError(null)
     try {
-      const sheet = structuredClone(asRecord(baseCharacter.sheet))
+      const sheet = structuredClone(asRecord(baseSnap.sheet))
       const identity = asRecord(sheet.identity)
       const abilities = asRecord(sheet.abilities)
       const saves = asRecord(sheet.saves)
       const skills = asRecord(sheet.skills)
       const combat = asRecord(sheet.combat)
 
-      const primary = draft.classes[0]
-      const totalLevel = totalCharacterLevel(draft.classes)
-      const summary = formatClassSummary(draft.classes)
+      const primary = draftSnap.classes[0]
+      const totalLevel = totalCharacterLevel(draftSnap.classes)
+      const summary = formatClassSummary(draftSnap.classes)
       const identityForSave = {
-        ...draft.identity,
-        subclassName: primary?.subclass_name ?? draft.identity.subclassName,
+        ...draftSnap.identity,
+        subclassName: primary?.subclass_name ?? draftSnap.identity.subclassName,
       }
       const identityExtras = identityExtrasToSheet(identityForSave)
-      identity.race_catalog_id = draft.raceCatalogId
-      identity.background_catalog_id = draft.backgroundCatalogId
+      identity.race_catalog_id = draftSnap.raceCatalogId
+      identity.background_catalog_id = draftSnap.backgroundCatalogId
       identity.class_catalog_id = primary?.catalog_id ?? null
       Object.assign(identity, identityExtras.identityPatch)
       sheet.identity = identity
-      Object.assign(sheet, classLevelsToSheet(draft.classes))
-      sheet.class_grants = draft.classGrants
-      sheet.subclass_grants = draft.subclassGrants
-      sheet.subclass_transitions = draft.subclassTransitions
-      sheet.race_grant = draft.raceGrant
-      sheet.background_grant = draft.backgroundGrant
-      sheet.companions = draft.companions
-      sheet.feature_picks = featurePicksToSheet(draft.featurePicks)
-      sheet.class_asi = draft.classAsi
-      sheet.feat_grants = draft.featGrants
+      Object.assign(sheet, classLevelsToSheet(draftSnap.classes))
+      sheet.class_grants = draftSnap.classGrants
+      sheet.subclass_grants = draftSnap.subclassGrants
+      sheet.subclass_transitions = draftSnap.subclassTransitions
+      sheet.race_grant = draftSnap.raceGrant
+      sheet.background_grant = draftSnap.backgroundGrant
+      sheet.companions = draftSnap.companions
+      sheet.feature_picks = featurePicksToSheet(draftSnap.featurePicks)
+      sheet.class_asi = draftSnap.classAsi
+      sheet.feat_grants = draftSnap.featGrants
 
       for (const key of ABILITY_KEYS) {
-        abilities[key] = { ...asRecord(abilities[key]), score: draft.abilities[key] }
+        abilities[key] = { ...asRecord(abilities[key]), score: draftSnap.abilities[key] }
         saves[key] = {
           ...asRecord(saves[key]),
-          is_proficient: draft.saves[key],
+          is_proficient: draftSnap.saves[key],
         }
       }
       sheet.abilities = abilities
@@ -2611,23 +2655,23 @@ export function MinimalSheetEditor({
         skills[skill.key] = {
           ...current,
           base_stat: skill.base,
-          is_proficient: draft.skills[skill.key].is_proficient,
-          is_expertise: draft.skills[skill.key].is_expertise,
+          is_proficient: draftSnap.skills[skill.key].is_proficient,
+          is_expertise: draftSnap.skills[skill.key].is_expertise,
         }
       }
       sheet.skills = skills
 
-      combat.hp_current = draft.hpCurrent
-      combat.hp_max = draft.hpMax
-      combat.ac = draft.ac
-      combat.speed = draft.speed
-      combat.climb_speed = draft.climbSpeed
-      combat.swim_speed = draft.swimSpeed
-      combat.fly_speed = draft.flySpeed
-      combat.initiative = draft.initiativeOverride
-      combat.inspiration = draft.inspiration
+      combat.hp_current = draftSnap.hpCurrent
+      combat.hp_max = draftSnap.hpMax
+      combat.ac = draftSnap.ac
+      combat.speed = draftSnap.speed
+      combat.climb_speed = draftSnap.climbSpeed
+      combat.swim_speed = draftSnap.swimSpeed
+      combat.fly_speed = draftSnap.flySpeed
+      combat.initiative = draftSnap.initiativeOverride
+      combat.inspiration = draftSnap.inspiration
       combat.darkvision = identityExtras.combatPatch.darkvision
-      const playSheet = playToSheet(draft.play)
+      const playSheet = playToSheet(draftSnap.play)
       combat.conditions = playSheet.combatPatch.conditions
       combat.exhaustion = playSheet.combatPatch.exhaustion
       combat.hp_temp = playSheet.combatPatch.hp_temp
@@ -2645,48 +2689,101 @@ export function MinimalSheetEditor({
       proficiency.languages = identityExtras.proficiencyPatch.languages
       proficiency.tools = identityExtras.proficiencyPatch.tools
       sheet.proficiency = proficiency
-      sheet.weapons = draft.weapons
+      sheet.weapons = draftSnap.weapons
       sheet.resources = playSheet.resources
-      Object.assign(sheet, inventoryToSheet(draft.inventory))
-      Object.assign(sheet, attunementsToSheet(draft.attunements))
-      Object.assign(sheet, spellsToSheet(draft.spells))
-      Object.assign(sheet, textBlocksToSheet(draft.textBlocks))
+      Object.assign(sheet, inventoryToSheet(draftSnap.inventory))
+      Object.assign(sheet, attunementsToSheet(draftSnap.attunements))
+      Object.assign(sheet, spellsToSheet(draftSnap.spells))
+      Object.assign(sheet, textBlocksToSheet(draftSnap.textBlocks))
       sheet.ui = {
         ...asRecord(sheet.ui),
-        ...sheetUiToPatch(draft.sheetUi),
+        ...sheetUiToPatch(draftSnap.sheetUi),
       }
 
-      const updated = await updateCharacter(baseCharacter.id, {
-        sheet_version: sheetVersion,
-        name: draft.name.trim() || 'Новый персонаж',
+      const updated = await updateCharacter(baseSnap.id, {
+        sheet_version: versionSnap,
+        name: draftSnap.name.trim() || 'Новый персонаж',
         level: totalLevel,
-        race_name: draft.raceName.trim() || null,
+        race_name: draftSnap.raceName.trim() || null,
         class_name: summary || primary?.name.trim() || null,
-        hp_current: draft.hpCurrent,
-        hp_max: draft.hpMax,
+        hp_current: draftSnap.hpCurrent,
+        hp_max: draftSnap.hpMax,
         sheet,
       })
       setBaseCharacter(updated)
       setSheetVersion(updated.sheet_version)
-      setDraft(buildDraft(updated))
-      onSaved(updated)
+      // Keep live draft — rebuilding would stomp keystrokes during autosave.
+      onSavedRef.current(updated)
       publishSheetSync(channelRef.current, {
         type: 'sheet-saved',
         characterId: updated.id,
         sheetVersion: updated.sheet_version,
       })
-      onToast('Лист сохранён')
+      setSaveStatus('saved')
+      if (!quiet) onToastRef.current('Лист сохранён')
+      return true
     } catch (err) {
       if (err instanceof ApiRequestError && err.code === 'sheet_version_conflict') {
         setConflictOpen(true)
         setError(null)
+        setSaveStatus('error')
       } else {
         setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить лист')
+        setSaveStatus('error')
       }
-    } finally {
-      setSaving(false)
+      return false
     }
-  }
+  }, [])
+
+  const flushAutosave = useCallback(async () => {
+    if (conflictOpenRef.current) return
+    if (saveInFlightRef.current) {
+      pendingResaveRef.current = true
+      return
+    }
+    saveInFlightRef.current = true
+    try {
+      await persistDraft({ quiet: true })
+    } finally {
+      saveInFlightRef.current = false
+      if (pendingResaveRef.current && !conflictOpenRef.current) {
+        pendingResaveRef.current = false
+        void flushAutosave()
+      }
+    }
+  }, [persistDraft])
+
+  useEffect(() => {
+    if (skipAutosaveRef.current) {
+      skipAutosaveRef.current = false
+      return
+    }
+    if (conflictOpen) return
+    setSaveStatus('dirty')
+    if (autosaveTimerRef.current) window.clearTimeout(autosaveTimerRef.current)
+    autosaveTimerRef.current = window.setTimeout(() => {
+      void flushAutosave()
+    }, 650)
+    return () => {
+      if (autosaveTimerRef.current) window.clearTimeout(autosaveTimerRef.current)
+    }
+  }, [draft, conflictOpen, flushAutosave])
+
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === 'hidden' && saveStatusRef.current === 'dirty') {
+        void flushAutosave()
+      }
+    }
+    window.addEventListener('visibilitychange', onVis)
+    return () => window.removeEventListener('visibilitychange', onVis)
+  }, [flushAutosave])
+
+  useEffect(() => {
+    return () => {
+      if (autosaveTimerRef.current) window.clearTimeout(autosaveTimerRef.current)
+    }
+  }, [])
 
 
   const [ownershipOpen, setOwnershipOpen] = useState(false)
@@ -4174,10 +4271,25 @@ export function MinimalSheetEditor({
 
       {error ? <Text tone="danger">{error}</Text> : null}
 
-      <div className="sheet-actions">
-        <Button onClick={() => void handleSave()} disabled={saving || reloading}>
-          {saving ? 'Сохраняем…' : 'Сохранить лист'}
-        </Button>
+      <div className="sheet-actions sheet-actions--autosave">
+        <Text
+          tone={saveStatus === 'error' ? 'danger' : 'muted'}
+          className={
+            saveStatus === 'saving' || saveStatus === 'dirty'
+              ? 'sheet-autosave sheet-autosave--busy'
+              : 'sheet-autosave'
+          }
+        >
+          {reloading
+            ? 'Обновляем…'
+            : saveStatus === 'saving'
+              ? 'Сохраняем…'
+              : saveStatus === 'dirty'
+                ? 'Сохраним через мгновение…'
+                : saveStatus === 'error'
+                  ? 'Ошибка сохранения'
+                  : 'Сохранено'}
+        </Text>
         <Text tone="muted">
           Редакция {baseCharacter.rules_edition} · v{sheetVersion}
         </Text>

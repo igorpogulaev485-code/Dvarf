@@ -1156,6 +1156,20 @@ input {
   align-items: center;
 }
 
+.sheet-actions--autosave {
+  gap: 10px 16px;
+  min-height: 1.5rem;
+}
+
+.sheet-autosave {
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+}
+
+.sheet-autosave--busy {
+  opacity: 0.9;
+}
+
 .ui-dialog-backdrop {
   position: fixed;
   inset: 0;
