@@ -693,7 +693,7 @@
 |--------|--------------|-------------------------|
 | FEATURE_LOCK | `docs/FEATURE_LOCK.md` — список контуров; preflight парсит таблицу Machine locks | Деплой без mobile/desktop/кабинет/лобби/лист больше не пройдёт молча |
 
-На проде: **да** (после повторного sync с tip update) · ветка `cursor/play-desk-merge-mobile-e788` · PR #112
+На проде: **да** · ветка `cursor/play-desk-merge-mobile-e788` · PR #112 · tip · файл на диске VPS `/opt/dvarf/docs/FEATURE_LOCK.md`
 
 ### 2026-10-11 — Дубли оружия в атаках: qty, не вторая строка
 
