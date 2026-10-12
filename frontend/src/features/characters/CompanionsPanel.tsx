@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { createCompanion, type CompanionEntry, type CompanionKind } from './companions'
 
@@ -17,7 +18,23 @@ const KIND_LABELS: Record<CompanionKind, string> = {
   other: 'Спутник',
 }
 
+function formatStat(value: number | null | undefined): string {
+  return value == null ? '—' : String(value)
+}
+
 export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) {
+  const [isWide, setIsWide] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches,
+  )
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 960px)')
+    const onChangeWide = () => setIsWide(mq.matches)
+    onChangeWide()
+    mq.addEventListener('change', onChangeWide)
+    return () => mq.removeEventListener('change', onChangeWide)
+  }, [])
+
   function update(id: string, patch: Partial<CompanionEntry>) {
     onChange(
       companions.map((row) => {
@@ -47,16 +64,21 @@ export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) 
   }
 
   return (
-    <Panel title="Спутники и напарники">
+    <Panel title="Спутники и напарники" className="companions-panel">
       <Stack gap={14}>
-        {companions.length === 0 ? (
+        <details className="sheet-help">
+          <summary>Откуда берутся спутники</summary>
           <Text tone="muted">
-            Пока пусто. Спутники — от архетипа (зверь, дрейк, пушка…). Напарники — от умений
-            вроде Духа дикого огня (кнопка «Использовать» на умении).
+            Спутники — от архетипа (зверь, дрейк, пушка…). Напарники — от умений вроде Духа дикого
+            огня (кнопка «Использовать» на умении). Можно добавить вручную.
           </Text>
+        </details>
+
+        {companions.length === 0 ? (
+          <Text tone="muted">Пока пусто — добавь спутника или напарника.</Text>
         ) : null}
 
-        <div className="sheet-actions">
+        <div className="companions-toolbar sheet-actions">
           <Button type="button" variant="secondary" onClick={() => addManual('other')}>
             + Спутник
           </Button>
@@ -67,7 +89,26 @@ export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) 
 
         {companions.map((row) => (
           <div key={row.id} className="companion-card">
-            <div className="sheet-grid sheet-grid--2">
+            <div className="companion-card__combat" aria-label="Быстрый взгляд">
+              <strong className="companion-card__combat-name">
+                {row.name.trim() || 'Без имени'}
+              </strong>
+              <span className="companion-card__combat-stat">
+                <span className="companion-card__combat-label">хиты</span>
+                {formatStat(row.stats.hp)}
+              </span>
+              <span className="companion-card__combat-stat">
+                <span className="companion-card__combat-label">кд</span>
+                {formatStat(row.stats.ac)}
+              </span>
+              <span className="companion-card__combat-stat">
+                <span className="companion-card__combat-label">скор.</span>
+                {formatStat(row.stats.speed)}
+              </span>
+              <span className="companion-card__combat-kind">{KIND_LABELS[row.kind]}</span>
+            </div>
+
+            <div className="companion-card__grid">
               <Field label="Имя">
                 <Input
                   value={row.name}
@@ -89,8 +130,6 @@ export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) 
                   ))}
                 </select>
               </Field>
-            </div>
-            <div className="sheet-grid sheet-grid--3">
               <Field label="Хиты">
                 <NumberInput
                   min={0}
@@ -118,19 +157,29 @@ export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) 
                 />
               </Field>
             </div>
-            <Field label="Заметки">
-              <Input
-                value={row.notes}
-                placeholder="Атаки, особенности…"
-                onChange={(event) => update(row.id, { notes: event.target.value })}
-              />
-            </Field>
-            {row.source ? (
-              <Text tone="muted">
-                Источник: {row.source.subclassSlug} · {row.source.feature}
-              </Text>
-            ) : null}
-            <div className="sheet-actions">
+
+            <details
+              className="sheet-help companion-card__more"
+              {...(isWide ? { open: true } : {})}
+            >
+              <summary>Заметки и источник</summary>
+              <div className="companion-card__more-body">
+                <Field label="Заметки">
+                  <Input
+                    value={row.notes}
+                    placeholder="Атаки, особенности…"
+                    onChange={(event) => update(row.id, { notes: event.target.value })}
+                  />
+                </Field>
+                {row.source ? (
+                  <Text tone="muted">
+                    Источник: {row.source.subclassSlug} · {row.source.feature}
+                  </Text>
+                ) : null}
+              </div>
+            </details>
+
+            <div className="companion-card__footer sheet-actions">
               <Button type="button" variant="ghost" onClick={() => remove(row.id)}>
                 Убрать
               </Button>

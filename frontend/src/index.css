@@ -1065,16 +1065,81 @@ input {
 }
 
 .companion-card {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 10px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
 }
 
-.companion-card:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+.companion-card__combat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 6px 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 45%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line));
+}
+
+.companion-card__combat-name {
+  grid-column: 1 / -1;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.companion-card__combat-stat {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 3.2rem;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88rem;
+}
+
+.companion-card__combat-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.companion-card__combat-kind {
+  grid-column: 1 / -1;
+  justify-self: start;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+}
+
+.companion-card__grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+
+.companion-card__more-body {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.companion-card__footer {
+  margin: 0;
 }
 
 .feature-group {
@@ -2587,9 +2652,61 @@ input {
   background: rgba(255, 255, 255, 0.45);
 }
 
+.text-block__combat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 45%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line));
+}
+
+.text-block__combat-name {
+  font-size: 0.95rem;
+  line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.text-block__combat-stat {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 3.6rem;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88rem;
+}
+
+.text-block__combat-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.text-block__combat-empty {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 .text-block__header {
   display: grid;
   gap: 10px;
+}
+
+.text-block__resource-more-body {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
 }
 
 .text-block__actions {
@@ -2862,6 +2979,62 @@ input {
   .spell-level-block__header {
     gap: 6px;
   }
+
+  .companions-panel .ui-stack,
+  .texts-panel .ui-stack {
+    gap: 10px;
+  }
+
+  .companions-toolbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .companions-toolbar .ui-button {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .companion-card {
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .companion-card__grid {
+    gap: 8px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .companion-card__grid > :nth-child(1),
+  .companion-card__grid > :nth-child(2) {
+    grid-column: 1 / -1;
+  }
+
+  .companion-card__footer .ui-button {
+    min-height: 40px;
+  }
+
+  .text-block {
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .text-block__area {
+    min-height: 88px;
+  }
+
+  .text-block__actions .ui-button,
+  .text-block__move .ui-button {
+    min-height: 40px;
+  }
+
+  .text-block__resource {
+    gap: 6px;
+    padding: 8px 10px;
+  }
 }
 
 @media (min-width: 768px) {
@@ -2922,6 +3095,28 @@ input {
 
   .spell-card__meta {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .companion-card__combat-name {
+    grid-column: auto;
+  }
+
+  .companion-card__combat {
+    grid-template-columns: minmax(0, 1.4fr) auto auto auto auto;
+  }
+
+  .companion-card__combat-kind {
+    grid-column: auto;
+    justify-self: end;
+  }
+
+  .companion-card__grid {
+    grid-template-columns: 1.4fr 1fr 0.7fr 0.7fr 0.7fr;
+  }
+
+  .companion-card__grid > :nth-child(1),
+  .companion-card__grid > :nth-child(2) {
+    grid-column: auto;
   }
 }
 

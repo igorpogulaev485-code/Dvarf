@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import {
   Button,
   Field,
@@ -32,6 +33,18 @@ export function TextBlocksPanel({
   resources,
   onResourcesChange,
 }: TextBlocksPanelProps) {
+  const [isWide, setIsWide] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches,
+  )
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 960px)')
+    const onChangeWide = () => setIsWide(mq.matches)
+    onChangeWide()
+    mq.addEventListener('change', onChangeWide)
+    return () => mq.removeEventListener('change', onChangeWide)
+  }, [])
+
   const linkedIds = new Set(
     blocks.map((block) => block.resourceId).filter((id): id is string => Boolean(id)),
   )
@@ -128,31 +141,6 @@ export function TextBlocksPanel({
 
     return (
       <div className="text-block__resource">
-        <div className="text-block__resource-grid">
-          <Field label="Ресурс">
-            <Input
-              value={resource.name}
-              onChange={(event) =>
-                updateResource(resource.id, { name: event.target.value })
-              }
-              placeholder={displayLabel(block)}
-            />
-          </Field>
-          <Field label="Макс">
-            <NumberInput
-              min={0}
-              max={20}
-              emptyValue={0}
-              value={resource.max}
-              onValueChange={(value) =>
-                updateResource(resource.id, {
-                  max: value ?? 0,
-                  used: Math.min(resource.used, value ?? 0),
-                })
-              }
-            />
-          </Field>
-        </div>
         <SlotPips
           max={resource.max}
           used={resource.used}
@@ -161,43 +149,79 @@ export function TextBlocksPanel({
           summary={`${Math.max(0, resource.max - resource.used)} / ${resource.max}`}
           onChange={(used) => updateResource(resource.id, { used })}
         />
-        <div className="text-block__resource-meta">
-          <label className="play-resource__reset">
-            Сброс
-            <select
-              value={resource.reset}
-              onChange={(event) =>
-                updateResource(resource.id, {
-                  reset: event.target.value as ResourceReset,
-                })
-              }
-            >
-              {RESET_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {RESET_LABELS[option]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            className="linkish"
-            onClick={() => detachResource(block)}
-          >
-            Убрать пипсы
-          </button>
-        </div>
+        <details
+          className="sheet-help text-block__resource-more"
+          {...(isWide ? { open: true } : {})}
+        >
+          <summary>Настройка ресурса</summary>
+          <div className="text-block__resource-more-body">
+            <div className="text-block__resource-grid">
+              <Field label="Ресурс">
+                <Input
+                  value={resource.name}
+                  onChange={(event) =>
+                    updateResource(resource.id, { name: event.target.value })
+                  }
+                  placeholder={displayLabel(block)}
+                />
+              </Field>
+              <Field label="Макс">
+                <NumberInput
+                  min={0}
+                  max={20}
+                  emptyValue={0}
+                  value={resource.max}
+                  onValueChange={(value) =>
+                    updateResource(resource.id, {
+                      max: value ?? 0,
+                      used: Math.min(resource.used, value ?? 0),
+                    })
+                  }
+                />
+              </Field>
+            </div>
+            <div className="text-block__resource-meta">
+              <label className="play-resource__reset">
+                Сброс
+                <select
+                  value={resource.reset}
+                  onChange={(event) =>
+                    updateResource(resource.id, {
+                      reset: event.target.value as ResourceReset,
+                    })
+                  }
+                >
+                  {RESET_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {RESET_LABELS[option]}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className="linkish"
+                onClick={() => detachResource(block)}
+              >
+                Убрать пипсы
+              </button>
+            </div>
+          </div>
+        </details>
       </div>
     )
   }
 
   return (
-    <Panel title="Тексты и заметки">
+    <Panel title="Тексты и заметки" className="texts-panel">
       <Stack gap={14}>
-        <Text tone="muted">
-          Блоки можно переименовать, скрыть, добавить и менять местами. Пипсы ресурса (ярость, ки…) —
-          внутри блока, как в ЛСС.
-        </Text>
+        <details className="sheet-help">
+          <summary>Как устроены блоки</summary>
+          <Text tone="muted">
+            Блоки можно переименовать, скрыть, добавить и менять местами. Пипсы ресурса (ярость,
+            ки…) — внутри блока, как в ЛСС.
+          </Text>
+        </details>
 
         {orphanResources.length > 0 ? (
           <div className="text-block__orphans">
@@ -271,8 +295,26 @@ export function TextBlocksPanel({
             )
           }
 
+          const resource = block.resourceId
+            ? resources.find((item) => item.id === block.resourceId)
+            : null
+          const resourceSummary = resource
+            ? `${Math.max(0, resource.max - resource.used)}/${resource.max}`
+            : null
+
           return (
             <div key={block.key} className="text-block">
+              <div className="text-block__combat" aria-label="Быстрый взгляд">
+                <strong className="text-block__combat-name">{displayLabel(block)}</strong>
+                {resourceSummary ? (
+                  <span className="text-block__combat-stat">
+                    <span className="text-block__combat-label">ресурс</span>
+                    {resourceSummary}
+                  </span>
+                ) : (
+                  <span className="text-block__combat-empty">без пипсов</span>
+                )}
+              </div>
               <div className="text-block__header">
                 <Field label="Заголовок блока">
                   <Input
@@ -311,7 +353,7 @@ export function TextBlocksPanel({
               {renderResource(block)}
               <textarea
                 className="ui-input text-block__area"
-                rows={5}
+                rows={isWide ? 5 : 3}
                 value={block.value}
                 placeholder="Текст блока…"
                 onChange={(event) => updateBlock(block.key, { value: event.target.value })}
