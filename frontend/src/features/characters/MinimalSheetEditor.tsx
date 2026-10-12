@@ -4496,6 +4496,7 @@ export function MinimalSheetEditor({
           rollMode={effectiveRollMode()}
           concentration={draft.play.concentration}
           onOpenFull={() => setForceFullPanel('spells')}
+          onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
           onToast={onToast}
           onCastSpell={(spell) => setDeskCastSpell(spell)}
           onConcentrateSpell={(spell) => setDeskCastSpell(spell)}

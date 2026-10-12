@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   abilityModifier,
   formatModifier,
@@ -5,6 +6,7 @@ import {
 } from './sheetTypes'
 import { formatCheckRoll, rollCheck, type DeskRollMode } from './deskRolls'
 import type { ConcentrationState } from './play'
+import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import {
   countLearnedCantrips,
   countLearnedLeveled,
@@ -14,7 +16,7 @@ import {
   type SheetSpell,
   type SpellsState,
 } from './spells'
-import { IconCast, IconConcentration, IconRitual } from './spellIcons'
+import { IconCast, IconConcentration, IconRitual, IconWizardHat } from './spellIcons'
 import { spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
 import { levelLabel, spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
 
@@ -33,6 +35,8 @@ type PlayDeskSpellsCompactProps = {
   concentration?: ConcentrationState | null
   onOpenFull: () => void
   onClearSplit?: () => void
+  /** Patch spells (prepare dialog). */
+  onSpellsChange?: (spells: SpellsState) => void
   /** Set used count for a slot level (spend or restore, like ability pips). */
   onSlotUsedChange?: (level: number, used: number) => void
   onToast?: (message: string) => void
@@ -52,12 +56,14 @@ export function PlayDeskSpellsCompact({
   concentration = null,
   onOpenFull,
   onClearSplit,
+  onSpellsChange,
   onSlotUsedChange,
   onToast,
   onCastSpell,
   onConcentrateSpell,
   rollMode = 'normal',
 }: PlayDeskSpellsCompactProps) {
+  const [prepareOpen, setPrepareOpen] = useState(false)
   const ready = spells.known.filter(isReadyInCombat)
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
@@ -112,6 +118,16 @@ export function PlayDeskSpellsCompact({
       <div className="play-desk-compact__head">
         <h3>{pinned ? 'Заклинания (закреплено)' : 'Заклинания'}</h3>
         <div className="play-desk-compact__head-actions">
+          {onSpellsChange ? (
+            <button
+              type="button"
+              className="play-desk-compact__link play-desk-compact__link--prepare"
+              onClick={() => setPrepareOpen(true)}
+            >
+              <IconWizardHat className="play-desk-compact__link-icon" />
+              Подготовить
+            </button>
+          ) : null}
           {onClearSplit ? (
             <button type="button" className="play-desk-compact__link" onClick={onClearSplit}>
               без заклинаний
@@ -231,6 +247,15 @@ export function PlayDeskSpellsCompact({
           <p className="play-desk-compact__more">+ ещё {ready.length - maxRows}</p>
         ) : null}
       </div>
+
+      {onSpellsChange ? (
+        <PrepareSpellsDialog
+          open={prepareOpen}
+          spells={spells}
+          onChange={onSpellsChange}
+          onClose={() => setPrepareOpen(false)}
+        />
+      ) : null}
     </div>
   )
 }

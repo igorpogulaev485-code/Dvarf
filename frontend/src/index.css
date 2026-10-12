@@ -5202,6 +5202,9 @@ button.play-desk-vital:hover {
 }
 
 .play-desk-compact__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   border: 1px solid var(--desk-line);
   background: var(--card);
   border-radius: 8px;
@@ -5211,6 +5214,17 @@ button.play-desk-vital:hover {
   font-weight: 600;
   cursor: pointer;
   color: var(--desk-accent);
+}
+
+.play-desk-compact__link--prepare {
+  border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 40%, var(--desk-line));
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 65%, white);
+}
+
+.play-desk-compact__link-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: 0 0 auto;
 }
 
 .play-desk-compact__link--bar {
