@@ -53,6 +53,29 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 
 > **LOCK (Wave A rail candy):** зафиксировано с Игорем — две строки, полные имена, клик по названию сворачивает, без ▾ в краю. Не откатывать без нового согласования.
 
+---
+
+## 2b. Шапка стола — LOCK
+
+> **LOCK (Wave A header):** зафиксировано с Игорем 2026-10-12 — «Идеал». Не откатывать без нового согласования.
+
+Компоненты / паттерны этого этапа (`PlayDeskHeader`, `deskIcons.tsx`):
+
+| Компонент | Правило |
+|-----------|---------|
+| Who 3-row | 1) Имя · Раса · Мировоззрение · издание · 2) чипы классов · 3) XP-дорожка |
+| XP band | под полоской: **floor** · **ещё N** · **nextThreshold** (`formatXp`) |
+| Vital card | иконка · значение · подпись (КД / Скор. / Иниц. / БМ) |
+| Speed modes | теги лаз./плав./полёт **друг под другом** (узкий блок) |
+| Chip stack | Вдохн. / Истощ. столбиком |
+| Tools stack | монеты / Отдых столбиком; death справа от HP **без прыжка** |
+| HP | tabular-nums, запас под трёхзначные |
+| Death | opaque `#fff` card + череп; не wash / не fade opacity |
+| Coin tip | hover ≈ зм + разбивка; клик → pad |
+| deskIcons | shield / boot / bolt / badge / coin / rest / spark / skull |
+
+Доска LOCK: [`desk-header-lock`](boards/dvarf-ui-kit-desk-header-lock.jpg) · состояния: [`header-states`](boards/dvarf-ui-kit-desk-header-states.jpg) · [`header-death`](boards/dvarf-ui-kit-desk-header-death.jpg) · [`header-dense`](boards/dvarf-ui-kit-desk-header-dense.jpg) · tip: [`coin-tip`](boards/dvarf-ui-kit-desk-coin-tip.jpg) · icons: [`desk-icons`](boards/dvarf-ui-kit-desk-icons.jpg)
+
 Левый блок (`AbilitySkillsColumn`):
 
 - у каждой характеристики **свой identity-цвет** (полоска + label + Сп on + навыки);
@@ -91,10 +114,10 @@ Live-эталоны в продукте (уже близки к киту): Inven
 |---------|-------|
 | Foundations | `dvarf-ui-kit-spec.jpg` |
 | 6 тем + rail A | `dvarf-ui-kit-themes-6.jpg`, `dvarf-ui-kit-cabinet-theme.jpg` |
-| Desk chrome | `dvarf-ui-kit-desk-chrome.jpg`, `dvarf-ui-kit-desk-icons.jpg`, `dvarf-ui-kit-desk-header-states.jpg`, `dvarf-ui-kit-desk-coin-tip.jpg`, `dvarf-ui-kit-desk-speed-tip.jpg` |
+| Desk chrome / header LOCK | `dvarf-ui-kit-desk-chrome.jpg`, `dvarf-ui-kit-desk-icons.jpg`, **`dvarf-ui-kit-desk-header-lock.jpg`**, `dvarf-ui-kit-desk-header-states.jpg`, `dvarf-ui-kit-desk-header-death.jpg`, `dvarf-ui-kit-desk-header-dense.jpg`, `dvarf-ui-kit-desk-coin-tip.jpg`, `dvarf-ui-kit-desk-speed-tip.jpg` |
 | Pads / dialogs | `dvarf-ui-kit-dialogs-pads.jpg` |
 | Rail | `dvarf-ui-kit-ability-rail-v2.jpg`, `dvarf-ui-kit-ability-colors.jpg` |
-| Spells | `dvarf-ui-kit-spells.jpg` |
+| Spells | `dvarf-ui-kit-spells.jpg`, `dvarf-ui-kit-spell-icons.jpg` |
 | Features / companions / attunement / ЕЩЁ | `dvarf-ui-kit-features-companions.jpg` |
 | Rest / create / toast / list | `dvarf-ui-kit-rest-create-app.jpg` |
 | Auth | `dvarf-ui-kit-auth.jpg` |
@@ -130,19 +153,8 @@ Live-эталоны в продукте (уже близки к киту): Inven
 2. Если **нет** — сначала рисуем/добавляем иконки, кладём в кит (`boards/` + запись здесь), согласование.
 3. Только потом верстка/логика chrome блока.
 
-Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола** — line-иконки виталов/монет/отдыха/**черепа death** (`deskIcons.tsx`, доски `desk-chrome` / `desk-icons` / `desk-header-states`).  
-Ещё нет: отдельный набор под **магия / каст / слоты** (и hot-bar — проверять при старте слайса).
-
-**Шапка стола — краевые состояния (зафиксировано в компоновке):**
-
-| Состояние | Как в шапке |
-|-----------|-------------|
-| Who (3 строки) | 1) Имя · Раса · Мировоззрение · издание · 2) чипы классов · 3) длинная XP-дорожка |
-| Скорости | витал хода; справа такой же блок без иконки — теги лаз./плав./полёт |
-| Нет хода, есть alt | primary = первый alt; остальные тегами в соседнем блоке |
-| Вдохн. / Истощ. | друг под другом |
-| Монеты / Отдых | друг под другом; death справа от HP без прыжка ряда |
-| Hover монет | tip кошелька (≈ зм + разбивка); клик → pad |
+Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия (icons-first)** — `spellIcons.tsx` (книга / перо / каст / фокус / мешочек / концентрация) + доска `spell-icons`.  
+**В работе:** pixel-candy `SpellsPanel` / compact / cast по доске `spells` (иконки уже в коде toolbar/cast/compact). Hot-bar — проверить в том же слайсе.
 
 Rail характеристик (вариант A) иконок не требует — полные названия, chips, drag.
 

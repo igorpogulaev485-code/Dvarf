@@ -13,6 +13,7 @@ import {
   type SheetSpell,
   type SpellsState,
 } from './spells'
+import { IconCast, IconConcentration } from './spellIcons'
 import { spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
 
 type PlayDeskSpellsCompactProps = {
@@ -264,13 +265,20 @@ function SpellRow({
       }}
     >
       <div className="play-desk-compact__row-main">
+        {hasActivate ? <IconCast className="play-desk-compact__row-icon" /> : null}
         <b>{spell.name}</b>
       </div>
       <span className="play-desk-compact__dmg">{levelLabel}</span>
       {activeConcentration ? (
-        <span className="play-desk-compact__tag is-conc">держит</span>
+        <span className="play-desk-compact__tag is-conc">
+          <IconConcentration className="play-desk-compact__tag-icon" />
+          держит
+        </span>
       ) : spell.concentration ? (
-        <span className="play-desk-compact__tag is-conc">конц.</span>
+        <span className="play-desk-compact__tag is-conc">
+          <IconConcentration className="play-desk-compact__tag-icon" />
+          конц.
+        </span>
       ) : spell.prepared && spell.level > 0 ? (
         <span className="play-desk-compact__tag is-on">готово</span>
       ) : (

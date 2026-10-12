@@ -32,6 +32,13 @@ import {
 } from '../../shared/dnd/spellCatalog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import {
+  IconCast,
+  IconFocus,
+  IconPouch,
+  IconQuill,
+  IconSpellBook,
+} from './spellIcons'
 import type { ConcentrationState } from './play'
 import {
   canRemoveSheetSpell,
@@ -495,15 +502,21 @@ export function SpellsPanel({
 
         <div className="chip-row spells-focus-chips">
           <span
-            className={`sheet-chip${spells.has_spell_focus ? ' is-on' : ''}`}
+            className={`sheet-chip spells-focus-chips__chip${
+              spells.has_spell_focus ? ' is-on' : ''
+            }`}
             title="Магический / друидический фокус в инвентаре"
           >
+            <IconFocus className="spells-btn-icon" />
             {spells.has_spell_focus ? 'Фокус ✓' : 'Фокус ✗'}
           </span>
           <span
-            className={`sheet-chip${spells.has_component_pouch ? ' is-on' : ''}`}
+            className={`sheet-chip spells-focus-chips__chip${
+              spells.has_component_pouch ? ' is-on' : ''
+            }`}
             title="Мешочек с компонентами в инвентаре"
           >
+            <IconPouch className="spells-btn-icon" />
             {spells.has_component_pouch ? 'Мешочек ✓' : 'Мешочек ✗'}
           </span>
           <Text tone="muted">
@@ -518,10 +531,12 @@ export function SpellsPanel({
           </Button>
           {!knownCaster ? (
             <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
+              <IconQuill className="spells-btn-icon" />
               Подготовить
             </Button>
           ) : null}
           <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
+            <IconSpellBook className="spells-btn-icon" />
             Гримуар
           </Button>
         </div>
@@ -919,6 +934,7 @@ export function SpellsPanel({
                           }
                           onClick={() => setCastSpell(spell)}
                         >
+                          <IconCast className="spells-btn-icon" />
                           Каст
                         </Button>
                       </div>

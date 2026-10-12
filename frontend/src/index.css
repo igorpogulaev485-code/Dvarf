@@ -1862,21 +1862,52 @@ input {
 
 /* Wave A — Spells panel (kit board) */
 .spells-summary {
-  display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.spells-summary__stat {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 96px;
+  padding: 8px 12px;
+  border-radius: 999px;
   border: 1px solid var(--line);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--accent-soft) 35%, white);
+  background: color-mix(in srgb, var(--accent-soft) 45%, white);
 }
 
 .spells-summary__stat strong {
   display: block;
-  margin-top: 2px;
+  margin-top: 0;
   font-family: var(--font-display);
-  font-size: 1.15rem;
+  font-size: 1.1rem;
+  line-height: 1.1;
   color: var(--accent);
+}
+
+.spells-btn-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.spells-panel__toolbar .ui-button,
+.spell-card__cast {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spells-focus-chips__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .spells-settings {
@@ -5315,6 +5346,25 @@ button.play-desk-vital:hover {
   gap: 6px;
   align-items: center;
   min-width: 0;
+}
+
+.play-desk-compact__row-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--desk-accent, var(--accent));
+  flex: 0 0 auto;
+}
+
+.play-desk-compact__tag-icon {
+  width: 0.78rem;
+  height: 0.78rem;
+  margin-right: 3px;
+  vertical-align: -0.1em;
+}
+
+.play-desk-compact__tag.is-conc {
+  display: inline-flex;
+  align-items: center;
 }
 
 .play-desk-compact__row-main b {

@@ -577,7 +577,9 @@
 
 На проде: **нет** · ветка `cursor/social-texts-a73e` · ждать merge/деплой
 
-### 2026-10-12 — Wave A header: compose + death skull + edge states
+### 2026-10-12 — Wave A header LOCK
+
+Шапка стола доведена до «Идеал» и **зафиксирована** в ките.
 
 | Что | Как |
 |-----|-----|
@@ -588,9 +590,12 @@
 | Скорости | ход + узкий столбик тегов (лаз./плав./полёт друг под другом) |
 | Стеки | вдохн./истощ. столбиком; монеты/отдых столбиком |
 | HP | tabular-nums, запас под трёхзначные (`999 / 999`) |
-| Death | справа от HP, **opaque** `#fff` как vitals (без полупрозрачности) |
+| Death | справа от HP, **opaque** `#fff` как vitals |
 | Hover монет | tip кошелька; клик → coin pad |
-| Кит | `desk-icons`, `desk-header-states` |
+| Кит LOCK | [`desk-header-lock`](docs/ui-kit/boards/dvarf-ui-kit-desk-header-lock.jpg) + states/death/dense/icons/coin-tip |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2b.  
+Следующий слайс pixel-candy: **заклинания** (icons-first → `SpellsPanel` / compact / cast).
 
 На проде: **нет** · ветка `cursor/wave-a-listva-a73e`
 
@@ -616,7 +621,7 @@
 | Логика | handlers / cycleSkill / saves без изменений |
 
 Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2.  
-Следующий слайс pixel-candy: **шапка стола** (`PlayDeskHeader` / desk-chrome).
+Шапка стола — **LOCK** (см. §2b / запись выше). Следующий pixel-candy: **заклинания**.
 
 На проде: **нет** · ветка `cursor/wave-a-listva-a73e` · ждать merge/деплой
 
