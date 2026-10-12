@@ -576,6 +576,22 @@
 
 На проде: **нет** · ветка `cursor/social-texts-a73e` · ждать merge/деплой
 
+### 2026-10-12 — Wave A rail candy LOCK
+
+Левый блок характеристик доведён до кита A и **зафиксирован**:
+
+| Что | Как |
+|-----|-----|
+| Шапка | 2 строки: полное имя (Сила…) · `[score] →eff` + Пр/Сп |
+| Сворот | клик по названию (без ▾ в краю карточки) |
+| Identity | полоска + цвет СИЛ…ХАР; Сп on solid; Владение soft / Экспертиза solid |
+| Логика | handlers / cycleSkill / saves без изменений |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2.  
+Следующий слайс pixel-candy: **шапка стола** (`PlayDeskHeader` / desk-chrome).
+
+На проде: **нет** · ветка `cursor/wave-a-listva-a73e` · ждать merge/деплой
+
 ### 2026-10-12 — UI Kit Wave A (A1–A3): Листва + desk + rail A
 
 Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md).
