@@ -300,6 +300,50 @@ export function canSpendGrantCast(spell: SheetSpell): boolean {
   return grantCastRemaining(spell) > 0
 }
 
+export type CastGrantOption = {
+  spellId: string
+  label: string
+  remaining: number
+  max: number
+  reset: 'short' | 'long'
+}
+
+/**
+ * Free-cast charges for this spell and sibling sheet rows that share
+ * catalog_id / name (race innate, feat, artifact gear grant…).
+ */
+export function listCastGrantOptions(
+  spell: SheetSpell,
+  known: SheetSpell[],
+): CastGrantOption[] {
+  if (spell.level <= 0) return []
+  const nameKey = spell.name.trim().toLowerCase()
+  const catalogId = spell.catalog_id
+  const seen = new Set<string>()
+  const out: CastGrantOption[] = []
+  for (const row of known) {
+    if (!row.grant_cast || row.grant_cast.max <= 0) continue
+    if (row.level !== spell.level) continue
+    const sameRow = row.id === spell.id
+    const sameCatalog = Boolean(catalogId && row.catalog_id === catalogId)
+    const sameName = Boolean(nameKey && row.name.trim().toLowerCase() === nameKey)
+    if (!sameRow && !sameCatalog && !sameName) continue
+    if (seen.has(row.id)) continue
+    seen.add(row.id)
+    out.push({
+      spellId: row.id,
+      label:
+        row.grant_cast.label?.trim() ||
+        row.prepare_source_label?.trim() ||
+        'Грант',
+      remaining: grantCastRemaining(row),
+      max: row.grant_cast.max,
+      reset: row.grant_cast.reset,
+    })
+  }
+  return out
+}
+
 /** Build / refresh grant_cast for an innate leveled grant spell. Preserves used. */
 export function withInnateGrantCast(
   spell: SheetSpell,

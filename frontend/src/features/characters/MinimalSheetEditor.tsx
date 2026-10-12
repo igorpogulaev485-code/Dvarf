@@ -2959,7 +2959,12 @@ export function MinimalSheetEditor({
   function runDeskCast(spell: SheetSpell, choice: CastChoice) {
     const name = spell.name || 'Заклинание'
     const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
-    const grantCast = Boolean(choice.useGrant && canSpendGrantCast(spell))
+    const grantSpellId = choice.grantSpellId || spell.id
+    const grantRow =
+      choice.useGrant
+        ? draft.spells.known.find((row) => row.id === grantSpellId) ?? spell
+        : null
+    const grantCast = Boolean(grantRow && canSpendGrantCast(grantRow))
     const slotForEffect =
       spell.level <= 0 || ritualCast || grantCast
         ? spell.level
@@ -2995,13 +3000,13 @@ export function MinimalSheetEditor({
       )
       return
     }
-    if (grantCast) {
-      const label = spell.grant_cast?.label ?? 'Грант'
+    if (grantCast && grantRow) {
+      const label = grantRow.grant_cast?.label ?? 'Грант'
       setDraft((prev) => ({
         ...prev,
         spells: {
           ...prev.spells,
-          known: spendGrantCast(prev.spells.known, spell.id),
+          known: spendGrantCast(prev.spells.known, grantRow.id),
         },
       }))
       if (spell.concentration) applyDeskConcentration(spell)

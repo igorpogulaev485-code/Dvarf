@@ -375,7 +375,12 @@ export function SpellsPanel({
   function runCast(castSpell: SheetSpell, choice: CastChoice) {
     const name = castSpell.name || 'Заклинание'
     const ritualCast = Boolean(choice.ritual && castSpell.ritual && castSpell.level > 0)
-    const grantCast = Boolean(choice.useGrant && canSpendGrantCast(castSpell))
+    const grantSpellId = choice.grantSpellId || castSpell.id
+    const grantRow =
+      choice.useGrant
+        ? spells.known.find((row) => row.id === grantSpellId) ?? castSpell
+        : null
+    const grantCast = Boolean(grantRow && canSpendGrantCast(grantRow))
     const slotForEffect =
       castSpell.level <= 0 || ritualCast || grantCast
         ? castSpell.level
@@ -399,11 +404,11 @@ export function SpellsPanel({
       setCastSpell(null)
       return
     }
-    if (grantCast) {
-      const label = castSpell.grant_cast?.label ?? 'Грант'
+    if (grantCast && grantRow) {
+      const label = grantRow.grant_cast?.label ?? 'Грант'
       onChange({
         ...spells,
-        known: spendGrantCast(spells.known, castSpell.id),
+        known: spendGrantCast(spells.known, grantRow.id),
       })
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
