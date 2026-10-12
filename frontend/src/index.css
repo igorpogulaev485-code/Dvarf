@@ -1,21 +1,24 @@
 :root {
-  color: #1c1917;
+  /* Эталон: мокап инвентаря Explore — тёплый parchment + олива */
+  color: #2a2620;
   background:
-    radial-gradient(circle at top left, #f5e6d3 0%, transparent 40%),
-    linear-gradient(180deg, #f7f3ee 0%, #ebe4da 100%);
+    radial-gradient(circle at top left, #f3e8d4 0%, transparent 42%),
+    linear-gradient(180deg, #faf6ee 0%, #efe6d8 100%);
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --ink: #1c1917;
-  --muted: #6b635a;
+  --ink: #2a2620;
+  --muted: #6f675c;
   --danger: #b42318;
-  --success: #067647;
-  --panel: rgba(255, 252, 248, 0.92);
-  --line: #d8cfc3;
-  --accent: #0f3d2e;
-  --accent-soft: #d7ebe2;
+  --success: #3d6b45;
+  --panel: rgba(253, 252, 245, 0.94);
+  --line: #ddd2c2;
+  --accent: #3f5c44;
+  --accent-soft: #e2e8da;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
 }
 
 * {
@@ -93,7 +96,11 @@ input {
 
 .ui-panel__title {
   margin: 0 0 14px;
-  font-size: 1.1rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--accent);
 }
 
 .ui-field {
@@ -725,6 +732,20 @@ input {
   margin-top: 8px;
 }
 
+.inventory-panel__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0 8px;
+  margin: 0 0 2px;
+  background: color-mix(in srgb, var(--panel) 94%, white);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
 .inventory-summary {
   display: grid;
   gap: 10px;
@@ -732,17 +753,48 @@ input {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.55);
+  background: color-mix(in srgb, var(--accent-soft) 35%, white);
 }
 
 .inventory-summary strong {
   display: block;
   margin-top: 2px;
-  font-size: 1.05rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--accent);
 }
 
 .inventory-summary__over {
   color: #9a3412;
+}
+
+.inventory-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.inventory-filter {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.inventory-filter.is-on {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+  font-weight: 600;
+}
+
+.inventory-card-group {
+  display: grid;
+  gap: 8px;
 }
 
 .inventory-card {
@@ -751,7 +803,19 @@ input {
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.inventory-card--compact {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 8px 10px;
+}
+
+.inventory-card--stowed {
+  opacity: 0.78;
+  border-style: dashed;
 }
 
 .inventory-card--nested {
@@ -761,7 +825,158 @@ input {
 }
 
 .inventory-card--pack-open {
-  border-color: color-mix(in srgb, var(--accent, #0f766e) 45%, var(--line));
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.inventory-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.inventory-card__meta .play-desk-compact__link {
+  margin-left: auto;
+}
+
+.inventory-card__name .ui-field__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.inventory-card__name .ui-input,
+.inventory-card__name .ui-combobox .ui-input {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.inventory-card__stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--line));
+}
+
+.inventory-card__stat {
+  display: grid;
+  gap: 2px;
+}
+
+.inventory-card__stat-value {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+.inventory-card__stat-label {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.inventory-card__stat-hint {
+  color: color-mix(in srgb, var(--muted) 85%, var(--ink));
+}
+
+.inventory-card__glance {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: 8px 10px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.inventory-card__glance-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.inventory-card__glance-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.inventory-card__glance-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.inventory-card__chevron {
+  font-size: 1.2rem;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.inventory-card__glance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.inventory-role {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+}
+
+.inventory-role--weapon {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 25%, white);
+}
+
+.inventory-role--armor {
+  background: #edf2e8;
+  color: #3f5c44;
+  border-color: #c9d6c0;
+}
+
+.inventory-role--pack {
+  background: #f5efe4;
+  color: #7a5c2e;
+  border-color: #e2d3b5;
+}
+
+.inventory-role--other {
+  background: #f3f1ec;
+  color: #5c564c;
+  border-color: #ddd6ca;
 }
 
 .inventory-add-row {
@@ -912,8 +1127,8 @@ input {
 
 .inventory-card__grid {
   display: grid;
-  gap: 10px;
-  grid-template-columns: 1fr;
+  gap: 8px 10px;
+  grid-template-columns: 1fr 1fr;
 }
 
 .inventory-card__footer {
@@ -922,6 +1137,25 @@ input {
   gap: 8px;
   align-items: center;
   justify-content: space-between;
+}
+
+.attack-held-tag.is-on {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+@media (max-width: 639px) {
+  .inventory-card--compact {
+    grid-template-columns: 1fr;
+  }
+
+  .inventory-card__glance {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+  }
+
+  .inventory-card__glance-actions {
+    justify-content: flex-start;
+  }
 }
 
 .ability-grid {
@@ -2843,7 +3077,7 @@ input {
   }
 
   .inventory-card__grid {
-    grid-template-columns: 1.6fr 0.6fr 0.7fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

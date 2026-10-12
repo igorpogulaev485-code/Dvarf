@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
@@ -88,6 +88,17 @@ const COIN_FIELDS: Array<{ key: keyof CoinPurse; label: string }> = [
   { key: 'pp', label: 'ПМ' },
 ]
 
+type InventoryFilter = 'all' | 'equipped' | 'weapon' | 'armor' | 'pack' | 'other'
+
+const FILTERS: Array<{ id: InventoryFilter; label: string }> = [
+  { id: 'all', label: 'Все' },
+  { id: 'equipped', label: 'Надето' },
+  { id: 'weapon', label: 'Оружие' },
+  { id: 'armor', label: 'Доспех' },
+  { id: 'pack', label: 'Наборы' },
+  { id: 'other', label: 'Прочее' },
+]
+
 function focusSelectionFromItem(
   item: InventoryItem,
   catalogItems: CatalogEntry[],
@@ -108,11 +119,99 @@ function focusSelectionFromItem(
       }
     }
   }
-  // No catalog link / unknown id → treat as custom look.
   if (item.name.trim()) {
     return selectionFromCustomName(item.name, family)
   }
   return null
+}
+
+function isWeaponRow(item: InventoryItem): boolean {
+  return Boolean(item.weapon_grip)
+}
+
+function isArmorRow(item: InventoryItem): boolean {
+  return item.armor_kind !== 'none'
+}
+
+function isPackRow(item: InventoryItem, catalogItems: CatalogEntry[]): boolean {
+  if (item.container_kind === 'pack' || item.container_expanded) return true
+  const hit = findCatalogPackEntry(item, catalogItems)
+  return Boolean(hit && hasPackContents(hit.data ?? undefined))
+}
+
+function itemBucket(
+  item: InventoryItem,
+  catalogItems: CatalogEntry[],
+): Exclude<InventoryFilter, 'all' | 'equipped'> {
+  if (isWeaponRow(item)) return 'weapon'
+  if (isArmorRow(item)) return 'armor'
+  if (isPackRow(item, catalogItems)) return 'pack'
+  return 'other'
+}
+
+function roleLabel(
+  item: InventoryItem,
+  catalogItems: CatalogEntry[],
+): string {
+  const bucket = itemBucket(item, catalogItems)
+  if (bucket === 'weapon') return 'Оружие'
+  if (bucket === 'armor') {
+    return item.armor_kind === 'shield' ? 'Щит' : 'Доспех'
+  }
+  if (bucket === 'pack') return 'Набор'
+  if (item.requires_attunement) return 'Настройка'
+  if (item.spell_tooling && item.spell_tooling !== 'none') {
+    return SPELL_TOOLING_LABEL_RU[item.spell_tooling] ?? 'Предмет'
+  }
+  if (item.wear_slot && item.wear_slot !== 'none') return 'Ношение'
+  return 'Предмет'
+}
+
+function formatEffectsLine(item: InventoryItem): string | null {
+  if (!item.effects || item.effects.length === 0) return null
+  return item.effects
+    .map((effect) => {
+      const t = String(effect.type)
+      if (t === 'ac_bonus') return `КД+${(effect as { value?: number }).value ?? '?'}`
+      if (t === 'attack_bonus')
+        return `атака+${(effect as { value?: number }).value ?? '?'}`
+      if (t === 'damage_bonus')
+        return `урон+${(effect as { value?: number }).value ?? '?'}`
+      if (t === 'sense') {
+        const sense = (effect as { sense?: string; range_ft?: number }).sense
+        const range = (effect as { range_ft?: number }).range_ft
+        return `${sense ?? 'чувство'}${range ? ` ${range}фт` : ''}`
+      }
+      if (t === 'ability_score' || t === 'ability_mod') {
+        const ability = (effect as { ability?: string; value?: number }).ability
+        const value = (effect as { value?: number }).value
+        return `${ability ?? '?'}${t === 'ability_mod' ? (value != null && value >= 0 ? '+' : '') : '→'}${value ?? '?'}`
+      }
+      if (t === 'skill_bonus') {
+        return `${(effect as { skill?: string }).skill ?? 'навык'}+${(effect as { value?: number }).value ?? '?'}`
+      }
+      if (t === 'save_bonus') {
+        const ability = (effect as { ability?: string }).ability
+        return `спас ${ability ?? 'все'}+${(effect as { value?: number }).value ?? '?'}`
+      }
+      if (t === 'speed') {
+        return `скор.+${(effect as { value_ft?: number }).value_ft ?? '?'}фт`
+      }
+      if (t === 'resource') {
+        return `заряды ${(effect as { id?: string }).id ?? ''}×${(effect as { max?: number }).max ?? '?'}`
+      }
+      if (t === 'companion') {
+        return `спутник ${(effect as { name_ru?: string }).name_ru || (effect as { kind?: string }).kind || ''}`
+      }
+      if (t === 'grant_spell') {
+        return `заклин. ${(effect as { slug?: string }).slug ?? '?'}`
+      }
+      if (t === 'spell_slots') {
+        return `ячейки ${(effect as { level?: number }).level}+${(effect as { delta?: number }).delta ?? '?'}`
+      }
+      return t
+    })
+    .join(' · ')
 }
 
 type InventoryPanelProps = {
@@ -141,6 +240,8 @@ export function InventoryPanel({
   const [catalogItems, setCatalogItems] = useState<CatalogEntry[]>([])
   const [packBusyId, setPackBusyId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [filter, setFilter] = useState<InventoryFilter>('all')
+  const [openIds, setOpenIds] = useState<Set<string>>(() => new Set())
   const inventoryRef = useRef(inventory)
   const onChangeRef = useRef(onChange)
   inventoryRef.current = inventory
@@ -186,6 +287,15 @@ export function InventoryPanel({
   const overEncumbered = totalLb > capacityLb
   const ordered = orderInventoryItems(inventory.items)
 
+  const visibleRoots = useMemo(() => {
+    return ordered.filter((item) => {
+      if (item.parent_id) return false
+      if (filter === 'all') return true
+      if (filter === 'equipped') return item.equipped
+      return itemBucket(item, catalogItems) === filter
+    })
+  }, [ordered, filter, catalogItems])
+
   function setCoins(patch: Partial<CoinPurse>) {
     onChange({
       ...inventory,
@@ -197,6 +307,15 @@ export function InventoryPanel({
     onChange({
       ...inventory,
       items: inventory.items.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+    })
+  }
+
+  function toggleDetails(id: string) {
+    setOpenIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
     })
   }
 
@@ -356,7 +475,6 @@ export function InventoryPanel({
     if (isExpandedPack(inventory.items, item.id)) return false
     const hit = findCatalogPackEntry(item, catalogItems)
     if (!hit) return false
-    // Only real packs with nested contents — not tool kits / «наборный доспех».
     return hasPackContents(hit.data ?? undefined)
   }
 
@@ -395,6 +513,7 @@ export function InventoryPanel({
         ...inventory,
         items: expandPack({ items, packId: item.id, contents: resolved }),
       })
+      setOpenIds((prev) => new Set(prev).add(item.id))
     } finally {
       setPackBusyId(null)
     }
@@ -407,14 +526,400 @@ export function InventoryPanel({
     })
   }
 
+  function renderEquipChip(item: InventoryItem) {
+    if (!canShowEquipChip(item)) return null
+    const blocked =
+      !item.equipped &&
+      item.armor_kind !== 'none' &&
+      !canWearArmor(item.armor_kind, armorProficiency)
+    return (
+      <button
+        type="button"
+        className={`sheet-chip${item.equipped ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
+        title={blocked ? armorProficiencyHint(item.armor_kind) : undefined}
+        onClick={() => toggleEquip(item)}
+      >
+        {item.equipped
+          ? equipLabel(item).on
+          : blocked
+            ? 'Нет владения'
+            : equipLabel(item).off}
+      </button>
+    )
+  }
+
+  function renderItemCard(item: InventoryItem, nested: boolean) {
+    const expandedPack = isExpandedPack(inventory.items, item.id)
+    const detailsOpen = openIds.has(item.id) || nested
+    const role = roleLabel(item, catalogItems)
+    const bucket = itemBucket(item, catalogItems)
+    const lineLb = formatLb(
+      expandedPack
+        ? childrenOf(inventory.items, item.id).reduce(
+            (sum, row) => sum + itemLineWeightLb(row),
+            0,
+          )
+        : itemLineWeightLb(item),
+    )
+    const effectsLine = formatEffectsLine(item)
+    const statusTag = item.equipped
+      ? equipLabel(item).on.toLowerCase()
+      : canShowEquipChip(item)
+        ? equipLabel(item).off.toLowerCase()
+        : null
+
+    if (!detailsOpen) {
+      return (
+        <div
+          key={item.id}
+          className={`inventory-card inventory-card--compact${
+            !item.equipped && isWeaponRow(item) ? ' inventory-card--stowed' : ''
+          }`}
+        >
+          <button
+            type="button"
+            className="inventory-card__glance"
+            onClick={() => toggleDetails(item.id)}
+          >
+            <div className="inventory-card__glance-main">
+              <span className={`inventory-role inventory-role--${bucket}`}>{role}</span>
+              {statusTag ? (
+                <span className={`attack-held-tag${item.equipped ? ' is-on' : ''}`}>
+                  {statusTag}
+                </span>
+              ) : null}
+              {item.requires_attunement && bucket === 'other' ? (
+                <span className="attack-held-tag">настройка</span>
+              ) : null}
+              {item.wear_slot && item.wear_slot !== 'none' ? (
+                <span className="attack-held-tag">{WEAR_SLOT_LABEL_RU[item.wear_slot]}</span>
+              ) : null}
+              <b className="inventory-card__glance-name">{item.name || 'Без названия'}</b>
+            </div>
+            <span className="inventory-card__glance-meta">
+              {item.qty > 1 ? `×${item.qty}` : '×1'}
+            </span>
+            <span className="inventory-card__glance-meta">{lineLb} фнт</span>
+            <span className="inventory-card__chevron" aria-hidden>
+              ›
+            </span>
+          </button>
+          <div className="inventory-card__glance-actions">
+            {renderEquipChip(item)}
+            {canExpand(item) ? (
+              <Button
+                variant="secondary"
+                disabled={packBusyId === item.id}
+                onClick={() => void onExpandPack(item)}
+              >
+                {packBusyId === item.id ? 'Раскрываю…' : 'Раскрыть'}
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div
+        key={item.id}
+        className={`inventory-card${nested ? ' inventory-card--nested' : ''}${
+          expandedPack ? ' inventory-card--pack-open' : ''
+        }`}
+      >
+        {nested ? (
+          <Text tone="muted" className="inventory-card__nest-label">
+            в наборе
+          </Text>
+        ) : null}
+
+        <div className="inventory-card__meta">
+          <span className={`inventory-role inventory-role--${bucket}`}>{role}</span>
+          {statusTag ? (
+            <span className={`attack-held-tag${item.equipped ? ' is-on' : ''}`}>
+              {statusTag}
+            </span>
+          ) : null}
+          {!nested ? (
+            <button
+              type="button"
+              className="play-desk-compact__link"
+              onClick={() => toggleDetails(item.id)}
+            >
+              свернуть
+            </button>
+          ) : null}
+        </div>
+
+        <div className="inventory-card__name">
+          <Field label="Предмет">
+            <CatalogCombobox
+              kinds={['item', 'weapon', 'armor']}
+              edition={edition}
+              value={item.name}
+              placeholder="Название вещи"
+              onChange={(value, selected) => applyCatalog(item.id, value, selected)}
+            />
+          </Field>
+        </div>
+
+        {isArmorRow(item) ? (
+          <div className="inventory-card__stats" aria-label="КД">
+            <div className="inventory-card__stat">
+              <span className="inventory-card__stat-value">
+                {item.armor_kind === 'shield'
+                  ? `+${item.base_ac ?? 2}`
+                  : item.base_ac ?? '—'}
+              </span>
+              <span className="inventory-card__stat-label">
+                {item.armor_kind === 'shield' ? 'щит' : 'КД'}
+                <span className="inventory-card__stat-hint">
+                  {' '}
+                  {armorKindLabel(item.armor_kind)}
+                </span>
+              </span>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="inventory-card__grid">
+          <Field label="Кол-во">
+            <NumberInput
+              min={0}
+              emptyValue={1}
+              value={item.qty}
+              onValueChange={(qty) => updateItem(item.id, { qty: qty ?? 0 })}
+            />
+          </Field>
+          <Field label="Вес, фнт" hint="за 1 шт.">
+            <NumberInput
+              min={0}
+              step={0.1}
+              integer={false}
+              emptyValue={null}
+              value={item.weight_lb}
+              onValueChange={(weight_lb) => updateItem(item.id, { weight_lb })}
+            />
+          </Field>
+        </div>
+
+        {!nested && isArmorRow(item) ? (
+          <>
+            <div className="sheet-grid sheet-grid--2">
+              <Field label="Шаблон брони">
+                <select
+                  className="play-select"
+                  value=""
+                  onChange={(event) => applyPreset(item.id, event.target.value)}
+                >
+                  <option value="">— выбрать —</option>
+                  {ARMOR_PRESETS.map((preset) => (
+                    <option key={preset.key} value={preset.key}>
+                      {preset.labelRu} (
+                      {preset.kind === 'shield' ? `+${preset.baseAc}` : preset.baseAc})
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Тип для КД">
+                <select
+                  className="play-select"
+                  value={item.armor_kind}
+                  onChange={(event) =>
+                    setArmorKind(item.id, event.target.value as ArmorKind)
+                  }
+                >
+                  {ARMOR_KINDS.map((kind) => (
+                    <option key={kind} value={kind}>
+                      {armorKindLabel(kind)}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            <Field
+              label={
+                item.armor_kind === 'shield' ? 'Бонус КД щита' : 'Базовый КД доспеха'
+              }
+            >
+              <NumberInput
+                min={0}
+                max={30}
+                emptyValue={item.armor_kind === 'shield' ? 2 : 10}
+                value={item.base_ac}
+                onValueChange={(base_ac) => updateItem(item.id, { base_ac })}
+              />
+            </Field>
+          </>
+        ) : null}
+
+        {!nested && !isArmorRow(item) ? (
+          <Field
+            label="Для заклинаний"
+            hint="Тип строки — каст смотрит на него, не на имя"
+          >
+            <select
+              className="play-select"
+              value={item.spell_tooling ?? 'none'}
+              onChange={(event) => {
+                const spell_tooling = event.target.value as SpellTooling
+                if (spell_tooling === 'focus') {
+                  updateItem(item.id, {
+                    spell_tooling: 'focus',
+                    focus_kind: item.focus_kind ?? 'any',
+                  })
+                  return
+                }
+                updateItem(item.id, {
+                  spell_tooling,
+                  focus_kind: null,
+                })
+              }}
+            >
+              {(Object.keys(SPELL_TOOLING_LABEL_RU) as SpellTooling[]).map((key) => (
+                <option key={key} value={key}>
+                  {SPELL_TOOLING_LABEL_RU[key]}
+                </option>
+              ))}
+            </select>
+          </Field>
+        ) : null}
+
+        {!nested && item.spell_tooling === 'focus' ? (
+          <FocusCatalogSelect
+            edition={edition}
+            family={item.focus_kind ?? 'any'}
+            allowFamilyPick
+            label="Фокус из справочника"
+            value={focusSelectionFromItem(item, catalogItems)}
+            onChange={(selection) => {
+              const fields = applyFocusSelectionToItemFields(selection)
+              updateItem(item.id, fields)
+            }}
+          />
+        ) : null}
+
+        {!nested && !isArmorRow(item) && !isWeaponRow(item) ? (
+          <div className="sheet-grid sheet-grid--2">
+            <Field label="Слот ношения" hint="Плащ, кольцо×2…">
+              <select
+                className="play-select"
+                value={item.wear_slot ?? 'none'}
+                onChange={(event) =>
+                  updateItem(item.id, {
+                    wear_slot: event.target.value as WearSlot,
+                  })
+                }
+              >
+                {WEAR_SLOTS.filter(
+                  (slot) =>
+                    slot === 'none' ||
+                    isWornMagicSlot(slot) ||
+                    slot === item.wear_slot,
+                ).map((slot) => (
+                  <option key={slot} value={slot}>
+                    {WEAR_SLOT_LABEL_RU[slot]}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Настройка">
+              <button
+                type="button"
+                className={`sheet-chip${item.requires_attunement ? ' is-on' : ''}`}
+                onClick={() =>
+                  updateItem(item.id, {
+                    requires_attunement: !item.requires_attunement,
+                  })
+                }
+              >
+                {item.requires_attunement ? 'Нужна настройка' : 'Без настройки'}
+              </button>
+            </Field>
+          </div>
+        ) : null}
+
+        {effectsLine ? (
+          <Text tone="muted">
+            Эффекты: {effectsLine}
+            {item.requires_attunement ? ' · нужна настройка' : ''}
+          </Text>
+        ) : null}
+
+        <Field label="Заметка">
+          <Input
+            value={item.notes}
+            placeholder="Где лежит, для чего…"
+            onChange={(event) => updateItem(item.id, { notes: event.target.value })}
+          />
+        </Field>
+
+        <div className="inventory-card__footer">
+          {renderEquipChip(item)}
+          {canExpand(item) ? (
+            <Button
+              variant="secondary"
+              disabled={packBusyId === item.id}
+              onClick={() => void onExpandPack(item)}
+            >
+              {packBusyId === item.id ? 'Раскрываю…' : 'Раскрыть набор'}
+            </Button>
+          ) : null}
+          {expandedPack ? (
+            <Button variant="secondary" onClick={() => onCollapsePack(item)}>
+              Свернуть набор
+            </Button>
+          ) : null}
+          <Text tone="muted">
+            Строка: {lineLb} фнт
+            {expandedPack ? ' · сумма содержимого' : ''}
+            {nested && item.weight_lb != null
+              ? ` · ${item.qty}×${formatLb(item.weight_lb)}`
+              : ''}
+          </Text>
+          <Button
+            variant="ghost"
+            onClick={() =>
+              onChange({
+                ...inventory,
+                items: removeInventoryItem(inventory.items, item.id),
+              })
+            }
+          >
+            Удалить
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <Panel title="Инвентарь">
+    <Panel title="Инвентарь" className="inventory-panel">
       <Stack gap={14}>
         <Text tone="muted">
-          Монеты, вещи, броня. Оружие: «В руках» / «Убран» (двуручное = обе руки; иначе до двух
-          одноручных или одноручное+щит). Наборы можно раскрыть — вес/перегруз. «Из справочника» —
-          поиск и семьи вариантов.
+          Список компактный: параметры открываются по клику. Оружие из справочника попадает в
+          «Атаки». Наборы можно раскрыть — вес и перегруз считаются сами.
         </Text>
+
+        <div className="inventory-panel__toolbar">
+          <Button variant="secondary" onClick={() => setPickerOpen(true)}>
+            Из справочника
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              const row = createInventoryItem()
+              onChange({
+                ...inventory,
+                items: [...inventory.items, row],
+              })
+              setOpenIds((prev) => new Set(prev).add(row.id))
+              setFilter('all')
+            }}
+          >
+            Своя строка
+          </Button>
+        </div>
 
         <div className="inventory-summary">
           <div>
@@ -452,348 +957,40 @@ export function InventoryPanel({
           </div>
         </div>
 
-        <Stack gap={12}>
-          {ordered.map((item) => {
-            const nested = Boolean(item.parent_id)
-            const expanded = isExpandedPack(inventory.items, item.id)
+        <div className="inventory-filters" role="tablist" aria-label="Фильтр инвентаря">
+          {FILTERS.map((row) => (
+            <button
+              key={row.id}
+              type="button"
+              role="tab"
+              aria-selected={filter === row.id}
+              className={`inventory-filter${filter === row.id ? ' is-on' : ''}`}
+              onClick={() => setFilter(row.id)}
+            >
+              {row.label}
+            </button>
+          ))}
+        </div>
+
+        <Stack gap={10}>
+          {visibleRoots.length === 0 ? (
+            <Text tone="muted">
+              {filter === 'all' ? 'Инвентарь пуст — добавь из справочника.' : 'Нет вещей в этом фильтре.'}
+            </Text>
+          ) : null}
+
+          {visibleRoots.map((item) => {
+            const kids = isExpandedPack(inventory.items, item.id)
+              ? childrenOf(inventory.items, item.id)
+              : []
             return (
-              <div
-                key={item.id}
-                className={`inventory-card${nested ? ' inventory-card--nested' : ''}${
-                  expanded ? ' inventory-card--pack-open' : ''
-                }`}
-              >
-                {nested ? (
-                  <Text tone="muted" className="inventory-card__nest-label">
-                    в наборе
-                  </Text>
-                ) : null}
-                <div className="inventory-card__grid">
-                  <Field label="Предмет" hint="Справочник или своё название">
-                    <CatalogCombobox
-                      kinds={['item', 'weapon', 'armor']}
-                      edition={edition}
-                      value={item.name}
-                      placeholder="Название вещи"
-                      onChange={(value, selected) => applyCatalog(item.id, value, selected)}
-                    />
-                  </Field>
-                  <Field label="Кол-во">
-                    <NumberInput
-                      min={0}
-                      emptyValue={1}
-                      value={item.qty}
-                      onValueChange={(qty) => updateItem(item.id, { qty: qty ?? 0 })}
-                    />
-                  </Field>
-                  <Field label="Вес, фнт" hint="за 1 шт.">
-                    <NumberInput
-                      min={0}
-                      step={0.1}
-                      integer={false}
-                      emptyValue={null}
-                      value={item.weight_lb}
-                      onValueChange={(weight_lb) => updateItem(item.id, { weight_lb })}
-                    />
-                  </Field>
-                </div>
-
-                {!nested ? (
-                  <div className="sheet-grid sheet-grid--2">
-                    <Field label="Шаблон брони">
-                      <select
-                        className="play-select"
-                        value=""
-                        onChange={(event) => applyPreset(item.id, event.target.value)}
-                      >
-                        <option value="">— выбрать —</option>
-                        {ARMOR_PRESETS.map((preset) => (
-                          <option key={preset.key} value={preset.key}>
-                            {preset.labelRu} (
-                            {preset.kind === 'shield' ? `+${preset.baseAc}` : preset.baseAc})
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                    <Field label="Тип для КД">
-                      <select
-                        className="play-select"
-                        value={item.armor_kind}
-                        onChange={(event) =>
-                          setArmorKind(item.id, event.target.value as ArmorKind)
-                        }
-                      >
-                        {ARMOR_KINDS.map((kind) => (
-                          <option key={kind} value={kind}>
-                            {armorKindLabel(kind)}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                  </div>
-                ) : null}
-
-                {!nested && item.armor_kind !== 'none' ? (
-                  <Field
-                    label={
-                      item.armor_kind === 'shield' ? 'Бонус КД щита' : 'Базовый КД доспеха'
-                    }
-                  >
-                    <NumberInput
-                      min={0}
-                      max={30}
-                      emptyValue={item.armor_kind === 'shield' ? 2 : 10}
-                      value={item.base_ac}
-                      onValueChange={(base_ac) => updateItem(item.id, { base_ac })}
-                    />
-                  </Field>
-                ) : null}
-
-                {!nested && item.armor_kind === 'none' ? (
-                  <Field
-                    label="Для заклинаний"
-                    hint="Тип строки — каст смотрит на него, не на имя"
-                  >
-                    <select
-                      className="play-select"
-                      value={item.spell_tooling ?? 'none'}
-                      onChange={(event) => {
-                        const spell_tooling = event.target.value as SpellTooling
-                        if (spell_tooling === 'focus') {
-                          updateItem(item.id, {
-                            spell_tooling: 'focus',
-                            focus_kind: item.focus_kind ?? 'any',
-                          })
-                          return
-                        }
-                        updateItem(item.id, {
-                          spell_tooling,
-                          focus_kind: null,
-                        })
-                      }}
-                    >
-                      {(Object.keys(SPELL_TOOLING_LABEL_RU) as SpellTooling[]).map(
-                        (key) => (
-                          <option key={key} value={key}>
-                            {SPELL_TOOLING_LABEL_RU[key]}
-                          </option>
-                        ),
-                      )}
-                    </select>
-                  </Field>
-                ) : null}
-
-                {!nested && item.spell_tooling === 'focus' ? (
-                  <FocusCatalogSelect
-                    edition={edition}
-                    family={item.focus_kind ?? 'any'}
-                    allowFamilyPick
-                    label="Фокус из справочника"
-                    value={focusSelectionFromItem(item, catalogItems)}
-                    onChange={(selection) => {
-                      const fields = applyFocusSelectionToItemFields(selection)
-                      updateItem(item.id, fields)
-                    }}
-                  />
-                ) : null}
-
-                {!nested && item.armor_kind === 'none' && !item.weapon_grip ? (
-                  <div className="sheet-grid sheet-grid--2">
-                    <Field label="Слот ношения" hint="Плащ, кольцо×2…">
-                      <select
-                        className="play-select"
-                        value={item.wear_slot ?? 'none'}
-                        onChange={(event) =>
-                          updateItem(item.id, {
-                            wear_slot: event.target.value as WearSlot,
-                          })
-                        }
-                      >
-                        {WEAR_SLOTS.filter(
-                          (slot) =>
-                            slot === 'none' ||
-                            isWornMagicSlot(slot) ||
-                            slot === item.wear_slot,
-                        ).map((slot) => (
-                          <option key={slot} value={slot}>
-                            {WEAR_SLOT_LABEL_RU[slot]}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                    <Field label="Настройка">
-                      <button
-                        type="button"
-                        className={`sheet-chip${item.requires_attunement ? ' is-on' : ''}`}
-                        onClick={() =>
-                          updateItem(item.id, {
-                            requires_attunement: !item.requires_attunement,
-                          })
-                        }
-                      >
-                        {item.requires_attunement ? 'Нужна настройка' : 'Без настройки'}
-                      </button>
-                    </Field>
-                  </div>
-                ) : null}
-
-                {item.effects && item.effects.length > 0 ? (
-                  <Text tone="muted">
-                    Эффекты:{" "}
-                    {item.effects
-                      .map((effect) => {
-                        const t = String(effect.type)
-                        if (t === 'ac_bonus') return `КД+${(effect as { value?: number }).value ?? '?'}`
-                        if (t === 'attack_bonus')
-                          return `атака+${(effect as { value?: number }).value ?? '?'}`
-                        if (t === 'damage_bonus')
-                          return `урон+${(effect as { value?: number }).value ?? '?'}`
-                        if (t === 'sense') {
-                          const sense = (effect as { sense?: string; range_ft?: number }).sense
-                          const range = (effect as { range_ft?: number }).range_ft
-                          return `${sense ?? 'чувство'}${range ? ` ${range}фт` : ''}`
-                        }
-                        if (t === 'ability_score' || t === 'ability_mod') {
-                          const ability = (effect as { ability?: string; value?: number }).ability
-                          const value = (effect as { value?: number }).value
-                          return `${ability ?? '?'}${t === 'ability_mod' ? (value != null && value >= 0 ? '+' : '') : '→'}${value ?? '?'}`
-                        }
-                        if (t === 'skill_bonus') {
-                          return `${(effect as { skill?: string }).skill ?? 'навык'}+${(effect as { value?: number }).value ?? '?'}`
-                        }
-                        if (t === 'save_bonus') {
-                          const ability = (effect as { ability?: string }).ability
-                          return `спас ${ability ?? 'все'}+${(effect as { value?: number }).value ?? '?'}`
-                        }
-                        if (t === 'speed') {
-                          return `скор.+${(effect as { value_ft?: number }).value_ft ?? '?'}фт`
-                        }
-                        if (t === 'resource') {
-                          return `заряды ${(effect as { id?: string }).id ?? ''}×${(effect as { max?: number }).max ?? '?'}`
-                        }
-                        if (t === 'companion') {
-                          return `спутник ${(effect as { name_ru?: string }).name_ru || (effect as { kind?: string }).kind || ''}`
-                        }
-                        if (t === 'grant_spell') {
-                          return `заклин. ${(effect as { slug?: string }).slug ?? '?'}`
-                        }
-                        if (t === 'spell_slots') {
-                          return `ячейки ${(effect as { level?: number }).level}+${(effect as { delta?: number }).delta ?? '?'}`
-                        }
-                        return t
-                      })
-                      .join(' · ')}
-                    {item.requires_attunement ? ' · нужна настройка' : ''}
-                  </Text>
-                ) : null}
-
-                <Field label="Заметка">
-                  <Input
-                    value={item.notes}
-                    placeholder="Где лежит, для чего…"
-                    onChange={(event) => updateItem(item.id, { notes: event.target.value })}
-                  />
-                </Field>
-                <div className="inventory-card__footer">
-                  {!nested && canShowEquipChip(item) ? (
-                    <button
-                      type="button"
-                      className={`sheet-chip${item.equipped ? ' is-on' : ''}${
-                        !item.equipped &&
-                        item.armor_kind !== 'none' &&
-                        !canWearArmor(item.armor_kind, armorProficiency)
-                          ? ' is-blocked'
-                          : ''
-                      }`}
-                      title={
-                        !item.equipped &&
-                        item.armor_kind !== 'none' &&
-                        !canWearArmor(item.armor_kind, armorProficiency)
-                          ? armorProficiencyHint(item.armor_kind)
-                          : undefined
-                      }
-                      onClick={() => toggleEquip(item)}
-                    >
-                      {item.equipped
-                        ? equipLabel(item).on
-                        : item.armor_kind !== 'none' &&
-                            !canWearArmor(item.armor_kind, armorProficiency)
-                          ? 'Нет владения'
-                          : equipLabel(item).off}
-                    </button>
-                  ) : null}
-                  {canExpand(item) ? (
-                    <Button
-                      variant="secondary"
-                      disabled={packBusyId === item.id}
-                      onClick={() => void onExpandPack(item)}
-                    >
-                      {packBusyId === item.id ? 'Раскрываю…' : 'Раскрыть набор'}
-                    </Button>
-                  ) : null}
-                  {expanded ? (
-                    <Button variant="secondary" onClick={() => onCollapsePack(item)}>
-                      Свернуть набор
-                    </Button>
-                  ) : null}
-                  <Text tone="muted">
-                    Строка:{' '}
-                    {formatLb(
-                      expanded
-                        ? childrenOf(inventory.items, item.id).reduce(
-                            (sum, row) => sum + itemLineWeightLb(row),
-                            0,
-                          )
-                        : itemLineWeightLb(item),
-                    )}{' '}
-                    фнт
-                    {expanded ? ' · сумма содержимого' : ''}
-                    {nested && item.weight_lb != null
-                      ? ` · ${item.qty}×${formatLb(item.weight_lb)}`
-                      : ''}
-                    {item.armor_kind !== 'none'
-                      ? ` · ${armorKindLabel(item.armor_kind)}${
-                          item.base_ac != null
-                            ? item.armor_kind === 'shield'
-                              ? ` +${item.base_ac}`
-                              : ` ${item.base_ac}`
-                            : ''
-                        }`
-                      : ''}
-                  </Text>
-                  <Button
-                    variant="ghost"
-                    onClick={() =>
-                      onChange({
-                        ...inventory,
-                        items: removeInventoryItem(inventory.items, item.id),
-                      })
-                    }
-                  >
-                    Удалить
-                  </Button>
-                </div>
+              <div key={item.id} className="inventory-card-group">
+                {renderItemCard(item, false)}
+                {kids.map((child) => renderItemCard(child, true))}
               </div>
             )
           })}
         </Stack>
-
-        <div className="inventory-add-row">
-          <Button variant="secondary" onClick={() => setPickerOpen(true)}>
-            Из справочника
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={() =>
-              onChange({
-                ...inventory,
-                items: [...inventory.items, createInventoryItem()],
-              })
-            }
-          >
-            Своя строка
-          </Button>
-        </div>
       </Stack>
 
       <GearPickerDialog
