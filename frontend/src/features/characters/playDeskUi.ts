@@ -96,7 +96,13 @@ export const MODE_SKILL_KEYS: Record<'explore' | 'social', string[]> = {
   social: ['persuasion', 'deception', 'insight', 'intimidation', 'performance'],
 }
 
-export type PlayDeskCompactPanelId = 'attacks' | 'spells' | 'inventory' | 'texts'
+export type PlayDeskCompactPanelId =
+  | 'attacks'
+  | 'spells'
+  | 'inventory'
+  | 'texts'
+  | 'features'
+  | 'companions'
 
 export const PLAY_DESK_PANELS: Array<{ id: PlayDeskPanelId; label: string }> = [
   { id: 'attacks', label: 'Атаки' },

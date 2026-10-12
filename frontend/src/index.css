@@ -3541,6 +3541,16 @@ button.play-desk-vital {
   border-color: #e8c48a;
 }
 
+.play-desk-compact__card.is-primary {
+  box-shadow: inset 3px 0 0 var(--desk-accent);
+  border-color: color-mix(in srgb, var(--desk-accent) 35%, var(--desk-line));
+}
+
+.play-desk-compact__card:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
 .play-desk-compact__card.is-action,
 .play-desk-compact__row.is-action,
 .play-desk-compact__cons-row.is-action {

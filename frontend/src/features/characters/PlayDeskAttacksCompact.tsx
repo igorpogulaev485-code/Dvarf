@@ -1,4 +1,5 @@
 import type { SheetResource } from '../../shared/dnd/rest'
+import { formatAttackRoll } from './deskRolls'
 import {
   abilityModifier,
   formatModifier,
@@ -76,9 +77,15 @@ export function PlayDeskAttacksCompact({
                 <button
                   type="button"
                   className="play-desk-compact__hit"
+                  title="Бросок атаки и урона"
                   onClick={() =>
                     onToast?.(
-                      `${attack.name}: атака ${formatModifier(attackBonus)}, урон ${dmgLine}`,
+                      formatAttackRoll({
+                        name: attack.name,
+                        attackBonus,
+                        damageExpr: dmg || attack.damage,
+                        damageType: attack.damage_type,
+                      }),
                     )
                   }
                 >

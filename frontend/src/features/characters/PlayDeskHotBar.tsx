@@ -12,6 +12,7 @@ type PlayDeskHotBarProps = {
   onToggleInspiration: () => void
   onClearConcentration?: () => void
   onResourceUsedChange: (id: string, used: number) => void
+  onInitiativeRoll?: () => void
 }
 
 export function PlayDeskHotBar({
@@ -24,6 +25,7 @@ export function PlayDeskHotBar({
   onToggleInspiration,
   onClearConcentration,
   onResourceUsedChange,
+  onInitiativeRoll,
 }: PlayDeskHotBarProps) {
   const conditionsLabel =
     conditionNames.length > 0 ? conditionNames.join(', ') : 'нет'
@@ -31,10 +33,22 @@ export function PlayDeskHotBar({
 
   return (
     <div className="play-desk__hot" aria-label="Боевая полоса">
-      <div className="play-desk__hot-item">
-        <span>Иниц.</span>
-        <b>{formatModifier(initiative)}</b>
-      </div>
+      {onInitiativeRoll ? (
+        <button
+          type="button"
+          className="play-desk__hot-item play-desk__hot-item--btn"
+          title="Бросок инициативы"
+          onClick={onInitiativeRoll}
+        >
+          <span>Иниц.</span>
+          <b>{formatModifier(initiative)}</b>
+        </button>
+      ) : (
+        <div className="play-desk__hot-item">
+          <span>Иниц.</span>
+          <b>{formatModifier(initiative)}</b>
+        </div>
+      )}
       <button
         type="button"
         className={`play-desk__hot-item play-desk__hot-item--btn${inspiration ? ' is-on' : ''}`}

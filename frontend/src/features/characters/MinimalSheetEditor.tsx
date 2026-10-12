@@ -206,12 +206,15 @@ import { TextBlocksPanel } from './TextBlocksPanel'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { PlayDeskAttacksCompact } from './PlayDeskAttacksCompact'
+import { PlayDeskCompanionsCompact } from './PlayDeskCompanionsCompact'
 import { PlayDeskExploreCompact } from './PlayDeskExploreCompact'
+import { PlayDeskFeaturesCompact } from './PlayDeskFeaturesCompact'
 import { PlayDeskHeader } from './PlayDeskHeader'
 import { PlayDeskHotBar } from './PlayDeskHotBar'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSocialCompact } from './PlayDeskSocialCompact'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
+import { formatSkillRoll } from './deskRolls'
 import {
   MODE_DEFAULT_PANEL,
   MODE_SKILL_KEYS,
@@ -3073,6 +3076,9 @@ export function MinimalSheetEditor({
               conditionNames={hotConditionNames}
               concentration={draft.play.concentration}
               resources={draft.play.resources}
+              onInitiativeRoll={() =>
+                onToast(formatSkillRoll('Инициатива', initiativeValue))
+              }
               onToggleInspiration={() =>
                 setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
               }
@@ -3101,7 +3107,7 @@ export function MinimalSheetEditor({
               ariaLabel="Навыки исследования"
               skills={modeSkillChips('explore')}
               onSkillClick={(skill) =>
-                onToast(`${skill.label}: проверка ${formatModifier(skill.mod)}`)
+                onToast(formatSkillRoll(skill.label, skill.mod))
               }
             />
           ) : null}
@@ -3111,7 +3117,7 @@ export function MinimalSheetEditor({
               ariaLabel="Навыки общения"
               skills={modeSkillChips('social')}
               onSkillClick={(skill) =>
-                onToast(`${skill.label}: проверка ${formatModifier(skill.mod)}`)
+                onToast(formatSkillRoll(skill.label, skill.mod))
               }
             />
           ) : null}
@@ -3867,34 +3873,70 @@ export function MinimalSheetEditor({
       </div>
 
       <div className="play-desk__stage-panel" hidden={stageHidden('features')}>
-      <ClassFeaturesPanel
-        classes={draft.classes}
-        characterLevel={characterLevel}
-        abilities={draft.abilities}
-        subclassSlugByEntryId={subclassSlugByEntryId}
-        subclassTransitionByEntryId={subclassTransitionByEntryId}
-        resources={draft.play.resources}
-        onResourcesChange={(resources) =>
-          setDraft((prev) => ({
-            ...prev,
-            play: { ...prev.play, resources },
-          }))
-        }
-        featurePicks={draft.featurePicks}
-        onFeaturePicksChange={applyFeaturePicksWithExpertise}
-        skills={draft.skills}
-        tools={draft.identity.tools}
-        spells={draft.spells}
-        onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
-        wearingHeavyArmor={
-          equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
-        }
-        companions={draft.companions}
-        onCompanionsChange={(companions) =>
-          setDraft((prev) => ({ ...prev, companions }))
-        }
-        onToast={onToast}
-      />
+      {showCompact('features') ? (
+        <PlayDeskFeaturesCompact
+          features={unlockedFeatures}
+          featGrants={draft.featGrants}
+          resources={draft.play.resources}
+          darkvision={draft.identity.darkvision}
+          raceName={draft.raceName}
+          onOpenFull={() => setForceFullPanel('features')}
+          onToast={onToast}
+          onSpendResource={(id) =>
+            setDraft((prev) => ({
+              ...prev,
+              play: {
+                ...prev.play,
+                resources: prev.play.resources.map((row) =>
+                  row.id === id && row.used < row.max
+                    ? { ...row, used: row.used + 1 }
+                    : row,
+                ),
+              },
+            }))
+          }
+        />
+      ) : (
+        <>
+          {isPlayDesk ? (
+            <button
+              type="button"
+              className="play-desk-compact__link play-desk-compact__link--bar"
+              onClick={() => setForceFullPanel(null)}
+            >
+              ← компактно
+            </button>
+          ) : null}
+          <ClassFeaturesPanel
+            classes={draft.classes}
+            characterLevel={characterLevel}
+            abilities={draft.abilities}
+            subclassSlugByEntryId={subclassSlugByEntryId}
+            subclassTransitionByEntryId={subclassTransitionByEntryId}
+            resources={draft.play.resources}
+            onResourcesChange={(resources) =>
+              setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, resources },
+              }))
+            }
+            featurePicks={draft.featurePicks}
+            onFeaturePicksChange={applyFeaturePicksWithExpertise}
+            skills={draft.skills}
+            tools={draft.identity.tools}
+            spells={draft.spells}
+            onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+            wearingHeavyArmor={
+              equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
+            }
+            companions={draft.companions}
+            onCompanionsChange={(companions) =>
+              setDraft((prev) => ({ ...prev, companions }))
+            }
+            onToast={onToast}
+          />
+        </>
+      )}
 
       </div>
 
@@ -3983,10 +4025,29 @@ export function MinimalSheetEditor({
       </div>
 
       <div className="play-desk__stage-panel" hidden={stageHidden('companions')}>
-      <CompanionsPanel
-        companions={draft.companions}
-        onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
-      />
+      {showCompact('companions') ? (
+        <PlayDeskCompanionsCompact
+          companions={draft.companions}
+          onOpenFull={() => setForceFullPanel('companions')}
+          onToast={onToast}
+        />
+      ) : (
+        <>
+          {isPlayDesk ? (
+            <button
+              type="button"
+              className="play-desk-compact__link play-desk-compact__link--bar"
+              onClick={() => setForceFullPanel(null)}
+            >
+              ← компактно
+            </button>
+          ) : null}
+          <CompanionsPanel
+            companions={draft.companions}
+            onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
+          />
+        </>
+      )}
 
       </div>
 

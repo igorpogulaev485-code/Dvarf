@@ -3,6 +3,7 @@ import {
   formatModifier,
   type AbilityKey,
 } from './sheetTypes'
+import { formatCheckRoll, rollCheck } from './deskRolls'
 import {
   isReadyInCombat,
   type SheetSpell,
@@ -96,7 +97,13 @@ export function PlayDeskSpellsCompact({
           <p className="play-desk-compact__empty">Нет готовых заклинаний</p>
         ) : (
           ready.slice(0, 14).map((spell) => (
-            <SpellRow key={spell.id} spell={spell} onToast={onToast} />
+            <SpellRow
+              key={spell.id}
+              spell={spell}
+              spellAttack={attack}
+              spellDc={dc}
+              onToast={onToast}
+            />
           ))
         )}
         {ready.length > 14 ? (
@@ -109,9 +116,13 @@ export function PlayDeskSpellsCompact({
 
 function SpellRow({
   spell,
+  spellAttack,
+  spellDc,
   onToast,
 }: {
   spell: SheetSpell
+  spellAttack: number | null
+  spellDc: number | null
   onToast?: (message: string) => void
 }) {
   const levelLabel = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
@@ -123,11 +134,24 @@ function SpellRow({
     <button
       type="button"
       className="play-desk-compact__row is-dense is-action"
-      onClick={() =>
+      title={spellAttack != null ? 'Бросок атаки заклинанием' : 'Инфо о заклинании'}
+      onClick={() => {
+        const head = `${spell.name} · ${levelLabel}${
+          tags.length ? ` · ${tags.join(', ')}` : ''
+        }`
+        if (spellAttack != null) {
+          const roll = rollCheck(spellAttack)
+          onToast?.(
+            `${formatCheckRoll(spell.name, roll)}${
+              spellDc != null ? ` · Сл ${spellDc}` : ''
+            } · ${levelLabel}`,
+          )
+          return
+        }
         onToast?.(
-          `${spell.name} · ${levelLabel}${tags.length ? ` · ${tags.join(', ')}` : ''}`,
+          `${head}${spellDc != null ? ` · Сл ${spellDc}` : ''}`,
         )
-      }
+      }}
     >
       <div className="play-desk-compact__row-main">
         <b>{spell.name}</b>
