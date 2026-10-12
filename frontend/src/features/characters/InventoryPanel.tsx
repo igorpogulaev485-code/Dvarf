@@ -647,7 +647,6 @@ export function InventoryPanel({
         ) : null}
 
         <div className="inventory-card__meta">
-          <b className="inventory-card__glance-name">{item.name || 'Без названия'}</b>
           <span className={`inventory-role inventory-role--${bucket}`}>{role}</span>
           {statusTag ? (
             <span className={`attack-held-tag${item.equipped ? ' is-on' : ''}`}>
