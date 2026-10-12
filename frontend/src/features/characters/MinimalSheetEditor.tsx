@@ -206,6 +206,7 @@ import { CompanionsPanel } from './CompanionsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
+import { toggleCombatConsumableFavorite } from './combatConsumables'
 import { PlayDeskAttacksCompact } from './PlayDeskAttacksCompact'
 import { PlayDeskCompanionsCompact } from './PlayDeskCompanionsCompact'
 import { PlayDeskExploreCompact } from './PlayDeskExploreCompact'
@@ -2880,6 +2881,26 @@ export function MinimalSheetEditor({
     }))
   }
 
+  function toggleCombatFavorite(itemId: string) {
+    const result = toggleCombatConsumableFavorite(
+      draft.sheetUi.combatConsumableFavoriteIds,
+      itemId,
+    )
+    if (!result.ok) {
+      onToast(result.reason ?? 'Нельзя добавить в избранное')
+      return
+    }
+    const adding = !draft.sheetUi.combatConsumableFavoriteIds.includes(itemId)
+    const name =
+      draft.inventory.items.find((row) => row.id === itemId)?.name.trim() || 'предмет'
+    patchSheetUi({ combatConsumableFavoriteIds: result.ids })
+    onToast(
+      adding
+        ? `«${name}» в расходниках боя (${result.ids.length}/3)`
+        : `«${name}» убран из избранного`,
+    )
+  }
+
   function setDeskMode(mode: PlayDeskMode) {
     const nextPanel = MODE_DEFAULT_PANEL[mode]
     // Combat / explore / social keep primary + spells; other scenes stay single-pane.
@@ -4027,10 +4048,12 @@ export function MinimalSheetEditor({
           gearBonusesByItem={gearEffects.byItem}
           resources={draft.play.resources}
           inventoryItems={draft.inventory.items}
+          favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
           rollMode={effectiveRollMode()}
           onOpenFull={() => setForceFullPanel('attacks')}
           onToast={onToast}
           onSpendResource={spendResourceOrOpenSorcery}
+          onToggleConsumableFavorite={toggleCombatFavorite}
           onSpendConsumable={(itemId) => {
             const item = draft.inventory.items.find((row) => row.id === itemId)
             if (!item || (item.qty ?? 0) <= 0) return
@@ -4122,6 +4145,8 @@ export function MinimalSheetEditor({
           autoAc={armorClass.ac}
           acHint={armorClass.summary}
           attunements={draft.attunements}
+          favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
+          onToggleConsumableFavorite={toggleCombatFavorite}
           onOpenFull={() => setForceFullPanel('inventory')}
           onOpenAttunement={() => {
             setActivePanel('attunement')

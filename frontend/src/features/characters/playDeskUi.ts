@@ -1,3 +1,4 @@
+import { normalizeCombatConsumableFavoriteIds } from './combatConsumables'
 import {
   ABILITY_KEYS,
   asRecord,
@@ -31,6 +32,8 @@ export type SheetUiState = {
   deskMode: PlayDeskMode
   /** Side-by-side primary panel + pinned spells (or attacks if spells selected). */
   deskSplit: boolean
+  /** Inventory item ids pinned into combat «Расходники» (max 3). */
+  combatConsumableFavoriteIds: string[]
 }
 
 const DEFAULT_ORDER: AbilityKey[] = [...ABILITY_KEYS]
@@ -85,6 +88,9 @@ export function readSheetUi(sheet: Record<string, unknown>): SheetUiState {
     collapsedAbilities: collapsed,
     deskMode: normalizeDeskMode(ui.desk_mode),
     deskSplit,
+    combatConsumableFavoriteIds: normalizeCombatConsumableFavoriteIds(
+      ui.combat_consumable_favorites,
+    ),
   }
 }
 
@@ -94,6 +100,7 @@ export function sheetUiToPatch(ui: SheetUiState): Record<string, unknown> {
     collapsed_abilities: ui.collapsedAbilities,
     desk_mode: ui.deskMode,
     desk_split: ui.deskSplit,
+    combat_consumable_favorites: ui.combatConsumableFavoriteIds,
   }
 }
 

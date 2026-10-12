@@ -3986,6 +3986,10 @@ button.play-desk-vital {
 }
 
 .play-desk-compact__subhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -3994,13 +3998,28 @@ button.play-desk-vital {
 
 .play-desk-compact__cons-row {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: #f7f4ec;
+  overflow: hidden;
+}
+
+.play-desk-compact__cons-row.is-fav {
+  border-color: color-mix(in srgb, #c47a12 40%, transparent);
+  background: color-mix(in srgb, #fde8c8 45%, white);
+}
+
+.play-desk-compact__cons-main {
+  display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
   gap: 8px;
   font-size: 0.82rem;
   padding: 4px 8px;
-  border-radius: 8px;
-  border: 1px solid transparent;
+  border: 0;
   background: transparent;
   font: inherit;
   color: inherit;
@@ -4009,15 +4028,80 @@ button.play-desk-vital {
   cursor: pointer;
 }
 
-.play-desk-compact__cons-row:disabled {
+.play-desk-compact__cons-main:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.play-desk-compact__cons-name {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 
 .play-desk-compact__cons-spend {
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--desk-accent);
+}
+
+.play-desk-compact__cons-fav {
+  border: 0;
+  border-left: 1px solid var(--desk-line);
+  background: #fff;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--desk-muted);
+}
+
+.play-desk-compact__cons-fav.is-on {
+  color: #9a5b00;
+}
+
+.play-desk-compact__cons-fav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.play-desk-compact__cons-add {
+  margin-top: 4px;
+}
+
+.play-desk-compact__cons-picker {
+  display: grid;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--desk-muted);
+}
+
+.play-desk-compact__subhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.play-desk-compact__subhead-meta {
+  font-size: 0.68rem;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+  color: #9a5b00;
+}
+
+.play-desk-compact__tag.is-fav {
+  background: #fde8c8;
+  color: #9a5b00;
+}
+
+.play-desk-compact__hold.is-fav-on {
+  color: #9a5b00;
+  font-weight: 700;
 }
 
 @media (max-width: 1100px) {

@@ -4,6 +4,7 @@ import {
   totalCarriedLb,
 } from '../../shared/dnd/weight'
 import { filledAttunementCount, MAX_ATTUNEMENTS, type AttunementSlot } from './attunement'
+import { MAX_COMBAT_CONSUMABLE_FAVORITES } from './combatConsumables'
 import {
   asWeighableItems,
   equippedArmorPieces,
@@ -16,6 +17,8 @@ type PlayDeskExploreCompactProps = {
   autoAc: number
   acHint: string
   attunements: AttunementSlot[]
+  favoriteConsumableIds?: string[]
+  onToggleConsumableFavorite?: (itemId: string) => void
   onOpenFull: () => void
   onOpenAttunement?: () => void
   onToast?: (message: string) => void
@@ -27,10 +30,14 @@ export function PlayDeskExploreCompact({
   autoAc,
   acHint,
   attunements,
+  favoriteConsumableIds = [],
+  onToggleConsumableFavorite,
   onOpenFull,
   onOpenAttunement,
   onToast,
 }: PlayDeskExploreCompactProps) {
+  const favoriteSet = new Set(favoriteConsumableIds)
+  const favoriteCount = favoriteConsumableIds.length
   const weighable = asWeighableItems(inventory.items)
   const totalLb = totalCarriedLb(inventory.coins, weighable)
   const capacityLb = carryingCapacityLb(strengthScore)
@@ -110,37 +117,65 @@ export function PlayDeskExploreCompact({
         {namedItems.length === 0 ? (
           <p className="play-desk-compact__empty">Инвентарь пуст</p>
         ) : (
-          namedItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="play-desk-compact__row is-action"
-              onClick={() =>
-                onToast?.(
-                  `${item.name}${item.qty > 1 ? ` ×${item.qty}` : ''}${
-                    item.equipped ? ' · надето' : ''
-                  }`,
-                )
-              }
-            >
-              <div className="play-desk-compact__row-main">
-                <b>{item.name}</b>
-                {item.equipped ? (
-                  <span className="play-desk-compact__tag is-on">надето</span>
+          namedItems.map((item) => {
+            const isFav = favoriteSet.has(item.id)
+            return (
+              <div key={item.id} className="play-desk-compact__row is-dense">
+                <button
+                  type="button"
+                  className="play-desk-compact__hit is-action"
+                  onClick={() =>
+                    onToast?.(
+                      `${item.name}${item.qty > 1 ? ` ×${item.qty}` : ''}${
+                        item.equipped ? ' · надето' : ''
+                      }${isFav ? ' · в бою' : ''}`,
+                    )
+                  }
+                >
+                  <div className="play-desk-compact__row-main">
+                    <b>{item.name}</b>
+                    {item.equipped ? (
+                      <span className="play-desk-compact__tag is-on">надето</span>
+                    ) : null}
+                    {isFav ? (
+                      <span className="play-desk-compact__tag is-fav">в бою</span>
+                    ) : null}
+                  </div>
+                  <span className="play-desk-compact__mod">
+                    {item.qty > 1
+                      ? `×${item.qty}`
+                      : item.weight_lb != null
+                        ? `${formatLb(item.weight_lb * item.qty)} фнт`
+                        : '—'}
+                  </span>
+                  <span className="play-desk-compact__dmg">
+                    {item.armor_kind !== 'none'
+                      ? 'доспех'
+                      : item.requires_attunement
+                        ? 'настройка'
+                        : item.notes.trim() || 'предмет'}
+                  </span>
+                </button>
+                {onToggleConsumableFavorite ? (
+                  <button
+                    type="button"
+                    className={`play-desk-compact__hold${isFav ? ' is-fav-on' : ''}`}
+                    title={
+                      isFav
+                        ? 'Убрать из расходников боя'
+                        : favoriteCount >= MAX_COMBAT_CONSUMABLE_FAVORITES
+                          ? `Уже ${MAX_COMBAT_CONSUMABLE_FAVORITES} избранных`
+                          : 'В расходники боя (избранное)'
+                    }
+                    disabled={!isFav && favoriteCount >= MAX_COMBAT_CONSUMABLE_FAVORITES}
+                    onClick={() => onToggleConsumableFavorite(item.id)}
+                  >
+                    {isFav ? '★' : '☆'}
+                  </button>
                 ) : null}
               </div>
-              <span className="play-desk-compact__mod">
-                {item.qty > 1 ? `×${item.qty}` : item.weight_lb != null ? `${formatLb(item.weight_lb * item.qty)} фнт` : '—'}
-              </span>
-              <span className="play-desk-compact__dmg">
-                {item.armor_kind !== 'none'
-                  ? 'доспех'
-                  : item.requires_attunement
-                    ? 'настройка'
-                    : item.notes.trim() || 'предмет'}
-              </span>
-            </button>
-          ))
+            )
+          })
         )}
         {inventory.items.filter((item) => item.name.trim() && !item.parent_id).length >
         namedItems.length ? (
