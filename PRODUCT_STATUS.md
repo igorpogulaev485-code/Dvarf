@@ -628,7 +628,7 @@
 |--------|--------------|-------------------------|
 | Sec-Fetch-Mode | `/characters` и соседние пути отдают SPA лишь при `navigate`; fetch без токена больше не получает HTML | На телефоне нет «Сервер вернул страницу вместо API» из гонки Bearer |
 
-На проде: **да** · ветка `cursor/mobile-play-desk-2c91` (merge PR #111) · tip · проверено 2026-10-12: fetch без navigate → JSON 401; `Sec-Fetch-Mode: navigate` → HTML SPA; `/health` ok
+На проде: **да** · ветка `cursor/mobile-play-desk-2c91` · PR #111 + hotfix · tip · проверено 2026-10-12: navigate или `::text/html` без Bearer → SPA; Accept json / cors → API; HTTP F5 на /characters снова HTML
 
 ### 2026-10-08 — GEAR W6: DMG polish (остатки)
 
