@@ -1,5 +1,5 @@
 import type { SheetResource } from '../../shared/dnd/rest'
-import { formatAttackRoll } from './deskRolls'
+import { formatAttackRoll, type DeskRollMode } from './deskRolls'
 import {
   abilityModifier,
   formatModifier,
@@ -19,6 +19,7 @@ type PlayDeskAttacksCompactProps = {
   onSpendResource?: (id: string) => void
   onToast?: (message: string) => void
   onOpenFull: () => void
+  rollMode?: DeskRollMode
 }
 
 const CONSUMABLE_RE =
@@ -35,6 +36,7 @@ export function PlayDeskAttacksCompact({
   onSpendResource,
   onToast,
   onOpenFull,
+  rollMode = 'normal',
 }: PlayDeskAttacksCompactProps) {
   const named = weapons.filter((row) => row.name.trim())
   const combatResources = resources.filter(
@@ -85,6 +87,7 @@ export function PlayDeskAttacksCompact({
                         attackBonus,
                         damageExpr: dmg || attack.damage,
                         damageType: attack.damage_type,
+                        mode: rollMode,
                       }),
                     )
                   }

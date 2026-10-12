@@ -214,11 +214,20 @@ import { PlayDeskHotBar } from './PlayDeskHotBar'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSocialCompact } from './PlayDeskSocialCompact'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
-import { formatSkillRoll } from './deskRolls'
+import {
+  armorGivesStealthDisadvantage,
+  formatSkillRoll,
+  resolveRollMode,
+  type DeskRollMode,
+} from './deskRolls'
 import {
   MODE_DEFAULT_PANEL,
+  MODE_EXTRA_PANELS,
+  MODE_HINT,
+  MODE_SCENE_PANELS,
   MODE_SKILL_KEYS,
   PLAY_DESK_PANELS,
+  panelLabel,
   readSheetUi,
   sheetUiToPatch,
   splitSecondaryPanel,
@@ -2686,6 +2695,7 @@ export function MinimalSheetEditor({
   )
   /** When set, show full editor panel instead of combat compact strip. */
   const [forceFullPanel, setForceFullPanel] = useState<PlayDeskPanelId | null>(null)
+  const [deskRollMode, setDeskRollMode] = useState<DeskRollMode>('normal')
   const [isPlayDesk, setIsPlayDesk] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches,
   )
@@ -2741,6 +2751,20 @@ export function MinimalSheetEditor({
       }
     })
   }
+
+  const stealthArmorPieces = equippedArmorPieces(draft.inventory.items)
+  const stealthArmorDisadvantage = armorGivesStealthDisadvantage({
+    armorKind: stealthArmorPieces.armor?.kind ?? null,
+    armorName: stealthArmorPieces.armor?.name ?? null,
+  })
+
+  function effectiveRollMode(skillKey?: string): DeskRollMode {
+    const forced = skillKey === 'stealth' && stealthArmorDisadvantage
+    return resolveRollMode(deskRollMode, forced)
+  }
+
+  const scenePanels = MODE_SCENE_PANELS[draft.sheetUi.deskMode]
+  const scenePanelSet = new Set(scenePanels)
 
   const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
   const splitSecondary = deskSplit ? splitSecondaryPanel(activePanel) : null
@@ -3037,6 +3061,31 @@ export function MinimalSheetEditor({
                   {label}
                 </button>
               ))}
+              <div
+                className="play-desk__roll-mode"
+                role="group"
+                aria-label="Преимущество / помеха"
+              >
+                {(
+                  [
+                    ['normal', 'норм'],
+                    ['advantage', 'преим.'],
+                    ['disadvantage', 'помеха'],
+                  ] as const
+                ).map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    className={`play-desk__roll-mode-btn${
+                      deskRollMode === mode ? ' is-on' : ''
+                    }`}
+                    aria-pressed={deskRollMode === mode}
+                    onClick={() => setDeskRollMode(mode)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <select
                 className="play-desk__panel-pick"
                 aria-label="Панель"
@@ -3046,11 +3095,31 @@ export function MinimalSheetEditor({
                   setForceFullPanel(null)
                 }}
               >
-                {PLAY_DESK_PANELS.map((panel) => (
-                  <option key={panel.id} value={panel.id}>
-                    {panel.label}
-                  </option>
-                ))}
+                <optgroup label="Сцена">
+                  {scenePanels.map((id) => (
+                    <option key={id} value={id}>
+                      {panelLabel(id)}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Ещё">
+                  {MODE_EXTRA_PANELS.map((id) => (
+                    <option key={id} value={id}>
+                      {panelLabel(id)}
+                    </option>
+                  ))}
+                  {/* Keep current value selectable if it somehow falls outside lists */}
+                  {!scenePanelSet.has(activePanel) &&
+                  !MODE_EXTRA_PANELS.includes(activePanel)
+                    ? PLAY_DESK_PANELS.filter((panel) => panel.id === activePanel).map(
+                        (panel) => (
+                          <option key={panel.id} value={panel.id}>
+                            {panel.label}
+                          </option>
+                        ),
+                      )
+                    : null}
+                </optgroup>
               </select>
               <button
                 type="button"
@@ -3065,6 +3134,7 @@ export function MinimalSheetEditor({
               >
                 {deskSplit ? 'снять split' : 'Split'}
               </button>
+              <span className="play-desk__mode-hint">{MODE_HINT[draft.sheetUi.deskMode]}</span>
             </div>
           ) : null}
 
@@ -3077,7 +3147,9 @@ export function MinimalSheetEditor({
               concentration={draft.play.concentration}
               resources={draft.play.resources}
               onInitiativeRoll={() =>
-                onToast(formatSkillRoll('Инициатива', initiativeValue))
+                onToast(
+                  formatSkillRoll('Инициатива', initiativeValue, effectiveRollMode()),
+                )
               }
               onToggleInspiration={() =>
                 setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
@@ -3106,9 +3178,18 @@ export function MinimalSheetEditor({
             <PlayDeskSkillStrip
               ariaLabel="Навыки исследования"
               skills={modeSkillChips('explore')}
-              onSkillClick={(skill) =>
-                onToast(formatSkillRoll(skill.label, skill.mod))
-              }
+              onSkillClick={(skill) => {
+                const mode = effectiveRollMode(skill.key)
+                const note =
+                  skill.key === 'stealth' && stealthArmorDisadvantage
+                    ? mode === 'normal' && deskRollMode === 'advantage'
+                      ? ' · доспех отменил преим.'
+                      : mode === 'disadvantage' && deskRollMode !== 'disadvantage'
+                        ? ' · помеха от доспеха'
+                        : ''
+                    : ''
+                onToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
+              }}
             />
           ) : null}
 
@@ -3117,7 +3198,9 @@ export function MinimalSheetEditor({
               ariaLabel="Навыки общения"
               skills={modeSkillChips('social')}
               onSkillClick={(skill) =>
-                onToast(formatSkillRoll(skill.label, skill.mod))
+                onToast(
+                  formatSkillRoll(skill.label, skill.mod, effectiveRollMode(skill.key)),
+                )
               }
             />
           ) : null}
@@ -3736,6 +3819,7 @@ export function MinimalSheetEditor({
           gearBonusesByItem={gearEffects.byItem}
           resources={draft.play.resources}
           inventoryItems={draft.inventory.items}
+          rollMode={effectiveRollMode()}
           onOpenFull={() => setForceFullPanel('attacks')}
           onToast={onToast}
           onSpendResource={(id) =>
@@ -3950,6 +4034,7 @@ export function MinimalSheetEditor({
           abilities={draft.abilities}
           proficiencyBonus={proficiencyBonus}
           pinned={deskSplit && splitSecondary === 'spells'}
+          rollMode={effectiveRollMode()}
           onOpenFull={() => setForceFullPanel('spells')}
           onToast={onToast}
           onClearSplit={

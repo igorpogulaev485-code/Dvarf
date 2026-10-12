@@ -116,3 +116,30 @@ export const PLAY_DESK_PANELS: Array<{ id: PlayDeskPanelId; label: string }> = [
   { id: 'identity', label: 'Основное' },
   { id: 'ownership', label: 'Владения' },
 ]
+
+/** Primary panels for the mode picker (mockup scene list). */
+export const MODE_SCENE_PANELS: Record<PlayDeskMode, PlayDeskPanelId[]> = {
+  combat: ['attacks', 'features', 'spells', 'inventory', 'companions', 'texts'],
+  explore: ['inventory', 'features', 'attacks', 'spells', 'companions', 'texts'],
+  social: ['texts', 'features', 'companions', 'spells', 'inventory', 'attacks'],
+  companions: ['companions', 'features', 'attacks', 'spells', 'inventory', 'texts'],
+}
+
+/** Secondary / edit panels tucked under «Ещё». */
+export const MODE_EXTRA_PANELS: PlayDeskPanelId[] = [
+  'play',
+  'identity',
+  'attunement',
+  'ownership',
+]
+
+export const MODE_HINT: Record<PlayDeskMode, string> = {
+  combat: 'Бой: атаки, способности, заклинания',
+  explore: 'Исследование: снаряжение и проверки',
+  social: 'Общение: тексты и социальные навыки',
+  companions: 'Напарники: свита и призывы',
+}
+
+export function panelLabel(id: PlayDeskPanelId): string {
+  return PLAY_DESK_PANELS.find((panel) => panel.id === id)?.label ?? id
+}

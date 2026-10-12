@@ -3790,6 +3790,35 @@ button.play-desk-vital {
   color: #fff;
 }
 
+.play-desk__roll-mode {
+  display: inline-flex;
+  border: 1px solid var(--desk-line);
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.play-desk__roll-mode-btn {
+  border: 0;
+  border-right: 1px solid var(--desk-line);
+  background: transparent;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--desk-muted);
+}
+
+.play-desk__roll-mode-btn:last-child {
+  border-right: 0;
+}
+
+.play-desk__roll-mode-btn.is-on {
+  background: var(--desk-accent);
+  color: #fff;
+}
+
 .play-desk__panel-pick {
   margin-left: auto;
   font: inherit;
@@ -3798,6 +3827,12 @@ button.play-desk-vital {
   background: #fff;
   border-radius: 8px;
   padding: 6px 8px;
+}
+
+.play-desk__mode-hint {
+  flex: 1 1 100%;
+  color: var(--desk-muted);
+  font-size: 0.75rem;
 }
 
 .play-desk__split-btn {

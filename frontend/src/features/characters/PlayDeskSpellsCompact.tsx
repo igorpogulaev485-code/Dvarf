@@ -3,7 +3,7 @@ import {
   formatModifier,
   type AbilityKey,
 } from './sheetTypes'
-import { formatCheckRoll, rollCheck } from './deskRolls'
+import { formatCheckRoll, rollCheck, type DeskRollMode } from './deskRolls'
 import {
   isReadyInCombat,
   type SheetSpell,
@@ -20,6 +20,7 @@ type PlayDeskSpellsCompactProps = {
   onClearSplit?: () => void
   onSpendSlot?: (level: number) => void
   onToast?: (message: string) => void
+  rollMode?: DeskRollMode
 }
 
 export function PlayDeskSpellsCompact({
@@ -31,6 +32,7 @@ export function PlayDeskSpellsCompact({
   onClearSplit,
   onSpendSlot,
   onToast,
+  rollMode = 'normal',
 }: PlayDeskSpellsCompactProps) {
   const ready = spells.known.filter(isReadyInCombat)
   const abilityKey = spells.casting_ability
@@ -102,6 +104,7 @@ export function PlayDeskSpellsCompact({
               spell={spell}
               spellAttack={attack}
               spellDc={dc}
+              rollMode={rollMode}
               onToast={onToast}
             />
           ))
@@ -118,11 +121,13 @@ function SpellRow({
   spell,
   spellAttack,
   spellDc,
+  rollMode,
   onToast,
 }: {
   spell: SheetSpell
   spellAttack: number | null
   spellDc: number | null
+  rollMode: DeskRollMode
   onToast?: (message: string) => void
 }) {
   const levelLabel = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
@@ -140,7 +145,7 @@ function SpellRow({
           tags.length ? ` · ${tags.join(', ')}` : ''
         }`
         if (spellAttack != null) {
-          const roll = rollCheck(spellAttack)
+          const roll = rollCheck(spellAttack, rollMode)
           onToast?.(
             `${formatCheckRoll(spell.name, roll)}${
               spellDc != null ? ` · Сл ${spellDc}` : ''
