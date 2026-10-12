@@ -4706,11 +4706,16 @@ button.play-desk-vital:hover {
 }
 
 .play-desk-header__right {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, max-content);
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: end;
   align-items: center;
-  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.play-desk-header__right-tools {
+  display: contents;
 }
 
 .play-desk-header__coin,
@@ -4750,6 +4755,11 @@ button.play-desk-vital:hover {
   flex-wrap: nowrap;
   align-items: stretch;
   gap: 8px;
+  justify-self: end;
+}
+
+.play-desk-header__hp-wrap.is-dying {
+  grid-column: 1 / -1;
 }
 
 .play-desk-header__hp {
@@ -4782,10 +4792,6 @@ button.play-desk-vital:hover {
 }
 
 /* Compact death saves: to the RIGHT of HP, two stacked tracks + skull. */
-.play-desk-header__hp-wrap.is-dying {
-  gap: 8px;
-}
-
 .play-desk-header__hp.is-critical {
   border-color: color-mix(in srgb, var(--danger, #9f2d2d) 55%, #efc2c2);
   background: color-mix(in srgb, #fff4f4 88%, white);
@@ -5299,7 +5305,8 @@ button.play-desk-vital:hover {
     grid-template-columns: 1fr;
   }
   .play-desk-header__right {
-    justify-content: flex-start;
+    justify-content: start;
+    grid-template-columns: auto auto minmax(0, 1fr);
   }
   .play-desk-compact__hit,
   .play-desk-compact__row.is-action {

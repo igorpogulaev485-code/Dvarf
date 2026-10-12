@@ -376,19 +376,21 @@ export function PlayDeskHeader({
       </div>
 
       <div className="play-desk-header__right">
-        <button
-          type="button"
-          className="play-desk-header__coin"
-          title={`Всего ≈ ${formatGpTotal(coinsToGp(coins))} зм (${formatCoinBreakdown(coins)}). Нажми — взять / отдать`}
-          onClick={() => setCoinPadOpen(true)}
-        >
-          <IconCoin className="play-desk-header__btn-icon" />
-          <span>{formatGpTotal(coinsToGp(coins))} зм</span>
-        </button>
-        <button type="button" className="play-desk-header__rest" onClick={onOpenRest}>
-          <IconRest className="play-desk-header__btn-icon" />
-          <span>Отдых</span>
-        </button>
+        <div className="play-desk-header__right-tools">
+          <button
+            type="button"
+            className="play-desk-header__coin"
+            title={`Всего ≈ ${formatGpTotal(coinsToGp(coins))} зм (${formatCoinBreakdown(coins)}). Нажми — взять / отдать`}
+            onClick={() => setCoinPadOpen(true)}
+          >
+            <IconCoin className="play-desk-header__btn-icon" />
+            <span>{formatGpTotal(coinsToGp(coins))} зм</span>
+          </button>
+          <button type="button" className="play-desk-header__rest" onClick={onOpenRest}>
+            <IconRest className="play-desk-header__btn-icon" />
+            <span>Отдых</span>
+          </button>
+        </div>
         <div className={`play-desk-header__hp-wrap${showDeath ? ' is-dying' : ''}`}>
           <button
             type="button"
