@@ -14,6 +14,7 @@ type CombatStickyHeaderProps = {
   name: string
   raceName: string
   className: string
+  alignment?: string
   level: number
   abilities: Record<AbilityKey, number>
   classes: ClassLevelEntry[]
@@ -54,6 +55,7 @@ export function CombatStickyHeader({
   name,
   raceName,
   className,
+  alignment = '',
   level,
   abilities,
   classes,
@@ -80,7 +82,9 @@ export function CombatStickyHeader({
   onChange,
 }: CombatStickyHeaderProps) {
   const autoInitiative = abilityModifier(abilities.dex) + initiativeBonus
-  const subtitle = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
+  const whoLine = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
+  const alignmentLabel = alignment.trim()
+  const subtitle = [whoLine, alignmentLabel || null].filter(Boolean).join(' · ')
   const hasConditions = conditionNames.length > 0
   const conditionsLabel = hasConditions ? conditionNames.join(', ') : ''
   const acTitle = acOverride == null ? acHint : 'задано вручную'

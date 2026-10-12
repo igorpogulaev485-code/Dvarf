@@ -3210,6 +3210,7 @@ export function MinimalSheetEditor({
             name={draft.name}
             raceName={draft.raceName}
             className={classSummary || primaryClass?.name || ''}
+            alignment={draft.identity.alignment}
             level={characterLevel}
             experience={draft.identity.experience}
             classes={draft.classes}
@@ -3239,6 +3240,11 @@ export function MinimalSheetEditor({
             coins={draft.inventory.coins}
             xpHistory={draft.sheetUi.xpHistory}
             onOpenRest={() => setRestOpen(true)}
+            onOpenIdentity={() => {
+              patchSheetUi({ deskMode: 'more', deskSplit: false })
+              setActivePanel('identity')
+              setForceFullPanel(null)
+            }}
             onExperienceChange={(experience, meta) => {
               setDraft((prev) => {
                 const prevXp = prev.identity.experience
@@ -3301,6 +3307,7 @@ export function MinimalSheetEditor({
             name={draft.name}
             raceName={draft.raceName}
             className={classSummary || primaryClass?.name || ''}
+            alignment={draft.identity.alignment}
             level={characterLevel}
             abilities={draft.abilities}
             classes={draft.classes}

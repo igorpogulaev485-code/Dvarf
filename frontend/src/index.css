@@ -3662,6 +3662,33 @@ input {
   font-size: 0.9rem;
 }
 
+button.play-desk-header__sub--btn {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--desk-muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+button.play-desk-header__sub--btn:hover {
+  color: var(--desk-ink);
+}
+
+.play-desk-header__alignment {
+  color: var(--desk-ink);
+}
+
+.play-desk-header__alignment.is-empty {
+  color: var(--desk-muted);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
 .play-desk-header__xp {
   margin-top: 6px;
   display: grid;

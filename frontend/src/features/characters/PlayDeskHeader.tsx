@@ -18,6 +18,7 @@ type PlayDeskHeaderProps = {
   name: string
   raceName: string
   className: string
+  alignment?: string
   level: number
   experience: number
   classes: ClassLevelEntry[]
@@ -41,6 +42,7 @@ type PlayDeskHeaderProps = {
   coins: CoinPurse
   xpHistory: XpHistoryEntry[]
   onOpenRest: () => void
+  onOpenIdentity?: () => void
   onExperienceChange: (experience: number, meta?: { reason: string }) => void
   onToggleInspiration: () => void
   onExhaustionChange: (exhaustion: number) => void
@@ -60,6 +62,7 @@ export function PlayDeskHeader({
   name,
   raceName,
   className,
+  alignment = '',
   level,
   experience,
   classes,
@@ -81,6 +84,7 @@ export function PlayDeskHeader({
   coins,
   xpHistory,
   onOpenRest,
+  onOpenIdentity,
   onExperienceChange,
   onToggleInspiration,
   onExhaustionChange,
@@ -91,7 +95,9 @@ export function PlayDeskHeader({
   onToast,
   onDamaged,
 }: PlayDeskHeaderProps) {
-  const subtitle = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
+  const whoLine = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
+  const alignmentLabel = alignment.trim()
+  const subtitleBits = [whoLine, alignmentLabel || null, '2014'].filter(Boolean)
   const xp = xpProgress(experience, level)
   const [hpPulse, setHpPulse] = useState(false)
   const [hpPadOpen, setHpPadOpen] = useState(false)
@@ -173,7 +179,34 @@ export function PlayDeskHeader({
     <section className="play-desk-header" aria-label="Шапка стола">
       <div className="play-desk-header__who">
         <h1 className="play-desk-header__name">{name || 'Без имени'}</h1>
-        <p className="play-desk-header__sub">{subtitle} · 2014</p>
+        {onOpenIdentity ? (
+          <button
+            type="button"
+            className="play-desk-header__sub play-desk-header__sub--btn"
+            title={
+              alignmentLabel
+                ? 'Открыть основное (мировоззрение, предыстория…)'
+                : 'Мировоззрение не задано — нажми, чтобы указать'
+            }
+            onClick={onOpenIdentity}
+          >
+            {whoLine}
+            {alignmentLabel ? (
+              <>
+                {' · '}
+                <span className="play-desk-header__alignment">{alignmentLabel}</span>
+              </>
+            ) : (
+              <>
+                {' · '}
+                <span className="play-desk-header__alignment is-empty">мировоззрение</span>
+              </>
+            )}
+            {' · 2014'}
+          </button>
+        ) : (
+          <p className="play-desk-header__sub">{subtitleBits.join(' · ')}</p>
+        )}
         <button
           type="button"
           className="play-desk-header__xp"
