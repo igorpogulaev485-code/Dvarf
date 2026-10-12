@@ -17,6 +17,15 @@ import { HpPadDialog } from './HpPadDialog'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
 import type { XpHistoryEntry } from './playDeskUi'
 import type { PlayState } from './play'
+import {
+  IconBadge,
+  IconBolt,
+  IconBoot,
+  IconCoin,
+  IconRest,
+  IconShield,
+  IconSpark,
+} from './deskIcons'
 import { formatModifier } from './sheetTypes'
 
 type PlayDeskHeaderProps = {
@@ -230,6 +239,7 @@ export function PlayDeskHeader({
       <div className="play-desk-header__mid">
         <div className="play-desk-header__vitals">
           <div className="play-desk-vital play-desk-vital--shield" title={acHint}>
+            <IconShield className="play-desk-vital__icon" />
             <b>{autoAc}</b>
             <span>КД</span>
           </div>
@@ -237,6 +247,7 @@ export function PlayDeskHeader({
             className={`play-desk-vital${altSpeedHint ? ' play-desk-vital--speed' : ''}`}
             title={speedTitle}
           >
+            <IconBoot className="play-desk-vital__icon" />
             <b>{speed ?? '—'}</b>
             <span>Скор.</span>
             {altSpeedHint ? (
@@ -250,16 +261,19 @@ export function PlayDeskHeader({
               title="Бросок инициативы (значение считается автоматически)"
               onClick={onInitiativeRoll}
             >
+              <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
               <span>Иниц.</span>
             </button>
           ) : (
             <div className="play-desk-vital" title="Инициатива (авто)">
+              <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
               <span>Иниц.</span>
             </div>
           )}
           <div className="play-desk-vital" title="Бонус мастерства (от уровня)">
+            <IconBadge className="play-desk-vital__icon" />
             <b>{formatModifier(proficiencyBonus)}</b>
             <span>БМ</span>
           </div>
@@ -272,6 +286,7 @@ export function PlayDeskHeader({
             aria-pressed={inspiration}
             title="Вдохновение — нажми, чтобы переключить"
           >
+            <IconSpark className="play-desk-header__chip-icon" />
             <span>Вдохн.</span>
             <b>{inspiration ? 'да' : '—'}</b>
           </button>
@@ -306,10 +321,12 @@ export function PlayDeskHeader({
           title={`Всего ≈ ${formatGpTotal(coinsToGp(coins))} зм (${formatCoinBreakdown(coins)}). Нажми — взять / отдать`}
           onClick={() => setCoinPadOpen(true)}
         >
-          {formatGpTotal(coinsToGp(coins))} зм
+          <IconCoin className="play-desk-header__btn-icon" />
+          <span>{formatGpTotal(coinsToGp(coins))} зм</span>
         </button>
         <button type="button" className="play-desk-header__rest" onClick={onOpenRest}>
-          ✦ Отдых
+          <IconRest className="play-desk-header__btn-icon" />
+          <span>Отдых</span>
         </button>
         <div className="play-desk-header__hp-wrap">
           <button

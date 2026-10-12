@@ -91,7 +91,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 |---------|-------|
 | Foundations | `dvarf-ui-kit-spec.jpg` |
 | 6 тем + rail A | `dvarf-ui-kit-themes-6.jpg`, `dvarf-ui-kit-cabinet-theme.jpg` |
-| Desk chrome | `dvarf-ui-kit-desk-chrome.jpg` |
+| Desk chrome | `dvarf-ui-kit-desk-chrome.jpg`, `dvarf-ui-kit-desk-icons.jpg` |
 | Pads / dialogs | `dvarf-ui-kit-dialogs-pads.jpg` |
 | Rail | `dvarf-ui-kit-ability-rail-v2.jpg`, `dvarf-ui-kit-ability-colors.jpg` |
 | Spells | `dvarf-ui-kit-spells.jpg` |
@@ -130,10 +130,10 @@ Live-эталоны в продукте (уже близки к киту): Inven
 2. Если **нет** — сначала рисуем/добавляем иконки, кладём в кит (`boards/` + запись здесь), согласование.
 3. Только потом верстка/логика chrome блока.
 
-Сейчас есть: иконки под **инвентарь** (и частично texts).  
-Ещё нет: отдельный набор под **магию / каст / слоты** (и др. блоки — проверять при старте слайса).
+Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола** — line-иконки виталов/монет/отдыха (`deskIcons.tsx`, доска `desk-chrome`).  
+Ещё нет: отдельный набор под **магия / каст / слоты** (и hot-bar — проверять при старте слайса).
 
-Rail характеристик (вариант A) иконок не требует — serif-аббревиатуры, chips, chevron, drag.
+Rail характеристик (вариант A) иконок не требует — полные названия, chips, drag.
 
 ### 6b. Логика прода священна
 
