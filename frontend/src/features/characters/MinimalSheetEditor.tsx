@@ -3004,7 +3004,7 @@ export function MinimalSheetEditor({
     )
   }
 
-  function modeSkillChips(mode: 'explore' | 'social') {
+  function modeSkillChips(mode: 'combat' | 'explore' | 'social') {
     return MODE_SKILL_KEYS[mode].map((key) => {
       const def = SKILL_DEFS.find((skill) => skill.key === key)
       const state = draft.skills[key]
@@ -3026,6 +3026,19 @@ export function MinimalSheetEditor({
   function effectiveRollMode(skillKey?: string): DeskRollMode {
     const forced = skillKey === 'stealth' && stealthArmorDisadvantage
     return resolveRollMode(deskRollMode, forced)
+  }
+
+  function rollModeSkill(skill: { key: string; label: string; mod: number }) {
+    const mode = effectiveRollMode(skill.key)
+    const note =
+      skill.key === 'stealth' && stealthArmorDisadvantage
+        ? mode === 'normal' && deskRollMode === 'advantage'
+          ? ' · доспех отменил преим.'
+          : mode === 'disadvantage' && deskRollMode !== 'disadvantage'
+            ? ' · помеха от доспеха'
+            : ''
+        : ''
+    onToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
   }
 
   const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
@@ -3506,22 +3519,19 @@ export function MinimalSheetEditor({
             />
           ) : null}
 
+          {isPlayDesk && draft.sheetUi.deskMode === 'combat' ? (
+            <PlayDeskSkillStrip
+              ariaLabel="Навыки боя"
+              skills={modeSkillChips('combat')}
+              onSkillClick={rollModeSkill}
+            />
+          ) : null}
+
           {isPlayDesk && draft.sheetUi.deskMode === 'explore' ? (
             <PlayDeskSkillStrip
               ariaLabel="Навыки исследования"
               skills={modeSkillChips('explore')}
-              onSkillClick={(skill) => {
-                const mode = effectiveRollMode(skill.key)
-                const note =
-                  skill.key === 'stealth' && stealthArmorDisadvantage
-                    ? mode === 'normal' && deskRollMode === 'advantage'
-                      ? ' · доспех отменил преим.'
-                      : mode === 'disadvantage' && deskRollMode !== 'disadvantage'
-                        ? ' · помеха от доспеха'
-                        : ''
-                    : ''
-                onToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
-              }}
+              onSkillClick={rollModeSkill}
             />
           ) : null}
 
@@ -3529,11 +3539,7 @@ export function MinimalSheetEditor({
             <PlayDeskSkillStrip
               ariaLabel="Навыки общения"
               skills={modeSkillChips('social')}
-              onSkillClick={(skill) =>
-                onToast(
-                  formatSkillRoll(skill.label, skill.mod, effectiveRollMode(skill.key)),
-                )
-              }
+              onSkillClick={rollModeSkill}
             />
           ) : null}
 
