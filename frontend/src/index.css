@@ -794,6 +794,29 @@ input {
   color: #9a3412;
 }
 
+.inventory-icon {
+  width: 1.05em;
+  height: 1.05em;
+  flex: 0 0 auto;
+  display: block;
+}
+
+.inventory-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inventory-toolbar-btn--ghost {
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.inventory-toolbar-btn--ghost:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
 .inventory-coins {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -808,37 +831,64 @@ input {
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-rows: auto auto;
-  column-gap: 6px;
-  row-gap: 4px;
+  column-gap: 7px;
+  row-gap: 5px;
   align-items: center;
   min-width: 0;
 }
 
-.inventory-coin__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
+.inventory-coin__icon {
+  width: 22px;
+  height: 22px;
   grid-row: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
-.inventory-coin__dot--copper {
-  background: #b87333;
+.inventory-coin__icon svg {
+  width: 22px;
+  height: 22px;
 }
 
-.inventory-coin__dot--silver {
-  background: #a8a29e;
+.inventory-coin__icon svg circle:first-child {
+  stroke: rgba(0, 0, 0, 0.18);
+  stroke-width: 1;
 }
 
-.inventory-coin__dot--electrum {
-  background: #60a5fa;
+.inventory-coin__icon svg circle:nth-child(2) {
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.2;
 }
 
-.inventory-coin__dot--gold {
-  background: #d4a017;
+.inventory-coin__icon svg path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 1.4;
+  stroke-linecap: round;
 }
 
-.inventory-coin__dot--platinum {
-  background: #a78bfa;
+.inventory-coin__icon--copper {
+  background: radial-gradient(circle at 35% 30%, #e0a46a, #b87333 62%, #8a4f1f);
+  color: #fff7ed;
+}
+
+.inventory-coin__icon--silver {
+  background: radial-gradient(circle at 35% 30%, #f5f5f4, #a8a29e 62%, #78716c);
+}
+
+.inventory-coin__icon--electrum {
+  background: radial-gradient(circle at 35% 30%, #bfdbfe, #60a5fa 62%, #2563eb);
+}
+
+.inventory-coin__icon--gold {
+  background: radial-gradient(circle at 35% 30%, #f6e27a, #d4a017 62%, #a16207);
+}
+
+.inventory-coin__icon--platinum {
+  background: radial-gradient(circle at 35% 30%, #ddd6fe, #a78bfa 62%, #6d28d9);
 }
 
 .inventory-coin__label {
@@ -855,6 +905,60 @@ input {
   min-width: 0;
   text-align: center;
   padding: 6px 4px;
+}
+
+.inventory-equip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: #fffdf8;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.inventory-equip.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #f8fffb;
+  font-weight: 600;
+}
+
+.inventory-equip.is-blocked {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.inventory-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  background: #fffdf8;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.inventory-action:hover {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+}
+
+.inventory-action--danger {
+  color: color-mix(in srgb, var(--danger) 80%, var(--muted));
+}
+
+.inventory-action--danger:hover {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 35%, var(--line));
 }
 
 @media (max-width: 639px) {

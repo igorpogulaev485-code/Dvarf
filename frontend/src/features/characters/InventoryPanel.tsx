@@ -92,6 +92,96 @@ const COIN_FIELDS: Array<{
   { key: 'pp', label: 'ПМ', tone: 'platinum' },
 ]
 
+function IconBook() {
+  return (
+    <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5V5.5Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="M4 19.5h12" fill="none" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function IconPencil() {
+  return (
+    <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="m4 20 4.2-1.1L19 8.1a1.7 1.7 0 0 0 0-2.4l-.7-.7a1.7 1.7 0 0 0-2.4 0L5.1 15.8 4 20Z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="m13.5 6.5 4 4" fill="none" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function IconCheck() {
+  return (
+    <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="m5 12.5 4.2 4.2L19 7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function IconChevronUp() {
+  return (
+    <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="m6 14 6-6 6 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function IconTrash() {
+  return (
+    <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M5 7h14M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m-7 0 1 12h6l1-12"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function CoinIcon({ tone }: { tone: (typeof COIN_FIELDS)[number]['tone'] }) {
+  return (
+    <span className={`inventory-coin__icon inventory-coin__icon--${tone}`} aria-hidden>
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" fill="none" />
+        <circle cx="12" cy="12" r="7.2" fill="none" />
+        <path
+          d="M12 7.2v9.6M9.2 9.4c.7-1 2-1.6 2.8-1.6s2.1.6 2.1 1.6-1 1.5-2.1 1.9-2.8.9-2.8 2.2 1.2 2 2.8 2 2.3-.7 2.8-1.5"
+          fill="none"
+        />
+      </svg>
+    </span>
+  )
+}
+
 type InventoryFilter = 'all' | 'equipped' | 'weapon' | 'armor' | 'pack' | 'other'
 
 const FILTERS: Array<{ id: InventoryFilter; label: string }> = [
@@ -539,10 +629,11 @@ export function InventoryPanel({
     return (
       <button
         type="button"
-        className={`sheet-chip${item.equipped ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
+        className={`inventory-equip${item.equipped ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
         title={blocked ? armorProficiencyHint(item.armor_kind) : undefined}
         onClick={() => toggleEquip(item)}
       >
+        {item.equipped ? <IconCheck /> : null}
         {item.equipped
           ? equipLabel(item).on
           : blocked
@@ -884,17 +975,28 @@ export function InventoryPanel({
             </Button>
           ) : null}
           {expandedPack ? (
-            <Button variant="secondary" onClick={() => onCollapsePack(item)}>
+            <button
+              type="button"
+              className="inventory-action"
+              onClick={() => onCollapsePack(item)}
+            >
+              <IconChevronUp />
               Свернуть набор
-            </Button>
+            </button>
           ) : null}
           {!nested ? (
-            <Button variant="secondary" onClick={() => toggleDetails(item.id)}>
+            <button
+              type="button"
+              className="inventory-action"
+              onClick={() => toggleDetails(item.id)}
+            >
+              <IconChevronUp />
               Свернуть
-            </Button>
+            </button>
           ) : null}
-          <Button
-            variant="ghost"
+          <button
+            type="button"
+            className="inventory-action inventory-action--danger"
             onClick={() =>
               onChange({
                 ...inventory,
@@ -902,8 +1004,9 @@ export function InventoryPanel({
               })
             }
           >
+            <IconTrash />
             Удалить
-          </Button>
+          </button>
         </div>
       </div>
     )
@@ -915,11 +1018,17 @@ export function InventoryPanel({
         <Text tone="muted">Управляйте вещами, весом и монетами персонажа.</Text>
 
         <div className="inventory-panel__toolbar">
-          <Button variant="primary" onClick={() => setPickerOpen(true)}>
+          <Button
+            variant="secondary"
+            className="inventory-toolbar-btn"
+            onClick={() => setPickerOpen(true)}
+          >
+            <IconBook />
             Из справочника
           </Button>
           <Button
-            variant="secondary"
+            variant="ghost"
+            className="inventory-toolbar-btn inventory-toolbar-btn--ghost"
             onClick={() => {
               const row = createInventoryItem()
               onChange({
@@ -930,6 +1039,7 @@ export function InventoryPanel({
               setFilter('all')
             }}
           >
+            <IconPencil />
             Своя строка
           </Button>
         </div>
@@ -947,7 +1057,7 @@ export function InventoryPanel({
         <div className="inventory-coins" aria-label="Монеты">
           {COIN_FIELDS.map((field) => (
             <label key={field.key} className="inventory-coin">
-              <span className={`inventory-coin__dot inventory-coin__dot--${field.tone}`} />
+              <CoinIcon tone={field.tone} />
               <span className="inventory-coin__label">{field.label}</span>
               <NumberInput
                 min={0}
