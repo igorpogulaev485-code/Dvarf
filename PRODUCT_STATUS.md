@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/play-desk-polish-layer2-a73e`  
+**Prod tip (ветка линии прода):** `cursor/delete-character-list-a73e`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -576,7 +576,16 @@
 | Гримуар / квота | Hard-gates класс×круг×школа; «Своё (homebrew)»; чипы изв./подг. N/M | Нельзя взять чужой список / круг выше слотов |
 | Очки чародейства | Spend → метамагии из picks + гибкое колдовство | Понятный выбор траты |
 
-На проде: **да** · ветка `cursor/play-desk-polish-layer2-a73e` · PR #114 · это **prod tip** · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-a6T4dyk9.js` («Короткий отдых» / «Очки чародейства» / «Гибкое колдовство» / «Своё (homebrew)» / «Бонус мастерства»); CSS `index-CHvnpnqz.css` (`play-desk__passives--compact`); Docker Hub на VPS недоступен — заливка dist→web (как ранее при Hub outage)
+На проде: **да** · ветка `cursor/play-desk-polish-layer2-a73e` · PR #114 · tip дальше → `cursor/delete-character-list-a73e` · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-a6T4dyk9.js` («Короткий отдых» / «Очки чародейства» / «Гибкое колдовство» / «Своё (homebrew)» / «Бонус мастерства»); CSS `index-CHvnpnqz.css` (`play-desk__passives--compact`); Docker Hub на VPS недоступен — заливка dist→web (как ранее при Hub outage)
+
+### 2026-10-12 — Список персонажей: удаление с подтверждением
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Удалить персонажа | Кнопка «Удалить» на карточке → Dialog с именем → danger «Удалить» / «Отмена» | Нельзя снести персонажа одним кликом |
+| API | `DELETE /characters/{id}` (soft-delete на бэке, уже был) | Черновики и готовые персонажи уходят из списка |
+
+На проде: **да** · ветка `cursor/delete-character-list-a73e` · PR #115 · это **prod tip** · проверено 2026-10-12: `/health` ok; бандл `index-DeQLeRiO.js` («Удалить персонажа?»); dist→web
 
 ### 2026-10-12 — Play desk: догон макета (hot bar + split + визуал)
 
@@ -1166,3 +1175,4 @@
 | 2026-10-12 | `cursor/play-desk-layout-e788` · PR #105 | Догон макета play desk целиком на Timeweb; `/health` ok; бандл `CharacterDetailPage-Di9rgCE8.js` (`преим`/`play-desk__roll-mode`/`d20:`) |
 | 2026-10-12 | `cursor/create-bugs-layer1-a73e` · PR #113 | Create layer-1 + spell access + autosave листа; tip → эта ветка; `/health` ok; бандл `CharacterDetailPage-CbXNENAC.js` / CSS `index-Bn_HA_Ht.css` |
 | 2026-10-12 | `cursor/play-desk-polish-layer2-a73e` · PR #114 | Play-desk polish layer-2; tip → эта ветка; Hub timeout → dist→web; `/health` ok; бандл `CharacterDetailPage-a6T4dyk9.js` / CSS `index-CHvnpnqz.css` |
+| 2026-10-12 | `cursor/delete-character-list-a73e` · PR #115 | Удаление персонажа из списка с confirm; tip → эта ветка; dist→web; `/health` ok; бандл `index-DeQLeRiO.js` |

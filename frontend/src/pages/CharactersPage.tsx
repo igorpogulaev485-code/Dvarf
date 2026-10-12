@@ -129,6 +129,10 @@ export function CharactersPage() {
           <CharacterList
             characters={characters}
             emptyAction={<CreateCharacterButton pending={creating} onCreate={handleCreate} />}
+            onDeleted={(id) => {
+              setCharacters((prev) => prev.filter((item) => item.id !== id))
+              setToast('Персонаж удалён')
+            }}
           />
         )}
       </Stack>
