@@ -105,7 +105,7 @@ export function AbilitySkillsColumn({
         </button>
       </div>
       <Text tone="muted" className="abil-column__hint">
-        ▾ свернуть · ⋮⋮ порядок · клик по навыку: владение / экспертиза
+        название ▾ · ⋮⋮ порядок · клик по навыку: владение / экспертиза
       </Text>
       <div className="abil-column__list" id="abil-column-list">
         {order.map((key) => {
@@ -156,7 +156,18 @@ export function AbilitySkillsColumn({
                   ⋮⋮
                 </span>
                 <div className="abil-block__who">
-                  <span className="abil-block__label">{ABILITY_LABELS[key]}</span>
+                  <button
+                    type="button"
+                    className="abil-block__label"
+                    aria-expanded={!isCollapsed}
+                    title={isCollapsed ? 'Развернуть навыки' : 'Свернуть навыки'}
+                    onClick={() => setCollapsed(key, !isCollapsed)}
+                  >
+                    <span className="abil-block__label-text">{ABILITY_LABELS[key]}</span>
+                    <span className="abil-block__label-chevron" aria-hidden>
+                      {isCollapsed ? '▸' : '▾'}
+                    </span>
+                  </button>
                   <NumberInput
                     className="abil-block__score"
                     min={1}
@@ -188,15 +199,6 @@ export function AbilitySkillsColumn({
                     Сп {formatModifier(saveMod)}
                   </button>
                 </div>
-                <button
-                  type="button"
-                  className="abil-block__toggle"
-                  aria-expanded={!isCollapsed}
-                  title={isCollapsed ? 'Развернуть навыки' : 'Свернуть навыки'}
-                  onClick={() => setCollapsed(key, !isCollapsed)}
-                >
-                  {isCollapsed ? '▸' : '▾'}
-                </button>
               </div>
               {!isCollapsed ? (
                 <div className="abil-block__skills">

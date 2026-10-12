@@ -58,6 +58,7 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 - навык = строка-кнопка: `—` → `Влад.` → `Эксп.` (не switch);
 - Пр — read-only chip; Сп — toggle владения;
 - база → эффективный (`16 → 18`);
+- свернуть навыки — клик по **названию** характеристики (отдельной кнопки ▾ в шапке нет);
 - пассивы — glance-карточки; CTA «Владения» → drawer.
 
 Доски: [`ability-rail-v2`](boards/dvarf-ui-kit-ability-rail-v2.jpg) · [`ability-colors` / вариант A](boards/dvarf-ui-kit-ability-colors.jpg) · [`themes-6`](boards/dvarf-ui-kit-themes-6.jpg)
