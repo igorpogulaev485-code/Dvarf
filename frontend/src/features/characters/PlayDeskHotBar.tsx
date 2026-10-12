@@ -1,10 +1,13 @@
+import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import type { ConcentrationState } from './play'
 import type { SheetResource } from '../../shared/dnd/rest'
 
 type PlayDeskHotBarProps = {
   conditionNames: string[]
+  exhaustion: number
   concentration: ConcentrationState | null
   resources: SheetResource[]
+  onOpenConditions?: () => void
   onClearConcentration?: () => void
   onResourceUsedChange: (id: string, used: number) => void
 }
@@ -13,20 +16,36 @@ type PlayDeskHotBarProps = {
  * Initiative / inspiration / exhaustion live in PlayDeskHeader. */
 export function PlayDeskHotBar({
   conditionNames,
+  exhaustion,
   concentration,
   resources,
+  onOpenConditions,
   onClearConcentration,
   onResourceUsedChange,
 }: PlayDeskHotBarProps) {
-  const conditionsLabel =
-    conditionNames.length > 0 ? conditionNames.join(', ') : 'нет'
+  const exhaustionStage =
+    exhaustion > 0 ? conditionLevelLabel('exhaustion', exhaustion) : null
+  const parts = [
+    ...conditionNames,
+    exhaustion > 0
+      ? exhaustionStage
+        ? `Истощение ${exhaustion} (${exhaustionStage})`
+        : `Истощение ${exhaustion}`
+      : null,
+  ].filter(Boolean) as string[]
+  const conditionsLabel = parts.length > 0 ? parts.join(', ') : 'нет'
   const hotResources = resources.filter((row) => row.max > 0 && row.name.trim())
 
   return (
     <div className="play-desk__hot" aria-label="Боевая полоса">
-      <div className="play-desk__hot-item play-desk__hot-item--wide" title={conditionsLabel}>
+      <button
+        type="button"
+        className="play-desk__hot-item play-desk__hot-item--wide play-desk__hot-item--btn"
+        title="Нажми, чтобы изменить состояния"
+        onClick={onOpenConditions}
+      >
         Состояния: {conditionsLabel}
-      </div>
+      </button>
       <div className="play-desk__hot-item play-desk__hot-item--wide">
         {concentration ? (
           <>

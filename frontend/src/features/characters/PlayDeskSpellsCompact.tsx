@@ -32,8 +32,10 @@ type PlayDeskSpellsCompactProps = {
   onClearSplit?: () => void
   onSpendSlot?: (level: number) => void
   onToast?: (message: string) => void
-  /** Open full cast flow for this spell (spend slot / set concentration). */
+  /** Open full cast flow for leveled non-concentration (or explicit cast). */
   onCastSpell?: (spell: SheetSpell) => void
+  /** Pin concentration in hot without opening full panel. */
+  onConcentrateSpell?: (spell: SheetSpell) => void
   rollMode?: DeskRollMode
 }
 
@@ -49,6 +51,7 @@ export function PlayDeskSpellsCompact({
   onSpendSlot,
   onToast,
   onCastSpell,
+  onConcentrateSpell,
   rollMode = 'normal',
 }: PlayDeskSpellsCompactProps) {
   const ready = spells.known.filter(isReadyInCombat)
@@ -157,7 +160,19 @@ export function PlayDeskSpellsCompact({
                 rollMode={rollMode}
                 activeConcentration={isActiveConc}
                 onToast={onToast}
-                onCast={onCastSpell ? () => onCastSpell(spell) : undefined}
+                onActivate={() => {
+                  if (spell.concentration && onConcentrateSpell) {
+                    onConcentrateSpell(spell)
+                    return
+                  }
+                  if (onCastSpell) {
+                    onCastSpell(spell)
+                    return
+                  }
+                }}
+                hasActivate={Boolean(
+                  (spell.concentration && onConcentrateSpell) || onCastSpell,
+                )}
               />
             )
           })
@@ -177,7 +192,8 @@ function SpellRow({
   rollMode,
   activeConcentration,
   onToast,
-  onCast,
+  onActivate,
+  hasActivate,
 }: {
   spell: SheetSpell
   spellAttack: number | null
@@ -185,7 +201,8 @@ function SpellRow({
   rollMode: DeskRollMode
   activeConcentration: boolean
   onToast?: (message: string) => void
-  onCast?: () => void
+  onActivate?: () => void
+  hasActivate: boolean
 }) {
   const levelLabel = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
   const tags = [
@@ -198,10 +215,16 @@ function SpellRow({
       className={`play-desk-compact__row is-dense is-action${
         activeConcentration ? ' is-conc-active' : ''
       }`}
-      title={onCast ? 'Каст заклинания' : 'Инфо о заклинании'}
+      title={
+        spell.concentration
+          ? 'Концентрация на этом заклинании'
+          : hasActivate
+            ? 'Каст заклинания'
+            : 'Инфо о заклинании'
+      }
       onClick={() => {
-        if (onCast) {
-          onCast()
+        if (hasActivate && onActivate) {
+          onActivate()
           return
         }
         const head = `${spell.name} · ${levelLabel}${

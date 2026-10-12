@@ -26,6 +26,13 @@ export type PlayDeskPanelId =
   | 'texts'
   | 'ownership'
 
+export type XpHistoryEntry = {
+  id: string
+  delta: number
+  reason: string
+  at: string
+}
+
 export type SheetUiState = {
   abilityOrder: AbilityKey[]
   collapsedAbilities: AbilityKey[]
@@ -34,6 +41,50 @@ export type SheetUiState = {
   deskSplit: boolean
   /** Inventory item ids pinned into combat «Расходники» (max 3). */
   combatConsumableFavoriteIds: string[]
+  /** XP awards / spends with optional «за что». Newest first. */
+  xpHistory: XpHistoryEntry[]
+}
+
+const MAX_XP_HISTORY = 40
+
+export function normalizeXpHistory(raw: unknown): XpHistoryEntry[] {
+  if (!Array.isArray(raw)) return []
+  const out: XpHistoryEntry[] = []
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue
+    const item = row as Record<string, unknown>
+    const delta = typeof item.delta === 'number' ? Math.trunc(item.delta) : 0
+    if (!delta) continue
+    const reason = typeof item.reason === 'string' ? item.reason.trim() : ''
+    const at =
+      typeof item.at === 'string' && item.at.trim()
+        ? item.at
+        : new Date().toISOString()
+    const id =
+      typeof item.id === 'string' && item.id.trim()
+        ? item.id
+        : `xp-${at}-${delta}-${out.length}`
+    out.push({ id, delta, reason, at })
+    if (out.length >= MAX_XP_HISTORY) break
+  }
+  return out
+}
+
+export function appendXpHistory(
+  history: XpHistoryEntry[],
+  entry: Omit<XpHistoryEntry, 'id' | 'at'> & { id?: string; at?: string },
+): XpHistoryEntry[] {
+  const next: XpHistoryEntry = {
+    id:
+      entry.id ??
+      (typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `xp-${Date.now()}`),
+    delta: Math.trunc(entry.delta),
+    reason: entry.reason.trim(),
+    at: entry.at ?? new Date().toISOString(),
+  }
+  return [next, ...history].slice(0, MAX_XP_HISTORY)
 }
 
 const DEFAULT_ORDER: AbilityKey[] = [...ABILITY_KEYS]
@@ -91,6 +142,7 @@ export function readSheetUi(sheet: Record<string, unknown>): SheetUiState {
     combatConsumableFavoriteIds: normalizeCombatConsumableFavoriteIds(
       ui.combat_consumable_favorites,
     ),
+    xpHistory: normalizeXpHistory(ui.xp_history),
   }
 }
 
@@ -101,6 +153,7 @@ export function sheetUiToPatch(ui: SheetUiState): Record<string, unknown> {
     desk_mode: ui.deskMode,
     desk_split: ui.deskSplit,
     combat_consumable_favorites: ui.combatConsumableFavoriteIds,
+    xp_history: ui.xpHistory,
   }
 }
 

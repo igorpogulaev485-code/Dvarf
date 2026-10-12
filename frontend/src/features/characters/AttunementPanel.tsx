@@ -59,6 +59,7 @@ export function AttunementPanel({
         <Text tone="muted">
           До {MAX_ATTUNEMENTS} предметов · занято {filled}/{MAX_ATTUNEMENTS}. В списке — только
           вещи с «нужна настройка», которые ещё не привязаны к слоту (или текущий выбор слота).
+          Привязка слота автоматически надевает предмет с wear-слотом / доспех / щит.
         </Text>
 
         {needingAttune.length > 0 ? (

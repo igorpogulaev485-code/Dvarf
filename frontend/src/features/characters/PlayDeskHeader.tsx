@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import { clampExhaustion } from '../../shared/dnd/rest'
 import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
-import type { HitDie } from '../../shared/dnd/hitDice'
+import { clampDeathMarks, type HitDie } from '../../shared/dnd/hitDice'
+import type { CoinPurse } from '../../shared/dnd/weight'
 import { NumberPadDialog } from '../../ui'
+import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
+import type { XpHistoryEntry } from './playDeskUi'
 import type { PlayState } from './play'
 import { formatModifier } from './sheetTypes'
 
@@ -28,13 +32,15 @@ type PlayDeskHeaderProps = {
   proficiencyBonus: number
   initiative: number
   inspiration: boolean
-  goldGp: number
+  coins: CoinPurse
+  xpHistory: XpHistoryEntry[]
   onOpenRest: () => void
-  onExperienceChange: (experience: number) => void
+  onExperienceChange: (experience: number, meta?: { reason: string }) => void
   onToggleInspiration: () => void
   onExhaustionChange: (exhaustion: number) => void
   onInitiativeRoll?: () => void
   onPlayChange: (play: PlayState) => void
+  onCoinsChange: (coins: CoinPurse) => void
   onCombatChange: (patch: {
     hpCurrent?: number | null
     hpMax?: number | null
@@ -63,13 +69,15 @@ export function PlayDeskHeader({
   proficiencyBonus,
   initiative,
   inspiration,
-  goldGp,
+  coins,
+  xpHistory,
   onOpenRest,
   onExperienceChange,
   onToggleInspiration,
   onExhaustionChange,
   onInitiativeRoll,
   onPlayChange,
+  onCoinsChange,
   onCombatChange,
   onToast,
   onDamaged,
@@ -79,6 +87,9 @@ export function PlayDeskHeader({
   const [hpPulse, setHpPulse] = useState(false)
   const [hpPadOpen, setHpPadOpen] = useState(false)
   const [xpPadOpen, setXpPadOpen] = useState(false)
+  const [coinPadOpen, setCoinPadOpen] = useState(false)
+  const [xpHistoryOpen, setXpHistoryOpen] = useState(false)
+  const [xpReason, setXpReason] = useState('')
   const [maxDialogOpen, setMaxDialogOpen] = useState(false)
   const prevHpRef = useRef(hpCurrent)
 
@@ -92,10 +103,17 @@ export function PlayDeskHeader({
     return () => window.clearTimeout(timer)
   }, [hpCurrent])
 
+  useEffect(() => {
+    if (!xpPadOpen) setXpReason('')
+  }, [xpPadOpen])
+
   const xpLabel =
     xp.nextThreshold == null ? `${xp.xp}` : `${xp.xp}/${xp.nextThreshold}`
   const nextLevel = xp.level >= 20 ? null : xp.level + 1
   const hpTemp = play.hpTemp
+  const showDeath = play.isDying || (hpCurrent != null && hpCurrent <= 0)
+  const exhaustionStage =
+    play.exhaustion > 0 ? conditionLevelLabel('exhaustion', play.exhaustion) : null
 
   function applyHeal(amount: number) {
     const current = hpCurrent ?? 0
@@ -130,7 +148,7 @@ export function PlayDeskHeader({
       onDamaged?.(remaining)
     }
     if (nextHp <= 0 && !play.isDying) {
-      onToast('HP ≤ 0 — включи «При смерти» в pad хитов, если идёт стабилизация')
+      onToast('HP ≤ 0 — спасброски смерти в шапке или в pad хитов')
     }
   }
 
@@ -152,11 +170,6 @@ export function PlayDeskHeader({
           </div>
           <span>{xpLabel}</span>
         </button>
-        {play.isDying ? (
-          <p className="play-desk-header__dying">
-            Смерть {play.deathSuccesses}/{play.deathFails}
-          </p>
-        ) : null}
       </div>
 
       <div className="play-desk-header__mid">
@@ -204,7 +217,11 @@ export function PlayDeskHeader({
           <button
             type="button"
             className={`play-desk-header__chip${play.exhaustion > 0 ? ' is-warn' : ''}`}
-            title="Истощение — нажми, чтобы изменить уровень (0–6)"
+            title={
+              exhaustionStage
+                ? `Истощение ${play.exhaustion}: ${exhaustionStage}`
+                : 'Истощение — нажми, чтобы изменить уровень (0–6)'
+            }
             onClick={() => {
               const next = play.exhaustion >= 6 ? 0 : play.exhaustion + 1
               onExhaustionChange(clampExhaustion(next))
@@ -213,30 +230,84 @@ export function PlayDeskHeader({
             <span>Истощ.</span>
             <b>{play.exhaustion}</b>
           </button>
+          {exhaustionStage ? (
+            <span className="play-desk-header__exh-hint" title={exhaustionStage}>
+              {exhaustionStage}
+            </span>
+          ) : null}
         </div>
       </div>
 
       <div className="play-desk-header__right">
-        <div className="play-desk-header__coin" title="Золото (зм)">
-          {goldGp} зм
-        </div>
+        <button
+          type="button"
+          className="play-desk-header__coin"
+          title="Монеты — взять / отдать"
+          onClick={() => setCoinPadOpen(true)}
+        >
+          {coins.gp} зм
+        </button>
         <button type="button" className="play-desk-header__rest" onClick={onOpenRest}>
           ✦ Отдых
         </button>
-        <button
-          type="button"
-          className={`play-desk-header__hp${hpPulse ? ' is-pulse' : ''}`}
-          title={hpTemp > 0 ? `врем. +${hpTemp}` : 'Хиты — лечение, урон, кости, смерть'}
-          onClick={() => setHpPadOpen(true)}
-        >
-          <strong>
-            {hpCurrent ?? '—'} / {hpMax ?? '—'}
-          </strong>
-          <small>
-            хиты
-            {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
-          </small>
-        </button>
+        <div className="play-desk-header__hp-wrap">
+          <button
+            type="button"
+            className={`play-desk-header__hp${hpPulse ? ' is-pulse' : ''}`}
+            title={hpTemp > 0 ? `врем. +${hpTemp}` : 'Хиты — лечение, урон, кости, смерть'}
+            onClick={() => setHpPadOpen(true)}
+          >
+            <strong>
+              {hpCurrent ?? '—'} / {hpMax ?? '—'}
+            </strong>
+            <small>
+              хиты
+              {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
+            </small>
+          </button>
+          {showDeath ? (
+            <div className="play-desk-header__death" aria-label="Спасброски от смерти">
+              <button
+                type="button"
+                className={`play-desk-header__dying-toggle${play.isDying ? ' is-on' : ''}`}
+                onClick={() =>
+                  onPlayChange({
+                    ...play,
+                    isDying: !play.isDying,
+                    deathSuccesses: play.isDying ? 0 : play.deathSuccesses,
+                    deathFails: play.isDying ? 0 : play.deathFails,
+                  })
+                }
+              >
+                {play.isDying ? 'При смерти' : 'Смерть'}
+              </button>
+              <HeaderDeathTrack
+                label="Усп"
+                value={play.deathSuccesses}
+                tone="ok"
+                onChange={(next) =>
+                  onPlayChange({
+                    ...play,
+                    isDying: true,
+                    deathSuccesses: clampDeathMarks(next),
+                  })
+                }
+              />
+              <HeaderDeathTrack
+                label="Пров"
+                value={play.deathFails}
+                tone="bad"
+                onChange={(next) =>
+                  onPlayChange({
+                    ...play,
+                    isDying: true,
+                    deathFails: clampDeathMarks(next),
+                  })
+                }
+              />
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <HpPadDialog
@@ -259,15 +330,27 @@ export function PlayDeskHeader({
         onToast={onToast}
       />
 
+      <CoinPadDialog
+        open={coinPadOpen}
+        coins={coins}
+        onClose={() => setCoinPadOpen(false)}
+        onChange={onCoinsChange}
+        onToast={onToast}
+      />
+
       <NumberPadDialog
         open={xpPadOpen}
         title="Опыт"
         current={xp.xp}
         min={0}
         formatValue={formatXp}
+        addLabel="Начислить"
+        subtractLabel="Убавить"
         onClose={() => setXpPadOpen(false)}
-        onAdd={(delta) => onExperienceChange(xp.xp + delta)}
-        onSubtract={(delta) => onExperienceChange(Math.max(0, xp.xp - delta))}
+        onAdd={(delta) => onExperienceChange(xp.xp + delta, { reason: xpReason })}
+        onSubtract={(delta) =>
+          onExperienceChange(Math.max(0, xp.xp - delta), { reason: xpReason })
+        }
         header={
           <div className="xp-pad-header">
             <div className="xp-pad-header__ends">
@@ -297,6 +380,47 @@ export function PlayDeskHeader({
                 ? ` · порог ${formatXp(xpToReachLevel(xp.level + 1))}`
                 : ''}
             </p>
+            <label className="xp-pad-header__reason">
+              За что
+              <input
+                type="text"
+                value={xpReason}
+                placeholder="бой, квест, награда…"
+                onChange={(event) => setXpReason(event.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className="linkish xp-pad-header__history-btn"
+              onClick={() => setXpHistoryOpen((open) => !open)}
+            >
+              {xpHistoryOpen ? 'Скрыть историю' : `История (${xpHistory.length})`}
+            </button>
+            {xpHistoryOpen ? (
+              <ul className="xp-pad-header__history">
+                {xpHistory.length === 0 ? (
+                  <li className="xp-pad-header__history-empty">Пока пусто</li>
+                ) : (
+                  xpHistory.slice(0, 12).map((row) => (
+                    <li key={row.id}>
+                      <strong>
+                        {row.delta > 0 ? '+' : ''}
+                        {formatXp(row.delta)}
+                      </strong>
+                      <span>{row.reason || 'без описания'}</span>
+                      <time dateTime={row.at}>
+                        {new Date(row.at).toLocaleString('ru-RU', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </time>
+                    </li>
+                  ))
+                )}
+              </ul>
+            ) : null}
           </div>
         }
       />
@@ -315,5 +439,38 @@ export function PlayDeskHeader({
         }}
       />
     </section>
+  )
+}
+
+function HeaderDeathTrack({
+  label,
+  value,
+  tone,
+  onChange,
+}: {
+  label: string
+  value: number
+  tone: 'ok' | 'bad'
+  onChange: (next: number) => void
+}) {
+  return (
+    <div className="play-desk-header__death-track" role="group" aria-label={label}>
+      <span>{label}</span>
+      <div className="play-desk-header__death-pips">
+        {Array.from({ length: 3 }, (_, index) => {
+          const filled = index < value
+          return (
+            <button
+              key={index}
+              type="button"
+              className={`death-pip death-pip--${tone}${filled ? ' is-filled' : ''}`}
+              aria-pressed={filled}
+              aria-label={`${label}: ${index + 1} из 3`}
+              onClick={() => onChange(index < value ? index : index + 1)}
+            />
+          )
+        })}
+      </div>
+    </div>
   )
 }
