@@ -90,6 +90,14 @@ export const MODE_DEFAULT_PANEL: Record<PlayDeskMode, PlayDeskPanelId> = {
   companions: 'companions',
 }
 
+/** Skills shown in mode chrome for explore / social scenes. */
+export const MODE_SKILL_KEYS: Record<'explore' | 'social', string[]> = {
+  explore: ['perception', 'investigation', 'stealth', 'survival', 'athletics'],
+  social: ['persuasion', 'deception', 'insight', 'intimidation', 'performance'],
+}
+
+export type PlayDeskCompactPanelId = 'attacks' | 'spells' | 'inventory' | 'texts'
+
 export const PLAY_DESK_PANELS: Array<{ id: PlayDeskPanelId; label: string }> = [
   { id: 'attacks', label: 'Атаки' },
   { id: 'features', label: 'Способности' },

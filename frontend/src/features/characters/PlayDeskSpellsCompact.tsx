@@ -18,6 +18,7 @@ type PlayDeskSpellsCompactProps = {
   onOpenFull: () => void
   onClearSplit?: () => void
   onSpendSlot?: (level: number) => void
+  onToast?: (message: string) => void
 }
 
 export function PlayDeskSpellsCompact({
@@ -28,6 +29,7 @@ export function PlayDeskSpellsCompact({
   onOpenFull,
   onClearSplit,
   onSpendSlot,
+  onToast,
 }: PlayDeskSpellsCompactProps) {
   const ready = spells.known.filter(isReadyInCombat)
   const abilityKey = spells.casting_ability
@@ -89,35 +91,55 @@ export function PlayDeskSpellsCompact({
         </div>
       ) : null}
 
-      <div className="play-desk-compact__list">
+      <div className="play-desk-compact__list play-desk-compact__list--dense">
         {ready.length === 0 ? (
           <p className="play-desk-compact__empty">Нет готовых заклинаний</p>
         ) : (
-          ready.slice(0, 12).map((spell) => (
-            <SpellRow key={spell.id} spell={spell} />
+          ready.slice(0, 14).map((spell) => (
+            <SpellRow key={spell.id} spell={spell} onToast={onToast} />
           ))
         )}
-        {ready.length > 12 ? (
-          <p className="play-desk-compact__more">+ ещё {ready.length - 12}</p>
+        {ready.length > 14 ? (
+          <p className="play-desk-compact__more">+ ещё {ready.length - 14}</p>
         ) : null}
       </div>
     </div>
   )
 }
 
-function SpellRow({ spell }: { spell: SheetSpell }) {
+function SpellRow({
+  spell,
+  onToast,
+}: {
+  spell: SheetSpell
+  onToast?: (message: string) => void
+}) {
   const levelLabel = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
+  const tags = [
+    spell.concentration ? 'концентрация' : null,
+    spell.prepared && spell.level > 0 ? 'готово' : null,
+  ].filter(Boolean)
   return (
-    <div className="play-desk-compact__row">
+    <button
+      type="button"
+      className="play-desk-compact__row is-dense is-action"
+      onClick={() =>
+        onToast?.(
+          `${spell.name} · ${levelLabel}${tags.length ? ` · ${tags.join(', ')}` : ''}`,
+        )
+      }
+    >
       <div className="play-desk-compact__row-main">
         <b>{spell.name}</b>
       </div>
       <span className="play-desk-compact__dmg">{levelLabel}</span>
       {spell.concentration ? (
-        <span className="play-desk-compact__tag is-conc">концентрация</span>
+        <span className="play-desk-compact__tag is-conc">конц.</span>
       ) : spell.prepared && spell.level > 0 ? (
         <span className="play-desk-compact__tag is-on">готово</span>
-      ) : null}
-    </div>
+      ) : (
+        <span className="play-desk-compact__tag">—</span>
+      )}
+    </button>
   )
 }

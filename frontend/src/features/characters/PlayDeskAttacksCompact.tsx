@@ -15,6 +15,8 @@ type PlayDeskAttacksCompactProps = {
   resources: SheetResource[]
   inventoryItems: InventoryItem[]
   onToggleHeld?: (attack: WeaponAttack) => void
+  onSpendResource?: (id: string) => void
+  onToast?: (message: string) => void
   onOpenFull: () => void
 }
 
@@ -29,6 +31,8 @@ export function PlayDeskAttacksCompact({
   resources,
   inventoryItems,
   onToggleHeld,
+  onSpendResource,
+  onToast,
   onOpenFull,
 }: PlayDeskAttacksCompactProps) {
   const named = weapons.filter((row) => row.name.trim())
@@ -49,7 +53,7 @@ export function PlayDeskAttacksCompact({
         </button>
       </div>
 
-      <div className="play-desk-compact__list">
+      <div className="play-desk-compact__list play-desk-compact__list--dense">
         {named.length === 0 ? (
           <p className="play-desk-compact__empty">Нет атак — добавьте в полной панели</p>
         ) : (
@@ -62,27 +66,34 @@ export function PlayDeskAttacksCompact({
               mod +
               (attack.is_proficient ? proficiencyBonus : 0) +
               (gear?.attackBonus ?? 0)
+            const dmgBonus = gear?.damageBonus ?? 0
             const dmg =
               attack.damage +
-              (gear?.damageBonus
-                ? ` ${gear.damageBonus >= 0 ? '+' : ''}${gear.damageBonus}`
-                : '')
+              (dmgBonus ? ` ${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
+            const dmgLine = `${dmg || '—'}${attack.damage_type ? ` ${attack.damage_type}` : ''}`
             return (
-              <div key={attack.id} className="play-desk-compact__row">
-                <div className="play-desk-compact__row-main">
-                  <b>{attack.name}</b>
-                  {attack.qty != null && attack.qty > 1 ? (
-                    <span className="play-desk-compact__tag">×{attack.qty}</span>
-                  ) : null}
-                  {attack.held ? (
-                    <span className="play-desk-compact__tag is-on">в руках</span>
-                  ) : null}
-                </div>
-                <span className="play-desk-compact__mod">{formatModifier(attackBonus)}</span>
-                <span className="play-desk-compact__dmg">
-                  {dmg || '—'}
-                  {attack.damage_type ? ` ${attack.damage_type}` : ''}
-                </span>
+              <div key={attack.id} className="play-desk-compact__row is-dense">
+                <button
+                  type="button"
+                  className="play-desk-compact__hit"
+                  onClick={() =>
+                    onToast?.(
+                      `${attack.name}: атака ${formatModifier(attackBonus)}, урон ${dmgLine}`,
+                    )
+                  }
+                >
+                  <div className="play-desk-compact__row-main">
+                    <b>{attack.name}</b>
+                    {attack.qty != null && attack.qty > 1 ? (
+                      <span className="play-desk-compact__tag">×{attack.qty}</span>
+                    ) : null}
+                    {attack.held ? (
+                      <span className="play-desk-compact__tag is-on">в руках</span>
+                    ) : null}
+                  </div>
+                  <span className="play-desk-compact__mod">{formatModifier(attackBonus)}</span>
+                  <span className="play-desk-compact__dmg">{dmgLine}</span>
+                </button>
                 {onToggleHeld && attack.inventory_item_id ? (
                   <button
                     type="button"
@@ -97,28 +108,43 @@ export function PlayDeskAttacksCompact({
           })
         )}
 
-        {combatResources.map((row) => (
-          <div key={row.id} className="play-desk-compact__row is-resource">
-            <div className="play-desk-compact__row-main">
-              <b>{row.name}</b>
-              <span className="play-desk-compact__tag">ресурс</span>
+        {combatResources.map((row) => {
+          const remaining = Math.max(0, row.max - row.used)
+          return (
+            <div key={row.id} className="play-desk-compact__row is-dense is-resource">
+              <button
+                type="button"
+                className="play-desk-compact__hit"
+                disabled={!onSpendResource || remaining <= 0}
+                onClick={() => onSpendResource?.(row.id)}
+              >
+                <div className="play-desk-compact__row-main">
+                  <b>{row.name}</b>
+                  <span className="play-desk-compact__tag">ресурс</span>
+                </div>
+                <span className="play-desk-compact__mod">
+                  {remaining}/{row.max}
+                </span>
+                <span className="play-desk-compact__dmg">потратить</span>
+              </button>
             </div>
-            <span className="play-desk-compact__mod">
-              {row.max - row.used}/{row.max}
-            </span>
-            <span className="play-desk-compact__dmg">пипсы в полосе боя</span>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {consumables.length > 0 ? (
         <div className="play-desk-compact__consumables">
           <div className="play-desk-compact__subhead">Расходники</div>
           {consumables.slice(0, 6).map((item) => (
-            <div key={item.id} className="play-desk-compact__cons-row">
+            <button
+              key={item.id}
+              type="button"
+              className="play-desk-compact__cons-row is-action"
+              onClick={() => onToast?.(`${item.name}: ×${item.qty ?? 0}`)}
+            >
               <span>{item.name}</span>
               <b>{item.qty ?? 0}</b>
-            </div>
+            </button>
           ))}
         </div>
       ) : null}

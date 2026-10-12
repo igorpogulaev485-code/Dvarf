@@ -206,15 +206,20 @@ import { TextBlocksPanel } from './TextBlocksPanel'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { PlayDeskAttacksCompact } from './PlayDeskAttacksCompact'
+import { PlayDeskExploreCompact } from './PlayDeskExploreCompact'
 import { PlayDeskHeader } from './PlayDeskHeader'
 import { PlayDeskHotBar } from './PlayDeskHotBar'
+import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
+import { PlayDeskSocialCompact } from './PlayDeskSocialCompact'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
   MODE_DEFAULT_PANEL,
+  MODE_SKILL_KEYS,
   PLAY_DESK_PANELS,
   readSheetUi,
   sheetUiToPatch,
   splitSecondaryPanel,
+  type PlayDeskCompactPanelId,
   type PlayDeskMode,
   type PlayDeskPanelId,
   type SheetUiState,
@@ -2703,8 +2708,36 @@ export function MinimalSheetEditor({
     setForceFullPanel(null)
   }
 
-  function showCompact(id: 'attacks' | 'spells'): boolean {
+  function showCompact(id: PlayDeskCompactPanelId): boolean {
     return isPlayDesk && forceFullPanel !== id
+  }
+
+  function skillModFor(skillKey: string): number {
+    const def = SKILL_DEFS.find((skill) => skill.key === skillKey)
+    if (!def) return 0
+    const state = draft.skills[skillKey]
+    return (
+      skillModifierFromState({
+        abilityMod: abilityModifier(draft.abilities[def.base]),
+        proficiencyBonus,
+        isProficient: state?.is_proficient ?? false,
+        isExpertise: state?.is_expertise ?? false,
+      }) + (gearEffects.skillBonuses[skillKey] ?? 0)
+    )
+  }
+
+  function modeSkillChips(mode: 'explore' | 'social') {
+    return MODE_SKILL_KEYS[mode].map((key) => {
+      const def = SKILL_DEFS.find((skill) => skill.key === key)
+      const state = draft.skills[key]
+      const mark = state?.is_expertise ? '◆' : state?.is_proficient ? '●' : undefined
+      return {
+        key,
+        label: def?.label ?? key,
+        mod: skillModFor(key),
+        mark,
+      }
+    })
   }
 
   const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
@@ -3060,6 +3093,26 @@ export function MinimalSheetEditor({
                     ),
                   },
                 }))
+              }
+            />
+          ) : null}
+
+          {isPlayDesk && draft.sheetUi.deskMode === 'explore' ? (
+            <PlayDeskSkillStrip
+              ariaLabel="Навыки исследования"
+              skills={modeSkillChips('explore')}
+              onSkillClick={(skill) =>
+                onToast(`${skill.label}: проверка ${formatModifier(skill.mod)}`)
+              }
+            />
+          ) : null}
+
+          {isPlayDesk && draft.sheetUi.deskMode === 'social' ? (
+            <PlayDeskSkillStrip
+              ariaLabel="Навыки общения"
+              skills={modeSkillChips('social')}
+              onSkillClick={(skill) =>
+                onToast(`${skill.label}: проверка ${formatModifier(skill.mod)}`)
               }
             />
           ) : null}
@@ -3679,6 +3732,20 @@ export function MinimalSheetEditor({
           resources={draft.play.resources}
           inventoryItems={draft.inventory.items}
           onOpenFull={() => setForceFullPanel('attacks')}
+          onToast={onToast}
+          onSpendResource={(id) =>
+            setDraft((prev) => ({
+              ...prev,
+              play: {
+                ...prev.play,
+                resources: prev.play.resources.map((row) =>
+                  row.id === id && row.used < row.max
+                    ? { ...row, used: row.used + 1 }
+                    : row,
+                ),
+              },
+            }))
+          }
           onToggleHeld={(attack) => {
             if (!attack.inventory_item_id) return
             setDraft((prev) => {
@@ -3744,23 +3811,50 @@ export function MinimalSheetEditor({
       </div>
 
       <div className="play-desk__stage-panel" hidden={stageHidden('inventory')}>
-      <InventoryPanel
-        edition={baseCharacter.rules_edition as RulesEdition}
-        inventory={draft.inventory}
-        strengthScore={draft.abilities.str}
-        armorProficiency={draft.identity.armor}
-        weapons={draft.weapons}
-        onToast={onToast}
-        onChange={(inventory) =>
-          setDraft((prev) => ({
-            ...prev,
-            inventory,
-            weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
-            spells: withSpellFocusFlags(prev.spells, inventory.items),
-          }))
-        }
-        onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
-      />
+      {showCompact('inventory') ? (
+        <PlayDeskExploreCompact
+          inventory={draft.inventory}
+          strengthScore={draft.abilities.str}
+          autoAc={armorClass.ac}
+          acHint={armorClass.summary}
+          attunements={draft.attunements}
+          onOpenFull={() => setForceFullPanel('inventory')}
+          onOpenAttunement={() => {
+            setActivePanel('attunement')
+            setForceFullPanel(null)
+          }}
+          onToast={onToast}
+        />
+      ) : (
+        <>
+          {isPlayDesk ? (
+            <button
+              type="button"
+              className="play-desk-compact__link play-desk-compact__link--bar"
+              onClick={() => setForceFullPanel(null)}
+            >
+              ← компактно
+            </button>
+          ) : null}
+          <InventoryPanel
+            edition={baseCharacter.rules_edition as RulesEdition}
+            inventory={draft.inventory}
+            strengthScore={draft.abilities.str}
+            armorProficiency={draft.identity.armor}
+            weapons={draft.weapons}
+            onToast={onToast}
+            onChange={(inventory) =>
+              setDraft((prev) => ({
+                ...prev,
+                inventory,
+                weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
+                spells: withSpellFocusFlags(prev.spells, inventory.items),
+              }))
+            }
+            onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
+          />
+        </>
+      )}
 
       </div>
 
@@ -3816,6 +3910,7 @@ export function MinimalSheetEditor({
           proficiencyBonus={proficiencyBonus}
           pinned={deskSplit && splitSecondary === 'spells'}
           onOpenFull={() => setForceFullPanel('spells')}
+          onToast={onToast}
           onClearSplit={
             deskSplit && splitSecondary === 'spells'
               ? () => patchSheetUi({ deskSplit: false })
@@ -3897,17 +3992,36 @@ export function MinimalSheetEditor({
       </div>
 
       <div className="play-desk__stage-panel" hidden={stageHidden('texts')}>
-      <TextBlocksPanel
-        blocks={draft.textBlocks}
-        onChange={(textBlocks) => setDraft((prev) => ({ ...prev, textBlocks }))}
-        resources={draft.play.resources}
-        onResourcesChange={(resources) =>
-          setDraft((prev) => ({
-            ...prev,
-            play: { ...prev.play, resources },
-          }))
-        }
-      />
+      {showCompact('texts') ? (
+        <PlayDeskSocialCompact
+          textBlocks={draft.textBlocks}
+          onOpenFull={() => setForceFullPanel('texts')}
+          onToast={onToast}
+        />
+      ) : (
+        <>
+          {isPlayDesk ? (
+            <button
+              type="button"
+              className="play-desk-compact__link play-desk-compact__link--bar"
+              onClick={() => setForceFullPanel(null)}
+            >
+              ← компактно
+            </button>
+          ) : null}
+          <TextBlocksPanel
+            blocks={draft.textBlocks}
+            onChange={(textBlocks) => setDraft((prev) => ({ ...prev, textBlocks }))}
+            resources={draft.play.resources}
+            onResourcesChange={(resources) =>
+              setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, resources },
+              }))
+            }
+          />
+        </>
+      )}
 
       </div>
 
