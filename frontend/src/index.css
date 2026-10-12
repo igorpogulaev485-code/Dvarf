@@ -5548,15 +5548,15 @@ button.play-desk-vital {
 
 .abil-block__head {
   /*
-   * Two rows (full ability name):
-   *   ⋮⋮  Сила ▾              [16] → 18
-   *       Пр +4   Сп +7
+   * Two rows — full name never truncated:
+   *   ⋮⋮  Телосложение ▾
+   *       [16] → 18   Пр +4   Сп +7
    */
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto;
+  grid-template-columns: 18px minmax(0, 1fr);
   grid-template-areas:
-    "drag name score"
-    "drag mods mods";
+    "drag name"
+    "drag meta";
   column-gap: 8px;
   row-gap: 6px;
   align-items: center;
@@ -5600,19 +5600,18 @@ button.play-desk-vital {
   grid-area: name;
   display: inline-flex;
   align-items: baseline;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
-  max-width: 100%;
-  justify-self: start;
+  width: 100%;
   margin: 0;
-  padding: 2px 0;
+  padding: 1px 0;
   border: none;
   background: transparent;
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: 0.01em;
-  font-size: 1.02rem;
-  line-height: 1.15;
+  font-size: 1.05rem;
+  line-height: 1.2;
   color: var(--abil);
   cursor: pointer;
   text-align: left;
@@ -5632,8 +5631,6 @@ button.play-desk-vital {
 
 .abil-block__label-text {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -5645,11 +5642,18 @@ button.play-desk-vital {
   opacity: 0.7;
 }
 
-.abil-block__score-wrap {
-  grid-area: score;
+.abil-block__meta {
+  grid-area: meta;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  min-width: 0;
+}
+
+.abil-block__score-wrap {
+  display: flex;
+  align-items: center;
   gap: 5px;
   flex: 0 0 auto;
 }
@@ -5686,26 +5690,19 @@ button.play-desk-vital {
 .abil-block__effective {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  min-width: 2.6rem;
   font-size: 0.8rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: transparent;
+  color: var(--abil);
   white-space: nowrap;
 }
 
-.abil-block__effective.is-buffed {
-  color: var(--abil);
-}
-
 .abil-block__mods {
-  grid-area: mods;
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: nowrap;
-  justify-content: flex-start;
+  flex: 0 0 auto;
   min-width: 0;
 }
 

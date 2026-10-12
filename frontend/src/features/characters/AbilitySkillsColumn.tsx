@@ -167,37 +167,37 @@ export function AbilitySkillsColumn({
                     {isCollapsed ? '▸' : '▾'}
                   </span>
                 </button>
-                <div className="abil-block__score-wrap">
-                  <NumberInput
-                    className="abil-block__score"
-                    min={1}
-                    max={30}
-                    emptyValue={10}
-                    value={baseScore}
-                    onValueChange={(next) => onAbilityScoreChange(key, next ?? 10)}
-                    inputMode="numeric"
-                    title="Базовое значение"
-                  />
-                  <span
-                    className={`abil-block__effective${score !== baseScore ? ' is-buffed' : ''}`}
-                    title={score !== baseScore ? 'С учётом предметов' : undefined}
-                    aria-hidden={score === baseScore}
-                  >
-                    {score !== baseScore ? `→ ${score}` : ''}
-                  </span>
-                </div>
-                <div className="abil-block__mods">
-                  <span className="abil-mod" title="Проверка характеристики">
-                    Пр {formatModifier(check)}
-                  </span>
-                  <button
-                    type="button"
-                    className={`abil-mod abil-mod--btn${saves[key] ? ' is-on' : ''}`}
-                    title="Спасбросок — клик: владение"
-                    onClick={() => onSaveToggle(key)}
-                  >
-                    Сп {formatModifier(saveMod)}
-                  </button>
+                <div className="abil-block__meta">
+                  <div className="abil-block__score-wrap">
+                    <NumberInput
+                      className="abil-block__score"
+                      min={1}
+                      max={30}
+                      emptyValue={10}
+                      value={baseScore}
+                      onValueChange={(next) => onAbilityScoreChange(key, next ?? 10)}
+                      inputMode="numeric"
+                      title="Базовое значение"
+                    />
+                    {score !== baseScore ? (
+                      <span className="abil-block__effective is-buffed" title="С учётом предметов">
+                        → {score}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="abil-block__mods">
+                    <span className="abil-mod" title="Проверка характеристики">
+                      Пр {formatModifier(check)}
+                    </span>
+                    <button
+                      type="button"
+                      className={`abil-mod abil-mod--btn${saves[key] ? ' is-on' : ''}`}
+                      title="Спасбросок — клик: владение"
+                      onClick={() => onSaveToggle(key)}
+                    >
+                      Сп {formatModifier(saveMod)}
+                    </button>
+                  </div>
                 </div>
               </div>
               {!isCollapsed ? (
