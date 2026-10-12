@@ -737,6 +737,77 @@ input {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.inventory-card__combat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 6px 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 45%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line));
+}
+
+.inventory-card__combat-name {
+  grid-column: 1 / -1;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.inventory-card__combat-nest {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.inventory-card__combat-stat {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 3.2rem;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88rem;
+}
+
+.inventory-card__combat-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.inventory-card__combat-equip {
+  grid-column: 1 / -1;
+  justify-self: start;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+}
+
+.inventory-card__combat-equip.is-on {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 30%, white);
+  color: var(--accent);
+}
+
+.inventory-card__more-body {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+}
+
 .inventory-card--nested {
   margin-left: 14px;
   border-style: dashed;
@@ -2550,6 +2621,55 @@ input {
     width: 34px;
     height: 34px;
   }
+
+  .inventory-panel .ui-stack {
+    gap: 10px;
+  }
+
+  .inventory-summary {
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .inventory-summary strong {
+    font-size: 0.95rem;
+  }
+
+  .inventory-card {
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .inventory-card__grid {
+    gap: 8px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .inventory-card__grid > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .inventory-card__footer .ui-button,
+  .inventory-card__footer .sheet-chip {
+    min-height: 40px;
+  }
+
+  .inventory-add-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .inventory-add-row .ui-button {
+    width: 100%;
+  }
+
+  .inventory-panel__coins .sheet-grid--coins {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
 }
 
 @media (min-width: 768px) {
@@ -2566,9 +2686,28 @@ input {
   .sheet-grid--coins {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
+}
 
+@media (min-width: 960px) {
   .inventory-card__grid {
     grid-template-columns: 1.6fr 0.6fr 0.7fr;
+  }
+
+  .inventory-card__grid > :first-child {
+    grid-column: auto;
+  }
+
+  .inventory-card__combat-name {
+    grid-column: auto;
+  }
+
+  .inventory-card__combat {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+  }
+
+  .inventory-card__combat-equip {
+    grid-column: auto;
+    justify-self: end;
   }
 }
 
