@@ -3188,18 +3188,80 @@ input {
   text-underline-offset: 2px;
 }
 
+.text-panel.ui-panel {
+  background: var(--panel);
+}
+
 .text-block {
   display: grid;
   gap: 10px;
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
+  background: #fffdf8;
+}
+
+.text-block--compact {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 10px 12px;
+}
+
+.text-block--empty {
+  border-style: dashed;
+  background: rgba(255, 253, 248, 0.72);
 }
 
 .text-block--hidden {
   padding: 10px 12px;
   background: rgba(255, 255, 255, 0.45);
+}
+
+.text-block__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.text-block__glance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.text-block__glance-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.text-block__glance-preview {
+  flex: 1 1 100%;
+  min-width: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.text-block__title-input.ui-input,
+.text-block__header .ui-input {
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .text-block__header {
@@ -3229,6 +3291,7 @@ input {
   min-height: 120px;
   resize: vertical;
   line-height: 1.45;
+  background: #fff;
 }
 
 .text-block__resource {
