@@ -292,12 +292,18 @@ import {
   readPlay,
   type PlayState,
 } from './play'
+import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
+import { consumeMaterialItem } from './spellMaterials'
 import {
+  canSpendGrantCast,
   readSpells,
+  spendGrantCast,
   spellsToSheet,
   type SheetSpell,
   type SpellsState,
 } from './spells'
+import { resolveCastEffect } from '../../shared/dnd/spellCatalog'
+import { spendPactSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import {
   readTextBlocks,
   textBlocksToSheet,
@@ -2859,9 +2865,13 @@ export function MinimalSheetEditor({
     spellName: string
     dc: number
   } | null>(null)
-  const [concSwapAsk, setConcSwapAsk] = useState<SheetSpell | null>(null)
   const [hotConditionsOpen, setHotConditionsOpen] = useState(false)
-  const [deskCastSpellId, setDeskCastSpellId] = useState<string | null>(null)
+  /** Compact play-desk cast (dialog), not the full spells editor. */
+  const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
+  const [deskCastPending, setDeskCastPending] = useState<{
+    spell: SheetSpell
+    choice: CastChoice
+  } | null>(null)
   const [activePanel, setActivePanel] = useState<PlayDeskPanelId>(
     () => MODE_DEFAULT_PANEL[draft.sheetUi.deskMode],
   )
@@ -2920,7 +2930,7 @@ export function MinimalSheetEditor({
     setForceFullPanel(null)
   }
 
-  function applyConcentrateSpell(spell: SheetSpell) {
+  function applyDeskConcentration(spell: SheetSpell) {
     setDraft((prev) => ({
       ...prev,
       play: {
@@ -2931,20 +2941,129 @@ export function MinimalSheetEditor({
         }),
       },
     }))
-    onToast(`Концентрация: «${spell.name || 'Заклинание'}»`)
   }
 
-  function requestConcentrateSpell(spell: SheetSpell) {
+  function needsDeskConcentrationSwap(spell: SheetSpell): boolean {
     const current = draft.play.concentration
-    if (
-      current &&
+    if (!spell.concentration || !current) return false
+    return (
       current.spell_id !== spell.id &&
       current.name.trim() !== (spell.name || '').trim()
-    ) {
-      setConcSwapAsk(spell)
+    )
+  }
+
+  function runDeskCast(spell: SheetSpell, choice: CastChoice) {
+    const name = spell.name || 'Заклинание'
+    const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
+    const grantCast = Boolean(choice.useGrant && canSpendGrantCast(spell))
+    const slotForEffect =
+      spell.level <= 0 || ritualCast || grantCast
+        ? spell.level
+        : choice.usePact
+          ? (draft.spells.pact_slots?.level ?? spell.level)
+          : choice.slotLevel
+    const { effect, scaled } = resolveCastEffect(spell, {
+      characterLevel,
+      slotLevel: slotForEffect || spell.level,
+    })
+    const effectNote = scaled && effect ? ` · ${effect}` : ''
+    let consumeNote = ''
+    if (choice.consumeMaterial && choice.consumeItemId) {
+      const target = draft.inventory.items.find((row) => row.id === choice.consumeItemId)
+      if (target) {
+        setDraft((prev) => ({
+          ...prev,
+          inventory: {
+            ...prev.inventory,
+            items: consumeMaterialItem(prev.inventory.items, choice.consumeItemId!, 1),
+          },
+        }))
+        consumeNote = ` · −1 «${target.name}»`
+      }
+    }
+
+    if (spell.level <= 0) {
+      if (spell.concentration) applyDeskConcentration(spell)
+      onToast(
+        spell.concentration
+          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)`
+          : `Каст: ${name}${effectNote}${consumeNote}`,
+      )
       return
     }
-    applyConcentrateSpell(spell)
+    if (grantCast) {
+      const label = spell.grant_cast?.label ?? 'Грант'
+      setDraft((prev) => ({
+        ...prev,
+        spells: {
+          ...prev.spells,
+          known: spendGrantCast(prev.spells.known, spell.id),
+        },
+      }))
+      if (spell.concentration) applyDeskConcentration(spell)
+      onToast(
+        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
+          spell.concentration ? ' · концентрация' : ''
+        }`,
+      )
+      return
+    }
+    if (ritualCast) {
+      if (spell.concentration) applyDeskConcentration(spell)
+      onToast(
+        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
+          spell.concentration ? ' · концентрация' : ''
+        }`,
+      )
+      return
+    }
+    if (choice.usePact && draft.spells.pact_slots) {
+      const pactResult = spendPactSlot(draft.spells.pact_slots)
+      if (!pactResult.ok) {
+        onToast('Нет свободных pact-ячеек')
+        return
+      }
+      setDraft((prev) => ({
+        ...prev,
+        spells: { ...prev.spells, pact_slots: pactResult.pact },
+      }))
+      if (spell.concentration) applyDeskConcentration(spell)
+      onToast(
+        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
+          spell.concentration ? ' · концентрация' : ''
+        }`,
+      )
+      return
+    }
+    const result = spendSpellSlot(draft.spells.slots, choice.slotLevel)
+    if (!result.ok) {
+      onToast(`Нет ячеек ${choice.slotLevel}-го уровня`)
+      return
+    }
+    setDraft((prev) => ({
+      ...prev,
+      spells: { ...prev.spells, slots: result.slots },
+    }))
+    if (spell.concentration) applyDeskConcentration(spell)
+    const upcast =
+      choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
+    onToast(
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${
+        spell.concentration ? ' · концентрация' : ''
+      }`,
+    )
+  }
+
+  function confirmDeskCast(choice: CastChoice) {
+    if (!deskCastSpell) return
+    const spell = deskCastSpell
+    if (needsDeskConcentrationSwap(spell)) {
+      setDeskCastPending({ spell, choice })
+      setDeskCastSpell(null)
+      return
+    }
+    setDeskCastSpell(null)
+    runDeskCast(spell, choice)
   }
 
   function applyAttunements(attunements: AttunementSlot[]) {
@@ -4375,13 +4494,8 @@ export function MinimalSheetEditor({
           concentration={draft.play.concentration}
           onOpenFull={() => setForceFullPanel('spells')}
           onToast={onToast}
-          onCastSpell={(spell) => {
-            // Full cast UI lives in SpellsPanel — jump there for leveled casts.
-            setForceFullPanel('spells')
-            setDeskCastSpellId(spell.id)
-            onToast(`Каст «${spell.name}» — в полной панели заклинаний`)
-          }}
-          onConcentrateSpell={requestConcentrateSpell}
+          onCastSpell={(spell) => setDeskCastSpell(spell)}
+          onConcentrateSpell={(spell) => setDeskCastSpell(spell)}
           onClearSplit={
             deskSplit && splitSecondary === 'spells'
               ? () => patchSheetUi({ deskSplit: false })
@@ -4428,8 +4542,6 @@ export function MinimalSheetEditor({
             inventoryItems={draft.inventory.items}
             inventory={draft.inventory}
             concentration={draft.play.concentration}
-            initialCastSpellId={deskCastSpellId}
-            onInitialCastConsumed={() => setDeskCastSpellId(null)}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
             onInventoryChange={(inventory) =>
               setDraft((prev) => ({
@@ -4618,23 +4730,33 @@ export function MinimalSheetEditor({
         </Text>
       </Dialog>
 
+      <CastSpellDialog
+        open={deskCastSpell != null}
+        spell={deskCastSpell}
+        spells={draft.spells}
+        inventoryItems={draft.inventory.items}
+        characterLevel={characterLevel}
+        onConfirm={confirmDeskCast}
+        onClose={() => setDeskCastSpell(null)}
+      />
+
       <Dialog
-        open={concSwapAsk != null}
+        open={deskCastPending != null}
         title="Смена концентрации"
-        primaryLabel="Сменить"
+        primaryLabel="Сменить и кастовать"
         secondaryLabel="Отмена"
         primaryVariant="danger"
         onPrimary={() => {
-          if (!concSwapAsk) return
-          const spell = concSwapAsk
-          setConcSwapAsk(null)
-          applyConcentrateSpell(spell)
+          if (!deskCastPending) return
+          const { spell, choice } = deskCastPending
+          setDeskCastPending(null)
+          runDeskCast(spell, choice)
         }}
-        onSecondary={() => setConcSwapAsk(null)}
+        onSecondary={() => setDeskCastPending(null)}
       >
         <Text>
           Сейчас концентрация: «{draft.play.concentration?.name ?? '—'}». Сменить на «
-          {concSwapAsk?.name || 'Заклинание'}»?
+          {deskCastPending?.spell.name || 'Заклинание'}»? Ячейка потратится после подтверждения.
         </Text>
       </Dialog>
 

@@ -161,18 +161,16 @@ export function PlayDeskSpellsCompact({
                 activeConcentration={isActiveConc}
                 onToast={onToast}
                 onActivate={() => {
-                  if (spell.concentration && onConcentrateSpell) {
-                    onConcentrateSpell(spell)
-                    return
-                  }
+                  // Prefer cast dialog (use), not the full spells editor (details).
                   if (onCastSpell) {
                     onCastSpell(spell)
                     return
                   }
+                  if (spell.concentration && onConcentrateSpell) {
+                    onConcentrateSpell(spell)
+                  }
                 }}
-                hasActivate={Boolean(
-                  (spell.concentration && onConcentrateSpell) || onCastSpell,
-                )}
+                hasActivate={Boolean(onCastSpell || onConcentrateSpell)}
               />
             )
           })
