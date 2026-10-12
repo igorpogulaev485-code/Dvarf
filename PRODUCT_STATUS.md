@@ -1152,3 +1152,4 @@
 | 2026-10-11 | `cursor/mobile-load-perf-2c91` · PR #106 | Mobile+VPN MTU/MSS (`apply-vpn-mtu.sh`) + boot timeout → заливка/проверка |
 | 2026-10-12 | `cursor/mobile-play-desk-2c91` · PR #108 | Mobile play-desk 1+2a–2d залит на Timeweb; tip → эта ветка; режимы+плотность панелей на телефоне; anti-blank/VPN MTU на месте |
 | 2026-10-12 | `cursor/mobile-play-desk-2c91` · PR #109+#110 | Создание inline-detail + характеристики во вкладку залиты вместе; tip без смены; `/health` ok |
+| 2026-10-12 | `cursor/spa-nav-sec-fetch-2c91` | nginx SPA rewrite по Sec-Fetch-Mode=navigate (mobile html_instead_of_json) → «В ветках» |
