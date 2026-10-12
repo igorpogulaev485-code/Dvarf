@@ -4412,8 +4412,8 @@ input {
   z-index: 1;
   display: flex;
   flex-wrap: nowrap;
-  align-items: center;
-  gap: 8px 12px;
+  align-items: start;
+  gap: 6px 10px;
   min-width: 0;
   overflow: visible;
 }
@@ -4559,6 +4559,7 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
 .play-desk-header__mid {
   flex: 0 0 auto;
   min-width: 0;
+  padding-top: 2px;
 }
 
 .play-desk-header__chip {
@@ -4808,6 +4809,7 @@ button.play-desk-vital:hover,
   margin-left: auto;
   flex: 0 0 auto;
   min-width: 0;
+  padding-top: 2px;
 }
 
 .play-desk-header__right-tools {
