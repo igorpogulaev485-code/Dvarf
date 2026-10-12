@@ -41,7 +41,8 @@
 
 ## Для агентов (обязательно прочитать)
 
-**Сначала:** [`AGENTS.md`](AGENTS.md) — жёсткий контракт (анти-overwrite).  
+**Сначала:** [`AGENTS.md`](AGENTS.md) — жёсткий контракт (анти-overwrite + **UI Kit**).  
+**UI Kit (основа фронта):** [`docs/ui-kit/README.md`](docs/ui-kit/README.md) · skill [`.cursor/skills/dvarf-ui-kit/SKILL.md`](.cursor/skills/dvarf-ui-kit/SKILL.md) · доски [`docs/ui-kit/boards/`](docs/ui-kit/boards/).  
 Skills: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod-lineage/SKILL.md) · [`.cursor/skills/dvarf-dev-workflow/SKILL.md`](.cursor/skills/dvarf-dev-workflow/SKILL.md).  
 Живой срез фич: [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md).
 
@@ -60,7 +61,7 @@ Skills: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod
 |------|---------|
 | Роли | Глобальной роли «мастер / игрок» **нет**. Мастер — кто создал **лобби**. |
 | Auth | Тонкий: email/password + JWT; OAuth (Yandex/VK) по мере секретов. Биллинг — позже. |
-| UI | React mobile-first (позже React Native). Визуальный редизайн — с дизайнером позже. |
+| UI | React mobile-first (позже React Native). Визуал — только по [`docs/ui-kit`](docs/ui-kit/README.md) (Листва → потом темы). |
 | Данные листа | Hybrid: summary-колонки + JSONB `sheet` + `sheet_version` (optimistic concurrency, 409). |
 | Переиспользование | Чистая логика в `frontend/src/shared/dnd/*` — лист и стол. |
 

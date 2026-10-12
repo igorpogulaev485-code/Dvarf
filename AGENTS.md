@@ -6,6 +6,31 @@
 
 ---
 
+## 0. UI Kit — основа фронтенда (обязательно)
+
+Любая работа в `frontend/` (UI, CSS, панели, кабинет, auth, лобби, create, print) идёт **только** по UI Kit.
+
+| Что | Где |
+|-----|-----|
+| Контракт | [`docs/ui-kit/README.md`](docs/ui-kit/README.md) |
+| Доски | [`docs/ui-kit/boards/`](docs/ui-kit/boards/) |
+| Skill | [`.cursor/skills/dvarf-ui-kit/SKILL.md`](.cursor/skills/dvarf-ui-kit/SKILL.md) |
+| Каталог | [`docs/ui-kit/boards/dvarf-ui-kit-catalog-final.jpg`](docs/ui-kit/boards/dvarf-ui-kit-catalog-final.jpg) |
+
+**Жёстко:**
+
+- Тема аккаунта = только `--accent` / `--accent-soft`; дефолт **Листва** `#5a6b3d`.
+- 6 тем (= цвета характеристик): медь / хвоя / охра / чернила / листва / слива.
+- Характеристики **всегда вариант A** — identity-цвета, не перекрашиваются темой.
+- Нейтрали (`--panel #fbf7ec` …) и `--danger` общие.
+- Display: Source Serif 4 · UI: IBM Plex Sans.
+- Новый паттерн → доска в `docs/ui-kit/boards/` → ok Игоря → код. Атомы — из кита.
+- Порядок внедрения: **сначала** единый кит в одном цвете (Листва), **потом** выбор темы в кабинете.
+
+Запрещено вводить параллельную палитру «на вкус» или кодить UI в обход досок.
+
+---
+
 ## 1. Прод = ровно то, что в твоём дереве при деплое
 
 `./deploy/sync-and-up.sh` **полностью затирает** `/opt/dvarf` (кроме `.env`) и заливает **весь** текущий workspace.
