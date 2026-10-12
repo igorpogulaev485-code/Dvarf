@@ -178,9 +178,9 @@ export const MODE_MORE_PANELS: PlayDeskPanelId[] = [
 export const MODE_EXTRA_PANELS: PlayDeskPanelId[] = MODE_MORE_PANELS
 
 export const MODE_HINT: Record<PlayDeskMode, string> = {
-  combat: 'Бой: атаки + заклинания (split)',
-  explore: 'Исследование: снаряжение + заклинания (split)',
-  social: 'Общение: тексты + заклинания (split)',
+  combat: 'Бой: атаки + заклинания рядом',
+  explore: 'Исследование: снаряжение + заклинания рядом',
+  social: 'Общение: тексты + заклинания рядом',
   companions: 'Напарники: свита и призывы',
   features: 'Способности: умения и ресурсы класса',
   more: 'ЕЩЁ: основное, состояния, настройка, владения — потом разберём',

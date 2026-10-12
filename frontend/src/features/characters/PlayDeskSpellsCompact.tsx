@@ -92,7 +92,7 @@ export function PlayDeskSpellsCompact({
         <div className="play-desk-compact__head-actions">
           {onClearSplit ? (
             <button type="button" className="play-desk-compact__link" onClick={onClearSplit}>
-              снять split
+              без заклинаний
             </button>
           ) : null}
           <button type="button" className="play-desk-compact__link" onClick={onOpenFull}>
