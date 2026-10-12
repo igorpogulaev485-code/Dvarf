@@ -5586,7 +5586,7 @@ button.play-desk-vital {
 /* label | score | →eff — always one row, same geometry for 8 / 16 / 16→18 */
 .abil-block__who {
   display: grid;
-  grid-template-columns: 2.1rem 2.75rem 2.9rem;
+  grid-template-columns: 2.1rem 2.85rem 2.9rem;
   align-items: center;
   column-gap: 4px;
   width: max-content;
@@ -5604,19 +5604,19 @@ button.play-desk-vital {
 
 .abil-block__score.ui-input,
 .abil-block__who .ui-input {
-  width: 2.75rem;
-  min-width: 2.75rem;
-  max-width: 2.75rem;
-  height: 30px;
+  width: 2.85rem;
+  min-width: 2.85rem;
+  max-width: 2.85rem;
+  height: 32px;
   box-sizing: border-box;
   text-align: center;
-  padding: 0 2px;
-  border-radius: 7px;
+  padding: 0 3px;
+  border-radius: 8px;
   background: #fff;
-  border-color: color-mix(in srgb, var(--line) 80%, var(--abil));
+  border: 1px solid color-mix(in srgb, var(--line) 80%, var(--abil));
   font-family: var(--font-ui);
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-variant-numeric: tabular-nums;
   line-height: 30px;
   color: var(--ink);
