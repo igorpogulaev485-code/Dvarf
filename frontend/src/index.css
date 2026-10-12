@@ -4299,6 +4299,15 @@ button.play-desk-vital {
   align-items: start;
 }
 
+/* Pinned spells must sit on the right regardless of DOM order. */
+.play-desk--split .play-desk__stage-panel:not([hidden]) {
+  order: 1;
+}
+
+.play-desk--split .play-desk__stage-panel.is-pinned:not([hidden]) {
+  order: 2;
+}
+
 .play-desk__stage-panel {
   min-width: 0;
 }
@@ -4601,8 +4610,8 @@ button.play-desk-vital {
   }
 
   .play-desk--split .play-desk__scene-wrap {
-    /* Prefer a bit more room for the pinned spells column when wide. */
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    /* Left = selected panel; right = pinned spells (slightly wider). */
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   }
 }
 
