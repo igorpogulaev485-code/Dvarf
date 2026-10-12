@@ -3330,6 +3330,7 @@ export function MinimalSheetEditor({
             raceName={draft.raceName}
             className={classSummary || primaryClass?.name || ''}
             alignment={draft.identity.alignment}
+            rulesEdition={baseCharacter.rules_edition}
             level={characterLevel}
             experience={draft.identity.experience}
             classes={draft.classes}

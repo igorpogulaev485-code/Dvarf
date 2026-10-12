@@ -4412,35 +4412,33 @@ input {
   z-index: 1;
   display: flex;
   flex-wrap: nowrap;
-  align-items: start;
-  gap: 6px 10px;
+  align-items: center;
+  gap: 8px 12px;
   min-width: 0;
   overflow: visible;
 }
 
 .play-desk-header:has(.play-desk-header__coin:hover),
-.play-desk-header:has(.play-desk-header__coin:focus-visible),
-.play-desk-header:has(.play-desk-vital--speed:hover),
-.play-desk-header:has(.play-desk-vital--speed:focus-visible) {
+.play-desk-header:has(.play-desk-header__coin:focus-visible) {
   z-index: 20;
 }
 
 .play-desk-header__who {
-  /* Hug content; do not shrink — keeps class chips on the name row. */
   flex: 0 0 auto;
   width: max-content;
-  min-width: 160px;
-  max-width: min(440px, 48vw);
+  min-width: 220px;
+  max-width: min(480px, 46vw);
   display: grid;
-  gap: 3px;
-  justify-items: start;
+  gap: 5px;
+  justify-items: stretch;
 }
 
-.play-desk-header__who-main {
+/* 1) Имя · Раса · Мировоззрение · издание */
+.play-desk-header__who-line {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 5px 7px;
+  align-items: baseline;
+  gap: 4px 8px;
   min-width: 0;
 }
 
@@ -4464,23 +4462,27 @@ input {
   color: var(--desk-accent, var(--accent));
 }
 
-.play-desk-header__who-meta {
-  display: flex;
+.play-desk-header__identity {
+  display: inline-flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 10px;
-  min-width: 0;
-  width: max-content;
-  max-width: 100%;
-}
-
-.play-desk-header__sub {
+  align-items: baseline;
+  gap: 0 0.35em;
   margin: 0;
   color: var(--desk-muted);
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   line-height: 1.25;
 }
 
+.play-desk-header__dot {
+  color: var(--desk-muted);
+  opacity: 0.75;
+}
+
+.play-desk-header__edition {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 2) Классы */
 .play-desk-header__classes {
   list-style: none;
   margin: 0;
@@ -4509,18 +4511,15 @@ input {
 }
 
 button.play-desk-header__sub--btn {
-  display: inline;
   padding: 0;
   border: 0;
   background: transparent;
   font: inherit;
-  font-size: 0.82rem;
-  color: var(--desk-muted);
   text-align: left;
   cursor: pointer;
 }
 
-button.play-desk-header__sub--btn:hover {
+button.play-desk-header__identity:hover {
   color: var(--desk-ink);
 }
 
@@ -4535,18 +4534,18 @@ button.play-desk-header__sub--btn:hover {
   text-underline-offset: 2px;
 }
 
+/* 3) Опыт — длинная дорожка на всю ширину who */
 .play-desk-header__xp {
   margin: 0;
   display: grid;
-  grid-template-columns: auto minmax(56px, 110px) auto;
-  gap: 6px;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
   align-items: center;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--desk-muted);
-  width: auto;
-  min-width: 120px;
-  max-width: 180px;
-  flex: 0 1 160px;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
   padding: 0;
   border: 0;
   background: transparent;
@@ -4563,22 +4562,28 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
 .play-desk-header__mid {
   flex: 0 0 auto;
   min-width: 0;
-  padding-top: 2px;
+}
+
+.play-desk-header__stack {
+  display: grid;
+  gap: 4px;
+  align-content: center;
+  min-height: 64px;
 }
 
 .play-desk-header__chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  align-self: center;
-  padding: 5px 8px;
+  padding: 4px 8px;
   border-radius: 999px;
   border: 1px solid var(--desk-line);
   background: #fff;
   font: inherit;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: inherit;
   height: fit-content;
+  white-space: nowrap;
 }
 
 button.play-desk-header__chip {
@@ -4610,7 +4615,7 @@ button.play-desk-header__chip {
 }
 
 .play-desk-header__xp-bar {
-  height: 6px;
+  height: 8px;
   border-radius: 999px;
   background: var(--desk-chip, #e7e1d4);
   overflow: hidden;
@@ -4664,11 +4669,8 @@ button.play-desk-vital {
   cursor: pointer;
 }
 
-button.play-desk-vital:hover,
-.play-desk-vital--speed:hover,
-.play-desk-vital--speed:focus-visible {
+button.play-desk-vital:hover {
   border-color: color-mix(in srgb, var(--desk-accent) 35%, var(--desk-line));
-  outline: none;
 }
 
 .play-desk-vital__icon {
@@ -4709,23 +4711,46 @@ button.play-desk-vital:hover,
   letter-spacing: 0.02em;
 }
 
-.play-desk-vital__dot {
-  position: absolute;
-  top: 5px;
-  right: 6px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--desk-accent, var(--accent));
-  opacity: 0.75;
+/* Same-height card as speed, no icon — alt movement tags. */
+.play-desk-vital--modes {
+  width: auto;
+  min-width: 64px;
+  max-width: 108px;
+  padding: 6px 7px;
 }
 
-.play-desk-vital__tip,
+.play-desk-vital__tags {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  align-content: center;
+}
+
+.play-desk-vital__tag {
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--desk-line);
+  background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 45%, white);
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--desk-ink, var(--ink));
+  white-space: nowrap;
+}
+
 .play-desk-header__coin-tip {
   position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
   z-index: 80;
   display: grid;
   gap: 3px;
+  min-width: 200px;
+  max-width: 280px;
   padding: 9px 12px 9px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 34%, var(--desk-line));
@@ -4741,18 +4766,11 @@ button.play-desk-vital:hover,
   transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
 }
 
-.play-desk-vital__tip {
-  top: calc(100% + 8px);
-  left: 50%;
-  min-width: 140px;
-  transform: translate(-50%, -3px);
-}
-
-.play-desk-vital__tip::before,
 .play-desk-header__coin-tip::before {
   content: '';
   position: absolute;
   top: -5px;
+  right: 18px;
   width: 9px;
   height: 9px;
   border-left: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 34%, var(--desk-line));
@@ -4761,48 +4779,20 @@ button.play-desk-vital:hover,
   transform: rotate(45deg);
 }
 
-.play-desk-vital__tip::before {
-  left: 50%;
-  margin-left: -4px;
-}
-
-.play-desk-header__coin-tip::before {
-  right: 18px;
-}
-
-.play-desk-vital--speed:hover .play-desk-vital__tip,
-.play-desk-vital--speed:focus-visible .play-desk-vital__tip,
 .play-desk-header__coin:hover .play-desk-header__coin-tip,
 .play-desk-header__coin:focus-visible .play-desk-header__coin-tip,
-.play-desk-header__coin.is-tip-open .play-desk-header__coin-tip,
-.play-desk-vital--speed.is-tip-open .play-desk-vital__tip {
+.play-desk-header__coin.is-tip-open .play-desk-header__coin-tip {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: none;
 }
 
-.play-desk-vital--speed:hover .play-desk-vital__tip,
-.play-desk-vital--speed:focus-visible .play-desk-vital__tip,
-.play-desk-vital--speed.is-tip-open .play-desk-vital__tip {
-  transform: translate(-50%, 0);
-}
-
-.play-desk-vital__tip b,
 .play-desk-header__coin-tip b {
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--desk-muted);
-}
-
-.play-desk-vital__tip em {
-  display: block;
-  font-style: normal;
-  font-size: 0.76rem;
-  line-height: 1.35;
-  color: var(--desk-ink, var(--ink));
-  white-space: nowrap;
 }
 
 .play-desk-header__right {
@@ -4813,30 +4803,33 @@ button.play-desk-vital:hover,
   margin-left: auto;
   flex: 0 0 auto;
   min-width: 0;
-  padding-top: 2px;
 }
 
 .play-desk-header__right-tools {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
+  display: grid;
+  gap: 4px;
   flex: 0 0 auto;
+  align-content: center;
 }
 
 .play-desk-header__coin,
 .play-desk-header__rest {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 8px 11px;
+  min-height: 30px;
+  padding: 5px 10px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
   border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 22%, var(--desk-line));
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   color: var(--desk-accent, var(--accent));
+  box-sizing: border-box;
+  white-space: nowrap;
 }
 
 .play-desk-header__coin {
@@ -4853,13 +4846,6 @@ button.play-desk-vital:hover,
 
 .play-desk-header__rest:hover {
   background: var(--desk-accent-soft, var(--accent-soft));
-}
-
-.play-desk-header__coin-tip {
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 200px;
-  max-width: 280px;
 }
 
 .play-desk-header__coin-tip strong {
@@ -4916,7 +4902,11 @@ button.play-desk-vital:hover,
 }
 
 .play-desk-header__hp {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   min-width: 120px;
+  min-height: 64px;
   padding: 8px 12px;
   border-radius: 12px;
   background: #fff;
@@ -4926,6 +4916,7 @@ button.play-desk-vital:hover,
   text-align: left;
   cursor: pointer;
   color: inherit;
+  box-sizing: border-box;
 }
 
 .play-desk-header__hp.is-pulse {
@@ -4959,12 +4950,14 @@ button.play-desk-vital:hover,
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 4px;
-  min-width: 104px;
-  padding: 4px 6px 5px;
+  min-width: 118px;
+  min-height: 64px;
+  padding: 6px 8px;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--danger, #9f2d2d) 42%, var(--desk-line));
-  background: color-mix(in srgb, #fff4f4 82%, white);
+  border: 1px solid color-mix(in srgb, var(--danger, #9f2d2d) 48%, #d8c0c0);
+  background: #fff5f2;
   align-content: center;
+  box-sizing: border-box;
   animation: play-desk-death-in 220ms ease-out;
 }
 
@@ -5002,10 +4995,10 @@ button.play-desk-vital:hover,
 }
 
 .play-desk-header__dying-toggle.is-on {
-  border-color: color-mix(in srgb, var(--danger, #9f2d2d) 50%, var(--desk-line));
+  border-color: color-mix(in srgb, var(--danger, #9f2d2d) 55%, var(--desk-line));
   color: var(--danger, #9f2d2d);
   font-weight: 600;
-  background: color-mix(in srgb, #fff4f4 60%, white);
+  background: #ffe8e4;
 }
 
 .play-desk-header__death-tracks {
@@ -5015,7 +5008,7 @@ button.play-desk-vital:hover,
 }
 
 .play-desk-header__death-tracks.is-dim {
-  opacity: 0.45;
+  opacity: 0.55;
 }
 
 .play-desk-header__death-track {

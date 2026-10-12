@@ -91,7 +91,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 |---------|-------|
 | Foundations | `dvarf-ui-kit-spec.jpg` |
 | 6 тем + rail A | `dvarf-ui-kit-themes-6.jpg`, `dvarf-ui-kit-cabinet-theme.jpg` |
-| Desk chrome | `dvarf-ui-kit-desk-chrome.jpg`, `dvarf-ui-kit-desk-icons.jpg`, `dvarf-ui-kit-desk-header-states.jpg`, `dvarf-ui-kit-desk-coin-tip.jpg` |
+| Desk chrome | `dvarf-ui-kit-desk-chrome.jpg`, `dvarf-ui-kit-desk-icons.jpg`, `dvarf-ui-kit-desk-header-states.jpg`, `dvarf-ui-kit-desk-coin-tip.jpg`, `dvarf-ui-kit-desk-speed-tip.jpg` |
 | Pads / dialogs | `dvarf-ui-kit-dialogs-pads.jpg` |
 | Rail | `dvarf-ui-kit-ability-rail-v2.jpg`, `dvarf-ui-kit-ability-colors.jpg` |
 | Spells | `dvarf-ui-kit-spells.jpg` |
@@ -137,11 +137,12 @@ Live-эталоны в продукте (уже близки к киту): Inven
 
 | Состояние | Как в шапке |
 |-----------|-------------|
-| Мультикласс (2–4+) | чипы `Класс N` в одной линии с именем (wrap); раса/XP ниже |
-| Скорости | витал фикс. размера; alt — hover-tip + точка-маркер (не раздувает ряд) |
-| Нет хода, есть alt | primary = первый alt; детали в tip |
-| HP ≤ 0 / при смерти | death справа от HP; монеты/отдых всегда сверху — сетка не прыгает |
-| Hover монет | непрозрачный tip кошелька (≈ зм + разбивка); клик → pad |
+| Who (3 строки) | 1) Имя · Раса · Мировоззрение · издание · 2) чипы классов · 3) длинная XP-дорожка |
+| Скорости | витал хода; справа такой же блок без иконки — теги лаз./плав./полёт |
+| Нет хода, есть alt | primary = первый alt; остальные тегами в соседнем блоке |
+| Вдохн. / Истощ. | друг под другом |
+| Монеты / Отдых | друг под другом; death справа от HP без прыжка ряда |
+| Hover монет | tip кошелька (≈ зм + разбивка); клик → pad |
 
 Rail характеристик (вариант A) иконок не требует — полные названия, chips, drag.
 

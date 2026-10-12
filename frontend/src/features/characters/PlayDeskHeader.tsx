@@ -39,6 +39,8 @@ type PlayDeskHeaderProps = {
   raceName: string
   className: string
   alignment?: string
+  /** Rules edition label in who line (2014 / 2024). */
+  rulesEdition?: string
   level: number
   experience: number
   classes: ClassLevelEntry[]
@@ -83,6 +85,7 @@ export function PlayDeskHeader({
   raceName,
   className,
   alignment = '',
+  rulesEdition = '2014',
   level,
   experience,
   classes,
@@ -116,6 +119,7 @@ export function PlayDeskHeader({
   onDamaged,
 }: PlayDeskHeaderProps) {
   const alignmentLabel = alignment.trim()
+  const editionLabel = String(rulesEdition).trim() || '2014'
   const classRows = classes.filter((row) => row.name.trim() && row.level > 0)
   const classChips =
     classRows.length > 0
@@ -127,7 +131,6 @@ export function PlayDeskHeader({
         ? [{ id: 'summary', label: className.trim() }]
         : []
   const raceLabel = raceName.trim() || 'Черновик'
-  const subtitleBits = [raceLabel, alignmentLabel || null, '2014'].filter(Boolean)
   const xp = xpProgress(experience, level)
   const [hpPulse, setHpPulse] = useState(false)
   const [hpPadOpen, setHpPadOpen] = useState(false)
@@ -174,17 +177,16 @@ export function PlayDeskHeader({
       ? { ...altModes[0], label: altModes[0].label }
       : null
   const secondarySpeeds = hasWalk ? altModes : altModes.slice(1)
-  const speedTipLines = [
-    primarySpeed
-      ? `${primarySpeed.key === 'walk' ? 'ход' : primarySpeed.label} ${primarySpeed.value}`
-      : null,
-    ...secondarySpeeds.map((mode) => `${mode.label} ${mode.value}`),
-    movementHint,
-  ].filter(Boolean) as string[]
-  const hasSpeedExtras =
-    secondarySpeeds.length > 0 ||
-    (primarySpeed != null && primarySpeed.key !== 'walk') ||
-    Boolean(movementHint)
+  const speedTitle =
+    [
+      primarySpeed
+        ? `${primarySpeed.key === 'walk' ? 'ход' : primarySpeed.label} ${primarySpeed.value}`
+        : null,
+      ...secondarySpeeds.map((mode) => `${mode.label} ${mode.value}`),
+      movementHint,
+    ]
+      .filter(Boolean)
+      .join(' · ') || 'Скорость (из расы / снаряжения)'
 
   function applyHeal(amount: number) {
     const current = hpCurrent ?? 0
@@ -226,26 +228,13 @@ export function PlayDeskHeader({
   return (
     <section className="play-desk-header" aria-label="Шапка стола">
       <div className="play-desk-header__who">
-        <div className="play-desk-header__who-main">
+        {/* 1) Имя · Раса · Мировоззрение · издание */}
+        <div className="play-desk-header__who-line">
           <h1 className="play-desk-header__name">{name || 'Без имени'}</h1>
-          {classChips.length > 0 ? (
-            <ul
-              className={`play-desk-header__classes${classChips.length >= 3 ? ' is-many' : ''}`}
-              aria-label="Классы"
-            >
-              {classChips.map((chip) => (
-                <li key={chip.id} className="play-desk-header__class-chip">
-                  {chip.label}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
-        <div className="play-desk-header__who-meta">
           {onOpenIdentity ? (
             <button
               type="button"
-              className="play-desk-header__sub play-desk-header__sub--btn"
+              className="play-desk-header__identity play-desk-header__sub--btn"
               title={
                 alignmentLabel
                   ? 'Открыть основное (мировоззрение, предыстория…)'
@@ -253,37 +242,67 @@ export function PlayDeskHeader({
               }
               onClick={onOpenIdentity}
             >
-              {raceLabel}
+              <span>{raceLabel}</span>
+              <span className="play-desk-header__dot" aria-hidden>
+                ·
+              </span>
               {alignmentLabel ? (
-                <>
-                  {' · '}
-                  <span className="play-desk-header__alignment">{alignmentLabel}</span>
-                </>
+                <span className="play-desk-header__alignment">{alignmentLabel}</span>
               ) : (
-                <>
-                  {' · '}
-                  <span className="play-desk-header__alignment is-empty">мировоззрение</span>
-                </>
+                <span className="play-desk-header__alignment is-empty">мировоззрение</span>
               )}
-              {' · 2014'}
+              <span className="play-desk-header__dot" aria-hidden>
+                ·
+              </span>
+              <span className="play-desk-header__edition">{editionLabel}</span>
             </button>
           ) : (
-            <p className="play-desk-header__sub">{subtitleBits.join(' · ')}</p>
+            <p className="play-desk-header__identity">
+              <span>{raceLabel}</span>
+              {alignmentLabel ? (
+                <>
+                  <span className="play-desk-header__dot" aria-hidden>
+                    ·
+                  </span>
+                  <span className="play-desk-header__alignment">{alignmentLabel}</span>
+                </>
+              ) : null}
+              <span className="play-desk-header__dot" aria-hidden>
+                ·
+              </span>
+              <span className="play-desk-header__edition">{editionLabel}</span>
+            </p>
           )}
-          <button
-            type="button"
-            className="play-desk-header__xp"
-            title={`Опыт ${xpLabel}. Нажми, чтобы начислить или убавить`}
-            aria-label={`Опыт ${formatXp(xp.xp)}. Открыть клавиатуру`}
-            onClick={() => setXpPadOpen(true)}
-          >
-            <span>ур. {level}</span>
-            <div className="play-desk-header__xp-bar" aria-hidden>
-              <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
-            </div>
-            <span>{xpLabel}</span>
-          </button>
         </div>
+
+        {/* 2) Классы */}
+        {classChips.length > 0 ? (
+          <ul
+            className={`play-desk-header__classes${classChips.length >= 3 ? ' is-many' : ''}`}
+            aria-label="Классы"
+          >
+            {classChips.map((chip) => (
+              <li key={chip.id} className="play-desk-header__class-chip">
+                {chip.label}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {/* 3) Опыт — длинная дорожка */}
+        <button
+          type="button"
+          className="play-desk-header__xp"
+          title={`Опыт ${xpLabel}. Нажми, чтобы начислить или убавить`}
+          aria-label={`Опыт ${formatXp(xp.xp)}. Открыть клавиатуру`}
+          onClick={() => setXpPadOpen(true)}
+        >
+          <span>ур. {level}</span>
+          <div className="play-desk-header__xp-bar" aria-hidden>
+            <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
+          </div>
+          <span>{xpLabel}</span>
+        </button>
       </div>
 
       <div className="play-desk-header__mid">
@@ -296,9 +315,8 @@ export function PlayDeskHeader({
           <div
             className={`play-desk-vital play-desk-vital--speed${
               primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
-            }${hasSpeedExtras ? ' has-tip' : ''}`}
-            tabIndex={hasSpeedExtras ? 0 : undefined}
-            aria-describedby={hasSpeedExtras ? 'play-desk-speed-tip' : undefined}
+            }`}
+            title={speedTitle}
           >
             <IconBoot className="play-desk-vital__icon" />
             <b>{primarySpeed ? primarySpeed.value : '—'}</b>
@@ -309,18 +327,22 @@ export function PlayDeskHeader({
                   : primarySpeed.label
                 : 'Скор.'}
             </span>
-            {hasSpeedExtras ? (
-              <>
-                <i className="play-desk-vital__dot" aria-hidden />
-                <span id="play-desk-speed-tip" className="play-desk-vital__tip" role="tooltip">
-                  <b>Скорости</b>
-                  {speedTipLines.map((line) => (
-                    <em key={line}>{line}</em>
-                  ))}
-                </span>
-              </>
-            ) : null}
           </div>
+          {secondarySpeeds.length > 0 ? (
+            <div
+              className="play-desk-vital play-desk-vital--modes"
+              aria-label="Дополнительные скорости"
+              title={secondarySpeeds.map((m) => `${m.label} ${m.value}`).join(' · ')}
+            >
+              <ul className="play-desk-vital__tags">
+                {secondarySpeeds.map((mode) => (
+                  <li key={mode.key} className="play-desk-vital__tag">
+                    {mode.label} {mode.value}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {onInitiativeRoll ? (
             <button
               type="button"
@@ -344,38 +366,40 @@ export function PlayDeskHeader({
             <b>{formatModifier(proficiencyBonus)}</b>
             <span>БМ</span>
           </div>
-          <button
-            type="button"
-            className={`play-desk-header__chip${inspiration ? ' is-on' : ''}`}
-            onClick={onToggleInspiration}
-            aria-pressed={inspiration}
-            title="Вдохновение — нажми, чтобы переключить"
-          >
-            <IconSpark className="play-desk-header__chip-icon" />
-            <span>Вдохн.</span>
-            <b>{inspiration ? 'да' : '—'}</b>
-          </button>
-          <button
-            type="button"
-            className={`play-desk-header__chip${play.exhaustion > 0 ? ' is-warn' : ''}`}
-            title={
-              exhaustionStage
-                ? `Истощение ${play.exhaustion}: ${exhaustionStage}`
-                : 'Истощение — нажми, чтобы изменить уровень (0–6)'
-            }
-            onClick={() => {
-              const next = play.exhaustion >= 6 ? 0 : play.exhaustion + 1
-              onExhaustionChange(clampExhaustion(next))
-            }}
-          >
-            <span>Истощ.</span>
-            <b>{play.exhaustion}</b>
-          </button>
-          {exhaustionStage ? (
-            <span className="play-desk-header__exh-hint" title={exhaustionStage}>
-              {exhaustionStage}
-            </span>
-          ) : null}
+          <div className="play-desk-header__stack">
+            <button
+              type="button"
+              className={`play-desk-header__chip${inspiration ? ' is-on' : ''}`}
+              onClick={onToggleInspiration}
+              aria-pressed={inspiration}
+              title="Вдохновение — нажми, чтобы переключить"
+            >
+              <IconSpark className="play-desk-header__chip-icon" />
+              <span>Вдохн.</span>
+              <b>{inspiration ? 'да' : '—'}</b>
+            </button>
+            <button
+              type="button"
+              className={`play-desk-header__chip${play.exhaustion > 0 ? ' is-warn' : ''}`}
+              title={
+                exhaustionStage
+                  ? `Истощение ${play.exhaustion}: ${exhaustionStage}`
+                  : 'Истощение — нажми, чтобы изменить уровень (0–6)'
+              }
+              onClick={() => {
+                const next = play.exhaustion >= 6 ? 0 : play.exhaustion + 1
+                onExhaustionChange(clampExhaustion(next))
+              }}
+            >
+              <span>Истощ.</span>
+              <b>{play.exhaustion}</b>
+            </button>
+            {exhaustionStage ? (
+              <span className="play-desk-header__exh-hint" title={exhaustionStage}>
+                {exhaustionStage}
+              </span>
+            ) : null}
+          </div>
         </div>
       </div>
 
