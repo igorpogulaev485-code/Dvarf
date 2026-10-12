@@ -1,0 +1,127 @@
+import type { SheetResource } from '../../shared/dnd/rest'
+import {
+  abilityModifier,
+  formatModifier,
+  type AbilityKey,
+} from './sheetTypes'
+import type { WeaponAttack } from './AttacksPanel'
+import type { InventoryItem } from './inventory'
+
+type PlayDeskAttacksCompactProps = {
+  weapons: WeaponAttack[]
+  abilities: Record<AbilityKey, number>
+  proficiencyBonus: number
+  gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
+  resources: SheetResource[]
+  inventoryItems: InventoryItem[]
+  onToggleHeld?: (attack: WeaponAttack) => void
+  onOpenFull: () => void
+}
+
+const CONSUMABLE_RE =
+  /болт|стрел|дротик|снаряд|патрон|камень|flask|зелье|порошок|кислот|огонь|масло|яд/i
+
+export function PlayDeskAttacksCompact({
+  weapons,
+  abilities,
+  proficiencyBonus,
+  gearBonusesByItem = {},
+  resources,
+  inventoryItems,
+  onToggleHeld,
+  onOpenFull,
+}: PlayDeskAttacksCompactProps) {
+  const named = weapons.filter((row) => row.name.trim())
+  const combatResources = resources.filter(
+    (row) => row.max > 0 && row.name.trim() && row.used < row.max,
+  )
+  const consumables = inventoryItems.filter((item) => {
+    if (!item.name.trim() || (item.qty ?? 0) <= 0) return false
+    return CONSUMABLE_RE.test(item.name)
+  })
+
+  return (
+    <div className="play-desk-compact">
+      <div className="play-desk-compact__head">
+        <h3>Атаки</h3>
+        <button type="button" className="play-desk-compact__link" onClick={onOpenFull}>
+          полностью
+        </button>
+      </div>
+
+      <div className="play-desk-compact__list">
+        {named.length === 0 ? (
+          <p className="play-desk-compact__empty">Нет атак — добавьте в полной панели</p>
+        ) : (
+          named.map((attack) => {
+            const mod = abilityModifier(abilities[attack.ability])
+            const gear = attack.inventory_item_id
+              ? gearBonusesByItem[attack.inventory_item_id]
+              : undefined
+            const attackBonus =
+              mod +
+              (attack.is_proficient ? proficiencyBonus : 0) +
+              (gear?.attackBonus ?? 0)
+            const dmg =
+              attack.damage +
+              (gear?.damageBonus
+                ? ` ${gear.damageBonus >= 0 ? '+' : ''}${gear.damageBonus}`
+                : '')
+            return (
+              <div key={attack.id} className="play-desk-compact__row">
+                <div className="play-desk-compact__row-main">
+                  <b>{attack.name}</b>
+                  {attack.qty != null && attack.qty > 1 ? (
+                    <span className="play-desk-compact__tag">×{attack.qty}</span>
+                  ) : null}
+                  {attack.held ? (
+                    <span className="play-desk-compact__tag is-on">в руках</span>
+                  ) : null}
+                </div>
+                <span className="play-desk-compact__mod">{formatModifier(attackBonus)}</span>
+                <span className="play-desk-compact__dmg">
+                  {dmg || '—'}
+                  {attack.damage_type ? ` ${attack.damage_type}` : ''}
+                </span>
+                {onToggleHeld && attack.inventory_item_id ? (
+                  <button
+                    type="button"
+                    className="play-desk-compact__hold"
+                    onClick={() => onToggleHeld(attack)}
+                  >
+                    {attack.held ? 'убрать' : 'взять'}
+                  </button>
+                ) : null}
+              </div>
+            )
+          })
+        )}
+
+        {combatResources.map((row) => (
+          <div key={row.id} className="play-desk-compact__row is-resource">
+            <div className="play-desk-compact__row-main">
+              <b>{row.name}</b>
+              <span className="play-desk-compact__tag">ресурс</span>
+            </div>
+            <span className="play-desk-compact__mod">
+              {row.max - row.used}/{row.max}
+            </span>
+            <span className="play-desk-compact__dmg">пипсы в полосе боя</span>
+          </div>
+        ))}
+      </div>
+
+      {consumables.length > 0 ? (
+        <div className="play-desk-compact__consumables">
+          <div className="play-desk-compact__subhead">Расходники</div>
+          {consumables.slice(0, 6).map((item) => (
+            <div key={item.id} className="play-desk-compact__cons-row">
+              <span>{item.name}</span>
+              <b>{item.qty ?? 0}</b>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  )
+}

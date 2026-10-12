@@ -205,7 +205,10 @@ import { CompanionsPanel } from './CompanionsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
+import { PlayDeskAttacksCompact } from './PlayDeskAttacksCompact'
+import { PlayDeskHeader } from './PlayDeskHeader'
 import { PlayDeskHotBar } from './PlayDeskHotBar'
+import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
   MODE_DEFAULT_PANEL,
   PLAY_DESK_PANELS,
@@ -216,6 +219,18 @@ import {
   type PlayDeskPanelId,
   type SheetUiState,
 } from './playDeskUi'
+import type { CompanionKind } from './companions'
+
+const COMPANION_KIND_SHORT: Record<CompanionKind, string> = {
+  beast_companion: 'Зверь',
+  steel_defender: 'Защитник',
+  eldritch_cannon: 'Пушка',
+  drake: 'Дрейк',
+  primal_companion: 'Спутник',
+  familiar: 'Фамилиар',
+  ally: 'Напарник',
+  other: 'Спутник',
+}
 import {
   identityExtrasToSheet,
   readIdentityExtras,
@@ -2661,6 +2676,8 @@ export function MinimalSheetEditor({
   const [activePanel, setActivePanel] = useState<PlayDeskPanelId>(
     () => MODE_DEFAULT_PANEL[draft.sheetUi.deskMode],
   )
+  /** When set, show full editor panel instead of combat compact strip. */
+  const [forceFullPanel, setForceFullPanel] = useState<PlayDeskPanelId | null>(null)
   const [isPlayDesk, setIsPlayDesk] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches,
   )
@@ -2683,6 +2700,11 @@ export function MinimalSheetEditor({
   function setDeskMode(mode: PlayDeskMode) {
     patchSheetUi({ deskMode: mode })
     setActivePanel(MODE_DEFAULT_PANEL[mode])
+    setForceFullPanel(null)
+  }
+
+  function showCompact(id: 'attacks' | 'spells'): boolean {
+    return isPlayDesk && forceFullPanel !== id
   }
 
   const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
@@ -2786,92 +2808,166 @@ export function MinimalSheetEditor({
             onSaved(updated)
           }}
         />
-      <CombatStickyHeader
-
-        name={draft.name}
-        raceName={draft.raceName}
-        className={classSummary || primaryClass?.name || ''}
-        level={characterLevel}
-        abilities={draft.abilities}
-        classes={draft.classes}
-        hitDie={draft.play.hitDie}
-        constitutionMod={abilityModifier(draft.abilities.con)}
-        hpCurrent={draft.hpCurrent}
-        hpMax={draft.hpMax}
-        hpTemp={draft.play.hpTemp}
-        acOverride={draft.ac}
-        autoAc={armorClass.ac}
-        acHint={armorClass.summary}
-        speed={
-          draft.speed == null && !gearEffects.speedBonusFt
-            ? null
-            : (draft.speed ?? 0) + gearEffects.speedBonusFt
-        }
-        movementHint={[
-          formatRaceMovementHint({
-            climb: draft.climbSpeed,
-            swim: draft.swimSpeed,
-            fly: draft.flySpeed,
-          }),
-          gearEffects.speedBonusFt
-            ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
-            : null,
-        ]
-          .filter(Boolean)
-          .join(' · ') || null}
-        initiativeOverride={draft.initiativeOverride}
-        initiativeBonus={featInitiativeBonus}
-        inspiration={draft.inspiration}
-        exhaustion={draft.play.exhaustion}
-        isDying={draft.play.isDying}
-        deathSuccesses={draft.play.deathSuccesses}
-        deathFails={draft.play.deathFails}
-        conditionNames={[
-          ...(draft.play.exhaustion > 0 ? [`Истощение ${draft.play.exhaustion}`] : []),
-          ...draft.play.conditions
-            .filter((item) => item.slug !== 'exhaustion')
-            .map((item) => formatConditionLabel(item)),
-        ]}
-        concentration={draft.play.concentration}
-        onClearConcentration={() =>
-          setDraft((prev) => ({
-            ...prev,
-            play: { ...prev.play, concentration: null },
-          }))
-        }
-        onChange={(patch) =>
-          setDraft((prev) => {
-            const next = { ...prev, ...patch }
-            // Sticky shows walk + gear; persist base without item bonus.
-            if (patch.speed !== undefined && gearEffects.speedBonusFt) {
-              next.speed =
-                patch.speed == null
-                  ? null
-                  : Math.max(0, patch.speed - gearEffects.speedBonusFt)
+        {isPlayDesk ? (
+          <PlayDeskHeader
+            name={draft.name}
+            raceName={draft.raceName}
+            className={classSummary || primaryClass?.name || ''}
+            level={characterLevel}
+            experience={draft.identity.experience}
+            classes={draft.classes}
+            hitDie={draft.play.hitDie}
+            constitutionMod={abilityModifier(draft.abilities.con)}
+            hpCurrent={draft.hpCurrent}
+            hpMax={draft.hpMax}
+            hpTemp={draft.play.hpTemp}
+            acOverride={draft.ac}
+            autoAc={armorClass.ac}
+            acHint={armorClass.summary}
+            speed={
+              draft.speed == null && !gearEffects.speedBonusFt
+                ? null
+                : (draft.speed ?? 0) + gearEffects.speedBonusFt
             }
-            return next
-          })
-        }
-      />
+            movementHint={[
+              formatRaceMovementHint({
+                climb: draft.climbSpeed,
+                swim: draft.swimSpeed,
+                fly: draft.flySpeed,
+              }),
+              gearEffects.speedBonusFt
+                ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(' · ') || null}
+            proficiencyBonus={proficiencyBonus}
+            goldGp={draft.inventory.coins.gp}
+            isDying={draft.play.isDying}
+            deathSuccesses={draft.play.deathSuccesses}
+            deathFails={draft.play.deathFails}
+            onOpenRest={() => {
+              setActivePanel('play')
+              setForceFullPanel('play')
+            }}
+            onChange={(patch) =>
+              setDraft((prev) => {
+                const next = { ...prev, ...patch }
+                if (patch.speed !== undefined && gearEffects.speedBonusFt) {
+                  next.speed =
+                    patch.speed == null
+                      ? null
+                      : Math.max(0, patch.speed - gearEffects.speedBonusFt)
+                }
+                return next
+              })
+            }
+          />
+        ) : (
+          <CombatStickyHeader
+            name={draft.name}
+            raceName={draft.raceName}
+            className={classSummary || primaryClass?.name || ''}
+            level={characterLevel}
+            abilities={draft.abilities}
+            classes={draft.classes}
+            hitDie={draft.play.hitDie}
+            constitutionMod={abilityModifier(draft.abilities.con)}
+            hpCurrent={draft.hpCurrent}
+            hpMax={draft.hpMax}
+            hpTemp={draft.play.hpTemp}
+            acOverride={draft.ac}
+            autoAc={armorClass.ac}
+            acHint={armorClass.summary}
+            speed={
+              draft.speed == null && !gearEffects.speedBonusFt
+                ? null
+                : (draft.speed ?? 0) + gearEffects.speedBonusFt
+            }
+            movementHint={[
+              formatRaceMovementHint({
+                climb: draft.climbSpeed,
+                swim: draft.swimSpeed,
+                fly: draft.flySpeed,
+              }),
+              gearEffects.speedBonusFt
+                ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(' · ') || null}
+            initiativeOverride={draft.initiativeOverride}
+            initiativeBonus={featInitiativeBonus}
+            inspiration={draft.inspiration}
+            exhaustion={draft.play.exhaustion}
+            isDying={draft.play.isDying}
+            deathSuccesses={draft.play.deathSuccesses}
+            deathFails={draft.play.deathFails}
+            conditionNames={[
+              ...(draft.play.exhaustion > 0 ? [`Истощение ${draft.play.exhaustion}`] : []),
+              ...draft.play.conditions
+                .filter((item) => item.slug !== 'exhaustion')
+                .map((item) => formatConditionLabel(item)),
+            ]}
+            concentration={draft.play.concentration}
+            onClearConcentration={() =>
+              setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, concentration: null },
+              }))
+            }
+            onChange={(patch) =>
+              setDraft((prev) => {
+                const next = { ...prev, ...patch }
+                if (patch.speed !== undefined && gearEffects.speedBonusFt) {
+                  next.speed =
+                    patch.speed == null
+                      ? null
+                      : Math.max(0, patch.speed - gearEffects.speedBonusFt)
+                }
+                return next
+              })
+            }
+          />
+        )}
       </div>
 
       {isPlayDesk && dockCompanions.length > 0 ? (
         <div className="play-desk__dock" aria-label="Напарники">
           <span className="play-desk__dock-label">Напарники</span>
-          {dockCompanions.map((row) => (
-            <div key={row.id} className="play-desk__comp">
-              <b>{row.name || 'Без имени'}</b>
-              <span>HP {row.stats.hp ?? '—'}</span>
-              <span>
-                {[
-                  row.stats.ac != null ? `КД ${row.stats.ac}` : null,
-                  row.stats.speed != null ? `${row.stats.speed} фт` : null,
-                ]
-                  .filter(Boolean)
-                  .join(' · ') || 'спутник'}
-              </span>
-            </div>
-          ))}
+          {dockCompanions.map((row, index) => {
+            const initial = (row.name.trim()[0] || '?').toUpperCase()
+            const isPrimary = index === 0
+            const kind = COMPANION_KIND_SHORT[row.kind] ?? 'Спутник'
+            return (
+              <button
+                key={row.id}
+                type="button"
+                className={`play-desk__comp${isPrimary ? ' is-primary' : ''}`}
+                onClick={() => {
+                  setDeskMode('companions')
+                  setActivePanel('companions')
+                }}
+              >
+                <span className="play-desk__comp-face" aria-hidden>
+                  {initial}
+                </span>
+                <span className="play-desk__comp-text">
+                  <b>{row.name || 'Без имени'}</b>
+                  <span>
+                    {isPrimary ? 'Основной' : kind}
+                    {row.stats.hp != null ? ` · ${row.stats.hp} HP` : ''}
+                  </span>
+                </span>
+                <span className="play-desk__comp-hp">
+                  {row.stats.hp != null ? row.stats.hp : '—'}
+                </span>
+              </button>
+            )
+          })}
+          <p className="play-desk__dock-note">
+            Док всегда виден. Полный список — панель «Напарники».
+          </p>
         </div>
       ) : null}
 
@@ -2910,7 +3006,10 @@ export function MinimalSheetEditor({
                 className="play-desk__panel-pick"
                 aria-label="Панель"
                 value={activePanel}
-                onChange={(event) => setActivePanel(event.target.value as PlayDeskPanelId)}
+                onChange={(event) => {
+                  setActivePanel(event.target.value as PlayDeskPanelId)
+                  setForceFullPanel(null)
+                }}
               >
                 {PLAY_DESK_PANELS.map((panel) => (
                   <option key={panel.id} value={panel.id}>
@@ -3571,34 +3670,76 @@ export function MinimalSheetEditor({
       </div>
 
       <div className="play-desk__stage-panel" hidden={stageHidden('attacks')}>
-      <AttacksPanel
-        edition={baseCharacter.rules_edition as RulesEdition}
-        weapons={draft.weapons}
-        abilities={effectiveAbilities}
-        proficiencyBonus={proficiencyBonus}
-        weaponProficiency={draft.identity.weapons}
-        gearBonusesByItem={gearEffects.byItem}
-        onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
-        onToggleHeld={(attack) => {
-          if (!attack.inventory_item_id) return
-          setDraft((prev) => {
-            const item = prev.inventory.items.find(
-              (row) => row.id === attack.inventory_item_id,
-            )
-            if (!item) return prev
-            const items = equipInventoryItem(
-              prev.inventory.items,
-              item.id,
-              !item.equipped,
-            )
-            return {
-              ...prev,
-              inventory: { ...prev.inventory, items },
-              weapons: syncAttacksHeldFromInventory(prev.weapons, items),
-            }
-          })
-        }}
-      />
+      {showCompact('attacks') ? (
+        <PlayDeskAttacksCompact
+          weapons={draft.weapons}
+          abilities={effectiveAbilities}
+          proficiencyBonus={proficiencyBonus}
+          gearBonusesByItem={gearEffects.byItem}
+          resources={draft.play.resources}
+          inventoryItems={draft.inventory.items}
+          onOpenFull={() => setForceFullPanel('attacks')}
+          onToggleHeld={(attack) => {
+            if (!attack.inventory_item_id) return
+            setDraft((prev) => {
+              const item = prev.inventory.items.find(
+                (row) => row.id === attack.inventory_item_id,
+              )
+              if (!item) return prev
+              const items = equipInventoryItem(
+                prev.inventory.items,
+                item.id,
+                !item.equipped,
+              )
+              return {
+                ...prev,
+                inventory: { ...prev.inventory, items },
+                weapons: syncAttacksHeldFromInventory(prev.weapons, items),
+              }
+            })
+          }}
+        />
+      ) : (
+        <>
+          {isPlayDesk ? (
+            <button
+              type="button"
+              className="play-desk-compact__link play-desk-compact__link--bar"
+              onClick={() => setForceFullPanel(null)}
+            >
+              ← компактно
+            </button>
+          ) : null}
+          <AttacksPanel
+            edition={baseCharacter.rules_edition as RulesEdition}
+            weapons={draft.weapons}
+            abilities={effectiveAbilities}
+            proficiencyBonus={proficiencyBonus}
+            weaponProficiency={draft.identity.weapons}
+            gearBonusesByItem={gearEffects.byItem}
+            onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
+            onToggleHeld={(attack) => {
+              if (!attack.inventory_item_id) return
+              setDraft((prev) => {
+                const item = prev.inventory.items.find(
+                  (row) => row.id === attack.inventory_item_id,
+                )
+                if (!item) return prev
+                const items = equipInventoryItem(
+                  prev.inventory.items,
+                  item.id,
+                  !item.equipped,
+                )
+                return {
+                  ...prev,
+                  inventory: { ...prev.inventory, items },
+                  weapons: syncAttacksHeldFromInventory(prev.weapons, items),
+                }
+              })
+            }}
+          />
+        </>
+      )}
 
       </div>
 
@@ -3668,51 +3809,82 @@ export function MinimalSheetEditor({
         className={`play-desk__stage-panel${deskSplit && splitSecondary === 'spells' ? ' is-pinned' : ''}`}
         hidden={stageHidden('spells')}
       >
-      {deskSplit && splitSecondary === 'spells' ? (
-        <div className="play-desk__pinned-head">
-          <h3>Заклинания (закреплено)</h3>
-          <button
-            type="button"
-            className="play-desk__split-btn is-on"
-            onClick={() => patchSheetUi({ deskSplit: false })}
-          >
-            снять split
-          </button>
-        </div>
-      ) : null}
-      <SpellsPanel
-        edition={baseCharacter.rules_edition as RulesEdition}
-        className={classSummary || primaryClass?.name || ''}
-        level={characterLevel}
-        classes={draft.classes}
-        subclassCasters={draft.subclassGrants
-          .filter((row) => row.caster?.progression === 'third')
-          .map((row) => ({
-            classEntryId: row.classEntryId,
-            progression: 'third' as const,
-            ability: row.caster?.ability ?? null,
-          }))}
-        spells={draft.spells}
-        abilities={draft.abilities}
-        proficiencyBonus={proficiencyBonus}
-        inventoryItems={draft.inventory.items}
-        inventory={draft.inventory}
-        onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
-        onInventoryChange={(inventory) =>
-          setDraft((prev) => ({
-            ...prev,
-            inventory,
-            spells: withSpellFocusFlags(prev.spells, inventory.items),
-          }))
-        }
-        onConcentrationChange={(concentration) =>
-          setDraft((prev) => ({
-            ...prev,
-            play: { ...prev.play, concentration },
-          }))
-        }
-        onToast={onToast}
-      />
+      {showCompact('spells') ? (
+        <PlayDeskSpellsCompact
+          spells={draft.spells}
+          abilities={draft.abilities}
+          proficiencyBonus={proficiencyBonus}
+          pinned={deskSplit && splitSecondary === 'spells'}
+          onOpenFull={() => setForceFullPanel('spells')}
+          onClearSplit={
+            deskSplit && splitSecondary === 'spells'
+              ? () => patchSheetUi({ deskSplit: false })
+              : undefined
+          }
+          onSpendSlot={(level) => {
+            const key = String(level)
+            setDraft((prev) => {
+              const slot = prev.spells.slots[key] ?? { max: 0, used: 0 }
+              if (slot.used >= slot.max) return prev
+              return {
+                ...prev,
+                spells: {
+                  ...prev.spells,
+                  slots: {
+                    ...prev.spells.slots,
+                    [key]: { ...slot, used: slot.used + 1 },
+                  },
+                },
+              }
+            })
+          }}
+        />
+      ) : (
+        <>
+          {isPlayDesk ? (
+            <button
+              type="button"
+              className="play-desk-compact__link play-desk-compact__link--bar"
+              onClick={() => setForceFullPanel(null)}
+            >
+              ← компактно
+            </button>
+          ) : null}
+          <SpellsPanel
+            edition={baseCharacter.rules_edition as RulesEdition}
+            className={classSummary || primaryClass?.name || ''}
+            level={characterLevel}
+            classes={draft.classes}
+            subclassCasters={draft.subclassGrants
+              .filter((row) => row.caster?.progression === 'third')
+              .map((row) => ({
+                classEntryId: row.classEntryId,
+                progression: 'third' as const,
+                ability: row.caster?.ability ?? null,
+              }))}
+            spells={draft.spells}
+            abilities={draft.abilities}
+            proficiencyBonus={proficiencyBonus}
+            inventoryItems={draft.inventory.items}
+            inventory={draft.inventory}
+            onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+            onInventoryChange={(inventory) =>
+              setDraft((prev) => ({
+                ...prev,
+                inventory,
+                spells: withSpellFocusFlags(prev.spells, inventory.items),
+              }))
+            }
+            onConcentrationChange={(concentration) =>
+              setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, concentration },
+              }))
+            }
+            onToast={onToast}
+          />
+        </>
+      )}
 
       </div>
 
