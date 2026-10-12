@@ -293,6 +293,27 @@ function compactComponents(spell: SheetSpell): string {
   return parts.join('/')
 }
 
+function shortDamage(raw: string): string {
+  const t = raw.trim()
+  if (!t || t === '—') return ''
+  return t.replace(/\s+/g, ' ')
+}
+
+/** Prefer sheet damage; else lowest scale-table entry (cantrip / slot). */
+function compactDamage(spell: SheetSpell): string {
+  const direct = shortDamage(spell.damage)
+  if (direct) return direct
+  const table =
+    spell.level <= 0 ? spell.damage_at_character_level : spell.damage_at_slot_level
+  if (!table) return ''
+  const keys = Object.keys(table)
+    .map((key) => Number(key))
+    .filter((n) => Number.isFinite(n))
+    .sort((a, b) => a - b)
+  if (keys.length === 0) return ''
+  return shortDamage(table[String(keys[0])] ?? '')
+}
+
 function compactSpellMeta(spell: SheetSpell): string {
   const parts: string[] = []
   if (spell.school) parts.push(spellSchoolLabelRu(spell.school))
@@ -305,6 +326,8 @@ function compactSpellMeta(spell: SheetSpell): string {
   if (spell.duration?.trim()) parts.push(spell.duration.trim())
   const atk = spell.attack_or_save?.trim()
   if (atk && atk !== '—') parts.push(atk)
+  const dmg = compactDamage(spell)
+  if (dmg) parts.push(dmg)
   return parts.join(' · ')
 }
 
