@@ -24,11 +24,22 @@ type BackgroundSetupDialogProps = {
   root: CatalogEntry | null
   /** Catalog children / PHB variants (spy, gladiator, …). */
   variants: CatalogEntry[]
+  /**
+   * Languages already granted (race fixed + race picks). Shown as blocked chips
+   * («· уже есть»), same pattern as class skill/tool chips.
+   */
+  blockedLanguageNames?: string[]
   onConfirm: (result: BackgroundSetupConfirm) => void
   onClose: () => void
 }
 
 const KEEP_ROOT = '__root__'
+/** Common is baseline for virtually all PHB races — never a background choice. */
+const COMMON_LANGUAGE = 'общий'
+
+function normLang(name: string): string {
+  return name.trim().toLowerCase()
+}
 
 function skillLabel(key: string): string {
   return SKILL_DEFS.find((item) => item.key === key)?.label ?? key
@@ -78,6 +89,7 @@ export function BackgroundSetupDialog({
   open,
   root,
   variants,
+  blockedLanguageNames = [],
   onConfirm,
   onClose,
 }: BackgroundSetupDialogProps) {
@@ -97,6 +109,15 @@ export function BackgroundSetupDialog({
     [effectiveEntry],
   )
 
+  const blockedLanguages = useMemo(() => {
+    const set = new Set<string>()
+    for (const name of blockedLanguageNames) {
+      const key = normLang(name)
+      if (key && key !== COMMON_LANGUAGE) set.add(key)
+    }
+    return set
+  }, [blockedLanguageNames])
+
   const skillNeed = def?.skillChoices?.count ?? 0
   const toolNeed = def?.toolChoices?.count ?? 0
   const langNeed = def?.languagesChoose ?? 0
@@ -107,8 +128,13 @@ export function BackgroundSetupDialog({
   )
   const toolOptions = def?.toolChoices?.from ?? []
   const languageOptions = useMemo(() => {
-    const fixed = new Set((def?.languages ?? []).map((item) => item.toLowerCase()))
-    return LANGUAGE_PRESETS.filter((name) => !fixed.has(name.toLowerCase()))
+    const fixed = new Set((def?.languages ?? []).map((item) => normLang(item)))
+    return LANGUAGE_PRESETS.filter((name) => {
+      const key = normLang(name)
+      if (key === COMMON_LANGUAGE) return false
+      if (fixed.has(key)) return false
+      return true
+    })
   }, [def])
   const equipmentPackages = def?.equipment ?? []
   const hasRp = def ? backgroundHasRoleplayTables(def) : false
@@ -165,6 +191,8 @@ export function BackgroundSetupDialog({
   }
 
   function toggleLanguage(name: string) {
+    if (blockedLanguages.has(normLang(name))) return
+    if (normLang(name) === COMMON_LANGUAGE) return
     setLanguages((prev) => {
       if (prev.includes(name)) return prev.filter((item) => item !== name)
       if (prev.length >= langNeed) return prev
@@ -371,19 +399,28 @@ export function BackgroundSetupDialog({
             {langNeed > 0 ? (
               <Field
                 label={`Языки на выбор (${languages.length}/${langNeed})`}
-                hint={def.languagesChooseNoteRu ?? undefined}
+                hint={
+                  def.languagesChooseNoteRu ??
+                  (blockedLanguages.size > 0
+                    ? 'Серые — уже с расы. Общий не в списке: он есть у всех.'
+                    : 'Общий не в списке: он есть у всех.')
+                }
               >
                 <div className="chip-row">
                   {languageOptions.map((name) => {
-                    const on = languages.includes(name)
+                    const blocked = blockedLanguages.has(normLang(name))
+                    const on = !blocked && languages.includes(name)
                     return (
                       <button
                         key={name}
                         type="button"
-                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        disabled={blocked}
+                        title={blocked ? 'Уже есть с расы' : undefined}
+                        className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                         onClick={() => toggleLanguage(name)}
                       >
                         {name}
+                        {blocked ? ' · уже есть' : ''}
                       </button>
                     )
                   })}

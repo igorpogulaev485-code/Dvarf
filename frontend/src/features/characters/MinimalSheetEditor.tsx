@@ -4524,6 +4524,10 @@ export function MinimalSheetEditor({
         open={backgroundGrantPicker != null}
         root={backgroundGrantPicker?.root ?? null}
         variants={backgroundGrantPicker?.variants ?? []}
+        blockedLanguageNames={[
+          ...(draft.raceGrant?.languages ?? []),
+          ...(draft.identity.languages ?? []),
+        ]}
         onClose={() => {
           setBackgroundGrantPicker(null)
           // Cancel from wizard: restore queue on the background step.

@@ -590,6 +590,18 @@ export function CreateCharacterPage() {
     return [...tools]
   }, [state.backgroundSetup?.picks.tools, state.raceSetup?.picks.tools])
 
+  /** Race fixed languages + race language picks — block in background language chips. */
+  const blockedLanguageNames = useMemo(() => {
+    const names = new Set<string>()
+    for (const name of raceGrantDef?.languages ?? []) {
+      if (name.trim()) names.add(name.trim())
+    }
+    for (const name of state.raceSetup?.picks.languages ?? []) {
+      if (name.trim()) names.add(name.trim())
+    }
+    return [...names]
+  }, [raceGrantDef?.languages, state.raceSetup?.picks.languages])
+
   const patchState = useCallback((patch: Partial<CreatePipelineState>) => {
     setState((prev) => ({ ...prev, ...patch }))
   }, [])
@@ -1550,6 +1562,7 @@ export function CreateCharacterPage() {
         open={Boolean(bgSetup)}
         root={bgSetup?.root ?? null}
         variants={bgSetup?.variants ?? []}
+        blockedLanguageNames={blockedLanguageNames}
         onClose={() => setBgSetup(null)}
         onConfirm={(result: BackgroundSetupConfirm) => {
           patchState({
