@@ -46,6 +46,12 @@ function skillMark(state: SkillState): string {
   return '—'
 }
 
+function skillMeta(state: SkillState, modLabel: string, gearLabel: string): string {
+  const mark = skillMark(state)
+  if (mark === '—') return `— ${modLabel}${gearLabel}`
+  return `${mark} ${modLabel}${gearLabel}`
+}
+
 export { cycleSkill }
 
 export function AbilitySkillsColumn({
@@ -92,14 +98,14 @@ export function AbilitySkillsColumn({
           type="button"
           onClick={() => onCollapsedChange([...ABILITY_KEYS])}
         >
-          Свернуть все навыки
+          ▲ Свернуть все
         </button>
         <button type="button" onClick={() => onCollapsedChange([])}>
-          Развернуть все
+          ▼ Развернуть все
         </button>
       </div>
       <Text tone="muted" className="abil-column__hint">
-        ▾ свернуть · ⋮⋮ порядок · клик по навыку: владение/экспертиза
+        ▾ свернуть · ⋮⋮ порядок · клик по навыку: владение / экспертиза
       </Text>
       <div className="abil-column__list" id="abil-column-list">
         {order.map((key) => {
@@ -217,8 +223,11 @@ export function AbilitySkillsColumn({
                         >
                           <span>{skill.label}</span>
                           <span className="abil-skill__meta">
-                            {skillMark(state)} · {formatModifier(mod)}
-                            {gearSkill ? ` · предм. ${formatModifier(gearSkill)}` : ''}
+                            {skillMeta(
+                              state,
+                              formatModifier(mod),
+                              gearSkill ? ` · предм. ${formatModifier(gearSkill)}` : '',
+                            )}
                           </span>
                         </button>
                       )

@@ -3536,7 +3536,7 @@ export function MinimalSheetEditor({
           {passivesCompact}
           {isPlayDesk ? (
             <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
-              Владения и языки
+              Владения · языки и инструменты ▸
             </Button>
           ) : null}
         </aside>
