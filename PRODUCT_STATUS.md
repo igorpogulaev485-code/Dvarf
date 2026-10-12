@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/desk-scenes-no-select-a73e`  
+**Prod tip (ветка линии прода):** `cursor/desk-vitals-wave-a73e`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -544,8 +544,9 @@
 | Концентрация | Каст ставит; смена — confirm до траты ячейки; урон → «Удержал / Сорвалось»; компакт открывает полный каст | Не теряешь концентрацию молча |
 | Состояния | Панель без отдыха/HP/костей — только состояния; отдых в шапке | Нет дублей с RestDialog и HP-pad |
 | Расходники в бою | Авто (стрелы/зелья/…) + до **3 избранных** ★; клик «потратить» −1; добавить из боя или Исследования | То, что жмёшь в бою, под рукой даже если мы не угадали предмет |
+| Split UI | Заклинания справа; кнопка «Заклинания» / «без заклинаний» | Без слова split |
 
-На проде: **нет** · ветка `cursor/desk-vitals-wave-a73e` · PR #118 · ждать «залей»
+На проде: **да** · ветка `cursor/desk-vitals-wave-a73e` · PR #118 · это **prod tip** · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-7tOUzF2V.js` («без заклинаний» / «Удержал» / «в избранное» / `combat_consumable`); CSS `index-Cbd8vOye.css` (`hp-pad__` / `cons-fav` / `is-pinned`); dist→web; `/characters` → JSON 401; кабинет/лобби/classic на диске
 
 ### 2026-10-12 — Play-desk polish layer-2 (шапка / rail / отдых / гримуар / чародейство)
 
@@ -617,7 +618,7 @@
 | ЕЩЁ | Вкладки: Состояния и ресурсы / Основное / Настройка / Владения | Ничего не потеряли; потом пересоберём |
 | Hot | Состояния / концентрация / ресурсы на всех сценах кроме ЕЩЁ | Быстрый доступ из игры |
 
-На проде: **да** · ветка `cursor/desk-scenes-no-select-a73e` · PR #117 · это **prod tip** · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-Q0HwNbnc.js` (`play-desk__more-tab`); dist→web
+На проде: **да** · ветка `cursor/desk-scenes-no-select-a73e` · PR #117 · tip дальше → `cursor/desk-vitals-wave-a73e` · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-Q0HwNbnc.js` (`play-desk__more-tab`); dist→web
 
 ### 2026-10-12 — Hotfix: «страница вместо API» на листе
 
@@ -1219,3 +1220,4 @@
 | 2026-10-12 | `cursor/delete-character-list-a73e` · PR #115 | Удаление персонажа из списка с confirm; tip → эта ветка; dist→web; `/health` ok; бандл `index-DeQLeRiO.js` |
 | 2026-10-12 | `cursor/sheet-conflict-fix-a73e` · PR #116 | Фикс loop конфликта версий автосейва; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-BXzZShGD.js` |
 | 2026-10-12 | `cursor/desk-scenes-no-select-a73e` · PR #117 | Сцены без селекта + Способности + ЕЩЁ; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-Q0HwNbnc.js` |
+| 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | HP pad / концентрация / расходники+избранное / split справа; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-7tOUzF2V.js` / CSS `index-Cbd8vOye.css` |
