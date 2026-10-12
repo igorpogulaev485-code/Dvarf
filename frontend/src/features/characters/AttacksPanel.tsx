@@ -156,14 +156,17 @@ export function AttacksPanel({
   }
 
   return (
-    <Panel title="Атаки">
+    <Panel title="Атаки" className="attacks-panel">
       <Stack gap={12}>
-        <Text tone="muted">
-          Атака может быть обычным оружием или артефактом. «В руках» — сейчас держишь (двуручное
-          занимает обе руки; иначе до двух одноручных / одноручное+щит). Убрать = убрать в ножны
-          (в бою это действие). Владение (бонус мастерства) — от блока «Владения снаряжением».
-          Природное оружие расы всегда с владением и не занимает слоты рук инвентаря.
-        </Text>
+        <details className="sheet-help">
+          <summary>Как работают атаки</summary>
+          <Text tone="muted">
+            Атака может быть обычным оружием или артефактом. «В руках» — сейчас держишь (двуручное
+            занимает обе руки; иначе до двух одноручных / одноручное+щит). Убрать = убрать в ножны
+            (в бою это действие). Владение — от блока «Владения снаряжением». Природное оружие расы
+            всегда с владением и не занимает слоты рук.
+          </Text>
+        </details>
 
         {weapons.length === 0 ? (
           <Text tone="muted">Пока нет атак — добавь первую.</Text>
@@ -200,6 +203,22 @@ export function AttacksPanel({
                   : ''
               }`}
             >
+              <div className="attack-card__combat" aria-label="Быстрый взгляд">
+                <strong className="attack-card__combat-name">
+                  {attack.name.trim() || 'Без имени'}
+                </strong>
+                <span className="attack-card__combat-stat">
+                  <span className="attack-card__combat-label">атака</span>
+                  {formatModifier(attackBonus)}
+                </span>
+                <span className="attack-card__combat-stat">
+                  <span className="attack-card__combat-label">урон</span>
+                  {damageDisplay || '—'}
+                  {attack.damage_type ? (
+                    <span className="attack-card__combat-type">{attack.damage_type}</span>
+                  ) : null}
+                </span>
+              </div>
               <div className="attack-card__meta">
                 <span className={`attack-source attack-source--${attack.source_kind}`}>
                   {sourceLabel(attack.source_kind)}

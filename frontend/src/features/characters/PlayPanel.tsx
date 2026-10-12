@@ -442,9 +442,9 @@ export function PlayPanel({
   }
 
   return (
-    <Panel title="Состояния и ресурсы">
+    <Panel title="Состояния и ресурсы" className="play-panel">
       <Stack gap={14}>
-        <div className="sheet-grid sheet-grid--2">
+        <div className="sheet-grid sheet-grid--2 play-panel__top">
           <Field label="Временные HP">
             <NumberInput
               min={0}
@@ -499,10 +499,13 @@ export function PlayPanel({
               {activeDie ? ` · ${activeDie}` : ''}
             </span>
           </div>
-          <Text tone="muted">
-            Кости хитов привязаны к классам. Потрать кость → HP в шапке. Классовые ресурсы — в
-            текстовых блоках ниже.
-          </Text>
+          <details className="sheet-help">
+            <summary>Про кости хитов</summary>
+            <Text tone="muted">
+              Кости привязаны к классам. Потрать кость → HP в шапке. Классовые ресурсы — в текстовых
+              блоках и умениях класса.
+            </Text>
+          </details>
           {pools.length > 0 ? (
             <div className="play-hit-dice">
               {pools.map((pool) => (
@@ -729,11 +732,6 @@ export function PlayPanel({
           <Text>
             <strong>Отдых целиком</strong>
           </Text>
-          <Text tone="muted">
-            Продолжительный: полные HP, половина костей, ячейки/pact, ресурсы «короткий» и
-            «продолжительный», −1 истощение, сброс спасбросков. Короткий (только ресурсы) — пипсы в
-            текстовых блоках со сбросом «короткий».
-          </Text>
           <div className="play-rest-actions">
             <Button type="button" onClick={doLongRest}>
               Продолжительный отдых
@@ -742,12 +740,17 @@ export function PlayPanel({
               Сброс коротких ресурсов
             </Button>
           </div>
-          {featureDesiredResources.length > 0 ? (
+          <details className="sheet-help">
+            <summary>Что сбрасывает отдых</summary>
             <Text tone="muted">
-              Классовые пулы ({featureDesiredResources.length}) сбрасываются здесь вместе с
-              отдыхом; управление — в блоке умений класса.
+              Продолжительный: полные HP, половина костей, ячейки/pact, ресурсы «короткий» и
+              «продолжительный», −1 истощение, сброс спасбросков. «Сброс коротких ресурсов» — только
+              пипсы со сбросом «короткий».
+              {featureDesiredResources.length > 0
+                ? ` Классовые пулы (${featureDesiredResources.length}) сбрасываются вместе с отдыхом.`
+                : ''}
             </Text>
-          ) : null}
+          </details>
         </div>
       </Stack>
     </Panel>

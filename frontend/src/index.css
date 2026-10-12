@@ -1298,11 +1298,102 @@ input {
   border-style: dashed;
 }
 
+.attack-card__combat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
+}
+
+.attack-card__combat-name {
+  font-size: 0.95rem;
+  line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.attack-card__combat-stat {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 3.4rem;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.attack-card__combat-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.attack-card__combat-type {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0;
+  max-width: 5.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .attack-card__meta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+}
+
+.sheet-help {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.55);
+  padding: 0 10px;
+}
+
+.sheet-help > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 8px 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.sheet-help > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sheet-help > summary::before {
+  content: '▸ ';
+}
+
+.sheet-help[open] > summary::before {
+  content: '▾ ';
+}
+
+.sheet-help[open] {
+  padding-bottom: 8px;
+}
+
+.sheet-help .ui-text {
+  margin: 0;
+  font-size: 0.82rem;
 }
 
 .attack-held-tag {
@@ -2390,9 +2481,84 @@ input {
   justify-content: space-between;
 }
 
+@media (max-width: 959px) {
+  .attacks-panel .ui-stack {
+    gap: 10px;
+  }
+
+  .attack-card {
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .attack-card__grid {
+    gap: 8px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .attack-card__grid > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .attack-card__footer .ui-button,
+  .attack-card__footer .sheet-chip {
+    min-height: 40px;
+    padding-inline: 12px;
+  }
+
+  .play-panel .ui-stack {
+    gap: 10px;
+  }
+
+  .play-panel .play-rest-block,
+  .play-panel .play-death,
+  .play-panel .multi-pick {
+    gap: 6px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .play-panel .play-select,
+  .play-panel .ui-input,
+  .play-panel .ui-button {
+    min-height: 42px;
+  }
+
+  .play-hit-dice {
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .play-rest-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .play-rest-actions .ui-button {
+    width: 100%;
+  }
+
+  .play-death__tracks {
+    gap: 8px;
+  }
+
+  .death-pip {
+    width: 34px;
+    height: 34px;
+  }
+}
+
 @media (min-width: 768px) {
   .attack-card__grid {
     grid-template-columns: 1.4fr 0.7fr 0.6fr 0.7fr 0.8fr;
+  }
+
+  .attack-card__grid > :first-child {
+    grid-column: auto;
   }
 }
 
