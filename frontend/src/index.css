@@ -5646,8 +5646,9 @@ button.play-desk-vital {
   grid-area: meta;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px 8px;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 8px;
   min-width: 0;
 }
 
