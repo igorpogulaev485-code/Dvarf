@@ -1074,3 +1074,5 @@
 | 2026-10-11 | `cursor/archetype-level-forks-45d0` · PR #102 | Ааракокра когти **1к4** (EEPC/POA / справочник); NW fields read-only; alembic `y4h5`; `selfcheck:race-natural-weapons` |
 | 2026-10-11 | `cursor/archetype-forks-setup-form-45d0` · PR #103 | Архетип в развилках + SubclassSetup после выбора; tip → эта ветка; `/health` ok |
 | 2026-10-11 | `cursor/play-desk-layout-e788` · PR #105 | Игровой стол ≥960px + аватар персонажа; tip → эта ветка; `/health` ok, бандл `play-desk` |
+| 2026-10-12 | `cursor/play-desk-layout-e788` · PR #105 ← PR #104 | Влит stack-duplicate-weapons-qty: qty>1 → одна атака; selfcheck ok; на проде нет |
+| 2026-10-12 | `cursor/play-desk-layout-e788` · PR #105 | Долив макета: hot bar + split + визуал; на проде нет |
