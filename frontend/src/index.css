@@ -5548,18 +5548,19 @@ button.play-desk-vital {
 
 .abil-block__head {
   /*
-   * Two rows, no edge chevron (label toggles skills):
-   *   ⋮⋮  СИЛ▾  [16] →18
+   * Two rows (full ability name):
+   *   ⋮⋮  Сила ▾              [16] → 18
    *       Пр +4   Сп +7
    */
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-columns: 18px minmax(0, 1fr) auto;
   grid-template-areas:
-    "drag who"
-    "drag mods";
-  gap: 5px 6px;
+    "drag name score"
+    "drag mods mods";
+  column-gap: 8px;
+  row-gap: 6px;
   align-items: center;
-  padding: 7px 10px 8px 5px;
+  padding: 8px 10px 8px 6px;
   background: color-mix(in srgb, var(--abil-soft) 72%, white);
   min-width: 0;
 }
@@ -5595,31 +5596,26 @@ button.play-desk-vital {
 
 .abil-block__drag:active { cursor: grabbing; }
 
-/* label (toggle) | score | →eff */
-.abil-block__who {
-  grid-area: who;
-  display: grid;
-  grid-template-columns: auto 2.75rem minmax(2.5rem, auto);
-  align-items: center;
-  column-gap: 6px;
-  min-width: 0;
-}
-
 .abil-block__label {
+  grid-area: name;
   display: inline-flex;
   align-items: baseline;
-  gap: 3px;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  justify-self: start;
   margin: 0;
   padding: 2px 0;
   border: none;
   background: transparent;
   font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: 0.03em;
-  font-size: 1rem;
-  line-height: 1;
+  letter-spacing: 0.01em;
+  font-size: 1.02rem;
+  line-height: 1.15;
   color: var(--abil);
   cursor: pointer;
+  text-align: left;
   appearance: none;
   -webkit-appearance: none;
 }
@@ -5634,28 +5630,44 @@ button.play-desk-vital {
   border-radius: 4px;
 }
 
+.abil-block__label-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .abil-block__label-chevron {
+  flex: 0 0 auto;
   font-family: var(--font-ui);
   font-size: 0.72rem;
   font-weight: 600;
-  opacity: 0.75;
+  opacity: 0.7;
 }
 
-.abil-block__score.ui-input,
-.abil-block__who .ui-input {
-  width: 2.75rem;
-  min-width: 2.75rem;
-  max-width: 2.75rem;
+.abil-block__score-wrap {
+  grid-area: score;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  flex: 0 0 auto;
+}
+
+.abil-block__score.ui-input {
+  width: 2.7rem;
+  min-width: 2.7rem;
+  max-width: 2.7rem;
   height: 32px;
   box-sizing: border-box;
   text-align: center;
-  padding: 0 3px;
+  padding: 0 2px;
   border-radius: 8px;
   background: #fff;
   border: 1px solid color-mix(in srgb, var(--line) 80%, var(--abil));
   font-family: var(--font-ui);
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-variant-numeric: tabular-nums;
   line-height: 30px;
   color: var(--ink);
@@ -5664,9 +5676,7 @@ button.play-desk-vital {
 }
 
 .abil-block__score.ui-input::-webkit-outer-spin-button,
-.abil-block__score.ui-input::-webkit-inner-spin-button,
-.abil-block__who .ui-input::-webkit-outer-spin-button,
-.abil-block__who .ui-input::-webkit-inner-spin-button {
+.abil-block__score.ui-input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
   height: 0;
@@ -5677,12 +5687,10 @@ button.play-desk-vital {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  min-width: 2.35rem;
-  min-height: 1em;
-  font-size: 0.78rem;
+  min-width: 2.6rem;
+  font-size: 0.8rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
   color: transparent;
   white-space: nowrap;
 }
@@ -5698,9 +5706,7 @@ button.play-desk-vital {
   gap: 6px;
   flex-wrap: nowrap;
   justify-content: flex-start;
-  height: 28px;
   min-width: 0;
-  padding-left: 2px;
 }
 
 .abil-mod {
@@ -5708,14 +5714,14 @@ button.play-desk-vital {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  height: 26px;
+  height: 28px;
   margin: 0;
   border: 1px solid var(--line);
   background: #fff;
   border-radius: 999px;
-  padding: 0 10px;
+  padding: 0 11px;
   font-family: var(--font-ui);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
   line-height: 1;
   color: var(--ink);

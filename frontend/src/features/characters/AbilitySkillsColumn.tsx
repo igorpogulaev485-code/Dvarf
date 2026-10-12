@@ -1,7 +1,7 @@
 import { NumberInput, Text } from '../../ui'
 import {
   ABILITY_KEYS,
-  ABILITY_LABELS,
+  ABILITY_NAMES,
   SKILL_DEFS,
   abilityModifier,
   formatModifier,
@@ -155,19 +155,19 @@ export function AbilitySkillsColumn({
                 >
                   ⋮⋮
                 </span>
-                <div className="abil-block__who">
-                  <button
-                    type="button"
-                    className="abil-block__label"
-                    aria-expanded={!isCollapsed}
-                    title={isCollapsed ? 'Развернуть навыки' : 'Свернуть навыки'}
-                    onClick={() => setCollapsed(key, !isCollapsed)}
-                  >
-                    <span className="abil-block__label-text">{ABILITY_LABELS[key]}</span>
-                    <span className="abil-block__label-chevron" aria-hidden>
-                      {isCollapsed ? '▸' : '▾'}
-                    </span>
-                  </button>
+                <button
+                  type="button"
+                  className="abil-block__label"
+                  aria-expanded={!isCollapsed}
+                  title={isCollapsed ? 'Развернуть навыки' : 'Свернуть навыки'}
+                  onClick={() => setCollapsed(key, !isCollapsed)}
+                >
+                  <span className="abil-block__label-text">{ABILITY_NAMES[key]}</span>
+                  <span className="abil-block__label-chevron" aria-hidden>
+                    {isCollapsed ? '▸' : '▾'}
+                  </span>
+                </button>
+                <div className="abil-block__score-wrap">
                   <NumberInput
                     className="abil-block__score"
                     min={1}
@@ -183,7 +183,7 @@ export function AbilitySkillsColumn({
                     title={score !== baseScore ? 'С учётом предметов' : undefined}
                     aria-hidden={score === baseScore}
                   >
-                    {score !== baseScore ? `→${score}` : ''}
+                    {score !== baseScore ? `→ ${score}` : ''}
                   </span>
                 </div>
                 <div className="abil-block__mods">
