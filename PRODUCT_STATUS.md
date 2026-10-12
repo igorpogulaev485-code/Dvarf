@@ -540,7 +540,7 @@
 | Функция | Как работает | Эффект для пользователя |
 |--------|--------------|-------------------------|
 | Pad хитов | Клик по HP в шапке → лечение/урон/временные HP, кости хитов, спасброски смерти (если HP ≤ 0 или «При смерти») | Один LSS-pad вместо разрозненных полей |
-| Виталы шапки | КД / скорость / иниц / БМ только авто; вдохн. и истощ. — клик | Не правят руками то, что считает лист |
+| Виталы шапки | КД / скорость / иниц / БМ только авто; вдохн. и истощ. — клик; под скоростью — лаз./плав./полёт, если есть | Не правят руками то, что считает лист |
 | Смерть у HP | При HP ≤ 0 / «При смерти» — Усп/Пров прямо в шапке рядом с хитами | Не лезть в pad ради трёх пипов |
 | Монеты | Клик «N зм» → LSS pad (взять/отдать, З/С/М/П/Э) | Кошелёк без панели инвентаря |
 | XP «за что» | Pad опыта: причина + история (`sheet.ui.xp_history`) | Видно, откуда пришёл опыт |
@@ -550,7 +550,7 @@
 | Расходники в бою | Авто (стрелы/зелья/…) + до **3 избранных** ★; клик «потратить» −1; добавить из боя или Исследования | То, что жмёшь в бою, под рукой даже если мы не угадали предмет |
 | Split UI | Заклинания справа; кнопка «Заклинания» / «без заклинаний» | Без слова split |
 
-На проде: **да** · ветка `cursor/desk-vitals-wave-a73e` · PR #118 · это **prod tip** · проверено 2026-10-12 (hotfix 3.6–3.8/3.13/3.15–3.16 + attune): `/health` ok; бандл `CharacterDetailPage-DkjzP6Xq.js` («За что» / «Смена концентрации» / «Настроено и надето» / `coin-pad` / `hot-conditions` / `play-desk-header__death`); CSS `index-CBcwe-E-.css` (`coin-pad` / `hot-conditions` / `play-desk-header__death`); Hub timeout → dist→web; кабинет/лобби/classic на диске
+На проде: **да** · ветка `cursor/desk-vitals-wave-a73e` · PR #118 · это **prod tip** · проверено 2026-10-12 (hotfix alt speeds): `/health` ok; бандл `CharacterDetailPage-Cwy-1nPy.js` (`play-desk-vital__alt-speed` / «За что» / «Смена концентрации» / `coin-pad`); CSS `index-RHvyfqLk.css` (`play-desk-vital__alt-speed`); Hub timeout → dist→web; кабинет/лобби/classic на диске
 
 ### 2026-10-12 — Play-desk polish layer-2 (шапка / rail / отдых / гримуар / чародейство)
 
@@ -1226,3 +1226,4 @@
 | 2026-10-12 | `cursor/desk-scenes-no-select-a73e` · PR #117 | Сцены без селекта + Способности + ЕЩЁ; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-Q0HwNbnc.js` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | HP pad / концентрация / расходники+избранное / split справа; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-7tOUzF2V.js` / CSS `index-Cbd8vOye.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Hotfix: состояния/конц./смерть/монеты/XP/attune; Hub timeout → dist→web; `/health` ok; бандл `CharacterDetailPage-DkjzP6Xq.js` / CSS `index-CBcwe-E-.css` |
+| 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Шапка: лаз./плав./полёт под скоростью; dist→web; `/health` ok; бандл `CharacterDetailPage-Cwy-1nPy.js` / CSS `index-RHvyfqLk.css` |
