@@ -955,6 +955,7 @@ export function MinimalSheetEditor({
             characterLevel: totalCharacterLevel(prev.classes),
             hasCasterClass: characterHasCasterClass(prev.classes),
             catalogSpells: catalogDef?.racialSpells ?? null,
+            raceLabelRu: catalogDef?.labelRu || prev.raceName,
           })
 
           if (
@@ -1062,6 +1063,7 @@ export function MinimalSheetEditor({
       grant: prev.raceGrant,
       characterLevel: totalCharacterLevel(nextClasses),
       hasCasterClass: characterHasCasterClass(nextClasses),
+      raceLabelRu: prev.raceName,
     })
     return { ...prev, classes: nextClasses, spells }
   }
@@ -1571,6 +1573,7 @@ export function MinimalSheetEditor({
     const restored = reapplyRaceOverlays(raceSliceFrom(merged), {
       characterLevel: totalCharacterLevel(merged.classes),
       hasCasterClass: characterHasCasterClass(merged.classes),
+      raceLabelRu: merged.raceName,
     })
     return mergeRaceSlice(merged, restored)
   }
@@ -2288,6 +2291,7 @@ export function MinimalSheetEditor({
         grant: withFeatPools.raceGrant,
         characterLevel: nextLevel,
         hasCasterClass: characterHasCasterClass(nextClasses),
+        raceLabelRu: withFeatPools.raceName,
       })
       return { ...withFeatPools, spells }
     })
