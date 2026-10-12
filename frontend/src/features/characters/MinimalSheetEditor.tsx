@@ -2595,12 +2595,17 @@ export function MinimalSheetEditor({
     setError(null)
     try {
       const fresh = await getCharacter(baseCharacter.id)
+      baseCharacterRef.current = fresh
+      sheetVersionRef.current = fresh.sheet_version
       setBaseCharacter(fresh)
       setDraft(buildDraft(fresh))
       setSheetVersion(fresh.sheet_version)
       setConflictOpen(false)
+      conflictOpenRef.current = false
+      skipAutosaveRef.current = true
       onSaved(fresh)
       onToast('Лист обновлён с сервера')
+      setSaveStatus('saved')
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось обновить лист')
     } finally {
@@ -2608,7 +2613,36 @@ export function MinimalSheetEditor({
     }
   }
 
-  const persistDraft = useCallback(async (options?: { quiet?: boolean }) => {
+  /** Keep on-screen edits: adopt server version number, then overwrite with local draft. */
+  async function saveLocalOverServer() {
+    setReloading(true)
+    setError(null)
+    try {
+      const fresh = await getCharacter(baseCharacterRef.current.id)
+      baseCharacterRef.current = fresh
+      sheetVersionRef.current = fresh.sheet_version
+      setBaseCharacter(fresh)
+      setSheetVersion(fresh.sheet_version)
+      setConflictOpen(false)
+      conflictOpenRef.current = false
+      const ok = await persistDraft({ quiet: true, conflictRetry: true })
+      if (ok) {
+        onToastRef.current('Твои правки сохранены')
+      }
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить правки')
+      setConflictOpen(true)
+      conflictOpenRef.current = true
+    } finally {
+      setReloading(false)
+    }
+  }
+
+  const persistDraft = useCallback(async (options?: {
+    quiet?: boolean
+    /** After a version conflict we already rebased once — do not loop. */
+    conflictRetry?: boolean
+  }) => {
     const quiet = options?.quiet ?? false
     const draftSnap = draftRef.current
     const baseSnap = baseCharacterRef.current
@@ -2717,6 +2751,9 @@ export function MinimalSheetEditor({
         hp_max: draftSnap.hpMax,
         sheet,
       })
+      // Sync refs before any pending resave — React state alone is one frame late.
+      baseCharacterRef.current = updated
+      sheetVersionRef.current = updated.sheet_version
       setBaseCharacter(updated)
       setSheetVersion(updated.sheet_version)
       // Keep live draft — rebuilding would stomp keystrokes during autosave.
@@ -2727,11 +2764,27 @@ export function MinimalSheetEditor({
         sheetVersion: updated.sheet_version,
       })
       setSaveStatus('saved')
+      setConflictOpen(false)
+      conflictOpenRef.current = false
       if (!quiet) onToastRef.current('Лист сохранён')
       return true
     } catch (err) {
       if (err instanceof ApiRequestError && err.code === 'sheet_version_conflict') {
+        // Common race: two autosaves with the same version. Rebase once and retry silently.
+        if (!options?.conflictRetry) {
+          try {
+            const fresh = await getCharacter(baseSnap.id)
+            baseCharacterRef.current = fresh
+            sheetVersionRef.current = fresh.sheet_version
+            setBaseCharacter(fresh)
+            setSheetVersion(fresh.sheet_version)
+            return await persistDraft({ quiet, conflictRetry: true })
+          } catch {
+            // Fall through to the dialog.
+          }
+        }
         setConflictOpen(true)
+        conflictOpenRef.current = true
         setError(null)
         setSaveStatus('error')
       } else {
@@ -4368,16 +4421,20 @@ export function MinimalSheetEditor({
       <Dialog
         open={conflictOpen}
         title="Конфликт версий листа"
-        primaryLabel={reloading ? 'Обновляем…' : 'Обновить лист'}
-        secondaryLabel="Оставить мои правки"
+        primaryLabel={reloading ? 'Сохраняем…' : 'Сохранить мои правки'}
+        secondaryLabel="Взять с сервера"
         busy={reloading}
-        onPrimary={() => void reloadFromServer()}
-        onSecondary={() => setConflictOpen(false)}
+        onPrimary={() => void saveLocalOverServer()}
+        onSecondary={() => {
+          if (reloading) return
+          void reloadFromServer()
+        }}
+        closeOnBackdrop={false}
       >
         <Text>
-          Этот персонаж уже сохранён в другой вкладке или на другом устройстве. Если обновить лист,
-          локальные несохранённые правки пропадут. Можно оставить свои правки на экране и
-          перенести их вручную.
+          На сервере уже есть более новая версия (другая вкладка, устройство или гонка автосейва).
+          «Сохранить мои правки» запишет то, что на экране. «Взять с сервера» заменит экран
+          серверной копией — локальные правки пропадут.
         </Text>
       </Dialog>
 

@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/delete-character-list-a73e
+cursor/sheet-conflict-fix-a73e
 ```
 
 URL: http://201.34.132.252/
@@ -38,7 +38,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-acbe origin/cursor/delete-character-list-a73e
+git checkout -b cursor/<descriptive>-acbe origin/cursor/sheet-conflict-fix-a73e
 # если tip уже другой — подставь актуальный из AGENTS.md / этого skill
 ```
 
@@ -46,7 +46,7 @@ git checkout -b cursor/<descriptive>-acbe origin/cursor/delete-character-list-a7
 
 ```bash
 git fetch origin
-git merge origin/cursor/delete-character-list-a73e
+git merge origin/cursor/sheet-conflict-fix-a73e
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```
