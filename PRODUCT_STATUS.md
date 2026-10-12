@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/desk-scenes-no-select-a73e`  
+**Prod tip (ветка линии прода):** `cursor/desk-vitals-wave-a73e`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -535,6 +535,24 @@
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
 
+### 2026-10-12 — Play desk vitals wave (HP pad / концентрация / без дублей отдыха)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Pad хитов | Клик по HP в шапке → лечение/урон/временные HP, кости хитов, спасброски смерти (если HP ≤ 0 или «При смерти») | Один LSS-pad вместо разрозненных полей |
+| Виталы шапки | КД / скорость / иниц / БМ только авто; вдохн. и истощ. — клик; под скоростью — лаз./плав./полёт, если есть | Не правят руками то, что считает лист |
+| Смерть у HP | При HP ≤ 0 / «При смерти» — Усп/Пров прямо в шапке рядом с хитами | Не лезть в pad ради трёх пипов |
+| Монеты | Клик «N зм» → LSS pad (взять/отдать, З/С/М/П/Э) | Кошелёк без панели инвентаря |
+| XP «за что» | Pad опыта: причина + история (`sheet.ui.xp_history`) | Видно, откуда пришёл опыт |
+| Концентрация | Каст/компакт ставит; смена — confirm; урон → «Удержал / Сорвалось» | Не теряешь концентрацию молча |
+| Состояния | Hot bar → диалог состояний; истощение с текстом стадии отыгрыша | Правка в бою без панели «Ещё» |
+| Настройка | Привязка слота автоматически надевает wear/доспех/щит | Headband INT и т.п. сразу дают эффект |
+| Расходники в бою | Авто (стрелы/зелья/…) + до **3 избранных** ★; клик «потратить» −1; добавить из боя или Исследования | То, что жмёшь в бою, под рукой даже если мы не угадали предмет |
+| Split UI | Заклинания справа; кнопка «Заклинания» / «без заклинаний» | Без слова split |
+| Атаки «полностью» | Крупные +атака / урон на карточке; «Добавить атаку» sticky сверху блока | Полная панель читается как бой, не как форма |
+
+На проде: **частично** · ветка `cursor/desk-vitals-wave-a73e` · PR #118 · tip на проде без строки «Атаки полностью» до следующего деплоя · vitals/alt speeds проверены 2026-10-12
+
 ### 2026-10-12 — Play-desk polish layer-2 (шапка / rail / отдых / гримуар / чародейство)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -605,7 +623,7 @@
 | ЕЩЁ | Вкладки: Состояния и ресурсы / Основное / Настройка / Владения | Ничего не потеряли; потом пересоберём |
 | Hot | Состояния / концентрация / ресурсы на всех сценах кроме ЕЩЁ | Быстрый доступ из игры |
 
-На проде: **да** · ветка `cursor/desk-scenes-no-select-a73e` · PR #117 · это **prod tip** · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-Q0HwNbnc.js` (`play-desk__more-tab`); dist→web
+На проде: **да** · ветка `cursor/desk-scenes-no-select-a73e` · PR #117 · tip дальше → `cursor/desk-vitals-wave-a73e` · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-Q0HwNbnc.js` (`play-desk__more-tab`); dist→web
 
 ### 2026-10-12 — Hotfix: «страница вместо API» на листе
 
@@ -613,8 +631,10 @@
 |--------|--------------|-------------------------|
 | nginx SPA | Rewrite только при `Sec-Fetch-Dest: document` | fetch листа больше не получает index.html |
 | API client | Всегда `Accept: application/json` + `X-Dvarf-Client` | Нет ложного html_instead_of_json |
+| nginx 502 JSON | При падении API — JSON `api_unavailable`, не HTML 502 | Автосейв не пугает «страница вместо API» |
+| client retry | Один повтор на 502/503/504 (~0.7с) | Короткий рестарт API переживается сам |
 
-На проде: **да** · та же tip-ветка · nginx reload + dist→web; проверено: `Sec-Fetch-Dest: empty` + browser Accept → JSON 401
+На проде: **да** · tip `cursor/desk-vitals-wave-a73e` · PR #118 · проверено 2026-10-12: API down → `Content-Type: application/json` + `api_unavailable`; бандл `client-C72apPWM.js` («временно недоступен»); dist→web + nginx hot-patch
 
 ### 2026-10-12 — Play desk: догон макета (hot bar + split + визуал)
 
@@ -1207,3 +1227,7 @@
 | 2026-10-12 | `cursor/delete-character-list-a73e` · PR #115 | Удаление персонажа из списка с confirm; tip → эта ветка; dist→web; `/health` ok; бандл `index-DeQLeRiO.js` |
 | 2026-10-12 | `cursor/sheet-conflict-fix-a73e` · PR #116 | Фикс loop конфликта версий автосейва; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-BXzZShGD.js` |
 | 2026-10-12 | `cursor/desk-scenes-no-select-a73e` · PR #117 | Сцены без селекта + Способности + ЕЩЁ; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-Q0HwNbnc.js` |
+| 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | HP pad / концентрация / расходники+избранное / split справа; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-7tOUzF2V.js` / CSS `index-Cbd8vOye.css` |
+| 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Hotfix: состояния/конц./смерть/монеты/XP/attune; Hub timeout → dist→web; `/health` ok; бандл `CharacterDetailPage-DkjzP6Xq.js` / CSS `index-CBcwe-E-.css` |
+| 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Шапка: лаз./плав./полёт под скоростью; dist→web; `/health` ok; бандл `CharacterDetailPage-Cwy-1nPy.js` / CSS `index-RHvyfqLk.css` |
+| 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | 502→JSON + client retry; VPS reboot после hung Docker; `/health` ok; бандл `client-C72apPWM.js` |

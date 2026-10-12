@@ -156,17 +156,21 @@ export function AttacksPanel({
   }
 
   return (
-    <Panel title="Атаки">
+    <Panel title="Атаки" className="attack-panel">
       <Stack gap={12}>
         <Text tone="muted">
-          Атака может быть обычным оружием или артефактом. «В руках» — сейчас держишь (двуручное
-          занимает обе руки; иначе до двух одноручных / одноручное+щит). Убрать = убрать в ножны
-          (в бою это действие). Владение (бонус мастерства) — от блока «Владения снаряжением».
-          Природное оружие расы всегда с владением и не занимает слоты рук инвентаря.
+          Оружие из инвентаря появляется здесь само. «В руках» — держишь сейчас; убрать = в ножны
+          (в бою это действие). Владение — из блока «Владения снаряжением».
         </Text>
 
+        <div className="attack-panel__toolbar">
+          <Button variant="secondary" onClick={() => onChange([...weapons, createAttack()])}>
+            Добавить атаку
+          </Button>
+        </div>
+
         {weapons.length === 0 ? (
-          <Text tone="muted">Пока нет атак — добавь первую.</Text>
+          <Text tone="muted">Пока нет атак — добавь первую или оружие в инвентарь.</Text>
         ) : null}
 
         {weapons.map((attack) => {
@@ -191,6 +195,7 @@ export function AttacksPanel({
             magicDmg && attack.damage
               ? `${attack.damage}${magicDmg >= 0 ? '+' : ''}${magicDmg}`
               : attack.damage
+          const damageHero = damageDisplay || '—'
           return (
             <div
               key={attack.id}
@@ -211,14 +216,15 @@ export function AttacksPanel({
                     {attack.held ? 'в руках' : 'убран'}
                   </span>
                 ) : null}
+                {attack.qty != null && attack.qty > 1 ? (
+                  <span className="attack-held-tag">×{attack.qty}</span>
+                ) : null}
               </div>
-              <div className="attack-card__grid">
-                <Field
-                  label="Оружие или артефакт"
-                  hint={raceNatural ? 'От расы — не из инвентаря' : undefined}
-                >
+
+              <div className="attack-card__name">
+                <Field label="Оружие или артефакт">
                   {raceNatural ? (
-                    <Input value={attack.name} readOnly />
+                    <Input value={attack.name} readOnly className="attack-card__name-input" />
                   ) : (
                     <CatalogCombobox
                       kinds={['weapon', 'item']}
@@ -229,6 +235,35 @@ export function AttacksPanel({
                     />
                   )}
                 </Field>
+              </div>
+
+              <div className="attack-card__stats" aria-label="Бонус атаки и урон">
+                <div className="attack-card__stat">
+                  <span className="attack-card__stat-value">{formatModifier(attackBonus)}</span>
+                  <span className="attack-card__stat-label">
+                    атака
+                    {magicAtk ? (
+                      <span className="attack-card__stat-hint">
+                        {' '}
+                        · магия {magicAtk >= 0 ? '+' : ''}
+                        {magicAtk}
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
+                <div className="attack-card__stat-divider" aria-hidden />
+                <div className="attack-card__stat">
+                  <span className="attack-card__stat-value">{damageHero}</span>
+                  <span className="attack-card__stat-label">
+                    урон
+                    {attack.damage_type ? (
+                      <span className="attack-card__stat-hint"> {attack.damage_type}</span>
+                    ) : null}
+                  </span>
+                </div>
+              </div>
+
+              <div className="attack-card__grid">
                 <Field
                   label="Характеристика"
                   hint={raceNatural ? 'От расы' : undefined}
@@ -252,12 +287,6 @@ export function AttacksPanel({
                       ))}
                     </select>
                   )}
-                </Field>
-                <Field
-                  label="Бонус атаки"
-                  hint={magicAtk ? `магия ${magicAtk >= 0 ? '+' : ''}${magicAtk}` : undefined}
-                >
-                  <Input value={formatModifier(attackBonus)} readOnly />
                 </Field>
                 <Field
                   label="Урон"
@@ -342,12 +371,6 @@ export function AttacksPanel({
             </div>
           )
         })}
-
-        <div>
-          <Button variant="secondary" onClick={() => onChange([...weapons, createAttack()])}>
-            Добавить атаку
-          </Button>
-        </div>
       </Stack>
     </Panel>
   )

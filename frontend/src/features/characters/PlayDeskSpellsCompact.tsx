@@ -4,6 +4,7 @@ import {
   type AbilityKey,
 } from './sheetTypes'
 import { formatCheckRoll, rollCheck, type DeskRollMode } from './deskRolls'
+import type { ConcentrationState } from './play'
 import {
   countLearnedCantrips,
   countLearnedLeveled,
@@ -26,10 +27,16 @@ type PlayDeskSpellsCompactProps = {
     maxPrepared: number | null
   } | null
   pinned?: boolean
+  concentration?: ConcentrationState | null
   onOpenFull: () => void
   onClearSplit?: () => void
-  onSpendSlot?: (level: number) => void
+  /** Set used count for a slot level (spend or restore, like ability pips). */
+  onSlotUsedChange?: (level: number, used: number) => void
   onToast?: (message: string) => void
+  /** Open full cast flow for leveled non-concentration (or explicit cast). */
+  onCastSpell?: (spell: SheetSpell) => void
+  /** Pin concentration in hot without opening full panel. */
+  onConcentrateSpell?: (spell: SheetSpell) => void
   rollMode?: DeskRollMode
 }
 
@@ -39,10 +46,13 @@ export function PlayDeskSpellsCompact({
   proficiencyBonus,
   learnBudget = null,
   pinned = false,
+  concentration = null,
   onOpenFull,
   onClearSplit,
-  onSpendSlot,
+  onSlotUsedChange,
   onToast,
+  onCastSpell,
+  onConcentrateSpell,
   rollMode = 'normal',
 }: PlayDeskSpellsCompactProps) {
   const ready = spells.known.filter(isReadyInCombat)
@@ -86,7 +96,7 @@ export function PlayDeskSpellsCompact({
         <div className="play-desk-compact__head-actions">
           {onClearSplit ? (
             <button type="button" className="play-desk-compact__link" onClick={onClearSplit}>
-              снять split
+              без заклинаний
             </button>
           ) : null}
           <button type="button" className="play-desk-compact__link" onClick={onOpenFull}>
@@ -101,6 +111,9 @@ export function PlayDeskSpellsCompact({
           {attack != null ? <span>атака {formatModifier(attack)}</span> : null}
           {quotaLabel ? <span>{quotaLabel}</span> : null}
           {cantripLabel ? <span>{cantripLabel}</span> : null}
+          {concentration ? (
+            <span className="play-desk-compact__meta-conc">конц. {concentration.name}</span>
+          ) : null}
         </div>
       )}
 
@@ -110,21 +123,43 @@ export function PlayDeskSpellsCompact({
             const slot = spells.slots[String(level)] ?? { max: 0, used: 0 }
             const remaining = Math.max(0, slot.max - slot.used)
             return (
-              <button
+              <div
                 key={level}
-                type="button"
                 className="play-desk-compact__slot"
-                title={`Ячейки ${level}: ${remaining}/${slot.max}`}
-                disabled={!onSpendSlot || remaining <= 0}
-                onClick={() => onSpendSlot?.(level)}
+                title={`Ячейки ${level}: ${remaining}/${slot.max} · клик по пипу — потратить или вернуть`}
               >
                 <span>{level}</span>
-                <span className="play-desk-compact__slot-pips">
-                  {Array.from({ length: slot.max }, (_, i) => (
-                    <i key={i} className={i < remaining ? 'is-on' : ''} />
-                  ))}
-                </span>
-              </button>
+                <div
+                  className="play-desk-compact__slot-pips"
+                  role="group"
+                  aria-label={`Ячейки ${level}: ${remaining}/${slot.max}`}
+                >
+                  {Array.from({ length: slot.max }, (_, index) => {
+                    const isOn = index < remaining
+                    return (
+                      <button
+                        key={`${level}-${index}`}
+                        type="button"
+                        className={`play-desk-compact__slot-pip${isOn ? ' is-on' : ''}`}
+                        disabled={!onSlotUsedChange}
+                        aria-label={
+                          isOn
+                            ? `Ячейка ${level}: потратить ${index + 1}`
+                            : `Ячейка ${level}: вернуть ${index + 1}`
+                        }
+                        onClick={() => {
+                          if (!onSlotUsedChange) return
+                          if (isOn) {
+                            onSlotUsedChange(level, Math.min(slot.max, slot.used + 1))
+                          } else {
+                            onSlotUsedChange(level, Math.max(0, slot.used - 1))
+                          }
+                        }}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
             )
           })}
         </div>
@@ -134,16 +169,34 @@ export function PlayDeskSpellsCompact({
         {ready.length === 0 ? (
           <p className="play-desk-compact__empty">Нет готовых заклинаний</p>
         ) : (
-          ready.slice(0, 14).map((spell) => (
-            <SpellRow
-              key={spell.id}
-              spell={spell}
-              spellAttack={attack}
-              spellDc={dc}
-              rollMode={rollMode}
-              onToast={onToast}
-            />
-          ))
+          ready.slice(0, 14).map((spell) => {
+            const isActiveConc =
+              concentration != null &&
+              (concentration.spell_id === spell.id ||
+                concentration.name.trim() === (spell.name || '').trim())
+            return (
+              <SpellRow
+                key={spell.id}
+                spell={spell}
+                spellAttack={attack}
+                spellDc={dc}
+                rollMode={rollMode}
+                activeConcentration={isActiveConc}
+                onToast={onToast}
+                onActivate={() => {
+                  // Prefer cast dialog (use), not the full spells editor (details).
+                  if (onCastSpell) {
+                    onCastSpell(spell)
+                    return
+                  }
+                  if (spell.concentration && onConcentrateSpell) {
+                    onConcentrateSpell(spell)
+                  }
+                }}
+                hasActivate={Boolean(onCastSpell || onConcentrateSpell)}
+              />
+            )
+          })
         )}
         {ready.length > 14 ? (
           <p className="play-desk-compact__more">+ ещё {ready.length - 14}</p>
@@ -158,13 +211,19 @@ function SpellRow({
   spellAttack,
   spellDc,
   rollMode,
+  activeConcentration,
   onToast,
+  onActivate,
+  hasActivate,
 }: {
   spell: SheetSpell
   spellAttack: number | null
   spellDc: number | null
   rollMode: DeskRollMode
+  activeConcentration: boolean
   onToast?: (message: string) => void
+  onActivate?: () => void
+  hasActivate: boolean
 }) {
   const levelLabel = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
   const tags = [
@@ -174,9 +233,21 @@ function SpellRow({
   return (
     <button
       type="button"
-      className="play-desk-compact__row is-dense is-action"
-      title={spellAttack != null ? 'Бросок атаки заклинанием' : 'Инфо о заклинании'}
+      className={`play-desk-compact__row is-dense is-action${
+        activeConcentration ? ' is-conc-active' : ''
+      }`}
+      title={
+        spell.concentration
+          ? 'Концентрация на этом заклинании'
+          : hasActivate
+            ? 'Каст заклинания'
+            : 'Инфо о заклинании'
+      }
       onClick={() => {
+        if (hasActivate && onActivate) {
+          onActivate()
+          return
+        }
         const head = `${spell.name} · ${levelLabel}${
           tags.length ? ` · ${tags.join(', ')}` : ''
         }`
@@ -189,16 +260,16 @@ function SpellRow({
           )
           return
         }
-        onToast?.(
-          `${head}${spellDc != null ? ` · Сл ${spellDc}` : ''}`,
-        )
+        onToast?.(`${head}${spellDc != null ? ` · Сл ${spellDc}` : ''}`)
       }}
     >
       <div className="play-desk-compact__row-main">
         <b>{spell.name}</b>
       </div>
       <span className="play-desk-compact__dmg">{levelLabel}</span>
-      {spell.concentration ? (
+      {activeConcentration ? (
+        <span className="play-desk-compact__tag is-conc">держит</span>
+      ) : spell.concentration ? (
         <span className="play-desk-compact__tag is-conc">конц.</span>
       ) : spell.prepared && spell.level > 0 ? (
         <span className="play-desk-compact__tag is-on">готово</span>

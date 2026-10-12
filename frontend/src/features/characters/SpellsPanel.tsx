@@ -22,7 +22,7 @@ import {
   spellSaveDc,
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
-import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
+import { Button, Dialog, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
 import {
@@ -71,8 +71,12 @@ type SpellsPanelProps = {
   onChange: (spells: SpellsState) => void
   onInventoryChange?: (inventory: InventoryState) => void
   inventory?: InventoryState
+  concentration?: ConcentrationState | null
   onConcentrationChange?: (concentration: ConcentrationState | null) => void
   onToast?: (message: string) => void
+  /** Open cast dialog for this spell id once (from play-desk compact). */
+  initialCastSpellId?: string | null
+  onInitialCastConsumed?: () => void
 }
 
 export function SpellsPanel({
@@ -86,17 +90,31 @@ export function SpellsPanel({
   proficiencyBonus,
   inventoryItems,
   inventory,
+  concentration = null,
   onChange,
   onInventoryChange,
   onConcentrationChange,
   onToast,
+  initialCastSpellId = null,
+  onInitialCastConsumed,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
   const [castSpell, setCastSpell] = useState<SheetSpell | null>(null)
+  const [pendingConc, setPendingConc] = useState<{
+    spell: SheetSpell
+    choice: CastChoice
+  } | null>(null)
   const [filter, setFilter] = useState<'all' | number>('all')
   const [showAllKnown, setShowAllKnown] = useState(false)
+
+  useEffect(() => {
+    if (!initialCastSpellId) return
+    const spell = spells.known.find((row) => row.id === initialCastSpellId) ?? null
+    if (spell) setCastSpell(spell)
+    onInitialCastConsumed?.()
+  }, [initialCastSpellId, spells.known, onInitialCastConsumed])
 
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
@@ -285,13 +303,25 @@ export function SpellsPanel({
     })
   }
 
-  function applyConcentrationIfNeeded(spell: SheetSpell) {
-    if (!spell.concentration) return
+  function commitConcentration(spell: SheetSpell) {
     onConcentrationChange?.(
       setConcentration({
         spellId: spell.id,
         name: spell.name || 'Заклинание',
       }),
+    )
+  }
+
+  function applyConcentrationIfNeeded(spell: SheetSpell) {
+    if (!spell.concentration) return
+    commitConcentration(spell)
+  }
+
+  function needsConcentrationSwap(spell: SheetSpell): boolean {
+    if (!spell.concentration || !concentration) return false
+    return (
+      concentration.spell_id !== spell.id &&
+      concentration.name.trim() !== (spell.name || '').trim()
     )
   }
 
@@ -310,6 +340,15 @@ export function SpellsPanel({
 
   function confirmCast(choice: CastChoice) {
     if (!castSpell) return
+    if (needsConcentrationSwap(castSpell)) {
+      setPendingConc({ spell: castSpell, choice })
+      setCastSpell(null)
+      return
+    }
+    runCast(castSpell, choice)
+  }
+
+  function runCast(castSpell: SheetSpell, choice: CastChoice) {
     const name = castSpell.name || 'Заклинание'
     const ritualCast = Boolean(choice.ritual && castSpell.ritual && castSpell.level > 0)
     const grantCast = Boolean(choice.useGrant && canSpendGrantCast(castSpell))
@@ -941,6 +980,25 @@ export function SpellsPanel({
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />
+      <Dialog
+        open={pendingConc != null}
+        title="Смена концентрации"
+        primaryLabel="Сменить и кастовать"
+        secondaryLabel="Отмена"
+        primaryVariant="danger"
+        onPrimary={() => {
+          if (!pendingConc) return
+          const { spell, choice } = pendingConc
+          setPendingConc(null)
+          runCast(spell, choice)
+        }}
+        onSecondary={() => setPendingConc(null)}
+      >
+        <Text>
+          Сейчас концентрация: «{concentration?.name ?? '—'}». Сменить на «
+          {pendingConc?.spell.name || 'Заклинание'}»? Ячейка потратится после подтверждения.
+        </Text>
+      </Dialog>
     </Panel>
   )
 }

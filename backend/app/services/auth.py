@@ -284,6 +284,13 @@ class AuthService:
         user_agent: str | None = None,
         ip_address: str | None = None,
     ) -> TokenResponse:
+        from sqlalchemy import text
+        from sqlalchemy.exc import OperationalError
+
+        # Parallel refresh (several tabs) used to pile UPDATE locks on auth_sessions
+        # until nginx 504'd and the character list spun «Загрузка…» forever.
+        self.db.execute(text("SET LOCAL lock_timeout = '2s'"))
+
         try:
             payload = decode_token(refresh_token)
         except Exception as exc:  # noqa: BLE001
@@ -296,25 +303,30 @@ class AuthService:
         if not sid_raw:
             raise UnauthorizedError("Сессия устарела — войдите снова")
 
-        session = self.sessions.get_active_by_id(UUID(str(sid_raw)))
-        if session is None or session.refresh_token_hash != _hash_token(refresh_token):
-            raise UnauthorizedError("Сессия недействительна — войдите снова")
+        try:
+            session = self.sessions.get_active_by_id(UUID(str(sid_raw)))
+            if session is None or session.refresh_token_hash != _hash_token(refresh_token):
+                raise UnauthorizedError("Сессия недействительна — войдите снова")
 
-        user = self.users.get_by_id(UUID(payload["sub"]))
-        if user is None or user.id != session.user_id:
-            raise UnauthorizedError("Пользователь не найден")
+            user = self.users.get_by_id(UUID(payload["sub"]))
+            if user is None or user.id != session.user_id:
+                raise UnauthorizedError("Пользователь не найден")
 
-        if user_agent:
-            session.user_agent = user_agent[:512]
-        if ip_address:
-            session.ip_address = ip_address[:64]
+            if user_agent:
+                session.user_agent = user_agent[:512]
+            if ip_address:
+                session.ip_address = ip_address[:64]
 
-        return self.issue_tokens(
-            user,
-            user_agent=session.user_agent,
-            ip_address=session.ip_address,
-            existing_session=session,
-        )
+            return self.issue_tokens(
+                user,
+                user_agent=session.user_agent,
+                ip_address=session.ip_address,
+                existing_session=session,
+            )
+        except OperationalError as exc:
+            # lock_timeout / deadlock → ask the client to re-login instead of hang.
+            self.db.rollback()
+            raise UnauthorizedError("Сессия занята — войдите снова") from exc
 
     def list_sessions(self, user_id: UUID, *, current_session_id: UUID | None) -> AuthSessionListResponse:
         items = [

@@ -1,3 +1,4 @@
+import { normalizeCombatConsumableFavoriteIds } from './combatConsumables'
 import {
   ABILITY_KEYS,
   asRecord,
@@ -25,12 +26,65 @@ export type PlayDeskPanelId =
   | 'texts'
   | 'ownership'
 
+export type XpHistoryEntry = {
+  id: string
+  delta: number
+  reason: string
+  at: string
+}
+
 export type SheetUiState = {
   abilityOrder: AbilityKey[]
   collapsedAbilities: AbilityKey[]
   deskMode: PlayDeskMode
   /** Side-by-side primary panel + pinned spells (or attacks if spells selected). */
   deskSplit: boolean
+  /** Inventory item ids pinned into combat «Расходники» (max 3). */
+  combatConsumableFavoriteIds: string[]
+  /** XP awards / spends with optional «за что». Newest first. */
+  xpHistory: XpHistoryEntry[]
+}
+
+const MAX_XP_HISTORY = 40
+
+export function normalizeXpHistory(raw: unknown): XpHistoryEntry[] {
+  if (!Array.isArray(raw)) return []
+  const out: XpHistoryEntry[] = []
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue
+    const item = row as Record<string, unknown>
+    const delta = typeof item.delta === 'number' ? Math.trunc(item.delta) : 0
+    if (!delta) continue
+    const reason = typeof item.reason === 'string' ? item.reason.trim() : ''
+    const at =
+      typeof item.at === 'string' && item.at.trim()
+        ? item.at
+        : new Date().toISOString()
+    const id =
+      typeof item.id === 'string' && item.id.trim()
+        ? item.id
+        : `xp-${at}-${delta}-${out.length}`
+    out.push({ id, delta, reason, at })
+    if (out.length >= MAX_XP_HISTORY) break
+  }
+  return out
+}
+
+export function appendXpHistory(
+  history: XpHistoryEntry[],
+  entry: Omit<XpHistoryEntry, 'id' | 'at'> & { id?: string; at?: string },
+): XpHistoryEntry[] {
+  const next: XpHistoryEntry = {
+    id:
+      entry.id ??
+      (typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `xp-${Date.now()}`),
+    delta: Math.trunc(entry.delta),
+    reason: entry.reason.trim(),
+    at: entry.at ?? new Date().toISOString(),
+  }
+  return [next, ...history].slice(0, MAX_XP_HISTORY)
 }
 
 const DEFAULT_ORDER: AbilityKey[] = [...ABILITY_KEYS]
@@ -85,6 +139,10 @@ export function readSheetUi(sheet: Record<string, unknown>): SheetUiState {
     collapsedAbilities: collapsed,
     deskMode: normalizeDeskMode(ui.desk_mode),
     deskSplit,
+    combatConsumableFavoriteIds: normalizeCombatConsumableFavoriteIds(
+      ui.combat_consumable_favorites,
+    ),
+    xpHistory: normalizeXpHistory(ui.xp_history),
   }
 }
 
@@ -94,6 +152,8 @@ export function sheetUiToPatch(ui: SheetUiState): Record<string, unknown> {
     collapsed_abilities: ui.collapsedAbilities,
     desk_mode: ui.deskMode,
     desk_split: ui.deskSplit,
+    combat_consumable_favorites: ui.combatConsumableFavoriteIds,
+    xp_history: ui.xpHistory,
   }
 }
 
@@ -126,8 +186,9 @@ export function splitSecondaryPanel(
   return active === 'spells' ? primary : 'spells'
 }
 
-/** Skills shown in mode chrome for explore / social scenes. */
-export const MODE_SKILL_KEYS: Record<'explore' | 'social', string[]> = {
+/** Skills shown in mode chrome for combat / explore / social scenes. */
+export const MODE_SKILL_KEYS: Record<'combat' | 'explore' | 'social', string[]> = {
+  combat: ['athletics', 'acrobatics', 'stealth', 'perception', 'investigation', 'medicine'],
   explore: ['perception', 'investigation', 'stealth', 'survival', 'athletics'],
   social: ['persuasion', 'deception', 'insight', 'intimidation', 'performance'],
 }
@@ -178,9 +239,9 @@ export const MODE_MORE_PANELS: PlayDeskPanelId[] = [
 export const MODE_EXTRA_PANELS: PlayDeskPanelId[] = MODE_MORE_PANELS
 
 export const MODE_HINT: Record<PlayDeskMode, string> = {
-  combat: 'Бой: атаки + заклинания (split)',
-  explore: 'Исследование: снаряжение + заклинания (split)',
-  social: 'Общение: тексты + заклинания (split)',
+  combat: 'Бой: атаки + заклинания рядом',
+  explore: 'Исследование: снаряжение + заклинания рядом',
+  social: 'Общение: тексты + заклинания рядом',
   companions: 'Напарники: свита и призывы',
   features: 'Способности: умения и ресурсы класса',
   more: 'ЕЩЁ: основное, состояния, настройка, владения — потом разберём',

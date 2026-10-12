@@ -42,6 +42,9 @@ export function clearTokens(): void {
 
 let refreshInFlight: Promise<boolean> | null = null
 
+/** Fail fast — a stuck refresh must not leave the UI on «Загрузка…» forever. */
+const REFRESH_TIMEOUT_MS = 8_000
+
 async function tryRefreshAccessToken(): Promise<boolean> {
   if (refreshInFlight) {
     return refreshInFlight
@@ -53,14 +56,18 @@ async function tryRefreshAccessToken(): Promise<boolean> {
       clearTokens()
       return false
     }
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => controller.abort(), REFRESH_TIMEOUT_MS)
     try {
       const response = await fetch('/auth/refresh', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
+          'X-Dvarf-Client': 'app',
         },
         body: JSON.stringify({ refresh_token: refreshToken }),
+        signal: controller.signal,
       })
       if (!response.ok) {
         clearTokens()
@@ -76,6 +83,7 @@ async function tryRefreshAccessToken(): Promise<boolean> {
       clearTokens()
       return false
     } finally {
+      window.clearTimeout(timer)
       refreshInFlight = null
     }
   })()
@@ -149,12 +157,24 @@ export async function apiRequest<T>(
     return undefined as T
   }
 
+  // API container flap (deploy/restart) → nginx 502/503/504. One short retry
+  // covers autosave races; otherwise show a clear temporary-unavailable message.
+  if (
+    !retried &&
+    (response.status === 502 || response.status === 503 || response.status === 504)
+  ) {
+    await new Promise((resolve) => window.setTimeout(resolve, 700))
+    return apiRequest<T>(path, options, true)
+  }
+
   const contentType = response.headers.get('content-type') || ''
   if (contentType.includes('text/html')) {
     throw new ApiRequestError(
-      'Сервер вернул страницу вместо API. Обновите страницу (Ctrl+Shift+R) или войдите снова.',
+      response.status >= 500
+        ? 'Сервер временно недоступен — подождите пару секунд и повторите'
+        : 'Сервер вернул страницу вместо API. Обновите страницу (Ctrl+Shift+R) или войдите снова.',
       response.status || 502,
-      'html_instead_of_json',
+      response.status >= 500 ? 'api_unavailable' : 'html_instead_of_json',
     )
   }
 

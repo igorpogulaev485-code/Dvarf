@@ -1,4 +1,9 @@
+import { useMemo, useState } from 'react'
 import type { SheetResource } from '../../shared/dnd/rest'
+import {
+  listCombatConsumables,
+  MAX_COMBAT_CONSUMABLE_FAVORITES,
+} from './combatConsumables'
 import { formatAttackRoll, type DeskRollMode } from './deskRolls'
 import {
   abilityModifier,
@@ -15,15 +20,16 @@ type PlayDeskAttacksCompactProps = {
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
   resources: SheetResource[]
   inventoryItems: InventoryItem[]
+  favoriteConsumableIds?: string[]
   onToggleHeld?: (attack: WeaponAttack) => void
   onSpendResource?: (id: string) => void
+  /** Spend 1 from inventory qty (ammo, potions, …). */
+  onSpendConsumable?: (itemId: string) => void
+  onToggleConsumableFavorite?: (itemId: string) => void
   onToast?: (message: string) => void
   onOpenFull: () => void
   rollMode?: DeskRollMode
 }
-
-const CONSUMABLE_RE =
-  /болт|стрел|дротик|снаряд|патрон|камень|flask|зелье|порошок|кислот|огонь|масло|яд/i
 
 export function PlayDeskAttacksCompact({
   weapons,
@@ -32,20 +38,35 @@ export function PlayDeskAttacksCompact({
   gearBonusesByItem = {},
   resources,
   inventoryItems,
+  favoriteConsumableIds = [],
   onToggleHeld,
   onSpendResource,
+  onSpendConsumable,
+  onToggleConsumableFavorite,
   onToast,
   onOpenFull,
   rollMode = 'normal',
 }: PlayDeskAttacksCompactProps) {
+  const [pickerOpen, setPickerOpen] = useState(false)
   const named = weapons.filter((row) => row.name.trim())
   const combatResources = resources.filter(
     (row) => row.max > 0 && row.name.trim() && row.used < row.max,
   )
-  const consumables = inventoryItems.filter((item) => {
-    if (!item.name.trim() || (item.qty ?? 0) <= 0) return false
-    return CONSUMABLE_RE.test(item.name)
-  })
+  const consumables = useMemo(
+    () => listCombatConsumables(inventoryItems, favoriteConsumableIds),
+    [inventoryItems, favoriteConsumableIds],
+  )
+  const favoriteCount = favoriteConsumableIds.length
+  const pickerOptions = useMemo(() => {
+    const favored = new Set(favoriteConsumableIds)
+    return inventoryItems.filter(
+      (item) =>
+        item.name.trim() &&
+        !item.parent_id &&
+        (item.qty ?? 0) > 0 &&
+        !favored.has(item.id),
+    )
+  }, [inventoryItems, favoriteConsumableIds])
 
   return (
     <div className="play-desk-compact">
@@ -142,22 +163,117 @@ export function PlayDeskAttacksCompact({
         })}
       </div>
 
-      {consumables.length > 0 ? (
-        <div className="play-desk-compact__consumables">
-          <div className="play-desk-compact__subhead">Расходники</div>
-          {consumables.slice(0, 6).map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="play-desk-compact__cons-row is-action"
-              onClick={() => onToast?.(`${item.name}: ×${item.qty ?? 0}`)}
-            >
-              <span>{item.name}</span>
-              <b>{item.qty ?? 0}</b>
-            </button>
-          ))}
+      <div className="play-desk-compact__consumables">
+        <div className="play-desk-compact__subhead">
+          Расходники
+          {favoriteCount > 0 ? (
+            <span className="play-desk-compact__subhead-meta">
+              избр. {favoriteCount}/{MAX_COMBAT_CONSUMABLE_FAVORITES}
+            </span>
+          ) : null}
         </div>
-      ) : null}
+
+        {consumables.length === 0 ? (
+          <p className="play-desk-compact__empty">
+            Нет расходников — добавь в избранное (до {MAX_COMBAT_CONSUMABLE_FAVORITES})
+          </p>
+        ) : (
+          consumables.map(({ item, favorite }) => {
+            const qty = item.qty ?? 0
+            const canSpend = Boolean(onSpendConsumable) && qty > 0
+            return (
+              <div
+                key={item.id}
+                className={`play-desk-compact__cons-row${favorite ? ' is-fav' : ''}`}
+              >
+                <button
+                  type="button"
+                  className="play-desk-compact__cons-main is-action"
+                  disabled={!canSpend}
+                  title={canSpend ? `Потратить 1 «${item.name}»` : item.name}
+                  onClick={() => {
+                    if (!canSpend) {
+                      onToast?.(`${item.name}: ×${qty}`)
+                      return
+                    }
+                    onSpendConsumable?.(item.id)
+                  }}
+                >
+                  <span className="play-desk-compact__cons-name">
+                    {favorite ? (
+                      <span className="play-desk-compact__tag is-fav">избр.</span>
+                    ) : null}
+                    {item.name}
+                  </span>
+                  <b>{qty}</b>
+                  <span className="play-desk-compact__cons-spend">потратить</span>
+                </button>
+                {onToggleConsumableFavorite ? (
+                  <button
+                    type="button"
+                    className={`play-desk-compact__cons-fav${favorite ? ' is-on' : ''}`}
+                    title={
+                      favorite
+                        ? 'Убрать из избранного'
+                        : favoriteCount >= MAX_COMBAT_CONSUMABLE_FAVORITES
+                          ? `Уже ${MAX_COMBAT_CONSUMABLE_FAVORITES} избранных`
+                          : 'В избранное боя'
+                    }
+                    disabled={!favorite && favoriteCount >= MAX_COMBAT_CONSUMABLE_FAVORITES}
+                    onClick={() => onToggleConsumableFavorite(item.id)}
+                  >
+                    {favorite ? '★' : '☆'}
+                  </button>
+                ) : null}
+              </div>
+            )
+          })
+        )}
+
+        {onToggleConsumableFavorite && favoriteCount < MAX_COMBAT_CONSUMABLE_FAVORITES ? (
+          <div className="play-desk-compact__cons-add">
+            {pickerOpen ? (
+              <label className="play-desk-compact__cons-picker">
+                <span>В избранное</span>
+                <select
+                  className="play-select"
+                  defaultValue=""
+                  onChange={(event) => {
+                    const id = event.target.value
+                    if (!id) return
+                    onToggleConsumableFavorite(id)
+                    setPickerOpen(false)
+                  }}
+                >
+                  <option value="">выбери предмет…</option>
+                  {pickerOptions.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                      {(item.qty ?? 0) > 1 ? ` ×${item.qty}` : ''}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="play-desk-compact__link"
+                  onClick={() => setPickerOpen(false)}
+                >
+                  отмена
+                </button>
+              </label>
+            ) : (
+              <button
+                type="button"
+                className="play-desk-compact__link"
+                onClick={() => setPickerOpen(true)}
+                disabled={pickerOptions.length === 0}
+              >
+                + в избранное ({favoriteCount}/{MAX_COMBAT_CONSUMABLE_FAVORITES})
+              </button>
+            )}
+          </div>
+        ) : null}
+      </div>
     </div>
   )
 }
