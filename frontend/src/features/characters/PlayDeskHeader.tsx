@@ -4,7 +4,6 @@ import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import { clampExhaustion } from '../../shared/dnd/rest'
 import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
 import { clampDeathMarks, type HitDie } from '../../shared/dnd/hitDice'
-import { formatRaceMovementHint } from '../../shared/dnd/raceGrants'
 import {
   coinsToGp,
   formatCoinBreakdown,
@@ -24,9 +23,16 @@ import {
   IconCoin,
   IconRest,
   IconShield,
+  IconSkull,
   IconSpark,
 } from './deskIcons'
 import { formatModifier } from './sheetTypes'
+
+type SpeedMode = {
+  key: 'walk' | 'climb' | 'swim' | 'fly'
+  label: string
+  value: number
+}
 
 type PlayDeskHeaderProps = {
   name: string
@@ -109,9 +115,19 @@ export function PlayDeskHeader({
   onToast,
   onDamaged,
 }: PlayDeskHeaderProps) {
-  const whoLine = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
   const alignmentLabel = alignment.trim()
-  const subtitleBits = [whoLine, alignmentLabel || null, '2014'].filter(Boolean)
+  const classRows = classes.filter((row) => row.name.trim() && row.level > 0)
+  const classChips =
+    classRows.length > 0
+      ? classRows.map((row) => ({
+          id: row.id,
+          label: `${row.name.trim()} ${Math.floor(row.level)}`,
+        }))
+      : className.trim()
+        ? [{ id: 'summary', label: className.trim() }]
+        : []
+  const raceLabel = raceName.trim() || 'Черновик'
+  const subtitleBits = [raceLabel, alignmentLabel || null, '2014'].filter(Boolean)
   const xp = xpProgress(experience, level)
   const [hpPulse, setHpPulse] = useState(false)
   const [hpPadOpen, setHpPadOpen] = useState(false)
@@ -140,17 +156,36 @@ export function PlayDeskHeader({
     xp.nextThreshold == null ? `${xp.xp}` : `${xp.xp}/${xp.nextThreshold}`
   const nextLevel = xp.level >= 20 ? null : xp.level + 1
   const hpTemp = play.hpTemp
-  const showDeath = play.isDying || (hpCurrent != null && hpCurrent <= 0)
+  const atZeroHp = hpCurrent != null && hpCurrent <= 0
+  const showDeath = play.isDying || atZeroHp
+  const deathTracksActive = play.isDying || atZeroHp
   const exhaustionStage =
     play.exhaustion > 0 ? conditionLevelLabel('exhaustion', play.exhaustion) : null
-  const altSpeedHint = formatRaceMovementHint({
-    climb: climbSpeed,
-    swim: swimSpeed,
-    fly: flySpeed,
-  })
+
+  const altModes: SpeedMode[] = []
+  if (climbSpeed != null) altModes.push({ key: 'climb', label: 'лаз.', value: climbSpeed })
+  if (swimSpeed != null) altModes.push({ key: 'swim', label: 'плав.', value: swimSpeed })
+  if (flySpeed != null) altModes.push({ key: 'fly', label: 'полёт', value: flySpeed })
+
+  const hasWalk = speed != null
+  const primarySpeed: SpeedMode | null = hasWalk
+    ? { key: 'walk', label: 'Скор.', value: speed }
+    : altModes[0]
+      ? { ...altModes[0], label: altModes[0].label }
+      : null
+  const secondarySpeeds = hasWalk ? altModes : altModes.slice(1)
   const speedTitle =
-    [altSpeedHint, movementHint].filter(Boolean).join(' · ') ||
-    'Скорость (из расы / снаряжения)'
+    [
+      primarySpeed
+        ? `${primarySpeed.key === 'walk' ? 'ход' : primarySpeed.label} ${primarySpeed.value}`
+        : null,
+      ...secondarySpeeds.map((mode) => `${mode.label} ${mode.value}`),
+      movementHint,
+    ]
+      .filter(Boolean)
+      .join(' · ') || 'Скорость (из расы / снаряжения)'
+  const speedVitalWide =
+    secondarySpeeds.length > 0 || (primarySpeed != null && primarySpeed.key !== 'walk')
 
   function applyHeal(amount: number) {
     const current = hpCurrent ?? 0
@@ -204,7 +239,7 @@ export function PlayDeskHeader({
             }
             onClick={onOpenIdentity}
           >
-            {whoLine}
+            {raceLabel}
             {alignmentLabel ? (
               <>
                 {' · '}
@@ -221,6 +256,18 @@ export function PlayDeskHeader({
         ) : (
           <p className="play-desk-header__sub">{subtitleBits.join(' · ')}</p>
         )}
+        {classChips.length > 0 ? (
+          <ul
+            className={`play-desk-header__classes${classChips.length >= 3 ? ' is-many' : ''}`}
+            aria-label="Классы"
+          >
+            {classChips.map((chip) => (
+              <li key={chip.id} className="play-desk-header__class-chip">
+                {chip.label}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <button
           type="button"
           className="play-desk-header__xp"
@@ -244,14 +291,28 @@ export function PlayDeskHeader({
             <span>КД</span>
           </div>
           <div
-            className={`play-desk-vital${altSpeedHint ? ' play-desk-vital--speed' : ''}`}
+            className={`play-desk-vital${speedVitalWide ? ' play-desk-vital--speed' : ''}${
+              primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
+            }`}
             title={speedTitle}
           >
             <IconBoot className="play-desk-vital__icon" />
-            <b>{speed ?? '—'}</b>
-            <span>Скор.</span>
-            {altSpeedHint ? (
-              <small className="play-desk-vital__alt-speed">{altSpeedHint}</small>
+            <b>{primarySpeed ? primarySpeed.value : '—'}</b>
+            <span>
+              {primarySpeed
+                ? primarySpeed.key === 'walk'
+                  ? 'Скор.'
+                  : primarySpeed.label
+                : 'Скор.'}
+            </span>
+            {secondarySpeeds.length > 0 ? (
+              <ul className="play-desk-vital__modes" aria-label="Другие скорости">
+                {secondarySpeeds.map((mode) => (
+                  <li key={mode.key} className="play-desk-vital__mode">
+                    <em>{mode.label}</em> {mode.value}
+                  </li>
+                ))}
+              </ul>
             ) : null}
           </div>
           {onInitiativeRoll ? (
@@ -328,18 +389,26 @@ export function PlayDeskHeader({
           <IconRest className="play-desk-header__btn-icon" />
           <span>Отдых</span>
         </button>
-        <div className="play-desk-header__hp-wrap">
+        <div className={`play-desk-header__hp-wrap${showDeath ? ' is-dying' : ''}`}>
           <button
             type="button"
-            className={`play-desk-header__hp${hpPulse ? ' is-pulse' : ''}`}
-            title={hpTemp > 0 ? `врем. +${hpTemp}` : 'Хиты — лечение, урон, кости, смерть'}
+            className={`play-desk-header__hp${hpPulse ? ' is-pulse' : ''}${
+              showDeath ? ' is-critical' : ''
+            }`}
+            title={
+              showDeath
+                ? 'Хиты ≤ 0 — спасброски от смерти рядом'
+                : hpTemp > 0
+                  ? `врем. +${hpTemp}`
+                  : 'Хиты — лечение, урон, кости, смерть'
+            }
             onClick={() => setHpPadOpen(true)}
           >
             <strong>
               {hpCurrent ?? '—'} / {hpMax ?? '—'}
             </strong>
             <small>
-              хиты
+              {showDeath ? 'при смерти' : 'хиты'}
               {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
             </small>
           </button>
@@ -347,7 +416,7 @@ export function PlayDeskHeader({
             <div className="play-desk-header__death" aria-label="Спасброски от смерти">
               <button
                 type="button"
-                className={`play-desk-header__dying-toggle${play.isDying ? ' is-on' : ''}`}
+                className={`play-desk-header__dying-toggle${deathTracksActive ? ' is-on' : ''}`}
                 onClick={() =>
                   onPlayChange({
                     ...play,
@@ -357,10 +426,13 @@ export function PlayDeskHeader({
                   })
                 }
               >
-                {play.isDying ? 'При смерти' : 'Смерть'}
+                <IconSkull className="play-desk-header__death-icon" />
+                <span>{play.isDying || atZeroHp ? 'При смерти' : 'Смерть'}</span>
               </button>
               <div
-                className={`play-desk-header__death-tracks${play.isDying ? '' : ' is-dim'}`}
+                className={`play-desk-header__death-tracks${
+                  deathTracksActive ? '' : ' is-dim'
+                }`}
               >
                 <HeaderDeathTrack
                   label="Успехи"

@@ -4444,6 +4444,32 @@ input {
   font-size: 0.9rem;
 }
 
+.play-desk-header__classes {
+  list-style: none;
+  margin: 5px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.play-desk-header__class-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 28%, var(--desk-line));
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 70%, white);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--desk-ink, var(--ink));
+  white-space: nowrap;
+}
+
+.play-desk-header__classes.is-many .play-desk-header__class-chip {
+  font-size: 0.66rem;
+  padding: 2px 7px;
+}
+
 button.play-desk-header__sub--btn {
   display: inline;
   padding: 0;
@@ -4629,7 +4655,43 @@ button.play-desk-vital:hover {
 }
 
 .play-desk-vital--speed {
-  min-width: 72px;
+  min-width: 78px;
+  max-width: 132px;
+}
+
+.play-desk-vital--alt-primary span {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.play-desk-vital__modes {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  justify-content: center;
+  max-width: 120px;
+}
+
+.play-desk-vital__mode {
+  padding: 1px 5px;
+  border-radius: 999px;
+  border: 1px solid var(--desk-line);
+  background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 55%, white);
+  font-size: 0.58rem;
+  line-height: 1.3;
+  color: var(--desk-ink, var(--ink));
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.play-desk-vital__mode em {
+  font-style: normal;
+  color: var(--desk-muted);
+  margin-right: 2px;
 }
 
 .play-desk-vital__alt-speed {
@@ -4719,22 +4781,51 @@ button.play-desk-vital:hover {
   font-size: 0.72rem;
 }
 
-/* Compact death saves: to the RIGHT of HP, two stacked tracks. */
+/* Compact death saves: to the RIGHT of HP, two stacked tracks + skull. */
+.play-desk-header__hp-wrap.is-dying {
+  gap: 8px;
+}
+
+.play-desk-header__hp.is-critical {
+  border-color: color-mix(in srgb, var(--danger, #9f2d2d) 55%, #efc2c2);
+  background: color-mix(in srgb, #fff4f4 88%, white);
+  box-shadow: inset 0 0 0 1px #ffe0e0;
+}
+
+.play-desk-header__hp.is-critical strong {
+  color: var(--danger, #9f2d2d);
+}
+
 .play-desk-header__death {
   display: grid;
   grid-template-rows: auto 1fr;
-  gap: 4px;
-  min-width: 118px;
-  padding: 6px 8px;
+  gap: 5px;
+  min-width: 128px;
+  padding: 6px 8px 7px;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--danger, #9f2d2d) 35%, var(--desk-line));
-  background: color-mix(in srgb, #fff4f4 75%, white);
+  border: 1px solid color-mix(in srgb, var(--danger, #9f2d2d) 42%, var(--desk-line));
+  background: color-mix(in srgb, #fff4f4 82%, white);
   align-content: center;
+  animation: play-desk-death-in 220ms ease-out;
+}
+
+@keyframes play-desk-death-in {
+  from {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .play-desk-header__dying-toggle {
   justify-self: start;
-  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 6px;
   border-radius: 999px;
   border: 1px solid var(--desk-line);
   background: #fff;
@@ -4745,10 +4836,17 @@ button.play-desk-vital:hover {
   line-height: 1.2;
 }
 
+.play-desk-header__death-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--danger, #9f2d2d);
+}
+
 .play-desk-header__dying-toggle.is-on {
-  border-color: color-mix(in srgb, var(--danger, #9f2d2d) 45%, var(--desk-line));
+  border-color: color-mix(in srgb, var(--danger, #9f2d2d) 50%, var(--desk-line));
   color: var(--danger, #9f2d2d);
   font-weight: 600;
+  background: color-mix(in srgb, #fff4f4 60%, white);
 }
 
 .play-desk-header__death-tracks {

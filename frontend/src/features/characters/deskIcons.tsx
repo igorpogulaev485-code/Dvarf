@@ -99,3 +99,18 @@ export function IconSpark(props: IconProps) {
     </Svg>
   )
 }
+
+/** Death saves — skull */
+export function IconSkull(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        {...stroke}
+        d="M12 3.8c-3.7 0-6.4 2.6-6.4 6.1 0 2.2 1 3.7 2.2 4.7v2.6c0 .7.6 1.3 1.3 1.3h5.8c.7 0 1.3-.6 1.3-1.3v-2.6c1.2-1 2.2-2.5 2.2-4.7 0-3.5-2.7-6.1-6.4-6.1Z"
+      />
+      <circle {...stroke} cx="9.2" cy="10.2" r="1.15" />
+      <circle {...stroke} cx="14.8" cy="10.2" r="1.15" />
+      <path {...stroke} d="M10.2 14.2h3.6M11.2 16.8v1.6M12.8 16.8v1.6" />
+    </Svg>
+  )
+}

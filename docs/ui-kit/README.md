@@ -91,7 +91,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 |---------|-------|
 | Foundations | `dvarf-ui-kit-spec.jpg` |
 | 6 тем + rail A | `dvarf-ui-kit-themes-6.jpg`, `dvarf-ui-kit-cabinet-theme.jpg` |
-| Desk chrome | `dvarf-ui-kit-desk-chrome.jpg`, `dvarf-ui-kit-desk-icons.jpg` |
+| Desk chrome | `dvarf-ui-kit-desk-chrome.jpg`, `dvarf-ui-kit-desk-icons.jpg`, `dvarf-ui-kit-desk-header-states.jpg` |
 | Pads / dialogs | `dvarf-ui-kit-dialogs-pads.jpg` |
 | Rail | `dvarf-ui-kit-ability-rail-v2.jpg`, `dvarf-ui-kit-ability-colors.jpg` |
 | Spells | `dvarf-ui-kit-spells.jpg` |
@@ -130,8 +130,17 @@ Live-эталоны в продукте (уже близки к киту): Inven
 2. Если **нет** — сначала рисуем/добавляем иконки, кладём в кит (`boards/` + запись здесь), согласование.
 3. Только потом верстка/логика chrome блока.
 
-Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола** — line-иконки виталов/монет/отдыха (`deskIcons.tsx`, доска `desk-chrome`).  
+Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола** — line-иконки виталов/монет/отдыха/**черепа death** (`deskIcons.tsx`, доски `desk-chrome` / `desk-icons` / `desk-header-states`).  
 Ещё нет: отдельный набор под **магия / каст / слоты** (и hot-bar — проверять при старте слайса).
+
+**Шапка стола — краевые состояния (зафиксировано в компоновке):**
+
+| Состояние | Как в шапке |
+|-----------|-------------|
+| Мультикласс (2–4+) | чипы `Класс N` под расой; раса/мировоззрение/2014 отдельно от классов |
+| Alt-скорости | ход — крупное число; лаз/плав/полёт — мини-чипы под ним |
+| Нет хода, есть alt | первичная скорость = первый alt (подпись лаз./плав./полёт), остальные чипами |
+| HP ≤ 0 / при смерти | блок спасбросков справа от HP + **IconSkull**; треки активны |
 
 Rail характеристик (вариант A) иконок не требует — полные названия, chips, drag.
 
