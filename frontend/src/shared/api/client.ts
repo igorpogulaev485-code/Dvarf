@@ -104,11 +104,9 @@ export async function apiRequest<T>(
   if (!headers.has('Content-Type') && options.body && !isFormData) {
     headers.set('Content-Type', 'application/json')
   }
-  // Always ask for JSON so nginx never SPA-rewrites API paths when Safari
-  // sends Accept: text/html and the Bearer header is momentarily missing.
-  if (!headers.has('Accept')) {
-    headers.set('Accept', 'application/json')
-  }
+  // Force JSON Accept (overwrite) so nginx never mistakes an API call for SPA nav.
+  headers.set('Accept', 'application/json')
+  headers.set('X-Dvarf-Client', 'app')
 
   const accessToken = getAccessToken()
   if (accessToken) {
@@ -140,6 +138,11 @@ export async function apiRequest<T>(
     // Expired access without a usable refresh — drop the stale access token
     // so LoginRoute does not bounce back into a RequireAuth dead-end.
     clearTokens()
+    throw new ApiRequestError(
+      'Сессия истекла — войдите снова',
+      401,
+      'unauthorized',
+    )
   }
 
   if (response.status === 204) {
@@ -149,7 +152,7 @@ export async function apiRequest<T>(
   const contentType = response.headers.get('content-type') || ''
   if (contentType.includes('text/html')) {
     throw new ApiRequestError(
-      'Сервер вернул страницу вместо API. Обновите страницу или войдите снова.',
+      'Сервер вернул страницу вместо API. Обновите страницу (Ctrl+Shift+R) или войдите снова.',
       response.status || 502,
       'html_instead_of_json',
     )

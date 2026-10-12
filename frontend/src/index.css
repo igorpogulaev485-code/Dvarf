@@ -3993,14 +3993,29 @@ button.play-desk-vital {
   color: #fff;
 }
 
-.play-desk__panel-pick {
-  margin-left: auto;
-  font: inherit;
-  font-size: 0.82rem;
+.play-desk__more-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 0 2px;
+}
+
+.play-desk__more-tab {
   border: 1px solid var(--desk-line);
   background: #fff;
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--desk-ink);
+}
+
+.play-desk__more-tab.is-on {
+  background: var(--desk-accent-soft);
+  border-color: #9ecbbb;
+  color: var(--desk-accent);
 }
 
 .play-desk__mode-hint {
