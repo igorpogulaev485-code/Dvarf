@@ -429,41 +429,100 @@ export function isPreparedLocked(spell: SheetSpell): boolean {
   return false
 }
 
+export type SpellSourceBadge = {
+  label: string
+  title: string
+  /** Origin bucket for styling / analytics. */
+  kind: 'race' | 'feat' | 'subclass' | 'feature' | 'grant'
+}
+
+/**
+ * Badge for spells granted by race / feat / archetype / gear / feature.
+ * Covers both always-prepared (innate, domain) and mark/list expansions
+ * that the player prepares into normal slots.
+ */
+export function spellSourceBadge(spell: SheetSpell): SpellSourceBadge | null {
+  const custom = spell.prepare_source_label?.trim() || ''
+  const usesNote =
+    spell.grant_cast && spell.grant_cast.max > 0
+      ? ` · ${spell.grant_cast.label} ${grantCastRemaining(spell)}/${spell.grant_cast.max} без ячейки`
+      : ''
+
+  if (isRaceSheetSpell(spell) || spell.race_grant) {
+    if (spell.race_grant === 'spell_list') {
+      const label = custom || 'Метка'
+      return {
+        label,
+        title: `Список расы/метки · ${label} — готовь как классовое, только ячейки`,
+        kind: 'race',
+      }
+    }
+    const label = custom || 'Раса'
+    return {
+      label,
+      title: `Всегда подготовлено · ${label} — вне лимита подготовки${usesNote}`,
+      kind: 'race',
+    }
+  }
+
+  if (isFeatSheetSpell(spell) || spell.feat_grant) {
+    if (spell.feat_grant === 'spell_list') {
+      const label = custom || 'Черта'
+      return {
+        label,
+        title: `Список черты · ${label} — готовь как классовое, только ячейки`,
+        kind: 'feat',
+      }
+    }
+    const label = custom || 'Черта'
+    return {
+      label,
+      title: `Всегда подготовлено · ${label} — вне лимита подготовки${usesNote}`,
+      kind: 'feat',
+    }
+  }
+
+  if (isSubclassSheetSpell(spell) || spell.source_kind === 'subclass') {
+    const label = custom || 'Архетип'
+    return {
+      label,
+      title: `Всегда подготовлено · ${label} — домен/клятва/архетип, вне лимита${usesNote}`,
+      kind: 'subclass',
+    }
+  }
+
+  if (spell.source_kind === 'feature' || spell.id.startsWith('feature-spell:') || spell.id.startsWith('gear-spell:')) {
+    const label = custom || (spell.id.startsWith('gear-spell:') ? 'Предмет' : 'Умение')
+    return {
+      label,
+      title: `Всегда подготовлено · ${label}${usesNote}`,
+      kind: 'feature',
+    }
+  }
+
+  if (isPreparedLocked(spell)) {
+    return {
+      label: custom || 'Всегда',
+      title: `Всегда подготовлено · ${custom || 'грант'}${usesNote}`,
+      kind: 'grant',
+    }
+  }
+
+  return null
+}
+
+/** Soft highlight for any grant-origin spell (race / feat / archetype / gear). */
+export function isGrantedSpellHighlight(spell: SheetSpell): boolean {
+  return spellSourceBadge(spell) != null
+}
+
 export function preparedLockChip(spell: SheetSpell): {
   label: string
   title: string
 } | null {
   if (!isPreparedLocked(spell)) return null
-  if (spell.prepare_source_label) {
-    return {
-      label: spell.prepare_source_label,
-      title: `Всегда подготовлено · ${spell.prepare_source_label} — вне лимита подготовки`,
-    }
-  }
-  if (spell.feat_grant === 'innate' || spell.source_kind === 'feat') {
-    return {
-      label: 'Черта',
-      title: 'Заклинание от черты — всегда подготовлено, вне лимита',
-    }
-  }
-  if (spell.race_grant === 'innate' || spell.source_kind === 'race') {
-    return {
-      label: 'Врождённое',
-      title: 'Врождённый расовый каст — вне лимита подготовки',
-    }
-  }
-  if (spell.source_kind === 'subclass') {
-    return {
-      label: 'Архетип',
-      title: 'Заклинание домена/клятвы — всегда подготовлено, вне лимита',
-    }
-  }
-  if (spell.source_kind === 'feature') {
-    return {
-      label: 'Умение',
-      title: 'Заклинание от классового умения — всегда подготовлено, вне лимита',
-    }
-  }
+  const badge = spellSourceBadge(spell)
+  if (badge) return { label: badge.label, title: badge.title }
   return {
     label: 'Всегда',
     title: 'Всегда подготовлено — вне лимита подготовки',

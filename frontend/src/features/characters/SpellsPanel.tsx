@@ -51,14 +51,14 @@ import {
   ensureInnateGrantCasts,
   ensureKnownSpellsReady,
   grantCastRemaining,
-  isFeatSheetSpell,
+  isGrantedSpellHighlight,
   isKnownSpellcastingMode,
-  isRaceSheetSpell,
   groupSpellsByLevel,
   isReadyInCombat,
   preparedLockChip,
   readCatalogSpellFields,
   setSpellPrepared,
+  spellSourceBadge,
   spendGrantCast,
   type SheetSpell,
   type SpellsState,
@@ -757,7 +757,12 @@ export function SpellsPanel({
                     <Text tone="muted">Нет заклинаний этого круга в списке.</Text>
                   ) : null}
                   {group.spells.map((spell) => (
-                    <div key={spell.id} className="spell-card">
+                    <div
+                      key={spell.id}
+                      className={`spell-card${
+                        isGrantedSpellHighlight(spell) ? ' is-granted' : ''
+                      }`}
+                    >
                       <div className="spell-card__top">
                         <Field label="Заклинание">
                           <CatalogCombobox
@@ -886,6 +891,17 @@ export function SpellsPanel({
                         ) : (
                           <span className="sheet-chip is-on">Заговор</span>
                         )}
+                        {(() => {
+                          const source = spellSourceBadge(spell)
+                          const lock = preparedLockChip(spell)
+                          // Always-prepared already shows lock chip; spell_list / other grants need source.
+                          if (!source || lock) return null
+                          return (
+                            <span className="sheet-chip is-on" title={source.title}>
+                              {source.label}
+                            </span>
+                          )
+                        })()}
                         {spell.grant_cast && spell.grant_cast.max > 0 ? (
                           <span
                             className={`sheet-chip${
@@ -895,22 +911,6 @@ export function SpellsPanel({
                           >
                             {spell.grant_cast.label} {grantCastRemaining(spell)}/
                             {spell.grant_cast.max}
-                          </span>
-                        ) : null}
-                        {isRaceSheetSpell(spell) && spell.race_grant === 'spell_list' ? (
-                          <span
-                            className="sheet-chip is-on"
-                            title="Список метки/расы — готовь как классовое"
-                          >
-                            Метка
-                          </span>
-                        ) : null}
-                        {isFeatSheetSpell(spell) && spell.feat_grant === 'spell_list' ? (
-                          <span
-                            className="sheet-chip is-on"
-                            title="Список черты — готовь как классовое"
-                          >
-                            Черта
                           </span>
                         ) : null}
                         <button
@@ -925,7 +925,7 @@ export function SpellsPanel({
                           aria-pressed={spell.concentration}
                         >
                           <IconConcentration className="spells-btn-icon" />
-                          Конц.
+                          конц.
                         </button>
                         <button
                           type="button"
@@ -937,7 +937,7 @@ export function SpellsPanel({
                           aria-pressed={spell.ritual}
                         >
                           <IconRitual className="spells-btn-icon" />
-                          Ритуал
+                          ритуал
                         </button>
                         {canRemoveSheetSpell(spell) ? (
                           <Button

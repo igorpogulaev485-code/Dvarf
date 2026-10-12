@@ -11,8 +11,11 @@ import {
   countLearnedCantrips,
   countLearnedLeveled,
   countPreparedLeveled,
+  grantCastRemaining,
   groupSpellsByLevel,
+  isGrantedSpellHighlight,
   isReadyInCombat,
+  spellSourceBadge,
   type SheetSpell,
   type SpellsState,
 } from './spells'
@@ -326,20 +329,25 @@ function SpellRow({
 }) {
   const levelText = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
   const meta = compactSpellMeta(spell)
+  const source = spellSourceBadge(spell)
+  const granted = isGrantedSpellHighlight(spell)
+  const grantLeft =
+    spell.grant_cast && spell.grant_cast.max > 0 ? grantCastRemaining(spell) : null
   const flags: string[] = []
-  if (activeConcentration) flags.push('держит концентрацию')
-  else if (spell.concentration) flags.push('концентрация')
+  if (activeConcentration) flags.push('держит конц.')
+  else if (spell.concentration) flags.push('конц.')
   if (spell.ritual) flags.push('ритуал')
+  if (source) flags.push(source.label)
 
   return (
     <button
       type="button"
       className={`play-desk-compact__row is-spell${
         activeConcentration ? ' is-conc-active' : ''
-      }${hasActivate ? ' is-action' : ''}`}
+      }${granted ? ' is-granted' : ''}${hasActivate ? ' is-action' : ''}`}
       title={
         flags.length
-          ? `${spell.name} · ${flags.join(' · ')}`
+          ? `${spell.name} · ${flags.join(' · ')}${source ? ` · ${source.title}` : ''}`
           : hasActivate
             ? `Каст: ${spell.name}`
             : spell.name
@@ -369,12 +377,22 @@ function SpellRow({
           {hasActivate ? <IconCast className="play-desk-compact__row-icon" /> : null}
           <b>{spell.name}</b>
           <span className="play-desk-compact__spell-level">{levelText}</span>
+          {source ? (
+            <span
+              className={`play-desk-compact__source is-${source.kind}`}
+              title={source.title}
+            >
+              {source.label}
+              {grantLeft != null ? ` ${grantLeft}/${spell.grant_cast!.max}` : ''}
+            </span>
+          ) : null}
         </div>
         {(spell.concentration || spell.ritual) && (
           <span className="play-desk-compact__flags">
             {spell.ritual ? (
               <span className="play-desk-compact__flag is-ritual" title="Ритуал">
                 <IconRitual className="play-desk-compact__flag-icon" />
+                <span className="play-desk-compact__flag-label">ритуал</span>
               </span>
             ) : null}
             {spell.concentration ? (
@@ -385,6 +403,7 @@ function SpellRow({
                 title={activeConcentration ? 'Держит концентрацию' : 'Концентрация'}
               >
                 <IconConcentration className="play-desk-compact__flag-icon" />
+                <span className="play-desk-compact__flag-label">конц.</span>
               </span>
             ) : null}
           </span>

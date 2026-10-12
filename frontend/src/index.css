@@ -1992,6 +1992,16 @@ input {
   background: var(--card);
 }
 
+.spell-card.is-granted {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+  background: linear-gradient(
+    118deg,
+    color-mix(in srgb, var(--accent-soft) 72%, var(--card)) 0%,
+    color-mix(in srgb, var(--card) 88%, white) 52%,
+    color-mix(in srgb, var(--accent-soft) 38%, var(--card)) 100%
+  );
+}
+
 .spell-card__top {
   display: flex;
   flex-wrap: wrap;
@@ -4270,6 +4280,41 @@ input {
   margin: 0 0 8px;
 }
 
+.prepare-section {
+  display: grid;
+  gap: 6px;
+}
+
+.prepare-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.prepare-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.prepare-row.is-granted {
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--line));
+  background: linear-gradient(
+    118deg,
+    color-mix(in srgb, var(--accent-soft) 70%, var(--card)) 0%,
+    color-mix(in srgb, var(--card) 90%, white) 55%,
+    color-mix(in srgb, var(--accent-soft) 36%, var(--card)) 100%
+  );
+}
+
 .prepare-row--spell {
   align-items: flex-start;
 }
@@ -4277,6 +4322,30 @@ input {
 .prepare-row__main {
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.prepare-row__meta {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.prepare-row__badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-soft) 70%, white);
+  color: var(--accent);
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.25;
+  vertical-align: middle;
+}
+
+.prepare-row__badge.is-source {
+  background: color-mix(in srgb, var(--accent-soft) 88%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--line));
 }
 
 .spell-card__extras {
@@ -5506,12 +5575,18 @@ button.play-desk-vital:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  gap: 3px;
+  width: auto;
+  min-height: 22px;
+  padding: 2px 6px;
   border-radius: 8px;
   border: 1px solid var(--desk-line, var(--line));
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
   color: var(--desk-accent, var(--accent));
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
 }
 
 .play-desk-compact__flag.is-conc {
@@ -5529,9 +5604,49 @@ button.play-desk-vital:hover {
 }
 
 .play-desk-compact__flag-icon {
-  width: 0.85rem;
-  height: 0.85rem;
+  width: 0.78rem;
+  height: 0.78rem;
   display: block;
+  flex: 0 0 auto;
+}
+
+.play-desk-compact__flag-label {
+  white-space: nowrap;
+}
+
+.play-desk-compact__source {
+  display: inline-flex;
+  align-items: center;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 28%, var(--desk-line));
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 65%, white);
+  color: var(--desk-accent, var(--accent));
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.play-desk-compact__row.is-spell.is-granted {
+  background: linear-gradient(
+    105deg,
+    color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 78%, white) 0%,
+    color-mix(in srgb, var(--desk-chip, #e7e1d4) 45%, white) 48%,
+    color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 42%, white) 100%
+  );
+  border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 24%, var(--desk-line));
+}
+
+.play-desk-compact__row.is-spell.is-granted.is-conc-active {
+  background: linear-gradient(
+    105deg,
+    color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 92%, white) 0%,
+    color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white) 100%
+  );
 }
 
 .play-desk-compact__row.is-resource {

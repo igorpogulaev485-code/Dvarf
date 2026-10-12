@@ -93,9 +93,8 @@ function racialSpellToSheetSpell(
     concentration: false,
     source_kind: 'race' as const,
     race_grant: spell.grant,
-    ...(innate
-      ? { prepared_locked: true as const, prepare_source_label: 'Раса' }
-      : {}),
+    prepare_source_label: innate ? 'Раса' : 'Метка',
+    ...(innate ? { prepared_locked: true as const } : {}),
   }
   // Free-cast charges attached later via withInnateGrantCast (needs PB / preserve used).
   return base

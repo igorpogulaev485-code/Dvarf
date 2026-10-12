@@ -4,9 +4,11 @@ import { Dialog, Stack, Text } from '../../ui'
 import {
   countPreparedLeveled,
   groupSpellsByLevel,
+  isGrantedSpellHighlight,
   isPreparedLocked,
   preparedLockChip,
   setSpellPrepared,
+  spellSourceBadge,
   type SheetSpell,
   type SpellsState,
 } from './spells'
@@ -120,17 +122,35 @@ export function PrepareSpellsDialog({
               <ul className="prepare-list">
                 {group.spells.map((spell) => {
                   const lock = preparedLockChip(spell)
+                  const source = spellSourceBadge(spell)
                   const atCap =
                     !spell.prepared &&
                     !lock &&
                     spells.max_prepared != null &&
                     preparedCount >= spells.max_prepared
                   return (
-                    <li key={spell.id} className="prepare-row">
+                    <li
+                      key={spell.id}
+                      className={`prepare-row${
+                        isGrantedSpellHighlight(spell) ? ' is-granted' : ''
+                      }`}
+                    >
                       <div>
                         <span>{spell.name || 'Без названия'}</span>
                         {spell.concentration ? (
-                          <span className="prepare-row__badge">К</span>
+                          <span className="prepare-row__badge" title="Концентрация">
+                            конц.
+                          </span>
+                        ) : null}
+                        {spell.ritual ? (
+                          <span className="prepare-row__badge" title="Ритуал">
+                            ритуал
+                          </span>
+                        ) : null}
+                        {source && !lock ? (
+                          <span className="prepare-row__badge is-source" title={source.title}>
+                            {source.label}
+                          </span>
                         ) : null}
                       </div>
                       {lock ? (
