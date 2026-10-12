@@ -1480,6 +1480,144 @@ input {
   cursor: default;
 }
 
+.spells-summary {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.spells-summary strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 1.05rem;
+}
+
+.spells-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.spell-level-block {
+  display: grid;
+  gap: 10px;
+}
+
+.spell-level-block__header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.spell-card {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.spell-card__combat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 6px 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 45%, white);
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line));
+}
+
+.spell-card__combat-name {
+  grid-column: 1 / -1;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.spell-card__combat-stat {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  min-width: 3.2rem;
+  max-width: 7.5rem;
+  padding: 4px 6px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid var(--line);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.spell-card__combat-stat--wide {
+  min-width: 4.2rem;
+}
+
+.spell-card__combat-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.spell-card__combat-value {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.spell-card__combat-flag {
+  justify-self: start;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, white);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.spell-card__combat-cast {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 40px;
+}
+
+.spell-card__top {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+
+.spell-card__meta {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+  padding-top: 4px;
+}
+
+.spell-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 .cast-material-box {
   display: grid;
   gap: 6px;
@@ -2670,6 +2808,60 @@ input {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
+
+  .spells-panel .ui-stack {
+    gap: 10px;
+  }
+
+  .spells-summary {
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .spells-summary strong {
+    font-size: 0.95rem;
+  }
+
+  .spells-toolbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .spells-toolbar .ui-button {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .spells-toolbar .ui-button:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .spell-card {
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .spell-card__top {
+    gap: 8px;
+    grid-template-columns: 1fr 4.5rem;
+  }
+
+  .spell-card__meta {
+    gap: 8px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .spell-card__footer .ui-button,
+  .spell-card__footer .sheet-chip {
+    min-height: 40px;
+  }
+
+  .spell-level-block__header {
+    gap: 6px;
+  }
 }
 
 @media (min-width: 768px) {
@@ -2708,6 +2900,28 @@ input {
   .inventory-card__combat-equip {
     grid-column: auto;
     justify-self: end;
+  }
+
+  .spell-card__combat-name {
+    grid-column: auto;
+  }
+
+  .spell-card__combat {
+    grid-template-columns: minmax(0, 1.4fr) auto auto auto auto auto auto;
+  }
+
+  .spell-card__combat-cast {
+    grid-column: auto;
+    width: auto;
+    min-height: 36px;
+  }
+
+  .spell-card__top {
+    grid-template-columns: 1.6fr 5rem;
+  }
+
+  .spell-card__meta {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

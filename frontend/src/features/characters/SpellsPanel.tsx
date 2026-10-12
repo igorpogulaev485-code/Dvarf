@@ -95,6 +95,17 @@ export function SpellsPanel({
   const [castSpell, setCastSpell] = useState<SheetSpell | null>(null)
   const [filter, setFilter] = useState<'all' | number>('all')
   const [showAllKnown, setShowAllKnown] = useState(false)
+  const [isWide, setIsWide] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches,
+  )
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 960px)')
+    const onChangeWide = () => setIsWide(mq.matches)
+    onChangeWide()
+    mq.addEventListener('change', onChangeWide)
+    return () => mq.removeEventListener('change', onChangeWide)
+  }, [])
 
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
@@ -403,13 +414,16 @@ export function SpellsPanel({
     spells.max_prepared == null ? String(preparedCount) : `${preparedCount}/${spells.max_prepared}`
 
   return (
-    <Panel title="Заклинания">
+    <Panel title="Заклинания" className="spells-panel">
       <Stack gap={14}>
-        <Text tone="muted">
-          {knownCaster
-            ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку/pact. Новые — из гримуара.'
-            : 'Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые — из гримуара, затем подготовь.'}
-        </Text>
+        <details className="sheet-help">
+          <summary>Как работают заклинания</summary>
+          <Text tone="muted">
+            {knownCaster
+              ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку/pact. Новые — из гримуара.'
+              : 'Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые — из гримуара, затем подготовь.'}
+          </Text>
+        </details>
 
         <div className="spells-summary">
           <div className="spells-summary__stat">
@@ -443,11 +457,14 @@ export function SpellsPanel({
           >
             {spells.has_component_pouch ? 'Мешочек ✓' : 'Мешочек ✗'}
           </span>
+        </div>
+        <details className="sheet-help">
+          <summary>Фокус и мешочек</summary>
           <Text tone="muted">
             Ищем в инвентаре тип «Фокус» / «Мешочек» (имя может быть любым). М с ценой — отдельный
             предмет.
           </Text>
-        </div>
+        </details>
 
         <div className="spells-toolbar">
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
@@ -655,212 +672,259 @@ export function SpellsPanel({
                   ) : null}
                 </div>
                 <Stack gap={10}>
-                  {group.spells.map((spell) => (
-                    <div key={spell.id} className="spell-card">
-                      <div className="spell-card__top">
-                        <Field label="Заклинание">
-                          <CatalogCombobox
-                            kind="spell"
-                            edition={edition}
-                            value={spell.name}
-                            placeholder="Название или из справочника"
-                            onChange={(value, selected) => applyCatalog(spell.id, value, selected)}
-                          />
-                        </Field>
-                        <Field label="Ур.">
-                          <NumberInput
-                            min={0}
-                            max={9}
-                            emptyValue={0}
-                            value={spell.level}
-                            onValueChange={(level) =>
-                              updateSpell(spell.id, { level: level ?? 0 })
-                            }
-                          />
-                        </Field>
-                      </div>
-                      <div className="spell-card__meta">
-                        <Field label="Время">
-                          <Input
-                            value={spell.casting_time}
-                            placeholder="1 действие…"
-                            onChange={(event) =>
-                              updateSpell(spell.id, { casting_time: event.target.value })
-                            }
-                          />
-                        </Field>
-                        <Field label="Дистанция">
-                          <Input
-                            value={spell.range}
-                            placeholder="60 футов"
-                            onChange={(event) =>
-                              updateSpell(spell.id, { range: event.target.value })
-                            }
-                          />
-                        </Field>
-                        <Field label="Длительность">
-                          <Input
-                            value={spell.duration ?? ''}
-                            placeholder="Мгновенная / 1 мин…"
-                            onChange={(event) =>
-                              updateSpell(spell.id, {
-                                duration: event.target.value || undefined,
-                              })
-                            }
-                          />
-                        </Field>
-                        <Field label="Атака / спас">
-                          <Input
-                            value={spell.attack_or_save}
-                            placeholder="МУД DC / +N"
-                            onChange={(event) =>
-                              updateSpell(spell.id, { attack_or_save: event.target.value })
-                            }
-                          />
-                        </Field>
-                        <Field label="Эффект">
-                          <Input
-                            value={spell.damage}
-                            placeholder="1d8…"
-                            onChange={(event) =>
-                              updateSpell(spell.id, { damage: event.target.value })
-                            }
-                          />
-                        </Field>
-                      </div>
-                      {spell.components || spell.school || spell.source_book || spell.higher_levels ? (
-                        <Text tone="muted" className="spell-card__extras">
-                          {[
-                            spell.components
-                              ? formatSpellComponents(spell.components)
-                              : '',
-                            spell.school ? spellSchoolLabelRu(spell.school) : '',
-                            spell.source_book ?? '',
-                            spell.higher_levels ? `↑ ${spell.higher_levels}` : '',
-                          ]
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </Text>
-                      ) : null}
-                      <div className="spell-card__footer">
-                        {spell.level > 0 ? (
-                          (() => {
-                            const lock = preparedLockChip(spell)
-                            if (lock) {
-                              return (
-                                <span className="sheet-chip is-on" title={lock.title}>
-                                  {lock.label}
-                                </span>
-                              )
-                            }
-                            if (knownCaster) {
-                              return (
-                                <span
-                                  className="sheet-chip is-on"
-                                  title="Известное заклинание — всегда доступно"
-                                >
-                                  Известно
-                                </span>
-                              )
-                            }
-                            return (
-                              <button
-                                type="button"
-                                className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
-                                onClick={() =>
-                                  patch({
-                                    known: setSpellPrepared(
-                                      spells.known,
-                                      spell.id,
-                                      !spell.prepared,
-                                      spells.max_prepared,
-                                    ),
+                  {group.spells.map((spell) => {
+                    const castDisabled =
+                      (spell.level > 0 && !spell.prepared) ||
+                      (spell.level > 0 &&
+                        !spell.ritual &&
+                        !canSpendGrantCast(spell) &&
+                        !canCastLeveledSpell(spells.slots, spells.pact_slots, spell.level))
+                    const combatEffect =
+                      spell.damage.trim() || spell.attack_or_save.trim() || '—'
+                    const combatTime = spell.casting_time.trim() || '—'
+                    return (
+                      <div key={spell.id} className="spell-card">
+                        <div className="spell-card__combat" aria-label="Быстрый взгляд">
+                          <strong className="spell-card__combat-name">
+                            {spell.name.trim() || 'Без имени'}
+                          </strong>
+                          <span className="spell-card__combat-stat">
+                            <span className="spell-card__combat-label">ур</span>
+                            {spell.level === 0 ? '0' : String(spell.level)}
+                          </span>
+                          <span
+                            className="spell-card__combat-stat spell-card__combat-stat--wide"
+                            title={combatTime}
+                          >
+                            <span className="spell-card__combat-label">время</span>
+                            <span className="spell-card__combat-value">{combatTime}</span>
+                          </span>
+                          <span
+                            className="spell-card__combat-stat spell-card__combat-stat--wide"
+                            title={combatEffect}
+                          >
+                            <span className="spell-card__combat-label">эффект</span>
+                            <span className="spell-card__combat-value">{combatEffect}</span>
+                          </span>
+                          {spell.concentration ? (
+                            <span className="spell-card__combat-flag" title="Концентрация">
+                              К
+                            </span>
+                          ) : null}
+                          {spell.ritual ? (
+                            <span className="spell-card__combat-flag" title="Ритуал">
+                              Р
+                            </span>
+                          ) : null}
+                          <Button
+                            className="spell-card__combat-cast"
+                            disabled={castDisabled}
+                            onClick={() => setCastSpell(spell)}
+                          >
+                            Каст
+                          </Button>
+                        </div>
+                        <div className="spell-card__top">
+                          <Field label="Заклинание">
+                            <CatalogCombobox
+                              kind="spell"
+                              edition={edition}
+                              value={spell.name}
+                              placeholder="Название или из справочника"
+                              onChange={(value, selected) =>
+                                applyCatalog(spell.id, value, selected)
+                              }
+                            />
+                          </Field>
+                          <Field label="Ур.">
+                            <NumberInput
+                              min={0}
+                              max={9}
+                              emptyValue={0}
+                              value={spell.level}
+                              onValueChange={(level) =>
+                                updateSpell(spell.id, { level: level ?? 0 })
+                              }
+                            />
+                          </Field>
+                        </div>
+                        <details
+                          className="sheet-help spell-card__more"
+                          {...(isWide ? { open: true } : {})}
+                        >
+                          <summary>Время, дистанция, эффект</summary>
+                          <div className="spell-card__meta">
+                            <Field label="Время">
+                              <Input
+                                value={spell.casting_time}
+                                placeholder="1 действие…"
+                                onChange={(event) =>
+                                  updateSpell(spell.id, { casting_time: event.target.value })
+                                }
+                              />
+                            </Field>
+                            <Field label="Дистанция">
+                              <Input
+                                value={spell.range}
+                                placeholder="60 футов"
+                                onChange={(event) =>
+                                  updateSpell(spell.id, { range: event.target.value })
+                                }
+                              />
+                            </Field>
+                            <Field label="Длительность">
+                              <Input
+                                value={spell.duration ?? ''}
+                                placeholder="Мгновенная / 1 мин…"
+                                onChange={(event) =>
+                                  updateSpell(spell.id, {
+                                    duration: event.target.value || undefined,
                                   })
                                 }
-                              >
-                                {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
-                              </button>
-                            )
-                          })()
-                        ) : (
-                          <span className="sheet-chip is-on">Заговор</span>
-                        )}
-                        {spell.grant_cast && spell.grant_cast.max > 0 ? (
-                          <span
-                            className={`sheet-chip${
-                              grantCastRemaining(spell) > 0 ? ' is-on' : ''
-                            }`}
-                            title={`${spell.grant_cast.label}: бесплатный каст без ячейки`}
-                          >
-                            {spell.grant_cast.label} {grantCastRemaining(spell)}/
-                            {spell.grant_cast.max}
-                          </span>
-                        ) : null}
-                        {isRaceSheetSpell(spell) && spell.race_grant === 'spell_list' ? (
-                          <span
-                            className="sheet-chip is-on"
-                            title="Список метки/расы — готовь как классовое"
-                          >
-                            Метка
-                          </span>
-                        ) : null}
-                        {isFeatSheetSpell(spell) && spell.feat_grant === 'spell_list' ? (
-                          <span
-                            className="sheet-chip is-on"
-                            title="Список черты — готовь как классовое"
-                          >
-                            Черта
-                          </span>
-                        ) : null}
-                        <button
-                          type="button"
-                          className={`sheet-chip${spell.concentration ? ' is-on' : ''}`}
-                          onClick={() =>
-                            updateSpell(spell.id, { concentration: !spell.concentration })
-                          }
-                        >
-                          К
-                        </button>
-                        <button
-                          type="button"
-                          className={`sheet-chip${spell.ritual ? ' is-on' : ''}`}
-                          onClick={() => updateSpell(spell.id, { ritual: !spell.ritual })}
-                          title="Ритуал"
-                        >
-                          Ритуал
-                        </button>
-                        {canRemoveSheetSpell(spell) ? (
-                          <Button
-                            variant="ghost"
+                              />
+                            </Field>
+                            <Field label="Атака / спас">
+                              <Input
+                                value={spell.attack_or_save}
+                                placeholder="МУД DC / +N"
+                                onChange={(event) =>
+                                  updateSpell(spell.id, {
+                                    attack_or_save: event.target.value,
+                                  })
+                                }
+                              />
+                            </Field>
+                            <Field label="Эффект">
+                              <Input
+                                value={spell.damage}
+                                placeholder="1d8…"
+                                onChange={(event) =>
+                                  updateSpell(spell.id, { damage: event.target.value })
+                                }
+                              />
+                            </Field>
+                          </div>
+                          {spell.components ||
+                          spell.school ||
+                          spell.source_book ||
+                          spell.higher_levels ? (
+                            <Text tone="muted" className="spell-card__extras">
+                              {[
+                                spell.components
+                                  ? formatSpellComponents(spell.components)
+                                  : '',
+                                spell.school ? spellSchoolLabelRu(spell.school) : '',
+                                spell.source_book ?? '',
+                                spell.higher_levels ? `↑ ${spell.higher_levels}` : '',
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </Text>
+                          ) : null}
+                        </details>
+                        <div className="spell-card__footer">
+                          {spell.level > 0 ? (
+                            (() => {
+                              const lock = preparedLockChip(spell)
+                              if (lock) {
+                                return (
+                                  <span className="sheet-chip is-on" title={lock.title}>
+                                    {lock.label}
+                                  </span>
+                                )
+                              }
+                              if (knownCaster) {
+                                return (
+                                  <span
+                                    className="sheet-chip is-on"
+                                    title="Известное заклинание — всегда доступно"
+                                  >
+                                    Известно
+                                  </span>
+                                )
+                              }
+                              return (
+                                <button
+                                  type="button"
+                                  className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
+                                  onClick={() =>
+                                    patch({
+                                      known: setSpellPrepared(
+                                        spells.known,
+                                        spell.id,
+                                        !spell.prepared,
+                                        spells.max_prepared,
+                                      ),
+                                    })
+                                  }
+                                >
+                                  {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
+                                </button>
+                              )
+                            })()
+                          ) : (
+                            <span className="sheet-chip is-on">Заговор</span>
+                          )}
+                          {spell.grant_cast && spell.grant_cast.max > 0 ? (
+                            <span
+                              className={`sheet-chip${
+                                grantCastRemaining(spell) > 0 ? ' is-on' : ''
+                              }`}
+                              title={`${spell.grant_cast.label}: бесплатный каст без ячейки`}
+                            >
+                              {spell.grant_cast.label} {grantCastRemaining(spell)}/
+                              {spell.grant_cast.max}
+                            </span>
+                          ) : null}
+                          {isRaceSheetSpell(spell) && spell.race_grant === 'spell_list' ? (
+                            <span
+                              className="sheet-chip is-on"
+                              title="Список метки/расы — готовь как классовое"
+                            >
+                              Метка
+                            </span>
+                          ) : null}
+                          {isFeatSheetSpell(spell) && spell.feat_grant === 'spell_list' ? (
+                            <span
+                              className="sheet-chip is-on"
+                              title="Список черты — готовь как классовое"
+                            >
+                              Черта
+                            </span>
+                          ) : null}
+                          <button
+                            type="button"
+                            className={`sheet-chip${spell.concentration ? ' is-on' : ''}`}
                             onClick={() =>
-                              patch({
-                                known: spells.known.filter((item) => item.id !== spell.id),
-                              })
+                              updateSpell(spell.id, { concentration: !spell.concentration })
                             }
                           >
-                            Удалить
-                          </Button>
-                        ) : null}
-                        <Button
-                          className="spell-card__cast"
-                          disabled={
-                            (spell.level > 0 && !spell.prepared) ||
-                            (spell.level > 0 &&
-                              !spell.ritual &&
-                              !canSpendGrantCast(spell) &&
-                              !canCastLeveledSpell(
-                                spells.slots,
-                                spells.pact_slots,
-                                spell.level,
-                              ))
-                          }
-                          onClick={() => setCastSpell(spell)}
-                        >
-                          Каст
-                        </Button>
+                            К
+                          </button>
+                          <button
+                            type="button"
+                            className={`sheet-chip${spell.ritual ? ' is-on' : ''}`}
+                            onClick={() => updateSpell(spell.id, { ritual: !spell.ritual })}
+                            title="Ритуал"
+                          >
+                            Ритуал
+                          </button>
+                          {canRemoveSheetSpell(spell) ? (
+                            <Button
+                              variant="ghost"
+                              onClick={() =>
+                                patch({
+                                  known: spells.known.filter((item) => item.id !== spell.id),
+                                })
+                              }
+                            >
+                              Удалить
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </Stack>
               </div>
             )
