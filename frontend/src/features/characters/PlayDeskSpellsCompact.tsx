@@ -15,6 +15,7 @@ import {
   type SpellsState,
 } from './spells'
 import { IconCast, IconConcentration, IconRitual } from './spellIcons'
+import { spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
 import { levelLabel, spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
 
 type PlayDeskSpellsCompactProps = {
@@ -234,6 +235,51 @@ export function PlayDeskSpellsCompact({
   )
 }
 
+function shortCastingTime(raw: string): string {
+  const t = raw.trim().toLowerCase()
+  if (!t) return ''
+  if (t.includes('бонус')) return 'бонус'
+  if (t.includes('реакц')) return 'реакция'
+  if (t.includes('действ')) return 'действие'
+  if (t.includes('минут')) return raw.trim()
+  if (t.includes('час')) return raw.trim()
+  return raw.trim()
+}
+
+function shortRange(raw: string): string {
+  const t = raw.trim()
+  if (!t) return ''
+  return t
+    .replace(/футов?/gi, 'фт')
+    .replace(/на себя/gi, 'на себя')
+    .replace(/\s+/g, ' ')
+}
+
+function compactComponents(spell: SheetSpell): string {
+  const c = spell.components
+  if (!c) return ''
+  const parts: string[] = []
+  if (c.v) parts.push('В')
+  if (c.s) parts.push('С')
+  if (c.m != null) parts.push('М')
+  return parts.join('/')
+}
+
+function compactSpellMeta(spell: SheetSpell): string {
+  const parts: string[] = []
+  if (spell.school) parts.push(spellSchoolLabelRu(spell.school))
+  const comps = compactComponents(spell)
+  if (comps) parts.push(comps)
+  const range = shortRange(spell.range)
+  if (range) parts.push(range)
+  const time = shortCastingTime(spell.casting_time)
+  if (time) parts.push(time)
+  if (spell.duration?.trim()) parts.push(spell.duration.trim())
+  const atk = spell.attack_or_save?.trim()
+  if (atk && atk !== '—') parts.push(atk)
+  return parts.join(' · ')
+}
+
 function SpellRow({
   spell,
   spellAttack,
@@ -253,70 +299,73 @@ function SpellRow({
   onActivate?: () => void
   hasActivate: boolean
 }) {
-  const levelLabel = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
-  const tags = [
-    spell.concentration ? 'концентрация' : null,
-    spell.prepared && spell.level > 0 ? 'готово' : null,
-  ].filter(Boolean)
+  const levelText = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
+  const meta = compactSpellMeta(spell)
+  const flags: string[] = []
+  if (activeConcentration) flags.push('держит концентрацию')
+  else if (spell.concentration) flags.push('концентрация')
+  if (spell.ritual) flags.push('ритуал')
+
   return (
     <button
       type="button"
-      className={`play-desk-compact__row is-dense is-action${
+      className={`play-desk-compact__row is-spell${
         activeConcentration ? ' is-conc-active' : ''
-      }`}
+      }${hasActivate ? ' is-action' : ''}`}
       title={
-        spell.concentration
-          ? 'Концентрация на этом заклинании'
+        flags.length
+          ? `${spell.name} · ${flags.join(' · ')}`
           : hasActivate
-            ? 'Каст заклинания'
-            : 'Инфо о заклинании'
+            ? `Каст: ${spell.name}`
+            : spell.name
       }
       onClick={() => {
         if (hasActivate && onActivate) {
           onActivate()
           return
         }
-        const head = `${spell.name} · ${levelLabel}${
-          tags.length ? ` · ${tags.join(', ')}` : ''
+        const head = `${spell.name} · ${levelText}${
+          flags.length ? ` · ${flags.join(', ')}` : ''
         }`
         if (spellAttack != null) {
           const roll = rollCheck(spellAttack, rollMode)
           onToast?.(
             `${formatCheckRoll(spell.name, roll)}${
               spellDc != null ? ` · Сл ${spellDc}` : ''
-            } · ${levelLabel}`,
+            } · ${levelText}`,
           )
           return
         }
         onToast?.(`${head}${spellDc != null ? ` · Сл ${spellDc}` : ''}`)
       }}
     >
-      <div className="play-desk-compact__row-main">
-        {hasActivate ? <IconCast className="play-desk-compact__row-icon" /> : null}
-        <b>{spell.name}</b>
+      <div className="play-desk-compact__spell-top">
+        <div className="play-desk-compact__row-main">
+          {hasActivate ? <IconCast className="play-desk-compact__row-icon" /> : null}
+          <b>{spell.name}</b>
+          <span className="play-desk-compact__spell-level">{levelText}</span>
+        </div>
+        {(spell.concentration || spell.ritual) && (
+          <span className="play-desk-compact__flags">
+            {spell.ritual ? (
+              <span className="play-desk-compact__flag is-ritual" title="Ритуал">
+                <IconRitual className="play-desk-compact__flag-icon" />
+              </span>
+            ) : null}
+            {spell.concentration ? (
+              <span
+                className={`play-desk-compact__flag is-conc${
+                  activeConcentration ? ' is-active' : ''
+                }`}
+                title={activeConcentration ? 'Держит концентрацию' : 'Концентрация'}
+              >
+                <IconConcentration className="play-desk-compact__flag-icon" />
+              </span>
+            ) : null}
+          </span>
+        )}
       </div>
-      <span className="play-desk-compact__dmg">{levelLabel}</span>
-      {spell.ritual ? (
-        <span className="play-desk-compact__tag is-ritual" title="Ритуал">
-          <IconRitual className="play-desk-compact__tag-icon" />
-          ритуал
-        </span>
-      ) : null}
-      {activeConcentration ? (
-        <span className="play-desk-compact__tag is-conc">
-          <IconConcentration className="play-desk-compact__tag-icon" />
-          держит
-        </span>
-      ) : spell.concentration ? (
-        <span className="play-desk-compact__tag is-conc">
-          <IconConcentration className="play-desk-compact__tag-icon" />
-          конц.
-        </span>
-      ) : spell.prepared && spell.level > 0 && !spell.ritual ? (
-        <span className="play-desk-compact__tag is-on">готово</span>
-      ) : !spell.ritual ? (
-        <span className="play-desk-compact__tag">—</span>
-      ) : null}
+      {meta ? <p className="play-desk-compact__spell-meta">{meta}</p> : null}
     </button>
   )
 }

@@ -5428,7 +5428,7 @@ button.play-desk-vital:hover {
   flex: 1;
 }
 
-.play-desk-compact__row.is-action {
+.play-desk-compact__row.is-action:not(.is-spell) {
   display: grid;
   grid-template-columns: 1.4fr auto 1fr;
   gap: 8px;
@@ -5438,6 +5438,86 @@ button.play-desk-vital:hover {
   font: inherit;
   color: inherit;
   text-align: left;
+}
+
+/* Spell compact card: name + key meta; flags = icon-only (no «готово») */
+.play-desk-compact__row.is-spell {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3px;
+  align-items: stretch;
+  padding: 7px 10px;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: var(--card, #fffdf8);
+  border-color: var(--desk-line, var(--line));
+  cursor: pointer;
+}
+
+.play-desk-compact__spell-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.play-desk-compact__spell-level {
+  color: var(--desk-muted, var(--muted));
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.play-desk-compact__spell-meta {
+  margin: 0;
+  color: var(--desk-muted, var(--muted));
+  font-size: 0.7rem;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.play-desk-compact__flags {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  align-items: center;
+}
+
+.play-desk-compact__flag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  border: 1px solid var(--desk-line, var(--line));
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
+  color: var(--desk-accent, var(--accent));
+}
+
+.play-desk-compact__flag.is-conc {
+  border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 35%, var(--desk-line));
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 75%, white);
+}
+
+.play-desk-compact__flag.is-conc.is-active {
+  border-color: var(--desk-accent, var(--accent));
+  background: var(--desk-accent-soft, var(--accent-soft));
+}
+
+.play-desk-compact__flag.is-ritual {
+  border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 28%, var(--desk-line));
+}
+
+.play-desk-compact__flag-icon {
+  width: 0.85rem;
+  height: 0.85rem;
+  display: block;
 }
 
 .play-desk-compact__row.is-resource {
@@ -5507,8 +5587,8 @@ button.play-desk-vital:hover {
 }
 
 .play-desk-compact__tag.is-conc {
-  background: #fde8c8;
-  color: #9a5b00;
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 80%, white);
+  color: var(--desk-accent, var(--accent));
 }
 
 .play-desk-compact__tag.is-ritual {
@@ -5519,13 +5599,13 @@ button.play-desk-vital:hover {
 }
 
 .play-desk-compact__meta-conc {
-  color: #9a5b00;
+  color: var(--desk-accent, var(--accent));
   font-weight: 600;
 }
 
 .play-desk-compact__row.is-conc-active {
-  outline: 1px solid color-mix(in srgb, #c47a12 55%, transparent);
-  background: color-mix(in srgb, #fde8c8 55%, white);
+  outline: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 45%, transparent);
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 55%, white);
 }
 
 .play-desk-compact__hold {
