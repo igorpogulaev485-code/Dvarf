@@ -3943,6 +3943,10 @@ input {
 
 /* Phone: sticky scene chrome — one panel below, no LSS-style long scroll of all blocks. */
 @media (max-width: 959px) {
+  .play-desk__body--mobile {
+    grid-template-columns: 1fr;
+  }
+
   .play-desk__modes {
     position: sticky;
     top: 0;
@@ -3978,6 +3982,10 @@ input {
 
   .play-desk__top {
     grid-template-columns: auto 1fr;
+    gap: 8px;
+  }
+
+  .abilities-panel .abil-column {
     gap: 8px;
   }
 }
