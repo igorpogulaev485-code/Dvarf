@@ -1138,3 +1138,4 @@
 | 2026-10-12 | `cursor/play-desk-layout-e788` · PR #105 | Нативные броски + компакт способностей/напарников; залито |
 | 2026-10-12 | `cursor/play-desk-layout-e788` · PR #105 | Преим./помеха + панели сцены по режиму; залито |
 | 2026-10-12 | `cursor/play-desk-layout-e788` · PR #105 | Догон макета play desk целиком на Timeweb; `/health` ok; бандл `CharacterDetailPage-Di9rgCE8.js` (`преим`/`play-desk__roll-mode`/`d20:`) |
+| 2026-10-12 | `cursor/create-bugs-layer1-a73e` · PR #113 | Create layer-1 + spell access + autosave листа; tip → эта ветка; `/health` ok; бандл `CharacterDetailPage-CbXNENAC.js` / CSS `index-Bn_HA_Ht.css` |
