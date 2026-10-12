@@ -630,8 +630,10 @@
 |--------|--------------|-------------------------|
 | nginx SPA | Rewrite только при `Sec-Fetch-Dest: document` | fetch листа больше не получает index.html |
 | API client | Всегда `Accept: application/json` + `X-Dvarf-Client` | Нет ложного html_instead_of_json |
+| nginx 502 JSON | При падении API — JSON `api_unavailable`, не HTML 502 | Автосейв не пугает «страница вместо API» |
+| client retry | Один повтор на 502/503/504 (~0.7с) | Короткий рестарт API переживается сам |
 
-На проде: **да** · та же tip-ветка · nginx reload + dist→web; проверено: `Sec-Fetch-Dest: empty` + browser Accept → JSON 401
+На проде: **да** · tip `cursor/desk-vitals-wave-a73e` · PR #118 · проверено 2026-10-12: API down → `Content-Type: application/json` + `api_unavailable`; бандл `client-C72apPWM.js` («временно недоступен»); dist→web + nginx hot-patch
 
 ### 2026-10-12 — Play desk: догон макета (hot bar + split + визуал)
 
@@ -1227,3 +1229,4 @@
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | HP pad / концентрация / расходники+избранное / split справа; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-7tOUzF2V.js` / CSS `index-Cbd8vOye.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Hotfix: состояния/конц./смерть/монеты/XP/attune; Hub timeout → dist→web; `/health` ok; бандл `CharacterDetailPage-DkjzP6Xq.js` / CSS `index-CBcwe-E-.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Шапка: лаз./плав./полёт под скоростью; dist→web; `/health` ok; бандл `CharacterDetailPage-Cwy-1nPy.js` / CSS `index-RHvyfqLk.css` |
+| 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | 502→JSON + client retry; VPS reboot после hung Docker; `/health` ok; бандл `client-C72apPWM.js` |
