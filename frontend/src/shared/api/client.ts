@@ -42,6 +42,9 @@ export function clearTokens(): void {
 
 let refreshInFlight: Promise<boolean> | null = null
 
+/** Fail fast — a stuck refresh must not leave the UI on «Загрузка…» forever. */
+const REFRESH_TIMEOUT_MS = 8_000
+
 async function tryRefreshAccessToken(): Promise<boolean> {
   if (refreshInFlight) {
     return refreshInFlight
@@ -53,14 +56,18 @@ async function tryRefreshAccessToken(): Promise<boolean> {
       clearTokens()
       return false
     }
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => controller.abort(), REFRESH_TIMEOUT_MS)
     try {
       const response = await fetch('/auth/refresh', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
+          'X-Dvarf-Client': 'app',
         },
         body: JSON.stringify({ refresh_token: refreshToken }),
+        signal: controller.signal,
       })
       if (!response.ok) {
         clearTokens()
@@ -76,6 +83,7 @@ async function tryRefreshAccessToken(): Promise<boolean> {
       clearTokens()
       return false
     } finally {
+      window.clearTimeout(timer)
       refreshInFlight = null
     }
   })()
