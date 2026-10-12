@@ -93,3 +93,9 @@ export async function deleteCharacterAvatar(id: string): Promise<CharacterDetail
     method: 'DELETE',
   })
 }
+
+export async function deleteCharacter(id: string): Promise<void> {
+  await apiRequest<void>(`/characters/${id}`, {
+    method: 'DELETE',
+  })
+}

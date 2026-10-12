@@ -12,6 +12,8 @@ type DialogProps = {
   busy?: boolean
   /** Disables only the primary action (Cancel stays available). */
   primaryDisabled?: boolean
+  /** Primary button style; use `danger` for destructive confirms. */
+  primaryVariant?: 'primary' | 'secondary' | 'ghost' | 'danger'
   size?: 'default' | 'wide'
   /** Close when clicking the dimmed backdrop. Default: true if onSecondary is set. */
   closeOnBackdrop?: boolean
@@ -27,6 +29,7 @@ export function Dialog({
   onSecondary,
   busy = false,
   primaryDisabled = false,
+  primaryVariant = 'primary',
   size = 'default',
   closeOnBackdrop,
 }: DialogProps) {
@@ -86,7 +89,11 @@ export function Dialog({
               {secondaryLabel}
             </Button>
           ) : null}
-          <Button onClick={onPrimary} disabled={busy || primaryDisabled}>
+          <Button
+            variant={primaryVariant}
+            onClick={onPrimary}
+            disabled={busy || primaryDisabled}
+          >
             {primaryLabel}
           </Button>
         </div>

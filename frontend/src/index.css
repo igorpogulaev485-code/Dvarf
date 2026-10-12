@@ -421,6 +421,8 @@ input {
 
 .character-card__actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 12px;
   padding: 0 4px 4px;
 }
@@ -430,6 +432,20 @@ input {
   font-weight: 650;
   text-decoration: none;
   color: var(--accent);
+}
+
+.character-card__delete {
+  margin-left: auto;
+  min-height: 0;
+  padding: 0;
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: #b42318;
+}
+
+.character-card__delete:hover:not(:disabled) {
+  color: #912018;
+  background: transparent;
 }
 
 .character-card__avatar {
