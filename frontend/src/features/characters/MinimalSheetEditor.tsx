@@ -205,11 +205,13 @@ import { CompanionsPanel } from './CompanionsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
+import { PlayDeskHotBar } from './PlayDeskHotBar'
 import {
   MODE_DEFAULT_PANEL,
   PLAY_DESK_PANELS,
   readSheetUi,
   sheetUiToPatch,
+  splitSecondaryPanel,
   type PlayDeskMode,
   type PlayDeskPanelId,
   type SheetUiState,
@@ -2683,9 +2685,26 @@ export function MinimalSheetEditor({
     setActivePanel(MODE_DEFAULT_PANEL[mode])
   }
 
+  const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
+  const splitSecondary = deskSplit ? splitSecondaryPanel(activePanel) : null
+
   function stageHidden(id: PlayDeskPanelId): boolean {
-    return isPlayDesk && activePanel !== id
+    if (!isPlayDesk) return false
+    if (deskSplit && splitSecondary && (id === activePanel || id === splitSecondary)) {
+      return false
+    }
+    return activePanel !== id
   }
+
+  const initiativeValue =
+    draft.initiativeOverride ??
+    abilityModifier(draft.abilities.dex) + featInitiativeBonus
+  const hotConditionNames = [
+    ...(draft.play.exhaustion > 0 ? [`Истощение ${draft.play.exhaustion}`] : []),
+    ...draft.play.conditions
+      .filter((item) => item.slug !== 'exhaustion')
+      .map((item) => formatConditionLabel(item)),
+  ]
 
   const abilityColumn = (
     <AbilitySkillsColumn
@@ -2748,7 +2767,15 @@ export function MinimalSheetEditor({
   const dockCompanions = draft.companions.filter((row) => row.name.trim()).slice(0, 4)
 
   return (
-    <div className="play-desk">
+    <div
+      className={[
+        'play-desk',
+        isPlayDesk ? 'play-desk--wide' : '',
+        deskSplit ? 'play-desk--split' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className="play-desk__top">
         <CharacterAvatarControl
           character={baseCharacter}
@@ -2891,9 +2918,60 @@ export function MinimalSheetEditor({
                   </option>
                 ))}
               </select>
+              <button
+                type="button"
+                className={`play-desk__split-btn${deskSplit ? ' is-on' : ''}`}
+                aria-pressed={deskSplit}
+                title={
+                  deskSplit
+                    ? 'Снять split — одна панель'
+                    : 'Split — основная панель + заклинания рядом'
+                }
+                onClick={() => patchSheetUi({ deskSplit: !draft.sheetUi.deskSplit })}
+              >
+                {deskSplit ? 'снять split' : 'Split'}
+              </button>
             </div>
           ) : null}
 
+          {isPlayDesk && draft.sheetUi.deskMode === 'combat' ? (
+            <PlayDeskHotBar
+              initiative={initiativeValue}
+              inspiration={draft.inspiration}
+              exhaustion={draft.play.exhaustion}
+              conditionNames={hotConditionNames}
+              concentration={draft.play.concentration}
+              resources={draft.play.resources}
+              onToggleInspiration={() =>
+                setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
+              }
+              onClearConcentration={() =>
+                setDraft((prev) => ({
+                  ...prev,
+                  play: { ...prev.play, concentration: null },
+                }))
+              }
+              onResourceUsedChange={(id, used) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  play: {
+                    ...prev.play,
+                    resources: prev.play.resources.map((row) =>
+                      row.id === id ? { ...row, used } : row,
+                    ),
+                  },
+                }))
+              }
+            />
+          ) : null}
+
+          {deskSplit && splitSecondary === 'spells' && activePanel !== 'spells' ? (
+            <p className="play-desk__split-hint">
+              Справа закреплено: Заклинания · слева — выбранная панель
+            </p>
+          ) : null}
+
+      <div className="play-desk__scene-wrap">
       <div className="play-desk__stage-panel" hidden={stageHidden('identity')}>
       <Panel title="Основное">
         <Stack gap={12}>
@@ -3586,7 +3664,22 @@ export function MinimalSheetEditor({
 
       </div>
 
-      <div className="play-desk__stage-panel" hidden={stageHidden('spells')}>
+      <div
+        className={`play-desk__stage-panel${deskSplit && splitSecondary === 'spells' ? ' is-pinned' : ''}`}
+        hidden={stageHidden('spells')}
+      >
+      {deskSplit && splitSecondary === 'spells' ? (
+        <div className="play-desk__pinned-head">
+          <h3>Заклинания (закреплено)</h3>
+          <button
+            type="button"
+            className="play-desk__split-btn is-on"
+            onClick={() => patchSheetUi({ deskSplit: false })}
+          >
+            снять split
+          </button>
+        </div>
+      ) : null}
       <SpellsPanel
         edition={baseCharacter.rules_edition as RulesEdition}
         className={classSummary || primaryClass?.name || ''}
@@ -3646,6 +3739,8 @@ export function MinimalSheetEditor({
 
       </div>
 
+      </div>{/* scene-wrap */}
+
       {error ? <Text tone="danger">{error}</Text> : null}
 
       <div className="sheet-actions">
@@ -3657,9 +3752,8 @@ export function MinimalSheetEditor({
         </Text>
       </div>
 
-
-      </div>
-      </div>
+      </div>{/* stage */}
+      </div>{/* body */}
 
       {ownershipOpen ? (
         <>

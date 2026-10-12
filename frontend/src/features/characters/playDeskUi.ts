@@ -22,6 +22,8 @@ export type SheetUiState = {
   abilityOrder: AbilityKey[]
   collapsedAbilities: AbilityKey[]
   deskMode: PlayDeskMode
+  /** Side-by-side primary panel + pinned spells (or attacks if spells selected). */
+  deskSplit: boolean
 }
 
 const DEFAULT_ORDER: AbilityKey[] = [...ABILITY_KEYS]
@@ -54,6 +56,8 @@ export function readSheetUi(sheet: Record<string, unknown>): SheetUiState {
       )
     : []
   const mode = ui.desk_mode
+  // Default ON so combat opens like the mockup (attacks + spells).
+  const deskSplit = ui.desk_split === false ? false : true
   return {
     abilityOrder: normalizeAbilityOrder(ui.ability_order),
     collapsedAbilities: collapsed,
@@ -61,6 +65,7 @@ export function readSheetUi(sheet: Record<string, unknown>): SheetUiState {
       mode === 'explore' || mode === 'social' || mode === 'companions' || mode === 'combat'
         ? mode
         : 'combat',
+    deskSplit,
   }
 }
 
@@ -69,7 +74,13 @@ export function sheetUiToPatch(ui: SheetUiState): Record<string, unknown> {
     ability_order: ui.abilityOrder,
     collapsed_abilities: ui.collapsedAbilities,
     desk_mode: ui.deskMode,
+    desk_split: ui.deskSplit,
   }
+}
+
+/** Secondary panel pinned beside the primary when split is on. */
+export function splitSecondaryPanel(active: PlayDeskPanelId): PlayDeskPanelId {
+  return active === 'spells' ? 'attacks' : 'spells'
 }
 
 export const MODE_DEFAULT_PANEL: Record<PlayDeskMode, PlayDeskPanelId> = {
