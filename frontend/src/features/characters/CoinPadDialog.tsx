@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../../ui'
-import type { CoinPurse } from '../../shared/dnd/weight'
+import { coinsToGp, formatGpTotal, type CoinPurse } from '../../shared/dnd/weight'
 
 type CoinKey = keyof CoinPurse
 
@@ -21,21 +21,6 @@ const COIN_META: Array<{ key: CoinKey; label: string; short: string }> = [
   { key: 'pp', label: 'Платина', short: 'П' },
   { key: 'ep', label: 'Электрум', short: 'Э' },
 ]
-
-function coinsToGp(coins: CoinPurse): number {
-  return (
-    coins.pp * 10 +
-    coins.gp +
-    coins.ep * 0.5 +
-    coins.sp * 0.1 +
-    coins.cp * 0.01
-  )
-}
-
-function formatGp(total: number): string {
-  if (Number.isInteger(total)) return String(total)
-  return total.toFixed(2).replace(/\.?0+$/, '')
-}
 
 export function CoinPadDialog({
   open,
@@ -132,7 +117,7 @@ export function CoinPadDialog({
         </div>
 
         <div className="coin-pad__summary">
-          <strong>Всего в золоте: {formatGp(totalGp)}</strong>
+          <strong>Всего в золоте: {formatGpTotal(totalGp)}</strong>
           <div className="coin-pad__balances">
             {COIN_META.map((row) => (
               <span key={row.key} className={coin === row.key ? 'is-on' : ''}>

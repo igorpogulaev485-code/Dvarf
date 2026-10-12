@@ -5,7 +5,12 @@ import { clampExhaustion } from '../../shared/dnd/rest'
 import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
 import { clampDeathMarks, type HitDie } from '../../shared/dnd/hitDice'
 import { formatRaceMovementHint } from '../../shared/dnd/raceGrants'
-import type { CoinPurse } from '../../shared/dnd/weight'
+import {
+  coinsToGp,
+  formatCoinBreakdown,
+  formatGpTotal,
+  type CoinPurse,
+} from '../../shared/dnd/weight'
 import { NumberPadDialog } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
@@ -298,10 +303,10 @@ export function PlayDeskHeader({
         <button
           type="button"
           className="play-desk-header__coin"
-          title="Монеты — взять / отдать"
+          title={`Всего ≈ ${formatGpTotal(coinsToGp(coins))} зм (${formatCoinBreakdown(coins)}). Нажми — взять / отдать`}
           onClick={() => setCoinPadOpen(true)}
         >
-          {coins.gp} зм
+          {formatGpTotal(coinsToGp(coins))} зм
         </button>
         <button type="button" className="play-desk-header__rest" onClick={onOpenRest}>
           ✦ Отдых

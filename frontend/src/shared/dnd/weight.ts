@@ -33,6 +33,34 @@ export function coinCount(coins: CoinPurse): number {
   )
 }
 
+/** PHB exchange → gold pieces (pp=10, ep=1/2, sp=1/10, cp=1/100). */
+export function coinsToGp(coins: CoinPurse): number {
+  return (
+    clampNonNegative(coins.pp) * 10 +
+    clampNonNegative(coins.gp) +
+    clampNonNegative(coins.ep) * 0.5 +
+    clampNonNegative(coins.sp) * 0.1 +
+    clampNonNegative(coins.cp) * 0.01
+  )
+}
+
+export function formatGpTotal(total: number): string {
+  if (!Number.isFinite(total)) return '0'
+  if (Number.isInteger(total)) return String(total)
+  return total.toFixed(2).replace(/\.?0+$/, '')
+}
+
+/** Short purse breakdown for tooltips (omit zero piles). */
+export function formatCoinBreakdown(coins: CoinPurse): string {
+  const parts: string[] = []
+  if (coins.pp) parts.push(`${coins.pp} пм`)
+  if (coins.gp) parts.push(`${coins.gp} зм`)
+  if (coins.ep) parts.push(`${coins.ep} эм`)
+  if (coins.sp) parts.push(`${coins.sp} см`)
+  if (coins.cp) parts.push(`${coins.cp} мм`)
+  return parts.length > 0 ? parts.join(' · ') : 'пусто'
+}
+
 export function coinWeightLb(coins: CoinPurse): number {
   return coinCount(coins) / COINS_PER_POUND
 }
