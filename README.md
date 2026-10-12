@@ -8,4 +8,5 @@
 Эта `main` сейчас — упрощённый SPA-каркас (localStorage). Продуктовый код (auth, кабинет, лист P1–P6, Docker) живёт в feature-ветках от prod tip, не здесь.
 
 **User flow продукта:** [`USER_FLOW.md`](USER_FLOW.md) — роли, маршруты, сценарии (аккаунт → персонажи → create → лист/play desk → лобби).  
+**Микро-флоу листа:** [`PLAY_DESK_MICROFLOWS.md`](PLAY_DESK_MICROFLOWS.md) — кейсы K1–K28 и пошаговые действия на play desk.  
 См. также открытые PR и `PRODUCT_STATUS.md` в tip-ветках (напр. `cursor/play-desk-layout-e788`, `cursor/mobile-play-desk-2c91`).
