@@ -585,8 +585,12 @@
 | A1 Токены | `--accent` Листва `#5a6b3d` / soft `#e5ecd4`; `--card`; `--abil-*`; убраны teal/slate fallbacks | Один цвет бренда по киту |
 | A2 Desk | `.play-desk` `--desk-*` → алиасы глобальных токенов; XP/шапка без mint `#0f6b5c` | Стол = пергамент + Листва |
 | A3 Rail A | Характеристики: полоска + identity-цвет (СИЛ…ХАР); Сп on solid; навыки soft/expert | Левый блок как на доске кита |
+| A4 Spells | summary/toolbar sticky/spell-card `--card` | Панель заклинаний = кит |
+| A5 Features/Companions/Attune | `--card` rows, sticky toolbars, group titles serif | Компаньоны/умения/настройка |
+| A6 Chrome | sticky parchment, AppHeader brand/nav, compact `--card` | Шапка приложения и узкий sticky |
+| A7–A9 | auth tabs, create steps, toast accent, print identity A | Auth/create/print в ките |
 
-Волна B (выбор темы в кабинете) — после остальных слайсов A.
+Волна B (выбор темы в кабинете) — следующим этапом.
 
 На проде: **нет** · ветка `cursor/wave-a-listva-a73e` · ждать merge/деплой
 

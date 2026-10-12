@@ -512,13 +512,13 @@ export function SpellsPanel({
           </Text>
         </div>
 
-        <div className="spells-toolbar">
+        <div className="spells-panel__toolbar">
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
           </Button>
           {!knownCaster ? (
             <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
-              Подготовить заклинания
+              Подготовить
             </Button>
           ) : null}
           <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
