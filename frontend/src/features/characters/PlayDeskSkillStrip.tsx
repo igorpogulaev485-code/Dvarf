@@ -4,7 +4,8 @@ export type PlayDeskSkillChip = {
   key: string
   label: string
   mod: number
-  mark?: string
+  /** Proficient or expertise — tint the chip. */
+  trained?: boolean
 }
 
 type PlayDeskSkillStripProps = {
@@ -24,15 +25,14 @@ export function PlayDeskSkillStrip({
         <button
           key={skill.key}
           type="button"
-          className="play-desk__hot-item play-desk__hot-item--btn"
+          className={`play-desk__hot-item play-desk__hot-item--btn${
+            skill.trained ? ' is-on' : ''
+          }`}
           title={`${skill.label}: ${formatModifier(skill.mod)}`}
           onClick={() => onSkillClick?.(skill)}
         >
           <span>{skill.label}</span>
-          <b>
-            {formatModifier(skill.mod)}
-            {skill.mark ? <small>{skill.mark}</small> : null}
-          </b>
+          <b>{formatModifier(skill.mod)}</b>
         </button>
       ))}
     </div>

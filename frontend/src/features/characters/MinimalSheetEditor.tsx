@@ -2730,12 +2730,11 @@ export function MinimalSheetEditor({
     return MODE_SKILL_KEYS[mode].map((key) => {
       const def = SKILL_DEFS.find((skill) => skill.key === key)
       const state = draft.skills[key]
-      const mark = state?.is_expertise ? '◆' : state?.is_proficient ? '●' : undefined
       return {
         key,
         label: def?.label ?? key,
         mod: skillModFor(key),
-        mark,
+        trained: Boolean(state?.is_proficient || state?.is_expertise),
       }
     })
   }
