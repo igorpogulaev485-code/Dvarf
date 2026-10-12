@@ -30,7 +30,8 @@ type PlayDeskSpellsCompactProps = {
   concentration?: ConcentrationState | null
   onOpenFull: () => void
   onClearSplit?: () => void
-  onSpendSlot?: (level: number) => void
+  /** Set used count for a slot level (spend or restore, like ability pips). */
+  onSlotUsedChange?: (level: number, used: number) => void
   onToast?: (message: string) => void
   /** Open full cast flow for leveled non-concentration (or explicit cast). */
   onCastSpell?: (spell: SheetSpell) => void
@@ -48,7 +49,7 @@ export function PlayDeskSpellsCompact({
   concentration = null,
   onOpenFull,
   onClearSplit,
-  onSpendSlot,
+  onSlotUsedChange,
   onToast,
   onCastSpell,
   onConcentrateSpell,
@@ -122,21 +123,43 @@ export function PlayDeskSpellsCompact({
             const slot = spells.slots[String(level)] ?? { max: 0, used: 0 }
             const remaining = Math.max(0, slot.max - slot.used)
             return (
-              <button
+              <div
                 key={level}
-                type="button"
                 className="play-desk-compact__slot"
-                title={`Ячейки ${level}: ${remaining}/${slot.max}`}
-                disabled={!onSpendSlot || remaining <= 0}
-                onClick={() => onSpendSlot?.(level)}
+                title={`Ячейки ${level}: ${remaining}/${slot.max} · клик по пипу — потратить или вернуть`}
               >
                 <span>{level}</span>
-                <span className="play-desk-compact__slot-pips">
-                  {Array.from({ length: slot.max }, (_, i) => (
-                    <i key={i} className={i < remaining ? 'is-on' : ''} />
-                  ))}
-                </span>
-              </button>
+                <div
+                  className="play-desk-compact__slot-pips"
+                  role="group"
+                  aria-label={`Ячейки ${level}: ${remaining}/${slot.max}`}
+                >
+                  {Array.from({ length: slot.max }, (_, index) => {
+                    const isOn = index < remaining
+                    return (
+                      <button
+                        key={`${level}-${index}`}
+                        type="button"
+                        className={`play-desk-compact__slot-pip${isOn ? ' is-on' : ''}`}
+                        disabled={!onSlotUsedChange}
+                        aria-label={
+                          isOn
+                            ? `Ячейка ${level}: потратить ${index + 1}`
+                            : `Ячейка ${level}: вернуть ${index + 1}`
+                        }
+                        onClick={() => {
+                          if (!onSlotUsedChange) return
+                          if (isOn) {
+                            onSlotUsedChange(level, Math.min(slot.max, slot.used + 1))
+                          } else {
+                            onSlotUsedChange(level, Math.max(0, slot.used - 1))
+                          }
+                        }}
+                      />
+                    )
+                  })}
+                </div>
+              </div>
             )
           })}
         </div>

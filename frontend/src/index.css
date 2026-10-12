@@ -4030,12 +4030,6 @@ button.play-desk-vital {
   background: #f7f4ec;
   font: inherit;
   font-size: 0.72rem;
-  cursor: pointer;
-}
-
-.play-desk-compact__slot:disabled {
-  opacity: 0.55;
-  cursor: default;
 }
 
 .play-desk-compact__slot-pips {
@@ -4043,15 +4037,22 @@ button.play-desk-vital {
   gap: 3px;
 }
 
-.play-desk-compact__slot-pips i {
-  width: 10px;
-  height: 10px;
+.play-desk-compact__slot-pip {
+  width: 12px;
+  height: 12px;
+  padding: 0;
   border-radius: 3px;
   border: 1px solid var(--desk-accent);
   background: #fff;
+  cursor: pointer;
 }
 
-.play-desk-compact__slot-pips i.is-on {
+.play-desk-compact__slot-pip:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.play-desk-compact__slot-pip.is-on {
   background: var(--desk-accent);
 }
 

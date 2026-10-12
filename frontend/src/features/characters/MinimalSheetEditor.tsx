@@ -4501,18 +4501,19 @@ export function MinimalSheetEditor({
               ? () => patchSheetUi({ deskSplit: false })
               : undefined
           }
-          onSpendSlot={(level) => {
+          onSlotUsedChange={(level, used) => {
             const key = String(level)
             setDraft((prev) => {
               const slot = prev.spells.slots[key] ?? { max: 0, used: 0 }
-              if (slot.used >= slot.max) return prev
+              const nextUsed = Math.min(slot.max, Math.max(0, used))
+              if (nextUsed === slot.used) return prev
               return {
                 ...prev,
                 spells: {
                   ...prev.spells,
                   slots: {
                     ...prev.spells.slots,
-                    [key]: { ...slot, used: slot.used + 1 },
+                    [key]: { ...slot, used: nextUsed },
                   },
                 },
               }
