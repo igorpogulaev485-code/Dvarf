@@ -229,6 +229,7 @@ import {
   MODE_LABELS,
   MODE_MORE_PANELS,
   MODE_SKILL_KEYS,
+  modeUsesSpellSplit,
   panelLabel,
   readSheetUi,
   sheetUiToPatch,
@@ -2875,9 +2876,12 @@ export function MinimalSheetEditor({
 
   function setDeskMode(mode: PlayDeskMode) {
     const nextPanel = MODE_DEFAULT_PANEL[mode]
-    // Combat keeps attacks+spells side by side; dump/feature scenes stay single-pane.
-    const nextSplit =
-      mode === 'combat' ? true : mode === 'more' || mode === 'features' ? false : draft.sheetUi.deskSplit
+    // Combat / explore / social keep primary + spells; other scenes stay single-pane.
+    const nextSplit = modeUsesSpellSplit(mode)
+      ? true
+      : mode === 'more' || mode === 'features' || mode === 'companions'
+        ? false
+        : draft.sheetUi.deskSplit
     patchSheetUi({ deskMode: mode, deskSplit: nextSplit })
     setActivePanel(nextPanel)
     setForceFullPanel(null)
@@ -2927,8 +2931,8 @@ export function MinimalSheetEditor({
 
   const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
   const splitSecondary =
-    deskSplit && draft.sheetUi.deskMode === 'combat'
-      ? splitSecondaryPanel(activePanel)
+    deskSplit && modeUsesSpellSplit(draft.sheetUi.deskMode)
+      ? splitSecondaryPanel(draft.sheetUi.deskMode, activePanel)
       : null
 
   function stageHidden(id: PlayDeskPanelId): boolean {
@@ -3310,7 +3314,7 @@ export function MinimalSheetEditor({
                   </button>
                 ))}
               </div>
-              {draft.sheetUi.deskMode === 'combat' ? (
+              {modeUsesSpellSplit(draft.sheetUi.deskMode) ? (
                 <button
                   type="button"
                   className={`play-desk__split-btn${deskSplit ? ' is-on' : ''}`}
@@ -3318,7 +3322,7 @@ export function MinimalSheetEditor({
                   title={
                     deskSplit
                       ? 'Снять split — одна панель'
-                      : 'Split — атаки + заклинания рядом'
+                      : 'Split — основная панель + заклинания рядом'
                   }
                   onClick={() => patchSheetUi({ deskSplit: !draft.sheetUi.deskSplit })}
                 >

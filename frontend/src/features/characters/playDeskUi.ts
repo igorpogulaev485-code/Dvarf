@@ -97,11 +97,6 @@ export function sheetUiToPatch(ui: SheetUiState): Record<string, unknown> {
   }
 }
 
-/** Secondary panel pinned beside the primary when split is on. */
-export function splitSecondaryPanel(active: PlayDeskPanelId): PlayDeskPanelId {
-  return active === 'spells' ? 'attacks' : 'spells'
-}
-
 export const MODE_DEFAULT_PANEL: Record<PlayDeskMode, PlayDeskPanelId> = {
   combat: 'attacks',
   explore: 'inventory',
@@ -109,6 +104,26 @@ export const MODE_DEFAULT_PANEL: Record<PlayDeskMode, PlayDeskPanelId> = {
   companions: 'companions',
   features: 'features',
   more: 'play',
+}
+
+/** Scenes that keep spells pinned beside the primary panel. */
+export const MODE_SPELL_SPLIT: PlayDeskMode[] = ['combat', 'explore', 'social']
+
+export function modeUsesSpellSplit(mode: PlayDeskMode): boolean {
+  return MODE_SPELL_SPLIT.includes(mode)
+}
+
+/**
+ * Secondary panel when split is on.
+ * Combat/explore/social: always pin spells (or the scene primary if spells is focused).
+ */
+export function splitSecondaryPanel(
+  mode: PlayDeskMode,
+  active: PlayDeskPanelId,
+): PlayDeskPanelId | null {
+  if (!modeUsesSpellSplit(mode)) return null
+  const primary = MODE_DEFAULT_PANEL[mode]
+  return active === 'spells' ? primary : 'spells'
 }
 
 /** Skills shown in mode chrome for explore / social scenes. */
@@ -140,12 +155,12 @@ export const PLAY_DESK_PANELS: Array<{ id: PlayDeskPanelId; label: string }> = [
 
 /**
  * Panels that belong to each scene (no dropdown — scene picks the primary).
- * Combat keeps spells via split, not as a separate scene switch.
+ * Combat / explore / social pin spells via split.
  */
 export const MODE_SCENE_PANELS: Record<PlayDeskMode, PlayDeskPanelId[]> = {
   combat: ['attacks', 'spells'],
-  explore: ['inventory'],
-  social: ['texts'],
+  explore: ['inventory', 'spells'],
+  social: ['texts', 'spells'],
   companions: ['companions'],
   features: ['features'],
   more: ['play', 'identity', 'attunement', 'ownership'],
@@ -164,8 +179,8 @@ export const MODE_EXTRA_PANELS: PlayDeskPanelId[] = MODE_MORE_PANELS
 
 export const MODE_HINT: Record<PlayDeskMode, string> = {
   combat: 'Бой: атаки + заклинания (split)',
-  explore: 'Исследование: снаряжение и проверки',
-  social: 'Общение: тексты и социальные навыки',
+  explore: 'Исследование: снаряжение + заклинания (split)',
+  social: 'Общение: тексты + заклинания (split)',
   companions: 'Напарники: свита и призывы',
   features: 'Способности: умения и ресурсы класса',
   more: 'ЕЩЁ: основное, состояния, настройка, владения — потом разберём',
