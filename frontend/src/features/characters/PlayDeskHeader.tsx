@@ -174,18 +174,17 @@ export function PlayDeskHeader({
       ? { ...altModes[0], label: altModes[0].label }
       : null
   const secondarySpeeds = hasWalk ? altModes : altModes.slice(1)
-  const speedTitle =
-    [
-      primarySpeed
-        ? `${primarySpeed.key === 'walk' ? 'ход' : primarySpeed.label} ${primarySpeed.value}`
-        : null,
-      ...secondarySpeeds.map((mode) => `${mode.label} ${mode.value}`),
-      movementHint,
-    ]
-      .filter(Boolean)
-      .join(' · ') || 'Скорость (из расы / снаряжения)'
-  const speedVitalWide =
-    secondarySpeeds.length > 0 || (primarySpeed != null && primarySpeed.key !== 'walk')
+  const speedTipLines = [
+    primarySpeed
+      ? `${primarySpeed.key === 'walk' ? 'ход' : primarySpeed.label} ${primarySpeed.value}`
+      : null,
+    ...secondarySpeeds.map((mode) => `${mode.label} ${mode.value}`),
+    movementHint,
+  ].filter(Boolean) as string[]
+  const hasSpeedExtras =
+    secondarySpeeds.length > 0 ||
+    (primarySpeed != null && primarySpeed.key !== 'walk') ||
+    Boolean(movementHint)
 
   function applyHeal(amount: number) {
     const current = hpCurrent ?? 0
@@ -227,60 +226,64 @@ export function PlayDeskHeader({
   return (
     <section className="play-desk-header" aria-label="Шапка стола">
       <div className="play-desk-header__who">
-        <h1 className="play-desk-header__name">{name || 'Без имени'}</h1>
-        {onOpenIdentity ? (
+        <div className="play-desk-header__who-main">
+          <h1 className="play-desk-header__name">{name || 'Без имени'}</h1>
+          {classChips.length > 0 ? (
+            <ul
+              className={`play-desk-header__classes${classChips.length >= 3 ? ' is-many' : ''}`}
+              aria-label="Классы"
+            >
+              {classChips.map((chip) => (
+                <li key={chip.id} className="play-desk-header__class-chip">
+                  {chip.label}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+        <div className="play-desk-header__who-meta">
+          {onOpenIdentity ? (
+            <button
+              type="button"
+              className="play-desk-header__sub play-desk-header__sub--btn"
+              title={
+                alignmentLabel
+                  ? 'Открыть основное (мировоззрение, предыстория…)'
+                  : 'Мировоззрение не задано — нажми, чтобы указать'
+              }
+              onClick={onOpenIdentity}
+            >
+              {raceLabel}
+              {alignmentLabel ? (
+                <>
+                  {' · '}
+                  <span className="play-desk-header__alignment">{alignmentLabel}</span>
+                </>
+              ) : (
+                <>
+                  {' · '}
+                  <span className="play-desk-header__alignment is-empty">мировоззрение</span>
+                </>
+              )}
+              {' · 2014'}
+            </button>
+          ) : (
+            <p className="play-desk-header__sub">{subtitleBits.join(' · ')}</p>
+          )}
           <button
             type="button"
-            className="play-desk-header__sub play-desk-header__sub--btn"
-            title={
-              alignmentLabel
-                ? 'Открыть основное (мировоззрение, предыстория…)'
-                : 'Мировоззрение не задано — нажми, чтобы указать'
-            }
-            onClick={onOpenIdentity}
+            className="play-desk-header__xp"
+            title={`Опыт ${xpLabel}. Нажми, чтобы начислить или убавить`}
+            aria-label={`Опыт ${formatXp(xp.xp)}. Открыть клавиатуру`}
+            onClick={() => setXpPadOpen(true)}
           >
-            {raceLabel}
-            {alignmentLabel ? (
-              <>
-                {' · '}
-                <span className="play-desk-header__alignment">{alignmentLabel}</span>
-              </>
-            ) : (
-              <>
-                {' · '}
-                <span className="play-desk-header__alignment is-empty">мировоззрение</span>
-              </>
-            )}
-            {' · 2014'}
+            <span>ур. {level}</span>
+            <div className="play-desk-header__xp-bar" aria-hidden>
+              <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
+            </div>
+            <span>{xpLabel}</span>
           </button>
-        ) : (
-          <p className="play-desk-header__sub">{subtitleBits.join(' · ')}</p>
-        )}
-        {classChips.length > 0 ? (
-          <ul
-            className={`play-desk-header__classes${classChips.length >= 3 ? ' is-many' : ''}`}
-            aria-label="Классы"
-          >
-            {classChips.map((chip) => (
-              <li key={chip.id} className="play-desk-header__class-chip">
-                {chip.label}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        <button
-          type="button"
-          className="play-desk-header__xp"
-          title={`Опыт ${xpLabel}. Нажми, чтобы начислить или убавить`}
-          aria-label={`Опыт ${formatXp(xp.xp)}. Открыть клавиатуру`}
-          onClick={() => setXpPadOpen(true)}
-        >
-          <span>ур. {level}</span>
-          <div className="play-desk-header__xp-bar" aria-hidden>
-            <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
-          </div>
-          <span>{xpLabel}</span>
-        </button>
+        </div>
       </div>
 
       <div className="play-desk-header__mid">
@@ -291,10 +294,11 @@ export function PlayDeskHeader({
             <span>КД</span>
           </div>
           <div
-            className={`play-desk-vital${speedVitalWide ? ' play-desk-vital--speed' : ''}${
+            className={`play-desk-vital play-desk-vital--speed${
               primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
-            }`}
-            title={speedTitle}
+            }${hasSpeedExtras ? ' has-tip' : ''}`}
+            tabIndex={hasSpeedExtras ? 0 : undefined}
+            aria-describedby={hasSpeedExtras ? 'play-desk-speed-tip' : undefined}
           >
             <IconBoot className="play-desk-vital__icon" />
             <b>{primarySpeed ? primarySpeed.value : '—'}</b>
@@ -305,14 +309,16 @@ export function PlayDeskHeader({
                   : primarySpeed.label
                 : 'Скор.'}
             </span>
-            {secondarySpeeds.length > 0 ? (
-              <ul className="play-desk-vital__modes" aria-label="Другие скорости">
-                {secondarySpeeds.map((mode) => (
-                  <li key={mode.key} className="play-desk-vital__mode">
-                    <em>{mode.label}</em> {mode.value}
-                  </li>
-                ))}
-              </ul>
+            {hasSpeedExtras ? (
+              <>
+                <i className="play-desk-vital__dot" aria-hidden />
+                <span id="play-desk-speed-tip" className="play-desk-vital__tip" role="tooltip">
+                  <b>Скорости</b>
+                  {speedTipLines.map((line) => (
+                    <em key={line}>{line}</em>
+                  ))}
+                </span>
+              </>
             ) : null}
           </div>
           {onInitiativeRoll ? (
@@ -338,8 +344,6 @@ export function PlayDeskHeader({
             <b>{formatModifier(proficiencyBonus)}</b>
             <span>БМ</span>
           </div>
-        </div>
-        <div className="play-desk-header__play">
           <button
             type="button"
             className={`play-desk-header__chip${inspiration ? ' is-on' : ''}`}
@@ -398,7 +402,7 @@ export function PlayDeskHeader({
             <span>Отдых</span>
           </button>
         </div>
-        <div className={`play-desk-header__hp-wrap${showDeath ? ' is-dying' : ''}`}>
+        <div className="play-desk-header__hp-wrap">
           <button
             type="button"
             className={`play-desk-header__hp${hpPulse ? ' is-pulse' : ''}${
@@ -421,55 +425,60 @@ export function PlayDeskHeader({
               {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
             </small>
           </button>
-          {showDeath ? (
-            <div className="play-desk-header__death" aria-label="Спасброски от смерти">
-              <button
-                type="button"
-                className={`play-desk-header__dying-toggle${deathTracksActive ? ' is-on' : ''}`}
-                onClick={() =>
-                  onPlayChange({
-                    ...play,
-                    isDying: !play.isDying,
-                    deathSuccesses: play.isDying ? 0 : play.deathSuccesses,
-                    deathFails: play.isDying ? 0 : play.deathFails,
-                  })
-                }
-              >
-                <IconSkull className="play-desk-header__death-icon" />
-                <span>{play.isDying || atZeroHp ? 'При смерти' : 'Смерть'}</span>
-              </button>
-              <div
-                className={`play-desk-header__death-tracks${
-                  deathTracksActive ? '' : ' is-dim'
-                }`}
-              >
-                <HeaderDeathTrack
-                  label="Успехи"
-                  value={play.deathSuccesses}
-                  tone="ok"
-                  onChange={(next) =>
+          <div
+            className={`play-desk-header__death-slot${showDeath ? ' is-open' : ''}`}
+            aria-hidden={!showDeath}
+          >
+            {showDeath ? (
+              <div className="play-desk-header__death" aria-label="Спасброски от смерти">
+                <button
+                  type="button"
+                  className={`play-desk-header__dying-toggle${deathTracksActive ? ' is-on' : ''}`}
+                  onClick={() =>
                     onPlayChange({
                       ...play,
-                      isDying: true,
-                      deathSuccesses: clampDeathMarks(next),
+                      isDying: !play.isDying,
+                      deathSuccesses: play.isDying ? 0 : play.deathSuccesses,
+                      deathFails: play.isDying ? 0 : play.deathFails,
                     })
                   }
-                />
-                <HeaderDeathTrack
-                  label="Провалы"
-                  value={play.deathFails}
-                  tone="bad"
-                  onChange={(next) =>
-                    onPlayChange({
-                      ...play,
-                      isDying: true,
-                      deathFails: clampDeathMarks(next),
-                    })
-                  }
-                />
+                >
+                  <IconSkull className="play-desk-header__death-icon" />
+                  <span>{play.isDying || atZeroHp ? 'При смерти' : 'Смерть'}</span>
+                </button>
+                <div
+                  className={`play-desk-header__death-tracks${
+                    deathTracksActive ? '' : ' is-dim'
+                  }`}
+                >
+                  <HeaderDeathTrack
+                    label="Успехи"
+                    value={play.deathSuccesses}
+                    tone="ok"
+                    onChange={(next) =>
+                      onPlayChange({
+                        ...play,
+                        isDying: true,
+                        deathSuccesses: clampDeathMarks(next),
+                      })
+                    }
+                  />
+                  <HeaderDeathTrack
+                    label="Провалы"
+                    value={play.deathFails}
+                    tone="bad"
+                    onChange={(next) =>
+                      onPlayChange({
+                        ...play,
+                        isDying: true,
+                        deathFails: clampDeathMarks(next),
+                      })
+                    }
+                  />
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
       </div>
 
