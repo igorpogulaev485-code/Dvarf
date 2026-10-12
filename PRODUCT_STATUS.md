@@ -628,7 +628,7 @@
 |--------|--------------|-------------------------|
 | Sec-Fetch-Mode | `/characters` и соседние пути отдают SPA лишь при `navigate`; fetch без токена больше не получает HTML | На телефоне нет «Сервер вернул страницу вместо API» из гонки Bearer |
 
-На проде: **нет** · ветка `cursor/spa-nav-sec-fetch-2c91`
+На проде: **да** · ветка `cursor/mobile-play-desk-2c91` (merge PR #111) · tip · проверено 2026-10-12: fetch без navigate → JSON 401; `Sec-Fetch-Mode: navigate` → HTML SPA; `/health` ok
 
 ### 2026-10-08 — GEAR W6: DMG polish (остатки)
 
@@ -1152,4 +1152,4 @@
 | 2026-10-11 | `cursor/mobile-load-perf-2c91` · PR #106 | Mobile+VPN MTU/MSS (`apply-vpn-mtu.sh`) + boot timeout → заливка/проверка |
 | 2026-10-12 | `cursor/mobile-play-desk-2c91` · PR #108 | Mobile play-desk 1+2a–2d залит на Timeweb; tip → эта ветка; режимы+плотность панелей на телефоне; anti-blank/VPN MTU на месте |
 | 2026-10-12 | `cursor/mobile-play-desk-2c91` · PR #109+#110 | Создание inline-detail + характеристики во вкладку залиты вместе; tip без смены; `/health` ok |
-| 2026-10-12 | `cursor/spa-nav-sec-fetch-2c91` | nginx SPA rewrite по Sec-Fetch-Mode=navigate (mobile html_instead_of_json) → «В ветках» |
+| 2026-10-12 | `cursor/mobile-play-desk-2c91` · PR #111 | nginx SPA только при Sec-Fetch-Mode=navigate; mobile html_instead_of_json починен; tip без смены |
