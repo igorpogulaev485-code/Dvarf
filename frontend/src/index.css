@@ -4413,6 +4413,7 @@ input {
   gap: 10px;
   align-items: center;
   min-width: 0;
+  overflow: visible;
 }
 
 .play-desk-header__who {
@@ -4734,9 +4735,92 @@ button.play-desk-vital:hover {
   color: var(--desk-accent, var(--accent));
 }
 
+.play-desk-header__coin {
+  position: relative;
+  z-index: 2;
+}
+
 .play-desk-header__coin:hover,
+.play-desk-header__coin:focus-visible,
 .play-desk-header__rest:hover {
   background: var(--desk-accent-soft, var(--accent-soft));
+}
+
+/* Hover tip — purse breakdown without opening the pad. */
+.play-desk-header__coin-tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 3px;
+  min-width: 196px;
+  max-width: 280px;
+  padding: 9px 12px 9px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 28%, var(--desk-line));
+  background: color-mix(in srgb, #fffdf6 88%, var(--desk-accent-soft, var(--accent-soft)));
+  box-shadow: 0 8px 22px rgba(45, 45, 42, 0.12);
+  color: var(--desk-ink, var(--ink));
+  text-align: left;
+  font-weight: 500;
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.play-desk-header__coin-tip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  right: 18px;
+  width: 9px;
+  height: 9px;
+  border-left: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 28%, var(--desk-line));
+  border-top: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 28%, var(--desk-line));
+  background: inherit;
+  transform: rotate(45deg);
+}
+
+.play-desk-header__coin:hover .play-desk-header__coin-tip,
+.play-desk-header__coin:focus-visible .play-desk-header__coin-tip {
+  opacity: 1;
+  transform: none;
+}
+
+.play-desk-header__coin-tip b {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--desk-muted);
+}
+
+.play-desk-header__coin-tip strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--desk-accent, var(--accent));
+  line-height: 1.15;
+}
+
+.play-desk-header__coin-tip em {
+  display: block;
+  font-style: normal;
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--desk-ink, var(--ink));
+  white-space: nowrap;
+}
+
+.play-desk-header__coin-tip small {
+  display: block;
+  margin-top: 4px;
+  padding-top: 5px;
+  border-top: 1px solid color-mix(in srgb, var(--desk-line) 70%, transparent);
+  font-size: 0.66rem;
+  color: var(--desk-muted);
 }
 
 .play-desk-header__btn-icon {

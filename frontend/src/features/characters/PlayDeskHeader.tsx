@@ -380,11 +380,18 @@ export function PlayDeskHeader({
           <button
             type="button"
             className="play-desk-header__coin"
-            title={`Всего ≈ ${formatGpTotal(coinsToGp(coins))} зм (${formatCoinBreakdown(coins)}). Нажми — взять / отдать`}
+            aria-label={`${formatGpTotal(coinsToGp(coins))} зм — кошелёк`}
+            aria-describedby="play-desk-coin-tip"
             onClick={() => setCoinPadOpen(true)}
           >
             <IconCoin className="play-desk-header__btn-icon" />
-            <span>{formatGpTotal(coinsToGp(coins))} зм</span>
+            <span aria-hidden="true">{formatGpTotal(coinsToGp(coins))} зм</span>
+            <span id="play-desk-coin-tip" className="play-desk-header__coin-tip" role="tooltip">
+              <b>Кошелёк</b>
+              <strong>≈ {formatGpTotal(coinsToGp(coins))} зм</strong>
+              <em>{formatCoinBreakdown(coins)}</em>
+              <small>Нажми — взять / отдать</small>
+            </span>
           </button>
           <button type="button" className="play-desk-header__rest" onClick={onOpenRest}>
             <IconRest className="play-desk-header__btn-icon" />
