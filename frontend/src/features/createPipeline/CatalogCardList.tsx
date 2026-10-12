@@ -6,6 +6,8 @@ export type CatalogCardItem = {
   title: string
   subtitle?: string
   source?: string | null
+  /** One-line marker: ASI/speed/DV, skills, etc. */
+  meta?: string | null
   disabled?: boolean
 }
 
@@ -63,7 +65,7 @@ export function CatalogCardList({
         if (!sources.includes(src)) return false
       }
       if (!q) return true
-      const hay = `${item.title} ${item.subtitle ?? ''} ${item.source ?? ''}`
+      const hay = `${item.title} ${item.subtitle ?? ''} ${item.source ?? ''} ${item.meta ?? ''}`
       return normalize(hay).includes(q)
     })
   }, [items, query, sources])
@@ -139,6 +141,9 @@ export function CatalogCardList({
                   <span className="create-pipeline__card-title">{item.title}</span>
                   {item.subtitle ? (
                     <span className="create-pipeline__card-sub">{item.subtitle}</span>
+                  ) : null}
+                  {item.meta ? (
+                    <span className="create-pipeline__card-meta">{item.meta}</span>
                   ) : null}
                   {item.source ? (
                     <span className="create-pipeline__card-source">{item.source}</span>

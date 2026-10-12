@@ -32,6 +32,8 @@ export type RaceSetupConfirm = {
   def: RaceGrantDef
   picks: RaceGrantPicks
   featResult: FeatSetupResult | null
+  /** Required character name from race setup. */
+  characterName: string
 }
 
 type RaceSetupDialogProps = {
@@ -50,6 +52,8 @@ type RaceSetupDialogProps = {
   backgroundSlug?: string | null
   ownedFeatEnums?: OwnedFeatEnumSnapshot[]
   proficientSkills?: string[]
+  /** Initial / current character name (required to confirm). */
+  characterName?: string
   onConfirm: (result: RaceSetupConfirm) => void
   onClose: () => void
 }
@@ -85,11 +89,13 @@ export function RaceSetupDialog({
   backgroundSlug = null,
   ownedFeatEnums = [],
   proficientSkills = [],
+  characterName: characterNameProp = '',
   onConfirm,
   onClose,
 }: RaceSetupDialogProps) {
   const hasSubraceFork = subraces.length > 0
   const [subraceKey, setSubraceKey] = useState<string | null>(null)
+  const [characterName, setCharacterName] = useState(characterNameProp)
 
   const effectiveEntry = useMemo(() => {
     if (!root) return null
@@ -182,6 +188,7 @@ export function RaceSetupDialog({
   useEffect(() => {
     if (!open) return
     setSubraceKey(hasSubraceFork ? null : SKIP_SUBRACE)
+    setCharacterName(characterNameProp)
     const empty = emptyRacePicks()
     setAbilityBonusModeId(empty.abilityBonusModeId)
     setAsiBucketPicks([])
@@ -193,7 +200,7 @@ export function RaceSetupDialog({
     setSkills(empty.skills)
     setTools(empty.tools)
     setAncestryId(empty.ancestryId)
-  }, [open, root?.id, hasSubraceFork])
+  }, [open, root?.id, hasSubraceFork, characterNameProp])
 
   useEffect(() => {
     // Reset fork picks when subrace changes.
@@ -304,8 +311,10 @@ export function RaceSetupDialog({
   const featNeed = Boolean(def && raceRequiresFeatPick(def))
   const featOk = !featNeed || Boolean(featResult)
 
+  const nameOk = characterName.trim().length > 0
   const canConfirm =
     Boolean(root && def && effectiveEntry) &&
+    nameOk &&
     subraceOk &&
     sizeOk &&
     variableTraitOk &&
@@ -335,6 +344,7 @@ export function RaceSetupDialog({
       primaryLabel="Применить"
       secondaryLabel="Отмена"
       size="wide"
+      primaryDisabled={!canConfirm}
       onPrimary={() => {
         if (!canConfirm || !def || !effectiveEntry) return
         onConfirm({
@@ -353,11 +363,20 @@ export function RaceSetupDialog({
             featCatalogId: featResult?.entry.id ?? null,
           },
           featResult,
+          characterName: characterName.trim(),
         })
       }}
       onSecondary={onClose}
     >
       <Stack gap={14}>
+        <Field label="Имя персонажа">
+          <Input
+            value={characterName}
+            onChange={(event) => setCharacterName(event.target.value)}
+            placeholder="Имя героя"
+            autoComplete="off"
+          />
+        </Field>
         <Text tone="muted">
           Сначала раса из списка, развилки — здесь (как у класса). Подрасу выбираешь в этом окне
           {subraceRequired ? ' — обязательно' : hasSubraceFork ? ' — можно оставить без подрасы' : ''}.
@@ -658,13 +677,15 @@ export function RaceSetupDialog({
 
         {!canConfirm ? (
           <Text tone="muted">
-            {!subraceOk
-              ? subraceRequired
-                ? 'Выбери разновидность, чтобы продолжить.'
-                : 'Выбери разновидность или «Без подрасы».'
-              : !featOk
-                ? 'Выбери черту, чтобы продолжить.'
-                : 'Отметь все обязательные развилки, чтобы продолжить.'}
+            {!nameOk
+              ? 'Укажи имя персонажа, чтобы продолжить.'
+              : !subraceOk
+                ? subraceRequired
+                  ? 'Выбери разновидность, чтобы продолжить.'
+                  : 'Выбери разновидность или «Без подрасы».'
+                : !featOk
+                  ? 'Выбери черту, чтобы продолжить.'
+                  : 'Отметь все обязательные развилки, чтобы продолжить.'}
           </Text>
         ) : null}
       </Stack>

@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/play-desk-layout-e788`  
+**Prod tip (ветка линии прода):** `cursor/create-bugs-layer1-a73e`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -74,7 +74,7 @@
 ### Персонажи
 - Список персонажей
 - Создание персонажа (редакция правил 2014 или 2024)
-- Открытие цифрового листа
+- Открытие цифрового листа — **автосейв** (debounce, без кнопки «Сохранить», как LSS/classic)
 - **Классический лист 2014** (`/characters/:id/classic`) — с карточки и со страницы персонажа; тот же документ, автосейв
 - Данные хранятся на сервере (не только в браузере)
 
@@ -140,7 +140,7 @@
 | Стол (планшет/ПК ≥960px) | Слева статы, справа режимы Бой/Исслед./Общение/Напарники + выбор панели | Меньше скролла всей страницы |
 | Док напарников | Активные/частичный статус в полоске над сценой | Статус свиты без поиска по листу |
 
-На проде: **да** · ветка `cursor/play-desk-layout-e788` · PR #105 · это **prod tip** · проверено 2026-10-12 (догон макета): `/health` ok; бандл `CharacterDetailPage-Di9rgCE8.js` содержит `play-desk__hot` / `play-desk__roll-mode` / `преим` / `d20:`; CSS `index-DsRpOaaX.css` (`play-desk-compact` / `play-desk__mode-hint`); кабинет/classic на месте
+На проде: **да** · ветка `cursor/play-desk-layout-e788` · PR #105 · tip дальше → `cursor/create-bugs-layer1-a73e` · проверено 2026-10-12 (догон макета): `/health` ok; бандл `CharacterDetailPage-Di9rgCE8.js` содержит `play-desk__hot` / `play-desk__roll-mode` / `преим` / `d20:`; CSS `index-DsRpOaaX.css` (`play-desk-compact` / `play-desk__mode-hint`); кабинет/classic на месте
 
 ### 2026-10-06 — агент цифрового листа (весь объём работы → на проде)
 
@@ -533,7 +533,24 @@
 
 <!-- tip feats-pickers: FEATS стек залит 2026-10-07; мягкие note (туз/хроматика/хаос-таблица) — динамика, не заглушки пикеров -->
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
-<!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → новый tip -->
+<!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
+
+### 2026-10-12 — Create layer-1 bugs (flow + cards + spell access + autosave)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Имя в настройке расы | Обязательное поле в модалке расы; без имени «Применить» недоступно | Нельзя пройти расу без имени |
+| Авто-шаг после setup | Предыстория → класс, стартовый класс → характеристики (как уже у расы) | Не нужно лишний раз жать «Далее» |
+| Meta на карточках | Раса: ASI · скорость · ТЗ; предыстория: навыки | Быстрее выбираешь по маркерам |
+| Spell access engine | Гримуар: список класса × круг слотов × school gate; known/prepared_list/spellbook + лимиты N/M | Друид готовит из списка; чародей не берёт весь каталог и не превышает заговоры/известные |
+| Лейблы choice | `option_labels_ru` + драконий предок по-русски; ASI fallback | Чипы визарда не на английском |
+| Языки предыстории | Языки расы — чип «· уже есть»; Общий убран из выбора | Дварф не тратит слот на дварфийский; Общий не предлагается |
+| Ширина app/листа | `.page--app` до ~1400/1600px на широких экранах; create без потолка 1200; стол desk чуть шире под split | Меньше пустых полей по бокам; больше места атакам/заклинаниям |
+| Автосейв листа | Debounce 650ms + flush при скрытии вкладки; статус «Сохранено / Сохраняем…»; кнопки «Сохранить лист» нет | Как LSS — правки сами уходят на сервер |
+
+**Регрессия:** фильтр гримуара и learn modes уже были на tip `multiclass-grants-polish-2223`, затем tip ушёл на play-desk **без** этих коммитов — восстановлено поверх `play-desk-layout-e788`.
+
+На проде: **да** · ветка `cursor/create-bugs-layer1-a73e` · PR #113 · это **prod tip** · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-CbXNENAC.js` («Сохраним через мгновение» / `is-blocked` / «уже есть» / «Гримуар»); CSS `index-Bn_HA_Ht.css` (`sheet-actions--autosave`); `raceEffects--E6IDERE.js` (`prepared_list` / `option_labels_ru` / «Драконий»); кабинет «Опасная зона» / лобби / classic на месте
 
 ### 2026-10-12 — Play desk: догон макета (hot bar + split + визуал)
 
@@ -1121,3 +1138,4 @@
 | 2026-10-12 | `cursor/play-desk-layout-e788` · PR #105 | Нативные броски + компакт способностей/напарников; залито |
 | 2026-10-12 | `cursor/play-desk-layout-e788` · PR #105 | Преим./помеха + панели сцены по режиму; залито |
 | 2026-10-12 | `cursor/play-desk-layout-e788` · PR #105 | Догон макета play desk целиком на Timeweb; `/health` ok; бандл `CharacterDetailPage-Di9rgCE8.js` (`преим`/`play-desk__roll-mode`/`d20:`) |
+| 2026-10-12 | `cursor/create-bugs-layer1-a73e` · PR #113 | Create layer-1 + spell access + autosave листа; tip → эта ветка; `/health` ok; бандл `CharacterDetailPage-CbXNENAC.js` / CSS `index-Bn_HA_Ht.css` |

@@ -25,6 +25,10 @@ import {
 } from '../features/characters/subclassEffects'
 import { AbilitiesStep } from '../features/createPipeline/AbilitiesStep'
 import { CatalogCardList } from '../features/createPipeline/CatalogCardList'
+import {
+  backgroundCardMeta,
+  raceCardMeta,
+} from '../features/createPipeline/catalogCardMeta'
 import { CatalogDetailPanel } from '../features/createPipeline/CatalogDetailPanel'
 import { CreatePipelineShell } from '../features/createPipeline/CreatePipelineShell'
 import { hydratePipelineFromSheet } from '../features/createPipeline/createPipelineSheet'
@@ -100,6 +104,9 @@ import {
 import { EMPTY_ARMOR } from '../features/characters/identity'
 import { abilityModifier } from '../features/characters/sheetTypes'
 import {
+  countLearnedCantrips,
+  countLearnedLeveled,
+  countPreparedLeveled,
   ensureKnownSpellsReady,
   isKnownSpellcastingMode,
   readSpells,
@@ -108,9 +115,11 @@ import {
 } from '../features/characters/spells'
 import {
   applySpellcastingSuggestion,
+  resolveSpellLearnBudget,
   suggestSpellcastingFromClasses,
 } from '../shared/dnd/casterProgression'
-import { Button, Field, Input, Stack, Text, Toast } from '../ui'
+import type { SpellcastingAbility } from '../shared/dnd/spells'
+import { Button, Stack, Text, Toast } from '../ui'
 
 const CASTER_NAME_RE =
   /бард|жрец|друид|паладин|следопыт|чародей|колдун|волшебник|изобретатель/i
@@ -422,14 +431,28 @@ export function CreateCharacterPage() {
     return scores
   }, [finalAbilities, state.classAsi])
 
+  const abilityModFor = useCallback(
+    (ability: SpellcastingAbility) => abilityModifier(wizardAbilities[ability] ?? 10),
+    [wizardAbilities],
+  )
+
   /** Same tables as SpellsPanel — slots / max_prepared follow class levels (incl. MC). */
   const spellcastingSuggestion = useMemo(
     () =>
       suggestSpellcastingFromClasses({
         classes: state.classes,
-        abilityModFor: (ability) => abilityModifier(wizardAbilities[ability] ?? 10),
+        abilityModFor,
       }),
-    [state.classes, wizardAbilities],
+    [state.classes, abilityModFor],
+  )
+
+  const spellLearnBudget = useMemo(
+    () =>
+      resolveSpellLearnBudget({
+        classes: state.classes,
+        abilityModFor,
+      }),
+    [state.classes, abilityModFor],
   )
 
   const spellcastingClassKey = useMemo(() => {
@@ -567,6 +590,18 @@ export function CreateCharacterPage() {
     return [...tools]
   }, [state.backgroundSetup?.picks.tools, state.raceSetup?.picks.tools])
 
+  /** Race fixed languages + race language picks — block in background language chips. */
+  const blockedLanguageNames = useMemo(() => {
+    const names = new Set<string>()
+    for (const name of raceGrantDef?.languages ?? []) {
+      if (name.trim()) names.add(name.trim())
+    }
+    for (const name of state.raceSetup?.picks.languages ?? []) {
+      if (name.trim()) names.add(name.trim())
+    }
+    return [...names]
+  }, [raceGrantDef?.languages, state.raceSetup?.picks.languages])
+
   const patchState = useCallback((patch: Partial<CreatePipelineState>) => {
     setState((prev) => ({ ...prev, ...patch }))
   }, [])
@@ -628,7 +663,13 @@ export function CreateCharacterPage() {
   function commitClassGrantPicks(
     entryId: string,
     picks: ClassGrantPicks,
-    options?: { openWizardAfter?: boolean; classes?: typeof state.classes; toast?: string },
+    options?: {
+      openWizardAfter?: boolean
+      classes?: typeof state.classes
+      toast?: string
+      /** Pipeline step to jump to after saving start-class grants. */
+      advanceToStep?: CreatePipelineStepId
+    },
   ) {
     const classesForWizard = options?.classes
     setState((prev) => {
@@ -645,6 +686,7 @@ export function CreateCharacterPage() {
           class_grant_picks: nextPicks,
         },
         stepDirty: { ...prev.stepDirty, class: true, leveling: true },
+        ...(options?.advanceToStep ? { step: options.advanceToStep } : {}),
       }
     })
     setClassSetup(null)
@@ -1106,6 +1148,7 @@ export function CreateCharacterPage() {
           title: entry.name_ru,
           subtitle: entry.name_en ?? undefined,
           source: entry.source,
+          meta: raceCardMeta(entry),
         }))}
         selectedId={selectedRace?.id ?? state.race?.id ?? null}
         onSelect={(id) => setSelectedRace(races.find((row) => row.id === id) ?? null)}
@@ -1117,13 +1160,11 @@ export function CreateCharacterPage() {
         entry={selectedRace}
         emptyTitle={state.race?.nameRu ?? 'Раса'}
       >
-        <Field label="Имя персонажа">
-          <Input
-            value={state.characterName}
-            onChange={(event) => patchState({ characterName: event.target.value })}
-            placeholder="Имя героя"
-          />
-        </Field>
+        {state.characterName.trim() ? (
+          <Text tone="muted">Имя: {state.characterName.trim()}</Text>
+        ) : (
+          <Text tone="muted">Имя укажешь в окне настройки расы.</Text>
+        )}
         <Button
           disabled={!selectedRace}
           onClick={async () => {
@@ -1239,6 +1280,7 @@ export function CreateCharacterPage() {
           title: entry.name_ru,
           subtitle: entry.name_en ?? undefined,
           source: entry.source,
+          meta: backgroundCardMeta(entry),
         }))}
         selectedId={selectedBackground?.id ?? state.background?.id ?? null}
         onSelect={(id) => {
@@ -1456,18 +1498,22 @@ export function CreateCharacterPage() {
           }
           openFeatureWizardForClass(classEntryId)
         }}
-        onOpenSpells={() =>
-          setSpellsOpen(spells.max_prepared != null ? 'prepare' : 'grimoire')
+        onOpenSpells={() => setSpellsOpen('grimoire')}
+        onOpenPrepare={
+          spellLearnBudget && spellLearnBudget.mode !== 'known'
+            ? () => setSpellsOpen('prepare')
+            : undefined
         }
         spellcasting={
           spellcastingSuggestion && spellcastingSuggestion.progression !== 'none'
             ? {
-                labelRu: spellcastingSuggestion.labelRu,
+                labelRu: spellLearnBudget?.labelRu ?? spellcastingSuggestion.labelRu,
                 maxPrepared: spellcastingSuggestion.max_prepared,
-                knownLeveled: spells.known.filter((row) => row.level > 0).length,
-                preparedLeveled: spells.known.filter(
-                  (row) => row.level > 0 && row.prepared,
-                ).length,
+                knownLeveled: countLearnedLeveled(spells.known),
+                preparedLeveled: countPreparedLeveled(spells.known),
+                cantripsKnown: countLearnedCantrips(spells.known),
+                cantripsMax: spellLearnBudget?.cantrips ?? null,
+                leveledKnownMax: spellLearnBudget?.leveledKnown ?? null,
                 slots: spellcastingSuggestion.slots,
                 pactSlots: spellcastingSuggestion.pact_slots,
               }
@@ -1516,6 +1562,7 @@ export function CreateCharacterPage() {
         open={Boolean(bgSetup)}
         root={bgSetup?.root ?? null}
         variants={bgSetup?.variants ?? []}
+        blockedLanguageNames={blockedLanguageNames}
         onClose={() => setBgSetup(null)}
         onConfirm={(result: BackgroundSetupConfirm) => {
           patchState({
@@ -1533,9 +1580,10 @@ export function CreateCharacterPage() {
               },
             },
             stepDirty: { ...state.stepDirty, background: true },
+            step: 'class',
           })
           setBgSetup(null)
-          setToast(`Предыстория «${result.entry.name_ru}»`)
+          setToast(`Предыстория «${result.entry.name_ru}». Далее — класс.`)
         }}
       />
 
@@ -1549,6 +1597,7 @@ export function CreateCharacterPage() {
         armor={EMPTY_ARMOR}
         hasSpellcasting={hasCasterClass}
         backgroundSlug={state.backgroundSetup?.entry.slug ?? null}
+        characterName={state.characterName}
         onClose={() => setRaceSetup(null)}
         onConfirm={(result: RaceSetupConfirm) => {
           setRacialBonuses(
@@ -1568,6 +1617,7 @@ export function CreateCharacterPage() {
           }
           const needsFeat = Boolean(result.def.featNoteRu?.trim())
           patchState({
+            characterName: result.characterName,
             race: isSub
               ? state.race ??
                 (rootEntry ? catalogRef(rootEntry) : catalogRef(result.entry))
@@ -1592,7 +1642,7 @@ export function CreateCharacterPage() {
           if (needsFeat) {
             setToast(`Раса «${result.entry.name_ru}». Далее — черта.`)
           } else {
-            setToast(`Раса «${result.entry.name_ru}»`)
+            setToast(`Раса «${result.entry.name_ru}». Далее — предыстория.`)
           }
         }}
       />
@@ -1608,9 +1658,14 @@ export function CreateCharacterPage() {
         onConfirm={(picks: ClassGrantPicks) => {
           const entryId = classSetup?.classEntryId ?? state.classEntryId
           const openWizardAfter = classSetup?.openWizardAfter ?? false
+          const mode = classSetup?.mode ?? 'start'
           commitClassGrantPicks(entryId, picks, {
             openWizardAfter,
-            toast: 'Выборы класса сохранены',
+            advanceToStep: mode === 'start' && !openWizardAfter ? 'abilities' : undefined,
+            toast:
+              mode === 'start'
+                ? 'Класс настроен. Далее — характеристики.'
+                : 'Выборы класса сохранены',
           })
         }}
       />
@@ -1773,8 +1828,13 @@ export function CreateCharacterPage() {
         open={spellsOpen === 'grimoire'}
         edition="2014"
         spells={spells}
+        classes={state.classes}
+        knownCaster={spellLearnBudget?.mode === 'known'}
+        learnBudget={spellLearnBudget}
+        abilityModFor={abilityModFor}
         onChange={setSpells}
         onClose={() => setSpellsOpen(null)}
+        onToast={setToast}
       />
       <PrepareSpellsDialog
         open={spellsOpen === 'prepare'}

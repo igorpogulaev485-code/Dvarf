@@ -266,6 +266,7 @@ input {
 }
 
 .page--app {
+  /* Base: leave side gutters, but don't leave huge empty bands on desktop. */
   width: min(980px, calc(100% - 32px));
 }
 
@@ -1153,6 +1154,20 @@ input {
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
+}
+
+.sheet-actions--autosave {
+  gap: 10px 16px;
+  min-height: 1.5rem;
+}
+
+.sheet-autosave {
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+}
+
+.sheet-autosave--busy {
+  opacity: 0.9;
 }
 
 .ui-dialog-backdrop {
@@ -2409,7 +2424,7 @@ input {
 /* Tablet-first emphasis */
 @media (min-width: 768px) {
   .page--app {
-    width: min(1040px, calc(100% - 48px));
+    width: min(1120px, calc(100% - 40px));
     padding-top: 36px;
   }
 
@@ -2439,8 +2454,19 @@ input {
 }
 
 @media (min-width: 1100px) {
+  .page--app {
+    /* Play desk + create pipeline need room for split / catalog cards. */
+    width: min(1400px, calc(100% - 48px));
+  }
+
   .character-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1440px) {
+  .page--app {
+    width: min(1600px, calc(100% - 56px));
   }
 }
 
@@ -2451,7 +2477,7 @@ input {
   }
 
   .page--app {
-    width: min(100% - 20px, 980px);
+    width: calc(100% - 20px);
   }
 
   .ui-text:is(h1) {
@@ -2671,7 +2697,8 @@ input {
 
 /* —— Create pipeline (2014) —— */
 .page--create-pipeline {
-  max-width: 1200px;
+  /* Follow .page--app width ladder; do not re-cap below the sheet. */
+  max-width: none;
 }
 
 .create-pipeline__topbar {
@@ -2741,7 +2768,7 @@ input {
 
 .create-pipeline__body {
   display: grid;
-  grid-template-columns: minmax(220px, 320px) 1fr;
+  grid-template-columns: minmax(260px, 380px) 1fr;
   gap: 16px;
   flex: 1;
   min-height: 420px;
@@ -2886,6 +2913,13 @@ input {
 .create-pipeline__card-sub {
   color: var(--muted, #78716c);
   font-size: 0.9rem;
+}
+
+.create-pipeline__card-meta {
+  color: var(--ink, #1c1917);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  opacity: 0.88;
 }
 
 .create-pipeline__footer {
@@ -4235,7 +4269,7 @@ button.play-desk-vital {
 
 @media (min-width: 960px) {
   .play-desk__body {
-    grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
+    grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
     align-items: start;
   }
 
@@ -4248,6 +4282,18 @@ button.play-desk-vital {
 
   .play-desk__stage {
     min-height: 60vh;
+  }
+}
+
+@media (min-width: 1280px) {
+  .play-desk__body {
+    /* Slightly narrower ability rail → more stage for attacks/spells split. */
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  }
+
+  .play-desk--split .play-desk__scene-wrap {
+    /* Prefer a bit more room for the pinned spells column when wide. */
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   }
 }
 
