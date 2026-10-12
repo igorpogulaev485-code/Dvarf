@@ -157,12 +157,24 @@ export async function apiRequest<T>(
     return undefined as T
   }
 
+  // API container flap (deploy/restart) → nginx 502/503/504. One short retry
+  // covers autosave races; otherwise show a clear temporary-unavailable message.
+  if (
+    !retried &&
+    (response.status === 502 || response.status === 503 || response.status === 504)
+  ) {
+    await new Promise((resolve) => window.setTimeout(resolve, 700))
+    return apiRequest<T>(path, options, true)
+  }
+
   const contentType = response.headers.get('content-type') || ''
   if (contentType.includes('text/html')) {
     throw new ApiRequestError(
-      'Сервер вернул страницу вместо API. Обновите страницу (Ctrl+Shift+R) или войдите снова.',
+      response.status >= 500
+        ? 'Сервер временно недоступен — подождите пару секунд и повторите'
+        : 'Сервер вернул страницу вместо API. Обновите страницу (Ctrl+Shift+R) или войдите снова.',
       response.status || 502,
-      'html_instead_of_json',
+      response.status >= 500 ? 'api_unavailable' : 'html_instead_of_json',
     )
   }
 
