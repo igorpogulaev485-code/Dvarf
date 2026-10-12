@@ -622,6 +622,14 @@
 
 На проде: **да** · ветка `cursor/mobile-play-desk-2c91` (merge PR #110) · tip · проверено 2026-10-12: бандл `CharacterDetailPage` с панелью `abilities` / «Характеристики», `play-desk__body--mobile`, кабинет/classic на месте
 
+### 2026-10-12 — nginx: SPA только для document navigate (mobile API)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Sec-Fetch-Mode | `/characters` и соседние пути отдают SPA лишь при `navigate`; fetch без токена больше не получает HTML | На телефоне нет «Сервер вернул страницу вместо API» из гонки Bearer |
+
+На проде: **нет** · ветка `cursor/spa-nav-sec-fetch-2c91`
+
 ### 2026-10-08 — GEAR W6: DMG polish (остатки)
 
 | Функция | Как работает | Эффект для пользователя |
