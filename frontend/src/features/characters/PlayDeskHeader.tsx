@@ -156,7 +156,9 @@ export function PlayDeskHeader({
   }, [xpPadOpen])
 
   const xpLabel =
-    xp.nextThreshold == null ? `${xp.xp}` : `${xp.xp}/${xp.nextThreshold}`
+    xp.nextThreshold == null
+      ? formatXp(xp.xp)
+      : `${formatXp(xp.xp)} / ${formatXp(xp.nextThreshold)}`
   const nextLevel = xp.level >= 20 ? null : xp.level + 1
   const hpTemp = play.hpTemp
   const atZeroHp = hpCurrent != null && hpCurrent <= 0
@@ -289,7 +291,7 @@ export function PlayDeskHeader({
           </ul>
         ) : null}
 
-        {/* 3) Опыт — длинная дорожка */}
+        {/* 3) Опыт — полоска + цифры снизу (крупные пороги 19→20) */}
         <button
           type="button"
           className="play-desk-header__xp"
@@ -297,11 +299,13 @@ export function PlayDeskHeader({
           aria-label={`Опыт ${formatXp(xp.xp)}. Открыть клавиатуру`}
           onClick={() => setXpPadOpen(true)}
         >
-          <span>ур. {level}</span>
-          <div className="play-desk-header__xp-bar" aria-hidden>
-            <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
+          <div className="play-desk-header__xp-row">
+            <span className="play-desk-header__xp-level">ур. {level}</span>
+            <div className="play-desk-header__xp-bar" aria-hidden>
+              <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
+            </div>
           </div>
-          <span>{xpLabel}</span>
+          <span className="play-desk-header__xp-nums">{xpLabel}</span>
         </button>
       </div>
 

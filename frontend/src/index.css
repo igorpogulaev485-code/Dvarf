@@ -4534,13 +4534,13 @@ button.play-desk-header__identity:hover {
   text-underline-offset: 2px;
 }
 
-/* 3) Опыт — длинная дорожка на всю ширину who */
+/* 3) Опыт — полоска; цифры под ней (влезают 305 000 / 355 000) */
 .play-desk-header__xp {
   margin: 0;
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 8px;
-  align-items: center;
+  grid-template-columns: 1fr;
+  gap: 3px;
+  align-items: stretch;
   font-size: 0.75rem;
   color: var(--desk-muted);
   width: 100%;
@@ -4555,6 +4555,30 @@ button.play-desk-header__identity:hover {
   border-radius: 8px;
 }
 
+.play-desk-header__xp-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.play-desk-header__xp-level {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.play-desk-header__xp-nums {
+  justify-self: end;
+  padding-left: calc(2.6em + 8px);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  line-height: 1.2;
+  color: var(--desk-muted);
+}
+
 button.play-desk-header__xp:hover .play-desk-header__xp-bar {
   outline: 1px solid color-mix(in srgb, var(--desk-accent) 45%, transparent);
 }
@@ -4562,6 +4586,7 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
 .play-desk-header__mid {
   flex: 0 0 auto;
   min-width: 0;
+  margin-left: auto;
 }
 
 .play-desk-header__stack {
@@ -4711,11 +4736,11 @@ button.play-desk-vital:hover {
   letter-spacing: 0.02em;
 }
 
-/* Same-height card as speed, no icon — alt movement tags. */
+/* Same-height card as speed, no icon — alt movement tags (до 3: лаз./плав./полёт). */
 .play-desk-vital--modes {
   width: auto;
   min-width: 64px;
-  max-width: 108px;
+  max-width: 124px;
   padding: 6px 7px;
 }
 
@@ -4905,7 +4930,7 @@ button.play-desk-vital:hover {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-width: 120px;
+  min-width: 132px;
   min-height: 64px;
   padding: 8px 12px;
   border-radius: 12px;
@@ -4926,6 +4951,8 @@ button.play-desk-vital:hover {
 .play-desk-header__hp strong {
   font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
   font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
   color: var(--danger, #b42318);
 }
 
