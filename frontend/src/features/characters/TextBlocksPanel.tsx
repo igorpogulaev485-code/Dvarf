@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import {
   Button,
   Field,
@@ -26,16 +27,122 @@ type TextBlocksPanelProps = {
 
 const RESET_OPTIONS: ResourceReset[] = ['short', 'long', 'manual']
 
+type TextFilter = 'all' | 'personality' | 'features' | 'notes' | 'resource' | 'hidden'
+
+const FILTERS: Array<{ id: TextFilter; label: string }> = [
+  { id: 'all', label: 'Все' },
+  { id: 'personality', label: 'Личность' },
+  { id: 'features', label: 'Умения' },
+  { id: 'notes', label: 'Заметки' },
+  { id: 'resource', label: 'С ресурсом' },
+  { id: 'hidden', label: 'Скрытые' },
+]
+
+const PERSONALITY_KEYS = new Set([
+  'personality',
+  'ideals',
+  'bonds',
+  'flaws',
+  'appearance',
+  'background',
+  'quests',
+])
+
+const FEATURE_KEYS = new Set(['traits', 'features', 'feats'])
+
+function previewText(value: string, max = 110): string {
+  const flat = value.replace(/\s+/g, ' ').trim()
+  if (!flat) return ''
+  if (flat.length <= max) return flat
+  return `${flat.slice(0, max - 1)}…`
+}
+
+function blockBucket(block: TextBlock): 'personality' | 'features' | 'notes' {
+  if (block.isCustom) return 'notes'
+  if (PERSONALITY_KEYS.has(block.key)) return 'personality'
+  if (FEATURE_KEYS.has(block.key)) return 'features'
+  return 'notes'
+}
+
+function roleLabel(block: TextBlock): string {
+  const bucket = blockBucket(block)
+  if (bucket === 'personality') return 'Личность'
+  if (bucket === 'features') return 'Умения'
+  return 'Заметка'
+}
+
+function IconPlus() {
+  return (
+    <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M12 5v14M5 12h14"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+function IconChevronUp() {
+  return (
+    <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="m6 14 6-6 6 6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function IconTrash() {
+  return (
+    <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
+      <path
+        d="M5 7h14M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7m-7 0 1 12h6l1-12"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 export function TextBlocksPanel({
   blocks,
   onChange,
   resources,
   onResourcesChange,
 }: TextBlocksPanelProps) {
+  const [filter, setFilter] = useState<TextFilter>('all')
+  const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
+
   const linkedIds = new Set(
     blocks.map((block) => block.resourceId).filter((id): id is string => Boolean(id)),
   )
   const orphanResources = resources.filter((item) => !linkedIds.has(item.id))
+
+  const visibleBlocks = useMemo(() => {
+    return blocks.filter((block) => {
+      if (filter === 'all') return !block.isHidden
+      if (filter === 'hidden') return block.isHidden
+      if (filter === 'resource') return Boolean(block.resourceId) && !block.isHidden
+      if (filter === 'personality') {
+        return !block.isHidden && blockBucket(block) === 'personality'
+      }
+      if (filter === 'features') {
+        return !block.isHidden && blockBucket(block) === 'features'
+      }
+      return !block.isHidden && blockBucket(block) === 'notes'
+    })
+  }, [blocks, filter])
 
   function updateBlock(key: string, patch: Partial<TextBlock>) {
     onChange(blocks.map((item) => (item.key === key ? { ...item, ...patch } : item)))
@@ -75,7 +182,6 @@ export function TextBlocksPanel({
   function linkOrphanToBlock(resourceId: string, blockKey: string) {
     const target = blocks.find((item) => item.key === blockKey)
     if (!target) return
-    // Drop previous link on target if any
     if (target.resourceId && target.resourceId !== resourceId) {
       onResourcesChange(resources.filter((item) => item.id !== target.resourceId))
     }
@@ -86,6 +192,15 @@ export function TextBlocksPanel({
         return block
       }),
     )
+  }
+
+  function toggleDetails(key: string) {
+    setOpenKeys((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
   }
 
   function renderMoveActions(block: TextBlock, index: number) {
@@ -191,13 +306,207 @@ export function TextBlocksPanel({
     )
   }
 
+  function renderBlockCard(block: TextBlock, index: number) {
+    const label = displayLabel(block)
+    const bucket = blockBucket(block)
+    const role = roleLabel(block)
+    const preview = previewText(block.value)
+    const filled = Boolean(block.value.trim())
+    const detailsOpen = openKeys.has(block.key)
+    const absoluteIndex = blocks.findIndex((row) => row.key === block.key)
+
+    if (block.isHidden && filter === 'hidden' && !detailsOpen) {
+      return (
+        <div key={block.key} className="text-block text-block--compact text-block--hidden">
+          <button
+            type="button"
+            className="text-block__glance"
+            onClick={() => toggleDetails(block.key)}
+          >
+            <b className="text-block__glance-name">{label}</b>
+            <span className={`inventory-role inventory-role--${bucket === 'features' ? 'armor' : bucket === 'personality' ? 'weapon' : 'other'}`}>
+              {role}
+            </span>
+            <span className="attack-held-tag">скрыт</span>
+            <span className="inventory-card__glance-spacer" aria-hidden />
+            <span className="inventory-card__glance-meta">{filled ? 'есть текст' : 'пусто'}</span>
+          </button>
+          <div className="inventory-card__glance-actions">
+            <button
+              type="button"
+              className="inventory-equip is-on"
+              onClick={() => updateBlock(block.key, { isHidden: false })}
+            >
+              Показать
+            </button>
+            <button
+              type="button"
+              className="inventory-card__chevron-btn"
+              aria-label="Подробнее"
+              onClick={() => toggleDetails(block.key)}
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    if (!detailsOpen) {
+      return (
+        <div
+          key={block.key}
+          className={`text-block text-block--compact${filled ? '' : ' text-block--empty'}`}
+        >
+          <button
+            type="button"
+            className="text-block__glance"
+            onClick={() => toggleDetails(block.key)}
+          >
+            <b className="text-block__glance-name">{label}</b>
+            <span
+              className={`inventory-role inventory-role--${
+                bucket === 'features' ? 'armor' : bucket === 'personality' ? 'weapon' : 'other'
+              }`}
+            >
+              {role}
+            </span>
+            {block.resourceId ? <span className="attack-held-tag is-on">ресурс</span> : null}
+            <span className="inventory-card__glance-spacer" aria-hidden />
+            <span className="text-block__glance-preview">
+              {preview || 'пусто — нажми, чтобы заполнить'}
+            </span>
+          </button>
+          <div className="inventory-card__glance-actions">
+            <button
+              type="button"
+              className="inventory-card__chevron-btn"
+              aria-label="Подробнее"
+              onClick={() => toggleDetails(block.key)}
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div
+        key={block.key}
+        className={`text-block${block.isHidden ? ' text-block--hidden' : ''}`}
+      >
+        <div className="text-block__meta">
+          <span
+            className={`inventory-role inventory-role--${
+              bucket === 'features' ? 'armor' : bucket === 'personality' ? 'weapon' : 'other'
+            }`}
+          >
+            {role}
+          </span>
+          {block.resourceId ? <span className="attack-held-tag is-on">ресурс</span> : null}
+          {block.isHidden ? <span className="attack-held-tag">скрыт</span> : null}
+        </div>
+
+        <div className="text-block__header">
+          <Field label="Заголовок блока">
+            <Input
+              className="text-block__title-input"
+              value={block.customLabel ?? block.defaultLabel}
+              onChange={(event) => {
+                const next = event.target.value
+                updateBlock(block.key, {
+                  customLabel:
+                    next.trim() === block.defaultLabel.trim() ? null : next,
+                })
+              }}
+            />
+          </Field>
+          <div className="text-block__actions">
+            {renderMoveActions(block, absoluteIndex >= 0 ? absoluteIndex : index)}
+          </div>
+        </div>
+
+        {renderResource(block)}
+
+        <textarea
+          className="ui-input text-block__area"
+          rows={5}
+          value={block.value}
+          placeholder="Текст блока…"
+          onChange={(event) => updateBlock(block.key, { value: event.target.value })}
+        />
+
+        <div className="inventory-card__footer">
+          {block.isHidden ? (
+            <button
+              type="button"
+              className="inventory-equip is-on"
+              onClick={() => updateBlock(block.key, { isHidden: false })}
+            >
+              Показать
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="inventory-action"
+              onClick={() => updateBlock(block.key, { isHidden: true })}
+            >
+              Скрыть
+            </button>
+          )}
+          <button
+            type="button"
+            className="inventory-action"
+            onClick={() => toggleDetails(block.key)}
+          >
+            <IconChevronUp />
+            Свернуть
+          </button>
+          {block.isCustom ? (
+            <button
+              type="button"
+              className="inventory-action inventory-action--danger"
+              onClick={() => {
+                if (block.resourceId) {
+                  onResourcesChange(
+                    resources.filter((item) => item.id !== block.resourceId),
+                  )
+                }
+                onChange(blocks.filter((item) => item.key !== block.key))
+              }}
+            >
+              <IconTrash />
+              Удалить
+            </button>
+          ) : null}
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <Panel title="Тексты и заметки">
-      <Stack gap={14}>
+    <Panel title="Тексты и заметки" className="text-panel">
+      <Stack gap={12}>
         <Text tone="muted">
-          Блоки можно переименовать, скрыть, добавить и менять местами. Пипсы ресурса (ярость, ки…) —
-          внутри блока, как в ЛСС.
+          Личность, умения и заметки. Список компактный — текст открывается по клику.
         </Text>
+
+        <div className="inventory-panel__toolbar">
+          <Button
+            variant="secondary"
+            className="inventory-toolbar-btn"
+            onClick={() => {
+              const next = createCustomTextBlock(blocks)
+              onChange([...blocks, next])
+              setFilter('notes')
+              setOpenKeys((prev) => new Set(prev).add(next.key))
+            }}
+          >
+            <IconPlus />
+            Добавить блок
+          </Button>
+        </div>
 
         {orphanResources.length > 0 ? (
           <div className="text-block__orphans">
@@ -251,83 +560,31 @@ export function TextBlocksPanel({
           </div>
         ) : null}
 
-        {blocks.map((block, index) => {
-          if (block.isHidden) {
-            return (
-              <div key={block.key} className="text-block text-block--hidden">
-                <div className="text-block__header">
-                  <Text tone="muted">{displayLabel(block)} · скрыт</Text>
-                  <div className="text-block__actions">
-                    {renderMoveActions(block, index)}
-                    <Button
-                      variant="ghost"
-                      onClick={() => updateBlock(block.key, { isHidden: false })}
-                    >
-                      Показать
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )
-          }
-
-          return (
-            <div key={block.key} className="text-block">
-              <div className="text-block__header">
-                <Field label="Заголовок блока">
-                  <Input
-                    value={block.customLabel ?? block.defaultLabel}
-                    onChange={(event) => {
-                      const next = event.target.value
-                      updateBlock(block.key, {
-                        customLabel:
-                          next.trim() === block.defaultLabel.trim() ? null : next,
-                      })
-                    }}
-                  />
-                </Field>
-                <div className="text-block__actions">
-                  {renderMoveActions(block, index)}
-                  <Button variant="ghost" onClick={() => updateBlock(block.key, { isHidden: true })}>
-                    Скрыть
-                  </Button>
-                  {block.isCustom ? (
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        if (block.resourceId) {
-                          onResourcesChange(
-                            resources.filter((item) => item.id !== block.resourceId),
-                          )
-                        }
-                        onChange(blocks.filter((item) => item.key !== block.key))
-                      }}
-                    >
-                      Удалить
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-              {renderResource(block)}
-              <textarea
-                className="ui-input text-block__area"
-                rows={5}
-                value={block.value}
-                placeholder="Текст блока…"
-                onChange={(event) => updateBlock(block.key, { value: event.target.value })}
-              />
-            </div>
-          )
-        })}
-
-        <div>
-          <Button
-            variant="secondary"
-            onClick={() => onChange([...blocks, createCustomTextBlock(blocks)])}
-          >
-            Добавить блок
-          </Button>
+        <div className="inventory-filters" role="tablist" aria-label="Фильтр текстов">
+          {FILTERS.map((row) => (
+            <button
+              key={row.id}
+              type="button"
+              role="tab"
+              aria-selected={filter === row.id}
+              className={`inventory-filter${filter === row.id ? ' is-on' : ''}`}
+              onClick={() => setFilter(row.id)}
+            >
+              {row.label}
+            </button>
+          ))}
         </div>
+
+        <Stack gap={10}>
+          {visibleBlocks.length === 0 ? (
+            <Text tone="muted">
+              {filter === 'all'
+                ? 'Нет видимых блоков — добавь заметку или покажи скрытые.'
+                : 'Нет блоков в этом фильтре.'}
+            </Text>
+          ) : null}
+          {visibleBlocks.map((block, index) => renderBlockCard(block, index))}
+        </Stack>
       </Stack>
     </Panel>
   )
