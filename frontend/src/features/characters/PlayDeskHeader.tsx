@@ -342,30 +342,34 @@ export function PlayDeskHeader({
               >
                 {play.isDying ? 'При смерти' : 'Смерть'}
               </button>
-              <HeaderDeathTrack
-                label="Усп"
-                value={play.deathSuccesses}
-                tone="ok"
-                onChange={(next) =>
-                  onPlayChange({
-                    ...play,
-                    isDying: true,
-                    deathSuccesses: clampDeathMarks(next),
-                  })
-                }
-              />
-              <HeaderDeathTrack
-                label="Пров"
-                value={play.deathFails}
-                tone="bad"
-                onChange={(next) =>
-                  onPlayChange({
-                    ...play,
-                    isDying: true,
-                    deathFails: clampDeathMarks(next),
-                  })
-                }
-              />
+              <div
+                className={`play-desk-header__death-tracks${play.isDying ? '' : ' is-dim'}`}
+              >
+                <HeaderDeathTrack
+                  label="Успехи"
+                  value={play.deathSuccesses}
+                  tone="ok"
+                  onChange={(next) =>
+                    onPlayChange({
+                      ...play,
+                      isDying: true,
+                      deathSuccesses: clampDeathMarks(next),
+                    })
+                  }
+                />
+                <HeaderDeathTrack
+                  label="Провалы"
+                  value={play.deathFails}
+                  tone="bad"
+                  onChange={(next) =>
+                    onPlayChange({
+                      ...play,
+                      isDying: true,
+                      deathFails: clampDeathMarks(next),
+                    })
+                  }
+                />
+              </div>
             </div>
           ) : null}
         </div>

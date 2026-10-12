@@ -3862,13 +3862,14 @@ button.play-desk-vital {
 }
 
 .play-desk-header__hp-wrap {
-  display: grid;
-  gap: 6px;
-  justify-items: stretch;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 8px;
 }
 
 .play-desk-header__hp {
-  min-width: 140px;
+  min-width: 120px;
   padding: 8px 12px;
   border-radius: 12px;
   background: #fff;
@@ -3896,26 +3897,30 @@ button.play-desk-vital {
   font-size: 0.72rem;
 }
 
+/* Compact death saves: to the RIGHT of HP, two stacked tracks. */
 .play-desk-header__death {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 10px;
-  align-items: center;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 4px;
+  min-width: 118px;
   padding: 6px 8px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--danger, #9f2d2d) 35%, var(--desk-line));
   background: color-mix(in srgb, #fff4f4 75%, white);
+  align-content: center;
 }
 
 .play-desk-header__dying-toggle {
-  padding: 3px 8px;
+  justify-self: start;
+  padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid var(--desk-line);
   background: #fff;
   font: inherit;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   cursor: pointer;
   color: inherit;
+  line-height: 1.2;
 }
 
 .play-desk-header__dying-toggle.is-on {
@@ -3924,17 +3929,34 @@ button.play-desk-vital {
   font-weight: 600;
 }
 
-.play-desk-header__death-track {
-  display: inline-flex;
-  align-items: center;
+.play-desk-header__death-tracks {
+  display: grid;
   gap: 4px;
+  align-content: center;
+}
+
+.play-desk-header__death-tracks.is-dim {
+  opacity: 0.45;
+}
+
+.play-desk-header__death-track {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  gap: 6px;
   font-size: 0.68rem;
   color: var(--desk-muted);
+  font-weight: 600;
 }
 
 .play-desk-header__death-pips {
   display: inline-flex;
   gap: 4px;
+}
+
+.play-desk-header__death .death-pip {
+  width: 14px;
+  height: 14px;
 }
 
 .play-desk-header__hp-max {
