@@ -34,8 +34,10 @@ import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import {
   IconCast,
+  IconConcentration,
   IconFocus,
   IconPouch,
+  IconRitual,
   IconSpellBook,
   IconWizardHat,
 } from './spellIcons'
@@ -146,8 +148,23 @@ export function SpellsPanel({
   const visibleSpells = useMemo(() => {
     const list =
       filter === 'all' ? combatPool : combatPool.filter((spell) => spell.level === filter)
-    return groupSpellsByLevel(list)
-  }, [filter, combatPool])
+    const grouped = groupSpellsByLevel(list)
+    const byLevel = new Map(grouped.map((group) => [group.level, group]))
+    const ensureLevel = (level: number) => {
+      if (!byLevel.has(level)) byLevel.set(level, { level, spells: [] })
+    }
+    if (filter === 'all') {
+      for (let level = 1; level <= 9; level += 1) {
+        if ((spells.slots[String(level)]?.max ?? 0) > 0) ensureLevel(level)
+      }
+      if (list.some((spell) => spell.level === 0) || byLevel.has(0)) ensureLevel(0)
+    } else if (typeof filter === 'number') {
+      ensureLevel(filter)
+    }
+    return [...byLevel.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([, group]) => group)
+  }, [filter, combatPool, spells.slots])
 
   const suggestion = useMemo(
     () =>
@@ -470,16 +487,18 @@ export function SpellsPanel({
         </Text>
 
         <div className="spells-summary">
-          <div className="spells-summary__stat">
-            <Text tone="muted">Спасбросок</Text>
+          <div className="spells-summary__stat spells-summary__stat--key">
+            <span className="spells-summary__label">Сл. спас.</span>
             <strong>{dc == null ? '—' : dc}</strong>
           </div>
-          <div className="spells-summary__stat">
-            <Text tone="muted">Атака</Text>
+          <div className="spells-summary__stat spells-summary__stat--key">
+            <span className="spells-summary__label">Атака закл.</span>
             <strong>{attack == null ? '—' : formatModifier(attack)}</strong>
           </div>
           <div className="spells-summary__stat">
-            <Text tone="muted">{knownCaster ? 'Известно' : 'Подготовлено'}</Text>
+            <span className="spells-summary__label">
+              {knownCaster ? 'Известно' : 'Подготовлено'}
+            </span>
             <strong>
               {knownCaster
                 ? (() => {
@@ -492,7 +511,7 @@ export function SpellsPanel({
           </div>
           {learnBudget?.cantrips != null ? (
             <div className="spells-summary__stat">
-              <Text tone="muted">Заговоры</Text>
+              <span className="spells-summary__label">Заговоры</span>
               <strong>
                 {countLearnedCantrips(spells.known)}/{learnBudget.cantrips}
               </strong>
@@ -529,12 +548,10 @@ export function SpellsPanel({
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
           </Button>
-          {!knownCaster ? (
-            <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
-              <IconWizardHat className="spells-btn-icon" />
-              Подготовить
-            </Button>
-          ) : null}
+          <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
+            <IconWizardHat className="spells-btn-icon" />
+            Подготовить
+          </Button>
           <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
             <IconSpellBook className="spells-btn-icon" />
             Гримуар
@@ -714,7 +731,7 @@ export function SpellsPanel({
           <Text tone="muted">
             {spells.known.length === 0
               ? 'Пока нет заклинаний — добавь ниже или подготовь из списка.'
-              : 'В боевом виде пусто — нажми «Подготовить заклинания» или «Все известные».'}
+              : 'В боевом виде пусто — нажми «Подготовить» или «Все известные».'}
           </Text>
         ) : (
           visibleSpells.map((group) => {
@@ -727,12 +744,18 @@ export function SpellsPanel({
                     <SlotPips
                       max={slot.max}
                       used={slot.used}
-                      label={`Ячейки ${group.level}-го уровня`}
+                      label={`Ячейки ${group.level}`}
+                      summary={`${Math.max(0, slot.max - slot.used)}/${slot.max}`}
                       onChange={(used) => setSlotUsed(group.level, used)}
                     />
+                  ) : group.level === 0 ? (
+                    <span className="spell-level-block__hint">без ячеек</span>
                   ) : null}
                 </div>
                 <Stack gap={10}>
+                  {group.spells.length === 0 ? (
+                    <Text tone="muted">Нет заклинаний этого круга в списке.</Text>
+                  ) : null}
                   {group.spells.map((spell) => (
                     <div key={spell.id} className="spell-card">
                       <div className="spell-card__top">
@@ -892,19 +915,28 @@ export function SpellsPanel({
                         ) : null}
                         <button
                           type="button"
-                          className={`sheet-chip${spell.concentration ? ' is-on' : ''}`}
+                          className={`sheet-chip spell-card__flag${
+                            spell.concentration ? ' is-on' : ''
+                          }`}
                           onClick={() =>
                             updateSpell(spell.id, { concentration: !spell.concentration })
                           }
+                          title="Концентрация"
+                          aria-pressed={spell.concentration}
                         >
-                          К
+                          <IconConcentration className="spells-btn-icon" />
+                          Конц.
                         </button>
                         <button
                           type="button"
-                          className={`sheet-chip${spell.ritual ? ' is-on' : ''}`}
+                          className={`sheet-chip spell-card__flag${
+                            spell.ritual ? ' is-on' : ''
+                          }`}
                           onClick={() => updateSpell(spell.id, { ritual: !spell.ritual })}
                           title="Ритуал"
+                          aria-pressed={spell.ritual}
                         >
+                          <IconRitual className="spells-btn-icon" />
                           Ритуал
                         </button>
                         {canRemoveSheetSpell(spell) ? (

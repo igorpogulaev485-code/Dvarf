@@ -9,12 +9,13 @@ import {
   countLearnedCantrips,
   countLearnedLeveled,
   countPreparedLeveled,
+  groupSpellsByLevel,
   isReadyInCombat,
   type SheetSpell,
   type SpellsState,
 } from './spells'
-import { IconCast, IconConcentration } from './spellIcons'
-import { spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
+import { IconCast, IconConcentration, IconRitual } from './spellIcons'
+import { levelLabel, spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
 
 type PlayDeskSpellsCompactProps = {
   spells: SpellsState
@@ -85,10 +86,25 @@ export function PlayDeskSpellsCompact({
       ? `заг. ${learnedCantrips}/${learnBudget.cantrips}`
       : null
 
-  const slotLevels = Array.from({ length: 9 }, (_, i) => i + 1).filter((level) => {
-    const slot = spells.slots[String(level)]
-    return (slot?.max ?? 0) > 0
-  })
+  const maxRows = 14
+  const levelGroups = (() => {
+    const grouped = groupSpellsByLevel(ready)
+    const byLevel = new Map(grouped.map((group) => [group.level, group]))
+    for (let level = 1; level <= 9; level += 1) {
+      if ((spells.slots[String(level)]?.max ?? 0) > 0 && !byLevel.has(level)) {
+        byLevel.set(level, { level, spells: [] })
+      }
+    }
+    let remaining = maxRows
+    return [...byLevel.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([, group]) => {
+        const visible = group.spells.slice(0, Math.max(0, remaining))
+        remaining -= visible.length
+        return { ...group, visible }
+      })
+      .filter((group) => group.visible.length > 0 || (group.level > 0 && (spells.slots[String(group.level)]?.max ?? 0) > 0))
+  })()
 
   return (
     <div className="play-desk-compact">
@@ -106,10 +122,25 @@ export function PlayDeskSpellsCompact({
         </div>
       </div>
 
-      {(dc != null || attack != null || quotaLabel || cantripLabel) && (
+      {(dc != null || attack != null) && (
+        <div className="play-desk-compact__combat-stats" aria-label="Сл. спас. и атака заклинаний">
+          {dc != null ? (
+            <div className="play-desk-compact__combat-stat">
+              <span>Сл. спас.</span>
+              <b>{dc}</b>
+            </div>
+          ) : null}
+          {attack != null ? (
+            <div className="play-desk-compact__combat-stat">
+              <span>Атака</span>
+              <b>{formatModifier(attack)}</b>
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {(quotaLabel || cantripLabel || concentration) && (
         <div className="play-desk-compact__meta">
-          {dc != null ? <span>Сл {dc}</span> : null}
-          {attack != null ? <span>атака {formatModifier(attack)}</span> : null}
           {quotaLabel ? <span>{quotaLabel}</span> : null}
           {cantripLabel ? <span>{cantripLabel}</span> : null}
           {concentration ? (
@@ -118,89 +149,85 @@ export function PlayDeskSpellsCompact({
         </div>
       )}
 
-      {slotLevels.length > 0 ? (
-        <div className="play-desk-compact__slots">
-          {slotLevels.map((level) => {
-            const slot = spells.slots[String(level)] ?? { max: 0, used: 0 }
-            const remaining = Math.max(0, slot.max - slot.used)
-            return (
-              <div
-                key={level}
-                className="play-desk-compact__slot"
-                title={`Ячейки ${level}: ${remaining}/${slot.max} · клик по пипу — потратить или вернуть`}
-              >
-                <span>{level}</span>
-                <div
-                  className="play-desk-compact__slot-pips"
-                  role="group"
-                  aria-label={`Ячейки ${level}: ${remaining}/${slot.max}`}
-                >
-                  {Array.from({ length: slot.max }, (_, index) => {
-                    const isOn = index < remaining
-                    return (
-                      <button
-                        key={`${level}-${index}`}
-                        type="button"
-                        className={`play-desk-compact__slot-pip${isOn ? ' is-on' : ''}`}
-                        disabled={!onSlotUsedChange}
-                        aria-label={
-                          isOn
-                            ? `Ячейка ${level}: потратить ${index + 1}`
-                            : `Ячейка ${level}: вернуть ${index + 1}`
-                        }
-                        onClick={() => {
-                          if (!onSlotUsedChange) return
-                          if (isOn) {
-                            onSlotUsedChange(level, Math.min(slot.max, slot.used + 1))
-                          } else {
-                            onSlotUsedChange(level, Math.max(0, slot.used - 1))
-                          }
-                        }}
-                      />
-                    )
-                  })}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      ) : null}
-
       <div className="play-desk-compact__list play-desk-compact__list--dense">
-        {ready.length === 0 ? (
+        {ready.length === 0 && levelGroups.length === 0 ? (
           <p className="play-desk-compact__empty">Нет готовых заклинаний</p>
         ) : (
-          ready.slice(0, 14).map((spell) => {
-            const isActiveConc =
-              concentration != null &&
-              (concentration.spell_id === spell.id ||
-                concentration.name.trim() === (spell.name || '').trim())
+          levelGroups.map((group) => {
+            const slot = group.level > 0 ? spells.slots[String(group.level)] : null
+            const remaining =
+              slot && slot.max > 0 ? Math.max(0, slot.max - slot.used) : null
             return (
-              <SpellRow
-                key={spell.id}
-                spell={spell}
-                spellAttack={attack}
-                spellDc={dc}
-                rollMode={rollMode}
-                activeConcentration={isActiveConc}
-                onToast={onToast}
-                onActivate={() => {
-                  // Prefer cast dialog (use), not the full spells editor (details).
-                  if (onCastSpell) {
-                    onCastSpell(spell)
-                    return
-                  }
-                  if (spell.concentration && onConcentrateSpell) {
-                    onConcentrateSpell(spell)
-                  }
-                }}
-                hasActivate={Boolean(onCastSpell || onConcentrateSpell)}
-              />
+              <div key={group.level} className="play-desk-compact__level">
+                <div className="play-desk-compact__level-head">
+                  <strong>{levelLabel(group.level)}</strong>
+                  {slot && slot.max > 0 ? (
+                    <div
+                      className="play-desk-compact__slot-pips"
+                      role="group"
+                      aria-label={`Ячейки ${group.level}: ${remaining}/${slot.max}`}
+                      title={`Ячейки ${group.level}: ${remaining}/${slot.max}`}
+                    >
+                      {Array.from({ length: slot.max }, (_, index) => {
+                        const isOn = index < (remaining ?? 0)
+                        return (
+                          <button
+                            key={`${group.level}-${index}`}
+                            type="button"
+                            className={`play-desk-compact__slot-pip${isOn ? ' is-on' : ''}`}
+                            disabled={!onSlotUsedChange}
+                            aria-label={
+                              isOn
+                                ? `Ячейка ${group.level}: потратить ${index + 1}`
+                                : `Ячейка ${group.level}: вернуть ${index + 1}`
+                            }
+                            onClick={() => {
+                              if (!onSlotUsedChange || !slot) return
+                              if (isOn) {
+                                onSlotUsedChange(group.level, Math.min(slot.max, slot.used + 1))
+                              } else {
+                                onSlotUsedChange(group.level, Math.max(0, slot.used - 1))
+                              }
+                            }}
+                          />
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+                {group.visible.map((spell) => {
+                  const isActiveConc =
+                    concentration != null &&
+                    (concentration.spell_id === spell.id ||
+                      concentration.name.trim() === (spell.name || '').trim())
+                  return (
+                    <SpellRow
+                      key={spell.id}
+                      spell={spell}
+                      spellAttack={attack}
+                      spellDc={dc}
+                      rollMode={rollMode}
+                      activeConcentration={isActiveConc}
+                      onToast={onToast}
+                      onActivate={() => {
+                        if (onCastSpell) {
+                          onCastSpell(spell)
+                          return
+                        }
+                        if (spell.concentration && onConcentrateSpell) {
+                          onConcentrateSpell(spell)
+                        }
+                      }}
+                      hasActivate={Boolean(onCastSpell || onConcentrateSpell)}
+                    />
+                  )
+                })}
+              </div>
             )
           })
         )}
-        {ready.length > 14 ? (
-          <p className="play-desk-compact__more">+ ещё {ready.length - 14}</p>
+        {ready.length > maxRows ? (
+          <p className="play-desk-compact__more">+ ещё {ready.length - maxRows}</p>
         ) : null}
       </div>
     </div>
@@ -269,6 +296,12 @@ function SpellRow({
         <b>{spell.name}</b>
       </div>
       <span className="play-desk-compact__dmg">{levelLabel}</span>
+      {spell.ritual ? (
+        <span className="play-desk-compact__tag is-ritual" title="Ритуал">
+          <IconRitual className="play-desk-compact__tag-icon" />
+          ритуал
+        </span>
+      ) : null}
       {activeConcentration ? (
         <span className="play-desk-compact__tag is-conc">
           <IconConcentration className="play-desk-compact__tag-icon" />
@@ -279,11 +312,11 @@ function SpellRow({
           <IconConcentration className="play-desk-compact__tag-icon" />
           конц.
         </span>
-      ) : spell.prepared && spell.level > 0 ? (
+      ) : spell.prepared && spell.level > 0 && !spell.ritual ? (
         <span className="play-desk-compact__tag is-on">готово</span>
-      ) : (
+      ) : !spell.ritual ? (
         <span className="play-desk-compact__tag">—</span>
-      )}
+      ) : null}
     </button>
   )
 }

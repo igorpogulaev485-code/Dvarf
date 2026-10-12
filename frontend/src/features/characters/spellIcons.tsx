@@ -102,3 +102,16 @@ export function IconConcentration(props: IconProps) {
     </Svg>
   )
 }
+
+/** Ritual — crescent moon */
+export function IconRitual(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        {...stroke}
+        d="M15.2 4.6a7.6 7.6 0 1 0 4.1 13.8 6.4 6.4 0 1 1-4.1-13.8Z"
+      />
+      <path {...stroke} d="M16.8 7.2v1.6M16 8h1.6" />
+    </Svg>
+  )
+}
