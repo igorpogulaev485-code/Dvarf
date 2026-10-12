@@ -43,6 +43,8 @@ export type SheetSpell = {
   damage_at_character_level?: SpellScaleTable
   damage_at_slot_level?: SpellScaleTable
   higher_levels?: string
+  /** Full rules text snapshot from catalog (detail dialog). */
+  description?: string
   /**
    * Who put this row on the sheet (race / feat / subclass domain…).
    * Manual adds stay `catalog` / `custom` / unset.
@@ -220,6 +222,9 @@ function readSpell(raw: unknown, index: number): SheetSpell {
     ...(damageAtSlot ? { damage_at_slot_level: damageAtSlot } : {}),
     ...(typeof row.higher_levels === 'string' && row.higher_levels
       ? { higher_levels: row.higher_levels }
+      : {}),
+    ...(typeof row.description === 'string' && row.description.trim()
+      ? { description: row.description }
       : {}),
     ...(sourceKind ? { source_kind: sourceKind } : {}),
     ...(raceGrant ? { race_grant: raceGrant } : {}),
@@ -663,6 +668,7 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
           ? { damage_at_slot_level: spell.damage_at_slot_level }
           : {}),
         ...(spell.higher_levels ? { higher_levels: spell.higher_levels } : {}),
+        ...(spell.description ? { description: spell.description } : {}),
         ...(spell.source_kind ? { source_kind: spell.source_kind } : {}),
         ...(spell.race_grant ? { race_grant: spell.race_grant } : {}),
         ...(spell.feat_grant ? { feat_grant: spell.feat_grant } : {}),
@@ -711,6 +717,7 @@ export function readCatalogSpellFields(data: Record<string, unknown>): Partial<S
       ? { damage_at_slot_level: parsed.damage_at_slot_level }
       : {}),
     ...(parsed.higher_levels ? { higher_levels: parsed.higher_levels } : {}),
+    ...(parsed.description ? { description: parsed.description } : {}),
   }
 }
 
@@ -847,6 +854,7 @@ export function sheetSpellFromCatalog(entry: {
       ? { damage_at_slot_level: fields.damage_at_slot_level }
       : {}),
     ...(fields.higher_levels ? { higher_levels: fields.higher_levels } : {}),
+    ...(fields.description ? { description: fields.description } : {}),
   }
 }
 

@@ -1969,6 +1969,13 @@ button.spell-card__cast:hover:not(:disabled) {
   font-size: 0.92rem;
 }
 
+.spell-detail-body {
+  display: grid;
+  gap: 4px;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
 .spells-focus-chips__chip {
   display: inline-flex;
   align-items: center;

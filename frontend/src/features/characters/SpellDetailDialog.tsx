@@ -81,6 +81,13 @@ export function SpellDetailDialog({
           ))}
         </div>
 
+        {spell.description?.trim() ? (
+          <div className="spell-detail-body">
+            <Text tone="muted">Описание</Text>
+            <Text>{spell.description.trim()}</Text>
+          </div>
+        ) : null}
+
         {spell.higher_levels?.trim() ? (
           <div>
             <Text tone="muted">На больших уровнях</Text>
@@ -95,7 +102,10 @@ export function SpellDetailDialog({
           </div>
         ) : null}
 
-        {!spell.notes?.trim() && !spell.higher_levels?.trim() && rows.length === 0 ? (
+        {!spell.description?.trim() &&
+        !spell.notes?.trim() &&
+        !spell.higher_levels?.trim() &&
+        rows.length === 0 ? (
           <Text tone="muted">На листе пока мало данных — открой полное редактирование.</Text>
         ) : null}
       </Stack>
