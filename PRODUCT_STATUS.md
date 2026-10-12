@@ -611,7 +611,7 @@
 | Inline detail | На &lt;860px описание и «Выбрать и настроить» открываются сразу под выбранной расой/чертой/фоном/классом | Не скроллить всю портянку каталога |
 | Desktop | Слева список, справа деталь — без изменений | Планшет/ПК как раньше |
 
-На проде: **нет** · ветка `cursor/create-inline-detail-2c91` · PR #109
+На проде: **да** · ветка `cursor/mobile-play-desk-2c91` (merge PR #109) · tip · проверено 2026-10-12: бандл `CreateCharacterPage` / CSS `create-pipeline__inline-detail`, `/health` ok
 
 ### 2026-10-12 — Лист mobile: характеристики во вкладку
 
@@ -620,7 +620,7 @@
 | Панель «Характеристики» | На &lt;960px статы, навыки и пассивы только в панели списка, не над сценой | Сразу бой/заклинания без портянки статов |
 | Desktop ≥960px | Левая sticky-колонка как раньше | Без регрессии стола |
 
-На проде: **нет** · ветка `cursor/mobile-abilities-tab-2c91` · PR #110
+На проде: **да** · ветка `cursor/mobile-play-desk-2c91` (merge PR #110) · tip · проверено 2026-10-12: бандл `CharacterDetailPage` с панелью `abilities` / «Характеристики», `play-desk__body--mobile`, кабинет/classic на месте
 
 ### 2026-10-08 — GEAR W6: DMG polish (остатки)
 
@@ -1143,5 +1143,4 @@
 | 2026-10-11 | `cursor/mobile-load-perf-2c91` · PR #106 | Mobile anti-blank залит на Timeweb; tip → эта ветка; Cache-Control no-cache на HTML + boot splash; play-desk на месте |
 | 2026-10-11 | `cursor/mobile-load-perf-2c91` · PR #106 | Mobile+VPN MTU/MSS (`apply-vpn-mtu.sh`) + boot timeout → заливка/проверка |
 | 2026-10-12 | `cursor/mobile-play-desk-2c91` · PR #108 | Mobile play-desk 1+2a–2d залит на Timeweb; tip → эта ветка; режимы+плотность панелей на телефоне; anti-blank/VPN MTU на месте |
-| 2026-10-12 | `cursor/create-inline-detail-2c91` · PR #109 | Создание mobile: деталь под выбранной карточкой → «В ветках» |
-| 2026-10-12 | `cursor/mobile-abilities-tab-2c91` · PR #110 | Лист mobile: характеристики во вкладку → «В ветках» |
+| 2026-10-12 | `cursor/mobile-play-desk-2c91` · PR #109+#110 | Создание inline-detail + характеристики во вкладку залиты вместе; tip без смены; `/health` ok |
