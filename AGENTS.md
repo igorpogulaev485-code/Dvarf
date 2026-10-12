@@ -21,7 +21,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/mobile-load-perf-2c91` |
+| Prod tip (сейчас) | `cursor/mobile-play-desk-2c91` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
