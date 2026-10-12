@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/sheet-conflict-fix-a73e`  
+**Prod tip (ветка линии прода):** `cursor/desk-scenes-no-select-a73e`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -594,7 +594,18 @@
 | Гонка автосейва | После PUT версия в ref обновляется сразу; на conflict — один тихий retry | Окно конфликта почти не вылезает само |
 | Диалог конфликта | «Сохранить мои правки» = записать экран; «Взять с сервера» = перечитать | Правки больше не зависают после «Оставить» |
 
-На проде: **да** · ветка `cursor/sheet-conflict-fix-a73e` · PR #116 · это **prod tip** · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-BXzZShGD.js` («Сохранить мои правки» / «Взять с сервера»); dist→web
+На проде: **да** · ветка `cursor/sheet-conflict-fix-a73e` · PR #116 · tip дальше → `cursor/desk-scenes-no-select-a73e` · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-BXzZShGD.js` («Сохранить мои правки» / «Взять с сервера»); dist→web
+
+### 2026-10-12 — Play desk: сцены без селекта (Способности + ЕЩЁ)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Сцены | Бой / Исслед. / Общение / Напарники / **Способности** / **ЕЩЁ** — без выпадающего списка панелей | Одна модель навигации |
+| Бой | Атаки + split заклинаний | Каст рядом с атаками |
+| ЕЩЁ | Вкладки: Состояния и ресурсы / Основное / Настройка / Владения | Ничего не потеряли; потом пересоберём |
+| Hot | Состояния / концентрация / ресурсы на всех сценах кроме ЕЩЁ | Быстрый доступ из игры |
+
+На проде: **да** · ветка `cursor/desk-scenes-no-select-a73e` · PR #117 · это **prod tip** · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-Q0HwNbnc.js` (`play-desk__more-tab`); dist→web
 
 ### 2026-10-12 — Play desk: догон макета (hot bar + split + визуал)
 
@@ -1186,3 +1197,4 @@
 | 2026-10-12 | `cursor/play-desk-polish-layer2-a73e` · PR #114 | Play-desk polish layer-2; tip → эта ветка; Hub timeout → dist→web; `/health` ok; бандл `CharacterDetailPage-a6T4dyk9.js` / CSS `index-CHvnpnqz.css` |
 | 2026-10-12 | `cursor/delete-character-list-a73e` · PR #115 | Удаление персонажа из списка с confirm; tip → эта ветка; dist→web; `/health` ok; бандл `index-DeQLeRiO.js` |
 | 2026-10-12 | `cursor/sheet-conflict-fix-a73e` · PR #116 | Фикс loop конфликта версий автосейва; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-BXzZShGD.js` |
+| 2026-10-12 | `cursor/desk-scenes-no-select-a73e` · PR #117 | Сцены без селекта + Способности + ЕЩЁ; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-Q0HwNbnc.js` |
