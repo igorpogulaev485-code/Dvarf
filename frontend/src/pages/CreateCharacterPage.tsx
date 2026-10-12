@@ -1098,20 +1098,8 @@ export function CreateCharacterPage() {
   let footer = null
 
   if (step === 'race') {
-    cards = (
-      <CatalogCardList
-        resetToken={step}
-        items={races.map((entry) => ({
-          id: entry.id,
-          title: entry.name_ru,
-          subtitle: entry.name_en ?? undefined,
-          source: entry.source,
-        }))}
-        selectedId={selectedRace?.id ?? state.race?.id ?? null}
-        onSelect={(id) => setSelectedRace(races.find((row) => row.id === id) ?? null)}
-      />
-    )
-    detail = (
+    const raceSelectedId = selectedRace?.id ?? state.race?.id ?? null
+    const renderRaceDetail = () => (
       <CatalogDetailPanel
         kind="race"
         entry={selectedRace}
@@ -1147,6 +1135,21 @@ export function CreateCharacterPage() {
         {state.race ? <Text tone="muted">Выбрано: {state.race.nameRu}</Text> : null}
       </CatalogDetailPanel>
     )
+    cards = (
+      <CatalogCardList
+        resetToken={step}
+        items={races.map((entry) => ({
+          id: entry.id,
+          title: entry.name_ru,
+          subtitle: entry.name_en ?? undefined,
+          source: entry.source,
+        }))}
+        selectedId={raceSelectedId}
+        onSelect={(id) => setSelectedRace(races.find((row) => row.id === id) ?? null)}
+        selectedDetail={raceSelectedId ? renderRaceDetail() : undefined}
+      />
+    )
+    detail = renderRaceDetail()
     footer = (
       <Button
         disabled={!state.race || !state.characterName.trim()}
@@ -1158,21 +1161,8 @@ export function CreateCharacterPage() {
   }
 
   if (step === 'feat') {
-    cards = (
-      <CatalogCardList
-        resetToken={step}
-        items={feats.map((entry) => ({
-          id: entry.id,
-          title: entry.name_ru,
-          subtitle: entry.name_en ?? undefined,
-          source: entry.source,
-        }))}
-        selectedId={selectedFeat?.id ?? state.feat?.id ?? null}
-        onSelect={(id) => setSelectedFeat(feats.find((row) => row.id === id) ?? null)}
-        emptyText="В каталоге пока мало черт — можно отметить заметку расы и продолжить"
-      />
-    )
-    detail = (
+    const featSelectedId = selectedFeat?.id ?? state.feat?.id ?? null
+    const renderFeatDetail = () => (
       <CatalogDetailPanel
         kind="feat"
         entry={selectedFeat}
@@ -1220,6 +1210,22 @@ export function CreateCharacterPage() {
         ) : null}
       </CatalogDetailPanel>
     )
+    cards = (
+      <CatalogCardList
+        resetToken={step}
+        items={feats.map((entry) => ({
+          id: entry.id,
+          title: entry.name_ru,
+          subtitle: entry.name_en ?? undefined,
+          source: entry.source,
+        }))}
+        selectedId={featSelectedId}
+        onSelect={(id) => setSelectedFeat(feats.find((row) => row.id === id) ?? null)}
+        emptyText="В каталоге пока мало черт — можно отметить заметку расы и продолжить"
+        selectedDetail={featSelectedId ? renderFeatDetail() : undefined}
+      />
+    )
+    detail = renderFeatDetail()
     footer = (
       <Button
         disabled={!state.feat && !state.featAcknowledged}
@@ -1231,23 +1237,8 @@ export function CreateCharacterPage() {
   }
 
   if (step === 'background') {
-    cards = (
-      <CatalogCardList
-        resetToken={step}
-        items={backgrounds.map((entry) => ({
-          id: entry.id,
-          title: entry.name_ru,
-          subtitle: entry.name_en ?? undefined,
-          source: entry.source,
-        }))}
-        selectedId={selectedBackground?.id ?? state.background?.id ?? null}
-        onSelect={(id) => {
-          const entry = backgrounds.find((row) => row.id === id) ?? null
-          setSelectedBackground(entry)
-        }}
-      />
-    )
-    detail = (
+    const backgroundSelectedId = selectedBackground?.id ?? state.background?.id ?? null
+    const renderBackgroundDetail = () => (
       <CatalogDetailPanel
         kind="background"
         entry={selectedBackground}
@@ -1270,6 +1261,24 @@ export function CreateCharacterPage() {
         ) : null}
       </CatalogDetailPanel>
     )
+    cards = (
+      <CatalogCardList
+        resetToken={step}
+        items={backgrounds.map((entry) => ({
+          id: entry.id,
+          title: entry.name_ru,
+          subtitle: entry.name_en ?? undefined,
+          source: entry.source,
+        }))}
+        selectedId={backgroundSelectedId}
+        onSelect={(id) => {
+          const entry = backgrounds.find((row) => row.id === id) ?? null
+          setSelectedBackground(entry)
+        }}
+        selectedDetail={backgroundSelectedId ? renderBackgroundDetail() : undefined}
+      />
+    )
+    detail = renderBackgroundDetail()
     footer = (
       <Button disabled={!state.background} onClick={() => advanceFrom('background')}>
         Далее · Класс
@@ -1278,20 +1287,8 @@ export function CreateCharacterPage() {
   }
 
   if (step === 'class') {
-    cards = (
-      <CatalogCardList
-        resetToken={step}
-        items={classes.map((entry) => ({
-          id: entry.id,
-          title: entry.name_ru,
-          subtitle: entry.name_en ?? undefined,
-          source: entry.source,
-        }))}
-        selectedId={selectedClass?.id ?? state.classRef?.id ?? null}
-        onSelect={(id) => setSelectedClass(classes.find((row) => row.id === id) ?? null)}
-      />
-    )
-    detail = (
+    const classSelectedId = selectedClass?.id ?? state.classRef?.id ?? null
+    const renderClassDetail = () => (
       <CatalogDetailPanel
         kind="class"
         entry={selectedClass}
@@ -1347,6 +1344,21 @@ export function CreateCharacterPage() {
         ) : null}
       </CatalogDetailPanel>
     )
+    cards = (
+      <CatalogCardList
+        resetToken={step}
+        items={classes.map((entry) => ({
+          id: entry.id,
+          title: entry.name_ru,
+          subtitle: entry.name_en ?? undefined,
+          source: entry.source,
+        }))}
+        selectedId={classSelectedId}
+        onSelect={(id) => setSelectedClass(classes.find((row) => row.id === id) ?? null)}
+        selectedDetail={classSelectedId ? renderClassDetail() : undefined}
+      />
+    )
+    detail = renderClassDetail()
     footer = (
       <Button
         disabled={!state.classRef || !state.classGrantPicks?.[state.classEntryId]}

@@ -69,9 +69,17 @@ export function CreatePipelineShell({
         </nav>
       </header>
 
-      <div className="create-pipeline__body">
+      <div
+        className={
+          detail
+            ? 'create-pipeline__body create-pipeline__body--has-detail'
+            : 'create-pipeline__body'
+        }
+      >
         <aside className="create-pipeline__cards">{cards}</aside>
-        <section className="create-pipeline__detail">{detail}</section>
+        {detail ? (
+          <section className="create-pipeline__detail">{detail}</section>
+        ) : null}
       </div>
 
       <footer className="create-pipeline__footer">

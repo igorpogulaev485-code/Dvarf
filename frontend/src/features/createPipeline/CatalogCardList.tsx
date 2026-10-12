@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Field, Input, Text } from '../../ui'
 
 export type CatalogCardItem = {
@@ -22,6 +22,11 @@ type CatalogCardListProps = {
    * Prefer passing the pipeline step id from the parent.
    */
   resetToken?: string | number
+  /**
+   * Detail panel rendered directly under the selected card (mobile).
+   * Hidden on ≥861px via CSS; desktop keeps the side detail column.
+   */
+  selectedDetail?: ReactNode
 }
 
 function normalize(value: string): string {
@@ -36,15 +41,28 @@ export function CatalogCardList({
   enableFilters = true,
   searchPlaceholder = 'Поиск по имени…',
   resetToken,
+  selectedDetail,
 }: CatalogCardListProps) {
   const [query, setQuery] = useState('')
   const [sources, setSources] = useState<string[]>([])
+  const selectedAnchorRef = useRef<HTMLLIElement | null>(null)
 
   useEffect(() => {
     if (resetToken === undefined) return
     setQuery('')
     setSources([])
   }, [resetToken])
+
+  useEffect(() => {
+    if (!selectedId || !selectedDetail) return
+    const node = selectedAnchorRef.current
+    if (!node) return
+    // Keep selection + inline detail in view on phone after tap.
+    const frame = window.requestAnimationFrame(() => {
+      node.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [selectedId, selectedDetail])
 
   const sourceOptions = useMemo(() => {
     const set = new Set<string>()
@@ -125,7 +143,15 @@ export function CatalogCardList({
           {filtered.map((item) => {
             const selected = item.id === selectedId
             return (
-              <li key={item.id}>
+              <li
+                key={item.id}
+                ref={selected ? selectedAnchorRef : undefined}
+                className={
+                  selected
+                    ? 'create-pipeline__card-item create-pipeline__card-item--selected'
+                    : 'create-pipeline__card-item'
+                }
+              >
                 <button
                   type="button"
                   className={
@@ -144,6 +170,9 @@ export function CatalogCardList({
                     <span className="create-pipeline__card-source">{item.source}</span>
                   ) : null}
                 </button>
+                {selected && selectedDetail ? (
+                  <div className="create-pipeline__inline-detail">{selectedDetail}</div>
+                ) : null}
               </li>
             )
           })}

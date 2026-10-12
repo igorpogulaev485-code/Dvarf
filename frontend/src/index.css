@@ -3517,6 +3517,20 @@ input {
   gap: 8px;
 }
 
+.create-pipeline__card-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.create-pipeline__inline-detail {
+  display: none;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-soft) 35%, #fff);
+}
+
 .create-pipeline__card-source {
   color: var(--muted, #78716c);
   font-size: 0.78rem;
@@ -3715,6 +3729,21 @@ input {
   .create-pipeline__cards,
   .create-pipeline__detail {
     max-height: none;
+  }
+
+  /* Catalog steps: detail sits under the selected card, not below the whole list. */
+  .create-pipeline__body--has-detail .create-pipeline__detail {
+    display: none;
+  }
+
+  .create-pipeline__inline-detail {
+    display: grid;
+    gap: 12px;
+  }
+
+  .create-pipeline__card-item--selected .create-pipeline__card {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
   }
 }
 
