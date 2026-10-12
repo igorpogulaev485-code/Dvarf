@@ -3024,7 +3024,7 @@ export function MinimalSheetEditor({
     if (choice.usePact && draft.spells.pact_slots) {
       const pactResult = spendPactSlot(draft.spells.pact_slots)
       if (!pactResult.ok) {
-        onToast('Нет свободных pact-ячеек')
+        onToast('Нет свободных ячеек договора')
         return
       }
       setDraft((prev) => ({
@@ -3033,7 +3033,7 @@ export function MinimalSheetEditor({
       }))
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
-        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
           spell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -4497,11 +4497,9 @@ export function MinimalSheetEditor({
           proficiencyBonus={proficiencyBonus}
           learnBudget={spellLearnBudget}
           pinned={deskSplit && splitSecondary === 'spells'}
-          rollMode={effectiveRollMode()}
           concentration={draft.play.concentration}
           onOpenFull={() => setForceFullPanel('spells')}
           onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
-          onToast={onToast}
           onCastSpell={(spell) => setDeskCastSpell(spell)}
           onConcentrateSpell={(spell) => setDeskCastSpell(spell)}
           onClearSplit={
@@ -4523,6 +4521,21 @@ export function MinimalSheetEditor({
                     ...prev.spells.slots,
                     [key]: { ...slot, used: nextUsed },
                   },
+                },
+              }
+            })
+          }}
+          onPactUsedChange={(used) => {
+            setDraft((prev) => {
+              const pact = prev.spells.pact_slots
+              if (!pact) return prev
+              const nextUsed = Math.min(pact.max, Math.max(0, used))
+              if (nextUsed === pact.used) return prev
+              return {
+                ...prev,
+                spells: {
+                  ...prev.spells,
+                  pact_slots: { ...pact, used: nextUsed },
                 },
               }
             })

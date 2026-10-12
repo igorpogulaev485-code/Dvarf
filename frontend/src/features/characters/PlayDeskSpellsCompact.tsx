@@ -4,9 +4,9 @@ import {
   formatModifier,
   type AbilityKey,
 } from './sheetTypes'
-import { formatCheckRoll, rollCheck, type DeskRollMode } from './deskRolls'
 import type { ConcentrationState } from './play'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import { SpellDetailDialog } from './SpellDetailDialog'
 import {
   countLearnedCantrips,
   countLearnedLeveled,
@@ -21,7 +21,7 @@ import {
 } from './spells'
 import { IconCast, IconConcentration, IconRitual, IconWizardHat } from './spellIcons'
 import { spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
-import { levelLabel, spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
+import { clampPactSlots, levelLabel, spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
 
 type PlayDeskSpellsCompactProps = {
   spells: SpellsState
@@ -42,12 +42,12 @@ type PlayDeskSpellsCompactProps = {
   onSpellsChange?: (spells: SpellsState) => void
   /** Set used count for a slot level (spend or restore, like ability pips). */
   onSlotUsedChange?: (level: number, used: number) => void
-  onToast?: (message: string) => void
-  /** Open full cast flow for leveled non-concentration (or explicit cast). */
+  /** Set used count for warlock pact slots. */
+  onPactUsedChange?: (used: number) => void
+  /** Open cast picker (slot / pact / grant / ritual). */
   onCastSpell?: (spell: SheetSpell) => void
   /** Pin concentration in hot without opening full panel. */
   onConcentrateSpell?: (spell: SheetSpell) => void
-  rollMode?: DeskRollMode
 }
 
 export function PlayDeskSpellsCompact({
@@ -61,13 +61,15 @@ export function PlayDeskSpellsCompact({
   onClearSplit,
   onSpellsChange,
   onSlotUsedChange,
-  onToast,
+  onPactUsedChange,
   onCastSpell,
   onConcentrateSpell,
-  rollMode = 'normal',
 }: PlayDeskSpellsCompactProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
+  const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
   const ready = spells.known.filter(isReadyInCombat)
+  const pact = spells.pact_slots ? clampPactSlots(spells.pact_slots) : null
+  const pactRemaining = pact && pact.max > 0 ? Math.max(0, pact.max - pact.used) : null
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
   const dc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
@@ -169,6 +171,40 @@ export function PlayDeskSpellsCompact({
         </div>
       )}
 
+      {pact && pact.max > 0 ? (
+        <div className="play-desk-compact__pact" aria-label="Ячейки договора">
+          <strong>Договор {pact.level}</strong>
+          <div
+            className="play-desk-compact__slot-pips is-pact"
+            role="group"
+            aria-label={`Ячейки договора ${pact.level}: ${pactRemaining}/${pact.max}`}
+            title={`Ячейки договора ${pact.level}-го уровня: ${pactRemaining}/${pact.max}`}
+          >
+            {Array.from({ length: pact.max }, (_, index) => {
+              const isOn = index < (pactRemaining ?? 0)
+              return (
+                <button
+                  key={`pact-${index}`}
+                  type="button"
+                  className={`play-desk-compact__slot-pip is-pact${isOn ? ' is-on' : ''}`}
+                  disabled={!onPactUsedChange}
+                  aria-label={
+                    isOn
+                      ? `Договор: потратить ${index + 1}`
+                      : `Договор: вернуть ${index + 1}`
+                  }
+                  onClick={() => {
+                    if (!onPactUsedChange || !pact) return
+                    if (isOn) onPactUsedChange(Math.min(pact.max, pact.used + 1))
+                    else onPactUsedChange(Math.max(0, pact.used - 1))
+                  }}
+                />
+              )
+            })}
+          </div>
+        </div>
+      ) : null}
+
       <div className="play-desk-compact__list play-desk-compact__list--dense">
         {ready.length === 0 && levelGroups.length === 0 ? (
           <p className="play-desk-compact__empty">Нет готовых заклинаний</p>
@@ -224,12 +260,9 @@ export function PlayDeskSpellsCompact({
                     <SpellRow
                       key={spell.id}
                       spell={spell}
-                      spellAttack={attack}
-                      spellDc={dc}
-                      rollMode={rollMode}
                       activeConcentration={isActiveConc}
-                      onToast={onToast}
-                      onActivate={() => {
+                      onOpenDetail={() => setDetailSpell(spell)}
+                      onCast={() => {
                         if (onCastSpell) {
                           onCastSpell(spell)
                           return
@@ -238,7 +271,7 @@ export function PlayDeskSpellsCompact({
                           onConcentrateSpell(spell)
                         }
                       }}
-                      hasActivate={Boolean(onCastSpell || onConcentrateSpell)}
+                      hasCast={Boolean(onCastSpell || onConcentrateSpell)}
                     />
                   )
                 })}
@@ -259,6 +292,24 @@ export function PlayDeskSpellsCompact({
           onClose={() => setPrepareOpen(false)}
         />
       ) : null}
+
+      <SpellDetailDialog
+        open={detailSpell != null}
+        spell={detailSpell}
+        onClose={() => setDetailSpell(null)}
+        onCast={
+          detailSpell && (onCastSpell || onConcentrateSpell)
+            ? () => {
+                const spell = detailSpell
+                setDetailSpell(null)
+                if (onCastSpell) onCastSpell(spell)
+                else if (spell.concentration && onConcentrateSpell) {
+                  onConcentrateSpell(spell)
+                }
+              }
+            : undefined
+        }
+      />
     </div>
   )
 }
@@ -333,22 +384,16 @@ function compactSpellMeta(spell: SheetSpell): string {
 
 function SpellRow({
   spell,
-  spellAttack,
-  spellDc,
-  rollMode,
   activeConcentration,
-  onToast,
-  onActivate,
-  hasActivate,
+  onOpenDetail,
+  onCast,
+  hasCast,
 }: {
   spell: SheetSpell
-  spellAttack: number | null
-  spellDc: number | null
-  rollMode: DeskRollMode
   activeConcentration: boolean
-  onToast?: (message: string) => void
-  onActivate?: () => void
-  hasActivate: boolean
+  onOpenDetail: () => void
+  onCast: () => void
+  hasCast: boolean
 }) {
   const levelText = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
   const meta = compactSpellMeta(spell)
@@ -363,76 +408,73 @@ function SpellRow({
   if (source) flags.push(source.label)
 
   return (
-    <button
-      type="button"
+    <div
       className={`play-desk-compact__row is-spell${
         activeConcentration ? ' is-conc-active' : ''
-      }${granted ? ' is-granted' : ''}${hasActivate ? ' is-action' : ''}`}
-      title={
-        flags.length
-          ? `${spell.name} · ${flags.join(' · ')}${source ? ` · ${source.title}` : ''}`
-          : hasActivate
-            ? `Каст: ${spell.name}`
-            : spell.name
-      }
-      onClick={() => {
-        if (hasActivate && onActivate) {
-          onActivate()
-          return
-        }
-        const head = `${spell.name} · ${levelText}${
-          flags.length ? ` · ${flags.join(', ')}` : ''
-        }`
-        if (spellAttack != null) {
-          const roll = rollCheck(spellAttack, rollMode)
-          onToast?.(
-            `${formatCheckRoll(spell.name, roll)}${
-              spellDc != null ? ` · Сл ${spellDc}` : ''
-            } · ${levelText}`,
-          )
-          return
-        }
-        onToast?.(`${head}${spellDc != null ? ` · Сл ${spellDc}` : ''}`)
-      }}
+      }${granted ? ' is-granted' : ''}${hasCast ? ' has-cast' : ''}`}
     >
-      <div className="play-desk-compact__spell-top">
-        <div className="play-desk-compact__row-main">
-          {hasActivate ? <IconCast className="play-desk-compact__row-icon" /> : null}
-          <b>{spell.name}</b>
-          <span className="play-desk-compact__spell-level">{levelText}</span>
-          {source ? (
-            <span
-              className={`play-desk-compact__source is-${source.kind}`}
-              title={source.title}
-            >
-              {source.label}
-              {grantLeft != null ? ` ${grantLeft}/${spell.grant_cast!.max}` : ''}
-            </span>
-          ) : null}
-        </div>
-        {(spell.concentration || spell.ritual) && (
-          <span className="play-desk-compact__flags">
-            {spell.ritual ? (
-              <span className="play-desk-compact__flag is-ritual" title="Ритуал">
-                <IconRitual className="play-desk-compact__flag-icon" />
-                <span className="play-desk-compact__flag-label">ритуал</span>
-              </span>
-            ) : null}
-            {spell.concentration ? (
+      <button
+        type="button"
+        className="play-desk-compact__spell-body"
+        title={
+          flags.length
+            ? `${spell.name} · ${flags.join(' · ')} · описание`
+            : `${spell.name} · описание`
+        }
+        onClick={onOpenDetail}
+      >
+        <div className="play-desk-compact__spell-top">
+          <div className="play-desk-compact__row-main">
+            <b>{spell.name}</b>
+            <span className="play-desk-compact__spell-level">{levelText}</span>
+            {source ? (
               <span
-                className={`play-desk-compact__flag is-conc${
-                  activeConcentration ? ' is-active' : ''
-                }`}
-                title={activeConcentration ? 'Держит концентрацию' : 'Концентрация'}
+                className={`play-desk-compact__source is-${source.kind}`}
+                title={source.title}
               >
-                <IconConcentration className="play-desk-compact__flag-icon" />
-                <span className="play-desk-compact__flag-label">конц.</span>
+                {source.label}
+                {grantLeft != null ? ` ${grantLeft}/${spell.grant_cast!.max}` : ''}
               </span>
             ) : null}
-          </span>
-        )}
-      </div>
-      {meta ? <p className="play-desk-compact__spell-meta">{meta}</p> : null}
-    </button>
+          </div>
+          {(spell.concentration || spell.ritual) && (
+            <span className="play-desk-compact__flags">
+              {spell.ritual ? (
+                <span className="play-desk-compact__flag is-ritual" title="Ритуал">
+                  <IconRitual className="play-desk-compact__flag-icon" />
+                  <span className="play-desk-compact__flag-label">ритуал</span>
+                </span>
+              ) : null}
+              {spell.concentration ? (
+                <span
+                  className={`play-desk-compact__flag is-conc${
+                    activeConcentration ? ' is-active' : ''
+                  }`}
+                  title={activeConcentration ? 'Держит концентрацию' : 'Концентрация'}
+                >
+                  <IconConcentration className="play-desk-compact__flag-icon" />
+                  <span className="play-desk-compact__flag-label">конц.</span>
+                </span>
+              ) : null}
+            </span>
+          )}
+        </div>
+        {meta ? <p className="play-desk-compact__spell-meta">{meta}</p> : null}
+      </button>
+      {hasCast ? (
+        <button
+          type="button"
+          className="play-desk-compact__spell-cast"
+          title={`Каст: ${spell.name}`}
+          onClick={(event) => {
+            event.stopPropagation()
+            onCast()
+          }}
+        >
+          <IconCast className="play-desk-compact__spell-cast-icon" />
+          <span>Каст</span>
+        </button>
+      ) : null}
+    </div>
   )
 }

@@ -427,13 +427,13 @@ export function SpellsPanel({
     if (choice.usePact && spells.pact_slots) {
       const pactResult = spendPactSlot(spells.pact_slots)
       if (!pactResult.ok) {
-        onToast?.('Нет свободных pact-ячеек')
+        onToast?.('Нет свободных ячеек договора')
         return
       }
       patch({ pact_slots: pactResult.pact })
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
-        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
           castSpell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -482,7 +482,7 @@ export function SpellsPanel({
       <Stack gap={14}>
         <Text tone="muted">
           {knownCaster
-            ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку/pact. Новые — из гримуара.'
+            ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку или ячейку договора. Новые — из гримуара.'
             : 'Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые — из гримуара, затем подготовь.'}
         </Text>
 
@@ -610,7 +610,7 @@ export function SpellsPanel({
                   <Text tone="muted">
                     {suggestion.labelRu}
                     {suggestion.progression === 'pact'
-                      ? ` · pact ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
+                      ? ` · договор ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
                       : suggestion.progression === 'none'
                         ? ' · не заклинатель'
                         : ' · слоты PHB 2014'}
@@ -642,7 +642,7 @@ export function SpellsPanel({
               </div>
               <div className="pact-settings">
                 <div className="play-resources-head">
-                  <Text>Pact magic (варлок)</Text>
+                  <Text>Магия договора (колдун)</Text>
                   {spells.pact_slots ? (
                     <button type="button" className="linkish" onClick={disablePact}>
                       Выключить
@@ -655,7 +655,7 @@ export function SpellsPanel({
                 </div>
                 {spells.pact_slots ? (
                   <div className="sheet-grid sheet-grid--2" style={{ marginTop: 8 }}>
-                    <Field label="Уровень pact">
+                    <Field label="Уровень договора">
                       <NumberInput
                         min={1}
                         max={9}
@@ -675,7 +675,10 @@ export function SpellsPanel({
                     </Field>
                   </div>
                 ) : (
-                  <Text tone="muted">Каст с pact тратит эти ячейки, если уровень заклинания ≤ pact.</Text>
+                  <Text tone="muted">
+                    Каст через договор тратит эти ячейки, если уровень заклинания ≤ уровня
+                    договора.
+                  </Text>
                 )}
               </div>
             </Stack>
@@ -687,7 +690,7 @@ export function SpellsPanel({
             <SlotPips
               max={spells.pact_slots.max}
               used={spells.pact_slots.used}
-              label={`Pact ${spells.pact_slots.level}-го уровня`}
+              label={`Договор ${spells.pact_slots.level}-го уровня`}
               onChange={(used) => patchPact({ used })}
             />
           </div>

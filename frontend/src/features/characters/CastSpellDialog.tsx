@@ -331,6 +331,7 @@ export function CastSpellDialog({
                     className={`sheet-chip${
                       !useRitual && !useGrant && usePact ? ' is-on' : ''
                     }`}
+                    title="Ячейка магии договора (колдун)"
                     onClick={() => {
                       setUseRitual(false)
                       setUseGrant(false)
@@ -338,7 +339,7 @@ export function CastSpellDialog({
                       setSlotLevel(spells.pact_slots?.level ?? spellLevel)
                     }}
                   >
-                    Pact {spells.pact_slots.level}
+                    Договор {spells.pact_slots.level}
                   </button>
                 ) : null}
                 {slotLevels.map((level) => (
@@ -350,6 +351,7 @@ export function CastSpellDialog({
                         ? ' is-on'
                         : ''
                     }`}
+                    title={`Ячейка заклинания ${level}-го уровня`}
                     onClick={() => {
                       setUseRitual(false)
                       setUseGrant(false)
@@ -357,7 +359,7 @@ export function CastSpellDialog({
                       setSlotLevel(level)
                     }}
                   >
-                    {level}-й
+                    Ячейка {level}
                     {level > spellLevel ? ' ↑' : ''}
                   </button>
                 ))}
@@ -379,8 +381,8 @@ export function CastSpellDialog({
             ) : hasSlotPath ? (
               usePact && spells.pact_slots ? (
                 <Text tone="muted">
-                  Будет потрачена 1 pact-ячейка {spells.pact_slots.level}-го уровня. Останется{' '}
-                  {pactRemaining - 1} из {spells.pact_slots.max}.
+                  Будет потрачена 1 ячейка договора {spells.pact_slots.level}-го уровня.
+                  Останется {pactRemaining - 1} из {spells.pact_slots.max}.
                 </Text>
               ) : (
                 <Text tone="muted">
@@ -392,9 +394,10 @@ export function CastSpellDialog({
             ) : (
               <Text tone="danger">
                 Нет свободных ячеек {spell.level}-го уровня или выше
-                {spells.pact_slots ? ' и подходящего pact' : ''}. Верни пипс или сделай отдых
+                {spells.pact_slots ? ' и подходящей ячейки договора' : ''}. Верни пипс или
+                сделай отдых
                 {isRitual || grantExhausted
-                  ? `, либо ${grantExhausted ? 'восстанови заряд гранта' : 'выбери ритуал'}`
+                  ? `, либо ${grantExhausted ? 'восстанови заряд умения/предмета' : 'выбери ритуал'}`
                   : ''}
                 .
               </Text>
