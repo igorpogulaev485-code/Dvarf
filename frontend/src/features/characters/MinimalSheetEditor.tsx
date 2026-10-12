@@ -3333,12 +3333,12 @@ export function MinimalSheetEditor({
                   aria-pressed={deskSplit}
                   title={
                     deskSplit
-                      ? 'Снять split — одна панель'
-                      : 'Split — основная панель + заклинания рядом'
+                      ? 'Убрать заклинания сбоку — одна панель'
+                      : 'Показать заклинания справа рядом с панелью'
                   }
                   onClick={() => patchSheetUi({ deskSplit: !draft.sheetUi.deskSplit })}
                 >
-                  {deskSplit ? 'снять split' : 'Split'}
+                  {deskSplit ? 'без заклинаний' : 'Заклинания'}
                 </button>
               ) : null}
               <span className="play-desk__mode-hint">{MODE_HINT[draft.sheetUi.deskMode]}</span>
@@ -3423,7 +3423,7 @@ export function MinimalSheetEditor({
 
           {deskSplit && splitSecondary === 'spells' && activePanel !== 'spells' ? (
             <p className="play-desk__split-hint">
-              Справа закреплено: Заклинания · слева — выбранная панель
+              Справа — заклинания · слева — выбранная панель
             </p>
           ) : null}
 
