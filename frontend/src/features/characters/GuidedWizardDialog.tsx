@@ -93,8 +93,17 @@ function skillLabel(key: string): string {
   return SKILL_DEFS.find((item) => item.key === key)?.label ?? key
 }
 
+const OPTION_LABEL_FALLBACKS_RU: Record<string, string> = {
+  plus2: '+2 к одной характеристике',
+  plus1x2: '+1 к двум характеристикам',
+  feat_coming_soon: 'Черта (выбор)',
+}
+
 function choiceOptionLabel(optionId: string, choice?: FeatureChoiceDef | null): string {
   if (optionId === THIEVES_TOOLS_OPTION_ID) return THIEVES_TOOLS_LABEL_RU
+  const labeled = choice?.option_labels_ru?.[optionId]?.trim()
+  if (labeled) return labeled
+  if (OPTION_LABEL_FALLBACKS_RU[optionId]) return OPTION_LABEL_FALLBACKS_RU[optionId]
   if (isExpertiseChoice(choice)) {
     return skillLabel(optionId)
   }

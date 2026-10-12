@@ -2888,6 +2888,13 @@ input {
   font-size: 0.9rem;
 }
 
+.create-pipeline__card-meta {
+  color: var(--ink, #1c1917);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  opacity: 0.88;
+}
+
 .create-pipeline__footer {
   display: flex;
   justify-content: space-between;

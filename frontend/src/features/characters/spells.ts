@@ -682,6 +682,16 @@ export function countPreparedLeveled(known: SheetSpell[]): number {
   return known.filter((spell) => spellCountsTowardPrepareCap(spell)).length
 }
 
+/** Player-chosen cantrips (excludes racial / feat / locked grants). */
+export function countLearnedCantrips(known: SheetSpell[]): number {
+  return known.filter((spell) => spell.level <= 0 && canRemoveSheetSpell(spell)).length
+}
+
+/** Player-chosen leveled spells on the known list / in the spellbook. */
+export function countLearnedLeveled(known: SheetSpell[]): number {
+  return known.filter((spell) => spell.level > 0 && canRemoveSheetSpell(spell)).length
+}
+
 /** Combat list: cantrips + prepared leveled spells. */
 export function isReadyInCombat(spell: SheetSpell): boolean {
   return spell.level <= 0 || spell.prepared

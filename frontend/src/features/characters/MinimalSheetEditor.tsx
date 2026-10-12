@@ -4449,8 +4449,12 @@ export function MinimalSheetEditor({
         backgroundSlug={draft.identity.backgroundSlug}
         ownedFeatEnums={ownedFeatEnums}
         proficientSkills={proficientSkills}
+        characterName={draft.name}
         onClose={() => setRaceGrantPicker(null)}
         onConfirm={(result) => {
+          if (result.characterName.trim()) {
+            setDraft((prev) => ({ ...prev, name: result.characterName.trim() }))
+          }
           commitRaceGrant({
             selected: result.entry,
             picks: result.picks,

@@ -47,12 +47,19 @@ type LevelingStepProps = {
   /** Change already-selected archetype (not the primary pick path). */
   onChangeArchetype: (classEntryId: string) => void
   onOpenSpells: () => void
+  /** Prepared / spellbook casters — open prepare dialog (optional). */
+  onOpenPrepare?: () => void
   /** Live caster tables from class levels (slots / prepare / known mode). */
   spellcasting?: {
     labelRu: string
     maxPrepared: number | null
     knownLeveled: number
     preparedLeveled: number
+    /** PHB cantrips known on sheet / cap (null cap = not tracked). */
+    cantripsKnown?: number
+    cantripsMax?: number | null
+    /** Cap for leveled known / spellbook (null = full-list prepare caster). */
+    leveledKnownMax?: number | null
     slots: Record<string, SpellSlotState>
     pactSlots: PactSlotState | null
   } | null
@@ -112,6 +119,7 @@ export function LevelingStep({
   onMulticlassAdded,
   onChangeArchetype,
   onOpenSpells,
+  onOpenPrepare,
   spellcasting = null,
 }: LevelingStepProps) {
   const [mcOpen, setMcOpen] = useState(false)
@@ -347,25 +355,40 @@ export function LevelingStep({
       </div>
 
       <div className="create-pipeline__spells-block">
-        <Button variant="secondary" onClick={onOpenSpells}>
-          Заклинания
-        </Button>
+        <div className="create-pipeline__method-row">
+          <Button variant="secondary" onClick={onOpenSpells}>
+            Заклинания
+          </Button>
+          {onOpenPrepare ? (
+            <Button variant="secondary" onClick={onOpenPrepare}>
+              Подготовить
+            </Button>
+          ) : null}
+        </div>
         {spellcasting ? (
           <Stack gap={4}>
             <Text tone="muted">{spellcasting.labelRu}</Text>
             <Text>
-              {spellcasting.maxPrepared == null
-                ? `Известно (на листе): ${spellcasting.knownLeveled}`
-                : `Подготовка: ${spellcasting.preparedLeveled}/${spellcasting.maxPrepared}`}
-              {' · '}
-              Ячейки: {formatSlotBrief(spellcasting.slots)}
-              {spellcasting.pactSlots && spellcasting.pactSlots.max > 0
-                ? ` · Pact ${spellcasting.pactSlots.max}×${spellcasting.pactSlots.level}`
-                : ''}
+              {[
+                spellcasting.cantripsMax != null
+                  ? `Заговоры: ${spellcasting.cantripsKnown ?? 0}/${spellcasting.cantripsMax}`
+                  : null,
+                spellcasting.maxPrepared == null
+                  ? spellcasting.leveledKnownMax != null
+                    ? `Известно: ${spellcasting.knownLeveled}/${spellcasting.leveledKnownMax}`
+                    : `Известно (на листе): ${spellcasting.knownLeveled}`
+                  : `Подготовка: ${spellcasting.preparedLeveled}/${spellcasting.maxPrepared}`,
+                `Ячейки: ${formatSlotBrief(spellcasting.slots)}`,
+                spellcasting.pactSlots && spellcasting.pactSlots.max > 0
+                  ? `Pact ${spellcasting.pactSlots.max}×${spellcasting.pactSlots.level}`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
             </Text>
             <Text tone="muted">
               При мультиклассе ячейки и лимит подготовки пересчитываются по таблицам PHB 2014.
-              Известные/подготовленные заклинания на листе выбираешь в гримуаре.
+              Выбор — в гримуаре (только список класса и доступные круги).
             </Text>
           </Stack>
         ) : (

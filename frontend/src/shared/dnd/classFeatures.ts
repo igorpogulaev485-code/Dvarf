@@ -129,6 +129,8 @@ export type FeatureChoiceDef = {
     /** Runtime: proficient skills + thieves' tools from sheet. */
     | 'expertise_skills_tools'
   options?: string[]
+  /** Russian labels for explicit option ids (e.g. dragon ancestry colors). */
+  option_labels_ru?: Record<string, string>
   /** Fixed multi-select cap (Expertise 2). Overrides default 1 when set. */
   max_picks?: number
   /** Multi-select cap by class level (Metamagic 2/3/4). */
@@ -277,6 +279,19 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       const options = Array.isArray(choiceRaw.options)
         ? choiceRaw.options.filter((item): item is string => typeof item === 'string')
         : undefined
+      const labelsRaw =
+        choiceRaw.option_labels_ru && typeof choiceRaw.option_labels_ru === 'object'
+          ? (choiceRaw.option_labels_ru as Record<string, unknown>)
+          : choiceRaw.from_labels_ru && typeof choiceRaw.from_labels_ru === 'object'
+            ? (choiceRaw.from_labels_ru as Record<string, unknown>)
+            : null
+      const option_labels_ru = labelsRaw
+        ? Object.fromEntries(
+            Object.entries(labelsRaw).filter(
+              (e): e is [string, string] => typeof e[1] === 'string' && e[1].trim().length > 0,
+            ),
+          )
+        : undefined
       const maxPicksRaw =
         choiceRaw.max_picks_by_level && typeof choiceRaw.max_picks_by_level === 'object'
           ? (choiceRaw.max_picks_by_level as Record<string, unknown>)
@@ -290,6 +305,10 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
         label_ru: choiceRaw.label_ru,
         options_from: optionsFrom,
         options,
+        option_labels_ru:
+          option_labels_ru && Object.keys(option_labels_ru).length > 0
+            ? option_labels_ru
+            : undefined,
         max_picks: maxPicksFixed,
         max_picks_by_level: maxPicksRaw
           ? Object.fromEntries(
