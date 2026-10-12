@@ -36,8 +36,8 @@ import {
   IconCast,
   IconFocus,
   IconPouch,
-  IconQuill,
   IconSpellBook,
+  IconWizardHat,
 } from './spellIcons'
 import type { ConcentrationState } from './play'
 import {
@@ -531,7 +531,7 @@ export function SpellsPanel({
           </Button>
           {!knownCaster ? (
             <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
-              <IconQuill className="spells-btn-icon" />
+              <IconWizardHat className="spells-btn-icon" />
               Подготовить
             </Button>
           ) : null}

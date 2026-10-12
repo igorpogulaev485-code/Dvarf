@@ -600,7 +600,7 @@
 
 | Что | Как |
 |-----|-----|
-| Icons | `spellIcons.tsx`: книга / перо / каст / фокус / мешочек / концентрация |
+| Icons | `spellIcons.tsx`: книга / шляпа / ✨ / медальон / мешочек / концентрация |
 | Wiring | toolbar Гримуар·Подготовить · focus chips · Каст · compact row/конц. |
 | Summary | pill-chips Сл/Атака/квота (как на доске spells) |
 | Кит | [`spell-icons`](docs/ui-kit/boards/dvarf-ui-kit-spell-icons.jpg) |

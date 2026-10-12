@@ -40,34 +40,42 @@ export function IconSpellBook(props: IconProps) {
   )
 }
 
-/** Prepare — quill */
-export function IconQuill(props: IconProps) {
+/** Prepare — wizard hat */
+export function IconWizardHat(props: IconProps) {
   return (
     <Svg {...props}>
-      <path {...stroke} d="M14.2 4.8c2.4 1.2 4.2 3.4 4.8 5.8-2.2-.2-4.4-1.4-5.8-3.2L6.2 18.4l-1.4-1.4 9.4-12.2Z" />
-      <path {...stroke} d="M5.4 17.8 4.2 20l2.4-.8" />
+      <path {...stroke} d="M12 3.4 6.2 14.8h11.6L12 3.4Z" />
+      <path {...stroke} d="M5.2 14.8c1.4 1.6 3.8 2.6 6.8 2.6s5.4-1 6.8-2.6" />
+      <path {...stroke} d="M4.4 17.6h15.2c.6 0 1 .5.9 1.1-.2 1.2-2.4 2.1-5.3 2.1H8.8c-2.9 0-5.1-.9-5.3-2.1-.1-.6.3-1.1.9-1.1Z" />
+      <path {...stroke} d="M13.4 7.2l.9 1.6M14.8 9.4l1.1.5" />
     </Svg>
   )
 }
 
-/** Cast — wand burst */
+/** @deprecated alias — prepare uses wizard hat */
+export const IconQuill = IconWizardHat
+
+/** Cast — sparkle ✨ */
 export function IconCast(props: IconProps) {
   return (
     <Svg {...props}>
-      <path {...stroke} d="M4.5 19.2 14.8 8.9" />
-      <path {...stroke} d="M15.6 5.4l3 3M17.2 4.2v2.2M19.8 6.8H17.6" />
-      <path {...stroke} d="M13.2 7.4l3.2 3.2" />
+      <path {...stroke} d="M12 3.6v4.2M12 16.2v4.2M3.6 12h4.2M16.2 12h4.2" />
+      <path {...stroke} d="M6.8 6.8l2.4 2.4M14.8 14.8l2.4 2.4M17.2 6.8l-2.4 2.4M9.2 14.8l-2.4 2.4" />
+      <circle {...stroke} cx="12" cy="12" r="1.6" />
+      <path {...stroke} d="M18.6 4.8v1.8M17.7 5.7h1.8" />
     </Svg>
   )
 }
 
-/** Spell focus — wand / crystal tip */
+/** Spell focus — medallion */
 export function IconFocus(props: IconProps) {
   return (
     <Svg {...props}>
-      <path {...stroke} d="M8.2 15.8 18.5 5.5l1.8 1.8L10 17.6l-1.8-1.8Z" />
-      <path {...stroke} d="M16.8 5.8l1.6-1.6 1.6 1.6-1.6 1.6Z" />
-      <path {...stroke} d="M6.2 18.4h3.2" />
+      <path {...stroke} d="M12 3.4v2.4" />
+      <path {...stroke} d="M9.6 3.8c.6-.6 1.4-.9 2.4-.9s1.8.3 2.4.9" />
+      <circle {...stroke} cx="12" cy="13.2" r="6.2" />
+      <circle {...stroke} cx="12" cy="13.2" r="3.2" />
+      <path {...stroke} d="M12 11.2v4M10.4 13.2h3.2" />
     </Svg>
   )
 }
