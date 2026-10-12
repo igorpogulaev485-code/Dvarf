@@ -3212,18 +3212,14 @@ export function MinimalSheetEditor({
                 ? null
                 : (draft.speed ?? 0) + gearEffects.speedBonusFt
             }
-            movementHint={[
-              formatRaceMovementHint({
-                climb: draft.climbSpeed,
-                swim: draft.swimSpeed,
-                fly: draft.flySpeed,
-              }),
+            climbSpeed={draft.climbSpeed}
+            swimSpeed={draft.swimSpeed}
+            flySpeed={draft.flySpeed}
+            movementHint={
               gearEffects.speedBonusFt
                 ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(' · ') || null}
+                : null
+            }
             proficiencyBonus={proficiencyBonus}
             initiative={initiativeValue}
             inspiration={draft.inspiration}

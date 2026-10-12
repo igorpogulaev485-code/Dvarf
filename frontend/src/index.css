@@ -3799,6 +3799,21 @@ button.play-desk-vital {
   color: var(--desk-accent);
 }
 
+.play-desk-vital--speed {
+  min-width: 72px;
+}
+
+.play-desk-vital__alt-speed {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.62rem;
+  line-height: 1.25;
+  color: var(--desk-muted);
+  text-transform: none;
+  letter-spacing: 0;
+  max-width: 110px;
+}
+
 .play-desk-header__right {
   display: flex;
   gap: 8px;

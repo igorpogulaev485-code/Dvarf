@@ -4,6 +4,7 @@ import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import { clampExhaustion } from '../../shared/dnd/rest'
 import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
 import { clampDeathMarks, type HitDie } from '../../shared/dnd/hitDice'
+import { formatRaceMovementHint } from '../../shared/dnd/raceGrants'
 import type { CoinPurse } from '../../shared/dnd/weight'
 import { NumberPadDialog } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
@@ -28,7 +29,12 @@ type PlayDeskHeaderProps = {
   autoAc: number
   acHint: string
   speed: number | null
+  /** Extra walk-speed note (e.g. gear bonus) for title tooltip. */
   movementHint?: string | null
+  /** Alt speeds shown under walk when present. */
+  climbSpeed?: number | null
+  swimSpeed?: number | null
+  flySpeed?: number | null
   proficiencyBonus: number
   initiative: number
   inspiration: boolean
@@ -66,6 +72,9 @@ export function PlayDeskHeader({
   acHint,
   speed,
   movementHint = null,
+  climbSpeed = null,
+  swimSpeed = null,
+  flySpeed = null,
   proficiencyBonus,
   initiative,
   inspiration,
@@ -114,6 +123,14 @@ export function PlayDeskHeader({
   const showDeath = play.isDying || (hpCurrent != null && hpCurrent <= 0)
   const exhaustionStage =
     play.exhaustion > 0 ? conditionLevelLabel('exhaustion', play.exhaustion) : null
+  const altSpeedHint = formatRaceMovementHint({
+    climb: climbSpeed,
+    swim: swimSpeed,
+    fly: flySpeed,
+  })
+  const speedTitle =
+    [altSpeedHint, movementHint].filter(Boolean).join(' · ') ||
+    'Скорость (из расы / снаряжения)'
 
   function applyHeal(amount: number) {
     const current = hpCurrent ?? 0
@@ -178,9 +195,15 @@ export function PlayDeskHeader({
             <b>{autoAc}</b>
             <span>КД</span>
           </div>
-          <div className="play-desk-vital" title={movementHint || 'Скорость (из расы / снаряжения)'}>
+          <div
+            className={`play-desk-vital${altSpeedHint ? ' play-desk-vital--speed' : ''}`}
+            title={speedTitle}
+          >
             <b>{speed ?? '—'}</b>
             <span>Скор.</span>
+            {altSpeedHint ? (
+              <small className="play-desk-vital__alt-speed">{altSpeedHint}</small>
+            ) : null}
           </div>
           {onInitiativeRoll ? (
             <button
