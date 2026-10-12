@@ -87,6 +87,20 @@ export function AbilitySkillsColumn({
 
   return (
     <div className="abil-column">
+      <div className="abil-column__toolbar">
+        <button
+          type="button"
+          onClick={() => onCollapsedChange([...ABILITY_KEYS])}
+        >
+          Свернуть все навыки
+        </button>
+        <button type="button" onClick={() => onCollapsedChange([])}>
+          Развернуть все
+        </button>
+      </div>
+      <Text tone="muted" className="abil-column__hint">
+        ▾ свернуть · ⋮⋮ порядок · клик по навыку: владение/экспертиза
+      </Text>
       <div className="abil-column__list" id="abil-column-list">
         {order.map((key) => {
           const baseScore = abilities[key]
@@ -216,20 +230,6 @@ export function AbilitySkillsColumn({
           )
         })}
       </div>
-      <div className="abil-column__toolbar">
-        <button
-          type="button"
-          onClick={() => onCollapsedChange([...ABILITY_KEYS])}
-        >
-          Свернуть все навыки
-        </button>
-        <button type="button" onClick={() => onCollapsedChange([])}>
-          Развернуть все
-        </button>
-      </div>
-      <Text tone="muted" className="abil-column__hint">
-        Навыки под статом · ▾ свернуть · ⋮⋮ переставить · клик по навыку: владение/экспертиза
-      </Text>
     </div>
   )
 }

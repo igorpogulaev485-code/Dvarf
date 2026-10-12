@@ -196,6 +196,7 @@ import {
   clearFeaturePicksForFeatureIds,
   findFightingStylePick,
   featurePicksToSheet,
+  getFeaturePickList,
   readFeaturePicks,
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
@@ -211,6 +212,8 @@ import { PlayDeskExploreCompact } from './PlayDeskExploreCompact'
 import { PlayDeskFeaturesCompact } from './PlayDeskFeaturesCompact'
 import { PlayDeskHeader } from './PlayDeskHeader'
 import { PlayDeskHotBar } from './PlayDeskHotBar'
+import { RestDialog } from './RestDialog'
+import { SorceryPointsSpendDialog } from './SorceryPointsSpendDialog'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSocialCompact } from './PlayDeskSocialCompact'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
@@ -263,7 +266,11 @@ import {
   syncRaceSpellsForSheetState,
   type RaceGrantDraftSlice,
 } from './raceEffects'
-import { characterHasCasterClass } from '../../shared/dnd/casterProgression'
+import {
+  characterHasCasterClass,
+  resolveClassCasterSlug,
+  resolveSpellLearnBudget,
+} from '../../shared/dnd/casterProgression'
 import {
   equipInventoryItem,
   equippedArmorPieces,
@@ -2787,6 +2794,8 @@ export function MinimalSheetEditor({
 
 
   const [ownershipOpen, setOwnershipOpen] = useState(false)
+  const [restOpen, setRestOpen] = useState(false)
+  const [sorcerySpendId, setSorcerySpendId] = useState<string | null>(null)
   const [activePanel, setActivePanel] = useState<PlayDeskPanelId>(
     () => MODE_DEFAULT_PANEL[draft.sheetUi.deskMode],
   )
@@ -2877,12 +2886,72 @@ export function MinimalSheetEditor({
   const initiativeValue =
     draft.initiativeOverride ??
     abilityModifier(draft.abilities.dex) + featInitiativeBonus
-  const hotConditionNames = [
-    ...(draft.play.exhaustion > 0 ? [`Истощение ${draft.play.exhaustion}`] : []),
-    ...draft.play.conditions
-      .filter((item) => item.slug !== 'exhaustion')
-      .map((item) => formatConditionLabel(item)),
-  ]
+  const hotConditionNames = draft.play.conditions
+    .filter((item) => item.slug !== 'exhaustion')
+    .map((item) => formatConditionLabel(item))
+
+  const subclassCastersForSpells = useMemo(
+    () =>
+      draft.subclassGrants
+        .filter((row) => row.caster?.progression === 'third')
+        .map((row) => ({
+          classEntryId: row.classEntryId,
+          progression: 'third' as const,
+          ability: row.caster?.ability ?? null,
+        })),
+    [draft.subclassGrants],
+  )
+
+  const spellLearnBudget = useMemo(() => {
+    const rows = draft.classes.filter((row) => row.name.trim() && row.level > 0)
+    if (rows.length === 0) return null
+    return resolveSpellLearnBudget({
+      classes: rows,
+      subclassCasters: subclassCastersForSpells,
+      abilityModFor: (ability) => abilityModifier(draft.abilities[ability]),
+    })
+  }, [draft.classes, subclassCastersForSpells, draft.abilities])
+
+  const sorcererMetamagicIds = useMemo(() => {
+    const ids: string[] = []
+    for (const row of draft.classes) {
+      if (resolveClassCasterSlug(row.name) !== 'sorcerer') continue
+      ids.push(...getFeaturePickList(draft.featurePicks, row.id, 'metamagic'))
+    }
+    return [...new Set(ids)]
+  }, [draft.classes, draft.featurePicks])
+
+  const sorceryResource =
+    sorcerySpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === sorcerySpendId) ?? null)
+
+  function isSorceryPointsResource(row: { id: string; name: string }): boolean {
+    return (
+      row.id.includes('sorcery_points') ||
+      /очки чародейства/i.test(row.name) ||
+      /sorcery points/i.test(row.name)
+    )
+  }
+
+  function spendResourceOrOpenSorcery(id: string) {
+    const row = draft.play.resources.find((item) => item.id === id)
+    if (row && isSorceryPointsResource(row)) {
+      setSorcerySpendId(id)
+      return
+    }
+    setDraft((prev) => ({
+      ...prev,
+      play: {
+        ...prev.play,
+        resources: prev.play.resources.map((item) =>
+          item.id === id && item.used < item.max
+            ? { ...item, used: item.used + 1 }
+            : item,
+        ),
+      },
+    }))
+  }
 
   const abilityColumn = (
     <AbilitySkillsColumn
@@ -2923,11 +2992,11 @@ export function MinimalSheetEditor({
   )
 
   const passivesCompact = (
-    <div className="play-desk__passives">
-      <div className="play-desk__passives-label">Пассивы · всегда на виду</div>
-      <div className="passive-grid">
+    <div className="play-desk__passives play-desk__passives--compact">
+      <div className="play-desk__passives-label">Пассивы</div>
+      <div className="passive-grid passive-grid--desk">
         <div className="passive-card">
-          <span className="passive-card__label">Внимательность</span>
+          <span className="passive-card__label">Внимат.</span>
           <strong>{passives.perception}</strong>
         </div>
         <div className="passive-card">
@@ -2935,7 +3004,7 @@ export function MinimalSheetEditor({
           <strong>{passives.investigation}</strong>
         </div>
         <div className="passive-card">
-          <span className="passive-card__label">Проницательность</span>
+          <span className="passive-card__label">Прониц.</span>
           <strong>{passives.insight}</strong>
         </div>
       </div>
@@ -2998,14 +3067,23 @@ export function MinimalSheetEditor({
               .filter(Boolean)
               .join(' · ') || null}
             proficiencyBonus={proficiencyBonus}
+            initiative={initiativeValue}
+            inspiration={draft.inspiration}
+            exhaustion={draft.play.exhaustion}
             goldGp={draft.inventory.coins.gp}
             isDying={draft.play.isDying}
             deathSuccesses={draft.play.deathSuccesses}
             deathFails={draft.play.deathFails}
-            onOpenRest={() => {
-              setActivePanel('play')
-              setForceFullPanel('play')
-            }}
+            onOpenRest={() => setRestOpen(true)}
+            onExperienceChange={(experience) => patchIdentity({ experience })}
+            onToggleInspiration={() =>
+              setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
+            }
+            onInitiativeRoll={() =>
+              onToast(
+                formatSkillRoll('Инициатива', initiativeValue, effectiveRollMode()),
+              )
+            }
             onChange={(patch) =>
               setDraft((prev) => {
                 const next = { ...prev, ...patch }
@@ -3237,20 +3315,9 @@ export function MinimalSheetEditor({
 
           {isPlayDesk && draft.sheetUi.deskMode === 'combat' ? (
             <PlayDeskHotBar
-              initiative={initiativeValue}
-              inspiration={draft.inspiration}
-              exhaustion={draft.play.exhaustion}
               conditionNames={hotConditionNames}
               concentration={draft.play.concentration}
               resources={draft.play.resources}
-              onInitiativeRoll={() =>
-                onToast(
-                  formatSkillRoll('Инициатива', initiativeValue, effectiveRollMode()),
-                )
-              }
-              onToggleInspiration={() =>
-                setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
-              }
               onClearConcentration={() =>
                 setDraft((prev) => ({
                   ...prev,
@@ -3919,19 +3986,7 @@ export function MinimalSheetEditor({
           rollMode={effectiveRollMode()}
           onOpenFull={() => setForceFullPanel('attacks')}
           onToast={onToast}
-          onSpendResource={(id) =>
-            setDraft((prev) => ({
-              ...prev,
-              play: {
-                ...prev.play,
-                resources: prev.play.resources.map((row) =>
-                  row.id === id && row.used < row.max
-                    ? { ...row, used: row.used + 1 }
-                    : row,
-                ),
-              },
-            }))
-          }
+          onSpendResource={spendResourceOrOpenSorcery}
           onToggleHeld={(attack) => {
             if (!attack.inventory_item_id) return
             setDraft((prev) => {
@@ -4063,19 +4118,7 @@ export function MinimalSheetEditor({
           raceName={draft.raceName}
           onOpenFull={() => setForceFullPanel('features')}
           onToast={onToast}
-          onSpendResource={(id) =>
-            setDraft((prev) => ({
-              ...prev,
-              play: {
-                ...prev.play,
-                resources: prev.play.resources.map((row) =>
-                  row.id === id && row.used < row.max
-                    ? { ...row, used: row.used + 1 }
-                    : row,
-                ),
-              },
-            }))
-          }
+          onSpendResource={spendResourceOrOpenSorcery}
         />
       ) : (
         <>
@@ -4130,6 +4173,7 @@ export function MinimalSheetEditor({
           spells={draft.spells}
           abilities={draft.abilities}
           proficiencyBonus={proficiencyBonus}
+          learnBudget={spellLearnBudget}
           pinned={deskSplit && splitSecondary === 'spells'}
           rollMode={effectiveRollMode()}
           onOpenFull={() => setForceFullPanel('spells')}
@@ -4173,13 +4217,7 @@ export function MinimalSheetEditor({
             className={classSummary || primaryClass?.name || ''}
             level={characterLevel}
             classes={draft.classes}
-            subclassCasters={draft.subclassGrants
-              .filter((row) => row.caster?.progression === 'third')
-              .map((row) => ({
-                classEntryId: row.classEntryId,
-                progression: 'third' as const,
-                ability: row.caster?.ability ?? null,
-              }))}
+            subclassCasters={subclassCastersForSpells}
             spells={draft.spells}
             abilities={draft.abilities}
             proficiencyBonus={proficiencyBonus}
@@ -4342,6 +4380,54 @@ export function MinimalSheetEditor({
           перенести их вручную.
         </Text>
       </Dialog>
+
+      <RestDialog
+        open={restOpen}
+        level={characterLevel}
+        hpCurrent={draft.hpCurrent}
+        hpMax={draft.hpMax}
+        constitutionMod={abilityModifier(draft.abilities.con)}
+        play={draft.play}
+        spells={draft.spells}
+        featureDesiredResources={featureDesiredResources}
+        onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
+        onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        onCombatChange={(patch) =>
+          setDraft((prev) => ({
+            ...prev,
+            ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
+          }))
+        }
+        onToast={onToast}
+        onClose={() => setRestOpen(false)}
+      />
+
+      <SorceryPointsSpendDialog
+        open={sorcerySpendId != null}
+        resource={sorceryResource}
+        metamagicIds={sorcererMetamagicIds}
+        slots={draft.spells.slots}
+        onSetUsed={(used) => {
+          if (!sorcerySpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) =>
+                row.id === sorcerySpendId ? { ...row, used } : row,
+              ),
+            },
+          }))
+        }}
+        onSlotsChange={(slots) =>
+          setDraft((prev) => ({
+            ...prev,
+            spells: { ...prev.spells, slots },
+          }))
+        }
+        onToast={onToast}
+        onClose={() => setSorcerySpendId(null)}
+      />
 
       <LevelUpDialog
         open={levelUpOpen}

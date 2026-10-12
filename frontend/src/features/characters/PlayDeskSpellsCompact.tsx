@@ -5,6 +5,9 @@ import {
 } from './sheetTypes'
 import { formatCheckRoll, rollCheck, type DeskRollMode } from './deskRolls'
 import {
+  countLearnedCantrips,
+  countLearnedLeveled,
+  countPreparedLeveled,
   isReadyInCombat,
   type SheetSpell,
   type SpellsState,
@@ -15,6 +18,13 @@ type PlayDeskSpellsCompactProps = {
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  /** PHB learn budget caps for compact quota chips. */
+  learnBudget?: {
+    mode: 'known' | 'prepared_list' | 'spellbook'
+    cantrips: number | null
+    leveledKnown: number | null
+    maxPrepared: number | null
+  } | null
   pinned?: boolean
   onOpenFull: () => void
   onClearSplit?: () => void
@@ -27,6 +37,7 @@ export function PlayDeskSpellsCompact({
   spells,
   abilities,
   proficiencyBonus,
+  learnBudget = null,
   pinned = false,
   onOpenFull,
   onClearSplit,
@@ -39,6 +50,29 @@ export function PlayDeskSpellsCompact({
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
   const dc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
   const attack = abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : null
+  const learnedCantrips = countLearnedCantrips(spells.known)
+  const learnedLeveled = countLearnedLeveled(spells.known)
+  const preparedCount = countPreparedLeveled(spells.known)
+  const quotaLabel = (() => {
+    if (!learnBudget) {
+      if (spells.max_prepared != null) {
+        return `подг. ${preparedCount}/${spells.max_prepared}`
+      }
+      return null
+    }
+    if (learnBudget.mode === 'known') {
+      const cap = learnBudget.leveledKnown
+      return cap != null ? `изв. ${learnedLeveled}/${cap}` : `изв. ${learnedLeveled}`
+    }
+    const prepCap = learnBudget.maxPrepared ?? spells.max_prepared
+    return prepCap != null
+      ? `подг. ${preparedCount}/${prepCap}`
+      : `подг. ${preparedCount}`
+  })()
+  const cantripLabel =
+    learnBudget?.cantrips != null
+      ? `заг. ${learnedCantrips}/${learnBudget.cantrips}`
+      : null
 
   const slotLevels = Array.from({ length: 9 }, (_, i) => i + 1).filter((level) => {
     const slot = spells.slots[String(level)]
@@ -61,10 +95,12 @@ export function PlayDeskSpellsCompact({
         </div>
       </div>
 
-      {(dc != null || attack != null) && (
+      {(dc != null || attack != null || quotaLabel || cantripLabel) && (
         <div className="play-desk-compact__meta">
           {dc != null ? <span>Сл {dc}</span> : null}
           {attack != null ? <span>атака {formatModifier(attack)}</span> : null}
+          {quotaLabel ? <span>{quotaLabel}</span> : null}
+          {cantripLabel ? <span>{cantripLabel}</span> : null}
         </div>
       )}
 

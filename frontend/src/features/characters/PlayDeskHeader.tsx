@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
-import { xpProgress } from '../../shared/dnd/experience'
+import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
 import type { HitDie } from '../../shared/dnd/hitDice'
 import { NumberPadDialog } from '../../ui'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
@@ -24,11 +24,17 @@ type PlayDeskHeaderProps = {
   speed: number | null
   movementHint?: string | null
   proficiencyBonus: number
+  initiative: number
+  inspiration: boolean
+  exhaustion: number
   goldGp: number
   isDying: boolean
   deathSuccesses: number
   deathFails: number
   onOpenRest: () => void
+  onExperienceChange: (experience: number) => void
+  onToggleInspiration: () => void
+  onInitiativeRoll?: () => void
   onChange: (patch: {
     hpCurrent?: number | null
     hpMax?: number | null
@@ -55,11 +61,17 @@ export function PlayDeskHeader({
   speed,
   movementHint = null,
   proficiencyBonus,
+  initiative,
+  inspiration,
+  exhaustion,
   goldGp,
   isDying,
   deathSuccesses,
   deathFails,
   onOpenRest,
+  onExperienceChange,
+  onToggleInspiration,
+  onInitiativeRoll,
   onChange,
 }: PlayDeskHeaderProps) {
   const subtitle = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
@@ -68,6 +80,7 @@ export function PlayDeskHeader({
   const acTitle = acOverride == null ? acHint : 'задано вручную'
   const [hpPulse, setHpPulse] = useState(false)
   const [currentPadOpen, setCurrentPadOpen] = useState(false)
+  const [xpPadOpen, setXpPadOpen] = useState(false)
   const [maxDialogOpen, setMaxDialogOpen] = useState(false)
   const prevHpRef = useRef(hpCurrent)
 
@@ -87,21 +100,26 @@ export function PlayDeskHeader({
     xp.nextThreshold == null
       ? `${xp.xp}`
       : `${xp.xp}/${xp.nextThreshold}`
+  const nextLevel = xp.level >= 20 ? null : xp.level + 1
 
   return (
     <section className="play-desk-header" aria-label="Шапка стола">
       <div className="play-desk-header__who">
         <h1 className="play-desk-header__name">{name || 'Без имени'}</h1>
-        <p className="play-desk-header__sub">
-          {subtitle} · 2014
-        </p>
-        <div className="play-desk-header__xp" title={`Опыт ${xpLabel}`}>
+        <p className="play-desk-header__sub">{subtitle} · 2014</p>
+        <button
+          type="button"
+          className="play-desk-header__xp"
+          title={`Опыт ${xpLabel}. Нажми, чтобы начислить или убавить`}
+          aria-label={`Опыт ${formatXp(xp.xp)}. Открыть клавиатуру`}
+          onClick={() => setXpPadOpen(true)}
+        >
           <span>ур. {level}</span>
           <div className="play-desk-header__xp-bar" aria-hidden>
             <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
           </div>
           <span>{xpLabel}</span>
-        </div>
+        </button>
         {isDying ? (
           <p className="play-desk-header__dying">
             Смерть {deathSuccesses}/{deathFails}
@@ -109,34 +127,74 @@ export function PlayDeskHeader({
         ) : null}
       </div>
 
-      <div className="play-desk-header__vitals">
-        <button
-          type="button"
-          className="play-desk-vital play-desk-vital--shield"
-          title={acTitle}
-          onClick={() => {
-            const next = window.prompt('КД (пусто = авто)', String(acValue))
-            if (next == null) return
-            const trimmed = next.trim()
-            if (!trimmed) {
-              onChange({ ac: null })
-              return
-            }
-            const n = Number(trimmed)
-            if (!Number.isFinite(n)) return
-            onChange({ ac: n === autoAc ? null : Math.floor(n) })
-          }}
-        >
-          <b>{acValue}</b>
-          <span>КД</span>
-        </button>
-        <div className="play-desk-vital" title={movementHint || undefined}>
-          <b>{speed ?? '—'}</b>
-          <span>Скор.</span>
+      <div className="play-desk-header__mid">
+        <div className="play-desk-header__vitals">
+          <button
+            type="button"
+            className="play-desk-vital play-desk-vital--shield"
+            title={acTitle}
+            onClick={() => {
+              const next = window.prompt('КД (пусто = авто)', String(acValue))
+              if (next == null) return
+              const trimmed = next.trim()
+              if (!trimmed) {
+                onChange({ ac: null })
+                return
+              }
+              const n = Number(trimmed)
+              if (!Number.isFinite(n)) return
+              onChange({ ac: n === autoAc ? null : Math.floor(n) })
+            }}
+          >
+            <b>{acValue}</b>
+            <span>КД</span>
+          </button>
+          <div className="play-desk-vital" title={movementHint || undefined}>
+            <b>{speed ?? '—'}</b>
+            <span>Скор.</span>
+          </div>
+          {onInitiativeRoll ? (
+            <button
+              type="button"
+              className="play-desk-vital"
+              title="Бросок инициативы"
+              onClick={onInitiativeRoll}
+            >
+              <b>{formatModifier(initiative)}</b>
+              <span>Иниц.</span>
+            </button>
+          ) : (
+            <div className="play-desk-vital">
+              <b>{formatModifier(initiative)}</b>
+              <span>Иниц.</span>
+            </div>
+          )}
+          <div
+            className="play-desk-vital"
+            title="Бонус мастерства"
+          >
+            <b>{formatModifier(proficiencyBonus)}</b>
+            <span>БМ</span>
+          </div>
         </div>
-        <div className="play-desk-vital">
-          <b>{formatModifier(proficiencyBonus)}</b>
-          <span>Маст.</span>
+        <div className="play-desk-header__play">
+          <button
+            type="button"
+            className={`play-desk-header__chip${inspiration ? ' is-on' : ''}`}
+            onClick={onToggleInspiration}
+            aria-pressed={inspiration}
+            title="Вдохновение"
+          >
+            <span>Вдохн.</span>
+            <b>{inspiration ? 'да' : '—'}</b>
+          </button>
+          <div
+            className={`play-desk-header__chip${exhaustion > 0 ? ' is-warn' : ''}`}
+            title="Истощение"
+          >
+            <span>Истощ.</span>
+            <b>{exhaustion}</b>
+          </div>
         </div>
       </div>
 
@@ -194,6 +252,48 @@ export function PlayDeskHeader({
             {hpMax != null ? ` / ${hpMax}` : ' · макс не задан'}
             {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
           </p>
+        }
+      />
+
+      <NumberPadDialog
+        open={xpPadOpen}
+        title="Опыт"
+        current={xp.xp}
+        min={0}
+        formatValue={formatXp}
+        onClose={() => setXpPadOpen(false)}
+        onAdd={(delta) => onExperienceChange(xp.xp + delta)}
+        onSubtract={(delta) => onExperienceChange(Math.max(0, xp.xp - delta))}
+        header={
+          <div className="xp-pad-header">
+            <div className="xp-pad-header__ends">
+              <div className="xp-pad-header__end">
+                <strong>{xp.level}</strong>
+                <span>{formatXp(xp.floor)}</span>
+              </div>
+              <div className="xp-pad-header__end xp-pad-header__end--right">
+                <strong>{nextLevel ?? '20'}</strong>
+                <span>
+                  {xp.nextThreshold == null ? '—' : formatXp(xp.nextThreshold)}
+                </span>
+              </div>
+            </div>
+            <div
+              className="xp-progress__bar xp-pad-header__bar"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(xp.ratio * 100)}
+            >
+              <div className="xp-progress__fill" style={{ width: `${xp.ratio * 100}%` }} />
+            </div>
+            <p className="xp-pad-header__current">
+              сейчас {formatXp(xp.xp)}
+              {xp.nextThreshold != null
+                ? ` · порог ${formatXp(xpToReachLevel(xp.level + 1))}`
+                : ''}
+            </p>
+          </div>
         }
       />
 
