@@ -5190,13 +5190,26 @@ button.play-desk-vital {
   background: var(--card);
 }
 
-.play-desk__passives--compact {
+.play-desk__rail-foot {
   position: sticky;
   bottom: 0;
   z-index: 2;
+  display: grid;
+  gap: 6px;
+  padding: 6px 0 2px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--panel) 0%, transparent) 0%,
+    color-mix(in srgb, var(--panel) 92%, white) 28%,
+    color-mix(in srgb, var(--panel) 96%, white) 100%
+  );
+}
+
+.play-desk__passives--compact {
+  position: static;
   padding: 6px 8px;
   border-radius: 10px;
-  box-shadow: 0 -6px 16px rgba(28, 25, 23, 0.06);
+  box-shadow: 0 -4px 14px rgba(28, 25, 23, 0.05);
 }
 
 .play-desk__passives-label {
@@ -5764,7 +5777,7 @@ button.play-desk-vital {
 }
 
 /* Passives + Владения CTA — kit rail foot */
-.play-desk__left > .ui-button {
+.play-desk__rail-foot > .ui-button {
   width: 100%;
   justify-content: center;
   border-radius: 10px;
@@ -5774,7 +5787,7 @@ button.play-desk-vital {
   color: var(--accent);
 }
 
-.play-desk__left > .ui-button:hover {
+.play-desk__rail-foot > .ui-button:hover {
   background: var(--accent-soft);
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
 }

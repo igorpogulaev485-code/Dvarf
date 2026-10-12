@@ -3533,12 +3533,14 @@ export function MinimalSheetEditor({
       <div className="play-desk__body">
         <aside className="play-desk__left">
           {abilityColumn}
-          {passivesCompact}
-          {isPlayDesk ? (
-            <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
-              Владения · языки и инструменты ▸
-            </Button>
-          ) : null}
+          <div className="play-desk__rail-foot">
+            {passivesCompact}
+            {isPlayDesk ? (
+              <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
+                Владения · языки и инструменты ▸
+              </Button>
+            ) : null}
+          </div>
         </aside>
 
         <div className="play-desk__stage">
