@@ -155,10 +155,12 @@ export function PlayDeskHeader({
     if (!xpPadOpen) setXpReason('')
   }, [xpPadOpen])
 
+  const xpRemainLabel =
+    xp.remaining == null ? 'макс.' : `ещё ${formatXp(xp.remaining)}`
   const xpLabel =
     xp.nextThreshold == null
-      ? formatXp(xp.xp)
-      : `${formatXp(xp.xp)} / ${formatXp(xp.nextThreshold)}`
+      ? `${formatXp(xp.xp)} · ${xpRemainLabel}`
+      : `${formatXp(xp.floor)} · ${xpRemainLabel} · ${formatXp(xp.nextThreshold)}`
   const nextLevel = xp.level >= 20 ? null : xp.level + 1
   const hpTemp = play.hpTemp
   const atZeroHp = hpCurrent != null && hpCurrent <= 0
@@ -291,21 +293,29 @@ export function PlayDeskHeader({
           </ul>
         ) : null}
 
-        {/* 3) Опыт — полоска + цифры снизу (крупные пороги 19→20) */}
+        {/* 3) Опыт — полоска; под ней: порог ур. | ещё N | порог след. */}
         <button
           type="button"
           className="play-desk-header__xp"
-          title={`Опыт ${xpLabel}. Нажми, чтобы начислить или убавить`}
-          aria-label={`Опыт ${formatXp(xp.xp)}. Открыть клавиатуру`}
+          title={`Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`}
+          aria-label={`Опыт ${formatXp(xp.xp)}. ${xpRemainLabel}. Открыть клавиатуру`}
           onClick={() => setXpPadOpen(true)}
         >
           <div className="play-desk-header__xp-row">
             <span className="play-desk-header__xp-level">ур. {level}</span>
-            <div className="play-desk-header__xp-bar" aria-hidden>
-              <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
+            <div className="play-desk-header__xp-track">
+              <div className="play-desk-header__xp-bar" aria-hidden>
+                <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
+              </div>
+              <div className="play-desk-header__xp-nums">
+                <span className="play-desk-header__xp-floor">{formatXp(xp.floor)}</span>
+                <span className="play-desk-header__xp-remain">{xpRemainLabel}</span>
+                <span className="play-desk-header__xp-next">
+                  {xp.nextThreshold == null ? '—' : formatXp(xp.nextThreshold)}
+                </span>
+              </div>
             </div>
           </div>
-          <span className="play-desk-header__xp-nums">{xpLabel}</span>
         </button>
       </div>
 
