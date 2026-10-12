@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/delete-character-list-a73e`  
+**Prod tip (ветка линии прода):** `cursor/sheet-conflict-fix-a73e`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -585,7 +585,16 @@
 | Удалить персонажа | Кнопка «Удалить» на карточке → Dialog с именем → danger «Удалить» / «Отмена» | Нельзя снести персонажа одним кликом |
 | API | `DELETE /characters/{id}` (soft-delete на бэке, уже был) | Черновики и готовые персонажи уходят из списка |
 
-На проде: **да** · ветка `cursor/delete-character-list-a73e` · PR #115 · это **prod tip** · проверено 2026-10-12: `/health` ok; бандл `index-DeQLeRiO.js` («Удалить персонажа?»); dist→web
+На проде: **да** · ветка `cursor/delete-character-list-a73e` · PR #115 · tip дальше → `cursor/sheet-conflict-fix-a73e` · проверено 2026-10-12: `/health` ok; бандл `index-DeQLeRiO.js` («Удалить персонажа?»); dist→web
+
+### 2026-10-12 — Автосейв: фикс конфликта версий листа
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Гонка автосейва | После PUT версия в ref обновляется сразу; на conflict — один тихий retry | Окно конфликта почти не вылезает само |
+| Диалог конфликта | «Сохранить мои правки» = записать экран; «Взять с сервера» = перечитать | Правки больше не зависают после «Оставить» |
+
+На проде: **да** · ветка `cursor/sheet-conflict-fix-a73e` · PR #116 · это **prod tip** · проверено 2026-10-12: `/health` ok; бандл `CharacterDetailPage-BXzZShGD.js` («Сохранить мои правки» / «Взять с сервера»); dist→web
 
 ### 2026-10-12 — Play desk: догон макета (hot bar + split + визуал)
 
@@ -1176,3 +1185,4 @@
 | 2026-10-12 | `cursor/create-bugs-layer1-a73e` · PR #113 | Create layer-1 + spell access + autosave листа; tip → эта ветка; `/health` ok; бандл `CharacterDetailPage-CbXNENAC.js` / CSS `index-Bn_HA_Ht.css` |
 | 2026-10-12 | `cursor/play-desk-polish-layer2-a73e` · PR #114 | Play-desk polish layer-2; tip → эта ветка; Hub timeout → dist→web; `/health` ok; бандл `CharacterDetailPage-a6T4dyk9.js` / CSS `index-CHvnpnqz.css` |
 | 2026-10-12 | `cursor/delete-character-list-a73e` · PR #115 | Удаление персонажа из списка с confirm; tip → эта ветка; dist→web; `/health` ok; бандл `index-DeQLeRiO.js` |
+| 2026-10-12 | `cursor/sheet-conflict-fix-a73e` · PR #116 | Фикс loop конфликта версий автосейва; tip → эта ветка; dist→web; `/health` ok; бандл `CharacterDetailPage-BXzZShGD.js` |
