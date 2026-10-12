@@ -4426,11 +4426,11 @@ input {
 }
 
 .play-desk-header__who {
-  /* Hug content — leftover width goes between mid and right, not as empty who. */
-  flex: 0 1 auto;
+  /* Hug content; do not shrink — keeps class chips on the name row. */
+  flex: 0 0 auto;
   width: max-content;
   min-width: 160px;
-  max-width: min(400px, 42vw);
+  max-width: min(440px, 48vw);
   display: grid;
   gap: 3px;
   justify-items: start;
@@ -4959,8 +4959,8 @@ button.play-desk-vital:hover,
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 4px;
-  min-width: 112px;
-  padding: 5px 7px 6px;
+  min-width: 104px;
+  padding: 4px 6px 5px;
   border-radius: 10px;
   border: 1px solid color-mix(in srgb, var(--danger, #9f2d2d) 42%, var(--desk-line));
   background: color-mix(in srgb, #fff4f4 82%, white);
