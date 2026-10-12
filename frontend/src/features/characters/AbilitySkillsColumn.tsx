@@ -158,17 +158,22 @@ export function AbilitySkillsColumn({
                 <div className="abil-block__who">
                   <span className="abil-block__label">{ABILITY_LABELS[key]}</span>
                   <NumberInput
+                    className="abil-block__score"
                     min={1}
                     max={30}
                     emptyValue={10}
                     value={baseScore}
                     onValueChange={(next) => onAbilityScoreChange(key, next ?? 10)}
+                    inputMode="numeric"
+                    title="Базовое значение"
                   />
-                  {score !== baseScore ? (
-                    <span className="abil-block__effective" title="С учётом предметов">
-                      → {score}
-                    </span>
-                  ) : null}
+                  <span
+                    className={`abil-block__effective${score !== baseScore ? ' is-buffed' : ''}`}
+                    title={score !== baseScore ? 'С учётом предметов' : undefined}
+                    aria-hidden={score === baseScore}
+                  >
+                    {score !== baseScore ? `→${score}` : ''}
+                  </span>
                 </div>
                 <div className="abil-block__mods">
                   <span className="abil-mod" title="Проверка характеристики">
