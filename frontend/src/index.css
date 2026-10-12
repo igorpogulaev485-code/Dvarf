@@ -4408,12 +4408,18 @@ input {
 }
 
 .play-desk-header {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(180px, 1.2fr) minmax(220px, 1.4fr) minmax(180px, 1fr);
   gap: 10px;
   align-items: center;
   min-width: 0;
   overflow: visible;
+}
+
+.play-desk-header:has(.play-desk-header__coin:hover),
+.play-desk-header:has(.play-desk-header__coin:focus-visible) {
+  z-index: 8;
 }
 
 .play-desk-header__who {
@@ -4738,6 +4744,11 @@ button.play-desk-vital:hover {
 .play-desk-header__coin {
   position: relative;
   z-index: 2;
+}
+
+.play-desk-header__coin:hover,
+.play-desk-header__coin:focus-visible {
+  z-index: 60;
 }
 
 .play-desk-header__coin:hover,
