@@ -3227,6 +3227,47 @@ input {
   padding: 6px 8px;
 }
 
+/* Phone: sticky scene chrome — one panel below, no LSS-style long scroll of all blocks. */
+@media (max-width: 959px) {
+  .play-desk__modes {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 6px;
+    padding: 8px 2px;
+    margin: 0 -2px;
+    background: color-mix(in srgb, var(--panel) 94%, #ebe4da);
+    border-bottom: 1px solid var(--line);
+    scrollbar-width: thin;
+  }
+
+  .play-desk__mode {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+  }
+
+  .play-desk__panel-pick {
+    margin-left: 0;
+    flex: 1 0 9.5rem;
+    min-width: 9.5rem;
+    max-width: 14rem;
+    padding: 8px 10px;
+  }
+
+  .play-desk__stage {
+    gap: 10px;
+  }
+
+  .play-desk__top {
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+  }
+}
+
 .play-desk__stage {
   display: grid;
   gap: 12px;

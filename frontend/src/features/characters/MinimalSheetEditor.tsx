@@ -2684,7 +2684,8 @@ export function MinimalSheetEditor({
   }
 
   function stageHidden(id: PlayDeskPanelId): boolean {
-    return isPlayDesk && activePanel !== id
+    // Same play-desk model on phone and desktop: one active stage panel.
+    return activePanel !== id
   }
 
   const abilityColumn = (
@@ -2856,43 +2857,51 @@ export function MinimalSheetEditor({
             <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
               Владения и языки
             </Button>
-          ) : null}
+          ) : (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setActivePanel('ownership')
+              }}
+            >
+              Владения и языки
+            </Button>
+          )}
         </aside>
 
         <div className="play-desk__stage">
-          {isPlayDesk ? (
-            <div className="play-desk__modes">
-              {(
-                [
-                  ['combat', 'Бой'],
-                  ['explore', 'Исследование'],
-                  ['social', 'Общение'],
-                  ['companions', 'Напарники'],
-                ] as const
-              ).map(([mode, label]) => (
-                <button
-                  key={mode}
-                  type="button"
-                  className={`play-desk__mode${draft.sheetUi.deskMode === mode ? ' is-on' : ''}`}
-                  onClick={() => setDeskMode(mode)}
-                >
-                  {label}
-                </button>
-              ))}
-              <select
-                className="play-desk__panel-pick"
-                aria-label="Панель"
-                value={activePanel}
-                onChange={(event) => setActivePanel(event.target.value as PlayDeskPanelId)}
+          <div className="play-desk__modes" aria-label="Режим стола">
+            {(
+              [
+                ['combat', 'Бой'],
+                ['explore', 'Исследование'],
+                ['social', 'Общение'],
+                ['companions', 'Напарники'],
+              ] as const
+            ).map(([mode, label]) => (
+              <button
+                key={mode}
+                type="button"
+                className={`play-desk__mode${draft.sheetUi.deskMode === mode ? ' is-on' : ''}`}
+                onClick={() => setDeskMode(mode)}
               >
-                {PLAY_DESK_PANELS.map((panel) => (
-                  <option key={panel.id} value={panel.id}>
-                    {panel.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
+                {label}
+              </button>
+            ))}
+            <select
+              className="play-desk__panel-pick"
+              aria-label="Панель"
+              value={activePanel}
+              onChange={(event) => setActivePanel(event.target.value as PlayDeskPanelId)}
+            >
+              {PLAY_DESK_PANELS.map((panel) => (
+                <option key={panel.id} value={panel.id}>
+                  {panel.label}
+                </option>
+              ))}
+            </select>
+          </div>
 
       <div className="play-desk__stage-panel" hidden={stageHidden('identity')}>
       <Panel title="Основное">
