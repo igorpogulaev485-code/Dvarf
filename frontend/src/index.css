@@ -5609,30 +5609,41 @@ button.play-desk-vital:hover {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  min-width: 3.4rem;
-  padding: 6px 8px;
+  gap: 3px;
+  min-width: 3.75rem;
+  padding: 8px 10px;
   border: 0;
-  border-left: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 28%, var(--desk-line));
+  border-left: 2px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 55%, var(--desk-line));
   background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 88%, white) 0%,
-    color-mix(in srgb, var(--desk-accent, var(--accent)) 16%, white) 100%
+    165deg,
+    color-mix(in srgb, var(--desk-accent, var(--accent)) 22%, white) 0%,
+    color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 92%, white) 45%,
+    color-mix(in srgb, var(--desk-accent, var(--accent)) 14%, white) 100%
   );
-  color: var(--desk-accent, var(--accent));
+  color: color-mix(in srgb, var(--desk-accent, var(--accent)) 88%, #1a1510);
   font: inherit;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
 .play-desk-compact__spell-cast:hover {
   background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 100%, white) 0%,
-    color-mix(in srgb, var(--desk-accent, var(--accent)) 26%, white) 100%
+    165deg,
+    color-mix(in srgb, var(--desk-accent, var(--accent)) 32%, white) 0%,
+    color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 100%, white) 50%,
+    color-mix(in srgb, var(--desk-accent, var(--accent)) 22%, white) 100%
   );
+}
+
+.cast-source-row {
+  gap: 8px;
+}
+
+.cast-source-chip {
+  font-weight: 700 !important;
 }
 
 .play-desk-compact__spell-cast-icon {

@@ -288,12 +288,51 @@ export function CastSpellDialog({
         ) : (
           <>
             <div>
-              <Text tone="muted">Источник каста</Text>
-              <div className="chip-row" style={{ marginTop: 8 }}>
+              <Text tone="muted">За счёт чего кастуем</Text>
+              <div className="chip-row cast-source-row" style={{ marginTop: 8 }}>
+                {/* Order: class slot → pact → grant (race/feat/artifact) → ritual */}
+                {slotLevels.map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    className={`sheet-chip cast-source-chip${
+                      !useRitual && !useGrant && !usePact && slotLevel === level
+                        ? ' is-on'
+                        : ''
+                    }`}
+                    title={`Ячейка заклинания ${level}-го уровня`}
+                    onClick={() => {
+                      setUseRitual(false)
+                      setUseGrant(false)
+                      setUsePact(false)
+                      setSlotLevel(level)
+                    }}
+                  >
+                    Ячейка {level}
+                    {level > spellLevel ? ' ↑' : ''}
+                  </button>
+                ))}
+                {pactOk && spells.pact_slots ? (
+                  <button
+                    type="button"
+                    className={`sheet-chip cast-source-chip${
+                      !useRitual && !useGrant && usePact ? ' is-on' : ''
+                    }`}
+                    title="Ячейка магии договора (колдун)"
+                    onClick={() => {
+                      setUseRitual(false)
+                      setUseGrant(false)
+                      setUsePact(true)
+                      setSlotLevel(spells.pact_slots?.level ?? spellLevel)
+                    }}
+                  >
+                    Ячейка договора {spells.pact_slots.level}
+                  </button>
+                ) : null}
                 {spell.grant_cast && spell.grant_cast.max > 0 ? (
                   <button
                     type="button"
-                    className={`sheet-chip${useGrant ? ' is-on' : ''}${
+                    className={`sheet-chip cast-source-chip${useGrant ? ' is-on' : ''}${
                       grantExhausted ? ' is-disabled' : ''
                     }`}
                     disabled={grantExhausted}
@@ -315,7 +354,7 @@ export function CastSpellDialog({
                 {isRitual ? (
                   <button
                     type="button"
-                    className={`sheet-chip${useRitual ? ' is-on' : ''}`}
+                    className={`sheet-chip cast-source-chip${useRitual ? ' is-on' : ''}`}
                     onClick={() => {
                       setUseRitual(true)
                       setUseGrant(false)
@@ -325,44 +364,6 @@ export function CastSpellDialog({
                     Ритуал
                   </button>
                 ) : null}
-                {pactOk && spells.pact_slots ? (
-                  <button
-                    type="button"
-                    className={`sheet-chip${
-                      !useRitual && !useGrant && usePact ? ' is-on' : ''
-                    }`}
-                    title="Ячейка магии договора (колдун)"
-                    onClick={() => {
-                      setUseRitual(false)
-                      setUseGrant(false)
-                      setUsePact(true)
-                      setSlotLevel(spells.pact_slots?.level ?? spellLevel)
-                    }}
-                  >
-                    Договор {spells.pact_slots.level}
-                  </button>
-                ) : null}
-                {slotLevels.map((level) => (
-                  <button
-                    key={level}
-                    type="button"
-                    className={`sheet-chip${
-                      !useRitual && !useGrant && !usePact && slotLevel === level
-                        ? ' is-on'
-                        : ''
-                    }`}
-                    title={`Ячейка заклинания ${level}-го уровня`}
-                    onClick={() => {
-                      setUseRitual(false)
-                      setUseGrant(false)
-                      setUsePact(false)
-                      setSlotLevel(level)
-                    }}
-                  >
-                    Ячейка {level}
-                    {level > spellLevel ? ' ↑' : ''}
-                  </button>
-                ))}
               </div>
             </div>
             {useGrant ? (

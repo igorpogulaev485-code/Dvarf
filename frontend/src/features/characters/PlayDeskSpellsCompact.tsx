@@ -173,7 +173,7 @@ export function PlayDeskSpellsCompact({
 
       {pact && pact.max > 0 ? (
         <div className="play-desk-compact__pact" aria-label="Ячейки договора">
-          <strong>Договор {pact.level}</strong>
+          <strong>Ячейки договора · {pact.level} ур.</strong>
           <div
             className="play-desk-compact__slot-pips is-pact"
             role="group"
