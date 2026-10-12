@@ -5675,6 +5675,21 @@ button.play-desk-vital:hover {
   white-space: nowrap;
 }
 
+.play-desk-compact__spell-dmg {
+  flex: 0 0 auto;
+  max-width: 8.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--desk-chip, #e7e1d4) 70%, white);
+  color: var(--desk-ink, var(--text, #1c1916));
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
 .play-desk-compact__spell-meta {
   margin: 0;
   color: var(--desk-muted, var(--muted));

@@ -365,6 +365,7 @@ function compactDamage(spell: SheetSpell): string {
   return shortDamage(table[String(keys[0])] ?? '')
 }
 
+/** Non-damage key params (school / comps / range / time / duration / atk). */
 function compactSpellMeta(spell: SheetSpell): string {
   const parts: string[] = []
   if (spell.school) parts.push(spellSchoolLabelRu(spell.school))
@@ -377,8 +378,6 @@ function compactSpellMeta(spell: SheetSpell): string {
   if (spell.duration?.trim()) parts.push(spell.duration.trim())
   const atk = spell.attack_or_save?.trim()
   if (atk && atk !== '—') parts.push(atk)
-  const dmg = compactDamage(spell)
-  if (dmg) parts.push(dmg)
   return parts.join(' · ')
 }
 
@@ -397,6 +396,7 @@ function SpellRow({
 }) {
   const levelText = spell.level <= 0 ? 'заговор' : `${spell.level} ур.`
   const meta = compactSpellMeta(spell)
+  const damage = compactDamage(spell)
   const source = spellSourceBadge(spell)
   const granted = isGrantedSpellHighlight(spell)
   const grantLeft =
@@ -406,6 +406,7 @@ function SpellRow({
   else if (spell.concentration) flags.push('конц.')
   if (spell.ritual) flags.push('ритуал')
   if (source) flags.push(source.label)
+  if (damage) flags.push(damage)
 
   return (
     <div
@@ -427,6 +428,11 @@ function SpellRow({
           <div className="play-desk-compact__row-main">
             <b>{spell.name}</b>
             <span className="play-desk-compact__spell-level">{levelText}</span>
+            {damage ? (
+              <span className="play-desk-compact__spell-dmg" title="Урон / эффект">
+                {damage}
+              </span>
+            ) : null}
             {source ? (
               <span
                 className={`play-desk-compact__source is-${source.kind}`}
