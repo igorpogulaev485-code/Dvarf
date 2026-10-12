@@ -1,5 +1,5 @@
 :root {
-  /* Эталон: скрин инвентаря — parchment #fbf7ec + олива */
+  /* UI Kit Wave A — Листва (docs/ui-kit/README.md) */
   color: #2d2d2a;
   background:
     radial-gradient(circle at top left, #f3e8d4 0%, transparent 42%),
@@ -16,10 +16,24 @@
   --panel: #fbf7ec;
   --desk-paper: #fbf7ec;
   --line: #e0d8c7;
-  --accent: #4c663d;
-  --accent-soft: #e3eccf;
+  --card: #fffdf8;
+  --accent: #5a6b3d;
+  --accent-soft: #e5ecd4;
   --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
+  /* Ability identity (rail A) — reserved for A3; defined early for reuse */
+  --abil-str: #9a4a32;
+  --abil-str-soft: #f3e0d6;
+  --abil-dex: #3d6b5a;
+  --abil-dex-soft: #dcece4;
+  --abil-con: #8a6a2f;
+  --abil-con-soft: #f1e6c8;
+  --abil-int: #3f5f8a;
+  --abil-int-soft: #dde6f2;
+  --abil-wis: #5a6b3d;
+  --abil-wis-soft: #e5ecd4;
+  --abil-cha: #7a4a6e;
+  --abil-cha-soft: #efe0ea;
 }
 
 * {
@@ -1254,13 +1268,13 @@ input {
 }
 
 .gear-picker-row:hover {
-  border-color: color-mix(in srgb, var(--accent, #0f766e) 40%, var(--line));
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
 }
 
 .gear-picker-row.is-selected,
 .gear-picker-row.is-open {
-  border-color: color-mix(in srgb, var(--accent, #0f766e) 55%, var(--line));
-  background: color-mix(in srgb, var(--accent, #0f766e) 10%, white);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, white);
 }
 
 .gear-picker-row--family {
@@ -1284,12 +1298,12 @@ input {
 .gear-picker-row__badge {
   font-size: 0.78rem;
   font-weight: 500;
-  color: var(--muted, #64748b);
+  color: var(--muted);
 }
 
 .gear-picker-row__meta {
   font-size: 0.85rem;
-  color: var(--muted, #64748b);
+  color: var(--muted);
 }
 
 .gear-picker-selected {
@@ -1297,8 +1311,8 @@ input {
   gap: 4px;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px dashed color-mix(in srgb, var(--accent, #0f766e) 40%, var(--line));
-  background: color-mix(in srgb, var(--accent, #0f766e) 6%, white);
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent) 6%, white);
 }
 
 .gear-picker-selected__desc {
@@ -1314,7 +1328,7 @@ input {
   padding: 1px 7px;
   border-radius: 6px;
   border: 1px solid var(--line);
-  color: var(--muted, #64748b);
+  color: var(--muted);
   background: rgba(255, 255, 255, 0.7);
   vertical-align: middle;
 }
@@ -1894,7 +1908,7 @@ input {
 
 .attack-held-tag {
   font-size: 0.78rem;
-  color: var(--muted, #64748b);
+  color: var(--muted);
 }
 
 .spells-focus-chips {
@@ -1910,8 +1924,8 @@ input {
   gap: 6px;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px dashed color-mix(in srgb, var(--accent, #0f766e) 35%, var(--line));
-  background: color-mix(in srgb, var(--accent, #0f766e) 6%, white);
+  border: 1px dashed color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent) 6%, white);
 }
 
 .attack-source {
@@ -4019,7 +4033,7 @@ input {
   appearance: none;
   border: 0;
   background: transparent;
-  color: var(--accent, #1d4ed8);
+  color: var(--accent);
   padding: 0;
   font: inherit;
   font-size: 0.85rem;
@@ -4115,13 +4129,14 @@ input {
 }
 
 .play-desk {
-  --desk-ink: #1a2420;
-  --desk-muted: #6a7870;
-  --desk-line: #c9d2cb;
-  --desk-panel: #faf8f2;
-  --desk-accent: #0f6b5c;
-  --desk-accent-soft: #d7efe9;
-  --desk-chip: #e7e1d4;
+  /* Alias kit tokens — no parallel mint/teal theme */
+  --desk-ink: var(--ink);
+  --desk-muted: var(--muted);
+  --desk-line: var(--line);
+  --desk-panel: var(--panel);
+  --desk-accent: var(--accent);
+  --desk-accent-soft: var(--accent-soft);
+  --desk-chip: color-mix(in srgb, var(--line) 65%, white);
   display: grid;
   gap: 12px;
   color: var(--desk-ink);
@@ -4144,7 +4159,7 @@ input {
   padding: 4px 2px 10px;
   border-bottom: 1px solid var(--desk-line);
   background:
-    linear-gradient(90deg, #eef5f2 0%, var(--desk-panel) 45%, #f7f1e6 100%);
+    linear-gradient(90deg, var(--accent-soft) 0%, var(--desk-panel) 45%, #f7f1e6 100%);
   margin: -12px -12px 0;
   padding: 12px 14px;
 }
@@ -4393,7 +4408,11 @@ button.play-desk-header__chip {
 .play-desk-header__xp-bar > i {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--desk-accent), #1f9d86);
+  background: linear-gradient(
+    90deg,
+    var(--desk-accent),
+    color-mix(in srgb, var(--desk-accent) 70%, #2d2d2a)
+  );
 }
 
 .play-desk-header__dying {
@@ -5024,9 +5043,9 @@ button.play-desk-vital {
 
 .play-desk__passives {
   padding: 10px;
-  border: 1px solid var(--desk-line);
+  border: 1px solid var(--line);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--desk-accent-soft) 40%, white);
+  background: var(--card);
 }
 
 .play-desk__passives--compact {
@@ -5057,18 +5076,26 @@ button.play-desk-vital {
 }
 
 .passive-grid--desk .passive-card {
-  padding: 4px 4px 5px;
-  border-radius: 8px;
+  padding: 6px 4px 7px;
+  border-radius: 10px;
   gap: 1px;
+  background: color-mix(in srgb, var(--panel) 70%, white);
+  border: 1px solid var(--line);
+  text-align: center;
 }
 
 .passive-grid--desk .passive-card__label {
   font-size: 0.62rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
 .passive-grid--desk .passive-card strong {
-  font-size: 0.95rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--accent);
 }
 
 .play-desk__modes {
@@ -5335,20 +5362,32 @@ button.play-desk-vital {
   gap: 8px;
 }
 
+/* Kit rail A — identity color per ability (docs/ui-kit) */
 .abil-block {
+  --abil: var(--accent);
+  --abil-soft: var(--accent-soft);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #fff;
-  padding: 8px;
+  border-left: 3px solid var(--abil);
+  border-radius: 10px;
+  background: var(--card);
+  padding: 0;
+  overflow: hidden;
 }
+
+.abil-block[data-abil="str"] { --abil: var(--abil-str); --abil-soft: var(--abil-str-soft); }
+.abil-block[data-abil="dex"] { --abil: var(--abil-dex); --abil-soft: var(--abil-dex-soft); }
+.abil-block[data-abil="con"] { --abil: var(--abil-con); --abil-soft: var(--abil-con-soft); }
+.abil-block[data-abil="int"] { --abil: var(--abil-int); --abil-soft: var(--abil-int-soft); }
+.abil-block[data-abil="wis"] { --abil: var(--abil-wis); --abil-soft: var(--abil-wis-soft); }
+.abil-block[data-abil="cha"] { --abil: var(--abil-cha); --abil-soft: var(--abil-cha-soft); }
 
 .abil-block.is-dragging {
   opacity: 0.55;
-  outline: 2px dashed var(--accent);
+  outline: 2px dashed var(--abil);
 }
 
 .abil-block.drag-over {
-  box-shadow: 0 -3px 0 0 var(--accent);
+  box-shadow: 0 -3px 0 0 var(--abil);
 }
 
 .abil-block__head {
@@ -5356,6 +5395,8 @@ button.play-desk-vital {
   grid-template-columns: auto 1fr auto auto;
   gap: 8px;
   align-items: center;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--abil-soft) 55%, white);
 }
 
 .abil-block__drag {
@@ -5363,7 +5404,7 @@ button.play-desk-vital {
   height: 28px;
   border-radius: 6px;
   border: 1px solid var(--line);
-  background: var(--panel, #f6f3eb);
+  background: var(--card);
   color: var(--muted);
   display: grid;
   place-items: center;
@@ -5379,62 +5420,75 @@ button.play-desk-vital {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .abil-block__label {
+  font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: 0.04em;
-  font-size: 0.82rem;
+  font-size: 0.95rem;
+  color: var(--abil);
+  min-width: 2.2rem;
 }
 
 .abil-block__who .ui-input {
-  width: 4.2rem;
+  width: 2.6rem;
   text-align: center;
-  padding: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.abil-block__effective {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--abil);
+  white-space: nowrap;
 }
 
 .abil-block__mods {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   flex-wrap: wrap;
 }
 
 .abil-mod {
   border: 1px solid var(--line);
-  background: var(--panel, #f6f3eb);
-  border-radius: 8px;
-  padding: 4px 7px;
-  font-size: 0.72rem;
+  background: #fff;
+  border-radius: 999px;
+  padding: 3px 7px;
+  font-size: 0.7rem;
   font-weight: 600;
+  color: var(--ink);
 }
 
 .abil-mod--btn {
   cursor: pointer;
   font: inherit;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
 }
 
 .abil-mod--btn.is-on {
-  background: var(--accent-soft);
-  border-color: color-mix(in srgb, var(--accent) 35%, white);
-  color: var(--accent);
+  background: var(--abil);
+  border-color: var(--abil);
+  color: #fff;
 }
 
 .abil-block__toggle {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, white);
-  background: var(--accent-soft);
-  color: var(--accent);
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--muted);
   cursor: pointer;
   font-size: 0.85rem;
 }
 
 .abil-block__skills {
-  margin-top: 8px;
+  padding: 6px 8px 8px;
   display: grid;
   gap: 4px;
 }
@@ -5445,28 +5499,38 @@ button.play-desk-vital {
   gap: 8px;
   width: 100%;
   border: 1px solid transparent;
-  background: #f7f4ec;
+  background: color-mix(in srgb, var(--panel) 80%, white);
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 6px 9px;
   font: inherit;
   font-size: 0.82rem;
   cursor: pointer;
   text-align: left;
+  color: var(--ink);
 }
 
 .abil-skill.is-on {
-  background: var(--accent-soft);
-  border-color: color-mix(in srgb, var(--accent) 25%, white);
+  background: var(--abil-soft);
+  border-color: color-mix(in srgb, var(--abil) 28%, var(--line));
+  color: var(--abil);
 }
 
 .abil-skill.is-expert {
   font-weight: 700;
+  background: color-mix(in srgb, var(--abil) 18%, var(--abil-soft));
+  border-color: color-mix(in srgb, var(--abil) 40%, var(--line));
+  color: var(--abil);
 }
 
 .abil-skill__meta {
   color: var(--muted);
   font-size: 0.75rem;
   white-space: nowrap;
+}
+
+.abil-skill.is-on .abil-skill__meta,
+.abil-skill.is-expert .abil-skill__meta {
+  color: color-mix(in srgb, var(--abil) 65%, var(--muted));
 }
 
 .abil-block__empty {
@@ -5483,12 +5547,12 @@ button.play-desk-vital {
   top: 0;
   z-index: 2;
   padding: 4px 0 2px;
-  background: color-mix(in srgb, var(--desk-paper, #f7f1e4) 92%, white);
+  background: color-mix(in srgb, var(--panel) 92%, white);
 }
 
 .abil-column__toolbar button {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--card);
   border-radius: 8px;
   padding: 7px 8px;
   font: inherit;
@@ -5499,6 +5563,7 @@ button.play-desk-vital {
 .abil-column__hint {
   margin: 0;
   font-size: 0.75rem;
+  color: var(--muted);
 }
 
 .play-desk-drawer-backdrop {
@@ -5533,7 +5598,9 @@ button.play-desk-vital {
 
 .play-desk-drawer__head h3 {
   margin: 0;
-  font-size: 1.05rem;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--accent);
 }
 
 .play-desk-drawer__body {
@@ -5543,30 +5610,7 @@ button.play-desk-vital {
   gap: 12px;
 }
 
-.play-desk--wide .abil-block {
-  border-color: var(--desk-line);
-  border-radius: 12px;
-}
-
-.play-desk--wide .abil-block__label {
-  letter-spacing: 0.04em;
-}
-
-.play-desk--wide .abil-skill {
-  background: #f7f4ec;
-}
-
-.play-desk--wide .abil-skill.is-on {
-  background: var(--desk-accent-soft);
-  border-color: color-mix(in srgb, var(--desk-accent) 25%, white);
-}
-
-.play-desk--wide .abil-mod--btn.is-on,
-.play-desk--wide .abil-block__toggle {
-  background: var(--desk-accent-soft);
-  border-color: color-mix(in srgb, var(--desk-accent) 35%, white);
-  color: var(--desk-accent);
-}
+/* Wide desk keeps rail A identity colors — do not force theme accent onto skills */
 
 @media (min-width: 960px) {
   .play-desk__body {
