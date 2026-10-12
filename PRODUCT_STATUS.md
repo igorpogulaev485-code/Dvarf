@@ -594,8 +594,18 @@
 | Hover монет | tip кошелька; клик → coin pad |
 | Кит LOCK | [`desk-header-lock`](docs/ui-kit/boards/dvarf-ui-kit-desk-header-lock.jpg) + states/death/dense/icons/coin-tip |
 
-Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2b.  
-Следующий слайс pixel-candy: **заклинания** (icons-first → `SpellsPanel` / compact / cast).
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2b.
+
+### 2026-10-12 — Wave A spells: icons-first (старт candy)
+
+| Что | Как |
+|-----|-----|
+| Icons | `spellIcons.tsx`: книга / перо / каст / фокус / мешочек / концентрация |
+| Wiring | toolbar Гримуар·Подготовить · focus chips · Каст · compact row/конц. |
+| Summary | pill-chips Сл/Атака/квота (как на доске spells) |
+| Кит | [`spell-icons`](docs/ui-kit/boards/dvarf-ui-kit-spell-icons.jpg) |
+
+Дальше в том же слайсе: довести full/compact/cast до доски `spells` (без смены логики).
 
 На проде: **нет** · ветка `cursor/wave-a-listva-a73e`
 
