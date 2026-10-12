@@ -22,8 +22,9 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/mobile-play-desk-2c91` |
+| Prod tip (сейчас) | `cursor/play-desk-merge-mobile-e788` |
 | Файл tip для скриптов | [`deploy/prod-tip`](deploy/prod-tip) |
+| Реестр неубиваемых фич | [`docs/FEATURE_LOCK.md`](docs/FEATURE_LOCK.md) (preflight парсит Machine locks) |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
@@ -53,9 +54,10 @@
 Скрипт **падает**, если:
 
 1. `HEAD` **не содержит** объявленный tip из `deploy/prod-tip` (не потомок tip);
-2. нет обязательных маркеров (lobby + cabinet + avatar + sheet P1–P6 + classic + **mobile play-desk** + **desktop PlayDesk\***).
+2. нет строк из [`docs/FEATURE_LOCK.md`](docs/FEATURE_LOCK.md) (Machine locks: lobby, cabinet, sheet, classic, mobile, desktop…).
 
-`sync-and-up.sh` вызывает preflight сам. Обход только так: `DVARF_SKIP_PREFLIGHT=1` — и только с явного ok Игоря.
+`sync-and-up.sh` вызывает preflight сам. Обход только так: `DVARF_SKIP_PREFLIGHT=1` — и только с явного ok Игоря.  
+Новый неубиваемый контур → **строка в FEATURE_LOCK** в том же PR.
 
 Дополнительно глазами:
 

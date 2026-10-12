@@ -3,8 +3,9 @@
 **URL:** http://201.34.132.252/  
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
-**Current prod tip branch:** `cursor/mobile-play-desk-2c91`  
+**Current prod tip branch:** `cursor/play-desk-merge-mobile-e788`  
 **Canonical tip file for scripts:** [`deploy/prod-tip`](prod-tip)  
+**Feature lock registry:** [`docs/FEATURE_LOCK.md`](../docs/FEATURE_LOCK.md) (preflight parses Machine locks)  
 (обновляй tip после деплоя, который становится новым tip — в `prod-tip`, `AGENTS.md`, skill `dvarf-prod-lineage`, `PRODUCT_STATUS.md`)
 
 ---

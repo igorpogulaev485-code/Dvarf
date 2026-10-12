@@ -1,4 +1,4 @@
 # Current Timeweb prod tip branch (one line, no quotes).
 # Keep in sync with AGENTS.md, PRODUCT_STATUS.md, deploy/README.md,
 # and .cursor/skills/dvarf-prod-lineage/SKILL.md after every tip-moving deploy.
-cursor/mobile-play-desk-2c91
+cursor/play-desk-merge-mobile-e788

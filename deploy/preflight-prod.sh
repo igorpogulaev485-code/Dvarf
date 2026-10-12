@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Refuse to deploy a tree that is missing contours already on Timeweb prod,
 # or that is not a descendant of the declared prod tip (anti-overwrite).
-# Prevents sync-and-up.sh from wiping lobby / cabinet / sheet / classic / mobile
-# / desktop catch-up again.
+# Machine locks are loaded from docs/FEATURE_LOCK.md — edit that file to add
+# a non-wipeable feature; do not only hardcode markers here.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -94,52 +94,73 @@ else
 fi
 echo
 
-require "PRODUCT_STATUS.md" "статус продукта"
-require "AGENTS.md" "контракт агентов"
-require "deploy/prod-tip" "объявленный prod tip"
+# ---------------------------------------------------------------------------
+# 1) Machine locks from docs/FEATURE_LOCK.md
+# ---------------------------------------------------------------------------
+LOCK_FILE="$ROOT/docs/FEATURE_LOCK.md"
+if [[ ! -f "$LOCK_FILE" ]]; then
+  echo "MISSING: docs/FEATURE_LOCK.md (feature lock registry)" >&2
+  MISSING=1
+else
+  echo "=== FEATURE_LOCK machine rows ==="
+  # Parse markdown table rows after the "Machine locks" heading until next "## ".
+  python3 - "$LOCK_FILE" <<'PY' || MISSING=1
+import re, sys
+from pathlib import Path
 
-require "backend/app/api/routers/lobbies.py" "лобби API"
-require "frontend/src/pages/JoinLobbyPage.tsx" "лобби join UI"
-require "frontend/src/pages/LobbyDetailPage.tsx" "лобби detail UI"
+root = Path(".").resolve()
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+m = re.search(r"## Machine locks \(preflight\)\n(.*?)(?:\n## |\Z)", text, re.S)
+if not m:
+    print("FAIL: FEATURE_LOCK.md missing '## Machine locks (preflight)' section", file=sys.stderr)
+    sys.exit(1)
+section = m.group(1)
+rows = []
+for line in section.splitlines():
+    if not line.startswith("|"):
+        continue
+    cells = [c.strip() for c in line.strip().strip("|").split("|")]
+    if len(cells) < 4:
+        continue
+    kind, path, pattern, label = cells[0], cells[1], cells[2], cells[3]
+    if kind in ("kind", "------") or kind.startswith("-"):
+        continue
+    rows.append((kind, path, pattern, label))
 
-require "backend/app/services/mail.py" "SMTP / кабинет"
-require "frontend/src/features/cabinet/SessionsPanel.tsx" "сессии устройств"
-require "frontend/src/features/cabinet/AvatarEditor.tsx" "загрузка аватара"
-require "backend/app/services/avatar.py" "avatar service"
-require "frontend/src/pages/VerifyEmailPage.tsx" "verify email"
+if not rows:
+    print("FAIL: no machine lock rows parsed from FEATURE_LOCK.md", file=sys.stderr)
+    sys.exit(1)
 
-require "frontend/src/features/characters/raceEffects.ts" "лист P6 раса"
-require "frontend/src/features/characters/LevelUpDialog.tsx" "лист P5 мультикласс"
-require "frontend/src/shared/dnd/casterProgression.ts" "лист P2 слоты"
-require "frontend/src/shared/dnd/armor.ts" "лист P3 КД"
-require "frontend/src/features/characters/LanguagesToolsPanel.tsx" "лист P4"
-require "frontend/src/shared/dnd/concentration.ts" "лист P1 концентрация"
-require "frontend/src/features/characters/CastSpellDialog.tsx" "каст / upcast"
-require "frontend/src/shared/dnd/backgroundGrants.ts" "предыстории: гранты"
-require "frontend/src/features/characters/BackgroundSetupDialog.tsx" "предыстории: попап"
-require "backend/data/backgrounds/phb2014_background_catalog_spec.json" "предыстории: каталог"
+missing = 0
+for kind, path, pattern, label in rows:
+    full = root / path
+    why = label or path
+    if kind == "exists":
+        if full.exists():
+            print(f"ok: {path}")
+        else:
+            print(f"MISSING: {path}  ({why})", file=sys.stderr)
+            missing = 1
+    elif kind == "grep":
+        if not full.is_file():
+            print(f"MISSING: {path}  ({why})", file=sys.stderr)
+            missing = 1
+            continue
+        body = full.read_text(encoding="utf-8", errors="replace")
+        if re.search(pattern, body):
+            print(f"ok: {path} ~ {pattern}")
+        else:
+            print(f"FAIL: {path} missing /{pattern}/  ({why})", file=sys.stderr)
+            missing = 1
+    else:
+        print(f"FAIL: unknown lock kind {kind!r} for {path}", file=sys.stderr)
+        missing = 1
 
-require "frontend/src/pages/ClassicSheetPage.tsx" "classic 2014"
-require "frontend/src/features/classicSheet/ClassicPrintSheet.tsx" "classic sheet UI"
-require "frontend/src/features/classicSheet/ClassicBackgroundPicker.tsx" "classic: предыстории"
-
-require "backend/app/api/routers/catalog.py" "справочник API"
-
-# Mobile play-desk tip (phone density + boot) — must survive every deploy
-require "frontend/src/features/characters/CombatStickyHeader.tsx" "mobile sticky header"
-require_grep "frontend/index.html" 'id="boot"' "mobile anti-blank boot splash"
-require_grep "frontend/src/features/characters/MinimalSheetEditor.tsx" 'play-desk__body--mobile' "mobile one-panel body"
-require_grep "frontend/src/index.css" 'spell-card__combat' "mobile spell density"
-require_grep "frontend/src/index.css" 'attack-card__combat' "mobile attack density"
-require_grep "frontend/src/index.css" 'inventory-card__combat' "mobile inventory density"
-
-# Desktop play-desk catch-up — must not be wiped by a mobile-only tip deploy
-require "frontend/src/features/characters/PlayDeskHeader.tsx" "desktop desk header"
-require "frontend/src/features/characters/PlayDeskHotBar.tsx" "desktop hot bar"
-require "frontend/src/features/characters/PlayDeskAttacksCompact.tsx" "desktop attacks compact"
-require "frontend/src/features/characters/deskRolls.ts" "desktop native rolls"
-require_grep "frontend/src/features/characters/playDeskUi.ts" 'desk_split|deskSplit' "desktop split ui key"
-require_grep "frontend/src/features/characters/MinimalSheetEditor.tsx" 'PlayDeskHotBar' "desktop hot bar wired"
+print(f"feature locks checked: {len(rows)}")
+sys.exit(missing)
+PY
+fi
+echo
 
 # Spot-check: digital sheet must not still say multiclass is backlog-only
 if grep -q 'Мультикласс — в backlog; пока один класс' \
@@ -162,7 +183,8 @@ PREFLIGHT FAILED.
   1) git fetch origin <prod-tip>     # tip в deploy/prod-tip и AGENTS.md
   2) git merge origin/<prod-tip>     # НЕ параллельная «тонкая» ветка
   3) разрешить конфликты, сохранив И mobile, И desktop catch-up
-  4) снова ./deploy/preflight-prod.sh
+  4) добавить/починить маркеры в docs/FEATURE_LOCK.md
+  5) снова ./deploy/preflight-prod.sh
 
 Обход только с явного ok Игоря:
   DVARF_SKIP_PREFLIGHT=1 ./deploy/sync-and-up.sh
@@ -170,4 +192,4 @@ EOF
   exit 1
 fi
 
-echo "PREFLIGHT OK — tree contains prod tip + full lineage markers."
+echo "PREFLIGHT OK — tree contains prod tip + FEATURE_LOCK markers."

@@ -31,27 +31,29 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/mobile-play-desk-2c91
+cursor/play-desk-merge-mobile-e788
 ```
 
 Дублируется в [`deploy/prod-tip`](../../../deploy/prod-tip).  
+Реестр маркеров: [`docs/FEATURE_LOCK.md`](../../../docs/FEATURE_LOCK.md) — preflight парсит «Machine locks».  
 URL: http://201.34.132.252/
 
-Обновляй **все** tip-строки (включая `deploy/prod-tip`), когда tip сменился после твоего деплоя.
+Обновляй **все** tip-строки (включая `deploy/prod-tip`), когда tip сменился после твоего деплоя.  
+Новый неубиваемый контур на проде → строка в FEATURE_LOCK в том же PR.
 
 ## Как начать слайс, который может попасть на прод
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-acbe origin/cursor/mobile-play-desk-2c91
-# если tip уже другой — подставь актуальный из AGENTS.md / этого skill
+git checkout -b cursor/<descriptive>-acbe origin/cursor/play-desk-merge-mobile-e788
+# если tip уже другой — подставь актуальный из deploy/prod-tip / AGENTS.md
 ```
 
 Если ветка уже есть и отстала:
 
 ```bash
 git fetch origin
-git merge origin/cursor/mobile-play-desk-2c91
+git merge origin/cursor/play-desk-merge-mobile-e788
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```
@@ -60,21 +62,9 @@ git merge origin/cursor/mobile-play-desk-2c91
 Скрипт `deploy/preflight-prod.sh` проверяет:
 
 1. **Tip ancestry** — `HEAD` содержит tip из `deploy/prod-tip`.
-2. **Файлы/строки** контуров на проде:
+2. **Machine locks** из [`docs/FEATURE_LOCK.md`](../../../docs/FEATURE_LOCK.md) (exists/grep строки таблицы).
 
-| Контур | Маркер |
-|--------|--------|
-| Tip file | `deploy/prod-tip` |
-| Лобби | `frontend/src/pages/JoinLobbyPage.tsx`, `backend/app/api/routers/lobbies.py` |
-| Кабинет / SMTP | `frontend/src/features/cabinet/SessionsPanel.tsx`, `backend/app/services/mail.py` |
-| Аватар | `frontend/src/features/cabinet/AvatarEditor.tsx`, `backend/app/services/avatar.py` |
-| Лист P1–P6 | `raceEffects.ts`, `LevelUpDialog.tsx`, `casterProgression.ts`, `armor.ts`, `LanguagesToolsPanel.tsx`, `concentration.ts` |
-| Classic | `frontend/src/pages/ClassicSheetPage.tsx` |
-| Mobile play-desk | `CombatStickyHeader.tsx`, `id="boot"`, `play-desk__body--mobile`, `*-card__combat` в CSS |
-| Desktop play-desk | `PlayDeskHeader.tsx`, `PlayDeskHotBar.tsx`, `PlayDeskAttacksCompact.tsx`, `deskRolls.ts`, `desk_split` |
-| Статус | `PRODUCT_STATUS.md` |
-
-Если добавляешь новый «неубиваемый» контур на прод — **добавь маркер в preflight** в том же PR.
+Если добавляешь новый «неубиваемый» контур на прод — **добавь строку в FEATURE_LOCK** в том же PR (не только в PRODUCT_STATUS).
 
 ## После деплоя (обязательно)
 
