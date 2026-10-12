@@ -576,6 +576,16 @@
 
 На проде: **нет** · ветка `cursor/social-texts-a73e` · ждать merge/деплой
 
+### 2026-10-12 — Wave A header: desk icons + vitals
+
+| Что | Как |
+|-----|-----|
+| Icons-first | line-иконки КД/Скор/Иниц/БМ/монеты/отдых/вдохн (`deskIcons.tsx`) |
+| Шапка | имя в accent serif; vitals с иконкой; coin/rest pills |
+| Кит | доска `dvarf-ui-kit-desk-icons.jpg` |
+
+На проде: **нет** · ветка `cursor/wave-a-listva-a73e`
+
 ### 2026-10-12 — Wave A rail candy LOCK
 
 Левый блок характеристик доведён до кита A и **зафиксирован**:
