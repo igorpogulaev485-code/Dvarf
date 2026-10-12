@@ -225,11 +225,10 @@ import {
 } from './deskRolls'
 import {
   MODE_DEFAULT_PANEL,
-  MODE_EXTRA_PANELS,
   MODE_HINT,
-  MODE_SCENE_PANELS,
+  MODE_LABELS,
+  MODE_MORE_PANELS,
   MODE_SKILL_KEYS,
-  PLAY_DESK_PANELS,
   panelLabel,
   readSheetUi,
   sheetUiToPatch,
@@ -2875,8 +2874,12 @@ export function MinimalSheetEditor({
   }
 
   function setDeskMode(mode: PlayDeskMode) {
-    patchSheetUi({ deskMode: mode })
-    setActivePanel(MODE_DEFAULT_PANEL[mode])
+    const nextPanel = MODE_DEFAULT_PANEL[mode]
+    // Combat keeps attacks+spells side by side; dump/feature scenes stay single-pane.
+    const nextSplit =
+      mode === 'combat' ? true : mode === 'more' || mode === 'features' ? false : draft.sheetUi.deskSplit
+    patchSheetUi({ deskMode: mode, deskSplit: nextSplit })
+    setActivePanel(nextPanel)
     setForceFullPanel(null)
   }
 
@@ -2922,11 +2925,11 @@ export function MinimalSheetEditor({
     return resolveRollMode(deskRollMode, forced)
   }
 
-  const scenePanels = MODE_SCENE_PANELS[draft.sheetUi.deskMode]
-  const scenePanelSet = new Set(scenePanels)
-
   const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
-  const splitSecondary = deskSplit ? splitSecondaryPanel(activePanel) : null
+  const splitSecondary =
+    deskSplit && draft.sheetUi.deskMode === 'combat'
+      ? splitSecondaryPanel(activePanel)
+      : null
 
   function stageHidden(id: PlayDeskPanelId): boolean {
     if (!isPlayDesk) return false
@@ -3272,14 +3275,7 @@ export function MinimalSheetEditor({
         <div className="play-desk__stage">
           {isPlayDesk ? (
             <div className="play-desk__modes">
-              {(
-                [
-                  ['combat', 'Бой'],
-                  ['explore', 'Исследование'],
-                  ['social', 'Общение'],
-                  ['companions', 'Напарники'],
-                ] as const
-              ).map(([mode, label]) => (
+              {MODE_LABELS.map(({ id: mode, label }) => (
                 <button
                   key={mode}
                   type="button"
@@ -3314,59 +3310,46 @@ export function MinimalSheetEditor({
                   </button>
                 ))}
               </div>
-              <select
-                className="play-desk__panel-pick"
-                aria-label="Панель"
-                value={activePanel}
-                onChange={(event) => {
-                  setActivePanel(event.target.value as PlayDeskPanelId)
-                  setForceFullPanel(null)
-                }}
-              >
-                <optgroup label="Сцена">
-                  {scenePanels.map((id) => (
-                    <option key={id} value={id}>
-                      {panelLabel(id)}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Ещё">
-                  {MODE_EXTRA_PANELS.map((id) => (
-                    <option key={id} value={id}>
-                      {panelLabel(id)}
-                    </option>
-                  ))}
-                  {/* Keep current value selectable if it somehow falls outside lists */}
-                  {!scenePanelSet.has(activePanel) &&
-                  !MODE_EXTRA_PANELS.includes(activePanel)
-                    ? PLAY_DESK_PANELS.filter((panel) => panel.id === activePanel).map(
-                        (panel) => (
-                          <option key={panel.id} value={panel.id}>
-                            {panel.label}
-                          </option>
-                        ),
-                      )
-                    : null}
-                </optgroup>
-              </select>
-              <button
-                type="button"
-                className={`play-desk__split-btn${deskSplit ? ' is-on' : ''}`}
-                aria-pressed={deskSplit}
-                title={
-                  deskSplit
-                    ? 'Снять split — одна панель'
-                    : 'Split — основная панель + заклинания рядом'
-                }
-                onClick={() => patchSheetUi({ deskSplit: !draft.sheetUi.deskSplit })}
-              >
-                {deskSplit ? 'снять split' : 'Split'}
-              </button>
+              {draft.sheetUi.deskMode === 'combat' ? (
+                <button
+                  type="button"
+                  className={`play-desk__split-btn${deskSplit ? ' is-on' : ''}`}
+                  aria-pressed={deskSplit}
+                  title={
+                    deskSplit
+                      ? 'Снять split — одна панель'
+                      : 'Split — атаки + заклинания рядом'
+                  }
+                  onClick={() => patchSheetUi({ deskSplit: !draft.sheetUi.deskSplit })}
+                >
+                  {deskSplit ? 'снять split' : 'Split'}
+                </button>
+              ) : null}
               <span className="play-desk__mode-hint">{MODE_HINT[draft.sheetUi.deskMode]}</span>
             </div>
           ) : null}
 
-          {isPlayDesk && draft.sheetUi.deskMode === 'combat' ? (
+          {isPlayDesk && draft.sheetUi.deskMode === 'more' ? (
+            <div className="play-desk__more-tabs" role="tablist" aria-label="Разделы ЕЩЁ">
+              {MODE_MORE_PANELS.map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activePanel === id}
+                  className={`play-desk__more-tab${activePanel === id ? ' is-on' : ''}`}
+                  onClick={() => {
+                    setActivePanel(id)
+                    setForceFullPanel(null)
+                  }}
+                >
+                  {panelLabel(id)}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          {isPlayDesk && draft.sheetUi.deskMode !== 'more' ? (
             <PlayDeskHotBar
               conditionNames={hotConditionNames}
               concentration={draft.play.concentration}

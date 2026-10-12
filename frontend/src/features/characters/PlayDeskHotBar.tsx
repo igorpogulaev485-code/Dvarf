@@ -33,7 +33,7 @@ export function PlayDeskHotBar({
             Концентрация: <strong>{concentration.name}</strong>
             {onClearConcentration ? (
               <button type="button" className="linkish" onClick={onClearConcentration}>
-                снять
+                Снять
               </button>
             ) : null}
           </>
