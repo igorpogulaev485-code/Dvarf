@@ -4031,6 +4031,25 @@ export function MinimalSheetEditor({
           onOpenFull={() => setForceFullPanel('attacks')}
           onToast={onToast}
           onSpendResource={spendResourceOrOpenSorcery}
+          onSpendConsumable={(itemId) => {
+            const item = draft.inventory.items.find((row) => row.id === itemId)
+            if (!item || (item.qty ?? 0) <= 0) return
+            const nextQty = Math.max(0, (item.qty ?? 0) - 1)
+            setDraft((prev) => ({
+              ...prev,
+              inventory: {
+                ...prev.inventory,
+                items: prev.inventory.items.map((row) =>
+                  row.id === itemId ? { ...row, qty: Math.max(0, (row.qty ?? 0) - 1) } : row,
+                ),
+              },
+            }))
+            onToast(
+              nextQty > 0
+                ? `−1 «${item.name}» · осталось ${nextQty}`
+                : `−1 «${item.name}» · кончилось`,
+            )
+          }}
           onToggleHeld={(attack) => {
             if (!attack.inventory_item_id) return
             setDraft((prev) => {

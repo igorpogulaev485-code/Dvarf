@@ -17,6 +17,8 @@ type PlayDeskAttacksCompactProps = {
   inventoryItems: InventoryItem[]
   onToggleHeld?: (attack: WeaponAttack) => void
   onSpendResource?: (id: string) => void
+  /** Spend 1 from inventory qty (ammo, potions, …). */
+  onSpendConsumable?: (itemId: string) => void
   onToast?: (message: string) => void
   onOpenFull: () => void
   rollMode?: DeskRollMode
@@ -34,6 +36,7 @@ export function PlayDeskAttacksCompact({
   inventoryItems,
   onToggleHeld,
   onSpendResource,
+  onSpendConsumable,
   onToast,
   onOpenFull,
   rollMode = 'normal',
@@ -145,17 +148,30 @@ export function PlayDeskAttacksCompact({
       {consumables.length > 0 ? (
         <div className="play-desk-compact__consumables">
           <div className="play-desk-compact__subhead">Расходники</div>
-          {consumables.slice(0, 6).map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="play-desk-compact__cons-row is-action"
-              onClick={() => onToast?.(`${item.name}: ×${item.qty ?? 0}`)}
-            >
-              <span>{item.name}</span>
-              <b>{item.qty ?? 0}</b>
-            </button>
-          ))}
+          {consumables.slice(0, 6).map((item) => {
+            const qty = item.qty ?? 0
+            const canSpend = Boolean(onSpendConsumable) && qty > 0
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className="play-desk-compact__cons-row is-action"
+                disabled={!canSpend}
+                title={canSpend ? `Потратить 1 «${item.name}»` : item.name}
+                onClick={() => {
+                  if (!canSpend) {
+                    onToast?.(`${item.name}: ×${qty}`)
+                    return
+                  }
+                  onSpendConsumable?.(item.id)
+                }}
+              >
+                <span>{item.name}</span>
+                <b>{qty}</b>
+                <span className="play-desk-compact__cons-spend">потратить</span>
+              </button>
+            )
+          })}
         </div>
       ) : null}
     </div>

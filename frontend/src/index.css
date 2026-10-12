@@ -3993,8 +3993,9 @@ button.play-desk-vital {
 }
 
 .play-desk-compact__cons-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
   gap: 8px;
   font-size: 0.82rem;
   padding: 4px 8px;
@@ -4005,6 +4006,18 @@ button.play-desk-vital {
   color: inherit;
   width: 100%;
   text-align: left;
+  cursor: pointer;
+}
+
+.play-desk-compact__cons-row:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.play-desk-compact__cons-spend {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--desk-accent);
 }
 
 @media (max-width: 1100px) {
