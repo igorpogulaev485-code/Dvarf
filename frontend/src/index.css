@@ -5523,7 +5523,7 @@ button.play-desk-vital:hover {
   text-align: left;
 }
 
-/* Spell compact card: name + key meta; flags = icon-only (no «готово») */
+/* Spell compact card: name + key meta; flags = icon + abbr (конц./ритуал) */
 .play-desk-compact__row.is-spell {
   display: grid;
   grid-template-columns: 1fr;
