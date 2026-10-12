@@ -1133,3 +1133,4 @@
 | 2026-10-11 | `cursor/mobile-load-perf-2c91` · PR #106 | Mobile anti-blank залит на Timeweb; tip → эта ветка; Cache-Control no-cache на HTML + boot splash; play-desk на месте |
 | 2026-10-11 | `cursor/mobile-load-perf-2c91` · PR #106 | Mobile+VPN MTU/MSS (`apply-vpn-mtu.sh`) + boot timeout → заливка/проверка |
 | 2026-10-12 | `cursor/mobile-play-desk-2c91` · PR #108 | Mobile play-desk 1+2a–2d залит на Timeweb; tip → эта ветка; режимы+плотность панелей на телефоне; anti-blank/VPN MTU на месте |
+| 2026-10-12 | `cursor/create-inline-detail-2c91` | Создание mobile: деталь под выбранной карточкой → «В ветках» |
