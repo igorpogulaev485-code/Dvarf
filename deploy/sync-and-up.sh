@@ -44,6 +44,40 @@ if [[ ! -f "$KEY" ]]; then
   exit 1
 fi
 
+# Prebuild SPA on the agent (good network/CPU). VPS only packs nginx+dist.
+# Skip with DVARF_SKIP_FRONTEND_BUILD=1 if frontend/dist is already fresh.
+# Emergency full in-Docker build on VPS: DVARF_FRONTEND_DOCKERFILE=Dockerfile.full
+prebuild_frontend() {
+  if [[ "${DVARF_FRONTEND_DOCKERFILE:-Dockerfile}" == "Dockerfile.full" ]]; then
+    echo "prebuild: skipped (Dockerfile.full — build on VPS)"
+    return 0
+  fi
+  if [[ "${DVARF_SKIP_FRONTEND_BUILD:-}" == "1" ]]; then
+    if [[ ! -f "$ROOT/frontend/dist/index.html" ]]; then
+      echo "DVARF_SKIP_FRONTEND_BUILD=1 but frontend/dist/index.html missing" >&2
+      exit 1
+    fi
+    echo "prebuild: using existing frontend/dist"
+    return 0
+  fi
+  if ! command -v npm >/dev/null 2>&1; then
+    echo "npm not found — cannot prebuild frontend. Install Node or set DVARF_FRONTEND_DOCKERFILE=Dockerfile.full" >&2
+    exit 1
+  fi
+  echo "prebuild: npm ci + npm run build (frontend)"
+  (
+    cd "$ROOT/frontend"
+    npm ci
+    npm run build
+  )
+  [[ -f "$ROOT/frontend/dist/index.html" ]] || {
+    echo "frontend build produced no dist/index.html" >&2
+    exit 1
+  }
+}
+
+prebuild_frontend
+
 SSH=(ssh -i "$KEY" -o BatchMode=yes -o StrictHostKeyChecking=accept-new)
 SCP=(scp -i "$KEY" -o BatchMode=yes -o StrictHostKeyChecking=accept-new)
 
@@ -51,10 +85,10 @@ TMP_TGZ="$(mktemp /tmp/dvarf-deploy.XXXXXX.tgz)"
 cleanup() { rm -f "$TMP_TGZ"; }
 trap cleanup EXIT
 
+# Include frontend/dist (prebuilt). Still exclude node_modules / .git / local .env.
 tar czf "$TMP_TGZ" -C "$ROOT" \
   --exclude='.git' \
   --exclude='frontend/node_modules' \
-  --exclude='frontend/dist' \
   --exclude='backend/.venv' \
   --exclude='.env' \
   --exclude='*.pyc' \
@@ -63,7 +97,14 @@ tar czf "$TMP_TGZ" -C "$ROOT" \
 
 "${SCP[@]}" "$TMP_TGZ" "root@${HOST}:/tmp/dvarf-deploy.tgz"
 
-"${SSH[@]}" "root@${HOST}" bash -s <<EOF
+# Pass through optional knobs to the remote script.
+REMOTE_ENV=(
+  "DVARF_REMOTE_DIR=${REMOTE_DIR}"
+  "DVARF_BUILD_TIMEOUT=${DVARF_BUILD_TIMEOUT:-480}"
+  "DVARF_FRONTEND_DOCKERFILE=${DVARF_FRONTEND_DOCKERFILE:-Dockerfile}"
+)
+
+"${SSH[@]}" "root@${HOST}" env "${REMOTE_ENV[@]}" bash -s <<EOF
 set -euo pipefail
 mkdir -p ${REMOTE_DIR}
 if [[ -f ${REMOTE_DIR}/.env ]]; then
@@ -76,18 +117,8 @@ if [[ -f /tmp/dvarf.env.bak ]]; then
   mv /tmp/dvarf.env.bak ${REMOTE_DIR}/.env
   chmod 600 ${REMOTE_DIR}/.env
 fi
-cd ${REMOTE_DIR}
-docker compose -f docker-compose.prod.yml --env-file .env up -d --build
-# nginx/api may need a moment after recreate
-for i in 1 2 3 4 5 6 7 8 9 10; do
-  if curl -fsS http://127.0.0.1/health; then
-    echo
-    exit 0
-  fi
-  sleep 2
-done
-echo "health check failed" >&2
-exit 1
+chmod +x ${REMOTE_DIR}/deploy/remote-up.sh ${REMOTE_DIR}/deploy/preflight-prod.sh
+bash ${REMOTE_DIR}/deploy/remote-up.sh
 EOF
 
 echo "Deployed: http://${HOST}/"

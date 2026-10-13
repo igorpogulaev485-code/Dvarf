@@ -61,10 +61,28 @@ Secret must include `BEGIN OPENSSH PRIVATE KEY` … `END` (не обрезанн
 What `sync-and-up.sh` does:
 
 1. Runs **preflight** (anti-overwrite markers)
-2. Packs the repo (no `.git`, no `node_modules`, no local `.env`)
-3. Extracts into `/opt/dvarf` while keeping the existing server `.env`
-4. Runs `docker compose -f docker-compose.prod.yml --env-file .env up -d --build`
-5. Curls `http://127.0.0.1/health` on the server (retries briefly)
+2. **Prebuilds** the SPA on the agent (`npm ci && npm run build` → `frontend/dist`)
+3. Packs the repo **including `frontend/dist`** (no `.git`, no `node_modules`, no local `.env`)
+4. Extracts into `/opt/dvarf` while keeping the existing server `.env`
+5. Runs `deploy/remote-up.sh` on the VPS:
+   - rebuilds **only** `api` / `web` when fingerprints change
+   - `docker compose build --pull=false` (no Docker Hub refresh every release)
+   - BuildKit with **480s timeout**, then legacy builder fallback
+   - `up -d --pull never` + `/health` check
+
+Fingerprints live in `/var/lib/dvarf/deploy-fingerprints` (outside the wiped tree).
+
+### Why releases used to take ~1h
+
+Old path: every deploy ran full `docker compose up -d --build` on the VPS (pull `node` + `npm ci` + `tsc` + `pip`, refresh Hub). BuildKit on this host often flakes (`only one connection allowed`); Hub timeouts stacked into hour-long hangs. Agents already worked around it by injecting `dist` by hand.
+
+### Knobs
+
+| Env | Meaning |
+|-----|---------|
+| `DVARF_SKIP_FRONTEND_BUILD=1` | Reuse existing `frontend/dist` (must contain `index.html`) |
+| `DVARF_FRONTEND_DOCKERFILE=Dockerfile.full` | Build SPA inside Docker on the VPS (slow path) |
+| `DVARF_BUILD_TIMEOUT=480` | Max seconds per compose build attempt |
 
 Override host/key if needed:
 
@@ -77,7 +95,9 @@ DVARF_HOST=201.34.132.252 DVARF_SSH_KEY=~/.ssh/dvarf_timeweb ./deploy/sync-and-u
 ```bash
 cd /opt/dvarf
 cp .env.prod.example .env   # fill real secrets once
-docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+# Prefer agent sync-and-up. Manual:
+# 1) copy a prebuilt frontend/dist here, then:
+bash deploy/remote-up.sh
 ```
 
 Migrations run automatically when the API container starts (`alembic upgrade head`).

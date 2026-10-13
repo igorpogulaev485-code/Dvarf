@@ -18,6 +18,7 @@ services:
       - dvarf
 
   api:
+    image: dvarf-api:latest
     build:
       context: ./backend
     container_name: dvarf-api
@@ -54,6 +55,7 @@ services:
       - dvarf
 
   web:
+    image: dvarf-web:latest
     build:
       context: ./frontend
     container_name: dvarf-web
