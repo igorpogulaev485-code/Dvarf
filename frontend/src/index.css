@@ -818,8 +818,14 @@ input {
   font-weight: 700;
 }
 
+/* Explore stage: flat like spells compact — no cream panel plate. */
 .inventory-panel.ui-panel {
-  background: var(--panel);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  backdrop-filter: none;
+  box-shadow: none;
 }
 
 .inventory-panel__toolbar {
@@ -832,7 +838,7 @@ input {
   align-items: center;
   padding: 6px 0 8px;
   margin: 0 0 2px;
-  background: color-mix(in srgb, var(--panel) 96%, white);
+  background: color-mix(in srgb, var(--desk-bg, #fff) 92%, transparent);
   border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
 }
 
@@ -841,7 +847,7 @@ input {
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: color-mix(in srgb, var(--accent-soft) 40%, #fffdf6);
+  background: var(--accent-soft);
   font-size: 0.92rem;
   color: var(--muted);
 }
