@@ -94,9 +94,9 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 
 Доски: [`spells`](boards/dvarf-ui-kit-spells.jpg) · [`spell-icons`](boards/dvarf-ui-kit-spell-icons.jpg)
 
-## 2d. Атаки стола (компакт + настройки)
+## 2d. Атаки стола — LOCK
 
-> Паттерн как у заклинаний (ещё не LOCK — ждать «Идеал»).
+> **LOCK (Wave A attacks):** зафиксировано с Игорем 2026-10-13. Не откатывать без нового согласования.
 
 | Компонент | Правило |
 |-----------|---------|

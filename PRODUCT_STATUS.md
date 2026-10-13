@@ -1279,6 +1279,7 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-13 | `cursor/attacks-settings-dialog-a73e` · PR #127 | Attacks LOCK in ui-kit §2d (Идеал) |
 | 2026-10-13 | `cursor/attacks-settings-dialog-a73e` | Attacks settings dialog (hybrid D): Настройки instead of full panel |
 | 2026-10-13 | `cursor/combat-stage-kit-a73e` · PR #126 | Combat stage kit: attacks compact + smoke hit/hold/spend |
 | 2026-10-06 | `cursor/product-status-log-acbe` | Создан файл + стартовый срез прода |
