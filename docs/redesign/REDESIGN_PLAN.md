@@ -4,6 +4,8 @@
 **Не цель:** ломать формулы, autosave, гранты, API.  
 **Источники:** [`USER_FLOW.md`](../../USER_FLOW.md) · [`PLAY_DESK_MICROFLOWS.md`](../../PLAY_DESK_MICROFLOWS.md) · кейсы K1–K28 · [`docs/ui-kit/`](../ui-kit/) (tip Wave A) · [`docs/figma-flows/`](../figma-flows/).
 
+> **Если ты новичок в дизайне/UX** — начни с простого текста: [`PROSTO.md`](PROSTO.md).
+
 Прод: http://201.34.132.252/ · desk ≥960px + mobile · React + FastAPI.
 
 ---
