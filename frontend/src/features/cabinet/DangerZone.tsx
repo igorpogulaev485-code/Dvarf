@@ -38,6 +38,7 @@ export function DangerZone({ user, onDeleted }: DangerZoneProps) {
     try {
       await deleteAccount(confirmEmail.trim(), hasPassword ? password : null)
       clearTokens()
+      clearCachedAppearance()
       onDeleted()
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось удалить аккаунт')

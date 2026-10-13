@@ -842,6 +842,16 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 
 На проде: **да** · tip `cursor/desk-vitals-wave-a73e` · PR #118 · проверено 2026-10-12: API down → `Content-Type: application/json` + `api_unavailable`; бандл `client-C72apPWM.js` («временно недоступен»); dist→web + nginx hot-patch
 
+### 2026-10-13 — Wave A→B: стол + список + кабинет (тема)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Стол Wave A | Владения-drawer, аттунмент из инвентаря, Основное по аватарке, hot-bar icons, каст→конц. | Единый кит на play desk |
+| Список персонажей | Glance-карточки, размер Большие/Средние/Компактные, теги+фильтр, ⋯ классический/удалить | Удобнее вести кампании |
+| Кабинет · Оформление | 6 цветов темы + режим характеристик (уникальные / цвет темы) | Угодить и «кайф», и «ребит в глазах» |
+
+На проде: **да** · это **новый prod tip** `cursor/cabinet-theme-a73e` · PR #141 (цепочка #114…#141) · проверено 2026-10-13: `/health` ok; Hub timeout → dist→web + API code sync; миграция `a6b7` (`theme_id`/`ability_colors`); бандл `CabinetPage-2cQnOPcJ.js` («Оформление») / `CharacterDetailPage-Btt2TPDe.js` / CSS `index-D9wEk362.css` (`cabinet-theme-grid`, `character-grid--compact`); контуры лобби/classic на месте
+
 ### 2026-10-12 — Play desk: догон макета (hot bar + split + визуал)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -1444,3 +1454,4 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Hotfix: состояния/конц./смерть/монеты/XP/attune; Hub timeout → dist→web; `/health` ok; бандл `CharacterDetailPage-DkjzP6Xq.js` / CSS `index-CBcwe-E-.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Шапка: лаз./плав./полёт под скоростью; dist→web; `/health` ok; бандл `CharacterDetailPage-Cwy-1nPy.js` / CSS `index-RHvyfqLk.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | 502→JSON + client retry; VPS reboot после hung Docker; `/health` ok; бандл `client-C72apPWM.js` |
+| 2026-10-13 | `cursor/cabinet-theme-a73e` · PR #141 | Wave A стол + список + кабинет тема/ability colors; **новый tip**; Hub timeout → dist→web; `/health` ok; `CabinetPage-2cQnOPcJ.js` / `CharacterDetailPage-Btt2TPDe.js` / CSS `index-D9wEk362.css` |
