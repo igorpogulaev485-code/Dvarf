@@ -390,12 +390,12 @@ export function RaceSetupDialog({
               {!subraceRequired ? (
                 <button
                   type="button"
-                  className={`sheet-chip${subraceKey === SKIP_SUBRACE ? ' is-on' : ''}`}
-                  style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                  className={`sheet-chip sheet-chip--block${subraceKey === SKIP_SUBRACE ? ' is-on' : ''}`}
+                  aria-pressed={subraceKey === SKIP_SUBRACE}
                   onClick={() => setSubraceKey(SKIP_SUBRACE)}
                 >
-                  <strong>Без подрасы</strong>
-                  <div style={{ opacity: 0.85, fontWeight: 400 }}>
+                  <strong className="sheet-chip__title">Без подрасы</strong>
+                  <div className="sheet-chip__meta">
                     Оставить базовую «{root.name_ru}»
                   </div>
                 </button>
@@ -412,27 +412,16 @@ export function RaceSetupDialog({
                   <button
                     key={row.id}
                     type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                    className={`sheet-chip sheet-chip--block${on ? ' is-on' : ''}`}
+                    aria-pressed={on}
                     onClick={() => setSubraceKey(row.id)}
                   >
-                    <span
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        gap: 12,
-                        alignItems: 'baseline',
-                      }}
-                    >
-                      <strong>{row.name_ru}</strong>
-                      {source ? (
-                        <span style={{ opacity: 0.65, fontWeight: 600, fontSize: '0.85em' }}>
-                          {source}
-                        </span>
-                      ) : null}
+                    <span className="sheet-chip__row">
+                      <strong className="sheet-chip__title">{row.name_ru}</strong>
+                      {source ? <span className="sheet-chip__source">{source}</span> : null}
                     </span>
                     {typeof row.data.traits_text === 'string' && row.data.traits_text.trim() ? (
-                      <div style={{ opacity: 0.85, fontWeight: 400 }}>
+                      <div className="sheet-chip__meta">
                         {String(row.data.traits_text).slice(0, 120)}
                         {String(row.data.traits_text).length > 120 ? '…' : ''}
                       </div>
@@ -479,8 +468,8 @@ export function RaceSetupDialog({
                       <button
                         key={row.id}
                         type="button"
-                        className={`sheet-chip${on ? ' is-on' : ''}`}
-                        style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                        className={`sheet-chip sheet-chip--block${on ? ' is-on' : ''}`}
+                        aria-pressed={on}
                         onClick={() => setVariableTraitId(row.id)}
                       >
                         {row.labelRu}
@@ -517,8 +506,8 @@ export function RaceSetupDialog({
                           <button
                             key={mode.id}
                             type="button"
-                            className={`sheet-chip${on ? ' is-on' : ''}`}
-                            style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                            className={`sheet-chip sheet-chip--block${on ? ' is-on' : ''}`}
+                            aria-pressed={on}
                             onClick={() => selectAsiMode(mode.id)}
                           >
                             {mode.labelRu}
@@ -640,12 +629,12 @@ export function RaceSetupDialog({
                       <button
                         key={row.id}
                         type="button"
-                        className={`sheet-chip${on ? ' is-on' : ''}`}
-                        style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                        className={`sheet-chip sheet-chip--block${on ? ' is-on' : ''}`}
+                        aria-pressed={on}
                         onClick={() => setAncestryId(row.id)}
                       >
-                        <strong>{row.labelRu}</strong>
-                        <div style={{ opacity: 0.85, fontWeight: 400 }}>
+                        <strong className="sheet-chip__title">{row.labelRu}</strong>
+                        <div className="sheet-chip__meta">
                           {row.damage} · дыхание {row.breath}
                         </div>
                       </button>

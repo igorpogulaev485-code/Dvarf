@@ -106,7 +106,52 @@ export function applyPointBuyByPriority(
   return applyStandardArrayByPriority(classSlug)
 }
 
-export type AbilityMethod = 'manual' | 'standard_array' | 'point_buy'
+export type AbilityMethod = 'manual' | 'standard_array' | 'point_buy' | 'roll'
+
+/** One ability roll: 4d6, drop the lowest die. */
+export type AbilityRollDetail = {
+  dice: [number, number, number, number]
+  dropped: number
+  total: number
+}
+
+function d6(): number {
+  return 1 + Math.floor(Math.random() * 6)
+}
+
+/** PHB optional: roll 4d6, discard the lowest. */
+export function roll4d6DropLowest(): AbilityRollDetail {
+  const dice: [number, number, number, number] = [d6(), d6(), d6(), d6()]
+  let dropIndex = 0
+  for (let i = 1; i < 4; i += 1) {
+    if (dice[i]! < dice[dropIndex]!) dropIndex = i
+  }
+  const dropped = dice[dropIndex]!
+  const total = dice.reduce((sum, n, i) => (i === dropIndex ? sum : sum + n), 0)
+  return { dice, dropped, total }
+}
+
+export function rollAllAbilities(): {
+  scores: AbilityScores
+  details: Record<AbilityKey, AbilityRollDetail>
+} {
+  const scores = emptyBaseScores(0)
+  const details = {} as Record<AbilityKey, AbilityRollDetail>
+  for (const key of ABILITY_ORDER) {
+    const detail = roll4d6DropLowest()
+    scores[key] = detail.total
+    details[key] = detail
+  }
+  return { scores, details }
+}
+
+/** Rolled scores are valid when each is a finite 3–18 (min/max of 4d6dl1). */
+export function isRollScoresValid(scores: AbilityScores): boolean {
+  return ABILITY_ORDER.every((key) => {
+    const v = scores[key]
+    return Number.isFinite(v) && v >= 3 && v <= 18
+  })
+}
 
 export function mergeRacialBonuses(
   base: AbilityScores,
