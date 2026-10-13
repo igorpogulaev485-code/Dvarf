@@ -4086,11 +4086,6 @@ button.spell-card__cast:hover:not(:disabled) {
 }
 
 @media (min-width: 640px) {
-  .text-block__header {
-    grid-template-columns: 1fr auto;
-    align-items: end;
-  }
-
   .text-block__resource-grid {
     grid-template-columns: 1fr 100px;
   }
