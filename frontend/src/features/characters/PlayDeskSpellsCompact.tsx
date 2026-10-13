@@ -39,7 +39,8 @@ type PlayDeskSpellsCompactProps = {
   concentration?: ConcentrationState | null
   /** Rules edition for catalog description lookup in detail dialog. */
   edition?: RulesEdition
-  onOpenFull: () => void
+  /** Open caster setup (slots / grimoire / advanced) — replaces full panel. */
+  onOpenSettings: () => void
   onClearSplit?: () => void
   /** Patch spells (prepare dialog). */
   onSpellsChange?: (spells: SpellsState) => void
@@ -61,7 +62,7 @@ export function PlayDeskSpellsCompact({
   pinned = false,
   concentration = null,
   edition = '2014',
-  onOpenFull,
+  onOpenSettings,
   onClearSplit,
   onSpellsChange,
   onSlotUsedChange,
@@ -142,8 +143,12 @@ export function PlayDeskSpellsCompact({
               без заклинаний
             </button>
           ) : null}
-          <button type="button" className="play-desk-compact__link" onClick={onOpenFull}>
-            полностью
+          <button
+            type="button"
+            className="play-desk-compact__link play-desk-compact__link--settings"
+            onClick={onOpenSettings}
+          >
+            Настройки
           </button>
         </div>
       </div>

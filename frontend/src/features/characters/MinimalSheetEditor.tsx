@@ -183,6 +183,8 @@ import {
 import { clampCharacterLevel, xpToReachLevel } from '../../shared/dnd/experience'
 import { withSyncedHitDiceSummary } from './play'
 import { SpellsPanel } from './SpellsPanel'
+import { SpellsSettingsDialog } from './SpellsSettingsDialog'
+import { useSpellcastingSheetSync } from './useSpellcastingSheetSync'
 import {
   desiredResourcesFromFeatures,
   syncFeatureResources,
@@ -2872,6 +2874,8 @@ export function MinimalSheetEditor({
   const [hotConditionsOpen, setHotConditionsOpen] = useState(false)
   /** Compact play-desk cast (dialog), not the full spells editor. */
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
+  /** Play-desk spells setup (replaces force-full SpellsPanel). */
+  const [spellsSettingsOpen, setSpellsSettingsOpen] = useState(false)
   const [deskCastPending, setDeskCastPending] = useState<{
     spell: SheetSpell
     choice: CastChoice
@@ -3115,6 +3119,8 @@ export function MinimalSheetEditor({
   }
 
   function showCompact(id: PlayDeskCompactPanelId): boolean {
+    // Spells: compact is the only play surface; setup lives in SpellsSettingsDialog.
+    if (id === 'spells') return isPlayDesk
     return isPlayDesk && forceFullPanel !== id
   }
 
@@ -3211,6 +3217,19 @@ export function MinimalSheetEditor({
       abilityModFor: (ability) => abilityModifier(draft.abilities[ability]),
     })
   }, [draft.classes, subclassCastersForSpells, draft.abilities])
+
+  const spellcastingSync = useSpellcastingSheetSync({
+    enabled: isPlayDesk,
+    className: classSummary || primaryClass?.name || '',
+    level: characterLevel,
+    classes: draft.classes,
+    subclassCasters: subclassCastersForSpells,
+    spells: draft.spells,
+    abilities: draft.abilities,
+    proficiencyBonus,
+    onChange: (spells) => setDraft((prev) => ({ ...prev, spells })),
+    onToast,
+  })
 
   const sorcererMetamagicIds = useMemo(() => {
     const ids: string[] = []
@@ -4496,97 +4515,103 @@ export function MinimalSheetEditor({
         hidden={stageHidden('spells')}
       >
       {showCompact('spells') ? (
-        <PlayDeskSpellsCompact
-          spells={draft.spells}
-          abilities={draft.abilities}
-          proficiencyBonus={proficiencyBonus}
-          learnBudget={spellLearnBudget}
-          pinned={deskSplit && splitSecondary === 'spells'}
-          concentration={draft.play.concentration}
-          edition={rulesEdition}
-          onOpenFull={() => setForceFullPanel('spells')}
-          onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
-          onCastSpell={(spell) => setDeskCastSpell(spell)}
-          onConcentrateSpell={(spell) => setDeskCastSpell(spell)}
-          onClearSplit={
-            deskSplit && splitSecondary === 'spells'
-              ? () => patchSheetUi({ deskSplit: false })
-              : undefined
-          }
-          onSlotUsedChange={(level, used) => {
-            const key = String(level)
-            setDraft((prev) => {
-              const slot = prev.spells.slots[key] ?? { max: 0, used: 0 }
-              const nextUsed = Math.min(slot.max, Math.max(0, used))
-              if (nextUsed === slot.used) return prev
-              return {
-                ...prev,
-                spells: {
-                  ...prev.spells,
-                  slots: {
-                    ...prev.spells.slots,
-                    [key]: { ...slot, used: nextUsed },
-                  },
-                },
-              }
-            })
-          }}
-          onPactUsedChange={(used) => {
-            setDraft((prev) => {
-              const pact = prev.spells.pact_slots
-              if (!pact) return prev
-              const nextUsed = Math.min(pact.max, Math.max(0, used))
-              if (nextUsed === pact.used) return prev
-              return {
-                ...prev,
-                spells: {
-                  ...prev.spells,
-                  pact_slots: { ...pact, used: nextUsed },
-                },
-              }
-            })
-          }}
-        />
-      ) : (
         <>
-          {isPlayDesk ? (
-            <button
-              type="button"
-              className="play-desk-compact__link play-desk-compact__link--bar"
-              onClick={() => setForceFullPanel(null)}
-            >
-              ← компактно
-            </button>
-          ) : null}
-          <SpellsPanel
-            edition={baseCharacter.rules_edition as RulesEdition}
+          <PlayDeskSpellsCompact
+            spells={draft.spells}
+            abilities={draft.abilities}
+            proficiencyBonus={proficiencyBonus}
+            learnBudget={spellLearnBudget}
+            pinned={deskSplit && splitSecondary === 'spells'}
+            concentration={draft.play.concentration}
+            edition={rulesEdition}
+            onOpenSettings={() => setSpellsSettingsOpen(true)}
+            onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+            onCastSpell={(spell) => setDeskCastSpell(spell)}
+            onConcentrateSpell={(spell) => setDeskCastSpell(spell)}
+            onClearSplit={
+              deskSplit && splitSecondary === 'spells'
+                ? () => patchSheetUi({ deskSplit: false })
+                : undefined
+            }
+            onSlotUsedChange={(level, used) => {
+              const key = String(level)
+              setDraft((prev) => {
+                const slot = prev.spells.slots[key] ?? { max: 0, used: 0 }
+                const nextUsed = Math.min(slot.max, Math.max(0, used))
+                if (nextUsed === slot.used) return prev
+                return {
+                  ...prev,
+                  spells: {
+                    ...prev.spells,
+                    slots: {
+                      ...prev.spells.slots,
+                      [key]: { ...slot, used: nextUsed },
+                    },
+                  },
+                }
+              })
+            }}
+            onPactUsedChange={(used) => {
+              setDraft((prev) => {
+                const pact = prev.spells.pact_slots
+                if (!pact) return prev
+                const nextUsed = Math.min(pact.max, Math.max(0, used))
+                if (nextUsed === pact.used) return prev
+                return {
+                  ...prev,
+                  spells: {
+                    ...prev.spells,
+                    pact_slots: { ...pact, used: nextUsed },
+                  },
+                }
+              })
+            }}
+          />
+          <SpellsSettingsDialog
+            open={spellsSettingsOpen}
+            edition={rulesEdition}
             className={classSummary || primaryClass?.name || ''}
             level={characterLevel}
             classes={draft.classes}
             subclassCasters={subclassCastersForSpells}
             spells={draft.spells}
             abilities={draft.abilities}
-            proficiencyBonus={proficiencyBonus}
-            inventoryItems={draft.inventory.items}
-            inventory={draft.inventory}
-            concentration={draft.play.concentration}
+            suggestion={spellcastingSync.suggestion}
+            knownCaster={spellcastingSync.knownCaster}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
-            onInventoryChange={(inventory) =>
-              setDraft((prev) => ({
-                ...prev,
-                inventory,
-                spells: withSpellFocusFlags(prev.spells, inventory.items),
-              }))
-            }
-            onConcentrationChange={(concentration) =>
-              setDraft((prev) => ({
-                ...prev,
-                play: { ...prev.play, concentration },
-              }))
-            }
+            onClose={() => setSpellsSettingsOpen(false)}
             onToast={onToast}
           />
         </>
+      ) : (
+        <SpellsPanel
+          edition={baseCharacter.rules_edition as RulesEdition}
+          className={classSummary || primaryClass?.name || ''}
+          level={characterLevel}
+          classes={draft.classes}
+          subclassCasters={subclassCastersForSpells}
+          spells={draft.spells}
+          abilities={draft.abilities}
+          proficiencyBonus={proficiencyBonus}
+          inventoryItems={draft.inventory.items}
+          inventory={draft.inventory}
+          concentration={draft.play.concentration}
+          onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+          onInventoryChange={(inventory) =>
+            setDraft((prev) => ({
+              ...prev,
+              inventory,
+              spells: withSpellFocusFlags(prev.spells, inventory.items),
+            }))
+          }
+          onConcentrationChange={(concentration) =>
+            setDraft((prev) => ({
+              ...prev,
+              play: { ...prev.play, concentration },
+            }))
+          }
+          onToast={onToast}
+        />
       )}
 
       </div>

@@ -1994,6 +1994,51 @@ button.spell-card__cast:hover:not(:disabled) {
   background: var(--card);
 }
 
+.spells-settings-dialog__books {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.spells-settings-dialog__books .ui-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spells-settings-dialog__advanced {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+}
+
+.spells-settings-dialog__advanced-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+}
+
+.spells-settings-dialog__advanced-toggle:hover {
+  text-decoration: underline;
+}
+
+.spells-settings-dialog__advanced-hint {
+  font-weight: 500;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 .spell-level-block {
   display: grid;
   gap: 8px;
