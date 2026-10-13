@@ -11,7 +11,8 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "a6b7c8d9e0f1"
-down_revision = "y4h5i6j7k8l9"
+# Must follow live prod head z5i6 (Aquan rename), not sibling of it under y4h5.
+down_revision = "z5i6j7k8l9m0"
 branch_labels = None
 depends_on = None
 
