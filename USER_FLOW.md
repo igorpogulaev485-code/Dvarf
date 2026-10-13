@@ -238,10 +238,29 @@ Auth, кабинет, create pipeline, play desk, лобби — **отсутс�
 
 ---
 
-## 9. Как обновлять этот файл
+## 9. Блок-схемы для Figma
+
+Готовые SVG-фреймы (импорт drag-and-drop): [`docs/figma-flows/`](docs/figma-flows/).
+
+| Файл | Содержание |
+|------|------------|
+| `00-index.svg` | Индекс всех схем |
+| `01-happy-path.svg` | Сквозной путь |
+| `02-auth-cabinet.svg` | Аккаунт / кабинет |
+| `03-create-2014.svg` | Пайплайн создания 2014 |
+| `04-create-2024-wizard.svg` | 2024 + GuidedWizard |
+| `05-lobby-session.svg` | Лобби мастер / игрок |
+| `06`–`12-*.svg` | Play desk: режимы, vitals, отдых, экип, каст, level-up, sync |
+
+Перегенерация: `python3 scripts/generate_figma_flows.py` · инструкция импорта в [`docs/figma-flows/README.md`](docs/figma-flows/README.md).
+
+---
+
+## 10. Как обновлять этот файл
 
 После изменения пользовательского пути (новый экран, смена порядка create, новые роли):
 
 1. Обнови соответствующий сценарий в §5 и таблицу маршрутов в §3.
-2. Не дублируй сюда «на проде: да/нет» — это зона `PRODUCT_STATUS.md`.
-3. Если tip сменился — поправь ссылку в шапке файла при следующем касании tip-доков.
+2. Перегенерируй SVG: `python3 scripts/generate_figma_flows.py` (и правь `scripts/generate_figma_flows.py` при новых ветках).
+3. Не дублируй сюда «на проде: да/нет» — это зона `PRODUCT_STATUS.md`.
+4. Если tip сменился — поправь ссылку в шапке файла при следующем касании tip-доков.

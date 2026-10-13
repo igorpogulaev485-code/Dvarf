@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="920"
+     viewBox="0 0 600 920" role="img"
+     aria-label="04 · Создание 2024 + GuidedWizard" data-name="04 · Создание 2024 + GuidedWizard">
+  <title>04 · Создание 2024 + GuidedWizard</title>
+  <desc>background-first на листе; level-up — тот же движок</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B7B6B"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#F7F5F0"/>
+  <rect x="24" y="24" width="552" height="872"
+        rx="16" fill="#EDE8DC" stroke="#D5CFC0" stroke-width="1"/>
+  <text x="48" y="64" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="22" font-weight="700" fill="#1C241C">04 · Создание 2024 + GuidedWizard</text>
+  <text x="48" y="88" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="13" fill="#5C6B5C">background-first на листе; level-up — тот же движок</text>
+  <g id="edges">
+<g id="edge-0" data-name="s→api">
+  <polyline points="200.0,176.0 200.0,204.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-1" data-name="api→w">
+  <polyline points="200.0,260.0 200.0,288.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-2" data-name="w→bg">
+  <polyline points="200.0,344.0 200.0,372.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-3" data-name="bg→cls">
+  <polyline points="200.0,428.0 200.0,456.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-4" data-name="cls→fork">
+  <polyline points="200.0,512.0 200.0,540.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-5" data-name="fork→race">
+  <polyline points="200.0,596.0 200.0,624.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-6" data-name="race→feat">
+  <polyline points="200.0,680.0 200.0,708.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-7" data-name="feat→e">
+  <polyline points="200.0,764.0 200.0,876.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-8" data-name="fork→later">
+  <polyline points="200.0,596.0 200.0,792.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-9" data-name="later→race">
+  <polyline points="200.0,792.0 200.0,680.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+  </g>
+  <g id="nodes">
+<g id="node-s" data-name="Создать → 2024">
+  <rect x="80" y="120" width="240" height="56" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="153.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Создать → 2024</text>
+</g>
+<g id="node-api" data-name="API create → лист">
+  <rect x="80" y="204" width="240" height="56" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="200.0" y="237.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">API create → лист</text>
+</g>
+<g id="node-w" data-name="GuidedWizard">
+  <rect x="80" y="288" width="240" height="56" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="321.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">GuidedWizard</text>
+</g>
+<g id="node-bg" data-name="Предыстория">
+  <rect x="80" y="372" width="240" height="56" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="200.0" y="405.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Предыстория</text>
+</g>
+<g id="node-cls" data-name="Класс (+ без дублей)">
+  <rect x="80" y="456" width="240" height="56" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="200.0" y="489.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Класс (+ без дублей)</text>
+</g>
+<g id="node-fork" data-name="Expertise / ASI / архетип">
+  <rect x="80" y="540" width="240" height="56" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="200.0" y="573.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Expertise / ASI / архетип</text>
+</g>
+<g id="node-race" data-name="Раса">
+  <rect x="80" y="624" width="240" height="56" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="200.0" y="657.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Раса</text>
+</g>
+<g id="node-feat" data-name="Черта (скоро) если надо">
+  <rect x="80" y="708" width="240" height="56" rx="8" fill="#F3E4DC" stroke="#9A4F2E" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <text x="200.0" y="741.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Черта (скоро) если надо</text>
+</g>
+<g id="node-later" data-name="«Позже» → бейдж">
+  <rect x="80" y="792" width="240" height="56" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="200.0" y="825.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">«Позже» → бейдж</text>
+</g>
+<g id="node-e" data-name="Лист готов к игре">
+  <rect x="80" y="876" width="240" height="56" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="909.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Лист готов к игре</text>
+</g>
+  </g>
+<g id="legend" data-name="Legend" transform="translate(48,864)">
+<text x="0" y="0" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#5C6B5C">Легенда</text>
+<rect x="0" y="14" width="28" height="16" rx="8" fill="#2F4A3A"/>
+<text x="34" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Старт / финиш</text>
+<rect x="150" y="14" width="28" height="16" rx="4" fill="#DCE8DC" stroke="#2F4A3A"/>
+<text x="184" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Экран / маршрут</text>
+<rect x="300" y="14" width="28" height="16" rx="3" fill="#F0E6D4" stroke="#8A6A3A"/>
+<text x="334" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Действие пользователя</text>
+<path d="M464,12 L478,21 L464,30 L450,21 Z" fill="#FFF3D6" stroke="#A67C2A"/>
+<text x="484" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Развилка</text>
+<rect x="600" y="14" width="28" height="16" rx="3" fill="#F3E4DC" stroke="#9A4F2E" stroke-dasharray="3 2"/>
+<text x="634" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Ограничение / stub</text>
+<rect x="750" y="14" width="28" height="16" rx="4" fill="#D9E3F0" stroke="#3A557A"/>
+<text x="784" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Роль</text>
+</g>
+</svg>

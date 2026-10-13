@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="760"
+     viewBox="0 0 960 760" role="img"
+     aria-label="12 · Напарники, classic, sync (K19–K24)" data-name="12 · Напарники, classic, sync (K19–K24)">
+  <title>12 · Напарники, classic, sync (K19–K24)</title>
+  <desc>Лобби с листа, конфликт вкладок, печать</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B7B6B"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#F7F5F0"/>
+  <rect x="24" y="24" width="912" height="712"
+        rx="16" fill="#EDE8DC" stroke="#D5CFC0" stroke-width="1"/>
+  <text x="48" y="64" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="22" font-weight="700" fill="#1C241C">12 · Напарники, classic, sync (K19–K24)</text>
+  <text x="48" y="88" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="13" fill="#5C6B5C">Лобби с листа, конфликт вкладок, печать</text>
+  <g id="edges">
+<g id="edge-0" data-name="s→comp">
+  <polyline points="200.0,172.0 190.0,220.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-1" data-name="s→txt">
+  <polyline points="320.0,146.0 340.0,246.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-2" data-name="s→ava">
+  <polyline points="320.0,146.0 600.0,246.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-3" data-name="s→lob">
+  <polyline points="200.0,172.0 190.0,320.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-4" data-name="s→cls">
+  <polyline points="320.0,146.0 340.0,346.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-5" data-name="s→save">
+  <polyline points="320.0,146.0 600.0,352.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-6" data-name="cls→print">
+  <polyline points="460.0,372.0 440.0,420.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-7" data-name="print→e">
+  <polyline points="340.0,446.0 280.0,546.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-8" data-name="lob→e">
+  <polyline points="190.0,372.0 180.0,520.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-9" data-name="comp→e">
+  <polyline points="190.0,272.0 180.0,520.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-10" data-name="txt→e">
+  <polyline points="450.0,272.0 180.0,520.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-11" data-name="ava→e">
+  <polyline points="600.0,246.0 280.0,546.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-12" data-name="save→mob">
+  <polyline points="710.0,384.0 710.0,430.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="682.0" y="410" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="710.0" y="422" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">MOB</text>
+</g>
+<g id="edge-13" data-name="save→wave">
+  <polyline points="710.0,384.0 710.0,520.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="682.0" y="500" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="710.0" y="512" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">WAVE</text>
+</g>
+<g id="edge-14" data-name="save→banner">
+  <polyline points="710.0,384.0 710.0,610.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="682.0" y="590" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="710.0" y="602" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">cross-tab</text>
+</g>
+<g id="edge-15" data-name="mob→e">
+  <polyline points="580.0,456.0 280.0,546.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-16" data-name="wave→e">
+  <polyline points="580.0,546.0 280.0,546.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-17" data-name="banner→e">
+  <polyline points="580.0,636.0 280.0,546.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+  </g>
+  <g id="nodes">
+<g id="node-s" data-name="Доп. действия на листе">
+  <rect x="80" y="120" width="240" height="52" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="200.0" y="151.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Доп. действия на листе</text>
+</g>
+<g id="node-comp" data-name="Напарники / призвать">
+  <rect x="80" y="220" width="220" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="190.0" y="251.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Напарники / призвать</text>
+</g>
+<g id="node-txt" data-name="Тексты и заметки">
+  <rect x="340" y="220" width="220" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="450.0" y="251.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Тексты и заметки</text>
+</g>
+<g id="node-ava" data-name="Аватар персонажа">
+  <rect x="600" y="220" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="700.0" y="251.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Аватар персонажа</text>
+</g>
+<g id="node-lob" data-name="В лобби + код">
+  <rect x="80" y="320" width="220" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="190.0" y="351.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">В лобби + код</text>
+</g>
+<g id="node-cls" data-name="Классический лист 2014">
+  <rect x="340" y="320" width="240" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="460.0" y="351.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">Классический лист 2014</text>
+</g>
+<g id="node-print" data-name="Печать / PDF">
+  <rect x="340" y="420" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="440.0" y="451.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Печать / PDF</text>
+</g>
+<g id="node-save" data-name="Конфликт версий?">
+  <path d="M710.0,320 L820,352.0 L710.0,384 L600,352.0 Z" fill="#FFF3D6" stroke="#A67C2A" stroke-width="2"/>
+  <text x="710.0" y="357.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Конфликт версий?</text>
+</g>
+<g id="node-mob" data-name="MOB: Обновить / Оставить">
+  <rect x="580" y="430" width="260" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="710.0" y="461.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">MOB: Обновить / Оставить</text>
+</g>
+<g id="node-wave" data-name="WAVE: Мои / С сервера">
+  <rect x="580" y="520" width="260" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="710.0" y="551.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">WAVE: Мои / С сервера</text>
+</g>
+<g id="node-banner" data-name="Banner другой вкладки">
+  <rect x="580" y="610" width="260" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="710.0" y="641.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Banner другой вкладки</text>
+</g>
+<g id="node-e" data-name="Лист согласован">
+  <rect x="80" y="520" width="200" height="52" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="180.0" y="551.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Лист согласован</text>
+</g>
+  </g>
+<g id="legend" data-name="Legend" transform="translate(48,704)">
+<text x="0" y="0" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#5C6B5C">Легенда</text>
+<rect x="0" y="14" width="28" height="16" rx="8" fill="#2F4A3A"/>
+<text x="34" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Старт / финиш</text>
+<rect x="150" y="14" width="28" height="16" rx="4" fill="#DCE8DC" stroke="#2F4A3A"/>
+<text x="184" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Экран / маршрут</text>
+<rect x="300" y="14" width="28" height="16" rx="3" fill="#F0E6D4" stroke="#8A6A3A"/>
+<text x="334" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Действие пользователя</text>
+<path d="M464,12 L478,21 L464,30 L450,21 Z" fill="#FFF3D6" stroke="#A67C2A"/>
+<text x="484" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Развилка</text>
+<rect x="600" y="14" width="28" height="16" rx="3" fill="#F3E4DC" stroke="#9A4F2E" stroke-dasharray="3 2"/>
+<text x="634" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Ограничение / stub</text>
+<rect x="750" y="14" width="28" height="16" rx="4" fill="#D9E3F0" stroke="#3A557A"/>
+<text x="784" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Роль</text>
+</g>
+</svg>

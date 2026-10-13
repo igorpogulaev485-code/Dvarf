@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="980"
+     viewBox="0 0 560 980" role="img"
+     aria-label="11 · Level-up и архетип (K16–K18)" data-name="11 · Level-up и архетип (K16–K18)">
+  <title>11 · Level-up и архетип (K16–K18)</title>
+  <desc>Мультикласс, ASI, смена подкласса</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B7B6B"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#F7F5F0"/>
+  <rect x="24" y="24" width="512" height="932"
+        rx="16" fill="#EDE8DC" stroke="#D5CFC0" stroke-width="1"/>
+  <text x="48" y="64" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="22" font-weight="700" fill="#1C241C">11 · Level-up и архетип (K16–K18)</text>
+  <text x="48" y="88" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="13" fill="#5C6B5C">Мультикласс, ASI, смена подкласса</text>
+  <g id="edges">
+<g id="edge-0" data-name="s→dlg">
+  <polyline points="210.0,176.0 210.0,202.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-1" data-name="dlg→path">
+  <polyline points="210.0,258.0 210.0,284.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-2" data-name="path→same">
+  <polyline points="210.0,340.0 210.0,366.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="182.0" y="346" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="210.0" y="358" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">этот</text>
+</g>
+<g id="edge-3" data-name="path→mc">
+  <polyline points="210.0,340.0 210.0,448.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="182.0" y="428" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="210.0" y="440" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">мульти</text>
+</g>
+<g id="edge-4" data-name="same→hp">
+  <polyline points="210.0,422.0 210.0,530.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-5" data-name="mc→hp">
+  <polyline points="210.0,504.0 210.0,530.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-6" data-name="hp→wiz">
+  <polyline points="210.0,586.0 210.0,612.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-7" data-name="wiz→e">
+  <polyline points="210.0,668.0 210.0,940.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-8" data-name="wiz→arch">
+  <polyline points="210.0,668.0 210.0,694.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-9" data-name="arch→mode">
+  <polyline points="210.0,750.0 210.0,776.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-10" data-name="mode→setup">
+  <polyline points="210.0,832.0 210.0,858.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-11" data-name="setup→e">
+  <polyline points="210.0,914.0 210.0,940.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+  </g>
+  <g id="nodes">
+<g id="node-s" data-name="Основное → +1 уровень">
+  <rect x="80" y="120" width="260" height="56" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="153.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Основное → +1 уровень</text>
+</g>
+<g id="node-dlg" data-name="Повышение уровня">
+  <rect x="80" y="202" width="260" height="56" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="235.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">Повышение уровня</text>
+</g>
+<g id="node-path" data-name="Этот класс | Мультикласс">
+  <path d="M210.0,284 L340,314.0 L210.0,344 L80,314.0 Z" fill="#FFF3D6" stroke="#A67C2A" stroke-width="2"/>
+  <text x="210.0" y="311.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Этот класс |</text>
+  <text x="210.0" y="327.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Мультикласс</text>
+</g>
+<g id="node-same" data-name="Select текущего класса">
+  <rect x="80" y="366" width="260" height="56" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="210.0" y="399.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Select текущего класса</text>
+</g>
+<g id="node-mc" data-name="Новый класс (гейты способностей)">
+  <rect x="80" y="448" width="260" height="60" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="210.0" y="475.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Новый класс (гейты</text>
+  <text x="210.0" y="491.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">способностей)</text>
+</g>
+<g id="node-hp" data-name="HP: среднее | вручную">
+  <rect x="80" y="530" width="260" height="56" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="210.0" y="563.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">HP: среднее | вручную</text>
+</g>
+<g id="node-wiz" data-name="GuidedWizard / ASI / архетип">
+  <rect x="80" y="612" width="260" height="60" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="639.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">GuidedWizard / ASI /</text>
+  <text x="210.0" y="655.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">архетип</text>
+</g>
+<g id="node-arch" data-name="Сменить архетип?">
+  <rect x="80" y="694" width="260" height="56" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="210.0" y="727.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Сменить архетип?</text>
+</g>
+<g id="node-mode" data-name="Все | только будущие">
+  <path d="M210.0,776 L340,806.0 L210.0,836 L80,806.0 Z" fill="#FFF3D6" stroke="#A67C2A" stroke-width="2"/>
+  <text x="210.0" y="803.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Все | только</text>
+  <text x="210.0" y="819.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">будущие</text>
+</g>
+<g id="node-setup" data-name="SubclassSetup">
+  <rect x="80" y="858" width="260" height="56" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="891.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">SubclassSetup</text>
+</g>
+<g id="node-e" data-name="Уровень применён">
+  <rect x="80" y="940" width="260" height="56" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="973.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Уровень применён</text>
+</g>
+  </g>
+<g id="legend" data-name="Legend" transform="translate(48,924)">
+<text x="0" y="0" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#5C6B5C">Легенда</text>
+<rect x="0" y="14" width="28" height="16" rx="8" fill="#2F4A3A"/>
+<text x="34" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Старт / финиш</text>
+<rect x="150" y="14" width="28" height="16" rx="4" fill="#DCE8DC" stroke="#2F4A3A"/>
+<text x="184" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Экран / маршрут</text>
+<rect x="300" y="14" width="28" height="16" rx="3" fill="#F0E6D4" stroke="#8A6A3A"/>
+<text x="334" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Действие пользователя</text>
+<path d="M464,12 L478,21 L464,30 L450,21 Z" fill="#FFF3D6" stroke="#A67C2A"/>
+<text x="484" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Развилка</text>
+<rect x="600" y="14" width="28" height="16" rx="3" fill="#F3E4DC" stroke="#9A4F2E" stroke-dasharray="3 2"/>
+<text x="634" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Ограничение / stub</text>
+<rect x="750" y="14" width="28" height="16" rx="4" fill="#D9E3F0" stroke="#3A557A"/>
+<text x="784" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Роль</text>
+</g>
+</svg>
