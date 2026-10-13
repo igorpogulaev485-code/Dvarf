@@ -44,6 +44,16 @@ import {
   type AppliedClassAsi,
 } from '../../shared/dnd/classAsi'
 import {
+  readFeatGrantLedger,
+  sumFeatHpPerLevel,
+  type AppliedFeatGrant,
+} from '../../shared/dnd/featGrants'
+import type { SheetResource } from '../../shared/dnd/rest'
+import {
+  applyFeatGrantToDraft,
+  type FeatGrantDraftSlice,
+} from '../characters/featEffects'
+import {
   emptySubclassPicks,
   type AppliedSubclassGrant,
   type SubclassGrantPicks,
@@ -590,6 +600,47 @@ function mergeClass(draft: WorkingDraft, slice: ClassGrantDraftSlice): WorkingDr
   }
 }
 
+function applyStoredFeatGrants(input: {
+  draft: WorkingDraft
+  grants: AppliedFeatGrant[]
+  totalLevel: number
+}): { spellsKnown: SpellsState['known']; resources: SheetResource[] } {
+  if (input.grants.length === 0) return { spellsKnown: [], resources: [] }
+  let slice: FeatGrantDraftSlice = {
+    abilities: input.draft.abilities,
+    saves: input.draft.saves,
+    skills: input.draft.skills,
+    speed: input.draft.speed,
+    hpMax: null,
+    hpCurrent: null,
+    featGrants: [],
+    identity: {
+      languages: input.draft.identity.languages,
+      tools: input.draft.identity.tools,
+      armor: input.draft.identity.armor,
+    },
+    textBlocks: input.draft.textBlocks,
+    resources: [],
+    spells: readSpells({}),
+    totalLevel: input.totalLevel,
+  }
+  for (const grant of input.grants) {
+    slice = applyFeatGrantToDraft({ draft: slice, grant })
+  }
+  input.draft.abilities = slice.abilities
+  input.draft.saves = slice.saves
+  input.draft.skills = slice.skills
+  input.draft.speed = slice.speed
+  input.draft.identity = {
+    ...input.draft.identity,
+    languages: slice.identity.languages,
+    tools: slice.identity.tools,
+    armor: slice.identity.armor,
+  }
+  input.draft.textBlocks = slice.textBlocks
+  return { spellsKnown: slice.spells.known, resources: slice.resources }
+}
+
 function serializeSheet(input: {
   draft: WorkingDraft
   classes: ClassLevelEntry[]
@@ -600,6 +651,8 @@ function serializeSheet(input: {
   raceCatalogId: string | null
   backgroundCatalogId: string | null
   raceName: string | null
+  featGrants?: AppliedFeatGrant[]
+  featResources?: SheetResource[]
 }): Record<string, unknown> {
   const { draft, classes, state } = input
   const sheet: Record<string, unknown> = {}
@@ -628,6 +681,7 @@ function serializeSheet(input: {
   sheet.companions = draft.companions
   sheet.feature_picks = featurePicksToSheet(input.featurePicks)
   sheet.class_asi = input.classAsi
+  sheet.feat_grants = input.featGrants ?? []
 
   const abilities: Record<string, unknown> = {}
   const saves: Record<string, unknown> = {}
@@ -682,7 +736,7 @@ function serializeSheet(input: {
     ...playSheet.combatPatch,
   }
   sheet.combat = combat
-  sheet.resources = playSheet.resources
+  sheet.resources = [...playSheet.resources, ...(input.featResources ?? [])]
 
   sheet.proficiency = {
     armor: identityExtras.proficiencyPatch.armor,
@@ -975,15 +1029,24 @@ export async function applyPipelineToSheet(input: {
     expertiseKeys: listUnlockedExpertiseKeys(unlocked),
   })
 
-  // 6) HP from pipeline choices (override class L1 max; after ASI so CON is final)
+  const storedFeatGrants = readFeatGrantLedger(state.sheetDraft.feat_grants)
+  const levelNow = totalCharacterLevel(classes)
+  const featExtras = applyStoredFeatGrants({
+    draft,
+    grants: storedFeatGrants,
+    totalLevel: levelNow,
+  })
+
+  // 6) HP from pipeline choices (override class L1 max; after ASI / feat CON)
   const hp = computeHpFromChoices({
     classes,
     primaryClassEntryId: state.classEntryId,
     hpChoices: state.hpChoices,
     constitutionScore: draft.abilities.con,
   })
-  draft.hpMax = hp
-  draft.hpCurrent = hp
+  const featHp = sumFeatHpPerLevel(storedFeatGrants) * levelNow
+  draft.hpMax = hp + featHp
+  draft.hpCurrent = hp + featHp
 
   // 7) Spells merge
   const spells =
@@ -1001,6 +1064,7 @@ export async function applyPipelineToSheet(input: {
       ...draft.spells.known.filter(
         (row) => row.source_kind === 'race' || subclassGrantedIds.has(row.id),
       ),
+      ...featExtras.spellsKnown.filter((row) => row.source_kind === 'feat'),
     ],
   }
 
@@ -1041,6 +1105,8 @@ export async function applyPipelineToSheet(input: {
     raceCatalogId: raceEntry?.id ?? state.subrace?.id ?? state.race?.id ?? null,
     backgroundCatalogId: bgEntry?.id ?? state.background?.id ?? null,
     raceName,
+    featGrants: storedFeatGrants,
+    featResources: featExtras.resources,
   })
 
   return {

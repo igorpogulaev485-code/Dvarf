@@ -3,7 +3,7 @@
 **URL:** http://201.34.132.252/  
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
-**Current prod tip branch:** `cursor/desk-vitals-wave-a73e`  
+**Current prod tip branch:** `cursor/levelup-feat-cast-exit-0cfc`  
 (обновляй эту строку после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
 
 ---

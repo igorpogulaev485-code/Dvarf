@@ -43,7 +43,30 @@ export function clearTokens(): void {
 let refreshInFlight: Promise<boolean> | null = null
 
 /** Fail fast — a stuck refresh must not leave the UI on «Загрузка…» forever. */
-const REFRESH_TIMEOUT_MS = 8_000
+const REFRESH_TIMEOUT_MS = 12_000
+/** Refresh access a few minutes before JWT exp so saves mid-game do not 401. */
+const ACCESS_REFRESH_SKEW_MS = 5 * 60 * 1000
+const KEEP_ALIVE_INTERVAL_MS = 10 * 60 * 1000
+
+function readJwtExpMs(token: string | null): number | null {
+  if (!token) return null
+  const parts = token.split('.')
+  if (parts.length < 2) return null
+  try {
+    const normalized = parts[1]!.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4)
+    const payload = JSON.parse(atob(padded)) as { exp?: unknown }
+    return typeof payload.exp === 'number' ? payload.exp * 1000 : null
+  } catch {
+    return null
+  }
+}
+
+function accessNeedsRefresh(token: string | null = getAccessToken()): boolean {
+  const expMs = readJwtExpMs(token)
+  if (expMs == null) return Boolean(getRefreshToken())
+  return expMs - Date.now() <= ACCESS_REFRESH_SKEW_MS
+}
 
 async function tryRefreshAccessToken(): Promise<boolean> {
   if (refreshInFlight) {
@@ -53,7 +76,6 @@ async function tryRefreshAccessToken(): Promise<boolean> {
   refreshInFlight = (async () => {
     const refreshToken = getRefreshToken()
     if (!refreshToken) {
-      clearTokens()
       return false
     }
     const controller = new AbortController()
@@ -69,8 +91,12 @@ async function tryRefreshAccessToken(): Promise<boolean> {
         body: JSON.stringify({ refresh_token: refreshToken }),
         signal: controller.signal,
       })
-      if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
         clearTokens()
+        return false
+      }
+      if (!response.ok) {
+        // Transient API flap / session_busy — keep tokens; caller may retry.
         return false
       }
       const data = (await response.json()) as {
@@ -80,7 +106,7 @@ async function tryRefreshAccessToken(): Promise<boolean> {
       setTokens(data.access_token, data.refresh_token)
       return true
     } catch {
-      clearTokens()
+      // Network / abort: do not wipe a still-valid login for a blip.
       return false
     } finally {
       window.clearTimeout(timer)
@@ -89,6 +115,37 @@ async function tryRefreshAccessToken(): Promise<boolean> {
   })()
 
   return refreshInFlight
+}
+
+/** Extend the login before a long save / when the tab returns to focus. */
+export async function ensureSession(): Promise<boolean> {
+  if (!getRefreshToken()) return false
+  if (!accessNeedsRefresh()) return true
+  const ok = await tryRefreshAccessToken()
+  if (ok) return true
+  // Another tab may have refreshed while we waited.
+  return !accessNeedsRefresh(getAccessToken())
+}
+
+let keepAliveStarted = false
+
+/** Call once from the app shell — keeps 8h table sessions from expiring quietly. */
+export function startSessionKeepAlive(): void {
+  if (keepAliveStarted || typeof window === 'undefined') return
+  keepAliveStarted = true
+
+  const tick = () => {
+    if (!getRefreshToken()) return
+    void ensureSession()
+  }
+
+  window.setInterval(tick, KEEP_ALIVE_INTERVAL_MS)
+  window.addEventListener('focus', tick)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') tick()
+  })
+  window.addEventListener('online', tick)
+  tick()
 }
 
 function errorMessage(data: ApiError): string {
@@ -107,6 +164,15 @@ export async function apiRequest<T>(
   options: RequestInit = {},
   retried = false,
 ): Promise<T> {
+  if (
+    !retried &&
+    !path.startsWith('/auth/login') &&
+    !path.startsWith('/auth/register') &&
+    !path.startsWith('/auth/refresh')
+  ) {
+    await ensureSession()
+  }
+
   const headers = new Headers(options.headers)
   const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
   if (!headers.has('Content-Type') && options.body && !isFormData) {
@@ -121,10 +187,19 @@ export async function apiRequest<T>(
     headers.set('Authorization', `Bearer ${accessToken}`)
   }
 
-  const response = await fetch(path, {
-    ...options,
-    headers,
-  })
+  let response: Response
+  try {
+    response = await fetch(path, {
+      ...options,
+      headers,
+    })
+  } catch {
+    throw new ApiRequestError(
+      'Нет связи с сервером — проверьте сеть и повторите',
+      0,
+      'network_error',
+    )
+  }
 
   if (
     response.status === 401 &&
@@ -141,6 +216,10 @@ export async function apiRequest<T>(
   ) {
     const refreshed = await tryRefreshAccessToken()
     if (refreshed) {
+      return apiRequest<T>(path, options, true)
+    }
+    // Another tab may have written fresh tokens during the failed refresh.
+    if (!accessNeedsRefresh(getAccessToken()) && getAccessToken()) {
       return apiRequest<T>(path, options, true)
     }
     // Expired access without a usable refresh — drop the stale access token

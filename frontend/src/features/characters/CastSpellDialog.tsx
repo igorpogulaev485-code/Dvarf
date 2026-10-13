@@ -255,7 +255,7 @@ export function CastSpellDialog({
         })
       }}
       onSecondary={onClose}
-      busy={busy || !canCast}
+      busy={busy}
       primaryDisabled={!canCast}
     >
       <Stack gap={10}>

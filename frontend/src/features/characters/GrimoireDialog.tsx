@@ -61,6 +61,47 @@ function entryLevel(entry: CatalogEntry): number {
   return parseSpellCatalogData(entry.data).level
 }
 
+const SPELL_CATALOG_TIMEOUT_MS = 8_000
+
+let bundledSpells2014: Promise<CatalogEntry[]> | null = null
+
+/** Official 2014 list shipped with the app. Used when /catalog?kind=spell fails. */
+function loadBundledSpells2014(): Promise<CatalogEntry[]> {
+  if (!bundledSpells2014) {
+    bundledSpells2014 = fetch('/spells-2014.json')
+      .then(async (response) => {
+        const contentType = response.headers.get('content-type') || ''
+        if (!response.ok || contentType.includes('text/html')) {
+          throw new Error('bundled spells missing')
+        }
+        const data = (await response.json()) as unknown
+        if (!Array.isArray(data)) throw new Error('bundled spells shape')
+        return data as CatalogEntry[]
+      })
+      .catch((err: unknown) => {
+        bundledSpells2014 = null
+        throw err
+      })
+  }
+  return bundledSpells2014
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error('timeout')), ms)
+    promise.then(
+      (value) => {
+        window.clearTimeout(timer)
+        resolve(value)
+      },
+      (err: unknown) => {
+        window.clearTimeout(timer)
+        reject(err)
+      },
+    )
+  })
+}
+
 export function GrimoireDialog({
   open,
   edition,
@@ -152,14 +193,30 @@ export function GrimoireDialog({
     let active = true
     setLoading(true)
     setError(null)
-    listCatalogEntries({ kind: 'spell', edition })
+
+    const apply = (items: CatalogEntry[]) => {
+      if (!active) return
+      if (!Array.isArray(items) || items.length === 0) {
+        setEntries([])
+        setError('Не удалось загрузить гримуар')
+        return
+      }
+      setEntries(items)
+      setError(null)
+    }
+
+    withTimeout(listCatalogEntries({ kind: 'spell', edition }), SPELL_CATALOG_TIMEOUT_MS)
       .then((items) => {
-        if (!active) return
-        setEntries(items)
+        if (Array.isArray(items) && items.length > 0) return items
+        if (edition !== '2014') return []
+        return loadBundledSpells2014()
+      })
+      .catch(() => (edition === '2014' ? loadBundledSpells2014() : []))
+      .then((items) => {
+        apply(items)
       })
       .catch(() => {
-        if (!active) return
-        setError('Не удалось загрузить гримуар')
+        apply([])
       })
       .finally(() => {
         if (active) setLoading(false)
