@@ -94,6 +94,19 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 
 Доски: [`spells`](boards/dvarf-ui-kit-spells.jpg) · [`spell-icons`](boards/dvarf-ui-kit-spell-icons.jpg)
 
+## 2d. Атаки стола (компакт + настройки)
+
+> Паттерн как у заклинаний (ещё не LOCK — ждать «Идеал»).
+
+| Компонент | Правило |
+|-----------|---------|
+| Compact = бой | hit/dmg toast, удерж./взять, ресурсы, расходники |
+| Настройки | диалог setup (не «полностью» на stage): оверрайды карточек + **Своё** |
+| Официальное оружие | из **инвентаря** (сцена Исследование) → карточка атаки |
+| Своё | кастомная атака без строки лута |
+| Природное | с расы, в настройках read-only |
+| Icons | `attackIcons.tsx` — ближнее / дальнее / ресурс / расходник |
+
 Левый блок (`AbilitySkillsColumn`):
 
 - у каждой характеристики **свой identity-цвет** (полоска + label + Сп on + навыки);
@@ -136,7 +149,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | Pads / dialogs | `dvarf-ui-kit-dialogs-pads.jpg` |
 | Rail | `dvarf-ui-kit-ability-rail-v2.jpg`, `dvarf-ui-kit-ability-colors.jpg` |
 | Spells LOCK | `dvarf-ui-kit-spells.jpg`, `dvarf-ui-kit-spell-icons.jpg` |
-| Combat attacks compact | line icons in `attackIcons.tsx` (stroke = desk/spell); chrome = `desk-chrome` §E + live Attacks |
+| Combat attacks compact + settings | line icons in `attackIcons.tsx`; chrome = `desk-chrome` §E; setup = `AttacksSettingsDialog` (§2d) |
 | Features / companions / attunement / ЕЩЁ | `dvarf-ui-kit-features-companions.jpg` |
 | Rest / create / toast / list | `dvarf-ui-kit-rest-create-app.jpg` |
 | Auth | `dvarf-ui-kit-auth.jpg` |
@@ -172,7 +185,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 2. Если **нет** — сначала рисуем/добавляем иконки, кладём в кит (`boards/` + запись здесь), согласование.
 3. Только потом верстка/логика chrome блока.
 
-Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия LOCK** — `spellIcons.tsx` + доски `spells` / `spell-icons`; **атаки compact** — `attackIcons.tsx` (ближнее / дальнее / ресурс / расходник), тот же stroke, что desk/spell icons; **stage «Бой»** — компакт атак в языке `play-desk-compact` (общий chrome сцен не трогали).  
+Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия LOCK** — `spellIcons.tsx` + доски `spells` / `spell-icons`; **атаки** — compact + `AttacksSettingsDialog` (§2d), `attackIcons.tsx`.  
 **Дальше (не без ok):** LOCK атак после «Идеал»; A5 Features/Companions; hot-bar chrome — только по явному запросу.
 
 Rail характеристик (вариант A) иконок не требует — полные названия, chips, drag.

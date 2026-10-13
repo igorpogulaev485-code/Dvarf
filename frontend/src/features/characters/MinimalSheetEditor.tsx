@@ -182,6 +182,7 @@ import {
 } from '../../shared/dnd/multiclassRules'
 import { clampCharacterLevel, xpToReachLevel } from '../../shared/dnd/experience'
 import { withSyncedHitDiceSummary } from './play'
+import { AttacksSettingsDialog } from './AttacksSettingsDialog'
 import { SpellsPanel } from './SpellsPanel'
 import { SpellsSettingsDialog } from './SpellsSettingsDialog'
 import { useSpellcastingSheetSync } from './useSpellcastingSheetSync'
@@ -2876,6 +2877,8 @@ export function MinimalSheetEditor({
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
   /** Play-desk spells setup (replaces force-full SpellsPanel). */
   const [spellsSettingsOpen, setSpellsSettingsOpen] = useState(false)
+  /** Play-desk attacks setup (replaces force-full AttacksPanel). */
+  const [attacksSettingsOpen, setAttacksSettingsOpen] = useState(false)
   const [deskCastPending, setDeskCastPending] = useState<{
     spell: SheetSpell
     choice: CastChoice
@@ -2936,6 +2939,8 @@ export function MinimalSheetEditor({
     patchSheetUi({ deskMode: mode, deskSplit: nextSplit })
     setActivePanel(nextPanel)
     setForceFullPanel(null)
+    setAttacksSettingsOpen(false)
+    setSpellsSettingsOpen(false)
   }
 
   function applyDeskConcentration(spell: SheetSpell) {
@@ -3119,8 +3124,8 @@ export function MinimalSheetEditor({
   }
 
   function showCompact(id: PlayDeskCompactPanelId): boolean {
-    // Spells: compact is the only play surface; setup lives in SpellsSettingsDialog.
-    if (id === 'spells') return isPlayDesk
+    // Spells / attacks: compact is the only play surface; setup lives in settings dialogs.
+    if (id === 'spells' || id === 'attacks') return isPlayDesk
     return isPlayDesk && forceFullPanel !== id
   }
 
@@ -4299,77 +4304,68 @@ export function MinimalSheetEditor({
 
       <div className="play-desk__stage-panel" hidden={stageHidden('attacks')}>
       {showCompact('attacks') ? (
-        <PlayDeskAttacksCompact
-          weapons={draft.weapons}
-          abilities={effectiveAbilities}
-          proficiencyBonus={proficiencyBonus}
-          gearBonusesByItem={gearEffects.byItem}
-          resources={draft.play.resources}
-          inventoryItems={draft.inventory.items}
-          favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
-          rollMode={effectiveRollMode()}
-          onOpenFull={() => setForceFullPanel('attacks')}
-          onToast={onToast}
-          onSpendResource={spendResourceOrOpenSorcery}
-          onToggleConsumableFavorite={toggleCombatFavorite}
-          onSpendConsumable={(itemId) => {
-            const item = draft.inventory.items.find((row) => row.id === itemId)
-            if (!item || (item.qty ?? 0) <= 0) return
-            const nextQty = Math.max(0, (item.qty ?? 0) - 1)
-            setDraft((prev) => ({
-              ...prev,
-              inventory: {
-                ...prev.inventory,
-                items: prev.inventory.items.map((row) =>
-                  row.id === itemId ? { ...row, qty: Math.max(0, (row.qty ?? 0) - 1) } : row,
-                ),
-              },
-            }))
-            onToast(
-              nextQty > 0
-                ? `−1 «${item.name}» · осталось ${nextQty}`
-                : `−1 «${item.name}» · кончилось`,
-            )
-          }}
-          onToggleHeld={(attack) => {
-            if (!attack.inventory_item_id) return
-            setDraft((prev) => {
-              const item = prev.inventory.items.find(
-                (row) => row.id === attack.inventory_item_id,
-              )
-              if (!item) return prev
-              const items = equipInventoryItem(
-                prev.inventory.items,
-                item.id,
-                !item.equipped,
-              )
-              return {
-                ...prev,
-                inventory: { ...prev.inventory, items },
-                weapons: syncAttacksHeldFromInventory(prev.weapons, items),
-              }
-            })
-          }}
-        />
-      ) : (
         <>
-          {isPlayDesk ? (
-            <button
-              type="button"
-              className="play-desk-compact__link play-desk-compact__link--bar"
-              onClick={() => setForceFullPanel(null)}
-            >
-              ← компактно
-            </button>
-          ) : null}
-          <AttacksPanel
-            edition={baseCharacter.rules_edition as RulesEdition}
+          <PlayDeskAttacksCompact
+            weapons={draft.weapons}
+            abilities={effectiveAbilities}
+            proficiencyBonus={proficiencyBonus}
+            gearBonusesByItem={gearEffects.byItem}
+            resources={draft.play.resources}
+            inventoryItems={draft.inventory.items}
+            favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
+            rollMode={effectiveRollMode()}
+            onOpenSettings={() => setAttacksSettingsOpen(true)}
+            onToast={onToast}
+            onSpendResource={spendResourceOrOpenSorcery}
+            onToggleConsumableFavorite={toggleCombatFavorite}
+            onSpendConsumable={(itemId) => {
+              const item = draft.inventory.items.find((row) => row.id === itemId)
+              if (!item || (item.qty ?? 0) <= 0) return
+              const nextQty = Math.max(0, (item.qty ?? 0) - 1)
+              setDraft((prev) => ({
+                ...prev,
+                inventory: {
+                  ...prev.inventory,
+                  items: prev.inventory.items.map((row) =>
+                    row.id === itemId ? { ...row, qty: Math.max(0, (row.qty ?? 0) - 1) } : row,
+                  ),
+                },
+              }))
+              onToast(
+                nextQty > 0
+                  ? `−1 «${item.name}» · осталось ${nextQty}`
+                  : `−1 «${item.name}» · кончилось`,
+              )
+            }}
+            onToggleHeld={(attack) => {
+              if (!attack.inventory_item_id) return
+              setDraft((prev) => {
+                const item = prev.inventory.items.find(
+                  (row) => row.id === attack.inventory_item_id,
+                )
+                if (!item) return prev
+                const items = equipInventoryItem(
+                  prev.inventory.items,
+                  item.id,
+                  !item.equipped,
+                )
+                return {
+                  ...prev,
+                  inventory: { ...prev.inventory, items },
+                  weapons: syncAttacksHeldFromInventory(prev.weapons, items),
+                }
+              })
+            }}
+          />
+          <AttacksSettingsDialog
+            open={attacksSettingsOpen}
             weapons={draft.weapons}
             abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
             weaponProficiency={draft.identity.weapons}
             gearBonusesByItem={gearEffects.byItem}
             onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
+            onClose={() => setAttacksSettingsOpen(false)}
             onToggleHeld={(attack) => {
               if (!attack.inventory_item_id) return
               setDraft((prev) => {
@@ -4391,6 +4387,35 @@ export function MinimalSheetEditor({
             }}
           />
         </>
+      ) : (
+        <AttacksPanel
+          edition={baseCharacter.rules_edition as RulesEdition}
+          weapons={draft.weapons}
+          abilities={effectiveAbilities}
+          proficiencyBonus={proficiencyBonus}
+          weaponProficiency={draft.identity.weapons}
+          gearBonusesByItem={gearEffects.byItem}
+          onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
+          onToggleHeld={(attack) => {
+            if (!attack.inventory_item_id) return
+            setDraft((prev) => {
+              const item = prev.inventory.items.find(
+                (row) => row.id === attack.inventory_item_id,
+              )
+              if (!item) return prev
+              const items = equipInventoryItem(
+                prev.inventory.items,
+                item.id,
+                !item.equipped,
+              )
+              return {
+                ...prev,
+                inventory: { ...prev.inventory, items },
+                weapons: syncAttacksHeldFromInventory(prev.weapons, items),
+              }
+            })
+          }}
+        />
       )}
 
       </div>

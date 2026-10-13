@@ -34,7 +34,7 @@ type PlayDeskAttacksCompactProps = {
   onSpendConsumable?: (itemId: string) => void
   onToggleConsumableFavorite?: (itemId: string) => void
   onToast?: (message: string) => void
-  onOpenFull: () => void
+  onOpenSettings: () => void
   rollMode?: DeskRollMode
 }
 
@@ -51,7 +51,7 @@ export function PlayDeskAttacksCompact({
   onSpendConsumable,
   onToggleConsumableFavorite,
   onToast,
-  onOpenFull,
+  onOpenSettings,
   rollMode = 'normal',
 }: PlayDeskAttacksCompactProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -80,8 +80,12 @@ export function PlayDeskAttacksCompact({
       <div className="play-desk-compact__head">
         <h3>Атаки</h3>
         <div className="play-desk-compact__head-actions">
-          <button type="button" className="play-desk-compact__link" onClick={onOpenFull}>
-            полностью
+          <button
+            type="button"
+            className="play-desk-compact__link play-desk-compact__link--settings"
+            onClick={onOpenSettings}
+          >
+            Настройки
           </button>
         </div>
       </div>

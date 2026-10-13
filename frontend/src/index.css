@@ -2030,6 +2030,13 @@ button.spell-card__cast:hover:not(:disabled) {
   background: var(--card);
 }
 
+.attacks-settings__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
 .spells-settings__top {
   display: grid;
   grid-template-columns: 1fr minmax(5.5rem, 7rem);
