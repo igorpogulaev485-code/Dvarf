@@ -139,13 +139,3 @@ export function AttunementEditor({
     </Stack>
   )
 }
-
-type AttunementPanelProps = AttunementEditorProps
-
-export function AttunementPanel(props: AttunementPanelProps) {
-  return (
-    <Panel title="Настройка (attunement)">
-      <AttunementEditor {...props} />
-    </Panel>
-  )
-}
