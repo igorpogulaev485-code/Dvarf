@@ -12,10 +12,8 @@ export type PlayDeskMode =
   | 'social'
   | 'companions'
   | 'features'
-  | 'more'
 
 export type PlayDeskPanelId =
-  | 'identity'
   | 'attacks'
   | 'inventory'
   | 'features'
@@ -92,7 +90,6 @@ const PLAY_DESK_MODES: PlayDeskMode[] = [
   'social',
   'companions',
   'features',
-  'more',
 ]
 
 export function normalizeAbilityOrder(raw: unknown): AbilityKey[] {
@@ -115,6 +112,8 @@ export function normalizeAbilityOrder(raw: unknown): AbilityKey[] {
 }
 
 function normalizeDeskMode(raw: unknown): PlayDeskMode {
+  // Legacy ЕЩЁ scene → combat; identity lives in avatar dialog now.
+  if (raw === 'more') return 'combat'
   if (typeof raw === 'string' && PLAY_DESK_MODES.includes(raw as PlayDeskMode)) {
     return raw as PlayDeskMode
   }
@@ -160,7 +159,6 @@ export const MODE_DEFAULT_PANEL: Record<PlayDeskMode, PlayDeskPanelId> = {
   social: 'texts',
   companions: 'companions',
   features: 'features',
-  more: 'identity',
 }
 
 /** Scenes that keep spells pinned beside the primary panel. */
@@ -205,7 +203,6 @@ export const PLAY_DESK_PANELS: Array<{ id: PlayDeskPanelId; label: string }> = [
   { id: 'inventory', label: 'Снаряжение' },
   { id: 'companions', label: 'Напарники' },
   { id: 'texts', label: 'Тексты и заметки' },
-  { id: 'identity', label: 'Основное' },
 ]
 
 /**
@@ -218,16 +215,7 @@ export const MODE_SCENE_PANELS: Record<PlayDeskMode, PlayDeskPanelId[]> = {
   social: ['texts', 'spells'],
   companions: ['companions'],
   features: ['features'],
-  more: ['identity'],
 }
-
-/** Dump scene «ЕЩЁ» — former EXTRA panels; rebuild later. */
-export const MODE_MORE_PANELS: PlayDeskPanelId[] = [
-  'identity',
-]
-
-/** @deprecated use MODE_MORE_PANELS — kept for older imports */
-export const MODE_EXTRA_PANELS: PlayDeskPanelId[] = MODE_MORE_PANELS
 
 export const MODE_HINT: Record<PlayDeskMode, string> = {
   combat: 'Бой: атаки + заклинания рядом',
@@ -235,7 +223,6 @@ export const MODE_HINT: Record<PlayDeskMode, string> = {
   social: 'Общение: тексты + заклинания рядом',
   companions: 'Напарники: спутники и призывы (glance→expand)',
   features: 'Способности: сводка умений класса, черт и расы',
-  more: 'ЕЩЁ: основное — состояния в hot-bar, настройка в Исследовании, владения у характеристик',
 }
 
 export const MODE_LABELS: Array<{ id: PlayDeskMode; label: string }> = [
@@ -244,7 +231,6 @@ export const MODE_LABELS: Array<{ id: PlayDeskMode; label: string }> = [
   { id: 'social', label: 'Общение' },
   { id: 'companions', label: 'Напарники' },
   { id: 'features', label: 'Способности' },
-  { id: 'more', label: 'ЕЩЁ' },
 ]
 
 export function panelLabel(id: PlayDeskPanelId): string {

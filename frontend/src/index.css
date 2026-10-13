@@ -2170,6 +2170,11 @@ input {
   width: min(640px, 100%);
 }
 
+.ui-dialog--xl {
+  width: min(780px, 100%);
+  max-height: min(92vh, 920px);
+}
+
 .ui-dialog__title {
   flex: 0 0 auto;
   margin: 0;
@@ -4738,7 +4743,8 @@ button.spell-card__cast:hover:not(:disabled) {
   }
 
   .ui-dialog,
-  .ui-dialog--wide {
+  .ui-dialog--wide,
+  .ui-dialog--xl {
     width: 100%;
     max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 8px));
     border-radius: 16px 16px 0 0;
@@ -5299,6 +5305,76 @@ button.spell-card__cast:hover:not(:disabled) {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+/* Identity pad (avatar → Основное); kit sections, no stage ЕЩЁ. */
+.identity-dialog {
+  display: grid;
+  gap: 16px;
+}
+
+.identity-dialog__avatar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent-soft) 40%, #fff);
+}
+
+.identity-dialog__avatar-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 12rem;
+  flex: 1 1 12rem;
+}
+
+.identity-dialog__avatar-copy strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+
+.identity-dialog__avatar .char-avatar {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.identity-dialog__form {
+  display: grid;
+  gap: 14px;
+}
+
+.identity-dialog__section {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.identity-dialog__section + .identity-dialog__section {
+  border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+  padding-top: 14px;
+}
+
+.identity-dialog__section-label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.identity-dialog__class {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
 }
 
 .play-desk {
