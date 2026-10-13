@@ -6,6 +6,30 @@
 
 ---
 
+## 0. UI Kit — основа фронтенда (обязательно)
+
+Любая работа в `frontend/` идёт **только** по UI Kit.
+
+| Что | Где |
+|-----|-----|
+| Desktop / tablet контракт (≥960) | [`docs/ui-kit/README.md`](docs/ui-kit/README.md) |
+| Desktop доски | [`docs/ui-kit/boards/`](docs/ui-kit/boards/) |
+| Desktop skill | [`.cursor/skills/dvarf-ui-kit/SKILL.md`](.cursor/skills/dvarf-ui-kit/SKILL.md) |
+| **Mobile контракт (&lt;960)** | [`docs/ui-kit-mobile/README.md`](docs/ui-kit-mobile/README.md) |
+| Mobile skill | [`.cursor/skills/dvarf-ui-kit-mobile/SKILL.md`](.cursor/skills/dvarf-ui-kit-mobile/SKILL.md) |
+| Mobile план | [`docs/redesign/MOBILE_REDESIGN_PLAN.md`](docs/redesign/MOBILE_REDESIGN_PLAN.md) |
+
+**Жёстко:**
+
+- Тема аккаунта = только `--accent` / `--accent-soft`; дефолт **Листва** `#5a6b3d`.
+- Характеристики **всегда вариант A** — identity-цвета.
+- Display: Source Serif 4 · UI: IBM Plex Sans.
+- **Desktop kit не менять под мобилку** — мобильные паттерны только в `docs/ui-kit-mobile/`.
+- На телефоне: одна сцена + Bottom Scene Nav + паритет всех функций стола (см. mobile kit).
+- Новый паттерн → доска/секция в нужном ките → ok Игоря → код.
+
+---
+
 ## 1. Прод = ровно то, что в твоём дереве при деплое
 
 `./deploy/sync-and-up.sh` **полностью затирает** `/opt/dvarf` (кроме `.env`) и заливает **весь** текущий workspace.
