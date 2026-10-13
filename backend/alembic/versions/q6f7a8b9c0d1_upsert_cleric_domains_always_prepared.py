@@ -1,7 +1,7 @@
 """Upsert cleric domain always-prepared spells + sheet grants (14 domains).
 
 Revision ID: q6f7a8b9c0d1
-Revises: p5e6f7a8b9c0
+Revises: a6b7c8d9e0f1
 Create Date: 2026-10-07 04:30:00.000000
 
 """
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "q6f7a8b9c0d1"
-down_revision: Union[str, Sequence[str], None] = "p5e6f7a8b9c0"
+down_revision: Union[str, Sequence[str], None] = "a6b7c8d9e0f1"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

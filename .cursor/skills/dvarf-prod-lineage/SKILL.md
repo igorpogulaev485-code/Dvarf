@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/desk-vitals-wave-a73e
+cursor/levelup-feat-cast-exit-0cfc
 ```
 
 URL: http://201.34.132.252/
@@ -38,7 +38,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-acbe origin/cursor/desk-vitals-wave-a73e
+git checkout -b cursor/<descriptive>-acbe origin/cursor/levelup-feat-cast-exit-0cfc
 # если tip уже другой — подставь актуальный из AGENTS.md / этого skill
 ```
 
@@ -46,7 +46,7 @@ git checkout -b cursor/<descriptive>-acbe origin/cursor/desk-vitals-wave-a73e
 
 ```bash
 git fetch origin
-git merge origin/cursor/desk-vitals-wave-a73e
+git merge origin/cursor/levelup-feat-cast-exit-0cfc
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```

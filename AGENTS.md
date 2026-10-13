@@ -46,7 +46,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/desk-vitals-wave-a73e` |
+| Prod tip (сейчас) | `cursor/levelup-feat-cast-exit-0cfc` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
