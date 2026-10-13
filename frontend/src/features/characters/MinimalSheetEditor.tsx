@@ -213,7 +213,6 @@ import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { toggleCombatConsumableFavorite } from './combatConsumables'
 import { PlayDeskAttacksCompact } from './PlayDeskAttacksCompact'
-import { PlayDeskCompanionsCompact } from './PlayDeskCompanionsCompact'
 import { HotConditionsDialog } from './HotConditionsDialog'
 import { PlayDeskHeader } from './PlayDeskHeader'
 import { PlayDeskHotBar } from './PlayDeskHotBar'
@@ -3129,8 +3128,15 @@ export function MinimalSheetEditor({
   function showCompact(id: PlayDeskCompactPanelId): boolean {
     // Spells / attacks: compact is the only play surface; setup lives in settings dialogs.
     if (id === 'spells' || id === 'attacks') return isPlayDesk
-    // Explore / Social / Features: glance→expand panels — no compact/full flip.
-    if (id === 'inventory' || id === 'texts' || id === 'features') return false
+    // Explore / Social / Features / Companions: glance→expand — no compact/full flip.
+    if (
+      id === 'inventory' ||
+      id === 'texts' ||
+      id === 'features' ||
+      id === 'companions'
+    ) {
+      return false
+    }
     return isPlayDesk && forceFullPanel !== id
   }
 
@@ -4616,29 +4622,11 @@ export function MinimalSheetEditor({
       </div>
 
       <div className="play-desk__stage-panel" hidden={stageHidden('companions')}>
-      {showCompact('companions') ? (
-        <PlayDeskCompanionsCompact
-          companions={draft.companions}
-          onOpenFull={() => setForceFullPanel('companions')}
-          onToast={onToast}
-        />
-      ) : (
-        <>
-          {isPlayDesk ? (
-            <button
-              type="button"
-              className="play-desk-compact__link play-desk-compact__link--bar"
-              onClick={() => setForceFullPanel(null)}
-            >
-              ← компактно
-            </button>
-          ) : null}
-          <CompanionsPanel
-            companions={draft.companions}
-            onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
-          />
-        </>
-      )}
+      {/* Companions: CompanionsPanel glance→expand — no compact/full flip. */}
+      <CompanionsPanel
+        companions={draft.companions}
+        onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
+      />
 
       </div>
 
