@@ -782,6 +782,42 @@ input {
   margin-top: 8px;
 }
 
+/* Slot maxes 1–9: compact fixed cells, not full-width stretch */
+.sheet-grid--slots {
+  display: grid;
+  grid-template-columns: repeat(9, 2.35rem);
+  gap: 5px;
+  margin-top: 6px;
+  width: max-content;
+  max-width: 100%;
+  justify-content: start;
+}
+
+.sheet-grid--slots .ui-field {
+  gap: 2px;
+  width: 2.35rem;
+}
+
+.sheet-grid--slots .ui-field__label,
+.ui-dialog__body .sheet-grid--slots .ui-field__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: var(--muted);
+}
+
+.sheet-grid--slots .ui-input,
+.ui-dialog__body .sheet-grid--slots .ui-input {
+  width: 2.35rem;
+  padding: 5px 0;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
 .inventory-panel.ui-panel {
   background: var(--panel);
 }
@@ -1988,10 +2024,179 @@ button.spell-card__cast:hover:not(:disabled) {
 }
 
 .spells-settings {
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--card);
+}
+
+.spells-settings__top {
+  display: grid;
+  grid-template-columns: 1fr minmax(5.5rem, 7rem);
+  gap: 10px 14px;
+  align-items: start;
+}
+
+.spells-settings__slots-hint {
+  margin-top: 4px;
+}
+
+.spells-settings__derived {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.spells-settings__derived-stat {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 4.25rem;
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 70%, white);
+}
+
+.spells-settings__derived-stat span {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 70%, var(--muted));
+}
+
+.spells-settings__derived-stat strong {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.spells-settings__derived-hint {
+  flex: 1 1 8rem;
+  margin: 0;
+  font-size: 0.75rem !important;
+}
+
+.spells-settings__pact-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+  margin-top: 6px;
+}
+
+.spells-settings__pact-level {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 4.5rem;
+  padding: 4px 0;
+}
+
+.spells-settings__pact-level-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.spells-settings__pact-level strong {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.spells-settings__pact-level-auto {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.spells-settings__pact-row .ui-field {
+  width: 3.25rem;
+}
+
+.spells-settings .pact-settings {
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+}
+
+.spells-settings .pact-settings .sheet-grid--2 {
+  display: grid;
+  grid-template-columns: 3.25rem 3.25rem;
+  gap: 6px;
+  max-width: none;
+  width: max-content;
+}
+
+.spells-settings .pact-settings .ui-input,
+.ui-dialog__body .spells-settings .pact-settings .ui-input {
+  width: 3.25rem;
+  padding: 5px 0;
+  border-radius: 8px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.spells-settings__prep .ui-input,
+.ui-dialog__body .spells-settings__prep .ui-input {
+  padding: 6px 8px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.spells-settings-dialog__books {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.spells-settings-dialog__books .ui-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spells-settings-dialog__advanced {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+}
+
+.spells-settings-dialog__advanced-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+}
+
+.spells-settings-dialog__advanced-toggle:hover {
+  text-decoration: underline;
+}
+
+.spells-settings-dialog__advanced-hint {
+  font-weight: 500;
+  font-size: 0.82rem;
+  color: var(--muted);
 }
 
 .spell-level-block {
@@ -3877,6 +4082,21 @@ button.spell-card__cast:hover:not(:disabled) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .sheet-grid--slots {
+    grid-template-columns: repeat(9, 2.1rem);
+    gap: 4px;
+  }
+
+  .sheet-grid--slots .ui-field,
+  .sheet-grid--slots .ui-input {
+    width: 2.1rem;
+  }
+
+  .spells-settings__top {
+    grid-template-columns: 1fr minmax(4.5rem, 6rem);
+    gap: 8px;
+  }
+
   .skill-row {
     flex-direction: column;
     align-items: flex-start;
@@ -5371,6 +5591,10 @@ button.play-desk-vital:hover {
 .play-desk-compact__link--prepare {
   border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 40%, var(--desk-line));
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 65%, white);
+}
+
+.play-desk-compact__link--settings {
+  border-color: color-mix(in srgb, var(--desk-line) 80%, var(--desk-ink));
 }
 
 .play-desk-compact__link-icon {
