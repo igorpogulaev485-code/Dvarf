@@ -46,7 +46,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/levelup-feat-cast-exit-0cfc` |
+| Prod tip (сейчас) | `cursor/fast-docker-release-93e5` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 

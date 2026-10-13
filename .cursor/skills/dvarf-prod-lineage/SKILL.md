@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/levelup-feat-cast-exit-0cfc
+cursor/fast-docker-release-93e5
 ```
 
 URL: http://201.34.132.252/
@@ -38,7 +38,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-acbe origin/cursor/levelup-feat-cast-exit-0cfc
+git checkout -b cursor/<descriptive>-acbe origin/cursor/fast-docker-release-93e5
 # если tip уже другой — подставь актуальный из AGENTS.md / этого skill
 ```
 
@@ -46,7 +46,7 @@ git checkout -b cursor/<descriptive>-acbe origin/cursor/levelup-feat-cast-exit-0
 
 ```bash
 git fetch origin
-git merge origin/cursor/levelup-feat-cast-exit-0cfc
+git merge origin/cursor/fast-docker-release-93e5
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```
