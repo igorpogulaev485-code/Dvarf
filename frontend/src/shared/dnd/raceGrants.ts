@@ -1,6 +1,7 @@
 /** PHB 2014 race grants: catalog.data → picks → ledger (mirrors classGrants). */
 
 import type { NaturalArmor } from './armor'
+import { canonicalLanguageList } from './languages'
 
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
@@ -774,7 +775,7 @@ export function raceGrantDefFromCatalog(input: {
     abilityBonusChoices: readAbilityBonusChoices(
       data.ability_bonus_choices ?? data.abilityBonusChoices,
     ),
-    languages: readStringList(data.languages),
+    languages: canonicalLanguageList(readStringList(data.languages)),
     languagesChoose: Math.max(0, Math.floor(readNumber(data.languages_choose, 0))),
     skillProficiencies: readStringList(
       data.skill_proficiencies ?? data.skillProficiencies,
@@ -1089,7 +1090,7 @@ export function readAppliedRaceGrant(raw: unknown): AppliedRaceGrant | null {
     size: typeof row.size === 'string' ? row.size : 'medium',
     darkvision: Math.max(0, Math.floor(readNumber(row.darkvision, 0))),
     abilityBonuses,
-    languages: readStringList(row.languages),
+    languages: canonicalLanguageList(readStringList(row.languages)),
     skills: readStringList(row.skills),
     tools: readStringList(row.tools),
     armorKeys: readArmor(row.armorKeys),

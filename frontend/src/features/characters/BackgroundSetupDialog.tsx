@@ -9,6 +9,7 @@ import {
   type BackgroundGrantDef,
   type BackgroundGrantPicks,
 } from '../../shared/dnd/backgroundGrants'
+import { canonicalLanguageName } from '../../shared/dnd/languages'
 import { LANGUAGE_PRESETS } from './languagesTools'
 import { SKILL_DEFS } from './sheetTypes'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
@@ -38,7 +39,7 @@ const KEEP_ROOT = '__root__'
 const COMMON_LANGUAGE = 'общий'
 
 function normLang(name: string): string {
-  return name.trim().toLowerCase()
+  return canonicalLanguageName(name).toLowerCase()
 }
 
 function skillLabel(key: string): string {
