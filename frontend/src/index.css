@@ -7702,6 +7702,21 @@ button.play-desk-vital:hover {
   gap: 12px;
 }
 
+/* Narrow drawer: «Плавание, фт» wraps — reserve 2-line label so inputs stay level. */
+.sheet-grid--speeds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.sheet-grid--speeds .ui-field__label {
+  min-height: 2.5em;
+  line-height: 1.25;
+  display: flex;
+  align-items: flex-end;
+}
+
 /* Wide desk keeps rail A identity colors — do not force theme accent onto skills */
 
 @media (min-width: 960px) {

@@ -4607,7 +4607,7 @@ export function MinimalSheetEditor({
                       }
                     />
                   </Field>
-                  <div className="sheet-grid sheet-grid--3">
+                  <div className="sheet-grid sheet-grid--speeds">
                     <Field label="Лазание, фт" htmlFor="sheet-climb" hint="пусто = нет">
                       <NumberInput
                         id="sheet-climb"
