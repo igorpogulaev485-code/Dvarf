@@ -1,6 +1,7 @@
 export const ABILITY_KEYS = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const
 export type AbilityKey = (typeof ABILITY_KEYS)[number]
 
+/** Short labels (СИЛ) — compact chips, print, ASI pickers. */
 export const ABILITY_LABELS: Record<AbilityKey, string> = {
   str: 'СИЛ',
   dex: 'ЛОВ',
@@ -8,6 +9,16 @@ export const ABILITY_LABELS: Record<AbilityKey, string> = {
   int: 'ИНТ',
   wis: 'МУД',
   cha: 'ХАР',
+}
+
+/** Full names — ability rail head (two-row layout). */
+export const ABILITY_NAMES: Record<AbilityKey, string> = {
+  str: 'Сила',
+  dex: 'Ловкость',
+  con: 'Телосложение',
+  int: 'Интеллект',
+  wis: 'Мудрость',
+  cha: 'Харизма',
 }
 
 export const SKILL_DEFS: Array<{ key: string; label: string; base: AbilityKey }> = [

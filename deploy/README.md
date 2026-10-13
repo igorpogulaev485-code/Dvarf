@@ -3,7 +3,7 @@
 **URL:** http://201.34.132.252/  
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
-**Current prod tip branch:** `cursor/create-pipeline-kit-prod-244b`  
+**Current prod tip branch:** `cursor/restore-wave-a-desk-0ed9`  
 (обновляй эту строку после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
 
 ---
@@ -15,19 +15,17 @@
 | Деплой с… | Результат на проде |
 |-----------|-------------------|
 | Полный tip + твой слайс | ОКый прод + новое |
-| Тонкая ветка без кабинета/листа/лобби | Эти контуры **исчезают** |
-
-Именно так 2026-10-06 пропали аватар, кабинет, лист P1–P6 и classic.
+| Тонкая / orphan ветка | Контуры **исчезают** или API падает на alembic |
 
 **Правила:** [`AGENTS.md`](../AGENTS.md) · [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](../.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
-Перед деплоем обязательно:
+Перед деплоем:
 
-1. Ветка = merge/rebase от **prod tip** (не параллельная развилка от старого Phase A).
-2. `./deploy/preflight-prod.sh` — зелёный (вызывается из `sync-and-up.sh` автоматически).
-3. После деплоя — проверить живые маркеры + обновить `PRODUCT_STATUS.md`.
+1. Ветка = merge от **live tip** (с сервера), не cherry-pick сшивка.
+2. `preflight-prod.sh` + `preflight-live.sh` зелёные (вызываются из `sync-and-up`).
+3. После — живые маркеры + `PRODUCT_STATUS.md`.
 
-Обход preflight только с явного ok Игоря: `DVARF_SKIP_PREFLIGHT=1`.
+Обход только с явного ok Игоря: `DVARF_SKIP_PREFLIGHT=1` / `DVARF_SKIP_LIVE_PREFLIGHT=1`.
 
 ---
 
@@ -47,26 +45,33 @@ Cloud Agent VMs do **not** share `~/.ssh` between runs. Use **one** keypair:
 
 `deploy/sync-and-up.sh` writes the secret to `~/.ssh/dvarf_timeweb` if the file is missing.
 
-Do **not** commit the private key to git.  
-Secret must include `BEGIN OPENSSH PRIVATE KEY` … `END` (не обрезанный base64).
-
 ## Agent deploy
 
 ```bash
-# from full prod tip lineage
-./deploy/preflight-prod.sh   # optional; sync-and-up runs it
 ./deploy/sync-and-up.sh
 ```
 
-What `sync-and-up.sh` does:
+Что делает:
 
-1. Runs **preflight** (anti-overwrite markers)
-2. Packs the repo (no `.git`, no `node_modules`, no local `.env`)
-3. Extracts into `/opt/dvarf` while keeping the existing server `.env`
-4. Runs `docker compose -f docker-compose.prod.yml --env-file .env up -d --build`
-5. Curls `http://127.0.0.1/health` on the server (retries briefly)
+1. `preflight-prod.sh` — контуры + fast-deploy path (`remote-up`, nginx+dist)
+2. `preflight-live.sh` — live tip ancestry + alembic revision из prod DB есть в дереве
+3. Prebuild SPA на агенте (`npm ci && npm run build`)
+4. Pack (включая `frontend/dist`) → `/opt/dvarf` (`.env` сохраняется)
+5. `remote-up.sh` на VPS: rebuild только по fingerprint, `--pull=false`, legacy builder, timeout
 
-Override host/key if needed:
+### Почему нельзя возвращать старый путь
+
+Старый `docker compose up -d --build` на VPS тянул `node` + `npm ci` + Hub и зависал на 27–60+ минут.  
+Orphan-ветки без tip давали пустой merge-base и час cherry-pick; отсутствие alembic-файла при живой ревизии в БД роняло API.
+
+### Knobs
+
+| Env | Meaning |
+|-----|---------|
+| `DVARF_SKIP_FRONTEND_BUILD=1` | Уже есть свежий `frontend/dist` |
+| `DVARF_FRONTEND_DOCKERFILE=Dockerfile.full` | Медленный build SPA на VPS |
+| `DVARF_BUILD_TIMEOUT=480` | Лимит compose build |
+| `DVARF_SKIP_LIVE_PREFLIGHT=1` | Только с ok Игоря |
 
 ```bash
 DVARF_HOST=201.34.132.252 DVARF_SSH_KEY=~/.ssh/dvarf_timeweb ./deploy/sync-and-up.sh
@@ -77,7 +82,8 @@ DVARF_HOST=201.34.132.252 DVARF_SSH_KEY=~/.ssh/dvarf_timeweb ./deploy/sync-and-u
 ```bash
 cd /opt/dvarf
 cp .env.prod.example .env   # fill real secrets once
-docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+# Prefer agent sync-and-up. Manual with prebuilt dist:
+bash deploy/remote-up.sh
 ```
 
 Migrations run automatically when the API container starts (`alembic upgrade head`).

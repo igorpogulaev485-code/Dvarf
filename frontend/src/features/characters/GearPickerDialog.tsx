@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { GEAR_RARITY_LABEL_RU, type GearRarity } from '../../shared/dnd/gearCatalog'
-import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
+import { Dialog, Field, NumberInput, Text } from '../../ui'
 import {
   GEAR_ITEM_CATEGORY_LABEL_RU,
   GEAR_SOURCE_BOOK_LABEL_RU,
@@ -241,194 +241,206 @@ export function GearPickerDialog({
       onPrimary={handleConfirm}
       onSecondary={onClose}
     >
-      <Stack gap={12}>
+      <div className="gear-picker">
         <Text tone="muted">
-          Оружие, доспехи и вещи 2014. Семьи вариантов (зелья лечения, +1/+2/+3) — как на ТТГ:
-          сначала семья, потом конкретный вариант. Оружие попадёт в «Атаки» убранным — «В руках»
-          отдельно (двуручное занимает обе руки).
+          Оружие, доспехи и вещи 2014. Семьи вариантов — сначала семья, потом вариант. Оружие
+          попадёт в «Атаки» убранным.
         </Text>
 
-        <div className="chip-row">
-          {KIND_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`sheet-chip${kind === tab.id ? ' is-on' : ''}`}
-              onClick={() => {
-                setKind(tab.id)
-                if (tab.id !== 'all' && tab.id !== 'item') {
-                  setItemCategory('all')
-                }
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {showItemCategoryFilters ? (
-          <div className="chip-row">
-            {ITEM_CATEGORY_FILTERS.map((tab) => (
+        <section className="gear-picker__card" aria-label="Фильтры">
+          <div className="gear-picker__card-head">
+            <span className="gear-picker__card-title">Тип</span>
+            <span className="gear-picker__count">{filtered.length}</span>
+          </div>
+          <div className="chip-row gear-picker__chips">
+            {KIND_TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
-                className={`sheet-chip${itemCategory === tab.id ? ' is-on' : ''}`}
+                className={`sheet-chip${kind === tab.id ? ' is-on' : ''}`}
                 onClick={() => {
-                  setItemCategory(tab.id)
-                  if (tab.id !== 'all' && kind === 'all') setKind('item')
+                  setKind(tab.id)
+                  if (tab.id !== 'all' && tab.id !== 'item') {
+                    setItemCategory('all')
+                  }
                 }}
               >
                 {tab.label}
               </button>
             ))}
           </div>
-        ) : null}
 
-        <Field label="Поиск">
-          <input
-            className="ui-input"
-            value={query}
-            placeholder="Название, slug…"
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </Field>
-
-        <div className="chip-row">
-          {SOURCE_BOOK_FILTERS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`sheet-chip${sourceBook === tab.id ? ' is-on' : ''}`}
-              onClick={() => setSourceBook(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="chip-row">
-          {RARITY_FILTERS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`sheet-chip${rarity === tab.id ? ' is-on' : ''}`}
-              onClick={() => setRarity(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="gear-picker-list" role="listbox" aria-label="Снаряжение">
-          {loading ? <Text tone="muted">Загружаю справочник…</Text> : null}
-          {!loading && groups.length === 0 ? (
-            <Text tone="muted">Ничего не найдено</Text>
+          {showItemCategoryFilters ? (
+            <div className="chip-row gear-picker__chips">
+              {ITEM_CATEGORY_FILTERS.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  className={`sheet-chip${itemCategory === tab.id ? ' is-on' : ''}`}
+                  onClick={() => {
+                    setItemCategory(tab.id)
+                    if (tab.id !== 'all' && kind === 'all') setKind('item')
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           ) : null}
-          {!loading
-            ? groups.map((group) => {
-                const multi = group.entries.length > 1
-                const openFamily = expandedFamily === group.family_slug
-                if (!multi) {
-                  const entry = group.entries[0]
-                  const summary = summarizeGearEntry(entry)
-                  if (!summary) return null
-                  const active = selectedId === entry.id
-                  return (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      role="option"
-                      aria-selected={active}
-                      className={`gear-picker-row${active ? ' is-selected' : ''}`}
-                      onClick={() => pickEntry(entry)}
-                    >
-                      <span className="gear-picker-row__name">
-                        {summary.name_ru}
-                        <RarityBadge
-                          rarity={summary.rarity}
-                          label={summary.rarity_label}
-                        />
-                      </span>
-                      <span className="gear-picker-row__meta">
-                        {summary.meta_line}
-                        {summary.requires_attunement ? ' · нужна настройка' : ''}
-                      </span>
-                    </button>
-                  )
-                }
-                return (
-                  <div key={group.family_slug} className="gear-picker-family">
-                    <button
-                      type="button"
-                      className={`gear-picker-row gear-picker-row--family${
-                        openFamily ? ' is-open' : ''
-                      }`}
-                      onClick={() =>
-                        setExpandedFamily(openFamily ? null : group.family_slug)
-                      }
-                    >
-                      <span className="gear-picker-row__name">
-                        {group.family_label_ru}
-                        <span className="gear-picker-row__badge">
-                          {group.entries.length} вар.
+
+          <Field label="Поиск">
+            <input
+              className="ui-input"
+              value={query}
+              placeholder="Название, slug…"
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </Field>
+
+          <div className="chip-row gear-picker__chips">
+            {SOURCE_BOOK_FILTERS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`sheet-chip${sourceBook === tab.id ? ' is-on' : ''}`}
+                onClick={() => setSourceBook(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="chip-row gear-picker__chips">
+            {RARITY_FILTERS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`sheet-chip${rarity === tab.id ? ' is-on' : ''}`}
+                onClick={() => setRarity(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="gear-picker__card" aria-label="Список">
+          <div className="gear-picker__card-head">
+            <span className="gear-picker__card-title">Список</span>
+            {loading ? <span className="gear-picker__count">…</span> : null}
+          </div>
+          <div className="gear-picker-list" role="listbox" aria-label="Снаряжение">
+            {loading ? <Text tone="muted">Загружаю справочник…</Text> : null}
+            {!loading && groups.length === 0 ? (
+              <Text tone="muted">Ничего не найдено</Text>
+            ) : null}
+            {!loading
+              ? groups.map((group) => {
+                  const multi = group.entries.length > 1
+                  const openFamily = expandedFamily === group.family_slug
+                  if (!multi) {
+                    const entry = group.entries[0]
+                    const summary = summarizeGearEntry(entry)
+                    if (!summary) return null
+                    const active = selectedId === entry.id
+                    return (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        role="option"
+                        aria-selected={active}
+                        className={`gear-picker-row${active ? ' is-selected' : ''}`}
+                        onClick={() => pickEntry(entry)}
+                      >
+                        <span className="gear-picker-row__name">
+                          {summary.name_ru}
+                          <RarityBadge
+                            rarity={summary.rarity}
+                            label={summary.rarity_label}
+                          />
                         </span>
-                      </span>
-                      <span className="gear-picker-row__meta">
-                        {openFamily ? 'свернуть' : 'выбрать вариант'}
-                      </span>
-                    </button>
-                    {openFamily
-                      ? group.entries.map((entry) => {
-                          const summary = summarizeGearEntry(entry)
-                          if (!summary) return null
-                          const active = selectedId === entry.id
-                          const variant =
-                            summary.variant_label_ru ||
-                            summary.rarity_label ||
-                            entry.name_ru
-                          return (
-                            <button
-                              key={entry.id}
-                              type="button"
-                              role="option"
-                              aria-selected={active}
-                              className={`gear-picker-row gear-picker-row--variant${
-                                active ? ' is-selected' : ''
-                              }`}
-                              onClick={() => pickEntry(entry)}
-                            >
-                              <span className="gear-picker-row__name">
-                                {variant}
-                                <RarityBadge
-                                  rarity={summary.rarity}
-                                  label={summary.rarity_label}
-                                />
-                              </span>
-                              <span className="gear-picker-row__meta">
-                                {entry.name_ru}
-                                {summary.meta_line ? ` · ${summary.meta_line}` : ''}
-                              </span>
-                            </button>
-                          )
-                        })
-                      : null}
-                  </div>
-                )
-              })
-            : null}
-        </div>
+                        <span className="gear-picker-row__meta">
+                          {summary.meta_line}
+                          {summary.requires_attunement ? ' · нужна настройка' : ''}
+                        </span>
+                      </button>
+                    )
+                  }
+                  return (
+                    <div key={group.family_slug} className="gear-picker-family">
+                      <button
+                        type="button"
+                        className={`gear-picker-row gear-picker-row--family${
+                          openFamily ? ' is-open' : ''
+                        }`}
+                        onClick={() =>
+                          setExpandedFamily(openFamily ? null : group.family_slug)
+                        }
+                      >
+                        <span className="gear-picker-row__name">
+                          {group.family_label_ru}
+                          <span className="gear-picker-row__badge">
+                            {group.entries.length} вар.
+                          </span>
+                        </span>
+                        <span className="gear-picker-row__meta">
+                          {openFamily ? 'свернуть' : 'выбрать вариант'}
+                        </span>
+                      </button>
+                      {openFamily
+                        ? group.entries.map((entry) => {
+                            const summary = summarizeGearEntry(entry)
+                            if (!summary) return null
+                            const active = selectedId === entry.id
+                            const variant =
+                              summary.variant_label_ru ||
+                              summary.rarity_label ||
+                              entry.name_ru
+                            return (
+                              <button
+                                key={entry.id}
+                                type="button"
+                                role="option"
+                                aria-selected={active}
+                                className={`gear-picker-row gear-picker-row--variant${
+                                  active ? ' is-selected' : ''
+                                }`}
+                                onClick={() => pickEntry(entry)}
+                              >
+                                <span className="gear-picker-row__name">
+                                  {variant}
+                                  <RarityBadge
+                                    rarity={summary.rarity}
+                                    label={summary.rarity_label}
+                                  />
+                                </span>
+                                <span className="gear-picker-row__meta">
+                                  {entry.name_ru}
+                                  {summary.meta_line ? ` · ${summary.meta_line}` : ''}
+                                </span>
+                              </button>
+                            )
+                          })
+                        : null}
+                    </div>
+                  )
+                })
+              : null}
+          </div>
+        </section>
 
         {selectedSummary ? (
-          <div className="gear-picker-selected">
-            <Text>
-              <strong>{selectedSummary.name_ru}</strong>
-              {' · '}
+          <section className="gear-picker__card gear-picker__card--selected" aria-label="Выбрано">
+            <div className="gear-picker__card-head">
+              <span className="gear-picker__card-title">{selectedSummary.name_ru}</span>
               <RarityBadge
                 rarity={selectedSummary.rarity}
                 label={selectedSummary.rarity_label}
               />
-              {selectedSummary.requires_attunement ? ' · нужна настройка' : ''}
-            </Text>
+            </div>
+            {selectedSummary.requires_attunement ? (
+              <Text tone="muted">Нужна настройка</Text>
+            ) : null}
             {selectedSummary.meta_line ? (
               <Text tone="muted">{selectedSummary.meta_line}</Text>
             ) : null}
@@ -437,36 +449,36 @@ export function GearPickerDialog({
                 {selectedSummary.description_ru}
               </Text>
             ) : null}
-          </div>
-        ) : null}
-
-        <div className="sheet-grid sheet-grid--2">
-          <Field label="Количество">
-            <NumberInput
-              min={1}
-              emptyValue={1}
-              value={qty}
-              onValueChange={(next) => setQty(Math.max(1, next ?? 1))}
-            />
-          </Field>
-          {selected?.kind === 'armor' ? (
-            <Field label="Надеть сразу">
-              <button
-                type="button"
-                className={`sheet-chip${equipArmor ? ' is-on' : ''}`}
-                onClick={() => setEquipArmor((prev) => !prev)}
-              >
-                {equipArmor ? 'Да, надеть' : 'В рюкзак'}
-              </button>
-            </Field>
-          ) : (
-            <div />
-          )}
-        </div>
+            <div className="sheet-grid sheet-grid--2">
+              <Field label="Количество">
+                <NumberInput
+                  min={1}
+                  emptyValue={1}
+                  value={qty}
+                  onValueChange={(next) => setQty(Math.max(1, next ?? 1))}
+                />
+              </Field>
+              {selected?.kind === 'armor' ? (
+                <Field label="Надеть сразу">
+                  <button
+                    type="button"
+                    className={`sheet-chip${equipArmor ? ' is-on' : ''}`}
+                    onClick={() => setEquipArmor((prev) => !prev)}
+                  >
+                    {equipArmor ? 'Да, надеть' : 'В рюкзак'}
+                  </button>
+                </Field>
+              ) : (
+                <div />
+              )}
+            </div>
+          </section>
+        ) : (
+          <Text tone="muted">Выбери строку в списке — затем «Добавить».</Text>
+        )}
 
         {error ? <Text tone="danger">{error}</Text> : null}
-        <Text tone="muted">Найдено: {filtered.length}</Text>
-      </Stack>
+      </div>
     </Dialog>
   )
 }

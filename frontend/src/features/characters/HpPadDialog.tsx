@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   spendHitDieFromPool,
   totalHitDiceCurrent,
@@ -131,7 +132,7 @@ export function HpPadDialog({
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
       className="ui-dialog-backdrop"
       role="presentation"
@@ -314,7 +315,8 @@ export function HpPadDialog({
           </div>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

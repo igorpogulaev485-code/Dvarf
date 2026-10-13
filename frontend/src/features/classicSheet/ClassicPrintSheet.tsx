@@ -160,7 +160,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
             <div className="classic-abilities-wrap">
               <div>
                 {ABILITY_KEYS.map((key) => (
-                  <div className="classic-ability" key={key}>
+                  <div className="classic-ability" data-abil={key} key={key}>
                     <div className="classic-ability__label">{ABILITY_LABELS[key]}</div>
                     <input
                       type="number"

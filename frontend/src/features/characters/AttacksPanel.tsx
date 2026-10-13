@@ -76,7 +76,8 @@ type AttacksPanelProps = {
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
 }
 
-function createAttack(): WeaponAttack {
+/** Empty custom attack card («Своё» / Добавить атаку). */
+export function createCustomAttack(): WeaponAttack {
   return {
     id:
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -164,7 +165,7 @@ export function AttacksPanel({
         </Text>
 
         <div className="attack-panel__toolbar">
-          <Button variant="secondary" onClick={() => onChange([...weapons, createAttack()])}>
+          <Button variant="secondary" onClick={() => onChange([...weapons, createCustomAttack()])}>
             Добавить атаку
           </Button>
         </div>

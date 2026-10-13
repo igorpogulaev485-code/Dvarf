@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
+  AppearancePanel,
   AuthProvidersPanel,
   ChangeEmailForm,
   ChangePasswordForm,
@@ -10,6 +11,7 @@ import {
 } from '../features/cabinet'
 import { getMe, type User } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
+import { applyAccountAppearance, normalizeAppearance } from '../shared/theme/accountAppearance'
 import { Panel, Stack, Text, Toast } from '../ui'
 
 export function CabinetPage() {
@@ -21,13 +23,18 @@ export function CabinetPage() {
 
   const closeToast = useCallback(() => setToast(null), [])
 
+  const handleUser = useCallback((next: User) => {
+    setUser(next)
+    applyAccountAppearance(normalizeAppearance(next))
+  }, [])
+
   useEffect(() => {
     let active = true
     setLoading(true)
     getMe()
       .then((me) => {
         if (active) {
-          setUser(me)
+          handleUser(me)
         }
       })
       .catch((err: unknown) => {
@@ -48,51 +55,60 @@ export function CabinetPage() {
     return () => {
       active = false
     }
-  }, [navigate])
+  }, [navigate, handleUser])
 
   return (
-    <main className="page page--app">
+    <main className="page page--app page--cabinet">
       <Stack gap={20}>
-        <Link className="back-link" to="/characters">
-          ← К персонажам
-        </Link>
-
-        <Stack gap={6}>
-          <Text as="h1">Личный кабинет</Text>
-          <Text tone="muted">Профиль и способы входа</Text>
-        </Stack>
+        <header className="cabinet-header">
+          <Link className="back-link" to="/characters">
+            ← К персонажам
+          </Link>
+          <Stack gap={6}>
+            <Text as="h1">Личный кабинет</Text>
+            <Text tone="muted">Профиль, безопасность и оформление</Text>
+          </Stack>
+        </header>
 
         {loading ? <Text tone="muted">Загружаем профиль…</Text> : null}
         {error ? <Text tone="danger">{error}</Text> : null}
 
         {user ? (
-          <>
-            <Panel title="Профиль">
+          <div className="cabinet-layout">
+            <Panel title="Профиль" className="cabinet-layout__profile">
               <ProfileForm
                 user={user}
                 onSaved={(next) => {
-                  setUser(next)
+                  handleUser(next)
                   setToast('Профиль сохранён')
                 }}
               />
             </Panel>
 
-            <Panel title="Способы входа">
+            <Panel title="Оформление" className="cabinet-layout__appearance">
+              <AppearancePanel
+                user={user}
+                onSaved={(next) => {
+                  handleUser(next)
+                  setToast('Оформление сохранено')
+                }}
+              />
+            </Panel>
+
+            <Panel title="Способы входа" className="cabinet-layout__providers">
               <AuthProvidersPanel providers={user.providers} />
             </Panel>
 
-            <Panel title="Смена email">
+            <Panel title="Смена email" className="cabinet-layout__email">
               <ChangeEmailForm currentEmail={user.email} />
             </Panel>
 
             {user.providers.includes('password') ? (
-              <Panel title="Смена пароля">
-                <ChangePasswordForm
-                  onChanged={() => setToast('Пароль изменён')}
-                />
+              <Panel title="Смена пароля" className="cabinet-layout__password">
+                <ChangePasswordForm onChanged={() => setToast('Пароль изменён')} />
               </Panel>
             ) : (
-              <Panel title="Смена пароля">
+              <Panel title="Смена пароля" className="cabinet-layout__password">
                 <Text tone="muted">
                   У аккаунта нет пароля email — смена пароля недоступна. Позже можно будет задать
                   пароль после привязки email.
@@ -100,7 +116,7 @@ export function CabinetPage() {
               </Panel>
             )}
 
-            <Panel title="Сессии">
+            <Panel title="Сессии" className="cabinet-layout__sessions">
               <SessionsPanel
                 onLoggedOut={() => {
                   navigate('/login', { replace: true })
@@ -108,7 +124,7 @@ export function CabinetPage() {
               />
             </Panel>
 
-            <Panel title="Опасная зона" className="ui-panel--danger">
+            <Panel title="Опасная зона" className="ui-panel--danger cabinet-layout__danger">
               <DangerZone
                 user={user}
                 onDeleted={() => {
@@ -117,7 +133,7 @@ export function CabinetPage() {
                 }}
               />
             </Panel>
-          </>
+          </div>
         ) : null}
       </Stack>
 

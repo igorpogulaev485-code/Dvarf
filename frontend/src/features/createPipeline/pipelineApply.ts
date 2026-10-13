@@ -176,6 +176,7 @@ function emptyTextBlocks(): TextBlock[] {
     value: '',
     isCustom: false,
     resourceId: null,
+    parts: [{ id: `part-${item.key}`, kind: 'text' as const, value: '' }],
   }))
 }
 

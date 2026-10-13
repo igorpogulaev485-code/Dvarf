@@ -1,7 +1,7 @@
 import { NumberInput, Text } from '../../ui'
 import {
   ABILITY_KEYS,
-  ABILITY_LABELS,
+  ABILITY_NAMES,
   SKILL_DEFS,
   abilityModifier,
   formatModifier,
@@ -44,6 +44,12 @@ function skillMark(state: SkillState): string {
   if (state.is_expertise) return 'Эксп.'
   if (state.is_proficient) return 'Влад.'
   return '—'
+}
+
+function skillMeta(state: SkillState, modLabel: string, gearLabel: string): string {
+  const mark = skillMark(state)
+  if (mark === '—') return `— ${modLabel}${gearLabel}`
+  return `${mark} ${modLabel}${gearLabel}`
 }
 
 export { cycleSkill }
@@ -92,14 +98,14 @@ export function AbilitySkillsColumn({
           type="button"
           onClick={() => onCollapsedChange([...ABILITY_KEYS])}
         >
-          Свернуть все навыки
+          ▲ Свернуть все
         </button>
         <button type="button" onClick={() => onCollapsedChange([])}>
-          Развернуть все
+          ▼ Развернуть все
         </button>
       </div>
       <Text tone="muted" className="abil-column__hint">
-        ▾ свернуть · ⋮⋮ порядок · клик по навыку: владение/экспертиза
+        название ▾ · ⋮⋮ порядок · клик по навыку: владение / экспертиза
       </Text>
       <div className="abil-column__list" id="abil-column-list">
         {order.map((key) => {
@@ -149,43 +155,50 @@ export function AbilitySkillsColumn({
                 >
                   ⋮⋮
                 </span>
-                <div className="abil-block__who">
-                  <span className="abil-block__label">{ABILITY_LABELS[key]}</span>
-                  <NumberInput
-                    min={1}
-                    max={30}
-                    emptyValue={10}
-                    value={baseScore}
-                    onValueChange={(next) => onAbilityScoreChange(key, next ?? 10)}
-                  />
-                  {score !== baseScore ? (
-                    <span className="abil-block__effective" title="С учётом предметов">
-                      → {score}
-                    </span>
-                  ) : null}
-                </div>
-                <div className="abil-block__mods">
-                  <span className="abil-mod" title="Проверка характеристики">
-                    Пр {formatModifier(check)}
-                  </span>
-                  <button
-                    type="button"
-                    className={`abil-mod abil-mod--btn${saves[key] ? ' is-on' : ''}`}
-                    title="Спасбросок — клик: владение"
-                    onClick={() => onSaveToggle(key)}
-                  >
-                    Сп {formatModifier(saveMod)}
-                  </button>
-                </div>
                 <button
                   type="button"
-                  className="abil-block__toggle"
+                  className="abil-block__label"
                   aria-expanded={!isCollapsed}
                   title={isCollapsed ? 'Развернуть навыки' : 'Свернуть навыки'}
                   onClick={() => setCollapsed(key, !isCollapsed)}
                 >
-                  {isCollapsed ? '▸' : '▾'}
+                  <span className="abil-block__label-text">{ABILITY_NAMES[key]}</span>
+                  <span className="abil-block__label-chevron" aria-hidden>
+                    {isCollapsed ? '▸' : '▾'}
+                  </span>
                 </button>
+                <div className="abil-block__meta">
+                  <div className="abil-block__score-wrap">
+                    <NumberInput
+                      className="abil-block__score"
+                      min={1}
+                      max={30}
+                      emptyValue={10}
+                      value={baseScore}
+                      onValueChange={(next) => onAbilityScoreChange(key, next ?? 10)}
+                      inputMode="numeric"
+                      title="Базовое значение"
+                    />
+                    {score !== baseScore ? (
+                      <span className="abil-block__effective is-buffed" title="С учётом предметов">
+                        → {score}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="abil-block__mods">
+                    <span className="abil-mod" title="Проверка характеристики">
+                      Пр {formatModifier(check)}
+                    </span>
+                    <button
+                      type="button"
+                      className={`abil-mod abil-mod--btn${saves[key] ? ' is-on' : ''}`}
+                      title="Спасбросок — клик: владение"
+                      onClick={() => onSaveToggle(key)}
+                    >
+                      Сп {formatModifier(saveMod)}
+                    </button>
+                  </div>
+                </div>
               </div>
               {!isCollapsed ? (
                 <div className="abil-block__skills">
@@ -217,8 +230,11 @@ export function AbilitySkillsColumn({
                         >
                           <span>{skill.label}</span>
                           <span className="abil-skill__meta">
-                            {skillMark(state)} · {formatModifier(mod)}
-                            {gearSkill ? ` · предм. ${formatModifier(gearSkill)}` : ''}
+                            {skillMeta(
+                              state,
+                              formatModifier(mod),
+                              gearSkill ? ` · предм. ${formatModifier(gearSkill)}` : '',
+                            )}
                           </span>
                         </button>
                       )
