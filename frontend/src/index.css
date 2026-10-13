@@ -2602,6 +2602,31 @@ button.spell-card__cast:hover:not(:disabled) {
   font-variant-numeric: tabular-nums;
 }
 
+.xp-level-offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+}
+
+.xp-level-offer__text {
+  margin: 0;
+  flex: 1 1 140px;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.xp-level-offer .ui-button {
+  flex: 0 0 auto;
+  min-height: 36px;
+}
+
 .xp-pad-header__reason {
   display: grid;
   gap: 4px;
@@ -4785,6 +4810,10 @@ button.play-desk-header__identity:hover {
   white-space: nowrap;
   color: var(--desk-ink, var(--ink));
   font-weight: 600;
+}
+
+.play-desk-header__xp-remain.is-ready {
+  color: var(--accent);
 }
 
 .play-desk-header__xp-next {

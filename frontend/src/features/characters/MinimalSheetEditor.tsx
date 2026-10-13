@@ -157,6 +157,7 @@ import {
   naturalArmorFromFeatGrants,
   newFeatGrantId,
   ownedFeatEnumsFromLedger,
+  raceRequiresFeatPick,
   readFeatGrantLedger,
   sumFeatHpPerLevel,
   sumFeatInitiativeBonus,
@@ -1964,7 +1965,7 @@ export function MinimalSheetEditor({
     if (summary) onToast(`Раса «${input.selected.name_ru}»: ${summary}`)
     const featNote = input.def?.featNoteRu ?? null
     const followUp: GuidedWizardStep[] = [...incompleteExpertise]
-    if (featNote) {
+    if (input.def && raceRequiresFeatPick(input.def) && !input.featResult) {
       followUp.push(featWizardStep({ noteRu: featNote }))
     }
     // Довыбор Expertise + черта с 1 ур. (человек и др.), если ещё в мастере.
@@ -2395,6 +2396,25 @@ export function MinimalSheetEditor({
       .filter(([, amount]) => amount)
       .map(([key, amount]) => `${ABILITY_LABELS[key as AbilityKey]}+${amount}`)
     onToast(bits.length ? `ASI: ${bits.join(', ')}` : 'ASI записан')
+  }
+
+  function confirmWizardFeat(result: FeatSetupResult) {
+    const raceId = draft.raceCatalogId
+    const raceSlug = draft.raceGrant?.slug ?? 'race'
+    const grant: AppliedFeatGrant = {
+      id: newFeatGrantId(),
+      featCatalogId: result.entry.id,
+      slug: result.entry.slug,
+      nameRu: result.entry.name_ru,
+      source: raceId
+        ? { kind: 'race', raceCatalogId: raceId, raceSlug }
+        : { kind: 'manual' },
+      applied: result.applied,
+      picks: result.picks,
+    }
+    setDraft((prev) =>
+      mergeFeatSlice(prev, applyFeatGrantToDraft({ draft: featSliceFrom(prev), grant })),
+    )
   }
 
   function finishWizardQueue(prev: GuidedWizardSession) {
@@ -3374,6 +3394,7 @@ export function MinimalSheetEditor({
               setActivePanel('identity')
               setForceFullPanel(null)
             }}
+            onRequestLevelUp={() => setLevelUpOpen(true)}
             onExperienceChange={(experience, meta) => {
               setDraft((prev) => {
                 const prevXp = prev.identity.experience
@@ -3720,6 +3741,7 @@ export function MinimalSheetEditor({
                 xp={draft.identity.experience}
                 level={characterLevel}
                 onChange={(experience) => patchIdentity({ experience })}
+                onRequestLevelUp={() => setLevelUpOpen(true)}
               />
             </Field>
           </div>
@@ -4961,6 +4983,21 @@ export function MinimalSheetEditor({
           void requestOrApplyBackgroundGrant(entry)
         }}
         onConfirmAsi={confirmClassAsi}
+        featContext={{
+          armor: draft.identity.armor,
+          hasSpellcasting: characterHasCasterClass(draft.classes),
+          hasMartialWeapons: draft.identity.weapons.martial,
+          raceSlug: draft.raceGrant?.slug ?? null,
+          raceParentSlug: draft.raceGrant?.parentSlug ?? null,
+          size: draft.identity.size,
+          characterLevel,
+          takenFeatSlugs: draft.featGrants.map((row) => row.slug),
+          classSlugs: draft.classGrants.map((row) => row.slug),
+          backgroundSlug: draft.identity.backgroundSlug,
+          ownedFeatEnums,
+          proficientSkills,
+        }}
+        onConfirmFeat={confirmWizardFeat}
         onAdvance={advanceGuidedWizard}
         onSkipStep={skipGuidedWizardStep}
         onClose={() => setGuidedWizard(null)}

@@ -18,6 +18,7 @@ import { SubclassChangeConfirmDialog } from '../features/characters/SubclassChan
 import { GrimoireDialog } from '../features/characters/GrimoireDialog'
 import { PrepareSpellsDialog } from '../features/characters/PrepareSpellsDialog'
 import { ABILITY_LABELS, SKILL_DEFS } from '../features/characters/sheetTypes'
+import type { FeatSetupResult } from '../features/characters/FeatSetupDialog'
 import {
   emptySubclassPicks,
   resolveSubclassDefFromCatalog,
@@ -57,6 +58,11 @@ import {
   type CharacterDetail,
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
+import {
+  newFeatGrantId,
+  readFeatGrantLedger,
+  type AppliedFeatGrant,
+} from '../shared/dnd/featGrants'
 import {
   applyClassAsiBonuses,
   type AbilityKey,
@@ -1694,19 +1700,68 @@ export function CreateCharacterPage() {
         onConfirmClassGrant={() => {
           // Class grants are handled by ClassSetupDialog in the pipeline.
         }}
-        onConfirmAsi={(entry: AppliedClassAsi) => {
+        onConfirmAsi={(entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) => {
           const nextAsi = [...(state.classAsi ?? []), entry]
+          const prevGrants = readFeatGrantLedger(state.sheetDraft.feat_grants)
+          const nextGrants = featGrant ? [...prevGrants, featGrant] : prevGrants
           patchState({
             classAsi: nextAsi,
             sheetDraft: {
               ...state.sheetDraft,
               class_asi: nextAsi,
+              feat_grants: nextGrants,
             },
           })
+          if (featGrant) {
+            setToast(`ASI → черта «${featGrant.nameRu}»`)
+            return
+          }
           const bits = Object.entries(entry.bonuses)
             .filter(([, amount]) => amount)
             .map(([key, amount]) => `${ABILITY_LABELS[key as AbilityKey]}+${amount}`)
           setToast(bits.length ? `ASI: ${bits.join(', ')}` : 'ASI записан')
+        }}
+        featContext={{
+          armor: EMPTY_ARMOR,
+          hasSpellcasting: hasCasterClass,
+          raceSlug: state.subrace?.slug ?? state.raceSetup?.entry.slug ?? state.race?.slug ?? null,
+          raceParentSlug: state.subrace ? (state.race?.slug ?? null) : null,
+          characterLevel: totalCharacterLevel(state.classes),
+          takenFeatSlugs: state.feat?.slug ? [state.feat.slug] : [],
+          classSlugs: state.classRef?.slug ? [state.classRef.slug] : [],
+          backgroundSlug: state.background?.slug ?? null,
+          proficientSkills: Object.entries(wizardProficiencies.skills)
+            .filter(([, row]) => row.is_proficient)
+            .map(([key]) => key),
+        }}
+        onConfirmFeat={(result: FeatSetupResult) => {
+          const raceId = state.raceSetup?.entry.id ?? state.subrace?.id ?? state.race?.id
+          const raceSlug =
+            state.raceSetup?.entry.slug ?? state.subrace?.slug ?? state.race?.slug ?? 'race'
+          const grant: AppliedFeatGrant = {
+            id: newFeatGrantId(),
+            featCatalogId: result.entry.id,
+            slug: result.entry.slug,
+            nameRu: result.entry.name_ru,
+            source: raceId
+              ? { kind: 'race', raceCatalogId: raceId, raceSlug }
+              : { kind: 'manual' },
+            applied: result.applied,
+            picks: result.picks,
+          }
+          const prevGrants = readFeatGrantLedger(state.sheetDraft.feat_grants)
+          patchState({
+            feat: {
+              id: result.entry.id,
+              slug: result.entry.slug,
+              nameRu: result.entry.name_ru,
+            },
+            featAcknowledged: true,
+            sheetDraft: {
+              ...state.sheetDraft,
+              feat_grants: [...prevGrants, grant],
+            },
+          })
         }}
         onSelectBackground={() => {
           setToast('Предыстория уже выбрана на предыдущем шаге')

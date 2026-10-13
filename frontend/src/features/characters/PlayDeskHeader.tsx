@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import { clampExhaustion } from '../../shared/dnd/rest'
-import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
+import {
+  formatXp,
+  xpCrossedLevelThreshold,
+  xpProgress,
+  xpReadyToLevel,
+  xpToReachLevel,
+} from '../../shared/dnd/experience'
 import { clampDeathMarks, type HitDie } from '../../shared/dnd/hitDice'
 import {
   coinsToGp,
@@ -14,6 +20,7 @@ import { NumberPadDialog } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
+import { XpLevelOffer } from './XpProgressField'
 import type { XpHistoryEntry } from './playDeskUi'
 import type { PlayState } from './play'
 import {
@@ -66,6 +73,8 @@ type PlayDeskHeaderProps = {
   onOpenRest: () => void
   onOpenIdentity?: () => void
   onExperienceChange: (experience: number, meta?: { reason: string }) => void
+  /** XP band is full — open the level-up dialog. */
+  onRequestLevelUp?: () => void
   onToggleInspiration: () => void
   onExhaustionChange: (exhaustion: number) => void
   onInitiativeRoll?: () => void
@@ -109,6 +118,7 @@ export function PlayDeskHeader({
   onOpenRest,
   onOpenIdentity,
   onExperienceChange,
+  onRequestLevelUp,
   onToggleInspiration,
   onExhaustionChange,
   onInitiativeRoll,
@@ -155,8 +165,9 @@ export function PlayDeskHeader({
     if (!xpPadOpen) setXpReason('')
   }, [xpPadOpen])
 
+  const xpReady = xpReadyToLevel(experience, level)
   const xpRemainLabel =
-    xp.remaining == null ? 'макс.' : `ещё ${formatXp(xp.remaining)}`
+    xp.remaining == null ? 'макс.' : xpReady ? 'повысить' : `ещё ${formatXp(xp.remaining)}`
   const xpLabel =
     xp.nextThreshold == null
       ? `${formatXp(xp.xp)} · ${xpRemainLabel}`
@@ -296,9 +307,17 @@ export function PlayDeskHeader({
         {/* 3) Опыт — полоска; под ней: порог ур. | ещё N | порог след. */}
         <button
           type="button"
-          className="play-desk-header__xp"
-          title={`Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`}
-          aria-label={`Опыт ${formatXp(xp.xp)}. ${xpRemainLabel}. Открыть клавиатуру`}
+          className={`play-desk-header__xp${xpReady ? ' is-ready' : ''}`}
+          title={
+            xpReady && nextLevel != null
+              ? `Опыта хватает на уровень ${nextLevel}. Открой, чтобы повысить или доначислить`
+              : `Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`
+          }
+          aria-label={
+            xpReady && nextLevel != null
+              ? `Опыт ${formatXp(xp.xp)}. Можно повысить до уровня ${nextLevel}`
+              : `Опыт ${formatXp(xp.xp)}. ${xpRemainLabel}. Открыть клавиатуру`
+          }
           onClick={() => setXpPadOpen(true)}
         >
           <div className="play-desk-header__xp-row">
@@ -309,7 +328,11 @@ export function PlayDeskHeader({
               </div>
               <div className="play-desk-header__xp-nums">
                 <span className="play-desk-header__xp-floor">{formatXp(xp.floor)}</span>
-                <span className="play-desk-header__xp-remain">{xpRemainLabel}</span>
+                <span
+                  className={`play-desk-header__xp-remain${xpReady ? ' is-ready' : ''}`}
+                >
+                  {xpRemainLabel}
+                </span>
                 <span className="play-desk-header__xp-next">
                   {xp.nextThreshold == null ? '—' : formatXp(xp.nextThreshold)}
                 </span>
@@ -557,7 +580,11 @@ export function PlayDeskHeader({
         addLabel="Начислить"
         subtractLabel="Убавить"
         onClose={() => setXpPadOpen(false)}
-        onAdd={(delta) => onExperienceChange(xp.xp + delta, { reason: xpReason })}
+        onAdd={(delta) => {
+          const next = xp.xp + delta
+          onExperienceChange(next, { reason: xpReason })
+          if (xpCrossedLevelThreshold(xp.xp, next, level)) onRequestLevelUp?.()
+        }}
         onSubtract={(delta) =>
           onExperienceChange(Math.max(0, xp.xp - delta), { reason: xpReason })
         }
@@ -590,6 +617,15 @@ export function PlayDeskHeader({
                 ? ` · порог ${formatXp(xpToReachLevel(xp.level + 1))}`
                 : ''}
             </p>
+            {xpReady && nextLevel != null ? (
+              <XpLevelOffer
+                nextLevel={nextLevel}
+                onLevelUp={() => {
+                  setXpPadOpen(false)
+                  onRequestLevelUp?.()
+                }}
+              />
+            ) : null}
             <label className="xp-pad-header__reason">
               За что
               <input
