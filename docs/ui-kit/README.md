@@ -76,6 +76,24 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 
 Доска LOCK: [`desk-header-lock`](boards/dvarf-ui-kit-desk-header-lock.jpg) · состояния: [`header-states`](boards/dvarf-ui-kit-desk-header-states.jpg) · [`header-death`](boards/dvarf-ui-kit-desk-header-death.jpg) · [`header-dense`](boards/dvarf-ui-kit-desk-header-dense.jpg) · tip: [`coin-tip`](boards/dvarf-ui-kit-desk-coin-tip.jpg) · icons: [`desk-icons`](boards/dvarf-ui-kit-desk-icons.jpg)
 
+---
+
+## 2c. Заклинания стола — LOCK
+
+> **LOCK (Wave A spells):** зафиксировано с Игорем 2026-10-13. Не откатывать без нового согласования.
+
+| Компонент | Правило |
+|-----------|---------|
+| Compact = бой | список готовых, пипы spent, **Каст**, деталка по карточке |
+| Настройки | диалог setup (не «полностью»): характеристика, Сл./атака (derived), ячейки макс., договор, Гримуар/Подготовить |
+| Договор · ур. ячеек | **авто** по таблице колдуна PHB; вручную только макс. |
+| Сл. спас. / Атака | `8+БМ+мод` / `БМ+мод` — только readout, не поля |
+| По таблице | подставить макс. ячеек / договор / подготовку из PHB; spent не сбрасывать |
+| Новые заклинания | только через **Гримуар** (без «Своё homebrew» в настройках) |
+| Icons | `spellIcons.tsx` — книга / шляпа / ✨ / фокус / мешочек / конц. / ритуал |
+
+Доски: [`spells`](boards/dvarf-ui-kit-spells.jpg) · [`spell-icons`](boards/dvarf-ui-kit-spell-icons.jpg)
+
 Левый блок (`AbilitySkillsColumn`):
 
 - у каждой характеристики **свой identity-цвет** (полоска + label + Сп on + навыки);
@@ -117,7 +135,8 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | Desk chrome / header LOCK | `dvarf-ui-kit-desk-chrome.jpg`, `dvarf-ui-kit-desk-icons.jpg`, **`dvarf-ui-kit-desk-header-lock.jpg`**, `dvarf-ui-kit-desk-header-states.jpg`, `dvarf-ui-kit-desk-header-death.jpg`, `dvarf-ui-kit-desk-header-dense.jpg`, `dvarf-ui-kit-desk-coin-tip.jpg`, `dvarf-ui-kit-desk-speed-tip.jpg` |
 | Pads / dialogs | `dvarf-ui-kit-dialogs-pads.jpg` |
 | Rail | `dvarf-ui-kit-ability-rail-v2.jpg`, `dvarf-ui-kit-ability-colors.jpg` |
-| Spells | `dvarf-ui-kit-spells.jpg`, `dvarf-ui-kit-spell-icons.jpg` |
+| Spells LOCK | `dvarf-ui-kit-spells.jpg`, `dvarf-ui-kit-spell-icons.jpg` |
+| Combat attacks compact | line icons in `attackIcons.tsx` (stroke = desk/spell); chrome = `desk-chrome` §E + live Attacks |
 | Features / companions / attunement / ЕЩЁ | `dvarf-ui-kit-features-companions.jpg` |
 | Rest / create / toast / list | `dvarf-ui-kit-rest-create-app.jpg` |
 | Auth | `dvarf-ui-kit-auth.jpg` |
@@ -153,8 +172,8 @@ Live-эталоны в продукте (уже близки к киту): Inven
 2. Если **нет** — сначала рисуем/добавляем иконки, кладём в кит (`boards/` + запись здесь), согласование.
 3. Только потом верстка/логика chrome блока.
 
-Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия (icons-first)** — `spellIcons.tsx` (книга / шляпа / ✨ / медальон / мешочек / концентрация / **ритуал = полумесяц**) + доска `spell-icons`.  
-**В работе:** pixel-candy `SpellsPanel` / compact / cast по доске `spells` (Сл. спас. + атака закл. — крупные key-stats; уровни + ячейки у разделителей). Hot-bar — проверить в том же слайсе.
+Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия LOCK** — `spellIcons.tsx` + доски `spells` / `spell-icons`; **атаки compact** — `attackIcons.tsx` (ближнее / дальнее / ресурс / расходник), тот же stroke, что desk/spell icons.  
+**В работе:** pixel-candy stage «Бой» (компакт атак в едином языке `play-desk-compact`; общий chrome сцен не ломаем).
 
 Rail характеристик (вариант A) иконок не требует — полные названия, chips, drag.
 

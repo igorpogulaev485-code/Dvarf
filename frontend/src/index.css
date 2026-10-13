@@ -5804,7 +5804,7 @@ button.play-desk-vital:hover {
 
 .play-desk-compact__hit {
   display: grid;
-  grid-template-columns: 1.4fr auto 1fr;
+  grid-template-columns: minmax(0, 1.5fr) auto minmax(0, 1.1fr);
   gap: 8px;
   align-items: center;
   padding: 6px 10px;
@@ -5816,6 +5816,20 @@ button.play-desk-vital:hover {
   cursor: pointer;
   min-width: 0;
   flex: 1;
+}
+
+.play-desk-compact__hit:hover {
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 28%, transparent);
+}
+
+.play-desk-compact__row.is-attack .play-desk-compact__mod {
+  font-variant-numeric: tabular-nums;
+  min-width: 2.4rem;
+  text-align: right;
+}
+
+.play-desk-compact__row.is-attack .play-desk-compact__dmg {
+  font-variant-numeric: tabular-nums;
 }
 
 .play-desk-compact__row.is-action:not(.is-spell) {
@@ -6155,9 +6169,30 @@ button.play-desk-vital:hover {
   border-radius: 0;
   padding: 6px 8px;
   font: inherit;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--desk-muted, var(--muted));
   cursor: pointer;
   align-self: stretch;
+  min-width: 3.4rem;
+}
+
+.play-desk-compact__hold:hover {
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 40%, white);
+  color: var(--desk-accent, var(--accent));
+}
+
+.play-desk-compact__hold.is-on {
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 75%, white);
+  color: var(--desk-accent, var(--accent));
+}
+
+.play-desk-compact__subhead-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .play-desk-compact__empty,
