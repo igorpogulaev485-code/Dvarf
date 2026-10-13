@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/desk-vitals-wave-a73e`  
+**Prod tip (ветка линии прода):** `cursor/login-hang-timeout-e857`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -636,6 +636,15 @@
 
 На проде: **да** · tip `cursor/desk-vitals-wave-a73e` · PR #118 · проверено 2026-10-12: API down → `Content-Type: application/json` + `api_unavailable`; бандл `client-C72apPWM.js` («временно недоступен»); dist→web + nginx hot-patch
 
+### 2026-10-13 — Вход не висит минуту при залипшем API/диске
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Логин / API | Таймауты БД + 2 worker’а API + короткий nginx timeout на `/auth` | Вместо вечного `pending` → быстрый ответ или «временно недоступен» |
+| Клиент | AbortController на запросы (login ~15с) | Кнопка «Войти» не крутится минуту впустую |
+
+На проде: **да** · tip `cursor/login-hang-timeout-e857` · PR #128 · проверено 2026-10-13: `/health` ok; login ~0.4с; `uvicorn --workers 2`; `statement_timeout`; nginx `proxy_read_timeout 15s` на `/auth`; кабинет/classic/lobby на диске
+
 ### 2026-10-12 — Play desk: догон макета (hot bar + split + визуал)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -1231,3 +1240,4 @@
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Hotfix: состояния/конц./смерть/монеты/XP/attune; Hub timeout → dist→web; `/health` ok; бандл `CharacterDetailPage-DkjzP6Xq.js` / CSS `index-CBcwe-E-.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Шапка: лаз./плав./полёт под скоростью; dist→web; `/health` ok; бандл `CharacterDetailPage-Cwy-1nPy.js` / CSS `index-RHvyfqLk.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | 502→JSON + client retry; VPS reboot после hung Docker; `/health` ok; бандл `client-C72apPWM.js` |
+| 2026-10-13 | `cursor/login-hang-timeout-e857` · PR #128 | Fail-fast login: DB timeouts + 2 workers + nginx/client abort; tip → эта ветка; `/health` ok; login ~0.4с |
