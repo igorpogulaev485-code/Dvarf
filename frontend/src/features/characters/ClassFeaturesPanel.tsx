@@ -140,6 +140,13 @@ function featureRowKey(feature: UnlockedFeature): string {
   return `${feature.classEntryId}:${feature.source}:${feature.id}`
 }
 
+function featSourceLabel(source: AppliedFeatGrant['source']): string {
+  if (source.kind === 'asi') return 'ASI'
+  if (source.kind === 'race') return 'раса'
+  if (source.kind === 'background') return 'предыстория'
+  return 'вручную'
+}
+
 function FeatureResourceControls({
   feature,
   classSlug,
@@ -1575,7 +1582,9 @@ export function ClassFeaturesPanel({
                           <span className="inventory-role inventory-role--weapon">
                             черта
                           </span>
-                          <span className="attack-held-tag">{feat.source}</span>
+                          <span className="attack-held-tag">
+                            {featSourceLabel(feat.source)}
+                          </span>
                           <button
                             type="button"
                             className="inventory-card__collapse"
@@ -1585,7 +1594,9 @@ export function ClassFeaturesPanel({
                           </button>
                         </div>
                         <h3 className="feature-card__title">{feat.nameRu}</h3>
-                        <Text tone="muted">Источник: {feat.source}</Text>
+                        <Text tone="muted">
+                          Источник: {featSourceLabel(feat.source)}
+                        </Text>
                         {feat.applied.summaryRu ? (
                           <Text>{feat.applied.summaryRu}</Text>
                         ) : null}
@@ -1610,7 +1621,9 @@ export function ClassFeaturesPanel({
                             черта
                           </span>
                           <span className="inventory-card__glance-spacer" aria-hidden />
-                          <span className="feature-card__preview">{feat.source}</span>
+                          <span className="feature-card__preview">
+                            {featSourceLabel(feat.source)}
+                          </span>
                         </button>
                         <div className="inventory-card__glance-actions">
                           <button
