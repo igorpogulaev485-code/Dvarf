@@ -63,7 +63,7 @@ function finalScore(base: number, bonus: number | undefined): number {
 
 function formatDice(detail: AbilityRollDetail): string {
   return detail.dice
-    .map((n) => (n === detail.dropped ? `[${n}]` : String(n)))
+    .map((n, index) => (index === detail.dropIndex ? `[${n}]` : String(n)))
     .join(' · ')
 }
 

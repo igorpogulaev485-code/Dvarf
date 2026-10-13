@@ -33,8 +33,9 @@ for (let i = 0; i < 40; i += 1) {
   const detail = roll4d6DropLowest()
   assert(detail.dice.length === 4, '4 dice')
   assert(detail.dice.every((n) => n >= 1 && n <= 6), 'd6 range')
+  assert(detail.dice[detail.dropIndex] === detail.dropped, 'dropIndex matches')
   assert(detail.dice.includes(detail.dropped), 'dropped is one of dice')
-  const kept = [...detail.dice].sort((a, b) => a - b).slice(1)
+  const kept = detail.dice.filter((_, i) => i !== detail.dropIndex)
   assert(
     kept.reduce((s, n) => s + n, 0) === detail.total,
     'total drops lowest',
