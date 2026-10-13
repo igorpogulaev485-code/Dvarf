@@ -113,6 +113,7 @@ import {
   syncGearResources,
 } from './gearGrantsSync'
 import { canWearArmor } from './equipmentProficiency'
+import { AttunementDialog } from './AttunementDialog'
 import { AttunementPanel } from './AttunementPanel'
 import {
   attunementsToSheet,
@@ -2879,6 +2880,10 @@ export function MinimalSheetEditor({
   const [spellsSettingsOpen, setSpellsSettingsOpen] = useState(false)
   /** Play-desk attacks setup (replaces force-full AttacksPanel). */
   const [attacksSettingsOpen, setAttacksSettingsOpen] = useState(false)
+  /** Explore summary → attunement pad (not stage jump). */
+  const [attunementDialogOpen, setAttunementDialogOpen] = useState(false)
+  /** Shared header CoinPad — also opened from inventory readout. */
+  const [coinPadOpen, setCoinPadOpen] = useState(false)
   const [deskCastPending, setDeskCastPending] = useState<{
     spell: SheetSpell
     choice: CastChoice
@@ -3440,6 +3445,8 @@ export function MinimalSheetEditor({
                 inventory: { ...prev.inventory, coins },
               }))
             }
+            coinPadOpen={coinPadOpen}
+            onCoinPadOpenChange={setCoinPadOpen}
             onCombatChange={(patch) =>
               setDraft((prev) => ({
                 ...prev,
@@ -4434,10 +4441,8 @@ export function MinimalSheetEditor({
         attunementFilled={filledAttunementCount(draft.attunements)}
         favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
         onToggleConsumableFavorite={toggleCombatFavorite}
-        onOpenAttunement={() => {
-          setActivePanel('attunement')
-          setForceFullPanel(null)
-        }}
+        onOpenAttunement={() => setAttunementDialogOpen(true)}
+        onOpenCoins={() => setCoinPadOpen(true)}
         onToast={onToast}
         onChange={(inventory) =>
           setDraft((prev) => ({
@@ -4448,6 +4453,13 @@ export function MinimalSheetEditor({
           }))
         }
         onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
+      />
+      <AttunementDialog
+        open={attunementDialogOpen}
+        onClose={() => setAttunementDialogOpen(false)}
+        attunements={draft.attunements}
+        inventoryItems={draft.inventory.items}
+        onChange={applyAttunements}
       />
 
       </div>

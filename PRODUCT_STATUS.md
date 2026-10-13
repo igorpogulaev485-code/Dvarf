@@ -690,8 +690,11 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 |-----|-----|
 | Stage Исследование | сразу `InventoryPanel` (glance→expand) |
 | Убран | `PlayDeskExploreCompact` + «полностью» / «← компактно» |
+| Accordion | одна открытая деталь; плотный expand |
 | ★ | избранное в строке → расходники боя |
-| Meta | ноша · КД · Настройка N/3 в summary |
+| Meta | ноша · КД · Настройка N/3 → `AttunementDialog` |
+| Монеты | readout → header CoinPad |
+| Справочник | `GearPickerDialog` в ките pads/dialogs |
 
 Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2f.  
 На проде: **нет** · ветка `cursor/explore-inventory-unify-a73e` · база `cursor/hot-conditions-dialog-a73e`

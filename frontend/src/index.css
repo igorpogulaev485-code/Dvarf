@@ -918,6 +918,49 @@ input {
   background: rgba(255, 255, 255, 0.55);
 }
 
+.inventory-coins--pad {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 14px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: color-mix(in srgb, var(--accent-soft) 40%, white);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
+}
+
+.inventory-coins--pad:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+}
+
+.inventory-coins__total {
+  display: grid;
+  gap: 2px;
+}
+
+.inventory-coins__total strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.inventory-coins__total span {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.inventory-coins__breakdown {
+  font-size: 0.88rem;
+  color: var(--muted);
+  text-align: right;
+}
+
 .inventory-coin {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -1094,6 +1137,55 @@ input {
   border: 1px solid var(--line);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.78);
+}
+
+.inventory-card--expand {
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.inventory-card__collapse {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inventory-card__collapse:hover {
+  color: var(--ink);
+}
+
+.inventory-card__grid--dense {
+  grid-template-columns: 4.5rem 5.5rem minmax(0, 1fr);
+  gap: 8px;
+  align-items: end;
+}
+
+.inventory-card__notes-inline {
+  min-width: 0;
+}
+
+.inventory-card__role-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: end;
+}
+
+.inventory-card__role-row .ui-field {
+  flex: 1 1 9rem;
+  min-width: 0;
+}
+
+.inventory-card__effects {
+  margin: 0;
+  font-size: 0.85rem;
 }
 
 .inventory-card--compact {
@@ -1361,6 +1453,54 @@ input {
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+}
+
+.gear-picker {
+  display: grid;
+  gap: 12px;
+}
+
+.gear-picker__card {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card, #fff);
+}
+
+.gear-picker__card--selected {
+  background: color-mix(in srgb, var(--accent) 8%, white);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+.gear-picker__card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.gear-picker__card-title {
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.gear-picker__count {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.gear-picker__chips {
+  gap: 6px;
+  margin-bottom: 0;
+}
+
+.gear-picker__chips .sheet-chip {
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  border-radius: 10px;
 }
 
 .gear-picker-list {

@@ -78,6 +78,9 @@ type PlayDeskHeaderProps = {
   onToast: (message: string) => void
   /** Called after real HP damage (after temp soak), for concentration check. */
   onDamaged?: (damageToHp: number) => void
+  /** Controlled CoinPad (Explore inventory readout opens the same pad). */
+  coinPadOpen?: boolean
+  onCoinPadOpenChange?: (open: boolean) => void
 }
 
 export function PlayDeskHeader({
@@ -117,6 +120,8 @@ export function PlayDeskHeader({
   onCombatChange,
   onToast,
   onDamaged,
+  coinPadOpen: coinPadOpenProp,
+  onCoinPadOpenChange,
 }: PlayDeskHeaderProps) {
   const alignmentLabel = alignment.trim()
   const editionLabel = String(rulesEdition).trim() || '2014'
@@ -136,7 +141,13 @@ export function PlayDeskHeader({
   const [hpPulse, setHpPulse] = useState(false)
   const [hpPadOpen, setHpPadOpen] = useState(false)
   const [xpPadOpen, setXpPadOpen] = useState(false)
-  const [coinPadOpen, setCoinPadOpen] = useState(false)
+  const [coinPadOpenLocal, setCoinPadOpenLocal] = useState(false)
+  const coinPadControlled = onCoinPadOpenChange != null
+  const coinPadOpen = coinPadControlled ? Boolean(coinPadOpenProp) : coinPadOpenLocal
+  function setCoinPadOpen(open: boolean) {
+    if (coinPadControlled) onCoinPadOpenChange?.(open)
+    else setCoinPadOpenLocal(open)
+  }
   const [xpHistoryOpen, setXpHistoryOpen] = useState(false)
   const [xpReason, setXpReason] = useState('')
   const [maxDialogOpen, setMaxDialogOpen] = useState(false)

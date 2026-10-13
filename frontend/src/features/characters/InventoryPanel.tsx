@@ -51,13 +51,16 @@ import {
 import {
   coinWeightLb,
   carryingCapacityLb,
+  coinsToGp,
+  formatCoinBreakdown,
+  formatGpTotal,
   formatLb,
   itemLineWeightLb,
   itemsWeightLb,
   totalCarriedLb,
-  type CoinPurse,
 } from '../../shared/dnd/weight'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
+import { CoinPadDialog } from './CoinPadDialog'
 import {
   armorFieldsFromCatalog,
   asWeighableItems,
@@ -81,18 +84,6 @@ import {
   resolvePackContents,
   sumContentsWeightLb,
 } from './inventoryPacks'
-
-const COIN_FIELDS: Array<{
-  key: keyof CoinPurse
-  label: string
-  tone: 'copper' | 'silver' | 'electrum' | 'gold' | 'platinum'
-}> = [
-  { key: 'cp', label: 'ММ', tone: 'copper' },
-  { key: 'sp', label: 'СМ', tone: 'silver' },
-  { key: 'ep', label: 'ЭМ', tone: 'electrum' },
-  { key: 'gp', label: 'ЗМ', tone: 'gold' },
-  { key: 'pp', label: 'ПМ', tone: 'platinum' },
-]
 
 function IconBook() {
   return (
@@ -166,21 +157,6 @@ function IconTrash() {
         strokeLinejoin="round"
       />
     </svg>
-  )
-}
-
-function CoinIcon({ tone }: { tone: (typeof COIN_FIELDS)[number]['tone'] }) {
-  return (
-    <span className={`inventory-coin__icon inventory-coin__icon--${tone}`} aria-hidden>
-      <svg viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" fill="none" />
-        <circle cx="12" cy="12" r="7.2" fill="none" />
-        <path
-          d="M12 7.2v9.6M9.2 9.4c.7-1 2-1.6 2.8-1.6s2.1.6 2.1 1.6-1 1.5-2.1 1.9-2.8.9-2.8 2.2 1.2 2 2.8 2 2.3-.7 2.8-1.5"
-          fill="none"
-        />
-      </svg>
-    </span>
   )
 }
 
@@ -326,6 +302,11 @@ type InventoryPanelProps = {
   acHint?: string
   attunementFilled?: number
   onOpenAttunement?: () => void
+  /**
+   * Open header CoinPad. When omitted, panel opens its own CoinPadDialog
+   * (same pad UX — no inline coin editors).
+   */
+  onOpenCoins?: () => void
   /** Combat consumable favorites (★ in explore → расходники в бою). */
   favoriteConsumableIds?: string[]
   onToggleConsumableFavorite?: (itemId: string) => void
@@ -344,6 +325,7 @@ export function InventoryPanel({
   acHint,
   attunementFilled,
   onOpenAttunement,
+  onOpenCoins,
   favoriteConsumableIds = [],
   onToggleConsumableFavorite,
 }: InventoryPanelProps) {
@@ -352,8 +334,10 @@ export function InventoryPanel({
   const [catalogItems, setCatalogItems] = useState<CatalogEntry[]>([])
   const [packBusyId, setPackBusyId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [coinPadOpen, setCoinPadOpen] = useState(false)
   const [filter, setFilter] = useState<InventoryFilter>('all')
-  const [openIds, setOpenIds] = useState<Set<string>>(() => new Set())
+  /** Accordion: at most one root detail open. */
+  const [openId, setOpenId] = useState<string | null>(null)
   const inventoryRef = useRef(inventory)
   const onChangeRef = useRef(onChange)
   inventoryRef.current = inventory
@@ -408,11 +392,12 @@ export function InventoryPanel({
     })
   }, [ordered, filter, catalogItems])
 
-  function setCoins(patch: Partial<CoinPurse>) {
-    onChange({
-      ...inventory,
-      coins: { ...inventory.coins, ...patch },
-    })
+  function openCoinsPad() {
+    if (onOpenCoins) {
+      onOpenCoins()
+      return
+    }
+    setCoinPadOpen(true)
   }
 
   function updateItem(id: string, patch: Partial<InventoryItem>) {
@@ -423,12 +408,7 @@ export function InventoryPanel({
   }
 
   function toggleDetails(id: string) {
-    setOpenIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
+    setOpenId((prev) => (prev === id ? null : id))
   }
 
   function applyCatalog(id: string, value: string, selected: CatalogEntry | null) {
@@ -625,7 +605,7 @@ export function InventoryPanel({
         ...inventory,
         items: expandPack({ items, packId: item.id, contents: resolved }),
       })
-      setOpenIds((prev) => new Set(prev).add(item.id))
+      setOpenId(item.id)
     } finally {
       setPackBusyId(null)
     }
@@ -663,7 +643,7 @@ export function InventoryPanel({
 
   function renderItemCard(item: InventoryItem, nested: boolean) {
     const expandedPack = isExpandedPack(inventory.items, item.id)
-    const detailsOpen = openIds.has(item.id) || nested
+    const detailsOpen = openId === item.id || nested
     const role = roleLabel(item, catalogItems)
     const bucket = itemBucket(item, catalogItems)
     const lineLb = formatLb(
@@ -765,9 +745,9 @@ export function InventoryPanel({
     return (
       <div
         key={item.id}
-        className={`inventory-card${nested ? ' inventory-card--nested' : ''}${
-          expandedPack ? ' inventory-card--pack-open' : ''
-        }`}
+        className={`inventory-card inventory-card--expand${
+          nested ? ' inventory-card--nested' : ''
+        }${expandedPack ? ' inventory-card--pack-open' : ''}`}
       >
         {nested ? (
           <Text tone="muted" className="inventory-card__nest-label">
@@ -781,6 +761,15 @@ export function InventoryPanel({
             <span className={`attack-held-tag${item.equipped ? ' is-on' : ''}`}>
               {statusTag}
             </span>
+          ) : null}
+          {!nested ? (
+            <button
+              type="button"
+              className="inventory-card__collapse"
+              onClick={() => toggleDetails(item.id)}
+            >
+              свернуть
+            </button>
           ) : null}
         </div>
 
@@ -811,7 +800,7 @@ export function InventoryPanel({
               </div>
             </div>
             <div className="inventory-card__grid inventory-card__grid--armor">
-              <Field label="Тип для КД">
+              <Field label="Тип">
                 <select
                   className="play-select"
                   value={item.armor_kind}
@@ -826,11 +815,7 @@ export function InventoryPanel({
                   ))}
                 </select>
               </Field>
-              <Field
-                label={
-                  item.armor_kind === 'shield' ? 'Бонус КД' : 'Базовый КД'
-                }
-              >
+              <Field label={item.armor_kind === 'shield' ? 'Бонус' : 'База КД'}>
                 <NumberInput
                   min={0}
                   max={30}
@@ -849,7 +834,7 @@ export function InventoryPanel({
                   onValueChange={(weight_lb) => updateItem(item.id, { weight_lb })}
                 />
               </Field>
-              <Field label="Кол-во">
+              <Field label="×">
                 <NumberInput
                   min={0}
                   emptyValue={1}
@@ -860,8 +845,8 @@ export function InventoryPanel({
             </div>
           </div>
         ) : (
-          <div className="inventory-card__grid">
-            <Field label="Кол-во">
+          <div className="inventory-card__grid inventory-card__grid--dense">
+            <Field label="×">
               <NumberInput
                 min={0}
                 emptyValue={1}
@@ -869,7 +854,7 @@ export function InventoryPanel({
                 onValueChange={(qty) => updateItem(item.id, { qty: qty ?? 0 })}
               />
             </Field>
-            <Field label="Вес, фнт" hint="за 1 шт.">
+            <Field label="фнт">
               <NumberInput
                 min={0}
                 step={0.1}
@@ -879,11 +864,20 @@ export function InventoryPanel({
                 onValueChange={(weight_lb) => updateItem(item.id, { weight_lb })}
               />
             </Field>
+            <div className="inventory-card__notes-inline">
+              <Field label="Заметки">
+                <Input
+                  value={item.notes}
+                  placeholder="…"
+                  onChange={(event) => updateItem(item.id, { notes: event.target.value })}
+                />
+              </Field>
+            </div>
           </div>
         )}
 
         {!nested && isArmorRow(item) ? (
-          <Field label="Шаблон брони" hint="быстро подставить PHB">
+          <Field label="Шаблон PHB">
             <select
               className="play-select"
               value=""
@@ -901,76 +895,58 @@ export function InventoryPanel({
         ) : null}
 
         {!nested && !isArmorRow(item) ? (
-          <Field
-            label="Для заклинаний"
-            hint="Тип строки — каст смотрит на него, не на имя"
-          >
-            <select
-              className="play-select"
-              value={item.spell_tooling ?? 'none'}
-              onChange={(event) => {
-                const spell_tooling = event.target.value as SpellTooling
-                if (spell_tooling === 'focus') {
-                  updateItem(item.id, {
-                    spell_tooling: 'focus',
-                    focus_kind: item.focus_kind ?? 'any',
-                  })
-                  return
-                }
-                updateItem(item.id, {
-                  spell_tooling,
-                  focus_kind: null,
-                })
-              }}
-            >
-              {(Object.keys(SPELL_TOOLING_LABEL_RU) as SpellTooling[]).map((key) => (
-                <option key={key} value={key}>
-                  {SPELL_TOOLING_LABEL_RU[key]}
-                </option>
-              ))}
-            </select>
-          </Field>
-        ) : null}
-
-        {!nested && item.spell_tooling === 'focus' ? (
-          <FocusCatalogSelect
-            edition={edition}
-            family={item.focus_kind ?? 'any'}
-            allowFamilyPick
-            label="Фокус из справочника"
-            value={focusSelectionFromItem(item, catalogItems)}
-            onChange={(selection) => {
-              const fields = applyFocusSelectionToItemFields(selection)
-              updateItem(item.id, fields)
-            }}
-          />
-        ) : null}
-
-        {!nested && !isArmorRow(item) && !isWeaponRow(item) ? (
-          <div className="sheet-grid sheet-grid--2">
-            <Field label="Слот ношения" hint="Плащ, кольцо×2…">
+          <div className="inventory-card__role-row">
+            <Field label="Для заклинаний">
               <select
                 className="play-select"
-                value={item.wear_slot ?? 'none'}
-                onChange={(event) =>
+                value={item.spell_tooling ?? 'none'}
+                onChange={(event) => {
+                  const spell_tooling = event.target.value as SpellTooling
+                  if (spell_tooling === 'focus') {
+                    updateItem(item.id, {
+                      spell_tooling: 'focus',
+                      focus_kind: item.focus_kind ?? 'any',
+                    })
+                    return
+                  }
                   updateItem(item.id, {
-                    wear_slot: event.target.value as WearSlot,
+                    spell_tooling,
+                    focus_kind: null,
                   })
-                }
+                }}
               >
-                {WEAR_SLOTS.filter(
-                  (slot) =>
-                    slot === 'none' ||
-                    isWornMagicSlot(slot) ||
-                    slot === item.wear_slot,
-                ).map((slot) => (
-                  <option key={slot} value={slot}>
-                    {WEAR_SLOT_LABEL_RU[slot]}
+                {(Object.keys(SPELL_TOOLING_LABEL_RU) as SpellTooling[]).map((key) => (
+                  <option key={key} value={key}>
+                    {SPELL_TOOLING_LABEL_RU[key]}
                   </option>
                 ))}
               </select>
             </Field>
-            <Field label="Настройка">
+            {!isWeaponRow(item) ? (
+              <Field label="Слот">
+                <select
+                  className="play-select"
+                  value={item.wear_slot ?? 'none'}
+                  onChange={(event) =>
+                    updateItem(item.id, {
+                      wear_slot: event.target.value as WearSlot,
+                    })
+                  }
+                >
+                  {WEAR_SLOTS.filter(
+                    (slot) =>
+                      slot === 'none' ||
+                      isWornMagicSlot(slot) ||
+                      slot === item.wear_slot,
+                  ).map((slot) => (
+                    <option key={slot} value={slot}>
+                      {WEAR_SLOT_LABEL_RU[slot]}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            ) : null}
+            {!isWeaponRow(item) ? (
               <button
                 type="button"
                 className={`sheet-chip${item.requires_attunement ? ' is-on' : ''}`}
@@ -980,26 +956,42 @@ export function InventoryPanel({
                   })
                 }
               >
-                {item.requires_attunement ? 'Нужна настройка' : 'Без настройки'}
+                {item.requires_attunement ? 'Настройка' : 'Без настр.'}
               </button>
-            </Field>
+            ) : null}
           </div>
         ) : null}
 
+        {!nested && item.spell_tooling === 'focus' ? (
+          <FocusCatalogSelect
+            edition={edition}
+            family={item.focus_kind ?? 'any'}
+            allowFamilyPick
+            label="Фокус"
+            value={focusSelectionFromItem(item, catalogItems)}
+            onChange={(selection) => {
+              const fields = applyFocusSelectionToItemFields(selection)
+              updateItem(item.id, fields)
+            }}
+          />
+        ) : null}
+
         {effectsLine ? (
-          <Text tone="muted">
-            Эффекты: {effectsLine}
+          <Text tone="muted" className="inventory-card__effects">
+            {effectsLine}
             {item.requires_attunement ? ' · нужна настройка' : ''}
           </Text>
         ) : null}
 
-        <Field label="Примечания">
-          <Input
-            value={item.notes}
-            placeholder="Нет заметок…"
-            onChange={(event) => updateItem(item.id, { notes: event.target.value })}
-          />
-        </Field>
+        {!nested && isArmorRow(item) ? (
+          <Field label="Примечания">
+            <Input
+              value={item.notes}
+              placeholder="Нет заметок…"
+              onChange={(event) => updateItem(item.id, { notes: event.target.value })}
+            />
+          </Field>
+        ) : null}
 
         <div className="inventory-card__footer">
           {renderEquipChip(item)}
@@ -1020,16 +1012,6 @@ export function InventoryPanel({
             >
               <IconChevronUp />
               Свернуть набор
-            </button>
-          ) : null}
-          {!nested ? (
-            <button
-              type="button"
-              className="inventory-action"
-              onClick={() => toggleDetails(item.id)}
-            >
-              <IconChevronUp />
-              Свернуть
             </button>
           ) : null}
           <button
@@ -1054,8 +1036,8 @@ export function InventoryPanel({
     <Panel title="Инвентарь" className="inventory-panel">
       <Stack gap={12}>
         <Text tone="muted">
-          Сцена Исследование: ноша, монеты и вещи. Строка — взгляд; клик — детали. ★ — в расходники
-          боя.
+          Ноша и вещи. Строка — взгляд; клик — детали (одна открыта). ★ — в расходники боя. Монеты —
+          через pad.
         </Text>
 
         <div className="inventory-panel__toolbar">
@@ -1076,7 +1058,7 @@ export function InventoryPanel({
                 ...inventory,
                 items: [...inventory.items, row],
               })
-              setOpenIds((prev) => new Set(prev).add(row.id))
+              setOpenId(row.id)
               setFilter('all')
             }}
           >
@@ -1121,20 +1103,20 @@ export function InventoryPanel({
           <Text tone="danger">Перегруз: итого больше лимита переноски (СИЛ × 15).</Text>
         ) : null}
 
-        <div className="inventory-coins" aria-label="Монеты">
-          {COIN_FIELDS.map((field) => (
-            <label key={field.key} className="inventory-coin">
-              <CoinIcon tone={field.tone} />
-              <span className="inventory-coin__label">{field.label}</span>
-              <NumberInput
-                min={0}
-                emptyValue={0}
-                value={inventory.coins[field.key]}
-                onValueChange={(next) => setCoins({ [field.key]: next ?? 0 })}
-              />
-            </label>
-          ))}
-        </div>
+        <button
+          type="button"
+          className="inventory-coins inventory-coins--pad"
+          aria-label="Монеты — открыть pad"
+          onClick={openCoinsPad}
+        >
+          <span className="inventory-coins__total">
+            <strong>{formatGpTotal(coinsToGp(inventory.coins))} зм</strong>
+            <span>кошелёк · pad</span>
+          </span>
+          <span className="inventory-coins__breakdown">
+            {formatCoinBreakdown(inventory.coins)}
+          </span>
+        </button>
 
         <div className="inventory-filters" role="tablist" aria-label="Фильтр инвентаря">
           {FILTERS.map((row) => (
@@ -1204,6 +1186,16 @@ export function InventoryPanel({
           setPickerOpen(false)
         }}
       />
+
+      {!onOpenCoins ? (
+        <CoinPadDialog
+          open={coinPadOpen}
+          coins={inventory.coins}
+          onClose={() => setCoinPadOpen(false)}
+          onChange={(coins) => onChange({ ...inventory, coins })}
+          onToast={onToast ?? (() => undefined)}
+        />
+      ) : null}
     </Panel>
   )
 }
