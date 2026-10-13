@@ -7274,10 +7274,37 @@ button.play-desk-vital:hover {
   align-items: center;
 }
 
+.play-desk__hot-item--wide.is-on {
+  background: var(--desk-accent-soft);
+  border-color: #9ecbbb;
+  color: var(--desk-ink);
+}
+
+.play-desk__hot-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  color: var(--desk-accent);
+}
+
+.play-desk__hot-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .play-desk__hot-item--res {
   background: var(--desk-accent-soft);
   border-color: #9ecbbb;
   min-width: 120px;
+  display: grid;
+  gap: 4px;
+}
+
+.play-desk__hot-res-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 
 .play-desk__hot-res-name {

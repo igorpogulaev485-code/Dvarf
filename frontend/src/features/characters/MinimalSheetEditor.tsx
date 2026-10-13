@@ -2944,7 +2944,15 @@ export function MinimalSheetEditor({
   }
 
   function applyDeskConcentration(spell: SheetSpell) {
-    setDraft((prev) => ({
+    setDraft((prev) => withDeskConcentration(prev, spell))
+  }
+
+  function withDeskConcentration<T extends { play: typeof draft.play }>(
+    prev: T,
+    spell: SheetSpell,
+  ): T {
+    if (!spell.concentration) return prev
+    return {
       ...prev,
       play: {
         ...prev.play,
@@ -2953,7 +2961,7 @@ export function MinimalSheetEditor({
           name: spell.name || 'Заклинание',
         }),
       },
-    }))
+    }
   }
 
   function needsDeskConcentrationSwap(spell: SheetSpell): boolean {
@@ -3011,14 +3019,18 @@ export function MinimalSheetEditor({
     }
     if (grantCast && grantRow) {
       const label = grantRow.grant_cast?.label ?? 'Грант'
-      setDraft((prev) => ({
-        ...prev,
-        spells: {
-          ...prev.spells,
-          known: spendGrantCast(prev.spells.known, grantRow.id),
-        },
-      }))
-      if (spell.concentration) applyDeskConcentration(spell)
+      setDraft((prev) =>
+        withDeskConcentration(
+          {
+            ...prev,
+            spells: {
+              ...prev.spells,
+              known: spendGrantCast(prev.spells.known, grantRow.id),
+            },
+          },
+          spell,
+        ),
+      )
       onToast(
         `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -3041,11 +3053,15 @@ export function MinimalSheetEditor({
         onToast('Нет свободных ячеек договора')
         return
       }
-      setDraft((prev) => ({
-        ...prev,
-        spells: { ...prev.spells, pact_slots: pactResult.pact },
-      }))
-      if (spell.concentration) applyDeskConcentration(spell)
+      setDraft((prev) =>
+        withDeskConcentration(
+          {
+            ...prev,
+            spells: { ...prev.spells, pact_slots: pactResult.pact },
+          },
+          spell,
+        ),
+      )
       onToast(
         `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -3058,11 +3074,15 @@ export function MinimalSheetEditor({
       onToast(`Нет ячеек ${choice.slotLevel}-го уровня`)
       return
     }
-    setDraft((prev) => ({
-      ...prev,
-      spells: { ...prev.spells, slots: result.slots },
-    }))
-    if (spell.concentration) applyDeskConcentration(spell)
+    setDraft((prev) =>
+      withDeskConcentration(
+        {
+          ...prev,
+          spells: { ...prev.spells, slots: result.slots },
+        },
+        spell,
+      ),
+    )
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast(

@@ -1,6 +1,11 @@
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import type { ConcentrationState } from './play'
 import { resourceShowsOnHot, type SheetResource } from '../../shared/dnd/rest'
+import {
+  IconConcentration,
+  IconConditions,
+  IconPouch,
+} from './deskIcons'
 
 type PlayDeskHotBarProps = {
   conditionNames: string[]
@@ -13,7 +18,7 @@ type PlayDeskHotBarProps = {
 }
 
 /** Combat strip under modes: conditions, concentration, resource pips.
- * Initiative / inspiration / exhaustion live in PlayDeskHeader. */
+ * Initiative / inspiration / exhaustion / rest live in PlayDeskHeader. */
 export function PlayDeskHotBar({
   conditionNames,
   exhaustion,
@@ -36,6 +41,7 @@ export function PlayDeskHotBar({
   const conditionsLabel = parts.length > 0 ? parts.join(', ') : 'нет'
   const conditionsOn = parts.length > 0
   const hotResources = resources.filter(resourceShowsOnHot)
+  const concOn = Boolean(concentration)
 
   return (
     <div className="play-desk__hot" aria-label="Боевая полоса">
@@ -48,12 +54,22 @@ export function PlayDeskHotBar({
         aria-pressed={conditionsOn}
         onClick={onOpenConditions}
       >
-        Состояния: {conditionsLabel}
+        <IconConditions className="play-desk__hot-icon" />
+        <span className="play-desk__hot-label">
+          Состояния: {conditionsLabel}
+        </span>
       </button>
-      <div className="play-desk__hot-item play-desk__hot-item--wide">
+      <div
+        className={`play-desk__hot-item play-desk__hot-item--wide${
+          concOn ? ' is-on' : ''
+        }`}
+      >
+        <IconConcentration className="play-desk__hot-icon" />
         {concentration ? (
           <>
-            Концентрация: <strong>{concentration.name}</strong>
+            <span className="play-desk__hot-label">
+              Концентрация: <strong>{concentration.name}</strong>
+            </span>
             {onClearConcentration ? (
               <button type="button" className="linkish" onClick={onClearConcentration}>
                 Снять
@@ -61,15 +77,18 @@ export function PlayDeskHotBar({
             ) : null}
           </>
         ) : (
-          <>Концентрация: —</>
+          <span className="play-desk__hot-label">Концентрация: —</span>
         )}
       </div>
       {hotResources.map((row) => {
         const remaining = Math.max(0, row.max - row.used)
         return (
           <div key={row.id} className="play-desk__hot-item play-desk__hot-item--res">
-            <span className="play-desk__hot-res-name" title={row.name}>
-              {row.name}
+            <span className="play-desk__hot-res-head">
+              <IconPouch className="play-desk__hot-icon" />
+              <span className="play-desk__hot-res-name" title={row.name}>
+                {row.name}
+              </span>
             </span>
             <div
               className="play-desk__pips"

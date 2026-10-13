@@ -139,3 +139,29 @@ export function IconExhaustion(props: IconProps) {
     </Svg>
   )
 }
+
+/** Concentration — orbit (kit desk-chrome §D / hot-bar) */
+export function IconConcentration(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle {...stroke} cx="12" cy="12" r="3.2" />
+      <path {...stroke} d="M12 4.2a7.8 7.8 0 0 1 7.8 7.8" />
+      <path {...stroke} d="M12 19.8A7.8 7.8 0 0 1 4.2 12" />
+      <path {...stroke} d="M18.6 7.2l1.4-.8M5.4 16.8l-1.4.8" />
+    </Svg>
+  )
+}
+
+/** Resources — pouch (kit desk-chrome §D) */
+export function IconPouch(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        {...stroke}
+        d="M8.2 9.2h7.6c1.2 0 2.1 1 2 2.2l-.6 7.2c-.1 1.1-1 1.9-2.1 1.9H8.9c-1.1 0-2-.8-2.1-1.9l-.6-7.2c-.1-1.2.8-2.2 2-2.2Z"
+      />
+      <path {...stroke} d="M9.5 9.2V7.6A2.5 2.5 0 0 1 12 5.1 2.5 2.5 0 0 1 14.5 7.6v1.6" />
+      <path {...stroke} d="M10.5 13.2h3" />
+    </Svg>
+  )
+}
