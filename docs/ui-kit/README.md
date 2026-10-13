@@ -249,7 +249,8 @@ Live-эталоны в продукте (уже близки к киту): Inven
 |-----------|---------|
 | Stage | `ClassFeaturesPanel` сразу (glance→expand строки) |
 | Без flip | нет «полностью» / «← компактно» / `PlayDeskFeaturesCompact` |
-| Expand | multi-open; toolbar свернуть/развернуть все |
+| Expand | только строки с resource / choice / spend / summon; пассивные — static glance |
+| Toolbar | свернуть/развернуть все — только если есть раскрываемые |
 | Фильтры | Все / Класс / Подкласс / Черты / С ресурсом / Выбор |
 | Строка | имя · роль · scale/ресурс/выбор · превью summary |
 | Логика | spend / picks / slot_spend без изменений (контракт feature_resource) |

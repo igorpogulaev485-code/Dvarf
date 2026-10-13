@@ -1803,6 +1803,14 @@ input {
   padding: 10px 12px;
 }
 
+.feature-card--static {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.feature-card--static .feature-card__glance {
+  cursor: default;
+}
+
 .feature-card--expand {
   display: grid;
   gap: 8px;

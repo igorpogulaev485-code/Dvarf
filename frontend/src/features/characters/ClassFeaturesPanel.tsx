@@ -140,6 +140,16 @@ function featureRowKey(feature: UnlockedFeature): string {
   return `${feature.classEntryId}:${feature.source}:${feature.id}`
 }
 
+/** Expand only when there are controls — not for passive text-only rows. */
+function featureCanExpand(feature: UnlockedFeature): boolean {
+  if (feature.resource?.pool_id) return true
+  if (feature.choice) return true
+  if (feature.slot_spend) return true
+  if (feature.id === 'metamagic' || feature.id === 'flexible_casting') return true
+  if (feature.summon) return true
+  return false
+}
+
 function featSourceLabel(source: AppliedFeatGrant['source']): string {
   if (source.kind === 'asi') return 'ASI'
   if (source.kind === 'race') return 'раса'
@@ -1135,6 +1145,26 @@ function FeatureRow({
   }
 
   const preview = previewSummary(feature.summary_ru)
+  const canExpand = featureCanExpand(feature)
+
+  if (!canExpand) {
+    return (
+      <div className="feature-card feature-card--compact feature-card--static">
+        <div className="feature-card__glance">
+          <span className="feature-card__level" aria-hidden>
+            {feature.level}
+          </span>
+          <b className="feature-card__name">{feature.name_ru}</b>
+          <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
+          <span className="inventory-card__glance-spacer" aria-hidden />
+          <span className="feature-card__preview">
+            {metaExtra ? `${metaExtra} · ` : ''}
+            {preview || kindLabelRu(feature.kind)}
+          </span>
+        </div>
+      </div>
+    )
+  }
 
   if (!open) {
     return (
@@ -1397,13 +1427,11 @@ export function ClassFeaturesPanel({
 
   const allToggleKeys = useMemo(() => {
     const keys: string[] = []
-    if (showRace) keys.push('race:darkvision')
-    for (const feature of visibleFeatures) keys.push(featureRowKey(feature))
-    if (showFeats) {
-      for (const feat of namedFeats) keys.push(`feat:${feat.id}`)
+    for (const feature of visibleFeatures) {
+      if (featureCanExpand(feature)) keys.push(featureRowKey(feature))
     }
     return keys
-  }, [showRace, visibleFeatures, showFeats, namedFeats])
+  }, [visibleFeatures])
 
   function toggleKey(key: string) {
     setOpenKeys((prev) => {
@@ -1422,22 +1450,24 @@ export function ClassFeaturesPanel({
   return (
     <Panel title="Способности" className="features-panel">
       <p className="features-panel__lede">
-        Сводка умений класса, подкласса, черт и расы. Строка — превью; клик — детали и
-        ресурсы.
+        Сводка умений класса, подкласса, черт и расы. Раскрываются только строки с
+        ресурсом, выбором или действием.
       </p>
 
       <Stack gap={12}>
-        <div className="abil-column__toolbar features-panel__collapse-bar">
-          <button type="button" onClick={() => setOpenKeys(new Set())}>
-            ▲ Свернуть все
-          </button>
-          <button
-            type="button"
-            onClick={() => setOpenKeys(new Set(allToggleKeys))}
-          >
-            ▼ Развернуть все
-          </button>
-        </div>
+        {allToggleKeys.length > 0 ? (
+          <div className="abil-column__toolbar features-panel__collapse-bar">
+            <button type="button" onClick={() => setOpenKeys(new Set())}>
+              ▲ Свернуть все
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpenKeys(new Set(allToggleKeys))}
+            >
+              ▼ Развернуть все
+            </button>
+          </div>
+        ) : null}
 
         {extraAttackNote ? <Text tone="muted">{extraAttackNote}</Text> : null}
 
@@ -1463,62 +1493,15 @@ export function ClassFeaturesPanel({
         ) : null}
 
         {showRace ? (
-          <div
-            className={`feature-card${
-              openKeys.has('race:darkvision')
-                ? ' feature-card--expand'
-                : ' feature-card--compact'
-            }`}
-          >
-            {openKeys.has('race:darkvision') ? (
-              <>
-                <div className="feature-card__meta">
-                  <span className="inventory-role inventory-role--other">раса</span>
-                  <button
-                    type="button"
-                    className="inventory-card__collapse"
-                    onClick={() => toggleKey('race:darkvision')}
-                  >
-                    свернуть
-                  </button>
-                </div>
-                <h3 className="feature-card__title">
-                  Тёмное зрение {darkvision} фт.
-                </h3>
-                <Text tone="muted">{raceName || 'Раса'}</Text>
-                <Text>
-                  Видишь в тусклом свете как при ярком, а в темноте — как в тусклом, на
-                  расстоянии {darkvision} футов.
-                </Text>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  className="feature-card__glance"
-                  onClick={() => toggleKey('race:darkvision')}
-                >
-                  <b className="feature-card__name">
-                    Тёмное зрение {darkvision} фт.
-                  </b>
-                  <span className="inventory-role inventory-role--other">раса</span>
-                  <span className="inventory-card__glance-spacer" aria-hidden />
-                  <span className="feature-card__preview">
-                    {raceName || 'расовая особенность'}
-                  </span>
-                </button>
-                <div className="inventory-card__glance-actions">
-                  <button
-                    type="button"
-                    className="inventory-card__chevron-btn"
-                    aria-label="Подробнее"
-                    onClick={() => toggleKey('race:darkvision')}
-                  >
-                    ›
-                  </button>
-                </div>
-              </>
-            )}
+          <div className="feature-card feature-card--compact feature-card--static">
+            <div className="feature-card__glance">
+              <b className="feature-card__name">Тёмное зрение {darkvision} фт.</b>
+              <span className="inventory-role inventory-role--other">раса</span>
+              <span className="inventory-card__glance-spacer" aria-hidden />
+              <span className="feature-card__preview">
+                {raceName || 'раса'} · в темноте на {darkvision} фт.
+              </span>
+            </div>
           </div>
         ) : null}
 
@@ -1567,76 +1550,20 @@ export function ClassFeaturesPanel({
             </div>
             <div className="feature-list">
               {namedFeats.map((feat) => {
-                const key = `feat:${feat.id}`
-                const open = openKeys.has(key)
+                const preview =
+                  previewSummary(feat.applied.summaryRu || feat.applied.benefitsRu) ||
+                  featSourceLabel(feat.source)
                 return (
                   <div
                     key={feat.id}
-                    className={`feature-card${
-                      open ? ' feature-card--expand' : ' feature-card--compact'
-                    }`}
+                    className="feature-card feature-card--compact feature-card--static"
                   >
-                    {open ? (
-                      <>
-                        <div className="feature-card__meta">
-                          <span className="inventory-role inventory-role--weapon">
-                            черта
-                          </span>
-                          <span className="attack-held-tag">
-                            {featSourceLabel(feat.source)}
-                          </span>
-                          <button
-                            type="button"
-                            className="inventory-card__collapse"
-                            onClick={() => toggleKey(key)}
-                          >
-                            свернуть
-                          </button>
-                        </div>
-                        <h3 className="feature-card__title">{feat.nameRu}</h3>
-                        <Text tone="muted">
-                          Источник: {featSourceLabel(feat.source)}
-                        </Text>
-                        {feat.applied.summaryRu ? (
-                          <Text>{feat.applied.summaryRu}</Text>
-                        ) : null}
-                        {feat.applied.benefitsRu ? (
-                          <Text tone="muted">{feat.applied.benefitsRu}</Text>
-                        ) : null}
-                        {!feat.applied.summaryRu && !feat.applied.benefitsRu ? (
-                          <Text tone="muted">
-                            Эффекты черты уже применены к листу (навыки, бонусы, ресурсы).
-                          </Text>
-                        ) : null}
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          className="feature-card__glance"
-                          onClick={() => toggleKey(key)}
-                        >
-                          <b className="feature-card__name">{feat.nameRu}</b>
-                          <span className="inventory-role inventory-role--weapon">
-                            черта
-                          </span>
-                          <span className="inventory-card__glance-spacer" aria-hidden />
-                          <span className="feature-card__preview">
-                            {featSourceLabel(feat.source)}
-                          </span>
-                        </button>
-                        <div className="inventory-card__glance-actions">
-                          <button
-                            type="button"
-                            className="inventory-card__chevron-btn"
-                            aria-label="Подробнее"
-                            onClick={() => toggleKey(key)}
-                          >
-                            ›
-                          </button>
-                        </div>
-                      </>
-                    )}
+                    <div className="feature-card__glance">
+                      <b className="feature-card__name">{feat.nameRu}</b>
+                      <span className="inventory-role inventory-role--weapon">черта</span>
+                      <span className="inventory-card__glance-spacer" aria-hidden />
+                      <span className="feature-card__preview">{preview}</span>
+                    </div>
                   </div>
                 )
               })}
