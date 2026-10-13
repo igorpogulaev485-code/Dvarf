@@ -92,6 +92,46 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
   return (
     <article className="character-card__wrap">
       <div className="character-card">
+        <div className="character-card__menu" ref={menuRef}>
+          <Button
+            type="button"
+            variant="ghost"
+            className="character-card__menu-btn"
+            aria-label="Действия с персонажем"
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            ⋯
+          </Button>
+          {menuOpen ? (
+            <div className="character-card__menu-pop" id={menuId} role="menu">
+              {!isDraft ? (
+                <Link
+                  role="menuitem"
+                  to={`/characters/${character.id}/classic`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Классический лист
+                </Link>
+              ) : null}
+              <button
+                type="button"
+                role="menuitem"
+                className="character-card__menu-danger"
+                onClick={() => {
+                  setMenuOpen(false)
+                  setDeleteError(null)
+                  setConfirmOpen(true)
+                }}
+              >
+                Удалить
+              </button>
+            </div>
+          ) : null}
+        </div>
+
         <Link className="character-card__main" to={href}>
           <div className="character-card__avatar" aria-hidden="true">
             {character.avatar_url ? (
@@ -144,44 +184,6 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
           <Link className="ui-button ui-button--secondary character-card__open" to={href}>
             {isDraft ? 'Продолжить' : 'Открыть'}
           </Link>
-          <div className="character-card__menu" ref={menuRef}>
-            <Button
-              type="button"
-              variant="ghost"
-              className="character-card__menu-btn"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              aria-controls={menuId}
-              onClick={() => setMenuOpen((open) => !open)}
-            >
-              ⋯
-            </Button>
-            {menuOpen ? (
-              <div className="character-card__menu-pop" id={menuId} role="menu">
-                {!isDraft ? (
-                  <Link
-                    role="menuitem"
-                    to={`/characters/${character.id}/classic`}
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    Классический лист
-                  </Link>
-                ) : null}
-                <button
-                  type="button"
-                  role="menuitem"
-                  className="character-card__menu-danger"
-                  onClick={() => {
-                    setMenuOpen(false)
-                    setDeleteError(null)
-                    setConfirmOpen(true)
-                  }}
-                >
-                  Удалить
-                </button>
-              </div>
-            ) : null}
-          </div>
         </div>
       </div>
 

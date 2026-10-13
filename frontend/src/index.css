@@ -571,12 +571,14 @@ input {
 }
 
 .character-card {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   min-height: 96px;
   padding: 14px;
+  padding-right: 44px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--card);
@@ -678,21 +680,24 @@ input {
 }
 
 .character-card__menu {
-  position: relative;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
 }
 
 .character-card__menu-btn {
-  min-height: 40px;
-  min-width: 40px;
+  min-height: 32px;
+  min-width: 32px;
   padding: 0;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   line-height: 1;
   color: var(--muted);
 }
 
 .character-card__menu-pop {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 2px);
   right: 0;
   z-index: 5;
   display: grid;
@@ -818,6 +823,10 @@ input {
   display: none;
 }
 
+.character-grid--compact .character-card {
+  padding-right: 36px;
+}
+
 .character-grid--compact .character-card__open {
   min-height: 34px;
   padding-inline: 10px;
@@ -825,8 +834,9 @@ input {
 }
 
 .character-grid--compact .character-card__menu-btn {
-  min-height: 34px;
-  min-width: 34px;
+  min-height: 28px;
+  min-width: 28px;
+  font-size: 1.05rem;
 }
 
 .create-character {
