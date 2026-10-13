@@ -209,6 +209,7 @@ import { CompanionsPanel } from './CompanionsPanel'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
+import { IdentityDialog } from './IdentityDialog'
 import { toggleCombatConsumableFavorite } from './combatConsumables'
 import { PlayDeskAttacksCompact } from './PlayDeskAttacksCompact'
 import { HotConditionsDialog } from './HotConditionsDialog'
@@ -229,10 +230,8 @@ import {
   MODE_DEFAULT_PANEL,
   MODE_HINT,
   MODE_LABELS,
-  MODE_MORE_PANELS,
   MODE_SKILL_KEYS,
   modeUsesSpellSplit,
-  panelLabel,
   readSheetUi,
   sheetUiToPatch,
   splitSecondaryPanel,
@@ -2861,6 +2860,7 @@ export function MinimalSheetEditor({
 
 
   const [ownershipOpen, setOwnershipOpen] = useState(false)
+  const [identityOpen, setIdentityOpen] = useState(false)
   const [restOpen, setRestOpen] = useState(false)
   const [sorcerySpendId, setSorcerySpendId] = useState<string | null>(null)
   const [concDamageAsk, setConcDamageAsk] = useState<{
@@ -2933,7 +2933,7 @@ export function MinimalSheetEditor({
     // Combat / explore / social keep primary + spells; other scenes stay single-pane.
     const nextSplit = modeUsesSpellSplit(mode)
       ? true
-      : mode === 'more' || mode === 'features' || mode === 'companions'
+      : mode === 'features' || mode === 'companions'
         ? false
         : draft.sheetUi.deskSplit
     patchSheetUi({ deskMode: mode, deskSplit: nextSplit })
@@ -3360,7 +3360,8 @@ export function MinimalSheetEditor({
         <CharacterAvatarControl
           character={baseCharacter}
           size={isPlayDesk ? 'md' : 'sm'}
-          showActions={!isPlayDesk}
+          showActions={false}
+          onOpen={() => setIdentityOpen(true)}
           onChanged={(updated) => {
             setBaseCharacter(updated)
             onSaved(updated)
@@ -3402,11 +3403,7 @@ export function MinimalSheetEditor({
             coins={draft.inventory.coins}
             xpHistory={draft.sheetUi.xpHistory}
             onOpenRest={() => setRestOpen(true)}
-            onOpenIdentity={() => {
-              patchSheetUi({ deskMode: 'more', deskSplit: false })
-              setActivePanel('identity')
-              setForceFullPanel(null)
-            }}
+            onOpenIdentity={() => setIdentityOpen(true)}
             onExperienceChange={(experience, meta) => {
               setDraft((prev) => {
                 const prevXp = prev.identity.experience
@@ -3643,29 +3640,7 @@ export function MinimalSheetEditor({
             </div>
           ) : null}
 
-          {isPlayDesk &&
-          draft.sheetUi.deskMode === 'more' &&
-          MODE_MORE_PANELS.length > 1 ? (
-            <div className="play-desk__more-tabs" role="tablist" aria-label="Разделы ЕЩЁ">
-              {MODE_MORE_PANELS.map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activePanel === id}
-                  className={`play-desk__more-tab${activePanel === id ? ' is-on' : ''}`}
-                  onClick={() => {
-                    setActivePanel(id)
-                    setForceFullPanel(null)
-                  }}
-                >
-                  {panelLabel(id)}
-                </button>
-              ))}
-            </div>
-          ) : null}
-
-          {isPlayDesk && draft.sheetUi.deskMode !== 'more' ? (
+          {isPlayDesk ? (
             <PlayDeskHotBar
               conditionNames={hotConditionNames}
               exhaustion={draft.play.exhaustion}
@@ -3722,10 +3697,17 @@ export function MinimalSheetEditor({
             </p>
           ) : null}
 
-      <div className="play-desk__scene-wrap">
-      <div className="play-desk__stage-panel" hidden={stageHidden('identity')}>
-      <Panel title="Основное">
-        <Stack gap={12}>
+      <IdentityDialog
+        open={identityOpen}
+        onClose={() => setIdentityOpen(false)}
+        character={baseCharacter}
+        onAvatarChanged={(updated) => {
+          setBaseCharacter(updated)
+          onSaved(updated)
+        }}
+      >
+          <section className="identity-dialog__section">
+            <p className="identity-dialog__section-label">Персонаж</p>
           <Field label="Имя" htmlFor="sheet-name">
             <Input
               id="sheet-name"
@@ -3761,14 +3743,15 @@ export function MinimalSheetEditor({
           <Field label="Бонус мастерства">
             <Input value={formatModifier(proficiencyBonus)} readOnly />
           </Field>
+          </section>
           {!primaryClass?.name.trim() ? (
             <Text tone="muted">
               Создание: сначала класс (и архетип, если уже есть), потом раса — так метки и расовые
               списки заклинаний сразу видят, кастер ты или нет.
             </Text>
           ) : null}
-          <div>
-            <Text tone="muted">Классы · шаг 2 (после предыстории)</Text>
+          <section className="identity-dialog__section">
+            <p className="identity-dialog__section-label">Классы</p>
             {pendingStartingLevel > 1 ? (
               <Text tone="muted">
                 Старт с {pendingStartingLevel} ур.: выбери класс — мастер поднимет уровень и проведёт
@@ -3777,7 +3760,7 @@ export function MinimalSheetEditor({
             ) : null}
             <Stack gap={10}>
               {draft.classes.map((row, index) => (
-                <div key={row.id} className="inventory-card">
+                <div key={row.id} className="identity-dialog__class">
                   <div className="sheet-grid sheet-grid--2">
                     <Field
                       label={draft.classes.length > 1 ? `Класс ${index + 1}` : 'Класс'}
@@ -4074,7 +4057,9 @@ export function MinimalSheetEditor({
               развилками (навыки, инструменты, стартовое снаряжение). «Хомбрю» — только название на
               листе.
             </Text>
-          </div>
+          </section>
+          <section className="identity-dialog__section">
+            <p className="identity-dialog__section-label">Раса и прошлое</p>
           <div className="sheet-grid sheet-grid--2">
             <Field
               label="Раса"
@@ -4192,11 +4177,10 @@ export function MinimalSheetEditor({
               />
             </Field>
           </div>
-        </Stack>
-      </Panel>
+          </section>
+      </IdentityDialog>
 
-      </div>
-
+      <div className="play-desk__scene-wrap">
       <div className="play-desk__stage-panel" hidden={stageHidden('attacks')}>
       {showCompact('attacks') ? (
         <>
