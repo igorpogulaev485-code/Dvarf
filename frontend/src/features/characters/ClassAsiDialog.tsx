@@ -13,9 +13,9 @@ import {
   type AppliedFeatGrant,
   type OwnedFeatEnumSnapshot,
 } from '../../shared/dnd/featGrants'
-import { ABILITY_KEYS, ABILITY_LABELS } from './sheetTypes'
+import { AsiChoiceBody } from './AsiChoiceBody'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
-import { Button, Dialog, Stack, Text } from '../../ui'
+import { Dialog } from '../../ui'
 
 type ClassAsiDialogProps = {
   open: boolean
@@ -165,66 +165,25 @@ export function ClassAsiDialog({
           uiMode === 'scores' && keys.length !== (mode?.amounts.length ?? 1)
         }
       >
-        <Stack gap={14}>
-          <Text tone="muted">
-            +2 к одной характеристике, +1 к двум (максимум 20) или одна черта из каталога PHB.
-          </Text>
-
-          <div className="chip-row" role="group" aria-label="Вариант ASI">
-            {CLASS_ASI_MODE_OPTIONS.map((row) => (
-              <Button
-                key={row.id}
-                type="button"
-                variant={uiMode === 'scores' && modeId === row.id ? 'primary' : 'ghost'}
-                onClick={() => {
-                  setUiMode('scores')
-                  setModeId(row.id)
-                  setKeys([])
-                  setError(null)
-                }}
-              >
-                {row.labelRu}
-              </Button>
-            ))}
-            <Button
-              type="button"
-              variant={uiMode === 'feat' ? 'primary' : 'ghost'}
-              onClick={() => {
-                setUiMode('feat')
-                setKeys([])
-                setError(null)
-              }}
-            >
-              Черта
-            </Button>
-          </div>
-
-          {uiMode === 'scores' ? (
-            <div className="chip-row" role="group" aria-label="Характеристики">
-              {ABILITY_KEYS.map((key) => {
-                const selected = keys.includes(key)
-                const score = abilities[key]
-                return (
-                  <Button
-                    key={key}
-                    type="button"
-                    variant={selected ? 'primary' : 'ghost'}
-                    onClick={() => toggleKey(key)}
-                  >
-                    {ABILITY_LABELS[key]} {score}
-                  </Button>
-                )
-              })}
-            </div>
-          ) : (
-            <Text tone="muted">
-              Нажми «Выбрать черту» — откроется каталог. Гранты (навыки, скорость, хиты…) лягут на
-              лист автоматически.
-            </Text>
-          )}
-
-          {error ? <Text tone="danger">{error}</Text> : null}
-        </Stack>
+        <AsiChoiceBody
+          uiMode={uiMode}
+          modeId={modeId}
+          keys={keys}
+          abilities={abilities}
+          onModeId={(next) => {
+            setUiMode('scores')
+            setModeId(next)
+            setKeys([])
+            setError(null)
+          }}
+          onChooseFeat={() => {
+            setUiMode('feat')
+            setKeys([])
+            setError(null)
+          }}
+          onToggleKey={toggleKey}
+          error={error}
+        />
       </Dialog>
 
       <FeatSetupDialog

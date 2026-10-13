@@ -46,7 +46,8 @@ import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import type { RulesEdition } from '../../shared/api/characters'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import { CatalogCombobox } from '../catalog'
-import { ABILITY_KEYS, ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
+import { AsiChoiceBody } from './AsiChoiceBody'
+import { SKILL_DEFS } from './sheetTypes'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
 import { Button, Dialog, Field, Stack, Text } from '../../ui'
 
@@ -122,7 +123,7 @@ function skillLabel(key: string): string {
 const OPTION_LABEL_FALLBACKS_RU: Record<string, string> = {
   plus2: '+2 к одной характеристике',
   plus1x2: '+1 к двум характеристикам',
-  feat_coming_soon: 'Черта (выбор)',
+  feat_coming_soon: 'Черта',
 }
 
 function choiceOptionLabel(optionId: string, choice?: FeatureChoiceDef | null): string {
@@ -365,81 +366,6 @@ function FeatureChoiceStepBody({
           {selectedList.length
             ? ` · ${selectedList.map((id) => choiceOptionLabel(id, choice)).join(', ')}`
             : ''}
-        </Text>
-      ) : null}
-    </Stack>
-  )
-}
-
-function AsiStepBody({
-  uiMode,
-  modeId,
-  keys,
-  abilities,
-  onModeId,
-  onChooseFeat,
-  onToggleKey,
-  error,
-}: {
-  uiMode: 'scores' | 'feat'
-  modeId: ClassAsiModeId
-  keys: AbilityKey[]
-  abilities: Record<AbilityKey, number>
-  onModeId: (mode: ClassAsiModeId) => void
-  onChooseFeat: () => void
-  onToggleKey: (key: AbilityKey) => void
-  error: string | null
-}) {
-  const mode = CLASS_ASI_MODE_OPTIONS.find((row) => row.id === modeId) ?? CLASS_ASI_MODE_OPTIONS[0]
-  return (
-    <Stack gap={14}>
-      <Text tone="muted">
-        +2 к одной характеристике, +1 к двум (максимум 20) или одна черта из каталога.
-      </Text>
-      <div className="chip-row" role="group" aria-label="Вариант ASI">
-        {CLASS_ASI_MODE_OPTIONS.map((row) => (
-          <Button
-            key={row.id}
-            type="button"
-            variant={uiMode === 'scores' && modeId === row.id ? 'primary' : 'ghost'}
-            onClick={() => onModeId(row.id)}
-          >
-            {row.labelRu}
-          </Button>
-        ))}
-        <Button
-          type="button"
-          variant={uiMode === 'feat' ? 'primary' : 'ghost'}
-          onClick={onChooseFeat}
-        >
-          Черта
-        </Button>
-      </div>
-      {uiMode === 'scores' ? (
-        <div className="chip-row" role="group" aria-label="Характеристики">
-          {ABILITY_KEYS.map((key) => {
-            const selected = keys.includes(key)
-            return (
-              <Button
-                key={key}
-                type="button"
-                variant={selected ? 'primary' : 'ghost'}
-                onClick={() => onToggleKey(key)}
-              >
-                {ABILITY_LABELS[key]} {abilities[key]}
-              </Button>
-            )
-          })}
-        </div>
-      ) : (
-        <Text tone="muted">
-          Нажми «Выбрать черту» — откроется каталог. Гранты (навыки, скорость, хиты…) лягут на лист.
-        </Text>
-      )}
-      {error ? <Text tone="danger">{error}</Text> : null}
-      {!error && uiMode === 'scores' && mode ? (
-        <Text tone="muted">
-          Нужно выбрать: {mode.amounts.length} · сейчас {keys.length}
         </Text>
       ) : null}
     </Stack>
@@ -752,7 +678,7 @@ export function GuidedWizardDialog({
           />
         ) : null}
         {step.kind === 'asi' ? (
-          <AsiStepBody
+          <AsiChoiceBody
             uiMode={asiUiMode}
             modeId={asiModeId}
             keys={asiKeys}
