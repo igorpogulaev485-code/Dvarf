@@ -4,6 +4,7 @@ import {
   createSheetSpell,
   ensureInnateGrantCasts,
   grantCastRemaining,
+  listCastGrantOptions,
   parseGrantCastLimitFromNotes,
   recoverGrantCastsOnRest,
   spendGrantCast,
@@ -80,5 +81,43 @@ const cantrip: SheetSpell = {
   source_kind: 'race',
 }
 assert(ensureInnateGrantCasts([cantrip], 2)[0]?.grant_cast == null, 'cantrip no charge')
+
+const classInvis: SheetSpell = {
+  ...createSheetSpell(),
+  id: 'class-invisibility',
+  name: 'Невидимость',
+  level: 2,
+  prepared: true,
+}
+const raceInvis: SheetSpell = {
+  ...createSheetSpell(),
+  id: 'race-spell:mark-of-shadow:invisibility',
+  name: 'Невидимость',
+  level: 2,
+  prepared: true,
+  prepared_locked: true,
+  source_kind: 'race',
+  race_grant: 'innate',
+  prepare_source_label: 'метка тени',
+  grant_cast: { max: 1, used: 0, reset: 'long', label: 'метка тени' },
+}
+const gearInvis: SheetSpell = {
+  ...createSheetSpell(),
+  id: 'gear-spell:ring:invisibility',
+  name: 'Невидимость',
+  level: 2,
+  prepared: true,
+  prepared_locked: true,
+  source_kind: 'feature',
+  prepare_source_label: 'Кольцо невидимости',
+  grant_cast: { max: 1, used: 0, reset: 'long', label: 'Кольцо невидимости' },
+}
+const options = listCastGrantOptions(classInvis, [classInvis, raceInvis, gearInvis])
+assert(options.length === 2, `sibling grants expected 2 got ${options.length}`)
+assert(
+  options.some((row) => row.label === 'метка тени') &&
+    options.some((row) => row.label === 'Кольцо невидимости'),
+  'race + artifact labels',
+)
 
 console.log('smoke-cast-grant: ok')

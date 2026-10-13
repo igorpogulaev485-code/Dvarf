@@ -75,6 +75,7 @@ import {
   listUnlockedExpertiseKeys,
 } from '../../shared/dnd/pendingFeatureChoices'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
+import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
 import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
@@ -111,6 +112,49 @@ type ClassFeaturesPanelProps = {
   companions?: CompanionEntry[]
   onCompanionsChange?: (companions: CompanionEntry[]) => void
   onToast?: (message: string) => void
+  /** Summary surface: feats + race on the same glance list. */
+  featGrants?: AppliedFeatGrant[]
+  darkvision?: number
+  raceName?: string
+}
+
+type FeatureFilter = 'all' | 'class' | 'subclass' | 'feats' | 'resource' | 'choice'
+
+const FEATURE_FILTERS: Array<{ id: FeatureFilter; label: string }> = [
+  { id: 'all', label: 'Все' },
+  { id: 'class', label: 'Класс' },
+  { id: 'subclass', label: 'Подкласс' },
+  { id: 'feats', label: 'Черты' },
+  { id: 'resource', label: 'С ресурсом' },
+  { id: 'choice', label: 'Выбор' },
+]
+
+function previewSummary(value: string, max = 110): string {
+  const flat = value.replace(/\s+/g, ' ').trim()
+  if (!flat) return ''
+  if (flat.length <= max) return flat
+  return `${flat.slice(0, max - 1)}…`
+}
+
+function featureRowKey(feature: UnlockedFeature): string {
+  return `${feature.classEntryId}:${feature.source}:${feature.id}`
+}
+
+/** Expand only when there are controls — not for passive text-only rows. */
+function featureCanExpand(feature: UnlockedFeature): boolean {
+  if (feature.resource?.pool_id) return true
+  if (feature.choice) return true
+  if (feature.slot_spend) return true
+  if (feature.id === 'metamagic' || feature.id === 'flexible_casting') return true
+  if (feature.summon) return true
+  return false
+}
+
+function featSourceLabel(source: AppliedFeatGrant['source']): string {
+  if (source.kind === 'asi') return 'ASI'
+  if (source.kind === 'race') return 'раса'
+  if (source.kind === 'background') return 'предыстория'
+  return 'вручную'
 }
 
 function FeatureResourceControls({
@@ -1010,6 +1054,8 @@ function FeatureSlotSpendControls({
 function FeatureRow({
   feature,
   classSlug,
+  open,
+  onToggle,
   resources,
   onResourcesChange,
   featurePicks,
@@ -1027,6 +1073,8 @@ function FeatureRow({
 }: {
   feature: UnlockedFeature
   classSlug: string
+  open: boolean
+  onToggle: () => void
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
   featurePicks: FeaturePicksState
@@ -1042,11 +1090,12 @@ function FeatureRow({
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
 }) {
-  const [open, setOpen] = useState(false)
   const sourceLabel =
     feature.source === 'subclass'
       ? `${feature.className} · ${feature.subclassName || feature.subclassSlug || 'архетип'}`
       : feature.className
+  const role = feature.source === 'subclass' ? 'подкласс' : 'класс'
+  const roleClass = feature.source === 'subclass' ? 'weapon' : 'armor'
 
   const pool = feature.resource?.pool_id
     ? findFeatureResource(
@@ -1080,93 +1129,147 @@ function FeatureRow({
 
   let metaExtra = ''
   if (choiceLabel) {
-    metaExtra = ` · ${choiceLabel}`
+    metaExtra = choiceLabel
   } else if (choicePending) {
-    metaExtra = ' · не выбрано'
+    metaExtra = 'не выбрано'
   } else if (feature.resource?.track === 'stock' && pool) {
-    metaExtra = ` · ${stockCurrent(pool)}/${pool.max}`
+    metaExtra = `${stockCurrent(pool)}/${pool.max}`
   } else if (feature.resourceUses != null) {
     metaExtra = pool
-      ? ` · ${spendRemaining(pool)}/${pool.max}`
-      : ` · ${feature.resourceUses}×`
+      ? `${spendRemaining(pool)}/${pool.max}`
+      : `${feature.resourceUses}×`
   } else if (feature.save_bonus_self) {
-    metaExtra = ` · ${feature.save_bonus_self.label_ru}`
+    metaExtra = feature.save_bonus_self.label_ru
+  } else if (feature.scaleValue) {
+    metaExtra = feature.scaleValue
+  }
+
+  const preview = previewSummary(feature.summary_ru)
+  const canExpand = featureCanExpand(feature)
+
+  if (!canExpand) {
+    return (
+      <div className="feature-card feature-card--compact feature-card--static">
+        <div className="feature-card__glance">
+          <span className="feature-card__level" aria-hidden>
+            {feature.level}
+          </span>
+          <b className="feature-card__name">{feature.name_ru}</b>
+          <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
+          <span className="inventory-card__glance-spacer" aria-hidden />
+          <span className="feature-card__preview">
+            {metaExtra ? `${metaExtra} · ` : ''}
+            {preview || kindLabelRu(feature.kind)}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!open) {
+    return (
+      <div className="feature-card feature-card--compact">
+        <button type="button" className="feature-card__glance" onClick={onToggle}>
+          <span className="feature-card__level" aria-hidden>
+            {feature.level}
+          </span>
+          <b className="feature-card__name">{feature.name_ru}</b>
+          <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
+          {feature.resource ? (
+            <span className="attack-held-tag is-on">ресурс</span>
+          ) : null}
+          {choicePending ? <span className="attack-held-tag">выбор</span> : null}
+          <span className="inventory-card__glance-spacer" aria-hidden />
+          <span className="feature-card__preview">
+            {metaExtra ? `${metaExtra} · ` : ''}
+            {preview || kindLabelRu(feature.kind)}
+          </span>
+        </button>
+        <div className="inventory-card__glance-actions">
+          <button
+            type="button"
+            className="inventory-card__chevron-btn"
+            aria-label="Подробнее"
+            onClick={onToggle}
+          >
+            ›
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="feature-row">
-      <button
-        type="button"
-        className="feature-row__head"
-        onClick={() => setOpen((prev) => !prev)}
-      >
-        <span className="feature-row__level">{feature.level}</span>
-        <span className="feature-row__title">
-          {feature.name_ru}
-          {feature.scaleValue ? (
-            <strong className="feature-row__scale"> · {feature.scaleValue}</strong>
-          ) : null}
+    <div className="feature-card feature-card--expand">
+      <div className="feature-card__meta">
+        <span className="feature-card__level" aria-hidden>
+          {feature.level}
         </span>
-        <span className="feature-row__meta">
-          {kindLabelRu(feature.kind)}
-          {metaExtra}
-        </span>
-      </button>
-      {open ? (
-        <div className="feature-row__body">
-          <Text tone="muted">{sourceLabel}</Text>
-          <Text>{feature.summary_ru}</Text>
-          {feature.body_ru ? <Text tone="muted">{feature.body_ru}</Text> : null}
-          {feature.scale ? (
-            <Text tone="muted">
-              {feature.scale.labelRu}: сейчас <strong>{feature.scaleValue}</strong>
-            </Text>
-          ) : null}
-          <FeatureChoiceControls
-            feature={feature}
-            featurePicks={featurePicks}
-            onFeaturePicksChange={onFeaturePicksChange}
-            skills={skills}
-            tools={tools}
-            expertiseKeys={expertiseKeys}
-            onToast={onToast}
-          />
-          <MetamagicSpendControls
-            feature={feature}
-            featurePicks={featurePicks}
-            classSlug={classSlug}
-            resources={resources}
-            onResourcesChange={onResourcesChange}
-            onToast={onToast}
-          />
-          <FlexibleCastingControls
-            feature={feature}
-            classSlug={classSlug}
-            resources={resources}
-            onResourcesChange={onResourcesChange}
-            spells={spells}
-            onSpellsChange={onSpellsChange}
-            onToast={onToast}
-          />
-          <FeatureSlotSpendControls
-            feature={feature}
-            spells={spells}
-            onSpellsChange={onSpellsChange}
-            onToast={onToast}
-          />
-          <FeatureResourceControls
-            feature={feature}
-            classSlug={classSlug}
-            resources={resources}
-            onResourcesChange={onResourcesChange}
-            companions={companions}
-            onCompanionsChange={onCompanionsChange}
-            onToast={onToast}
-            initiativeGrantByPool={initiativeGrantByPool}
-            wearingHeavyArmor={wearingHeavyArmor}
-          />
-        </div>
+        <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
+        <span className="attack-held-tag">{kindLabelRu(feature.kind)}</span>
+        {feature.resource ? <span className="attack-held-tag is-on">ресурс</span> : null}
+        {choicePending ? <span className="attack-held-tag">выбор</span> : null}
+        <button type="button" className="inventory-card__collapse" onClick={onToggle}>
+          свернуть
+        </button>
+      </div>
+      <h3 className="feature-card__title">
+        {feature.name_ru}
+        {feature.scaleValue ? (
+          <strong className="feature-row__scale"> · {feature.scaleValue}</strong>
+        ) : null}
+      </h3>
+      <Text tone="muted">{sourceLabel}</Text>
+      <Text>{feature.summary_ru}</Text>
+      {feature.body_ru ? <Text tone="muted">{feature.body_ru}</Text> : null}
+      {feature.scale ? (
+        <Text tone="muted">
+          {feature.scale.labelRu}: сейчас <strong>{feature.scaleValue}</strong>
+        </Text>
       ) : null}
+      <FeatureChoiceControls
+        feature={feature}
+        featurePicks={featurePicks}
+        onFeaturePicksChange={onFeaturePicksChange}
+        skills={skills}
+        tools={tools}
+        expertiseKeys={expertiseKeys}
+        onToast={onToast}
+      />
+      <MetamagicSpendControls
+        feature={feature}
+        featurePicks={featurePicks}
+        classSlug={classSlug}
+        resources={resources}
+        onResourcesChange={onResourcesChange}
+        onToast={onToast}
+      />
+      <FlexibleCastingControls
+        feature={feature}
+        classSlug={classSlug}
+        resources={resources}
+        onResourcesChange={onResourcesChange}
+        spells={spells}
+        onSpellsChange={onSpellsChange}
+        onToast={onToast}
+      />
+      <FeatureSlotSpendControls
+        feature={feature}
+        spells={spells}
+        onSpellsChange={onSpellsChange}
+        onToast={onToast}
+      />
+      <FeatureResourceControls
+        feature={feature}
+        classSlug={classSlug}
+        resources={resources}
+        onResourcesChange={onResourcesChange}
+        companions={companions}
+        onCompanionsChange={onCompanionsChange}
+        onToast={onToast}
+        initiativeGrantByPool={initiativeGrantByPool}
+        wearingHeavyArmor={wearingHeavyArmor}
+      />
     </div>
   )
 }
@@ -1206,7 +1309,13 @@ export function ClassFeaturesPanel({
   companions = [],
   onCompanionsChange,
   onToast,
+  featGrants = [],
+  darkvision = 0,
+  raceName = '',
 }: ClassFeaturesPanelProps) {
+  const [filter, setFilter] = useState<FeatureFilter>('all')
+  const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
+
   const features = useMemo(
     () =>
       unlockFeaturesForClasses({
@@ -1225,6 +1334,10 @@ export function ClassFeaturesPanel({
     ],
   )
   const expertiseKeys = useMemo(() => listUnlockedExpertiseKeys(features), [features])
+  const namedFeats = useMemo(
+    () => featGrants.filter((row) => row.nameRu.trim()),
+    [featGrants],
+  )
 
   const initiativeGrantByPool = useMemo(() => {
     const map = new Map<string, number>()
@@ -1237,6 +1350,7 @@ export function ClassFeaturesPanel({
     }
     return map
   }, [features])
+
   const byClass = useMemo(() => {
     const map = new Map<string, UnlockedFeature[]>()
     for (const feature of features) {
@@ -1252,6 +1366,47 @@ export function ClassFeaturesPanel({
       features: list,
     }))
   }, [features])
+
+  const slugByEntry = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const group of byClass) map.set(group.classEntryId, group.classSlug)
+    return map
+  }, [byClass])
+
+  const visibleFeatures = useMemo(() => {
+    return features.filter((feature) => {
+      if (filter === 'all') return true
+      if (filter === 'class') return feature.source !== 'subclass'
+      if (filter === 'subclass') return feature.source === 'subclass'
+      if (filter === 'feats') return false
+      if (filter === 'resource') return Boolean(feature.resource?.pool_id)
+      if (filter === 'choice') {
+        return (
+          Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)
+        )
+      }
+      return true
+    })
+  }, [features, filter, featurePicks])
+
+  const visibleByClass = useMemo(() => {
+    const map = new Map<string, UnlockedFeature[]>()
+    for (const feature of visibleFeatures) {
+      const list = map.get(feature.classEntryId) ?? []
+      list.push(feature)
+      map.set(feature.classEntryId, list)
+    }
+    return byClass
+      .map((group) => ({
+        ...group,
+        features: map.get(group.classEntryId) ?? [],
+      }))
+      .filter((group) => group.features.length > 0)
+  }, [byClass, visibleFeatures])
+
+  const showRace =
+    darkvision > 0 && (filter === 'all' || filter === 'class')
+  const showFeats = filter === 'all' || filter === 'feats'
 
   const extraAttackNote = useMemo(() => {
     const attacks = features.filter(
@@ -1270,52 +1425,151 @@ export function ClassFeaturesPanel({
     return `Атак за действие: ${best} (берётся максимум среди Extra Attack; уровни разных классов не складываются).`
   }, [features])
 
+  const allToggleKeys = useMemo(() => {
+    const keys: string[] = []
+    for (const feature of visibleFeatures) {
+      if (featureCanExpand(feature)) keys.push(featureRowKey(feature))
+    }
+    return keys
+  }, [visibleFeatures])
+
+  function toggleKey(key: string) {
+    setOpenKeys((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  const empty =
+    !showRace &&
+    visibleFeatures.length === 0 &&
+    !(showFeats && namedFeats.length > 0)
+
   return (
-    <Panel title="Умения классов">
-      <Stack gap={14}>
-        <Text tone="muted">
-          Unlock по уровню и архетипу. Ресурсы (PB, 2×PB, кости, частицы) синхронизируются в лист;
-          отдых — в блоке боя. Контракт: docs/feature_resource_contract.md
-        </Text>
+    <Panel title="Способности" className="features-panel">
+      <p className="features-panel__lede">
+        Сводка умений класса, подкласса, черт и расы. Раскрываются только строки с
+        ресурсом, выбором или действием.
+      </p>
+
+      <Stack gap={12}>
+        {allToggleKeys.length > 0 ? (
+          <div className="abil-column__toolbar features-panel__collapse-bar">
+            <button type="button" onClick={() => setOpenKeys(new Set())}>
+              ▲ Свернуть все
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpenKeys(new Set(allToggleKeys))}
+            >
+              ▼ Развернуть все
+            </button>
+          </div>
+        ) : null}
+
         {extraAttackNote ? <Text tone="muted">{extraAttackNote}</Text> : null}
 
-        {byClass.length === 0 ? (
+        <div className="inventory-filters" role="tablist" aria-label="Фильтр способностей">
+          {FEATURE_FILTERS.map((row) => (
+            <button
+              key={row.id}
+              type="button"
+              role="tab"
+              aria-selected={filter === row.id}
+              className={`inventory-filter${filter === row.id ? ' is-on' : ''}`}
+              onClick={() => setFilter(row.id)}
+            >
+              {row.label}
+            </button>
+          ))}
+        </div>
+
+        {empty ? (
           <Text tone="muted">
-            Пока заполнены: … Волшебник, Изобретатель (H4 в docs/feature_resource_contract.md).
+            Пока нет открытых умений. Выбери класс/уровень — или смотри заметки в Общении.
           </Text>
         ) : null}
 
-        {byClass.map((group) => (
+        {showRace ? (
+          <div className="feature-card feature-card--compact feature-card--static">
+            <div className="feature-card__glance">
+              <b className="feature-card__name">Тёмное зрение {darkvision} фт.</b>
+              <span className="inventory-role inventory-role--other">раса</span>
+              <span className="inventory-card__glance-spacer" aria-hidden />
+              <span className="feature-card__preview">
+                {raceName || 'раса'} · в темноте на {darkvision} фт.
+              </span>
+            </div>
+          </div>
+        ) : null}
+
+        {visibleByClass.map((group) => (
           <div key={group.classEntryId} className="feature-group">
             <div className="feature-group__title">
               {group.className} {group.classLevel}
               <span className="feature-group__count"> · {group.features.length}</span>
             </div>
             <div className="feature-list">
-              {group.features.map((feature) => (
-                <FeatureRow
-                  key={`${feature.classEntryId}:${feature.source}:${feature.id}`}
-                  feature={feature}
-                  classSlug={group.classSlug}
-                  resources={resources}
-                  onResourcesChange={onResourcesChange}
-                  featurePicks={featurePicks}
-                  onFeaturePicksChange={onFeaturePicksChange}
-                  spells={spells}
-                  onSpellsChange={onSpellsChange}
-                  skills={skills}
-                  tools={tools}
-                  expertiseKeys={expertiseKeys}
-                  companions={companions}
-                  onCompanionsChange={onCompanionsChange}
-                  onToast={onToast}
-                  initiativeGrantByPool={initiativeGrantByPool}
-                  wearingHeavyArmor={wearingHeavyArmor}
-                />
-              ))}
+              {group.features.map((feature) => {
+                const key = featureRowKey(feature)
+                return (
+                  <FeatureRow
+                    key={key}
+                    feature={feature}
+                    classSlug={slugByEntry.get(feature.classEntryId) || group.classSlug}
+                    open={openKeys.has(key)}
+                    onToggle={() => toggleKey(key)}
+                    resources={resources}
+                    onResourcesChange={onResourcesChange}
+                    featurePicks={featurePicks}
+                    onFeaturePicksChange={onFeaturePicksChange}
+                    spells={spells}
+                    onSpellsChange={onSpellsChange}
+                    skills={skills}
+                    tools={tools}
+                    expertiseKeys={expertiseKeys}
+                    companions={companions}
+                    onCompanionsChange={onCompanionsChange}
+                    onToast={onToast}
+                    initiativeGrantByPool={initiativeGrantByPool}
+                    wearingHeavyArmor={wearingHeavyArmor}
+                  />
+                )
+              })}
             </div>
           </div>
         ))}
+
+        {showFeats && namedFeats.length > 0 ? (
+          <div className="feature-group">
+            <div className="feature-group__title">
+              Черты
+              <span className="feature-group__count"> · {namedFeats.length}</span>
+            </div>
+            <div className="feature-list">
+              {namedFeats.map((feat) => {
+                const preview =
+                  previewSummary(feat.applied.summaryRu || feat.applied.benefitsRu) ||
+                  featSourceLabel(feat.source)
+                return (
+                  <div
+                    key={feat.id}
+                    className="feature-card feature-card--compact feature-card--static"
+                  >
+                    <div className="feature-card__glance">
+                      <b className="feature-card__name">{feat.nameRu}</b>
+                      <span className="inventory-role inventory-role--weapon">черта</span>
+                      <span className="inventory-card__glance-spacer" aria-hidden />
+                      <span className="feature-card__preview">{preview}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
       </Stack>
     </Panel>
   )

@@ -62,10 +62,46 @@ require "frontend/src/features/classicSheet/ClassicBackgroundPicker.tsx" "classi
 
 require "backend/app/api/routers/catalog.py" "справочник API"
 
+# Wave A desk LOCK — docs already say «Сцена ЕЩЁ | нет»; code must match.
+# Incident 2026-10-13: tip line without IdentityDialog redeployed and «restored» ЕЩЁ.
+require "frontend/src/features/characters/IdentityDialog.tsx" "Wave A IdentityDialog (не сцена ЕЩЁ)"
+require "frontend/src/shared/theme/accountAppearance.ts" "Wave B theme_id / ability_colors"
+require "docs/ui-kit/README.md" "UI Kit contract"
+require "deploy/prod-tip" "единый файл tip (не только AGENTS.md)"
+
 # Fast release path — must not be dropped by tip-orphan deploys.
 require "deploy/remote-up.sh" "быстрый remote-up (не docker compose --build на VPS)"
-require "deploy/preflight-live.sh" "live tip + alembic guard"
+require "deploy/preflight-live.sh" "live tip + alembic + live-disk markers"
 require "frontend/Dockerfile.full" "fallback full frontend Dockerfile"
+
+# MODE_LABELS must not resurrect ЕЩЁ scene (kit LOCK §2k).
+if grep -qE "label:[[:space:]]*'ЕЩЁ'|label:[[:space:]]*\"ЕЩЁ\"" \
+  frontend/src/features/characters/playDeskUi.ts 2>/dev/null; then
+  fail "playDeskUi MODE_LABELS still has ЕЩЁ — merge cabinet-theme / drop-ЕЩЁ tip (kit LOCK: сцена ЕЩЁ нет)"
+else
+  echo "ok: MODE_LABELS has no ЕЩЁ"
+fi
+if ! grep -q 'Legacy ЕЩЁ' frontend/src/features/characters/playDeskUi.ts 2>/dev/null; then
+  fail "playDeskUi missing Legacy ЕЩЁ → combat remap — Wave A drop not in tree"
+else
+  echo "ok: Legacy ЕЩЁ remap present"
+fi
+# Kit docs claim IdentityDialog LOCK → file must exist (already required) and be wired.
+if ! grep -q 'IdentityDialog' frontend/src/features/characters/MinimalSheetEditor.tsx 2>/dev/null; then
+  fail "MinimalSheetEditor does not reference IdentityDialog — Wave A identity entry missing"
+else
+  echo "ok: IdentityDialog wired in MinimalSheetEditor"
+fi
+# Tip file must match AGENTS tip table (stop dual tip claims).
+if [[ -f deploy/prod-tip && -f AGENTS.md ]]; then
+  TIP_FILE="$(tr -d '[:space:]' < deploy/prod-tip)"
+  TIP_AGENTS="$(sed -n 's/.*Prod tip (сейчас)[[:space:]]*|[[:space:]]*`\([^`]*\)`.*/\1/p' AGENTS.md | head -1)"
+  if [[ -n "$TIP_FILE" && -n "$TIP_AGENTS" && "$TIP_FILE" != "$TIP_AGENTS" ]]; then
+    fail "deploy/prod-tip='$TIP_FILE' != AGENTS tip='$TIP_AGENTS' — выровняй до деплоя"
+  else
+    echo "ok: deploy/prod-tip matches AGENTS ($TIP_FILE)"
+  fi
+fi
 
 # Spot-check: digital sheet must not still say multiclass is backlog-only
 if grep -q 'Мультикласс — в backlog; пока один класс' \

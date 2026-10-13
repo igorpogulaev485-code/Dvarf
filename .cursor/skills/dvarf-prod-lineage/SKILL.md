@@ -32,7 +32,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/deploy-guardrails-93e5
+cursor/restore-wave-a-desk-0ed9
 ```
 
 URL: http://201.34.132.252/
@@ -43,7 +43,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-# tip = строка с сервера / актуальный AGENTS
+# tip = строка с сервера / актуальный AGENTS + deploy/prod-tip
 git checkout -b cursor/<descriptive>-acbe origin/<live-prod-tip>
 ```
 
@@ -52,6 +52,7 @@ git checkout -b cursor/<descriptive>-acbe origin/<live-prod-tip>
 ```bash
 git fetch origin
 git merge origin/<live-prod-tip>
+# разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ./deploy/preflight-live.sh   # нужен SSH / DVARF_SSH_PRIVATE_KEY
 ```
@@ -68,6 +69,9 @@ git merge origin/<live-prod-tip>
 | Лист P1–P6 | `raceEffects.ts`, `LevelUpDialog.tsx`, … |
 | Classic | `ClassicSheetPage.tsx` |
 | Fast deploy | `deploy/remote-up.sh`, nginx+dist `frontend/Dockerfile` |
+| Tip file | `deploy/prod-tip` (совпадает с AGENTS) |
+| Wave A identity | `IdentityDialog.tsx` + wiring; **нет** `label: 'ЕЩЁ'` |
+| Wave B theme | `shared/theme/accountAppearance.ts` |
 
 `deploy/preflight-live.sh` — до затирания сервера:
 
@@ -75,6 +79,8 @@ git merge origin/<live-prod-tip>
 |----------|-----------|
 | Tip ancestry | `origin/<live-tip>` не ancestor of `HEAD` |
 | Alembic | `alembic_version` в prod DB отсутствует в `backend/alembic/versions` |
+| Live disk markers | На VPS уже есть файл (IdentityDialog / create / remote-up…), а в заливе его нет |
+| Drop ЕЩЁ | На live уже `Legacy ЕЩЁ`, а в заливе снова `label: 'ЕЩЁ'` |
 
 ## После деплоя (обязательно)
 

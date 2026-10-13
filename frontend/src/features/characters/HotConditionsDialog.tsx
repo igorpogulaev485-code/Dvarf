@@ -19,6 +19,7 @@ import {
 } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { Combobox, Dialog, Field, Text, type ComboboxOption } from '../../ui'
+import { IconConditions, IconExhaustion } from './deskIcons'
 import type { PlayState } from './play'
 
 type HotConditionsDialogProps = {
@@ -104,6 +105,12 @@ export function HotConditionsDialog({
     [play.conditions],
   )
 
+  /** Quick toggles: PHB-ish presets except exhaustion (own block). */
+  const quickOptions = useMemo(
+    () => conditionOptions.filter((option) => option.slug !== 'exhaustion'),
+    [conditionOptions],
+  )
+
   const pickerOptions = useMemo((): ComboboxOption[] => {
     const q = query.trim().toLowerCase()
     return conditionOptions
@@ -128,6 +135,25 @@ export function HotConditionsDialog({
     onToast(exhaustionStatusToast(level))
   }
 
+  function applyConditionRef(ref: ConditionRef, action: 'add' | 'remove') {
+    if (action === 'remove') {
+      patchPlay({
+        conditions: activeConditions.filter(
+          (item) => conditionKey(item) !== conditionKey(ref),
+        ),
+      })
+      onToast(conditionStatusToast({ action: 'remove', ref }))
+      return
+    }
+    const nextList = toggleCondition(activeConditions, ref).filter(
+      (item) => item.slug !== 'exhaustion',
+    )
+    patchPlay({ conditions: nextList })
+    const applied =
+      nextList.find((item) => conditionKey(item) === conditionKey(ref)) ?? ref
+    onToast(conditionStatusToast({ action: 'add', ref: applied }))
+  }
+
   function addOption(option: ComboboxOption) {
     const preset = conditionOptions.find(
       (item) => (item.catalog_id ?? item.slug) === option.id || item.name === option.label,
@@ -150,20 +176,34 @@ export function HotConditionsDialog({
           catalog_id: null,
           level: null,
         }
-    const nextList = toggleCondition(activeConditions, ref).filter(
-      (item) => item.slug !== 'exhaustion',
-    )
-    patchPlay({ conditions: nextList })
-    const applied =
-      nextList.find((item) => conditionKey(item) === conditionKey(ref)) ?? ref
-    onToast(conditionStatusToast({ action: 'add', ref: applied }))
+    applyConditionRef(ref, 'add')
     setQuery('')
+  }
+
+  function toggleQuick(option: ConditionOption) {
+    if (option.slug === 'exhaustion') return
+    const key = option.catalog_id ?? option.slug
+    const existing = activeConditions.find((item) => conditionKey(item) === key)
+    if (existing) {
+      applyConditionRef(existing, 'remove')
+      return
+    }
+    applyConditionRef(
+      {
+        slug: option.slug,
+        name: option.name,
+        catalog_id: option.catalog_id,
+        level: option.maxLevel ? 1 : null,
+      },
+      'add',
+    )
   }
 
   return (
     <Dialog
       open={open}
       title="Состояния"
+      size="wide"
       primaryLabel="Готово"
       onPrimary={onClose}
       secondaryLabel="Закрыть"
@@ -171,15 +211,20 @@ export function HotConditionsDialog({
     >
       <div className="hot-conditions">
         <Text tone="muted">
-          Кликай в hot, чтобы менять состояния во время игры. Истощение — с пояснением, как
-          отыгрывает.
+          Быстрый набор на бой. Истощение — с пояснением, как отыгрывает на персонаже.
         </Text>
 
-        <div className="hot-conditions__exhaustion">
-          <div className="hot-conditions__exh-head">
-            <strong>Истощение</strong>
+        <section
+          className={`hot-conditions__card${play.exhaustion > 0 ? ' is-on' : ''}`}
+          aria-label="Истощение"
+        >
+          <div className="hot-conditions__card-head">
+            <span className="hot-conditions__card-title">
+              <IconExhaustion className="hot-conditions__icon" />
+              Истощение
+            </span>
             <select
-              className="play-select"
+              className="ui-input hot-conditions__exh-select"
               aria-label="Уровень истощения"
               value={play.exhaustion}
               onChange={(event) => setExhaustion(Number(event.target.value))}
@@ -197,80 +242,105 @@ export function HotConditionsDialog({
           </div>
           {exhaustionStage ? (
             <p className="hot-conditions__exh-stage">
-              Сейчас: уровень {play.exhaustion} — <strong>{exhaustionStage}</strong>
+              Ур. {play.exhaustion}: <strong>{exhaustionStage}</strong>
             </p>
           ) : (
-            <p className="hot-conditions__exh-stage">Нет истощения</p>
+            <p className="hot-conditions__exh-stage">Нет истощения — проверки и скорость как обычно</p>
           )}
-        </div>
+        </section>
 
-        <Field label="Добавить состояние">
-          <Combobox
-            value={query}
-            options={pickerOptions}
-            placeholder="Найти состояние…"
-            emptyHint="Введите название"
-            onChange={setQuery}
-            onSelectOption={addOption}
-          />
-        </Field>
-
-        {activeConditions.length > 0 ? (
-          <div className="tag-row" aria-label="Активные состояния">
-            {activeConditions.map((ref) => {
-              const max = conditionMaxLevel(ref.slug)
-              return (
-                <span key={conditionKey(ref)} className="tag-chip tag-chip--leveled">
-                  <span>{resolveConditionName(ref)}</span>
-                  {max ? (
-                    <select
-                      className="tag-chip__level"
-                      value={ref.level ?? 1}
-                      onChange={(event) => {
-                        const nextList = setConditionLevel(
-                          activeConditions,
-                          conditionKey(ref),
-                          Number(event.target.value),
-                        )
-                        patchPlay({ conditions: nextList })
-                        const updated =
-                          nextList.find((item) => conditionKey(item) === conditionKey(ref)) ??
-                          ref
-                        onToast(conditionStatusToast({ action: 'level', ref: updated }))
-                      }}
+        <section className="hot-conditions__card" aria-label="Активные состояния">
+          <div className="hot-conditions__card-head">
+            <span className="hot-conditions__card-title">
+              <IconConditions className="hot-conditions__icon" />
+              На персонаже
+            </span>
+            <span className="hot-conditions__count">
+              {activeConditions.length > 0 ? activeConditions.length : 'нет'}
+            </span>
+          </div>
+          {activeConditions.length > 0 ? (
+            <div className="hot-conditions__active" aria-label="Активные состояния">
+              {activeConditions.map((ref) => {
+                const max = conditionMaxLevel(ref.slug)
+                return (
+                  <span key={conditionKey(ref)} className="tag-chip tag-chip--leveled is-on">
+                    <span>{resolveConditionName(ref)}</span>
+                    {max ? (
+                      <select
+                        className="tag-chip__level"
+                        value={ref.level ?? 1}
+                        onChange={(event) => {
+                          const nextList = setConditionLevel(
+                            activeConditions,
+                            conditionKey(ref),
+                            Number(event.target.value),
+                          )
+                          patchPlay({ conditions: nextList })
+                          const updated =
+                            nextList.find((item) => conditionKey(item) === conditionKey(ref)) ??
+                            ref
+                          onToast(conditionStatusToast({ action: 'level', ref: updated }))
+                        }}
+                      >
+                        {Array.from({ length: max }, (_, index) => index + 1).map((level) => {
+                          const stage = conditionLevelLabel(ref.slug, level)
+                          return (
+                            <option key={level} value={level}>
+                              {stage ? `${level} · ${stage}` : level}
+                            </option>
+                          )
+                        })}
+                      </select>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="tag-chip__remove"
+                      title="Снять"
+                      onClick={() => applyConditionRef(ref, 'remove')}
                     >
-                      {Array.from({ length: max }, (_, index) => index + 1).map((level) => {
-                        const stage = conditionLevelLabel(ref.slug, level)
-                        return (
-                          <option key={level} value={level}>
-                            {stage ? `${level} · ${stage}` : level}
-                          </option>
-                        )
-                      })}
-                    </select>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="tag-chip__remove"
-                    title="Снять"
-                    onClick={() => {
-                      patchPlay({
-                        conditions: activeConditions.filter(
-                          (item) => conditionKey(item) !== conditionKey(ref),
-                        ),
-                      })
-                      onToast(conditionStatusToast({ action: 'remove', ref }))
-                    }}
-                  >
-                    ×
-                  </button>
-                </span>
+                      ×
+                    </button>
+                  </span>
+                )
+              })}
+            </div>
+          ) : (
+            <Text tone="muted">Пусто — выбери ниже или найди в поиске</Text>
+          )}
+        </section>
+
+        <section className="hot-conditions__card" aria-label="Быстрый выбор">
+          <div className="hot-conditions__card-head">
+            <span className="hot-conditions__card-title">Быстрый выбор</span>
+          </div>
+          <div className="chip-row hot-conditions__quick">
+            {quickOptions.map((option) => {
+              const on = hasCondition(activeConditions, option.catalog_id ?? option.slug)
+              return (
+                <button
+                  key={option.catalog_id ?? option.slug}
+                  type="button"
+                  className={`sheet-chip${on ? ' is-on' : ''}`}
+                  aria-pressed={on}
+                  onClick={() => toggleQuick(option)}
+                >
+                  {option.name}
+                </button>
               )
             })}
           </div>
-        ) : (
-          <Text tone="muted">Нет активных состояний (кроме истощения выше)</Text>
-        )}
+          <Field label="Найти или своё" hint="Если нет в списке — введи название">
+            <Combobox
+              value={query}
+              options={pickerOptions}
+              placeholder="Найти состояние…"
+              emptyHint="Введите название"
+              onChange={setQuery}
+              onSelectOption={addOption}
+            />
+          </Field>
+        </section>
       </div>
     </Dialog>
   )

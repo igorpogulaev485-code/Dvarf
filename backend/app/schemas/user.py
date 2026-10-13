@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+ThemeId = Literal["str", "dex", "con", "int", "wis", "cha"]
+AbilityColorsMode = Literal["identity", "theme"]
 
 
 def _blank_to_none(value: str | None) -> str | None:
@@ -40,6 +44,8 @@ class UserResponse(BaseModel):
     full_name: str | None = None
     phone: str | None = None
     avatar_url: str | None = None
+    theme_id: ThemeId = "wis"
+    ability_colors: AbilityColorsMode = "identity"
     email_verified_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
@@ -50,6 +56,8 @@ class UserUpdateRequest(BaseModel):
     display_name: str | None = Field(default=None, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
     phone: str | None = Field(default=None, max_length=32)
+    theme_id: ThemeId | None = None
+    ability_colors: AbilityColorsMode | None = None
 
     @field_validator("display_name", "full_name", mode="before")
     @classmethod

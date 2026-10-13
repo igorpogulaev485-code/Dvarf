@@ -58,6 +58,7 @@ export function createResource(partial?: Partial<SheetResource>): SheetResource 
     max: partial?.max ?? 1,
     used: partial?.used ?? 0,
     reset: partial?.reset ?? 'long',
+    ...(typeof partial?.onHot === 'boolean' ? { onHot: partial.onHot } : {}),
   })
 }
 
@@ -101,6 +102,11 @@ function readResource(raw: unknown, index: number): SheetResource {
     max: readNumber(row.max, 1),
     used: readNumber(row.used, 0),
     reset: readReset(row.reset),
+    ...(typeof row.on_hot === 'boolean'
+      ? { onHot: row.on_hot }
+      : typeof row.onHot === 'boolean'
+        ? { onHot: row.onHot }
+        : {}),
   })
 }
 

@@ -148,12 +148,26 @@
 }
 
 .classic-ability {
+  --abil: #5a6b3d;
   border: 2px solid #2b2b2b;
   border-radius: 10px;
   text-align: center;
   padding: 0.18rem 0.1rem 0.45rem;
   margin-bottom: 0.12in;
   position: relative;
+}
+
+/* Kit identity A on print blank (screen + print) */
+.classic-ability[data-abil='str'] { --abil: #9a4a32; }
+.classic-ability[data-abil='dex'] { --abil: #3d6b5a; }
+.classic-ability[data-abil='con'] { --abil: #8a6a2f; }
+.classic-ability[data-abil='int'] { --abil: #3f5f8a; }
+.classic-ability[data-abil='wis'] { --abil: #5a6b3d; }
+.classic-ability[data-abil='cha'] { --abil: #7a4a6e; }
+
+.classic-ability__label {
+  color: var(--abil);
+  font-weight: 700;
 }
 
 .classic-ability input {

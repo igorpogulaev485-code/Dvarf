@@ -6,6 +6,31 @@
 
 ---
 
+## 0. UI Kit — основа фронтенда (обязательно)
+
+Любая работа в `frontend/` (UI, CSS, панели, кабинет, auth, лобби, create, print) идёт **только** по UI Kit.
+
+| Что | Где |
+|-----|-----|
+| Контракт | [`docs/ui-kit/README.md`](docs/ui-kit/README.md) |
+| Доски | [`docs/ui-kit/boards/`](docs/ui-kit/boards/) |
+| Skill | [`.cursor/skills/dvarf-ui-kit/SKILL.md`](.cursor/skills/dvarf-ui-kit/SKILL.md) |
+| Каталог | [`docs/ui-kit/boards/dvarf-ui-kit-catalog-final.jpg`](docs/ui-kit/boards/dvarf-ui-kit-catalog-final.jpg) |
+
+**Жёстко:**
+
+- Тема аккаунта = только `--accent` / `--accent-soft`; дефолт **Листва** `#5a6b3d`.
+- 6 тем (= цвета характеристик): медь / хвоя / охра / чернила / листва / слива.
+- Характеристики по умолчанию вариант A (identity); в кабинете можно выбрать «Цвет темы».
+- Нейтрали (`--panel #fbf7ec` …) и `--danger` общие.
+- Display: Source Serif 4 · UI: IBM Plex Sans.
+- Новый паттерн → доска в `docs/ui-kit/boards/` → ok Игоря → код. Атомы — из кита.
+- Порядок внедрения: **сначала** единый кит в одном цвете (Листва), **потом** выбор темы в кабинете.
+
+Запрещено вводить параллельную палитру «на вкус» или кодить UI в обход досок.
+
+---
+
 ## 1. Прод = ровно то, что в твоём дереве при деплое
 
 `./deploy/sync-and-up.sh` **полностью затирает** `/opt/dvarf` (кроме `.env`) и заливает **весь** текущий workspace.
@@ -21,7 +46,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/deploy-guardrails-93e5` |
+| Prod tip (сейчас) | `cursor/restore-wave-a-desk-0ed9` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
@@ -49,6 +74,9 @@
 | Заливать дерево без миграции, которая уже в prod DB | API падает на `alembic upgrade` | Подтянуть файл ревизии с tip до деплоя |
 | Вернуть `docker compose up -d --build` / node Dockerfile на VPS | Hub/BuildKit висят 27–60+ мин | Оставить `remote-up.sh` + nginx+dist prebuild |
 | Считать tip = то, что написано в своей старой ветке | Tip уже сменился на сервере | Сверить live AGENTS / `preflight-live` |
+| Две параллельные «я tip» ветки без merge | 2026-10-13: `cabinet-theme` (без ЕЩЁ) затёрт линией `create-pipeline`→`deploy-guardrails` | Перед деплоем `git merge` **всех** линий, которые уже писали «на проде: да» / LOCK |
+| Писать tip только в `AGENTS.md` своей ветки | Другой агент деплоит от устаревшего tip | Единый `deploy/prod-tip` + live disk markers в `preflight-live` |
+| Документы UI Kit LOCK без кода в tip | На проде «Сцена ЕЩЁ \| нет», а в бандле кнопка ЕЩЁ | Preflight требует `IdentityDialog.tsx` и запрещает `label: 'ЕЩЁ'` |
 
 ---
 
@@ -77,10 +105,13 @@
 1. `curl -fsS http://201.34.132.252/health`
 2. Проверь **живые маркеры** в бандле/на диске (не только свой слайс):
    - кабинет / аватар / лобби / лист (мультикласс, концентрация, classic)
-3. Обнови `PRODUCT_STATUS.md` **по факту проверки** (да/нет, ветка, дата).
+   - Wave A: **нет** кнопки «ЕЩЁ» в `.play-desk__mode`; есть `IdentityDialog` / клик по аватару → Основное
+   - Create pipeline + `deploy/remote-up.sh` на диске
+3. Обнови `PRODUCT_STATUS.md` **и** `deploy/prod-tip` **по факту проверки** (да/нет, ветка, дата).
 4. Если что-то пропало — **стоп**, восстанавливай до tip+твой слайс, не пиши что «всё ок».
 
-**Запрещено** писать в `PRODUCT_STATUS` «на проде: да», если на сервере файла/строки UI нет.
+**Запрещено** писать в `PRODUCT_STATUS` «на проде: да», если на сервере файла/строки UI нет.  
+**Запрещено** объявлять «новый prod tip» в ветке, которая не содержит merge предыдущего live tip **и** параллельных Wave A LOCK-линий.
 
 ---
 

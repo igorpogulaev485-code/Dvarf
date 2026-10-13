@@ -72,7 +72,7 @@
   → unlockFeaturesForClasses
   → desiredResourcesFromFeatures (max / reset / track)
   → syncFeatureResources → play.resources (feat:*)
-  → UI умений (траты) + PlayPanel (отдых по recharge)
+  → UI умений (траты) + RestDialog / hot-bar (отдых по recharge)
 ```
 
 Правила sync: пересчёт max при level-up; used/stock clamp; revoke при смене архетипа; ручные ресурсы не трогаем.

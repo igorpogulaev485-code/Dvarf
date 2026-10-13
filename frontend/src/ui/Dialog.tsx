@@ -1,4 +1,5 @@
 import { useEffect, type MouseEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button'
 
 type DialogProps = {
@@ -14,7 +15,7 @@ type DialogProps = {
   primaryDisabled?: boolean
   /** Primary button style; use `danger` for destructive confirms. */
   primaryVariant?: 'primary' | 'secondary' | 'ghost' | 'danger'
-  size?: 'default' | 'wide'
+  size?: 'default' | 'wide' | 'xl'
   /** Close when clicking the dimmed backdrop. Default: true if onSecondary is set. */
   closeOnBackdrop?: boolean
 }
@@ -66,14 +67,20 @@ export function Dialog({
     onSecondary()
   }
 
-  return (
+  return createPortal(
     <div
       className="ui-dialog-backdrop"
       role="presentation"
       onMouseDown={handleBackdropClick}
     >
       <div
-        className={`ui-dialog${size === 'wide' ? ' ui-dialog--wide' : ''}`}
+        className={[
+          'ui-dialog',
+          size === 'wide' ? 'ui-dialog--wide' : '',
+          size === 'xl' ? 'ui-dialog--xl' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
         role="dialog"
         aria-modal="true"
         aria-labelledby="ui-dialog-title"
@@ -98,6 +105,7 @@ export function Dialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

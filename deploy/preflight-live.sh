@@ -123,15 +123,70 @@ if [[ "${HAS_NODE_DOCKERFILE}" == "1" ]] && head -n 5 "$ROOT/frontend/Dockerfile
   FAILED=1
 fi
 
+# --- Live disk high-water markers (ancestry alone is NOT enough) ---
+# 2026-10-13: tip ancestry passed, but Wave A IdentityDialog / drop-ЕЩЁ wiped
+# because parallel tip line was never merged. If LIVE disk has a marker, keep it.
+LIVE_MARKERS="$("${SSH[@]}" "root@${HOST}" bash -s <<EOF
+set +e
+for f in \
+  frontend/src/features/characters/IdentityDialog.tsx \
+  frontend/src/shared/theme/accountAppearance.ts \
+  frontend/src/features/createPipeline/CreatePipelineShell.tsx \
+  deploy/remote-up.sh \
+  docs/ui-kit/README.md
+ do
+  if [[ -e ${REMOTE_DIR}/\$f ]]; then echo "LIVE_HAS:\$f"; fi
+ done
+if grep -q "Legacy ЕЩЁ" ${REMOTE_DIR}/frontend/src/features/characters/playDeskUi.ts 2>/dev/null; then
+  echo "LIVE_HAS:legacy_eshcho_drop"
+fi
+if grep -qE "label:[[:space:]]*'ЕЩЁ'" ${REMOTE_DIR}/frontend/src/features/characters/playDeskUi.ts 2>/dev/null; then
+  echo "LIVE_HAS:eshcho_label"
+fi
+EOF
+)" || LIVE_MARKERS=""
+
+while IFS= read -r line; do
+  [[ -z "$line" ]] && continue
+  case "$line" in
+    LIVE_HAS:legacy_eshcho_drop)
+      if ! grep -q 'Legacy ЕЩЁ' "$ROOT/frontend/src/features/characters/playDeskUi.ts" 2>/dev/null; then
+        echo "FAIL: live disk already dropped ЕЩЁ, but this tree would bring ЕЩЁ back" >&2
+        FAILED=1
+      else
+        echo "ok: live drop-ЕЩЁ preserved in tree"
+      fi
+      ;;
+    LIVE_HAS:eshcho_label)
+      echo "warn: live disk still has ЕЩЁ label — restore tree must drop it (kit LOCK)"
+      if grep -qE "label:[[:space:]]*'ЕЩЁ'" "$ROOT/frontend/src/features/characters/playDeskUi.ts" 2>/dev/null; then
+        echo "FAIL: deploying tree that still has ЕЩЁ while kit LOCK forbids it" >&2
+        FAILED=1
+      fi
+      ;;
+    LIVE_HAS:*)
+      rel="${line#LIVE_HAS:}"
+      if [[ ! -e "$ROOT/$rel" ]]; then
+        echo "FAIL: live disk has $rel but this tree would DELETE it (overwrite)" >&2
+        FAILED=1
+      else
+        echo "ok: live marker kept: $rel"
+      fi
+      ;;
+  esac
+done <<< "$LIVE_MARKERS"
+
 if [[ "$FAILED" -ne 0 ]]; then
   cat >&2 <<'EOF'
 
 LIVE PREFLIGHT FAILED — деплой остановлен до затирания /opt/dvarf.
 
 Типичный антипаттерн из провальных релизов:
-  • пустой merge-base с tip → агент час cherry-pick'ает
+  • пустой merge-base с tip → агент час cherry-pick
   • в БД alembic X, в залитой ветке X нет → API падает
-  • docker compose --build на VPS → Hub/BuildKit висит 27+ минут
+  • docker compose --build на VPS → Hub/BuildKit висит 27+ мин
+  • tip ancestry OK, но на диске Wave A файл, а в ветке его нет → overwrite
+  • две ветки обе пишут «я tip» без merge друг в друга
 
 Обход только с явного ok Игоря:
   DVARF_SKIP_LIVE_PREFLIGHT=1 ./deploy/sync-and-up.sh

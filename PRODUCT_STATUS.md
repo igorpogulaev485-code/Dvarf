@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/deploy-guardrails-93e5`  
+**Prod tip (ветка линии прода):** `cursor/restore-wave-a-desk-0ed9`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -538,6 +538,17 @@
 
 На проде: **да** · ветка `cursor/deploy-guardrails-93e5` · PR #146 · **это новый prod tip** · проверено 2026-10-13: `/health` ok; `remote-up.sh` + `preflight-live.sh` на диске; alembic `z5i6j7k8l9m0`
 
+
+### 2026-10-13 — INCIDENT + restore: Wave A desk (ЕЩЁ / IdentityDialog)
+
+| Что случилось | Почему | Восстановление |
+|---------------|--------|----------------|
+| На проде снова кнопка **ЕЩЁ**; нет `IdentityDialog` | Параллельная tip-линия `cabinet-theme-a73e` (drop ЕЩЁ) не была merge в `create-pipeline`→`deploy-guardrails`; деплой затёр Wave A код, хотя UI Kit писал «Сцена ЕЩЁ \| нет» | Merge `cabinet-theme` → live tip `deploy-guardrails` = ветка `cursor/restore-wave-a-desk-0ed9` |
+| Дыра в правилах | `preflight-live` смотрел только ancestry tip, не файлы на диске; tip писали в AGENTS нескольких веток; LOCK в доках без маркера в preflight | `deploy/prod-tip` + маркеры IdentityDialog / запрет ЕЩЁ + live-disk high-water в `preflight-live` |
+
+На проде: **после деплоя этой ветки — да** · `cursor/restore-wave-a-desk-0ed9` · проверить: нет «ЕЩЁ» в режимах; аватар → Основное
+
+
 ## В ветках / ещё не на проде
 
 <!-- tip feats-pickers: FEATS стек залит 2026-10-07; мягкие note (туз/хроматика/хаос-таблица) — динамика, не заглушки пикеров -->
@@ -549,8 +560,9 @@
 | Функция | Как работает | Эффект для пользователя |
 |--------|--------------|-------------------------|
 | Pad хитов | Клик по HP в шапке → лечение/урон/временные HP, кости хитов, спасброски смерти (если HP ≤ 0 или «При смерти») | Один LSS-pad вместо разрозненных полей |
-| Виталы шапки | КД / скорость / иниц / БМ только авто; вдохн. и истощ. — клик; под скоростью — лаз./плав./полёт, если есть | Не правят руками то, что считает лист |
-| Смерть у HP | При HP ≤ 0 / «При смерти» — Усп/Пров прямо в шапке рядом с хитами | Не лезть в pad ради трёх пипов |
+| Виталы шапки | КД / скорость / иниц / БМ только авто; вдохн. и истощ. — клик; ход крупно, лаз./плав./полёт — чипы (без хода primary = alt) | Не правят руками то, что считает лист |
+| Смерть у HP | При HP ≤ 0 / «При смерти» — череп + Усп/Пров прямо в шапке рядом с хитами | Не лезть в pad ради трёх пипов |
+| Классы в шапке | Чипы `Класс N` под расой (мультикласс 2–4+) | Длинная строка «A / B / C / D» не ломает who |
 | Монеты | Клик «N зм» → LSS pad (взять/отдать, З/С/М/П/Э) | Кошелёк без панели инвентаря |
 | XP «за что» | Pad опыта: причина + история (`sheet.ui.xp_history`) | Видно, откуда пришёл опыт |
 | Концентрация | Каст/компакт ставит; смена — confirm; урон → «Удержал / Сорвалось» | Не теряешь концентрацию молча |
@@ -572,6 +584,211 @@
 
 Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2o — **LOCK** (ok Игоря 2026-10-13).  
 На проде: **да** · ветка `cursor/create-pipeline-kit-prod-244b` · это **новый prod tip** · база `cursor/desk-vitals-wave-a73e` · проверено 2026-10-13: `/health` ok; бандл `CreateCharacterPage-BRhSoh5q.js` (`4d6, отбросить` / `Шаг`); CSS `index-D2PmPnY8.css` (`create-pipeline__method-card` / `sheet-chip--block`); alembic `z5i6` файл на диске; кабинет «Опасная зона» / classic / концентрация / лобби на месте
+
+### 2026-10-12 — Explore inventory «полностью» + эталон цвета
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Компактные строки | Вещь по умолчанию — роль / имя / qty / вес / надето; параметры по клику | Не портянка полей у каждой верёвки |
+| Поля по роли | Доспех → КД; оружие без слота ношения; фокус/настройка только у «прочего» | Редактируешь то, что нужно |
+| Sticky добавление | «Из справочника» / «Своя строка» сверху блока | Добавить всегда под рукой |
+| Фильтры | Все / Надето / Оружие / Доспех / Наборы / Прочее | Быстро найти нужное |
+| Эталон UI | Олива + parchment, Source Serif на заголовках панелей (`--accent` / `--font-display`) | Единый тёплый вид стола |
+
+На проде: **нет** · ветка `cursor/explore-inventory-a73e` · ждать merge/деплой
+
+### 2026-10-12 — Social texts «полностью» (эталон UI)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Компактные блоки | Личность/умения/заметки — строка с превью; текст по клику | Не стена textarea сразу |
+| Sticky добавление | «Добавить блок» сверху | Новая заметка всегда под рукой |
+| Фильтры | Все / Личность / Умения / Заметки / С ресурсом / Скрытые | Быстро найти нужный блок |
+| Эталон | Тот же parchment/олива/Source Serif, что у инвентаря | Единый вид сцен стола |
+
+На проде: **нет** · ветка `cursor/social-texts-a73e` · ждать merge/деплой
+
+### 2026-10-12 — Wave A header LOCK
+
+Шапка стола доведена до «Идеал» и **зафиксирована** в ките.
+
+| Что | Как |
+|-----|-----|
+| Icons-first | line-иконки КД/Скор/Иниц/БМ/монеты/отдых/вдохн/**череп** (`deskIcons.tsx`) |
+| Who | 3 строки: имя·раса·мировоззрение·издание / чипы классов / XP-дорожка |
+| XP | под полоской: старт ур. · **ещё N** · порог след. (стресс 19→20) |
+| Mid | `margin-left: auto` — vitals ближе к HP/монетам |
+| Скорости | ход + узкий столбик тегов (лаз./плав./полёт друг под другом) |
+| Стеки | вдохн./истощ. столбиком; монеты/отдых столбиком |
+| HP | tabular-nums, запас под трёхзначные (`999 / 999`) |
+| Death | справа от HP, **opaque** `#fff` как vitals |
+| Hover монет | tip кошелька; клик → coin pad |
+| Кит LOCK | [`desk-header-lock`](docs/ui-kit/boards/dvarf-ui-kit-desk-header-lock.jpg) + states/death/dense/icons/coin-tip |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2b.
+
+### 2026-10-12 — Wave A spells: icons-first (старт candy)
+
+| Что | Как |
+|-----|-----|
+| Icons | `spellIcons.tsx`: книга / шляпа / ✨ / медальон / мешочек / концентрация |
+| Wiring | toolbar Гримуар·Подготовить · focus chips · Каст · compact row/конц. |
+| Summary | pill-chips Сл/Атака/квота (как на доске spells) |
+| Кит | [`spell-icons`](docs/ui-kit/boards/dvarf-ui-kit-spell-icons.jpg) |
+
+Дальше в том же слайсе: довести full/compact/cast до доски `spells` (без смены логики).
+
+На проде: **нет** · ветка `cursor/wave-a-listva-a73e`
+
+### 2026-10-13 — Wave A spells LOCK (компакт + настройки)
+
+Заклинания на столе зафиксированы в ките (§2c).
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Компакт | бой: готовые, spent-пипы, Каст, деталка | Каст без портянки редактора |
+| Настройки | диалог вместо «полностью»: хар-ка, Сл./атака (авто), ячейки, договор, Гримуар/Подготовить | Setup отдельно от боя |
+| Договор · ур. | авто по уровню колдуна | Не руками крутить круг ячеек |
+| По таблице | макс. ячеек / договор / подготовка из PHB; spent целы | Быстрый сброс к правилам |
+| Без homebrew create | новые только из гримуара | Один путь добавления |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2c.  
+На проде: **нет** · ветка `cursor/spells-settings-dialog-a73e` · PR #125 · stage Бой → `cursor/combat-stage-kit-a73e`
+
+### 2026-10-13 — Wave A combat stage (атаки compact)
+
+Stage «Бой» приведён к киту; общий chrome (шапка / rail / hot-bar) не трогали.
+
+| Что | Как |
+|-----|-----|
+| Icons | `attackIcons.tsx`: ближнее / дальнее / ресурс / расходник (stroke = desk/spell) |
+| Компакт атак | `PlayDeskAttacksCompact` в языке `play-desk-compact`: иконка · имя · +hit · урон · chip удерж./взять |
+| Стык | атаки \| заклинания — общий head / link / empty |
+| Smoke | hit/dmg toast · взять/удерж. · spend ресурс · spend расходник |
+
+На проде: **нет** · ветка `cursor/combat-stage-kit-a73e` · PR #126 · база `cursor/spells-settings-dialog-a73e`
+
+### 2026-10-13 — Wave A attacks settings (гибрид D)
+
+Как у заклинаний: на Бою нет полной панели атак.
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Компакт | бой: hit/dmg, удерж., ресурсы, расходники | Каст без портянки редактора |
+| Настройки | диалог: оверрайды карточек + «Своё» | Setup отдельно от боя |
+| Оружие | из инвентаря → карточка атаки | Один путь для «официального» |
+| Своё | кастом без строки лута | Homebrew / особые атаки |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2d — **LOCK** («Идеал» 2026-10-13).  
+На проде: **нет** · ветка `cursor/attacks-settings-dialog-a73e` · PR #127 · база `cursor/combat-stage-kit-a73e`
+
+### 2026-10-13 — Hot-bar audit (play desk)
+
+Полоса под режимами: состояния · концентрация · пипсы ресурсов.
+
+| Проверка | Результат |
+|----------|-----------|
+| Состояния → диалог → add на hot | ок (Оглохший) |
+| Концентрация «Снять» | ок |
+| Пипсы ресурса −/+ | ок |
+| Icons vs kit `desk-chrome` §D | **gap:** 0 svg в hot; на доске — 4 icon-кнопки |
+| Отдых в hot | нет — в шапке (как решили) |
+| Дубль ресурсов | hot-пипсы **и** строки в компакте атак |
+
+Не в этом аудите: каст → концентрация (BUG-019).  
+На проде: **нет** · ветка `cursor/hot-bar-audit-a73e` · база `cursor/attacks-settings-dialog-a73e`
+
+### 2026-10-13 — Hot conditions dialog candy
+
+Диалог «Состояния» с hot приведён к языку настроек (pads/dialogs).
+
+| Что | Как |
+|-----|-----|
+| Секции | Истощение · На персонаже · Быстрый выбор + поиск |
+| Icons | `IconExhaustion` / `IconConditions` в `deskIcons.tsx` |
+| Быстрый выбор | sheet-chips toggle on/off |
+| Hot chip | `is-on`, когда есть состояния / истощение |
+| Токены | `--card` / `--accent-soft` (без кремового фона) |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2e — **LOCK** («Идеал» 2026-10-13).  
+На проде: **нет** · ветка `cursor/hot-conditions-dialog-a73e` · PR #130 · база `cursor/hot-bar-audit-a73e`
+
+### 2026-10-13 — Explore inventory unify (одна поверхность)
+
+Как у атак/заклинаний: на столе нет компакт↔полностью.
+
+| Что | Как |
+|-----|-----|
+| Stage Исследование | сразу `InventoryPanel` (glance→expand) |
+| Убран | `PlayDeskExploreCompact` + «полностью» / «← компактно» |
+| Accordion | одна открытая деталь; плотный expand |
+| ★ | избранное в строке → расходники боя |
+| Meta | ноша · КД · Настройка N/3 → `AttunementDialog` |
+| Монеты | readout → header CoinPad |
+| Справочник | `GearPickerDialog` в ките pads/dialogs |
+| Убран | dropdown «Шаблон PHB» (дубль справочника) |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2f.  
+На проде: **нет** · ветка `cursor/explore-inventory-unify-a73e` · база `cursor/hot-conditions-dialog-a73e`  
+**Следующая сцена:** Общение (unify texts, как explore).
+
+### 2026-10-13 — Social texts unify (одна поверхность)
+
+Как у Explore: на столе нет компакт↔полностью.
+
+| Что | Как |
+|-----|-----|
+| Stage Общение | сразу `TextBlocksPanel` (glance→expand) |
+| Убран | `PlayDeskSocialCompact` + «полностью» / «← компактно» |
+| Accordion | одна открытая деталь |
+| Панель | flat (без cream plate) |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2g.  
+На проде: **нет** · ветка `cursor/social-unify-a73e` · база `cursor/explore-inventory-unify-a73e`
+
+### 2026-10-12 — Wave A header: desk icons + vitals
+
+| Что | Как |
+|-----|-----|
+| Icons-first | line-иконки КД/Скор/Иниц/БМ/монеты/отдых/вдохн (`deskIcons.tsx`) |
+| Шапка | имя в accent serif; vitals с иконкой; coin/rest pills |
+| Кит | доска `dvarf-ui-kit-desk-icons.jpg` |
+
+На проде: **нет** · ветка `cursor/wave-a-listva-a73e`
+
+### 2026-10-12 — Wave A rail candy LOCK
+
+Левый блок характеристик доведён до кита A и **зафиксирован**:
+
+| Что | Как |
+|-----|-----|
+| Шапка | 2 строки: полное имя (Сила…) · `[score] →eff` + Пр/Сп |
+| Сворот | клик по названию (без ▾ в краю карточки) |
+| Identity | полоска + цвет СИЛ…ХАР; Сп on solid; Владение soft / Экспертиза solid |
+| Логика | handlers / cycleSkill / saves без изменений |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2.  
+Шапка стола — **LOCK** (см. §2b / запись выше). Следующий pixel-candy: **заклинания**.
+
+На проде: **нет** · ветка `cursor/wave-a-listva-a73e` · ждать merge/деплой
+
+### 2026-10-12 — UI Kit Wave A (A1–A3): Листва + desk + rail A
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md).
+
+| Слайс | Что | Эффект |
+|-------|-----|--------|
+| A1 Токены | `--accent` Листва `#5a6b3d` / soft `#e5ecd4`; `--card`; `--abil-*`; убраны teal/slate fallbacks | Один цвет бренда по киту |
+| A2 Desk | `.play-desk` `--desk-*` → алиасы глобальных токенов; XP/шапка без mint `#0f6b5c` | Стол = пергамент + Листва |
+| A3 Rail A | Характеристики: полоска + identity-цвет (СИЛ…ХАР); Сп on solid; навыки soft/expert | Левый блок как на доске кита |
+| A4 Spells | summary/toolbar sticky/spell-card `--card` | Панель заклинаний = кит |
+| A5 Features/Companions/Attune | `--card` rows, sticky toolbars, group titles serif | Компаньоны/умения/настройка |
+| A6 Chrome | sticky parchment, AppHeader brand/nav, compact `--card` | Шапка приложения и узкий sticky |
+| A7–A9 | auth tabs, create steps, toast accent, print identity A | Auth/create/print в ките |
+
+Волна B (выбор темы в кабинете) — следующим этапом.
+
+На проде: **нет** · ветка `cursor/wave-a-listva-a73e` · ждать merge/деплой
 
 
 ### 2026-10-12 — Play-desk polish layer-2 (шапка / rail / отдых / гримуар / чародейство)
@@ -656,6 +873,16 @@
 | client retry | Один повтор на 502/503/504 (~0.7с) | Короткий рестарт API переживается сам |
 
 На проде: **да** · tip `cursor/desk-vitals-wave-a73e` · PR #118 · проверено 2026-10-12: API down → `Content-Type: application/json` + `api_unavailable`; бандл `client-C72apPWM.js` («временно недоступен»); dist→web + nginx hot-patch
+
+### 2026-10-13 — Wave A→B: стол + список + кабинет (тема)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Стол Wave A | Владения-drawer, аттунмент из инвентаря, Основное по аватарке, hot-bar icons, каст→конц. | Единый кит на play desk |
+| Список персонажей | Glance-карточки, размер Большие/Средние/Компактные, теги+фильтр, ⋯ классический/удалить | Удобнее вести кампании |
+| Кабинет · Оформление | 6 цветов темы + режим характеристик (уникальные / цвет темы) | Угодить и «кайф», и «ребит в глазах» |
+
+На проде: **да** · это **новый prod tip** `cursor/cabinet-theme-a73e` · PR #141 (цепочка #114…#141) · проверено 2026-10-13: `/health` ok; Hub timeout → dist→web + API code sync; миграция `a6b7` (`theme_id`/`ability_colors`); бандл `CabinetPage-2cQnOPcJ.js` («Оформление») / `CharacterDetailPage-Btt2TPDe.js` / CSS `index-D9wEk362.css` (`cabinet-theme-grid`, `character-grid--compact`); контуры лобби/classic на месте
 
 ### 2026-10-12 — Play desk: догон макета (hot bar + split + визуал)
 
@@ -1158,6 +1385,13 @@
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-13 | `cursor/explore-inventory-unify-a73e` | Explore: one InventoryPanel surface, drop compact/full flip |
+| 2026-10-13 | `cursor/hot-conditions-dialog-a73e` · PR #130 | Hot conditions dialog LOCK (Идеал) |
+| 2026-10-13 | `cursor/hot-conditions-dialog-a73e` | Hot conditions dialog candy: sections, quick chips, icons |
+| 2026-10-13 | `cursor/hot-bar-audit-a73e` | Hot-bar audit: logic ok; kit icon gap + resource duplex noted |
+| 2026-10-13 | `cursor/attacks-settings-dialog-a73e` · PR #127 | Attacks LOCK in ui-kit §2d (Идеал) |
+| 2026-10-13 | `cursor/attacks-settings-dialog-a73e` | Attacks settings dialog (hybrid D): Настройки instead of full panel |
+| 2026-10-13 | `cursor/combat-stage-kit-a73e` · PR #126 | Combat stage kit: attacks compact + smoke hit/hold/spend |
 | 2026-10-06 | `cursor/product-status-log-acbe` | Создан файл + стартовый срез прода |
 | 2026-10-06 | `cursor/sheet-race-effects-eb8e` · PR #20 | Мультикласс + эффекты расы → «Сейчас в продукте» |
 | 2026-10-06 | `cursor/sheet-race-effects-eb8e` · PR #20 | Полный срез агента листа P1–P6 (функция / как / эффект) |
@@ -1252,3 +1486,4 @@
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Hotfix: состояния/конц./смерть/монеты/XP/attune; Hub timeout → dist→web; `/health` ok; бандл `CharacterDetailPage-DkjzP6Xq.js` / CSS `index-CBcwe-E-.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Шапка: лаз./плав./полёт под скоростью; dist→web; `/health` ok; бандл `CharacterDetailPage-Cwy-1nPy.js` / CSS `index-RHvyfqLk.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | 502→JSON + client retry; VPS reboot после hung Docker; `/health` ok; бандл `client-C72apPWM.js` |
+| 2026-10-13 | `cursor/cabinet-theme-a73e` · PR #141 | Wave A стол + список + кабинет тема/ability colors; **новый tip**; Hub timeout → dist→web; `/health` ok; `CabinetPage-2cQnOPcJ.js` / `CharacterDetailPage-Btt2TPDe.js` / CSS `index-D9wEk362.css` |

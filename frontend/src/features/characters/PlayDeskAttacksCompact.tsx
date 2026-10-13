@@ -12,6 +12,13 @@ import {
 } from './sheetTypes'
 import type { WeaponAttack } from './AttacksPanel'
 import type { InventoryItem } from './inventory'
+import {
+  IconConsumable,
+  IconMelee,
+  IconRanged,
+  IconResource,
+  attackRowIconKind,
+} from './attackIcons'
 
 type PlayDeskAttacksCompactProps = {
   weapons: WeaponAttack[]
@@ -27,7 +34,7 @@ type PlayDeskAttacksCompactProps = {
   onSpendConsumable?: (itemId: string) => void
   onToggleConsumableFavorite?: (itemId: string) => void
   onToast?: (message: string) => void
-  onOpenFull: () => void
+  onOpenSettings: () => void
   rollMode?: DeskRollMode
 }
 
@@ -44,7 +51,7 @@ export function PlayDeskAttacksCompact({
   onSpendConsumable,
   onToggleConsumableFavorite,
   onToast,
-  onOpenFull,
+  onOpenSettings,
   rollMode = 'normal',
 }: PlayDeskAttacksCompactProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -72,14 +79,20 @@ export function PlayDeskAttacksCompact({
     <div className="play-desk-compact">
       <div className="play-desk-compact__head">
         <h3>Атаки</h3>
-        <button type="button" className="play-desk-compact__link" onClick={onOpenFull}>
-          полностью
-        </button>
+        <div className="play-desk-compact__head-actions">
+          <button
+            type="button"
+            className="play-desk-compact__link play-desk-compact__link--settings"
+            onClick={onOpenSettings}
+          >
+            Настройки
+          </button>
+        </div>
       </div>
 
       <div className="play-desk-compact__list play-desk-compact__list--dense">
         {named.length === 0 ? (
-          <p className="play-desk-compact__empty">Нет атак — добавьте в полной панели</p>
+          <p className="play-desk-compact__empty">Нет атак — добавь в полной панели</p>
         ) : (
           named.map((attack) => {
             const mod = abilityModifier(abilities[attack.ability])
@@ -95,8 +108,12 @@ export function PlayDeskAttacksCompact({
               attack.damage +
               (dmgBonus ? ` ${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
             const dmgLine = `${dmg || '—'}${attack.damage_type ? ` ${attack.damage_type}` : ''}`
+            const iconKind = attackRowIconKind({
+              name: attack.name,
+              ability: attack.ability,
+            })
             return (
-              <div key={attack.id} className="play-desk-compact__row is-dense">
+              <div key={attack.id} className="play-desk-compact__row is-dense is-attack">
                 <button
                   type="button"
                   className="play-desk-compact__hit"
@@ -114,6 +131,11 @@ export function PlayDeskAttacksCompact({
                   }
                 >
                   <div className="play-desk-compact__row-main">
+                    {iconKind === 'ranged' ? (
+                      <IconRanged className="play-desk-compact__row-icon" />
+                    ) : (
+                      <IconMelee className="play-desk-compact__row-icon" />
+                    )}
                     <b>{attack.name}</b>
                     {attack.qty != null && attack.qty > 1 ? (
                       <span className="play-desk-compact__tag">×{attack.qty}</span>
@@ -128,10 +150,11 @@ export function PlayDeskAttacksCompact({
                 {onToggleHeld && attack.inventory_item_id ? (
                   <button
                     type="button"
-                    className="play-desk-compact__hold"
+                    className={`play-desk-compact__hold${attack.held ? ' is-on' : ''}`}
                     onClick={() => onToggleHeld(attack)}
+                    title={attack.held ? 'Убрать из рук' : 'Взять в руки'}
                   >
-                    {attack.held ? 'убрать' : 'взять'}
+                    {attack.held ? 'удерж.' : 'взять'}
                   </button>
                 ) : null}
               </div>
@@ -150,6 +173,7 @@ export function PlayDeskAttacksCompact({
                 onClick={() => onSpendResource?.(row.id)}
               >
                 <div className="play-desk-compact__row-main">
+                  <IconResource className="play-desk-compact__row-icon" />
                   <b>{row.name}</b>
                   <span className="play-desk-compact__tag">ресурс</span>
                 </div>
@@ -165,7 +189,10 @@ export function PlayDeskAttacksCompact({
 
       <div className="play-desk-compact__consumables">
         <div className="play-desk-compact__subhead">
-          Расходники
+          <span className="play-desk-compact__subhead-label">
+            <IconConsumable className="play-desk-compact__tag-icon" />
+            Расходники
+          </span>
           {favoriteCount > 0 ? (
             <span className="play-desk-compact__subhead-meta">
               избр. {favoriteCount}/{MAX_COMBAT_CONSUMABLE_FAVORITES}

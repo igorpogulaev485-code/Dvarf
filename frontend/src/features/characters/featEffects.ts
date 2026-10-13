@@ -124,12 +124,8 @@ function featSpellToSheetSpell(
     concentration: false,
     source_kind: 'feat',
     feat_grant: spell.grant,
-    ...(innate
-      ? {
-          prepared_locked: true as const,
-          prepare_source_label: grant.nameRu || 'Черта',
-        }
-      : {}),
+    prepare_source_label: grant.nameRu || 'Черта',
+    ...(innate ? { prepared_locked: true as const } : {}),
   }
 }
 
