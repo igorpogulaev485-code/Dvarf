@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { deleteAccount, type User } from '../../shared/api/auth'
 import { ApiRequestError, clearTokens } from '../../shared/api/client'
+import { clearCachedAppearance } from '../../shared/theme/accountAppearance'
 import { Button, Field, Input, PasswordInput, Stack, Text } from '../../ui'
 
 type DangerZoneProps = {
@@ -37,6 +38,7 @@ export function DangerZone({ user, onDeleted }: DangerZoneProps) {
     try {
       await deleteAccount(confirmEmail.trim(), hasPassword ? password : null)
       clearTokens()
+      clearCachedAppearance()
       onDeleted()
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось удалить аккаунт')
