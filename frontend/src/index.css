@@ -7702,7 +7702,7 @@ button.play-desk-vital:hover {
   gap: 12px;
 }
 
-/* Narrow drawer: «Плавание, фт» wraps — reserve 2-line label so inputs stay level. */
+/* Narrow drawer: keep climb/swim/fly on one label line so the row stays level. */
 .sheet-grid--speeds {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -7711,10 +7711,19 @@ button.play-desk-vital:hover {
 }
 
 .sheet-grid--speeds .ui-field__label {
-  min-height: 2.5em;
-  line-height: 1.25;
-  display: flex;
-  align-items: flex-end;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-grid--speeds .ui-field__hint {
+  font-size: 0.74rem;
+}
+
+.sheet-grid--speeds .ui-input {
+  padding: 10px 10px;
 }
 
 /* Wide desk keeps rail A identity colors — do not force theme accent onto skills */
