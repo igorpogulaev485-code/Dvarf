@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type DragEvent as ReactDragEvent } from 'react'
 import {
   Button,
   Field,
@@ -14,7 +14,7 @@ import { createResource, RESET_LABELS } from './play'
 import {
   createCustomTextBlock,
   displayLabel,
-  moveTextBlock,
+  moveTextBlockBefore,
   type TextBlock,
 } from './textBlocks'
 
@@ -71,6 +71,12 @@ function roleLabel(block: TextBlock): string {
   return 'Заметка'
 }
 
+function roleClass(bucket: 'personality' | 'features' | 'notes'): string {
+  if (bucket === 'features') return 'armor'
+  if (bucket === 'personality') return 'weapon'
+  return 'other'
+}
+
 function IconPlus() {
   return (
     <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
@@ -107,8 +113,7 @@ export function TextBlocksPanel({
   onResourcesChange,
 }: TextBlocksPanelProps) {
   const [filter, setFilter] = useState<TextFilter>('all')
-  /** Accordion: at most one block detail open. */
-  const [openKey, setOpenKey] = useState<string | null>(null)
+  const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
 
   const linkedIds = new Set(
     blocks.map((block) => block.resourceId).filter((id): id is string => Boolean(id)),
@@ -181,40 +186,63 @@ export function TextBlocksPanel({
   }
 
   function toggleDetails(key: string) {
-    setOpenKey((prev) => {
-      const next = prev === key ? null : key
-      if (next) {
-        window.requestAnimationFrame(() => {
-          document
-            .getElementById(`text-block-${next}`)
-            ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-        })
-      }
+    setOpenKeys((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
       return next
     })
   }
 
-  function renderMoveActions(block: TextBlock, index: number) {
+  function collapseAll() {
+    setOpenKeys(new Set())
+  }
+
+  function expandAll() {
+    setOpenKeys(new Set(visibleBlocks.map((block) => block.key)))
+  }
+
+  function renderDragHandle(block: TextBlock) {
     return (
-      <div className="text-block__move">
-        <Button
-          variant="ghost"
-          disabled={index === 0}
-          aria-label={`Переместить «${displayLabel(block)}» выше`}
-          onClick={() => onChange(moveTextBlock(blocks, block.key, 'up'))}
-        >
-          ↑
-        </Button>
-        <Button
-          variant="ghost"
-          disabled={index === blocks.length - 1}
-          aria-label={`Переместить «${displayLabel(block)}» ниже`}
-          onClick={() => onChange(moveTextBlock(blocks, block.key, 'down'))}
-        >
-          ↓
-        </Button>
-      </div>
+      <span
+        className="abil-block__drag text-block__drag"
+        draggable
+        title="Зажми и перетащи блок"
+        aria-label={`Перетащить «${displayLabel(block)}»`}
+        onClick={(event) => event.stopPropagation()}
+        onDragStart={(event) => {
+          event.dataTransfer.setData('text/text-block', block.key)
+          event.dataTransfer.effectAllowed = 'move'
+          event.currentTarget.closest('.text-block')?.classList.add('is-dragging')
+        }}
+        onDragEnd={(event) => {
+          event.currentTarget.closest('.text-block')?.classList.remove('is-dragging')
+          document
+            .querySelectorAll('.text-block.drag-over')
+            .forEach((node) => node.classList.remove('drag-over'))
+        }}
+      >
+        ⋮⋮
+      </span>
     )
+  }
+
+  function blockDropProps(block: TextBlock) {
+    return {
+      onDragOver: (event: ReactDragEvent<HTMLDivElement>) => {
+        event.preventDefault()
+        event.currentTarget.classList.add('drag-over')
+      },
+      onDragLeave: (event: ReactDragEvent<HTMLDivElement>) => {
+        event.currentTarget.classList.remove('drag-over')
+      },
+      onDrop: (event: ReactDragEvent<HTMLDivElement>) => {
+        event.preventDefault()
+        event.currentTarget.classList.remove('drag-over')
+        const from = event.dataTransfer.getData('text/text-block')
+        if (from) onChange(moveTextBlockBefore(blocks, from, block.key))
+      },
+    }
   }
 
   function renderResource(block: TextBlock) {
@@ -297,14 +325,14 @@ export function TextBlocksPanel({
     )
   }
 
-  function renderBlockCard(block: TextBlock, index: number) {
+  function renderBlockCard(block: TextBlock) {
     const label = displayLabel(block)
     const bucket = blockBucket(block)
     const role = roleLabel(block)
     const preview = previewText(block.value)
     const filled = Boolean(block.value.trim())
-    const detailsOpen = openKey === block.key
-    const absoluteIndex = blocks.findIndex((row) => row.key === block.key)
+    const detailsOpen = openKeys.has(block.key)
+    const drop = blockDropProps(block)
 
     if (block.isHidden && filter === 'hidden' && !detailsOpen) {
       return (
@@ -312,19 +340,23 @@ export function TextBlocksPanel({
           key={block.key}
           id={`text-block-${block.key}`}
           className="text-block text-block--compact text-block--hidden"
+          {...drop}
         >
+          {renderDragHandle(block)}
           <button
             type="button"
             className="text-block__glance"
             onClick={() => toggleDetails(block.key)}
           >
             <b className="text-block__glance-name">{label}</b>
-            <span className={`inventory-role inventory-role--${bucket === 'features' ? 'armor' : bucket === 'personality' ? 'weapon' : 'other'}`}>
+            <span className={`inventory-role inventory-role--${roleClass(bucket)}`}>
               {role}
             </span>
             <span className="attack-held-tag">скрыт</span>
             <span className="inventory-card__glance-spacer" aria-hidden />
-            <span className="inventory-card__glance-meta">{filled ? 'есть текст' : 'пусто'}</span>
+            <span className="inventory-card__glance-meta">
+              {filled ? 'есть текст' : 'пусто'}
+            </span>
           </button>
           <div className="inventory-card__glance-actions">
             <button
@@ -353,18 +385,16 @@ export function TextBlocksPanel({
           key={block.key}
           id={`text-block-${block.key}`}
           className={`text-block text-block--compact${filled ? '' : ' text-block--empty'}`}
+          {...drop}
         >
+          {renderDragHandle(block)}
           <button
             type="button"
             className="text-block__glance"
             onClick={() => toggleDetails(block.key)}
           >
             <b className="text-block__glance-name">{label}</b>
-            <span
-              className={`inventory-role inventory-role--${
-                bucket === 'features' ? 'armor' : bucket === 'personality' ? 'weapon' : 'other'
-              }`}
-            >
+            <span className={`inventory-role inventory-role--${roleClass(bucket)}`}>
               {role}
             </span>
             {block.resourceId ? <span className="attack-held-tag is-on">ресурс</span> : null}
@@ -394,13 +424,11 @@ export function TextBlocksPanel({
         className={`text-block text-block--expand${
           block.isHidden ? ' text-block--hidden' : ''
         }`}
+        {...drop}
       >
         <div className="text-block__meta">
-          <span
-            className={`inventory-role inventory-role--${
-              bucket === 'features' ? 'armor' : bucket === 'personality' ? 'weapon' : 'other'
-            }`}
-          >
+          {renderDragHandle(block)}
+          <span className={`inventory-role inventory-role--${roleClass(bucket)}`}>
             {role}
           </span>
           {block.resourceId ? <span className="attack-held-tag is-on">ресурс</span> : null}
@@ -428,9 +456,6 @@ export function TextBlocksPanel({
               }}
             />
           </Field>
-          <div className="text-block__actions">
-            {renderMoveActions(block, absoluteIndex >= 0 ? absoluteIndex : index)}
-          </div>
         </div>
 
         {renderResource(block)}
@@ -485,10 +510,19 @@ export function TextBlocksPanel({
 
   return (
     <Panel title="Тексты и заметки" className="text-panel">
+      <p className="text-panel__lede">
+        Личность и заметки. Строка — превью; клик — правка. ⋮⋮ — порядок.
+      </p>
+
       <Stack gap={12}>
-        <Text tone="muted">
-          Сцена Общение: личность и заметки. Строка — превью; клик — правка (одна открыта).
-        </Text>
+        <div className="abil-column__toolbar text-panel__collapse-bar">
+          <button type="button" onClick={collapseAll}>
+            ▲ Свернуть все
+          </button>
+          <button type="button" onClick={expandAll}>
+            ▼ Развернуть все
+          </button>
+        </div>
 
         <div className="inventory-panel__toolbar">
           <Button
@@ -498,7 +532,7 @@ export function TextBlocksPanel({
               const next = createCustomTextBlock(blocks)
               onChange([...blocks, next])
               setFilter('notes')
-              setOpenKey(next.key)
+              setOpenKeys((prev) => new Set(prev).add(next.key))
             }}
           >
             <IconPlus />
@@ -581,7 +615,7 @@ export function TextBlocksPanel({
                 : 'Нет блоков в этом фильтре.'}
             </Text>
           ) : null}
-          {visibleBlocks.map((block, index) => renderBlockCard(block, index))}
+          {visibleBlocks.map((block) => renderBlockCard(block))}
         </Stack>
       </Stack>
     </Panel>

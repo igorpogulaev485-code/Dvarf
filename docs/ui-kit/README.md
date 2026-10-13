@@ -230,7 +230,9 @@ Live-эталоны в продукте (уже близки к киту): Inven
 |-----------|---------|
 | Stage | `TextBlocksPanel` сразу (glance→expand) |
 | Без flip | нет «полностью» / «← компактно» |
-| Accordion | одна открытая деталь |
+| Title | `Panel title` (`ui-panel__title`) + lede — как Inventory |
+| Expand | multi-open; toolbar `abil-column__toolbar` «Свернуть все / Развернуть все» |
+| Порядок | `abil-block__drag` ⋮⋮ + `moveTextBlockBefore` (не стрелки ▲▼) |
 | Добавить | sticky «Добавить блок» |
 | Фильтры | Все / Личность / Умения / Заметки / С ресурсом / Скрытые |
 | Заклинания | split справа |

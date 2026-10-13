@@ -3892,6 +3892,26 @@ button.spell-card__cast:hover:not(:disabled) {
   box-shadow: none;
 }
 
+/* Title via Panel (ui-panel__title) — same kit as Inventory / Spells. */
+.text-panel.ui-panel > .ui-panel__title {
+  margin: 0 0 4px;
+}
+
+.text-panel__lede {
+  margin: 0 0 12px;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.text-panel__collapse-bar {
+  margin: 0;
+  /* Stage panel scrolls; sticky bar stays under stage chrome like ability rail. */
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
 .text-block {
   display: grid;
   gap: 10px;
@@ -3901,6 +3921,33 @@ button.spell-card__cast:hover:not(:disabled) {
   background: #fffdf8;
 }
 
+.text-block.is-dragging {
+  opacity: 0.55;
+  outline: 2px dashed color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+.text-block.drag-over {
+  box-shadow: 0 -3px 0 0 var(--accent);
+}
+
+/* Ability-rail drag handle, adapted to text-block grid (no abil grid-area). */
+.text-block .abil-block__drag.text-block__drag,
+.text-block__drag {
+  grid-area: unset;
+  width: 18px;
+  height: auto;
+  min-height: 32px;
+  align-self: center;
+  color: color-mix(in srgb, var(--muted) 70%, var(--accent));
+  flex: 0 0 auto;
+}
+
+.text-block .abil-block__drag.text-block__drag:hover,
+.text-block__drag:hover {
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  border-color: var(--line);
+}
+
 .text-block--expand {
   gap: 8px;
   padding: 10px 12px 12px;
@@ -3908,7 +3955,7 @@ button.spell-card__cast:hover:not(:disabled) {
 }
 
 .text-block--compact {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px 10px;
   padding: 10px 12px;
@@ -3980,17 +4027,6 @@ button.spell-card__cast:hover:not(:disabled) {
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-}
-
-.text-block__move {
-  display: inline-flex;
-  gap: 2px;
-  align-items: center;
-}
-
-.text-block__move .ui-button {
-  min-width: 36px;
-  padding-inline: 8px;
 }
 
 .text-block__area {

@@ -212,3 +212,20 @@ export function moveTextBlock(
   ;[next[index], next[target]] = [next[target], next[index]]
   return next
 }
+
+/** Insert `fromKey` before `toKey` (ability-rail style drag). */
+export function moveTextBlockBefore(
+  blocks: TextBlock[],
+  fromKey: string,
+  toKey: string,
+): TextBlock[] {
+  if (fromKey === toKey) return blocks
+  const from = blocks.find((item) => item.key === fromKey)
+  if (!from) return blocks
+  const without = blocks.filter((item) => item.key !== fromKey)
+  const index = without.findIndex((item) => item.key === toKey)
+  if (index < 0) return blocks
+  const next = [...without]
+  next.splice(index, 0, from)
+  return next
+}
