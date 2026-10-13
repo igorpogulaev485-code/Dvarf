@@ -45,6 +45,19 @@ let refreshInFlight: Promise<boolean> | null = null
 /** Fail fast — a stuck refresh must not leave the UI on «Загрузка…» forever. */
 const REFRESH_TIMEOUT_MS = 8_000
 
+/** General API budget. Login used to sit in Network «pending» for a full nginx minute. */
+const REQUEST_TIMEOUT_MS = 20_000
+
+function timeoutMsForPath(path: string): number {
+  if (path.startsWith('/auth/login') || path.startsWith('/auth/register')) {
+    return 15_000
+  }
+  if (path.startsWith('/auth/refresh')) {
+    return REFRESH_TIMEOUT_MS
+  }
+  return REQUEST_TIMEOUT_MS
+}
+
 async function tryRefreshAccessToken(): Promise<boolean> {
   if (refreshInFlight) {
     return refreshInFlight
@@ -121,10 +134,39 @@ export async function apiRequest<T>(
     headers.set('Authorization', `Bearer ${accessToken}`)
   }
 
-  const response = await fetch(path, {
-    ...options,
-    headers,
-  })
+  const timeoutMs = timeoutMsForPath(path)
+  const controller = new AbortController()
+  const externalSignal = options.signal
+  const onExternalAbort = () => controller.abort()
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort()
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort, { once: true })
+    }
+  }
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs)
+
+  let response: Response
+  try {
+    response = await fetch(path, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    })
+  } catch (err) {
+    if (controller.signal.aborted && !externalSignal?.aborted) {
+      throw new ApiRequestError(
+        'Сервер временно недоступен — подождите пару секунд и повторите',
+        504,
+        'api_unavailable',
+      )
+    }
+    throw err
+  } finally {
+    window.clearTimeout(timer)
+    externalSignal?.removeEventListener('abort', onExternalAbort)
+  }
 
   if (
     response.status === 401 &&
