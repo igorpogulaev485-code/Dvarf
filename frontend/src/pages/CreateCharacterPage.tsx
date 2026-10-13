@@ -57,7 +57,7 @@ import {
   updateCharacter,
   type CharacterDetail,
 } from '../shared/api/characters'
-import { ApiRequestError } from '../shared/api/client'
+import { ApiRequestError, ensureSession } from '../shared/api/client'
 import {
   newFeatGrantId,
   readFeatGrantLedger,
@@ -1029,6 +1029,12 @@ export function CreateCharacterPage() {
     setBusy(true)
     setError(null)
     try {
+      const sessionOk = await ensureSession()
+      if (!sessionOk) {
+        setError('Сессия истекла — войдите снова и повторите сохранение')
+        return
+      }
+
       const applied = await applyPipelineToSheet({
         state: {
           ...state,
@@ -1063,6 +1069,7 @@ export function CreateCharacterPage() {
         })
       } else {
         saved = await createCharacter('2014', name, { isDraft: options.asDraft })
+        patchState({ characterId: saved.id, sheetVersion: saved.sheet_version })
         saved = await updateCharacter(saved.id, {
           sheet_version: saved.sheet_version,
           name,
@@ -1085,7 +1092,13 @@ export function CreateCharacterPage() {
         state: { toast: 'Персонаж готов' },
       })
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить')
+      const message =
+        err instanceof ApiRequestError
+          ? err.message
+          : err instanceof Error && err.message.trim()
+            ? err.message
+            : 'Не удалось сохранить — проверьте сеть и войдите снова, если сессия сбросилась'
+      setError(message)
     } finally {
       setBusy(false)
     }

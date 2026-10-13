@@ -11,8 +11,10 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://dvarf:dvarf@localhost:5432/dvarf"
     jwt_secret: str = "dev-only-change-me"
     jwt_algorithm: str = "HS256"
-    access_token_ttl_minutes: int = 30
-    refresh_token_ttl_days: int = 30
+    # Tabletop sessions run for hours; access must not force a mid-game login.
+    access_token_ttl_minutes: int = 720
+    # Sliding window on /auth/refresh keeps the login alive while the app is used.
+    refresh_token_ttl_days: int = 90
     cors_origins: str = "http://localhost:5173"
     app_public_url: str = "http://localhost:5173"
     auth_email_stub: bool = True

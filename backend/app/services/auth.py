@@ -67,6 +67,19 @@ def _hash_reset_token(token: str) -> str:
     return _hash_token(token)
 
 
+def _refresh_token_near_expiry(token: str, *, within: timedelta) -> bool:
+    """True when the refresh JWT should be rotated (keep long-lived logins alive)."""
+    try:
+        payload = decode_token(token)
+    except Exception:  # noqa: BLE001
+        return True
+    exp = payload.get("exp")
+    if not isinstance(exp, (int, float)):
+        return True
+    remaining = datetime.fromtimestamp(float(exp), UTC) - datetime.now(UTC)
+    return remaining <= within
+
+
 def serialize_session(session: AuthSession, *, current_id: UUID | None) -> AuthSessionResponse:
     return AuthSessionResponse(
         id=session.id,
@@ -95,6 +108,7 @@ class AuthService:
         user_agent: str | None = None,
         ip_address: str | None = None,
         existing_session: AuthSession | None = None,
+        reuse_refresh_token: str | None = None,
     ) -> TokenResponse:
         expires_at = datetime.now(UTC) + timedelta(days=settings.refresh_token_ttl_days)
         ua = (user_agent or "")[:512] or None
@@ -102,10 +116,22 @@ class AuthService:
 
         if existing_session is not None:
             session = existing_session
-            # Placeholder hash until refresh token is minted.
             access = create_access_token(user.id, session_id=session.id)
-            refresh = create_refresh_token(user.id, session_id=session.id)
-            self.sessions.touch(session, refresh_token_hash=_hash_token(refresh))
+            # Prefer reusing the refresh JWT so parallel tabs do not invalidate
+            # each other. Rotate only when that JWT is near its own expiry.
+            if reuse_refresh_token and not _refresh_token_near_expiry(
+                reuse_refresh_token,
+                within=timedelta(days=14),
+            ):
+                refresh = reuse_refresh_token
+                self.sessions.touch(session, expires_at=expires_at)
+            else:
+                refresh = create_refresh_token(user.id, session_id=session.id)
+                self.sessions.touch(
+                    session,
+                    refresh_token_hash=_hash_token(refresh),
+                    expires_at=expires_at,
+                )
         else:
             # Create session row first with temporary hash, then mint tokens with sid.
             placeholder = _hash_token(secrets.token_urlsafe(32))
@@ -322,11 +348,16 @@ class AuthService:
                 user_agent=session.user_agent,
                 ip_address=session.ip_address,
                 existing_session=session,
+                reuse_refresh_token=refresh_token,
             )
         except OperationalError as exc:
-            # lock_timeout / deadlock → ask the client to re-login instead of hang.
+            # lock_timeout / deadlock → ask the client to retry, not wipe the login.
             self.db.rollback()
-            raise UnauthorizedError("Сессия занята — войдите снова") from exc
+            raise AppError(
+                "Сессия занята — подождите секунду и повторите",
+                code="session_busy",
+                status_code=503,
+            ) from exc
 
     def list_sessions(self, user_id: UUID, *, current_session_id: UUID | None) -> AuthSessionListResponse:
         items = [
