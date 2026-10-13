@@ -609,6 +609,34 @@
 
 На проде: **нет** · ветка `cursor/wave-a-listva-a73e`
 
+### 2026-10-13 — Wave A spells LOCK (компакт + настройки)
+
+Заклинания на столе зафиксированы в ките (§2c).
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Компакт | бой: готовые, spent-пипы, Каст, деталка | Каст без портянки редактора |
+| Настройки | диалог вместо «полностью»: хар-ка, Сл./атака (авто), ячейки, договор, Гримуар/Подготовить | Setup отдельно от боя |
+| Договор · ур. | авто по уровню колдуна | Не руками крутить круг ячеек |
+| По таблице | макс. ячеек / договор / подготовка из PHB; spent целы | Быстрый сброс к правилам |
+| Без homebrew create | новые только из гримуара | Один путь добавления |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2c.  
+На проде: **нет** · ветка `cursor/spells-settings-dialog-a73e` · PR #125 · stage Бой → `cursor/combat-stage-kit-a73e`
+
+### 2026-10-13 — Wave A combat stage (атаки compact)
+
+Stage «Бой» приведён к киту; общий chrome (шапка / rail / hot-bar) не трогали.
+
+| Что | Как |
+|-----|-----|
+| Icons | `attackIcons.tsx`: ближнее / дальнее / ресурс / расходник (stroke = desk/spell) |
+| Компакт атак | `PlayDeskAttacksCompact` в языке `play-desk-compact`: иконка · имя · +hit · урон · chip удерж./взять |
+| Стык | атаки \| заклинания — общий head / link / empty |
+| Smoke | hit/dmg toast · взять/удерж. · spend ресурс · spend расходник |
+
+На проде: **нет** · ветка `cursor/combat-stage-kit-a73e` · PR #126 · база `cursor/spells-settings-dialog-a73e`
+
 ### 2026-10-12 — Wave A header: desk icons + vitals
 
 | Что | Как |
@@ -1237,6 +1265,7 @@
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-13 | `cursor/combat-stage-kit-a73e` · PR #126 | Combat stage kit: attacks compact + smoke hit/hold/spend |
 | 2026-10-06 | `cursor/product-status-log-acbe` | Создан файл + стартовый срез прода |
 | 2026-10-06 | `cursor/sheet-race-effects-eb8e` · PR #20 | Мультикласс + эффекты расы → «Сейчас в продукте» |
 | 2026-10-06 | `cursor/sheet-race-effects-eb8e` · PR #20 | Полный срез агента листа P1–P6 (функция / как / эффект) |
