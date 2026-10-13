@@ -637,6 +637,20 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 
 На проде: **нет** · ветка `cursor/combat-stage-kit-a73e` · PR #126 · база `cursor/spells-settings-dialog-a73e`
 
+### 2026-10-13 — Wave A attacks settings (гибрид D)
+
+Как у заклинаний: на Бою нет полной панели атак.
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Компакт | бой: hit/dmg, удерж., ресурсы, расходники | Каст без портянки редактора |
+| Настройки | диалог: оверрайды карточек + «Своё» | Setup отдельно от боя |
+| Оружие | из инвентаря → карточка атаки | Один путь для «официального» |
+| Своё | кастом без строки лута | Homebrew / особые атаки |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2d — **LOCK** («Идеал» 2026-10-13).  
+На проде: **нет** · ветка `cursor/attacks-settings-dialog-a73e` · PR #127 · база `cursor/combat-stage-kit-a73e`
+
 ### 2026-10-12 — Wave A header: desk icons + vitals
 
 | Что | Как |
@@ -1265,6 +1279,8 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-13 | `cursor/attacks-settings-dialog-a73e` · PR #127 | Attacks LOCK in ui-kit §2d (Идеал) |
+| 2026-10-13 | `cursor/attacks-settings-dialog-a73e` | Attacks settings dialog (hybrid D): Настройки instead of full panel |
 | 2026-10-13 | `cursor/combat-stage-kit-a73e` · PR #126 | Combat stage kit: attacks compact + smoke hit/hold/spend |
 | 2026-10-06 | `cursor/product-status-log-acbe` | Создан файл + стартовый срез прода |
 | 2026-10-06 | `cursor/sheet-race-effects-eb8e` · PR #20 | Мультикласс + эффекты расы → «Сейчас в продукте» |
