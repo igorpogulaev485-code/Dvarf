@@ -626,18 +626,19 @@ export function SpellsPanel({
                     колдун…
                   </Text>
                 )}
-                <div className="sheet-grid sheet-grid--slots" style={{ marginTop: 8 }}>
+                <div className="sheet-grid sheet-grid--slots">
                   {Array.from({ length: 9 }, (_, index) => {
                     const level = index + 1
                     const key = String(level)
                     return (
-                      <Field key={key} label={`${level}-й`}>
+                      <Field key={key} label={`${level}`}>
                         <NumberInput
                           min={0}
                           max={20}
                           emptyValue={0}
                           value={spells.slots[key]?.max ?? 0}
                           onValueChange={(max) => setSlotMax(level, max ?? 0)}
+                          aria-label={`Ячейки ${level}-го круга`}
                         />
                       </Field>
                     )

@@ -782,6 +782,38 @@ input {
   margin-top: 8px;
 }
 
+/* Slot maxes 1–9: compact fixed cells, not full-width stretch */
+.sheet-grid--slots {
+  display: grid;
+  grid-template-columns: repeat(9, 2.35rem);
+  gap: 5px;
+  margin-top: 6px;
+  justify-content: start;
+}
+
+.sheet-grid--slots .ui-field {
+  gap: 2px;
+  width: 2.35rem;
+}
+
+.sheet-grid--slots .ui-field__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: var(--muted);
+}
+
+.sheet-grid--slots .ui-input {
+  width: 2.35rem;
+  padding: 5px 0;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
 .inventory-panel.ui-panel {
   background: var(--panel);
 }
@@ -1988,10 +2020,51 @@ button.spell-card__cast:hover:not(:disabled) {
 }
 
 .spells-settings {
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--card);
+}
+
+.spells-settings__top {
+  display: grid;
+  grid-template-columns: 1fr minmax(5.5rem, 7rem);
+  gap: 10px 14px;
+  align-items: start;
+}
+
+.spells-settings__prep .ui-input {
+  padding: 8px 10px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.spells-settings__slots-hint {
+  margin-top: 4px;
+}
+
+.spells-settings .pact-settings {
+  margin-top: 2px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+}
+
+.spells-settings .pact-settings .sheet-grid--2 {
+  display: grid;
+  grid-template-columns: 3.25rem 3.25rem;
+  gap: 6px;
+  max-width: none;
+  width: max-content;
+}
+
+.spells-settings .pact-settings .ui-input {
+  width: 3.25rem;
+  padding: 5px 0;
+  border-radius: 8px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
 }
 
 .spells-settings-dialog__books {
@@ -3922,6 +3995,21 @@ button.spell-card__cast:hover:not(:disabled) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .sheet-grid--slots {
+    grid-template-columns: repeat(9, 2.1rem);
+    gap: 4px;
+  }
+
+  .sheet-grid--slots .ui-field,
+  .sheet-grid--slots .ui-input {
+    width: 2.1rem;
+  }
+
+  .spells-settings__top {
+    grid-template-columns: 1fr minmax(4.5rem, 6rem);
+    gap: 8px;
+  }
+
   .skill-row {
     flex-direction: column;
     align-items: flex-start;
@@ -5416,6 +5504,10 @@ button.play-desk-vital:hover {
 .play-desk-compact__link--prepare {
   border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 40%, var(--desk-line));
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 65%, white);
+}
+
+.play-desk-compact__link--settings {
+  border-color: color-mix(in srgb, var(--desk-line) 80%, var(--desk-ink));
 }
 
 .play-desk-compact__link-icon {

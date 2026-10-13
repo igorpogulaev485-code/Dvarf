@@ -229,43 +229,49 @@ export function SpellsSettingsDialog({
           </div>
 
           <div className="spells-settings">
-            <Stack gap={12}>
-              <div>
-                <Text>Характеристика заклинаний</Text>
-                <div className="chip-row" style={{ marginTop: 8 }}>
-                  {SPELLCASTING_ABILITIES.map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className={`sheet-chip${spells.casting_ability === key ? ' is-on' : ''}`}
-                      onClick={() => setCastingAbility(key)}
-                    >
-                      {SPELLCASTING_ABILITY_LABELS[key]}
-                    </button>
-                  ))}
+            <Stack gap={10}>
+              <div className="spells-settings__top">
+                <div>
+                  <Text>Характеристика заклинаний</Text>
+                  <div className="chip-row" style={{ marginTop: 6 }}>
+                    {SPELLCASTING_ABILITIES.map((key) => (
+                      <button
+                        key={key}
+                        type="button"
+                        className={`sheet-chip${
+                          spells.casting_ability === key ? ' is-on' : ''
+                        }`}
+                        onClick={() => setCastingAbility(key)}
+                      >
+                        {SPELLCASTING_ABILITY_LABELS[key]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="spells-settings__prep">
+                  <Field
+                    label="Подготовка"
+                    hint={
+                      suggestion?.max_prepared != null
+                        ? `табл. ${suggestion.max_prepared}`
+                        : suggestion
+                          ? 'без лимита'
+                          : 'пусто = ∞'
+                    }
+                  >
+                    <NumberInput
+                      min={0}
+                      max={50}
+                      emptyValue={null}
+                      value={spells.max_prepared}
+                      onValueChange={(max_prepared) => patch({ max_prepared })}
+                    />
+                  </Field>
                 </div>
               </div>
-              <Field
-                label="Лимит подготовки"
-                hint={
-                  suggestion?.max_prepared != null
-                    ? `Таблица 2014: ${suggestion.max_prepared} (${suggestion.labelRu})`
-                    : suggestion
-                      ? 'У этого класса нет лимита подготовки (известные заклинания)'
-                      : 'Пусто = без лимита. Подставь таблицу от класса или задай вручную.'
-                }
-              >
-                <NumberInput
-                  min={0}
-                  max={50}
-                  emptyValue={null}
-                  value={spells.max_prepared}
-                  onValueChange={(max_prepared) => patch({ max_prepared })}
-                />
-              </Field>
               <div>
                 <div className="play-resources-head">
-                  <Text>Количество ячеек</Text>
+                  <Text>Ячейки (макс.)</Text>
                   <Button
                     type="button"
                     variant="secondary"
@@ -275,34 +281,30 @@ export function SpellsSettingsDialog({
                     От класса
                   </Button>
                 </div>
-                {suggestion ? (
-                  <Text tone="muted">
-                    {suggestion.labelRu}
-                    {suggestion.progression === 'pact'
-                      ? ` · договор ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
-                      : suggestion.progression === 'none'
-                        ? ' · не заклинатель'
-                        : ' · слоты PHB 2014'}
-                    . При смене класса или уровня подставляется само; spent не сбрасываем.
-                  </Text>
-                ) : (
-                  <Text tone="muted">
-                    Класс не распознан — оставь числа вручную. Известные: жрец, волшебник, паладин,
-                    колдун…
-                  </Text>
-                )}
-                <div className="sheet-grid sheet-grid--slots" style={{ marginTop: 8 }}>
+                <Text tone="muted" className="spells-settings__slots-hint">
+                  {suggestion
+                    ? `${suggestion.labelRu}${
+                        suggestion.progression === 'pact'
+                          ? ` · договор ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
+                          : suggestion.progression === 'none'
+                            ? ' · не заклинатель'
+                            : ' · PHB 2014'
+                      }`
+                    : 'Класс не распознан — задай вручную'}
+                </Text>
+                <div className="sheet-grid sheet-grid--slots">
                   {Array.from({ length: 9 }, (_, index) => {
                     const slotLevel = index + 1
                     const key = String(slotLevel)
                     return (
-                      <Field key={key} label={`${slotLevel}-й`}>
+                      <Field key={key} label={`${slotLevel}`}>
                         <NumberInput
                           min={0}
                           max={20}
                           emptyValue={0}
                           value={spells.slots[key]?.max ?? 0}
                           onValueChange={(max) => setSlotMax(slotLevel, max ?? 0)}
+                          aria-label={`Ячейки ${slotLevel}-го круга`}
                         />
                       </Field>
                     )
@@ -311,7 +313,7 @@ export function SpellsSettingsDialog({
               </div>
               <div className="pact-settings">
                 <div className="play-resources-head">
-                  <Text>Магия договора (колдун)</Text>
+                  <Text>Договор (колдун)</Text>
                   {spells.pact_slots ? (
                     <button type="button" className="linkish" onClick={disablePact}>
                       Выключить
@@ -323,8 +325,8 @@ export function SpellsSettingsDialog({
                   )}
                 </div>
                 {spells.pact_slots ? (
-                  <div className="sheet-grid sheet-grid--2" style={{ marginTop: 8 }}>
-                    <Field label="Уровень договора">
+                  <div className="sheet-grid sheet-grid--2" style={{ marginTop: 6 }}>
+                    <Field label="Ур.">
                       <NumberInput
                         min={1}
                         max={9}
@@ -333,23 +335,22 @@ export function SpellsSettingsDialog({
                         onValueChange={(pactLevel) =>
                           patchPact({ level: pactLevel ?? 1 })
                         }
+                        aria-label="Уровень договора"
                       />
                     </Field>
-                    <Field label="Макс. ячеек">
+                    <Field label="Макс.">
                       <NumberInput
                         min={0}
                         max={10}
                         emptyValue={0}
                         value={spells.pact_slots.max}
                         onValueChange={(max) => patchPact({ max: max ?? 0 })}
+                        aria-label="Максимум ячеек договора"
                       />
                     </Field>
                   </div>
                 ) : (
-                  <Text tone="muted">
-                    Каст через договор тратит эти ячейки, если уровень заклинания ≤ уровня
-                    договора.
-                  </Text>
+                  <Text tone="muted">Каст через договор, если уровень заклинания ≤ договора.</Text>
                 )}
               </div>
             </Stack>
