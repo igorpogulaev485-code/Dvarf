@@ -1096,8 +1096,16 @@ input {
 }
 
 @media (max-width: 639px) {
-  .inventory-coins {
+  .inventory-coins:not(.inventory-coins--pad) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .inventory-card__grid--dense {
+    grid-template-columns: 4.5rem 5.5rem;
+  }
+
+  .inventory-card__notes-inline {
+    grid-column: 1 / -1;
   }
 }
 
