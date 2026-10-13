@@ -643,7 +643,7 @@
 | Логин / API | Таймауты БД + 2 worker’а API + короткий nginx timeout на `/auth` | Вместо вечного `pending` → быстрый ответ или «временно недоступен» |
 | Клиент | AbortController на запросы (login ~15с) | Кнопка «Войти» не крутится минуту впустую |
 
-На проде: **да** · tip `cursor/login-hang-timeout-e857` · PR #128 · проверено 2026-10-13: `/health` ok; login ~0.4с; `uvicorn --workers 2`; `statement_timeout`; nginx `proxy_read_timeout 15s` на `/auth`; кабинет/classic/lobby на диске
+На проде: **да** · tip `cursor/login-hang-timeout-e857` · PR #128 · проверено 2026-10-13: `/health` ok; login ~0.4с; `uvicorn --workers 2`; `statement_timeout`; nginx `proxy_read_timeout 15s` на `/auth`; бандл `client-BTEgofOY.js`; кабинет/classic/lobby на диске
 
 ### 2026-10-12 — Play desk: догон макета (hot bar + split + визуал)
 
@@ -1240,4 +1240,4 @@
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Hotfix: состояния/конц./смерть/монеты/XP/attune; Hub timeout → dist→web; `/health` ok; бандл `CharacterDetailPage-DkjzP6Xq.js` / CSS `index-CBcwe-E-.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Шапка: лаз./плав./полёт под скоростью; dist→web; `/health` ok; бандл `CharacterDetailPage-Cwy-1nPy.js` / CSS `index-RHvyfqLk.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | 502→JSON + client retry; VPS reboot после hung Docker; `/health` ok; бандл `client-C72apPWM.js` |
-| 2026-10-13 | `cursor/login-hang-timeout-e857` · PR #128 | Fail-fast login: DB timeouts + 2 workers + nginx/client abort; tip → эта ветка; `/health` ok; login ~0.4с |
+| 2026-10-13 | `cursor/login-hang-timeout-e857` · PR #128 | Fail-fast login: DB timeouts + 2 workers + nginx/client abort; tip → эта ветка; `/health` ok; login ~0.4с; бандл `client-BTEgofOY.js` |
