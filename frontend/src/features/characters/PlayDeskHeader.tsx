@@ -126,9 +126,10 @@ export function PlayDeskHeader({
       ? classRows.map((row) => ({
           id: row.id,
           label: `${row.name.trim()} ${Math.floor(row.level)}`,
+          subclass: row.subclass_name.trim(),
         }))
       : className.trim()
-        ? [{ id: 'summary', label: className.trim() }]
+        ? [{ id: 'summary', label: className.trim(), subclass: '' }]
         : []
   const raceLabel = raceName.trim() || 'Черновик'
   const xp = xpProgress(experience, level)
@@ -286,8 +287,21 @@ export function PlayDeskHeader({
             aria-label="Классы"
           >
             {classChips.map((chip) => (
-              <li key={chip.id} className="play-desk-header__class-chip">
-                {chip.label}
+              <li
+                key={chip.id}
+                className={`play-desk-header__class-chip${
+                  chip.subclass ? ' has-subclass' : ''
+                }`}
+                title={
+                  chip.subclass ? `${chip.label} · ${chip.subclass}` : chip.label
+                }
+              >
+                <span className="play-desk-header__class-main">{chip.label}</span>
+                {chip.subclass ? (
+                  <span className="play-desk-header__class-archetype">
+                    {chip.subclass}
+                  </span>
+                ) : null}
               </li>
             ))}
           </ul>
