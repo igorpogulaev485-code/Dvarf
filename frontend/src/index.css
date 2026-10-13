@@ -7702,6 +7702,30 @@ button.play-desk-vital:hover {
   gap: 12px;
 }
 
+/* Narrow drawer: keep climb/swim/fly on one label line so the row stays level. */
+.sheet-grid--speeds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.sheet-grid--speeds .ui-field__label {
+  font-size: 0.8rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-grid--speeds .ui-field__hint {
+  font-size: 0.74rem;
+}
+
+.sheet-grid--speeds .ui-input {
+  padding: 10px 10px;
+}
+
 /* Wide desk keeps rail A identity colors — do not force theme accent onto skills */
 
 @media (min-width: 960px) {
