@@ -84,6 +84,7 @@ import {
   isPointBuyValid,
   isStandardArrayComplete,
   isManualScoresValid,
+  isRollScoresValid,
   mergeRacialBonuses,
 } from '../shared/dnd/pointBuy'
 import {
@@ -1090,6 +1091,7 @@ export function CreateCharacterPage() {
     if (state.abilityMethod === 'standard_array') {
       return isStandardArrayComplete(state.baseAbilities)
     }
+    if (state.abilityMethod === 'roll') return isRollScoresValid(state.baseAbilities)
     return isManualScoresValid(state.baseAbilities)
   }
 

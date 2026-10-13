@@ -64,8 +64,8 @@ function ChipList({
           <button
             key={name}
             type="button"
-            className={`sheet-chip${on ? ' is-on' : ''}`}
-            style={block ? { display: 'block', width: '100%', textAlign: 'left' } : undefined}
+            className={`sheet-chip${block ? ' sheet-chip--block' : ''}${on ? ' is-on' : ''}`}
+            aria-pressed={on}
             onClick={() => onToggle(name)}
           >
             {name}
@@ -260,6 +260,7 @@ export function BackgroundSetupDialog({
       primaryLabel="Применить"
       secondaryLabel="Отмена"
       size="wide"
+      primaryDisabled={!canConfirm}
       onPrimary={() => {
         if (!canConfirm || !def || !effectiveEntry) return
         onConfirm({
@@ -440,26 +441,26 @@ export function BackgroundSetupDialog({
                       <button
                         key={pack.id}
                         type="button"
-                        className={`sheet-chip${on ? ' is-on' : ''}`}
-                        style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                        className={`sheet-chip sheet-chip--block${on ? ' is-on' : ''}`}
+                        aria-pressed={on}
                         onClick={() => setEquipmentPackageId(pack.id)}
                       >
-                        <strong>{pack.labelRu}</strong>
-                        <div style={{ opacity: 0.85, fontWeight: 400 }}>{pack.summary}</div>
+                        <strong className="sheet-chip__title">{pack.labelRu}</strong>
+                        <div className="sheet-chip__meta">{pack.summary}</div>
                       </button>
                     )
                   })}
                   <button
                     type="button"
-                    className={`sheet-chip${equipmentPackageId === 'skip' ? ' is-on' : ''}`}
-                    style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                    className={`sheet-chip sheet-chip--block${equipmentPackageId === 'skip' ? ' is-on' : ''}`}
+                    aria-pressed={equipmentPackageId === 'skip'}
                     onClick={() => {
                       setEquipmentPackageId('skip')
                       setEquipmentOrPicks({})
                     }}
                   >
-                    <strong>Без снаряжения</strong>
-                    <div style={{ opacity: 0.85, fontWeight: 400 }}>
+                    <strong className="sheet-chip__title">Без снаряжения</strong>
+                    <div className="sheet-chip__meta">
                       Куплю снаряжение за золото / заполню сам
                     </div>
                   </button>
@@ -496,7 +497,7 @@ export function BackgroundSetupDialog({
               <Stack gap={12}>
                 <Text>
                   <strong>Персонализация</strong>
-                  <span style={{ opacity: 0.8 }}> — по желанию</span>
+                  <Text as="span" tone="muted"> — по желанию</Text>
                 </Text>
 
                 {traitNeed > 0 ? (

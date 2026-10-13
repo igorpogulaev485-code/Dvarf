@@ -33,6 +33,8 @@ export function CreatePipelineShell({
   backDisabled,
 }: CreatePipelineShellProps) {
   const currentIndex = steps.indexOf(step)
+  const stepNumber = currentIndex >= 0 ? currentIndex + 1 : 1
+  const stepTotal = steps.length
 
   return (
     <div className="create-pipeline">
@@ -46,18 +48,21 @@ export function CreatePipelineShell({
         <nav className="create-pipeline__steps" aria-label="Шаги создания">
           {steps.map((id, index) => {
             const active = id === step
+            const done = index < currentIndex
             const reachable = index <= currentIndex
+            const className = [
+              'create-pipeline__step',
+              active ? 'create-pipeline__step--active' : '',
+              done ? 'create-pipeline__step--done' : '',
+              !reachable ? 'create-pipeline__step--locked' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')
             return (
               <button
                 key={id}
                 type="button"
-                className={
-                  active
-                    ? 'create-pipeline__step create-pipeline__step--active'
-                    : reachable
-                      ? 'create-pipeline__step'
-                      : 'create-pipeline__step create-pipeline__step--locked'
-                }
+                className={className}
                 disabled={!reachable || !onStepClick}
                 onClick={() => onStepClick?.(id)}
               >
@@ -78,10 +83,13 @@ export function CreatePipelineShell({
         <div className="create-pipeline__footer-left">
           {onBack ? (
             <Button variant="ghost" disabled={backDisabled} onClick={onBack}>
-              Назад
+              ← Назад
             </Button>
           ) : null}
         </div>
+        <Text tone="muted" className="create-pipeline__footer-progress" aria-live="polite">
+          Шаг {stepNumber} из {stepTotal}
+        </Text>
         <div className="create-pipeline__footer-right">{footer}</div>
       </footer>
     </div>
