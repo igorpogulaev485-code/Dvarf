@@ -327,6 +327,24 @@ Live-эталоны в продукте (уже близки к киту): Inven
 
 **Статус:** собрано под кит; Ideal/LOCK — по ok.
 
+## 2o. Create pipeline 2014 (kit)
+
+> Доска: `dvarf-ui-kit-rest-create-app.jpg` §D. Порядок шагов — **продуктовый**, не иллюстрация на доске.
+
+| Компонент | Правило |
+|-----------|---------|
+| Порядок | Раса → Черта? → Предыстория → Класс → Характеристики → Прокачка |
+| Stepper | done = accent-soft · active = solid accent · locked muted; title Source Serif accent |
+| Панели | left/right `--panel`; catalog cards `--card`, selected = accent-soft |
+| Filters | chips; active = **solid** accent |
+| Method-cards | Массив · Point buy · **Бросок 4d6dl1** · Вручную — крупные interaction cards |
+| Бросок | кости на строке (младший в `[]`); «Ещё раз» / «Перебросить все» → `baseAbilities` |
+| Footer | ← Назад · **Шаг N из M** · Далее/Готово |
+| Empty | `EmptyState` «Пока пусто» |
+| Setup | Race / Class / Background / Subclass — `Dialog` + `sheet-chip` / `sheet-chip--block`; логика грантов без изменений |
+
+**Статус:** собрано под кит; Ideal/LOCK — по ok.
+
 ## 2n. Что ещё на столе (не LOCK)
 
 | Область | Статус |

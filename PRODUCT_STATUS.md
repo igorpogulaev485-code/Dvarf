@@ -609,6 +609,17 @@
 
 На проде: **нет** · ветка `cursor/wave-a-listva-a73e`
 
+### 2026-10-13 — Create pipeline kit (rest-create §D)
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Chrome create | stepper done/active, панели `--panel`, chips solid accent, footer «Шаг N из M» | Создание в языке кита |
+| Method-cards | Массив / Point buy / **4d6dl1** / Вручную | Как на доске; бросок с перебросом |
+| Setup-диалоги | race/class/background/subclass — `sheet-chip--block`, primaryDisabled | Тот же chrome, гранты без смены |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2o.  
+На проде: **нет** · ветка `cursor/create-pipeline-kit-244b` · база `cursor/characters-list-kit-a73e`
+
 ### 2026-10-13 — Wave A spells LOCK (компакт + настройки)
 
 Заклинания на столе зафиксированы в ките (§2c).
