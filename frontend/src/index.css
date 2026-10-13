@@ -788,6 +788,8 @@ input {
   grid-template-columns: repeat(9, 2.35rem);
   gap: 5px;
   margin-top: 6px;
+  width: max-content;
+  max-width: 100%;
   justify-content: start;
 }
 
@@ -796,7 +798,8 @@ input {
   width: 2.35rem;
 }
 
-.sheet-grid--slots .ui-field__label {
+.sheet-grid--slots .ui-field__label,
+.ui-dialog__body .sheet-grid--slots .ui-field__label {
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -804,7 +807,8 @@ input {
   color: var(--muted);
 }
 
-.sheet-grid--slots .ui-input {
+.sheet-grid--slots .ui-input,
+.ui-dialog__body .sheet-grid--slots .ui-input {
   width: 2.35rem;
   padding: 5px 0;
   border-radius: 8px;
@@ -2033,13 +2037,6 @@ button.spell-card__cast:hover:not(:disabled) {
   align-items: start;
 }
 
-.spells-settings__prep .ui-input {
-  padding: 8px 10px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-}
-
 .spells-settings__slots-hint {
   margin-top: 4px;
 }
@@ -2058,10 +2055,19 @@ button.spell-card__cast:hover:not(:disabled) {
   width: max-content;
 }
 
-.spells-settings .pact-settings .ui-input {
+.spells-settings .pact-settings .ui-input,
+.ui-dialog__body .spells-settings .pact-settings .ui-input {
   width: 3.25rem;
   padding: 5px 0;
   border-radius: 8px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.spells-settings__prep .ui-input,
+.ui-dialog__body .spells-settings__prep .ui-input {
+  padding: 6px 8px;
   text-align: center;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
