@@ -572,6 +572,7 @@ export function PlayDeskHeader({
         onChange={onCoinsChange}
         onToast={onToast}
       />
+      {/* CoinPad is portaled to document.body — safe above sticky stage toolbars. */}
 
       <NumberPadDialog
         open={xpPadOpen}

@@ -1,4 +1,5 @@
 import { useEffect, type MouseEvent, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button'
 
 type DialogProps = {
@@ -66,7 +67,7 @@ export function Dialog({
     onSecondary()
   }
 
-  return (
+  return createPortal(
     <div
       className="ui-dialog-backdrop"
       role="presentation"
@@ -98,6 +99,7 @@ export function Dialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

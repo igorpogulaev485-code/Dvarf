@@ -408,7 +408,17 @@ export function InventoryPanel({
   }
 
   function toggleDetails(id: string) {
-    setOpenId((prev) => (prev === id ? null : id))
+    setOpenId((prev) => {
+      const next = prev === id ? null : id
+      if (next) {
+        window.requestAnimationFrame(() => {
+          document
+            .getElementById(`inventory-card-${next}`)
+            ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        })
+      }
+      return next
+    })
   }
 
   function applyCatalog(id: string, value: string, selected: CatalogEntry | null) {
@@ -745,6 +755,7 @@ export function InventoryPanel({
     return (
       <div
         key={item.id}
+        id={`inventory-card-${item.id}`}
         className={`inventory-card inventory-card--expand${
           nested ? ' inventory-card--nested' : ''
         }${expandedPack ? ' inventory-card--pack-open' : ''}`}
@@ -760,6 +771,13 @@ export function InventoryPanel({
           {statusTag ? (
             <span className={`attack-held-tag${item.equipped ? ' is-on' : ''}`}>
               {statusTag}
+            </span>
+          ) : null}
+          {!nested && isArmorRow(item) ? (
+            <span className="inventory-card__ac-pill" aria-label="КД">
+              {item.armor_kind === 'shield'
+                ? `щит +${item.base_ac ?? 2}`
+                : `кд ${item.base_ac ?? '—'}`}
             </span>
           ) : null}
           {!nested ? (
@@ -786,63 +804,49 @@ export function InventoryPanel({
         </div>
 
         {!nested && isArmorRow(item) ? (
-          <div className="inventory-card__armor-row">
-            <div className="inventory-card__stats" aria-label="КД">
-              <div className="inventory-card__stat">
-                <span className="inventory-card__stat-label">
-                  {item.armor_kind === 'shield' ? 'щит' : 'кд'}
-                </span>
-                <span className="inventory-card__stat-value">
-                  {item.armor_kind === 'shield'
-                    ? `+${item.base_ac ?? 2}`
-                    : item.base_ac ?? '—'}
-                </span>
-              </div>
-            </div>
-            <div className="inventory-card__grid inventory-card__grid--armor">
-              <Field label="Тип">
-                <select
-                  className="play-select"
-                  value={item.armor_kind}
-                  onChange={(event) =>
-                    setArmorKind(item.id, event.target.value as ArmorKind)
-                  }
-                >
-                  {ARMOR_KINDS.map((kind) => (
-                    <option key={kind} value={kind}>
-                      {armorKindLabel(kind)}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label={item.armor_kind === 'shield' ? 'Бонус' : 'База КД'}>
-                <NumberInput
-                  min={0}
-                  max={30}
-                  emptyValue={item.armor_kind === 'shield' ? 2 : 10}
-                  value={item.base_ac}
-                  onValueChange={(base_ac) => updateItem(item.id, { base_ac })}
-                />
-              </Field>
-              <Field label="Вес">
-                <NumberInput
-                  min={0}
-                  step={0.1}
-                  integer={false}
-                  emptyValue={null}
-                  value={item.weight_lb}
-                  onValueChange={(weight_lb) => updateItem(item.id, { weight_lb })}
-                />
-              </Field>
-              <Field label="×">
-                <NumberInput
-                  min={0}
-                  emptyValue={1}
-                  value={item.qty}
-                  onValueChange={(qty) => updateItem(item.id, { qty: qty ?? 0 })}
-                />
-              </Field>
-            </div>
+          <div className="inventory-card__grid inventory-card__grid--armor">
+            <Field label="Тип">
+              <select
+                className="play-select"
+                value={item.armor_kind}
+                onChange={(event) =>
+                  setArmorKind(item.id, event.target.value as ArmorKind)
+                }
+              >
+                {ARMOR_KINDS.map((kind) => (
+                  <option key={kind} value={kind}>
+                    {armorKindLabel(kind)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label={item.armor_kind === 'shield' ? 'Бонус' : 'База КД'}>
+              <NumberInput
+                min={0}
+                max={30}
+                emptyValue={item.armor_kind === 'shield' ? 2 : 10}
+                value={item.base_ac}
+                onValueChange={(base_ac) => updateItem(item.id, { base_ac })}
+              />
+            </Field>
+            <Field label="Вес">
+              <NumberInput
+                min={0}
+                step={0.1}
+                integer={false}
+                emptyValue={null}
+                value={item.weight_lb}
+                onValueChange={(weight_lb) => updateItem(item.id, { weight_lb })}
+              />
+            </Field>
+            <Field label="×">
+              <NumberInput
+                min={0}
+                emptyValue={1}
+                value={item.qty}
+                onValueChange={(qty) => updateItem(item.id, { qty: qty ?? 0 })}
+              />
+            </Field>
           </div>
         ) : (
           <div className="inventory-card__grid inventory-card__grid--dense">
@@ -864,15 +868,6 @@ export function InventoryPanel({
                 onValueChange={(weight_lb) => updateItem(item.id, { weight_lb })}
               />
             </Field>
-            <div className="inventory-card__notes-inline">
-              <Field label="Заметки">
-                <Input
-                  value={item.notes}
-                  placeholder="…"
-                  onChange={(event) => updateItem(item.id, { notes: event.target.value })}
-                />
-              </Field>
-            </div>
           </div>
         )}
 
@@ -983,15 +978,13 @@ export function InventoryPanel({
           </Text>
         ) : null}
 
-        {!nested && isArmorRow(item) ? (
-          <Field label="Примечания">
-            <Input
-              value={item.notes}
-              placeholder="Нет заметок…"
-              onChange={(event) => updateItem(item.id, { notes: event.target.value })}
-            />
-          </Field>
-        ) : null}
+        <Field label="Примечания">
+          <Input
+            value={item.notes}
+            placeholder="Нет заметок…"
+            onChange={(event) => updateItem(item.id, { notes: event.target.value })}
+          />
+        </Field>
 
         <div className="inventory-card__footer">
           {renderEquipChip(item)}

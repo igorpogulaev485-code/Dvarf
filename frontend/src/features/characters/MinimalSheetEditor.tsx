@@ -4442,7 +4442,8 @@ export function MinimalSheetEditor({
         favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
         onToggleConsumableFavorite={toggleCombatFavorite}
         onOpenAttunement={() => setAttunementDialogOpen(true)}
-        onOpenCoins={() => setCoinPadOpen(true)}
+        /* Header owns CoinPad only on wide desk; compact uses panel-local pad. */
+        onOpenCoins={isPlayDesk ? () => setCoinPadOpen(true) : undefined}
         onToast={onToast}
         onChange={(inventory) =>
           setDraft((prev) => ({

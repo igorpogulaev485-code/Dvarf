@@ -831,14 +831,15 @@ input {
 .inventory-panel__toolbar {
   position: sticky;
   top: 0;
-  z-index: 3;
+  /* Keep below portaled pads/dialogs (body z-index 50+). */
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   padding: 6px 0 8px;
   margin: 0 0 2px;
-  background: color-mix(in srgb, var(--desk-bg, #fff) 92%, transparent);
+  background: color-mix(in srgb, var(--desk-bg, var(--panel, #fff)) 96%, white);
   border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
 }
 
@@ -1099,14 +1100,6 @@ input {
   .inventory-coins:not(.inventory-coins--pad) {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-
-  .inventory-card__grid--dense {
-    grid-template-columns: 4.5rem 5.5rem;
-  }
-
-  .inventory-card__notes-inline {
-    grid-column: 1 / -1;
-  }
 }
 
 .inventory-filters {
@@ -1149,7 +1142,9 @@ input {
 
 .inventory-card--expand {
   gap: 8px;
-  padding: 10px 12px;
+  padding: 10px 12px 12px;
+  overflow: visible;
+  background: #fffdf8;
 }
 
 .inventory-card__collapse {
@@ -1169,14 +1164,23 @@ input {
   color: var(--ink);
 }
 
-.inventory-card__grid--dense {
-  grid-template-columns: 4.5rem 5.5rem minmax(0, 1fr);
-  gap: 8px;
-  align-items: end;
+.inventory-card__ac-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
 }
 
-.inventory-card__notes-inline {
-  min-width: 0;
+.inventory-card__grid--dense {
+  grid-template-columns: 4.5rem 5.5rem;
+  gap: 8px;
+  align-items: end;
 }
 
 .inventory-card__role-row {
@@ -1251,65 +1255,14 @@ input {
   color: var(--ink);
 }
 
-.inventory-card__armor-row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 12px 14px;
-  align-items: stretch;
-}
-
-.inventory-card__stats {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 88px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--accent-soft) 55%, white);
-  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--line));
-}
-
-.inventory-card__stat {
-  display: grid;
-  gap: 2px;
-  justify-items: center;
-  text-align: center;
-}
-
-.inventory-card__stat-value {
-  font-family: var(--font-display);
-  font-size: 1.7rem;
-  font-weight: 700;
-  line-height: 1.05;
-  color: var(--accent);
-  letter-spacing: -0.02em;
-}
-
-.inventory-card__stat-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-  color: var(--muted);
-}
-
-.inventory-card__stat-hint {
-  color: color-mix(in srgb, var(--muted) 85%, var(--ink));
-}
-
 .inventory-card__grid--armor {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
 }
 
 @media (min-width: 720px) {
   .inventory-card__grid--armor {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 639px) {
-  .inventory-card__armor-row {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -1953,7 +1906,8 @@ input {
 .ui-dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  /* Above play-desk sticky toolbars / header stacking contexts. */
+  z-index: 80;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -6915,9 +6869,10 @@ button.play-desk-vital:hover {
   border: 1px solid var(--desk-line);
   border-radius: 12px;
   background: #fff;
-  padding: 10px;
+  padding: 10px 10px 20px;
   overflow: auto;
   max-height: min(72vh, 920px);
+  scroll-padding-bottom: 24px;
 }
 
 .play-desk__stage-panel[hidden] {

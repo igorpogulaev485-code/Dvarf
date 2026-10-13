@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button'
 
 type NumberPadDialogProps = {
@@ -90,7 +91,7 @@ export function NumberPadDialog({
     setDigits((prev) => (prev + key).replace(/^0+(?=\d)/, '').slice(0, 8))
   }
 
-  return (
+  return createPortal(
     <div
       className="ui-dialog-backdrop"
       role="presentation"
@@ -165,6 +166,7 @@ export function NumberPadDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
