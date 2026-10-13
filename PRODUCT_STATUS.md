@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/desk-vitals-wave-a73e`  
+**Prod tip (ветка линии прода):** `cursor/create-pipeline-kit-prod-244b`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -552,6 +552,18 @@
 | Атаки «полностью» | Крупные +атака / урон на карточке; «Добавить атаку» sticky сверху блока | Полная панель читается как бой, не как форма |
 
 На проде: **частично** · ветка `cursor/desk-vitals-wave-a73e` · PR #118 · tip на проде без строки «Атаки полностью» до следующего деплоя · vitals/alt speeds проверены 2026-10-12
+
+### 2026-10-13 — Create pipeline kit LOCK (rest-create §D)
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Chrome create | stepper done/active, панели `--panel`, chips solid accent, footer «Шаг N из M» | Создание в языке кита |
+| Method-cards | Массив / Point buy / **4d6dl1** / Вручную | Как на доске; бросок с перебросом |
+| Setup-диалоги | race/class/background/subclass — `sheet-chip--block` | Тот же chrome, гранты без смены |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2o — **LOCK** (ok Игоря 2026-10-13).  
+На проде: **да** · ветка `cursor/create-pipeline-kit-prod-244b` · это **новый prod tip** · база `cursor/desk-vitals-wave-a73e` · проверено 2026-10-13: `/health` ok; бандл `CreateCharacterPage-BRhSoh5q.js` (`4d6, отбросить` / `Шаг`); CSS `index-D2PmPnY8.css` (`create-pipeline__method-card` / `sheet-chip--block`); alembic `z5i6` файл на диске; кабинет «Опасная зона» / classic / концентрация / лобби на месте
+
 
 ### 2026-10-12 — Play-desk polish layer-2 (шапка / rail / отдых / гримуар / чародейство)
 

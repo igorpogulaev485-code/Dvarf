@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Field, Input, Text } from '../../ui'
+import { EmptyState, Field, Input } from '../../ui'
 
 export type CatalogCardItem = {
   id: string
@@ -121,7 +121,7 @@ export function CatalogCardList({
       ) : null}
 
       {!filtered.length ? (
-        <Text tone="muted">{emptyText}</Text>
+        <EmptyState title="Пока пусто" description={emptyText} />
       ) : (
         <ul className="create-pipeline__card-list">
           {filtered.map((item) => {

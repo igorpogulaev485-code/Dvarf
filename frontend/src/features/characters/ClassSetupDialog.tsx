@@ -233,12 +233,12 @@ export function ClassSetupDialog({
                   <button
                     key={pack.id}
                     type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                    className={`sheet-chip sheet-chip--block${on ? ' is-on' : ''}`}
+                    aria-pressed={on}
                     onClick={() => setEquipmentPackageId(pack.id)}
                   >
-                    <strong>{pack.labelRu}</strong>
-                    <div style={{ opacity: 0.85, fontWeight: 400 }}>{pack.summary}</div>
+                    <strong className="sheet-chip__title">{pack.labelRu}</strong>
+                    <div className="sheet-chip__meta">{pack.summary}</div>
                   </button>
                 )
               })}
