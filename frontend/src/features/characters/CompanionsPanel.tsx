@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import {
   Button,
+  Dialog,
   Field,
   Input,
   NumberInput,
@@ -80,6 +81,7 @@ function IconPlus() {
 export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) {
   const [filter, setFilter] = useState<CompanionFilter>('all')
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set())
+  const [addForkOpen, setAddForkOpen] = useState(false)
 
   const visible = useMemo(() => {
     return companions.filter((row) => {
@@ -158,21 +160,50 @@ export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) 
             type="button"
             variant="secondary"
             className="inventory-toolbar-btn"
-            onClick={() => addManual('other')}
+            onClick={() => setAddForkOpen(true)}
           >
             <IconPlus />
-            Спутник
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            className="inventory-toolbar-btn"
-            onClick={() => addManual('ally')}
-          >
-            <IconPlus />
-            Напарник
+            Добавить
           </Button>
         </div>
+
+        <Dialog
+          open={addForkOpen}
+          title="Кого добавить?"
+          primaryLabel="Отмена"
+          onPrimary={() => setAddForkOpen(false)}
+          onSecondary={() => setAddForkOpen(false)}
+        >
+          <div className="companions-add-fork">
+            <Text tone="muted">Выбери тип — потом можно сменить в карточке.</Text>
+            <button
+              type="button"
+              className="companions-add-fork__choice"
+              onClick={() => {
+                addManual('other')
+                setAddForkOpen(false)
+              }}
+            >
+              <strong>Спутник</strong>
+              <span>
+                Постоянный компаньон архетипа: зверь, дрейк, стальной защитник, пушка…
+              </span>
+            </button>
+            <button
+              type="button"
+              className="companions-add-fork__choice"
+              onClick={() => {
+                addManual('ally')
+                setAddForkOpen(false)
+              }}
+            >
+              <strong>Напарник / призыв</strong>
+              <span>
+                Временный союзник от умения: дух, призванное существо и т.п.
+              </span>
+            </button>
+          </div>
+        </Dialog>
 
         <div className="inventory-filters" role="tablist" aria-label="Фильтр напарников">
           {FILTERS.map((row) => (
@@ -192,7 +223,7 @@ export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) 
         {companions.length === 0 ? (
           <Text tone="muted">
             Пока пусто. Спутники — от архетипа (зверь, дрейк, пушка…). Призывы — кнопка
-            «Использовать» на умении или «+ Напарник».
+            «Использовать» на умении или «+ Добавить».
           </Text>
         ) : null}
 

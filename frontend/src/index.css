@@ -1812,6 +1812,44 @@ input {
   align-items: center;
 }
 
+.companions-add-fork {
+  display: grid;
+  gap: 10px;
+}
+
+.companions-add-fork__choice {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-soft) 35%, white);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.companions-add-fork__choice:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 60%, white);
+}
+
+.companions-add-fork__choice strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.companions-add-fork__choice span {
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
 /* Features stage: flat like explore/social — no cream panel plate. */
 .features-panel.ui-panel {
   background: transparent;

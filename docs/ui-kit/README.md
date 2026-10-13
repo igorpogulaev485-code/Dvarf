@@ -267,7 +267,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | Stage | `CompanionsPanel` сразу (glance→expand) |
 | Без flip | нет «полностью» / «← компактно» / `PlayDeskCompanionsCompact` |
 | Expand | multi-open; toolbar свернуть/развернуть все |
-| Добавить | sticky «+ Спутник» / «+ Напарник» |
+| Добавить | sticky «+ Добавить» → развилка Спутник / Напарник (Dialog) |
 | Фильтры | Все / Спутники / Призывы / От умения |
 | Строка | имя · тип · КД/HP/скорость · основной |
 | Логика | create/update/remove без изменений (`companions.ts`) |
