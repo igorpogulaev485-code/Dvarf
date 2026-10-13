@@ -544,6 +544,16 @@
 
 ## В ветках / ещё не на проде
 
+### 2026-10-13 — быстрые релизы Docker (ещё не на проде)
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Prebuild SPA на агенте | `sync-and-up` гоняет `npm run build`, на VPS только nginx+dist | Релиз не ждёт node/npm на Timeweb |
+| Умный remote-up | rebuild по fingerprint, без pull Hub, legacy builder + timeout | Минуты вместо часа / меньше падений BuildKit |
+
+На проде: **нет** · ветка `cursor/fast-docker-release-93e5` · PR #143
+
+
 <!-- tip feats-pickers: FEATS стек залит 2026-10-07; мягкие note (туз/хроматика/хаос-таблица) — динамика, не заглушки пикеров -->
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
