@@ -1,3 +1,4 @@
+export { AppearancePanel } from './AppearancePanel'
 export { AuthProvidersPanel } from './AuthProvidersPanel'
 export { AvatarEditor } from './AvatarEditor'
 export { ChangeEmailForm } from './ChangeEmailForm'

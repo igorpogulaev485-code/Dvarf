@@ -5,6 +5,7 @@ import { CharactersPage } from './pages/CharactersPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
 import { safeNextPath } from './shared/auth/nextPath'
+import { AccountAppearanceSync } from './shared/theme/AccountAppearanceSync'
 
 const CabinetPage = lazy(() =>
   import('./pages/CabinetPage').then((m) => ({ default: m.CabinetPage })),
@@ -81,6 +82,7 @@ function AuthLazy({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <AccountAppearanceSync />
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/login" element={<LoginRoute />} />

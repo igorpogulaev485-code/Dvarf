@@ -36,6 +36,38 @@
   --abil-cha-soft: #efe0ea;
 }
 
+/* Wave B — account theme swaps only accent tokens (docs/ui-kit §2n) */
+html[data-theme='str'] {
+  --accent: #9a4a32;
+  --accent-soft: #f3e0d6;
+}
+html[data-theme='dex'] {
+  --accent: #3d6b5a;
+  --accent-soft: #dcece4;
+}
+html[data-theme='con'] {
+  --accent: #8a6a2f;
+  --accent-soft: #f1e6c8;
+}
+html[data-theme='int'] {
+  --accent: #3f5f8a;
+  --accent-soft: #dde6f2;
+}
+html[data-theme='wis'] {
+  --accent: #5a6b3d;
+  --accent-soft: #e5ecd4;
+}
+html[data-theme='cha'] {
+  --accent: #7a4a6e;
+  --accent-soft: #efe0ea;
+}
+
+/* Optional: all ability blocks follow account accent (calmer rail) */
+html[data-ability-colors='theme'] .abil-block[data-abil] {
+  --abil: var(--accent);
+  --abil-soft: var(--accent-soft);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -888,7 +920,171 @@ input {
   font-weight: 600;
 }
 
+.cabinet-header {
+  display: grid;
+  gap: 10px;
+}
 
+.cabinet-header h1 {
+  margin: 0;
+}
+
+.cabinet-layout {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 960px) {
+  .cabinet-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .cabinet-layout__profile,
+  .cabinet-layout__appearance,
+  .cabinet-layout__sessions,
+  .cabinet-layout__danger {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1200px) {
+  .cabinet-layout {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cabinet-layout__profile {
+    grid-column: span 1;
+  }
+
+  .cabinet-layout__appearance {
+    grid-column: span 2;
+  }
+
+  .cabinet-layout__sessions,
+  .cabinet-layout__danger {
+    grid-column: 1 / -1;
+  }
+}
+
+.cabinet-appearance__label {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--accent);
+}
+
+.cabinet-appearance__hint {
+  margin: 0 0 10px;
+}
+
+.cabinet-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.cabinet-theme-card {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.cabinet-theme-card:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--swatch) 45%, var(--line));
+}
+
+.cabinet-theme-card.is-on {
+  border-color: var(--swatch);
+  background: var(--swatch-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--swatch) 35%, transparent);
+}
+
+.cabinet-theme-card:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.cabinet-theme-card__swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px rgba(45, 45, 42, 0.12);
+}
+
+.cabinet-theme-card__meta {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cabinet-theme-card__name {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.cabinet-theme-card__sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cabinet-ability-mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.cabinet-ability-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cabinet-ability-preview__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  padding: 6px 10px;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--abil);
+  background: color-mix(in srgb, var(--abil-soft) 70%, white);
+  border-left-width: 3px;
+}
+
+.cabinet-appearance__preview {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--line);
+}
+
+.cabinet-appearance__preview-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.cabinet-appearance__preview-row .ui-button {
+  pointer-events: none;
+}
 
 .ui-password-input {
   position: relative;
