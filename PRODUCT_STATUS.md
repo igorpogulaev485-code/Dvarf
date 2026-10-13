@@ -546,7 +546,7 @@
 | На проде снова кнопка **ЕЩЁ**; нет `IdentityDialog` | Параллельная tip-линия `cabinet-theme-a73e` (drop ЕЩЁ) не была merge в `create-pipeline`→`deploy-guardrails`; деплой затёр Wave A код, хотя UI Kit писал «Сцена ЕЩЁ \| нет» | Merge `cabinet-theme` → live tip `deploy-guardrails` = ветка `cursor/restore-wave-a-desk-0ed9` |
 | Дыра в правилах | `preflight-live` смотрел только ancestry tip, не файлы на диске; tip писали в AGENTS нескольких веток; LOCK в доках без маркера в preflight | `deploy/prod-tip` + маркеры IdentityDialog / запрет ЕЩЁ + live-disk high-water в `preflight-live` |
 
-На проде: **после деплоя этой ветки — да** · `cursor/restore-wave-a-desk-0ed9` · проверить: нет «ЕЩЁ» в режимах; аватар → Основное
+На проде: **да** · это **новый prod tip** `cursor/restore-wave-a-desk-0ed9` · проверено 2026-10-13: `/health` ok; alembic `a6b7`; бандл `CharacterDetailPage-Eo1ZtRDR.js`; режимы без «ЕЩЁ» (Бой·Исследование·Общение·Напарники·Способности); `IdentityDialog.tsx` на диске; create-pipeline + remote-up на месте
 
 
 ## В ветках / ещё не на проде
