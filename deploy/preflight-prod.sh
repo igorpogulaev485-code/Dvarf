@@ -23,6 +23,11 @@ require() {
   fi
 }
 
+fail() {
+  echo "FAIL: $*" >&2
+  MISSING=1
+}
+
 echo "=== Dvarf prod preflight (anti-overwrite) ==="
 echo "tree: $ROOT"
 echo
@@ -57,13 +62,47 @@ require "frontend/src/features/classicSheet/ClassicBackgroundPicker.tsx" "classi
 
 require "backend/app/api/routers/catalog.py" "справочник API"
 
+# Fast release path — must not be dropped by tip-orphan deploys.
+require "deploy/remote-up.sh" "быстрый remote-up (не docker compose --build на VPS)"
+require "deploy/preflight-live.sh" "live tip + alembic guard"
+require "frontend/Dockerfile.full" "fallback full frontend Dockerfile"
+
 # Spot-check: digital sheet must not still say multiclass is backlog-only
 if grep -q 'Мультикласс — в backlog; пока один класс' \
   frontend/src/features/characters/MinimalSheetEditor.tsx 2>/dev/null; then
-  echo "FAIL: MinimalSheetEditor still has multiclass backlog hint — merge sheet P5 tip" >&2
-  MISSING=1
+  fail "MinimalSheetEditor still has multiclass backlog hint — merge sheet P5 tip"
 else
   echo "ok: multiclass backlog hint absent"
+fi
+
+# Frontend Dockerfile must be nginx+dist (prebuilt), not node build on VPS.
+if [[ "${DVARF_FRONTEND_DOCKERFILE:-Dockerfile}" == "Dockerfile" ]]; then
+  if head -n 5 frontend/Dockerfile | grep -qiE 'FROM[[:space:]]+node'; then
+    fail "frontend/Dockerfile starts with node — releases will hang on VPS. Use nginx+dist prebuild (see deploy/README.md)"
+  elif grep -q 'COPY dist/' frontend/Dockerfile && grep -qiE 'FROM[[:space:]]+nginx' frontend/Dockerfile; then
+    echo "ok: frontend/Dockerfile is nginx+dist prebuild"
+  else
+    fail "frontend/Dockerfile must COPY dist/ into nginx (prebuild path)"
+  fi
+fi
+
+# sync-and-up must call remote-up, not bare compose --build
+if grep -q 'deploy/remote-up.sh' deploy/sync-and-up.sh \
+  && ! grep -qE 'docker compose .*up -d --build' deploy/sync-and-up.sh; then
+  echo "ok: sync-and-up uses remote-up (not bare --build)"
+else
+  fail "deploy/sync-and-up.sh must call remote-up.sh and must not run 'docker compose … up -d --build'"
+fi
+
+# Local alembic revisions must parse (supports `revision =` and `revision: str =`).
+REV_COUNT="$(
+  grep -RhoE '^revision[[:space:]]*(:[[:space:]]*str)?[[:space:]]*=[[:space:]]*[\"'"'"'][a-zA-Z0-9_]+[\"'"'"']' \
+    backend/alembic/versions 2>/dev/null | wc -l | tr -d ' '
+)"
+if [[ "${REV_COUNT:-0}" -lt 1 ]]; then
+  fail "no alembic revision ids found under backend/alembic/versions"
+else
+  echo "ok: alembic revisions on disk ($REV_COUNT ids)"
 fi
 
 echo
@@ -71,13 +110,15 @@ if [[ "$MISSING" -ne 0 ]]; then
   cat >&2 <<'EOF'
 PREFLIGHT FAILED.
 
-Этот tree нельзя заливать на Timeweb: не хватает контуров, которые уже были на проде.
-Деплой затёр бы их (sync-and-up заменяет всё /opt/dvarf кроме .env).
+Этот tree нельзя заливать на Timeweb: не хватает контуров / сломан deploy-path.
+Деплой затёр бы прод или снова ушёл в часовой docker build.
 
 Сделай:
   git fetch origin
-  git merge origin/<current-prod-tip>   # см. AGENTS.md / .cursor/skills/dvarf-prod-lineage
+  # LIVE tip — с сервера / AGENTS.md на tip-ветке, не из своей устаревшей копии
+  git merge origin/<live-prod-tip>
   # или начни ветку заново от tip
+  # НЕ сшивай orphan cherry-pick'ами «на глаз»
 
 Обход только с явного ok Игоря:
   DVARF_SKIP_PREFLIGHT=1 ./deploy/sync-and-up.sh

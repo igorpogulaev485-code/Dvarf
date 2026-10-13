@@ -25,10 +25,13 @@
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
+**Источник истины для tip перед деплоем — живой сервер**, не устаревшая копия `AGENTS.md` в своей ветке.  
+`deploy/preflight-live.sh` читает tip с VPS и требует: `origin/<live-tip>` — ancestor of `HEAD`.
+
 Перед работой над продом / перед деплоем:
 
 1. `git fetch origin`
-2. Взять **prod tip** из таблицы выше (или из `PRODUCT_STATUS` / skill, если tip обновили).
+2. Взять **prod tip** с живого `/opt/dvarf/AGENTS.md` (или из таблицы выше, если только что сверял сервер).
 3. Свою ветку строить **от tip**: `git checkout -b cursor/<slice>-acbe origin/<prod-tip>`  
    или влить tip в свою ветку: `git merge origin/<prod-tip>` (без потери чужих файлов).
 4. Убедиться, что маркер-файлы tip на месте (см. preflight).
@@ -38,24 +41,34 @@
 - обнови tip в этом файле, в skill `dvarf-prod-lineage`, в `deploy/README.md`, в `PRODUCT_STATUS.md`;
 - напиши в PR: «это новый prod tip».
 
+### Запрещённые антипаттерны (уже жгли часы релизов)
+
+| Нельзя | Почему | Что делать |
+|--------|--------|------------|
+| Деплой с orphan / пустым `merge-base` vs tip | Час cherry-pick, потеря 30+ коммитов прода | `git merge origin/<live-tip>` или ветка заново от tip |
+| Заливать дерево без миграции, которая уже в prod DB | API падает на `alembic upgrade` | Подтянуть файл ревизии с tip до деплоя |
+| Вернуть `docker compose up -d --build` / node Dockerfile на VPS | Hub/BuildKit висят 27–60+ мин | Оставить `remote-up.sh` + nginx+dist prebuild |
+| Считать tip = то, что написано в своей старой ветке | Tip уже сменился на сервере | Сверить live AGENTS / `preflight-live` |
+
 ---
 
 ## 3. Чеклист ДО `sync-and-up.sh`
 
-Обязательно:
+Обязательно (вызывается из `sync-and-up` само):
 
 ```bash
-./deploy/preflight-prod.sh
+./deploy/preflight-prod.sh   # файлы + fast-deploy path
+./deploy/preflight-live.sh   # live tip ancestry + alembic vs DB (нужен SSH)
 ```
 
-Скрипт падает, если нет обязательных файлов текущего прода (lobby + cabinet + avatar + sheet P1–P6 + classic).  
-`sync-and-up.sh` вызывает preflight сам. Обход только так: `DVARF_SKIP_PREFLIGHT=1` — и только с явного ok Игоря.
+Падает, если: нет контуров прода; нет `remote-up`; frontend снова на node; **live tip не ancestor**; **в БД alembic-ревизия, которой нет в дереве**.  
+Обход только с явного ok Игоря: `DVARF_SKIP_PREFLIGHT=1` и/или `DVARF_SKIP_LIVE_PREFLIGHT=1`.
 
 Дополнительно глазами:
 
-- [ ] Ветка содержит merge/rebase **prod tip**, не параллельную «пустую» развилку от старого Phase A
+- [ ] Ветка = merge/rebase **live tip**, не cherry-pick сшивка
 - [ ] `PRODUCT_STATUS.md` актуален; не пишешь «на проде: да» заранее
-- [ ] Нет удаления чужих роутов/панелей «потому что мне не нужны»
+- [ ] Нет удаления чужих роутов/панелей / `deploy/remote-up.sh`
 
 ---
 
