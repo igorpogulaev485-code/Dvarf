@@ -679,7 +679,8 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 | Hot chip | `is-on`, когда есть состояния / истощение |
 | Токены | `--card` / `--accent-soft` (без кремового фона) |
 
-На проде: **нет** · ветка `cursor/hot-conditions-dialog-a73e` · база `cursor/hot-bar-audit-a73e`
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2e — **LOCK** («Идеал» 2026-10-13).  
+На проде: **нет** · ветка `cursor/hot-conditions-dialog-a73e` · PR #130 · база `cursor/hot-bar-audit-a73e`
 
 ### 2026-10-12 — Wave A header: desk icons + vitals
 
