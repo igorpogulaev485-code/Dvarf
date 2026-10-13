@@ -562,7 +562,7 @@
 | Setup-диалоги | race/class/background/subclass — `sheet-chip--block` | Тот же chrome, гранты без смены |
 
 Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2o — **LOCK** (ok Игоря 2026-10-13).  
-На проде: **да** · ветка `cursor/create-pipeline-kit-prod-244b` · это **новый prod tip** · база `cursor/desk-vitals-wave-a73e`
+На проде: **да** · ветка `cursor/create-pipeline-kit-prod-244b` · это **новый prod tip** · база `cursor/desk-vitals-wave-a73e` · проверено 2026-10-13: `/health` ok; бандл `CreateCharacterPage-BRhSoh5q.js` (`4d6, отбросить` / `Шаг`); CSS `index-D2PmPnY8.css` (`create-pipeline__method-card` / `sheet-chip--block`); alembic `z5i6` файл на диске; кабинет «Опасная зона» / classic / концентрация / лобби на месте
 
 
 ### 2026-10-12 — Play-desk polish layer-2 (шапка / rail / отдых / гримуар / чародейство)
