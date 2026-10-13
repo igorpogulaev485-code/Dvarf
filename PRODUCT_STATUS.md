@@ -1295,6 +1295,7 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-13 | `cursor/hot-conditions-dialog-a73e` | Hot conditions dialog candy: sections, quick chips, icons |
 | 2026-10-13 | `cursor/hot-bar-audit-a73e` | Hot-bar audit: logic ok; kit icon gap + resource duplex noted |
 | 2026-10-13 | `cursor/attacks-settings-dialog-a73e` · PR #127 | Attacks LOCK in ui-kit §2d (Идеал) |
 | 2026-10-13 | `cursor/attacks-settings-dialog-a73e` | Attacks settings dialog (hybrid D): Настройки instead of full panel |

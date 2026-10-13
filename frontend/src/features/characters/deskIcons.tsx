@@ -114,3 +114,28 @@ export function IconSkull(props: IconProps) {
     </Svg>
   )
 }
+
+/** Conditions — linked nodes (kit desk-chrome §D) */
+export function IconConditions(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle {...stroke} cx="7.2" cy="8.2" r="2.4" />
+      <circle {...stroke} cx="16.8" cy="8.2" r="2.4" />
+      <circle {...stroke} cx="12" cy="16.2" r="2.4" />
+      <path {...stroke} d="M9.2 9.4 10.4 14.2M14.8 9.4 13.6 14.2M9.6 8.2h4.8" />
+    </Svg>
+  )
+}
+
+/** Exhaustion — stacked bars */
+export function IconExhaustion(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path {...stroke} d="M5.5 17.5h13" />
+      <path {...stroke} d="M6.5 14h11" />
+      <path {...stroke} d="M7.5 10.5h9" />
+      <path {...stroke} d="M8.5 7h7" />
+      <path {...stroke} d="M9.5 3.5h5" />
+    </Svg>
+  )
+}

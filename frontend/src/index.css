@@ -2951,26 +2951,79 @@ button.spell-card__cast:hover:not(:disabled) {
   gap: 12px;
 }
 
-.hot-conditions__exhaustion {
+.hot-conditions__card {
   display: grid;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 10px;
+  padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: color-mix(in srgb, #fff4e8 70%, white);
+  background: var(--card, #fff);
 }
 
-.hot-conditions__exh-head {
+.hot-conditions__card.is-on {
+  background: var(--accent-soft, var(--desk-accent-soft));
+  border-color: color-mix(in srgb, var(--accent, var(--desk-accent)) 35%, var(--line));
+}
+
+.hot-conditions__card-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
 }
 
+.hot-conditions__card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 650;
+  color: var(--ink, var(--desk-ink));
+}
+
+.hot-conditions__icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  color: var(--accent, var(--desk-accent));
+  flex: 0 0 auto;
+}
+
+.hot-conditions__count {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hot-conditions__exh-select {
+  width: auto;
+  min-width: 11rem;
+  max-width: 16rem;
+}
+
 .hot-conditions__exh-stage {
   margin: 0;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.hot-conditions__active {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hot-conditions__quick {
+  max-height: 11rem;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.hot-conditions__quick .sheet-chip {
+  cursor: pointer;
+}
+
+.tag-chip.is-on {
+  background: var(--accent-soft, var(--desk-accent-soft));
+  border-color: color-mix(in srgb, var(--accent, var(--desk-accent)) 40%, var(--line));
 }
 
 .number-pad__display {
