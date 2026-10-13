@@ -695,9 +695,6 @@ export function InventoryPanel({
                 {statusTag}
               </span>
             ) : null}
-            {item.requires_attunement && bucket === 'other' ? (
-              <span className="attack-held-tag">настройка</span>
-            ) : null}
             {item.wear_slot && item.wear_slot !== 'none' && bucket === 'other' ? (
               <span className="attack-held-tag">{WEAR_SLOT_LABEL_RU[item.wear_slot]}</span>
             ) : null}
