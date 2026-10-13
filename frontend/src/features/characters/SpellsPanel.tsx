@@ -47,7 +47,6 @@ import {
   canSpendGrantCast,
   countLearnedCantrips,
   countPreparedLeveled,
-  createSheetSpell,
   ensureInnateGrantCasts,
   ensureKnownSpellsReady,
   grantCastRemaining,
@@ -986,14 +985,9 @@ export function SpellsPanel({
           })
         )}
 
-        <div>
-          <Button
-            variant="secondary"
-            onClick={() => patch({ known: [...spells.known, createSheetSpell()] })}
-          >
-            Своё (homebrew)
-          </Button>
-        </div>
+        <Text tone="muted">
+          Новые заклинания — через гримуар (справочник → добавить на лист).
+        </Text>
       </Stack>
 
       <PrepareSpellsDialog

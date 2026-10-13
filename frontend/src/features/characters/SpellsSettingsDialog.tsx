@@ -30,7 +30,6 @@ import {
 } from './spellIcons'
 import {
   canRemoveSheetSpell,
-  createSheetSpell,
   grantCastRemaining,
   groupSpellsByLevel,
   isGrantedSpellHighlight,
@@ -365,13 +364,15 @@ export function SpellsSettingsDialog({
             >
               {advancedOpen ? 'Скрыть расширенное' : 'Расширенное'}
               <span className="spells-settings-dialog__advanced-hint">
-                ручные поля, homebrew, удаление
+                ручные поля, удаление
               </span>
             </button>
             {advancedOpen ? (
               <Stack gap={12}>
                 {groups.length === 0 ? (
-                  <Text tone="muted">Пока нет заклинаний — добавь из гримуара или своё.</Text>
+                  <Text tone="muted">
+                    Пока нет заклинаний — открой гримуар и добавь из справочника.
+                  </Text>
                 ) : (
                   groups.map((group) => (
                     <div key={group.level} className="spell-level-block">
@@ -575,14 +576,9 @@ export function SpellsSettingsDialog({
                     </div>
                   ))
                 )}
-                <div>
-                  <Button
-                    variant="secondary"
-                    onClick={() => patch({ known: [...spells.known, createSheetSpell()] })}
-                  >
-                    Своё (homebrew)
-                  </Button>
-                </div>
+                <Text tone="muted">
+                  Новые заклинания — только через гримуар (справочник → добавить на лист).
+                </Text>
               </Stack>
             ) : null}
           </div>
