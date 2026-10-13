@@ -111,6 +111,8 @@ export type AbilityMethod = 'manual' | 'standard_array' | 'point_buy' | 'roll'
 /** One ability roll: 4d6, drop the lowest die. */
 export type AbilityRollDetail = {
   dice: [number, number, number, number]
+  /** Index of the discarded die in `dice` (first lowest on ties). */
+  dropIndex: number
   dropped: number
   total: number
 }
@@ -128,7 +130,7 @@ export function roll4d6DropLowest(): AbilityRollDetail {
   }
   const dropped = dice[dropIndex]!
   const total = dice.reduce((sum, n, i) => (i === dropIndex ? sum : sum + n), 0)
-  return { dice, dropped, total }
+  return { dice, dropIndex, dropped, total }
 }
 
 export function rollAllAbilities(): {
