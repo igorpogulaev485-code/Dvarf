@@ -94,7 +94,7 @@ Wave A chrome завязан на `isPlayDesk` (`min-width: 960px`). На тел
 | `social` | texts |
 | `features` | features |
 | `companions` | companions |
-| `more` | abilities \| ownership (sheets); identity from avatar |
+| *(нет more/ЕЩЁ)* | identity ← avatar; abilities/ownership ← sheets из vitals; conditions ← HotStrip |
 
 Десктопные `deskMode` / compact можно оставить для ≥960; на mobile — отдельный ключ или адаптер, **без** стека.
 
@@ -121,8 +121,8 @@ Wave A chrome завязан на `isPlayDesk` (`min-width: 960px`). На тел
 
 **Слайс M0.4 — Combat scene + abilities entry**  
 - Бой = атаки (+ сегмент заклинания)  
-- Ещё → Характеристики (abilities tab/sheet)  
-- Владения → bottom sheet  
+- Характеристики → sheet из vitals (без tab ЕЩЁ)  
+- Владения → bottom sheet из Характеристик  
 - Density `*-card__combat`
 
 **Критерий P0:** K2, K3, K6, K7 проходят на 390px; Rest/Conditions/атака доступны; нет стека панелей.
@@ -263,9 +263,13 @@ Mobile path (этот документ):
 
 ---
 
-## 12. Решение, которое нужно от Игоря сейчас
+## 12. Решения Игоря (2026-10-13)
 
-1. **Ок мобильный UI Kit** (`docs/ui-kit-mobile/`) как контракт?  
-2. **Ок Bottom Scene Nav** (а не возврат MOB select «Панель»)?  
-3. **Ок фазы P0→P1→P2** и старт с M0.1 после ok?  
-4. Имя таба «Сумка» vs «Исслед.» / «Речь» vs «Общение» — ок копирайт?
+| # | Вопрос | Решение |
+|---|--------|---------|
+| 1 | Mobile UI Kit как контракт | **Ок**, но сначала **картинки/доски**, как у десктопа; код после визуала |
+| 2 | Bottom Scene Nav вместо select «Панель» | **Ок** |
+| 3 | Копирайт табов | **Как на десктопе после Wave A LOCK:** Бой · Исследование · Общение · Напарники · Способности. **ЕЩЁ нет** (разнесено: identity/hot/владения/attune) |
+| 4 | Старт кода M0.1 | **Только после** ok на картинки кита |
+
+Следующий шаг: доски в `docs/ui-kit-mobile/boards/*.jpg` → ok Игоря на визуал → M0.1.

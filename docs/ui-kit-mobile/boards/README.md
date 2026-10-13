@@ -4,9 +4,16 @@
 
 Десктопные доски остаются в [`../../ui-kit/boards/`](../../ui-kit/boards/) — **не копировать и не переписывать** их под телефон.
 
-Очередь первых досок (после ok кита):
+Доски (JPG, стиль Листва как desktop kit):
 
-1. `mobile-shell` — vitals + HotStrip + Bottom Scene Nav  
-2. `mobile-sheets` — HpPad / Rest / Conditions / Cast  
-3. `mobile-combat-density` — attack/spell/inventory combat rows  
-4. `mobile-create-lobby` — StepRail footer + Lobby Hero accordion  
+| Файл | Содержание |
+|------|------------|
+| `dvarf-mobile-kit-catalog.jpg` | Сводный каталог мобильного кита |
+| `dvarf-mobile-kit-shell.jpg` | Phone shell: vitals + HotStrip + сцена + Bottom Nav |
+| `dvarf-mobile-kit-nav-vitals.jpg` | Bottom Nav (имена desktop) + MobileVitalsBar + HotStrip |
+| `dvarf-mobile-kit-sheets.jpg` | Bottom sheets: HP / Rest / Conditions / Cast |
+| `dvarf-mobile-kit-scenes.jpg` | Сцены Бой · Исследование · Общение · … |
+| `dvarf-mobile-kit-create-lobby.jpg` | Create StepRail + Lobby Hero на телефоне |
+
+Табы: **Бой · Исследование · Общение · Напарники · Способности** (desktop после drop ЕЩЁ).  
+Сцены «ЕЩЁ» в мобильном ките **нет**.  

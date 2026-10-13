@@ -24,21 +24,21 @@
 | Расходники ★ в бою | 🟡 | под атаками в Бою | P1 |
 | Заклинания Каст / upcast | 🟡 в стеке | Бой → Заклинания | P0 |
 | Гримуар / Подготовить / слоты | 🟡 | Книга sheet | P1 |
-| Инвентарь glance/expand | 🟡 | Tab Сумка | P0 |
-| Attunement 0–3 | 🟡 панель в стеке | из summary Сумки | P1 |
-| Тексты / личность | 🟡 | Tab Речь | P1 |
-| Умения / ресурсы spend | 🟡 | Tab Умения | P1 |
-| Напарники CRUD | 🟡 | Tab Напарн. | P1 |
+| Инвентарь glance/expand | 🟡 | Tab Исследование | P0 |
+| Attunement 0–3 | 🟡 панель в стеке | из summary Исследования | P1 |
+| Тексты / личность | 🟡 | Tab Общение | P1 |
+| Умения / ресурсы spend | 🟡 | Tab Способности | P1 |
+| Напарники CRUD | 🟡 | Tab Напарники | P1 |
 | Companion dock | ❌ | optional strip P2 | P2 |
-| Ability rail + навыки | 🟡 всегда сверху | Ещё → Характеристики | P0 |
-| Владения drawer | ❌ CTA desk-only | Ещё → sheet | P0 |
+| Ability rail + навыки | 🟡 всегда сверху | vitals → sheet Характеристики (без tab ЕЩЁ) | P0 |
+| Владения drawer | ❌ CTA desk-only | из Характеристик → sheet | P0 |
 | Identity / аватар / классы | 🟡 в стеке | who/avatar → sheet | P0 |
 | Skill strips + преим/помеха | ❌ | P1 в Бою / Характеристиках | P1 |
 | Split spells | ❌ N/A | segmented, не split | P1 |
 | Autosave / conflict | ✅ | сохранить copy WAVE | P0 |
 | XP pad / history | ❌ | vitals ⋯ / sheet | P1 |
 | Speed modes (лаз/плав/полёт) | 🟡 | vitals tip/sheet | P1 |
-| Level-up / архетип | 🟡 | Identity / Ещё | P1 |
+| Level-up / архетип | 🟡 | Identity sheet | P1 |
 
 ---
 

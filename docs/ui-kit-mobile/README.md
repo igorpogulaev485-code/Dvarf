@@ -10,6 +10,8 @@ Skill: [`.cursor/skills/dvarf-ui-kit-mobile/SKILL.md`](../../.cursor/skills/dvar
 
 Прод: http://201.34.132.252/ · breakpoint телефона: **`<960px`** (тот же `isPlayDesk`, что у десктопа).
 
+> **ЕЩЁ:** в desktop UI Kit LOCK сцена упразднена (функционал разнесён). На живом бандле tip `create-pipeline-kit-prod-244b` кнопка ЕЩЁ ещё может быть — целевая модель для мобилки = **5 сцен** как в `characters-list-kit` / kit §2k («Сцена ЕЩЁ | нет»).
+
 ---
 
 ## 0. Зачем отдельный кит
@@ -132,22 +134,34 @@ Icons: те же `IconConditions` / `IconConcentration` / `IconPouch`.
 
 ### 3.4 Bottom Scene Nav
 
-| Tab id | Label | Primary сцена | Secondary (sheet / segmented) |
-|--------|-------|---------------|-------------------------------|
-| `combat` | Бой | Атаки (combat density) | Заклинания — segmented / second tab row |
-| `explore` | Сумка | Инвентарь | Attunement из summary |
-| `social` | Речь | Тексты | — |
-| `features` | Умения | ClassFeatures | — |
-| `companions` | Напарн. | Companions | — |
-| `more` | Ещё | segmented: Характеристики · Владения · (без дубля состояний) | Identity — из аватара |
+| Tab id | Label (desktop `MODE_LABELS` после drop ЕЩЁ) | Primary сцена | Secondary |
+|--------|-----------------------------------------------|---------------|-----------|
+| `combat` | **Бой** | Атаки (combat density) | Заклинания — segmented |
+| `explore` | **Исследование** | Инвентарь | Attunement из summary |
+| `social` | **Общение** | Тексты | — |
+| `companions` | **Напарники** | Companions | — |
+| `features` | **Способности** | ClassFeatures | — |
+
+**Сцены «ЕЩЁ» нет** — как в desktop UI Kit LOCK (§2e/2j/2k) и ветке `characters-list-kit` (legacy `more` → `combat`).  
+Бывший функционал ЕЩЁ на телефоне тоже **разнесён**, не собираем обратно в tab:
+
+| Было в ЕЩЁ | Куда на mobile (паритет desktop LOCK) |
+|------------|----------------------------------------|
+| Состояния | HotStrip → Conditions sheet |
+| Основное / identity | аватар / who → Identity sheet |
+| Настройка (attunement) | Исследование summary → Attunement sheet |
+| Владения | из Характеристик CTA «Владения ▸» → bottom sheet (не left drawer) |
+| Характеристики (rail) | отдельный вход: chip/кнопка в vitals или sheet «Характеристики» — **не** 6-й tab «ЕЩЁ» |
+
+Короткие подписи под иконкой ок (`Исслед.` / `Способн.`); `aria-label` = полный label.
 
 **Правила**
 
 - Ровно **одна** сцена на экране (`play-desk__body--mobile` + `stageHidden`).
 - Tab active = solid accent; иконка + короткий label.
 - Высота ≥ `--tap-comfy` + safe-area.
-- Режим «Ещё» **не** свалка: только то, что не в других табах; состояния — через HotStrip.
-- Характеристики **не** в permanent top rail: вход — tab «Ещё → Характеристики» или отдельный 6-й/внутри More (как MOB abilities tab).
+- **Не** возвращать tab/сцену «ЕЩЁ».
+- Характеристики **не** permanent top rail: sheet/вход из vitals (паритет desktop left rail без 6-го режима).
 
 Рекомендуемый default tab при открытии листа: **Бой** (time-to-attack).
 
@@ -160,10 +174,10 @@ Icons: те же `IconConditions` / `IconConcentration` / `IconPouch`.
 | Rest | Отдых | кости / короткий / длинный |
 | Conditions | HotStrip | exhaustion + on-character + quick pick |
 | Cast | Каст | upcast / источник / conc swap |
-| Ownership | Ещё → Владения | скорости/ТЗ · снаряжение · языки/инструменты |
+| Ownership | из Характеристик «Владения ▸» | скорости/ТЗ · снаряжение · языки/инструменты |
 | Identity | аватар / who | как desktop IdentityDialog |
 | Attunement | summary инвентаря | слоты 0–3 |
-| Abilities | Ещё → Характеристики | AbilitySkillsColumn full |
+| Abilities | vitals → sheet Характеристики | AbilitySkillsColumn full |
 
 CSS: уже есть задел `@media (max-width: 640px)` → `align-items: flex-end` у dialog. Унифицировать на `<960` для play pads.
 
@@ -179,7 +193,7 @@ Motion: `sheet-rise` 220ms; dismiss swipe-down optional P2.
 |-------|-----|
 | `attack-card__combat` | Бой · атаки |
 | `spell-card__combat` | Бой · готовые заклинания |
-| `inventory-card__combat` | Сумка · glance rows |
+| `inventory-card__combat` | Исследование · glance rows |
 
 Правила строки:
 
@@ -203,12 +217,12 @@ Compact-компоненты десктопа (`PlayDesk*Compact`) **можно*
 | §2c Spells | Бой → сегмент Заклинания / Книга sheet |
 | §2d Attacks | Бой → Атаки |
 | §2e Conditions | HotStrip |
-| §2f Inventory | Сумка |
-| §2g Texts | Речь |
-| §2h Features | Умения |
-| §2i Companions | Напарн. |
-| §2j Ownership | Ещё → Владения (bottom sheet, **не** left drawer) |
-| §2k Identity | аватар / who line |
+| §2f Inventory | Исследование |
+| §2g Texts | Общение |
+| §2h Features | Способности |
+| §2i Companions | Напарники |
+| §2j Ownership | Характеристики → «Владения ▸» sheet (**не** left drawer, **не** ЕЩЁ) |
+| §2k Identity | аватар / who line (сцена ЕЩЁ нет) |
 | §2l Hot-bar + conc | HotStrip + HpPad conc-on-damage |
 | §2m Character list | list density (см. §7) |
 
