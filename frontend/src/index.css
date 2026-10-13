@@ -839,7 +839,8 @@ input {
   align-items: center;
   padding: 6px 0 8px;
   margin: 0 0 2px;
-  background: color-mix(in srgb, var(--desk-bg, var(--panel, #fff)) 96%, white);
+  /* Match stage panel (#fff) — not --panel parchment (shows as a halo under dialogs). */
+  background: #fff;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
 }
 
@@ -2276,7 +2277,8 @@ input {
   align-items: center;
   padding: 6px 0 8px;
   margin: 0 0 2px;
-  background: color-mix(in srgb, var(--panel) 94%, white);
+  /* Match stage panel; avoid parchment plate under overlays. */
+  background: #fff;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
 }
 

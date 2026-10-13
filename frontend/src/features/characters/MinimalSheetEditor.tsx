@@ -132,7 +132,6 @@ import { GuidedWizardDialog, type GuidedWizardSession } from './GuidedWizardDial
 import { ClassAsiDialog } from './ClassAsiDialog'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
 import { LevelUpDialog, type LevelUpChoice } from './LevelUpDialog'
-import { PlayPanel } from './PlayPanel'
 import {
   applyClassAsiBonuses,
   asiAlreadyApplied,
@@ -3644,7 +3643,9 @@ export function MinimalSheetEditor({
             </div>
           ) : null}
 
-          {isPlayDesk && draft.sheetUi.deskMode === 'more' ? (
+          {isPlayDesk &&
+          draft.sheetUi.deskMode === 'more' &&
+          MODE_MORE_PANELS.length > 1 ? (
             <div className="play-desk__more-tabs" role="tablist" aria-label="Разделы ЕЩЁ">
               {MODE_MORE_PANELS.map((id) => (
                 <button
@@ -4193,16 +4194,6 @@ export function MinimalSheetEditor({
           </div>
         </Stack>
       </Panel>
-
-      </div>
-
-      <div className="play-desk__stage-panel" hidden={stageHidden('play')}>
-      <PlayPanel
-        edition={baseCharacter.rules_edition as RulesEdition}
-        play={draft.play}
-        onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
-        onToast={onToast}
-      />
 
       </div>
 
