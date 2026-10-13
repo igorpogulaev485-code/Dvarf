@@ -6,6 +6,8 @@ import {
   applySpellcastingSuggestion,
   resolveSpellLearnBudget,
   suggestSpellcasting,
+  warlockLevels,
+  warlockPactForLevel,
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
@@ -461,9 +463,51 @@ export function SpellsPanel({
     setCastSpell(null)
   }
 
+  const warlockLvl = useMemo(() => {
+    const rows =
+      classes?.filter((row) => row.name.trim() && row.level > 0) ??
+      (className.trim()
+        ? [
+            {
+              id: 'primary',
+              name: className,
+              catalog_id: null,
+              level,
+              subclass_name: '',
+              subclass_catalog_id: null,
+            },
+          ]
+        : [])
+    return warlockLevels(rows)
+  }, [classes, className, level])
+
+  const tablePact = useMemo(() => {
+    if (suggestion?.pact_slots) return suggestion.pact_slots
+    if (warlockLvl > 0) return warlockPactForLevel(warlockLvl)
+    return null
+  }, [suggestion, warlockLvl])
+
+  useEffect(() => {
+    if (!spells.pact_slots || !tablePact) return
+    if (spells.pact_slots.level === tablePact.level) return
+    onChange({
+      ...spells,
+      pact_slots: clampPactSlots({
+        ...spells.pact_slots,
+        level: tablePact.level,
+      }),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tablePact?.level, spells.pact_slots?.level])
+
   function enablePact() {
+    const fromTable = tablePact ?? warlockPactForLevel(Math.max(1, warlockLvl))
     patch({
-      pact_slots: clampPactSlots({ max: 1, used: 0, level: 1 }),
+      pact_slots: clampPactSlots({
+        max: fromTable.max,
+        used: 0,
+        level: fromTable.level,
+      }),
     })
   }
 
@@ -473,8 +517,13 @@ export function SpellsPanel({
 
   function patchPact(partial: { max?: number; used?: number; level?: number }) {
     if (!spells.pact_slots) return
+    const levelAuto = tablePact?.level ?? partial.level ?? spells.pact_slots.level
     patch({
-      pact_slots: clampPactSlots({ ...spells.pact_slots, ...partial }),
+      pact_slots: clampPactSlots({
+        ...spells.pact_slots,
+        ...partial,
+        level: levelAuto,
+      }),
     })
   }
 
@@ -606,19 +655,20 @@ export function SpellsPanel({
                     variant="secondary"
                     onClick={applyFromClass}
                     disabled={!suggestion}
+                    title="Подставить макс. ячеек, договор и лимит подготовки по таблице PHB 2014. Потраченные ячейки не сбрасываются."
                   >
-                    От класса
+                    По таблице
                   </Button>
                 </div>
                 {suggestion ? (
                   <Text tone="muted">
-                    {suggestion.labelRu}
+                    «По таблице» → {suggestion.labelRu}
                     {suggestion.progression === 'pact'
                       ? ` · договор ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
                       : suggestion.progression === 'none'
                         ? ' · не заклинатель'
                         : ' · слоты PHB 2014'}
-                    . При смене класса или уровня подставляется само; spent не сбрасываем.
+                    . При смене класса/уровня подставляется само; spent не сбрасываем.
                   </Text>
                 ) : (
                   <Text tone="muted">
@@ -659,17 +709,19 @@ export function SpellsPanel({
                   )}
                 </div>
                 {spells.pact_slots ? (
-                  <div className="sheet-grid sheet-grid--2" style={{ marginTop: 8 }}>
-                    <Field label="Уровень договора">
-                      <NumberInput
-                        min={1}
-                        max={9}
-                        emptyValue={1}
-                        value={spells.pact_slots.level}
-                        onValueChange={(level) => patchPact({ level: level ?? 1 })}
-                      />
-                    </Field>
-                    <Field label="Макс. ячеек">
+                  <div className="spells-settings__pact-row">
+                    <div
+                      className="spells-settings__pact-level"
+                      title="Уровень ячеек договора по таблице колдуна (PHB 2014)"
+                    >
+                      <span className="spells-settings__pact-level-label">Ур. ячеек</span>
+                      <strong>{tablePact?.level ?? spells.pact_slots.level}</strong>
+                      <span className="spells-settings__pact-level-auto">авто</span>
+                    </div>
+                    <Field
+                      label="Макс."
+                      hint={tablePact != null ? `табл. ${tablePact.max}` : undefined}
+                    >
                       <NumberInput
                         min={0}
                         max={10}
@@ -681,8 +733,7 @@ export function SpellsPanel({
                   </div>
                 ) : (
                   <Text tone="muted">
-                    Каст через договор тратит эти ячейки, если уровень заклинания ≤ уровня
-                    договора.
+                    Уровень ячеек — по уровню колдуна. Каст договора, если круг ≤ этого уровня.
                   </Text>
                 )}
               </div>

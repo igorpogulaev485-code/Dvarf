@@ -2041,6 +2041,87 @@ button.spell-card__cast:hover:not(:disabled) {
   margin-top: 4px;
 }
 
+.spells-settings__derived {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.spells-settings__derived-stat {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 4.25rem;
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 70%, white);
+}
+
+.spells-settings__derived-stat span {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 70%, var(--muted));
+}
+
+.spells-settings__derived-stat strong {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.spells-settings__derived-hint {
+  flex: 1 1 8rem;
+  margin: 0;
+  font-size: 0.75rem !important;
+}
+
+.spells-settings__pact-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+  margin-top: 6px;
+}
+
+.spells-settings__pact-level {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 4.5rem;
+  padding: 4px 0;
+}
+
+.spells-settings__pact-level-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.spells-settings__pact-level strong {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.spells-settings__pact-level-auto {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.spells-settings__pact-row .ui-field {
+  width: 3.25rem;
+}
+
 .spells-settings .pact-settings {
   margin-top: 2px;
   padding-top: 8px;

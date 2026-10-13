@@ -4576,6 +4576,7 @@ export function MinimalSheetEditor({
             subclassCasters={subclassCastersForSpells}
             spells={draft.spells}
             abilities={draft.abilities}
+            proficiencyBonus={proficiencyBonus}
             suggestion={spellcastingSync.suggestion}
             knownCaster={spellcastingSync.knownCaster}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}

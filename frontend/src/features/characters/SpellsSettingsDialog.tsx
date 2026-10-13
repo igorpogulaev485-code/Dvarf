@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
   applySpellcastingSuggestion,
+  warlockLevels,
+  warlockPactForLevel,
   type SpellcastingSuggestion,
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
@@ -12,6 +14,8 @@ import {
   SPELLCASTING_ABILITIES,
   SPELLCASTING_ABILITY_LABELS,
   clampPactSlots,
+  spellAttackBonus,
+  spellSaveDc,
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
 import {
@@ -19,7 +23,7 @@ import {
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
 import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
-import { abilityModifier, type AbilityKey } from './sheetTypes'
+import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import {
@@ -49,6 +53,7 @@ type SpellsSettingsDialogProps = {
   subclassCasters?: SubclassCasterOverlay[]
   spells: SpellsState
   abilities: Record<AbilityKey, number>
+  proficiencyBonus: number
   suggestion: SpellcastingSuggestion | null
   knownCaster: boolean
   onChange: (spells: SpellsState) => void
@@ -65,6 +70,7 @@ export function SpellsSettingsDialog({
   subclassCasters,
   spells,
   abilities,
+  proficiencyBonus,
   suggestion,
   knownCaster,
   onChange,
@@ -92,9 +98,37 @@ export function SpellsSettingsDialog({
     [classes, className, level],
   )
 
+  const warlockLvl = useMemo(() => warlockLevels(classRows), [classRows])
+  const tablePact = useMemo(() => {
+    if (suggestion?.pact_slots) return suggestion.pact_slots
+    if (warlockLvl > 0) return warlockPactForLevel(warlockLvl)
+    return null
+  }, [suggestion, warlockLvl])
+
+  const abilityKey = spells.casting_ability
+  const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
+  const saveDc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
+  const attackBonus = abilityKey
+    ? spellAttackBonus(abilityMod, proficiencyBonus)
+    : null
+
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })
   }
+
+  /** Keep pact slot level locked to the warlock table (PHB 2014). */
+  useEffect(() => {
+    if (!open || !spells.pact_slots || !tablePact) return
+    if (spells.pact_slots.level === tablePact.level) return
+    onChange({
+      ...spells,
+      pact_slots: clampPactSlots({
+        ...spells.pact_slots,
+        level: tablePact.level,
+      }),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, tablePact?.level, spells.pact_slots?.level])
 
   function applyFromClass() {
     if (!suggestion) {
@@ -108,7 +142,7 @@ export function SpellsSettingsDialog({
           ? ''
           : ' · без лимита подготовки'
         : ` · подготовка ${suggestion.max_prepared}`
-    onToast?.(`${suggestion.labelRu}: ячейки 2014${prep}`)
+    onToast?.(`${suggestion.labelRu}: подставлено по таблице 2014${prep}`)
   }
 
   function setSlotMax(slotLevel: number, max: number) {
@@ -130,8 +164,13 @@ export function SpellsSettingsDialog({
   }
 
   function enablePact() {
+    const fromTable = tablePact ?? warlockPactForLevel(Math.max(1, warlockLvl))
     patch({
-      pact_slots: clampPactSlots({ max: 1, used: 0, level: 1 }),
+      pact_slots: clampPactSlots({
+        max: fromTable.max,
+        used: 0,
+        level: fromTable.level,
+      }),
     })
   }
 
@@ -139,10 +178,15 @@ export function SpellsSettingsDialog({
     patch({ pact_slots: null })
   }
 
-  function patchPact(partial: { max?: number; used?: number; level?: number }) {
+  function patchPact(partial: { max?: number; used?: number }) {
     if (!spells.pact_slots) return
+    const levelAuto = tablePact?.level ?? spells.pact_slots.level
     patch({
-      pact_slots: clampPactSlots({ ...spells.pact_slots, ...partial }),
+      pact_slots: clampPactSlots({
+        ...spells.pact_slots,
+        ...partial,
+        level: levelAuto,
+      }),
     })
   }
 
@@ -247,6 +291,24 @@ export function SpellsSettingsDialog({
                       </button>
                     ))}
                   </div>
+                  <div
+                    className="spells-settings__derived"
+                    aria-label="Сл. спас. и атака заклинаний"
+                  >
+                    <div className="spells-settings__derived-stat">
+                      <span>Сл. спас.</span>
+                      <strong>{saveDc == null ? '—' : saveDc}</strong>
+                    </div>
+                    <div className="spells-settings__derived-stat">
+                      <span>Атака</span>
+                      <strong>
+                        {attackBonus == null ? '—' : formatModifier(attackBonus)}
+                      </strong>
+                    </div>
+                    <Text tone="muted" className="spells-settings__derived-hint">
+                      8+БМ+мод / БМ+мод — считаются сами
+                    </Text>
+                  </div>
                 </div>
                 <div className="spells-settings__prep">
                   <Field
@@ -277,20 +339,21 @@ export function SpellsSettingsDialog({
                     variant="secondary"
                     onClick={applyFromClass}
                     disabled={!suggestion}
+                    title="Подставить макс. ячеек, договор и лимит подготовки по таблице PHB 2014 для твоих классов/уровней. Потраченные ячейки не сбрасываются."
                   >
-                    От класса
+                    По таблице
                   </Button>
                 </div>
                 <Text tone="muted" className="spells-settings__slots-hint">
                   {suggestion
-                    ? `${suggestion.labelRu}${
+                    ? `«По таблице» → ${suggestion.labelRu}${
                         suggestion.progression === 'pact'
                           ? ` · договор ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
                           : suggestion.progression === 'none'
                             ? ' · не заклинатель'
-                            : ' · PHB 2014'
+                            : ' · слоты PHB 2014'
                       }`
-                    : 'Класс не распознан — задай вручную'}
+                    : 'Класс не распознан — задай ячейки вручную'}
                 </Text>
                 <div className="sheet-grid sheet-grid--slots">
                   {Array.from({ length: 9 }, (_, index) => {
@@ -325,20 +388,23 @@ export function SpellsSettingsDialog({
                   )}
                 </div>
                 {spells.pact_slots ? (
-                  <div className="sheet-grid sheet-grid--2" style={{ marginTop: 6 }}>
-                    <Field label="Ур.">
-                      <NumberInput
-                        min={1}
-                        max={9}
-                        emptyValue={1}
-                        value={spells.pact_slots.level}
-                        onValueChange={(pactLevel) =>
-                          patchPact({ level: pactLevel ?? 1 })
-                        }
-                        aria-label="Уровень договора"
-                      />
-                    </Field>
-                    <Field label="Макс.">
+                  <div className="spells-settings__pact-row">
+                    <div
+                      className="spells-settings__pact-level"
+                      title="Уровень ячеек договора по таблице колдуна (PHB 2014)"
+                    >
+                      <span className="spells-settings__pact-level-label">Ур. ячеек</span>
+                      <strong>
+                        {tablePact?.level ?? spells.pact_slots.level}
+                      </strong>
+                      <span className="spells-settings__pact-level-auto">авто</span>
+                    </div>
+                    <Field
+                      label="Макс."
+                      hint={
+                        tablePact != null ? `табл. ${tablePact.max}` : undefined
+                      }
+                    >
                       <NumberInput
                         min={0}
                         max={10}
@@ -350,7 +416,10 @@ export function SpellsSettingsDialog({
                     </Field>
                   </div>
                 ) : (
-                  <Text tone="muted">Каст через договор, если уровень заклинания ≤ договора.</Text>
+                  <Text tone="muted">
+                    Уровень ячеек — по уровню колдуна. Каст договора, если круг заклинания ≤
+                    этого уровня.
+                  </Text>
                 )}
               </div>
             </Stack>
