@@ -3582,11 +3582,9 @@ export function MinimalSheetEditor({
           {abilityColumn}
           <div className="play-desk__rail-foot">
             {passivesCompact}
-            {isPlayDesk ? (
-              <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
-                Владения · языки и инструменты ▸
-              </Button>
-            ) : null}
+            <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
+              Владения ▸
+            </Button>
           </div>
         </aside>
 
@@ -4199,112 +4197,6 @@ export function MinimalSheetEditor({
 
       </div>
 
-      <div className="play-desk__stage-panel" hidden={stageHidden('ownership')}>
-      <Panel title="Скорости и зрение">
-        <Stack gap={12}>
-          <Field
-            label="Тёмное зрение, фт"
-            htmlFor="sheet-darkvision"
-            hint={
-              gearDarkvisionFt(gearEffects) > 0
-                ? `предметы: ${gearDarkvisionFt(gearEffects)} фт · итого ${Math.max(
-                    draft.identity.darkvision,
-                    gearDarkvisionFt(gearEffects),
-                  )}`
-                : '0 = нет'
-            }
-          >
-            <NumberInput
-              id="sheet-darkvision"
-              min={0}
-              emptyValue={0}
-              value={draft.identity.darkvision}
-              onValueChange={(darkvision) =>
-                patchIdentity({ darkvision: darkvision ?? 0 })
-              }
-            />
-          </Field>
-          <div className="sheet-grid sheet-grid--3">
-            <Field label="Лазание, фт" htmlFor="sheet-climb" hint="пусто = нет">
-              <NumberInput
-                id="sheet-climb"
-                min={0}
-                value={draft.climbSpeed}
-                onValueChange={(climbSpeed) => setDraft((prev) => ({ ...prev, climbSpeed }))}
-              />
-            </Field>
-            <Field label="Плавание, фт" htmlFor="sheet-swim" hint="пусто = нет">
-              <NumberInput
-                id="sheet-swim"
-                min={0}
-                value={draft.swimSpeed}
-                onValueChange={(swimSpeed) => setDraft((prev) => ({ ...prev, swimSpeed }))}
-              />
-            </Field>
-            <Field label="Полёт, фт" htmlFor="sheet-fly" hint="пусто = нет">
-              <NumberInput
-                id="sheet-fly"
-                min={0}
-                value={draft.flySpeed}
-                onValueChange={(flySpeed) => setDraft((prev) => ({ ...prev, flySpeed }))}
-              />
-            </Field>
-          </div>
-        </Stack>
-            </Panel>
-
-      <EquipmentProficienciesPanel
-        armor={draft.identity.armor}
-        weapons={draft.identity.weapons}
-        onChange={(patch) => {
-          let dropped = 0
-          setDraft((prev) => {
-            const nextArmor = patch.armor ?? prev.identity.armor
-            const nextWeapons = patch.weapons ?? prev.identity.weapons
-            let items = prev.inventory.items
-            // Drop armor/shield that the character can no longer wear.
-            if (patch.armor) {
-              items = items.map((item) => {
-                if (
-                  item.equipped &&
-                  item.armor_kind !== 'none' &&
-                  !canWearArmor(item.armor_kind, nextArmor)
-                ) {
-                  dropped += 1
-                  return { ...item, equipped: false }
-                }
-                return item
-              })
-            }
-            return {
-              ...prev,
-              identity: {
-                ...prev.identity,
-                armor: nextArmor,
-                weapons: nextWeapons,
-              },
-              inventory: { ...prev.inventory, items },
-              weapons: syncAttacksHeldFromInventory(prev.weapons, items),
-            }
-          })
-          if (dropped > 0) {
-            onToast(
-              dropped === 1
-                ? 'Доспех снят — нет владения'
-                : `Снято без владения: ${dropped}`,
-            )
-          }
-        }}
-      />
-
-      <LanguagesToolsPanel
-        languages={draft.identity.languages}
-        tools={draft.identity.tools}
-        onChange={(patch) => patchIdentity(patch)}
-      />
-
-      </div>
-
       <div className="play-desk__stage-panel" hidden={stageHidden('play')}>
       <PlayPanel
         edition={baseCharacter.rules_edition as RulesEdition}
@@ -4691,10 +4583,107 @@ export function MinimalSheetEditor({
               </Button>
             </div>
             <div className="play-desk-drawer__body">
+              <Panel title="Скорости и зрение">
+                <Stack gap={12}>
+                  <Field
+                    label="Тёмное зрение, фт"
+                    htmlFor="sheet-darkvision"
+                    hint={
+                      gearDarkvisionFt(gearEffects) > 0
+                        ? `предметы: ${gearDarkvisionFt(gearEffects)} фт · итого ${Math.max(
+                            draft.identity.darkvision,
+                            gearDarkvisionFt(gearEffects),
+                          )}`
+                        : '0 = нет'
+                    }
+                  >
+                    <NumberInput
+                      id="sheet-darkvision"
+                      min={0}
+                      emptyValue={0}
+                      value={draft.identity.darkvision}
+                      onValueChange={(darkvision) =>
+                        patchIdentity({ darkvision: darkvision ?? 0 })
+                      }
+                    />
+                  </Field>
+                  <div className="sheet-grid sheet-grid--3">
+                    <Field label="Лазание, фт" htmlFor="sheet-climb" hint="пусто = нет">
+                      <NumberInput
+                        id="sheet-climb"
+                        min={0}
+                        value={draft.climbSpeed}
+                        onValueChange={(climbSpeed) =>
+                          setDraft((prev) => ({ ...prev, climbSpeed }))
+                        }
+                      />
+                    </Field>
+                    <Field label="Плавание, фт" htmlFor="sheet-swim" hint="пусто = нет">
+                      <NumberInput
+                        id="sheet-swim"
+                        min={0}
+                        value={draft.swimSpeed}
+                        onValueChange={(swimSpeed) =>
+                          setDraft((prev) => ({ ...prev, swimSpeed }))
+                        }
+                      />
+                    </Field>
+                    <Field label="Полёт, фт" htmlFor="sheet-fly" hint="пусто = нет">
+                      <NumberInput
+                        id="sheet-fly"
+                        min={0}
+                        value={draft.flySpeed}
+                        onValueChange={(flySpeed) =>
+                          setDraft((prev) => ({ ...prev, flySpeed }))
+                        }
+                      />
+                    </Field>
+                  </div>
+                </Stack>
+              </Panel>
+
               <EquipmentProficienciesPanel
                 armor={draft.identity.armor}
                 weapons={draft.identity.weapons}
-                onChange={(patch) => patchIdentity(patch)}
+                onChange={(patch) => {
+                  let dropped = 0
+                  setDraft((prev) => {
+                    const nextArmor = patch.armor ?? prev.identity.armor
+                    const nextWeapons = patch.weapons ?? prev.identity.weapons
+                    let items = prev.inventory.items
+                    // Drop armor/shield that the character can no longer wear.
+                    if (patch.armor) {
+                      items = items.map((item) => {
+                        if (
+                          item.equipped &&
+                          item.armor_kind !== 'none' &&
+                          !canWearArmor(item.armor_kind, nextArmor)
+                        ) {
+                          dropped += 1
+                          return { ...item, equipped: false }
+                        }
+                        return item
+                      })
+                    }
+                    return {
+                      ...prev,
+                      identity: {
+                        ...prev.identity,
+                        armor: nextArmor,
+                        weapons: nextWeapons,
+                      },
+                      inventory: { ...prev.inventory, items },
+                      weapons: syncAttacksHeldFromInventory(prev.weapons, items),
+                    }
+                  })
+                  if (dropped > 0) {
+                    onToast(
+                      dropped === 1
+                        ? 'Доспех снят — нет владения'
+                        : `Снято без владения: ${dropped}`,
+                    )
+                  }
+                }}
               />
               <LanguagesToolsPanel
                 languages={draft.identity.languages}

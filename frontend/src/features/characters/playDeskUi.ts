@@ -24,7 +24,6 @@ export type PlayDeskPanelId =
   | 'spells'
   | 'companions'
   | 'texts'
-  | 'ownership'
 
 export type XpHistoryEntry = {
   id: string
@@ -211,7 +210,6 @@ export const PLAY_DESK_PANELS: Array<{ id: PlayDeskPanelId; label: string }> = [
   { id: 'texts', label: 'Тексты и заметки' },
   { id: 'play', label: 'Состояния и ресурсы' },
   { id: 'identity', label: 'Основное' },
-  { id: 'ownership', label: 'Владения' },
 ]
 
 /**
@@ -224,7 +222,7 @@ export const MODE_SCENE_PANELS: Record<PlayDeskMode, PlayDeskPanelId[]> = {
   social: ['texts', 'spells'],
   companions: ['companions'],
   features: ['features'],
-  more: ['play', 'identity', 'attunement', 'ownership'],
+  more: ['play', 'identity', 'attunement'],
 }
 
 /** Dump scene «ЕЩЁ» — former EXTRA panels; rebuild later. */
@@ -232,7 +230,6 @@ export const MODE_MORE_PANELS: PlayDeskPanelId[] = [
   'play',
   'identity',
   'attunement',
-  'ownership',
 ]
 
 /** @deprecated use MODE_MORE_PANELS — kept for older imports */
@@ -244,7 +241,7 @@ export const MODE_HINT: Record<PlayDeskMode, string> = {
   social: 'Общение: тексты + заклинания рядом',
   companions: 'Напарники: спутники и призывы (glance→expand)',
   features: 'Способности: сводка умений класса, черт и расы',
-  more: 'ЕЩЁ: основное, состояния, настройка, владения — потом разберём',
+  more: 'ЕЩЁ: основное, состояния, настройка — владения в CTA у характеристик',
 }
 
 export const MODE_LABELS: Array<{ id: PlayDeskMode; label: string }> = [
