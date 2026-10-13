@@ -648,8 +648,8 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 | Оружие | из инвентаря → карточка атаки | Один путь для «официального» |
 | Своё | кастом без строки лута | Homebrew / особые атаки |
 
-Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2d.  
-На проде: **нет** · ветка `cursor/attacks-settings-dialog-a73e` · база `cursor/combat-stage-kit-a73e`
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2d — **LOCK** («Идеал» 2026-10-13).  
+На проде: **нет** · ветка `cursor/attacks-settings-dialog-a73e` · PR #127 · база `cursor/combat-stage-kit-a73e`
 
 ### 2026-10-12 — Wave A header: desk icons + vitals
 

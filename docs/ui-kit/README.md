@@ -185,8 +185,8 @@ Live-эталоны в продукте (уже близки к киту): Inven
 2. Если **нет** — сначала рисуем/добавляем иконки, кладём в кит (`boards/` + запись здесь), согласование.
 3. Только потом верстка/логика chrome блока.
 
-Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия LOCK** — `spellIcons.tsx` + доски `spells` / `spell-icons`; **атаки** — compact + `AttacksSettingsDialog` (§2d), `attackIcons.tsx`.  
-**Дальше (не без ok):** LOCK атак после «Идеал»; A5 Features/Companions; hot-bar chrome — только по явному запросу.
+Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия LOCK** — `spellIcons.tsx` + доски `spells` / `spell-icons`; **атаки LOCK** — compact + `AttacksSettingsDialog` (§2d), `attackIcons.tsx`.  
+**Дальше (не без ok):** hot-bar chrome/gap (§ desk-chrome + live); A5 Features/Companions.
 
 Rail характеристик (вариант A) иконок не требует — полные названия, chips, drag.
 
