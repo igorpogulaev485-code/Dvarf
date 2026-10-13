@@ -9,7 +9,7 @@ type AttunementDialogProps = AttunementEditorProps & {
   onClose: () => void
 }
 
-/** Explore summary → pad/dialog (same body as AttunementPanel stage). */
+/** Explore summary → pad/dialog (sole attunement UI; ЕЩЁ stage removed). */
 export function AttunementDialog({
   open,
   onClose,

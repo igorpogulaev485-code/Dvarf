@@ -114,7 +114,6 @@ import {
 } from './gearGrantsSync'
 import { canWearArmor } from './equipmentProficiency'
 import { AttunementDialog } from './AttunementDialog'
-import { AttunementPanel } from './AttunementPanel'
 import {
   attunementsToSheet,
   filledAttunementCount,
@@ -4354,15 +4353,6 @@ export function MinimalSheetEditor({
       <AttunementDialog
         open={attunementDialogOpen}
         onClose={() => setAttunementDialogOpen(false)}
-        attunements={draft.attunements}
-        inventoryItems={draft.inventory.items}
-        onChange={applyAttunements}
-      />
-
-      </div>
-
-      <div className="play-desk__stage-panel" hidden={stageHidden('attunement')}>
-      <AttunementPanel
         attunements={draft.attunements}
         inventoryItems={draft.inventory.items}
         onChange={applyAttunements}

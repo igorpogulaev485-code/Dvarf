@@ -19,7 +19,6 @@ export type PlayDeskPanelId =
   | 'play'
   | 'attacks'
   | 'inventory'
-  | 'attunement'
   | 'features'
   | 'spells'
   | 'companions'
@@ -205,7 +204,6 @@ export const PLAY_DESK_PANELS: Array<{ id: PlayDeskPanelId; label: string }> = [
   { id: 'features', label: 'Способности' },
   { id: 'spells', label: 'Заклинания' },
   { id: 'inventory', label: 'Снаряжение' },
-  { id: 'attunement', label: 'Настройка' },
   { id: 'companions', label: 'Напарники' },
   { id: 'texts', label: 'Тексты и заметки' },
   { id: 'play', label: 'Состояния и ресурсы' },
@@ -222,14 +220,13 @@ export const MODE_SCENE_PANELS: Record<PlayDeskMode, PlayDeskPanelId[]> = {
   social: ['texts', 'spells'],
   companions: ['companions'],
   features: ['features'],
-  more: ['play', 'identity', 'attunement'],
+  more: ['play', 'identity'],
 }
 
 /** Dump scene «ЕЩЁ» — former EXTRA panels; rebuild later. */
 export const MODE_MORE_PANELS: PlayDeskPanelId[] = [
   'play',
   'identity',
-  'attunement',
 ]
 
 /** @deprecated use MODE_MORE_PANELS — kept for older imports */
@@ -241,7 +238,7 @@ export const MODE_HINT: Record<PlayDeskMode, string> = {
   social: 'Общение: тексты + заклинания рядом',
   companions: 'Напарники: спутники и призывы (glance→expand)',
   features: 'Способности: сводка умений класса, черт и расы',
-  more: 'ЕЩЁ: основное, состояния, настройка — владения в CTA у характеристик',
+  more: 'ЕЩЁ: основное и состояния — настройка в Исследовании, владения у характеристик',
 }
 
 export const MODE_LABELS: Array<{ id: PlayDeskMode; label: string }> = [

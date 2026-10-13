@@ -1,4 +1,4 @@
-import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
+import { Button, Field, Input, Stack, Text } from '../../ui'
 import type { InventoryItem } from './inventory'
 import {
   MAX_ATTUNEMENTS,
@@ -14,7 +14,7 @@ export type AttunementEditorProps = {
   onChange: (attunements: AttunementSlot[]) => void
 }
 
-/** Shared body for panel stage + Explore dialog. */
+/** Shared body for Explore `AttunementDialog` (ЕЩЁ stage removed). */
 export function AttunementEditor({
   attunements,
   inventoryItems,
@@ -137,15 +137,5 @@ export function AttunementEditor({
         ))
       )}
     </Stack>
-  )
-}
-
-type AttunementPanelProps = AttunementEditorProps
-
-export function AttunementPanel(props: AttunementPanelProps) {
-  return (
-    <Panel title="Настройка (attunement)">
-      <AttunementEditor {...props} />
-    </Panel>
   )
 }
