@@ -113,9 +113,11 @@ import {
   syncGearResources,
 } from './gearGrantsSync'
 import { canWearArmor } from './equipmentProficiency'
+import { AttunementDialog } from './AttunementDialog'
 import { AttunementPanel } from './AttunementPanel'
 import {
   attunementsToSheet,
+  filledAttunementCount,
   readAttunements,
   type AttunementSlot,
 } from './attunement'
@@ -212,7 +214,6 @@ import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { toggleCombatConsumableFavorite } from './combatConsumables'
 import { PlayDeskAttacksCompact } from './PlayDeskAttacksCompact'
 import { PlayDeskCompanionsCompact } from './PlayDeskCompanionsCompact'
-import { PlayDeskExploreCompact } from './PlayDeskExploreCompact'
 import { PlayDeskFeaturesCompact } from './PlayDeskFeaturesCompact'
 import { HotConditionsDialog } from './HotConditionsDialog'
 import { PlayDeskHeader } from './PlayDeskHeader'
@@ -2879,6 +2880,10 @@ export function MinimalSheetEditor({
   const [spellsSettingsOpen, setSpellsSettingsOpen] = useState(false)
   /** Play-desk attacks setup (replaces force-full AttacksPanel). */
   const [attacksSettingsOpen, setAttacksSettingsOpen] = useState(false)
+  /** Explore summary → attunement pad (not stage jump). */
+  const [attunementDialogOpen, setAttunementDialogOpen] = useState(false)
+  /** Shared header CoinPad — also opened from inventory readout. */
+  const [coinPadOpen, setCoinPadOpen] = useState(false)
   const [deskCastPending, setDeskCastPending] = useState<{
     spell: SheetSpell
     choice: CastChoice
@@ -3126,6 +3131,8 @@ export function MinimalSheetEditor({
   function showCompact(id: PlayDeskCompactPanelId): boolean {
     // Spells / attacks: compact is the only play surface; setup lives in settings dialogs.
     if (id === 'spells' || id === 'attacks') return isPlayDesk
+    // Explore: InventoryPanel is already glance→expand (kit etalon) — no compact/full flip.
+    if (id === 'inventory') return false
     return isPlayDesk && forceFullPanel !== id
   }
 
@@ -3438,6 +3445,8 @@ export function MinimalSheetEditor({
                 inventory: { ...prev.inventory, coins },
               }))
             }
+            coinPadOpen={coinPadOpen}
+            onCoinPadOpenChange={setCoinPadOpen}
             onCombatChange={(patch) =>
               setDraft((prev) => ({
                 ...prev,
@@ -4421,52 +4430,38 @@ export function MinimalSheetEditor({
       </div>
 
       <div className="play-desk__stage-panel" hidden={stageHidden('inventory')}>
-      {showCompact('inventory') ? (
-        <PlayDeskExploreCompact
-          inventory={draft.inventory}
-          strengthScore={draft.abilities.str}
-          autoAc={armorClass.ac}
-          acHint={armorClass.summary}
-          attunements={draft.attunements}
-          favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
-          onToggleConsumableFavorite={toggleCombatFavorite}
-          onOpenFull={() => setForceFullPanel('inventory')}
-          onOpenAttunement={() => {
-            setActivePanel('attunement')
-            setForceFullPanel(null)
-          }}
-          onToast={onToast}
-        />
-      ) : (
-        <>
-          {isPlayDesk ? (
-            <button
-              type="button"
-              className="play-desk-compact__link play-desk-compact__link--bar"
-              onClick={() => setForceFullPanel(null)}
-            >
-              ← компактно
-            </button>
-          ) : null}
-          <InventoryPanel
-            edition={baseCharacter.rules_edition as RulesEdition}
-            inventory={draft.inventory}
-            strengthScore={draft.abilities.str}
-            armorProficiency={draft.identity.armor}
-            weapons={draft.weapons}
-            onToast={onToast}
-            onChange={(inventory) =>
-              setDraft((prev) => ({
-                ...prev,
-                inventory,
-                weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
-                spells: withSpellFocusFlags(prev.spells, inventory.items),
-              }))
-            }
-            onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
-          />
-        </>
-      )}
+      <InventoryPanel
+        edition={baseCharacter.rules_edition as RulesEdition}
+        inventory={draft.inventory}
+        strengthScore={draft.abilities.str}
+        armorProficiency={draft.identity.armor}
+        weapons={draft.weapons}
+        autoAc={armorClass.ac}
+        acHint={armorClass.summary}
+        attunementFilled={filledAttunementCount(draft.attunements)}
+        favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
+        onToggleConsumableFavorite={toggleCombatFavorite}
+        onOpenAttunement={() => setAttunementDialogOpen(true)}
+        /* Header owns CoinPad only on wide desk; compact uses panel-local pad. */
+        onOpenCoins={isPlayDesk ? () => setCoinPadOpen(true) : undefined}
+        onToast={onToast}
+        onChange={(inventory) =>
+          setDraft((prev) => ({
+            ...prev,
+            inventory,
+            weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
+            spells: withSpellFocusFlags(prev.spells, inventory.items),
+          }))
+        }
+        onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
+      />
+      <AttunementDialog
+        open={attunementDialogOpen}
+        onClose={() => setAttunementDialogOpen(false)}
+        attunements={draft.attunements}
+        inventoryItems={draft.inventory.items}
+        onChange={applyAttunements}
+      />
 
       </div>
 

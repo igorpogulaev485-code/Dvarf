@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from '../../ui'
 import { coinsToGp, formatGpTotal, type CoinPurse } from '../../shared/dnd/weight'
 
@@ -92,7 +93,7 @@ export function CoinPadDialog({
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
       className="ui-dialog-backdrop"
       role="presentation"
@@ -191,6 +192,7 @@ export function CoinPadDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
