@@ -214,7 +214,6 @@ import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { toggleCombatConsumableFavorite } from './combatConsumables'
 import { PlayDeskAttacksCompact } from './PlayDeskAttacksCompact'
 import { PlayDeskCompanionsCompact } from './PlayDeskCompanionsCompact'
-import { PlayDeskFeaturesCompact } from './PlayDeskFeaturesCompact'
 import { HotConditionsDialog } from './HotConditionsDialog'
 import { PlayDeskHeader } from './PlayDeskHeader'
 import { PlayDeskHotBar } from './PlayDeskHotBar'
@@ -3130,8 +3129,8 @@ export function MinimalSheetEditor({
   function showCompact(id: PlayDeskCompactPanelId): boolean {
     // Spells / attacks: compact is the only play surface; setup lives in settings dialogs.
     if (id === 'spells' || id === 'attacks') return isPlayDesk
-    // Explore / Social: glance→expand panels — no compact/full flip.
-    if (id === 'inventory' || id === 'texts') return false
+    // Explore / Social / Features: glance→expand panels — no compact/full flip.
+    if (id === 'inventory' || id === 'texts' || id === 'features') return false
     return isPlayDesk && forceFullPanel !== id
   }
 
@@ -4474,58 +4473,38 @@ export function MinimalSheetEditor({
       </div>
 
       <div className="play-desk__stage-panel" hidden={stageHidden('features')}>
-      {showCompact('features') ? (
-        <PlayDeskFeaturesCompact
-          features={unlockedFeatures}
-          featGrants={draft.featGrants}
-          resources={draft.play.resources}
-          darkvision={draft.identity.darkvision}
-          raceName={draft.raceName}
-          onOpenFull={() => setForceFullPanel('features')}
-          onToast={onToast}
-          onSpendResource={spendResourceOrOpenSorcery}
-        />
-      ) : (
-        <>
-          {isPlayDesk ? (
-            <button
-              type="button"
-              className="play-desk-compact__link play-desk-compact__link--bar"
-              onClick={() => setForceFullPanel(null)}
-            >
-              ← компактно
-            </button>
-          ) : null}
-          <ClassFeaturesPanel
-            classes={draft.classes}
-            characterLevel={characterLevel}
-            abilities={draft.abilities}
-            subclassSlugByEntryId={subclassSlugByEntryId}
-            subclassTransitionByEntryId={subclassTransitionByEntryId}
-            resources={draft.play.resources}
-            onResourcesChange={(resources) =>
-              setDraft((prev) => ({
-                ...prev,
-                play: { ...prev.play, resources },
-              }))
-            }
-            featurePicks={draft.featurePicks}
-            onFeaturePicksChange={applyFeaturePicksWithExpertise}
-            skills={draft.skills}
-            tools={draft.identity.tools}
-            spells={draft.spells}
-            onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
-            wearingHeavyArmor={
-              equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
-            }
-            companions={draft.companions}
-            onCompanionsChange={(companions) =>
-              setDraft((prev) => ({ ...prev, companions }))
-            }
-            onToast={onToast}
-          />
-        </>
-      )}
+      {/* Features: ClassFeaturesPanel glance→expand — no compact/full flip. */}
+      <ClassFeaturesPanel
+        classes={draft.classes}
+        characterLevel={characterLevel}
+        abilities={draft.abilities}
+        subclassSlugByEntryId={subclassSlugByEntryId}
+        subclassTransitionByEntryId={subclassTransitionByEntryId}
+        resources={draft.play.resources}
+        onResourcesChange={(resources) =>
+          setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, resources },
+          }))
+        }
+        featurePicks={draft.featurePicks}
+        onFeaturePicksChange={applyFeaturePicksWithExpertise}
+        skills={draft.skills}
+        tools={draft.identity.tools}
+        spells={draft.spells}
+        onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        wearingHeavyArmor={
+          equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
+        }
+        companions={draft.companions}
+        onCompanionsChange={(companions) =>
+          setDraft((prev) => ({ ...prev, companions }))
+        }
+        featGrants={draft.featGrants}
+        darkvision={draft.identity.darkvision}
+        raceName={draft.raceName}
+        onToast={onToast}
+      />
 
       </div>
 
