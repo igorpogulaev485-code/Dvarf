@@ -1972,8 +1972,13 @@ button.spell-card__cast:hover:not(:disabled) {
 .spell-detail-body {
   display: grid;
   gap: 4px;
-  white-space: pre-wrap;
   line-height: 1.45;
+}
+
+.spell-detail-body__text {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.95rem;
 }
 
 .spells-focus-chips__chip {

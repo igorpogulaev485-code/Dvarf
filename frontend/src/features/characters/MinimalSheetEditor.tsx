@@ -4503,6 +4503,7 @@ export function MinimalSheetEditor({
           learnBudget={spellLearnBudget}
           pinned={deskSplit && splitSecondary === 'spells'}
           concentration={draft.play.concentration}
+          edition={rulesEdition}
           onOpenFull={() => setForceFullPanel('spells')}
           onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
           onCastSpell={(spell) => setDeskCastSpell(spell)}

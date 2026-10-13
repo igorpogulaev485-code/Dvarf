@@ -22,6 +22,7 @@ import {
 import { IconCast, IconConcentration, IconRitual, IconWizardHat } from './spellIcons'
 import { spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
 import { clampPactSlots, levelLabel, spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
+import type { RulesEdition } from '../../shared/api/characters'
 
 type PlayDeskSpellsCompactProps = {
   spells: SpellsState
@@ -36,6 +37,8 @@ type PlayDeskSpellsCompactProps = {
   } | null
   pinned?: boolean
   concentration?: ConcentrationState | null
+  /** Rules edition for catalog description lookup in detail dialog. */
+  edition?: RulesEdition
   onOpenFull: () => void
   onClearSplit?: () => void
   /** Patch spells (prepare dialog). */
@@ -57,6 +60,7 @@ export function PlayDeskSpellsCompact({
   learnBudget = null,
   pinned = false,
   concentration = null,
+  edition = '2014',
   onOpenFull,
   onClearSplit,
   onSpellsChange,
@@ -295,12 +299,30 @@ export function PlayDeskSpellsCompact({
 
       <SpellDetailDialog
         open={detailSpell != null}
-        spell={detailSpell}
+        spell={
+          detailSpell
+            ? spells.known.find((row) => row.id === detailSpell.id) ?? detailSpell
+            : null
+        }
+        edition={edition}
         onClose={() => setDetailSpell(null)}
+        onEnrichSpell={
+          onSpellsChange
+            ? (spellId, patch) => {
+                onSpellsChange({
+                  ...spells,
+                  known: spells.known.map((row) =>
+                    row.id === spellId ? { ...row, ...patch } : row,
+                  ),
+                })
+              }
+            : undefined
+        }
         onCast={
           detailSpell && (onCastSpell || onConcentrateSpell)
             ? () => {
-                const spell = detailSpell
+                const spell =
+                  spells.known.find((row) => row.id === detailSpell.id) ?? detailSpell
                 setDetailSpell(null)
                 if (onCastSpell) onCastSpell(spell)
                 else if (spell.concentration && onConcentrateSpell) {
