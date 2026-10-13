@@ -137,7 +137,7 @@ export function CombatStickyHeader({
           </button>
           <span
             className={`combat-chip combat-chip--static${exhaustion > 0 ? ' is-on' : ''}`}
-            title="Меняется в блоке «Состояния и ресурсы»"
+            title="Меняется в диалоге состояний (hot-bar)"
           >
             <span className="combat-chip__full">Истощение {exhaustion}</span>
             <span className="combat-chip__short" aria-hidden>

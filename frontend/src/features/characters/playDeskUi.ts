@@ -16,7 +16,6 @@ export type PlayDeskMode =
 
 export type PlayDeskPanelId =
   | 'identity'
-  | 'play'
   | 'attacks'
   | 'inventory'
   | 'features'
@@ -161,7 +160,7 @@ export const MODE_DEFAULT_PANEL: Record<PlayDeskMode, PlayDeskPanelId> = {
   social: 'texts',
   companions: 'companions',
   features: 'features',
-  more: 'play',
+  more: 'identity',
 }
 
 /** Scenes that keep spells pinned beside the primary panel. */
@@ -206,7 +205,6 @@ export const PLAY_DESK_PANELS: Array<{ id: PlayDeskPanelId; label: string }> = [
   { id: 'inventory', label: 'Снаряжение' },
   { id: 'companions', label: 'Напарники' },
   { id: 'texts', label: 'Тексты и заметки' },
-  { id: 'play', label: 'Состояния и ресурсы' },
   { id: 'identity', label: 'Основное' },
 ]
 
@@ -220,12 +218,11 @@ export const MODE_SCENE_PANELS: Record<PlayDeskMode, PlayDeskPanelId[]> = {
   social: ['texts', 'spells'],
   companions: ['companions'],
   features: ['features'],
-  more: ['play', 'identity'],
+  more: ['identity'],
 }
 
 /** Dump scene «ЕЩЁ» — former EXTRA panels; rebuild later. */
 export const MODE_MORE_PANELS: PlayDeskPanelId[] = [
-  'play',
   'identity',
 ]
 
@@ -238,7 +235,7 @@ export const MODE_HINT: Record<PlayDeskMode, string> = {
   social: 'Общение: тексты + заклинания рядом',
   companions: 'Напарники: спутники и призывы (glance→expand)',
   features: 'Способности: сводка умений класса, черт и расы',
-  more: 'ЕЩЁ: основное и состояния — настройка в Исследовании, владения у характеристик',
+  more: 'ЕЩЁ: основное — состояния в hot-bar, настройка в Исследовании, владения у характеристик',
 }
 
 export const MODE_LABELS: Array<{ id: PlayDeskMode; label: string }> = [
