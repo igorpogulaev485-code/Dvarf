@@ -213,7 +213,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | Добавить | Из справочника (`GearPickerDialog` kit) / Своя строка |
 | ★ | избранное → расходники боя |
 | Meta | ноша · КД · Настройка N/3 в summary |
-| Настройка | summary → `AttunementDialog` (не прыжок сцены) |
+| Настройка | только из summary → `AttunementDialog` (вкладки ЕЩЁ нет; тот же editor/sheet) |
 | Монеты | readout → CoinPad (header wide / panel-local compact) |
 | Без PHB-шаблона | броня из справочника или ручные поля; dropdown «Шаблон PHB» убран |
 | Заклинания | split справа (как combat/social) |
@@ -291,7 +291,6 @@ Live-эталоны в продукте (уже близки к киту): Inven
 |---------|--------|
 | **ЕЩЁ → Основное** (`identity`) | старая форма, не glance-kit |
 | **ЕЩЁ → Состояния и ресурсы** (`play`) | частично устарело: состояния → hot dialog; ресурсы дублируют hot/умения |
-| **ЕЩЁ → Настройка** (`attunement`) | setup уже в `AttunementDialog` из Explore; панель в ЕЩЁ — хвост |
 | **Исследование** | формы A–D готовы → формальный Ideal/LOCK по ok |
 | **Hot-bar icons** | логика ок; нет line-icons на полосе |
 | **Каст → концентрация** | BUG-019, не kit-wave |
