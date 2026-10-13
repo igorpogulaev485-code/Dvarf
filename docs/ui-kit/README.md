@@ -186,7 +186,8 @@ Live-эталоны в продукте (уже близки к киту): Inven
 3. Только потом верстка/логика chrome блока.
 
 Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия LOCK** — `spellIcons.tsx` + доски `spells` / `spell-icons`; **атаки LOCK** — compact + `AttacksSettingsDialog` (§2d), `attackIcons.tsx`.  
-**Дальше (не без ok):** hot-bar chrome/gap (§ desk-chrome + live); A5 Features/Companions.
+**Hot-bar audit (2026-10-13):** логика ок (состояния / снять конц. / пипсы). Gap vs `desk-chrome` §D: нет line-icons; live = текстовые wide + пипсы (Отдых в шапке, не в hot). Ресурсы дублируются в hot-пипсах и компакте атак.  
+**Дальше (не без ok):** hot candy (icons-first ± is-on); каст→концентрация (BUG-019); A5 Features/Companions.
 
 Rail характеристик (вариант A) иконок не требует — полные названия, chips, drag.
 

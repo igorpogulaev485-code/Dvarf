@@ -651,6 +651,22 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2d — **LOCK** («Идеал» 2026-10-13).  
 На проде: **нет** · ветка `cursor/attacks-settings-dialog-a73e` · PR #127 · база `cursor/combat-stage-kit-a73e`
 
+### 2026-10-13 — Hot-bar audit (play desk)
+
+Полоса под режимами: состояния · концентрация · пипсы ресурсов.
+
+| Проверка | Результат |
+|----------|-----------|
+| Состояния → диалог → add на hot | ок (Оглохший) |
+| Концентрация «Снять» | ок |
+| Пипсы ресурса −/+ | ок |
+| Icons vs kit `desk-chrome` §D | **gap:** 0 svg в hot; на доске — 4 icon-кнопки |
+| Отдых в hot | нет — в шапке (как решили) |
+| Дубль ресурсов | hot-пипсы **и** строки в компакте атак |
+
+Не в этом аудите: каст → концентрация (BUG-019).  
+На проде: **нет** · ветка `cursor/hot-bar-audit-a73e` · база `cursor/attacks-settings-dialog-a73e`
+
 ### 2026-10-12 — Wave A header: desk icons + vitals
 
 | Что | Как |
@@ -1279,6 +1295,7 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-13 | `cursor/hot-bar-audit-a73e` | Hot-bar audit: logic ok; kit icon gap + resource duplex noted |
 | 2026-10-13 | `cursor/attacks-settings-dialog-a73e` · PR #127 | Attacks LOCK in ui-kit §2d (Идеал) |
 | 2026-10-13 | `cursor/attacks-settings-dialog-a73e` | Attacks settings dialog (hybrid D): Настройки instead of full panel |
 | 2026-10-13 | `cursor/combat-stage-kit-a73e` · PR #126 | Combat stage kit: attacks compact + smoke hit/hold/spend |
