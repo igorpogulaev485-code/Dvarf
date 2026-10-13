@@ -172,8 +172,8 @@ Live-эталоны в продукте (уже близки к киту): Inven
 2. Если **нет** — сначала рисуем/добавляем иконки, кладём в кит (`boards/` + запись здесь), согласование.
 3. Только потом верстка/логика chrome блока.
 
-Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия LOCK** — `spellIcons.tsx` + доски `spells` / `spell-icons`; **атаки compact** — `attackIcons.tsx` (ближнее / дальнее / ресурс / расходник), тот же stroke, что desk/spell icons.  
-**В работе:** pixel-candy stage «Бой» (компакт атак в едином языке `play-desk-compact`; общий chrome сцен не ломаем).
+Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия LOCK** — `spellIcons.tsx` + доски `spells` / `spell-icons`; **атаки compact** — `attackIcons.tsx` (ближнее / дальнее / ресурс / расходник), тот же stroke, что desk/spell icons; **stage «Бой»** — компакт атак в языке `play-desk-compact` (общий chrome сцен не трогали).  
+**Дальше (не без ok):** LOCK атак после «Идеал»; A5 Features/Companions; hot-bar chrome — только по явному запросу.
 
 Rail характеристик (вариант A) иконок не требует — полные названия, chips, drag.
 
