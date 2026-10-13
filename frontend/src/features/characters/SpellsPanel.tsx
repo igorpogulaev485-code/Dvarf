@@ -32,6 +32,15 @@ import {
 } from '../../shared/dnd/spellCatalog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import {
+  IconCast,
+  IconConcentration,
+  IconFocus,
+  IconPouch,
+  IconRitual,
+  IconSpellBook,
+  IconWizardHat,
+} from './spellIcons'
 import type { ConcentrationState } from './play'
 import {
   canRemoveSheetSpell,
@@ -42,14 +51,14 @@ import {
   ensureInnateGrantCasts,
   ensureKnownSpellsReady,
   grantCastRemaining,
-  isFeatSheetSpell,
+  isGrantedSpellHighlight,
   isKnownSpellcastingMode,
-  isRaceSheetSpell,
   groupSpellsByLevel,
   isReadyInCombat,
   preparedLockChip,
   readCatalogSpellFields,
   setSpellPrepared,
+  spellSourceBadge,
   spendGrantCast,
   type SheetSpell,
   type SpellsState,
@@ -139,8 +148,23 @@ export function SpellsPanel({
   const visibleSpells = useMemo(() => {
     const list =
       filter === 'all' ? combatPool : combatPool.filter((spell) => spell.level === filter)
-    return groupSpellsByLevel(list)
-  }, [filter, combatPool])
+    const grouped = groupSpellsByLevel(list)
+    const byLevel = new Map(grouped.map((group) => [group.level, group]))
+    const ensureLevel = (level: number) => {
+      if (!byLevel.has(level)) byLevel.set(level, { level, spells: [] })
+    }
+    if (filter === 'all') {
+      for (let level = 1; level <= 9; level += 1) {
+        if ((spells.slots[String(level)]?.max ?? 0) > 0) ensureLevel(level)
+      }
+      if (list.some((spell) => spell.level === 0) || byLevel.has(0)) ensureLevel(0)
+    } else if (typeof filter === 'number') {
+      ensureLevel(filter)
+    }
+    return [...byLevel.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([, group]) => group)
+  }, [filter, combatPool, spells.slots])
 
   const suggestion = useMemo(
     () =>
@@ -351,7 +375,12 @@ export function SpellsPanel({
   function runCast(castSpell: SheetSpell, choice: CastChoice) {
     const name = castSpell.name || 'Заклинание'
     const ritualCast = Boolean(choice.ritual && castSpell.ritual && castSpell.level > 0)
-    const grantCast = Boolean(choice.useGrant && canSpendGrantCast(castSpell))
+    const grantSpellId = choice.grantSpellId || castSpell.id
+    const grantRow =
+      choice.useGrant
+        ? spells.known.find((row) => row.id === grantSpellId) ?? castSpell
+        : null
+    const grantCast = Boolean(grantRow && canSpendGrantCast(grantRow))
     const slotForEffect =
       castSpell.level <= 0 || ritualCast || grantCast
         ? castSpell.level
@@ -375,11 +404,11 @@ export function SpellsPanel({
       setCastSpell(null)
       return
     }
-    if (grantCast) {
-      const label = castSpell.grant_cast?.label ?? 'Грант'
+    if (grantCast && grantRow) {
+      const label = grantRow.grant_cast?.label ?? 'Грант'
       onChange({
         ...spells,
-        known: spendGrantCast(spells.known, castSpell.id),
+        known: spendGrantCast(spells.known, grantRow.id),
       })
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
@@ -403,13 +432,13 @@ export function SpellsPanel({
     if (choice.usePact && spells.pact_slots) {
       const pactResult = spendPactSlot(spells.pact_slots)
       if (!pactResult.ok) {
-        onToast?.('Нет свободных pact-ячеек')
+        onToast?.('Нет свободных ячеек договора')
         return
       }
       patch({ pact_slots: pactResult.pact })
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
-        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
           castSpell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -458,21 +487,23 @@ export function SpellsPanel({
       <Stack gap={14}>
         <Text tone="muted">
           {knownCaster
-            ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку/pact. Новые — из гримуара.'
+            ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку или ячейку договора. Новые — из гримуара.'
             : 'Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые — из гримуара, затем подготовь.'}
         </Text>
 
         <div className="spells-summary">
-          <div className="spells-summary__stat">
-            <Text tone="muted">Спасбросок</Text>
+          <div className="spells-summary__stat spells-summary__stat--key">
+            <span className="spells-summary__label">Сл. спас.</span>
             <strong>{dc == null ? '—' : dc}</strong>
           </div>
-          <div className="spells-summary__stat">
-            <Text tone="muted">Атака</Text>
+          <div className="spells-summary__stat spells-summary__stat--key">
+            <span className="spells-summary__label">Атака закл.</span>
             <strong>{attack == null ? '—' : formatModifier(attack)}</strong>
           </div>
           <div className="spells-summary__stat">
-            <Text tone="muted">{knownCaster ? 'Известно' : 'Подготовлено'}</Text>
+            <span className="spells-summary__label">
+              {knownCaster ? 'Известно' : 'Подготовлено'}
+            </span>
             <strong>
               {knownCaster
                 ? (() => {
@@ -485,7 +516,7 @@ export function SpellsPanel({
           </div>
           {learnBudget?.cantrips != null ? (
             <div className="spells-summary__stat">
-              <Text tone="muted">Заговоры</Text>
+              <span className="spells-summary__label">Заговоры</span>
               <strong>
                 {countLearnedCantrips(spells.known)}/{learnBudget.cantrips}
               </strong>
@@ -495,15 +526,21 @@ export function SpellsPanel({
 
         <div className="chip-row spells-focus-chips">
           <span
-            className={`sheet-chip${spells.has_spell_focus ? ' is-on' : ''}`}
+            className={`sheet-chip spells-focus-chips__chip${
+              spells.has_spell_focus ? ' is-on' : ''
+            }`}
             title="Магический / друидический фокус в инвентаре"
           >
+            <IconFocus className="spells-btn-icon" />
             {spells.has_spell_focus ? 'Фокус ✓' : 'Фокус ✗'}
           </span>
           <span
-            className={`sheet-chip${spells.has_component_pouch ? ' is-on' : ''}`}
+            className={`sheet-chip spells-focus-chips__chip${
+              spells.has_component_pouch ? ' is-on' : ''
+            }`}
             title="Мешочек с компонентами в инвентаре"
           >
+            <IconPouch className="spells-btn-icon" />
             {spells.has_component_pouch ? 'Мешочек ✓' : 'Мешочек ✗'}
           </span>
           <Text tone="muted">
@@ -512,16 +549,16 @@ export function SpellsPanel({
           </Text>
         </div>
 
-        <div className="spells-toolbar">
+        <div className="spells-panel__toolbar">
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
           </Button>
-          {!knownCaster ? (
-            <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
-              Подготовить заклинания
-            </Button>
-          ) : null}
+          <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
+            <IconWizardHat className="spells-btn-icon" />
+            Подготовить
+          </Button>
           <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
+            <IconSpellBook className="spells-btn-icon" />
             Гримуар
           </Button>
         </div>
@@ -578,7 +615,7 @@ export function SpellsPanel({
                   <Text tone="muted">
                     {suggestion.labelRu}
                     {suggestion.progression === 'pact'
-                      ? ` · pact ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
+                      ? ` · договор ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
                       : suggestion.progression === 'none'
                         ? ' · не заклинатель'
                         : ' · слоты PHB 2014'}
@@ -610,7 +647,7 @@ export function SpellsPanel({
               </div>
               <div className="pact-settings">
                 <div className="play-resources-head">
-                  <Text>Pact magic (варлок)</Text>
+                  <Text>Магия договора (колдун)</Text>
                   {spells.pact_slots ? (
                     <button type="button" className="linkish" onClick={disablePact}>
                       Выключить
@@ -623,7 +660,7 @@ export function SpellsPanel({
                 </div>
                 {spells.pact_slots ? (
                   <div className="sheet-grid sheet-grid--2" style={{ marginTop: 8 }}>
-                    <Field label="Уровень pact">
+                    <Field label="Уровень договора">
                       <NumberInput
                         min={1}
                         max={9}
@@ -643,7 +680,10 @@ export function SpellsPanel({
                     </Field>
                   </div>
                 ) : (
-                  <Text tone="muted">Каст с pact тратит эти ячейки, если уровень заклинания ≤ pact.</Text>
+                  <Text tone="muted">
+                    Каст через договор тратит эти ячейки, если уровень заклинания ≤ уровня
+                    договора.
+                  </Text>
                 )}
               </div>
             </Stack>
@@ -655,7 +695,7 @@ export function SpellsPanel({
             <SlotPips
               max={spells.pact_slots.max}
               used={spells.pact_slots.used}
-              label={`Pact ${spells.pact_slots.level}-го уровня`}
+              label={`Договор ${spells.pact_slots.level}-го уровня`}
               onChange={(used) => patchPact({ used })}
             />
           </div>
@@ -699,7 +739,7 @@ export function SpellsPanel({
           <Text tone="muted">
             {spells.known.length === 0
               ? 'Пока нет заклинаний — добавь ниже или подготовь из списка.'
-              : 'В боевом виде пусто — нажми «Подготовить заклинания» или «Все известные».'}
+              : 'В боевом виде пусто — нажми «Подготовить» или «Все известные».'}
           </Text>
         ) : (
           visibleSpells.map((group) => {
@@ -712,14 +752,25 @@ export function SpellsPanel({
                     <SlotPips
                       max={slot.max}
                       used={slot.used}
-                      label={`Ячейки ${group.level}-го уровня`}
+                      label={`Ячейки ${group.level}`}
+                      summary={`${Math.max(0, slot.max - slot.used)}/${slot.max}`}
                       onChange={(used) => setSlotUsed(group.level, used)}
                     />
+                  ) : group.level === 0 ? (
+                    <span className="spell-level-block__hint">без ячеек</span>
                   ) : null}
                 </div>
                 <Stack gap={10}>
+                  {group.spells.length === 0 ? (
+                    <Text tone="muted">Нет заклинаний этого круга в списке.</Text>
+                  ) : null}
                   {group.spells.map((spell) => (
-                    <div key={spell.id} className="spell-card">
+                    <div
+                      key={spell.id}
+                      className={`spell-card${
+                        isGrantedSpellHighlight(spell) ? ' is-granted' : ''
+                      }`}
+                    >
                       <div className="spell-card__top">
                         <Field label="Заклинание">
                           <CatalogCombobox
@@ -848,6 +899,17 @@ export function SpellsPanel({
                         ) : (
                           <span className="sheet-chip is-on">Заговор</span>
                         )}
+                        {(() => {
+                          const source = spellSourceBadge(spell)
+                          const lock = preparedLockChip(spell)
+                          // Always-prepared already shows lock chip; spell_list / other grants need source.
+                          if (!source || lock) return null
+                          return (
+                            <span className="sheet-chip is-on" title={source.title}>
+                              {source.label}
+                            </span>
+                          )
+                        })()}
                         {spell.grant_cast && spell.grant_cast.max > 0 ? (
                           <span
                             className={`sheet-chip${
@@ -859,38 +921,31 @@ export function SpellsPanel({
                             {spell.grant_cast.max}
                           </span>
                         ) : null}
-                        {isRaceSheetSpell(spell) && spell.race_grant === 'spell_list' ? (
-                          <span
-                            className="sheet-chip is-on"
-                            title="Список метки/расы — готовь как классовое"
-                          >
-                            Метка
-                          </span>
-                        ) : null}
-                        {isFeatSheetSpell(spell) && spell.feat_grant === 'spell_list' ? (
-                          <span
-                            className="sheet-chip is-on"
-                            title="Список черты — готовь как классовое"
-                          >
-                            Черта
-                          </span>
-                        ) : null}
                         <button
                           type="button"
-                          className={`sheet-chip${spell.concentration ? ' is-on' : ''}`}
+                          className={`sheet-chip spell-card__flag${
+                            spell.concentration ? ' is-on' : ''
+                          }`}
                           onClick={() =>
                             updateSpell(spell.id, { concentration: !spell.concentration })
                           }
+                          title="Концентрация"
+                          aria-pressed={spell.concentration}
                         >
-                          К
+                          <IconConcentration className="spells-btn-icon" />
+                          конц.
                         </button>
                         <button
                           type="button"
-                          className={`sheet-chip${spell.ritual ? ' is-on' : ''}`}
+                          className={`sheet-chip spell-card__flag${
+                            spell.ritual ? ' is-on' : ''
+                          }`}
                           onClick={() => updateSpell(spell.id, { ritual: !spell.ritual })}
                           title="Ритуал"
+                          aria-pressed={spell.ritual}
                         >
-                          Ритуал
+                          <IconRitual className="spells-btn-icon" />
+                          ритуал
                         </button>
                         {canRemoveSheetSpell(spell) ? (
                           <Button
@@ -919,6 +974,7 @@ export function SpellsPanel({
                           }
                           onClick={() => setCastSpell(spell)}
                         >
+                          <IconCast className="spells-btn-icon" />
                           Каст
                         </Button>
                       </div>

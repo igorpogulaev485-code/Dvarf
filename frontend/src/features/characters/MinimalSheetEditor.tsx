@@ -955,6 +955,7 @@ export function MinimalSheetEditor({
             characterLevel: totalCharacterLevel(prev.classes),
             hasCasterClass: characterHasCasterClass(prev.classes),
             catalogSpells: catalogDef?.racialSpells ?? null,
+            raceLabelRu: catalogDef?.labelRu || prev.raceName,
           })
 
           if (
@@ -1062,6 +1063,7 @@ export function MinimalSheetEditor({
       grant: prev.raceGrant,
       characterLevel: totalCharacterLevel(nextClasses),
       hasCasterClass: characterHasCasterClass(nextClasses),
+      raceLabelRu: prev.raceName,
     })
     return { ...prev, classes: nextClasses, spells }
   }
@@ -1571,6 +1573,7 @@ export function MinimalSheetEditor({
     const restored = reapplyRaceOverlays(raceSliceFrom(merged), {
       characterLevel: totalCharacterLevel(merged.classes),
       hasCasterClass: characterHasCasterClass(merged.classes),
+      raceLabelRu: merged.raceName,
     })
     return mergeRaceSlice(merged, restored)
   }
@@ -2288,6 +2291,7 @@ export function MinimalSheetEditor({
         grant: withFeatPools.raceGrant,
         characterLevel: nextLevel,
         hasCasterClass: characterHasCasterClass(nextClasses),
+        raceLabelRu: withFeatPools.raceName,
       })
       return { ...withFeatPools, spells }
     })
@@ -2955,7 +2959,12 @@ export function MinimalSheetEditor({
   function runDeskCast(spell: SheetSpell, choice: CastChoice) {
     const name = spell.name || 'Заклинание'
     const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
-    const grantCast = Boolean(choice.useGrant && canSpendGrantCast(spell))
+    const grantSpellId = choice.grantSpellId || spell.id
+    const grantRow =
+      choice.useGrant
+        ? draft.spells.known.find((row) => row.id === grantSpellId) ?? spell
+        : null
+    const grantCast = Boolean(grantRow && canSpendGrantCast(grantRow))
     const slotForEffect =
       spell.level <= 0 || ritualCast || grantCast
         ? spell.level
@@ -2991,13 +3000,13 @@ export function MinimalSheetEditor({
       )
       return
     }
-    if (grantCast) {
-      const label = spell.grant_cast?.label ?? 'Грант'
+    if (grantCast && grantRow) {
+      const label = grantRow.grant_cast?.label ?? 'Грант'
       setDraft((prev) => ({
         ...prev,
         spells: {
           ...prev.spells,
-          known: spendGrantCast(prev.spells.known, spell.id),
+          known: spendGrantCast(prev.spells.known, grantRow.id),
         },
       }))
       if (spell.concentration) applyDeskConcentration(spell)
@@ -3020,7 +3029,7 @@ export function MinimalSheetEditor({
     if (choice.usePact && draft.spells.pact_slots) {
       const pactResult = spendPactSlot(draft.spells.pact_slots)
       if (!pactResult.ok) {
-        onToast('Нет свободных pact-ячеек')
+        onToast('Нет свободных ячеек договора')
         return
       }
       setDraft((prev) => ({
@@ -3029,7 +3038,7 @@ export function MinimalSheetEditor({
       }))
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
-        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
           spell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -3330,6 +3339,7 @@ export function MinimalSheetEditor({
             raceName={draft.raceName}
             className={classSummary || primaryClass?.name || ''}
             alignment={draft.identity.alignment}
+            rulesEdition={baseCharacter.rules_edition}
             level={characterLevel}
             experience={draft.identity.experience}
             classes={draft.classes}
@@ -3533,12 +3543,14 @@ export function MinimalSheetEditor({
       <div className="play-desk__body">
         <aside className="play-desk__left">
           {abilityColumn}
-          {passivesCompact}
-          {isPlayDesk ? (
-            <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
-              Владения и языки
-            </Button>
-          ) : null}
+          <div className="play-desk__rail-foot">
+            {passivesCompact}
+            {isPlayDesk ? (
+              <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
+                Владения · языки и инструменты ▸
+              </Button>
+            ) : null}
+          </div>
         </aside>
 
         <div className="play-desk__stage">
@@ -4490,10 +4502,10 @@ export function MinimalSheetEditor({
           proficiencyBonus={proficiencyBonus}
           learnBudget={spellLearnBudget}
           pinned={deskSplit && splitSecondary === 'spells'}
-          rollMode={effectiveRollMode()}
           concentration={draft.play.concentration}
+          edition={rulesEdition}
           onOpenFull={() => setForceFullPanel('spells')}
-          onToast={onToast}
+          onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
           onCastSpell={(spell) => setDeskCastSpell(spell)}
           onConcentrateSpell={(spell) => setDeskCastSpell(spell)}
           onClearSplit={
@@ -4515,6 +4527,21 @@ export function MinimalSheetEditor({
                     ...prev.spells.slots,
                     [key]: { ...slot, used: nextUsed },
                   },
+                },
+              }
+            })
+          }}
+          onPactUsedChange={(used) => {
+            setDraft((prev) => {
+              const pact = prev.spells.pact_slots
+              if (!pact) return prev
+              const nextUsed = Math.min(pact.max, Math.max(0, used))
+              if (nextUsed === pact.used) return prev
+              return {
+                ...prev,
+                spells: {
+                  ...prev.spells,
+                  pact_slots: { ...pact, used: nextUsed },
                 },
               }
             })

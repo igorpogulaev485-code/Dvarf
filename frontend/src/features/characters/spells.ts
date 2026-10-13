@@ -43,6 +43,8 @@ export type SheetSpell = {
   damage_at_character_level?: SpellScaleTable
   damage_at_slot_level?: SpellScaleTable
   higher_levels?: string
+  /** Full rules text snapshot from catalog (detail dialog). */
+  description?: string
   /**
    * Who put this row on the sheet (race / feat / subclass domain…).
    * Manual adds stay `catalog` / `custom` / unset.
@@ -221,6 +223,9 @@ function readSpell(raw: unknown, index: number): SheetSpell {
     ...(typeof row.higher_levels === 'string' && row.higher_levels
       ? { higher_levels: row.higher_levels }
       : {}),
+    ...(typeof row.description === 'string' && row.description.trim()
+      ? { description: row.description }
+      : {}),
     ...(sourceKind ? { source_kind: sourceKind } : {}),
     ...(raceGrant ? { race_grant: raceGrant } : {}),
     ...(featGrant ? { feat_grant: featGrant } : {}),
@@ -293,6 +298,50 @@ export function grantCastRemaining(spell: SheetSpell): number {
 
 export function canSpendGrantCast(spell: SheetSpell): boolean {
   return grantCastRemaining(spell) > 0
+}
+
+export type CastGrantOption = {
+  spellId: string
+  label: string
+  remaining: number
+  max: number
+  reset: 'short' | 'long'
+}
+
+/**
+ * Free-cast charges for this spell and sibling sheet rows that share
+ * catalog_id / name (race innate, feat, artifact gear grant…).
+ */
+export function listCastGrantOptions(
+  spell: SheetSpell,
+  known: SheetSpell[],
+): CastGrantOption[] {
+  if (spell.level <= 0) return []
+  const nameKey = spell.name.trim().toLowerCase()
+  const catalogId = spell.catalog_id
+  const seen = new Set<string>()
+  const out: CastGrantOption[] = []
+  for (const row of known) {
+    if (!row.grant_cast || row.grant_cast.max <= 0) continue
+    if (row.level !== spell.level) continue
+    const sameRow = row.id === spell.id
+    const sameCatalog = Boolean(catalogId && row.catalog_id === catalogId)
+    const sameName = Boolean(nameKey && row.name.trim().toLowerCase() === nameKey)
+    if (!sameRow && !sameCatalog && !sameName) continue
+    if (seen.has(row.id)) continue
+    seen.add(row.id)
+    out.push({
+      spellId: row.id,
+      label:
+        row.grant_cast.label?.trim() ||
+        row.prepare_source_label?.trim() ||
+        'Грант',
+      remaining: grantCastRemaining(row),
+      max: row.grant_cast.max,
+      reset: row.grant_cast.reset,
+    })
+  }
+  return out
 }
 
 /** Build / refresh grant_cast for an innate leveled grant spell. Preserves used. */
@@ -429,41 +478,100 @@ export function isPreparedLocked(spell: SheetSpell): boolean {
   return false
 }
 
+export type SpellSourceBadge = {
+  label: string
+  title: string
+  /** Origin bucket for styling / analytics. */
+  kind: 'race' | 'feat' | 'subclass' | 'feature' | 'grant'
+}
+
+/**
+ * Badge for spells granted by race / feat / archetype / gear / feature.
+ * Covers both always-prepared (innate, domain) and mark/list expansions
+ * that the player prepares into normal slots.
+ */
+export function spellSourceBadge(spell: SheetSpell): SpellSourceBadge | null {
+  const custom = spell.prepare_source_label?.trim() || ''
+  const usesNote =
+    spell.grant_cast && spell.grant_cast.max > 0
+      ? ` · ${spell.grant_cast.label} ${grantCastRemaining(spell)}/${spell.grant_cast.max} без ячейки`
+      : ''
+
+  if (isRaceSheetSpell(spell) || spell.race_grant) {
+    if (spell.race_grant === 'spell_list') {
+      const label = custom || 'Метка'
+      return {
+        label,
+        title: `Список расы/метки · ${label} — готовь как классовое, только ячейки`,
+        kind: 'race',
+      }
+    }
+    const label = custom || 'Раса'
+    return {
+      label,
+      title: `Всегда подготовлено · ${label} — вне лимита подготовки${usesNote}`,
+      kind: 'race',
+    }
+  }
+
+  if (isFeatSheetSpell(spell) || spell.feat_grant) {
+    if (spell.feat_grant === 'spell_list') {
+      const label = custom || 'Черта'
+      return {
+        label,
+        title: `Список черты · ${label} — готовь как классовое, только ячейки`,
+        kind: 'feat',
+      }
+    }
+    const label = custom || 'Черта'
+    return {
+      label,
+      title: `Всегда подготовлено · ${label} — вне лимита подготовки${usesNote}`,
+      kind: 'feat',
+    }
+  }
+
+  if (isSubclassSheetSpell(spell) || spell.source_kind === 'subclass') {
+    const label = custom || 'Архетип'
+    return {
+      label,
+      title: `Всегда подготовлено · ${label} — домен/клятва/архетип, вне лимита${usesNote}`,
+      kind: 'subclass',
+    }
+  }
+
+  if (spell.source_kind === 'feature' || spell.id.startsWith('feature-spell:') || spell.id.startsWith('gear-spell:')) {
+    const label = custom || (spell.id.startsWith('gear-spell:') ? 'Предмет' : 'Умение')
+    return {
+      label,
+      title: `Всегда подготовлено · ${label}${usesNote}`,
+      kind: 'feature',
+    }
+  }
+
+  if (isPreparedLocked(spell)) {
+    return {
+      label: custom || 'Всегда',
+      title: `Всегда подготовлено · ${custom || 'грант'}${usesNote}`,
+      kind: 'grant',
+    }
+  }
+
+  return null
+}
+
+/** Soft highlight for any grant-origin spell (race / feat / archetype / gear). */
+export function isGrantedSpellHighlight(spell: SheetSpell): boolean {
+  return spellSourceBadge(spell) != null
+}
+
 export function preparedLockChip(spell: SheetSpell): {
   label: string
   title: string
 } | null {
   if (!isPreparedLocked(spell)) return null
-  if (spell.prepare_source_label) {
-    return {
-      label: spell.prepare_source_label,
-      title: `Всегда подготовлено · ${spell.prepare_source_label} — вне лимита подготовки`,
-    }
-  }
-  if (spell.feat_grant === 'innate' || spell.source_kind === 'feat') {
-    return {
-      label: 'Черта',
-      title: 'Заклинание от черты — всегда подготовлено, вне лимита',
-    }
-  }
-  if (spell.race_grant === 'innate' || spell.source_kind === 'race') {
-    return {
-      label: 'Врождённое',
-      title: 'Врождённый расовый каст — вне лимита подготовки',
-    }
-  }
-  if (spell.source_kind === 'subclass') {
-    return {
-      label: 'Архетип',
-      title: 'Заклинание домена/клятвы — всегда подготовлено, вне лимита',
-    }
-  }
-  if (spell.source_kind === 'feature') {
-    return {
-      label: 'Умение',
-      title: 'Заклинание от классового умения — всегда подготовлено, вне лимита',
-    }
-  }
+  const badge = spellSourceBadge(spell)
+  if (badge) return { label: badge.label, title: badge.title }
   return {
     label: 'Всегда',
     title: 'Всегда подготовлено — вне лимита подготовки',
@@ -604,6 +712,7 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
           ? { damage_at_slot_level: spell.damage_at_slot_level }
           : {}),
         ...(spell.higher_levels ? { higher_levels: spell.higher_levels } : {}),
+        ...(spell.description ? { description: spell.description } : {}),
         ...(spell.source_kind ? { source_kind: spell.source_kind } : {}),
         ...(spell.race_grant ? { race_grant: spell.race_grant } : {}),
         ...(spell.feat_grant ? { feat_grant: spell.feat_grant } : {}),
@@ -652,6 +761,7 @@ export function readCatalogSpellFields(data: Record<string, unknown>): Partial<S
       ? { damage_at_slot_level: parsed.damage_at_slot_level }
       : {}),
     ...(parsed.higher_levels ? { higher_levels: parsed.higher_levels } : {}),
+    ...(parsed.description ? { description: parsed.description } : {}),
   }
 }
 
@@ -788,6 +898,7 @@ export function sheetSpellFromCatalog(entry: {
       ? { damage_at_slot_level: fields.damage_at_slot_level }
       : {}),
     ...(fields.higher_levels ? { higher_levels: fields.higher_levels } : {}),
+    ...(fields.description ? { description: fields.description } : {}),
   }
 }
 

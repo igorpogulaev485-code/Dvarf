@@ -5,6 +5,16 @@ description: Workflow for building Dvarf with Игорь — plan first, code on
 
 # Dvarf development workflow
 
+## Hard rule — UI Kit first (frontend)
+
+Any change under `frontend/` must follow the canonical UI Kit:
+
+→ [`docs/ui-kit/README.md`](../../../docs/ui-kit/README.md)  
+→ [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../dvarf-ui-kit/SKILL.md)  
+→ boards in `docs/ui-kit/boards/`
+
+Plan slices that touch UI must name the kit boards they follow. New patterns need a board + Игорь ok before code. Implementation order: unified kit in default **Листва** first, account theme picker second.
+
 ## Hard rule — plan first
 
 Before writing or changing product code:

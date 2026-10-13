@@ -56,7 +56,7 @@ export function CompanionsPanel({ companions, onChange }: CompanionsPanelProps) 
           </Text>
         ) : null}
 
-        <div className="sheet-actions">
+        <div className="sheet-actions companions-panel__toolbar">
           <Button type="button" variant="secondary" onClick={() => addManual('other')}>
             + Спутник
           </Button>

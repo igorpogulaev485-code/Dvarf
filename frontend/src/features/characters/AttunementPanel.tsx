@@ -62,6 +62,20 @@ export function AttunementPanel({
           Привязка слота автоматически надевает предмет с wear-слотом / доспех / щит.
         </Text>
 
+        <div className="attune-panel__toolbar">
+          <span className={`sheet-chip${filled > 0 ? ' is-on' : ''}`}>
+            {filled}/{MAX_ATTUNEMENTS}
+          </span>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={attunements.length >= MAX_ATTUNEMENTS}
+            onClick={addSlot}
+          >
+            + слот
+          </Button>
+        </div>
+
         {needingAttune.length > 0 ? (
           <Text tone={unlinkedNeeding > 0 ? 'danger' : 'muted'}>
             Нужна настройка: {linkedNeeding.length}/{needingAttune.length} уже в слотах
@@ -123,14 +137,6 @@ export function AttunementPanel({
           ))
         )}
 
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={attunements.length >= MAX_ATTUNEMENTS}
-          onClick={addSlot}
-        >
-          + слот настройки
-        </Button>
       </Stack>
     </Panel>
   )
