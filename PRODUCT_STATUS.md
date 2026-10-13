@@ -667,6 +667,21 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 Не в этом аудите: каст → концентрация (BUG-019).  
 На проде: **нет** · ветка `cursor/hot-bar-audit-a73e` · база `cursor/attacks-settings-dialog-a73e`
 
+### 2026-10-13 — Hot conditions dialog candy
+
+Диалог «Состояния» с hot приведён к языку настроек (pads/dialogs).
+
+| Что | Как |
+|-----|-----|
+| Секции | Истощение · На персонаже · Быстрый выбор + поиск |
+| Icons | `IconExhaustion` / `IconConditions` в `deskIcons.tsx` |
+| Быстрый выбор | sheet-chips toggle on/off |
+| Hot chip | `is-on`, когда есть состояния / истощение |
+| Токены | `--card` / `--accent-soft` (без кремового фона) |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2e — **LOCK** («Идеал» 2026-10-13).  
+На проде: **нет** · ветка `cursor/hot-conditions-dialog-a73e` · PR #130 · база `cursor/hot-bar-audit-a73e`
+
 ### 2026-10-12 — Wave A header: desk icons + vitals
 
 | Что | Как |
@@ -1295,6 +1310,8 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-13 | `cursor/hot-conditions-dialog-a73e` · PR #130 | Hot conditions dialog LOCK (Идеал) |
+| 2026-10-13 | `cursor/hot-conditions-dialog-a73e` | Hot conditions dialog candy: sections, quick chips, icons |
 | 2026-10-13 | `cursor/hot-bar-audit-a73e` | Hot-bar audit: logic ok; kit icon gap + resource duplex noted |
 | 2026-10-13 | `cursor/attacks-settings-dialog-a73e` · PR #127 | Attacks LOCK in ui-kit §2d (Идеал) |
 | 2026-10-13 | `cursor/attacks-settings-dialog-a73e` | Attacks settings dialog (hybrid D): Настройки instead of full panel |

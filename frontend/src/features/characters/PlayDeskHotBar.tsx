@@ -34,14 +34,18 @@ export function PlayDeskHotBar({
       : null,
   ].filter(Boolean) as string[]
   const conditionsLabel = parts.length > 0 ? parts.join(', ') : 'нет'
+  const conditionsOn = parts.length > 0
   const hotResources = resources.filter((row) => row.max > 0 && row.name.trim())
 
   return (
     <div className="play-desk__hot" aria-label="Боевая полоса">
       <button
         type="button"
-        className="play-desk__hot-item play-desk__hot-item--wide play-desk__hot-item--btn"
+        className={`play-desk__hot-item play-desk__hot-item--wide play-desk__hot-item--btn${
+          conditionsOn ? ' is-on' : ''
+        }`}
         title="Нажми, чтобы изменить состояния"
+        aria-pressed={conditionsOn}
         onClick={onOpenConditions}
       >
         Состояния: {conditionsLabel}
