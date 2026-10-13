@@ -238,7 +238,16 @@ Auth, кабинет, create pipeline, play desk, лобби — **отсутс�
 
 ---
 
-## 9. Блок-схемы для Figma
+## 9. План редизайна
+
+Комплексный UX/UI план (аудит листа/лобби/create, дизайн-система, фазы P0–P2, метрики, Figma):  
+[`docs/redesign/REDESIGN_PLAN.md`](docs/redesign/REDESIGN_PLAN.md) · [`DESIGN_GUIDELINES.md`](docs/redesign/DESIGN_GUIDELINES.md).
+
+Строится **поверх UI Kit «Листва»**, без ломания логики прода.
+
+---
+
+## 10. Блок-схемы для Figma
 
 Готовые SVG-фреймы (импорт drag-and-drop): [`docs/figma-flows/`](docs/figma-flows/).
 
@@ -251,7 +260,7 @@ Auth, кабинет, create pipeline, play desk, лобби — **отсутс�
 
 ---
 
-## 10. Как обновлять этот файл
+## 11. Как обновлять этот файл
 
 После изменения пользовательского пути (новый экран, смена порядка create, новые роли):
 
