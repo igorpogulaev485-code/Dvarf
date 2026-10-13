@@ -32,7 +32,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/create-pipeline-kit-prod-244b
+cursor/deploy-guardrails-93e5
 ```
 
 URL: http://201.34.132.252/

@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/create-pipeline-kit-prod-244b`  
+**Prod tip (ветка линии прода):** `cursor/deploy-guardrails-93e5`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -528,6 +528,15 @@
 На проде: **да** · ветка `cursor/gear-dmg-polish-db96` · PR #99 · затем tip → `cursor/create-pipeline-page-2223` · alembic `j2d3`
 
 ---
+
+### 2026-10-13 — Deploy guardrails (live tip + alembic + fast path)
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Live preflight | До заливки: tip с VPS должен быть ancestor; alembic из БД обязан быть в дереве | Orphan/cherry-pick и «API упал на миграции» стопорятся до wipe |
+| Fast remote-up снова на проде | SPA prebuild + nginx+dist; не `compose --build` с node на VPS | Релиз минуты, не час |
+
+На проде: **да** · ветка `cursor/deploy-guardrails-93e5` · PR #146 · **это новый prod tip** · проверено 2026-10-13: `/health` ok; `remote-up.sh` + `preflight-live.sh` на диске; alembic `z5i6j7k8l9m0`
 
 ## В ветках / ещё не на проде
 
