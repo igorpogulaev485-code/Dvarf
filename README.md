@@ -9,5 +9,5 @@
 
 **User flow продукта:** [`USER_FLOW.md`](USER_FLOW.md) — роли, маршруты, сценарии (аккаунт → персонажи → create → лист/play desk → лобби).  
 **Микро-флоу листа:** [`PLAY_DESK_MICROFLOWS.md`](PLAY_DESK_MICROFLOWS.md) — кейсы K1–K28 и пошаговые действия на play desk.  
-**Блок-схемы для Figma:** [`docs/figma-flows/`](docs/figma-flows/) — SVG artboards (drag-and-drop в Figma/FigJam).  
+**Блок-схемы для Figma:** [`docs/figma-flows/`](docs/figma-flows/) — 13 продуктовых + **28 кейсов `K01`–`K28`** (SVG, drag-and-drop).  
 См. также открытые PR и `PRODUCT_STATUS.md` в tip-ветках (напр. `cursor/play-desk-layout-e788`, `cursor/mobile-play-desk-2c91`).

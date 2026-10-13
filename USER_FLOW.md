@@ -242,17 +242,12 @@ Auth, кабинет, create pipeline, play desk, лобби — **отсутс�
 
 Готовые SVG-фреймы (импорт drag-and-drop): [`docs/figma-flows/`](docs/figma-flows/).
 
-| Файл | Содержание |
-|------|------------|
-| `00-index.svg` | Индекс всех схем |
-| `01-happy-path.svg` | Сквозной путь |
-| `02-auth-cabinet.svg` | Аккаунт / кабинет |
-| `03-create-2014.svg` | Пайплайн создания 2014 |
-| `04-create-2024-wizard.svg` | 2024 + GuidedWizard |
-| `05-lobby-session.svg` | Лобби мастер / игрок |
-| `06`–`12-*.svg` | Play desk: режимы, vitals, отдых, экип, каст, level-up, sync |
+| Набор | Файлы | Содержание |
+|-------|-------|------------|
+| Продукт | `00`–`12-*.svg` | Happy path, auth, create, лобби, сводные зоны листа |
+| **Кейсы** | **`K01.svg` … `K28.svg`** | **Все 28 кейсов листа** (по одному artboard) |
 
-Перегенерация: `python3 scripts/generate_figma_flows.py` · инструкция импорта в [`docs/figma-flows/README.md`](docs/figma-flows/README.md).
+Перегенерация: `python3 scripts/generate_figma_flows.py` · инструкция в [`docs/figma-flows/README.md`](docs/figma-flows/README.md).
 
 ---
 

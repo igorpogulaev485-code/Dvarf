@@ -292,6 +292,289 @@ def chain(ids: list[str], labels: list[str] | None = None) -> list[Edge]:
     return [Edge(ids[i], ids[i + 1], labels[i] if i < len(labels) else "") for i in range(len(ids) - 1)]
 
 
+def case_flow_branched(
+    num: int,
+    title: str,
+    subtitle: str,
+    steps: list[tuple[str, str]],
+    side: list[tuple[int, str, str, str]] | None = None,
+) -> Flow:
+    """steps linear; side = (from_index, kind, node_label, edge_label) placed to the right."""
+    nodes: list[Node] = []
+    y = 120
+    w = 260
+    xs = 80
+    for i, (kind, label) in enumerate(steps):
+        nid = f"n{i}"
+        if i == 0 and kind != "start":
+            kind = "start"
+        if i == len(steps) - 1 and kind not in ("end", "note"):
+            kind = "end"
+        h = 70 if kind == "decision" else 52
+        nodes.append(Node(nid, kind, label, xs, y, w, h))
+        y += h + 22
+    edges = chain([f"n{i}" for i in range(len(steps))])
+    width = 420
+    if side:
+        for si, (from_i, kind, label, elabel) in enumerate(side):
+            src = nodes[from_i]
+            nid = f"s{si}"
+            nodes.append(Node(nid, kind, label, 380, src.y, 220, 52))
+            edges.append(Edge(f"n{from_i}", nid, elabel))
+            width = 660
+    return Flow(
+        slug=f"K{num:02d}",
+        title=f"K{num} · {title}",
+        subtitle=subtitle,
+        nodes=nodes,
+        edges=edges,
+        width=width,
+        height=max(520, int(y + 80)),
+        legend=False,
+    )
+
+
+def build_case_flows() -> list[Flow]:
+    """All 28 sheet cases from PLAY_DESK_MICROFLOWS.md §0."""
+    c = case_flow_branched
+    cases: list[Flow] = []
+
+    cases.append(c(1, "Desk ≥960px", "Открыл лист на планшете/ПК", [
+        ("start", "Список → /characters/:id"),
+        ("decision", "Ширина ≥ 960px?"),
+        ("screen", "Play desk"),
+        ("action", "Режим Бой / Исслед. / …"),
+        ("screen", "Панель сцены"),
+        ("end", "Играю за столом"),
+    ], side=[(1, "screen", "Mobile layout", "нет")]))
+
+    cases.append(c(2, "Телефон · одна зона", "Mobile: панель через select", [
+        ("start", "/characters/:id · <960px"),
+        ("action", "Выбрать режим"),
+        ("action", "Select «Панель»"),
+        ("decision", "MOB или WAVE mobile?"),
+        ("screen", "MOB: одна панель"),
+        ("end", "Смотрю нужную зону"),
+    ], side=[(3, "note", "WAVE: стек панелей", "WAVE")]))
+
+    cases.append(c(3, "Урон / лечение", "Vitals · HP pad", [
+        ("start", "Шапка листа"),
+        ("action", "Tap текущие HP"),
+        ("decision", "MOB или WAVE?"),
+        ("action", "MOB: Урон / Вылечить"),
+        ("end", "HP обновлены"),
+    ], side=[(2, "action", "WAVE: pad «Хиты»", "WAVE")]))
+
+    cases.append(c(4, "0 HP · смерть", "Death saves", [
+        ("start", "HP ≤ 0"),
+        ("screen", "Death UI в шапке/pad"),
+        ("action", "Пип Успехи / Провалы"),
+        ("note", "WAVE: «При смерти»"),
+        ("end", "Статус dying обновлён"),
+    ]))
+
+    cases.append(c(5, "Концентрация + урон", "WAVE concentration check", [
+        ("start", "Есть концентрация"),
+        ("action", "Получил урон"),
+        ("screen", "Dialog «Концентрация»"),
+        ("decision", "Удержал?"),
+        ("action", "Удержал — держит"),
+        ("end", "Концентрация решена"),
+    ], side=[
+        (3, "action", "Сорвалось → снять", "нет"),
+        (0, "action", "Снять вручную", "без урона"),
+    ]))
+
+    cases.append(c(6, "Отдых", "Короткий / продолжительный", [
+        ("start", "Нужен отдых"),
+        ("decision", "MOB или WAVE?"),
+        ("screen", "MOB: Состояния и ресурсы"),
+        ("decision", "Короткий или длинный?"),
+        ("action", "Кость / сброс short"),
+        ("end", "Ресурсы обновлены"),
+    ], side=[
+        (1, "screen", "WAVE: «Отдых»", "WAVE"),
+        (3, "action", "Продолжительный отдых", "длинный"),
+    ]))
+
+    cases.append(c(7, "Атака оружием", "Режим Бой → Атаки", [
+        ("start", "Режим «Бой»"),
+        ("screen", "Панель Атаки"),
+        ("action", "Выбрать атаку / оружие"),
+        ("note", "WAVE: клик = toast-бросок"),
+        ("action", "взять / убрать (held)"),
+        ("end", "Атака объявлена"),
+    ]))
+
+    cases.append(c(8, "Надел доспех / щит", "Экип → КД", [
+        ("start", "Снаряжение"),
+        ("action", "Из справочника / список"),
+        ("action", "Надето / В руке"),
+        ("action", "КД пересчитан"),
+        ("end", "Защита актуальна"),
+    ]))
+
+    cases.append(c(9, "Конфликт рук", "2H vs 1H×2", [
+        ("start", "Equip «В руках»"),
+        ("decision", "Двуручное?"),
+        ("action", "Вытеснить одноручные"),
+        ("end", "Слоты рук согласованы"),
+    ], side=[(1, "action", "Max 2× одноручных", "нет")]))
+
+    cases.append(c(10, "Нет владения доспехом", "Equip blocked", [
+        ("start", "Надеть доспех"),
+        ("decision", "Есть владение?"),
+        ("note", "Блок / авто-снятие + toast"),
+        ("end", "Доспех не надет"),
+    ], side=[(1, "action", "Надето → КД", "да")]))
+
+    cases.append(c(11, "Attunement", "Настройка магии", [
+        ("start", "Настройка (attunement)"),
+        ("action", "Выбрать из инвентаря"),
+        ("action", "Авто-надевание wear"),
+        ("note", "Лимит слотов PHB"),
+        ("end", "Предмет настроен"),
+    ]))
+
+    cases.append(c(12, "Каст заклинания", "Prepare → Cast", [
+        ("start", "Заклинания"),
+        ("action", "Подготовить / Гримуар"),
+        ("action", "Каст"),
+        ("decision", "Источник?"),
+        ("action", "Слот / upcast"),
+        ("end", "Каст применён"),
+    ], side=[
+        (3, "action", "Pact / Ритуал / Грант", "др."),
+    ]))
+
+    cases.append(c(13, "Каст при концентрации", "Смена концентрации", [
+        ("start", "Активная концентрация"),
+        ("action", "Каст с концентрацией"),
+        ("screen", "Смена концентрации"),
+        ("action", "Сменить и кастовать"),
+        ("end", "Новая концентрация"),
+    ]))
+
+    cases.append(c(14, "Нет ячеек", "Cast disabled", [
+        ("start", "Каст"),
+        ("note", "Нет ячеек / грант исчерпан"),
+        ("action", "Hint: отдых / pact / грант"),
+        ("end", "Каст недоступен"),
+    ]))
+
+    cases.append(c(15, "Сброс short-rest", "Pact / короткие ресурсы", [
+        ("start", "Потратил pact / short ресурс"),
+        ("screen", "Короткий отдых"),
+        ("action", "Сброс коротких ресурсов"),
+        ("end", "Ресурсы вернулись"),
+    ]))
+
+    cases.append(c(16, "Level-up / мультикласс", "+1 уровень", [
+        ("start", "Основное → +1 уровень"),
+        ("screen", "Повышение уровня"),
+        ("decision", "Этот класс | Мультикласс"),
+        ("action", "HP среднее / вручную"),
+        ("screen", "Wizard / ASI"),
+        ("end", "Уровень +1"),
+    ]))
+
+    cases.append(c(17, "Смена архетипа", "Subclass change", [
+        ("start", "Combobox архетипа"),
+        ("screen", "Сменить архетип?"),
+        ("decision", "Все | только будущие"),
+        ("screen", "SubclassSetup"),
+        ("end", "Архетип сменён"),
+    ]))
+
+    cases.append(c(18, "Донастройка после create", "createGuide grants", [
+        ("start", "Лист после create"),
+        ("action", "Scroll: фон → класс → раса"),
+        ("screen", "Setup dialogs"),
+        ("decision", "Выбрать или Позже?"),
+        ("action", "Гранты применены"),
+        ("end", "Онбординг закрыт"),
+    ], side=[(3, "action", "Бейдж «не выбрано»", "Позже")]))
+
+    cases.append(c(19, "Напарники", "Спутник / призвать", [
+        ("start", "Режим Напарники"),
+        ("decision", "Вручную или умение?"),
+        ("action", "+ Спутник / + Напарник"),
+        ("end", "Свита на листе"),
+    ], side=[(1, "action", "Призвать… из умений", "умение")]))
+
+    cases.append(c(20, "Тексты и заметки", "Личность / скрыть", [
+        ("start", "Тексты и заметки"),
+        ("action", "Фильтр Личность / Умения…"),
+        ("action", "Править / Скрыть / ресурс"),
+        ("end", "Блок сохранён"),
+    ]))
+
+    cases.append(c(21, "Аватар персонажа", "Upload / delete", [
+        ("start", "Клик аватара"),
+        ("action", "Загрузить фото"),
+        ("decision", "Удалить?"),
+        ("end", "Аватар на карточке и в шапке"),
+    ], side=[(2, "action", "Удалить файл", "да")]))
+
+    cases.append(c(22, "В лобби с листа", "Код мастера", [
+        ("start", "Кнопка «В лобби»"),
+        ("screen", "Вступить кодом"),
+        ("action", "Код от мастера"),
+        ("action", "Добавить этого персонажа"),
+        ("end", "/lobbies/:id"),
+    ]))
+
+    cases.append(c(23, "Конфликт вкладок", "Version conflict", [
+        ("start", "Две вкладки правят лист"),
+        ("decision", "Banner или dialog?"),
+        ("action", "Позже / Обновить"),
+        ("end", "Версия согласована"),
+    ], side=[
+        (1, "action", "MOB: Обновить / Оставить", "dialog MOB"),
+        (1, "action", "WAVE: Мои / С сервера", "dialog WAVE"),
+    ]))
+
+    cases.append(c(24, "Classic печать", "Классический лист 2014", [
+        ("start", "Классический лист 2014"),
+        ("screen", "/characters/:id/classic"),
+        ("action", "Печать / PDF"),
+        ("action", "← К карточке"),
+        ("end", "Тот же документ сохранён"),
+    ]))
+
+    cases.append(c(25, "Проверка навыка", "Skill strip / колонка", [
+        ("start", "Нужна проверка"),
+        ("action", "норм / преим. / помеха"),
+        ("action", "Клик навыка (strip/колонка)"),
+        ("note", "Toast броска [WAVE]"),
+        ("end", "Результат объявлен"),
+    ]))
+
+    cases.append(c(26, "Расходник в бою", "Избранное ≤3", [
+        ("start", "Бой · compact"),
+        ("action", "+ в избранное (N/3)"),
+        ("action", "потратить"),
+        ("note", "Уже 3 → toast"),
+        ("end", "Расходник списан"),
+    ]))
+
+    cases.append(c(27, "Перегруз", "СИЛ × 15", [
+        ("start", "Инвентарь тяжёлый"),
+        ("decision", "Вес > СИЛ×15?"),
+        ("note", "Danger line перегруз"),
+        ("end", "Игрок видит лимит"),
+    ], side=[(1, "end", "Ок — без предупреждения", "нет")]))
+
+    cases.append(c(28, "Очки чародейства", "Sorcery points", [
+        ("start", "Умения классов"),
+        ("screen", "Очки чародейства"),
+        ("action", "Потратить / flexible casting"),
+        ("end", "Ресурс обновлён"),
+    ]))
+
+    return cases
+
+
 def build_flows() -> list[Flow]:
     flows: list[Flow] = []
 
@@ -615,30 +898,29 @@ def build_flows() -> list[Flow]:
     ]
     flows.append(Flow("12-sheet-extras-sync", "12 · Напарники, classic, sync (K19–K24)", "Лобби с листа, конфликт вкладок, печать", n, e, 960, 760))
 
-    # 13 Cases map overview (index)
+    # 13 Index — product flows + all 28 case boards
     n = [
-        Node("title", "role", "Индекс кейсов листа", 80, 120, 240, 52),
-        Node("a", "action", "K1–K2 Режимы", 80, 220, 200, 44),
-        Node("b", "action", "K3–K5 Vitals", 300, 220, 200, 44),
-        Node("c", "action", "K6 / K15 Отдых", 520, 220, 200, 44),
-        Node("d", "action", "K7 / K26 Атаки", 80, 300, 200, 44),
-        Node("e1", "action", "K8–K11 / K27 Экип", 300, 300, 220, 44),
-        Node("f", "action", "K12–K14 Заклинания", 540, 300, 220, 44),
-        Node("g", "action", "K16–K18 Level-up", 80, 380, 200, 44),
-        Node("h", "action", "K19–K21 Соц./аватар", 300, 380, 220, 44),
-        Node("i", "action", "K22–K24 Лобби/sync", 540, 380, 220, 44),
-        Node("j", "action", "K25 Навыки · K28 Чародей", 80, 460, 260, 44),
-        Node("doc", "screen", "PLAY_DESK_MICROFLOWS.md", 80, 560, 260, 52),
-        Node("uf", "screen", "USER_FLOW.md", 360, 560, 200, 52),
+        Node("title", "role", "Индекс схем Dvarf", 80, 120, 240, 52),
+        Node("prod", "screen", "01–12 продуктовые flow", 80, 210, 240, 52),
+        Node("cases", "screen", "K01–K28 кейсы листа", 360, 210, 240, 52),
+        Node("a", "action", "K1–K2 Режимы", 80, 300, 180, 44),
+        Node("b", "action", "K3–K6 Vitals/отдых", 280, 300, 200, 44),
+        Node("c", "action", "K7–K11 Бой/экип", 500, 300, 180, 44),
+        Node("d", "action", "K12–K15 Заклинания", 80, 380, 200, 44),
+        Node("e1", "action", "K16–K21 Прокачка/соц", 300, 380, 220, 44),
+        Node("f", "action", "K22–K28 Лобби/sync/прочее", 540, 380, 240, 44),
+        Node("doc", "screen", "PLAY_DESK_MICROFLOWS.md", 80, 480, 260, 52),
+        Node("fig", "screen", "docs/figma-flows/", 360, 480, 220, 52),
     ]
     e = [
-        Edge("title", "a"), Edge("title", "b"), Edge("title", "c"),
-        Edge("a", "doc"), Edge("b", "doc"), Edge("c", "doc"),
-        Edge("d", "doc"), Edge("e1", "doc"), Edge("f", "doc"),
-        Edge("g", "uf"), Edge("h", "uf"), Edge("i", "uf"), Edge("j", "doc"),
+        Edge("title", "prod"), Edge("title", "cases"),
+        Edge("cases", "a"), Edge("cases", "b"), Edge("cases", "c"),
+        Edge("cases", "d"), Edge("cases", "e1"), Edge("cases", "f"),
+        Edge("a", "doc"), Edge("prod", "fig"), Edge("doc", "fig"),
     ]
-    flows.append(Flow("00-index", "00 · Индекс схем Dvarf", "Все SVG в docs/figma-flows · импорт в Figma drag-and-drop", n, e, 880, 700, legend=True))
+    flows.append(Flow("00-index", "00 · Индекс схем Dvarf", "13 продуктовых + 28 кейсов K01–K28 · drag-and-drop в Figma", n, e, 880, 640, legend=True))
 
+    flows.extend(build_case_flows())
     return flows
 
 
@@ -650,17 +932,19 @@ def main() -> None:
         path.write_text(render_flow(flow), encoding="utf-8")
         print(f"wrote {path.relative_to(OUT.parent.parent)} ({flow.width}×{flow.height})")
     # index markdown
+    product = [f for f in flows if not f.slug.startswith("K")]
+    cases = [f for f in flows if f.slug.startswith("K")]
     lines = [
         "# Figma flows — Dvarf",
         "",
-        "Блок-схемы всех задокументированных user flow в SVG для импорта в Figma / FigJam.",
+        f"Блок-схемы в SVG для Figma / FigJam: **{len(product)} продуктовых** + **{len(cases)} кейсов листа (K1–K28)**.",
         "",
         "## Как импортировать",
         "",
         "1. Открой Figma (Design или FigJam).",
         "2. Перетащи файл `.svg` на холст **или** `File → Place image…` / `Shift+Ctrl+K`.",
-        "3. Каждый файл = один фрейм (artboard). При необходимости `Ungroup` / Outline — узлы остаются векторными.",
-        "4. Шрифт в файлах: IBM Plex Sans (фолбэк Inter/Arial). Подключи Plex в файле Figma для пиксель-мэтча.",
+        "3. Каждый файл = один фрейм (artboard). При необходимости `Ungroup` — узлы векторные.",
+        "4. Шрифт: IBM Plex Sans (фолбэк Inter/Arial).",
         "",
         "## Легенда",
         "",
@@ -673,10 +957,13 @@ def main() -> None:
         "| Пунктир | Stub / ограничение |",
         "| Голубой | Роль |",
         "",
-        "## Файлы",
+        "## Продуктовые flow (01–12)",
         "",
     ]
-    for flow in sorted(flows, key=lambda f: f.slug):
+    for flow in sorted(product, key=lambda f: f.slug):
+        lines.append(f"- [`{flow.slug}.svg`]({flow.slug}.svg) — **{flow.title}** — {flow.subtitle}")
+    lines += ["", "## Кейсы листа K1–K28", "", "По одному artboard на кейс из [`PLAY_DESK_MICROFLOWS.md`](../../PLAY_DESK_MICROFLOWS.md) §0.", ""]
+    for flow in sorted(cases, key=lambda f: f.slug):
         lines.append(f"- [`{flow.slug}.svg`]({flow.slug}.svg) — **{flow.title}** — {flow.subtitle}")
     lines += [
         "",
@@ -693,7 +980,7 @@ def main() -> None:
         "",
     ]
     (OUT / "README.md").write_text("\n".join(lines), encoding="utf-8")
-    print(f"wrote docs/figma-flows/README.md ({len(flows)} diagrams)")
+    print(f"wrote docs/figma-flows/README.md ({len(flows)} diagrams: {len(product)} product + {len(cases)} cases)")
 
 
 if __name__ == "__main__":
