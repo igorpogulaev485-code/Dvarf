@@ -64,12 +64,14 @@ export function SpellDetailDialog({
           <Text tone="muted">{flags.join(' · ')}</Text>
         ) : null}
         {source ? (
-          <Text tone="muted" title={source.title}>
-            Подготовлено за счёт: <strong>{source.label}</strong>
-            {grantLeft != null
-              ? ` · ${source.label} ${grantLeft}/${spell.grant_cast!.max} без ячейки`
-              : ''}
-          </Text>
+          <div title={source.title}>
+            <Text tone="muted">
+              Подготовлено за счёт: <strong>{source.label}</strong>
+              {grantLeft != null
+                ? ` · ${source.label} ${grantLeft}/${spell.grant_cast!.max} без ячейки`
+                : ''}
+            </Text>
+          </div>
         ) : null}
 
         <div className="spell-detail-grid">
