@@ -1,6 +1,7 @@
 # Dvarf Mobile UI Kit — контракт телефона
 
-**Статус:** черновик контракта для согласования с Игорем → после ok обязателен для UI на `<960px`.  
+**Статус:** контракт + **JPG-доски** на согласовании с Игорем → после ok обязателен для UI на `<960px`. Код — только после ok на картинки.  
+**Доски:** [`boards/`](boards/) · сводная: [`boards/dvarf-mobile-kit-catalog.jpg`](boards/dvarf-mobile-kit-catalog.jpg)  
 **База:** десктопный / планшетный кит [`docs/ui-kit/README.md`](../ui-kit/README.md) (**Листва**).  
 **Этот файл не заменяет и не правит** десктопный кит. Десктопные LOCK-доски и README остаются как есть.
 
@@ -10,7 +11,7 @@ Skill: [`.cursor/skills/dvarf-ui-kit-mobile/SKILL.md`](../../.cursor/skills/dvar
 
 Прод: http://201.34.132.252/ · breakpoint телефона: **`<960px`** (тот же `isPlayDesk`, что у десктопа).
 
-> **ЕЩЁ:** в desktop UI Kit LOCK сцена упразднена (функционал разнесён). На живом бандле tip `create-pipeline-kit-prod-244b` кнопка ЕЩЁ ещё может быть — целевая модель для мобилки = **5 сцен** как в `characters-list-kit` / kit §2k («Сцена ЕЩЁ | нет»).
+> **ЕЩЁ:** в desktop UI Kit LOCK сцена упразднена (функционал разнесён). На проде tip `cursor/restore-wave-a-desk-0ed9` — без «ЕЩЁ». Мобильный кит = **5 сцен** (паритет desktop §2k).
 
 ---
 
