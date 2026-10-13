@@ -3882,8 +3882,14 @@ button.spell-card__cast:hover:not(:disabled) {
   text-underline-offset: 2px;
 }
 
+/* Social stage: flat like explore inventory — no cream panel plate. */
 .text-panel.ui-panel {
-  background: var(--panel);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  backdrop-filter: none;
+  box-shadow: none;
 }
 
 .text-block {
@@ -3893,6 +3899,12 @@ button.spell-card__cast:hover:not(:disabled) {
   border: 1px solid var(--line);
   border-radius: 14px;
   background: #fffdf8;
+}
+
+.text-block--expand {
+  gap: 8px;
+  padding: 10px 12px 12px;
+  overflow: visible;
 }
 
 .text-block--compact {

@@ -85,21 +85,6 @@ function IconPlus() {
   )
 }
 
-function IconChevronUp() {
-  return (
-    <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
-      <path
-        d="m6 14 6-6 6 6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
 function IconTrash() {
   return (
     <svg className="inventory-icon" viewBox="0 0 24 24" aria-hidden>
@@ -122,7 +107,8 @@ export function TextBlocksPanel({
   onResourcesChange,
 }: TextBlocksPanelProps) {
   const [filter, setFilter] = useState<TextFilter>('all')
-  const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
+  /** Accordion: at most one block detail open. */
+  const [openKey, setOpenKey] = useState<string | null>(null)
 
   const linkedIds = new Set(
     blocks.map((block) => block.resourceId).filter((id): id is string => Boolean(id)),
@@ -195,10 +181,15 @@ export function TextBlocksPanel({
   }
 
   function toggleDetails(key: string) {
-    setOpenKeys((prev) => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
+    setOpenKey((prev) => {
+      const next = prev === key ? null : key
+      if (next) {
+        window.requestAnimationFrame(() => {
+          document
+            .getElementById(`text-block-${next}`)
+            ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        })
+      }
       return next
     })
   }
@@ -312,12 +303,16 @@ export function TextBlocksPanel({
     const role = roleLabel(block)
     const preview = previewText(block.value)
     const filled = Boolean(block.value.trim())
-    const detailsOpen = openKeys.has(block.key)
+    const detailsOpen = openKey === block.key
     const absoluteIndex = blocks.findIndex((row) => row.key === block.key)
 
     if (block.isHidden && filter === 'hidden' && !detailsOpen) {
       return (
-        <div key={block.key} className="text-block text-block--compact text-block--hidden">
+        <div
+          key={block.key}
+          id={`text-block-${block.key}`}
+          className="text-block text-block--compact text-block--hidden"
+        >
           <button
             type="button"
             className="text-block__glance"
@@ -356,6 +351,7 @@ export function TextBlocksPanel({
       return (
         <div
           key={block.key}
+          id={`text-block-${block.key}`}
           className={`text-block text-block--compact${filled ? '' : ' text-block--empty'}`}
         >
           <button
@@ -394,7 +390,10 @@ export function TextBlocksPanel({
     return (
       <div
         key={block.key}
-        className={`text-block${block.isHidden ? ' text-block--hidden' : ''}`}
+        id={`text-block-${block.key}`}
+        className={`text-block text-block--expand${
+          block.isHidden ? ' text-block--hidden' : ''
+        }`}
       >
         <div className="text-block__meta">
           <span
@@ -406,6 +405,13 @@ export function TextBlocksPanel({
           </span>
           {block.resourceId ? <span className="attack-held-tag is-on">ресурс</span> : null}
           {block.isHidden ? <span className="attack-held-tag">скрыт</span> : null}
+          <button
+            type="button"
+            className="inventory-card__collapse"
+            onClick={() => toggleDetails(block.key)}
+          >
+            свернуть
+          </button>
         </div>
 
         <div className="text-block__header">
@@ -455,14 +461,6 @@ export function TextBlocksPanel({
               Скрыть
             </button>
           )}
-          <button
-            type="button"
-            className="inventory-action"
-            onClick={() => toggleDetails(block.key)}
-          >
-            <IconChevronUp />
-            Свернуть
-          </button>
           {block.isCustom ? (
             <button
               type="button"
@@ -489,7 +487,7 @@ export function TextBlocksPanel({
     <Panel title="Тексты и заметки" className="text-panel">
       <Stack gap={12}>
         <Text tone="muted">
-          Личность, умения и заметки. Список компактный — текст открывается по клику.
+          Сцена Общение: личность и заметки. Строка — превью; клик — правка (одна открыта).
         </Text>
 
         <div className="inventory-panel__toolbar">
@@ -500,7 +498,7 @@ export function TextBlocksPanel({
               const next = createCustomTextBlock(blocks)
               onChange([...blocks, next])
               setFilter('notes')
-              setOpenKeys((prev) => new Set(prev).add(next.key))
+              setOpenKey(next.key)
             }}
           >
             <IconPlus />
