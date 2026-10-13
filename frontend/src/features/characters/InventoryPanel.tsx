@@ -8,6 +8,8 @@ import {
   type GearAddResult,
 } from './gearFromCatalog'
 import { syncAttacksHeldFromInventory, type WeaponAttack } from './AttacksPanel'
+import { MAX_ATTUNEMENTS } from './attunement'
+import { MAX_COMBAT_CONSUMABLE_FAVORITES } from './combatConsumables'
 import {
   canShowEquipChip,
   equipLabel,
@@ -319,6 +321,14 @@ type InventoryPanelProps = {
   /** When set, catalog weapon picks also append attack cards. */
   onWeaponsChange?: (weapons: WeaponAttack[]) => void
   onToast?: (message: string) => void
+  /** Desk explore meta — КД from worn gear. */
+  autoAc?: number
+  acHint?: string
+  attunementFilled?: number
+  onOpenAttunement?: () => void
+  /** Combat consumable favorites (★ in explore → расходники в бою). */
+  favoriteConsumableIds?: string[]
+  onToggleConsumableFavorite?: (itemId: string) => void
 }
 
 export function InventoryPanel({
@@ -330,7 +340,15 @@ export function InventoryPanel({
   onChange,
   onWeaponsChange,
   onToast,
+  autoAc,
+  acHint,
+  attunementFilled,
+  onOpenAttunement,
+  favoriteConsumableIds = [],
+  onToggleConsumableFavorite,
 }: InventoryPanelProps) {
+  const favoriteSet = useMemo(() => new Set(favoriteConsumableIds), [favoriteConsumableIds])
+  const favoriteCount = favoriteConsumableIds.length
   const [catalogItems, setCatalogItems] = useState<CatalogEntry[]>([])
   const [packBusyId, setPackBusyId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
@@ -711,6 +729,26 @@ export function InventoryPanel({
               </button>
             ) : null}
             {renderEquipChip(item)}
+            {onToggleConsumableFavorite && item.name.trim() && !item.parent_id ? (
+              <button
+                type="button"
+                className={`inventory-fav${favoriteSet.has(item.id) ? ' is-on' : ''}`}
+                title={
+                  favoriteSet.has(item.id)
+                    ? 'Убрать из расходников боя'
+                    : favoriteCount >= MAX_COMBAT_CONSUMABLE_FAVORITES
+                      ? `Уже ${MAX_COMBAT_CONSUMABLE_FAVORITES} избранных`
+                      : 'В расходники боя'
+                }
+                disabled={
+                  !favoriteSet.has(item.id) &&
+                  favoriteCount >= MAX_COMBAT_CONSUMABLE_FAVORITES
+                }
+                onClick={() => onToggleConsumableFavorite(item.id)}
+              >
+                {favoriteSet.has(item.id) ? '★' : '☆'}
+              </button>
+            ) : null}
             <button
               type="button"
               className="inventory-card__chevron-btn"
@@ -1015,7 +1053,10 @@ export function InventoryPanel({
   return (
     <Panel title="Инвентарь" className="inventory-panel">
       <Stack gap={12}>
-        <Text tone="muted">Управляйте вещами, весом и монетами персонажа.</Text>
+        <Text tone="muted">
+          Сцена Исследование: ноша, монеты и вещи. Строка — взгляд; клик — детали. ★ — в расходники
+          боя.
+        </Text>
 
         <div className="inventory-panel__toolbar">
           <Button
@@ -1049,6 +1090,32 @@ export function InventoryPanel({
           <strong>
             {formatLb(totalLb)} / {formatLb(capacityLb)} фнт
           </strong>
+          {autoAc != null ? (
+            <>
+              {' · '}
+              <span className="inventory-summary-line__ac" title={acHint || undefined}>
+                КД {autoAc}
+              </span>
+            </>
+          ) : null}
+          {attunementFilled != null ? (
+            <>
+              {' · '}
+              {onOpenAttunement ? (
+                <button
+                  type="button"
+                  className="inventory-summary-line__link"
+                  onClick={onOpenAttunement}
+                >
+                  Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                </button>
+              ) : (
+                <span>
+                  Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                </span>
+              )}
+            </>
+          ) : null}
         </p>
         {overEncumbered ? (
           <Text tone="danger">Перегруз: итого больше лимита переноски (СИЛ × 15).</Text>

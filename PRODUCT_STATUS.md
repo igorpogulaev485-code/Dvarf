@@ -682,6 +682,20 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2e — **LOCK** («Идеал» 2026-10-13).  
 На проде: **нет** · ветка `cursor/hot-conditions-dialog-a73e` · PR #130 · база `cursor/hot-bar-audit-a73e`
 
+### 2026-10-13 — Explore inventory unify (одна поверхность)
+
+Как у атак/заклинаний: на столе нет компакт↔полностью.
+
+| Что | Как |
+|-----|-----|
+| Stage Исследование | сразу `InventoryPanel` (glance→expand) |
+| Убран | `PlayDeskExploreCompact` + «полностью» / «← компактно» |
+| ★ | избранное в строке → расходники боя |
+| Meta | ноша · КД · Настройка N/3 в summary |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2f.  
+На проде: **нет** · ветка `cursor/explore-inventory-unify-a73e` · база `cursor/hot-conditions-dialog-a73e`
+
 ### 2026-10-12 — Wave A header: desk icons + vitals
 
 | Что | Как |
@@ -1310,6 +1324,7 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-13 | `cursor/explore-inventory-unify-a73e` | Explore: one InventoryPanel surface, drop compact/full flip |
 | 2026-10-13 | `cursor/hot-conditions-dialog-a73e` · PR #130 | Hot conditions dialog LOCK (Идеал) |
 | 2026-10-13 | `cursor/hot-conditions-dialog-a73e` | Hot conditions dialog candy: sections, quick chips, icons |
 | 2026-10-13 | `cursor/hot-bar-audit-a73e` | Hot-bar audit: logic ok; kit icon gap + resource duplex noted |

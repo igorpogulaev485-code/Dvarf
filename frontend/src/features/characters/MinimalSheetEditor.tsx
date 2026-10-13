@@ -116,6 +116,7 @@ import { canWearArmor } from './equipmentProficiency'
 import { AttunementPanel } from './AttunementPanel'
 import {
   attunementsToSheet,
+  filledAttunementCount,
   readAttunements,
   type AttunementSlot,
 } from './attunement'
@@ -212,7 +213,6 @@ import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { toggleCombatConsumableFavorite } from './combatConsumables'
 import { PlayDeskAttacksCompact } from './PlayDeskAttacksCompact'
 import { PlayDeskCompanionsCompact } from './PlayDeskCompanionsCompact'
-import { PlayDeskExploreCompact } from './PlayDeskExploreCompact'
 import { PlayDeskFeaturesCompact } from './PlayDeskFeaturesCompact'
 import { HotConditionsDialog } from './HotConditionsDialog'
 import { PlayDeskHeader } from './PlayDeskHeader'
@@ -3126,6 +3126,8 @@ export function MinimalSheetEditor({
   function showCompact(id: PlayDeskCompactPanelId): boolean {
     // Spells / attacks: compact is the only play surface; setup lives in settings dialogs.
     if (id === 'spells' || id === 'attacks') return isPlayDesk
+    // Explore: InventoryPanel is already glance→expand (kit etalon) — no compact/full flip.
+    if (id === 'inventory') return false
     return isPlayDesk && forceFullPanel !== id
   }
 
@@ -4421,52 +4423,32 @@ export function MinimalSheetEditor({
       </div>
 
       <div className="play-desk__stage-panel" hidden={stageHidden('inventory')}>
-      {showCompact('inventory') ? (
-        <PlayDeskExploreCompact
-          inventory={draft.inventory}
-          strengthScore={draft.abilities.str}
-          autoAc={armorClass.ac}
-          acHint={armorClass.summary}
-          attunements={draft.attunements}
-          favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
-          onToggleConsumableFavorite={toggleCombatFavorite}
-          onOpenFull={() => setForceFullPanel('inventory')}
-          onOpenAttunement={() => {
-            setActivePanel('attunement')
-            setForceFullPanel(null)
-          }}
-          onToast={onToast}
-        />
-      ) : (
-        <>
-          {isPlayDesk ? (
-            <button
-              type="button"
-              className="play-desk-compact__link play-desk-compact__link--bar"
-              onClick={() => setForceFullPanel(null)}
-            >
-              ← компактно
-            </button>
-          ) : null}
-          <InventoryPanel
-            edition={baseCharacter.rules_edition as RulesEdition}
-            inventory={draft.inventory}
-            strengthScore={draft.abilities.str}
-            armorProficiency={draft.identity.armor}
-            weapons={draft.weapons}
-            onToast={onToast}
-            onChange={(inventory) =>
-              setDraft((prev) => ({
-                ...prev,
-                inventory,
-                weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
-                spells: withSpellFocusFlags(prev.spells, inventory.items),
-              }))
-            }
-            onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
-          />
-        </>
-      )}
+      <InventoryPanel
+        edition={baseCharacter.rules_edition as RulesEdition}
+        inventory={draft.inventory}
+        strengthScore={draft.abilities.str}
+        armorProficiency={draft.identity.armor}
+        weapons={draft.weapons}
+        autoAc={armorClass.ac}
+        acHint={armorClass.summary}
+        attunementFilled={filledAttunementCount(draft.attunements)}
+        favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
+        onToggleConsumableFavorite={toggleCombatFavorite}
+        onOpenAttunement={() => {
+          setActivePanel('attunement')
+          setForceFullPanel(null)
+        }}
+        onToast={onToast}
+        onChange={(inventory) =>
+          setDraft((prev) => ({
+            ...prev,
+            inventory,
+            weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
+            spells: withSpellFocusFlags(prev.spells, inventory.items),
+          }))
+        }
+        onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
+      />
 
       </div>
 

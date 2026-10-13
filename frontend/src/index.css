@@ -1268,6 +1268,52 @@ input {
   justify-content: flex-end;
 }
 
+.inventory-fav {
+  min-width: 2rem;
+  height: 2rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 6px;
+}
+
+.inventory-fav.is-on {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  color: var(--accent);
+}
+
+.inventory-fav:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.inventory-summary-line__ac {
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.inventory-summary-line__link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-weight: 650;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inventory-summary-line__link:hover {
+  color: var(--ink);
+}
+
 .inventory-role {
   display: inline-flex;
   align-items: center;
