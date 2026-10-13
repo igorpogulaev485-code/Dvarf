@@ -15,6 +15,11 @@ export type SheetResource = {
   max: number
   used: number
   reset: ResourceReset
+  /**
+   * Show pips on PlayDesk hot bar.
+   * `undefined` = legacy default (on). Note-block resources opt in with `true`.
+   */
+  onHot?: boolean
 }
 
 export function clampExhaustion(value: number): number {
@@ -28,12 +33,21 @@ export function clampResource(resource: SheetResource): SheetResource {
     resource.reset === 'short' || resource.reset === 'long' || resource.reset === 'manual'
       ? resource.reset
       : 'long'
+  const onHot =
+    typeof resource.onHot === 'boolean' ? resource.onHot : undefined
   return {
     ...resource,
     max,
     used,
     reset,
+    ...(onHot === undefined ? {} : { onHot }),
   }
+}
+
+/** Hot-bar visibility: explicit false hides; undefined/true shows (legacy + class pools). */
+export function resourceShowsOnHot(resource: SheetResource): boolean {
+  if (resource.onHot === false) return false
+  return resource.max > 0 && Boolean(resource.name.trim())
 }
 
 export function resetResourcesOnRest(

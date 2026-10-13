@@ -234,8 +234,11 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | Expand | multi-open; toolbar `abil-column__toolbar` «Свернуть все / Развернуть все» |
 | Порядок | `abil-block__drag` ⋮⋮ + `moveTextBlockBefore` (не стрелки ▲▼) |
 | Добавить | sticky «Добавить блок» |
+| Вставки | `parts[]`: text / resource / spoiler / divider (+ Вставка меню) |
+| Пипсы → hot | ресурс заметки `onHot: false` по умолчанию; ☆ hot / ★ hot |
 | Фильтры | Все / Личность / Умения / Заметки / С ресурсом / Скрытые |
 | Заклинания | split справа |
+| Способности | отдельная сцена (`ClassFeaturesPanel`) — пока не убирать |
 
 Rail характеристик (вариант A) иконок не требует — полные названия, chips, drag.
 

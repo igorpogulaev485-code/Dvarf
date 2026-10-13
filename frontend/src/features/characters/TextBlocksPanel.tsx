@@ -12,10 +12,21 @@ import {
 import type { ResourceReset, SheetResource } from '../../shared/dnd/rest'
 import { createResource, RESET_LABELS } from './play'
 import {
+  appendBlockPart,
+  blockHasResource,
+  createDividerPart,
+  createResourcePart,
+  createSpoilerPart,
+  createTextPart,
   createCustomTextBlock,
   displayLabel,
+  listResourceIds,
   moveTextBlockBefore,
+  patchBlockPart,
+  removeBlockPart,
+  updateBlockParts,
   type TextBlock,
+  type TextBlockPart,
 } from './textBlocks'
 
 type TextBlocksPanelProps = {
@@ -114,9 +125,10 @@ export function TextBlocksPanel({
 }: TextBlocksPanelProps) {
   const [filter, setFilter] = useState<TextFilter>('all')
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
+  const [insertMenuFor, setInsertMenuFor] = useState<string | null>(null)
 
   const linkedIds = new Set(
-    blocks.map((block) => block.resourceId).filter((id): id is string => Boolean(id)),
+    blocks.flatMap((block) => listResourceIds(block.parts)),
   )
   const orphanResources = resources.filter((item) => !linkedIds.has(item.id))
 
@@ -124,7 +136,7 @@ export function TextBlocksPanel({
     return blocks.filter((block) => {
       if (filter === 'all') return !block.isHidden
       if (filter === 'hidden') return block.isHidden
-      if (filter === 'resource') return Boolean(block.resourceId) && !block.isHidden
+      if (filter === 'resource') return blockHasResource(block) && !block.isHidden
       if (filter === 'personality') {
         return !block.isHidden && blockBucket(block) === 'personality'
       }
@@ -134,6 +146,10 @@ export function TextBlocksPanel({
       return !block.isHidden && blockBucket(block) === 'notes'
     })
   }, [blocks, filter])
+
+  function replaceBlock(next: TextBlock) {
+    onChange(blocks.map((item) => (item.key === next.key ? next : item)))
+  }
 
   function updateBlock(key: string, patch: Partial<TextBlock>) {
     onChange(blocks.map((item) => (item.key === key ? { ...item, ...patch } : item)))
@@ -149,38 +165,33 @@ export function TextBlocksPanel({
     onResourcesChange(resources.filter((item) => item.id !== id))
     onChange(
       blocks.map((block) =>
-        block.resourceId === id ? { ...block, resourceId: null } : block,
+        updateBlockParts(
+          block,
+          block.parts.filter(
+            (part) => !(part.kind === 'resource' && part.resourceId === id),
+          ),
+        ),
       ),
     )
-  }
-
-  function attachResource(block: TextBlock) {
-    const resource = createResource({
-      name: displayLabel(block),
-      max: 1,
-      used: 0,
-      reset: 'long',
-    })
-    onResourcesChange([...resources, resource])
-    updateBlock(block.key, { resourceId: resource.id })
-  }
-
-  function detachResource(block: TextBlock) {
-    if (!block.resourceId) return
-    removeResource(block.resourceId)
   }
 
   function linkOrphanToBlock(resourceId: string, blockKey: string) {
     const target = blocks.find((item) => item.key === blockKey)
     if (!target) return
-    if (target.resourceId && target.resourceId !== resourceId) {
-      onResourcesChange(resources.filter((item) => item.id !== target.resourceId))
-    }
     onChange(
       blocks.map((block) => {
-        if (block.key === blockKey) return { ...block, resourceId }
-        if (block.resourceId === resourceId) return { ...block, resourceId: null }
-        return block
+        if (block.key !== blockKey) {
+          // Detach from other blocks if re-linked.
+          if (!listResourceIds(block.parts).includes(resourceId)) return block
+          return updateBlockParts(
+            block,
+            block.parts.filter(
+              (part) => !(part.kind === 'resource' && part.resourceId === resourceId),
+            ),
+          )
+        }
+        if (listResourceIds(block.parts).includes(resourceId)) return block
+        return appendBlockPart(block, createResourcePart(resourceId))
       }),
     )
   }
@@ -200,6 +211,34 @@ export function TextBlocksPanel({
 
   function expandAll() {
     setOpenKeys(new Set(visibleBlocks.map((block) => block.key)))
+  }
+
+  function insertPart(block: TextBlock, kind: TextBlockPart['kind']) {
+    if (kind === 'text') {
+      replaceBlock(appendBlockPart(block, createTextPart('')))
+    } else if (kind === 'resource') {
+      const resource = createResource({
+        name: displayLabel(block),
+        max: 1,
+        used: 0,
+        reset: 'long',
+        onHot: false,
+      })
+      onResourcesChange([...resources, resource])
+      replaceBlock(appendBlockPart(block, createResourcePart(resource.id)))
+    } else if (kind === 'spoiler') {
+      replaceBlock(appendBlockPart(block, createSpoilerPart()))
+    } else {
+      replaceBlock(appendBlockPart(block, createDividerPart('')))
+    }
+    setInsertMenuFor(null)
+  }
+
+  function dropPart(block: TextBlock, part: TextBlockPart) {
+    if (part.kind === 'resource') {
+      onResourcesChange(resources.filter((item) => item.id !== part.resourceId))
+    }
+    replaceBlock(removeBlockPart(block, part.id))
   }
 
   function renderDragHandle(block: TextBlock) {
@@ -245,23 +284,21 @@ export function TextBlocksPanel({
     }
   }
 
-  function renderResource(block: TextBlock) {
-    const resource = block.resourceId
-      ? resources.find((item) => item.id === block.resourceId)
-      : null
-
+  function renderResourcePart(block: TextBlock, part: Extract<TextBlockPart, { kind: 'resource' }>) {
+    const resource = resources.find((item) => item.id === part.resourceId)
     if (!resource) {
       return (
-        <div className="text-block__resource">
-          <Button type="button" variant="secondary" onClick={() => attachResource(block)}>
-            + пипсы ресурса
-          </Button>
+        <div key={part.id} className="text-block__part text-block__part--resource">
+          <Text tone="muted">Ресурс не найден</Text>
+          <button type="button" className="linkish" onClick={() => dropPart(block, part)}>
+            Убрать
+          </button>
         </div>
       )
     }
-
+    const onHot = resource.onHot === true
     return (
-      <div className="text-block__resource">
+      <div key={part.id} className="text-block__part text-block__part--resource">
         <div className="text-block__resource-grid">
           <Field label="Ресурс">
             <Input
@@ -315,12 +352,150 @@ export function TextBlocksPanel({
           </label>
           <button
             type="button"
-            className="linkish"
-            onClick={() => detachResource(block)}
+            className={`inventory-fav${onHot ? ' is-on' : ''}`}
+            title={
+              onHot
+                ? 'Убрать пипсы с боевой полосы'
+                : 'Показать пипсы на боевой полосе'
+            }
+            aria-pressed={onHot}
+            onClick={() => updateResource(resource.id, { onHot: !onHot })}
           >
-            Убрать пипсы
+            {onHot ? '★ hot' : '☆ hot'}
+          </button>
+          <button type="button" className="linkish" onClick={() => dropPart(block, part)}>
+            Убрать
           </button>
         </div>
+      </div>
+    )
+  }
+
+  function renderPart(block: TextBlock, part: TextBlockPart) {
+    if (part.kind === 'resource') return renderResourcePart(block, part)
+
+    if (part.kind === 'divider') {
+      return (
+        <div key={part.id} className="text-block__part text-block__part--divider">
+          <div className="text-block__divider" aria-hidden>
+            <span className="text-block__divider-line" />
+            <Input
+              className="text-block__divider-input"
+              value={part.label}
+              placeholder="Разделитель"
+              onChange={(event) =>
+                replaceBlock(
+                  patchBlockPart(block, part.id, { label: event.target.value }),
+                )
+              }
+            />
+            <span className="text-block__divider-line" />
+          </div>
+          <button type="button" className="linkish" onClick={() => dropPart(block, part)}>
+            Убрать
+          </button>
+        </div>
+      )
+    }
+
+    if (part.kind === 'spoiler') {
+      return (
+        <div key={part.id} className="text-block__part text-block__part--spoiler">
+          <button
+            type="button"
+            className="text-block__spoiler-head"
+            aria-expanded={part.open}
+            onClick={() =>
+              replaceBlock(patchBlockPart(block, part.id, { open: !part.open }))
+            }
+          >
+            <span aria-hidden>{part.open ? '▾' : '▸'}</span>
+            <span className="text-block__spoiler-title">
+              {part.title.trim() || 'Спойлер'}
+            </span>
+          </button>
+          {part.open ? (
+            <div className="text-block__spoiler-body">
+              <Field label="Заголовок спойлера">
+                <Input
+                  value={part.title}
+                  onChange={(event) =>
+                    replaceBlock(
+                      patchBlockPart(block, part.id, { title: event.target.value }),
+                    )
+                  }
+                />
+              </Field>
+              <textarea
+                className="ui-input text-block__area"
+                rows={3}
+                value={part.body}
+                placeholder="Текст спойлера…"
+                onChange={(event) =>
+                  replaceBlock(
+                    patchBlockPart(block, part.id, { body: event.target.value }),
+                  )
+                }
+              />
+            </div>
+          ) : null}
+          <button type="button" className="linkish" onClick={() => dropPart(block, part)}>
+            Убрать спойлер
+          </button>
+        </div>
+      )
+    }
+
+    return (
+      <div key={part.id} className="text-block__part text-block__part--text">
+        <textarea
+          className="ui-input text-block__area"
+          rows={4}
+          value={part.value}
+          placeholder="Текст…"
+          onChange={(event) =>
+            replaceBlock(
+              patchBlockPart(block, part.id, { value: event.target.value }),
+            )
+          }
+        />
+        {block.parts.filter((row) => row.kind === 'text').length > 1 ? (
+          <button type="button" className="linkish" onClick={() => dropPart(block, part)}>
+            Убрать текст
+          </button>
+        ) : null}
+      </div>
+    )
+  }
+
+  function renderInsertBar(block: TextBlock) {
+    const open = insertMenuFor === block.key
+    return (
+      <div className="text-block__insert">
+        <button
+          type="button"
+          className="text-block__insert-trigger"
+          aria-expanded={open}
+          onClick={() => setInsertMenuFor(open ? null : block.key)}
+        >
+          + Вставка
+        </button>
+        {open ? (
+          <div className="text-block__insert-menu" role="menu">
+            <button type="button" role="menuitem" onClick={() => insertPart(block, 'resource')}>
+              Ресурс
+            </button>
+            <button type="button" role="menuitem" onClick={() => insertPart(block, 'spoiler')}>
+              Спойлер
+            </button>
+            <button type="button" role="menuitem" onClick={() => insertPart(block, 'divider')}>
+              Разделитель
+            </button>
+            <button type="button" role="menuitem" onClick={() => insertPart(block, 'text')}>
+              Текст
+            </button>
+          </div>
+        ) : null}
       </div>
     )
   }
@@ -330,9 +505,11 @@ export function TextBlocksPanel({
     const bucket = blockBucket(block)
     const role = roleLabel(block)
     const preview = previewText(block.value)
-    const filled = Boolean(block.value.trim())
+    const filled = Boolean(block.value.trim()) || blockHasResource(block)
     const detailsOpen = openKeys.has(block.key)
     const drop = blockDropProps(block)
+    const hasResource = blockHasResource(block)
+    const spoilerCount = block.parts.filter((part) => part.kind === 'spoiler').length
 
     if (block.isHidden && filter === 'hidden' && !detailsOpen) {
       return (
@@ -397,7 +574,10 @@ export function TextBlocksPanel({
             <span className={`inventory-role inventory-role--${roleClass(bucket)}`}>
               {role}
             </span>
-            {block.resourceId ? <span className="attack-held-tag is-on">ресурс</span> : null}
+            {hasResource ? <span className="attack-held-tag is-on">ресурс</span> : null}
+            {spoilerCount > 0 ? (
+              <span className="attack-held-tag">спойлер</span>
+            ) : null}
             <span className="inventory-card__glance-spacer" aria-hidden />
             <span className="text-block__glance-preview">
               {preview || 'пусто — нажми, чтобы заполнить'}
@@ -431,7 +611,7 @@ export function TextBlocksPanel({
           <span className={`inventory-role inventory-role--${roleClass(bucket)}`}>
             {role}
           </span>
-          {block.resourceId ? <span className="attack-held-tag is-on">ресурс</span> : null}
+          {hasResource ? <span className="attack-held-tag is-on">ресурс</span> : null}
           {block.isHidden ? <span className="attack-held-tag">скрыт</span> : null}
           <button
             type="button"
@@ -458,15 +638,11 @@ export function TextBlocksPanel({
           </Field>
         </div>
 
-        {renderResource(block)}
+        <div className="text-block__parts">
+          {block.parts.map((part) => renderPart(block, part))}
+        </div>
 
-        <textarea
-          className="ui-input text-block__area"
-          rows={5}
-          value={block.value}
-          placeholder="Текст блока…"
-          onChange={(event) => updateBlock(block.key, { value: event.target.value })}
-        />
+        {renderInsertBar(block)}
 
         <div className="inventory-card__footer">
           {block.isHidden ? (
@@ -491,9 +667,10 @@ export function TextBlocksPanel({
               type="button"
               className="inventory-action inventory-action--danger"
               onClick={() => {
-                if (block.resourceId) {
+                const ids = listResourceIds(block.parts)
+                if (ids.length > 0) {
                   onResourcesChange(
-                    resources.filter((item) => item.id !== block.resourceId),
+                    resources.filter((item) => !ids.includes(item.id)),
                   )
                 }
                 onChange(blocks.filter((item) => item.key !== block.key))
@@ -511,7 +688,7 @@ export function TextBlocksPanel({
   return (
     <Panel title="Тексты и заметки" className="text-panel">
       <p className="text-panel__lede">
-        Личность и заметки. Строка — превью; клик — правка. ⋮⋮ — порядок.
+        Личность и заметки. Вставки: ресурс · спойлер · разделитель. ☆ hot — на полосу.
       </p>
 
       <Stack gap={12}>

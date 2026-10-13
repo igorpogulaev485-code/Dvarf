@@ -1,6 +1,6 @@
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import type { ConcentrationState } from './play'
-import type { SheetResource } from '../../shared/dnd/rest'
+import { resourceShowsOnHot, type SheetResource } from '../../shared/dnd/rest'
 
 type PlayDeskHotBarProps = {
   conditionNames: string[]
@@ -35,7 +35,7 @@ export function PlayDeskHotBar({
   ].filter(Boolean) as string[]
   const conditionsLabel = parts.length > 0 ? parts.join(', ') : 'нет'
   const conditionsOn = parts.length > 0
-  const hotResources = resources.filter((row) => row.max > 0 && row.name.trim())
+  const hotResources = resources.filter(resourceShowsOnHot)
 
   return (
     <div className="play-desk__hot" aria-label="Боевая полоса">

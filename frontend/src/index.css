@@ -4030,10 +4030,138 @@ button.spell-card__cast:hover:not(:disabled) {
 }
 
 .text-block__area {
-  min-height: 120px;
+  min-height: 96px;
   resize: vertical;
   line-height: 1.45;
   background: #fff;
+}
+
+.text-block__parts {
+  display: grid;
+  gap: 10px;
+}
+
+.text-block__part {
+  display: grid;
+  gap: 8px;
+}
+
+.text-block__part--resource {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-soft) 35%, #fff);
+}
+
+.text-block__part--spoiler {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel, #fff) 92%, var(--accent-soft));
+}
+
+.text-block__spoiler-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+
+.text-block__spoiler-title {
+  font-family: var(--font-display);
+}
+
+.text-block__spoiler-body {
+  display: grid;
+  gap: 8px;
+}
+
+.text-block__part--divider {
+  gap: 6px;
+}
+
+.text-block__divider {
+  display: grid;
+  grid-template-columns: 1fr minmax(72px, 40%) 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.text-block__divider-line {
+  height: 1px;
+  background: color-mix(in srgb, var(--line) 85%, var(--accent));
+}
+
+.text-block__divider-input.ui-input {
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding-block: 4px;
+  background: transparent;
+}
+
+.text-block__insert {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.text-block__insert-trigger {
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 40%, white);
+  border-radius: 10px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.text-block__insert-trigger:hover {
+  border-style: solid;
+  background: color-mix(in srgb, var(--accent-soft) 65%, white);
+}
+
+.text-block__insert-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.text-block__insert-menu button {
+  border: 1px solid var(--line);
+  background: var(--card, #fff);
+  border-radius: 9px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.text-block__insert-menu button:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  color: var(--accent);
 }
 
 .text-block__resource {
