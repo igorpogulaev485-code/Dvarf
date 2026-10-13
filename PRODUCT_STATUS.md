@@ -667,6 +667,20 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 Не в этом аудите: каст → концентрация (BUG-019).  
 На проде: **нет** · ветка `cursor/hot-bar-audit-a73e` · база `cursor/attacks-settings-dialog-a73e`
 
+### 2026-10-13 — Hot conditions dialog candy
+
+Диалог «Состояния» с hot приведён к языку настроек (pads/dialogs).
+
+| Что | Как |
+|-----|-----|
+| Секции | Истощение · На персонаже · Быстрый выбор + поиск |
+| Icons | `IconExhaustion` / `IconConditions` в `deskIcons.tsx` |
+| Быстрый выбор | sheet-chips toggle on/off |
+| Hot chip | `is-on`, когда есть состояния / истощение |
+| Токены | `--card` / `--accent-soft` (без кремового фона) |
+
+На проде: **нет** · ветка `cursor/hot-conditions-dialog-a73e` · база `cursor/hot-bar-audit-a73e`
+
 ### 2026-10-12 — Wave A header: desk icons + vitals
 
 | Что | Как |
