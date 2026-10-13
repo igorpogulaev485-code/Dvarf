@@ -695,9 +695,25 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 | Meta | ноша · КД · Настройка N/3 → `AttunementDialog` |
 | Монеты | readout → header CoinPad |
 | Справочник | `GearPickerDialog` в ките pads/dialogs |
+| Убран | dropdown «Шаблон PHB» (дубль справочника) |
 
 Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2f.  
-На проде: **нет** · ветка `cursor/explore-inventory-unify-a73e` · база `cursor/hot-conditions-dialog-a73e`
+На проде: **нет** · ветка `cursor/explore-inventory-unify-a73e` · база `cursor/hot-conditions-dialog-a73e`  
+**Следующая сцена:** Общение (unify texts, как explore).
+
+### 2026-10-13 — Social texts unify (одна поверхность)
+
+Как у Explore: на столе нет компакт↔полностью.
+
+| Что | Как |
+|-----|-----|
+| Stage Общение | сразу `TextBlocksPanel` (glance→expand) |
+| Убран | `PlayDeskSocialCompact` + «полностью» / «← компактно» |
+| Accordion | одна открытая деталь |
+| Панель | flat (без cream plate) |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2g.  
+На проде: **нет** · ветка `cursor/social-unify-a73e` · база `cursor/explore-inventory-unify-a73e`
 
 ### 2026-10-12 — Wave A header: desk icons + vitals
 

@@ -3882,8 +3882,34 @@ button.spell-card__cast:hover:not(:disabled) {
   text-underline-offset: 2px;
 }
 
+/* Social stage: flat like explore inventory — no cream panel plate. */
 .text-panel.ui-panel {
-  background: var(--panel);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+/* Title via Panel (ui-panel__title) — same kit as Inventory / Spells. */
+.text-panel.ui-panel > .ui-panel__title {
+  margin: 0 0 4px;
+}
+
+.text-panel__lede {
+  margin: 0 0 12px;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+.text-panel__collapse-bar {
+  margin: 0;
+  /* Stage panel scrolls; sticky bar stays under stage chrome like ability rail. */
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .text-block {
@@ -3895,8 +3921,41 @@ button.spell-card__cast:hover:not(:disabled) {
   background: #fffdf8;
 }
 
+.text-block.is-dragging {
+  opacity: 0.55;
+  outline: 2px dashed color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+.text-block.drag-over {
+  box-shadow: 0 -3px 0 0 var(--accent);
+}
+
+/* Ability-rail drag handle, adapted to text-block grid (no abil grid-area). */
+.text-block .abil-block__drag.text-block__drag,
+.text-block__drag {
+  grid-area: unset;
+  width: 18px;
+  height: auto;
+  min-height: 32px;
+  align-self: center;
+  color: color-mix(in srgb, var(--muted) 70%, var(--accent));
+  flex: 0 0 auto;
+}
+
+.text-block .abil-block__drag.text-block__drag:hover,
+.text-block__drag:hover {
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  border-color: var(--line);
+}
+
+.text-block--expand {
+  gap: 8px;
+  padding: 10px 12px 12px;
+  overflow: visible;
+}
+
 .text-block--compact {
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px 10px;
   padding: 10px 12px;
@@ -3970,22 +4029,139 @@ button.spell-card__cast:hover:not(:disabled) {
   align-items: center;
 }
 
-.text-block__move {
-  display: inline-flex;
-  gap: 2px;
-  align-items: center;
-}
-
-.text-block__move .ui-button {
-  min-width: 36px;
-  padding-inline: 8px;
-}
-
 .text-block__area {
-  min-height: 120px;
+  min-height: 96px;
   resize: vertical;
   line-height: 1.45;
   background: #fff;
+}
+
+.text-block__parts {
+  display: grid;
+  gap: 10px;
+}
+
+.text-block__part {
+  display: grid;
+  gap: 8px;
+}
+
+.text-block__part--resource {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-soft) 35%, #fff);
+}
+
+.text-block__part--spoiler {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel, #fff) 92%, var(--accent-soft));
+}
+
+.text-block__spoiler-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+
+.text-block__spoiler-title {
+  font-family: var(--font-display);
+}
+
+.text-block__spoiler-body {
+  display: grid;
+  gap: 8px;
+}
+
+.text-block__part--divider {
+  gap: 6px;
+}
+
+.text-block__divider {
+  display: grid;
+  grid-template-columns: 1fr minmax(72px, 40%) 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.text-block__divider-line {
+  height: 1px;
+  background: color-mix(in srgb, var(--line) 85%, var(--accent));
+}
+
+.text-block__divider-input.ui-input {
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding-block: 4px;
+  background: transparent;
+}
+
+.text-block__insert {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.text-block__insert-trigger {
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 40%, white);
+  border-radius: 10px;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.text-block__insert-trigger:hover {
+  border-style: solid;
+  background: color-mix(in srgb, var(--accent-soft) 65%, white);
+}
+
+.text-block__insert-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.text-block__insert-menu button {
+  border: 1px solid var(--line);
+  background: var(--card, #fff);
+  border-radius: 9px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.text-block__insert-menu button:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+  color: var(--accent);
 }
 
 .text-block__resource {
@@ -4038,11 +4214,6 @@ button.spell-card__cast:hover:not(:disabled) {
 }
 
 @media (min-width: 640px) {
-  .text-block__header {
-    grid-template-columns: 1fr auto;
-    align-items: end;
-  }
-
   .text-block__resource-grid {
     grid-template-columns: 1fr 100px;
   }

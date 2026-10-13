@@ -221,7 +221,6 @@ import { PlayDeskHotBar } from './PlayDeskHotBar'
 import { RestDialog } from './RestDialog'
 import { SorceryPointsSpendDialog } from './SorceryPointsSpendDialog'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
-import { PlayDeskSocialCompact } from './PlayDeskSocialCompact'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
   armorGivesStealthDisadvantage,
@@ -3131,8 +3130,8 @@ export function MinimalSheetEditor({
   function showCompact(id: PlayDeskCompactPanelId): boolean {
     // Spells / attacks: compact is the only play surface; setup lives in settings dialogs.
     if (id === 'spells' || id === 'attacks') return isPlayDesk
-    // Explore: InventoryPanel is already glance→expand (kit etalon) — no compact/full flip.
-    if (id === 'inventory') return false
+    // Explore / Social: glance→expand panels — no compact/full flip.
+    if (id === 'inventory' || id === 'texts') return false
     return isPlayDesk && forceFullPanel !== id
   }
 
@@ -4665,36 +4664,18 @@ export function MinimalSheetEditor({
       </div>
 
       <div className="play-desk__stage-panel" hidden={stageHidden('texts')}>
-      {showCompact('texts') ? (
-        <PlayDeskSocialCompact
-          textBlocks={draft.textBlocks}
-          onOpenFull={() => setForceFullPanel('texts')}
-          onToast={onToast}
-        />
-      ) : (
-        <>
-          {isPlayDesk ? (
-            <button
-              type="button"
-              className="play-desk-compact__link play-desk-compact__link--bar"
-              onClick={() => setForceFullPanel(null)}
-            >
-              ← компактно
-            </button>
-          ) : null}
-          <TextBlocksPanel
-            blocks={draft.textBlocks}
-            onChange={(textBlocks) => setDraft((prev) => ({ ...prev, textBlocks }))}
-            resources={draft.play.resources}
-            onResourcesChange={(resources) =>
-              setDraft((prev) => ({
-                ...prev,
-                play: { ...prev.play, resources },
-              }))
-            }
-          />
-        </>
-      )}
+      {/* Social: TextBlocksPanel glance→expand — no compact/full flip. */}
+      <TextBlocksPanel
+        blocks={draft.textBlocks}
+        onChange={(textBlocks) => setDraft((prev) => ({ ...prev, textBlocks }))}
+        resources={draft.play.resources}
+        onResourcesChange={(resources) =>
+          setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, resources },
+          }))
+        }
+      />
 
       </div>
 
