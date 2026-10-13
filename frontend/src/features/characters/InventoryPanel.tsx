@@ -524,24 +524,6 @@ export function InventoryPanel({
     }
   }
 
-  function applyPreset(id: string, presetKey: string) {
-    if (!presetKey) return
-    const preset = ARMOR_PRESETS.find((item) => item.key === presetKey)
-    if (!preset) return
-    const maxDex =
-      preset.kind === 'medium' ? 2 : preset.kind === 'heavy' ? 0 : null
-    const strReq =
-      preset.key === 'chain_mail' ? 13 : preset.key === 'splint' || preset.key === 'plate' ? 15 : null
-    updateItem(id, {
-      name: preset.labelRu,
-      armor_kind: preset.kind,
-      base_ac: preset.baseAc,
-      weight_lb: preset.weight_lb,
-      max_dex_bonus: maxDex,
-      strength_requirement: strReq,
-    })
-  }
-
   function setArmorKind(id: string, armor_kind: ArmorKind) {
     const item = inventory.items.find((row) => row.id === id)
     if (!item) return
@@ -867,24 +849,6 @@ export function InventoryPanel({
             </Field>
           </div>
         )}
-
-        {!nested && isArmorRow(item) ? (
-          <Field label="Шаблон PHB">
-            <select
-              className="play-select"
-              value=""
-              onChange={(event) => applyPreset(item.id, event.target.value)}
-            >
-              <option value="">— выбрать —</option>
-              {ARMOR_PRESETS.map((preset) => (
-                <option key={preset.key} value={preset.key}>
-                  {preset.labelRu} (
-                  {preset.kind === 'shield' ? `+${preset.baseAc}` : preset.baseAc})
-                </option>
-              ))}
-            </select>
-          </Field>
-        ) : null}
 
         {!nested && !isArmorRow(item) ? (
           <div className="inventory-card__role-row">
