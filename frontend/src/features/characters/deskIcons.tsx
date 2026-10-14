@@ -49,6 +49,17 @@ export function IconBoot(props: IconProps) {
   )
 }
 
+/** Jump — leap arc */
+export function IconJump(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path {...stroke} d="M4.5 17.2c3.2-1.2 5.2-5.4 7.5-5.4s4.2 4.2 7.5 5.4" />
+      <path {...stroke} d="M9.2 11.2 12 6.8l2.2 3.2" />
+      <path {...stroke} d="M5.2 18.4h2.4M16.4 18.4h2.4" />
+    </Svg>
+  )
+}
+
 /** Initiative — spark / bolt */
 export function IconBolt(props: IconProps) {
   return (

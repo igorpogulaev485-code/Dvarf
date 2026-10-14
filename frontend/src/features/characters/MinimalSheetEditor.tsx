@@ -98,7 +98,7 @@ import {
   type RaceGrantDef,
   type RaceGrantPicks,
 } from '../../shared/dnd/raceGrants'
-import { formatJumpHint } from '../../shared/dnd/jumpDistance'
+import { jumpDistances } from '../../shared/dnd/jumpDistance'
 import {
   customFeaturesToSheet,
   readCustomFeatures,
@@ -3282,6 +3282,10 @@ export function MinimalSheetEditor({
   const initiativeValue =
     draft.initiativeOverride ??
     abilityModifier(draft.abilities.dex) + featInitiativeBonus
+  const jump = jumpDistances({
+    strengthScore: effectiveAbilities.str,
+    strengthMod: abilityModifier(effectiveAbilities.str),
+  })
   const hotConditionNames = draft.play.conditions
     .filter((item) => item.slug !== 'exhaustion')
     .map((item) => formatConditionLabel(item))
@@ -3484,10 +3488,8 @@ export function MinimalSheetEditor({
             climbSpeed={draft.climbSpeed}
             swimSpeed={draft.swimSpeed}
             flySpeed={draft.flySpeed}
-            jumpHint={formatJumpHint({
-              strengthScore: effectiveAbilities.str,
-              strengthMod: abilityModifier(effectiveAbilities.str),
-            })}
+            jumpLongFt={jump.longFt}
+            jumpHighFt={jump.highFt}
             movementHint={
               gearEffects.speedBonusFt
                 ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
