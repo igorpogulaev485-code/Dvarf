@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { acquireBodyScrollLock } from './bodyScrollLock'
 import { Button } from './Button'
 
 type NumberPadDialogProps = {
@@ -41,8 +42,7 @@ export function NumberPadDialog({
   useEffect(() => {
     if (!open) return
     setDigits('')
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const releaseScroll = acquireBodyScrollLock()
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -63,7 +63,7 @@ export function NumberPadDialog({
 
     document.addEventListener('keydown', onKeyDown)
     return () => {
-      document.body.style.overflow = previousOverflow
+      releaseScroll()
       document.removeEventListener('keydown', onKeyDown)
     }
   }, [open, onClose])
