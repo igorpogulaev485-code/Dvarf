@@ -3674,6 +3674,27 @@ button.spell-card__cast:hover:not(:disabled) {
   transition: width 160ms ease;
 }
 
+.xp-progress__levelup {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.xp-progress__levelup:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
 .xp-progress__hint {
   margin: 0;
   font-size: 0.8rem;

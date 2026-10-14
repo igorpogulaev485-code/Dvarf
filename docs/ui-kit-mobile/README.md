@@ -193,7 +193,7 @@ Icons: те же `IconConditions` / `IconConcentration` / `IconPouch`.
 | **T · Text** | Имя · мировоззрение | `Field` + `Input` | 1 колонка; `inputmode`/autocomplete ок |
 | **R · Read-only** | БМ · Размер · ур. класса (цифра) | `Field` + `Input readOnly` **или** `Text` | выглядит как display, не как «сломанный» input; не фокусируется |
 | **S · Stepper / CTA** | Уровень персонажа (+1) · −1 ур. класса | `Field` + row `Input readOnly` + `Button` | **стек**: значение сверху, CTA на всю ширину под ним (`identity-field--stack`) |
-| **X · XP composite** | Опыт | `XpProgressField` | полная ширина; tap по числу → NumberPad (как desk) |
+| **X · XP composite** | Опыт | `XpProgressField` | pad: ± / «За что» / история; порог → CTA «Повысить уровень» → `LevelUpDialog` (XP сам уровень не поднимает) |
 | **C · Catalog pick** | Класс · архетип · раса · предыстория | `CatalogCombobox` (+ `Button` Хомбрю) | combobox list **внутри sheet** (не уезжает за viewport); Хомбрю — secondary под полем, full-width |
 | **K · Class card** | повтор по `draft.classes` | `.identity-dialog__class` | одна карточка = класс+ур.+архетип; мультикласс = ещё карта |
 | **H · Hint** | подсказки шагов | `Field hint` / `Text tone="muted"` | не конкурирует с tap; мелкий muted |

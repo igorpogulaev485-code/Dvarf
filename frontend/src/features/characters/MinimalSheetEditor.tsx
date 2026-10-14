@@ -3787,11 +3787,36 @@ export function MinimalSheetEditor({
                 </Button>
               </div>
             </Field>
-            <Field label="Опыт (XP)" htmlFor="sheet-xp">
+            <Field
+              label="Опыт (XP)"
+              htmlFor="sheet-xp"
+              hint="Начисление не поднимает уровень само — после порога жми «+1 уровень» / ссылку ниже."
+            >
               <XpProgressField
                 xp={draft.identity.experience}
                 level={characterLevel}
-                onChange={(experience) => patchIdentity({ experience })}
+                xpHistory={draft.sheetUi.xpHistory}
+                onRequestLevelUp={() => setLevelUpOpen(true)}
+                levelUpDisabled={characterLevel >= 20}
+                onChange={(experience, meta) => {
+                  setDraft((prev) => {
+                    const prevXp = prev.identity.experience
+                    const delta = experience - prevXp
+                    return {
+                      ...prev,
+                      identity: { ...prev.identity, experience },
+                      sheetUi: {
+                        ...prev.sheetUi,
+                        xpHistory: delta
+                          ? appendXpHistory(prev.sheetUi.xpHistory, {
+                              delta,
+                              reason: meta?.reason ?? '',
+                            })
+                          : prev.sheetUi.xpHistory,
+                      },
+                    }
+                  })
+                }}
               />
             </Field>
           </div>
