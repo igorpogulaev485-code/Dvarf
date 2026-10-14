@@ -6,14 +6,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Non-blocking fonts: on slow LTE a blocking fonts.googleapis.com CSS
+         can leave Safari on a blank shell for a long time. -->
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,650;8..60,700&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,650;8..60,700&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
     <title>Dvarf</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: #fbf7ec;
+        color: #2c2416;
+        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      }
+      #boot-fallback {
+        display: none;
+        box-sizing: border-box;
+        max-width: 28rem;
+        margin: 20vh auto 0;
+        padding: 1.25rem 1.5rem;
+        border: 1px solid #d9d0bf;
+        border-radius: 14px;
+        background: #fffdf7;
+        line-height: 1.45;
+      }
+      #boot-fallback[data-show='1'] {
+        display: block;
+      }
+      #boot-fallback a {
+        color: #5a6b3d;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="boot-fallback" role="alert">
+      <p><strong>Страница не загрузилась.</strong></p>
+      <p>
+        На iPhone: кнопка «аА» в адресной строке → «Настройки веб-сайта» →
+        «Очистить историю» для этого сайта, затем обновите. Или откройте
+        <a href="/login">вход</a> в новой вкладке.
+      </p>
+    </div>
+    <script>
+      // Classic script (not module): shows help if the SPA never mounts.
+      window.setTimeout(function () {
+        var root = document.getElementById('root')
+        var fb = document.getElementById('boot-fallback')
+        if (!root || !fb) return
+        if (!root.childElementCount) fb.setAttribute('data-show', '1')
+      }, 4000)
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
