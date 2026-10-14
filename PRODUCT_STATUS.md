@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/prod-safari-blank-0ed9`  
+**Prod tip (ветка линии прода):** `cursor/mobile-desk-sync-code-0ed9`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -58,6 +58,19 @@
 ---
 
 ## Сейчас в продукте (прод)
+
+### 2026-10-14 — mobile UI kit ship (P1 + motion)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Сцены на телефоне | Внизу 5 вкладок: Бой · Исслед. · Общение · Напарн. · Способн. | Одна зона, без простыни панелей |
+| Виталы | HP / КД(+щит) / скор. с лаз·плав·полёт / прыж / иниц | Тот же бой с телефона |
+| Identity | Who → лист «Основное» в 1 колонку; level-up без вложенных окон | Удобно большим пальцем |
+| Create / список | StepRail + Сводка; карточки плотности + ⋯ | Создание и список одной рукой |
+| Лобби / Join | Крупный код + QR; вход кодом → карта → «Сесть за стол» | Быстрый вход за стол |
+| Motion | sheet-rise / смена сцены / reduced-motion | Мягче, без шума |
+
+На проде: **да** · ветка `cursor/mobile-desk-sync-code-0ed9` · PR #161 · **это новый prod tip** · проверено 2026-10-14: `/health` ok; alembic `b7c8d9e0f1a2`; бандл `CharacterDetailPage-B637EGje.js` + CSS `index-B6XBUbU4.css` (`mobile-vitals__modes` / `climbSpeed` / `sheet-rise` / `--motion-sheet` / `spell_dc` / `abil-prof-pip`); Join `Сесть за стол`; Classic **без** phone-warn (не трогали); shell `Cache-Control: no-cache`
 
 ### 2026-10-14 — бафы: КД, характеристики, СЛ/атака, инициатива + LSS-рейл
 
@@ -650,7 +663,7 @@
 | План мобилки | `docs/redesign/MOBILE_REDESIGN_PLAN.md` — волны P0→P1→P2 как у десктопа | Понятный путь: kit → ok → код → прод |
 | Desktop kit | `docs/ui-kit/` **не** изменён | Старый кит целый |
 
-На проде: **нет** (только доки, кода телефона ещё нет) · ветка `cursor/mobile-ui-kit-0ed9` · ждём ok на кит+план, затем слайс M0.1
+На проде: **да** (см. блок mobile UI kit ship выше) · ветка `cursor/mobile-desk-sync-code-0ed9` · PR #161
 
 ### 2026-10-12 — Play desk vitals wave (HP pad / концентрация / без дублей отдыха)
 

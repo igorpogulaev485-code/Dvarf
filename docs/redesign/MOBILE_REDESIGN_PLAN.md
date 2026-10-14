@@ -14,7 +14,7 @@
 | [`docs/ui-kit-mobile/PROSTO.md`](../ui-kit-mobile/PROSTO.md) | Для новичка |
 | [`MOBILE_PROSTO.md`](MOBILE_PROSTO.md) | Этот план простыми словами |
 
-**Live prod tip (сверка 2026-10-14):** `cursor/buffs-ac-slice-244b` · URL http://201.34.132.252/  
+**Live prod tip (сверка 2026-10-14):** `cursor/mobile-desk-sync-code-0ed9` · URL http://201.34.132.252/  
 Бандл-маркеры: `CharacterDetailPage-DFLWQXEV.js` · CSS `index-DY8NTA2Z.css`  
 Старт mobile-kit ветки был от более раннего tip — **перед следующим кодом/деплоем mobile rebase/merge на live tip**.
 
@@ -340,4 +340,4 @@ Mobile path (этот документ):
 | 3 | Mobile M0–M1.1 код не на проде | Не ship отдельно без merge tip |
 | 4 | Desk handlers (`modifiers`, `heldEquip`, roll history) священны | Только placement / sheets на `<960` |
 
-**Следующий шаг:** ship mobile line (`cursor/mobile-desk-sync-code-0ed9`) на tip · Classic не трогаем · P2 остаток (coachmarks / dock / auth) после.
+**Следующий шаг:** mobile line **на проде** (`cursor/mobile-desk-sync-code-0ed9`) · Classic не трогаем · P2 остаток (coachmarks / dock / auth).
