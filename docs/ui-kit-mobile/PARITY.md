@@ -46,13 +46,13 @@
 | Безрассудная → преим. | ✅ `onCombatFeatureToggle` → deskRollMode | Бой compact | P1 · M1.4 |
 | Split spells | ✅ сегмент Атаки/Заклинания + Бой/Книга | segmented, не split | P1 |
 | Autosave / conflict | ✅ | copy WAVE | P0 |
-| Speed modes (лаз/плав/полёт) | 🟡 | vitals tip/sheet | P1 |
+| Speed modes (лаз/плав/полёт) | ✅ chips в MobileVitalsBar | vitals tip/sheet | P1 |
 | Витал **Прыж.** long/high | ✅ MobileVitalsBar | chip в MobileVitalsBar | P0 · M0.5 |
 | Чип **щит** под КД | ✅ MobileVitalsBar | под КД в vitals | P0 · M0.5 |
 | Разборка КД (бафы) | ✅ tap КД → sheet | tap КД → sheet | P0 · M0.5 |
 | Разборка инициативы | ✅ tap Иниц. → sheet | tap Иниц. → sheet | P0 · M0.6 |
 | Разборка СЛ / атаки закл. | ✅ в Книге (tip) | из Книги / compact stats | P0 · M0.6 |
-| Level-up / архетип | 🟡 | Identity sheet | P1 |
+| Level-up / архетип | ✅ Identity 1-col `<960` → close → LevelUp | Identity sheet | P1 |
 
 ---
 
@@ -62,7 +62,7 @@
 |---------|---------------|------|-----------|
 | Список персонажей | ✅ density + ⋯ sheet · default Средние | density + ⋯ sheet | P1 · M1.6 |
 | Create 2014 pipeline | ✅ sticky StepRail + footer + Сводка sheet | StepRail + footer + Сводка sheet | P1 · M1.5 |
-| Guided / level-up wizard | 🟡 | те же sheets | P1 |
+| Guided / level-up wizard | ✅ close Identity → GuidedWizard | те же sheets | P1 |
 | Classic sheet | 🟡 print | link + soft warn | P2 |
 | Лобби list/create | ✅ Hero код + QR accordion (`<960`) · desk row+QR | Hero код+QR accordion | P1 · M1.7 |
 | Join по коду/QR | ✅ код → превью → карточки персонажа → «Сесть за стол» | thumb code entry | P1 · M1.7 |

@@ -6737,6 +6737,29 @@ button.spells-settings__derived-stat--btn:hover {
   background: #fff;
 }
 
+/* Phone: Identity one column — level/XP and class rows stack for thumb reach */
+@media (max-width: 959px) {
+  .identity-dialog .sheet-grid--2 {
+    grid-template-columns: 1fr;
+  }
+
+  .identity-dialog .languages-tools-add {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .identity-dialog .languages-tools-add .ui-button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .identity-dialog__class .sheet-grid--2 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .play-desk {
   /* Alias kit tokens — no parallel mint/teal theme */
   --desk-ink: var(--ink);
@@ -9906,6 +9929,34 @@ button.play-desk-compact__more--btn:hover {
   min-height: 58px;
   padding-bottom: 4px;
   gap: 4px;
+}
+
+.mobile-vitals__chip--speed {
+  min-height: 58px;
+  gap: 3px;
+}
+
+.mobile-vitals__modes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+}
+
+.mobile-vitals__modes li {
+  padding: 1px 5px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--card));
+  font-size: 0.62rem;
+  font-weight: 650;
+  line-height: 1.2;
+  color: var(--ink);
+  white-space: nowrap;
 }
 
 .mobile-vitals__chip--ac.is-shield-on {

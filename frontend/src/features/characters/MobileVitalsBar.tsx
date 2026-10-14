@@ -34,6 +34,10 @@ type MobileVitalsBarProps = {
   onToggleShield?: () => void
   speed: number | null
   movementHint?: string | null
+  /** Alt speeds — shown as tags under walk (desk parity). */
+  climbSpeed?: number | null
+  swimSpeed?: number | null
+  flySpeed?: number | null
   jumpLongFt?: number | null
   jumpHighFt?: number | null
   initiative: number
@@ -88,6 +92,9 @@ export function MobileVitalsBar({
   onToggleShield,
   speed,
   movementHint = null,
+  climbSpeed = null,
+  swimSpeed = null,
+  flySpeed = null,
   jumpLongFt = null,
   jumpHighFt = null,
   initiative,
@@ -139,6 +146,18 @@ export function MobileVitalsBar({
     [raceName || null, classSummary ? `${classSummary}` : null, alignment.trim() || null]
       .filter(Boolean)
       .join(' · ') || 'Черновик'
+  const altModes: { key: string; label: string; value: number }[] = []
+  if (climbSpeed != null) altModes.push({ key: 'climb', label: 'лаз.', value: climbSpeed })
+  if (swimSpeed != null) altModes.push({ key: 'swim', label: 'плав.', value: swimSpeed })
+  if (flySpeed != null) altModes.push({ key: 'fly', label: 'полёт', value: flySpeed })
+  const speedTitle =
+    [
+      speed != null ? `ход ${speed}` : null,
+      ...altModes.map((mode) => `${mode.label} ${mode.value}`),
+      movementHint,
+    ]
+      .filter(Boolean)
+      .join(' · ') || undefined
   const hpLabel =
     hpCurrent == null && hpMax == null
       ? '—/—'
@@ -363,12 +382,23 @@ export function MobileVitalsBar({
           ) : null}
         </div>
         <div
-          className="mobile-vitals__chip"
+          className={`mobile-vitals__chip${altModes.length ? ' mobile-vitals__chip--speed' : ''}`}
           role="listitem"
-          title={movementHint || undefined}
+          title={speedTitle}
         >
-          <b>{speed == null ? '—' : speed}</b>
-          <span>Скор.</span>
+          <b>{speed == null && altModes[0] ? altModes[0].value : speed == null ? '—' : speed}</b>
+          <span>
+            {speed == null && altModes[0] ? altModes[0].label : 'Скор.'}
+          </span>
+          {altModes.length > 0 && speed != null ? (
+            <ul className="mobile-vitals__modes" aria-label="Дополнительные скорости">
+              {altModes.map((mode) => (
+                <li key={mode.key}>
+                  {mode.label} {mode.value}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
         {jumpLongFt != null && jumpHighFt != null ? (
           <div

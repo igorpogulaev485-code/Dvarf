@@ -1688,6 +1688,7 @@ export function MinimalSheetEditor({
   }
 
   function openGuidedWizard(session: GuidedWizardSession) {
+    setIdentityOpen(false)
     if (session.steps.length === 0) {
       setGuidedWizard(null)
       return
@@ -2071,6 +2072,7 @@ export function MinimalSheetEditor({
     const subraceRequired = raceSubraceRequired(selected.data)
 
     if (subraces.length > 0 || raceGrantNeedsSetupDialog(rootDef)) {
+      setIdentityOpen(false)
       setRaceGrantPicker({
         root: selected,
         subraces,
@@ -2242,6 +2244,7 @@ export function MinimalSheetEditor({
     }
 
     if (variants.length > 0 || backgroundGrantNeedsSetupDialog(def)) {
+      setIdentityOpen(false)
       setBackgroundGrantPicker({ root: selected, variants })
       return
     }
@@ -3826,6 +3829,9 @@ export function MinimalSheetEditor({
           ]
             .filter(Boolean)
             .join(' · ') || null}
+          climbSpeed={draft.climbSpeed}
+          swimSpeed={draft.swimSpeed}
+          flySpeed={draft.flySpeed}
           jumpLongFt={jump.longFt}
           jumpHighFt={jump.highFt}
           initiative={initiativeValue}
@@ -4258,7 +4264,10 @@ export function MinimalSheetEditor({
                   type="button"
                   variant="secondary"
                   disabled={characterLevel >= 20}
-                  onClick={() => setLevelUpOpen(true)}
+                  onClick={() => {
+                    setIdentityOpen(false)
+                    setLevelUpOpen(true)
+                  }}
                 >
                   +1 уровень
                 </Button>
@@ -4273,7 +4282,10 @@ export function MinimalSheetEditor({
                 xp={draft.identity.experience}
                 level={characterLevel}
                 xpHistory={draft.sheetUi.xpHistory}
-                onRequestLevelUp={() => setLevelUpOpen(true)}
+                onRequestLevelUp={() => {
+                  setIdentityOpen(false)
+                  setLevelUpOpen(true)
+                }}
                 levelUpDisabled={characterLevel >= 20}
                 onChange={(experience, meta) => {
                   setDraft((prev) => {

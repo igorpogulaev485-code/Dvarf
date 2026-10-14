@@ -338,4 +338,4 @@ Mobile path (этот документ):
 | 3 | Mobile M0–M1.1 код не на проде | Не ship отдельно без merge tip |
 | 4 | Desk handlers (`modifiers`, `heldEquip`, roll history) священны | Только placement / sheets на `<960` |
 
-**Следующий шаг:** M1.7 закрыт в коде → **P1 gate**: merge tip + smoke K22 Join + ship mobile line / или P2 polish.
+**Следующий шаг:** P1 gate 🟡 закрыты (speed chips · Identity 1-col · LevelUp/Guided без nested) → smoke K22 Join + vitals @390 → P2 polish / ship только по «залей».

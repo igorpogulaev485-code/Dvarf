@@ -208,7 +208,7 @@ Icons: те же `IconConditions` / `IconConcentration` / `IconPouch`.
 
 **Сетка:** на `<960` внутри Identity **запрещён** `sheet-grid--2` в две колонки — всё в один стол (`identity-dialog--mobile` / media). Desk 2-col остаётся.
 
-**Вложенные мастера** (ClassSetup / RaceSetup / LevelUp / SubclassChange): открываются **поверх** Identity sheet (z выше), закрытие = назад в Основное. Не уводить в отдельный tab.
+**Вложенные мастера** (ClassSetup / RaceSetup / LevelUp / SubclassChange / GuidedWizard): на `<960` Identity **закрывается** перед мастером (без nested dialog); закрытие мастера = назад к сцене. Не уводить в отдельный tab.
 
 **Не путать:**
 - Identity (сборка героя) ≠ страница Характеристики (СИЛ…) ≠ tab Способности (умения).
