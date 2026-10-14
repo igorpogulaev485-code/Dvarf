@@ -78,8 +78,14 @@ html[data-ability-colors='theme'] .abil-block[data-abil] {
 
 body {
   margin: 0;
-  min-width: 320px;
+  /* Allow sub-320 viewports (narrow Safari / split) without sideways page grow */
+  min-width: 0;
   min-height: 100vh;
+  overflow-x: clip;
+}
+
+html {
+  overflow-x: clip;
 }
 
 button,
@@ -9553,24 +9559,29 @@ button.play-desk-compact__more--btn:hover {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 .play-desk--mobile .play-desk__hot::-webkit-scrollbar {
   display: none;
 }
 .play-desk--mobile .play-desk__hot-item {
-  flex: 1 1 auto;
-  min-width: min(148px, 70vw);
+  flex: 0 0 auto;
+  min-width: min(140px, 68vw);
   min-height: 44px;
   padding: 8px 10px;
   align-content: center;
+  max-width: none;
 }
 .play-desk--mobile .play-desk__hot-item--wide {
-  flex: 1 1 42%;
-  min-width: min(148px, 70vw);
+  flex: 0 0 auto;
+  min-width: min(140px, 68vw);
 }
 .play-desk--mobile .play-desk__hot-item--res {
   flex: 0 0 auto;
-  min-width: 112px;
+  min-width: min(112px, 52vw);
 }
 .play-desk--mobile .play-desk__hot-label {
   font-size: 0.78rem;
@@ -9645,6 +9656,10 @@ button.play-desk-compact__more--btn:hover {
   display: flex;
   gap: 6px;
   margin: 0;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .mobile-combat-seg--spell .mobile-combat-seg__btn {
@@ -9654,7 +9669,8 @@ button.play-desk-compact__more--btn:hover {
 }
 
 .mobile-combat-seg__btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   min-height: 44px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -9664,6 +9680,9 @@ button.play-desk-compact__more--btn:hover {
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mobile-combat-seg__btn.is-on {
@@ -9680,20 +9699,28 @@ button.play-desk-compact__more--btn:hover {
   border-radius: 10px;
   overflow: hidden;
   background: #fff;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .mobile-combat-roll__btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   min-height: 40px;
   border: 0;
   border-right: 1px solid var(--desk-line, var(--line));
   background: transparent;
-  padding: 6px 8px;
+  padding: 6px 4px;
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
   cursor: pointer;
   color: var(--desk-muted, var(--muted));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mobile-combat-roll__btn:last-child {
@@ -9711,7 +9738,9 @@ button.play-desk-compact__more--btn:hover {
 
 /* Mobile combat density: keep body ≥14px, tighten meta/gaps */
 .play-desk--mobile .play-desk__hot--skills .play-desk__hot-item {
-  min-width: min(108px, 42vw);
+  flex: 0 0 auto;
+  min-width: min(100px, 38vw);
+  max-width: 46vw;
   min-height: 40px;
   padding: 6px 8px;
 }
@@ -9921,8 +9950,11 @@ button.play-desk-compact__more--btn:hover {
 
 .mobile-vitals__row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  /* min() lets tracks shrink below 64px so the page never grows sideways */
+  grid-template-columns: repeat(auto-fit, minmax(min(56px, 100%), 1fr));
   gap: 6px;
+  min-width: 0;
+  width: 100%;
 }
 
 .mobile-vitals__chip {
@@ -9931,11 +9963,13 @@ button.play-desk-compact__more--btn:hover {
   align-items: center;
   justify-content: center;
   gap: 2px;
+  min-width: 0;
   min-height: 48px;
   padding: 6px 4px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--card);
+  overflow: hidden;
 }
 
 .mobile-vitals__chip--ac {
@@ -9958,18 +9992,23 @@ button.play-desk-compact__more--btn:hover {
   padding: 0;
   list-style: none;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .mobile-vitals__modes li {
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line));
   background: color-mix(in srgb, var(--accent-soft) 55%, var(--card));
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 650;
   line-height: 1.2;
   color: var(--ink);
   white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mobile-vitals__chip--ac.is-shield-on {
@@ -10531,10 +10570,30 @@ button.play-desk-compact__more--btn:hover {
 }
 
 @media (max-width: 959px) {
-  /* Densify play sheet: kill empty bands under the chrome */
+  /* Densify play sheet: kill empty bands under the chrome.
+     Use padding gutters (not width: calc(100%-20px) + margin) so a tall
+     vitals/hot strip cannot push .page past the viewport and leave a
+     phantom gap beside the ⋯ button. */
   .page.page--app:has(.sheet-play-stack) {
-    padding-top: 8px;
-    padding-bottom: 16px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    padding: 8px 10px 16px;
+    overflow-x: clip;
+  }
+  .sheet-play-stack,
+  .play-desk--mobile,
+  .play-desk--mobile .play-desk__body,
+  .play-desk--mobile .play-desk__stage,
+  .play-desk--mobile .play-desk__stage-panel,
+  .play-desk--mobile .mobile-vitals,
+  .play-desk--mobile .mobile-combat-seg-stack,
+  .play-desk--mobile .mobile-combat-seg,
+  .play-desk--mobile .mobile-combat-roll,
+  .play-desk--mobile .play-desk-compact {
+    min-width: 0;
+    max-width: 100%;
   }
   .sheet-play-stack {
     --stack-gap: 4px;
