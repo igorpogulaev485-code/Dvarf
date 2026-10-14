@@ -15,6 +15,8 @@ import {
 } from '../shared/sync/characterSheetChannel'
 import { Button, Text } from '../ui'
 
+const CLASSIC_PHONE_WARN_KEY = 'dvarf.classicPhoneWarn.dismissed'
+
 export function ClassicSheetPage() {
   const { characterId = '' } = useParams()
   const navigate = useNavigate()
@@ -22,6 +24,15 @@ export function ClassicSheetPage() {
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [status, setStatus] = useState<'loading' | 'saving' | 'saved' | 'auth'>('loading')
+  const [phoneWarn, setPhoneWarn] = useState(() => {
+    if (typeof window === 'undefined') return false
+    if (window.matchMedia('(min-width: 960px)').matches) return false
+    try {
+      return sessionStorage.getItem(CLASSIC_PHONE_WARN_KEY) !== '1'
+    } catch {
+      return true
+    }
+  })
   const saveTimer = useRef<number | null>(null)
   const versionRef = useRef(0)
   const latestRef = useRef<CharacterDetail | null>(null)
@@ -156,6 +167,39 @@ export function ClassicSheetPage() {
           Печать / PDF
         </Button>
       </header>
+      {phoneWarn ? (
+        <div className="classic-phone-warn no-print" role="status">
+          <Text>
+            Классический лист удобнее с ПК (печать / широкий лист). На телефоне можно
+            смотреть, но играть лучше с цифрового листа.
+          </Text>
+          <div className="classic-phone-warn__actions">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                navigate(character ? `/characters/${character.id}` : '/characters')
+              }}
+            >
+              К цифровому листу
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                try {
+                  sessionStorage.setItem(CLASSIC_PHONE_WARN_KEY, '1')
+                } catch {
+                  /* ignore */
+                }
+                setPhoneWarn(false)
+              }}
+            >
+              Всё равно открыть
+            </Button>
+          </div>
+        </div>
+      ) : null}
       {error ? (
         <Text tone="danger" className="no-print">
           {error}

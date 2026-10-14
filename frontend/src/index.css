@@ -34,6 +34,10 @@
   --abil-wis-soft: #e5ecd4;
   --abil-cha: #7a4a6e;
   --abil-cha-soft: #efe0ea;
+  /* Mobile kit motion (docs/ui-kit-mobile §8) */
+  --motion-fast: 120ms;
+  --motion-sheet: 220ms;
+  --motion-mode: 180ms;
 }
 
 /* Wave B — account theme swaps only accent tokens (docs/ui-kit §2n) */
@@ -5836,6 +5840,15 @@ button.spells-settings__derived-stat--btn:hover {
     max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 8px));
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -8px 28px rgba(28, 25, 23, 0.18);
+    animation: sheet-rise var(--motion-sheet) ease;
+  }
+
+  .play-desk--mobile .play-desk__stage-panel:not([hidden]) {
+    animation: scene-crossfade var(--motion-mode) ease;
+  }
+
+  .mobile-scene-nav__tab.is-on .mobile-scene-nav__ico {
+    animation: chip-pop var(--motion-fast) ease;
   }
 
   .ui-dialog__title {
@@ -10335,6 +10348,41 @@ button.play-desk-compact__more--btn:hover {
   100% { box-shadow: 0 0 0 10px transparent; }
 }
 
+@keyframes sheet-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scene-crossfade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes chip-pop {
+  0% { transform: scale(0.92); }
+  70% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-dialog,
+  .ui-dialog--wide,
+  .ui-dialog--xl,
+  .play-desk--mobile .play-desk__stage-panel:not([hidden]),
+  .mobile-scene-nav__tab.is-on .mobile-scene-nav__ico,
+  .mobile-vitals__hp.is-pulse {
+    animation-name: scene-crossfade;
+    animation-duration: 120ms;
+    transform: none;
+  }
+}
+
 /* Characteristics page B */
 .mobile-abil-page {
   position: fixed;
@@ -11181,5 +11229,34 @@ button.play-desk-compact__more--btn:hover {
     width: 100%;
     min-height: 48px;
     text-decoration: none;
+  }
+}
+
+/* Classic soft-bridge — phone warn (P2) */
+.classic-phone-warn {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  .classic-phone-warn {
+    display: grid;
+    gap: 10px;
+    margin: 10px 12px;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--accent-soft) 70%, var(--card));
+  }
+
+  .classic-phone-warn__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .classic-phone-warn__actions .ui-button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
   }
 }

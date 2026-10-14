@@ -192,14 +192,16 @@ desk delta 10-14 не «только ≥960».
 
 ### P2 — «Полировка»
 
-- Motion pass (`scene-crossfade`, `sheet-rise`, `hp-pulse`) + reduced-motion  
-- Companion dock optional  
-- AppHeader compact / overflow  
-- Cabinet/auth sheet polish (тема уже на tip — проверить phone column)  
-- Classic soft-bridge warn  
-- Coachmarks first-run (1 раз)  
-- FEATURE_LOCK machine markers для mobile shell  
-- Метрики baseline
+| Слайс | Содержание | Статус |
+|-------|------------|--------|
+| M2.1 | Motion pass (`scene-crossfade`, `sheet-rise`, `chip-pop`, `hp-pulse`) + reduced-motion | **done** (код) desk-sync |
+| M2.2 | Classic soft-bridge warn `<960` | **done** (код) desk-sync |
+| M2.3 | AppHeader compact / overflow («Официальный сайт» → ⋯) | **done** earlier (M1.6) |
+| — | Companion dock optional | open |
+| — | Cabinet/auth sheet polish | open (dialogs уже bottom sheet `<640`) |
+| — | Coachmarks first-run (1 раз) | open |
+| — | FEATURE_LOCK machine markers для mobile shell | open |
+| — | Метрики baseline | open |
 
 ---
 
@@ -338,4 +340,4 @@ Mobile path (этот документ):
 | 3 | Mobile M0–M1.1 код не на проде | Не ship отдельно без merge tip |
 | 4 | Desk handlers (`modifiers`, `heldEquip`, roll history) священны | Только placement / sheets на `<960` |
 
-**Следующий шаг:** P1 gate 🟡 закрыты (speed chips · Identity 1-col · LevelUp/Guided без nested) → smoke K22 Join + vitals @390 → P2 polish / ship только по «залей».
+**Следующий шаг:** P2 M2.1–M2.2 в коде → coachmarks / companion dock / auth polish → ship mobile line только по «залей».
