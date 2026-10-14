@@ -65,8 +65,9 @@ type PlayDeskHeaderProps = {
   climbSpeed?: number | null
   swimSpeed?: number | null
   flySpeed?: number | null
-  /** PHB running long/high jump summary for tooltip + chip. */
-  jumpHint?: string | null
+  /** PHB running long / high jump (ft) — shown as a vital like speed. */
+  jumpLongFt?: number | null
+  jumpHighFt?: number | null
   proficiencyBonus: number
   initiative: number
   inspiration: boolean
@@ -115,7 +116,8 @@ export function PlayDeskHeader({
   climbSpeed = null,
   swimSpeed = null,
   flySpeed = null,
-  jumpHint = null,
+  jumpLongFt = null,
+  jumpHighFt = null,
   proficiencyBonus,
   initiative,
   inspiration,
@@ -396,15 +398,23 @@ export function PlayDeskHeader({
               </ul>
             </div>
           ) : null}
-          {jumpHint ? (
+          {jumpLongFt != null && jumpHighFt != null ? (
             <div
-              className="play-desk-vital play-desk-vital--modes"
-              aria-label="Прыжки"
-              title={`${jumpHint}. Без разбега — половина.`}
+              className="play-desk-vital play-desk-vital--jump"
+              aria-label={`Прыжок: длинный ${jumpLongFt} фт, высокий ${jumpHighFt} фт`}
+              title={
+                `Прыжок с разбега: длинный ${jumpLongFt} фт · высокий ${jumpHighFt} фт. ` +
+                'Без разбега — половина.'
+              }
             >
-              <ul className="play-desk-vital__tags">
-                <li className="play-desk-vital__tag">{jumpHint}</li>
-              </ul>
+              <b>
+                {jumpLongFt}
+                <span className="play-desk-vital__slash" aria-hidden>
+                  /
+                </span>
+                {jumpHighFt}
+              </b>
+              <span>Прыж.</span>
             </div>
           ) : null}
           {onInitiativeRoll ? (

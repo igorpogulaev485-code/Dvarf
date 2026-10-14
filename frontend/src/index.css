@@ -6637,6 +6637,23 @@ button.play-desk-vital:hover {
   min-width: 58px;
 }
 
+.play-desk-vital--jump {
+  width: 64px;
+  min-width: 64px;
+}
+
+.play-desk-vital--jump b {
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.play-desk-vital__slash {
+  margin: 0 0.06em;
+  font-weight: 500;
+  opacity: 0.45;
+}
+
 .play-desk-vital--alt-primary > span {
   text-transform: none;
   letter-spacing: 0.02em;
