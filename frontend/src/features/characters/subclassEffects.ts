@@ -18,6 +18,7 @@ import {
   type SubclassGrantPicks,
   type SubclassTransition,
 } from '../../shared/dnd/subclassGrants'
+import { alwaysPreparedSpellNameRu } from '../../shared/dnd/alwaysPreparedSpellNamesRu'
 import type { ArmorProficiency, IdentityExtras, WeaponProficiency } from './identity'
 import type { AppliedRaceGrant } from '../../shared/dnd/raceGrants'
 import type { CompanionEntry } from './companions'
@@ -540,12 +541,13 @@ export function applySubclassGrantToDraft(input: {
   const known = [...cleared.spells.known]
   for (const spell of input.def.alwaysPreparedSpells) {
     if (spell.level > maxSpellLevel) continue
+    const nameRu = alwaysPreparedSpellNameRu(spell.name)
     const key = spellKeyFromName(spell.name)
     const created = asAlwaysPreparedSpell(
       {
         ...createSheetSpell(),
         id: subclassSpellId(input.classEntryId, input.def.slug, key || spell.name),
-        name: spell.name,
+        name: nameRu,
         level: spell.level,
       },
       {
@@ -631,12 +633,13 @@ export function syncSubclassAlwaysPreparedSpells(input: {
 
     for (const spell of catalog) {
       if (spell.level > maxSpellLevel) continue
+      const nameRu = alwaysPreparedSpellNameRu(spell.name)
       const key = spellKeyFromName(spell.name)
       const created = asAlwaysPreparedSpell(
         {
           ...createSheetSpell(),
           id: subclassSpellId(grant.classEntryId, grant.slug, key || spell.name),
-          name: spell.name,
+          name: nameRu,
           level: spell.level,
         },
         {

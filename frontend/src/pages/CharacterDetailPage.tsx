@@ -5,6 +5,7 @@ import { getCharacter, type CharacterDetail } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import { joinLobby } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, Stack, Text, Toast } from '../ui'
+import { forceReleaseBodyScrollLock } from '../ui/bodyScrollLock'
 
 type LocationState = {
   toast?: string
@@ -45,6 +46,14 @@ export function CharacterDetailPage() {
       navigate(location.pathname, { replace: true, state: null })
     }
   }, [location.pathname, location.state, navigate])
+
+  // Dialog pads lock body scroll; clear any leaked lock when entering the sheet.
+  useEffect(() => {
+    forceReleaseBodyScrollLock()
+    return () => {
+      forceReleaseBodyScrollLock()
+    }
+  }, [characterId])
 
   useEffect(() => {
     let active = true

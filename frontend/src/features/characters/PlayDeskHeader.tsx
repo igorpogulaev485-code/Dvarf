@@ -65,6 +65,8 @@ type PlayDeskHeaderProps = {
   climbSpeed?: number | null
   swimSpeed?: number | null
   flySpeed?: number | null
+  /** PHB running long/high jump summary for tooltip + chip. */
+  jumpHint?: string | null
   proficiencyBonus: number
   initiative: number
   inspiration: boolean
@@ -113,6 +115,7 @@ export function PlayDeskHeader({
   climbSpeed = null,
   swimSpeed = null,
   flySpeed = null,
+  jumpHint = null,
   proficiencyBonus,
   initiative,
   inspiration,
@@ -390,6 +393,17 @@ export function PlayDeskHeader({
                     {mode.label} {mode.value}
                   </li>
                 ))}
+              </ul>
+            </div>
+          ) : null}
+          {jumpHint ? (
+            <div
+              className="play-desk-vital play-desk-vital--modes"
+              aria-label="Прыжки"
+              title={`${jumpHint}. Без разбега — половина.`}
+            >
+              <ul className="play-desk-vital__tags">
+                <li className="play-desk-vital__tag">{jumpHint}</li>
               </ul>
             </div>
           ) : null}

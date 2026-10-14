@@ -22,6 +22,7 @@ import {
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import { Button, Stack, Text, Toast } from '../ui'
+import { forceReleaseBodyScrollLock } from '../ui/bodyScrollLock'
 
 function listSubtitle(user: User | null, shown: number, total: number): string {
   const who = user?.display_name || user?.login || user?.email
@@ -51,6 +52,10 @@ export function CharactersPage() {
   const updatePrefs = useCallback((next: CharacterListPrefs) => {
     setPrefs(next)
     saveCharacterListPrefs(next)
+  }, [])
+
+  useEffect(() => {
+    forceReleaseBodyScrollLock()
   }, [])
 
   useEffect(() => {

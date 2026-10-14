@@ -185,6 +185,8 @@ export type ClassFeatureDef = {
   summary_ru: string
   body_ru?: string
   kind: FeatureKind
+  /** Pin a glance chip on the play-desk mode (e.g. Reckless Attack → combat). */
+  desk?: 'combat' | 'explore' | 'social'
   scale?: FeatureScale
   resource?: FeatureResource
   /** Persistent pick (fighting style). */
@@ -396,6 +398,12 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       if (!summon.name_ru) summon = undefined
     }
 
+    const deskRaw = row.desk
+    const desk =
+      deskRaw === 'combat' || deskRaw === 'explore' || deskRaw === 'social'
+        ? deskRaw
+        : undefined
+
     out.push({
       id: row.id,
       level: typeof row.level === 'number' ? Math.max(1, row.level) : 1,
@@ -404,6 +412,7 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       summary_ru: typeof row.summary_ru === 'string' ? row.summary_ru : '',
       body_ru: typeof row.body_ru === 'string' ? row.body_ru : undefined,
       kind,
+      desk,
       scale:
         scaleRaw && scaleRaw.by_level && typeof scaleRaw.by_level === 'object'
           ? {

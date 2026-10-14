@@ -98,6 +98,12 @@ import {
   type RaceGrantDef,
   type RaceGrantPicks,
 } from '../../shared/dnd/raceGrants'
+import { formatJumpHint } from '../../shared/dnd/jumpDistance'
+import {
+  customFeaturesToSheet,
+  readCustomFeatures,
+  type CustomFeature,
+} from './customFeatures'
 import {
   AttacksPanel,
   syncAttacksHeldFromInventory,
@@ -370,6 +376,7 @@ type Draft = {
   featurePicks: FeaturePicksState
   classAsi: AppliedClassAsi[]
   featGrants: AppliedFeatGrant[]
+  customFeatures: CustomFeature[]
   sheetUi: SheetUiState
 }
 
@@ -542,6 +549,7 @@ function buildDraft(character: CharacterDetail): Draft {
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classAsi: readClassAsiLedger(sheet.class_asi),
     featGrants: readFeatGrantLedger(sheet.feat_grants),
+    customFeatures: readCustomFeatures(sheet.custom_features ?? sheet.customFeatures),
     sheetUi: readSheetUi(sheet),
   }
 }
@@ -951,6 +959,15 @@ export function MinimalSheetEditor({
           }
           if (catalogDef?.racialSpells && catalogDef.racialSpells.length > 0) {
             nextGrant = { ...nextGrant, racialSpells: catalogDef.racialSpells }
+          }
+          if (catalogDef?.traitCards && catalogDef.traitCards.length > 0) {
+            const had = nextGrant.traitCards?.length ?? 0
+            if (had === 0) {
+              nextGrant = { ...nextGrant, traitCards: catalogDef.traitCards }
+            }
+          }
+          if (catalogDef?.traitsText && !nextGrant.traitsText?.trim()) {
+            nextGrant = { ...nextGrant, traitsText: catalogDef.traitsText }
           }
 
           const nextSpells = syncRaceSpellsForSheetState({
@@ -2728,6 +2745,7 @@ export function MinimalSheetEditor({
       sheet.feature_picks = featurePicksToSheet(draftSnap.featurePicks)
       sheet.class_asi = draftSnap.classAsi
       sheet.feat_grants = draftSnap.featGrants
+      Object.assign(sheet, customFeaturesToSheet(draftSnap.customFeatures))
 
       for (const key of ABILITY_KEYS) {
         abilities[key] = { ...asRecord(abilities[key]), score: draftSnap.abilities[key] }
@@ -3466,6 +3484,10 @@ export function MinimalSheetEditor({
             climbSpeed={draft.climbSpeed}
             swimSpeed={draft.swimSpeed}
             flySpeed={draft.flySpeed}
+            jumpHint={formatJumpHint({
+              strengthScore: effectiveAbilities.str,
+              strengthMod: abilityModifier(effectiveAbilities.str),
+            })}
             movementHint={
               gearEffects.speedBonusFt
                 ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
@@ -4321,6 +4343,7 @@ export function MinimalSheetEditor({
             resources={draft.play.resources}
             inventoryItems={draft.inventory.items}
             favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
+            combatFeatures={unlockedFeatures}
             rollMode={effectiveRollMode()}
             onOpenSettings={() => setAttacksSettingsOpen(true)}
             onToast={onToast}
@@ -4495,6 +4518,12 @@ export function MinimalSheetEditor({
         featGrants={draft.featGrants}
         darkvision={draft.identity.darkvision}
         raceName={draft.raceName}
+        raceTraitCards={draft.raceGrant?.traitCards ?? []}
+        raceTraitsText={draft.raceGrant?.traitsText ?? ''}
+        customFeatures={draft.customFeatures}
+        onCustomFeaturesChange={(customFeatures) =>
+          setDraft((prev) => ({ ...prev, customFeatures }))
+        }
         onToast={onToast}
       />
 

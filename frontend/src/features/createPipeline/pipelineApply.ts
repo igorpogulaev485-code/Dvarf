@@ -419,6 +419,28 @@ function normalizeFocusPick(
   }
 }
 
+function normalizeLinePicks(
+  raw: unknown,
+): NonNullable<ClassGrantPicks['equipmentLinePicks']> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
+  const out: NonNullable<ClassGrantPicks['equipmentLinePicks']> = {}
+  for (const [lineId, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) continue
+    const row = value as Record<string, unknown>
+    const optionId = typeof row.optionId === 'string' ? row.optionId.trim() : ''
+    if (!optionId) continue
+    const weaponRaw = row.weaponName
+    const weaponName =
+      typeof weaponRaw === 'string' && weaponRaw.trim()
+        ? weaponRaw.trim()
+        : weaponRaw === null
+          ? null
+          : undefined
+    out[lineId] = { optionId, weaponName }
+  }
+  return out
+}
+
 function normalizeClassPicks(raw: unknown): ClassGrantPicks {
   if (!raw || typeof raw !== 'object') return emptyClassGrantPicks()
   const row = raw as Partial<ClassGrantPicks>
@@ -428,6 +450,7 @@ function normalizeClassPicks(raw: unknown): ClassGrantPicks {
     equipmentPackageId:
       typeof row.equipmentPackageId === 'string' ? row.equipmentPackageId : null,
     equipmentFocusPick: normalizeFocusPick(row.equipmentFocusPick),
+    equipmentLinePicks: normalizeLinePicks(row.equipmentLinePicks),
   }
 }
 
