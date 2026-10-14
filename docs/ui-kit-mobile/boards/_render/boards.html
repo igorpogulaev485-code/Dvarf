@@ -345,11 +345,11 @@
       <div class="phone-notch"><span></span></div>
       <div class="phone-body">
         <div class="vitals">
-          <div class="who">
+          <div class="who" title="tap → Основное">
             <div class="avatar">Т</div>
             <div>
               <div class="who-name">Торин</div>
-              <div class="who-meta">Дварф · Воин 5 · зд</div>
+              <div class="who-meta">Дварф · Воин 5 · зд · → Основное</div>
             </div>
           </div>
           <div class="vital-row">
@@ -602,6 +602,102 @@
         <div class="line-item"><span>Владения ▸</span><span>sheet</span></div>
       </div>
       <div class="bot"><span>Бой</span><span>Исслед.</span><span>Общ.</span><span>Нап.</span><span>Спос.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== IDENTITY / ОСНОВНОЕ ========== -->
+<section class="board" id="identity" data-file="dvarf-mobile-kit-identity.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Кит · Основное (аватар)</h1>
+      <p class="sub">Паритет desktop IdentityDialog §2k · вход: аватар / who · bottom sheet · не ЕЩЁ</p>
+    </div>
+    <div class="badge">§2k MOBILE</div>
+  </div>
+  <div class="body" style="display:flex;gap:20px;align-items:flex-start">
+    <div style="width:220px;flex-shrink:0">
+      <p class="sec-label">1 · Где нажать</p>
+      <div class="phone" style="width:220px;height:380px;border-radius:28px">
+        <div class="phone-notch"><span style="width:70px"></span></div>
+        <div class="phone-body">
+          <div class="vitals" style="padding:10px">
+            <div class="who" style="border:2px solid var(--accent);border-radius:12px;padding:8px;background:var(--accent-soft)">
+              <div class="avatar" style="width:40px;height:40px">Т</div>
+              <div>
+                <div class="who-name" style="font-size:15px">Торин</div>
+                <div class="who-meta">tap → Основное</div>
+              </div>
+            </div>
+            <div class="vital-row" style="margin-top:8px;opacity:.5">
+              <div class="vital"><div class="v" style="font-size:12px">16</div><div class="l">КД</div></div>
+              <div class="vital"><div class="v" style="font-size:12px">28</div><div class="l">HP</div></div>
+            </div>
+          </div>
+          <div class="scene" style="opacity:.4;font-size:11px">сцена…</div>
+          <div class="bnav">
+            <div class="tab on"><div class="ico" style="font-size:11px">⚔</div>Бой</div>
+            <div class="tab"><div class="ico" style="font-size:11px">🎒</div>Исслед.</div>
+            <div class="tab"><div class="ico" style="font-size:11px">💬</div>Общ.</div>
+            <div class="tab"><div class="ico" style="font-size:11px">🐾</div>Нап.</div>
+            <div class="tab"><div class="ico" style="font-size:11px">✦</div>Спос.</div>
+          </div>
+        </div>
+      </div>
+      <p class="note" style="margin:8px 0 0">Аватар <strong>или</strong> строка who (имя·раса·класс). Не путать с chip «Характеристики».</p>
+    </div>
+
+    <div style="flex:1.2;min-width:0">
+      <p class="sec-label">2 · Sheet «Основное» (scroll)</p>
+      <div class="sheet-demo" style="width:100%;border-radius:16px;min-height:480px;max-height:520px;overflow:hidden">
+        <div class="grab"></div>
+        <h3>Основное</h3>
+        <div class="card" style="display:flex;gap:12px;align-items:center;margin-bottom:10px;padding:10px">
+          <div class="avatar" style="width:56px;height:56px;font-size:20px">Т</div>
+          <div style="flex:1">
+            <strong>Аватар</strong>
+            <div class="note" style="margin:2px 0 6px">JPEG / PNG / WebP</div>
+            <div style="display:flex;gap:6px">
+              <span class="btn btn-soft" style="min-height:36px;padding:0 10px;font-size:12px">Загрузить</span>
+              <span class="btn btn-ghost" style="min-height:36px;padding:0 10px;font-size:12px">Удалить</span>
+            </div>
+          </div>
+        </div>
+        <div class="tag">Персонаж</div>
+        <div class="card" style="padding:8px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span class="note" style="margin:0">Имя</span><strong>Торин</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span class="note" style="margin:0">Уровень</span><strong>5 · +1 уровень</strong></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px"><span class="note" style="margin:0">XP</span><strong>6500 · ещё до 6</strong></div>
+        </div>
+        <div class="tag">Классы</div>
+        <div class="card" style="padding:8px;margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:12px"><strong>Воин</strong><span>ур. 5</span></div>
+          <div class="note" style="margin:4px 0 0">Архетип · мультикласс +</div>
+        </div>
+        <div class="tag">Раса и прошлое</div>
+        <div class="card" style="padding:8px;margin-bottom:10px">
+          <div style="font-size:12px;margin-bottom:3px"><strong>Дварф</strong> · горный</div>
+          <div style="font-size:12px;margin-bottom:3px"><strong>Солдат</strong> · предыстория</div>
+          <div style="font-size:12px"><strong>ЗД</strong> · мировоззрение</div>
+        </div>
+        <span class="btn btn-primary" style="width:100%">Готово</span>
+      </div>
+    </div>
+
+    <div style="flex:0.9;min-width:0">
+      <p class="sec-label">3 · Правила mobile</p>
+      <div class="card" style="margin-bottom:10px">
+        <ol class="note" style="margin:0;padding-left:18px">
+          <li style="margin-bottom:8px">Те же секции, что desktop LOCK §2k.</li>
+          <li style="margin-bottom:8px">На телефоне — <strong>bottom sheet</strong> (не center xl dialog).</li>
+          <li style="margin-bottom:8px">Level-up / архетип / расовые выборы — внутри этого sheet.</li>
+          <li style="margin-bottom:8px">Identity ≠ Характеристики ≠ tab Способности.</li>
+          <li>Сцены «ЕЩЁ» нет — это и есть бывший вход «Основное».</li>
+        </ol>
+      </div>
+      <div class="callout">
+        LSS держит «Личность и внешность» отдельной страницей. У нас личность/тексты — сцена <strong>Общение</strong>; сборка героя (имя·класс·раса·аватар) — здесь.
+      </div>
     </div>
   </div>
 </section>
