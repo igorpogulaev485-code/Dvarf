@@ -38,6 +38,7 @@ type MobileVitalsBarProps = {
   onOpenIdentity: () => void
   onOpenAbilities: () => void
   onOpenRest: () => void
+  onOpenConditions?: () => void
   onToggleInspiration: () => void
   onAvatarChanged: (character: CharacterDetail) => void
   onPlayChange: (play: PlayState) => void
@@ -84,6 +85,7 @@ export function MobileVitalsBar({
   onOpenIdentity,
   onOpenAbilities,
   onOpenRest,
+  onOpenConditions,
   onToggleInspiration,
   onAvatarChanged,
   onPlayChange,
@@ -359,7 +361,17 @@ export function MobileVitalsBar({
       {deathCard()}
 
       {play.exhaustion > 0 ? (
-        <p className="mobile-vitals__exh">Истощение {play.exhaustion}</p>
+        onOpenConditions ? (
+          <button
+            type="button"
+            className="mobile-vitals__exh mobile-vitals__exh--btn"
+            onClick={onOpenConditions}
+          >
+            Истощение {play.exhaustion} · состояния
+          </button>
+        ) : (
+          <p className="mobile-vitals__exh">Истощение {play.exhaustion}</p>
+        )
       ) : null}
 
       <button

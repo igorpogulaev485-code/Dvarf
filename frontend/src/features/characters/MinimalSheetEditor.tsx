@@ -3529,6 +3529,7 @@ export function MinimalSheetEditor({
           onOpenIdentity={() => setIdentityOpen(true)}
           onOpenAbilities={() => setMobileAbilitiesOpen(true)}
           onOpenRest={() => setRestOpen(true)}
+          onOpenConditions={() => setHotConditionsOpen(true)}
           onToggleInspiration={() =>
             setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
           }

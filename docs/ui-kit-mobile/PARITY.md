@@ -11,18 +11,18 @@
 
 | Функция (desktop Wave A) | Mobile сейчас | Целевой вход (kit) | Приоритет |
 |--------------------------|---------------|--------------------|-----------|
-| Mode → сцена (Бой/…) | ❌ chrome скрыт | Bottom Scene Nav | P0 |
-| Одна активная панель | 💀 стек всех | `stageHidden` + body--mobile | P0 |
-| HP урон/хил | 🟡 sticky NumberPad | MobileVitalsBar → HpPad sheet | P0 |
-| Temp HP / death pips | 🟡/❌ | HpPad sheet | P0 |
-| Conc check при уроне | 💀 не с sticky | HpPad → Удержал/Сорвалось | P0 |
-| Отдых short/long + кости | 💀 нет входа | Vitals → Rest sheet | P0 |
-| Состояния + истощение | 💀 hot скрыт | HotStrip → Conditions | P0 |
-| Концентрация chip / clear | 🟡 clear only | HotStrip | P0 |
-| Монеты CoinPad | ❌ | Vitals → CoinPad | P0 |
-| Атаки + бросок | 🟡 в стеке | Tab Бой | P0 |
-| Расходники ★ в бою | 🟡 | Бой → блок «Расходники» под атаками; ★ в Исследовании (до 3) | P0 |
-| Заклинания Каст / upcast | 🟡 в стеке | Бой → Заклинания | P0 |
+| Mode → сцена (Бой/…) | ✅ Bottom Scene Nav | Bottom Scene Nav | P0 |
+| Одна активная панель | ✅ `stageHidden` | `stageHidden` + body--mobile | P0 |
+| HP урон/хил | ✅ MobileVitalsBar → HpPad | MobileVitalsBar → HpPad sheet | P0 |
+| Temp HP / death pips | ✅ death card + HpPad | HpPad sheet | P0 |
+| Conc check при уроне | ✅ Dialog Удержал/Сорвалось | HpPad → Удержал/Сорвалось | P0 |
+| Отдых short/long + кости | ✅ Vitals → Rest | Vitals → Rest sheet | P0 |
+| Состояния + истощение | ✅ HotStrip + tap истощ. → Conditions | HotStrip → Conditions | P0 |
+| Концентрация chip / clear | ✅ HotStrip | HotStrip | P0 |
+| Монеты CoinPad | ✅ Vitals → CoinPad | Vitals → CoinPad | P0 |
+| Атаки + бросок | ✅ Tab Бой | Tab Бой | P0 |
+| Расходники ★ в бою | ✅ блок под атаками | Бой → блок «Расходники» под атаками; ★ в Исследовании (до 3) | P0 |
+| Заклинания Каст / upcast | ✅ Бой → Заклинания | Бой → Заклинания | P0 |
 | Гримуар / Подготовить / слоты | 🟡 | Книга sheet | P1 |
 | Инвентарь glance/expand | 🟡 | Tab Исследование | P0 |
 | Attunement 0–3 | 🟡 панель в стеке | из summary Исследования | P1 |

@@ -8574,10 +8574,100 @@ button.play-desk-vital:hover {
   min-height: 0;
 }
 
+/* HotStrip: stays under vitals (vitals sticky); opaque strip, dense taps */
 .play-desk--mobile .play-desk__hot {
-  position: sticky;
-  top: 0;
-  z-index: 35;
+  position: relative;
+  z-index: 30;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: 0;
+  padding: 6px;
+  border: 1px solid var(--desk-line);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(45, 45, 42, 0.04);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.play-desk--mobile .play-desk__hot::-webkit-scrollbar {
+  display: none;
+}
+.play-desk--mobile .play-desk__hot-item {
+  flex: 1 1 auto;
+  min-width: min(148px, 70vw);
+  min-height: 44px;
+  padding: 8px 10px;
+  align-content: center;
+}
+.play-desk--mobile .play-desk__hot-item--wide {
+  flex: 1 1 42%;
+  min-width: min(148px, 70vw);
+}
+.play-desk--mobile .play-desk__hot-item--res {
+  flex: 0 0 auto;
+  min-width: 112px;
+}
+.play-desk--mobile .play-desk__hot-label {
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+.play-desk--mobile .play-desk__pip {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+.play-desk--mobile .play-desk-compact__cons-main {
+  min-height: 44px;
+  padding: 8px 10px;
+}
+.play-desk--mobile .play-desk-compact__cons-fav {
+  min-width: 44px;
+  min-height: 44px;
+}
+.play-desk--mobile .play-desk-compact__cons-spend {
+  font-size: 0.78rem;
+}
+
+/* Play pads as bottom sheets on all phone/tablet portrait widths */
+@media (max-width: 959px) {
+  .ui-dialog-backdrop {
+    align-items: flex-end;
+    padding:
+      max(8px, env(safe-area-inset-top, 0px))
+      0
+      0
+      0;
+  }
+
+  .ui-dialog,
+  .ui-dialog--wide,
+  .ui-dialog--xl,
+  .ui-dialog--pad {
+    width: 100%;
+    max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 8px));
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 28px rgba(28, 25, 23, 0.18);
+  }
+
+  .ui-dialog__title {
+    padding: 12px 14px 0;
+    font-size: 1rem;
+  }
+
+  .ui-dialog__body {
+    padding: 8px 14px 6px;
+  }
+
+  .ui-dialog__actions {
+    gap: 8px;
+    padding: 10px 14px max(12px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .ui-dialog__actions .ui-button {
+    flex: 1 1 calc(50% - 4px);
+    justify-content: center;
+  }
 }
 
 .mobile-combat-seg {
@@ -8955,6 +9045,22 @@ button.play-desk-vital:hover {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--danger);
+}
+
+.mobile-vitals__exh--btn {
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--danger);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .mobile-vitals__abil {
