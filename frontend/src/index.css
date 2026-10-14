@@ -5697,6 +5697,40 @@ button.spells-settings__derived-stat--btn:hover {
   gap: 12px;
 }
 
+.create-pipeline__steprrail {
+  gap: 10px;
+}
+
+.create-pipeline__progress {
+  display: grid;
+  gap: 6px;
+}
+
+.create-pipeline__progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.88rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.create-pipeline__progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #efe7dc;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.create-pipeline__progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 160ms ease;
+}
+
 .create-pipeline__title,
 .create-pipeline__section-title {
   margin: 0;
@@ -5713,6 +5747,19 @@ button.spells-settings__derived-stat--btn:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.create-pipeline__footer-mid {
+  display: none;
+}
+
+.create-pipeline__summary-btn {
+  min-height: 44px;
+}
+
+.create-pipeline__summary-sheet {
+  display: grid;
+  gap: 12px;
 }
 
 .create-pipeline__step {
@@ -6116,6 +6163,53 @@ button.spells-settings__derived-stat--btn:hover {
 }
 
 @media (max-width: 860px) {
+  .page--create-pipeline {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .create-pipeline {
+    gap: 12px;
+    min-height: 0;
+  }
+
+  .create-pipeline__steprrail {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin: 0 -4px;
+    padding: 8px 4px 10px;
+    background: linear-gradient(180deg, var(--panel, #fffdf8) 70%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  }
+
+  .create-pipeline__steprrail-intro .create-pipeline__title {
+    font-size: 1.25rem;
+  }
+
+  .create-pipeline__subtitle {
+    display: none;
+  }
+
+  .create-pipeline__steps {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 6px;
+    padding-bottom: 2px;
+  }
+
+  .create-pipeline__steps::-webkit-scrollbar {
+    display: none;
+  }
+
+  .create-pipeline__step {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+
   .create-pipeline__body {
     grid-template-columns: 1fr;
   }
@@ -6125,27 +6219,86 @@ button.spells-settings__derived-stat--btn:hover {
     max-height: none;
   }
 
+  /* Catalog steps: cards on stage, detail in Сводка sheet */
+  .create-pipeline:not(.create-pipeline--detail-primary) .create-pipeline__detail {
+    display: none;
+  }
+
+  /* Abilities / leveling: detail on stage, cards in Сводка sheet */
+  .create-pipeline--detail-primary .create-pipeline__cards {
+    display: none;
+  }
+
   .create-pipeline__method-cards {
     grid-template-columns: 1fr;
   }
 
   .create-pipeline__footer {
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      'progress progress'
-      'back actions';
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.2fr;
+    grid-template-areas: 'back summary actions';
+    gap: 8px;
+    align-items: stretch;
+    margin: 0;
+    padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+    background: var(--card, #fff);
+    box-shadow: 0 -6px 20px rgba(45, 45, 42, 0.08);
   }
 
   .create-pipeline__footer-left {
     grid-area: back;
   }
 
+  .create-pipeline__footer-left .ui-button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
   .create-pipeline__footer-progress {
-    grid-area: progress;
+    display: none;
+  }
+
+  .create-pipeline__footer-mid {
+    display: block;
+    grid-area: summary;
+  }
+
+  .create-pipeline__footer-mid .ui-button {
+    width: 100%;
   }
 
   .create-pipeline__footer-right {
     grid-area: actions;
+    justify-self: stretch;
+  }
+
+  .create-pipeline__footer-right .ui-button,
+  .create-pipeline__footer-actions .ui-button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .create-pipeline__footer-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .create-pipeline__card {
+    min-height: 52px;
+    padding: 12px 14px;
+  }
+
+  .create-pipeline__chip {
+    min-height: 36px;
+    padding: 6px 12px;
   }
 }
 

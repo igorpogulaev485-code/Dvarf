@@ -61,7 +61,7 @@
 | Функция | Mobile сейчас | Цель | Приоритет |
 |---------|---------------|------|-----------|
 | Список персонажей | 🟡 | density + ⋯ sheet | P1 |
-| Create 2014 pipeline | 🟡 тяжёлый | StepRail + footer + Сводка sheet | P1 |
+| Create 2014 pipeline | ✅ sticky StepRail + footer + Сводка sheet | StepRail + footer + Сводка sheet | P1 · M1.5 |
 | Guided / level-up wizard | 🟡 | те же sheets | P1 |
 | Classic sheet | 🟡 print | link + soft warn | P2 |
 | Лобби list/create | 🟡 | Hero код+QR accordion | P1 |

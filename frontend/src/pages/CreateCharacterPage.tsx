@@ -1552,6 +1552,7 @@ export function CreateCharacterPage() {
         cards={cards}
         detail={detail}
         footer={footer}
+        detailPrimary={step === 'abilities' || step === 'leveling'}
         onStepClick={goToStep}
         onBack={
           backTarget
