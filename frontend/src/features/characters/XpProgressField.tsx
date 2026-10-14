@@ -1,14 +1,44 @@
 import { useState } from 'react'
-import { NumberPadDialog, Text } from '../../ui'
-import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
+import { Button, NumberPadDialog, Text } from '../../ui'
+import {
+  formatXp,
+  xpCrossedLevelThreshold,
+  xpProgress,
+  xpReadyToLevel,
+  xpToReachLevel,
+} from '../../shared/dnd/experience'
 
 type XpProgressFieldProps = {
   xp: number
   level: number
   onChange: (xp: number) => void
+  /** Opens the level-up dialog when the XP band is full. */
+  onRequestLevelUp?: () => void
 }
 
-export function XpProgressField({ xp, level, onChange }: XpProgressFieldProps) {
+export function XpLevelOffer({
+  nextLevel,
+  onLevelUp,
+}: {
+  nextLevel: number
+  onLevelUp: () => void
+}) {
+  return (
+    <div className="xp-level-offer">
+      <p className="xp-level-offer__text">Опыта хватает на уровень {nextLevel}.</p>
+      <Button type="button" onClick={onLevelUp}>
+        Повысить уровень
+      </Button>
+    </div>
+  )
+}
+
+export function XpProgressField({
+  xp,
+  level,
+  onChange,
+  onRequestLevelUp,
+}: XpProgressFieldProps) {
   const [padOpen, setPadOpen] = useState(false)
   const progress = xpProgress(xp, level)
   const meta =
@@ -62,8 +92,6 @@ export function XpProgressField({ xp, level, onChange }: XpProgressFieldProps) {
         min={0}
         formatValue={formatXp}
         onClose={() => setPadOpen(false)}
-        onAdd={(delta) => onChange(progress.xp + delta)}
-        onSubtract={(delta) => onChange(Math.max(0, progress.xp - delta))}
         header={
           <div className="xp-pad-header">
             <div className="xp-pad-header__ends">
@@ -92,8 +120,25 @@ export function XpProgressField({ xp, level, onChange }: XpProgressFieldProps) {
                 ? ` · порог ${formatXp(xpToReachLevel(progress.level + 1))}`
                 : ''}
             </p>
+            {xpReadyToLevel(progress.xp, progress.level) && nextLevel != null ? (
+              <XpLevelOffer
+                nextLevel={nextLevel}
+                onLevelUp={() => {
+                  setPadOpen(false)
+                  onRequestLevelUp?.()
+                }}
+              />
+            ) : null}
           </div>
         }
+        onAdd={(delta) => {
+          const next = progress.xp + delta
+          onChange(next)
+          if (xpCrossedLevelThreshold(progress.xp, next, level)) {
+            onRequestLevelUp?.()
+          }
+        }}
+        onSubtract={(delta) => onChange(Math.max(0, progress.xp - delta))}
       />
     </div>
   )

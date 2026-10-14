@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/restore-wave-a-desk-0ed9`  
+**Prod tip (ветка линии прода):** `cursor/reunify-levelup-feat-gift-244b`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -547,6 +547,19 @@
 | Дыра в правилах | `preflight-live` смотрел только ancestry tip, не файлы на диске; tip писали в AGENTS нескольких веток; LOCK в доках без маркера в preflight | `deploy/prod-tip` + маркеры IdentityDialog / запрет ЕЩЁ + live-disk high-water в `preflight-live` |
 
 На проде: **да** · это **новый prod tip** `cursor/restore-wave-a-desk-0ed9` · проверено 2026-10-13: `/health` ok; alembic `a6b7`; бандл `CharacterDetailPage-Eo1ZtRDR.js`; режимы без «ЕЩЁ» (Бой·Исследование·Общение·Напарники·Способности); `IdentityDialog.tsx` на диске; create-pipeline + remote-up на месте
+
+### 2026-10-14 — Reunify levelup-feat + черта от мастера
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Сессия | access **12 ч**, refresh **90 дн** + скользящее продление | Не выкидывает со стола mid-game |
+| XP → уровень | pad опыта: «Опыта хватает» → **Повысить уровень** | Порог не остаётся «голым» |
+| Черта (ASI) | общий `AsiChoiceBody` / каталог на 4/6/8… | Черта снова выбирается, не «скоро» |
+| Черта от мастера | Основное → **Черты** → «Мастер выдал черту» (`manual`) | Подарок вне ASI без хака |
+| Акван / гримуар | язык Акван; гримуар из bundled 2014 при сбое catalog | Не пустой список |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2k (Черты).  
+На проде: **да** · это **новый prod tip** `cursor/reunify-levelup-feat-gift-244b` · база `cursor/restore-wave-a-desk-0ed9` · проверяется после деплоя
 
 
 ## В ветках / ещё не на проде

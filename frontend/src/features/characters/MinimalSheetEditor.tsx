@@ -165,6 +165,7 @@ import {
 } from '../../shared/dnd/featGrants'
 import {
   applyFeatGrantToDraft,
+  revokeFeatGrantFromDraft,
   revokeFeatGrantsForAsi,
   revokeFeatGrantsForBackground,
   revokeFeatGrantsForRace,
@@ -625,6 +626,8 @@ export function MinimalSheetEditor({
   const [error, setError] = useState<string | null>(null)
   const [conflictOpen, setConflictOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
+  /** Gift feat from the table master — outside ASI / race / background. */
+  const [giftFeatOpen, setGiftFeatOpen] = useState(false)
   const [pendingAsi, setPendingAsi] = useState<{
     classEntryId: string
     className: string
@@ -3443,6 +3446,7 @@ export function MinimalSheetEditor({
                 }
               })
             }}
+            onRequestLevelUp={() => setLevelUpOpen(true)}
             onToggleInspiration={() =>
               setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
             }
@@ -3757,6 +3761,7 @@ export function MinimalSheetEditor({
                 xp={draft.identity.experience}
                 level={characterLevel}
                 onChange={(experience) => patchIdentity({ experience })}
+                onRequestLevelUp={() => setLevelUpOpen(true)}
               />
             </Field>
           </div>
@@ -4077,6 +4082,59 @@ export function MinimalSheetEditor({
               развилками (навыки, инструменты, стартовое снаряжение). «Хомбрю» — только название на
               листе.
             </Text>
+          </section>
+          <section className="identity-dialog__section">
+            <p className="identity-dialog__section-label">Черты</p>
+            <Text tone="muted">
+              ASI на 4/6/8… — в повышении уровня. Если мастер просто выдал черту — добавь здесь.
+            </Text>
+            <div className="identity-dialog__feats">
+              {draft.featGrants.length === 0 ? (
+                <Text tone="muted">Пока нет черт на листе.</Text>
+              ) : (
+                draft.featGrants.map((row) => {
+                  const sourceLabel =
+                    row.source.kind === 'asi'
+                      ? `ASI · ур. ${row.source.atClassLevel}`
+                      : row.source.kind === 'race'
+                        ? 'Раса'
+                        : row.source.kind === 'background'
+                          ? 'Предыстория'
+                          : 'Мастер'
+                  return (
+                    <div key={row.id} className="identity-dialog__feat-row">
+                      <div>
+                        <strong>{row.nameRu}</strong>
+                        <div className="identity-dialog__feat-meta">{sourceLabel}</div>
+                      </div>
+                      {row.source.kind === 'manual' ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setDraft((prev) =>
+                              mergeFeatSlice(
+                                prev,
+                                revokeFeatGrantFromDraft({
+                                  draft: featSliceFrom(prev),
+                                  grantId: row.id,
+                                }),
+                              ),
+                            )
+                            onToast(`Черта «${row.nameRu}» снята`)
+                          }}
+                        >
+                          Убрать
+                        </Button>
+                      ) : null}
+                    </div>
+                  )
+                })
+              )}
+              <Button type="button" variant="secondary" onClick={() => setGiftFeatOpen(true)}>
+                Мастер выдал черту
+              </Button>
+            </div>
           </section>
           <section className="identity-dialog__section">
             <p className="identity-dialog__section-label">Раса и прошлое</p>
@@ -5089,6 +5147,45 @@ export function MinimalSheetEditor({
           )
           setBackgroundFeatSlug(null)
           onToast(`Предыстория: черта «${grant.nameRu}»`)
+        }}
+      />
+
+      <FeatSetupDialog
+        open={giftFeatOpen}
+        edition={baseCharacter.rules_edition as RulesEdition}
+        title="Черта от мастера"
+        abilities={draft.abilities}
+        armor={draft.identity.armor}
+        hasSpellcasting={characterHasCasterClass(draft.classes)}
+        hasMartialWeapons={draft.identity.weapons.martial}
+        raceSlug={draft.raceGrant?.slug ?? null}
+        raceParentSlug={draft.raceGrant?.parentSlug ?? null}
+        size={draft.identity.size}
+        characterLevel={characterLevel}
+        takenSlugs={draft.featGrants.map((row) => row.slug)}
+        classSlugs={draft.classGrants.map((row) => row.slug)}
+        backgroundSlug={draft.identity.backgroundSlug}
+        ownedFeatEnums={ownedFeatEnums}
+        proficientSkills={proficientSkills}
+        onClose={() => setGiftFeatOpen(false)}
+        onConfirm={(result: FeatSetupResult) => {
+          const grant: AppliedFeatGrant = {
+            id: newFeatGrantId(),
+            featCatalogId: result.entry.id,
+            slug: result.entry.slug,
+            nameRu: result.entry.name_ru,
+            source: { kind: 'manual' },
+            applied: result.applied,
+            picks: result.picks,
+          }
+          setDraft((prev) =>
+            mergeFeatSlice(
+              prev,
+              applyFeatGrantToDraft({ draft: featSliceFrom(prev), grant }),
+            ),
+          )
+          setGiftFeatOpen(false)
+          onToast(`Мастер: черта «${grant.nameRu}»`)
         }}
       />
 

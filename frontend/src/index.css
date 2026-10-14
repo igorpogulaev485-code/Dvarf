@@ -3751,6 +3751,58 @@ button.spell-card__cast:hover:not(:disabled) {
   font-variant-numeric: tabular-nums;
 }
 
+.xp-level-offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+}
+
+.xp-level-offer__text {
+  margin: 0;
+  flex: 1 1 140px;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.xp-level-offer .ui-button {
+  flex: 0 0 auto;
+  min-height: 36px;
+}
+
+.identity-dialog__feats {
+  display: grid;
+  gap: 8px;
+}
+
+.identity-dialog__feat-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.identity-dialog__feat-row strong {
+  font-family: var(--font-display);
+  color: var(--ink);
+}
+
+.identity-dialog__feat-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .xp-pad-header__reason {
   display: grid;
   gap: 4px;

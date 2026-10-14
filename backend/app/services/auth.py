@@ -44,12 +44,6 @@ logger = logging.getLogger(__name__)
 
 
 def serialize_user(user: User) -> UserResponse:
-    theme_id = getattr(user, "theme_id", None) or "wis"
-    ability_colors = getattr(user, "ability_colors", None) or "identity"
-    if theme_id not in {"str", "dex", "con", "int", "wis", "cha"}:
-        theme_id = "wis"
-    if ability_colors not in {"identity", "theme"}:
-        ability_colors = "identity"
     return UserResponse(
         id=user.id,
         email=user.email,
@@ -58,8 +52,6 @@ def serialize_user(user: User) -> UserResponse:
         full_name=user.full_name,
         phone=user.phone,
         avatar_url=user.avatar_url,
-        theme_id=theme_id,  # type: ignore[arg-type]
-        ability_colors=ability_colors,  # type: ignore[arg-type]
         email_verified_at=user.email_verified_at,
         created_at=user.created_at,
         updated_at=user.updated_at,
@@ -73,6 +65,19 @@ def _hash_token(token: str) -> str:
 
 def _hash_reset_token(token: str) -> str:
     return _hash_token(token)
+
+
+def _refresh_token_near_expiry(token: str, *, within: timedelta) -> bool:
+    """True when the refresh JWT should be rotated (keep long-lived logins alive)."""
+    try:
+        payload = decode_token(token)
+    except Exception:  # noqa: BLE001
+        return True
+    exp = payload.get("exp")
+    if not isinstance(exp, (int, float)):
+        return True
+    remaining = datetime.fromtimestamp(float(exp), UTC) - datetime.now(UTC)
+    return remaining <= within
 
 
 def serialize_session(session: AuthSession, *, current_id: UUID | None) -> AuthSessionResponse:
@@ -103,6 +108,7 @@ class AuthService:
         user_agent: str | None = None,
         ip_address: str | None = None,
         existing_session: AuthSession | None = None,
+        reuse_refresh_token: str | None = None,
     ) -> TokenResponse:
         expires_at = datetime.now(UTC) + timedelta(days=settings.refresh_token_ttl_days)
         ua = (user_agent or "")[:512] or None
@@ -110,10 +116,22 @@ class AuthService:
 
         if existing_session is not None:
             session = existing_session
-            # Placeholder hash until refresh token is minted.
             access = create_access_token(user.id, session_id=session.id)
-            refresh = create_refresh_token(user.id, session_id=session.id)
-            self.sessions.touch(session, refresh_token_hash=_hash_token(refresh))
+            # Prefer reusing the refresh JWT so parallel tabs do not invalidate
+            # each other. Rotate only when that JWT is near its own expiry.
+            if reuse_refresh_token and not _refresh_token_near_expiry(
+                reuse_refresh_token,
+                within=timedelta(days=14),
+            ):
+                refresh = reuse_refresh_token
+                self.sessions.touch(session, expires_at=expires_at)
+            else:
+                refresh = create_refresh_token(user.id, session_id=session.id)
+                self.sessions.touch(
+                    session,
+                    refresh_token_hash=_hash_token(refresh),
+                    expires_at=expires_at,
+                )
         else:
             # Create session row first with temporary hash, then mint tokens with sid.
             placeholder = _hash_token(secrets.token_urlsafe(32))
@@ -330,11 +348,16 @@ class AuthService:
                 user_agent=session.user_agent,
                 ip_address=session.ip_address,
                 existing_session=session,
+                reuse_refresh_token=refresh_token,
             )
         except OperationalError as exc:
-            # lock_timeout / deadlock → ask the client to re-login instead of hang.
+            # lock_timeout / deadlock → ask the client to retry, not wipe the login.
             self.db.rollback()
-            raise UnauthorizedError("Сессия занята — войдите снова") from exc
+            raise AppError(
+                "Сессия занята — подождите секунду и повторите",
+                code="session_busy",
+                status_code=503,
+            ) from exc
 
     def list_sessions(self, user_id: UUID, *, current_session_id: UUID | None) -> AuthSessionListResponse:
         items = [
@@ -401,20 +424,12 @@ class AuthService:
         if user is None:
             raise UnauthorizedError("Пользователь не найден")
 
-        data = payload.model_dump(exclude_unset=True)
-        if any(key in data for key in ("display_name", "full_name", "phone")):
-            self.users.update_profile(
-                user,
-                display_name=data["display_name"] if "display_name" in data else user.display_name,
-                full_name=data["full_name"] if "full_name" in data else user.full_name,
-                phone=data["phone"] if "phone" in data else user.phone,
-            )
-        if "theme_id" in data and data["theme_id"] is not None:
-            user.theme_id = data["theme_id"]
-            self.db.add(user)
-        if "ability_colors" in data and data["ability_colors"] is not None:
-            user.ability_colors = data["ability_colors"]
-            self.db.add(user)
+        self.users.update_profile(
+            user,
+            display_name=payload.display_name,
+            full_name=payload.full_name,
+            phone=payload.phone,
+        )
         self.db.commit()
         loaded = self.users.get_by_id(user_id)
         assert loaded is not None

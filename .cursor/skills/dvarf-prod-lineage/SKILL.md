@@ -32,7 +32,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/restore-wave-a-desk-0ed9
+cursor/reunify-levelup-feat-gift-244b
 ```
 
 URL: http://201.34.132.252/

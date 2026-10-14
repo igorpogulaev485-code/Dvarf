@@ -2,7 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import { clampExhaustion } from '../../shared/dnd/rest'
-import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
+import {
+  formatXp,
+  xpCrossedLevelThreshold,
+  xpProgress,
+  xpReadyToLevel,
+  xpToReachLevel,
+} from '../../shared/dnd/experience'
 import { clampDeathMarks, type HitDie } from '../../shared/dnd/hitDice'
 import {
   coinsToGp,
@@ -14,6 +20,7 @@ import { NumberPadDialog } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
+import { XpLevelOffer } from './XpProgressField'
 import type { XpHistoryEntry } from './playDeskUi'
 import type { PlayState } from './play'
 import {
@@ -66,6 +73,8 @@ type PlayDeskHeaderProps = {
   onOpenRest: () => void
   onOpenIdentity?: () => void
   onExperienceChange: (experience: number, meta?: { reason: string }) => void
+  /** XP band is full — open the level-up dialog. */
+  onRequestLevelUp?: () => void
   onToggleInspiration: () => void
   onExhaustionChange: (exhaustion: number) => void
   onInitiativeRoll?: () => void
@@ -112,6 +121,7 @@ export function PlayDeskHeader({
   onOpenRest,
   onOpenIdentity,
   onExperienceChange,
+  onRequestLevelUp,
   onToggleInspiration,
   onExhaustionChange,
   onInitiativeRoll,
@@ -138,6 +148,7 @@ export function PlayDeskHeader({
         : []
   const raceLabel = raceName.trim() || 'Черновик'
   const xp = xpProgress(experience, level)
+  const xpReady = xpReadyToLevel(experience, level)
   const [hpPulse, setHpPulse] = useState(false)
   const [hpPadOpen, setHpPadOpen] = useState(false)
   const [xpPadOpen, setXpPadOpen] = useState(false)
@@ -583,7 +594,14 @@ export function PlayDeskHeader({
         addLabel="Начислить"
         subtractLabel="Убавить"
         onClose={() => setXpPadOpen(false)}
-        onAdd={(delta) => onExperienceChange(xp.xp + delta, { reason: xpReason })}
+        onAdd={(delta) => {
+          const next = xp.xp + delta
+          onExperienceChange(next, { reason: xpReason })
+          if (xpCrossedLevelThreshold(xp.xp, next, level)) {
+            setXpPadOpen(false)
+            onRequestLevelUp?.()
+          }
+        }}
         onSubtract={(delta) =>
           onExperienceChange(Math.max(0, xp.xp - delta), { reason: xpReason })
         }
@@ -616,6 +634,15 @@ export function PlayDeskHeader({
                 ? ` · порог ${formatXp(xpToReachLevel(xp.level + 1))}`
                 : ''}
             </p>
+            {xpReady && nextLevel != null ? (
+              <XpLevelOffer
+                nextLevel={nextLevel}
+                onLevelUp={() => {
+                  setXpPadOpen(false)
+                  onRequestLevelUp?.()
+                }}
+              />
+            ) : null}
             <label className="xp-pad-header__reason">
               За что
               <input
