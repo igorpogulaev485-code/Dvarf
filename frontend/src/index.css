@@ -1360,6 +1360,101 @@ input {
   border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
 }
 
+.inventory-summary {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+}
+
+.inventory-summary__top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.inventory-summary__weights {
+  margin: 0;
+  flex: 1 1 160px;
+  min-width: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.inventory-summary__weights strong {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.inventory-summary.is-over .inventory-summary__weights strong {
+  color: #9a3412;
+}
+
+.inventory-summary__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.inventory-summary__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.inventory-summary__chip--action {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.inventory-summary__chip--action:hover {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.inventory-summary__bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #efe7dc;
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.inventory-summary__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 160ms ease;
+}
+
+.inventory-summary.is-over .inventory-summary__fill {
+  background: #9a3412;
+}
+
+.inventory-summary__over {
+  margin: 0;
+  color: #9a3412;
+  font-size: 0.84rem;
+}
+
+/* Legacy text-line (kept if referenced elsewhere) */
 .inventory-summary-line {
   margin: 0;
   padding: 10px 12px;
@@ -1378,28 +1473,6 @@ input {
 }
 
 .inventory-summary-line.is-over strong {
-  color: #9a3412;
-}
-
-.inventory-summary {
-  display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--accent-soft) 35%, white);
-}
-
-.inventory-summary strong {
-  display: block;
-  margin-top: 2px;
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  color: var(--accent);
-}
-
-.inventory-summary__over {
   color: #9a3412;
 }
 
@@ -1888,6 +1961,93 @@ input {
 
 .inventory-summary-line__link:hover {
   color: var(--ink);
+}
+
+/* Mobile inventory density (M1.2) */
+.play-desk--mobile .inventory-panel__toolbar {
+  gap: 6px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.play-desk--mobile .inventory-panel__toolbar .ui-button,
+.play-desk--mobile .inventory-toolbar-btn {
+  flex: 1 1 calc(50% - 4px);
+  min-height: 44px;
+  justify-content: center;
+}
+
+.play-desk--mobile .inventory-summary {
+  position: sticky;
+  top: 52px;
+  z-index: 19;
+  gap: 6px;
+  padding: 8px 10px;
+  box-shadow: 0 1px 0 rgba(45, 45, 42, 0.04);
+}
+
+.play-desk--mobile .inventory-summary__chip {
+  min-height: 40px;
+  padding: 6px 12px;
+  font-size: 0.84rem;
+}
+
+.play-desk--mobile .inventory-summary__weights {
+  font-size: 0.8rem;
+}
+
+.play-desk--mobile .inventory-summary__weights strong {
+  font-size: 0.95rem;
+}
+
+.play-desk--mobile .inventory-filters {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
+.play-desk--mobile .inventory-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.play-desk--mobile .inventory-filter {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 6px 12px;
+  font-size: 0.84rem;
+}
+
+.play-desk--mobile .inventory-card--compact {
+  gap: 6px 8px;
+  padding: 8px 10px;
+}
+
+.play-desk--mobile .inventory-card__glance-name {
+  font-size: 0.95rem;
+}
+
+.play-desk--mobile .inventory-card__glance-meta {
+  font-size: 0.78rem;
+}
+
+.play-desk--mobile .inventory-equip,
+.play-desk--mobile .inventory-fav,
+.play-desk--mobile .inventory-card__chevron-btn {
+  min-height: 40px;
+  min-width: 40px;
+}
+
+.play-desk--mobile .inventory-coins--pad {
+  min-height: 52px;
+  padding: 10px 12px;
+}
+
+.play-desk--mobile .mobile-combat-roll--explore {
+  margin: 0 0 8px;
 }
 
 .inventory-role {

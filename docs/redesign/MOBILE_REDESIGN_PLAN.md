@@ -180,7 +180,7 @@ Wave A chrome завязан на `isPlayDesk` (`min-width: 960px`). На тел
 | **Gate** | Merge live prod tip в mobile line | **обязателен сейчас** |
 | M1.1 | Spells: Бой/Книга + cast recovery | **done** (код) `cursor/mobile-spells-m11-0ed9` · не на проде |
 | M0.4b–M0.6 | Desk delta sync (см. выше) | **done** (код) tip merge + MobileVitalsBar |
-| M1.2 | Inventory glance + attunement entry + encumbrance bar | **next** после закрытия Боя |
+| M1.2 | Inventory glance + attunement entry + encumbrance bar | **done** (код) `cursor/mobile-desk-sync-code-0ed9` · не на проде |
 | M1.3 | Social / Features / Companions + варвар Безрассудная/Ярость + свои способности | |
 | M1.4 | Roll mode + **история бросков** + reckless→преим. (+ skill strips) | **done** (код) `cursor/mobile-desk-sync-code-0ed9` · не на проде |
 | M1.5 | Create: sticky StepRail + footer gates + Сводка sheet | |
@@ -338,4 +338,4 @@ Mobile path (этот документ):
 | 3 | Mobile M0–M1.1 код не на проде | Не ship отдельно без merge tip |
 | 4 | Desk handlers (`modifiers`, `heldEquip`, roll history) священны | Только placement / sheets на `<960` |
 
-**Следующий шаг:** Бой (M1.4) закрыт в коде → **M1.2** Inventory glance.
+**Следующий шаг:** Inventory (M1.2) закрыт в коде → **M1.3** Social / Features / Companions.

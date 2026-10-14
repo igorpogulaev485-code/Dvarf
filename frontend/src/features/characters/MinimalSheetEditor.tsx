@@ -4129,7 +4129,46 @@ export function MinimalSheetEditor({
             />
           ) : null}
 
-          {isPlayDesk && draft.sheetUi.deskMode === 'explore' ? (
+          {!isPlayDesk && draft.sheetUi.deskMode === 'explore' ? (
+            <div
+              className="mobile-combat-roll mobile-combat-roll--explore"
+              role="group"
+              aria-label="Преимущество / помеха"
+            >
+              {(
+                [
+                  ['normal', 'норм'],
+                  ['advantage', 'преим.'],
+                  ['disadvantage', 'помеха'],
+                ] as const
+              ).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={`mobile-combat-roll__btn${
+                    deskRollMode === mode ? ' is-on' : ''
+                  }`}
+                  aria-pressed={deskRollMode === mode}
+                  onClick={() => setDeskRollMode(mode)}
+                >
+                  {label}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
+                title="История бросков на этом листе"
+                onClick={() => setRollHistoryOpen(true)}
+              >
+                броски
+                {draft.sheetUi.rollHistory.length > 0
+                  ? ` ${Math.min(draft.sheetUi.rollHistory.length, 99)}`
+                  : ''}
+              </button>
+            </div>
+          ) : null}
+
+          {draft.sheetUi.deskMode === 'explore' ? (
             <PlayDeskSkillStrip
               ariaLabel="Навыки исследования"
               skills={modeSkillChips('explore')}
