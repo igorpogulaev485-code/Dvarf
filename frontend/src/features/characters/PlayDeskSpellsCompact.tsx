@@ -21,13 +21,17 @@ import {
 } from './spells'
 import { IconCast, IconConcentration, IconRitual, IconWizardHat } from './spellIcons'
 import { spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
+import type { FormulaVars } from '../../shared/dnd/formulas'
 import { clampPactSlots, levelLabel, spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
+import { type BonusLine, withSpellCastBonuses } from './modifiers'
 
 type PlayDeskSpellsCompactProps = {
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  modifiers?: BonusLine[]
+  formulaVars?: FormulaVars
   /** PHB learn budget caps for compact quota chips. */
   learnBudget?: {
     mode: 'known' | 'prepared_list' | 'spellbook'
@@ -60,6 +64,8 @@ export function PlayDeskSpellsCompact({
   spells,
   abilities,
   proficiencyBonus,
+  modifiers = [],
+  formulaVars = {},
   learnBudget = null,
   pinned = false,
   concentration = null,
@@ -75,13 +81,22 @@ export function PlayDeskSpellsCompact({
 }: PlayDeskSpellsCompactProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
+  const [showAllSpells, setShowAllSpells] = useState(false)
   const ready = spells.known.filter(isReadyInCombat)
   const pact = spells.pact_slots ? clampPactSlots(spells.pact_slots) : null
   const pactRemaining = pact && pact.max > 0 ? Math.max(0, pact.max - pact.used) : null
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const dc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
-  const attack = abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : null
+  const castStats = withSpellCastBonuses({
+    baseDc: abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null,
+    baseAttack: abilityKey
+      ? spellAttackBonus(abilityMod, proficiencyBonus)
+      : null,
+    modifiers,
+    vars: formulaVars,
+  })
+  const dc = castStats.dc
+  const attack = castStats.attack
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
@@ -115,7 +130,7 @@ export function PlayDeskSpellsCompact({
         byLevel.set(level, { level, spells: [] })
       }
     }
-    let remaining = maxRows
+    let remaining = showAllSpells ? Number.POSITIVE_INFINITY : maxRows
     return [...byLevel.entries()]
       .sort((a, b) => a[0] - b[0])
       .map(([, group]) => {
@@ -292,7 +307,23 @@ export function PlayDeskSpellsCompact({
           })
         )}
         {ready.length > maxRows ? (
-          <p className="play-desk-compact__more">+ ещё {ready.length - maxRows}</p>
+          showAllSpells ? (
+            <button
+              type="button"
+              className="play-desk-compact__more play-desk-compact__more--btn"
+              onClick={() => setShowAllSpells(false)}
+            >
+              Свернуть список
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="play-desk-compact__more play-desk-compact__more--btn"
+              onClick={() => setShowAllSpells(true)}
+            >
+              + ещё {ready.length - maxRows} · показать все
+            </button>
+          )
         ) : null}
       </div>
 

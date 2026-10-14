@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/restore-wave-a-desk-0ed9`  
+**Prod tip (ветка линии прода):** `cursor/buffs-ac-slice-244b`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -58,6 +58,38 @@
 ---
 
 ## Сейчас в продукте (прод)
+
+### 2026-10-14 — бафы: КД, характеристики, СЛ/атака, инициатива + LSS-рейл
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Разборка КД | Клик по виталу КД → база, щит, бонусы | Видно из чего сложился КД |
+| Разборка характеристики | Клик по названию → значение / проверки / спас | Бафы на силу и т.п. на листе |
+| СЛ / атака заклинаний | В настройках заклинаний → клик по СЛ или атаке | Те же формулы-бонусы на каст |
+| Инициатива | Клик по виталу «Иниц.» → база / оверрайд / бонусы | Бафы на инициативу с листа |
+| Рейл LSS | Кружок = владение/экспертиза; число = бросок | Как в LSS, без путаницы |
+| Формулы бонусов | `+`/`−`/`=` и `[WIS]`/`[PROF]`… | «Щит веры +2», «Горный дварф +2» |
+| Щит в диалоге КД | Тот же draw/stow, что чип «щит» | Не нужно закрывать окно |
+| Высота КД | Карточка растёт под чип «щит» | Иконка не обрезается |
+| Мятные обводки | `#9ecbbb` → `desk-line` | Split/навыки/ресурсы как пергамент |
+
+На проде: **да** · ветка `cursor/buffs-ac-slice-244b` · PR #159 · **это новый prod tip** · проверено 2026-10-14: `/health` ok; бандл `CharacterDetailPage-DFLWQXEV.js` / CSS `index-DY8NTA2Z.css` (`spell_dc` / `spell_attack` / «Бросок инициативы» / `abil-prof-pip` / «число → бросок» / «Добавить бонус» / «Класс защиты»); кабинет «Опасная зона»; classic chunk 200; tip `cursor/buffs-ac-slice-244b` на диске
+
+### 2026-10-14 — desk UX ship (прыжок, броски, щит, людоящер, тема)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Прыжок в шапке | Витал `15/5` · `Прыж.` + тултип | Не ломает ряд КД/скорость |
+| История бросков | Кнопка «броски», до 50 на листе | Можно перечитать атаку после тоста |
+| Тост броска | Дольше, пауза на hover, клик закрыть | Успеть прочитать урон |
+| Безрассудная → преим. | Чип включает преимущество | Не надо искать преим. вручную |
+| Щит у КД | Чип «щит» под КД | Быстро в руку / убрать, КД сразу |
+| Людоящер create | Миграция каталога: swim 30 + trait cards | Плавание и черты с нуля |
+| Тема кабинета | `theme_id` в `/auth/me` + update | Цвет сохраняется |
+| API HTML flap | nginx + retry | Меньше «страница вместо API» |
+
+На проде: **да** · ветка `cursor/prod-ship-desk-ux-244b` · PR #158 (merge #153–#157) · проверено 2026-10-14: `/health` ok; alembic `b7c8d9e0f1a2`; lizardfolk `swim:30` + 4 trait_cards; бандл `CharacterDetailPage-BKnvlU4h.js` (shield-tog / jump / rolls)
+
 
 > Стартовый срез по живому серверу. Агенты дополняют и правят ниже.
 
@@ -547,6 +579,45 @@
 | Дыра в правилах | `preflight-live` смотрел только ancestry tip, не файлы на диске; tip писали в AGENTS нескольких веток; LOCK в доках без маркера в preflight | `deploy/prod-tip` + маркеры IdentityDialog / запрет ЕЩЁ + live-disk high-water в `preflight-live` |
 
 На проде: **да** · это **новый prod tip** `cursor/restore-wave-a-desk-0ed9` · проверено 2026-10-13: `/health` ok; alembic `a6b7`; бандл `CharacterDetailPage-Eo1ZtRDR.js`; режимы без «ЕЩЁ» (Бой·Исследование·Общение·Напарники·Способности); `IdentityDialog.tsx` на диске; create-pipeline + remote-up на месте
+
+### 2026-10-14 — Reunify levelup-feat + черта от мастера
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Сессия | access **12 ч**, refresh **90 дн** + скользящее продление | Не выкидывает со стола mid-game |
+| XP → уровень | pad опыта: «Опыта хватает» → **Повысить уровень** | Порог не остаётся «голым» |
+| Черта (ASI) | общий `AsiChoiceBody` / каталог на 4/6/8… | Черта снова выбирается, не «скоро» |
+| Черта от мастера | Основное → **Черты** → «Мастер выдал черту» (`manual`) | Подарок вне ASI без хака |
+| Акван / гримуар | язык Акван; гримуар из bundled 2014 при сбое catalog | Не пустой список |
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2k (Черты).  
+На проде: **да** · ветка `cursor/reunify-levelup-feat-gift-244b` · tip дальше → `cursor/cleric-create-bugs-244b`
+
+### 2026-10-14 — Cleric create bugs A–G
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Гранты класса | `equipmentFocusPick` не теряется при apply | Щиты / навыки / стартовый пак жреца на листе |
+| Доменные заклинания | always-prepared по уровню ячеек + sync на level-up | На 1 ур. только 1-е; выше — открываются с слотами |
+| Текст предыстории | пишется в `parts` текстовых блоков | Личность / «Поддельная личность» / афера не пустые |
+| Божественный канал | picker опций при трате (как метамагия) | Turn Undead / доменный канал — выбор, не слепой −1 |
+| Каст / список | Отмена всегда живая; «показать все» в компакте | Не залипает диалог; видно больше 14 заклинаний |
+
+На проде: **да** · ветка `cursor/cleric-create-bugs-244b` · PR #150 · tip дальше → `cursor/lizardfolk-barb-feedback-244b`
+
+### 2026-10-14 — Friend feedback + cleric equip + YaBrowser SPA
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Жрец PHB lines | a/b/c снаряжение + любое простое оружие; warhammer soft-match; CD «Праведное восстановление»; урон атак с модом; доменные заклинания RU | Создание жреца без старых багов экипа/CD |
+| Людоящер | `swim: 30`, trait cards (дыхание / челюсти / ремесленник); прыжки в шапке | Плавание и черты расы на листе |
+| Варвар desk | Безрассудная раскрывается + чип в Бою; полный текст Ярости | Бой без прыжков в Способности |
+| Черты | Tough → **Крепкий** (+2 HP/ур.); Durable → **Стойкий** | Не путают с Durable |
+| Свои способности | блок на панели Способности | Homebrew без заметки |
+| YaBrowser `/characters` | nginx SPA map: `navigate` / `document` / `:::text/html` | Нет сырого JSON `unauthorized` |
+| Скролл листа | ref-count `bodyScrollLock` + force-clear на вход | После диалога страница снова крутится |
+
+На проде: **да** · это **новый prod tip** `cursor/lizardfolk-barb-feedback-244b` · PR #152 (merge #151) · база tip `cursor/cleric-create-bugs-244b` · проверено 2026-10-14: `/health` ok; `/characters` с Accept HTML без Sec-Fetch → `text/html` SPA; API `Sec-Fetch-Dest: empty` → JSON 401; бандл `CharacterDetailPage-Dwi8fAdM.js` / create `CreateCharacterPage-5mm1fZSA.js` / class-features `class-feature-data-Zikft8Ri.js` (`Праведное восстановление`); `bodyScrollLock.ts` + nginx `:::text/html` на диске и в web-контейнере; кабинет/лобби/classic на месте
 
 
 ## В ветках / ещё не на проде
@@ -1497,3 +1568,6 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Шапка: лаз./плав./полёт под скоростью; dist→web; `/health` ok; бандл `CharacterDetailPage-Cwy-1nPy.js` / CSS `index-RHvyfqLk.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | 502→JSON + client retry; VPS reboot после hung Docker; `/health` ok; бандл `client-C72apPWM.js` |
 | 2026-10-13 | `cursor/cabinet-theme-a73e` · PR #141 | Wave A стол + список + кабинет тема/ability colors; **новый tip**; Hub timeout → dist→web; `/health` ok; `CabinetPage-2cQnOPcJ.js` / `CharacterDetailPage-Btt2TPDe.js` / CSS `index-D9wEk362.css` |
+| 2026-10-13 | `cursor/restore-wave-a-desk-0ed9` · PR #148 | Restore Wave A desk (без ЕЩЁ) + deploy guards; **tip** |
+| 2026-10-14 | `cursor/reunify-levelup-feat-gift-244b` | Reunify levelup-feat (сессия 12ч/90д, XP→уровень, ASI-черта) + «Мастер выдал черту» в Основное; tip → cleric-create-bugs |
+| 2026-10-14 | `cursor/cleric-create-bugs-244b` · PR #150 | Cleric create A–G (grants/domain/background parts/CD picker/cast Cancel/show all); **новый tip**; `/health` ok; `CharacterDetailPage-BQMBocIc.js` |

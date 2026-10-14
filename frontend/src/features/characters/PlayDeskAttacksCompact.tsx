@@ -4,6 +4,7 @@ import {
   listCombatConsumables,
   MAX_COMBAT_CONSUMABLE_FAVORITES,
 } from './combatConsumables'
+import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import { formatAttackRoll, type DeskRollMode } from './deskRolls'
 import {
   abilityModifier,
@@ -28,6 +29,10 @@ type PlayDeskAttacksCompactProps = {
   resources: SheetResource[]
   inventoryItems: InventoryItem[]
   favoriteConsumableIds?: string[]
+  /** Combat-desk class features (e.g. Reckless Attack). */
+  combatFeatures?: UnlockedFeature[]
+  /** Fired when a combat feature chip is toggled (e.g. Reckless → advantage). */
+  onCombatFeatureToggle?: (featureId: string, active: boolean) => void
   onToggleHeld?: (attack: WeaponAttack) => void
   onSpendResource?: (id: string) => void
   /** Spend 1 from inventory qty (ammo, potions, …). */
@@ -46,6 +51,8 @@ export function PlayDeskAttacksCompact({
   resources,
   inventoryItems,
   favoriteConsumableIds = [],
+  combatFeatures = [],
+  onCombatFeatureToggle,
   onToggleHeld,
   onSpendResource,
   onSpendConsumable,
@@ -55,9 +62,15 @@ export function PlayDeskAttacksCompact({
   rollMode = 'normal',
 }: PlayDeskAttacksCompactProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [activeCombatFeatureIds, setActiveCombatFeatureIds] = useState<Set<string>>(
+    () => new Set(),
+  )
   const named = weapons.filter((row) => row.name.trim())
   const combatResources = resources.filter(
     (row) => row.max > 0 && row.name.trim() && row.used < row.max,
+  )
+  const deskCombatFeatures = combatFeatures.filter(
+    (row) => row.desk === 'combat' && row.name_ru.trim(),
   )
   const consumables = useMemo(
     () => listCombatConsumables(inventoryItems, favoriteConsumableIds),
@@ -90,6 +103,39 @@ export function PlayDeskAttacksCompact({
         </div>
       </div>
 
+      {deskCombatFeatures.length > 0 ? (
+        <div className="chip-row" style={{ marginBottom: 8 }}>
+          {deskCombatFeatures.map((feature) => {
+            const on = activeCombatFeatureIds.has(feature.id)
+            return (
+              <button
+                key={`${feature.classEntryId}:${feature.id}`}
+                type="button"
+                className={`sheet-chip${on ? ' is-on' : ''}`}
+                title={feature.summary_ru}
+                onClick={() => {
+                  const nextOn = !on
+                  setActiveCombatFeatureIds((prev) => {
+                    const next = new Set(prev)
+                    if (nextOn) next.add(feature.id)
+                    else next.delete(feature.id)
+                    return next
+                  })
+                  onCombatFeatureToggle?.(feature.id, nextOn)
+                  onToast?.(
+                    nextOn
+                      ? `${feature.name_ru}: вкл. · ${feature.summary_ru}`
+                      : `${feature.name_ru}: выкл.`,
+                  )
+                }}
+              >
+                {feature.name_ru}
+              </button>
+            )
+          })}
+        </div>
+      ) : null}
+
       <div className="play-desk-compact__list play-desk-compact__list--dense">
         {named.length === 0 ? (
           <p className="play-desk-compact__empty">Нет атак — добавь в полной панели</p>
@@ -103,10 +149,10 @@ export function PlayDeskAttacksCompact({
               mod +
               (attack.is_proficient ? proficiencyBonus : 0) +
               (gear?.attackBonus ?? 0)
-            const dmgBonus = gear?.damageBonus ?? 0
+            const dmgBonus = mod + (gear?.damageBonus ?? 0)
             const dmg =
               attack.damage +
-              (dmgBonus ? ` ${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
+              (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
             const dmgLine = `${dmg || '—'}${attack.damage_type ? ` ${attack.damage_type}` : ''}`
             const iconKind = attackRowIconKind({
               name: attack.name,

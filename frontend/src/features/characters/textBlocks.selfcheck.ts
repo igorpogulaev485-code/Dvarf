@@ -5,6 +5,7 @@ import { resourceShowsOnHot, type SheetResource } from '../../shared/dnd/rest'
 import {
   appendBlockPart,
   blockHasResource,
+  blockPlainText,
   createDividerPart,
   createResourcePart,
   createSpoilerPart,
@@ -15,6 +16,7 @@ import {
   readTextBlocks,
   textBlocksToSheet,
   updateBlockParts,
+  withBlockPlainText,
 } from './textBlocks'
 
 function assert(cond: unknown, msg: string) {
@@ -62,6 +64,20 @@ assert(
   appendBlockPart(roundTrip[0]!, createSpoilerPart()).parts.some((p) => p.kind === 'spoiler'),
   'append spoiler',
 )
+
+const plainSynced = withBlockPlainText(
+  {
+    ...roundTrip[0]!,
+    parts: [createTextPart('старое'), createResourcePart('res-keep')],
+  },
+  'новое из гранта',
+)
+assert(blockPlainText(plainSynced).includes('новое из гранта'), 'withBlockPlainText sets text')
+assert(
+  plainSynced.parts.some((p) => p.kind === 'resource' && p.resourceId === 'res-keep'),
+  'withBlockPlainText keeps resource part',
+)
+assert(plainSynced.value.includes('новое из гранта'), 'value synced from parts')
 
 const hotOn: SheetResource = {
   id: 'a',

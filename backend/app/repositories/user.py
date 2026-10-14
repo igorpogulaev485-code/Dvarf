@@ -70,10 +70,16 @@ class UserRepository:
         display_name: str | None,
         full_name: str | None,
         phone: str | None,
+        theme_id: str | None = None,
+        ability_colors: str | None = None,
     ) -> User:
         user.display_name = display_name
         user.full_name = full_name
         user.phone = phone
+        if theme_id is not None:
+            user.theme_id = theme_id
+        if ability_colors is not None:
+            user.ability_colors = ability_colors
         self.db.add(user)
         self.db.flush()
         return user

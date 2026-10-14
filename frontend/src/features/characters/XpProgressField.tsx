@@ -1,6 +1,12 @@
 import { useState } from 'react'
-import { NumberPadDialog, Text } from '../../ui'
-import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
+import { Button, NumberPadDialog, Text } from '../../ui'
+import {
+  formatXp,
+  xpCrossedLevelThreshold,
+  xpProgress,
+  xpReadyToLevel,
+  xpToReachLevel,
+} from '../../shared/dnd/experience'
 import type { XpHistoryEntry } from './playDeskUi'
 
 type XpChangeMeta = { reason: string }
@@ -14,6 +20,23 @@ type XpProgressFieldProps = {
   /** When XP threshold is met — jump to LevelUpDialog. */
   onRequestLevelUp?: () => void
   levelUpDisabled?: boolean
+}
+
+export function XpLevelOffer({
+  nextLevel,
+  onLevelUp,
+}: {
+  nextLevel: number
+  onLevelUp: () => void
+}) {
+  return (
+    <div className="xp-level-offer">
+      <p className="xp-level-offer__text">Опыта хватает на уровень {nextLevel}.</p>
+      <Button type="button" onClick={onLevelUp}>
+        Повысить уровень
+      </Button>
+    </div>
+  )
 }
 
 /** XP band + NumberPad. Optional reason/history = full desk pad parity. */
@@ -49,10 +72,19 @@ export function XpProgressField({
     progress.nextThreshold == null ? '—' : formatXp(progress.nextThreshold)
 
   function applyDelta(delta: number, sign: 1 | -1) {
+    const prevXp = progress.xp
     const next =
       sign > 0 ? progress.xp + delta : Math.max(0, progress.xp - delta)
     const reason = xpReason.trim()
     onChange(next, withHistory ? { reason } : undefined)
+    if (
+      sign > 0 &&
+      xpCrossedLevelThreshold(prevXp, next, level) &&
+      onRequestLevelUp
+    ) {
+      setPadOpen(false)
+      onRequestLevelUp()
+    }
   }
 
   return (
@@ -136,6 +168,15 @@ export function XpProgressField({
                 ? ` · порог ${formatXp(xpToReachLevel(progress.level + 1))}`
                 : ''}
             </p>
+            {xpReadyToLevel(progress.xp, progress.level) && nextLevel != null ? (
+              <XpLevelOffer
+                nextLevel={nextLevel}
+                onLevelUp={() => {
+                  setPadOpen(false)
+                  onRequestLevelUp?.()
+                }}
+              />
+            ) : null}
             {withHistory ? (
               <>
                 <label className="xp-pad-header__reason">

@@ -3,7 +3,7 @@
 **URL:** http://201.34.132.252/  
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
-**Current prod tip branch:** `cursor/restore-wave-a-desk-0ed9`  
+**Current prod tip branch:** `cursor/buffs-ac-slice-244b`  
 (обновляй эту строку после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
 
 ---

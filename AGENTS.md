@@ -50,7 +50,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/restore-wave-a-desk-0ed9` |
+| Prod tip (сейчас) | `cursor/buffs-ac-slice-244b` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 

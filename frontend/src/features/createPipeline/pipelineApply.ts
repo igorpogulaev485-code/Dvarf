@@ -30,6 +30,8 @@ import { emptyPicks as emptyClassGrantPicks } from '../characters/classEffects'
 import {
   applySpellcastingSuggestion,
   characterHasCasterClass,
+  highestSpellSlotLevel,
+  highestSpellSlotLevelForClasses,
   suggestSpellcastingFromClasses,
 } from '../../shared/dnd/casterProgression'
 import {
@@ -74,6 +76,7 @@ import {
 import {
   applySubclassGrantToDraft,
   resolveSubclassDefFromCatalog,
+  syncSubclassAlwaysPreparedSpells,
   type SubclassGrantDraftSlice,
 } from '../characters/subclassEffects'
 import {
@@ -391,6 +394,53 @@ function normalizeRacePicks(raw: unknown): RaceGrantPicks {
   }
 }
 
+function normalizeFocusPick(
+  raw: unknown,
+): ClassGrantPicks['equipmentFocusPick'] {
+  if (raw == null) return null
+  if (!raw || typeof raw !== 'object') return null
+  const row = raw as Record<string, unknown>
+  const name = typeof row.name === 'string' ? row.name.trim() : ''
+  if (!name) return null
+  const focusKind = row.focus_kind
+  return {
+    name,
+    catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+    cost_gp: typeof row.cost_gp === 'number' ? row.cost_gp : null,
+    weight_lb: typeof row.weight_lb === 'number' ? row.weight_lb : null,
+    focus_kind:
+      focusKind === 'arcane' ||
+      focusKind === 'druidic' ||
+      focusKind === 'holy' ||
+      focusKind === 'any'
+        ? focusKind
+        : 'any',
+    custom: Boolean(row.custom),
+  }
+}
+
+function normalizeLinePicks(
+  raw: unknown,
+): NonNullable<ClassGrantPicks['equipmentLinePicks']> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
+  const out: NonNullable<ClassGrantPicks['equipmentLinePicks']> = {}
+  for (const [lineId, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) continue
+    const row = value as Record<string, unknown>
+    const optionId = typeof row.optionId === 'string' ? row.optionId.trim() : ''
+    if (!optionId) continue
+    const weaponRaw = row.weaponName
+    const weaponName =
+      typeof weaponRaw === 'string' && weaponRaw.trim()
+        ? weaponRaw.trim()
+        : weaponRaw === null
+          ? null
+          : undefined
+    out[lineId] = { optionId, weaponName }
+  }
+  return out
+}
+
 function normalizeClassPicks(raw: unknown): ClassGrantPicks {
   if (!raw || typeof raw !== 'object') return emptyClassGrantPicks()
   const row = raw as Partial<ClassGrantPicks>
@@ -399,6 +449,8 @@ function normalizeClassPicks(raw: unknown): ClassGrantPicks {
     tools: Array.isArray(row.tools) ? row.tools.filter((v) => typeof v === 'string') : [],
     equipmentPackageId:
       typeof row.equipmentPackageId === 'string' ? row.equipmentPackageId : null,
+    equipmentFocusPick: normalizeFocusPick(row.equipmentFocusPick),
+    equipmentLinePicks: normalizeLinePicks(row.equipmentLinePicks),
   }
 }
 
@@ -856,6 +908,7 @@ export async function applyPipelineToSheet(input: {
   }
 
   // 4) Subclass grants (after class grants)
+  const maxSpellLevelForCreate = highestSpellSlotLevelForClasses(classes)
   for (const row of classes) {
     const setup = state.subclassSetups?.[row.id]
     if (!setup) continue
@@ -891,6 +944,7 @@ export async function applyPipelineToSheet(input: {
           def: previousDef,
           picks: normalizeSubclassPicks(setup.previousPicks ?? { values: {} }),
           changeMode: 'initial',
+          maxSpellLevel: maxSpellLevelForCreate,
         })
         if (retained) Object.assign(draft, mergeSubclass(draft, retained.draft))
       }
@@ -906,6 +960,7 @@ export async function applyPipelineToSheet(input: {
         previousCatalogId: previousEntry.id,
         previousSlug: previousEntry.slug,
         previousDef: previousDef ?? null,
+        maxSpellLevel: maxSpellLevelForCreate,
       })
       if (swapped) Object.assign(draft, mergeSubclass(draft, swapped.draft))
     } else {
@@ -916,6 +971,7 @@ export async function applyPipelineToSheet(input: {
         def,
         picks: normalizeSubclassPicks(setup.picks),
         changeMode: setup.changeMode === 'replace_all' ? 'replace_all' : 'initial',
+        maxSpellLevel: maxSpellLevelForCreate,
       })
       if (applied) Object.assign(draft, mergeSubclass(draft, applied.draft))
     }
@@ -1018,13 +1074,27 @@ export async function applyPipelineToSheet(input: {
     abilityModFor: (ability) => abilityModifier(draft.abilities[ability] ?? 10),
     subclassCasters,
   })
-  const finalSpells: SpellsState =
+  let finalSpells: SpellsState =
     castingSuggestion && castingSuggestion.progression !== 'none'
       ? {
           ...mergedSpells,
           ...applySpellcastingSuggestion(mergedSpells, castingSuggestion),
         }
       : mergedSpells
+
+  // Domain/oath spells must match final slot table (create applies subclass before slots).
+  {
+    const slotCap = highestSpellSlotLevel(finalSpells.slots, finalSpells.pact_slots)
+    const synced = syncSubclassAlwaysPreparedSpells({
+      draft: {
+        ...subclassSlice(draft),
+        spells: finalSpells,
+      },
+      maxSpellLevel: slotCap,
+    })
+    Object.assign(draft, mergeSubclass(draft, synced))
+    finalSpells = synced.spells
+  }
 
   const raceName = state.subrace?.nameRu || state.race?.nameRu || null
   const className = formatClassSummary(classes) || null

@@ -1,5 +1,6 @@
 import { useEffect, type MouseEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { acquireBodyScrollLock } from './bodyScrollLock'
 import { Button } from './Button'
 
 type DialogProps = {
@@ -34,14 +35,14 @@ export function Dialog({
   size = 'default',
   closeOnBackdrop,
 }: DialogProps) {
-  const canClose = Boolean(onSecondary) && !busy
+  // Cancel / Escape stay available even when primary is busy or disabled.
+  const canClose = Boolean(onSecondary)
   const backdropCloses = closeOnBackdrop ?? canClose
 
   useEffect(() => {
     if (!open) return
 
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const releaseScroll = acquireBodyScrollLock()
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape' && canClose && onSecondary) {
@@ -52,7 +53,7 @@ export function Dialog({
 
     document.addEventListener('keydown', onKeyDown)
     return () => {
-      document.body.style.overflow = previousOverflow
+      releaseScroll()
       document.removeEventListener('keydown', onKeyDown)
     }
   }, [open, canClose, onSecondary])
@@ -92,7 +93,7 @@ export function Dialog({
         <div className="ui-dialog__body">{children}</div>
         <div className="ui-dialog__actions">
           {secondaryLabel && onSecondary ? (
-            <Button variant="ghost" onClick={onSecondary} disabled={busy}>
+            <Button variant="ghost" onClick={onSecondary}>
               {secondaryLabel}
             </Button>
           ) : null}

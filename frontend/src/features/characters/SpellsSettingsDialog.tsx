@@ -22,10 +22,16 @@ import {
   formatSpellComponents,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
+import type { FormulaVars } from '../../shared/dnd/formulas'
 import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { GrimoireDialog } from './GrimoireDialog'
+import {
+  type BonusLine,
+  withSpellCastBonuses,
+} from './modifiers'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import { SpellCastBreakdownDialog } from './SpellCastBreakdownDialog'
 import {
   IconFocus,
   IconPouch,
@@ -56,6 +62,10 @@ type SpellsSettingsDialogProps = {
   proficiencyBonus: number
   suggestion: SpellcastingSuggestion | null
   knownCaster: boolean
+  /** Sheet modifiers + formula vars for spell DC / attack buffs. */
+  modifiers?: BonusLine[]
+  formulaVars?: FormulaVars
+  onModifiersChange?: (next: BonusLine[]) => void
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
@@ -75,6 +85,9 @@ export function SpellsSettingsDialog({
   proficiencyBonus,
   suggestion,
   knownCaster,
+  modifiers = [],
+  formulaVars = {},
+  onModifiersChange,
   onChange,
   onClose,
   onToast,
@@ -83,6 +96,9 @@ export function SpellsSettingsDialog({
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [castBuffFocus, setCastBuffFocus] = useState<
+    'spell_dc' | 'spell_attack' | null
+  >(null)
 
   const classRows = useMemo(
     () =>
@@ -110,10 +126,19 @@ export function SpellsSettingsDialog({
 
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const saveDc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
-  const attackBonus = abilityKey
+  const baseSaveDc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
+  const baseAttackBonus = abilityKey
     ? spellAttackBonus(abilityMod, proficiencyBonus)
     : null
+  const castStats = withSpellCastBonuses({
+    baseDc: baseSaveDc,
+    baseAttack: baseAttackBonus,
+    modifiers,
+    vars: formulaVars,
+  })
+  const saveDc = castStats.dc
+  const attackBonus = castStats.attack
+  const canEditCastBuffs = Boolean(onModifiersChange && abilityKey)
 
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })
@@ -298,18 +323,46 @@ export function SpellsSettingsDialog({
                     className="spells-settings__derived"
                     aria-label="Сл. спас. и атака заклинаний"
                   >
-                    <div className="spells-settings__derived-stat">
-                      <span>Сл. спас.</span>
-                      <strong>{saveDc == null ? '—' : saveDc}</strong>
-                    </div>
-                    <div className="spells-settings__derived-stat">
-                      <span>Атака</span>
-                      <strong>
-                        {attackBonus == null ? '—' : formatModifier(attackBonus)}
-                      </strong>
-                    </div>
+                    {canEditCastBuffs ? (
+                      <button
+                        type="button"
+                        className="spells-settings__derived-stat spells-settings__derived-stat--btn"
+                        title="Разборка сл. спас. — бонусы и формулы"
+                        onClick={() => setCastBuffFocus('spell_dc')}
+                      >
+                        <span>Сл. спас.</span>
+                        <strong>{saveDc == null ? '—' : saveDc}</strong>
+                      </button>
+                    ) : (
+                      <div className="spells-settings__derived-stat">
+                        <span>Сл. спас.</span>
+                        <strong>{saveDc == null ? '—' : saveDc}</strong>
+                      </div>
+                    )}
+                    {canEditCastBuffs ? (
+                      <button
+                        type="button"
+                        className="spells-settings__derived-stat spells-settings__derived-stat--btn"
+                        title="Разборка атаки заклинанием — бонусы и формулы"
+                        onClick={() => setCastBuffFocus('spell_attack')}
+                      >
+                        <span>Атака</span>
+                        <strong>
+                          {attackBonus == null ? '—' : formatModifier(attackBonus)}
+                        </strong>
+                      </button>
+                    ) : (
+                      <div className="spells-settings__derived-stat">
+                        <span>Атака</span>
+                        <strong>
+                          {attackBonus == null ? '—' : formatModifier(attackBonus)}
+                        </strong>
+                      </div>
+                    )}
                     <Text tone="muted" className="spells-settings__derived-hint">
-                      8+БМ+мод / БМ+мод — считаются сами
+                      {canEditCastBuffs
+                        ? '8+БМ+мод / БМ+мод · клик — бонусы'
+                        : '8+БМ+мод / БМ+мод — считаются сами'}
                     </Text>
                   </div>
                 </div>
@@ -676,6 +729,23 @@ export function SpellsSettingsDialog({
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}
       />
+      {onModifiersChange && baseSaveDc != null && baseAttackBonus != null ? (
+        <SpellCastBreakdownDialog
+          open={castBuffFocus != null}
+          focus={castBuffFocus ?? 'spell_dc'}
+          baseDc={baseSaveDc}
+          baseAttack={baseAttackBonus}
+          baseHint={
+            abilityKey
+              ? `8+БМ+${SPELLCASTING_ABILITY_LABELS[abilityKey]} / БМ+${SPELLCASTING_ABILITY_LABELS[abilityKey]}`
+              : '8+БМ+мод / БМ+мод'
+          }
+          formulaVars={formulaVars}
+          modifiers={modifiers}
+          onModifiersChange={onModifiersChange}
+          onClose={() => setCastBuffFocus(null)}
+        />
+      ) : null}
     </>
   )
 }

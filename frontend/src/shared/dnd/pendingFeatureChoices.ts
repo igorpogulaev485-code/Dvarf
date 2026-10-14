@@ -79,7 +79,7 @@ export function featWizardStep(input: { noteRu: string | null }): GuidedWizardSt
     id: 'feat',
     kind: 'feat',
     promptRu:
-      'Эта раса даёт черту с 1 уровня. Каталог черт ещё собирается — пока зафиксируй выбор вручную или вернись сюда позже.',
+      'Эта раса даёт черту с 1 уровня. Выбери её из каталога — гранты лягут на лист.',
     noteRu: input.noteRu,
   }
 }
