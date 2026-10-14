@@ -8072,7 +8072,7 @@ button.play-desk-compact__more--btn:hover {
 
 .play-desk__more-tab.is-on {
   background: var(--desk-accent-soft);
-  border-color: #9ecbbb;
+  border-color: var(--desk-line);
   color: var(--desk-accent);
 }
 
@@ -8096,7 +8096,7 @@ button.play-desk-compact__more--btn:hover {
 
 .play-desk__split-btn.is-on {
   background: var(--desk-accent-soft);
-  border-color: #9ecbbb;
+  border-color: var(--desk-line);
   color: var(--desk-accent);
 }
 
@@ -8138,7 +8138,7 @@ button.play-desk-compact__more--btn:hover {
 .play-desk__hot-item--btn.is-on,
 .play-desk__hot-item.is-warn {
   background: var(--desk-accent-soft);
-  border-color: #9ecbbb;
+  border-color: var(--desk-line);
 }
 
 .play-desk__hot-item--wide {
@@ -8153,7 +8153,7 @@ button.play-desk-compact__more--btn:hover {
 
 .play-desk__hot-item--wide.is-on {
   background: var(--desk-accent-soft);
-  border-color: #9ecbbb;
+  border-color: var(--desk-line);
   color: var(--desk-ink);
 }
 
@@ -8170,8 +8170,8 @@ button.play-desk-compact__more--btn:hover {
 }
 
 .play-desk__hot-item--res {
-  background: var(--desk-accent-soft);
-  border-color: #9ecbbb;
+  background: #fff;
+  border-color: var(--desk-line);
   min-width: 120px;
   display: grid;
   gap: 4px;
