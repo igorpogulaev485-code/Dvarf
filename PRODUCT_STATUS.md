@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/cleric-create-bugs-244b`  
+**Prod tip (ветка линии прода):** `cursor/lizardfolk-barb-feedback-244b`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -571,7 +571,21 @@
 | Божественный канал | picker опций при трате (как метамагия) | Turn Undead / доменный канал — выбор, не слепой −1 |
 | Каст / список | Отмена всегда живая; «показать все» в компакте | Не залипает диалог; видно больше 14 заклинаний |
 
-На проде: **да** · это **новый prod tip** `cursor/cleric-create-bugs-244b` · PR #150 · база `cursor/reunify-levelup-feat-gift-244b` · проверено 2026-10-14: `/health` ok; бандл `CharacterDetailPage-BQMBocIc.js` (`Божественный канал` / `показать все` / `Мастер выдал черту`); create `CreateCharacterPage-D21DhKVq.js` (`equipmentFocusPick`); `ChannelDivinitySpendDialog.tsx` на диске; кабинет/лобби/classic на месте
+На проде: **да** · ветка `cursor/cleric-create-bugs-244b` · PR #150 · tip дальше → `cursor/lizardfolk-barb-feedback-244b`
+
+### 2026-10-14 — Friend feedback + cleric equip + YaBrowser SPA
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Жрец PHB lines | a/b/c снаряжение + любое простое оружие; warhammer soft-match; CD «Праведное восстановление»; урон атак с модом; доменные заклинания RU | Создание жреца без старых багов экипа/CD |
+| Людоящер | `swim: 30`, trait cards (дыхание / челюсти / ремесленник); прыжки в шапке | Плавание и черты расы на листе |
+| Варвар desk | Безрассудная раскрывается + чип в Бою; полный текст Ярости | Бой без прыжков в Способности |
+| Черты | Tough → **Крепкий** (+2 HP/ур.); Durable → **Стойкий** | Не путают с Durable |
+| Свои способности | блок на панели Способности | Homebrew без заметки |
+| YaBrowser `/characters` | nginx SPA map: `navigate` / `document` / `:::text/html` | Нет сырого JSON `unauthorized` |
+| Скролл листа | ref-count `bodyScrollLock` + force-clear на вход | После диалога страница снова крутится |
+
+На проде: **да** · это **новый prod tip** `cursor/lizardfolk-barb-feedback-244b` · PR #152 (merge #151) · база tip `cursor/cleric-create-bugs-244b` · проверено 2026-10-14: `/health` ok; `/characters` с Accept HTML без Sec-Fetch → `text/html` SPA; API `Sec-Fetch-Dest: empty` → JSON 401; бандл `CharacterDetailPage-Dwi8fAdM.js` / create `CreateCharacterPage-5mm1fZSA.js` / class-features `class-feature-data-Zikft8Ri.js` (`Праведное восстановление`); `bodyScrollLock.ts` + nginx `:::text/html` на диске и в web-контейнере; кабинет/лобби/classic на месте
 
 
 ## В ветках / ещё не на проде
