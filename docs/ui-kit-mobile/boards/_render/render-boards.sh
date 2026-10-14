@@ -7,7 +7,7 @@ OUT_JPG="$(cd "$ROOT/.." && pwd)"
 HTML="file://${ROOT}/boards.html"
 mkdir -p "$OUT_PNG"
 
-BOARDS=(catalog shell nav-vitals sheets scenes identity abilities create-lobby)
+BOARDS=(catalog shell nav-vitals sheets scenes identity abilities create-lobby death)
 
 for id in "${BOARDS[@]}"; do
   png="dvarf-mobile-kit-${id}.png"

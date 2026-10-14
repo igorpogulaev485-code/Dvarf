@@ -892,6 +892,121 @@
   </div>
 </section>
 
+<!-- ========== DEATH ========== -->
+<section class="board" id="death" data-file="dvarf-mobile-kit-death.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Dvarf Mobile UI Kit · при смерти</h1>
+      <p class="sub">HP ≤ 0 · opaque card + череп · пипы успехов/провалов · паритет desktop LOCK</p>
+    </div>
+    <div class="badge">DEATH · MOBILE</div>
+  </div>
+  <div class="body">
+    <div class="row" style="gap:20px;align-items:flex-start">
+      <div class="phone">
+        <div class="phone-notch"><span></span></div>
+        <div class="phone-body">
+          <div class="vitals">
+            <div class="who">
+              <div class="avatar">Т</div>
+              <div style="flex:1;min-width:0">
+                <div class="who-name">Торин</div>
+                <div class="who-meta">Дварф · Воин · ур. 3</div>
+              </div>
+              <span class="pill" style="font-size:10px">Вдохн.</span>
+            </div>
+            <div class="vital-row">
+              <div class="vital"><div class="v">16</div><div class="l">КД</div></div>
+              <div class="vital"><div class="v">25</div><div class="l">Скор.</div></div>
+              <div class="vital"><div class="v">+2</div><div class="l">Иниц.</div></div>
+              <div class="vital"><div class="v">+2</div><div class="l">БМ</div></div>
+            </div>
+            <div class="hp-row">
+              <div class="hp" style="border-color:#c97a72;background:#fff4f4">
+                <div>
+                  <div class="num" style="color:var(--danger)">0 / 34</div>
+                  <div class="lab" style="color:var(--danger);font-weight:600">при смерти</div>
+                </div>
+              </div>
+              <div class="tool">◎</div>
+              <div class="tool">☾</div>
+            </div>
+            <div style="margin-top:6px;padding:8px 10px;border:1px solid #c97a72;border-radius:12px;background:#fff">
+              <div style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:999px;background:#ffe8e4;border:1px solid #e8b4ae;color:var(--danger);font-size:11px;font-weight:700;margin-bottom:6px">
+                ☠ При смерти
+              </div>
+              <div style="display:grid;gap:5px;font-size:11px;font-weight:600;color:var(--muted)">
+                <div style="display:grid;grid-template-columns:58px 1fr;align-items:center;gap:6px">
+                  <span>Успехи</span>
+                  <span style="display:inline-flex;gap:5px">
+                    <span style="width:14px;height:14px;border-radius:50%;background:#16a34a;border:2px solid #15803d"></span>
+                    <span style="width:14px;height:14px;border-radius:50%;background:#16a34a;border:2px solid #15803d"></span>
+                    <span style="width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--line)"></span>
+                  </span>
+                </div>
+                <div style="display:grid;grid-template-columns:58px 1fr;align-items:center;gap:6px">
+                  <span>Провалы</span>
+                  <span style="display:inline-flex;gap:5px">
+                    <span style="width:14px;height:14px;border-radius:50%;background:#dc2626;border:2px solid #b91c1c"></span>
+                    <span style="width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--line)"></span>
+                    <span style="width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid var(--line)"></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:6px">
+              <span class="btn btn-primary" style="width:100%;justify-content:center;font-size:12px;padding:8px">Характеристики ▸</span>
+            </div>
+          </div>
+          <div class="hot">
+            <chip>◎ Состояния</chip>
+            <chip>◌ Концентрация</chip>
+          </div>
+          <div class="scene">
+            <div class="scene-title">Бой · Атаки</div>
+            <div class="line-item"><span>Боевой топор</span><span class="pill">+5</span></div>
+            <div class="line-item"><span>Рукопашная</span><span class="pill">+4</span></div>
+            <p class="note" style="margin:auto 0 0">Death card не прыгает layout — появляется под HP.</p>
+          </div>
+          <div class="bot">
+            <span class="on">⚔<br/>Бой</span>
+            <span>🎒<br/>Исслед.</span>
+            <span>💬<br/>Общение</span>
+            <span>🐾<br/>Напарн.</span>
+            <span>✦<br/>Способн.</span>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <p class="sec-label">Правила (LOCK desktop → phone)</p>
+        <div class="card" style="margin-bottom:12px">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Когда</td><td style="padding:6px 4px">только HP ≤ 0 или флаг «при смерти»</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">HP</td><td style="padding:6px 4px">красная рамка · подпись «при смерти»</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Карта</td><td style="padding:6px 4px"><strong>opaque #fff</strong> + череп · не wash / не fade</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Пипы</td><td style="padding:6px 4px">Успехи зелёные · Провалы красные · tap</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Pad</td><td style="padding:6px 4px">HpPad sheet тоже держит death tracks</td></tr>
+            <tr><td style="padding:6px 4px;font-weight:600">Collapsed</td><td style="padding:6px 4px">череп + красный HP · pad по tap</td></tr>
+          </table>
+        </div>
+        <div class="card" style="margin-bottom:12px;padding:10px;background:#fff4f4;border-color:#e8b4ae">
+          <div class="tag" style="background:#ffe8e4;color:var(--danger)">Collapsed</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;margin-top:6px">
+            <span class="avatar" style="width:28px;height:28px;font-size:11px">Т</span>
+            <span style="flex:1">Торин</span>
+            <span style="color:var(--danger);display:inline-flex;align-items:center;gap:3px">☠ 0/34</span>
+            <span class="pill">СИЛ</span>
+            <span>▾</span>
+          </div>
+        </div>
+        <div class="callout">
+          Реф. desktop: <code>dvarf-ui-kit-desk-header-death.jpg</code>. На телефоне карта <strong>под</strong> HP (не справа) — иначе не влезет.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <script>
   // Show one board via ?board=id for screenshots
   const params = new URLSearchParams(location.search);

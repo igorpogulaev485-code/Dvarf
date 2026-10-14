@@ -8821,7 +8821,9 @@ button.play-desk-vital:hover {
 }
 
 .mobile-vitals__hp.is-danger {
-  border-color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger, #9f2d2d) 55%, #efc2c2);
+  background: color-mix(in srgb, #fff4f4 88%, white);
+  box-shadow: inset 0 0 0 1px #ffe0e0;
 }
 
 .mobile-vitals__hp-num {
@@ -8833,13 +8835,101 @@ button.play-desk-vital:hover {
 }
 
 .mobile-vitals__hp.is-danger .mobile-vitals__hp-num {
-  color: var(--danger);
+  color: var(--danger, #9f2d2d);
 }
 
 .mobile-vitals__hp-lab {
   font-size: 0.68rem;
   font-weight: 500;
   color: var(--muted);
+}
+
+.mobile-vitals__hp.is-danger .mobile-vitals__hp-lab {
+  color: var(--danger, #9f2d2d);
+  font-weight: 600;
+}
+
+/* Death saves: opaque card under HP (desktop LOCK parity, stacked for phone) */
+.mobile-vitals__death {
+  display: grid;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--danger, #9f2d2d) 55%, #efc2c2);
+  background: #fff;
+  box-shadow: 0 1px 0 rgba(45, 45, 42, 0.03);
+  animation: mobile-death-in 220ms ease-out;
+}
+
+@keyframes mobile-death-in {
+  from {
+    opacity: 1;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.mobile-vitals__dying-toggle {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px 4px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--danger, #9f2d2d) 55%, var(--line));
+  background: #ffe8e4;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--danger, #9f2d2d);
+  line-height: 1.2;
+}
+
+.mobile-vitals__death-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--danger, #9f2d2d);
+}
+
+.mobile-vitals__death-tracks {
+  display: grid;
+  gap: 6px;
+}
+
+.mobile-vitals__death-track {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.mobile-vitals__death-pips {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.mobile-vitals__death .death-pip {
+  width: 18px;
+  height: 18px;
+}
+
+.mobile-vitals__collapse-death {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mobile-vitals__collapse-skull {
+  width: 0.85rem;
+  height: 0.85rem;
+  color: var(--danger, #9f2d2d);
 }
 
 .mobile-vitals__tool {

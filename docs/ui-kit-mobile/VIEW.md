@@ -19,6 +19,7 @@
 | [`identity`](boards/dvarf-mobile-kit-identity.jpg) | аватар/who → Основное (Identity) |
 | [`abilities`](boards/dvarf-mobile-kit-abilities.jpg) | вариант B: страница Характеристики + collapse vitals |
 | [`create-lobby`](boards/dvarf-mobile-kit-create-lobby.jpg) | Create StepRail + Lobby Hero |
+| [`death`](boards/dvarf-mobile-kit-death.jpg) | HP≤0: opaque death card + череп + пипы (под HP) |
 
 Код мобилки — **только после ok** на эти картинки.
 
