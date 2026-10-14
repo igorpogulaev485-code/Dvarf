@@ -137,7 +137,7 @@ Icons: те же `IconConditions` / `IconConcentration` / `IconPouch`.
 
 | Tab id | Label (desktop `MODE_LABELS` после drop ЕЩЁ) | Primary сцена | Secondary |
 |--------|-----------------------------------------------|---------------|-----------|
-| `combat` | **Бой** | Атаки (combat density) | Заклинания — segmented |
+| `combat` | **Бой** | Атаки (combat density) + блок **Расходники** (★ из Исследования, spend −1) | Заклинания — segmented |
 | `explore` | **Исследование** | Инвентарь | Attunement из summary |
 | `social` | **Общение** | Тексты | — |
 | `companions` | **Напарники** | Companions | — |
