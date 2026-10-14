@@ -60,6 +60,8 @@ type PlayDeskHeaderProps = {
   play: PlayState
   autoAc: number
   acHint: string
+  /** Open AC breakdown / buffs dialog. */
+  onOpenAc?: () => void
   /** Shield currently in hand (affects AC). */
   shieldInHand?: boolean
   /** At least one shield exists in inventory for the quick toggle. */
@@ -119,6 +121,7 @@ export function PlayDeskHeader({
   play,
   autoAc,
   acHint,
+  onOpenAc,
   shieldInHand = false,
   shieldAvailable = false,
   onToggleShield,
@@ -376,8 +379,26 @@ export function PlayDeskHeader({
           <div
             className={`play-desk-vital play-desk-vital--shield${
               shieldInHand ? ' is-shield-on' : ''
-            }`}
-            title={acHint}
+            }${onOpenAc ? ' play-desk-vital--clickable' : ''}`}
+            title={
+              onOpenAc
+                ? `${acHint}. Нажми, чтобы открыть разборку КД и бонусы`
+                : acHint
+            }
+            role={onOpenAc ? 'button' : undefined}
+            tabIndex={onOpenAc ? 0 : undefined}
+            aria-label={
+              onOpenAc
+                ? `Класс защиты ${autoAc}. Открыть разборку`
+                : `Класс защиты ${autoAc}`
+            }
+            onClick={() => onOpenAc?.()}
+            onKeyDown={(event) => {
+              if (!onOpenAc) return
+              if (event.key !== 'Enter' && event.key !== ' ') return
+              event.preventDefault()
+              onOpenAc()
+            }}
           >
             <IconShield className="play-desk-vital__icon" />
             <b>{autoAc}</b>

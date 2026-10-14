@@ -82,7 +82,17 @@ import {
 import { SubclassSetupDialog } from './SubclassSetupDialog'
 import { SubclassChangeConfirmDialog } from './SubclassChangeConfirmDialog'
 import { readCompanions, type CompanionEntry } from './companions'
-import { computeArmorClass } from '../../shared/dnd/armor'
+import { armorKindLabel, computeArmorClass } from '../../shared/dnd/armor'
+import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
+import { AcBreakdownDialog } from './AcBreakdownDialog'
+import {
+  applyBonusStack,
+  bonusesForTarget,
+  formatBonusSummary,
+  modifiersToSheet,
+  readModifiers,
+  type BonusLine,
+} from './modifiers'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
@@ -380,6 +390,8 @@ type Draft = {
   classAsi: AppliedClassAsi[]
   featGrants: AppliedFeatGrant[]
   customFeatures: CustomFeature[]
+  /** Named buff/debuff stack (AC formulas, later abilities). */
+  modifiers: BonusLine[]
   sheetUi: SheetUiState
 }
 
@@ -553,6 +565,7 @@ function buildDraft(character: CharacterDetail): Draft {
     classAsi: readClassAsiLedger(sheet.class_asi),
     featGrants: readFeatGrantLedger(sheet.feat_grants),
     customFeatures: readCustomFeatures(sheet.custom_features ?? sheet.customFeatures),
+    modifiers: readModifiers(sheet),
     sheetUi: readSheetUi(sheet),
   }
 }
@@ -2617,6 +2630,14 @@ export function MinimalSheetEditor({
       }
       return null
     })()
+    const withoutShield = computeArmorClass({
+      dexMod: mods.dex,
+      abilityMods: mods,
+      armor: pieces.armor,
+      shield: null,
+      naturalArmor,
+      unarmoredDefense,
+    })
     const base = computeArmorClass({
       dexMod: mods.dex,
       abilityMods: mods,
@@ -2632,26 +2653,54 @@ export function MinimalSheetEditor({
       styleId,
       wearingArmor: Boolean(pieces.armor),
     })
-    let ac = base.ac
-    let summary = base.summary
+    let coreAc = base.ac
+    let gearSummary = base.summary
     if (styleBonus > 0) {
-      ac += styleBonus
-      summary = `${summary} · стиль +${styleBonus}`
+      coreAc += styleBonus
+      gearSummary = `${gearSummary} · стиль +${styleBonus}`
     }
     if (gearEffects.acBonus) {
-      ac += gearEffects.acBonus
-      summary = `${summary} · магия +${gearEffects.acBonus}`
+      coreAc += gearEffects.acBonus
+      gearSummary = `${gearSummary} · магия +${gearEffects.acBonus}`
     }
-    return { ac, summary }
+    const formulaVars = buildSheetFormulaVars({
+      mods,
+      proficiencyBonus,
+      level: characterLevel,
+    })
+    const acBonuses = bonusesForTarget(draft.modifiers, 'ac')
+    const stacked = applyBonusStack(coreAc, acBonuses, formulaVars)
+    const bonusSummary = formatBonusSummary(stacked.applied)
+    const summary = bonusSummary ? `${gearSummary} · ${bonusSummary}` : gearSummary
+    const baseLabel = pieces.armor
+      ? `${pieces.armor.baseAc} ${
+          pieces.armor.name || armorKindLabel(pieces.armor.kind)
+        } · ${armorKindLabel(pieces.armor.kind).toLowerCase()} доспех`
+      : withoutShield.summary
+    const spareShield = listShieldItems(draft.inventory.items)[0]
+    const shieldBonus = pieces.shield
+      ? Math.max(0, Math.floor(pieces.shield.baseAc || 2))
+      : Math.max(0, Math.floor(spareShield?.base_ac ?? 2))
+    return {
+      ac: stacked.total,
+      summary,
+      gearSummary,
+      baseLabel,
+      shieldBonus,
+      formulaVars,
+    }
   }, [
     effectiveAbilities,
     draft.inventory.items,
     draft.raceGrant,
     draft.featurePicks,
     draft.featGrants,
+    draft.modifiers,
     raceCatalogRows,
     unlockedFeatures,
     gearEffects.acBonus,
+    proficiencyBonus,
+    characterLevel,
   ])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
@@ -2805,6 +2854,7 @@ export function MinimalSheetEditor({
       Object.assign(sheet, attunementsToSheet(draftSnap.attunements))
       Object.assign(sheet, spellsToSheet(draftSnap.spells))
       Object.assign(sheet, textBlocksToSheet(draftSnap.textBlocks))
+      Object.assign(sheet, modifiersToSheet(draftSnap.modifiers))
       sheet.ui = {
         ...asRecord(sheet.ui),
         ...sheetUiToPatch(draftSnap.sheetUi),
@@ -2928,6 +2978,7 @@ export function MinimalSheetEditor({
     dc: number
   } | null>(null)
   const [hotConditionsOpen, setHotConditionsOpen] = useState(false)
+  const [acBreakdownOpen, setAcBreakdownOpen] = useState(false)
   /** Compact play-desk cast (dialog), not the full spells editor. */
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
   /** Play-desk spells setup (replaces force-full SpellsPanel). */
@@ -3499,6 +3550,7 @@ export function MinimalSheetEditor({
             play={draft.play}
             autoAc={armorClass.ac}
             acHint={armorClass.summary}
+            onOpenAc={() => setAcBreakdownOpen(true)}
             shieldInHand={Boolean(equippedArmorPieces(draft.inventory.items).shield)}
             shieldAvailable={listShieldItems(draft.inventory.items).length > 0}
             onToggleShield={() => {
@@ -5022,6 +5074,45 @@ export function MinimalSheetEditor({
         onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
         onToast={onToast}
         onClose={() => setHotConditionsOpen(false)}
+      />
+
+      <AcBreakdownDialog
+        open={acBreakdownOpen}
+        totalAc={armorClass.ac}
+        summary={armorClass.gearSummary}
+        baseLabel={armorClass.baseLabel}
+        shieldBonus={armorClass.shieldBonus}
+        shieldInHand={Boolean(equippedArmorPieces(draft.inventory.items).shield)}
+        shieldAvailable={listShieldItems(draft.inventory.items).length > 0}
+        onToggleShield={() => {
+          const shields = listShieldItems(draft.inventory.items)
+          const anyOn = shields.some((row) => row.equipped)
+          if (!anyOn && !canWearArmor('shield', draft.identity.armor)) {
+            onToast(armorProficiencyHint('shield'))
+            return
+          }
+          const result = toggleShieldInHand(draft.inventory.items)
+          if (!result.ok) {
+            onToast(result.reason)
+            return
+          }
+          setDraft((prev) => ({
+            ...prev,
+            inventory: { ...prev.inventory, items: result.items },
+            weapons: syncAttacksHeldFromInventory(prev.weapons, result.items),
+          }))
+          onToast(
+            result.equipped
+              ? `Щит «${result.name}» в руке`
+              : `Щит «${result.name}» убран`,
+          )
+        }}
+        formulaVars={armorClass.formulaVars}
+        modifiers={draft.modifiers}
+        onModifiersChange={(modifiers) =>
+          setDraft((prev) => ({ ...prev, modifiers }))
+        }
+        onClose={() => setAcBreakdownOpen(false)}
       />
 
       <RestDialog
