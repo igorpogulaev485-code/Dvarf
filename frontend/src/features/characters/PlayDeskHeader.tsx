@@ -33,6 +33,7 @@ import {
   IconSkull,
   IconSpark,
 } from './deskIcons'
+import { formatJumpTitle } from '../../shared/dnd/jumpDistance'
 import { formatModifier } from './sheetTypes'
 
 type SpeedMode = {
@@ -402,10 +403,7 @@ export function PlayDeskHeader({
             <div
               className="play-desk-vital play-desk-vital--jump"
               aria-label={`Прыжок: длинный ${jumpLongFt} фт, высокий ${jumpHighFt} фт`}
-              title={
-                `Прыжок с разбега: длинный ${jumpLongFt} фт · высокий ${jumpHighFt} фт. ` +
-                'Без разбега — половина.'
-              }
+              title={formatJumpTitle({ longFt: jumpLongFt, highFt: jumpHighFt })}
             >
               <b>
                 {jumpLongFt}
