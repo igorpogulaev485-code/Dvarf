@@ -151,7 +151,7 @@ export function CharacterDetailPage() {
 
   return (
     <main className="page page--app">
-      <Stack gap={16}>
+      <Stack gap={4} className="sheet-play-stack">
         <div className="sheet-topbar sheet-topbar--play">
           <Link className="back-link" to="/characters">
             ← К списку
