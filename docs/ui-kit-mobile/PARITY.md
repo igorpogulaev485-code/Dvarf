@@ -60,7 +60,7 @@
 
 | Функция | Mobile сейчас | Цель | Приоритет |
 |---------|---------------|------|-----------|
-| Список персонажей | 🟡 | density + ⋯ sheet | P1 |
+| Список персонажей | ✅ density + ⋯ sheet · default Средние | density + ⋯ sheet | P1 · M1.6 |
 | Create 2014 pipeline | ✅ sticky StepRail + footer + Сводка sheet | StepRail + footer + Сводка sheet | P1 · M1.5 |
 | Guided / level-up wizard | 🟡 | те же sheets | P1 |
 | Classic sheet | 🟡 print | link + soft warn | P2 |
@@ -68,7 +68,7 @@
 | Join по коду/QR | 🟡 | thumb code entry | P1 |
 | Session seat | 🟡 stub ok | honest stub | P2 |
 | Auth login/register/reset | 🟡 | bottom sheets | P2 |
-| Cabinet theme persist | 🟡 desk fixed 10-14 | single column + smoke `<960` | P1/P2 |
+| Cabinet theme persist | ✅ smoke `<960` (PATCH + accent) | single column + smoke `<960` | P1 · M1.6 |
 | Admin | n/a | out of scope mobile kit | — |
 
 ---

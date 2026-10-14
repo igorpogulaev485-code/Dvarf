@@ -184,7 +184,7 @@ Wave A chrome завязан на `isPlayDesk` (`min-width: 960px`). На тел
 | M1.3 | Social / Features / Companions + варвар Безрассудная/Ярость + свои способности | **done** (код) `cursor/mobile-desk-sync-code-0ed9` · не на проде |
 | M1.4 | Roll mode + **история бросков** + reckless→преим. (+ skill strips) | **done** (код) `cursor/mobile-desk-sync-code-0ed9` · не на проде |
 | M1.5 | Create: sticky StepRail + footer gates + Сводка sheet | **done** (код) `cursor/mobile-desk-sync-code-0ed9` · не на проде |
-| M1.6 | Character list density + ⋯ action sheet; theme persist smoke `<960` | |
+| M1.6 | Character list density + ⋯ action sheet; theme persist smoke `<960` | **done** (код) `cursor/mobile-desk-sync-code-0ed9` · не на проде |
 | M1.7 | Lobby Hero (код + QR accordion) + Join thumb flow | |
 
 **Критерий P1:** PARITY §A и §B без ❌/💀; create/lobby usable one-handed;  
@@ -338,4 +338,4 @@ Mobile path (этот документ):
 | 3 | Mobile M0–M1.1 код не на проде | Не ship отдельно без merge tip |
 | 4 | Desk handlers (`modifiers`, `heldEquip`, roll history) священны | Только placement / sheets на `<960` |
 
-**Следующий шаг:** M1.5 Create закрыт в коде → **M1.6** Character list (+ theme smoke) · затем **M1.7** Lobby.
+**Следующий шаг:** M1.6 закрыт в коде → **M1.7** Lobby Hero (код + QR accordion) + Join.
