@@ -132,17 +132,23 @@ export function CharacterDetailPage() {
   return (
     <main className="page page--app">
       <Stack gap={16}>
-        <div className="sheet-topbar">
+        <div className="sheet-topbar sheet-topbar--play">
           <Link className="back-link" to="/characters">
-            ← К списку персонажей
+            ← К списку
           </Link>
           {character ? (
             <div className="sheet-topbar__actions">
-              <Link className="back-link" to={`/characters/${character.id}/classic`}>
-                Классический лист 2014
+              <Link
+                className="back-link sheet-topbar__classic"
+                to={`/characters/${character.id}/classic`}
+              >
+                <span className="sheet-topbar__classic-full">Классический лист 2014</span>
+                <span className="sheet-topbar__classic-short" aria-hidden>
+                  Classic
+                </span>
               </Link>
               <Button variant="ghost" onClick={() => setLobbyOpen(true)}>
-                В лобби
+                Лобби
               </Button>
             </div>
           ) : null}

@@ -9071,3 +9071,18 @@ button.play-desk-vital:hover {
     gap: 10px;
   }
 }
+
+.sheet-topbar__classic-short { display: none; }
+
+@media (max-width: 959px) {
+  .sheet-topbar--play {
+    align-items: center;
+  }
+  .sheet-topbar__classic-full { display: none; }
+  .sheet-topbar__classic-short { display: inline; }
+  .sheet-topbar--play .ui-button {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 0.85rem;
+  }
+}
