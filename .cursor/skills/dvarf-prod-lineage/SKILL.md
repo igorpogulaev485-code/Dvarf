@@ -32,7 +32,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/reunify-levelup-feat-gift-244b
+cursor/cleric-create-bugs-244b
 ```
 
 URL: http://201.34.132.252/

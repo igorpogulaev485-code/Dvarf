@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/reunify-levelup-feat-gift-244b`  
+**Prod tip (ветка линии прода):** `cursor/cleric-create-bugs-244b`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -559,7 +559,19 @@
 | Акван / гримуар | язык Акван; гримуар из bundled 2014 при сбое catalog | Не пустой список |
 
 Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2k (Черты).  
-На проде: **да** · это **новый prod tip** `cursor/reunify-levelup-feat-gift-244b` · база `cursor/restore-wave-a-desk-0ed9` · проверено 2026-10-14: `/health` ok; API TTL `720`/`90`; бандл `CharacterDetailPage-1PefQPz7.js` (`Мастер выдал черту` / `Повысить уровень` / `Опыта хватает`); `IdentityDialog.tsx` на диске; кабинет/лобби/classic на месте
+На проде: **да** · ветка `cursor/reunify-levelup-feat-gift-244b` · tip дальше → `cursor/cleric-create-bugs-244b`
+
+### 2026-10-14 — Cleric create bugs A–G
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Гранты класса | `equipmentFocusPick` не теряется при apply | Щиты / навыки / стартовый пак жреца на листе |
+| Доменные заклинания | always-prepared по уровню ячеек + sync на level-up | На 1 ур. только 1-е; выше — открываются с слотами |
+| Текст предыстории | пишется в `parts` текстовых блоков | Личность / «Поддельная личность» / афера не пустые |
+| Божественный канал | picker опций при трате (как метамагия) | Turn Undead / доменный канал — выбор, не слепой −1 |
+| Каст / список | Отмена всегда живая; «показать все» в компакте | Не залипает диалог; видно больше 14 заклинаний |
+
+На проде: **да** · это **новый prod tip** `cursor/cleric-create-bugs-244b` · PR #150 · база `cursor/reunify-levelup-feat-gift-244b` · проверено 2026-10-14: `/health` ok; бандл `CharacterDetailPage-BQMBocIc.js` (`Божественный канал` / `показать все` / `Мастер выдал черту`); create `CreateCharacterPage-D21DhKVq.js` (`equipmentFocusPick`); `ChannelDivinitySpendDialog.tsx` на диске; кабинет/лобби/classic на месте
 
 
 ## В ветках / ещё не на проде
@@ -1501,4 +1513,5 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | 502→JSON + client retry; VPS reboot после hung Docker; `/health` ok; бандл `client-C72apPWM.js` |
 | 2026-10-13 | `cursor/cabinet-theme-a73e` · PR #141 | Wave A стол + список + кабинет тема/ability colors; **новый tip**; Hub timeout → dist→web; `/health` ok; `CabinetPage-2cQnOPcJ.js` / `CharacterDetailPage-Btt2TPDe.js` / CSS `index-D9wEk362.css` |
 | 2026-10-13 | `cursor/restore-wave-a-desk-0ed9` · PR #148 | Restore Wave A desk (без ЕЩЁ) + deploy guards; **tip** |
-| 2026-10-14 | `cursor/reunify-levelup-feat-gift-244b` | Reunify levelup-feat (сессия 12ч/90д, XP→уровень, ASI-черта) + «Мастер выдал черту» в Основное; **новый tip**; `/health` ok; `CharacterDetailPage-1PefQPz7.js` |
+| 2026-10-14 | `cursor/reunify-levelup-feat-gift-244b` | Reunify levelup-feat (сессия 12ч/90д, XP→уровень, ASI-черта) + «Мастер выдал черту» в Основное; tip → cleric-create-bugs |
+| 2026-10-14 | `cursor/cleric-create-bugs-244b` · PR #150 | Cleric create A–G (grants/domain/background parts/CD picker/cast Cancel/show all); **новый tip**; `/health` ok; `CharacterDetailPage-BQMBocIc.js` |
