@@ -8558,19 +8558,30 @@ button.play-desk-compact__more--btn:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   box-sizing: border-box;
   height: 28px;
   margin: 0;
   border: 1px solid var(--line);
   background: #fff;
   border-radius: 999px;
-  padding: 0 11px;
+  padding: 0 10px;
   font-family: var(--font-ui);
   font-size: 0.72rem;
   font-weight: 600;
   line-height: 1;
   color: var(--ink);
   white-space: nowrap;
+}
+
+.abil-mod__tag {
+  opacity: 0.72;
+  font-size: 0.68rem;
+}
+
+.abil-mod__num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
 }
 
 .abil-mod--btn {
@@ -8591,6 +8602,45 @@ button.play-desk-compact__more--btn:hover {
   color: #fff;
 }
 
+.abil-mod--roll.is-proficient {
+  border-color: color-mix(in srgb, var(--abil) 40%, var(--line));
+  background: color-mix(in srgb, var(--abil-soft) 70%, white);
+}
+
+.abil-mod-pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.abil-prof-pip {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--abil) 45%, var(--line));
+  background: #fff;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.abil-prof-pip.is-on {
+  background: var(--abil);
+  border-color: var(--abil);
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.abil-prof-pip.is-expert {
+  background: var(--abil);
+  border-color: var(--abil);
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    0 0 0 2px color-mix(in srgb, var(--abil) 55%, white);
+}
+
 .abil-block__skills {
   padding: 5px 7px 7px;
   display: grid;
@@ -8599,18 +8649,17 @@ button.play-desk-compact__more--btn:hover {
 }
 
 .abil-skill {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
   gap: 8px;
   width: 100%;
   border: 1px solid transparent;
   background: color-mix(in srgb, var(--panel) 55%, white);
   border-radius: 8px;
-  padding: 5px 8px;
+  padding: 4px 6px 4px 8px;
   font: inherit;
   font-size: 0.8rem;
-  cursor: pointer;
   text-align: left;
   color: var(--ink);
   transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
@@ -8622,31 +8671,52 @@ button.play-desk-compact__more--btn:hover {
 
 .abil-skill.is-on {
   background: var(--abil-soft);
-  border-color: color-mix(in srgb, var(--abil) 30%, var(--line));
+  border-color: color-mix(in srgb, var(--abil) 28%, var(--line));
   color: var(--abil);
   font-weight: 600;
 }
 
 .abil-skill.is-expert {
   font-weight: 700;
-  background: var(--abil);
-  border-color: var(--abil);
-  color: #fff;
+  background: color-mix(in srgb, var(--abil-soft) 72%, white);
+  border-color: color-mix(in srgb, var(--abil) 42%, var(--line));
+  color: var(--abil);
 }
 
-.abil-skill__meta {
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 600;
+.abil-skill__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.abil-skill.is-on .abil-skill__meta {
-  color: color-mix(in srgb, var(--abil) 72%, var(--muted));
+.abil-skill__roll {
+  flex: 0 0 auto;
+  min-width: 2.6rem;
+  height: 26px;
+  margin: 0;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  cursor: pointer;
+  line-height: 1;
 }
 
-.abil-skill.is-expert .abil-skill__meta {
-  color: color-mix(in srgb, #fff 88%, var(--abil-soft));
+.abil-skill__roll:hover {
+  border-color: color-mix(in srgb, var(--abil) 45%, var(--line));
+  color: var(--abil);
+}
+
+.abil-skill.is-on .abil-skill__roll,
+.abil-skill.is-expert .abil-skill__roll {
+  border-color: color-mix(in srgb, var(--abil) 35%, var(--line));
+  color: var(--abil);
 }
 
 .abil-block__empty {

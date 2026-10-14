@@ -32,6 +32,12 @@ type AbilitySkillsColumnProps = {
   onCollapsedChange: (collapsed: AbilityKey[]) => void
   /** Open ability breakdown / buffs dialog. */
   onOpenAbility?: (key: AbilityKey) => void
+  /** Click the check number → roll. */
+  onRollCheck?: (key: AbilityKey, mod: number) => void
+  /** Click the save number → roll (pip still toggles proficiency). */
+  onRollSave?: (key: AbilityKey, mod: number) => void
+  /** Click the skill number → roll (pip cycles владение / экспертиза). */
+  onRollSkill?: (skill: { key: string; label: string; mod: number }) => void
 }
 
 function cycleSkill(state: SkillState): SkillState {
@@ -44,16 +50,10 @@ function cycleSkill(state: SkillState): SkillState {
   return { is_proficient: false, is_expertise: false }
 }
 
-function skillMark(state: SkillState): string {
-  if (state.is_expertise) return 'Эксп.'
-  if (state.is_proficient) return 'Влад.'
-  return '—'
-}
-
-function skillMeta(state: SkillState, modLabel: string, gearLabel: string): string {
-  const mark = skillMark(state)
-  if (mark === '—') return `— ${modLabel}${gearLabel}`
-  return `${mark} ${modLabel}${gearLabel}`
+function skillProfTitle(state: SkillState): string {
+  if (state.is_expertise) return 'Экспертиза — клик: снять'
+  if (state.is_proficient) return 'Владение — клик: экспертиза'
+  return 'Нет владения — клик: владение'
 }
 
 export { cycleSkill }
@@ -76,6 +76,9 @@ export function AbilitySkillsColumn({
   onReorder,
   onCollapsedChange,
   onOpenAbility,
+  onRollCheck,
+  onRollSave,
+  onRollSkill,
 }: AbilitySkillsColumnProps) {
   const order = abilityOrder.length === ABILITY_KEYS.length ? abilityOrder : [...ABILITY_KEYS]
   const collapsed = new Set(collapsedAbilities)
@@ -111,7 +114,7 @@ export function AbilitySkillsColumn({
         </button>
       </div>
       <Text tone="muted" className="abil-column__hint">
-        название → разборка · ▾ навыки · ⋮⋮ порядок · навык: владение / экспертиза
+        число → бросок · кружок → владение/эксп. · название → разборка
       </Text>
       <div className="abil-column__list" id="abil-column-list">
         {order.map((key) => {
@@ -215,24 +218,58 @@ export function AbilitySkillsColumn({
                   <div className="abil-block__mods">
                     <button
                       type="button"
-                      className="abil-mod abil-mod--btn"
+                      className="abil-mod abil-mod--btn abil-mod--roll"
                       title={
-                        onOpenAbility
-                          ? 'Проверка — открыть разборку'
-                          : 'Проверка характеристики'
+                        onRollCheck
+                          ? `Проверка ${ABILITY_NAMES[key]} — бросок`
+                          : onOpenAbility
+                            ? 'Проверка — открыть разборку'
+                            : 'Проверка характеристики'
                       }
-                      onClick={() => onOpenAbility?.(key)}
+                      onClick={() => {
+                        if (onRollCheck) onRollCheck(key, check)
+                        else onOpenAbility?.(key)
+                      }}
                     >
-                      Пр {formatModifier(check)}
+                      <span className="abil-mod__tag">Пр</span>
+                      <span className="abil-mod__num">{formatModifier(check)}</span>
                     </button>
-                    <button
-                      type="button"
-                      className={`abil-mod abil-mod--btn${saves[key] ? ' is-on' : ''}`}
-                      title="Спасбросок — клик: владение"
-                      onClick={() => onSaveToggle(key)}
-                    >
-                      Сп {formatModifier(saveMod)}
-                    </button>
+                    <div className="abil-mod-pair">
+                      <button
+                        type="button"
+                        className={`abil-prof-pip${saves[key] ? ' is-on' : ''}`}
+                        aria-pressed={saves[key]}
+                        aria-label={
+                          saves[key]
+                            ? `Владение спасброском ${ABILITY_NAMES[key]} — снять`
+                            : `Нет владения спасброском ${ABILITY_NAMES[key]} — дать`
+                        }
+                        title={
+                          saves[key]
+                            ? 'Владение спасброском — клик: снять'
+                            : 'Нет владения — клик: владение'
+                        }
+                        onClick={() => onSaveToggle(key)}
+                      />
+                      <button
+                        type="button"
+                        className={`abil-mod abil-mod--btn abil-mod--roll${
+                          saves[key] ? ' is-proficient' : ''
+                        }`}
+                        title={
+                          onRollSave
+                            ? `Спасбросок ${ABILITY_NAMES[key]} — бросок`
+                            : 'Спасбросок'
+                        }
+                        onClick={() => {
+                          if (onRollSave) onRollSave(key, saveMod)
+                          else onSaveToggle(key)
+                        }}
+                      >
+                        <span className="abil-mod__tag">Сп</span>
+                        <span className="abil-mod__num">{formatModifier(saveMod)}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -258,21 +295,45 @@ export function AbilitySkillsColumn({
                             : 0) +
                         gearSkill
                       return (
-                        <button
+                        <div
                           key={skill.key}
-                          type="button"
-                          className={`abil-skill${state.is_proficient ? ' is-on' : ''}${state.is_expertise ? ' is-expert' : ''}`}
-                          onClick={() => onSkillCycle(skill.key)}
+                          className={`abil-skill${state.is_proficient ? ' is-on' : ''}${
+                            state.is_expertise ? ' is-expert' : ''
+                          }`}
                         >
-                          <span>{skill.label}</span>
-                          <span className="abil-skill__meta">
-                            {skillMeta(
-                              state,
-                              formatModifier(mod),
-                              gearSkill ? ` · предм. ${formatModifier(gearSkill)}` : '',
-                            )}
-                          </span>
-                        </button>
+                          <button
+                            type="button"
+                            className={`abil-prof-pip${
+                              state.is_proficient ? ' is-on' : ''
+                            }${state.is_expertise ? ' is-expert' : ''}`}
+                            aria-label={`${skill.label}: ${skillProfTitle(state)}`}
+                            title={skillProfTitle(state)}
+                            onClick={() => onSkillCycle(skill.key)}
+                          />
+                          <span className="abil-skill__name">{skill.label}</span>
+                          <button
+                            type="button"
+                            className="abil-skill__roll"
+                            title={
+                              onRollSkill
+                                ? `${skill.label} — бросок${
+                                    gearSkill
+                                      ? ` · предм. ${formatModifier(gearSkill)}`
+                                      : ''
+                                  }`
+                                : formatModifier(mod)
+                            }
+                            onClick={() =>
+                              onRollSkill?.({
+                                key: skill.key,
+                                label: skill.label,
+                                mod,
+                              })
+                            }
+                          >
+                            {formatModifier(mod)}
+                          </button>
+                        </div>
                       )
                     })
                   )}

@@ -339,6 +339,7 @@ import {
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
+  ABILITY_NAMES,
   SKILL_DEFS,
   abilityModifier,
   asRecord,
@@ -3384,6 +3385,26 @@ export function MinimalSheetEditor({
     emitToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
   }
 
+  function rollAbilityCheck(key: AbilityKey, mod: number) {
+    emitToast(
+      formatSkillRoll(
+        `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
+        mod,
+        effectiveRollMode(),
+      ),
+    )
+  }
+
+  function rollAbilitySave(key: AbilityKey, mod: number) {
+    emitToast(
+      formatSkillRoll(
+        `Спас · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
+        mod,
+        effectiveRollMode(),
+      ),
+    )
+  }
+
   const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
   const splitSecondary =
     deskSplit && modeUsesSpellSplit(draft.sheetUi.deskMode)
@@ -3540,6 +3561,9 @@ export function MinimalSheetEditor({
       checkBonusExtra={abilityCheckExtras}
       skillBonusExtra={gearEffects.skillBonuses}
       onOpenAbility={(key) => setAbilityBreakdownKey(key)}
+      onRollCheck={rollAbilityCheck}
+      onRollSave={rollAbilitySave}
+      onRollSkill={rollModeSkill}
       onAbilityScoreChange={(key, score) =>
         setDraft((prev) => ({
           ...prev,
