@@ -41,6 +41,8 @@ type PlayDeskSpellsCompactProps = {
   edition?: RulesEdition
   /** Open caster setup (slots / grimoire / advanced) — replaces full panel. */
   onOpenSettings: () => void
+  /** Label for settings / book entry (mobile kit: «Книга»). */
+  settingsLabel?: string
   onClearSplit?: () => void
   /** Patch spells (prepare dialog). */
   onSpellsChange?: (spells: SpellsState) => void
@@ -63,6 +65,7 @@ export function PlayDeskSpellsCompact({
   concentration = null,
   edition = '2014',
   onOpenSettings,
+  settingsLabel = 'Настройки',
   onClearSplit,
   onSpellsChange,
   onSlotUsedChange,
@@ -148,7 +151,7 @@ export function PlayDeskSpellsCompact({
             className="play-desk-compact__link play-desk-compact__link--settings"
             onClick={onOpenSettings}
           >
-            Настройки
+            {settingsLabel}
           </button>
         </div>
       </div>
