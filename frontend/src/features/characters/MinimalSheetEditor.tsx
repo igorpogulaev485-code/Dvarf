@@ -235,7 +235,9 @@ import {
   type DeskRollMode,
 } from './deskRolls'
 import {
+  appendRollHistory,
   appendXpHistory,
+  isDeskRollToast,
   MODE_DEFAULT_PANEL,
   MODE_HINT,
   MODE_LABELS,
@@ -2945,8 +2947,24 @@ export function MinimalSheetEditor({
   /** When set, show full editor panel instead of combat compact strip. */
   const [forceFullPanel, setForceFullPanel] = useState<PlayDeskPanelId | null>(null)
   const [deskRollMode, setDeskRollMode] = useState<DeskRollMode>('normal')
+  const [rollHistoryOpen, setRollHistoryOpen] = useState(false)
   const [isPlayDesk, setIsPlayDesk] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches,
+  )
+
+  const emitToast = useCallback(
+    (message: string) => {
+      onToast(message)
+      if (!isDeskRollToast(message)) return
+      setDraft((prev) => ({
+        ...prev,
+        sheetUi: {
+          ...prev.sheetUi,
+          rollHistory: appendRollHistory(prev.sheetUi.rollHistory, { text: message }),
+        },
+      }))
+    },
+    [onToast],
   )
 
   useEffect(() => {
@@ -3262,7 +3280,7 @@ export function MinimalSheetEditor({
             ? ' · помеха от доспеха'
             : ''
         : ''
-    onToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
+    emitToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
   }
 
   const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
@@ -3532,7 +3550,7 @@ export function MinimalSheetEditor({
               }))
             }
             onInitiativeRoll={() =>
-              onToast(
+              emitToast(
                 formatSkillRoll('Инициатива', initiativeValue, effectiveRollMode()),
               )
             }
@@ -3719,6 +3737,17 @@ export function MinimalSheetEditor({
                     {label}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  className="play-desk__roll-mode-btn"
+                  title="История бросков на этом листе"
+                  onClick={() => setRollHistoryOpen(true)}
+                >
+                  броски
+                  {draft.sheetUi.rollHistory.length > 0
+                    ? ` ${Math.min(draft.sheetUi.rollHistory.length, 99)}`
+                    : ''}
+                </button>
               </div>
               {modeUsesSpellSplit(draft.sheetUi.deskMode) ? (
                 <button
@@ -4348,7 +4377,12 @@ export function MinimalSheetEditor({
             combatFeatures={unlockedFeatures}
             rollMode={effectiveRollMode()}
             onOpenSettings={() => setAttacksSettingsOpen(true)}
-            onToast={onToast}
+            onCombatFeatureToggle={(featureId, active) => {
+              if (featureId === 'reckless_attack') {
+                setDeskRollMode(active ? 'advantage' : 'normal')
+              }
+            }}
+            onToast={emitToast}
             onSpendResource={spendResourceOrOpenSorcery}
             onToggleConsumableFavorite={toggleCombatFavorite}
             onSpendConsumable={(itemId) => {
@@ -4819,6 +4853,61 @@ export function MinimalSheetEditor({
           </aside>
         </>
       ) : null}
+
+      <Dialog
+        open={rollHistoryOpen}
+        title="История бросков"
+        primaryLabel="Закрыть"
+        secondaryLabel="Отмена"
+        onPrimary={() => setRollHistoryOpen(false)}
+        onSecondary={() => setRollHistoryOpen(false)}
+        closeOnBackdrop
+        size="wide"
+      >
+        {draft.sheetUi.rollHistory.length === 0 ? (
+          <Text tone="muted">Пока пусто — бросай атаки, навыки или инициативу.</Text>
+        ) : (
+          <Stack gap={10}>
+            <div className="desk-roll-history__toolbar">
+              <Text tone="muted">
+                {draft.sheetUi.rollHistory.length} запис.
+                {draft.sheetUi.rollHistory.length >= 50 ? ' (лимит 50)' : ''}
+              </Text>
+              <Button
+                variant="ghost"
+                onClick={() => patchSheetUi({ rollHistory: [] })}
+              >
+                Очистить
+              </Button>
+            </div>
+            <ul className="desk-roll-history">
+              {draft.sheetUi.rollHistory.map((row) => {
+                const when = (() => {
+                  try {
+                    return new Date(row.at).toLocaleTimeString('ru-RU', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })
+                  } catch {
+                    return ''
+                  }
+                })()
+                return (
+                  <li key={row.id} className="desk-roll-history__row">
+                    {when ? (
+                      <time className="desk-roll-history__time" dateTime={row.at}>
+                        {when}
+                      </time>
+                    ) : null}
+                    <span className="desk-roll-history__text">{row.text}</span>
+                  </li>
+                )
+              })}
+            </ul>
+          </Stack>
+        )}
+      </Dialog>
 
       <Dialog
         open={conflictOpen}

@@ -28,6 +28,12 @@ export type XpHistoryEntry = {
   at: string
 }
 
+export type RollHistoryEntry = {
+  id: string
+  text: string
+  at: string
+}
+
 export type SheetUiState = {
   abilityOrder: AbilityKey[]
   collapsedAbilities: AbilityKey[]
@@ -38,9 +44,55 @@ export type SheetUiState = {
   combatConsumableFavoriteIds: string[]
   /** XP awards / spends with optional «за что». Newest first. */
   xpHistory: XpHistoryEntry[]
+  /** Desk dice rolls (attacks, checks, …). Newest first; persisted on the sheet. */
+  rollHistory: RollHistoryEntry[]
 }
 
 const MAX_XP_HISTORY = 40
+const MAX_ROLL_HISTORY = 50
+
+export function isDeskRollToast(message: string): boolean {
+  return /\bd20\b|урон\s|\(\d+d\d+/i.test(message)
+}
+
+export function normalizeRollHistory(raw: unknown): RollHistoryEntry[] {
+  if (!Array.isArray(raw)) return []
+  const out: RollHistoryEntry[] = []
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue
+    const item = row as Record<string, unknown>
+    const text = typeof item.text === 'string' ? item.text.trim() : ''
+    if (!text) continue
+    const at =
+      typeof item.at === 'string' && item.at.trim()
+        ? item.at
+        : new Date().toISOString()
+    const id =
+      typeof item.id === 'string' && item.id.trim()
+        ? item.id
+        : `roll-${at}-${out.length}`
+    out.push({ id, text, at })
+    if (out.length >= MAX_ROLL_HISTORY) break
+  }
+  return out
+}
+
+export function appendRollHistory(
+  history: RollHistoryEntry[],
+  entry: Omit<RollHistoryEntry, 'id' | 'at'> & { id?: string; at?: string },
+): RollHistoryEntry[] {
+  const next: RollHistoryEntry = {
+    id:
+      entry.id ??
+      (typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `roll-${Date.now()}`),
+    text: entry.text.trim(),
+    at: entry.at ?? new Date().toISOString(),
+  }
+  if (!next.text) return history
+  return [next, ...history].slice(0, MAX_ROLL_HISTORY)
+}
 
 export function normalizeXpHistory(raw: unknown): XpHistoryEntry[] {
   if (!Array.isArray(raw)) return []
@@ -139,6 +191,7 @@ export function readSheetUi(sheet: Record<string, unknown>): SheetUiState {
       ui.combat_consumable_favorites,
     ),
     xpHistory: normalizeXpHistory(ui.xp_history),
+    rollHistory: normalizeRollHistory(ui.roll_history),
   }
 }
 
@@ -150,6 +203,7 @@ export function sheetUiToPatch(ui: SheetUiState): Record<string, unknown> {
     desk_split: ui.deskSplit,
     combat_consumable_favorites: ui.combatConsumableFavoriteIds,
     xp_history: ui.xpHistory,
+    roll_history: ui.rollHistory,
   }
 }
 
