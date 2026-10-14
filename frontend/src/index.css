@@ -6613,7 +6613,7 @@ button.play-desk-vital:hover,
 }
 
 .play-desk-vital--clickable:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--desk-accent) 55%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--desk-ink) 28%, var(--desk-line));
   outline-offset: 2px;
 }
 
@@ -6622,6 +6622,7 @@ button.play-desk-vital:hover,
   height: 1.05rem;
   color: var(--desk-accent, var(--accent));
   opacity: 0.92;
+  flex-shrink: 0;
 }
 
 .play-desk-vital b {
@@ -6645,8 +6646,14 @@ button.play-desk-vital:hover,
   color: var(--desk-accent);
 }
 
+/* Icon + value + label + «щит» chip — taller than the 64px vitals. */
 .play-desk-vital--shield {
-  padding-bottom: 4px;
+  height: auto;
+  min-height: 64px;
+  padding: 5px 6px 4px;
+  gap: 1px;
+  align-self: center;
+  overflow: visible;
 }
 
 .play-desk-vital__shield-tog {
@@ -6662,7 +6669,8 @@ button.play-desk-vital:hover,
   text-transform: uppercase;
   color: var(--desk-muted);
   cursor: pointer;
-  line-height: 1.25;
+  line-height: 1.2;
+  max-width: 100%;
 }
 
 .play-desk-vital__shield-tog:hover:not(:disabled) {
