@@ -12,10 +12,13 @@
 
 | Что | Где |
 |-----|-----|
-| Контракт | [`docs/ui-kit/README.md`](docs/ui-kit/README.md) |
-| Доски | [`docs/ui-kit/boards/`](docs/ui-kit/boards/) |
-| Skill | [`.cursor/skills/dvarf-ui-kit/SKILL.md`](.cursor/skills/dvarf-ui-kit/SKILL.md) |
-| Каталог | [`docs/ui-kit/boards/dvarf-ui-kit-catalog-final.jpg`](docs/ui-kit/boards/dvarf-ui-kit-catalog-final.jpg) |
+| Desktop / tablet контракт (≥960) | [`docs/ui-kit/README.md`](docs/ui-kit/README.md) |
+| Desktop доски | [`docs/ui-kit/boards/`](docs/ui-kit/boards/) |
+| Desktop skill | [`.cursor/skills/dvarf-ui-kit/SKILL.md`](.cursor/skills/dvarf-ui-kit/SKILL.md) |
+| Desktop каталог | [`docs/ui-kit/boards/dvarf-ui-kit-catalog-final.jpg`](docs/ui-kit/boards/dvarf-ui-kit-catalog-final.jpg) |
+| **Mobile контракт (&lt;960)** | [`docs/ui-kit-mobile/README.md`](docs/ui-kit-mobile/README.md) |
+| Mobile skill | [`.cursor/skills/dvarf-ui-kit-mobile/SKILL.md`](.cursor/skills/dvarf-ui-kit-mobile/SKILL.md) |
+| Mobile план | [`docs/redesign/MOBILE_REDESIGN_PLAN.md`](docs/redesign/MOBILE_REDESIGN_PLAN.md) |
 
 **Жёстко:**
 
@@ -24,8 +27,9 @@
 - Характеристики по умолчанию вариант A (identity); в кабинете можно выбрать «Цвет темы».
 - Нейтрали (`--panel #fbf7ec` …) и `--danger` общие.
 - Display: Source Serif 4 · UI: IBM Plex Sans.
-- Новый паттерн → доска в `docs/ui-kit/boards/` → ok Игоря → код. Атомы — из кита.
-- Порядок внедрения: **сначала** единый кит в одном цвете (Листва), **потом** выбор темы в кабинете.
+- **Desktop kit не менять под мобилку** — мобильные паттерны только в `docs/ui-kit-mobile/`.
+- На телефоне: одна сцена + Bottom Scene Nav + паритет всех функций стола (см. mobile kit).
+- Новый паттерн → доска/секция в нужном ките → ok Игоря → код. Атомы — из кита.
 
 Запрещено вводить параллельную палитру «на вкус» или кодить UI в обход досок.
 

@@ -69,6 +69,8 @@ type SpellsSettingsDialogProps = {
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
+  /** Mobile kit M1.1: «Книга заклинаний»; desk keeps default. */
+  title?: string
 }
 
 export function SpellsSettingsDialog({
@@ -89,6 +91,7 @@ export function SpellsSettingsDialog({
   onChange,
   onClose,
   onToast,
+  title = 'Настройки заклинаний',
 }: SpellsSettingsDialogProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
@@ -244,7 +247,7 @@ export function SpellsSettingsDialog({
     <>
       <Dialog
         open={open && !prepareOpen && !grimoireOpen}
-        title="Настройки заклинаний"
+        title={title}
         size="wide"
         primaryLabel="Готово"
         onPrimary={onClose}

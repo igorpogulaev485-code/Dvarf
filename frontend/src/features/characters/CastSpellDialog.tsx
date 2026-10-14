@@ -10,7 +10,7 @@ import {
   levelLabel,
   slotsRemaining,
 } from '../../shared/dnd/spells'
-import { Dialog, Stack, Text } from '../../ui'
+import { Button, Dialog, Stack, Text } from '../../ui'
 import {
   listCastGrantOptions,
   type SheetSpell,
@@ -44,6 +44,10 @@ type CastSpellDialogProps = {
   busy?: boolean
   onConfirm: (choice: CastChoice) => void
   onClose: () => void
+  /** K14: open Rest when no free slots (inline recovery). */
+  onRequestRest?: () => void
+  /** K14: reset warlock pact used → 0 without leaving cast sheet. */
+  onRestorePact?: () => void
 }
 
 export function CastSpellDialog({
@@ -55,6 +59,8 @@ export function CastSpellDialog({
   busy = false,
   onConfirm,
   onClose,
+  onRequestRest,
+  onRestorePact,
 }: CastSpellDialogProps) {
   const isCantrip = spell != null && spell.level <= 0
   const spellLevel = spell?.level ?? 0
@@ -256,7 +262,7 @@ export function CastSpellDialog({
       }}
       onSecondary={onClose}
       busy={busy}
-      primaryDisabled={!canCast}
+      primaryDisabled={!canCast || busy}
     >
       <Stack gap={10}>
         <Text>
@@ -417,19 +423,52 @@ export function CastSpellDialog({
                 </Text>
               )
             ) : (
-              <Text tone="danger">
-                Нет свободных ячеек {spell.level}-го уровня или выше
-                {spells.pact_slots ? ' и подходящей ячейки договора' : ''}. Верни пипс или
-                сделай отдых
-                {isRitual || grantOptions.some((row) => row.remaining <= 0)
-                  ? `, либо ${
-                      grantOptions.some((row) => row.remaining <= 0)
-                        ? 'восстанови заряд умения/предмета'
-                        : 'выбери ритуал'
-                    }`
-                  : ''}
-                .
-              </Text>
+              <Stack gap={8}>
+                <Text tone="danger">
+                  Нет свободных ячеек {spell.level}-го уровня или выше
+                  {spells.pact_slots ? ' и подходящей ячейки договора' : ''}. Верни пипс или
+                  сделай отдых
+                  {isRitual || grantOptions.some((row) => row.remaining <= 0)
+                    ? `, либо ${
+                        grantOptions.some((row) => row.remaining <= 0)
+                          ? 'восстанови заряд умения/предмета'
+                          : 'выбери ритуал'
+                      }`
+                    : ''}
+                  .
+                </Text>
+                {onRequestRest ||
+                (onRestorePact &&
+                  spells.pact_slots &&
+                  spells.pact_slots.max > 0 &&
+                  spells.pact_slots.used > 0) ? (
+                  <div className="cast-recovery" role="group" aria-label="Восстановить ресурс">
+                    {onRequestRest ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={onRequestRest}
+                      >
+                        Отдых…
+                      </Button>
+                    ) : null}
+                    {onRestorePact &&
+                    spells.pact_slots &&
+                    spells.pact_slots.max > 0 &&
+                    spells.pact_slots.used > 0 ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={onRestorePact}
+                      >
+                        Сброс ячеек договора
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </Stack>
             )}
           </>
         )}

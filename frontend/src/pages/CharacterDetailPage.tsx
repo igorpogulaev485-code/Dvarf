@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { MinimalSheetEditor } from '../features/characters/MinimalSheetEditor'
 import { getCharacter, type CharacterDetail } from '../shared/api/characters'
@@ -28,6 +28,8 @@ export function CharacterDetailPage() {
   const [lobbyCode, setLobbyCode] = useState('')
   const [lobbyError, setLobbyError] = useState<string | null>(null)
   const [joining, setJoining] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreRef = useRef<HTMLDivElement | null>(null)
   const initialState = location.state as LocationState | null
   const [toast, setToast] = useState<string | null>(initialState?.toast ?? null)
   const [createGuide, setCreateGuide] = useState<'background-first' | 'class-first' | null>(
@@ -120,6 +122,24 @@ export function CharacterDetailPage() {
     setLobbyError(null)
   }
 
+  useEffect(() => {
+    if (!moreOpen) return
+    function onDoc(event: MouseEvent) {
+      if (!moreRef.current?.contains(event.target as Node)) {
+        setMoreOpen(false)
+      }
+    }
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setMoreOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [moreOpen])
+
   async function joinWithCode() {
     if (!character || !lobbyCode.trim()) return
     setJoining(true)
@@ -140,19 +160,54 @@ export function CharacterDetailPage() {
 
   return (
     <main className="page page--app">
-      <Stack gap={16}>
-        <div className="sheet-topbar">
+      <Stack gap={4} className="sheet-play-stack">
+        <div className="sheet-topbar sheet-topbar--play">
           <Link className="back-link" to="/characters">
-            ← К списку персонажей
+            ← К списку
           </Link>
           {character ? (
             <div className="sheet-topbar__actions">
-              <Link className="back-link" to={`/characters/${character.id}/classic`}>
-                Классический лист 2014
-              </Link>
-              <Button variant="ghost" onClick={() => setLobbyOpen(true)}>
-                В лобби
-              </Button>
+              <div className="sheet-topbar__desk-only">
+                <Link className="back-link" to={`/characters/${character.id}/classic`}>
+                  Классический лист 2014
+                </Link>
+                <Button variant="ghost" onClick={() => setLobbyOpen(true)}>
+                  В лобби
+                </Button>
+              </div>
+              <div className="sheet-topbar__more" ref={moreRef}>
+                <button
+                  type="button"
+                  className="sheet-topbar__more-btn"
+                  aria-expanded={moreOpen}
+                  aria-haspopup="menu"
+                  aria-label="Ещё действия"
+                  onClick={() => setMoreOpen((open) => !open)}
+                >
+                  ⋯
+                </button>
+                {moreOpen ? (
+                  <div className="sheet-topbar__more-pop" role="menu">
+                    <Link
+                      role="menuitem"
+                      to={`/characters/${character.id}/classic`}
+                      onClick={() => setMoreOpen(false)}
+                    >
+                      Классический лист 2014
+                    </Link>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setMoreOpen(false)
+                        setLobbyOpen(true)
+                      }}
+                    >
+                      В лобби
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             </div>
           ) : null}
         </div>

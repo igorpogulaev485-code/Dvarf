@@ -626,6 +626,16 @@
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
 
+### 2026-10-13 — Mobile UI Kit + план редизайна телефона (документы)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Mobile UI Kit | Отдельный контракт `docs/ui-kit-mobile/` на базе Листвы: Bottom Scene Nav, one-panel, vitals/hot parity | На телефоне тот же бренд и **все** функции стола, другой chrome |
+| План мобилки | `docs/redesign/MOBILE_REDESIGN_PLAN.md` — волны P0→P1→P2 как у десктопа | Понятный путь: kit → ok → код → прод |
+| Desktop kit | `docs/ui-kit/` **не** изменён | Старый кит целый |
+
+На проде: **нет** (только доки, кода телефона ещё нет) · ветка `cursor/mobile-ui-kit-0ed9` · ждём ok на кит+план, затем слайс M0.1
+
 ### 2026-10-12 — Play desk vitals wave (HP pad / концентрация / без дублей отдыха)
 
 | Функция | Как работает | Эффект для пользователя |
