@@ -2,6 +2,9 @@
 
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas.ts'
 import {
+  abilityBonusTarget,
+  abilityCheckBonus,
+  applyAbilityScoreBonuses,
   applyBonusStack,
   createBonusLine,
   normalizeBonusLines,
@@ -59,5 +62,51 @@ assert(readModifiers(sheet).length === 3, 'read')
 
 const patched = patchModifierList([], lines, 'ac')
 assert(patched.length === 3, 'patch')
+
+const abilityLines = normalizeBonusLines([
+  {
+    id: 's',
+    target: abilityBonusTarget('str', 'score'),
+    label: 'Горный дварф',
+    op: '+',
+    expr: '2',
+    enabled: true,
+  },
+  {
+    id: 'k',
+    target: abilityBonusTarget('str', 'check'),
+    label: 'Guidance',
+    op: '+',
+    expr: '1d4',
+    enabled: true,
+  },
+])
+// 1d4 is not valid scalar — normalize keeps expr but eval fails; use flat
+const abilityOk = normalizeBonusLines([
+  {
+    id: 's',
+    target: 'str_score',
+    label: 'Горный дварф',
+    op: '+',
+    expr: '2',
+    enabled: true,
+  },
+  {
+    id: 'k',
+    target: 'str_check',
+    label: 'Указание',
+    op: '+',
+    expr: '1',
+    enabled: true,
+  },
+])
+assert(abilityLines.length === 2, 'ability targets')
+const scores = applyAbilityScoreBonuses(
+  { str: 13, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+  abilityOk,
+  vars,
+)
+assert(scores.str === 15, `str score ${scores.str}`)
+assert(abilityCheckBonus('str', abilityOk, vars) === 1, 'str check')
 
 console.log('modifiers.selfcheck ok')

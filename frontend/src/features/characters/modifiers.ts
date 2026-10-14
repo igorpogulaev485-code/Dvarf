@@ -1,12 +1,18 @@
 /** Named modifier stack (buffs / debuffs) for sheet stats. */
 
-import { asRecord } from './sheetTypes'
+import { asRecord, ABILITY_KEYS, type AbilityKey } from './sheetTypes'
 import { evalFormula, type FormulaVars } from '../../shared/dnd/formulas'
 
 export type BonusOp = '+' | '-' | '='
 
-/** Where the bonus applies. AC slice first; more targets later. */
-export type BonusTarget = 'ac'
+export type AbilityChannel = 'score' | 'check' | 'save'
+
+/** Where the bonus applies. */
+export type BonusTarget =
+  | 'ac'
+  | `${AbilityKey}_score`
+  | `${AbilityKey}_check`
+  | `${AbilityKey}_save`
 
 export type BonusLine = {
   id: string
@@ -19,8 +25,26 @@ export type BonusLine = {
   source: 'manual' | 'system' | 'gear'
 }
 
-const TARGETS = new Set<BonusTarget>(['ac'])
+const ABILITY_TARGETS = new Set<BonusTarget>(
+  ABILITY_KEYS.flatMap((key) => [
+    `${key}_score` as BonusTarget,
+    `${key}_check` as BonusTarget,
+    `${key}_save` as BonusTarget,
+  ]),
+)
+const TARGETS = new Set<BonusTarget>(['ac', ...ABILITY_TARGETS])
 const OPS = new Set<BonusOp>(['+', '-', '='])
+
+export function abilityBonusTarget(
+  ability: AbilityKey,
+  channel: AbilityChannel,
+): BonusTarget {
+  return `${ability}_${channel}`
+}
+
+export function isBonusTarget(value: unknown): value is BonusTarget {
+  return typeof value === 'string' && TARGETS.has(value as BonusTarget)
+}
 
 function newId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -32,9 +56,10 @@ function newId(): string {
 export function createBonusLine(
   partial?: Partial<Omit<BonusLine, 'id'>> & { id?: string },
 ): BonusLine {
+  const target = isBonusTarget(partial?.target) ? partial!.target : 'ac'
   return {
     id: partial?.id?.trim() || newId(),
-    target: partial?.target === 'ac' ? 'ac' : 'ac',
+    target,
     label: (partial?.label ?? '').trim() || 'Бонус',
     op: partial?.op && OPS.has(partial.op) ? partial.op : '+',
     expr: (partial?.expr ?? '1').trim() || '1',
@@ -52,17 +77,18 @@ export function normalizeBonusLines(raw: unknown): BonusLine[] {
   for (const row of raw) {
     if (!row || typeof row !== 'object') continue
     const item = row as Record<string, unknown>
-    const target = item.target
-    if (typeof target !== 'string' || !TARGETS.has(target as BonusTarget)) continue
-    const op = item.op
+    if (!isBonusTarget(item.target)) continue
     const expr = typeof item.expr === 'string' ? item.expr.trim() : ''
     if (!expr) continue
     out.push(
       createBonusLine({
         id: typeof item.id === 'string' ? item.id : undefined,
-        target: target as BonusTarget,
+        target: item.target,
         label: typeof item.label === 'string' ? item.label : 'Бонус',
-        op: typeof op === 'string' && OPS.has(op as BonusOp) ? (op as BonusOp) : '+',
+        op:
+          typeof item.op === 'string' && OPS.has(item.op as BonusOp)
+            ? (item.op as BonusOp)
+            : '+',
         expr,
         enabled: item.enabled !== false,
         source:
@@ -124,11 +150,7 @@ export function formatBonusSummary(applied: AppliedBonus[]): string {
     .filter((row) => row.ok && row.line.enabled)
     .map((row) => {
       const sign =
-        row.line.op === '='
-          ? '='
-          : row.line.op === '-'
-            ? '−'
-            : '+'
+        row.line.op === '=' ? '=' : row.line.op === '-' ? '−' : '+'
       const name = row.line.label.trim() || 'бонус'
       return `${name} ${sign}${Math.abs(row.value)}`
     })
@@ -148,4 +170,40 @@ export function patchModifierList(
 export function asModifierSheetPatch(raw: unknown): BonusLine[] {
   const sheet = asRecord(raw)
   return normalizeBonusLines(sheet.modifiers)
+}
+
+/** Apply score-channel buffs on top of gear-adjusted ability scores. */
+export function applyAbilityScoreBonuses(
+  scores: Record<AbilityKey, number>,
+  modifiers: BonusLine[],
+  vars: FormulaVars,
+): Record<AbilityKey, number> {
+  const out = { ...scores }
+  for (const key of ABILITY_KEYS) {
+    const lines = bonusesForTarget(modifiers, abilityBonusTarget(key, 'score'))
+    if (lines.length === 0) continue
+    const stacked = applyBonusStack(scores[key], lines, vars)
+    out[key] = Math.min(30, Math.max(1, stacked.total))
+  }
+  return out
+}
+
+export function abilityCheckBonus(
+  ability: AbilityKey,
+  modifiers: BonusLine[],
+  vars: FormulaVars,
+): number {
+  const lines = bonusesForTarget(modifiers, abilityBonusTarget(ability, 'check'))
+  if (lines.length === 0) return 0
+  return applyBonusStack(0, lines, vars).total
+}
+
+export function abilitySaveBonus(
+  ability: AbilityKey,
+  modifiers: BonusLine[],
+  vars: FormulaVars,
+): number {
+  const lines = bonusesForTarget(modifiers, abilityBonusTarget(ability, 'save'))
+  if (lines.length === 0) return 0
+  return applyBonusStack(0, lines, vars).total
 }

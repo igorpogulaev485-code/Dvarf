@@ -22,12 +22,16 @@ type AbilitySkillsColumnProps = {
   proficiencyBonus: number
   auraSaveBonus?: number
   saveBonusExtra?: Partial<Record<AbilityKey | 'all', number>>
+  /** Extra flat bonus on ability checks (not skills). */
+  checkBonusExtra?: Partial<Record<AbilityKey, number>>
   skillBonusExtra?: Record<string, number>
   onAbilityScoreChange: (key: AbilityKey, score: number) => void
   onSaveToggle: (key: AbilityKey) => void
   onSkillCycle: (skillKey: string) => void
   onReorder: (order: AbilityKey[]) => void
   onCollapsedChange: (collapsed: AbilityKey[]) => void
+  /** Open ability breakdown / buffs dialog. */
+  onOpenAbility?: (key: AbilityKey) => void
 }
 
 function cycleSkill(state: SkillState): SkillState {
@@ -64,12 +68,14 @@ export function AbilitySkillsColumn({
   proficiencyBonus,
   auraSaveBonus = 0,
   saveBonusExtra = {},
+  checkBonusExtra = {},
   skillBonusExtra = {},
   onAbilityScoreChange,
   onSaveToggle,
   onSkillCycle,
   onReorder,
   onCollapsedChange,
+  onOpenAbility,
 }: AbilitySkillsColumnProps) {
   const order = abilityOrder.length === ABILITY_KEYS.length ? abilityOrder : [...ABILITY_KEYS]
   const collapsed = new Set(collapsedAbilities)
@@ -105,16 +111,20 @@ export function AbilitySkillsColumn({
         </button>
       </div>
       <Text tone="muted" className="abil-column__hint">
-        название ▾ · ⋮⋮ порядок · клик по навыку: владение / экспертиза
+        название → разборка · ▾ навыки · ⋮⋮ порядок · навык: владение / экспертиза
       </Text>
       <div className="abil-column__list" id="abil-column-list">
         {order.map((key) => {
           const baseScore = abilities[key]
           const score = shown[key]
-          const check = abilityModifier(score)
+          const abilityMod = abilityModifier(score)
+          const check = abilityMod + (checkBonusExtra[key] ?? 0)
           const gearSave = (saveBonusExtra.all ?? 0) + (saveBonusExtra[key] ?? 0)
           const saveMod =
-            check + (saves[key] ? proficiencyBonus : 0) + auraSaveBonus + gearSave
+            abilityMod +
+            (saves[key] ? proficiencyBonus : 0) +
+            auraSaveBonus +
+            gearSave
           const isCollapsed = collapsed.has(key)
           const related = SKILL_DEFS.filter((skill) => skill.base === key)
           return (
@@ -155,18 +165,32 @@ export function AbilitySkillsColumn({
                 >
                   ⋮⋮
                 </span>
-                <button
-                  type="button"
-                  className="abil-block__label"
-                  aria-expanded={!isCollapsed}
-                  title={isCollapsed ? 'Развернуть навыки' : 'Свернуть навыки'}
-                  onClick={() => setCollapsed(key, !isCollapsed)}
-                >
-                  <span className="abil-block__label-text">{ABILITY_NAMES[key]}</span>
-                  <span className="abil-block__label-chevron" aria-hidden>
+                <div className="abil-block__label">
+                  <button
+                    type="button"
+                    className="abil-block__label-open"
+                    title={
+                      onOpenAbility
+                        ? `Разборка «${ABILITY_NAMES[key]}» — значение, проверки, спас`
+                        : ABILITY_NAMES[key]
+                    }
+                    onClick={() => {
+                      if (onOpenAbility) onOpenAbility(key)
+                      else setCollapsed(key, !isCollapsed)
+                    }}
+                  >
+                    <span className="abil-block__label-text">{ABILITY_NAMES[key]}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="abil-block__label-chevron"
+                    aria-expanded={!isCollapsed}
+                    title={isCollapsed ? 'Развернуть навыки' : 'Свернуть навыки'}
+                    onClick={() => setCollapsed(key, !isCollapsed)}
+                  >
                     {isCollapsed ? '▸' : '▾'}
-                  </span>
-                </button>
+                  </button>
+                </div>
                 <div className="abil-block__meta">
                   <div className="abil-block__score-wrap">
                     <NumberInput
@@ -180,15 +204,27 @@ export function AbilitySkillsColumn({
                       title="Базовое значение"
                     />
                     {score !== baseScore ? (
-                      <span className="abil-block__effective is-buffed" title="С учётом предметов">
+                      <span
+                        className="abil-block__effective is-buffed"
+                        title="С учётом предметов и бафов"
+                      >
                         → {score}
                       </span>
                     ) : null}
                   </div>
                   <div className="abil-block__mods">
-                    <span className="abil-mod" title="Проверка характеристики">
+                    <button
+                      type="button"
+                      className="abil-mod abil-mod--btn"
+                      title={
+                        onOpenAbility
+                          ? 'Проверка — открыть разборку'
+                          : 'Проверка характеристики'
+                      }
+                      onClick={() => onOpenAbility?.(key)}
+                    >
                       Пр {formatModifier(check)}
-                    </span>
+                    </button>
                     <button
                       type="button"
                       className={`abil-mod abil-mod--btn${saves[key] ? ' is-on' : ''}`}

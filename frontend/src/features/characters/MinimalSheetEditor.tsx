@@ -84,8 +84,12 @@ import { SubclassChangeConfirmDialog } from './SubclassChangeConfirmDialog'
 import { readCompanions, type CompanionEntry } from './companions'
 import { armorKindLabel, computeArmorClass } from '../../shared/dnd/armor'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
+import { AbilityBreakdownDialog } from './AbilityBreakdownDialog'
 import { AcBreakdownDialog } from './AcBreakdownDialog'
 import {
+  abilityCheckBonus,
+  abilitySaveBonus,
+  applyAbilityScoreBonuses,
   applyBonusStack,
   bonusesForTarget,
   formatBonusSummary,
@@ -2579,10 +2583,49 @@ export function MinimalSheetEditor({
     })
   }, [gearEffects])
 
-  const effectiveAbilities = useMemo(
+  const gearAbilities = useMemo(
     () => applyGearAbilityScores(draft.abilities, gearEffects),
     [draft.abilities, gearEffects],
   )
+
+  const formulaVarsBase = useMemo(() => {
+    const mods = {
+      str: abilityModifier(gearAbilities.str),
+      dex: abilityModifier(gearAbilities.dex),
+      con: abilityModifier(gearAbilities.con),
+      int: abilityModifier(gearAbilities.int),
+      wis: abilityModifier(gearAbilities.wis),
+      cha: abilityModifier(gearAbilities.cha),
+    }
+    return buildSheetFormulaVars({
+      mods,
+      proficiencyBonus,
+      level: characterLevel,
+    })
+  }, [gearAbilities, proficiencyBonus, characterLevel])
+
+  const effectiveAbilities = useMemo(
+    () => applyAbilityScoreBonuses(gearAbilities, draft.modifiers, formulaVarsBase),
+    [gearAbilities, draft.modifiers, formulaVarsBase],
+  )
+
+  const abilityCheckExtras = useMemo(() => {
+    const out: Partial<Record<AbilityKey, number>> = {}
+    for (const key of ABILITY_KEYS) {
+      const n = abilityCheckBonus(key, draft.modifiers, formulaVarsBase)
+      if (n) out[key] = n
+    }
+    return out
+  }, [draft.modifiers, formulaVarsBase])
+
+  const abilitySaveExtras = useMemo(() => {
+    const out: Partial<Record<AbilityKey, number>> = {}
+    for (const key of ABILITY_KEYS) {
+      const n = abilitySaveBonus(key, draft.modifiers, formulaVarsBase)
+      if (n) out[key] = n
+    }
+    return out
+  }, [draft.modifiers, formulaVarsBase])
 
   const armorClass = useMemo(() => {
     const pieces = equippedArmorPieces(draft.inventory.items)
@@ -2979,6 +3022,9 @@ export function MinimalSheetEditor({
   } | null>(null)
   const [hotConditionsOpen, setHotConditionsOpen] = useState(false)
   const [acBreakdownOpen, setAcBreakdownOpen] = useState(false)
+  const [abilityBreakdownKey, setAbilityBreakdownKey] = useState<AbilityKey | null>(
+    null,
+  )
   /** Compact play-desk cast (dialog), not the full spells editor. */
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
   /** Play-desk spells setup (replaces force-full SpellsPanel). */
@@ -3452,6 +3498,18 @@ export function MinimalSheetEditor({
     }))
   }
 
+  const mergedSaveExtras = useMemo(() => {
+    const out: Partial<Record<AbilityKey | 'all', number>> = {
+      ...gearEffects.saveBonuses,
+    }
+    for (const key of ABILITY_KEYS) {
+      const extra = abilitySaveExtras[key] ?? 0
+      if (!extra) continue
+      out[key] = (out[key] ?? 0) + extra
+    }
+    return out
+  }, [gearEffects.saveBonuses, abilitySaveExtras])
+
   const abilityColumn = (
     <AbilitySkillsColumn
       abilityOrder={draft.sheetUi.abilityOrder}
@@ -3462,8 +3520,10 @@ export function MinimalSheetEditor({
       skills={draft.skills}
       proficiencyBonus={proficiencyBonus}
       auraSaveBonus={auraSaveBonus}
-      saveBonusExtra={gearEffects.saveBonuses}
+      saveBonusExtra={mergedSaveExtras}
+      checkBonusExtra={abilityCheckExtras}
       skillBonusExtra={gearEffects.skillBonuses}
+      onOpenAbility={(key) => setAbilityBreakdownKey(key)}
       onAbilityScoreChange={(key, score) =>
         setDraft((prev) => ({
           ...prev,
@@ -5113,6 +5173,41 @@ export function MinimalSheetEditor({
           setDraft((prev) => ({ ...prev, modifiers }))
         }
         onClose={() => setAcBreakdownOpen(false)}
+      />
+
+      <AbilityBreakdownDialog
+        open={abilityBreakdownKey != null}
+        ability={abilityBreakdownKey ?? 'str'}
+        baseScore={
+          abilityBreakdownKey ? draft.abilities[abilityBreakdownKey] : 10
+        }
+        gearScore={
+          abilityBreakdownKey ? gearAbilities[abilityBreakdownKey] : 10
+        }
+        proficientSave={
+          abilityBreakdownKey ? draft.saves[abilityBreakdownKey] : false
+        }
+        proficiencyBonus={proficiencyBonus}
+        formulaVars={formulaVarsBase}
+        modifiers={draft.modifiers}
+        onBaseScoreChange={(score) => {
+          if (!abilityBreakdownKey) return
+          setDraft((prev) => ({
+            ...prev,
+            abilities: { ...prev.abilities, [abilityBreakdownKey]: score },
+          }))
+        }}
+        onSaveProficiencyChange={(proficient) => {
+          if (!abilityBreakdownKey) return
+          setDraft((prev) => ({
+            ...prev,
+            saves: { ...prev.saves, [abilityBreakdownKey]: proficient },
+          }))
+        }}
+        onModifiersChange={(modifiers) =>
+          setDraft((prev) => ({ ...prev, modifiers }))
+        }
+        onClose={() => setAbilityBreakdownKey(null)}
       />
 
       <RestDialog
