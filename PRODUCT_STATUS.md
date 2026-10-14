@@ -81,7 +81,7 @@
 |--------|--------------|-------------------------|
 | Старт SPA на iPhone | shell `no-cache` (не `no-store`), CORS на `/assets`, шрифты non-blocking, boot-fallback | Меньше белого экрана после «обновить»; если всё же пусто — подсказка очистить данные сайта |
 
-На проде: **да** · ветка `cursor/prod-safari-blank-0ed9` · **это новый prod tip** · проверено после деплоя
+На проде: **да** · ветка `cursor/prod-safari-blank-0ed9` · **это новый prod tip** · проверено 2026-10-14: `/health` ok; shell `Cache-Control: no-cache`; assets `Access-Control-Allow-Origin: *`; бандл `index-TaJKF6Od.js` + boot-fallback в `index.html`; smoke characters renders
 
 ### 2026-10-14 — Safari mobile «страница вместо API»
 
