@@ -92,7 +92,7 @@ export function LobbiesPage() {
             description="Создайте своё или зайдите по коду / QR с персонажем."
           />
         ) : (
-          <Stack gap={12}>
+          <Stack gap={12} className="lobbies-list">
             {items.map((lobby) => (
               <Panel key={lobby.id}>
                 <div className="list-row">
@@ -104,9 +104,11 @@ export function LobbiesPage() {
                       {lobby.invite_code ? ` · код ${lobby.invite_code}` : ''}
                     </Text>
                   </div>
-                  <Link className="ui-button" to={`/lobbies/${lobby.id}`}>
-                    Открыть
-                  </Link>
+                  <div className="list-row__actions">
+                    <Link className="ui-button" to={`/lobbies/${lobby.id}`}>
+                      Открыть
+                    </Link>
+                  </div>
                 </div>
               </Panel>
             ))}
@@ -114,10 +116,15 @@ export function LobbiesPage() {
         )}
 
         <Panel title="Войти по коду">
-          <Text tone="muted">
-            Есть код от мастера? Откройте{' '}
-            <Link to="/join">страницу входа</Link> или впишите код в карточку персонажа.
-          </Text>
+          <Stack gap={10}>
+            <Text tone="muted">
+              Есть код от мастера? Введите его на странице входа или впишите в карточку
+              персонажа.
+            </Text>
+            <Link className="ui-button join-entry-cta" to="/join">
+              Ввести код
+            </Link>
+          </Stack>
         </Panel>
       </Stack>
       <Toast message={toast} onClose={() => setToast(null)} />

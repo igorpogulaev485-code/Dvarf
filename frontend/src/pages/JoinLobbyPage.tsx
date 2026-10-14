@@ -1,10 +1,17 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError, getAccessToken } from '../shared/api/client'
 import { joinLobby } from '../shared/api/lobbies'
 import { Button, EmptyState, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+
+function characterMeta(c: CharacterSummary): string {
+  const bits = [c.race_name, c.class_name, c.level != null ? `ур. ${c.level}` : null].filter(
+    Boolean,
+  )
+  return bits.join(' · ') || 'Без расы/класса'
+}
 
 export function JoinLobbyPage() {
   const { code: routeCode = '' } = useParams()
@@ -18,6 +25,12 @@ export function JoinLobbyPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+
+  const codeReady = code.trim().length >= 4
+  const selected = useMemo(
+    () => characters.find((c) => c.id === characterId) ?? null,
+    [characters, characterId],
+  )
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -52,6 +65,10 @@ export function JoinLobbyPage() {
     e.preventDefault()
     if (!characterId) {
       setError('Выберите персонажа')
+      return
+    }
+    if (!codeReady) {
+      setError('Введите код лобби')
       return
     }
     setBusy(true)
@@ -89,33 +106,93 @@ export function JoinLobbyPage() {
               }
             />
           ) : (
-            <form className="stack-form" onSubmit={onSubmit}>
+            <form className="stack-form join-flow" onSubmit={onSubmit}>
               <Field label="Код лобби">
                 <Input
+                  className="join-flow__code"
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   placeholder="ABC123"
+                  autoCapitalize="characters"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  inputMode="text"
                   required
                 />
               </Field>
-              <Field label="Какого персонажа добавить">
-                <select
-                  className="ui-input"
-                  value={characterId}
-                  onChange={(e) => setCharacterId(e.target.value)}
-                  required
-                >
-                  {characters.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} · {c.class_name || 'без класса'}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+
+              {codeReady ? (
+                <div className="join-flow__preview" aria-live="polite">
+                  <Text as="h3" className="join-flow__preview-title">
+                    Стол по коду {code.trim()}
+                  </Text>
+                  <Text tone="muted">
+                    Выберите персонажа и подтвердите вход — мастер увидит его в лобби.
+                  </Text>
+                </div>
+              ) : (
+                <Text tone="muted">Введите код от мастера (минимум 4 символа).</Text>
+              )}
+
+              {/* Desk: native select keeps current density */}
+              <div className="join-flow__select-field">
+                <Field label="Какого персонажа добавить">
+                  <select
+                    className="ui-input join-flow__select"
+                    value={characterId}
+                    onChange={(e) => setCharacterId(e.target.value)}
+                    required
+                  >
+                    {characters.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} · {c.class_name || 'без класса'}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+              </div>
+
+              {/* Phone: tappable character cards */}
+              <fieldset className="join-flow__cards" disabled={!codeReady}>
+                <legend className="join-flow__cards-legend">Какого персонажа добавить</legend>
+                <div className="join-flow__card-list" role="listbox" aria-label="Персонажи">
+                  {characters.map((c) => {
+                    const active = c.id === characterId
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        role="option"
+                        aria-selected={active}
+                        className={`join-char-card${active ? ' is-selected' : ''}`}
+                        onClick={() => setCharacterId(c.id)}
+                      >
+                        <span className="join-char-card__avatar" aria-hidden="true">
+                          {(c.name || '?').slice(0, 1).toUpperCase()}
+                        </span>
+                        <span className="join-char-card__body">
+                          <span className="join-char-card__name">{c.name}</span>
+                          <span className="join-char-card__meta">{characterMeta(c)}</span>
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </fieldset>
+
+              {selected && codeReady ? (
+                <Text tone="muted" className="join-flow__picked">
+                  К столу сядет: <strong>{selected.name}</strong>
+                </Text>
+              ) : null}
+
               {error ? <Text tone="danger">{error}</Text> : null}
-              <Button type="submit" disabled={busy}>
-                {busy ? 'Входим…' : 'Войти в лобби'}
-              </Button>
+
+              <div className="join-thumb-cta">
+                <Button type="submit" disabled={busy || !codeReady || !characterId}>
+                  {busy ? 'Входим…' : 'Сесть за стол'}
+                </Button>
+              </div>
             </form>
           )}
         </Panel>

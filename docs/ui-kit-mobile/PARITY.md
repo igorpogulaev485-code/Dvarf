@@ -64,8 +64,8 @@
 | Create 2014 pipeline | ✅ sticky StepRail + footer + Сводка sheet | StepRail + footer + Сводка sheet | P1 · M1.5 |
 | Guided / level-up wizard | 🟡 | те же sheets | P1 |
 | Classic sheet | 🟡 print | link + soft warn | P2 |
-| Лобби list/create | 🟡 | Hero код+QR accordion | P1 |
-| Join по коду/QR | 🟡 | thumb code entry | P1 |
+| Лобби list/create | ✅ Hero код + QR accordion (`<960`) · desk row+QR | Hero код+QR accordion | P1 · M1.7 |
+| Join по коду/QR | ✅ код → превью → карточки персонажа → «Сесть за стол» | thumb code entry | P1 · M1.7 |
 | Session seat | 🟡 stub ok | honest stub | P2 |
 | Auth login/register/reset | 🟡 | bottom sheets | P2 |
 | Cabinet theme persist | ✅ smoke `<960` (PATCH + accent) | single column + smoke `<960` | P1 · M1.6 |
