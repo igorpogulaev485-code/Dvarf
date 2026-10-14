@@ -86,6 +86,7 @@ import { armorKindLabel, computeArmorClass } from '../../shared/dnd/armor'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
 import { AbilityBreakdownDialog } from './AbilityBreakdownDialog'
 import { AcBreakdownDialog } from './AcBreakdownDialog'
+import { InitiativeBreakdownDialog } from './InitiativeBreakdownDialog'
 import {
   abilityCheckBonus,
   abilitySaveBonus,
@@ -95,6 +96,7 @@ import {
   formatBonusSummary,
   modifiersToSheet,
   readModifiers,
+  withInitiativeBonus,
   type BonusLine,
 } from './modifiers'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
@@ -3025,6 +3027,7 @@ export function MinimalSheetEditor({
   const [abilityBreakdownKey, setAbilityBreakdownKey] = useState<AbilityKey | null>(
     null,
   )
+  const [initiativeBreakdownOpen, setInitiativeBreakdownOpen] = useState(false)
   /** Compact play-desk cast (dialog), not the full spells editor. */
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
   /** Play-desk spells setup (replaces force-full SpellsPanel). */
@@ -3395,9 +3398,22 @@ export function MinimalSheetEditor({
     return activePanel !== id
   }
 
-  const initiativeValue =
-    draft.initiativeOverride ??
-    abilityModifier(draft.abilities.dex) + featInitiativeBonus
+  const initiativeAutoCore =
+    abilityModifier(effectiveAbilities.dex) + featInitiativeBonus
+  const initiativeCore = draft.initiativeOverride ?? initiativeAutoCore
+  const initiativeValue = withInitiativeBonus({
+    core: initiativeCore,
+    modifiers: draft.modifiers,
+    vars: formulaVarsBase,
+  }).total
+  const initiativeAutoLabel = [
+    `ЛОВ ${formatModifier(abilityModifier(effectiveAbilities.dex))}`,
+    featInitiativeBonus
+      ? `черта ${formatModifier(featInitiativeBonus)}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
   const jump = jumpDistances({
     strengthScore: effectiveAbilities.str,
     strengthMod: abilityModifier(effectiveAbilities.str),
@@ -3687,6 +3703,7 @@ export function MinimalSheetEditor({
                 play: { ...prev.play, exhaustion },
               }))
             }
+            onOpenInitiative={() => setInitiativeBreakdownOpen(true)}
             onInitiativeRoll={() =>
               emitToast(
                 formatSkillRoll('Инициатива', initiativeValue, effectiveRollMode()),
@@ -5217,6 +5234,27 @@ export function MinimalSheetEditor({
           setDraft((prev) => ({ ...prev, modifiers }))
         }
         onClose={() => setAbilityBreakdownKey(null)}
+      />
+
+      <InitiativeBreakdownDialog
+        open={initiativeBreakdownOpen}
+        autoCore={initiativeAutoCore}
+        autoLabel={initiativeAutoLabel || 'ЛОВ'}
+        override={draft.initiativeOverride}
+        onOverrideChange={(initiativeOverride) =>
+          setDraft((prev) => ({ ...prev, initiativeOverride }))
+        }
+        formulaVars={formulaVarsBase}
+        modifiers={draft.modifiers}
+        onModifiersChange={(modifiers) =>
+          setDraft((prev) => ({ ...prev, modifiers }))
+        }
+        onRoll={() => {
+          emitToast(
+            formatSkillRoll('Инициатива', initiativeValue, effectiveRollMode()),
+          )
+        }}
+        onClose={() => setInitiativeBreakdownOpen(false)}
       />
 
       <RestDialog

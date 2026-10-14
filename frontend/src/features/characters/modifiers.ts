@@ -10,6 +10,7 @@ export type AbilityChannel = 'score' | 'check' | 'save'
 /** Where the bonus applies. */
 export type BonusTarget =
   | 'ac'
+  | 'initiative'
   | 'spell_dc'
   | 'spell_attack'
   | `${AbilityKey}_score`
@@ -36,6 +37,7 @@ const ABILITY_TARGETS = new Set<BonusTarget>(
 )
 const TARGETS = new Set<BonusTarget>([
   'ac',
+  'initiative',
   'spell_dc',
   'spell_attack',
   ...ABILITY_TARGETS,
@@ -238,4 +240,14 @@ export function withSpellCastBonuses(input: {
     dc: input.baseDc == null ? null : input.baseDc + dcExtra,
     attack: input.baseAttack == null ? null : input.baseAttack + atkExtra,
   }
+}
+
+/** Initiative total: override or DEX+feats, then BonusLine stack. */
+export function withInitiativeBonus(input: {
+  core: number
+  modifiers: BonusLine[]
+  vars: FormulaVars
+}): { total: number; applied: AppliedBonus[] } {
+  const lines = bonusesForTarget(input.modifiers, 'initiative')
+  return applyBonusStack(input.core, lines, input.vars)
 }

@@ -8485,6 +8485,10 @@ button.play-desk-compact__more--btn:hover {
   font-size: 0.82rem;
 }
 
+.initiative-breakdown__roll {
+  margin-top: 8px;
+}
+
 .abil-block__meta {
   grid-area: meta;
   display: flex;

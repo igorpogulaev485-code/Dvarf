@@ -10,6 +10,7 @@ import {
   normalizeBonusLines,
   patchModifierList,
   readModifiers,
+  withInitiativeBonus,
   withSpellCastBonuses,
 } from './modifiers.ts'
 
@@ -136,5 +137,22 @@ const cast = withSpellCastBonuses({
   vars,
 })
 assert(cast.dc === 14 && cast.attack === 7, `cast ${cast.dc}/${cast.attack}`)
+
+const initLines = normalizeBonusLines([
+  {
+    id: 'i',
+    target: 'initiative',
+    label: 'Бдительный',
+    op: '+',
+    expr: '5',
+    enabled: true,
+  },
+])
+const init = withInitiativeBonus({
+  core: 1,
+  modifiers: initLines,
+  vars,
+})
+assert(init.total === 6, `init ${init.total}`)
 
 console.log('modifiers.selfcheck ok')

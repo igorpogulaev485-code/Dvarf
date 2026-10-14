@@ -91,6 +91,8 @@ type PlayDeskHeaderProps = {
   onToggleInspiration: () => void
   onExhaustionChange: (exhaustion: number) => void
   onInitiativeRoll?: () => void
+  /** Open initiative breakdown / buffs (preferred over direct roll). */
+  onOpenInitiative?: () => void
   onPlayChange: (play: PlayState) => void
   onCoinsChange: (coins: CoinPurse) => void
   onCombatChange: (patch: {
@@ -144,6 +146,7 @@ export function PlayDeskHeader({
   onToggleInspiration,
   onExhaustionChange,
   onInitiativeRoll,
+  onOpenInitiative,
   onPlayChange,
   onCoinsChange,
   onCombatChange,
@@ -478,7 +481,19 @@ export function PlayDeskHeader({
               <span>Прыж.</span>
             </div>
           ) : null}
-          {onInitiativeRoll ? (
+          {onOpenInitiative ? (
+            <button
+              type="button"
+              className="play-desk-vital play-desk-vital--clickable"
+              title={`${formatModifier(initiative)} инициатива. Нажми — разборка и бонусы`}
+              aria-label={`Инициатива ${formatModifier(initiative)}. Открыть разборку`}
+              onClick={onOpenInitiative}
+            >
+              <IconBolt className="play-desk-vital__icon" />
+              <b>{formatModifier(initiative)}</b>
+              <span>Иниц.</span>
+            </button>
+          ) : onInitiativeRoll ? (
             <button
               type="button"
               className="play-desk-vital"
