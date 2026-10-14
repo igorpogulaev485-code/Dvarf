@@ -10,6 +10,7 @@ import {
   normalizeBonusLines,
   patchModifierList,
   readModifiers,
+  withSpellCastBonuses,
 } from './modifiers.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
@@ -108,5 +109,32 @@ const scores = applyAbilityScoreBonuses(
 )
 assert(scores.str === 15, `str score ${scores.str}`)
 assert(abilityCheckBonus('str', abilityOk, vars) === 1, 'str check')
+
+const spellLines = normalizeBonusLines([
+  {
+    id: 'dc',
+    target: 'spell_dc',
+    label: 'Амулет',
+    op: '+',
+    expr: '1',
+    enabled: true,
+  },
+  {
+    id: 'atk',
+    target: 'spell_attack',
+    label: 'Благословение',
+    op: '+',
+    expr: '2',
+    enabled: true,
+  },
+])
+assert(spellLines.length === 2, 'spell targets')
+const cast = withSpellCastBonuses({
+  baseDc: 13,
+  baseAttack: 5,
+  modifiers: spellLines,
+  vars,
+})
+assert(cast.dc === 14 && cast.attack === 7, `cast ${cast.dc}/${cast.attack}`)
 
 console.log('modifiers.selfcheck ok')

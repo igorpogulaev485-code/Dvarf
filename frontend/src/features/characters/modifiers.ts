@@ -10,6 +10,8 @@ export type AbilityChannel = 'score' | 'check' | 'save'
 /** Where the bonus applies. */
 export type BonusTarget =
   | 'ac'
+  | 'spell_dc'
+  | 'spell_attack'
   | `${AbilityKey}_score`
   | `${AbilityKey}_check`
   | `${AbilityKey}_save`
@@ -32,7 +34,12 @@ const ABILITY_TARGETS = new Set<BonusTarget>(
     `${key}_save` as BonusTarget,
   ]),
 )
-const TARGETS = new Set<BonusTarget>(['ac', ...ABILITY_TARGETS])
+const TARGETS = new Set<BonusTarget>([
+  'ac',
+  'spell_dc',
+  'spell_attack',
+  ...ABILITY_TARGETS,
+])
 const OPS = new Set<BonusOp>(['+', '-', '='])
 
 export function abilityBonusTarget(
@@ -206,4 +213,29 @@ export function abilitySaveBonus(
   const lines = bonusesForTarget(modifiers, abilityBonusTarget(ability, 'save'))
   if (lines.length === 0) return 0
   return applyBonusStack(0, lines, vars).total
+}
+
+/** Flat stack on spell save DC / spell attack (on top of 8+PB+mod / PB+mod). */
+export function spellCastBonus(
+  target: 'spell_dc' | 'spell_attack',
+  modifiers: BonusLine[],
+  vars: FormulaVars,
+): number {
+  const lines = bonusesForTarget(modifiers, target)
+  if (lines.length === 0) return 0
+  return applyBonusStack(0, lines, vars).total
+}
+
+export function withSpellCastBonuses(input: {
+  baseDc: number | null
+  baseAttack: number | null
+  modifiers: BonusLine[]
+  vars: FormulaVars
+}): { dc: number | null; attack: number | null } {
+  const dcExtra = spellCastBonus('spell_dc', input.modifiers, input.vars)
+  const atkExtra = spellCastBonus('spell_attack', input.modifiers, input.vars)
+  return {
+    dc: input.baseDc == null ? null : input.baseDc + dcExtra,
+    attack: input.baseAttack == null ? null : input.baseAttack + atkExtra,
+  }
 }

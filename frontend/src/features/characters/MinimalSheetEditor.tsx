@@ -4711,8 +4711,10 @@ export function MinimalSheetEditor({
         <>
           <PlayDeskSpellsCompact
             spells={draft.spells}
-            abilities={draft.abilities}
+            abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
+            modifiers={draft.modifiers}
+            formulaVars={formulaVarsBase}
             learnBudget={spellLearnBudget}
             pinned={deskSplit && splitSecondary === 'spells'}
             concentration={draft.play.concentration}
@@ -4768,8 +4770,13 @@ export function MinimalSheetEditor({
             classes={draft.classes}
             subclassCasters={subclassCastersForSpells}
             spells={draft.spells}
-            abilities={draft.abilities}
+            abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
+            modifiers={draft.modifiers}
+            formulaVars={formulaVarsBase}
+            onModifiersChange={(modifiers) =>
+              setDraft((prev) => ({ ...prev, modifiers }))
+            }
             suggestion={spellcastingSync.suggestion}
             knownCaster={spellcastingSync.knownCaster}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
@@ -4785,8 +4792,10 @@ export function MinimalSheetEditor({
           classes={draft.classes}
           subclassCasters={subclassCastersForSpells}
           spells={draft.spells}
-          abilities={draft.abilities}
+          abilities={effectiveAbilities}
           proficiencyBonus={proficiencyBonus}
+          modifiers={draft.modifiers}
+          formulaVars={formulaVarsBase}
           inventoryItems={draft.inventory.items}
           inventory={draft.inventory}
           concentration={draft.play.concentration}

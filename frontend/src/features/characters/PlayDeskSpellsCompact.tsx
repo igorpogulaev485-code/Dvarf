@@ -21,13 +21,17 @@ import {
 } from './spells'
 import { IconCast, IconConcentration, IconRitual, IconWizardHat } from './spellIcons'
 import { spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
+import type { FormulaVars } from '../../shared/dnd/formulas'
 import { clampPactSlots, levelLabel, spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
+import { type BonusLine, withSpellCastBonuses } from './modifiers'
 
 type PlayDeskSpellsCompactProps = {
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  modifiers?: BonusLine[]
+  formulaVars?: FormulaVars
   /** PHB learn budget caps for compact quota chips. */
   learnBudget?: {
     mode: 'known' | 'prepared_list' | 'spellbook'
@@ -58,6 +62,8 @@ export function PlayDeskSpellsCompact({
   spells,
   abilities,
   proficiencyBonus,
+  modifiers = [],
+  formulaVars = {},
   learnBudget = null,
   pinned = false,
   concentration = null,
@@ -78,8 +84,16 @@ export function PlayDeskSpellsCompact({
   const pactRemaining = pact && pact.max > 0 ? Math.max(0, pact.max - pact.used) : null
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const dc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
-  const attack = abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : null
+  const castStats = withSpellCastBonuses({
+    baseDc: abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null,
+    baseAttack: abilityKey
+      ? spellAttackBonus(abilityMod, proficiencyBonus)
+      : null,
+    modifiers,
+    vars: formulaVars,
+  })
+  const dc = castStats.dc
+  const attack = castStats.attack
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)

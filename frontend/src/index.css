@@ -2998,8 +2998,31 @@ button.spell-card__cast:hover:not(:disabled) {
   min-width: 4.25rem;
   padding: 5px 10px;
   border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
-  background: color-mix(in srgb, var(--accent-soft) 70%, white);
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+}
+
+button.spells-settings__derived-stat--btn {
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+button.spells-settings__derived-stat--btn:hover {
+  border-color: color-mix(in srgb, var(--ink) 22%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 75%, white);
+}
+
+.spell-cast-breakdown__badges {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.spell-cast-breakdown__badges .ac-breakdown__badge {
+  width: 72px;
+  height: 64px;
 }
 
 .spells-settings__derived-stat span {
