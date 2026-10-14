@@ -119,7 +119,8 @@ import {
   syncGearGrantSpells,
   syncGearResources,
 } from './gearGrantsSync'
-import { canWearArmor } from './equipmentProficiency'
+import { canWearArmor, armorProficiencyHint } from './equipmentProficiency'
+import { listShieldItems, toggleShieldInHand } from './heldEquip'
 import { AttunementDialog } from './AttunementDialog'
 import {
   attunementsToSheet,
@@ -3498,6 +3499,31 @@ export function MinimalSheetEditor({
             play={draft.play}
             autoAc={armorClass.ac}
             acHint={armorClass.summary}
+            shieldInHand={Boolean(equippedArmorPieces(draft.inventory.items).shield)}
+            shieldAvailable={listShieldItems(draft.inventory.items).length > 0}
+            onToggleShield={() => {
+              const shields = listShieldItems(draft.inventory.items)
+              const anyOn = shields.some((row) => row.equipped)
+              if (!anyOn && !canWearArmor('shield', draft.identity.armor)) {
+                onToast(armorProficiencyHint('shield'))
+                return
+              }
+              const result = toggleShieldInHand(draft.inventory.items)
+              if (!result.ok) {
+                onToast(result.reason)
+                return
+              }
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, items: result.items },
+                weapons: syncAttacksHeldFromInventory(prev.weapons, result.items),
+              }))
+              onToast(
+                result.equipped
+                  ? `Щит «${result.name}» в руке`
+                  : `Щит «${result.name}» убран`,
+              )
+            }}
             speed={
               draft.speed == null && !gearEffects.speedBonusFt
                 ? null
