@@ -217,6 +217,7 @@ import { PlayDeskHeader } from './PlayDeskHeader'
 import { PlayDeskHotBar } from './PlayDeskHotBar'
 import { RestDialog } from './RestDialog'
 import { SorceryPointsSpendDialog } from './SorceryPointsSpendDialog'
+import { BottomSceneNav } from './BottomSceneNav'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
@@ -3144,8 +3145,8 @@ export function MinimalSheetEditor({
   }
 
   function showCompact(id: PlayDeskCompactPanelId): boolean {
-    // Spells / attacks: compact is the only play surface; setup lives in settings dialogs.
-    if (id === 'spells' || id === 'attacks') return isPlayDesk
+    // Spells / attacks: compact is the only play surface (desk + phone); setup in dialogs.
+    if (id === 'spells' || id === 'attacks') return true
     // Explore / Social / Features / Companions: glance→expand — no compact/full flip.
     if (
       id === 'inventory' ||
@@ -3155,7 +3156,7 @@ export function MinimalSheetEditor({
     ) {
       return false
     }
-    return isPlayDesk && forceFullPanel !== id
+    return forceFullPanel !== id
   }
 
   function skillModFor(skillKey: string): number {
@@ -3209,6 +3210,7 @@ export function MinimalSheetEditor({
     onToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
   }
 
+  /** Split only on wide desk; phone = one scene panel (+ combat segment for spells). */
   const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
   const splitSecondary =
     deskSplit && modeUsesSpellSplit(draft.sheetUi.deskMode)
@@ -3216,7 +3218,7 @@ export function MinimalSheetEditor({
       : null
 
   function stageHidden(id: PlayDeskPanelId): boolean {
-    if (!isPlayDesk) return false
+    // Mobile kit: always one panel (no all-panels stack).
     if (deskSplit && splitSecondary && (id === activePanel || id === splitSecondary)) {
       return false
     }
@@ -3253,7 +3255,7 @@ export function MinimalSheetEditor({
   }, [draft.classes, subclassCastersForSpells, draft.abilities])
 
   const spellcastingSync = useSpellcastingSheetSync({
-    enabled: isPlayDesk,
+    enabled: true,
     className: classSummary || primaryClass?.name || '',
     level: characterLevel,
     classes: draft.classes,
@@ -3370,7 +3372,7 @@ export function MinimalSheetEditor({
     <div
       className={[
         'play-desk',
-        isPlayDesk ? 'play-desk--wide' : '',
+        isPlayDesk ? 'play-desk--wide' : 'play-desk--mobile',
         deskSplit ? 'play-desk--split' : '',
       ]
         .filter(Boolean)
@@ -3660,31 +3662,56 @@ export function MinimalSheetEditor({
             </div>
           ) : null}
 
-          {isPlayDesk ? (
-            <PlayDeskHotBar
-              conditionNames={hotConditionNames}
-              exhaustion={draft.play.exhaustion}
-              concentration={draft.play.concentration}
-              resources={draft.play.resources}
-              onOpenConditions={() => setHotConditionsOpen(true)}
-              onClearConcentration={() =>
-                setDraft((prev) => ({
-                  ...prev,
-                  play: { ...prev.play, concentration: null },
-                }))
-              }
-              onResourceUsedChange={(id, used) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  play: {
-                    ...prev.play,
-                    resources: prev.play.resources.map((row) =>
-                      row.id === id ? { ...row, used } : row,
-                    ),
-                  },
-                }))
-              }
-            />
+          <PlayDeskHotBar
+            conditionNames={hotConditionNames}
+            exhaustion={draft.play.exhaustion}
+            concentration={draft.play.concentration}
+            resources={draft.play.resources}
+            onOpenConditions={() => setHotConditionsOpen(true)}
+            onClearConcentration={() =>
+              setDraft((prev) => ({
+                ...prev,
+                play: { ...prev.play, concentration: null },
+              }))
+            }
+            onResourceUsedChange={(id, used) =>
+              setDraft((prev) => ({
+                ...prev,
+                play: {
+                  ...prev.play,
+                  resources: prev.play.resources.map((row) =>
+                    row.id === id ? { ...row, used } : row,
+                  ),
+                },
+              }))
+            }
+          />
+
+          {!isPlayDesk && draft.sheetUi.deskMode === 'combat' ? (
+            <div className="mobile-combat-seg" role="tablist" aria-label="Бой">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activePanel === 'attacks'}
+                className={`mobile-combat-seg__btn${
+                  activePanel === 'attacks' ? ' is-on' : ''
+                }`}
+                onClick={() => setActivePanel('attacks')}
+              >
+                Атаки
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activePanel === 'spells'}
+                className={`mobile-combat-seg__btn${
+                  activePanel === 'spells' ? ' is-on' : ''
+                }`}
+                onClick={() => setActivePanel('spells')}
+              >
+                Заклинания
+              </button>
+            </div>
           ) : null}
 
           {isPlayDesk && draft.sheetUi.deskMode === 'combat' ? (
@@ -4553,6 +4580,10 @@ export function MinimalSheetEditor({
 
       </div>{/* stage */}
       </div>{/* body */}
+
+      {!isPlayDesk ? (
+        <BottomSceneNav mode={draft.sheetUi.deskMode} onModeChange={setDeskMode} />
+      ) : null}
 
       {ownershipOpen ? (
         <>

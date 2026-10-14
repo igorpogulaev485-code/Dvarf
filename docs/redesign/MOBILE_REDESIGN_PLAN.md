@@ -121,9 +121,10 @@ Wave A chrome завязан на `isPlayDesk` (`min-width: 960px`). На тел
 
 **Слайс M0.4 — Combat scene + abilities entry**  
 - Бой = атаки (+ сегмент заклинания)  
-- Характеристики → sheet из vitals (без tab ЕЩЁ)  
-- Владения → bottom sheet из Характеристик  
-- Density `*-card__combat`
+- Характеристики → **полноэкранная страница B** из vitals (без tab ЕЩЁ)  
+- Владения → sheet/вложенная из страницы Характеристики  
+- Density `*-card__combat`  
+- Vitals **сворачиваются** (compact strip)
 
 **Критерий P0:** K2, K3, K6, K7 проходят на 390px; Rest/Conditions/атака доступны; нет стека панелей.
 

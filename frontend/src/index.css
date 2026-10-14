@@ -8556,3 +8556,122 @@ button.play-desk-vital:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* ——— Mobile UI Kit shell (<960) ——— */
+.play-desk--mobile {
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+}
+
+.play-desk--mobile .play-desk__left {
+  display: none;
+}
+
+.play-desk--mobile .play-desk__body {
+  display: block;
+}
+
+.play-desk--mobile .play-desk__stage {
+  min-height: 0;
+}
+
+.play-desk--mobile .play-desk__hot {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+}
+
+.mobile-combat-seg {
+  display: flex;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.mobile-combat-seg__btn {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.mobile-combat-seg__btn.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.mobile-scene-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  padding: 4px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -6px 20px rgba(45, 45, 42, 0.08);
+}
+
+.mobile-scene-nav__tabs {
+  display: flex;
+  gap: 2px;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.mobile-scene-nav__tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 48px;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.mobile-scene-nav__ico {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.mobile-scene-nav__tab.is-on {
+  color: var(--accent);
+}
+
+.mobile-scene-nav__tab.is-on .mobile-scene-nav__ico {
+  background: var(--accent);
+  color: #fff;
+}
+
+.mobile-scene-nav__label {
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 960px) {
+  .mobile-scene-nav,
+  .mobile-combat-seg {
+    display: none;
+  }
+}

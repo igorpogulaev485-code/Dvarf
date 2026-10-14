@@ -233,6 +233,15 @@ export const MODE_LABELS: Array<{ id: PlayDeskMode; label: string }> = [
   { id: 'features', label: 'Способности' },
 ]
 
+/** Short labels under Bottom Scene Nav icons (<960). aria-label stays full. */
+export const MODE_SHORT_LABELS: Record<PlayDeskMode, string> = {
+  combat: 'Бой',
+  explore: 'Исслед.',
+  social: 'Общение',
+  companions: 'Напарн.',
+  features: 'Способн.',
+}
+
 export function panelLabel(id: PlayDeskPanelId): string {
   return PLAY_DESK_PANELS.find((panel) => panel.id === id)?.label ?? id
 }
