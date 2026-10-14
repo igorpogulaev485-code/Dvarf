@@ -72,7 +72,7 @@
 | Тема кабинета | `theme_id` в `/auth/me` + update | Цвет сохраняется |
 | API HTML flap | nginx + retry | Меньше «страница вместо API» |
 
-На проде: **проверяется деплоем** · ветка `cursor/prod-ship-desk-ux-244b` · merge #153–#157
+На проде: **да** · ветка `cursor/prod-ship-desk-ux-244b` · PR #158 (merge #153–#157) · проверено 2026-10-14: `/health` ok; alembic `b7c8d9e0f1a2`; lizardfolk `swim:30` + 4 trait_cards; бандл `CharacterDetailPage-BKnvlU4h.js` (shield-tog / jump / rolls)
 
 
 > Стартовый срез по живому серверу. Агенты дополняют и правят ниже.
