@@ -30,8 +30,9 @@
 | Умения / ресурсы spend | 🟡 | Tab Способности | P1 |
 | Напарники CRUD | 🟡 | Tab Напарники | P1 |
 | Companion dock | ❌ | optional strip P2 | P2 |
-| Ability rail + навыки | 🟡 всегда сверху | vitals → sheet Характеристики (без tab ЕЩЁ) | P0 |
-| Владения drawer | ❌ CTA desk-only | из Характеристик → sheet | P0 |
+| Ability rail + навыки | 🟡 всегда сверху | vitals chip → **страница** Характеристики (вариант B; без tab ЕЩЁ) | P0 |
+| Сворачиваемые vitals | ❌ | «Свернуть ▴» → compact strip; ▾ развернуть | P0 |
+| Владения drawer | ❌ CTA desk-only | из страницы Характеристики → sheet/вложенная | P0 |
 | Identity / аватар / классы | 🟡 в стеке | who/avatar → sheet | P0 |
 | Skill strips + преим/помеха | ❌ | P1 в Бою / Характеристиках | P1 |
 | Split spells | ❌ N/A | segmented, не split | P1 |

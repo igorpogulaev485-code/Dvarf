@@ -14,7 +14,7 @@
 | `dvarf-mobile-kit-sheets.jpg` | Bottom sheets: HP / Rest / Conditions / Cast |
 | `dvarf-mobile-kit-scenes.jpg` | Сцены Бой · Исследование · Общение · … |
 | `dvarf-mobile-kit-identity.jpg` | Аватар/who → sheet «Основное» (паритет IdentityDialog) |
-| `dvarf-mobile-kit-abilities.jpg` | Вход из vitals → sheet Характеристики (+навыки) → Владения |
+| `dvarf-mobile-kit-abilities.jpg` | Вариант B: страница Характеристики + collapse vitals → Владения |
 | `dvarf-mobile-kit-create-lobby.jpg` | Create StepRail + Lobby Hero на телефоне |
 
 Табы: **Бой · Исследование · Общение · Напарники · Способности** (desktop после drop ЕЩЁ).  

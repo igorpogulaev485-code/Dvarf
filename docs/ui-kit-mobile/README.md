@@ -116,7 +116,11 @@ Safe area: `padding-bottom: max(12px, env(safe-area-inset-bottom))` на nav и 
 | Монеты | icon → CoinPad sheet |
 | Отдых | icon → Rest sheet |
 | XP | компактная полоска или «⋯ vitals» → sheet (не выкидывать) |
-| Концентрация | chip; clear + при уроне из HpPad — «Удержал / Сорвалось» |
+| Характеристики | chip «СИЛ…» → **полноэкранная страница** (вариант B), не bottom sheet |
+| Свернуть | control «Свернуть ▴» — vitals → compact strip (HP + who + ▾); HotStrip остаётся |
+
+**Сворачивание (LOCK-кандидат, ok Игоря 2026-10-14):** как у LSS «Свернуть», но в языке Листвы.  
+Collapsed sticky: аватар/имя · HP · chip Характеристики · ▾ развернуть. Pads (HP/монеты/отдых) доступны и из compact.
 
 **Эволюция кода:** расширить `CombatStickyHeader` до паритета входов Wave A, либо новый `MobileVitalsBar` с теми же callbacks, что `PlayDeskHeader`.
 
@@ -151,8 +155,8 @@ Icons: те же `IconConditions` / `IconConcentration` / `IconPouch`.
 | Состояния | HotStrip → Conditions sheet |
 | Основное / identity | аватар / who → Identity sheet |
 | Настройка (attunement) | Исследование summary → Attunement sheet |
-| Владения | из Характеристик CTA «Владения ▸» → bottom sheet (не left drawer) |
-| Характеристики (rail) | отдельный вход: chip/кнопка в vitals или sheet «Характеристики» — **не** 6-й tab «ЕЩЁ» |
+| Владения | из страницы Характеристики CTA «Владения ▸» → sheet или вложенная страница (не left drawer) |
+| Характеристики (rail) | chip в vitals → **полноэкранная страница** (вариант B, реф. LSS) — **не** 6-й tab «ЕЩЁ», **не** bottom sheet |
 
 Короткие подписи под иконкой ок (`Исслед.` / `Способн.`); `aria-label` = полный label.
 
@@ -162,7 +166,7 @@ Icons: те же `IconConditions` / `IconConcentration` / `IconPouch`.
 - Tab active = solid accent; иконка + короткий label.
 - Высота ≥ `--tap-comfy` + safe-area.
 - **Не** возвращать tab/сцену «ЕЩЁ».
-- Характеристики **не** permanent top rail: sheet/вход из vitals (паритет desktop left rail без 6-го режима).
+- Характеристики **не** permanent top rail и **не** tab: полноэкранная страница из vitals (паритет desktop left rail без 6-го режима).
 
 Рекомендуемый default tab при открытии листа: **Бой** (time-to-attack).
 
@@ -175,10 +179,17 @@ Icons: те же `IconConditions` / `IconConcentration` / `IconPouch`.
 | Rest | Отдых | кости / короткий / длинный |
 | Conditions | HotStrip | exhaustion + on-character + quick pick |
 | Cast | Каст | upcast / источник / conc swap |
-| Ownership | из Характеристик «Владения ▸» | скорости/ТЗ · снаряжение · языки/инструменты |
+| Ownership | из страницы Характеристики «Владения ▸» | скорости/ТЗ · снаряжение · языки/инструменты |
 | Identity | аватар / who | как desktop IdentityDialog |
 | Attunement | summary инвентаря | слоты 0–3 |
-| Abilities | vitals → sheet Характеристики | AbilitySkillsColumn full |
+
+### 3.5b Полноэкранные страницы (не sheet, не tab)
+
+| Страница | Триггер | Содержимое |
+|----------|---------|------------|
+| Характеристики | vitals chip «СИЛ…» | AbilitySkillsColumn full · назад к сцене · «Владения ▸» |
+
+Правила страницы: свой header «← Характеристики»; Bottom Nav **скрыт** или приглушён (фокус на rail); закрытие = назад к активной сцене (Бой и т.д.).
 
 CSS: уже есть задел `@media (max-width: 640px)` → `align-items: flex-end` у dialog. Унифицировать на `<960` для play pads.
 
@@ -222,8 +233,9 @@ Compact-компоненты десктопа (`PlayDesk*Compact`) **можно*
 | §2g Texts | Общение |
 | §2h Features | Способности |
 | §2i Companions | Напарники |
-| §2j Ownership | Характеристики → «Владения ▸» sheet (**не** left drawer, **не** ЕЩЁ) |
+| §2j Ownership | страница Характеристики → «Владения ▸» (**не** left drawer, **не** ЕЩЁ) |
 | §2k Identity | аватар / who line (сцена ЕЩЁ нет) |
+| Ability rail | vitals → **страница** Характеристики (вариант B) |
 | §2l Hot-bar + conc | HotStrip + HpPad conc-on-damage |
 | §2m Character list | list density (см. §7) |
 

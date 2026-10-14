@@ -17,7 +17,7 @@
 | [`sheets`](boards/dvarf-mobile-kit-sheets.jpg) | Bottom sheets: HP / Rest / Conditions / Cast |
 | [`scenes`](boards/dvarf-mobile-kit-scenes.jpg) | 5 сцен + sheet Характеристики |
 | [`identity`](boards/dvarf-mobile-kit-identity.jpg) | аватар/who → Основное (Identity) |
-| [`abilities`](boards/dvarf-mobile-kit-abilities.jpg) | vitals → Характеристики (+навыки) → Владения |
+| [`abilities`](boards/dvarf-mobile-kit-abilities.jpg) | вариант B: страница Характеристики + collapse vitals |
 | [`create-lobby`](boards/dvarf-mobile-kit-create-lobby.jpg) | Create StepRail + Lobby Hero |
 
 Код мобилки — **только после ok** на эти картинки.
