@@ -6073,8 +6073,7 @@ button.spell-card__cast:hover:not(:disabled) {
   .identity-dialog__form {
     gap: 12px;
   }
-  .identity-dialog__form > .sheet-grid--2,
-  .identity-dialog__class > .sheet-grid--2 {
+  .identity-dialog .sheet-grid--2 {
     grid-template-columns: 1fr;
   }
   .identity-dialog__avatar {
