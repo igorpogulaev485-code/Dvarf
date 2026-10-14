@@ -248,6 +248,11 @@ export async function apiRequest<T>(
 
   const contentType = response.headers.get('content-type') || ''
   if (contentType.includes('text/html')) {
+    // Deploy / nginx flap can briefly serve index.html on an API path.
+    if (!retried && response.status < 500) {
+      await new Promise((resolve) => window.setTimeout(resolve, 500))
+      return apiRequest<T>(path, options, true)
+    }
     throw new ApiRequestError(
       response.status >= 500
         ? 'Сервер временно недоступен — подождите пару секунд и повторите'
