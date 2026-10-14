@@ -9042,6 +9042,86 @@ button.play-desk-compact__more--btn:hover {
   color: #fff;
 }
 
+/* Combat roll mode: норм / преим. / помеха / броски (M1.4) */
+.mobile-combat-roll {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.mobile-combat-roll__btn {
+  flex: 1;
+  min-height: 40px;
+  border: 0;
+  border-right: 1px solid var(--desk-line, var(--line));
+  background: transparent;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--desk-muted, var(--muted));
+}
+
+.mobile-combat-roll__btn:last-child {
+  border-right: 0;
+}
+
+.mobile-combat-roll__btn.is-on {
+  background: var(--desk-accent, var(--accent));
+  color: #fff;
+}
+
+.mobile-combat-roll__btn--history {
+  flex: 1.15;
+}
+
+/* Mobile combat density: keep body ≥14px, tighten meta/gaps */
+.play-desk--mobile .play-desk__hot--skills .play-desk__hot-item {
+  min-width: min(108px, 42vw);
+  min-height: 40px;
+  padding: 6px 8px;
+}
+
+.play-desk--mobile .play-desk__hot--skills .play-desk__hot-item span {
+  font-size: 0.78rem;
+}
+
+.play-desk--mobile .play-desk__hot--skills .play-desk__hot-item b {
+  font-size: 0.9rem;
+}
+
+.play-desk--mobile .play-desk-compact__hit,
+.play-desk--mobile .play-desk-compact__row.is-action:not(.is-spell) {
+  padding: 6px 8px;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+
+.play-desk--mobile .play-desk-compact__row-main b {
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.play-desk--mobile .play-desk-compact__meta,
+.play-desk--mobile .play-desk-compact__card-meta,
+.play-desk--mobile .play-desk-compact__spell-meta {
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.play-desk--mobile .play-desk-compact__list {
+  gap: 6px;
+}
+
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__mod,
+.play-desk--mobile .play-desk-compact__row.is-attack .play-desk-compact__dmg {
+  font-size: 0.84rem;
+}
+
 .cast-recovery {
   display: flex;
   flex-wrap: wrap;
@@ -9121,7 +9201,8 @@ button.play-desk-compact__more--btn:hover {
 @media (min-width: 960px) {
   .mobile-scene-nav,
   .mobile-combat-seg,
-  .mobile-combat-seg-stack {
+  .mobile-combat-seg-stack,
+  .mobile-combat-roll {
     display: none;
   }
 }

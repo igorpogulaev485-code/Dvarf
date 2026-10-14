@@ -4082,10 +4082,46 @@ export function MinimalSheetEditor({
                   </button>
                 </div>
               ) : null}
+              <div
+                className="mobile-combat-roll"
+                role="group"
+                aria-label="Преимущество / помеха"
+              >
+                {(
+                  [
+                    ['normal', 'норм'],
+                    ['advantage', 'преим.'],
+                    ['disadvantage', 'помеха'],
+                  ] as const
+                ).map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    className={`mobile-combat-roll__btn${
+                      deskRollMode === mode ? ' is-on' : ''
+                    }`}
+                    aria-pressed={deskRollMode === mode}
+                    onClick={() => setDeskRollMode(mode)}
+                  >
+                    {label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
+                  title="История бросков на этом листе"
+                  onClick={() => setRollHistoryOpen(true)}
+                >
+                  броски
+                  {draft.sheetUi.rollHistory.length > 0
+                    ? ` ${Math.min(draft.sheetUi.rollHistory.length, 99)}`
+                    : ''}
+                </button>
+              </div>
             </div>
           ) : null}
 
-          {isPlayDesk && draft.sheetUi.deskMode === 'combat' ? (
+          {draft.sheetUi.deskMode === 'combat' ? (
             <PlayDeskSkillStrip
               ariaLabel="Навыки боя"
               skills={modeSkillChips('combat')}

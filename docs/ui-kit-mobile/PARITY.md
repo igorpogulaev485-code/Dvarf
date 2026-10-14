@@ -41,9 +41,9 @@
 | Identity / аватар / классы | ✅ who/avatar → sheet | who/avatar → sheet | P0 |
 | Identity **Черты** + мастер выдал | ✅ (tip §2k) | секция в Identity sheet | P0 · M0.4b |
 | XP pad / history / level-up CTA | ✅ в Identity (`XpProgressField`) | Identity sheet | P0 |
-| Skill strips + преим/помеха | ❌ | Бой + Характеристики | P1 · M1.4 |
-| История бросков «броски» | ❌ (desk tip 10-14) | sticky Бой → sheet | P1 · M1.4 |
-| Безрассудная → преим. | ❌ / 🟡 desk-only wiring | Бой compact | P1 · M1.4 |
+| Skill strips + преим/помеха | ✅ Бой (strip + roll bar) | Бой + Характеристики | P1 · M1.4 |
+| История бросков «броски» | ✅ sheet из Боя (тот же rollHistory) | Бой → sheet | P1 · M1.4 |
+| Безрассудная → преим. | ✅ `onCombatFeatureToggle` → deskRollMode | Бой compact | P1 · M1.4 |
 | Split spells | ✅ сегмент Атаки/Заклинания + Бой/Книга | segmented, не split | P1 |
 | Autosave / conflict | ✅ | copy WAVE | P0 |
 | Speed modes (лаз/плав/полёт) | 🟡 | vitals tip/sheet | P1 |
