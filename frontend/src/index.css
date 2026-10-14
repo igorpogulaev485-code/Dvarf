@@ -804,18 +804,22 @@ input {
 .app-header__more-btn {
   display: none;
   box-sizing: border-box;
-  width: 40px;
-  min-width: 40px;
-  max-width: 40px;
-  min-height: 40px;
+  width: 32px;
+  min-width: 32px;
+  max-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  max-height: 32px;
   padding: 0;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--card);
-  font-size: 1.15rem;
+  font-size: 0.95rem;
   font-weight: 700;
   line-height: 1;
   color: var(--muted);
+  align-self: center;
+  flex: 0 0 32px;
 }
 
 .app-header__more-sheet {
@@ -5558,11 +5562,14 @@ button.spells-settings__derived-stat--btn:hover {
   .app-header__actions {
     width: 100%;
     gap: 8px;
+    align-items: center;
   }
 
   .app-header__user {
     flex: 1;
     max-width: none;
+    min-height: 40px;
+    padding: 4px 10px;
   }
 
   .app-header__user-name {
@@ -5580,12 +5587,17 @@ button.spells-settings__derived-stat--btn:hover {
   .app-header__actions .ui-button.app-header__more-btn {
     display: inline-grid;
     place-items: center;
-    flex: 0 0 40px;
-    width: 40px;
-    min-width: 40px;
-    max-width: 40px;
-    min-height: 40px;
+    flex: 0 0 32px;
+    align-self: center;
+    width: 32px;
+    min-width: 32px;
+    max-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    max-height: 32px;
     padding: 0;
+    border-radius: 8px;
+    font-size: 0.95rem;
   }
 
   .app-nav {
