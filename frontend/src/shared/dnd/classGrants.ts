@@ -58,6 +58,32 @@ export type StartingEquipmentPackage = {
   coinsGp?: number
 }
 
+/** Synthetic pack id when the player fills PHB a/b/c equipment lines. */
+export const PHB_LINES_PACKAGE_ID = 'phb_lines'
+
+export type ClassEquipmentLineOption = {
+  id: string
+  labelRu: string
+  /** Fixed gear for this fork. */
+  items?: StartingGearItem[]
+  /** Player must pick a concrete weapon from this PHB group. */
+  pickWeapon?: 'simple' | 'martial'
+  /** Soft hint (e.g. «если владеете») — does not block the pick. */
+  noteRu?: string
+}
+
+export type ClassEquipmentLine = {
+  id: string
+  labelRu: string
+  options: ClassEquipmentLineOption[]
+}
+
+export type ClassEquipmentLinePick = {
+  optionId: string
+  /** Required when the chosen option has pickWeapon. */
+  weaponName?: string | null
+}
+
 function gear(
   id: string,
   labelRu: string,
@@ -116,21 +142,7 @@ export const CLASS_STARTING_EQUIPMENT: Record<string, StartingEquipmentPackage[]
     gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
   ],
   cleric: [
-    gear('a', 'Вариант A', 'Булава + чешуйчатый + лёгкий арбалет + священный символ + набор жреца', [
-      item('Булава'),
-      item('Чешуйчатый доспех', { armor_kind: 'medium', base_ac: 14, weight_lb: 45 }),
-      item('Лёгкий арбалет'),
-      item('Болты арбалета', { qty: 20 }),
-      item('Священный символ'),
-      item('Набор жреца'),
-    ]),
-    gear('b', 'Вариант B', 'Боевой молот + кольчуга + щит + священный символ + набор жреца', [
-      item('Боевой молот'),
-      item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 }),
-      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
-      item('Священный символ'),
-      item('Набор жреца'),
-    ]),
+    // PHB a/b/c forks live in CLASS_EQUIPMENT_LINES; gold remains a package.
     gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
   ],
   druid: [
@@ -342,8 +354,139 @@ export function startingEquipmentFor(slug: string): StartingEquipmentPackage[] {
 
 /** Prefer packages attached to a resolved def (catalog), else local fallback. */
 export function equipmentPackagesFor(def: ClassGrantDef): StartingEquipmentPackage[] {
-  if (def.equipment && def.equipment.length > 0) return def.equipment
-  return startingEquipmentFor(def.slug)
+  const raw =
+    def.equipment && def.equipment.length > 0
+      ? def.equipment
+      : startingEquipmentFor(def.slug)
+  // When PHB line forks exist, hide pre-baked A/B packs — keep gold (or empty) only.
+  if ((CLASS_EQUIPMENT_LINES[def.slug] ?? []).length > 0) {
+    return raw.filter((pack) => pack.id === 'gold' || pack.items.length === 0)
+  }
+  return raw
+}
+
+/** PHB line-by-line starting equipment (cleric first; other classes keep packages). */
+export const CLASS_EQUIPMENT_LINES: Record<string, ClassEquipmentLine[]> = {
+  cleric: [
+    {
+      id: 'weapon',
+      labelRu: 'Оружие ближнего боя',
+      options: [
+        { id: 'mace', labelRu: 'Булава', items: [item('Булава')] },
+        {
+          id: 'warhammer',
+          labelRu: 'Боевой молот',
+          items: [item('Боевой молот')],
+          noteRu: 'если владеете (раса / домен)',
+        },
+      ],
+    },
+    {
+      id: 'armor',
+      labelRu: 'Доспех',
+      options: [
+        {
+          id: 'scale',
+          labelRu: 'Чешуйчатый доспех',
+          items: [item('Чешуйчатый доспех', { armor_kind: 'medium', base_ac: 14, weight_lb: 45 })],
+        },
+        {
+          id: 'leather',
+          labelRu: 'Кожаный доспех',
+          items: [item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 })],
+        },
+        {
+          id: 'chain',
+          labelRu: 'Кольчуга',
+          items: [item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 })],
+          noteRu: 'надеть можно только с владением тяжёлыми (домен Бури…)',
+        },
+      ],
+    },
+    {
+      id: 'ranged',
+      labelRu: 'Дальний бой / простое оружие',
+      options: [
+        {
+          id: 'crossbow',
+          labelRu: 'Лёгкий арбалет и 20 болтов',
+          items: [item('Лёгкий арбалет'), item('Болты арбалета', { qty: 20 })],
+        },
+        {
+          id: 'any_simple',
+          labelRu: 'Любое простое оружие',
+          pickWeapon: 'simple',
+        },
+      ],
+    },
+    {
+      id: 'pack',
+      labelRu: 'Набор',
+      options: [
+        { id: 'priest', labelRu: 'Набор священника', items: [item('Набор жреца')] },
+        {
+          id: 'explorer',
+          labelRu: 'Набор путешественника',
+          items: [item('Набор исследователя')],
+        },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Щит и священный символ',
+      options: [
+        {
+          id: 'shield_symbol',
+          labelRu: 'Щит и священный символ',
+          items: [
+            item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
+            item('Священный символ'),
+          ],
+        },
+      ],
+    },
+  ],
+}
+
+export function equipmentLinesFor(def: ClassGrantDef): ClassEquipmentLine[] {
+  return CLASS_EQUIPMENT_LINES[def.slug] ?? []
+}
+
+export function buildItemsFromEquipmentLines(input: {
+  lines: ClassEquipmentLine[]
+  picks: Record<string, ClassEquipmentLinePick>
+}): StartingGearItem[] | null {
+  const items: StartingGearItem[] = []
+  for (const line of input.lines) {
+    const pick = input.picks[line.id]
+    if (!pick?.optionId) return null
+    const option = line.options.find((row) => row.id === pick.optionId)
+    if (!option) return null
+    if (option.pickWeapon) {
+      const weaponName = pick.weaponName?.trim()
+      if (!weaponName) return null
+      items.push(item(weaponName))
+      continue
+    }
+    for (const row of option.items ?? []) items.push({ ...row })
+  }
+  return items
+}
+
+export function validateEquipmentLinePicks(input: {
+  lines: ClassEquipmentLine[]
+  picks: Record<string, ClassEquipmentLinePick>
+}): string | null {
+  for (const line of input.lines) {
+    const pick = input.picks[line.id]
+    if (!pick?.optionId) return `Выбери: ${line.labelRu}`
+    const option = line.options.find((row) => row.id === pick.optionId)
+    if (!option) return `Неизвестный вариант в «${line.labelRu}»`
+    if (option.pickWeapon && !pick.weaponName?.trim()) {
+      return `Выбери оружие в «${line.labelRu}»`
+    }
+  }
+  return null
 }
 
 /** Common artisan tools (PHB) for monk tool choice. */
@@ -832,6 +975,8 @@ export type ClassGrantPicks = {
   equipmentPackageId: string | null
   /** When the package has a focus placeholder — catalog row or custom look. */
   equipmentFocusPick?: ClassEquipmentFocusPick | null
+  /** PHB a/b/c line picks when equipmentPackageId === PHB_LINES_PACKAGE_ID. */
+  equipmentLinePicks?: Record<string, ClassEquipmentLinePick>
 }
 
 export function classGrantDef(slug: string | null | undefined): ClassGrantDef | null {
