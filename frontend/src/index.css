@@ -8675,3 +8675,399 @@ button.play-desk-vital:hover {
     display: none;
   }
 }
+
+/* ——— MobileVitalsBar (kit shell) ——— */
+.mobile-vitals {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 10px 10px 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffdf8 0%, var(--panel) 100%);
+  box-shadow: 0 4px 16px rgba(45, 45, 42, 0.06);
+}
+
+.mobile-vitals__who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobile-vitals__who .character-avatar,
+.mobile-vitals__who .avatar-control,
+.mobile-vitals__collapse-avatar .character-avatar {
+  flex-shrink: 0;
+}
+
+.mobile-vitals__who-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.mobile-vitals__name {
+  font-family: var(--font-display, "Source Serif 4", Georgia, serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.15;
+}
+
+.mobile-vitals__meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.mobile-vitals__insp {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.mobile-vitals__insp.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.mobile-vitals__row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.mobile-vitals__chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 48px;
+  padding: 6px 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+
+.mobile-vitals__chip b {
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.mobile-vitals__chip span {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mobile-vitals__hp-row {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.mobile-vitals__hp {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--accent);
+  border-radius: 12px;
+  background: var(--card);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.mobile-vitals__hp.is-pulse {
+  animation: mobile-hp-pulse 0.9s ease;
+}
+
+.mobile-vitals__hp.is-danger {
+  border-color: var(--danger);
+}
+
+.mobile-vitals__hp-num {
+  font-size: 1.45rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.mobile-vitals__hp.is-danger .mobile-vitals__hp-num {
+  color: var(--danger);
+}
+
+.mobile-vitals__hp-lab {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.mobile-vitals__tool {
+  width: 48px;
+  min-height: 56px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+
+.mobile-vitals__tool .desk-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.mobile-vitals__exh {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.mobile-vitals__abil {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mobile-vitals__collapse {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 2px 0 0;
+  align-self: center;
+}
+
+.mobile-vitals--collapsed {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+.mobile-vitals__collapse-who {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mobile-vitals__collapse-who strong {
+  display: block;
+  font-family: var(--font-display, "Source Serif 4", Georgia, serif);
+  font-size: 0.95rem;
+  color: var(--accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-vitals__collapse-hp {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1.5px solid var(--accent);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.mobile-vitals__collapse-hp.is-danger {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.mobile-vitals__collapse-abil {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mobile-vitals__expand {
+  flex-shrink: 0;
+  width: 36px;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@keyframes mobile-hp-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 35%, transparent); }
+  100% { box-shadow: 0 0 0 10px transparent; }
+}
+
+/* Characteristics page B */
+.mobile-abil-page {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+}
+
+.mobile-abil-page__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+
+.mobile-abil-page__back {
+  width: 40px;
+  min-height: 40px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mobile-abil-page__title {
+  margin: 0;
+  font-family: var(--font-display, "Source Serif 4", Georgia, serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.mobile-abil-page__body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+.mobile-abil-page__foot {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--card);
+  border-top: 1px solid var(--line);
+}
+
+.mobile-abil-page__own {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (min-width: 960px) {
+  .mobile-vitals,
+  .mobile-abil-page {
+    display: none;
+  }
+}
+
+/* Mobile vitals avatar: round face, no «основное» caption clutter */
+.mobile-vitals .char-avatar__face {
+  border-radius: 50%;
+}
+.mobile-vitals .char-avatar__hint {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  .sheet-topbar {
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .sheet-topbar__actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .sheet-topbar__actions .back-link {
+    font-size: 0.78rem;
+  }
+  .page--app > .stack {
+    gap: 10px;
+  }
+}

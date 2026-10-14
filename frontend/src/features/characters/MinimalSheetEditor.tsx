@@ -125,7 +125,6 @@ import {
   readClassLevels,
   type ClassLevelEntry,
 } from './classLevels'
-import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
 import { LanguagesToolsPanel } from './LanguagesToolsPanel'
 import { GuidedWizardDialog, type GuidedWizardSession } from './GuidedWizardDialog'
@@ -218,6 +217,8 @@ import { PlayDeskHotBar } from './PlayDeskHotBar'
 import { RestDialog } from './RestDialog'
 import { SorceryPointsSpendDialog } from './SorceryPointsSpendDialog'
 import { BottomSceneNav } from './BottomSceneNav'
+import { MobileAbilitiesPage } from './MobileAbilitiesPage'
+import { MobileVitalsBar } from './MobileVitalsBar'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
@@ -2880,6 +2881,7 @@ export function MinimalSheetEditor({
   const [attunementDialogOpen, setAttunementDialogOpen] = useState(false)
   /** Shared header CoinPad — also opened from inventory readout. */
   const [coinPadOpen, setCoinPadOpen] = useState(false)
+  const [mobileAbilitiesOpen, setMobileAbilitiesOpen] = useState(false)
   const [deskCastPending, setDeskCastPending] = useState<{
     spell: SheetSpell
     choice: CastChoice
@@ -3378,18 +3380,18 @@ export function MinimalSheetEditor({
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="play-desk__top">
-        <CharacterAvatarControl
-          character={baseCharacter}
-          size={isPlayDesk ? 'md' : 'sm'}
-          showActions={false}
-          onOpen={() => setIdentityOpen(true)}
-          onChanged={(updated) => {
-            setBaseCharacter(updated)
-            onSaved(updated)
-          }}
-        />
-        {isPlayDesk ? (
+      {isPlayDesk ? (
+        <div className="play-desk__top">
+          <CharacterAvatarControl
+            character={baseCharacter}
+            size="md"
+            showActions={false}
+            onOpen={() => setIdentityOpen(true)}
+            onChanged={(updated) => {
+              setBaseCharacter(updated)
+              onSaved(updated)
+            }}
+          />
           <PlayDeskHeader
             name={draft.name}
             raceName={draft.raceName}
@@ -3485,75 +3487,80 @@ export function MinimalSheetEditor({
               })
             }}
           />
-        ) : (
-          <CombatStickyHeader
-            name={draft.name}
-            raceName={draft.raceName}
-            className={classSummary || primaryClass?.name || ''}
-            alignment={draft.identity.alignment}
-            level={characterLevel}
-            abilities={draft.abilities}
-            classes={draft.classes}
-            hitDie={draft.play.hitDie}
-            constitutionMod={abilityModifier(draft.abilities.con)}
-            hpCurrent={draft.hpCurrent}
-            hpMax={draft.hpMax}
-            hpTemp={draft.play.hpTemp}
-            acOverride={draft.ac}
-            autoAc={armorClass.ac}
-            acHint={armorClass.summary}
-            speed={
-              draft.speed == null && !gearEffects.speedBonusFt
-                ? null
-                : (draft.speed ?? 0) + gearEffects.speedBonusFt
-            }
-            movementHint={[
-              formatRaceMovementHint({
-                climb: draft.climbSpeed,
-                swim: draft.swimSpeed,
-                fly: draft.flySpeed,
-              }),
-              gearEffects.speedBonusFt
-                ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(' · ') || null}
-            initiativeOverride={draft.initiativeOverride}
-            initiativeBonus={featInitiativeBonus}
-            inspiration={draft.inspiration}
-            exhaustion={draft.play.exhaustion}
-            isDying={draft.play.isDying}
-            deathSuccesses={draft.play.deathSuccesses}
-            deathFails={draft.play.deathFails}
-            conditionNames={[
-              ...(draft.play.exhaustion > 0 ? [`Истощение ${draft.play.exhaustion}`] : []),
-              ...draft.play.conditions
-                .filter((item) => item.slug !== 'exhaustion')
-                .map((item) => formatConditionLabel(item)),
-            ]}
-            concentration={draft.play.concentration}
-            onClearConcentration={() =>
-              setDraft((prev) => ({
-                ...prev,
-                play: { ...prev.play, concentration: null },
-              }))
-            }
-            onChange={(patch) =>
-              setDraft((prev) => {
-                const next = { ...prev, ...patch }
-                if (patch.speed !== undefined && gearEffects.speedBonusFt) {
-                  next.speed =
-                    patch.speed == null
-                      ? null
-                      : Math.max(0, patch.speed - gearEffects.speedBonusFt)
-                }
-                return next
-              })
-            }
-          />
-        )}
-      </div>
+        </div>
+      ) : (
+        <MobileVitalsBar
+          character={baseCharacter}
+          name={draft.name}
+          raceName={draft.raceName}
+          classSummary={classSummary || primaryClass?.name || ''}
+          alignment={draft.identity.alignment}
+          level={characterLevel}
+          hpCurrent={draft.hpCurrent}
+          hpMax={draft.hpMax}
+          play={draft.play}
+          autoAc={armorClass.ac}
+          acOverride={draft.ac}
+          acHint={armorClass.summary}
+          speed={
+            draft.speed == null && !gearEffects.speedBonusFt
+              ? null
+              : (draft.speed ?? 0) + gearEffects.speedBonusFt
+          }
+          movementHint={[
+            formatRaceMovementHint({
+              climb: draft.climbSpeed,
+              swim: draft.swimSpeed,
+              fly: draft.flySpeed,
+            }),
+            gearEffects.speedBonusFt
+              ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(' · ') || null}
+          initiative={initiativeValue}
+          proficiencyBonus={proficiencyBonus}
+          inspiration={draft.inspiration}
+          coins={draft.inventory.coins}
+          constitutionMod={abilityModifier(draft.abilities.con)}
+          classes={draft.classes}
+          hitDie={draft.play.hitDie}
+          onOpenIdentity={() => setIdentityOpen(true)}
+          onOpenAbilities={() => setMobileAbilitiesOpen(true)}
+          onOpenRest={() => setRestOpen(true)}
+          onToggleInspiration={() =>
+            setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
+          }
+          onAvatarChanged={(updated) => {
+            setBaseCharacter(updated)
+            onSaved(updated)
+          }}
+          onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
+          onCoinsChange={(coins) =>
+            setDraft((prev) => ({
+              ...prev,
+              inventory: { ...prev.inventory, coins },
+            }))
+          }
+          onCombatChange={(patch) =>
+            setDraft((prev) => ({
+              ...prev,
+              ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
+              ...(patch.hpMax !== undefined ? { hpMax: patch.hpMax } : {}),
+            }))
+          }
+          onDamaged={(damageToHp) => {
+            if (!draft.play.concentration || damageToHp <= 0) return
+            setConcDamageAsk({
+              damage: damageToHp,
+              spellName: draft.play.concentration.name,
+              dc: Math.max(10, Math.floor(damageToHp / 2)),
+            })
+          }}
+          onToast={onToast}
+        />
+      )}
 
       {isPlayDesk && dockCompanions.length > 0 ? (
         <div className="play-desk__dock" aria-label="Напарники">
@@ -4360,7 +4367,7 @@ export function MinimalSheetEditor({
         onToggleConsumableFavorite={toggleCombatFavorite}
         onOpenAttunement={() => setAttunementDialogOpen(true)}
         /* Header owns CoinPad only on wide desk; compact uses panel-local pad. */
-        onOpenCoins={isPlayDesk ? () => setCoinPadOpen(true) : undefined}
+        onOpenCoins={() => setCoinPadOpen(true)}
         onToast={onToast}
         onChange={(inventory) =>
           setDraft((prev) => ({
@@ -4583,6 +4590,19 @@ export function MinimalSheetEditor({
 
       {!isPlayDesk ? (
         <BottomSceneNav mode={draft.sheetUi.deskMode} onModeChange={setDeskMode} />
+      ) : null}
+
+      {!isPlayDesk ? (
+        <MobileAbilitiesPage
+          open={mobileAbilitiesOpen}
+          onClose={() => setMobileAbilitiesOpen(false)}
+          onOpenOwnership={() => {
+            setMobileAbilitiesOpen(false)
+            setOwnershipOpen(true)
+          }}
+        >
+          {abilityColumn}
+        </MobileAbilitiesPage>
       ) : null}
 
       {ownershipOpen ? (
