@@ -50,7 +50,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/buffs-ac-slice-244b` |
+| Prod tip (сейчас) | `cursor/prod-mobile-html-cache-0ed9` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 

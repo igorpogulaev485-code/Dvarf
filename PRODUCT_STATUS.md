@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/buffs-ac-slice-244b`  
+**Prod tip (ветка линии прода):** `cursor/prod-mobile-html-cache-0ed9`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -73,7 +73,15 @@
 | Высота КД | Карточка растёт под чип «щит» | Иконка не обрезается |
 | Мятные обводки | `#9ecbbb` → `desk-line` | Split/навыки/ресурсы как пергамент |
 
-На проде: **да** · ветка `cursor/buffs-ac-slice-244b` · PR #159 · **это новый prod tip** · проверено 2026-10-14: `/health` ok; бандл `CharacterDetailPage-DFLWQXEV.js` / CSS `index-DY8NTA2Z.css` (`spell_dc` / `spell_attack` / «Бросок инициативы» / `abil-prof-pip` / «число → бросок» / «Добавить бонус» / «Класс защиты»); кабинет «Опасная зона»; classic chunk 200; tip `cursor/buffs-ac-slice-244b` на диске
+На проде: **да** · ветка `cursor/buffs-ac-slice-244b` · PR #159 · проверено 2026-10-14: `/health` ok; бандл `CharacterDetailPage-DFLWQXEV.js` / CSS `index-DY8NTA2Z.css` (`spell_dc` / `spell_attack` / «Бросок инициативы» / `abil-prof-pip` / «число → бросок» / «Добавить бонус» / «Класс защиты»); кабинет «Опасная зона»; classic chunk 200
+
+### 2026-10-14 — Safari mobile «страница вместо API»
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Список персонажей с iPhone | SPA-shell и API делят URL `/characters`; shell теперь `Cache-Control: no-store`, fetch `cache: 'no-store'`, Bearer → API | Нет ложной ошибки «Сервер вернул страницу вместо API»; персонажи снова видны после одного обновления |
+
+На проде: **да** · ветка `cursor/prod-mobile-html-cache-0ed9` · PR #162 · **это новый prod tip** · проверено 2026-10-14: `/health` ok; SPA `/characters` → `Cache-Control: no-store`; fetch JSON `no-store`; бандл `client-CVhNiTYg.js` (`cache:"no-store"`); tip на диске; iPhone smoke: document=HTML + fetch=JSON, без ошибки «страница вместо API»
 
 ### 2026-10-14 — desk UX ship (прыжок, броски, щит, людоящер, тема)
 
