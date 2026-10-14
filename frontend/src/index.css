@@ -11231,32 +11231,3 @@ button.play-desk-compact__more--btn:hover {
     text-decoration: none;
   }
 }
-
-/* Classic soft-bridge — phone warn (P2) */
-.classic-phone-warn {
-  display: none;
-}
-
-@media (max-width: 959px) {
-  .classic-phone-warn {
-    display: grid;
-    gap: 10px;
-    margin: 10px 12px;
-    padding: 12px 14px;
-    border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
-    border-radius: 12px;
-    background: color-mix(in srgb, var(--accent-soft) 70%, var(--card));
-  }
-
-  .classic-phone-warn__actions {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .classic-phone-warn__actions .ui-button {
-    width: 100%;
-    min-height: 44px;
-    justify-content: center;
-  }
-}

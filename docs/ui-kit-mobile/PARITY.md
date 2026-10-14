@@ -63,7 +63,7 @@
 | Список персонажей | ✅ density + ⋯ sheet · default Средние | density + ⋯ sheet | P1 · M1.6 |
 | Create 2014 pipeline | ✅ sticky StepRail + footer + Сводка sheet | StepRail + footer + Сводка sheet | P1 · M1.5 |
 | Guided / level-up wizard | ✅ close Identity → GuidedWizard | те же sheets | P1 |
-| Classic sheet | ✅ soft warn `<960` + open | link + soft warn | P2 |
+| Classic sheet | 🟡 print | link + soft warn | P2 · не трогаем пока |
 | Лобби list/create | ✅ Hero код + QR accordion (`<960`) · desk row+QR | Hero код+QR accordion | P1 · M1.7 |
 | Join по коду/QR | ✅ код → превью → карточки персонажа → «Сесть за стол» | thumb code entry | P1 · M1.7 |
 | Session seat | 🟡 stub ok | honest stub | P2 |

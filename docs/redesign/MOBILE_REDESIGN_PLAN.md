@@ -195,7 +195,7 @@ desk delta 10-14 не «только ≥960».
 | Слайс | Содержание | Статус |
 |-------|------------|--------|
 | M2.1 | Motion pass (`scene-crossfade`, `sheet-rise`, `chip-pop`, `hp-pulse`) + reduced-motion | **done** (код) desk-sync |
-| M2.2 | Classic soft-bridge warn `<960` | **done** (код) desk-sync |
+| M2.2 | Classic soft-bridge warn `<960` | **отложено** (ok Игоря: классический лист пока не трогаем) |
 | M2.3 | AppHeader compact / overflow («Официальный сайт» → ⋯) | **done** earlier (M1.6) |
 | — | Companion dock optional | open |
 | — | Cabinet/auth sheet polish | open (dialogs уже bottom sheet `<640`) |
@@ -340,4 +340,4 @@ Mobile path (этот документ):
 | 3 | Mobile M0–M1.1 код не на проде | Не ship отдельно без merge tip |
 | 4 | Desk handlers (`modifiers`, `heldEquip`, roll history) священны | Только placement / sheets на `<960` |
 
-**Следующий шаг:** P2 M2.1–M2.2 в коде → coachmarks / companion dock / auth polish → ship mobile line только по «залей».
+**Следующий шаг:** ship mobile line (`cursor/mobile-desk-sync-code-0ed9`) на tip · Classic не трогаем · P2 остаток (coachmarks / dock / auth) после.
