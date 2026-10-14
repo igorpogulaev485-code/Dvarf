@@ -663,6 +663,23 @@ export function highestSpellSlotLevel(
 }
 
 /**
+ * Highest spell level the character's class mix can cast (slots / pact).
+ * Used to gate always-prepared domain/oath spells before sheet slots exist.
+ */
+export function highestSpellSlotLevelForClasses(
+  classes: ClassLevelEntry[],
+  subclassCasters?: SubclassCasterOverlay[],
+): number {
+  const suggestion = suggestSpellcastingFromClasses({
+    classes,
+    abilityModFor: () => 0,
+    subclassCasters,
+  })
+  if (!suggestion) return 0
+  return highestSpellSlotLevel(suggestion.slots, suggestion.pact_slots)
+}
+
+/**
  * Class spell-list slugs this character may learn from (union for multiclass).
  * Third-casters (EK / Arcane Trickster) use the wizard list.
  */

@@ -363,6 +363,27 @@ export function updateBlockParts(
   return syncDerived({ ...block, parts })
 }
 
+/**
+ * Replace plain-text content while keeping resource/spoiler/divider parts.
+ * Grant writers must use this (not `value` alone) — the UI edits `parts`, and
+ * `textBlocksToSheet` rebuilds `value` from parts via syncDerived.
+ */
+export function withBlockPlainText(block: TextBlock, plain: string): TextBlock {
+  const nonText = block.parts.filter((part) => part.kind !== 'text')
+  return syncDerived({
+    ...block,
+    parts: [...nonText, createTextPart(plain)],
+  })
+}
+
+/** Read current plain text from parts, falling back to legacy `value`. */
+export function blockPlainText(block: TextBlock): string {
+  if (block.parts.some((part) => part.kind === 'text' || part.kind === 'spoiler')) {
+    return partsPlainText(block.parts)
+  }
+  return block.value
+}
+
 export function patchBlockPart(
   block: TextBlock,
   partId: string,

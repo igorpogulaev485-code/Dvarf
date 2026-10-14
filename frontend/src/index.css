@@ -7635,6 +7635,25 @@ button.play-desk-vital:hover {
   color: var(--desk-muted);
 }
 
+button.play-desk-compact__more--btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+}
+
+button.play-desk-compact__more--btn:hover {
+  color: var(--desk-ink, inherit);
+  background: color-mix(in srgb, var(--desk-line, #ccc) 35%, transparent);
+}
+
 .play-desk-compact__consumables {
   border-top: 1px solid var(--desk-line);
   padding-top: 8px;

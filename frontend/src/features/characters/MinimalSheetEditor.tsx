@@ -76,6 +76,7 @@ import {
   resolveSubclassDefFromCatalog,
   revokeSubclassGrant,
   subclassNeedsSetupDialog,
+  syncSubclassAlwaysPreparedSpells,
   type SubclassGrantDraftSlice,
 } from './subclassEffects'
 import { SubclassSetupDialog } from './SubclassSetupDialog'
@@ -218,6 +219,7 @@ import { PlayDeskHeader } from './PlayDeskHeader'
 import { PlayDeskHotBar } from './PlayDeskHotBar'
 import { RestDialog } from './RestDialog'
 import { SorceryPointsSpendDialog } from './SorceryPointsSpendDialog'
+import { ChannelDivinitySpendDialog } from './ChannelDivinitySpendDialog'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
@@ -271,6 +273,7 @@ import {
 } from './raceEffects'
 import {
   characterHasCasterClass,
+  highestSpellSlotLevelForClasses,
   resolveClassCasterSlug,
   resolveSpellLearnBudget,
 } from '../../shared/dnd/casterProgression'
@@ -1309,6 +1312,16 @@ export function MinimalSheetEditor({
     let summary: string | null = null
     const changeMode = input.changeMode ?? 'initial'
     setDraft((prev) => {
+      const maxSpellLevel = highestSpellSlotLevelForClasses(
+        prev.classes,
+        prev.subclassGrants
+          .filter((row) => row.caster?.progression === 'third')
+          .map((row) => ({
+            classEntryId: row.classEntryId,
+            progression: 'third' as const,
+            ability: row.caster?.ability ?? null,
+          })),
+      )
       const applied = applySubclassGrantToDraft({
         draft: subclassSliceFrom(prev),
         classEntryId: input.classEntryId,
@@ -1325,6 +1338,7 @@ export function MinimalSheetEditor({
         previousNameRu: input.previousNameRu,
         previousCatalogId: input.previousCatalogId,
         previousSlug: input.previousSlug,
+        maxSpellLevel,
       })
       if (!applied) return prev
       summary = applied.summary
@@ -2286,15 +2300,33 @@ export function MinimalSheetEditor({
           totalLevel: nextLevel,
         }),
       )
-      if (!withFeatPools.raceGrant) return withFeatPools
-      const spells = syncRaceSpellsForSheetState({
-        spells: withFeatPools.spells,
-        grant: withFeatPools.raceGrant,
-        characterLevel: nextLevel,
-        hasCasterClass: characterHasCasterClass(nextClasses),
-        raceLabelRu: withFeatPools.raceName,
+      const withRaceSpells = !withFeatPools.raceGrant
+        ? withFeatPools
+        : {
+            ...withFeatPools,
+            spells: syncRaceSpellsForSheetState({
+              spells: withFeatPools.spells,
+              grant: withFeatPools.raceGrant,
+              characterLevel: nextLevel,
+              hasCasterClass: characterHasCasterClass(nextClasses),
+              raceLabelRu: withFeatPools.raceName,
+            }),
+          }
+      const slotCap = highestSpellSlotLevelForClasses(
+        nextClasses,
+        withRaceSpells.subclassGrants
+          .filter((row) => row.caster?.progression === 'third')
+          .map((row) => ({
+            classEntryId: row.classEntryId,
+            progression: 'third' as const,
+            ability: row.caster?.ability ?? null,
+          })),
+      )
+      const syncedSubclass = syncSubclassAlwaysPreparedSpells({
+        draft: subclassSliceFrom(withRaceSpells),
+        maxSpellLevel: slotCap,
       })
-      return { ...withFeatPools, spells }
+      return mergeSubclassSlice(withRaceSpells, syncedSubclass)
     })
     setLevelUpOpen(false)
     const hpNote = ` · HP +${Math.max(0, Math.floor(choice.hpGain))}`
@@ -2866,6 +2898,9 @@ export function MinimalSheetEditor({
   const [identityOpen, setIdentityOpen] = useState(false)
   const [restOpen, setRestOpen] = useState(false)
   const [sorcerySpendId, setSorcerySpendId] = useState<string | null>(null)
+  const [channelDivinitySpendId, setChannelDivinitySpendId] = useState<string | null>(
+    null,
+  )
   const [concDamageAsk, setConcDamageAsk] = useState<{
     damage: number
     spellName: string
@@ -3281,6 +3316,10 @@ export function MinimalSheetEditor({
     sorcerySpendId == null
       ? null
       : (draft.play.resources.find((row) => row.id === sorcerySpendId) ?? null)
+  const channelDivinityResource =
+    channelDivinitySpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === channelDivinitySpendId) ?? null)
 
   function isSorceryPointsResource(row: { id: string; name: string }): boolean {
     return (
@@ -3290,10 +3329,22 @@ export function MinimalSheetEditor({
     )
   }
 
+  function isChannelDivinityResource(row: { id: string; name: string }): boolean {
+    return (
+      row.id.includes(':channel_divinity:') ||
+      /божественный канал/i.test(row.name) ||
+      /channel divinity/i.test(row.name)
+    )
+  }
+
   function spendResourceOrOpenSorcery(id: string) {
     const row = draft.play.resources.find((item) => item.id === id)
     if (row && isSorceryPointsResource(row)) {
       setSorcerySpendId(id)
+      return
+    }
+    if (row && isChannelDivinityResource(row)) {
+      setChannelDivinitySpendId(id)
       return
     }
     setDraft((prev) => ({
@@ -4806,7 +4857,11 @@ export function MinimalSheetEditor({
           setDeskCastPending(null)
           runDeskCast(spell, choice)
         }}
-        onSecondary={() => setDeskCastPending(null)}
+        onSecondary={() => {
+          // Return to cast picker — Cancel must not drop the cast flow.
+          if (deskCastPending) setDeskCastSpell(deskCastPending.spell)
+          setDeskCastPending(null)
+        }}
       >
         <Text>
           Сейчас концентрация: «{draft.play.concentration?.name ?? '—'}». Сменить на «
@@ -4869,6 +4924,30 @@ export function MinimalSheetEditor({
         }
         onToast={onToast}
         onClose={() => setSorcerySpendId(null)}
+      />
+
+      <ChannelDivinitySpendDialog
+        open={channelDivinitySpendId != null}
+        resource={channelDivinityResource}
+        features={unlockedFeatures}
+        onSpend={(label) => {
+          if (!channelDivinitySpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) =>
+                row.id === channelDivinitySpendId && row.used < row.max
+                  ? { ...row, used: row.used + 1 }
+                  : row,
+              ),
+            },
+          }))
+          onToast(`${label}: −1 Божественный канал`)
+          setChannelDivinitySpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setChannelDivinitySpendId(null)}
       />
 
       <LevelUpDialog

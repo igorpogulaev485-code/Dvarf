@@ -72,6 +72,7 @@ export function PlayDeskSpellsCompact({
 }: PlayDeskSpellsCompactProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
+  const [showAllSpells, setShowAllSpells] = useState(false)
   const ready = spells.known.filter(isReadyInCombat)
   const pact = spells.pact_slots ? clampPactSlots(spells.pact_slots) : null
   const pactRemaining = pact && pact.max > 0 ? Math.max(0, pact.max - pact.used) : null
@@ -112,7 +113,7 @@ export function PlayDeskSpellsCompact({
         byLevel.set(level, { level, spells: [] })
       }
     }
-    let remaining = maxRows
+    let remaining = showAllSpells ? Number.POSITIVE_INFINITY : maxRows
     return [...byLevel.entries()]
       .sort((a, b) => a[0] - b[0])
       .map(([, group]) => {
@@ -289,7 +290,23 @@ export function PlayDeskSpellsCompact({
           })
         )}
         {ready.length > maxRows ? (
-          <p className="play-desk-compact__more">+ ещё {ready.length - maxRows}</p>
+          showAllSpells ? (
+            <button
+              type="button"
+              className="play-desk-compact__more play-desk-compact__more--btn"
+              onClick={() => setShowAllSpells(false)}
+            >
+              Свернуть список
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="play-desk-compact__more play-desk-compact__more--btn"
+              onClick={() => setShowAllSpells(true)}
+            >
+              + ещё {ready.length - maxRows} · показать все
+            </button>
+          )
         ) : null}
       </div>
 

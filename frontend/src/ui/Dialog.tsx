@@ -34,7 +34,8 @@ export function Dialog({
   size = 'default',
   closeOnBackdrop,
 }: DialogProps) {
-  const canClose = Boolean(onSecondary) && !busy
+  // Cancel / Escape stay available even when primary is busy or disabled.
+  const canClose = Boolean(onSecondary)
   const backdropCloses = closeOnBackdrop ?? canClose
 
   useEffect(() => {
@@ -92,7 +93,7 @@ export function Dialog({
         <div className="ui-dialog__body">{children}</div>
         <div className="ui-dialog__actions">
           {secondaryLabel && onSecondary ? (
-            <Button variant="ghost" onClick={onSecondary} disabled={busy}>
+            <Button variant="ghost" onClick={onSecondary}>
               {secondaryLabel}
             </Button>
           ) : null}
