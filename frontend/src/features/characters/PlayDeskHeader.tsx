@@ -28,11 +28,13 @@ import {
   IconBolt,
   IconBoot,
   IconCoin,
+  IconJump,
   IconRest,
   IconShield,
   IconSkull,
   IconSpark,
 } from './deskIcons'
+import { formatJumpTitle } from '../../shared/dnd/jumpDistance'
 import { formatModifier } from './sheetTypes'
 
 type SpeedMode = {
@@ -58,6 +60,12 @@ type PlayDeskHeaderProps = {
   play: PlayState
   autoAc: number
   acHint: string
+  /** Shield currently in hand (affects AC). */
+  shieldInHand?: boolean
+  /** At least one shield exists in inventory for the quick toggle. */
+  shieldAvailable?: boolean
+  /** Draw / stow shield from the AC vital. */
+  onToggleShield?: () => void
   speed: number | null
   /** Extra walk-speed note (e.g. gear bonus) for title tooltip. */
   movementHint?: string | null
@@ -65,8 +73,9 @@ type PlayDeskHeaderProps = {
   climbSpeed?: number | null
   swimSpeed?: number | null
   flySpeed?: number | null
-  /** PHB running long/high jump summary for tooltip + chip. */
-  jumpHint?: string | null
+  /** PHB running long / high jump (ft) — shown as a vital like speed. */
+  jumpLongFt?: number | null
+  jumpHighFt?: number | null
   proficiencyBonus: number
   initiative: number
   inspiration: boolean
@@ -110,12 +119,16 @@ export function PlayDeskHeader({
   play,
   autoAc,
   acHint,
+  shieldInHand = false,
+  shieldAvailable = false,
+  onToggleShield,
   speed,
   movementHint = null,
   climbSpeed = null,
   swimSpeed = null,
   flySpeed = null,
-  jumpHint = null,
+  jumpLongFt = null,
+  jumpHighFt = null,
   proficiencyBonus,
   initiative,
   inspiration,
@@ -360,10 +373,41 @@ export function PlayDeskHeader({
 
       <div className="play-desk-header__mid">
         <div className="play-desk-header__vitals">
-          <div className="play-desk-vital play-desk-vital--shield" title={acHint}>
+          <div
+            className={`play-desk-vital play-desk-vital--shield${
+              shieldInHand ? ' is-shield-on' : ''
+            }`}
+            title={acHint}
+          >
             <IconShield className="play-desk-vital__icon" />
             <b>{autoAc}</b>
             <span>КД</span>
+            {onToggleShield ? (
+              <button
+                type="button"
+                className={`play-desk-vital__shield-tog${
+                  shieldInHand ? ' is-on' : ''
+                }${shieldAvailable || shieldInHand ? '' : ' is-empty'}`}
+                aria-pressed={shieldInHand}
+                aria-label={
+                  shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'
+                }
+                title={
+                  shieldInHand
+                    ? 'Щит в руке — нажми, чтобы убрать (КД −бонус щита)'
+                    : shieldAvailable
+                      ? 'Взять щит в руку — КД с бонусом щита'
+                      : 'Нет щита в инвентаре'
+                }
+                disabled={!shieldAvailable && !shieldInHand}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleShield()
+                }}
+              >
+                щит
+              </button>
+            ) : null}
           </div>
           <div
             className={`play-desk-vital play-desk-vital--speed${
@@ -396,15 +440,21 @@ export function PlayDeskHeader({
               </ul>
             </div>
           ) : null}
-          {jumpHint ? (
+          {jumpLongFt != null && jumpHighFt != null ? (
             <div
-              className="play-desk-vital play-desk-vital--modes"
-              aria-label="Прыжки"
-              title={`${jumpHint}. Без разбега — половина.`}
+              className="play-desk-vital play-desk-vital--jump"
+              aria-label={`Прыжок: длинный ${jumpLongFt} фт, высокий ${jumpHighFt} фт`}
+              title={formatJumpTitle({ longFt: jumpLongFt, highFt: jumpHighFt })}
             >
-              <ul className="play-desk-vital__tags">
-                <li className="play-desk-vital__tag">{jumpHint}</li>
-              </ul>
+              <IconJump className="play-desk-vital__icon" />
+              <b>
+                {jumpLongFt}
+                <span className="play-desk-vital__slash" aria-hidden>
+                  /
+                </span>
+                {jumpHighFt}
+              </b>
+              <span>Прыж.</span>
             </div>
           ) : null}
           {onInitiativeRoll ? (

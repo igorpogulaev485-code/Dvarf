@@ -31,6 +31,8 @@ type PlayDeskAttacksCompactProps = {
   favoriteConsumableIds?: string[]
   /** Combat-desk class features (e.g. Reckless Attack). */
   combatFeatures?: UnlockedFeature[]
+  /** Fired when a combat feature chip is toggled (e.g. Reckless → advantage). */
+  onCombatFeatureToggle?: (featureId: string, active: boolean) => void
   onToggleHeld?: (attack: WeaponAttack) => void
   onSpendResource?: (id: string) => void
   /** Spend 1 from inventory qty (ammo, potions, …). */
@@ -50,6 +52,7 @@ export function PlayDeskAttacksCompact({
   inventoryItems,
   favoriteConsumableIds = [],
   combatFeatures = [],
+  onCombatFeatureToggle,
   onToggleHeld,
   onSpendResource,
   onSpendConsumable,
@@ -111,16 +114,18 @@ export function PlayDeskAttacksCompact({
                 className={`sheet-chip${on ? ' is-on' : ''}`}
                 title={feature.summary_ru}
                 onClick={() => {
+                  const nextOn = !on
                   setActiveCombatFeatureIds((prev) => {
                     const next = new Set(prev)
-                    if (next.has(feature.id)) next.delete(feature.id)
-                    else next.add(feature.id)
+                    if (nextOn) next.add(feature.id)
+                    else next.delete(feature.id)
                     return next
                   })
+                  onCombatFeatureToggle?.(feature.id, nextOn)
                   onToast?.(
-                    on
-                      ? `${feature.name_ru}: выкл.`
-                      : `${feature.name_ru}: вкл. · ${feature.summary_ru}`,
+                    nextOn
+                      ? `${feature.name_ru}: вкл. · ${feature.summary_ru}`
+                      : `${feature.name_ru}: выкл.`,
                   )
                 }}
               >

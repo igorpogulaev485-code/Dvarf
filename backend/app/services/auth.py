@@ -52,6 +52,8 @@ def serialize_user(user: User) -> UserResponse:
         full_name=user.full_name,
         phone=user.phone,
         avatar_url=user.avatar_url,
+        theme_id=user.theme_id,  # type: ignore[arg-type]
+        ability_colors=user.ability_colors,  # type: ignore[arg-type]
         email_verified_at=user.email_verified_at,
         created_at=user.created_at,
         updated_at=user.updated_at,
@@ -424,11 +426,17 @@ class AuthService:
         if user is None:
             raise UnauthorizedError("Пользователь не найден")
 
+        fields_set = payload.model_fields_set
+        # PATCH must not wipe unset fields (theme-only save used to clear name/phone).
         self.users.update_profile(
             user,
-            display_name=payload.display_name,
-            full_name=payload.full_name,
-            phone=payload.phone,
+            display_name=payload.display_name if "display_name" in fields_set else user.display_name,
+            full_name=payload.full_name if "full_name" in fields_set else user.full_name,
+            phone=payload.phone if "phone" in fields_set else user.phone,
+            theme_id=payload.theme_id if "theme_id" in fields_set else None,
+            ability_colors=(
+                payload.ability_colors if "ability_colors" in fields_set else None
+            ),
         )
         self.db.commit()
         loaded = self.users.get_by_id(user_id)

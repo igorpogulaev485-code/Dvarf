@@ -98,7 +98,7 @@ import {
   type RaceGrantDef,
   type RaceGrantPicks,
 } from '../../shared/dnd/raceGrants'
-import { formatJumpHint } from '../../shared/dnd/jumpDistance'
+import { jumpDistances } from '../../shared/dnd/jumpDistance'
 import {
   customFeaturesToSheet,
   readCustomFeatures,
@@ -119,7 +119,8 @@ import {
   syncGearGrantSpells,
   syncGearResources,
 } from './gearGrantsSync'
-import { canWearArmor } from './equipmentProficiency'
+import { canWearArmor, armorProficiencyHint } from './equipmentProficiency'
+import { listShieldItems, toggleShieldInHand } from './heldEquip'
 import { AttunementDialog } from './AttunementDialog'
 import {
   attunementsToSheet,
@@ -235,7 +236,9 @@ import {
   type DeskRollMode,
 } from './deskRolls'
 import {
+  appendRollHistory,
   appendXpHistory,
+  isDeskRollToast,
   MODE_DEFAULT_PANEL,
   MODE_HINT,
   MODE_LABELS,
@@ -2945,8 +2948,24 @@ export function MinimalSheetEditor({
   /** When set, show full editor panel instead of combat compact strip. */
   const [forceFullPanel, setForceFullPanel] = useState<PlayDeskPanelId | null>(null)
   const [deskRollMode, setDeskRollMode] = useState<DeskRollMode>('normal')
+  const [rollHistoryOpen, setRollHistoryOpen] = useState(false)
   const [isPlayDesk, setIsPlayDesk] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches,
+  )
+
+  const emitToast = useCallback(
+    (message: string) => {
+      onToast(message)
+      if (!isDeskRollToast(message)) return
+      setDraft((prev) => ({
+        ...prev,
+        sheetUi: {
+          ...prev.sheetUi,
+          rollHistory: appendRollHistory(prev.sheetUi.rollHistory, { text: message }),
+        },
+      }))
+    },
+    [onToast],
   )
 
   useEffect(() => {
@@ -3262,7 +3281,7 @@ export function MinimalSheetEditor({
             ? ' · помеха от доспеха'
             : ''
         : ''
-    onToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
+    emitToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
   }
 
   const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
@@ -3282,6 +3301,10 @@ export function MinimalSheetEditor({
   const initiativeValue =
     draft.initiativeOverride ??
     abilityModifier(draft.abilities.dex) + featInitiativeBonus
+  const jump = jumpDistances({
+    strengthScore: effectiveAbilities.str,
+    strengthMod: abilityModifier(effectiveAbilities.str),
+  })
   const hotConditionNames = draft.play.conditions
     .filter((item) => item.slug !== 'exhaustion')
     .map((item) => formatConditionLabel(item))
@@ -3476,6 +3499,31 @@ export function MinimalSheetEditor({
             play={draft.play}
             autoAc={armorClass.ac}
             acHint={armorClass.summary}
+            shieldInHand={Boolean(equippedArmorPieces(draft.inventory.items).shield)}
+            shieldAvailable={listShieldItems(draft.inventory.items).length > 0}
+            onToggleShield={() => {
+              const shields = listShieldItems(draft.inventory.items)
+              const anyOn = shields.some((row) => row.equipped)
+              if (!anyOn && !canWearArmor('shield', draft.identity.armor)) {
+                onToast(armorProficiencyHint('shield'))
+                return
+              }
+              const result = toggleShieldInHand(draft.inventory.items)
+              if (!result.ok) {
+                onToast(result.reason)
+                return
+              }
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, items: result.items },
+                weapons: syncAttacksHeldFromInventory(prev.weapons, result.items),
+              }))
+              onToast(
+                result.equipped
+                  ? `Щит «${result.name}» в руке`
+                  : `Щит «${result.name}» убран`,
+              )
+            }}
             speed={
               draft.speed == null && !gearEffects.speedBonusFt
                 ? null
@@ -3484,10 +3532,8 @@ export function MinimalSheetEditor({
             climbSpeed={draft.climbSpeed}
             swimSpeed={draft.swimSpeed}
             flySpeed={draft.flySpeed}
-            jumpHint={formatJumpHint({
-              strengthScore: effectiveAbilities.str,
-              strengthMod: abilityModifier(effectiveAbilities.str),
-            })}
+            jumpLongFt={jump.longFt}
+            jumpHighFt={jump.highFt}
             movementHint={
               gearEffects.speedBonusFt
                 ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
@@ -3530,7 +3576,7 @@ export function MinimalSheetEditor({
               }))
             }
             onInitiativeRoll={() =>
-              onToast(
+              emitToast(
                 formatSkillRoll('Инициатива', initiativeValue, effectiveRollMode()),
               )
             }
@@ -3717,6 +3763,17 @@ export function MinimalSheetEditor({
                     {label}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  className="play-desk__roll-mode-btn"
+                  title="История бросков на этом листе"
+                  onClick={() => setRollHistoryOpen(true)}
+                >
+                  броски
+                  {draft.sheetUi.rollHistory.length > 0
+                    ? ` ${Math.min(draft.sheetUi.rollHistory.length, 99)}`
+                    : ''}
+                </button>
               </div>
               {modeUsesSpellSplit(draft.sheetUi.deskMode) ? (
                 <button
@@ -4346,7 +4403,12 @@ export function MinimalSheetEditor({
             combatFeatures={unlockedFeatures}
             rollMode={effectiveRollMode()}
             onOpenSettings={() => setAttacksSettingsOpen(true)}
-            onToast={onToast}
+            onCombatFeatureToggle={(featureId, active) => {
+              if (featureId === 'reckless_attack') {
+                setDeskRollMode(active ? 'advantage' : 'normal')
+              }
+            }}
+            onToast={emitToast}
             onSpendResource={spendResourceOrOpenSorcery}
             onToggleConsumableFavorite={toggleCombatFavorite}
             onSpendConsumable={(itemId) => {
@@ -4817,6 +4879,61 @@ export function MinimalSheetEditor({
           </aside>
         </>
       ) : null}
+
+      <Dialog
+        open={rollHistoryOpen}
+        title="История бросков"
+        primaryLabel="Закрыть"
+        secondaryLabel="Отмена"
+        onPrimary={() => setRollHistoryOpen(false)}
+        onSecondary={() => setRollHistoryOpen(false)}
+        closeOnBackdrop
+        size="wide"
+      >
+        {draft.sheetUi.rollHistory.length === 0 ? (
+          <Text tone="muted">Пока пусто — бросай атаки, навыки или инициативу.</Text>
+        ) : (
+          <Stack gap={10}>
+            <div className="desk-roll-history__toolbar">
+              <Text tone="muted">
+                {draft.sheetUi.rollHistory.length} запис.
+                {draft.sheetUi.rollHistory.length >= 50 ? ' (лимит 50)' : ''}
+              </Text>
+              <Button
+                variant="ghost"
+                onClick={() => patchSheetUi({ rollHistory: [] })}
+              >
+                Очистить
+              </Button>
+            </div>
+            <ul className="desk-roll-history">
+              {draft.sheetUi.rollHistory.map((row) => {
+                const when = (() => {
+                  try {
+                    return new Date(row.at).toLocaleTimeString('ru-RU', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })
+                  } catch {
+                    return ''
+                  }
+                })()
+                return (
+                  <li key={row.id} className="desk-roll-history__row">
+                    {when ? (
+                      <time className="desk-roll-history__time" dateTime={row.at}>
+                        {when}
+                      </time>
+                    ) : null}
+                    <span className="desk-roll-history__text">{row.text}</span>
+                  </li>
+                )
+              })}
+            </ul>
+          </Stack>
+        )}
+      </Dialog>
 
       <Dialog
         open={conflictOpen}
