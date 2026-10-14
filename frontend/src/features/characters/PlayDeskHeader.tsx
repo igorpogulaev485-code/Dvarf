@@ -28,6 +28,7 @@ import {
   IconBolt,
   IconBoot,
   IconCoin,
+  IconJump,
   IconRest,
   IconShield,
   IconSkull,
@@ -405,6 +406,7 @@ export function PlayDeskHeader({
               aria-label={`Прыжок: длинный ${jumpLongFt} фт, высокий ${jumpHighFt} фт`}
               title={formatJumpTitle({ longFt: jumpLongFt, highFt: jumpHighFt })}
             >
+              <IconJump className="play-desk-vital__icon" />
               <b>
                 {jumpLongFt}
                 <span className="play-desk-vital__slash" aria-hidden>

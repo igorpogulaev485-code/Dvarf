@@ -6638,20 +6638,20 @@ button.play-desk-vital:hover {
 }
 
 .play-desk-vital--jump {
-  width: 64px;
-  min-width: 64px;
+  width: 66px;
+  min-width: 66px;
 }
 
 .play-desk-vital--jump b {
-  font-size: 1.05rem;
-  letter-spacing: -0.02em;
+  font-size: 1rem;
+  letter-spacing: -0.03em;
   white-space: nowrap;
 }
 
 .play-desk-vital__slash {
-  margin: 0 0.06em;
+  margin: 0 0.04em;
   font-weight: 500;
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .play-desk-vital--alt-primary > span {
