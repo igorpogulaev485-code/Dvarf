@@ -32,7 +32,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/prod-ship-desk-ux-244b
+cursor/buffs-ac-slice-244b
 ```
 
 URL: http://201.34.132.252/
