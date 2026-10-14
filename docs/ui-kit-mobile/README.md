@@ -91,7 +91,7 @@ Safe area: `padding-bottom: max(12px, env(safe-area-inset-bottom))` на nav и 
 ┌─────────────────────────────┐
 │ AppHeader (сжатый)          │  опц. свернуть на /characters/:id
 ├─────────────────────────────┤
-│ MobileVitalsBar (sticky)    │  HP · КД · скор · иниц · chips
+│ MobileVitalsBar (sticky)    │  HP · КД(+щит) · скор · прыж · иниц · chips
 ├─────────────────────────────┤
 │ HotStrip (optional row)     │  состояния · конц · ресурс-пипы
 ├─────────────────────────────┤
@@ -108,16 +108,20 @@ Safe area: `padding-bottom: max(12px, env(safe-area-inset-bottom))` на nav и 
 
 | Элемент | Поведение |
 |---------|-----------|
-| Who | Имя (1 строка) · раса · чип класса; tap → Identity sheet |
-| КД / Скор. / Иниц. / БМ | vital chips; tap → tooltip/sheet формулы (не edit «вслепую») |
+| Who | Имя (1 строка) · раса · чип класса; tap → Identity sheet (секции + **Черты**, desk §2k 10-14) |
+| КД | vital; tap → **разборка КД** (база/щит/бонусы) sheet · паритет desk tip |
+| Щит | chip **щит** под КД → draw/stow (`heldEquip`); блоки если нет щита/владения |
+| Скор. / Прыж. / Иниц. / БМ | vital chips; Прыж. = `long/high` как desk; Иниц. tap → breakdown sheet |
 | HP | **крупный** primary tap → HpPad sheet (урон/хил/temp/death) |
 | Death | только при HP≤0; opaque card + череп (как desktop LOCK) |
 | Вдохн. / Истощ. | chips; истощение → Conditions sheet |
 | Монеты | icon → CoinPad sheet |
 | Отдых | icon → Rest sheet |
-| XP | компактная полоска или «⋯ vitals» → sheet (не выкидывать) |
-| Характеристики | chip «СИЛ…» → **полноэкранная страница** (вариант B), не bottom sheet |
+| XP | в Identity sheet (`XpProgressField` + история + CTA level-up) |
+| Характеристики | chip «СИЛ…» → **полноэкранная страница** (вариант B): LSS pip + число→бросок; название → бафы |
 | Свернуть | control «Свернуть ▴» — vitals → compact strip (HP + who + ▾); HotStrip остаётся |
+
+> Desk delta 2026-10-14 (прыжок / щит / бафы / LSS rail / история бросков) — см. [`MOBILE_REDESIGN_PLAN.md`](../redesign/MOBILE_REDESIGN_PLAN.md) §4.0 · слайсы **M0.4b–M0.6**, **M1.4**.
 
 **Сворачивание (LOCK-кандидат, ok Игоря 2026-10-14):** как у LSS «Свернуть», но в языке Листвы.  
 Collapsed sticky: аватар/имя · HP · chip Характеристики · ▾ развернуть. Pads (HP/монеты/отдых) доступны и из compact.
@@ -250,21 +254,22 @@ Compact-компоненты десктопа (`PlayDesk*Compact`) **можно*
 
 Каждый desktop LOCK должен иметь **мобильную точку входа**. Детали матрицы — [`PARITY.md`](PARITY.md).
 
-| Desktop LOCK | Mobile вход |
-|--------------|-------------|
-| §2b Header | MobileVitalsBar |
-| §2c Spells | Бой → сегмент Заклинания / Книга sheet |
-| §2d Attacks | Бой → Атаки |
+| Desktop LOCK / tip | Mobile вход |
+|--------------------|-------------|
+| §2b Header (+ прыж / щит / иниц. breakdown tip 10-14) | MobileVitalsBar |
+| §2c Spells (+ СЛ/атака breakdown) | Бой → Заклинания / Книга sheet |
+| §2d Attacks (+ reckless→преим., toast, история бросков) | Бой → Атаки |
 | §2e Conditions | HotStrip |
 | §2f Inventory | Исследование |
 | §2g Texts | Общение |
-| §2h Features | Способности |
+| §2h Features (+ свои способности) | Способности |
 | §2i Companions | Напарники |
 | §2j Ownership | страница Характеристики → «Владения ▸» (**не** left drawer, **не** ЕЩЁ) |
-| §2k Identity | аватар / who line (сцена ЕЩЁ нет) |
-| Ability rail | vitals → **страница** Характеристики (вариант B) |
+| §2k Identity (+ Черты / мастер выдал) | аватар / who → sheet |
+| Ability rail (LSS pip + бафы tip 10-14) | vitals → **страница** Характеристики (вариант B) |
 | §2l Hot-bar + conc | HotStrip + HpPad conc-on-damage |
 | §2m Character list | list density (см. §7) |
+| §2n Cabinet theme | single column; persist уже на tip |
 
 **Запрещено** оставлять функцию «только если ≥960».
 

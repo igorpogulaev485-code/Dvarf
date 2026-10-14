@@ -14,7 +14,11 @@
 | [`docs/ui-kit-mobile/PROSTO.md`](../ui-kit-mobile/PROSTO.md) | Для новичка |
 | [`MOBILE_PROSTO.md`](MOBILE_PROSTO.md) | Этот план простыми словами |
 
-Прод tip на старт работ: `cursor/create-pipeline-kit-prod-244b` · URL http://201.34.132.252/
+**Live prod tip (сверка 2026-10-14):** `cursor/buffs-ac-slice-244b` · URL http://201.34.132.252/  
+Бандл-маркеры: `CharacterDetailPage-DFLWQXEV.js` · CSS `index-DY8NTA2Z.css`  
+Старт mobile-kit ветки был от более раннего tip — **перед следующим кодом/деплоем mobile rebase/merge на live tip**.
+
+> Mobile chrome (M0–M1.1) **ещё не на проде**. На телефоне live = desk tip без Bottom Nav / Книга / cast recovery.
 
 ---
 
@@ -22,13 +26,13 @@
 
 | Ограничение | Следствие |
 |-------------|-----------|
-| Desktop UI Kit закрыт | Только наследуем токены/иконки/LOCK-смысл |
-| Mobile kit — отдельный док | Правки мобилки ≠ правки `docs/ui-kit/` |
-| Логика священна | Chrome + wiring входов; не handlers формул |
-| Паритет 100% функций | Нет «это только на ПК» |
+| Desktop UI Kit закрыт | Только наследуем токены/иконки/LOCK-смысл; **новые desk-фичи = новые mobile входы** |
+| Mobile kit — отдельный док | Правки мобилки ≠ правки `docs/ui-kit/` (кроме ссылок на LOCK) |
+| Логика священна | Chrome + wiring входов; не handlers формул / modifiers / heldEquip |
+| Паритет 100% функций | Нет «это только на ПК» — включая бафы, щит, прыжок, историю бросков |
 | Breakpoint 960 | Одна модель данных UI (`deskMode`/`panel`), две плотности |
 | Plan → ok Игоря → код | По `dvarf-dev-workflow` |
-| Prod lineage | Ветка от tip; preflight; деплой только по «залей на сервер» |
+| Prod lineage | Ветка от **live** tip; preflight; деплой только по «залей на сервер» |
 
 ---
 
@@ -102,52 +106,96 @@ Wave A chrome завязан на `isPlayDesk` (`min-width: 960px`). На тел
 
 ## 4. Фазы внедрения
 
+### 4.0 Desk delta 2026-10-14 (не было в исходном mobile-плане)
+
+Сверено с живым продом (`buffs-ac-slice-244b`) + PRODUCT_STATUS / PR #152–#159.  
+Это **новые эталоны стола** — mobile должен дать те же входы, иначе паритет снова «только на ПК».
+
+| Desk (на проде) | Что это | Mobile вход (цель) | Слайс |
+|-----------------|---------|--------------------|-------|
+| Витал **Прыж.** `15/5` | PHB long/high в шапке | chip в `MobileVitalsBar` (+ tip) | **M0.5** |
+| Чип **щит** под КД | draw/stow held shield → КД | тот же chip под КД на phone | **M0.5** |
+| Разборка **КД** | клик КД → база / щит / бонусы | bottom sheet (те же handlers) | **M0.5** |
+| Разборка **характеристик** | клик названия → бафы / проверки / спас | sheet со страницы Характеристики | **M0.6** |
+| Разборка **инициативы** | клик Иниц. → база / оверрайд / бонусы | sheet из vitals | **M0.6** |
+| **СЛ / атака** заклинаний | клик в настройках / Книге | sheet из Книги / compact stats | **M0.6** |
+| Формулы бонусов `+`/`−`/`=` · `[WIS]`… | общий engine `modifiers` | **не форкать** — те же dialogs/sheets | **M0.6** |
+| Рейл LSS: **pip + число→бросок** | влад./эксп. отдельно от roll | страница Характеристики | **M0.6** |
+| **броски** + история (50) | рядом с норм/преим./помеха | sticky в Бою + sheet истории | **M1.4** |
+| Тост броска длиннее / hover pause | desk UX friend feedback | тот же `Toast` (уже общий) | **M1.4** |
+| Безрассудная → **преим.** | chip атаки включает advantage | Бой compact (тот же wiring) | **M1.4** |
+| Identity **Черты** + «Мастер выдал черту» | §2k LOCK 2026-10-14 | секция в Identity sheet | **M0.4b** |
+| Варвар: Безрассудная в Бою, текст Ярости | friend feedback | сцена Бой / Способности | **M1.3** |
+| Свои способности на панели | homebrew block | сцена Способности | **M1.3** |
+| Тема кабинета persist | Wave B fix | уже P2 polish; проверить `<960` | **M1.6+/P2** |
+| Cleric/create/lizardfolk catalog | логика, не chrome | бесплатно после rebase на tip | gate |
+
+**Gate перед любым следующим mobile-кодом:**  
+`git merge origin/cursor/buffs-ac-slice-244b` (или актуальный live tip) в mobile-ветку + зелёный preflight.  
+Иначе ship mobile затрёт сегодняшние desk-фиксы.
+
 ### P0 — «Играбельный телефон» (фундамент)
 
-**Слайс M0.1 — Mobile shell**  
+**Слайс M0.1 — Mobile shell** · код в `cursor/mobile-ui-kit-0ed9` (не на проде)  
 - Вернуть one-panel: `play-desk__body--mobile` + `stageHidden` на `<960`  
 - Bottom Scene Nav (без panel `<select>`)  
 - Убрать стек всех панелей  
-- Файлы: `MinimalSheetEditor.tsx`, `playDeskUi.ts`, `index.css`
 
-**Слайс M0.2 — Vitals parity**  
+**Слайс M0.2 — Vitals parity** · код в mobile-kit ветке  
 - Rest, CoinPad, HpPad (temp/death), conc-on-damage с sticky/vitals  
 - Who → Identity sheet  
-- Файлы: `CombatStickyHeader.tsx` / `MobileVitalsBar`, pads, `RestDialog`
 
-**Слайс M0.3 — HotStrip + Conditions**  
+**Слайс M0.3 — HotStrip + Conditions** · код в mobile-kit ветке  
 - Провод `PlayDeskHotBar` / `HotConditionsDialog` на mobile  
-- Файлы: hot bar, conditions dialog, CSS strip
 
-**Слайс M0.4 — Combat scene + abilities entry**  
+**Слайс M0.4 — Combat scene + abilities entry** · код в mobile-kit ветке  
 - Бой = атаки (+ сегмент заклинания)  
 - Характеристики → **полноэкранная страница B** из vitals (без tab ЕЩЁ)  
-- Владения → sheet/вложенная из страницы Характеристики  
-- Density `*-card__combat`  
-- Vitals **сворачиваются** (compact strip)
+- Владения → sheet из страницы Характеристики  
+- Vitals **сворачиваются** (compact strip)  
+- Identity field atoms + XP pad/history/level-up  
 
-**Критерий P0:** K2, K3, K6, K7 проходят на 390px; Rest/Conditions/атака доступны; нет стека панелей.
+**Слайс M0.4b — Identity «Черты» (desk §2k 2026-10-14)** · **next after rebase**  
+- Секция Черты в Identity sheet: список грантов  
+- CTA «Мастер выдал черту» → `FeatSetupDialog` (source `manual`)  
+- Убрать только manual; ASI-черта остаётся в level-up  
+
+**Слайс M0.5 — Vitals desk-sync (прыжок / щит / КД)** · **P0-gap от tip 10-14**  
+- Витал Прыж. `long/high` в `MobileVitalsBar`  
+- Чип «щит» под КД (heldEquip draw/stow)  
+- Tap КД → `AcBreakdown` bottom sheet  
+
+**Слайс M0.6 — Buffs + LSS rail на phone** · **P0-gap от tip 10-14**  
+- Ability / Initiative / Spell DC·Attack breakdown sheets  
+- Страница Характеристики: pip владения + число → бросок (как desk rail)  
+- Не дублировать формульный engine — только mobile placement  
+
+**Критерий P0 (обновлён):** K2, K3, K6, K7 на 390px; Rest/Conditions/атака; нет стека;  
+прыжок/щит/разборка КД достижимы ≤2 тапа; rail LSS на странице Характеристики.
 
 ### P1 — «Скорость и паритет сцен»
 
-| Слайс | Содержание |
-|-------|------------|
-| M1.1 | Spells: Бой/Книга + cast sheet recovery · **done** `cursor/mobile-spells-m11-0ed9` |
-| M1.2 | Inventory glance + attunement entry + encumbrance bar |
-| M1.3 | Social / Features / Companions — one scene each, toolbar |
-| M1.4 | Skill strips / roll mode на mobile (Бой или Характеристики) |
-| M1.5 | Create: sticky StepRail + footer gates + Сводка sheet |
-| M1.6 | Character list density + ⋯ action sheet |
-| M1.7 | Lobby Hero (код + QR accordion) + Join thumb flow |
+| Слайс | Содержание | Статус |
+|-------|------------|--------|
+| **Gate** | Merge live prod tip в mobile line | **обязателен сейчас** |
+| M1.1 | Spells: Бой/Книга + cast recovery | **done** (код) `cursor/mobile-spells-m11-0ed9` · не на проде |
+| M0.4b–M0.6 | Desk delta sync (см. выше) | **очередь сразу после gate** |
+| M1.2 | Inventory glance + attunement entry + encumbrance bar | next scenes |
+| M1.3 | Social / Features / Companions + варвар Безрассудная/Ярость + свои способности | |
+| M1.4 | Roll mode + **история бросков** + reckless→преим. (+ skill strips) | |
+| M1.5 | Create: sticky StepRail + footer gates + Сводка sheet | |
+| M1.6 | Character list density + ⋯ action sheet; theme persist smoke `<960` | |
+| M1.7 | Lobby Hero (код + QR accordion) + Join thumb flow | |
 
-**Критерий P1:** PARITY §A и §B без ❌/💀; create/lobby usable one-handed.
+**Критерий P1:** PARITY §A и §B без ❌/💀; create/lobby usable one-handed;  
+desk delta 10-14 не «только ≥960».
 
 ### P2 — «Полировка»
 
 - Motion pass (`scene-crossfade`, `sheet-rise`, `hp-pulse`) + reduced-motion  
 - Companion dock optional  
 - AppHeader compact / overflow  
-- Cabinet/auth sheet polish  
+- Cabinet/auth sheet polish (тема уже на tip — проверить phone column)  
 - Classic soft-bridge warn  
 - Coachmarks first-run (1 раз)  
 - FEATURE_LOCK machine markers для mobile shell  
@@ -158,14 +206,18 @@ Wave A chrome завязан на `isPlayDesk` (`min-width: 960px`). На тел
 ## 5. Порядок = путь десктопа
 
 ```
-Desktop path (уже сделано):
-  UI Kit → REDESIGN_PLAN → ok → Wave A LOCK slices → tip
+Desktop path (live tip 2026-10-14):
+  Wave A LOCK → create kit → friend feedback → desk UX ship
+  → buffs AC/abil/spell/init + LSS rail  = cursor/buffs-ac-slice-244b
 
 Mobile path (этот документ):
   Mobile UI Kit → MOBILE_REDESIGN_PLAN → ok Игоря
-    → M0.1 shell → M0.2 vitals → M0.3 hot → M0.4 combat/abilities
-    → M1.* scenes / create / lobby
-    → M2 polish → prod tip + PRODUCT_STATUS
+    → M0.1–M0.4 shell/vitals/hot/abilities (код в ветках, не tip)
+    → M1.1 spells Бой/Книга (код)
+    → ★ merge live tip (buffs…)
+    → M0.4b Identity Черты → M0.5 vitals sync → M0.6 buffs/rail
+    → M1.2–M1.7 scenes / create / lobby
+    → M2 polish → ship mobile на tip + PRODUCT_STATUS
 ```
 
 Каждый слайс: короткий план в чат (если scope сдвинулся) → ok → commit/push/PR → smoke на 390px.
@@ -241,24 +293,27 @@ Mobile path (этот документ):
 
 ---
 
-## 10. Первый код-слайс (после ok на кит+план)
+## 10. Следующий код-слайс (после sync плана)
 
-**M0.1 Mobile shell unify**
+**Сейчас (2026-10-14):**
 
-- Bottom Scene Nav + one-panel  
-- Не менять HP/cast/inventory handlers  
-- Скрин 390px до/после  
-- Acceptance: K2; панели не стекаются; desktop ≥960 без регрессии  
+1. **Gate:** merge `origin/cursor/buffs-ac-slice-244b` (live tip) в mobile line.  
+2. **M0.4b** Identity «Черты» / мастер выдал черту.  
+3. **M0.5** Прыжок + щит + разборка КД в `MobileVitalsBar`.  
+4. **M0.6** Buffs sheets + LSS rail на странице Характеристики.  
+5. Потом **M1.2** Исследование (как раньше в P1).
+
+Не деплоить mobile, пока tip не в ancestry ветки.
 
 ---
 
 ## 11. Definition of Done релиза в прод
 
-1. Mobile UI Kit ok + этот план ok.  
-2. P0 закрыт на tip; P1 паритет без 💀/❌.  
-3. `./deploy/preflight-prod.sh` green.  
+1. Mobile UI Kit ok + этот план ok (с desk delta 10-14).  
+2. P0 (+ M0.5/M0.6) закрыт **на tip**; P1 паритет без 💀/❌.  
+3. `./deploy/preflight-prod.sh` + live tip ancestry green.  
 4. Явное «залей на сервер» от Игоря.  
-5. Проверка живого URL на телефоне / DevTools 390px.  
+5. Проверка живого URL на телефоне / DevTools 390px **и** ≥960 без регрессии desk.  
 6. `PRODUCT_STATUS.md` + смена prod tip.  
 7. Сообщение для друзей — только если попросишь.
 
@@ -272,5 +327,15 @@ Mobile path (этот документ):
 | 2 | Bottom Scene Nav вместо select «Панель» | **Ок** |
 | 3 | Копирайт табов | **Как на десктопе после Wave A LOCK:** Бой · Исследование · Общение · Напарники · Способности. **ЕЩЁ нет** (разнесено: identity/hot/владения/attune) |
 | 4 | Старт кода M0.1 | **Только после** ok на картинки кита |
+| 5 | Path B abilities | Полноэкранная страница Характеристики + сворачиваемые vitals (ok 2026-10-14) |
 
-Следующий шаг: доски в `docs/ui-kit-mobile/boards/*.jpg` → ok Игоря на визуал → M0.1.
+### 12b. Синхронизация с desk tip (2026-10-14)
+
+| # | Факт | Решение для mobile |
+|---|------|--------------------|
+| 1 | Live tip = `buffs-ac-slice-244b` (не create-pipeline / не restore-wave alone) | Все новые mobile-ветки от tip |
+| 2 | На проде уже: прыжок, щит у КД, бафы, LSS rail, история бросков, Identity Черты | Добавлены слайсы M0.4b–M0.6 + расширен M1.4 |
+| 3 | Mobile M0–M1.1 код не на проде | Не ship отдельно без merge tip |
+| 4 | Desk handlers (`modifiers`, `heldEquip`, roll history) священны | Только placement / sheets на `<960` |
+
+**Следующий шаг:** ok на обновлённый план → gate merge tip → M0.4b → M0.5 → M0.6 → M1.2.
