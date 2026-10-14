@@ -30,9 +30,9 @@
 | Cast: нет ячеек (K14) | ✅ Отдых… / сброс договора | inline recovery | P1 |
 | Инвентарь glance/expand | ✅ + полоска ноши | Tab Исследование | P1 · M1.2 |
 | Attunement 0–3 | ✅ chip → sheet из summary | из summary Исследования | P1 · M1.2 |
-| Тексты / личность | 🟡 | Tab Общение | P1 · M1.3 |
-| Умения / ресурсы spend | 🟡 | Tab Способности | P1 · M1.3 |
-| Напарники CRUD | 🟡 | Tab Напарники | P1 · M1.3 |
+| Тексты / личность | ✅ + skill strip/roll | Tab Общение | P1 · M1.3 |
+| Умения / ресурсы spend | ✅ + фильтр «Свои» | Tab Способности | P1 · M1.3 |
+| Напарники CRUD | ✅ glance/add fork | Tab Напарники | P1 · M1.3 |
 | Companion dock | ❌ | optional strip | P2 |
 | Ability rail + навыки | ✅ страница B + tip rail | vitals → страница B | P0 |
 | LSS rail: pip + число→бросок | ✅ (tip AbilitySkillsColumn) | страница Характеристики | P0 · M0.6 |
@@ -41,7 +41,7 @@
 | Identity / аватар / классы | ✅ who/avatar → sheet | who/avatar → sheet | P0 |
 | Identity **Черты** + мастер выдал | ✅ (tip §2k) | секция в Identity sheet | P0 · M0.4b |
 | XP pad / history / level-up CTA | ✅ в Identity (`XpProgressField`) | Identity sheet | P0 |
-| Skill strips + преим/помеха | ✅ Бой (strip + roll bar) | Бой + Характеристики | P1 · M1.4 |
+| Skill strips + преим/помеха | ✅ Бой / Исслед. / Общение | сцены + Характеристики | P1 · M1.3–M1.4 |
 | История бросков «броски» | ✅ sheet из Боя (тот же rollHistory) | Бой → sheet | P1 · M1.4 |
 | Безрассудная → преим. | ✅ `onCombatFeatureToggle` → deskRollMode | Бой compact | P1 · M1.4 |
 | Split spells | ✅ сегмент Атаки/Заклинания + Бой/Книга | segmented, не split | P1 |

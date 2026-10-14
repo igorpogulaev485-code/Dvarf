@@ -129,13 +129,21 @@ type ClassFeaturesPanelProps = {
   onCustomFeaturesChange?: (features: CustomFeature[]) => void
 }
 
-type FeatureFilter = 'all' | 'class' | 'subclass' | 'feats' | 'resource' | 'choice'
+type FeatureFilter =
+  | 'all'
+  | 'class'
+  | 'subclass'
+  | 'feats'
+  | 'custom'
+  | 'resource'
+  | 'choice'
 
 const FEATURE_FILTERS: Array<{ id: FeatureFilter; label: string }> = [
   { id: 'all', label: 'Все' },
   { id: 'class', label: 'Класс' },
   { id: 'subclass', label: 'Подкласс' },
   { id: 'feats', label: 'Черты' },
+  { id: 'custom', label: 'Свои' },
   { id: 'resource', label: 'С ресурсом' },
   { id: 'choice', label: 'Выбор' },
 ]
@@ -1396,7 +1404,7 @@ export function ClassFeaturesPanel({
       if (filter === 'all') return true
       if (filter === 'class') return feature.source !== 'subclass'
       if (filter === 'subclass') return feature.source === 'subclass'
-      if (filter === 'feats') return false
+      if (filter === 'feats' || filter === 'custom') return false
       if (filter === 'resource') return Boolean(feature.resource?.pool_id)
       if (filter === 'choice') {
         return (
@@ -1431,7 +1439,7 @@ export function ClassFeaturesPanel({
     (darkvision > 0 || resolvedRaceTraits.length > 0) &&
     (filter === 'all' || filter === 'class')
   const showFeats = filter === 'all' || filter === 'feats'
-  const showCustom = filter === 'all' || filter === 'feats'
+  const showCustom = filter === 'all' || filter === 'feats' || filter === 'custom'
 
   const extraAttackNote = useMemo(() => {
     const attacks = features.filter(
