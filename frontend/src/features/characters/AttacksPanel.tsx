@@ -192,9 +192,11 @@ export function AttacksPanel({
             abilityModifier(abilities[attack.ability]) +
             (proficient ? proficiencyBonus : 0) +
             magicAtk
+          const abilityDmg = abilityModifier(abilities[attack.ability])
+          const totalDmgBonus = abilityDmg + magicDmg
           const damageDisplay =
-            magicDmg && attack.damage
-              ? `${attack.damage}${magicDmg >= 0 ? '+' : ''}${magicDmg}`
+            attack.damage && totalDmgBonus
+              ? `${attack.damage}${totalDmgBonus >= 0 ? '+' : ''}${totalDmgBonus}`
               : attack.damage
           const damageHero = damageDisplay || '—'
           return (
