@@ -6065,6 +6065,50 @@ button.spell-card__cast:hover:not(:disabled) {
   background: #fff;
 }
 
+/* Identity sheet on phone: one column, stacked field atoms (kit §3.5a) */
+@media (max-width: 959px) {
+  .identity-dialog {
+    gap: 12px;
+  }
+  .identity-dialog__form {
+    gap: 12px;
+  }
+  .identity-dialog__form > .sheet-grid--2,
+  .identity-dialog__class > .sheet-grid--2 {
+    grid-template-columns: 1fr;
+  }
+  .identity-dialog__avatar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .identity-dialog__avatar .char-avatar,
+  .identity-dialog__avatar .avatar-control {
+    justify-content: flex-start;
+  }
+  /* Stepper / catalog+homebrew rows: value then full-width CTA */
+  .identity-dialog .languages-tools-add {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .identity-dialog .languages-tools-add .ui-button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .identity-dialog .ui-input {
+    min-height: 44px;
+  }
+  .identity-dialog .ui-input:read-only {
+    background: color-mix(in srgb, var(--line) 35%, #fff);
+    color: var(--ink);
+    cursor: default;
+  }
+  /* Keep combobox suggestions inside the sheet scrollport */
+  .ui-dialog--xl .identity-dialog .ui-combobox__list {
+    max-height: min(200px, 28dvh);
+  }
+}
+
 .play-desk {
   /* Alias kit tokens — no parallel mint/teal theme */
   --desk-ink: var(--ink);

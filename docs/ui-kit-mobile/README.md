@@ -180,8 +180,34 @@ Icons: те же `IconConditions` / `IconConcentration` / `IconPouch`.
 | Conditions | HotStrip | exhaustion + on-character + quick pick |
 | Cast | Каст | upcast / источник / conc swap |
 | Ownership | из страницы Характеристики «Владения ▸» | скорости/ТЗ · снаряжение · языки/инструменты |
-| Identity | аватар / who | как desktop IdentityDialog |
+| Identity | аватар / who | как desktop IdentityDialog · **поля = атомы ниже** |
 | Attunement | summary инвентаря | слоты 0–3 |
+
+### 3.5a Identity «Основное» — типы полей (компоненты)
+
+Не плодим новые виджеты. Каждый слот в sheet = уже существующий атом UI kit / play desk. На телефоне меняется **только раскладка** (1 колонка, полный tap).
+
+| Тип | Где в «Основном» | Компонент (код) | Mobile правило |
+|-----|------------------|-----------------|----------------|
+| **A · Avatar** | шапка sheet | `CharacterAvatarControl` | блок на всю ширину; upload/delete ≥44px |
+| **T · Text** | Имя · мировоззрение | `Field` + `Input` | 1 колонка; `inputmode`/autocomplete ок |
+| **R · Read-only** | БМ · Размер · ур. класса (цифра) | `Field` + `Input readOnly` **или** `Text` | выглядит как display, не как «сломанный» input; не фокусируется |
+| **S · Stepper / CTA** | Уровень персонажа (+1) · −1 ур. класса | `Field` + row `Input readOnly` + `Button` | **стек**: значение сверху, CTA на всю ширину под ним (`identity-field--stack`) |
+| **X · XP composite** | Опыт | `XpProgressField` | полная ширина; tap по числу → NumberPad (как desk) |
+| **C · Catalog pick** | Класс · архетип · раса · предыстория | `CatalogCombobox` (+ `Button` Хомбрю) | combobox list **внутри sheet** (не уезжает за viewport); Хомбрю — secondary под полем, full-width |
+| **K · Class card** | повтор по `draft.classes` | `.identity-dialog__class` | одна карточка = класс+ур.+архетип; мультикласс = ещё карта |
+| **H · Hint** | подсказки шагов | `Field hint` / `Text tone="muted"` | не конкурирует с tap; мелкий muted |
+
+**Секции (порядок LOCK §2k):** Аватар → Персонаж → Классы → Раса и прошлое.
+
+**Сетка:** на `<960` внутри Identity **запрещён** `sheet-grid--2` в две колонки — всё в один стол (`identity-dialog--mobile` / media). Desk 2-col остаётся.
+
+**Вложенные мастера** (ClassSetup / RaceSetup / LevelUp / SubclassChange): открываются **поверх** Identity sheet (z выше), закрытие = назад в Основное. Не уводить в отдельный tab.
+
+**Не путать:**
+- Identity (сборка героя) ≠ страница Характеристики (СИЛ…) ≠ tab Способности (умения).
+
+Доска: [`boards/dvarf-mobile-kit-identity.jpg`](boards/dvarf-mobile-kit-identity.jpg) (+ поля на той же доске).
 
 ### 3.5b Полноэкранные страницы (не sheet, не tab)
 

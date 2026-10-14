@@ -698,18 +698,28 @@
     </div>
 
     <div style="flex:0.9;min-width:0">
-      <p class="sec-label">3 · Правила mobile</p>
+      <p class="sec-label">3 · Типы полей = компоненты</p>
+      <div class="card" style="margin-bottom:10px;padding:10px;font-size:11px">
+        <table style="width:100%;border-collapse:collapse">
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">A Avatar</td><td style="padding:5px 2px">CharacterAvatarControl</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">T Text</td><td style="padding:5px 2px">Field + Input</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">R Read-only</td><td style="padding:5px 2px">Field + Text / Input ro</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">S Stepper</td><td style="padding:5px 2px">значение + CTA full-width</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">X XP</td><td style="padding:5px 2px">XpProgressField</td></tr>
+          <tr style="border-bottom:1px solid var(--line)"><td style="padding:5px 2px;font-weight:700">C Catalog</td><td style="padding:5px 2px">CatalogCombobox + Хомбрю</td></tr>
+          <tr><td style="padding:5px 2px;font-weight:700">K Class card</td><td style="padding:5px 2px">повтор · класс/ур./архетип</td></tr>
+        </table>
+      </div>
       <div class="card" style="margin-bottom:10px">
         <ol class="note" style="margin:0;padding-left:18px">
-          <li style="margin-bottom:8px">Те же секции, что desktop LOCK §2k.</li>
-          <li style="margin-bottom:8px">На телефоне — <strong>bottom sheet</strong> (не center xl dialog).</li>
-          <li style="margin-bottom:8px">Level-up / архетип / расовые выборы — внутри этого sheet.</li>
-          <li style="margin-bottom:8px">Identity ≠ Характеристики ≠ tab Способности.</li>
-          <li>Сцены «ЕЩЁ» нет — это и есть бывший вход «Основное».</li>
+          <li style="margin-bottom:6px">&lt;960: только <strong>1 колонка</strong> (нет sheet-grid--2).</li>
+          <li style="margin-bottom:6px">Мастера (setup/level-up) — <strong>поверх</strong> sheet.</li>
+          <li style="margin-bottom:6px">Identity ≠ Характеристики ≠ Способности.</li>
+          <li>Новых виджетов не плодим — только атомы кита.</li>
         </ol>
       </div>
       <div class="callout">
-        LSS держит «Личность и внешность» отдельной страницей. У нас личность/тексты — сцена <strong>Общение</strong>; сборка героя (имя·класс·раса·аватар) — здесь.
+        Личность/тексты — сцена <strong>Общение</strong>. Здесь только сборка героя.
       </div>
     </div>
   </div>
