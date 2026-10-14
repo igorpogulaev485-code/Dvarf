@@ -4598,7 +4598,7 @@ export function MinimalSheetEditor({
           open={mobileAbilitiesOpen}
           onClose={() => setMobileAbilitiesOpen(false)}
           onOpenOwnership={() => {
-            setMobileAbilitiesOpen(false)
+            // Keep Характеристики under the ownership sheet.
             setOwnershipOpen(true)
           }}
         >

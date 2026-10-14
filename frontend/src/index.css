@@ -8472,6 +8472,29 @@ button.play-desk-vital:hover {
   box-shadow: 8px 0 30px rgba(0, 0, 0, 0.12);
 }
 
+/* Mobile kit: Владения as bottom sheet above Характеристики page (z 70) */
+@media (max-width: 959px) {
+  .play-desk-drawer-backdrop {
+    z-index: 85;
+  }
+  .play-desk-drawer {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 8px));
+    border-right: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 16px 16px 0 0;
+    z-index: 86;
+    box-shadow: 0 -8px 28px rgba(28, 25, 23, 0.18);
+  }
+  .play-desk-drawer__body {
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+}
+
 .play-desk-drawer__head {
   display: flex;
   justify-content: space-between;
