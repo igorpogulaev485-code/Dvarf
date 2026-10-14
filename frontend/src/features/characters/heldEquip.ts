@@ -215,3 +215,42 @@ export function equipLabel(item: InventoryItem): { on: string; off: string } {
   }
   return { on: 'Надето', off: 'Снято' }
 }
+
+export function listShieldItems(items: InventoryItem[]): InventoryItem[] {
+  return items.filter(
+    (item) => !item.parent_id && item.armor_kind === 'shield' && item.name.trim(),
+  )
+}
+
+export type ShieldToggleResult =
+  | { ok: true; items: InventoryItem[]; equipped: boolean; name: string }
+  | { ok: false; reason: string }
+
+/**
+ * Quick draw/stow for the desk AC vital.
+ * Off → equip first shield (frees a hand if needed). On → stow the equipped shield.
+ */
+export function toggleShieldInHand(items: InventoryItem[]): ShieldToggleResult {
+  const shields = listShieldItems(items)
+  if (shields.length === 0) {
+    return { ok: false, reason: 'Нет щита в инвентаре' }
+  }
+  const equipped = shields.find((item) => item.equipped)
+  if (equipped) {
+    return {
+      ok: true,
+      equipped: false,
+      name: equipped.name.trim() || 'Щит',
+      items: items.map((item) =>
+        item.id === equipped.id ? { ...item, equipped: false } : item,
+      ),
+    }
+  }
+  const target = shields[0]!
+  return {
+    ok: true,
+    equipped: true,
+    name: target.name.trim() || 'Щит',
+    items: equipHeldItem(items, target.id),
+  }
+}

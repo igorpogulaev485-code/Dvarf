@@ -58,6 +58,12 @@ type PlayDeskHeaderProps = {
   play: PlayState
   autoAc: number
   acHint: string
+  /** Shield currently in hand (affects AC). */
+  shieldInHand?: boolean
+  /** At least one shield exists in inventory for the quick toggle. */
+  shieldAvailable?: boolean
+  /** Draw / stow shield from the AC vital. */
+  onToggleShield?: () => void
   speed: number | null
   /** Extra walk-speed note (e.g. gear bonus) for title tooltip. */
   movementHint?: string | null
@@ -110,6 +116,9 @@ export function PlayDeskHeader({
   play,
   autoAc,
   acHint,
+  shieldInHand = false,
+  shieldAvailable = false,
+  onToggleShield,
   speed,
   movementHint = null,
   climbSpeed = null,
@@ -360,10 +369,41 @@ export function PlayDeskHeader({
 
       <div className="play-desk-header__mid">
         <div className="play-desk-header__vitals">
-          <div className="play-desk-vital play-desk-vital--shield" title={acHint}>
+          <div
+            className={`play-desk-vital play-desk-vital--shield${
+              shieldInHand ? ' is-shield-on' : ''
+            }`}
+            title={acHint}
+          >
             <IconShield className="play-desk-vital__icon" />
             <b>{autoAc}</b>
             <span>КД</span>
+            {onToggleShield ? (
+              <button
+                type="button"
+                className={`play-desk-vital__shield-tog${
+                  shieldInHand ? ' is-on' : ''
+                }${shieldAvailable || shieldInHand ? '' : ' is-empty'}`}
+                aria-pressed={shieldInHand}
+                aria-label={
+                  shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'
+                }
+                title={
+                  shieldInHand
+                    ? 'Щит в руке — нажми, чтобы убрать (КД −бонус щита)'
+                    : shieldAvailable
+                      ? 'Взять щит в руку — КД с бонусом щита'
+                      : 'Нет щита в инвентаре'
+                }
+                disabled={!shieldAvailable && !shieldInHand}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleShield()
+                }}
+              >
+                щит
+              </button>
+            ) : null}
           </div>
           <div
             className={`play-desk-vital play-desk-vital--speed${
