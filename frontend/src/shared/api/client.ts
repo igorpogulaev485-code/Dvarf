@@ -192,6 +192,8 @@ export async function apiRequest<T>(
     response = await fetch(path, {
       ...options,
       headers,
+      // Dual-purpose URLs (/characters) must never reuse a cached SPA HTML shell.
+      cache: 'no-store',
     })
   } catch {
     throw new ApiRequestError(
