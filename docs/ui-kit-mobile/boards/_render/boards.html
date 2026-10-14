@@ -368,6 +368,9 @@
             <div class="tool" title="Монеты">◉</div>
             <div class="tool" title="Отдых">♨</div>
           </div>
+          <div style="margin-top:6px;display:flex;gap:4px">
+            <span class="pill on" style="flex:1;justify-content:center;padding:5px 6px;font-size:10px;border-radius:8px">СИЛ… · Характеристики</span>
+          </div>
         </div>
         <div class="hot">
           <chip class="on">◎ Состояния</chip>
@@ -403,11 +406,12 @@
           <li style="margin-bottom:8px"><strong>HP</strong> — крупнейший tap; pad = bottom sheet.</li>
           <li style="margin-bottom:8px"><strong>Монеты / Отдых</strong> — в vitals (паритет header).</li>
           <li style="margin-bottom:8px"><strong>HotStrip</strong> — состояния · концентрация · пипы ресурсов.</li>
-          <li><strong>Default tab</strong> при открытии листа — Бой (time-to-attack).</li>
+          <li style="margin-bottom:8px"><strong>Default tab</strong> при открытии листа — Бой (time-to-attack).</li>
+          <li><strong>Характеристики</strong> — chip в vitals → sheet (не tab «Способности»).</li>
         </ol>
       </div>
       <div class="callout">
-        <strong>Не делать:</strong> left drawer владений · center-modal pads · возврат select «Панель» · прятать Rest/Conditions.
+        <strong>Не делать:</strong> left drawer владений · center-modal pads · возврат select «Панель» · путать tab «Способности» (черты/ресурсы) с характеристиками.
       </div>
       <div style="margin-top:14px" class="card">
         <p class="sec-label">Z-слои</p>
@@ -447,7 +451,8 @@
             <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Монеты</td><td style="padding:6px 4px">→ CoinPad sheet</td></tr>
             <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Отдых</td><td style="padding:6px 4px">→ Rest sheet</td></tr>
             <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">Death</td><td style="padding:6px 4px">только HP≤0 · opaque + череп</td></tr>
-            <tr><td style="padding:6px 4px;font-weight:600">XP</td><td style="padding:6px 4px">полоска или ⋯ → sheet</td></tr>
+            <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 4px;font-weight:600">XP</td><td style="padding:6px 4px">полоска или ⋯ → sheet</td></tr>
+            <tr><td style="padding:6px 4px;font-weight:600">Характеристики</td><td style="padding:6px 4px">chip «СИЛ… · Характеристики» → sheet + навыки; оттуда «Владения ▸»</td></tr>
           </table>
         </div>
       </div>
@@ -592,6 +597,110 @@
         <div class="line-item"><span>Владения ▸</span><span>sheet</span></div>
       </div>
       <div class="bot"><span>Бой</span><span>Исслед.</span><span>Общ.</span><span>Нап.</span><span>Спос.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== ABILITIES + OWNERSHIP ========== -->
+<section class="board" id="abilities" data-file="dvarf-mobile-kit-abilities.jpg">
+  <div class="hdr">
+    <div>
+      <h1>Кит · Характеристики + Владения</h1>
+      <p class="sub">Не tab Bottom Nav · вход из vitals · навыки внутри · Владения вторым sheet</p>
+    </div>
+    <div class="badge">RAIL → SHEET</div>
+  </div>
+  <div class="body" style="display:flex;gap:18px;align-items:flex-start">
+    <!-- Step 1: entry -->
+    <div style="width:220px;flex-shrink:0">
+      <p class="sec-label">1 · Где нажать</p>
+      <div class="phone" style="width:220px;height:420px;border-radius:28px">
+        <div class="phone-notch"><span style="width:70px"></span></div>
+        <div class="phone-body">
+          <div class="vitals" style="padding:8px">
+            <div class="who">
+              <div class="avatar" style="width:30px;height:30px;font-size:12px">Т</div>
+              <div>
+                <div class="who-name" style="font-size:14px">Торин</div>
+                <div class="who-meta">аватар → Identity</div>
+              </div>
+            </div>
+            <div class="vital-row">
+              <div class="vital"><div class="v" style="font-size:12px">16</div><div class="l">КД</div></div>
+              <div class="vital"><div class="v" style="font-size:12px">25</div><div class="l">Скор.</div></div>
+              <div class="vital"><div class="v" style="font-size:12px">+2</div><div class="l">Иниц.</div></div>
+              <div class="vital"><div class="v" style="font-size:12px">+3</div><div class="l">БМ</div></div>
+            </div>
+            <div style="margin-top:4px;border:2px solid var(--accent);border-radius:10px;padding:8px;background:var(--accent-soft);text-align:center">
+              <div style="font-size:11px;font-weight:700;color:var(--accent)">СИЛ 16 · ЛОВ 12 · …</div>
+              <div style="font-size:10px;font-weight:600;margin-top:2px">Характеристики ▸</div>
+            </div>
+          </div>
+          <div class="scene" style="opacity:.45;font-size:11px;padding:8px">сцена Бой…</div>
+          <div class="bnav">
+            <div class="tab on"><div class="ico" style="font-size:11px">⚔</div>Бой</div>
+            <div class="tab"><div class="ico" style="font-size:11px">🎒</div>Исслед.</div>
+            <div class="tab"><div class="ico" style="font-size:11px">💬</div>Общ.</div>
+            <div class="tab"><div class="ico" style="font-size:11px">🐾</div>Нап.</div>
+            <div class="tab"><div class="ico" style="font-size:11px">✦</div>Спос.</div>
+          </div>
+        </div>
+      </div>
+      <p class="note" style="margin:8px 0 0"><strong>Важно:</strong> tab «Способности» = черты/ярость. Характеристики — отдельный chip в vitals.</p>
+    </div>
+
+    <!-- Step 2: abilities sheet -->
+    <div style="flex:1.1;min-width:0">
+      <p class="sec-label">2 · Sheet «Характеристики» (+ навыки)</p>
+      <div class="sheet-demo" style="width:100%;border-radius:16px;min-height:420px">
+        <div class="grab"></div>
+        <h3>Характеристики</h3>
+        <p class="note" style="margin:0 0 8px">Variant A · identity-цвета · tap по названию сворачивает навыки</p>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="card" style="padding:8px 10px;border-color:#9a4a32;background:#f3e0d6">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <strong style="font-family:var(--font-display);color:#9a4a32">Сила</strong>
+              <span style="font-weight:700;font-size:18px">16 <span style="font-size:12px;color:var(--muted)">(+3)</span></span>
+            </div>
+            <div style="margin-top:6px;font-size:12px">
+              <div style="display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid #e0c4b4"><span>Атлетика</span><strong>+6</strong></div>
+              <div style="display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid #e0c4b4"><span>Спас. СИЛ</span><strong>+3</strong></div>
+            </div>
+          </div>
+          <div class="card" style="padding:8px 10px;border-color:#3d6b5a;background:#dcece4">
+            <div style="display:flex;justify-content:space-between"><strong style="font-family:var(--font-display);color:#3d6b5a">Ловкость</strong><span style="font-weight:700">12 (+1)</span></div>
+            <div class="note" style="margin:4px 0 0">навыки свёрнуты · tap раскрыть</div>
+          </div>
+          <div class="card" style="padding:8px 10px;border-color:#8a6a2f;background:#f1e6c8">
+            <div style="display:flex;justify-content:space-between"><strong style="font-family:var(--font-display);color:#8a6a2f">Телосложение</strong><span style="font-weight:700">15 (+2)</span></div>
+          </div>
+          <div class="note" style="text-align:center">ИНТ · МДР · ХАР — ниже в scroll</div>
+        </div>
+        <span class="btn btn-primary" style="width:100%;margin-top:12px">Владения ▸</span>
+      </div>
+    </div>
+
+    <!-- Step 3: ownership -->
+    <div style="flex:1;min-width:0">
+      <p class="sec-label">3 · Sheet «Владения»</p>
+      <div class="sheet-demo" style="width:100%;border-radius:16px;min-height:420px">
+        <div class="grab"></div>
+        <h3>Владения</h3>
+        <p class="note" style="margin:0 0 8px">Паритет desktop Ownership drawer · не left drawer · не ЕЩЁ</p>
+        <div class="card" style="margin-bottom:8px;padding:8px">
+          <div class="tag">Скорости / ТЗ</div>
+          <div class="note" style="margin:0">Ходьба 25 · лаз. — · плав. — · полёт — · ТЗ 14</div>
+        </div>
+        <div class="card" style="margin-bottom:8px;padding:8px">
+          <div class="tag">Снаряжение</div>
+          <div class="note" style="margin:0">Доспех ср. · щит · простое/воинское оружие</div>
+        </div>
+        <div class="card" style="padding:8px">
+          <div class="tag">Языки / инструменты</div>
+          <div class="note" style="margin:0">Общий · Дварфский · кузнечные инструменты</div>
+        </div>
+        <span class="btn btn-ghost" style="width:100%;margin-top:12px">← к характеристикам</span>
+      </div>
     </div>
   </div>
 </section>

@@ -13,6 +13,7 @@
 | `dvarf-mobile-kit-nav-vitals.jpg` | Bottom Nav (имена desktop) + MobileVitalsBar + HotStrip |
 | `dvarf-mobile-kit-sheets.jpg` | Bottom sheets: HP / Rest / Conditions / Cast |
 | `dvarf-mobile-kit-scenes.jpg` | Сцены Бой · Исследование · Общение · … |
+| `dvarf-mobile-kit-abilities.jpg` | Вход из vitals → sheet Характеристики (+навыки) → Владения |
 | `dvarf-mobile-kit-create-lobby.jpg` | Create StepRail + Lobby Hero на телефоне |
 
 Табы: **Бой · Исследование · Общение · Напарники · Способности** (desktop после drop ЕЩЁ).  
