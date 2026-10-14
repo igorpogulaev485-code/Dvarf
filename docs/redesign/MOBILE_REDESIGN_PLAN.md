@@ -155,17 +155,17 @@ Wave A chrome завязан на `isPlayDesk` (`min-width: 960px`). На тел
 - Vitals **сворачиваются** (compact strip)  
 - Identity field atoms + XP pad/history/level-up  
 
-**Слайс M0.4b — Identity «Черты» (desk §2k 2026-10-14)** · **next after rebase**  
+**Слайс M0.4b — Identity «Черты» (desk §2k 2026-10-14)** · **done** (tip merge)  
 - Секция Черты в Identity sheet: список грантов  
 - CTA «Мастер выдал черту» → `FeatSetupDialog` (source `manual`)  
 - Убрать только manual; ASI-черта остаётся в level-up  
 
-**Слайс M0.5 — Vitals desk-sync (прыжок / щит / КД)** · **P0-gap от tip 10-14**  
+**Слайс M0.5 — Vitals desk-sync (прыжок / щит / КД)** · **done** `cursor/mobile-desk-sync-code-0ed9`  
 - Витал Прыж. `long/high` в `MobileVitalsBar`  
 - Чип «щит» под КД (heldEquip draw/stow)  
-- Tap КД → `AcBreakdown` bottom sheet  
+- Tap КД → `AcBreakdown` bottom sheet · tap Иниц. → initiative breakdown  
 
-**Слайс M0.6 — Buffs + LSS rail на phone** · **P0-gap от tip 10-14**  
+**Слайс M0.6 — Buffs + LSS rail на phone** · **done** (tip AbilitySkillsColumn + shared dialogs)  
 - Ability / Initiative / Spell DC·Attack breakdown sheets  
 - Страница Характеристики: pip владения + число → бросок (как desk rail)  
 - Не дублировать формульный engine — только mobile placement  

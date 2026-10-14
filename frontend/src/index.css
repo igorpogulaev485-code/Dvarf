@@ -9210,7 +9210,7 @@ button.play-desk-compact__more--btn:hover {
 
 .mobile-vitals__row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
   gap: 6px;
 }
 
@@ -9225,6 +9225,87 @@ button.play-desk-compact__more--btn:hover {
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--card);
+}
+
+.mobile-vitals__chip--ac {
+  min-height: 58px;
+  padding-bottom: 4px;
+  gap: 4px;
+}
+
+.mobile-vitals__chip--ac.is-shield-on {
+  border-color: var(--accent);
+}
+
+.mobile-vitals__chip-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.mobile-vitals__chip-main:disabled {
+  cursor: default;
+}
+
+.mobile-vitals__chip--btn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mobile-vitals__chip.is-tap:active,
+.mobile-vitals__chip--btn.is-tap:active {
+  background: var(--accent-soft);
+}
+
+.mobile-vitals__shield-tog {
+  min-height: 28px;
+  min-width: 44px;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mobile-vitals__shield-tog.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.mobile-vitals__shield-tog.is-empty:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.mobile-vitals__chip--jump {
+  gap: 1px;
+}
+
+.mobile-vitals__jump-ico {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+
+.mobile-vitals__jump-sep {
+  margin: 0 1px;
+  font-weight: 500;
+  color: var(--muted);
 }
 
 .mobile-vitals__chip b {

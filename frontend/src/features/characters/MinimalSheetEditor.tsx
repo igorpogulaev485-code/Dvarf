@@ -3783,6 +3783,32 @@ export function MinimalSheetEditor({
           autoAc={armorClass.ac}
           acOverride={draft.ac}
           acHint={armorClass.summary}
+          onOpenAc={() => setAcBreakdownOpen(true)}
+          shieldInHand={Boolean(equippedArmorPieces(draft.inventory.items).shield)}
+          shieldAvailable={listShieldItems(draft.inventory.items).length > 0}
+          onToggleShield={() => {
+            const shields = listShieldItems(draft.inventory.items)
+            const anyOn = shields.some((row) => row.equipped)
+            if (!anyOn && !canWearArmor('shield', draft.identity.armor)) {
+              onToast(armorProficiencyHint('shield'))
+              return
+            }
+            const result = toggleShieldInHand(draft.inventory.items)
+            if (!result.ok) {
+              onToast(result.reason)
+              return
+            }
+            setDraft((prev) => ({
+              ...prev,
+              inventory: { ...prev.inventory, items: result.items },
+              weapons: syncAttacksHeldFromInventory(prev.weapons, result.items),
+            }))
+            onToast(
+              result.equipped
+                ? `Щит «${result.name}» в руке`
+                : `Щит «${result.name}» убран`,
+            )
+          }}
           speed={
             draft.speed == null && !gearEffects.speedBonusFt
               ? null
@@ -3800,7 +3826,10 @@ export function MinimalSheetEditor({
           ]
             .filter(Boolean)
             .join(' · ') || null}
+          jumpLongFt={jump.longFt}
+          jumpHighFt={jump.highFt}
           initiative={initiativeValue}
+          onOpenInitiative={() => setInitiativeBreakdownOpen(true)}
           proficiencyBonus={proficiencyBonus}
           inspiration={draft.inspiration}
           coins={draft.inventory.coins}

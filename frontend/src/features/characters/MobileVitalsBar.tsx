@@ -9,7 +9,8 @@ import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { HpPadDialog } from './HpPadDialog'
 import { CoinPadDialog } from './CoinPadDialog'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
-import { IconCoin, IconRest, IconSkull } from './deskIcons'
+import { formatJumpTitle } from '../../shared/dnd/jumpDistance'
+import { IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
 
 const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed'
 
@@ -26,9 +27,17 @@ type MobileVitalsBarProps = {
   autoAc: number
   acOverride: number | null
   acHint: string
+  /** Open AC breakdown / buffs sheet (desk tip). */
+  onOpenAc?: () => void
+  shieldInHand?: boolean
+  shieldAvailable?: boolean
+  onToggleShield?: () => void
   speed: number | null
   movementHint?: string | null
+  jumpLongFt?: number | null
+  jumpHighFt?: number | null
   initiative: number
+  onOpenInitiative?: () => void
   proficiencyBonus: number
   inspiration: boolean
   coins: CoinPurse
@@ -73,9 +82,16 @@ export function MobileVitalsBar({
   autoAc,
   acOverride,
   acHint,
+  onOpenAc,
+  shieldInHand = false,
+  shieldAvailable = false,
+  onToggleShield,
   speed,
   movementHint = null,
+  jumpLongFt = null,
+  jumpHighFt = null,
   initiative,
+  onOpenInitiative,
   proficiencyBonus,
   inspiration,
   coins,
@@ -299,9 +315,52 @@ export function MobileVitalsBar({
       </div>
 
       <div className="mobile-vitals__row" role="list">
-        <div className="mobile-vitals__chip" role="listitem" title={acOverride == null ? acHint : 'вручную'}>
-          <b>{ac}</b>
-          <span>КД</span>
+        <div
+          className={`mobile-vitals__chip mobile-vitals__chip--ac${
+            shieldInHand ? ' is-shield-on' : ''
+          }${onOpenAc ? ' is-tap' : ''}`}
+          role="listitem"
+        >
+          <button
+            type="button"
+            className="mobile-vitals__chip-main"
+            title={
+              onOpenAc
+                ? `Класс защиты ${ac}. Открыть разборку`
+                : acOverride == null
+                  ? acHint
+                  : 'вручную'
+            }
+            disabled={!onOpenAc}
+            onClick={() => onOpenAc?.()}
+          >
+            <b>{ac}</b>
+            <span>КД</span>
+          </button>
+          {onToggleShield ? (
+            <button
+              type="button"
+              className={`mobile-vitals__shield-tog${shieldInHand ? ' is-on' : ''}${
+                shieldAvailable || shieldInHand ? '' : ' is-empty'
+              }`}
+              aria-pressed={shieldInHand}
+              aria-label={shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'}
+              title={
+                shieldInHand
+                  ? 'Щит в руке — убрать'
+                  : shieldAvailable
+                    ? 'Взять щит в руку'
+                    : 'Нет щита в инвентаре'
+              }
+              disabled={!shieldAvailable && !shieldInHand}
+              onClick={(event) => {
+                event.stopPropagation()
+                onToggleShield()
+              }}
+            >
+              щит
+            </button>
+          ) : null}
         </div>
         <div
           className="mobile-vitals__chip"
@@ -311,10 +370,39 @@ export function MobileVitalsBar({
           <b>{speed == null ? '—' : speed}</b>
           <span>Скор.</span>
         </div>
-        <div className="mobile-vitals__chip" role="listitem">
-          <b>{formatModifier(initiative)}</b>
-          <span>Иниц.</span>
-        </div>
+        {jumpLongFt != null && jumpHighFt != null ? (
+          <div
+            className="mobile-vitals__chip mobile-vitals__chip--jump"
+            role="listitem"
+            title={formatJumpTitle({ longFt: jumpLongFt, highFt: jumpHighFt })}
+            aria-label={`Прыжок: длинный ${jumpLongFt} фт, высокий ${jumpHighFt} фт`}
+          >
+            <IconJump className="mobile-vitals__jump-ico" />
+            <b>
+              {jumpLongFt}
+              <span className="mobile-vitals__jump-sep">/</span>
+              {jumpHighFt}
+            </b>
+            <span>Прыж.</span>
+          </div>
+        ) : null}
+        {onOpenInitiative ? (
+          <button
+            type="button"
+            className="mobile-vitals__chip mobile-vitals__chip--btn is-tap"
+            role="listitem"
+            title={`Инициатива ${formatModifier(initiative)}. Открыть разборку`}
+            onClick={onOpenInitiative}
+          >
+            <b>{formatModifier(initiative)}</b>
+            <span>Иниц.</span>
+          </button>
+        ) : (
+          <div className="mobile-vitals__chip" role="listitem">
+            <b>{formatModifier(initiative)}</b>
+            <span>Иниц.</span>
+          </div>
+        )}
         <div className="mobile-vitals__chip" role="listitem">
           <b>{formatModifier(proficiencyBonus)}</b>
           <span>БМ</span>

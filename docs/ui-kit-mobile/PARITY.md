@@ -34,12 +34,12 @@
 | Умения / ресурсы spend | 🟡 | Tab Способности | P1 · M1.3 |
 | Напарники CRUD | 🟡 | Tab Напарники | P1 · M1.3 |
 | Companion dock | ❌ | optional strip | P2 |
-| Ability rail + навыки | 🟡 страница B без LSS pip/roll | vitals → страница B | P0 · **M0.6** |
-| LSS rail: pip + число→бросок | ❌ (desk tip 10-14) | страница Характеристики | P0 · **M0.6** |
+| Ability rail + навыки | ✅ страница B + tip rail | vitals → страница B | P0 |
+| LSS rail: pip + число→бросок | ✅ (tip AbilitySkillsColumn) | страница Характеристики | P0 · M0.6 |
 | Сворачиваемые vitals | ✅ compact strip | «Свернуть ▴» | P0 |
 | Владения drawer | ✅ sheet из Характеристики | sheet / вложенная | P0 |
 | Identity / аватар / классы | ✅ who/avatar → sheet | who/avatar → sheet | P0 |
-| Identity **Черты** + мастер выдал | ❌ (desk §2k 10-14) | секция в Identity sheet | P0 · **M0.4b** |
+| Identity **Черты** + мастер выдал | ✅ (tip §2k) | секция в Identity sheet | P0 · M0.4b |
 | XP pad / history / level-up CTA | ✅ в Identity (`XpProgressField`) | Identity sheet | P0 |
 | Skill strips + преим/помеха | ❌ | Бой + Характеристики | P1 · M1.4 |
 | История бросков «броски» | ❌ (desk tip 10-14) | sticky Бой → sheet | P1 · M1.4 |
@@ -47,11 +47,11 @@
 | Split spells | ✅ сегмент Атаки/Заклинания + Бой/Книга | segmented, не split | P1 |
 | Autosave / conflict | ✅ | copy WAVE | P0 |
 | Speed modes (лаз/плав/полёт) | 🟡 | vitals tip/sheet | P1 |
-| Витал **Прыж.** long/high | ❌ (desk tip 10-14) | chip в MobileVitalsBar | P0 · **M0.5** |
-| Чип **щит** под КД | ❌ (desk tip 10-14) | под КД в vitals | P0 · **M0.5** |
-| Разборка КД (бафы) | ❌ | tap КД → sheet | P0 · **M0.5** |
-| Разборка инициативы | ❌ | tap Иниц. → sheet | P0 · **M0.6** |
-| Разборка СЛ / атаки закл. | ❌ | из Книги / compact stats | P0 · **M0.6** |
+| Витал **Прыж.** long/high | ✅ MobileVitalsBar | chip в MobileVitalsBar | P0 · M0.5 |
+| Чип **щит** под КД | ✅ MobileVitalsBar | под КД в vitals | P0 · M0.5 |
+| Разборка КД (бафы) | ✅ tap КД → sheet | tap КД → sheet | P0 · M0.5 |
+| Разборка инициативы | ✅ tap Иниц. → sheet | tap Иниц. → sheet | P0 · M0.6 |
+| Разборка СЛ / атаки закл. | ✅ в Книге (tip) | из Книги / compact stats | P0 · M0.6 |
 | Level-up / архетип | 🟡 | Identity sheet | P1 |
 
 ---
