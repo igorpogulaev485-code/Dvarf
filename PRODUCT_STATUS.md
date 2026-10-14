@@ -559,7 +559,7 @@
 | Акван / гримуар | язык Акван; гримуар из bundled 2014 при сбое catalog | Не пустой список |
 
 Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) §2k (Черты).  
-На проде: **да** · это **новый prod tip** `cursor/reunify-levelup-feat-gift-244b` · база `cursor/restore-wave-a-desk-0ed9` · проверяется после деплоя
+На проде: **да** · это **новый prod tip** `cursor/reunify-levelup-feat-gift-244b` · база `cursor/restore-wave-a-desk-0ed9` · проверено 2026-10-14: `/health` ok; API TTL `720`/`90`; бандл `CharacterDetailPage-1PefQPz7.js` (`Мастер выдал черту` / `Повысить уровень` / `Опыта хватает`); `IdentityDialog.tsx` на диске; кабинет/лобби/classic на месте
 
 
 ## В ветках / ещё не на проде
@@ -1500,3 +1500,5 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | Шапка: лаз./плав./полёт под скоростью; dist→web; `/health` ok; бандл `CharacterDetailPage-Cwy-1nPy.js` / CSS `index-RHvyfqLk.css` |
 | 2026-10-12 | `cursor/desk-vitals-wave-a73e` · PR #118 | 502→JSON + client retry; VPS reboot после hung Docker; `/health` ok; бандл `client-C72apPWM.js` |
 | 2026-10-13 | `cursor/cabinet-theme-a73e` · PR #141 | Wave A стол + список + кабинет тема/ability colors; **новый tip**; Hub timeout → dist→web; `/health` ok; `CabinetPage-2cQnOPcJ.js` / `CharacterDetailPage-Btt2TPDe.js` / CSS `index-D9wEk362.css` |
+| 2026-10-13 | `cursor/restore-wave-a-desk-0ed9` · PR #148 | Restore Wave A desk (без ЕЩЁ) + deploy guards; **tip** |
+| 2026-10-14 | `cursor/reunify-levelup-feat-gift-244b` | Reunify levelup-feat (сессия 12ч/90д, XP→уровень, ASI-черта) + «Мастер выдал черту» в Основное; **новый tip**; `/health` ok; `CharacterDetailPage-1PefQPz7.js` |
