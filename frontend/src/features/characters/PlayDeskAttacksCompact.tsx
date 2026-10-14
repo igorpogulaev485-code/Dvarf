@@ -103,10 +103,10 @@ export function PlayDeskAttacksCompact({
               mod +
               (attack.is_proficient ? proficiencyBonus : 0) +
               (gear?.attackBonus ?? 0)
-            const dmgBonus = gear?.damageBonus ?? 0
+            const dmgBonus = mod + (gear?.damageBonus ?? 0)
             const dmg =
               attack.damage +
-              (dmgBonus ? ` ${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
+              (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
             const dmgLine = `${dmg || '—'}${attack.damage_type ? ` ${attack.damage_type}` : ''}`
             const iconKind = attackRowIconKind({
               name: attack.name,
