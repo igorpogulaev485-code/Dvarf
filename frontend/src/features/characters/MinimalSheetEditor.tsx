@@ -2875,6 +2875,10 @@ export function MinimalSheetEditor({
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
   /** Play-desk spells setup (replaces force-full SpellsPanel). */
   const [spellsSettingsOpen, setSpellsSettingsOpen] = useState(false)
+  /** Mobile M1.1: Бой (ready list) | Книга (settings / grimoire sheet). */
+  const [mobileSpellSurface, setMobileSpellSurface] = useState<'combat' | 'book'>(
+    'combat',
+  )
   /** Play-desk attacks setup (replaces force-full AttacksPanel). */
   const [attacksSettingsOpen, setAttacksSettingsOpen] = useState(false)
   /** Explore summary → attunement pad (not stage jump). */
@@ -2944,6 +2948,7 @@ export function MinimalSheetEditor({
     setForceFullPanel(null)
     setAttacksSettingsOpen(false)
     setSpellsSettingsOpen(false)
+    setMobileSpellSurface('combat')
   }
 
   function applyDeskConcentration(spell: SheetSpell) {
@@ -3696,29 +3701,71 @@ export function MinimalSheetEditor({
           />
 
           {!isPlayDesk && draft.sheetUi.deskMode === 'combat' ? (
-            <div className="mobile-combat-seg" role="tablist" aria-label="Бой">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activePanel === 'attacks'}
-                className={`mobile-combat-seg__btn${
-                  activePanel === 'attacks' ? ' is-on' : ''
-                }`}
-                onClick={() => setActivePanel('attacks')}
-              >
-                Атаки
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activePanel === 'spells'}
-                className={`mobile-combat-seg__btn${
-                  activePanel === 'spells' ? ' is-on' : ''
-                }`}
-                onClick={() => setActivePanel('spells')}
-              >
-                Заклинания
-              </button>
+            <div className="mobile-combat-seg-stack">
+              <div className="mobile-combat-seg" role="tablist" aria-label="Бой">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activePanel === 'attacks'}
+                  className={`mobile-combat-seg__btn${
+                    activePanel === 'attacks' ? ' is-on' : ''
+                  }`}
+                  onClick={() => {
+                    setActivePanel('attacks')
+                    setMobileSpellSurface('combat')
+                    setSpellsSettingsOpen(false)
+                  }}
+                >
+                  Атаки
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activePanel === 'spells'}
+                  className={`mobile-combat-seg__btn${
+                    activePanel === 'spells' ? ' is-on' : ''
+                  }`}
+                  onClick={() => setActivePanel('spells')}
+                >
+                  Заклинания
+                </button>
+              </div>
+              {activePanel === 'spells' ? (
+                <div
+                  className="mobile-combat-seg mobile-combat-seg--spell"
+                  role="tablist"
+                  aria-label="Заклинания"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={mobileSpellSurface === 'combat'}
+                    className={`mobile-combat-seg__btn${
+                      mobileSpellSurface === 'combat' ? ' is-on' : ''
+                    }`}
+                    onClick={() => {
+                      setMobileSpellSurface('combat')
+                      setSpellsSettingsOpen(false)
+                    }}
+                  >
+                    Бой
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={mobileSpellSurface === 'book'}
+                    className={`mobile-combat-seg__btn${
+                      mobileSpellSurface === 'book' ? ' is-on' : ''
+                    }`}
+                    onClick={() => {
+                      setMobileSpellSurface('book')
+                      setSpellsSettingsOpen(true)
+                    }}
+                  >
+                    Книга
+                  </button>
+                </div>
+              ) : null}
             </div>
           ) : null}
 
@@ -4465,7 +4512,11 @@ export function MinimalSheetEditor({
             pinned={deskSplit && splitSecondary === 'spells'}
             concentration={draft.play.concentration}
             edition={rulesEdition}
-            onOpenSettings={() => setSpellsSettingsOpen(true)}
+            settingsLabel={isPlayDesk ? 'Настройки' : 'Книга'}
+            onOpenSettings={() => {
+              if (!isPlayDesk) setMobileSpellSurface('book')
+              setSpellsSettingsOpen(true)
+            }}
             onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
             onCastSpell={(spell) => setDeskCastSpell(spell)}
             onConcentrateSpell={(spell) => setDeskCastSpell(spell)}
@@ -4520,8 +4571,12 @@ export function MinimalSheetEditor({
             proficiencyBonus={proficiencyBonus}
             suggestion={spellcastingSync.suggestion}
             knownCaster={spellcastingSync.knownCaster}
+            title={isPlayDesk ? 'Настройки заклинаний' : 'Книга заклинаний'}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
-            onClose={() => setSpellsSettingsOpen(false)}
+            onClose={() => {
+              setSpellsSettingsOpen(false)
+              if (!isPlayDesk) setMobileSpellSurface('combat')
+            }}
             onToast={onToast}
           />
         </>
@@ -4811,6 +4866,24 @@ export function MinimalSheetEditor({
         characterLevel={characterLevel}
         onConfirm={confirmDeskCast}
         onClose={() => setDeskCastSpell(null)}
+        onRequestRest={() => {
+          setDeskCastSpell(null)
+          setRestOpen(true)
+        }}
+        onRestorePact={() => {
+          setDraft((prev) => {
+            const pact = prev.spells.pact_slots
+            if (!pact || pact.used <= 0) return prev
+            return {
+              ...prev,
+              spells: {
+                ...prev.spells,
+                pact_slots: { ...pact, used: 0 },
+              },
+            }
+          })
+          onToast('Ячейки договора восстановлены')
+        }}
       />
 
       <Dialog

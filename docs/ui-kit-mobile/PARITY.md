@@ -22,8 +22,9 @@
 | Монеты CoinPad | ✅ Vitals → CoinPad | Vitals → CoinPad | P0 |
 | Атаки + бросок | ✅ Tab Бой | Tab Бой | P0 |
 | Расходники ★ в бою | ✅ блок под атаками | Бой → блок «Расходники» под атаками; ★ в Исследовании (до 3) | P0 |
-| Заклинания Каст / upcast | ✅ Бой → Заклинания | Бой → Заклинания | P0 |
-| Гримуар / Подготовить / слоты | 🟡 | Книга sheet | P1 |
+| Заклинания Каст / upcast | ✅ Бой → Заклинания → Бой | Бой → Заклинания → Бой | P0 |
+| Гримуар / Подготовить / слоты | ✅ Книга sheet (М1.1) | Книга sheet | P1 |
+| Cast: нет ячеек (K14) | ✅ Отдых… / сброс договора | inline recovery в cast sheet | P1 |
 | Инвентарь glance/expand | 🟡 | Tab Исследование | P0 |
 | Attunement 0–3 | 🟡 панель в стеке | из summary Исследования | P1 |
 | Тексты / личность | 🟡 | Tab Общение | P1 |
@@ -35,7 +36,7 @@
 | Владения drawer | ✅ sheet из Характеристики | из страницы Характеристики → sheet/вложенная | P0 |
 | Identity / аватар / классы | ✅ who/avatar → sheet | who/avatar → sheet | P0 |
 | Skill strips + преим/помеха | ❌ | P1 в Бою / Характеристиках | P1 |
-| Split spells | ❌ N/A | segmented, не split | P1 |
+| Split spells | ✅ N/A — сегмент Атаки/Заклинания + Бой/Книга | segmented, не split | P1 |
 | Autosave / conflict | ✅ | сохранить copy WAVE | P0 |
 | XP pad / history | ❌ | vitals ⋯ / sheet | P1 |
 | Speed modes (лаз/плав/полёт) | 🟡 | vitals tip/sheet | P1 |

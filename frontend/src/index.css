@@ -8757,10 +8757,23 @@ button.play-desk-vital:hover {
   }
 }
 
+.mobile-combat-seg-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
 .mobile-combat-seg {
   display: flex;
   gap: 6px;
-  margin: 0 0 8px;
+  margin: 0;
+}
+
+.mobile-combat-seg--spell .mobile-combat-seg__btn {
+  font-size: 0.84rem;
+  font-weight: 500;
+  min-height: 40px;
 }
 
 .mobile-combat-seg__btn {
@@ -8780,6 +8793,18 @@ button.play-desk-vital:hover {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
+}
+
+.cast-recovery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cast-recovery .ui-button {
+  flex: 1 1 calc(50% - 4px);
+  min-height: 44px;
+  justify-content: center;
 }
 
 .mobile-scene-nav {
@@ -8848,7 +8873,8 @@ button.play-desk-vital:hover {
 
 @media (min-width: 960px) {
   .mobile-scene-nav,
-  .mobile-combat-seg {
+  .mobile-combat-seg,
+  .mobile-combat-seg-stack {
     display: none;
   }
 }

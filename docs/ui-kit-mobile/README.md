@@ -141,7 +141,7 @@ Icons: те же `IconConditions` / `IconConcentration` / `IconPouch`.
 
 | Tab id | Label (desktop `MODE_LABELS` после drop ЕЩЁ) | Primary сцена | Secondary |
 |--------|-----------------------------------------------|---------------|-----------|
-| `combat` | **Бой** | Атаки (combat density) + блок **Расходники** (★ из Исследования, spend −1) | Заклинания — segmented |
+| `combat` | **Бой** | Атаки (combat density) + блок **Расходники** (★ из Исследования, spend −1) | Заклинания → сегмент **Бой / Книга** (M1.1) |
 | `explore` | **Исследование** | Инвентарь | Attunement из summary |
 | `social` | **Общение** | Тексты | — |
 | `companions` | **Напарники** | Companions | — |
@@ -178,7 +178,8 @@ Icons: те же `IconConditions` / `IconConcentration` / `IconPouch`.
 | CoinPad | монеты | разбивка + edit |
 | Rest | Отдых | кости / короткий / длинный |
 | Conditions | HotStrip | exhaustion + on-character + quick pick |
-| Cast | Каст | upcast / источник / conc swap |
+| Cast | Каст | upcast / источник / conc swap · нет ячеек → **Отдых…** / сброс договора (K14) |
+| Книга | сегмент «Книга» / CTA в compact | Гримуар · Подготовить · макс. ячеек / договор (SpellsSettings) |
 | Ownership | из страницы Характеристики «Владения ▸» | скорости/ТЗ · снаряжение · языки/инструменты |
 | Identity | аватар / who | как desktop IdentityDialog · **поля = атомы ниже** |
 | Attunement | summary инвентаря | слоты 0–3 |

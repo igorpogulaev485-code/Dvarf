@@ -132,7 +132,7 @@ Wave A chrome завязан на `isPlayDesk` (`min-width: 960px`). На тел
 
 | Слайс | Содержание |
 |-------|------------|
-| M1.1 | Spells: Бой/Книга + cast sheet recovery |
+| M1.1 | Spells: Бой/Книга + cast sheet recovery · **done** `cursor/mobile-spells-m11-0ed9` |
 | M1.2 | Inventory glance + attunement entry + encumbrance bar |
 | M1.3 | Social / Features / Companions — one scene each, toolbar |
 | M1.4 | Skill strips / roll mode на mobile (Бой или Характеристики) |
