@@ -9150,8 +9150,20 @@ button.play-desk-vital:hover {
 
 @media (max-width: 959px) {
   .sheet-topbar--play {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     min-height: 40px;
     margin-bottom: 2px;
+  }
+  .sheet-topbar--play .back-link {
+    flex: 1;
+    min-width: 0;
+  }
+  .sheet-topbar--play .sheet-topbar__actions {
+    flex: 0 0 auto;
+    margin-left: auto;
   }
   .sheet-topbar__desk-only {
     display: none;
