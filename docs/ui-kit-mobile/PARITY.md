@@ -35,6 +35,7 @@
 | Напарники CRUD | ✅ glance/add fork | Tab Напарники | P1 · M1.3 |
 | Companion dock | ❌ | optional strip | P2 |
 | Ability rail + навыки | ✅ страница B + tip rail | vitals → страница B | P0 |
+| Пассивы (Внимат./Анализ/Прониц.) | ✅ в подвале Характеристики | страница B (как rail desk) | P0 |
 | LSS rail: pip + число→бросок | ✅ (tip AbilitySkillsColumn) | страница Характеристики | P0 · M0.6 |
 | Сворачиваемые vitals | ✅ compact strip | «Свернуть ▴» | P0 |
 | Владения drawer | ✅ sheet из Характеристики | sheet / вложенная | P0 |

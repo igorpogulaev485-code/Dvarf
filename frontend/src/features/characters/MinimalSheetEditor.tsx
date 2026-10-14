@@ -5197,6 +5197,7 @@ export function MinimalSheetEditor({
             // Keep Характеристики under the ownership sheet.
             setOwnershipOpen(true)
           }}
+          passives={passivesCompact}
         >
           {abilityColumn}
         </MobileAbilitiesPage>

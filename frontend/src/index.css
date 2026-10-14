@@ -10465,7 +10465,8 @@ button.play-desk-compact__more--btn:hover {
   flex: 1;
   overflow: auto;
   padding: 12px;
-  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  /* Foot = passives strip + Ownership CTA */
+  padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
 }
 
 .mobile-abil-page__foot {
@@ -10473,9 +10474,23 @@ button.play-desk-compact__more--btn:hover {
   left: 0;
   right: 0;
   bottom: 0;
+  display: grid;
+  gap: 8px;
   padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
   background: var(--card);
   border-top: 1px solid var(--line);
+}
+
+.mobile-abil-page__passives .play-desk__passives {
+  box-shadow: none;
+}
+
+/* Keep 3 glance cards side-by-side on phone (override .passive-grid @520) */
+.mobile-abil-page__passives .passive-grid,
+.mobile-abil-page__passives .passive-grid--desk {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .mobile-abil-page__own {
