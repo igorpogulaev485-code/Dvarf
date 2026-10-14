@@ -1,5 +1,10 @@
 /** PHB running long / high jump (feet). */
 
+export type JumpDistances = {
+  longFt: number
+  highFt: number
+}
+
 export function longJumpFt(strengthScore: number): number {
   return Math.max(0, Math.floor(strengthScore))
 }
@@ -9,11 +14,20 @@ export function highJumpFt(strengthMod: number): number {
   return Math.max(0, 3 + Math.floor(strengthMod))
 }
 
-export function formatJumpHint(input: {
+export function jumpDistances(input: {
   strengthScore: number
   strengthMod: number
-}): string {
-  const long = longJumpFt(input.strengthScore)
-  const high = highJumpFt(input.strengthMod)
-  return `прыжок ${long} / ${high} фт (дл. / выс., с разбега)`
+}): JumpDistances {
+  return {
+    longFt: longJumpFt(input.strengthScore),
+    highFt: highJumpFt(input.strengthMod),
+  }
+}
+
+/** Tooltip / aria — not shown in the vital face. */
+export function formatJumpTitle(jump: JumpDistances): string {
+  return (
+    `Прыжок с разбега: длинный ${jump.longFt} фт, высокий ${jump.highFt} фт. ` +
+    'Без разбега — половина.'
+  )
 }
