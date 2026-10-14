@@ -803,11 +803,19 @@ input {
 
 .app-header__more-btn {
   display: none;
-  min-width: 44px;
-  min-height: 44px;
+  box-sizing: border-box;
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  min-height: 40px;
   padding: 0;
-  font-size: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  font-size: 1.15rem;
+  font-weight: 700;
   line-height: 1;
+  color: var(--muted);
 }
 
 .app-header__more-sheet {
@@ -5561,7 +5569,7 @@ button.spells-settings__derived-stat--btn:hover {
     font-size: 0.88rem;
   }
 
-  .app-header__actions .ui-button {
+  .app-header__actions .ui-button:not(.app-header__more-btn) {
     flex: 1 1 auto;
   }
 
@@ -5569,9 +5577,15 @@ button.spells-settings__derived-stat--btn:hover {
     display: none;
   }
 
-  .app-header__more-btn {
-    display: inline-flex;
-    flex: 0 0 auto;
+  .app-header__actions .ui-button.app-header__more-btn {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 40px;
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    min-height: 40px;
+    padding: 0;
   }
 
   .app-nav {
