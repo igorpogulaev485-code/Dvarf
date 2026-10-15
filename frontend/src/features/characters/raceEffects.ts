@@ -389,6 +389,7 @@ export function applyRaceGrantToDraft(input: {
     armorKeys: [...def.armorProficiencies],
     weaponNames: [...def.weaponProficiencies],
     traitsText,
+    traitCards: def.traitCards,
     ancestryId: picks.ancestryId,
     featNoteRu: def.featNoteRu,
     naturalArmor: def.naturalArmor,

@@ -28,11 +28,13 @@ import {
   IconBolt,
   IconBoot,
   IconCoin,
+  IconJump,
   IconRest,
   IconShield,
   IconSkull,
   IconSpark,
 } from './deskIcons'
+import { formatJumpTitle } from '../../shared/dnd/jumpDistance'
 import { formatModifier } from './sheetTypes'
 
 type SpeedMode = {
@@ -58,6 +60,14 @@ type PlayDeskHeaderProps = {
   play: PlayState
   autoAc: number
   acHint: string
+  /** Open AC breakdown / buffs dialog. */
+  onOpenAc?: () => void
+  /** Shield currently in hand (affects AC). */
+  shieldInHand?: boolean
+  /** At least one shield exists in inventory for the quick toggle. */
+  shieldAvailable?: boolean
+  /** Draw / stow shield from the AC vital. */
+  onToggleShield?: () => void
   speed: number | null
   /** Extra walk-speed note (e.g. gear bonus) for title tooltip. */
   movementHint?: string | null
@@ -65,6 +75,9 @@ type PlayDeskHeaderProps = {
   climbSpeed?: number | null
   swimSpeed?: number | null
   flySpeed?: number | null
+  /** PHB running long / high jump (ft) — shown as a vital like speed. */
+  jumpLongFt?: number | null
+  jumpHighFt?: number | null
   proficiencyBonus: number
   initiative: number
   inspiration: boolean
@@ -78,6 +91,8 @@ type PlayDeskHeaderProps = {
   onToggleInspiration: () => void
   onExhaustionChange: (exhaustion: number) => void
   onInitiativeRoll?: () => void
+  /** Open initiative breakdown / buffs (preferred over direct roll). */
+  onOpenInitiative?: () => void
   onPlayChange: (play: PlayState) => void
   onCoinsChange: (coins: CoinPurse) => void
   onCombatChange: (patch: {
@@ -108,11 +123,17 @@ export function PlayDeskHeader({
   play,
   autoAc,
   acHint,
+  onOpenAc,
+  shieldInHand = false,
+  shieldAvailable = false,
+  onToggleShield,
   speed,
   movementHint = null,
   climbSpeed = null,
   swimSpeed = null,
   flySpeed = null,
+  jumpLongFt = null,
+  jumpHighFt = null,
   proficiencyBonus,
   initiative,
   inspiration,
@@ -125,6 +146,7 @@ export function PlayDeskHeader({
   onToggleInspiration,
   onExhaustionChange,
   onInitiativeRoll,
+  onOpenInitiative,
   onPlayChange,
   onCoinsChange,
   onCombatChange,
@@ -357,10 +379,59 @@ export function PlayDeskHeader({
 
       <div className="play-desk-header__mid">
         <div className="play-desk-header__vitals">
-          <div className="play-desk-vital play-desk-vital--shield" title={acHint}>
+          <div
+            className={`play-desk-vital play-desk-vital--shield${
+              shieldInHand ? ' is-shield-on' : ''
+            }${onOpenAc ? ' play-desk-vital--clickable' : ''}`}
+            title={
+              onOpenAc
+                ? `${acHint}. Нажми, чтобы открыть разборку КД и бонусы`
+                : acHint
+            }
+            role={onOpenAc ? 'button' : undefined}
+            tabIndex={onOpenAc ? 0 : undefined}
+            aria-label={
+              onOpenAc
+                ? `Класс защиты ${autoAc}. Открыть разборку`
+                : `Класс защиты ${autoAc}`
+            }
+            onClick={() => onOpenAc?.()}
+            onKeyDown={(event) => {
+              if (!onOpenAc) return
+              if (event.key !== 'Enter' && event.key !== ' ') return
+              event.preventDefault()
+              onOpenAc()
+            }}
+          >
             <IconShield className="play-desk-vital__icon" />
             <b>{autoAc}</b>
             <span>КД</span>
+            {onToggleShield ? (
+              <button
+                type="button"
+                className={`play-desk-vital__shield-tog${
+                  shieldInHand ? ' is-on' : ''
+                }${shieldAvailable || shieldInHand ? '' : ' is-empty'}`}
+                aria-pressed={shieldInHand}
+                aria-label={
+                  shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'
+                }
+                title={
+                  shieldInHand
+                    ? 'Щит в руке — нажми, чтобы убрать (КД −бонус щита)'
+                    : shieldAvailable
+                      ? 'Взять щит в руку — КД с бонусом щита'
+                      : 'Нет щита в инвентаре'
+                }
+                disabled={!shieldAvailable && !shieldInHand}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleShield()
+                }}
+              >
+                щит
+              </button>
+            ) : null}
           </div>
           <div
             className={`play-desk-vital play-desk-vital--speed${
@@ -393,7 +464,36 @@ export function PlayDeskHeader({
               </ul>
             </div>
           ) : null}
-          {onInitiativeRoll ? (
+          {jumpLongFt != null && jumpHighFt != null ? (
+            <div
+              className="play-desk-vital play-desk-vital--jump"
+              aria-label={`Прыжок: длинный ${jumpLongFt} фт, высокий ${jumpHighFt} фт`}
+              title={formatJumpTitle({ longFt: jumpLongFt, highFt: jumpHighFt })}
+            >
+              <IconJump className="play-desk-vital__icon" />
+              <b>
+                {jumpLongFt}
+                <span className="play-desk-vital__slash" aria-hidden>
+                  /
+                </span>
+                {jumpHighFt}
+              </b>
+              <span>Прыж.</span>
+            </div>
+          ) : null}
+          {onOpenInitiative ? (
+            <button
+              type="button"
+              className="play-desk-vital play-desk-vital--clickable"
+              title={`${formatModifier(initiative)} инициатива. Нажми — разборка и бонусы`}
+              aria-label={`Инициатива ${formatModifier(initiative)}. Открыть разборку`}
+              onClick={onOpenInitiative}
+            >
+              <IconBolt className="play-desk-vital__icon" />
+              <b>{formatModifier(initiative)}</b>
+              <span>Иниц.</span>
+            </button>
+          ) : onInitiativeRoll ? (
             <button
               type="button"
               className="play-desk-vital"

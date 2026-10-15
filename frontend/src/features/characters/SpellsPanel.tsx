@@ -64,7 +64,9 @@ import {
   type SheetSpell,
   type SpellsState,
 } from './spells'
+import type { FormulaVars } from '../../shared/dnd/formulas'
 import type { InventoryItem, InventoryState } from './inventory'
+import { type BonusLine, withSpellCastBonuses } from './modifiers'
 import { consumeMaterialItem } from './spellMaterials'
 
 type SpellsPanelProps = {
@@ -77,6 +79,8 @@ type SpellsPanelProps = {
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  modifiers?: BonusLine[]
+  formulaVars?: FormulaVars
   inventoryItems: InventoryItem[]
   onChange: (spells: SpellsState) => void
   onInventoryChange?: (inventory: InventoryState) => void
@@ -98,6 +102,8 @@ export function SpellsPanel({
   spells,
   abilities,
   proficiencyBonus,
+  modifiers = [],
+  formulaVars = {},
   inventoryItems,
   inventory,
   concentration = null,
@@ -128,8 +134,16 @@ export function SpellsPanel({
 
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const dc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
-  const attack = abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : null
+  const castStats = withSpellCastBonuses({
+    baseDc: abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null,
+    baseAttack: abilityKey
+      ? spellAttackBonus(abilityMod, proficiencyBonus)
+      : null,
+    modifiers,
+    vars: formulaVars,
+  })
+  const dc = castStats.dc
+  const attack = castStats.attack
   const preparedCount = countPreparedLeveled(spells.known)
 
   const combatPool = useMemo(

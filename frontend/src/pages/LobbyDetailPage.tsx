@@ -121,38 +121,107 @@ export function LobbyDetailPage() {
         {lobby.is_owner ? (
           <Panel title="Приглашение игроков">
             <Stack gap={12}>
-              <Field label="Код лобби">
-                <div className="invite-code-row">
-                  <Input readOnly value={lobby.invite_code ?? ''} />
+              {/* Desk (≥960): compact code row + always-on QR */}
+              <div className="invite-desk">
+                <Field label="Код лобби">
+                  <div className="invite-code-row">
+                    <Input readOnly value={lobby.invite_code ?? ''} />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={async () => {
+                        if (!lobby.invite_code) return
+                        await navigator.clipboard.writeText(lobby.invite_code)
+                        setToast('Код скопирован')
+                      }}
+                    >
+                      Копировать
+                    </Button>
+                  </div>
+                </Field>
+                <Text tone="muted">
+                  Игрок сканирует QR или открывает{' '}
+                  <Link to={lobby.join_path || `/join/${lobby.invite_code}`}>
+                    {lobby.join_path || `/join/${lobby.invite_code}`}
+                  </Link>{' '}
+                  и выбирает персонажа. Код можно также вписать в карточку персонажа.
+                </Text>
+                {lobby.invite_code ? (
+                  <img
+                    className="invite-qr"
+                    src={lobbyQrUrl(lobby.invite_code)}
+                    alt={`QR для входа в лобби ${lobby.name}`}
+                    width={180}
+                    height={180}
+                  />
+                ) : null}
+              </div>
+
+              {/* Phone (&lt;960): Lobby Hero — large code, thumb copy/share, QR accordion */}
+              <div className="lobby-hero">
+                <Text tone="muted" className="lobby-hero__label">
+                  Код стола
+                </Text>
+                <p className="lobby-hero__code" aria-label="Код лобби">
+                  {lobby.invite_code || '—'}
+                </p>
+                <div className="lobby-hero__actions">
                   <Button
                     type="button"
-                    variant="secondary"
+                    className="lobby-hero__primary"
+                    disabled={!lobby.invite_code}
                     onClick={async () => {
                       if (!lobby.invite_code) return
                       await navigator.clipboard.writeText(lobby.invite_code)
                       setToast('Код скопирован')
                     }}
                   >
-                    Копировать
+                    Скопировать
                   </Button>
+                  {typeof navigator !== 'undefined' && typeof navigator.share === 'function' ? (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      className="lobby-hero__share"
+                      disabled={!lobby.invite_code}
+                      onClick={async () => {
+                        if (!lobby.invite_code) return
+                        const joinUrl = `${window.location.origin}${lobby.join_path || `/join/${lobby.invite_code}`}`
+                        try {
+                          await navigator.share({
+                            title: lobby.name,
+                            text: `Код лобби: ${lobby.invite_code}`,
+                            url: joinUrl,
+                          })
+                        } catch {
+                          /* user cancelled share sheet */
+                        }
+                      }}
+                    >
+                      Поделиться
+                    </Button>
+                  ) : null}
                 </div>
-              </Field>
-              <Text tone="muted">
-                Игрок сканирует QR или открывает{' '}
-                <Link to={lobby.join_path || `/join/${lobby.invite_code}`}>
-                  {lobby.join_path || `/join/${lobby.invite_code}`}
-                </Link>{' '}
-                и выбирает персонажа. Код можно также вписать в карточку персонажа.
-              </Text>
-              {lobby.invite_code ? (
-                <img
-                  className="invite-qr"
-                  src={lobbyQrUrl(lobby.invite_code)}
-                  alt={`QR для входа в лобби ${lobby.name}`}
-                  width={180}
-                  height={180}
-                />
-              ) : null}
+                {lobby.invite_code ? (
+                  <details className="lobby-hero__qr">
+                    <summary>Показать QR</summary>
+                    <img
+                      className="invite-qr"
+                      src={lobbyQrUrl(lobby.invite_code)}
+                      alt={`QR для входа в лобби ${lobby.name}`}
+                      width={180}
+                      height={180}
+                    />
+                  </details>
+                ) : null}
+                <Text tone="muted" className="lobby-hero__hint">
+                  Ссылка:{' '}
+                  <Link to={lobby.join_path || `/join/${lobby.invite_code}`}>
+                    {lobby.join_path || `/join/${lobby.invite_code}`}
+                  </Link>
+                </Text>
+              </div>
+
               <Field label="Название лобби">
                 <Input
                   value={lobby.name}

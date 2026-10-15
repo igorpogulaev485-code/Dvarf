@@ -1021,41 +1021,64 @@ export function InventoryPanel({
           </Button>
         </div>
 
-        <p className={`inventory-summary-line${overEncumbered ? ' is-over' : ''}`}>
-          Вещи {formatLb(itemsLb)} фнт · Монеты {formatLb(coinsLb)} фнт · Итого{' '}
-          <strong>
-            {formatLb(totalLb)} / {formatLb(capacityLb)} фнт
-          </strong>
-          {autoAc != null ? (
-            <>
-              {' · '}
-              <span className="inventory-summary-line__ac" title={acHint || undefined}>
-                КД {autoAc}
-              </span>
-            </>
-          ) : null}
-          {attunementFilled != null ? (
-            <>
-              {' · '}
-              {onOpenAttunement ? (
-                <button
-                  type="button"
-                  className="inventory-summary-line__link"
-                  onClick={onOpenAttunement}
+        <div
+          className={`inventory-summary${overEncumbered ? ' is-over' : ''}`}
+          aria-label="Ноша и настройка"
+        >
+          <div className="inventory-summary__top">
+            <p className="inventory-summary__weights">
+              Вещи {formatLb(itemsLb)} · монеты {formatLb(coinsLb)} ·{' '}
+              <strong>
+                {formatLb(totalLb)} / {formatLb(capacityLb)} фнт
+              </strong>
+            </p>
+            <div className="inventory-summary__chips">
+              {autoAc != null ? (
+                <span
+                  className="inventory-summary__chip"
+                  title={acHint || undefined}
                 >
-                  Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
-                </button>
-              ) : (
-                <span>
-                  Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                  КД {autoAc}
                 </span>
-              )}
-            </>
+              ) : null}
+              {attunementFilled != null ? (
+                onOpenAttunement ? (
+                  <button
+                    type="button"
+                    className="inventory-summary__chip inventory-summary__chip--action"
+                    onClick={onOpenAttunement}
+                  >
+                    Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                  </button>
+                ) : (
+                  <span className="inventory-summary__chip">
+                    Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                  </span>
+                )
+              ) : null}
+            </div>
+          </div>
+          <div
+            className="inventory-summary__bar"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={Math.max(1, Math.round(capacityLb))}
+            aria-valuenow={Math.round(totalLb)}
+            aria-label={`Ноша ${formatLb(totalLb)} из ${formatLb(capacityLb)} фунтов`}
+          >
+            <div
+              className="inventory-summary__fill"
+              style={{
+                width: `${Math.min(100, capacityLb > 0 ? (totalLb / capacityLb) * 100 : 0)}%`,
+              }}
+            />
+          </div>
+          {overEncumbered ? (
+            <Text tone="danger" className="inventory-summary__over">
+              Перегруз: больше лимита переноски (СИЛ × 15).
+            </Text>
           ) : null}
-        </p>
-        {overEncumbered ? (
-          <Text tone="danger">Перегруз: итого больше лимита переноски (СИЛ × 15).</Text>
-        ) : null}
+        </div>
 
         <button
           type="button"

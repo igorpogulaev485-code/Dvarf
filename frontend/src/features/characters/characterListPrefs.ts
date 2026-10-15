@@ -37,6 +37,13 @@ export const TAG_COLOR_OPTIONS = [
   '#5a5a5a',
 ] as const
 
+function defaultCardSize(): CharacterCardSize {
+  if (typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches) {
+    return 'medium'
+  }
+  return 'large'
+}
+
 const DEFAULT_PREFS: CharacterListPrefs = {
   cardSize: 'large',
   tags: [],
@@ -58,9 +65,12 @@ function normalizeTag(raw: unknown): CharacterListTag | null {
 }
 
 export function loadCharacterListPrefs(): CharacterListPrefs {
+  const fallbackSize = defaultCardSize()
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { ...DEFAULT_PREFS, tags: [], assignments: {} }
+    if (!raw) {
+      return { ...DEFAULT_PREFS, cardSize: fallbackSize, tags: [], assignments: {} }
+    }
     const parsed = JSON.parse(raw) as Partial<CharacterListPrefs>
     const tags = Array.isArray(parsed.tags)
       ? parsed.tags.map(normalizeTag).filter((t): t is CharacterListTag => Boolean(t))
@@ -73,12 +83,12 @@ export function loadCharacterListPrefs(): CharacterListPrefs {
       }
     }
     return {
-      cardSize: isCardSize(parsed.cardSize) ? parsed.cardSize : 'large',
+      cardSize: isCardSize(parsed.cardSize) ? parsed.cardSize : fallbackSize,
       tags,
       assignments,
     }
   } catch {
-    return { ...DEFAULT_PREFS, tags: [], assignments: {} }
+    return { ...DEFAULT_PREFS, cardSize: fallbackSize, tags: [], assignments: {} }
   }
 }
 
