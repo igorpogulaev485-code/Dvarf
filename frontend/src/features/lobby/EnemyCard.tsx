@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react'
-import type { CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
+import type { CombatantAction, CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
 import { Button, NumberInput, Text } from '../../ui'
 import {
   normalizeVisibilityProfile,
@@ -12,10 +12,14 @@ type Props = {
   revealAll?: boolean
   visibility?: VisibilityProfile
   busy?: boolean
+  /** Раскрыть возможности сразу (активный ход в B4) */
+  forceAbilitiesOpen?: boolean
   /** Урон: без memberId — первый живой; с memberId — выбранный в составе */
   onDamage?: (amount: number, memberId?: string) => void
   onRemove?: () => void
 }
+
+type KitItem = CombatantAction & { kind: string }
 
 function hpTone(current: number, max: number): 'ok' | 'warn' | 'down' {
   if (current <= 0) return 'down'
@@ -34,7 +38,7 @@ function ActionList({
   items,
 }: {
   title: string
-  items: { name_ru: string; text_ru?: string }[]
+  items: CombatantAction[]
 }) {
   if (!items.length) return null
   return (
@@ -66,10 +70,28 @@ function ensureMembers(combatant: SessionCombatant): CombatantMember[] {
   ]
 }
 
+function collectKit(combatant: SessionCombatant): KitItem[] {
+  const blocks: { kind: string; items: CombatantAction[] }[] = [
+    { kind: 'черта', items: combatant.traits ?? [] },
+    { kind: 'действие', items: combatant.actions ?? [] },
+    { kind: 'бонус', items: combatant.bonus_actions ?? [] },
+    { kind: 'реакция', items: combatant.reactions ?? [] },
+    { kind: 'легенд.', items: combatant.legendary_actions ?? [] },
+  ]
+  const out: KitItem[] = []
+  for (const block of blocks) {
+    for (const item of block.items) {
+      if (!item.name_ru?.trim()) continue
+      out.push({ ...item, kind: block.kind })
+    }
+  }
+  return out
+}
+
 /**
  * Карточка противника / пачки.
- * Мастер вводит цифру урона и жмёт «Нанести урон».
- * В пачке: выбери бойца в «Составе» — иначе бьёт первого живого.
+ * Мастер: имена действий/черт всегда на карточке; текст — по раскрытию.
+ * Урон: цифра + «Нанести урон». В пачке цель из «Состава».
  */
 export function EnemyCard({
   combatant,
@@ -77,16 +99,19 @@ export function EnemyCard({
   revealAll = false,
   visibility,
   busy,
+  forceAbilitiesOpen = false,
   onDamage,
   onRemove,
 }: Props) {
-  const [statsOpen, setStatsOpen] = useState(false)
+  const [abilitiesOpen, setAbilitiesOpen] = useState(forceAbilitiesOpen)
   const [rosterOpen, setRosterOpen] = useState(false)
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
   const [damageAmount, setDamageAmount] = useState<number | null>(null)
+  const [focusAbility, setFocusAbility] = useState<string | null>(null)
   const profile = normalizeVisibilityProfile(visibility)
   const isMaster = Boolean(masterControls || revealAll)
   const members = useMemo(() => ensureMembers(combatant), [combatant])
+  const kit = useMemo(() => collectKit(combatant), [combatant])
   const isPack = members.length > 1
   const aliveCount =
     combatant.alive_count ?? members.filter((m) => m.hp_current > 0).length
@@ -96,6 +121,10 @@ export function EnemyCard({
     Math.max(1, combatant.hp_max),
   )
   const isDead = aliveCount <= 0
+
+  useEffect(() => {
+    if (forceAbilitiesOpen) setAbilitiesOpen(true)
+  }, [forceAbilitiesOpen])
 
   useEffect(() => {
     if (!selectedMemberId) return
@@ -155,11 +184,19 @@ export function EnemyCard({
     }
   }
 
+  function openAbility(name: string) {
+    setFocusAbility(name)
+    setAbilitiesOpen(true)
+    setRosterOpen(false)
+  }
+
   return (
     <article
       className={`session-enemy-card session-enemy-card--${tone}${
         isMaster ? ' session-enemy-card--master' : ' session-enemy-card--player'
-      }${isPack ? ' session-enemy-card--pack' : ''}${statsOpen || rosterOpen ? ' is-open' : ''}`}
+      }${isPack ? ' session-enemy-card--pack' : ''}${
+        abilitiesOpen || rosterOpen ? ' is-open' : ''
+      }${forceAbilitiesOpen ? ' is-active-turn' : ''}`}
     >
       <div className="session-enemy-card__top">
         <div className="session-enemy-card__meta">
@@ -231,6 +268,26 @@ export function EnemyCard({
         </div>
       ) : null}
 
+      {isMaster && kit.length > 0 ? (
+        <div className="session-enemy-card__kit" aria-label="Действия и возможности">
+          {kit.map((item) => (
+            <button
+              key={`${item.kind}-${item.name_ru}`}
+              type="button"
+              className={`session-enemy-kit-chip session-enemy-kit-chip--${item.kind === 'черта' ? 'trait' : item.kind === 'реакция' ? 'reaction' : item.kind === 'легенд.' ? 'legendary' : 'action'}${
+                focusAbility === item.name_ru && abilitiesOpen ? ' is-active' : ''
+              }`}
+              title={`${item.kind}: ${item.name_ru}`}
+              disabled={busy}
+              onClick={() => openAbility(item.name_ru)}
+            >
+              <span className="session-enemy-kit-chip__kind">{item.kind}</span>
+              {item.name_ru}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       {masterControls ? (
         <div className="session-enemy-card__hp-controls">
           <form className="session-enemy-card__damage" onSubmit={onDamageForm}>
@@ -258,23 +315,28 @@ export function EnemyCard({
               disabled={busy}
               onClick={() => {
                 setRosterOpen((v) => !v)
-                if (!rosterOpen) setStatsOpen(false)
+                if (!rosterOpen) setAbilitiesOpen(false)
               }}
             >
               {rosterOpen ? 'Свернуть' : 'Состав'}
             </Button>
           ) : null}
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={busy}
-            onClick={() => {
-              setStatsOpen((v) => !v)
-              if (!statsOpen) setRosterOpen(false)
-            }}
-          >
-            {statsOpen ? 'Свернуть' : 'Статы'}
-          </Button>
+          {kit.length > 0 ? (
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={busy}
+              onClick={() => {
+                setAbilitiesOpen((v) => !v)
+                if (!abilitiesOpen) {
+                  setRosterOpen(false)
+                  setFocusAbility(null)
+                }
+              }}
+            >
+              {abilitiesOpen ? 'Свернуть' : 'Текст'}
+            </Button>
+          ) : null}
         </div>
       ) : null}
 
@@ -323,18 +385,39 @@ export function EnemyCard({
         </div>
       ) : null}
 
-      {masterControls && statsOpen ? (
-        <div className="session-enemy-card__details">
-          <ActionList title="Черты" items={combatant.traits ?? []} />
-          <ActionList title="Действия" items={combatant.actions ?? []} />
-          <ActionList title="Бонусные" items={combatant.bonus_actions ?? []} />
-          <ActionList title="Реакции" items={combatant.reactions ?? []} />
-          <ActionList title="Легендарные" items={combatant.legendary_actions ?? []} />
-          {!combatant.traits?.length &&
-          !combatant.actions?.length &&
-          !combatant.reactions?.length ? (
-            <Text tone="muted">Нет блоков действий на карточке.</Text>
-          ) : null}
+      {isMaster && abilitiesOpen && kit.length > 0 ? (
+        <div className="session-enemy-card__details" aria-label="Текст возможностей">
+          {focusAbility ? (
+            (() => {
+              const item = kit.find((k) => k.name_ru === focusAbility)
+              if (!item) return null
+              return (
+                <div className="session-enemy-card__block">
+                  <Text as="h5" className="session-enemy-card__block-title">
+                    {item.kind} · {item.name_ru}
+                  </Text>
+                  <Text className="session-enemy-card__ability-text">
+                    {item.text_ru || 'Нет описания.'}
+                  </Text>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setFocusAbility(null)}
+                  >
+                    Все возможности
+                  </Button>
+                </div>
+              )
+            })()
+          ) : (
+            <>
+              <ActionList title="Черты" items={combatant.traits ?? []} />
+              <ActionList title="Действия" items={combatant.actions ?? []} />
+              <ActionList title="Бонусные" items={combatant.bonus_actions ?? []} />
+              <ActionList title="Реакции" items={combatant.reactions ?? []} />
+              <ActionList title="Легендарные" items={combatant.legendary_actions ?? []} />
+            </>
+          )}
         </div>
       ) : null}
     </article>

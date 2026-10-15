@@ -2960,6 +2960,73 @@ button.session-concentration-tag {
   text-align: center;
 }
 
+.session-enemy-card__kit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-enemy-kit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 88%, #78716c);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.session-enemy-kit-chip__kind {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  color: var(--muted);
+}
+
+.session-enemy-kit-chip--trait {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+.session-enemy-kit-chip--action {
+  border-color: color-mix(in srgb, var(--ink) 22%, var(--line));
+}
+
+.session-enemy-kit-chip--reaction {
+  border-color: color-mix(in srgb, #b45309 40%, var(--line));
+}
+
+.session-enemy-kit-chip--legendary {
+  border-color: color-mix(in srgb, #a16207 45%, var(--line));
+}
+
+.session-enemy-kit-chip.is-active,
+.session-enemy-kit-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-enemy-card.is-active-turn {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.session-enemy-card__ability-text {
+  margin: 4px 0 8px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
 .session-enemy-card__remove {
   width: 32px;
   height: 32px;

@@ -456,8 +456,8 @@ export function SessionLiveTablePreviewPage() {
                         Противники · мастер
                       </Text>
                       <Text tone="muted" className="session-table-toolbar__hint">
-                        Введи урон → «Нанести урон». В пачке: выбери в «Составе», кому
-                        бить (иначе — первому живому).
+                        Чипы = действия и черты (тап → текст). Урон: цифра → «Нанести
+                        урон». В пачке цель из «Состава».
                       </Text>
                       <div className="session-table-grid session-enemies-grid">
                         {combatants.map((enemy) => (

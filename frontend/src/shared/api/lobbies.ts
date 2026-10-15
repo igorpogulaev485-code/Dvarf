@@ -132,7 +132,7 @@ export type CombatantMember = {
 export type SessionCombatant = {
   id: string
   name: string
-  /** HP первого живого — цель быстрого −1/−5 без выбора */
+  /** HP первого живого / выбранной цели для быстрого урона */
   hp_current: number
   hp_max: number
   alive_count?: number
