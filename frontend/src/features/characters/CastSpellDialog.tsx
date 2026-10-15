@@ -10,6 +10,7 @@ import {
   levelLabel,
   slotsRemaining,
 } from '../../shared/dnd/spells'
+import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
 import { Button, Dialog, Stack, Text } from '../../ui'
 import {
   listCastGrantOptions,
@@ -41,6 +42,11 @@ type CastSpellDialogProps = {
   inventoryItems: MaterialInventoryItem[]
   /** Total character level — cantrip scaling 1/5/11/17. */
   characterLevel: number
+  /**
+   * Wizard: ritual casting requires the spell in the physical spellbook (PHB).
+   * When true, ritual path is gated by canCastWizardRitualFromBook.
+   */
+  wizardRitualFromBook?: boolean
   busy?: boolean
   onConfirm: (choice: CastChoice) => void
   onClose: () => void
@@ -56,6 +62,7 @@ export function CastSpellDialog({
   spells,
   inventoryItems,
   characterLevel,
+  wizardRitualFromBook = false,
   busy = false,
   onConfirm,
   onClose,
@@ -64,7 +71,20 @@ export function CastSpellDialog({
 }: CastSpellDialogProps) {
   const isCantrip = spell != null && spell.level <= 0
   const spellLevel = spell?.level ?? 0
-  const isRitual = Boolean(spell?.ritual && !isCantrip)
+  const wizardRitualGate = useMemo(() => {
+    if (!wizardRitualFromBook || !spell || isCantrip || !spell.ritual) {
+      return { ok: true, message: '' }
+    }
+    return canCastWizardRitualFromBook({
+      spell,
+      book: spells.wizard_spellbook,
+    })
+  }, [wizardRitualFromBook, spell, isCantrip, spells.wizard_spellbook])
+  const isRitual = Boolean(spell?.ritual && !isCantrip && wizardRitualGate.ok)
+  const ritualBlockedReason =
+    wizardRitualFromBook && spell?.ritual && !isCantrip && !wizardRitualGate.ok
+      ? wizardRitualGate.message
+      : null
   const grantOptions = useMemo(
     () => (spell && !isCantrip ? listCastGrantOptions(spell, spells.known) : []),
     [spell, isCantrip, spells.known],
@@ -385,6 +405,7 @@ export function CastSpellDialog({
                   <button
                     type="button"
                     className={`sheet-chip cast-source-chip${useRitual ? ' is-on' : ''}`}
+                    title="Ритуал: +10 мин, без ячейки"
                     onClick={() => {
                       setUseRitual(true)
                       clearGrant()
@@ -393,8 +414,20 @@ export function CastSpellDialog({
                   >
                     Ритуал
                   </button>
+                ) : ritualBlockedReason ? (
+                  <button
+                    type="button"
+                    className="sheet-chip cast-source-chip is-disabled"
+                    disabled
+                    title={ritualBlockedReason}
+                  >
+                    Ритуал (книга)
+                  </button>
                 ) : null}
               </div>
+              {ritualBlockedReason ? (
+                <Text tone="muted">{ritualBlockedReason}</Text>
+              ) : null}
             </div>
             {useGrant && selectedGrant ? (
               <Text tone="muted">

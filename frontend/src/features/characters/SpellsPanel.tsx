@@ -34,6 +34,10 @@ import {
 } from '../../shared/dnd/spellCatalog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import { SpellbookManageDialog } from './SpellbookManageDialog'
+import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
+import { wizardSpellbookStatusLabel } from './wizardSpellbookInventory'
+import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
 import {
   IconCast,
   IconConcentration,
@@ -55,7 +59,7 @@ import {
   isGrantedSpellHighlight,
   isKnownSpellcastingMode,
   groupSpellsByLevel,
-  isReadyInCombat,
+  isAvailableToCast,
   preparedLockChip,
   readCatalogSpellFields,
   setSpellPrepared,
@@ -117,6 +121,7 @@ export function SpellsPanel({
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
+  const [bookManageOpen, setBookManageOpen] = useState(false)
   const [castSpell, setCastSpell] = useState<SheetSpell | null>(null)
   const [pendingConc, setPendingConc] = useState<{
     spell: SheetSpell
@@ -146,10 +151,44 @@ export function SpellsPanel({
   const attack = castStats.attack
   const preparedCount = countPreparedLeveled(spells.known)
 
-  const combatPool = useMemo(
-    () => (showAllKnown ? spells.known : spells.known.filter(isReadyInCombat)),
-    [showAllKnown, spells.known],
+  const suggestion = useMemo(
+    () =>
+      suggestSpellcasting({
+        className,
+        level,
+        classes,
+        subclassCasters,
+        abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      }),
+    [className, level, classes, subclassCasters, abilities],
   )
+
+  const learnBudget = useMemo(() => {
+    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
+    if (rows.length === 0) return null
+    return resolveSpellLearnBudget({
+      classes: rows,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+    })
+  }, [classes, subclassCasters, abilities])
+
+  const combatPool = useMemo(() => {
+    if (showAllKnown) return spells.known
+    const hasSpellbook =
+      learnBudget?.mode === 'spellbook' &&
+      Boolean(
+        spells.wizard_spellbook &&
+          !spells.wizard_spellbook.bookLost &&
+          spells.wizard_spellbook.primaryBookItemId,
+      )
+    return spells.known.filter((spell) =>
+      isAvailableToCast(spell, {
+        learnMode: learnBudget?.mode ?? null,
+        hasSpellbook,
+      }),
+    )
+  }, [showAllKnown, spells.known, spells.wizard_spellbook, learnBudget?.mode])
 
   const filterOptions = useMemo(() => {
     const levels = new Set<number>([0])
@@ -180,28 +219,6 @@ export function SpellsPanel({
       .sort((a, b) => a[0] - b[0])
       .map(([, group]) => group)
   }, [filter, combatPool, spells.slots])
-
-  const suggestion = useMemo(
-    () =>
-      suggestSpellcasting({
-        className,
-        level,
-        classes,
-        subclassCasters,
-        abilityModFor: (ability) => abilityModifier(abilities[ability]),
-      }),
-    [className, level, classes, subclassCasters, abilities],
-  )
-
-  const learnBudget = useMemo(() => {
-    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
-    if (rows.length === 0) return null
-    return resolveSpellLearnBudget({
-      classes: rows,
-      subclassCasters,
-      abilityModFor: (ability) => abilityModifier(abilities[ability]),
-    })
-  }, [classes, subclassCasters, abilities])
 
   const knownCaster = isKnownSpellcastingMode({
     maxPrepared: spells.max_prepared,
@@ -435,6 +452,16 @@ export function SpellsPanel({
       return
     }
     if (ritualCast) {
+      if (learnBudget?.mode === 'spellbook') {
+        const gate = canCastWizardRitualFromBook({
+          spell: castSpell,
+          book: spells.wizard_spellbook,
+        })
+        if (!gate.ok) {
+          onToast?.(gate.message)
+          return
+        }
+      }
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
@@ -605,6 +632,19 @@ export function SpellsPanel({
             <IconPouch className="spells-btn-icon" />
             {spells.has_component_pouch ? 'Мешочек ✓' : 'Мешочек ✗'}
           </span>
+          {learnBudget?.mode === 'spellbook' ? (
+            <button
+              type="button"
+              className={`sheet-chip spells-focus-chips__chip${
+                wizardSpellbookStatusLabel(spells).ok ? ' is-on' : ''
+              }`}
+              title="Управление книгой заклинаний"
+              onClick={() => setBookManageOpen(true)}
+            >
+              <IconSpellBook className="spells-btn-icon" />
+              {wizardSpellbookStatusLabel(spells).label}
+            </button>
+          ) : null}
           <Text tone="muted">
             Ищем в инвентаре тип «Фокус» / «Мешочек» (имя может быть любым). М с ценой — отдельный
             предмет.
@@ -615,10 +655,16 @@ export function SpellsPanel({
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
           </Button>
-          <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
-            <IconWizardHat className="spells-btn-icon" />
-            Подготовить
-          </Button>
+          {!knownCaster ? (
+            <Button
+              variant="secondary"
+              onClick={() => setPrepareOpen(true)}
+              title="Выбрать заклинания на сегодня (лимит подготовки класса)"
+            >
+              <IconWizardHat className="spells-btn-icon" />
+              Подготовить
+            </Button>
+          ) : null}
           <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
             <IconSpellBook className="spells-btn-icon" />
             Гримуар
@@ -1059,9 +1105,38 @@ export function SpellsPanel({
       <PrepareSpellsDialog
         open={prepareOpen}
         spells={spells}
+        learnMode={learnBudget?.mode ?? (knownCaster ? 'known' : 'prepared_list')}
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />
+      {learnBudget?.mode === 'spellbook' && inventory && onInventoryChange ? (
+        <SpellbookManageDialog
+          open={bookManageOpen}
+          spells={spells}
+          inventoryItems={inventoryItems}
+          coins={inventory.coins}
+          wizardLevel={
+            (classes?.find((row) => /волшебник|wizard|маг/i.test(row.name))?.level ??
+              level) || 1
+          }
+          subclassSlug={(() => {
+            const row = classes?.find((item) => /волшебник|wizard|маг/i.test(item.name))
+            const raw = row?.subclass_name?.trim() || ''
+            if (!raw) return null
+            return resolveSubclassFeatureSlug(raw) ?? raw.toLowerCase().replace(/\s+/g, '_')
+          })()}
+          onChangeSpells={onChange}
+          onChangeCoins={(coins) => onInventoryChange({ ...inventory, coins })}
+          onChangeInventoryItems={(items) =>
+            onInventoryChange({ ...inventory, items })
+          }
+          onChangeInventory={({ coins, items }) =>
+            onInventoryChange({ ...inventory, coins, items })
+          }
+          onClose={() => setBookManageOpen(false)}
+          onToast={onToast}
+        />
+      ) : null}
       <GrimoireDialog
         open={grimoireOpen}
         edition={edition}
@@ -1083,6 +1158,13 @@ export function SpellsPanel({
               ]
         }
         subclassCasters={subclassCasters}
+        coins={inventory?.coins ?? null}
+        onCoinsChange={
+          inventory && onInventoryChange
+            ? (coins) => onInventoryChange({ ...inventory, coins })
+            : undefined
+        }
+        inventoryItems={inventoryItems}
         onChange={onChange}
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}
@@ -1093,6 +1175,7 @@ export function SpellsPanel({
         spells={spells}
         inventoryItems={inventoryItems}
         characterLevel={level}
+        wizardRitualFromBook={learnBudget?.mode === 'spellbook'}
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />

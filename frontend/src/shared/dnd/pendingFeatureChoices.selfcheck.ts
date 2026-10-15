@@ -24,8 +24,11 @@ import {
   buildPendingWizardSteps,
   clearFeaturePicksAboveClassLevel,
   isFeatureChoiceComplete,
+  isWizardClassName,
   listUnlockedExpertiseKeys,
   withBackgroundStepIfNeeded,
+  withWizardSpellbookPicksStep,
+  wizardSpellbookPicksStep,
 } from './pendingFeatureChoices'
 
 function assert(cond: unknown, message: string): asserts cond {
@@ -302,5 +305,50 @@ assert(
   'expertise_6 pick cleared on level-down below 6',
 )
 assert(cleared.values['c1:expertise_1'] === 'stealth,perception', 'expertise_1 kept')
+
+assert(isWizardClassName('Волшебник'), 'wizard class name')
+assert(!wizardSpellbookPicksStep({
+  classEntryId: 'w1',
+  className: 'Жрец',
+  classLevel: 2,
+  picksNeeded: 2,
+}), 'non-wizard no spellbook step')
+const bookStep = wizardSpellbookPicksStep({
+  classEntryId: 'w1',
+  className: 'Волшебник',
+  classLevel: 2,
+  picksNeeded: 2,
+})
+assert(bookStep?.kind === 'spellbook_picks' && bookStep.picksNeeded === 2, 'spellbook picks step')
+const queued = withWizardSpellbookPicksStep(
+  [
+    {
+      id: 'sub',
+      kind: 'subclass',
+      classEntryId: 'w1',
+      className: 'Волшебник',
+      featureId: 'arcane_tradition',
+      featureNameRu: 'Магическая традиция',
+      promptRu: 'Выбери школу',
+    },
+    {
+      id: 'asi',
+      kind: 'asi',
+      classEntryId: 'w1',
+      className: 'Волшебник',
+      classLevel: 4,
+      featureId: 'asi',
+    },
+  ],
+  {
+    classEntryId: 'w1',
+    className: 'Волшебник',
+    classLevel: 2,
+    picksNeeded: 2,
+  },
+)
+assert(queued[0]?.kind === 'subclass', 'subclass stays first')
+assert(queued[1]?.kind === 'spellbook_picks', 'spellbook after subclass')
+assert(queued[2]?.kind === 'asi', 'asi after spellbook')
 
 console.log('pendingFeatureChoices.selfcheck: ok')

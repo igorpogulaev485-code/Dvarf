@@ -4,6 +4,7 @@ import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
   applySpellcastingSuggestion,
+  resolveSpellLearnBudget,
   warlockLevels,
   warlockPactForLevel,
   type SpellcastingSuggestion,
@@ -23,6 +24,7 @@ import {
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
 import type { FormulaVars } from '../../shared/dnd/formulas'
+import type { CoinPurse } from '../../shared/dnd/weight'
 import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { GrimoireDialog } from './GrimoireDialog'
@@ -31,6 +33,9 @@ import {
   withSpellCastBonuses,
 } from './modifiers'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import { SpellbookManageDialog } from './SpellbookManageDialog'
+import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
+import { wizardSpellbookStatusLabel } from './wizardSpellbookInventory'
 import { SpellCastBreakdownDialog } from './SpellCastBreakdownDialog'
 import {
   IconFocus,
@@ -62,6 +67,15 @@ type SpellsSettingsDialogProps = {
   proficiencyBonus: number
   suggestion: SpellcastingSuggestion | null
   knownCaster: boolean
+  /** Purse for wizard paid spellbook copies. */
+  coins?: CoinPurse | null
+  onCoinsChange?: (coins: CoinPurse) => void
+  inventoryItems?: import('./inventory').InventoryItem[]
+  onInventoryItemsChange?: (items: import('./inventory').InventoryItem[]) => void
+  onChangeInventory?: (next: {
+    coins: CoinPurse
+    items: import('./inventory').InventoryItem[]
+  }) => void
   /** Sheet modifiers + formula vars for spell DC / attack buffs. */
   modifiers?: BonusLine[]
   formulaVars?: FormulaVars
@@ -85,6 +99,11 @@ export function SpellsSettingsDialog({
   proficiencyBonus,
   suggestion,
   knownCaster,
+  coins = null,
+  onCoinsChange,
+  inventoryItems = [],
+  onInventoryItemsChange,
+  onChangeInventory,
   modifiers = [],
   formulaVars = {},
   onModifiersChange,
@@ -95,6 +114,7 @@ export function SpellsSettingsDialog({
 }: SpellsSettingsDialogProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
+  const [bookManageOpen, setBookManageOpen] = useState(false)
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [castBuffFocus, setCastBuffFocus] = useState<
     'spell_dc' | 'spell_attack' | null
@@ -123,6 +143,16 @@ export function SpellsSettingsDialog({
     if (warlockLvl > 0) return warlockPactForLevel(warlockLvl)
     return null
   }, [suggestion, warlockLvl])
+
+  const learnBudget = useMemo(
+    () =>
+      resolveSpellLearnBudget({
+        classes: classRows,
+        subclassCasters,
+        abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      }),
+    [classRows, subclassCasters, abilities],
+  )
 
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
@@ -282,14 +312,17 @@ export function SpellsSettingsDialog({
           </div>
 
           <div className="spells-settings-dialog__books">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setPrepareOpen(true)}
-            >
-              <IconWizardHat className="spells-btn-icon" />
-              Подготовить
-            </Button>
+            {!knownCaster ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setPrepareOpen(true)}
+                title="Выбрать заклинания на сегодня (лимит подготовки класса)"
+              >
+                <IconWizardHat className="spells-btn-icon" />
+                Подготовить
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="secondary"
@@ -298,6 +331,17 @@ export function SpellsSettingsDialog({
               <IconSpellBook className="spells-btn-icon" />
               Гримуар
             </Button>
+            {learnBudget?.mode === 'spellbook' ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setBookManageOpen(true)}
+                title="Утеря / замена книги заклинаний"
+              >
+                <IconSpellBook className="spells-btn-icon" />
+                {wizardSpellbookStatusLabel(spells).label}
+              </Button>
+            ) : null}
           </div>
 
           <div className="spells-settings">
@@ -714,17 +758,46 @@ export function SpellsSettingsDialog({
       <PrepareSpellsDialog
         open={prepareOpen}
         spells={spells}
+        learnMode={learnBudget?.mode ?? (knownCaster ? 'known' : 'prepared_list')}
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />
+      {learnBudget?.mode === 'spellbook' && onCoinsChange ? (
+        <SpellbookManageDialog
+          open={bookManageOpen}
+          spells={spells}
+          inventoryItems={inventoryItems}
+          coins={coins ?? { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }}
+          wizardLevel={
+            classRows.find((row) => /волшебник|wizard|маг/i.test(row.name))?.level ??
+            level
+          }
+          subclassSlug={(() => {
+            const row = classRows.find((item) => /волшебник|wizard|маг/i.test(item.name))
+            const raw = row?.subclass_name?.trim() || ''
+            if (!raw) return null
+            return resolveSubclassFeatureSlug(raw) ?? raw.toLowerCase().replace(/\s+/g, '_')
+          })()}
+          onChangeSpells={onChange}
+          onChangeCoins={onCoinsChange}
+          onChangeInventoryItems={onInventoryItemsChange}
+          onChangeInventory={onChangeInventory}
+          onClose={() => setBookManageOpen(false)}
+          onToast={onToast}
+        />
+      ) : null}
       <GrimoireDialog
         open={grimoireOpen}
         edition={edition}
         spells={spells}
         knownCaster={knownCaster}
+        learnBudget={learnBudget}
         abilityModFor={(ability) => abilityModifier(abilities[ability])}
         classes={classRows}
         subclassCasters={subclassCasters}
+        coins={coins}
+        onCoinsChange={onCoinsChange}
+        inventoryItems={inventoryItems}
         onChange={onChange}
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}

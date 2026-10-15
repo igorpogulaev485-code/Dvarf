@@ -61,6 +61,12 @@ import {
 } from '../../shared/dnd/weight'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
+import { SpellScrollBindDialog } from './SpellScrollBindDialog'
+import {
+  isCastableSpellScroll,
+  isSpellScrollCatalogSlug,
+  isSpellScrollItem,
+} from './spellScroll'
 import {
   armorFieldsFromCatalog,
   asWeighableItems,
@@ -310,6 +316,8 @@ type InventoryPanelProps = {
   /** Combat consumable favorites (★ in explore → расходники в бою). */
   favoriteConsumableIds?: string[]
   onToggleConsumableFavorite?: (itemId: string) => void
+  /** Cast a bound spell scroll from inventory (explore / combat). */
+  onCastScroll?: (itemId: string) => void
 }
 
 export function InventoryPanel({
@@ -328,6 +336,7 @@ export function InventoryPanel({
   onOpenCoins,
   favoriteConsumableIds = [],
   onToggleConsumableFavorite,
+  onCastScroll,
 }: InventoryPanelProps) {
   const favoriteSet = useMemo(() => new Set(favoriteConsumableIds), [favoriteConsumableIds])
   const favoriteCount = favoriteConsumableIds.length
@@ -335,6 +344,7 @@ export function InventoryPanel({
   const [packBusyId, setPackBusyId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [coinPadOpen, setCoinPadOpen] = useState(false)
+  const [scrollBindItemId, setScrollBindItemId] = useState<string | null>(null)
   const [filter, setFilter] = useState<InventoryFilter>('all')
   /** Accordion: at most one root detail open. */
   const [openId, setOpenId] = useState<string | null>(null)
@@ -484,6 +494,7 @@ export function InventoryPanel({
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
+      catalog_slug: selected.slug,
       weight_lb: weight,
       armor_kind: armor.armor_kind ?? 'none',
       base_ac: armor.base_ac ?? null,
@@ -504,7 +515,15 @@ export function InventoryPanel({
       wear_slot: wear,
       requires_attunement: attune,
       effects,
+      scroll_spell: null,
     })
+    const isScroll =
+      isSpellScrollCatalogSlug(selected.slug) ||
+      parsedItem.family_slug === 'spell_scroll'
+    if (isScroll) {
+      setScrollBindItemId(id)
+      onToast?.('Укажи заклинание на свитке')
+    }
   }
 
   function toggleEquip(item: InventoryItem) {
@@ -939,6 +958,29 @@ export function InventoryPanel({
           </Text>
         ) : null}
 
+        {isSpellScrollItem(item) ? (
+          <div className="chip-row" style={{ marginTop: 4 }}>
+            <button
+              type="button"
+              className={`sheet-chip${item.scroll_spell ? ' is-on' : ''}`}
+              onClick={() => setScrollBindItemId(item.id)}
+            >
+              {item.scroll_spell
+                ? `Заклинание: ${item.scroll_spell.name}`
+                : 'Указать заклинание свитка'}
+            </button>
+            {isCastableSpellScroll(item) && onCastScroll ? (
+              <button
+                type="button"
+                className="sheet-chip is-on"
+                onClick={() => onCastScroll(item.id)}
+              >
+                Кастовать свиток
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
         <Field label="Примечания">
           <Input
             value={item.notes}
@@ -1161,7 +1203,40 @@ export function InventoryPanel({
             onWeaponsChange(next.weapons)
           }
           setPickerOpen(false)
+          const added = toAdd.item
+          if (
+            isSpellScrollCatalogSlug(added.catalog_slug) ||
+            isSpellScrollItem(added)
+          ) {
+            setScrollBindItemId(added.id)
+            onToast?.('Укажи заклинание на свитке')
+          }
         }}
+      />
+
+      <SpellScrollBindDialog
+        open={scrollBindItemId != null}
+        edition={edition}
+        item={
+          scrollBindItemId
+            ? inventory.items.find((row) => row.id === scrollBindItemId) ?? null
+            : null
+        }
+        onConfirm={(bound) => {
+          onChange({
+            ...inventory,
+            items: inventory.items.map((row) =>
+              row.id === bound.id ? bound : row,
+            ),
+          })
+          setScrollBindItemId(null)
+          onToast?.(
+            bound.scroll_spell
+              ? `Свиток: ${bound.scroll_spell.name}`
+              : 'Свиток обновлён',
+          )
+        }}
+        onClose={() => setScrollBindItemId(null)}
       />
 
       {!onOpenCoins ? (

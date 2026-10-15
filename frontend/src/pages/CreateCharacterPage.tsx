@@ -78,7 +78,10 @@ import type { AbilityScores } from '../shared/dnd/multiclassRules'
 import {
   buildPendingWizardSteps,
   isSubclassGateFeature,
+  isWizardClassName,
   listUnlockedExpertiseKeys,
+  withWizardSpellbookPicksStep,
+  type GuidedWizardStep,
 } from '../shared/dnd/pendingFeatureChoices'
 import {
   isPointBuyValid,
@@ -105,6 +108,7 @@ import {
 import { EMPTY_ARMOR } from '../features/characters/identity'
 import { abilityModifier } from '../features/characters/sheetTypes'
 import {
+  addCatalogSpellToKnown,
   countLearnedCantrips,
   countLearnedLeveled,
   countPreparedLeveled,
@@ -116,10 +120,17 @@ import {
 } from '../features/characters/spells'
 import {
   applySpellcastingSuggestion,
+  highestSpellSlotLevelForClasses,
   resolveSpellLearnBudget,
   suggestSpellcastingFromClasses,
 } from '../shared/dnd/casterProgression'
 import type { SpellcastingAbility } from '../shared/dnd/spells'
+import { remainingFreeSpellbookSlots } from '../shared/dnd/wizardSpellbook'
+import { inventoryToSheet, readInventory } from '../features/characters/inventory'
+import {
+  isSpellbookInventoryItem,
+  wizardHasUsableSpellbook,
+} from '../features/characters/wizardSpellbookInventory'
 import { Button, Stack, Text, Toast } from '../ui'
 
 const CASTER_NAME_RE =
@@ -492,6 +503,22 @@ export function CreateCharacterPage() {
     })
   }, [spellcastingClassKey, spellcastingSuggestion])
 
+  /** Slice 1: when wizard level rises, remind about +2 free book fills. */
+  const prevWizardLevelRef = useRef<number | null>(null)
+  useEffect(() => {
+    const wizardRow = state.classes.find((row) =>
+      /волшебник|wizard|маг/i.test(row.name),
+    )
+    const level = wizardRow ? Math.max(1, Math.floor(wizardRow.level) || 1) : 0
+    const prev = prevWizardLevelRef.current
+    prevWizardLevelRef.current = level > 0 ? level : null
+    if (prev == null || level <= 0 || level <= prev) return
+    const freeLeft = remainingFreeSpellbookSlots(spells.known, level)
+    setToast(
+      `Волшебник ${level} ур.: +2 бесплатно в книгу · осталось free-слотов: ${freeLeft}. Открой гримуар.`,
+    )
+  }, [state.classes, spells.known])
+
   const wizardProficiencies = useMemo(
     () => buildWizardProficiencies(state),
     [state],
@@ -640,7 +667,7 @@ export function CreateCharacterPage() {
     for (const item of classRows) {
       hasSubclass[item.id] = hasSubclassSelected(item)
     }
-    const steps = buildPendingWizardSteps({
+    let steps: GuidedWizardStep[] = buildPendingWizardSteps({
       unlocked,
       featurePicks: picksState,
       classAsi: state.classAsi ?? [],
@@ -651,6 +678,18 @@ export function CreateCharacterPage() {
       },
       hasSubclassByEntryId: hasSubclass,
     }).filter((step) => step.kind !== 'class_grant' && step.kind !== 'background')
+    if (isWizardClassName(row.name)) {
+      const freeLeft = remainingFreeSpellbookSlots(spells.known, row.level)
+      if (freeLeft > 0) {
+        steps = withWizardSpellbookPicksStep(steps, {
+          classEntryId,
+          className: row.name,
+          classLevel: row.level,
+          // Opening full class forks (up_to) — catch up outstanding free research.
+          picksNeeded: freeLeft,
+        })
+      }
+    }
     if (steps.length === 0) {
       if (!options?.silentIfEmpty) {
         setToast('Все развилки и ASI для этого класса закрыты')
@@ -1563,12 +1602,25 @@ export function CreateCharacterPage() {
           spellcastingSuggestion && spellcastingSuggestion.progression !== 'none'
             ? {
                 labelRu: spellLearnBudget?.labelRu ?? spellcastingSuggestion.labelRu,
+                mode: spellLearnBudget?.mode,
                 maxPrepared: spellcastingSuggestion.max_prepared,
                 knownLeveled: countLearnedLeveled(spells.known),
                 preparedLeveled: countPreparedLeveled(spells.known),
                 cantripsKnown: countLearnedCantrips(spells.known),
                 cantripsMax: spellLearnBudget?.cantrips ?? null,
                 leveledKnownMax: spellLearnBudget?.leveledKnown ?? null,
+                freeBookLeft:
+                  spellLearnBudget?.mode === 'spellbook'
+                    ? remainingFreeSpellbookSlots(
+                        spells.known,
+                        state.classes.find((row) =>
+                          /волшебник|wizard|маг/i.test(row.name),
+                        )?.level ?? 1,
+                      )
+                    : null,
+                unpreparedLeveled: spells.known.filter(
+                  (spell) => spell.level > 0 && !spell.prepared,
+                ).length,
                 slots: spellcastingSuggestion.slots,
                 pactSlots: spellcastingSuggestion.pact_slots,
               }
@@ -1797,6 +1849,42 @@ export function CreateCharacterPage() {
           setAdvanceWizardAfterSubclass(true)
           beginSubclassSelection(classEntryId, entry, { advanceWizardAfter: true })
         }}
+        spellbookPicksContext={(() => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          if (!step || step.kind !== 'spellbook_picks') return null
+          const inv = readInventory(state.sheetDraft)
+          const hasBook =
+            wizardHasUsableSpellbook(spells) ||
+            inv.items.some(isSpellbookInventoryItem)
+          const slotCap = highestSpellSlotLevelForClasses(state.classes)
+          return {
+            maxSpellLevel: Math.max(1, slotCap || 1),
+            blockedCatalogIds: spells.known
+              .map((spell) => spell.catalog_id)
+              .filter((id): id is string => Boolean(id)),
+            // Create kit includes a spellbook; don't block starting free fills.
+            hasBook: hasBook || step.classLevel <= 1,
+            classListSlugs: ['wizard'],
+          }
+        })()}
+        onConfirmSpellbookPicks={(entries) => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          const acquisition =
+            step?.kind === 'spellbook_picks' && step.classLevel <= 1
+              ? 'starting'
+              : 'level_up'
+          setSpells((prev) => {
+            let known = prev.known
+            for (const entry of entries) {
+              known = addCatalogSpellToKnown(known, entry, {
+                prepare: false,
+                spellbook_acquisition: acquisition,
+                in_spellbook: true,
+              })
+            }
+            return { ...prev, known }
+          })
+        }}
       />
 
       <SubclassSetupDialog
@@ -1888,6 +1976,18 @@ export function CreateCharacterPage() {
         knownCaster={spellLearnBudget?.mode === 'known'}
         learnBudget={spellLearnBudget}
         abilityModFor={abilityModFor}
+        coins={readInventory(state.sheetDraft).coins}
+        onCoinsChange={(coins) => {
+          const inv = readInventory(state.sheetDraft)
+          setState((prev) => ({
+            ...prev,
+            sheetDraft: {
+              ...prev.sheetDraft,
+              ...inventoryToSheet({ ...inv, coins }),
+            },
+          }))
+        }}
+        inventoryItems={readInventory(state.sheetDraft).items}
         onChange={setSpells}
         onClose={() => setSpellsOpen(null)}
         onToast={setToast}
@@ -1895,6 +1995,7 @@ export function CreateCharacterPage() {
       <PrepareSpellsDialog
         open={spellsOpen === 'prepare'}
         spells={spells}
+        learnMode={spellLearnBudget?.mode ?? null}
         onChange={setSpells}
         onClose={() => setSpellsOpen(null)}
       />

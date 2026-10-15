@@ -32,7 +32,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/rogue-ranger-spend-4797
+cursor/wizard-spellbook-rules-19c3
 ```
 
 URL: http://201.34.132.252/

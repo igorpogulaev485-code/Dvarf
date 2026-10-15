@@ -171,8 +171,10 @@ import {
   buildPendingWizardSteps,
   clearFeaturePicksAboveClassLevel,
   featWizardStep,
+  isWizardClassName,
   listUnlockedExpertiseKeys,
   withBackgroundStepIfNeeded,
+  withWizardSpellbookPicksStep,
   type GuidedWizardStep,
 } from '../../shared/dnd/pendingFeatureChoices'
 import {
@@ -331,13 +333,29 @@ import {
   withSpellFocusFlags,
 } from './spellFocus'
 import {
+  canCastWizardRitualFromBook,
+  freeBookSlotsAtLevel,
+  remainingFreeSpellbookSlots,
+} from '../../shared/dnd/wizardSpellbook'
+import {
+  syncWizardSpellbookWithInventory,
+  wizardHasUsableSpellbook,
+} from './wizardSpellbookInventory'
+import {
   playToSheet,
   readPlay,
   type PlayState,
 } from './play'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
+import { CastScrollDialog } from './CastScrollDialog'
+import {
+  consumeScrollItem,
+  isCastableSpellScroll,
+  spellScrollCastStats,
+} from './spellScroll'
 import { consumeMaterialItem } from './spellMaterials'
 import {
+  addCatalogSpellToKnown,
   canSpendGrantCast,
   readSpells,
   spendGrantCast,
@@ -1625,6 +1643,15 @@ export function MinimalSheetEditor({
   }
 
   function mergeGrantSlice(prev: Draft, slice: ClassGrantDraftSlice): Draft {
+    const focusSpells = withSpellFocusFlags(prev.spells, slice.inventory.items)
+    const isWizard = prev.classes.some((row) =>
+      /волшебник|wizard|маг/i.test(row.name),
+    )
+    const synced = syncWizardSpellbookWithInventory({
+      isWizard,
+      spells: focusSpells,
+      items: slice.inventory.items,
+    })
     const merged: Draft = {
       ...prev,
       identity: slice.identity,
@@ -1635,11 +1662,14 @@ export function MinimalSheetEditor({
       hpCurrent: slice.hpCurrent,
       inventory: slice.inventory,
       weapons: slice.weapons,
-      spells: withSpellFocusFlags(prev.spells, slice.inventory.items),
+      spells: synced.spells,
       play: {
         ...prev.play,
         hitDie: slice.playHitDie,
       },
+    }
+    if (synced.message) {
+      queueMicrotask(() => onToast(synced.message!))
     }
     const restored = reapplyRaceOverlays(raceSliceFrom(merged), {
       characterLevel: totalCharacterLevel(merged.classes),
@@ -1755,7 +1785,7 @@ export function MinimalSheetEditor({
     hasBackgroundGrant?: boolean
   }): GuidedWizardStep[] {
     const maxLevel = input.upToLevel ?? input.classLevel
-    const steps = buildPendingWizardSteps({
+    let steps = buildPendingWizardSteps({
       unlocked: input.unlocked ?? unlockedFeatures,
       featurePicks: input.featurePicks ?? draft.featurePicks,
       classAsi: input.classAsi ?? draft.classAsi,
@@ -1773,9 +1803,28 @@ export function MinimalSheetEditor({
             },
       hasSubclassByEntryId: input.hasSubclass ?? hasSubclassByEntryId,
     })
-    return withBackgroundStepIfNeeded(steps, {
+    steps = withBackgroundStepIfNeeded(steps, {
       include: Boolean(input.includeBackground) && !input.hasBackgroundGrant,
     })
+    const classRow = draft.classes.find((row) => row.id === input.classEntryId)
+    if (classRow && isWizardClassName(classRow.name)) {
+      const wizardLevel = Math.max(1, maxLevel)
+      const freeLeft = remainingFreeSpellbookSlots(draft.spells.known, wizardLevel)
+      if (freeLeft > 0) {
+        steps = withWizardSpellbookPicksStep(steps, {
+          classEntryId: input.classEntryId,
+          className: classRow.name,
+          classLevel: wizardLevel,
+          picksNeeded:
+            input.upToLevel != null
+              ? freeLeft
+              : wizardLevel <= 1
+                ? Math.min(6, freeLeft)
+                : Math.min(freeBookSlotsAtLevel(wizardLevel), freeLeft),
+        })
+      }
+    }
+    return steps
   }
 
   function commitClassGrant(input: {
@@ -2418,7 +2467,7 @@ export function MinimalSheetEditor({
       for (const row of nextClasses) {
         hasSubclass[row.id] = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
       }
-      const steps = buildPendingWizardSteps({
+      let steps = buildPendingWizardSteps({
         unlocked,
         featurePicks: draft.featurePicks,
         classAsi: draft.classAsi,
@@ -2429,6 +2478,14 @@ export function MinimalSheetEditor({
         },
         hasSubclassByEntryId: hasSubclass,
       })
+      if (isWizardClassName(leveledRow.name) && leveledRow.level >= 2) {
+        steps = withWizardSpellbookPicksStep(steps, {
+          classEntryId: leveledRow.id,
+          className: leveledRow.name,
+          classLevel: leveledRow.level,
+          picksNeeded: freeBookSlotsAtLevel(leveledRow.level),
+        })
+      }
       if (
         !hasSubclass[leveledRow.id] &&
         steps.some((step) => step.kind === 'subclass')
@@ -3071,6 +3128,12 @@ export function MinimalSheetEditor({
   const [initiativeBreakdownOpen, setInitiativeBreakdownOpen] = useState(false)
   /** Compact play-desk cast (dialog), not the full spells editor. */
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
+  const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
+  const [deskCastScrollPending, setDeskCastScrollPending] = useState<{
+    itemId: string
+    name: string
+    concentration: boolean
+  } | null>(null)
   /** Play-desk spells setup (replaces force-full SpellsPanel). */
   const [spellsSettingsOpen, setSpellsSettingsOpen] = useState(false)
   /** Mobile M1.1: Бой (ready list) | Книга (settings / grimoire sheet). */
@@ -3261,6 +3324,16 @@ export function MinimalSheetEditor({
       return
     }
     if (ritualCast) {
+      if (spellLearnBudget?.mode === 'spellbook') {
+        const gate = canCastWizardRitualFromBook({
+          spell,
+          book: draft.spells.wizard_spellbook,
+        })
+        if (!gate.ok) {
+          onToast(gate.message)
+          return
+        }
+      }
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
@@ -5035,9 +5108,14 @@ export function MinimalSheetEditor({
             onToast={emitToast}
             onSpendResource={spendResourceOrOpenSorcery}
             onToggleConsumableFavorite={toggleCombatFavorite}
+            onCastScroll={(itemId) => setDeskCastScrollId(itemId)}
             onSpendConsumable={(itemId) => {
               const item = draft.inventory.items.find((row) => row.id === itemId)
               if (!item || (item.qty ?? 0) <= 0) return
+              if (isCastableSpellScroll(item)) {
+                setDeskCastScrollId(itemId)
+                return
+              }
               const nextQty = Math.max(0, (item.qty ?? 0) - 1)
               setDraft((prev) => ({
                 ...prev,
@@ -5149,17 +5227,30 @@ export function MinimalSheetEditor({
         attunementFilled={filledAttunementCount(draft.attunements)}
         favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
         onToggleConsumableFavorite={toggleCombatFavorite}
+        onCastScroll={(itemId) => setDeskCastScrollId(itemId)}
         onOpenAttunement={() => setAttunementDialogOpen(true)}
         /* Header owns CoinPad only on wide desk; compact uses panel-local pad. */
         onOpenCoins={() => setCoinPadOpen(true)}
         onToast={onToast}
         onChange={(inventory) =>
-          setDraft((prev) => ({
-            ...prev,
-            inventory,
-            weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
-            spells: withSpellFocusFlags(prev.spells, inventory.items),
-          }))
+          setDraft((prev) => {
+            const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)
+            const isWizard =
+              spellLearnBudget?.mode === 'spellbook' ||
+              prev.classes.some((row) => /волшебник|wizard|маг/i.test(row.name))
+            const synced = syncWizardSpellbookWithInventory({
+              isWizard,
+              spells: focusSpells,
+              items: inventory.items,
+            })
+            if (synced.message) queueMicrotask(() => onToast(synced.message!))
+            return {
+              ...prev,
+              inventory,
+              weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
+              spells: synced.spells,
+            }
+          })
         }
         onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
       />
@@ -5319,6 +5410,26 @@ export function MinimalSheetEditor({
             }
             suggestion={spellcastingSync.suggestion}
             knownCaster={spellcastingSync.knownCaster}
+            coins={draft.inventory.coins}
+            onCoinsChange={(coins) =>
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, coins },
+              }))
+            }
+            inventoryItems={draft.inventory.items}
+            onInventoryItemsChange={(items) =>
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, items },
+              }))
+            }
+            onChangeInventory={({ coins, items }) =>
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, coins, items },
+              }))
+            }
             title={isPlayDesk ? 'Настройки заклинаний' : 'Книга заклинаний'}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
             onClose={() => {
@@ -5345,11 +5456,19 @@ export function MinimalSheetEditor({
           concentration={draft.play.concentration}
           onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
           onInventoryChange={(inventory) =>
-            setDraft((prev) => ({
-              ...prev,
-              inventory,
-              spells: withSpellFocusFlags(prev.spells, inventory.items),
-            }))
+            setDraft((prev) => {
+              const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)
+              const isWizard =
+                spellLearnBudget?.mode === 'spellbook' ||
+                prev.classes.some((row) => /волшебник|wizard|маг/i.test(row.name))
+              const synced = syncWizardSpellbookWithInventory({
+                isWizard,
+                spells: focusSpells,
+                items: inventory.items,
+              })
+              if (synced.message) queueMicrotask(() => onToast(synced.message!))
+              return { ...prev, inventory, spells: synced.spells }
+            })
           }
           onConcentrationChange={(concentration) =>
             setDraft((prev) => ({
@@ -5670,6 +5789,7 @@ export function MinimalSheetEditor({
         spells={draft.spells}
         inventoryItems={draft.inventory.items}
         characterLevel={characterLevel}
+        wizardRitualFromBook={spellLearnBudget?.mode === 'spellbook'}
         onConfirm={confirmDeskCast}
         onClose={() => setDeskCastSpell(null)}
         onRequestRest={() => {
@@ -5691,6 +5811,114 @@ export function MinimalSheetEditor({
           onToast('Ячейки договора восстановлены')
         }}
       />
+
+      <CastScrollDialog
+        open={deskCastScrollId != null}
+        item={
+          deskCastScrollId
+            ? draft.inventory.items.find((row) => row.id === deskCastScrollId) ?? null
+            : null
+        }
+        onConfirm={() => {
+          const itemId = deskCastScrollId
+          if (!itemId) return
+          const item = draft.inventory.items.find((row) => row.id === itemId)
+          if (!item || !isCastableSpellScroll(item) || !item.scroll_spell) {
+            setDeskCastScrollId(null)
+            return
+          }
+          const binding = item.scroll_spell
+          const stats = spellScrollCastStats(binding.level)
+          const scrollSpellId = `scroll:${item.id}:${binding.catalog_id ?? binding.name}`
+          if (
+            binding.concentration &&
+            draft.play.concentration &&
+            draft.play.concentration.spell_id !== scrollSpellId &&
+            draft.play.concentration.name.trim() !== binding.name.trim()
+          ) {
+            setDeskCastScrollPending({
+              itemId,
+              name: binding.name,
+              concentration: true,
+            })
+            setDeskCastScrollId(null)
+            return
+          }
+          setDraft((prev) => {
+            let next = {
+              ...prev,
+              inventory: {
+                ...prev.inventory,
+                items: consumeScrollItem(prev.inventory.items, itemId),
+              },
+            }
+            if (binding.concentration) {
+              next = {
+                ...next,
+                play: {
+                  ...next.play,
+                  concentration: setConcentration({
+                    spellId: scrollSpellId,
+                    name: binding.name,
+                  }),
+                },
+              }
+            }
+            return next
+          })
+          setDeskCastScrollId(null)
+          onToast(
+            `Свиток: ${binding.name} · Сл ${stats.saveDc} · +${stats.attackBonus}${
+              binding.concentration ? ' · концентрация' : ''
+            } · свиток израсходован`,
+          )
+        }}
+        onClose={() => setDeskCastScrollId(null)}
+      />
+
+      <Dialog
+        open={deskCastScrollPending != null}
+        title="Смена концентрации"
+        primaryLabel="Сменить и кастовать свиток"
+        secondaryLabel="Отмена"
+        primaryVariant="danger"
+        onPrimary={() => {
+          if (!deskCastScrollPending) return
+          const { itemId, name } = deskCastScrollPending
+          const item = draft.inventory.items.find((row) => row.id === itemId)
+          const binding = item?.scroll_spell
+          setDeskCastScrollPending(null)
+          if (!item || !binding || !isCastableSpellScroll(item)) return
+          const stats = spellScrollCastStats(binding.level)
+          const scrollSpellId = `scroll:${item.id}:${binding.catalog_id ?? binding.name}`
+          setDraft((prev) => ({
+            ...prev,
+            inventory: {
+              ...prev.inventory,
+              items: consumeScrollItem(prev.inventory.items, itemId),
+            },
+            play: {
+              ...prev.play,
+              concentration: setConcentration({
+                spellId: scrollSpellId,
+                name,
+              }),
+            },
+          }))
+          onToast(
+            `Свиток: ${name} · Сл ${stats.saveDc} · +${stats.attackBonus} · концентрация · свиток израсходован`,
+          )
+        }}
+        onSecondary={() => {
+          if (deskCastScrollPending) setDeskCastScrollId(deskCastScrollPending.itemId)
+          setDeskCastScrollPending(null)
+        }}
+      >
+        <Text>
+          Сейчас концентрация: «{draft.play.concentration?.name ?? '—'}». Сменить на «
+          {deskCastScrollPending?.name ?? 'Заклинание'}» со свитка?
+        </Text>
+      </Dialog>
 
       <Dialog
         open={deskCastPending != null}
@@ -6225,6 +6453,29 @@ export function MinimalSheetEditor({
                     },
               hasSubclassByEntryId: hasSubclass,
             })
+            if (isWizardClassName(step.className)) {
+              const wizardLevel =
+                next.classes.find((row) => row.id === step.classEntryId)?.level ??
+                classLevel
+              const freeLeft = remainingFreeSpellbookSlots(
+                next.spells.known,
+                wizardLevel,
+              )
+              if (freeLeft > 0) {
+                remaining = withWizardSpellbookPicksStep(remaining, {
+                  classEntryId: step.classEntryId,
+                  className: step.className,
+                  classLevel: wizardLevel,
+                  // Jump to N: catch up all free research; L1 start: up to 6.
+                  picksNeeded:
+                    jumpTo > 1
+                      ? freeLeft
+                      : wizardLevel <= 1
+                        ? Math.min(6, freeLeft)
+                        : Math.min(freeBookSlotsAtLevel(wizardLevel), freeLeft),
+                })
+              }
+            }
             return next
           })
           if (summary) {
@@ -6266,6 +6517,43 @@ export function MinimalSheetEditor({
             classEntryId,
             selected: entry,
             advanceWizardAfter: true,
+          })
+        }}
+        spellbookPicksContext={(() => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          if (!step || step.kind !== 'spellbook_picks') return null
+          const slotCap = highestSpellSlotLevelForClasses(
+            draft.classes,
+            subclassCastersForSpells,
+          )
+          return {
+            maxSpellLevel: Math.max(1, slotCap || 1),
+            blockedCatalogIds: draft.spells.known
+              .map((spell) => spell.catalog_id)
+              .filter((id): id is string => Boolean(id)),
+            hasBook: wizardHasUsableSpellbook(draft.spells),
+            classListSlugs: ['wizard'],
+          }
+        })()}
+        onConfirmSpellbookPicks={(entries) => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          const acquisition =
+            step?.kind === 'spellbook_picks' && step.classLevel <= 1
+              ? 'starting'
+              : 'level_up'
+          setDraft((prev) => {
+            let known = prev.spells.known
+            for (const entry of entries) {
+              known = addCatalogSpellToKnown(known, entry, {
+                prepare: false,
+                spellbook_acquisition: acquisition,
+                in_spellbook: true,
+              })
+            }
+            return {
+              ...prev,
+              spells: { ...prev.spells, known },
+            }
           })
         }}
       />
