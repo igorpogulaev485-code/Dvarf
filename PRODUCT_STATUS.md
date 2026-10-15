@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/mobile-desk-sync-code-0ed9`  
+**Prod tip (ветка линии прода):** `cursor/rogue-ranger-spend-4797`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -696,8 +696,8 @@
 Волна 2: инфузии / воззвания / арканум — см. ниже.  
 Волна 3: плут Soulknife/Phantom + избранное следопыта — см. ниже.  
 Друид не трогаем.  
-Стек tip: `rogue-ranger-spend-4797` ← `infusions-invocations-desk-4797` ← … ← `cleric-equip-cd-spells-244b`.  
-На проде: **нет** (мерж/деплой отдельно).
+Стек tip: `rogue-ranger-spend-4797` ← mobile tip + spend-стек ← `cleric-equip-cd-spells-244b`.  
+На проде: **да** · это **новый prod tip** `cursor/rogue-ranger-spend-4797` · залито 2026-10-15 поверх live `mobile-desk-sync-code-0ed9`.
 
 ### 2026-10-15 — Плут / Следопыт: пси-кости, частицы, избранное
 
@@ -708,7 +708,7 @@
 | Следопыт · избранное | `RangerFavoredDeskDialog`: известные враги/местности с тостом | Справочник на столе |
 | Smoke | `frontend/scripts/smoke-rogue-ranger-spend.ts` | Опции / пулы / picks |
 
-На проде: **нет** · ветка `cursor/rogue-ranger-spend-4797`
+На проде: **да** · tip `cursor/rogue-ranger-spend-4797` · проверено 2026-10-15: `/health` ok; диалоги на диске; кабинет/лобби/classic/mobile на месте
 
 ### 2026-10-15 — Изобретатель / Колдун: инфузии, воззвания, арканум
 
@@ -719,7 +719,7 @@
 | Мистический арканум | Клик по `mystic_arcanum_N` → `WarlockArcanumSpendDialog` (все 6–9) | Выбрал уровень арканума → −1 заряд |
 | Smoke | `frontend/scripts/smoke-infusions-invocations.ts` | Слоты / picks / пулы |
 
-На проде: **нет** · ветка `cursor/infusions-invocations-desk-4797`
+На проде: **да** · tip `cursor/rogue-ranger-spend-4797`
 
 ### 2026-10-15 — Волшебник: Магическое восстановление
 
@@ -728,7 +728,7 @@
 | Клик по заряду | `ArcaneRecoverySpendDialog`: выбрать ячейки 1–5, сумма ≤ ⌈ур./2⌉, затем −1 заряд | Не вручную крутить пипсы ячеек |
 | Smoke | `frontend/scripts/smoke-arcane-recovery.ts` | Бюджет / запрет 6+ |
 
-На проде: **нет** · ветка `cursor/wizard-arcane-recovery-4797`
+На проде: **да** · tip `cursor/rogue-ranger-spend-4797`
 
 ### 2026-10-15 — Воин BM: picker костей превосходства
 
@@ -737,7 +737,7 @@
 | Клик по костям | `SuperiorityDiceSpendDialog`: известные манёвры (−1) + размер кости | Как метамагия — выбрал манёвр, списалась кость |
 | Smoke | `frontend/scripts/smoke-superiority-dice-spend.ts` | Picks → опции; max пула |
 
-На проде: **нет** · ветка `cursor/fighter-bm-superiority-4797`
+На проде: **да** · tip `cursor/rogue-ranger-spend-4797`
 
 ### 2026-10-15 — Паладин: CD (клятва) + Возложение рук
 
@@ -747,7 +747,7 @@
 | Возложение рук | `LayOnHandsSpendDialog`: N хитов или снять болезнь/яд (−5) | Не −1 пипс, а сумма из пула 5×ур. |
 | Smoke | `frontend/scripts/smoke-paladin-cd-loh.ts` | CD опции + LoH max |
 
-На проде: **нет** · ветка `cursor/paladin-cd-spend-4797` · поверх bard/monk стека
+На проде: **да** · tip `cursor/rogue-ranger-spend-4797`
 
 ### 2026-10-15 — Бард: picker Бардовского вдохновения
 
@@ -756,7 +756,7 @@
 | Клик по BI на столе | `BardicInspirationSpendDialog`: отдать кость (+ размер d6–d12) и опции коллегии (Острые слова, Боевое вдохновение, Мантия, Flourish…) | Одна точка траты кости |
 | Мантия вдохновения | Glamour: `linked_spend` → BI | Попадает в picker |
 
-На проде: **нет** · ветка `cursor/bard-inspiration-spend-4797` · поверх `cursor/monk-ki-spend-4797`
+На проде: **да** · tip `cursor/rogue-ranger-spend-4797`
 
 ### 2026-10-15 — Монах: picker траты Ки (как метамагия / CD)
 
@@ -766,7 +766,7 @@
 | `spend_cost` / `linked_spend.amount` | Контракт ресурсов: стоимость с shared pool (Ки) и явный amount у Shadow Arts и др. | Shadow Arts реально −2 ки, не −1 |
 | Smoke | `frontend/scripts/smoke-monk-ki-spend.ts` | Регресс по опциям и тратам |
 
-На проде: **нет** · ветка `cursor/monk-ki-spend-4797` · база `cursor/cleric-equip-cd-spells-244b` · друид/Wild Shape не трогали
+На проде: **да** · tip `cursor/rogue-ranger-spend-4797` · друид/Wild Shape не трогали
 
 ### 2026-10-13 — Mobile UI Kit + план редизайна телефона (документы)
 
