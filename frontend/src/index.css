@@ -2856,16 +2856,25 @@ button.session-concentration-tag {
 }
 
 .session-enemy-roster__row {
-  display: grid;
-  gap: 8px;
+  display: block;
+  width: 100%;
+  text-align: left;
   padding: 8px 10px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: color-mix(in srgb, var(--card) 92%, #78716c);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
 }
 
 .session-enemy-roster__row.is-dead {
   opacity: 0.72;
+}
+
+.session-enemy-roster__row.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .session-enemy-roster__who {
@@ -2880,15 +2889,11 @@ button.session-concentration-tag {
   font-size: 0.95rem;
 }
 
-.session-enemy-roster__dmg {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.session-enemy-roster__dmg .ui-button {
-  min-height: 32px;
-  padding-inline: 10px;
+.session-enemy-roster__pick {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--accent);
 }
 
 .session-enemy-card--warn {

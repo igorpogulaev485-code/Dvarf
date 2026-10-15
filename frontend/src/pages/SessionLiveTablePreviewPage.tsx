@@ -456,7 +456,8 @@ export function SessionLiveTablePreviewPage() {
                         Противники · мастер
                       </Text>
                       <Text tone="muted" className="session-table-toolbar__hint">
-                        −1/−5 бьют первого живого. «Состав» — урон каждому по имени.
+                        −1 HP / −5 HP / +1 HP. В пачке: выбери в «Составе», кому бить
+                        (иначе — первому живому).
                       </Text>
                       <div className="session-table-grid session-enemies-grid">
                         {combatants.map((enemy) => (

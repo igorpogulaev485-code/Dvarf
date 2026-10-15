@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
 import { Button, Text } from '../../ui'
 import {
@@ -68,7 +68,9 @@ function ensureMembers(combatant: SessionCombatant): CombatantMember[] {
 
 /**
  * Карточка противника / пачки.
- * Быстрый −1/−5 → первый живой. «Состав» → урон каждому по имени.
+ * Кнопки HP: −1 / −5 HP, +1 лечение — одна полоска.
+ * В пачке: выбери бойца в «Составе», затем те же кнопки бьют его
+ * (если не выбран — первого живого).
  */
 export function EnemyCard({
   combatant,
@@ -81,6 +83,7 @@ export function EnemyCard({
 }: Props) {
   const [statsOpen, setStatsOpen] = useState(false)
   const [rosterOpen, setRosterOpen] = useState(false)
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
   const profile = normalizeVisibilityProfile(visibility)
   const isMaster = Boolean(masterControls || revealAll)
   const members = useMemo(() => ensureMembers(combatant), [combatant])
@@ -93,6 +96,18 @@ export function EnemyCard({
     Math.max(1, combatant.hp_max),
   )
   const isDead = aliveCount <= 0
+
+  useEffect(() => {
+    if (!selectedMemberId) return
+    const stillThere = members.some((m) => m.id === selectedMemberId)
+    if (!stillThere) setSelectedMemberId(null)
+  }, [members, selectedMemberId])
+
+  const selectedMember = selectedMemberId
+    ? members.find((m) => m.id === selectedMemberId) ?? null
+    : null
+  const focusMember =
+    selectedMember ?? members.find((m) => m.hp_current > 0) ?? members[0] ?? null
 
   const showHpNumbers = isMaster || profile.fields.health.hp === 'active'
   const showHpColor = isMaster || profile.fields.health.hp !== 'off'
@@ -110,6 +125,15 @@ export function EnemyCard({
     isMaster && combatant.custom ? 'свой НПС' : null,
   ].filter(Boolean)
   const meta = metaParts.join(' · ')
+
+  function applyDamage(amount: number) {
+    if (!onDamage) return
+    if (isPack && selectedMemberId) {
+      onDamage(amount, selectedMemberId)
+      return
+    }
+    onDamage(amount)
+  }
 
   return (
     <article
@@ -148,7 +172,9 @@ export function EnemyCard({
         <div className="session-enemy-card__stats">
           {showHpNumbers && !isDead ? (
             <span className={`session-table-card__chip session-table-card__chip--hp is-${tone}`}>
-              {isPack ? 'Цель ' : ''}HP {combatant.hp_current}/{combatant.hp_max}
+              {isPack
+                ? `Цель · ${focusMember?.name ?? '—'} · HP ${focusMember?.hp_current ?? 0}/${focusMember?.hp_max ?? combatant.hp_max}`
+                : `HP ${combatant.hp_current}/${combatant.hp_max}`}
             </span>
           ) : null}
           {showHpNumbers && isDead ? (
@@ -190,29 +216,29 @@ export function EnemyCard({
           <Button
             type="button"
             variant="secondary"
-            disabled={busy || isDead}
-            title={isPack ? 'Урон первому живому' : 'Урон'}
-            onClick={() => onDamage?.(1)}
+            disabled={busy || isDead || (selectedMember != null && selectedMember.hp_current <= 0)}
+            title="Снять 1 HP"
+            onClick={() => applyDamage(1)}
           >
-            −1
+            −1 HP
           </Button>
           <Button
             type="button"
             variant="secondary"
-            disabled={busy || isDead}
-            title={isPack ? 'Урон первому живому' : 'Урон'}
-            onClick={() => onDamage?.(5)}
+            disabled={busy || isDead || (selectedMember != null && selectedMember.hp_current <= 0)}
+            title="Снять 5 HP"
+            onClick={() => applyDamage(5)}
           >
-            −5
+            −5 HP
           </Button>
           <Button
             type="button"
             variant="secondary"
             disabled={busy}
-            title={isPack ? 'Лечение первому (или первому в списке)' : 'Лечение'}
-            onClick={() => onDamage?.(-1)}
+            title="Вернуть 1 HP"
+            onClick={() => applyDamage(-1)}
           >
-            +1
+            +1 HP
           </Button>
           {isPack ? (
             <Button
@@ -244,52 +270,41 @@ export function EnemyCard({
       {masterControls && rosterOpen && isPack ? (
         <div className="session-enemy-card__roster" aria-label="Состав пачки">
           <Text tone="muted" className="session-enemy-card__block-title">
-            Кому урон — отметь бойца; −1/−5 бьют выбранного в строке.
+            Выбери, кому урон — затем −1 HP / −5 HP сверху. Без выбора бьёт первого
+            живого.
           </Text>
           <ul className="session-enemy-roster">
             {members.map((m) => {
               const mTone = hpTone(m.hp_current, m.hp_max)
               const mDead = m.hp_current <= 0
+              const selected = selectedMemberId === m.id
               return (
-                <li
-                  key={m.id}
-                  className={`session-enemy-roster__row${mDead ? ' is-dead' : ''}`}
-                >
-                  <div className="session-enemy-roster__who">
-                    <span className="session-enemy-roster__name">{m.name}</span>
-                    <span
-                      className={`session-table-card__chip session-table-card__chip--hp is-${mTone}`}
-                    >
-                      HP {m.hp_current}/{m.hp_max}
-                    </span>
-                    {mDead ? <span className="session-condition-tag">Мёртв</span> : null}
-                  </div>
-                  <div className="session-enemy-roster__dmg">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={busy || mDead}
-                      onClick={() => onDamage?.(1, m.id)}
-                    >
-                      −1
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={busy || mDead}
-                      onClick={() => onDamage?.(5, m.id)}
-                    >
-                      −5
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={busy}
-                      onClick={() => onDamage?.(-1, m.id)}
-                    >
-                      +1
-                    </Button>
-                  </div>
+                <li key={m.id}>
+                  <button
+                    type="button"
+                    className={`session-enemy-roster__row${mDead ? ' is-dead' : ''}${
+                      selected ? ' is-selected' : ''
+                    }`}
+                    disabled={busy}
+                    onClick={() =>
+                      setSelectedMemberId((prev) => (prev === m.id ? null : m.id))
+                    }
+                  >
+                    <div className="session-enemy-roster__who">
+                      <span className="session-enemy-roster__name">{m.name}</span>
+                      <span
+                        className={`session-table-card__chip session-table-card__chip--hp is-${mTone}`}
+                      >
+                        HP {m.hp_current}/{m.hp_max}
+                      </span>
+                      {mDead ? (
+                        <span className="session-condition-tag">Мёртв</span>
+                      ) : null}
+                      {selected && !mDead ? (
+                        <span className="session-enemy-roster__pick">цель</span>
+                      ) : null}
+                    </div>
+                  </button>
                 </li>
               )
             })}
