@@ -91,7 +91,7 @@ function collectKit(combatant: SessionCombatant): KitItem[] {
 /**
  * Карточка противника / пачки.
  * Мастер: имена действий/черт всегда на карточке; текст — по раскрытию.
- * Урон: цифра + «Нанести урон». В пачке цель из «Состава».
+ * HP: цифра + «Нанести урон» / «Вылечить». В пачке цель из «Состава».
  */
 export function EnemyCard({
   combatant,
@@ -106,7 +106,7 @@ export function EnemyCard({
   const [abilitiesOpen, setAbilitiesOpen] = useState(forceAbilitiesOpen)
   const [rosterOpen, setRosterOpen] = useState(false)
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
-  const [damageAmount, setDamageAmount] = useState<number | null>(null)
+  const [hpDelta, setHpDelta] = useState<number | null>(null)
   const [focusAbility, setFocusAbility] = useState<string | null>(null)
   const profile = normalizeVisibilityProfile(visibility)
   const isMaster = Boolean(masterControls || revealAll)
@@ -155,32 +155,34 @@ export function EnemyCard({
   ].filter(Boolean)
   const meta = metaParts.join(' · ')
 
+  const hasAmount = hpDelta != null && hpDelta > 0
   const canDeal =
     !busy &&
+    hasAmount &&
     !isDead &&
-    damageAmount != null &&
-    damageAmount > 0 &&
     !(selectedMember != null && selectedMember.hp_current <= 0)
+  /** Лечение: и раненому, и с 0 HP (поднять / особые черты). */
+  const canHeal = !busy && hasAmount
 
-  function applyDamage() {
-    if (!onDamage || !canDeal || damageAmount == null) return
+  function applyHpChange(amount: number) {
+    if (!onDamage || amount === 0) return
     if (isPack && selectedMemberId) {
-      onDamage(damageAmount, selectedMemberId)
+      onDamage(amount, selectedMemberId)
     } else {
-      onDamage(damageAmount)
+      onDamage(amount)
     }
-    setDamageAmount(null)
+    setHpDelta(null)
   }
 
   function onDamageForm(event: FormEvent) {
     event.preventDefault()
-    applyDamage()
+    if (canDeal && hpDelta != null) applyHpChange(hpDelta)
   }
 
-  function onDamageKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+  function onHpKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Enter') {
       event.preventDefault()
-      applyDamage()
+      if (canDeal && hpDelta != null) applyHpChange(hpDelta)
     }
   }
 
@@ -293,19 +295,30 @@ export function EnemyCard({
           <form className="session-enemy-card__damage" onSubmit={onDamageForm}>
             <NumberInput
               className="session-enemy-card__damage-input"
-              value={damageAmount}
+              value={hpDelta}
               min={1}
               max={9999}
               integer
               emptyValue={null}
-              disabled={busy || isDead}
-              placeholder="Урон"
-              aria-label="Урон"
-              onValueChange={setDamageAmount}
-              onKeyDown={onDamageKeyDown}
+              disabled={busy}
+              placeholder="Число"
+              aria-label="Количество HP"
+              onValueChange={setHpDelta}
+              onKeyDown={onHpKeyDown}
             />
             <Button type="submit" variant="secondary" disabled={!canDeal}>
               Нанести урон
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={!canHeal}
+              title="Вернуть столько HP (не выше максимума)"
+              onClick={() => {
+                if (canHeal && hpDelta != null) applyHpChange(-hpDelta)
+              }}
+            >
+              Вылечить
             </Button>
           </form>
           {isPack ? (

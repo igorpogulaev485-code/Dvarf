@@ -113,6 +113,7 @@ export type SessionSeat = {
   passive_perception?: number | null
   passive_insight?: number | null
   passive_investigation?: number | null
+  dex_mod?: number | null
   seated_at: string
 }
 
@@ -152,6 +153,26 @@ export type SessionCombatant = {
   reactions?: CombatantAction[]
   legendary_actions?: CombatantAction[]
   members?: CombatantMember[]
+  dex_mod?: number | null
+}
+
+export type CombatEntryKind = 'pc' | 'companion' | 'enemy'
+
+export type CombatEntry = {
+  id: string
+  kind: CombatEntryKind | string
+  ref_id: string
+  companion_id?: string | null
+  name: string
+  initiative: number
+  dex_mod?: number | null
+}
+
+export type SessionCombat = {
+  active: boolean
+  round: number
+  active_index: number
+  entries: CombatEntry[]
 }
 
 export type SessionDetail = {
@@ -164,6 +185,7 @@ export type SessionDetail = {
   is_owner: boolean
   seats: SessionSeat[]
   combatants?: SessionCombatant[]
+  combat?: SessionCombat
   lobby_members: LobbyMember[]
   visibility_profile?: unknown
   closed_at?: string | null
@@ -475,6 +497,40 @@ export async function deleteSessionCombatant(
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${sessionId}/combatants/${combatantId}`, {
     method: 'DELETE',
+  })
+}
+
+export type CombatEntryInput = {
+  kind: CombatEntryKind
+  ref_id: string
+  companion_id?: string | null
+  name: string
+  initiative: number
+  dex_mod?: number | null
+}
+
+export async function startSessionCombat(
+  sessionId: string,
+  payload: { entries: CombatEntryInput[] },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(`/sessions/${sessionId}/combat/start`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function patchSessionCombat(
+  sessionId: string,
+  payload: {
+    action?: 'next' | 'prev' | 'end' | null
+    active_index?: number
+    round?: number
+    entries?: CombatEntryInput[]
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(`/sessions/${sessionId}/combat`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
   })
 }
 

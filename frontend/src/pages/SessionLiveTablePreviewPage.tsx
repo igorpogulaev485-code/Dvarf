@@ -7,16 +7,23 @@ import { useMemo, useState } from 'react'
 import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
+import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
 import { SessionTableCard } from '../features/lobby/SessionTableCard'
+import { StartCombatDialog } from '../features/lobby/StartCombatDialog'
 import {
   applyVisibilityPreset,
   defaultVisibilityProfile,
 } from '../features/lobby/visibilityProfile'
-import type { SessionCombatant, SessionEvent, SessionSeat } from '../shared/api/lobbies'
+import type {
+  SessionCombat,
+  SessionCombatant,
+  SessionEvent,
+  SessionSeat,
+} from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
 const DEMO_SEATS: SessionSeat[] = [
@@ -30,6 +37,7 @@ const DEMO_SEATS: SessionSeat[] = [
     hp_max: 48,
     ac: 18,
     speed: 30,
+    dex_mod: 2,
     inspiration: true,
     conditions: [],
     effects: [
@@ -157,6 +165,7 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
     slug: 'goblin',
     source_book: 'MM',
     type_ru: 'гуманоид',
+    dex_mod: 2,
     actions: [
       {
         name_ru: 'Скимитар',
@@ -196,6 +205,7 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
     cr: '2',
     custom: true,
     type_ru: 'НПС',
+    dex_mod: -1,
     actions: [
       {
         name_ru: 'Дубина',
@@ -269,10 +279,21 @@ export function SessionLiveTablePreviewPage() {
   const [conditionOpen, setConditionOpen] = useState(false)
   const [effectOpen, setEffectOpen] = useState(false)
   const [combatantOpen, setCombatantOpen] = useState(false)
+  const [combatStartOpen, setCombatStartOpen] = useState(false)
+  const [combat, setCombat] = useState<SessionCombat>({
+    active: false,
+    round: 1,
+    active_index: 0,
+    entries: [],
+  })
 
   // Как в продукте: профиль из настроек лобби; здесь — дефолт (всё видно игрокам).
   // Мастер на реальном экране = is_owner лобби, не отдельный переключатель.
   const visibility = useMemo(() => defaultVisibilityProfile(), [])
+  const activeEnemyId =
+    combat.active && combat.entries[combat.active_index]?.kind === 'enemy'
+      ? combat.entries[combat.active_index]?.ref_id
+      : null
 
   const visibleEvents = useMemo(() => {
     let list = events
@@ -359,10 +380,64 @@ export function SessionLiveTablePreviewPage() {
                     >
                       + Противник
                     </Button>
+                    {!combat.active ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setCombatStartOpen(true)}
+                      >
+                        Бой
+                      </Button>
+                    ) : null}
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Состояние — вред. Эффект — баф. Противник — бестиарий на стол.
+                      Состояние — вред. Эффект — баф. Противник — бестиарий. Бой —
+                      инициатива; на ходе врага — его действия.
                     </Text>
                   </div>
+                ) : null}
+                {combat.active ? (
+                  <CombatTrack
+                    combat={combat}
+                    masterControls={!closed}
+                    onNext={() => {
+                      setCombat((prev) => {
+                        const n = prev.entries.length
+                        if (!n) return prev
+                        const nextIndex = prev.active_index + 1
+                        if (nextIndex >= n) {
+                          return { ...prev, active_index: 0, round: prev.round + 1 }
+                        }
+                        return { ...prev, active_index: nextIndex }
+                      })
+                    }}
+                    onPrev={() => {
+                      setCombat((prev) => {
+                        const n = prev.entries.length
+                        if (!n) return prev
+                        const nextIndex = prev.active_index - 1
+                        if (nextIndex < 0) {
+                          return {
+                            ...prev,
+                            active_index: n - 1,
+                            round: Math.max(1, prev.round - 1),
+                          }
+                        }
+                        return { ...prev, active_index: nextIndex }
+                      })
+                    }}
+                    onEnd={() => {
+                      setCombat({
+                        active: false,
+                        round: 1,
+                        active_index: 0,
+                        entries: [],
+                      })
+                      setToast('Бой окончен')
+                    }}
+                    onSelect={(index) => {
+                      setCombat((prev) => ({ ...prev, active_index: index }))
+                    }}
+                  />
                 ) : null}
                 <div className="session-table-grid">
                   {seats.map((seat) => (
@@ -456,8 +531,8 @@ export function SessionLiveTablePreviewPage() {
                         Противники · мастер
                       </Text>
                       <Text tone="muted" className="session-table-toolbar__hint">
-                        Чипы = действия и черты (тап → текст). Урон: цифра → «Нанести
-                        урон». В пачке цель из «Состава».
+                        Чипы = действия и черты. Цифра → «Нанести урон» или
+                        «Вылечить». В пачке цель из «Состава».
                       </Text>
                       <div className="session-table-grid session-enemies-grid">
                         {combatants.map((enemy) => (
@@ -466,6 +541,7 @@ export function SessionLiveTablePreviewPage() {
                             combatant={enemy}
                             revealAll
                             masterControls={!closed}
+                            forceAbilitiesOpen={activeEnemyId === enemy.id}
                             onDamage={(amount, memberId) => {
                               setCombatants((prev) =>
                                 prev.map((c) => {
@@ -670,6 +746,35 @@ export function SessionLiveTablePreviewPage() {
           setCombatants((prev) => [...prev, pack])
           setCombatantOpen(false)
           setToast(n > 1 ? `Пачка на столе: ${baseName} × ${n}` : `На столе: ${baseName}`)
+        }}
+      />
+
+      <StartCombatDialog
+        open={combatStartOpen}
+        seats={seats}
+        combatants={combatants}
+        onClose={() => setCombatStartOpen(false)}
+        onSubmit={(entries) => {
+          const sorted = [...entries].sort((a, b) => {
+            if (b.initiative !== a.initiative) return b.initiative - a.initiative
+            return (b.dex_mod ?? -99) - (a.dex_mod ?? -99)
+          })
+          setCombat({
+            active: true,
+            round: 1,
+            active_index: 0,
+            entries: sorted.map((e, i) => ({
+              id: `ce-${i}-${e.ref_id}`,
+              kind: e.kind,
+              ref_id: e.ref_id,
+              companion_id: e.companion_id,
+              name: e.name,
+              initiative: e.initiative,
+              dex_mod: e.dex_mod,
+            })),
+          })
+          setCombatStartOpen(false)
+          setToast('Бой начат')
         }}
       />
 

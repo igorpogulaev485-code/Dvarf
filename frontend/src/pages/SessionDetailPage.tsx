@@ -7,7 +7,9 @@ import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
+import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EnemyCard } from '../features/lobby/EnemyCard'
+import { StartCombatDialog } from '../features/lobby/StartCombatDialog'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
@@ -27,8 +29,10 @@ import {
   getSession,
   listSessionEvents,
   patchSeatCombat,
+  patchSessionCombat,
   patchSessionCombatant,
   seatCharacter,
+  startSessionCombat,
   unseatCharacter,
   updateSession,
   type SeatCondition,
@@ -64,6 +68,7 @@ export function SessionDetailPage() {
   const [conditionOpen, setConditionOpen] = useState(false)
   const [effectOpen, setEffectOpen] = useState(false)
   const [combatantOpen, setCombatantOpen] = useState(false)
+  const [combatStartOpen, setCombatStartOpen] = useState(false)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -323,10 +328,66 @@ export function SessionDetailPage() {
                         + Противник
                       </Button>
                     ) : null}
+                    {session.is_owner && !session.combat?.active ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={
+                          busy ||
+                          (session.seats.length === 0 &&
+                            (session.combatants?.length ?? 0) === 0)
+                        }
+                        onClick={() => setCombatStartOpen(true)}
+                      >
+                        Бой
+                      </Button>
+                    ) : null}
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Состояние — вред. Эффект — баф. Противник — из бестиария на стол.
+                      Состояние — вред. Эффект — баф. Противник — бестиарий. Бой —
+                      инициатива и ход.
                     </Text>
                   </div>
+                ) : null}
+
+                {session.combat?.active ? (
+                  <CombatTrack
+                    combat={session.combat}
+                    masterControls={session.is_owner && !session.closed_at}
+                    busy={busy}
+                    onNext={() => {
+                      void run(async () => {
+                        const updated = await patchSessionCombat(session.id, {
+                          action: 'next',
+                        })
+                        setSession(updated)
+                      })
+                    }}
+                    onPrev={() => {
+                      void run(async () => {
+                        const updated = await patchSessionCombat(session.id, {
+                          action: 'prev',
+                        })
+                        setSession(updated)
+                      })
+                    }}
+                    onEnd={() => {
+                      void run(async () => {
+                        const updated = await patchSessionCombat(session.id, {
+                          action: 'end',
+                        })
+                        setSession(updated)
+                        setToast('Бой окончен')
+                      })
+                    }}
+                    onSelect={(index) => {
+                      void run(async () => {
+                        const updated = await patchSessionCombat(session.id, {
+                          active_index: index,
+                        })
+                        setSession(updated)
+                      })
+                    }}
+                  />
                 ) : null}
 
                 {session.seats.length === 0 ? (
@@ -428,13 +489,20 @@ export function SessionDetailPage() {
                       Противники
                     </Text>
                     <div className="session-table-grid session-enemies-grid">
-                      {session.combatants!.map((enemy) => (
+                      {session.combatants!.map((enemy) => {
+                        const active =
+                          session.combat?.active &&
+                          session.combat.entries[session.combat.active_index]
+                        const isActiveTurn =
+                          active?.kind === 'enemy' && active.ref_id === enemy.id
+                        return (
                         <EnemyCard
                           key={enemy.id}
                           combatant={enemy}
                           visibility={visibility}
                           revealAll={session.is_owner}
                           masterControls={session.is_owner && !session.closed_at}
+                          forceAbilitiesOpen={Boolean(isActiveTurn && session.is_owner)}
                           busy={busy}
                           onDamage={(amount, memberId) => {
                             void run(async () => {
@@ -460,7 +528,8 @@ export function SessionDetailPage() {
                             })
                           }}
                         />
-                      ))}
+                        )
+                      })}
                     </div>
                   </Stack>
                 ) : null}
@@ -693,6 +762,22 @@ export function SessionDetailPage() {
             setCombatantOpen(false)
             const n = payload.count ?? 1
             setToast(n > 1 ? `На столе: ${n}` : 'Противник на столе')
+          })
+        }}
+      />
+
+      <StartCombatDialog
+        open={combatStartOpen}
+        busy={busy}
+        seats={session.seats}
+        combatants={session.combatants ?? []}
+        onClose={() => setCombatStartOpen(false)}
+        onSubmit={(entries) => {
+          void run(async () => {
+            const updated = await startSessionCombat(session.id, { entries })
+            setSession(updated)
+            setCombatStartOpen(false)
+            setToast('Бой начат')
           })
         }}
       />
