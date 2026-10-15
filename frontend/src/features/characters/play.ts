@@ -58,6 +58,12 @@ export function createResource(partial?: Partial<SheetResource>): SheetResource 
     max: partial?.max ?? 1,
     used: partial?.used ?? 0,
     reset: partial?.reset ?? 'long',
+    ...(partial?.applies_to_allies
+      ? {
+          applies_to_allies: true,
+          ally_target_count: partial.ally_target_count ?? 1,
+        }
+      : {}),
   })
 }
 
@@ -95,12 +101,28 @@ function readReset(value: unknown): ResourceReset {
 
 function readResource(raw: unknown, index: number): SheetResource {
   const row = asRecord(raw)
+  const name = typeof row.name === 'string' ? row.name : ''
+  const appliesExplicit = row.applies_to_allies
+  const applies =
+    typeof appliesExplicit === 'boolean'
+      ? appliesExplicit
+      : /вдохновен|inspiration|инфуз|infusion/i.test(name)
+  const countRaw = row.ally_target_count
   return clampResource({
     id: typeof row.id === 'string' ? row.id : `res-${index}`,
-    name: typeof row.name === 'string' ? row.name : '',
+    name,
     max: readNumber(row.max, 1),
     used: readNumber(row.used, 0),
     reset: readReset(row.reset),
+    ...(applies
+      ? {
+          applies_to_allies: true,
+          ally_target_count:
+            typeof countRaw === 'number' && countRaw >= 1
+              ? Math.min(6, Math.floor(countRaw))
+              : 1,
+        }
+      : {}),
   })
 }
 
