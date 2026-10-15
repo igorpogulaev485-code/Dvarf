@@ -49,36 +49,43 @@ function CompanionCard({
   onRemove?: () => void
 }) {
   const tone = hpTone(companion.hp_current, companion.hp_max)
+  const hp =
+    companion.hp_max != null
+      ? `HP ${companion.hp_current ?? 0}/${companion.hp_max}`
+      : 'HP —'
+  const ac = companion.ac != null ? `КД ${companion.ac}` : null
+
   return (
     <article className={`session-companion-card session-companion-card--${tone}`}>
-      <div className="session-companion-card__body">
-        <Text as="h4" className="session-companion-card__name">
-          {companion.name}
-          <span className="session-companion-card__tag">напарник</span>
-        </Text>
-        <Text tone="muted" className="session-companion-card__stat">
-          {companion.hp_max != null
-            ? `HP ${companion.hp_current ?? 0}/${companion.hp_max}`
-            : 'HP —'}
-          {companion.ac != null ? ` · КД ${companion.ac}` : ''}
-        </Text>
-        {companion.conditions.length > 0 ? (
-          <div className="session-table-card__conditions">
-            {companion.conditions.map((c) => (
-              <span key={c.slug} className="session-condition-tag">
-                {c.name}
-              </span>
-            ))}
-          </div>
-        ) : null}
+      <div className="session-companion-card__row">
+        <div className="session-companion-card__main">
+          <Text as="h4" className="session-companion-card__name">
+            {companion.name}
+            <span className="session-companion-card__tag">напарник</span>
+          </Text>
+          <Text tone="muted" className="session-companion-card__stat">
+            {hp}
+            {ac ? ` · ${ac}` : ''}
+          </Text>
+          {companion.conditions.length > 0 ? (
+            <div className="session-table-card__conditions">
+              {companion.conditions.map((c) => (
+                <span key={c.slug} className="session-condition-tag">
+                  {c.name}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
         {masterControls && onRemove ? (
           <button
             type="button"
-            className="ui-button ui-button--ghost"
+            className="session-companion-card__remove"
             disabled={busy}
+            aria-label={`Убрать ${companion.name}`}
             onClick={onRemove}
           >
-            Убрать
+            ×
           </button>
         ) : null}
       </div>
@@ -114,11 +121,30 @@ export function SessionTableCard({
   const showInspiration = show(fields.resources.enabled, fields.resources.inspiration)
   const showConditions =
     revealAll || (fields.health.enabled && fields.health.conditions !== 'off')
+  const showPortrait =
+    revealAll || (fields.identity.enabled && fields.identity.portrait !== 'off')
 
   const tone = hpTone(seat.hp_current, seat.hp_max)
   const initial = (seat.character_name.trim().charAt(0) || '?').toUpperCase()
   const conditions = seat.conditions ?? []
   const companions = seat.companions ?? []
+
+  const hpLabel =
+    showHpSection && hpMode !== 'off'
+      ? hpMode === 'color_only' && !revealAll
+        ? `HP · ${hpColorLabel(seat.hp_current, seat.hp_max)}`
+        : seat.hp_max != null
+          ? `HP ${seat.hp_current ?? 0}/${seat.hp_max}`
+          : 'HP —'
+      : null
+
+  const hasVitalChips =
+    Boolean(hpLabel) ||
+    (showAc && seat.ac != null) ||
+    (showPassives &&
+      (seat.passive_perception != null ||
+        seat.passive_insight != null ||
+        seat.passive_investigation != null))
 
   return (
     <div className="session-seat-stack">
@@ -126,7 +152,7 @@ export function SessionTableCard({
         <div className={`session-table-card__hp session-table-card__hp--${tone}`} aria-hidden />
         <div className="session-table-card__body">
           <div className="session-table-card__top">
-            {revealAll || (fields.identity.enabled && fields.identity.portrait !== 'off') ? (
+            {showPortrait ? (
               <div className="session-table-card__avatar" aria-hidden>
                 {initial}
               </div>
@@ -135,11 +161,6 @@ export function SessionTableCard({
               {showName ? (
                 <Text as="h3" className="session-table-card__name">
                   {seat.character_name}
-                  {showInspiration && seat.inspiration ? (
-                    <span className="session-table-card__insp" title="Вдохновение">
-                      ★
-                    </span>
-                  ) : null}
                 </Text>
               ) : (
                 <Text as="h3" className="session-table-card__name">
@@ -156,38 +177,52 @@ export function SessionTableCard({
                 </Text>
               ) : null}
             </div>
+            {masterControls && showInspiration ? (
+              <button
+                type="button"
+                className={`session-insp-toggle${seat.inspiration ? ' is-on' : ''}`}
+                disabled={busy}
+                aria-pressed={Boolean(seat.inspiration)}
+                aria-label="Вдохновение"
+                title="Вдохновение"
+                onClick={() => onToggleInspiration?.(!seat.inspiration)}
+              >
+                ★
+              </button>
+            ) : showInspiration && seat.inspiration ? (
+              <span className="session-table-card__insp" title="Вдохновение">
+                ★
+              </span>
+            ) : null}
           </div>
 
-          {showHpSection && hpMode !== 'off' ? (
-            <Text tone="muted" className="session-table-card__stat">
-              {hpMode === 'color_only' && !revealAll
-                ? `HP · ${hpColorLabel(seat.hp_current, seat.hp_max)}`
-                : seat.hp_max != null
-                  ? `HP ${seat.hp_current ?? 0}/${seat.hp_max}`
-                  : 'HP —'}
-            </Text>
+          {hasVitalChips ? (
+            <div className="session-table-card__stats" aria-label="Характеристики">
+              {hpLabel ? (
+                <span className={`session-table-card__chip session-table-card__chip--hp is-${tone}`}>
+                  {hpLabel}
+                </span>
+              ) : null}
+              {showAc && seat.ac != null ? (
+                <span className="session-table-card__chip">КД {seat.ac}</span>
+              ) : null}
+              {showPassives && seat.passive_perception != null ? (
+                <span className="session-table-card__chip" title="Пассивная внимательность">
+                  👁 {seat.passive_perception}
+                </span>
+              ) : null}
+              {showPassives && seat.passive_insight != null ? (
+                <span className="session-table-card__chip" title="Пассивная проницательность">
+                  ◎ {seat.passive_insight}
+                </span>
+              ) : null}
+              {showPassives && seat.passive_investigation != null ? (
+                <span className="session-table-card__chip" title="Пассивное расследование">
+                  ? {seat.passive_investigation}
+                </span>
+              ) : null}
+            </div>
           ) : null}
-
-          <div className="session-table-card__stats">
-            {showAc && seat.ac != null ? (
-              <span className="session-table-card__chip">КД {seat.ac}</span>
-            ) : null}
-            {showPassives && seat.passive_perception != null ? (
-              <span className="session-table-card__chip" title="Пассивная внимательность">
-                👁 {seat.passive_perception}
-              </span>
-            ) : null}
-            {showPassives && seat.passive_insight != null ? (
-              <span className="session-table-card__chip" title="Пассивная проницательность">
-                ◎ {seat.passive_insight}
-              </span>
-            ) : null}
-            {showPassives && seat.passive_investigation != null ? (
-              <span className="session-table-card__chip" title="Пассивное расследование">
-                ? {seat.passive_investigation}
-              </span>
-            ) : null}
-          </div>
 
           {showConditions && conditions.length > 0 ? (
             <div className="session-table-card__conditions" aria-label="Состояния">
@@ -210,20 +245,6 @@ export function SessionTableCard({
                   </span>
                 ),
               )}
-            </div>
-          ) : null}
-
-          {masterControls ? (
-            <div className="session-master-panel">
-              <button
-                type="button"
-                className={`session-insp-btn${seat.inspiration ? ' is-on' : ''}`}
-                disabled={busy}
-                aria-pressed={Boolean(seat.inspiration)}
-                onClick={() => onToggleInspiration?.(!seat.inspiration)}
-              >
-                ★ Вдохновение
-              </button>
             </div>
           ) : null}
 
