@@ -110,6 +110,7 @@ class LobbyService:
             members=members,
             settings=settings,
             sessions=sessions,
+            visibility_profile=lobby.visibility_profile or {},
             created_at=lobby.created_at,
             updated_at=lobby.updated_at,
         )
@@ -132,7 +133,16 @@ class LobbyService:
     def update(self, user: User, lobby_id: UUID, payload: LobbyUpdateRequest) -> LobbyDetail:
         lobby = self._require_lobby(lobby_id)
         self._require_owner(lobby, user)
-        lobby.name = payload.name.strip() or "Новое лобби"
+        if payload.name is not None:
+            lobby.name = payload.name.strip() or "Новое лобби"
+        if payload.visibility_profile is not None:
+            if not isinstance(payload.visibility_profile, dict):
+                raise AppError(
+                    "Некорректный профиль видимости",
+                    code="visibility_profile_invalid",
+                    status_code=400,
+                )
+            lobby.visibility_profile = payload.visibility_profile
         self.db.commit()
         lobby = self._require_lobby(lobby_id)
         return self._to_detail(lobby, user)

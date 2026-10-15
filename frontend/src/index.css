@@ -1424,3 +1424,233 @@ input {
     flex-wrap: wrap;
   }
 }
+
+/* —— Lobby hub (A1) —— */
+.page--lobby-hub {
+  width: min(980px, calc(100% - 20px));
+}
+
+.lobby-hub-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lobby-hub-code {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.lobby-hub-code__value {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  color: var(--accent);
+}
+
+.lobby-hub-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 0 -4px;
+  padding: 4px 0 8px;
+  background: linear-gradient(180deg, rgba(247, 243, 238, 0.96) 60%, transparent);
+}
+
+.lobby-hub-tabs__scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 4px 6px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lobby-hub-tab {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.lobby-hub-tab.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.lobby-member-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.lobby-member-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.lobby-member-card__hp {
+  height: 6px;
+  background: #d8cfc3;
+}
+
+.lobby-member-card__hp--ok {
+  background: #067647;
+}
+
+.lobby-member-card__hp--warn {
+  background: #b54708;
+}
+
+.lobby-member-card__hp--down {
+  background: #b42318;
+}
+
+.lobby-member-card__hp--unknown {
+  background: #d8cfc3;
+}
+
+.lobby-member-card__body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  padding: 14px;
+  align-items: start;
+}
+
+.lobby-member-card__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.lobby-member-card__meta {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.lobby-member-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.lobby-member-card__sub,
+.lobby-member-card__hp-text {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.lobby-member-card__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.visibility-preview-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.visibility-preview-toggle {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.visibility-chip-row {
+  margin-top: 8px;
+}
+
+.visibility-section {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+}
+
+.visibility-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.visibility-section__check {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.visibility-section__toggle {
+  min-width: 44px;
+}
+
+.visibility-section__body {
+  padding: 0 12px 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.visibility-field__label {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+@media (min-width: 768px) {
+  .lobby-member-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lobby-member-card__body {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+  }
+
+  .lobby-member-card__actions {
+    grid-column: auto;
+    justify-content: flex-end;
+  }
+
+  .lobby-hub-tabs__scroll {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+
+@media (min-width: 1100px) {
+  .lobby-member-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

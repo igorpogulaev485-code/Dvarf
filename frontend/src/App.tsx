@@ -8,6 +8,7 @@ import { ConfirmEmailPage } from './pages/ConfirmEmailPage'
 import { JoinLobbyPage } from './pages/JoinLobbyPage'
 import { LobbiesPage } from './pages/LobbiesPage'
 import { LobbyDetailPage } from './pages/LobbyDetailPage'
+import { LobbyHubPreviewPage } from './pages/LobbyHubPreviewPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { SessionDetailPage } from './pages/SessionDetailPage'
 import { SettingDetailPage } from './pages/SettingDetailPage'
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/join" element={<JoinLobbyPage />} />
         <Route path="/join/:code" element={<JoinLobbyPage />} />
+        <Route path="/dev/lobby-hub-preview" element={<LobbyHubPreviewPage />} />
         <Route
           path="/characters"
           element={

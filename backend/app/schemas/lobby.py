@@ -78,6 +78,7 @@ class LobbyDetail(BaseModel):
     members: list[LobbyMemberOut]
     settings: list[SettingSummary]
     sessions: list[SessionSummary]
+    visibility_profile: dict = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
 
@@ -87,7 +88,8 @@ class LobbyCreateRequest(BaseModel):
 
 
 class LobbyUpdateRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=120)
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    visibility_profile: dict | None = None
 
 
 class JoinLobbyRequest(BaseModel):

@@ -53,8 +53,15 @@ export type LobbyDetail = {
   members: LobbyMember[]
   settings: SettingSummary[]
   sessions: SessionSummary[]
+  /** JSON профиля видимости; нормализуется на клиенте */
+  visibility_profile?: unknown
   created_at: string
   updated_at: string
+}
+
+export type LobbyUpdatePayload = {
+  name?: string
+  visibility_profile?: unknown
 }
 
 export type SessionSeat = {
@@ -97,10 +104,13 @@ export async function getLobby(id: string): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>(`/lobbies/${id}`)
 }
 
-export async function updateLobby(id: string, name: string): Promise<LobbyDetail> {
+export async function updateLobby(
+  id: string,
+  payload: LobbyUpdatePayload,
+): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>(`/lobbies/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ name }),
+    body: JSON.stringify(payload),
   })
 }
 
