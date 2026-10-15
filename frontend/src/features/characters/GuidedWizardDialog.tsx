@@ -2,12 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import {
+  equipmentLinesFor,
   equipmentPackagesFor,
   packageForMode,
+  PHB_LINES_PACKAGE_ID,
   skillOptionsForPackage,
+  validateEquipmentLinePicks,
+  type ClassEquipmentLinePick,
   type ClassGrantDef,
   type ClassGrantPicks,
 } from '../../shared/dnd/classGrants'
+import { listWeaponPresetsByGroup } from '../../shared/dnd/weaponPresets'
 import {
   CLASS_ASI_MODE_OPTIONS,
   validateClassAsiPicks,
@@ -174,7 +179,9 @@ function ClassGrantStepBody({
   const toolNeed = pkg.toolChoices?.count ?? 0
   const skillOptions = skillOptionsForPackage(pkg)
   const toolOptions = pkg.toolChoices?.from ?? []
+  const equipmentLines = mode === 'start' ? equipmentLinesFor(def) : []
   const equipmentPackages = mode === 'start' ? equipmentPackagesFor(def) : []
+  const linePicks = picks.equipmentLinePicks ?? {}
   const blockedSkills = new Set(blockedSkillKeys)
   const blockedTools = new Set(
     blockedToolNames.map((name) => name.trim().toLowerCase()),
@@ -200,11 +207,38 @@ function ClassGrantStepBody({
     onChange({ ...picks, tools })
   }
 
+  function setLineOption(lineId: string, optionId: string) {
+    const nextLines: Record<string, ClassEquipmentLinePick> = {
+      ...linePicks,
+      [lineId]: { optionId, weaponName: null },
+    }
+    onChange({
+      ...picks,
+      equipmentPackageId: PHB_LINES_PACKAGE_ID,
+      equipmentLinePicks: nextLines,
+    })
+  }
+
+  function setLineWeapon(lineId: string, weaponName: string) {
+    const current = linePicks[lineId]
+    if (!current) return
+    onChange({
+      ...picks,
+      equipmentPackageId: PHB_LINES_PACKAGE_ID,
+      equipmentLinePicks: {
+        ...linePicks,
+        [lineId]: { ...current, weaponName },
+      },
+    })
+  }
+
   return (
     <Stack gap={14}>
       <Text tone="muted">
         {mode === 'start'
-          ? 'Выбери навыки, инструменты и стартовое снаряжение. Серые — уже с предыстории, не дублируй.'
+          ? equipmentLines.length > 0
+            ? 'Выбери навыки и снаряжение по каждой строке PHB. Серые — уже с предыстории.'
+            : 'Выбери навыки, инструменты и стартовое снаряжение. Серые — уже с предыстории, не дублируй.'
           : 'Мультикласс: только владения из таблицы PHB.'}
       </Text>
       {skillNeed > 0 ? (
@@ -253,7 +287,78 @@ function ClassGrantStepBody({
           </div>
         </Field>
       ) : null}
-      {mode === 'start' && equipmentPackages.length > 0 ? (
+      {mode === 'start' && equipmentLines.length > 0 ? (
+        <Field label="Стартовое снаряжение (по строкам)">
+          <Stack gap={12}>
+            {equipmentLines.map((line) => {
+              const pick = linePicks[line.id]
+              const selectedOption = line.options.find((row) => row.id === pick?.optionId)
+              return (
+                <div key={line.id}>
+                  <Text>
+                    <strong>{line.labelRu}</strong>
+                  </Text>
+                  <div className="chip-row" style={{ marginTop: 6 }}>
+                    {line.options.map((option) => {
+                      const on = pick?.optionId === option.id
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          className={`sheet-chip${on ? ' is-on' : ''}`}
+                          title={option.noteRu}
+                          onClick={() => setLineOption(line.id, option.id)}
+                        >
+                          {option.labelRu}
+                          {option.noteRu ? ' *' : ''}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {selectedOption?.noteRu ? (
+                    <Text tone="muted">{selectedOption.noteRu}</Text>
+                  ) : null}
+                  {selectedOption?.pickWeapon ? (
+                    <div className="chip-row" style={{ marginTop: 8 }}>
+                      {listWeaponPresetsByGroup(selectedOption.pickWeapon).map((weapon) => {
+                        const on = pick?.weaponName === weapon.labelRu
+                        return (
+                          <button
+                            key={weapon.labelRu}
+                            type="button"
+                            className={`sheet-chip${on ? ' is-on' : ''}`}
+                            onClick={() => setLineWeapon(line.id, weapon.labelRu)}
+                          >
+                            {weapon.labelRu}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              )
+            })}
+            {equipmentPackages.map((pack) => {
+              const on = picks.equipmentPackageId === pack.id
+              return (
+                <button
+                  key={pack.id}
+                  type="button"
+                  className={`sheet-chip${on ? ' is-on' : ''}`}
+                  style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                  onClick={() =>
+                    onChange({ ...picks, equipmentPackageId: pack.id, equipmentLinePicks: {} })
+                  }
+                >
+                  <strong>{pack.labelRu}</strong>
+                  <div style={{ opacity: 0.85, fontWeight: 400 }}>{pack.summary}</div>
+                </button>
+              )
+            })}
+          </Stack>
+        </Field>
+      ) : null}
+      {mode === 'start' && equipmentLines.length === 0 && equipmentPackages.length > 0 ? (
         <Field label="Стартовое снаряжение">
           <Stack gap={8}>
             {equipmentPackages.map((pack) => {
@@ -570,6 +675,7 @@ export function GuidedWizardDialog({
     skills: [],
     tools: [],
     equipmentPackageId: null,
+    equipmentLinePicks: {},
   })
   const [asiModeId, setAsiModeId] = useState<ClassAsiModeId>('plus2')
   const [asiUiMode, setAsiUiMode] = useState<'scores' | 'feat'>('scores')
@@ -582,7 +688,20 @@ export function GuidedWizardDialog({
   useEffect(() => {
     if (!open || !step) return
     if (step.kind === 'class_grant') {
-      setGrantPicks({ skills: [], tools: [], equipmentPackageId: null })
+      const def = session?.grant?.def ?? null
+      const lines = def && step.mode === 'start' ? equipmentLinesFor(def) : []
+      const initialLines: Record<string, ClassEquipmentLinePick> = {}
+      for (const line of lines) {
+        if (line.options.length === 1) {
+          initialLines[line.id] = { optionId: line.options[0]!.id }
+        }
+      }
+      setGrantPicks({
+        skills: [],
+        tools: [],
+        equipmentPackageId: lines.length > 0 ? PHB_LINES_PACKAGE_ID : null,
+        equipmentLinePicks: initialLines,
+      })
     }
     if (step.kind === 'asi') {
       setAsiModeId('plus2')
@@ -608,11 +727,17 @@ export function GuidedWizardDialog({
     const pkg = packageForMode(grantDef, step.mode)
     const skillNeed = pkg.skillChoices?.count ?? 0
     const toolNeed = pkg.toolChoices?.count ?? 0
+    const lines = step.mode === 'start' ? equipmentLinesFor(grantDef) : []
     const equipmentPackages = step.mode === 'start' ? equipmentPackagesFor(grantDef) : []
     const equipmentOk =
       step.mode !== 'start' ||
-      equipmentPackages.length === 0 ||
-      Boolean(grantPicks.equipmentPackageId)
+      (lines.length === 0 && equipmentPackages.length === 0) ||
+      (grantPicks.equipmentPackageId === PHB_LINES_PACKAGE_ID
+        ? !validateEquipmentLinePicks({
+            lines,
+            picks: grantPicks.equipmentLinePicks ?? {},
+          })
+        : Boolean(grantPicks.equipmentPackageId))
     return (
       grantPicks.skills.length === skillNeed &&
       grantPicks.tools.length === toolNeed &&

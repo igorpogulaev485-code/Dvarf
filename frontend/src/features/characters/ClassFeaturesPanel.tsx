@@ -76,9 +76,15 @@ import {
 } from '../../shared/dnd/pendingFeatureChoices'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
+import type { RaceTraitCard } from '../../shared/dnd/raceTraitCards'
+import { raceTraitCardsFromText } from '../../shared/dnd/raceTraitCards'
 import type { SheetResource } from '../../shared/dnd/rest'
-import { Button, Panel, Stack, Text } from '../../ui'
+import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
+import {
+  newCustomFeatureId,
+  type CustomFeature,
+} from './customFeatures'
 import type { SpellsState } from './spells'
 import { abilityModifier, SKILL_DEFS } from './sheetTypes'
 
@@ -116,15 +122,33 @@ type ClassFeaturesPanelProps = {
   featGrants?: AppliedFeatGrant[]
   darkvision?: number
   raceName?: string
+  /** Structured race traits (catalog trait_cards) or fallback from traitsText. */
+  raceTraitCards?: RaceTraitCard[]
+  raceTraitsText?: string
+  customFeatures?: CustomFeature[]
+  onCustomFeaturesChange?: (features: CustomFeature[]) => void
+  /** Desk helpers for known-pick unique abilities. */
+  onOpenInfusions?: (classEntryId: string) => void
+  onOpenInvocations?: (classEntryId: string) => void
+  onOpenRangerFavored?: (classEntryId: string) => void
+  onOpenSoulTrinkets?: (classEntryId: string) => void
 }
 
-type FeatureFilter = 'all' | 'class' | 'subclass' | 'feats' | 'resource' | 'choice'
+type FeatureFilter =
+  | 'all'
+  | 'class'
+  | 'subclass'
+  | 'feats'
+  | 'custom'
+  | 'resource'
+  | 'choice'
 
 const FEATURE_FILTERS: Array<{ id: FeatureFilter; label: string }> = [
   { id: 'all', label: 'Все' },
   { id: 'class', label: 'Класс' },
   { id: 'subclass', label: 'Подкласс' },
   { id: 'feats', label: 'Черты' },
+  { id: 'custom', label: 'Свои' },
   { id: 'resource', label: 'С ресурсом' },
   { id: 'choice', label: 'Выбор' },
 ]
@@ -140,8 +164,9 @@ function featureRowKey(feature: UnlockedFeature): string {
   return `${feature.classEntryId}:${feature.source}:${feature.id}`
 }
 
-/** Expand only when there are controls — not for passive text-only rows. */
+/** Expand when there is full text or interactive controls. */
 function featureCanExpand(feature: UnlockedFeature): boolean {
+  if (feature.summary_ru.trim() || feature.body_ru?.trim()) return true
   if (feature.resource?.pool_id) return true
   if (feature.choice) return true
   if (feature.slot_spend) return true
@@ -167,6 +192,8 @@ function FeatureResourceControls({
   onToast,
   initiativeGrantByPool,
   wearingHeavyArmor,
+  onOpenInfusions,
+  onOpenSoulTrinkets,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -177,6 +204,8 @@ function FeatureResourceControls({
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
+  onOpenInfusions?: (classEntryId: string) => void
+  onOpenSoulTrinkets?: (classEntryId: string) => void
 }) {
   const resource = feature.resource
   if (!resource?.pool_id) return null
@@ -196,6 +225,23 @@ function FeatureResourceControls({
 
   if (resource.track === 'stock') {
     const current = stockCurrent(pool)
+    if (resource.pool_id === 'infusion_slots' && onOpenInfusions) {
+      return (
+        <div className="feature-resource">
+          <Text>
+            {pool.name}: <strong>{current}</strong> / {pool.max} на предметах
+          </Text>
+          <div className="feature-resource__actions">
+            <Button
+              type="button"
+              onClick={() => onOpenInfusions(feature.classEntryId)}
+            >
+              Управление инфузиями
+            </Button>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="feature-resource">
         <Text>
@@ -217,6 +263,13 @@ function FeatureResourceControls({
             type="button"
             disabled={current <= 0}
             onClick={() => {
+              if (
+                resource.pool_id === 'soul_trinkets' &&
+                onOpenSoulTrinkets
+              ) {
+                onOpenSoulTrinkets(feature.classEntryId)
+                return
+              }
               const result = consumeStock({
                 resources,
                 classSlug,
@@ -231,15 +284,19 @@ function FeatureResourceControls({
               )
             }}
           >
-            {resource.stock_spend_label_ru || `− ${pool.name}`}
+            {resource.pool_id === 'soul_trinkets' && onOpenSoulTrinkets
+              ? 'Сжечь…'
+              : resource.stock_spend_label_ru || `− ${pool.name}`}
           </Button>
         </div>
       </div>
     )
   }
 
+  const spendCost = Math.max(1, Math.floor(resource.spend_cost ?? 1))
   const remaining = spendRemaining(pool)
   const linked = resource.linked_spend
+  const linkedCost = Math.max(1, Math.floor(linked?.amount ?? 1))
   const linkedPool = linked?.pool_id
     ? findFeatureResource(
         resources,
@@ -252,7 +309,7 @@ function FeatureResourceControls({
     linked?.mode === 'spend'
       ? spendRemaining(linkedPool)
       : stockCurrent(linkedPool)
-  const canViaLinked = remaining <= 0 && linkedLeft > 0
+  const canViaLinked = remaining < spendCost && linkedLeft >= linkedCost
   const canRecover =
     Boolean(resource.recover_one) && pool.used > 0
   const initiativeAmount =
@@ -352,7 +409,10 @@ function FeatureResourceControls({
         ) : (
           <Button
             type="button"
-            disabled={blockedByHeavyArmor || (remaining <= 0 && !canViaLinked)}
+            disabled={
+              blockedByHeavyArmor ||
+              (remaining < spendCost && !canViaLinked)
+            }
             onClick={() => {
               if (blockedByHeavyArmor) {
                 onToast?.(
@@ -404,7 +464,9 @@ function FeatureResourceControls({
                 ? feature.summon.kind === 'ally'
                   ? 'Призвать напарника'
                   : 'Призвать спутника'
-                : 'Использовать'}
+                : spendCost > 1
+                  ? `Использовать (−${spendCost})`
+                  : 'Использовать'}
           </Button>
         )}
         {resource.recover_one ? (
@@ -1070,6 +1132,10 @@ function FeatureRow({
   onToast,
   initiativeGrantByPool,
   wearingHeavyArmor,
+  onOpenInfusions,
+  onOpenInvocations,
+  onOpenSoulTrinkets,
+  onOpenRangerFavored,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -1089,6 +1155,10 @@ function FeatureRow({
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
+  onOpenInfusions?: (classEntryId: string) => void
+  onOpenInvocations?: (classEntryId: string) => void
+  onOpenSoulTrinkets?: (classEntryId: string) => void
+  onOpenRangerFavored?: (classEntryId: string) => void
 }) {
   const sourceLabel =
     feature.source === 'subclass'
@@ -1269,7 +1339,40 @@ function FeatureRow({
         onToast={onToast}
         initiativeGrantByPool={initiativeGrantByPool}
         wearingHeavyArmor={wearingHeavyArmor}
+        onOpenInfusions={onOpenInfusions}
+        onOpenSoulTrinkets={onOpenSoulTrinkets}
       />
+      {feature.id === 'eldritch_invocations' && onOpenInvocations ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() => onOpenInvocations(feature.classEntryId)}
+          >
+            Воззвания на столе
+          </Button>
+        </div>
+      ) : null}
+      {feature.id === 'infuse_item' && onOpenInfusions ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() => onOpenInfusions(feature.classEntryId)}
+          >
+            Активные инфузии
+          </Button>
+        </div>
+      ) : null}
+      {(feature.id === 'favored_enemy' || feature.id === 'natural_explorer') &&
+      onOpenRangerFavored ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() => onOpenRangerFavored(feature.classEntryId)}
+          >
+            Избранное на столе
+          </Button>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -1312,9 +1415,19 @@ export function ClassFeaturesPanel({
   featGrants = [],
   darkvision = 0,
   raceName = '',
+  raceTraitCards = [],
+  raceTraitsText = '',
+  customFeatures = [],
+  onCustomFeaturesChange,
+  onOpenInfusions,
+  onOpenInvocations,
+  onOpenRangerFavored,
+  onOpenSoulTrinkets,
 }: ClassFeaturesPanelProps) {
   const [filter, setFilter] = useState<FeatureFilter>('all')
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
+  const [customDraftName, setCustomDraftName] = useState('')
+  const [customDraftSummary, setCustomDraftSummary] = useState('')
 
   const features = useMemo(
     () =>
@@ -1378,7 +1491,7 @@ export function ClassFeaturesPanel({
       if (filter === 'all') return true
       if (filter === 'class') return feature.source !== 'subclass'
       if (filter === 'subclass') return feature.source === 'subclass'
-      if (filter === 'feats') return false
+      if (filter === 'feats' || filter === 'custom') return false
       if (filter === 'resource') return Boolean(feature.resource?.pool_id)
       if (filter === 'choice') {
         return (
@@ -1404,9 +1517,16 @@ export function ClassFeaturesPanel({
       .filter((group) => group.features.length > 0)
   }, [byClass, visibleFeatures])
 
+  const resolvedRaceTraits = useMemo(() => {
+    if (raceTraitCards.length > 0) return raceTraitCards
+    return raceTraitCardsFromText(raceTraitsText)
+  }, [raceTraitCards, raceTraitsText])
+
   const showRace =
-    darkvision > 0 && (filter === 'all' || filter === 'class')
+    (darkvision > 0 || resolvedRaceTraits.length > 0) &&
+    (filter === 'all' || filter === 'class')
   const showFeats = filter === 'all' || filter === 'feats'
+  const showCustom = filter === 'all' || filter === 'feats' || filter === 'custom'
 
   const extraAttackNote = useMemo(() => {
     const attacks = features.filter(
@@ -1430,8 +1550,10 @@ export function ClassFeaturesPanel({
     for (const feature of visibleFeatures) {
       if (featureCanExpand(feature)) keys.push(featureRowKey(feature))
     }
+    for (const trait of resolvedRaceTraits) keys.push(`race-trait:${trait.id}`)
+    for (const row of customFeatures) keys.push(`custom:${row.id}`)
     return keys
-  }, [visibleFeatures])
+  }, [visibleFeatures, resolvedRaceTraits, customFeatures])
 
   function toggleKey(key: string) {
     setOpenKeys((prev) => {
@@ -1445,13 +1567,14 @@ export function ClassFeaturesPanel({
   const empty =
     !showRace &&
     visibleFeatures.length === 0 &&
-    !(showFeats && namedFeats.length > 0)
+    !(showFeats && namedFeats.length > 0) &&
+    !(showCustom && customFeatures.length > 0)
 
   return (
     <Panel title="Способности" className="features-panel">
       <p className="features-panel__lede">
-        Сводка умений класса, подкласса, черт и расы. Раскрываются только строки с
-        ресурсом, выбором или действием.
+        Сводка умений класса, подкласса, черт и расы. Нажми строку — полный текст;
+        у ресурсов и выборов внутри ещё и кнопки.
       </p>
 
       <Stack gap={12}>
@@ -1493,14 +1616,74 @@ export function ClassFeaturesPanel({
         ) : null}
 
         {showRace ? (
-          <div className="feature-card feature-card--compact feature-card--static">
-            <div className="feature-card__glance">
-              <b className="feature-card__name">Тёмное зрение {darkvision} фт.</b>
-              <span className="inventory-role inventory-role--other">раса</span>
-              <span className="inventory-card__glance-spacer" aria-hidden />
-              <span className="feature-card__preview">
-                {raceName || 'раса'} · в темноте на {darkvision} фт.
+          <div className="feature-group">
+            <div className="feature-group__title">
+              {raceName || 'Раса'}
+              <span className="feature-group__count">
+                {' '}
+                · {(darkvision > 0 ? 1 : 0) + resolvedRaceTraits.length}
               </span>
+            </div>
+            <div className="feature-list">
+              {darkvision > 0 ? (
+                <div className="feature-card feature-card--compact feature-card--static">
+                  <div className="feature-card__glance">
+                    <b className="feature-card__name">Тёмное зрение {darkvision} фт.</b>
+                    <span className="inventory-role inventory-role--other">раса</span>
+                    <span className="inventory-card__glance-spacer" aria-hidden />
+                    <span className="feature-card__preview">
+                      в темноте на {darkvision} фт.
+                    </span>
+                  </div>
+                </div>
+              ) : null}
+              {resolvedRaceTraits.map((trait) => {
+                const key = `race-trait:${trait.id}`
+                const open = openKeys.has(key)
+                const preview = previewSummary(trait.summaryRu)
+                if (!open) {
+                  return (
+                    <div key={key} className="feature-card feature-card--compact">
+                      <button
+                        type="button"
+                        className="feature-card__glance"
+                        onClick={() => toggleKey(key)}
+                      >
+                        <b className="feature-card__name">{trait.nameRu}</b>
+                        <span className="inventory-role inventory-role--other">раса</span>
+                        <span className="inventory-card__glance-spacer" aria-hidden />
+                        <span className="feature-card__preview">{preview}</span>
+                      </button>
+                      <div className="inventory-card__glance-actions">
+                        <button
+                          type="button"
+                          className="inventory-card__chevron-btn"
+                          aria-label="Подробнее"
+                          onClick={() => toggleKey(key)}
+                        >
+                          ›
+                        </button>
+                      </div>
+                    </div>
+                  )
+                }
+                return (
+                  <div key={key} className="feature-card feature-card--expand">
+                    <div className="feature-card__meta">
+                      <span className="inventory-role inventory-role--other">раса</span>
+                      <button
+                        type="button"
+                        className="inventory-card__collapse"
+                        onClick={() => toggleKey(key)}
+                      >
+                        свернуть
+                      </button>
+                    </div>
+                    <h3 className="feature-card__title">{trait.nameRu}</h3>
+                    <Text>{trait.summaryRu}</Text>
+                  </div>
+                )
+              })}
             </div>
           </div>
         ) : null}
@@ -1535,6 +1718,10 @@ export function ClassFeaturesPanel({
                     onToast={onToast}
                     initiativeGrantByPool={initiativeGrantByPool}
                     wearingHeavyArmor={wearingHeavyArmor}
+                    onOpenInfusions={onOpenInfusions}
+                    onOpenInvocations={onOpenInvocations}
+                    onOpenSoulTrinkets={onOpenSoulTrinkets}
+                    onOpenRangerFavored={onOpenRangerFavored}
                   />
                 )
               })}
@@ -1550,23 +1737,167 @@ export function ClassFeaturesPanel({
             </div>
             <div className="feature-list">
               {namedFeats.map((feat) => {
+                const key = `feat:${feat.id}`
+                const open = openKeys.has(key)
+                const body =
+                  feat.applied.benefitsRu || feat.applied.summaryRu || featSourceLabel(feat.source)
                 const preview =
                   previewSummary(feat.applied.summaryRu || feat.applied.benefitsRu) ||
                   featSourceLabel(feat.source)
-                return (
-                  <div
-                    key={feat.id}
-                    className="feature-card feature-card--compact feature-card--static"
-                  >
-                    <div className="feature-card__glance">
-                      <b className="feature-card__name">{feat.nameRu}</b>
-                      <span className="inventory-role inventory-role--weapon">черта</span>
-                      <span className="inventory-card__glance-spacer" aria-hidden />
-                      <span className="feature-card__preview">{preview}</span>
+                if (!open) {
+                  return (
+                    <div key={feat.id} className="feature-card feature-card--compact">
+                      <button
+                        type="button"
+                        className="feature-card__glance"
+                        onClick={() => toggleKey(key)}
+                      >
+                        <b className="feature-card__name">{feat.nameRu}</b>
+                        <span className="inventory-role inventory-role--weapon">черта</span>
+                        <span className="inventory-card__glance-spacer" aria-hidden />
+                        <span className="feature-card__preview">{preview}</span>
+                      </button>
+                      <div className="inventory-card__glance-actions">
+                        <button
+                          type="button"
+                          className="inventory-card__chevron-btn"
+                          aria-label="Подробнее"
+                          onClick={() => toggleKey(key)}
+                        >
+                          ›
+                        </button>
+                      </div>
                     </div>
+                  )
+                }
+                return (
+                  <div key={feat.id} className="feature-card feature-card--expand">
+                    <div className="feature-card__meta">
+                      <span className="inventory-role inventory-role--weapon">черта</span>
+                      <span className="attack-held-tag">
+                        {featSourceLabel(feat.source)}
+                      </span>
+                      <button
+                        type="button"
+                        className="inventory-card__collapse"
+                        onClick={() => toggleKey(key)}
+                      >
+                        свернуть
+                      </button>
+                    </div>
+                    <h3 className="feature-card__title">{feat.nameRu}</h3>
+                    <Text>{body}</Text>
                   </div>
                 )
               })}
+            </div>
+          </div>
+        ) : null}
+
+        {showCustom && onCustomFeaturesChange ? (
+          <div className="feature-group">
+            <div className="feature-group__title">
+              Свои способности
+              <span className="feature-group__count"> · {customFeatures.length}</span>
+            </div>
+            <div className="feature-list">
+              {customFeatures.map((row) => {
+                const key = `custom:${row.id}`
+                const open = openKeys.has(key)
+                if (!open) {
+                  return (
+                    <div key={row.id} className="feature-card feature-card--compact">
+                      <button
+                        type="button"
+                        className="feature-card__glance"
+                        onClick={() => toggleKey(key)}
+                      >
+                        <b className="feature-card__name">{row.nameRu}</b>
+                        <span className="inventory-role inventory-role--other">своё</span>
+                        <span className="inventory-card__glance-spacer" aria-hidden />
+                        <span className="feature-card__preview">
+                          {previewSummary(row.summaryRu) || 'без описания'}
+                        </span>
+                      </button>
+                      <div className="inventory-card__glance-actions">
+                        <button
+                          type="button"
+                          className="inventory-card__chevron-btn"
+                          aria-label="Подробнее"
+                          onClick={() => toggleKey(key)}
+                        >
+                          ›
+                        </button>
+                      </div>
+                    </div>
+                  )
+                }
+                return (
+                  <div key={row.id} className="feature-card feature-card--expand">
+                    <div className="feature-card__meta">
+                      <span className="inventory-role inventory-role--other">своё</span>
+                      <button
+                        type="button"
+                        className="inventory-card__collapse"
+                        onClick={() => toggleKey(key)}
+                      >
+                        свернуть
+                      </button>
+                    </div>
+                    <h3 className="feature-card__title">{row.nameRu}</h3>
+                    <Text>{row.summaryRu || '—'}</Text>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() =>
+                        onCustomFeaturesChange(
+                          customFeatures.filter((item) => item.id !== row.id),
+                        )
+                      }
+                    >
+                      Убрать
+                    </Button>
+                  </div>
+                )
+              })}
+              <Stack gap={8}>
+                <Field label="Название">
+                  <Input
+                    value={customDraftName}
+                    placeholder="Например: Благословение храма"
+                    onChange={(event) => setCustomDraftName(event.target.value)}
+                  />
+                </Field>
+                <Field label="Описание">
+                  <Input
+                    value={customDraftSummary}
+                    placeholder="Что делает способность"
+                    onChange={(event) => setCustomDraftSummary(event.target.value)}
+                  />
+                </Field>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!customDraftName.trim()}
+                  onClick={() => {
+                    const nameRu = customDraftName.trim()
+                    if (!nameRu) return
+                    onCustomFeaturesChange([
+                      ...customFeatures,
+                      {
+                        id: newCustomFeatureId(),
+                        nameRu,
+                        summaryRu: customDraftSummary.trim(),
+                      },
+                    ])
+                    setCustomDraftName('')
+                    setCustomDraftSummary('')
+                    onToast?.(`Своя способность «${nameRu}»`)
+                  }}
+                >
+                  Добавить способность
+                </Button>
+              </Stack>
             </div>
           </div>
         ) : null}

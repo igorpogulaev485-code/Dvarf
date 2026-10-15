@@ -192,9 +192,11 @@ export function AttacksPanel({
             abilityModifier(abilities[attack.ability]) +
             (proficient ? proficiencyBonus : 0) +
             magicAtk
+          const abilityDmg = abilityModifier(abilities[attack.ability])
+          const totalDmgBonus = abilityDmg + magicDmg
           const damageDisplay =
-            magicDmg && attack.damage
-              ? `${attack.damage}${magicDmg >= 0 ? '+' : ''}${magicDmg}`
+            attack.damage && totalDmgBonus
+              ? `${attack.damage}${totalDmgBonus >= 0 ? '+' : ''}${totalDmgBonus}`
               : attack.damage
           const damageHero = damageDisplay || '—'
           return (
@@ -293,14 +295,14 @@ export function AttacksPanel({
                   label="Урон"
                   hint={
                     raceNatural
-                      ? `От расы (+${ABILITY_LABELS[attack.ability]})`
-                      : magicDmg
-                        ? `с магией ${damageDisplay} (${magicDmg >= 0 ? '+' : ''}${magicDmg})`
+                      ? `От расы · итого ${damageDisplay || attack.damage} (+${ABILITY_LABELS[attack.ability]})`
+                      : damageDisplay && damageDisplay !== attack.damage
+                        ? `итого ${damageDisplay}`
                         : undefined
                   }
                 >
                   <Input
-                    value={attack.damage}
+                    value={raceNatural ? damageDisplay || attack.damage : attack.damage}
                     placeholder="1к8"
                     readOnly={raceNatural}
                     onChange={

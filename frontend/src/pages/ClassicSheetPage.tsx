@@ -8,7 +8,7 @@ import {
   updateCharacter,
   type CharacterDetail,
 } from '../shared/api/characters'
-import { ApiRequestError } from '../shared/api/client'
+import { ApiRequestError, clearTokens } from '../shared/api/client'
 import {
   createSheetSyncChannel,
   publishSheetSync,
@@ -21,7 +21,7 @@ export function ClassicSheetPage() {
   const [character, setCharacter] = useState<CharacterDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const [status, setStatus] = useState<'loading' | 'saving' | 'saved'>('loading')
+  const [status, setStatus] = useState<'loading' | 'saving' | 'saved' | 'auth'>('loading')
   const saveTimer = useRef<number | null>(null)
   const versionRef = useRef(0)
   const latestRef = useRef<CharacterDetail | null>(null)
@@ -29,6 +29,8 @@ export function ClassicSheetPage() {
 
   useEffect(() => {
     let active = true
+    setStatus('loading')
+    setError(null)
     getCharacter(characterId)
       .then((item) => {
         if (!active) return
@@ -40,10 +42,23 @@ export function ClassicSheetPage() {
       .catch((err: unknown) => {
         if (!active) return
         if (err instanceof ApiRequestError && err.status === 401) {
-          navigate('/login', { replace: true })
+          clearTokens()
+          setCharacter(null)
+          setStatus('auth')
+          setError('Сессия истекла — войдите снова, чтобы открыть классический лист.')
+          window.setTimeout(() => {
+            navigate('/login', {
+              replace: true,
+              state: { from: `/characters/${characterId}/classic` },
+            })
+          }, 50)
           return
         }
-        setError(err instanceof ApiRequestError ? err.message : 'Не удалось открыть персонажа')
+        setError(
+          err instanceof ApiRequestError
+            ? err.message
+            : 'Не удалось открыть персонажа',
+        )
         setStatus('saved')
       })
     return () => {
@@ -78,10 +93,20 @@ export function ClassicSheetPage() {
         sheetVersion: updated.sheet_version,
       })
     } catch (err) {
+      if (err instanceof ApiRequestError && err.status === 401) {
+        clearTokens()
+        setStatus('auth')
+        setError('Сессия истекла — войдите снова.')
+        navigate('/login', {
+          replace: true,
+          state: { from: `/characters/${characterId}/classic` },
+        })
+        return
+      }
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить лист')
       setStatus('saved')
     }
-  }, [])
+  }, [characterId, navigate])
 
   const handlePatch = useCallback((patch: ClassicPatch) => {
     const current = latestRef.current
@@ -115,13 +140,19 @@ export function ClassicSheetPage() {
             <small>
               {status === 'loading'
                 ? 'Загрузка…'
-                : status === 'saving'
-                  ? 'Сохраняем в карточку…'
-                  : 'Сохранено в персонажа'}
+                : status === 'auth'
+                  ? 'Нужен вход'
+                  : status === 'saving'
+                    ? 'Сохраняем в карточку…'
+                    : 'Сохранено в персонажа'}
             </small>
           </div>
         </div>
-        <Button variant="secondary" onClick={() => window.print()}>
+        <Button
+          variant="secondary"
+          disabled={!character || status === 'auth'}
+          onClick={() => window.print()}
+        >
           Печать / PDF
         </Button>
       </header>
@@ -129,6 +160,11 @@ export function ClassicSheetPage() {
         <Text tone="danger" className="no-print">
           {error}
         </Text>
+      ) : null}
+      {status === 'loading' && !character ? (
+        <div className="no-print" style={{ padding: '1.25rem' }}>
+          <Text>Загружаем классический лист…</Text>
+        </div>
       ) : null}
       {toast ? (
         <div className="no-print" style={{ padding: '0 1.25rem' }}>
