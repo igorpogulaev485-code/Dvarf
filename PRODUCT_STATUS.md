@@ -518,10 +518,22 @@
 | Diff | `diff_bestiary_sources.py` ttg↔dnd.su | Виден gap покрытия |
 | Smoke | fixture 5 карточек; Wildfire HP=10 (ttg) | Конфликт→ttg проверяется автоматом |
 | Сид MM | `bestiary_mm_v1.json` ×**451** + alembic `c5d6e7f8a9b0` | После «Залей» combobox бестиария покажет MM (звери для WS) |
-
 | F1 модель облика | `role: self_form`, `form` meta, `known_forms` на листе; smoke | Данные для пикера WS готовы (UI пикера — F2) |
 
 На проде: **нет** · ветка `cursor/bestiary-schema-fetch-ab5e` · **не деплоить** до «Залей» · tip не менять
+
+### 2026-10-15 — Облики F1–F6 + бестиарий B2 (не на проде)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Дикий облик | Развилка траты: зверь / Дикий спутник / круги; chip «В облике» | Друид тратит пул осмысленно, видит форму в Напарниках |
+| Бой в облике | Урон по HP формы; overflow на хозяина; сброс / отдых | Как в PHB: два пула хитов |
+| Moon | «бонусным» + исцеление ячейкой 1к8×ур. | Круг Луны играет с листа |
+| Polymorph self | Каст «на себя» → пикер; концентрация снимает облик | Превращения без ручной карточки |
+| Перевёртыш / Wildfire | Shapechanger CR≤1; HP духа 10+5×ур. (ttg) | Архетипы не «ломаются» на стабах |
+| Сид VGM+MTF | `bestiary_vgm_mtf_v1.json` ×**268** + alembic `d6e7f8a9b0c1` | После «Залей» в справочнике +VGM/MTF |
+
+На проде: **нет** · ветка `cursor/bestiary-schema-fetch-ab5e` · PR #166 · **не деплоить** до «Залей» · tip не менять
 
 ### 2026-10-07 — FEATS BMT wave (Книга многих вещей)
 
@@ -815,4 +827,4 @@
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
 | 2026-10-08 | `cursor/companions-naparniki-b378` · PR #81 | Напарники A–D3 + аватарки залиты; tip → эта ветка; alembic `b4c5` |
 | 2026-10-15 | `cursor/forms-wild-shape-design-ab5e` | Дизайн LOCK обликов + бестиарий B0–B6 + детальный план (`forms-feature-plan.md`) → «В ветках» |
-| 2026-10-15 | `cursor/bestiary-schema-fetch-ab5e` | Bestiary B0: schema/fetch/diff/smoke + design docs; без деплоя |
+| 2026-10-15 | `cursor/bestiary-schema-fetch-ab5e` · PR #166 | B0–B2 (MM+VGM+MTF) + F1–F6 облики; без деплоя до «Залей» |

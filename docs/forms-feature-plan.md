@@ -158,11 +158,11 @@ FE CatalogCombobox / FormPickerDialog
 
 ---
 
-### B2 — VGtM + MToF
+### B2 — VGtM + MToF ✅
 
-| Data | `bestiary_vgm_mtf_v1.json` |
-| Migrate | upsert |
-| Приёмка | counts по VGM/MTF; audit; без дублей slug (MPMM-era reprints — политика: один slug, source_book = канон ttg / последний оф.) |
+| Data | `bestiary_vgm_mtf_v1.json` (**268**) |
+| Migrate | `d6e7f8a9b0c1` upsert |
+| Приёмка | ✅ VGM 129 + MTF 139; 0 overlap c MM; audit |
 
 *Политика дублей:* один `slug` на существо; если существо переиздано (VGM→MPMM) — одна строка, `source_book` как на ttg; `external_ref.books[]` опционально накопительный.
 

@@ -57,7 +57,7 @@
 |-------|------------|------------|-------------|---------|
 | B0 | Schema v1 + fetch/diff + smoke + fixture | — | нет | ✅ `cursor/bestiary-schema-fetch-ab5e` |
 | B1 | MM upsert | **451** в JSON + alembic `c5d6e7f8a9b0` | нет (до «Залей») | ✅ 90 beasts; 70 CR≤1; hyphen-URL fix |
-| B2 | VGtM + MToF | ☐ | ☐ | |
+| B2 | VGtM + MToF | **268** в JSON + alembic `d6e7f8a9b0c1` | нет (до «Залей») | ✅ VGM 129 + MTF 139; 0 overlap c MM |
 | B3 | MPMM | ☐ | ☐ | |
 | B4 | FTD / BGG / BAM / TCE creatures… | ☐ | ☐ | |
 | B5 | Adventures + settings | ☐ | ☐ | |
@@ -98,6 +98,22 @@ python3 backend/scripts/fetch_bestiary_wave.py --book MM --out bestiary_mm_v1.js
 python3 backend/scripts/fetch_bestiary_wave.py --book MM --out bestiary_mm_v1.json
 # после деплоя / локально: alembic upgrade head
 ```
+
+### B2 — VGtM + MToF
+
+| Артефакт | Путь |
+|----------|------|
+| Data | `backend/data/srd/2014/bestiary_vgm_mtf_v1.json` (**268** = VGM 129 + MTF 139) |
+| Migrate | `backend/alembic/versions/d6e7f8a9b0c1_upsert_bestiary_vgm_mtf_2014.py` |
+| Fetch | `--book VGM,MTF` (multi-book) |
+
+```bash
+python3 backend/scripts/fetch_bestiary_wave.py --book VGM,MTF --out bestiary_vgm_mtf_v1.json
+# overlap vs MM: 0 slugs (замер 2026-10-15)
+# после деплоя / локально: alembic upgrade head
+```
+
+Типы (срез): humanoid 77 · fiend 50 · monstrosity 28 · aberration 19 · undead 16 · fey/beast/giant по 14 · …
 
 Замечание fetch: path slug с **дефисами** (`will-o-wisp`) нельзя нормализовать в `_` до GET — ttg отдаёт 500. Catalog slug после fetch = underscores.
 

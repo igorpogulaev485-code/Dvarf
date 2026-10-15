@@ -107,7 +107,10 @@ def fetch_detail(path_slug: str, sleep_s: float, cache: bool) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--book", help="Filter by source.shortName (e.g. MM, TCE)")
+    parser.add_argument(
+        "--book",
+        help="Filter by source.shortName; comma-separated for multi-book waves (e.g. VGM,MTF)",
+    )
     parser.add_argument(
         "--slugs",
         help="Comma-separated slugs (skip index book filter)",
@@ -142,11 +145,16 @@ def main() -> int:
     else:
         index = load_index(official_only=not args.include_unofficial)
         if args.book:
-            book = args.book.strip().upper()
+            books = {
+                b.strip().upper()
+                for b in args.book.split(",")
+                if b.strip()
+            }
             index = [
                 it
                 for it in index
-                if str((it.get("source") or {}).get("shortName") or "").upper() == book
+                if str((it.get("source") or {}).get("shortName") or "").upper()
+                in books
             ]
         path_slugs = []
         seen: set[str] = set()
