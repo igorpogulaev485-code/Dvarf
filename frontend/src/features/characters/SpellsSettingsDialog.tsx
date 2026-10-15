@@ -4,6 +4,7 @@ import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
   applySpellcastingSuggestion,
+  resolveSpellLearnBudget,
   warlockLevels,
   warlockPactForLevel,
   type SpellcastingSuggestion,
@@ -110,6 +111,16 @@ export function SpellsSettingsDialog({
     if (warlockLvl > 0) return warlockPactForLevel(warlockLvl)
     return null
   }, [suggestion, warlockLvl])
+
+  const learnBudget = useMemo(
+    () =>
+      resolveSpellLearnBudget({
+        classes: classRows,
+        subclassCasters,
+        abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      }),
+    [classRows, subclassCasters, abilities],
+  )
 
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
@@ -667,6 +678,7 @@ export function SpellsSettingsDialog({
       <PrepareSpellsDialog
         open={prepareOpen}
         spells={spells}
+        learnMode={learnBudget?.mode ?? (knownCaster ? 'known' : 'prepared_list')}
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />
@@ -675,6 +687,7 @@ export function SpellsSettingsDialog({
         edition={edition}
         spells={spells}
         knownCaster={knownCaster}
+        learnBudget={learnBudget}
         abilityModFor={(ability) => abilityModifier(abilities[ability])}
         classes={classRows}
         subclassCasters={subclassCasters}

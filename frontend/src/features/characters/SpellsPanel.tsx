@@ -1051,6 +1051,7 @@ export function SpellsPanel({
       <PrepareSpellsDialog
         open={prepareOpen}
         spells={spells}
+        learnMode={learnBudget?.mode ?? (knownCaster ? 'known' : 'prepared_list')}
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />

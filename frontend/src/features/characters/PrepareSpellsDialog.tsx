@@ -1,4 +1,8 @@
 import { useMemo, useState } from 'react'
+import {
+  spellAccessUiCopy,
+  type SpellLearnModeUi,
+} from '../../shared/dnd/spellAccessUi'
 import { countsTowardPrepareLimit, levelLabel } from '../../shared/dnd/spells'
 import { Dialog, Stack, Text } from '../../ui'
 import {
@@ -16,6 +20,8 @@ import {
 type PrepareSpellsDialogProps = {
   open: boolean
   spells: SpellsState
+  /** PHB learn mode — copy differs for spellbook vs prepared_list. */
+  learnMode?: SpellLearnModeUi | null
   onChange: (spells: SpellsState) => void
   onClose: () => void
 }
@@ -25,10 +31,12 @@ type Tab = 'prepared' | 'available'
 export function PrepareSpellsDialog({
   open,
   spells,
+  learnMode = 'prepared_list',
   onChange,
   onClose,
 }: PrepareSpellsDialogProps) {
   const [tab, setTab] = useState<Tab>('prepared')
+  const uiCopy = spellAccessUiCopy(learnMode ?? 'prepared_list')
 
   const preparedCount = countPreparedLeveled(spells.known)
   const limitLabel =
@@ -147,10 +155,11 @@ export function PrepareSpellsDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          <strong>Подготовленные</strong> — что сегодня в бою (лимит {limitLabel}).{' '}
-          <strong>Все доступные</strong> — пул на листе, из которого выбираешь. Заговоры всегда
-          готовы и в лимит не входят. Пополнить пул — через Гримуар («На лист» без подготовки или
-          сразу «Подготовить»).
+          {uiCopy.prepareHint} Лимит сегодня: {limitLabel}. Пополнить пул — через Гримуар (
+          {learnMode === 'spellbook'
+            ? '«В книгу» / «В книгу + подготовить»'
+            : '«На лист» / «Подготовить»'}
+          ).
         </Text>
 
         {cantrips.length > 0 ? (

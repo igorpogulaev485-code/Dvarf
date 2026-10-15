@@ -330,6 +330,7 @@ export function PlayDeskSpellsCompact({
         <PrepareSpellsDialog
           open={prepareOpen}
           spells={spells}
+          learnMode={learnBudget?.mode ?? null}
           onChange={onSpellsChange}
           onClose={() => setPrepareOpen(false)}
         />

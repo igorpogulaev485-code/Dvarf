@@ -17,6 +17,7 @@ import {
   formatGpTotal,
   type CoinPurse,
 } from '../../shared/dnd/weight'
+import { spellAccessUiCopy } from '../../shared/dnd/spellAccessUi'
 import {
   previewSpellbookAddGp,
   remainingFreeSpellbookSlots,
@@ -194,6 +195,8 @@ export function GrimoireDialog({
   }, [classes, access.budget?.slug])
   const freeBookLeft =
     mode === 'spellbook' ? remainingFreeSpellbookSlots(spells.known, wizardLevel) : 0
+  const uiCopy = spellAccessUiCopy(mode)
+  const unpreparedOnSheet = spells.known.filter((s) => s.level > 0 && !s.prepared).length
 
   const classFilters = useMemo(() => {
     if (!access.hasCaster) return []
@@ -540,7 +543,7 @@ export function GrimoireDialog({
       : 'Пока только заговоры из списка класса (ячеек ещё нет).'
 
   const budgetHint = (() => {
-    if (!access.budget) return accessHint
+    if (!access.budget) return `${uiCopy.grimoireHint} ${accessHint}`
     const b = access.budget
     const cantripPart = `заговоры ${learnedCantrips}/${b.cantrips}`
     if (b.mode === 'spellbook') {
@@ -550,20 +553,15 @@ export function GrimoireDialog({
           : onCoinsChange
             ? 'далее — копия за золото из кошелька'
             : 'бесплатный объём исчерпан'
-      return `${b.labelRu}: книга ${learnedLeveled} (free ${b.leveledKnown ?? '—'}) · ${freePart} · ${cantripPart} · подготовка ${preparedCount}/${b.maxPrepared ?? '—'}. ${accessHint}`
+      return `${b.labelRu}: в книге ${learnedLeveled} · ${freePart} (free-cap ${b.leveledKnown ?? '—'}) · ${cantripPart} · ${uiCopy.readyLabel.toLowerCase()} ${preparedCount}/${b.maxPrepared ?? '—'}. ${uiCopy.grimoireHint} ${accessHint}`
     }
     if (b.mode === 'prepared_list') {
-      return `${b.labelRu}: весь список класса · ${cantripPart} · подготовка ${preparedCount}/${b.maxPrepared ?? '—'}. ${accessHint}`
+      return `${b.labelRu}: на листе ${learnedLeveled} · не подготовлено ${unpreparedOnSheet} · ${cantripPart} · ${uiCopy.readyLabel.toLowerCase()} ${preparedCount}/${b.maxPrepared ?? '—'}. ${uiCopy.grimoireHint} ${accessHint}`
     }
-    return `${b.labelRu}: известные ${learnedLeveled}/${b.leveledKnown ?? '—'} · ${cantripPart}. ${accessHint}`
+    return `${b.labelRu}: известные ${learnedLeveled}/${b.leveledKnown ?? '—'} · ${cantripPart}. ${uiCopy.grimoireHint} ${accessHint}`
   })()
 
-  const dialogTitle =
-    mode === 'spellbook'
-      ? 'Книга заклинаний'
-      : mode === 'prepared_list'
-        ? 'Список заклинаний'
-        : 'Известные заклинания'
+  const dialogTitle = uiCopy.grimoireTitle
 
   return (
     <Dialog
@@ -703,59 +701,54 @@ export function GrimoireDialog({
                       </div>
                       <div className="grimoire-row__actions">
                         {onSheet ? (
-                          mode === 'prepared_list' && spell.level > 0 ? (
-                            <button
-                              type="button"
-                              className={`sheet-chip${
-                                spells.known.find((row) => row.catalog_id === entry.id)
-                                  ?.prepared
-                                  ? ' is-on'
-                                  : ''
-                              }`}
-                              onClick={() => togglePrepareOnSheet(entry)}
-                            >
-                              {spells.known.find((row) => row.catalog_id === entry.id)
-                                ?.prepared
-                                ? 'Подготовлено'
-                                : 'Подготовить'}
-                            </button>
-                          ) : mode === 'spellbook' && spell.level > 0 ? (
-                            <button
-                              type="button"
-                              className={`sheet-chip${
-                                spells.known.find((row) => row.catalog_id === entry.id)
-                                  ?.prepared
-                                  ? ' is-on'
-                                  : ''
-                              }`}
-                              onClick={() => togglePrepareOnSheet(entry)}
-                            >
-                              {spells.known.find((row) => row.catalog_id === entry.id)
-                                ?.prepared
-                                ? 'Подготовлено'
-                                : 'Подготовить'}
-                            </button>
-                          ) : (
-                            (() => {
-                              const sheetSpell = knownSpellForCatalog(entry.id)
-                              if (sheetSpell && canRemoveSheetSpell(sheetSpell)) {
-                                return (
+                          (() => {
+                            const sheetSpell = knownSpellForCatalog(entry.id)
+                            const prepared = Boolean(sheetSpell?.prepared)
+                            const canRemove = sheetSpell ? canRemoveSheetSpell(sheetSpell) : false
+                            const needsPrepareToggle =
+                              spell.level > 0 &&
+                              (mode === 'prepared_list' || mode === 'spellbook')
+                            return (
+                              <>
+                                {needsPrepareToggle ? (
+                                  <button
+                                    type="button"
+                                    className={`sheet-chip${prepared ? ' is-on' : ''}`}
+                                    onClick={() => togglePrepareOnSheet(entry)}
+                                    title={
+                                      prepared
+                                        ? 'Снять с сегодняшнего набора (останется в пуле)'
+                                        : 'Добавить в сегодняшний набор'
+                                    }
+                                  >
+                                    {prepared ? 'Подготовлено' : 'Подготовить'}
+                                  </button>
+                                ) : (
+                                  <span className="sheet-chip is-on">
+                                    {mode === 'spellbook'
+                                      ? 'В книге'
+                                      : mode === 'known'
+                                        ? 'Известно'
+                                        : 'На листе'}
+                                  </span>
+                                )}
+                                {canRemove ? (
                                   <button
                                     type="button"
                                     className="sheet-chip"
                                     onClick={() => removeSpell(entry)}
+                                    title={
+                                      mode === 'spellbook'
+                                        ? 'Убрать из книги'
+                                        : 'Убрать с листа'
+                                    }
                                   >
                                     Снять
                                   </button>
-                                )
-                              }
-                              return (
-                                <span className="sheet-chip is-on">
-                                  {mode === 'spellbook' ? 'В книге' : 'На листе'}
-                                </span>
-                              )
-                            })()
-                          )
+                                ) : null}
+                              </>
+                            )
+                          })()
                         ) : mode === 'known' || spell.level <= 0 ? (
                           <button
                             type="button"
