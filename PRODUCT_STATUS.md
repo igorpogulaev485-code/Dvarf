@@ -519,6 +519,8 @@
 | Smoke | fixture 5 карточек; Wildfire HP=10 (ttg) | Конфликт→ttg проверяется автоматом |
 | Сид MM | `bestiary_mm_v1.json` ×**451** + alembic `c5d6e7f8a9b0` | После «Залей» combobox бестиария покажет MM (звери для WS) |
 
+| F1 модель облика | `role: self_form`, `form` meta, `known_forms` на листе; smoke | Данные для пикера WS готовы (UI пикера — F2) |
+
 На проде: **нет** · ветка `cursor/bestiary-schema-fetch-ab5e` · **не деплоить** до «Залей» · tip не менять
 
 ### 2026-10-07 — FEATS BMT wave (Книга многих вещей)

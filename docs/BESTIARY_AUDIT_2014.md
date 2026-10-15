@@ -87,6 +87,20 @@ python3 backend/scripts/diff_bestiary_sources.py
 python3 backend/scripts/fetch_bestiary_wave.py --book MM --out bestiary_mm_v1.json
 ```
 
+### B1 — MM
+
+| Артефакт | Путь |
+|----------|------|
+| Data | `backend/data/srd/2014/bestiary_mm_v1.json` (**451**) |
+| Migrate | `backend/alembic/versions/c5d6e7f8a9b0_upsert_bestiary_mm_2014.py` |
+
+```bash
+python3 backend/scripts/fetch_bestiary_wave.py --book MM --out bestiary_mm_v1.json
+# после деплоя / локально: alembic upgrade head
+```
+
+Замечание fetch: path slug с **дефисами** (`will-o-wisp`) нельзя нормализовать в `_` до GET — ttg отдаёт 500. Catalog slug после fetch = underscores.
+
 ### Coverage замер (B0 diff, 2026-10-15)
 
 | | Count |

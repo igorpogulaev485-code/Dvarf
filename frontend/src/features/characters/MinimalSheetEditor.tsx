@@ -82,6 +82,7 @@ import {
   resetCompanionResourcesOnRest,
   type CompanionEntry,
 } from './companions'
+import { readKnownForms, type KnownForm } from './knownForms'
 import { applyConcentrationChangeToCompanions } from './spellCompanions'
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
@@ -260,6 +261,8 @@ type Draft = {
   backgroundGrant: AppliedBackgroundGrant | null
   backgroundCatalogId: string | null
   companions: CompanionEntry[]
+  /** Wild Shape / form library — seen or learned forms. */
+  knownForms: KnownForm[]
   featurePicks: FeaturePicksState
   classAsi: AppliedClassAsi[]
   featGrants: AppliedFeatGrant[]
@@ -390,6 +393,7 @@ function buildDraft(character: CharacterDetail): Draft {
         ? identity.background_catalog_id
         : null,
     companions: readCompanions(sheet.companions),
+    knownForms: readKnownForms(sheet.known_forms),
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classAsi: readClassAsiLedger(sheet.class_asi),
     featGrants: readFeatGrantLedger(sheet.feat_grants),
@@ -1863,6 +1867,7 @@ export function MinimalSheetEditor({
       sheet.race_grant = draft.raceGrant
       sheet.background_grant = draft.backgroundGrant
       sheet.companions = draft.companions
+      sheet.known_forms = draft.knownForms
       sheet.feature_picks = featurePicksToSheet(draft.featurePicks)
       sheet.class_asi = draft.classAsi
       sheet.feat_grants = draft.featGrants

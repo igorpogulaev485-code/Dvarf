@@ -388,11 +388,9 @@ SKT, ToA, WDMM, GGR, ERLW, EGW, … — оставшийся Basic allowlist.
 
 ## 12. Следующий конкретный шаг
 
-**B0+B1 сделаны** в `cursor/bestiary-schema-fetch-ab5e`  
-(schema + fetch/diff + smoke + MM ×451 + alembic `c5d6e7f8a9b0`).  
+**B0+B1+F1 сделаны** в `cursor/bestiary-schema-fetch-ab5e`  
+(schema + fetch/diff + MM ×451 + alembic + модель `self_form`/`known_forms`).  
 На прод **не** заливать до команды «Залей».
 
-**Дальше:**
-
-1. После «Залей» / merge tip — F1 (модель `self_form`) можно параллелить с B2  
-2. Или продолжить B2 (VGM+MTF) на этой же линии до команды деплоя
+**Дальше:** F2 (пикер Дикого облика + spend) — нужен каталог MM на API (после «Залей» B1 или локальный migrate).  
+Параллельно можно B2 (VGM+MTF).

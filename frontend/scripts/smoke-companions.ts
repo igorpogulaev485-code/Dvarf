@@ -3,9 +3,12 @@ import {
   applyHpChange,
   companionAllowsAvatar,
   createCompanion,
+  getActiveSelfForm,
   isCompanionDead,
   isCompanionStable,
+  isSelfForm,
   mergeSubclassCompanions,
+  normalizeSelfForms,
   readCompanions,
   resetCompanionResourcesOnRest,
   restoreCompanion,
@@ -13,6 +16,11 @@ import {
   setCompanionActive,
   setPrimaryCompanion,
 } from '../src/features/characters/companions.ts'
+import {
+  createKnownForm,
+  readKnownForms,
+  upsertKnownForm,
+} from '../src/features/characters/knownForms.ts'
 import {
   companionFromTemplate,
   resolveCompanionTemplate,
@@ -358,5 +366,104 @@ assert(
   ),
   'spell summon denies avatar',
 )
+
+// --- F1: self_form + known_forms ---
+const formBear = createCompanion({
+  role: 'self_form',
+  kind: 'transformed_self',
+  name: 'Бурый медведь',
+  bestiary_ref: 'brown_bear',
+  bestiary_name_ru: 'Бурый медведь',
+  stats: { hp: 34, hp_max: 34, ac: 11, speed: 40 },
+  form: {
+    form_source: 'wild_shape',
+    form_source_ref: 'wild_shape',
+    host_hp_at_enter: 28,
+    host_hp_max_at_enter: 28,
+    duration_minutes: 1,
+    entered_at: '2026-10-15T00:00:00.000Z',
+  },
+  source: { kind: 'class', labelRu: 'Дикий облик', feature: 'wild_shape' },
+})
+assert(formBear.role === 'self_form', 'self_form role')
+assert(formBear.nature === 'summoned', 'self_form nature summoned')
+assert(formBear.control === 'with_master', 'self_form with_master')
+assert(formBear.form?.form_source === 'wild_shape', 'form meta')
+assert(companionAllowsAvatar(formBear), 'self_form allows avatar')
+assert(isSelfForm(formBear), 'isSelfForm')
+
+const formDown = applyHpChange(formBear, 0)
+assert(!formDown.active && formDown.death == null, 'self_form dismiss no death saves')
+
+const legacyAlly = readCompanions([
+  {
+    id: 'legacy-1',
+    kind: 'familiar',
+    name: 'Тень',
+    nature: 'summoned',
+    active: true,
+    is_primary: false,
+    control: 'own_initiative',
+    source: { kind: 'spell', labelRu: 'Familiar' },
+    stats: { hp: 2, hp_max: 2, ac: 12, speed: 20 },
+    death: null,
+    resources: [],
+    actions: '',
+    notes: '',
+  },
+])
+assert(legacyAlly[0]?.role === 'ally', 'legacy defaults role ally')
+
+const twoForms = normalizeSelfForms([
+  createCompanion({
+    id: 'f1',
+    role: 'self_form',
+    active: true,
+    name: 'Волк',
+    form: {
+      form_source: 'wild_shape',
+      form_source_ref: 'wild_shape',
+      host_hp_at_enter: 10,
+      host_hp_max_at_enter: 10,
+      duration_minutes: 1,
+      entered_at: null,
+    },
+  }),
+  createCompanion({
+    id: 'f2',
+    role: 'self_form',
+    active: true,
+    name: 'Медведь',
+    form: {
+      form_source: 'wild_shape',
+      form_source_ref: 'wild_shape',
+      host_hp_at_enter: 10,
+      host_hp_max_at_enter: 10,
+      duration_minutes: 1,
+      entered_at: null,
+    },
+  }),
+])
+assert(
+  twoForms.filter((r) => r.role === 'self_form' && r.active).length === 1,
+  'normalize keeps one active self_form',
+)
+assert(getActiveSelfForm(twoForms)?.name === 'Медведь', 'newest active kept')
+
+const known = createKnownForm({
+  bestiary_slug: 'wolf',
+  name_ru: 'Волк',
+  cr: '1/4',
+  tags: ['custom'],
+})
+const knownRound = readKnownForms([known])
+assert(knownRound[0]?.bestiary_slug === 'wolf', 'known forms round-trip')
+const known2 = upsertKnownForm(knownRound, {
+  ...known,
+  id: 'other',
+  name_ru: 'Волк (свой)',
+  notes: 'видел в лесу',
+})
+assert(known2.length === 1 && known2[0]?.notes === 'видел в лесу', 'upsert by slug')
 
 console.log('smoke-companions: ok')
