@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react'
 import type { CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
-import { Button, Text } from '../../ui'
+import { Button, NumberInput, Text } from '../../ui'
 import {
   normalizeVisibilityProfile,
   type VisibilityProfile,
@@ -68,9 +68,8 @@ function ensureMembers(combatant: SessionCombatant): CombatantMember[] {
 
 /**
  * Карточка противника / пачки.
- * Кнопки HP: −1 / −5 HP, +1 лечение — одна полоска.
- * В пачке: выбери бойца в «Составе», затем те же кнопки бьют его
- * (если не выбран — первого живого).
+ * Мастер вводит цифру урона и жмёт «Нанести урон».
+ * В пачке: выбери бойца в «Составе» — иначе бьёт первого живого.
  */
 export function EnemyCard({
   combatant,
@@ -84,6 +83,7 @@ export function EnemyCard({
   const [statsOpen, setStatsOpen] = useState(false)
   const [rosterOpen, setRosterOpen] = useState(false)
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null)
+  const [damageAmount, setDamageAmount] = useState<number | null>(null)
   const profile = normalizeVisibilityProfile(visibility)
   const isMaster = Boolean(masterControls || revealAll)
   const members = useMemo(() => ensureMembers(combatant), [combatant])
@@ -126,13 +126,33 @@ export function EnemyCard({
   ].filter(Boolean)
   const meta = metaParts.join(' · ')
 
-  function applyDamage(amount: number) {
-    if (!onDamage) return
+  const canDeal =
+    !busy &&
+    !isDead &&
+    damageAmount != null &&
+    damageAmount > 0 &&
+    !(selectedMember != null && selectedMember.hp_current <= 0)
+
+  function applyDamage() {
+    if (!onDamage || !canDeal || damageAmount == null) return
     if (isPack && selectedMemberId) {
-      onDamage(amount, selectedMemberId)
-      return
+      onDamage(damageAmount, selectedMemberId)
+    } else {
+      onDamage(damageAmount)
     }
-    onDamage(amount)
+    setDamageAmount(null)
+  }
+
+  function onDamageForm(event: FormEvent) {
+    event.preventDefault()
+    applyDamage()
+  }
+
+  function onDamageKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      applyDamage()
+    }
   }
 
   return (
@@ -213,33 +233,24 @@ export function EnemyCard({
 
       {masterControls ? (
         <div className="session-enemy-card__hp-controls">
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={busy || isDead || (selectedMember != null && selectedMember.hp_current <= 0)}
-            title="Снять 1 HP"
-            onClick={() => applyDamage(1)}
-          >
-            −1 HP
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={busy || isDead || (selectedMember != null && selectedMember.hp_current <= 0)}
-            title="Снять 5 HP"
-            onClick={() => applyDamage(5)}
-          >
-            −5 HP
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            disabled={busy}
-            title="Вернуть 1 HP"
-            onClick={() => applyDamage(-1)}
-          >
-            +1 HP
-          </Button>
+          <form className="session-enemy-card__damage" onSubmit={onDamageForm}>
+            <NumberInput
+              className="session-enemy-card__damage-input"
+              value={damageAmount}
+              min={1}
+              max={9999}
+              integer
+              emptyValue={null}
+              disabled={busy || isDead}
+              placeholder="Урон"
+              aria-label="Урон"
+              onValueChange={setDamageAmount}
+              onKeyDown={onDamageKeyDown}
+            />
+            <Button type="submit" variant="secondary" disabled={!canDeal}>
+              Нанести урон
+            </Button>
+          </form>
           {isPack ? (
             <Button
               type="button"
@@ -270,8 +281,8 @@ export function EnemyCard({
       {masterControls && rosterOpen && isPack ? (
         <div className="session-enemy-card__roster" aria-label="Состав пачки">
           <Text tone="muted" className="session-enemy-card__block-title">
-            Выбери, кому урон — затем −1 HP / −5 HP сверху. Без выбора бьёт первого
-            живого.
+            Выбери, кому урон — затем введи цифру и «Нанести урон». Без выбора бьёт
+            первого живого.
           </Text>
           <ul className="session-enemy-roster">
             {members.map((m) => {
