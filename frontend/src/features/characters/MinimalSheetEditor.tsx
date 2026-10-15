@@ -221,6 +221,7 @@ import { RestDialog } from './RestDialog'
 import { SorceryPointsSpendDialog } from './SorceryPointsSpendDialog'
 import { ChannelDivinitySpendDialog } from './ChannelDivinitySpendDialog'
 import { KiSpendDialog } from './KiSpendDialog'
+import { BardicInspirationSpendDialog } from './BardicInspirationSpendDialog'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
@@ -2903,6 +2904,9 @@ export function MinimalSheetEditor({
     null,
   )
   const [kiSpendId, setKiSpendId] = useState<string | null>(null)
+  const [bardicInspirationSpendId, setBardicInspirationSpendId] = useState<
+    string | null
+  >(null)
   const [concDamageAsk, setConcDamageAsk] = useState<{
     damage: number
     spellName: string
@@ -3326,6 +3330,11 @@ export function MinimalSheetEditor({
     kiSpendId == null
       ? null
       : (draft.play.resources.find((row) => row.id === kiSpendId) ?? null)
+  const bardicInspirationResource =
+    bardicInspirationSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === bardicInspirationSpendId) ??
+        null)
 
   function isSorceryPointsResource(row: { id: string; name: string }): boolean {
     return (
@@ -3348,6 +3357,14 @@ export function MinimalSheetEditor({
     return /:ki:/.test(row.id) || /^ки$/i.test(row.name.trim())
   }
 
+  function isBardicInspirationResource(row: { id: string; name: string }): boolean {
+    return (
+      /:bardic_inspiration:/.test(row.id) ||
+      /бардовское вдохновение/i.test(row.name) ||
+      /bardic inspiration/i.test(row.name)
+    )
+  }
+
   function spendResourceOrOpenSorcery(id: string) {
     const row = draft.play.resources.find((item) => item.id === id)
     if (row && isSorceryPointsResource(row)) {
@@ -3360,6 +3377,10 @@ export function MinimalSheetEditor({
     }
     if (row && isKiResource(row)) {
       setKiSpendId(id)
+      return
+    }
+    if (row && isBardicInspirationResource(row)) {
+      setBardicInspirationSpendId(id)
       return
     }
     setDraft((prev) => ({
@@ -4988,6 +5009,31 @@ export function MinimalSheetEditor({
         }}
         onToast={onToast}
         onClose={() => setKiSpendId(null)}
+      />
+
+      <BardicInspirationSpendDialog
+        open={bardicInspirationSpendId != null}
+        resource={bardicInspirationResource}
+        features={unlockedFeatures}
+        onSpend={(label, cost) => {
+          if (!bardicInspirationSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) => {
+                if (row.id !== bardicInspirationSpendId) return row
+                const nextUsed = Math.min(row.max, row.used + cost)
+                if (nextUsed === row.used) return row
+                return { ...row, used: nextUsed }
+              }),
+            },
+          }))
+          onToast(`${label}: −${cost} Бардовское вдохновение`)
+          setBardicInspirationSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setBardicInspirationSpendId(null)}
       />
 
       <LevelUpDialog
