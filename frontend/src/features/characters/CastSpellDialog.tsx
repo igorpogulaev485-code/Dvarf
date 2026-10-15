@@ -6,7 +6,7 @@ import {
   slotsRemaining,
 } from '../../shared/dnd/spells'
 import { Dialog, Stack, Text } from '../../ui'
-import { AllyPickSection } from '../lobby/AllyPickSection'
+import { AllyPickSection, type AllyPickDemo } from '../lobby/AllyPickSection'
 import type { SheetSpell, SpellsState } from './spells'
 
 export type CastChoice = {
@@ -23,6 +23,8 @@ type CastSpellDialogProps = {
   spells: SpellsState
   characterId?: string
   busy?: boolean
+  /** Превью без API */
+  allyDemo?: AllyPickDemo | null
   onConfirm: (choice: CastChoice) => void
   onClose: () => void
 }
@@ -33,6 +35,7 @@ export function CastSpellDialog({
   spells,
   characterId,
   busy = false,
+  allyDemo = null,
   onConfirm,
   onClose,
 }: CastSpellDialogProps) {
@@ -177,6 +180,7 @@ export function CastSpellDialog({
             onSelectedChange={setAllySelected}
             lobbyId={lobbyId}
             onLobbyIdChange={setLobbyId}
+            demo={allyDemo}
           />
         ) : null}
       </Stack>

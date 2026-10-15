@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { shareLobbyEffect } from '../../shared/api/lobbies'
 import { ApiRequestError } from '../../shared/api/client'
 import { Dialog, Stack, Text } from '../../ui'
-import { AllyPickSection } from '../lobby/AllyPickSection'
+import { AllyPickSection, type AllyPickDemo } from '../lobby/AllyPickSection'
 
 type Props = {
   open: boolean
@@ -11,6 +11,8 @@ type Props = {
   abilityName: string
   /** Связать с текущей Conc кастера, если есть */
   linkConcentration?: boolean
+  /** Превью без API */
+  allyDemo?: AllyPickDemo | null
   onClose: () => void
   /** После успешной раздачи (или без целей) — подтвердить трату ресурса */
   onSpent: () => void
@@ -27,6 +29,7 @@ export function UseAllyAbilityDialog({
   characterName,
   abilityName,
   linkConcentration = false,
+  allyDemo = null,
   onClose,
   onSpent,
   onToast,
@@ -53,8 +56,17 @@ export function UseAllyAbilityDialog({
       size="wide"
       onSecondary={onClose}
       onPrimary={() => {
+        if (allyDemo) {
+          onSpent()
+          onClose()
+          onToast(
+            selected.size > 0
+              ? `${abilityName} · ${characterName} → ${selected.size}`
+              : `${abilityName || 'Способность'} · без цели`,
+          )
+          return
+        }
         if (selected.size === 0 || !lobbyId) {
-          // Можно потратить «в никуда» — только ресурс
           onSpent()
           onClose()
           onToast(`${abilityName || 'Способность'} · без цели`)
@@ -96,6 +108,7 @@ export function UseAllyAbilityDialog({
           onSelectedChange={setSelected}
           lobbyId={lobbyId}
           onLobbyIdChange={setLobbyId}
+          demo={allyDemo}
         />
       </Stack>
     </Dialog>

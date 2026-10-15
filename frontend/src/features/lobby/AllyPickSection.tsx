@@ -3,9 +3,15 @@ import {
   getLobby,
   listLobbies,
   type LobbyDetail,
+  type LobbyMember,
   type LobbySummary,
 } from '../../shared/api/lobbies'
 import { Text } from '../../ui'
+
+export type AllyPickDemo = {
+  lobbyName: string
+  members: Array<{ character_id: string; character_name: string }>
+}
 
 type Props = {
   characterId: string
@@ -15,6 +21,8 @@ type Props = {
   onSelectedChange: (next: Set<string>) => void
   lobbyId: string | null
   onLobbyIdChange: (id: string | null) => void
+  /** Превью без API */
+  demo?: AllyPickDemo | null
 }
 
 /**
@@ -27,12 +35,18 @@ export function AllyPickSection({
   onSelectedChange,
   lobbyId,
   onLobbyIdChange,
+  demo = null,
 }: Props) {
   const [lobbies, setLobbies] = useState<LobbySummary[]>([])
   const [lobbyDetail, setLobbyDetail] = useState<LobbyDetail | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!demo)
 
   useEffect(() => {
+    if (demo) {
+      setLoading(false)
+      if (!lobbyId) onLobbyIdChange('demo-lobby')
+      return
+    }
     let active = true
     setLoading(true)
     listLobbies()
@@ -59,12 +73,12 @@ export function AllyPickSection({
     return () => {
       active = false
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once per character
-  }, [characterId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [characterId, demo])
 
   useEffect(() => {
-    if (!lobbyId) {
-      setLobbyDetail(null)
+    if (demo || !lobbyId) {
+      if (!demo) setLobbyDetail(null)
       return
     }
     let active = true
@@ -76,20 +90,23 @@ export function AllyPickSection({
     return () => {
       active = false
     }
-  }, [lobbyId])
+  }, [lobbyId, demo])
 
-  const allies = useMemo(
-    () => (lobbyDetail?.members ?? []).filter((m) => m.character_id !== characterId),
-    [lobbyDetail, characterId],
-  )
+  const allies = useMemo(() => {
+    if (demo) {
+      return demo.members.filter((m) => m.character_id !== characterId)
+    }
+    return (lobbyDetail?.members ?? []).filter((m) => m.character_id !== characterId)
+  }, [demo, lobbyDetail, characterId])
 
   const allSelected = allies.length > 0 && selected.size === allies.length
+  const multiLobby = !demo && lobbies.length > 1
 
   if (loading) {
     return <Text tone="muted">Загрузка союзников…</Text>
   }
 
-  if (lobbies.length === 0) {
+  if (!demo && lobbies.length === 0) {
     return (
       <Text tone="muted">
         Персонаж не в лобби — пометку на союзниках можно будет поставить, когда вступите в
@@ -103,7 +120,10 @@ export function AllyPickSection({
       <Text as="h3" className="apply-condition__heading">
         Кому из союзников
       </Text>
-      {lobbies.length > 1 ? (
+      {demo ? (
+        <Text tone="muted">{demo.lobbyName}</Text>
+      ) : null}
+      {multiLobby ? (
         <select
           className="ui-input"
           value={lobbyId ?? ''}

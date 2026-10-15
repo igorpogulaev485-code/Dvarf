@@ -15,6 +15,7 @@ import { LobbyNotesPreviewPage } from './pages/LobbyNotesPreviewPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { SessionAttendancePreviewPage } from './pages/SessionAttendancePreviewPage'
 import { SessionDetailPage } from './pages/SessionDetailPage'
+import { AllyEffectCastPreviewPage } from './pages/AllyEffectCastPreviewPage'
 import { SessionLiveTablePreviewPage } from './pages/SessionLiveTablePreviewPage'
 import { SettingDetailPage } from './pages/SettingDetailPage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
@@ -54,6 +55,10 @@ export default function App() {
         <Route
           path="/dev/session-live-table-preview"
           element={<SessionLiveTablePreviewPage />}
+        />
+        <Route
+          path="/dev/ally-effect-cast-preview"
+          element={<AllyEffectCastPreviewPage />}
         />
         <Route
           path="/dev/lobby-journal-preview"
