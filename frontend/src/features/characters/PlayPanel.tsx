@@ -99,7 +99,6 @@ export function PlayPanel({
   onSpellsChange,
   onCombatChange,
   onToast,
-  onError,
 }: PlayPanelProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
   const [pendingResourceId, setPendingResourceId] = useState<string | null>(null)
