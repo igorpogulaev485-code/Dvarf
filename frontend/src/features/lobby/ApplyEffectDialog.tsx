@@ -151,7 +151,9 @@ export function ApplyEffectDialog({
               {seats.map((seat) => (
                 <option key={seat.character_id} value={seat.character_id}>
                   {seat.character_name}
-                  {seat.concentration ? ` · Conc: ${seat.concentration.name}` : ''}
+                  {seat.concentration
+                    ? ` · конц.: ${seat.concentration.name}`
+                    : ''}
                 </option>
               ))}
             </select>
@@ -170,8 +172,8 @@ export function ApplyEffectDialog({
           </label>
         ) : (
           <Text tone="muted" className="apply-effect__hint">
-            Чтобы связать с концентрацией — отметьте её на листе кастера (каст) или выберите
-            кастера с Conc выше.
+            Чтобы связать с концентрацией — сначала кастуйте заклинание на листе кастера
+            (появится «Конц.») или выберите кастера с концентрацией выше.
           </Text>
         )}
 
