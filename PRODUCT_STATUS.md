@@ -580,6 +580,33 @@
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
 
+### 2026-10-15 — Волна spend-picker’ов (уникальные пулы классов)
+
+План закрыт (ярость **пропущена** — нет меню опций, клик −1 уже ок).
+
+| # | Класс | Диалог | PR / ветка |
+|---|--------|--------|------------|
+| — | Чародей / Жрец | уже были (метамагия, CD) | tip |
+| 1 | Монах · Ки | `KiSpendDialog` | #167 `monk-ki-spend-4797` |
+| 2 | Бард · BI | `BardicInspirationSpendDialog` | #168 `bard-inspiration-spend-4797` |
+| 3–4 | Паладин · CD + Возложение рук | CD + `LayOnHandsSpendDialog` | #169 `paladin-cd-spend-4797` |
+| 5 | Воин BM · кости | `SuperiorityDiceSpendDialog` | #170 `fighter-bm-superiority-4797` |
+| 6 | Волшебник · Arcane Recovery | `ArcaneRecoverySpendDialog` | #171 `wizard-arcane-recovery-4797` |
+| 7 | Варвар · Ярость | — | **пропуск** |
+
+Вне волны: инвокации/инфузии (known picks), следопыт/плут, друид (другой агент).  
+Стек tip: `wizard-arcane-recovery-4797` ← … ← `monk-ki-spend-4797` ← `cleric-equip-cd-spells-244b`.  
+На проде: **нет** (мерж/деплой отдельно).
+
+### 2026-10-15 — Волшебник: Магическое восстановление
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Клик по заряду | `ArcaneRecoverySpendDialog`: выбрать ячейки 1–5, сумма ≤ ⌈ур./2⌉, затем −1 заряд | Не вручную крутить пипсы ячеек |
+| Smoke | `frontend/scripts/smoke-arcane-recovery.ts` | Бюджет / запрет 6+ |
+
+На проде: **нет** · ветка `cursor/wizard-arcane-recovery-4797`
+
 ### 2026-10-15 — Воин BM: picker костей превосходства
 
 | Функция | Как работает | Эффект для пользователя |

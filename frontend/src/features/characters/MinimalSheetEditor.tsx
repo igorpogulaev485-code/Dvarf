@@ -224,6 +224,7 @@ import { KiSpendDialog } from './KiSpendDialog'
 import { BardicInspirationSpendDialog } from './BardicInspirationSpendDialog'
 import { LayOnHandsSpendDialog } from './LayOnHandsSpendDialog'
 import { SuperiorityDiceSpendDialog } from './SuperiorityDiceSpendDialog'
+import { ArcaneRecoverySpendDialog } from './ArcaneRecoverySpendDialog'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
@@ -2911,6 +2912,9 @@ export function MinimalSheetEditor({
   >(null)
   const [layOnHandsSpendId, setLayOnHandsSpendId] = useState<string | null>(null)
   const [superioritySpendId, setSuperioritySpendId] = useState<string | null>(null)
+  const [arcaneRecoverySpendId, setArcaneRecoverySpendId] = useState<string | null>(
+    null,
+  )
   const [concDamageAsk, setConcDamageAsk] = useState<{
     damage: number
     spellName: string
@@ -3347,6 +3351,20 @@ export function MinimalSheetEditor({
     superioritySpendId == null
       ? null
       : (draft.play.resources.find((row) => row.id === superioritySpendId) ?? null)
+  const arcaneRecoveryResource =
+    arcaneRecoverySpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === arcaneRecoverySpendId) ??
+        null)
+
+  const arcaneRecoveryWizardLevel = useMemo(() => {
+    if (!arcaneRecoverySpendId) return 1
+    // feat:wizard:arcane_recovery:{classEntryId}
+    const parts = arcaneRecoverySpendId.split(':')
+    const classEntryId = parts[parts.length - 1]
+    const row = draft.classes.find((c) => c.id === classEntryId)
+    return Math.max(1, Math.floor(row?.level ?? 1))
+  }, [arcaneRecoverySpendId, draft.classes])
 
   function isSorceryPointsResource(row: { id: string; name: string }): boolean {
     return (
@@ -3393,6 +3411,14 @@ export function MinimalSheetEditor({
     )
   }
 
+  function isArcaneRecoveryResource(row: { id: string; name: string }): boolean {
+    return (
+      /:arcane_recovery:/.test(row.id) ||
+      /магическое восстановление/i.test(row.name) ||
+      /arcane recovery/i.test(row.name)
+    )
+  }
+
   function spendResourceOrOpenSorcery(id: string) {
     const row = draft.play.resources.find((item) => item.id === id)
     if (row && isSorceryPointsResource(row)) {
@@ -3417,6 +3443,10 @@ export function MinimalSheetEditor({
     }
     if (row && isSuperiorityDiceResource(row)) {
       setSuperioritySpendId(id)
+      return
+    }
+    if (row && isArcaneRecoveryResource(row)) {
+      setArcaneRecoverySpendId(id)
       return
     }
     setDraft((prev) => ({
@@ -5120,6 +5150,32 @@ export function MinimalSheetEditor({
         }}
         onToast={onToast}
         onClose={() => setSuperioritySpendId(null)}
+      />
+
+      <ArcaneRecoverySpendDialog
+        open={arcaneRecoverySpendId != null}
+        resource={arcaneRecoveryResource}
+        wizardLevel={arcaneRecoveryWizardLevel}
+        slots={draft.spells.slots}
+        onRecover={(slots, label) => {
+          if (!arcaneRecoverySpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            spells: { ...prev.spells, slots },
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) =>
+                row.id === arcaneRecoverySpendId && row.used < row.max
+                  ? { ...row, used: row.used + 1 }
+                  : row,
+              ),
+            },
+          }))
+          onToast(label)
+          setArcaneRecoverySpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setArcaneRecoverySpendId(null)}
       />
 
       <LevelUpDialog
