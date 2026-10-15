@@ -845,6 +845,8 @@ export function MinimalSheetEditor({
 
       <PlayPanel
         edition={baseCharacter.rules_edition as RulesEdition}
+        characterId={baseCharacter.id}
+        characterName={draft.name}
         level={characterLevel}
         hpCurrent={draft.hpCurrent}
         hpMax={draft.hpMax}
@@ -880,6 +882,7 @@ export function MinimalSheetEditor({
 
       <SpellsPanel
         edition={baseCharacter.rules_edition as RulesEdition}
+        characterId={baseCharacter.id}
         className={classSummary || primaryClass?.name || ''}
         level={characterLevel}
         classes={draft.classes}

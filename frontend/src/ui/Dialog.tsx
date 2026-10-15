@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button'
 import { Stack } from './Stack'
 
@@ -11,6 +12,7 @@ type DialogProps = {
   onPrimary: () => void
   onSecondary?: () => void
   busy?: boolean
+  primaryDisabled?: boolean
   size?: 'default' | 'wide'
 }
 
@@ -23,13 +25,14 @@ export function Dialog({
   onPrimary,
   onSecondary,
   busy = false,
+  primaryDisabled = false,
   size = 'default',
 }: DialogProps) {
-  if (!open) {
+  if (!open || typeof document === 'undefined') {
     return null
   }
 
-  return (
+  return createPortal(
     <div className="ui-dialog-backdrop" role="presentation">
       <div
         className={`ui-dialog${size === 'wide' ? ' ui-dialog--wide' : ''}`}
@@ -48,12 +51,13 @@ export function Dialog({
                 {secondaryLabel}
               </Button>
             ) : null}
-            <Button onClick={onPrimary} disabled={busy}>
+            <Button onClick={onPrimary} disabled={busy || primaryDisabled}>
               {primaryLabel}
             </Button>
           </div>
         </Stack>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -5,6 +5,7 @@
  */
 import { useMemo, useState } from 'react'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
+import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
@@ -26,6 +27,15 @@ const DEMO_SEATS: SessionSeat[] = [
     speed: 30,
     inspiration: true,
     conditions: [],
+    effects: [
+      {
+        id: 'fx-bless-c1',
+        name: 'Благословение',
+        source_character_id: 'c2',
+        source_name: 'Вирра',
+        linked_concentration: true,
+      },
+    ],
     companions: [
       {
         id: 'comp1',
@@ -53,6 +63,9 @@ const DEMO_SEATS: SessionSeat[] = [
     speed: 30,
     inspiration: false,
     conditions: [{ slug: 'poisoned', name: 'Отравленный', catalog_id: null }],
+    concentration: { spell_id: 'bless', name: 'Благословение' },
+    effect_suggestions: ['Благословение', 'Щит веры'],
+    effects: [],
     companions: [],
     passive_perception: 15,
     passive_insight: 15,
@@ -185,6 +198,7 @@ export function SessionLiveTablePreviewPage() {
   const [writeJournal, setWriteJournal] = useState(true)
   const [seats, setSeats] = useState(DEMO_SEATS)
   const [conditionOpen, setConditionOpen] = useState(false)
+  const [effectOpen, setEffectOpen] = useState(false)
 
   // Как в продукте: профиль из настроек лобби; здесь — дефолт (всё видно игрокам).
   // Мастер на реальном экране = is_owner лобби, не отдельный переключатель.
@@ -261,9 +275,15 @@ export function SessionLiveTablePreviewPage() {
                     >
                       Состояние
                     </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setEffectOpen(true)}
+                    >
+                      Эффект
+                    </Button>
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Выдать эффект одному или группе. Тег с листа игрока тоже появится на
-                      карточке.
+                      Состояние — вред (отравлен…). Эффект — пометка «на нём баф».
                     </Text>
                   </div>
                 ) : null}
@@ -299,6 +319,39 @@ export function SessionLiveTablePreviewPage() {
                           }),
                         )
                         setToast(`Снято: ${condition.name}`)
+                      }}
+                      onRemoveEffect={(effect) => {
+                        setSeats((prev) =>
+                          prev.map((s) => {
+                            if (s.character_id !== seat.character_id) return s
+                            return {
+                              ...s,
+                              effects: (s.effects ?? []).filter((e) => e.id !== effect.id),
+                            }
+                          }),
+                        )
+                        setToast(`Снято: ${effect.name}`)
+                      }}
+                      onClearConcentration={() => {
+                        const casterId = seat.character_id
+                        setSeats((prev) =>
+                          prev.map((s) => {
+                            if (s.character_id === casterId) {
+                              return { ...s, concentration: null }
+                            }
+                            return {
+                              ...s,
+                              effects: (s.effects ?? []).filter(
+                                (e) =>
+                                  !(
+                                    e.linked_concentration &&
+                                    e.source_character_id === casterId
+                                  ),
+                              ),
+                            }
+                          }),
+                        )
+                        setToast('Концентрация снята · связанные эффекты убраны')
                       }}
                       onAddCompanion={() =>
                         setToast('На живой сессии: диалог «+ Напарник»')
@@ -393,6 +446,31 @@ export function SessionLiveTablePreviewPage() {
             characterIds.length === 1
               ? `Состояние: ${condition.name}`
               : `Состояние: ${condition.name} · ${characterIds.length}`,
+          )
+        }}
+      />
+
+      <ApplyEffectDialog
+        open={effectOpen}
+        seats={seats}
+        preferredSourceId="c2"
+        onClose={() => setEffectOpen(false)}
+        onApply={(effect, characterIds) => {
+          setSeats((prev) =>
+            prev.map((s) => {
+              if (!characterIds.includes(s.character_id)) return s
+              const current = s.effects ?? []
+              return {
+                ...s,
+                effects: [...current, { ...effect, id: `${effect.id}-${s.character_id}` }],
+              }
+            }),
+          )
+          setEffectOpen(false)
+          setToast(
+            characterIds.length === 1
+              ? `Эффект: ${effect.name}`
+              : `Эффект: ${effect.name} · ${characterIds.length}`,
           )
         }}
       />

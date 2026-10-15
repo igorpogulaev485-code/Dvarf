@@ -24,6 +24,9 @@ import {
   type CatalogEntry,
 } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
+import { ApiRequestError } from '../../shared/api/client'
+import { shareLobbyEffect } from '../../shared/api/lobbies'
+import { guessAllyTargetCount, guessResourceAppliesToAllies } from '../../shared/dnd/allyTargets'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import {
   RESET_LABELS,
@@ -31,9 +34,12 @@ import {
   type PlayState,
 } from './play'
 import type { SpellsState } from './spells'
+import { UseAllyAbilityDialog } from './UseAllyAbilityDialog'
 
 type PlayPanelProps = {
   edition: RulesEdition
+  characterId: string
+  characterName: string
   level: number
   hpCurrent: number | null
   hpMax: number | null
@@ -83,6 +89,8 @@ function DeathTrack({
 
 export function PlayPanel({
   edition,
+  characterId,
+  characterName,
   level,
   hpCurrent,
   hpMax,
@@ -95,6 +103,9 @@ export function PlayPanel({
   onToast,
 }: PlayPanelProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
+  const [pendingResourceId, setPendingResourceId] = useState<string | null>(null)
+  const [pendingResourceUsed, setPendingResourceUsed] = useState<number | null>(null)
+  const pendingResource = play.resources.find((r) => r.id === pendingResourceId) ?? null
   const hitDiceMax = Math.max(1, Math.floor(level))
   const suggestedHeal = play.hitDie
     ? suggestedHitDieHeal(play.hitDie, constitutionMod)
@@ -356,6 +367,25 @@ export function PlayPanel({
           ) : null}
         </div>
 
+        {play.effects.length > 0 ? (
+          <div>
+            <Text tone="muted">На вас действуют</Text>
+            <div className="session-table-card__conditions" style={{ marginTop: 8 }}>
+              {play.effects.map((fx) => (
+                <span key={fx.id} className="session-effect-tag">
+                  {fx.source_name ? `${fx.name} · ${fx.source_name}` : fx.name}
+                  {fx.linked_concentration ? (
+                    <span className="session-effect-tag__link" aria-hidden>
+                      {' '}
+                      ⛓
+                    </span>
+                  ) : null}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <div>
           <Text tone="muted">Состояния — чипы вкл/выкл</Text>
           <div className="chip-row play-conditions">
@@ -410,6 +440,48 @@ export function PlayPanel({
           </div>
         </div>
 
+        <UseAllyAbilityDialog
+          open={pendingResource != null && pendingResourceUsed != null}
+          characterId={characterId}
+          characterName={characterName}
+          abilityName={pendingResource?.name ?? ''}
+          targetCount={guessAllyTargetCount(pendingResource?.name ?? '')}
+          onClose={() => {
+            setPendingResourceId(null)
+            setPendingResourceUsed(null)
+          }}
+          onConfirm={(targetIds, lobbyId) => {
+            if (pendingResourceId == null || pendingResourceUsed == null) return
+            updateResource(pendingResourceId, { used: pendingResourceUsed })
+            const abilityName = pendingResource?.name || 'Способность'
+            setPendingResourceId(null)
+            setPendingResourceUsed(null)
+            if (targetIds.length === 0 || !lobbyId) {
+              onToast(`${abilityName}: ресурс потрачен`)
+              return
+            }
+            void shareLobbyEffect(lobbyId, {
+              source_character_id: characterId,
+              name: abilityName,
+              target_character_ids: targetIds,
+              linked_concentration: Boolean(play.concentration),
+            })
+              .then((result) => {
+                onToast(
+                  `${abilityName} · целей ${result.applied > 0 ? result.applied : targetIds.length}`,
+                )
+              })
+              .catch((err: unknown) => {
+                onToast(
+                  err instanceof ApiRequestError
+                    ? err.message
+                    : 'Ресурс списан, но не удалось пометить союзников',
+                )
+              })
+          }}
+          onToast={onToast}
+        />
+
         <Stack gap={10}>
           <div className="play-resources-head">
             <Text>Ограниченные ресурсы</Text>
@@ -428,9 +500,14 @@ export function PlayPanel({
                   <Field label="Название">
                     <Input
                       value={resource.name}
-                      onChange={(event) =>
-                        updateResource(resource.id, { name: event.target.value })
-                      }
+                      onChange={(event) => {
+                        const name = event.target.value
+                        updateResource(resource.id, {
+                          name,
+                          applies_to_allies:
+                            resource.applies_to_allies || guessResourceAppliesToAllies(name),
+                        })
+                      }}
                     />
                   </Field>
                   <Field label="Макс">
@@ -448,11 +525,30 @@ export function PlayPanel({
                     />
                   </Field>
                 </div>
+                <label className="session-feed-filter">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(resource.applies_to_allies)}
+                    onChange={(e) =>
+                      updateResource(resource.id, {
+                        applies_to_allies: e.target.checked,
+                      })
+                    }
+                  />
+                  На союзников (при трате — выбрать кого)
+                </label>
                 <SlotPips
                   max={resource.max}
                   used={resource.used}
                   label={`${resource.name || 'Ресурс'}: потрачено`}
-                  onChange={(used) => updateResource(resource.id, { used })}
+                  onChange={(used) => {
+                    if (resource.applies_to_allies && used > resource.used) {
+                      setPendingResourceId(resource.id)
+                      setPendingResourceUsed(used)
+                      return
+                    }
+                    updateResource(resource.id, { used })
+                  }}
                 />
                 <div className="play-resource__meta">
                   <label className="play-resource__reset">
