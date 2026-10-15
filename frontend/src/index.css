@@ -2725,6 +2725,15 @@ input {
   align-items: center;
 }
 
+.companion-card--self-form {
+  border-color: color-mix(in srgb, var(--accent, #6b8f71) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent, #6b8f71) 6%, #fffdf8);
+}
+
+.companion-card__form-badge {
+  font-weight: 650;
+}
+
 .companions-add-fork {
   display: grid;
   gap: 10px;

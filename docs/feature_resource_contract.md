@@ -21,14 +21,13 @@
 4b. **Ability-mod spend** — `uses_from: ability_modifier` + `ability: wis` (Warding Flare, War Priest, Cleansing Touch)
 4c. **1+ability-mod spend** — `uses_from: one_plus_ability_modifier` + `ability: cha` (Divine Sense)
 5. **Level table spend** — `scale_uses` по уровню класса (кости превосходства BM, Channel Divinity, Lay on Hands 5×ур.)
-6. **Stock / event** — `track: stock`, ручной +/− (частицы души); **или** desk-диалог пишет `used` = число активных (инфузии изобретателя `infusion_slots`)
+6. **Stock / event** — `track: stock`, ручной +/− (частицы души)
 7. **Linked spend** — `linked_spend` на другой pool (вопль ← частица)
 8. **Recover one** — `recover_one` (Soulknife: бонусным вернуть 1 кость / short)
 9. **Initiative grant** — `grant_one_on_initiative_if_empty` (Relentless BM)
 10. **Long-rest stock grant** — `grant_stock_on_long_rest_if_empty` (Друг смерти)
 11. **Choice / pick** — subclass/class grants **или** `choice` на умении → `sheet.feature_picks` (Fighting Style)
-12. **Shared pool** — несколько умений с одним `pool_id` (Turn Undead + доменные Channel Divinity; Flurry/Stun + `ki` с `spend_cost`; Soulknife knack/whispers + `psionic_energy_dice`)
-12b. **Linked amount** — `linked_spend.amount` / `amount_max` (Shadow Arts 2 ки; Touch of the Long Death 1–10; Psychic Veil 1 пси; Rend Mind 3 пси)
+12. **Shared pool** — несколько умений с одним `pool_id` (Turn Undead + доменные Channel Divinity)
 13. **Success lock** — `success_lock` + `failure_spend_label_ru` (Divine Intervention: провал → long rest; успех → manual 7 дней)
 14. **Slot spend** — `slot_spend` тратит ячейку заклинаний с ряда умения (Divine Smite)
 15. **Save bonus self** — `save_bonus_self` добавляет мод. характеристики к спасам на листе (Aura of Protection)
@@ -47,14 +46,7 @@
   "pool_id": "superiority_dice",
   "pool_name_ru": "Кости превосходства",
   "track": "spend | stock",
-  "spend_cost": 1,
-  "linked_spend": {
-    "pool_id": "soul_trinkets",
-    "label_ru": "сжечь частицу души",
-    "mode": "stock | spend",
-    "amount": 1,
-    "amount_max": 10
-  },
+  "linked_spend": { "pool_id": "soul_trinkets", "label_ru": "сжечь частицу души" },
   "recover_one": {
     "label_ru": "Вернуть 1 кость (бонусное)",
     "recharge": "short_rest"
@@ -80,7 +72,7 @@
   → unlockFeaturesForClasses
   → desiredResourcesFromFeatures (max / reset / track)
   → syncFeatureResources → play.resources (feat:*)
-  → UI умений (траты) + RestDialog / hot-bar (отдых по recharge)
+  → UI умений (траты) + PlayPanel (отдых по recharge)
 ```
 
 Правила sync: пересчёт max при level-up; used/stock clamp; revoke при смене архетипа; ручные ресурсы не трогаем.
@@ -101,17 +93,19 @@
 | Rogue PHB | 1, 2 |
 | Phantom | 1, 3, 6, 7, 10 |
 | Soulknife | 1, 4, 8 |
-| Battle Master | 1, 5, 9 (+ Fighter 2; desk SuperiorityDiceSpendDialog → known maneuvers) |
+| Battle Master | 1, 5, 9 (+ Fighter 2) |
 | Barbarian / Berserker / Totem | 1, 5 (+ Rage table) |
-| Monk / Open Hand / Shadow / Elements | 1, 5, 9, 12, 12b (+ Ki = level, Perfect Self +4; desk KiSpendDialog) |
+| Monk / Open Hand / Shadow / Elements | 1, 5, 9 (+ Ki = level, Perfect Self +4) |
 | Cleric / **14** оф. доменов | 2, 4b, 5, 12, 13 (CD shared; Wis-mod; DI success lock; PHB+DMG+SCAG+XGtE+TCoE) |
-| Paladin / **9** оф. клятв | 2, 4b, 4c, 5, 11, 12, 14, 15 (LoH picker; Sense; CD oath options via ChannelDivinitySpendDialog; Smite; Aura) |
+| Paladin / **9** оф. клятв | 2, 4b, 4c, 5, 11, 12, 14, 15 (LoH; Sense; CD; Fighting Style; Smite slots; Aura saves) |
 | Ranger / **8** оф. архетипов | 2, 3, 4b, 11, 14 (Favored Enemy/Terrain; Fighting Style; Primeval Awareness slot) |
 | Sorcerer / **8** оф. происхождений | 2, 5, 11 + Flexible Casting UI + Metamagic SP spend (Twinned = ур. ячейки) |
 | Warlock / **9** оф. покровителей | 2, 5, 11 (Pact Magic already in caster; Invocations multi-pick; Pact Boon; Arcanum 6–9) |
-| Bard / **8** оф. коллегий | 2, 4b, 5, 8, 11, 12b (BI Cha-mod; Font short; Superior Inspiration; desk BardicInspirationSpendDialog) |
+| Bard / **8** оф. коллегий | 2, 4b, 5, 8, 11 (BI Cha-mod; Font upgrades reset long→short; Superior Inspiration; Swords style) |
 | Druid / **7** оф. кругов | 2, 3, 4b, 5, 11 (Wild Shape 2× short; Land type pick; PB/Wis pools on circles) |
-| Wizard / **11** оф. традиций | 2, 5, 6, 11 (ArcaneRecoverySpendDialog; Portent stock; Bladesong PB; Signature Spells) |
+
+**Облики (Wild Shape / Polymorph / …):** пул умения только тратит заряд; runtime-карточка формы — см. [`forms-and-wild-shape.md`](forms-and-wild-shape.md) (`role: self_form` в Напарниках).
+| Wizard / **11** оф. традиций | 2, 5, 6, 11 (Arcane Recovery; Portent stock 2→3; Bladesong PB; Signature Spells) |
 | Artificer / **4** оф. специалиста | 2, 4b, 5, 11 (Infusions multi-pick 4→12; Flash of Genius Int; Armorer model) |
 
 ## H4 — порядок пакетов классов

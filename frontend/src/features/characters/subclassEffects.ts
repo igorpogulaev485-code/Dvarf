@@ -525,6 +525,8 @@ export function applySubclassGrantToDraft(input: {
             ? `Вариант: ${choice.fromLabelsRu[value]}`
             : '',
         source: {
+          kind: 'subclass',
+          labelRu: `Архетип: ${input.def.slug}`,
           classEntryId: input.classEntryId,
           subclassSlug: input.def.slug,
           feature: choice.id,

@@ -27,3 +27,7 @@ build/
 frontend/dist/
 frontend/node_modules/
 mockups/
+
+# ttg fetch cache (not committed; fixture JSON is separate)
+backend/data/srd/2014/bestiary_raw/*.json
+!backend/data/srd/2014/bestiary_raw/README.md

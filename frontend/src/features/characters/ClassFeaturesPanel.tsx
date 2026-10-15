@@ -85,8 +85,22 @@ import {
   newCustomFeatureId,
   type CustomFeature,
 } from './customFeatures'
+import { isFeatureSelfFormId } from './featureForms'
 import type { SpellsState } from './spells'
 import { abilityModifier, SKILL_DEFS } from './sheetTypes'
+import { isWildShapeForkFeature, moonHealDiceCount } from './wildShape'
+
+export type WildShapeForkRequest = {
+  feature: UnlockedFeature
+  classSlug: string
+  classEntryId: string
+}
+
+export type FeatureSelfFormRequest = {
+  feature: UnlockedFeature
+  classSlug: string
+  classEntryId: string
+}
 
 type ClassFeaturesPanelProps = {
   classes: ClassLevelEntry[]
@@ -117,6 +131,22 @@ type ClassFeaturesPanelProps = {
   wearingHeavyArmor?: boolean
   companions?: CompanionEntry[]
   onCompanionsChange?: (companions: CompanionEntry[]) => void
+  /**
+   * Дикий облик + linked_spend альтернативы (Дикий спутник, Звёздная форма, …):
+   * открыть развилку вместо голого spend.
+   */
+  onWildShapeFork?: (request: WildShapeForkRequest) => void
+  /** Wizard Shapechanger etc. — open self_form picker, then spend pool. */
+  onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
+  /**
+   * Moon Combat Wild Shape: spend slot + heal active self_form (caller updates spells).
+   * Return toast message on success, null if no form.
+   */
+  onMoonFormSlotHeal?: (input: {
+    slotLevel: number
+    diceCount: number
+    diceSize: number
+  }) => string | null
   onToast?: (message: string) => void
   /** Summary surface: feats + race on the same glance list. */
   featGrants?: AppliedFeatGrant[]
@@ -194,6 +224,9 @@ function FeatureResourceControls({
   wearingHeavyArmor,
   onOpenInfusions,
   onOpenSoulTrinkets,
+  onWildShapeFork,
+  onFeatureSelfForm,
+  moonCombatWildShape = false,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -206,6 +239,10 @@ function FeatureResourceControls({
   wearingHeavyArmor: boolean
   onOpenInfusions?: (classEntryId: string) => void
   onOpenSoulTrinkets?: (classEntryId: string) => void
+  onWildShapeFork?: (request: WildShapeForkRequest) => void
+  onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
+  /** Circle of the Moon: Wild Shape is a bonus action. */
+  moonCombatWildShape?: boolean
 }) {
   const resource = feature.resource
   if (!resource?.pool_id) return null
@@ -325,6 +362,21 @@ function FeatureResourceControls({
   const lockedBySuccess = Boolean(successLock) && pool.reset === 'manual' && pool.used > 0
   const blockedByHeavyArmor =
     Boolean(resource.blocked_while_heavy_armor) && wearingHeavyArmor
+  const opensWildShapeFork =
+    Boolean(onWildShapeFork) && isWildShapeForkFeature(feature.id)
+  // Fork spends wild_shape (own pool or linked); enable when that currency remains.
+  const wildShapePoolForFork =
+    poolId === 'wild_shape'
+      ? pool
+      : linked?.pool_id === 'wild_shape'
+        ? linkedPool
+        : null
+  const wildShapeLeftForFork = spendRemaining(wildShapePoolForFork)
+  const canOpenWildShapeFork = opensWildShapeFork && wildShapeLeftForFork > 0
+  const opensFeatureSelfForm =
+    Boolean(onFeatureSelfForm) && isFeatureSelfFormId(feature.id)
+  const canOpenFeatureSelfForm =
+    opensFeatureSelfForm && remaining > 0
 
   return (
     <div className="feature-resource">
@@ -349,10 +401,20 @@ function FeatureResourceControls({
           лёгкий/средний.
         </Text>
       ) : null}
-      {linked ? (
+      {linked && !opensWildShapeFork ? (
         <Text tone="muted">
           Сверх лимита: {linked.label_ru}
           {linkedPool ? ` (${linkedLeft} доступно)` : ''}
+        </Text>
+      ) : null}
+      {opensWildShapeFork ? (
+        <Text tone="muted">
+          Тратит Дикий облик
+          {wildShapePoolForFork
+            ? ` (${wildShapeLeftForFork}/${wildShapePoolForFork.max})`
+            : ''}
+          {' · '}
+          развилка: облик / спутник / умения круга
         </Text>
       ) : null}
       {lockedBySuccess ? (
@@ -406,6 +468,46 @@ function FeatureResourceControls({
               </Button>
             ) : null}
           </>
+        ) : opensWildShapeFork ? (
+          <Button
+            type="button"
+            disabled={!canOpenWildShapeFork}
+            onClick={() => {
+              if (!canOpenWildShapeFork) {
+                onToast?.('Нет использований Дикого облика')
+                return
+              }
+              onWildShapeFork?.({
+                feature,
+                classSlug,
+                classEntryId: feature.classEntryId,
+              })
+            }}
+          >
+            {feature.id === 'wild_shape'
+              ? moonCombatWildShape
+                ? 'Потратить (бонусным)…'
+                : 'Потратить…'
+              : 'Через Дикий облик…'}
+          </Button>
+        ) : opensFeatureSelfForm ? (
+          <Button
+            type="button"
+            disabled={!canOpenFeatureSelfForm}
+            onClick={() => {
+              if (!canOpenFeatureSelfForm) {
+                onToast?.('Нет использований')
+                return
+              }
+              onFeatureSelfForm?.({
+                feature,
+                classSlug,
+                classEntryId: feature.classEntryId,
+              })
+            }}
+          >
+            Принять облик…
+          </Button>
         ) : (
           <Button
             type="button"
@@ -1058,11 +1160,17 @@ function FeatureSlotSpendControls({
   spells,
   onSpellsChange,
   onToast,
+  onMoonFormSlotHeal,
 }: {
   feature: UnlockedFeature
   spells: SpellsState
   onSpellsChange: (spells: SpellsState) => void
   onToast?: (message: string) => void
+  onMoonFormSlotHeal?: (input: {
+    slotLevel: number
+    diceCount: number
+    diceSize: number
+  }) => string | null
 }) {
   const spend = feature.slot_spend
   if (!spend) return null
@@ -1071,12 +1179,14 @@ function FeatureSlotSpendControls({
   for (let level = spend.min_slot; level <= spend.max_slot; level += 1) {
     levels.push(level)
   }
+  const isMoonHeal = feature.id === 'combat_wild_shape'
 
   return (
     <div className="feature-resource">
       <Text tone="muted">
         {spend.label_ru}
         {spend.extra_vs_note_ru ? ` · ${spend.extra_vs_note_ru}` : ''}
+        {isMoonHeal ? ' · нужен активный облик' : ''}
       </Text>
       <div className="feature-resource__actions">
         {levels.map((level) => {
@@ -1089,6 +1199,27 @@ function FeatureSlotSpendControls({
               type="button"
               disabled={!available}
               onClick={() => {
+                if (isMoonHeal && onMoonFormSlotHeal) {
+                  const diceSize = spend.dice_size ?? 8
+                  const diceCount = withDice ? dice : moonHealDiceCount(level)
+                  const result = spendSpellSlot(spells.slots, level)
+                  if (!result.ok) {
+                    onToast?.(`Нет ячейки ${level} ур.`)
+                    return
+                  }
+                  const msg = onMoonFormSlotHeal({
+                    slotLevel: level,
+                    diceCount,
+                    diceSize,
+                  })
+                  if (msg == null) {
+                    onToast?.('Нет активного облика')
+                    return
+                  }
+                  onSpellsChange({ ...spells, slots: result.slots })
+                  onToast?.(msg)
+                  return
+                }
                 const result = spendSpellSlot(spells.slots, level)
                 if (!result.ok) {
                   onToast?.(`Нет ячейки ${level} ур.`)
@@ -1136,6 +1267,10 @@ function FeatureRow({
   onOpenInvocations,
   onOpenSoulTrinkets,
   onOpenRangerFavored,
+  onWildShapeFork,
+  onFeatureSelfForm,
+  moonCombatWildShape = false,
+  onMoonFormSlotHeal,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -1159,6 +1294,14 @@ function FeatureRow({
   onOpenInvocations?: (classEntryId: string) => void
   onOpenSoulTrinkets?: (classEntryId: string) => void
   onOpenRangerFavored?: (classEntryId: string) => void
+  onWildShapeFork?: (request: WildShapeForkRequest) => void
+  onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
+  moonCombatWildShape?: boolean
+  onMoonFormSlotHeal?: (input: {
+    slotLevel: number
+    diceCount: number
+    diceSize: number
+  }) => string | null
 }) {
   const sourceLabel =
     feature.source === 'subclass'
@@ -1328,6 +1471,7 @@ function FeatureRow({
         spells={spells}
         onSpellsChange={onSpellsChange}
         onToast={onToast}
+        onMoonFormSlotHeal={onMoonFormSlotHeal}
       />
       <FeatureResourceControls
         feature={feature}
@@ -1341,6 +1485,9 @@ function FeatureRow({
         wearingHeavyArmor={wearingHeavyArmor}
         onOpenInfusions={onOpenInfusions}
         onOpenSoulTrinkets={onOpenSoulTrinkets}
+        onWildShapeFork={onWildShapeFork}
+        onFeatureSelfForm={onFeatureSelfForm}
+        moonCombatWildShape={moonCombatWildShape}
       />
       {feature.id === 'eldritch_invocations' && onOpenInvocations ? (
         <div className="feature-resource__actions">
@@ -1411,6 +1558,9 @@ export function ClassFeaturesPanel({
   wearingHeavyArmor = false,
   companions = [],
   onCompanionsChange,
+  onWildShapeFork,
+  onFeatureSelfForm,
+  onMoonFormSlotHeal,
   onToast,
   featGrants = [],
   darkvision = 0,
@@ -1463,6 +1613,11 @@ export function ClassFeaturesPanel({
     }
     return map
   }, [features])
+
+  const moonCombatWildShape = useMemo(
+    () => features.some((f) => f.id === 'combat_wild_shape'),
+    [features],
+  )
 
   const byClass = useMemo(() => {
     const map = new Map<string, UnlockedFeature[]>()
@@ -1722,6 +1877,10 @@ export function ClassFeaturesPanel({
                     onOpenInvocations={onOpenInvocations}
                     onOpenSoulTrinkets={onOpenSoulTrinkets}
                     onOpenRangerFavored={onOpenRangerFavored}
+                    onWildShapeFork={onWildShapeFork}
+                    onFeatureSelfForm={onFeatureSelfForm}
+                    moonCombatWildShape={moonCombatWildShape}
+                    onMoonFormSlotHeal={onMoonFormSlotHeal}
                   />
                 )
               })}
