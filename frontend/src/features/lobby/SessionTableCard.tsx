@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import type { SeatCompanion, SeatCondition, SessionSeat } from '../../shared/api/lobbies'
-import { FALLBACK_CONDITIONS } from '../../shared/dnd/conditions'
 import { Text } from '../../ui'
 import {
   normalizeVisibilityProfile,
@@ -13,11 +12,12 @@ type Props = {
   sheetLabel?: string
   /** Мастер / владелец видит полные числа даже если игрокам скрыто */
   revealAll?: boolean
-  /** Панель жестов мастера (вдохновение / состояния / напарник) */
+  /** Жесты за столом: вдохновение, снятие тега, напарник */
   masterControls?: boolean
   busy?: boolean
   onToggleInspiration?: (next: boolean) => void
-  onToggleCondition?: (condition: SeatCondition) => void
+  /** Снять состояние с этого персонажа (тап по тегу) */
+  onRemoveCondition?: (condition: SeatCondition) => void
   onAddCompanion?: () => void
   onRemoveCompanion?: (companionId: string) => void
 }
@@ -65,7 +65,7 @@ function CompanionCard({
         {companion.conditions.length > 0 ? (
           <div className="session-table-card__conditions">
             {companion.conditions.map((c) => (
-              <span key={c.slug} className="session-condition-chip is-on">
+              <span key={c.slug} className="session-condition-tag">
                 {c.name}
               </span>
             ))}
@@ -95,7 +95,7 @@ export function SessionTableCard({
   masterControls = false,
   busy = false,
   onToggleInspiration,
-  onToggleCondition,
+  onRemoveCondition,
   onAddCompanion,
   onRemoveCompanion,
 }: Props) {
@@ -119,7 +119,6 @@ export function SessionTableCard({
   const initial = (seat.character_name.trim().charAt(0) || '?').toUpperCase()
   const conditions = seat.conditions ?? []
   const companions = seat.companions ?? []
-  const activeSlugs = new Set(conditions.map((c) => c.slug))
 
   return (
     <div className="session-seat-stack">
@@ -190,13 +189,27 @@ export function SessionTableCard({
             ) : null}
           </div>
 
-          {showConditions && conditions.length > 0 && !masterControls ? (
-            <div className="session-table-card__conditions">
-              {conditions.map((c) => (
-                <span key={c.slug} className="session-condition-chip is-on">
-                  {c.name}
-                </span>
-              ))}
+          {showConditions && conditions.length > 0 ? (
+            <div className="session-table-card__conditions" aria-label="Состояния">
+              {conditions.map((c) =>
+                masterControls && onRemoveCondition ? (
+                  <button
+                    key={c.slug}
+                    type="button"
+                    className="session-condition-tag is-removable"
+                    disabled={busy}
+                    title="Снять состояние"
+                    onClick={() => onRemoveCondition(c)}
+                  >
+                    {c.name}
+                    <span aria-hidden> ×</span>
+                  </button>
+                ) : (
+                  <span key={c.slug} className="session-condition-tag">
+                    {c.name}
+                  </span>
+                ),
+              )}
             </div>
           ) : null}
 
@@ -211,31 +224,6 @@ export function SessionTableCard({
               >
                 ★ Вдохновение
               </button>
-              {showConditions ? (
-                <div className="session-table-card__conditions">
-                  {FALLBACK_CONDITIONS.map((opt) => {
-                    const on = activeSlugs.has(opt.slug)
-                    return (
-                      <button
-                        key={opt.slug}
-                        type="button"
-                        className={`session-condition-chip${on ? ' is-on' : ''}`}
-                        disabled={busy}
-                        aria-pressed={on}
-                        onClick={() =>
-                          onToggleCondition?.({
-                            slug: opt.slug,
-                            name: opt.name_ru,
-                            catalog_id: null,
-                          })
-                        }
-                      >
-                        {opt.name_ru}
-                      </button>
-                    )
-                  })}
-                </div>
-              ) : null}
             </div>
           ) : null}
 

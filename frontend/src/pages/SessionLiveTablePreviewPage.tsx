@@ -4,6 +4,7 @@
  * /dev/session-live-table-preview
  */
 import { useMemo, useState } from 'react'
+import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
@@ -183,6 +184,7 @@ export function SessionLiveTablePreviewPage() {
   const [closeSummary, setCloseSummary] = useState('')
   const [writeJournal, setWriteJournal] = useState(true)
   const [seats, setSeats] = useState(DEMO_SEATS)
+  const [conditionOpen, setConditionOpen] = useState(false)
 
   // Как в продукте: профиль из настроек лобби; здесь — дефолт (всё видно игрокам).
   // Мастер на реальном экране = is_owner лобби, не отдельный переключатель.
@@ -249,58 +251,74 @@ export function SessionLiveTablePreviewPage() {
             <SessionLiveTabs active={liveTab} onChange={setLiveTab} />
 
             {liveTab === 'table' ? (
-              <div className="session-table-grid">
-                {seats.map((seat) => (
-                  <SessionTableCard
-                    key={seat.character_id}
-                    seat={seat}
-                    visibility={visibility}
-                    revealAll
-                    masterControls={!closed}
-                    sheetLabel="Смотреть"
-                    onToggleInspiration={(next) => {
-                      setSeats((prev) =>
-                        prev.map((s) =>
-                          s.character_id === seat.character_id
-                            ? { ...s, inspiration: next }
-                            : s,
-                        ),
-                      )
-                      setToast(next ? 'Вдохновение выдано' : 'Вдохновение снято')
-                    }}
-                    onToggleCondition={(condition) => {
-                      setSeats((prev) =>
-                        prev.map((s) => {
-                          if (s.character_id !== seat.character_id) return s
-                          const current = s.conditions ?? []
-                          const exists = current.some((c) => c.slug === condition.slug)
-                          return {
-                            ...s,
-                            conditions: exists
-                              ? current.filter((c) => c.slug !== condition.slug)
-                              : [...current, condition],
-                          }
-                        }),
-                      )
-                    }}
-                    onAddCompanion={() =>
-                      setToast('На живой сессии: диалог «+ Напарник»')
-                    }
-                    onRemoveCompanion={(id) => {
-                      setSeats((prev) =>
-                        prev.map((s) =>
-                          s.character_id === seat.character_id
-                            ? {
-                                ...s,
-                                companions: (s.companions ?? []).filter((c) => c.id !== id),
-                              }
-                            : s,
-                        ),
-                      )
-                    }}
-                  />
-                ))}
-              </div>
+              <Stack gap={12}>
+                {!closed ? (
+                  <div className="session-table-toolbar">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setConditionOpen(true)}
+                    >
+                      Состояние
+                    </Button>
+                    <Text tone="muted" className="session-table-toolbar__hint">
+                      Выдать эффект одному или группе. Тег с листа игрока тоже появится на
+                      карточке.
+                    </Text>
+                  </div>
+                ) : null}
+                <div className="session-table-grid">
+                  {seats.map((seat) => (
+                    <SessionTableCard
+                      key={seat.character_id}
+                      seat={seat}
+                      visibility={visibility}
+                      revealAll
+                      masterControls={!closed}
+                      sheetLabel="Смотреть"
+                      onToggleInspiration={(next) => {
+                        setSeats((prev) =>
+                          prev.map((s) =>
+                            s.character_id === seat.character_id
+                              ? { ...s, inspiration: next }
+                              : s,
+                          ),
+                        )
+                        setToast(next ? 'Вдохновение выдано' : 'Вдохновение снято')
+                      }}
+                      onRemoveCondition={(condition) => {
+                        setSeats((prev) =>
+                          prev.map((s) => {
+                            if (s.character_id !== seat.character_id) return s
+                            return {
+                              ...s,
+                              conditions: (s.conditions ?? []).filter(
+                                (c) => c.slug !== condition.slug,
+                              ),
+                            }
+                          }),
+                        )
+                        setToast(`Снято: ${condition.name}`)
+                      }}
+                      onAddCompanion={() =>
+                        setToast('На живой сессии: диалог «+ Напарник»')
+                      }
+                      onRemoveCompanion={(id) => {
+                        setSeats((prev) =>
+                          prev.map((s) =>
+                            s.character_id === seat.character_id
+                              ? {
+                                  ...s,
+                                  companions: (s.companions ?? []).filter((c) => c.id !== id),
+                                }
+                              : s,
+                          ),
+                        )
+                      }}
+                    />
+                  ))}
+                </div>
+              </Stack>
             ) : null}
 
             {liveTab === 'feed' ? (
@@ -356,6 +374,28 @@ export function SessionLiveTablePreviewPage() {
           </Stack>
         </Panel>
       </Stack>
+
+      <ApplyConditionDialog
+        open={conditionOpen}
+        seats={seats}
+        onClose={() => setConditionOpen(false)}
+        onApply={(condition, characterIds) => {
+          setSeats((prev) =>
+            prev.map((s) => {
+              if (!characterIds.includes(s.character_id)) return s
+              const current = s.conditions ?? []
+              if (current.some((c) => c.slug === condition.slug)) return s
+              return { ...s, conditions: [...current, condition] }
+            }),
+          )
+          setConditionOpen(false)
+          setToast(
+            characterIds.length === 1
+              ? `Состояние: ${condition.name}`
+              : `Состояние: ${condition.name} · ${characterIds.length}`,
+          )
+        }}
+      />
 
       <Dialog
         open={closeOpen}

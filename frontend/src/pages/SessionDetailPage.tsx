@@ -4,6 +4,7 @@ import { AppHeader } from '../features/characters'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
+import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
@@ -53,6 +54,7 @@ export function SessionDetailPage() {
   const [companionName, setCompanionName] = useState('')
   const [companionHp, setCompanionHp] = useState<number | null>(11)
   const [companionAc, setCompanionAc] = useState<number | null>(13)
+  const [conditionOpen, setConditionOpen] = useState(false)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -285,65 +287,84 @@ export function SessionDetailPage() {
                     : ''}
                 </Text>
               ) : (
-                <div className="session-table-grid">
-                  {session.seats.map((seat) => {
-                    const isOwn = ownCharacterIds.has(seat.character_id)
-                    const canControl = session.is_owner || isOwn
-                    return (
-                      <SessionTableCard
-                        key={seat.character_id}
-                        seat={seat}
-                        visibility={visibility}
-                        revealAll={session.is_owner}
-                        masterControls={canControl && !session.closed_at}
-                        busy={busy}
-                        sheetLabel={session.is_owner && !isOwn ? 'Смотреть' : 'Лист'}
-                        onToggleInspiration={(next) => {
-                          void run(async () => {
-                            const updated = await patchSeatCombat(session.id, seat.character_id, {
-                              inspiration: next,
+                <Stack gap={12}>
+                  {session.is_owner && !session.closed_at ? (
+                    <div className="session-table-toolbar">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => setConditionOpen(true)}
+                      >
+                        Состояние
+                      </Button>
+                      <Text tone="muted" className="session-table-toolbar__hint">
+                        Выдать эффект одному или группе. Тег с листа игрока тоже появится на
+                        карточке.
+                      </Text>
+                    </div>
+                  ) : null}
+                  <div className="session-table-grid">
+                    {session.seats.map((seat) => {
+                      const isOwn = ownCharacterIds.has(seat.character_id)
+                      const canControl = session.is_owner || isOwn
+                      return (
+                        <SessionTableCard
+                          key={seat.character_id}
+                          seat={seat}
+                          visibility={visibility}
+                          revealAll={session.is_owner}
+                          masterControls={canControl && !session.closed_at}
+                          busy={busy}
+                          sheetLabel={session.is_owner && !isOwn ? 'Смотреть' : 'Лист'}
+                          onToggleInspiration={(next) => {
+                            void run(async () => {
+                              const updated = await patchSeatCombat(
+                                session.id,
+                                seat.character_id,
+                                { inspiration: next },
+                              )
+                              setSession(updated)
                             })
-                            setSession(updated)
-                          })
-                        }}
-                        onToggleCondition={(condition: SeatCondition) => {
-                          void run(async () => {
-                            const current = seat.conditions ?? []
-                            const exists = current.some((c) => c.slug === condition.slug)
-                            const next = exists
-                              ? current.filter((c) => c.slug !== condition.slug)
-                              : [...current, condition]
-                            const updated = await patchSeatCombat(session.id, seat.character_id, {
-                              conditions: next,
+                          }}
+                          onRemoveCondition={(condition: SeatCondition) => {
+                            void run(async () => {
+                              const current = seat.conditions ?? []
+                              const next = current.filter((c) => c.slug !== condition.slug)
+                              const updated = await patchSeatCombat(
+                                session.id,
+                                seat.character_id,
+                                { conditions: next },
+                              )
+                              setSession(updated)
                             })
-                            setSession(updated)
-                          })
-                        }}
-                        onAddCompanion={
-                          canControl && !session.closed_at
-                            ? () => {
-                                setCompanionHostId(seat.character_id)
-                                setCompanionName('')
-                                setCompanionHp(11)
-                                setCompanionAc(13)
-                                setCompanionOpen(true)
-                              }
-                            : undefined
-                        }
-                        onRemoveCompanion={(companionId) => {
-                          void run(async () => {
-                            const updated = await deleteSeatCompanion(
-                              session.id,
-                              seat.character_id,
-                              companionId,
-                            )
-                            setSession(updated)
-                          })
-                        }}
-                      />
-                    )
-                  })}
-                </div>
+                          }}
+                          onAddCompanion={
+                            canControl && !session.closed_at
+                              ? () => {
+                                  setCompanionHostId(seat.character_id)
+                                  setCompanionName('')
+                                  setCompanionHp(11)
+                                  setCompanionAc(13)
+                                  setCompanionOpen(true)
+                                }
+                              : undefined
+                          }
+                          onRemoveCompanion={(companionId) => {
+                            void run(async () => {
+                              const updated = await deleteSeatCompanion(
+                                session.id,
+                                seat.character_id,
+                                companionId,
+                              )
+                              setSession(updated)
+                            })
+                          }}
+                        />
+                      )
+                    })}
+                  </div>
+                </Stack>
               )
             ) : null}
 
@@ -504,6 +525,33 @@ export function SessionDetailPage() {
           ) : null}
         </Stack>
       </Dialog>
+
+      <ApplyConditionDialog
+        open={conditionOpen}
+        seats={session.seats}
+        busy={busy}
+        onClose={() => setConditionOpen(false)}
+        onApply={(condition, characterIds) => {
+          void run(async () => {
+            let latest = session
+            for (const characterId of characterIds) {
+              const seat = latest.seats.find((s) => s.character_id === characterId)
+              const current = seat?.conditions ?? []
+              if (current.some((c) => c.slug === condition.slug)) continue
+              latest = await patchSeatCombat(latest.id, characterId, {
+                conditions: [...current, condition],
+              })
+            }
+            setSession(latest)
+            setConditionOpen(false)
+            setToast(
+              characterIds.length === 1
+                ? `Состояние: ${condition.name}`
+                : `Состояние: ${condition.name} · ${characterIds.length}`,
+            )
+          })
+        }}
+      />
 
       <Dialog
         open={companionOpen}
