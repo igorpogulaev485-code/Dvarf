@@ -2,9 +2,16 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Query, Response, WebSocket, WebSocketDisconnect
 
 from app.api.deps import CurrentUser, DbSession
+from app.core.exceptions import UnauthorizedError
+from app.core.security import decode_token
+from app.db.session import SessionLocal
+from app.models.user import User
+from app.realtime.session_hub import session_hub
+from app.repositories.auth_session import AuthSessionRepository
+from app.repositories.user import UserRepository
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
     JoinLobbyRequest,
@@ -15,6 +22,8 @@ from app.schemas.lobby import (
     SeatRequest,
     SessionCreateRequest,
     SessionDetail,
+    SessionEventOut,
+    SessionRollCreateRequest,
     SessionUpdateRequest,
     SettingCreateRequest,
     SettingSummary,
@@ -23,6 +32,29 @@ from app.schemas.lobby import (
 from app.services.lobby import LobbyService
 
 router = APIRouter(tags=["lobbies"])
+
+
+def _user_from_ws_token(token: str) -> User:
+    try:
+        payload = decode_token(token)
+    except Exception as exc:  # noqa: BLE001
+        raise UnauthorizedError("Недействительный токен") from exc
+    if payload.get("type") != "access":
+        raise UnauthorizedError("Недействительный токен")
+    sid_raw = payload.get("sid")
+    if not sid_raw:
+        raise UnauthorizedError("Сессия устарела")
+    db = SessionLocal()
+    try:
+        session = AuthSessionRepository(db).get_active_by_id(UUID(str(sid_raw)))
+        if session is None:
+            raise UnauthorizedError("Сессия завершена")
+        user = UserRepository(db).get_by_id(UUID(payload["sub"]))
+        if user is None or user.id != session.user_id:
+            raise UnauthorizedError("Пользователь не найден")
+        return user
+    finally:
+        db.close()
 
 
 @router.get("/lobbies", response_model=list[LobbySummary])
@@ -193,3 +225,63 @@ def unseat_character(
     db: DbSession,
 ) -> SessionDetail:
     return LobbyService(db).unseat_character(current_user, session_id, character_id)
+
+
+@router.get("/sessions/{session_id}/events", response_model=list[SessionEventOut])
+def list_session_events(
+    session_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    rolls_only: bool = Query(default=False),
+) -> list[SessionEventOut]:
+    return LobbyService(db).list_session_events(
+        current_user,
+        session_id,
+        rolls_only=rolls_only,
+    )
+
+
+@router.post(
+    "/sessions/{session_id}/rolls",
+    response_model=SessionEventOut,
+    status_code=201,
+)
+async def create_session_roll(
+    session_id: UUID,
+    payload: SessionRollCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionEventOut:
+    return await LobbyService(db).create_manual_roll(current_user, session_id, payload)
+
+
+@router.websocket("/sessions/{session_id}/ws")
+async def session_ws(session_id: UUID, websocket: WebSocket) -> None:
+    token = websocket.query_params.get("token") or ""
+    if not token:
+        await websocket.close(code=4401)
+        return
+    try:
+        user = _user_from_ws_token(token)
+    except UnauthorizedError:
+        await websocket.close(code=4401)
+        return
+
+    db = SessionLocal()
+    try:
+        LobbyService(db).get_session(user, session_id)
+    except Exception:  # noqa: BLE001
+        await websocket.close(code=4403)
+        return
+    finally:
+        db.close()
+
+    await session_hub.connect(session_id, websocket)
+    try:
+        while True:
+            # Держим соединение; клиент может слать ping.
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        pass
+    finally:
+        await session_hub.disconnect(session_id, websocket)

@@ -1,6 +1,7 @@
 from app.models.catalog import CatalogEntry, CatalogKind, CatalogRulesEdition
 from app.models.character import Character, RulesEdition
 from app.models.lobby import Lobby, LobbyMember, PlaySession, SessionSeat, Setting
+from app.models.session_event import SessionEvent
 from app.models.user import (
     AuthProvider,
     AuthSession,
@@ -25,6 +26,7 @@ __all__ = [
     "PasswordResetToken",
     "PlaySession",
     "RulesEdition",
+    "SessionEvent",
     "SessionSeat",
     "Setting",
     "User",

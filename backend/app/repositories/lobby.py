@@ -14,6 +14,7 @@ from app.models.lobby import (
     Setting,
     generate_invite_code,
 )
+from app.models.session_event import SessionEvent
 
 
 class LobbyRepository:
@@ -66,6 +67,19 @@ class LobbyRepository:
                 LobbyMember.character_id == character_id,
             )
         )
+
+    def is_owner_of_character_lobby(self, *, owner_id: UUID, character_id: UUID) -> bool:
+        """Мастер хотя бы одного лобби, где этот персонаж в составе."""
+        lobby_id = self.db.scalar(
+            select(Lobby.id)
+            .join(LobbyMember, LobbyMember.lobby_id == Lobby.id)
+            .where(
+                Lobby.owner_id == owner_id,
+                LobbyMember.character_id == character_id,
+            )
+            .limit(1)
+        )
+        return lobby_id is not None
 
     def add_member(
         self,
@@ -155,6 +169,24 @@ class LobbyRepository:
             )
         ).all()
         return {row.id: row for row in rows}
+
+    def list_session_events(
+        self,
+        session_id: UUID,
+        *,
+        rolls_only: bool = False,
+        limit: int = 100,
+    ) -> list[SessionEvent]:
+        stmt = select(SessionEvent).where(SessionEvent.session_id == session_id)
+        if rolls_only:
+            stmt = stmt.where(SessionEvent.event_type == "roll")
+        stmt = stmt.order_by(SessionEvent.created_at.desc()).limit(limit)
+        return list(self.db.scalars(stmt).all())
+
+    def add_session_event(self, event: SessionEvent) -> SessionEvent:
+        self.db.add(event)
+        self.db.flush()
+        return event
 
     def delete_lobby(self, lobby: Lobby) -> None:
         self.db.delete(lobby)

@@ -34,6 +34,14 @@ class CharacterRepository:
             )
         )
 
+    def get_active(self, character_id: UUID) -> Character | None:
+        return self.db.scalar(
+            select(Character).where(
+                Character.id == character_id,
+                Character.deleted_at.is_(None),
+            )
+        )
+
     def create(
         self,
         *,

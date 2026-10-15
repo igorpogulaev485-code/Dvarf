@@ -1,27 +1,51 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
+import { ManualRollForm } from '../features/lobby/ManualRollForm'
+import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
+import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
+import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
+import { SessionTableCard } from '../features/lobby/SessionTableCard'
+import { useSessionRealtime } from '../features/lobby/useSessionRealtime'
+import { normalizeVisibilityProfile } from '../features/lobby/visibilityProfile'
+import { listCharacters } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import {
+  createSessionRoll,
   getSession,
+  listSessionEvents,
   seatCharacter,
   unseatCharacter,
   updateSession,
   type SessionDetail,
+  type SessionEvent,
 } from '../shared/api/lobbies'
-import { Button, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
 export function SessionDetailPage() {
   const { sessionId = '' } = useParams()
   const navigate = useNavigate()
   const [session, setSession] = useState<SessionDetail | null>(null)
+  const [ownCharacterIds, setOwnCharacterIds] = useState<Set<string>>(() => new Set())
+  const [events, setEvents] = useState<SessionEvent[]>([])
+  const [rollsOnly, setRollsOnly] = useState(false)
+  const [liveTab, setLiveTab] = useState<SessionLiveTabId>('table')
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [attendanceOpen, setAttendanceOpen] = useState(false)
+  const [draftPresentIds, setDraftPresentIds] = useState<Set<string>>(() => new Set())
 
   const reload = useCallback(async () => {
-    setSession(await getSession(sessionId))
+    const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
+    setSession(detail)
+    setOwnCharacterIds(new Set(chars.map((c) => c.id)))
   }, [sessionId])
+
+  const reloadEvents = useCallback(async () => {
+    const list = await listSessionEvents(sessionId, { rollsOnly })
+    setEvents(list)
+  }, [sessionId, rollsOnly])
 
   useEffect(() => {
     let active = true
@@ -38,11 +62,35 @@ export function SessionDetailPage() {
     }
   }, [navigate, reload])
 
-  const seatedIds = useMemo(
+  useEffect(() => {
+    if (!session) return
+    let active = true
+    reloadEvents().catch((err: unknown) => {
+      if (!active) return
+      setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить ленту')
+    })
+    return () => {
+      active = false
+    }
+  }, [session, reloadEvents])
+
+  useSessionRealtime(session?.id, (incoming) => {
+    setEvents((prev) => {
+      if (prev.some((e) => e.id === incoming.id)) return prev
+      if (rollsOnly && incoming.event_type !== 'roll') return prev
+      return [incoming, ...prev]
+    })
+  })
+
+  const presentIds = useMemo(
     () => new Set(session?.seats.map((s) => s.character_id) ?? []),
     [session],
   )
-  const available = session?.lobby_members.filter((m) => !seatedIds.has(m.character_id)) ?? []
+
+  const visibility = useMemo(
+    () => normalizeVisibilityProfile(session?.visibility_profile),
+    [session?.visibility_profile],
+  )
 
   async function run(action: () => Promise<void>) {
     setBusy(true)
@@ -56,9 +104,34 @@ export function SessionDetailPage() {
     }
   }
 
+  function openAttendanceEditor() {
+    setDraftPresentIds(new Set(presentIds))
+    setAttendanceOpen(true)
+  }
+
+  async function saveAttendance() {
+    if (!session) return
+    const current = presentIds
+    const next = draftPresentIds
+    const toAdd = [...next].filter((id) => !current.has(id))
+    const toRemove = [...current].filter((id) => !next.has(id))
+    await run(async () => {
+      let latest = session
+      for (const id of toAdd) {
+        latest = await seatCharacter(latest.id, id)
+      }
+      for (const id of toRemove) {
+        latest = await unseatCharacter(latest.id, id)
+      }
+      setSession(latest)
+      setAttendanceOpen(false)
+      setToast('Состав сессии обновлён')
+    })
+  }
+
   if (!session && !error) {
     return (
-      <main className="page page--app">
+      <main className="page page--app page--lobby-hub">
         <Text tone="muted">Загрузка сессии…</Text>
       </main>
     )
@@ -66,30 +139,37 @@ export function SessionDetailPage() {
 
   if (!session) {
     return (
-      <main className="page page--app">
+      <main className="page page--app page--lobby-hub">
         <Text tone="danger">{error}</Text>
       </main>
     )
   }
 
+  const historyOff = !session.is_owner && visibility.event_history === 'off'
+
   return (
-    <main className="page page--app">
-      <Stack gap={20}>
+    <main className="page page--app page--lobby-hub">
+      <Stack gap={16}>
         <AppHeader
           title={session.name}
           subtitle={
-            session.setting_name
-              ? `Сессия · ${session.setting_name}`
-              : 'Сессия · ваншот'
+            session.setting_name ? `Сессия · ${session.setting_name}` : 'Сессия · ваншот'
           }
           onOfficialSite={() => setToast('Официальный сайт скоро появится')}
         />
-        <Text>
-          <Link to={`/lobbies/${session.lobby_id}`}>← В лобби «{session.lobby_name}»</Link>
-        </Text>
+        <div className="lobby-hub-top">
+          <Text>
+            <Link to={`/lobbies/${session.lobby_id}`}>← В лобби «{session.lobby_name}»</Link>
+          </Text>
+          {session.is_owner ? (
+            <Button type="button" variant="secondary" onClick={openAttendanceEditor} disabled={busy}>
+              Кто пришёл
+            </Button>
+          ) : null}
+        </div>
         {error ? <Text tone="danger">{error}</Text> : null}
 
-        <Panel title="Стол">
+        <Panel title="Сессия">
           <Stack gap={12}>
             {session.is_owner ? (
               <Field label="Название">
@@ -116,92 +196,111 @@ export function SessionDetailPage() {
               ) : (
                 'Ваншот — без сеттинга'
               )}
+              {' · '}
+              за столом: {session.seats.length}
+              {session.lobby_members.length > 0
+                ? ` из ${session.lobby_members.length} в лобби`
+                : ''}
             </Text>
           </Stack>
         </Panel>
 
-        <Panel title="За столом">
-          <Stack gap={10}>
-            {session.seats.length === 0 ? (
-              <Text tone="muted">Никого нет. Посадите персонажей из лобби.</Text>
-            ) : (
-              session.seats.map((seat) => (
-                <div className="list-row" key={seat.character_id}>
-                  <div>
-                    <Text as="h3">{seat.character_name}</Text>
-                    <Text tone="muted">
-                      {[seat.character_race_name, seat.character_class_name]
-                        .filter(Boolean)
-                        .join(' · ') || `ур. ${seat.character_level}`}
-                      {seat.hp_max != null
-                        ? ` · HP ${seat.hp_current ?? 0}/${seat.hp_max}`
-                        : ''}
-                    </Text>
-                  </div>
-                  <div className="list-row__actions">
-                    <Link
-                      className="ui-button ui-button--ghost"
-                      to={`/characters/${seat.character_id}`}
-                    >
-                      Лист
-                    </Link>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={busy}
-                      onClick={() =>
-                        run(async () => {
-                          const next = await unseatCharacter(session.id, seat.character_id)
-                          setSession(next)
-                        })
-                      }
-                    >
-                      Убрать
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </Stack>
-        </Panel>
+        <Panel title="Живой стол">
+          <Stack gap={14}>
+            <SessionLiveTabs active={liveTab} onChange={setLiveTab} />
 
-        <Panel title="Из лобби за стол">
-          <Stack gap={10}>
-            {available.length === 0 ? (
-              <Text tone="muted">
-                Все персонажи лобби уже за столом.{' '}
-                <Link to={`/lobbies/${session.lobby_id}`}>Добавить в лобби</Link>
-              </Text>
+            {liveTab === 'table' ? (
+              session.seats.length === 0 ? (
+                <Text tone="muted">
+                  Никого нет.
+                  {session.is_owner
+                    ? ' Откройте «Кто пришёл», отметьте игроков и сохраните.'
+                    : ''}
+                </Text>
+              ) : (
+                <div className="session-table-grid">
+                  {session.seats.map((seat) => {
+                    const isOwn = ownCharacterIds.has(seat.character_id)
+                    return (
+                      <SessionTableCard
+                        key={seat.character_id}
+                        seat={seat}
+                        visibility={visibility}
+                        revealAll={session.is_owner}
+                        sheetLabel={session.is_owner && !isOwn ? 'Смотреть' : 'Лист'}
+                      />
+                    )
+                  })}
+                </div>
+              )
             ) : (
-              available.map((m) => (
-                <div className="list-row" key={m.character_id}>
-                  <Text>
-                    {m.character_name} · {m.character_class_name || 'без класса'}
-                  </Text>
-                  <Button
-                    type="button"
-                    disabled={busy}
-                    onClick={() =>
-                      run(async () => {
-                        const next = await seatCharacter(session.id, m.character_id)
-                        setSession(next)
+              <Stack gap={14}>
+                {historyOff ? (
+                  <Text tone="muted">Лента скрыта настройками видимости лобби.</Text>
+                ) : (
+                  <>
+                    <label className="session-feed-filter">
+                      <input
+                        type="checkbox"
+                        checked={rollsOnly}
+                        onChange={(e) => setRollsOnly(e.target.checked)}
+                      />
+                      Только броски
+                    </label>
+                    <SessionEventFeed events={events} />
+                  </>
+                )}
+                <ManualRollForm
+                  seats={session.seats}
+                  ownCharacterIds={ownCharacterIds}
+                  isOwner={session.is_owner}
+                  busy={busy}
+                  onSubmit={async (payload) => {
+                    await run(async () => {
+                      const created = await createSessionRoll(session.id, payload)
+                      setEvents((prev) => {
+                        if (prev.some((e) => e.id === created.id)) return prev
+                        if (rollsOnly && created.event_type !== 'roll') return prev
+                        return [created, ...prev]
                       })
-                    }
-                  >
-                    За стол
-                  </Button>
-                </div>
-              ))
+                      setToast('Бросок в ленте')
+                      setLiveTab('feed')
+                    })
+                  }}
+                />
+              </Stack>
             )}
           </Stack>
-        </Panel>
-
-        <Panel title="Бой">
-          <Text tone="muted">
-            Подготовка боя и лут появятся на уровне сессии — не в сеттинге.
-          </Text>
         </Panel>
       </Stack>
+
+      <Dialog
+        open={attendanceOpen}
+        title="Кто пришёл"
+        size="wide"
+        primaryLabel={busy ? 'Сохраняем…' : 'Сохранить'}
+        secondaryLabel="Отмена"
+        busy={busy}
+        onPrimary={() => void saveAttendance()}
+        onSecondary={() => setAttendanceOpen(false)}
+      >
+        <SessionAttendancePanel
+          mode="manage"
+          members={session.lobby_members}
+          presentIds={draftPresentIds}
+          busy={busy}
+          showPresentCards={false}
+          onToggle={(characterId, nextPresent) => {
+            setDraftPresentIds((prev) => {
+              const next = new Set(prev)
+              if (nextPresent) next.add(characterId)
+              else next.delete(characterId)
+              return next
+            })
+          }}
+        />
+      </Dialog>
+
       <Toast message={toast} onClose={() => setToast(null)} />
     </main>
   )

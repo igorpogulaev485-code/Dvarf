@@ -7,7 +7,9 @@ from sqlalchemy.orm import Session
 from app.core.exceptions import AppError, NotFoundError
 from app.models.character import Character
 from app.models.lobby import Lobby, LobbyMember, PlaySession, Setting
+from app.models.session_event import SessionEvent
 from app.models.user import User
+from app.realtime.session_hub import session_hub
 from app.repositories.character import CharacterRepository
 from app.repositories.lobby import LobbyRepository
 from app.schemas.lobby import (
@@ -21,6 +23,8 @@ from app.schemas.lobby import (
     SeatRequest,
     SessionCreateRequest,
     SessionDetail,
+    SessionEventOut,
+    SessionRollCreateRequest,
     SessionSeatOut,
     SessionSummary,
     SessionUpdateRequest,
@@ -28,6 +32,56 @@ from app.schemas.lobby import (
     SettingSummary,
     SettingUpdateRequest,
 )
+
+
+def _ability_mod(score: int | None) -> int:
+    if score is None:
+        return 0
+    return (int(score) - 10) // 2
+
+
+def _passive_from_sheet(sheet: dict, skill_key: str, ability_key: str) -> int | None:
+    abilities = sheet.get("abilities") or {}
+    skills = sheet.get("skills") or {}
+    raw = abilities.get(ability_key)
+    score: int | None
+    if isinstance(raw, int):
+        score = raw
+    elif isinstance(raw, dict) and isinstance(raw.get("score"), int):
+        score = raw["score"]
+    else:
+        score = None
+    if score is None:
+        return None
+    skill = skills.get(skill_key) or {}
+    bonus = _ability_mod(score)
+    if skill.get("is_expertise"):
+        bonus += 4
+    elif skill.get("is_proficient"):
+        bonus += 2
+    return 10 + bonus
+
+
+def _seat_combat_fields(character: Character | None) -> dict:
+    if character is None:
+        return {
+            "ac": None,
+            "speed": None,
+            "inspiration": False,
+            "passive_perception": None,
+            "passive_insight": None,
+            "passive_investigation": None,
+        }
+    sheet = character.sheet or {}
+    combat = sheet.get("combat") or {}
+    return {
+        "ac": combat.get("ac") if isinstance(combat.get("ac"), int) else None,
+        "speed": combat.get("speed") if isinstance(combat.get("speed"), int) else None,
+        "inspiration": bool(combat.get("inspiration")),
+        "passive_perception": _passive_from_sheet(sheet, "perception", "wis"),
+        "passive_insight": _passive_from_sheet(sheet, "insight", "wis"),
+        "passive_investigation": _passive_from_sheet(sheet, "investigation", "int"),
+    }
 
 
 def _member_out(member: LobbyMember, character: Character | None) -> LobbyMemberOut:
@@ -110,6 +164,7 @@ class LobbyService:
             members=members,
             settings=settings,
             sessions=sessions,
+            visibility_profile=lobby.visibility_profile or {},
             created_at=lobby.created_at,
             updated_at=lobby.updated_at,
         )
@@ -132,7 +187,16 @@ class LobbyService:
     def update(self, user: User, lobby_id: UUID, payload: LobbyUpdateRequest) -> LobbyDetail:
         lobby = self._require_lobby(lobby_id)
         self._require_owner(lobby, user)
-        lobby.name = payload.name.strip() or "Новое лобби"
+        if payload.name is not None:
+            lobby.name = payload.name.strip() or "Новое лобби"
+        if payload.visibility_profile is not None:
+            if not isinstance(payload.visibility_profile, dict):
+                raise AppError(
+                    "Некорректный профиль видимости",
+                    code="visibility_profile_invalid",
+                    status_code=400,
+                )
+            lobby.visibility_profile = payload.visibility_profile
         self.db.commit()
         lobby = self._require_lobby(lobby_id)
         return self._to_detail(lobby, user)
@@ -278,6 +342,20 @@ class LobbyService:
             name=name,
             setting_id=setting.id if setting else None,
         )
+        # Отметить присутствующих при создании (дубликаты игнорируем)
+        seen: set[UUID] = set()
+        for character_id in payload.character_ids:
+            if character_id in seen:
+                continue
+            seen.add(character_id)
+            member = self.lobbies.get_member(lobby.id, character_id)
+            if member is None:
+                raise AppError(
+                    "Персонаж не в составе лобби",
+                    code="character_not_in_lobby",
+                    status_code=400,
+                )
+            self.lobbies.add_seat(session_id=session.id, character_id=character_id)
         self.db.commit()
         return self.get_session(user, session.id)
 
@@ -371,31 +449,28 @@ class LobbyService:
         member_ids = [m.character_id for m in lobby.members]
         seat_ids = [s.character_id for s in session.seats]
         char_map = self.lobbies.get_characters_map([*member_ids, *seat_ids])
-        seats = [
-            SessionSeatOut(
-                character_id=seat.character_id,
-                character_name=char_map[seat.character_id].name
-                if seat.character_id in char_map
-                else "Персонаж удалён",
-                character_level=char_map[seat.character_id].level
-                if seat.character_id in char_map
-                else 1,
-                character_class_name=char_map[seat.character_id].class_name
-                if seat.character_id in char_map
-                else None,
-                character_race_name=char_map[seat.character_id].race_name
-                if seat.character_id in char_map
-                else None,
-                hp_current=char_map[seat.character_id].hp_current
-                if seat.character_id in char_map
-                else None,
-                hp_max=char_map[seat.character_id].hp_max
-                if seat.character_id in char_map
-                else None,
-                seated_at=seat.seated_at,
+        seats: list[SessionSeatOut] = []
+        for seat in session.seats:
+            character = char_map.get(seat.character_id)
+            extras = _seat_combat_fields(character)
+            seats.append(
+                SessionSeatOut(
+                    character_id=seat.character_id,
+                    character_name=character.name if character else "Персонаж удалён",
+                    character_level=character.level if character else 1,
+                    character_class_name=character.class_name if character else None,
+                    character_race_name=character.race_name if character else None,
+                    hp_current=character.hp_current if character else None,
+                    hp_max=character.hp_max if character else None,
+                    ac=extras["ac"],
+                    speed=extras["speed"],
+                    inspiration=extras["inspiration"],
+                    passive_perception=extras["passive_perception"],
+                    passive_insight=extras["passive_insight"],
+                    passive_investigation=extras["passive_investigation"],
+                    seated_at=seat.seated_at,
+                )
             )
-            for seat in session.seats
-        ]
         members = [_member_out(m, char_map.get(m.character_id)) for m in lobby.members]
         return SessionDetail(
             id=session.id,
@@ -407,6 +482,111 @@ class LobbyService:
             is_owner=lobby.owner_id == user.id,
             seats=seats,
             lobby_members=members,
+            visibility_profile=lobby.visibility_profile or {},
             created_at=session.created_at,
             updated_at=session.updated_at,
         )
+
+    def list_session_events(
+        self,
+        user: User,
+        session_id: UUID,
+        *,
+        rolls_only: bool = False,
+    ) -> list[SessionEventOut]:
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_view(lobby, user)
+        events = self.lobbies.list_session_events(
+            session_id,
+            rolls_only=rolls_only,
+            limit=100,
+        )
+        is_owner = lobby.owner_id == user.id
+        profile = lobby.visibility_profile or {}
+        history_mode = profile.get("event_history") or "active"
+        out: list[SessionEventOut] = []
+        for event in events:
+            if not is_owner and history_mode == "off":
+                continue
+            if (
+                not is_owner
+                and history_mode == "hide_master_rolls"
+                and event.is_master_roll
+            ):
+                continue
+            out.append(SessionEventOut.model_validate(event))
+        return out
+
+    async def create_manual_roll(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: SessionRollCreateRequest,
+    ) -> SessionEventOut:
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_view(lobby, user)
+
+        character_name: str | None = None
+        character_id = payload.character_id
+        is_master_roll = payload.is_master_roll
+        if character_id is not None:
+            member = self.lobbies.get_member(lobby.id, character_id)
+            if member is None:
+                raise AppError(
+                    "Персонаж не в лобби",
+                    code="character_not_in_lobby",
+                    status_code=400,
+                )
+            if lobby.owner_id != user.id and member.user_id != user.id:
+                raise AppError(
+                    "Нельзя бросить за чужого персонажа",
+                    code="forbidden",
+                    status_code=403,
+                )
+            char_map = self.lobbies.get_characters_map([character_id])
+            character = char_map.get(character_id)
+            character_name = character.name if character else None
+            if self.lobbies.get_seat(session.id, character_id) is None:
+                raise AppError(
+                    "Персонаж не за столом этой сессии",
+                    code="character_not_seated",
+                    status_code=400,
+                )
+        elif lobby.owner_id != user.id:
+            raise AppError(
+                "Только мастер может бросать без персонажа",
+                code="forbidden",
+                status_code=403,
+            )
+        else:
+            is_master_roll = True
+            character_name = "Мастер"
+
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="roll",
+            character_id=character_id,
+            actor_user_id=user.id,
+            character_name=character_name,
+            title=payload.title.strip() or "Бросок",
+            formula=payload.formula,
+            breakdown=payload.breakdown,
+            total=payload.total,
+            is_master_roll=is_master_roll,
+            payload={},
+        )
+        self.lobbies.add_session_event(event)
+        self.db.commit()
+        self.db.refresh(event)
+        out = SessionEventOut.model_validate(event)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out.model_dump(mode="json")},
+        )
+        return out
