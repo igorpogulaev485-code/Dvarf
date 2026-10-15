@@ -1,12 +1,12 @@
 /**
- * Превью A2: создание сессии + экран сессии (посещаемость — в настройке).
+ * Превью A2: экран сессии как в продукте (без dev-переключателей).
+ * Посещаемость — только через «Кто пришёл» → Сохранить.
  */
 import { useMemo, useState } from 'react'
-import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs'
 import { LobbyMemberMiniCard } from '../features/lobby/LobbyMemberMiniCard'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import type { LobbyMember } from '../shared/api/lobbies'
-import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import { Button, Dialog, Panel, Stack, Text, Toast } from '../ui'
 
 const DEMO_MEMBERS: LobbyMember[] = [
   {
@@ -84,37 +84,18 @@ const DEMO_MEMBERS: LobbyMember[] = [
 ]
 
 export function SessionAttendancePreviewPage() {
-  const [tab, setTab] = useState<LobbyHubTabId>('sessions')
-  const [name, setName] = useState('Глава 3 — Мост')
+  const [name] = useState('Глава 3 — Мост')
   const [presentIds, setPresentIds] = useState<Set<string>>(
     () => new Set(['c1', 'c2', 'c4', 'c5', 'c6']),
   )
   const [draftPresentIds, setDraftPresentIds] = useState<Set<string>>(() => new Set())
   const [attendanceOpen, setAttendanceOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  const [view, setView] = useState<'create' | 'session'>('session')
 
   const presentMembers = useMemo(
     () => DEMO_MEMBERS.filter((m) => presentIds.has(m.character_id)),
     [presentIds],
   )
-
-  const subtitle = useMemo(
-    () =>
-      view === 'create'
-        ? 'Превью A2 · новая сессия'
-        : `Превью A2 · сессия · за столом ${presentIds.size}`,
-    [view, presentIds.size],
-  )
-
-  function toggleDraft(characterId: string, nextPresent: boolean) {
-    setDraftPresentIds((prev) => {
-      const next = new Set(prev)
-      if (nextPresent) next.add(characterId)
-      else next.delete(characterId)
-      return next
-    })
-  }
 
   return (
     <main className="page page--app page--lobby-hub">
@@ -122,107 +103,54 @@ export function SessionAttendancePreviewPage() {
         <header className="app-header">
           <div>
             <Text as="h1">Эхо Рассвета</Text>
-            <Text tone="muted">{subtitle}</Text>
+            <Text tone="muted">
+              Превью A2 · сессия · за столом {presentIds.size}
+            </Text>
           </div>
         </header>
 
+        <Text tone="muted">/dev/session-attendance-preview · только для скринов</Text>
+
         <div className="lobby-hub-top">
-          <Text tone="muted">/dev/session-attendance-preview</Text>
-          <div className="inline-actions">
-            <Button
-              type="button"
-              variant={view === 'create' ? 'primary' : 'secondary'}
-              onClick={() => setView('create')}
-            >
-              Создание
-            </Button>
-            <Button
-              type="button"
-              variant={view === 'session' ? 'primary' : 'secondary'}
-              onClick={() => setView('session')}
-            >
-              Экран сессии
-            </Button>
-          </div>
+          <Text>
+            <span className="back-link">← В лобби «Эхо Рассвета»</span>
+          </Text>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              setDraftPresentIds(new Set(presentIds))
+              setAttendanceOpen(true)
+            }}
+          >
+            Кто пришёл
+          </Button>
         </div>
 
-        {view === 'create' ? (
-          <>
-            <LobbyHubTabs active={tab} onChange={setTab} />
-            <Panel title="Новая сессия">
-              <Stack gap={14}>
-                <Field label="Название сессии">
-                  <Input value={name} onChange={(e) => setName(e.target.value)} />
-                </Field>
-                <SessionAttendancePanel
-                  mode="create"
-                  members={DEMO_MEMBERS}
-                  presentIds={presentIds}
-                  onToggle={(id, next) => {
-                    setPresentIds((prev) => {
-                      const n = new Set(prev)
-                      if (next) n.add(id)
-                      else n.delete(id)
-                      return n
-                    })
-                  }}
-                />
-                <Button
-                  type="button"
-                  onClick={() => {
-                    setView('session')
-                    setToast(`Сессия создана · за столом ${presentIds.size}`)
-                  }}
-                >
-                  + Создать сессию ({presentIds.size})
-                </Button>
-              </Stack>
-            </Panel>
-          </>
-        ) : (
-          <>
-            <div className="lobby-hub-top">
-              <Text>
-                <button type="button" className="back-link" onClick={() => setView('create')}>
-                  ← В лобби «Эхо Рассвета»
-                </button>
-              </Text>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  setDraftPresentIds(new Set(presentIds))
-                  setAttendanceOpen(true)
-                }}
-              >
-                Кто пришёл
-              </Button>
+        <Panel title="Сессия">
+          <Stack gap={8}>
+            <Text as="h2">{name}</Text>
+            <Text tone="muted">
+              Ваншот — без сеттинга · за столом: {presentIds.size} из {DEMO_MEMBERS.length} в лобби
+            </Text>
+          </Stack>
+        </Panel>
+
+        <Panel title="За столом">
+          {presentMembers.length === 0 ? (
+            <Text tone="muted">Никого нет. Откройте «Кто пришёл» и сохраните.</Text>
+          ) : (
+            <div className="lobby-member-grid">
+              {presentMembers.map((m) => (
+                <LobbyMemberMiniCard key={m.id} member={m} sheetLabel="Смотреть" />
+              ))}
             </div>
-            <Panel title="Сессия">
-              <Stack gap={8}>
-                <Text as="h2">{name}</Text>
-                <Text tone="muted">
-                  Ваншот — без сеттинга · за столом: {presentIds.size} из {DEMO_MEMBERS.length} в
-                  лобби
-                </Text>
-              </Stack>
-            </Panel>
-            <Panel title="За столом">
-              {presentMembers.length === 0 ? (
-                <Text tone="muted">Никого нет. Откройте «Кто пришёл» и сохраните.</Text>
-              ) : (
-                <div className="lobby-member-grid">
-                  {presentMembers.map((m) => (
-                    <LobbyMemberMiniCard key={m.id} member={m} sheetLabel="Смотреть" />
-                  ))}
-                </div>
-              )}
-            </Panel>
-            <Panel title="Живой стол">
-              <Text tone="muted">Карточки по видимости, лента и броски — слайс A3.</Text>
-            </Panel>
-          </>
-        )}
+          )}
+        </Panel>
+
+        <Panel title="Живой стол">
+          <Text tone="muted">Карточки по видимости, лента и броски — слайс A3.</Text>
+        </Panel>
       </Stack>
 
       <Dialog
@@ -243,7 +171,14 @@ export function SessionAttendancePreviewPage() {
           members={DEMO_MEMBERS}
           presentIds={draftPresentIds}
           showPresentCards={false}
-          onToggle={toggleDraft}
+          onToggle={(characterId, nextPresent) => {
+            setDraftPresentIds((prev) => {
+              const next = new Set(prev)
+              if (nextPresent) next.add(characterId)
+              else next.delete(characterId)
+              return next
+            })
+          }}
         />
       </Dialog>
 
