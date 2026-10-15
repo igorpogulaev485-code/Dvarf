@@ -32,7 +32,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/spell-scrolls-levels-4-9-19c3
+cursor/forms-adapt-tip-ab5e
 ```
 
 URL: http://201.34.132.252/

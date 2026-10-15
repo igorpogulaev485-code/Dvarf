@@ -390,7 +390,7 @@ SKT, ToA, WDMM, GGR, ERLW, … — оставшийся Basic allowlist (46 кн
 - [x] Друид: принять / сменить / сбросить облик; урон; overflow (F2–F3)
 - [x] Moon: heal ячейкой + elemental (F4)
 - [x] Polymorph self через тот же пайплайн (F5)
-- [ ] Документы audit/plan/status обновлены; tip отражает залитый контур — **ждёт «Залей»**
+- [x] Документы audit/plan/status обновлены; tip `forms-adapt-tip-ab5e` отражает залитый контур
 
 ---
 
@@ -400,4 +400,4 @@ SKT, ToA, WDMM, GGR, ERLW, … — оставшийся Basic allowlist (46 кн
 оф. Basic ×**2380** + облики (WS / Moon / Polymorph self / Wildfire) в Features §2h + Companions §2i.  
 На прод **не** заливать до команды «Залей».
 
-**Дальше:** «Залей» → migrate `d9e0…`→`b3c4…` на tip → smoke `kind=bestiary` COUNT=2380.
+**Залито 2026-10-15** на tip `cursor/forms-adapt-tip-ab5e`: alembic `b3c4…`, COUNT bestiary=2380.
