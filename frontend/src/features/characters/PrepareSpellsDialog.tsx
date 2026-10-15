@@ -42,15 +42,19 @@ export function PrepareSpellsDialog({
     () => spells.known.filter((spell) => spell.level > 0),
     [spells.known],
   )
+  /** Pool not yet prepared — the reason «Все доступные» differs from «Подготовленные». */
+  const unpreparedList = useMemo(
+    () => availableList.filter((spell) => !spell.prepared),
+    [availableList],
+  )
   const cantrips = useMemo(
     () => spells.known.filter((spell) => spell.level <= 0),
     [spells.known],
   )
 
-  const groups = useMemo(
-    () => groupSpellsByLevel(tab === 'prepared' ? preparedList : availableList),
-    [tab, preparedList, availableList],
-  )
+  const preparedGroups = useMemo(() => groupSpellsByLevel(preparedList), [preparedList])
+  const unpreparedGroups = useMemo(() => groupSpellsByLevel(unpreparedList), [unpreparedList])
+  const availableGroups = useMemo(() => groupSpellsByLevel(availableList), [availableList])
 
   function togglePrepared(spell: SheetSpell) {
     if (!countsTowardPrepareLimit(spell.level)) return
@@ -60,6 +64,75 @@ export function PrepareSpellsDialog({
       ...spells,
       known: setSpellPrepared(spells.known, spell.id, nextPrepared, spells.max_prepared),
     })
+  }
+
+  function renderSpellRow(spell: SheetSpell) {
+    const lock = preparedLockChip(spell)
+    const source = spellSourceBadge(spell)
+    const atCap =
+      !spell.prepared &&
+      !lock &&
+      spells.max_prepared != null &&
+      preparedCount >= spells.max_prepared
+    return (
+      <li
+        key={spell.id}
+        className={`prepare-row${isGrantedSpellHighlight(spell) ? ' is-granted' : ''}`}
+      >
+        <div>
+          <span>{spell.name || 'Без названия'}</span>
+          {spell.concentration ? (
+            <span className="prepare-row__badge" title="Концентрация">
+              конц.
+            </span>
+          ) : null}
+          {spell.ritual ? (
+            <span className="prepare-row__badge" title="Ритуал">
+              ритуал
+            </span>
+          ) : null}
+          {source && !lock ? (
+            <span className="prepare-row__badge is-source" title={source.title}>
+              {source.label}
+            </span>
+          ) : null}
+          {tab === 'available' && spell.prepared && !lock ? (
+            <span className="prepare-row__badge" title="Уже в сегодняшнем наборе">
+              сегодня
+            </span>
+          ) : null}
+        </div>
+        {lock ? (
+          <span className="sheet-chip is-on" title={lock.title}>
+            {lock.label}
+          </span>
+        ) : (
+          <button
+            type="button"
+            className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
+            disabled={atCap}
+            onClick={() => togglePrepared(spell)}
+          >
+            {spell.prepared ? 'Убрать' : atCap ? 'Лимит' : 'Подготовить'}
+          </button>
+        )}
+      </li>
+    )
+  }
+
+  function renderGroups(
+    groups: ReturnType<typeof groupSpellsByLevel>,
+    emptyText: string,
+  ) {
+    if (groups.length === 0) {
+      return <Text tone="muted">{emptyText}</Text>
+    }
+    return groups.map((group) => (
+      <div key={group.level} className="prepare-section">
+        <strong>{levelLabel(group.level)}</strong>
+        <ul className="prepare-list">{group.spells.map(renderSpellRow)}</ul>
+      </div>
+    ))
   }
 
   return (
@@ -74,11 +147,25 @@ export function PrepareSpellsDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          Подготовка — выбор «готовых к бою» на сегодня после длинного отдыха. Заговоры всегда
-          готовы и в лимит не входят. Жрец / друид / паладин / изобретатель готовят из всего
-          списка класса; волшебник — только из своей книги. Бард / чародей / колдун / следопыт
-          эту кнопку не используют: у них всё известное уже готово.
+          <strong>Подготовленные</strong> — что сегодня в бою (лимит {limitLabel}).{' '}
+          <strong>Все доступные</strong> — пул на листе, из которого выбираешь. Заговоры всегда
+          готовы и в лимит не входят. Пополнить пул — через Гримуар («На лист» без подготовки или
+          сразу «Подготовить»).
         </Text>
+
+        {cantrips.length > 0 ? (
+          <div className="prepare-section">
+            <Text tone="muted">Заговоры ({cantrips.length}) — всегда с собой, не в лимите</Text>
+            <ul className="prepare-list">
+              {cantrips.map((spell) => (
+                <li key={spell.id} className="prepare-row">
+                  <span>{spell.name || 'Без названия'}</span>
+                  <span className="prepare-row__meta">заговор</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         <div className="chip-row">
           <button
@@ -94,87 +181,41 @@ export function PrepareSpellsDialog({
             onClick={() => setTab('available')}
           >
             Все доступные ({availableList.length})
+            {unpreparedList.length > 0 ? ` · ещё ${unpreparedList.length}` : ''}
           </button>
         </div>
 
-        {cantrips.length > 0 ? (
-          <div className="prepare-section">
-            <Text tone="muted">Заговоры ({cantrips.length}) — всегда с собой</Text>
-            <ul className="prepare-list">
-              {cantrips.map((spell) => (
-                <li key={spell.id} className="prepare-row">
-                  <span>{spell.name || 'Без названия'}</span>
-                  <span className="prepare-row__meta">заговор</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
-        {groups.length === 0 ? (
-          <Text tone="muted">
-            {tab === 'prepared'
-              ? 'Ничего не подготовлено — открой «Все доступные».'
-              : 'Сначала добавь заклинания 1+ уровня на лист.'}
-          </Text>
+        {tab === 'prepared' ? (
+          renderGroups(
+            preparedGroups,
+            unpreparedList.length > 0
+              ? 'Ничего не подготовлено — открой «Все доступные» и нажми «Подготовить».'
+              : 'Пул пуст. Сначала добавь заклинания через Гримуар («На лист»).',
+          )
         ) : (
-          groups.map((group) => (
-            <div key={group.level} className="prepare-section">
-              <strong>{levelLabel(group.level)}</strong>
-              <ul className="prepare-list">
-                {group.spells.map((spell) => {
-                  const lock = preparedLockChip(spell)
-                  const source = spellSourceBadge(spell)
-                  const atCap =
-                    !spell.prepared &&
-                    !lock &&
-                    spells.max_prepared != null &&
-                    preparedCount >= spells.max_prepared
-                  return (
-                    <li
-                      key={spell.id}
-                      className={`prepare-row${
-                        isGrantedSpellHighlight(spell) ? ' is-granted' : ''
-                      }`}
-                    >
-                      <div>
-                        <span>{spell.name || 'Без названия'}</span>
-                        {spell.concentration ? (
-                          <span className="prepare-row__badge" title="Концентрация">
-                            конц.
-                          </span>
-                        ) : null}
-                        {spell.ritual ? (
-                          <span className="prepare-row__badge" title="Ритуал">
-                            ритуал
-                          </span>
-                        ) : null}
-                        {source && !lock ? (
-                          <span className="prepare-row__badge is-source" title={source.title}>
-                            {source.label}
-                          </span>
-                        ) : null}
-                      </div>
-                      {lock ? (
-                        <span className="sheet-chip is-on" title={lock.title}>
-                          {lock.label}
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
-                          disabled={atCap}
-                          onClick={() => togglePrepared(spell)}
-                        >
-                          {spell.prepared ? 'Убрать' : atCap ? 'Лимит' : 'Подготовить'}
-                        </button>
-                      )}
-                    </li>
-                  )
-                })}
-              </ul>
-            </div>
-          ))
+          <Stack gap={12}>
+            {unpreparedList.length > 0 ? (
+              <>
+                <Text tone="muted">Можно подготовить ({unpreparedList.length})</Text>
+                {renderGroups(unpreparedGroups, '')}
+              </>
+            ) : (
+              <Text tone="muted">
+                {availableList.length > 0
+                  ? 'Все доступные уже подготовлены. Сними лишние во вкладке «Подготовленные» или добавь новые через Гримуар.'
+                  : 'Сначала добавь заклинания 1+ уровня через Гримуар («На лист»).'}
+              </Text>
+            )}
+            {preparedList.length > 0 && unpreparedList.length > 0 ? (
+              <>
+                <Text tone="muted">Уже на сегодня ({preparedList.length})</Text>
+                {renderGroups(preparedGroups, '')}
+              </>
+            ) : null}
+            {preparedList.length > 0 && unpreparedList.length === 0
+              ? renderGroups(availableGroups, '')
+              : null}
+          </Stack>
         )}
       </Stack>
     </Dialog>

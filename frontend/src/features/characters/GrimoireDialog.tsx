@@ -403,12 +403,8 @@ export function GrimoireDialog({
     }
     if (level > 0) {
       if (mode === 'prepared_list') {
-        // Full-list casters: leveled spells only enter the sheet when prepared.
-        if (!prepare) {
-          onToast?.('У этого класса весь список — выбери «Подготовить»')
-          return
-        }
-        if (prepareCapReached()) {
+        // Full-list casters: may park on sheet without preparing, or prepare now.
+        if (prepare && prepareCapReached()) {
           onToast?.(
             `Лимит подготовки: ${preparedCount}/${maxPrepared ?? '—'}`,
           )
@@ -489,6 +485,14 @@ export function GrimoireDialog({
     }
     if (mode === 'known') {
       onToast?.(`Известно: ${entry.name_ru}`)
+      return
+    }
+    if (mode === 'prepared_list') {
+      onToast?.(
+        prepare
+          ? `На лист и подготовлено: ${entry.name_ru}`
+          : `На лист (доступно к подготовке): ${entry.name_ru}`,
+      )
       return
     }
     onToast?.(
@@ -811,14 +815,25 @@ export function GrimoireDialog({
                             </button>
                           </>
                         ) : (
-                          <button
-                            type="button"
-                            className="sheet-chip"
-                            disabled={prepareCapReached()}
-                            onClick={() => addSpell(entry, true)}
-                          >
-                            {prepareCapReached() ? 'Лимит подготовки' : 'Подготовить'}
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              className="sheet-chip"
+                              onClick={() => addSpell(entry, false)}
+                              title="На лист без подготовки — появится во «Все доступные»"
+                            >
+                              На лист
+                            </button>
+                            <button
+                              type="button"
+                              className="sheet-chip"
+                              disabled={prepareCapReached()}
+                              onClick={() => addSpell(entry, true)}
+                              title="На лист и сразу в сегодняшний набор"
+                            >
+                              {prepareCapReached() ? 'Лимит подготовки' : 'Подготовить'}
+                            </button>
+                          </>
                         )}
                       </div>
                     </li>
