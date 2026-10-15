@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/rogue-ranger-spend-4797`  
+**Prod tip (ветка линии прода):** `cursor/wizard-spellbook-rules-19c3`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -58,6 +58,23 @@
 ---
 
 ## Сейчас в продукте (прод)
+
+### 2026-10-15 — Wizard spellbook rules (I-13 / I-16)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Стоимость копии | Чужое: 50 зм + 2 ч / ур.; своя / из памяти: 10 зм + 1 ч / ур.; Savant ×½; Quill — 0 зм + 2 мин / ур. | Кнопка «В книгу · N зм» когда free-бюджет исчерпан |
+| Списание из кошелька | `spendGpFromPurse` + Гримуар на листе | Золото уходит само; в шапке «N зм» обновляется |
+| Нехватка денег | Копия не пишется; toast с «нужно X / есть Y» | Понятно, почему нельзя внести заклинание |
+| Утеря / замена / бэкап | `SpellbookManageDialog`: утеря, restore из памяти, запасная копия + activate | Книга живёт как предмет; после утери — бэкап или перепись подготовленных |
+| Ритуал из книги | Без prepare, если в книге и книга есть; гейт при `bookLost` | PHB ritual casting волшебника |
+| Свиток → книга | В инвентаре у свитка выбирается заклинание; «Внести из свитка» платит foreign + расходует свиток | Не «просто свиток» без имени |
+| Свиток → каст | Каст из инвентаря / расходников боя; DMG Сл/атака; расходник авто | Свиток на сцене Бой как расходник |
+| Level-up +2 в книгу | Шаг `spellbook_picks` в GuidedWizard (после архетипа) | Развилка уровня, не только toast «открой гримуар» |
+| Модель листа | `wizard_spellbook` + `spellbook_acquisition` / `in_spellbook` | Данные на листе |
+
+Спека: [`docs/wizard-spellbook.md`](docs/wizard-spellbook.md) · план: [`docs/wizard-spellbook-plan.md`](docs/wizard-spellbook-plan.md)  
+На проде: **да** · **это новый prod tip** `cursor/wizard-spellbook-rules-19c3` · PR #165 · залито 2026-10-15 поверх tip `rogue-ranger-spend-4797` · проверено: `/health` ok; бандл `CharacterDetailPage-CXA0UUH3.js` / `index-D1tdK8wN.js` (`wizard_spellbook` / `scroll_spell` / «В книгу» / «Утеря» / `spellbook_picks`); spend-пикеры tip на диске; high-water Identity/theme/create/remote-up на месте
 
 ### 2026-10-14 — create: раса на телефоне
 
@@ -679,22 +696,7 @@
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
 
-### 2026-10-15 — Wizard spellbook rules (I-13 / I-16) — спека + кошелёк
-
-| Функция | Как работает | Эффект для пользователя |
-|--------|--------------|-------------------------|
-| Стоимость копии | Чужое: 50 зм + 2 ч / ур.; своя / из памяти: 10 зм + 1 ч / ур.; Savant ×½; Quill — 0 зм + 2 мин / ур. | Кнопка «В книгу · N зм» когда free-бюджет исчерпан |
-| Списание из кошелька | `spendGpFromPurse` + Гримуар на листе | Золото уходит само; в шапке «N зм» обновляется |
-| Нехватка денег | Копия не пишется; toast с «нужно X / есть Y» | Понятно, почему нельзя внести заклинание |
-| Утеря / замена / бэкап | `SpellbookManageDialog`: утеря, restore из памяти, запасная копия + activate | Книга живёт как предмет; после утери — бэкап или перепись подготовленных |
-| Ритуал из книги | Без prepare, если в книге и книга есть; гейт при `bookLost` | PHB ritual casting волшебника |
-| Свиток → книга | В инвентаре у свитка выбирается заклинание; «Внести из свитка» платит foreign + расходует свиток | Не «просто свиток» без имени |
-| Свиток → каст | Каст из инвентаря / расходников боя; DMG Сл/атака; расходник авто | Свиток на сцене Бой как расходник |
-| Level-up +2 в книгу | Шаг `spellbook_picks` в GuidedWizard (после архетипа) | Развилка уровня, не только toast «открой гримуар» |
-| Модель листа | `wizard_spellbook` + `spellbook_acquisition` / `in_spellbook` | Данные на листе |
-
-Спека: [`docs/wizard-spellbook.md`](docs/wizard-spellbook.md) · план: [`docs/wizard-spellbook-plan.md`](docs/wizard-spellbook-plan.md)  
-На проде: **нет** · ветка `cursor/wizard-spellbook-rules-19c3` · PR #165 · база tip `cursor/rogue-ranger-spend-4797`
+<!-- Wizard spellbook I-13/I-16 залиты 2026-10-15 → tip wizard-spellbook-rules-19c3; блок в «Сейчас в продукте» -->
 
 ### 2026-10-15 — Волна spend-picker’ов (уникальные пулы классов)
 
@@ -713,8 +715,8 @@
 Волна 2: инфузии / воззвания / арканум — см. ниже.  
 Волна 3: плут Soulknife/Phantom + избранное следопыта — см. ниже.  
 Друид не трогаем.  
-Стек tip: `rogue-ranger-spend-4797` ← mobile tip + spend-стек ← `cleric-equip-cd-spells-244b`.  
-На проде: **да** · это **новый prod tip** `cursor/rogue-ranger-spend-4797` · залито 2026-10-15 поверх live `mobile-desk-sync-code-0ed9`.
+Стек tip: `wizard-spellbook-rules-19c3` ← `rogue-ranger-spend-4797` ← mobile tip + spend-стек ← `cleric-equip-cd-spells-244b`.  
+На проде: **да** · tip `cursor/wizard-spellbook-rules-19c3` (раньше был tip `rogue-ranger-spend-4797`, залито 2026-10-15 поверх live `mobile-desk-sync-code-0ed9`).
 
 ### 2026-10-15 — Плут / Следопыт: пси-кости, частицы, избранное
 

@@ -4,7 +4,7 @@
 **Правила:** PHB 2014  
 **Спека правил:** [`wizard-spellbook.md`](./wizard-spellbook.md)  
 **Ветка:** `cursor/wizard-spellbook-rules-19c3` · PR #165  
-**Prod tip (база):** `cursor/rogue-ranger-spend-4797` (merge tip + mobile; без деплоя книги)
+**Prod tip:** `cursor/wizard-spellbook-rules-19c3` (залито 2026-10-15 поверх `rogue-ranger-spend-4797`)
 
 ---
 
