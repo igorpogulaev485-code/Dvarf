@@ -238,8 +238,10 @@ function FeatureResourceControls({
     )
   }
 
+  const spendCost = Math.max(1, Math.floor(resource.spend_cost ?? 1))
   const remaining = spendRemaining(pool)
   const linked = resource.linked_spend
+  const linkedCost = Math.max(1, Math.floor(linked?.amount ?? 1))
   const linkedPool = linked?.pool_id
     ? findFeatureResource(
         resources,
@@ -252,7 +254,7 @@ function FeatureResourceControls({
     linked?.mode === 'spend'
       ? spendRemaining(linkedPool)
       : stockCurrent(linkedPool)
-  const canViaLinked = remaining <= 0 && linkedLeft > 0
+  const canViaLinked = remaining < spendCost && linkedLeft >= linkedCost
   const canRecover =
     Boolean(resource.recover_one) && pool.used > 0
   const initiativeAmount =
@@ -352,7 +354,10 @@ function FeatureResourceControls({
         ) : (
           <Button
             type="button"
-            disabled={blockedByHeavyArmor || (remaining <= 0 && !canViaLinked)}
+            disabled={
+              blockedByHeavyArmor ||
+              (remaining < spendCost && !canViaLinked)
+            }
             onClick={() => {
               if (blockedByHeavyArmor) {
                 onToast?.(
@@ -404,7 +409,9 @@ function FeatureResourceControls({
                 ? feature.summon.kind === 'ally'
                   ? 'Призвать напарника'
                   : 'Призвать спутника'
-                : 'Использовать'}
+                : spendCost > 1
+                  ? `Использовать (−${spendCost})`
+                  : 'Использовать'}
           </Button>
         )}
         {resource.recover_one ? (
