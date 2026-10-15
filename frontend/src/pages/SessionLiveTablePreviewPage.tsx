@@ -13,7 +13,7 @@ import {
   type VisibilityProfile,
 } from '../features/lobby/visibilityProfile'
 import type { SessionEvent, SessionSeat } from '../shared/api/lobbies'
-import { Button, Panel, Stack, Text, Toast } from '../ui'
+import { Panel, Stack, Text, Toast } from '../ui'
 
 const DEMO_SEATS: SessionSeat[] = [
   {
@@ -289,14 +289,6 @@ export function SessionLiveTablePreviewPage() {
           </Stack>
         </Panel>
 
-        <div className="session-preview-actions">
-          <Button type="button" variant="secondary" onClick={() => setLiveTab('table')}>
-            На стол
-          </Button>
-          <Button type="button" variant="secondary" onClick={() => setLiveTab('feed')}>
-            В ленту
-          </Button>
-        </div>
       </Stack>
 
       <Toast message={toast} onClose={() => setToast(null)} />
