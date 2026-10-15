@@ -11,6 +11,7 @@ export type ScrollSpellBinding = {
   level: number
   school?: string | null
   ritual?: boolean
+  concentration?: boolean
 }
 
 const SCROLL_SLUG_RE = /^spell_scroll(?:_(\d+|cantrip))?$/i
@@ -70,6 +71,7 @@ export function bindScrollSpell(
       level: Math.max(0, Math.floor(spell.level)),
       school: spell.school ?? null,
       ritual: Boolean(spell.ritual),
+      concentration: Boolean(spell.concentration),
     },
     name: formatScrollDisplayName(spell.name, spell.level),
     // Bound scrolls are distinct consumables — don't casually stack mixed spells.
@@ -90,6 +92,63 @@ export function listBoundSpellScrolls(items: InventoryItem[]): InventoryItem[] {
       item.scroll_spell != null &&
       Boolean(item.scroll_spell.name.trim()),
   )
+}
+
+/** Bound scroll ready to cast / show in combat consumables. */
+export function isCastableSpellScroll(item: {
+  qty: number
+  name: string
+  catalog_slug?: string | null
+  scroll_spell?: ScrollSpellBinding | null
+}): boolean {
+  return (
+    item.qty > 0 &&
+    isSpellScrollItem(item) &&
+    item.scroll_spell != null &&
+    Boolean(item.scroll_spell.name.trim())
+  )
+}
+
+/**
+ * DMG 2014 Spell Scroll fixed save DC / attack bonus by spell level.
+ * (Rarity tiers collapsed to the published table.)
+ */
+export type SpellScrollCastStats = {
+  level: number
+  saveDc: number
+  attackBonus: number
+  rarityRu: string
+}
+
+export function spellScrollCastStats(spellLevel: number): SpellScrollCastStats {
+  const level = Math.max(0, Math.min(9, Math.floor(spellLevel)))
+  if (level <= 1) {
+    return { level, saveDc: 13, attackBonus: 5, rarityRu: 'обычный' }
+  }
+  if (level === 2) {
+    return { level, saveDc: 13, attackBonus: 5, rarityRu: 'необычный' }
+  }
+  if (level === 3) {
+    return { level, saveDc: 15, attackBonus: 7, rarityRu: 'необычный' }
+  }
+  if (level === 4) {
+    return { level, saveDc: 15, attackBonus: 7, rarityRu: 'редкий' }
+  }
+  if (level === 5) {
+    return { level, saveDc: 17, attackBonus: 9, rarityRu: 'редкий' }
+  }
+  if (level === 6) {
+    return { level, saveDc: 17, attackBonus: 9, rarityRu: 'очень редкий' }
+  }
+  if (level === 7 || level === 8) {
+    return { level, saveDc: 18, attackBonus: 10, rarityRu: 'очень редкий' }
+  }
+  return { level, saveDc: 19, attackBonus: 11, rarityRu: 'легендарный' }
+}
+
+/** Ability check DC to cast a scroll whose spell is not on your list (DMG). */
+export function spellScrollOffListCheckDc(spellLevel: number): number {
+  return 10 + Math.max(0, Math.floor(spellLevel))
 }
 
 /** Decrement qty; remove row when qty hits 0. */
@@ -126,5 +185,6 @@ export function readScrollSpellBinding(raw: unknown): ScrollSpellBinding | null 
     level,
     school: typeof row.school === 'string' ? row.school : null,
     ritual: Boolean(row.ritual),
+    concentration: Boolean(row.concentration),
   }
 }

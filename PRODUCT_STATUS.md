@@ -590,6 +590,7 @@
 | Утеря / замена / бэкап | `SpellbookManageDialog`: утеря, restore из памяти, запасная копия + activate | Книга живёт как предмет; после утери — бэкап или перепись подготовленных |
 | Ритуал из книги | Без prepare, если в книге и книга есть; гейт при `bookLost` | PHB ritual casting волшебника |
 | Свиток → книга | В инвентаре у свитка выбирается заклинание; «Внести из свитка» платит foreign + расходует свиток | Не «просто свиток» без имени |
+| Свиток → каст | Каст из инвентаря / расходников боя; DMG Сл/атака; расходник авто | Свиток на сцене Бой как расходник |
 | Модель листа | `wizard_spellbook` + `spellbook_acquisition` / `in_spellbook` | Данные на листе |
 
 Спека: [`docs/wizard-spellbook.md`](docs/wizard-spellbook.md) · план: [`docs/wizard-spellbook-plan.md`](docs/wizard-spellbook-plan.md)  

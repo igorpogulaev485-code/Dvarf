@@ -297,6 +297,12 @@ import {
   type PlayState,
 } from './play'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
+import { CastScrollDialog } from './CastScrollDialog'
+import {
+  consumeScrollItem,
+  isCastableSpellScroll,
+  spellScrollCastStats,
+} from './spellScroll'
 import { consumeMaterialItem } from './spellMaterials'
 import {
   canSpendGrantCast,
@@ -2923,6 +2929,12 @@ export function MinimalSheetEditor({
   const [hotConditionsOpen, setHotConditionsOpen] = useState(false)
   /** Compact play-desk cast (dialog), not the full spells editor. */
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
+  const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
+  const [deskCastScrollPending, setDeskCastScrollPending] = useState<{
+    itemId: string
+    name: string
+    concentration: boolean
+  } | null>(null)
   /** Play-desk spells setup (replaces force-full SpellsPanel). */
   const [spellsSettingsOpen, setSpellsSettingsOpen] = useState(false)
   /** Play-desk attacks setup (replaces force-full AttacksPanel). */
@@ -4350,9 +4362,14 @@ export function MinimalSheetEditor({
             onToast={onToast}
             onSpendResource={spendResourceOrOpenSorcery}
             onToggleConsumableFavorite={toggleCombatFavorite}
+            onCastScroll={(itemId) => setDeskCastScrollId(itemId)}
             onSpendConsumable={(itemId) => {
               const item = draft.inventory.items.find((row) => row.id === itemId)
               if (!item || (item.qty ?? 0) <= 0) return
+              if (isCastableSpellScroll(item)) {
+                setDeskCastScrollId(itemId)
+                return
+              }
               const nextQty = Math.max(0, (item.qty ?? 0) - 1)
               setDraft((prev) => ({
                 ...prev,
@@ -4464,6 +4481,7 @@ export function MinimalSheetEditor({
         attunementFilled={filledAttunementCount(draft.attunements)}
         favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
         onToggleConsumableFavorite={toggleCombatFavorite}
+        onCastScroll={(itemId) => setDeskCastScrollId(itemId)}
         onOpenAttunement={() => setAttunementDialogOpen(true)}
         /* Header owns CoinPad only on wide desk; compact uses panel-local pad. */
         onOpenCoins={isPlayDesk ? () => setCoinPadOpen(true) : undefined}
@@ -4909,6 +4927,114 @@ export function MinimalSheetEditor({
         onConfirm={confirmDeskCast}
         onClose={() => setDeskCastSpell(null)}
       />
+
+      <CastScrollDialog
+        open={deskCastScrollId != null}
+        item={
+          deskCastScrollId
+            ? draft.inventory.items.find((row) => row.id === deskCastScrollId) ?? null
+            : null
+        }
+        onConfirm={() => {
+          const itemId = deskCastScrollId
+          if (!itemId) return
+          const item = draft.inventory.items.find((row) => row.id === itemId)
+          if (!item || !isCastableSpellScroll(item) || !item.scroll_spell) {
+            setDeskCastScrollId(null)
+            return
+          }
+          const binding = item.scroll_spell
+          const stats = spellScrollCastStats(binding.level)
+          const scrollSpellId = `scroll:${item.id}:${binding.catalog_id ?? binding.name}`
+          if (
+            binding.concentration &&
+            draft.play.concentration &&
+            draft.play.concentration.spell_id !== scrollSpellId &&
+            draft.play.concentration.name.trim() !== binding.name.trim()
+          ) {
+            setDeskCastScrollPending({
+              itemId,
+              name: binding.name,
+              concentration: true,
+            })
+            setDeskCastScrollId(null)
+            return
+          }
+          setDraft((prev) => {
+            let next = {
+              ...prev,
+              inventory: {
+                ...prev.inventory,
+                items: consumeScrollItem(prev.inventory.items, itemId),
+              },
+            }
+            if (binding.concentration) {
+              next = {
+                ...next,
+                play: {
+                  ...next.play,
+                  concentration: setConcentration({
+                    spellId: scrollSpellId,
+                    name: binding.name,
+                  }),
+                },
+              }
+            }
+            return next
+          })
+          setDeskCastScrollId(null)
+          onToast(
+            `Свиток: ${binding.name} · Сл ${stats.saveDc} · +${stats.attackBonus}${
+              binding.concentration ? ' · концентрация' : ''
+            } · свиток израсходован`,
+          )
+        }}
+        onClose={() => setDeskCastScrollId(null)}
+      />
+
+      <Dialog
+        open={deskCastScrollPending != null}
+        title="Смена концентрации"
+        primaryLabel="Сменить и кастовать свиток"
+        secondaryLabel="Отмена"
+        primaryVariant="danger"
+        onPrimary={() => {
+          if (!deskCastScrollPending) return
+          const { itemId, name } = deskCastScrollPending
+          const item = draft.inventory.items.find((row) => row.id === itemId)
+          const binding = item?.scroll_spell
+          setDeskCastScrollPending(null)
+          if (!item || !binding || !isCastableSpellScroll(item)) return
+          const stats = spellScrollCastStats(binding.level)
+          const scrollSpellId = `scroll:${item.id}:${binding.catalog_id ?? binding.name}`
+          setDraft((prev) => ({
+            ...prev,
+            inventory: {
+              ...prev.inventory,
+              items: consumeScrollItem(prev.inventory.items, itemId),
+            },
+            play: {
+              ...prev.play,
+              concentration: setConcentration({
+                spellId: scrollSpellId,
+                name,
+              }),
+            },
+          }))
+          onToast(
+            `Свиток: ${name} · Сл ${stats.saveDc} · +${stats.attackBonus} · концентрация · свиток израсходован`,
+          )
+        }}
+        onSecondary={() => {
+          if (deskCastScrollPending) setDeskCastScrollId(deskCastScrollPending.itemId)
+          setDeskCastScrollPending(null)
+        }}
+      >
+        <Text>
+          Сейчас концентрация: «{draft.play.concentration?.name ?? '—'}». Сменить на «
+          {deskCastScrollPending?.name ?? 'Заклинание'}» со свитка?
+        </Text>
+      </Dialog>
 
       <Dialog
         open={deskCastPending != null}

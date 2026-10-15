@@ -49,6 +49,7 @@ export type ScrollSpellBinding = {
   level: number
   school?: string | null
   ritual?: boolean
+  concentration?: boolean
 }
 
 export type InventoryItem = {
@@ -181,6 +182,7 @@ function readScrollSpell(raw: unknown): ScrollSpellBinding | null {
     level,
     school: typeof row.school === 'string' ? row.school : null,
     ritual: Boolean(row.ritual),
+    concentration: Boolean(row.concentration),
   }
 }
 
@@ -295,6 +297,9 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
                   ? { school: item.scroll_spell.school }
                   : {}),
                 ...(item.scroll_spell.ritual ? { ritual: true } : {}),
+                ...(item.scroll_spell.concentration
+                  ? { concentration: true }
+                  : {}),
               },
             }
           : {}),

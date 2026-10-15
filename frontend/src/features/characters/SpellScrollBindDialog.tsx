@@ -89,6 +89,7 @@ export function SpellScrollBindDialog({
       level: parsed.level,
       school: parsed.school ?? null,
       ritual: Boolean(parsed.ritual),
+      concentration: Boolean(parsed.concentration),
     }
     onConfirm(bindScrollSpell(item, binding))
   }

@@ -63,6 +63,7 @@ import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { SpellScrollBindDialog } from './SpellScrollBindDialog'
 import {
+  isCastableSpellScroll,
   isSpellScrollCatalogSlug,
   isSpellScrollItem,
 } from './spellScroll'
@@ -315,6 +316,8 @@ type InventoryPanelProps = {
   /** Combat consumable favorites (★ in explore → расходники в бою). */
   favoriteConsumableIds?: string[]
   onToggleConsumableFavorite?: (itemId: string) => void
+  /** Cast a bound spell scroll from inventory (explore / combat). */
+  onCastScroll?: (itemId: string) => void
 }
 
 export function InventoryPanel({
@@ -333,6 +336,7 @@ export function InventoryPanel({
   onOpenCoins,
   favoriteConsumableIds = [],
   onToggleConsumableFavorite,
+  onCastScroll,
 }: InventoryPanelProps) {
   const favoriteSet = useMemo(() => new Set(favoriteConsumableIds), [favoriteConsumableIds])
   const favoriteCount = favoriteConsumableIds.length
@@ -965,6 +969,15 @@ export function InventoryPanel({
                 ? `Заклинание: ${item.scroll_spell.name}`
                 : 'Указать заклинание свитка'}
             </button>
+            {isCastableSpellScroll(item) && onCastScroll ? (
+              <button
+                type="button"
+                className="sheet-chip is-on"
+                onClick={() => onCastScroll(item.id)}
+              >
+                Кастовать свиток
+              </button>
+            ) : null}
           </div>
         ) : null}
 

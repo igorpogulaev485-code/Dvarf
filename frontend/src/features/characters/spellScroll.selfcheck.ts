@@ -1,13 +1,17 @@
 /** Run: npx tsx src/features/characters/spellScroll.selfcheck.ts */
 import { createInventoryItem } from './inventory'
+import { isAutoCombatConsumable } from './combatConsumables'
 import {
   bindScrollSpell,
   consumeScrollItem,
   formatScrollDisplayName,
+  isCastableSpellScroll,
   isSpellScrollCatalogSlug,
   isSpellScrollItem,
   listBoundSpellScrolls,
+  spellScrollCastStats,
   spellScrollLevelCap,
+  spellScrollOffListCheckDc,
 } from './spellScroll'
 
 function assert(cond: unknown, msg: string): asserts cond {
@@ -44,5 +48,16 @@ const afterOne = consumeScrollItem(stack, bound.id)
 assert(afterOne.length === 1 && afterOne[0]!.qty === 1, 'qty 2→1')
 const afterTwo = consumeScrollItem(afterOne, bound.id)
 assert(afterTwo.length === 0, 'removed at 0')
+
+assert(isCastableSpellScroll(bound), 'castable when bound')
+assert(isAutoCombatConsumable(bound), 'bound scroll is combat consumable')
+assert(
+  isAutoCombatConsumable({ name: 'Свиток 2 уровня', notes: '', qty: 1 }),
+  'unbound scroll name still auto (ammo-like)',
+)
+
+const stats3 = spellScrollCastStats(3)
+assert(stats3.saveDc === 15 && stats3.attackBonus === 7, 'L3 scroll stats')
+assert(spellScrollOffListCheckDc(3) === 13, 'off-list DC 10+3')
 
 console.log('spellScroll.selfcheck: ok')
