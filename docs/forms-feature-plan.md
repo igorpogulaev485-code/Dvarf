@@ -388,12 +388,11 @@ SKT, ToA, WDMM, GGR, ERLW, EGW, … — оставшийся Basic allowlist.
 
 ## 12. Следующий конкретный шаг
 
-**B0 сделан** в `cursor/bestiary-schema-fetch-ab5e` (schema + fetch/diff + smoke + fixture).  
+**B0+B1 сделаны** в `cursor/bestiary-schema-fetch-ab5e`  
+(schema + fetch/diff + smoke + MM ×451 + alembic `c5d6e7f8a9b0`).  
 На прод **не** заливать до команды «Залей».
 
-**Дальше — B1** (отдельная ветка от tip после merge B0, или продолжение этой линии):
+**Дальше:**
 
-1. `fetch_bestiary_wave.py --book MM --out bestiary_mm_v1.json`  
-2. alembic upsert `kind=bestiary`  
-3. smoke count ≈ ttg MM (~451)  
-4. audit B1 ✅
+1. После «Залей» / merge tip — F1 (модель `self_form`) можно параллелить с B2  
+2. Или продолжить B2 (VGM+MTF) на этой же линии до команды деплоя

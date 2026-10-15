@@ -70,18 +70,30 @@ def load_index(official_only: bool = True) -> list[dict]:
     return out
 
 
-def slug_of(item: dict) -> str:
+def path_slug_of(item: dict) -> str:
+    """URL path segment as on ttg (may contain hyphens). Do not normalize away '-'."""
     url = str(item.get("url") or "")
-    return url.rstrip("/").split("/")[-1].replace("-", "_")
+    return url.rstrip("/").split("/")[-1]
 
 
-def fetch_detail(slug: str, sleep_s: float, cache: bool) -> dict:
-    raw_path = RAW_DIR / f"{slug}.json"
+def catalog_slug(path_slug: str) -> str:
+    """Stable catalog slug: hyphens → underscores."""
+    return path_slug.replace("-", "_")
+
+
+def fetch_detail(path_slug: str, sleep_s: float, cache: bool) -> dict:
+    # Cache keyed by catalog slug so will-o-wisp and will_o_wisp share one file.
+    cache_key = catalog_slug(path_slug)
+    raw_path = RAW_DIR / f"{cache_key}.json"
     if cache and raw_path.is_file():
         return json.loads(raw_path.read_text(encoding="utf-8"))
-    detail = http_get_json(TTG_DETAIL.format(slug=slug))
+    # Keep hyphens; only encode characters that break URLs (parens, spaces).
+    from urllib.parse import quote
+
+    encoded = quote(path_slug, safe="()-._~")
+    detail = http_get_json(TTG_DETAIL.format(slug=encoded))
     if not isinstance(detail, dict):
-        raise RuntimeError(f"detail for {slug} is not an object")
+        raise RuntimeError(f"detail for {path_slug} is not an object")
     if cache:
         RAW_DIR.mkdir(parents=True, exist_ok=True)
         raw_path.write_text(
@@ -125,53 +137,53 @@ def main() -> int:
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     if args.slugs:
-        slugs = [s.strip().replace("-", "_") for s in args.slugs.split(",") if s.strip()]
+        # CLI may pass either path form (will-o-wisp) or catalog form (will_o_wisp).
+        path_slugs = [s.strip() for s in args.slugs.split(",") if s.strip()]
     else:
         index = load_index(official_only=not args.include_unofficial)
         if args.book:
             book = args.book.strip().upper()
-            # allow case-insensitive match on shortName
             index = [
                 it
                 for it in index
                 if str((it.get("source") or {}).get("shortName") or "").upper() == book
             ]
-        slugs = []
+        path_slugs = []
         seen: set[str] = set()
         for it in index:
-            slug = slug_of(it)
-            if not slug or slug in seen:
+            path_slug = path_slug_of(it)
+            if not path_slug or path_slug in seen:
                 continue
-            seen.add(slug)
-            slugs.append(slug)
+            seen.add(path_slug)
+            path_slugs.append(path_slug)
         if args.limit and args.limit > 0:
-            slugs = slugs[: args.limit]
+            path_slugs = path_slugs[: args.limit]
 
-    if not slugs:
+    if not path_slugs:
         print("No slugs to fetch", file=sys.stderr)
         return 1
 
     entries: list[dict] = []
     errors: list[str] = []
-    for i, slug in enumerate(slugs, 1):
+    for i, path_slug in enumerate(path_slugs, 1):
         try:
-            detail = fetch_detail(slug, sleep_s=args.sleep, cache=not args.no_cache)
-            # Some URLs use commas etc.; detail may use different path — trust requested slug if url missing
+            detail = fetch_detail(path_slug, sleep_s=args.sleep, cache=not args.no_cache)
             if not detail.get("url"):
-                detail["url"] = f"/bestiary/{slug}"
+                detail["url"] = f"/bestiary/{path_slug}"
             entry = ttg_detail_to_entry(detail)
-            # Prefer CLI slug for stability when API returns odd url
-            if entry.get("slug") != slug and slug:
-                entry["slug"] = slug
+            entry["slug"] = catalog_slug(path_slug)
             errs = validate_entry(entry)
             if errs:
-                errors.append(f"{slug}: {', '.join(errs)}")
+                errors.append(f"{path_slug}: {', '.join(errs)}")
                 continue
             entries.append(entry)
-            print(f"[{i}/{len(slugs)}] ok {slug} · {entry['name_ru']} · {entry['data'].get('source_book')}")
+            print(
+                f"[{i}/{len(path_slugs)}] ok {entry['slug']} · {entry['name_ru']} · "
+                f"{entry['data'].get('source_book')}"
+            )
         except Exception as err:  # noqa: BLE001 — wave script should continue
-            errors.append(f"{slug}: {err}")
-            print(f"[{i}/{len(slugs)}] FAIL {slug}: {err}", file=sys.stderr)
+            errors.append(f"{path_slug}: {err}")
+            print(f"[{i}/{len(path_slugs)}] FAIL {path_slug}: {err}", file=sys.stderr)
 
     entries.sort(key=lambda e: (e.get("name_ru") or e.get("slug") or "").lower())
     out_path.write_text(

@@ -509,7 +509,7 @@
 
 На проде: **нет** · дизайн влит в `cursor/bestiary-schema-fetch-ab5e` · tip не менять
 
-### 2026-10-15 — Bestiary B0: schema + fetch/diff (ещё не сид в БД)
+### 2026-10-15 — Bestiary B0+B1: schema/fetch + сид MM (не на проде)
 
 | Функция | Как работает | Эффект для пользователя |
 |--------|--------------|-------------------------|
@@ -517,6 +517,7 @@
 | Fetch ttg | `fetch_bestiary_wave.py` (Basic only) → JSON волны | Можно качать MM/TCE/… как SPELLS |
 | Diff | `diff_bestiary_sources.py` ttg↔dnd.su | Виден gap покрытия |
 | Smoke | fixture 5 карточек; Wildfire HP=10 (ttg) | Конфликт→ttg проверяется автоматом |
+| Сид MM | `bestiary_mm_v1.json` ×**451** + alembic `c5d6e7f8a9b0` | После «Залей» combobox бестиария покажет MM (звери для WS) |
 
 На проде: **нет** · ветка `cursor/bestiary-schema-fetch-ab5e` · **не деплоить** до «Залей» · tip не менять
 

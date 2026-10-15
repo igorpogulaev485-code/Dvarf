@@ -55,8 +55,8 @@
 
 | Волна | Содержание | В каталоге | Prod verify | Заметки |
 |-------|------------|------------|-------------|---------|
-| B0 | Schema v1 + fetch/diff + smoke + fixture | — (ещё нет upsert) | нет | ✅ код в `cursor/bestiary-schema-fetch-ab5e` |
-| B1 | MM | ☐ | ☐ | база для Wild Shape |
+| B0 | Schema v1 + fetch/diff + smoke + fixture | — | нет | ✅ `cursor/bestiary-schema-fetch-ab5e` |
+| B1 | MM upsert | **451** в JSON + alembic `c5d6e7f8a9b0` | нет (до «Залей») | ✅ 90 beasts; 70 CR≤1; hyphen-URL fix |
 | B2 | VGtM + MToF | ☐ | ☐ | |
 | B3 | MPMM | ☐ | ☐ | |
 | B4 | FTD / BGG / BAM / TCE creatures… | ☐ | ☐ | |
