@@ -27,7 +27,8 @@
 9. **Initiative grant** — `grant_one_on_initiative_if_empty` (Relentless BM)
 10. **Long-rest stock grant** — `grant_stock_on_long_rest_if_empty` (Друг смерти)
 11. **Choice / pick** — subclass/class grants **или** `choice` на умении → `sheet.feature_picks` (Fighting Style)
-12. **Shared pool** — несколько умений с одним `pool_id` (Turn Undead + доменные Channel Divinity)
+12. **Shared pool** — несколько умений с одним `pool_id` (Turn Undead + доменные Channel Divinity; Flurry/Stun + `ki` с `spend_cost`)
+12b. **Linked amount** — `linked_spend.amount` / `amount_max` (Shadow Arts 2 ки; Touch of the Long Death 1–10)
 13. **Success lock** — `success_lock` + `failure_spend_label_ru` (Divine Intervention: провал → long rest; успех → manual 7 дней)
 14. **Slot spend** — `slot_spend` тратит ячейку заклинаний с ряда умения (Divine Smite)
 15. **Save bonus self** — `save_bonus_self` добавляет мод. характеристики к спасам на листе (Aura of Protection)
@@ -46,7 +47,14 @@
   "pool_id": "superiority_dice",
   "pool_name_ru": "Кости превосходства",
   "track": "spend | stock",
-  "linked_spend": { "pool_id": "soul_trinkets", "label_ru": "сжечь частицу души" },
+  "spend_cost": 1,
+  "linked_spend": {
+    "pool_id": "soul_trinkets",
+    "label_ru": "сжечь частицу души",
+    "mode": "stock | spend",
+    "amount": 1,
+    "amount_max": 10
+  },
   "recover_one": {
     "label_ru": "Вернуть 1 кость (бонусное)",
     "recharge": "short_rest"
@@ -95,7 +103,7 @@
 | Soulknife | 1, 4, 8 |
 | Battle Master | 1, 5, 9 (+ Fighter 2) |
 | Barbarian / Berserker / Totem | 1, 5 (+ Rage table) |
-| Monk / Open Hand / Shadow / Elements | 1, 5, 9 (+ Ki = level, Perfect Self +4) |
+| Monk / Open Hand / Shadow / Elements | 1, 5, 9, 12, 12b (+ Ki = level, Perfect Self +4; desk KiSpendDialog) |
 | Cleric / **14** оф. доменов | 2, 4b, 5, 12, 13 (CD shared; Wis-mod; DI success lock; PHB+DMG+SCAG+XGtE+TCoE) |
 | Paladin / **9** оф. клятв | 2, 4b, 4c, 5, 11, 12, 14, 15 (LoH; Sense; CD; Fighting Style; Smite slots; Aura saves) |
 | Ranger / **8** оф. архетипов | 2, 3, 4b, 11, 14 (Favored Enemy/Terrain; Fighting Style; Primeval Awareness slot) |

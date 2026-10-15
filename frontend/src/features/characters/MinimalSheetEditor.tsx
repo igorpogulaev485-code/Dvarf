@@ -220,6 +220,7 @@ import { PlayDeskHotBar } from './PlayDeskHotBar'
 import { RestDialog } from './RestDialog'
 import { SorceryPointsSpendDialog } from './SorceryPointsSpendDialog'
 import { ChannelDivinitySpendDialog } from './ChannelDivinitySpendDialog'
+import { KiSpendDialog } from './KiSpendDialog'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
@@ -2901,6 +2902,7 @@ export function MinimalSheetEditor({
   const [channelDivinitySpendId, setChannelDivinitySpendId] = useState<string | null>(
     null,
   )
+  const [kiSpendId, setKiSpendId] = useState<string | null>(null)
   const [concDamageAsk, setConcDamageAsk] = useState<{
     damage: number
     spellName: string
@@ -3320,6 +3322,10 @@ export function MinimalSheetEditor({
     channelDivinitySpendId == null
       ? null
       : (draft.play.resources.find((row) => row.id === channelDivinitySpendId) ?? null)
+  const kiResource =
+    kiSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === kiSpendId) ?? null)
 
   function isSorceryPointsResource(row: { id: string; name: string }): boolean {
     return (
@@ -3337,6 +3343,11 @@ export function MinimalSheetEditor({
     )
   }
 
+  function isKiResource(row: { id: string; name: string }): boolean {
+    // feat:{class}:ki:{entryId} — avoid matching unrelated names that contain «ки».
+    return /:ki:/.test(row.id) || /^ки$/i.test(row.name.trim())
+  }
+
   function spendResourceOrOpenSorcery(id: string) {
     const row = draft.play.resources.find((item) => item.id === id)
     if (row && isSorceryPointsResource(row)) {
@@ -3345,6 +3356,10 @@ export function MinimalSheetEditor({
     }
     if (row && isChannelDivinityResource(row)) {
       setChannelDivinitySpendId(id)
+      return
+    }
+    if (row && isKiResource(row)) {
+      setKiSpendId(id)
       return
     }
     setDraft((prev) => ({
@@ -4948,6 +4963,31 @@ export function MinimalSheetEditor({
         }}
         onToast={onToast}
         onClose={() => setChannelDivinitySpendId(null)}
+      />
+
+      <KiSpendDialog
+        open={kiSpendId != null}
+        resource={kiResource}
+        features={unlockedFeatures}
+        onSpend={(label, cost) => {
+          if (!kiSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) => {
+                if (row.id !== kiSpendId) return row
+                const nextUsed = Math.min(row.max, row.used + cost)
+                if (nextUsed === row.used) return row
+                return { ...row, used: nextUsed }
+              }),
+            },
+          }))
+          onToast(`${label}: −${cost} ки`)
+          setKiSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setKiSpendId(null)}
       />
 
       <LevelUpDialog

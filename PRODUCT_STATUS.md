@@ -580,6 +580,16 @@
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
 
+### 2026-10-15 — Монах: picker траты Ки (как метамагия / CD)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Клик по Ки на столе | Открывается `KiSpendDialog`: Шквал / Оборона / Шаг / Отклонение / Оглушение / Алмазная душа / Пустое тело (4 и 8) + опции традиции с `linked_spend` | Не надо вручную −1/−2 в пипсах |
+| `spend_cost` / `linked_spend.amount` | Контракт ресурсов: стоимость с shared pool (Ки) и явный amount у Shadow Arts и др. | Shadow Arts реально −2 ки, не −1 |
+| Smoke | `frontend/scripts/smoke-monk-ki-spend.ts` | Регресс по опциям и тратам |
+
+На проде: **нет** · ветка `cursor/monk-ki-spend-4797` · база `cursor/cleric-equip-cd-spells-244b` · друид/Wild Shape не трогали
+
 ### 2026-10-12 — Play desk vitals wave (HP pad / концентрация / без дублей отдыха)
 
 | Функция | Как работает | Эффект для пользователя |
