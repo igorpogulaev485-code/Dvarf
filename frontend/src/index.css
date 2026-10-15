@@ -1785,6 +1785,16 @@ input {
   width: min(640px, 100%);
 }
 
+.ally-targets {
+  display: grid;
+  gap: 10px;
+}
+
+.ally-targets__lobby {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
 .ui-dialog__title {
   flex: 0 0 auto;
   margin: 0;

@@ -295,6 +295,8 @@ import {
   type PlayState,
 } from './play'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
+import { UseAllyAbilityDialog } from './UseAllyAbilityDialog'
+import { guessAllyTargetCount, guessAppliesToAllies } from '../../shared/dnd/allyTargets'
 import { consumeMaterialItem } from './spellMaterials'
 import {
   canSpendGrantCast,
@@ -2866,6 +2868,7 @@ export function MinimalSheetEditor({
   const [ownershipOpen, setOwnershipOpen] = useState(false)
   const [restOpen, setRestOpen] = useState(false)
   const [sorcerySpendId, setSorcerySpendId] = useState<string | null>(null)
+  const [pendingAllyResourceId, setPendingAllyResourceId] = useState<string | null>(null)
   const [concDamageAsk, setConcDamageAsk] = useState<{
     damage: number
     spellName: string
@@ -2962,6 +2965,10 @@ export function MinimalSheetEditor({
 
   function runDeskCast(spell: SheetSpell, choice: CastChoice) {
     const name = spell.name || 'Заклинание'
+    const allyNote =
+      choice.allyTargetIds && choice.allyTargetIds.length > 0
+        ? ` · целей ${choice.allyTargetIds.length}`
+        : ''
     const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
     const grantSpellId = choice.grantSpellId || spell.id
     const grantRow =
@@ -2999,8 +3006,8 @@ export function MinimalSheetEditor({
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
         spell.concentration
-          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)`
-          : `Каст: ${name}${effectNote}${consumeNote}`,
+          ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)`
+          : `Каст: ${name}${effectNote}${consumeNote}${allyNote}`,
       )
       return
     }
@@ -3015,7 +3022,7 @@ export function MinimalSheetEditor({
       }))
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
-        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -3024,7 +3031,7 @@ export function MinimalSheetEditor({
     if (ritualCast) {
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
-        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
+        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -3042,7 +3049,7 @@ export function MinimalSheetEditor({
       }))
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
-        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -3061,7 +3068,7 @@ export function MinimalSheetEditor({
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast(
-      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
         spell.concentration ? ' · концентрация' : ''
       }`,
     )
@@ -3253,12 +3260,7 @@ export function MinimalSheetEditor({
     )
   }
 
-  function spendResourceOrOpenSorcery(id: string) {
-    const row = draft.play.resources.find((item) => item.id === id)
-    if (row && isSorceryPointsResource(row)) {
-      setSorcerySpendId(id)
-      return
-    }
+  function spendResourceCharge(id: string) {
     setDraft((prev) => ({
       ...prev,
       play: {
@@ -3267,6 +3269,43 @@ export function MinimalSheetEditor({
           item.id === id && item.used < item.max
             ? { ...item, used: item.used + 1 }
             : item,
+        ),
+      },
+    }))
+  }
+
+  function resourceNeedsAllyPick(row: {
+    name: string
+    applies_to_allies?: boolean
+  }): boolean {
+    return Boolean(row.applies_to_allies) || guessAppliesToAllies(row.name)
+  }
+
+  function spendResourceOrOpenSorcery(id: string) {
+    const row = draft.play.resources.find((item) => item.id === id)
+    if (row && isSorceryPointsResource(row)) {
+      setSorcerySpendId(id)
+      return
+    }
+    if (row && resourceNeedsAllyPick(row) && row.used < row.max) {
+      setPendingAllyResourceId(id)
+      return
+    }
+    spendResourceCharge(id)
+  }
+
+  function setResourceUsedOrPickAlly(id: string, used: number) {
+    const row = draft.play.resources.find((item) => item.id === id)
+    if (row && used > row.used && resourceNeedsAllyPick(row)) {
+      setPendingAllyResourceId(id)
+      return
+    }
+    setDraft((prev) => ({
+      ...prev,
+      play: {
+        ...prev.play,
+        resources: prev.play.resources.map((item) =>
+          item.id === id ? { ...item, used } : item,
         ),
       },
     }))
@@ -3662,17 +3701,7 @@ export function MinimalSheetEditor({
                   play: { ...prev.play, concentration: null },
                 }))
               }
-              onResourceUsedChange={(id, used) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  play: {
-                    ...prev.play,
-                    resources: prev.play.resources.map((row) =>
-                      row.id === id ? { ...row, used } : row,
-                    ),
-                  },
-                }))
-              }
+              onResourceUsedChange={setResourceUsedOrPickAlly}
             />
           ) : null}
 
@@ -4589,6 +4618,7 @@ export function MinimalSheetEditor({
           edition={baseCharacter.rules_edition as RulesEdition}
           className={classSummary || primaryClass?.name || ''}
           level={characterLevel}
+          characterId={character.id}
           classes={draft.classes}
           subclassCasters={subclassCastersForSpells}
           spells={draft.spells}
@@ -4790,8 +4820,42 @@ export function MinimalSheetEditor({
         spells={draft.spells}
         inventoryItems={draft.inventory.items}
         characterLevel={characterLevel}
+        characterId={character.id}
         onConfirm={confirmDeskCast}
         onClose={() => setDeskCastSpell(null)}
+      />
+
+      <UseAllyAbilityDialog
+        open={pendingAllyResourceId != null}
+        characterId={character.id}
+        characterName={draft.name || character.name}
+        abilityName={
+          draft.play.resources.find((row) => row.id === pendingAllyResourceId)?.name ??
+          'Способность'
+        }
+        targetCount={(() => {
+          const row = draft.play.resources.find((item) => item.id === pendingAllyResourceId)
+          if (!row) return 1
+          return (
+            row.ally_target_count ??
+            guessAllyTargetCount(row.name)
+          )
+        })()}
+        onClose={() => setPendingAllyResourceId(null)}
+        onConfirm={(targetIds) => {
+          if (!pendingAllyResourceId) return
+          spendResourceCharge(pendingAllyResourceId)
+          const name =
+            draft.play.resources.find((row) => row.id === pendingAllyResourceId)?.name ??
+            'Способность'
+          onToast(
+            targetIds.length > 0
+              ? `${name} · целей ${targetIds.length}`
+              : `${name} применена`,
+          )
+          setPendingAllyResourceId(null)
+        }}
+        onToast={onToast}
       />
 
       <Dialog
