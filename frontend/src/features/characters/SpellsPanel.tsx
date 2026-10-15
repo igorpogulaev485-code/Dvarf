@@ -601,10 +601,16 @@ export function SpellsPanel({
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
           </Button>
-          <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
-            <IconWizardHat className="spells-btn-icon" />
-            Подготовить
-          </Button>
+          {!knownCaster ? (
+            <Button
+              variant="secondary"
+              onClick={() => setPrepareOpen(true)}
+              title="Выбрать заклинания на сегодня (лимит подготовки класса)"
+            >
+              <IconWizardHat className="spells-btn-icon" />
+              Подготовить
+            </Button>
+          ) : null}
           <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
             <IconSpellBook className="spells-btn-icon" />
             Гримуар

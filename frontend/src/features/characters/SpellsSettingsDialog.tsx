@@ -260,14 +260,17 @@ export function SpellsSettingsDialog({
           </div>
 
           <div className="spells-settings-dialog__books">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setPrepareOpen(true)}
-            >
-              <IconWizardHat className="spells-btn-icon" />
-              Подготовить
-            </Button>
+            {!knownCaster ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setPrepareOpen(true)}
+                title="Выбрать заклинания на сегодня (лимит подготовки класса)"
+              >
+                <IconWizardHat className="spells-btn-icon" />
+                Подготовить
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="secondary"

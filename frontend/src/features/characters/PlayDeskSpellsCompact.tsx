@@ -103,6 +103,17 @@ export function PlayDeskSpellsCompact({
     learnBudget?.cantrips != null
       ? `заг. ${learnedCantrips}/${learnBudget.cantrips}`
       : null
+  /**
+   * «Подготовить» только для prepared_list / spellbook (жрец, друид, паладин,
+   * изобретатель, волшебник). Known-кастеры (бард, чародей, колдун, следопыт)
+   * уже имеют всё известное готовым к бою — кнопка их путает.
+   */
+  const showPrepare =
+    Boolean(onSpellsChange) &&
+    learnBudget?.mode !== 'known' &&
+    (learnBudget?.mode === 'prepared_list' ||
+      learnBudget?.mode === 'spellbook' ||
+      (learnBudget == null && spells.max_prepared != null))
 
   const maxRows = 14
   const levelGroups = (() => {
@@ -129,11 +140,16 @@ export function PlayDeskSpellsCompact({
       <div className="play-desk-compact__head">
         <h3>{pinned ? 'Заклинания (закреплено)' : 'Заклинания'}</h3>
         <div className="play-desk-compact__head-actions">
-          {onSpellsChange ? (
+          {showPrepare ? (
             <button
               type="button"
               className="play-desk-compact__link play-desk-compact__link--prepare"
               onClick={() => setPrepareOpen(true)}
+              title={
+                learnBudget?.mode === 'spellbook'
+                  ? 'Выбрать на сегодня из книги (лимит = Инт + ур. волшебника)'
+                  : 'Выбрать на сегодня из списка класса (лимит = мод + уровень)'
+              }
             >
               <IconWizardHat className="play-desk-compact__link-icon" />
               Подготовить
