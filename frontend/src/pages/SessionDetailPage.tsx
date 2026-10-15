@@ -7,6 +7,7 @@ import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
+import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { StartCombatDialog } from '../features/lobby/StartCombatDialog'
@@ -22,6 +23,7 @@ import { ApiRequestError } from '../shared/api/client'
 import {
   addSeatCompanion,
   addSessionCombatants,
+  awardSessionXp,
   closeSession,
   createSessionRoll,
   deleteSeatCompanion,
@@ -69,6 +71,7 @@ export function SessionDetailPage() {
   const [effectOpen, setEffectOpen] = useState(false)
   const [combatantOpen, setCombatantOpen] = useState(false)
   const [combatStartOpen, setCombatStartOpen] = useState(false)
+  const [xpOpen, setXpOpen] = useState(false)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -342,9 +345,18 @@ export function SessionDetailPage() {
                         Бой
                       </Button>
                     ) : null}
+                    {session.is_owner ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy || session.seats.length === 0}
+                        onClick={() => setXpOpen(true)}
+                      >
+                        XP
+                      </Button>
+                    ) : null}
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Состояние — вред. Эффект — баф. Противник — бестиарий. Бой —
-                      инициатива и ход.
+                      Бой — инициатива. XP — после боя из бестиария или вручную.
                     </Text>
                   </div>
                 ) : null}
@@ -377,6 +389,7 @@ export function SessionDetailPage() {
                         })
                         setSession(updated)
                         setToast('Бой окончен')
+                        setXpOpen(true)
                       })
                     }}
                     onSelect={(index) => {
@@ -778,6 +791,27 @@ export function SessionDetailPage() {
             setSession(updated)
             setCombatStartOpen(false)
             setToast('Бой начат')
+          })
+        }}
+      />
+
+      <AwardXpDialog
+        open={xpOpen}
+        busy={busy}
+        seats={session.seats}
+        combatants={session.combatants ?? []}
+        onClose={() => setXpOpen(false)}
+        onSubmit={(payload) => {
+          void run(async () => {
+            const result = await awardSessionXp(session.id, payload)
+            setSession(result.session)
+            setXpOpen(false)
+            setToast(
+              result.awarded_each > 0
+                ? `+${result.awarded_each} XP · ${result.recipients.join(', ')}`
+                : 'XP: 0',
+            )
+            await reloadEvents()
           })
         }}
       />

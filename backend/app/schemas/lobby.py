@@ -252,6 +252,9 @@ class SessionCombatantOut(BaseModel):
     legendary_actions: list[CombatantActionOut] = Field(default_factory=list)
     members: list[CombatantMemberOut] = Field(default_factory=list)
     dex_mod: int | None = None
+    xp: int | None = None
+    """Сколько поверженных из пачки уже учтены при раздаче XP."""
+    xp_claimed_count: int = 0
 
 
 class CombatEntryOut(BaseModel):
@@ -295,6 +298,25 @@ class CombatPatchRequest(BaseModel):
     entries: list[CombatEntryInput] | None = None
 
 
+class XpAwardRequest(BaseModel):
+    """Раздать XP сидящим: пул делится поровну, либо фиксированная сумма каждому."""
+
+    character_ids: list[UUID] = Field(min_length=1)
+    total_xp: int | None = Field(default=None, ge=0, le=10_000_000)
+    per_character_xp: int | None = Field(default=None, ge=0, le=10_000_000)
+    source: str = Field(default="manual", max_length=32)
+    note: str | None = Field(default=None, max_length=240)
+    """Пометить этих противников как уже учтённых в XP (после боя)."""
+    claim_combatant_ids: list[str] | None = None
+
+
+class XpAwardResult(BaseModel):
+    session: "SessionDetail"
+    awarded_each: int
+    awarded_total: int
+    recipients: list[str]
+
+
 class CombatantCreateRequest(BaseModel):
     """Посадить 1..N как одну карточку-пачку из бестиария или свой НПС."""
 
@@ -306,6 +328,7 @@ class CombatantCreateRequest(BaseModel):
     speed: int | None = Field(default=None, ge=0, le=500)
     count: int = Field(default=1, ge=1, le=20)
     actions: list[CombatantActionOut] = Field(default_factory=list)
+    xp: int | None = Field(default=None, ge=0, le=10_000_000)
 
 
 class CombatantPatchRequest(BaseModel):

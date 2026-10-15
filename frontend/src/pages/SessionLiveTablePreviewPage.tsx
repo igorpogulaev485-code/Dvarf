@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react'
 import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
+import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
@@ -151,14 +152,56 @@ const DEMO_SEATS: SessionSeat[] = [
   },
 ]
 
+function soloEnemy(
+  id: string,
+  name: string,
+  opts: {
+    hp: number
+    ac: number
+    cr: string
+    xp: number
+    type_ru: string
+    dead?: boolean
+    action?: string
+  },
+): SessionCombatant {
+  const dead = Boolean(opts.dead)
+  return {
+    id,
+    name,
+    hp_current: dead ? 0 : opts.hp,
+    hp_max: opts.hp,
+    alive_count: dead ? 0 : 1,
+    member_count: 1,
+    ac: opts.ac,
+    speed: 30,
+    cr: opts.cr,
+    type_ru: opts.type_ru,
+    xp: opts.xp,
+    xp_claimed_count: 0,
+    actions: opts.action
+      ? [{ name_ru: opts.action, text_ru: 'См. бестиарий.' }]
+      : [],
+    members: [
+      {
+        id: `${id}-m`,
+        name,
+        hp_current: dead ? 0 : opts.hp,
+        hp_max: opts.hp,
+      },
+    ],
+  }
+}
+
 const DEMO_COMBATANTS: SessionCombatant[] = [
+  // Пачка одинаковых — XP × число мёртвых
   {
     id: 'e-gob-pack',
     name: 'Гоблин',
     hp_current: 7,
     hp_max: 7,
-    alive_count: 7,
-    member_count: 8,
+    alive_count: 3,
+    member_count: 20,
     ac: 15,
     speed: 30,
     cr: '1/4',
@@ -166,54 +209,91 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
     source_book: 'MM',
     type_ru: 'гуманоид',
     dex_mod: 2,
+    xp: 50,
+    xp_claimed_count: 0,
     actions: [
       {
         name_ru: 'Скимитар',
-        text_ru: 'Рукопашная атака оружием: +4 к попаданию, досягаемость 5 фт. Попадание: 5 (1к6 + 2) рубящего урона.',
-      },
-      {
-        name_ru: 'Короткий лук',
-        text_ru: 'Дальнобойная атака оружием: +4 к попаданию, дистанция 80/320 фт. Попадание: 5 (1к6 + 2) колющего урона.',
+        text_ru: 'Рукопашная атака оружием: +4 к попаданию, досягаемость 5 фт.',
       },
     ],
     traits: [
       {
         name_ru: 'Проворное исчезновение',
-        text_ru: 'Гоблин может совершить действие Засада или Замешательство бонусным действием в каждом своём ходу.',
+        text_ru: 'Бонусным действием Засада или Отход.',
       },
     ],
-    members: [
-      { id: 'g1', name: 'Гоблин 1', hp_current: 7, hp_max: 7 },
-      { id: 'g2', name: 'Гоблин 2', hp_current: 3, hp_max: 7 },
-      { id: 'g3', name: 'Гоблин 3', hp_current: 7, hp_max: 7 },
-      { id: 'g4', name: 'Гоблин 4', hp_current: 7, hp_max: 7 },
-      { id: 'g5', name: 'Гоблин 5', hp_current: 0, hp_max: 7 },
-      { id: 'g6', name: 'Гоблин 6', hp_current: 7, hp_max: 7 },
-      { id: 'g7', name: 'Гоблин 7', hp_current: 7, hp_max: 7 },
-      { id: 'g8', name: 'Гоблин 8', hp_current: 7, hp_max: 7 },
-    ],
+    members: Array.from({ length: 20 }, (_, i) => ({
+      id: `g${i + 1}`,
+      name: `Гоблин ${i + 1}`,
+      hp_current: i < 17 ? 0 : i === 17 ? 3 : 7,
+      hp_max: 7,
+    })),
   },
-  {
-    id: 'e-ogre',
-    name: 'Огр Буян',
-    hp_current: 59,
-    hp_max: 59,
-    alive_count: 1,
-    member_count: 1,
+  // Семь разных — каждая карточка своей строкой в XP
+  soloEnemy('e-wolf', 'Волк', {
+    hp: 11,
+    ac: 13,
+    cr: '1/4',
+    xp: 50,
+    type_ru: 'зверь',
+    dead: true,
+    action: 'Укус',
+  }),
+  soloEnemy('e-orc', 'Орк', {
+    hp: 15,
+    ac: 13,
+    cr: '1/2',
+    xp: 100,
+    type_ru: 'гуманоид',
+    dead: true,
+    action: 'Секира',
+  }),
+  soloEnemy('e-bugbear', 'Багбер', {
+    hp: 27,
+    ac: 16,
+    cr: '1',
+    xp: 200,
+    type_ru: 'гуманоид',
+    dead: true,
+    action: 'Моргенштерн',
+  }),
+  soloEnemy('e-ogre', 'Огр', {
+    hp: 59,
     ac: 11,
-    speed: 40,
     cr: '2',
-    custom: true,
-    type_ru: 'НПС',
-    dex_mod: -1,
-    actions: [
-      {
-        name_ru: 'Дубина',
-        text_ru: 'Рукопашная +6, 2к8+4 дробящего.',
-      },
-    ],
-    members: [{ id: 'og1', name: 'Огр Буян', hp_current: 59, hp_max: 59 }],
-  },
+    xp: 450,
+    type_ru: 'великан',
+    dead: true,
+    action: 'Дубина',
+  }),
+  soloEnemy('e-owlbear', 'Совомедведь', {
+    hp: 59,
+    ac: 13,
+    cr: '3',
+    xp: 700,
+    type_ru: 'монстр',
+    dead: true,
+    action: 'Клюв',
+  }),
+  soloEnemy('e-troll', 'Тролль', {
+    hp: 84,
+    ac: 15,
+    cr: '5',
+    xp: 1800,
+    type_ru: 'великан',
+    dead: true,
+    action: 'Мультиатака',
+  }),
+  soloEnemy('e-mage', 'Маг', {
+    hp: 40,
+    ac: 12,
+    cr: '6',
+    xp: 2300,
+    type_ru: 'гуманоид',
+    dead: true,
+    action: 'Огненный шар',
+  }),
 ]
 
 const SEED_EVENTS: SessionEvent[] = [
@@ -280,6 +360,7 @@ export function SessionLiveTablePreviewPage() {
   const [effectOpen, setEffectOpen] = useState(false)
   const [combatantOpen, setCombatantOpen] = useState(false)
   const [combatStartOpen, setCombatStartOpen] = useState(false)
+  const [xpOpen, setXpOpen] = useState(false)
   const [combat, setCombat] = useState<SessionCombat>({
     active: false,
     round: 1,
@@ -389,9 +470,15 @@ export function SessionLiveTablePreviewPage() {
                         Бой
                       </Button>
                     ) : null}
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setXpOpen(true)}
+                    >
+                      XP
+                    </Button>
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Состояние — вред. Эффект — баф. Противник — бестиарий. Бой —
-                      инициатива; на ходе врага — его действия.
+                      Бой — инициатива. XP — после боя / вручную.
                     </Text>
                   </div>
                 ) : null}
@@ -433,6 +520,7 @@ export function SessionLiveTablePreviewPage() {
                         entries: [],
                       })
                       setToast('Бой окончен')
+                      setXpOpen(true)
                     }}
                     onSelect={(index) => {
                       setCombat((prev) => ({ ...prev, active_index: index }))
@@ -775,6 +863,55 @@ export function SessionLiveTablePreviewPage() {
           })
           setCombatStartOpen(false)
           setToast('Бой начат')
+        }}
+      />
+
+      <AwardXpDialog
+        open={xpOpen}
+        seats={seats}
+        combatants={combatants}
+        onClose={() => setXpOpen(false)}
+        onSubmit={(payload) => {
+          const n = payload.character_ids.length || 1
+          const each =
+            payload.per_character_xp != null
+              ? payload.per_character_xp
+              : Math.floor((payload.total_xp ?? 0) / n)
+          if (payload.claim_combatant_ids?.length) {
+            const claim = new Set(payload.claim_combatant_ids)
+            setCombatants((prev) =>
+              prev.map((c) => {
+                if (!claim.has(c.id)) return c
+                const dead = (c.members ?? []).filter((m) => m.hp_current <= 0).length
+                return {
+                  ...c,
+                  xp_claimed_count: Math.max(c.xp_claimed_count ?? 0, dead),
+                }
+              }),
+            )
+          }
+          setXpOpen(false)
+          const names = seats
+            .filter((s) => payload.character_ids.includes(s.character_id))
+            .map((s) => s.character_name)
+          setToast(`+${each} XP · ${names.join(', ')}`)
+          setEvents((prev) => [
+            {
+              id: `xp-${Date.now()}`,
+              session_id: 's1',
+              event_type: 'xp',
+              character_id: null,
+              character_name: 'Мастер',
+              title: payload.source === 'combat' ? 'Опыт' : 'Опыт (вручную)',
+              formula: `+${each} XP × ${n}`,
+              breakdown: names.join(', '),
+              total: each * n,
+              is_master_roll: false,
+              payload: {},
+              created_at: new Date().toISOString(),
+            },
+            ...prev,
+          ])
         }}
       />
 

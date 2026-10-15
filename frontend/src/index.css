@@ -3188,6 +3188,77 @@ button.session-concentration-tag {
   }
 }
 
+.session-xp-defeat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.session-xp-defeat-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 0.92rem;
+}
+
+.session-xp-defeat-list__xp {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.session-xp-recipients__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.session-xp-recipients__title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.session-xp-link {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.session-xp-recipients {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.session-xp-recipient {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+.session-xp-recipient.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
 .session-combatant-mode {
   display: flex;
   gap: 8px;

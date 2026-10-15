@@ -154,6 +154,11 @@ export type SessionCombatant = {
   legendary_actions?: CombatantAction[]
   members?: CombatantMember[]
   dex_mod?: number | null
+  xp?: number | null
+  /** Сколько поверженных из пачки уже учтены в раздаче XP. */
+  xp_claimed_count?: number
+  /** @deprecated используй xp_claimed_count */
+  xp_claimed?: boolean
 }
 
 export type CombatEntryKind = 'pc' | 'companion' | 'enemy'
@@ -532,6 +537,66 @@ export async function patchSessionCombat(
     method: 'PATCH',
     body: JSON.stringify(payload),
   })
+}
+
+export type XpAwardResult = {
+  session: SessionDetail
+  awarded_each: number
+  awarded_total: number
+  recipients: string[]
+}
+
+export async function awardSessionXp(
+  sessionId: string,
+  payload: {
+    character_ids: string[]
+    total_xp?: number | null
+    per_character_xp?: number | null
+    source?: string
+    note?: string | null
+    claim_combatant_ids?: string[]
+  },
+): Promise<XpAwardResult> {
+  return apiRequest<XpAwardResult>(`/sessions/${sessionId}/xp`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+/** Сколько XP ещё не раздано за поверженных в пачке/карточке. */
+export function unclaimedDefeatXp(combatant: SessionCombatant): {
+  dead: number
+  claimed: number
+  unclaimed: number
+  xpEach: number
+  total: number
+  claimable: boolean
+} {
+  const xpEach = Math.max(0, combatant.xp ?? 0)
+  const members = combatant.members ?? []
+  const dead =
+    members.length > 0
+      ? members.filter((m) => m.hp_current <= 0).length
+      : combatant.hp_current <= 0
+        ? 1
+        : 0
+  const claimedRaw =
+    typeof combatant.xp_claimed_count === 'number'
+      ? combatant.xp_claimed_count
+      : combatant.xp_claimed
+        ? dead
+        : 0
+  const claimed = Math.max(0, Math.min(dead, claimedRaw))
+  const unclaimed = Math.max(0, dead - claimed)
+  const claimable = unclaimed > 0 && xpEach > 0
+  return {
+    dead,
+    claimed,
+    unclaimed,
+    xpEach,
+    total: claimable ? unclaimed * xpEach : 0,
+    claimable,
+  }
 }
 
 export function lobbyQrUrl(inviteCode: string): string {
