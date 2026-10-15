@@ -12,6 +12,7 @@ import { LobbyHubPreviewPage } from './pages/LobbyHubPreviewPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { SessionAttendancePreviewPage } from './pages/SessionAttendancePreviewPage'
 import { SessionDetailPage } from './pages/SessionDetailPage'
+import { SessionLiveTablePreviewPage } from './pages/SessionLiveTablePreviewPage'
 import { SettingDetailPage } from './pages/SettingDetailPage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
@@ -46,6 +47,10 @@ export default function App() {
         <Route
           path="/dev/session-attendance-preview"
           element={<SessionAttendancePreviewPage />}
+        />
+        <Route
+          path="/dev/session-live-table-preview"
+          element={<SessionLiveTablePreviewPage />}
         />
         <Route
           path="/characters"

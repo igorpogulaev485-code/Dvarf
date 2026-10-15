@@ -1,16 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
-import { LobbyMemberMiniCard } from '../features/lobby/LobbyMemberMiniCard'
+import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
+import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
+import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
+import { SessionTableCard } from '../features/lobby/SessionTableCard'
+import { useSessionRealtime } from '../features/lobby/useSessionRealtime'
+import { normalizeVisibilityProfile } from '../features/lobby/visibilityProfile'
 import { listCharacters } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import {
+  createSessionRoll,
   getSession,
+  listSessionEvents,
   seatCharacter,
   unseatCharacter,
   updateSession,
   type SessionDetail,
+  type SessionEvent,
 } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
@@ -19,6 +27,9 @@ export function SessionDetailPage() {
   const navigate = useNavigate()
   const [session, setSession] = useState<SessionDetail | null>(null)
   const [ownCharacterIds, setOwnCharacterIds] = useState<Set<string>>(() => new Set())
+  const [events, setEvents] = useState<SessionEvent[]>([])
+  const [rollsOnly, setRollsOnly] = useState(false)
+  const [liveTab, setLiveTab] = useState<SessionLiveTabId>('table')
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -30,6 +41,11 @@ export function SessionDetailPage() {
     setSession(detail)
     setOwnCharacterIds(new Set(chars.map((c) => c.id)))
   }, [sessionId])
+
+  const reloadEvents = useCallback(async () => {
+    const list = await listSessionEvents(sessionId, { rollsOnly })
+    setEvents(list)
+  }, [sessionId, rollsOnly])
 
   useEffect(() => {
     let active = true
@@ -46,15 +62,35 @@ export function SessionDetailPage() {
     }
   }, [navigate, reload])
 
+  useEffect(() => {
+    if (!session) return
+    let active = true
+    reloadEvents().catch((err: unknown) => {
+      if (!active) return
+      setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить ленту')
+    })
+    return () => {
+      active = false
+    }
+  }, [session, reloadEvents])
+
+  useSessionRealtime(session?.id, (incoming) => {
+    setEvents((prev) => {
+      if (prev.some((e) => e.id === incoming.id)) return prev
+      if (rollsOnly && incoming.event_type !== 'roll') return prev
+      return [incoming, ...prev]
+    })
+  })
+
   const presentIds = useMemo(
     () => new Set(session?.seats.map((s) => s.character_id) ?? []),
     [session],
   )
 
-  const presentMembers = useMemo(() => {
-    if (!session) return []
-    return session.lobby_members.filter((m) => presentIds.has(m.character_id))
-  }, [session, presentIds])
+  const visibility = useMemo(
+    () => normalizeVisibilityProfile(session?.visibility_profile),
+    [session?.visibility_profile],
+  )
 
   async function run(action: () => Promise<void>) {
     setBusy(true)
@@ -108,6 +144,8 @@ export function SessionDetailPage() {
       </main>
     )
   }
+
+  const historyOff = !session.is_owner && visibility.event_history === 'off'
 
   return (
     <main className="page page--app page--lobby-hub">
@@ -167,36 +205,72 @@ export function SessionDetailPage() {
           </Stack>
         </Panel>
 
-        <Panel title="За столом">
-          <Stack gap={12}>
-            {presentMembers.length === 0 ? (
-              <Text tone="muted">
-                Никого нет.
-                {session.is_owner
-                  ? ' Откройте «Кто пришёл», отметьте игроков и сохраните.'
-                  : ''}
-              </Text>
+        <Panel title="Живой стол">
+          <Stack gap={14}>
+            <SessionLiveTabs active={liveTab} onChange={setLiveTab} />
+
+            {liveTab === 'table' ? (
+              session.seats.length === 0 ? (
+                <Text tone="muted">
+                  Никого нет.
+                  {session.is_owner
+                    ? ' Откройте «Кто пришёл», отметьте игроков и сохраните.'
+                    : ''}
+                </Text>
+              ) : (
+                <div className="session-table-grid">
+                  {session.seats.map((seat) => {
+                    const isOwn = ownCharacterIds.has(seat.character_id)
+                    return (
+                      <SessionTableCard
+                        key={seat.character_id}
+                        seat={seat}
+                        visibility={visibility}
+                        revealAll={session.is_owner}
+                        sheetLabel={session.is_owner && !isOwn ? 'Смотреть' : 'Лист'}
+                      />
+                    )
+                  })}
+                </div>
+              )
             ) : (
-              <div className="lobby-member-grid">
-                {presentMembers.map((m) => {
-                  const isOwn = ownCharacterIds.has(m.character_id)
-                  return (
-                    <LobbyMemberMiniCard
-                      key={m.character_id}
-                      member={m}
-                      sheetLabel={session.is_owner && !isOwn ? 'Смотреть' : 'Лист'}
-                    />
-                  )
-                })}
-              </div>
+              <Stack gap={14}>
+                {historyOff ? (
+                  <Text tone="muted">Лента скрыта настройками видимости лобби.</Text>
+                ) : (
+                  <>
+                    <label className="session-feed-filter">
+                      <input
+                        type="checkbox"
+                        checked={rollsOnly}
+                        onChange={(e) => setRollsOnly(e.target.checked)}
+                      />
+                      Только броски
+                    </label>
+                    <SessionEventFeed events={events} />
+                  </>
+                )}
+                <ManualRollForm
+                  seats={session.seats}
+                  ownCharacterIds={ownCharacterIds}
+                  isOwner={session.is_owner}
+                  busy={busy}
+                  onSubmit={async (payload) => {
+                    await run(async () => {
+                      const created = await createSessionRoll(session.id, payload)
+                      setEvents((prev) => {
+                        if (prev.some((e) => e.id === created.id)) return prev
+                        if (rollsOnly && created.event_type !== 'roll') return prev
+                        return [created, ...prev]
+                      })
+                      setToast('Бросок в ленте')
+                      setLiveTab('feed')
+                    })
+                  }}
+                />
+              </Stack>
             )}
           </Stack>
-        </Panel>
-
-        <Panel title="Живой стол">
-          <Text tone="muted">
-            Карточки по видимости, лента событий и броски появятся в следующем слайсе (A3).
-          </Text>
         </Panel>
       </Stack>
 
