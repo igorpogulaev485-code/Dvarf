@@ -915,6 +915,30 @@ export function isReadyInCombat(spell: SheetSpell): boolean {
   return spell.level <= 0 || spell.prepared
 }
 
+/**
+ * Combat/cast availability including wizard ritual-from-book (PHB):
+ * ritual in the active book may be cast without preparing when the book is present.
+ */
+export function isAvailableToCast(
+  spell: SheetSpell,
+  opts?: {
+    learnMode?: 'known' | 'prepared_list' | 'spellbook' | null
+    hasSpellbook?: boolean
+  },
+): boolean {
+  if (isReadyInCombat(spell)) return true
+  if (
+    opts?.learnMode === 'spellbook' &&
+    opts.hasSpellbook &&
+    spell.ritual &&
+    spell.level > 0 &&
+    spell.in_spellbook !== false
+  ) {
+    return true
+  }
+  return false
+}
+
 export function canPrepareSpell(
   known: SheetSpell[],
   spell: SheetSpell,

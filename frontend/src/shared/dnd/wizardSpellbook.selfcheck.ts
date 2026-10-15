@@ -3,6 +3,7 @@ import { coinsToGp, spendGpFromPurse, type CoinPurse } from './weight'
 import {
   activateBackupAsPrimary,
   beginReplacementSpellbook,
+  canCastWizardRitualFromBook,
   copySpellCost,
   createEmptyWizardSpellbookState,
   freeBookCap,
@@ -196,5 +197,39 @@ const evoFire = copySpellCost({
 })
 assert(evoFire.gp === 75, 'fireball half of 150')
 assert(evoFire.halvedBySavant, 'halved flag')
+
+// --- ritual from book ---
+const bookOk = createEmptyWizardSpellbookState('book-1')
+assert(
+  canCastWizardRitualFromBook({
+    spell: { level: 1, ritual: true, in_spellbook: true },
+    book: bookOk,
+  }).ok,
+  'ritual ok with book',
+)
+assert(
+  !canCastWizardRitualFromBook({
+    spell: { level: 1, ritual: true, in_spellbook: true },
+    book: { ...bookOk, bookLost: true, primaryBookItemId: null },
+  }).ok,
+  'ritual blocked when lost',
+)
+assert(
+  !canCastWizardRitualFromBook({
+    spell: { level: 1, ritual: true, in_spellbook: false },
+    book: bookOk,
+  }).ok,
+  'ritual blocked when not in book',
+)
+
+// --- backup activate ---
+const withBackup = registerBackupBook(bookOk, 'backup-1')
+const lostWithBackup = markSpellbookLost(withBackup, [
+  { catalog_id: 'detect-magic', name: 'Detect Magic', level: 1 },
+]).book
+assert(lostWithBackup.bookLost, 'lost flag')
+const activated = activateBackupAsPrimary(lostWithBackup, 'backup-1')
+assert(!activated.bookLost && activated.primaryBookItemId === 'backup-1', 'backup promoted')
+assert(wizardSpellAccess(activated).canRitualFromBook, 'ritual after backup')
 
 console.log('wizardSpellbook.selfcheck: ok')

@@ -14,7 +14,7 @@ import {
   grantCastRemaining,
   groupSpellsByLevel,
   isGrantedSpellHighlight,
-  isReadyInCombat,
+  isAvailableToCast,
   spellSourceBadge,
   type SheetSpell,
   type SpellsState,
@@ -73,7 +73,19 @@ export function PlayDeskSpellsCompact({
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
   const [showAllSpells, setShowAllSpells] = useState(false)
-  const ready = spells.known.filter(isReadyInCombat)
+  const hasSpellbook =
+    learnBudget?.mode === 'spellbook' &&
+    Boolean(
+      spells.wizard_spellbook &&
+        !spells.wizard_spellbook.bookLost &&
+        spells.wizard_spellbook.primaryBookItemId,
+    )
+  const ready = spells.known.filter((spell) =>
+    isAvailableToCast(spell, {
+      learnMode: learnBudget?.mode ?? null,
+      hasSpellbook,
+    }),
+  )
   const pact = spells.pact_slots ? clampPactSlots(spells.pact_slots) : null
   const pactRemaining = pact && pact.max > 0 ? Math.max(0, pact.max - pact.used) : null
   const abilityKey = spells.casting_ability

@@ -35,6 +35,7 @@ import {
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import { SpellbookManageDialog } from './SpellbookManageDialog'
+import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
 import { wizardSpellbookStatusLabel } from './wizardSpellbookInventory'
 import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
 import {
@@ -58,7 +59,7 @@ import {
   isGrantedSpellHighlight,
   isKnownSpellcastingMode,
   groupSpellsByLevel,
-  isReadyInCombat,
+  isAvailableToCast,
   preparedLockChip,
   readCatalogSpellFields,
   setSpellPrepared,
@@ -136,10 +137,44 @@ export function SpellsPanel({
   const attack = abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : null
   const preparedCount = countPreparedLeveled(spells.known)
 
-  const combatPool = useMemo(
-    () => (showAllKnown ? spells.known : spells.known.filter(isReadyInCombat)),
-    [showAllKnown, spells.known],
+  const suggestion = useMemo(
+    () =>
+      suggestSpellcasting({
+        className,
+        level,
+        classes,
+        subclassCasters,
+        abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      }),
+    [className, level, classes, subclassCasters, abilities],
   )
+
+  const learnBudget = useMemo(() => {
+    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
+    if (rows.length === 0) return null
+    return resolveSpellLearnBudget({
+      classes: rows,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+    })
+  }, [classes, subclassCasters, abilities])
+
+  const combatPool = useMemo(() => {
+    if (showAllKnown) return spells.known
+    const hasSpellbook =
+      learnBudget?.mode === 'spellbook' &&
+      Boolean(
+        spells.wizard_spellbook &&
+          !spells.wizard_spellbook.bookLost &&
+          spells.wizard_spellbook.primaryBookItemId,
+      )
+    return spells.known.filter((spell) =>
+      isAvailableToCast(spell, {
+        learnMode: learnBudget?.mode ?? null,
+        hasSpellbook,
+      }),
+    )
+  }, [showAllKnown, spells.known, spells.wizard_spellbook, learnBudget?.mode])
 
   const filterOptions = useMemo(() => {
     const levels = new Set<number>([0])
@@ -170,28 +205,6 @@ export function SpellsPanel({
       .sort((a, b) => a[0] - b[0])
       .map(([, group]) => group)
   }, [filter, combatPool, spells.slots])
-
-  const suggestion = useMemo(
-    () =>
-      suggestSpellcasting({
-        className,
-        level,
-        classes,
-        subclassCasters,
-        abilityModFor: (ability) => abilityModifier(abilities[ability]),
-      }),
-    [className, level, classes, subclassCasters, abilities],
-  )
-
-  const learnBudget = useMemo(() => {
-    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
-    if (rows.length === 0) return null
-    return resolveSpellLearnBudget({
-      classes: rows,
-      subclassCasters,
-      abilityModFor: (ability) => abilityModifier(abilities[ability]),
-    })
-  }, [classes, subclassCasters, abilities])
 
   const knownCaster = isKnownSpellcastingMode({
     maxPrepared: spells.max_prepared,
@@ -425,6 +438,16 @@ export function SpellsPanel({
       return
     }
     if (ritualCast) {
+      if (learnBudget?.mode === 'spellbook') {
+        const gate = canCastWizardRitualFromBook({
+          spell: castSpell,
+          book: spells.wizard_spellbook,
+        })
+        if (!gate.ok) {
+          onToast?.(gate.message)
+          return
+        }
+      }
       applyConcentrationIfNeeded(castSpell)
       onToast?.(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
@@ -1132,6 +1155,7 @@ export function SpellsPanel({
         spells={spells}
         inventoryItems={inventoryItems}
         characterLevel={level}
+        wizardRitualFromBook={learnBudget?.mode === 'spellbook'}
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />

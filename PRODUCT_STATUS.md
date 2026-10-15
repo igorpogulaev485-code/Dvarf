@@ -587,11 +587,12 @@
 | Стоимость копии | Чужое: 50 зм + 2 ч / ур.; своя / из памяти: 10 зм + 1 ч / ур.; Savant ×½; Quill — 0 зм + 2 мин / ур. | Кнопка «В книгу · N зм» когда free-бюджет исчерпан |
 | Списание из кошелька | `spendGpFromPurse` + Гримуар на листе | Золото уходит само; в шапке «N зм» обновляется |
 | Нехватка денег | Копия не пишется; toast с «нужно X / есть Y» | Понятно, почему нельзя внести заклинание |
-| Утеря / бэкап (engine) | mark/replace/backup helpers | UI утери — следующий слайс |
+| Утеря / замена / бэкап | `SpellbookManageDialog`: утеря, restore из памяти, запасная копия + activate | Книга живёт как предмет; после утери — бэкап или перепись подготовленных |
+| Ритуал из книги | Без prepare, если в книге и книга есть; гейт при `bookLost` | PHB ritual casting волшебника |
 | Модель листа | `wizard_spellbook` + `spellbook_acquisition` / `in_spellbook` | Данные на листе |
 
-Спека: [`docs/wizard-spellbook.md`](docs/wizard-spellbook.md) · код: `wizardSpellbook.ts`, `weight.ts`  
-На проде: **нет** · ветка `cursor/wizard-spellbook-rules-19c3`
+Спека: [`docs/wizard-spellbook.md`](docs/wizard-spellbook.md) · план: [`docs/wizard-spellbook-plan.md`](docs/wizard-spellbook-plan.md)  
+На проде: **нет** · ветка `cursor/wizard-spellbook-rules-19c3` · PR #165
 
 ### 2026-10-12 — Play desk vitals wave (HP pad / концентрация / без дублей отдыха)
 

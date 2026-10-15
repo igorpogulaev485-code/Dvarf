@@ -94,7 +94,7 @@
 | Замена | Выбор другой книги в инвентаре + restore prepared + debit | ✅ |
 | Prepare / Grimoire gates | Уже с среза 2 | ✅ |
 | Lost contents list | В диалоге управления | ✅ |
-| Ritual gate | Срез 5 | ⏳ |
+| Ritual gate | Срез 5 | ✅ |
 
 **Файлы:** `SpellbookManageDialog.tsx`, wiring в SpellsPanel / Settings.  
 **Не деплоить** без команды.
@@ -110,33 +110,33 @@
 
 ---
 
-### Срез 4 — Бэкап своей книги (UI)
+### Срез 4 — Бэкап своей книги (UI) ✅
 
 **Зачем:** функция «создать копию своей книги».
 
-| Задача | Детали |
-|--------|--------|
-| Действие «Сделать запасную книгу» | Нужны primary + blank spellbook item |
-| Калькулятор | `totalCopyCost(..., 'own')` + preview gp/hours |
-| Оплата | `spendGpFromPurse`; fail → message |
-| Результат | `registerBackupBook`; spells в backup не обязаны дублировать sheet rows — достаточно registry + optional note |
-| Activate backup | После утери: «Взять запасную» → `activateBackupAsPrimary` |
+| Задача | Детали | Статус |
+|--------|--------|--------|
+| Действие «Сделать запасную книгу» | Нужны primary + blank spellbook item | ✅ |
+| Калькулятор | `totalCopyCost(..., 'own')` + preview gp/hours | ✅ |
+| Оплата | `spendGpFromPurse`; fail → message | ✅ |
+| Результат | `registerBackupBook` | ✅ |
+| Activate backup | После утери: «Взять запасную» → `activateBackupAsPrimary` | ✅ |
 
 **Приёмка:** бэкап за правильную сумму; утеря → activate backup → prepare снова доступна без restore memory.
 
 ---
 
-### Срез 5 — Ритуал из книги + гейты каста
+### Срез 5 — Ритуал из книги + гейты каста ✅
 
 **Зачем:** PHB ritual casting без prepare.
 
-| Задача | Детали |
-|--------|--------|
-| Cast ritual | Wizard + ritual in book (`in_spellbook`) + !prepared → allow without slot if `hasBook` |
-| Без книги | Ritual-from-book запрещён; prepared ritual — как обычный prepared |
-| Wire catalog flag | `ritual_cast_without_prepare` или wizard-only rule |
+| Задача | Детали | Статус |
+|--------|--------|--------|
+| Cast ritual | Wizard + ritual in book + `hasBook` → без ячейки / без prepare | ✅ |
+| Без книги | Ritual-from-book запрещён; prepared — обычный каст ячейкой | ✅ |
+| Pool | `isAvailableToCast` показывает unprepared ritual из книги | ✅ |
 
-**Файлы:** `CastSpellDialog`, play-desk cast path, `SpellsPanel`.  
+**Файлы:** `CastSpellDialog`, play-desk cast path, `SpellsPanel`, `PlayDeskSpellsCompact`.  
 **Приёмка:** Detect Magic в книге, не prepared, книга есть → ritual cast; книга lost → нельзя.
 
 ---

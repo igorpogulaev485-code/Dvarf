@@ -289,6 +289,7 @@ import {
   inferFocusKind,
   withSpellFocusFlags,
 } from './spellFocus'
+import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
 import { syncWizardSpellbookWithInventory } from './wizardSpellbookInventory'
 import {
   playToSheet,
@@ -3090,6 +3091,16 @@ export function MinimalSheetEditor({
       return
     }
     if (ritualCast) {
+      if (spellLearnBudget?.mode === 'spellbook') {
+        const gate = canCastWizardRitualFromBook({
+          spell,
+          book: draft.spells.wizard_spellbook,
+        })
+        if (!gate.ok) {
+          onToast(gate.message)
+          return
+        }
+      }
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
@@ -4882,6 +4893,7 @@ export function MinimalSheetEditor({
         spells={draft.spells}
         inventoryItems={draft.inventory.items}
         characterLevel={characterLevel}
+        wizardRitualFromBook={spellLearnBudget?.mode === 'spellbook'}
         onConfirm={confirmDeskCast}
         onClose={() => setDeskCastSpell(null)}
       />

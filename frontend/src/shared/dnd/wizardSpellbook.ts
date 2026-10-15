@@ -452,6 +452,29 @@ export function wizardSpellAccess(book: WizardSpellbookState | null | undefined)
   }
 }
 
+/**
+ * Wizard ritual cast (PHB): ritual tag + spell in book + physical book present.
+ * Prepared-with-slot is a separate path — this is ritual-only.
+ */
+export function canCastWizardRitualFromBook(input: {
+  spell: { level: number; ritual?: boolean; in_spellbook?: boolean }
+  book: WizardSpellbookState | null | undefined
+}): { ok: boolean; message: string } {
+  if (input.spell.level <= 0 || !input.spell.ritual) {
+    return { ok: false, message: 'Не ритуал' }
+  }
+  if (!wizardSpellAccess(input.book).canRitualFromBook) {
+    return {
+      ok: false,
+      message: 'Нужна книга заклинаний для ритуала из книги',
+    }
+  }
+  if (input.spell.in_spellbook === false) {
+    return { ok: false, message: 'Заклинания нет в активной книге' }
+  }
+  return { ok: true, message: '' }
+}
+
 export type SpellbookContentRow = {
   catalog_id: string | null
   name: string

@@ -3,10 +3,13 @@
  */
 import { useMemo, useState } from 'react'
 import {
+  activateBackupAsPrimary,
   beginReplacementSpellbook,
   markSpellbookLost,
   planRestorePrepared,
+  registerBackupBook,
   resolveWizardCopyMods,
+  totalCopyCost,
   type SpellbookModifiers,
 } from '../../shared/dnd/wizardSpellbook'
 import { formatGpTotal, spendGpFromPurse, type CoinPurse } from '../../shared/dnd/weight'
@@ -46,6 +49,7 @@ export function SpellbookManageDialog({
 }: SpellbookManageDialogProps) {
   const [confirmLost, setConfirmLost] = useState(false)
   const [replaceItemId, setReplaceItemId] = useState('')
+  const [backupItemId, setBackupItemId] = useState('')
 
   const status = wizardSpellbookStatusLabel(spells)
   const book = spells.wizard_spellbook
@@ -60,6 +64,13 @@ export function SpellbookManageDialog({
       ),
     [spells.known],
   )
+  const inBookLeveled = useMemo(
+    () =>
+      spells.known.filter(
+        (spell) => spell.level > 0 && spell.in_spellbook !== false,
+      ),
+    [spells.known],
+  )
   const restorePlan = useMemo(
     () =>
       planRestorePrepared(
@@ -71,6 +82,18 @@ export function SpellbookManageDialog({
       ),
     [preparedLeveled, mods],
   )
+  const backupPlan = useMemo(
+    () =>
+      totalCopyCost(
+        inBookLeveled.map((spell) => ({
+          level: spell.level,
+          school: spell.school,
+        })),
+        'own',
+        mods,
+      ),
+    [inBookLeveled, mods],
+  )
 
   const candidateBooks = useMemo(
     () =>
@@ -81,6 +104,17 @@ export function SpellbookManageDialog({
           item.qty > 0,
       ),
     [inventoryItems, book?.primaryBookItemId],
+  )
+  const registeredBackups = book?.backupBookItemIds ?? []
+  const activateCandidates = useMemo(
+    () =>
+      inventoryItems.filter(
+        (item) =>
+          isSpellbookInventoryItem(item) &&
+          registeredBackups.includes(item.id) &&
+          item.qty > 0,
+      ),
+    [inventoryItems, registeredBackups],
   )
 
   function markLost() {
@@ -114,6 +148,73 @@ export function SpellbookManageDialog({
     })
     onToast?.('Книга заклинаний отмечена как утерянная / уничтоженная')
     setConfirmLost(false)
+  }
+
+  function makeBackup() {
+    if (!wizardHasUsableSpellbook(spells)) {
+      onToast?.('Сначала нужна активная книга')
+      return
+    }
+    if (!backupItemId.trim()) {
+      onToast?.('Выбери пустую книгу для копии')
+      return
+    }
+    if (inBookLeveled.length === 0) {
+      onToast?.('В активной книге пока нет leveled-заклинаний')
+      return
+    }
+    if (backupPlan.gp > 0) {
+      const spend = spendGpFromPurse(coins, backupPlan.gp)
+      if (!spend.ok) {
+        onToast?.(spend.message)
+        return
+      }
+      onChangeCoins(spend.coins)
+    }
+    const base = spells.wizard_spellbook!
+    onChangeSpells({
+      ...spells,
+      wizard_spellbook: registerBackupBook(base, backupItemId),
+    })
+    const timePart =
+      backupPlan.minutes > 0 ? `${backupPlan.minutes} мин` : `${backupPlan.hours} ч`
+    onToast?.(
+      backupPlan.gp > 0
+        ? `Запасная книга: ${inBookLeveled.length} закл. · −${formatGpTotal(backupPlan.gp)} зм · ${timePart}`
+        : `Запасная книга зарегистрирована (${inBookLeveled.length} закл.)`,
+    )
+    setBackupItemId('')
+  }
+
+  function activateBackup(itemId: string) {
+    try {
+      const base = spells.wizard_spellbook ?? {
+        primaryBookItemId: null,
+        bookLost: true,
+        backupBookItemIds: [],
+      }
+      const next = activateBackupAsPrimary(base, itemId)
+      const lost = base.lostBookContents ?? []
+      const byCatalog = new Set(
+        lost.map((row) => row.catalog_id).filter((id): id is string => Boolean(id)),
+      )
+      const byName = new Set(lost.map((row) => row.name.trim().toLowerCase()))
+      onChangeSpells({
+        ...spells,
+        known: spells.known.map((spell) => {
+          if (spell.level <= 0) return spell
+          if (lost.length === 0) return spell
+          const match =
+            (spell.catalog_id != null && byCatalog.has(spell.catalog_id)) ||
+            byName.has(spell.name.trim().toLowerCase())
+          return { ...spell, in_spellbook: match }
+        }),
+        wizard_spellbook: next,
+      })
+      onToast?.('Запасная книга стала основной — подготовка снова доступна')
+    } catch (err) {
+      onToast?.(err instanceof Error ? err.message : 'Не удалось активировать бэкап')
+    }
   }
 
   function replaceBook() {
@@ -227,17 +328,90 @@ export function SpellbookManageDialog({
         </Stack>
 
         <Stack gap={8}>
-          <Text as="h3">Замена книги</Text>
+          <Text as="h3">Запасная копия</Text>
           <Text tone="muted">
-            Нужна другая «Книга заклинаний» в инвентаре. Из памяти переписываются только
-            подготовленные ({preparedLeveled.length}) по тарифу бэкапа
+            Скопировать содержимое активной книги ({inBookLeveled.length} закл.) в другую
+            «Книгу заклинаний» по тарифу своей копии
+            {backupPlan.gp > 0 || backupPlan.hours > 0 || backupPlan.minutes > 0
+              ? `: ${
+                  backupPlan.gp > 0 ? `${formatGpTotal(backupPlan.gp)} зм` : 'без золота'
+                } · ${
+                  backupPlan.minutes > 0
+                    ? `${backupPlan.minutes} мин`
+                    : `${backupPlan.hours} ч`
+                }`
+              : ''}
+            . После утери основной можно активировать бэкап без переписывания из памяти.
+          </Text>
+          {!wizardHasUsableSpellbook(spells) ? (
+            <Text tone="muted">Бэкап доступен, пока есть активная книга.</Text>
+          ) : candidateBooks.length === 0 ? (
+            <Text tone="muted">Нужна ещё одна книга в инвентаре.</Text>
+          ) : (
+            <>
+              <label>
+                Книга для копии
+                <select
+                  className="play-select"
+                  value={backupItemId}
+                  onChange={(event) => setBackupItemId(event.target.value)}
+                >
+                  <option value="">— выбери —</option>
+                  {candidateBooks.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                      {registeredBackups.includes(item.id) ? ' (уже бэкап)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                type="button"
+                className="sheet-chip is-on"
+                disabled={!backupItemId || inBookLeveled.length === 0}
+                onClick={makeBackup}
+              >
+                Создать запасную копию
+              </button>
+            </>
+          )}
+          {registeredBackups.length > 0 ? (
+            <Text tone="muted">
+              Зарегистрировано бэкапов: {registeredBackups.length}
+              {activateCandidates.length > 0 && book?.bookLost
+                ? ' — можно активировать ниже'
+                : ''}
+            </Text>
+          ) : null}
+          {book?.bookLost && activateCandidates.length > 0 ? (
+            <Stack gap={6}>
+              <Text>Активировать запасную как основную</Text>
+              {activateCandidates.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="sheet-chip is-on"
+                  onClick={() => activateBackup(item.id)}
+                >
+                  {item.name}
+                </button>
+              ))}
+            </Stack>
+          ) : null}
+        </Stack>
+
+        <Stack gap={8}>
+          <Text as="h3">Замена из памяти</Text>
+          <Text tone="muted">
+            Если бэкапа нет: нужна другая «Книга заклинаний». Из памяти переписываются только
+            подготовленные ({preparedLeveled.length})
             {restorePlan.gp > 0
               ? `: ${formatGpTotal(restorePlan.gp)} зм · ${
                   restorePlan.minutes > 0
                     ? `${restorePlan.minutes} мин`
                     : `${restorePlan.hours} ч`
                 }`
-              : '' }
+              : ''}
             .
           </Text>
           {candidateBooks.length === 0 ? (
