@@ -8,11 +8,13 @@ type Props = {
   presentIds: Set<string>
   busy?: boolean
   readOnly?: boolean
-  /** Режим создания: только чекбоксы, без API seat */
+  /** create = чекбоксы + отметить всех; manage = чекбоксы (+ опционально карточки) */
   mode: 'create' | 'manage'
   onToggle: (characterId: string, nextPresent: boolean) => void
   isOwner?: boolean
   ownCharacterIds?: Set<string>
+  /** Карточки присутствующих под списком (на основном экране сессии — нет, там отдельно) */
+  showPresentCards?: boolean
 }
 
 /** Кто пришёл на сессию (= seats в A2). */
@@ -25,6 +27,7 @@ export function SessionAttendancePanel({
   onToggle,
   isOwner,
   ownCharacterIds,
+  showPresentCards = false,
 }: Props) {
   const present = members.filter((m) => presentIds.has(m.character_id))
   const absent = members.filter((m) => !presentIds.has(m.character_id))
@@ -33,8 +36,8 @@ export function SessionAttendancePanel({
     <Stack gap={16}>
       <Text tone="muted">
         {mode === 'create'
-          ? 'Отметьте, кто пришёл на эту сессию. Позже можно поправить на экране сессии.'
-          : 'Присутствующие за столом. Живой стол (лента, бой) — следующий слайс.'}
+          ? 'Отметьте, кто пришёл. Позже можно изменить через «Кто пришёл» на экране сессии.'
+          : 'Отметьте присутствующих и сохраните. На основном экране остаются только они.'}
       </Text>
 
       {members.length === 0 ? (
@@ -70,7 +73,7 @@ export function SessionAttendancePanel({
         </div>
       )}
 
-      {mode === 'manage' && present.length > 0 ? (
+      {showPresentCards && present.length > 0 ? (
         <Stack gap={10}>
           <Text as="h3">За столом ({present.length})</Text>
           <div className="lobby-member-grid">
@@ -94,14 +97,13 @@ export function SessionAttendancePanel({
         </Stack>
       ) : null}
 
-      {mode === 'manage' && !readOnly && absent.length > 0 ? (
+      {mode === 'manage' && !readOnly && absent.length > 0 && showPresentCards ? (
         <Text tone="muted">
-          Не отмечены: {absent.map((m) => m.character_name).join(', ')}. Включите галочку выше,
-          чтобы посадить за стол.
+          Не отмечены: {absent.map((m) => m.character_name).join(', ')}.
         </Text>
       ) : null}
 
-      {mode === 'create' && !readOnly ? (
+      {(mode === 'create' || mode === 'manage') && !readOnly ? (
         <div className="inline-actions">
           <Button
             type="button"
