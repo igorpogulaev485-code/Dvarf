@@ -13,6 +13,7 @@ import {
   isHitDie,
   type HitDie,
 } from '../../shared/dnd/hitDice'
+import { guessAppliesToAllies } from '../../shared/dnd/allyTargets'
 import {
   clampExhaustion,
   clampResource,
@@ -46,16 +47,19 @@ export type PlayState = {
 export type { ConcentrationState }
 
 export function createResource(partial?: Partial<SheetResource>): SheetResource {
+  const name = partial?.name ?? ''
   return clampResource({
     id:
       partial?.id ??
       (typeof crypto !== 'undefined' && 'randomUUID' in crypto
         ? crypto.randomUUID()
         : `res-${Date.now()}`),
-    name: partial?.name ?? '',
+    name,
     max: partial?.max ?? 1,
     used: partial?.used ?? 0,
     reset: partial?.reset ?? 'long',
+    applies_to_allies:
+      partial?.applies_to_allies ?? guessAppliesToAllies(name),
   })
 }
 
@@ -108,12 +112,18 @@ function readReset(value: unknown): ResourceReset {
 
 function readResource(raw: unknown, index: number): SheetResource {
   const row = asRecord(raw)
+  const name = typeof row.name === 'string' ? row.name : ''
+  const appliesExplicit = row.applies_to_allies
   return clampResource({
     id: typeof row.id === 'string' ? row.id : `res-${index}`,
-    name: typeof row.name === 'string' ? row.name : '',
+    name,
     max: readNumber(row.max, 1),
     used: readNumber(row.used, 0),
     reset: readReset(row.reset),
+    applies_to_allies:
+      typeof appliesExplicit === 'boolean'
+        ? appliesExplicit
+        : guessAppliesToAllies(name),
   })
 }
 
@@ -218,10 +228,16 @@ export function playToSheet(play: PlayState): {
   }
 }
 
-/** Подсказки имён эффекта с листа кастера (Conc + подготовленные Conc-заклинания). */
+/** Подсказки: Conc + подготовленные заклинания «на союзников». */
 export function effectSuggestionsFromPlay(
   play: PlayState,
-  spellsKnown: Array<{ name: string; concentration: boolean; prepared: boolean; level: number }>,
+  spellsKnown: Array<{
+    name: string
+    concentration: boolean
+    prepared: boolean
+    level: number
+    applies_to_allies?: boolean
+  }>,
 ): string[] {
   const names: string[] = []
   const seen = new Set<string>()
@@ -235,9 +251,8 @@ export function effectSuggestionsFromPlay(
   }
   if (play.concentration?.name) add(play.concentration.name)
   for (const spell of spellsKnown) {
-    if (!spell.concentration) continue
     if (spell.level > 0 && !spell.prepared) continue
-    add(spell.name)
+    if (spell.applies_to_allies || spell.concentration) add(spell.name)
   }
   return names
 }

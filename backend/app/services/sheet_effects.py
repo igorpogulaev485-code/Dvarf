@@ -163,13 +163,12 @@ def effect_suggestions_from_sheet(sheet: object) -> list[str]:
         for item in known:
             if not isinstance(item, dict):
                 continue
-            if not item.get("concentration"):
-                continue
             prepared = item.get("prepared")
             level = item.get("level")
             # cantrips always ready; leveled need prepared
             if isinstance(level, int) and level > 0 and prepared is False:
                 continue
-            add(str(item.get("name") or ""))
+            if item.get("concentration") or item.get("applies_to_allies"):
+                add(str(item.get("name") or ""))
 
     return names

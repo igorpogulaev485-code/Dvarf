@@ -25,13 +25,14 @@ import {
 } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
-import { ShareEffectFromSheetDialog } from '../lobby/ShareEffectFromSheetDialog'
+import { guessAppliesToAllies } from '../../shared/dnd/allyTargets'
 import {
   RESET_LABELS,
   createResource,
   type PlayState,
 } from './play'
 import type { SpellsState } from './spells'
+import { UseAllyAbilityDialog } from './UseAllyAbilityDialog'
 
 type PlayPanelProps = {
   edition: RulesEdition
@@ -47,7 +48,6 @@ type PlayPanelProps = {
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
   onToast: (message: string) => void
-  onError?: (message: string) => void
 }
 
 const RESET_OPTIONS: ResourceReset[] = ['short', 'long', 'manual']
@@ -102,8 +102,10 @@ export function PlayPanel({
   onError,
 }: PlayPanelProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
-  const [shareOpen, setShareOpen] = useState(false)
+  const [pendingResourceId, setPendingResourceId] = useState<string | null>(null)
+  const [pendingResourceUsed, setPendingResourceUsed] = useState<number | null>(null)
   const hitDiceMax = Math.max(1, Math.floor(level))
+  const pendingResource = play.resources.find((r) => r.id === pendingResourceId) ?? null
   const suggestedHeal = play.hitDie
     ? suggestedHitDieHeal(play.hitDie, constitutionMod)
     : null
@@ -387,22 +389,11 @@ export function PlayPanel({
         </div>
 
         <div>
-          <div className="play-resources-head">
-            <Text tone="muted">Эффекты на мне (бафы от союзников)</Text>
-            {play.concentration ? (
-              <Button type="button" onClick={() => setShareOpen(true)}>
-                Раздать союзникам
-              </Button>
-            ) : null}
-          </div>
-          {play.concentration ? (
-            <Text tone="muted" className="play-effect-hint">
-              Концентрация: <strong>{play.concentration.name}</strong> — раздайте пометку
-              союзникам, чтобы на столе было видно, на ком висит эффект.
-            </Text>
-          ) : null}
+          <Text tone="muted">Эффекты на мне (бафы от союзников)</Text>
           {play.effects.length === 0 ? (
-            <Text tone="muted">Пока нет. Появятся, когда вам раздадут эффект с листа или стола.</Text>
+            <Text tone="muted">
+              Пока нет. Появятся при касте «на союзников» или трате способности с выбором цели.
+            </Text>
           ) : (
             <div className="chip-row play-conditions">
               {play.effects.map((fx) => (
@@ -430,24 +421,25 @@ export function PlayPanel({
               ))}
             </div>
           )}
-          {!play.concentration ? (
-            <div className="play-rest-actions" style={{ marginTop: 8 }}>
-              <Button type="button" onClick={() => setShareOpen(true)}>
-                Раздать эффект союзникам
-              </Button>
-            </div>
-          ) : null}
         </div>
 
-        <ShareEffectFromSheetDialog
-          open={shareOpen}
+        <UseAllyAbilityDialog
+          open={pendingResource != null && pendingResourceUsed != null}
           characterId={characterId}
           characterName={characterName}
-          play={play}
-          spells={spells}
-          onClose={() => setShareOpen(false)}
+          abilityName={pendingResource?.name ?? ''}
+          linkConcentration={Boolean(play.concentration)}
+          onClose={() => {
+            setPendingResourceId(null)
+            setPendingResourceUsed(null)
+          }}
+          onSpent={() => {
+            if (pendingResourceId == null || pendingResourceUsed == null) return
+            updateResource(pendingResourceId, { used: pendingResourceUsed })
+            setPendingResourceId(null)
+            setPendingResourceUsed(null)
+          }}
           onToast={onToast}
-          onError={(msg) => onError?.(msg) ?? onToast(msg)}
         />
 
         <div>
@@ -501,9 +493,14 @@ export function PlayPanel({
                   <Field label="Название">
                     <Input
                       value={resource.name}
-                      onChange={(event) =>
-                        updateResource(resource.id, { name: event.target.value })
-                      }
+                      onChange={(event) => {
+                        const name = event.target.value
+                        updateResource(resource.id, {
+                          name,
+                          applies_to_allies:
+                            resource.applies_to_allies || guessAppliesToAllies(name),
+                        })
+                      }}
                     />
                   </Field>
                   <Field label="Макс">
@@ -521,11 +518,30 @@ export function PlayPanel({
                     />
                   </Field>
                 </div>
+                <label className="session-feed-filter">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(resource.applies_to_allies)}
+                    onChange={(e) =>
+                      updateResource(resource.id, {
+                        applies_to_allies: e.target.checked,
+                      })
+                    }
+                  />
+                  На союзников (при трате — выбрать кого)
+                </label>
                 <SlotPips
                   max={resource.max}
                   used={resource.used}
                   label={`${resource.name || 'Ресурс'}: потрачено`}
-                  onChange={(used) => updateResource(resource.id, { used })}
+                  onChange={(used) => {
+                    if (resource.applies_to_allies && used > resource.used) {
+                      setPendingResourceId(resource.id)
+                      setPendingResourceUsed(used)
+                      return
+                    }
+                    updateResource(resource.id, { used })
+                  }}
                 />
                 <div className="play-resource__meta">
                   <label className="play-resource__reset">

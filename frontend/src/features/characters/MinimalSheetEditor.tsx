@@ -858,7 +858,6 @@ export function MinimalSheetEditor({
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onCombatChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
         onToast={onToast}
-        onError={(msg) => setError(msg)}
       />
 
       <AttacksPanel
@@ -886,6 +885,8 @@ export function MinimalSheetEditor({
         edition={baseCharacter.rules_edition as RulesEdition}
         className={classSummary || primaryClass?.name || ''}
         level={characterLevel}
+        characterId={baseCharacter.id}
+        characterName={draft.name.trim() || baseCharacter.name}
         classes={draft.classes}
         spells={draft.spells}
         abilities={draft.abilities}

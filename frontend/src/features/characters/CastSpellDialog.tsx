@@ -6,17 +6,22 @@ import {
   slotsRemaining,
 } from '../../shared/dnd/spells'
 import { Dialog, Stack, Text } from '../../ui'
+import { AllyPickSection } from '../lobby/AllyPickSection'
 import type { SheetSpell, SpellsState } from './spells'
 
 export type CastChoice = {
   usePact: boolean
   slotLevel: number
+  /** Союзники, на которых повесить эффект этого заклинания */
+  allyTargetIds: string[]
+  lobbyId: string | null
 }
 
 type CastSpellDialogProps = {
   open: boolean
   spell: SheetSpell | null
   spells: SpellsState
+  characterId?: string
   busy?: boolean
   onConfirm: (choice: CastChoice) => void
   onClose: () => void
@@ -26,6 +31,7 @@ export function CastSpellDialog({
   open,
   spell,
   spells,
+  characterId,
   busy = false,
   onConfirm,
   onClose,
@@ -37,6 +43,10 @@ export function CastSpellDialog({
     spell != null && !isCantrip && canSpendPactSlot(spells.pact_slots, spellLevel)
   const [usePact, setUsePact] = useState(false)
   const [slotLevel, setSlotLevel] = useState(1)
+  const [allySelected, setAllySelected] = useState<Set<string>>(() => new Set())
+  const [lobbyId, setLobbyId] = useState<string | null>(null)
+
+  const showAllies = Boolean(spell?.applies_to_allies && characterId)
 
   useEffect(() => {
     if (!spell || isCantrip) return
@@ -48,6 +58,12 @@ export function CastSpellDialog({
     setUsePact(false)
     setSlotLevel(slotLevels[0] ?? spellLevel)
   }, [spell?.id, spellLevel, isCantrip, pactOk, slotLevels.join(','), spells.pact_slots?.level])
+
+  useEffect(() => {
+    if (!open) return
+    setAllySelected(new Set())
+    setLobbyId(null)
+  }, [open, spell?.id])
 
   if (!spell) {
     return null
@@ -66,22 +82,26 @@ export function CastSpellDialog({
       title={isCantrip ? 'Использовать заговор?' : 'Кастовать заклинание?'}
       primaryLabel={canCast ? (busy ? 'Кастуем…' : 'Каст') : 'Нет ячеек'}
       secondaryLabel="Отмена"
+      size={showAllies ? 'wide' : undefined}
       onPrimary={() => {
         if (!canCast || busy) return
         onConfirm({
           usePact: !isCantrip && usePact && pactOk,
           slotLevel: isCantrip ? 0 : usePact ? (spells.pact_slots?.level ?? spellLevel) : slotLevel,
+          allyTargetIds: showAllies ? [...allySelected] : [],
+          lobbyId: showAllies ? lobbyId : null,
         })
       }}
       onSecondary={onClose}
       busy={busy || !canCast}
     >
-      <Stack gap={10}>
+      <Stack gap={12}>
         <Text>
           <strong>{spell.name || 'Без названия'}</strong>
           {' · '}
           {levelLabel(spell.level)}
           {spell.concentration ? ' · концентрация' : ''}
+          {spell.applies_to_allies ? ' · на союзников' : ''}
         </Text>
         {spell.damage || spell.attack_or_save || spell.range ? (
           <Text tone="muted">
@@ -147,6 +167,17 @@ export function CastSpellDialog({
           <Text tone="muted">
             Это концентрация — станет активной на листе (предыдущая снимется).
           </Text>
+        ) : null}
+
+        {showAllies && characterId ? (
+          <AllyPickSection
+            characterId={characterId}
+            busy={busy}
+            selected={allySelected}
+            onSelectedChange={setAllySelected}
+            lobbyId={lobbyId}
+            onLobbyIdChange={setLobbyId}
+          />
         ) : null}
       </Stack>
     </Dialog>
