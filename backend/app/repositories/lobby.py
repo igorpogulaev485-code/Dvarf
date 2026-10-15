@@ -67,6 +67,19 @@ class LobbyRepository:
             )
         )
 
+    def is_owner_of_character_lobby(self, *, owner_id: UUID, character_id: UUID) -> bool:
+        """Мастер хотя бы одного лобби, где этот персонаж в составе."""
+        lobby_id = self.db.scalar(
+            select(Lobby.id)
+            .join(LobbyMember, LobbyMember.lobby_id == Lobby.id)
+            .where(
+                Lobby.owner_id == owner_id,
+                LobbyMember.character_id == character_id,
+            )
+            .limit(1)
+        )
+        return lobby_id is not None
+
     def add_member(
         self,
         *,

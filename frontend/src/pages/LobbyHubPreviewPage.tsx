@@ -99,7 +99,12 @@ export function LobbyHubPreviewPage() {
               </Text>
               <div className="lobby-member-grid">
                 {DEMO_MEMBERS.map((m) => (
-                  <LobbyMemberMiniCard key={m.id} member={m} onRemove={() => setToast('Убрать (demo)')} />
+                  <LobbyMemberMiniCard
+                    key={m.id}
+                    member={m}
+                    sheetLabel="Смотреть"
+                    onRemove={() => setToast('Убрать (demo)')}
+                  />
                 ))}
               </div>
             </Stack>

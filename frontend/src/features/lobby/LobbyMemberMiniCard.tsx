@@ -6,6 +6,8 @@ type Props = {
   member: LobbyMember
   busy?: boolean
   onRemove?: () => void
+  /** Подпись кнопки листа: «Лист» или «Смотреть» для мастера */
+  sheetLabel?: string
 }
 
 function hpTone(current: number | null, max: number | null): 'ok' | 'warn' | 'down' | 'unknown' {
@@ -17,7 +19,12 @@ function hpTone(current: number | null, max: number | null): 'ok' | 'warn' | 'do
 }
 
 /** Упрощённая карточка состава лобби (не полный стол сессии). */
-export function LobbyMemberMiniCard({ member, busy, onRemove }: Props) {
+export function LobbyMemberMiniCard({
+  member,
+  busy,
+  onRemove,
+  sheetLabel = 'Лист',
+}: Props) {
   const subtitle = [member.character_race_name, member.character_class_name]
     .filter(Boolean)
     .join(' · ')
@@ -47,7 +54,7 @@ export function LobbyMemberMiniCard({ member, busy, onRemove }: Props) {
         </div>
         <div className="lobby-member-card__actions">
           <Link className="ui-button ui-button--ghost" to={`/characters/${member.character_id}`}>
-            Лист
+            {sheetLabel}
           </Link>
           {onRemove ? (
             <Button type="button" variant="secondary" disabled={busy} onClick={onRemove}>

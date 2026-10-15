@@ -194,22 +194,26 @@ export function LobbyDetailPage() {
                 <Text tone="muted">Пока никого. Игроки входят по коду / QR.</Text>
               ) : (
                 <div className="lobby-member-grid">
-                  {lobby.members.map((m) => (
-                    <LobbyMemberMiniCard
-                      key={m.id}
-                      member={m}
-                      busy={busy}
-                      onRemove={
-                        lobby.is_owner
-                          ? () =>
-                              run(async () => {
-                                const next = await removeLobbyMember(lobby.id, m.character_id)
-                                setLobby(next)
-                              })
-                          : undefined
-                      }
-                    />
-                  ))}
+                  {lobby.members.map((m) => {
+                    const isOwn = characters.some((c) => c.id === m.character_id)
+                    return (
+                      <LobbyMemberMiniCard
+                        key={m.id}
+                        member={m}
+                        busy={busy}
+                        sheetLabel={lobby.is_owner && !isOwn ? 'Смотреть' : 'Лист'}
+                        onRemove={
+                          lobby.is_owner
+                            ? () =>
+                                run(async () => {
+                                  const next = await removeLobbyMember(lobby.id, m.character_id)
+                                  setLobby(next)
+                                })
+                            : undefined
+                        }
+                      />
+                    )
+                  })}
                 </div>
               )}
 

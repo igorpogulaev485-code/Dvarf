@@ -123,7 +123,7 @@ export function CharacterDetailPage() {
         {loading ? <Text tone="muted">Открываем лист...</Text> : null}
         {error ? <Text tone="danger">{error}</Text> : null}
 
-        {character ? (
+        {character && character.can_edit !== false ? (
           <Panel title="Вступить в лобби кодом">
             <form className="inline-form" onSubmit={joinWithCode}>
               <Field label="Код от мастера" hint="Или отсканируйте QR → /join/КОД">
@@ -141,7 +141,7 @@ export function CharacterDetailPage() {
           </Panel>
         ) : null}
 
-        {remoteNotice != null ? (
+        {remoteNotice != null && character?.can_edit !== false ? (
           <div className="sheet-banner" role="status">
             <Text>
               Лист сохранён в другой вкладке (v{remoteNotice}). Локальные несохранённые правки могут
@@ -162,12 +162,13 @@ export function CharacterDetailPage() {
           <MinimalSheetEditor
             key={character.id}
             character={character}
+            readOnly={character.can_edit === false}
             onSaved={(item) => {
               setCharacter(item)
               setRemoteNotice(null)
             }}
             onToast={setToast}
-            onRemoteSave={handleRemoteSave}
+            onRemoteSave={character.can_edit === false ? undefined : handleRemoteSave}
           />
         ) : null}
       </Stack>

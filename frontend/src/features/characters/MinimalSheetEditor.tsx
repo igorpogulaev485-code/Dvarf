@@ -87,6 +87,8 @@ type MinimalSheetEditorProps = {
   onSaved: (character: CharacterDetail) => void
   onToast: (message: string) => void
   onRemoteSave?: (message: Extract<SheetSyncMessage, { type: 'sheet-saved' }>) => void
+  /** Мастер лобби: только просмотр */
+  readOnly?: boolean
 }
 
 type Draft = {
@@ -232,6 +234,7 @@ export function MinimalSheetEditor({
   onSaved,
   onToast,
   onRemoteSave,
+  readOnly = false,
 }: MinimalSheetEditorProps) {
   const [baseCharacter, setBaseCharacter] = useState(character)
   const [draft, setDraft] = useState(() => buildDraft(character))
@@ -387,6 +390,7 @@ export function MinimalSheetEditor({
   }
 
   async function handleSave() {
+    if (readOnly) return
     setSaving(true)
     setError(null)
     try {
@@ -497,6 +501,16 @@ export function MinimalSheetEditor({
 
   return (
     <Stack gap={16}>
+      {readOnly ? (
+        <div className="sheet-banner" role="status">
+          <Text>
+            Режим просмотра: вы мастер лобби. Редактировать лист может только владелец персонажа.
+          </Text>
+        </div>
+      ) : null}
+
+      <fieldset className="sheet-readonly-fieldset" disabled={readOnly}>
+      <Stack gap={16}>
       <CombatStickyHeader
         name={draft.name}
         raceName={draft.raceName}
@@ -950,38 +964,50 @@ export function MinimalSheetEditor({
 
       {error ? <Text tone="danger">{error}</Text> : null}
 
-      <div className="sheet-actions">
-        <Button onClick={() => void handleSave()} disabled={saving || reloading}>
-          {saving ? 'Сохраняем…' : 'Сохранить лист'}
-        </Button>
+      {!readOnly ? (
+        <div className="sheet-actions">
+          <Button onClick={() => void handleSave()} disabled={saving || reloading}>
+            {saving ? 'Сохраняем…' : 'Сохранить лист'}
+          </Button>
+          <Text tone="muted">
+            Редакция {baseCharacter.rules_edition} · v{sheetVersion}
+          </Text>
+        </div>
+      ) : (
         <Text tone="muted">
-          Редакция {baseCharacter.rules_edition} · v{sheetVersion}
+          Редакция {baseCharacter.rules_edition} · v{sheetVersion} · только просмотр
         </Text>
-      </div>
+      )}
+      </Stack>
+      </fieldset>
 
-      <Dialog
-        open={conflictOpen}
-        title="Конфликт версий листа"
-        primaryLabel={reloading ? 'Обновляем…' : 'Обновить лист'}
-        secondaryLabel="Оставить мои правки"
-        busy={reloading}
-        onPrimary={() => void reloadFromServer()}
-        onSecondary={() => setConflictOpen(false)}
-      >
-        <Text>
-          Этот персонаж уже сохранён в другой вкладке или на другом устройстве. Если обновить лист,
-          локальные несохранённые правки пропадут. Можно оставить свои правки на экране и
-          перенести их вручную.
-        </Text>
-      </Dialog>
+      {!readOnly ? (
+        <>
+          <Dialog
+            open={conflictOpen}
+            title="Конфликт версий листа"
+            primaryLabel={reloading ? 'Обновляем…' : 'Обновить лист'}
+            secondaryLabel="Оставить мои правки"
+            busy={reloading}
+            onPrimary={() => void reloadFromServer()}
+            onSecondary={() => setConflictOpen(false)}
+          >
+            <Text>
+              Этот персонаж уже сохранён в другой вкладке или на другом устройстве. Если обновить лист,
+              локальные несохранённые правки пропадут. Можно оставить свои правки на экране и
+              перенести их вручную.
+            </Text>
+          </Dialog>
 
-      <LevelUpDialog
-        open={levelUpOpen}
-        edition={baseCharacter.rules_edition as RulesEdition}
-        classes={draft.classes}
-        onConfirm={applyLevelUp}
-        onClose={() => setLevelUpOpen(false)}
-      />
+          <LevelUpDialog
+            open={levelUpOpen}
+            edition={baseCharacter.rules_edition as RulesEdition}
+            classes={draft.classes}
+            onConfirm={applyLevelUp}
+            onClose={() => setLevelUpOpen(false)}
+          />
+        </>
+      ) : null}
     </Stack>
   )
 }

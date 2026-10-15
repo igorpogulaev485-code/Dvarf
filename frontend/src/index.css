@@ -1425,6 +1425,17 @@ input {
   }
 }
 
+.sheet-readonly-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+
+.sheet-readonly-fieldset:disabled {
+  opacity: 1;
+}
+
 /* —— Lobby hub (A1) —— */
 .page--lobby-hub {
   width: min(980px, calc(100% - 20px));
