@@ -30,7 +30,7 @@ const DEMO_SEATS: SessionSeat[] = [
     effects: [
       {
         id: 'fx-bless-c1',
-        name: 'Bless',
+        name: 'Благословение',
         source_character_id: 'c2',
         source_name: 'Вирра',
         linked_concentration: true,
@@ -63,7 +63,7 @@ const DEMO_SEATS: SessionSeat[] = [
     speed: 30,
     inspiration: false,
     conditions: [{ slug: 'poisoned', name: 'Отравленный', catalog_id: null }],
-    concentration: { spell_id: 'bless', name: 'Bless' },
+    concentration: { spell_id: 'bless', name: 'Благословение' },
     effects: [],
     companions: [],
     passive_perception: 15,
@@ -282,7 +282,7 @@ export function SessionLiveTablePreviewPage() {
                       Эффект
                     </Button>
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Состояние — SRD-тег. Эффект — баф; можно связать с Conc.
+                      Состояние — вред (отравлен…). Эффект — пометка «на нём баф».
                     </Text>
                   </div>
                 ) : null}

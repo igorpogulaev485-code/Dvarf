@@ -314,7 +314,7 @@ export function SessionDetailPage() {
                         Эффект
                       </Button>
                       <Text tone="muted" className="session-table-toolbar__hint">
-                        Состояние — SRD-тег. Эффект — баф/метка; можно связать с Conc кастера.
+                        Состояние — вред (отравлен…). Эффект — пометка «на нём баф» (благословение…).
                       </Text>
                     </div>
                   ) : null}

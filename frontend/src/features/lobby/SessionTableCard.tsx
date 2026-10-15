@@ -248,12 +248,12 @@ export function SessionTableCard({
                   title="Снять концентрацию"
                   onClick={onClearConcentration}
                 >
-                  Conc · {concentration.name}
+                  Конц. · {concentration.name}
                   <span aria-hidden> ×</span>
                 </button>
               ) : (
                 <span className="session-concentration-tag">
-                  Conc · {concentration.name}
+                  Конц. · {concentration.name}
                 </span>
               )}
             </div>
