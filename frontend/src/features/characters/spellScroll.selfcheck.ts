@@ -20,6 +20,7 @@ function assert(cond: unknown, msg: string): asserts cond {
 
 assert(isSpellScrollCatalogSlug('spell_scroll_1'), 'slug 1')
 assert(isSpellScrollCatalogSlug('spell_scroll_cantrip'), 'slug cantrip')
+assert(isSpellScrollCatalogSlug('spell_scroll_9'), 'slug 9')
 assert(!isSpellScrollCatalogSlug('spellbook'), 'not spellbook')
 
 const blank = createInventoryItem()
@@ -30,6 +31,15 @@ assert(spellScrollLevelCap(blank) === 1, 'cap 1')
 
 const cantripBlank = { ...blank, catalog_slug: 'spell_scroll_cantrip', name: 'Свиток заговора' }
 assert(spellScrollLevelCap(cantripBlank) === 0, 'cap cantrip')
+
+for (const level of [4, 5, 6, 7, 8, 9] as const) {
+  const high = {
+    ...blank,
+    catalog_slug: `spell_scroll_${level}`,
+    name: `Свиток ${level} уровня`,
+  }
+  assert(spellScrollLevelCap(high) === level, `cap ${level}`)
+}
 
 const bound = bindScrollSpell(blank, {
   catalog_id: 'spell-detect-magic',

@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/wizard-spellbook-rules-19c3`  
+**Prod tip (ветка линии прода):** `cursor/spell-scrolls-levels-4-9-19c3`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -59,6 +59,15 @@
 
 ## Сейчас в продукте (прод)
 
+### 2026-10-15 — Свитки заклинаний 4–9 ур. в каталоге
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Бланки свитков | `spell_scroll_cantrip` + `_1`…`_9` (редкость DMG, цена XGE craft для 4–9) | В инвентарь — свиток любого уровня 0–9 |
+| Привязка заклинания | Список в диалоге по уровню без обрезки до 40 | Видны все заклинания этого уровня |
+
+На проде: **да** · **это новый prod tip** `cursor/spell-scrolls-levels-4-9-19c3` · PR #174 · залито 2026-10-15 поверх tip `wizard-spellbook-rules-19c3` · проверено: `/health` ok; alembic `c8d9e0f1a2b4`; в БД `spell_scroll_4`…`_9`; бандл `CharacterDetailPage-DKcnpKyj.js` / `index-09f-DC70.js`; wizard/spend маркеры на диске
+
 ### 2026-10-15 — Wizard spellbook rules (I-13 / I-16)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -74,7 +83,7 @@
 | Модель листа | `wizard_spellbook` + `spellbook_acquisition` / `in_spellbook` | Данные на листе |
 
 Спека: [`docs/wizard-spellbook.md`](docs/wizard-spellbook.md) · план: [`docs/wizard-spellbook-plan.md`](docs/wizard-spellbook-plan.md)  
-На проде: **да** · **это новый prod tip** `cursor/wizard-spellbook-rules-19c3` · PR #165 · залито 2026-10-15 поверх tip `rogue-ranger-spend-4797` · проверено: `/health` ok; бандл `CharacterDetailPage-CXA0UUH3.js` / `index-D1tdK8wN.js` (`wizard_spellbook` / `scroll_spell` / «В книгу» / «Утеря» / `spellbook_picks`); spend-пикеры tip на диске; high-water Identity/theme/create/remote-up на месте
+На проде: **да** · tip `cursor/spell-scrolls-levels-4-9-19c3` (раньше tip `wizard-spellbook-rules-19c3`, PR #165) · залито 2026-10-15 поверх tip `rogue-ranger-spend-4797` · проверено: `/health` ok; бандл с `wizard_spellbook` / `scroll_spell` / «В книгу» / «Утеря» / `spellbook_picks`; spend-пикеры tip на диске
 
 ### 2026-10-14 — create: раса на телефоне
 
@@ -698,6 +707,8 @@
 
 <!-- Wizard spellbook I-13/I-16 залиты 2026-10-15 → tip wizard-spellbook-rules-19c3; блок в «Сейчас в продукте» -->
 
+<!-- Spell scrolls 4–9 залиты 2026-10-15 → tip spell-scrolls-levels-4-9-19c3; блок в «Сейчас в продукте» -->
+
 ### 2026-10-15 — Волна spend-picker’ов (уникальные пулы классов)
 
 План волны 1 закрыт (ярость **пропущена** — нет меню опций, клик −1 уже ок).
@@ -715,8 +726,8 @@
 Волна 2: инфузии / воззвания / арканум — см. ниже.  
 Волна 3: плут Soulknife/Phantom + избранное следопыта — см. ниже.  
 Друид не трогаем.  
-Стек tip: `wizard-spellbook-rules-19c3` ← `rogue-ranger-spend-4797` ← mobile tip + spend-стек ← `cleric-equip-cd-spells-244b`.  
-На проде: **да** · tip `cursor/wizard-spellbook-rules-19c3` (раньше был tip `rogue-ranger-spend-4797`, залито 2026-10-15 поверх live `mobile-desk-sync-code-0ed9`).
+Стек tip: `spell-scrolls-levels-4-9-19c3` ← `wizard-spellbook-rules-19c3` ← `rogue-ranger-spend-4797` ← mobile tip + spend-стек.  
+На проде: **да** · tip `cursor/spell-scrolls-levels-4-9-19c3`.
 
 ### 2026-10-15 — Плут / Следопыт: пси-кости, частицы, избранное
 
