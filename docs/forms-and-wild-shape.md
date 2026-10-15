@@ -1,7 +1,8 @@
 # Облики (Forms) — Дикий облик и схожие превращения
 
-**Статус:** дизайн LOCK, к согласованию с Игорем  
+**Статус:** дизайн LOCK + детальный план  
 **Prod tip base:** `cursor/companions-naparniki-b378`  
+**План исполнения:** [`forms-feature-plan.md`](forms-feature-plan.md) (слайсы B0–B6 / F1–F6, приёмка, риски, DoD)  
 **Цель UX:** друид жмёт «Дикий облик» → выбирает форму из списка → во вкладке **Напарники** появляется карточка «как сейчас выглядит игрок» → там хиты облика и способности формы.
 
 Связанные слои уже в продукте:
@@ -324,23 +325,24 @@ Fetch-скрипт по аналогии со `backend/scripts/fetch_spell_wave.
 
 ## 8. Слайсы реализации (после LOCK)
 
-**Сначала бестиарий, потом облики.**
+**Сначала бестиарий, потом облики.**  
+Детальная разбивка (файлы, приёмка, tip, риски): [`forms-feature-plan.md`](forms-feature-plan.md).
 
 | # | Слайс | Результат |
 |---|-------|-----------|
-| F0 | Этот документ LOCK | согласование |
-| **B0** | Schema `bestiary` v1 + `docs/BESTIARY_AUDIT_2014.md` + fetch-скрипт (ttg + diff dnd.su) | контракт данных |
-| **B1** | Сид MM (upsert alembic) | первый рабочий справочник |
+| F0 | Этот документ LOCK + план | согласование |
+| **B0** | Schema `bestiary` v1 + fetch/diff скрипты | контракт данных |
+| **B1** | Сид MM (upsert alembic) | первый рабочий справочник → разблок F2 |
 | **B2–B5** | VGM/MTF → MPMM → остальные оф. книги | полное покрытие |
-| **B6** | Gap-pass vs dnd.su + ttg | оф. gap → 0 |
+| **B6** | Gap-pass + field-diff (conflict→ttg) | оф. gap → 0 |
 | F1 | Модель: `role`, `form`, `known_forms` + read/write | данные на листе |
-| F2 | `wildShapeLimits` + диалог пикера (из бестиария) + spend → self_form | друид входит в облик |
+| F2 | `wildShapeLimits` + диалог пикера + spend → self_form | друид входит в облик |
 | F3 | UI карточки облика + dismiss + overflow damage | бой в облике |
 | F4 | Moon heal-slot + Elemental picker | круг Луны |
 | F5 | Polymorph/Shapechange (self) | заклинания |
-| F6 | Item/feature sources | артефакты и Shapechanger |
+| F6 | Item/feature + ally-статы из бестиария (Wildfire…) | артефакты / дух огня |
 
-Параллелить можно F1 (модель без UI) с B1+, но **F2 не стартуем**, пока в каталоге нет хотя бы MM зверей.
+Параллелить можно F1 с B2+, но **F2 не стартуем**, пока в каталоге нет хотя бы MM (B1).
 
 ---
 
