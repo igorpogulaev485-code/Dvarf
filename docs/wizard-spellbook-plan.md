@@ -88,16 +88,25 @@
 
 **Зачем:** закрыть I-13 end-to-end.
 
-| Задача | Детали |
-|--------|--------|
-| Действие «Книга утеряна / уничтожена» | Confirm → `markSpellbookLost` + `in_spellbook=false` у leveled |
-| После утери | Toast: подготовленные и заговоры кастуются; подготовка/ритуал/add — нет |
-| PrepareSpeellsDialog | Block + причина, если `bookLost` |
-| Замена | Выбрать пустую книгу (slug `spellbook`) → `beginReplacementSpellbook` → restore prepared с оплатой own-тарифа |
-| Список lost contents | Read-only для мастера/игрока («что было») |
+| Задача | Детали | Статус |
+|--------|--------|--------|
+| «Отметить утерянной» | `SpellbookManageDialog` → markLost | ✅ |
+| Замена | Выбор другой книги в инвентаре + restore prepared + debit | ✅ |
+| Prepare / Grimoire gates | Уже с среза 2 | ✅ |
+| Lost contents list | В диалоге управления | ✅ |
+| Ritual gate | Срез 5 | ⏳ |
 
-**Файлы:** новый `SpellbookManageDialog` (или секция в SpellsSettings), `PrepareSpellsDialog`, `CastSpellDialog`.  
-**Приёмка:** утеря → нельзя переподготовить; каст prepared ок; купить пустую → restore 1 prepared за 10 зм/ур. → снова prepare.
+**Файлы:** `SpellbookManageDialog.tsx`, wiring в SpellsPanel / Settings.  
+**Не деплоить** без команды.
+
+### Срез 6 (частично) — Savant / Quill от архетипа
+
+| Задача | Статус |
+|--------|--------|
+| `resolveWizardCopyMods(subclassSlug, level)` | ✅ |
+| Гримуар: цена ×½ для школы знатока; chip «Знаток: … ×½» | ✅ |
+| Order of Scribes · Quill | ✅ |
+| Toast с пометкой знатока | ✅ |
 
 ---
 

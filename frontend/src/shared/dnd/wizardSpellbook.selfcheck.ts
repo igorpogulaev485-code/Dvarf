@@ -13,6 +13,7 @@ import {
   registerBackupBook,
   remainingFreeSpellbookSlots,
   resolveSpellbookAddPayment,
+  resolveWizardCopyMods,
   schoolMatchesSavant,
   totalCopyCost,
   wizardSpellAccess,
@@ -165,5 +166,35 @@ if (withCoins.ok && !withCoins.free) {
   assert(withCoins.cost.gp === 100, '2nd level foreign = 100')
   assert(coinsToGp(withCoins.coins) === 20, '120-100=20')
 }
+
+// --- archetype savant / scribes ---
+const evo = resolveWizardCopyMods({
+  subclassSlug: 'school_of_evocation',
+  wizardLevel: 2,
+})
+assert(evo.savantSchool === 'evocation', 'evocation savant')
+assert(evo.savantLabelRu === 'воплощение', 'savant label')
+assert(!evo.wizardlyQuill, 'not quill')
+
+const before2 = resolveWizardCopyMods({
+  subclassSlug: 'school_of_evocation',
+  wizardLevel: 1,
+})
+assert(!before2.savantSchool, 'no savant before L2')
+
+const scribes = resolveWizardCopyMods({
+  subclassSlug: 'order_of_scribes',
+  wizardLevel: 2,
+})
+assert(scribes.wizardlyQuill, 'scribes quill')
+
+const evoFire = copySpellCost({
+  spellLevel: 3,
+  kind: 'foreign',
+  spellSchool: 'evocation',
+  mods: evo,
+})
+assert(evoFire.gp === 75, 'fireball half of 150')
+assert(evoFire.halvedBySavant, 'halved flag')
 
 console.log('wizardSpellbook.selfcheck: ok')

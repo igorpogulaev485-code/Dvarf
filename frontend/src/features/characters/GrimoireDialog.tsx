@@ -22,7 +22,9 @@ import {
   previewSpellbookAddGp,
   remainingFreeSpellbookSlots,
   resolveSpellbookAddPayment,
+  resolveWizardCopyMods,
 } from '../../shared/dnd/wizardSpellbook'
+import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
 import {
   syncWizardSpellbookWithInventory,
@@ -190,18 +192,35 @@ export function GrimoireDialog({
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
+  const wizardRow = useMemo(() => {
+    return (
+      classes.find((item) => {
+        const name = item.name.trim().toLowerCase()
+        return name === 'волшебник' || name === 'wizard' || name === 'маг'
+      }) ?? null
+    )
+  }, [classes])
   const wizardLevel = useMemo(() => {
-    const row = classes.find((item) => {
-      const name = item.name.trim().toLowerCase()
-      return name === 'волшебник' || name === 'wizard' || name === 'маг'
-    })
-    if (row) return Math.max(1, Math.floor(row.level) || 1)
+    if (wizardRow) return Math.max(1, Math.floor(wizardRow.level) || 1)
     if (access.budget?.slug === 'wizard') {
       const leveled = classes.find((item) => item.level > 0)
       return Math.max(1, Math.floor(leveled?.level ?? 1) || 1)
     }
     return 1
-  }, [classes, access.budget?.slug])
+  }, [wizardRow, classes, access.budget?.slug])
+  const wizardSubclassSlug = useMemo(() => {
+    const raw = wizardRow?.subclass_name?.trim() || ''
+    if (!raw) return null
+    return resolveSubclassFeatureSlug(raw) ?? raw.toLowerCase().replace(/\s+/g, '_')
+  }, [wizardRow?.subclass_name])
+  const copyMods = useMemo(
+    () =>
+      resolveWizardCopyMods({
+        subclassSlug: wizardSubclassSlug,
+        wizardLevel,
+      }),
+    [wizardSubclassSlug, wizardLevel],
+  )
   const freeBookLeft =
     mode === 'spellbook' ? remainingFreeSpellbookSlots(spells.known, wizardLevel) : 0
   const uiCopy = spellAccessUiCopy(mode)
@@ -388,6 +407,7 @@ export function GrimoireDialog({
       spellSchool: parsed.school,
       known: spells.known,
       wizardLevel,
+      mods: copyMods,
     })
   }
 
@@ -470,6 +490,7 @@ export function GrimoireDialog({
         known: spells.known,
         wizardLevel,
         coins: coins ?? null,
+        mods: copyMods,
       })
       if (!payment.ok) {
         onToast?.(payment.message)
@@ -616,6 +637,19 @@ export function GrimoireDialog({
             >
               {bookStatus.label}
             </span>
+            {copyMods.savantLabelRu ? (
+              <span
+                className="sheet-chip is-on"
+                title="Знаток школы — копии этой школы за полцены"
+              >
+                Знаток: {copyMods.savantLabelRu} ×½
+              </span>
+            ) : null}
+            {copyMods.wizardlyQuill ? (
+              <span className="sheet-chip is-on" title="Wizardly Quill">
+                Перо писца
+              </span>
+            ) : null}
             {!canWriteToBook ? (
               <Text tone="muted">
                 Без книги нельзя вносить заклинания. Добавь «Книга заклинаний» в инвентарь.

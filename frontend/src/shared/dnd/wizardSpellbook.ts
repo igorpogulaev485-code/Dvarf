@@ -40,6 +40,57 @@ export type SpellbookModifiers = {
   wizardlyQuill?: boolean
 }
 
+/** PHB school traditions → English school key used in catalog `school`. */
+const SAVANT_SCHOOL_BY_SUBCLASS: Record<string, string> = {
+  school_of_abjuration: 'abjuration',
+  school_of_conjuration: 'conjuration',
+  school_of_divination: 'divination',
+  school_of_enchantment: 'enchantment',
+  school_of_evocation: 'evocation',
+  school_of_illusion: 'illusion',
+  school_of_necromancy: 'necromancy',
+  school_of_transmutation: 'transmutation',
+}
+
+const SAVANT_LABEL_RU: Record<string, string> = {
+  abjuration: 'ограждение',
+  conjuration: 'вызов',
+  divination: 'прорицание',
+  enchantment: 'очарование',
+  evocation: 'воплощение',
+  illusion: 'иллюзия',
+  necromancy: 'некромантия',
+  transmutation: 'преобразование',
+}
+
+/**
+ * Copy-cost mods from wizard tradition (Savant at 2+, Wizardly Quill for Scribes).
+ * `subclassSlug` should already be canonical (e.g. school_of_evocation).
+ */
+export function resolveWizardCopyMods(input: {
+  subclassSlug: string | null | undefined
+  wizardLevel: number
+}): SpellbookModifiers & { savantLabelRu: string | null } {
+  const slug = (input.subclassSlug ?? '').trim().toLowerCase()
+  const level = Math.max(0, Math.floor(input.wizardLevel) || 0)
+  const mods: SpellbookModifiers & { savantLabelRu: string | null } = {
+    savantSchool: null,
+    wizardlyQuill: false,
+    savantLabelRu: null,
+  }
+  if (!slug || level < 2) return mods
+
+  const school = SAVANT_SCHOOL_BY_SUBCLASS[slug]
+  if (school) {
+    mods.savantSchool = school
+    mods.savantLabelRu = SAVANT_LABEL_RU[school] ?? school
+  }
+  if (slug === 'order_of_scribes') {
+    mods.wizardlyQuill = true
+  }
+  return mods
+}
+
 export type SpellbookCopyCost = {
   kind: SpellbookCopyKind
   spellLevel: number
@@ -347,13 +398,18 @@ export function resolveSpellbookAddPayment(input: {
     }
   }
 
+  const savantNote = cost.halvedBySavant ? ' · знаток школы ×½' : ''
+  const quillNote = cost.freeInkByQuill ? ` · перо писца ${cost.minutes} мин` : ''
+  const timeNote = cost.freeInkByQuill
+    ? ''
+    : ` · ${cost.hours} ч`
   return {
     ok: true,
     free: false,
     acquisition: 'copied',
     coins: spend.coins,
     cost,
-    message: `В книгу за ${formatGpTotal(cost.gp)} зм · ${cost.hours} ч · ${spend.message}`,
+    message: `В книгу за ${formatGpTotal(cost.gp)} зм${timeNote}${savantNote}${quillNote} · ${spend.message}`,
     spend,
   }
 }

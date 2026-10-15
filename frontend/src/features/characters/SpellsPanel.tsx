@@ -34,7 +34,9 @@ import {
 } from '../../shared/dnd/spellCatalog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import { SpellbookManageDialog } from './SpellbookManageDialog'
 import { wizardSpellbookStatusLabel } from './wizardSpellbookInventory'
+import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
 import {
   IconCast,
   IconConcentration,
@@ -112,6 +114,7 @@ export function SpellsPanel({
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
+  const [bookManageOpen, setBookManageOpen] = useState(false)
   const [castSpell, setCastSpell] = useState<SheetSpell | null>(null)
   const [pendingConc, setPendingConc] = useState<{
     spell: SheetSpell
@@ -593,15 +596,17 @@ export function SpellsPanel({
             {spells.has_component_pouch ? 'Мешочек ✓' : 'Мешочек ✗'}
           </span>
           {learnBudget?.mode === 'spellbook' ? (
-            <span
+            <button
+              type="button"
               className={`sheet-chip spells-focus-chips__chip${
                 wizardSpellbookStatusLabel(spells).ok ? ' is-on' : ''
               }`}
-              title="Физическая книга заклинаний в инвентаре"
+              title="Управление книгой заклинаний"
+              onClick={() => setBookManageOpen(true)}
             >
               <IconSpellBook className="spells-btn-icon" />
               {wizardSpellbookStatusLabel(spells).label}
-            </span>
+            </button>
           ) : null}
           <Text tone="muted">
             Ищем в инвентаре тип «Фокус» / «Мешочек» (имя может быть любым). М с ценой — отдельный
@@ -1067,6 +1072,28 @@ export function SpellsPanel({
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />
+      {learnBudget?.mode === 'spellbook' && inventory && onInventoryChange ? (
+        <SpellbookManageDialog
+          open={bookManageOpen}
+          spells={spells}
+          inventoryItems={inventoryItems}
+          coins={inventory.coins}
+          wizardLevel={
+            (classes?.find((row) => /волшебник|wizard|маг/i.test(row.name))?.level ??
+              level) || 1
+          }
+          subclassSlug={(() => {
+            const row = classes?.find((item) => /волшебник|wizard|маг/i.test(item.name))
+            const raw = row?.subclass_name?.trim() || ''
+            if (!raw) return null
+            return resolveSubclassFeatureSlug(raw) ?? raw.toLowerCase().replace(/\s+/g, '_')
+          })()}
+          onChangeSpells={onChange}
+          onChangeCoins={(coins) => onInventoryChange({ ...inventory, coins })}
+          onClose={() => setBookManageOpen(false)}
+          onToast={onToast}
+        />
+      ) : null}
       <GrimoireDialog
         open={grimoireOpen}
         edition={edition}

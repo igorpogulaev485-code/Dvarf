@@ -28,6 +28,9 @@ import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import { SpellbookManageDialog } from './SpellbookManageDialog'
+import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
+import { wizardSpellbookStatusLabel } from './wizardSpellbookInventory'
 import {
   IconFocus,
   IconPouch,
@@ -88,6 +91,7 @@ export function SpellsSettingsDialog({
 }: SpellsSettingsDialogProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
+  const [bookManageOpen, setBookManageOpen] = useState(false)
   const [advancedOpen, setAdvancedOpen] = useState(false)
 
   const classRows = useMemo(
@@ -292,6 +296,17 @@ export function SpellsSettingsDialog({
               <IconSpellBook className="spells-btn-icon" />
               Гримуар
             </Button>
+            {learnBudget?.mode === 'spellbook' ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setBookManageOpen(true)}
+                title="Утеря / замена книги заклинаний"
+              >
+                <IconSpellBook className="spells-btn-icon" />
+                {wizardSpellbookStatusLabel(spells).label}
+              </Button>
+            ) : null}
           </div>
 
           <div className="spells-settings">
@@ -684,6 +699,28 @@ export function SpellsSettingsDialog({
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />
+      {learnBudget?.mode === 'spellbook' && onCoinsChange ? (
+        <SpellbookManageDialog
+          open={bookManageOpen}
+          spells={spells}
+          inventoryItems={inventoryItems}
+          coins={coins ?? { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }}
+          wizardLevel={
+            classRows.find((row) => /волшебник|wizard|маг/i.test(row.name))?.level ??
+            level
+          }
+          subclassSlug={(() => {
+            const row = classRows.find((item) => /волшебник|wizard|маг/i.test(item.name))
+            const raw = row?.subclass_name?.trim() || ''
+            if (!raw) return null
+            return resolveSubclassFeatureSlug(raw) ?? raw.toLowerCase().replace(/\s+/g, '_')
+          })()}
+          onChangeSpells={onChange}
+          onChangeCoins={onCoinsChange}
+          onClose={() => setBookManageOpen(false)}
+          onToast={onToast}
+        />
+      ) : null}
       <GrimoireDialog
         open={grimoireOpen}
         edition={edition}
