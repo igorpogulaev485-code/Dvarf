@@ -149,8 +149,10 @@ import {
   buildPendingWizardSteps,
   clearFeaturePicksAboveClassLevel,
   featWizardStep,
+  isWizardClassName,
   listUnlockedExpertiseKeys,
   withBackgroundStepIfNeeded,
+  withWizardSpellbookPicksStep,
   type GuidedWizardStep,
 } from '../../shared/dnd/pendingFeatureChoices'
 import {
@@ -289,8 +291,15 @@ import {
   inferFocusKind,
   withSpellFocusFlags,
 } from './spellFocus'
-import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
-import { syncWizardSpellbookWithInventory } from './wizardSpellbookInventory'
+import {
+  canCastWizardRitualFromBook,
+  freeBookSlotsAtLevel,
+  remainingFreeSpellbookSlots,
+} from '../../shared/dnd/wizardSpellbook'
+import {
+  syncWizardSpellbookWithInventory,
+  wizardHasUsableSpellbook,
+} from './wizardSpellbookInventory'
 import {
   playToSheet,
   readPlay,
@@ -305,6 +314,7 @@ import {
 } from './spellScroll'
 import { consumeMaterialItem } from './spellMaterials'
 import {
+  addCatalogSpellToKnown,
   canSpendGrantCast,
   readSpells,
   spendGrantCast,
@@ -1718,7 +1728,7 @@ export function MinimalSheetEditor({
     hasBackgroundGrant?: boolean
   }): GuidedWizardStep[] {
     const maxLevel = input.upToLevel ?? input.classLevel
-    const steps = buildPendingWizardSteps({
+    let steps = buildPendingWizardSteps({
       unlocked: input.unlocked ?? unlockedFeatures,
       featurePicks: input.featurePicks ?? draft.featurePicks,
       classAsi: input.classAsi ?? draft.classAsi,
@@ -1736,9 +1746,28 @@ export function MinimalSheetEditor({
             },
       hasSubclassByEntryId: input.hasSubclass ?? hasSubclassByEntryId,
     })
-    return withBackgroundStepIfNeeded(steps, {
+    steps = withBackgroundStepIfNeeded(steps, {
       include: Boolean(input.includeBackground) && !input.hasBackgroundGrant,
     })
+    const classRow = draft.classes.find((row) => row.id === input.classEntryId)
+    if (classRow && isWizardClassName(classRow.name)) {
+      const wizardLevel = Math.max(1, maxLevel)
+      const freeLeft = remainingFreeSpellbookSlots(draft.spells.known, wizardLevel)
+      if (freeLeft > 0) {
+        steps = withWizardSpellbookPicksStep(steps, {
+          classEntryId: input.classEntryId,
+          className: classRow.name,
+          classLevel: wizardLevel,
+          picksNeeded:
+            input.upToLevel != null
+              ? freeLeft
+              : wizardLevel <= 1
+                ? Math.min(6, freeLeft)
+                : Math.min(freeBookSlotsAtLevel(wizardLevel), freeLeft),
+        })
+      }
+    }
+    return steps
   }
 
   function commitClassGrant(input: {
@@ -2379,7 +2408,7 @@ export function MinimalSheetEditor({
       for (const row of nextClasses) {
         hasSubclass[row.id] = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
       }
-      const steps = buildPendingWizardSteps({
+      let steps = buildPendingWizardSteps({
         unlocked,
         featurePicks: draft.featurePicks,
         classAsi: draft.classAsi,
@@ -2390,6 +2419,14 @@ export function MinimalSheetEditor({
         },
         hasSubclassByEntryId: hasSubclass,
       })
+      if (isWizardClassName(leveledRow.name) && leveledRow.level >= 2) {
+        steps = withWizardSpellbookPicksStep(steps, {
+          classEntryId: leveledRow.id,
+          className: leveledRow.name,
+          classLevel: leveledRow.level,
+          picksNeeded: freeBookSlotsAtLevel(leveledRow.level),
+        })
+      }
       if (
         !hasSubclass[leveledRow.id] &&
         steps.some((step) => step.kind === 'subclass')
@@ -5232,6 +5269,29 @@ export function MinimalSheetEditor({
                     },
               hasSubclassByEntryId: hasSubclass,
             })
+            if (isWizardClassName(step.className)) {
+              const wizardLevel =
+                next.classes.find((row) => row.id === step.classEntryId)?.level ??
+                classLevel
+              const freeLeft = remainingFreeSpellbookSlots(
+                next.spells.known,
+                wizardLevel,
+              )
+              if (freeLeft > 0) {
+                remaining = withWizardSpellbookPicksStep(remaining, {
+                  classEntryId: step.classEntryId,
+                  className: step.className,
+                  classLevel: wizardLevel,
+                  // Jump to N: catch up all free research; L1 start: up to 6.
+                  picksNeeded:
+                    jumpTo > 1
+                      ? freeLeft
+                      : wizardLevel <= 1
+                        ? Math.min(6, freeLeft)
+                        : Math.min(freeBookSlotsAtLevel(wizardLevel), freeLeft),
+                })
+              }
+            }
             return next
           })
           if (summary) {
@@ -5273,6 +5333,43 @@ export function MinimalSheetEditor({
             classEntryId,
             selected: entry,
             advanceWizardAfter: true,
+          })
+        }}
+        spellbookPicksContext={(() => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          if (!step || step.kind !== 'spellbook_picks') return null
+          const slotCap = highestSpellSlotLevelForClasses(
+            draft.classes,
+            subclassCastersForSpells,
+          )
+          return {
+            maxSpellLevel: Math.max(1, slotCap || 1),
+            blockedCatalogIds: draft.spells.known
+              .map((spell) => spell.catalog_id)
+              .filter((id): id is string => Boolean(id)),
+            hasBook: wizardHasUsableSpellbook(draft.spells),
+            classListSlugs: ['wizard'],
+          }
+        })()}
+        onConfirmSpellbookPicks={(entries) => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          const acquisition =
+            step?.kind === 'spellbook_picks' && step.classLevel <= 1
+              ? 'starting'
+              : 'level_up'
+          setDraft((prev) => {
+            let known = prev.spells.known
+            for (const entry of entries) {
+              known = addCatalogSpellToKnown(known, entry, {
+                prepare: false,
+                spellbook_acquisition: acquisition,
+                in_spellbook: true,
+              })
+            }
+            return {
+              ...prev,
+              spells: { ...prev.spells, known },
+            }
           })
         }}
       />

@@ -59,7 +59,7 @@
 | Create L1 wizard | Free-cap + счётчик «бесплатно ещё N» в гримуаре/LevelingStep | ✅ в ветке |
 | Create + paid | `sheetDraft` coins → Grimoire debit | ✅ в ветке |
 | Cap UX | soft free vs paid, не «книга полна» | ✅ |
-| Level-up toast/шаг «+2 в книгу» | Явный пикер при повышении (не только счётчик) | ⏳ следующий коммит в срезе 1 |
+| Level-up «+2 в книгу» | Шаг `spellbook_picks` в GuidedWizard (развилка уровня) | ✅ |
 
 **Файлы:** `CreateCharacterPage`, `LevelingStep`, `GrimoireDialog`.  
 **Приёмка:** создать волшебника 1 → 6 free без зм; сверх free на create списывает draft-кошелёк или сообщает о нехватке.

@@ -78,7 +78,9 @@ import type { AbilityScores } from '../shared/dnd/multiclassRules'
 import {
   buildPendingWizardSteps,
   isSubclassGateFeature,
+  isWizardClassName,
   listUnlockedExpertiseKeys,
+  withWizardSpellbookPicksStep,
 } from '../shared/dnd/pendingFeatureChoices'
 import {
   isPointBuyValid,
@@ -105,6 +107,7 @@ import {
 import { EMPTY_ARMOR } from '../features/characters/identity'
 import { abilityModifier } from '../features/characters/sheetTypes'
 import {
+  addCatalogSpellToKnown,
   countLearnedCantrips,
   countLearnedLeveled,
   countPreparedLeveled,
@@ -116,12 +119,20 @@ import {
 } from '../features/characters/spells'
 import {
   applySpellcastingSuggestion,
+  highestSpellSlotLevelForClasses,
   resolveSpellLearnBudget,
   suggestSpellcastingFromClasses,
 } from '../shared/dnd/casterProgression'
 import type { SpellcastingAbility } from '../shared/dnd/spells'
-import { remainingFreeSpellbookSlots } from '../shared/dnd/wizardSpellbook'
+import {
+  freeBookSlotsAtLevel,
+  remainingFreeSpellbookSlots,
+} from '../shared/dnd/wizardSpellbook'
 import { inventoryToSheet, readInventory } from '../features/characters/inventory'
+import {
+  isSpellbookInventoryItem,
+  wizardHasUsableSpellbook,
+} from '../features/characters/wizardSpellbookInventory'
 import { Button, Stack, Text, Toast } from '../ui'
 
 const CASTER_NAME_RE =
@@ -658,7 +669,7 @@ export function CreateCharacterPage() {
     for (const item of classRows) {
       hasSubclass[item.id] = hasSubclassSelected(item)
     }
-    const steps = buildPendingWizardSteps({
+    let steps = buildPendingWizardSteps({
       unlocked,
       featurePicks: picksState,
       classAsi: state.classAsi ?? [],
@@ -669,6 +680,18 @@ export function CreateCharacterPage() {
       },
       hasSubclassByEntryId: hasSubclass,
     }).filter((step) => step.kind !== 'class_grant' && step.kind !== 'background')
+    if (isWizardClassName(row.name)) {
+      const freeLeft = remainingFreeSpellbookSlots(spells.known, row.level)
+      if (freeLeft > 0) {
+        steps = withWizardSpellbookPicksStep(steps, {
+          classEntryId,
+          className: row.name,
+          classLevel: row.level,
+          // Opening full class forks (up_to) — catch up outstanding free research.
+          picksNeeded: freeLeft,
+        })
+      }
+    }
     if (steps.length === 0) {
       if (!options?.silentIfEmpty) {
         setToast('Все развилки и ASI для этого класса закрыты')
@@ -1773,6 +1796,42 @@ export function CreateCharacterPage() {
         onPickSubclass={(classEntryId, entry) => {
           setAdvanceWizardAfterSubclass(true)
           beginSubclassSelection(classEntryId, entry, { advanceWizardAfter: true })
+        }}
+        spellbookPicksContext={(() => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          if (!step || step.kind !== 'spellbook_picks') return null
+          const inv = readInventory(state.sheetDraft)
+          const hasBook =
+            wizardHasUsableSpellbook(spells) ||
+            inv.items.some(isSpellbookInventoryItem)
+          const slotCap = highestSpellSlotLevelForClasses(state.classes)
+          return {
+            maxSpellLevel: Math.max(1, slotCap || 1),
+            blockedCatalogIds: spells.known
+              .map((spell) => spell.catalog_id)
+              .filter((id): id is string => Boolean(id)),
+            // Create kit includes a spellbook; don't block starting free fills.
+            hasBook: hasBook || step.classLevel <= 1,
+            classListSlugs: ['wizard'],
+          }
+        })()}
+        onConfirmSpellbookPicks={(entries) => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          const acquisition =
+            step?.kind === 'spellbook_picks' && step.classLevel <= 1
+              ? 'starting'
+              : 'level_up'
+          setSpells((prev) => {
+            let known = prev.known
+            for (const entry of entries) {
+              known = addCatalogSpellToKnown(known, entry, {
+                prepare: false,
+                spellbook_acquisition: acquisition,
+                in_spellbook: true,
+              })
+            }
+            return { ...prev, known }
+          })
         }}
       />
 
