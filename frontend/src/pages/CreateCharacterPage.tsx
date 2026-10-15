@@ -1136,12 +1136,74 @@ export function CreateCharacterPage() {
 
   const step = state.step
   const featNote = raceFeatNoteRu(state.raceSetup)
+  /** Phone create hides detail (Сводка only) — open setup from card/footer. */
+  const createPhoneLayout =
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 860px)').matches
+
+  async function openRaceSetupFor(entry: CatalogEntry) {
+    setSelectedRace(entry)
+    let all = races
+    try {
+      all = await listCatalogEntries({ kind: 'race', edition: '2014' })
+    } catch {
+      // keep cached roots
+    }
+    const subraces = all.filter((row) => row.parent_id === entry.id)
+    setRaceSetup({
+      root: entry,
+      subraces,
+      required: raceSubraceRequired(entry.data),
+    })
+  }
+
+  function openBackgroundSetupFor(entry: CatalogEntry) {
+    setSelectedBackground(entry)
+    const variants = backgrounds.filter((row) => row.parent_id === entry.id)
+    setBgSetup({ root: entry, variants })
+  }
+
+  function openClassSetupFor(entry: CatalogEntry) {
+    setSelectedClass(entry)
+    const def = resolveClassGrantDef({
+      className: entry.name_ru,
+      catalogSlug: entry.slug,
+      catalogData: entry.data,
+    })
+    if (!def) {
+      setToast('Нет пакета владений для класса')
+      return
+    }
+    const entryId = state.classEntryId || createClassLevel().id
+    const nextClasses = [
+      createClassLevel({
+        id: entryId,
+        name: entry.name_ru,
+        catalog_id: entry.id,
+        level: 1,
+      }),
+    ]
+    patchState({
+      classRef: catalogRef(entry),
+      classEntryId: entryId,
+      classes: nextClasses,
+      hpChoices: ensureHpChoices(nextClasses, []),
+      classGrantPicks: {},
+      stepDirty: { ...state.stepDirty, class: true },
+    })
+    setClassSetup({
+      def,
+      mode: 'start',
+      classEntryId: entryId,
+      openWizardAfter: false,
+    })
+  }
 
   let cards = null
   let detail = null
   let footer = null
 
   if (step === 'race') {
+    const raceReady = Boolean(state.race && state.characterName.trim())
     cards = (
       <CatalogCardList
         resetToken={step}
@@ -1153,7 +1215,11 @@ export function CreateCharacterPage() {
           meta: raceCardMeta(entry),
         }))}
         selectedId={selectedRace?.id ?? state.race?.id ?? null}
-        onSelect={(id) => setSelectedRace(races.find((row) => row.id === id) ?? null)}
+        onSelect={(id) => {
+          const entry = races.find((row) => row.id === id) ?? null
+          setSelectedRace(entry)
+          if (entry && createPhoneLayout) void openRaceSetupFor(entry)
+        }}
       />
     )
     detail = (
@@ -1169,20 +1235,9 @@ export function CreateCharacterPage() {
         )}
         <Button
           disabled={!selectedRace}
-          onClick={async () => {
+          onClick={() => {
             if (!selectedRace) return
-            let all = races
-            try {
-              all = await listCatalogEntries({ kind: 'race', edition: '2014' })
-            } catch {
-              // keep cached roots
-            }
-            const subraces = all.filter((row) => row.parent_id === selectedRace.id)
-            setRaceSetup({
-              root: selectedRace,
-              subraces,
-              required: raceSubraceRequired(selectedRace.data),
-            })
+            void openRaceSetupFor(selectedRace)
           }}
         >
           Выбрать и настроить
@@ -1192,10 +1247,20 @@ export function CreateCharacterPage() {
     )
     footer = (
       <Button
-        disabled={!state.race || !state.characterName.trim()}
-        onClick={() => advanceFrom('race')}
+        disabled={!raceReady && !selectedRace}
+        onClick={() => {
+          if (raceReady) {
+            advanceFrom('race')
+            return
+          }
+          if (selectedRace) void openRaceSetupFor(selectedRace)
+        }}
       >
-        {raceNeedsFeatStep(state.raceSetup) ? 'Далее · Черта' : 'Далее · Предыстория'}
+        {raceReady
+          ? raceNeedsFeatStep(state.raceSetup)
+            ? 'Далее · Черта'
+            : 'Далее · Предыстория'
+          : 'Настроить расу'}
       </Button>
     )
   }
@@ -1288,6 +1353,7 @@ export function CreateCharacterPage() {
         onSelect={(id) => {
           const entry = backgrounds.find((row) => row.id === id) ?? null
           setSelectedBackground(entry)
+          if (entry && createPhoneLayout) openBackgroundSetupFor(entry)
         }}
       />
     )
@@ -1301,10 +1367,7 @@ export function CreateCharacterPage() {
           disabled={!selectedBackground}
           onClick={() => {
             if (!selectedBackground) return
-            const variants = backgrounds.filter(
-              (row) => row.parent_id === selectedBackground.id,
-            )
-            setBgSetup({ root: selectedBackground, variants })
+            openBackgroundSetupFor(selectedBackground)
           }}
         >
           Выбрать и настроить
@@ -1315,8 +1378,17 @@ export function CreateCharacterPage() {
       </CatalogDetailPanel>
     )
     footer = (
-      <Button disabled={!state.background} onClick={() => advanceFrom('background')}>
-        Далее · Класс
+      <Button
+        disabled={!state.background && !selectedBackground}
+        onClick={() => {
+          if (state.background) {
+            advanceFrom('background')
+            return
+          }
+          if (selectedBackground) openBackgroundSetupFor(selectedBackground)
+        }}
+      >
+        {state.background ? 'Далее · Класс' : 'Настроить предысторию'}
       </Button>
     )
   }
@@ -1332,7 +1404,11 @@ export function CreateCharacterPage() {
           source: entry.source,
         }))}
         selectedId={selectedClass?.id ?? state.classRef?.id ?? null}
-        onSelect={(id) => setSelectedClass(classes.find((row) => row.id === id) ?? null)}
+        onSelect={(id) => {
+          const entry = classes.find((row) => row.id === id) ?? null
+          setSelectedClass(entry)
+          if (entry && createPhoneLayout) openClassSetupFor(entry)
+        }}
       />
     )
     detail = (
@@ -1345,39 +1421,7 @@ export function CreateCharacterPage() {
           disabled={!selectedClass}
           onClick={() => {
             if (!selectedClass) return
-            const def = resolveClassGrantDef({
-              className: selectedClass.name_ru,
-              catalogSlug: selectedClass.slug,
-              catalogData: selectedClass.data,
-            })
-            if (!def) {
-              setToast('Нет пакета владений для класса')
-              return
-            }
-            const entryId = state.classEntryId || createClassLevel().id
-            const nextClasses = [
-              createClassLevel({
-                id: entryId,
-                name: selectedClass.name_ru,
-                catalog_id: selectedClass.id,
-                level: 1,
-              }),
-            ]
-            patchState({
-              classRef: catalogRef(selectedClass),
-              classEntryId: entryId,
-              classes: nextClasses,
-              hpChoices: ensureHpChoices(nextClasses, []),
-              // Re-picking class clears prior primary grant picks.
-              classGrantPicks: {},
-              stepDirty: { ...state.stepDirty, class: true },
-            })
-            setClassSetup({
-              def,
-              mode: 'start',
-              classEntryId: entryId,
-              openWizardAfter: false,
-            })
+            openClassSetupFor(selectedClass)
           }}
         >
           Выбрать и настроить
@@ -1391,12 +1435,21 @@ export function CreateCharacterPage() {
         ) : null}
       </CatalogDetailPanel>
     )
+    const classReady = Boolean(
+      state.classRef && state.classGrantPicks?.[state.classEntryId],
+    )
     footer = (
       <Button
-        disabled={!state.classRef || !state.classGrantPicks?.[state.classEntryId]}
-        onClick={() => advanceFrom('class')}
+        disabled={!classReady && !selectedClass}
+        onClick={() => {
+          if (classReady) {
+            advanceFrom('class')
+            return
+          }
+          if (selectedClass) openClassSetupFor(selectedClass)
+        }}
       >
-        Далее · Характеристики
+        {classReady ? 'Далее · Характеристики' : 'Настроить класс'}
       </Button>
     )
   }
@@ -1552,6 +1605,7 @@ export function CreateCharacterPage() {
         cards={cards}
         detail={detail}
         footer={footer}
+        detailPrimary={step === 'abilities' || step === 'leveling'}
         onStepClick={goToStep}
         onBack={
           backTarget

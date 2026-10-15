@@ -153,6 +153,7 @@ function emptyGrant(
     armorKeys: [],
     weaponNames: [],
     traitsText: '',
+    traitCards: [],
     ancestryId: null,
     featNoteRu: null,
     naturalArmor: null,

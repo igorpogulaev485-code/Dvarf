@@ -295,14 +295,14 @@ export function AttacksPanel({
                   label="Урон"
                   hint={
                     raceNatural
-                      ? `От расы (+${ABILITY_LABELS[attack.ability]})`
-                      : magicDmg
-                        ? `с магией ${damageDisplay} (${magicDmg >= 0 ? '+' : ''}${magicDmg})`
+                      ? `От расы · итого ${damageDisplay || attack.damage} (+${ABILITY_LABELS[attack.ability]})`
+                      : damageDisplay && damageDisplay !== attack.damage
+                        ? `итого ${damageDisplay}`
                         : undefined
                   }
                 >
                   <Input
-                    value={attack.damage}
+                    value={raceNatural ? damageDisplay || attack.damage : attack.damage}
                     placeholder="1к8"
                     readOnly={raceNatural}
                     onChange={

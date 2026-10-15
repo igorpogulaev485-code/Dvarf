@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { updateMe, type User } from '../../shared/api/auth'
 import { ApiRequestError } from '../../shared/api/client'
 import {
@@ -6,6 +6,7 @@ import {
   applyAccountAppearance,
   normalizeAppearance,
   type AbilityColorsMode,
+  type AccountAppearance,
   type ThemeId,
 } from '../../shared/theme/accountAppearance'
 import { Stack, Text } from '../../ui'
@@ -16,25 +17,35 @@ type AppearancePanelProps = {
 }
 
 export function AppearancePanel({ user, onSaved }: AppearancePanelProps) {
-  const current = normalizeAppearance(user)
+  const fromUser = normalizeAppearance(user)
+  const [current, setCurrent] = useState<AccountAppearance>(fromUser)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setCurrent(normalizeAppearance(user))
+  }, [user])
 
   async function save(patch: { theme_id?: ThemeId; ability_colors?: AbilityColorsMode }) {
     setPending(true)
     setError(null)
+    const previous = current
     const nextLocal = normalizeAppearance({
       themeId: patch.theme_id ?? current.themeId,
       abilityColors: patch.ability_colors ?? current.abilityColors,
     })
-    // Optimistic preview while request runs.
+    // Optimistic preview + chip selection while request runs.
+    setCurrent(nextLocal)
     applyAccountAppearance(nextLocal)
     try {
       const updated = await updateMe(patch)
-      applyAccountAppearance(normalizeAppearance(updated))
+      const saved = normalizeAppearance(updated)
+      setCurrent(saved)
+      applyAccountAppearance(saved)
       onSaved(updated)
     } catch (err) {
-      applyAccountAppearance(current)
+      setCurrent(previous)
+      applyAccountAppearance(previous)
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить оформление')
     } finally {
       setPending(false)
