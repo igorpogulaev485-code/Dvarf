@@ -10,8 +10,10 @@
 |------|----------|----------|
 | Пул `feat:wild_shape` | 2× / short, scale CR по уровню, Moon/Elemental | нет действия «принять облик» |
 | Напарники | отдельное существо (спутник / призыв) | нет роли «это я» |
-| Бестиарий | `kind=bestiary` в каталоге | записей 0 — наполняет отдельный агент |
+| Бестиарий | `kind=bestiary` в каталоге (enum есть) | **0 записей** — без наполнения пикер обликов пустой |
 | Каст → naparnik | Summon*/Conjure*/Familiar | Polymorph/Shapechange не создают карточку |
+
+> **Порядок работ:** сначала полный оф. бестиарий (B0–B3), потом модель обликов (F1+) и пикер. Ручной `known_forms` — только fallback/homebrew, не замена справочника.
 
 ---
 
@@ -216,38 +218,128 @@ wildShapeLimits(druidLevel, circle): { maxCr: number; allowSwim: boolean; allowF
 
 ---
 
-## 7. Связь с бестиарием
+## 7. Бестиарий (делать первым)
 
-- Runtime читает статы из `catalog kind=bestiary` по `bestiary_ref`.  
-- Пока каталог пуст — `KnownForm.stats_override` обязателен для ручных форм.  
-- Когда бестиарий появится: пикер подставляет статы из каталога; override остаётся для homebrew.
+Без справочника существ фича обликов не собирается: пикеру не из чего брать CR/HP/AC/скорости/атаки.  
+Правила наполнения — **те же, что у рас / заклинаний / черт**:
 
-Агент бестиария **не блочит** этот слайс: v1 работает на known_forms + ручном вводе.
+| Правило | Как |
+|---------|-----|
+| Охват | Весь **официальный** бестиарий 2014 по всем книгам (MM, VGtM, MToF, MPMM, приключения, сеттинги…) |
+| Исключить | Homebrew, UA, 3rd-party (как у гримуара 527) |
+| Имена | RU как на dnd.su / ttg; EN slug стабильный |
+| Хранение | `catalog_entries` · `kind=bestiary` · `rules_edition=2014` · JSONB `data` schema v1 |
+| Волны | JSON-файл(ы) в `backend/data/…` + alembic upsert (идемпотентно по slug) |
+| Проверка | Сверка списков **dnd.su** и **ttg.club**; gap-отчёт как у SPELLS |
+| Аудит-файл | `docs/BESTIARY_AUDIT_2014.md` (зеркало `RACES_AUDIT_2014.md`) |
+
+### 7.1. Источники правды (проверка)
+
+| Источник | Роль | Ориентир на 2026-10-15 |
+|----------|------|------------------------|
+| [ttg 5e14 API](https://5e14.ttg.club/api/v2/bestiary) | индекс + детальный статблок (удобный JSON) | ~2554 всего; **~2380** group=`Basic` (оф.) |
+| [dnd.su / 5e14 bestiary](https://5e14.dnd.su/bestiary/) · `piece/bestiary/index-list/` | зеркало / RU-проверка / gap vs ttg | ~**2875** карточек в оф. индексе (без homebrew-вкладки) |
+| PHB/MM/MPMM PDF (по необходимости) | спорные статы | точечно |
+
+Расхождение счётчиков dnd.su ↔ ttg ожидаемо (разный состав приключений/репринтов).  
+Цель агента: **закрыть оф. пересечение + добрать уникальные оф. с обеих сторон**, gap → 0 по согласованному allowlist книг. Homebrew/UA/3rd не сидим.
+
+Fetch-скрипт по аналогии со `backend/scripts/fetch_spell_wave.py`:
+
+- индекс с ttg API (`/api/v2/bestiary` → detail по `url`)  
+- параллельно индекс dnd.su → diff slug/name/CR/source  
+- выход: `backend/data/srd/2014/bestiary_*.json` волнами (MM → VGM/MTF → MPMM → adventures/settings)
+
+### 7.2. Schema v1 `data` (kind=bestiary)
+
+Минимум, который нужен обликам / напарникам / мастеру:
+
+```ts
+{
+  schema_version: 1,
+  size: string,                 // "tiny" | "small" | "medium" | …
+  type: string,                 // beast | elemental | … (EN slug)
+  type_ru: string,              // «зверь»
+  subtype?: string | null,
+  alignment?: string,
+  ac: number,
+  ac_notes?: string,            // natural armor и т.п.
+  hp_average: number,
+  hp_formula?: string,          // "3к8"
+  speed: { walk?: number; swim?: number; fly?: number; climb?: number; burrow?: number },
+  cr: string,                   // "0" | "1/8" | "1/4" | "1/2" | "1" | …
+  proficiency_bonus?: number,
+  abilities: { str: number; dex: number; con: number; int: number; wis: number; cha: number },
+  skills?: Record<string, number>,
+  senses?: { darkvision?: number; blindsight?: number; tremorsense?: number; truesight?: number; passive_perception?: number },
+  languages?: string[],
+  traits?: { name_ru: string; name_en?: string; text_ru: string }[],
+  actions?: { name_ru: string; name_en?: string; text_ru: string }[],
+  bonus_actions?: …,
+  reactions?: …,
+  legendary_actions?: …,
+  source_book: string,          // MM | MPMM | …
+  tags?: string[],              // swim, fly — для фильтра WS
+  environment?: string[],
+}
+```
+
+Строки каталога: `slug` (EN snake), `name_ru`, `name_en`, `source`, `external_ref` (url ttg + id dnd.su), `data`.
+
+Для Дикого облика пикер фильтрует: `type ∈ {beast}` (+ elemental для Moon 10), `cr ≤ limit`, `speed.swim/fly` по уровню.
+
+### 7.3. Волны сида (как SPELLS)
+
+| Волна | Книги (ориентир) | Зачем |
+|-------|------------------|-------|
+| B1 | MM (+ SRD overlap) | база; почти все WS-звери |
+| B2 | VGtM + MToF | додобивка до MPMM-эры |
+| B3 | MPMM | актуальный «большой» бестиарий |
+| B4 | FTD, BGG, BAM, TCE creatures… | драконы / великаны / … |
+| B5 | Adventures + settings (SKT, ToA, GGR, ERLW, EGW, …) | закрыть оф. gap vs dnd.su/ttg |
+| B6 | Gap-pass | diff dnd.su ↔ ttg ↔ наш COUNT; добить до 0 оф. дыр |
+
+Каждая волна: fetch JSON → alembic upsert → smoke count by `source_book` → строка в `BESTIARY_AUDIT_2014.md` → PRODUCT_STATUS «В ветках» / после деплоя «на проде».
+
+### 7.4. Связь с обликами
+
+- Runtime: статы формы из `bestiary_ref` → `data` (hp_average, ac, speed, actions → текст карточки).  
+- `KnownForm.stats_override` — только homebrew / существо вне каталога.  
+- Пока B1 не залит: пикер может искать по каталогу и показывать пусто — **не считаем облики готовыми**.
 
 ---
 
 ## 8. Слайсы реализации (после LOCK)
 
+**Сначала бестиарий, потом облики.**
+
 | # | Слайс | Результат |
 |---|-------|-----------|
 | F0 | Этот документ LOCK | согласование |
-| F1 | Модель: `role`, `form`, `known_forms` + migrate read/write | данные на листе |
-| F2 | `wildShapeLimits` + диалог пикера + spend → create self_form | друид может войти в облик |
+| **B0** | Schema `bestiary` v1 + `docs/BESTIARY_AUDIT_2014.md` + fetch-скрипт (ttg + diff dnd.su) | контракт данных |
+| **B1** | Сид MM (upsert alembic) | первый рабочий справочник |
+| **B2–B5** | VGM/MTF → MPMM → остальные оф. книги | полное покрытие |
+| **B6** | Gap-pass vs dnd.su + ttg | оф. gap → 0 |
+| F1 | Модель: `role`, `form`, `known_forms` + read/write | данные на листе |
+| F2 | `wildShapeLimits` + диалог пикера (из бестиария) + spend → self_form | друид входит в облик |
 | F3 | UI карточки облика + dismiss + overflow damage | бой в облике |
 | F4 | Moon heal-slot + Elemental picker | круг Луны |
-| F5 | Polymorph/Shapechange (self) через тот же пайплайн | заклинания |
+| F5 | Polymorph/Shapechange (self) | заклинания |
 | F6 | Item/feature sources | артефакты и Shapechanger |
-| F7 | Подстановка статов из бестиария | когда каталог наполнен |
+
+Параллелить можно F1 (модель без UI) с B1+, но **F2 не стартуем**, пока в каталоге нет хотя бы MM зверей.
 
 ---
 
 ## 9. Открытые решения (нужен ok Игоря)
 
 1. **Один UI-блок** «Напарники» с секцией «Облик» — ок, или отдельная вкладка? *(рекомендация: один блок)*  
-2. Хранить **библиотеку известных форм** на листе или только runtime одну форму? *(рекомендация: библиотека на листе — иначе каждый раз вбивать медведя)*  
-3. При смене облика без сброса HP формы — PHB так нельзя (новый WS = новый статблок на полных HP формы); подтверждаем PHB? *(рекомендация: да)*  
+2. Хранить **библиотеку известных форм** на листе или только runtime одну форму? *(рекомендация: библиотека на листе — «видел/выучил» поверх полного бестиария)*  
+3. При смене облика — новый полный HP формы по PHB? *(рекомендация: да)*  
 4. Polymorph на **врага/союзника** в v1 не делаем? *(рекомендация: только self в F5)*  
-5. Имя kind: `transformed_self` vs переиспользовать `other`? *(рекомендация: `transformed_self`)*
+5. Имя kind: `transformed_self` vs `other`? *(рекомендация: `transformed_self`)*  
+6. **Бестиарий первым (B0→B6), облики после B1+** — ок? *(рекомендация: да, по этому комментарию)*  
+7. Allowlist книг: всё с group=оф. на ttg/dnd.su, без HB/UA/3rd — ок? *(рекомендация: да)*
 
 ---
 
@@ -256,4 +348,5 @@ wildShapeLimits(druidLevel, circle): { maxCr: number; allowSwim: boolean; allowF
 - Не подменять HP в боевой шапке хозяина хитами формы.  
 - Не включать Alter Self / Disguise в self_form.  
 - Не создавать параллельный store вне `companions[]` без причины.  
-- Не ждать полный бестиарий, чтобы отдать F1–F3.
+- Не сидить homebrew / UA / 3rd-party в `kind=bestiary`.  
+- Не считать F2–F3 готовыми, пока бестиарий пуст (ручной stub — только аварийный fallback).

@@ -498,12 +498,13 @@
 
 <!-- tip: companions-naparniki-b378 залит 2026-10-08; бестиарий наполняет отдельный агент -->
 
-### 2026-10-15 — Дизайн: Облики (Wild Shape и превращения)
+### 2026-10-15 — Дизайн: Облики + бестиарий первым
 
 | Функция | Как работает | Эффект для пользователя |
 |--------|--------------|-------------------------|
 | Контракт обликов | `docs/forms-and-wild-shape.md`: роль `self_form` vs `ally` в блоке Напарники | Друид → пикер форм → карточка «это ты» с HP/атаками формы |
-| Слайсы F1–F7 | Модель → пикер → урон/overflow → Moon/Elemental → spells/items → бестиарий | Очередь реализации после LOCK |
+| Бестиарий B0–B6 | Весь оф. 2014 (как SPELLS/расы); проверка ttg + dnd.su; schema v1; аудит `docs/BESTIARY_AUDIT_2014.md` | Справочник существ для обликов/напарников; **стартуем с него** |
+| Слайсы | B0→B6, затем F1→F6 (F2 после хотя бы MM) | Без пустого пикера |
 
 На проде: **нет** · ветка `cursor/forms-wild-shape-design-ab5e` · только дизайн, код не трогали · tip не менять
 
@@ -798,4 +799,4 @@
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS: cast-via-feat/race grant charges in picker → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
 | 2026-10-08 | `cursor/companions-naparniki-b378` · PR #81 | Напарники A–D3 + аватарки залиты; tip → эта ветка; alembic `b4c5` |
-| 2026-10-15 | `cursor/forms-wild-shape-design-ab5e` | Дизайн LOCK обликов (Wild Shape → Напарники self_form) → «В ветках» |
+| 2026-10-15 | `cursor/forms-wild-shape-design-ab5e` | Дизайн LOCK обликов + бестиарий B0–B6 первым (ttg/dnd.su) → «В ветках» |
