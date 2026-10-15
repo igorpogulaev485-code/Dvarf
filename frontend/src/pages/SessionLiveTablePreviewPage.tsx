@@ -4,14 +4,16 @@
  * /dev/session-live-table-preview
  */
 import { useMemo, useState } from 'react'
+import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
+import { EnemyCard } from '../features/lobby/EnemyCard'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
 import { SessionTableCard } from '../features/lobby/SessionTableCard'
 import { defaultVisibilityProfile } from '../features/lobby/visibilityProfile'
-import type { SessionEvent, SessionSeat } from '../shared/api/lobbies'
+import type { SessionCombatant, SessionEvent, SessionSeat } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
 const DEMO_SEATS: SessionSeat[] = [
@@ -138,6 +140,72 @@ const DEMO_SEATS: SessionSeat[] = [
   },
 ]
 
+const DEMO_COMBATANTS: SessionCombatant[] = [
+  {
+    id: 'e-gob1',
+    name: 'Гоблин 1',
+    hp_current: 7,
+    hp_max: 7,
+    ac: 15,
+    speed: 30,
+    cr: '1/4',
+    slug: 'goblin',
+    source_book: 'MM',
+    type_ru: 'гуманоид',
+    actions: [
+      {
+        name_ru: 'Скимитар',
+        text_ru: 'Рукопашная атака оружием: +4 к попаданию, досягаемость 5 фт. Попадание: 5 (1к6 + 2) рубящего урона.',
+      },
+      {
+        name_ru: 'Короткий лук',
+        text_ru: 'Дальнобойная атака оружием: +4 к попаданию, дистанция 80/320 фт. Попадание: 5 (1к6 + 2) колющего урона.',
+      },
+    ],
+    traits: [
+      {
+        name_ru: 'Проворное исчезновение',
+        text_ru: 'Гоблин может совершить действие Засада или Замешательство бонусным действием в каждом своём ходу.',
+      },
+    ],
+  },
+  {
+    id: 'e-gob2',
+    name: 'Гоблин 2',
+    hp_current: 3,
+    hp_max: 7,
+    ac: 15,
+    speed: 30,
+    cr: '1/4',
+    slug: 'goblin',
+    source_book: 'MM',
+    type_ru: 'гуманоид',
+    actions: [
+      {
+        name_ru: 'Скимитар',
+        text_ru: 'Рукопашная атака оружием: +4 к попаданию. Попадание: 5 (1к6 + 2) рубящего урона.',
+      },
+    ],
+  },
+  {
+    id: 'e-ogre',
+    name: 'Огр Буян',
+    hp_current: 59,
+    hp_max: 59,
+    ac: 11,
+    speed: 40,
+    cr: '2',
+    custom: true,
+    type_ru: 'НПС',
+    actions: [
+      {
+        name_ru: 'Дубина',
+        text_ru: 'Рукопашная +6, 2к8+4 дробящего.',
+      },
+    ],
+  },
+]
+
 const SEED_EVENTS: SessionEvent[] = [
   {
     id: 'e1',
@@ -197,8 +265,10 @@ export function SessionLiveTablePreviewPage() {
   const [closeSummary, setCloseSummary] = useState('')
   const [writeJournal, setWriteJournal] = useState(true)
   const [seats, setSeats] = useState(DEMO_SEATS)
+  const [combatants, setCombatants] = useState(DEMO_COMBATANTS)
   const [conditionOpen, setConditionOpen] = useState(false)
   const [effectOpen, setEffectOpen] = useState(false)
+  const [combatantOpen, setCombatantOpen] = useState(false)
 
   // Как в продукте: профиль из настроек лобби; здесь — дефолт (всё видно игрокам).
   // Мастер на реальном экране = is_owner лобби, не отдельный переключатель.
@@ -282,8 +352,15 @@ export function SessionLiveTablePreviewPage() {
                     >
                       Эффект
                     </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setCombatantOpen(true)}
+                    >
+                      + Противник
+                    </Button>
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Состояние — вред (отравлен…). Эффект — пометка «на нём баф».
+                      Состояние — вред. Эффект — баф. Противник — бестиарий на стол.
                     </Text>
                   </div>
                 ) : null}
@@ -371,6 +448,36 @@ export function SessionLiveTablePreviewPage() {
                     />
                   ))}
                 </div>
+
+                {combatants.length > 0 ? (
+                  <Stack gap={8}>
+                    <Text as="h3" className="session-enemies-title">
+                      Противники
+                    </Text>
+                    <div className="session-table-grid session-enemies-grid">
+                      {combatants.map((enemy) => (
+                        <EnemyCard
+                          key={enemy.id}
+                          combatant={enemy}
+                          masterControls={!closed}
+                          onDamage={(amount) => {
+                            setCombatants((prev) =>
+                              prev.map((c) =>
+                                c.id === enemy.id
+                                  ? { ...c, hp_current: c.hp_current - amount }
+                                  : c,
+                              ),
+                            )
+                          }}
+                          onRemove={() => {
+                            setCombatants((prev) => prev.filter((c) => c.id !== enemy.id))
+                            setToast(`Убран: ${enemy.name}`)
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </Stack>
+                ) : null}
               </Stack>
             ) : null}
 
@@ -472,6 +579,34 @@ export function SessionLiveTablePreviewPage() {
               ? `Эффект: ${effect.name}`
               : `Эффект: ${effect.name} · ${characterIds.length}`,
           )
+        }}
+      />
+
+      <AddCombatantDialog
+        open={combatantOpen}
+        onClose={() => setCombatantOpen(false)}
+        onSubmit={(payload) => {
+          const baseName = payload.name?.trim() || 'Противник'
+          const n = Math.max(1, Math.min(12, payload.count || 1))
+          const next: SessionCombatant[] = []
+          for (let i = 0; i < n; i += 1) {
+            next.push({
+              id: `local-${Date.now()}-${i}`,
+              name: n > 1 ? `${baseName} ${i + 1}` : baseName,
+              hp_current: payload.hp_max ?? 10,
+              hp_max: payload.hp_max ?? 10,
+              ac: payload.ac ?? null,
+              speed: payload.speed ?? null,
+              slug: payload.slug ?? null,
+              catalog_id: payload.catalog_id ?? null,
+              custom: !payload.catalog_id,
+              type_ru: payload.catalog_id ? undefined : 'НПС',
+              actions: payload.actions ?? [],
+            })
+          }
+          setCombatants((prev) => [...prev, ...next])
+          setCombatantOpen(false)
+          setToast(n > 1 ? `На столе: ${n}` : `На столе: ${baseName}`)
         }}
       />
 

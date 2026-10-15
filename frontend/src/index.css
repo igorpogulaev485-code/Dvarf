@@ -2788,3 +2788,138 @@ button.session-concentration-tag {
 .session-companion-card--warn {
   border-color: color-mix(in srgb, #b54708 35%, var(--line));
 }
+
+/* —— B3 enemies on session table —— */
+.session-enemies-title {
+  margin: 8px 0 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.session-enemies-grid .session-enemy-card {
+  border-top: 3px solid color-mix(in srgb, #9a3412 55%, var(--line));
+}
+
+.session-enemy-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.session-enemy-card--warn {
+  border-color: color-mix(in srgb, #b54708 35%, var(--line));
+}
+
+.session-enemy-card--down {
+  border-color: color-mix(in srgb, #b42318 35%, var(--line));
+}
+
+.session-enemy-card__top {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.session-enemy-card__meta {
+  min-width: 0;
+}
+
+.session-enemy-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.session-enemy-card__sub,
+.session-enemy-card__block-title {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+.session-enemy-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-enemy-card__hp-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session-enemy-card__hp-controls .ui-button {
+  min-height: 36px;
+  padding-inline: 12px;
+}
+
+.session-enemy-card__remove {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.session-enemy-card__details {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--line);
+}
+
+.session-enemy-card__block-title {
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.session-enemy-card__actions-list {
+  margin: 4px 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.session-combatant-mode {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.session-combatant-mode__btn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.session-combatant-mode__btn.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.session-combatant-custom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 520px) {
+  .session-combatant-custom-row {
+    grid-template-columns: 1fr;
+  }
+}

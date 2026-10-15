@@ -21,8 +21,12 @@ from app.services.sheet_effects import (
     effect_suggestions_from_sheet,
     parse_effects,
 )
+from app.repositories.catalog import CatalogRepository
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
+    CombatantActionOut,
+    CombatantCreateRequest,
+    CombatantPatchRequest,
     JoinLobbyRequest,
     JournalEntryCreateRequest,
     JournalEntryOut,
@@ -45,6 +49,7 @@ from app.schemas.lobby import (
     SeatRequest,
     SessionCloseRequest,
     SessionCloseResponse,
+    SessionCombatantOut,
     SessionCreateRequest,
     SessionDetail,
     SessionEventOut,
@@ -194,11 +199,105 @@ def _member_out(member: LobbyMember, character: Character | None) -> LobbyMember
     )
 
 
+def _action_blocks(raw: object) -> list[dict]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name_ru") or item.get("name") or "").strip()
+        if not name:
+            continue
+        out.append(
+            {
+                "name_ru": name,
+                "text_ru": str(item.get("text_ru") or item.get("text") or "").strip(),
+                "name_en": (
+                    str(item["name_en"]).strip()
+                    if item.get("name_en")
+                    else None
+                ),
+            }
+        )
+    return out
+
+
+def _parse_combatants(raw: object) -> list[dict]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        cid = str(item.get("id") or "").strip()
+        name = str(item.get("name") or "").strip()
+        if not cid or not name:
+            continue
+        hp_max = int(item.get("hp_max") or 1)
+        hp_current = int(item.get("hp_current") if item.get("hp_current") is not None else hp_max)
+        out.append(
+            {
+                "id": cid,
+                "name": name,
+                "hp_current": hp_current,
+                "hp_max": max(1, hp_max),
+                "ac": item.get("ac") if isinstance(item.get("ac"), int) else None,
+                "speed": item.get("speed") if isinstance(item.get("speed"), int) else None,
+                "cr": str(item["cr"]) if item.get("cr") not in (None, "") else None,
+                "catalog_id": str(item["catalog_id"]) if item.get("catalog_id") else None,
+                "slug": str(item["slug"]) if item.get("slug") else None,
+                "source_book": str(item["source_book"]) if item.get("source_book") else None,
+                "type_ru": str(item["type_ru"]) if item.get("type_ru") else None,
+                "custom": bool(item.get("custom")),
+                "conditions": _parse_conditions(item.get("conditions")),
+                "traits": _action_blocks(item.get("traits")),
+                "actions": _action_blocks(item.get("actions")),
+                "bonus_actions": _action_blocks(item.get("bonus_actions")),
+                "reactions": _action_blocks(item.get("reactions")),
+                "legendary_actions": _action_blocks(item.get("legendary_actions")),
+            }
+        )
+    return out
+
+
+def _combatant_out(row: dict) -> SessionCombatantOut:
+    return SessionCombatantOut(
+        id=row["id"],
+        name=row["name"],
+        hp_current=row["hp_current"],
+        hp_max=row["hp_max"],
+        ac=row.get("ac"),
+        speed=row.get("speed"),
+        cr=row.get("cr"),
+        catalog_id=row.get("catalog_id"),
+        slug=row.get("slug"),
+        source_book=row.get("source_book"),
+        type_ru=row.get("type_ru"),
+        custom=bool(row.get("custom")),
+        conditions=[SeatConditionOut(**c) for c in row.get("conditions") or []],
+        traits=[CombatantActionOut(**a) for a in row.get("traits") or []],
+        actions=[CombatantActionOut(**a) for a in row.get("actions") or []],
+        bonus_actions=[CombatantActionOut(**a) for a in row.get("bonus_actions") or []],
+        reactions=[CombatantActionOut(**a) for a in row.get("reactions") or []],
+        legendary_actions=[CombatantActionOut(**a) for a in row.get("legendary_actions") or []],
+    )
+
+
+def _speed_walk(raw: object) -> int | None:
+    if isinstance(raw, int):
+        return raw
+    if isinstance(raw, dict) and isinstance(raw.get("walk"), int):
+        return raw["walk"]
+    return None
+
+
 class LobbyService:
     def __init__(self, db: Session) -> None:
         self.db = db
         self.lobbies = LobbyRepository(db)
         self.characters = CharacterRepository(db)
+        self.catalog = CatalogRepository(db)
 
     def _require_lobby(self, lobby_id: UUID) -> Lobby:
         lobby = self.lobbies.get(lobby_id)
@@ -577,6 +676,7 @@ class LobbyService:
                 )
             )
         members = [_member_out(m, char_map.get(m.character_id)) for m in lobby.members]
+        combatants = [_combatant_out(c) for c in _parse_combatants(session.combatants)]
         return SessionDetail(
             id=session.id,
             lobby_id=lobby.id,
@@ -586,6 +686,7 @@ class LobbyService:
             name=session.name,
             is_owner=lobby.owner_id == user.id,
             seats=seats,
+            combatants=combatants,
             lobby_members=members,
             visibility_profile=lobby.visibility_profile or {},
             closed_at=session.closed_at,
@@ -1157,6 +1258,178 @@ class LobbyService:
         from sqlalchemy.orm.attributes import flag_modified
 
         flag_modified(character, "sheet")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        return detail
+
+    def _require_session_owner(self, user: User, session_id: UUID) -> tuple[PlaySession, Lobby]:
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_owner(lobby, user)
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+        return session, lobby
+
+    async def add_combatants(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: CombatantCreateRequest,
+    ) -> SessionDetail:
+        session, lobby = self._require_session_owner(user, session_id)
+        from app.models.catalog import CatalogKind
+        from sqlalchemy.orm.attributes import flag_modified
+
+        template: dict | None = None
+        catalog_id: str | None = None
+        slug: str | None = None
+        custom = False
+
+        if payload.catalog_id is not None or (payload.slug and payload.slug.strip()):
+            entry = None
+            if payload.catalog_id is not None:
+                entry = self.catalog.get_by_id(payload.catalog_id)
+            if entry is None and payload.slug:
+                entry = self.catalog.get_by_kind_slug(
+                    kind=CatalogKind.bestiary,
+                    slug=payload.slug.strip(),
+                    edition="2014",
+                )
+            if entry is None or entry.kind != CatalogKind.bestiary:
+                raise NotFoundError("Карточка бестиария не найдена", code="bestiary_not_found")
+            data = entry.data if isinstance(entry.data, dict) else {}
+            catalog_id = str(entry.id)
+            slug = entry.slug
+            hp = int(data.get("hp_average") or payload.hp_max or 1)
+            template = {
+                "name": payload.name.strip() if payload.name else entry.name_ru,
+                "hp_max": int(payload.hp_max or hp),
+                "hp_current": int(payload.hp_max or hp),
+                "ac": payload.ac if payload.ac is not None else data.get("ac"),
+                "speed": payload.speed if payload.speed is not None else _speed_walk(data.get("speed")),
+                "cr": str(data.get("cr") or "") or None,
+                "catalog_id": catalog_id,
+                "slug": slug,
+                "source_book": str(data.get("source_book") or "") or None,
+                "type_ru": str(data.get("type_ru") or "") or None,
+                "custom": False,
+                "conditions": [],
+                "traits": _action_blocks(data.get("traits")),
+                "actions": _action_blocks(data.get("actions")),
+                "bonus_actions": _action_blocks(data.get("bonus_actions")),
+                "reactions": _action_blocks(data.get("reactions")),
+                "legendary_actions": _action_blocks(data.get("legendary_actions")),
+            }
+        else:
+            name = (payload.name or "").strip()
+            if not name:
+                raise AppError("Укажите имя НПС или карточку бестиария", code="combatant_name_required", status_code=400)
+            if payload.hp_max is None:
+                raise AppError("Укажите максимум HP", code="combatant_hp_required", status_code=400)
+            custom = True
+            template = {
+                "name": name,
+                "hp_max": int(payload.hp_max),
+                "hp_current": int(payload.hp_max),
+                "ac": payload.ac,
+                "speed": payload.speed,
+                "cr": None,
+                "catalog_id": None,
+                "slug": None,
+                "source_book": None,
+                "type_ru": "НПС",
+                "custom": True,
+                "conditions": [],
+                "traits": [],
+                "actions": _action_blocks([a.model_dump() for a in payload.actions]),
+                "bonus_actions": [],
+                "reactions": [],
+                "legendary_actions": [],
+            }
+
+        combatants = _parse_combatants(session.combatants)
+        count = int(payload.count or 1)
+        for i in range(count):
+            row = dict(template)
+            row["id"] = str(uuid4())
+            if count > 1 and not custom:
+                row["name"] = f"{template['name']} {i + 1}"
+            elif count > 1 and custom:
+                row["name"] = f"{template['name']} {i + 1}"
+            combatants.append(row)
+
+        session.combatants = combatants
+        flag_modified(session, "combatants")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        return detail
+
+    async def patch_combatant(
+        self,
+        user: User,
+        session_id: UUID,
+        combatant_id: str,
+        payload: CombatantPatchRequest,
+    ) -> SessionDetail:
+        session, lobby = self._require_session_owner(user, session_id)
+        from sqlalchemy.orm.attributes import flag_modified
+
+        combatants = _parse_combatants(session.combatants)
+        target = next((c for c in combatants if c["id"] == combatant_id), None)
+        if target is None:
+            raise NotFoundError("Противник не найден", code="combatant_not_found")
+
+        if payload.name is not None:
+            target["name"] = payload.name.strip()
+        if payload.hp_max is not None:
+            target["hp_max"] = int(payload.hp_max)
+        if payload.ac is not None:
+            target["ac"] = int(payload.ac)
+        if payload.conditions is not None:
+            target["conditions"] = [
+                {"slug": c.slug, "name": c.name, "catalog_id": c.catalog_id}
+                for c in payload.conditions
+            ]
+        if payload.damage is not None:
+            target["hp_current"] = int(target["hp_current"]) - int(payload.damage)
+        elif payload.hp_current is not None:
+            target["hp_current"] = int(payload.hp_current)
+
+        session.combatants = combatants
+        flag_modified(session, "combatants")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        return detail
+
+    async def delete_combatant(
+        self,
+        user: User,
+        session_id: UUID,
+        combatant_id: str,
+    ) -> SessionDetail:
+        session, lobby = self._require_session_owner(user, session_id)
+        from sqlalchemy.orm.attributes import flag_modified
+
+        combatants = _parse_combatants(session.combatants)
+        next_list = [c for c in combatants if c["id"] != combatant_id]
+        if len(next_list) == len(combatants):
+            raise NotFoundError("Противник не найден", code="combatant_not_found")
+        session.combatants = next_list
+        flag_modified(session, "combatants")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
         await session_hub.broadcast(

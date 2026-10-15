@@ -14,6 +14,7 @@ export type CatalogKind =
   | 'armor'
   | 'item'
   | 'condition'
+  | 'bestiary'
 
 export type CatalogEntry = {
   id: string

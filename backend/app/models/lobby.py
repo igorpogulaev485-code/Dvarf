@@ -4,6 +4,7 @@ import secrets
 import string
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -166,6 +167,7 @@ class PlaySession(Base):
         index=True,
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False, default="Новая сессия")
+    combatants: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
