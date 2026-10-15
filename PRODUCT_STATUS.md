@@ -532,6 +532,7 @@
 | Polymorph self | Каст «на себя» → пикер; концентрация снимает облик | Превращения без ручной карточки |
 | Перевёртыш / Wildfire | Shapechanger CR≤1; HP духа 10+5×ур. (ttg) | Архетипы не «ломаются» на стабах |
 | Сид VGM+MTF | `bestiary_vgm_mtf_v1.json` ×**268** + alembic `d6e7f8a9b0c1` | После «Залей» в справочнике +VGM/MTF |
+| Сид MPMM | `bestiary_mpmm_v1.json` ×**258** + alembic `e7f8a9b0c1d2` | После «Залей» в справочнике +MPMM |
 
 На проде: **нет** · ветка `cursor/bestiary-schema-fetch-ab5e` · PR #166 · **не деплоить** до «Залей» · tip не менять
 
@@ -827,4 +828,4 @@
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
 | 2026-10-08 | `cursor/companions-naparniki-b378` · PR #81 | Напарники A–D3 + аватарки залиты; tip → эта ветка; alembic `b4c5` |
 | 2026-10-15 | `cursor/forms-wild-shape-design-ab5e` | Дизайн LOCK обликов + бестиарий B0–B6 + детальный план (`forms-feature-plan.md`) → «В ветках» |
-| 2026-10-15 | `cursor/bestiary-schema-fetch-ab5e` · PR #166 | B0–B2 (MM+VGM+MTF) + F1–F6 облики; без деплоя до «Залей» |
+| 2026-10-15 | `cursor/bestiary-schema-fetch-ab5e` · PR #166 | B0–B3 (MM+VGM+MTF+MPMM) + F1–F6 облики; без деплоя до «Залей» |

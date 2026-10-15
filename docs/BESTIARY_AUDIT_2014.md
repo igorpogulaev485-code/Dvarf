@@ -58,7 +58,7 @@
 | B0 | Schema v1 + fetch/diff + smoke + fixture | — | нет | ✅ `cursor/bestiary-schema-fetch-ab5e` |
 | B1 | MM upsert | **451** в JSON + alembic `c5d6e7f8a9b0` | нет (до «Залей») | ✅ 90 beasts; 70 CR≤1; hyphen-URL fix |
 | B2 | VGtM + MToF | **268** в JSON + alembic `d6e7f8a9b0c1` | нет (до «Залей») | ✅ VGM 129 + MTF 139; 0 overlap c MM |
-| B3 | MPMM | ☐ | ☐ | |
+| B3 | MPMM | **258** в JSON + alembic `e7f8a9b0c1d2` | нет (до «Залей») | ✅ = ttg Basic MPMM; 0 overlap c MM/VGM/MTF |
 | B4 | FTD / BGG / BAM / TCE creatures… | ☐ | ☐ | |
 | B5 | Adventures + settings | ☐ | ☐ | |
 | B6 | Gap-pass vs dnd.su + ttg | ☐ | ☐ | оф. gap → 0 |
@@ -116,6 +116,22 @@ python3 backend/scripts/fetch_bestiary_wave.py --book VGM,MTF --out bestiary_vgm
 Типы (срез): humanoid 77 · fiend 50 · monstrosity 28 · aberration 19 · undead 16 · fey/beast/giant по 14 · …
 
 Замечание fetch: path slug с **дефисами** (`will-o-wisp`) нельзя нормализовать в `_` до GET — ttg отдаёт 500. Catalog slug после fetch = underscores.
+
+### B3 — MPMM
+
+| Артефакт | Путь |
+|----------|------|
+| Data | `backend/data/srd/2014/bestiary_mpmm_v1.json` (**258**) |
+| Migrate | `backend/alembic/versions/e7f8a9b0c1d2_upsert_bestiary_mpmm_2014.py` |
+| Fetch | `--book MPMM` |
+
+```bash
+python3 backend/scripts/fetch_bestiary_wave.py --book MPMM --out bestiary_mpmm_v1.json
+# overlap vs MM / VGM+MTF: 0 (ttg даёт _mpmm суффиксы на репринтах)
+# после деплоя / локально: alembic upgrade head
+```
+
+Типы (срез): humanoid 53 · fiend 50 · monstrosity 37 · aberration 20 · undead/fey по 16 · …
 
 ### Coverage замер (B0 diff, 2026-10-15)
 

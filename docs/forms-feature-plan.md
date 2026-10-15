@@ -168,10 +168,11 @@ FE CatalogCombobox / FormPickerDialog
 
 ---
 
-### B3 — MPMM
+### B3 — MPMM ✅
 
-| Data | `bestiary_mpmm_v1.json` |
-| Приёмка | count ≈ ttg MPMM; audit |
+| Data | `bestiary_mpmm_v1.json` (**258**) |
+| Migrate | `e7f8a9b0c1d2` upsert |
+| Приёмка | ✅ count = ttg Basic MPMM; 0 overlap c MM/VGM/MTF; audit |
 
 ---
 
