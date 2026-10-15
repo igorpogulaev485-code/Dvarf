@@ -119,6 +119,8 @@ type ClassFeaturesPanelProps = {
   /** Desk helpers for known-pick unique abilities. */
   onOpenInfusions?: (classEntryId: string) => void
   onOpenInvocations?: (classEntryId: string) => void
+  onOpenRangerFavored?: (classEntryId: string) => void
+  onOpenSoulTrinkets?: (classEntryId: string) => void
 }
 
 type FeatureFilter = 'all' | 'class' | 'subclass' | 'feats' | 'resource' | 'choice'
@@ -171,6 +173,7 @@ function FeatureResourceControls({
   initiativeGrantByPool,
   wearingHeavyArmor,
   onOpenInfusions,
+  onOpenSoulTrinkets,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -182,6 +185,7 @@ function FeatureResourceControls({
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
   onOpenInfusions?: (classEntryId: string) => void
+  onOpenSoulTrinkets?: (classEntryId: string) => void
 }) {
   const resource = feature.resource
   if (!resource?.pool_id) return null
@@ -239,6 +243,13 @@ function FeatureResourceControls({
             type="button"
             disabled={current <= 0}
             onClick={() => {
+              if (
+                resource.pool_id === 'soul_trinkets' &&
+                onOpenSoulTrinkets
+              ) {
+                onOpenSoulTrinkets(feature.classEntryId)
+                return
+              }
               const result = consumeStock({
                 resources,
                 classSlug,
@@ -253,7 +264,9 @@ function FeatureResourceControls({
               )
             }}
           >
-            {resource.stock_spend_label_ru || `− ${pool.name}`}
+            {resource.pool_id === 'soul_trinkets' && onOpenSoulTrinkets
+              ? 'Сжечь…'
+              : resource.stock_spend_label_ru || `− ${pool.name}`}
           </Button>
         </div>
       </div>
@@ -1101,6 +1114,8 @@ function FeatureRow({
   wearingHeavyArmor,
   onOpenInfusions,
   onOpenInvocations,
+  onOpenSoulTrinkets,
+  onOpenRangerFavored,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -1122,6 +1137,8 @@ function FeatureRow({
   wearingHeavyArmor: boolean
   onOpenInfusions?: (classEntryId: string) => void
   onOpenInvocations?: (classEntryId: string) => void
+  onOpenSoulTrinkets?: (classEntryId: string) => void
+  onOpenRangerFavored?: (classEntryId: string) => void
 }) {
   const sourceLabel =
     feature.source === 'subclass'
@@ -1303,6 +1320,7 @@ function FeatureRow({
         initiativeGrantByPool={initiativeGrantByPool}
         wearingHeavyArmor={wearingHeavyArmor}
         onOpenInfusions={onOpenInfusions}
+        onOpenSoulTrinkets={onOpenSoulTrinkets}
       />
       {feature.id === 'eldritch_invocations' && onOpenInvocations ? (
         <div className="feature-resource__actions">
@@ -1321,6 +1339,17 @@ function FeatureRow({
             onClick={() => onOpenInfusions(feature.classEntryId)}
           >
             Активные инфузии
+          </Button>
+        </div>
+      ) : null}
+      {(feature.id === 'favored_enemy' || feature.id === 'natural_explorer') &&
+      onOpenRangerFavored ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() => onOpenRangerFavored(feature.classEntryId)}
+          >
+            Избранное на столе
           </Button>
         </div>
       ) : null}
@@ -1368,6 +1397,8 @@ export function ClassFeaturesPanel({
   raceName = '',
   onOpenInfusions,
   onOpenInvocations,
+  onOpenRangerFavored,
+  onOpenSoulTrinkets,
 }: ClassFeaturesPanelProps) {
   const [filter, setFilter] = useState<FeatureFilter>('all')
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
@@ -1593,6 +1624,8 @@ export function ClassFeaturesPanel({
                     wearingHeavyArmor={wearingHeavyArmor}
                     onOpenInfusions={onOpenInfusions}
                     onOpenInvocations={onOpenInvocations}
+                    onOpenSoulTrinkets={onOpenSoulTrinkets}
+                    onOpenRangerFavored={onOpenRangerFavored}
                   />
                 )
               })}

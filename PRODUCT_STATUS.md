@@ -594,10 +594,22 @@
 | 6 | Волшебник · Arcane Recovery | `ArcaneRecoverySpendDialog` | #171 `wizard-arcane-recovery-4797` |
 | 7 | Варвар · Ярость | — | **пропуск** |
 
-Волна 2 (known picks / отдельные пулы): инфузии изобретателя + воззвания/арканум колдуна — см. ниже.  
-Друид не трогаем. Следопыт/плут — позже.  
-Стек tip: `infusions-invocations-desk-4797` ← `wizard-arcane-recovery-4797` ← … ← `cleric-equip-cd-spells-244b`.  
+Волна 2: инфузии / воззвания / арканум — см. ниже.  
+Волна 3: плут Soulknife/Phantom + избранное следопыта — см. ниже.  
+Друид не трогаем.  
+Стек tip: `rogue-ranger-spend-4797` ← `infusions-invocations-desk-4797` ← … ← `cleric-equip-cd-spells-244b`.  
 На проде: **нет** (мерж/деплой отдельно).
+
+### 2026-10-15 — Плут / Следопыт: пси-кости, частицы, избранное
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Soulknife · пси-кости | `PsionicDiceSpendDialog`: сноровка / шёпот / самонаведение / телепорт + завеса/−3 разрыв; пак дополнен опциями с `spend_cost` / `linked_spend.amount` | Клик по пулу → выбор, как ки |
+| Phantom · частицы | `SoulTrinketsSpendDialog`: сжечь → вопль или вопрос духу (stock −1) | Не слепой −1 на stock |
+| Следопыт · избранное | `RangerFavoredDeskDialog`: известные враги/местности с тостом | Справочник на столе |
+| Smoke | `frontend/scripts/smoke-rogue-ranger-spend.ts` | Опции / пулы / picks |
+
+На проде: **нет** · ветка `cursor/rogue-ranger-spend-4797`
 
 ### 2026-10-15 — Изобретатель / Колдун: инфузии, воззвания, арканум
 

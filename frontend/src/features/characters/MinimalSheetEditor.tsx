@@ -231,6 +231,9 @@ import {
 } from './InfusionsActiveDialog'
 import { WarlockArcanumSpendDialog } from './WarlockArcanumSpendDialog'
 import { WarlockInvocationsDialog } from './WarlockInvocationsDialog'
+import { PsionicDiceSpendDialog } from './PsionicDiceSpendDialog'
+import { SoulTrinketsSpendDialog } from './SoulTrinketsSpendDialog'
+import { RangerFavoredDeskDialog } from './RangerFavoredDeskDialog'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
@@ -2926,6 +2929,13 @@ export function MinimalSheetEditor({
   const [invocationsOpen, setInvocationsOpen] = useState<{
     classEntryId: string
   } | null>(null)
+  const [psionicSpendId, setPsionicSpendId] = useState<string | null>(null)
+  const [soulTrinketsSpendId, setSoulTrinketsSpendId] = useState<string | null>(
+    null,
+  )
+  const [rangerFavoredOpen, setRangerFavoredOpen] = useState<{
+    classEntryId: string
+  } | null>(null)
   const [concDamageAsk, setConcDamageAsk] = useState<{
     damage: number
     spellName: string
@@ -3397,6 +3407,17 @@ export function MinimalSheetEditor({
       ? null
       : (draft.play.resources.find((row) => row.id === arcanumSpendId) ?? null)
 
+  const psionicResource =
+    psionicSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === psionicSpendId) ?? null)
+
+  const soulTrinketsResource =
+    soulTrinketsSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === soulTrinketsSpendId) ??
+        null)
+
   function isSorceryPointsResource(row: { id: string; name: string }): boolean {
     return (
       row.id.includes('sorcery_points') ||
@@ -3465,6 +3486,22 @@ export function MinimalSheetEditor({
     )
   }
 
+  function isPsionicDiceResource(row: { id: string; name: string }): boolean {
+    return (
+      /:psionic_energy_dice:/.test(row.id) ||
+      /пси-кост/i.test(row.name) ||
+      /psionic energy/i.test(row.name)
+    )
+  }
+
+  function isSoulTrinketsResource(row: { id: string; name: string }): boolean {
+    return (
+      /:soul_trinkets:/.test(row.id) ||
+      /частиц/i.test(row.name) ||
+      /soul trinket/i.test(row.name)
+    )
+  }
+
   function openResourceSpendDialog(id: string): boolean {
     const row = draft.play.resources.find((item) => item.id === id)
     if (!row) return false
@@ -3502,6 +3539,14 @@ export function MinimalSheetEditor({
     }
     if (isMysticArcanumResource(row)) {
       setArcanumSpendId(id)
+      return true
+    }
+    if (isPsionicDiceResource(row)) {
+      setPsionicSpendId(id)
+      return true
+    }
+    if (isSoulTrinketsResource(row)) {
+      setSoulTrinketsSpendId(id)
       return true
     }
     return false
@@ -4673,6 +4718,18 @@ export function MinimalSheetEditor({
         onOpenInvocations={(classEntryId) =>
           setInvocationsOpen({ classEntryId })
         }
+        onOpenRangerFavored={(classEntryId) =>
+          setRangerFavoredOpen({ classEntryId })
+        }
+        onOpenSoulTrinkets={(classEntryId) => {
+          const row = draft.play.resources.find(
+            (r) =>
+              r.id.includes(':soul_trinkets:') &&
+              r.id.endsWith(`:${classEntryId}`),
+          )
+          if (row) setSoulTrinketsSpendId(row.id)
+          else onToast('Пул частиц души ещё не синхронизирован')
+        }}
       />
 
       </div>
@@ -5310,6 +5367,63 @@ export function MinimalSheetEditor({
         featurePicks={draft.featurePicks}
         onToast={onToast}
         onClose={() => setInvocationsOpen(null)}
+      />
+
+      <PsionicDiceSpendDialog
+        open={psionicSpendId != null}
+        resource={psionicResource}
+        features={unlockedFeatures}
+        onSpend={(label, cost) => {
+          if (!psionicSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) => {
+                if (row.id !== psionicSpendId) return row
+                const nextUsed = Math.min(row.max, row.used + cost)
+                if (nextUsed === row.used) return row
+                return { ...row, used: nextUsed }
+              }),
+            },
+          }))
+          onToast(`${label}: −${cost} пси`)
+          setPsionicSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setPsionicSpendId(null)}
+      />
+
+      <SoulTrinketsSpendDialog
+        open={soulTrinketsSpendId != null}
+        resource={soulTrinketsResource}
+        features={unlockedFeatures}
+        onBurn={(label) => {
+          if (!soulTrinketsSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) =>
+                row.id === soulTrinketsSpendId && row.used > 0
+                  ? { ...row, used: row.used - 1 }
+                  : row,
+              ),
+            },
+          }))
+          onToast(`${label}: −1 частица`)
+          setSoulTrinketsSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setSoulTrinketsSpendId(null)}
+      />
+
+      <RangerFavoredDeskDialog
+        open={rangerFavoredOpen != null}
+        classEntryId={rangerFavoredOpen?.classEntryId ?? ''}
+        featurePicks={draft.featurePicks}
+        onToast={onToast}
+        onClose={() => setRangerFavoredOpen(null)}
       />
 
       <LevelUpDialog
