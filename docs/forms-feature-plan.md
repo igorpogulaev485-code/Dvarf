@@ -388,11 +388,12 @@ SKT, ToA, WDMM, GGR, ERLW, EGW, … — оставшийся Basic allowlist.
 
 ## 12. Следующий конкретный шаг
 
-**Начать B0** на ветке `cursor/bestiary-schema-fetch-ab5e` от prod tip:
+**B0 сделан** в `cursor/bestiary-schema-fetch-ab5e` (schema + fetch/diff + smoke + fixture).  
+На прод **не** заливать до команды «Залей».
 
-1. `bestiary_catalog` schema v1  
-2. `fetch_bestiary_wave.py` (ttg Basic → JSON)  
-3. `diff_bestiary_sources.py` (index gap)  
-4. fixture smoke + строка в audit  
+**Дальше — B1** (отдельная ветка от tip после merge B0, или продолжение этой линии):
 
-После merge B0 → сразу B1 (MM seed).
+1. `fetch_bestiary_wave.py --book MM --out bestiary_mm_v1.json`  
+2. alembic upsert `kind=bestiary`  
+3. smoke count ≈ ttg MM (~451)  
+4. audit B1 ✅

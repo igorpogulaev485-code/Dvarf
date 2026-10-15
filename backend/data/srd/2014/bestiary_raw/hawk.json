@@ -1,0 +1,93 @@
+{
+  "name": {
+    "rus": "Ястреб",
+    "eng": "Hawk"
+  },
+  "size": {
+    "rus": "Крошечный",
+    "eng": "tiny",
+    "cell": "1/4 клетки"
+  },
+  "type": {
+    "name": "зверь"
+  },
+  "challengeRating": "0",
+  "url": "/bestiary/hawk",
+  "source": {
+    "shortName": "MM",
+    "name": "Бестиарий",
+    "group": {
+      "name": "Официальные источники",
+      "shortName": "Basic"
+    }
+  },
+  "id": 351,
+  "experience": 10,
+  "proficiencyBonus": "2",
+  "alignment": "без мировоззрения",
+  "armorClass": 13,
+  "hits": {
+    "average": 1,
+    "formula": "1к4",
+    "sign": " − ",
+    "bonus": -1
+  },
+  "speed": [
+    {
+      "value": 10
+    },
+    {
+      "name": "летая",
+      "value": 60
+    }
+  ],
+  "ability": {
+    "str": 5,
+    "dex": 16,
+    "con": 8,
+    "int": 2,
+    "wiz": 14,
+    "cha": 6
+  },
+  "skills": [
+    {
+      "name": "Внимательность",
+      "value": 4
+    }
+  ],
+  "senses": {
+    "passivePerception": "14"
+  },
+  "feats": [
+    {
+      "name": "Острое зрение",
+      "englishName": "Keen Sight",
+      "value": "<p>Ястреб совершает с <span class=\"advantage\">преимуществом</span> проверки <detail-tooltip type=\"screen\"><a href=\"/screens/perception\"><em>Мудрости (Внимательность)</em></a></detail-tooltip>, полагающиеся на зрение.</p>",
+      "markdown": false
+    }
+  ],
+  "actions": [
+    {
+      "name": "Когти",
+      "englishName": "Claws",
+      "value": "<p><em>Рукопашная атака оружием:</em> <dice-roller label=\"Атака\" formula=\"к20 + 5\">+5</dice-roller> к попаданию, досягаемость 5 фт., одна цель. <em>Попадание:</em>&nbsp;<span class=\"dice_text\">1</span>&nbsp;рубящего урона.</p>",
+      "markdown": true,
+      "sharedUsageCount": 1
+    }
+  ],
+  "tags": [
+    {
+      "name": "Звери",
+      "description": "<p>Это негуманоидные существа, являющиеся фауной мира фэнтези. Некоторые из них имеют магические силы, но большая часть неразумна, не владеет языками и не имеет никакого общественного строя. Звери включают в себя всё многообразие животных, динозавров и гигантских версий животных.</p>"
+    }
+  ],
+  "environment": [
+    "лес",
+    "равнина/луг",
+    "горы"
+  ],
+  "images": [
+    "https://img.ttg.club/tokens/round/hawk.webp",
+    "https://img.ttg.club/creatures/Hawk.webp"
+  ]
+}

@@ -505,9 +505,20 @@
 | Контракт обликов | `docs/forms-and-wild-shape.md`: роль `self_form` vs `ally` в блоке Напарники | Друид → пикер форм → карточка «это ты» с HP/атаками формы |
 | Бестиарий B0–B6 | Весь оф. 2014 (как SPELLS/расы); проверка ttg + dnd.su; schema v1; аудит `docs/BESTIARY_AUDIT_2014.md` | Справочник существ для обликов/напарников; **стартуем с него** |
 | Конфликт статов | При расхождении dnd.su↔ttg в каталог пишем **ttg** (пример: Wildfire Spirit HP 10+5×ур vs 5+5×ур) | Одинаковые цифры у друида Круга дикого огня и в пикере |
-| План исполнения | `docs/forms-feature-plan.md`: приёмка по слайсам, tip-порядок, DoD; следующий шаг **B0** | Понятная очередь: B0→B1→F1→F2/F3… |
+| План исполнения | `docs/forms-feature-plan.md`: приёмка по слайсам, tip-порядок, DoD | Очередь: B0→B1→F1→F2/F3… |
 
-На проде: **нет** · ветка `cursor/forms-wild-shape-design-ab5e` · только дизайн/план, код не трогали · tip не менять
+На проде: **нет** · дизайн влит в `cursor/bestiary-schema-fetch-ab5e` · tip не менять
+
+### 2026-10-15 — Bestiary B0: schema + fetch/diff (ещё не сид в БД)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Schema v1 | `bestiary_catalog` BE + FE types | Единый контракт JSONB для `kind=bestiary` |
+| Fetch ttg | `fetch_bestiary_wave.py` (Basic only) → JSON волны | Можно качать MM/TCE/… как SPELLS |
+| Diff | `diff_bestiary_sources.py` ttg↔dnd.su | Виден gap покрытия |
+| Smoke | fixture 5 карточек; Wildfire HP=10 (ttg) | Конфликт→ttg проверяется автоматом |
+
+На проде: **нет** · ветка `cursor/bestiary-schema-fetch-ab5e` · **не деплоить** до «Залей» · tip не менять
 
 ### 2026-10-07 — FEATS BMT wave (Книга многих вещей)
 
@@ -801,3 +812,4 @@
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
 | 2026-10-08 | `cursor/companions-naparniki-b378` · PR #81 | Напарники A–D3 + аватарки залиты; tip → эта ветка; alembic `b4c5` |
 | 2026-10-15 | `cursor/forms-wild-shape-design-ab5e` | Дизайн LOCK обликов + бестиарий B0–B6 + детальный план (`forms-feature-plan.md`) → «В ветках» |
+| 2026-10-15 | `cursor/bestiary-schema-fetch-ab5e` | Bestiary B0: schema/fetch/diff/smoke + design docs; без деплоя |

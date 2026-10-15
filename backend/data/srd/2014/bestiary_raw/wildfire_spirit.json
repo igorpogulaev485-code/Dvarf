@@ -1,0 +1,100 @@
+{
+  "name": {
+    "rus": "Дух дикого огня",
+    "eng": "Wildfire Spirit"
+  },
+  "size": {
+    "rus": "Маленький",
+    "eng": "small",
+    "cell": "1 клетка"
+  },
+  "type": {
+    "name": "элементаль"
+  },
+  "challengeRating": "—",
+  "url": "/bestiary/wildfire_spirit",
+  "source": {
+    "shortName": "TCE",
+    "name": "Котел Таши со всякой всячиной",
+    "group": {
+      "name": "Официальные источники",
+      "shortName": "Basic"
+    }
+  },
+  "id": 929,
+  "proficiencyBonus": "равен вашему бонусу",
+  "alignment": "без мировоззрения",
+  "armorClass": 13,
+  "armors": [
+    {
+      "name": "природный доспех",
+      "type": "armor",
+      "url": null
+    }
+  ],
+  "hits": {
+    "average": 10,
+    "text": "+ пятикратный уровень друида"
+  },
+  "speed": [
+    {
+      "value": 30
+    },
+    {
+      "name": "летая",
+      "value": 30,
+      "additional": "парит"
+    }
+  ],
+  "ability": {
+    "str": 10,
+    "dex": 14,
+    "con": 14,
+    "int": 13,
+    "wiz": 15,
+    "cha": 11
+  },
+  "damageImmunities": [
+    "огонь"
+  ],
+  "conditionImmunities": [
+    "очарование",
+    "испуг",
+    "захват",
+    "сбивание с ног",
+    "опутанность"
+  ],
+  "senses": {
+    "passivePerception": "12",
+    "senses": [
+      {
+        "name": "тёмное зрение",
+        "value": 60
+      }
+    ]
+  },
+  "languages": [
+    "понимает языки своего создателя"
+  ],
+  "actions": [
+    {
+      "name": "Семя пламени",
+      "value": "<p><em>Дальнобойная атака оружием:</em> +  модификатор атаки заклинанием друида, дистанция 60 фт., одна видимая цель. <em>Попадание:</em>&nbsp;<dice-roller label=\"Урон\" formula=\"1к6\"/>&nbsp;+&nbsp;бонус мастерства урона огнём.</p>",
+      "markdown": true,
+      "sharedUsageCount": 1
+    },
+    {
+      "name": "Огненная телепортация",
+      "value": "<p>Дух и каждое желающее существо по вашему выбору в пределах 5 футов от него телепортируются на расстояние до 15 футов в незанятые места, которые вы можете видеть. Затем каждое существо в пределах 5 футов от пространства, которое оставил дух, должно преуспеть в спасброске <span class=\"saving_throw\">Ловкости</span> против Сл. вашего спасброска от заклинаний, иначе получит&nbsp;<dice-roller label=\"Урон\" formula=\"1к6\"/>&nbsp;+&nbsp;бонус мастерства  урона огнём.</p>",
+      "markdown": true,
+      "sharedUsageCount": 1
+    }
+  ],
+  "description": "<p>Дух призывается друидом <a href=\"/classes/Druid/Wildfire#a698\">круга дикого огня</a></p>",
+  "images": [
+    "https://img.ttg.club/tokens/round/wildfire_spirit.webp",
+    "https://img.ttg.club/creatures/Wildfire_Spirit.webp",
+    "https://64.media.tumblr.com/6f58308a1d14789d6d27a6d0aa97a5c1/cbfeca0e8ebcd0b3-6d/s540x810/12141fd63feedcdc6ce54b0b8046dc497a0461b8.jpg",
+    "https://pm1.narvii.com/7650/c57ddcbcacdeee4b5d86379ac4809b6be9e90923r1-1358-2048v2_hq.jpg"
+  ]
+}

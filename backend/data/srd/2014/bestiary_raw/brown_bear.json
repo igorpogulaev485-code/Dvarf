@@ -1,0 +1,114 @@
+{
+  "name": {
+    "rus": "Бурый медведь",
+    "eng": "Brown Bear"
+  },
+  "size": {
+    "rus": "Большой",
+    "eng": "large",
+    "cell": "2x2 клетки"
+  },
+  "type": {
+    "name": "зверь"
+  },
+  "challengeRating": "1",
+  "url": "/bestiary/brown_bear",
+  "source": {
+    "shortName": "MM",
+    "name": "Бестиарий",
+    "group": {
+      "name": "Официальные источники",
+      "shortName": "Basic"
+    }
+  },
+  "id": 265,
+  "experience": 200,
+  "proficiencyBonus": "2",
+  "alignment": "без мировоззрения",
+  "armorClass": 11,
+  "armors": [
+    {
+      "name": "природный доспех",
+      "type": "armor",
+      "url": null
+    }
+  ],
+  "hits": {
+    "average": 34,
+    "formula": "4к10",
+    "sign": " + ",
+    "bonus": 12
+  },
+  "speed": [
+    {
+      "value": 40
+    },
+    {
+      "name": "лазая",
+      "value": 30
+    }
+  ],
+  "ability": {
+    "str": 19,
+    "dex": 10,
+    "con": 16,
+    "int": 2,
+    "wiz": 13,
+    "cha": 7
+  },
+  "skills": [
+    {
+      "name": "Внимательность",
+      "value": 3
+    }
+  ],
+  "senses": {
+    "passivePerception": "13"
+  },
+  "feats": [
+    {
+      "name": "Тонкий нюх",
+      "englishName": "Keen Smell",
+      "value": "<p>Медведь совершает с <span class=\"advantage\">преимуществом</span> проверки <detail-tooltip type=\"screen\"><a href=\"/screens/perception\"><em>Мудрости (Внимательность)</em></a></detail-tooltip>, полагающиеся на обоняние.</p>",
+      "markdown": false
+    }
+  ],
+  "actions": [
+    {
+      "name": "Мультиатака",
+      "englishName": "Multiattack",
+      "value": "<p>Медведь совершает две атаки: одну <strong>Укусом</strong> и одну <strong>Когтями</strong>.</p>",
+      "markdown": false,
+      "sharedUsageCount": 1
+    },
+    {
+      "name": "Укус",
+      "englishName": "Bite",
+      "value": "<p><em>Рукопашная атака оружием:</em> <dice-roller label=\"Атака\" formula=\"к20 + 6\">+6</dice-roller> к попаданию, досягаемость 5 фт., одна цель. <em>Попадание:</em>&nbsp;8&nbsp;(<dice-roller label=\"Урон\" formula=\"1к8 + 4\"/>) колющего урона.</p>",
+      "markdown": true,
+      "sharedUsageCount": 1
+    },
+    {
+      "name": "Когти",
+      "englishName": "Claws",
+      "value": "<p><em>Рукопашная атака оружием:</em> <dice-roller label=\"Атака\" formula=\"к20 + 6\">+6</dice-roller> к попаданию, досягаемость 5 фт., одна цель. <em>Попадание:</em>&nbsp;11&nbsp;(<dice-roller label=\"Урон\" formula=\"2к6 + 4\"/>) рубящего урона.</p>",
+      "markdown": true,
+      "sharedUsageCount": 1
+    }
+  ],
+  "tags": [
+    {
+      "name": "Звери",
+      "description": "<p>Это негуманоидные существа, являющиеся фауной мира фэнтези. Некоторые из них имеют магические силы, но большая часть неразумна, не владеет языками и не имеет никакого общественного строя. Звери включают в себя всё многообразие животных, динозавров и гигантских версий животных.</p>"
+    }
+  ],
+  "environment": [
+    "полярная тундра",
+    "лес",
+    "холмы"
+  ],
+  "images": [
+    "https://img.ttg.club/tokens/round/brown_bear.webp",
+    "https://img.ttg.club/creatures/Brown_bear.webp"
+  ]
+}

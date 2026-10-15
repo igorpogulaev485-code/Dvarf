@@ -55,13 +55,49 @@
 
 | Волна | Содержание | В каталоге | Prod verify | Заметки |
 |-------|------------|------------|-------------|---------|
-| B0 | Schema v1 + fetch-скрипт + этот аудит | — | — | дизайн/инфра |
+| B0 | Schema v1 + fetch/diff + smoke + fixture | — (ещё нет upsert) | нет | ✅ код в `cursor/bestiary-schema-fetch-ab5e` |
 | B1 | MM | ☐ | ☐ | база для Wild Shape |
 | B2 | VGtM + MToF | ☐ | ☐ | |
 | B3 | MPMM | ☐ | ☐ | |
 | B4 | FTD / BGG / BAM / TCE creatures… | ☐ | ☐ | |
 | B5 | Adventures + settings | ☐ | ☐ | |
 | B6 | Gap-pass vs dnd.su + ttg | ☐ | ☐ | оф. gap → 0 |
+
+### B0 — что лежит в репо
+
+| Артефакт | Путь |
+|----------|------|
+| Schema (BE) | `backend/app/schemas/bestiary_catalog.py` |
+| Types (FE) | `frontend/src/shared/dnd/bestiaryCatalog.ts` |
+| Normalize | `backend/scripts/bestiary_normalize.py` |
+| Fetch | `backend/scripts/fetch_bestiary_wave.py` |
+| Diff | `backend/scripts/diff_bestiary_sources.py` |
+| Smoke | `backend/scripts/smoke_bestiary_schema.py` |
+| Fixture | `backend/data/srd/2014/bestiary_fixture_v1.json` (5 карточек, Wildfire HP=10) |
+
+```bash
+# fixture + smoke
+python3 backend/scripts/fetch_bestiary_wave.py --slugs wolf,brown_bear,hawk,wildfire_spirit,air_elemental --out bestiary_fixture_v1.json
+python3 backend/scripts/smoke_bestiary_schema.py
+
+# coverage gap (сеть)
+python3 backend/scripts/diff_bestiary_sources.py
+
+# волна MM (сеть; ещё не сидим в БД — это B1)
+python3 backend/scripts/fetch_bestiary_wave.py --book MM --out bestiary_mm_v1.json
+```
+
+### Coverage замер (B0 diff, 2026-10-15)
+
+| | Count |
+|--|------:|
+| ttg Basic | 2380 |
+| dnd.su index | 2875 |
+| both (slug) | 1980 |
+| only ttg | 400 |
+| only dnd.su | 862 |
+
+Slug-only matching неполный (суффиксы `_mpmm`, разные транслиты) — дожимаем на B6.
 
 ## Чеклист на волну
 
