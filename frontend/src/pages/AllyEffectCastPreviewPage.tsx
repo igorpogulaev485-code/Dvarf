@@ -1,12 +1,12 @@
 /**
- * Превью: выбор союзников вшит в каст / трату способности.
+ * Превью: стандартный каст + N select’ов целей (себя можно выбрать).
  * /dev/ally-effect-cast-preview
  */
 import { useMemo, useState } from 'react'
 import { CastSpellDialog } from '../features/characters/CastSpellDialog'
 import { UseAllyAbilityDialog } from '../features/characters/UseAllyAbilityDialog'
 import type { SheetSpell, SpellsState } from '../features/characters/spells'
-import type { AllyPickDemo } from '../features/lobby/AllyPickSection'
+import type { AllyPickDemo } from '../features/lobby/useLobbyParty'
 import { Button, Panel, Stack, Text, Toast } from '../ui'
 
 const DEMO_ALLIES: AllyPickDemo = {
@@ -32,6 +32,7 @@ const BLESS: SheetSpell = {
   damage: '',
   concentration: true,
   applies_to_allies: true,
+  ally_target_count: 3,
 }
 
 const EMPTY_SPELLS: SpellsState = {
@@ -64,8 +65,10 @@ export function AllyEffectCastPreviewPage() {
       <Stack gap={16}>
         <header className="app-header">
           <div>
-            <Text as="h1">Эффект на союзников</Text>
-            <Text tone="muted">Превью B2 · выбор целей вшит в каст / способность</Text>
+            <Text as="h1">Каст с целями</Text>
+            <Text tone="muted">
+              Превью B2 · ячейка + выпадающие списки целей (себя можно выбрать)
+            </Text>
           </div>
         </header>
 
@@ -74,8 +77,8 @@ export function AllyEffectCastPreviewPage() {
         <Panel title="Жесты">
           <Stack gap={12}>
             <Text tone="muted">
-              Отдельной кнопки «Раздать» нет: цели выбираются в диалоге каста заклинания с
-              меткой «Союзн.» или при трате ресурса «На союзников».
+              Стандартная форма каста: ячейка, затем N select’ов (для Благословения — 3). В
+              каждом — «На себя» или союзник.
             </Text>
             <div className="session-table-toolbar">
               <Button type="button" onClick={() => setMode('cast')}>
@@ -106,11 +109,7 @@ export function AllyEffectCastPreviewPage() {
               },
             },
           }))
-          setToast(
-            choice.allyTargetIds.length > 0
-              ? `Каст: Благословение · союзники ${choice.allyTargetIds.length}`
-              : 'Каст: Благословение (концентрация)',
-          )
+          setToast(`Каст: Благословение · целей ${choice.allyTargetIds.length}`)
           setMode(null)
         }}
         onClose={() => setMode(null)}
@@ -121,6 +120,7 @@ export function AllyEffectCastPreviewPage() {
         characterId="self"
         characterName="Селена"
         abilityName="Вдохновение барда"
+        targetCount={1}
         allyDemo={DEMO_ALLIES}
         onClose={() => setMode(null)}
         onSpent={() => undefined}

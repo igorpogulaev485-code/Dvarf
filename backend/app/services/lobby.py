@@ -1033,9 +1033,11 @@ class LobbyService:
             linked = False
 
         applied = 0
+        seen: set[UUID] = set()
         for target_id in payload.target_character_ids:
-            if target_id == payload.source_character_id:
+            if target_id in seen:
                 continue
+            seen.add(target_id)
             member = self.lobbies.get_member(lobby.id, target_id)
             if member is None:
                 continue

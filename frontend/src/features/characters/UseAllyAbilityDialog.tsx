@@ -1,48 +1,67 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { shareLobbyEffect } from '../../shared/api/lobbies'
 import { ApiRequestError } from '../../shared/api/client'
 import { Dialog, Stack, Text } from '../../ui'
-import { AllyPickSection, type AllyPickDemo } from '../lobby/AllyPickSection'
+import { AllyTargetFields } from '../lobby/AllyTargetFields'
+import { useLobbyParty, type AllyPickDemo } from '../lobby/useLobbyParty'
 
 type Props = {
   open: boolean
   characterId: string
   characterName: string
   abilityName: string
-  /** Связать с текущей Conc кастера, если есть */
+  /** Сколько целей (обычно 1 для вдохновения барда) */
+  targetCount?: number
   linkConcentration?: boolean
-  /** Превью без API */
   allyDemo?: AllyPickDemo | null
   onClose: () => void
-  /** После успешной раздачи (или без целей) — подтвердить трату ресурса */
   onSpent: () => void
   onToast: (message: string) => void
 }
 
 /**
- * Трата способности «на союзников» (вдохновение барда, инфузия…):
- * выбор целей вшит в сам жест, не отдельная кнопка «Раздать».
+ * Трата способности на союзника/себя: та же форма, что у каста —
+ * Field + select (себя можно выбрать или нет).
  */
 export function UseAllyAbilityDialog({
   open,
   characterId,
   characterName,
   abilityName,
+  targetCount = 1,
   linkConcentration = false,
   allyDemo = null,
   onClose,
   onSpent,
   onToast,
 }: Props) {
-  const [selected, setSelected] = useState<Set<string>>(() => new Set())
-  const [lobbyId, setLobbyId] = useState<string | null>(null)
+  const count = Math.max(1, Math.min(6, targetCount))
+  const [targetSlots, setTargetSlots] = useState<string[]>(() =>
+    Array.from({ length: count }, () => ''),
+  )
   const [busy, setBusy] = useState(false)
+  const party = useLobbyParty(open ? characterId : undefined, allyDemo)
 
   useEffect(() => {
     if (!open) return
-    setSelected(new Set())
-    setLobbyId(null)
-  }, [open, abilityName])
+    setTargetSlots(Array.from({ length: count }, () => ''))
+  }, [open, abilityName, count])
+
+  const selectedIds = useMemo(
+    () => targetSlots.filter((id) => id.trim().length > 0),
+    [targetSlots],
+  )
+
+  const duplicateTarget = useMemo(() => {
+    const seen = new Set<string>()
+    for (const id of selectedIds) {
+      if (seen.has(id)) return true
+      seen.add(id)
+    }
+    return false
+  }, [selectedIds])
+
+  const targetsOk = selectedIds.length === count && !duplicateTarget
 
   if (!open) return null
 
@@ -53,30 +72,26 @@ export function UseAllyAbilityDialog({
       primaryLabel={busy ? 'Применяем…' : 'Применить'}
       secondaryLabel="Отмена"
       busy={busy}
+      primaryDisabled={!targetsOk}
       size="wide"
       onSecondary={onClose}
       onPrimary={() => {
+        if (!targetsOk) return
         if (allyDemo) {
           onSpent()
           onClose()
-          onToast(
-            selected.size > 0
-              ? `${abilityName} · ${characterName} → ${selected.size}`
-              : `${abilityName || 'Способность'} · без цели`,
-          )
+          onToast(`${abilityName} · ${characterName} → ${selectedIds.length}`)
           return
         }
-        if (selected.size === 0 || !lobbyId) {
-          onSpent()
-          onClose()
-          onToast(`${abilityName || 'Способность'} · без цели`)
+        if (!party.lobbyId) {
+          onToast('Нет лобби для целей')
           return
         }
         setBusy(true)
-        shareLobbyEffect(lobbyId, {
+        shareLobbyEffect(party.lobbyId, {
           source_character_id: characterId,
           name: abilityName.trim() || 'Эффект',
-          target_character_ids: [...selected],
+          target_character_ids: selectedIds,
           linked_concentration: linkConcentration,
         })
           .then((result) => {
@@ -84,13 +99,13 @@ export function UseAllyAbilityDialog({
             onClose()
             onToast(
               result.applied > 0
-                ? `${abilityName} · ${characterName} → ${result.applied}`
+                ? `${abilityName} · ${result.applied}`
                 : `${abilityName} применена`,
             )
           })
           .catch((err: unknown) => {
             onToast(
-              err instanceof ApiRequestError ? err.message : 'Не удалось пометить союзников',
+              err instanceof ApiRequestError ? err.message : 'Не удалось пометить цели',
             )
           })
           .finally(() => setBusy(false))
@@ -98,18 +113,30 @@ export function UseAllyAbilityDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          Выберите, на ком висит «{abilityName || 'эффект'}». Пометка уйдёт в их листы и на
-          стол.
+          Выберите {count === 1 ? 'кого' : `${count} целей`}. Себя можно включить в любой
+          слот — или не включать.
         </Text>
-        <AllyPickSection
-          characterId={characterId}
+        <AllyTargetFields
+          count={count}
+          values={targetSlots}
+          onChange={(index, nextId) => {
+            setTargetSlots((prev) => {
+              const next = [...prev]
+              next[index] = nextId
+              return next
+            })
+          }}
+          options={party.options}
+          loading={party.loading}
           busy={busy}
-          selected={selected}
-          onSelectedChange={setSelected}
-          lobbyId={lobbyId}
-          onLobbyIdChange={setLobbyId}
-          demo={allyDemo}
+          lobbyName={party.lobbyName}
+          lobbies={party.lobbies}
+          lobbyId={party.lobbyId}
+          onLobbyIdChange={party.setLobbyId}
         />
+        {duplicateTarget ? (
+          <Text tone="danger">Одна и та же цель в двух слотах — выберите разных.</Text>
+        ) : null}
       </Stack>
     </Dialog>
   )

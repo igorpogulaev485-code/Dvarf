@@ -25,7 +25,7 @@ import {
 } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
-import { guessAppliesToAllies } from '../../shared/dnd/allyTargets'
+import { guessAppliesToAllies, guessAllyTargetCount } from '../../shared/dnd/allyTargets'
 import {
   RESET_LABELS,
   createResource,
@@ -427,6 +427,7 @@ export function PlayPanel({
           characterId={characterId}
           characterName={characterName}
           abilityName={pendingResource?.name ?? ''}
+          targetCount={guessAllyTargetCount(pendingResource?.name ?? '')}
           linkConcentration={Boolean(play.concentration)}
           onClose={() => {
             setPendingResourceId(null)

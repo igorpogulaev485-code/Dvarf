@@ -21,6 +21,7 @@ import {
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
+import { guessAllyTargetCount } from '../../shared/dnd/allyTargets'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { shareLobbyEffect } from '../../shared/api/lobbies'
 import { ApiRequestError } from '../../shared/api/client'
@@ -59,7 +60,7 @@ export function SpellsPanel({
   className,
   level,
   characterId,
-  characterName,
+  characterName: _characterName,
   classes,
   spells,
   abilities,
@@ -660,15 +661,35 @@ export function SpellsPanel({
                         <button
                           type="button"
                           className={`sheet-chip${spell.applies_to_allies ? ' is-on' : ''}`}
-                          title="Можно на союзников — при касте выбрать кого"
-                          onClick={() =>
+                          title="При касте — N выпадающих списков целей (себя/союзник)"
+                          onClick={() => {
+                            const next = !spell.applies_to_allies
                             updateSpell(spell.id, {
-                              applies_to_allies: !spell.applies_to_allies,
+                              applies_to_allies: next,
+                              ally_target_count: next
+                                ? guessAllyTargetCount(spell.name)
+                                : spell.ally_target_count,
                             })
-                          }
+                          }}
                         >
                           Союзн.
                         </button>
+                        {spell.applies_to_allies ? (
+                          <label className="spell-card__target-count" title="Сколько целей выбрать">
+                            <span>Целей</span>
+                            <NumberInput
+                              min={1}
+                              max={6}
+                              emptyValue={1}
+                              value={spell.ally_target_count}
+                              onValueChange={(n) =>
+                                updateSpell(spell.id, {
+                                  ally_target_count: Math.max(1, Math.min(6, n ?? 1)),
+                                })
+                              }
+                            />
+                          </label>
+                        ) : null}
                         <Button
                           variant="ghost"
                           onClick={() =>

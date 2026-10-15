@@ -2605,9 +2605,26 @@ button.session-concentration-tag {
   font-size: 0.88rem;
 }
 
-.ally-pick {
+.ally-targets {
   display: grid;
   gap: 10px;
+}
+
+.spell-card__target-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--ui-muted, #5c6b66);
+}
+
+.spell-card__target-count .ui-input {
+  width: 3.2rem;
+}
+
+.ally-targets__lobby {
+  margin: 0;
+  font-size: 0.88rem;
 }
 
 .apply-condition__heading {
