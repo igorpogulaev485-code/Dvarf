@@ -71,6 +71,7 @@ type SpellsPanelProps = {
   edition: RulesEdition
   className: string
   level: number
+  characterId?: string
   classes?: ClassLevelEntry[]
   /** EK / Arcane Trickster etc. — unlocks ⅓ caster slot math. */
   subclassCasters?: SubclassCasterOverlay[]
@@ -93,6 +94,7 @@ export function SpellsPanel({
   edition,
   className,
   level,
+  characterId,
   classes,
   subclassCasters,
   spells,
@@ -1079,6 +1081,7 @@ export function SpellsPanel({
         spells={spells}
         inventoryItems={inventoryItems}
         characterLevel={level}
+        characterId={characterId}
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />

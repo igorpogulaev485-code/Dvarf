@@ -4589,6 +4589,7 @@ export function MinimalSheetEditor({
           edition={baseCharacter.rules_edition as RulesEdition}
           className={classSummary || primaryClass?.name || ''}
           level={characterLevel}
+          characterId={character.id}
           classes={draft.classes}
           subclassCasters={subclassCastersForSpells}
           spells={draft.spells}
@@ -4790,6 +4791,7 @@ export function MinimalSheetEditor({
         spells={draft.spells}
         inventoryItems={draft.inventory.items}
         characterLevel={characterLevel}
+        characterId={character.id}
         onConfirm={confirmDeskCast}
         onClose={() => setDeskCastSpell(null)}
       />

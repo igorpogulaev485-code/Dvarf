@@ -3,6 +3,7 @@ import {
   type SpellComponents,
   type SpellScaleTable,
 } from '../../shared/dnd/spellCatalog'
+import { guessAppliesToAllies, guessAllyTargetCount } from '../../shared/dnd/allyTargets'
 import {
   clampPactSlots,
   clampSlot,
@@ -70,6 +71,10 @@ export type SheetSpell = {
    * Cast picker can spend this instead of a slot/pact; rest recovers `used`.
    */
   grant_cast?: SpellGrantCast
+  /** При касте — выбрать себя и/или союзников (N select’ов). */
+  applies_to_allies?: boolean
+  /** Сколько целей (Благословение = 3). */
+  ally_target_count?: number
 }
 
 /** Free cast charge from a grant source (race innate, Fey Touched, …). */
@@ -209,6 +214,19 @@ function readSpell(raw: unknown, index: number): SheetSpell {
           : '',
     damage: typeof row.damage === 'string' ? row.damage : '',
     concentration: Boolean(row.concentration),
+    ...(() => {
+      const name = typeof row.name === 'string' ? row.name : ''
+      const appliesExplicit = row.applies_to_allies
+      const applies =
+        typeof appliesExplicit === 'boolean' ? appliesExplicit : guessAppliesToAllies(name)
+      if (!applies) return {}
+      const countRaw = row.ally_target_count
+      const count =
+        typeof countRaw === 'number' && countRaw >= 1
+          ? Math.min(6, Math.floor(countRaw))
+          : guessAllyTargetCount(name)
+      return { applies_to_allies: true as const, ally_target_count: count }
+    })(),
     ...(typeof row.duration === 'string' && row.duration
       ? { duration: row.duration }
       : {}),
@@ -700,6 +718,12 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         attack_or_save: spell.attack_or_save,
         damage: spell.damage,
         concentration: spell.concentration,
+        ...(spell.applies_to_allies
+          ? {
+              applies_to_allies: true,
+              ally_target_count: Math.max(1, Math.min(6, spell.ally_target_count ?? 1)),
+            }
+          : {}),
         ...(spell.duration ? { duration: spell.duration } : {}),
         ...(spell.ritual ? { ritual: true } : {}),
         ...(spell.school ? { school: spell.school } : {}),
