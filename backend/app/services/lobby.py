@@ -34,6 +34,8 @@ from app.schemas.lobby import (
     CombatantPatchRequest,
     JoinLobbyRequest,
     SessionCombatOut,
+    InventoryTransferRequest,
+    InventoryTransferResult,
     LootAwardRequest,
     LootAwardResult,
     XpAwardRequest,
@@ -2099,4 +2101,193 @@ class LobbyService:
             session=detail,
             summary=summary,
             recipient_names=recipient_names,
+        )
+
+    async def transfer_inventory(
+        self,
+        user: User,
+        lobby_id: UUID,
+        payload: InventoryTransferRequest,
+    ) -> InventoryTransferResult:
+        lobby = self._require_lobby(lobby_id)
+        self._require_view(lobby, user)
+
+        if payload.from_character_id == payload.to_character_id:
+            raise AppError(
+                "Нельзя передать самому себе",
+                code="transfer_self",
+                status_code=400,
+            )
+
+        from_member = self.lobbies.get_member(lobby.id, payload.from_character_id)
+        to_member = self.lobbies.get_member(lobby.id, payload.to_character_id)
+        if from_member is None or to_member is None:
+            raise AppError(
+                "Оба персонажа должны быть в этом лобби",
+                code="transfer_not_in_lobby",
+                status_code=400,
+            )
+        if from_member.user_id != user.id and lobby.owner_id != user.id:
+            raise AppError(
+                "Передавать можно только со своего листа",
+                code="forbidden",
+                status_code=403,
+            )
+
+        char_map = self.lobbies.get_characters_map(
+            [payload.from_character_id, payload.to_character_id]
+        )
+        sender = char_map.get(payload.from_character_id)
+        receiver = char_map.get(payload.to_character_id)
+        if sender is None or receiver is None:
+            raise NotFoundError("Персонаж не найден", code="character_not_found")
+
+        from sqlalchemy.orm.attributes import flag_modified
+
+        sender_sheet = dict(sender.sheet or {})
+        receiver_sheet = dict(receiver.sheet or {})
+        s_inv = dict(sender_sheet.get("inventory") or {})
+        r_inv = dict(receiver_sheet.get("inventory") or {})
+        s_coins = dict(s_inv.get("coins") or {})
+        r_coins = dict(r_inv.get("coins") or {})
+        s_items = list(s_inv.get("items") or []) if isinstance(s_inv.get("items"), list) else []
+        r_items = list(r_inv.get("items") or []) if isinstance(r_inv.get("items"), list) else []
+
+        coin_labels = {"cp": "мм", "sp": "см", "ep": "эм", "gp": "зм", "pp": "пм"}
+        summary: str
+
+        if payload.item_id:
+            idx = next(
+                (i for i, it in enumerate(s_items) if str(it.get("id") or "") == payload.item_id),
+                None,
+            )
+            if idx is None:
+                raise NotFoundError("Предмет не найден у отправителя", code="transfer_item_missing")
+            item = dict(s_items[idx])
+            have = max(0, int(item.get("qty") or 0))
+            move_qty = int(payload.qty or have)
+            if move_qty <= 0 or move_qty > have:
+                raise AppError(
+                    "Недостаточно предметов",
+                    code="transfer_qty",
+                    status_code=400,
+                )
+            name = str(item.get("name") or "Предмет").strip() or "Предмет"
+            if move_qty >= have:
+                s_items.pop(idx)
+            else:
+                item["qty"] = have - move_qty
+                s_items[idx] = item
+            # stack into receiver same name+catalog if present
+            catalog_id = item.get("catalog_id")
+            stacked = False
+            for j, rit in enumerate(r_items):
+                if (
+                    str(rit.get("name") or "") == name
+                    and (rit.get("catalog_id") or None) == (catalog_id or None)
+                    and not bool(rit.get("equipped"))
+                ):
+                    rit = dict(rit)
+                    rit["qty"] = max(0, int(rit.get("qty") or 0)) + move_qty
+                    r_items[j] = rit
+                    stacked = True
+                    break
+            if not stacked:
+                gifted = {
+                    "id": str(uuid4()),
+                    "name": name,
+                    "catalog_id": catalog_id,
+                    "qty": move_qty,
+                    "weight_lb": item.get("weight_lb"),
+                    "equipped": False,
+                    "armor_kind": item.get("armor_kind") or "none",
+                    "base_ac": item.get("base_ac"),
+                    "notes": item.get("notes") or "",
+                }
+                r_items.append(gifted)
+            summary = (
+                f"{sender.name} → {receiver.name}: {name}"
+                + (f" ×{move_qty}" if move_qty > 1 else "")
+            )
+        elif payload.coin_currency and payload.coin_amount:
+            currency = payload.coin_currency
+            amount = int(payload.coin_amount)
+            try:
+                have = int(s_coins.get(currency) or 0)
+            except (TypeError, ValueError):
+                have = 0
+            if amount > have:
+                raise AppError(
+                    "Недостаточно монет",
+                    code="transfer_coins",
+                    status_code=400,
+                )
+            s_coins[currency] = have - amount
+            try:
+                recv = int(r_coins.get(currency) or 0)
+            except (TypeError, ValueError):
+                recv = 0
+            r_coins[currency] = recv + amount
+            label = coin_labels.get(currency, currency)
+            summary = f"{sender.name} → {receiver.name}: {amount} {label}"
+        else:
+            raise AppError(
+                "Укажите предмет или монеты",
+                code="transfer_empty",
+                status_code=400,
+            )
+
+        for key in ("cp", "sp", "ep", "gp", "pp"):
+            s_coins.setdefault(key, int(s_coins.get(key) or 0))
+            r_coins.setdefault(key, int(r_coins.get(key) or 0))
+
+        s_inv["coins"] = s_coins
+        s_inv["items"] = s_items
+        r_inv["coins"] = r_coins
+        r_inv["items"] = r_items
+        sender_sheet["inventory"] = s_inv
+        receiver_sheet["inventory"] = r_inv
+        sender.sheet = sender_sheet
+        receiver.sheet = receiver_sheet
+        sender.sheet_version = int(sender.sheet_version or 1) + 1
+        receiver.sheet_version = int(receiver.sheet_version or 1) + 1
+        flag_modified(sender, "sheet")
+        flag_modified(receiver, "sheet")
+
+        # Лента: если указана сессия и оба за столом — событие туда.
+        session_id = payload.session_id
+        if session_id is not None:
+            session = self.lobbies.get_session(session_id)
+            if (
+                session is not None
+                and session.lobby_id == lobby.id
+                and session.closed_at is None
+                and self.lobbies.get_seat(session.id, payload.from_character_id) is not None
+                and self.lobbies.get_seat(session.id, payload.to_character_id) is not None
+            ):
+                event = SessionEvent(
+                    session_id=session.id,
+                    event_type="transfer",
+                    character_id=payload.from_character_id,
+                    actor_user_id=user.id,
+                    character_name=sender.name,
+                    title="Передача",
+                    formula=None,
+                    breakdown=summary[:200],
+                    total=None,
+                    is_master_roll=False,
+                    payload={
+                        "from_character_id": str(payload.from_character_id),
+                        "to_character_id": str(payload.to_character_id),
+                        "to_character_name": receiver.name,
+                    },
+                )
+                self.lobbies.add_session_event(event)
+
+        self.db.commit()
+        return InventoryTransferResult(
+            summary=summary,
+            from_character_id=payload.from_character_id,
+            to_character_id=payload.to_character_id,
+            to_character_name=receiver.name,
         )

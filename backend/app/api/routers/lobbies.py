@@ -30,6 +30,8 @@ from app.schemas.lobby import (
     CombatantCreateRequest,
     CombatantPatchRequest,
     JoinLobbyRequest,
+    InventoryTransferRequest,
+    InventoryTransferResult,
     LootAwardRequest,
     LootAwardResult,
     XpAwardRequest,
@@ -453,6 +455,19 @@ async def award_session_loot(
     db: DbSession,
 ) -> LootAwardResult:
     return await LobbyService(db).award_loot(current_user, session_id, payload)
+
+
+@router.post(
+    "/lobbies/{lobby_id}/transfers",
+    response_model=InventoryTransferResult,
+)
+async def transfer_lobby_inventory(
+    lobby_id: UUID,
+    payload: InventoryTransferRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> InventoryTransferResult:
+    return await LobbyService(db).transfer_inventory(current_user, lobby_id, payload)
 
 
 @router.get("/sessions/{session_id}/events", response_model=list[SessionEventOut])

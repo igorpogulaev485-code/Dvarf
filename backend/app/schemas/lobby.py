@@ -350,6 +350,25 @@ class LootAwardResult(BaseModel):
     recipient_names: list[str]
 
 
+class InventoryTransferRequest(BaseModel):
+    """P2P: передать предмет или монеты другому персонажу в том же лобби."""
+
+    from_character_id: UUID
+    to_character_id: UUID
+    item_id: str | None = Field(default=None, max_length=80)
+    qty: int | None = Field(default=None, ge=1, le=9999)
+    coin_currency: str | None = Field(default=None, pattern="^(cp|sp|ep|gp|pp)$")
+    coin_amount: int | None = Field(default=None, ge=1, le=1_000_000)
+    session_id: UUID | None = None
+
+
+class InventoryTransferResult(BaseModel):
+    summary: str
+    from_character_id: UUID
+    to_character_id: UUID
+    to_character_name: str
+
+
 class CombatantCreateRequest(BaseModel):
     """Посадить 1..N как одну карточку-пачку из бестиария или свой НПС."""
 
