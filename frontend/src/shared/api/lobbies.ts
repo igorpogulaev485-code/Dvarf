@@ -592,6 +592,31 @@ export async function awardSessionLoot(
   })
 }
 
+export type InventoryTransferResult = {
+  summary: string
+  from_character_id: string
+  to_character_id: string
+  to_character_name: string
+}
+
+export async function transferLobbyInventory(
+  lobbyId: string,
+  payload: {
+    from_character_id: string
+    to_character_id: string
+    item_id?: string | null
+    qty?: number | null
+    coin_currency?: 'cp' | 'sp' | 'ep' | 'gp' | 'pp' | null
+    coin_amount?: number | null
+    session_id?: string | null
+  },
+): Promise<InventoryTransferResult> {
+  return apiRequest<InventoryTransferResult>(`/lobbies/${lobbyId}/transfers`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
 /** Сколько XP ещё не раздано за поверженных в пачке/карточке. */
 export function unclaimedDefeatXp(combatant: SessionCombatant): {
   dead: number

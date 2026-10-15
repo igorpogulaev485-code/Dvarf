@@ -8,6 +8,11 @@ import {
 } from '../../shared/api/characters'
 import { ApiRequestError } from '../../shared/api/client'
 import {
+  getLobby,
+  listLobbies,
+  transferLobbyInventory,
+} from '../../shared/api/lobbies'
+import {
   createSheetSyncChannel,
   publishSheetSync,
   type SheetSyncMessage,
@@ -54,6 +59,7 @@ import {
   readInventory,
   type InventoryState,
 } from './inventory'
+import type { TransferPeer } from './TransferDialog'
 import {
   playToSheet,
   readPlay,
@@ -244,6 +250,8 @@ export function MinimalSheetEditor({
   const [error, setError] = useState<string | null>(null)
   const [conflictOpen, setConflictOpen] = useState(false)
   const [levelUpOpen, setLevelUpOpen] = useState(false)
+  const [transferPeers, setTransferPeers] = useState<TransferPeer[]>([])
+  const [transferBusy, setTransferBusy] = useState(false)
   const channelRef = useRef<BroadcastChannel | null>(null)
 
   const characterLevel = useMemo(
@@ -263,6 +271,41 @@ export function MinimalSheetEditor({
     setConflictOpen(false)
     setError(null)
   }, [character])
+
+  useEffect(() => {
+    if (readOnly) {
+      setTransferPeers([])
+      return
+    }
+    let active = true
+    void (async () => {
+      try {
+        const lobbies = await listLobbies()
+        const peers: TransferPeer[] = []
+        await Promise.all(
+          lobbies.map(async (lobby) => {
+            const detail = await getLobby(lobby.id)
+            if (!detail.members.some((m) => m.character_id === character.id)) return
+            for (const m of detail.members) {
+              if (m.character_id === character.id) continue
+              peers.push({
+                lobby_id: detail.id,
+                lobby_name: detail.name,
+                character_id: m.character_id,
+                character_name: m.character_name,
+              })
+            }
+          }),
+        )
+        if (active) setTransferPeers(peers)
+      } catch {
+        if (active) setTransferPeers([])
+      }
+    })()
+    return () => {
+      active = false
+    }
+  }, [character.id, readOnly])
 
   const onRemoteSaveRef = useRef(onRemoteSave)
   useEffect(() => {
@@ -389,8 +432,8 @@ export function MinimalSheetEditor({
     }
   }
 
-  async function handleSave() {
-    if (readOnly) return
+  async function handleSave(opts?: { quiet?: boolean }): Promise<boolean> {
+    if (readOnly) return false
     setSaving(true)
     setError(null)
     try {
@@ -486,7 +529,8 @@ export function MinimalSheetEditor({
         characterId: updated.id,
         sheetVersion: updated.sheet_version,
       })
-      onToast('Лист сохранён')
+      if (!opts?.quiet) onToast('Лист сохранён')
+      return true
     } catch (err) {
       if (err instanceof ApiRequestError && err.code === 'sheet_version_conflict') {
         setConflictOpen(true)
@@ -494,6 +538,7 @@ export function MinimalSheetEditor({
       } else {
         setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить лист')
       }
+      return false
     } finally {
       setSaving(false)
     }
@@ -872,6 +917,44 @@ export function MinimalSheetEditor({
         inventory={draft.inventory}
         strengthScore={draft.abilities.str}
         onChange={(inventory) => setDraft((prev) => ({ ...prev, inventory }))}
+        transferPeers={readOnly ? [] : transferPeers}
+        transferBusy={transferBusy || saving}
+        onTransfer={
+          readOnly
+            ? undefined
+            : (payload) => {
+                void (async () => {
+                  setTransferBusy(true)
+                  setError(null)
+                  try {
+                    const saved = await handleSave({ quiet: true })
+                    if (!saved) return
+                    const result = await transferLobbyInventory(payload.lobby_id, {
+                      from_character_id: baseCharacter.id,
+                      to_character_id: payload.to_character_id,
+                      item_id: payload.item_id,
+                      qty: payload.qty,
+                      coin_currency: payload.coin_currency,
+                      coin_amount: payload.coin_amount,
+                    })
+                    const fresh = await getCharacter(baseCharacter.id)
+                    setBaseCharacter(fresh)
+                    setSheetVersion(fresh.sheet_version)
+                    setDraft(buildDraft(fresh))
+                    onSaved(fresh)
+                    onToast(result.summary)
+                  } catch (err) {
+                    setError(
+                      err instanceof ApiRequestError
+                        ? err.message
+                        : 'Не удалось передать',
+                    )
+                  } finally {
+                    setTransferBusy(false)
+                  }
+                })()
+              }
+        }
       />
 
       <AttunementPanel

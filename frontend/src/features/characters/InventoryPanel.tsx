@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
@@ -26,6 +27,7 @@ import {
   type InventoryItem,
   type InventoryState,
 } from './inventory'
+import { TransferDialog, type TransferPeer } from './TransferDialog'
 
 const COIN_FIELDS: Array<{ key: keyof CoinPurse; label: string }> = [
   { key: 'cp', label: 'ММ' },
@@ -40,6 +42,16 @@ type InventoryPanelProps = {
   inventory: InventoryState
   strengthScore: number
   onChange: (inventory: InventoryState) => void
+  transferPeers?: TransferPeer[]
+  transferBusy?: boolean
+  onTransfer?: (payload: {
+    lobby_id: string
+    to_character_id: string
+    item_id?: string
+    qty?: number
+    coin_currency?: keyof CoinPurse
+    coin_amount?: number
+  }) => void
 }
 
 export function InventoryPanel({
@@ -47,7 +59,17 @@ export function InventoryPanel({
   inventory,
   strengthScore,
   onChange,
+  transferPeers = [],
+  transferBusy = false,
+  onTransfer,
 }: InventoryPanelProps) {
+  const [transferOpen, setTransferOpen] = useState(false)
+  const [transferMode, setTransferMode] = useState<
+    | { kind: 'item'; itemId: string; itemName: string; maxQty: number }
+    | { kind: 'coins'; balances: CoinPurse }
+    | null
+  >(null)
+  const canTransfer = Boolean(onTransfer) && transferPeers.length > 0
   const weighable = asWeighableItems(inventory.items)
   const itemsLb = itemsWeightLb(weighable)
   const coinsLb = coinWeightLb(inventory.coins)
@@ -144,7 +166,22 @@ export function InventoryPanel({
         ) : null}
 
         <div>
-          <Text>Монеты</Text>
+          <div className="inventory-coins-head">
+            <Text>Монеты</Text>
+            {canTransfer ? (
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={transferBusy}
+                onClick={() => {
+                  setTransferMode({ kind: 'coins', balances: { ...inventory.coins } })
+                  setTransferOpen(true)
+                }}
+              >
+                Передать
+              </Button>
+            ) : null}
+          </div>
           <div className="sheet-grid sheet-grid--coins">
             {COIN_FIELDS.map((field) => (
               <Field key={field.key} label={field.label}>
@@ -269,6 +306,24 @@ export function InventoryPanel({
                       }`
                     : ''}
                 </Text>
+                {canTransfer && item.name.trim() && item.qty > 0 ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={transferBusy}
+                    onClick={() => {
+                      setTransferMode({
+                        kind: 'item',
+                        itemId: item.id,
+                        itemName: item.name.trim(),
+                        maxQty: Math.max(1, item.qty),
+                      })
+                      setTransferOpen(true)
+                    }}
+                  >
+                    Передать
+                  </Button>
+                ) : null}
                 <Button
                   variant="ghost"
                   onClick={() =>
@@ -299,6 +354,22 @@ export function InventoryPanel({
           </Button>
         </div>
       </Stack>
+
+      <TransferDialog
+        open={transferOpen}
+        busy={transferBusy}
+        peers={transferPeers}
+        mode={transferMode}
+        onClose={() => {
+          setTransferOpen(false)
+          setTransferMode(null)
+        }}
+        onSubmit={(payload) => {
+          onTransfer?.(payload)
+          setTransferOpen(false)
+          setTransferMode(null)
+        }}
+      />
     </Panel>
   )
 }
