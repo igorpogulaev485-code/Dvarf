@@ -2796,18 +2796,37 @@ button.session-concentration-tag {
   font-weight: 650;
 }
 
+.session-enemies-grid {
+  /* иначе раскрытый статблок растягивает соседей в ряду */
+  align-items: start;
+}
+
 .session-enemies-grid .session-enemy-card {
   border-top: 3px solid color-mix(in srgb, #9a3412 55%, var(--line));
 }
 
 .session-enemy-card {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: 10px;
   min-width: 0;
+  height: auto;
+  align-self: start;
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--card);
+}
+
+.session-enemy-card--player {
+  border-top-color: color-mix(in srgb, #57534e 40%, var(--line));
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.session-enemy-card--player .session-enemy-card__name {
+  font-size: 1rem;
 }
 
 .session-enemy-card--warn {

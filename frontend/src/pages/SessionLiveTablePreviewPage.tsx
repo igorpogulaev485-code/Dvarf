@@ -12,7 +12,10 @@ import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
 import { SessionTableCard } from '../features/lobby/SessionTableCard'
-import { defaultVisibilityProfile } from '../features/lobby/visibilityProfile'
+import {
+  applyVisibilityPreset,
+  defaultVisibilityProfile,
+} from '../features/lobby/visibilityProfile'
 import type { SessionCombatant, SessionEvent, SessionSeat } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
@@ -450,32 +453,59 @@ export function SessionLiveTablePreviewPage() {
                 </div>
 
                 {combatants.length > 0 ? (
-                  <Stack gap={8}>
-                    <Text as="h3" className="session-enemies-title">
-                      Противники
-                    </Text>
-                    <div className="session-table-grid session-enemies-grid">
-                      {combatants.map((enemy) => (
-                        <EnemyCard
-                          key={enemy.id}
-                          combatant={enemy}
-                          masterControls={!closed}
-                          onDamage={(amount) => {
-                            setCombatants((prev) =>
-                              prev.map((c) =>
-                                c.id === enemy.id
-                                  ? { ...c, hp_current: c.hp_current - amount }
-                                  : c,
-                              ),
-                            )
-                          }}
-                          onRemove={() => {
-                            setCombatants((prev) => prev.filter((c) => c.id !== enemy.id))
-                            setToast(`Убран: ${enemy.name}`)
-                          }}
-                        />
-                      ))}
-                    </div>
+                  <Stack gap={14}>
+                    <Stack gap={8}>
+                      <Text as="h3" className="session-enemies-title">
+                        Противники · мастер
+                      </Text>
+                      <Text tone="muted" className="session-table-toolbar__hint">
+                        Полные HP, жесты −/+, статблок. Соседи не растягиваются при раскрытии.
+                      </Text>
+                      <div className="session-table-grid session-enemies-grid">
+                        {combatants.map((enemy) => (
+                          <EnemyCard
+                            key={`m-${enemy.id}`}
+                            combatant={enemy}
+                            revealAll
+                            masterControls={!closed}
+                            onDamage={(amount) => {
+                              setCombatants((prev) =>
+                                prev.map((c) =>
+                                  c.id === enemy.id
+                                    ? { ...c, hp_current: c.hp_current - amount }
+                                    : c,
+                                ),
+                              )
+                            }}
+                            onRemove={() => {
+                              setCombatants((prev) => prev.filter((c) => c.id !== enemy.id))
+                              setToast(`Убран: ${enemy.name}`)
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </Stack>
+
+                    <Stack gap={8}>
+                      <Text as="h3" className="session-enemies-title">
+                        Противники · игрок
+                      </Text>
+                      <Text tone="muted" className="session-table-toolbar__hint">
+                        Как при пресете «сложный бой»: полоска/цвет HP, КД; без цифр и без
+                        статблока бестиария.
+                      </Text>
+                      <div className="session-table-grid session-enemies-grid">
+                        {combatants.map((enemy) => (
+                          <EnemyCard
+                            key={`p-${enemy.id}`}
+                            combatant={enemy}
+                            visibility={applyVisibilityPreset('complex_combat')}
+                            masterControls={false}
+                            revealAll={false}
+                          />
+                        ))}
+                      </div>
+                    </Stack>
                   </Stack>
                 ) : null}
               </Stack>

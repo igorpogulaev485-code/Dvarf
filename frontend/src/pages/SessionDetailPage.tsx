@@ -432,6 +432,8 @@ export function SessionDetailPage() {
                         <EnemyCard
                           key={enemy.id}
                           combatant={enemy}
+                          visibility={visibility}
+                          revealAll={session.is_owner}
                           masterControls={session.is_owner && !session.closed_at}
                           busy={busy}
                           onDamage={(amount) => {
