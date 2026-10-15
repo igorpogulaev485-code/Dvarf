@@ -50,7 +50,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/wizard-spellbook-rules-19c3` |
+| Prod tip (сейчас) | `cursor/spell-scrolls-levels-4-9-19c3` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 

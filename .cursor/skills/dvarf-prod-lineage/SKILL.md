@@ -32,7 +32,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/wizard-spellbook-rules-19c3
+cursor/spell-scrolls-levels-4-9-19c3
 ```
 
 URL: http://201.34.132.252/
