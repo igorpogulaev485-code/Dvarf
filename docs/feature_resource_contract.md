@@ -21,7 +21,7 @@
 4b. **Ability-mod spend** — `uses_from: ability_modifier` + `ability: wis` (Warding Flare, War Priest, Cleansing Touch)
 4c. **1+ability-mod spend** — `uses_from: one_plus_ability_modifier` + `ability: cha` (Divine Sense)
 5. **Level table spend** — `scale_uses` по уровню класса (кости превосходства BM, Channel Divinity, Lay on Hands 5×ур.)
-6. **Stock / event** — `track: stock`, ручной +/− (частицы души)
+6. **Stock / event** — `track: stock`, ручной +/− (частицы души); **или** desk-диалог пишет `used` = число активных (инфузии изобретателя `infusion_slots`)
 7. **Linked spend** — `linked_spend` на другой pool (вопль ← частица)
 8. **Recover one** — `recover_one` (Soulknife: бонусным вернуть 1 кость / short)
 9. **Initiative grant** — `grant_one_on_initiative_if_empty` (Relentless BM)
