@@ -11,6 +11,8 @@ export type SheetResource = {
   max: number
   used: number
   reset: ResourceReset
+  /** Трата ресурса → выбор союзника (вдохновение барда, инфузия…). */
+  applies_to_allies?: boolean
 }
 
 export function clampExhaustion(value: number): number {
@@ -29,6 +31,7 @@ export function clampResource(resource: SheetResource): SheetResource {
     max,
     used,
     reset,
+    applies_to_allies: Boolean(resource.applies_to_allies),
   }
 }
 

@@ -1,3 +1,4 @@
+import { guessAppliesToAllies, guessAllyTargetCount } from '../../shared/dnd/allyTargets'
 import {
   clampPactSlots,
   clampSlot,
@@ -21,6 +22,10 @@ export type SheetSpell = {
   attack_or_save: string
   damage: string
   concentration: boolean
+  /** Можно целиться в союзников / себя при касте. */
+  applies_to_allies: boolean
+  /** Сколько слотов целей (Благословение = 3). */
+  ally_target_count: number
 }
 
 export type SpellsState = {
@@ -52,6 +57,8 @@ export function createSheetSpell(): SheetSpell {
     attack_or_save: '',
     damage: '',
     concentration: false,
+    applies_to_allies: false,
+    ally_target_count: 1,
   }
 }
 
@@ -66,9 +73,20 @@ function readSlot(raw: unknown): SpellSlotState {
 function readSpell(raw: unknown, index: number): SheetSpell {
   const row = asRecord(raw)
   const level = Math.max(0, Math.min(9, Math.floor(readNumber(row.level, 0))))
+  const name = typeof row.name === 'string' ? row.name : ''
+  const appliesExplicit = row.applies_to_allies
+  const applies =
+    typeof appliesExplicit === 'boolean' ? appliesExplicit : guessAppliesToAllies(name)
+  const countRaw = row.ally_target_count
+  const count =
+    typeof countRaw === 'number' && countRaw >= 1
+      ? Math.min(6, Math.floor(countRaw))
+      : applies
+        ? guessAllyTargetCount(name)
+        : 1
   return {
     id: typeof row.id === 'string' ? row.id : `spell-${index}`,
-    name: typeof row.name === 'string' ? row.name : '',
+    name,
     catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
     level,
     prepared: row.prepared !== false,
@@ -83,6 +101,8 @@ function readSpell(raw: unknown, index: number): SheetSpell {
           : '',
     damage: typeof row.damage === 'string' ? row.damage : '',
     concentration: Boolean(row.concentration),
+    applies_to_allies: applies,
+    ally_target_count: count,
   }
 }
 
@@ -151,6 +171,8 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         attack_or_save: spell.attack_or_save,
         damage: spell.damage,
         concentration: spell.concentration,
+        applies_to_allies: spell.applies_to_allies,
+        ally_target_count: spell.ally_target_count,
       })),
       prepared: state.known
         .filter((spell) => spell.level <= 0 || spell.prepared)
@@ -161,6 +183,13 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
 
 export function readCatalogSpellFields(data: Record<string, unknown>): Partial<SheetSpell> {
   const level = Math.max(0, Math.min(9, Math.floor(readNumber(data.level, 0))))
+  const nameRu = typeof data.name_ru === 'string' ? data.name_ru : ''
+  const nameEn = typeof data.name_en === 'string' ? data.name_en : ''
+  const label = nameRu || nameEn
+  const appliesExplicit = data.applies_to_allies
+  const applies =
+    typeof appliesExplicit === 'boolean' ? appliesExplicit : guessAppliesToAllies(label)
+  const countRaw = data.ally_target_count
   return {
     level,
     casting_time: typeof data.casting_time === 'string' ? data.casting_time : '',
@@ -173,6 +202,13 @@ export function readCatalogSpellFields(data: Record<string, unknown>): Partial<S
           : '',
     damage: typeof data.damage === 'string' ? data.damage : '',
     concentration: Boolean(data.concentration),
+    applies_to_allies: applies,
+    ally_target_count:
+      typeof countRaw === 'number' && countRaw >= 1
+        ? Math.min(6, Math.floor(countRaw))
+        : applies
+          ? guessAllyTargetCount(label)
+          : 1,
   }
 }
 
@@ -240,6 +276,8 @@ export function sheetSpellFromCatalog(entry: {
     attack_or_save: fields.attack_or_save ?? '',
     damage: fields.damage ?? '',
     concentration: Boolean(fields.concentration),
+    applies_to_allies: fields.applies_to_allies ?? false,
+    ally_target_count: fields.ally_target_count ?? 1,
   }
 }
 
