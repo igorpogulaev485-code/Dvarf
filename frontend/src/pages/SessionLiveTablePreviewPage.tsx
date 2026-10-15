@@ -64,6 +64,7 @@ const DEMO_SEATS: SessionSeat[] = [
     inspiration: false,
     conditions: [{ slug: 'poisoned', name: 'Отравленный', catalog_id: null }],
     concentration: { spell_id: 'bless', name: 'Благословение' },
+    effect_suggestions: ['Благословение', 'Щит веры'],
     effects: [],
     companions: [],
     passive_perception: 15,

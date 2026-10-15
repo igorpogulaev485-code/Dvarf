@@ -109,15 +109,26 @@ class CharacterService:
         if payload.rules_edition is not None:
             character.rules_edition = payload.rules_edition
 
+        cleared_concentration = False
         if payload.sheet is not None:
+            from app.services.sheet_effects import (
+                clear_linked_effects_for_caster,
+                concentration_from_sheet,
+            )
+
+            had_conc = concentration_from_sheet(character.sheet)
             character.sheet = payload.sheet
             summary = extract_summary_from_sheet(payload.sheet)
             if payload.hp_current is None and "hp_current" in summary:
                 character.hp_current = summary["hp_current"]
             if payload.hp_max is None and "hp_max" in summary:
                 character.hp_max = summary["hp_max"]
+            if had_conc and not concentration_from_sheet(payload.sheet):
+                cleared_concentration = True
 
         character.sheet_version += 1
+        if cleared_concentration:
+            clear_linked_effects_for_caster(self.lobbies, character.id)
         self.db.commit()
         self.db.refresh(character)
         return to_detail(character)

@@ -45,17 +45,31 @@ export function ApplyEffectDialog({
 
   useEffect(() => {
     if (!open) return
-    setName('')
     setSelected(new Set())
     const preferred =
-      (preferredSourceId && casters.find((s) => s.character_id === preferredSourceId)) ||
+      (preferredSourceId && seats.find((s) => s.character_id === preferredSourceId)) ||
       casters[0] ||
+      seats.find((s) => (s.effect_suggestions?.length ?? 0) > 0) ||
       null
     setSourceId(preferred?.character_id ?? null)
     setLinkConcentration(Boolean(preferred?.concentration))
-  }, [open, preferredSourceId, casters])
+    const fromSheet = preferred?.effect_suggestions?.[0] || preferred?.concentration?.name
+    setName(fromSheet ?? '')
+  }, [open, preferredSourceId, casters, seats])
 
   const sourceSeat = seats.find((s) => s.character_id === sourceId) ?? null
+  const sheetSuggestions = sourceSeat?.effect_suggestions ?? []
+  const suggestions = useMemo(() => {
+    const merged: string[] = []
+    const seen = new Set<string>()
+    for (const name of [...sheetSuggestions, ...SUGGESTIONS]) {
+      const key = name.trim().toLocaleLowerCase('ru')
+      if (!key || seen.has(key)) continue
+      seen.add(key)
+      merged.push(name.trim())
+    }
+    return merged
+  }, [sheetSuggestions])
   const allSelected = seats.length > 0 && selected.size === seats.length
   const canLink = Boolean(sourceSeat?.concentration)
 
@@ -121,7 +135,7 @@ export function ApplyEffectDialog({
         </Field>
 
         <div className="apply-effect__suggestions">
-          {SUGGESTIONS.map((hint) => (
+          {suggestions.map((hint) => (
             <button
               key={hint}
               type="button"
@@ -133,6 +147,11 @@ export function ApplyEffectDialog({
             </button>
           ))}
         </div>
+        {sheetSuggestions.length > 0 ? (
+          <Text tone="muted" className="apply-effect__hint">
+            Первые подсказки — с листа кастера (концентрация и подготовленные Conc-заклинания).
+          </Text>
+        ) : null}
 
         {casters.length > 0 ? (
           <Field label="От кого (кастер)">

@@ -90,6 +90,8 @@ class SessionSeatOut(BaseModel):
     conditions: list[SeatConditionOut] = Field(default_factory=list)
     effects: list[SeatEffectOut] = Field(default_factory=list)
     concentration: SeatConcentrationOut | None = None
+    # Conc + подготовленные Conc-заклинания с листа — для жеста «Эффект»
+    effect_suggestions: list[str] = Field(default_factory=list)
     companions: list[SeatCompanionOut] = Field(default_factory=list)
     passive_perception: int | None = None
     passive_insight: int | None = None
@@ -105,6 +107,15 @@ class SeatCombatPatchRequest(BaseModel):
     effects: list[SeatEffectOut] | None = None
     concentration: SeatConcentrationOut | None = None
     clear_concentration: bool = False
+
+
+class LobbyShareEffectRequest(BaseModel):
+    """С листа / стола: повесить эффект на союзников лобби."""
+
+    source_character_id: UUID
+    name: str = Field(min_length=1, max_length=120)
+    target_character_ids: list[UUID] = Field(min_length=1)
+    linked_concentration: bool = True
 
 
 class SeatCompanionCreateRequest(BaseModel):
@@ -147,6 +158,11 @@ class LobbyDetail(BaseModel):
     visibility_profile: dict = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
+
+
+class LobbyShareEffectResponse(BaseModel):
+    applied: int
+    lobby: LobbyDetail
 
 
 class LobbyCreateRequest(BaseModel):

@@ -21,8 +21,17 @@ import {
 } from '../../shared/dnd/rest'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
+export type PlayEffect = {
+  id: string
+  name: string
+  source_character_id: string | null
+  source_name: string | null
+  linked_concentration: boolean
+}
+
 export type PlayState = {
   conditions: ConditionRef[]
+  effects: PlayEffect[]
   exhaustion: number
   resources: SheetResource[]
   hpTemp: number
@@ -48,6 +57,20 @@ export function createResource(partial?: Partial<SheetResource>): SheetResource 
     used: partial?.used ?? 0,
     reset: partial?.reset ?? 'long',
   })
+}
+
+function readEffect(raw: unknown, index: number): PlayEffect | null {
+  const row = asRecord(raw)
+  const name = typeof row.name === 'string' ? row.name.trim() : ''
+  if (!name) return null
+  return {
+    id: typeof row.id === 'string' && row.id.trim() ? row.id.trim() : `fx-${index}`,
+    name,
+    source_character_id:
+      typeof row.source_character_id === 'string' ? row.source_character_id : null,
+    source_name: typeof row.source_name === 'string' ? row.source_name.trim() || null : null,
+    linked_concentration: Boolean(row.linked_concentration),
+  }
 }
 
 function readCondition(raw: unknown, index: number): ConditionRef | null {
@@ -101,6 +124,11 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     .map((item, index) => readCondition(item, index))
     .filter((item): item is ConditionRef => item != null)
 
+  const effectsRaw = Array.isArray(combat.effects) ? combat.effects : []
+  const effects = effectsRaw
+    .map((item, index) => readEffect(item, index))
+    .filter((item): item is PlayEffect => item != null)
+
   const resourcesRaw = sheet.resources
   let resources: SheetResource[] = []
   if (Array.isArray(resourcesRaw)) {
@@ -127,6 +155,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
 
   return {
     conditions,
+    effects,
     exhaustion: clampExhaustion(readNumber(combat.exhaustion, 0)),
     resources,
     hpTemp: Math.max(0, Math.floor(readNumber(combat.hp_temp, 0))),
@@ -145,6 +174,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
 export function playToSheet(play: PlayState): {
   combatPatch: {
     conditions: ConditionRef[]
+    effects: PlayEffect[]
     exhaustion: number
     hp_temp: number
     hit_die: HitDie | null
@@ -163,6 +193,13 @@ export function playToSheet(play: PlayState): {
         name: item.name,
         catalog_id: item.catalog_id,
       })),
+      effects: play.effects.map((item) => ({
+        id: item.id,
+        name: item.name,
+        source_character_id: item.source_character_id,
+        source_name: item.source_name,
+        linked_concentration: item.linked_concentration,
+      })),
       exhaustion: clampExhaustion(play.exhaustion),
       hp_temp: Math.max(0, Math.floor(play.hpTemp)),
       hit_die: play.hitDie,
@@ -179,6 +216,30 @@ export function playToSheet(play: PlayState): {
     },
     resources: play.resources.map((item) => clampResource(item)),
   }
+}
+
+/** Подсказки имён эффекта с листа кастера (Conc + подготовленные Conc-заклинания). */
+export function effectSuggestionsFromPlay(
+  play: PlayState,
+  spellsKnown: Array<{ name: string; concentration: boolean; prepared: boolean; level: number }>,
+): string[] {
+  const names: string[] = []
+  const seen = new Set<string>()
+  const add = (name: string) => {
+    const cleaned = name.trim()
+    if (!cleaned) return
+    const key = cleaned.toLocaleLowerCase('ru')
+    if (seen.has(key)) return
+    seen.add(key)
+    names.push(cleaned)
+  }
+  if (play.concentration?.name) add(play.concentration.name)
+  for (const spell of spellsKnown) {
+    if (!spell.concentration) continue
+    if (spell.level > 0 && !spell.prepared) continue
+    add(spell.name)
+  }
+  return names
 }
 
 export const RESET_LABELS: Record<ResourceReset, string> = {

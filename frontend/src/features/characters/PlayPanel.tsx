@@ -25,6 +25,7 @@ import {
 } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
+import { ShareEffectFromSheetDialog } from '../lobby/ShareEffectFromSheetDialog'
 import {
   RESET_LABELS,
   createResource,
@@ -35,6 +36,8 @@ import type { SpellsState } from './spells'
 type PlayPanelProps = {
   edition: RulesEdition
   level: number
+  characterId: string
+  characterName: string
   hpCurrent: number | null
   hpMax: number | null
   constitutionMod: number
@@ -44,6 +47,7 @@ type PlayPanelProps = {
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
   onToast: (message: string) => void
+  onError?: (message: string) => void
 }
 
 const RESET_OPTIONS: ResourceReset[] = ['short', 'long', 'manual']
@@ -84,6 +88,8 @@ function DeathTrack({
 export function PlayPanel({
   edition,
   level,
+  characterId,
+  characterName,
   hpCurrent,
   hpMax,
   constitutionMod,
@@ -93,8 +99,10 @@ export function PlayPanel({
   onSpellsChange,
   onCombatChange,
   onToast,
+  onError,
 }: PlayPanelProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
+  const [shareOpen, setShareOpen] = useState(false)
   const hitDiceMax = Math.max(1, Math.floor(level))
   const suggestedHeal = play.hitDie
     ? suggestedHitDieHeal(play.hitDie, constitutionMod)
@@ -208,6 +216,7 @@ export function PlayPanel({
       deathSuccesses: 0,
       deathFails: 0,
       concentration: null,
+      // Входящие эффекты на себе не трогаем; исходящие linked снимет бэкенд при сохранении листа
     })
     onSpellsChange({
       ...spells,
@@ -376,6 +385,70 @@ export function PlayPanel({
             })}
           </div>
         </div>
+
+        <div>
+          <div className="play-resources-head">
+            <Text tone="muted">Эффекты на мне (бафы от союзников)</Text>
+            {play.concentration ? (
+              <Button type="button" onClick={() => setShareOpen(true)}>
+                Раздать союзникам
+              </Button>
+            ) : null}
+          </div>
+          {play.concentration ? (
+            <Text tone="muted" className="play-effect-hint">
+              Концентрация: <strong>{play.concentration.name}</strong> — раздайте пометку
+              союзникам, чтобы на столе было видно, на ком висит эффект.
+            </Text>
+          ) : null}
+          {play.effects.length === 0 ? (
+            <Text tone="muted">Пока нет. Появятся, когда вам раздадут эффект с листа или стола.</Text>
+          ) : (
+            <div className="chip-row play-conditions">
+              {play.effects.map((fx) => (
+                <button
+                  key={fx.id}
+                  type="button"
+                  className="session-effect-tag is-removable"
+                  title="Снять эффект"
+                  onClick={() =>
+                    onPlayChange({
+                      ...play,
+                      effects: play.effects.filter((item) => item.id !== fx.id),
+                    })
+                  }
+                >
+                  {fx.source_name ? `${fx.name} · ${fx.source_name}` : fx.name}
+                  {fx.linked_concentration ? (
+                    <span className="session-effect-tag__link" aria-hidden>
+                      {' '}
+                      ⛓
+                    </span>
+                  ) : null}
+                  <span aria-hidden> ×</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {!play.concentration ? (
+            <div className="play-rest-actions" style={{ marginTop: 8 }}>
+              <Button type="button" onClick={() => setShareOpen(true)}>
+                Раздать эффект союзникам
+              </Button>
+            </div>
+          ) : null}
+        </div>
+
+        <ShareEffectFromSheetDialog
+          open={shareOpen}
+          characterId={characterId}
+          characterName={characterName}
+          play={play}
+          spells={spells}
+          onClose={() => setShareOpen(false)}
+          onToast={onToast}
+          onError={(msg) => onError?.(msg) ?? onToast(msg)}
+        />
 
         <div>
           <Text tone="muted">Истощение 0–6 (продолжительный отдых −1)</Text>

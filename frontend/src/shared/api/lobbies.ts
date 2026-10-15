@@ -107,6 +107,8 @@ export type SessionSeat = {
   conditions?: SeatCondition[]
   effects?: SeatEffect[]
   concentration?: SeatConcentration | null
+  /** Conc + подготовленные Conc-заклинания с листа кастера */
+  effect_suggestions?: string[]
   companions?: SeatCompanion[]
   passive_perception?: number | null
   passive_insight?: number | null
@@ -212,6 +214,24 @@ export async function addLobbyMember(lobbyId: string, characterId: string): Prom
     method: 'POST',
     body: JSON.stringify({ character_id: characterId }),
   })
+}
+
+export async function shareLobbyEffect(
+  lobbyId: string,
+  payload: {
+    source_character_id: string
+    name: string
+    target_character_ids: string[]
+    linked_concentration?: boolean
+  },
+): Promise<{ applied: number; lobby: LobbyDetail }> {
+  return apiRequest<{ applied: number; lobby: LobbyDetail }>(
+    `/lobbies/${lobbyId}/share-effect`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  )
 }
 
 export async function removeLobbyMember(
