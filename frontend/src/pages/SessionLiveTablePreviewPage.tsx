@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react'
 import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
+import { AwardLootDialog } from '../features/lobby/AwardLootDialog'
 import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EnemyCard } from '../features/lobby/EnemyCard'
@@ -361,6 +362,7 @@ export function SessionLiveTablePreviewPage() {
   const [combatantOpen, setCombatantOpen] = useState(false)
   const [combatStartOpen, setCombatStartOpen] = useState(false)
   const [xpOpen, setXpOpen] = useState(false)
+  const [lootOpen, setLootOpen] = useState(false)
   const [combat, setCombat] = useState<SessionCombat>({
     active: false,
     round: 1,
@@ -477,8 +479,15 @@ export function SessionLiveTablePreviewPage() {
                     >
                       XP
                     </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setLootOpen(true)}
+                    >
+                      Лут
+                    </Button>
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Бой — инициатива. XP — после боя / вручную.
+                      XP — опыт. Лут — находка в инвентарь.
                     </Text>
                   </div>
                 ) : null}
@@ -908,6 +917,58 @@ export function SessionLiveTablePreviewPage() {
               total: each * n,
               is_master_roll: false,
               payload: {},
+              created_at: new Date().toISOString(),
+            },
+            ...prev,
+          ])
+        }}
+      />
+
+      <AwardLootDialog
+        open={lootOpen}
+        seats={seats}
+        onClose={() => setLootOpen(false)}
+        onSubmit={(payload) => {
+          const names = [
+            ...new Set(
+              payload.grants.map(
+                (g) =>
+                  seats.find((s) => s.character_id === g.character_id)?.character_name ??
+                  '—',
+              ),
+            ),
+          ]
+          const bits = payload.grants.map((g) => {
+            if (g.item) {
+              return g.item.qty > 1 ? `${g.item.name}×${g.item.qty}` : g.item.name
+            }
+            const c = g.coins
+            if (!c) return 'монеты'
+            return (
+              [
+                c.gp ? `${c.gp} зм` : '',
+                c.sp ? `${c.sp} см` : '',
+                c.cp ? `${c.cp} мм` : '',
+              ]
+                .filter(Boolean)
+                .join(' · ') || 'монеты'
+            )
+          })
+          setLootOpen(false)
+          setToast(`Лут: ${bits.slice(0, 4).join(', ')}`)
+          setEvents((prev) => [
+            {
+              id: `loot-${Date.now()}`,
+              session_id: 's1',
+              event_type: 'loot',
+              character_id: null,
+              character_name: 'Мастер',
+              title: 'Лут',
+              formula: null,
+              breakdown: names.join(', '),
+              total: null,
+              is_master_roll: false,
+              payload: { lines: bits },
               created_at: new Date().toISOString(),
             },
             ...prev,

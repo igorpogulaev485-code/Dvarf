@@ -317,6 +317,39 @@ class XpAwardResult(BaseModel):
     recipients: list[str]
 
 
+class LootCoinsIn(BaseModel):
+    cp: int = Field(default=0, ge=0, le=1_000_000)
+    sp: int = Field(default=0, ge=0, le=1_000_000)
+    ep: int = Field(default=0, ge=0, le=1_000_000)
+    gp: int = Field(default=0, ge=0, le=1_000_000)
+    pp: int = Field(default=0, ge=0, le=1_000_000)
+
+
+class LootItemIn(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    qty: int = Field(default=1, ge=1, le=9999)
+    notes: str | None = Field(default=None, max_length=240)
+
+
+class LootGrantIn(BaseModel):
+    """Одна доля лута одному персонажу за столом."""
+
+    character_id: UUID
+    item: LootItemIn | None = None
+    coins: LootCoinsIn | None = None
+
+
+class LootAwardRequest(BaseModel):
+    grants: list[LootGrantIn] = Field(min_length=1)
+    note: str | None = Field(default=None, max_length=240)
+
+
+class LootAwardResult(BaseModel):
+    session: "SessionDetail"
+    summary: str
+    recipient_names: list[str]
+
+
 class CombatantCreateRequest(BaseModel):
     """Посадить 1..N как одну карточку-пачку из бестиария или свой НПС."""
 

@@ -3259,6 +3259,67 @@ button.session-concentration-tag {
   background: var(--accent-soft);
 }
 
+.session-loot-compose {
+  display: grid;
+  grid-template-columns: 1.4fr 5.5rem 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.session-loot-compose--coins {
+  grid-template-columns: repeat(3, minmax(4.5rem, 1fr)) 1fr;
+}
+
+.session-loot-compose__coin-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session-loot-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.session-loot-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.session-loot-list__main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.session-loot-list__remove {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .session-loot-compose,
+  .session-loot-compose--coins {
+    grid-template-columns: 1fr;
+  }
+}
+
 .session-combatant-mode {
   display: flex;
   gap: 8px;
