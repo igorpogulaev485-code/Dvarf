@@ -373,7 +373,7 @@ export function SessionDetailPage() {
                                 { clear_concentration: true },
                               )
                               setSession(updated)
-                              setToast('Концентрация снята')
+                              setToast('Концентрация снята · связанные эффекты убраны')
                             })
                           }}
                           onAddCompanion={

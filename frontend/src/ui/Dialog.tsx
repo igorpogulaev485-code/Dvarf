@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button'
 import { Stack } from './Stack'
 
@@ -27,11 +28,11 @@ export function Dialog({
   primaryDisabled = false,
   size = 'default',
 }: DialogProps) {
-  if (!open) {
+  if (!open || typeof document === 'undefined') {
     return null
   }
 
-  return (
+  return createPortal(
     <div className="ui-dialog-backdrop" role="presentation">
       <div
         className={`ui-dialog${size === 'wide' ? ' ui-dialog--wide' : ''}`}
@@ -56,6 +57,7 @@ export function Dialog({
           </div>
         </Stack>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
