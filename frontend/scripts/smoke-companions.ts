@@ -33,6 +33,20 @@ import {
   resolveSpellNaparnikSlug,
 } from '../src/features/characters/spellCompanions.ts'
 import { createSheetSpell } from '../src/features/characters/spells.ts'
+import {
+  applyBeastWildShape,
+  applyStarryForm,
+  applyWildCompanion,
+  applyWildfireSpirit,
+  beastPickAllowed,
+  crAllowed,
+  isWildShapeForkFeature,
+  resolveWildShapeOptions,
+  symbioticTempHp,
+  wildShapeLimits,
+} from '../src/features/characters/wildShape.ts'
+import type { UnlockedFeature } from '../src/shared/dnd/classFeatures.ts'
+import type { SheetResource } from '../src/shared/dnd/rest.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
@@ -465,5 +479,125 @@ const known2 = upsertKnownForm(knownRound, {
   notes: 'видел в лесу',
 })
 assert(known2.length === 1 && known2[0]?.notes === 'видел в лесу', 'upsert by slug')
+
+// --- F2: wild shape fork + limits ---
+const limL2 = wildShapeLimits({ druidLevel: 2, subclassSlug: null })
+assert(limL2.maxCr === 0.25 && !limL2.allowSwim && !limL2.allowFly, 'L2 land limits')
+const limL4 = wildShapeLimits({ druidLevel: 4, subclassSlug: 'circle_of_the_land' })
+assert(limL4.maxCr === 0.5 && limL4.allowSwim && !limL4.allowFly, 'L4 +swim')
+const limL8 = wildShapeLimits({ druidLevel: 8, subclassSlug: null })
+assert(limL8.maxCr === 1 && limL8.allowFly, 'L8 +fly')
+const limMoon2 = wildShapeLimits({ druidLevel: 2, subclassSlug: 'circle_of_the_moon' })
+assert(limMoon2.maxCr === 1 && limMoon2.combatBonusAction, 'Moon L2 CR1')
+const limMoon6 = wildShapeLimits({ druidLevel: 6, subclassSlug: 'circle_of_the_moon' })
+assert(limMoon6.maxCr === 2, 'Moon L6 floor(6/3)=2')
+assert(crAllowed('1/4', limL2) && !crAllowed('1/2', limL2), 'CR filter L2')
+
+const wolfPick = {
+  slug: 'wolf',
+  name_ru: 'Волк',
+  cr: '1/4',
+  type: 'beast',
+  ac: 13,
+  hp: 11,
+  speed_walk: 40,
+  actions_text: 'Укус',
+}
+assert(beastPickAllowed(wolfPick, limL2), 'wolf ok L2')
+assert(
+  !beastPickAllowed({ ...wolfPick, speed_fly: 60 }, limL2),
+  'fly blocked L2',
+)
+
+const wsPool: SheetResource = {
+  id: 'feat:druid:wild_shape:c1',
+  name: 'Дикий облик',
+  max: 2,
+  used: 0,
+  reset: 'short',
+}
+function fakeFeature(id: string): UnlockedFeature {
+  return {
+    id,
+    level: 2,
+    name_ru: id,
+    kind: 'action',
+    className: 'Друид',
+    classEntryId: 'c1',
+    classLevel: 5,
+    source: 'class',
+    subclassSlug: null,
+    subclassName: null,
+    summary_ru: '',
+    scaleValue: null,
+    resourceUses: null,
+  }
+}
+const forkLand = resolveWildShapeOptions({
+  features: [fakeFeature('wild_shape'), fakeFeature('wild_companion')],
+  resources: [wsPool],
+  classSlug: 'druid',
+  classEntryId: 'c1',
+})
+assert(
+  forkLand.map((o) => o.id).join(',') === 'beast_form,wild_companion',
+  'land fork: beast + Tasha companion only',
+)
+const forkStars = resolveWildShapeOptions({
+  features: [
+    fakeFeature('wild_shape'),
+    fakeFeature('wild_companion'),
+    fakeFeature('starry_form'),
+  ],
+  resources: [wsPool],
+  classSlug: 'druid',
+  classEntryId: 'c1',
+})
+assert(
+  forkStars.some((o) => o.id === 'starry_form' && !o.disabled),
+  'stars unlocks starry on fork',
+)
+const forkMoon10 = resolveWildShapeOptions({
+  features: [fakeFeature('wild_shape'), fakeFeature('elemental_wild_shape')],
+  resources: [{ ...wsPool, used: 1 }],
+  classSlug: 'druid',
+  classEntryId: 'c1',
+})
+assert(
+  forkMoon10.find((o) => o.id === 'elemental_wild_shape')?.disabled,
+  'elemental needs 2 uses',
+)
+assert(isWildShapeForkFeature('wild_companion'), 'wild_companion is fork feature')
+assert(isWildShapeForkFeature('summon_wildfire_spirit'), 'wildfire is fork feature')
+assert(!isWildShapeForkFeature('rage'), 'rage not fork')
+
+const shaped = applyBeastWildShape({
+  companions: [],
+  knownForms: [],
+  pick: wolfPick,
+  hostHp: 20,
+  hostHpMax: 20,
+  druidLevel: 4,
+})
+assert(shaped.companions[0]?.role === 'self_form', 'beast → self_form')
+assert(shaped.companions[0]?.stats.hp === 11, 'form HP from pick')
+assert(shaped.knownForms.length === 1, 'adds known form')
+
+const withFamiliar = applyWildCompanion({ companions: shaped.companions, druidLevel: 4 })
+assert(
+  withFamiliar.some((c) => c.source?.feature === 'wild_companion' && c.role === 'ally'),
+  'wild companion ally',
+)
+assert(symbioticTempHp(5) === 20, 'symbiotic 4×level')
+const starry = applyStarryForm({
+  companions: shaped.companions,
+  constellation: 'archer',
+  hostHp: 20,
+  hostHpMax: 20,
+})
+assert(getActiveSelfForm(starry)?.name?.includes('Лучник'), 'starry replaces self_form')
+assert(getActiveSelfForm(starry)?.stats.hp == null, 'starry keeps host HP pool')
+const fire = applyWildfireSpirit({ companions: [], druidLevel: 6 })
+assert(fire[0]?.stats.hp_max === 40, 'wildfire HP 10+5×6 (ttg)')
 
 console.log('smoke-companions: ok')

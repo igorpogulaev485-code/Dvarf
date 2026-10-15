@@ -144,6 +144,7 @@ export function CompanionsPanel({
   }
 
   return (
+    <div data-companions-panel>
     <Panel title={title}>
       <Stack gap={14}>
         {companions.length === 0 ? (
@@ -546,5 +547,6 @@ export function CompanionsPanel({
         })}
       </Stack>
     </Panel>
+    </div>
   )
 }

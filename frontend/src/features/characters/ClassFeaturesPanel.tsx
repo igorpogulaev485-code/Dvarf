@@ -63,7 +63,14 @@ import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
 import type { SpellsState } from './spells'
+import { isWildShapeForkFeature } from './wildShape'
 import { abilityModifier, SKILL_DEFS } from './sheetTypes'
+
+export type WildShapeForkRequest = {
+  feature: UnlockedFeature
+  classSlug: string
+  classEntryId: string
+}
 
 type ClassFeaturesPanelProps = {
   classes: ClassLevelEntry[]
@@ -78,6 +85,11 @@ type ClassFeaturesPanelProps = {
   onSpellsChange: (spells: SpellsState) => void
   /** Equipped heavy body armor — blocks Rage benefits (PHB). */
   wearingHeavyArmor?: boolean
+  /**
+   * Дикий облик + linked_spend альтернативы (Дикий спутник, Звёздная форма, …):
+   * открыть развилку вместо голого spend.
+   */
+  onWildShapeFork?: (request: WildShapeForkRequest) => void
   onToast?: (message: string) => void
 }
 
@@ -89,6 +101,7 @@ function FeatureResourceControls({
   onToast,
   initiativeGrantByPool,
   wearingHeavyArmor,
+  onWildShapeFork,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -97,6 +110,7 @@ function FeatureResourceControls({
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
+  onWildShapeFork?: (request: WildShapeForkRequest) => void
 }) {
   const resource = feature.resource
   if (!resource?.pool_id) return null
@@ -188,6 +202,17 @@ function FeatureResourceControls({
   const lockedBySuccess = Boolean(successLock) && pool.reset === 'manual' && pool.used > 0
   const blockedByHeavyArmor =
     Boolean(resource.blocked_while_heavy_armor) && wearingHeavyArmor
+  const opensWildShapeFork =
+    Boolean(onWildShapeFork) && isWildShapeForkFeature(feature.id)
+  // Fork spends wild_shape (own pool or linked); enable when that currency remains.
+  const wildShapePoolForFork =
+    poolId === 'wild_shape'
+      ? pool
+      : linked?.pool_id === 'wild_shape'
+        ? linkedPool
+        : null
+  const wildShapeLeftForFork = spendRemaining(wildShapePoolForFork)
+  const canOpenWildShapeFork = opensWildShapeFork && wildShapeLeftForFork > 0
 
   return (
     <div className="feature-resource">
@@ -212,10 +237,20 @@ function FeatureResourceControls({
           лёгкий/средний.
         </Text>
       ) : null}
-      {linked ? (
+      {linked && !opensWildShapeFork ? (
         <Text tone="muted">
           Сверх лимита: {linked.label_ru}
           {linkedPool ? ` (${linkedLeft} доступно)` : ''}
+        </Text>
+      ) : null}
+      {opensWildShapeFork ? (
+        <Text tone="muted">
+          Тратит Дикий облик
+          {wildShapePoolForFork
+            ? ` (${wildShapeLeftForFork}/${wildShapePoolForFork.max})`
+            : ''}
+          {' · '}
+          развилка: облик / спутник / умения круга
         </Text>
       ) : null}
       {lockedBySuccess ? (
@@ -269,6 +304,24 @@ function FeatureResourceControls({
               </Button>
             ) : null}
           </>
+        ) : opensWildShapeFork ? (
+          <Button
+            type="button"
+            disabled={!canOpenWildShapeFork}
+            onClick={() => {
+              if (!canOpenWildShapeFork) {
+                onToast?.('Нет использований Дикого облика')
+                return
+              }
+              onWildShapeFork?.({
+                feature,
+                classSlug,
+                classEntryId: feature.classEntryId,
+              })
+            }}
+          >
+            {feature.id === 'wild_shape' ? 'Потратить…' : 'Через Дикий облик…'}
+          </Button>
         ) : (
           <Button
             type="button"
@@ -932,6 +985,7 @@ function FeatureRow({
   onToast,
   initiativeGrantByPool,
   wearingHeavyArmor,
+  onWildShapeFork,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -944,6 +998,7 @@ function FeatureRow({
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
+  onWildShapeFork?: (request: WildShapeForkRequest) => void
 }) {
   const [open, setOpen] = useState(false)
   const sourceLabel =
@@ -1057,6 +1112,7 @@ function FeatureRow({
             onToast={onToast}
             initiativeGrantByPool={initiativeGrantByPool}
             wearingHeavyArmor={wearingHeavyArmor}
+            onWildShapeFork={onWildShapeFork}
           />
         </div>
       ) : null}
@@ -1093,6 +1149,7 @@ export function ClassFeaturesPanel({
   spells,
   onSpellsChange,
   wearingHeavyArmor = false,
+  onWildShapeFork,
   onToast,
 }: ClassFeaturesPanelProps) {
   const features = useMemo(
@@ -1186,6 +1243,7 @@ export function ClassFeaturesPanel({
                   onToast={onToast}
                   initiativeGrantByPool={initiativeGrantByPool}
                   wearingHeavyArmor={wearingHeavyArmor}
+                  onWildShapeFork={onWildShapeFork}
                 />
               ))}
             </div>

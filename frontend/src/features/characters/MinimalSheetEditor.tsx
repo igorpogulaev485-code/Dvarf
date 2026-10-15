@@ -159,7 +159,10 @@ import {
   desiredResourcesFromFeatures,
   syncFeatureResources,
 } from '../../shared/dnd/featureResources'
-import { unlockFeaturesForClasses } from '../../shared/dnd/classFeatures'
+import {
+  resolveClassFeatureSlug,
+  unlockFeaturesForClasses,
+} from '../../shared/dnd/classFeatures'
 import {
   clearFeaturePicksForClass,
   findFightingStylePick,
@@ -168,8 +171,14 @@ import {
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
-import { ClassFeaturesPanel, saveBonusFromFeatures } from './ClassFeaturesPanel'
+import {
+  ClassFeaturesPanel,
+  saveBonusFromFeatures,
+  type WildShapeForkRequest,
+} from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
+import { WildShapeDialog, type WildShapeDialogResult } from './WildShapeDialog'
+import { activeSelfFormLabel } from './wildShape'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import {
   identityExtrasToSheet,
@@ -486,6 +495,9 @@ export function MinimalSheetEditor({
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const [raceCatalogRows, setRaceCatalogRows] = useState<CatalogEntry[]>([])
+  const [wildShapeFork, setWildShapeFork] = useState<WildShapeForkRequest | null>(
+    null,
+  )
 
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
@@ -536,6 +548,41 @@ export function MinimalSheetEditor({
   )
   const primaryClass = draft.classes[0]
   const rulesEdition = baseCharacter.rules_edition as RulesEdition
+  const formLabel = useMemo(
+    () => activeSelfFormLabel(draft.companions),
+    [draft.companions],
+  )
+  const druidClassRow = useMemo(() => {
+    if (wildShapeFork) {
+      return (
+        draft.classes.find((row) => row.id === wildShapeFork.classEntryId) ?? null
+      )
+    }
+    return (
+      draft.classes.find(
+        (row) => resolveClassFeatureSlug(row.name) === 'druid',
+      ) ?? null
+    )
+  }, [draft.classes, wildShapeFork])
+  const druidLevel = druidClassRow?.level ?? characterLevel
+  const druidSubclassSlug =
+    (druidClassRow && subclassSlugByEntryId[druidClassRow.id]) || null
+
+  function applyWildShapeResult(result: WildShapeDialogResult) {
+    setDraft((prev) => ({
+      ...prev,
+      companions: result.companions,
+      knownForms: result.knownForms,
+      play: {
+        ...prev.play,
+        resources: result.resources,
+        ...(result.hpTemp != null
+          ? { hpTemp: Math.max(prev.play.hpTemp, result.hpTemp) }
+          : {}),
+      },
+    }))
+    if (result.toast) onToast(result.toast)
+  }
 
   useEffect(() => {
     setBaseCharacter(character)
@@ -1997,6 +2044,11 @@ export function MinimalSheetEditor({
             .map((item) => formatConditionLabel(item)),
         ]}
         concentration={draft.play.concentration}
+        activeFormLabel={formLabel}
+        onFocusActiveForm={() => {
+          const el = document.querySelector('[data-companions-panel]')
+          el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }}
         onClearConcentration={() => {
           let dismissed: string[] = []
           setDraft((prev) => {
@@ -2626,8 +2678,33 @@ export function MinimalSheetEditor({
         wearingHeavyArmor={
           equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
         }
+        onWildShapeFork={(request) => setWildShapeFork(request)}
         onToast={onToast}
       />
+
+      {wildShapeFork ? (
+        <WildShapeDialog
+          open
+          onClose={() => setWildShapeFork(null)}
+          features={unlockedFeatures.filter(
+            (f) => f.classEntryId === wildShapeFork.classEntryId,
+          )}
+          resources={draft.play.resources}
+          companions={draft.companions}
+          knownForms={draft.knownForms}
+          classSlug={wildShapeFork.classSlug}
+          classEntryId={wildShapeFork.classEntryId}
+          druidLevel={druidLevel}
+          subclassSlug={druidSubclassSlug}
+          hostHp={draft.hpCurrent ?? 0}
+          hostHpMax={draft.hpMax ?? 0}
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={(result) => {
+            applyWildShapeResult(result)
+            setWildShapeFork(null)
+          }}
+        />
+      ) : null}
 
       <SpellsPanel
         edition={baseCharacter.rules_edition as RulesEdition}

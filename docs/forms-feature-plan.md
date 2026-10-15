@@ -235,14 +235,15 @@ SKT, ToA, WDMM, GGR, ERLW, EGW, … — оставшийся Basic allowlist.
 
 ---
 
-### F2 — Пикер + активация Дикого облика
+### F2 — Развилка траты Дикого облика + пикер зверя
 
-**Цель:** счастливый путь друида.
+**Цель:** счастливый путь друида; пул `wild_shape` — общая валюта.
 
-| UI | `WildShapePickerDialog` (или `FormPickerDialog`): поиск, фильтры CR/swim/fly, известные, превью статов |
-| Engine | `wildShapeLimits(druidLevel, circle)` из scale + Moon Circle Forms |
-| Action | кнопка на ряду умения `wild_shape`: «Принять облик…» |
-| On confirm | spend `feat:wild_shape` → создать/заменить self_form из bestiary row → optional add to known_forms |
+| UI | `WildShapeDialog`: сначала **развилка**, потом пикер зверя / созвездие / элементаль |
+| Engine | `wildShapeLimits` + `resolveWildShapeOptions` |
+| Action | «Потратить…» на `wild_shape` **и** на linked_spend альтернативах → одна развилка |
+| Fork options | зверь (−1); **Дикий спутник / Tasha** (−1, Find Familiar-фея); Звёздная (−1); Симбиот (−1 → temp HP); Wildfire (−1 → ally); Elemental (−2) — только если умение разблокировано |
+| On confirm | `spendPoolUses(wild_shape, cost)` + эффект опции |
 | Header | chip «В облике: …» в `CombatStickyHeader` |
 
 **Зависимости:** B1 в каталоге; F1 модель.
@@ -253,7 +254,9 @@ SKT, ToA, WDMM, GGR, ERLW, EGW, … — оставшийся Basic allowlist.
 - [ ] L4: +swim CR≤1/2; L8: +fly CR≤1
 - [ ] Moon L2: CR≤1; L6+: floor(level/3)
 - [ ] Нет заряда → кнопка disabled / toast
-- [ ] После confirm: пул −1, карточка в Напарниках, chip в шапке
+- [ ] После confirm зверя: пул −1, self_form в Напарниках, chip в шапке
+- [ ] Дикий спутник на развилке: −1 WS → ally familiar (фея), часы = ½ ур.
+- [ ] Круговые альтернативы видны только при unlock; Elemental −2
 - [ ] Повторный WS заменяет форму (полный HP новой формы)
 
 ---
