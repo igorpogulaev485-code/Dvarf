@@ -310,10 +310,14 @@ export function applyBeastWildShape(input: {
   druidLevel: number
   formSource?: FormSourceKind
   formSourceRef?: string
+  /** Extra known_form tags (e.g. elemental). */
+  extraTags?: KnownForm['tags']
 }): { companions: CompanionEntry[]; knownForms: KnownForm[] } {
   const previousPrimaryId = capturePreviousPrimaryId(input.companions)
   const cleared = dismissActiveSelfForm(input.companions)
   const duration = Math.max(1, Math.floor(input.druidLevel / 2))
+  const isElemental =
+    input.formSource === 'elemental_wild_shape' || input.pick.type === 'elemental'
   const form = createCompanion({
     role: 'self_form',
     kind: 'transformed_self',
@@ -331,11 +335,13 @@ export function applyBeastWildShape(input: {
       speed: input.pick.speed_walk,
     },
     actions: input.pick.actions_text,
-    notes: `Дикий облик · CR ${input.pick.cr}`,
+    notes: isElemental
+      ? `Элементальный дикий облик · CR ${input.pick.cr}`
+      : `Дикий облик · CR ${input.pick.cr}`,
     source: {
       kind: 'class',
-      labelRu: 'Дикий облик',
-      feature: 'wild_shape',
+      labelRu: isElemental ? 'Элементальный дикий облик' : 'Дикий облик',
+      feature: isElemental ? 'elemental_wild_shape' : 'wild_shape',
     },
     form: {
       form_source: input.formSource ?? 'wild_shape',
@@ -347,9 +353,10 @@ export function applyBeastWildShape(input: {
       previous_primary_id: previousPrimaryId,
     },
   })
-  const tags: KnownForm['tags'] = []
-  if ((input.pick.speed_swim ?? 0) > 0) tags.push('swim')
-  if ((input.pick.speed_fly ?? 0) > 0) tags.push('fly')
+  const tags: KnownForm['tags'] = [...(input.extraTags ?? [])]
+  if (isElemental && !tags.includes('elemental')) tags.push('elemental')
+  if ((input.pick.speed_swim ?? 0) > 0 && !tags.includes('swim')) tags.push('swim')
+  if ((input.pick.speed_fly ?? 0) > 0 && !tags.includes('fly')) tags.push('fly')
   const known = upsertKnownForm(
     input.knownForms,
     createKnownForm({
@@ -529,4 +536,142 @@ export function activeSelfFormLabel(
 ): string | null {
   const form = getActiveSelfForm(companions)
   return form?.name ?? null
+}
+
+/** Combat Wild Shape: 1d8 HP per spell slot level. */
+export function moonHealDiceCount(slotLevel: number): number {
+  return Math.max(1, Math.min(9, Math.floor(slotLevel) || 1))
+}
+
+export function rollDice(count: number, sides: number): {
+  total: number
+  rolls: number[]
+} {
+  const n = Math.max(0, Math.floor(count))
+  const s = Math.max(2, Math.floor(sides))
+  const rolls: number[] = []
+  let total = 0
+  for (let i = 0; i < n; i += 1) {
+    const v = 1 + Math.floor(Math.random() * s)
+    rolls.push(v)
+    total += v
+  }
+  return { total, rolls }
+}
+
+/** Deterministic average for tests / optional UI (d8 → 4.5 → floor+0.5 style: 5). */
+export function averageDice(count: number, sides: number): number {
+  const n = Math.max(0, Math.floor(count))
+  const s = Math.max(2, Math.floor(sides))
+  return Math.floor(n * ((s + 1) / 2))
+}
+
+export function healSelfForm(input: {
+  companions: CompanionEntry[]
+  amount: number
+  formId?: string
+}): {
+  companions: CompanionEntry[]
+  healed: number
+  formName: string | null
+  ok: boolean
+  message: string
+} {
+  const amount = Math.max(0, Math.floor(input.amount))
+  const form =
+    (input.formId
+      ? input.companions.find((r) => r.id === input.formId)
+      : getActiveSelfForm(input.companions)) ?? null
+  if (!form || !form.active || form.role !== 'self_form') {
+    return {
+      companions: input.companions,
+      healed: 0,
+      formName: null,
+      ok: false,
+      message: 'Нет активного облика',
+    }
+  }
+  if (form.stats.hp == null || form.stats.hp_max == null) {
+    return {
+      companions: input.companions,
+      healed: 0,
+      formName: form.name || null,
+      ok: false,
+      message: 'У этой формы нет отдельного пула хитов',
+    }
+  }
+  if (amount <= 0) {
+    return {
+      companions: input.companions,
+      healed: 0,
+      formName: form.name || null,
+      ok: false,
+      message: 'Нет лечения',
+    }
+  }
+  const before = Math.max(0, form.stats.hp)
+  const max = Math.max(0, form.stats.hp_max)
+  const after = Math.min(max, before + amount)
+  const healed = after - before
+  const companions = input.companions.map((row) =>
+    row.id === form.id
+      ? {
+          ...row,
+          active: true,
+          stats: { ...row.stats, hp: after },
+        }
+      : row,
+  )
+  return {
+    companions,
+    healed,
+    formName: form.name || null,
+    ok: true,
+    message:
+      healed > 0
+        ? `${form.name || 'Облик'}: +${healed} HP (${before}→${after})`
+        : `${form.name || 'Облик'}: уже полный HP`,
+  }
+}
+
+/** Fallback MM elemental stats when catalog row missing (pre-migrate / offline). */
+export const ELEMENTAL_FALLBACK_STATS: Record<
+  string,
+  Omit<BestiaryFormPick, 'slug' | 'name_ru' | 'catalog_id'>
+> = {
+  air: {
+    cr: '5',
+    type: 'elemental',
+    ac: 15,
+    hp: 90,
+    speed_walk: 0,
+    speed_fly: 90,
+    actions_text: 'Вихрь; Мультиатака; Удар (см. MM).',
+  },
+  earth: {
+    cr: '5',
+    type: 'elemental',
+    ac: 17,
+    hp: 126,
+    speed_walk: 30,
+    speed_swim: undefined,
+    actions_text: 'Мультиатака; Удар; Землетрясение (см. MM).',
+  },
+  fire: {
+    cr: '5',
+    type: 'elemental',
+    ac: 13,
+    hp: 102,
+    speed_walk: 50,
+    actions_text: 'Мультиатака; Касание; Пожар (см. MM).',
+  },
+  water: {
+    cr: '5',
+    type: 'elemental',
+    ac: 14,
+    hp: 114,
+    speed_walk: 30,
+    speed_swim: 90,
+    actions_text: 'Мультиатака; Удар; Водяной вал (см. MM).',
+  },
 }

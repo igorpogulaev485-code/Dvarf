@@ -63,7 +63,7 @@ import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
 import type { SpellsState } from './spells'
-import { isWildShapeForkFeature } from './wildShape'
+import { isWildShapeForkFeature, moonHealDiceCount } from './wildShape'
 import { abilityModifier, SKILL_DEFS } from './sheetTypes'
 
 export type WildShapeForkRequest = {
@@ -90,6 +90,15 @@ type ClassFeaturesPanelProps = {
    * открыть развилку вместо голого spend.
    */
   onWildShapeFork?: (request: WildShapeForkRequest) => void
+  /**
+   * Moon Combat Wild Shape: spend slot + heal active self_form (caller updates spells).
+   * Return toast message on success, null if no form.
+   */
+  onMoonFormSlotHeal?: (input: {
+    slotLevel: number
+    diceCount: number
+    diceSize: number
+  }) => string | null
   onToast?: (message: string) => void
 }
 
@@ -102,6 +111,7 @@ function FeatureResourceControls({
   initiativeGrantByPool,
   wearingHeavyArmor,
   onWildShapeFork,
+  moonCombatWildShape = false,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -111,6 +121,8 @@ function FeatureResourceControls({
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
   onWildShapeFork?: (request: WildShapeForkRequest) => void
+  /** Circle of the Moon: Wild Shape is a bonus action. */
+  moonCombatWildShape?: boolean
 }) {
   const resource = feature.resource
   if (!resource?.pool_id) return null
@@ -320,7 +332,11 @@ function FeatureResourceControls({
               })
             }}
           >
-            {feature.id === 'wild_shape' ? 'Потратить…' : 'Через Дикий облик…'}
+            {feature.id === 'wild_shape'
+              ? moonCombatWildShape
+                ? 'Потратить (бонусным)…'
+                : 'Потратить…'
+              : 'Через Дикий облик…'}
           </Button>
         ) : (
           <Button
@@ -918,11 +934,17 @@ function FeatureSlotSpendControls({
   spells,
   onSpellsChange,
   onToast,
+  onMoonFormSlotHeal,
 }: {
   feature: UnlockedFeature
   spells: SpellsState
   onSpellsChange: (spells: SpellsState) => void
   onToast?: (message: string) => void
+  onMoonFormSlotHeal?: (input: {
+    slotLevel: number
+    diceCount: number
+    diceSize: number
+  }) => string | null
 }) {
   const spend = feature.slot_spend
   if (!spend) return null
@@ -931,12 +953,14 @@ function FeatureSlotSpendControls({
   for (let level = spend.min_slot; level <= spend.max_slot; level += 1) {
     levels.push(level)
   }
+  const isMoonHeal = feature.id === 'combat_wild_shape'
 
   return (
     <div className="feature-resource">
       <Text tone="muted">
         {spend.label_ru}
         {spend.extra_vs_note_ru ? ` · ${spend.extra_vs_note_ru}` : ''}
+        {isMoonHeal ? ' · нужен активный облик' : ''}
       </Text>
       <div className="feature-resource__actions">
         {levels.map((level) => {
@@ -949,6 +973,29 @@ function FeatureSlotSpendControls({
               type="button"
               disabled={!available}
               onClick={() => {
+                if (isMoonHeal && onMoonFormSlotHeal) {
+                  const diceSize = spend.dice_size ?? 8
+                  const diceCount = withDice ? dice : moonHealDiceCount(level)
+                  const result = spendSpellSlot(spells.slots, level)
+                  if (!result.ok) {
+                    onToast?.(`Нет ячейки ${level} ур.`)
+                    return
+                  }
+                  const msg = onMoonFormSlotHeal({
+                    slotLevel: level,
+                    diceCount,
+                    diceSize,
+                  })
+                  if (msg == null) {
+                    onToast?.(
+                      'Сначала прими Дикий облик — лечение ячейкой только в облике',
+                    )
+                    return
+                  }
+                  onSpellsChange({ ...spells, slots: result.slots })
+                  onToast?.(msg)
+                  return
+                }
                 const result = spendSpellSlot(spells.slots, level)
                 if (!result.ok) {
                   onToast?.(`Нет ячейки ${level} ур.`)
@@ -986,6 +1033,8 @@ function FeatureRow({
   initiativeGrantByPool,
   wearingHeavyArmor,
   onWildShapeFork,
+  moonCombatWildShape = false,
+  onMoonFormSlotHeal,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -999,6 +1048,12 @@ function FeatureRow({
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
   onWildShapeFork?: (request: WildShapeForkRequest) => void
+  moonCombatWildShape?: boolean
+  onMoonFormSlotHeal?: (input: {
+    slotLevel: number
+    diceCount: number
+    diceSize: number
+  }) => string | null
 }) {
   const [open, setOpen] = useState(false)
   const sourceLabel =
@@ -1103,6 +1158,7 @@ function FeatureRow({
             spells={spells}
             onSpellsChange={onSpellsChange}
             onToast={onToast}
+            onMoonFormSlotHeal={onMoonFormSlotHeal}
           />
           <FeatureResourceControls
             feature={feature}
@@ -1113,6 +1169,7 @@ function FeatureRow({
             initiativeGrantByPool={initiativeGrantByPool}
             wearingHeavyArmor={wearingHeavyArmor}
             onWildShapeFork={onWildShapeFork}
+            moonCombatWildShape={moonCombatWildShape}
           />
         </div>
       ) : null}
@@ -1150,6 +1207,7 @@ export function ClassFeaturesPanel({
   onSpellsChange,
   wearingHeavyArmor = false,
   onWildShapeFork,
+  onMoonFormSlotHeal,
   onToast,
 }: ClassFeaturesPanelProps) {
   const features = useMemo(
@@ -1174,6 +1232,11 @@ export function ClassFeaturesPanel({
     }
     return map
   }, [features])
+
+  const moonCombatWildShape = useMemo(
+    () => features.some((f) => f.id === 'combat_wild_shape'),
+    [features],
+  )
   const byClass = useMemo(() => {
     const map = new Map<string, UnlockedFeature[]>()
     for (const feature of features) {
@@ -1244,6 +1307,8 @@ export function ClassFeaturesPanel({
                   initiativeGrantByPool={initiativeGrantByPool}
                   wearingHeavyArmor={wearingHeavyArmor}
                   onWildShapeFork={onWildShapeFork}
+                  moonCombatWildShape={moonCombatWildShape}
+                  onMoonFormSlotHeal={onMoonFormSlotHeal}
                 />
               ))}
             </div>

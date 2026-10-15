@@ -43,9 +43,13 @@ import {
   applyStarryForm,
   applyWildCompanion,
   applyWildfireSpirit,
+  averageDice,
   beastPickAllowed,
   crAllowed,
+  ELEMENTAL_FALLBACK_STATS,
+  healSelfForm,
   isWildShapeForkFeature,
+  moonHealDiceCount,
   resolveWildShapeOptions,
   symbioticTempHp,
   wildShapeLimits,
@@ -707,5 +711,63 @@ const ordered = sortCompanionsForDisplay([
   }),
 ])
 assert(ordered[0]?.role === 'self_form', 'display sort: form first')
+
+// --- F4: Moon heal + elemental ---
+assert(moonHealDiceCount(2) === 2, 'slot 2 → 2d8')
+assert(moonHealDiceCount(1) === 1 && moonHealDiceCount(9) === 9, 'slot bounds')
+assert(averageDice(2, 8) === 9, 'avg 2d8 = 9')
+
+const hurtForm = applyBeastWildShape({
+  companions: [],
+  knownForms: [],
+  pick: {
+    slug: 'wolf',
+    name_ru: 'Волк',
+    cr: '1/4',
+    type: 'beast',
+    ac: 13,
+    hp: 10,
+    speed_walk: 40,
+    actions_text: 'Укус',
+  },
+  hostHp: 20,
+  hostHpMax: 20,
+  druidLevel: 4,
+})
+const afterDmg = dealDamageToSelfForm({
+  companions: hurtForm.companions,
+  damage: 6,
+  hostHp: 20,
+})
+assert(getActiveSelfForm(afterDmg.companions)?.stats.hp === 4, 'pre-heal hp 4')
+const moonHealed = healSelfForm({
+  companions: afterDmg.companions,
+  amount: averageDice(2, 8), // 9
+})
+assert(moonHealed.ok && moonHealed.healed === 6, 'heal clamps to max (4+9→10, healed 6)')
+assert(getActiveSelfForm(moonHealed.companions)?.stats.hp === 10, 'full after heal')
+
+const air = ELEMENTAL_FALLBACK_STATS.air!
+const elemental = applyBeastWildShape({
+  companions: [],
+  knownForms: [],
+  pick: {
+    slug: 'air_elemental',
+    name_ru: 'Воздушный элементаль',
+    ...air,
+  },
+  hostHp: 20,
+  hostHpMax: 20,
+  druidLevel: 10,
+  formSource: 'elemental_wild_shape',
+  formSourceRef: 'elemental_wild_shape:air',
+  extraTags: ['elemental'],
+})
+assert(
+  getActiveSelfForm(elemental.companions)?.form?.form_source === 'elemental_wild_shape',
+  'elemental form source',
+)
+assert(getActiveSelfForm(elemental.companions)?.stats.hp === 90, 'air elemental HP')
+assert(elemental.knownForms[0]?.tags.includes('elemental'), 'known elemental tag')
 
 console.log('smoke-companions: ok')

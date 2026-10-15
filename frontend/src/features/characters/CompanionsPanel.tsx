@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog/CatalogCombobox'
 import type { RulesEdition } from '../../shared/api/characters'
+import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
   COMPANION_AVATAR_ACCEPT,
@@ -30,6 +31,12 @@ import {
   type CompanionKind,
   type CompanionNature,
 } from './companions'
+import {
+  healSelfForm,
+  moonHealDiceCount,
+  rollDice,
+} from './wildShape'
+import type { SpellsState } from './spells'
 
 type CompanionsPanelProps = {
   companions: CompanionEntry[]
@@ -40,6 +47,10 @@ type CompanionsPanelProps = {
   /** Host hit points — needed for Wild Shape overflow damage. */
   hostHp?: number | null
   onHostHpChange?: (hp: number) => void
+  /** Circle of the Moon — Combat Wild Shape slot heal on the form card. */
+  moonHealEnabled?: boolean
+  spells?: SpellsState
+  onSpellsChange?: (spells: SpellsState) => void
   onToast?: (message: string) => void
 }
 
@@ -99,6 +110,9 @@ export function CompanionsPanel({
   title = COMPANIONS_PANEL_TITLE,
   hostHp = null,
   onHostHpChange,
+  moonHealEnabled = false,
+  spells,
+  onSpellsChange,
   onToast,
 }: CompanionsPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -488,6 +502,52 @@ export function CompanionsPanel({
                   <Text tone="muted">
                     Сначала хиты облика; остаток переносится на хозяина и сбрасывает форму.
                   </Text>
+                </div>
+              ) : null}
+
+              {selfForm &&
+              hasFormHp &&
+              row.active &&
+              moonHealEnabled &&
+              spells &&
+              onSpellsChange ? (
+                <div className="companion-moon-heal">
+                  <Text>Исцелить ячейкой (Moon · бонусным)</Text>
+                  <Text tone="muted">1к8 × уровень ячейки, не выше макс. хитов облика.</Text>
+                  <div className="feature-resource__actions">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => {
+                      const dice = moonHealDiceCount(level)
+                      const available = canSpendSlot(spells.slots, level)
+                      return (
+                        <Button
+                          key={level}
+                          type="button"
+                          variant="secondary"
+                          disabled={!available}
+                          onClick={() => {
+                            const spent = spendSpellSlot(spells.slots, level)
+                            if (!spent.ok) {
+                              onToast?.(`Нет ячейки ${level} ур.`)
+                              return
+                            }
+                            const rolled = rollDice(dice, 8)
+                            const healed = healSelfForm({
+                              companions,
+                              amount: rolled.total,
+                              formId: row.id,
+                            })
+                            onSpellsChange({ ...spells, slots: spent.slots })
+                            onChange(healed.companions)
+                            onToast?.(
+                              `Исцеление в облике: ячейка ${level} → ${dice}к8 = ${rolled.total} [${rolled.rolls.join('+')}] · ${healed.message}`,
+                            )
+                          }}
+                        >
+                          {level} ур. (+{dice}к8)
+                        </Button>
+                      )
+                    })}
+                  </div>
                 </div>
               ) : null}
 

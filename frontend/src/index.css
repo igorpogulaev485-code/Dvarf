@@ -901,6 +901,12 @@ input {
   border-left: 3px solid color-mix(in srgb, var(--accent, #2a6f4e) 70%, var(--line));
 }
 
+.companion-moon-heal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .companion-death {
   margin-top: 4px;
 }

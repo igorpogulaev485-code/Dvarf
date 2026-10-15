@@ -288,7 +288,11 @@
         "slot_spend": {
           "label_ru": "Исцеление в облике (1к8 × ур. ячейки)",
           "min_slot": 1,
-          "max_slot": 9
+          "max_slot": 9,
+          "dice_base": 1,
+          "dice_per_slot_above": 1,
+          "dice_cap": 9,
+          "dice_size": 8
         }
       },
       {

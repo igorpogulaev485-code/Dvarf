@@ -178,7 +178,11 @@ import {
 } from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
 import { WildShapeDialog, type WildShapeDialogResult } from './WildShapeDialog'
-import { activeSelfFormLabel } from './wildShape'
+import {
+  activeSelfFormLabel,
+  healSelfForm,
+  rollDice,
+} from './wildShape'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import {
   identityExtrasToSheet,
@@ -2686,6 +2690,24 @@ export function MinimalSheetEditor({
           equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
         }
         onWildShapeFork={(request) => setWildShapeFork(request)}
+        onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
+          const form = draft.companions.find(
+            (c) => c.role === 'self_form' && c.active,
+          )
+          if (!form || form.stats.hp == null) return null
+          const rolled = rollDice(diceCount, diceSize)
+          let message = ''
+          setDraft((prev) => {
+            const healed = healSelfForm({
+              companions: prev.companions,
+              amount: rolled.total,
+              formId: form.id,
+            })
+            message = `Исцеление в облике: ячейка ${slotLevel} → ${diceCount}к${diceSize} = ${rolled.total} [${rolled.rolls.join('+')}] · ${healed.message}`
+            return { ...prev, companions: healed.companions }
+          })
+          return message || null
+        }}
         onToast={onToast}
       />
 
@@ -2761,6 +2783,11 @@ export function MinimalSheetEditor({
         onHostHpChange={(hp) =>
           setDraft((prev) => ({ ...prev, hpCurrent: hp }))
         }
+        moonHealEnabled={unlockedFeatures.some(
+          (f) => f.id === 'combat_wild_shape',
+        )}
+        spells={draft.spells}
+        onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
         onToast={onToast}
       />

@@ -286,9 +286,9 @@ SKT, ToA, WDMM, GGR, ERLW, EGW, … — оставшийся Basic allowlist.
 
 **Приёмка**
 
-- [ ] Moon L2 входит бонусным (UI copy)
-- [ ] Heal ячейкой 2 → +2к8 к форме, слот spent
-- [ ] Elemental: −2 WS, карточка элементаля
+- [x] Moon L2 входит бонусным (UI copy)
+- [x] Heal ячейкой 2 → +2к8 к форме, слот spent
+- [x] Elemental: −2 WS, карточка элементаля
 
 ---
 

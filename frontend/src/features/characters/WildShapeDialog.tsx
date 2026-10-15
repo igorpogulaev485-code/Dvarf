@@ -12,6 +12,7 @@ import {
   applyWildCompanion,
   applyWildfireSpirit,
   beastPickAllowed,
+  ELEMENTAL_FALLBACK_STATS,
   elementalKeyToSlug,
   resolveWildShapeOptions,
   spendWildShapeUses,
@@ -130,6 +131,14 @@ export function WildShapeDialog({
       }),
     [features, resources, classSlug, classEntryId],
   )
+
+  const elementalPreview = useMemo(() => {
+    const meta = elementalKeyToSlug(elementalKey)
+    if (!meta) return null
+    const fromCatalog = catalogPicks.find((p) => p.slug === meta.slug)
+    const fallback = ELEMENTAL_FALLBACK_STATS[elementalKey]
+    return fromCatalog ?? (fallback ? { ...fallback, ...meta } : null)
+  }, [catalogPicks, elementalKey])
 
   useEffect(() => {
     if (!open) {
@@ -297,27 +306,32 @@ export function WildShapeDialog({
     const meta = elementalKeyToSlug(elementalKey)
     if (!meta) return
     const fromCatalog = catalogPicks.find((p) => p.slug === meta.slug)
-    const pick: BestiaryFormPick = fromCatalog ?? {
-      slug: meta.slug,
-      name_ru: meta.name_ru,
-      cr: '5',
-      type: 'elemental',
-      ac: 15,
-      hp: 90,
-      speed_walk: elementalKey === 'air' ? 0 : 30,
-      speed_fly: elementalKey === 'air' ? 90 : undefined,
-      actions_text: 'Статы элементаля — из бестиария (после сида MM).',
-    }
+    const fallback = ELEMENTAL_FALLBACK_STATS[elementalKey]
+    const pick: BestiaryFormPick = fromCatalog
+      ? { ...fromCatalog, type: 'elemental', name_ru: meta.name_ru, slug: meta.slug }
+      : {
+          slug: meta.slug,
+          name_ru: meta.name_ru,
+          ...(fallback ?? {
+            cr: '5',
+            type: 'elemental',
+            ac: 15,
+            hp: 90,
+            speed_walk: 30,
+            actions_text: 'Статы элементаля — из бестиария MM.',
+          }),
+        }
     spendAnd('Элементальный дикий облик', 2, () => {
       const next = applyBeastWildShape({
         companions,
         knownForms,
-        pick: { ...pick, type: 'elemental', name_ru: meta.name_ru, slug: meta.slug },
+        pick,
         hostHp,
         hostHpMax,
         druidLevel,
         formSource: 'elemental_wild_shape',
         formSourceRef: `elemental_wild_shape:${elementalKey}`,
+        extraTags: ['elemental'],
       })
       return { ...next, toast: `Элементальный облик: ${meta.name_ru}` }
     })
@@ -363,7 +377,7 @@ export function WildShapeDialog({
               Лимит облика: CR ≤ {limits.maxCr}
               {limits.allowSwim ? ' · плавание' : ''}
               {limits.allowFly ? ' · полёт' : ''}
-              {limits.combatBonusAction ? ' · Moon: бонусным' : ''}
+              {limits.combatBonusAction ? ' · Moon: бонусным действием' : ''}
             </Text>
             <Stack gap={8}>
               {options.map((opt) => (
@@ -375,6 +389,9 @@ export function WildShapeDialog({
                   onClick={() => chooseOption(opt.id)}
                 >
                   {opt.labelRu}
+                  {opt.id === 'beast_form' && limits.combatBonusAction
+                    ? ' (бонусным)'
+                    : ''}
                   {opt.cost > 1 ? ` (−${opt.cost})` : ''}
                   {' — '}
                   {opt.disabled ? opt.disabledReason : opt.summaryRu}
@@ -465,7 +482,9 @@ export function WildShapeDialog({
 
         {step === 'elemental' ? (
           <>
-            <Text tone="muted">Стоимость: оба использования Дикого облика.</Text>
+            <Text tone="muted">
+              Стоимость: оба использования Дикого облика (−2). Moon 10+.
+            </Text>
             {(
               [
                 ['air', 'Воздух'],
@@ -483,6 +502,15 @@ export function WildShapeDialog({
                 {label}
               </Button>
             ))}
+            {elementalPreview ? (
+              <Text tone="muted">
+                {elementalPreview.name_ru ?? elementalKeyToSlug(elementalKey)?.name_ru}: КД{' '}
+                {elementalPreview.ac} · HP {elementalPreview.hp} · CR{' '}
+                {elementalPreview.cr}
+                {(elementalPreview.speed_fly ?? 0) > 0 ? ' · полёт' : ''}
+                {(elementalPreview.speed_swim ?? 0) > 0 ? ' · плав.' : ''}
+              </Text>
+            ) : null}
           </>
         ) : null}
       </Stack>
