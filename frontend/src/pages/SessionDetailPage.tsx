@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
+import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
 import { SessionTableCard } from '../features/lobby/SessionTableCard'
 import { useSessionRealtime } from '../features/lobby/useSessionRealtime'
+import { letterBadge } from '../shared/api/chat'
 import { normalizeVisibilityProfile } from '../features/lobby/visibilityProfile'
 import { listCharacters } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
@@ -40,6 +42,7 @@ export function SessionDetailPage() {
   const [closeTitle, setCloseTitle] = useState('')
   const [closeSummary, setCloseSummary] = useState('')
   const [writeJournal, setWriteJournal] = useState(true)
+  const [letterBadgeCount, setLetterBadgeCount] = useState(0)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -86,6 +89,22 @@ export function SessionDetailPage() {
       return [incoming, ...prev]
     })
   })
+
+  useEffect(() => {
+    if (!session?.is_owner) {
+      setLetterBadgeCount(0)
+      return
+    }
+    let active = true
+    letterBadge(session.lobby_id)
+      .then((b) => {
+        if (active) setLetterBadgeCount(b.count)
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [session?.is_owner, session?.lobby_id, liveTab])
 
   const presentIds = useMemo(
     () => new Set(session?.seats.map((s) => s.character_id) ?? []),
@@ -236,7 +255,11 @@ export function SessionDetailPage() {
 
         <Panel title="Живой стол">
           <Stack gap={14}>
-            <SessionLiveTabs active={liveTab} onChange={setLiveTab} />
+            <SessionLiveTabs
+              active={liveTab}
+              onChange={setLiveTab}
+              moreBadge={letterBadgeCount}
+            />
 
             {liveTab === 'table' ? (
               session.seats.length === 0 ? (
@@ -262,7 +285,9 @@ export function SessionDetailPage() {
                   })}
                 </div>
               )
-            ) : (
+            ) : null}
+
+            {liveTab === 'feed' ? (
               <Stack gap={14}>
                 {historyOff ? (
                   <Text tone="muted">Лента скрыта настройками видимости лобби.</Text>
@@ -300,7 +325,20 @@ export function SessionDetailPage() {
                   />
                 ) : null}
               </Stack>
-            )}
+            ) : null}
+
+            {liveTab === 'more' ? (
+              <LobbyChatsPanel
+                lobbyId={session.lobby_id}
+                isOwner={session.is_owner}
+                compact
+                ownCharacterOptions={session.lobby_members
+                  .filter((m) => ownCharacterIds.has(m.character_id))
+                  .map((m) => ({ id: m.character_id, name: m.character_name }))}
+                onToast={setToast}
+                onError={setError}
+              />
+            ) : null}
           </Stack>
         </Panel>
       </Stack>

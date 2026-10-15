@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
+import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyComingSoon } from '../features/lobby/LobbyComingSoon'
 import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs'
 import { LobbyJournalPanel } from '../features/lobby/LobbyJournalPanel'
@@ -110,6 +111,7 @@ export function LobbyDetailPage() {
     () => new Set(lobby?.members.map((m) => m.character_id) ?? []),
     [lobby],
   )
+  const ownCharacterIds = useMemo(() => new Set(characters.map((c) => c.id)), [characters])
   const available = characters.filter((c) => !memberIds.has(c.id))
 
   async function run(action: () => Promise<void>) {
@@ -267,9 +269,14 @@ export function LobbyDetailPage() {
         ) : null}
 
         {tab === 'chats' ? (
-          <LobbyComingSoon
-            title="Чаты"
-            description="Тематические каналы и письмо мастеру появятся после живого стола."
+          <LobbyChatsPanel
+            lobbyId={lobby.id}
+            isOwner={lobby.is_owner}
+            ownCharacterOptions={lobby.members
+              .filter((m) => ownCharacterIds.has(m.character_id))
+              .map((m) => ({ id: m.character_id, name: m.character_name }))}
+            onToast={setToast}
+            onError={setError}
           />
         ) : null}
 

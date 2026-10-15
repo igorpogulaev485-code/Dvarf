@@ -1,5 +1,6 @@
 from app.models.catalog import CatalogEntry, CatalogKind, CatalogRulesEdition
 from app.models.character import Character, RulesEdition
+from app.models.chat import ChatChannel, ChatMessage, MasterLetter, MasterLetterMessage
 from app.models.journal import CampaignJournalEntry
 from app.models.lobby import Lobby, LobbyMember, PlaySession, SessionSeat, Setting
 from app.models.session_event import SessionEvent
@@ -21,10 +22,14 @@ __all__ = [
     "CatalogKind",
     "CatalogRulesEdition",
     "Character",
+    "ChatChannel",
+    "ChatMessage",
     "EmailChangeToken",
     "EmailVerificationToken",
     "Lobby",
     "LobbyMember",
+    "MasterLetter",
+    "MasterLetterMessage",
     "PasswordResetToken",
     "PlaySession",
     "RulesEdition",

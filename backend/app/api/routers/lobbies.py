@@ -9,9 +9,20 @@ from app.core.exceptions import UnauthorizedError
 from app.core.security import decode_token
 from app.db.session import SessionLocal
 from app.models.user import User
-from app.realtime.session_hub import session_hub
+from app.realtime.hub import lobby_hub, session_hub
 from app.repositories.auth_session import AuthSessionRepository
 from app.repositories.user import UserRepository
+from app.schemas.chat import (
+    ChatChannelCreateRequest,
+    ChatChannelOut,
+    ChatMessageCreateRequest,
+    ChatMessageOut,
+    MasterLetterBadgeOut,
+    MasterLetterCreateRequest,
+    MasterLetterOut,
+    MasterLetterReplyRequest,
+    MasterLetterSummary,
+)
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
     JoinLobbyRequest,
@@ -35,6 +46,7 @@ from app.schemas.lobby import (
     SettingSummary,
     SettingUpdateRequest,
 )
+from app.services.chat import ChatService
 from app.services.lobby import LobbyService
 
 router = APIRouter(tags=["lobbies"])
@@ -354,3 +366,141 @@ async def session_ws(session_id: UUID, websocket: WebSocket) -> None:
         pass
     finally:
         await session_hub.disconnect(session_id, websocket)
+
+
+@router.get("/lobbies/{lobby_id}/channels", response_model=list[ChatChannelOut])
+def list_channels(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> list[ChatChannelOut]:
+    return ChatService(db).list_channels(current_user, lobby_id)
+
+
+@router.post(
+    "/lobbies/{lobby_id}/channels",
+    response_model=ChatChannelOut,
+    status_code=201,
+)
+def create_channel(
+    lobby_id: UUID,
+    payload: ChatChannelCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> ChatChannelOut:
+    return ChatService(db).create_channel(current_user, lobby_id, payload)
+
+
+@router.get("/channels/{channel_id}/messages", response_model=list[ChatMessageOut])
+def list_channel_messages(
+    channel_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    limit: int = Query(default=50, ge=1, le=100),
+) -> list[ChatMessageOut]:
+    return ChatService(db).list_messages(current_user, channel_id, limit=limit)
+
+
+@router.post(
+    "/channels/{channel_id}/messages",
+    response_model=ChatMessageOut,
+    status_code=201,
+)
+async def post_channel_message(
+    channel_id: UUID,
+    payload: ChatMessageCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> ChatMessageOut:
+    return await ChatService(db).post_message(current_user, channel_id, payload)
+
+
+@router.get("/lobbies/{lobby_id}/letters", response_model=list[MasterLetterSummary])
+def list_letters(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> list[MasterLetterSummary]:
+    return ChatService(db).list_letters(current_user, lobby_id)
+
+
+@router.get("/lobbies/{lobby_id}/letters/badge", response_model=MasterLetterBadgeOut)
+def letter_badge(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> MasterLetterBadgeOut:
+    return ChatService(db).letter_badge(current_user, lobby_id)
+
+
+@router.post(
+    "/lobbies/{lobby_id}/letters",
+    response_model=MasterLetterOut,
+    status_code=201,
+)
+async def create_letter(
+    lobby_id: UUID,
+    payload: MasterLetterCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> MasterLetterOut:
+    return await ChatService(db).create_letter(current_user, lobby_id, payload)
+
+
+@router.get("/letters/{letter_id}", response_model=MasterLetterOut)
+def get_letter(
+    letter_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> MasterLetterOut:
+    return ChatService(db).get_letter(current_user, letter_id)
+
+
+@router.post("/letters/{letter_id}/messages", response_model=MasterLetterOut)
+async def reply_letter(
+    letter_id: UUID,
+    payload: MasterLetterReplyRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> MasterLetterOut:
+    return await ChatService(db).reply_letter(current_user, letter_id, payload)
+
+
+@router.post("/letters/{letter_id}/close", response_model=MasterLetterOut)
+def close_letter(
+    letter_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> MasterLetterOut:
+    return ChatService(db).close_letter(current_user, letter_id)
+
+
+@router.websocket("/lobbies/{lobby_id}/ws")
+async def lobby_ws(lobby_id: UUID, websocket: WebSocket) -> None:
+    token = websocket.query_params.get("token") or ""
+    if not token:
+        await websocket.close(code=4401)
+        return
+    try:
+        user = _user_from_ws_token(token)
+    except UnauthorizedError:
+        await websocket.close(code=4401)
+        return
+
+    db = SessionLocal()
+    try:
+        LobbyService(db).get(user, lobby_id)
+    except Exception:  # noqa: BLE001
+        await websocket.close(code=4403)
+        return
+    finally:
+        db.close()
+
+    await lobby_hub.connect(lobby_id, websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        pass
+    finally:
+        await lobby_hub.disconnect(lobby_id, websocket)

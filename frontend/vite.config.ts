@@ -20,11 +20,20 @@ export default defineConfig({
       '/lobbies': {
         target: 'http://127.0.0.1:8000',
         bypass: spaBypass,
+        ws: true,
       },
       '/sessions': {
         target: 'http://127.0.0.1:8000',
         bypass: spaBypass,
         ws: true,
+      },
+      '/channels': {
+        target: 'http://127.0.0.1:8000',
+        bypass: spaBypass,
+      },
+      '/letters': {
+        target: 'http://127.0.0.1:8000',
+        bypass: spaBypass,
       },
       '/journal': {
         target: 'http://127.0.0.1:8000',

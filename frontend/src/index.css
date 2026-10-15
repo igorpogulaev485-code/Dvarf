@@ -2195,3 +2195,162 @@ input {
   margin: 0;
   font-size: 1rem;
 }
+
+/* —— Chats + master letters (A5) —— */
+.chat-mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chat-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #b42318;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.chat-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.chat-layout--compact .chat-channels {
+  order: 0;
+}
+
+.chat-channel-list,
+.chat-message-list,
+.letter-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.chat-channel-item,
+.letter-list__item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.chat-channel-item.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 60%, white);
+  color: var(--accent);
+}
+
+.chat-channel-item__count {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.chat-thread__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.chat-message-list {
+  max-height: min(42vh, 420px);
+  overflow-y: auto;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.chat-message {
+  display: grid;
+  gap: 2px;
+}
+
+.chat-message__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 10px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.chat-message__head strong {
+  color: var(--text);
+}
+
+.chat-message__body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chat-composer {
+  display: grid;
+  gap: 8px;
+}
+
+.chat-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.letter-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.letter-badge-chip {
+  border: 1px solid color-mix(in srgb, #b42318 35%, var(--line));
+  background: color-mix(in srgb, #b42318 12%, white);
+  color: #b42318;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.letter-list__item {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.letter-list__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+
+.letter-list__meta {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 400;
+}
+
+@media (min-width: 900px) {
+  .chat-layout:not(.chat-layout--compact) {
+    grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+    align-items: start;
+  }
+}

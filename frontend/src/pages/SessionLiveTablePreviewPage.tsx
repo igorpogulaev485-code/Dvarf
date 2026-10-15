@@ -246,7 +246,9 @@ export function SessionLiveTablePreviewPage() {
                   />
                 ))}
               </div>
-            ) : (
+            ) : null}
+
+            {liveTab === 'feed' ? (
               <Stack gap={14}>
                 <label className="session-feed-filter">
                   <input
@@ -286,7 +288,14 @@ export function SessionLiveTablePreviewPage() {
                   }}
                 />
               </Stack>
-            )}
+            ) : null}
+
+            {liveTab === 'more' ? (
+              <Text tone="muted">
+                Чаты лобби и письмо мастеру — на живой сессии во вкладке «Ещё». Превью:{' '}
+                /dev/lobby-chats-preview
+              </Text>
+            ) : null}
           </Stack>
         </Panel>
       </Stack>
