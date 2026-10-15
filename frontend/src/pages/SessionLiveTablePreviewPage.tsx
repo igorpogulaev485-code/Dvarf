@@ -1,5 +1,6 @@
 /**
- * Превью A3: живой стол — карточки по видимости + лента + физ. куб.
+ * Превью A3: экран сессии как в продукте (без dev-переключателей).
+ * Видимость берётся из настроек лобби; мастер = владелец лобби.
  * /dev/session-live-table-preview
  */
 import { useMemo, useState } from 'react'
@@ -7,13 +8,9 @@ import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
 import { SessionTableCard } from '../features/lobby/SessionTableCard'
-import {
-  applyVisibilityPreset,
-  type FieldPreset,
-  type VisibilityProfile,
-} from '../features/lobby/visibilityProfile'
+import { defaultVisibilityProfile } from '../features/lobby/visibilityProfile'
 import type { SessionEvent, SessionSeat } from '../shared/api/lobbies'
-import { Panel, Stack, Text, Toast } from '../ui'
+import { Button, Panel, Stack, Text, Toast } from '../ui'
 
 const DEMO_SEATS: SessionSeat[] = [
   {
@@ -164,25 +161,21 @@ const SEED_EVENTS: SessionEvent[] = [
 
 export function SessionLiveTablePreviewPage() {
   const [liveTab, setLiveTab] = useState<SessionLiveTabId>('table')
-  const [preset, setPreset] = useState<Exclude<FieldPreset, 'custom'>>('all')
-  const [asMaster, setAsMaster] = useState(true)
   const [rollsOnly, setRollsOnly] = useState(false)
   const [events, setEvents] = useState<SessionEvent[]>(SEED_EVENTS)
   const [toast, setToast] = useState<string | null>(null)
 
-  const visibility: VisibilityProfile = useMemo(() => applyVisibilityPreset(preset), [preset])
+  // Как в продукте: профиль из настроек лобби; здесь — дефолт (всё видно игрокам).
+  // Мастер на реальном экране = is_owner лобби, не отдельный переключатель.
+  const visibility = useMemo(() => defaultVisibilityProfile(), [])
 
   const visibleEvents = useMemo(() => {
     let list = events
-    if (!asMaster && visibility.event_history === 'off') return []
-    if (!asMaster && visibility.event_history === 'hide_master_rolls') {
-      list = list.filter((e) => !e.is_master_roll)
-    }
     if (rollsOnly) list = list.filter((e) => e.event_type === 'roll')
     return [...list].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     )
-  }, [events, asMaster, visibility.event_history, rollsOnly])
+  }, [events, rollsOnly])
 
   return (
     <main className="page page--app page--lobby-hub">
@@ -190,7 +183,9 @@ export function SessionLiveTablePreviewPage() {
         <header className="app-header">
           <div>
             <Text as="h1">Эхо Рассвета</Text>
-            <Text tone="muted">Превью A3 · живой стол · {DEMO_SEATS.length} за столом</Text>
+            <Text tone="muted">
+              Превью A3 · сессия · за столом {DEMO_SEATS.length}
+            </Text>
           </div>
         </header>
 
@@ -200,26 +195,13 @@ export function SessionLiveTablePreviewPage() {
           <Text>
             <span className="back-link">← В лобби «Эхо Рассвета»</span>
           </Text>
-          <div className="session-preview-toggles">
-            <label className="session-preview-toggles__item">
-              <input
-                type="checkbox"
-                checked={asMaster}
-                onChange={(e) => setAsMaster(e.target.checked)}
-              />
-              Как мастер
-            </label>
-            <select
-              className="ui-input"
-              value={preset}
-              onChange={(e) => setPreset(e.target.value as Exclude<FieldPreset, 'custom'>)}
-              aria-label="Пресет видимости"
-            >
-              <option value="all">Видимость: всё</option>
-              <option value="complex_combat">Видимость: сложный бой</option>
-              <option value="minimum">Видимость: минимум</option>
-            </select>
-          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setToast('Состав — через «Кто пришёл» (A2)')}
+          >
+            Кто пришёл
+          </Button>
         </div>
 
         <Panel title="Сессия">
@@ -240,8 +222,8 @@ export function SessionLiveTablePreviewPage() {
                     key={seat.character_id}
                     seat={seat}
                     visibility={visibility}
-                    revealAll={asMaster}
-                    sheetLabel={asMaster ? 'Смотреть' : 'Лист'}
+                    revealAll
+                    sheetLabel="Смотреть"
                   />
                 ))}
               </div>
@@ -259,7 +241,7 @@ export function SessionLiveTablePreviewPage() {
                 <ManualRollForm
                   seats={DEMO_SEATS}
                   ownCharacterIds={new Set(['c1'])}
-                  isOwner={asMaster}
+                  isOwner
                   onSubmit={(payload) => {
                     const next: SessionEvent = {
                       id: `local-${Date.now()}`,
@@ -288,7 +270,6 @@ export function SessionLiveTablePreviewPage() {
             )}
           </Stack>
         </Panel>
-
       </Stack>
 
       <Toast message={toast} onClose={() => setToast(null)} />

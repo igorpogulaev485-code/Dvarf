@@ -2069,31 +2069,6 @@ input {
   accent-color: var(--accent);
 }
 
-.session-preview-toggles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
-.session-preview-toggles__item {
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.session-preview-toggles select {
-  min-width: 180px;
-}
-
-.session-preview-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
 @media (min-width: 640px) {
   .session-table-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
