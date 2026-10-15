@@ -65,6 +65,11 @@ type SpellsSettingsDialogProps = {
   coins?: CoinPurse | null
   onCoinsChange?: (coins: CoinPurse) => void
   inventoryItems?: import('./inventory').InventoryItem[]
+  onInventoryItemsChange?: (items: import('./inventory').InventoryItem[]) => void
+  onChangeInventory?: (next: {
+    coins: CoinPurse
+    items: import('./inventory').InventoryItem[]
+  }) => void
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
@@ -85,6 +90,8 @@ export function SpellsSettingsDialog({
   coins = null,
   onCoinsChange,
   inventoryItems = [],
+  onInventoryItemsChange,
+  onChangeInventory,
   onChange,
   onClose,
   onToast,
@@ -717,6 +724,8 @@ export function SpellsSettingsDialog({
           })()}
           onChangeSpells={onChange}
           onChangeCoins={onCoinsChange}
+          onChangeInventoryItems={onInventoryItemsChange}
+          onChangeInventory={onChangeInventory}
           onClose={() => setBookManageOpen(false)}
           onToast={onToast}
         />

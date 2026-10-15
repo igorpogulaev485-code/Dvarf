@@ -1,13 +1,15 @@
 /**
- * Slice 3: mark wizard spellbook lost / replace from prepared memory.
+ * Wizard spellbook manage: lose / replace / backup / copy from scroll (I-17 stitch).
  */
 import { useMemo, useState } from 'react'
 import {
   activateBackupAsPrimary,
   beginReplacementSpellbook,
+  copySpellCost,
   markSpellbookLost,
   planRestorePrepared,
   registerBackupBook,
+  resolveSpellbookAddPayment,
   resolveWizardCopyMods,
   totalCopyCost,
   type SpellbookModifiers,
@@ -16,11 +18,15 @@ import { formatGpTotal, spendGpFromPurse, type CoinPurse } from '../../shared/dn
 import { Dialog, Stack, Text } from '../../ui'
 import type { InventoryItem } from './inventory'
 import {
+  consumeScrollItem,
+  listBoundSpellScrolls,
+} from './spellScroll'
+import {
   isSpellbookInventoryItem,
   wizardHasUsableSpellbook,
   wizardSpellbookStatusLabel,
 } from './wizardSpellbookInventory'
-import type { SpellsState } from './spells'
+import { addScrollSpellToKnown, type SpellsState } from './spells'
 
 type SpellbookManageDialogProps = {
   open: boolean
@@ -31,6 +37,13 @@ type SpellbookManageDialogProps = {
   subclassSlug?: string | null
   onChangeSpells: (spells: SpellsState) => void
   onChangeCoins: (coins: CoinPurse) => void
+  /** Persist inventory after consuming a scroll. */
+  onChangeInventoryItems?: (items: InventoryItem[]) => void
+  /**
+   * Atomic coins+items update (scroll copy must not race two separate patches
+   * against a stale inventory snapshot).
+   */
+  onChangeInventory?: (next: { coins: CoinPurse; items: InventoryItem[] }) => void
   onClose: () => void
   onToast?: (message: string) => void
 }
@@ -44,6 +57,8 @@ export function SpellbookManageDialog({
   subclassSlug = null,
   onChangeSpells,
   onChangeCoins,
+  onChangeInventoryItems,
+  onChangeInventory,
   onClose,
   onToast,
 }: SpellbookManageDialogProps) {
@@ -116,6 +131,76 @@ export function SpellbookManageDialog({
       ),
     [inventoryItems, registeredBackups],
   )
+  const boundScrolls = useMemo(
+    () => listBoundSpellScrolls(inventoryItems),
+    [inventoryItems],
+  )
+
+  function scrollCopyPreview(item: InventoryItem) {
+    const spell = item.scroll_spell
+    if (!spell || spell.level <= 0) return null
+    return copySpellCost({
+      spellLevel: spell.level,
+      kind: 'foreign',
+      spellSchool: spell.school,
+      mods,
+    })
+  }
+
+  function copyFromScroll(item: InventoryItem) {
+    if (!wizardHasUsableSpellbook(spells)) {
+      onToast?.('Нужна активная книга заклинаний')
+      return
+    }
+    const binding = item.scroll_spell
+    if (!binding || !binding.name.trim()) {
+      onToast?.('У свитка не указано заклинание — задай в инвентаре')
+      return
+    }
+    if (binding.level <= 0) {
+      onToast?.('Заговоры не копируют в книгу (они не в spellbook)')
+      return
+    }
+    if (!onChangeInventory && !onChangeInventoryItems) {
+      onToast?.('Нет связи с инвентарём — нельзя списать свиток')
+      return
+    }
+    const payment = resolveSpellbookAddPayment({
+      spellLevel: binding.level,
+      spellSchool: binding.school,
+      known: spells.known,
+      wizardLevel,
+      coins,
+      mods,
+      forcePaid: true,
+    })
+    if (!payment.ok) {
+      onToast?.(payment.message)
+      return
+    }
+    const nextItems = consumeScrollItem(inventoryItems, item.id)
+    const nextCoins = payment.free ? coins : payment.coins
+    if (onChangeInventory) {
+      onChangeInventory({ coins: nextCoins, items: nextItems })
+    } else {
+      if (!payment.free) onChangeCoins(payment.coins)
+      onChangeInventoryItems?.(nextItems)
+    }
+    onChangeSpells({
+      ...spells,
+      known: addScrollSpellToKnown(spells.known, binding, {
+        prepare: false,
+        spellbook_acquisition: 'copied',
+        in_spellbook: true,
+      }),
+    })
+    const cost = payment.cost
+    onToast?.(
+      cost && cost.gp > 0
+        ? `Из свитка в книгу: ${binding.name} · −${formatGpTotal(cost.gp)} зм · свиток израсходован`
+        : `Из свитка в книгу: ${binding.name} · свиток израсходован`,
+    )
+  }
 
   function markLost() {
     const current = spells.wizard_spellbook
@@ -295,6 +380,63 @@ export function SpellbookManageDialog({
           Статус: <strong>{status.label}</strong>
         </Text>
         {copyModsHint ? <Text tone="muted">{copyModsHint}</Text> : null}
+
+        <Stack gap={8}>
+          <Text as="h3">Внести из свитка</Text>
+          <Text tone="muted">
+            Тариф чужой копии (50 зм + 2 ч / ур., скидки архетипа учтены). Свиток
+            расходуется. Заклинание на свитке задаётся в инвентаре при добавлении.
+          </Text>
+          {!wizardHasUsableSpellbook(spells) ? (
+            <Text tone="muted">Сначала нужна активная книга.</Text>
+          ) : boundScrolls.length === 0 ? (
+            <Text tone="muted">
+              Нет свитков с указанным заклинанием. Добавь «Свиток N уровня» в инвентарь и
+              выбери заклинание.
+            </Text>
+          ) : (
+            <ul className="prepare-list">
+              {boundScrolls.map((item) => {
+                const spell = item.scroll_spell!
+                const cost = scrollCopyPreview(item)
+                const already =
+                  spell.catalog_id != null &&
+                  spells.known.some(
+                    (row) =>
+                      row.catalog_id === spell.catalog_id && row.in_spellbook !== false,
+                  )
+                return (
+                  <li key={item.id} className="prepare-row">
+                    <span>
+                      {spell.name} · {spell.level} ур.
+                      {item.qty > 1 ? ` ×${item.qty}` : ''}
+                      {cost
+                        ? ` · ${
+                            cost.gp > 0
+                              ? `${formatGpTotal(cost.gp)} зм`
+                              : 'без золота'
+                          }`
+                        : ''}
+                      {already ? ' · уже в книге' : ''}
+                    </span>
+                    <button
+                      type="button"
+                      className="sheet-chip is-on"
+                      disabled={
+                        already ||
+                        spell.level <= 0 ||
+                        (!onChangeInventory && !onChangeInventoryItems)
+                      }
+                      onClick={() => copyFromScroll(item)}
+                    >
+                      В книгу
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </Stack>
 
         <Stack gap={8}>
           <Text as="h3">Утеря / уничтожение</Text>

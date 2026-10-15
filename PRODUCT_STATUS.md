@@ -589,6 +589,7 @@
 | Нехватка денег | Копия не пишется; toast с «нужно X / есть Y» | Понятно, почему нельзя внести заклинание |
 | Утеря / замена / бэкап | `SpellbookManageDialog`: утеря, restore из памяти, запасная копия + activate | Книга живёт как предмет; после утери — бэкап или перепись подготовленных |
 | Ритуал из книги | Без prepare, если в книге и книга есть; гейт при `bookLost` | PHB ritual casting волшебника |
+| Свиток → книга | В инвентаре у свитка выбирается заклинание; «Внести из свитка» платит foreign + расходует свиток | Не «просто свиток» без имени |
 | Модель листа | `wizard_spellbook` + `spellbook_acquisition` / `in_spellbook` | Данные на листе |
 
 Спека: [`docs/wizard-spellbook.md`](docs/wizard-spellbook.md) · план: [`docs/wizard-spellbook-plan.md`](docs/wizard-spellbook-plan.md)  

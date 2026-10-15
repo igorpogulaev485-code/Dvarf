@@ -1067,3 +1067,59 @@ export function addCatalogSpellToKnown(
   }
   return next
 }
+
+/** Add a scroll-bound spell into the sheet / spellbook (no catalog fetch required). */
+export function addScrollSpellToKnown(
+  known: SheetSpell[],
+  binding: {
+    catalog_id: string | null
+    name: string
+    level: number
+    school?: string | null
+    ritual?: boolean
+  },
+  options?: {
+    prepare?: boolean
+    maxPrepared?: number | null
+    spellbook_acquisition?: SpellbookAcquisition
+    in_spellbook?: boolean
+  },
+): SheetSpell[] {
+  if (binding.catalog_id && knownHasCatalogId(known, binding.catalog_id)) {
+    // Already on sheet — ensure in_spellbook if requested.
+    if (options?.in_spellbook) {
+      return known.map((spell) =>
+        spell.catalog_id === binding.catalog_id && spell.level > 0
+          ? {
+              ...spell,
+              in_spellbook: true,
+              spellbook_acquisition:
+                spell.spellbook_acquisition ?? options.spellbook_acquisition ?? 'copied',
+            }
+          : spell,
+      )
+    }
+    return known
+  }
+  const level = Math.max(0, Math.floor(binding.level))
+  const spell: SheetSpell = {
+    ...createSheetSpell(),
+    name: binding.name.trim(),
+    catalog_id: binding.catalog_id,
+    level,
+    prepared: level <= 0,
+    ...(binding.school ? { school: binding.school } : {}),
+    ...(binding.ritual ? { ritual: true } : {}),
+    ...(options?.spellbook_acquisition && level > 0
+      ? { spellbook_acquisition: options.spellbook_acquisition }
+      : {}),
+    ...(options?.in_spellbook !== undefined && level > 0
+      ? { in_spellbook: options.in_spellbook }
+      : {}),
+  }
+  let next = [...known, spell]
+  if ((options?.prepare ?? false) && level > 0) {
+    next = setSpellPrepared(next, spell.id, true, options?.maxPrepared ?? null)
+  }
+  return next
+}

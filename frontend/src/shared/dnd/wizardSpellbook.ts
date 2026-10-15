@@ -327,9 +327,14 @@ export function resolveSpellbookAddPayment(input: {
   wizardLevel: number
   coins: CoinPurse | null | undefined
   mods?: SpellbookModifiers
+  /**
+   * Scroll / foreign manuscript: never consume free research slots
+   * (PHB: research freebies are separate from copying a found scroll).
+   */
+  forcePaid?: boolean
 }): SpellbookAddPayment {
   const freeLeft = remainingFreeSpellbookSlots(input.known, input.wizardLevel)
-  if (freeLeft > 0) {
+  if (!input.forcePaid && freeLeft > 0) {
     const used = countFreeSpellbookSlotsUsed(input.known)
     const acquisition: 'starting' | 'level_up' = used < 6 ? 'starting' : 'level_up'
     return {

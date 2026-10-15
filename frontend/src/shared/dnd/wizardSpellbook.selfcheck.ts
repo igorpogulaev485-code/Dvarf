@@ -168,6 +168,20 @@ if (withCoins.ok && !withCoins.free) {
   assert(coinsToGp(withCoins.coins) === 20, '120-100=20')
 }
 
+// Scroll copy never consumes free research slots
+const scrollPay = resolveSpellbookAddPayment({
+  spellLevel: 1,
+  known: [],
+  wizardLevel: 1,
+  coins: { cp: 0, sp: 0, ep: 0, gp: 60, pp: 0 },
+  forcePaid: true,
+})
+assert(scrollPay.ok && !scrollPay.free, 'scroll force paid')
+if (scrollPay.ok && !scrollPay.free) {
+  assert(scrollPay.cost.gp === 50, 'scroll 1st = 50')
+  assert(coinsToGp(scrollPay.coins) === 10, '60-50=10')
+}
+
 // --- archetype savant / scribes ---
 const evo = resolveWizardCopyMods({
   subclassSlug: 'school_of_evocation',

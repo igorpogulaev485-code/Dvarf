@@ -4613,6 +4613,18 @@ export function MinimalSheetEditor({
               }))
             }
             inventoryItems={draft.inventory.items}
+            onInventoryItemsChange={(items) =>
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, items },
+              }))
+            }
+            onChangeInventory={({ coins, items }) =>
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, coins, items },
+              }))
+            }
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
             onClose={() => setSpellsSettingsOpen(false)}
             onToast={onToast}

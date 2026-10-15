@@ -41,6 +41,16 @@ function readEffects(value: unknown): GearEffect[] {
 
 export type InventoryContainerKind = 'none' | 'pack' | 'kit' | 'container'
 
+/** Concrete spell bound to a generic Spell Scroll catalog blank (I-17). */
+export type ScrollSpellBinding = {
+  catalog_id: string | null
+  slug?: string | null
+  name: string
+  level: number
+  school?: string | null
+  ritual?: boolean
+}
+
 export type InventoryItem = {
   id: string
   name: string
@@ -81,6 +91,11 @@ export type InventoryItem = {
   requires_attunement?: boolean
   /** Typed catalog effects (ac_bonus, sense, …) — active when equipped (+ attuned). */
   effects?: GearEffect[]
+  /**
+   * Spell Scroll: which spell this consumable holds.
+   * Catalog blanks are level-only; binding is set when the item enters inventory.
+   */
+  scroll_spell?: ScrollSpellBinding | null
 }
 
 export type InventoryState = {
@@ -149,6 +164,26 @@ function readCoins(raw: unknown): CoinPurse {
   }
 }
 
+function readScrollSpell(raw: unknown): ScrollSpellBinding | null {
+  if (!raw || typeof raw !== 'object') return null
+  const row = raw as Record<string, unknown>
+  const name = typeof row.name === 'string' ? row.name.trim() : ''
+  if (!name) return null
+  const levelRaw = row.level
+  const level =
+    typeof levelRaw === 'number' && Number.isFinite(levelRaw)
+      ? Math.max(0, Math.floor(levelRaw))
+      : 0
+  return {
+    catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+    slug: typeof row.slug === 'string' ? row.slug : null,
+    name,
+    level,
+    school: typeof row.school === 'string' ? row.school : null,
+    ritual: Boolean(row.ritual),
+  }
+}
+
 function readItem(raw: unknown, index: number): InventoryItem {
   const row = asRecord(raw)
   const armor_kind = isArmorKind(row.armor_kind) ? row.armor_kind : 'none'
@@ -176,6 +211,7 @@ function readItem(raw: unknown, index: number): InventoryItem {
     wear_slot: readWearSlot(row.wear_slot),
     requires_attunement: Boolean(row.requires_attunement),
     effects: readEffects(row.effects),
+    scroll_spell: readScrollSpell(row.scroll_spell),
   }
 }
 
@@ -248,6 +284,20 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         wear_slot: item.wear_slot ?? null,
         requires_attunement: Boolean(item.requires_attunement),
         effects: item.effects ?? [],
+        ...(item.scroll_spell
+          ? {
+              scroll_spell: {
+                catalog_id: item.scroll_spell.catalog_id,
+                ...(item.scroll_spell.slug ? { slug: item.scroll_spell.slug } : {}),
+                name: item.scroll_spell.name,
+                level: item.scroll_spell.level,
+                ...(item.scroll_spell.school
+                  ? { school: item.scroll_spell.school }
+                  : {}),
+                ...(item.scroll_spell.ritual ? { ritual: true } : {}),
+              },
+            }
+          : {}),
       })),
     },
   }

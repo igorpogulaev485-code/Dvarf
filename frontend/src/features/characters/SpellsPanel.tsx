@@ -1113,6 +1113,12 @@ export function SpellsPanel({
           })()}
           onChangeSpells={onChange}
           onChangeCoins={(coins) => onInventoryChange({ ...inventory, coins })}
+          onChangeInventoryItems={(items) =>
+            onInventoryChange({ ...inventory, items })
+          }
+          onChangeInventory={({ coins, items }) =>
+            onInventoryChange({ ...inventory, coins, items })
+          }
           onClose={() => setBookManageOpen(false)}
           onToast={onToast}
         />
