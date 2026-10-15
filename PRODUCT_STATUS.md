@@ -535,6 +535,7 @@
 | Сид MPMM | `bestiary_mpmm_v1.json` ×**258** + alembic `e7f8a9b0c1d2` | После «Залей» в справочнике +MPMM |
 | Сид B4 books | `bestiary_books_b4_v1.json` ×**290** (FTD/BGG/BAM/TCE/BMT) + alembic `f8a9b0c1d2e3` | Wildfire Spirit HP=10 в каталоге после «Залей» |
 | Сид B5 adv+set | `bestiary_adventures_b5_v1.json` ×**1113** (46 книг) + alembic `a9b0c1d2e3f4` | После «Залей» полный оф. Basic **2380** |
+| B6 gap-pass | allowlist missing **0** vs ttg Basic; report `docs/bestiary_gap_b6_report.json` | Готово к «Залей»: бестиарий оф. 2014×**2380** |
 
 На проде: **нет** · ветка `cursor/bestiary-schema-fetch-ab5e` · PR #166 · **не деплоить** до «Залей» · tip не менять
 
@@ -830,4 +831,4 @@
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
 | 2026-10-08 | `cursor/companions-naparniki-b378` · PR #81 | Напарники A–D3 + аватарки залиты; tip → эта ветка; alembic `b4c5` |
 | 2026-10-15 | `cursor/forms-wild-shape-design-ab5e` | Дизайн LOCK обликов + бестиарий B0–B6 + детальный план (`forms-feature-plan.md`) → «В ветках» |
-| 2026-10-15 | `cursor/bestiary-schema-fetch-ab5e` · PR #166 | B0–B5 (оф. Basic ×2380) + F1–F6 облики; без деплоя до «Залей» |
+| 2026-10-15 | `cursor/bestiary-schema-fetch-ab5e` · PR #166 | B0–B6 (оф. Basic ×2380, gap 0) + F1–F6 облики; без деплоя до «Залей» |

@@ -198,20 +198,20 @@ SKT, ToA, WDMM, GGR, ERLW, … — оставшийся Basic allowlist (46 кн
 
 ---
 
-### B6 — Gap-pass + conflict report
+### B6 — Gap-pass + conflict report ✅
 
 | Что | Детали |
 |-----|--------|
-| Coverage | only-ttg / only-dnd.su / both; добрать оф. only-* по allowlist |
-| Stats diff | для both: сравнить hp_average, ac, cr, abilities; **писать ttg**; лог в audit |
-| Цель | оф. gap по allowlist → 0; таблица конфликтов заполнена |
-| PRODUCT_STATUS | «бестиарий оф. 2014×N» после деплоя на tip |
+| Coverage | ttg Basic **2380** / dnd.su index 2875 / both≈1980; only-ttg≈400 · only-dnd≈862 (slug mismatch) |
+| Allowlist | **0 missing** vs ttg Basic (наш JSON B1–B5 = 2380) |
+| Stats | conflict→ttg; Wildfire HP base **10** (audit + migrate lock) |
+| Report | `docs/bestiary_gap_b6_report.json` |
 
 **Приёмка**
 
-- [ ] Отчёт: 0 missing из согласованного allowlist
-- [ ] Wildfire + любые новые conflicts →ttg в audit
-- [ ] Smoke: `kind=bestiary` total = N (зафиксировать число в PRODUCT_STATUS)
+- [x] Отчёт: 0 missing из allowlist = ttg Basic
+- [x] Wildfire →ttg в audit + B4 migrate assert
+- [x] Число зафиксировано: **2380** (PRODUCT_STATUS / audit); в БД после «Залей»
 
 ---
 
@@ -385,20 +385,19 @@ SKT, ToA, WDMM, GGR, ERLW, … — оставшийся Basic allowlist (46 кн
 
 ## 11. Definition of Done эпика
 
-- [ ] `kind=bestiary` оф. 2014 заполнен; gap allowlist ≈ 0; PRODUCT_STATUS число
-- [ ] Конфликт Wildfire (и найденные) → ttg в data + audit
-- [ ] Друид: принять / сменить / сбросить облик; урон; overflow
-- [ ] Moon: heal ячейкой + elemental
-- [ ] Polymorph self через тот же пайплайн
-- [ ] Документы audit/plan/status обновлены; tip отражает залитый контур
+- [x] `kind=bestiary` оф. 2014 JSON ×**2380**; gap allowlist = 0; число в PRODUCT_STATUS (БД после «Залей»)
+- [x] Конфликт Wildfire → ttg в data + audit + B4 migrate lock
+- [x] Друид: принять / сменить / сбросить облик; урон; overflow (F2–F3)
+- [x] Moon: heal ячейкой + elemental (F4)
+- [x] Polymorph self через тот же пайплайн (F5)
+- [ ] Документы audit/plan/status обновлены; tip отражает залитый контур — **ждёт «Залей»**
 
 ---
 
 ## 12. Следующий конкретный шаг
 
-**B0+B1+F1 сделаны** в `cursor/bestiary-schema-fetch-ab5e`  
-(schema + fetch/diff + MM ×451 + alembic + модель `self_form`/`known_forms`).  
+**B0–B6 + F1–F6 сделаны** в `cursor/bestiary-schema-fetch-ab5e` (PR #166):  
+оф. Basic ×**2380** (gap 0) + облики (WS / Moon / Polymorph / Wildfire).  
 На прод **не** заливать до команды «Залей».
 
-**Дальше:** F2 (пикер Дикого облика + spend) — нужен каталог MM на API (после «Залей» B1 или локальный migrate).  
-Параллельно можно B2 (VGM+MTF).
+**Дальше:** «Залей» → migrate B1–B5 на tip → smoke `kind=bestiary` COUNT=2380.

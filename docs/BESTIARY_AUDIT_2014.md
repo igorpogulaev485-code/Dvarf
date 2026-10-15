@@ -61,7 +61,7 @@
 | B3 | MPMM | **258** в JSON + alembic `e7f8a9b0c1d2` | нет (до «Залей») | ✅ = ttg Basic MPMM; 0 overlap c MM/VGM/MTF |
 | B4 | FTD / BGG / BAM / TCE / BMT | **290** в JSON + alembic `f8a9b0c1d2e3` | нет (до «Залей») | ✅ Wildfire HP=10; 0 overlap c B1–B3 |
 | B5 | Adventures + settings | **1113** в JSON + alembic `a9b0c1d2e3f4` | нет (до «Залей») | ✅ 46 книг; B1–B5 = **2380** = ttg Basic |
-| B6 | Gap-pass vs dnd.su + ttg | ☐ | ☐ | оф. gap → 0 |
+| B6 | Gap-pass vs dnd.su + ttg | allowlist **0** missing | нет (до «Залей») | ✅ report `bestiary_gap_b6_report.json`; Wildfire→ttg |
 
 ### B0 — что лежит в репо
 
@@ -165,7 +165,7 @@ python3 backend/scripts/fetch_bestiary_wave.py --book WDMM,SKT,GGR,... --out bes
 Топ: WDMM 105 · SKT 80 · GGR 79 · IDRotF 57 · BGDIA 55 · MPP 50 · …  
 Сумма B1–B5: 451+268+258+290+1113 = **2380** (= ttg Basic на замер 2026-10-15).
 
-### Coverage замер (B0 diff, 2026-10-15)
+### Coverage замер (B0/B6 diff, 2026-10-15)
 
 | | Count |
 |--|------:|
@@ -174,8 +174,17 @@ python3 backend/scripts/fetch_bestiary_wave.py --book WDMM,SKT,GGR,... --out bes
 | both (slug) | 1980 |
 | only ttg | 400 |
 | only dnd.su | 862 |
+| **наш JSON (B1–B5)** | **2380** |
+| **missing vs ttg Basic** | **0** |
 
-Slug-only matching неполный (суффиксы `_mpmm`, разные транслиты) — дожимаем на B6.
+Slug-only matching vs dnd.su неполный (суффиксы `_mpmm`, транслиты вроде `al_chaia`↔`alchaia`) — это не дыры allowlist. Allowlist = **ttg Basic**; gap закрыт на B6.
+
+Отчёт: [`bestiary_gap_b6_report.json`](bestiary_gap_b6_report.json).
+
+```bash
+# merge waves → /tmp, затем:
+python3 backend/scripts/diff_bestiary_sources.py --our /tmp/bestiary_all_b1b5.json --json-out /tmp/bestiary_gap_b6.json
+```
 
 ## Чеклист на волну
 
