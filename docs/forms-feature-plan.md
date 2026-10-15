@@ -188,11 +188,13 @@ FTD, BGG, BAM, TCE (в т.ч. **Wildfire Spirit**), BMT — Basic с ttg, не B
 
 ---
 
-### B5 — Adventures + settings
+### B5 — Adventures + settings ✅
 
-SKT, ToA, WDMM, GGR, ERLW, EGW, … — оставшийся Basic allowlist.
+SKT, ToA, WDMM, GGR, ERLW, … — оставшийся Basic allowlist (46 книг).
 
-| Приёмка | суммарный count движется к ttg Basic; audit by book |
+| Data | `bestiary_adventures_b5_v1.json` (**1113**) |
+| Migrate | `a9b0c1d2e3f4` upsert |
+| Приёмка | ✅ B1–B5 = **2380** = ttg Basic; 0 overlap c B1–B4; 46 books |
 
 ---
 

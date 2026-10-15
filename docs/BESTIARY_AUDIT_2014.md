@@ -60,7 +60,7 @@
 | B2 | VGtM + MToF | **268** в JSON + alembic `d6e7f8a9b0c1` | нет (до «Залей») | ✅ VGM 129 + MTF 139; 0 overlap c MM |
 | B3 | MPMM | **258** в JSON + alembic `e7f8a9b0c1d2` | нет (до «Залей») | ✅ = ttg Basic MPMM; 0 overlap c MM/VGM/MTF |
 | B4 | FTD / BGG / BAM / TCE / BMT | **290** в JSON + alembic `f8a9b0c1d2e3` | нет (до «Залей») | ✅ Wildfire HP=10; 0 overlap c B1–B3 |
-| B5 | Adventures + settings | ☐ | ☐ | |
+| B5 | Adventures + settings | **1113** в JSON + alembic `a9b0c1d2e3f4` | нет (до «Залей») | ✅ 46 книг; B1–B5 = **2380** = ttg Basic |
 | B6 | Gap-pass vs dnd.su + ttg | ☐ | ☐ | оф. gap → 0 |
 
 ### B0 — что лежит в репо
@@ -148,6 +148,22 @@ python3 backend/scripts/fetch_bestiary_wave.py --book FTD,BGG,BAM,TCE,BMT --out 
 ```
 
 Книги: FTD 85 · BAM 72 · BGG 72 · BMT 41 · TCE 20.
+
+### B5 — Adventures + settings
+
+| Артефакт | Путь |
+|----------|------|
+| Data | `backend/data/srd/2014/bestiary_adventures_b5_v1.json` (**1113**, 46 книг) |
+| Migrate | `backend/alembic/versions/a9b0c1d2e3f4_upsert_bestiary_adventures_b5_2014.py` |
+| Fetch | remaining Basic after B1–B4 |
+
+```bash
+# 46 кодов: WDMM,SKT,GGR,IDRotF,… (всё Basic кроме MM/VGM/MTF/MPMM/FTD/BGG/BAM/TCE/BMT)
+python3 backend/scripts/fetch_bestiary_wave.py --book WDMM,SKT,GGR,... --out bestiary_adventures_b5_v1.json
+```
+
+Топ: WDMM 105 · SKT 80 · GGR 79 · IDRotF 57 · BGDIA 55 · MPP 50 · …  
+Сумма B1–B5: 451+268+258+290+1113 = **2380** (= ttg Basic на замер 2026-10-15).
 
 ### Coverage замер (B0 diff, 2026-10-15)
 
