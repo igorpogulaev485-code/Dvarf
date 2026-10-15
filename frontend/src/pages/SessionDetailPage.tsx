@@ -10,6 +10,7 @@ import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
 import { AwardLootDialog } from '../features/lobby/AwardLootDialog'
 import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
+import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { StartCombatDialog } from '../features/lobby/StartCombatDialog'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
@@ -28,17 +29,22 @@ import {
   awardSessionXp,
   closeSession,
   createSessionRoll,
+  deleteLobbyEncounterTemplate,
   deleteSeatCompanion,
   deleteSessionCombatant,
+  deploySessionEncounterTemplate,
+  getLobby,
   getSession,
   listSessionEvents,
   patchSeatCombat,
   patchSessionCombat,
   patchSessionCombatant,
+  saveSessionEncounterTemplate,
   seatCharacter,
   startSessionCombat,
   unseatCharacter,
   updateSession,
+  type EncounterTemplate,
   type SeatCondition,
   type SeatEffect,
   type SessionDetail,
@@ -75,11 +81,21 @@ export function SessionDetailPage() {
   const [combatStartOpen, setCombatStartOpen] = useState(false)
   const [xpOpen, setXpOpen] = useState(false)
   const [lootOpen, setLootOpen] = useState(false)
+  const [encounterOpen, setEncounterOpen] = useState(false)
+  const [templates, setTemplates] = useState<EncounterTemplate[]>([])
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
     setSession(detail)
     setOwnCharacterIds(new Set(chars.map((c) => c.id)))
+    if (detail.is_owner) {
+      try {
+        const lobby = await getLobby(detail.lobby_id)
+        setTemplates(lobby.encounter_templates ?? [])
+      } catch {
+        setTemplates([])
+      }
+    }
   }, [sessionId])
 
   const reloadEvents = useCallback(async () => {
@@ -368,8 +384,18 @@ export function SessionDetailPage() {
                         Лут
                       </Button>
                     ) : null}
+                    {session.is_owner ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => setEncounterOpen(true)}
+                      >
+                        Энкаунтер
+                      </Button>
+                    ) : null}
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      XP — опыт. Лут — находка сразу в инвентарь.
+                      Энкаунтер — шаблон состава. Лут / XP — после боя.
                     </Text>
                   </div>
                 ) : null}
@@ -841,6 +867,39 @@ export function SessionDetailPage() {
             setLootOpen(false)
             setToast(`Лут: ${result.summary}`)
             await reloadEvents()
+          })
+        }}
+      />
+
+      <EncounterTemplatesDialog
+        open={encounterOpen}
+        busy={busy}
+        templates={templates}
+        canSaveFromTable={(session.combatants?.length ?? 0) > 0}
+        onClose={() => setEncounterOpen(false)}
+        onSaveFromTable={(name) => {
+          void run(async () => {
+            const lobby = await saveSessionEncounterTemplate(session.id, { name })
+            setTemplates(lobby.encounter_templates ?? [])
+            setToast(`Шаблон «${name}» сохранён`)
+          })
+        }}
+        onDeploy={(templateId) => {
+          void run(async () => {
+            const updated = await deploySessionEncounterTemplate(session.id, templateId)
+            setSession(updated)
+            setEncounterOpen(false)
+            setToast('Энкаунтер на столе')
+          })
+        }}
+        onDelete={(templateId) => {
+          void run(async () => {
+            const lobby = await deleteLobbyEncounterTemplate(
+              session.lobby_id,
+              templateId,
+            )
+            setTemplates(lobby.encounter_templates ?? [])
+            setToast('Шаблон удалён')
           })
         }}
       />

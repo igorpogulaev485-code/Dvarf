@@ -34,6 +34,10 @@ from app.schemas.lobby import (
     CombatantPatchRequest,
     JoinLobbyRequest,
     SessionCombatOut,
+    EncounterTemplateCreateRequest,
+    EncounterTemplateOut,
+    EncounterTemplateSaveFromSessionRequest,
+    EncounterEntryOut,
     InventoryTransferRequest,
     InventoryTransferResult,
     LootAwardRequest,
@@ -476,6 +480,60 @@ def _combat_out(raw: object) -> SessionCombatOut:
     )
 
 
+def _parse_encounter_templates(raw: object) -> list[EncounterTemplateOut]:
+    if not isinstance(raw, list):
+        return []
+    out: list[EncounterTemplateOut] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        tid = str(item.get("id") or "").strip()
+        name = str(item.get("name") or "").strip()
+        if not tid or not name:
+            continue
+        entries_raw = item.get("entries")
+        entries: list[EncounterEntryOut] = []
+        if isinstance(entries_raw, list):
+            for entry in entries_raw:
+                if not isinstance(entry, dict):
+                    continue
+                ename = str(entry.get("name") or "").strip()
+                if not ename:
+                    continue
+                entries.append(
+                    EncounterEntryOut(
+                        catalog_id=str(entry["catalog_id"]) if entry.get("catalog_id") else None,
+                        slug=str(entry["slug"]) if entry.get("slug") else None,
+                        name=ename,
+                        count=max(1, min(20, int(entry.get("count") or 1))),
+                        hp_max=int(entry["hp_max"]) if isinstance(entry.get("hp_max"), int) else None,
+                        ac=int(entry["ac"]) if isinstance(entry.get("ac"), int) else None,
+                        speed=int(entry["speed"]) if isinstance(entry.get("speed"), int) else None,
+                        xp=int(entry["xp"]) if isinstance(entry.get("xp"), int) else None,
+                        custom=bool(entry.get("custom")),
+                        actions=[
+                            CombatantActionOut(**a)
+                            for a in _action_blocks(entry.get("actions"))
+                        ],
+                    )
+                )
+        if not entries:
+            continue
+        out.append(
+            EncounterTemplateOut(
+                id=tid,
+                name=name,
+                entries=entries,
+                updated_at=str(item["updated_at"]) if item.get("updated_at") else None,
+            )
+        )
+    return out
+
+
+def _templates_to_storage(templates: list[EncounterTemplateOut]) -> list[dict]:
+    return [t.model_dump(mode="json") for t in templates]
+
+
 class LobbyService:
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -544,6 +602,11 @@ class LobbyService:
             settings=settings,
             sessions=sessions,
             visibility_profile=lobby.visibility_profile or {},
+            encounter_templates=(
+                _parse_encounter_templates(getattr(lobby, "encounter_templates", None))
+                if is_owner
+                else []
+            ),
             created_at=lobby.created_at,
             updated_at=lobby.updated_at,
         )
@@ -2291,3 +2354,129 @@ class LobbyService:
             to_character_id=payload.to_character_id,
             to_character_name=receiver.name,
         )
+
+    def create_encounter_template(
+        self,
+        user: User,
+        lobby_id: UUID,
+        payload: EncounterTemplateCreateRequest,
+    ) -> LobbyDetail:
+        lobby = self._require_lobby(lobby_id)
+        self._require_owner(lobby, user)
+        from sqlalchemy.orm.attributes import flag_modified
+
+        templates = _parse_encounter_templates(getattr(lobby, "encounter_templates", None))
+        templates.append(
+            EncounterTemplateOut(
+                id=str(uuid4()),
+                name=payload.name.strip(),
+                entries=payload.entries,
+                updated_at=datetime.now(timezone.utc).isoformat(),
+            )
+        )
+        lobby.encounter_templates = _templates_to_storage(templates)
+        flag_modified(lobby, "encounter_templates")
+        self.db.commit()
+        return self._to_detail(self._require_lobby(lobby.id), user)
+
+    def save_encounter_from_session(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: EncounterTemplateSaveFromSessionRequest,
+    ) -> LobbyDetail:
+        session, lobby = self._require_session_owner(user, session_id)
+        from sqlalchemy.orm.attributes import flag_modified
+
+        combatants = _parse_combatants(session.combatants)
+        if not combatants:
+            raise AppError(
+                "На столе нет противников для шаблона",
+                code="encounter_empty",
+                status_code=400,
+            )
+        entries: list[EncounterEntryOut] = []
+        for row in combatants:
+            members = row.get("members") or []
+            count = len(members) if members else 1
+            entries.append(
+                EncounterEntryOut(
+                    catalog_id=row.get("catalog_id"),
+                    slug=row.get("slug"),
+                    name=str(row.get("name") or "Противник"),
+                    count=max(1, min(20, count)),
+                    hp_max=int(row["hp_max"]) if isinstance(row.get("hp_max"), int) else None,
+                    ac=int(row["ac"]) if isinstance(row.get("ac"), int) else None,
+                    speed=int(row["speed"]) if isinstance(row.get("speed"), int) else None,
+                    xp=int(row["xp"]) if isinstance(row.get("xp"), int) else None,
+                    custom=bool(row.get("custom")),
+                    actions=[
+                        CombatantActionOut(**a) for a in (row.get("actions") or []) if isinstance(a, dict)
+                    ],
+                )
+            )
+        templates = _parse_encounter_templates(getattr(lobby, "encounter_templates", None))
+        templates.append(
+            EncounterTemplateOut(
+                id=str(uuid4()),
+                name=payload.name.strip(),
+                entries=entries,
+                updated_at=datetime.now(timezone.utc).isoformat(),
+            )
+        )
+        lobby.encounter_templates = _templates_to_storage(templates)
+        flag_modified(lobby, "encounter_templates")
+        self.db.commit()
+        return self._to_detail(self._require_lobby(lobby.id), user)
+
+    def delete_encounter_template(
+        self,
+        user: User,
+        lobby_id: UUID,
+        template_id: str,
+    ) -> LobbyDetail:
+        lobby = self._require_lobby(lobby_id)
+        self._require_owner(lobby, user)
+        from sqlalchemy.orm.attributes import flag_modified
+
+        templates = _parse_encounter_templates(getattr(lobby, "encounter_templates", None))
+        next_list = [t for t in templates if t.id != template_id]
+        if len(next_list) == len(templates):
+            raise NotFoundError("Шаблон не найден", code="encounter_not_found")
+        lobby.encounter_templates = _templates_to_storage(next_list)
+        flag_modified(lobby, "encounter_templates")
+        self.db.commit()
+        return self._to_detail(self._require_lobby(lobby.id), user)
+
+    async def deploy_encounter_template(
+        self,
+        user: User,
+        session_id: UUID,
+        template_id: str,
+    ) -> SessionDetail:
+        session, lobby = self._require_session_owner(user, session_id)
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+        templates = _parse_encounter_templates(getattr(lobby, "encounter_templates", None))
+        template = next((t for t in templates if t.id == template_id), None)
+        if template is None:
+            raise NotFoundError("Шаблон не найден", code="encounter_not_found")
+
+        # Посадить каждую позицию шаблона через существующий add_combatants.
+        detail = self._session_detail(session, lobby, user)
+        for entry in template.entries:
+            req = CombatantCreateRequest(
+                catalog_id=UUID(entry.catalog_id) if entry.catalog_id else None,
+                slug=entry.slug,
+                name=entry.name if entry.custom or not entry.catalog_id else None,
+                hp_max=entry.hp_max if entry.custom or not entry.catalog_id else None,
+                ac=entry.ac if entry.custom else None,
+                speed=entry.speed if entry.custom else None,
+                count=entry.count,
+                actions=entry.actions if entry.custom else [],
+                xp=entry.xp if entry.custom else None,
+            )
+            if not entry.catalog_id and not entry.slug and not (entry.name and entry.hp_max):
+                continue
+            detail = await self.add_combatants(user, session_id, req)
+        return detail

@@ -10,6 +10,7 @@ import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
 import { AwardLootDialog } from '../features/lobby/AwardLootDialog'
 import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
+import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
@@ -21,6 +22,7 @@ import {
   defaultVisibilityProfile,
 } from '../features/lobby/visibilityProfile'
 import type {
+  EncounterTemplate,
   SessionCombat,
   SessionCombatant,
   SessionEvent,
@@ -297,6 +299,19 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
   }),
 ]
 
+const SEED_TEMPLATES: EncounterTemplate[] = [
+  {
+    id: 'tpl-bridge',
+    name: 'Засада у моста',
+    entries: [
+      { name: 'Гоблин', count: 6, slug: 'goblin', hp_max: 7, ac: 15, xp: 50 },
+      { name: 'Волк', count: 2, slug: 'wolf', hp_max: 11, ac: 13, xp: 50 },
+      { name: 'Огр', count: 1, slug: 'ogre', hp_max: 59, ac: 11, xp: 450 },
+    ],
+    updated_at: new Date().toISOString(),
+  },
+]
+
 const SEED_EVENTS: SessionEvent[] = [
   {
     id: 'e1',
@@ -363,6 +378,8 @@ export function SessionLiveTablePreviewPage() {
   const [combatStartOpen, setCombatStartOpen] = useState(false)
   const [xpOpen, setXpOpen] = useState(false)
   const [lootOpen, setLootOpen] = useState(false)
+  const [encounterOpen, setEncounterOpen] = useState(false)
+  const [templates, setTemplates] = useState<EncounterTemplate[]>(SEED_TEMPLATES)
   const [combat, setCombat] = useState<SessionCombat>({
     active: false,
     round: 1,
@@ -486,8 +503,15 @@ export function SessionLiveTablePreviewPage() {
                     >
                       Лут
                     </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setEncounterOpen(true)}
+                    >
+                      Энкаунтер
+                    </Button>
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      XP — опыт. Лут — находка в инвентарь.
+                      Энкаунтер — шаблон состава. Лут / XP — после боя.
                     </Text>
                   </div>
                 ) : null}
@@ -973,6 +997,70 @@ export function SessionLiveTablePreviewPage() {
             },
             ...prev,
           ])
+        }}
+      />
+
+      <EncounterTemplatesDialog
+        open={encounterOpen}
+        templates={templates}
+        canSaveFromTable={combatants.length > 0}
+        onClose={() => setEncounterOpen(false)}
+        onSaveFromTable={(name) => {
+          const entries = combatants.map((c) => ({
+            name: c.name,
+            count: Math.max(1, c.member_count ?? c.members?.length ?? 1),
+            slug: c.slug ?? null,
+            hp_max: c.hp_max,
+            ac: c.ac,
+            xp: c.xp ?? null,
+          }))
+          setTemplates((prev) => [
+            ...prev,
+            {
+              id: `tpl-${Date.now()}`,
+              name,
+              entries,
+              updated_at: new Date().toISOString(),
+            },
+          ])
+          setToast(`Шаблон «${name}» сохранён`)
+        }}
+        onDeploy={(templateId) => {
+          const tpl = templates.find((t) => t.id === templateId)
+          if (!tpl) return
+          const stamped = Date.now()
+          const next: SessionCombatant[] = tpl.entries.map((entry, i) => {
+            const count = Math.max(1, Math.min(20, entry.count))
+            const hp = entry.hp_max ?? 10
+            const id = `deploy-${stamped}-${i}`
+            return {
+              id,
+              name: entry.name,
+              hp_current: hp,
+              hp_max: hp,
+              alive_count: count,
+              member_count: count,
+              ac: entry.ac ?? 10,
+              speed: entry.speed ?? 30,
+              slug: entry.slug ?? undefined,
+              xp: entry.xp ?? 0,
+              xp_claimed_count: 0,
+              actions: [],
+              members: Array.from({ length: count }, (_, m) => ({
+                id: `${id}-m${m + 1}`,
+                name: count > 1 ? `${entry.name} ${m + 1}` : entry.name,
+                hp_current: hp,
+                hp_max: hp,
+              })),
+            }
+          })
+          setCombatants((prev) => [...prev, ...next])
+          setEncounterOpen(false)
+          setToast('Энкаунтер на столе')
+        }}
+        onDelete={(templateId) => {
+          setTemplates((prev) => prev.filter((t) => t.id !== templateId))
+          setToast('Шаблон удалён')
         }}
       />
 

@@ -156,6 +156,7 @@ class LobbyDetail(BaseModel):
     settings: list[SettingSummary]
     sessions: list[SessionSummary]
     visibility_profile: dict = Field(default_factory=dict)
+    encounter_templates: list["EncounterTemplateOut"] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
@@ -210,6 +211,35 @@ class CombatantActionOut(BaseModel):
     name_ru: str
     text_ru: str = ""
     name_en: str | None = None
+
+
+class EncounterEntryOut(BaseModel):
+    catalog_id: str | None = None
+    slug: str | None = None
+    name: str
+    count: int = 1
+    hp_max: int | None = None
+    ac: int | None = None
+    speed: int | None = None
+    xp: int | None = None
+    custom: bool = False
+    actions: list[CombatantActionOut] = Field(default_factory=list)
+
+
+class EncounterTemplateOut(BaseModel):
+    id: str
+    name: str
+    entries: list[EncounterEntryOut] = Field(default_factory=list)
+    updated_at: str | None = None
+
+
+class EncounterTemplateCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    entries: list[EncounterEntryOut] = Field(min_length=1)
+
+
+class EncounterTemplateSaveFromSessionRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
 
 
 class CombatantMemberOut(BaseModel):
