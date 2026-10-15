@@ -436,12 +436,15 @@ export function SessionDetailPage() {
                           revealAll={session.is_owner}
                           masterControls={session.is_owner && !session.closed_at}
                           busy={busy}
-                          onDamage={(amount) => {
+                          onDamage={(amount, memberId) => {
                             void run(async () => {
                               const updated = await patchSessionCombatant(
                                 session.id,
                                 enemy.id,
-                                { damage: amount },
+                                {
+                                  damage: amount,
+                                  member_id: memberId,
+                                },
                               )
                               setSession(updated)
                             })

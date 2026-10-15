@@ -122,11 +122,21 @@ export type CombatantAction = {
   name_en?: string | null
 }
 
-export type SessionCombatant = {
+export type CombatantMember = {
   id: string
   name: string
   hp_current: number
   hp_max: number
+}
+
+export type SessionCombatant = {
+  id: string
+  name: string
+  /** HP первого живого — цель быстрого −1/−5 без выбора */
+  hp_current: number
+  hp_max: number
+  alive_count?: number
+  member_count?: number
   ac?: number | null
   speed?: number | null
   cr?: string | null
@@ -141,6 +151,7 @@ export type SessionCombatant = {
   bonus_actions?: CombatantAction[]
   reactions?: CombatantAction[]
   legendary_actions?: CombatantAction[]
+  members?: CombatantMember[]
 }
 
 export type SessionDetail = {
@@ -447,6 +458,8 @@ export async function patchSessionCombatant(
     ac?: number | null
     name?: string
     damage?: number
+    member_id?: string
+    member_damages?: { member_id: string; damage: number }[]
     conditions?: SeatCondition[]
   },
 ): Promise<SessionDetail> {

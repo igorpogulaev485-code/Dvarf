@@ -211,13 +211,30 @@ class CombatantActionOut(BaseModel):
     name_en: str | None = None
 
 
-class SessionCombatantOut(BaseModel):
-    """Противник / НПС, посаженный в бой на сессии (не место состава лобби)."""
+class CombatantMemberOut(BaseModel):
+    """Один боец внутри пачки (или единственный, если count=1)."""
 
     id: str
     name: str
     hp_current: int
     hp_max: int
+
+
+class CombatantMemberDamage(BaseModel):
+    member_id: str
+    damage: int = Field(ge=-9999, le=9999)
+
+
+class SessionCombatantOut(BaseModel):
+    """Противник / пачка на сессии (не место состава лобби)."""
+
+    id: str
+    name: str
+    """Сводка для быстрых жестов: HP первого живого (цель урона без выбора)."""
+    hp_current: int
+    hp_max: int
+    alive_count: int = 1
+    member_count: int = 1
     ac: int | None = None
     speed: int | None = None
     cr: str | None = None
@@ -232,10 +249,11 @@ class SessionCombatantOut(BaseModel):
     bonus_actions: list[CombatantActionOut] = Field(default_factory=list)
     reactions: list[CombatantActionOut] = Field(default_factory=list)
     legendary_actions: list[CombatantActionOut] = Field(default_factory=list)
+    members: list[CombatantMemberOut] = Field(default_factory=list)
 
 
 class CombatantCreateRequest(BaseModel):
-    """Посадить 1..N копий из бестиария или своего НПС."""
+    """Посадить 1..N как одну карточку-пачку из бестиария или свой НПС."""
 
     catalog_id: UUID | None = None
     slug: str | None = Field(default=None, max_length=80)
@@ -243,17 +261,21 @@ class CombatantCreateRequest(BaseModel):
     hp_max: int | None = Field(default=None, ge=1, le=9999)
     ac: int | None = Field(default=None, ge=0, le=40)
     speed: int | None = Field(default=None, ge=0, le=500)
-    count: int = Field(default=1, ge=1, le=12)
+    count: int = Field(default=1, ge=1, le=20)
     actions: list[CombatantActionOut] = Field(default_factory=list)
 
 
 class CombatantPatchRequest(BaseModel):
-    hp_current: int | None = Field(default=None, ge=-999, le=9999)
+    hp_current: int | None = Field(default=None, ge=0, le=9999)
     hp_max: int | None = Field(default=None, ge=1, le=9999)
     ac: int | None = Field(default=None, ge=0, le=40)
     name: str | None = Field(default=None, min_length=1, max_length=120)
     conditions: list[SeatConditionOut] | None = None
+    """Урон одному: без member_id → первый живой; с member_id → выбранный."""
     damage: int | None = Field(default=None, ge=-9999, le=9999)
+    member_id: str | None = Field(default=None, max_length=80)
+    """Пакетный урон по составу: этому N, этому M."""
+    member_damages: list[CombatantMemberDamage] | None = None
 
 
 class SessionDetail(BaseModel):

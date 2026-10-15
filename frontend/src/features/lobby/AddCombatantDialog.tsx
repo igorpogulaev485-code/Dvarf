@@ -155,9 +155,15 @@ export function AddCombatantDialog({ open, busy = false, onClose, onSubmit }: Pr
             value={count}
             onValueChange={(v) => setCount(v ?? 1)}
             min={1}
-            max={12}
+            max={20}
           />
         </Field>
+        {count > 1 ? (
+          <Text tone="muted">
+            На стол одной пачкой ({count}). Быстрый урон — первому живому; в «Составе» —
+            кому сколько.
+          </Text>
+        ) : null}
       </Stack>
     </Dialog>
   )

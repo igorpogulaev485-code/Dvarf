@@ -145,10 +145,12 @@ const DEMO_SEATS: SessionSeat[] = [
 
 const DEMO_COMBATANTS: SessionCombatant[] = [
   {
-    id: 'e-gob1',
-    name: 'Гоблин 1',
+    id: 'e-gob-pack',
+    name: 'Гоблин',
     hp_current: 7,
     hp_max: 7,
+    alive_count: 7,
+    member_count: 8,
     ac: 15,
     speed: 30,
     cr: '1/4',
@@ -171,23 +173,15 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
         text_ru: 'Гоблин может совершить действие Засада или Замешательство бонусным действием в каждом своём ходу.',
       },
     ],
-  },
-  {
-    id: 'e-gob2',
-    name: 'Гоблин 2',
-    hp_current: 3,
-    hp_max: 7,
-    ac: 15,
-    speed: 30,
-    cr: '1/4',
-    slug: 'goblin',
-    source_book: 'MM',
-    type_ru: 'гуманоид',
-    actions: [
-      {
-        name_ru: 'Скимитар',
-        text_ru: 'Рукопашная атака оружием: +4 к попаданию. Попадание: 5 (1к6 + 2) рубящего урона.',
-      },
+    members: [
+      { id: 'g1', name: 'Гоблин 1', hp_current: 7, hp_max: 7 },
+      { id: 'g2', name: 'Гоблин 2', hp_current: 3, hp_max: 7 },
+      { id: 'g3', name: 'Гоблин 3', hp_current: 7, hp_max: 7 },
+      { id: 'g4', name: 'Гоблин 4', hp_current: 7, hp_max: 7 },
+      { id: 'g5', name: 'Гоблин 5', hp_current: 0, hp_max: 7 },
+      { id: 'g6', name: 'Гоблин 6', hp_current: 7, hp_max: 7 },
+      { id: 'g7', name: 'Гоблин 7', hp_current: 7, hp_max: 7 },
+      { id: 'g8', name: 'Гоблин 8', hp_current: 7, hp_max: 7 },
     ],
   },
   {
@@ -195,6 +189,8 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
     name: 'Огр Буян',
     hp_current: 59,
     hp_max: 59,
+    alive_count: 1,
+    member_count: 1,
     ac: 11,
     speed: 40,
     cr: '2',
@@ -206,6 +202,7 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
         text_ru: 'Рукопашная +6, 2к8+4 дробящего.',
       },
     ],
+    members: [{ id: 'og1', name: 'Огр Буян', hp_current: 59, hp_max: 59 }],
   },
 ]
 
@@ -459,7 +456,7 @@ export function SessionLiveTablePreviewPage() {
                         Противники · мастер
                       </Text>
                       <Text tone="muted" className="session-table-toolbar__hint">
-                        Полные HP, жесты −/+, статблок. Соседи не растягиваются при раскрытии.
+                        −1/−5 бьют первого живого. «Состав» — урон каждому по имени.
                       </Text>
                       <div className="session-table-grid session-enemies-grid">
                         {combatants.map((enemy) => (
@@ -468,15 +465,41 @@ export function SessionLiveTablePreviewPage() {
                             combatant={enemy}
                             revealAll
                             masterControls={!closed}
-                            onDamage={(amount) => {
+                            onDamage={(amount, memberId) => {
                               setCombatants((prev) =>
                                 prev.map((c) => {
                                   if (c.id !== enemy.id) return c
-                                  const next = Math.max(
-                                    0,
-                                    Math.min(c.hp_max, c.hp_current - amount),
-                                  )
-                                  return { ...c, hp_current: next }
+                                  const members = [...(c.members ?? [])]
+                                  if (members.length === 0) {
+                                    const next = Math.max(
+                                      0,
+                                      Math.min(c.hp_max, c.hp_current - amount),
+                                    )
+                                    return { ...c, hp_current: next }
+                                  }
+                                  let target = memberId
+                                    ? members.find((m) => m.id === memberId)
+                                    : members.find((m) => m.hp_current > 0)
+                                  if (!target && !memberId) target = members[0]
+                                  if (!target) return c
+                                  const nextMembers = members.map((m) => {
+                                    if (m.id !== target!.id) return m
+                                    const hp = Math.max(
+                                      0,
+                                      Math.min(m.hp_max, m.hp_current - amount),
+                                    )
+                                    return { ...m, hp_current: hp }
+                                  })
+                                  const alive = nextMembers.filter((m) => m.hp_current > 0)
+                                  const focus = alive[0] ?? nextMembers[0]
+                                  return {
+                                    ...c,
+                                    members: nextMembers,
+                                    alive_count: alive.length,
+                                    member_count: nextMembers.length,
+                                    hp_current: focus?.hp_current ?? 0,
+                                    hp_max: focus?.hp_max ?? c.hp_max,
+                                  }
                                 }),
                               )
                             }}
@@ -619,26 +642,33 @@ export function SessionLiveTablePreviewPage() {
         onClose={() => setCombatantOpen(false)}
         onSubmit={(payload) => {
           const baseName = payload.name?.trim() || 'Противник'
-          const n = Math.max(1, Math.min(12, payload.count || 1))
-          const next: SessionCombatant[] = []
-          for (let i = 0; i < n; i += 1) {
-            next.push({
-              id: `local-${Date.now()}-${i}`,
-              name: n > 1 ? `${baseName} ${i + 1}` : baseName,
-              hp_current: payload.hp_max ?? 10,
-              hp_max: payload.hp_max ?? 10,
-              ac: payload.ac ?? null,
-              speed: payload.speed ?? null,
-              slug: payload.slug ?? null,
-              catalog_id: payload.catalog_id ?? null,
-              custom: !payload.catalog_id,
-              type_ru: payload.catalog_id ? undefined : 'НПС',
-              actions: payload.actions ?? [],
-            })
+          const n = Math.max(1, Math.min(20, payload.count || 1))
+          const hp = payload.hp_max ?? 10
+          const members = Array.from({ length: n }, (_, i) => ({
+            id: `local-${Date.now()}-${i}`,
+            name: n > 1 ? `${baseName} ${i + 1}` : baseName,
+            hp_current: hp,
+            hp_max: hp,
+          }))
+          const pack: SessionCombatant = {
+            id: `pack-${Date.now()}`,
+            name: baseName,
+            hp_current: hp,
+            hp_max: hp,
+            alive_count: n,
+            member_count: n,
+            ac: payload.ac ?? null,
+            speed: payload.speed ?? null,
+            slug: payload.slug ?? null,
+            catalog_id: payload.catalog_id ?? null,
+            custom: !payload.catalog_id,
+            type_ru: payload.catalog_id ? undefined : 'НПС',
+            actions: payload.actions ?? [],
+            members,
           }
-          setCombatants((prev) => [...prev, ...next])
+          setCombatants((prev) => [...prev, pack])
           setCombatantOpen(false)
-          setToast(n > 1 ? `На столе: ${n}` : `На столе: ${baseName}`)
+          setToast(n > 1 ? `Пачка на столе: ${baseName} × ${n}` : `На столе: ${baseName}`)
         }}
       />
 

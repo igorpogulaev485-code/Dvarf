@@ -2829,6 +2829,68 @@ button.session-concentration-tag {
   font-size: 1rem;
 }
 
+.session-enemy-card__pack-tag {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  vertical-align: middle;
+}
+
+.session-enemy-card__roster {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--line);
+}
+
+.session-enemy-roster {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.session-enemy-roster__row {
+  display: grid;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 92%, #78716c);
+}
+
+.session-enemy-roster__row.is-dead {
+  opacity: 0.72;
+}
+
+.session-enemy-roster__who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+}
+
+.session-enemy-roster__name {
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
+.session-enemy-roster__dmg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-enemy-roster__dmg .ui-button {
+  min-height: 32px;
+  padding-inline: 10px;
+}
+
 .session-enemy-card--warn {
   border-color: color-mix(in srgb, #b54708 35%, var(--line));
 }

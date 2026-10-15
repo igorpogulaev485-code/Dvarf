@@ -26,6 +26,7 @@ from app.schemas.lobby import (
     AddLobbyMemberRequest,
     CombatantActionOut,
     CombatantCreateRequest,
+    CombatantMemberOut,
     CombatantPatchRequest,
     JoinLobbyRequest,
     JournalEntryCreateRequest,
@@ -223,6 +224,60 @@ def _action_blocks(raw: object) -> list[dict]:
     return out
 
 
+def _parse_members(raw: object, *, fallback_name: str, hp_current: int, hp_max: int) -> list[dict]:
+    members: list[dict] = []
+    if isinstance(raw, list):
+        for item in raw:
+            if not isinstance(item, dict):
+                continue
+            mid = str(item.get("id") or "").strip()
+            mname = str(item.get("name") or "").strip()
+            if not mid or not mname:
+                continue
+            m_max = max(1, int(item.get("hp_max") or hp_max or 1))
+            m_cur = int(
+                item.get("hp_current") if item.get("hp_current") is not None else m_max
+            )
+            members.append(
+                {
+                    "id": mid,
+                    "name": mname,
+                    "hp_current": max(0, min(m_max, m_cur)),
+                    "hp_max": m_max,
+                }
+            )
+    if not members:
+        members.append(
+            {
+                "id": f"m-{uuid4()}",
+                "name": fallback_name,
+                "hp_current": max(0, min(max(1, hp_max), hp_current)),
+                "hp_max": max(1, hp_max),
+            }
+        )
+    return members
+
+
+def _sync_combatant_summary(row: dict) -> None:
+    members = row.get("members") or []
+    alive = [m for m in members if int(m.get("hp_current") or 0) > 0]
+    row["member_count"] = len(members)
+    row["alive_count"] = len(alive)
+    focus = alive[0] if alive else (members[0] if members else None)
+    if focus is None:
+        row["hp_current"] = 0
+        row["hp_max"] = max(1, int(row.get("hp_max") or 1))
+        return
+    row["hp_current"] = int(focus["hp_current"])
+    row["hp_max"] = int(focus["hp_max"])
+
+
+def _apply_member_damage(member: dict, damage: int) -> None:
+    hp_max = max(1, int(member.get("hp_max") or 1))
+    next_hp = int(member.get("hp_current") or 0) - int(damage)
+    member["hp_current"] = max(0, min(hp_max, next_hp))
+
+
 def _parse_combatants(raw: object) -> list[dict]:
     if not isinstance(raw, list):
         return []
@@ -234,39 +289,59 @@ def _parse_combatants(raw: object) -> list[dict]:
         name = str(item.get("name") or "").strip()
         if not cid or not name:
             continue
-        hp_max = int(item.get("hp_max") or 1)
+        hp_max = max(1, int(item.get("hp_max") or 1))
         hp_current = int(item.get("hp_current") if item.get("hp_current") is not None else hp_max)
-        out.append(
-            {
-                "id": cid,
-                "name": name,
-                "hp_current": hp_current,
-                "hp_max": max(1, hp_max),
-                "ac": item.get("ac") if isinstance(item.get("ac"), int) else None,
-                "speed": item.get("speed") if isinstance(item.get("speed"), int) else None,
-                "cr": str(item["cr"]) if item.get("cr") not in (None, "") else None,
-                "catalog_id": str(item["catalog_id"]) if item.get("catalog_id") else None,
-                "slug": str(item["slug"]) if item.get("slug") else None,
-                "source_book": str(item["source_book"]) if item.get("source_book") else None,
-                "type_ru": str(item["type_ru"]) if item.get("type_ru") else None,
-                "custom": bool(item.get("custom")),
-                "conditions": _parse_conditions(item.get("conditions")),
-                "traits": _action_blocks(item.get("traits")),
-                "actions": _action_blocks(item.get("actions")),
-                "bonus_actions": _action_blocks(item.get("bonus_actions")),
-                "reactions": _action_blocks(item.get("reactions")),
-                "legendary_actions": _action_blocks(item.get("legendary_actions")),
-            }
+        members = _parse_members(
+            item.get("members"),
+            fallback_name=name,
+            hp_current=hp_current,
+            hp_max=hp_max,
         )
+        row = {
+            "id": cid,
+            "name": name,
+            "hp_current": hp_current,
+            "hp_max": hp_max,
+            "ac": item.get("ac") if isinstance(item.get("ac"), int) else None,
+            "speed": item.get("speed") if isinstance(item.get("speed"), int) else None,
+            "cr": str(item["cr"]) if item.get("cr") not in (None, "") else None,
+            "catalog_id": str(item["catalog_id"]) if item.get("catalog_id") else None,
+            "slug": str(item["slug"]) if item.get("slug") else None,
+            "source_book": str(item["source_book"]) if item.get("source_book") else None,
+            "type_ru": str(item["type_ru"]) if item.get("type_ru") else None,
+            "custom": bool(item.get("custom")),
+            "conditions": _parse_conditions(item.get("conditions")),
+            "traits": _action_blocks(item.get("traits")),
+            "actions": _action_blocks(item.get("actions")),
+            "bonus_actions": _action_blocks(item.get("bonus_actions")),
+            "reactions": _action_blocks(item.get("reactions")),
+            "legendary_actions": _action_blocks(item.get("legendary_actions")),
+            "members": members,
+            "alive_count": 0,
+            "member_count": 0,
+        }
+        _sync_combatant_summary(row)
+        out.append(row)
     return out
 
 
 def _combatant_out(row: dict) -> SessionCombatantOut:
+    members = [
+        CombatantMemberOut(
+            id=m["id"],
+            name=m["name"],
+            hp_current=int(m["hp_current"]),
+            hp_max=int(m["hp_max"]),
+        )
+        for m in row.get("members") or []
+    ]
     return SessionCombatantOut(
         id=row["id"],
         name=row["name"],
         hp_current=row["hp_current"],
         hp_max=row["hp_max"],
+        alive_count=int(row.get("alive_count") or 0),
+        member_count=int(row.get("member_count") or len(members) or 1),
         ac=row.get("ac"),
         speed=row.get("speed"),
         cr=row.get("cr"),
@@ -281,6 +356,7 @@ def _combatant_out(row: dict) -> SessionCombatantOut:
         bonus_actions=[CombatantActionOut(**a) for a in row.get("bonus_actions") or []],
         reactions=[CombatantActionOut(**a) for a in row.get("reactions") or []],
         legendary_actions=[CombatantActionOut(**a) for a in row.get("legendary_actions") or []],
+        members=members,
     )
 
 
@@ -1354,15 +1430,28 @@ class LobbyService:
             }
 
         combatants = _parse_combatants(session.combatants)
-        count = int(payload.count or 1)
+        count = max(1, min(20, int(payload.count or 1)))
+        base_name = str(template["name"])
+        hp_max = max(1, int(template["hp_max"]))
+        members = []
         for i in range(count):
-            row = dict(template)
-            row["id"] = str(uuid4())
-            if count > 1 and not custom:
-                row["name"] = f"{template['name']} {i + 1}"
-            elif count > 1 and custom:
-                row["name"] = f"{template['name']} {i + 1}"
-            combatants.append(row)
+            members.append(
+                {
+                    "id": str(uuid4()),
+                    "name": f"{base_name} {i + 1}" if count > 1 else base_name,
+                    "hp_current": hp_max,
+                    "hp_max": hp_max,
+                }
+            )
+        row = {
+            **template,
+            "id": str(uuid4()),
+            "name": base_name,
+            "members": members,
+            "custom": custom,
+        }
+        _sync_combatant_summary(row)
+        combatants.append(row)
 
         session.combatants = combatants
         flag_modified(session, "combatants")
@@ -1391,8 +1480,6 @@ class LobbyService:
 
         if payload.name is not None:
             target["name"] = payload.name.strip()
-        if payload.hp_max is not None:
-            target["hp_max"] = max(1, int(payload.hp_max))
         if payload.ac is not None:
             target["ac"] = int(payload.ac)
         if payload.conditions is not None:
@@ -1400,16 +1487,50 @@ class LobbyService:
                 {"slug": c.slug, "name": c.name, "catalog_id": c.catalog_id}
                 for c in payload.conditions
             ]
-        hp_max = max(1, int(target["hp_max"]))
-        if payload.damage is not None:
-            # Пол не ниже 0: урон до 0 = смерть, не «−2/7».
-            # «Упал на 0 → встал с 1» (Непреклонность и т.п.) — отдельный жест позже.
-            next_hp = int(target["hp_current"]) - int(payload.damage)
-            target["hp_current"] = max(0, min(hp_max, next_hp))
-        elif payload.hp_current is not None:
-            target["hp_current"] = max(0, min(hp_max, int(payload.hp_current)))
-        elif int(target["hp_current"]) > hp_max:
-            target["hp_current"] = hp_max
+
+        members: list[dict] = list(target.get("members") or [])
+        if payload.hp_max is not None:
+            new_max = max(1, int(payload.hp_max))
+            target["hp_max"] = new_max
+            # Если один боец — синхронизируем его max; в пачке max задаётся на member.
+            if len(members) == 1:
+                members[0]["hp_max"] = new_max
+                members[0]["hp_current"] = min(int(members[0]["hp_current"]), new_max)
+
+        if payload.member_damages:
+            by_id = {m["id"]: m for m in members}
+            for entry in payload.member_damages:
+                member = by_id.get(entry.member_id)
+                if member is None:
+                    raise NotFoundError(
+                        "Боец пачки не найден",
+                        code="combatant_member_not_found",
+                    )
+                _apply_member_damage(member, entry.damage)
+        elif payload.damage is not None:
+            # Без member_id — первый живой; с member_id — выбранный в составе.
+            member = None
+            if payload.member_id:
+                member = next((m for m in members if m["id"] == payload.member_id), None)
+                if member is None:
+                    raise NotFoundError(
+                        "Боец пачки не найден",
+                        code="combatant_member_not_found",
+                    )
+            else:
+                member = next((m for m in members if int(m["hp_current"]) > 0), None)
+                if member is None and members:
+                    member = members[0]
+            if member is None:
+                raise AppError("В пачке нет бойцов", code="combatant_empty", status_code=400)
+            _apply_member_damage(member, payload.damage)
+        elif payload.hp_current is not None and len(members) == 1:
+            m = members[0]
+            m_max = max(1, int(m["hp_max"]))
+            m["hp_current"] = max(0, min(m_max, int(payload.hp_current)))
+
+        target["members"] = members
+        _sync_combatant_summary(target)
 
         session.combatants = combatants
         flag_modified(session, "combatants")
