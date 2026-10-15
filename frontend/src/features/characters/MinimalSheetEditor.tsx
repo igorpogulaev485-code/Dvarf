@@ -225,6 +225,12 @@ import { BardicInspirationSpendDialog } from './BardicInspirationSpendDialog'
 import { LayOnHandsSpendDialog } from './LayOnHandsSpendDialog'
 import { SuperiorityDiceSpendDialog } from './SuperiorityDiceSpendDialog'
 import { ArcaneRecoverySpendDialog } from './ArcaneRecoverySpendDialog'
+import {
+  InfusionsActiveDialog,
+  parseInfusionSlotsResourceId,
+} from './InfusionsActiveDialog'
+import { WarlockArcanumSpendDialog } from './WarlockArcanumSpendDialog'
+import { WarlockInvocationsDialog } from './WarlockInvocationsDialog'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
@@ -2915,6 +2921,11 @@ export function MinimalSheetEditor({
   const [arcaneRecoverySpendId, setArcaneRecoverySpendId] = useState<string | null>(
     null,
   )
+  const [infusionsSpendId, setInfusionsSpendId] = useState<string | null>(null)
+  const [arcanumSpendId, setArcanumSpendId] = useState<string | null>(null)
+  const [invocationsOpen, setInvocationsOpen] = useState<{
+    classEntryId: string
+  } | null>(null)
   const [concDamageAsk, setConcDamageAsk] = useState<{
     damage: number
     spellName: string
@@ -3366,6 +3377,26 @@ export function MinimalSheetEditor({
     return Math.max(1, Math.floor(row?.level ?? 1))
   }, [arcaneRecoverySpendId, draft.classes])
 
+  const infusionsResource =
+    infusionsSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === infusionsSpendId) ?? null)
+  const infusionsContext = useMemo(() => {
+    if (!infusionsSpendId) return null
+    const parsed = parseInfusionSlotsResourceId(infusionsSpendId)
+    if (!parsed) return null
+    const row = draft.classes.find((c) => c.id === parsed.classEntryId)
+    return {
+      classEntryId: parsed.classEntryId,
+      level: Math.max(1, Math.floor(row?.level ?? 1)),
+    }
+  }, [infusionsSpendId, draft.classes])
+
+  const arcanumResource =
+    arcanumSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === arcanumSpendId) ?? null)
+
   function isSorceryPointsResource(row: { id: string; name: string }): boolean {
     return (
       row.id.includes('sorcery_points') ||
@@ -3419,36 +3450,65 @@ export function MinimalSheetEditor({
     )
   }
 
-  function spendResourceOrOpenSorcery(id: string) {
+  function isInfusionSlotsResource(row: { id: string; name: string }): boolean {
+    return (
+      /:infusion_slots:/.test(row.id) ||
+      /активные инфузии/i.test(row.name)
+    )
+  }
+
+  function isMysticArcanumResource(row: { id: string; name: string }): boolean {
+    return (
+      /:mystic_arcanum_/.test(row.id) ||
+      /арканум/i.test(row.name) ||
+      /mystic arcanum/i.test(row.name)
+    )
+  }
+
+  function openResourceSpendDialog(id: string): boolean {
     const row = draft.play.resources.find((item) => item.id === id)
-    if (row && isSorceryPointsResource(row)) {
+    if (!row) return false
+    if (isSorceryPointsResource(row)) {
       setSorcerySpendId(id)
-      return
+      return true
     }
-    if (row && isChannelDivinityResource(row)) {
+    if (isChannelDivinityResource(row)) {
       setChannelDivinitySpendId(id)
-      return
+      return true
     }
-    if (row && isKiResource(row)) {
+    if (isKiResource(row)) {
       setKiSpendId(id)
-      return
+      return true
     }
-    if (row && isBardicInspirationResource(row)) {
+    if (isBardicInspirationResource(row)) {
       setBardicInspirationSpendId(id)
-      return
+      return true
     }
-    if (row && isLayOnHandsResource(row)) {
+    if (isLayOnHandsResource(row)) {
       setLayOnHandsSpendId(id)
-      return
+      return true
     }
-    if (row && isSuperiorityDiceResource(row)) {
+    if (isSuperiorityDiceResource(row)) {
       setSuperioritySpendId(id)
-      return
+      return true
     }
-    if (row && isArcaneRecoveryResource(row)) {
+    if (isArcaneRecoveryResource(row)) {
       setArcaneRecoverySpendId(id)
-      return
+      return true
     }
+    if (isInfusionSlotsResource(row)) {
+      setInfusionsSpendId(id)
+      return true
+    }
+    if (isMysticArcanumResource(row)) {
+      setArcanumSpendId(id)
+      return true
+    }
+    return false
+  }
+
+  function spendResourceOrOpenSorcery(id: string) {
+    if (openResourceSpendDialog(id)) return
     setDraft((prev) => ({
       ...prev,
       play: {
@@ -3830,17 +3890,20 @@ export function MinimalSheetEditor({
                   play: { ...prev.play, concentration: null },
                 }))
               }
-              onResourceUsedChange={(id, used) =>
+              onResourceUsedChange={(id, used) => {
+                const row = draft.play.resources.find((item) => item.id === id)
+                // Spending a special pool → open picker instead of blind ±1.
+                if (row && used > row.used && openResourceSpendDialog(id)) return
                 setDraft((prev) => ({
                   ...prev,
                   play: {
                     ...prev.play,
-                    resources: prev.play.resources.map((row) =>
-                      row.id === id ? { ...row, used } : row,
+                    resources: prev.play.resources.map((item) =>
+                      item.id === id ? { ...item, used } : item,
                     ),
                   },
                 }))
-              }
+              }}
             />
           ) : null}
 
@@ -4598,6 +4661,18 @@ export function MinimalSheetEditor({
         darkvision={draft.identity.darkvision}
         raceName={draft.raceName}
         onToast={onToast}
+        onOpenInfusions={(classEntryId) => {
+          const row = draft.play.resources.find(
+            (r) =>
+              r.id.includes(':infusion_slots:') &&
+              r.id.endsWith(`:${classEntryId}`),
+          )
+          if (row) setInfusionsSpendId(row.id)
+          else onToast('Пул активных инфузий ещё не синхронизирован')
+        }}
+        onOpenInvocations={(classEntryId) =>
+          setInvocationsOpen({ classEntryId })
+        }
       />
 
       </div>
@@ -5176,6 +5251,65 @@ export function MinimalSheetEditor({
         }}
         onToast={onToast}
         onClose={() => setArcaneRecoverySpendId(null)}
+      />
+
+      <InfusionsActiveDialog
+        open={infusionsSpendId != null && infusionsContext != null}
+        resource={infusionsResource}
+        classEntryId={infusionsContext?.classEntryId ?? ''}
+        artificerLevel={infusionsContext?.level ?? 1}
+        featurePicks={draft.featurePicks}
+        onFeaturePicksChange={(featurePicks) =>
+          setDraft((prev) => ({ ...prev, featurePicks }))
+        }
+        onSlotsUsedChange={(used) => {
+          if (!infusionsSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) =>
+                row.id === infusionsSpendId
+                  ? { ...row, used: Math.min(row.max, Math.max(0, used)) }
+                  : row,
+              ),
+            },
+          }))
+        }}
+        onToast={onToast}
+        onClose={() => setInfusionsSpendId(null)}
+      />
+
+      <WarlockArcanumSpendDialog
+        open={arcanumSpendId != null}
+        resource={arcanumResource}
+        features={unlockedFeatures}
+        resources={draft.play.resources}
+        onSpend={(poolResourceId, label) => {
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) =>
+                row.id === poolResourceId && row.used < row.max
+                  ? { ...row, used: row.used + 1 }
+                  : row,
+              ),
+            },
+          }))
+          onToast(`${label}: −1`)
+          setArcanumSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setArcanumSpendId(null)}
+      />
+
+      <WarlockInvocationsDialog
+        open={invocationsOpen != null}
+        classEntryId={invocationsOpen?.classEntryId ?? ''}
+        featurePicks={draft.featurePicks}
+        onToast={onToast}
+        onClose={() => setInvocationsOpen(null)}
       />
 
       <LevelUpDialog

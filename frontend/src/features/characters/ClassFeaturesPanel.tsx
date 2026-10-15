@@ -116,6 +116,9 @@ type ClassFeaturesPanelProps = {
   featGrants?: AppliedFeatGrant[]
   darkvision?: number
   raceName?: string
+  /** Desk helpers for known-pick unique abilities. */
+  onOpenInfusions?: (classEntryId: string) => void
+  onOpenInvocations?: (classEntryId: string) => void
 }
 
 type FeatureFilter = 'all' | 'class' | 'subclass' | 'feats' | 'resource' | 'choice'
@@ -167,6 +170,7 @@ function FeatureResourceControls({
   onToast,
   initiativeGrantByPool,
   wearingHeavyArmor,
+  onOpenInfusions,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -177,6 +181,7 @@ function FeatureResourceControls({
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
+  onOpenInfusions?: (classEntryId: string) => void
 }) {
   const resource = feature.resource
   if (!resource?.pool_id) return null
@@ -196,6 +201,23 @@ function FeatureResourceControls({
 
   if (resource.track === 'stock') {
     const current = stockCurrent(pool)
+    if (resource.pool_id === 'infusion_slots' && onOpenInfusions) {
+      return (
+        <div className="feature-resource">
+          <Text>
+            {pool.name}: <strong>{current}</strong> / {pool.max} на предметах
+          </Text>
+          <div className="feature-resource__actions">
+            <Button
+              type="button"
+              onClick={() => onOpenInfusions(feature.classEntryId)}
+            >
+              Управление инфузиями
+            </Button>
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="feature-resource">
         <Text>
@@ -1077,6 +1099,8 @@ function FeatureRow({
   onToast,
   initiativeGrantByPool,
   wearingHeavyArmor,
+  onOpenInfusions,
+  onOpenInvocations,
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -1096,6 +1120,8 @@ function FeatureRow({
   onToast?: (message: string) => void
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
+  onOpenInfusions?: (classEntryId: string) => void
+  onOpenInvocations?: (classEntryId: string) => void
 }) {
   const sourceLabel =
     feature.source === 'subclass'
@@ -1276,7 +1302,28 @@ function FeatureRow({
         onToast={onToast}
         initiativeGrantByPool={initiativeGrantByPool}
         wearingHeavyArmor={wearingHeavyArmor}
+        onOpenInfusions={onOpenInfusions}
       />
+      {feature.id === 'eldritch_invocations' && onOpenInvocations ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() => onOpenInvocations(feature.classEntryId)}
+          >
+            Воззвания на столе
+          </Button>
+        </div>
+      ) : null}
+      {feature.id === 'infuse_item' && onOpenInfusions ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() => onOpenInfusions(feature.classEntryId)}
+          >
+            Активные инфузии
+          </Button>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -1319,6 +1366,8 @@ export function ClassFeaturesPanel({
   featGrants = [],
   darkvision = 0,
   raceName = '',
+  onOpenInfusions,
+  onOpenInvocations,
 }: ClassFeaturesPanelProps) {
   const [filter, setFilter] = useState<FeatureFilter>('all')
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
@@ -1542,6 +1591,8 @@ export function ClassFeaturesPanel({
                     onToast={onToast}
                     initiativeGrantByPool={initiativeGrantByPool}
                     wearingHeavyArmor={wearingHeavyArmor}
+                    onOpenInfusions={onOpenInfusions}
+                    onOpenInvocations={onOpenInvocations}
                   />
                 )
               })}
