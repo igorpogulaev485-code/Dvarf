@@ -61,7 +61,7 @@ export function SpellScrollBindDialog({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    return entries
+    const rows = entries
       .filter((entry) => {
         const parsed = parseSpellCatalogData(entry.data ?? {})
         if (levelCap != null && parsed.level !== levelCap) return false
@@ -72,7 +72,10 @@ export function SpellScrollBindDialog({
           entry.slug.toLowerCase().includes(q)
         )
       })
-      .slice(0, 40)
+      .sort((a, b) => a.name_ru.localeCompare(b.name_ru, 'ru'))
+    // Level-capped blanks: show the full level list (can be ~80). Unscoped search still capped.
+    if (levelCap != null) return rows
+    return rows.slice(0, 80)
   }, [entries, query, levelCap])
 
   function pick(entry: CatalogEntry) {
