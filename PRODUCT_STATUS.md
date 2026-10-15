@@ -580,6 +580,16 @@
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
 
+### 2026-10-15 — Паладин: CD (клятва) + Возложение рук
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Божественный канал | Тот же `ChannelDivinitySpendDialog`: опции клятвы; трекер `channel_divinity_paladin` не в списке | Как у жреца — клик → выбор |
+| Возложение рук | `LayOnHandsSpendDialog`: N хитов или снять болезнь/яд (−5) | Не −1 пипс, а сумма из пула 5×ур. |
+| Smoke | `frontend/scripts/smoke-paladin-cd-loh.ts` | CD опции + LoH max |
+
+На проде: **нет** · ветка `cursor/paladin-cd-spend-4797` · поверх bard/monk стека
+
 ### 2026-10-15 — Бард: picker Бардовского вдохновения
 
 | Функция | Как работает | Эффект для пользователя |
