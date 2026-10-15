@@ -37,6 +37,14 @@ import {
   isSpellNaparnikCast,
   resolveSpellNaparnikSlug,
 } from '../src/features/characters/spellCompanions.ts'
+import {
+  applySpellSelfForm,
+  dismissSpellSelfFormsForConcentration,
+  isSpellSelfFormCast,
+  resolveSpellSelfFormSlug,
+  spellFormLimits,
+  spellFormPickAllowed,
+} from '../src/features/characters/spellForms.ts'
 import { createSheetSpell } from '../src/features/characters/spells.ts'
 import {
   applyBeastWildShape,
@@ -769,5 +777,79 @@ assert(
 )
 assert(getActiveSelfForm(elemental.companions)?.stats.hp === 90, 'air elemental HP')
 assert(elemental.knownForms[0]?.tags.includes('elemental'), 'known elemental tag')
+
+// --- F5: spell self_form ---
+assert(resolveSpellSelfFormSlug('Polymorph') === 'polymorph', 'polymorph slug')
+assert(resolveSpellSelfFormSlug('Превращение') === 'polymorph', 'polymorph RU')
+assert(resolveSpellSelfFormSlug('Shapechange') === 'shapechange', 'shapechange')
+assert(resolveSpellSelfFormSlug('True Polymorph') === 'true_polymorph', 'true poly')
+const polySpell = {
+  ...createSheetSpell(),
+  name: 'Превращение',
+  level: 4,
+  concentration: true,
+}
+assert(isSpellSelfFormCast(polySpell), 'is self form cast')
+const polyLim = spellFormLimits({ slug: 'polymorph', characterLevel: 5 })
+assert(polyLim.maxCr === 5 && polyLim.allowedTypes.includes('beast'), 'poly limits')
+assert(
+  spellFormPickAllowed(
+    { slug: 'wolf', name_ru: 'Волк', cr: '1/4', type: 'beast', ac: 13, hp: 11, speed_walk: 40, actions_text: '' },
+    polyLim,
+  ),
+  'wolf ok for poly',
+)
+assert(
+  !spellFormPickAllowed(
+    { slug: 'ogre', name_ru: 'Огр', cr: '2', type: 'giant', ac: 11, hp: 59, speed_walk: 40, actions_text: '' },
+    polyLim,
+  ),
+  'giant blocked for poly',
+)
+const shapeLim = spellFormLimits({ slug: 'shapechange', characterLevel: 17 })
+assert(
+  !spellFormPickAllowed(
+    { slug: 'zombie', name_ru: 'Зомби', cr: '1/4', type: 'undead', ac: 8, hp: 22, speed_walk: 20, actions_text: '' },
+    shapeLim,
+  ),
+  'undead blocked shapechange',
+)
+
+const polyApplied = applySpellSelfForm({
+  companions: [allyPrimary],
+  knownForms: [],
+  spell: polySpell,
+  slug: 'polymorph',
+  pick: {
+    slug: 'wolf',
+    name_ru: 'Волк',
+    cr: '1/4',
+    type: 'beast',
+    ac: 13,
+    hp: 11,
+    speed_walk: 40,
+    actions_text: 'Укус',
+  },
+  hostHp: 30,
+  hostHpMax: 30,
+  characterLevel: 5,
+})
+assert(getActiveSelfForm(polyApplied.companions)?.source?.spellId === polySpell.id, 'spell id link')
+assert(getActiveSelfForm(polyApplied.companions)?.form?.form_source === 'spell', 'form_source spell')
+
+const concDrop = applyConcentrationChangeToCompanions({
+  companions: polyApplied.companions,
+  previous: { spell_id: polySpell.id, name: polySpell.name },
+  next: null,
+})
+assert(!getActiveSelfForm(concDrop.companions), 'conc end removes form')
+assert(concDrop.dismissedNames.some((n) => n.includes('Волк')), 'dismiss name')
+
+const manualDrop = dismissSpellSelfFormsForConcentration({
+  companions: polyApplied.companions,
+  endedSpellId: polySpell.id,
+  endedSpellName: polySpell.name,
+})
+assert(manualDrop.companions.every((c) => c.role !== 'self_form'), 'manual dismiss removes')
 
 console.log('smoke-companions: ok')

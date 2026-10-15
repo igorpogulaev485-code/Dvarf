@@ -32,8 +32,18 @@ import {
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import type { CompanionEntry } from './companions'
+import type { KnownForm } from './knownForms'
 import type { ConcentrationState } from './play'
 import { applySpellCastToCompanions } from './spellCompanions'
+import {
+  isSpellSelfFormCast,
+  resolveSpellSelfFormSlug,
+  type SpellSelfFormSlug,
+} from './spellForms'
+import {
+  SpellFormDialog,
+  type SpellFormDialogResult,
+} from './SpellFormDialog'
 import {
   canRemoveSheetSpell,
   canSpendGrantCast,
@@ -68,6 +78,10 @@ type SpellsPanelProps = {
   onCompanionsChange?: (
     update: CompanionEntry[] | ((prev: CompanionEntry[]) => CompanionEntry[]),
   ) => void
+  knownForms?: KnownForm[]
+  onKnownFormsChange?: (knownForms: KnownForm[]) => void
+  hostHp?: number | null
+  hostHpMax?: number | null
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   onChange: (spells: SpellsState) => void
@@ -84,6 +98,10 @@ export function SpellsPanel({
   spells,
   companions = [],
   onCompanionsChange,
+  knownForms = [],
+  onKnownFormsChange,
+  hostHp = null,
+  hostHpMax = null,
   abilities,
   proficiencyBonus,
   onChange,
@@ -94,6 +112,10 @@ export function SpellsPanel({
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
   const [castSpell, setCastSpell] = useState<SheetSpell | null>(null)
+  const [pendingSelfForm, setPendingSelfForm] = useState<{
+    spell: SheetSpell
+    slug: SpellSelfFormSlug
+  } | null>(null)
   const [filter, setFilter] = useState<'all' | number>('all')
   const [showAllKnown, setShowAllKnown] = useState(false)
 
@@ -310,6 +332,15 @@ export function SpellsPanel({
       : ` · напарник «${preview.name}»`
   }
 
+  function openSelfFormPickerIfNeeded(spell: SheetSpell, choice: CastChoice) {
+    if (choice.selfFormTarget === 'other') return false
+    if (!isSpellSelfFormCast(spell)) return false
+    const slug = resolveSpellSelfFormSlug(spell)
+    if (!slug) return false
+    setPendingSelfForm({ spell, slug })
+    return true
+  }
+
   function confirmCast(choice: CastChoice) {
     if (!castSpell) return
     const name = castSpell.name || 'Заклинание'
@@ -327,14 +358,16 @@ export function SpellsPanel({
     })
     const effectNote = scaled && effect ? ` · ${effect}` : ''
     const naparnikSlot = slotForEffect || castSpell.level
+    const wantsForm = openSelfFormPickerIfNeeded(castSpell, choice)
+    const formNote = wantsForm ? ' · выбери форму' : ''
 
     if (castSpell.level <= 0) {
       applyConcentrationIfNeeded(castSpell)
-      const naparnikNote = applyNaparnikFromCast(castSpell, naparnikSlot)
+      const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
         castSpell.concentration
-          ? `Каст: ${name}${effectNote} (концентрация)${naparnikNote}`
-          : `Каст: ${name}${effectNote}${naparnikNote}`,
+          ? `Каст: ${name}${effectNote} (концентрация)${naparnikNote}${formNote}`
+          : `Каст: ${name}${effectNote}${naparnikNote}${formNote}`,
       )
       setCastSpell(null)
       return
@@ -346,22 +379,22 @@ export function SpellsPanel({
         known: spendGrantCast(spells.known, castSpell.id),
       })
       applyConcentrationIfNeeded(castSpell)
-      const naparnikNote = applyNaparnikFromCast(castSpell, naparnikSlot)
+      const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
         `Каст: ${name} (−1 ${label})${effectNote}${
           castSpell.concentration ? ' · концентрация' : ''
-        }${naparnikNote}`,
+        }${naparnikNote}${formNote}`,
       )
       setCastSpell(null)
       return
     }
     if (ritualCast) {
       applyConcentrationIfNeeded(castSpell)
-      const naparnikNote = applyNaparnikFromCast(castSpell, naparnikSlot)
+      const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
         `Ритуал: ${name} (без ячейки)${effectNote}${
           castSpell.concentration ? ' · концентрация' : ''
-        }${naparnikNote}`,
+        }${naparnikNote}${formNote}`,
       )
       setCastSpell(null)
       return
@@ -374,11 +407,13 @@ export function SpellsPanel({
       }
       patch({ pact_slots: pactResult.pact })
       applyConcentrationIfNeeded(castSpell)
-      const naparnikNote = applyNaparnikFromCast(castSpell, pactResult.pact.level)
+      const naparnikNote = wantsForm
+        ? ''
+        : applyNaparnikFromCast(castSpell, pactResult.pact.level)
       onToast?.(
         `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${effectNote}${
           castSpell.concentration ? ' · концентрация' : ''
-        }${naparnikNote}`,
+        }${naparnikNote}${formNote}`,
       )
       setCastSpell(null)
       return
@@ -390,15 +425,24 @@ export function SpellsPanel({
     }
     patch({ slots: result.slots })
     applyConcentrationIfNeeded(castSpell)
-    const naparnikNote = applyNaparnikFromCast(castSpell, choice.slotLevel)
+    const naparnikNote = wantsForm
+      ? ''
+      : applyNaparnikFromCast(castSpell, choice.slotLevel)
     const upcast =
       choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast?.(
       `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${
         castSpell.concentration ? ' · концентрация' : ''
-      }${naparnikNote}`,
+      }${naparnikNote}${formNote}`,
     )
     setCastSpell(null)
+  }
+
+  function applySpellFormResult(result: SpellFormDialogResult) {
+    onCompanionsChange?.(result.companions)
+    onKnownFormsChange?.(result.knownForms)
+    onToast?.(result.toast)
+    setPendingSelfForm(null)
   }
 
   function enablePact() {
@@ -900,6 +944,26 @@ export function SpellsPanel({
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />
+      {pendingSelfForm ? (
+        <SpellFormDialog
+          open
+          spell={pendingSelfForm.spell}
+          slug={pendingSelfForm.slug}
+          companions={companions}
+          knownForms={knownForms}
+          characterLevel={level}
+          hostHp={hostHp ?? 0}
+          hostHpMax={hostHpMax ?? 0}
+          edition={edition === '2024' ? '2024' : '2014'}
+          onConfirm={applySpellFormResult}
+          onClose={() => {
+            setPendingSelfForm(null)
+            onToast?.(
+              'Облик не выбран — концентрация активна; карточку можно не создавать',
+            )
+          }}
+        />
+      ) : null}
     </Panel>
   )
 }

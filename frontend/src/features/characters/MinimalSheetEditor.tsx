@@ -2756,6 +2756,12 @@ export function MinimalSheetEditor({
               typeof update === 'function' ? update(prev.companions) : update,
           }))
         }
+        knownForms={draft.knownForms}
+        onKnownFormsChange={(knownForms) =>
+          setDraft((prev) => ({ ...prev, knownForms }))
+        }
+        hostHp={draft.hpCurrent}
+        hostHpMax={draft.hpMax}
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
         onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}

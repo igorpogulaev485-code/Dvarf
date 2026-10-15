@@ -7,6 +7,7 @@ import {
   type CompanionEntry,
   type CompanionKind,
 } from './companions'
+import { dismissSpellSelfFormsForConcentration } from './spellForms'
 import {
   companionFromTemplate,
   resolveSpellCompanionTemplate,
@@ -377,8 +378,17 @@ export function applyConcentrationChangeToCompanions(input: {
   ) {
     return { companions: input.companions, dismissedNames: [] }
   }
-  return dismissCompanionsForEndedConcentration({
+  const allies = dismissCompanionsForEndedConcentration({
     companions: input.companions,
     ended: input.previous,
   })
+  const forms = dismissSpellSelfFormsForConcentration({
+    companions: allies.companions,
+    endedSpellId: input.previous.spell_id,
+    endedSpellName: input.previous.name,
+  })
+  return {
+    companions: forms.companions,
+    dismissedNames: [...allies.dismissedNames, ...forms.dismissedNames],
+  }
 }

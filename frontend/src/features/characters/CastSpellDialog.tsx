@@ -17,6 +17,7 @@ import {
   type SheetSpell,
   type SpellsState,
 } from './spells'
+import { isSpellSelfFormCast } from './spellForms'
 
 export type CastChoice = {
   usePact: boolean
@@ -25,6 +26,11 @@ export type CastChoice = {
   ritual?: boolean
   /** Spend race/feat grant free-cast charge instead of a slot. */
   useGrant?: boolean
+  /**
+   * Polymorph / Shapechange / True Polymorph:
+   * self → open form picker; other → spend only, no self_form card.
+   */
+  selfFormTarget?: 'self' | 'other'
 }
 
 type CastSpellDialogProps = {
@@ -60,13 +66,17 @@ export function CastSpellDialog({
   const [useRitual, setUseRitual] = useState(false)
   const [useGrant, setUseGrant] = useState(false)
   const [slotLevel, setSlotLevel] = useState(1)
+  const [selfFormTarget, setSelfFormTarget] = useState<'self' | 'other'>('self')
+  const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
 
   useEffect(() => {
     if (!spell || isCantrip) {
       setUseRitual(false)
       setUseGrant(false)
+      setSelfFormTarget('self')
       return
     }
+    setSelfFormTarget('self')
     // Prefer grant free cast when available; else slots/pact; else ritual.
     if (grantOk) {
       setUseGrant(true)
@@ -182,6 +192,7 @@ export function CastSpellDialog({
               : usePact
                 ? (spells.pact_slots?.level ?? spellLevel)
                 : slotLevel,
+          selfFormTarget: isTransformSelf ? selfFormTarget : undefined,
         })
       }}
       onSecondary={onClose}
@@ -333,6 +344,32 @@ export function CastSpellDialog({
           <Text tone="muted">
             Это концентрация — станет активной на листе (предыдущая снимется).
           </Text>
+        ) : null}
+
+        {isTransformSelf ? (
+          <div>
+            <Text tone="muted">Цель превращения (v1)</Text>
+            <div className="chip-row" style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                className={`sheet-chip${selfFormTarget === 'self' ? ' is-on' : ''}`}
+                onClick={() => setSelfFormTarget('self')}
+              >
+                На себя → облик
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${selfFormTarget === 'other' ? ' is-on' : ''}`}
+                onClick={() => setSelfFormTarget('other')}
+              >
+                Другая цель (без карточки)
+              </button>
+            </div>
+            <Text tone="muted">
+              «На себя» после каста откроет пикер формы в Напарниках. На союзника/врага в
+              v1 карточку не создаём.
+            </Text>
+          </div>
         ) : null}
       </Stack>
     </Dialog>
