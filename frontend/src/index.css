@@ -1,21 +1,26 @@
 :root {
-  color: #1c1917;
+  /* UI Kit Wave A — Листва (docs/ui-kit/README.md) */
+  color: #2d2d2a;
   background:
-    radial-gradient(circle at top left, #f5e6d3 0%, transparent 40%),
-    linear-gradient(180deg, #f7f3ee 0%, #ebe4da 100%);
+    radial-gradient(circle at top left, #f3e8d4 0%, transparent 42%),
+    linear-gradient(180deg, #fbf7ec 0%, #f3ebe0 100%);
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --ink: #1c1917;
-  --muted: #6b635a;
+  --ink: #2d2d2a;
+  --muted: #6f675c;
   --danger: #b42318;
-  --success: #067647;
-  --panel: rgba(255, 252, 248, 0.92);
-  --line: #d8cfc3;
-  --accent: #0f3d2e;
-  --accent-soft: #d7ebe2;
+  --success: #3d6b45;
+  --panel: #fbf7ec;
+  --desk-paper: #fbf7ec;
+  --line: #e0d8c7;
+  --card: #fffdf8;
+  --accent: #5a6b3d;
+  --accent-soft: #e5ecd4;
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
 }
 
 * {
@@ -94,6 +99,9 @@ input {
 .ui-panel__title {
   margin: 0 0 14px;
   font-size: 1.1rem;
+  font-family: var(--font-display);
+  color: var(--accent);
+  font-weight: 650;
 }
 
 .ui-field {
@@ -1465,7 +1473,7 @@ input {
 
 .lobby-hub-code__value {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--card);
   border-radius: 12px;
   padding: 8px 12px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -1481,7 +1489,7 @@ input {
   z-index: 5;
   margin: 0 -4px;
   padding: 4px 0 8px;
-  background: linear-gradient(180deg, rgba(247, 243, 238, 0.96) 60%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 96%, transparent) 60%, transparent);
 }
 
 .lobby-hub-tabs__scroll {
@@ -1522,18 +1530,18 @@ input {
 .lobby-member-card {
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: #fff;
+  background: var(--card);
   overflow: hidden;
   min-width: 0;
 }
 
 .lobby-member-card__hp {
   height: 6px;
-  background: #d8cfc3;
+  background: var(--line);
 }
 
 .lobby-member-card__hp--ok {
-  background: #067647;
+  background: var(--success);
 }
 
 .lobby-member-card__hp--warn {
@@ -1541,11 +1549,11 @@ input {
 }
 
 .lobby-member-card__hp--down {
-  background: #b42318;
+  background: var(--danger);
 }
 
 .lobby-member-card__hp--unknown {
-  background: #d8cfc3;
+  background: var(--line);
 }
 
 /* Всегда: аватар+мета сверху, кнопки снизу — без наложений на узких колонках */
@@ -1739,7 +1747,7 @@ input {
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: #fff;
+  background: var(--card);
   cursor: pointer;
 }
 
@@ -1833,18 +1841,18 @@ input {
 .session-table-card {
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: #fff;
+  background: var(--card);
   overflow: hidden;
   min-width: 0;
 }
 
 .session-table-card__hp {
   height: 6px;
-  background: #d8cfc3;
+  background: var(--line);
 }
 
 .session-table-card__hp--ok {
-  background: #067647;
+  background: var(--success);
 }
 
 .session-table-card__hp--warn {
@@ -1852,11 +1860,11 @@ input {
 }
 
 .session-table-card__hp--down {
-  background: #b42318;
+  background: var(--danger);
 }
 
 .session-table-card__hp--unknown {
-  background: #d8cfc3;
+  background: var(--line);
 }
 
 .session-table-card__body {
@@ -1927,14 +1935,14 @@ input {
   padding: 3px 8px;
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text);
-  background: rgba(247, 243, 238, 0.8);
+  color: var(--ink);
+  background: color-mix(in srgb, var(--panel) 80%, white);
   line-height: 1.2;
 }
 
 .session-table-card__chip--hp.is-ok {
-  border-color: color-mix(in srgb, #067647 35%, var(--line));
-  color: #067647;
+  border-color: color-mix(in srgb, var(--success) 35%, var(--line));
+  color: var(--success);
 }
 
 .session-table-card__chip--hp.is-warn {
@@ -1990,7 +1998,7 @@ input {
   padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: #fff;
+  background: var(--card);
 }
 
 .session-event-feed__head {
@@ -2165,6 +2173,7 @@ input {
 .journal-entry__title {
   margin: 0;
   font-size: 1.08rem;
+  font-family: var(--font-display);
   overflow-wrap: anywhere;
 }
 
@@ -2207,13 +2216,15 @@ input {
 .journal-composer {
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.7);
+  background: color-mix(in srgb, var(--card) 70%, transparent);
   padding: 14px;
 }
 
 .journal-composer__heading {
   margin: 0;
   font-size: 1rem;
+  font-family: var(--font-display);
+  color: var(--accent);
 }
 
 /* —— Chats + master letters (A5) —— */
@@ -2231,7 +2242,7 @@ input {
   margin-left: 6px;
   padding: 0 5px;
   border-radius: 999px;
-  background: #b42318;
+  background: var(--danger);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
@@ -2264,7 +2275,7 @@ input {
   text-align: left;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: #fff;
+  background: var(--card);
   padding: 10px 12px;
   cursor: pointer;
   display: flex;
@@ -2379,7 +2390,7 @@ input {
 .notes-composer {
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.7);
+  background: color-mix(in srgb, var(--card) 70%, transparent);
   padding: 14px;
 }
 
@@ -2475,7 +2486,7 @@ input {
   width: 44px;
   height: 44px;
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--card);
   border-radius: 12px;
   font-size: 1.15rem;
   line-height: 1;
@@ -2502,13 +2513,13 @@ input {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid color-mix(in srgb, #b42318 35%, var(--line));
-  background: color-mix(in srgb, #b42318 10%, white);
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--line));
+  background: color-mix(in srgb, var(--danger) 10%, white);
   border-radius: 999px;
   padding: 6px 11px;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #b42318;
+  color: var(--danger);
   line-height: 1.2;
 }
 
@@ -2520,17 +2531,20 @@ button.session-condition-tag {
 
 .session-condition-tag.is-removable:hover:not(:disabled),
 .session-condition-tag.is-picked {
-  border-color: #b42318;
-  background: color-mix(in srgb, #b42318 18%, white);
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 18%, white);
 }
 
 .session-condition-tag.is-picked {
-  box-shadow: inset 0 0 0 1px #b42318;
+  box-shadow: inset 0 0 0 1px var(--danger);
 }
 
 .apply-condition__heading {
   margin: 0 0 8px;
   font-size: 0.95rem;
+  font-family: var(--font-display);
+  color: var(--accent);
+  font-weight: 650;
 }
 
 .apply-condition__grid {
@@ -2569,7 +2583,7 @@ button.session-condition-tag {
   border-radius: 12px;
   padding: 12px;
   cursor: pointer;
-  background: #fff;
+  background: var(--card);
   min-height: 48px;
 }
 
