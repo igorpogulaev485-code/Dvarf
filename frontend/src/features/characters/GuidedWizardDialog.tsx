@@ -519,7 +519,7 @@ function SpellbookPicksStepBody({
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    listCatalogEntries({ kind: 'spell', edition, limit: 800 })
+    listCatalogEntries({ kind: 'spell', edition })
       .then((rows) => {
         if (!cancelled) setEntries(rows)
       })

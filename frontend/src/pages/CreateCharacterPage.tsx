@@ -81,6 +81,7 @@ import {
   isWizardClassName,
   listUnlockedExpertiseKeys,
   withWizardSpellbookPicksStep,
+  type GuidedWizardStep,
 } from '../shared/dnd/pendingFeatureChoices'
 import {
   isPointBuyValid,
@@ -124,10 +125,7 @@ import {
   suggestSpellcastingFromClasses,
 } from '../shared/dnd/casterProgression'
 import type { SpellcastingAbility } from '../shared/dnd/spells'
-import {
-  freeBookSlotsAtLevel,
-  remainingFreeSpellbookSlots,
-} from '../shared/dnd/wizardSpellbook'
+import { remainingFreeSpellbookSlots } from '../shared/dnd/wizardSpellbook'
 import { inventoryToSheet, readInventory } from '../features/characters/inventory'
 import {
   isSpellbookInventoryItem,
@@ -669,7 +667,7 @@ export function CreateCharacterPage() {
     for (const item of classRows) {
       hasSubclass[item.id] = hasSubclassSelected(item)
     }
-    let steps = buildPendingWizardSteps({
+    let steps: GuidedWizardStep[] = buildPendingWizardSteps({
       unlocked,
       featurePicks: picksState,
       classAsi: state.classAsi ?? [],
