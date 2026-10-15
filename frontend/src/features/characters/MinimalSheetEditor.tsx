@@ -2965,6 +2965,10 @@ export function MinimalSheetEditor({
 
   function runDeskCast(spell: SheetSpell, choice: CastChoice) {
     const name = spell.name || 'Заклинание'
+    const allyNote =
+      choice.allyTargetIds && choice.allyTargetIds.length > 0
+        ? ` · целей ${choice.allyTargetIds.length}`
+        : ''
     const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
     const grantSpellId = choice.grantSpellId || spell.id
     const grantRow =
@@ -3002,8 +3006,8 @@ export function MinimalSheetEditor({
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
         spell.concentration
-          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)`
-          : `Каст: ${name}${effectNote}${consumeNote}`,
+          ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)`
+          : `Каст: ${name}${effectNote}${consumeNote}${allyNote}`,
       )
       return
     }
@@ -3018,7 +3022,7 @@ export function MinimalSheetEditor({
       }))
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
-        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -3027,7 +3031,7 @@ export function MinimalSheetEditor({
     if (ritualCast) {
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
-        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
+        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -3045,7 +3049,7 @@ export function MinimalSheetEditor({
       }))
       if (spell.concentration) applyDeskConcentration(spell)
       onToast(
-        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }`,
       )
@@ -3064,7 +3068,7 @@ export function MinimalSheetEditor({
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast(
-      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
         spell.concentration ? ' · концентрация' : ''
       }`,
     )

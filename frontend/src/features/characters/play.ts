@@ -26,6 +26,7 @@ import {
   type ResourceReset,
   type SheetResource,
 } from '../../shared/dnd/rest'
+import { guessResourceAppliesToAllies } from '../../shared/dnd/allyTargets'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
 export type PlayState = {
@@ -106,7 +107,7 @@ function readResource(raw: unknown, index: number): SheetResource {
   const applies =
     typeof appliesExplicit === 'boolean'
       ? appliesExplicit
-      : /вдохновен|inspiration|инфуз|infusion/i.test(name)
+      : guessResourceAppliesToAllies(name)
   const countRaw = row.ally_target_count
   return clampResource({
     id: typeof row.id === 'string' ? row.id : `res-${index}`,
