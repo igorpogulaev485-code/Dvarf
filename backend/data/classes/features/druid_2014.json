@@ -47,6 +47,26 @@
       }
     },
     {
+      "id": "wild_companion",
+      "level": 2,
+      "name_ru": "Дикий спутник",
+      "name_en": "Wild Companion",
+      "summary_ru": "Tasha (optional): потрать 1 Дикий облик → «Поиск фамильяра» без компонентов; фамильяр — фея; исчезает через число часов = ½ ур. друида.",
+      "kind": "action",
+      "resource": {
+        "uses": 0,
+        "recharge": "short_rest",
+        "pool_id": "wild_companion",
+        "pool_name_ru": "Дикий спутник",
+        "track": "spend",
+        "linked_spend": {
+          "pool_id": "wild_shape",
+          "label_ru": "1 Дикий облик → фамильяр-фея",
+          "mode": "spend"
+        }
+      }
+    },
+    {
       "id": "druid_circle",
       "level": 2,
       "name_ru": "Круг друидов",
@@ -268,7 +288,11 @@
         "slot_spend": {
           "label_ru": "Исцеление в облике (1к8 × ур. ячейки)",
           "min_slot": 1,
-          "max_slot": 9
+          "max_slot": 9,
+          "dice_base": 1,
+          "dice_per_slot_above": 1,
+          "dice_cap": 9,
+          "dice_size": 8
         }
       },
       {

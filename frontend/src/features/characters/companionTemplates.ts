@@ -175,9 +175,25 @@ function familiarStub(): CompanionTemplatePatch {
     defaultName: 'Фамильяр',
     stats: { hp: 2, hp_max: 2, ac: 12, speed: 20 },
     actions: 'Не атакует; телепатия 100 фт.; передача касания. Облик — из бестиария.',
-    notes: 'Find Familiar: типовой крошечный stub; точный статблок облика — из бестиария',
+    notes:
+      'Find Familiar: stub; при выборе существа из бестиария статы подтягиваются на карточку',
     nature: 'summoned',
     control: 'own_initiative',
+  }
+}
+
+/** TCE Wildfire Spirit — HP always 10+5×druidLevel (ttg), never catalog average alone. */
+function wildfireSpiritTemplate(ctx: CompanionTemplateContext): CompanionTemplatePatch {
+  const level = Math.max(1, Math.floor(ctx.hostClassLevel || ctx.characterLevel || 1))
+  const hp = 10 + 5 * level
+  return {
+    kind: 'other',
+    defaultName: 'Дух дикого огня',
+    stats: { hp, hp_max: hp, ac: 13, speed: 30 },
+    actions: 'Семя пламени; Огненная телепортация (см. TCE / бестиарий).',
+    notes: `Summon Wildfire Spirit · HP = 10 + 5×ур. = ${hp} (ttg)`,
+    nature: 'summoned',
+    control: 'bonus_action_command',
   }
 }
 
@@ -228,6 +244,8 @@ const SUMMON_SPELL_TEMPLATES: Record<
   (ctx: CompanionTemplateContext) => CompanionTemplatePatch
 > = {
   find_familiar: () => familiarStub(),
+  wildfire_spirit: (ctx) => wildfireSpiritTemplate(ctx),
+  summon_wildfire_spirit: (ctx) => wildfireSpiritTemplate(ctx),
   summon_beast: (ctx) =>
     tashaSpiritTemplate({
       titleRu: 'Дух зверя',
@@ -409,6 +427,9 @@ export function resolveCompanionTemplate(input: {
     if (value.includes('sea')) return primalTemplate('beast_of_the_sea', input.ctx)
     if (value.includes('sky')) return primalTemplate('beast_of_the_sky', input.ctx)
     if (value.includes('land')) return primalTemplate('beast_of_the_land', input.ctx)
+  }
+  if (id.includes('wildfire')) {
+    return wildfireSpiritTemplate(input.ctx)
   }
   return null
 }

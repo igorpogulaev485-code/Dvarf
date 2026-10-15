@@ -40,6 +40,9 @@ type CombatStickyHeaderProps = {
   conditionNames: string[]
   concentration: ConcentrationState | null
   onClearConcentration?: () => void
+  /** Active Wild Shape / self_form label for header chip. */
+  activeFormLabel?: string | null
+  onFocusActiveForm?: () => void
   onChange: (patch: {
     hpCurrent?: number | null
     hpMax?: number | null
@@ -77,6 +80,8 @@ export function CombatStickyHeader({
   conditionNames,
   concentration,
   onClearConcentration,
+  activeFormLabel = null,
+  onFocusActiveForm,
   onChange,
 }: CombatStickyHeaderProps) {
   const autoInitiative = abilityModifier(abilities.dex) + initiativeBonus
@@ -165,6 +170,19 @@ export function CombatStickyHeader({
           {onClearConcentration ? (
             <button type="button" className="linkish" onClick={onClearConcentration}>
               Снять
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {activeFormLabel ? (
+        <div className="combat-sticky__concentration">
+          <span>
+            В облике: <strong>{activeFormLabel}</strong>
+          </span>
+          {onFocusActiveForm ? (
+            <button type="button" className="linkish" onClick={onFocusActiveForm}>
+              К карточке
             </button>
           ) : null}
         </div>

@@ -78,10 +78,11 @@ import {
 import { SubclassSetupDialog } from './SubclassSetupDialog'
 import { SubclassChangeConfirmDialog } from './SubclassChangeConfirmDialog'
 import {
+  dismissSelfFormsOnRest,
   readCompanions,
-  resetCompanionResourcesOnRest,
   type CompanionEntry,
 } from './companions'
+import { readKnownForms, type KnownForm } from './knownForms'
 import { applyConcentrationChangeToCompanions } from './spellCompanions'
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
@@ -156,9 +157,13 @@ import { withSyncedHitDiceSummary } from './play'
 import { SpellsPanel } from './SpellsPanel'
 import {
   desiredResourcesFromFeatures,
+  spendFeatureUse,
   syncFeatureResources,
 } from '../../shared/dnd/featureResources'
-import { unlockFeaturesForClasses } from '../../shared/dnd/classFeatures'
+import {
+  resolveClassFeatureSlug,
+  unlockFeaturesForClasses,
+} from '../../shared/dnd/classFeatures'
 import {
   clearFeaturePicksForClass,
   findFightingStylePick,
@@ -167,8 +172,24 @@ import {
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
-import { ClassFeaturesPanel, saveBonusFromFeatures } from './ClassFeaturesPanel'
+import {
+  ClassFeaturesPanel,
+  saveBonusFromFeatures,
+  type FeatureSelfFormRequest,
+  type WildShapeForkRequest,
+} from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
+import {
+  FeatureSelfFormDialog,
+  type FeatureSelfFormDialogResult,
+} from './FeatureSelfFormDialog'
+import { shapechangerFormLimits } from './featureForms'
+import { WildShapeDialog, type WildShapeDialogResult } from './WildShapeDialog'
+import {
+  activeSelfFormLabel,
+  healSelfForm,
+  rollDice,
+} from './wildShape'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import {
   identityExtrasToSheet,
@@ -260,6 +281,8 @@ type Draft = {
   backgroundGrant: AppliedBackgroundGrant | null
   backgroundCatalogId: string | null
   companions: CompanionEntry[]
+  /** Wild Shape / form library — seen or learned forms. */
+  knownForms: KnownForm[]
   featurePicks: FeaturePicksState
   classAsi: AppliedClassAsi[]
   featGrants: AppliedFeatGrant[]
@@ -390,6 +413,7 @@ function buildDraft(character: CharacterDetail): Draft {
         ? identity.background_catalog_id
         : null,
     companions: readCompanions(sheet.companions),
+    knownForms: readKnownForms(sheet.known_forms),
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classAsi: readClassAsiLedger(sheet.class_asi),
     featGrants: readFeatGrantLedger(sheet.feat_grants),
@@ -482,6 +506,11 @@ export function MinimalSheetEditor({
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const [raceCatalogRows, setRaceCatalogRows] = useState<CatalogEntry[]>([])
+  const [wildShapeFork, setWildShapeFork] = useState<WildShapeForkRequest | null>(
+    null,
+  )
+  const [featureSelfForm, setFeatureSelfForm] =
+    useState<FeatureSelfFormRequest | null>(null)
 
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
@@ -532,6 +561,41 @@ export function MinimalSheetEditor({
   )
   const primaryClass = draft.classes[0]
   const rulesEdition = baseCharacter.rules_edition as RulesEdition
+  const formLabel = useMemo(
+    () => activeSelfFormLabel(draft.companions),
+    [draft.companions],
+  )
+  const druidClassRow = useMemo(() => {
+    if (wildShapeFork) {
+      return (
+        draft.classes.find((row) => row.id === wildShapeFork.classEntryId) ?? null
+      )
+    }
+    return (
+      draft.classes.find(
+        (row) => resolveClassFeatureSlug(row.name) === 'druid',
+      ) ?? null
+    )
+  }, [draft.classes, wildShapeFork])
+  const druidLevel = druidClassRow?.level ?? characterLevel
+  const druidSubclassSlug =
+    (druidClassRow && subclassSlugByEntryId[druidClassRow.id]) || null
+
+  function applyWildShapeResult(result: WildShapeDialogResult) {
+    setDraft((prev) => ({
+      ...prev,
+      companions: result.companions,
+      knownForms: result.knownForms,
+      play: {
+        ...prev.play,
+        resources: result.resources,
+        ...(result.hpTemp != null
+          ? { hpTemp: Math.max(prev.play.hpTemp, result.hpTemp) }
+          : {}),
+      },
+    }))
+    if (result.toast) onToast(result.toast)
+  }
 
   useEffect(() => {
     setBaseCharacter(character)
@@ -1863,6 +1927,7 @@ export function MinimalSheetEditor({
       sheet.race_grant = draft.raceGrant
       sheet.background_grant = draft.backgroundGrant
       sheet.companions = draft.companions
+      sheet.known_forms = draft.knownForms
       sheet.feature_picks = featurePicksToSheet(draft.featurePicks)
       sheet.class_asi = draft.classAsi
       sheet.feat_grants = draft.featGrants
@@ -1992,6 +2057,11 @@ export function MinimalSheetEditor({
             .map((item) => formatConditionLabel(item)),
         ]}
         concentration={draft.play.concentration}
+        activeFormLabel={formLabel}
+        onFocusActiveForm={() => {
+          const el = document.querySelector('[data-companions-panel]')
+          el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }}
         onClearConcentration={() => {
           let dismissed: string[] = []
           setDraft((prev) => {
@@ -2570,12 +2640,19 @@ export function MinimalSheetEditor({
         }
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onCombatChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
-        onCompanionRest={(kind) =>
-          setDraft((prev) => ({
-            ...prev,
-            companions: resetCompanionResourcesOnRest(prev.companions, kind),
-          }))
-        }
+        onCompanionRest={(kind) => {
+          let dismissed: string[] = []
+          setDraft((prev) => {
+            const result = dismissSelfFormsOnRest(prev.companions, kind)
+            dismissed = result.dismissedNames
+            return { ...prev, companions: result.companions }
+          })
+          if (dismissed.length) {
+            onToast(
+              `Отдых: облик сброшен (${dismissed.join(', ')})`,
+            )
+          }
+        }}
         onToast={onToast}
       />
 
@@ -2621,8 +2698,84 @@ export function MinimalSheetEditor({
         wearingHeavyArmor={
           equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
         }
+        onWildShapeFork={(request) => setWildShapeFork(request)}
+        onFeatureSelfForm={(request) => setFeatureSelfForm(request)}
+        onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
+          const form = draft.companions.find(
+            (c) => c.role === 'self_form' && c.active,
+          )
+          if (!form || form.stats.hp == null) return null
+          const rolled = rollDice(diceCount, diceSize)
+          let message = ''
+          setDraft((prev) => {
+            const healed = healSelfForm({
+              companions: prev.companions,
+              amount: rolled.total,
+              formId: form.id,
+            })
+            message = `Исцеление в облике: ячейка ${slotLevel} → ${diceCount}к${diceSize} = ${rolled.total} [${rolled.rolls.join('+')}] · ${healed.message}`
+            return { ...prev, companions: healed.companions }
+          })
+          return message || null
+        }}
         onToast={onToast}
       />
+
+      {wildShapeFork ? (
+        <WildShapeDialog
+          open
+          onClose={() => setWildShapeFork(null)}
+          features={unlockedFeatures.filter(
+            (f) => f.classEntryId === wildShapeFork.classEntryId,
+          )}
+          resources={draft.play.resources}
+          companions={draft.companions}
+          knownForms={draft.knownForms}
+          classSlug={wildShapeFork.classSlug}
+          classEntryId={wildShapeFork.classEntryId}
+          druidLevel={druidLevel}
+          subclassSlug={druidSubclassSlug}
+          hostHp={draft.hpCurrent ?? 0}
+          hostHpMax={draft.hpMax ?? 0}
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={(result) => {
+            applyWildShapeResult(result)
+            setWildShapeFork(null)
+          }}
+        />
+      ) : null}
+
+      {featureSelfForm ? (
+        <FeatureSelfFormDialog
+          open
+          onClose={() => setFeatureSelfForm(null)}
+          limits={shapechangerFormLimits()}
+          companions={draft.companions}
+          knownForms={draft.knownForms}
+          hostHp={draft.hpCurrent ?? 0}
+          hostHpMax={draft.hpMax ?? 0}
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={(result: FeatureSelfFormDialogResult) => {
+            const spent = spendFeatureUse({
+              resources: draft.play.resources,
+              feature: featureSelfForm.feature,
+              classSlug: featureSelfForm.classSlug,
+            })
+            if (!spent.ok) {
+              onToast(spent.message)
+              return
+            }
+            setDraft((prev) => ({
+              ...prev,
+              companions: result.companions,
+              knownForms: result.knownForms,
+              play: { ...prev.play, resources: spent.resources },
+            }))
+            onToast(result.toast)
+            setFeatureSelfForm(null)
+          }}
+        />
+      ) : null}
 
       <SpellsPanel
         edition={baseCharacter.rules_edition as RulesEdition}
@@ -2645,6 +2798,12 @@ export function MinimalSheetEditor({
               typeof update === 'function' ? update(prev.companions) : update,
           }))
         }
+        knownForms={draft.knownForms}
+        onKnownFormsChange={(knownForms) =>
+          setDraft((prev) => ({ ...prev, knownForms }))
+        }
+        hostHp={draft.hpCurrent}
+        hostHpMax={draft.hpMax}
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
         onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
@@ -2668,7 +2827,17 @@ export function MinimalSheetEditor({
       <CompanionsPanel
         companions={draft.companions}
         edition={rulesEdition}
+        hostHp={draft.hpCurrent}
+        onHostHpChange={(hp) =>
+          setDraft((prev) => ({ ...prev, hpCurrent: hp }))
+        }
+        moonHealEnabled={unlockedFeatures.some(
+          (f) => f.id === 'combat_wild_shape',
+        )}
+        spells={draft.spells}
+        onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
+        onToast={onToast}
       />
 
       <Panel title="Спасброски">

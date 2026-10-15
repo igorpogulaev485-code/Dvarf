@@ -10,7 +10,32 @@ export type CompanionKind =
   | 'drake'
   | 'primal_companion'
   | 'familiar'
+  | 'transformed_self'
   | 'other'
+
+/** Ally = separate creature; self_form = player's body in another stat block. */
+export type CompanionRole = 'ally' | 'self_form'
+
+export type FormSourceKind =
+  | 'wild_shape'
+  | 'elemental_wild_shape'
+  | 'spell'
+  | 'item'
+  | 'feature'
+  | 'other'
+
+/** Metadata when role === self_form (Wild Shape, Polymorph self, …). */
+export type ActiveFormMeta = {
+  form_source: FormSourceKind
+  form_source_ref: string
+  host_hp_at_enter: number | null
+  host_hp_max_at_enter: number | null
+  duration_minutes: number | null
+  entered_at: string | null
+  known_form_id?: string
+  /** Ally that was primary before this form — restored on dismiss. */
+  previous_primary_id?: string | null
+}
 
 /** Living needs death saves; summoned/construct dismiss at 0 HP and can return via re-summon. */
 export type CompanionNature = 'living' | 'summoned' | 'construct'
@@ -20,8 +45,10 @@ export type CompanionSourceKind =
   | 'subclass'
   | 'class'
   | 'feat'
+  | 'feature'
   | 'race'
   | 'spell'
+  | 'item'
   | 'other'
 
 export type CompanionControlMode =
@@ -60,8 +87,10 @@ export type CompanionSource = {
 export type CompanionEntry = {
   id: string
   kind: CompanionKind
+  /** Default ally for legacy rows without role. */
+  role: CompanionRole
   name: string
-  /** Catalog entry id from kind=bestiary (empty until Bestiary agent seeds). */
+  /** Catalog entry id from kind=bestiary. */
   bestiary_ref: string | null
   /** Cached RU name for the bestiary pick (display when catalog is empty/offline). */
   bestiary_name_ru: string | null
@@ -80,6 +109,8 @@ export type CompanionEntry = {
   is_primary: boolean
   control: CompanionControlMode
   source: CompanionSource | null
+  /** Set when role === self_form. */
+  form: ActiveFormMeta | null
   stats: {
     hp: number | null
     hp_max: number | null
@@ -98,6 +129,7 @@ export type CompanionEntry = {
  * temporary spell summons (summoned + source spell) — no.
  */
 export function companionAllowsAvatar(row: CompanionEntry): boolean {
+  if (row.role === 'self_form' || row.kind === 'transformed_self') return true
   if (row.kind === 'familiar') return true
   if (row.source?.kind === 'manual') return true
   if (row.nature === 'summoned' && row.source?.kind === 'spell') return false
@@ -112,8 +144,41 @@ export const COMPANION_KIND_LABELS: Record<CompanionKind, string> = {
   drake: 'Дрейк',
   primal_companion: 'Первобытный спутник',
   familiar: 'Фамильяр',
+  transformed_self: 'Облик',
   other: 'Напарник',
 }
+
+export const COMPANION_ROLE_LABELS: Record<CompanionRole, string> = {
+  ally: 'Напарник',
+  self_form: 'Облик (это ты)',
+}
+
+export function formSourceBadgeRu(form: ActiveFormMeta | null | undefined): string {
+  if (!form) return 'Облик'
+  switch (form.form_source) {
+    case 'wild_shape':
+      return 'Это ты · Дикий облик'
+    case 'elemental_wild_shape':
+      return 'Это ты · Элементальный облик'
+    case 'spell':
+      return 'Это ты · Заклинание'
+    case 'item':
+      return 'Это ты · Предмет'
+    case 'feature':
+      return 'Это ты · Умение'
+    default:
+      return 'Это ты · Облик'
+  }
+}
+
+const FORM_SOURCE_SET = new Set<string>([
+  'wild_shape',
+  'elemental_wild_shape',
+  'spell',
+  'item',
+  'feature',
+  'other',
+])
 
 export const COMPANION_NATURE_LABELS: Record<CompanionNature, string> = {
   living: 'Живое существо',
@@ -136,8 +201,11 @@ const KIND_SET = new Set<string>([
   'drake',
   'primal_companion',
   'familiar',
+  'transformed_self',
   'other',
 ])
+
+const ROLE_SET = new Set<string>(['ally', 'self_form'])
 
 const NATURE_SET = new Set<string>(['living', 'summoned', 'construct'])
 const SOURCE_KIND_SET = new Set<string>([
@@ -145,8 +213,10 @@ const SOURCE_KIND_SET = new Set<string>([
   'subclass',
   'class',
   'feat',
+  'feature',
   'race',
   'spell',
+  'item',
   'other',
 ])
 const CONTROL_SET = new Set<string>([
@@ -159,11 +229,12 @@ const CONTROL_SET = new Set<string>([
 
 export function defaultNatureForKind(kind: CompanionKind): CompanionNature {
   if (kind === 'eldritch_cannon' || kind === 'steel_defender') return 'construct'
-  if (kind === 'familiar') return 'summoned'
+  if (kind === 'familiar' || kind === 'transformed_self') return 'summoned'
   return 'living'
 }
 
 export function defaultControlForKind(kind: CompanionKind): CompanionControlMode {
+  if (kind === 'transformed_self') return 'with_master'
   if (
     kind === 'beast_companion' ||
     kind === 'primal_companion' ||
@@ -175,6 +246,73 @@ export function defaultControlForKind(kind: CompanionKind): CompanionControlMode
   }
   if (kind === 'familiar') return 'with_master'
   return 'own_initiative'
+}
+
+export function defaultRoleForKind(kind: CompanionKind): CompanionRole {
+  return kind === 'transformed_self' ? 'self_form' : 'ally'
+}
+
+function readFormMeta(raw: unknown): ActiveFormMeta | null {
+  if (!raw || typeof raw !== 'object') return null
+  const row = raw as Record<string, unknown>
+  const form_source =
+    typeof row.form_source === 'string' && FORM_SOURCE_SET.has(row.form_source)
+      ? (row.form_source as FormSourceKind)
+      : 'other'
+  return {
+    form_source,
+    form_source_ref:
+      typeof row.form_source_ref === 'string' ? row.form_source_ref : '',
+    host_hp_at_enter:
+      typeof row.host_hp_at_enter === 'number' ? row.host_hp_at_enter : null,
+    host_hp_max_at_enter:
+      typeof row.host_hp_max_at_enter === 'number'
+        ? row.host_hp_max_at_enter
+        : null,
+    duration_minutes:
+      typeof row.duration_minutes === 'number' ? row.duration_minutes : null,
+    entered_at: typeof row.entered_at === 'string' ? row.entered_at : null,
+    known_form_id:
+      typeof row.known_form_id === 'string' ? row.known_form_id : undefined,
+    previous_primary_id:
+      typeof row.previous_primary_id === 'string'
+        ? row.previous_primary_id
+        : row.previous_primary_id === null
+          ? null
+          : undefined,
+  }
+}
+
+/** At most one active self_form; extras deactivated (keep newest active). */
+export function normalizeSelfForms(companions: CompanionEntry[]): CompanionEntry[] {
+  let seenActive = false
+  const out: CompanionEntry[] = []
+  for (let i = companions.length - 1; i >= 0; i -= 1) {
+    const row = companions[i]!
+    if (row.role !== 'self_form') {
+      out.push(row)
+      continue
+    }
+    if (row.active && seenActive) {
+      out.push({ ...row, active: false, is_primary: false })
+      continue
+    }
+    if (row.active) seenActive = true
+    out.push(row)
+  }
+  return out.reverse()
+}
+
+export function getActiveSelfForm(
+  companions: CompanionEntry[],
+): CompanionEntry | null {
+  return (
+    companions.find((row) => row.role === 'self_form' && row.active) ?? null
+  )
+}
+
+export function isSelfForm(row: CompanionEntry): boolean {
+  return row.role === 'self_form' || row.kind === 'transformed_self'
 }
 
 export function clampDeathMarks(value: number): number {
@@ -209,8 +347,12 @@ export function companionSourceLabel(source: CompanionSource | null): string {
       return 'Класс'
     case 'feat':
       return 'Черта'
+    case 'feature':
+      return 'Умение'
     case 'race':
       return 'Раса'
+    case 'item':
+      return 'Предмет'
     case 'spell':
       return 'Заклинание'
     default:
@@ -300,19 +442,36 @@ export function setPrimaryCompanion(
 
 export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEntry {
   const kind = partial?.kind ?? 'other'
-  const nature = partial?.nature ?? defaultNatureForKind(kind)
-  const control = partial?.control ?? defaultControlForKind(kind)
+  const role = partial?.role ?? defaultRoleForKind(kind)
+  const nature =
+    partial?.nature ??
+    (role === 'self_form' ? 'summoned' : defaultNatureForKind(kind))
+  const control =
+    partial?.control ??
+    (role === 'self_form' ? 'with_master' : defaultControlForKind(kind))
   const source =
     partial?.source === undefined
       ? ({ kind: 'manual', labelRu: 'Вручную' } satisfies CompanionSource)
       : partial.source
+  const form =
+    role === 'self_form'
+      ? (partial?.form ?? {
+          form_source: 'other',
+          form_source_ref: '',
+          host_hp_at_enter: null,
+          host_hp_max_at_enter: null,
+          duration_minutes: null,
+          entered_at: null,
+        })
+      : (partial?.form ?? null)
   return {
     id:
       partial?.id ??
       (typeof crypto !== 'undefined' && 'randomUUID' in crypto
         ? crypto.randomUUID()
         : `companion-${Date.now()}`),
-    kind,
+    kind: role === 'self_form' && kind === 'other' ? 'transformed_self' : kind,
+    role,
     name: partial?.name ?? '',
     bestiary_ref: partial?.bestiary_ref ?? null,
     bestiary_name_ru: partial?.bestiary_name_ru ?? null,
@@ -322,6 +481,7 @@ export function createCompanion(partial?: Partial<CompanionEntry>): CompanionEnt
     is_primary: partial?.is_primary ?? false,
     control,
     source,
+    form,
     stats: {
       hp: partial?.stats?.hp ?? null,
       hp_max: partial?.stats?.hp_max ?? null,
@@ -385,6 +545,10 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
       typeof row.kind === 'string' && KIND_SET.has(row.kind)
         ? (row.kind as CompanionKind)
         : 'other'
+    const role: CompanionRole =
+      typeof row.role === 'string' && ROLE_SET.has(row.role)
+        ? (row.role as CompanionRole)
+        : defaultRoleForKind(kind)
     const statsRaw =
       row.stats && typeof row.stats === 'object'
         ? (row.stats as Record<string, unknown>)
@@ -392,20 +556,36 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
     const nature: CompanionNature =
       typeof row.nature === 'string' && NATURE_SET.has(row.nature)
         ? (row.nature as CompanionNature)
-        : defaultNatureForKind(kind)
+        : role === 'self_form'
+          ? 'summoned'
+          : defaultNatureForKind(kind)
     const control: CompanionControlMode =
       typeof row.control === 'string' && CONTROL_SET.has(row.control)
         ? (row.control as CompanionControlMode)
-        : defaultControlForKind(kind)
+        : role === 'self_form'
+          ? 'with_master'
+          : defaultControlForKind(kind)
     const bestiaryRef =
       typeof row.bestiary_ref === 'string'
         ? row.bestiary_ref
         : typeof row.catalog_ref === 'string'
           ? row.catalog_ref
           : null
+    const form =
+      role === 'self_form'
+        ? (readFormMeta(row.form) ?? {
+            form_source: 'other' as FormSourceKind,
+            form_source_ref: '',
+            host_hp_at_enter: null,
+            host_hp_max_at_enter: null,
+            duration_minutes: null,
+            entered_at: null,
+          })
+        : readFormMeta(row.form)
     result.push({
       id: row.id,
       kind,
+      role,
       name: typeof row.name === 'string' ? row.name : '',
       bestiary_ref: bestiaryRef,
       bestiary_name_ru:
@@ -416,19 +596,20 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
       is_primary: typeof row.is_primary === 'boolean' ? row.is_primary : false,
       control,
       source: readSource(row.source),
+      form,
       stats: {
         hp: typeof statsRaw.hp === 'number' ? statsRaw.hp : null,
         hp_max: typeof statsRaw.hp_max === 'number' ? statsRaw.hp_max : null,
         ac: typeof statsRaw.ac === 'number' ? statsRaw.ac : null,
         speed: typeof statsRaw.speed === 'number' ? statsRaw.speed : null,
       },
-      death: readDeath(row.death),
+      death: role === 'self_form' ? null : readDeath(row.death),
       resources: readCompanionResources(row.resources),
       actions: typeof row.actions === 'string' ? row.actions : '',
       notes: typeof row.notes === 'string' ? row.notes : '',
     })
   }
-  return result
+  return normalizeSelfForms(result)
 }
 
 /** Drop companions tied to a class entry / subclass. Manual and other sources stay. */
@@ -462,10 +643,11 @@ export function applyHpChange(
 
   if (hp <= 0) {
     next.active = false
-    if (row.nature === 'living') {
-      next.death = row.death ?? { successes: 0, failures: 0 }
-    } else {
+    // self_form / summoned / construct: dismiss, no death saves on the form
+    if (row.role === 'self_form' || row.nature !== 'living') {
       next.death = null
+    } else {
+      next.death = row.death ?? { successes: 0, failures: 0 }
     }
     return next
   }
@@ -474,6 +656,192 @@ export function applyHpChange(
   next.death = null
   next.active = true
   return next
+}
+
+export type DismissSelfFormResult = {
+  companions: CompanionEntry[]
+  dismissedName: string | null
+  restoredPrimaryId: string | null
+}
+
+/**
+ * Voluntary / rest / duration end: drop active self_form card(s), no host damage.
+ * Restores previous primary ally when recorded.
+ */
+export function dismissSelfForm(input: {
+  companions: CompanionEntry[]
+  /** If set, only this id; otherwise all active self_forms. */
+  formId?: string
+  /** Keep inactive row in list (false = remove card). Default remove. */
+  keepRow?: boolean
+}): DismissSelfFormResult {
+  const keepRow = Boolean(input.keepRow)
+  let dismissedName: string | null = null
+  let restoredPrimaryId: string | null = null
+
+  const targets = input.companions.filter((row) => {
+    if (!isSelfForm(row)) return false
+    if (input.formId) return row.id === input.formId
+    return row.active
+  })
+  if (targets.length === 0) {
+    return {
+      companions: input.companions,
+      dismissedName: null,
+      restoredPrimaryId: null,
+    }
+  }
+
+  const primaryCandidate =
+    targets.find((t) => t.form?.previous_primary_id)?.form?.previous_primary_id ??
+    null
+  dismissedName = targets.map((t) => t.name).filter(Boolean).join(', ') || null
+
+  let next = input.companions
+    .map((row) => {
+      const hit = targets.some((t) => t.id === row.id)
+      if (!hit) return row
+      if (keepRow) {
+        return {
+          ...row,
+          active: false,
+          is_primary: false,
+          death: null,
+          stats: { ...row.stats, hp: 0 },
+        }
+      }
+      return null
+    })
+    .filter((row): row is CompanionEntry => row != null)
+
+  if (primaryCandidate && next.some((r) => r.id === primaryCandidate)) {
+    next = setPrimaryCompanion(next, primaryCandidate)
+    restoredPrimaryId = primaryCandidate
+  } else {
+    const ally = next.find((r) => r.role === 'ally' && r.active)
+    if (ally) {
+      next = setPrimaryCompanion(next, ally.id)
+      restoredPrimaryId = ally.id
+    }
+  }
+
+  return { companions: next, dismissedName, restoredPrimaryId }
+}
+
+/** Short/long rest: dismiss active forms (no overflow), then reset naparnik resources. */
+export function dismissSelfFormsOnRest(
+  companions: CompanionEntry[],
+  kind: 'short' | 'long',
+): { companions: CompanionEntry[]; dismissedNames: string[] } {
+  const before = dismissSelfForm({ companions })
+  const names = before.dismissedName
+    ? before.dismissedName.split(', ').filter(Boolean)
+    : []
+  return {
+    companions: resetCompanionResourcesOnRest(before.companions, kind),
+    dismissedNames: names,
+  }
+}
+
+export type SelfFormDamageResult = {
+  companions: CompanionEntry[]
+  hostHp: number
+  /** Damage that spilled onto the host after form HP reached 0. */
+  overflow: number
+  formDismissed: boolean
+  formName: string | null
+}
+
+/**
+ * Deal damage to the active self_form HP pool first; remainder hits host.
+ * Forms without an HP pool (e.g. Starry Form reminder) pass all damage to host.
+ */
+export function dealDamageToSelfForm(input: {
+  companions: CompanionEntry[]
+  damage: number
+  hostHp: number
+  formId?: string
+}): SelfFormDamageResult {
+  const damage = Math.max(0, Math.floor(input.damage))
+  const hostHp = Math.max(0, Math.floor(input.hostHp))
+  if (damage <= 0) {
+    return {
+      companions: input.companions,
+      hostHp,
+      overflow: 0,
+      formDismissed: false,
+      formName: null,
+    }
+  }
+
+  const form =
+    (input.formId
+      ? input.companions.find((r) => r.id === input.formId && isSelfForm(r))
+      : getActiveSelfForm(input.companions)) ?? null
+
+  if (!form || !form.active) {
+    return {
+      companions: input.companions,
+      hostHp: Math.max(0, hostHp - damage),
+      overflow: damage,
+      formDismissed: false,
+      formName: null,
+    }
+  }
+
+  // Reminder forms (Starry): no separate HP — all damage to host, form stays.
+  if (form.stats.hp == null || form.stats.hp_max == null) {
+    return {
+      companions: input.companions,
+      hostHp: Math.max(0, hostHp - damage),
+      overflow: damage,
+      formDismissed: false,
+      formName: form.name || null,
+    }
+  }
+
+  const formHp = Math.max(0, form.stats.hp)
+  if (damage < formHp) {
+    const updated = input.companions.map((row) =>
+      row.id === form.id
+        ? applyHpChange(row, formHp - damage)
+        : row,
+    )
+    return {
+      companions: updated,
+      hostHp,
+      overflow: 0,
+      formDismissed: false,
+      formName: form.name || null,
+    }
+  }
+
+  const overflow = damage - formHp
+  const dismissed = dismissSelfForm({
+    companions: input.companions,
+    formId: form.id,
+    keepRow: false,
+  })
+  return {
+    companions: dismissed.companions,
+    hostHp: Math.max(0, hostHp - overflow),
+    overflow,
+    formDismissed: true,
+    formName: form.name || null,
+  }
+}
+
+/** Active self_forms first, then allies — for Напарники panel. */
+export function sortCompanionsForDisplay(
+  companions: CompanionEntry[],
+): CompanionEntry[] {
+  return [...companions].sort((a, b) => {
+    const aForm = isSelfForm(a) ? 0 : 1
+    const bForm = isSelfForm(b) ? 0 : 1
+    if (aForm !== bForm) return aForm - bForm
+    if (a.active !== b.active) return a.active ? -1 : 1
+    return 0
+  })
 }
 
 export function setCompanionActive(
@@ -521,6 +889,8 @@ export function mergeSubclassCompanions(input: {
     return {
       ...created,
       id: prev.id,
+      role: prev.role ?? created.role,
+      form: prev.form ?? created.form,
       name: customName || created.name,
       bestiary_ref: prev.bestiary_ref ?? created.bestiary_ref,
       bestiary_name_ru: prev.bestiary_name_ru ?? created.bestiary_name_ru,

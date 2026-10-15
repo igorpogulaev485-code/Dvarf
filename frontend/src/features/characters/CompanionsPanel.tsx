@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog/CatalogCombobox'
 import type { RulesEdition } from '../../shared/api/characters'
+import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
   COMPANION_AVATAR_ACCEPT,
@@ -15,16 +16,27 @@ import {
   companionAllowsAvatar,
   companionSourceLabel,
   createCompanion,
+  dealDamageToSelfForm,
+  dismissSelfForm,
+  formSourceBadgeRu,
   isCompanionDead,
   isCompanionStable,
+  isSelfForm,
   restoreCompanion,
   setCompanionActive,
   setPrimaryCompanion,
+  sortCompanionsForDisplay,
   type CompanionControlMode,
   type CompanionEntry,
   type CompanionKind,
   type CompanionNature,
 } from './companions'
+import {
+  healSelfForm,
+  moonHealDiceCount,
+  rollDice,
+} from './wildShape'
+import type { SpellsState } from './spells'
 
 type CompanionsPanelProps = {
   companions: CompanionEntry[]
@@ -32,6 +44,14 @@ type CompanionsPanelProps = {
   edition: RulesEdition
   /** Optional override; defaults to product title constant. */
   title?: string
+  /** Host hit points — needed for Wild Shape overflow damage. */
+  hostHp?: number | null
+  onHostHpChange?: (hp: number) => void
+  /** Circle of the Moon — Combat Wild Shape slot heal on the form card. */
+  moonHealEnabled?: boolean
+  spells?: SpellsState
+  onSpellsChange?: (spells: SpellsState) => void
+  onToast?: (message: string) => void
 }
 
 function DeathPips({
@@ -69,7 +89,8 @@ function DeathPips({
 
 function statusLine(row: CompanionEntry): string {
   const bits: string[] = []
-  if (row.is_primary) bits.push('Основной')
+  if (isSelfForm(row)) bits.push(formSourceBadgeRu(row.form))
+  else if (row.is_primary) bits.push('Основной')
   if (isCompanionDead(row)) bits.push('Мёртв')
   else if (isCompanionStable(row)) bits.push('Стабилен (0 HP)')
   else if (!row.active) {
@@ -87,11 +108,19 @@ export function CompanionsPanel({
   onChange,
   edition,
   title = COMPANIONS_PANEL_TITLE,
+  hostHp = null,
+  onHostHpChange,
+  moonHealEnabled = false,
+  spells,
+  onSpellsChange,
+  onToast,
 }: CompanionsPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [avatarTargetId, setAvatarTargetId] = useState<string | null>(null)
   const [avatarError, setAvatarError] = useState<string | null>(null)
   const [avatarPending, setAvatarPending] = useState(false)
+  const [damageById, setDamageById] = useState<Record<string, number | null>>({})
+  const ordered = sortCompanionsForDisplay(companions)
 
   function replace(id: string, next: CompanionEntry) {
     onChange(companions.map((row) => (row.id === id ? next : row)))
@@ -144,6 +173,7 @@ export function CompanionsPanel({
   }
 
   return (
+    <div data-companions-panel>
     <Panel title={title}>
       <Stack gap={14}>
         {companions.length === 0 ? (
@@ -172,18 +202,23 @@ export function CompanionsPanel({
         />
         {avatarError ? <Text tone="danger">{avatarError}</Text> : null}
 
-        {companions.map((row) => {
+        {ordered.map((row) => {
+          const selfForm = isSelfForm(row)
           const dead = isCompanionDead(row)
           const showDeath =
-            row.nature === 'living' && ((row.stats.hp ?? 1) <= 0 || Boolean(row.death))
+            !selfForm &&
+            row.nature === 'living' &&
+            ((row.stats.hp ?? 1) <= 0 || Boolean(row.death))
           const showAvatar = companionAllowsAvatar(row)
+          const hasFormHp = selfForm && row.stats.hp != null
 
           return (
             <div
               key={row.id}
               className={`companion-card${row.active ? '' : ' companion-card--inactive'}${
                 dead ? ' companion-card--dead' : ''
-              }`}
+              }${selfForm ? ' companion-card--self-form' : ''}`}
+              data-self-form={selfForm ? 'true' : undefined}
             >
               <div className="companion-card__head">
                 <div className="companion-card__identity">
@@ -205,28 +240,36 @@ export function CompanionsPanel({
                   </Text>
                 </div>
                 <div className="companion-card__chips">
-                  <button
-                    type="button"
-                    className={`combat-chip${row.is_primary ? ' is-on' : ''}`}
-                    aria-pressed={row.is_primary}
-                    title="Основной напарник при нескольких (мультикласс / свита)"
-                    onClick={() =>
-                      onChange(
-                        setPrimaryCompanion(companions, row.is_primary ? null : row.id),
-                      )
-                    }
-                  >
-                    Основной
-                  </button>
-                  <button
-                    type="button"
-                    className={`combat-chip${row.active ? ' is-on' : ''}`}
-                    aria-pressed={row.active}
-                    disabled={dead || ((row.stats.hp ?? 1) <= 0 && row.nature !== 'living')}
-                    onClick={() => replace(row.id, setCompanionActive(row, !row.active))}
-                  >
-                    Активен
-                  </button>
+                  {selfForm ? (
+                    <span className="combat-chip combat-chip--static is-on">
+                      {formSourceBadgeRu(row.form)}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className={`combat-chip${row.is_primary ? ' is-on' : ''}`}
+                      aria-pressed={row.is_primary}
+                      title="Основной напарник при нескольких (мультикласс / свита)"
+                      onClick={() =>
+                        onChange(
+                          setPrimaryCompanion(companions, row.is_primary ? null : row.id),
+                        )
+                      }
+                    >
+                      Основной
+                    </button>
+                  )}
+                  {!selfForm ? (
+                    <button
+                      type="button"
+                      className={`combat-chip${row.active ? ' is-on' : ''}`}
+                      aria-pressed={row.active}
+                      disabled={dead || ((row.stats.hp ?? 1) <= 0 && row.nature !== 'living')}
+                      onClick={() => replace(row.id, setCompanionActive(row, !row.active))}
+                    >
+                      Активен
+                    </button>
+                  ) : null}
                 </div>
               </div>
 
@@ -360,46 +403,153 @@ export function CompanionsPanel({
                 </Field>
               </div>
 
-              <div className="sheet-grid sheet-grid--4">
-                <Field label="Хиты">
-                  <NumberInput
-                    min={0}
-                    emptyValue={null}
-                    value={row.stats.hp}
-                    onValueChange={(hp) => replace(row.id, applyHpChange(row, hp))}
-                  />
-                </Field>
-                <Field label="Макс. хиты">
-                  <NumberInput
-                    min={0}
-                    emptyValue={null}
-                    value={row.stats.hp_max}
-                    onValueChange={(hp_max) =>
-                      update(row.id, { stats: { ...row.stats, hp_max } })
-                    }
-                  />
-                </Field>
-                <Field label="КД">
-                  <NumberInput
-                    min={0}
-                    emptyValue={null}
-                    value={row.stats.ac}
-                    onValueChange={(ac) =>
-                      update(row.id, { stats: { ...row.stats, ac } })
-                    }
-                  />
-                </Field>
-                <Field label="Скорость">
-                  <NumberInput
-                    min={0}
-                    emptyValue={null}
-                    value={row.stats.speed}
-                    onValueChange={(speed) =>
-                      update(row.id, { stats: { ...row.stats, speed } })
-                    }
-                  />
-                </Field>
-              </div>
+              {selfForm && row.stats.hp == null ? (
+                <Text tone="muted">
+                  Хиты = хиты персонажа (отдельного пула формы нет). Урон идёт хозяину.
+                </Text>
+              ) : (
+                <div className="sheet-grid sheet-grid--4">
+                  <Field label={selfForm ? 'Хиты облика' : 'Хиты'}>
+                    <NumberInput
+                      min={0}
+                      emptyValue={null}
+                      value={row.stats.hp}
+                      onValueChange={(hp) => replace(row.id, applyHpChange(row, hp))}
+                    />
+                  </Field>
+                  <Field label="Макс. хиты">
+                    <NumberInput
+                      min={0}
+                      emptyValue={null}
+                      value={row.stats.hp_max}
+                      onValueChange={(hp_max) =>
+                        update(row.id, { stats: { ...row.stats, hp_max } })
+                      }
+                    />
+                  </Field>
+                  <Field label="КД">
+                    <NumberInput
+                      min={0}
+                      emptyValue={null}
+                      value={row.stats.ac}
+                      onValueChange={(ac) =>
+                        update(row.id, { stats: { ...row.stats, ac } })
+                      }
+                    />
+                  </Field>
+                  <Field label="Скорость">
+                    <NumberInput
+                      min={0}
+                      emptyValue={null}
+                      value={row.stats.speed}
+                      onValueChange={(speed) =>
+                        update(row.id, { stats: { ...row.stats, speed } })
+                      }
+                    />
+                  </Field>
+                </div>
+              )}
+
+              {selfForm && hasFormHp && row.active ? (
+                <div className="sheet-grid sheet-grid--2">
+                  <Field label="Урон по облику">
+                    <NumberInput
+                      min={0}
+                      emptyValue={null}
+                      value={damageById[row.id] ?? null}
+                      onValueChange={(value) =>
+                        setDamageById((prev) => ({ ...prev, [row.id]: value }))
+                      }
+                    />
+                  </Field>
+                  <div className="sheet-actions" style={{ alignItems: 'flex-end' }}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={!damageById[row.id] || damageById[row.id]! <= 0}
+                      onClick={() => {
+                        const amount = damageById[row.id] ?? 0
+                        if (amount <= 0) return
+                        const result = dealDamageToSelfForm({
+                          companions,
+                          damage: amount,
+                          hostHp: hostHp ?? 0,
+                          formId: row.id,
+                        })
+                        onChange(result.companions)
+                        if (result.overflow > 0 && onHostHpChange) {
+                          onHostHpChange(result.hostHp)
+                        }
+                        setDamageById((prev) => ({ ...prev, [row.id]: null }))
+                        if (result.formDismissed) {
+                          onToast?.(
+                            result.overflow > 0
+                              ? `Облик сброшен · хозяину −${result.overflow} HP`
+                              : `Облик сброшен: ${result.formName || ''}`,
+                          )
+                        } else if (result.overflow > 0) {
+                          onToast?.(`Урон хозяину −${result.overflow}`)
+                        } else {
+                          onToast?.(
+                            `${result.formName || 'Облик'}: −${amount} HP`,
+                          )
+                        }
+                      }}
+                    >
+                      Нанести
+                    </Button>
+                  </div>
+                  <Text tone="muted">
+                    Сначала хиты облика; остаток переносится на хозяина и сбрасывает форму.
+                  </Text>
+                </div>
+              ) : null}
+
+              {selfForm &&
+              hasFormHp &&
+              row.active &&
+              moonHealEnabled &&
+              spells &&
+              onSpellsChange ? (
+                <div className="companion-moon-heal">
+                  <Text>Исцелить ячейкой (Moon · бонусным)</Text>
+                  <Text tone="muted">1к8 × уровень ячейки, не выше макс. хитов облика.</Text>
+                  <div className="feature-resource__actions">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((level) => {
+                      const dice = moonHealDiceCount(level)
+                      const available = canSpendSlot(spells.slots, level)
+                      return (
+                        <Button
+                          key={level}
+                          type="button"
+                          variant="secondary"
+                          disabled={!available}
+                          onClick={() => {
+                            const spent = spendSpellSlot(spells.slots, level)
+                            if (!spent.ok) {
+                              onToast?.(`Нет ячейки ${level} ур.`)
+                              return
+                            }
+                            const rolled = rollDice(dice, 8)
+                            const healed = healSelfForm({
+                              companions,
+                              amount: rolled.total,
+                              formId: row.id,
+                            })
+                            onSpellsChange({ ...spells, slots: spent.slots })
+                            onChange(healed.companions)
+                            onToast?.(
+                              `Исцеление в облике: ячейка ${level} → ${dice}к8 = ${rolled.total} [${rolled.rolls.join('+')}] · ${healed.message}`,
+                            )
+                          }}
+                        >
+                          {level} ур. (+{dice}к8)
+                        </Button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ) : null}
 
               <Field label="Действия / атаки">
                 <Input
@@ -528,7 +678,30 @@ export function CompanionsPanel({
               ) : null}
 
               <div className="sheet-actions">
-                {row.nature !== 'living' && (row.stats.hp ?? 1) <= 0 ? (
+                {selfForm && row.active ? (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      const result = dismissSelfForm({
+                        companions,
+                        formId: row.id,
+                        keepRow: false,
+                      })
+                      onChange(result.companions)
+                      onToast?.(
+                        result.dismissedName
+                          ? `Облик сброшен: ${result.dismissedName}`
+                          : 'Облик сброшен',
+                      )
+                    }}
+                  >
+                    Сбросить облик
+                  </Button>
+                ) : null}
+                {!selfForm &&
+                row.nature !== 'living' &&
+                (row.stats.hp ?? 1) <= 0 ? (
                   <Button
                     type="button"
                     variant="secondary"
@@ -538,7 +711,7 @@ export function CompanionsPanel({
                   </Button>
                 ) : null}
                 <Button type="button" variant="ghost" onClick={() => remove(row.id)}>
-                  Убрать
+                  {selfForm ? 'Убрать карточку' : 'Убрать'}
                 </Button>
               </div>
             </div>
@@ -546,5 +719,6 @@ export function CompanionsPanel({
         })}
       </Stack>
     </Panel>
+    </div>
   )
 }

@@ -26,3 +26,11 @@ build/
 # Frontend build
 frontend/dist/
 frontend/node_modules/
+# local ttg detail cache (fixture set is force-added)
+backend/data/srd/2014/bestiary_raw/*
+!backend/data/srd/2014/bestiary_raw/README.md
+!backend/data/srd/2014/bestiary_raw/wolf.json
+!backend/data/srd/2014/bestiary_raw/brown_bear.json
+!backend/data/srd/2014/bestiary_raw/hawk.json
+!backend/data/srd/2014/bestiary_raw/wildfire_spirit.json
+!backend/data/srd/2014/bestiary_raw/air_elemental.json

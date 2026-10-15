@@ -1,0 +1,106 @@
+{
+  "name": {
+    "rus": "Волк",
+    "eng": "Wolf"
+  },
+  "size": {
+    "rus": "Средний",
+    "eng": "medium",
+    "cell": "1 клетка"
+  },
+  "type": {
+    "name": "зверь"
+  },
+  "challengeRating": "1/4",
+  "url": "/bestiary/wolf",
+  "source": {
+    "shortName": "MM",
+    "name": "Бестиарий",
+    "group": {
+      "name": "Официальные источники",
+      "shortName": "Basic"
+    }
+  },
+  "id": 267,
+  "experience": 50,
+  "proficiencyBonus": "2",
+  "alignment": "без мировоззрения",
+  "armorClass": 13,
+  "armors": [
+    {
+      "name": "природный доспех",
+      "type": "armor",
+      "url": null
+    }
+  ],
+  "hits": {
+    "average": 11,
+    "formula": "2к8",
+    "sign": " + ",
+    "bonus": 2
+  },
+  "speed": [
+    {
+      "value": 40
+    }
+  ],
+  "ability": {
+    "str": 12,
+    "dex": 15,
+    "con": 12,
+    "int": 3,
+    "wiz": 12,
+    "cha": 6
+  },
+  "skills": [
+    {
+      "name": "Внимательность",
+      "value": 3
+    },
+    {
+      "name": "Скрытность",
+      "value": 4
+    }
+  ],
+  "senses": {
+    "passivePerception": "13"
+  },
+  "feats": [
+    {
+      "name": "Острый слух и тонкий нюх",
+      "value": "<p>Волк совершает с <span class=\"advantage\">преимуществом</span> проверки <detail-tooltip type=\"screen\"><a href=\"/screens/perception\"><em>Мудрости (Внимательность)</em></a></detail-tooltip>, полагающиеся на слух и обоняние.</p>",
+      "markdown": false
+    },
+    {
+      "name": "Тактика Стаи",
+      "englishName": "Pack Tactics",
+      "value": "<p>Волк совершает с <span class=\"advantage\">преимуществом</span> броски атаки по существу, если в пределах 5 футов от этого существа находится как минимум один не <detail-tooltip type=\"screen\"><a href=\"/screens/incapacitated\">недееспособный</a></detail-tooltip> союзник волка.</p>",
+      "markdown": true
+    }
+  ],
+  "actions": [
+    {
+      "name": "Укус",
+      "englishName": "Bite",
+      "value": "<p><em>Рукопашная атака оружием:</em> <dice-roller label=\"Атака\" formula=\"к20 + 4\">+4</dice-roller> к попаданию, досягаемость 5 фт., одна цель. <em>Попадание:</em>&nbsp;7&nbsp;(<dice-roller label=\"Урон\" formula=\"2к4 + 2\"/>) колющего урона. Если цель — существо, она должна преуспеть в спасброске <span class=\"saving_throw\">Силы</span> со Сл&nbsp;11, иначе будет <detail-tooltip type=\"screen\"><a href=\"/screens/condition_prone\" >сбита с ног</a></detail-tooltip>.</p>",
+      "markdown": true,
+      "sharedUsageCount": 1
+    }
+  ],
+  "description": "<p>Волки встречаются в субарктических и умеренных регионах мира, где они часто передвигаются стаями через холмы и леса.</p>",
+  "tags": [
+    {
+      "name": "Звери",
+      "description": "<p>Это негуманоидные существа, являющиеся фауной мира фэнтези. Некоторые из них имеют магические силы, но большая часть неразумна, не владеет языками и не имеет никакого общественного строя. Звери включают в себя всё многообразие животных, динозавров и гигантских версий животных.</p>"
+    }
+  ],
+  "environment": [
+    "лес",
+    "равнина/луг",
+    "холмы"
+  ],
+  "images": [
+    "https://img.ttg.club/tokens/round/wolf.webp",
+    "https://img.ttg.club/creatures/Wolf.webp"
+  ]
+}

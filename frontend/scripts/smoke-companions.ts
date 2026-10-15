@@ -3,28 +3,74 @@ import {
   applyHpChange,
   companionAllowsAvatar,
   createCompanion,
+  dealDamageToSelfForm,
+  dismissSelfForm,
+  dismissSelfFormsOnRest,
+  formSourceBadgeRu,
+  getActiveSelfForm,
   isCompanionDead,
   isCompanionStable,
+  isSelfForm,
   mergeSubclassCompanions,
+  normalizeSelfForms,
   readCompanions,
   resetCompanionResourcesOnRest,
   restoreCompanion,
   revokeCompanionsForSubclass,
   setCompanionActive,
   setPrimaryCompanion,
+  sortCompanionsForDisplay,
 } from '../src/features/characters/companions.ts'
+import {
+  createKnownForm,
+  readKnownForms,
+  upsertKnownForm,
+} from '../src/features/characters/knownForms.ts'
+import { wildfireSpiritHp } from '../src/features/characters/bestiaryCompanionStats.ts'
 import {
   companionFromTemplate,
   resolveCompanionTemplate,
   resolveSpellCompanionTemplate,
 } from '../src/features/characters/companionTemplates.ts'
 import {
+  applyFeatureSelfForm,
+  applyItemSelfForm,
+  featureFormPickAllowed,
+  shapechangerFormLimits,
+} from '../src/features/characters/featureForms.ts'
+import {
   applyConcentrationChangeToCompanions,
   applySpellCastToCompanions,
   isSpellNaparnikCast,
   resolveSpellNaparnikSlug,
 } from '../src/features/characters/spellCompanions.ts'
+import {
+  applySpellSelfForm,
+  dismissSpellSelfFormsForConcentration,
+  isSpellSelfFormCast,
+  resolveSpellSelfFormSlug,
+  spellFormLimits,
+  spellFormPickAllowed,
+} from '../src/features/characters/spellForms.ts'
 import { createSheetSpell } from '../src/features/characters/spells.ts'
+import {
+  applyBeastWildShape,
+  applyStarryForm,
+  applyWildCompanion,
+  applyWildfireSpirit,
+  averageDice,
+  beastPickAllowed,
+  crAllowed,
+  ELEMENTAL_FALLBACK_STATS,
+  healSelfForm,
+  isWildShapeForkFeature,
+  moonHealDiceCount,
+  resolveWildShapeOptions,
+  symbioticTempHp,
+  wildShapeLimits,
+} from '../src/features/characters/wildShape.ts'
+import type { UnlockedFeature } from '../src/shared/dnd/classFeatures.ts'
+import type { SheetResource } from '../src/shared/dnd/rest.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
@@ -358,5 +404,557 @@ assert(
   ),
   'spell summon denies avatar',
 )
+
+// --- F1: self_form + known_forms ---
+const formBear = createCompanion({
+  role: 'self_form',
+  kind: 'transformed_self',
+  name: 'Бурый медведь',
+  bestiary_ref: 'brown_bear',
+  bestiary_name_ru: 'Бурый медведь',
+  stats: { hp: 34, hp_max: 34, ac: 11, speed: 40 },
+  form: {
+    form_source: 'wild_shape',
+    form_source_ref: 'wild_shape',
+    host_hp_at_enter: 28,
+    host_hp_max_at_enter: 28,
+    duration_minutes: 1,
+    entered_at: '2026-10-15T00:00:00.000Z',
+  },
+  source: { kind: 'class', labelRu: 'Дикий облик', feature: 'wild_shape' },
+})
+assert(formBear.role === 'self_form', 'self_form role')
+assert(formBear.nature === 'summoned', 'self_form nature summoned')
+assert(formBear.control === 'with_master', 'self_form with_master')
+assert(formBear.form?.form_source === 'wild_shape', 'form meta')
+assert(companionAllowsAvatar(formBear), 'self_form allows avatar')
+assert(isSelfForm(formBear), 'isSelfForm')
+
+const formDown = applyHpChange(formBear, 0)
+assert(!formDown.active && formDown.death == null, 'self_form dismiss no death saves')
+
+const legacyAlly = readCompanions([
+  {
+    id: 'legacy-1',
+    kind: 'familiar',
+    name: 'Тень',
+    nature: 'summoned',
+    active: true,
+    is_primary: false,
+    control: 'own_initiative',
+    source: { kind: 'spell', labelRu: 'Familiar' },
+    stats: { hp: 2, hp_max: 2, ac: 12, speed: 20 },
+    death: null,
+    resources: [],
+    actions: '',
+    notes: '',
+  },
+])
+assert(legacyAlly[0]?.role === 'ally', 'legacy defaults role ally')
+
+const twoForms = normalizeSelfForms([
+  createCompanion({
+    id: 'f1',
+    role: 'self_form',
+    active: true,
+    name: 'Волк',
+    form: {
+      form_source: 'wild_shape',
+      form_source_ref: 'wild_shape',
+      host_hp_at_enter: 10,
+      host_hp_max_at_enter: 10,
+      duration_minutes: 1,
+      entered_at: null,
+    },
+  }),
+  createCompanion({
+    id: 'f2',
+    role: 'self_form',
+    active: true,
+    name: 'Медведь',
+    form: {
+      form_source: 'wild_shape',
+      form_source_ref: 'wild_shape',
+      host_hp_at_enter: 10,
+      host_hp_max_at_enter: 10,
+      duration_minutes: 1,
+      entered_at: null,
+    },
+  }),
+])
+assert(
+  twoForms.filter((r) => r.role === 'self_form' && r.active).length === 1,
+  'normalize keeps one active self_form',
+)
+assert(getActiveSelfForm(twoForms)?.name === 'Медведь', 'newest active kept')
+
+const known = createKnownForm({
+  bestiary_slug: 'wolf',
+  name_ru: 'Волк',
+  cr: '1/4',
+  tags: ['custom'],
+})
+const knownRound = readKnownForms([known])
+assert(knownRound[0]?.bestiary_slug === 'wolf', 'known forms round-trip')
+const known2 = upsertKnownForm(knownRound, {
+  ...known,
+  id: 'other',
+  name_ru: 'Волк (свой)',
+  notes: 'видел в лесу',
+})
+assert(known2.length === 1 && known2[0]?.notes === 'видел в лесу', 'upsert by slug')
+
+// --- F2: wild shape fork + limits ---
+const limL2 = wildShapeLimits({ druidLevel: 2, subclassSlug: null })
+assert(limL2.maxCr === 0.25 && !limL2.allowSwim && !limL2.allowFly, 'L2 land limits')
+const limL4 = wildShapeLimits({ druidLevel: 4, subclassSlug: 'circle_of_the_land' })
+assert(limL4.maxCr === 0.5 && limL4.allowSwim && !limL4.allowFly, 'L4 +swim')
+const limL8 = wildShapeLimits({ druidLevel: 8, subclassSlug: null })
+assert(limL8.maxCr === 1 && limL8.allowFly, 'L8 +fly')
+const limMoon2 = wildShapeLimits({ druidLevel: 2, subclassSlug: 'circle_of_the_moon' })
+assert(limMoon2.maxCr === 1 && limMoon2.combatBonusAction, 'Moon L2 CR1')
+const limMoon6 = wildShapeLimits({ druidLevel: 6, subclassSlug: 'circle_of_the_moon' })
+assert(limMoon6.maxCr === 2, 'Moon L6 floor(6/3)=2')
+assert(crAllowed('1/4', limL2) && !crAllowed('1/2', limL2), 'CR filter L2')
+
+const wolfPick = {
+  slug: 'wolf',
+  name_ru: 'Волк',
+  cr: '1/4',
+  type: 'beast',
+  ac: 13,
+  hp: 11,
+  speed_walk: 40,
+  actions_text: 'Укус',
+}
+assert(beastPickAllowed(wolfPick, limL2), 'wolf ok L2')
+assert(
+  !beastPickAllowed({ ...wolfPick, speed_fly: 60 }, limL2),
+  'fly blocked L2',
+)
+
+const wsPool: SheetResource = {
+  id: 'feat:druid:wild_shape:c1',
+  name: 'Дикий облик',
+  max: 2,
+  used: 0,
+  reset: 'short',
+}
+function fakeFeature(id: string): UnlockedFeature {
+  return {
+    id,
+    level: 2,
+    name_ru: id,
+    kind: 'action',
+    className: 'Друид',
+    classEntryId: 'c1',
+    classLevel: 5,
+    source: 'class',
+    subclassSlug: null,
+    subclassName: null,
+    summary_ru: '',
+    scaleValue: null,
+    resourceUses: null,
+  }
+}
+const forkLand = resolveWildShapeOptions({
+  features: [fakeFeature('wild_shape'), fakeFeature('wild_companion')],
+  resources: [wsPool],
+  classSlug: 'druid',
+  classEntryId: 'c1',
+})
+assert(
+  forkLand.map((o) => o.id).join(',') === 'beast_form,wild_companion',
+  'land fork: beast + Tasha companion only',
+)
+const forkStars = resolveWildShapeOptions({
+  features: [
+    fakeFeature('wild_shape'),
+    fakeFeature('wild_companion'),
+    fakeFeature('starry_form'),
+  ],
+  resources: [wsPool],
+  classSlug: 'druid',
+  classEntryId: 'c1',
+})
+assert(
+  forkStars.some((o) => o.id === 'starry_form' && !o.disabled),
+  'stars unlocks starry on fork',
+)
+const forkMoon10 = resolveWildShapeOptions({
+  features: [fakeFeature('wild_shape'), fakeFeature('elemental_wild_shape')],
+  resources: [{ ...wsPool, used: 1 }],
+  classSlug: 'druid',
+  classEntryId: 'c1',
+})
+assert(
+  forkMoon10.find((o) => o.id === 'elemental_wild_shape')?.disabled,
+  'elemental needs 2 uses',
+)
+assert(isWildShapeForkFeature('wild_companion'), 'wild_companion is fork feature')
+assert(isWildShapeForkFeature('summon_wildfire_spirit'), 'wildfire is fork feature')
+assert(!isWildShapeForkFeature('rage'), 'rage not fork')
+
+const shaped = applyBeastWildShape({
+  companions: [],
+  knownForms: [],
+  pick: wolfPick,
+  hostHp: 20,
+  hostHpMax: 20,
+  druidLevel: 4,
+})
+assert(shaped.companions[0]?.role === 'self_form', 'beast → self_form')
+assert(shaped.companions[0]?.stats.hp === 11, 'form HP from pick')
+assert(shaped.knownForms.length === 1, 'adds known form')
+
+const withFamiliar = applyWildCompanion({ companions: shaped.companions, druidLevel: 4 })
+assert(
+  withFamiliar.some((c) => c.source?.feature === 'wild_companion' && c.role === 'ally'),
+  'wild companion ally',
+)
+assert(symbioticTempHp(5) === 20, 'symbiotic 4×level')
+const starry = applyStarryForm({
+  companions: shaped.companions,
+  constellation: 'archer',
+  hostHp: 20,
+  hostHpMax: 20,
+})
+assert(getActiveSelfForm(starry)?.name?.includes('Лучник'), 'starry replaces self_form')
+assert(getActiveSelfForm(starry)?.stats.hp == null, 'starry keeps host HP pool')
+const fire = applyWildfireSpirit({ companions: [], druidLevel: 6 })
+assert(fire[0]?.stats.hp_max === 40, 'wildfire HP 10+5×6 (ttg)')
+
+// --- F3: overflow / dismiss / rest ---
+const allyPrimary = createCompanion({
+  id: 'ally-1',
+  kind: 'familiar',
+  role: 'ally',
+  name: 'Тень',
+  is_primary: true,
+  active: true,
+  nature: 'summoned',
+  stats: { hp: 2, hp_max: 2, ac: 12, speed: 20 },
+})
+const form10 = applyBeastWildShape({
+  companions: [allyPrimary],
+  knownForms: [],
+  pick: {
+    slug: 'wolf',
+    name_ru: 'Волк',
+    cr: '1/4',
+    type: 'beast',
+    ac: 13,
+    hp: 10,
+    speed_walk: 40,
+    actions_text: 'Укус',
+  },
+  hostHp: 28,
+  hostHpMax: 28,
+  druidLevel: 4,
+})
+assert(form10.companions.find((c) => c.id === 'ally-1')?.is_primary === false, 'form steals primary')
+assert(
+  getActiveSelfForm(form10.companions)?.form?.previous_primary_id === 'ally-1',
+  'stores previous primary',
+)
+assert(
+  formSourceBadgeRu(getActiveSelfForm(form10.companions)?.form).includes('Дикий облик'),
+  'badge copy',
+)
+
+const hit14 = dealDamageToSelfForm({
+  companions: form10.companions,
+  damage: 14,
+  hostHp: 28,
+})
+assert(hit14.formDismissed, '14 dmg vs 10 HP dismisses')
+assert(hit14.overflow === 4, 'overflow 4')
+assert(hit14.hostHp === 24, 'host 28-4')
+assert(!getActiveSelfForm(hit14.companions), 'no active form after overflow')
+assert(hit14.companions.find((c) => c.id === 'ally-1')?.is_primary === true, 'restore primary')
+
+const formAgain = applyBeastWildShape({
+  companions: [allyPrimary],
+  knownForms: [],
+  pick: {
+    slug: 'wolf',
+    name_ru: 'Волк',
+    cr: '1/4',
+    type: 'beast',
+    ac: 13,
+    hp: 10,
+    speed_walk: 40,
+    actions_text: 'Укус',
+  },
+  hostHp: 28,
+  hostHpMax: 28,
+  druidLevel: 4,
+})
+const voluntary = dismissSelfForm({
+  companions: formAgain.companions,
+  formId: getActiveSelfForm(formAgain.companions)!.id,
+})
+assert(!getActiveSelfForm(voluntary.companions), 'voluntary dismiss')
+assert(voluntary.restoredPrimaryId === 'ally-1', 'voluntary restores primary')
+
+const softHit = dealDamageToSelfForm({
+  companions: formAgain.companions,
+  damage: 3,
+  hostHp: 28,
+})
+assert(!softHit.formDismissed && softHit.overflow === 0, 'partial dmg keeps form')
+assert(getActiveSelfForm(softHit.companions)?.stats.hp === 7, '10-3=7')
+
+const onRest = dismissSelfFormsOnRest(formAgain.companions, 'short')
+assert(onRest.dismissedNames.includes('Волк'), 'rest dismisses form')
+assert(!getActiveSelfForm(onRest.companions), 'rest clears active form')
+
+const ordered = sortCompanionsForDisplay([
+  createCompanion({ role: 'ally', name: 'Ally', active: true }),
+  createCompanion({
+    role: 'self_form',
+    name: 'Form',
+    active: true,
+    form: {
+      form_source: 'wild_shape',
+      form_source_ref: 'wild_shape',
+      host_hp_at_enter: 1,
+      host_hp_max_at_enter: 1,
+      duration_minutes: 1,
+      entered_at: null,
+    },
+  }),
+])
+assert(ordered[0]?.role === 'self_form', 'display sort: form first')
+
+// --- F4: Moon heal + elemental ---
+assert(moonHealDiceCount(2) === 2, 'slot 2 → 2d8')
+assert(moonHealDiceCount(1) === 1 && moonHealDiceCount(9) === 9, 'slot bounds')
+assert(averageDice(2, 8) === 9, 'avg 2d8 = 9')
+
+const hurtForm = applyBeastWildShape({
+  companions: [],
+  knownForms: [],
+  pick: {
+    slug: 'wolf',
+    name_ru: 'Волк',
+    cr: '1/4',
+    type: 'beast',
+    ac: 13,
+    hp: 10,
+    speed_walk: 40,
+    actions_text: 'Укус',
+  },
+  hostHp: 20,
+  hostHpMax: 20,
+  druidLevel: 4,
+})
+const afterDmg = dealDamageToSelfForm({
+  companions: hurtForm.companions,
+  damage: 6,
+  hostHp: 20,
+})
+assert(getActiveSelfForm(afterDmg.companions)?.stats.hp === 4, 'pre-heal hp 4')
+const moonHealed = healSelfForm({
+  companions: afterDmg.companions,
+  amount: averageDice(2, 8), // 9
+})
+assert(moonHealed.ok && moonHealed.healed === 6, 'heal clamps to max (4+9→10, healed 6)')
+assert(getActiveSelfForm(moonHealed.companions)?.stats.hp === 10, 'full after heal')
+
+const air = ELEMENTAL_FALLBACK_STATS.air!
+const elemental = applyBeastWildShape({
+  companions: [],
+  knownForms: [],
+  pick: {
+    slug: 'air_elemental',
+    name_ru: 'Воздушный элементаль',
+    ...air,
+  },
+  hostHp: 20,
+  hostHpMax: 20,
+  druidLevel: 10,
+  formSource: 'elemental_wild_shape',
+  formSourceRef: 'elemental_wild_shape:air',
+  extraTags: ['elemental'],
+})
+assert(
+  getActiveSelfForm(elemental.companions)?.form?.form_source === 'elemental_wild_shape',
+  'elemental form source',
+)
+assert(getActiveSelfForm(elemental.companions)?.stats.hp === 90, 'air elemental HP')
+assert(elemental.knownForms[0]?.tags.includes('elemental'), 'known elemental tag')
+
+// --- F5: spell self_form ---
+assert(resolveSpellSelfFormSlug('Polymorph') === 'polymorph', 'polymorph slug')
+assert(resolveSpellSelfFormSlug('Превращение') === 'polymorph', 'polymorph RU')
+assert(resolveSpellSelfFormSlug('Shapechange') === 'shapechange', 'shapechange')
+assert(resolveSpellSelfFormSlug('True Polymorph') === 'true_polymorph', 'true poly')
+const polySpell = {
+  ...createSheetSpell(),
+  name: 'Превращение',
+  level: 4,
+  concentration: true,
+}
+assert(isSpellSelfFormCast(polySpell), 'is self form cast')
+const polyLim = spellFormLimits({ slug: 'polymorph', characterLevel: 5 })
+assert(polyLim.maxCr === 5 && polyLim.allowedTypes.includes('beast'), 'poly limits')
+assert(
+  spellFormPickAllowed(
+    { slug: 'wolf', name_ru: 'Волк', cr: '1/4', type: 'beast', ac: 13, hp: 11, speed_walk: 40, actions_text: '' },
+    polyLim,
+  ),
+  'wolf ok for poly',
+)
+assert(
+  !spellFormPickAllowed(
+    { slug: 'ogre', name_ru: 'Огр', cr: '2', type: 'giant', ac: 11, hp: 59, speed_walk: 40, actions_text: '' },
+    polyLim,
+  ),
+  'giant blocked for poly',
+)
+const shapeLim = spellFormLimits({ slug: 'shapechange', characterLevel: 17 })
+assert(
+  !spellFormPickAllowed(
+    { slug: 'zombie', name_ru: 'Зомби', cr: '1/4', type: 'undead', ac: 8, hp: 22, speed_walk: 20, actions_text: '' },
+    shapeLim,
+  ),
+  'undead blocked shapechange',
+)
+
+const polyApplied = applySpellSelfForm({
+  companions: [allyPrimary],
+  knownForms: [],
+  spell: polySpell,
+  slug: 'polymorph',
+  pick: {
+    slug: 'wolf',
+    name_ru: 'Волк',
+    cr: '1/4',
+    type: 'beast',
+    ac: 13,
+    hp: 11,
+    speed_walk: 40,
+    actions_text: 'Укус',
+  },
+  hostHp: 30,
+  hostHpMax: 30,
+  characterLevel: 5,
+})
+assert(getActiveSelfForm(polyApplied.companions)?.source?.spellId === polySpell.id, 'spell id link')
+assert(getActiveSelfForm(polyApplied.companions)?.form?.form_source === 'spell', 'form_source spell')
+
+const concDrop = applyConcentrationChangeToCompanions({
+  companions: polyApplied.companions,
+  previous: { spell_id: polySpell.id, name: polySpell.name },
+  next: null,
+})
+assert(!getActiveSelfForm(concDrop.companions), 'conc end removes form')
+assert(concDrop.dismissedNames.some((n) => n.includes('Волк')), 'dismiss name')
+
+const manualDrop = dismissSpellSelfFormsForConcentration({
+  companions: polyApplied.companions,
+  endedSpellId: polySpell.id,
+  endedSpellName: polySpell.name,
+})
+assert(manualDrop.companions.every((c) => c.role !== 'self_form'), 'manual dismiss removes')
+
+// --- F6: bestiary ally stats + Shapechanger ---
+assert(wildfireSpiritHp(6) === 40, 'wildfire 10+5×6')
+assert(wildfireSpiritHp(1) === 15, 'wildfire L1')
+// Catalog pick with hp=10 must NOT override scaling
+const fireScaled = applyWildfireSpirit({
+  companions: [],
+  druidLevel: 6,
+  pick: {
+    slug: 'wildfire_spirit',
+    name_ru: 'Дух дикого огня',
+    cr: '',
+    type: 'elemental',
+    ac: 13,
+    hp: 10, // catalog base — ignore for total
+    speed_walk: 30,
+    actions_text: 'Семя',
+  },
+})
+assert(fireScaled[0]?.stats.hp_max === 40, 'wildfire ignores catalog avg alone')
+
+const wfTpl = resolveCompanionTemplate({
+  choiceId: 'summon_wildfire_spirit',
+  pickValue: '',
+  ctx: { hostClassLevel: 5, characterLevel: 5, spellMod: 3 },
+})
+assert(wfTpl?.stats.hp_max === 35, 'template wildfire L5 = 35')
+
+const scLim = shapechangerFormLimits()
+assert(scLim.maxCr === 1 && scLim.allowedTypes.includes('beast'), 'shapechanger limits')
+assert(
+  featureFormPickAllowed(
+    { slug: 'wolf', name_ru: 'Волк', cr: '1/4', type: 'beast', ac: 13, hp: 11, speed_walk: 40, actions_text: '' },
+    scLim,
+  ),
+  'wolf ok shapechanger',
+)
+assert(
+  !featureFormPickAllowed(
+    { slug: 'brown_bear', name_ru: 'Медведь', cr: '1', type: 'beast', ac: 11, hp: 34, speed_walk: 40, actions_text: '' },
+    { ...scLim, maxCr: 0.5 },
+  ),
+  'CR filter shapechanger',
+)
+assert(
+  featureFormPickAllowed(
+    { slug: 'brown_bear', name_ru: 'Медведь', cr: '1', type: 'beast', ac: 11, hp: 34, speed_walk: 40, actions_text: '' },
+    scLim,
+  ),
+  'CR1 ok shapechanger',
+)
+
+const shapechangerForm = applyFeatureSelfForm({
+  companions: [],
+  knownForms: [],
+  pick: {
+    slug: 'wolf',
+    name_ru: 'Волк',
+    cr: '1/4',
+    type: 'beast',
+    ac: 13,
+    hp: 11,
+    speed_walk: 40,
+    actions_text: 'Укус',
+  },
+  hostHp: 20,
+  hostHpMax: 20,
+  limits: scLim,
+})
+assert(
+  getActiveSelfForm(shapechangerForm.companions)?.form?.form_source === 'feature',
+  'shapechanger form_source',
+)
+assert(
+  getActiveSelfForm(shapechangerForm.companions)?.source?.feature === 'shapechanger',
+  'feature id',
+)
+
+const itemForm = applyItemSelfForm({
+  companions: [],
+  knownForms: [],
+  pick: {
+    slug: 'bat',
+    name_ru: 'Летучая мышь',
+    cr: '0',
+    type: 'beast',
+    ac: 12,
+    hp: 1,
+    speed_walk: 5,
+    speed_fly: 30,
+    actions_text: 'Укус',
+  },
+  hostHp: 20,
+  hostHpMax: 20,
+  itemId: 'cloak_of_the_bat',
+  labelRu: 'Плащ летучей мыши',
+})
+assert(getActiveSelfForm(itemForm.companions)?.form?.form_source === 'item', 'item form_source')
 
 console.log('smoke-companions: ok')

@@ -498,6 +498,47 @@
 
 <!-- tip: companions-naparniki-b378 залит 2026-10-08; бестиарий наполняет отдельный агент -->
 
+### 2026-10-15 — Дизайн + план: Облики + бестиарий первым
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Контракт обликов | `docs/forms-and-wild-shape.md`: роль `self_form` vs `ally` в блоке Напарники | Друид → пикер форм → карточка «это ты» с HP/атаками формы |
+| Бестиарий B0–B6 | Весь оф. 2014 (как SPELLS/расы); проверка ttg + dnd.su; schema v1; аудит `docs/BESTIARY_AUDIT_2014.md` | Справочник существ для обликов/напарников; **стартуем с него** |
+| Конфликт статов | При расхождении dnd.su↔ttg в каталог пишем **ttg** (пример: Wildfire Spirit HP 10+5×ур vs 5+5×ур) | Одинаковые цифры у друида Круга дикого огня и в пикере |
+| План исполнения | `docs/forms-feature-plan.md`: приёмка по слайсам, tip-порядок, DoD | Очередь: B0→B1→F1→F2/F3… |
+
+На проде: **нет** · дизайн влит в `cursor/bestiary-schema-fetch-ab5e` · tip не менять
+
+### 2026-10-15 — Bestiary B0+B1: schema/fetch + сид MM (не на проде)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Schema v1 | `bestiary_catalog` BE + FE types | Единый контракт JSONB для `kind=bestiary` |
+| Fetch ttg | `fetch_bestiary_wave.py` (Basic only) → JSON волны | Можно качать MM/TCE/… как SPELLS |
+| Diff | `diff_bestiary_sources.py` ttg↔dnd.su | Виден gap покрытия |
+| Smoke | fixture 5 карточек; Wildfire HP=10 (ttg) | Конфликт→ttg проверяется автоматом |
+| Сид MM | `bestiary_mm_v1.json` ×**451** + alembic `c5d6e7f8a9b0` | После «Залей» combobox бестиария покажет MM (звери для WS) |
+| F1 модель облика | `role: self_form`, `form` meta, `known_forms` на листе; smoke | Данные для пикера WS готовы (UI пикера — F2) |
+
+На проде: **нет** · ветка `cursor/bestiary-schema-fetch-ab5e` · **не деплоить** до «Залей» · tip не менять
+
+### 2026-10-15 — Облики F1–F6 + бестиарий B2 (не на проде)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Дикий облик | Развилка траты: зверь / Дикий спутник / круги; chip «В облике» | Друид тратит пул осмысленно, видит форму в Напарниках |
+| Бой в облике | Урон по HP формы; overflow на хозяина; сброс / отдых | Как в PHB: два пула хитов |
+| Moon | «бонусным» + исцеление ячейкой 1к8×ур. | Круг Луны играет с листа |
+| Polymorph self | Каст «на себя» → пикер; концентрация снимает облик | Превращения без ручной карточки |
+| Перевёртыш / Wildfire | Shapechanger CR≤1; HP духа 10+5×ур. (ttg) | Архетипы не «ломаются» на стабах |
+| Сид VGM+MTF | `bestiary_vgm_mtf_v1.json` ×**268** + alembic `d6e7f8a9b0c1` | После «Залей» в справочнике +VGM/MTF |
+| Сид MPMM | `bestiary_mpmm_v1.json` ×**258** + alembic `e7f8a9b0c1d2` | После «Залей» в справочнике +MPMM |
+| Сид B4 books | `bestiary_books_b4_v1.json` ×**290** (FTD/BGG/BAM/TCE/BMT) + alembic `f8a9b0c1d2e3` | Wildfire Spirit HP=10 в каталоге после «Залей» |
+| Сид B5 adv+set | `bestiary_adventures_b5_v1.json` ×**1113** (46 книг) + alembic `a9b0c1d2e3f4` | После «Залей» полный оф. Basic **2380** |
+| B6 gap-pass | allowlist missing **0** vs ttg Basic; report `docs/bestiary_gap_b6_report.json` | Готово к «Залей»: бестиарий оф. 2014×**2380** |
+
+На проде: **нет** · ветка `cursor/bestiary-schema-fetch-ab5e` · PR #166 · **не деплоить** до «Залей» · tip не менять
+
 ### 2026-10-07 — FEATS BMT wave (Книга многих вещей)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -789,3 +830,5 @@
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS: cast-via-feat/race grant charges in picker → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
 | 2026-10-08 | `cursor/companions-naparniki-b378` · PR #81 | Напарники A–D3 + аватарки залиты; tip → эта ветка; alembic `b4c5` |
+| 2026-10-15 | `cursor/forms-wild-shape-design-ab5e` | Дизайн LOCK обликов + бестиарий B0–B6 + детальный план (`forms-feature-plan.md`) → «В ветках» |
+| 2026-10-15 | `cursor/bestiary-schema-fetch-ab5e` · PR #166 | B0–B6 (оф. Basic ×2380, gap 0) + F1–F6 облики; без деплоя до «Залей» |
