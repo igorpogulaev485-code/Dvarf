@@ -1506,6 +1506,7 @@ input {
   color: #fff;
 }
 
+/* Состав: ориентир ~8 игроков (бывает 3–6, запас до 10) */
 .lobby-member-grid {
   display: grid;
   gap: 14px;
@@ -1665,13 +1666,16 @@ input {
   font-size: 0.92rem;
 }
 
+@media (min-width: 640px) {
+  /* 3–4 игрока комфортно в 2 колонки */
+  .lobby-member-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (min-width: 768px) {
   .page.page--lobby-hub {
     width: min(100% - 48px, 1120px);
-  }
-
-  .lobby-member-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .lobby-hub-tabs__scroll {
@@ -1680,18 +1684,32 @@ input {
   }
 }
 
+@media (min-width: 1000px) {
+  /* 6 игроков → 3×2 */
+  .lobby-member-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (min-width: 1100px) {
   .page.page--lobby-hub {
     width: min(100% - 64px, 1400px);
   }
 
-  .lobby-member-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .visibility-sections {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     align-items: start;
+  }
+}
+
+@media (min-width: 1280px) {
+  /* Ориентир 8 → 4×2; 10 → 4+4+2 */
+  .page.page--lobby-hub {
+    width: min(100% - 64px, 1480px);
+  }
+
+  .lobby-member-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 

@@ -188,7 +188,7 @@ export function LobbyDetailPage() {
           <Panel title="Состав кампании">
             <Stack gap={12}>
               <Text tone="muted">
-                Упрощённые карточки участников. Полные статы и лента — в сессии.
+                Упрощённые карточки участников (ориентир ~8, бывает 3–10). Полные статы — в сессии.
               </Text>
               {lobby.members.length === 0 ? (
                 <Text tone="muted">Пока никого. Игроки входят по коду / QR.</Text>

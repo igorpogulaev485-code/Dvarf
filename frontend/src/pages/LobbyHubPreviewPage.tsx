@@ -14,6 +14,7 @@ import {
 import type { LobbyMember } from '../shared/api/lobbies'
 import { Button, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
+/** Ориентир вёрстки: ~8 игроков (бывает 3–6, запас до 10). */
 const DEMO_MEMBERS: LobbyMember[] = [
   {
     id: 'm1',
@@ -51,6 +52,66 @@ const DEMO_MEMBERS: LobbyMember[] = [
     hp_current: 0,
     hp_max: 55,
   },
+  {
+    id: 'm4',
+    character_id: 'c4',
+    user_id: 'u4',
+    joined_at: new Date().toISOString(),
+    character_name: 'Лира',
+    character_level: 5,
+    character_class_name: 'Плут',
+    character_race_name: 'Полурослик',
+    hp_current: 31,
+    hp_max: 31,
+  },
+  {
+    id: 'm5',
+    character_id: 'c5',
+    user_id: 'u5',
+    joined_at: new Date().toISOString(),
+    character_name: 'Торин',
+    character_level: 4,
+    character_class_name: 'Волшебник',
+    character_race_name: 'Гном',
+    hp_current: 18,
+    hp_max: 26,
+  },
+  {
+    id: 'm6',
+    character_id: 'c6',
+    user_id: 'u6',
+    joined_at: new Date().toISOString(),
+    character_name: 'Селена',
+    character_level: 5,
+    character_class_name: 'Следопыт',
+    character_race_name: 'Лесной эльф',
+    hp_current: 40,
+    hp_max: 44,
+  },
+  {
+    id: 'm7',
+    character_id: 'c7',
+    user_id: 'u7',
+    joined_at: new Date().toISOString(),
+    character_name: 'Бракк',
+    character_level: 5,
+    character_class_name: 'Воин',
+    character_race_name: 'Дварф',
+    hp_current: 52,
+    hp_max: 52,
+  },
+  {
+    id: 'm8',
+    character_id: 'c8',
+    user_id: 'u8',
+    joined_at: new Date().toISOString(),
+    character_name: 'Мира',
+    character_level: 5,
+    character_class_name: 'Бард',
+    character_race_name: 'Тифлинг',
+    hp_current: 35,
+    hp_max: 35,
+  },
 ]
 
 export function LobbyHubPreviewPage() {
@@ -61,7 +122,7 @@ export function LobbyHubPreviewPage() {
   const [name, setName] = useState('Эхо Рассвета')
 
   const subtitle = useMemo(
-    () => (playerPreview ? 'Превью: глазами игрока' : 'Превью A1 · мастер'),
+    () => (playerPreview ? 'Превью: глазами игрока' : 'Превью A1 · мастер · 8 игроков'),
     [playerPreview],
   )
 
@@ -95,7 +156,7 @@ export function LobbyHubPreviewPage() {
           <Panel title="Состав кампании">
             <Stack gap={12}>
               <Text tone="muted">
-                Упрощённые карточки участников. Полные статы и лента — в сессии.
+                Упрощённые карточки участников (ориентир ~8, бывает 3–10). Полные статы — в сессии.
               </Text>
               <div className="lobby-member-grid">
                 {DEMO_MEMBERS.map((m) => (
