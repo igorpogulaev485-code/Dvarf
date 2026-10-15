@@ -155,6 +155,9 @@ export type SessionCombatant = {
   members?: CombatantMember[]
   dex_mod?: number | null
   xp?: number | null
+  /** Сколько поверженных из пачки уже учтены в раздаче XP. */
+  xp_claimed_count?: number
+  /** @deprecated используй xp_claimed_count */
   xp_claimed?: boolean
 }
 
@@ -563,6 +566,8 @@ export async function awardSessionXp(
 /** Сколько XP ещё не раздано за поверженных в пачке/карточке. */
 export function unclaimedDefeatXp(combatant: SessionCombatant): {
   dead: number
+  claimed: number
+  unclaimed: number
   xpEach: number
   total: number
   claimable: boolean
@@ -575,11 +580,21 @@ export function unclaimedDefeatXp(combatant: SessionCombatant): {
       : combatant.hp_current <= 0
         ? 1
         : 0
-  const claimable = !combatant.xp_claimed && dead > 0 && xpEach > 0
+  const claimedRaw =
+    typeof combatant.xp_claimed_count === 'number'
+      ? combatant.xp_claimed_count
+      : combatant.xp_claimed
+        ? dead
+        : 0
+  const claimed = Math.max(0, Math.min(dead, claimedRaw))
+  const unclaimed = Math.max(0, dead - claimed)
+  const claimable = unclaimed > 0 && xpEach > 0
   return {
     dead,
+    claimed,
+    unclaimed,
     xpEach,
-    total: claimable ? dead * xpEach : 0,
+    total: claimable ? unclaimed * xpEach : 0,
     claimable,
   }
 }

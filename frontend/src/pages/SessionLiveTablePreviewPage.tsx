@@ -168,7 +168,7 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
     type_ru: 'гуманоид',
     dex_mod: 2,
     xp: 50,
-    xp_claimed: false,
+    xp_claimed_count: 0,
     actions: [
       {
         name_ru: 'Скимитар',
@@ -210,7 +210,7 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
     type_ru: 'НПС',
     dex_mod: -1,
     xp: 450,
-    xp_claimed: false,
+    xp_claimed_count: 0,
     actions: [
       {
         name_ru: 'Дубина',
@@ -805,7 +805,14 @@ export function SessionLiveTablePreviewPage() {
           if (payload.claim_combatant_ids?.length) {
             const claim = new Set(payload.claim_combatant_ids)
             setCombatants((prev) =>
-              prev.map((c) => (claim.has(c.id) ? { ...c, xp_claimed: true } : c)),
+              prev.map((c) => {
+                if (!claim.has(c.id)) return c
+                const dead = (c.members ?? []).filter((m) => m.hp_current <= 0).length
+                return {
+                  ...c,
+                  xp_claimed_count: Math.max(c.xp_claimed_count ?? 0, dead),
+                }
+              }),
             )
           }
           setXpOpen(false)

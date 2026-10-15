@@ -146,11 +146,26 @@ export function AwardXpDialog({
                   <li key={row.combatant.id}>
                     <span>
                       {row.combatant.name}
-                      {row.dead > 1 ? ` × ${row.dead}` : ''}
+                      {row.unclaimed > 1
+                        ? ` · повержено ${row.unclaimed}${
+                            row.dead !== row.unclaimed
+                              ? ` (ещё ${row.claimed} уже учли)`
+                              : row.combatant.member_count &&
+                                  row.combatant.member_count > row.dead
+                                ? ` из ${row.combatant.member_count}`
+                                : ''
+                          }`
+                        : row.combatant.member_count &&
+                            row.combatant.member_count > 1
+                          ? ` · 1 из ${row.combatant.member_count}`
+                          : ''}
                     </span>
                     <span className="session-xp-defeat-list__xp">
                       {row.xpEach}
-                      {row.dead > 1 ? ` × ${row.dead} = ${row.total}` : ''} XP
+                      {row.unclaimed > 1
+                        ? ` × ${row.unclaimed} = ${row.total}`
+                        : ''}{' '}
+                      XP
                     </span>
                   </li>
                 ))}

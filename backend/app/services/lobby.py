@@ -329,7 +329,12 @@ def _parse_combatants(raw: object) -> list[dict]:
                 else None
             ),
             "xp": int(item["xp"]) if isinstance(item.get("xp"), int) else None,
-            "xp_claimed": bool(item.get("xp_claimed")),
+            "xp_claimed_count": max(
+                0,
+                int(item["xp_claimed_count"])
+                if isinstance(item.get("xp_claimed_count"), int)
+                else (int(item.get("member_count") or 0) if item.get("xp_claimed") else 0),
+            ),
             "members": members,
             "alive_count": 0,
             "member_count": 0,
@@ -373,7 +378,7 @@ def _combatant_out(row: dict) -> SessionCombatantOut:
         members=members,
         dex_mod=int(row["dex_mod"]) if isinstance(row.get("dex_mod"), int) else None,
         xp=int(row["xp"]) if isinstance(row.get("xp"), int) else None,
-        xp_claimed=bool(row.get("xp_claimed")),
+        xp_claimed_count=max(0, int(row.get("xp_claimed_count") or 0)),
     )
 
 
@@ -1508,7 +1513,7 @@ class LobbyService:
                     if payload.xp is not None
                     else xp_from_cr(data.get("cr"))
                 ),
-                "xp_claimed": False,
+                "xp_claimed_count": 0,
             }
         else:
             name = (payload.name or "").strip()
@@ -1537,7 +1542,7 @@ class LobbyService:
                 "legendary_actions": [],
                 "dex_mod": None,
                 "xp": int(payload.xp) if payload.xp is not None else None,
-                "xp_claimed": False,
+                "xp_claimed_count": 0,
             }
 
         combatants = _parse_combatants(session.combatants)
@@ -1880,9 +1885,17 @@ class LobbyService:
             claim = {str(x) for x in payload.claim_combatant_ids}
             changed = False
             for row in combatants:
-                if row["id"] in claim:
-                    row["xp_claimed"] = True
-                    changed = True
+                if row["id"] not in claim:
+                    continue
+                members = row.get("members") or []
+                dead = (
+                    sum(1 for m in members if int(m.get("hp_current") or 0) <= 0)
+                    if members
+                    else (1 if int(row.get("hp_current") or 0) <= 0 else 0)
+                )
+                # Фиксируем, сколько поверженных уже учли — следующие убийства дораздадут.
+                row["xp_claimed_count"] = max(int(row.get("xp_claimed_count") or 0), dead)
+                changed = True
             if changed:
                 session.combatants = combatants
                 flag_modified(session, "combatants")

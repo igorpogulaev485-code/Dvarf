@@ -253,7 +253,8 @@ class SessionCombatantOut(BaseModel):
     members: list[CombatantMemberOut] = Field(default_factory=list)
     dex_mod: int | None = None
     xp: int | None = None
-    xp_claimed: bool = False
+    """Сколько поверженных из пачки уже учтены при раздаче XP."""
+    xp_claimed_count: int = 0
 
 
 class CombatEntryOut(BaseModel):
