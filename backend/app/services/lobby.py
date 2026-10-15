@@ -22,6 +22,7 @@ from app.services.sheet_effects import (
     parse_effects,
 )
 from app.repositories.catalog import CatalogRepository
+from app.dnd.xp import xp_from_cr
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
     CombatEntryOut,
@@ -33,6 +34,8 @@ from app.schemas.lobby import (
     CombatantPatchRequest,
     JoinLobbyRequest,
     SessionCombatOut,
+    XpAwardRequest,
+    XpAwardResult,
     JournalEntryCreateRequest,
     JournalEntryOut,
     JournalEntryUpdateRequest,
@@ -325,6 +328,8 @@ def _parse_combatants(raw: object) -> list[dict]:
                 if isinstance(item.get("dex_mod"), int)
                 else None
             ),
+            "xp": int(item["xp"]) if isinstance(item.get("xp"), int) else None,
+            "xp_claimed": bool(item.get("xp_claimed")),
             "members": members,
             "alive_count": 0,
             "member_count": 0,
@@ -367,6 +372,8 @@ def _combatant_out(row: dict) -> SessionCombatantOut:
         legendary_actions=[CombatantActionOut(**a) for a in row.get("legendary_actions") or []],
         members=members,
         dex_mod=int(row["dex_mod"]) if isinstance(row.get("dex_mod"), int) else None,
+        xp=int(row["xp"]) if isinstance(row.get("xp"), int) else None,
+        xp_claimed=bool(row.get("xp_claimed")),
     )
 
 
@@ -1496,6 +1503,12 @@ class LobbyService:
                 "reactions": _action_blocks(data.get("reactions")),
                 "legendary_actions": _action_blocks(data.get("legendary_actions")),
                 "dex_mod": _dex_mod_from_abilities(data.get("abilities")),
+                "xp": (
+                    int(payload.xp)
+                    if payload.xp is not None
+                    else xp_from_cr(data.get("cr"))
+                ),
+                "xp_claimed": False,
             }
         else:
             name = (payload.name or "").strip()
@@ -1523,6 +1536,8 @@ class LobbyService:
                 "reactions": [],
                 "legendary_actions": [],
                 "dex_mod": None,
+                "xp": int(payload.xp) if payload.xp is not None else None,
+                "xp_claimed": False,
             }
 
         combatants = _parse_combatants(session.combatants)
@@ -1790,3 +1805,132 @@ class LobbyService:
             {"type": "session_update", "session": detail.model_dump(mode="json")},
         )
         return detail
+
+    async def award_xp(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: XpAwardRequest,
+    ) -> XpAwardResult:
+        session, lobby = self._require_session_owner(user, session_id)
+        from sqlalchemy.orm.attributes import flag_modified
+
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+
+        seat_ids = {s.character_id for s in session.seats}
+        targets = []
+        for cid in payload.character_ids:
+            if cid not in seat_ids:
+                raise AppError(
+                    "XP только персонажам за столом",
+                    code="xp_not_seated",
+                    status_code=400,
+                )
+            targets.append(cid)
+        # unique preserve order
+        seen: set[UUID] = set()
+        unique_targets: list[UUID] = []
+        for cid in targets:
+            if cid in seen:
+                continue
+            seen.add(cid)
+            unique_targets.append(cid)
+        if not unique_targets:
+            raise AppError("Нет получателей XP", code="xp_no_recipients", status_code=400)
+
+        if payload.per_character_xp is not None:
+            each = int(payload.per_character_xp)
+            total = each * len(unique_targets)
+        elif payload.total_xp is not None:
+            total = int(payload.total_xp)
+            each = total // len(unique_targets)
+            total = each * len(unique_targets)  # без остатка «в стол» — ровная раздача
+        else:
+            raise AppError(
+                "Укажите total_xp или per_character_xp",
+                code="xp_amount_required",
+                status_code=400,
+            )
+        if each < 0:
+            raise AppError("XP не может быть отрицательным", code="xp_negative", status_code=400)
+
+        char_map = self.lobbies.get_characters_map(unique_targets)
+        recipient_names: list[str] = []
+        for cid in unique_targets:
+            character = char_map.get(cid)
+            if character is None:
+                raise NotFoundError("Персонаж не найден", code="character_not_found")
+            sheet = dict(character.sheet or {})
+            identity = dict(sheet.get("identity") or {})
+            current = identity.get("experience")
+            try:
+                cur_xp = int(current or 0)
+            except (TypeError, ValueError):
+                cur_xp = 0
+            identity["experience"] = max(0, cur_xp + each)
+            sheet["identity"] = identity
+            character.sheet = sheet
+            character.sheet_version = int(character.sheet_version or 1) + 1
+            flag_modified(character, "sheet")
+            recipient_names.append(character.name)
+
+        if payload.claim_combatant_ids:
+            combatants = _parse_combatants(session.combatants)
+            claim = {str(x) for x in payload.claim_combatant_ids}
+            changed = False
+            for row in combatants:
+                if row["id"] in claim:
+                    row["xp_claimed"] = True
+                    changed = True
+            if changed:
+                session.combatants = combatants
+                flag_modified(session, "combatants")
+
+        source = (payload.source or "manual").strip()[:32] or "manual"
+        note = (payload.note or "").strip()
+        title = "Опыт" if source == "combat" else "Опыт (вручную)"
+        breakdown = ", ".join(recipient_names)
+        if note:
+            breakdown = f"{breakdown} · {note}"
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="xp",
+            character_id=None,
+            actor_user_id=user.id,
+            character_name="Мастер",
+            title=title[:200],
+            formula=f"+{each} XP" if len(unique_targets) == 1 else f"+{each} XP × {len(unique_targets)}",
+            breakdown=breakdown[:200],
+            total=total if total > 0 else None,
+            is_master_roll=False,
+            payload={
+                "source": source,
+                "awarded_each": each,
+                "awarded_total": total,
+                "character_ids": [str(c) for c in unique_targets],
+                "names": recipient_names,
+                "note": note or None,
+                "claim_combatant_ids": list(payload.claim_combatant_ids or []),
+            },
+        )
+        self.lobbies.add_session_event(event)
+        self.db.commit()
+        self.db.refresh(event)
+
+        detail = self._session_detail(session, lobby, user)
+        out_event = SessionEventOut.model_validate(event)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out_event.model_dump(mode="json")},
+        )
+        return XpAwardResult(
+            session=detail,
+            awarded_each=each,
+            awarded_total=total,
+            recipients=recipient_names,
+        )

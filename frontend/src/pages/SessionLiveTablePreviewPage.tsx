@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react'
 import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
+import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
@@ -166,6 +167,8 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
     source_book: 'MM',
     type_ru: 'гуманоид',
     dex_mod: 2,
+    xp: 50,
+    xp_claimed: false,
     actions: [
       {
         name_ru: 'Скимитар',
@@ -206,6 +209,8 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
     custom: true,
     type_ru: 'НПС',
     dex_mod: -1,
+    xp: 450,
+    xp_claimed: false,
     actions: [
       {
         name_ru: 'Дубина',
@@ -280,6 +285,7 @@ export function SessionLiveTablePreviewPage() {
   const [effectOpen, setEffectOpen] = useState(false)
   const [combatantOpen, setCombatantOpen] = useState(false)
   const [combatStartOpen, setCombatStartOpen] = useState(false)
+  const [xpOpen, setXpOpen] = useState(false)
   const [combat, setCombat] = useState<SessionCombat>({
     active: false,
     round: 1,
@@ -389,9 +395,15 @@ export function SessionLiveTablePreviewPage() {
                         Бой
                       </Button>
                     ) : null}
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setXpOpen(true)}
+                    >
+                      XP
+                    </Button>
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Состояние — вред. Эффект — баф. Противник — бестиарий. Бой —
-                      инициатива; на ходе врага — его действия.
+                      Бой — инициатива. XP — после боя / вручную.
                     </Text>
                   </div>
                 ) : null}
@@ -433,6 +445,7 @@ export function SessionLiveTablePreviewPage() {
                         entries: [],
                       })
                       setToast('Бой окончен')
+                      setXpOpen(true)
                     }}
                     onSelect={(index) => {
                       setCombat((prev) => ({ ...prev, active_index: index }))
@@ -775,6 +788,48 @@ export function SessionLiveTablePreviewPage() {
           })
           setCombatStartOpen(false)
           setToast('Бой начат')
+        }}
+      />
+
+      <AwardXpDialog
+        open={xpOpen}
+        seats={seats}
+        combatants={combatants}
+        onClose={() => setXpOpen(false)}
+        onSubmit={(payload) => {
+          const n = payload.character_ids.length || 1
+          const each =
+            payload.per_character_xp != null
+              ? payload.per_character_xp
+              : Math.floor((payload.total_xp ?? 0) / n)
+          if (payload.claim_combatant_ids?.length) {
+            const claim = new Set(payload.claim_combatant_ids)
+            setCombatants((prev) =>
+              prev.map((c) => (claim.has(c.id) ? { ...c, xp_claimed: true } : c)),
+            )
+          }
+          setXpOpen(false)
+          const names = seats
+            .filter((s) => payload.character_ids.includes(s.character_id))
+            .map((s) => s.character_name)
+          setToast(`+${each} XP · ${names.join(', ')}`)
+          setEvents((prev) => [
+            {
+              id: `xp-${Date.now()}`,
+              session_id: 's1',
+              event_type: 'xp',
+              character_id: null,
+              character_name: 'Мастер',
+              title: payload.source === 'combat' ? 'Опыт' : 'Опыт (вручную)',
+              formula: `+${each} XP × ${n}`,
+              breakdown: names.join(', '),
+              total: each * n,
+              is_master_roll: false,
+              payload: {},
+              created_at: new Date().toISOString(),
+            },
+            ...prev,
+          ])
         }}
       />
 

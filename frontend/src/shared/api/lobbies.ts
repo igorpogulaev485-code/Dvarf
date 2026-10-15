@@ -154,6 +154,8 @@ export type SessionCombatant = {
   legendary_actions?: CombatantAction[]
   members?: CombatantMember[]
   dex_mod?: number | null
+  xp?: number | null
+  xp_claimed?: boolean
 }
 
 export type CombatEntryKind = 'pc' | 'companion' | 'enemy'
@@ -532,6 +534,54 @@ export async function patchSessionCombat(
     method: 'PATCH',
     body: JSON.stringify(payload),
   })
+}
+
+export type XpAwardResult = {
+  session: SessionDetail
+  awarded_each: number
+  awarded_total: number
+  recipients: string[]
+}
+
+export async function awardSessionXp(
+  sessionId: string,
+  payload: {
+    character_ids: string[]
+    total_xp?: number | null
+    per_character_xp?: number | null
+    source?: string
+    note?: string | null
+    claim_combatant_ids?: string[]
+  },
+): Promise<XpAwardResult> {
+  return apiRequest<XpAwardResult>(`/sessions/${sessionId}/xp`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+/** Сколько XP ещё не раздано за поверженных в пачке/карточке. */
+export function unclaimedDefeatXp(combatant: SessionCombatant): {
+  dead: number
+  xpEach: number
+  total: number
+  claimable: boolean
+} {
+  const xpEach = Math.max(0, combatant.xp ?? 0)
+  const members = combatant.members ?? []
+  const dead =
+    members.length > 0
+      ? members.filter((m) => m.hp_current <= 0).length
+      : combatant.hp_current <= 0
+        ? 1
+        : 0
+  const claimable = !combatant.xp_claimed && dead > 0 && xpEach > 0
+  return {
+    dead,
+    xpEach,
+    total: claimable ? dead * xpEach : 0,
+    claimable,
+  }
 }
 
 export function lobbyQrUrl(inviteCode: string): string {
