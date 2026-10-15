@@ -445,6 +445,7 @@ export function MinimalSheetEditor({
       combat.darkvision = identityExtras.combatPatch.darkvision
       const playSheet = playToSheet(draft.play)
       combat.conditions = playSheet.combatPatch.conditions
+      combat.effects = playSheet.combatPatch.effects
       combat.exhaustion = playSheet.combatPatch.exhaustion
       combat.hp_temp = playSheet.combatPatch.hp_temp
       combat.hit_die = playSheet.combatPatch.hit_die
@@ -846,6 +847,8 @@ export function MinimalSheetEditor({
       <PlayPanel
         edition={baseCharacter.rules_edition as RulesEdition}
         level={characterLevel}
+        characterId={baseCharacter.id}
+        characterName={draft.name.trim() || baseCharacter.name}
         hpCurrent={draft.hpCurrent}
         hpMax={draft.hpMax}
         constitutionMod={abilityModifier(draft.abilities.con)}
@@ -882,6 +885,8 @@ export function MinimalSheetEditor({
         edition={baseCharacter.rules_edition as RulesEdition}
         className={classSummary || primaryClass?.name || ''}
         level={characterLevel}
+        characterId={baseCharacter.id}
+        characterName={draft.name.trim() || baseCharacter.name}
         classes={draft.classes}
         spells={draft.spells}
         abilities={draft.abilities}

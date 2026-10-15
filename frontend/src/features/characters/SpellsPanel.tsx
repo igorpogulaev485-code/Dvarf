@@ -21,7 +21,10 @@ import {
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
+import { guessAllyTargetCount } from '../../shared/dnd/allyTargets'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
+import { shareLobbyEffect } from '../../shared/api/lobbies'
+import { ApiRequestError } from '../../shared/api/client'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
@@ -41,6 +44,8 @@ type SpellsPanelProps = {
   edition: RulesEdition
   className: string
   level: number
+  characterId: string
+  characterName: string
   classes?: ClassLevelEntry[]
   spells: SpellsState
   abilities: Record<AbilityKey, number>
@@ -54,6 +59,8 @@ export function SpellsPanel({
   edition,
   className,
   level,
+  characterId,
+  characterName: _characterName,
   classes,
   spells,
   abilities,
@@ -224,13 +231,47 @@ export function SpellsPanel({
     )
   }
 
-  function confirmCast(choice: CastChoice) {
-    if (!castSpell) return
-    const name = castSpell.name || 'Заклинание'
-    if (castSpell.level <= 0) {
-      applyConcentrationIfNeeded(castSpell)
+  async function shareAlliesIfNeeded(spell: SheetSpell, choice: CastChoice) {
+    if (
+      !spell.applies_to_allies ||
+      !choice.lobbyId ||
+      choice.allyTargetIds.length === 0
+    ) {
+      return 0
+    }
+    try {
+      const result = await shareLobbyEffect(choice.lobbyId, {
+        source_character_id: characterId,
+        name: spell.name || 'Эффект',
+        target_character_ids: choice.allyTargetIds,
+        linked_concentration: Boolean(spell.concentration),
+      })
+      return result.applied
+    } catch (err) {
       onToast?.(
-        castSpell.concentration ? `Каст: ${name} (концентрация)` : `Каст: ${name}`,
+        err instanceof ApiRequestError
+          ? err.message
+          : 'Каст ок, но не удалось пометить союзников',
+      )
+      return 0
+    }
+  }
+
+  async function confirmCast(choice: CastChoice) {
+    if (!castSpell) return
+    const spell = castSpell
+    const name = spell.name || 'Заклинание'
+
+    if (spell.level <= 0) {
+      applyConcentrationIfNeeded(spell)
+      const applied = await shareAlliesIfNeeded(spell, choice)
+      onToast?.(
+        [
+          spell.concentration ? `Каст: ${name} (концентрация)` : `Каст: ${name}`,
+          applied > 0 ? `· союзники ${applied}` : '',
+        ]
+          .filter(Boolean)
+          .join(' '),
       )
       setCastSpell(null)
       return
@@ -242,11 +283,16 @@ export function SpellsPanel({
         return
       }
       patch({ pact_slots: pactResult.pact })
-      applyConcentrationIfNeeded(castSpell)
+      applyConcentrationIfNeeded(spell)
+      const applied = await shareAlliesIfNeeded(spell, choice)
       onToast?.(
-        `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)${
-          castSpell.concentration ? ' · концентрация' : ''
-        }`,
+        [
+          `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)`,
+          spell.concentration ? '· концентрация' : '',
+          applied > 0 ? `· союзники ${applied}` : '',
+        ]
+          .filter(Boolean)
+          .join(' '),
       )
       setCastSpell(null)
       return
@@ -257,13 +303,17 @@ export function SpellsPanel({
       return
     }
     patch({ slots: result.slots })
-    applyConcentrationIfNeeded(castSpell)
-    const upcast =
-      choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
+    applyConcentrationIfNeeded(spell)
+    const applied = await shareAlliesIfNeeded(spell, choice)
+    const upcast = choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast?.(
-      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${
-        castSpell.concentration ? ' · концентрация' : ''
-      }`,
+      [
+        `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}`,
+        spell.concentration ? '· концентрация' : '',
+        applied > 0 ? `· союзники ${applied}` : '',
+      ]
+        .filter(Boolean)
+        .join(' '),
     )
     setCastSpell(null)
   }
@@ -601,12 +651,45 @@ export function SpellsPanel({
                         <button
                           type="button"
                           className={`sheet-chip${spell.concentration ? ' is-on' : ''}`}
+                          title="Концентрация"
                           onClick={() =>
                             updateSpell(spell.id, { concentration: !spell.concentration })
                           }
                         >
                           К
                         </button>
+                        <button
+                          type="button"
+                          className={`sheet-chip${spell.applies_to_allies ? ' is-on' : ''}`}
+                          title="При касте — N выпадающих списков целей (себя/союзник)"
+                          onClick={() => {
+                            const next = !spell.applies_to_allies
+                            updateSpell(spell.id, {
+                              applies_to_allies: next,
+                              ally_target_count: next
+                                ? guessAllyTargetCount(spell.name)
+                                : spell.ally_target_count,
+                            })
+                          }}
+                        >
+                          Союзн.
+                        </button>
+                        {spell.applies_to_allies ? (
+                          <label className="spell-card__target-count" title="Сколько целей выбрать">
+                            <span>Целей</span>
+                            <NumberInput
+                              min={1}
+                              max={6}
+                              emptyValue={1}
+                              value={spell.ally_target_count}
+                              onValueChange={(n) =>
+                                updateSpell(spell.id, {
+                                  ally_target_count: Math.max(1, Math.min(6, n ?? 1)),
+                                })
+                              }
+                            />
+                          </label>
+                        ) : null}
                         <Button
                           variant="ghost"
                           onClick={() =>
@@ -669,7 +752,10 @@ export function SpellsPanel({
         open={castSpell != null}
         spell={castSpell}
         spells={spells}
-        onConfirm={confirmCast}
+        characterId={characterId}
+        onConfirm={(choice) => {
+          void confirmCast(choice)
+        }}
         onClose={() => setCastSpell(null)}
       />
     </Panel>

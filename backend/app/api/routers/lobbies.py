@@ -32,6 +32,8 @@ from app.schemas.lobby import (
     JournalPageOut,
     LobbyCreateRequest,
     LobbyDetail,
+    LobbyShareEffectRequest,
+    LobbyShareEffectResponse,
     LobbySummary,
     LobbyUpdateRequest,
     SeatCompanionCreateRequest,
@@ -140,6 +142,20 @@ def add_lobby_member(
     db: DbSession,
 ) -> LobbyDetail:
     return LobbyService(db).add_own_member(current_user, lobby_id, payload)
+
+
+@router.post(
+    "/lobbies/{lobby_id}/share-effect",
+    response_model=LobbyShareEffectResponse,
+)
+def share_lobby_effect(
+    lobby_id: UUID,
+    payload: LobbyShareEffectRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LobbyShareEffectResponse:
+    """С листа: повесить эффект на союзников лобби (данные → их sheet.combat.effects)."""
+    return LobbyService(db).share_effect(current_user, lobby_id, payload)
 
 
 @router.delete("/lobbies/{lobby_id}/members/{character_id}", response_model=LobbyDetail)

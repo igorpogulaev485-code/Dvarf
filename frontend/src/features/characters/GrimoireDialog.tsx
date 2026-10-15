@@ -7,6 +7,7 @@ import {
   addCatalogSpellToKnown,
   groupSpellsByLevel,
   knownHasCatalogId,
+  readCatalogSpellFields,
   type SpellsState,
 } from './spells'
 
@@ -91,20 +92,24 @@ export function GrimoireDialog({
   }, [entries, query, classFilter, levelFilter])
 
   const groups = useMemo(() => {
-    const asSpells = filtered.map((entry) => ({
-      id: entry.id,
-      name: entry.name_ru,
-      catalog_id: entry.id,
-      level: entryLevel(entry),
-      prepared: false,
-      notes: '',
-      casting_time: typeof entry.data.casting_time === 'string' ? entry.data.casting_time : '',
-      range: typeof entry.data.range === 'string' ? entry.data.range : '',
-      attack_or_save:
-        typeof entry.data.attack_or_save === 'string' ? entry.data.attack_or_save : '',
-      damage: typeof entry.data.damage === 'string' ? entry.data.damage : '',
-      concentration: Boolean(entry.data.concentration),
-    }))
+    const asSpells = filtered.map((entry) => {
+      const fields = readCatalogSpellFields(entry.data ?? {})
+      return {
+        id: entry.id,
+        name: entry.name_ru,
+        catalog_id: entry.id,
+        level: fields.level ?? entryLevel(entry),
+        prepared: false,
+        notes: '',
+        casting_time: fields.casting_time ?? '',
+        range: fields.range ?? '',
+        attack_or_save: fields.attack_or_save ?? '',
+        damage: fields.damage ?? '',
+        concentration: Boolean(fields.concentration),
+        applies_to_allies: Boolean(fields.applies_to_allies),
+        ally_target_count: fields.ally_target_count ?? 1,
+      }
+    })
     return groupSpellsByLevel(asSpells)
   }, [filtered])
 

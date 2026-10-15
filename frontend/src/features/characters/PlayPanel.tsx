@@ -25,16 +25,20 @@ import {
 } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
+import { guessAppliesToAllies, guessAllyTargetCount } from '../../shared/dnd/allyTargets'
 import {
   RESET_LABELS,
   createResource,
   type PlayState,
 } from './play'
 import type { SpellsState } from './spells'
+import { UseAllyAbilityDialog } from './UseAllyAbilityDialog'
 
 type PlayPanelProps = {
   edition: RulesEdition
   level: number
+  characterId: string
+  characterName: string
   hpCurrent: number | null
   hpMax: number | null
   constitutionMod: number
@@ -84,6 +88,8 @@ function DeathTrack({
 export function PlayPanel({
   edition,
   level,
+  characterId,
+  characterName,
   hpCurrent,
   hpMax,
   constitutionMod,
@@ -95,7 +101,10 @@ export function PlayPanel({
   onToast,
 }: PlayPanelProps) {
   const [catalogConditions, setCatalogConditions] = useState<CatalogEntry[]>([])
+  const [pendingResourceId, setPendingResourceId] = useState<string | null>(null)
+  const [pendingResourceUsed, setPendingResourceUsed] = useState<number | null>(null)
   const hitDiceMax = Math.max(1, Math.floor(level))
+  const pendingResource = play.resources.find((r) => r.id === pendingResourceId) ?? null
   const suggestedHeal = play.hitDie
     ? suggestedHitDieHeal(play.hitDie, constitutionMod)
     : null
@@ -208,6 +217,7 @@ export function PlayPanel({
       deathSuccesses: 0,
       deathFails: 0,
       concentration: null,
+      // Входящие эффекты на себе не трогаем; исходящие linked снимет бэкенд при сохранении листа
     })
     onSpellsChange({
       ...spells,
@@ -378,6 +388,61 @@ export function PlayPanel({
         </div>
 
         <div>
+          <Text tone="muted">Эффекты на мне (бафы от союзников)</Text>
+          {play.effects.length === 0 ? (
+            <Text tone="muted">
+              Пока нет. Появятся при касте «на союзников» или трате способности с выбором цели.
+            </Text>
+          ) : (
+            <div className="chip-row play-conditions">
+              {play.effects.map((fx) => (
+                <button
+                  key={fx.id}
+                  type="button"
+                  className="session-effect-tag is-removable"
+                  title="Снять эффект"
+                  onClick={() =>
+                    onPlayChange({
+                      ...play,
+                      effects: play.effects.filter((item) => item.id !== fx.id),
+                    })
+                  }
+                >
+                  {fx.source_name ? `${fx.name} · ${fx.source_name}` : fx.name}
+                  {fx.linked_concentration ? (
+                    <span className="session-effect-tag__link" aria-hidden>
+                      {' '}
+                      ⛓
+                    </span>
+                  ) : null}
+                  <span aria-hidden> ×</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <UseAllyAbilityDialog
+          open={pendingResource != null && pendingResourceUsed != null}
+          characterId={characterId}
+          characterName={characterName}
+          abilityName={pendingResource?.name ?? ''}
+          targetCount={guessAllyTargetCount(pendingResource?.name ?? '')}
+          linkConcentration={Boolean(play.concentration)}
+          onClose={() => {
+            setPendingResourceId(null)
+            setPendingResourceUsed(null)
+          }}
+          onSpent={() => {
+            if (pendingResourceId == null || pendingResourceUsed == null) return
+            updateResource(pendingResourceId, { used: pendingResourceUsed })
+            setPendingResourceId(null)
+            setPendingResourceUsed(null)
+          }}
+          onToast={onToast}
+        />
+
+        <div>
           <Text tone="muted">Истощение 0–6 (продолжительный отдых −1)</Text>
           <div className="exhaustion-track" role="group" aria-label="Уровень истощения">
             {Array.from({ length: 7 }, (_, nextLevel) => (
@@ -428,9 +493,14 @@ export function PlayPanel({
                   <Field label="Название">
                     <Input
                       value={resource.name}
-                      onChange={(event) =>
-                        updateResource(resource.id, { name: event.target.value })
-                      }
+                      onChange={(event) => {
+                        const name = event.target.value
+                        updateResource(resource.id, {
+                          name,
+                          applies_to_allies:
+                            resource.applies_to_allies || guessAppliesToAllies(name),
+                        })
+                      }}
                     />
                   </Field>
                   <Field label="Макс">
@@ -448,11 +518,30 @@ export function PlayPanel({
                     />
                   </Field>
                 </div>
+                <label className="session-feed-filter">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(resource.applies_to_allies)}
+                    onChange={(e) =>
+                      updateResource(resource.id, {
+                        applies_to_allies: e.target.checked,
+                      })
+                    }
+                  />
+                  На союзников (при трате — выбрать кого)
+                </label>
                 <SlotPips
                   max={resource.max}
                   used={resource.used}
                   label={`${resource.name || 'Ресурс'}: потрачено`}
-                  onChange={(used) => updateResource(resource.id, { used })}
+                  onChange={(used) => {
+                    if (resource.applies_to_allies && used > resource.used) {
+                      setPendingResourceId(resource.id)
+                      setPendingResourceUsed(used)
+                      return
+                    }
+                    updateResource(resource.id, { used })
+                  }}
                 />
                 <div className="play-resource__meta">
                   <label className="play-resource__reset">

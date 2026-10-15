@@ -15,6 +15,12 @@ from app.models.user import User
 from app.realtime.session_hub import session_hub
 from app.repositories.character import CharacterRepository
 from app.repositories.lobby import LobbyRepository
+from app.services.sheet_effects import (
+    append_effect,
+    clear_linked_effects_for_caster,
+    effect_suggestions_from_sheet,
+    parse_effects,
+)
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
     JoinLobbyRequest,
@@ -25,13 +31,17 @@ from app.schemas.lobby import (
     LobbyCreateRequest,
     LobbyDetail,
     LobbyMemberOut,
+    LobbyShareEffectRequest,
+    LobbyShareEffectResponse,
     LobbySummary,
     LobbyUpdateRequest,
     SeatCompanionCreateRequest,
     SeatCompanionOut,
     SeatCompanionPatchRequest,
     SeatCombatPatchRequest,
+    SeatConcentrationOut,
     SeatConditionOut,
+    SeatEffectOut,
     SeatRequest,
     SessionCloseRequest,
     SessionCloseResponse,
@@ -100,6 +110,21 @@ def _parse_conditions(raw: object) -> list[dict]:
     return out
 
 
+def _parse_concentration(raw: object) -> dict | None:
+    if not isinstance(raw, dict):
+        return None
+    spell_id = str(raw.get("spell_id") or "").strip()
+    name = str(raw.get("name") or "").strip()
+    if not spell_id and not name:
+        return None
+    return {
+        "spell_id": spell_id or f"conc-{name}",
+        "name": name or "Заклинание",
+    }
+
+
+
+
 def _parse_companions(raw: object) -> list[dict]:
     if not isinstance(raw, list):
         return []
@@ -131,6 +156,9 @@ def _seat_combat_fields(character: Character | None) -> dict:
             "speed": None,
             "inspiration": False,
             "conditions": [],
+            "effects": [],
+            "concentration": None,
+            "effect_suggestions": [],
             "companions": [],
             "passive_perception": None,
             "passive_insight": None,
@@ -143,6 +171,9 @@ def _seat_combat_fields(character: Character | None) -> dict:
         "speed": combat.get("speed") if isinstance(combat.get("speed"), int) else None,
         "inspiration": bool(combat.get("inspiration")),
         "conditions": _parse_conditions(combat.get("conditions")),
+        "effects": parse_effects(combat.get("effects")),
+        "concentration": _parse_concentration(combat.get("concentration")),
+        "effect_suggestions": effect_suggestions_from_sheet(sheet),
         "companions": _parse_companions(sheet.get("companions")),
         "passive_perception": _passive_from_sheet(sheet, "perception", "wis"),
         "passive_insight": _passive_from_sheet(sheet, "insight", "wis"),
@@ -533,6 +564,13 @@ class LobbyService:
                     speed=extras["speed"],
                     inspiration=extras["inspiration"],
                     conditions=[SeatConditionOut(**c) for c in extras["conditions"]],
+                    effects=[SeatEffectOut(**e) for e in extras["effects"]],
+                    concentration=(
+                        SeatConcentrationOut(**extras["concentration"])
+                        if extras["concentration"]
+                        else None
+                    ),
+                    effect_suggestions=list(extras.get("effect_suggestions") or []),
                     companions=[SeatCompanionOut(**c) for c in extras["companions"]],
                     passive_perception=extras["passive_perception"],
                     passive_insight=extras["passive_insight"],
@@ -922,9 +960,33 @@ class LobbyService:
                 }
                 for c in payload.conditions
             ]
+        if payload.effects is not None:
+            combat["effects"] = [
+                {
+                    "id": e.id,
+                    "name": e.name,
+                    "source_character_id": e.source_character_id,
+                    "source_name": e.source_name,
+                    "linked_concentration": bool(e.linked_concentration),
+                }
+                for e in payload.effects
+            ]
+        if payload.concentration is not None:
+            combat["concentration"] = {
+                "spell_id": payload.concentration.spell_id,
+                "name": payload.concentration.name,
+            }
+        cleared_concentration = False
+        if payload.clear_concentration:
+            combat["concentration"] = None
+            cleared_concentration = True
         from sqlalchemy.orm.attributes import flag_modified
 
         flag_modified(character, "sheet")
+
+        if cleared_concentration:
+            clear_linked_effects_for_caster(self.lobbies, character_id)
+
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
         await session_hub.broadcast(
@@ -932,6 +994,69 @@ class LobbyService:
             {"type": "session_update", "session": detail.model_dump(mode="json")},
         )
         return detail
+
+    def share_effect(
+        self,
+        user: User,
+        lobby_id: UUID,
+        payload: LobbyShareEffectRequest,
+    ) -> LobbyShareEffectResponse:
+        lobby = self.lobbies.get(lobby_id)
+        if lobby is None:
+            raise NotFoundError("Лобби не найдено", code="lobby_not_found")
+        source_member = self.lobbies.get_member(lobby.id, payload.source_character_id)
+        if source_member is None or (
+            source_member.user_id != user.id and lobby.owner_id != user.id
+        ):
+            raise AppError("Нельзя раздать эффект от этого персонажа", code="forbidden", status_code=403)
+
+        char_map = self.lobbies.get_characters_map(
+            [payload.source_character_id, *payload.target_character_ids]
+        )
+        source = char_map.get(payload.source_character_id)
+        if source is None:
+            raise NotFoundError("Персонаж-источник не найден", code="character_not_found")
+
+        name = payload.name.strip()
+        if not name:
+            raise AppError("Укажите название эффекта", code="effect_name_required", status_code=400)
+
+        linked = bool(payload.linked_concentration)
+        source_combat = (
+            (source.sheet or {}).get("combat") if isinstance(source.sheet, dict) else None
+        )
+        source_conc = (
+            source_combat.get("concentration") if isinstance(source_combat, dict) else None
+        )
+        if linked and not _parse_concentration(source_conc):
+            # Без концентрации на источнике связь бессмысленна
+            linked = False
+
+        applied = 0
+        seen: set[UUID] = set()
+        for target_id in payload.target_character_ids:
+            if target_id in seen:
+                continue
+            seen.add(target_id)
+            member = self.lobbies.get_member(lobby.id, target_id)
+            if member is None:
+                continue
+            target = char_map.get(target_id)
+            if target is None:
+                continue
+            append_effect(
+                target,
+                effect_id=str(uuid4()),
+                name=name,
+                source_character_id=str(payload.source_character_id),
+                source_name=source.name,
+                linked_concentration=linked,
+            )
+            applied += 1
+
+        self.db.commit()
+        detail = self.get(user, lobby_id)
+        return LobbyShareEffectResponse(applied=applied, lobby=detail)
 
     async def add_seat_companion(
         self,
