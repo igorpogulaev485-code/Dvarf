@@ -26,11 +26,18 @@ import {
   readKnownForms,
   upsertKnownForm,
 } from '../src/features/characters/knownForms.ts'
+import { wildfireSpiritHp } from '../src/features/characters/bestiaryCompanionStats.ts'
 import {
   companionFromTemplate,
   resolveCompanionTemplate,
   resolveSpellCompanionTemplate,
 } from '../src/features/characters/companionTemplates.ts'
+import {
+  applyFeatureSelfForm,
+  applyItemSelfForm,
+  featureFormPickAllowed,
+  shapechangerFormLimits,
+} from '../src/features/characters/featureForms.ts'
 import {
   applyConcentrationChangeToCompanions,
   applySpellCastToCompanions,
@@ -851,5 +858,103 @@ const manualDrop = dismissSpellSelfFormsForConcentration({
   endedSpellName: polySpell.name,
 })
 assert(manualDrop.companions.every((c) => c.role !== 'self_form'), 'manual dismiss removes')
+
+// --- F6: bestiary ally stats + Shapechanger ---
+assert(wildfireSpiritHp(6) === 40, 'wildfire 10+5×6')
+assert(wildfireSpiritHp(1) === 15, 'wildfire L1')
+// Catalog pick with hp=10 must NOT override scaling
+const fireScaled = applyWildfireSpirit({
+  companions: [],
+  druidLevel: 6,
+  pick: {
+    slug: 'wildfire_spirit',
+    name_ru: 'Дух дикого огня',
+    cr: '',
+    type: 'elemental',
+    ac: 13,
+    hp: 10, // catalog base — ignore for total
+    speed_walk: 30,
+    actions_text: 'Семя',
+  },
+})
+assert(fireScaled[0]?.stats.hp_max === 40, 'wildfire ignores catalog avg alone')
+
+const wfTpl = resolveCompanionTemplate({
+  choiceId: 'summon_wildfire_spirit',
+  pickValue: '',
+  ctx: { hostClassLevel: 5, characterLevel: 5, spellMod: 3 },
+})
+assert(wfTpl?.stats.hp_max === 35, 'template wildfire L5 = 35')
+
+const scLim = shapechangerFormLimits()
+assert(scLim.maxCr === 1 && scLim.allowedTypes.includes('beast'), 'shapechanger limits')
+assert(
+  featureFormPickAllowed(
+    { slug: 'wolf', name_ru: 'Волк', cr: '1/4', type: 'beast', ac: 13, hp: 11, speed_walk: 40, actions_text: '' },
+    scLim,
+  ),
+  'wolf ok shapechanger',
+)
+assert(
+  !featureFormPickAllowed(
+    { slug: 'brown_bear', name_ru: 'Медведь', cr: '1', type: 'beast', ac: 11, hp: 34, speed_walk: 40, actions_text: '' },
+    { ...scLim, maxCr: 0.5 },
+  ),
+  'CR filter shapechanger',
+)
+assert(
+  featureFormPickAllowed(
+    { slug: 'brown_bear', name_ru: 'Медведь', cr: '1', type: 'beast', ac: 11, hp: 34, speed_walk: 40, actions_text: '' },
+    scLim,
+  ),
+  'CR1 ok shapechanger',
+)
+
+const shapechangerForm = applyFeatureSelfForm({
+  companions: [],
+  knownForms: [],
+  pick: {
+    slug: 'wolf',
+    name_ru: 'Волк',
+    cr: '1/4',
+    type: 'beast',
+    ac: 13,
+    hp: 11,
+    speed_walk: 40,
+    actions_text: 'Укус',
+  },
+  hostHp: 20,
+  hostHpMax: 20,
+  limits: scLim,
+})
+assert(
+  getActiveSelfForm(shapechangerForm.companions)?.form?.form_source === 'feature',
+  'shapechanger form_source',
+)
+assert(
+  getActiveSelfForm(shapechangerForm.companions)?.source?.feature === 'shapechanger',
+  'feature id',
+)
+
+const itemForm = applyItemSelfForm({
+  companions: [],
+  knownForms: [],
+  pick: {
+    slug: 'bat',
+    name_ru: 'Летучая мышь',
+    cr: '0',
+    type: 'beast',
+    ac: 12,
+    hp: 1,
+    speed_walk: 5,
+    speed_fly: 30,
+    actions_text: 'Укус',
+  },
+  hostHp: 20,
+  hostHpMax: 20,
+  itemId: 'cloak_of_the_bat',
+  labelRu: 'Плащ летучей мыши',
+})
+assert(getActiveSelfForm(itemForm.companions)?.form?.form_source === 'item', 'item form_source')
 
 console.log('smoke-companions: ok')

@@ -313,8 +313,8 @@ SKT, ToA, WDMM, GGR, ERLW, EGW, … — оставшийся Basic allowlist.
 
 **Приёмка**
 
-- [ ] Wildfire: карточка ally с HP = 10+5×druidLevel (ttg)
-- [ ] Shapechanger feature → self_form CR≤1 beast без ячейки (1× short)
+- [x] Wildfire: карточка ally с HP = 10+5×druidLevel (ttg)
+- [x] Shapechanger feature → self_form CR≤1 beast без ячейки (1× short)
 
 ---
 

@@ -157,6 +157,7 @@ import { withSyncedHitDiceSummary } from './play'
 import { SpellsPanel } from './SpellsPanel'
 import {
   desiredResourcesFromFeatures,
+  spendFeatureUse,
   syncFeatureResources,
 } from '../../shared/dnd/featureResources'
 import {
@@ -174,9 +175,15 @@ import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
 import {
   ClassFeaturesPanel,
   saveBonusFromFeatures,
+  type FeatureSelfFormRequest,
   type WildShapeForkRequest,
 } from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
+import {
+  FeatureSelfFormDialog,
+  type FeatureSelfFormDialogResult,
+} from './FeatureSelfFormDialog'
+import { shapechangerFormLimits } from './featureForms'
 import { WildShapeDialog, type WildShapeDialogResult } from './WildShapeDialog'
 import {
   activeSelfFormLabel,
@@ -502,6 +509,8 @@ export function MinimalSheetEditor({
   const [wildShapeFork, setWildShapeFork] = useState<WildShapeForkRequest | null>(
     null,
   )
+  const [featureSelfForm, setFeatureSelfForm] =
+    useState<FeatureSelfFormRequest | null>(null)
 
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
@@ -2690,6 +2699,7 @@ export function MinimalSheetEditor({
           equippedArmorPieces(draft.inventory.items).armor?.kind === 'heavy'
         }
         onWildShapeFork={(request) => setWildShapeFork(request)}
+        onFeatureSelfForm={(request) => setFeatureSelfForm(request)}
         onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
           const form = draft.companions.find(
             (c) => c.role === 'self_form' && c.active,
@@ -2731,6 +2741,38 @@ export function MinimalSheetEditor({
           onConfirm={(result) => {
             applyWildShapeResult(result)
             setWildShapeFork(null)
+          }}
+        />
+      ) : null}
+
+      {featureSelfForm ? (
+        <FeatureSelfFormDialog
+          open
+          onClose={() => setFeatureSelfForm(null)}
+          limits={shapechangerFormLimits()}
+          companions={draft.companions}
+          knownForms={draft.knownForms}
+          hostHp={draft.hpCurrent ?? 0}
+          hostHpMax={draft.hpMax ?? 0}
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={(result: FeatureSelfFormDialogResult) => {
+            const spent = spendFeatureUse({
+              resources: draft.play.resources,
+              feature: featureSelfForm.feature,
+              classSlug: featureSelfForm.classSlug,
+            })
+            if (!spent.ok) {
+              onToast(spent.message)
+              return
+            }
+            setDraft((prev) => ({
+              ...prev,
+              companions: result.companions,
+              knownForms: result.knownForms,
+              play: { ...prev.play, resources: spent.resources },
+            }))
+            onToast(result.toast)
+            setFeatureSelfForm(null)
           }}
         />
       ) : null}

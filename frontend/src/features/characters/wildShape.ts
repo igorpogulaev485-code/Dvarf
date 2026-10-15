@@ -17,6 +17,7 @@ import {
   type CompanionEntry,
   type FormSourceKind,
 } from './companions'
+import { wildfireSpiritHp } from './bestiaryCompanionStats'
 import { createKnownForm, upsertKnownForm, type KnownForm } from './knownForms'
 
 export type WildShapeLimits = {
@@ -411,22 +412,33 @@ export function elementalKeyToSlug(key: string): {
 export function applyWildCompanion(input: {
   companions: CompanionEntry[]
   druidLevel: number
+  /** Optional bestiary form (owl, cat, …); type becomes fey via notes. */
+  pick?: BestiaryFormPick | null
 }): CompanionEntry[] {
   const hours = Math.max(1, Math.floor(input.druidLevel / 2))
   const withoutOld = input.companions.filter(
     (row) => row.source?.feature !== 'wild_companion',
   )
+  const pick = input.pick
   const familiar = createCompanion({
     kind: 'familiar',
     role: 'ally',
-    name: 'Дикий спутник',
+    name: pick?.name_ru ? `Дикий спутник · ${pick.name_ru}` : 'Дикий спутник',
+    bestiary_ref: pick?.catalog_id ?? pick?.slug ?? null,
+    bestiary_name_ru: pick?.name_ru ?? null,
     nature: 'summoned',
     control: 'own_initiative',
     active: true,
-    stats: { hp: 2, hp_max: 2, ac: 12, speed: 20 },
+    stats: {
+      hp: pick?.hp ?? 2,
+      hp_max: pick?.hp ?? 2,
+      ac: pick?.ac ?? 12,
+      speed: pick?.speed_walk ?? 20,
+    },
     actions:
+      pick?.actions_text ||
       'Как фамильяр («Поиск фамильяра»): не атакует; телепатия; передача касания. Тип — фея.',
-    notes: `Wild Companion (Tasha) · ${hours} ч. · исчезнет по истечении`,
+    notes: `Wild Companion (Tasha) · фея · ${hours} ч. · исчезнет по истечении`,
     source: {
       kind: 'class',
       labelRu: 'Дикий спутник',
@@ -442,7 +454,8 @@ export function applyWildfireSpirit(input: {
   pick?: BestiaryFormPick | null
 }): CompanionEntry[] {
   const level = Math.max(1, Math.floor(input.druidLevel) || 1)
-  const hp = input.pick?.hp ?? 10 + 5 * level
+  // Always ttg scaling — never use catalog hp_average alone (it's the base 10).
+  const hp = wildfireSpiritHp(level)
   const withoutOld = input.companions.filter(
     (row) => row.source?.feature !== 'summon_wildfire_spirit',
   )
@@ -464,7 +477,7 @@ export function applyWildfireSpirit(input: {
     actions:
       input.pick?.actions_text ||
       'Семя пламени; Огненная телепортация (см. TCE / бестиарий).',
-    notes: 'Summon Wildfire Spirit · 1 ч. · HP = 10 + 5×ур. друида (ttg)',
+    notes: `Summon Wildfire Spirit · 1 ч. · HP = 10 + 5×ур. друида = ${hp} (ttg)`,
     source: {
       kind: 'subclass',
       labelRu: 'Дух дикого огня',

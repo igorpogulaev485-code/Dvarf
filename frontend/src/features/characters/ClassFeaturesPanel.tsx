@@ -63,10 +63,17 @@ import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
 import type { SpellsState } from './spells'
+import { isFeatureSelfFormId } from './featureForms'
 import { isWildShapeForkFeature, moonHealDiceCount } from './wildShape'
 import { abilityModifier, SKILL_DEFS } from './sheetTypes'
 
 export type WildShapeForkRequest = {
+  feature: UnlockedFeature
+  classSlug: string
+  classEntryId: string
+}
+
+export type FeatureSelfFormRequest = {
   feature: UnlockedFeature
   classSlug: string
   classEntryId: string
@@ -90,6 +97,8 @@ type ClassFeaturesPanelProps = {
    * открыть развилку вместо голого spend.
    */
   onWildShapeFork?: (request: WildShapeForkRequest) => void
+  /** Wizard Shapechanger etc. — open self_form picker, then spend pool. */
+  onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   /**
    * Moon Combat Wild Shape: spend slot + heal active self_form (caller updates spells).
    * Return toast message on success, null if no form.
@@ -111,6 +120,7 @@ function FeatureResourceControls({
   initiativeGrantByPool,
   wearingHeavyArmor,
   onWildShapeFork,
+  onFeatureSelfForm,
   moonCombatWildShape = false,
 }: {
   feature: UnlockedFeature
@@ -121,6 +131,7 @@ function FeatureResourceControls({
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
   onWildShapeFork?: (request: WildShapeForkRequest) => void
+  onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
 }) {
@@ -225,6 +236,10 @@ function FeatureResourceControls({
         : null
   const wildShapeLeftForFork = spendRemaining(wildShapePoolForFork)
   const canOpenWildShapeFork = opensWildShapeFork && wildShapeLeftForFork > 0
+  const opensFeatureSelfForm =
+    Boolean(onFeatureSelfForm) && isFeatureSelfFormId(feature.id)
+  const canOpenFeatureSelfForm =
+    opensFeatureSelfForm && remaining > 0
 
   return (
     <div className="feature-resource">
@@ -337,6 +352,24 @@ function FeatureResourceControls({
                 ? 'Потратить (бонусным)…'
                 : 'Потратить…'
               : 'Через Дикий облик…'}
+          </Button>
+        ) : opensFeatureSelfForm ? (
+          <Button
+            type="button"
+            disabled={!canOpenFeatureSelfForm}
+            onClick={() => {
+              if (!canOpenFeatureSelfForm) {
+                onToast?.('Нет использований')
+                return
+              }
+              onFeatureSelfForm?.({
+                feature,
+                classSlug,
+                classEntryId: feature.classEntryId,
+              })
+            }}
+          >
+            Принять облик…
           </Button>
         ) : (
           <Button
@@ -1033,6 +1066,7 @@ function FeatureRow({
   initiativeGrantByPool,
   wearingHeavyArmor,
   onWildShapeFork,
+  onFeatureSelfForm,
   moonCombatWildShape = false,
   onMoonFormSlotHeal,
 }: {
@@ -1048,6 +1082,7 @@ function FeatureRow({
   initiativeGrantByPool: Map<string, number>
   wearingHeavyArmor: boolean
   onWildShapeFork?: (request: WildShapeForkRequest) => void
+  onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   moonCombatWildShape?: boolean
   onMoonFormSlotHeal?: (input: {
     slotLevel: number
@@ -1169,6 +1204,7 @@ function FeatureRow({
             initiativeGrantByPool={initiativeGrantByPool}
             wearingHeavyArmor={wearingHeavyArmor}
             onWildShapeFork={onWildShapeFork}
+            onFeatureSelfForm={onFeatureSelfForm}
             moonCombatWildShape={moonCombatWildShape}
           />
         </div>
@@ -1207,6 +1243,7 @@ export function ClassFeaturesPanel({
   onSpellsChange,
   wearingHeavyArmor = false,
   onWildShapeFork,
+  onFeatureSelfForm,
   onMoonFormSlotHeal,
   onToast,
 }: ClassFeaturesPanelProps) {
@@ -1307,6 +1344,7 @@ export function ClassFeaturesPanel({
                   initiativeGrantByPool={initiativeGrantByPool}
                   wearingHeavyArmor={wearingHeavyArmor}
                   onWildShapeFork={onWildShapeFork}
+                  onFeatureSelfForm={onFeatureSelfForm}
                   moonCombatWildShape={moonCombatWildShape}
                   onMoonFormSlotHeal={onMoonFormSlotHeal}
                 />

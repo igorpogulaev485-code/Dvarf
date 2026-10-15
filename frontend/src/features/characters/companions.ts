@@ -45,8 +45,10 @@ export type CompanionSourceKind =
   | 'subclass'
   | 'class'
   | 'feat'
+  | 'feature'
   | 'race'
   | 'spell'
+  | 'item'
   | 'other'
 
 export type CompanionControlMode =
@@ -211,8 +213,10 @@ const SOURCE_KIND_SET = new Set<string>([
   'subclass',
   'class',
   'feat',
+  'feature',
   'race',
   'spell',
+  'item',
   'other',
 ])
 const CONTROL_SET = new Set<string>([
@@ -343,8 +347,12 @@ export function companionSourceLabel(source: CompanionSource | null): string {
       return 'Класс'
     case 'feat':
       return 'Черта'
+    case 'feature':
+      return 'Умение'
     case 'race':
       return 'Раса'
+    case 'item':
+      return 'Предмет'
     case 'spell':
       return 'Заклинание'
     default:
