@@ -1795,11 +1795,6 @@ input {
   font-size: 0.88rem;
 }
 
-.apply-condition__heading {
-  margin: 0 0 8px;
-  font-size: 0.95rem;
-}
-
 .ui-dialog__title {
   flex: 0 0 auto;
   margin: 0;

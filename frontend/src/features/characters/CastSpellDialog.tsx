@@ -216,8 +216,8 @@ export function CastSpellDialog({
       grantOk ||
       (useRitual && isRitual) ||
       (!useGrant && !useRitual && hasSlotPath))
-  const targetsOk =
-    !showTargets || (selectedIds.length === targetCount && !duplicateTarget)
+  /** Цели необязательны; блок только при дублях в слотах */
+  const targetsOk = !showTargets || !duplicateTarget
   const selectedSlot =
     !usePact && !useRitual && !useGrant ? spells.slots[String(slotLevel)] : null
   const remaining = selectedSlot ? slotsRemaining(selectedSlot) : 0
@@ -301,7 +301,7 @@ export function CastSpellDialog({
           {levelLabel(spell.level)}
           {spell.ritual ? ' · ритуал' : ''}
           {spell.concentration ? ' · концентрация' : ''}
-          {spell.applies_to_allies ? ` · целей: ${targetCount}` : ''}
+          {spell.applies_to_allies ? ` · до ${targetCount} цел.` : ''}
           {spell.source_book ? ` · ${spell.source_book}` : ''}
         </Text>
         {metaParts.length > 0 ? <Text tone="muted">{metaParts.join(' · ')}</Text> : null}
@@ -499,11 +499,6 @@ export function CastSpellDialog({
             />
             {duplicateTarget ? (
               <Text tone="danger">Одна и та же цель в двух слотах — выберите разных.</Text>
-            ) : null}
-            {selectedIds.length < targetCount ? (
-              <Text tone="muted">
-                Выбрано {selectedIds.length} из {targetCount}.
-              </Text>
             ) : null}
           </>
         ) : null}

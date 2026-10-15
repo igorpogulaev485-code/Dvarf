@@ -16,8 +16,8 @@ type Props = {
 }
 
 /**
- * N выпадающих списков целей (UI kit: Field + select.ui-input).
- * В каждом — себя и союзников; себя можно не выбирать.
+ * N выпадающих списков целей (Play Desk: Field + play-select).
+ * Слоты необязательны; в каждом — себя и союзников.
  */
 export function AllyTargetFields({
   count,
@@ -46,8 +46,10 @@ export function AllyTargetFields({
 
   return (
     <div className="ally-targets">
-      <Text as="h3" className="apply-condition__heading">
-        Цели
+      <Text tone="muted">
+        {count === 1
+          ? 'Цель (необязательно). Можно себя или союзника — или пропустить.'
+          : `До ${count} целей (необязательно). Себя можно включить в любой слот — или пропустить.`}
       </Text>
       {lobbyName ? (
         <Text tone="muted" className="ally-targets__lobby">
@@ -57,7 +59,7 @@ export function AllyTargetFields({
       {lobbies.length > 1 && onLobbyIdChange ? (
         <Field label="Лобби">
           <select
-            className="ui-input"
+            className="play-select"
             value={lobbyId ?? ''}
             disabled={busy}
             onChange={(e) => onLobbyIdChange(e.target.value || null)}
@@ -70,20 +72,15 @@ export function AllyTargetFields({
           </select>
         </Field>
       ) : null}
-      <Text tone="muted">
-        {count === 1
-          ? 'Выберите себя или союзника.'
-          : `Нужно выбрать ${count}. Себя можно включить в любой слот — или не включать.`}
-      </Text>
       {Array.from({ length: count }, (_, index) => (
         <Field key={index} label={count === 1 ? 'Кто' : `Цель ${index + 1}`}>
           <select
-            className="ui-input"
+            className="play-select"
             value={values[index] ?? ''}
             disabled={busy}
             onChange={(e) => onChange(index, e.target.value)}
           >
-            <option value="">— не выбрано —</option>
+            <option value="">не выбрано</option>
             {options.map((opt) => (
               <option key={opt.character_id} value={opt.character_id}>
                 {opt.isSelf ? `${selfLabel} (${opt.character_name})` : opt.character_name}

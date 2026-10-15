@@ -8,18 +8,18 @@ type Props = {
   characterId: string
   characterName: string
   abilityName: string
-  /** Сколько целей (обычно 1 для вдохновения барда) */
+  /** Сколько слотов целей (обычно 1 для вдохновения барда); заполнение необязательно */
   targetCount?: number
   allyDemo?: AllyPickDemo | null
   onClose: () => void
-  /** После выбора целей — списать ресурс */
+  /** После выбора целей (может быть пусто) — списать ресурс */
   onConfirm: (targetIds: string[], lobbyId: string | null) => void
   onToast?: (message: string) => void
 }
 
 /**
  * Трата способности на союзника/себя: тот же паттерн, что у каста —
- * Field + select.ui-input (себя можно выбрать или нет).
+ * Field + play-select. Цели необязательны.
  */
 export function UseAllyAbilityDialog({
   open,
@@ -57,7 +57,7 @@ export function UseAllyAbilityDialog({
     return false
   }, [selectedIds])
 
-  const targetsOk = selectedIds.length === count && !duplicateTarget
+  const targetsOk = !duplicateTarget
 
   if (!open) return null
 
@@ -75,10 +75,14 @@ export function UseAllyAbilityDialog({
         if (allyDemo) {
           onConfirm(selectedIds, 'demo-lobby')
           onClose()
-          onToast?.(`${abilityName} · ${characterName} → ${selectedIds.length}`)
+          onToast?.(
+            selectedIds.length > 0
+              ? `${abilityName} · ${characterName} → ${selectedIds.length}`
+              : `${abilityName} · ${characterName}`,
+          )
           return
         }
-        if (!party.lobbyId && party.options.length === 0) {
+        if (selectedIds.length > 0 && !party.lobbyId) {
           onToast?.('Нет лобби для целей')
           return
         }
@@ -87,10 +91,6 @@ export function UseAllyAbilityDialog({
       }}
     >
       <Stack gap={12}>
-        <Text tone="muted">
-          Выберите {count === 1 ? 'кого' : `${count} целей`}. Себя можно включить в любой
-          слот — или не включать.
-        </Text>
         <AllyTargetFields
           count={count}
           values={targetSlots}

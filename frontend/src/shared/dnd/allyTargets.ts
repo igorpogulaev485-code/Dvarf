@@ -3,7 +3,7 @@
 const ALLY_NAME_RE =
   /благословен|bless|ускорен|haste|щит\s*вер|shield of faith|наставлен|guidance|помощ[ьи]|\baid\b|героизм|heroism|вардинг|warding bond|вдохновен|inspiration|инфуз|infusion|бафф?|\bбаф\b/i
 
-/** Сколько целей нужно выбрать (Bless/Aid = 3). */
+/** Сколько слотов целей показать (Bless/Aid = 3); заполнение необязательно. */
 const MULTI_TARGET_RE = /благословен|bless|помощ[ьи]|\baid\b/i
 
 export function guessAppliesToAllies(name: string): boolean {
