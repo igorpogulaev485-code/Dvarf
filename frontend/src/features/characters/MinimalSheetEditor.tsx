@@ -81,7 +81,26 @@ import {
 } from './subclassEffects'
 import { SubclassSetupDialog } from './SubclassSetupDialog'
 import { SubclassChangeConfirmDialog } from './SubclassChangeConfirmDialog'
-import { readCompanions, type CompanionEntry } from './companions'
+import {
+  dismissSelfFormsOnRest,
+  isSelfForm,
+  readCompanions,
+  type CompanionEntry,
+} from './companions'
+import { readKnownForms, type KnownForm } from './knownForms'
+import {
+  applyConcentrationChangeToCompanions,
+  applySpellCastToCompanions,
+} from './spellCompanions'
+import {
+  isSpellSelfFormCast,
+  resolveSpellSelfFormSlug,
+  type SpellSelfFormSlug,
+} from './spellForms'
+import {
+  SpellFormDialog,
+  type SpellFormDialogResult,
+} from './SpellFormDialog'
 import { armorKindLabel, computeArmorClass } from '../../shared/dnd/armor'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
 import { AbilityBreakdownDialog } from './AbilityBreakdownDialog'
@@ -214,10 +233,12 @@ import { SpellsSettingsDialog } from './SpellsSettingsDialog'
 import { useSpellcastingSheetSync } from './useSpellcastingSheetSync'
 import {
   desiredResourcesFromFeatures,
+  spendFeatureUse,
   syncFeatureResources,
 } from '../../shared/dnd/featureResources'
 import {
   listSubclassFeatureIdsAboveLevel,
+  resolveClassFeatureSlug,
   unlockFeaturesForClasses,
 } from '../../shared/dnd/classFeatures'
 import {
@@ -230,8 +251,20 @@ import {
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
-import { ClassFeaturesPanel, saveBonusFromFeatures } from './ClassFeaturesPanel'
+import {
+  ClassFeaturesPanel,
+  saveBonusFromFeatures,
+  type FeatureSelfFormRequest,
+  type WildShapeForkRequest,
+} from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
+import {
+  FeatureSelfFormDialog,
+  type FeatureSelfFormDialogResult,
+} from './FeatureSelfFormDialog'
+import { shapechangerFormLimits } from './featureForms'
+import { WildShapeDialog, type WildShapeDialogResult } from './WildShapeDialog'
+import { healSelfForm, rollDice } from './wildShape'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
@@ -297,6 +330,7 @@ const COMPANION_KIND_SHORT: Record<CompanionKind, string> = {
   primal_companion: 'Спутник',
   familiar: 'Фамилиар',
   ally: 'Напарник',
+  transformed_self: 'Облик',
   other: 'Спутник',
 }
 import {
@@ -427,6 +461,8 @@ type Draft = {
   backgroundGrant: AppliedBackgroundGrant | null
   backgroundCatalogId: string | null
   companions: CompanionEntry[]
+  /** Wild Shape / form library — seen or learned forms. */
+  knownForms: KnownForm[]
   featurePicks: FeaturePicksState
   classAsi: AppliedClassAsi[]
   featGrants: AppliedFeatGrant[]
@@ -602,6 +638,7 @@ function buildDraft(character: CharacterDetail): Draft {
         ? identity.background_catalog_id
         : null,
     companions: readCompanions(sheet.companions),
+    knownForms: readKnownForms(sheet.known_forms),
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classAsi: readClassAsiLedger(sheet.class_asi),
     featGrants: readFeatGrantLedger(sheet.feat_grants),
@@ -783,6 +820,11 @@ export function MinimalSheetEditor({
   const onToastRef = useRef(onToast)
   onToastRef.current = onToast
   const [raceCatalogRows, setRaceCatalogRows] = useState<CatalogEntry[]>([])
+  const [wildShapeFork, setWildShapeFork] = useState<WildShapeForkRequest | null>(
+    null,
+  )
+  const [featureSelfForm, setFeatureSelfForm] =
+    useState<FeatureSelfFormRequest | null>(null)
 
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
@@ -877,6 +919,61 @@ export function MinimalSheetEditor({
   )
   const primaryClass = draft.classes[0]
   const rulesEdition = baseCharacter.rules_edition as RulesEdition
+  const druidClassRow = useMemo(() => {
+    if (wildShapeFork) {
+      return (
+        draft.classes.find((row) => row.id === wildShapeFork.classEntryId) ?? null
+      )
+    }
+    return (
+      draft.classes.find(
+        (row) => resolveClassFeatureSlug(row.name) === 'druid',
+      ) ?? null
+    )
+  }, [draft.classes, wildShapeFork])
+  const druidLevel = druidClassRow?.level ?? characterLevel
+  const druidSubclassSlug =
+    (druidClassRow && subclassSlugByEntryId[druidClassRow.id]) || null
+
+  function applyWildShapeResult(result: WildShapeDialogResult) {
+    setDraft((prev) => ({
+      ...prev,
+      companions: result.companions,
+      knownForms: result.knownForms,
+      play: {
+        ...prev.play,
+        resources: result.resources,
+        ...(result.hpTemp != null
+          ? { hpTemp: Math.max(prev.play.hpTemp, result.hpTemp) }
+          : {}),
+      },
+    }))
+    if (result.toast) onToast(result.toast)
+  }
+
+  function clearConcentrationDismissingCompanions(
+    next: typeof draft.play.concentration | null = null,
+  ) {
+    let dismissed: string[] = []
+    setDraft((prev) => {
+      const result = applyConcentrationChangeToCompanions({
+        companions: prev.companions,
+        previous: prev.play.concentration,
+        next,
+      })
+      dismissed = result.dismissedNames
+      return {
+        ...prev,
+        companions: result.companions,
+        play: { ...prev.play, concentration: next },
+      }
+    })
+    if (dismissed.length) {
+      onToast(
+        `Концентрация снята · напарник неактивен: ${dismissed.join(', ')}`,
+      )
+    }
+  }
 
   useEffect(() => {
     // New character open — full reset.
@@ -2916,6 +3013,7 @@ export function MinimalSheetEditor({
       sheet.race_grant = draftSnap.raceGrant
       sheet.background_grant = draftSnap.backgroundGrant
       sheet.companions = draftSnap.companions
+      sheet.known_forms = draftSnap.knownForms
       sheet.feature_picks = featurePicksToSheet(draftSnap.featurePicks)
       sheet.class_asi = draftSnap.classAsi
       sheet.feat_grants = draftSnap.featGrants
@@ -3128,6 +3226,10 @@ export function MinimalSheetEditor({
   const [initiativeBreakdownOpen, setInitiativeBreakdownOpen] = useState(false)
   /** Compact play-desk cast (dialog), not the full spells editor. */
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
+  const [pendingSpellSelfForm, setPendingSpellSelfForm] = useState<{
+    spell: SheetSpell
+    slug: SpellSelfFormSlug
+  } | null>(null)
   const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
   const [deskCastScrollPending, setDeskCastScrollPending] = useState<{
     itemId: string
@@ -3232,19 +3334,25 @@ export function MinimalSheetEditor({
     setDraft((prev) => withDeskConcentration(prev, spell))
   }
 
-  function withDeskConcentration<T extends { play: typeof draft.play }>(
-    prev: T,
-    spell: SheetSpell,
-  ): T {
+  function withDeskConcentration<
+    T extends { play: typeof draft.play; companions: CompanionEntry[] },
+  >(prev: T, spell: SheetSpell): T {
     if (!spell.concentration) return prev
+    const next = setConcentration({
+      spellId: spell.id,
+      name: spell.name || 'Заклинание',
+    })
+    const result = applyConcentrationChangeToCompanions({
+      companions: prev.companions,
+      previous: prev.play.concentration,
+      next,
+    })
     return {
       ...prev,
+      companions: result.companions,
       play: {
         ...prev.play,
-        concentration: setConcentration({
-          spellId: spell.id,
-          name: spell.name || 'Заклинание',
-        }),
+        concentration: next,
       },
     }
   }
@@ -3256,6 +3364,51 @@ export function MinimalSheetEditor({
       current.spell_id !== spell.id &&
       current.name.trim() !== (spell.name || '').trim()
     )
+  }
+
+  function applyDeskNaparnikFromCast(spell: SheetSpell, slotLevel: number): string {
+    const abilityKey = draft.spells.casting_ability
+    const spellMod = abilityKey ? abilityModifier(effectiveAbilities[abilityKey]) : 0
+    const castCtx = {
+      spell,
+      slotLevel,
+      characterLevel,
+      spellMod,
+    }
+    const preview = applySpellCastToCompanions({
+      companions: draft.companions,
+      ...castCtx,
+    })
+    if (!preview) return ''
+    setDraft((prev) => {
+      const result = applySpellCastToCompanions({
+        companions: prev.companions,
+        ...castCtx,
+      })
+      return result ? { ...prev, companions: result.companions } : prev
+    })
+    return preview.refreshed
+      ? ` · напарник «${preview.name}» снова в строю`
+      : ` · напарник «${preview.name}»`
+  }
+
+  function openDeskSelfFormPickerIfNeeded(spell: SheetSpell, choice: CastChoice) {
+    if (choice.selfFormTarget === 'other') return false
+    if (!isSpellSelfFormCast(spell)) return false
+    const slug = resolveSpellSelfFormSlug(spell)
+    if (!slug) return false
+    setPendingSpellSelfForm({ spell, slug })
+    return true
+  }
+
+  function applySpellSelfFormResult(result: SpellFormDialogResult) {
+    setDraft((prev) => ({
+      ...prev,
+      companions: result.companions,
+      knownForms: result.knownForms,
+    }))
+    if (result.toast) onToast(result.toast)
+    setPendingSpellSelfForm(null)
   }
 
   function runDeskCast(spell: SheetSpell, choice: CastChoice) {
@@ -3292,13 +3445,19 @@ export function MinimalSheetEditor({
         consumeNote = ` · −1 «${target.name}»`
       }
     }
+    const naparnikSlot = slotForEffect || spell.level
+    const wantsForm = openDeskSelfFormPickerIfNeeded(spell, choice)
+    const formNote = wantsForm ? ' · выбери форму' : ''
 
     if (spell.level <= 0) {
       if (spell.concentration) applyDeskConcentration(spell)
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         spell.concentration
-          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)`
-          : `Каст: ${name}${effectNote}${consumeNote}`,
+          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)${naparnikNote}${formNote}`
+          : `Каст: ${name}${effectNote}${consumeNote}${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3316,10 +3475,13 @@ export function MinimalSheetEditor({
           spell,
         ),
       )
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
           spell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3335,10 +3497,13 @@ export function MinimalSheetEditor({
         }
       }
       if (spell.concentration) applyDeskConcentration(spell)
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
           spell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3357,10 +3522,13 @@ export function MinimalSheetEditor({
           spell,
         ),
       )
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, pactResult.pact.level)
       onToast(
         `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
           spell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3378,12 +3546,15 @@ export function MinimalSheetEditor({
         spell,
       ),
     )
+    const naparnikNote = wantsForm
+      ? ''
+      : applyDeskNaparnikFromCast(spell, choice.slotLevel)
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast(
       `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${
         spell.concentration ? ' · концентрация' : ''
-      }`,
+      }${naparnikNote}${formNote}`,
     )
   }
 
@@ -3902,7 +4073,16 @@ export function MinimalSheetEditor({
     </div>
   )
 
-  const dockCompanions = draft.companions.filter((row) => row.name.trim()).slice(0, 4)
+  const dockCompanions = [...draft.companions]
+    .filter((row) => row.name.trim())
+    .sort((a, b) => {
+      const aForm = isSelfForm(a) && a.active ? 0 : 1
+      const bForm = isSelfForm(b) && b.active ? 0 : 1
+      if (aForm !== bForm) return aForm - bForm
+      if (a.active !== b.active) return a.active ? -1 : 1
+      return 0
+    })
+    .slice(0, 4)
 
   return (
     <div
@@ -4165,12 +4345,13 @@ export function MinimalSheetEditor({
           {dockCompanions.map((row, index) => {
             const initial = (row.name.trim()[0] || '?').toUpperCase()
             const isPrimary = index === 0
+            const inForm = isSelfForm(row) && row.active
             const kind = COMPANION_KIND_SHORT[row.kind] ?? 'Спутник'
             return (
               <button
                 key={row.id}
                 type="button"
-                className={`play-desk__comp${isPrimary ? ' is-primary' : ''}`}
+                className={`play-desk__comp${isPrimary ? ' is-primary' : ''}${inForm ? ' is-form' : ''}`}
                 onClick={() => {
                   setDeskMode('companions')
                   setActivePanel('companions')
@@ -4182,7 +4363,7 @@ export function MinimalSheetEditor({
                 <span className="play-desk__comp-text">
                   <b>{row.name || 'Без имени'}</b>
                   <span>
-                    {isPrimary ? 'Основной' : kind}
+                    {inForm ? 'В облике' : isPrimary ? 'Основной' : kind}
                     {row.stats.hp != null ? ` · ${row.stats.hp} HP` : ''}
                   </span>
                 </span>
@@ -4283,12 +4464,7 @@ export function MinimalSheetEditor({
             concentration={draft.play.concentration}
             resources={draft.play.resources}
             onOpenConditions={() => setHotConditionsOpen(true)}
-            onClearConcentration={() =>
-              setDraft((prev) => ({
-                ...prev,
-                play: { ...prev.play, concentration: null },
-              }))
-            }
+            onClearConcentration={() => clearConcentrationDismissingCompanions(null)}
             onResourceUsedChange={(id, used) => {
               const row = draft.play.resources.find((item) => item.id === id)
               // Spending a special pool → open picker instead of blind ±1.
@@ -5326,6 +5502,26 @@ export function MinimalSheetEditor({
           if (row) setSoulTrinketsSpendId(row.id)
           else onToast('Пул частиц души ещё не синхронизирован')
         }}
+        onWildShapeFork={(request) => setWildShapeFork(request)}
+        onFeatureSelfForm={(request) => setFeatureSelfForm(request)}
+        onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
+          const form = draft.companions.find(
+            (c) => c.role === 'self_form' && c.active,
+          )
+          if (!form || form.stats.hp == null) return null
+          const rolled = rollDice(diceCount, diceSize)
+          let message = ''
+          setDraft((prev) => {
+            const healed = healSelfForm({
+              companions: prev.companions,
+              amount: rolled.total,
+              formId: form.id,
+            })
+            message = `Исцеление в облике: ячейка ${slotLevel} → ${diceCount}к${diceSize} = ${rolled.total} [${rolled.rolls.join('+')}] · ${healed.message}`
+            return { ...prev, companions: healed.companions }
+          })
+          return message || null
+        }}
       />
 
       </div>
@@ -5447,6 +5643,20 @@ export function MinimalSheetEditor({
           classes={draft.classes}
           subclassCasters={subclassCastersForSpells}
           spells={draft.spells}
+          companions={draft.companions}
+          onCompanionsChange={(update) =>
+            setDraft((prev) => ({
+              ...prev,
+              companions:
+                typeof update === 'function' ? update(prev.companions) : update,
+            }))
+          }
+          knownForms={draft.knownForms}
+          onKnownFormsChange={(knownForms) =>
+            setDraft((prev) => ({ ...prev, knownForms }))
+          }
+          hostHp={draft.hpCurrent}
+          hostHpMax={draft.hpMax}
           abilities={effectiveAbilities}
           proficiencyBonus={proficiencyBonus}
           modifiers={draft.modifiers}
@@ -5470,12 +5680,27 @@ export function MinimalSheetEditor({
               return { ...prev, inventory, spells: synced.spells }
             })
           }
-          onConcentrationChange={(concentration) =>
-            setDraft((prev) => ({
-              ...prev,
-              play: { ...prev.play, concentration },
-            }))
-          }
+          onConcentrationChange={(concentration) => {
+            let dismissed: string[] = []
+            setDraft((prev) => {
+              const result = applyConcentrationChangeToCompanions({
+                companions: prev.companions,
+                previous: prev.play.concentration,
+                next: concentration,
+              })
+              dismissed = result.dismissedNames
+              return {
+                ...prev,
+                companions: result.companions,
+                play: { ...prev.play, concentration },
+              }
+            })
+            if (dismissed.length) {
+              onToast(
+                `Концентрация снята · напарник неактивен: ${dismissed.join(', ')}`,
+              )
+            }
+          }}
           onToast={onToast}
         />
       )}
@@ -5487,6 +5712,16 @@ export function MinimalSheetEditor({
       <CompanionsPanel
         companions={draft.companions}
         onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
+        hostHp={draft.hpCurrent}
+        onHostHpChange={(hp) =>
+          setDraft((prev) => ({ ...prev, hpCurrent: hp }))
+        }
+        moonHealEnabled={unlockedFeatures.some(
+          (f) => f.id === 'combat_wild_shape',
+        )}
+        spells={draft.spells}
+        onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        onToast={onToast}
       />
 
       </div>
@@ -5768,10 +6003,7 @@ export function MinimalSheetEditor({
           onToast('Концентрация удержана')
         }}
         onSecondary={() => {
-          setDraft((prev) => ({
-            ...prev,
-            play: { ...prev.play, concentration: null },
-          }))
+          clearConcentrationDismissingCompanions(null)
           setConcDamageAsk(null)
           onToast('Концентрация сорвалась')
         }}
@@ -5853,14 +6085,21 @@ export function MinimalSheetEditor({
               },
             }
             if (binding.concentration) {
+              const nextConc = setConcentration({
+                spellId: scrollSpellId,
+                name: binding.name,
+              })
+              const result = applyConcentrationChangeToCompanions({
+                companions: next.companions,
+                previous: next.play.concentration,
+                next: nextConc,
+              })
               next = {
                 ...next,
+                companions: result.companions,
                 play: {
                   ...next.play,
-                  concentration: setConcentration({
-                    spellId: scrollSpellId,
-                    name: binding.name,
-                  }),
+                  concentration: nextConc,
                 },
               }
             }
@@ -5891,20 +6130,29 @@ export function MinimalSheetEditor({
           if (!item || !binding || !isCastableSpellScroll(item)) return
           const stats = spellScrollCastStats(binding.level)
           const scrollSpellId = `scroll:${item.id}:${binding.catalog_id ?? binding.name}`
-          setDraft((prev) => ({
-            ...prev,
-            inventory: {
-              ...prev.inventory,
-              items: consumeScrollItem(prev.inventory.items, itemId),
-            },
-            play: {
-              ...prev.play,
-              concentration: setConcentration({
-                spellId: scrollSpellId,
-                name,
-              }),
-            },
-          }))
+          setDraft((prev) => {
+            const nextConc = setConcentration({
+              spellId: scrollSpellId,
+              name,
+            })
+            const result = applyConcentrationChangeToCompanions({
+              companions: prev.companions,
+              previous: prev.play.concentration,
+              next: nextConc,
+            })
+            return {
+              ...prev,
+              companions: result.companions,
+              inventory: {
+                ...prev.inventory,
+                items: consumeScrollItem(prev.inventory.items, itemId),
+              },
+              play: {
+                ...prev.play,
+                concentration: nextConc,
+              },
+            }
+          })
           onToast(
             `Свиток: ${name} · Сл ${stats.saveDc} · +${stats.attackBonus} · концентрация · свиток израсходован`,
           )
@@ -6057,7 +6305,20 @@ export function MinimalSheetEditor({
         play={draft.play}
         spells={draft.spells}
         featureDesiredResources={featureDesiredResources}
-        onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
+        onPlayChange={(play) =>
+          setDraft((prev) => {
+            const result = applyConcentrationChangeToCompanions({
+              companions: prev.companions,
+              previous: prev.play.concentration,
+              next: play.concentration,
+            })
+            return {
+              ...prev,
+              play,
+              companions: result.companions,
+            }
+          })
+        }
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onCombatChange={(patch) =>
           setDraft((prev) => ({
@@ -6065,6 +6326,17 @@ export function MinimalSheetEditor({
             ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
           }))
         }
+        onCompanionRest={(kind) => {
+          let dismissed: string[] = []
+          setDraft((prev) => {
+            const result = dismissSelfFormsOnRest(prev.companions, kind)
+            dismissed = result.dismissedNames
+            return { ...prev, companions: result.companions }
+          })
+          if (dismissed.length) {
+            onToast(`Отдых: облик сброшен (${dismissed.join(', ')})`)
+          }
+        }}
         onToast={onToast}
         onClose={() => setRestOpen(false)}
       />
@@ -6144,6 +6416,83 @@ export function MinimalSheetEditor({
         onToast={onToast}
         onClose={() => setKiSpendId(null)}
       />
+
+      {wildShapeFork ? (
+        <WildShapeDialog
+          open
+          onClose={() => setWildShapeFork(null)}
+          features={unlockedFeatures.filter(
+            (f) => f.classEntryId === wildShapeFork.classEntryId,
+          )}
+          resources={draft.play.resources}
+          companions={draft.companions}
+          knownForms={draft.knownForms}
+          classSlug={wildShapeFork.classSlug}
+          classEntryId={wildShapeFork.classEntryId}
+          druidLevel={druidLevel}
+          subclassSlug={druidSubclassSlug}
+          hostHp={draft.hpCurrent ?? 0}
+          hostHpMax={draft.hpMax ?? 0}
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={(result) => {
+            applyWildShapeResult(result)
+            setWildShapeFork(null)
+          }}
+        />
+      ) : null}
+
+      {featureSelfForm ? (
+        <FeatureSelfFormDialog
+          open
+          onClose={() => setFeatureSelfForm(null)}
+          limits={shapechangerFormLimits()}
+          companions={draft.companions}
+          knownForms={draft.knownForms}
+          hostHp={draft.hpCurrent ?? 0}
+          hostHpMax={draft.hpMax ?? 0}
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={(result: FeatureSelfFormDialogResult) => {
+            const spent = spendFeatureUse({
+              resources: draft.play.resources,
+              feature: featureSelfForm.feature,
+              classSlug: featureSelfForm.classSlug,
+            })
+            if (!spent.ok) {
+              onToast(spent.message)
+              return
+            }
+            setDraft((prev) => ({
+              ...prev,
+              companions: result.companions,
+              knownForms: result.knownForms,
+              play: { ...prev.play, resources: spent.resources },
+            }))
+            onToast(result.toast)
+            setFeatureSelfForm(null)
+          }}
+        />
+      ) : null}
+
+      {pendingSpellSelfForm ? (
+        <SpellFormDialog
+          open
+          spell={pendingSpellSelfForm.spell}
+          slug={pendingSpellSelfForm.slug}
+          companions={draft.companions}
+          knownForms={draft.knownForms}
+          characterLevel={characterLevel}
+          hostHp={draft.hpCurrent ?? 0}
+          hostHpMax={draft.hpMax ?? 0}
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={applySpellSelfFormResult}
+          onClose={() => {
+            setPendingSpellSelfForm(null)
+            onToast(
+              'Облик не выбран — концентрация активна; карточку можно не создавать',
+            )
+          }}
+        />
+      ) : null}
 
       <BardicInspirationSpendDialog
         open={bardicInspirationSpendId != null}

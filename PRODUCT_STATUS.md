@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/spell-scrolls-levels-4-9-19c3`  
+**Prod tip (ветка линии прода):** `cursor/forms-adapt-tip-ab5e`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -58,6 +58,19 @@
 ---
 
 ## Сейчас в продукте (прод)
+
+### 2026-10-15 — Облики + бестиарий оф. 2014 (новый tip)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Дикий облик | Развилка: зверь / Дикий спутник / умения круга; chip «В облике» | Друид тратит пул осмысленно |
+| Бой в облике | Урон по HP формы; overflow на хозяина; сброс / отдых / conc | Как в PHB: два пула хитов |
+| Moon | «бонусным» + heal ячейкой 1к8×ур. | Круг Луны с листа |
+| Polymorph self | Каст «на себя» → пикер бестиария; conc снимает облик | Превращения без ручной карточки |
+| Напарники | Find Familiar / Conjure из каста; glance→expand kit | Свита и облики в одном блоке |
+| Бестиарий | Оф. Basic ×**2380** (MM…adventures); Wildfire HP base **10** (ttg) | Пикер зверей и призывов из справочника |
+
+На проде: **да** · **это новый prod tip** `cursor/forms-adapt-tip-ab5e` · PR #175 · залито 2026-10-15 поверх tip `spell-scrolls-levels-4-9-19c3` · проверено: `/health` ok; alembic `b3c4d5e6f7a9` (head); `kind=bestiary` COUNT=**2380** (MM 451); `wildfire_spirit` hp=10; бандл `CharacterDetailPage-CowCg3gj.js` + `class-feature-data-BZN_mPor.js`; на диске `WildShapeDialog` / `SpellFormDialog` / `wildShape.ts` / bestiary JSON + migrate `b3c4…`; кабинет/лобби/classic/spend-пикеры tip на месте
 
 ### 2026-10-15 — Свитки заклинаний 4–9 ур. в каталоге
 
@@ -708,6 +721,8 @@
 <!-- Wizard spellbook I-13/I-16 залиты 2026-10-15 → tip wizard-spellbook-rules-19c3; блок в «Сейчас в продукте» -->
 
 <!-- Spell scrolls 4–9 залиты 2026-10-15 → tip spell-scrolls-levels-4-9-19c3; блок в «Сейчас в продукте» -->
+
+<!-- Облики+бестиарий залиты 2026-10-15 → tip forms-adapt-tip-ab5e; блок в «Сейчас в продукте» -->
 
 ### 2026-10-15 — Волна spend-picker’ов (уникальные пулы классов)
 
