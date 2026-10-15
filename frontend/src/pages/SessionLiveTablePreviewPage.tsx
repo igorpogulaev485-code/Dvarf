@@ -470,11 +470,14 @@ export function SessionLiveTablePreviewPage() {
                             masterControls={!closed}
                             onDamage={(amount) => {
                               setCombatants((prev) =>
-                                prev.map((c) =>
-                                  c.id === enemy.id
-                                    ? { ...c, hp_current: c.hp_current - amount }
-                                    : c,
-                                ),
+                                prev.map((c) => {
+                                  if (c.id !== enemy.id) return c
+                                  const next = Math.max(
+                                    0,
+                                    Math.min(c.hp_max, c.hp_current - amount),
+                                  )
+                                  return { ...c, hp_current: next }
+                                }),
                               )
                             }}
                             onRemove={() => {
@@ -491,8 +494,7 @@ export function SessionLiveTablePreviewPage() {
                         Противники · игрок
                       </Text>
                       <Text tone="muted" className="session-table-toolbar__hint">
-                        Как при пресете «сложный бой»: полоска/цвет HP, КД; без цифр и без
-                        статблока бестиария.
+                        Игрок видит имя · тип · цвет HP. Без КД, цифр и статблока.
                       </Text>
                       <div className="session-table-grid session-enemies-grid">
                         {combatants.map((enemy) => (

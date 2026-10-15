@@ -58,7 +58,8 @@ function ActionList({
 /**
  * Карточка противника на столе.
  * Мастер: HP цифрами, −/+, полный статблок.
- * Игрок: имя + тип; HP по видимости лобби (цифры / цвет / скрыто); без действий бестиария.
+ * Игрок: имя + тип + цвет HP; без КД, цифр HP и статблока.
+ * HP не уходит ниже 0 — это смерть (особые «встать с 1» — отдельный жест позже).
  */
 export function EnemyCard({
   combatant,
@@ -76,14 +77,13 @@ export function EnemyCard({
 
   const showHpNumbers = isMaster || profile.fields.health.hp === 'active'
   const showHpColor = isMaster || profile.fields.health.hp !== 'off'
-  const showAc =
-    isMaster ||
-    (profile.fields.combat.enabled && profile.fields.combat.ac === 'active')
-  // Скорость / CR / книга — только мастеру; игроку достаточно имени, типа, HP и КД.
+  // КД / скорость / CR — только мастеру. Игрок: имя · тип · цвет HP (и состояния).
+  const showAc = isMaster && combatant.ac != null
   const showSpeed = isMaster && combatant.speed != null
   const showConditions =
     isMaster ||
     (profile.fields.health.enabled && profile.fields.health.conditions === 'active')
+  const isDead = combatant.hp_current <= 0
 
   const metaParts = [
     combatant.type_ru,
@@ -134,11 +134,14 @@ export function EnemyCard({
               {hpColorLabel(tone)}
             </span>
           ) : null}
-          {showAc && combatant.ac != null ? (
+          {showAc ? (
             <span className="session-table-card__chip">КД {combatant.ac}</span>
           ) : null}
           {showSpeed ? (
             <span className="session-table-card__chip">{combatant.speed} фт</span>
+          ) : null}
+          {isMaster && isDead ? (
+            <span className="session-condition-tag">Мёртв</span>
           ) : null}
         </div>
       ) : null}
@@ -158,7 +161,7 @@ export function EnemyCard({
           <Button
             type="button"
             variant="secondary"
-            disabled={busy}
+            disabled={busy || isDead}
             onClick={() => onDamage?.(1)}
           >
             −1
@@ -166,7 +169,7 @@ export function EnemyCard({
           <Button
             type="button"
             variant="secondary"
-            disabled={busy}
+            disabled={busy || isDead}
             onClick={() => onDamage?.(5)}
           >
             −5

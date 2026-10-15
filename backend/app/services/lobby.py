@@ -1392,7 +1392,7 @@ class LobbyService:
         if payload.name is not None:
             target["name"] = payload.name.strip()
         if payload.hp_max is not None:
-            target["hp_max"] = int(payload.hp_max)
+            target["hp_max"] = max(1, int(payload.hp_max))
         if payload.ac is not None:
             target["ac"] = int(payload.ac)
         if payload.conditions is not None:
@@ -1400,10 +1400,16 @@ class LobbyService:
                 {"slug": c.slug, "name": c.name, "catalog_id": c.catalog_id}
                 for c in payload.conditions
             ]
+        hp_max = max(1, int(target["hp_max"]))
         if payload.damage is not None:
-            target["hp_current"] = int(target["hp_current"]) - int(payload.damage)
+            # Пол не ниже 0: урон до 0 = смерть, не «−2/7».
+            # «Упал на 0 → встал с 1» (Непреклонность и т.п.) — отдельный жест позже.
+            next_hp = int(target["hp_current"]) - int(payload.damage)
+            target["hp_current"] = max(0, min(hp_max, next_hp))
         elif payload.hp_current is not None:
-            target["hp_current"] = int(payload.hp_current)
+            target["hp_current"] = max(0, min(hp_max, int(payload.hp_current)))
+        elif int(target["hp_current"]) > hp_max:
+            target["hp_current"] = hp_max
 
         session.combatants = combatants
         flag_modified(session, "combatants")
