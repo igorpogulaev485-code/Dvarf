@@ -142,33 +142,25 @@ export function AwardXpDialog({
               <Text tone="muted">Нет неучтённых поверженных с XP — или выдай вручную.</Text>
             ) : (
               <ul className="session-xp-defeat-list">
-                {defeatRows.map((row) => (
-                  <li key={row.combatant.id}>
-                    <span>
-                      {row.combatant.name}
-                      {row.unclaimed > 1
-                        ? ` · повержено ${row.unclaimed}${
-                            row.dead !== row.unclaimed
-                              ? ` (ещё ${row.claimed} уже учли)`
-                              : row.combatant.member_count &&
-                                  row.combatant.member_count > row.dead
-                                ? ` из ${row.combatant.member_count}`
-                                : ''
-                          }`
-                        : row.combatant.member_count &&
-                            row.combatant.member_count > 1
-                          ? ` · 1 из ${row.combatant.member_count}`
-                          : ''}
-                    </span>
-                    <span className="session-xp-defeat-list__xp">
-                      {row.xpEach}
-                      {row.unclaimed > 1
-                        ? ` × ${row.unclaimed} = ${row.total}`
-                        : ''}{' '}
-                      XP
-                    </span>
-                  </li>
-                ))}
+                {defeatRows.map((row) => {
+                  const packSize = row.combatant.member_count ?? row.combatant.members?.length ?? 1
+                  const label =
+                    packSize > 1
+                      ? `${row.combatant.name} · повержено ${row.unclaimed}${
+                          row.claimed > 0 ? ` (+${row.claimed} уже учли)` : ''
+                        } из ${packSize}`
+                      : row.combatant.name
+                  const xpLabel =
+                    row.unclaimed > 1
+                      ? `${row.xpEach} × ${row.unclaimed} = ${row.total} XP`
+                      : `${row.total} XP`
+                  return (
+                    <li key={row.combatant.id}>
+                      <span>{label}</span>
+                      <span className="session-xp-defeat-list__xp">{xpLabel}</span>
+                    </li>
+                  )
+                })}
               </ul>
             )}
             <Text>
