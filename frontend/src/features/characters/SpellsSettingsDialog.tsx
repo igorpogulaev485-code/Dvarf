@@ -22,6 +22,7 @@ import {
   formatSpellComponents,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
+import type { CoinPurse } from '../../shared/dnd/weight'
 import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { GrimoireDialog } from './GrimoireDialog'
@@ -56,6 +57,9 @@ type SpellsSettingsDialogProps = {
   proficiencyBonus: number
   suggestion: SpellcastingSuggestion | null
   knownCaster: boolean
+  /** Purse for wizard paid spellbook copies. */
+  coins?: CoinPurse | null
+  onCoinsChange?: (coins: CoinPurse) => void
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
@@ -73,6 +77,8 @@ export function SpellsSettingsDialog({
   proficiencyBonus,
   suggestion,
   knownCaster,
+  coins = null,
+  onCoinsChange,
   onChange,
   onClose,
   onToast,
@@ -669,6 +675,8 @@ export function SpellsSettingsDialog({
         abilityModFor={(ability) => abilityModifier(abilities[ability])}
         classes={classRows}
         subclassCasters={subclassCasters}
+        coins={coins}
+        onCoinsChange={onCoinsChange}
         onChange={onChange}
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}

@@ -1,4 +1,5 @@
 /** Run: npx tsx src/shared/dnd/wizardSpellbook.selfcheck.ts */
+import { coinsToGp, spendGpFromPurse, type CoinPurse } from './weight'
 import {
   activateBackupAsPrimary,
   beginReplacementSpellbook,
@@ -10,6 +11,8 @@ import {
   markSpellbookLost,
   planRestorePrepared,
   registerBackupBook,
+  remainingFreeSpellbookSlots,
+  resolveSpellbookAddPayment,
   schoolMatchesSavant,
   totalCopyCost,
   wizardSpellAccess,
@@ -112,5 +115,55 @@ book = activateBackupAsPrimary(
 assert(book.primaryBookItemId === 'item-backup-3', 'backup promoted')
 assert(!(book.backupBookItemIds ?? []).includes('item-backup-3'), 'removed from backups')
 assert(!book.bookLost, 'no longer lost')
+
+// --- purse spend ---
+const rich: CoinPurse = { cp: 0, sp: 0, ep: 0, gp: 40, pp: 2 } // 60 зм
+const paid = spendGpFromPurse(rich, 50)
+assert(paid.ok, 'spend 50 from 20pp+40gp')
+if (paid.ok) {
+  assert(paid.paidGp === 50, 'paid 50')
+  assert(paid.haveGpAfter === 10, '10 left')
+}
+const broke = spendGpFromPurse({ cp: 0, sp: 5, ep: 0, gp: 2, pp: 0 }, 50)
+assert(!broke.ok, 'insufficient')
+if (!broke.ok) {
+  assert(broke.message.includes('Недостаточно золота'), 'RU message')
+  assert(broke.needGp === 50, 'need 50')
+}
+
+// --- free then paid add payment ---
+const emptyKnown: Array<{ level: number }> = []
+const freePay = resolveSpellbookAddPayment({
+  spellLevel: 1,
+  known: emptyKnown,
+  wizardLevel: 1,
+  coins: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+})
+assert(freePay.ok && freePay.free, 'L1 first add free')
+assert(remainingFreeSpellbookSlots([], 1) === 6, '6 free at L1')
+
+const fullFree = Array.from({ length: 6 }, () => ({
+  level: 1,
+  spellbook_acquisition: 'starting' as const,
+}))
+const noCoins = resolveSpellbookAddPayment({
+  spellLevel: 1,
+  known: fullFree,
+  wizardLevel: 1,
+  coins: null,
+})
+assert(!noCoins.ok && noCoins.needGp === 50, '7th needs 50gp, no purse')
+
+const withCoins = resolveSpellbookAddPayment({
+  spellLevel: 2,
+  known: fullFree,
+  wizardLevel: 1,
+  coins: { cp: 0, sp: 0, ep: 0, gp: 120, pp: 0 },
+})
+assert(withCoins.ok && !withCoins.free, 'paid copy ok')
+if (withCoins.ok && !withCoins.free) {
+  assert(withCoins.cost.gp === 100, '2nd level foreign = 100')
+  assert(coinsToGp(withCoins.coins) === 20, '120-100=20')
+}
 
 console.log('wizardSpellbook.selfcheck: ok')

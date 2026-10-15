@@ -1017,15 +1017,29 @@ export function knownHasCatalogId(known: SheetSpell[], catalogId: string): boole
 export function addCatalogSpellToKnown(
   known: SheetSpell[],
   entry: { id: string; name_ru: string; data?: Record<string, unknown> },
-  options?: { prepare?: boolean; maxPrepared?: number | null },
+  options?: {
+    prepare?: boolean
+    maxPrepared?: number | null
+    spellbook_acquisition?: SpellbookAcquisition
+    in_spellbook?: boolean
+  },
 ): SheetSpell[] {
   if (knownHasCatalogId(known, entry.id)) return known
   const spell = sheetSpellFromCatalog(entry)
   const prepare = options?.prepare ?? spell.level <= 0
   const maxPrepared = options?.maxPrepared ?? null
-  let next = [...known, spell]
-  if (prepare && spell.level > 0) {
-    next = setSpellPrepared(next, spell.id, true, maxPrepared)
+  const withBookMeta: SheetSpell = {
+    ...spell,
+    ...(options?.spellbook_acquisition && spell.level > 0
+      ? { spellbook_acquisition: options.spellbook_acquisition }
+      : {}),
+    ...(options?.in_spellbook !== undefined && spell.level > 0
+      ? { in_spellbook: options.in_spellbook }
+      : {}),
+  }
+  let next = [...known, withBookMeta]
+  if (prepare && withBookMeta.level > 0) {
+    next = setSpellPrepared(next, withBookMeta.id, true, maxPrepared)
   }
   return next
 }

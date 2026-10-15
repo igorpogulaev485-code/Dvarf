@@ -580,17 +580,18 @@
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
 
-### 2026-10-15 — Wizard spellbook rules (I-13 / I-16) — спека + pure engine
+### 2026-10-15 — Wizard spellbook rules (I-13 / I-16) — спека + кошелёк
 
 | Функция | Как работает | Эффект для пользователя |
 |--------|--------------|-------------------------|
-| Стоимость копии | Чужое: 50 зм + 2 ч / ур.; своя книга / из памяти: 10 зм + 1 ч / ур.; Savant ×½; Quill — 0 зм + 2 мин / ур. | Перед «В книгу» можно посчитать цену по PHB |
-| Утеря книги | `markSpellbookLost`: нет подготовки/ритуалов из книги; подготовленные и заговоры кастуются | Зависимость от книги, как в правилах |
-| Замена / бэкап | Пустая книга → restore prepared; бэкап регистрируется и может стать primary | Можно вести запасную книгу и восстановиться после утери |
-| Модель листа | `spells.wizard_spellbook` + `spellbook_acquisition` / `in_spellbook` на spell | Данные готовы к UI-слайсу (Grimoire / create) |
+| Стоимость копии | Чужое: 50 зм + 2 ч / ур.; своя / из памяти: 10 зм + 1 ч / ур.; Savant ×½; Quill — 0 зм + 2 мин / ур. | Кнопка «В книгу · N зм» когда free-бюджет исчерпан |
+| Списание из кошелька | `spendGpFromPurse` + Гримуар на листе | Золото уходит само; в шапке «N зм» обновляется |
+| Нехватка денег | Копия не пишется; toast с «нужно X / есть Y» | Понятно, почему нельзя внести заклинание |
+| Утеря / бэкап (engine) | mark/replace/backup helpers | UI утери — следующий слайс |
+| Модель листа | `wizard_spellbook` + `spellbook_acquisition` / `in_spellbook` | Данные на листе |
 
-Спека: [`docs/wizard-spellbook.md`](docs/wizard-spellbook.md) · код: `frontend/src/shared/dnd/wizardSpellbook.ts`  
-На проде: **нет** · ветка `cursor/wizard-spellbook-rules-19c3` · UI/списание золота — следующий слайс
+Спека: [`docs/wizard-spellbook.md`](docs/wizard-spellbook.md) · код: `wizardSpellbook.ts`, `weight.ts`  
+На проде: **нет** · ветка `cursor/wizard-spellbook-rules-19c3`
 
 ### 2026-10-12 — Play desk vitals wave (HP pad / концентрация / без дублей отдыха)
 

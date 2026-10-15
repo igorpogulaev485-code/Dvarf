@@ -1069,6 +1069,12 @@ export function SpellsPanel({
               ]
         }
         subclassCasters={subclassCasters}
+        coins={inventory?.coins ?? null}
+        onCoinsChange={
+          inventory && onInventoryChange
+            ? (coins) => onInventoryChange({ ...inventory, coins })
+            : undefined
+        }
         onChange={onChange}
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}

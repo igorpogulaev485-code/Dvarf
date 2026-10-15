@@ -13,6 +13,15 @@ import {
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { parseSpellCatalogData } from '../../shared/dnd/spellCatalog'
 import { levelLabel } from '../../shared/dnd/spells'
+import {
+  formatGpTotal,
+  type CoinPurse,
+} from '../../shared/dnd/weight'
+import {
+  previewSpellbookAddGp,
+  remainingFreeSpellbookSlots,
+  resolveSpellbookAddPayment,
+} from '../../shared/dnd/wizardSpellbook'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
 import { SpellCatalogDetails } from './SpellCatalogDetails'
 import {
@@ -52,6 +61,10 @@ type GrimoireDialogProps = {
   /** Character classes — restrict list to their spell lists + slot level. */
   classes?: ClassLevelEntry[]
   subclassCasters?: SubclassCasterOverlay[]
+  /** Character purse — required to auto-debit paid spellbook copies. */
+  coins?: CoinPurse | null
+  /** Persist purse after a successful paid copy. */
+  onCoinsChange?: (coins: CoinPurse) => void
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
@@ -111,6 +124,8 @@ export function GrimoireDialog({
   abilityModFor,
   classes = [],
   subclassCasters = [],
+  coins = null,
+  onCoinsChange,
   onChange,
   onClose,
   onToast,
@@ -165,6 +180,20 @@ export function GrimoireDialog({
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
+  const wizardLevel = useMemo(() => {
+    const row = classes.find((item) => {
+      const name = item.name.trim().toLowerCase()
+      return name === 'волшебник' || name === 'wizard' || name === 'маг'
+    })
+    if (row) return Math.max(1, Math.floor(row.level) || 1)
+    if (access.budget?.slug === 'wizard') {
+      const leveled = classes.find((item) => item.level > 0)
+      return Math.max(1, Math.floor(leveled?.level ?? 1) || 1)
+    }
+    return 1
+  }, [classes, access.budget?.slug])
+  const freeBookLeft =
+    mode === 'spellbook' ? remainingFreeSpellbookSlots(spells.known, wizardLevel) : 0
 
   const classFilters = useMemo(() => {
     if (!access.hasCaster) return []
@@ -308,7 +337,26 @@ export function GrimoireDialog({
   function leveledLearnCapReached(): boolean {
     const cap = access.budget?.leveledKnown
     if (cap == null) return false
+    if (mode === 'spellbook') {
+      // Soft free budget: paid copies may exceed. Block only when no free
+      // slots left AND we cannot attempt a paid copy (no purse wiring).
+      if (freeBookLeft > 0) return false
+      if (onCoinsChange) return false
+      return learnedLeveled >= cap
+    }
     return learnedLeveled >= cap
+  }
+
+  function spellbookCopyGp(entry: CatalogEntry): number {
+    if (mode !== 'spellbook') return 0
+    const parsed = parseSpellCatalogData(entry.data)
+    if (parsed.level <= 0) return 0
+    return previewSpellbookAddGp({
+      spellLevel: parsed.level,
+      spellSchool: parsed.school,
+      known: spells.known,
+      wizardLevel,
+    })
   }
 
   function prepareCapReached(): boolean {
@@ -366,11 +414,9 @@ export function GrimoireDialog({
           )
           return
         }
-      } else if (leveledLearnCapReached()) {
+      } else if (mode !== 'spellbook' && leveledLearnCapReached()) {
         onToast?.(
-          mode === 'spellbook'
-            ? `Книга заполнена: ${learnedLeveled}/${access.budget?.leveledKnown ?? '—'}`
-            : `Лимит известных: ${learnedLeveled}/${access.budget?.leveledKnown ?? '—'}`,
+          `Лимит известных: ${learnedLeveled}/${access.budget?.leveledKnown ?? '—'}`,
         )
         return
       } else if (prepare && prepareCapReached()) {
@@ -379,6 +425,53 @@ export function GrimoireDialog({
         )
         return
       }
+    }
+
+    if (mode === 'spellbook' && level > 0) {
+      if (spells.wizard_spellbook?.bookLost) {
+        onToast?.('Книга заклинаний утеряна — нельзя вносить новые заклинания')
+        return
+      }
+      const payment = resolveSpellbookAddPayment({
+        spellLevel: level,
+        spellSchool: parsed.school,
+        known: spells.known,
+        wizardLevel,
+        coins: coins ?? null,
+      })
+      if (!payment.ok) {
+        onToast?.(payment.message)
+        return
+      }
+      if (!payment.free) {
+        if (!onCoinsChange) {
+          onToast?.(
+            payment.cost
+              ? `Нужно ${formatGpTotal(payment.cost.gp)} зм в кошельке (бесплатный объём книги исчерпан)`
+              : 'Нужен кошелёк персонажа для платной копии',
+          )
+          return
+        }
+        onCoinsChange(payment.coins)
+      }
+      const nextKnown = addCatalogSpellToKnown(spells.known, entry, {
+        prepare,
+        maxPrepared,
+        spellbook_acquisition: payment.acquisition,
+        in_spellbook: true,
+      })
+      onChange({
+        ...spells,
+        known: nextKnown,
+        max_prepared: maxPrepared ?? spells.max_prepared,
+      })
+      const prepSuffix = prepare ? ' и подготовлено' : ''
+      onToast?.(
+        payment.free
+          ? `В книгу${prepSuffix}: ${entry.name_ru} · ${payment.message}`
+          : `В книгу${prepSuffix}: ${entry.name_ru} · ${payment.message}`,
+      )
+      return
     }
 
     const nextKnown = addCatalogSpellToKnown(spells.known, entry, {
@@ -396,14 +489,6 @@ export function GrimoireDialog({
     }
     if (mode === 'known') {
       onToast?.(`Известно: ${entry.name_ru}`)
-      return
-    }
-    if (mode === 'spellbook') {
-      onToast?.(
-        prepare
-          ? `В книгу и подготовлено: ${entry.name_ru}`
-          : `В книгу заклинаний: ${entry.name_ru}`,
-      )
       return
     }
     onToast?.(
@@ -455,7 +540,13 @@ export function GrimoireDialog({
     const b = access.budget
     const cantripPart = `заговоры ${learnedCantrips}/${b.cantrips}`
     if (b.mode === 'spellbook') {
-      return `${b.labelRu}: книга ${learnedLeveled}/${b.leveledKnown ?? '—'} · ${cantripPart} · подготовка ${preparedCount}/${b.maxPrepared ?? '—'}. ${accessHint}`
+      const freePart =
+        freeBookLeft > 0
+          ? `бесплатно ещё ${freeBookLeft}`
+          : onCoinsChange
+            ? 'далее — копия за золото из кошелька'
+            : 'бесплатный объём исчерпан'
+      return `${b.labelRu}: книга ${learnedLeveled} (free ${b.leveledKnown ?? '—'}) · ${freePart} · ${cantripPart} · подготовка ${preparedCount}/${b.maxPrepared ?? '—'}. ${accessHint}`
     }
     if (b.mode === 'prepared_list') {
       return `${b.labelRu}: весь список класса · ${cantripPart} · подготовка ${preparedCount}/${b.maxPrepared ?? '—'}. ${accessHint}`
@@ -687,8 +778,19 @@ export function GrimoireDialog({
                               className="sheet-chip"
                               disabled={leveledLearnCapReached()}
                               onClick={() => addSpell(entry, false)}
+                              title={
+                                spellbookCopyGp(entry) > 0
+                                  ? `Платная копия: ${formatGpTotal(spellbookCopyGp(entry))} зм (PHB)`
+                                  : freeBookLeft > 0
+                                    ? `Бесплатно · осталось слотов исследования: ${freeBookLeft}`
+                                    : undefined
+                              }
                             >
-                              {leveledLearnCapReached() ? 'Книга полна' : 'В книгу'}
+                              {leveledLearnCapReached()
+                                ? 'Книга полна'
+                                : spellbookCopyGp(entry) > 0
+                                  ? `В книгу · ${formatGpTotal(spellbookCopyGp(entry))} зм`
+                                  : 'В книгу'}
                             </button>
                             <button
                               type="button"
@@ -697,8 +799,15 @@ export function GrimoireDialog({
                                 leveledLearnCapReached() || prepareCapReached()
                               }
                               onClick={() => addSpell(entry, true)}
+                              title={
+                                spellbookCopyGp(entry) > 0
+                                  ? `Платная копия: ${formatGpTotal(spellbookCopyGp(entry))} зм + подготовка`
+                                  : undefined
+                              }
                             >
-                              В книгу + подготовить
+                              {spellbookCopyGp(entry) > 0
+                                ? `В книгу + подг. · ${formatGpTotal(spellbookCopyGp(entry))} зм`
+                                : 'В книгу + подготовить'}
                             </button>
                           </>
                         ) : (

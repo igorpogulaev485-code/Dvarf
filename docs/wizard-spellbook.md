@@ -92,9 +92,18 @@ UI (отдельный слайс): GrimoireDialog показывает cost п�
 3. Доступ: cast prepared + cantrips; **нельзя** prepare / ritual-from-book / free level-up add.
 4. Замена: купить/найти пустую книгу → `beginReplacementSpellbook` → `planRestorePrepared` → внести подготовленные (`restored`) → дальше копии как обычно.
 
+## Кошелёк
+
+Платные копии списывают золото из `inventory.coins` через `spendGpFromPurse` / `resolveSpellbookAddPayment`.
+
+- Хватает денег → автосписание + toast с суммой и остатком.
+- Не хватает → **не** вносим в книгу, toast: «Недостаточно золота: нужно X зм, есть Y зм».
+- Гримуар на листе получает `coins` + `onCoinsChange` (тот же блок, что «N зм» в шапке стола).
+
 ## Что не в этом слайсе
 
-- Полная проводка UI / списание золота / привязка к inventory item.
+- Привязка primaryBookItemId к предмету «Книга заклинаний» в инвентаре.
+- UI утери / бэкапа книги.
 - Свитки как отдельный контейнер (I-17).
 - 2024 edition (там книга опциональна / иначе).
 

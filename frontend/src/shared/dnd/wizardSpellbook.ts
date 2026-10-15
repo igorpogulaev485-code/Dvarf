@@ -2,9 +2,16 @@
  * Wizard spellbook rules (PHB 2014) — pure helpers.
  *
  * Covers: free level-up fills, paid foreign copy, own-book backup,
- * lose/destroy + replacement from prepared memory.
+ * lose/destroy + replacement from prepared memory, purse spend.
  * See docs/wizard-spellbook.md.
  */
+
+import {
+  formatGpTotal,
+  spendGpFromPurse,
+  type CoinPurse,
+  type SpendGpResult,
+} from './weight'
 
 /** How a leveled spell entered the wizard's book continuum. */
 export type SpellbookAcquisition =
@@ -204,6 +211,168 @@ export function freeBookCap(wizardLevel: number): number {
 
 export function isFreeAcquisition(acq: SpellbookAcquisition | null | undefined): boolean {
   return acq === 'starting' || acq === 'level_up'
+}
+
+/** Legacy rows without acquisition count as free research fills. */
+export function countsAsFreeSpellbookSlot(spell: {
+  level: number
+  spellbook_acquisition?: SpellbookAcquisition | null
+}): boolean {
+  if (spell.level < 1) return false
+  if (spell.spellbook_acquisition == null) return true
+  return isFreeAcquisition(spell.spellbook_acquisition)
+}
+
+export function countFreeSpellbookSlotsUsed(
+  known: Array<{ level: number; spellbook_acquisition?: SpellbookAcquisition | null }>,
+): number {
+  return known.filter(countsAsFreeSpellbookSlot).length
+}
+
+export function remainingFreeSpellbookSlots(
+  known: Array<{ level: number; spellbook_acquisition?: SpellbookAcquisition | null }>,
+  wizardLevel: number,
+): number {
+  return Math.max(0, freeBookCap(wizardLevel) - countFreeSpellbookSlotsUsed(known))
+}
+
+export type SpellbookAddPayment =
+  | {
+      ok: true
+      free: true
+      acquisition: 'starting' | 'level_up'
+      coins: CoinPurse | null
+      cost: null
+      message: string
+    }
+  | {
+      ok: true
+      free: false
+      acquisition: 'copied'
+      coins: CoinPurse
+      cost: SpellbookCopyCost
+      message: string
+      spend: Extract<SpendGpResult, { ok: true }>
+    }
+  | {
+      ok: false
+      free: false
+      acquisition: 'copied'
+      coins: CoinPurse | null
+      cost: SpellbookCopyCost
+      message: string
+      needGp: number
+      haveGp: number
+    }
+
+/**
+ * Resolve free vs paid add into the spellbook and (when paid) debit the purse.
+ * Free while used free slots < freeBookCap; else foreign copy tariff.
+ */
+export function resolveSpellbookAddPayment(input: {
+  spellLevel: number
+  spellSchool?: string | null
+  known: Array<{ level: number; spellbook_acquisition?: SpellbookAcquisition | null }>
+  wizardLevel: number
+  coins: CoinPurse | null | undefined
+  mods?: SpellbookModifiers
+}): SpellbookAddPayment {
+  const freeLeft = remainingFreeSpellbookSlots(input.known, input.wizardLevel)
+  if (freeLeft > 0) {
+    const used = countFreeSpellbookSlotsUsed(input.known)
+    const acquisition: 'starting' | 'level_up' = used < 6 ? 'starting' : 'level_up'
+    return {
+      ok: true,
+      free: true,
+      acquisition,
+      coins: input.coins ? { ...input.coins } : null,
+      cost: null,
+      message: acquisition === 'starting' ? 'Бесплатно (стартовая книга)' : 'Бесплатно (исследование уровня)',
+    }
+  }
+
+  const cost = copySpellCost({
+    spellLevel: input.spellLevel,
+    kind: 'foreign',
+    spellSchool: input.spellSchool,
+    mods: input.mods,
+  })
+
+  if (cost.gp <= 0) {
+    // Quill / zero-cost edge: still "copied", no purse change required.
+    return {
+      ok: true,
+      free: false,
+      acquisition: 'copied',
+      coins: input.coins ? { ...input.coins } : { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+      cost,
+      message: cost.freeInkByQuill
+        ? `Копия пером писца · ${cost.minutes} мин`
+        : 'Копия без стоимости золота',
+      spend: {
+        ok: true,
+        coins: input.coins ? { ...input.coins } : { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+        paidGp: 0,
+        haveGpBefore: 0,
+        haveGpAfter: 0,
+        message: '',
+      },
+    }
+  }
+
+  if (!input.coins) {
+    return {
+      ok: false,
+      free: false,
+      acquisition: 'copied',
+      coins: null,
+      cost,
+      needGp: cost.gp,
+      haveGp: 0,
+      message: `Нужно ${formatGpTotal(cost.gp)} зм в кошельке персонажа (сверх бесплатного объёма книги)`,
+    }
+  }
+
+  const spend = spendGpFromPurse(input.coins, cost.gp)
+  if (!spend.ok) {
+    return {
+      ok: false,
+      free: false,
+      acquisition: 'copied',
+      coins: input.coins,
+      cost,
+      needGp: spend.needGp,
+      haveGp: spend.haveGp,
+      message: `${spend.message} · копия «${cost.spellLevel} ур.» (${formatGpTotal(cost.gp)} зм, ${cost.hours} ч)`,
+    }
+  }
+
+  return {
+    ok: true,
+    free: false,
+    acquisition: 'copied',
+    coins: spend.coins,
+    cost,
+    message: `В книгу за ${formatGpTotal(cost.gp)} зм · ${cost.hours} ч · ${spend.message}`,
+    spend,
+  }
+}
+
+/** Preview foreign-copy gp for UI chips (0 when still inside free budget). */
+export function previewSpellbookAddGp(input: {
+  spellLevel: number
+  spellSchool?: string | null
+  known: Array<{ level: number; spellbook_acquisition?: SpellbookAcquisition | null }>
+  wizardLevel: number
+  mods?: SpellbookModifiers
+}): number {
+  if (remainingFreeSpellbookSlots(input.known, input.wizardLevel) > 0) return 0
+  return copySpellCost({
+    spellLevel: input.spellLevel,
+    kind: 'foreign',
+    spellSchool: input.spellSchool,
+    mods: input.mods,
+  }).gp
 }
 
 export function createEmptyWizardSpellbookState(

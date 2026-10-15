@@ -4569,6 +4569,13 @@ export function MinimalSheetEditor({
             proficiencyBonus={proficiencyBonus}
             suggestion={spellcastingSync.suggestion}
             knownCaster={spellcastingSync.knownCaster}
+            coins={draft.inventory.coins}
+            onCoinsChange={(coins) =>
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, coins },
+              }))
+            }
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
             onClose={() => setSpellsSettingsOpen(false)}
             onToast={onToast}
