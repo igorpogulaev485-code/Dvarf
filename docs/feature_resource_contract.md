@@ -105,7 +105,7 @@
 | Barbarian / Berserker / Totem | 1, 5 (+ Rage table) |
 | Monk / Open Hand / Shadow / Elements | 1, 5, 9, 12, 12b (+ Ki = level, Perfect Self +4; desk KiSpendDialog) |
 | Cleric / **14** оф. доменов | 2, 4b, 5, 12, 13 (CD shared; Wis-mod; DI success lock; PHB+DMG+SCAG+XGtE+TCoE) |
-| Paladin / **9** оф. клятв | 2, 4b, 4c, 5, 11, 12, 14, 15 (LoH; Sense; CD; Fighting Style; Smite slots; Aura saves) |
+| Paladin / **9** оф. клятв | 2, 4b, 4c, 5, 11, 12, 14, 15 (LoH picker; Sense; CD oath options via ChannelDivinitySpendDialog; Smite; Aura) |
 | Ranger / **8** оф. архетипов | 2, 3, 4b, 11, 14 (Favored Enemy/Terrain; Fighting Style; Primeval Awareness slot) |
 | Sorcerer / **8** оф. происхождений | 2, 5, 11 + Flexible Casting UI + Metamagic SP spend (Twinned = ур. ячейки) |
 | Warlock / **9** оф. покровителей | 2, 5, 11 (Pact Magic already in caster; Invocations multi-pick; Pact Boon; Arcanum 6–9) |

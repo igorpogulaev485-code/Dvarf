@@ -222,6 +222,7 @@ import { SorceryPointsSpendDialog } from './SorceryPointsSpendDialog'
 import { ChannelDivinitySpendDialog } from './ChannelDivinitySpendDialog'
 import { KiSpendDialog } from './KiSpendDialog'
 import { BardicInspirationSpendDialog } from './BardicInspirationSpendDialog'
+import { LayOnHandsSpendDialog } from './LayOnHandsSpendDialog'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
@@ -2907,6 +2908,7 @@ export function MinimalSheetEditor({
   const [bardicInspirationSpendId, setBardicInspirationSpendId] = useState<
     string | null
   >(null)
+  const [layOnHandsSpendId, setLayOnHandsSpendId] = useState<string | null>(null)
   const [concDamageAsk, setConcDamageAsk] = useState<{
     damage: number
     spellName: string
@@ -3335,6 +3337,10 @@ export function MinimalSheetEditor({
       ? null
       : (draft.play.resources.find((row) => row.id === bardicInspirationSpendId) ??
         null)
+  const layOnHandsResource =
+    layOnHandsSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === layOnHandsSpendId) ?? null)
 
   function isSorceryPointsResource(row: { id: string; name: string }): boolean {
     return (
@@ -3365,6 +3371,14 @@ export function MinimalSheetEditor({
     )
   }
 
+  function isLayOnHandsResource(row: { id: string; name: string }): boolean {
+    return (
+      /:lay_on_hands:/.test(row.id) ||
+      /возложение рук/i.test(row.name) ||
+      /lay on hands/i.test(row.name)
+    )
+  }
+
   function spendResourceOrOpenSorcery(id: string) {
     const row = draft.play.resources.find((item) => item.id === id)
     if (row && isSorceryPointsResource(row)) {
@@ -3381,6 +3395,10 @@ export function MinimalSheetEditor({
     }
     if (row && isBardicInspirationResource(row)) {
       setBardicInspirationSpendId(id)
+      return
+    }
+    if (row && isLayOnHandsResource(row)) {
+      setLayOnHandsSpendId(id)
       return
     }
     setDraft((prev) => ({
@@ -5034,6 +5052,30 @@ export function MinimalSheetEditor({
         }}
         onToast={onToast}
         onClose={() => setBardicInspirationSpendId(null)}
+      />
+
+      <LayOnHandsSpendDialog
+        open={layOnHandsSpendId != null}
+        resource={layOnHandsResource}
+        onSpend={(label, cost) => {
+          if (!layOnHandsSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) => {
+                if (row.id !== layOnHandsSpendId) return row
+                const nextUsed = Math.min(row.max, row.used + cost)
+                if (nextUsed === row.used) return row
+                return { ...row, used: nextUsed }
+              }),
+            },
+          }))
+          onToast(`${label}: −${cost} из пула Возложения рук`)
+          setLayOnHandsSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setLayOnHandsSpendId(null)}
       />
 
       <LevelUpDialog
