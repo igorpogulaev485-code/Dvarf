@@ -150,7 +150,7 @@ export function VisibilitySettingsPanel({
           </div>
         </div>
 
-        <Stack gap={8}>
+        <div className="visibility-sections">
           {sections.map((sectionKey) => {
             const meta = VISIBILITY_FIELD_META[sectionKey]
             const section = profile.fields[sectionKey]
@@ -211,7 +211,7 @@ export function VisibilitySettingsPanel({
               </div>
             )
           })}
-        </Stack>
+        </div>
       </Stack>
     </Panel>
   )
