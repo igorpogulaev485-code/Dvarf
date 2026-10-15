@@ -78,8 +78,8 @@ import {
 import { SubclassSetupDialog } from './SubclassSetupDialog'
 import { SubclassChangeConfirmDialog } from './SubclassChangeConfirmDialog'
 import {
+  dismissSelfFormsOnRest,
   readCompanions,
-  resetCompanionResourcesOnRest,
   type CompanionEntry,
 } from './companions'
 import { readKnownForms, type KnownForm } from './knownForms'
@@ -2627,12 +2627,19 @@ export function MinimalSheetEditor({
         }
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onCombatChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
-        onCompanionRest={(kind) =>
-          setDraft((prev) => ({
-            ...prev,
-            companions: resetCompanionResourcesOnRest(prev.companions, kind),
-          }))
-        }
+        onCompanionRest={(kind) => {
+          let dismissed: string[] = []
+          setDraft((prev) => {
+            const result = dismissSelfFormsOnRest(prev.companions, kind)
+            dismissed = result.dismissedNames
+            return { ...prev, companions: result.companions }
+          })
+          if (dismissed.length) {
+            onToast(
+              `Отдых: облик сброшен (${dismissed.join(', ')})`,
+            )
+          }
+        }}
         onToast={onToast}
       />
 
@@ -2750,7 +2757,12 @@ export function MinimalSheetEditor({
       <CompanionsPanel
         companions={draft.companions}
         edition={rulesEdition}
+        hostHp={draft.hpCurrent}
+        onHostHpChange={(hp) =>
+          setDraft((prev) => ({ ...prev, hpCurrent: hp }))
+        }
         onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
+        onToast={onToast}
       />
 
       <Panel title="Спасброски">

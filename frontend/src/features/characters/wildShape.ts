@@ -279,6 +279,11 @@ function dismissActiveSelfForm(companions: CompanionEntry[]): CompanionEntry[] {
   )
 }
 
+function capturePreviousPrimaryId(companions: CompanionEntry[]): string | null {
+  const primary = companions.find((row) => row.is_primary && row.role !== 'self_form')
+  return primary?.id ?? null
+}
+
 export function spendWildShapeUses(input: {
   resources: SheetResource[]
   classSlug: string
@@ -306,6 +311,7 @@ export function applyBeastWildShape(input: {
   formSource?: FormSourceKind
   formSourceRef?: string
 }): { companions: CompanionEntry[]; knownForms: KnownForm[] } {
+  const previousPrimaryId = capturePreviousPrimaryId(input.companions)
   const cleared = dismissActiveSelfForm(input.companions)
   const duration = Math.max(1, Math.floor(input.druidLevel / 2))
   const form = createCompanion({
@@ -338,6 +344,7 @@ export function applyBeastWildShape(input: {
       host_hp_max_at_enter: input.hostHpMax,
       duration_minutes: duration * 60,
       entered_at: new Date().toISOString(),
+      previous_primary_id: previousPrimaryId,
     },
   })
   const tags: KnownForm['tags'] = []
@@ -471,6 +478,7 @@ export function applyStarryForm(input: {
     chalice: 'Чаша',
     dragon: 'Дракон',
   } as const
+  const previousPrimaryId = capturePreviousPrimaryId(input.companions)
   const cleared = dismissActiveSelfForm(input.companions)
   const form = createCompanion({
     role: 'self_form',
@@ -506,6 +514,7 @@ export function applyStarryForm(input: {
       host_hp_max_at_enter: input.hostHpMax,
       duration_minutes: 10,
       entered_at: new Date().toISOString(),
+      previous_primary_id: previousPrimaryId,
     },
   })
   return normalizeSelfForms(setPrimaryExclusive([...cleared, form], form.id))

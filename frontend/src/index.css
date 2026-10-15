@@ -896,6 +896,11 @@ input {
   opacity: 0.62;
 }
 
+.companion-card--self-form {
+  padding-left: 10px;
+  border-left: 3px solid color-mix(in srgb, var(--accent, #2a6f4e) 70%, var(--line));
+}
+
 .companion-death {
   margin-top: 4px;
 }

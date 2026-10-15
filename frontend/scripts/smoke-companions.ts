@@ -3,6 +3,10 @@ import {
   applyHpChange,
   companionAllowsAvatar,
   createCompanion,
+  dealDamageToSelfForm,
+  dismissSelfForm,
+  dismissSelfFormsOnRest,
+  formSourceBadgeRu,
   getActiveSelfForm,
   isCompanionDead,
   isCompanionStable,
@@ -15,6 +19,7 @@ import {
   revokeCompanionsForSubclass,
   setCompanionActive,
   setPrimaryCompanion,
+  sortCompanionsForDisplay,
 } from '../src/features/characters/companions.ts'
 import {
   createKnownForm,
@@ -599,5 +604,108 @@ assert(getActiveSelfForm(starry)?.name?.includes('Лучник'), 'starry replac
 assert(getActiveSelfForm(starry)?.stats.hp == null, 'starry keeps host HP pool')
 const fire = applyWildfireSpirit({ companions: [], druidLevel: 6 })
 assert(fire[0]?.stats.hp_max === 40, 'wildfire HP 10+5×6 (ttg)')
+
+// --- F3: overflow / dismiss / rest ---
+const allyPrimary = createCompanion({
+  id: 'ally-1',
+  kind: 'familiar',
+  role: 'ally',
+  name: 'Тень',
+  is_primary: true,
+  active: true,
+  nature: 'summoned',
+  stats: { hp: 2, hp_max: 2, ac: 12, speed: 20 },
+})
+const form10 = applyBeastWildShape({
+  companions: [allyPrimary],
+  knownForms: [],
+  pick: {
+    slug: 'wolf',
+    name_ru: 'Волк',
+    cr: '1/4',
+    type: 'beast',
+    ac: 13,
+    hp: 10,
+    speed_walk: 40,
+    actions_text: 'Укус',
+  },
+  hostHp: 28,
+  hostHpMax: 28,
+  druidLevel: 4,
+})
+assert(form10.companions.find((c) => c.id === 'ally-1')?.is_primary === false, 'form steals primary')
+assert(
+  getActiveSelfForm(form10.companions)?.form?.previous_primary_id === 'ally-1',
+  'stores previous primary',
+)
+assert(
+  formSourceBadgeRu(getActiveSelfForm(form10.companions)?.form).includes('Дикий облик'),
+  'badge copy',
+)
+
+const hit14 = dealDamageToSelfForm({
+  companions: form10.companions,
+  damage: 14,
+  hostHp: 28,
+})
+assert(hit14.formDismissed, '14 dmg vs 10 HP dismisses')
+assert(hit14.overflow === 4, 'overflow 4')
+assert(hit14.hostHp === 24, 'host 28-4')
+assert(!getActiveSelfForm(hit14.companions), 'no active form after overflow')
+assert(hit14.companions.find((c) => c.id === 'ally-1')?.is_primary === true, 'restore primary')
+
+const formAgain = applyBeastWildShape({
+  companions: [allyPrimary],
+  knownForms: [],
+  pick: {
+    slug: 'wolf',
+    name_ru: 'Волк',
+    cr: '1/4',
+    type: 'beast',
+    ac: 13,
+    hp: 10,
+    speed_walk: 40,
+    actions_text: 'Укус',
+  },
+  hostHp: 28,
+  hostHpMax: 28,
+  druidLevel: 4,
+})
+const voluntary = dismissSelfForm({
+  companions: formAgain.companions,
+  formId: getActiveSelfForm(formAgain.companions)!.id,
+})
+assert(!getActiveSelfForm(voluntary.companions), 'voluntary dismiss')
+assert(voluntary.restoredPrimaryId === 'ally-1', 'voluntary restores primary')
+
+const softHit = dealDamageToSelfForm({
+  companions: formAgain.companions,
+  damage: 3,
+  hostHp: 28,
+})
+assert(!softHit.formDismissed && softHit.overflow === 0, 'partial dmg keeps form')
+assert(getActiveSelfForm(softHit.companions)?.stats.hp === 7, '10-3=7')
+
+const onRest = dismissSelfFormsOnRest(formAgain.companions, 'short')
+assert(onRest.dismissedNames.includes('Волк'), 'rest dismisses form')
+assert(!getActiveSelfForm(onRest.companions), 'rest clears active form')
+
+const ordered = sortCompanionsForDisplay([
+  createCompanion({ role: 'ally', name: 'Ally', active: true }),
+  createCompanion({
+    role: 'self_form',
+    name: 'Form',
+    active: true,
+    form: {
+      form_source: 'wild_shape',
+      form_source_ref: 'wild_shape',
+      host_hp_at_enter: 1,
+      host_hp_max_at_enter: 1,
+      duration_minutes: 1,
+      entered_at: null,
+    },
+  }),
+])
+assert(ordered[0]?.role === 'self_form', 'display sort: form first')
 
 console.log('smoke-companions: ok')

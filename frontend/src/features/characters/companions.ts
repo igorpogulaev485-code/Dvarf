@@ -33,6 +33,8 @@ export type ActiveFormMeta = {
   duration_minutes: number | null
   entered_at: string | null
   known_form_id?: string
+  /** Ally that was primary before this form — restored on dismiss. */
+  previous_primary_id?: string | null
 }
 
 /** Living needs death saves; summoned/construct dismiss at 0 HP and can return via re-summon. */
@@ -149,6 +151,24 @@ export const COMPANION_ROLE_LABELS: Record<CompanionRole, string> = {
   self_form: 'Облик (это ты)',
 }
 
+export function formSourceBadgeRu(form: ActiveFormMeta | null | undefined): string {
+  if (!form) return 'Облик'
+  switch (form.form_source) {
+    case 'wild_shape':
+      return 'Это ты · Дикий облик'
+    case 'elemental_wild_shape':
+      return 'Это ты · Элементальный облик'
+    case 'spell':
+      return 'Это ты · Заклинание'
+    case 'item':
+      return 'Это ты · Предмет'
+    case 'feature':
+      return 'Это ты · Умение'
+    default:
+      return 'Это ты · Облик'
+  }
+}
+
 const FORM_SOURCE_SET = new Set<string>([
   'wild_shape',
   'elemental_wild_shape',
@@ -250,6 +270,12 @@ function readFormMeta(raw: unknown): ActiveFormMeta | null {
     entered_at: typeof row.entered_at === 'string' ? row.entered_at : null,
     known_form_id:
       typeof row.known_form_id === 'string' ? row.known_form_id : undefined,
+    previous_primary_id:
+      typeof row.previous_primary_id === 'string'
+        ? row.previous_primary_id
+        : row.previous_primary_id === null
+          ? null
+          : undefined,
   }
 }
 
@@ -622,6 +648,192 @@ export function applyHpChange(
   next.death = null
   next.active = true
   return next
+}
+
+export type DismissSelfFormResult = {
+  companions: CompanionEntry[]
+  dismissedName: string | null
+  restoredPrimaryId: string | null
+}
+
+/**
+ * Voluntary / rest / duration end: drop active self_form card(s), no host damage.
+ * Restores previous primary ally when recorded.
+ */
+export function dismissSelfForm(input: {
+  companions: CompanionEntry[]
+  /** If set, only this id; otherwise all active self_forms. */
+  formId?: string
+  /** Keep inactive row in list (false = remove card). Default remove. */
+  keepRow?: boolean
+}): DismissSelfFormResult {
+  const keepRow = Boolean(input.keepRow)
+  let dismissedName: string | null = null
+  let restoredPrimaryId: string | null = null
+
+  const targets = input.companions.filter((row) => {
+    if (!isSelfForm(row)) return false
+    if (input.formId) return row.id === input.formId
+    return row.active
+  })
+  if (targets.length === 0) {
+    return {
+      companions: input.companions,
+      dismissedName: null,
+      restoredPrimaryId: null,
+    }
+  }
+
+  const primaryCandidate =
+    targets.find((t) => t.form?.previous_primary_id)?.form?.previous_primary_id ??
+    null
+  dismissedName = targets.map((t) => t.name).filter(Boolean).join(', ') || null
+
+  let next = input.companions
+    .map((row) => {
+      const hit = targets.some((t) => t.id === row.id)
+      if (!hit) return row
+      if (keepRow) {
+        return {
+          ...row,
+          active: false,
+          is_primary: false,
+          death: null,
+          stats: { ...row.stats, hp: 0 },
+        }
+      }
+      return null
+    })
+    .filter((row): row is CompanionEntry => row != null)
+
+  if (primaryCandidate && next.some((r) => r.id === primaryCandidate)) {
+    next = setPrimaryCompanion(next, primaryCandidate)
+    restoredPrimaryId = primaryCandidate
+  } else {
+    const ally = next.find((r) => r.role === 'ally' && r.active)
+    if (ally) {
+      next = setPrimaryCompanion(next, ally.id)
+      restoredPrimaryId = ally.id
+    }
+  }
+
+  return { companions: next, dismissedName, restoredPrimaryId }
+}
+
+/** Short/long rest: dismiss active forms (no overflow), then reset naparnik resources. */
+export function dismissSelfFormsOnRest(
+  companions: CompanionEntry[],
+  kind: 'short' | 'long',
+): { companions: CompanionEntry[]; dismissedNames: string[] } {
+  const before = dismissSelfForm({ companions })
+  const names = before.dismissedName
+    ? before.dismissedName.split(', ').filter(Boolean)
+    : []
+  return {
+    companions: resetCompanionResourcesOnRest(before.companions, kind),
+    dismissedNames: names,
+  }
+}
+
+export type SelfFormDamageResult = {
+  companions: CompanionEntry[]
+  hostHp: number
+  /** Damage that spilled onto the host after form HP reached 0. */
+  overflow: number
+  formDismissed: boolean
+  formName: string | null
+}
+
+/**
+ * Deal damage to the active self_form HP pool first; remainder hits host.
+ * Forms without an HP pool (e.g. Starry Form reminder) pass all damage to host.
+ */
+export function dealDamageToSelfForm(input: {
+  companions: CompanionEntry[]
+  damage: number
+  hostHp: number
+  formId?: string
+}): SelfFormDamageResult {
+  const damage = Math.max(0, Math.floor(input.damage))
+  const hostHp = Math.max(0, Math.floor(input.hostHp))
+  if (damage <= 0) {
+    return {
+      companions: input.companions,
+      hostHp,
+      overflow: 0,
+      formDismissed: false,
+      formName: null,
+    }
+  }
+
+  const form =
+    (input.formId
+      ? input.companions.find((r) => r.id === input.formId && isSelfForm(r))
+      : getActiveSelfForm(input.companions)) ?? null
+
+  if (!form || !form.active) {
+    return {
+      companions: input.companions,
+      hostHp: Math.max(0, hostHp - damage),
+      overflow: damage,
+      formDismissed: false,
+      formName: null,
+    }
+  }
+
+  // Reminder forms (Starry): no separate HP — all damage to host, form stays.
+  if (form.stats.hp == null || form.stats.hp_max == null) {
+    return {
+      companions: input.companions,
+      hostHp: Math.max(0, hostHp - damage),
+      overflow: damage,
+      formDismissed: false,
+      formName: form.name || null,
+    }
+  }
+
+  const formHp = Math.max(0, form.stats.hp)
+  if (damage < formHp) {
+    const updated = input.companions.map((row) =>
+      row.id === form.id
+        ? applyHpChange(row, formHp - damage)
+        : row,
+    )
+    return {
+      companions: updated,
+      hostHp,
+      overflow: 0,
+      formDismissed: false,
+      formName: form.name || null,
+    }
+  }
+
+  const overflow = damage - formHp
+  const dismissed = dismissSelfForm({
+    companions: input.companions,
+    formId: form.id,
+    keepRow: false,
+  })
+  return {
+    companions: dismissed.companions,
+    hostHp: Math.max(0, hostHp - overflow),
+    overflow,
+    formDismissed: true,
+    formName: form.name || null,
+  }
+}
+
+/** Active self_forms first, then allies — for Напарники panel. */
+export function sortCompanionsForDisplay(
+  companions: CompanionEntry[],
+): CompanionEntry[] {
+  return [...companions].sort((a, b) => {
+    const aForm = isSelfForm(a) ? 0 : 1
+    const bForm = isSelfForm(b) ? 0 : 1
+    if (aForm !== bForm) return aForm - bForm
+    if (a.active !== b.active) return a.active ? -1 : 1
+    return 0
+  })
 }
 
 export function setCompanionActive(
