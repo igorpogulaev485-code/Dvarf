@@ -4,8 +4,10 @@ import { AppHeader } from '../features/characters'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
+import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
+import { EnemyCard } from '../features/lobby/EnemyCard'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
@@ -17,12 +19,15 @@ import { listCharacters } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import {
   addSeatCompanion,
+  addSessionCombatants,
   closeSession,
   createSessionRoll,
   deleteSeatCompanion,
+  deleteSessionCombatant,
   getSession,
   listSessionEvents,
   patchSeatCombat,
+  patchSessionCombatant,
   seatCharacter,
   unseatCharacter,
   updateSession,
@@ -58,6 +63,7 @@ export function SessionDetailPage() {
   const [companionAc, setCompanionAc] = useState<number | null>(13)
   const [conditionOpen, setConditionOpen] = useState(false)
   const [effectOpen, setEffectOpen] = useState(false)
+  const [combatantOpen, setCombatantOpen] = useState(false)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -282,29 +288,22 @@ export function SessionDetailPage() {
             />
 
             {liveTab === 'table' ? (
-              session.seats.length === 0 ? (
-                <Text tone="muted">
-                  Никого нет.
-                  {session.is_owner
-                    ? ' Откройте «Кто пришёл», отметьте игроков и сохраните.'
-                    : ''}
-                </Text>
-              ) : (
-                <Stack gap={12}>
-                  {!session.closed_at &&
-                  (session.is_owner ||
-                    session.seats.some((s) => ownCharacterIds.has(s.character_id))) ? (
-                    <div className="session-table-toolbar">
-                      {session.is_owner ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          disabled={busy}
-                          onClick={() => setConditionOpen(true)}
-                        >
-                          Состояние
-                        </Button>
-                      ) : null}
+              <Stack gap={12}>
+                {!session.closed_at &&
+                (session.is_owner ||
+                  session.seats.some((s) => ownCharacterIds.has(s.character_id))) ? (
+                  <div className="session-table-toolbar">
+                    {session.is_owner && session.seats.length > 0 ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => setConditionOpen(true)}
+                      >
+                        Состояние
+                      </Button>
+                    ) : null}
+                    {session.seats.length > 0 ? (
                       <Button
                         type="button"
                         variant="secondary"
@@ -313,11 +312,31 @@ export function SessionDetailPage() {
                       >
                         Эффект
                       </Button>
-                      <Text tone="muted" className="session-table-toolbar__hint">
-                        Состояние — вред (отравлен…). Эффект — пометка «на нём баф» (благословение…).
-                      </Text>
-                    </div>
-                  ) : null}
+                    ) : null}
+                    {session.is_owner ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => setCombatantOpen(true)}
+                      >
+                        + Противник
+                      </Button>
+                    ) : null}
+                    <Text tone="muted" className="session-table-toolbar__hint">
+                      Состояние — вред. Эффект — баф. Противник — из бестиария на стол.
+                    </Text>
+                  </div>
+                ) : null}
+
+                {session.seats.length === 0 ? (
+                  <Text tone="muted">
+                    Игроков за столом нет.
+                    {session.is_owner
+                      ? ' Откройте «Кто пришёл» или посадите противников.'
+                      : ''}
+                  </Text>
+                ) : (
                   <div className="session-table-grid">
                     {session.seats.map((seat) => {
                       const isOwn = ownCharacterIds.has(seat.character_id)
@@ -401,8 +420,51 @@ export function SessionDetailPage() {
                       )
                     })}
                   </div>
-                </Stack>
-              )
+                )}
+
+                {(session.combatants?.length ?? 0) > 0 ? (
+                  <Stack gap={8}>
+                    <Text as="h3" className="session-enemies-title">
+                      Противники
+                    </Text>
+                    <div className="session-table-grid session-enemies-grid">
+                      {session.combatants!.map((enemy) => (
+                        <EnemyCard
+                          key={enemy.id}
+                          combatant={enemy}
+                          visibility={visibility}
+                          revealAll={session.is_owner}
+                          masterControls={session.is_owner && !session.closed_at}
+                          busy={busy}
+                          onDamage={(amount, memberId) => {
+                            void run(async () => {
+                              const updated = await patchSessionCombatant(
+                                session.id,
+                                enemy.id,
+                                {
+                                  damage: amount,
+                                  member_id: memberId,
+                                },
+                              )
+                              setSession(updated)
+                            })
+                          }}
+                          onRemove={() => {
+                            void run(async () => {
+                              const updated = await deleteSessionCombatant(
+                                session.id,
+                                enemy.id,
+                              )
+                              setSession(updated)
+                              setToast(`Убран: ${enemy.name}`)
+                            })
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </Stack>
+                ) : null}
+              </Stack>
             ) : null}
 
             {liveTab === 'feed' ? (
@@ -616,6 +678,21 @@ export function SessionDetailPage() {
                 ? `Эффект: ${effect.name}`
                 : `Эффект: ${effect.name} · ${characterIds.length}`,
             )
+          })
+        }}
+      />
+
+      <AddCombatantDialog
+        open={combatantOpen}
+        busy={busy}
+        onClose={() => setCombatantOpen(false)}
+        onSubmit={(payload) => {
+          void run(async () => {
+            const updated = await addSessionCombatants(session.id, payload)
+            setSession(updated)
+            setCombatantOpen(false)
+            const n = payload.count ?? 1
+            setToast(n > 1 ? `На столе: ${n}` : 'Противник на столе')
           })
         }}
       />

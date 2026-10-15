@@ -1,0 +1,375 @@
+[
+  {
+    "slug": "brown_bear",
+    "name_ru": "Бурый медведь",
+    "name_en": "Brown Bear",
+    "source": "ttg:MM",
+    "external_ref": {
+      "ttg_url": "https://5e14.ttg.club/bestiary/brown_bear",
+      "ttg_id": 265,
+      "source_group": "Basic",
+      "source_name": "Бестиарий"
+    },
+    "data": {
+      "schema_version": 1,
+      "size": "large",
+      "type": "beast",
+      "type_ru": "зверь",
+      "ac": 11,
+      "hp_average": 34,
+      "speed": {
+        "walk": 40,
+        "climb": 30
+      },
+      "cr": "1",
+      "abilities": {
+        "str": 19,
+        "dex": 10,
+        "con": 16,
+        "int": 2,
+        "wis": 13,
+        "cha": 7
+      },
+      "source_book": "MM",
+      "alignment": "без мировоззрения",
+      "hp_formula": "4к10 + 12",
+      "proficiency_bonus": 2,
+      "skills": {
+        "Внимательность": 3
+      },
+      "senses": {
+        "passive_perception": 13
+      },
+      "traits": [
+        {
+          "name_ru": "Тонкий нюх",
+          "text_ru": "Медведь совершает с преимуществом проверки Мудрости (Внимательность) , полагающиеся на обоняние.",
+          "name_en": "Keen Smell"
+        }
+      ],
+      "actions": [
+        {
+          "name_ru": "Мультиатака",
+          "text_ru": "Медведь совершает две атаки: одну Укусом и одну Когтями .",
+          "name_en": "Multiattack"
+        },
+        {
+          "name_ru": "Укус",
+          "text_ru": "Рукопашная атака оружием: +6 к попаданию, досягаемость 5 фт., одна цель. Попадание: 8 (1к8 + 4) колющего урона.",
+          "name_en": "Bite"
+        },
+        {
+          "name_ru": "Когти",
+          "text_ru": "Рукопашная атака оружием: +6 к попаданию, досягаемость 5 фт., одна цель. Попадание: 11 (2к6 + 4) рубящего урона.",
+          "name_en": "Claws"
+        }
+      ],
+      "tags": [
+        "beast",
+        "climb"
+      ],
+      "environment": [
+        "полярная тундра",
+        "лес",
+        "холмы"
+      ]
+    }
+  },
+  {
+    "slug": "air_elemental",
+    "name_ru": "Воздушный элементаль",
+    "name_en": "Air Elemental",
+    "source": "ttg:MM",
+    "external_ref": {
+      "ttg_url": "https://5e14.ttg.club/bestiary/air_elemental",
+      "ttg_id": 246,
+      "source_group": "Basic",
+      "source_name": "Бестиарий"
+    },
+    "data": {
+      "schema_version": 1,
+      "size": "large",
+      "type": "elemental",
+      "type_ru": "элементаль",
+      "ac": 15,
+      "hp_average": 90,
+      "speed": {
+        "walk": 0,
+        "fly": 90,
+        "notes": "парит"
+      },
+      "cr": "5",
+      "abilities": {
+        "str": 14,
+        "dex": 20,
+        "con": 14,
+        "int": 6,
+        "wis": 10,
+        "cha": 6
+      },
+      "source_book": "MM",
+      "alignment": "нейтральный",
+      "hp_formula": "12к10 + 24",
+      "proficiency_bonus": 3,
+      "senses": {
+        "passive_perception": 10,
+        "darkvision": 60
+      },
+      "languages": [
+        "Ауран"
+      ],
+      "damage_immunities": [
+        "яд"
+      ],
+      "damage_resistances": [
+        "звук",
+        "электричество",
+        "дробящий, колющий и рубящий урон от немагических атак"
+      ],
+      "condition_immunities": [
+        "истощение",
+        "захват",
+        "паралич",
+        "окаменение",
+        "отравление",
+        "сбивание с ног",
+        "опутанность",
+        "бессознательность"
+      ],
+      "traits": [
+        {
+          "name_ru": "Воздушное тело",
+          "text_ru": "Элементаль может входить в пространство враждебных существ и останавливаться там. Он может перемещаться сквозь пространство шириной в 1 дюйм без протискивания.",
+          "name_en": "Air Form"
+        }
+      ],
+      "actions": [
+        {
+          "name_ru": "Мультиатака",
+          "text_ru": "Элементаль совершает два Размашистых удара .",
+          "name_en": "Multiattack"
+        },
+        {
+          "name_ru": "Размашистый удар",
+          "text_ru": "Рукопашная атака оружием: +8 к попаданию, досягаемость 5 фт., одна цель. Попадание: 14 (2к8 + 5) дробящего урона."
+        },
+        {
+          "name_ru": "Вихрь (перезарядка 4–6)",
+          "text_ru": "Все существа в пространстве элементаля должны совершить спасбросок Силы со Сл 13. При провале цель получает 15 (3к8 + 2) дробящего урона и отбрасывается на расстояние до 20 футов от элементаля в случайном направлении, после чего сбито с ног ."
+        }
+      ],
+      "tags": [
+        "elemental",
+        "fly"
+      ],
+      "environment": [
+        "пустыня",
+        "горы"
+      ]
+    }
+  },
+  {
+    "slug": "wolf",
+    "name_ru": "Волк",
+    "name_en": "Wolf",
+    "source": "ttg:MM",
+    "external_ref": {
+      "ttg_url": "https://5e14.ttg.club/bestiary/wolf",
+      "ttg_id": 267,
+      "source_group": "Basic",
+      "source_name": "Бестиарий"
+    },
+    "data": {
+      "schema_version": 1,
+      "size": "medium",
+      "type": "beast",
+      "type_ru": "зверь",
+      "ac": 13,
+      "hp_average": 11,
+      "speed": {
+        "walk": 40
+      },
+      "cr": "1/4",
+      "abilities": {
+        "str": 12,
+        "dex": 15,
+        "con": 12,
+        "int": 3,
+        "wis": 12,
+        "cha": 6
+      },
+      "source_book": "MM",
+      "alignment": "без мировоззрения",
+      "hp_formula": "2к8 + 2",
+      "proficiency_bonus": 2,
+      "skills": {
+        "Внимательность": 3,
+        "Скрытность": 4
+      },
+      "senses": {
+        "passive_perception": 13
+      },
+      "traits": [
+        {
+          "name_ru": "Острый слух и тонкий нюх",
+          "text_ru": "Волк совершает с преимуществом проверки Мудрости (Внимательность) , полагающиеся на слух и обоняние."
+        },
+        {
+          "name_ru": "Тактика Стаи",
+          "text_ru": "Волк совершает с преимуществом броски атаки по существу, если в пределах 5 футов от этого существа находится как минимум один не недееспособный союзник волка.",
+          "name_en": "Pack Tactics"
+        }
+      ],
+      "actions": [
+        {
+          "name_ru": "Укус",
+          "text_ru": "Рукопашная атака оружием: +4 к попаданию, досягаемость 5 фт., одна цель. Попадание: 7 (2к4 + 2) колющего урона. Если цель — существо, она должна преуспеть в спасброске Силы со Сл 11, иначе будет сбита с ног .",
+          "name_en": "Bite"
+        }
+      ],
+      "tags": [
+        "beast"
+      ],
+      "environment": [
+        "лес",
+        "равнина/луг",
+        "холмы"
+      ]
+    }
+  },
+  {
+    "slug": "wildfire_spirit",
+    "name_ru": "Дух дикого огня",
+    "name_en": "Wildfire Spirit",
+    "source": "ttg:TCE",
+    "external_ref": {
+      "ttg_url": "https://5e14.ttg.club/bestiary/wildfire_spirit",
+      "ttg_id": 929,
+      "source_group": "Basic",
+      "source_name": "Котел Таши со всякой всячиной"
+    },
+    "data": {
+      "schema_version": 1,
+      "size": "small",
+      "type": "elemental",
+      "type_ru": "элементаль",
+      "ac": 13,
+      "hp_average": 10,
+      "speed": {
+        "walk": 30,
+        "fly": 30,
+        "notes": "парит"
+      },
+      "cr": "",
+      "abilities": {
+        "str": 10,
+        "dex": 14,
+        "con": 14,
+        "int": 13,
+        "wis": 15,
+        "cha": 11
+      },
+      "source_book": "TCE",
+      "alignment": "без мировоззрения",
+      "hp_scaling_text": "+ пятикратный уровень друида",
+      "proficiency_bonus": "равен вашему бонусу",
+      "senses": {
+        "passive_perception": 12,
+        "darkvision": 60
+      },
+      "languages": [
+        "понимает языки своего создателя"
+      ],
+      "damage_immunities": [
+        "огонь"
+      ],
+      "condition_immunities": [
+        "очарование",
+        "испуг",
+        "захват",
+        "сбивание с ног",
+        "опутанность"
+      ],
+      "actions": [
+        {
+          "name_ru": "Семя пламени",
+          "text_ru": "Дальнобойная атака оружием: + модификатор атаки заклинанием друида, дистанция 60 фт., одна видимая цель. Попадание: 1к6 + бонус мастерства урона огнём."
+        },
+        {
+          "name_ru": "Огненная телепортация",
+          "text_ru": "Дух и каждое желающее существо по вашему выбору в пределах 5 футов от него телепортируются на расстояние до 15 футов в незанятые места, которые вы можете видеть. Затем каждое существо в пределах 5 футов от пространства, которое оставил дух, должно преуспеть в спасброске Ловкости против Сл. вашего спасброска от заклинаний, иначе получит 1к6 + бонус мастерства урона огнём."
+        }
+      ],
+      "tags": [
+        "elemental",
+        "fly"
+      ]
+    }
+  },
+  {
+    "slug": "hawk",
+    "name_ru": "Ястреб",
+    "name_en": "Hawk",
+    "source": "ttg:MM",
+    "external_ref": {
+      "ttg_url": "https://5e14.ttg.club/bestiary/hawk",
+      "ttg_id": 351,
+      "source_group": "Basic",
+      "source_name": "Бестиарий"
+    },
+    "data": {
+      "schema_version": 1,
+      "size": "tiny",
+      "type": "beast",
+      "type_ru": "зверь",
+      "ac": 13,
+      "hp_average": 1,
+      "speed": {
+        "walk": 10,
+        "fly": 60
+      },
+      "cr": "0",
+      "abilities": {
+        "str": 5,
+        "dex": 16,
+        "con": 8,
+        "int": 2,
+        "wis": 14,
+        "cha": 6
+      },
+      "source_book": "MM",
+      "alignment": "без мировоззрения",
+      "hp_formula": "1к4 − -1",
+      "proficiency_bonus": 2,
+      "skills": {
+        "Внимательность": 4
+      },
+      "senses": {
+        "passive_perception": 14
+      },
+      "traits": [
+        {
+          "name_ru": "Острое зрение",
+          "text_ru": "Ястреб совершает с преимуществом проверки Мудрости (Внимательность) , полагающиеся на зрение.",
+          "name_en": "Keen Sight"
+        }
+      ],
+      "actions": [
+        {
+          "name_ru": "Когти",
+          "text_ru": "Рукопашная атака оружием: +5 к попаданию, досягаемость 5 фт., одна цель. Попадание: 1 рубящего урона.",
+          "name_en": "Claws"
+        }
+      ],
+      "tags": [
+        "beast",
+        "fly"
+      ],
+      "environment": [
+        "лес",
+        "равнина/луг",
+        "горы"
+      ]
+    }
+  }
+]

@@ -205,6 +205,79 @@ class SessionUpdateRequest(BaseModel):
     clear_setting: bool = False
 
 
+class CombatantActionOut(BaseModel):
+    name_ru: str
+    text_ru: str = ""
+    name_en: str | None = None
+
+
+class CombatantMemberOut(BaseModel):
+    """Один боец внутри пачки (или единственный, если count=1)."""
+
+    id: str
+    name: str
+    hp_current: int
+    hp_max: int
+
+
+class CombatantMemberDamage(BaseModel):
+    member_id: str
+    damage: int = Field(ge=-9999, le=9999)
+
+
+class SessionCombatantOut(BaseModel):
+    """Противник / пачка на сессии (не место состава лобби)."""
+
+    id: str
+    name: str
+    """Сводка для быстрых жестов: HP первого живого (цель урона без выбора)."""
+    hp_current: int
+    hp_max: int
+    alive_count: int = 1
+    member_count: int = 1
+    ac: int | None = None
+    speed: int | None = None
+    cr: str | None = None
+    catalog_id: str | None = None
+    slug: str | None = None
+    source_book: str | None = None
+    type_ru: str | None = None
+    custom: bool = False
+    conditions: list[SeatConditionOut] = Field(default_factory=list)
+    traits: list[CombatantActionOut] = Field(default_factory=list)
+    actions: list[CombatantActionOut] = Field(default_factory=list)
+    bonus_actions: list[CombatantActionOut] = Field(default_factory=list)
+    reactions: list[CombatantActionOut] = Field(default_factory=list)
+    legendary_actions: list[CombatantActionOut] = Field(default_factory=list)
+    members: list[CombatantMemberOut] = Field(default_factory=list)
+
+
+class CombatantCreateRequest(BaseModel):
+    """Посадить 1..N как одну карточку-пачку из бестиария или свой НПС."""
+
+    catalog_id: UUID | None = None
+    slug: str | None = Field(default=None, max_length=80)
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    hp_max: int | None = Field(default=None, ge=1, le=9999)
+    ac: int | None = Field(default=None, ge=0, le=40)
+    speed: int | None = Field(default=None, ge=0, le=500)
+    count: int = Field(default=1, ge=1, le=20)
+    actions: list[CombatantActionOut] = Field(default_factory=list)
+
+
+class CombatantPatchRequest(BaseModel):
+    hp_current: int | None = Field(default=None, ge=0, le=9999)
+    hp_max: int | None = Field(default=None, ge=1, le=9999)
+    ac: int | None = Field(default=None, ge=0, le=40)
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    conditions: list[SeatConditionOut] | None = None
+    """Урон одному: без member_id → первый живой; с member_id → выбранный."""
+    damage: int | None = Field(default=None, ge=-9999, le=9999)
+    member_id: str | None = Field(default=None, max_length=80)
+    """Пакетный урон по составу: этому N, этому M."""
+    member_damages: list[CombatantMemberDamage] | None = None
+
+
 class SessionDetail(BaseModel):
     id: UUID
     lobby_id: UUID
@@ -214,6 +287,7 @@ class SessionDetail(BaseModel):
     name: str
     is_owner: bool
     seats: list[SessionSeatOut]
+    combatants: list[SessionCombatantOut] = Field(default_factory=list)
     lobby_members: list[LobbyMemberOut]
     visibility_profile: dict = Field(default_factory=dict)
     closed_at: datetime | None = None

@@ -25,6 +25,8 @@ from app.schemas.chat import (
 )
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
+    CombatantCreateRequest,
+    CombatantPatchRequest,
     JoinLobbyRequest,
     JournalEntryCreateRequest,
     JournalEntryOut,
@@ -342,6 +344,56 @@ async def delete_seat_companion(
         session_id,
         character_id,
         companion_id,
+    )
+
+
+@router.post(
+    "/sessions/{session_id}/combatants",
+    response_model=SessionDetail,
+    status_code=201,
+)
+async def add_session_combatants(
+    session_id: UUID,
+    payload: CombatantCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).add_combatants(current_user, session_id, payload)
+
+
+@router.patch(
+    "/sessions/{session_id}/combatants/{combatant_id}",
+    response_model=SessionDetail,
+)
+async def patch_session_combatant(
+    session_id: UUID,
+    combatant_id: str,
+    payload: CombatantPatchRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).patch_combatant(
+        current_user,
+        session_id,
+        combatant_id,
+        payload,
+    )
+
+
+@router.delete(
+    "/sessions/{session_id}/combatants/{combatant_id}",
+    response_model=SessionDetail,
+)
+async def delete_session_combatant(
+    session_id: UUID,
+    combatant_id: str,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).delete_combatant(
+        current_user,
+        session_id,
+        combatant_id,
     )
 
 

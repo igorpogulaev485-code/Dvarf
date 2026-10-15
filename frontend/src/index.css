@@ -2788,3 +2788,307 @@ button.session-concentration-tag {
 .session-companion-card--warn {
   border-color: color-mix(in srgb, #b54708 35%, var(--line));
 }
+
+/* —— B3 enemies on session table —— */
+.session-enemies-title {
+  margin: 8px 0 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.session-enemies-grid {
+  /* иначе раскрытый статблок растягивает соседей в ряду */
+  align-items: start;
+}
+
+.session-enemies-grid .session-enemy-card {
+  border-top: 3px solid color-mix(in srgb, #9a3412 55%, var(--line));
+}
+
+.session-enemy-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  min-width: 0;
+  height: auto;
+  align-self: start;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.session-enemy-card--player {
+  border-top-color: color-mix(in srgb, #57534e 40%, var(--line));
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.session-enemy-card--player .session-enemy-card__name {
+  font-size: 1rem;
+}
+
+.session-enemy-card__pack-tag {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  vertical-align: middle;
+}
+
+.session-enemy-card__roster {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--line);
+}
+
+.session-enemy-roster {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.session-enemy-roster__row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 92%, #78716c);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.session-enemy-roster__row.is-dead {
+  opacity: 0.72;
+}
+
+.session-enemy-roster__row.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-enemy-roster__who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+}
+
+.session-enemy-roster__name {
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
+.session-enemy-roster__pick {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.session-enemy-card--warn {
+  border-color: color-mix(in srgb, #b54708 35%, var(--line));
+}
+
+.session-enemy-card--down {
+  border-color: color-mix(in srgb, #b42318 35%, var(--line));
+}
+
+.session-enemy-card__top {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.session-enemy-card__meta {
+  min-width: 0;
+}
+
+.session-enemy-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.session-enemy-card__sub,
+.session-enemy-card__block-title {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+.session-enemy-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-enemy-card__hp-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.session-enemy-card__hp-controls .ui-button {
+  min-height: 36px;
+  padding-inline: 12px;
+}
+
+.session-enemy-card__damage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.session-enemy-card__damage-input {
+  width: 5.5rem;
+  min-height: 36px;
+  text-align: center;
+}
+
+.session-enemy-card__kit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-enemy-kit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 88%, #78716c);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.session-enemy-kit-chip__kind {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  color: var(--muted);
+}
+
+.session-enemy-kit-chip--trait {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+.session-enemy-kit-chip--action {
+  border-color: color-mix(in srgb, var(--ink) 22%, var(--line));
+}
+
+.session-enemy-kit-chip--reaction {
+  border-color: color-mix(in srgb, #b45309 40%, var(--line));
+}
+
+.session-enemy-kit-chip--legendary {
+  border-color: color-mix(in srgb, #a16207 45%, var(--line));
+}
+
+.session-enemy-kit-chip.is-active,
+.session-enemy-kit-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-enemy-card.is-active-turn {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.session-enemy-card__ability-text {
+  margin: 4px 0 8px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.session-enemy-card__remove {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.session-enemy-card__details {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--line);
+}
+
+.session-enemy-card__block-title {
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.session-enemy-card__actions-list {
+  margin: 4px 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.session-combatant-mode {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.session-combatant-mode__btn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.session-combatant-mode__btn.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.session-combatant-custom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 520px) {
+  .session-combatant-custom-row {
+    grid-template-columns: 1fr;
+  }
+}
