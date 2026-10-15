@@ -101,7 +101,7 @@
 | Rogue PHB | 1, 2 |
 | Phantom | 1, 3, 6, 7, 10 |
 | Soulknife | 1, 4, 8 |
-| Battle Master | 1, 5, 9 (+ Fighter 2) |
+| Battle Master | 1, 5, 9 (+ Fighter 2; desk SuperiorityDiceSpendDialog → known maneuvers) |
 | Barbarian / Berserker / Totem | 1, 5 (+ Rage table) |
 | Monk / Open Hand / Shadow / Elements | 1, 5, 9, 12, 12b (+ Ki = level, Perfect Self +4; desk KiSpendDialog) |
 | Cleric / **14** оф. доменов | 2, 4b, 5, 12, 13 (CD shared; Wis-mod; DI success lock; PHB+DMG+SCAG+XGtE+TCoE) |

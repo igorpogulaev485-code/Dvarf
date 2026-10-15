@@ -580,6 +580,15 @@
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
 
+### 2026-10-15 — Воин BM: picker костей превосходства
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Клик по костям | `SuperiorityDiceSpendDialog`: известные манёвры (−1) + размер кости | Как метамагия — выбрал манёвр, списалась кость |
+| Smoke | `frontend/scripts/smoke-superiority-dice-spend.ts` | Picks → опции; max пула |
+
+На проде: **нет** · ветка `cursor/fighter-bm-superiority-4797`
+
 ### 2026-10-15 — Паладин: CD (клятва) + Возложение рук
 
 | Функция | Как работает | Эффект для пользователя |

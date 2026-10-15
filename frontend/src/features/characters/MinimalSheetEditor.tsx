@@ -223,6 +223,7 @@ import { ChannelDivinitySpendDialog } from './ChannelDivinitySpendDialog'
 import { KiSpendDialog } from './KiSpendDialog'
 import { BardicInspirationSpendDialog } from './BardicInspirationSpendDialog'
 import { LayOnHandsSpendDialog } from './LayOnHandsSpendDialog'
+import { SuperiorityDiceSpendDialog } from './SuperiorityDiceSpendDialog'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
@@ -2909,6 +2910,7 @@ export function MinimalSheetEditor({
     string | null
   >(null)
   const [layOnHandsSpendId, setLayOnHandsSpendId] = useState<string | null>(null)
+  const [superioritySpendId, setSuperioritySpendId] = useState<string | null>(null)
   const [concDamageAsk, setConcDamageAsk] = useState<{
     damage: number
     spellName: string
@@ -3341,6 +3343,10 @@ export function MinimalSheetEditor({
     layOnHandsSpendId == null
       ? null
       : (draft.play.resources.find((row) => row.id === layOnHandsSpendId) ?? null)
+  const superiorityResource =
+    superioritySpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === superioritySpendId) ?? null)
 
   function isSorceryPointsResource(row: { id: string; name: string }): boolean {
     return (
@@ -3379,6 +3385,14 @@ export function MinimalSheetEditor({
     )
   }
 
+  function isSuperiorityDiceResource(row: { id: string; name: string }): boolean {
+    return (
+      /:superiority_dice:/.test(row.id) ||
+      /кости превосходства/i.test(row.name) ||
+      /superiority dice/i.test(row.name)
+    )
+  }
+
   function spendResourceOrOpenSorcery(id: string) {
     const row = draft.play.resources.find((item) => item.id === id)
     if (row && isSorceryPointsResource(row)) {
@@ -3399,6 +3413,10 @@ export function MinimalSheetEditor({
     }
     if (row && isLayOnHandsResource(row)) {
       setLayOnHandsSpendId(id)
+      return
+    }
+    if (row && isSuperiorityDiceResource(row)) {
+      setSuperioritySpendId(id)
       return
     }
     setDraft((prev) => ({
@@ -5076,6 +5094,32 @@ export function MinimalSheetEditor({
         }}
         onToast={onToast}
         onClose={() => setLayOnHandsSpendId(null)}
+      />
+
+      <SuperiorityDiceSpendDialog
+        open={superioritySpendId != null}
+        resource={superiorityResource}
+        features={unlockedFeatures}
+        featurePicks={draft.featurePicks}
+        onSpend={(label, cost) => {
+          if (!superioritySpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) => {
+                if (row.id !== superioritySpendId) return row
+                const nextUsed = Math.min(row.max, row.used + cost)
+                if (nextUsed === row.used) return row
+                return { ...row, used: nextUsed }
+              }),
+            },
+          }))
+          onToast(`${label}: −${cost} кость превосходства`)
+          setSuperioritySpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setSuperioritySpendId(null)}
       />
 
       <LevelUpDialog
