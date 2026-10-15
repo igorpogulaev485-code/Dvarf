@@ -396,8 +396,8 @@ SKT, ToA, WDMM, GGR, ERLW, … — оставшийся Basic allowlist (46 кн
 
 ## 12. Следующий конкретный шаг
 
-**B0–B6 + F1–F6 сделаны** в `cursor/bestiary-schema-fetch-ab5e` (PR #166):  
-оф. Basic ×**2380** (gap 0) + облики (WS / Moon / Polymorph / Wildfire).  
+**B0–B6 + F1–F6** адаптированы на tip kit в `cursor/forms-adapt-tip-ab5e` (PR #175; база `spell-scrolls-levels-4-9-19c3`):  
+оф. Basic ×**2380** + облики (WS / Moon / Polymorph self / Wildfire) в Features §2h + Companions §2i.  
 На прод **не** заливать до команды «Залей».
 
-**Дальше:** «Залей» → migrate B1–B5 на tip → smoke `kind=bestiary` COUNT=2380.
+**Дальше:** «Залей» → migrate `d9e0…`→`b3c4…` на tip → smoke `kind=bestiary` COUNT=2380.

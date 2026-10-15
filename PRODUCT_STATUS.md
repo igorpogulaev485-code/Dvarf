@@ -718,11 +718,13 @@
 |--------|--------------|-------------------------|
 | Дикий облик fork | В `ClassFeaturesPanel` tip-kit: вместо голого «Использовать» → `WildShapeDialog` (зверь / Дикий спутник / круги) | Друид тратит пул осмысленно |
 | Moon / self_form | Heal ячейкой; урон по облику + overflow; dock «В облике» | Бой в облике на новом UI |
-| Напарники kit | glance→expand сохранён; self_form в expand (урон / сброс / Moon) | Не ломаем LOCK §2i |
+| Polymorph self | `CastSpellDialog`: чипы «На себя → облик» / «Другая цель»; после каста `SpellFormDialog` (панель + desk) | Превращение на себя → карточка self_form |
+| SpellForm | Полный путь: слот → пикер бестиария → known_forms + companions; conc/rest dismiss | **SpellForm complete для «Залей»** |
+| Напарники kit | glance→expand сохранён; self_form в expand (урон / сброс / Moon); Find Familiar / Conjure из каста | Не ломаем LOCK §2i |
 | Spend-пикеры tip | Ки / BI / CD / … не трогали | Совместимо с волной #167–173 |
 | Бестиарий B1–B5 | JSON ×**2380** + alembic `d9e0…`→`b3c4…` (новые id под tip head `c8d9`) | После «Залей» справочник зверей |
 
-На проде: **нет** · ветка `cursor/forms-adapt-tip-ab5e` · **не деплоить** до «Залей» · tip не менять
+На проде: **нет** · ветка `cursor/forms-adapt-tip-ab5e` · **не деплоить** до «Залей» · tip не менять · Polymorph self + SpellForm готовы
 
 ### 2026-10-15 — Волна spend-picker’ов (уникальные пулы классов)
 

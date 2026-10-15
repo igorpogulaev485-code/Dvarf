@@ -48,6 +48,18 @@ import {
   IconWizardHat,
 } from './spellIcons'
 import type { ConcentrationState } from './play'
+import type { CompanionEntry } from './companions'
+import type { KnownForm } from './knownForms'
+import { applySpellCastToCompanions } from './spellCompanions'
+import {
+  isSpellSelfFormCast,
+  resolveSpellSelfFormSlug,
+  type SpellSelfFormSlug,
+} from './spellForms'
+import {
+  SpellFormDialog,
+  type SpellFormDialogResult,
+} from './SpellFormDialog'
 import {
   canRemoveSheetSpell,
   canSpendGrantCast,
@@ -81,6 +93,15 @@ type SpellsPanelProps = {
   /** EK / Arcane Trickster etc. — unlocks ⅓ caster slot math. */
   subclassCasters?: SubclassCasterOverlay[]
   spells: SpellsState
+  companions?: CompanionEntry[]
+  /** Prefer functional update so cast+concentration dismiss don't clobber each other. */
+  onCompanionsChange?: (
+    update: CompanionEntry[] | ((prev: CompanionEntry[]) => CompanionEntry[]),
+  ) => void
+  knownForms?: KnownForm[]
+  onKnownFormsChange?: (knownForms: KnownForm[]) => void
+  hostHp?: number | null
+  hostHpMax?: number | null
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   modifiers?: BonusLine[]
@@ -104,6 +125,12 @@ export function SpellsPanel({
   classes,
   subclassCasters,
   spells,
+  companions = [],
+  onCompanionsChange,
+  knownForms = [],
+  onKnownFormsChange,
+  hostHp = null,
+  hostHpMax = null,
   abilities,
   proficiencyBonus,
   modifiers = [],
@@ -123,6 +150,10 @@ export function SpellsPanel({
   const [grimoireOpen, setGrimoireOpen] = useState(false)
   const [bookManageOpen, setBookManageOpen] = useState(false)
   const [castSpell, setCastSpell] = useState<SheetSpell | null>(null)
+  const [pendingSelfForm, setPendingSelfForm] = useState<{
+    spell: SheetSpell
+    slug: SpellSelfFormSlug
+  } | null>(null)
   const [pendingConc, setPendingConc] = useState<{
     spell: SheetSpell
     choice: CastChoice
@@ -394,6 +425,40 @@ export function SpellsPanel({
     return ` · −1 «${target.name}»`
   }
 
+  function applyNaparnikFromCast(spell: SheetSpell, slotLevel: number): string {
+    if (!onCompanionsChange) return ''
+    const castCtx = {
+      spell,
+      slotLevel,
+      characterLevel: level,
+      spellMod: abilityMod,
+    }
+    const preview = applySpellCastToCompanions({
+      companions,
+      ...castCtx,
+    })
+    if (!preview) return ''
+    onCompanionsChange((prev) => {
+      const result = applySpellCastToCompanions({
+        companions: prev,
+        ...castCtx,
+      })
+      return result?.companions ?? prev
+    })
+    return preview.refreshed
+      ? ` · напарник «${preview.name}» снова в строю`
+      : ` · напарник «${preview.name}»`
+  }
+
+  function openSelfFormPickerIfNeeded(spell: SheetSpell, choice: CastChoice) {
+    if (choice.selfFormTarget === 'other') return false
+    if (!isSpellSelfFormCast(spell)) return false
+    const slug = resolveSpellSelfFormSlug(spell)
+    if (!slug) return false
+    setPendingSelfForm({ spell, slug })
+    return true
+  }
+
   function confirmCast(choice: CastChoice) {
     if (!castSpell) return
     if (needsConcentrationSwap(castSpell)) {
@@ -425,13 +490,17 @@ export function SpellsPanel({
     })
     const effectNote = scaled && effect ? ` · ${effect}` : ''
     const consumeNote = applyMaterialConsume(choice)
+    const naparnikSlot = slotForEffect || castSpell.level
+    const wantsForm = openSelfFormPickerIfNeeded(castSpell, choice)
+    const formNote = wantsForm ? ' · выбери форму' : ''
 
     if (castSpell.level <= 0) {
       applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
         castSpell.concentration
-          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)`
-          : `Каст: ${name}${effectNote}${consumeNote}`,
+          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)${naparnikNote}${formNote}`
+          : `Каст: ${name}${effectNote}${consumeNote}${naparnikNote}${formNote}`,
       )
       setCastSpell(null)
       return
@@ -443,10 +512,11 @@ export function SpellsPanel({
         known: spendGrantCast(spells.known, grantRow.id),
       })
       applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
         `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
           castSpell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       setCastSpell(null)
       return
@@ -463,10 +533,11 @@ export function SpellsPanel({
         }
       }
       applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
           castSpell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       setCastSpell(null)
       return
@@ -479,10 +550,13 @@ export function SpellsPanel({
       }
       patch({ pact_slots: pactResult.pact })
       applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = wantsForm
+        ? ''
+        : applyNaparnikFromCast(castSpell, pactResult.pact.level)
       onToast?.(
         `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
           castSpell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       setCastSpell(null)
       return
@@ -494,14 +568,24 @@ export function SpellsPanel({
     }
     patch({ slots: result.slots })
     applyConcentrationIfNeeded(castSpell)
+    const naparnikNote = wantsForm
+      ? ''
+      : applyNaparnikFromCast(castSpell, choice.slotLevel)
     const upcast =
       choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast?.(
       `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${
         castSpell.concentration ? ' · концентрация' : ''
-      }`,
+      }${naparnikNote}${formNote}`,
     )
     setCastSpell(null)
+  }
+
+  function applySpellFormResult(result: SpellFormDialogResult) {
+    onCompanionsChange?.(result.companions)
+    onKnownFormsChange?.(result.knownForms)
+    onToast?.(result.toast)
+    setPendingSelfForm(null)
   }
 
   const warlockLvl = useMemo(() => {
@@ -1179,6 +1263,26 @@ export function SpellsPanel({
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />
+      {pendingSelfForm ? (
+        <SpellFormDialog
+          open
+          spell={pendingSelfForm.spell}
+          slug={pendingSelfForm.slug}
+          companions={companions}
+          knownForms={knownForms}
+          characterLevel={level}
+          hostHp={hostHp ?? 0}
+          hostHpMax={hostHpMax ?? 0}
+          edition={edition === '2024' ? '2024' : '2014'}
+          onConfirm={applySpellFormResult}
+          onClose={() => {
+            setPendingSelfForm(null)
+            onToast?.(
+              'Облик не выбран — концентрация активна; карточку можно не создавать',
+            )
+          }}
+        />
+      ) : null}
       <Dialog
         open={pendingConc != null}
         title="Смена концентрации"

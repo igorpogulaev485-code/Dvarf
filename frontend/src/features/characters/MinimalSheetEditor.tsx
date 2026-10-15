@@ -88,7 +88,19 @@ import {
   type CompanionEntry,
 } from './companions'
 import { readKnownForms, type KnownForm } from './knownForms'
-import { applyConcentrationChangeToCompanions } from './spellCompanions'
+import {
+  applyConcentrationChangeToCompanions,
+  applySpellCastToCompanions,
+} from './spellCompanions'
+import {
+  isSpellSelfFormCast,
+  resolveSpellSelfFormSlug,
+  type SpellSelfFormSlug,
+} from './spellForms'
+import {
+  SpellFormDialog,
+  type SpellFormDialogResult,
+} from './SpellFormDialog'
 import { armorKindLabel, computeArmorClass } from '../../shared/dnd/armor'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
 import { AbilityBreakdownDialog } from './AbilityBreakdownDialog'
@@ -3214,6 +3226,10 @@ export function MinimalSheetEditor({
   const [initiativeBreakdownOpen, setInitiativeBreakdownOpen] = useState(false)
   /** Compact play-desk cast (dialog), not the full spells editor. */
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
+  const [pendingSpellSelfForm, setPendingSpellSelfForm] = useState<{
+    spell: SheetSpell
+    slug: SpellSelfFormSlug
+  } | null>(null)
   const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
   const [deskCastScrollPending, setDeskCastScrollPending] = useState<{
     itemId: string
@@ -3350,6 +3366,51 @@ export function MinimalSheetEditor({
     )
   }
 
+  function applyDeskNaparnikFromCast(spell: SheetSpell, slotLevel: number): string {
+    const abilityKey = draft.spells.casting_ability
+    const spellMod = abilityKey ? abilityModifier(effectiveAbilities[abilityKey]) : 0
+    const castCtx = {
+      spell,
+      slotLevel,
+      characterLevel,
+      spellMod,
+    }
+    const preview = applySpellCastToCompanions({
+      companions: draft.companions,
+      ...castCtx,
+    })
+    if (!preview) return ''
+    setDraft((prev) => {
+      const result = applySpellCastToCompanions({
+        companions: prev.companions,
+        ...castCtx,
+      })
+      return result ? { ...prev, companions: result.companions } : prev
+    })
+    return preview.refreshed
+      ? ` · напарник «${preview.name}» снова в строю`
+      : ` · напарник «${preview.name}»`
+  }
+
+  function openDeskSelfFormPickerIfNeeded(spell: SheetSpell, choice: CastChoice) {
+    if (choice.selfFormTarget === 'other') return false
+    if (!isSpellSelfFormCast(spell)) return false
+    const slug = resolveSpellSelfFormSlug(spell)
+    if (!slug) return false
+    setPendingSpellSelfForm({ spell, slug })
+    return true
+  }
+
+  function applySpellSelfFormResult(result: SpellFormDialogResult) {
+    setDraft((prev) => ({
+      ...prev,
+      companions: result.companions,
+      knownForms: result.knownForms,
+    }))
+    if (result.toast) onToast(result.toast)
+    setPendingSpellSelfForm(null)
+  }
+
   function runDeskCast(spell: SheetSpell, choice: CastChoice) {
     const name = spell.name || 'Заклинание'
     const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
@@ -3384,13 +3445,19 @@ export function MinimalSheetEditor({
         consumeNote = ` · −1 «${target.name}»`
       }
     }
+    const naparnikSlot = slotForEffect || spell.level
+    const wantsForm = openDeskSelfFormPickerIfNeeded(spell, choice)
+    const formNote = wantsForm ? ' · выбери форму' : ''
 
     if (spell.level <= 0) {
       if (spell.concentration) applyDeskConcentration(spell)
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         spell.concentration
-          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)`
-          : `Каст: ${name}${effectNote}${consumeNote}`,
+          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)${naparnikNote}${formNote}`
+          : `Каст: ${name}${effectNote}${consumeNote}${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3408,10 +3475,13 @@ export function MinimalSheetEditor({
           spell,
         ),
       )
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
           spell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3427,10 +3497,13 @@ export function MinimalSheetEditor({
         }
       }
       if (spell.concentration) applyDeskConcentration(spell)
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
           spell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3449,10 +3522,13 @@ export function MinimalSheetEditor({
           spell,
         ),
       )
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, pactResult.pact.level)
       onToast(
         `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
           spell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3470,12 +3546,15 @@ export function MinimalSheetEditor({
         spell,
       ),
     )
+    const naparnikNote = wantsForm
+      ? ''
+      : applyDeskNaparnikFromCast(spell, choice.slotLevel)
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast(
       `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${
         spell.concentration ? ' · концентрация' : ''
-      }`,
+      }${naparnikNote}${formNote}`,
     )
   }
 
@@ -5564,6 +5643,20 @@ export function MinimalSheetEditor({
           classes={draft.classes}
           subclassCasters={subclassCastersForSpells}
           spells={draft.spells}
+          companions={draft.companions}
+          onCompanionsChange={(update) =>
+            setDraft((prev) => ({
+              ...prev,
+              companions:
+                typeof update === 'function' ? update(prev.companions) : update,
+            }))
+          }
+          knownForms={draft.knownForms}
+          onKnownFormsChange={(knownForms) =>
+            setDraft((prev) => ({ ...prev, knownForms }))
+          }
+          hostHp={draft.hpCurrent}
+          hostHpMax={draft.hpMax}
           abilities={effectiveAbilities}
           proficiencyBonus={proficiencyBonus}
           modifiers={draft.modifiers}
@@ -6376,6 +6469,27 @@ export function MinimalSheetEditor({
             }))
             onToast(result.toast)
             setFeatureSelfForm(null)
+          }}
+        />
+      ) : null}
+
+      {pendingSpellSelfForm ? (
+        <SpellFormDialog
+          open
+          spell={pendingSpellSelfForm.spell}
+          slug={pendingSpellSelfForm.slug}
+          companions={draft.companions}
+          knownForms={draft.knownForms}
+          characterLevel={characterLevel}
+          hostHp={draft.hpCurrent ?? 0}
+          hostHpMax={draft.hpMax ?? 0}
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={applySpellSelfFormResult}
+          onClose={() => {
+            setPendingSpellSelfForm(null)
+            onToast(
+              'Облик не выбран — концентрация активна; карточку можно не создавать',
+            )
           }}
         />
       ) : null}
