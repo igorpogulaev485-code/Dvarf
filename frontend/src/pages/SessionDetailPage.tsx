@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
+import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
@@ -328,16 +329,29 @@ export function SessionDetailPage() {
             ) : null}
 
             {liveTab === 'more' ? (
-              <LobbyChatsPanel
-                lobbyId={session.lobby_id}
-                isOwner={session.is_owner}
-                compact
-                ownCharacterOptions={session.lobby_members
-                  .filter((m) => ownCharacterIds.has(m.character_id))
-                  .map((m) => ({ id: m.character_id, name: m.character_name }))}
-                onToast={setToast}
-                onError={setError}
-              />
+              <Stack gap={16}>
+                <LobbyNotesPanel
+                  lobbyId={session.lobby_id}
+                  isOwner={session.is_owner}
+                  compact
+                  defaultScope="party"
+                  ownCharacterOptions={session.lobby_members
+                    .filter((m) => ownCharacterIds.has(m.character_id))
+                    .map((m) => ({ id: m.character_id, name: m.character_name }))}
+                  onToast={setToast}
+                  onError={setError}
+                />
+                <LobbyChatsPanel
+                  lobbyId={session.lobby_id}
+                  isOwner={session.is_owner}
+                  compact
+                  ownCharacterOptions={session.lobby_members
+                    .filter((m) => ownCharacterIds.has(m.character_id))
+                    .map((m) => ({ id: m.character_id, name: m.character_name }))}
+                  onToast={setToast}
+                  onError={setError}
+                />
+              </Stack>
             ) : null}
           </Stack>
         </Panel>

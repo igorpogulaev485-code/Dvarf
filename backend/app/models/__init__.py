@@ -3,6 +3,7 @@ from app.models.character import Character, RulesEdition
 from app.models.chat import ChatChannel, ChatMessage, MasterLetter, MasterLetterMessage
 from app.models.journal import CampaignJournalEntry
 from app.models.lobby import Lobby, LobbyMember, PlaySession, SessionSeat, Setting
+from app.models.note import Note
 from app.models.session_event import SessionEvent
 from app.models.user import (
     AuthProvider,
@@ -30,6 +31,7 @@ __all__ = [
     "LobbyMember",
     "MasterLetter",
     "MasterLetterMessage",
+    "Note",
     "PasswordResetToken",
     "PlaySession",
     "RulesEdition",

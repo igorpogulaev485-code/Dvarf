@@ -46,8 +46,10 @@ from app.schemas.lobby import (
     SettingSummary,
     SettingUpdateRequest,
 )
+from app.schemas.note import NoteCreateRequest, NoteOut, NoteUpdateRequest
 from app.services.chat import ChatService
 from app.services.lobby import LobbyService
+from app.services.note import NoteService
 
 router = APIRouter(tags=["lobbies"])
 
@@ -473,6 +475,50 @@ def close_letter(
     db: DbSession,
 ) -> MasterLetterOut:
     return ChatService(db).close_letter(current_user, letter_id)
+
+
+@router.get("/lobbies/{lobby_id}/notes", response_model=list[NoteOut])
+def list_notes(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    scope: str | None = Query(default=None),
+) -> list[NoteOut]:
+    return NoteService(db).list_notes(current_user, lobby_id, scope=scope)
+
+
+@router.post(
+    "/lobbies/{lobby_id}/notes",
+    response_model=NoteOut,
+    status_code=201,
+)
+async def create_note(
+    lobby_id: UUID,
+    payload: NoteCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> NoteOut:
+    return await NoteService(db).create_note(current_user, lobby_id, payload)
+
+
+@router.patch("/notes/{note_id}", response_model=NoteOut)
+async def update_note(
+    note_id: UUID,
+    payload: NoteUpdateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> NoteOut:
+    return await NoteService(db).update_note(current_user, note_id, payload)
+
+
+@router.delete("/notes/{note_id}", status_code=204)
+async def delete_note(
+    note_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> Response:
+    await NoteService(db).delete_note(current_user, note_id)
+    return Response(status_code=204)
 
 
 @router.websocket("/lobbies/{lobby_id}/ws")

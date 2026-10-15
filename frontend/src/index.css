@@ -2354,3 +2354,79 @@ input {
     align-items: start;
   }
 }
+
+/* —— Notes (A6) —— */
+.notes-composer {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 14px;
+}
+
+.notes-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.notes-item {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+
+.notes-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.notes-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 12px;
+  align-items: baseline;
+}
+
+.notes-item__scope {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.notes-item--personal .notes-item__scope {
+  color: var(--muted);
+}
+
+.notes-item--master .notes-item__scope {
+  color: #b42318;
+}
+
+.notes-item__date {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.notes-item__title {
+  margin: 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.notes-item__who {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.notes-item__body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}

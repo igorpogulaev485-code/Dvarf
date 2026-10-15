@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
-import { LobbyComingSoon } from '../features/lobby/LobbyComingSoon'
 import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs'
 import { LobbyJournalPanel } from '../features/lobby/LobbyJournalPanel'
 import { LobbyMemberMiniCard } from '../features/lobby/LobbyMemberMiniCard'
+import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { VisibilitySettingsPanel } from '../features/lobby/VisibilitySettingsPanel'
 import {
@@ -262,9 +262,14 @@ export function LobbyDetailPage() {
         ) : null}
 
         {tab === 'notes' ? (
-          <LobbyComingSoon
-            title="Заметки"
-            description="Личный блокнот и общая доска пати — следующий слой после чатов."
+          <LobbyNotesPanel
+            lobbyId={lobby.id}
+            isOwner={lobby.is_owner}
+            ownCharacterOptions={lobby.members
+              .filter((m) => ownCharacterIds.has(m.character_id))
+              .map((m) => ({ id: m.character_id, name: m.character_name }))}
+            onToast={setToast}
+            onError={setError}
           />
         ) : null}
 

@@ -291,10 +291,12 @@ export function SessionLiveTablePreviewPage() {
             ) : null}
 
             {liveTab === 'more' ? (
-              <Text tone="muted">
-                Чаты лобби и письмо мастеру — на живой сессии во вкладке «Ещё». Превью:{' '}
-                /dev/lobby-chats-preview
-              </Text>
+              <Stack gap={10}>
+                <Text tone="muted">
+                  На живой сессии здесь: быстрая заметка + чаты. Превью заметок:{' '}
+                  /dev/lobby-notes-preview · чаты: /dev/lobby-chats-preview
+                </Text>
+              </Stack>
             ) : null}
           </Stack>
         </Panel>

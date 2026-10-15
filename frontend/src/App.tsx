@@ -11,6 +11,7 @@ import { LobbyDetailPage } from './pages/LobbyDetailPage'
 import { LobbyHubPreviewPage } from './pages/LobbyHubPreviewPage'
 import { LobbyChatsPreviewPage } from './pages/LobbyChatsPreviewPage'
 import { LobbyJournalPreviewPage } from './pages/LobbyJournalPreviewPage'
+import { LobbyNotesPreviewPage } from './pages/LobbyNotesPreviewPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { SessionAttendancePreviewPage } from './pages/SessionAttendancePreviewPage'
 import { SessionDetailPage } from './pages/SessionDetailPage'
@@ -59,6 +60,7 @@ export default function App() {
           element={<LobbyJournalPreviewPage />}
         />
         <Route path="/dev/lobby-chats-preview" element={<LobbyChatsPreviewPage />} />
+        <Route path="/dev/lobby-notes-preview" element={<LobbyNotesPreviewPage />} />
         <Route
           path="/characters"
           element={
