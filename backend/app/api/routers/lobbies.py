@@ -25,6 +25,8 @@ from app.schemas.chat import (
 )
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
+    CombatPatchRequest,
+    CombatStartRequest,
     CombatantCreateRequest,
     CombatantPatchRequest,
     JoinLobbyRequest,
@@ -395,6 +397,32 @@ async def delete_session_combatant(
         session_id,
         combatant_id,
     )
+
+
+@router.post(
+    "/sessions/{session_id}/combat/start",
+    response_model=SessionDetail,
+)
+async def start_session_combat(
+    session_id: UUID,
+    payload: CombatStartRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).start_combat(current_user, session_id, payload)
+
+
+@router.patch(
+    "/sessions/{session_id}/combat",
+    response_model=SessionDetail,
+)
+async def patch_session_combat(
+    session_id: UUID,
+    payload: CombatPatchRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).patch_combat(current_user, session_id, payload)
 
 
 @router.get("/sessions/{session_id}/events", response_model=list[SessionEventOut])

@@ -3060,6 +3060,134 @@ button.session-concentration-tag {
   font-size: 0.9rem;
 }
 
+.session-combat-track {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--panel) 92%, #78716c);
+}
+
+.session-combat-track__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+}
+
+.session-combat-track__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.session-combat-track__now {
+  margin: 0;
+  flex: 1 1 10rem;
+  font-size: 0.95rem;
+}
+
+.session-combat-track__kind {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.session-combat-track__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.session-combat-order {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.session-combat-order__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.session-combat-order__chip:disabled {
+  cursor: default;
+}
+
+.session-combat-order__chip.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 650;
+}
+
+.session-combat-order__chip.is-enemy:not(.is-active) {
+  border-color: color-mix(in srgb, #b45309 30%, var(--line));
+}
+
+.session-combat-order__init {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.session-combat-order__chip.is-active .session-combat-order__init {
+  color: var(--accent);
+}
+
+.session-init-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.session-init-list__row {
+  display: grid;
+  grid-template-columns: 1fr minmax(5.5rem, 7rem);
+  gap: 10px 14px;
+  align-items: end;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.session-init-list__name {
+  font-weight: 650;
+}
+
+.session-init-list__meta {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 520px) {
+  .session-init-list__row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .session-combatant-mode {
   display: flex;
   gap: 8px;

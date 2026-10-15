@@ -95,6 +95,7 @@ class SessionSeatOut(BaseModel):
     passive_perception: int | None = None
     passive_insight: int | None = None
     passive_investigation: int | None = None
+    dex_mod: int | None = None
     seated_at: datetime
 
 
@@ -250,6 +251,48 @@ class SessionCombatantOut(BaseModel):
     reactions: list[CombatantActionOut] = Field(default_factory=list)
     legendary_actions: list[CombatantActionOut] = Field(default_factory=list)
     members: list[CombatantMemberOut] = Field(default_factory=list)
+    dex_mod: int | None = None
+
+
+class CombatEntryOut(BaseModel):
+    id: str
+    kind: str  # pc | companion | enemy
+    ref_id: str
+    companion_id: str | None = None
+    name: str
+    initiative: int
+    dex_mod: int | None = None
+
+
+class SessionCombatOut(BaseModel):
+    active: bool = False
+    round: int = 1
+    active_index: int = 0
+    entries: list[CombatEntryOut] = Field(default_factory=list)
+
+
+class CombatEntryInput(BaseModel):
+    kind: str = Field(pattern="^(pc|companion|enemy)$")
+    ref_id: str = Field(min_length=1, max_length=80)
+    companion_id: str | None = Field(default=None, max_length=80)
+    name: str = Field(min_length=1, max_length=120)
+    initiative: int = Field(ge=-20, le=99)
+    dex_mod: int | None = Field(default=None, ge=-10, le=10)
+
+
+class CombatStartRequest(BaseModel):
+    """Старт боя: мастер вводит инициативу с физ. кубов (или свою)."""
+
+    entries: list[CombatEntryInput] = Field(min_length=1)
+
+
+class CombatPatchRequest(BaseModel):
+    """Ход / конец боя / правка инициативы активного порядка."""
+
+    action: str | None = None  # next | prev | end
+    active_index: int | None = Field(default=None, ge=0)
+    round: int | None = Field(default=None, ge=1)
+    entries: list[CombatEntryInput] | None = None
 
 
 class CombatantCreateRequest(BaseModel):
@@ -288,6 +331,7 @@ class SessionDetail(BaseModel):
     is_owner: bool
     seats: list[SessionSeatOut]
     combatants: list[SessionCombatantOut] = Field(default_factory=list)
+    combat: SessionCombatOut = Field(default_factory=SessionCombatOut)
     lobby_members: list[LobbyMemberOut]
     visibility_profile: dict = Field(default_factory=dict)
     closed_at: datetime | None = None

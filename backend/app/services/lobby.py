@@ -24,11 +24,15 @@ from app.services.sheet_effects import (
 from app.repositories.catalog import CatalogRepository
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
+    CombatEntryOut,
+    CombatPatchRequest,
+    CombatStartRequest,
     CombatantActionOut,
     CombatantCreateRequest,
     CombatantMemberOut,
     CombatantPatchRequest,
     JoinLobbyRequest,
+    SessionCombatOut,
     JournalEntryCreateRequest,
     JournalEntryOut,
     JournalEntryUpdateRequest,
@@ -316,6 +320,11 @@ def _parse_combatants(raw: object) -> list[dict]:
             "bonus_actions": _action_blocks(item.get("bonus_actions")),
             "reactions": _action_blocks(item.get("reactions")),
             "legendary_actions": _action_blocks(item.get("legendary_actions")),
+            "dex_mod": (
+                int(item["dex_mod"])
+                if isinstance(item.get("dex_mod"), int)
+                else None
+            ),
             "members": members,
             "alive_count": 0,
             "member_count": 0,
@@ -357,6 +366,7 @@ def _combatant_out(row: dict) -> SessionCombatantOut:
         reactions=[CombatantActionOut(**a) for a in row.get("reactions") or []],
         legendary_actions=[CombatantActionOut(**a) for a in row.get("legendary_actions") or []],
         members=members,
+        dex_mod=int(row["dex_mod"]) if isinstance(row.get("dex_mod"), int) else None,
     )
 
 
@@ -366,6 +376,88 @@ def _speed_walk(raw: object) -> int | None:
     if isinstance(raw, dict) and isinstance(raw.get("walk"), int):
         return raw["walk"]
     return None
+
+
+def _dex_mod_from_abilities(raw: object) -> int | None:
+    if not isinstance(raw, dict):
+        return None
+    dex = raw.get("dex")
+    if isinstance(dex, int):
+        return _ability_mod(dex)
+    if isinstance(dex, dict) and isinstance(dex.get("score"), int):
+        return _ability_mod(dex["score"])
+    return None
+
+
+def _dex_mod_from_character(character: Character | None) -> int | None:
+    if character is None:
+        return None
+    sheet = character.sheet or {}
+    abilities = sheet.get("abilities") or {}
+    return _dex_mod_from_abilities(abilities)
+
+
+def _sort_combat_entries(entries: list[dict]) -> list[dict]:
+    return sorted(
+        entries,
+        key=lambda e: (
+            -int(e.get("initiative") or 0),
+            -(e.get("dex_mod") if isinstance(e.get("dex_mod"), int) else -99),
+            str(e.get("name") or ""),
+        ),
+    )
+
+
+def _parse_combat_state(raw: object) -> dict:
+    if not isinstance(raw, dict):
+        return {"active": False, "round": 1, "active_index": 0, "entries": []}
+    entries: list[dict] = []
+    raw_entries = raw.get("entries")
+    if isinstance(raw_entries, list):
+        for item in raw_entries:
+            if not isinstance(item, dict):
+                continue
+            eid = str(item.get("id") or "").strip() or str(uuid4())
+            kind = str(item.get("kind") or "").strip()
+            ref_id = str(item.get("ref_id") or "").strip()
+            name = str(item.get("name") or "").strip()
+            if kind not in {"pc", "companion", "enemy"} or not ref_id or not name:
+                continue
+            companion_id = item.get("companion_id")
+            dex_mod = item.get("dex_mod")
+            entries.append(
+                {
+                    "id": eid,
+                    "kind": kind,
+                    "ref_id": ref_id,
+                    "companion_id": str(companion_id) if companion_id else None,
+                    "name": name,
+                    "initiative": int(item.get("initiative") or 0),
+                    "dex_mod": int(dex_mod) if isinstance(dex_mod, int) else None,
+                }
+            )
+    active = bool(raw.get("active")) and len(entries) > 0
+    active_index = int(raw.get("active_index") or 0)
+    if entries:
+        active_index = max(0, min(len(entries) - 1, active_index))
+    else:
+        active_index = 0
+    return {
+        "active": active,
+        "round": max(1, int(raw.get("round") or 1)),
+        "active_index": active_index,
+        "entries": entries if active else [],
+    }
+
+
+def _combat_out(raw: object) -> SessionCombatOut:
+    state = _parse_combat_state(raw)
+    return SessionCombatOut(
+        active=bool(state["active"]),
+        round=int(state["round"]),
+        active_index=int(state["active_index"]),
+        entries=[CombatEntryOut(**e) for e in state["entries"]],
+    )
 
 
 class LobbyService:
@@ -748,6 +840,7 @@ class LobbyService:
                     passive_perception=extras["passive_perception"],
                     passive_insight=extras["passive_insight"],
                     passive_investigation=extras["passive_investigation"],
+                    dex_mod=_dex_mod_from_character(character),
                     seated_at=seat.seated_at,
                 )
             )
@@ -763,6 +856,7 @@ class LobbyService:
             is_owner=lobby.owner_id == user.id,
             seats=seats,
             combatants=combatants,
+            combat=_combat_out(getattr(session, "combat", None) or {}),
             lobby_members=members,
             visibility_profile=lobby.visibility_profile or {},
             closed_at=session.closed_at,
@@ -1401,6 +1495,7 @@ class LobbyService:
                 "bonus_actions": _action_blocks(data.get("bonus_actions")),
                 "reactions": _action_blocks(data.get("reactions")),
                 "legendary_actions": _action_blocks(data.get("legendary_actions")),
+                "dex_mod": _dex_mod_from_abilities(data.get("abilities")),
             }
         else:
             name = (payload.name or "").strip()
@@ -1427,6 +1522,7 @@ class LobbyService:
                 "bonus_actions": [],
                 "reactions": [],
                 "legendary_actions": [],
+                "dex_mod": None,
             }
 
         combatants = _parse_combatants(session.combatants)
@@ -1557,6 +1653,136 @@ class LobbyService:
             raise NotFoundError("Противник не найден", code="combatant_not_found")
         session.combatants = next_list
         flag_modified(session, "combatants")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        return detail
+
+    async def start_combat(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: CombatStartRequest,
+    ) -> SessionDetail:
+        session, lobby = self._require_session_owner(user, session_id)
+        from sqlalchemy.orm.attributes import flag_modified
+
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+
+        entries: list[dict] = []
+        for item in payload.entries:
+            entries.append(
+                {
+                    "id": str(uuid4()),
+                    "kind": item.kind,
+                    "ref_id": item.ref_id.strip(),
+                    "companion_id": item.companion_id,
+                    "name": item.name.strip(),
+                    "initiative": int(item.initiative),
+                    "dex_mod": item.dex_mod,
+                }
+            )
+        entries = _sort_combat_entries(entries)
+        session.combat = {
+            "active": True,
+            "round": 1,
+            "active_index": 0,
+            "entries": entries,
+        }
+        flag_modified(session, "combat")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        return detail
+
+    async def patch_combat(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: CombatPatchRequest,
+    ) -> SessionDetail:
+        session, lobby = self._require_session_owner(user, session_id)
+        from sqlalchemy.orm.attributes import flag_modified
+
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+
+        state = _parse_combat_state(session.combat)
+
+        if payload.action == "end":
+            session.combat = {
+                "active": False,
+                "round": 1,
+                "active_index": 0,
+                "entries": [],
+            }
+            flag_modified(session, "combat")
+            self.db.commit()
+            detail = self._session_detail(session, lobby, user)
+            await session_hub.broadcast(
+                session.id,
+                {"type": "session_update", "session": detail.model_dump(mode="json")},
+            )
+            return detail
+
+        if payload.entries is not None:
+            entries = []
+            for item in payload.entries:
+                entries.append(
+                    {
+                        "id": str(uuid4()),
+                        "kind": item.kind,
+                        "ref_id": item.ref_id.strip(),
+                        "companion_id": item.companion_id,
+                        "name": item.name.strip(),
+                        "initiative": int(item.initiative),
+                        "dex_mod": item.dex_mod,
+                    }
+                )
+            state["entries"] = _sort_combat_entries(entries)
+            state["active"] = len(state["entries"]) > 0
+            state["active_index"] = 0
+            state["round"] = 1
+
+        if not state["entries"]:
+            raise AppError("Бой не начат", code="combat_inactive", status_code=400)
+
+        n = len(state["entries"])
+        idx = int(state["active_index"])
+        round_no = int(state["round"])
+
+        if payload.action == "next":
+            idx += 1
+            if idx >= n:
+                idx = 0
+                round_no += 1
+        elif payload.action == "prev":
+            idx -= 1
+            if idx < 0:
+                idx = n - 1
+                round_no = max(1, round_no - 1)
+        elif payload.action not in (None, ""):
+            raise AppError("Неизвестное действие боя", code="combat_bad_action", status_code=400)
+
+        if payload.active_index is not None:
+            idx = max(0, min(n - 1, int(payload.active_index)))
+        if payload.round is not None:
+            round_no = max(1, int(payload.round))
+
+        session.combat = {
+            "active": True,
+            "round": round_no,
+            "active_index": idx,
+            "entries": state["entries"],
+        }
+        flag_modified(session, "combat")
         self.db.commit()
         detail = self._session_detail(session, lobby, user)
         await session_hub.broadcast(

@@ -168,6 +168,7 @@ class PlaySession(Base):
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False, default="Новая сессия")
     combatants: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
+    combat: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
