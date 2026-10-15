@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from uuid import UUID
+from datetime import datetime, timezone
+from uuid import UUID, uuid4
 
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppError, NotFoundError
-from datetime import datetime, timezone
 
 from app.models.character import Character
 from app.models.journal import CampaignJournalEntry
@@ -27,6 +27,11 @@ from app.schemas.lobby import (
     LobbyMemberOut,
     LobbySummary,
     LobbyUpdateRequest,
+    SeatCompanionCreateRequest,
+    SeatCompanionOut,
+    SeatCompanionPatchRequest,
+    SeatCombatPatchRequest,
+    SeatConditionOut,
     SeatRequest,
     SessionCloseRequest,
     SessionCloseResponse,
@@ -73,12 +78,60 @@ def _passive_from_sheet(sheet: dict, skill_key: str, ability_key: str) -> int | 
     return 10 + bonus
 
 
+def _parse_conditions(raw: object) -> list[dict]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        slug = str(item.get("slug") or "").strip()
+        name = str(item.get("name") or slug).strip()
+        if not slug and not name:
+            continue
+        catalog_id = item.get("catalog_id")
+        out.append(
+            {
+                "slug": slug or name.lower(),
+                "name": name or slug,
+                "catalog_id": str(catalog_id) if catalog_id else None,
+            }
+        )
+    return out
+
+
+def _parse_companions(raw: object) -> list[dict]:
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        cid = str(item.get("id") or "").strip()
+        name = str(item.get("name") or "").strip()
+        if not cid or not name:
+            continue
+        out.append(
+            {
+                "id": cid,
+                "name": name,
+                "hp_current": item.get("hp_current") if isinstance(item.get("hp_current"), int) else None,
+                "hp_max": item.get("hp_max") if isinstance(item.get("hp_max"), int) else None,
+                "ac": item.get("ac") if isinstance(item.get("ac"), int) else None,
+                "conditions": _parse_conditions(item.get("conditions")),
+            }
+        )
+    return out
+
+
 def _seat_combat_fields(character: Character | None) -> dict:
     if character is None:
         return {
             "ac": None,
             "speed": None,
             "inspiration": False,
+            "conditions": [],
+            "companions": [],
             "passive_perception": None,
             "passive_insight": None,
             "passive_investigation": None,
@@ -89,6 +142,8 @@ def _seat_combat_fields(character: Character | None) -> dict:
         "ac": combat.get("ac") if isinstance(combat.get("ac"), int) else None,
         "speed": combat.get("speed") if isinstance(combat.get("speed"), int) else None,
         "inspiration": bool(combat.get("inspiration")),
+        "conditions": _parse_conditions(combat.get("conditions")),
+        "companions": _parse_companions(sheet.get("companions")),
         "passive_perception": _passive_from_sheet(sheet, "perception", "wis"),
         "passive_insight": _passive_from_sheet(sheet, "insight", "wis"),
         "passive_investigation": _passive_from_sheet(sheet, "investigation", "int"),
@@ -477,6 +532,8 @@ class LobbyService:
                     ac=extras["ac"],
                     speed=extras["speed"],
                     inspiration=extras["inspiration"],
+                    conditions=[SeatConditionOut(**c) for c in extras["conditions"]],
+                    companions=[SeatCompanionOut(**c) for c in extras["companions"]],
                     passive_perception=extras["passive_perception"],
                     passive_insight=extras["passive_insight"],
                     passive_investigation=extras["passive_investigation"],
@@ -802,3 +859,182 @@ class LobbyService:
             {"type": "session_event", "event": out.model_dump(mode="json")},
         )
         return out
+
+    def _require_seat_actor(
+        self,
+        user: User,
+        session_id: UUID,
+        character_id: UUID,
+    ) -> tuple[PlaySession, Lobby, Character]:
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_view(lobby, user)
+        if self.lobbies.get_seat(session.id, character_id) is None:
+            raise AppError(
+                "Персонаж не за столом",
+                code="character_not_seated",
+                status_code=400,
+            )
+        member = self.lobbies.get_member(lobby.id, character_id)
+        if member is None:
+            raise AppError("Персонаж не в лобби", code="character_not_in_lobby", status_code=400)
+        is_owner = lobby.owner_id == user.id
+        is_char_owner = member.user_id == user.id
+        if not is_owner and not is_char_owner:
+            raise AppError(
+                "Только мастер или владелец персонажа",
+                code="forbidden",
+                status_code=403,
+            )
+        char_map = self.lobbies.get_characters_map([character_id])
+        character = char_map.get(character_id)
+        if character is None:
+            raise NotFoundError("Персонаж не найден", code="character_not_found")
+        return session, lobby, character
+
+    def _mutate_sheet_combat(self, character: Character) -> dict:
+        sheet = dict(character.sheet or {})
+        combat = dict(sheet.get("combat") or {})
+        sheet["combat"] = combat
+        character.sheet = sheet
+        character.sheet_version = int(character.sheet_version or 1) + 1
+        return combat
+
+    async def patch_seat_combat(
+        self,
+        user: User,
+        session_id: UUID,
+        character_id: UUID,
+        payload: SeatCombatPatchRequest,
+    ) -> SessionDetail:
+        session, lobby, character = self._require_seat_actor(user, session_id, character_id)
+        combat = self._mutate_sheet_combat(character)
+        if payload.inspiration is not None:
+            combat["inspiration"] = bool(payload.inspiration)
+        if payload.conditions is not None:
+            combat["conditions"] = [
+                {
+                    "slug": c.slug,
+                    "name": c.name,
+                    "catalog_id": c.catalog_id,
+                }
+                for c in payload.conditions
+            ]
+        from sqlalchemy.orm.attributes import flag_modified
+
+        flag_modified(character, "sheet")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        return detail
+
+    async def add_seat_companion(
+        self,
+        user: User,
+        session_id: UUID,
+        character_id: UUID,
+        payload: SeatCompanionCreateRequest,
+    ) -> SessionDetail:
+        session, lobby, character = self._require_seat_actor(user, session_id, character_id)
+        sheet = dict(character.sheet or {})
+        companions = _parse_companions(sheet.get("companions"))
+        companions.append(
+            {
+                "id": str(uuid4()),
+                "name": payload.name.strip(),
+                "hp_current": payload.hp_current if payload.hp_current is not None else payload.hp_max,
+                "hp_max": payload.hp_max,
+                "ac": payload.ac,
+                "conditions": [],
+            }
+        )
+        sheet["companions"] = companions
+        character.sheet = sheet
+        character.sheet_version = int(character.sheet_version or 1) + 1
+        from sqlalchemy.orm.attributes import flag_modified
+
+        flag_modified(character, "sheet")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        return detail
+
+    async def patch_seat_companion(
+        self,
+        user: User,
+        session_id: UUID,
+        character_id: UUID,
+        companion_id: str,
+        payload: SeatCompanionPatchRequest,
+    ) -> SessionDetail:
+        session, lobby, character = self._require_seat_actor(user, session_id, character_id)
+        sheet = dict(character.sheet or {})
+        companions = _parse_companions(sheet.get("companions"))
+        found = False
+        for item in companions:
+            if item["id"] != companion_id:
+                continue
+            found = True
+            if payload.name is not None:
+                item["name"] = payload.name.strip()
+            if payload.hp_current is not None:
+                item["hp_current"] = payload.hp_current
+            if payload.hp_max is not None:
+                item["hp_max"] = payload.hp_max
+            if payload.ac is not None:
+                item["ac"] = payload.ac
+            if payload.conditions is not None:
+                item["conditions"] = [
+                    {"slug": c.slug, "name": c.name, "catalog_id": c.catalog_id}
+                    for c in payload.conditions
+                ]
+        if not found:
+            raise NotFoundError("Напарник не найден", code="companion_not_found")
+        sheet["companions"] = companions
+        character.sheet = sheet
+        character.sheet_version = int(character.sheet_version or 1) + 1
+        from sqlalchemy.orm.attributes import flag_modified
+
+        flag_modified(character, "sheet")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        return detail
+
+    async def delete_seat_companion(
+        self,
+        user: User,
+        session_id: UUID,
+        character_id: UUID,
+        companion_id: str,
+    ) -> SessionDetail:
+        session, lobby, character = self._require_seat_actor(user, session_id, character_id)
+        sheet = dict(character.sheet or {})
+        companions = _parse_companions(sheet.get("companions"))
+        next_list = [c for c in companions if c["id"] != companion_id]
+        if len(next_list) == len(companions):
+            raise NotFoundError("Напарник не найден", code="companion_not_found")
+        sheet["companions"] = next_list
+        character.sheet = sheet
+        character.sheet_version = int(character.sheet_version or 1) + 1
+        from sqlalchemy.orm.attributes import flag_modified
+
+        flag_modified(character, "sheet")
+        self.db.commit()
+        detail = self._session_detail(session, lobby, user)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        return detail

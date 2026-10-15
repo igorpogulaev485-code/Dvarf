@@ -46,6 +46,21 @@ class SessionSummary(BaseModel):
     updated_at: datetime
 
 
+class SeatConditionOut(BaseModel):
+    slug: str
+    name: str
+    catalog_id: str | None = None
+
+
+class SeatCompanionOut(BaseModel):
+    id: str
+    name: str
+    hp_current: int | None = None
+    hp_max: int | None = None
+    ac: int | None = None
+    conditions: list[SeatConditionOut] = Field(default_factory=list)
+
+
 class SessionSeatOut(BaseModel):
     character_id: UUID
     character_name: str
@@ -57,10 +72,34 @@ class SessionSeatOut(BaseModel):
     ac: int | None = None
     speed: int | None = None
     inspiration: bool = False
+    conditions: list[SeatConditionOut] = Field(default_factory=list)
+    companions: list[SeatCompanionOut] = Field(default_factory=list)
     passive_perception: int | None = None
     passive_insight: int | None = None
     passive_investigation: int | None = None
     seated_at: datetime
+
+
+class SeatCombatPatchRequest(BaseModel):
+    """Жесты за столом: вдохновение / состояния без полного редактора листа."""
+
+    inspiration: bool | None = None
+    conditions: list[SeatConditionOut] | None = None
+
+
+class SeatCompanionCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    hp_current: int | None = Field(default=None, ge=0, le=9999)
+    hp_max: int | None = Field(default=None, ge=0, le=9999)
+    ac: int | None = Field(default=None, ge=0, le=40)
+
+
+class SeatCompanionPatchRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    hp_current: int | None = Field(default=None, ge=0, le=9999)
+    hp_max: int | None = Field(default=None, ge=0, le=9999)
+    ac: int | None = Field(default=None, ge=0, le=40)
+    conditions: list[SeatConditionOut] | None = None
 
 
 class LobbySummary(BaseModel):

@@ -24,6 +24,17 @@ const DEMO_SEATS: SessionSeat[] = [
     ac: 18,
     speed: 30,
     inspiration: true,
+    conditions: [],
+    companions: [
+      {
+        id: 'comp1',
+        name: 'Скакун',
+        hp_current: 19,
+        hp_max: 19,
+        ac: 11,
+        conditions: [],
+      },
+    ],
     passive_perception: 12,
     passive_insight: 11,
     passive_investigation: 10,
@@ -40,6 +51,8 @@ const DEMO_SEATS: SessionSeat[] = [
     ac: 16,
     speed: 30,
     inspiration: false,
+    conditions: [{ slug: 'poisoned', name: 'Отравленный', catalog_id: null }],
+    companions: [],
     passive_perception: 15,
     passive_insight: 15,
     passive_investigation: 11,
@@ -169,6 +182,7 @@ export function SessionLiveTablePreviewPage() {
   const [closeTitle, setCloseTitle] = useState('Итог: Глава 3 — Мост')
   const [closeSummary, setCloseSummary] = useState('')
   const [writeJournal, setWriteJournal] = useState(true)
+  const [seats, setSeats] = useState(DEMO_SEATS)
 
   // Как в продукте: профиль из настроек лобби; здесь — дефолт (всё видно игрокам).
   // Мастер на реальном экране = is_owner лобби, не отдельный переключатель.
@@ -236,13 +250,54 @@ export function SessionLiveTablePreviewPage() {
 
             {liveTab === 'table' ? (
               <div className="session-table-grid">
-                {DEMO_SEATS.map((seat) => (
+                {seats.map((seat) => (
                   <SessionTableCard
                     key={seat.character_id}
                     seat={seat}
                     visibility={visibility}
                     revealAll
+                    masterControls={!closed}
                     sheetLabel="Смотреть"
+                    onToggleInspiration={(next) => {
+                      setSeats((prev) =>
+                        prev.map((s) =>
+                          s.character_id === seat.character_id
+                            ? { ...s, inspiration: next }
+                            : s,
+                        ),
+                      )
+                      setToast(next ? 'Вдохновение выдано' : 'Вдохновение снято')
+                    }}
+                    onToggleCondition={(condition) => {
+                      setSeats((prev) =>
+                        prev.map((s) => {
+                          if (s.character_id !== seat.character_id) return s
+                          const current = s.conditions ?? []
+                          const exists = current.some((c) => c.slug === condition.slug)
+                          return {
+                            ...s,
+                            conditions: exists
+                              ? current.filter((c) => c.slug !== condition.slug)
+                              : [...current, condition],
+                          }
+                        }),
+                      )
+                    }}
+                    onAddCompanion={() =>
+                      setToast('На живой сессии: диалог «+ Напарник»')
+                    }
+                    onRemoveCompanion={(id) => {
+                      setSeats((prev) =>
+                        prev.map((s) =>
+                          s.character_id === seat.character_id
+                            ? {
+                                ...s,
+                                companions: (s.companions ?? []).filter((c) => c.id !== id),
+                              }
+                            : s,
+                        ),
+                      )
+                    }}
                   />
                 ))}
               </div>
@@ -260,7 +315,7 @@ export function SessionLiveTablePreviewPage() {
                 </label>
                 <SessionEventFeed events={visibleEvents} />
                 <ManualRollForm
-                  seats={DEMO_SEATS}
+                  seats={seats}
                   ownCharacterIds={new Set(['c1'])}
                   isOwner
                   onSubmit={(payload) => {
@@ -271,7 +326,7 @@ export function SessionLiveTablePreviewPage() {
                       character_id: payload.character_id ?? null,
                       actor_user_id: 'u-demo',
                       character_name: payload.character_id
-                        ? DEMO_SEATS.find((s) => s.character_id === payload.character_id)
+                        ? seats.find((s) => s.character_id === payload.character_id)
                             ?.character_name ?? 'Персонаж'
                         : 'Мастер',
                       title: payload.title,

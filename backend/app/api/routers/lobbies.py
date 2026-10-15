@@ -34,6 +34,9 @@ from app.schemas.lobby import (
     LobbyDetail,
     LobbySummary,
     LobbyUpdateRequest,
+    SeatCompanionCreateRequest,
+    SeatCompanionPatchRequest,
+    SeatCombatPatchRequest,
     SeatRequest,
     SessionCloseRequest,
     SessionCloseResponse,
@@ -245,6 +248,85 @@ def unseat_character(
     db: DbSession,
 ) -> SessionDetail:
     return LobbyService(db).unseat_character(current_user, session_id, character_id)
+
+
+@router.patch(
+    "/sessions/{session_id}/seats/{character_id}/combat",
+    response_model=SessionDetail,
+)
+async def patch_seat_combat(
+    session_id: UUID,
+    character_id: UUID,
+    payload: SeatCombatPatchRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).patch_seat_combat(
+        current_user,
+        session_id,
+        character_id,
+        payload,
+    )
+
+
+@router.post(
+    "/sessions/{session_id}/seats/{character_id}/companions",
+    response_model=SessionDetail,
+    status_code=201,
+)
+async def add_seat_companion(
+    session_id: UUID,
+    character_id: UUID,
+    payload: SeatCompanionCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).add_seat_companion(
+        current_user,
+        session_id,
+        character_id,
+        payload,
+    )
+
+
+@router.patch(
+    "/sessions/{session_id}/seats/{character_id}/companions/{companion_id}",
+    response_model=SessionDetail,
+)
+async def patch_seat_companion(
+    session_id: UUID,
+    character_id: UUID,
+    companion_id: str,
+    payload: SeatCompanionPatchRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).patch_seat_companion(
+        current_user,
+        session_id,
+        character_id,
+        companion_id,
+        payload,
+    )
+
+
+@router.delete(
+    "/sessions/{session_id}/seats/{character_id}/companions/{companion_id}",
+    response_model=SessionDetail,
+)
+async def delete_seat_companion(
+    session_id: UUID,
+    character_id: UUID,
+    companion_id: str,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionDetail:
+    return await LobbyService(db).delete_seat_companion(
+        current_user,
+        session_id,
+        character_id,
+        companion_id,
+    )
 
 
 @router.get("/sessions/{session_id}/events", response_model=list[SessionEventOut])

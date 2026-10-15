@@ -65,6 +65,21 @@ export type LobbyUpdatePayload = {
   visibility_profile?: unknown
 }
 
+export type SeatCondition = {
+  slug: string
+  name: string
+  catalog_id?: string | null
+}
+
+export type SeatCompanion = {
+  id: string
+  name: string
+  hp_current: number | null
+  hp_max: number | null
+  ac: number | null
+  conditions: SeatCondition[]
+}
+
 export type SessionSeat = {
   character_id: string
   character_name: string
@@ -76,6 +91,8 @@ export type SessionSeat = {
   ac?: number | null
   speed?: number | null
   inspiration?: boolean
+  conditions?: SeatCondition[]
+  companions?: SeatCompanion[]
   passive_perception?: number | null
   passive_insight?: number | null
   passive_investigation?: number | null
@@ -266,6 +283,71 @@ export async function unseatCharacter(
   return apiRequest<SessionDetail>(`/sessions/${sessionId}/seats/${characterId}`, {
     method: 'DELETE',
   })
+}
+
+export async function patchSeatCombat(
+  sessionId: string,
+  characterId: string,
+  payload: { inspiration?: boolean; conditions?: SeatCondition[] },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/seats/${characterId}/combat`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
+export async function addSeatCompanion(
+  sessionId: string,
+  characterId: string,
+  payload: {
+    name: string
+    hp_current?: number | null
+    hp_max?: number | null
+    ac?: number | null
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/seats/${characterId}/companions`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
+export async function patchSeatCompanion(
+  sessionId: string,
+  characterId: string,
+  companionId: string,
+  payload: {
+    name?: string
+    hp_current?: number | null
+    hp_max?: number | null
+    ac?: number | null
+    conditions?: SeatCondition[]
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/seats/${characterId}/companions/${companionId}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
+export async function deleteSeatCompanion(
+  sessionId: string,
+  characterId: string,
+  companionId: string,
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/seats/${characterId}/companions/${companionId}`,
+    { method: 'DELETE' },
+  )
 }
 
 export function lobbyQrUrl(inviteCode: string): string {

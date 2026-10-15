@@ -1,21 +1,26 @@
 import { useEffect, useRef } from 'react'
 import { getAccessToken } from '../../shared/api/client'
-import { sessionWsUrl, type SessionEvent } from '../../shared/api/lobbies'
+import { sessionWsUrl, type SessionDetail, type SessionEvent } from '../../shared/api/lobbies'
 
 type SessionWsMessage =
   | { type: 'session_event'; event: SessionEvent }
+  | { type: 'session_update'; session: SessionDetail }
   | { type: string; [key: string]: unknown }
+
+type Handlers = {
+  onEvent?: (event: SessionEvent) => void
+  onSessionUpdate?: (session: SessionDetail) => void
+}
 
 /**
  * Подписка на живую шину сессии. Переподключается при смене sessionId.
- * onEvent стабилизируется через ref — можно передавать inline-колбэк.
  */
 export function useSessionRealtime(
   sessionId: string | null | undefined,
-  onEvent: (event: SessionEvent) => void,
+  handlers: Handlers,
 ): { connected: boolean } {
-  const onEventRef = useRef(onEvent)
-  onEventRef.current = onEvent
+  const handlersRef = useRef(handlers)
+  handlersRef.current = handlers
   const connectedRef = useRef(false)
 
   useEffect(() => {
@@ -58,7 +63,10 @@ export function useSessionRealtime(
         try {
           const data = JSON.parse(String(msg.data)) as SessionWsMessage
           if (data.type === 'session_event' && data.event) {
-            onEventRef.current(data.event)
+            handlersRef.current.onEvent?.(data.event)
+          }
+          if (data.type === 'session_update' && data.session) {
+            handlersRef.current.onSessionUpdate?.(data.session)
           }
         } catch {
           // ignore non-json

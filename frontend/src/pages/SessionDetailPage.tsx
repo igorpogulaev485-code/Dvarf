@@ -14,17 +14,21 @@ import { normalizeVisibilityProfile } from '../features/lobby/visibilityProfile'
 import { listCharacters } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import {
+  addSeatCompanion,
   closeSession,
   createSessionRoll,
+  deleteSeatCompanion,
   getSession,
   listSessionEvents,
+  patchSeatCombat,
   seatCharacter,
   unseatCharacter,
   updateSession,
+  type SeatCondition,
   type SessionDetail,
   type SessionEvent,
 } from '../shared/api/lobbies'
-import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text, Toast } from '../ui'
 
 export function SessionDetailPage() {
   const { sessionId = '' } = useParams()
@@ -44,6 +48,11 @@ export function SessionDetailPage() {
   const [closeSummary, setCloseSummary] = useState('')
   const [writeJournal, setWriteJournal] = useState(true)
   const [letterBadgeCount, setLetterBadgeCount] = useState(0)
+  const [companionOpen, setCompanionOpen] = useState(false)
+  const [companionHostId, setCompanionHostId] = useState<string | null>(null)
+  const [companionName, setCompanionName] = useState('')
+  const [companionHp, setCompanionHp] = useState<number | null>(11)
+  const [companionAc, setCompanionAc] = useState<number | null>(13)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -83,12 +92,17 @@ export function SessionDetailPage() {
     }
   }, [session, reloadEvents])
 
-  useSessionRealtime(session?.id, (incoming) => {
-    setEvents((prev) => {
-      if (prev.some((e) => e.id === incoming.id)) return prev
-      if (rollsOnly && incoming.event_type !== 'roll') return prev
-      return [incoming, ...prev]
-    })
+  useSessionRealtime(session?.id, {
+    onEvent: (incoming) => {
+      setEvents((prev) => {
+        if (prev.some((e) => e.id === incoming.id)) return prev
+        if (rollsOnly && incoming.event_type !== 'roll') return prev
+        return [incoming, ...prev]
+      })
+    },
+    onSessionUpdate: (next) => {
+      setSession(next)
+    },
   })
 
   useEffect(() => {
@@ -274,13 +288,58 @@ export function SessionDetailPage() {
                 <div className="session-table-grid">
                   {session.seats.map((seat) => {
                     const isOwn = ownCharacterIds.has(seat.character_id)
+                    const canControl = session.is_owner || isOwn
                     return (
                       <SessionTableCard
                         key={seat.character_id}
                         seat={seat}
                         visibility={visibility}
                         revealAll={session.is_owner}
+                        masterControls={canControl && !session.closed_at}
+                        busy={busy}
                         sheetLabel={session.is_owner && !isOwn ? 'Смотреть' : 'Лист'}
+                        onToggleInspiration={(next) => {
+                          void run(async () => {
+                            const updated = await patchSeatCombat(session.id, seat.character_id, {
+                              inspiration: next,
+                            })
+                            setSession(updated)
+                          })
+                        }}
+                        onToggleCondition={(condition: SeatCondition) => {
+                          void run(async () => {
+                            const current = seat.conditions ?? []
+                            const exists = current.some((c) => c.slug === condition.slug)
+                            const next = exists
+                              ? current.filter((c) => c.slug !== condition.slug)
+                              : [...current, condition]
+                            const updated = await patchSeatCombat(session.id, seat.character_id, {
+                              conditions: next,
+                            })
+                            setSession(updated)
+                          })
+                        }}
+                        onAddCompanion={
+                          canControl && !session.closed_at
+                            ? () => {
+                                setCompanionHostId(seat.character_id)
+                                setCompanionName('')
+                                setCompanionHp(11)
+                                setCompanionAc(13)
+                                setCompanionOpen(true)
+                              }
+                            : undefined
+                        }
+                        onRemoveCompanion={(companionId) => {
+                          void run(async () => {
+                            const updated = await deleteSeatCompanion(
+                              session.id,
+                              seat.character_id,
+                              companionId,
+                            )
+                            setSession(updated)
+                          })
+                        }}
                       />
                     )
                   })}
@@ -443,6 +502,48 @@ export function SessionDetailPage() {
               </Field>
             </>
           ) : null}
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={companionOpen}
+        title="Напарник"
+        primaryLabel={busy ? 'Добавляем…' : 'Добавить'}
+        secondaryLabel="Отмена"
+        busy={busy}
+        onPrimary={() => {
+          if (!companionHostId || !companionName.trim()) return
+          void run(async () => {
+            const updated = await addSeatCompanion(session.id, companionHostId, {
+              name: companionName.trim(),
+              hp_current: companionHp,
+              hp_max: companionHp,
+              ac: companionAc,
+            })
+            setSession(updated)
+            setCompanionOpen(false)
+            setToast('Напарник за столом')
+          })
+        }}
+        onSecondary={() => setCompanionOpen(false)}
+      >
+        <Stack gap={12}>
+          <Text tone="muted">Отдельная карточка под хозяином — видно союзникам по видимости.</Text>
+          <Field label="Имя">
+            <Input
+              value={companionName}
+              onChange={(e) => setCompanionName(e.target.value)}
+              placeholder="Волк / скакун / фамильяр"
+            />
+          </Field>
+          <div className="manual-roll-form__row">
+            <Field label="ХП">
+              <NumberInput value={companionHp} min={0} max={9999} onValueChange={setCompanionHp} />
+            </Field>
+            <Field label="КД">
+              <NumberInput value={companionAc} min={0} max={40} onValueChange={setCompanionAc} />
+            </Field>
+          </div>
         </Stack>
       </Dialog>
 
