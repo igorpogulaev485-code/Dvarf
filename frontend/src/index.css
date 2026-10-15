@@ -1468,6 +1468,7 @@ input {
 
 .lobby-hub-tabs__scroll {
   display: flex;
+  flex-wrap: nowrap;
   gap: 8px;
   overflow-x: auto;
   padding: 4px 4px 6px;
