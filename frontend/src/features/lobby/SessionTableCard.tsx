@@ -1,5 +1,10 @@
 import { Link } from 'react-router-dom'
-import type { SeatCompanion, SeatCondition, SessionSeat } from '../../shared/api/lobbies'
+import type {
+  SeatCompanion,
+  SeatCondition,
+  SeatEffect,
+  SessionSeat,
+} from '../../shared/api/lobbies'
 import { Text } from '../../ui'
 import {
   normalizeVisibilityProfile,
@@ -18,6 +23,8 @@ type Props = {
   onToggleInspiration?: (next: boolean) => void
   /** Снять состояние с этого персонажа (тап по тегу) */
   onRemoveCondition?: (condition: SeatCondition) => void
+  onRemoveEffect?: (effect: SeatEffect) => void
+  onClearConcentration?: () => void
   onAddCompanion?: () => void
   onRemoveCompanion?: (companionId: string) => void
 }
@@ -103,6 +110,8 @@ export function SessionTableCard({
   busy = false,
   onToggleInspiration,
   onRemoveCondition,
+  onRemoveEffect,
+  onClearConcentration,
   onAddCompanion,
   onRemoveCompanion,
 }: Props) {
@@ -121,12 +130,17 @@ export function SessionTableCard({
   const showInspiration = show(fields.resources.enabled, fields.resources.inspiration)
   const showConditions =
     revealAll || (fields.health.enabled && fields.health.conditions !== 'off')
+  const showEffects = showConditions
+  const showConcentration =
+    revealAll || (fields.resources.enabled && fields.resources.inspiration !== 'off')
   const showPortrait =
     revealAll || (fields.identity.enabled && fields.identity.portrait !== 'off')
 
   const tone = hpTone(seat.hp_current, seat.hp_max)
   const initial = (seat.character_name.trim().charAt(0) || '?').toUpperCase()
   const conditions = seat.conditions ?? []
+  const effects = seat.effects ?? []
+  const concentration = seat.concentration ?? null
   const companions = seat.companions ?? []
 
   const hpLabel =
@@ -224,27 +238,91 @@ export function SessionTableCard({
             </div>
           ) : null}
 
-          {showConditions && conditions.length > 0 ? (
-            <div className="session-table-card__conditions" aria-label="Состояния">
-              {conditions.map((c) =>
-                masterControls && onRemoveCondition ? (
-                  <button
-                    key={c.slug}
-                    type="button"
-                    className="session-condition-tag is-removable"
-                    disabled={busy}
-                    title="Снять состояние"
-                    onClick={() => onRemoveCondition(c)}
-                  >
-                    {c.name}
-                    <span aria-hidden> ×</span>
-                  </button>
-                ) : (
-                  <span key={c.slug} className="session-condition-tag">
-                    {c.name}
-                  </span>
-                ),
+          {showConcentration && concentration ? (
+            <div className="session-table-card__concentration">
+              {masterControls && onClearConcentration ? (
+                <button
+                  type="button"
+                  className="session-concentration-tag is-removable"
+                  disabled={busy}
+                  title="Снять концентрацию"
+                  onClick={onClearConcentration}
+                >
+                  Конц. · {concentration.name}
+                  <span aria-hidden> ×</span>
+                </button>
+              ) : (
+                <span className="session-concentration-tag">
+                  Конц. · {concentration.name}
+                </span>
               )}
+            </div>
+          ) : null}
+
+          {(showConditions && conditions.length > 0) ||
+          (showEffects && effects.length > 0) ? (
+            <div className="session-table-card__conditions" aria-label="Состояния и эффекты">
+              {showConditions
+                ? conditions.map((c) =>
+                    masterControls && onRemoveCondition ? (
+                      <button
+                        key={`c-${c.slug}`}
+                        type="button"
+                        className="session-condition-tag is-removable"
+                        disabled={busy}
+                        title="Снять состояние"
+                        onClick={() => onRemoveCondition(c)}
+                      >
+                        {c.name}
+                        <span aria-hidden> ×</span>
+                      </button>
+                    ) : (
+                      <span key={`c-${c.slug}`} className="session-condition-tag">
+                        {c.name}
+                      </span>
+                    ),
+                  )
+                : null}
+              {showEffects
+                ? effects.map((fx) => {
+                    const label = fx.source_name
+                      ? `${fx.name} · ${fx.source_name}`
+                      : fx.name
+                    return masterControls && onRemoveEffect ? (
+                      <button
+                        key={`e-${fx.id}`}
+                        type="button"
+                        className="session-effect-tag is-removable"
+                        disabled={busy}
+                        title={
+                          fx.linked_concentration
+                            ? 'Снять эффект (связан с концентрацией)'
+                            : 'Снять эффект'
+                        }
+                        onClick={() => onRemoveEffect(fx)}
+                      >
+                        {label}
+                        {fx.linked_concentration ? (
+                          <span className="session-effect-tag__link" aria-hidden>
+                            {' '}
+                            ⛓
+                          </span>
+                        ) : null}
+                        <span aria-hidden> ×</span>
+                      </button>
+                    ) : (
+                      <span key={`e-${fx.id}`} className="session-effect-tag">
+                        {label}
+                        {fx.linked_concentration ? (
+                          <span className="session-effect-tag__link" aria-hidden>
+                            {' '}
+                            ⛓
+                          </span>
+                        ) : null}
+                      </span>
+                    )
+                  })
+                : null}
             </div>
           ) : null}
 
