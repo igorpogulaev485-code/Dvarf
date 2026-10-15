@@ -176,11 +176,13 @@ FE CatalogCombobox / FormPickerDialog
 
 ---
 
-### B4 — Остальные «книжные» бестиарии
+### B4 — Остальные «книжные» бестиарии ✅
 
-FTD, BGG, BAM, TCE (в т.ч. **Wildfire Spirit**, Summon*-духи), BMT, … — всё Basic с ttg, не попавшее в B1–B3 и не adventure-only.
+FTD, BGG, BAM, TCE (в т.ч. **Wildfire Spirit**), BMT — Basic с ttg, не B1–B3 и не adventure-only.
 
-| Приёмка | Wildfire Spirit в каталоге с HP-формулой ttg; аудит conflict-строка |
+| Data | `bestiary_books_b4_v1.json` (**290** = FTD85+BGG72+BAM72+BMT41+TCE20) |
+| Migrate | `f8a9b0c1d2e3` upsert |
+| Приёмка | ✅ Wildfire `hp_average=10` + scaling; 0 overlap c B1–B3; audit |
 
 **Разблокирует:** F-side подтягивание статов Wildfire ally из бестиария (часть F6 / отдельный tiny follow-up).
 
