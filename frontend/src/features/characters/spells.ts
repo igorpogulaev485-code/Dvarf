@@ -71,9 +71,9 @@ export type SheetSpell = {
    * Cast picker can spend this instead of a slot/pact; rest recovers `used`.
    */
   grant_cast?: SpellGrantCast
-  /** При касте — выбрать себя и/или союзников (N select’ов). */
+  /** При касте — опциональные select’ы себя/союзников. */
   applies_to_allies?: boolean
-  /** Сколько целей (Благословение = 3). */
+  /** Сколько слотов целей (Благословение = 3); заполнение необязательно. */
   ally_target_count?: number
 }
 
