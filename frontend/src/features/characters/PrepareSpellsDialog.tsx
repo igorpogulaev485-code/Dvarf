@@ -64,10 +64,15 @@ export function PrepareSpellsDialog({
   const unpreparedGroups = useMemo(() => groupSpellsByLevel(unpreparedList), [unpreparedList])
   const availableGroups = useMemo(() => groupSpellsByLevel(availableList), [availableList])
 
+  const bookLost =
+    learnMode === 'spellbook' && Boolean(spells.wizard_spellbook?.bookLost)
+
   function togglePrepared(spell: SheetSpell) {
     if (!countsTowardPrepareLimit(spell.level)) return
     if (isPreparedLocked(spell)) return
     const nextPrepared = !spell.prepared
+    // PHB: without the book you cannot prepare a new list (can keep existing).
+    if (bookLost && nextPrepared) return
     onChange({
       ...spells,
       known: setSpellPrepared(spells.known, spell.id, nextPrepared, spells.max_prepared),
@@ -82,6 +87,7 @@ export function PrepareSpellsDialog({
       !lock &&
       spells.max_prepared != null &&
       preparedCount >= spells.max_prepared
+    const cannotPrepare = bookLost && !spell.prepared
     return (
       <li
         key={spell.id}
@@ -118,10 +124,16 @@ export function PrepareSpellsDialog({
           <button
             type="button"
             className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
-            disabled={atCap}
+            disabled={atCap || cannotPrepare}
             onClick={() => togglePrepared(spell)}
           >
-            {spell.prepared ? 'Убрать' : atCap ? 'Лимит' : 'Подготовить'}
+            {spell.prepared
+              ? 'Убрать'
+              : bookLost
+                ? 'Нет книги'
+                : atCap
+                  ? 'Лимит'
+                  : 'Подготовить'}
           </button>
         )}
       </li>
@@ -161,6 +173,12 @@ export function PrepareSpellsDialog({
             : '«На лист» / «Подготовить»'}
           ).
         </Text>
+        {bookLost ? (
+          <Text tone="muted">
+            Книга утеряна — нельзя готовить новые заклинания. Уже подготовленные остаются до
+            замены книги.
+          </Text>
+        ) : null}
 
         {cantrips.length > 0 ? (
           <div className="prepare-section">

@@ -24,7 +24,13 @@ import {
   resolveSpellbookAddPayment,
 } from '../../shared/dnd/wizardSpellbook'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
+import {
+  syncWizardSpellbookWithInventory,
+  wizardHasUsableSpellbook,
+  wizardSpellbookStatusLabel,
+} from './wizardSpellbookInventory'
 import { SpellCatalogDetails } from './SpellCatalogDetails'
+import type { InventoryItem } from './inventory'
 import {
   addCatalogSpellToKnown,
   canRemoveSheetSpell,
@@ -66,6 +72,8 @@ type GrimoireDialogProps = {
   coins?: CoinPurse | null
   /** Persist purse after a successful paid copy. */
   onCoinsChange?: (coins: CoinPurse) => void
+  /** Inventory — bind/detect physical spellbook for wizard mode. */
+  inventoryItems?: InventoryItem[]
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
@@ -127,6 +135,7 @@ export function GrimoireDialog({
   subclassCasters = [],
   coins = null,
   onCoinsChange,
+  inventoryItems = [],
   onChange,
   onClose,
   onToast,
@@ -197,6 +206,26 @@ export function GrimoireDialog({
     mode === 'spellbook' ? remainingFreeSpellbookSlots(spells.known, wizardLevel) : 0
   const uiCopy = spellAccessUiCopy(mode)
   const unpreparedOnSheet = spells.known.filter((s) => s.level > 0 && !s.prepared).length
+
+  // Slice 2: keep physical book binding fresh when dialog opens.
+  useEffect(() => {
+    if (!open || mode !== 'spellbook') return
+    const synced = syncWizardSpellbookWithInventory({
+      isWizard: true,
+      spells,
+      items: inventoryItems,
+    })
+    if (synced.changed) {
+      onChange(synced.spells)
+      if (synced.message) onToast?.(synced.message)
+    }
+    // Only on open / inventory id set — avoid loops on every spells change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, mode, inventoryItems.map((item) => item.id).join('|')])
+
+  const bookStatus = mode === 'spellbook' ? wizardSpellbookStatusLabel(spells) : null
+  const canWriteToBook =
+    mode !== 'spellbook' || wizardHasUsableSpellbook(spells)
 
   const classFilters = useMemo(() => {
     if (!access.hasCaster) return []
@@ -427,8 +456,12 @@ export function GrimoireDialog({
     }
 
     if (mode === 'spellbook' && level > 0) {
-      if (spells.wizard_spellbook?.bookLost) {
-        onToast?.('Книга заклинаний утеряна — нельзя вносить новые заклинания')
+      if (!canWriteToBook) {
+        onToast?.(
+          spells.wizard_spellbook?.bookLost
+            ? 'Книга заклинаний утеряна — нельзя вносить новые заклинания'
+            : 'Нужна книга заклинаний в инвентаре (привяжи предмет или возьми стартовую)',
+        )
         return
       }
       const payment = resolveSpellbookAddPayment({
@@ -575,6 +608,21 @@ export function GrimoireDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">{budgetHint}</Text>
+        {bookStatus ? (
+          <div className="chip-row">
+            <span
+              className={`sheet-chip${bookStatus.ok ? ' is-on' : ''}`}
+              title="Физическая книга в инвентаре (срез 2)"
+            >
+              {bookStatus.label}
+            </span>
+            {!canWriteToBook ? (
+              <Text tone="muted">
+                Без книги нельзя вносить заклинания. Добавь «Книга заклинаний» в инвентарь.
+              </Text>
+            ) : null}
+          </div>
+        ) : null}
 
         <Field label="Поиск">
           <Input
@@ -773,33 +821,41 @@ export function GrimoireDialog({
                             <button
                               type="button"
                               className="sheet-chip"
-                              disabled={leveledLearnCapReached()}
+                              disabled={leveledLearnCapReached() || !canWriteToBook}
                               onClick={() => addSpell(entry, false)}
                               title={
-                                spellbookCopyGp(entry) > 0
-                                  ? `Платная копия: ${formatGpTotal(spellbookCopyGp(entry))} зм (PHB)`
-                                  : freeBookLeft > 0
-                                    ? `Бесплатно · осталось слотов исследования: ${freeBookLeft}`
-                                    : undefined
+                                !canWriteToBook
+                                  ? 'Нужна книга заклинаний в инвентаре'
+                                  : spellbookCopyGp(entry) > 0
+                                    ? `Платная копия: ${formatGpTotal(spellbookCopyGp(entry))} зм (PHB)`
+                                    : freeBookLeft > 0
+                                      ? `Бесплатно · осталось слотов исследования: ${freeBookLeft}`
+                                      : undefined
                               }
                             >
-                              {leveledLearnCapReached()
-                                ? 'Книга полна'
-                                : spellbookCopyGp(entry) > 0
-                                  ? `В книгу · ${formatGpTotal(spellbookCopyGp(entry))} зм`
-                                  : 'В книгу'}
+                              {!canWriteToBook
+                                ? 'Нет книги'
+                                : leveledLearnCapReached()
+                                  ? 'Книга полна'
+                                  : spellbookCopyGp(entry) > 0
+                                    ? `В книгу · ${formatGpTotal(spellbookCopyGp(entry))} зм`
+                                    : 'В книгу'}
                             </button>
                             <button
                               type="button"
                               className="sheet-chip"
                               disabled={
-                                leveledLearnCapReached() || prepareCapReached()
+                                leveledLearnCapReached() ||
+                                prepareCapReached() ||
+                                !canWriteToBook
                               }
                               onClick={() => addSpell(entry, true)}
                               title={
-                                spellbookCopyGp(entry) > 0
-                                  ? `Платная копия: ${formatGpTotal(spellbookCopyGp(entry))} зм + подготовка`
-                                  : undefined
+                                !canWriteToBook
+                                  ? 'Нужна книга заклинаний в инвентаре'
+                                  : spellbookCopyGp(entry) > 0
+                                    ? `Платная копия: ${formatGpTotal(spellbookCopyGp(entry))} зм + подготовка`
+                                    : undefined
                               }
                             >
                               {spellbookCopyGp(entry) > 0

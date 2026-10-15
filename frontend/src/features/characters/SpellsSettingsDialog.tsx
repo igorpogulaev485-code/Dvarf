@@ -61,6 +61,7 @@ type SpellsSettingsDialogProps = {
   /** Purse for wizard paid spellbook copies. */
   coins?: CoinPurse | null
   onCoinsChange?: (coins: CoinPurse) => void
+  inventoryItems?: import('./inventory').InventoryItem[]
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
@@ -80,6 +81,7 @@ export function SpellsSettingsDialog({
   knownCaster,
   coins = null,
   onCoinsChange,
+  inventoryItems = [],
   onChange,
   onClose,
   onToast,
@@ -693,6 +695,7 @@ export function SpellsSettingsDialog({
         subclassCasters={subclassCasters}
         coins={coins}
         onCoinsChange={onCoinsChange}
+        inventoryItems={inventoryItems}
         onChange={onChange}
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}

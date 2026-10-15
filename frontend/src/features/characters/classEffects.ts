@@ -361,6 +361,10 @@ export function applyClassGrantToDraft(input: {
             created.focus_kind = inferFocusKind({ name: created.name }) ?? 'any'
           }
         }
+        // Wizard starting book — tag slug so inventory sync can bind primaryBookItemId.
+        if (/книга\s+заклинаний/i.test(created.name) || /spell\s*book/i.test(created.name)) {
+          created.catalog_slug = 'spellbook'
+        }
         inventory.items.push(created)
         equipmentItemIds.push(created.id)
 

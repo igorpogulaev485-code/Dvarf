@@ -289,6 +289,7 @@ import {
   inferFocusKind,
   withSpellFocusFlags,
 } from './spellFocus'
+import { syncWizardSpellbookWithInventory } from './wizardSpellbookInventory'
 import {
   playToSheet,
   readPlay,
@@ -1569,6 +1570,15 @@ export function MinimalSheetEditor({
   }
 
   function mergeGrantSlice(prev: Draft, slice: ClassGrantDraftSlice): Draft {
+    const focusSpells = withSpellFocusFlags(prev.spells, slice.inventory.items)
+    const isWizard = prev.classes.some((row) =>
+      /волшебник|wizard|маг/i.test(row.name),
+    )
+    const synced = syncWizardSpellbookWithInventory({
+      isWizard,
+      spells: focusSpells,
+      items: slice.inventory.items,
+    })
     const merged: Draft = {
       ...prev,
       identity: slice.identity,
@@ -1579,11 +1589,14 @@ export function MinimalSheetEditor({
       hpCurrent: slice.hpCurrent,
       inventory: slice.inventory,
       weapons: slice.weapons,
-      spells: withSpellFocusFlags(prev.spells, slice.inventory.items),
+      spells: synced.spells,
       play: {
         ...prev.play,
         hitDie: slice.playHitDie,
       },
+    }
+    if (synced.message) {
+      queueMicrotask(() => onToast(synced.message!))
     }
     const restored = reapplyRaceOverlays(raceSliceFrom(merged), {
       characterLevel: totalCharacterLevel(merged.classes),
@@ -4445,12 +4458,24 @@ export function MinimalSheetEditor({
         onOpenCoins={isPlayDesk ? () => setCoinPadOpen(true) : undefined}
         onToast={onToast}
         onChange={(inventory) =>
-          setDraft((prev) => ({
-            ...prev,
-            inventory,
-            weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
-            spells: withSpellFocusFlags(prev.spells, inventory.items),
-          }))
+          setDraft((prev) => {
+            const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)
+            const isWizard =
+              spellLearnBudget?.mode === 'spellbook' ||
+              prev.classes.some((row) => /волшебник|wizard|маг/i.test(row.name))
+            const synced = syncWizardSpellbookWithInventory({
+              isWizard,
+              spells: focusSpells,
+              items: inventory.items,
+            })
+            if (synced.message) queueMicrotask(() => onToast(synced.message!))
+            return {
+              ...prev,
+              inventory,
+              weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
+              spells: synced.spells,
+            }
+          })
         }
         onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
       />
@@ -4576,6 +4601,7 @@ export function MinimalSheetEditor({
                 inventory: { ...prev.inventory, coins },
               }))
             }
+            inventoryItems={draft.inventory.items}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
             onClose={() => setSpellsSettingsOpen(false)}
             onToast={onToast}
@@ -4596,11 +4622,19 @@ export function MinimalSheetEditor({
           concentration={draft.play.concentration}
           onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
           onInventoryChange={(inventory) =>
-            setDraft((prev) => ({
-              ...prev,
-              inventory,
-              spells: withSpellFocusFlags(prev.spells, inventory.items),
-            }))
+            setDraft((prev) => {
+              const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)
+              const isWizard =
+                spellLearnBudget?.mode === 'spellbook' ||
+                prev.classes.some((row) => /волшебник|wizard|маг/i.test(row.name))
+              const synced = syncWizardSpellbookWithInventory({
+                isWizard,
+                spells: focusSpells,
+                items: inventory.items,
+              })
+              if (synced.message) queueMicrotask(() => onToast(synced.message!))
+              return { ...prev, inventory, spells: synced.spells }
+            })
           }
           onConcentrationChange={(concentration) =>
             setDraft((prev) => ({

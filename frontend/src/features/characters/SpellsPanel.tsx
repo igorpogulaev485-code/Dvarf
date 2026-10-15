@@ -34,6 +34,7 @@ import {
 } from '../../shared/dnd/spellCatalog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import { wizardSpellbookStatusLabel } from './wizardSpellbookInventory'
 import {
   IconCast,
   IconConcentration,
@@ -591,6 +592,17 @@ export function SpellsPanel({
             <IconPouch className="spells-btn-icon" />
             {spells.has_component_pouch ? 'Мешочек ✓' : 'Мешочек ✗'}
           </span>
+          {learnBudget?.mode === 'spellbook' ? (
+            <span
+              className={`sheet-chip spells-focus-chips__chip${
+                wizardSpellbookStatusLabel(spells).ok ? ' is-on' : ''
+              }`}
+              title="Физическая книга заклинаний в инвентаре"
+            >
+              <IconSpellBook className="spells-btn-icon" />
+              {wizardSpellbookStatusLabel(spells).label}
+            </span>
+          ) : null}
           <Text tone="muted">
             Ищем в инвентаре тип «Фокус» / «Мешочек» (имя может быть любым). М с ценой — отдельный
             предмет.
@@ -1082,6 +1094,7 @@ export function SpellsPanel({
             ? (coins) => onInventoryChange({ ...inventory, coins })
             : undefined
         }
+        inventoryItems={inventoryItems}
         onChange={onChange}
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}

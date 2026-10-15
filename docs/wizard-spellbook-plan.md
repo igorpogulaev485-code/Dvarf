@@ -70,15 +70,17 @@
 
 **Зачем:** зависимость от предмета, не только флага.
 
-| Задача | Детали |
-|--------|--------|
-| Стартовый gear | При выдаче «Книга заклинаний» → `primaryBookItemId = item.id` |
-| Sync | Удаление/передача primary item → предупреждение или `bookLost` |
-| `canAddToBook` | Без primary (и не lost-replace flow) — нельзя вносить |
-| UI chip | «Книга: есть / утеряна» в панели заклинаний / гримуаре |
+| Задача | Детали | Статус |
+|--------|--------|--------|
+| Стартовый gear | Tag `catalog_slug=spellbook` + sync bind `primaryBookItemId` | ✅ |
+| Sync | Удаление primary → `bookLost` + toast; пока lost — без auto-bind | ✅ |
+| `canAddToBook` | Гримуар блокирует «В книгу» без usable book | ✅ |
+| Prepare gate | bookLost → нельзя готовить новые | ✅ |
+| UI chip | «Книга: есть / утеряна» в Гримуаре и SpellsPanel | ✅ |
 
-**Файлы:** `classGrants` / create apply, `inventory.ts`, `SpellsPanel`, sync hook.  
-**Приёмка:** у волшебника после create есть item + `primaryBookItemId`; удаление книги из инвентаря → состояние «утеряна» или confirm.
+**Файлы:** `wizardSpellbookInventory.ts`, `classEffects`, `MinimalSheetEditor`, `GrimoireDialog`, `PrepareSpellsDialog`.  
+**Приёмка:** после старта wizard — chip «Книга: есть»; удалить предмет → «утеряна» + нельзя вносить/готовить новое.  
+**Не деплоить** без команды.
 
 ---
 

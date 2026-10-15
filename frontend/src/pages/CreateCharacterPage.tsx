@@ -1876,6 +1876,7 @@ export function CreateCharacterPage() {
             },
           }))
         }}
+        inventoryItems={readInventory(state.sheetDraft).items}
         onChange={setSpells}
         onClose={() => setSpellsOpen(null)}
         onToast={setToast}

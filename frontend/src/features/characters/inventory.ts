@@ -45,6 +45,8 @@ export type InventoryItem = {
   id: string
   name: string
   catalog_id: string | null
+  /** Catalog slug when known (e.g. spellbook) — survives rename of display name. */
+  catalog_slug?: string | null
   qty: number
   weight_lb: number | null
   equipped: boolean
@@ -154,6 +156,7 @@ function readItem(raw: unknown, index: number): InventoryItem {
     id: typeof row.id === 'string' ? row.id : `item-${index}`,
     name: typeof row.name === 'string' ? row.name : '',
     catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+    catalog_slug: typeof row.catalog_slug === 'string' ? row.catalog_slug : null,
     qty: Math.max(0, readNumber(row.qty, 1)),
     weight_lb: readNullableNumber(row.weight_lb ?? row.weight),
     equipped: Boolean(row.equipped),
@@ -225,6 +228,7 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         id: item.id,
         name: item.name,
         catalog_id: item.catalog_id,
+        ...(item.catalog_slug ? { catalog_slug: item.catalog_slug } : {}),
         qty: item.qty,
         weight_lb: item.weight_lb,
         equipped: item.equipped,
