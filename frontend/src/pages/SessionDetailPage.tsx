@@ -5,6 +5,7 @@ import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
+import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
@@ -26,6 +27,7 @@ import {
   unseatCharacter,
   updateSession,
   type SeatCondition,
+  type SeatEffect,
   type SessionDetail,
   type SessionEvent,
 } from '../shared/api/lobbies'
@@ -55,6 +57,7 @@ export function SessionDetailPage() {
   const [companionHp, setCompanionHp] = useState<number | null>(11)
   const [companionAc, setCompanionAc] = useState<number | null>(13)
   const [conditionOpen, setConditionOpen] = useState(false)
+  const [effectOpen, setEffectOpen] = useState(false)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -288,19 +291,30 @@ export function SessionDetailPage() {
                 </Text>
               ) : (
                 <Stack gap={12}>
-                  {session.is_owner && !session.closed_at ? (
+                  {!session.closed_at &&
+                  (session.is_owner ||
+                    session.seats.some((s) => ownCharacterIds.has(s.character_id))) ? (
                     <div className="session-table-toolbar">
+                      {session.is_owner ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={busy}
+                          onClick={() => setConditionOpen(true)}
+                        >
+                          Состояние
+                        </Button>
+                      ) : null}
                       <Button
                         type="button"
                         variant="secondary"
                         disabled={busy}
-                        onClick={() => setConditionOpen(true)}
+                        onClick={() => setEffectOpen(true)}
                       >
-                        Состояние
+                        Эффект
                       </Button>
                       <Text tone="muted" className="session-table-toolbar__hint">
-                        Выдать эффект одному или группе. Тег с листа игрока тоже появится на
-                        карточке.
+                        Состояние — SRD-тег. Эффект — баф/метка; можно связать с Conc кастера.
                       </Text>
                     </div>
                   ) : null}
@@ -337,6 +351,29 @@ export function SessionDetailPage() {
                                 { conditions: next },
                               )
                               setSession(updated)
+                            })
+                          }}
+                          onRemoveEffect={(effect: SeatEffect) => {
+                            void run(async () => {
+                              const current = seat.effects ?? []
+                              const next = current.filter((e) => e.id !== effect.id)
+                              const updated = await patchSeatCombat(
+                                session.id,
+                                seat.character_id,
+                                { effects: next },
+                              )
+                              setSession(updated)
+                            })
+                          }}
+                          onClearConcentration={() => {
+                            void run(async () => {
+                              const updated = await patchSeatCombat(
+                                session.id,
+                                seat.character_id,
+                                { clear_concentration: true },
+                              )
+                              setSession(updated)
+                              setToast('Концентрация снята')
                             })
                           }}
                           onAddCompanion={
@@ -548,6 +585,36 @@ export function SessionDetailPage() {
               characterIds.length === 1
                 ? `Состояние: ${condition.name}`
                 : `Состояние: ${condition.name} · ${characterIds.length}`,
+            )
+          })
+        }}
+      />
+
+      <ApplyEffectDialog
+        open={effectOpen}
+        seats={session.seats}
+        preferredSourceId={
+          session.seats.find((s) => ownCharacterIds.has(s.character_id))?.character_id ??
+          null
+        }
+        busy={busy}
+        onClose={() => setEffectOpen(false)}
+        onApply={(effect, characterIds) => {
+          void run(async () => {
+            let latest = session
+            for (const characterId of characterIds) {
+              const seat = latest.seats.find((s) => s.character_id === characterId)
+              const current = seat?.effects ?? []
+              latest = await patchSeatCombat(latest.id, characterId, {
+                effects: [...current, { ...effect, id: `${effect.id}-${characterId}` }],
+              })
+            }
+            setSession(latest)
+            setEffectOpen(false)
+            setToast(
+              characterIds.length === 1
+                ? `Эффект: ${effect.name}`
+                : `Эффект: ${effect.name} · ${characterIds.length}`,
             )
           })
         }}

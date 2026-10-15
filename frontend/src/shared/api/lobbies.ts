@@ -80,6 +80,19 @@ export type SeatCompanion = {
   conditions: SeatCondition[]
 }
 
+export type SeatConcentration = {
+  spell_id: string
+  name: string
+}
+
+export type SeatEffect = {
+  id: string
+  name: string
+  source_character_id?: string | null
+  source_name?: string | null
+  linked_concentration?: boolean
+}
+
 export type SessionSeat = {
   character_id: string
   character_name: string
@@ -92,6 +105,8 @@ export type SessionSeat = {
   speed?: number | null
   inspiration?: boolean
   conditions?: SeatCondition[]
+  effects?: SeatEffect[]
+  concentration?: SeatConcentration | null
   companions?: SeatCompanion[]
   passive_perception?: number | null
   passive_insight?: number | null
@@ -288,7 +303,13 @@ export async function unseatCharacter(
 export async function patchSeatCombat(
   sessionId: string,
   characterId: string,
-  payload: { inspiration?: boolean; conditions?: SeatCondition[] },
+  payload: {
+    inspiration?: boolean
+    conditions?: SeatCondition[]
+    effects?: SeatEffect[]
+    concentration?: SeatConcentration | null
+    clear_concentration?: boolean
+  },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(
     `/sessions/${sessionId}/seats/${characterId}/combat`,

@@ -61,6 +61,21 @@ class SeatCompanionOut(BaseModel):
     conditions: list[SeatConditionOut] = Field(default_factory=list)
 
 
+class SeatConcentrationOut(BaseModel):
+    spell_id: str
+    name: str
+
+
+class SeatEffectOut(BaseModel):
+    """Баф/эффект на союзнике (не SRD-состояние)."""
+
+    id: str
+    name: str
+    source_character_id: str | None = None
+    source_name: str | None = None
+    linked_concentration: bool = False
+
+
 class SessionSeatOut(BaseModel):
     character_id: UUID
     character_name: str
@@ -73,6 +88,8 @@ class SessionSeatOut(BaseModel):
     speed: int | None = None
     inspiration: bool = False
     conditions: list[SeatConditionOut] = Field(default_factory=list)
+    effects: list[SeatEffectOut] = Field(default_factory=list)
+    concentration: SeatConcentrationOut | None = None
     companions: list[SeatCompanionOut] = Field(default_factory=list)
     passive_perception: int | None = None
     passive_insight: int | None = None
@@ -81,10 +98,13 @@ class SessionSeatOut(BaseModel):
 
 
 class SeatCombatPatchRequest(BaseModel):
-    """Жесты за столом: вдохновение / состояния без полного редактора листа."""
+    """Жесты за столом: вдохновение / состояния / эффекты / концентрация."""
 
     inspiration: bool | None = None
     conditions: list[SeatConditionOut] | None = None
+    effects: list[SeatEffectOut] | None = None
+    concentration: SeatConcentrationOut | None = None
+    clear_concentration: bool = False
 
 
 class SeatCompanionCreateRequest(BaseModel):
