@@ -498,6 +498,15 @@
 
 <!-- tip: companions-naparniki-b378 залит 2026-10-08; бестиарий наполняет отдельный агент -->
 
+### 2026-10-15 — Дизайн: Облики (Wild Shape и превращения)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Контракт обликов | `docs/forms-and-wild-shape.md`: роль `self_form` vs `ally` в блоке Напарники | Друид → пикер форм → карточка «это ты» с HP/атаками формы |
+| Слайсы F1–F7 | Модель → пикер → урон/overflow → Moon/Elemental → spells/items → бестиарий | Очередь реализации после LOCK |
+
+На проде: **нет** · ветка `cursor/forms-wild-shape-design-ab5e` · только дизайн, код не трогали · tip не менять
+
 ### 2026-10-07 — FEATS BMT wave (Книга многих вещей)
 
 | Функция | Как работает | Эффект для пользователя |
@@ -789,3 +798,4 @@
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS: cast-via-feat/race grant charges in picker → «В ветках» |
 | 2026-10-08 | `cursor/spell-cast-grant-picker-7737` · PR #80 | SPELLS 1–8 + grant picker залиты; tip → эта ветка; alembic `a3b4` |
 | 2026-10-08 | `cursor/companions-naparniki-b378` · PR #81 | Напарники A–D3 + аватарки залиты; tip → эта ветка; alembic `b4c5` |
+| 2026-10-15 | `cursor/forms-wild-shape-design-ab5e` | Дизайн LOCK обликов (Wild Shape → Напарники self_form) → «В ветках» |
