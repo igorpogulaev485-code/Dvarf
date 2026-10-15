@@ -44,6 +44,11 @@ class Lobby(Base):
         default=dict,
         server_default="{}",
     )
+    encounter_templates: Mapped[list[Any]] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=list,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

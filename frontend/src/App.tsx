@@ -62,6 +62,7 @@ export default function App() {
         />
         <Route path="/dev/lobby-chats-preview" element={<LobbyChatsPreviewPage />} />
         <Route path="/dev/lobby-notes-preview" element={<LobbyNotesPreviewPage />} />
+        <Route path="/dev/transfer-preview" element={<TransferPreviewPage />} />
         <Route
           path="/characters"
           element={
