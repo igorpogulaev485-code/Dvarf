@@ -15,11 +15,17 @@ from app.repositories.user import UserRepository
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
     JoinLobbyRequest,
+    JournalEntryCreateRequest,
+    JournalEntryOut,
+    JournalEntryUpdateRequest,
+    JournalPageOut,
     LobbyCreateRequest,
     LobbyDetail,
     LobbySummary,
     LobbyUpdateRequest,
     SeatRequest,
+    SessionCloseRequest,
+    SessionCloseResponse,
     SessionCreateRequest,
     SessionDetail,
     SessionEventOut,
@@ -239,6 +245,69 @@ def list_session_events(
         session_id,
         rolls_only=rolls_only,
     )
+
+
+@router.post(
+    "/sessions/{session_id}/close",
+    response_model=SessionCloseResponse,
+)
+def close_session(
+    session_id: UUID,
+    payload: SessionCloseRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionCloseResponse:
+    return LobbyService(db).close_session(current_user, session_id, payload)
+
+
+@router.get("/lobbies/{lobby_id}/journal", response_model=JournalPageOut)
+def list_journal(
+    lobby_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=20, ge=1, le=50),
+) -> JournalPageOut:
+    return LobbyService(db).list_journal(
+        current_user,
+        lobby_id,
+        offset=offset,
+        limit=limit,
+    )
+
+
+@router.post(
+    "/lobbies/{lobby_id}/journal",
+    response_model=JournalEntryOut,
+    status_code=201,
+)
+def create_journal_entry(
+    lobby_id: UUID,
+    payload: JournalEntryCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> JournalEntryOut:
+    return LobbyService(db).create_journal_entry(current_user, lobby_id, payload)
+
+
+@router.patch("/journal/{entry_id}", response_model=JournalEntryOut)
+def update_journal_entry(
+    entry_id: UUID,
+    payload: JournalEntryUpdateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> JournalEntryOut:
+    return LobbyService(db).update_journal_entry(current_user, entry_id, payload)
+
+
+@router.delete("/journal/{entry_id}", status_code=204)
+def delete_journal_entry(
+    entry_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> Response:
+    LobbyService(db).delete_journal_entry(current_user, entry_id)
+    return Response(status_code=204)
 
 
 @router.post(

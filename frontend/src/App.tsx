@@ -9,6 +9,7 @@ import { JoinLobbyPage } from './pages/JoinLobbyPage'
 import { LobbiesPage } from './pages/LobbiesPage'
 import { LobbyDetailPage } from './pages/LobbyDetailPage'
 import { LobbyHubPreviewPage } from './pages/LobbyHubPreviewPage'
+import { LobbyJournalPreviewPage } from './pages/LobbyJournalPreviewPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { SessionAttendancePreviewPage } from './pages/SessionAttendancePreviewPage'
 import { SessionDetailPage } from './pages/SessionDetailPage'
@@ -51,6 +52,10 @@ export default function App() {
         <Route
           path="/dev/session-live-table-preview"
           element={<SessionLiveTablePreviewPage />}
+        />
+        <Route
+          path="/dev/lobby-journal-preview"
+          element={<LobbyJournalPreviewPage />}
         />
         <Route
           path="/characters"

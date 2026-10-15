@@ -26,6 +26,10 @@ export default defineConfig({
         bypass: spaBypass,
         ws: true,
       },
+      '/journal': {
+        target: 'http://127.0.0.1:8000',
+        bypass: spaBypass,
+      },
       '/settings': {
         target: 'http://127.0.0.1:8000',
         bypass: spaBypass,

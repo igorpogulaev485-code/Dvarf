@@ -11,6 +11,7 @@ import { normalizeVisibilityProfile } from '../features/lobby/visibilityProfile'
 import { listCharacters } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import {
+  closeSession,
   createSessionRoll,
   getSession,
   listSessionEvents,
@@ -35,6 +36,10 @@ export function SessionDetailPage() {
   const [busy, setBusy] = useState(false)
   const [attendanceOpen, setAttendanceOpen] = useState(false)
   const [draftPresentIds, setDraftPresentIds] = useState<Set<string>>(() => new Set())
+  const [closeOpen, setCloseOpen] = useState(false)
+  const [closeTitle, setCloseTitle] = useState('')
+  const [closeSummary, setCloseSummary] = useState('')
+  const [writeJournal, setWriteJournal] = useState(true)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -161,17 +166,40 @@ export function SessionDetailPage() {
           <Text>
             <Link to={`/lobbies/${session.lobby_id}`}>← В лобби «{session.lobby_name}»</Link>
           </Text>
-          {session.is_owner ? (
-            <Button type="button" variant="secondary" onClick={openAttendanceEditor} disabled={busy}>
-              Кто пришёл
-            </Button>
-          ) : null}
+          <div className="session-top-actions">
+            {session.is_owner && !session.closed_at ? (
+              <Button type="button" variant="secondary" onClick={openAttendanceEditor} disabled={busy}>
+                Кто пришёл
+              </Button>
+            ) : null}
+            {session.is_owner && !session.closed_at ? (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                onClick={() => {
+                  setCloseTitle(`Итог: ${session.name}`)
+                  setCloseSummary('')
+                  setWriteJournal(true)
+                  setCloseOpen(true)
+                }}
+              >
+                Закрыть сессию
+              </Button>
+            ) : null}
+          </div>
         </div>
         {error ? <Text tone="danger">{error}</Text> : null}
+        {session.closed_at ? (
+          <Text tone="muted">
+            Сессия закрыта.{' '}
+            <Link to={`/lobbies/${session.lobby_id}#journal`}>Открыть дневник</Link>
+          </Text>
+        ) : null}
 
         <Panel title="Сессия">
           <Stack gap={12}>
-            {session.is_owner ? (
+            {session.is_owner && !session.closed_at ? (
               <Field label="Название">
                 <Input
                   value={session.name}
@@ -201,6 +229,7 @@ export function SessionDetailPage() {
               {session.lobby_members.length > 0
                 ? ` из ${session.lobby_members.length} в лобби`
                 : ''}
+              {session.closed_at ? ' · закрыта' : ''}
             </Text>
           </Stack>
         </Panel>
@@ -250,24 +279,26 @@ export function SessionDetailPage() {
                     <SessionEventFeed events={events} />
                   </>
                 )}
-                <ManualRollForm
-                  seats={session.seats}
-                  ownCharacterIds={ownCharacterIds}
-                  isOwner={session.is_owner}
-                  busy={busy}
-                  onSubmit={async (payload) => {
-                    await run(async () => {
-                      const created = await createSessionRoll(session.id, payload)
-                      setEvents((prev) => {
-                        if (prev.some((e) => e.id === created.id)) return prev
-                        if (rollsOnly && created.event_type !== 'roll') return prev
-                        return [created, ...prev]
+                {!session.closed_at ? (
+                  <ManualRollForm
+                    seats={session.seats}
+                    ownCharacterIds={ownCharacterIds}
+                    isOwner={session.is_owner}
+                    busy={busy}
+                    onSubmit={async (payload) => {
+                      await run(async () => {
+                        const created = await createSessionRoll(session.id, payload)
+                        setEvents((prev) => {
+                          if (prev.some((e) => e.id === created.id)) return prev
+                          if (rollsOnly && created.event_type !== 'roll') return prev
+                          return [created, ...prev]
+                        })
+                        setToast('Бросок в ленте')
+                        setLiveTab('feed')
                       })
-                      setToast('Бросок в ленте')
-                      setLiveTab('feed')
-                    })
-                  }}
-                />
+                    }}
+                  />
+                ) : null}
               </Stack>
             )}
           </Stack>
@@ -299,6 +330,68 @@ export function SessionDetailPage() {
             })
           }}
         />
+      </Dialog>
+
+      <Dialog
+        open={closeOpen}
+        title="Закрыть сессию"
+        primaryLabel={busy ? 'Закрываем…' : writeJournal ? 'Закрыть и в дневник' : 'Закрыть'}
+        secondaryLabel="Отмена"
+        busy={busy}
+        onPrimary={() => {
+          void run(async () => {
+            const result = await closeSession(session.id, {
+              title: closeTitle.trim() || undefined,
+              summary: closeSummary,
+              write_journal: writeJournal,
+            })
+            setSession(result.session)
+            setCloseOpen(false)
+            if (result.journal_entry) {
+              setToast('Сессия закрыта · итог в дневнике')
+              navigate(`/lobbies/${session.lobby_id}#journal`, {
+                state: { toast: 'Итог сессии в дневнике' },
+              })
+            } else {
+              setToast('Сессия закрыта')
+            }
+          })
+        }}
+        onSecondary={() => setCloseOpen(false)}
+      >
+        <Stack gap={12}>
+          <Text tone="muted">
+            Закрытая сессия остаётся в истории. Итог можно сразу записать в дневник лобби.
+          </Text>
+          <label className="session-feed-filter">
+            <input
+              type="checkbox"
+              checked={writeJournal}
+              onChange={(e) => setWriteJournal(e.target.checked)}
+            />
+            Записать итог в дневник
+          </label>
+          {writeJournal ? (
+            <>
+              <Field label="Заголовок">
+                <Input
+                  value={closeTitle}
+                  onChange={(e) => setCloseTitle(e.target.value)}
+                  placeholder={`Итог: ${session.name}`}
+                />
+              </Field>
+              <Field label="Что произошло">
+                <textarea
+                  className="ui-input ui-textarea"
+                  rows={5}
+                  value={closeSummary}
+                  onChange={(e) => setCloseSummary(e.target.value)}
+                  placeholder="Краткий итог сессии для дневника…"
+                />
+              </Field>
+            </>
+          ) : null}
+        </Stack>
       </Dialog>
 
       <Toast message={toast} onClose={() => setToast(null)} />

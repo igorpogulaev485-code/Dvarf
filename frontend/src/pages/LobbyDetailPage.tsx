@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import { LobbyComingSoon } from '../features/lobby/LobbyComingSoon'
 import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs'
+import { LobbyJournalPanel } from '../features/lobby/LobbyJournalPanel'
 import { LobbyMemberMiniCard } from '../features/lobby/LobbyMemberMiniCard'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { VisibilitySettingsPanel } from '../features/lobby/VisibilitySettingsPanel'
@@ -249,9 +250,12 @@ export function LobbyDetailPage() {
         ) : null}
 
         {tab === 'journal' ? (
-          <LobbyComingSoon
-            title="Дневник"
-            description="Инструмент мастера: посты, главы и итоги сессий появятся в следующем слайсе."
+          <LobbyJournalPanel
+            lobbyId={lobby.id}
+            isOwner={lobby.is_owner}
+            settings={lobby.settings}
+            onToast={setToast}
+            onError={setError}
           />
         ) : null}
 
@@ -274,7 +278,7 @@ export function LobbyDetailPage() {
             <Panel title="Сессии">
               <Stack gap={12}>
                 <Text tone="muted">
-                  Создайте сессию и отметьте, кто пришёл. Живой стол — следующий слайс.
+                  Создайте сессию, отметьте кто пришёл, ведите стол. Закрытие пишет итог в дневник.
                 </Text>
                 {lobby.sessions.length === 0 ? (
                   <Text tone="muted">Пока нет сессий.</Text>
@@ -286,6 +290,7 @@ export function LobbyDetailPage() {
                         <Text tone="muted">
                           {s.setting_name ? `Сеттинг: ${s.setting_name}` : 'Ваншот'} · пришло:{' '}
                           {s.seat_count}
+                          {s.closed_at ? ' · закрыта' : ''}
                         </Text>
                       </div>
                       <div className="list-row__actions">

@@ -5,7 +5,10 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import AppError, NotFoundError
+from datetime import datetime, timezone
+
 from app.models.character import Character
+from app.models.journal import CampaignJournalEntry
 from app.models.lobby import Lobby, LobbyMember, PlaySession, Setting
 from app.models.session_event import SessionEvent
 from app.models.user import User
@@ -15,12 +18,18 @@ from app.repositories.lobby import LobbyRepository
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
     JoinLobbyRequest,
+    JournalEntryCreateRequest,
+    JournalEntryOut,
+    JournalEntryUpdateRequest,
+    JournalPageOut,
     LobbyCreateRequest,
     LobbyDetail,
     LobbyMemberOut,
     LobbySummary,
     LobbyUpdateRequest,
     SeatRequest,
+    SessionCloseRequest,
+    SessionCloseResponse,
     SessionCreateRequest,
     SessionDetail,
     SessionEventOut,
@@ -32,6 +41,8 @@ from app.schemas.lobby import (
     SettingSummary,
     SettingUpdateRequest,
 )
+
+JOURNAL_ENTRY_TYPES = frozenset({"text", "chapter", "setting_link", "image", "session_summary"})
 
 
 def _ability_mod(score: int | None) -> int:
@@ -149,6 +160,7 @@ class LobbyService:
                 setting_name=s.setting.name if s.setting else None,
                 name=s.name,
                 seat_count=len(s.seats),
+                closed_at=s.closed_at,
                 created_at=s.created_at,
                 updated_at=s.updated_at,
             )
@@ -483,8 +495,208 @@ class LobbyService:
             seats=seats,
             lobby_members=members,
             visibility_profile=lobby.visibility_profile or {},
+            closed_at=session.closed_at,
             created_at=session.created_at,
             updated_at=session.updated_at,
+        )
+
+    def _journal_out(self, entry: CampaignJournalEntry) -> JournalEntryOut:
+        setting_name: str | None = None
+        session_name: str | None = None
+        if entry.setting_id is not None:
+            setting = self.lobbies.get_setting(entry.setting_id)
+            setting_name = setting.name if setting else None
+        if entry.from_session_id is not None:
+            session = self.lobbies.get_session(entry.from_session_id)
+            session_name = session.name if session else None
+        return JournalEntryOut(
+            id=entry.id,
+            lobby_id=entry.lobby_id,
+            author_user_id=entry.author_user_id,
+            entry_type=entry.entry_type,
+            title=entry.title,
+            body=entry.body,
+            image_url=entry.image_url,
+            setting_id=entry.setting_id,
+            setting_name=setting_name,
+            from_session_id=entry.from_session_id,
+            from_session_name=session_name,
+            created_at=entry.created_at,
+            updated_at=entry.updated_at,
+        )
+
+    def list_journal(
+        self,
+        user: User,
+        lobby_id: UUID,
+        *,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> JournalPageOut:
+        lobby = self._require_lobby(lobby_id)
+        self._require_view(lobby, user)
+        limit = max(1, min(limit, 50))
+        offset = max(0, offset)
+        total = self.lobbies.count_journal_entries(lobby_id)
+        items = self.lobbies.list_journal_entries(lobby_id, offset=offset, limit=limit)
+        return JournalPageOut(
+            items=[self._journal_out(e) for e in items],
+            total=total,
+            offset=offset,
+            limit=limit,
+        )
+
+    def create_journal_entry(
+        self,
+        user: User,
+        lobby_id: UUID,
+        payload: JournalEntryCreateRequest,
+    ) -> JournalEntryOut:
+        lobby = self._require_lobby(lobby_id)
+        self._require_owner(lobby, user)
+        entry_type = (payload.entry_type or "text").strip().lower()
+        if entry_type == "session_summary":
+            raise AppError(
+                "Итог сессии создаётся через «Закрыть сессию»",
+                code="journal_type_forbidden",
+                status_code=400,
+            )
+        if entry_type not in JOURNAL_ENTRY_TYPES:
+            raise AppError("Неизвестный тип поста", code="journal_type_invalid", status_code=400)
+
+        setting_id = payload.setting_id
+        if entry_type == "setting_link":
+            if setting_id is None:
+                raise AppError(
+                    "Укажите сеттинг",
+                    code="setting_required",
+                    status_code=400,
+                )
+            setting = self.lobbies.get_setting(setting_id)
+            if setting is None or setting.lobby_id != lobby.id:
+                raise AppError("Сеттинг не найден", code="setting_not_found", status_code=400)
+        elif setting_id is not None:
+            setting = self.lobbies.get_setting(setting_id)
+            if setting is None or setting.lobby_id != lobby.id:
+                raise AppError("Сеттинг не найден", code="setting_not_found", status_code=400)
+
+        image_url = (payload.image_url or "").strip() or None
+        if entry_type == "image" and not image_url:
+            raise AppError("Укажите URL картинки", code="image_url_required", status_code=400)
+        if image_url and not (
+            image_url.startswith("https://") or image_url.startswith("http://")
+        ):
+            raise AppError("URL картинки должен начинаться с http(s)", code="image_url_invalid", status_code=400)
+
+        title = (payload.title or "").strip()
+        body = payload.body or ""
+        if entry_type == "chapter" and not title:
+            raise AppError("У главы нужен заголовок", code="title_required", status_code=400)
+        if entry_type == "text" and not title and not body.strip():
+            raise AppError("Пустой пост", code="empty_post", status_code=400)
+
+        entry = CampaignJournalEntry(
+            lobby_id=lobby.id,
+            author_user_id=user.id,
+            entry_type=entry_type,
+            title=title,
+            body=body,
+            image_url=image_url if entry_type == "image" else None,
+            setting_id=setting_id if entry_type == "setting_link" else None,
+        )
+        self.lobbies.add_journal_entry(entry)
+        self.db.commit()
+        self.db.refresh(entry)
+        return self._journal_out(entry)
+
+    def update_journal_entry(
+        self,
+        user: User,
+        entry_id: UUID,
+        payload: JournalEntryUpdateRequest,
+    ) -> JournalEntryOut:
+        entry = self.lobbies.get_journal_entry(entry_id)
+        if entry is None:
+            raise NotFoundError("Пост не найден", code="journal_not_found")
+        lobby = self._require_lobby(entry.lobby_id)
+        self._require_owner(lobby, user)
+        if payload.title is not None:
+            entry.title = payload.title.strip()
+        if payload.body is not None:
+            entry.body = payload.body
+        if payload.clear_image:
+            entry.image_url = None
+        elif payload.image_url is not None:
+            url = payload.image_url.strip()
+            if url and not (url.startswith("https://") or url.startswith("http://")):
+                raise AppError(
+                    "URL картинки должен начинаться с http(s)",
+                    code="image_url_invalid",
+                    status_code=400,
+                )
+            entry.image_url = url or None
+        if payload.clear_setting:
+            entry.setting_id = None
+        elif payload.setting_id is not None:
+            setting = self.lobbies.get_setting(payload.setting_id)
+            if setting is None or setting.lobby_id != lobby.id:
+                raise AppError("Сеттинг не найден", code="setting_not_found", status_code=400)
+            entry.setting_id = payload.setting_id
+        self.db.commit()
+        self.db.refresh(entry)
+        return self._journal_out(entry)
+
+    def delete_journal_entry(self, user: User, entry_id: UUID) -> None:
+        entry = self.lobbies.get_journal_entry(entry_id)
+        if entry is None:
+            raise NotFoundError("Пост не найден", code="journal_not_found")
+        lobby = self._require_lobby(entry.lobby_id)
+        self._require_owner(lobby, user)
+        self.lobbies.delete_journal_entry(entry)
+        self.db.commit()
+
+    def close_session(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: SessionCloseRequest,
+    ) -> SessionCloseResponse:
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_owner(lobby, user)
+        if session.closed_at is not None:
+            raise AppError("Сессия уже закрыта", code="session_already_closed", status_code=400)
+
+        session.closed_at = datetime.now(timezone.utc)
+        journal_out: JournalEntryOut | None = None
+        if payload.write_journal:
+            summary = (payload.summary or "").strip()
+            title = (payload.title or "").strip() or f"Итог: {session.name}"
+            if not summary:
+                summary = f"Сессия «{session.name}» закрыта."
+            entry = CampaignJournalEntry(
+                lobby_id=lobby.id,
+                author_user_id=user.id,
+                entry_type="session_summary",
+                title=title,
+                body=summary,
+                from_session_id=session.id,
+                setting_id=session.setting_id,
+            )
+            self.lobbies.add_journal_entry(entry)
+            self.db.commit()
+            self.db.refresh(entry)
+            self.db.refresh(session)
+            journal_out = self._journal_out(entry)
+        else:
+            self.db.commit()
+            self.db.refresh(session)
+
+        return SessionCloseResponse(
+            session=self._session_detail(session, lobby, user),
+            journal_entry=journal_out,
         )
 
     def list_session_events(

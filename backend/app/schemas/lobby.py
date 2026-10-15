@@ -41,6 +41,7 @@ class SessionSummary(BaseModel):
     setting_name: str | None = None
     name: str
     seat_count: int = 0
+    closed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -141,8 +142,64 @@ class SessionDetail(BaseModel):
     seats: list[SessionSeatOut]
     lobby_members: list[LobbyMemberOut]
     visibility_profile: dict = Field(default_factory=dict)
+    closed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class JournalEntryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    lobby_id: UUID
+    author_user_id: UUID | None = None
+    entry_type: str
+    title: str
+    body: str
+    image_url: str | None = None
+    setting_id: UUID | None = None
+    setting_name: str | None = None
+    from_session_id: UUID | None = None
+    from_session_name: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class JournalPageOut(BaseModel):
+    items: list[JournalEntryOut]
+    total: int
+    offset: int
+    limit: int
+
+
+class JournalEntryCreateRequest(BaseModel):
+    entry_type: str = Field(default="text", max_length=32)
+    title: str = Field(default="", max_length=200)
+    body: str = Field(default="", max_length=20000)
+    image_url: str | None = Field(default=None, max_length=500)
+    setting_id: UUID | None = None
+
+
+class JournalEntryUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=200)
+    body: str | None = Field(default=None, max_length=20000)
+    image_url: str | None = Field(default=None, max_length=500)
+    setting_id: UUID | None = None
+    clear_setting: bool = False
+    clear_image: bool = False
+
+
+class SessionCloseRequest(BaseModel):
+    """Закрыть сессию и опционально записать итог в дневник."""
+
+    title: str | None = Field(default=None, max_length=200)
+    summary: str = Field(default="", max_length=20000)
+    write_journal: bool = True
+
+
+class SessionCloseResponse(BaseModel):
+    session: SessionDetail
+    journal_entry: JournalEntryOut | None = None
 
 
 class SessionEventOut(BaseModel):

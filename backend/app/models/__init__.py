@@ -1,5 +1,6 @@
 from app.models.catalog import CatalogEntry, CatalogKind, CatalogRulesEdition
 from app.models.character import Character, RulesEdition
+from app.models.journal import CampaignJournalEntry
 from app.models.lobby import Lobby, LobbyMember, PlaySession, SessionSeat, Setting
 from app.models.session_event import SessionEvent
 from app.models.user import (
@@ -15,6 +16,7 @@ from app.models.user import (
 __all__ = [
     "AuthProvider",
     "AuthSession",
+    "CampaignJournalEntry",
     "CatalogEntry",
     "CatalogKind",
     "CatalogRulesEdition",

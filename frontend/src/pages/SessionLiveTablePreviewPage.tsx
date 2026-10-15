@@ -10,7 +10,7 @@ import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/Sessio
 import { SessionTableCard } from '../features/lobby/SessionTableCard'
 import { defaultVisibilityProfile } from '../features/lobby/visibilityProfile'
 import type { SessionEvent, SessionSeat } from '../shared/api/lobbies'
-import { Button, Panel, Stack, Text, Toast } from '../ui'
+import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
 const DEMO_SEATS: SessionSeat[] = [
   {
@@ -164,6 +164,11 @@ export function SessionLiveTablePreviewPage() {
   const [rollsOnly, setRollsOnly] = useState(false)
   const [events, setEvents] = useState<SessionEvent[]>(SEED_EVENTS)
   const [toast, setToast] = useState<string | null>(null)
+  const [closed, setClosed] = useState(false)
+  const [closeOpen, setCloseOpen] = useState(false)
+  const [closeTitle, setCloseTitle] = useState('Итог: Глава 3 — Мост')
+  const [closeSummary, setCloseSummary] = useState('')
+  const [writeJournal, setWriteJournal] = useState(true)
 
   // Как в продукте: профиль из настроек лобби; здесь — дефолт (всё видно игрокам).
   // Мастер на реальном экране = is_owner лобби, не отдельный переключатель.
@@ -195,19 +200,33 @@ export function SessionLiveTablePreviewPage() {
           <Text>
             <span className="back-link">← В лобби «Эхо Рассвета»</span>
           </Text>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => setToast('Состав — через «Кто пришёл» (A2)')}
-          >
-            Кто пришёл
-          </Button>
+          {!closed ? (
+            <div className="session-top-actions">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setToast('Состав — через «Кто пришёл» (A2)')}
+              >
+                Кто пришёл
+              </Button>
+              <Button type="button" variant="secondary" onClick={() => setCloseOpen(true)}>
+                Закрыть сессию
+              </Button>
+            </div>
+          ) : null}
         </div>
+
+        {closed ? (
+          <Text tone="muted">Сессия закрыта. Итог — во вкладке «Дневник» лобби.</Text>
+        ) : null}
 
         <Panel title="Сессия">
           <Stack gap={8}>
             <Text as="h2">Глава 3 — Мост</Text>
-            <Text tone="muted">Ваншот — без сеттинга · за столом: {DEMO_SEATS.length}</Text>
+            <Text tone="muted">
+              Ваншот — без сеттинга · за столом: {DEMO_SEATS.length}
+              {closed ? ' · закрыта' : ''}
+            </Text>
           </Stack>
         </Panel>
 
@@ -271,6 +290,49 @@ export function SessionLiveTablePreviewPage() {
           </Stack>
         </Panel>
       </Stack>
+
+      <Dialog
+        open={closeOpen}
+        title="Закрыть сессию"
+        primaryLabel={writeJournal ? 'Закрыть и в дневник' : 'Закрыть'}
+        secondaryLabel="Отмена"
+        onPrimary={() => {
+          setClosed(true)
+          setCloseOpen(false)
+          setToast(writeJournal ? 'Сессия закрыта · итог в дневнике' : 'Сессия закрыта')
+        }}
+        onSecondary={() => setCloseOpen(false)}
+      >
+        <Stack gap={12}>
+          <Text tone="muted">
+            Закрытая сессия остаётся в истории. Итог можно сразу записать в дневник лобби.
+          </Text>
+          <label className="session-feed-filter">
+            <input
+              type="checkbox"
+              checked={writeJournal}
+              onChange={(e) => setWriteJournal(e.target.checked)}
+            />
+            Записать итог в дневник
+          </label>
+          {writeJournal ? (
+            <>
+              <Field label="Заголовок">
+                <Input value={closeTitle} onChange={(e) => setCloseTitle(e.target.value)} />
+              </Field>
+              <Field label="Что произошло">
+                <textarea
+                  className="ui-input ui-textarea"
+                  rows={5}
+                  value={closeSummary}
+                  onChange={(e) => setCloseSummary(e.target.value)}
+                  placeholder="Краткий итог сессии для дневника…"
+                />
+              </Field>
+            </>
+          ) : null}
+        </Stack>
+      </Dialog>
 
       <Toast message={toast} onClose={() => setToast(null)} />
     </main>

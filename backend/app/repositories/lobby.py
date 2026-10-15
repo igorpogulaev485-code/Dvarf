@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.character import Character
+from app.models.journal import CampaignJournalEntry
 from app.models.lobby import (
     Lobby,
     LobbyMember,
@@ -187,6 +188,46 @@ class LobbyRepository:
         self.db.add(event)
         self.db.flush()
         return event
+
+    def count_journal_entries(self, lobby_id: UUID) -> int:
+        return int(
+            self.db.scalar(
+                select(func.count())
+                .select_from(CampaignJournalEntry)
+                .where(CampaignJournalEntry.lobby_id == lobby_id)
+            )
+            or 0
+        )
+
+    def list_journal_entries(
+        self,
+        lobby_id: UUID,
+        *,
+        offset: int = 0,
+        limit: int = 20,
+    ) -> list[CampaignJournalEntry]:
+        stmt = (
+            select(CampaignJournalEntry)
+            .where(CampaignJournalEntry.lobby_id == lobby_id)
+            .order_by(CampaignJournalEntry.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return list(self.db.scalars(stmt).all())
+
+    def get_journal_entry(self, entry_id: UUID) -> CampaignJournalEntry | None:
+        return self.db.scalar(
+            select(CampaignJournalEntry).where(CampaignJournalEntry.id == entry_id)
+        )
+
+    def add_journal_entry(self, entry: CampaignJournalEntry) -> CampaignJournalEntry:
+        self.db.add(entry)
+        self.db.flush()
+        return entry
+
+    def delete_journal_entry(self, entry: CampaignJournalEntry) -> None:
+        self.db.delete(entry)
+        self.db.flush()
 
     def delete_lobby(self, lobby: Lobby) -> None:
         self.db.delete(lobby)

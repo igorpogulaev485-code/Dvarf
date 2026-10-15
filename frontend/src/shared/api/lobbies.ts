@@ -39,6 +39,7 @@ export type SessionSummary = {
   setting_name: string | null
   name: string
   seat_count: number
+  closed_at?: string | null
   created_at: string
   updated_at: string
 }
@@ -92,8 +93,34 @@ export type SessionDetail = {
   seats: SessionSeat[]
   lobby_members: LobbyMember[]
   visibility_profile?: unknown
+  closed_at?: string | null
   created_at: string
   updated_at: string
+}
+
+export type JournalEntryType = 'text' | 'chapter' | 'setting_link' | 'image' | 'session_summary'
+
+export type JournalEntry = {
+  id: string
+  lobby_id: string
+  author_user_id: string | null
+  entry_type: JournalEntryType | string
+  title: string
+  body: string
+  image_url: string | null
+  setting_id: string | null
+  setting_name: string | null
+  from_session_id: string | null
+  from_session_name: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type JournalPage = {
+  items: JournalEntry[]
+  total: number
+  offset: number
+  limit: number
 }
 
 export type SessionEvent = {
@@ -275,4 +302,45 @@ export function sessionWsUrl(sessionId: string, accessToken: string): string {
   const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
   const host = window.location.host
   return `${proto}://${host}/sessions/${sessionId}/ws?token=${encodeURIComponent(accessToken)}`
+}
+
+export async function listJournal(
+  lobbyId: string,
+  opts?: { offset?: number; limit?: number },
+): Promise<JournalPage> {
+  const params = new URLSearchParams()
+  if (opts?.offset != null) params.set('offset', String(opts.offset))
+  if (opts?.limit != null) params.set('limit', String(opts.limit))
+  const q = params.toString()
+  return apiRequest<JournalPage>(`/lobbies/${lobbyId}/journal${q ? `?${q}` : ''}`)
+}
+
+export async function createJournalEntry(
+  lobbyId: string,
+  payload: {
+    entry_type: JournalEntryType | string
+    title?: string
+    body?: string
+    image_url?: string | null
+    setting_id?: string | null
+  },
+): Promise<JournalEntry> {
+  return apiRequest<JournalEntry>(`/lobbies/${lobbyId}/journal`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteJournalEntry(entryId: string): Promise<void> {
+  await apiRequest<void>(`/journal/${entryId}`, { method: 'DELETE' })
+}
+
+export async function closeSession(
+  sessionId: string,
+  payload: { title?: string; summary?: string; write_journal?: boolean },
+): Promise<{ session: SessionDetail; journal_entry: JournalEntry | null }> {
+  return apiRequest(`/sessions/${sessionId}/close`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 }
