@@ -288,6 +288,20 @@ class LobbyService:
             name=name,
             setting_id=setting.id if setting else None,
         )
+        # Отметить присутствующих при создании (дубликаты игнорируем)
+        seen: set[UUID] = set()
+        for character_id in payload.character_ids:
+            if character_id in seen:
+                continue
+            seen.add(character_id)
+            member = self.lobbies.get_member(lobby.id, character_id)
+            if member is None:
+                raise AppError(
+                    "Персонаж не в составе лобби",
+                    code="character_not_in_lobby",
+                    status_code=400,
+                )
+            self.lobbies.add_seat(session_id=session.id, character_id=character_id)
         self.db.commit()
         return self.get_session(user, session.id)
 

@@ -114,6 +114,8 @@ class SettingUpdateRequest(BaseModel):
 class SessionCreateRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     setting_id: UUID | None = None
+    # Кто пришёл на сессию → сразу seats (посещаемость = состав за столом в A2)
+    character_ids: list[UUID] = Field(default_factory=list)
 
 
 class SessionUpdateRequest(BaseModel):

@@ -4,6 +4,7 @@ import { AppHeader } from '../features/characters'
 import { LobbyComingSoon } from '../features/lobby/LobbyComingSoon'
 import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs'
 import { LobbyMemberMiniCard } from '../features/lobby/LobbyMemberMiniCard'
+import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { VisibilitySettingsPanel } from '../features/lobby/VisibilitySettingsPanel'
 import {
   defaultVisibilityProfile,
@@ -57,6 +58,7 @@ export function LobbyDetailPage() {
   const [settingName, setSettingName] = useState('')
   const [sessionName, setSessionName] = useState('')
   const [sessionSettingId, setSessionSettingId] = useState('')
+  const [sessionPresentIds, setSessionPresentIds] = useState<Set<string>>(() => new Set())
   const [busy, setBusy] = useState(false)
   const [tab, setTab] = useState<LobbyHubTabId>(() => tabFromHash(location.hash))
   const [playerPreview, setPlayerPreview] = useState(false)
@@ -268,46 +270,65 @@ export function LobbyDetailPage() {
         ) : null}
 
         {tab === 'sessions' ? (
-          <Panel title="Сессии">
-            <Stack gap={12}>
-              <Text tone="muted">Сегодняшний стол. Бой и лут будут здесь.</Text>
-              {lobby.sessions.map((s) => (
-                <div className="list-row" key={s.id}>
-                  <div>
-                    <Link to={`/sessions/${s.id}`}>{s.name}</Link>
-                    <Text tone="muted">
-                      {s.setting_name ? `Сеттинг: ${s.setting_name}` : 'Ваншот'} · за столом:{' '}
-                      {s.seat_count}
-                    </Text>
-                  </div>
-                  {lobby.is_owner ? (
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={busy}
-                      onClick={() =>
-                        run(async () => {
-                          if (!confirm('Удалить сессию?')) return
-                          await deleteSession(s.id)
-                          await reload()
-                        })
-                      }
-                    >
-                      Удалить
-                    </Button>
-                  ) : null}
-                </div>
-              ))}
-              {lobby.is_owner ? (
+          <Stack gap={16}>
+            <Panel title="Сессии">
+              <Stack gap={12}>
+                <Text tone="muted">
+                  Создайте сессию и отметьте, кто пришёл. Живой стол — следующий слайс.
+                </Text>
+                {lobby.sessions.length === 0 ? (
+                  <Text tone="muted">Пока нет сессий.</Text>
+                ) : (
+                  lobby.sessions.map((s) => (
+                    <div className="list-row" key={s.id}>
+                      <div>
+                        <Link to={`/sessions/${s.id}`}>{s.name}</Link>
+                        <Text tone="muted">
+                          {s.setting_name ? `Сеттинг: ${s.setting_name}` : 'Ваншот'} · пришло:{' '}
+                          {s.seat_count}
+                        </Text>
+                      </div>
+                      <div className="list-row__actions">
+                        <Link className="ui-button ui-button--secondary" to={`/sessions/${s.id}`}>
+                          Открыть
+                        </Link>
+                        {lobby.is_owner ? (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            disabled={busy}
+                            onClick={() =>
+                              run(async () => {
+                                if (!confirm('Удалить сессию?')) return
+                                await deleteSession(s.id)
+                                await reload()
+                              })
+                            }
+                          >
+                            Удалить
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </Stack>
+            </Panel>
+
+            {lobby.is_owner ? (
+              <Panel title="Новая сессия">
                 <form
-                  className="inline-form"
+                  className="stack-form"
                   onSubmit={(e: FormEvent) => {
                     e.preventDefault()
                     run(async () => {
                       const session = await createSession(lobby.id, {
                         name: sessionName.trim() || undefined,
                         setting_id: sessionSettingId || null,
+                        character_ids: [...sessionPresentIds],
                       })
+                      setSessionName('')
+                      setSessionPresentIds(new Set())
                       navigate(`/sessions/${session.id}`)
                     })
                   }}
@@ -316,7 +337,7 @@ export function LobbyDetailPage() {
                     <Input
                       value={sessionName}
                       onChange={(e) => setSessionName(e.target.value)}
-                      placeholder="Ваншот / глава…"
+                      placeholder="Глава / ваншот…"
                     />
                   </Field>
                   <Field label="Сеттинг">
@@ -333,13 +354,28 @@ export function LobbyDetailPage() {
                       ))}
                     </select>
                   </Field>
+                  <SessionAttendancePanel
+                    mode="create"
+                    members={lobby.members}
+                    presentIds={sessionPresentIds}
+                    busy={busy}
+                    onToggle={(characterId, nextPresent) => {
+                      setSessionPresentIds((prev) => {
+                        const next = new Set(prev)
+                        if (nextPresent) next.add(characterId)
+                        else next.delete(characterId)
+                        return next
+                      })
+                    }}
+                  />
                   <Button type="submit" disabled={busy}>
-                    + Открыть сессию
+                    + Создать сессию
+                    {sessionPresentIds.size > 0 ? ` (${sessionPresentIds.size})` : ''}
                   </Button>
                 </form>
-              ) : null}
-            </Stack>
-          </Panel>
+              </Panel>
+            ) : null}
+          </Stack>
         ) : null}
 
         {tab === 'setting' ? (

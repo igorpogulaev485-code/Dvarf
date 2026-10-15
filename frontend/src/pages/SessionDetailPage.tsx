@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
+import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
+import { listCharacters } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import {
   getSession,
@@ -9,18 +11,21 @@ import {
   updateSession,
   type SessionDetail,
 } from '../shared/api/lobbies'
-import { Button, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import { Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
 export function SessionDetailPage() {
   const { sessionId = '' } = useParams()
   const navigate = useNavigate()
   const [session, setSession] = useState<SessionDetail | null>(null)
+  const [ownCharacterIds, setOwnCharacterIds] = useState<Set<string>>(() => new Set())
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
   const reload = useCallback(async () => {
-    setSession(await getSession(sessionId))
+    const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
+    setSession(detail)
+    setOwnCharacterIds(new Set(chars.map((c) => c.id)))
   }, [sessionId])
 
   useEffect(() => {
@@ -38,11 +43,10 @@ export function SessionDetailPage() {
     }
   }, [navigate, reload])
 
-  const seatedIds = useMemo(
+  const presentIds = useMemo(
     () => new Set(session?.seats.map((s) => s.character_id) ?? []),
     [session],
   )
-  const available = session?.lobby_members.filter((m) => !seatedIds.has(m.character_id)) ?? []
 
   async function run(action: () => Promise<void>) {
     setBusy(true)
@@ -58,7 +62,7 @@ export function SessionDetailPage() {
 
   if (!session && !error) {
     return (
-      <main className="page page--app">
+      <main className="page page--app page--lobby-hub">
         <Text tone="muted">Загрузка сессии…</Text>
       </main>
     )
@@ -66,21 +70,19 @@ export function SessionDetailPage() {
 
   if (!session) {
     return (
-      <main className="page page--app">
+      <main className="page page--app page--lobby-hub">
         <Text tone="danger">{error}</Text>
       </main>
     )
   }
 
   return (
-    <main className="page page--app">
-      <Stack gap={20}>
+    <main className="page page--app page--lobby-hub">
+      <Stack gap={16}>
         <AppHeader
           title={session.name}
           subtitle={
-            session.setting_name
-              ? `Сессия · ${session.setting_name}`
-              : 'Сессия · ваншот'
+            session.setting_name ? `Сессия · ${session.setting_name}` : 'Сессия · ваншот'
           }
           onOfficialSite={() => setToast('Официальный сайт скоро появится')}
         />
@@ -89,7 +91,7 @@ export function SessionDetailPage() {
         </Text>
         {error ? <Text tone="danger">{error}</Text> : null}
 
-        <Panel title="Стол">
+        <Panel title="Сессия">
           <Stack gap={12}>
             {session.is_owner ? (
               <Field label="Название">
@@ -116,89 +118,36 @@ export function SessionDetailPage() {
               ) : (
                 'Ваншот — без сеттинга'
               )}
+              {' · '}
+              пришло: {session.seats.length} из {session.lobby_members.length}
             </Text>
           </Stack>
         </Panel>
 
-        <Panel title="За столом">
-          <Stack gap={10}>
-            {session.seats.length === 0 ? (
-              <Text tone="muted">Никого нет. Посадите персонажей из лобби.</Text>
-            ) : (
-              session.seats.map((seat) => (
-                <div className="list-row" key={seat.character_id}>
-                  <div>
-                    <Text as="h3">{seat.character_name}</Text>
-                    <Text tone="muted">
-                      {[seat.character_race_name, seat.character_class_name]
-                        .filter(Boolean)
-                        .join(' · ') || `ур. ${seat.character_level}`}
-                      {seat.hp_max != null
-                        ? ` · HP ${seat.hp_current ?? 0}/${seat.hp_max}`
-                        : ''}
-                    </Text>
-                  </div>
-                  <div className="list-row__actions">
-                    <Link
-                      className="ui-button ui-button--ghost"
-                      to={`/characters/${seat.character_id}`}
-                    >
-                      Лист
-                    </Link>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={busy}
-                      onClick={() =>
-                        run(async () => {
-                          const next = await unseatCharacter(session.id, seat.character_id)
-                          setSession(next)
-                        })
-                      }
-                    >
-                      Убрать
-                    </Button>
-                  </div>
-                </div>
-              ))
-            )}
-          </Stack>
+        <Panel title="Кто пришёл">
+          <SessionAttendancePanel
+            mode="manage"
+            members={session.lobby_members}
+            presentIds={presentIds}
+            busy={busy}
+            readOnly={!session.is_owner}
+            isOwner={session.is_owner}
+            ownCharacterIds={ownCharacterIds}
+            onToggle={(characterId, nextPresent) => {
+              run(async () => {
+                const next = nextPresent
+                  ? await seatCharacter(session.id, characterId)
+                  : await unseatCharacter(session.id, characterId)
+                setSession(next)
+              })
+            }}
+          />
         </Panel>
 
-        <Panel title="Из лобби за стол">
-          <Stack gap={10}>
-            {available.length === 0 ? (
-              <Text tone="muted">
-                Все персонажи лобби уже за столом.{' '}
-                <Link to={`/lobbies/${session.lobby_id}`}>Добавить в лобби</Link>
-              </Text>
-            ) : (
-              available.map((m) => (
-                <div className="list-row" key={m.character_id}>
-                  <Text>
-                    {m.character_name} · {m.character_class_name || 'без класса'}
-                  </Text>
-                  <Button
-                    type="button"
-                    disabled={busy}
-                    onClick={() =>
-                      run(async () => {
-                        const next = await seatCharacter(session.id, m.character_id)
-                        setSession(next)
-                      })
-                    }
-                  >
-                    За стол
-                  </Button>
-                </div>
-              ))
-            )}
-          </Stack>
-        </Panel>
-
-        <Panel title="Бой">
+        <Panel title="Живой стол">
           <Text tone="muted">
-            Подготовка боя и лут появятся на уровне сессии — не в сеттинге.
+            Карточки по видимости, лента событий и броски появятся в следующем слайсе (A3). Пока
+            здесь — посещаемость и вход к листам.
           </Text>
         </Panel>
       </Stack>

@@ -171,7 +171,12 @@ export async function deleteSetting(id: string): Promise<void> {
 
 export async function createSession(
   lobbyId: string,
-  payload: { name?: string; setting_id?: string | null },
+  payload: {
+    name?: string
+    setting_id?: string | null
+    /** Кто пришёл — сразу за стол (посещаемость) */
+    character_ids?: string[]
+  },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/lobbies/${lobbyId}/sessions`, {
     method: 'POST',
