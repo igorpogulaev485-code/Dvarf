@@ -34,6 +34,8 @@ from app.schemas.lobby import (
     CombatantPatchRequest,
     JoinLobbyRequest,
     SessionCombatOut,
+    LootAwardRequest,
+    LootAwardResult,
     XpAwardRequest,
     XpAwardResult,
     JournalEntryCreateRequest,
@@ -1946,4 +1948,155 @@ class LobbyService:
             awarded_each=each,
             awarded_total=total,
             recipients=recipient_names,
+        )
+
+    async def award_loot(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: LootAwardRequest,
+    ) -> LootAwardResult:
+        session, lobby = self._require_session_owner(user, session_id)
+        from sqlalchemy.orm.attributes import flag_modified
+
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+
+        seat_ids = {s.character_id for s in session.seats}
+        coin_keys = ("cp", "sp", "ep", "gp", "pp")
+        coin_labels = {"cp": "мм", "sp": "см", "ep": "эм", "gp": "зм", "pp": "пм"}
+
+        # Aggregate grants per character
+        by_char: dict[UUID, dict] = {}
+        lines: list[str] = []
+        for grant in payload.grants:
+            if grant.character_id not in seat_ids:
+                raise AppError(
+                    "Лут только персонажам за столом",
+                    code="loot_not_seated",
+                    status_code=400,
+                )
+            if grant.item is None and grant.coins is None:
+                raise AppError(
+                    "В доле нужен предмет или монеты",
+                    code="loot_empty_grant",
+                    status_code=400,
+                )
+            bucket = by_char.setdefault(
+                grant.character_id,
+                {"items": [], "coins": {k: 0 for k in coin_keys}},
+            )
+            if grant.item is not None:
+                name = grant.item.name.strip()
+                if not name:
+                    raise AppError("Укажите имя предмета", code="loot_item_name", status_code=400)
+                qty = max(1, int(grant.item.qty))
+                bucket["items"].append(
+                    {
+                        "name": name,
+                        "qty": qty,
+                        "notes": (grant.item.notes or "").strip() or None,
+                    }
+                )
+                lines.append(f"{name}×{qty}" if qty > 1 else name)
+            if grant.coins is not None:
+                raw = grant.coins.model_dump()
+                parts = []
+                for key in coin_keys:
+                    amount = max(0, int(raw.get(key) or 0))
+                    if amount <= 0:
+                        continue
+                    bucket["coins"][key] += amount
+                    parts.append(f"{amount} {coin_labels[key]}")
+                if parts:
+                    lines.append(" + ".join(parts))
+
+        if not by_char:
+            raise AppError("Нет долей лута", code="loot_empty", status_code=400)
+
+        char_map = self.lobbies.get_characters_map(list(by_char.keys()))
+        recipient_names: list[str] = []
+        for cid, bucket in by_char.items():
+            character = char_map.get(cid)
+            if character is None:
+                raise NotFoundError("Персонаж не найден", code="character_not_found")
+            sheet = dict(character.sheet or {})
+            inventory = dict(sheet.get("inventory") or {})
+            coins = dict(inventory.get("coins") or {})
+            for key in coin_keys:
+                try:
+                    cur = int(coins.get(key) or 0)
+                except (TypeError, ValueError):
+                    cur = 0
+                coins[key] = max(0, cur + int(bucket["coins"][key]))
+            items = list(inventory.get("items") or [])
+            if not isinstance(items, list):
+                items = []
+            for entry in bucket["items"]:
+                items.append(
+                    {
+                        "id": str(uuid4()),
+                        "name": entry["name"],
+                        "catalog_id": None,
+                        "qty": entry["qty"],
+                        "weight_lb": None,
+                        "equipped": False,
+                        "armor_kind": "none",
+                        "base_ac": None,
+                        "notes": entry["notes"] or "",
+                    }
+                )
+            inventory["coins"] = {k: int(coins.get(k) or 0) for k in coin_keys}
+            inventory["items"] = items
+            sheet["inventory"] = inventory
+            character.sheet = sheet
+            character.sheet_version = int(character.sheet_version or 1) + 1
+            flag_modified(character, "sheet")
+            recipient_names.append(character.name)
+
+        note = (payload.note or "").strip()
+        summary_bits = lines[:8]
+        summary = ", ".join(summary_bits)
+        if len(lines) > 8:
+            summary = f"{summary}…"
+        if note:
+            summary = f"{summary} · {note}" if summary else note
+        summary = summary[:200] or "Лут"
+
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="loot",
+            character_id=None,
+            actor_user_id=user.id,
+            character_name="Мастер",
+            title="Лут",
+            formula=None,
+            breakdown=", ".join(recipient_names)[:200],
+            total=None,
+            is_master_roll=False,
+            payload={
+                "note": note or None,
+                "lines": lines,
+                "character_ids": [str(c) for c in by_char.keys()],
+                "names": recipient_names,
+            },
+        )
+        self.lobbies.add_session_event(event)
+        self.db.commit()
+        self.db.refresh(event)
+
+        detail = self._session_detail(session, lobby, user)
+        out_event = SessionEventOut.model_validate(event)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out_event.model_dump(mode="json")},
+        )
+        return LootAwardResult(
+            session=detail,
+            summary=summary,
+            recipient_names=recipient_names,
         )

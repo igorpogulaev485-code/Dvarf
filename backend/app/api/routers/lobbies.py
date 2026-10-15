@@ -30,6 +30,8 @@ from app.schemas.lobby import (
     CombatantCreateRequest,
     CombatantPatchRequest,
     JoinLobbyRequest,
+    LootAwardRequest,
+    LootAwardResult,
     XpAwardRequest,
     XpAwardResult,
     JournalEntryCreateRequest,
@@ -438,6 +440,19 @@ async def award_session_xp(
     db: DbSession,
 ) -> XpAwardResult:
     return await LobbyService(db).award_xp(current_user, session_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/loot",
+    response_model=LootAwardResult,
+)
+async def award_session_loot(
+    session_id: UUID,
+    payload: LootAwardRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> LootAwardResult:
+    return await LobbyService(db).award_loot(current_user, session_id, payload)
 
 
 @router.get("/sessions/{session_id}/events", response_model=list[SessionEventOut])

@@ -563,6 +563,35 @@ export async function awardSessionXp(
   })
 }
 
+export type LootAwardResult = {
+  session: SessionDetail
+  summary: string
+  recipient_names: string[]
+}
+
+export async function awardSessionLoot(
+  sessionId: string,
+  payload: {
+    grants: Array<{
+      character_id: string
+      item?: { name: string; qty: number; notes?: string | null }
+      coins?: {
+        cp?: number
+        sp?: number
+        ep?: number
+        gp?: number
+        pp?: number
+      }
+    }>
+    note?: string | null
+  },
+): Promise<LootAwardResult> {
+  return apiRequest<LootAwardResult>(`/sessions/${sessionId}/loot`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
 /** Сколько XP ещё не раздано за поверженных в пачке/карточке. */
 export function unclaimedDefeatXp(combatant: SessionCombatant): {
   dead: number

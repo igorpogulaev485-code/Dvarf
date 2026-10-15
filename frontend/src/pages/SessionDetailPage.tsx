@@ -7,6 +7,7 @@ import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
 import { ApplyConditionDialog } from '../features/lobby/ApplyConditionDialog'
 import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
+import { AwardLootDialog } from '../features/lobby/AwardLootDialog'
 import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EnemyCard } from '../features/lobby/EnemyCard'
@@ -23,6 +24,7 @@ import { ApiRequestError } from '../shared/api/client'
 import {
   addSeatCompanion,
   addSessionCombatants,
+  awardSessionLoot,
   awardSessionXp,
   closeSession,
   createSessionRoll,
@@ -72,6 +74,7 @@ export function SessionDetailPage() {
   const [combatantOpen, setCombatantOpen] = useState(false)
   const [combatStartOpen, setCombatStartOpen] = useState(false)
   const [xpOpen, setXpOpen] = useState(false)
+  const [lootOpen, setLootOpen] = useState(false)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -355,8 +358,18 @@ export function SessionDetailPage() {
                         XP
                       </Button>
                     ) : null}
+                    {session.is_owner ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy || session.seats.length === 0}
+                        onClick={() => setLootOpen(true)}
+                      >
+                        Лут
+                      </Button>
+                    ) : null}
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Бой — инициатива. XP — после боя из бестиария или вручную.
+                      XP — опыт. Лут — находка сразу в инвентарь.
                     </Text>
                   </div>
                 ) : null}
@@ -811,6 +824,22 @@ export function SessionDetailPage() {
                 ? `+${result.awarded_each} XP · ${result.recipients.join(', ')}`
                 : 'XP: 0',
             )
+            await reloadEvents()
+          })
+        }}
+      />
+
+      <AwardLootDialog
+        open={lootOpen}
+        busy={busy}
+        seats={session.seats}
+        onClose={() => setLootOpen(false)}
+        onSubmit={(payload) => {
+          void run(async () => {
+            const result = await awardSessionLoot(session.id, payload)
+            setSession(result.session)
+            setLootOpen(false)
+            setToast(`Лут: ${result.summary}`)
             await reloadEvents()
           })
         }}
