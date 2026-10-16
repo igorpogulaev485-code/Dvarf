@@ -303,3 +303,4 @@
 | 2026-10-16 | `cursor/setting-artifacts-d1-bacd` · PR #192 | D1 артефакты + потолок хар-к 20 на прод; **новый tip** |
 | 2026-10-16 | `cursor/setting-artifacts-d1-bacd` · PR #192 | hotfix: вернули Wave A Play Desk + тему кабинета (затёрлись линией B3–C4/D1) |
 | 2026-10-16 | `cursor/setting-artifacts-d1-bacd` · PR #192 | hotfix: вернули полный лист с `forms-adapt-tip` (прыжки, история бросков, дикий облик, гримуар) |
+| 2026-10-16 | `cursor/setting-artifacts-d1-bacd` · PR #192 | сиды `backend/data` + `preflight-live`/`prod-tip`/`remote-up`; orphan alembic → archive |

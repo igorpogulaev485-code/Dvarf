@@ -1,0 +1,2888 @@
+{
+  "version": 1,
+  "notes": "W5: setting-book magic EGW/FTD/AI/SCC/ERLW/GGR/BMT/PAM/SDQ/BPGG + DMG gaps. Official, RU, effects MVP.",
+  "inserts": [
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "1092dd2a-7a04-5997-88ec-073e6e2ee47a",
+      "slug": "ring_of_temporal_salvation",
+      "name_ru": "Кольцо временного спасения",
+      "name_en": "Ring of Temporal Salvation",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10500,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "description_ru": "Раз в день, упав до 0 хитов, в конце хода встаёте с 1 хитом.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "temporal_salvation",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "При 0 хитов 1/день: в конце хода 1 хит."
+          }
+        ],
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "c8c97564-d557-5c30-9790-e6a3f6c63599",
+      "slug": "boots_of_the_shifting_lands",
+      "name_ru": "Сапоги зыбких земель",
+      "name_en": "Boots of the Shifting Lands",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10501,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "feet",
+        "description_ru": "Немагическая труднопроходимая местность не замедляет; раз в день — misty step.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Игнор немагической труднопроходимой местности; 1/день misty step."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e6650c74-0816-5995-a2da-6f7ca3411f02",
+      "slug": "crystal_of_ill_omen",
+      "name_ru": "Кристалл дурного знамения",
+      "name_en": "Crystal of Ill Omen",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10502,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Раз в день реакцией портите бросок врага.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "ill_omen",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "1/день реакцией: помеха на бросок врага в 30 фт."
+          }
+        ],
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "5af21d50-d59d-55f1-90bf-f0498a392cd7",
+      "slug": "duskcrusher",
+      "name_ru": "Сумеречный крушитель",
+      "name_en": "Duskcrusher",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10503,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 10,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Магический моргенштерн +2 против нежити.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "custom_note",
+            "text": "Моргенштерн +2; свет и сила против нежити (EGW)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "f27a46ad-4842-5f93-a597-b1005e989ca8",
+      "slug": "goggles_of_object_reading",
+      "name_ru": "Очки чтения предметов",
+      "name_en": "Goggles of Object Reading",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10504,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "eyes",
+        "description_ru": "Действием узнаёте свойства предмета (identify).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Действием: identify на предмет."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "17de7a1f-bb6e-5726-b4a4-4c830e5c7c20",
+      "slug": "nightfall_pearl",
+      "name_ru": "Жемчужина ночного падения",
+      "name_en": "Nightfall Pearl",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10505,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Раз в день — тьма радиусом 15 футов.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "nightfall_pearl",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Действием: тьма 15 фт на 10 мин."
+          }
+        ],
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "9f203f43-12c6-52ed-adb5-b908ce991598",
+      "slug": "coruscating_armor",
+      "name_ru": "Сверкающий доспех",
+      "name_en": "Coruscating Armor",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10506,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Доспех +1 со вспышкой света.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Доспех +1; реакцией ослепляющая вспышка (EGW)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "00689f35-b74e-52fb-8f53-80c1106cb738",
+      "slug": "spell_bottle",
+      "name_ru": "Бутыль заклинаний",
+      "name_en": "Spell Bottle",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10507,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Ловит заклинание до 4 уровня и позволяет высвободить его.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Реакцией поймать заклинание ≤4 ур.; затем выпустить."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "0235980b-ded3-56dc-9a3d-0365af5d2086",
+      "slug": "wraps_of_unarmed_prowess_1",
+      "name_ru": "Обмотки безоружного мастерства +1",
+      "name_en": "Wraps of Unarmed Prowess +1",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10508,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "hands",
+        "description_ru": "+1 к безоружным ударам.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "+1 к безоружным; удары магические."
+          }
+        ],
+        "family_slug": "wraps_of_unarmed_prowess",
+        "family_label_ru": "Обмотки безоружного мастерства",
+        "variant_key": "1",
+        "variant_label_ru": "+1"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d2270be9-b0a9-5fb3-a45c-d1125203dfab",
+      "slug": "wraps_of_unarmed_prowess_2",
+      "name_ru": "Обмотки безоружного мастерства +2",
+      "name_en": "Wraps of Unarmed Prowess +2",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10509,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "hands",
+        "description_ru": "+2 к безоружным ударам.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "custom_note",
+            "text": "+2 к безоружным; магические удары."
+          }
+        ],
+        "family_slug": "wraps_of_unarmed_prowess",
+        "family_label_ru": "Обмотки безоружного мастерства",
+        "variant_key": "2",
+        "variant_label_ru": "+2"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "3379f572-93f1-5faa-bb39-e9bc8281c9f6",
+      "slug": "wraps_of_unarmed_prowess_3",
+      "name_ru": "Обмотки безоружного мастерства +3",
+      "name_en": "Wraps of Unarmed Prowess +3",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10510,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "hands",
+        "description_ru": "+3 к безоружным ударам.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "+3 к безоружным; магические удары."
+          }
+        ],
+        "family_slug": "wraps_of_unarmed_prowess",
+        "family_label_ru": "Обмотки безоружного мастерства",
+        "variant_key": "3",
+        "variant_label_ru": "+3"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b1c414b6-9082-5691-a3d5-a77acde40771",
+      "slug": "arcane_propulsion_armor",
+      "name_ru": "Доспех магического импульса",
+      "name_en": "Arcane Propulsion Armor",
+      "rules_edition": "2014",
+      "source": "EGW 2014",
+      "sort_order": 10511,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "EGW",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Тяжёлый доспех +2 с силовой рукой и импульсом.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Доспех +2 изобретателя; силовая рука; ускорение (EGW)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "7fd1bec8-dd5f-57eb-9a60-53849d17e879",
+      "slug": "amulet_of_the_devout_1",
+      "name_ru": "Амулет благочестия +1",
+      "name_en": "Amulet of the Devout +1",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 10512,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "symbol",
+        "stackable": false,
+        "source_book": "TCE",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "neck",
+        "description_ru": "Священный символ +1 и дополнительный канал божественности.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Символ жреца/паладина +1 Сл; +1 канал божественности / длинный отдых."
+          }
+        ],
+        "family_slug": "amulet_of_the_devout",
+        "family_label_ru": "Амулет благочестия",
+        "variant_key": "1",
+        "variant_label_ru": "+1"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "ee916ce1-b6ed-522b-abf6-750189140b7b",
+      "slug": "amulet_of_the_devout_2",
+      "name_ru": "Амулет благочестия +2",
+      "name_en": "Amulet of the Devout +2",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 10513,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "symbol",
+        "stackable": false,
+        "source_book": "TCE",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "neck",
+        "description_ru": "Священный символ +2.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+2 Сл заклинаний; +1 канал божественности."
+          }
+        ],
+        "family_slug": "amulet_of_the_devout",
+        "family_label_ru": "Амулет благочестия",
+        "variant_key": "2",
+        "variant_label_ru": "+2"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "9fa82a6f-9444-5f83-b9fd-188f0f77ffd6",
+      "slug": "amulet_of_the_devout_3",
+      "name_ru": "Амулет благочестия +3",
+      "name_en": "Amulet of the Devout +3",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 10514,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "symbol",
+        "stackable": false,
+        "source_book": "TCE",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "neck",
+        "description_ru": "Священный символ +3.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+3 Сл заклинаний; +1 канал божественности."
+          }
+        ],
+        "family_slug": "amulet_of_the_devout",
+        "family_label_ru": "Амулет благочестия",
+        "variant_key": "3",
+        "variant_label_ru": "+3"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "195066dc-dcb4-5263-b9ab-dc6cbcb45c57",
+      "slug": "dragonlance",
+      "name_ru": "Драконье копьё",
+      "name_en": "Dragonlance",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 10515,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "FTD",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Легендарное +3 копьё против драконов.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Копьё/пика +3; доп. урон драконам; езда на драконе (FTD)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d582fde2-78ca-5622-82a2-0615817b328c",
+      "slug": "emerald_pen",
+      "name_ru": "Изумрудное перо",
+      "name_en": "Emerald Pen",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 10516,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "FTD",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Пишет без чернил и копирует надписи.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Пишет без чернил; копирует текст действием."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "8861d928-8b3e-5ce0-922a-7a76b7b0b332",
+      "slug": "gold_canary_figurine",
+      "name_ru": "Фигурка золотой канарейки",
+      "name_en": "Gold Canary Figurine of Wondrous Power",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 10517,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "FTD",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Фигурка чудесной силы: канарейка или золотой дракон.",
+        "effects": [
+          {
+            "type": "companion",
+            "kind": "gold_canary",
+            "name_ru": "Золотая канарейка"
+          },
+          {
+            "type": "custom_note",
+            "text": "Канарейка или юный золотой дракон (лимиты FTD)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "3610e0f6-4172-54ef-84b4-bb08dc594985",
+      "slug": "platinum_scarf",
+      "name_ru": "Платиновый шарф",
+      "name_en": "Platinum Scarf",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 10518,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "FTD",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "neck",
+        "description_ru": "Шарф с несколькими мощными режимами раз в день.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "platinum_scarf",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Режимы: лестница / щит / лечение — FTD."
+          }
+        ],
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "98156a81-7ddb-56ad-aeb2-2fb1301d0313",
+      "slug": "ruby_weave_gem",
+      "name_ru": "Рубиновый самоцвет плетения",
+      "name_en": "Ruby Weave Gem",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 10519,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "FTD",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Фокус чародея с бонусом и дополнительным заклинанием.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Фокус чародея; +1 атака/Сл; доп. известное заклинание."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "188995d3-2940-5dcb-8383-08743651119b",
+      "slug": "dragon_wing_bow",
+      "name_ru": "Лук драконьих крыльев",
+      "name_en": "Dragon Wing Bow",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 10520,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "FTD",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Магический лук +1 со стихией дракона.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Лук +1; доп. урон стихией дракона."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "380b1d47-9e90-549f-abda-bd403135fc89",
+      "slug": "scaled_ornament",
+      "name_ru": "Чешуйчатое украшение",
+      "name_en": "Scaled Ornament",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 10521,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "FTD",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "neck",
+        "description_ru": "+1 к спасброскам и стойкость к страху.",
+        "effects": [
+          {
+            "type": "save_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "+1 к спасброскам; преимущество vs испуг."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "455dc633-4f48-53e8-82fa-c92521109bc8",
+      "slug": "crystal_blade",
+      "name_ru": "Кристальный клинок",
+      "name_en": "Crystal Blade",
+      "rules_edition": "2014",
+      "source": "FTD 2014",
+      "sort_order": 10522,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "FTD",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Меч +1 со светом и исцеляющими зарядами.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Меч +1; свет; заряды лечения (FTD)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "6ac61924-514e-5dc4-b405-0f6676551b24",
+      "slug": "badge_of_the_watch",
+      "name_ru": "Значок стражи",
+      "name_en": "Badge of the Watch",
+      "rules_edition": "2014",
+      "source": "AI 2014",
+      "sort_order": 10523,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "AI",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Знак Стражи Врат Балдура.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Авторитет Стражи Врат Балдура; преимущество на Запугивание там."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "ff7b4fcb-6a92-5ecf-850f-ddbde35b6c9e",
+      "slug": "mirror_of_the_past",
+      "name_ru": "Зеркало прошлого",
+      "name_en": "Mirror of the Past",
+      "rules_edition": "2014",
+      "source": "AI 2014",
+      "sort_order": 10524,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "AI",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Раз в день показывает видение из прошлого.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "mirror_past",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "1/день видение из прошлого предмета/существа."
+          }
+        ],
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "f44d2928-2f00-5824-86e1-c0e55324d1fc",
+      "slug": "hat_of_beats",
+      "name_ru": "Шляпа ритма",
+      "name_en": "Hat of Beats",
+      "rules_edition": "2014",
+      "source": "AI 2014",
+      "sort_order": 10525,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "AI",
+        "rarity": "common",
+        "requires_attunement": false,
+        "wear_slot": "head",
+        "description_ru": "Бонусным действием запускает громкую дробь.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Бонусным: барабанная дробь на 100 фт."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "48992ef8-bc19-5a43-9014-b8bbadddf7a7",
+      "slug": "clockwork_dog",
+      "name_ru": "Заводная собака",
+      "name_en": "Clockwork Dog",
+      "rules_edition": "2014",
+      "source": "AI 2014",
+      "sort_order": 10526,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 50,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "AI",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Механическая собака-спутник.",
+        "effects": [
+          {
+            "type": "companion",
+            "kind": "clockwork_dog",
+            "name_ru": "Заводная собака"
+          },
+          {
+            "type": "custom_note",
+            "text": "Конструкт-компаньон."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b5a1223e-7ad1-50fa-ba39-d9901f51a3f8",
+      "slug": "wand_of_viscous_goo",
+      "name_ru": "Палочка вязкой слизи",
+      "name_en": "Wand of Viscous Goop",
+      "rules_edition": "2014",
+      "source": "AI 2014",
+      "sort_order": 10527,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "AI",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Заряды сковывающей слизи.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_goo",
+            "max": 7,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Заряд: атака слизью, сковывающая цель."
+          }
+        ],
+        "charges": {
+          "max": 7,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "149b0134-9430-583b-a8ef-3b8acd61b50e",
+      "slug": "prosthetic_limb",
+      "name_ru": "Протез конечности",
+      "name_en": "Prosthetic Limb",
+      "rules_edition": "2014",
+      "source": "TCE 2014",
+      "sort_order": 10528,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "TCE",
+        "rarity": "common",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Магический протез руки или ноги.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Заменяет руку/ногу; действие — снять/надеть."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b4f71c41-c4a6-5938-a224-d3395d3d1cfc",
+      "slug": "strixhaven_campus_map",
+      "name_ru": "Карта кампуса Стриксхейвена",
+      "name_en": "Strixhaven Campus Map",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 10529,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "SCC",
+        "rarity": "common",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Магическая карта кампуса.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Показывает место на кампусе и путь к локации."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "4be5cfb6-e494-5c16-8875-2b43b18e43e0",
+      "slug": "strixhaven_pennant",
+      "name_ru": "Вымпел колледжа",
+      "name_en": "Strixhaven Pennant",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 10530,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "SCC",
+        "rarity": "common",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Вымпел вашего колледжа.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Бонусным: гимн и развевание вымпела колледжа."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "52f956f4-f624-5829-86c6-71ec0ba2851a",
+      "slug": "bottle_of_boundless_coffee",
+      "name_ru": "Бутыль бездонного кофе",
+      "name_en": "Bottle of Boundless Coffee",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 10531,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "SCC",
+        "rarity": "common",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Из бутыли всегда можно налить кофе.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Бездонный кофе любого обычного вкуса."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "c4e17684-64df-5394-ae89-448e99d76ce0",
+      "slug": "dancing_ink",
+      "name_ru": "Танцующие чернила",
+      "name_en": "Dancing Ink",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 10532,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "SCC",
+        "rarity": "common",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Оживляют рисунок на час.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Оживляют рисунок на 1 час."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "1b11a023-ec4e-5780-a023-e08ecf5adf7f",
+      "slug": "lorehold_primer",
+      "name_ru": "Букварь Лорхолда",
+      "name_en": "Lorehold Primer",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 10533,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "SCC",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Учебник-фокус колледжа Лорхолда.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Фокус колледжа; +1d4 к Истории/Религии; заговор колледжа."
+          }
+        ],
+        "family_slug": "strixhaven_primer",
+        "family_label_ru": "Букварь Стриксхейвена",
+        "variant_key": "lorehold",
+        "variant_label_ru": "Lorehold"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "9217bd08-4506-570d-b8a6-277ac4d37d16",
+      "slug": "prismari_primer",
+      "name_ru": "Букварь Призмари",
+      "name_en": "Prismari Primer",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 10534,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "SCC",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Учебник-фокус колледжа Призмари.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Фокус колледжа; +1d4 к Акробатике/Выступлению; заговор колледжа."
+          }
+        ],
+        "family_slug": "strixhaven_primer",
+        "family_label_ru": "Букварь Стриксхейвена",
+        "variant_key": "prismari",
+        "variant_label_ru": "Prismari"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "c29b39d9-5da0-5229-b46f-d70871f6816d",
+      "slug": "quandrix_primer",
+      "name_ru": "Букварь Квандрикса",
+      "name_en": "Quandrix Primer",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 10535,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "SCC",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Учебник-фокус колледжа Квандрикса.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Фокус колледжа; +1d4 к Магии/Природе; заговор колледжа."
+          }
+        ],
+        "family_slug": "strixhaven_primer",
+        "family_label_ru": "Букварь Стриксхейвена",
+        "variant_key": "quandrix",
+        "variant_label_ru": "Quandrix"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "2a1b7bc1-bb49-5dc2-b92e-80d6ba80e983",
+      "slug": "silverquill_primer",
+      "name_ru": "Букварь Силверквилла",
+      "name_en": "Silverquill Primer",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 10536,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "SCC",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Учебник-фокус колледжа Силверквилла.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Фокус колледжа; +1d4 к Обману/Убеждению; заговор колледжа."
+          }
+        ],
+        "family_slug": "strixhaven_primer",
+        "family_label_ru": "Букварь Стриксхейвена",
+        "variant_key": "silverquill",
+        "variant_label_ru": "Silverquill"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "bc84022f-693d-5d52-aef6-19dfcffd483f",
+      "slug": "witherbloom_primer",
+      "name_ru": "Букварь Уизерблума",
+      "name_en": "Witherbloom Primer",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 10537,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "SCC",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Учебник-фокус колледжа Уизерблума.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Фокус колледжа; +1d4 к Природе/Медицине; заговор колледжа."
+          }
+        ],
+        "family_slug": "strixhaven_primer",
+        "family_label_ru": "Букварь Стриксхейвена",
+        "variant_key": "witherbloom",
+        "variant_label_ru": "Witherbloom"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "f9ff3157-da08-5e6b-8681-5a24efef5fa2",
+      "slug": "professor_orb",
+      "name_ru": "Сфера профессора",
+      "name_en": "Professor Orb",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 10538,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "SCC",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Оживлённая сфера со знаниями одной области.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Говорящая сфера-эксперт в одной теме."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "67563b46-2a4d-5458-be2d-0c9e36d92bae",
+      "slug": "letter_of_recommendation",
+      "name_ru": "Рекомендательное письмо",
+      "name_en": "Letter of Recommendation",
+      "rules_edition": "2014",
+      "source": "SCC 2014",
+      "sort_order": 10539,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": false,
+        "source_book": "SCC",
+        "rarity": "common",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Одноразовое преимущество на проверку Харизмы.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "1 раз: преимущество на Харизму к нужной фракции."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "eff240c9-ade6-5b50-8ad6-a20a6e2f6c9e",
+      "slug": "everbright_lantern",
+      "name_ru": "Вечнояркий фонарь",
+      "name_en": "Everbright Lantern",
+      "rules_edition": "2014",
+      "source": "ERLW 2014",
+      "sort_order": 10540,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "ERLW",
+        "rarity": "common",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Фонарь с вечным магическим светом.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Вечный яркий свет 30 / тусклый 30."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "6f709dd2-339a-5099-b64b-292da9c861a1",
+      "slug": "glamerweave_outfit",
+      "name_ru": "Гламурная ткань",
+      "name_en": "Glamerweave",
+      "rules_edition": "2014",
+      "source": "ERLW 2014",
+      "sort_order": 10541,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "ERLW",
+        "rarity": "common",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Одежда с меняющимся иллюзорным обликом.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Одежда с иллюзорным узором; действие — смена вида."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "9458c8de-9400-58bc-8c9a-cfea9548ada7",
+      "slug": "shiftweave_outfit",
+      "name_ru": "Сменная ткань",
+      "name_en": "Shiftweave",
+      "rules_edition": "2014",
+      "source": "ERLW 2014",
+      "sort_order": 10542,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 75,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "ERLW",
+        "rarity": "common",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Одежда с несколькими запасёнными фасонами.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "До 5 обликов одежды; бонусным — смена."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "72171394-738c-51b4-a3e5-0617313b83e6",
+      "slug": "armblade",
+      "name_ru": "Клинок-протез",
+      "name_en": "Armblade",
+      "rules_edition": "2014",
+      "source": "ERLW 2014",
+      "sort_order": 10543,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "ERLW",
+        "rarity": "common",
+        "requires_attunement": true,
+        "wear_slot": "hands",
+        "description_ru": "Оружие, вросшее в руку войнака.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Оружие встроено в руку; нельзя обезоружить."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "bf7fabef-f3b1-5060-8e11-71e4eb2a6cd1",
+      "slug": "docent",
+      "name_ru": "Доцент",
+      "name_en": "Docent",
+      "rules_edition": "2014",
+      "source": "ERLW 2014",
+      "sort_order": 10544,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "ERLW",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Интеллектуальный симбионт для войнака.",
+        "effects": [
+          {
+            "type": "sense",
+            "sense": "darkvision",
+            "range_ft": 60
+          },
+          {
+            "type": "custom_note",
+            "text": "Интеллектуальный симбионт войнака (ERLW)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "9168c6a9-94d7-5c28-8f49-fb8bbbb05885",
+      "slug": "wheel_of_wind_and_water",
+      "name_ru": "Штурвал ветра и воды",
+      "name_en": "Wheel of Wind and Water",
+      "rules_edition": "2014",
+      "source": "ERLW 2014",
+      "sort_order": 10545,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 50,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "ERLW",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Штурвал элементального судна.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Управление elemental galleon / airship."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "a5555d00-c49a-5b5d-9821-a9c4abfbfc9c",
+      "slug": "bag_of_bones",
+      "name_ru": "Мешок костей",
+      "name_en": "Bag of Bones",
+      "rules_edition": "2014",
+      "source": "ERLW 2014",
+      "sort_order": 10546,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 3,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "ERLW",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Из мешка появляется скелет-слуга.",
+        "effects": [
+          {
+            "type": "companion",
+            "kind": "skeleton",
+            "name_ru": "Скелет"
+          },
+          {
+            "type": "custom_note",
+            "text": "Действием — скелет-слуга на 1 час."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "1cdf072d-e908-53d9-8a66-f78fb10c2763",
+      "slug": "guild_signet_azorius",
+      "name_ru": "Печатка Азориусов",
+      "name_en": "Azorius Signet",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10547,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Знак гильдии Azorius: фокус и магия гильдии.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "signet_azorius",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус гильдии Azorius; 1/день заклинание гильдии (GGR)."
+          }
+        ],
+        "family_slug": "guild_signet",
+        "family_label_ru": "Печатка гильдии",
+        "variant_key": "azorius",
+        "variant_label_ru": "Azorius",
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "c6c421c8-f4a3-5880-a1c8-7201cb7d8fa3",
+      "slug": "guild_signet_boros",
+      "name_ru": "Печатка Боросов",
+      "name_en": "Boros Signet",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10548,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Знак гильдии Boros: фокус и магия гильдии.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "signet_boros",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус гильдии Boros; 1/день заклинание гильдии (GGR)."
+          }
+        ],
+        "family_slug": "guild_signet",
+        "family_label_ru": "Печатка гильдии",
+        "variant_key": "boros",
+        "variant_label_ru": "Boros",
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "40bdfb66-50fe-5fda-a871-989f9c510dd0",
+      "slug": "guild_signet_dimir",
+      "name_ru": "Печатка Димиров",
+      "name_en": "Dimir Signet",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10549,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Знак гильдии Dimir: фокус и магия гильдии.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "signet_dimir",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус гильдии Dimir; 1/день заклинание гильдии (GGR)."
+          }
+        ],
+        "family_slug": "guild_signet",
+        "family_label_ru": "Печатка гильдии",
+        "variant_key": "dimir",
+        "variant_label_ru": "Dimir",
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "ab04d91e-6202-5110-b711-9f74e102501c",
+      "slug": "guild_signet_golgari",
+      "name_ru": "Печатка Голгари",
+      "name_en": "Golgari Signet",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10550,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Знак гильдии Golgari: фокус и магия гильдии.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "signet_golgari",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус гильдии Golgari; 1/день заклинание гильдии (GGR)."
+          }
+        ],
+        "family_slug": "guild_signet",
+        "family_label_ru": "Печатка гильдии",
+        "variant_key": "golgari",
+        "variant_label_ru": "Golgari",
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b19516e7-0f93-57d8-b3d9-a886805c3e7f",
+      "slug": "guild_signet_izzet",
+      "name_ru": "Печатка Иззетов",
+      "name_en": "Izzet Signet",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10551,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Знак гильдии Izzet: фокус и магия гильдии.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "signet_izzet",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус гильдии Izzet; 1/день заклинание гильдии (GGR)."
+          }
+        ],
+        "family_slug": "guild_signet",
+        "family_label_ru": "Печатка гильдии",
+        "variant_key": "izzet",
+        "variant_label_ru": "Izzet",
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "4309e4d1-6154-59b2-a789-97a50ac54679",
+      "slug": "guild_signet_selesnya",
+      "name_ru": "Печатка Селезнии",
+      "name_en": "Selesnya Signet",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10552,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Знак гильдии Selesnya: фокус и магия гильдии.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "signet_selesnya",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус гильдии Selesnya; 1/день заклинание гильдии (GGR)."
+          }
+        ],
+        "family_slug": "guild_signet",
+        "family_label_ru": "Печатка гильдии",
+        "variant_key": "selesnya",
+        "variant_label_ru": "Selesnya",
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "fbf65b60-fd88-5414-b3ab-bef203a6d81e",
+      "slug": "guild_signet_orzhov",
+      "name_ru": "Печатка Орзовов",
+      "name_en": "Orzhov Signet",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10553,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Знак гильдии Orzhov: фокус и магия гильдии.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "signet_orzhov",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус гильдии Orzhov; 1/день заклинание гильдии (GGR)."
+          }
+        ],
+        "family_slug": "guild_signet",
+        "family_label_ru": "Печатка гильдии",
+        "variant_key": "orzhov",
+        "variant_label_ru": "Orzhov",
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "ccc2f5cd-a345-50da-996f-bbacf74c4c39",
+      "slug": "guild_signet_rakdos",
+      "name_ru": "Печатка Ракдосов",
+      "name_en": "Rakdos Signet",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10554,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Знак гильдии Rakdos: фокус и магия гильдии.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "signet_rakdos",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус гильдии Rakdos; 1/день заклинание гильдии (GGR)."
+          }
+        ],
+        "family_slug": "guild_signet",
+        "family_label_ru": "Печатка гильдии",
+        "variant_key": "rakdos",
+        "variant_label_ru": "Rakdos",
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "cbf33f2a-1aeb-50d1-ad0a-64ec2609b887",
+      "slug": "guild_signet_gruul",
+      "name_ru": "Печатка Груула",
+      "name_en": "Gruul Signet",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10555,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Знак гильдии Gruul: фокус и магия гильдии.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "signet_gruul",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус гильдии Gruul; 1/день заклинание гильдии (GGR)."
+          }
+        ],
+        "family_slug": "guild_signet",
+        "family_label_ru": "Печатка гильдии",
+        "variant_key": "gruul",
+        "variant_label_ru": "Gruul",
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "99894e88-0b20-570a-9fb7-36ed200c2e95",
+      "slug": "guild_signet_simic",
+      "name_ru": "Печатка Симиков",
+      "name_en": "Simic Signet",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10556,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Знак гильдии Simic: фокус и магия гильдии.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "signet_simic",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Фокус гильдии Simic; 1/день заклинание гильдии (GGR)."
+          }
+        ],
+        "family_slug": "guild_signet",
+        "family_label_ru": "Печатка гильдии",
+        "variant_key": "simic",
+        "variant_label_ru": "Simic",
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "86174000-4fe0-5848-84a3-b855e5391d76",
+      "slug": "mizzium_apparatus",
+      "name_ru": "Миззиевый аппарат",
+      "name_en": "Mizzium Apparatus",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10557,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Аппарат для рискованных импровизированных заклинаний.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Фокус Иззет; риск сотворить незаготовленное заклинание."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "44c38d9c-ce27-5396-b81f-5a311e6aaf98",
+      "slug": "peregrine_mask",
+      "name_ru": "Маска сапсана",
+      "name_en": "Peregrine Mask",
+      "rules_edition": "2014",
+      "source": "GGR 2014",
+      "sort_order": 10558,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "GGR",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "head",
+        "description_ru": "Маска Борос: полёт и зоркость.",
+        "effects": [
+          {
+            "type": "speed",
+            "mode": "fly",
+            "value_ft": 30
+          },
+          {
+            "type": "custom_note",
+            "text": "Полёт 30 фт; преимущество на зрение Внимательности."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "8aa904a4-e0d8-553d-8ade-c8271c817bc2",
+      "slug": "deck_of_many_things",
+      "name_ru": "Колода многих вещей",
+      "name_en": "Deck of Many Things",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10559,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Легендарная колода судьбы.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Вытягивание карт меняет судьбу (BMT/DMG)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "91ddcc4f-dc34-5285-8881-0c0b9f12cdd8",
+      "slug": "orb_of_the_veil",
+      "name_ru": "Сфера завесы",
+      "name_en": "Orb of the Veil",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10560,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Сфера с истинным зрением и тяжёлой ценой.",
+        "effects": [
+          {
+            "type": "sense",
+            "sense": "truesight",
+            "range_ft": 30
+          },
+          {
+            "type": "custom_note",
+            "text": "True sight 30 фт; проклятье завесы (BMT)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "6f028edd-7f52-55b7-8320-554f51c3be50",
+      "slug": "die_of_fate",
+      "name_ru": "Кость судьбы",
+      "name_en": "Die of Fate",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10561,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Раз в день подменяете результат к20.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "1/день замените к20 на число 1–20."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "78ef56f4-60c4-53ba-b9ee-61e8572e8113",
+      "slug": "portal_compass",
+      "name_ru": "Компас порталов",
+      "name_en": "Portal Compass",
+      "rules_edition": "2014",
+      "source": "PAM 2014",
+      "sort_order": 10562,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "PAM",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Указывает путь к ближайшему порталу.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Указывает на ближайший портал в 1 миле."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "68e32fa9-b356-51f3-ac0d-a9ad87e928f8",
+      "slug": "sensory_stone",
+      "name_ru": "Камень ощущений",
+      "name_en": "Sensory Stone",
+      "rules_edition": "2014",
+      "source": "PAM 2014",
+      "sort_order": 10563,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "PAM",
+        "rarity": "common",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Запись ощущения или воспоминания.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Записывает и воспроизводит один сенсорный опыт."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "4bc9afd0-7f82-5afb-877e-72dae14e918d",
+      "slug": "mimir",
+      "name_ru": "Мимир",
+      "name_en": "Mimir",
+      "rules_edition": "2014",
+      "source": "PAM 2014",
+      "sort_order": 10564,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "PAM",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Летающий череп, знающий толку в планах.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Летающий череп-информатор о планах."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "6eeccd37-c019-590f-9566-6edb2c6cce72",
+      "slug": "gate_seal",
+      "name_ru": "Печать врат",
+      "name_en": "Gate Seal",
+      "rules_edition": "2014",
+      "source": "PAM 2014",
+      "sort_order": 10565,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "PAM",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Запечатывает портал поблизости.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "gate_seal",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Запечатать портал в 30 фт на 8 часов."
+          }
+        ],
+        "charges": {
+          "max": 1,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "9289d6d9-ae55-5521-8b08-bf3ab6759548",
+      "slug": "flying_citadel_helm",
+      "name_ru": "Шлем летающей цитадели",
+      "name_en": "Flying Citadel Helm",
+      "rules_edition": "2014",
+      "source": "SDQ 2014",
+      "sort_order": 10566,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 100,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "SDQ",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Штурвал, поднимающий в воздух цитадель.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Штурвал летающей цитадели (SDQ)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "02f3bf1d-01a6-503c-a466-6641a4a39c8a",
+      "slug": "solamnic_knight_armor",
+      "name_ru": "Доспех рыцаря Соламнии",
+      "name_en": "Solamnic Knight Armor",
+      "rules_edition": "2014",
+      "source": "SDQ 2014",
+      "sort_order": 10567,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "SDQ",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Рыцарские латы +1 ордена Соламнии.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Латы +1 с чертами ордена Соламнии."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "bf74723d-13da-5241-af38-d251202e4437",
+      "slug": "boots_of_the_giant",
+      "name_ru": "Сапоги великана",
+      "name_en": "Boots of the Giant",
+      "rules_edition": "2014",
+      "source": "BPGG 2014",
+      "sort_order": 10568,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BPGG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "feet",
+        "description_ru": "Позволяете топтать врагов, как великан.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Реакцией топтать врага: урон и prone (BPGG)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "17847285-48e4-5d4f-81a0-154fdcdbc581",
+      "slug": "potion_of_giant_size",
+      "name_ru": "Зелье размера великана",
+      "name_en": "Potion of Giant Size",
+      "rules_edition": "2014",
+      "source": "BPGG 2014",
+      "sort_order": 10569,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 1000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "BPGG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "На сутки вы становитесь огромным и чудовищно сильным.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "На 24 часа — Огромный размер и огромная Сила (BPGG)."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "c2d7c4fe-292c-5a08-bdda-e7b42d722901",
+      "slug": "rune_of_might",
+      "name_ru": "Руна мощи",
+      "name_en": "Rune of Might",
+      "rules_edition": "2014",
+      "source": "BPGG 2014",
+      "sort_order": 10570,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "BPGG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Руна, усиливающая Силу носителя.",
+        "effects": [
+          {
+            "type": "ability_mod",
+            "ability": "str",
+            "value": 2
+          },
+          {
+            "type": "custom_note",
+            "text": "На предмете: +2 Сил (макс 20); заряды мощи."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "2f1ccb04-ac8c-56e8-af4e-59d43895fc72",
+      "slug": "wand_of_wonder",
+      "name_ru": "Палочка чудес",
+      "name_en": "Wand of Wonder",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10571,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Хаотичная палочка со случайными эффектами.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_wonder",
+            "max": 7,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Случайный эффект из таблицы палочки чудес."
+          }
+        ],
+        "charges": {
+          "max": 7,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "66833a80-6bdc-5f3f-aa49-a5fc6ff2504f",
+      "slug": "deck_of_illusions",
+      "name_ru": "Колода иллюзий",
+      "name_en": "Deck of Illusions",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10572,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Карты, порождающие иллюзорных чудовищ.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Карты создают иллюзорных существ."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "84ebfc1c-6a96-5c9d-8132-3f37c680a6af",
+      "slug": "bag_of_beans",
+      "name_ru": "Мешок бобов",
+      "name_en": "Bag of Beans",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10573,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Горсть магических бобов со случайными эффектами.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "3d4 боба со случайными эффектами при посадке."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "079170df-1367-50e2-bd88-18c8b72794f4",
+      "slug": "staff_of_the_python",
+      "name_ru": "Посох питона",
+      "name_en": "Staff of the Python",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10574,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Действием посох становится гигантским удавом.",
+        "effects": [
+          {
+            "type": "companion",
+            "kind": "giant_constrictor_snake",
+            "name_ru": "Гигантский удав"
+          },
+          {
+            "type": "custom_note",
+            "text": "Действием → удав на 1 час; 1/день."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "7dc4d3ed-5d3b-569b-8572-848b26b616e9",
+      "slug": "weapon_of_warning",
+      "name_ru": "Оружие предупреждения",
+      "name_en": "Weapon of Warning",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10575,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Преимущество на инициативу; вас трудно застать врасплох.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Преимущество на инициативу; защита от магического сна в 30 фт."
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -82,6 +82,14 @@ require "frontend/src/features/characters/WildShapeDialog.tsx" "дикий об�
 require "frontend/src/shared/dnd/jumpDistance.ts" "прыжки на столе"
 require "frontend/src/shared/dnd/wizardSpellbook.ts" "книга волшебника"
 require "frontend/src/features/characters/SpellbookManageDialog.tsx" "UI книги заклинаний"
+require "deploy/preflight-live.sh" "live tip ancestry guard"
+require "deploy/prod-tip" "единый файл tip"
+require "deploy/remote-up.sh" "fast remote-up path"
+require "backend/data/classes/features/wizard_2014.json" "сид умений волшебника"
+require "backend/data/classes/features/druid_2014.json" "сид умений друида"
+require "backend/data/feats/phb2014_feat_catalog_spec.json" "сид черт PHB"
+require "backend/data/races/phb2014_race_catalog_spec.json" "сид рас PHB"
+require "backend/alembic/archive_forms_adapt_versions/README.md" "архив миграций forms-adapt"
 
 # Spot-check: digital sheet must not still say multiclass is backlog-only
 if grep -q 'Мультикласс — в backlog; пока один класс' \

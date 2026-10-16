@@ -46,16 +46,21 @@
 
 ```bash
 ./deploy/preflight-prod.sh
+./deploy/preflight-live.sh   # tip на VPS — ancestor of HEAD; alembic revision есть в дереве
 ```
 
-Скрипт падает, если нет обязательных файлов текущего прода (lobby + cabinet + avatar + sheet P1–P6 + classic).  
-`sync-and-up.sh` вызывает preflight сам. Обход только так: `DVARF_SKIP_PREFLIGHT=1` — и только с явного ok Игоря.
+`preflight-prod` падает, если нет обязательных файлов текущего прода (lobby + cabinet + avatar + sheet + forms-adapt маркеры + classic + бой/вики).  
+`preflight-live` читает tip/alembic **с сервера** и ловит orphan-ветки / missing migration files.  
+`sync-and-up.sh` вызывает оба. Обход: `DVARF_SKIP_PREFLIGHT=1` и/или `DVARF_SKIP_LIVE_PREFLIGHT=1` — только с явного ok Игоря.
+
+Единый файл tip: `deploy/prod-tip` (сейчас = ветка в таблице выше).
 
 Дополнительно глазами:
 
 - [ ] Ветка содержит merge/rebase **prod tip**, не параллельную «пустую» развилку от старого Phase A
 - [ ] `PRODUCT_STATUS.md` актуален; не пишешь «на проде: да» заранее
 - [ ] Нет удаления чужих роутов/панелей «потому что мне не нужны»
+- [ ] Сиды `backend/data/` (классы/фиты/расы) на месте — иначе свежая БД не воспроизведёт каталог
 
 ---
 
