@@ -32,7 +32,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/setting-artifacts-d1-bacd
+cursor/characters-load-perf-f3ee
 ```
 
 URL: http://201.34.132.252/
