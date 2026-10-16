@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import {
   buildSettingPageTree,
@@ -22,6 +22,8 @@ import { Button, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
 export function SettingDetailPage() {
   const { settingId = '' } = useParams()
+  const [searchParams] = useSearchParams()
+  const pageFromQuery = searchParams.get('page')
   const navigate = useNavigate()
   const [setting, setSetting] = useState<SettingDetail | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -65,7 +67,11 @@ export function SettingDetailPage() {
         if (!active) return
         setSetting(item)
         setSettingName(item.name)
-        const first = item.pages[0]?.id ?? null
+        const fromQuery =
+          pageFromQuery && item.pages.some((p) => p.id === pageFromQuery)
+            ? pageFromQuery
+            : null
+        const first = fromQuery ?? item.pages[0]?.id ?? null
         setSelectedId(first)
         const page = item.pages.find((p) => p.id === first)
         setDraftTitle(page?.title ?? '')
@@ -82,7 +88,7 @@ export function SettingDetailPage() {
     return () => {
       active = false
     }
-  }, [navigate, settingId])
+  }, [navigate, settingId, pageFromQuery])
 
   useEffect(() => {
     if (!selected) return

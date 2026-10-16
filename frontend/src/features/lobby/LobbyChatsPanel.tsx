@@ -18,6 +18,7 @@ import {
 } from '../../shared/api/chat'
 import { ApiRequestError } from '../../shared/api/client'
 import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
+import { ChatBodyText } from './ChatBodyText'
 import { useLobbyRealtime } from './useLobbyRealtime'
 
 type Props = {
@@ -274,7 +275,9 @@ export function LobbyChatsPanel({
                             <strong>{m.character_name || 'Участник'}</strong>
                             <span>{formatTime(m.created_at)}</span>
                           </div>
-                          <Text className="chat-message__body">{m.body}</Text>
+                          <Text className="chat-message__body">
+                            <ChatBodyText body={m.body} />
+                          </Text>
                         </li>
                       ))
                     )}
@@ -372,7 +375,9 @@ export function LobbyChatsPanel({
                         <strong>{m.is_master ? 'Мастер' : activeLetter.character_name}</strong>
                         <span>{formatTime(m.created_at)}</span>
                       </div>
-                      <Text className="chat-message__body">{m.body}</Text>
+                      <Text className="chat-message__body">
+                        <ChatBodyText body={m.body} />
+                      </Text>
                     </li>
                   ))}
                 </ul>

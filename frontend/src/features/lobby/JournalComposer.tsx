@@ -1,5 +1,10 @@
-import { useState, type FormEvent } from 'react'
-import type { JournalEntryType, SettingSummary } from '../../shared/api/lobbies'
+import { useEffect, useState, type FormEvent } from 'react'
+import {
+  getSetting,
+  type JournalEntryType,
+  type SettingPage,
+  type SettingSummary,
+} from '../../shared/api/lobbies'
 import { Button, Field, Input, Stack, Text } from '../../ui'
 
 export type JournalComposePayload = {
@@ -8,6 +13,7 @@ export type JournalComposePayload = {
   body: string
   image_url?: string | null
   setting_id?: string | null
+  page_id?: string | null
 }
 
 type Props = {
@@ -19,7 +25,7 @@ type Props = {
 const TYPES: Array<{ id: JournalEntryType; label: string }> = [
   { id: 'text', label: 'Пост' },
   { id: 'chapter', label: 'Глава' },
-  { id: 'setting_link', label: 'Ссылка на сеттинг' },
+  { id: 'setting_link', label: 'Ссылка на вики' },
   { id: 'image', label: 'Картинка (URL)' },
 ]
 
@@ -29,7 +35,37 @@ export function JournalComposer({ settings, busy = false, onSubmit }: Props) {
   const [body, setBody] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [settingId, setSettingId] = useState(settings[0]?.id ?? '')
+  const [pageId, setPageId] = useState('')
+  const [pages, setPages] = useState<SettingPage[]>([])
+  const [pagesBusy, setPagesBusy] = useState(false)
   const [localError, setLocalError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (entryType !== 'setting_link' || !settingId) {
+      setPages([])
+      setPageId('')
+      return
+    }
+    let active = true
+    setPagesBusy(true)
+    getSetting(settingId)
+      .then((detail) => {
+        if (!active) return
+        setPages(detail.pages)
+        setPageId('')
+      })
+      .catch(() => {
+        if (!active) return
+        setPages([])
+        setPageId('')
+      })
+      .finally(() => {
+        if (active) setPagesBusy(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [entryType, settingId])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -56,10 +92,12 @@ export function JournalComposer({ settings, busy = false, onSubmit }: Props) {
       body,
       image_url: entryType === 'image' ? imageUrl.trim() : null,
       setting_id: entryType === 'setting_link' ? settingId : null,
+      page_id: entryType === 'setting_link' && pageId ? pageId : null,
     })
     setTitle('')
     setBody('')
     setImageUrl('')
+    setPageId('')
   }
 
   return (
@@ -96,24 +134,44 @@ export function JournalComposer({ settings, busy = false, onSubmit }: Props) {
         ) : null}
 
         {entryType === 'setting_link' ? (
-          <Field label="Сеттинг">
-            {settings.length === 0 ? (
-              <Text tone="muted">Сначала создайте сеттинг во вкладке «Сеттинг».</Text>
-            ) : (
+          <>
+            <Field label="Сеттинг">
+              {settings.length === 0 ? (
+                <Text tone="muted">Сначала создайте сеттинг во вкладке «Сеттинг».</Text>
+              ) : (
+                <select
+                  className="ui-input"
+                  value={settingId}
+                  disabled={busy}
+                  onChange={(e) => setSettingId(e.target.value)}
+                >
+                  {settings.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </Field>
+            <Field label="Страница вики" hint="необязательно — можно связать весь сеттинг">
               <select
                 className="ui-input"
-                value={settingId}
-                disabled={busy}
-                onChange={(e) => setSettingId(e.target.value)}
+                value={pageId}
+                disabled={busy || pagesBusy || pages.length === 0}
+                onChange={(e) => setPageId(e.target.value)}
               >
-                {settings.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
+                <option value="">
+                  {pagesBusy ? 'Загрузка…' : 'Весь сеттинг (без страницы)'}
+                </option>
+                {pages.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title || 'Без названия'}
+                    {p.revealed ? '' : ' · скрыта'}
                   </option>
                 ))}
               </select>
-            )}
-          </Field>
+            </Field>
+          </>
         ) : null}
 
         {entryType === 'image' ? (

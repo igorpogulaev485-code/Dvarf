@@ -53,6 +53,22 @@ require "frontend/src/features/classicSheet/ClassicPrintSheet.tsx" "classic shee
 
 require "backend/app/api/routers/catalog.py" "справочник API"
 
+require "frontend/src/features/lobby/StartCombatDialog.tsx" "бой: старт инициативы"
+require "frontend/src/features/lobby/EnemyCard.tsx" "бой: карточка противника"
+require "frontend/src/features/lobby/AwardXpDialog.tsx" "бой: раздача XP"
+require "frontend/src/features/lobby/AwardLootDialog.tsx" "бой: лут на стол"
+require "frontend/src/features/characters/TransferDialog.tsx" "P2P передать"
+require "frontend/src/features/lobby/EncounterTemplatesDialog.tsx" "шаблоны энкаунтеров"
+require "frontend/src/features/lobby/EncounterGenerateDialog.tsx" "генератор боя B8"
+require "backend/app/dnd/encounter_compose.py" "генератор боя (backend)"
+
+require "frontend/src/pages/SettingDetailPage.tsx" "вики сеттинга UI"
+require "frontend/src/pages/SettingWikiPreviewPage.tsx" "вики preview"
+require "backend/app/models/setting_page.py" "вики: страницы"
+require "backend/app/models/setting_page_link.py" "вики: связи"
+require "frontend/src/features/lobby/JournalComposer.tsx" "дневник + ссылка на вики"
+require "frontend/src/features/lobby/ChatBodyText.tsx" "чат: linkify /settings"
+
 # Spot-check: digital sheet must not still say multiclass is backlog-only
 if grep -q 'Мультикласс — в backlog; пока один класс' \
   frontend/src/features/characters/MinimalSheetEditor.tsx 2>/dev/null; then

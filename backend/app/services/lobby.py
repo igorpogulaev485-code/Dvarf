@@ -1202,12 +1202,28 @@ class LobbyService:
             updated_at=session.updated_at,
         )
 
-    def _journal_out(self, entry: CampaignJournalEntry) -> JournalEntryOut:
+    def _journal_out(
+        self,
+        entry: CampaignJournalEntry,
+        *,
+        is_owner: bool = True,
+    ) -> JournalEntryOut:
         setting_name: str | None = None
         session_name: str | None = None
+        page_id = entry.page_id
+        page_title: str | None = None
         if entry.setting_id is not None:
             setting = self.lobbies.get_setting(entry.setting_id)
             setting_name = setting.name if setting else None
+        if page_id is not None:
+            page = self.lobbies.get_setting_page(page_id)
+            if page is None:
+                page_id = None
+            elif is_owner or page.revealed:
+                page_title = page.title
+            else:
+                # C3/C4: игроку не светим скрытую страницу
+                page_id = None
         if entry.from_session_id is not None:
             session = self.lobbies.get_session(entry.from_session_id)
             session_name = session.name if session else None
@@ -1221,6 +1237,8 @@ class LobbyService:
             image_url=entry.image_url,
             setting_id=entry.setting_id,
             setting_name=setting_name,
+            page_id=page_id,
+            page_title=page_title,
             from_session_id=entry.from_session_id,
             from_session_name=session_name,
             created_at=entry.created_at,
@@ -1237,12 +1255,13 @@ class LobbyService:
     ) -> JournalPageOut:
         lobby = self._require_lobby(lobby_id)
         self._require_view(lobby, user)
+        is_owner = lobby.owner_id == user.id
         limit = max(1, min(limit, 50))
         offset = max(0, offset)
         total = self.lobbies.count_journal_entries(lobby_id)
         items = self.lobbies.list_journal_entries(lobby_id, offset=offset, limit=limit)
         return JournalPageOut(
-            items=[self._journal_out(e) for e in items],
+            items=[self._journal_out(e, is_owner=is_owner) for e in items],
             total=total,
             offset=offset,
             limit=limit,
@@ -1267,6 +1286,7 @@ class LobbyService:
             raise AppError("Неизвестный тип поста", code="journal_type_invalid", status_code=400)
 
         setting_id = payload.setting_id
+        page_id = payload.page_id
         if entry_type == "setting_link":
             if setting_id is None:
                 raise AppError(
@@ -1277,10 +1297,20 @@ class LobbyService:
             setting = self.lobbies.get_setting(setting_id)
             if setting is None or setting.lobby_id != lobby.id:
                 raise AppError("Сеттинг не найден", code="setting_not_found", status_code=400)
-        elif setting_id is not None:
-            setting = self.lobbies.get_setting(setting_id)
-            if setting is None or setting.lobby_id != lobby.id:
-                raise AppError("Сеттинг не найден", code="setting_not_found", status_code=400)
+            if page_id is not None:
+                page = self.lobbies.get_setting_page(page_id)
+                if page is None or page.setting_id != setting.id:
+                    raise AppError(
+                        "Страница не из этого сеттинга",
+                        code="journal_page_bad",
+                        status_code=400,
+                    )
+        else:
+            page_id = None
+            if setting_id is not None:
+                setting = self.lobbies.get_setting(setting_id)
+                if setting is None or setting.lobby_id != lobby.id:
+                    raise AppError("Сеттинг не найден", code="setting_not_found", status_code=400)
 
         image_url = (payload.image_url or "").strip() or None
         if entry_type == "image" and not image_url:
@@ -1305,11 +1335,12 @@ class LobbyService:
             body=body,
             image_url=image_url if entry_type == "image" else None,
             setting_id=setting_id if entry_type == "setting_link" else None,
+            page_id=page_id if entry_type == "setting_link" else None,
         )
         self.lobbies.add_journal_entry(entry)
         self.db.commit()
         self.db.refresh(entry)
-        return self._journal_out(entry)
+        return self._journal_out(entry, is_owner=True)
 
     def update_journal_entry(
         self,
@@ -1339,14 +1370,36 @@ class LobbyService:
             entry.image_url = url or None
         if payload.clear_setting:
             entry.setting_id = None
+            entry.page_id = None
         elif payload.setting_id is not None:
             setting = self.lobbies.get_setting(payload.setting_id)
             if setting is None or setting.lobby_id != lobby.id:
                 raise AppError("Сеттинг не найден", code="setting_not_found", status_code=400)
             entry.setting_id = payload.setting_id
+            if entry.page_id is not None:
+                page = self.lobbies.get_setting_page(entry.page_id)
+                if page is None or page.setting_id != setting.id:
+                    entry.page_id = None
+        if payload.clear_page:
+            entry.page_id = None
+        elif payload.page_id is not None:
+            if entry.setting_id is None:
+                raise AppError(
+                    "Сначала укажите сеттинг",
+                    code="setting_required",
+                    status_code=400,
+                )
+            page = self.lobbies.get_setting_page(payload.page_id)
+            if page is None or page.setting_id != entry.setting_id:
+                raise AppError(
+                    "Страница не из этого сеттинга",
+                    code="journal_page_bad",
+                    status_code=400,
+                )
+            entry.page_id = payload.page_id
         self.db.commit()
         self.db.refresh(entry)
-        return self._journal_out(entry)
+        return self._journal_out(entry, is_owner=True)
 
     def delete_journal_entry(self, user: User, entry_id: UUID) -> None:
         entry = self.lobbies.get_journal_entry(entry_id)
@@ -1391,7 +1444,7 @@ class LobbyService:
             self.db.commit()
             self.db.refresh(entry)
             self.db.refresh(session)
-            journal_out = self._journal_out(entry)
+            journal_out = self._journal_out(entry, is_owner=True)
         else:
             self.db.commit()
             self.db.refresh(session)

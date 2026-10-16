@@ -563,11 +563,13 @@ export function SessionDetailPage() {
                     </Text>
                     <div className="session-table-grid session-enemies-grid">
                       {session.combatants!.map((enemy) => {
-                        const active =
-                          session.combat?.active &&
-                          session.combat.entries[session.combat.active_index]
+                        const activeEntry =
+                          session.combat?.active
+                            ? session.combat.entries[session.combat.active_index]
+                            : undefined
                         const isActiveTurn =
-                          active?.kind === 'enemy' && active.ref_id === enemy.id
+                          activeEntry?.kind === 'enemy' &&
+                          activeEntry.ref_id === enemy.id
                         return (
                         <EnemyCard
                           key={enemy.id}

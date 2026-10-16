@@ -3637,3 +3637,11 @@ button.session-concentration-tag {
   color: var(--accent, #3d5a3a);
   font-weight: 700;
 }
+
+/* C4: кликабельные пути сеттинга в чате */
+.chat-message__wiki-link {
+  color: var(--accent, #3d5a3a);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

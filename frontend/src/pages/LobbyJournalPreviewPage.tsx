@@ -31,6 +31,8 @@ const SEED: JournalEntry[] = [
     image_url: null,
     setting_id: null,
     setting_name: null,
+    page_id: null,
+    page_title: null,
     from_session_id: 's1',
     from_session_name: 'Глава 3 — Мост',
     created_at: new Date(Date.now() - 3600000).toISOString(),
@@ -46,6 +48,8 @@ const SEED: JournalEntry[] = [
     image_url: null,
     setting_id: null,
     setting_name: null,
+    page_id: null,
+    page_title: null,
     from_session_id: null,
     from_session_name: null,
     created_at: new Date(Date.now() - 7200000).toISOString(),
@@ -61,6 +65,8 @@ const SEED: JournalEntry[] = [
     image_url: null,
     setting_id: 'set1',
     setting_name: 'Серые Болота',
+    page_id: 'page-swamp',
+    page_title: 'Карта болот',
     from_session_id: null,
     from_session_name: null,
     created_at: new Date(Date.now() - 86400000).toISOString(),
@@ -76,6 +82,8 @@ const SEED: JournalEntry[] = [
     image_url: null,
     setting_id: null,
     setting_name: null,
+    page_id: null,
+    page_title: null,
     from_session_id: null,
     from_session_name: null,
     created_at: new Date(Date.now() - 172800000).toISOString(),
@@ -103,7 +111,7 @@ export function LobbyJournalPreviewPage() {
         <header className="app-header">
           <div>
             <Text as="h1">Эхо Рассвета</Text>
-            <Text tone="muted">Превью A4 · дневник мастера</Text>
+            <Text tone="muted">Превью A4/C4 · дневник + ссылки на вики</Text>
           </div>
         </header>
 
@@ -133,6 +141,9 @@ export function LobbyJournalPreviewPage() {
                       setting_id: payload.setting_id ?? null,
                       setting_name:
                         payload.setting_id === 'set1' ? 'Серые Болота' : null,
+                      page_id: payload.page_id ?? null,
+                      page_title:
+                        payload.page_id === 'page-swamp' ? 'Карта болот' : null,
                       from_session_id: null,
                       from_session_name: null,
                       created_at: new Date().toISOString(),

@@ -11,10 +11,23 @@ type Props = {
 
 function typeLabel(type: string): string {
   if (type === 'chapter') return 'Глава'
-  if (type === 'setting_link') return 'Сеттинг'
+  if (type === 'setting_link') return 'Вики'
   if (type === 'image') return 'Картинка'
   if (type === 'session_summary') return 'Итог сессии'
   return 'Пост'
+}
+
+function settingHref(entry: JournalEntry): string {
+  if (!entry.setting_id) return '#'
+  if (entry.page_id) return `/settings/${entry.setting_id}?page=${entry.page_id}`
+  return `/settings/${entry.setting_id}`
+}
+
+function settingLabel(entry: JournalEntry): string {
+  if (entry.page_title && entry.setting_name) {
+    return `${entry.setting_name} · ${entry.page_title}`
+  }
+  return entry.page_title || entry.setting_name || 'Открыть сеттинг'
 }
 
 function formatDate(iso: string): string {
@@ -48,9 +61,7 @@ export function JournalEntryCard({ entry, isOwner = false, busy = false, onDelet
 
       {entry.entry_type === 'setting_link' && entry.setting_id ? (
         <Text>
-          <Link to={`/settings/${entry.setting_id}`}>
-            {entry.setting_name || 'Открыть сеттинг'}
-          </Link>
+          <Link to={settingHref(entry)}>{settingLabel(entry)}</Link>
         </Text>
       ) : null}
 

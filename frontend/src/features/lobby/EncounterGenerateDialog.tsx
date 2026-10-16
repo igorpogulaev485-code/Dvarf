@@ -213,7 +213,7 @@ export function EncounterGenerateDialog({
             min={1}
             max={8}
             disabled={busy}
-            onChange={setWaves}
+            onValueChange={(v) => setWaves(v ?? 1)}
           />
         </Field>
 

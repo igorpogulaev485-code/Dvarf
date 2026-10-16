@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 type TextProps = {
   children: ReactNode
-  as?: 'p' | 'span' | 'h1' | 'h2' | 'h3'
+  as?: 'p' | 'span' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5'
   tone?: 'default' | 'muted' | 'danger' | 'success'
   className?: string
 }
