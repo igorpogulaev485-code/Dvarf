@@ -75,7 +75,15 @@ export function textBlockValue(character: CharacterDetail, key: string): string 
   if (typeof features[key] === 'string') return features[key] as string
   if (typeof personality[key] === 'string') return personality[key] as string
   if (typeof notes[key] === 'string') return notes[key] as string
+  // Classic P2: allies used to live under «quests» on early classic builds
+  if (key === 'allies' && typeof notes.quests === 'string') return notes.quests
   return ''
+}
+
+/** Physical description fields on official 2014 page 2 header. */
+export function physiqueField(character: CharacterDetail, key: string): string {
+  const value = identityField(character, key)
+  return typeof value === 'string' ? value : value == null ? '' : String(value)
 }
 
 export function applyClassicEdits(
@@ -94,10 +102,16 @@ export function applyClassicEdits(
     skillProficiency?: Record<string, boolean>
     textBlocks?: Record<string, string>
     otherProficiencies?: string
+    proficiencyBonus?: number
   },
 ): ClassicPatch {
   const sheet = cloneSheet(asRecord(character.sheet))
 
+  if (edits.proficiencyBonus != null) {
+    const proficiency = asRecord(sheet.proficiency)
+    proficiency.bonus = edits.proficiencyBonus
+    sheet.proficiency = proficiency
+  }
   if (edits.identity) {
     const identity = asRecord(sheet.identity)
     Object.assign(identity, edits.identity)
@@ -148,7 +162,14 @@ export function applyClassicEdits(
       if (key === 'features' || key === 'traits' || key === 'feats') features[key] = value
       else if (key === 'personality' || key === 'ideals' || key === 'bonds' || key === 'flaws') {
         personality[key] = value
-      } else if (key === 'appearance' || key === 'background' || key === 'quests' || key === 'free') {
+      } else if (
+        key === 'appearance' ||
+        key === 'background' ||
+        key === 'quests' ||
+        key === 'free' ||
+        key === 'treasure' ||
+        key === 'allies'
+      ) {
         notes[key] = value
       }
       const existing = asRecord(blocks[key])
