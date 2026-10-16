@@ -5,7 +5,7 @@ import { sessionWsUrl, type SessionDetail, type SessionEvent } from '../../share
 type SessionWsMessage =
   | { type: 'session_event'; event: SessionEvent }
   | { type: 'session_update'; session: SessionDetail }
-  | { type: string; [key: string]: unknown }
+  | { type: 'pong' | 'ping' | string; event?: undefined; session?: undefined }
 
 type Handlers = {
   onEvent?: (event: SessionEvent) => void
