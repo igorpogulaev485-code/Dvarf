@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
-import { ApiRequestError } from '../../shared/api/client'
-import { shareLobbyEffect } from '../../shared/api/lobbies'
 import {
   applySpellcastingSuggestion,
+  resolveSpellLearnBudget,
   suggestSpellcasting,
+  warlockLevels,
+  warlockPactForLevel,
+  type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { setConcentration } from '../../shared/dnd/concentration'
@@ -22,67 +24,205 @@ import {
   spellSaveDc,
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
-import { Button, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
+import { Button, Dialog, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
+import {
+  formatSpellComponents,
+  resolveCastEffect,
+  spellSchoolLabelRu,
+} from '../../shared/dnd/spellCatalog'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
-import type { ConcentrationState } from './play'
+import { SpellbookManageDialog } from './SpellbookManageDialog'
+import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
+import { wizardSpellbookStatusLabel } from './wizardSpellbookInventory'
+import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
 import {
+  IconCast,
+  IconConcentration,
+  IconFocus,
+  IconPouch,
+  IconRitual,
+  IconSpellBook,
+  IconWizardHat,
+} from './spellIcons'
+import type { ConcentrationState } from './play'
+import type { CompanionEntry } from './companions'
+import type { KnownForm } from './knownForms'
+import { applySpellCastToCompanions } from './spellCompanions'
+import {
+  isSpellSelfFormCast,
+  resolveSpellSelfFormSlug,
+  type SpellSelfFormSlug,
+} from './spellForms'
+import {
+  SpellFormDialog,
+  type SpellFormDialogResult,
+} from './SpellFormDialog'
+import {
+  canRemoveSheetSpell,
+  canSpendGrantCast,
+  countLearnedCantrips,
   countPreparedLeveled,
-  createSheetSpell,
+  ensureInnateGrantCasts,
+  ensureKnownSpellsReady,
+  grantCastRemaining,
+  isGrantedSpellHighlight,
+  isKnownSpellcastingMode,
   groupSpellsByLevel,
-  isReadyInCombat,
+  isAvailableToCast,
+  preparedLockChip,
   readCatalogSpellFields,
   setSpellPrepared,
+  spellSourceBadge,
+  spendGrantCast,
   type SheetSpell,
   type SpellsState,
 } from './spells'
+import type { FormulaVars } from '../../shared/dnd/formulas'
+import type { InventoryItem, InventoryState } from './inventory'
+import { type BonusLine, withSpellCastBonuses } from './modifiers'
+import { consumeMaterialItem } from './spellMaterials'
 
 type SpellsPanelProps = {
   edition: RulesEdition
-  characterId: string
   className: string
   level: number
   classes?: ClassLevelEntry[]
+  /** EK / Arcane Trickster etc. — unlocks ⅓ caster slot math. */
+  subclassCasters?: SubclassCasterOverlay[]
   spells: SpellsState
+  /** Для выбора союзников при касте (Щит веры и т.п.). */
+  characterId?: string
+  companions?: CompanionEntry[]
+  /** Prefer functional update so cast+concentration dismiss don't clobber each other. */
+  onCompanionsChange?: (
+    update: CompanionEntry[] | ((prev: CompanionEntry[]) => CompanionEntry[]),
+  ) => void
+  knownForms?: KnownForm[]
+  onKnownFormsChange?: (knownForms: KnownForm[]) => void
+  hostHp?: number | null
+  hostHpMax?: number | null
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  modifiers?: BonusLine[]
+  formulaVars?: FormulaVars
+  inventoryItems: InventoryItem[]
   onChange: (spells: SpellsState) => void
+  onInventoryChange?: (inventory: InventoryState) => void
+  inventory?: InventoryState
+  concentration?: ConcentrationState | null
   onConcentrationChange?: (concentration: ConcentrationState | null) => void
   onToast?: (message: string) => void
+  /** Open cast dialog for this spell id once (from play-desk compact). */
+  initialCastSpellId?: string | null
+  onInitialCastConsumed?: () => void
 }
 
 export function SpellsPanel({
   edition,
-  characterId,
   className,
   level,
   classes,
+  subclassCasters,
   spells,
+  characterId,
+  companions = [],
+  onCompanionsChange,
+  knownForms = [],
+  onKnownFormsChange,
+  hostHp = null,
+  hostHpMax = null,
   abilities,
   proficiencyBonus,
+  modifiers = [],
+  formulaVars = {},
+  inventoryItems,
+  inventory,
+  concentration = null,
   onChange,
+  onInventoryChange,
   onConcentrationChange,
   onToast,
+  initialCastSpellId = null,
+  onInitialCastConsumed,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
+  const [bookManageOpen, setBookManageOpen] = useState(false)
   const [castSpell, setCastSpell] = useState<SheetSpell | null>(null)
+  const [pendingSelfForm, setPendingSelfForm] = useState<{
+    spell: SheetSpell
+    slug: SpellSelfFormSlug
+  } | null>(null)
+  const [pendingConc, setPendingConc] = useState<{
+    spell: SheetSpell
+    choice: CastChoice
+  } | null>(null)
   const [filter, setFilter] = useState<'all' | number>('all')
   const [showAllKnown, setShowAllKnown] = useState(false)
 
+  useEffect(() => {
+    if (!initialCastSpellId) return
+    const spell = spells.known.find((row) => row.id === initialCastSpellId) ?? null
+    if (spell) setCastSpell(spell)
+    onInitialCastConsumed?.()
+  }, [initialCastSpellId, spells.known, onInitialCastConsumed])
+
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const dc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
-  const attack = abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : null
+  const castStats = withSpellCastBonuses({
+    baseDc: abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null,
+    baseAttack: abilityKey
+      ? spellAttackBonus(abilityMod, proficiencyBonus)
+      : null,
+    modifiers,
+    vars: formulaVars,
+  })
+  const dc = castStats.dc
+  const attack = castStats.attack
   const preparedCount = countPreparedLeveled(spells.known)
 
-  const combatPool = useMemo(
-    () => (showAllKnown ? spells.known : spells.known.filter(isReadyInCombat)),
-    [showAllKnown, spells.known],
+  const suggestion = useMemo(
+    () =>
+      suggestSpellcasting({
+        className,
+        level,
+        classes,
+        subclassCasters,
+        abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      }),
+    [className, level, classes, subclassCasters, abilities],
   )
+
+  const learnBudget = useMemo(() => {
+    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
+    if (rows.length === 0) return null
+    return resolveSpellLearnBudget({
+      classes: rows,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+    })
+  }, [classes, subclassCasters, abilities])
+
+  const combatPool = useMemo(() => {
+    if (showAllKnown) return spells.known
+    const hasSpellbook =
+      learnBudget?.mode === 'spellbook' &&
+      Boolean(
+        spells.wizard_spellbook &&
+          !spells.wizard_spellbook.bookLost &&
+          spells.wizard_spellbook.primaryBookItemId,
+      )
+    return spells.known.filter((spell) =>
+      isAvailableToCast(spell, {
+        learnMode: learnBudget?.mode ?? null,
+        hasSpellbook,
+      }),
+    )
+  }, [showAllKnown, spells.known, spells.wizard_spellbook, learnBudget?.mode])
 
   const filterOptions = useMemo(() => {
     const levels = new Set<number>([0])
@@ -96,19 +236,50 @@ export function SpellsPanel({
   const visibleSpells = useMemo(() => {
     const list =
       filter === 'all' ? combatPool : combatPool.filter((spell) => spell.level === filter)
-    return groupSpellsByLevel(list)
-  }, [filter, combatPool])
+    const grouped = groupSpellsByLevel(list)
+    const byLevel = new Map(grouped.map((group) => [group.level, group]))
+    const ensureLevel = (level: number) => {
+      if (!byLevel.has(level)) byLevel.set(level, { level, spells: [] })
+    }
+    if (filter === 'all') {
+      for (let level = 1; level <= 9; level += 1) {
+        if ((spells.slots[String(level)]?.max ?? 0) > 0) ensureLevel(level)
+      }
+      if (list.some((spell) => spell.level === 0) || byLevel.has(0)) ensureLevel(0)
+    } else if (typeof filter === 'number') {
+      ensureLevel(filter)
+    }
+    return [...byLevel.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([, group]) => group)
+  }, [filter, combatPool, spells.slots])
 
-  const suggestion = useMemo(
-    () =>
-      suggestSpellcasting({
-        className,
-        level,
-        classes,
-        abilityModFor: (ability) => abilityModifier(abilities[ability]),
-      }),
-    [className, level, classes, abilities],
-  )
+  const knownCaster = isKnownSpellcastingMode({
+    maxPrepared: spells.max_prepared,
+    hasCasterSuggestion: suggestion != null && suggestion.progression !== 'none',
+  })
+
+  useEffect(() => {
+    if (!knownCaster) return
+    const next = ensureKnownSpellsReady(spells.known)
+    if (next === spells.known) return
+    onChange({ ...spells, known: next })
+    // Keep known-list spells combat-ready when class has no prepare budget.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [knownCaster, spells.known.map((s) => `${s.id}:${s.prepared}`).join('|')])
+
+  useEffect(() => {
+    const next = ensureInnateGrantCasts(spells.known, proficiencyBonus)
+    if (next === spells.known) return
+    onChange({ ...spells, known: next })
+    // Backfill grant_cast on innate race/feat spells (PB / notes).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    proficiencyBonus,
+    spells.known
+      .map((s) => `${s.id}:${s.race_grant ?? ''}:${s.feat_grant ?? ''}:${s.notes}:${s.grant_cast?.max ?? ''}`)
+      .join('|'),
+  ])
 
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })
@@ -129,12 +300,16 @@ export function SpellsPanel({
     onToast?.(`${suggestion.labelRu}: ячейки 2014${prep}`)
   }
 
+  const subclassCasterKey = (subclassCasters ?? [])
+    .map((row) => `${row.classEntryId}:third:${row.ability ?? ''}`)
+    .sort()
+    .join('|')
   const classLevelKey =
-    classes && classes.length > 0
+    (classes && classes.length > 0
       ? classes
           .map((row) => `${row.name.trim().toLowerCase()}:${row.level}`)
           .join('|')
-      : `${className.trim().toLowerCase()}|${level}`
+      : `${className.trim().toLowerCase()}|${level}`) + `::${subclassCasterKey}`
   const appliedClassLevel = useRef<string | null>(null)
   useEffect(() => {
     if (appliedClassLevel.current == null) {
@@ -146,7 +321,7 @@ export function SpellsPanel({
     if (!suggestion) return
     onChange({ ...spells, ...applySpellcastingSuggestion(spells, suggestion) })
     onToast?.(`${suggestion.labelRu}: ячейки обновлены по таблице 2014`)
-    // Apply once per class/level change; skip the first paint so saved sheets stay intact.
+    // Apply once per class/level/subclass-caster change; skip first paint for saved sheets.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classLevelKey])
 
@@ -218,8 +393,7 @@ export function SpellsPanel({
     })
   }
 
-  function applyConcentrationIfNeeded(spell: SheetSpell) {
-    if (!spell.concentration) return
+  function commitConcentration(spell: SheetSpell) {
     onConcentrationChange?.(
       setConcentration({
         spellId: spell.id,
@@ -228,46 +402,149 @@ export function SpellsPanel({
     )
   }
 
-  async function shareAlliesIfNeeded(spell: SheetSpell, choice: CastChoice) {
-    if (
-      !spell.applies_to_allies ||
-      !choice.lobbyId ||
-      choice.allyTargetIds.length === 0
-    ) {
-      return 0
-    }
-    try {
-      const result = await shareLobbyEffect(choice.lobbyId, {
-        source_character_id: characterId,
-        name: spell.name || 'Эффект',
-        target_character_ids: choice.allyTargetIds,
-        linked_concentration: Boolean(spell.concentration),
-      })
-      return result.applied
-    } catch (err) {
-      onToast?.(
-        err instanceof ApiRequestError
-          ? err.message
-          : 'Каст ок, но не удалось пометить союзников',
-      )
-      return 0
-    }
+  function applyConcentrationIfNeeded(spell: SheetSpell) {
+    if (!spell.concentration) return
+    commitConcentration(spell)
   }
 
-  async function confirmCast(choice: CastChoice) {
+  function needsConcentrationSwap(spell: SheetSpell): boolean {
+    if (!spell.concentration || !concentration) return false
+    return (
+      concentration.spell_id !== spell.id &&
+      concentration.name.trim() !== (spell.name || '').trim()
+    )
+  }
+
+  function applyMaterialConsume(choice: CastChoice): string {
+    if (!choice.consumeMaterial || !choice.consumeItemId || !inventory || !onInventoryChange) {
+      return ''
+    }
+    const target = inventory.items.find((row) => row.id === choice.consumeItemId)
+    if (!target) return ''
+    onInventoryChange({
+      ...inventory,
+      items: consumeMaterialItem(inventory.items, choice.consumeItemId, 1),
+    })
+    return ` · −1 «${target.name}»`
+  }
+
+  function applyNaparnikFromCast(spell: SheetSpell, slotLevel: number): string {
+    if (!onCompanionsChange) return ''
+    const castCtx = {
+      spell,
+      slotLevel,
+      characterLevel: level,
+      spellMod: abilityMod,
+    }
+    const preview = applySpellCastToCompanions({
+      companions,
+      ...castCtx,
+    })
+    if (!preview) return ''
+    onCompanionsChange((prev) => {
+      const result = applySpellCastToCompanions({
+        companions: prev,
+        ...castCtx,
+      })
+      return result?.companions ?? prev
+    })
+    return preview.refreshed
+      ? ` · напарник «${preview.name}» снова в строю`
+      : ` · напарник «${preview.name}»`
+  }
+
+  function openSelfFormPickerIfNeeded(spell: SheetSpell, choice: CastChoice) {
+    if (choice.selfFormTarget === 'other') return false
+    if (!isSpellSelfFormCast(spell)) return false
+    const slug = resolveSpellSelfFormSlug(spell)
+    if (!slug) return false
+    setPendingSelfForm({ spell, slug })
+    return true
+  }
+
+  function confirmCast(choice: CastChoice) {
     if (!castSpell) return
-    const spell = castSpell
-    const name = spell.name || 'Заклинание'
-    if (spell.level <= 0) {
-      applyConcentrationIfNeeded(spell)
-      const applied = await shareAlliesIfNeeded(spell, choice)
+    if (needsConcentrationSwap(castSpell)) {
+      setPendingConc({ spell: castSpell, choice })
+      setCastSpell(null)
+      return
+    }
+    runCast(castSpell, choice)
+  }
+
+  function runCast(castSpell: SheetSpell, choice: CastChoice) {
+    const name = castSpell.name || 'Заклинание'
+    const allyNote =
+      choice.allyTargetIds && choice.allyTargetIds.length > 0
+        ? ` · целей ${choice.allyTargetIds.length}`
+        : ''
+    const ritualCast = Boolean(choice.ritual && castSpell.ritual && castSpell.level > 0)
+    const grantSpellId = choice.grantSpellId || castSpell.id
+    const grantRow =
+      choice.useGrant
+        ? spells.known.find((row) => row.id === grantSpellId) ?? castSpell
+        : null
+    const grantCast = Boolean(grantRow && canSpendGrantCast(grantRow))
+    const slotForEffect =
+      castSpell.level <= 0 || ritualCast || grantCast
+        ? castSpell.level
+        : choice.usePact
+          ? (spells.pact_slots?.level ?? castSpell.level)
+          : choice.slotLevel
+    const { effect, scaled } = resolveCastEffect(castSpell, {
+      characterLevel: level,
+      slotLevel: slotForEffect || castSpell.level,
+    })
+    const effectNote = scaled && effect ? ` · ${effect}` : ''
+    const consumeNote = applyMaterialConsume(choice)
+    const naparnikSlot = slotForEffect || castSpell.level
+    const wantsForm = openSelfFormPickerIfNeeded(castSpell, choice)
+    const formNote = wantsForm ? ' · выбери форму' : ''
+
+    if (castSpell.level <= 0) {
+      applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
-        [
-          spell.concentration ? `Каст: ${name} (концентрация)` : `Каст: ${name}`,
-          applied > 0 ? `· целей ${applied}` : '',
-        ]
-          .filter(Boolean)
-          .join(' '),
+        castSpell.concentration
+          ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}`
+          : `Каст: ${name}${effectNote}${consumeNote}${allyNote}${naparnikNote}${formNote}`,
+      )
+      setCastSpell(null)
+      return
+    }
+    if (grantCast && grantRow) {
+      const label = grantRow.grant_cast?.label ?? 'Грант'
+      onChange({
+        ...spells,
+        known: spendGrantCast(spells.known, grantRow.id),
+      })
+      applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
+      onToast?.(
+        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
+          castSpell.concentration ? ' · концентрация' : ''
+        }${naparnikNote}${formNote}`,
+      )
+      setCastSpell(null)
+      return
+    }
+    if (ritualCast) {
+      if (learnBudget?.mode === 'spellbook') {
+        const gate = canCastWizardRitualFromBook({
+          spell: castSpell,
+          book: spells.wizard_spellbook,
+        })
+        if (!gate.ok) {
+          onToast?.(gate.message)
+          return
+        }
+      }
+      applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
+      onToast?.(
+        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
+          castSpell.concentration ? ' · концентрация' : ''
+        }${naparnikNote}${formNote}`,
       )
       setCastSpell(null)
       return
@@ -275,20 +552,18 @@ export function SpellsPanel({
     if (choice.usePact && spells.pact_slots) {
       const pactResult = spendPactSlot(spells.pact_slots)
       if (!pactResult.ok) {
-        onToast?.('Нет свободных pact-ячеек')
+        onToast?.('Нет свободных ячеек договора')
         return
       }
       patch({ pact_slots: pactResult.pact })
-      applyConcentrationIfNeeded(spell)
-      const applied = await shareAlliesIfNeeded(spell, choice)
+      applyConcentrationIfNeeded(castSpell)
+      const naparnikNote = wantsForm
+        ? ''
+        : applyNaparnikFromCast(castSpell, pactResult.pact.level)
       onToast?.(
-        [
-          `Каст: ${name} (−1 pact ${pactResult.pact.level} ур.)`,
-          spell.concentration ? '· концентрация' : '',
-          applied > 0 ? `· целей ${applied}` : '',
-        ]
-          .filter(Boolean)
-          .join(' '),
+        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
+          castSpell.concentration ? ' · концентрация' : ''
+        }${naparnikNote}${formNote}`,
       )
       setCastSpell(null)
       return
@@ -299,24 +574,72 @@ export function SpellsPanel({
       return
     }
     patch({ slots: result.slots })
-    applyConcentrationIfNeeded(spell)
-    const applied = await shareAlliesIfNeeded(spell, choice)
-    const upcast = choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
+    applyConcentrationIfNeeded(castSpell)
+    const naparnikNote = wantsForm
+      ? ''
+      : applyNaparnikFromCast(castSpell, choice.slotLevel)
+    const upcast =
+      choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast?.(
-      [
-        `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}`,
-        spell.concentration ? '· концентрация' : '',
-        applied > 0 ? `· целей ${applied}` : '',
-      ]
-        .filter(Boolean)
-        .join(' '),
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
+        castSpell.concentration ? ' · концентрация' : ''
+      }${naparnikNote}${formNote}`,
     )
     setCastSpell(null)
   }
 
+  function applySpellFormResult(result: SpellFormDialogResult) {
+    onCompanionsChange?.(result.companions)
+    onKnownFormsChange?.(result.knownForms)
+    onToast?.(result.toast)
+    setPendingSelfForm(null)
+  }
+
+  const warlockLvl = useMemo(() => {
+    const rows =
+      classes?.filter((row) => row.name.trim() && row.level > 0) ??
+      (className.trim()
+        ? [
+            {
+              id: 'primary',
+              name: className,
+              catalog_id: null,
+              level,
+              subclass_name: '',
+              subclass_catalog_id: null,
+            },
+          ]
+        : [])
+    return warlockLevels(rows)
+  }, [classes, className, level])
+
+  const tablePact = useMemo(() => {
+    if (suggestion?.pact_slots) return suggestion.pact_slots
+    if (warlockLvl > 0) return warlockPactForLevel(warlockLvl)
+    return null
+  }, [suggestion, warlockLvl])
+
+  useEffect(() => {
+    if (!spells.pact_slots || !tablePact) return
+    if (spells.pact_slots.level === tablePact.level) return
+    onChange({
+      ...spells,
+      pact_slots: clampPactSlots({
+        ...spells.pact_slots,
+        level: tablePact.level,
+      }),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tablePact?.level, spells.pact_slots?.level])
+
   function enablePact() {
+    const fromTable = tablePact ?? warlockPactForLevel(Math.max(1, warlockLvl))
     patch({
-      pact_slots: clampPactSlots({ max: 1, used: 0, level: 1 }),
+      pact_slots: clampPactSlots({
+        max: fromTable.max,
+        used: 0,
+        level: fromTable.level,
+      }),
     })
   }
 
@@ -326,8 +649,13 @@ export function SpellsPanel({
 
   function patchPact(partial: { max?: number; used?: number; level?: number }) {
     if (!spells.pact_slots) return
+    const levelAuto = tablePact?.level ?? partial.level ?? spells.pact_slots.level
     patch({
-      pact_slots: clampPactSlots({ ...spells.pact_slots, ...partial }),
+      pact_slots: clampPactSlots({
+        ...spells.pact_slots,
+        ...partial,
+        level: levelAuto,
+      }),
     })
   }
 
@@ -338,33 +666,98 @@ export function SpellsPanel({
     <Panel title="Заклинания">
       <Stack gap={14}>
         <Text tone="muted">
-          Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые заклинания — из
-          гримуара.
+          {knownCaster
+            ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку или ячейку договора. Новые — из гримуара.'
+            : 'Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые — из гримуара, затем подготовь.'}
         </Text>
 
         <div className="spells-summary">
-          <div className="spells-summary__stat">
-            <Text tone="muted">Спасбросок</Text>
+          <div className="spells-summary__stat spells-summary__stat--key">
+            <span className="spells-summary__label">Сл. спас.</span>
             <strong>{dc == null ? '—' : dc}</strong>
           </div>
-          <div className="spells-summary__stat">
-            <Text tone="muted">Атака</Text>
+          <div className="spells-summary__stat spells-summary__stat--key">
+            <span className="spells-summary__label">Атака закл.</span>
             <strong>{attack == null ? '—' : formatModifier(attack)}</strong>
           </div>
           <div className="spells-summary__stat">
-            <Text tone="muted">Подготовлено</Text>
-            <strong>{prepareLimitLabel}</strong>
+            <span className="spells-summary__label">
+              {knownCaster ? 'Известно' : 'Подготовлено'}
+            </span>
+            <strong>
+              {knownCaster
+                ? (() => {
+                    const n = spells.known.filter((s) => s.level > 0).length
+                    const cap = learnBudget?.leveledKnown
+                    return cap != null ? `${n}/${cap}` : String(n)
+                  })()
+                : prepareLimitLabel}
+            </strong>
           </div>
+          {learnBudget?.cantrips != null ? (
+            <div className="spells-summary__stat">
+              <span className="spells-summary__label">Заговоры</span>
+              <strong>
+                {countLearnedCantrips(spells.known)}/{learnBudget.cantrips}
+              </strong>
+            </div>
+          ) : null}
         </div>
 
-        <div className="spells-toolbar">
+        <div className="chip-row spells-focus-chips">
+          <span
+            className={`sheet-chip spells-focus-chips__chip${
+              spells.has_spell_focus ? ' is-on' : ''
+            }`}
+            title="Магический / друидический фокус в инвентаре"
+          >
+            <IconFocus className="spells-btn-icon" />
+            {spells.has_spell_focus ? 'Фокус ✓' : 'Фокус ✗'}
+          </span>
+          <span
+            className={`sheet-chip spells-focus-chips__chip${
+              spells.has_component_pouch ? ' is-on' : ''
+            }`}
+            title="Мешочек с компонентами в инвентаре"
+          >
+            <IconPouch className="spells-btn-icon" />
+            {spells.has_component_pouch ? 'Мешочек ✓' : 'Мешочек ✗'}
+          </span>
+          {learnBudget?.mode === 'spellbook' ? (
+            <button
+              type="button"
+              className={`sheet-chip spells-focus-chips__chip${
+                wizardSpellbookStatusLabel(spells).ok ? ' is-on' : ''
+              }`}
+              title="Управление книгой заклинаний"
+              onClick={() => setBookManageOpen(true)}
+            >
+              <IconSpellBook className="spells-btn-icon" />
+              {wizardSpellbookStatusLabel(spells).label}
+            </button>
+          ) : null}
+          <Text tone="muted">
+            Ищем в инвентаре тип «Фокус» / «Мешочек» (имя может быть любым). М с ценой — отдельный
+            предмет.
+          </Text>
+        </div>
+
+        <div className="spells-panel__toolbar">
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
           </Button>
-          <Button variant="secondary" onClick={() => setPrepareOpen(true)}>
-            Подготовить заклинания
-          </Button>
+          {!knownCaster ? (
+            <Button
+              variant="secondary"
+              onClick={() => setPrepareOpen(true)}
+              title="Выбрать заклинания на сегодня (лимит подготовки класса)"
+            >
+              <IconWizardHat className="spells-btn-icon" />
+              Подготовить
+            </Button>
+          ) : null}
           <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
+            <IconSpellBook className="spells-btn-icon" />
             Гримуар
           </Button>
         </div>
@@ -413,19 +806,20 @@ export function SpellsPanel({
                     variant="secondary"
                     onClick={applyFromClass}
                     disabled={!suggestion}
+                    title="Подставить макс. ячеек, договор и лимит подготовки по таблице PHB 2014. Потраченные ячейки не сбрасываются."
                   >
-                    От класса
+                    По таблице
                   </Button>
                 </div>
                 {suggestion ? (
                   <Text tone="muted">
-                    {suggestion.labelRu}
+                    «По таблице» → {suggestion.labelRu}
                     {suggestion.progression === 'pact'
-                      ? ` · pact ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
+                      ? ` · договор ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
                       : suggestion.progression === 'none'
                         ? ' · не заклинатель'
                         : ' · слоты PHB 2014'}
-                    . При смене класса или уровня подставляется само; spent не сбрасываем.
+                    . При смене класса/уровня подставляется само; spent не сбрасываем.
                   </Text>
                 ) : (
                   <Text tone="muted">
@@ -433,18 +827,19 @@ export function SpellsPanel({
                     колдун…
                   </Text>
                 )}
-                <div className="sheet-grid sheet-grid--slots" style={{ marginTop: 8 }}>
+                <div className="sheet-grid sheet-grid--slots">
                   {Array.from({ length: 9 }, (_, index) => {
                     const level = index + 1
                     const key = String(level)
                     return (
-                      <Field key={key} label={`${level}-й`}>
+                      <Field key={key} label={`${level}`}>
                         <NumberInput
                           min={0}
                           max={20}
                           emptyValue={0}
                           value={spells.slots[key]?.max ?? 0}
                           onValueChange={(max) => setSlotMax(level, max ?? 0)}
+                          aria-label={`Ячейки ${level}-го круга`}
                         />
                       </Field>
                     )
@@ -453,7 +848,7 @@ export function SpellsPanel({
               </div>
               <div className="pact-settings">
                 <div className="play-resources-head">
-                  <Text>Pact magic (варлок)</Text>
+                  <Text>Магия договора (колдун)</Text>
                   {spells.pact_slots ? (
                     <button type="button" className="linkish" onClick={disablePact}>
                       Выключить
@@ -465,17 +860,19 @@ export function SpellsPanel({
                   )}
                 </div>
                 {spells.pact_slots ? (
-                  <div className="sheet-grid sheet-grid--2" style={{ marginTop: 8 }}>
-                    <Field label="Уровень pact">
-                      <NumberInput
-                        min={1}
-                        max={9}
-                        emptyValue={1}
-                        value={spells.pact_slots.level}
-                        onValueChange={(level) => patchPact({ level: level ?? 1 })}
-                      />
-                    </Field>
-                    <Field label="Макс. ячеек">
+                  <div className="spells-settings__pact-row">
+                    <div
+                      className="spells-settings__pact-level"
+                      title="Уровень ячеек договора по таблице колдуна (PHB 2014)"
+                    >
+                      <span className="spells-settings__pact-level-label">Ур. ячеек</span>
+                      <strong>{tablePact?.level ?? spells.pact_slots.level}</strong>
+                      <span className="spells-settings__pact-level-auto">авто</span>
+                    </div>
+                    <Field
+                      label="Макс."
+                      hint={tablePact != null ? `табл. ${tablePact.max}` : undefined}
+                    >
                       <NumberInput
                         min={0}
                         max={10}
@@ -486,7 +883,9 @@ export function SpellsPanel({
                     </Field>
                   </div>
                 ) : (
-                  <Text tone="muted">Каст с pact тратит эти ячейки, если уровень заклинания ≤ pact.</Text>
+                  <Text tone="muted">
+                    Уровень ячеек — по уровню колдуна. Каст договора, если круг ≤ этого уровня.
+                  </Text>
                 )}
               </div>
             </Stack>
@@ -498,7 +897,7 @@ export function SpellsPanel({
             <SlotPips
               max={spells.pact_slots.max}
               used={spells.pact_slots.used}
-              label={`Pact ${spells.pact_slots.level}-го уровня`}
+              label={`Договор ${spells.pact_slots.level}-го уровня`}
               onChange={(used) => patchPact({ used })}
             />
           </div>
@@ -542,7 +941,7 @@ export function SpellsPanel({
           <Text tone="muted">
             {spells.known.length === 0
               ? 'Пока нет заклинаний — добавь ниже или подготовь из списка.'
-              : 'В боевом виде пусто — нажми «Подготовить заклинания» или «Все известные».'}
+              : 'В боевом виде пусто — нажми «Подготовить» или «Все известные».'}
           </Text>
         ) : (
           visibleSpells.map((group) => {
@@ -555,14 +954,25 @@ export function SpellsPanel({
                     <SlotPips
                       max={slot.max}
                       used={slot.used}
-                      label={`Ячейки ${group.level}-го уровня`}
+                      label={`Ячейки ${group.level}`}
+                      summary={`${Math.max(0, slot.max - slot.used)}/${slot.max}`}
                       onChange={(used) => setSlotUsed(group.level, used)}
                     />
+                  ) : group.level === 0 ? (
+                    <span className="spell-level-block__hint">без ячеек</span>
                   ) : null}
                 </div>
                 <Stack gap={10}>
+                  {group.spells.length === 0 ? (
+                    <Text tone="muted">Нет заклинаний этого круга в списке.</Text>
+                  ) : null}
                   {group.spells.map((spell) => (
-                    <div key={spell.id} className="spell-card">
+                    <div
+                      key={spell.id}
+                      className={`spell-card${
+                        isGrantedSpellHighlight(spell) ? ' is-granted' : ''
+                      }`}
+                    >
                       <div className="spell-card__top">
                         <Field label="Заклинание">
                           <CatalogCombobox
@@ -589,7 +999,7 @@ export function SpellsPanel({
                         <Field label="Время">
                           <Input
                             value={spell.casting_time}
-                            placeholder="Д / БД…"
+                            placeholder="1 действие…"
                             onChange={(event) =>
                               updateSpell(spell.id, { casting_time: event.target.value })
                             }
@@ -601,6 +1011,17 @@ export function SpellsPanel({
                             placeholder="60 футов"
                             onChange={(event) =>
                               updateSpell(spell.id, { range: event.target.value })
+                            }
+                          />
+                        </Field>
+                        <Field label="Длительность">
+                          <Input
+                            value={spell.duration ?? ''}
+                            placeholder="Мгновенная / 1 мин…"
+                            onChange={(event) =>
+                              updateSpell(spell.id, {
+                                duration: event.target.value || undefined,
+                              })
                             }
                           />
                         </Field>
@@ -623,51 +1044,130 @@ export function SpellsPanel({
                           />
                         </Field>
                       </div>
+                      {spell.components || spell.school || spell.source_book || spell.higher_levels ? (
+                        <Text tone="muted" className="spell-card__extras">
+                          {[
+                            spell.components
+                              ? formatSpellComponents(spell.components)
+                              : '',
+                            spell.school ? spellSchoolLabelRu(spell.school) : '',
+                            spell.source_book ?? '',
+                            spell.higher_levels ? `↑ ${spell.higher_levels}` : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </Text>
+                      ) : null}
                       <div className="spell-card__footer">
                         {spell.level > 0 ? (
-                          <button
-                            type="button"
-                            className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
-                            onClick={() =>
-                              patch({
-                                known: setSpellPrepared(
-                                  spells.known,
-                                  spell.id,
-                                  !spell.prepared,
-                                  spells.max_prepared,
-                                ),
-                              })
+                          (() => {
+                            const lock = preparedLockChip(spell)
+                            if (lock) {
+                              return (
+                                <span className="sheet-chip is-on" title={lock.title}>
+                                  {lock.label}
+                                </span>
+                              )
                             }
-                          >
-                            {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
-                          </button>
+                            if (knownCaster) {
+                              return (
+                                <span
+                                  className="sheet-chip is-on"
+                                  title="Известное заклинание — всегда доступно"
+                                >
+                                  Известно
+                                </span>
+                              )
+                            }
+                            return (
+                              <button
+                                type="button"
+                                className={`sheet-chip${spell.prepared ? ' is-on' : ''}`}
+                                onClick={() =>
+                                  patch({
+                                    known: setSpellPrepared(
+                                      spells.known,
+                                      spell.id,
+                                      !spell.prepared,
+                                      spells.max_prepared,
+                                    ),
+                                  })
+                                }
+                              >
+                                {spell.prepared ? 'Подготовлено' : 'Не подготовлено'}
+                              </button>
+                            )
+                          })()
                         ) : (
                           <span className="sheet-chip is-on">Заговор</span>
                         )}
+                        {(() => {
+                          const source = spellSourceBadge(spell)
+                          const lock = preparedLockChip(spell)
+                          // Always-prepared already shows lock chip; spell_list / other grants need source.
+                          if (!source || lock) return null
+                          return (
+                            <span className="sheet-chip is-on" title={source.title}>
+                              {source.label}
+                            </span>
+                          )
+                        })()}
+                        {spell.grant_cast && spell.grant_cast.max > 0 ? (
+                          <span
+                            className={`sheet-chip${
+                              grantCastRemaining(spell) > 0 ? ' is-on' : ''
+                            }`}
+                            title={`${spell.grant_cast.label}: бесплатный каст без ячейки`}
+                          >
+                            {spell.grant_cast.label} {grantCastRemaining(spell)}/
+                            {spell.grant_cast.max}
+                          </span>
+                        ) : null}
                         <button
                           type="button"
-                          className={`sheet-chip${spell.concentration ? ' is-on' : ''}`}
+                          className={`sheet-chip spell-card__flag${
+                            spell.concentration ? ' is-on' : ''
+                          }`}
                           onClick={() =>
                             updateSpell(spell.id, { concentration: !spell.concentration })
                           }
+                          title="Концентрация"
+                          aria-pressed={spell.concentration}
                         >
-                          К
+                          <IconConcentration className="spells-btn-icon" />
+                          конц.
                         </button>
-                        <Button
-                          variant="ghost"
-                          onClick={() =>
-                            patch({
-                              known: spells.known.filter((item) => item.id !== spell.id),
-                            })
-                          }
+                        <button
+                          type="button"
+                          className={`sheet-chip spell-card__flag${
+                            spell.ritual ? ' is-on' : ''
+                          }`}
+                          onClick={() => updateSpell(spell.id, { ritual: !spell.ritual })}
+                          title="Ритуал"
+                          aria-pressed={spell.ritual}
                         >
-                          Удалить
-                        </Button>
+                          <IconRitual className="spells-btn-icon" />
+                          ритуал
+                        </button>
+                        {canRemoveSheetSpell(spell) ? (
+                          <Button
+                            variant="ghost"
+                            onClick={() =>
+                              patch({
+                                known: spells.known.filter((item) => item.id !== spell.id),
+                              })
+                            }
+                          >
+                            Удалить
+                          </Button>
+                        ) : null}
                         <Button
                           className="spell-card__cast"
                           disabled={
                             (spell.level > 0 && !spell.prepared) ||
                             (spell.level > 0 &&
+                              !spell.ritual &&
+                              !canSpendGrantCast(spell) &&
                               !canCastLeveledSpell(
                                 spells.slots,
                                 spells.pact_slots,
@@ -676,6 +1176,7 @@ export function SpellsPanel({
                           }
                           onClick={() => setCastSpell(spell)}
                         >
+                          <IconCast className="spells-btn-icon" />
                           Каст
                         </Button>
                       </div>
@@ -687,26 +1188,74 @@ export function SpellsPanel({
           })
         )}
 
-        <div>
-          <Button
-            variant="secondary"
-            onClick={() => patch({ known: [...spells.known, createSheetSpell()] })}
-          >
-            Добавить заклинание
-          </Button>
-        </div>
+        <Text tone="muted">
+          Новые заклинания — через гримуар (справочник → добавить на лист).
+        </Text>
       </Stack>
 
       <PrepareSpellsDialog
         open={prepareOpen}
         spells={spells}
+        learnMode={learnBudget?.mode ?? (knownCaster ? 'known' : 'prepared_list')}
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />
+      {learnBudget?.mode === 'spellbook' && inventory && onInventoryChange ? (
+        <SpellbookManageDialog
+          open={bookManageOpen}
+          spells={spells}
+          inventoryItems={inventoryItems}
+          coins={inventory.coins}
+          wizardLevel={
+            (classes?.find((row) => /волшебник|wizard|маг/i.test(row.name))?.level ??
+              level) || 1
+          }
+          subclassSlug={(() => {
+            const row = classes?.find((item) => /волшебник|wizard|маг/i.test(item.name))
+            const raw = row?.subclass_name?.trim() || ''
+            if (!raw) return null
+            return resolveSubclassFeatureSlug(raw) ?? raw.toLowerCase().replace(/\s+/g, '_')
+          })()}
+          onChangeSpells={onChange}
+          onChangeCoins={(coins) => onInventoryChange({ ...inventory, coins })}
+          onChangeInventoryItems={(items) =>
+            onInventoryChange({ ...inventory, items })
+          }
+          onChangeInventory={({ coins, items }) =>
+            onInventoryChange({ ...inventory, coins, items })
+          }
+          onClose={() => setBookManageOpen(false)}
+          onToast={onToast}
+        />
+      ) : null}
       <GrimoireDialog
         open={grimoireOpen}
         edition={edition}
         spells={spells}
+        knownCaster={knownCaster}
+        abilityModFor={(ability) => abilityModifier(abilities[ability])}
+        classes={
+          classes?.length
+            ? classes
+            : [
+                {
+                  id: 'primary',
+                  name: className,
+                  catalog_id: null,
+                  level,
+                  subclass_name: '',
+                  subclass_catalog_id: null,
+                },
+              ]
+        }
+        subclassCasters={subclassCasters}
+        coins={inventory?.coins ?? null}
+        onCoinsChange={
+          inventory && onInventoryChange
+            ? (coins) => onInventoryChange({ ...inventory, coins })
+            : undefined
+        }
+        inventoryItems={inventoryItems}
         onChange={onChange}
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}
@@ -715,12 +1264,52 @@ export function SpellsPanel({
         open={castSpell != null}
         spell={castSpell}
         spells={spells}
+        inventoryItems={inventoryItems}
+        characterLevel={level}
         characterId={characterId}
-        onConfirm={(choice) => {
-          void confirmCast(choice)
-        }}
+        wizardRitualFromBook={learnBudget?.mode === 'spellbook'}
+        onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />
+      {pendingSelfForm ? (
+        <SpellFormDialog
+          open
+          spell={pendingSelfForm.spell}
+          slug={pendingSelfForm.slug}
+          companions={companions}
+          knownForms={knownForms}
+          characterLevel={level}
+          hostHp={hostHp ?? 0}
+          hostHpMax={hostHpMax ?? 0}
+          edition={edition === '2024' ? '2024' : '2014'}
+          onConfirm={applySpellFormResult}
+          onClose={() => {
+            setPendingSelfForm(null)
+            onToast?.(
+              'Облик не выбран — концентрация активна; карточку можно не создавать',
+            )
+          }}
+        />
+      ) : null}
+      <Dialog
+        open={pendingConc != null}
+        title="Смена концентрации"
+        primaryLabel="Сменить и кастовать"
+        secondaryLabel="Отмена"
+        primaryVariant="danger"
+        onPrimary={() => {
+          if (!pendingConc) return
+          const { spell, choice } = pendingConc
+          setPendingConc(null)
+          runCast(spell, choice)
+        }}
+        onSecondary={() => setPendingConc(null)}
+      >
+        <Text>
+          Сейчас концентрация: «{concentration?.name ?? '—'}». Сменить на «
+          {pendingConc?.spell.name || 'Заклинание'}»? Ячейка потратится после подтверждения.
+        </Text>
+      </Dialog>
     </Panel>
   )
 }

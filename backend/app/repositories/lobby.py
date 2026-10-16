@@ -210,6 +210,34 @@ class LobbyRepository:
         self.db.delete(link)
         self.db.flush()
 
+    def list_setting_artifacts(self, setting_id: UUID) -> list:
+        from app.models.setting_artifact import SettingArtifact
+
+        return list(
+            self.db.scalars(
+                select(SettingArtifact)
+                .where(SettingArtifact.setting_id == setting_id)
+                .order_by(SettingArtifact.sort_order.asc(), SettingArtifact.created_at.asc())
+            ).all()
+        )
+
+    def get_setting_artifact(self, artifact_id: UUID):
+        from app.models.setting_artifact import SettingArtifact
+
+        return self.db.get(SettingArtifact, artifact_id)
+
+    def create_setting_artifact(self, **kwargs):
+        from app.models.setting_artifact import SettingArtifact
+
+        row = SettingArtifact(**kwargs)
+        self.db.add(row)
+        self.db.flush()
+        return row
+
+    def delete_setting_artifact(self, artifact) -> None:
+        self.db.delete(artifact)
+        self.db.flush()
+
     def delete_setting(self, setting: Setting) -> None:
         self.db.delete(setting)
         self.db.flush()

@@ -44,6 +44,12 @@ logger = logging.getLogger(__name__)
 
 
 def serialize_user(user: User) -> UserResponse:
+    theme_id = getattr(user, "theme_id", None) or "wis"
+    ability_colors = getattr(user, "ability_colors", None) or "identity"
+    if theme_id not in {"str", "dex", "con", "int", "wis", "cha"}:
+        theme_id = "wis"
+    if ability_colors not in {"identity", "theme"}:
+        ability_colors = "identity"
     return UserResponse(
         id=user.id,
         email=user.email,
@@ -52,6 +58,8 @@ def serialize_user(user: User) -> UserResponse:
         full_name=user.full_name,
         phone=user.phone,
         avatar_url=user.avatar_url,
+        theme_id=theme_id,  # type: ignore[arg-type]
+        ability_colors=ability_colors,  # type: ignore[arg-type]
         email_verified_at=user.email_verified_at,
         created_at=user.created_at,
         updated_at=user.updated_at,
@@ -284,6 +292,13 @@ class AuthService:
         user_agent: str | None = None,
         ip_address: str | None = None,
     ) -> TokenResponse:
+        from sqlalchemy import text
+        from sqlalchemy.exc import OperationalError
+
+        # Parallel refresh (several tabs) used to pile UPDATE locks on auth_sessions
+        # until nginx 504'd and the character list spun «Загрузка…» forever.
+        self.db.execute(text("SET LOCAL lock_timeout = '2s'"))
+
         try:
             payload = decode_token(refresh_token)
         except Exception as exc:  # noqa: BLE001
@@ -296,25 +311,30 @@ class AuthService:
         if not sid_raw:
             raise UnauthorizedError("Сессия устарела — войдите снова")
 
-        session = self.sessions.get_active_by_id(UUID(str(sid_raw)))
-        if session is None or session.refresh_token_hash != _hash_token(refresh_token):
-            raise UnauthorizedError("Сессия недействительна — войдите снова")
+        try:
+            session = self.sessions.get_active_by_id(UUID(str(sid_raw)))
+            if session is None or session.refresh_token_hash != _hash_token(refresh_token):
+                raise UnauthorizedError("Сессия недействительна — войдите снова")
 
-        user = self.users.get_by_id(UUID(payload["sub"]))
-        if user is None or user.id != session.user_id:
-            raise UnauthorizedError("Пользователь не найден")
+            user = self.users.get_by_id(UUID(payload["sub"]))
+            if user is None or user.id != session.user_id:
+                raise UnauthorizedError("Пользователь не найден")
 
-        if user_agent:
-            session.user_agent = user_agent[:512]
-        if ip_address:
-            session.ip_address = ip_address[:64]
+            if user_agent:
+                session.user_agent = user_agent[:512]
+            if ip_address:
+                session.ip_address = ip_address[:64]
 
-        return self.issue_tokens(
-            user,
-            user_agent=session.user_agent,
-            ip_address=session.ip_address,
-            existing_session=session,
-        )
+            return self.issue_tokens(
+                user,
+                user_agent=session.user_agent,
+                ip_address=session.ip_address,
+                existing_session=session,
+            )
+        except OperationalError as exc:
+            # lock_timeout / deadlock → ask the client to re-login instead of hang.
+            self.db.rollback()
+            raise UnauthorizedError("Сессия занята — войдите снова") from exc
 
     def list_sessions(self, user_id: UUID, *, current_session_id: UUID | None) -> AuthSessionListResponse:
         items = [
@@ -381,12 +401,20 @@ class AuthService:
         if user is None:
             raise UnauthorizedError("Пользователь не найден")
 
-        self.users.update_profile(
-            user,
-            display_name=payload.display_name,
-            full_name=payload.full_name,
-            phone=payload.phone,
-        )
+        data = payload.model_dump(exclude_unset=True)
+        if any(key in data for key in ("display_name", "full_name", "phone")):
+            self.users.update_profile(
+                user,
+                display_name=data["display_name"] if "display_name" in data else user.display_name,
+                full_name=data["full_name"] if "full_name" in data else user.full_name,
+                phone=data["phone"] if "phone" in data else user.phone,
+            )
+        if "theme_id" in data and data["theme_id"] is not None:
+            user.theme_id = data["theme_id"]
+            self.db.add(user)
+        if "ability_colors" in data and data["ability_colors"] is not None:
+            user.ability_colors = data["ability_colors"]
+            self.db.add(user)
         self.db.commit()
         loaded = self.users.get_by_id(user_id)
         assert loaded is not None

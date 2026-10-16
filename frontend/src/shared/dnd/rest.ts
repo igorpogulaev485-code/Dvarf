@@ -1,5 +1,9 @@
 /** Pure rest helpers — sheet now, party frame later. */
 
+import {
+  recoverHitDicePoolsOnLongRest,
+  type ClassHitDicePool,
+} from './classHitDice'
 import { recoverHitDiceOnLongRest } from './hitDice'
 import { clampSlot, type SpellSlotState } from './spells'
 
@@ -11,8 +15,11 @@ export type SheetResource = {
   max: number
   used: number
   reset: ResourceReset
-  /** Трата ресурса → выбор союзника (вдохновение барда, инфузия…). */
-  applies_to_allies?: boolean
+  /**
+   * Show pips on PlayDesk hot bar.
+   * `undefined` = legacy default (on). Note-block resources opt in with `true`.
+   */
+  onHot?: boolean
 }
 
 export function clampExhaustion(value: number): number {
@@ -26,13 +33,21 @@ export function clampResource(resource: SheetResource): SheetResource {
     resource.reset === 'short' || resource.reset === 'long' || resource.reset === 'manual'
       ? resource.reset
       : 'long'
+  const onHot =
+    typeof resource.onHot === 'boolean' ? resource.onHot : undefined
   return {
     ...resource,
     max,
     used,
     reset,
-    applies_to_allies: Boolean(resource.applies_to_allies),
+    ...(onHot === undefined ? {} : { onHot }),
   }
+}
+
+/** Hot-bar visibility: explicit false hides; undefined/true shows (legacy + class pools). */
+export function resourceShowsOnHot(resource: SheetResource): boolean {
+  if (resource.onHot === false) return false
+  return resource.max > 0 && Boolean(resource.name.trim())
 }
 
 export function resetResourcesOnRest(
@@ -73,17 +88,29 @@ export type RestResult = {
   hp_current?: number | null
   hp_temp?: number
   hit_dice_current?: number
+  hit_dice_by_class?: ClassHitDicePool[]
   is_dying?: boolean
   death_successes?: number
   death_fails?: number
 }
 
+/**
+ * 2014 PHB: short rest recovers short-reset resources and warlock pact slots.
+ * Spell slots (Spellcasting) stay spent until a long rest.
+ */
 export function applyShortRest(input: {
   resources: SheetResource[]
+  /** When provided, pact `used` is cleared (PHB Pact Magic). Omit to leave spells untouched. */
+  pact_slots?: { max: number; used: number; level: number } | null
 }): RestResult {
-  return {
+  const result: RestResult = {
     resources: resetResourcesOnRest(input.resources, 'short'),
   }
+  if (input.pact_slots !== undefined) {
+    const pact = input.pact_slots
+    result.pact_slots = pact ? { ...pact, used: 0 } : null
+  }
+  return result
 }
 
 export function applyLongRest(input: {
@@ -94,8 +121,12 @@ export function applyLongRest(input: {
   hp_max: number | null
   hit_dice_current: number
   hit_dice_max: number
+  hit_dice_by_class?: ClassHitDicePool[]
 }): RestResult {
   const pact = input.pact_slots
+  const pools = input.hit_dice_by_class
+  const recoveredPools =
+    pools && pools.length > 0 ? recoverHitDicePoolsOnLongRest(pools) : undefined
   return {
     resources: resetResourcesOnRest(input.resources, 'long'),
     slots: recoverSpellSlotsOnLongRest(input.slots),
@@ -103,10 +134,10 @@ export function applyLongRest(input: {
     exhaustion: reduceExhaustionOnLongRest(input.exhaustion),
     hp_current: input.hp_max,
     hp_temp: 0,
-    hit_dice_current: recoverHitDiceOnLongRest(
-      input.hit_dice_current,
-      input.hit_dice_max,
-    ),
+    hit_dice_current: recoveredPools
+      ? recoveredPools.reduce((sum, pool) => sum + pool.current, 0)
+      : recoverHitDiceOnLongRest(input.hit_dice_current, input.hit_dice_max),
+    hit_dice_by_class: recoveredPools,
     is_dying: false,
     death_successes: 0,
     death_fails: 0,

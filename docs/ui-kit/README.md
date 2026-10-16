@@ -94,16 +94,29 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 
 Доски: [`spells`](boards/dvarf-ui-kit-spells.jpg) · [`spell-icons`](boards/dvarf-ui-kit-spell-icons.jpg)
 
+## 2d. Атаки стола — LOCK
+
+> **LOCK (Wave A attacks):** зафиксировано с Игорем 2026-10-13. Не откатывать без нового согласования.
+
+| Компонент | Правило |
+|-----------|---------|
+| Compact = бой | hit/dmg toast, удерж./взять, ресурсы, расходники |
+| Настройки | диалог setup (не «полностью» на stage): оверрайды карточек + **Своё** |
+| Официальное оружие | из **инвентаря** (сцена Исследование) → карточка атаки |
+| Своё | кастомная атака без строки лута |
+| Природное | с расы, в настройках read-only |
+| Icons | `attackIcons.tsx` — ближнее / дальнее / ресурс / расходник |
+
 Левый блок (`AbilitySkillsColumn`):
 
 - у каждой характеристики **свой identity-цвет** (полоска + label + Сп on + навыки);
 - identity **не** перекрашивается темой аккаунта;
-- навык = строка-кнопка: `—` → `Влад.` → `Эксп.` (не switch);
-- Пр — read-only chip; Сп — toggle владения;
+- навык = pip + имя + число: кружок `нет → влад. → эксп.`; **число → бросок** (как LSS);
+- Пр — число → бросок проверки; Сп — pip владения + число → бросок спасброска;
+- название характеристики → разборка (бафы); ▾ сворачивает навыки;
 - база → эффективный (`16 → 18`);
-- свернуть навыки — клик по **полному названию** (Сила / Ловкость…; отдельной кнопки ▾ в краю нет);
 - шапка в две строки: полное название · число/`→eff` + Пр/Сп;
-- пассивы — glance-карточки; CTA «Владения» → drawer.
+- пассивы — glance-карточки; CTA «Владения ▸» → drawer (скорости/ТЗ · снаряжение · языки/инструменты); вкладки ЕЩЁ нет.
 
 Доски: [`ability-rail-v2`](boards/dvarf-ui-kit-ability-rail-v2.jpg) · [`ability-colors` / вариант A](boards/dvarf-ui-kit-ability-colors.jpg) · [`themes-6`](boards/dvarf-ui-kit-themes-6.jpg)
 
@@ -136,7 +149,7 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | Pads / dialogs | `dvarf-ui-kit-dialogs-pads.jpg` |
 | Rail | `dvarf-ui-kit-ability-rail-v2.jpg`, `dvarf-ui-kit-ability-colors.jpg` |
 | Spells LOCK | `dvarf-ui-kit-spells.jpg`, `dvarf-ui-kit-spell-icons.jpg` |
-| Combat attacks compact | line icons in `attackIcons.tsx` (stroke = desk/spell); chrome = `desk-chrome` §E + live Attacks |
+| Combat attacks compact + settings | line icons in `attackIcons.tsx`; chrome = `desk-chrome` §E; setup = `AttacksSettingsDialog` (§2d) |
 | Features / companions / attunement / ЕЩЁ | `dvarf-ui-kit-features-companions.jpg` |
 | Rest / create / toast / list | `dvarf-ui-kit-rest-create-app.jpg` |
 | Auth | `dvarf-ui-kit-auth.jpg` |
@@ -149,8 +162,8 @@ Live-эталоны в продукте (уже близки к киту): Inven
 
 ## 5. Порядок внедрения (зафиксировано)
 
-**Сначала** — единый кит в **одном** цвете (дефолт Листва): токены, паттерны, rail A, панели/хром.  
-**Потом** — выбор темы в кабинете (`data-theme` / `--accent` swap) и сохранение на аккаунт.
+**Сначала** — единый кит в **одном** цвете (дефолт Листва): токены, паттерны, rail A, панели/хром. ✅  
+**Потом** — выбор темы в кабинете (`data-theme` / `--accent` swap) + режим цветов характеристик и сохранение на аккаунт (§2n).
 
 Почему не наоборот: тема — тонкий слой над токенами. Пока UI на разнобое хардкодов, переключатель цвета даст кашу и двойную работу.
 
@@ -172,10 +185,208 @@ Live-эталоны в продукте (уже близки к киту): Inven
 2. Если **нет** — сначала рисуем/добавляем иконки, кладём в кит (`boards/` + запись здесь), согласование.
 3. Только потом верстка/логика chrome блока.
 
-Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия LOCK** — `spellIcons.tsx` + доски `spells` / `spell-icons`; **атаки compact** — `attackIcons.tsx` (ближнее / дальнее / ресурс / расходник), тот же stroke, что desk/spell icons; **stage «Бой»** — компакт атак в языке `play-desk-compact` (общий chrome сцен не трогали).  
-**Дальше (не без ok):** LOCK атак после «Идеал»; A5 Features/Companions; hot-bar chrome — только по явному запросу.
+Сейчас есть: иконки под **инвентарь** (и частично texts); **шапка стола LOCK** — `deskIcons.tsx` + доска `desk-header-lock`; **магия LOCK** — `spellIcons.tsx` + доски `spells` / `spell-icons`; **атаки LOCK** — compact + `AttacksSettingsDialog` (§2d), `attackIcons.tsx`.  
+**Hot-bar (2026-10-13):** line-icons на полосе (`IconConditions` / `IconConcentration` / `IconPouch` в `deskIcons.tsx`); Отдых в шапке. Каст→концентрация — BUG-019 ✅.  
 
-Rail характеристик (вариант A) иконок не требует — полные названия, chips, drag.
+## 2e. Состояния (hot dialog) — LOCK
+
+> **LOCK (Wave A conditions dialog):** зафиксировано с Игорем 2026-10-13. Не откатывать без нового согласования.
+
+| Компонент | Правило |
+|-----------|---------|
+| Вход | hot «Состояния» → диалог (не панель Ещё) |
+| Секции | Истощение · На персонаже · Быстрый выбор + поиск/своё |
+| Быстрый выбор | sheet-chips toggle on/off |
+| Истощение | уровни 1–6 + текст отыгрыша стадии |
+| Icons | `IconConditions` / `IconExhaustion` (`deskIcons.tsx`) |
+| Hot chip | `is-on`, когда есть состояния / истощение |
+
+## 2f. Исследование / инвентарь — LOCK
+
+> **LOCK (Wave A explore inventory):** зафиксировано с Игорем 2026-10-13. Не откатывать без нового согласования.  
+> Паттерн по опыту Боя: **одна поверхность**, не компакт↔полностью.
+
+| Компонент | Правило |
+|-----------|---------|
+| Stage | `InventoryPanel` сразу (glance→expand строки) |
+| Без flip | нет «полностью» / «← компактно» на столе |
+| Accordion | одна деталь открыта; expand плотнее (роль-поля + footer) |
+| Добавить | Из справочника (`GearPickerDialog` kit) / Своя строка |
+| ★ | избранное → расходники боя |
+| Meta | ноша · КД · Настройка N/3 в summary |
+| Настройка | только из summary → `AttunementDialog` (вкладки ЕЩЁ нет; тот же editor/sheet) |
+| Монеты | readout → CoinPad (header wide / panel-local compact) |
+| Без PHB-шаблона | броня из справочника или ручные поля; dropdown «Шаблон PHB» убран |
+| Заклинания | split справа (как combat/social) |
+
+**Статус:** Идеал / LOCK (ok Игоря 2026-10-13).
+
+## 2g. Общение / тексты — LOCK
+
+> **LOCK (Wave A social texts):** зафиксировано с Игорем 2026-10-13. Не откатывать без нового согласования.
+
+| Компонент | Правило |
+|-----------|---------|
+| Stage | `TextBlocksPanel` сразу (glance→expand) |
+| Без flip | нет «полностью» / «← компактно» |
+| Title | `Panel title` (`ui-panel__title`) + lede — как Inventory |
+| Expand | multi-open; toolbar `abil-column__toolbar` «Свернуть все / Развернуть все» |
+| Порядок | `abil-block__drag` ⋮⋮ + `moveTextBlockBefore` (не стрелки ▲▼) |
+| Добавить | sticky «Добавить блок» |
+| Вставки | `parts[]`: text / resource / spoiler / divider (+ Вставка меню) |
+| Пипсы → hot | ресурс заметки `onHot: false` по умолчанию; ☆ hot / ★ hot |
+| Фильтры | Все / Личность / Умения / Заметки / С ресурсом / Скрытые |
+| Заклинания | split справа |
+
+**Статус:** Идеал / LOCK.
+
+## 2h. Способности (сводка) — LOCK
+
+> **LOCK (Wave A features summary):** зафиксировано с Игорем 2026-10-13. Не откатывать без нового согласования.
+
+| Компонент | Правило |
+|-----------|---------|
+| Stage | `ClassFeaturesPanel` сразу (glance→expand строки) |
+| Без flip | нет «полностью» / «← компактно» / `PlayDeskFeaturesCompact` |
+| Expand | только строки с resource / choice / spend / summon; пассивные — static glance |
+| Toolbar | свернуть/развернуть все — только если есть раскрываемые |
+| Фильтры | Все / Класс / Подкласс / Черты / С ресурсом / Выбор |
+| Строка | имя · роль · scale/ресурс/выбор · превью summary |
+| Логика | spend / picks / slot_spend без изменений (контракт feature_resource) |
+| Не дублировать | тексты-заметки Общения — отдельно; здесь unlock-движок |
+
+**Статус:** Идеал / LOCK.
+
+## 2i. Напарники — LOCK
+
+> **LOCK (Wave A companions):** зафиксировано с Игорем 2026-10-13. Не откатывать без нового согласования.
+
+| Компонент | Правило |
+|-----------|---------|
+| Stage | `CompanionsPanel` сразу (glance→expand) |
+| Без flip | нет «полностью» / «← компактно» / `PlayDeskCompanionsCompact` |
+| Expand | multi-open; toolbar свернуть/развернуть все |
+| Добавить | sticky «+ Добавить» → развилка Спутник / Напарник (Dialog) |
+| Фильтры | Все / Спутники / Призывы / От умения |
+| Строка | имя · тип · КД/HP/скорость · основной |
+| Логика | create/update/remove без изменений (`companions.ts`) |
+
+**Статус:** Идеал / LOCK.
+
+## 2j. Владения (rail drawer) — LOCK
+
+> **LOCK (Wave A ownership drawer):** зафиксировано с Игорем 2026-10-13. Не откатывать без нового согласования.
+
+| Компонент | Правило |
+|-----------|---------|
+| Вход | CTA «Владения ▸» под пассивами в ability rail |
+| Drawer | скорости/ТЗ · `EquipmentProficienciesPanel` · `LanguagesToolsPanel` |
+| Логика | снятие доспеха без владения — как раньше на stage |
+| ЕЩЁ | вкладки `ownership` нет; владения не дублируются на stage |
+
+**Статус:** Идеал / LOCK.
+
+## 2k. Основное (IdentityDialog) — LOCK
+
+> **LOCK (Wave A identity dialog):** зафиксировано с Игорем 2026-10-13; черта от мастера — 2026-10-14. Не откатывать без нового согласования.
+
+| Компонент | Правило |
+|-----------|---------|
+| Вход | клик по аватарке (hint «основное») или строка шапки раса·мировоззрение |
+| Dialog | `IdentityDialog` size xl: аватар upload/delete + сборка |
+| Секции | Персонаж · Классы · **Черты** · Раса и прошлое |
+| Черты | список грантов; CTA **«Мастер выдал черту»** → `FeatSetupDialog`; source `manual`; Убрать только у manual |
+| ASI-черта | по-прежнему на 4/6/8… в повышении уровня, не дублировать сюда |
+| Сцена ЕЩЁ | нет |
+
+**Статус:** Идеал / LOCK.
+
+## 2l. Hot-bar + концентрация — LOCK
+
+> **LOCK (Wave A hot-bar / BUG-019):** зафиксировано с Игорем 2026-10-13.
+
+| Компонент | Правило |
+|-----------|---------|
+| Полоса | состояния · концентрация · пипсы ресурсов (Отдых в шапке) |
+| Icons | `IconConditions` / `IconConcentration` / `IconPouch` |
+| Каст | компакт → `CastSpellDialog` → слот + концентрация атомарно |
+| Смена | confirm «Сменить и кастовать», если уже есть другая конц. |
+| Урон | HP pad → диалог «Удержал / Сорвалось» (Сл = max(10, урон/2)) |
+
+**Статус:** Идеал / LOCK.
+
+## 2m. Список персонажей (kit + LSS-ценное)
+
+> Не копировать LSS 1:1. Доска: `dvarf-ui-kit-rest-create-app.jpg` §E.
+
+| Компонент | Правило |
+|-----------|---------|
+| Карточка | glance: круглый аватар · имя (display) · раса · класс ур. · edition · HP-полоска · теги |
+| CTA | «Открыть» / «Продолжить»; ⋯ (угол карточки) → классический лист / удалить; без json/clone/pdf |
+| Размер | Большие / Средние / Компактные (`sheet-chip`, localStorage `dvarf.characterList.v1`) |
+| Теги | цветные pills + фильтр OR; CRUD в диалоге; пока в браузере (account sync — later) |
+| Chrome | счётчик в заголовке; Create + sizes + Теги в toolbar |
+
+**Статус:** собрано под кит — **хватит на сейчас**. Ideal/LOCK / polish — **доделать, когда будет время** (не блокер).
+
+## 2n. Личный кабинет · Оформление (Wave B)
+
+> Доски: `dvarf-ui-kit-cabinet.jpg` · `dvarf-ui-kit-cabinet-theme.jpg` · `themes-6`.
+
+| Компонент | Правило |
+|-----------|---------|
+| Тема аккаунта | 6 swatches → `theme_id` на user → `html[data-theme]` → только `--accent` / `--accent-soft` |
+| Дефолт | `wis` Листва |
+| Цвета характеристик | `ability_colors`: `identity` (уникальные A, дефолт) **или** `theme` (все блоки = accent) — угодить и «ребит», и «кайф» |
+| Chrome кабинета | back-link · title · Panels; danger не theme accent |
+| Persist | PATCH `/auth/me`; cache `dvarf.accountAppearance.v1` до getMe |
+
+**Статус:** собираем.
+
+## 2o. Create pipeline 2014 (kit)
+
+> Доска: `dvarf-ui-kit-rest-create-app.jpg` §D. Порядок шагов — **продуктовый**, не иллюстрация на доске.
+
+| Компонент | Правило |
+|-----------|---------|
+| Порядок | Раса → Черта? → Предыстория → Класс → Характеристики → Прокачка |
+| Stepper | done = accent-soft · active = solid accent · locked muted; title Source Serif accent |
+| Панели | left/right `--panel`; catalog cards `--card`, selected = accent-soft |
+| Filters | chips; active = **solid** accent |
+| Method-cards | Массив · Point buy · **Бросок 4d6dl1** · Вручную — крупные interaction cards |
+| Бросок | кости на строке (младший в `[]`); «Ещё раз» / «Перебросить все» → `baseAbilities` |
+| Footer | ← Назад · **Шаг N из M** · Далее/Готово |
+| Empty | `EmptyState` «Пока пусто» |
+| Setup | Race / Class / Background / Subclass — `Dialog` + `sheet-chip` / `sheet-chip--block`; логика грантов без изменений |
+
+**Статус:** Идеал / LOCK (ok Игоря 2026-10-13).
+
+## 2p. Что ещё на столе (не LOCK)
+
+| Область | Статус |
+|---------|--------|
+| **Список персонажей Ideal** | polish когда будет время |
+| **Классический бланк** | отдельный print-трек |
+| **Теги списка** | sync на аккаунт (сейчас localStorage) |
+
+## 2q. Хаб лобби (A1) — LOCK
+
+> **LOCK (Lobby Hub A1):** зафиксировано с Игорем 2026-10-15 (превью 8 игроков + скрины a1-roster).  
+> **Инцидент 2026-10-16:** `index.css` от forms-adapt затёр блок A1→D1 — состав «поехал» (вертикальный список без карточек/табов).  
+> Блок CSS помечен `UI KIT LOCK — Lobby Hub` в `frontend/src/index.css`. **Не удалять и не «упрощать»** без ok Игоря + обновления этого § и preflight.
+
+| Компонент | Правило |
+|-----------|---------|
+| Табы | `.lobby-hub-tabs` sticky; `.lobby-hub-tab` pill; **active = solid `--accent` + белый текст** |
+| Состав | `.lobby-member-grid` → 1→2→3→4 колонки (640 / 1000 / 1280); ориентир **~8**, запас до 10 |
+| Карточка | `.lobby-member-card`: HP-полоска сверху (ok/warn/down) · аватар-инициал · имя · ур./раса/класс · HP · «Лист/Смотреть» + «Убрать» |
+| Ширина хаба | `.page.page--lobby-hub` расширяется media (1120→1560), не узкий 720 на desktop |
+| Код комнаты | `.lobby-hub-code__value` mono, accent, копируется кликом |
+| Доска / эталон | `boards/dvarf-ui-kit-lobbies.jpg` · артефакты `a1-roster-*-desktop.png` |
+
+Связанные блоки в том же LOCK-хвосте CSS (тоже священны): Session A2–A3, Journal A4, Chats A5, Notes A6, бой B1–B8, вики C1–C4, артефакты D1 (`.setting-wiki*`, `.setting-artifact*`).
+
+**Статус:** Идеал / LOCK.
 
 ### 6b. Логика прода священна
 
@@ -189,6 +400,6 @@ Rail характеристик (вариант A) иконок не требу�
 
 - Не вводить параллельную палитру «на свой вкус».
 - Не красить нейтрали и danger темой.
-- Не перекрашивать identity характеристик темой аккаунта.
+- Не перекрашивать identity характеристик темой аккаунта **по умолчанию** — только если пользователь явно выбрал `ability_colors=theme`.
 - Не кодить UI «в обход» досок, если паттерн новый.
 - Не возвращать purple-glow / default Inter-only / плоский white dashboard без пергамента.

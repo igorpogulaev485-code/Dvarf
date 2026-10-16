@@ -118,7 +118,8 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
               <span>Предыстория</span>
               <input
                 value={String(identityField(c, 'background') ?? '')}
-                onChange={(e) => patch({ identity: { background: e.target.value || null } })}
+                readOnly
+                title="Выбор из справочника — в панели над листом (не печатается)"
               />
             </label>
             <label>
@@ -159,7 +160,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
             <div className="classic-abilities-wrap">
               <div>
                 {ABILITY_KEYS.map((key) => (
-                  <div className="classic-ability" key={key}>
+                  <div className="classic-ability" data-abil={key} key={key}>
                     <div className="classic-ability__label">{ABILITY_LABELS[key]}</div>
                     <input
                       type="number"

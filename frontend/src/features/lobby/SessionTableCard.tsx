@@ -61,6 +61,24 @@ function CompanionCard({
       ? `HP ${companion.hp_current ?? 0}/${companion.hp_max}`
       : 'HP —'
   const ac = companion.ac != null ? `КД ${companion.ac}` : null
+  const typeBit = companion.type?.trim() || null
+  const durationBit = companion.duration?.trim() || null
+  const attackBit = companion.attack_damage
+    ? (() => {
+        const bonus = companion.attack_bonus ?? 0
+        const sign = bonus >= 0 ? `+${bonus}` : String(bonus)
+        const dtype = companion.attack_damage_type?.trim()
+        const range =
+          companion.attack_range_kind === 'ranged'
+            ? 'дальн.'
+            : companion.attack_range_kind === 'reach'
+              ? 'досяг.'
+              : companion.attack_range_kind === 'thrown'
+                ? 'метат.'
+                : null
+        return [sign, companion.attack_damage, dtype, range].filter(Boolean).join(' ')
+      })()
+    : null
 
   return (
     <article className={`session-companion-card session-companion-card--${tone}`}>
@@ -68,12 +86,20 @@ function CompanionCard({
         <div className="session-companion-card__main">
           <Text as="h4" className="session-companion-card__name">
             {companion.name}
-            <span className="session-companion-card__tag">напарник</span>
+            <span className="session-companion-card__tag">
+              {typeBit || 'напарник'}
+            </span>
           </Text>
           <Text tone="muted" className="session-companion-card__stat">
             {hp}
             {ac ? ` · ${ac}` : ''}
+            {durationBit ? ` · ${durationBit}` : ''}
           </Text>
+          {attackBit ? (
+            <Text tone="muted" className="session-companion-card__stat">
+              Атака {attackBit}
+            </Text>
+          ) : null}
           {companion.conditions.length > 0 ? (
             <div className="session-table-card__conditions">
               {companion.conditions.map((c) => (

@@ -38,6 +38,7 @@ import {
   generateSessionEncounter,
   getLobby,
   getSession,
+  getSetting,
   listSessionEvents,
   patchSeatCombat,
   patchSessionCombat,
@@ -53,6 +54,7 @@ import {
   type SeatEffect,
   type SessionDetail,
   type SessionEvent,
+  type SettingArtifact,
 } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text, Toast } from '../ui'
 
@@ -91,6 +93,7 @@ export function SessionDetailPage() {
     null,
   )
   const [templates, setTemplates] = useState<EncounterTemplate[]>([])
+  const [settingArtifacts, setSettingArtifacts] = useState<SettingArtifact[]>([])
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -103,6 +106,18 @@ export function SessionDetailPage() {
       } catch {
         setTemplates([])
       }
+      if (detail.setting_id) {
+        try {
+          const setting = await getSetting(detail.setting_id)
+          setSettingArtifacts(setting.artifacts ?? [])
+        } catch {
+          setSettingArtifacts([])
+        }
+      } else {
+        setSettingArtifacts([])
+      }
+    } else {
+      setSettingArtifacts([])
     }
   }, [sessionId])
 
@@ -882,6 +897,7 @@ export function SessionDetailPage() {
         open={lootOpen}
         busy={busy}
         seats={session.seats}
+        artifacts={settingArtifacts}
         onClose={() => setLootOpen(false)}
         onSubmit={(payload) => {
           void run(async () => {

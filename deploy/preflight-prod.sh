@@ -69,6 +69,28 @@ require "backend/app/models/setting_page_link.py" "вики: связи"
 require "frontend/src/features/lobby/JournalComposer.tsx" "дневник + ссылка на вики"
 require "frontend/src/features/lobby/ChatBodyText.tsx" "чат: linkify /settings"
 
+require "backend/app/models/setting_artifact.py" "артефакты сеттинга"
+require "frontend/src/features/lobby/SettingArtifactsPanel.tsx" "UI библиотеки артефактов"
+require "backend/app/services/artifact_apply.py" "применение способностей артефакта"
+
+require "frontend/src/features/characters/PlayDeskHeader.tsx" "Play Desk шапка стола"
+require "frontend/src/features/characters/AbilitySkillsColumn.tsx" "Play Desk рельс характеристик"
+require "frontend/src/features/cabinet/AppearancePanel.tsx" "кабинет: тема аккаунта"
+require "frontend/src/shared/theme/accountAppearance.ts" "токены темы аккаунта"
+require "frontend/src/shared/dnd/abilityScoreCaps.ts" "потолок характеристик PHB 20"
+require "frontend/src/features/characters/WildShapeDialog.tsx" "дикий облик друида"
+require "frontend/src/shared/dnd/jumpDistance.ts" "прыжки на столе"
+require "frontend/src/shared/dnd/wizardSpellbook.ts" "книга волшебника"
+require "frontend/src/features/characters/SpellbookManageDialog.tsx" "UI книги заклинаний"
+require "deploy/preflight-live.sh" "live tip ancestry guard"
+require "deploy/prod-tip" "единый файл tip"
+require "deploy/remote-up.sh" "fast remote-up path"
+require "backend/data/classes/features/wizard_2014.json" "сид умений волшебника"
+require "backend/data/classes/features/druid_2014.json" "сид умений друида"
+require "backend/data/feats/phb2014_feat_catalog_spec.json" "сид черт PHB"
+require "backend/data/races/phb2014_race_catalog_spec.json" "сид рас PHB"
+require "backend/alembic/archive_forms_adapt_versions/README.md" "архив миграций forms-adapt"
+
 # Spot-check: digital sheet must not still say multiclass is backlog-only
 if grep -q 'Мультикласс — в backlog; пока один класс' \
   frontend/src/features/characters/MinimalSheetEditor.tsx 2>/dev/null; then
@@ -78,6 +100,36 @@ else
   echo "ok: multiclass backlog hint absent"
 fi
 
+# UI Kit LOCK — CSS markers (forms-adapt overwrite wiped lobby hub 2026-10-16)
+require_css() {
+  local pattern="$1"
+  local why="$2"
+  if ! grep -qE "$pattern" frontend/src/index.css 2>/dev/null; then
+    echo "MISSING CSS: /$pattern/ in frontend/src/index.css  ($why)" >&2
+    MISSING=1
+  else
+    echo "ok css: $pattern"
+  fi
+}
+
+echo
+echo "=== UI Kit LOCK (index.css markers) ==="
+require_css 'UI KIT LOCK — Lobby Hub' "маркер хвоста A1→D1 — не checkout index.css с другой ветки"
+require_css '\.lobby-member-grid' "сетка состава лобби"
+require_css '\.lobby-hub-tab\.is-active' "активный таб хаба = accent"
+require_css '\.lobby-member-card__hp--ok' "полоска HP на карточке состава"
+require_css '\.session-table-card' "карточки стола сессии"
+require_css '\.journal-feed' "дневник кампании"
+require_css '\.chat-layout' "чаты лобби"
+require_css '\.notes-feed' "заметки лобби"
+require_css '\.setting-wiki' "вики сеттинга"
+require_css '\.setting-artifact-list' "библиотека артефактов D1"
+require_css '\.session-combat-track' "трек боя на сессии"
+
+require "docs/ui-kit/README.md" "UI kit контракт"
+require "frontend/src/features/lobby/LobbyMemberMiniCard.tsx" "карточка состава"
+require "frontend/src/features/lobby/LobbyHubTabs.tsx" "табы хаба лобби"
+
 echo
 if [[ "$MISSING" -ne 0 ]]; then
   cat >&2 <<'EOF'
@@ -86,10 +138,14 @@ PREFLIGHT FAILED.
 Этот tree нельзя заливать на Timeweb: не хватает контуров, которые уже были на проде.
 Деплой затёр бы их (sync-and-up заменяет всё /opt/dvarf кроме .env).
 
+Частый провал после 2026-10-16: checkout/restore frontend/src/index.css с forms-adapt
+без хвоста «UI KIT LOCK — Lobby Hub» — состав лобби снова без сетки/карточек.
+
 Сделай:
   git fetch origin
   git merge origin/<current-prod-tip>   # см. AGENTS.md / .cursor/skills/dvarf-prod-lineage
   # или начни ветку заново от tip
+  # CSS мержить, НЕ git checkout <other> -- frontend/src/index.css
 
 Обход только с явного ok Игоря:
   DVARF_SKIP_PREFLIGHT=1 ./deploy/sync-and-up.sh

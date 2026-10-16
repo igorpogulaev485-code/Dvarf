@@ -1,5 +1,6 @@
 import {
-  FALLBACK_CONDITIONS,
+  clampConditionLevel,
+  resolveConditionName,
   type ConditionRef,
 } from '../../shared/dnd/conditions'
 import {
@@ -7,7 +8,12 @@ import {
   readConcentration,
   type ConcentrationState,
 } from '../../shared/dnd/concentration'
-import { guessResourceAppliesToAllies } from '../../shared/dnd/allyTargets'
+import {
+  primaryHitDie,
+  readHitDicePools,
+  totalHitDiceCurrent,
+  type ClassHitDicePool,
+} from '../../shared/dnd/classHitDice'
 import {
   clampDeathMarks,
   clampHitDiceCurrent,
@@ -22,22 +28,17 @@ import {
 } from '../../shared/dnd/rest'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
-export type PlayEffect = {
-  id: string
-  name: string
-  source_character_id: string | null
-  source_name: string | null
-  linked_concentration: boolean
-}
-
 export type PlayState = {
   conditions: ConditionRef[]
-  effects: PlayEffect[]
   exhaustion: number
   resources: SheetResource[]
   hpTemp: number
+  /** @deprecated Prefer hitDiceByClass; kept as derived summary for sticky header / legacy. */
   hitDie: HitDie | null
+  /** @deprecated Prefer hitDiceByClass totals. */
   hitDiceCurrent: number
+  /** Per-class hit-dice pools (PHB multiclass). */
+  hitDiceByClass: ClassHitDicePool[]
   isDying: boolean
   deathSuccesses: number
   deathFails: number
@@ -47,44 +48,28 @@ export type PlayState = {
 export type { ConcentrationState }
 
 export function createResource(partial?: Partial<SheetResource>): SheetResource {
-  const name = partial?.name ?? ''
   return clampResource({
     id:
       partial?.id ??
       (typeof crypto !== 'undefined' && 'randomUUID' in crypto
         ? crypto.randomUUID()
         : `res-${Date.now()}`),
-    name,
+    name: partial?.name ?? '',
     max: partial?.max ?? 1,
     used: partial?.used ?? 0,
     reset: partial?.reset ?? 'long',
-    applies_to_allies:
-      partial?.applies_to_allies ?? guessResourceAppliesToAllies(name),
+    ...(typeof partial?.onHot === 'boolean' ? { onHot: partial.onHot } : {}),
   })
-}
-
-function readEffect(raw: unknown, index: number): PlayEffect | null {
-  const row = asRecord(raw)
-  const name = typeof row.name === 'string' ? row.name.trim() : ''
-  if (!name) return null
-  return {
-    id: typeof row.id === 'string' && row.id.trim() ? row.id.trim() : `fx-${index}`,
-    name,
-    source_character_id:
-      typeof row.source_character_id === 'string' ? row.source_character_id : null,
-    source_name: typeof row.source_name === 'string' ? row.source_name.trim() || null : null,
-    linked_concentration: Boolean(row.linked_concentration),
-  }
 }
 
 function readCondition(raw: unknown, index: number): ConditionRef | null {
   if (typeof raw === 'string' && raw.trim()) {
     const slug = raw.trim()
-    const fallback = FALLBACK_CONDITIONS.find((item) => item.slug === slug)
     return {
       slug,
-      name: fallback?.name_ru ?? slug,
+      name: resolveConditionName({ slug }),
       catalog_id: null,
+      level: clampConditionLevel(slug, 1),
     }
   }
   const row = asRecord(raw)
@@ -94,14 +79,13 @@ function readCondition(raw: unknown, index: number): ConditionRef | null {
       : typeof row.name === 'string' && row.name.trim()
         ? row.name.trim()
         : `condition-${index}`
-  const name =
-    typeof row.name === 'string' && row.name.trim()
-      ? row.name.trim()
-      : FALLBACK_CONDITIONS.find((item) => item.slug === slug)?.name_ru ?? slug
+  const nameRaw = typeof row.name === 'string' ? row.name : null
+  const levelRaw = readNullableNumber(row.level)
   return {
     slug,
-    name,
+    name: resolveConditionName({ slug, name: nameRaw }),
     catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+    level: clampConditionLevel(slug, levelRaw ?? 1),
   }
 }
 
@@ -112,18 +96,17 @@ function readReset(value: unknown): ResourceReset {
 
 function readResource(raw: unknown, index: number): SheetResource {
   const row = asRecord(raw)
-  const name = typeof row.name === 'string' ? row.name : ''
-  const appliesExplicit = row.applies_to_allies
   return clampResource({
     id: typeof row.id === 'string' ? row.id : `res-${index}`,
-    name,
+    name: typeof row.name === 'string' ? row.name : '',
     max: readNumber(row.max, 1),
     used: readNumber(row.used, 0),
     reset: readReset(row.reset),
-    applies_to_allies:
-      typeof appliesExplicit === 'boolean'
-        ? appliesExplicit
-        : guessResourceAppliesToAllies(name),
+    ...(typeof row.on_hot === 'boolean'
+      ? { onHot: row.on_hot }
+      : typeof row.onHot === 'boolean'
+        ? { onHot: row.onHot }
+        : {}),
   })
 }
 
@@ -133,11 +116,6 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
   const conditions = conditionsRaw
     .map((item, index) => readCondition(item, index))
     .filter((item): item is ConditionRef => item != null)
-
-  const effectsRaw = Array.isArray(combat.effects) ? combat.effects : []
-  const effects = effectsRaw
-    .map((item, index) => readEffect(item, index))
-    .filter((item): item is PlayEffect => item != null)
 
   const resourcesRaw = sheet.resources
   let resources: SheetResource[] = []
@@ -162,18 +140,23 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
 
   const hitDiceMax = Math.max(1, Math.floor(level))
   const hitDiceRaw = readNullableNumber(combat.hp_dice_current)
+  const poolsFromSheet = readHitDicePools(combat.hit_dice_by_class)
+  const legacyDie = isHitDie(combat.hit_die) ? combat.hit_die : null
+  const legacyCurrent = clampHitDiceCurrent(hitDiceRaw ?? hitDiceMax, hitDiceMax)
+  const hitDiceByClass = poolsFromSheet ?? []
+  const derivedCurrent =
+    hitDiceByClass.length > 0 ? totalHitDiceCurrent(hitDiceByClass) : legacyCurrent
+  const derivedDie =
+    hitDiceByClass.length > 0 ? primaryHitDie(hitDiceByClass) : legacyDie
 
   return {
     conditions,
-    effects,
     exhaustion: clampExhaustion(readNumber(combat.exhaustion, 0)),
     resources,
     hpTemp: Math.max(0, Math.floor(readNumber(combat.hp_temp, 0))),
-    hitDie: isHitDie(combat.hit_die) ? combat.hit_die : null,
-    hitDiceCurrent: clampHitDiceCurrent(
-      hitDiceRaw ?? hitDiceMax,
-      hitDiceMax,
-    ),
+    hitDie: derivedDie,
+    hitDiceCurrent: derivedCurrent,
+    hitDiceByClass,
     isDying: Boolean(combat.is_dying),
     deathSuccesses: clampDeathMarks(readNumber(combat.death_successes, 0)),
     deathFails: clampDeathMarks(readNumber(combat.death_fails, 0)),
@@ -184,11 +167,11 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
 export function playToSheet(play: PlayState): {
   combatPatch: {
     conditions: ConditionRef[]
-    effects: PlayEffect[]
     exhaustion: number
     hp_temp: number
     hit_die: HitDie | null
     hp_dice_current: number
+    hit_dice_by_class: ClassHitDicePool[]
     is_dying: boolean
     death_successes: number
     death_fails: number
@@ -196,24 +179,23 @@ export function playToSheet(play: PlayState): {
   }
   resources: SheetResource[]
 } {
+  const pools = play.hitDiceByClass ?? []
+  const hitDie = pools.length > 0 ? primaryHitDie(pools) : play.hitDie
+  const hitDiceCurrent =
+    pools.length > 0 ? totalHitDiceCurrent(pools) : Math.max(0, Math.floor(play.hitDiceCurrent))
   return {
     combatPatch: {
       conditions: play.conditions.map((item) => ({
         slug: item.slug,
         name: item.name,
         catalog_id: item.catalog_id,
-      })),
-      effects: play.effects.map((item) => ({
-        id: item.id,
-        name: item.name,
-        source_character_id: item.source_character_id,
-        source_name: item.source_name,
-        linked_concentration: item.linked_concentration,
+        level: item.level ?? null,
       })),
       exhaustion: clampExhaustion(play.exhaustion),
       hp_temp: Math.max(0, Math.floor(play.hpTemp)),
-      hit_die: play.hitDie,
-      hp_dice_current: Math.max(0, Math.floor(play.hitDiceCurrent)),
+      hit_die: hitDie,
+      hp_dice_current: hitDiceCurrent,
+      hit_dice_by_class: pools,
       is_dying: play.isDying,
       death_successes: clampDeathMarks(play.deathSuccesses),
       death_fails: clampDeathMarks(play.deathFails),
@@ -225,6 +207,30 @@ export function playToSheet(play: PlayState): {
         : clearConcentration(),
     },
     resources: play.resources.map((item) => clampResource(item)),
+  }
+}
+
+export function withSyncedHitDiceSummary(play: PlayState): PlayState {
+  const pools = play.hitDiceByClass ?? []
+  if (pools.length === 0) return play
+  return {
+    ...play,
+    hitDie: primaryHitDie(pools),
+    hitDiceCurrent: totalHitDiceCurrent(pools),
+    hitDiceByClass: pools,
+  }
+}
+
+export function emptyHitDiceTotals(level: number): {
+  hitDie: HitDie | null
+  hitDiceCurrent: number
+  hitDiceByClass: ClassHitDicePool[]
+} {
+  const max = Math.max(0, Math.floor(level))
+  return {
+    hitDie: null,
+    hitDiceCurrent: max,
+    hitDiceByClass: [],
   }
 }
 

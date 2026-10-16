@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, File, Response, UploadFile
 
 from app.api.deps import CurrentUser, DbSession
 from app.schemas.character import (
@@ -47,6 +47,31 @@ def update_character(
     db: DbSession,
 ) -> CharacterDetail:
     return CharacterService(db).update(current_user, character_id, payload)
+
+
+@router.post("/{character_id}/avatar", response_model=CharacterDetail)
+async def upload_character_avatar(
+    character_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+    file: UploadFile = File(...),
+) -> CharacterDetail:
+    data = await file.read()
+    return CharacterService(db).upload_avatar(
+        current_user,
+        character_id,
+        data,
+        file.content_type,
+    )
+
+
+@router.delete("/{character_id}/avatar", response_model=CharacterDetail)
+def delete_character_avatar(
+    character_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> CharacterDetail:
+    return CharacterService(db).delete_avatar(current_user, character_id)
 
 
 @router.delete("/{character_id}", status_code=204)

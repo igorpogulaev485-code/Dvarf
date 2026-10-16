@@ -54,9 +54,124 @@ export type SettingPageLink = {
   created_at: string
 }
 
+export type ArtifactAbilityKind =
+  | 'passive'
+  | 'resource'
+  | 'action'
+  | 'trait'
+  | 'spell_slot'
+  | 'spell'
+  | 'companion'
+  | 'resistance'
+  | 'weapon'
+  | 'requirement'
+  | 'mode'
+  | 'skill'
+  | 'tool'
+  | 'condition_immunity'
+export type ArtifactBonusTarget =
+  | 'attack'
+  | 'damage'
+  | 'ac'
+  | 'save'
+  | 'ability'
+  | 'speed'
+  | 'darkvision'
+export type ArtifactActionCost = 'action' | 'bonus' | 'reaction' | 'free' | 'special'
+export type ArtifactResourceReset = 'short' | 'long' | 'manual' | 'dawn'
+export type ArtifactResistMode = 'resistance' | 'immunity' | 'vulnerability'
+
+export type ArtifactAbility = {
+  id?: string
+  kind: ArtifactAbilityKind
+  name: string
+  text?: string
+  bonus_target?: ArtifactBonusTarget | null
+  bonus_value?: number | null
+  ability_key?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null
+  charges?: number | null
+  reset?: ArtifactResourceReset | null
+  action_cost?: ArtifactActionCost | null
+  slot_level?: number | null
+  slot_count?: number | null
+  pact_level?: number | null
+  spell_name?: string | null
+  spell_level?: number | null
+  catalog_id?: string | null
+  prepared?: boolean | null
+  casting_time?: string | null
+  range?: string | null
+  attack_or_save?: string | null
+  damage?: string | null
+  concentration?: boolean | null
+  companion_name?: string | null
+  hp_max?: number | null
+  ac?: number | null
+  companion_type?: string | null
+  damage_type?: string | null
+  resist_mode?: ArtifactResistMode | null
+  attack_damage?: string | null
+  attack_damage_type?: string | null
+  attack_ability?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null
+  attack_range_kind?: 'melee' | 'ranged' | 'reach' | 'thrown' | null
+  ranged?: boolean | null
+  magic_bonus?: number | null
+  ability?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null
+  range_kind?: 'melee' | 'ranged' | 'reach' | 'thrown' | null
+  min_score?: number | null
+  duration?: string | null
+  duration_rounds?: number | null
+  active_damage?: string | null
+  active_damage_type?: string | null
+  advantage?: boolean | null
+  max_score?: number | null
+  skill_key?: string | null
+  tool_name?: string | null
+  condition_slug?: string | null
+  condition_name?: string | null
+  attack_bonus?: number | null
+}
+
+export type SettingArtifact = {
+  id: string
+  setting_id: string
+  name: string
+  rarity: string
+  description: string
+  requires_attunement: boolean
+  abilities: ArtifactAbility[]
+  attack_damage: string
+  attack_damage_type: string
+  attack_ability: string
+  attack_range_kind: string
+  weight_lb: number | null
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export type SettingArtifactCreatePayload = {
+  name?: string
+  rarity?: string
+  description?: string
+  requires_attunement?: boolean
+  abilities?: ArtifactAbility[]
+  attack_damage?: string
+  attack_damage_type?: string
+  attack_ability?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
+  attack_range_kind?: 'melee' | 'ranged' | 'reach' | 'thrown'
+  weight_lb?: number | null
+  sort_order?: number
+}
+
+export type SettingArtifactUpdatePayload = SettingArtifactCreatePayload & {
+  clear_weight?: boolean
+}
+
 export type SettingDetail = SettingSummary & {
   pages: SettingPage[]
   links: SettingPageLink[]
+  artifacts?: SettingArtifact[]
   is_owner: boolean
 }
 
@@ -127,6 +242,13 @@ export type SeatCompanion = {
   hp_max: number | null
   ac: number | null
   conditions: SeatCondition[]
+  type?: string | null
+  duration?: string | null
+  duration_rounds?: number | null
+  attack_bonus?: number | null
+  attack_damage?: string | null
+  attack_damage_type?: string | null
+  attack_range_kind?: string | null
 }
 
 export type SeatConcentration = {
@@ -326,6 +448,7 @@ export async function joinLobby(code: string, characterId: string): Promise<Lobb
   })
 }
 
+/** @deprecated Состав только через joinLobby(code). Эндпоинт отвечает 400. */
 export async function addLobbyMember(lobbyId: string, characterId: string): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/members`, {
     method: 'POST',
@@ -434,6 +557,32 @@ export async function createSettingPageLink(
 
 export async function deleteSettingPageLink(linkId: string): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/page-links/${linkId}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function createSettingArtifact(
+  settingId: string,
+  payload: SettingArtifactCreatePayload,
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${settingId}/artifacts`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateSettingArtifact(
+  artifactId: string,
+  payload: SettingArtifactUpdatePayload,
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/artifacts/${artifactId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteSettingArtifact(artifactId: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/artifacts/${artifactId}`, {
     method: 'DELETE',
   })
 }
@@ -675,7 +824,12 @@ export async function awardSessionLoot(
   payload: {
     grants: Array<{
       character_id: string
-      item?: { name: string; qty: number; notes?: string | null }
+      item?: {
+        name?: string
+        qty: number
+        notes?: string | null
+        artifact_id?: string | null
+      }
       coins?: {
         cp?: number
         sp?: number

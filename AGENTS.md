@@ -21,7 +21,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/setting-c4-embeds-bacd` |
+| Prod tip (сейчас) | `cursor/setting-artifacts-d1-bacd` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
@@ -46,16 +46,21 @@
 
 ```bash
 ./deploy/preflight-prod.sh
+./deploy/preflight-live.sh   # tip на VPS — ancestor of HEAD; alembic revision есть в дереве
 ```
 
-Скрипт падает, если нет обязательных файлов текущего прода (lobby + cabinet + avatar + sheet P1–P6 + classic).  
-`sync-and-up.sh` вызывает preflight сам. Обход только так: `DVARF_SKIP_PREFLIGHT=1` — и только с явного ok Игоря.
+`preflight-prod` падает, если нет обязательных файлов текущего прода (lobby + cabinet + avatar + sheet + forms-adapt маркеры + classic + бой/вики).  
+`preflight-live` читает tip/alembic **с сервера** и ловит orphan-ветки / missing migration files.  
+`sync-and-up.sh` вызывает оба. Обход: `DVARF_SKIP_PREFLIGHT=1` и/или `DVARF_SKIP_LIVE_PREFLIGHT=1` — только с явного ok Игоря.
+
+Единый файл tip: `deploy/prod-tip` (сейчас = ветка в таблице выше).
 
 Дополнительно глазами:
 
 - [ ] Ветка содержит merge/rebase **prod tip**, не параллельную «пустую» развилку от старого Phase A
 - [ ] `PRODUCT_STATUS.md` актуален; не пишешь «на проде: да» заранее
 - [ ] Нет удаления чужих роутов/панелей «потому что мне не нужны»
+- [ ] Сиды `backend/data/` (классы/фиты/расы) на месте — иначе свежая БД не воспроизведёт каталог
 
 ---
 
@@ -95,3 +100,20 @@ Skill: [`.cursor/skills/dvarf-dev-workflow/SKILL.md`](.cursor/skills/dvarf-dev-w
 ## 7. Секреты
 
 Не коммитить `.env`. Cloud Agent: secret `DVARF_SSH_PRIVATE_KEY` = полный OpenSSH PEM (`BEGIN`…`END`).
+
+---
+
+## 8. UI Kit LOCK — нельзя ломать визуал прода
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) + skill [`dvarf-ui-kit`](.cursor/skills/dvarf-ui-kit/SKILL.md).
+
+**Жёстко запрещено** без явного ok Игоря:
+
+1. Заменять / «откатывать» `frontend/src/index.css` целиком с другой ветки (forms-adapt, orphan kit, «чистый» CSS).
+2. Удалять блок с маркером `UI KIT LOCK — Lobby Hub` (хаб лобби A1, стол сессии, дневник/чаты/заметки, вики, артефакты).
+3. Менять LOCK-паттерны Wave A стола (шапка, спеллы, атаки, hot-bar, identity, companions…) вразрез с §2b–2l.
+4. Деплоить дерево, где preflight не находит CSS-маркеры лобби/вики (см. `deploy/preflight-prod.sh`).
+
+Если нужен CSS с другой ветки — **мержить классы**, не checkout файла. После любого restyle `index.css`:  
+`rg 'lobby-member-grid|lobby-hub-tab\.is-active|setting-wiki|UI KIT LOCK — Lobby Hub' frontend/src/index.css`  
+должно быть зелёным, иначе визуал лобби снова «поедет».

@@ -33,6 +33,13 @@ class User(Base):
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    # Cabinet Wave B — docs/ui-kit §2n (wis = Листва default; identity = unique abil colors)
+    theme_id: Mapped[str] = mapped_column(String(16), nullable=False, default="wis")
+    ability_colors: Mapped[str] = mapped_column(
+        String(16),
+        nullable=False,
+        default="identity",
+    )
     email_verified_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,

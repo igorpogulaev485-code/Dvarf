@@ -1,0 +1,3719 @@
+{
+  "version": 1,
+  "notes": "W6 polish: iconic DMG leftovers (staves/wands/robes/ioun/potions/utility) — RU, wear_slot, effects MVP. No wipe.",
+  "inserts": [
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "508038ab-4df7-5848-b8f1-14690904fcec",
+      "slug": "bag_of_tricks_gray",
+      "name_ru": "Мешок трюков (серый)",
+      "name_en": "Bag of Tricks (Gray)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9400,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Бонусным действием вытащить зверушку (серая таблица).",
+        "effects": [
+          {
+            "type": "companion",
+            "id": "bag_tricks_gray",
+            "name_ru": "Зверушка из мешка"
+          },
+          {
+            "type": "custom_note",
+            "text": "До 3 зверушек/день из серой таблицы; исчезают на рассвете."
+          }
+        ],
+        "family_slug": "bag_of_tricks",
+        "family_label_ru": "Мешок трюков",
+        "variant_label_ru": "Серый"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b70d97f0-e5cb-54d2-b596-4df943fb94bf",
+      "slug": "bag_of_tricks_rust",
+      "name_ru": "Мешок трюков (рыжий)",
+      "name_en": "Bag of Tricks (Rust)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9401,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Бонусным действием вытащить зверушку (рыжая таблица).",
+        "effects": [
+          {
+            "type": "companion",
+            "id": "bag_tricks_rust",
+            "name_ru": "Зверушка из мешка"
+          },
+          {
+            "type": "custom_note",
+            "text": "До 3 зверушек/день из рыжей таблицы."
+          }
+        ],
+        "family_slug": "bag_of_tricks",
+        "family_label_ru": "Мешок трюков",
+        "variant_label_ru": "Рыжий"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "5de1c7e5-2ee5-5721-8519-b733c64dc49a",
+      "slug": "bag_of_tricks_tan",
+      "name_ru": "Мешок трюков (палевый)",
+      "name_en": "Bag of Tricks (Tan)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9402,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Бонусным действием вытащить зверушку (палевая таблица).",
+        "effects": [
+          {
+            "type": "companion",
+            "id": "bag_tricks_tan",
+            "name_ru": "Зверушка из мешка"
+          },
+          {
+            "type": "custom_note",
+            "text": "До 3 зверушек/день из палевой таблицы."
+          }
+        ],
+        "family_slug": "bag_of_tricks",
+        "family_label_ru": "Мешок трюков",
+        "variant_label_ru": "Палевый"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "09d590a8-0ba3-5b94-a84c-061bca702db2",
+      "slug": "bead_of_force",
+      "name_ru": "Бусина силы",
+      "name_en": "Bead of Force",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9403,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Бросок на 60 футов: 5d4 силового + сфера на 1 мин.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Одноразовая; Сл 15 Лов или 5d4 сила + сфера 10 фт."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "aecc23d1-6d6c-551a-bbc0-f9bb64dd3e31",
+      "slug": "broom_of_flying",
+      "name_ru": "Метла полёта",
+      "name_en": "Broom of Flying",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9404,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Летать на метле (скорость 50 фт., один наездник).",
+        "effects": [
+          {
+            "type": "speed",
+            "mode": "fly",
+            "value": 50
+          },
+          {
+            "type": "custom_note",
+            "text": "Слово команды призывает/отправляет метлу."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e5d803d7-bddb-5e84-a91a-2533b4f08616",
+      "slug": "cape_of_the_mountebank",
+      "name_ru": "Плащ шарлатана",
+      "name_en": "Cape of the Mountebank",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9405,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "cloak",
+        "description_ru": "1/день — dimension door (дым).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "mountebank_cape",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "dimension_door",
+            "uses": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d2ed4692-3290-5319-a571-667dfb6fc1b6",
+      "slug": "carpet_of_flying_3x5",
+      "name_ru": "Ковёр-самолёт 3×5",
+      "name_en": "Carpet of Flying (3 ft. × 5 ft.)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9406,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 10,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Летающий ковёр 3×5 фт., скорость 80.",
+        "effects": [
+          {
+            "type": "speed",
+            "mode": "fly",
+            "value": 80
+          },
+          {
+            "type": "custom_note",
+            "text": "Груз до 200 фнт.; слово команды."
+          }
+        ],
+        "family_slug": "carpet_of_flying",
+        "family_label_ru": "Ковёр-самолёт",
+        "variant_label_ru": "3×5 (80 фт.)"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d50cd61e-893d-538c-90c5-48f4b39b4266",
+      "slug": "carpet_of_flying_4x6",
+      "name_ru": "Ковёр-самолёт 4×6",
+      "name_en": "Carpet of Flying (4 ft. × 6 ft.)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9407,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 15,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Летающий ковёр 4×6 фт., скорость 60.",
+        "effects": [
+          {
+            "type": "speed",
+            "mode": "fly",
+            "value": 60
+          },
+          {
+            "type": "custom_note",
+            "text": "Груз до 400 фнт."
+          }
+        ],
+        "family_slug": "carpet_of_flying",
+        "family_label_ru": "Ковёр-самолёт",
+        "variant_label_ru": "4×6 (60 фт.)"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "5a4ae194-8138-5212-a0aa-0b92a8919486",
+      "slug": "carpet_of_flying_5x7",
+      "name_ru": "Ковёр-самолёт 5×7",
+      "name_en": "Carpet of Flying (5 ft. × 7 ft.)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9408,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 20,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Летающий ковёр 5×7 фт., скорость 40.",
+        "effects": [
+          {
+            "type": "speed",
+            "mode": "fly",
+            "value": 40
+          },
+          {
+            "type": "custom_note",
+            "text": "Груз до 600 фнт."
+          }
+        ],
+        "family_slug": "carpet_of_flying",
+        "family_label_ru": "Ковёр-самолёт",
+        "variant_label_ru": "5×7 (40 фт.)"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "39647a60-8c93-56d8-83c5-8f603577574a",
+      "slug": "carpet_of_flying_6x9",
+      "name_ru": "Ковёр-самолёт 6×9",
+      "name_en": "Carpet of Flying (6 ft. × 9 ft.)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9409,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 25,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Летающий ковёр 6×9 фт., скорость 30.",
+        "effects": [
+          {
+            "type": "speed",
+            "mode": "fly",
+            "value": 30
+          },
+          {
+            "type": "custom_note",
+            "text": "Груз до 800 фнт."
+          }
+        ],
+        "family_slug": "carpet_of_flying",
+        "family_label_ru": "Ковёр-самолёт",
+        "variant_label_ru": "6×9 (30 фт.)"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "4283bca1-aeab-59bc-8d31-fcb5321af4d8",
+      "slug": "chime_of_opening",
+      "name_ru": "Колокольчик открытия",
+      "name_en": "Chime of Opening",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9410,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "10 зарядов: действие — открыть замок/дверь в 120 фт.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "chime_open",
+            "max": 10,
+            "restore": "never"
+          },
+          {
+            "type": "custom_note",
+            "text": "10 зарядов всего; потом рассыпается."
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "never"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "edaa663d-095a-50cb-81d4-df10c29f2486",
+      "slug": "cube_of_force",
+      "name_ru": "Куб силы",
+      "name_en": "Cube of Force",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9411,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "36 зарядов: стены силы (грани куба).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "cube_force",
+            "max": 36,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Грани 1–6 тратят заряды; рассвет 1d20 зарядов."
+          }
+        ],
+        "charges": {
+          "max": 36,
+          "restore": "dawn",
+          "recharge_dice": "1d20"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "1952b96e-2d76-51aa-b365-eb78d549ffe1",
+      "slug": "decanter_of_endless_water",
+      "name_ru": "Графин бесконечной воды",
+      "name_en": "Decanter of Endless Water",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9412,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Струя / фонтан / гейзер по команде.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Stream / fountain / geyser; geyser — 30 фт. линия, Сл 13 Сил."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "3b7cafc4-3f33-55aa-b31b-cb9f54581bd7",
+      "slug": "dimensional_shackles",
+      "name_ru": "Пространственные оковы",
+      "name_en": "Dimensional Shackles",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9413,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Сковывают гуманоида; блокируют телепортацию/планы.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Сл 30 Сил вырваться; слово команды открывает."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "725053fc-bb61-594e-8e8d-d3cded37eb62",
+      "slug": "efficient_quiver",
+      "name_ru": "Эффективный колчан",
+      "name_en": "Efficient Quiver",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9414,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "container",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Отделы: 60 стрел, 18 дротиков, 6 копий/посохов.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Карманное пространство под снаряды/древковое."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d12201cb-fa20-51a3-823f-6a768ca57357",
+      "slug": "elemental_gem_air",
+      "name_ru": "Самоцвет элементаля (воздуха)",
+      "name_en": "Elemental Gem (Air)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9415,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Разбить — призвать элементаля воздуха.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "conjure_elemental",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Одноразовый; elemental (air)."
+          }
+        ],
+        "family_slug": "elemental_gem",
+        "family_label_ru": "Самоцвет элементаля",
+        "variant_label_ru": "Воздуха"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d0f93608-8625-5041-861b-b48990480997",
+      "slug": "elemental_gem_earth",
+      "name_ru": "Самоцвет элементаля (земли)",
+      "name_en": "Elemental Gem (Earth)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9416,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Разбить — призвать элементаля земли.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "conjure_elemental",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Одноразовый; elemental (earth)."
+          }
+        ],
+        "family_slug": "elemental_gem",
+        "family_label_ru": "Самоцвет элементаля",
+        "variant_label_ru": "Земли"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "dd55fc09-7c5d-5be0-93b7-7cea493ad76c",
+      "slug": "elemental_gem_fire",
+      "name_ru": "Самоцвет элементаля (огня)",
+      "name_en": "Elemental Gem (Fire)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9417,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Разбить — призвать элементаля огня.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "conjure_elemental",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Одноразовый; elemental (fire)."
+          }
+        ],
+        "family_slug": "elemental_gem",
+        "family_label_ru": "Самоцвет элементаля",
+        "variant_label_ru": "Огня"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "9536d495-29a2-5c43-9326-4975350920c3",
+      "slug": "elemental_gem_water",
+      "name_ru": "Самоцвет элементаля (воды)",
+      "name_en": "Elemental Gem (Water)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9418,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Разбить — призвать элементаля воды.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "conjure_elemental",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Одноразовый; elemental (water)."
+          }
+        ],
+        "family_slug": "elemental_gem",
+        "family_label_ru": "Самоцвет элементаля",
+        "variant_label_ru": "Воды"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "c27feffe-8ba0-55a3-b423-3433e4f8fff1",
+      "slug": "eversmoking_bottle",
+      "name_ru": "Вечнодымящаяся бутылка",
+      "name_en": "Eversmoking Bottle",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9419,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Открыть — густой дым 60 фт.; команда закрывает.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Дым 60 фт.; ветер разгоняет за 1+ мин."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "5ccb238d-2812-5e1e-b75a-1940e83f8d39",
+      "slug": "eyes_of_charming",
+      "name_ru": "Глаза очарования",
+      "name_en": "Eyes of Charming",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9420,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "eyes",
+        "description_ru": "3 заряда charm person (Сл 13).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "eyes_charm",
+            "max": 3,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "charm_person",
+            "uses": 3
+          }
+        ],
+        "charges": {
+          "max": 3,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d55f7799-bc66-5b87-ae24-9d57e20b7bb7",
+      "slug": "folding_boat",
+      "name_ru": "Складная лодка",
+      "name_en": "Folding Boat",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9421,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Коробка → шлюпка / корабль по команде.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "3 формы: ящик / лодка / корабль; слово команды."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "13c88eb8-8ea1-5c52-bc43-c44d4a862934",
+      "slug": "hat_of_disguise",
+      "name_ru": "Шляпа маскировки",
+      "name_en": "Hat of Disguise",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9422,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "head",
+        "description_ru": "По желанию — disguise self.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "disguise_self",
+            "uses": 0
+          },
+          {
+            "type": "custom_note",
+            "text": "Пока надет — неограниченный disguise self."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "4ea6e692-4acf-5b36-8a2f-2bd419b19611",
+      "slug": "helm_of_brilliance",
+      "name_ru": "Шлем сияния",
+      "name_en": "Helm of Brilliance",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9423,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 3,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "head",
+        "description_ru": "Самоцветы: огонь, дневной свет, wall of fire и др.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "helm_brilliance_gems",
+            "max": 60,
+            "restore": "never"
+          },
+          {
+            "type": "custom_note",
+            "text": "Самоцветы на шлеме — разовые заклинания; огненная защита."
+          }
+        ],
+        "charges": {
+          "max": 60,
+          "restore": "never"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "3af683ab-c7e1-5541-a618-b72b11bec2aa",
+      "slug": "helm_of_telepathy",
+      "name_ru": "Шлем телепатии",
+      "name_en": "Helm of Telepathy",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9424,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "head",
+        "description_ru": "detect thoughts; suggestion 1/день (Сл 13).",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "detect_thoughts",
+            "uses": 0
+          },
+          {
+            "type": "resource",
+            "id": "helm_suggest",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "suggestion",
+            "uses": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "a37cdafc-f2f6-5e46-912b-0aa12f4ac0c4",
+      "slug": "horn_of_blasting",
+      "name_ru": "Рог взрыва",
+      "name_en": "Horn of Blasting",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9425,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Конус грома 30 фт.; 5d6 гром (Сл 15). Риск раскола.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Действие: конус 30 фт., 5d6 гром Сл 15; 20% шанс треснуть."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "7eabd73f-55f9-51ea-9f4b-e5c32c681d8e",
+      "slug": "horn_of_valhalla_silver",
+      "name_ru": "Рог Валгаллы (серебряный)",
+      "name_en": "Horn of Valhalla (Silver)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9426,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "1/день призвать 2d4+2 берсерка на 1 час.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "horn_valhalla_silver",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "companion",
+            "id": "valhalla_silver",
+            "name_ru": "Берсерки Валгаллы"
+          },
+          {
+            "type": "custom_note",
+            "text": "2d4+2 берсерка; нужна владение всеми воинскими оружиями (кроме silver — средним)."
+          }
+        ],
+        "family_slug": "horn_of_valhalla",
+        "family_label_ru": "Рог Валгаллы",
+        "variant_label_ru": "Серебряный"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "38456dcc-12a1-5ce2-864d-b5bb275418fc",
+      "slug": "horn_of_valhalla_brass",
+      "name_ru": "Рог Валгаллы (латунный)",
+      "name_en": "Horn of Valhalla (Brass)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9427,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "1/день призвать 3d4+3 берсерка на 1 час.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "horn_valhalla_brass",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "companion",
+            "id": "valhalla_brass",
+            "name_ru": "Берсерки Валгаллы"
+          },
+          {
+            "type": "custom_note",
+            "text": "3d4+3 берсерка; нужна владение всеми воинскими оружиями (кроме silver — средним)."
+          }
+        ],
+        "family_slug": "horn_of_valhalla",
+        "family_label_ru": "Рог Валгаллы",
+        "variant_label_ru": "Латунный"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "4790fccc-8464-5458-a428-49afa386e4f9",
+      "slug": "horn_of_valhalla_bronze",
+      "name_ru": "Рог Валгаллы (бронзовый)",
+      "name_en": "Horn of Valhalla (Bronze)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9428,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "1/день призвать 4d4+4 берсерка на 1 час.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "horn_valhalla_bronze",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "companion",
+            "id": "valhalla_bronze",
+            "name_ru": "Берсерки Валгаллы"
+          },
+          {
+            "type": "custom_note",
+            "text": "4d4+4 берсерка; нужна владение всеми воинскими оружиями (кроме silver — средним)."
+          }
+        ],
+        "family_slug": "horn_of_valhalla",
+        "family_label_ru": "Рог Валгаллы",
+        "variant_label_ru": "Бронзовый"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "8a3dc8f6-df86-5480-9458-f38b3dfb9631",
+      "slug": "horn_of_valhalla_iron",
+      "name_ru": "Рог Валгаллы (железный)",
+      "name_en": "Horn of Valhalla (Iron)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9429,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "1/день призвать 5d4+5 берсерка на 1 час.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "horn_valhalla_iron",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "companion",
+            "id": "valhalla_iron",
+            "name_ru": "Берсерки Валгаллы"
+          },
+          {
+            "type": "custom_note",
+            "text": "5d4+5 берсерка; нужна владение всеми воинскими оружиями (кроме silver — средним)."
+          }
+        ],
+        "family_slug": "horn_of_valhalla",
+        "family_label_ru": "Рог Валгаллы",
+        "variant_label_ru": "Железный"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "c4ca75e3-5689-51f2-bd84-e055d577c1f0",
+      "slug": "instant_fortress",
+      "name_ru": "Мгновенная крепость",
+      "name_en": "Instant Fortress",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9430,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.1,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Кубик → адамантиновая башня 20×20×30.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Действие: крепость; Сл 15 Лов урон 10d10; слово сворачивает."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "ba81e97b-67c6-5eda-8cd8-464693bf7175",
+      "slug": "ioun_stone_awareness",
+      "name_ru": "Камень Иоун (осознания)",
+      "name_en": "Ioun Stone (Awareness)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9431,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "+восприятие; не застать врасплох",
+        "effects": [
+          {
+            "type": "skill_bonus",
+            "skill": "perception",
+            "value": 0
+          },
+          {
+            "type": "custom_note",
+            "text": "Нельзя застать врасплох; +бонус к восприятию по DMG."
+          }
+        ],
+        "family_slug": "ioun_stone",
+        "family_label_ru": "Камень Иоун",
+        "variant_label_ru": "Осознания"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e75c26da-e18b-54e6-a5d8-feba6a5ce6c3",
+      "slug": "ioun_stone_fortitude",
+      "name_ru": "Камень Иоун (стойкости)",
+      "name_en": "Ioun Stone (Fortitude)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9432,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "ТЕЛ 19 (если ниже)",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "con",
+            "value": 19
+          },
+          {
+            "type": "custom_note",
+            "text": "ТЕЛ становится 19, если было ниже."
+          }
+        ],
+        "family_slug": "ioun_stone",
+        "family_label_ru": "Камень Иоун",
+        "variant_label_ru": "Стойкости"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "0d2fe8d7-89ea-5442-8bd2-73622b2646bf",
+      "slug": "ioun_stone_insight",
+      "name_ru": "Камень Иоун (прозрения)",
+      "name_en": "Ioun Stone (Insight)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9433,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "МДР 19 (если ниже)",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "wis",
+            "value": 19
+          }
+        ],
+        "family_slug": "ioun_stone",
+        "family_label_ru": "Камень Иоун",
+        "variant_label_ru": "Прозрения"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "a2a3ba23-ddb7-52c9-b021-0d83f4729389",
+      "slug": "ioun_stone_intellect",
+      "name_ru": "Камень Иоун (интеллекта)",
+      "name_en": "Ioun Stone (Intellect)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9434,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "ИНТ 19 (если ниже)",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "int",
+            "value": 19
+          }
+        ],
+        "family_slug": "ioun_stone",
+        "family_label_ru": "Камень Иоун",
+        "variant_label_ru": "Интеллекта"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "411494c1-4d8a-5981-9a5f-ebff53698991",
+      "slug": "ioun_stone_leadership",
+      "name_ru": "Камень Иоун (лидерства)",
+      "name_en": "Ioun Stone (Leadership)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9435,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "ХАР 19 (если ниже)",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "cha",
+            "value": 19
+          }
+        ],
+        "family_slug": "ioun_stone",
+        "family_label_ru": "Камень Иоун",
+        "variant_label_ru": "Лидерства"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b4127b9d-865a-52a2-9272-fb11e4cecbf6",
+      "slug": "ioun_stone_mastery",
+      "name_ru": "Камень Иоун (мастерства)",
+      "name_en": "Ioun Stone (Mastery)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9436,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "+1 к бонусу мастерства",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+1 к бонусу мастерства, пока камень кружит."
+          }
+        ],
+        "family_slug": "ioun_stone",
+        "family_label_ru": "Камень Иоун",
+        "variant_label_ru": "Мастерства"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e85c9094-fb85-5261-8326-b80ac1d42824",
+      "slug": "ioun_stone_protection",
+      "name_ru": "Камень Иоун (защиты)",
+      "name_en": "Ioun Stone (Protection)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9437,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "+1 КД",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 1
+          }
+        ],
+        "family_slug": "ioun_stone",
+        "family_label_ru": "Камень Иоун",
+        "variant_label_ru": "Защиты"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "136351d5-d2e9-5401-b2e5-92c8d4480f31",
+      "slug": "ioun_stone_reserve",
+      "name_ru": "Камень Иоун (запаса)",
+      "name_en": "Ioun Stone (Reserve)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9438,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Хранит до 3 уровней заклинаний",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "До 3 уровней заклинаний; действие — сотворить."
+          }
+        ],
+        "family_slug": "ioun_stone",
+        "family_label_ru": "Камень Иоун",
+        "variant_label_ru": "Запаса"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "6f6c3fdb-83cc-5710-b267-e933e762a719",
+      "slug": "ioun_stone_strength",
+      "name_ru": "Камень Иоун (силы)",
+      "name_en": "Ioun Stone (Strength)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9439,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "СИЛ 19 (если ниже)",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "str",
+            "value": 19
+          }
+        ],
+        "family_slug": "ioun_stone",
+        "family_label_ru": "Камень Иоун",
+        "variant_label_ru": "Силы"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "7e5922c3-3f1d-5b61-bd41-464e51ac2fe3",
+      "slug": "ioun_stone_sustenance",
+      "name_ru": "Камень Иоун (питания)",
+      "name_en": "Ioun Stone (Sustenance)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9440,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Без еды/воды",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Не нужна еда и вода."
+          }
+        ],
+        "family_slug": "ioun_stone",
+        "family_label_ru": "Камень Иоун",
+        "variant_label_ru": "Питания"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "2d6f75b1-86e7-5ae2-9972-629686f1da41",
+      "slug": "lantern_of_revealing",
+      "name_ru": "Фонарь выявления",
+      "name_en": "Lantern of Revealing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9441,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 2,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Яркий свет 30 фт. — невидимые становятся видимыми.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Пока зажжён: невидимые в ярком свете видны."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "9bcc256b-e3dd-5d48-b52d-dedfd32b5bee",
+      "slug": "manual_of_bodily_health",
+      "name_ru": "Учебник телесного здоровья",
+      "name_en": "Manual of Bodily Health",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9442,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "48 ч изучения за 6 дней: +2 CON, макс +2. Потом исчезает на 100 лет.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+2 к CON и максимуму после изучения; одноразовый цикл 100 лет."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "12e4744d-e623-52b2-9995-3f248a6f16a2",
+      "slug": "manual_of_gainful_exercise",
+      "name_ru": "Учебник полезных упражнений",
+      "name_en": "Manual of Gainful Exercise",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9443,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "48 ч изучения за 6 дней: +2 STR, макс +2. Потом исчезает на 100 лет.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+2 к STR и максимуму после изучения; одноразовый цикл 100 лет."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "2c0e6f9a-c859-59d1-9057-53077468f764",
+      "slug": "manual_of_quickness_of_action",
+      "name_ru": "Учебник быстроты действий",
+      "name_en": "Manual of Quickness of Action",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9444,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "48 ч изучения за 6 дней: +2 DEX, макс +2. Потом исчезает на 100 лет.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+2 к DEX и максимуму после изучения; одноразовый цикл 100 лет."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "cb21eca8-5fd1-5cfb-ad7f-da50719e71d6",
+      "slug": "tome_of_clear_thought",
+      "name_ru": "Том ясной мысли",
+      "name_en": "Tome of Clear Thought",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9445,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "48 ч изучения за 6 дней: +2 INT, макс +2. Потом исчезает на 100 лет.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+2 к INT и максимуму после изучения; одноразовый цикл 100 лет."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "c16c7714-da3c-544d-938a-b117b13c1d66",
+      "slug": "tome_of_leadership_and_influence",
+      "name_ru": "Том лидерства и влияния",
+      "name_en": "Tome of Leadership and Influence",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9446,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "48 ч изучения за 6 дней: +2 CHA, макс +2. Потом исчезает на 100 лет.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+2 к CHA и максимуму после изучения; одноразовый цикл 100 лет."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "43d9df00-9c2c-5a30-95b9-8cae1265570a",
+      "slug": "tome_of_understanding",
+      "name_ru": "Том понимания",
+      "name_en": "Tome of Understanding",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9447,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 5,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "48 ч изучения за 6 дней: +2 WIS, макс +2. Потом исчезает на 100 лет.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+2 к WIS и максимуму после изучения; одноразовый цикл 100 лет."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "10974860-a981-551b-ada6-cde16cc209e6",
+      "slug": "mirror_of_life_trapping",
+      "name_ru": "Зеркало пленения жизни",
+      "name_en": "Mirror of Life Trapping",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9448,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 50,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "12 камер; взгляд — Сл 15 Хар или заточение.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Активируется словом; 12 камер существ."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b26bcfe7-9f9a-5346-9a73-e036b8713709",
+      "slug": "necklace_of_fireballs",
+      "name_ru": "Ожерелье огненных шаров",
+      "name_en": "Necklace of Fireballs",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9449,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "neck",
+        "description_ru": "1d6+3 бусин; бросок = fireball (уровень по таблице).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "necklace_fireballs",
+            "max": 7,
+            "restore": "never"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fireball",
+            "uses": 7
+          },
+          {
+            "type": "custom_note",
+            "text": "Бусины одноразовые; уровень заклинания по числу бусин."
+          }
+        ],
+        "charges": {
+          "max": 7,
+          "restore": "never"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "efccbff4-071f-5ab7-a067-d1564628d0c7",
+      "slug": "oil_of_etherealness",
+      "name_ru": "Масло эфирности",
+      "name_en": "Oil of Etherealness",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9450,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Покрыть — etherealness на 1 час.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "etherealness",
+            "uses": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "10 мин наносить; действует 1 час."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "72b502bf-5f01-5417-a26f-d143c05d0dce",
+      "slug": "potion_of_gaseous_form",
+      "name_ru": "Зелье газообразной формы",
+      "name_en": "Potion of Gaseous Form",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9451,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "gaseous form на 1 час (без концентрации).",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "gaseous_form",
+            "uses": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "c5f46d7f-3e79-5ab3-81e4-03f642068e78",
+      "slug": "potion_of_giant_strength_hill",
+      "name_ru": "Зелье силы холмового великана",
+      "name_en": "Potion of Hill Giant Strength",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9452,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "СИЛ 21 на 1 час.",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "str",
+            "value": 21
+          },
+          {
+            "type": "custom_note",
+            "text": "СИЛ 21 на 1 час (не суммируется с выше)."
+          }
+        ],
+        "family_slug": "potion_of_giant_strength",
+        "family_label_ru": "Зелье силы великана",
+        "variant_label_ru": "Холмового (21)"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e2c826d2-15cd-5a32-9cc5-d40be57bac22",
+      "slug": "potion_of_giant_strength_frost",
+      "name_ru": "Зелье силы морозного великана",
+      "name_en": "Potion of Frost Giant Strength",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9453,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "СИЛ 23 на 1 час.",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "str",
+            "value": 23
+          },
+          {
+            "type": "custom_note",
+            "text": "СИЛ 23 на 1 час (не суммируется с выше)."
+          }
+        ],
+        "family_slug": "potion_of_giant_strength",
+        "family_label_ru": "Зелье силы великана",
+        "variant_label_ru": "Морозного (23)"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "9a8f5f40-7751-531a-82a4-e5b37395aa6e",
+      "slug": "potion_of_giant_strength_stone",
+      "name_ru": "Зелье силы каменного великана",
+      "name_en": "Potion of Stone Giant Strength",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9454,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "СИЛ 23 на 1 час.",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "str",
+            "value": 23
+          },
+          {
+            "type": "custom_note",
+            "text": "СИЛ 23 на 1 час (не суммируется с выше)."
+          }
+        ],
+        "family_slug": "potion_of_giant_strength",
+        "family_label_ru": "Зелье силы великана",
+        "variant_label_ru": "Каменного (23)"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "bc66b59d-449e-56a7-b8ee-1e136416c682",
+      "slug": "potion_of_giant_strength_fire",
+      "name_ru": "Зелье силы огненного великана",
+      "name_en": "Potion of Fire Giant Strength",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9455,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "СИЛ 25 на 1 час.",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "str",
+            "value": 25
+          },
+          {
+            "type": "custom_note",
+            "text": "СИЛ 25 на 1 час (не суммируется с выше)."
+          }
+        ],
+        "family_slug": "potion_of_giant_strength",
+        "family_label_ru": "Зелье силы великана",
+        "variant_label_ru": "Огненного (25)"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "ba8f8e71-b31e-5faf-87bf-dee9f8eb1c4d",
+      "slug": "potion_of_giant_strength_cloud",
+      "name_ru": "Зелье силы облачного великана",
+      "name_en": "Potion of Cloud Giant Strength",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9456,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "СИЛ 27 на 1 час.",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "str",
+            "value": 27
+          },
+          {
+            "type": "custom_note",
+            "text": "СИЛ 27 на 1 час (не суммируется с выше)."
+          }
+        ],
+        "family_slug": "potion_of_giant_strength",
+        "family_label_ru": "Зелье силы великана",
+        "variant_label_ru": "Облачного (27)"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "f3847208-75b5-5e99-a21d-53634ee91a74",
+      "slug": "potion_of_giant_strength_storm",
+      "name_ru": "Зелье силы штормового великана",
+      "name_en": "Potion of Storm Giant Strength",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9457,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "СИЛ 29 на 1 час.",
+        "effects": [
+          {
+            "type": "ability_score",
+            "ability": "str",
+            "value": 29
+          },
+          {
+            "type": "custom_note",
+            "text": "СИЛ 29 на 1 час (не суммируется с выше)."
+          }
+        ],
+        "family_slug": "potion_of_giant_strength",
+        "family_label_ru": "Зелье силы великана",
+        "variant_label_ru": "Штормового (29)"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d42bb72e-8a12-5855-8136-9c100c6a86f3",
+      "slug": "potion_of_mind_reading",
+      "name_ru": "Зелье чтения мыслей",
+      "name_en": "Potion of Mind Reading",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9458,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "detect thoughts (Сл 13) на 10 мин.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "detect_thoughts",
+            "uses": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "342c6b84-1786-5585-b10d-4f24c5cc8227",
+      "slug": "ring_of_telekinesis",
+      "name_ru": "Кольцо телекинеза",
+      "name_en": "Ring of Telekinesis",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9459,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "ring",
+        "description_ru": "По желанию — telekinesis.",
+        "effects": [
+          {
+            "type": "grant_spell",
+            "slug": "telekinesis",
+            "uses": 0
+          },
+          {
+            "type": "custom_note",
+            "text": "Неограниченный telekinesis, пока надето."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "1595c6a6-dd47-5ea6-bb60-3a08b7ae282d",
+      "slug": "robe_of_eyes",
+      "name_ru": "Мантия глаз",
+      "name_en": "Robe of Eyes",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9460,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "Видеть во все стороны; тёмное зрение 120; see invisibility.",
+        "effects": [
+          {
+            "type": "sense",
+            "sense": "darkvision",
+            "value": 120
+          },
+          {
+            "type": "custom_note",
+            "text": "Все стороны; see invisibility; уязвимость к light-заклинаниям."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "86c68ef8-0a14-5a8f-b5fc-f85b5ad1a467",
+      "slug": "robe_of_the_archmagi",
+      "name_ru": "Мантия архимага",
+      "name_en": "Robe of the Archmagi",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9461,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "body_armor",
+        "description_ru": "КД 15+ЛОВ; +2 спас/Сл заклинаний; преимущество от заклинаний.",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 0
+          },
+          {
+            "type": "save_bonus",
+            "value": 2
+          },
+          {
+            "type": "custom_note",
+            "text": "КД 15+ЛОВ (вместо брони); +2 к Сл заклинаний; adv vs spells. Только маг/колдун/чародей."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "3134351f-da29-54cf-a20b-668d2b837604",
+      "slug": "rope_of_climbing",
+      "name_ru": "Верёвка лазания",
+      "name_en": "Rope of Climbing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9462,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 3,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "60 фт. верёвка; двигается по команде, закрепляется.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Двигается до 10 фт./раунд; узлы; выдержать 3000 фнт."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d45dd2b6-d230-5ecd-9093-6f7b54f74b14",
+      "slug": "scarab_of_protection",
+      "name_ru": "Скарабей защиты",
+      "name_en": "Scarab of Protection",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9463,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "neck",
+        "description_ru": "+1 спас; 12 зарядов — отменить некро/крит. провал vs некро/изгнание.",
+        "effects": [
+          {
+            "type": "save_bonus",
+            "value": 1
+          },
+          {
+            "type": "resource",
+            "id": "scarab_prot",
+            "max": 12,
+            "restore": "never"
+          },
+          {
+            "type": "custom_note",
+            "text": "12 зарядов против некромантии; потом рассыпается."
+          }
+        ],
+        "charges": {
+          "max": 12,
+          "restore": "never"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "61e664f0-aac4-5398-872a-542485b9d704",
+      "slug": "sending_stones",
+      "name_ru": "Камни послания",
+      "name_en": "Sending Stones",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9464,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Пара камней: 1/день sending друг другу.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "sending_stones",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "sending",
+            "uses": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "01cc5df6-ca4f-538c-962a-bb8eb23bbef1",
+      "slug": "slippers_of_spider_climbing",
+      "name_ru": "Туфли паучьего лазания",
+      "name_en": "Slippers of Spider Climbing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9465,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "feet",
+        "description_ru": "Лазание по стенам/потолку (скорость ходьбы); не по скользкому.",
+        "effects": [
+          {
+            "type": "speed",
+            "mode": "climb",
+            "value": 0
+          },
+          {
+            "type": "custom_note",
+            "text": "Лазание = скорость ходьбы; руки свободны."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "7a6502f0-2a92-59a6-ab35-75c7d78163fe",
+      "slug": "sphere_of_annihilation",
+      "name_ru": "Сфера уничтожения",
+      "name_en": "Sphere of Annihilation",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9466,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Дыра 2 фт.: уничтожает материю; контроль Сл Интеллекта.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Действие: проверить ИНТ (Сл 25) для контроля; касание — уничтожение."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e6ddf98e-c082-52c1-8958-284e714f477f",
+      "slug": "staff_of_fire",
+      "name_ru": "Посох огня",
+      "name_en": "Staff of Fire",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9467,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "burning hands / fireball / wall of fire",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_fire",
+            "max": 10,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fireball",
+            "uses": 10
+          },
+          {
+            "type": "custom_note",
+            "text": "burning hands / fireball / wall of fire"
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        },
+        "is_spell_focus": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "31588c66-5bae-584d-83bf-b26d005dac6a",
+      "slug": "staff_of_frost",
+      "name_ru": "Посох мороза",
+      "name_en": "Staff of Frost",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9468,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "cone of cold / fog cloud / ice storm / wall of ice",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_frost",
+            "max": 10,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "cone_of_cold",
+            "uses": 10
+          },
+          {
+            "type": "custom_note",
+            "text": "cone of cold / fog cloud / ice storm / wall of ice"
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        },
+        "is_spell_focus": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "6dbd4a13-9413-5d0d-97d9-a883c28fd3ea",
+      "slug": "staff_of_healing",
+      "name_ru": "Посох лечения",
+      "name_en": "Staff of Healing",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9469,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "cure wounds / lesser restoration / mass cure wounds",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_healing",
+            "max": 10,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "cure_wounds",
+            "uses": 10
+          },
+          {
+            "type": "custom_note",
+            "text": "cure wounds / lesser restoration / mass cure wounds"
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        },
+        "is_spell_focus": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "36e02216-1073-5041-b147-8072f6373db9",
+      "slug": "staff_of_power",
+      "name_ru": "Посох силы",
+      "name_en": "Staff of Power",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9470,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "+2 атака/Сл/КД; заклинания силы",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2
+          },
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "save_bonus",
+            "value": 2
+          },
+          {
+            "type": "resource",
+            "id": "staff_of_power",
+            "max": 20,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "magic_missile",
+            "uses": 20
+          },
+          {
+            "type": "custom_note",
+            "text": "+2 атака/Сл/КД; заклинания силы"
+          }
+        ],
+        "charges": {
+          "max": 20,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        },
+        "is_spell_focus": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b77133b3-8f6c-5a02-9182-b032ce7f19d5",
+      "slug": "staff_of_striking",
+      "name_ru": "Посох ударов",
+      "name_en": "Staff of Striking",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9471,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "+3 посох; заряды на урон",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_striking",
+            "max": 10,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "+3 посох; заряды на урон"
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        },
+        "is_spell_focus": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "37b0f99c-4d58-559a-b023-93a1f903d74f",
+      "slug": "staff_of_swarming_insects",
+      "name_ru": "Посох роя насекомых",
+      "name_en": "Staff of Swarming Insects",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9472,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "giant insect / insect plague",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_swarming_insects",
+            "max": 10,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "insect_plague",
+            "uses": 10
+          },
+          {
+            "type": "custom_note",
+            "text": "giant insect / insect plague"
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        },
+        "is_spell_focus": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "961c90d3-7d5a-50ad-a00b-a134e8870b7e",
+      "slug": "staff_of_the_magi",
+      "name_ru": "Посох мага",
+      "name_en": "Staff of the Magi",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9473,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Мощный посох мага: поглощение, заклинания, +2",
+        "effects": [
+          {
+            "type": "ac_bonus",
+            "value": 2
+          },
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "save_bonus",
+            "value": 2
+          },
+          {
+            "type": "resource",
+            "id": "staff_of_the_magi",
+            "max": 50,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fireball",
+            "uses": 50
+          },
+          {
+            "type": "custom_note",
+            "text": "Мощный посох мага: поглощение, заклинания, +2"
+          }
+        ],
+        "charges": {
+          "max": 50,
+          "restore": "dawn",
+          "recharge_dice": "1d6+4"
+        },
+        "is_spell_focus": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d6f368e4-9f27-5fe4-ac20-0d4b6713b136",
+      "slug": "staff_of_the_woodlands",
+      "name_ru": "Посох лесов",
+      "name_en": "Staff of the Woodlands",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9474,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "pass without trace / wall of thorns / awaken дерево",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_the_woodlands",
+            "max": 10,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "pass_without_trace",
+            "uses": 10
+          },
+          {
+            "type": "custom_note",
+            "text": "pass without trace / wall of thorns / awaken дерево"
+          }
+        ],
+        "charges": {
+          "max": 10,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        },
+        "is_spell_focus": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "07f68718-7278-5e9a-a278-7c433b1011d2",
+      "slug": "staff_of_thunder_and_lightning",
+      "name_ru": "Посох грома и молнии",
+      "name_en": "Staff of Thunder and Lightning",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9475,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Гром/молния на ударе; конус грома",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Гром/молния на ударе; конус грома"
+          }
+        ],
+        "is_spell_focus": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "d6d50bd3-6e47-5c6a-b06a-f43a46ac8c1a",
+      "slug": "staff_of_withering",
+      "name_ru": "Посох увядания",
+      "name_en": "Staff of Withering",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9476,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "focus",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Некротический урон; истощение",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "staff_of_withering",
+            "max": 3,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Некротический урон; истощение"
+          }
+        ],
+        "charges": {
+          "max": 3,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        },
+        "is_spell_focus": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "20a44dc6-50f1-5fc6-b4fb-d41c3301071c",
+      "slug": "wand_of_fireballs",
+      "name_ru": "Волшебная палочка огненных шаров",
+      "name_en": "Wand of Fireballs",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9477,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "7 зарядов fireball. Рассвет 1d6+1.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_fireball",
+            "max": 7,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fireball",
+            "uses": 7
+          },
+          {
+            "type": "custom_note",
+            "text": "1 заряд = fireball 3 ур.; +1 заряд/уровень."
+          }
+        ],
+        "charges": {
+          "max": 7,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "679fbafd-70c4-59a6-9a98-927b0fa3c434",
+      "slug": "wand_of_lightning_bolts",
+      "name_ru": "Волшебная палочка молний",
+      "name_en": "Wand of Lightning Bolts",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9478,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "7 зарядов lightning bolt. Рассвет 1d6+1.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_lightning",
+            "max": 7,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "lightning_bolt",
+            "uses": 7
+          }
+        ],
+        "charges": {
+          "max": 7,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "1be2a86a-85f3-5d9f-ae5f-46fb85454d1d",
+      "slug": "wand_of_binding",
+      "name_ru": "Волшебная палочка связывания",
+      "name_en": "Wand of Binding",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9479,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "7 зарядов (связывания).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_binding",
+            "max": 7,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "hold_person",
+            "uses": 7
+          },
+          {
+            "type": "custom_note",
+            "text": "7 зарядов; рассвет 1d6+1. связывания."
+          }
+        ],
+        "charges": {
+          "max": 7,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "dda0c534-fa50-5387-9362-25f51057f1c6",
+      "slug": "wand_of_enemy_detection",
+      "name_ru": "Волшебная палочка обнаружения врагов",
+      "name_en": "Wand of Enemy Detection",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9480,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "7 зарядов (обнаружения врагов).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_enemy_detection",
+            "max": 7,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "7 зарядов; рассвет 1d6+1. обнаружения врагов."
+          }
+        ],
+        "charges": {
+          "max": 7,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "871a8412-cb80-5035-89f0-292db36cc489",
+      "slug": "wand_of_fear",
+      "name_ru": "Волшебная палочка страха",
+      "name_en": "Wand of Fear",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9481,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "7 зарядов (страха).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_fear",
+            "max": 7,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "fear",
+            "uses": 7
+          },
+          {
+            "type": "custom_note",
+            "text": "7 зарядов; рассвет 1d6+1. страха."
+          }
+        ],
+        "charges": {
+          "max": 7,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "48842481-a7e7-531f-a80c-394a4f7888ae",
+      "slug": "wand_of_paralysis",
+      "name_ru": "Волшебная палочка паралича",
+      "name_en": "Wand of Paralysis",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9482,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "7 зарядов (паралича).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_paralysis",
+            "max": 7,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "hold_person",
+            "uses": 7
+          },
+          {
+            "type": "custom_note",
+            "text": "7 зарядов; рассвет 1d6+1. паралича."
+          }
+        ],
+        "charges": {
+          "max": 7,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "5094990d-e946-5b71-a216-49a2f18ccd0b",
+      "slug": "wand_of_polymorph",
+      "name_ru": "Волшебная палочка превращения",
+      "name_en": "Wand of Polymorph",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9483,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "7 зарядов (превращения).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_polymorph",
+            "max": 7,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "polymorph",
+            "uses": 7
+          },
+          {
+            "type": "custom_note",
+            "text": "7 зарядов; рассвет 1d6+1. превращения."
+          }
+        ],
+        "charges": {
+          "max": 7,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b767ade3-8ebf-5344-b9b1-2fdd58fdf851",
+      "slug": "wand_of_secrets",
+      "name_ru": "Волшебная палочка секретов",
+      "name_en": "Wand of Secrets",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9484,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 1,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "7 зарядов (секретов).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wand_of_secrets",
+            "max": 7,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "7 зарядов; рассвет 1d6+1. секретов."
+          }
+        ],
+        "charges": {
+          "max": 7,
+          "restore": "dawn",
+          "recharge_dice": "1d6+1"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "3ac3b0f5-e617-5d4a-88e7-a0530fd32e4e",
+      "slug": "well_of_many_worlds",
+      "name_ru": "Колодец многих миров",
+      "name_en": "Well of Many Worlds",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9485,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0.5,
+        "cost": {
+          "amount": 200000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Ткань → портал на другой план (случайный).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Расстелить: двусторонний портал; свернуть действием."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "1a36eaf4-2fa4-5342-8c09-f00bd65382a5",
+      "slug": "cloak_of_the_bat",
+      "name_ru": "Плащ летучей мыши",
+      "name_en": "Cloak of the Bat",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9488,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "cloak",
+        "description_ru": "Преим. Скрытность; полёт в темноте; полиморф в мышь 1/день.",
+        "effects": [
+          {
+            "type": "skill_bonus",
+            "skill": "stealth",
+            "value": 0
+          },
+          {
+            "type": "speed",
+            "mode": "fly",
+            "value": 40
+          },
+          {
+            "type": "resource",
+            "id": "cloak_bat",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Полёт только в тусклом/тьме с руками свободными; 1/день bat."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "7efad6ca-1caa-50f3-a00f-c6cfed7eebd9",
+      "slug": "gloves_of_thievery",
+      "name_ru": "Перчатки воровства",
+      "name_en": "Gloves of Thievery",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9491,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "hands",
+        "description_ru": "+5 к Ловкости рук и взлому замков.",
+        "effects": [
+          {
+            "type": "skill_bonus",
+            "skill": "sleight_of_hand",
+            "value": 5
+          },
+          {
+            "type": "custom_note",
+            "text": "+5 к проверкам Ловкости рук и воровских инструментов."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "5a685b42-9753-546b-a025-273cc005ca89",
+      "slug": "medallion_of_thoughts",
+      "name_ru": "Медальон мыслей",
+      "name_en": "Medallion of Thoughts",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9493,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": true,
+        "wear_slot": "neck",
+        "description_ru": "3 заряда detect thoughts (Сл 13).",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "medallion_thoughts",
+            "max": 3,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "detect_thoughts",
+            "uses": 3
+          }
+        ],
+        "charges": {
+          "max": 3,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "f30e93c2-16f9-521e-b222-7dbd2fa95000",
+      "slug": "ring_of_animal_influence",
+      "name_ru": "Кольцо влияния на животных",
+      "name_en": "Ring of Animal Influence",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9494,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "ring",
+        "description_ru": "3 заряда: animal friendship / fear (звери) / speak with animals.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "ring_animal",
+            "max": 3,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "animal_friendship",
+            "uses": 3
+          },
+          {
+            "type": "grant_spell",
+            "slug": "speak_with_animals",
+            "uses": 3
+          }
+        ],
+        "charges": {
+          "max": 3,
+          "restore": "dawn"
+        }
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "6ebc3660-0978-57fd-988e-2a410a241d2c",
+      "slug": "wind_fan",
+      "name_ru": "Веер ветра",
+      "name_en": "Wind Fan",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9499,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "1/день gust of wind; чаще — риск сломать.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "wind_fan",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "grant_spell",
+            "slug": "gust_of_wind",
+            "uses": 1
+          }
+        ]
+      }
+    }
+  ]
+}

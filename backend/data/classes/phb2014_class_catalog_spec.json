@@ -1,0 +1,771 @@
+{
+  "meta": {
+    "purpose": "Спек для переработки catalog_entries kind=class (и UI грантов)",
+    "rules_basis": "D&D 5e 2014 PHB + multiclass PHB ch.6; Artificer — Tasha's/Eberron (не SRD-core)",
+    "edition_tag": "2014",
+    "out_of_scope_here": [
+      "Полные тексты классовых фич по уровням",
+      "Подклассы (кроме пометки, что нужны отдельно)",
+      "2024 PHB переписывание"
+    ],
+    "catalog_data_shape": {
+      "hit_die": "number 6|8|10|12",
+      "primary_abilities": ["str|dex|con|int|wis|cha"],
+      "saving_throws": ["str|dex|con|int|wis|cha"],
+      "armor": ["light", "medium", "heavy", "shields"],
+      "weapons": {
+        "simple": "boolean",
+        "martial": "boolean",
+        "extras": ["короткие имена, если не покрыто simple/martial"]
+      },
+      "tools_fixed": ["string"],
+      "tool_choices": { "count": 0, "from": ["string"] },
+      "skill_choices": { "count": 0, "from": ["skill_key"] , "from_any": false },
+      "multiclass_prerequisites": { "all|any": ["ability"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": [],
+        "weapons": {},
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": null
+      },
+      "caster": {
+        "progression": "none|full|half|half_up|pact|third",
+        "ability": "null|int|wis|cha",
+        "prepare": "null|mod+level|mod+half"
+      },
+      "starting_equipment": [
+        {
+          "id": "a|b|gold|skip",
+          "label_ru": "",
+          "summary_ru": "",
+          "items": [{ "name": "", "qty": 1, "armor_kind": "none|light|medium|heavy|shield", "base_ac": null }],
+          "coins_gp": null
+        }
+      ],
+      "source": "phb|tasha|eberron"
+    }
+  },
+  "classes": [
+    {
+      "slug": "fighter",
+      "name_ru": "Воин",
+      "name_en": "Fighter",
+      "source": "phb",
+      "hit_die": 10,
+      "primary_abilities": ["str", "dex"],
+      "saving_throws": ["str", "con"],
+      "armor": ["light", "medium", "heavy", "shields"],
+      "weapons": { "simple": true, "martial": true, "extras": [] },
+      "tools_fixed": [],
+      "tool_choices": null,
+      "skill_choices": {
+        "count": 2,
+        "from": ["acrobatics", "animal_handling", "athletics", "history", "insight", "intimidation", "perception", "survival"]
+      },
+      "multiclass_prerequisites": { "any": ["str", "dex"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": ["light", "medium", "shields"],
+        "weapons": { "simple": true, "martial": true, "extras": [] },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": null
+      },
+      "caster": { "progression": "none", "ability": null, "prepare": null, "note": "⅓ только у подклассов Eldritch Knight / Psi Warrior — отдельно по subclass" },
+      "starting_equipment_notes_ru": "PHB: (a) кольчуга или (b) кожаный+длинный лук; (a) воинское ближнее или (b) два боевых; (a) лёгкий арбалет или (b) два ручных топора; набор исследователя/данжеонера.",
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Кольчуга + длинный меч + щит + лёгкий арбалет + набор исследователя",
+          "items": [
+            { "name": "Кольчуга", "qty": 1, "armor_kind": "heavy", "base_ac": 16 },
+            { "name": "Длинный меч", "qty": 1 },
+            { "name": "Щит", "qty": 1, "armor_kind": "shield", "base_ac": 2 },
+            { "name": "Лёгкий арбалет", "qty": 1 },
+            { "name": "Болты арбалета", "qty": 20 },
+            { "name": "Набор исследователя", "qty": 1 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Кожаный + длинный лук + два длинных меча + набор исследователя",
+          "items": [
+            { "name": "Кожаный доспех", "qty": 1, "armor_kind": "light", "base_ac": 11 },
+            { "name": "Длинный лук", "qty": 1 },
+            { "name": "Стрелы", "qty": 20 },
+            { "name": "Длинный меч", "qty": 2 },
+            { "name": "Набор исследователя", "qty": 1 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "5к4×10 зм (ориентир 125 зм)", "items": [], "coins_gp": 125 }
+      ]
+    },
+    {
+      "slug": "rogue",
+      "name_ru": "Плут",
+      "name_en": "Rogue",
+      "source": "phb",
+      "hit_die": 8,
+      "primary_abilities": ["dex"],
+      "saving_throws": ["dex", "int"],
+      "armor": ["light"],
+      "weapons": { "simple": true, "martial": false, "extras": ["hand_crossbow", "longsword", "rapier", "shortsword"] },
+      "tools_fixed": ["Воровские инструменты"],
+      "tool_choices": null,
+      "skill_choices": {
+        "count": 4,
+        "from": ["acrobatics", "athletics", "deception", "insight", "intimidation", "investigation", "perception", "performance", "persuasion", "sleight_of_hand", "stealth"]
+      },
+      "multiclass_prerequisites": { "all": ["dex"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": ["light"],
+        "weapons": { "simple": false, "martial": false, "extras": [] },
+        "tools_fixed": ["Воровские инструменты"],
+        "tool_choices": null,
+        "skill_choices": {
+          "count": 1,
+          "from": ["acrobatics", "athletics", "deception", "insight", "intimidation", "investigation", "perception", "performance", "persuasion", "sleight_of_hand", "stealth"]
+        }
+      },
+      "caster": { "progression": "none", "ability": null, "prepare": null, "note": "⅓ у Arcane Trickster — по subclass" },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Рапира + короткий лук + набор взломщика + кожаный + 2 кинжала + воровские инструменты",
+          "items": [
+            { "name": "Рапира", "qty": 1 },
+            { "name": "Короткий лук", "qty": 1 },
+            { "name": "Стрелы", "qty": 20 },
+            { "name": "Набор взломщика", "qty": 1 },
+            { "name": "Кожаный доспех", "qty": 1, "armor_kind": "light", "base_ac": 11 },
+            { "name": "Кинжал", "qty": 2 },
+            { "name": "Воровские инструменты", "qty": 1 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Короткий меч + короткий лук + набор исследователя + кожаный + 2 кинжала + воровские инструменты",
+          "items": [
+            { "name": "Короткий меч", "qty": 1 },
+            { "name": "Короткий лук", "qty": 1 },
+            { "name": "Стрелы", "qty": 20 },
+            { "name": "Набор исследователя", "qty": 1 },
+            { "name": "Кожаный доспех", "qty": 1, "armor_kind": "light", "base_ac": 11 },
+            { "name": "Кинжал", "qty": 2 },
+            { "name": "Воровские инструменты", "qty": 1 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "4к4×10 зм (ориентир 100 зм)", "items": [], "coins_gp": 100 }
+      ]
+    },
+    {
+      "slug": "barbarian",
+      "name_ru": "Варвар",
+      "name_en": "Barbarian",
+      "source": "phb",
+      "hit_die": 12,
+      "primary_abilities": ["str"],
+      "saving_throws": ["str", "con"],
+      "armor": ["light", "medium", "shields"],
+      "weapons": { "simple": true, "martial": true, "extras": [] },
+      "tools_fixed": [],
+      "tool_choices": null,
+      "skill_choices": {
+        "count": 2,
+        "from": ["animal_handling", "athletics", "intimidation", "nature", "perception", "survival"]
+      },
+      "multiclass_prerequisites": { "all": ["str"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": ["shields"],
+        "weapons": { "simple": true, "martial": true, "extras": [] },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": null
+      },
+      "caster": { "progression": "none", "ability": null, "prepare": null },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Секира + 2 ручных топора + набор исследователя + 4 копья",
+          "items": [
+            { "name": "Секира", "qty": 1 },
+            { "name": "Ручной топор", "qty": 2 },
+            { "name": "Набор исследователя", "qty": 1 },
+            { "name": "Метательное копьё", "qty": 4 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Длинный меч + щит + набор исследователя + 4 копья",
+          "items": [
+            { "name": "Длинный меч", "qty": 1 },
+            { "name": "Щит", "qty": 1, "armor_kind": "shield", "base_ac": 2 },
+            { "name": "Набор исследователя", "qty": 1 },
+            { "name": "Метательное копьё", "qty": 4 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "2к4×10 зм (ориентир 50 зм)", "items": [], "coins_gp": 50 }
+      ]
+    },
+    {
+      "slug": "paladin",
+      "name_ru": "Паладин",
+      "name_en": "Paladin",
+      "source": "phb",
+      "hit_die": 10,
+      "primary_abilities": ["str", "cha"],
+      "saving_throws": ["wis", "cha"],
+      "armor": ["light", "medium", "heavy", "shields"],
+      "weapons": { "simple": true, "martial": true, "extras": [] },
+      "tools_fixed": [],
+      "tool_choices": null,
+      "skill_choices": {
+        "count": 2,
+        "from": ["athletics", "insight", "intimidation", "medicine", "persuasion", "religion"]
+      },
+      "multiclass_prerequisites": { "all": ["str", "cha"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": ["light", "medium", "shields"],
+        "weapons": { "simple": true, "martial": true, "extras": [] },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": null
+      },
+      "caster": { "progression": "half", "ability": "cha", "prepare": "mod+half", "note": "В мультиклассе слоты: floor(paladin_level/2)" },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Длинный меч + щит + 5 копий + кольчуга + священный символ + набор жреца",
+          "items": [
+            { "name": "Длинный меч", "qty": 1 },
+            { "name": "Щит", "qty": 1, "armor_kind": "shield", "base_ac": 2 },
+            { "name": "Метательное копьё", "qty": 5 },
+            { "name": "Кольчуга", "qty": 1, "armor_kind": "heavy", "base_ac": 16 },
+            { "name": "Священный символ", "qty": 1 },
+            { "name": "Набор жреца", "qty": 1 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Боевой молот + щит + лёгкий арбалет + кольчуга + священный символ + набор исследователя",
+          "items": [
+            { "name": "Боевой молот", "qty": 1 },
+            { "name": "Щит", "qty": 1, "armor_kind": "shield", "base_ac": 2 },
+            { "name": "Лёгкий арбалет", "qty": 1 },
+            { "name": "Болты арбалета", "qty": 20 },
+            { "name": "Кольчуга", "qty": 1, "armor_kind": "heavy", "base_ac": 16 },
+            { "name": "Священный символ", "qty": 1 },
+            { "name": "Набор исследователя", "qty": 1 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "5к4×10 зм (ориентир 125 зм)", "items": [], "coins_gp": 125 }
+      ]
+    },
+    {
+      "slug": "cleric",
+      "name_ru": "Жрец",
+      "name_en": "Cleric",
+      "source": "phb",
+      "hit_die": 8,
+      "primary_abilities": ["wis"],
+      "saving_throws": ["wis", "cha"],
+      "armor": ["light", "medium", "shields"],
+      "weapons": { "simple": true, "martial": false, "extras": [] },
+      "tools_fixed": [],
+      "tool_choices": null,
+      "skill_choices": {
+        "count": 2,
+        "from": ["history", "insight", "medicine", "persuasion", "religion"]
+      },
+      "multiclass_prerequisites": { "all": ["wis"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": ["light", "medium", "shields"],
+        "weapons": { "simple": false, "martial": false, "extras": [] },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": null
+      },
+      "caster": { "progression": "full", "ability": "wis", "prepare": "mod+level" },
+      "notes_ru": "Домен может добавить тяжёлые доспехи / воинское оружие — через subclass data.",
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Булава + чешуйчатый + лёгкий арбалет + священный символ + набор жреца",
+          "items": [
+            { "name": "Булава", "qty": 1 },
+            { "name": "Чешуйчатый доспех", "qty": 1, "armor_kind": "medium", "base_ac": 14 },
+            { "name": "Лёгкий арбалет", "qty": 1 },
+            { "name": "Болты арбалета", "qty": 20 },
+            { "name": "Священный символ", "qty": 1 },
+            { "name": "Набор жреца", "qty": 1 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Боевой молот + кольчуга + щит + священный символ + набор жреца",
+          "items": [
+            { "name": "Боевой молот", "qty": 1 },
+            { "name": "Кольчуга", "qty": 1, "armor_kind": "heavy", "base_ac": 16 },
+            { "name": "Щит", "qty": 1, "armor_kind": "shield", "base_ac": 2 },
+            { "name": "Священный символ", "qty": 1 },
+            { "name": "Набор жреца", "qty": 1 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "5к4×10 зм (ориентир 125 зм)", "items": [], "coins_gp": 125 }
+      ]
+    },
+    {
+      "slug": "druid",
+      "name_ru": "Друид",
+      "name_en": "Druid",
+      "source": "phb",
+      "hit_die": 8,
+      "primary_abilities": ["wis"],
+      "saving_throws": ["int", "wis"],
+      "armor": ["light", "medium", "shields"],
+      "weapons": { "simple": true, "martial": false, "extras": ["scimitar"], "note": "PHB: клубы, кинжалы, дротики, копья, булавы, посохи, ятаганы, серпы, пращи — без металла в доспехах/щитах" },
+      "tools_fixed": ["Набор травника"],
+      "tool_choices": null,
+      "skill_choices": {
+        "count": 2,
+        "from": ["arcana", "animal_handling", "insight", "medicine", "nature", "perception", "religion", "survival"]
+      },
+      "multiclass_prerequisites": { "all": ["wis"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": ["light", "medium", "shields"],
+        "weapons": { "simple": false, "martial": false, "extras": [] },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": null,
+        "note": "Друиды не носят металлические доспехи/щиты"
+      },
+      "caster": { "progression": "full", "ability": "wis", "prepare": "mod+level" },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Щит + ятаган + кожаный + набор исследователя + фокус друида",
+          "items": [
+            { "name": "Щит", "qty": 1, "armor_kind": "shield", "base_ac": 2 },
+            { "name": "Ятаган", "qty": 1 },
+            { "name": "Кожаный доспех", "qty": 1, "armor_kind": "light", "base_ac": 11 },
+            { "name": "Набор исследователя", "qty": 1 },
+            { "name": "Фокус друида", "qty": 1 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Деревянный щит + дубинка + кожаный + набор травника + фокус",
+          "items": [
+            { "name": "Щит", "qty": 1, "armor_kind": "shield", "base_ac": 2, "notes": "деревянный" },
+            { "name": "Дубинка", "qty": 1 },
+            { "name": "Кожаный доспех", "qty": 1, "armor_kind": "light", "base_ac": 11 },
+            { "name": "Набор травника", "qty": 1 },
+            { "name": "Фокус друида", "qty": 1 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "2к4×10 зм (ориентир 50 зм)", "items": [], "coins_gp": 50 }
+      ]
+    },
+    {
+      "slug": "artificer",
+      "name_ru": "Изобретатель",
+      "name_en": "Artificer",
+      "source": "tasha",
+      "hit_die": 8,
+      "primary_abilities": ["int"],
+      "saving_throws": ["con", "int"],
+      "armor": ["light", "medium", "shields"],
+      "weapons": { "simple": true, "martial": false, "extras": [] },
+      "tools_fixed": ["Воровские инструменты", "Инструменты ремонтника"],
+      "tool_choices": { "count": 1, "from": "artisan_tools" },
+      "skill_choices": {
+        "count": 2,
+        "from": ["arcana", "history", "investigation", "medicine", "nature", "perception", "sleight_of_hand"]
+      },
+      "multiclass_prerequisites": { "all": ["int"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": ["light", "medium", "shields"],
+        "weapons": { "simple": false, "martial": false, "extras": [] },
+        "tools_fixed": ["Воровские инструменты", "Инструменты ремонтника"],
+        "tool_choices": null,
+        "skill_choices": null,
+        "note": "Tasha/Eberron: при MC нет навыка и нет выбора artisan tools — только thieves + tinker + light/medium/shields"
+      },
+      "caster": {
+        "progression": "half_up",
+        "ability": "int",
+        "prepare": "mod+half",
+        "note": "В мультиклассе слоты: ceil(artificer_level/2); фокус — инструменты"
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "2 простых оружия + лёгкий арбалет + клёпаный кожаный + воровские + набор исследователя",
+          "items": [
+            { "name": "Боевой посох", "qty": 1 },
+            { "name": "Кинжал", "qty": 1 },
+            { "name": "Лёгкий арбалет", "qty": 1 },
+            { "name": "Болты арбалета", "qty": 20 },
+            { "name": "Клёпаный кожаный доспех", "qty": 1, "armor_kind": "light", "base_ac": 12 },
+            { "name": "Воровские инструменты", "qty": 1 },
+            { "name": "Набор исследователя", "qty": 1 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "2 простых оружия + лёгкий арбалет + чешуйчатый + воровские + набор исследователя",
+          "items": [
+            { "name": "Боевой посох", "qty": 1 },
+            { "name": "Кинжал", "qty": 1 },
+            { "name": "Лёгкий арбалет", "qty": 1 },
+            { "name": "Болты арбалета", "qty": 20 },
+            { "name": "Чешуйчатый доспех", "qty": 1, "armor_kind": "medium", "base_ac": 14 },
+            { "name": "Воровские инструменты", "qty": 1 },
+            { "name": "Набор исследователя", "qty": 1 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "5к4×10 зм (ориентир 125 зм)", "items": [], "coins_gp": 125 }
+      ]
+    },
+    {
+      "slug": "wizard",
+      "name_ru": "Волшебник",
+      "name_en": "Wizard",
+      "source": "phb",
+      "hit_die": 6,
+      "primary_abilities": ["int"],
+      "saving_throws": ["int", "wis"],
+      "armor": [],
+      "weapons": { "simple": true, "martial": false, "extras": [], "note": "PHB: кинжалы, дротики, пращи, посохи, лёгкий арбалет" },
+      "tools_fixed": [],
+      "tool_choices": null,
+      "skill_choices": {
+        "count": 2,
+        "from": ["arcana", "history", "insight", "investigation", "medicine", "religion"]
+      },
+      "multiclass_prerequisites": { "all": ["int"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": [],
+        "weapons": { "simple": false, "martial": false, "extras": [] },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": null
+      },
+      "caster": { "progression": "full", "ability": "int", "prepare": "mod+level" },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Посох + компонентская сумка + набор учёного + книга заклинаний",
+          "items": [
+            { "name": "Боевой посох", "qty": 1 },
+            { "name": "Сумка с компонентами", "qty": 1 },
+            { "name": "Набор учёного", "qty": 1 },
+            { "name": "Книга заклинаний", "qty": 1 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Кинжал + фокус + набор исследователя + книга заклинаний",
+          "items": [
+            { "name": "Кинжал", "qty": 1 },
+            { "name": "Магический фокус", "qty": 1 },
+            { "name": "Набор исследователя", "qty": 1 },
+            { "name": "Книга заклинаний", "qty": 1 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "4к4×10 зм (ориентир 100 зм)", "items": [], "coins_gp": 100 }
+      ]
+    },
+    {
+      "slug": "sorcerer",
+      "name_ru": "Чародей",
+      "name_en": "Sorcerer",
+      "source": "phb",
+      "hit_die": 6,
+      "primary_abilities": ["cha"],
+      "saving_throws": ["con", "cha"],
+      "armor": [],
+      "weapons": { "simple": true, "martial": false, "extras": [] },
+      "tools_fixed": [],
+      "tool_choices": null,
+      "skill_choices": {
+        "count": 2,
+        "from": ["arcana", "deception", "insight", "intimidation", "persuasion", "religion"]
+      },
+      "multiclass_prerequisites": { "all": ["cha"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": [],
+        "weapons": { "simple": false, "martial": false, "extras": [] },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": null
+      },
+      "caster": { "progression": "full", "ability": "cha", "prepare": null },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Лёгкий арбалет + компоненты + набор исследователя + 2 кинжала",
+          "items": [
+            { "name": "Лёгкий арбалет", "qty": 1 },
+            { "name": "Болты арбалета", "qty": 20 },
+            { "name": "Сумка с компонентами", "qty": 1 },
+            { "name": "Набор исследователя", "qty": 1 },
+            { "name": "Кинжал", "qty": 2 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Посох + фокус + набор исследователя + 2 кинжала",
+          "items": [
+            { "name": "Боевой посох", "qty": 1 },
+            { "name": "Магический фокус", "qty": 1 },
+            { "name": "Набор исследователя", "qty": 1 },
+            { "name": "Кинжал", "qty": 2 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "3к4×10 зм (ориентир 75 зм)", "items": [], "coins_gp": 75 }
+      ]
+    },
+    {
+      "slug": "warlock",
+      "name_ru": "Колдун",
+      "name_en": "Warlock",
+      "source": "phb",
+      "hit_die": 8,
+      "primary_abilities": ["cha"],
+      "saving_throws": ["wis", "cha"],
+      "armor": ["light"],
+      "weapons": { "simple": true, "martial": false, "extras": [] },
+      "tools_fixed": [],
+      "tool_choices": null,
+      "skill_choices": {
+        "count": 2,
+        "from": ["arcana", "deception", "history", "intimidation", "investigation", "nature", "religion"]
+      },
+      "multiclass_prerequisites": { "all": ["cha"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": ["light"],
+        "weapons": { "simple": true, "martial": false, "extras": [] },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": null
+      },
+      "caster": { "progression": "pact", "ability": "cha", "prepare": null, "note": "Pact Magic отдельно от общей таблицы мультикласс-слотов" },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Лёгкий арбалет + компоненты + кожаный + посох + набор учёного + 2 кинжала",
+          "items": [
+            { "name": "Лёгкий арбалет", "qty": 1 },
+            { "name": "Болты арбалета", "qty": 20 },
+            { "name": "Сумка с компонентами", "qty": 1 },
+            { "name": "Кожаный доспех", "qty": 1, "armor_kind": "light", "base_ac": 11 },
+            { "name": "Боевой посох", "qty": 1 },
+            { "name": "Набор учёного", "qty": 1 },
+            { "name": "Кинжал", "qty": 2 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Посох + фокус + кожаный + набор исследователя + 2 кинжала",
+          "items": [
+            { "name": "Боевой посох", "qty": 1 },
+            { "name": "Магический фокус", "qty": 1 },
+            { "name": "Кожаный доспех", "qty": 1, "armor_kind": "light", "base_ac": 11 },
+            { "name": "Набор исследователя", "qty": 1 },
+            { "name": "Кинжал", "qty": 2 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "4к4×10 зм (ориентир 100 зм)", "items": [], "coins_gp": 100 }
+      ]
+    },
+    {
+      "slug": "bard",
+      "name_ru": "Бард",
+      "name_en": "Bard",
+      "source": "phb",
+      "hit_die": 8,
+      "primary_abilities": ["cha"],
+      "saving_throws": ["dex", "cha"],
+      "armor": ["light"],
+      "weapons": { "simple": true, "martial": false, "extras": ["hand_crossbow", "longsword", "rapier", "shortsword"] },
+      "tools_fixed": [],
+      "tool_choices": { "count": 3, "from": "musical_instruments" },
+      "skill_choices": { "count": 3, "from_any": true, "from": [] },
+      "multiclass_prerequisites": { "all": ["cha"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": ["light"],
+        "weapons": { "simple": false, "martial": false, "extras": [] },
+        "tools_fixed": [],
+        "tool_choices": { "count": 1, "from": "musical_instruments" },
+        "skill_choices": { "count": 1, "from_any": true, "from": [] }
+      },
+      "caster": { "progression": "full", "ability": "cha", "prepare": null },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Рапира + дипломатский набор + лютня + кожаный + кинжал",
+          "items": [
+            { "name": "Рапира", "qty": 1 },
+            { "name": "Набор дипломата", "qty": 1 },
+            { "name": "Лютня", "qty": 1 },
+            { "name": "Кожаный доспех", "qty": 1, "armor_kind": "light", "base_ac": 11 },
+            { "name": "Кинжал", "qty": 1 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Длинный меч + артистский набор + лютня + кожаный + кинжал",
+          "items": [
+            { "name": "Длинный меч", "qty": 1 },
+            { "name": "Набор артиста", "qty": 1 },
+            { "name": "Лютня", "qty": 1 },
+            { "name": "Кожаный доспех", "qty": 1, "armor_kind": "light", "base_ac": 11 },
+            { "name": "Кинжал", "qty": 1 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "5к4×10 зм (ориентир 125 зм)", "items": [], "coins_gp": 125 }
+      ]
+    },
+    {
+      "slug": "monk",
+      "name_ru": "Монах",
+      "name_en": "Monk",
+      "source": "phb",
+      "hit_die": 8,
+      "primary_abilities": ["dex", "wis"],
+      "saving_throws": ["str", "dex"],
+      "armor": [],
+      "weapons": { "simple": true, "martial": false, "extras": ["shortsword"] },
+      "tools_fixed": [],
+      "tool_choices": { "count": 1, "from": "artisan_tools_or_musical" },
+      "skill_choices": {
+        "count": 2,
+        "from": ["acrobatics", "athletics", "history", "insight", "religion", "stealth"]
+      },
+      "multiclass_prerequisites": { "all": ["dex", "wis"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": [],
+        "weapons": { "simple": true, "martial": false, "extras": ["shortsword"] },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": null
+      },
+      "caster": { "progression": "none", "ability": null, "prepare": null },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Короткий меч + набор исследователя + 10 дротиков",
+          "items": [
+            { "name": "Короткий меч", "qty": 1 },
+            { "name": "Набор исследователя", "qty": 1 },
+            { "name": "Дротик", "qty": 10 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Дубинка + набор исследователя + 10 дротиков",
+          "items": [
+            { "name": "Дубинка", "qty": 1 },
+            { "name": "Набор исследователя", "qty": 1 },
+            { "name": "Дротик", "qty": 10 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "5к4 зм (ориентир 12 зм)", "items": [], "coins_gp": 12 }
+      ]
+    },
+    {
+      "slug": "ranger",
+      "name_ru": "Следопыт",
+      "name_en": "Ranger",
+      "source": "phb",
+      "hit_die": 10,
+      "primary_abilities": ["dex", "wis"],
+      "saving_throws": ["str", "dex"],
+      "armor": ["light", "medium", "shields"],
+      "weapons": { "simple": true, "martial": true, "extras": [] },
+      "tools_fixed": [],
+      "tool_choices": null,
+      "skill_choices": {
+        "count": 3,
+        "from": ["animal_handling", "athletics", "insight", "investigation", "nature", "perception", "stealth", "survival"]
+      },
+      "multiclass_prerequisites": { "all": ["dex", "wis"], "min": 13 },
+      "multiclass_proficiencies": {
+        "armor": ["light", "medium", "shields"],
+        "weapons": { "simple": true, "martial": true, "extras": [] },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": {
+          "count": 1,
+          "from": ["animal_handling", "athletics", "insight", "investigation", "nature", "perception", "stealth", "survival"]
+        }
+      },
+      "caster": { "progression": "half", "ability": "wis", "prepare": null, "note": "В мультиклассе слоты: floor(ranger_level/2)" },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Чешуйчатый + 2 коротких меча + длинный лук + набор исследователя",
+          "items": [
+            { "name": "Чешуйчатый доспех", "qty": 1, "armor_kind": "medium", "base_ac": 14 },
+            { "name": "Короткий меч", "qty": 2 },
+            { "name": "Длинный лук", "qty": 1 },
+            { "name": "Стрелы", "qty": 20 },
+            { "name": "Набор исследователя", "qty": 1 }
+          ]
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Кожаный + 2 коротких меча + длинный лук + набор исследователя",
+          "items": [
+            { "name": "Кожаный доспех", "qty": 1, "armor_kind": "light", "base_ac": 11 },
+            { "name": "Короткий меч", "qty": 2 },
+            { "name": "Длинный лук", "qty": 1 },
+            { "name": "Стрелы", "qty": 20 },
+            { "name": "Набор исследователя", "qty": 1 }
+          ]
+        },
+        { "id": "gold", "label_ru": "Золото", "summary_ru": "5к4×10 зм (ориентир 125 зм)", "items": [], "coins_gp": 125 }
+      ]
+    }
+  ],
+  "gaps_vs_current_prod_catalog": [
+    "На проде у class.data только hit_die — нет пререквизитов, владений, навыков, снаряжения, caster",
+    "Изобретателя нет ни в 2014, ни в 2024 каталоге на проде",
+    "UI grants уже частично дублирует этот спек во frontend classGrants.ts — цель: единый источник в catalog.data",
+    "Подклассы (домены, EK/AT, пакты) нужны отдельной kind=subclass с parent_id",
+    "Artificer half_up ещё не в casterProgression.ts (сейчас только floor для half)"
+  ],
+  "next_slice_proposal": [
+    "1) Миграция: upsert 13 классов 2014 в catalog_entries.data по этому спеку (+ artificer)",
+    "2) Frontend: читать гранты/снаряжение из catalog.data, fallback на локальный спек",
+    "3) Добавить artificer в multiclassRules + casterProgression (half_up)",
+    "4) Позже: subclass seed и ⅓-кастеры"
+  ]
+}

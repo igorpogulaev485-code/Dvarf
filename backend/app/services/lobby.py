@@ -82,6 +82,9 @@ from app.schemas.lobby import (
     SessionSeatOut,
     SessionSummary,
     SessionUpdateRequest,
+    SettingArtifactCreateRequest,
+    SettingArtifactOut,
+    SettingArtifactUpdateRequest,
     SettingCreateRequest,
     SettingDetail,
     SettingPageCreateRequest,
@@ -157,16 +160,26 @@ def _parse_companions(raw: object) -> list[dict]:
         name = str(item.get("name") or "").strip()
         if not cid or not name:
             continue
-        out.append(
-            {
-                "id": cid,
-                "name": name,
-                "hp_current": item.get("hp_current") if isinstance(item.get("hp_current"), int) else None,
-                "hp_max": item.get("hp_max") if isinstance(item.get("hp_max"), int) else None,
-                "ac": item.get("ac") if isinstance(item.get("ac"), int) else None,
-                "conditions": _parse_conditions(item.get("conditions")),
-            }
-        )
+        row = {
+            "id": cid,
+            "name": name,
+            "hp_current": item.get("hp_current") if isinstance(item.get("hp_current"), int) else None,
+            "hp_max": item.get("hp_max") if isinstance(item.get("hp_max"), int) else None,
+            "ac": item.get("ac") if isinstance(item.get("ac"), int) else None,
+            "conditions": _parse_conditions(item.get("conditions")),
+            "type": str(item.get("type") or "").strip() or None,
+            "duration": str(item.get("duration") or "").strip() or None,
+            "duration_rounds": item.get("duration_rounds")
+            if isinstance(item.get("duration_rounds"), int)
+            else None,
+            "attack_bonus": item.get("attack_bonus")
+            if isinstance(item.get("attack_bonus"), int)
+            else None,
+            "attack_damage": str(item.get("attack_damage") or "").strip() or None,
+            "attack_damage_type": str(item.get("attack_damage_type") or "").strip() or None,
+            "attack_range_kind": str(item.get("attack_range_kind") or "").strip() or None,
+        }
+        out.append(row)
     return out
 
 
@@ -691,20 +704,14 @@ class LobbyService:
         lobby_id: UUID,
         payload: AddLobbyMemberRequest,
     ) -> LobbyDetail:
-        lobby = self._require_lobby(lobby_id)
-        self._require_owner(lobby, user)
-        character = self.characters.get_for_user(payload.character_id, user.id)
-        if character is None:
-            raise NotFoundError("Персонаж не найден", code="character_not_found")
-        if self.lobbies.get_member(lobby.id, character.id) is None:
-            self.lobbies.add_member(
-                lobby_id=lobby.id,
-                character_id=character.id,
-                user_id=user.id,
-            )
-            self.db.commit()
-        lobby = self._require_lobby(lobby_id)
-        return self._to_detail(lobby, user)
+        """Устарело: состав только через join по коду (/lobbies/join), не из ростера лобби."""
+        _ = (user, lobby_id, payload)
+        raise AppError(
+            "Персонажа нельзя добавить из лобби. Войдите по коду комнаты "
+            "(страница /join или «В лобби» на листе).",
+            code="lobby_join_by_code_only",
+            status_code=400,
+        )
 
     def remove_member(self, user: User, lobby_id: UUID, character_id: UUID) -> LobbyDetail:
         lobby = self._require_lobby(lobby_id)
@@ -781,6 +788,7 @@ class LobbyService:
     def _setting_detail(self, setting: Setting, *, is_owner: bool) -> SettingDetail:
         pages = self.lobbies.list_setting_pages(setting.id)
         links = self.lobbies.list_setting_page_links(setting.id)
+        artifacts = self.lobbies.list_setting_artifacts(setting.id) if is_owner else []
         if not is_owner:
             pages = [p for p in pages if p.revealed]
             visible = {p.id for p in pages}
@@ -810,6 +818,7 @@ class LobbyService:
                 )
                 for link in links
             ],
+            artifacts=[SettingArtifactOut.model_validate(a) for a in artifacts],
             is_owner=is_owner,
         )
 
@@ -1017,6 +1026,107 @@ class LobbyService:
         lobby = self._require_lobby(setting.lobby_id)
         self._require_owner(lobby, user)
         self.lobbies.delete_setting_page_link(link)
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed, is_owner=True)
+
+    def create_setting_artifact(
+        self,
+        user: User,
+        setting_id: UUID,
+        payload: SettingArtifactCreateRequest,
+    ) -> SettingDetail:
+        from app.services.artifact_apply import normalize_abilities
+
+        setting = self.lobbies.get_setting(setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_owner(lobby, user)
+        existing = self.lobbies.list_setting_artifacts(setting.id)
+        sort_order = (
+            payload.sort_order
+            if payload.sort_order is not None
+            else (max((a.sort_order for a in existing), default=-1) + 1)
+        )
+        abilities = normalize_abilities([a.model_dump() for a in payload.abilities])
+        self.lobbies.create_setting_artifact(
+            setting_id=setting.id,
+            name=(payload.name or "Новый артефакт").strip()[:120] or "Новый артефакт",
+            rarity=(payload.rarity or "").strip()[:40],
+            description=(payload.description or "").strip()[:4000],
+            requires_attunement=bool(payload.requires_attunement),
+            abilities=abilities,
+            attack_damage=(payload.attack_damage or "").strip()[:40],
+            attack_damage_type=(payload.attack_damage_type or "").strip()[:40],
+            attack_ability=payload.attack_ability,
+            attack_range_kind=payload.attack_range_kind,
+            weight_lb=payload.weight_lb,
+            sort_order=sort_order,
+        )
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed, is_owner=True)
+
+    def update_setting_artifact(
+        self,
+        user: User,
+        artifact_id: UUID,
+        payload: SettingArtifactUpdateRequest,
+    ) -> SettingDetail:
+        from app.services.artifact_apply import normalize_abilities
+
+        artifact = self.lobbies.get_setting_artifact(artifact_id)
+        if artifact is None:
+            raise NotFoundError("Артефакт не найден", code="setting_artifact_not_found")
+        setting = self.lobbies.get_setting(artifact.setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_owner(lobby, user)
+        if payload.name is not None:
+            artifact.name = payload.name.strip()[:120] or artifact.name
+        if payload.rarity is not None:
+            artifact.rarity = payload.rarity.strip()[:40]
+        if payload.description is not None:
+            artifact.description = payload.description.strip()[:4000]
+        if payload.requires_attunement is not None:
+            artifact.requires_attunement = bool(payload.requires_attunement)
+        if payload.abilities is not None:
+            artifact.abilities = normalize_abilities(
+                [a.model_dump() for a in payload.abilities]
+            )
+        if payload.attack_damage is not None:
+            artifact.attack_damage = payload.attack_damage.strip()[:40]
+        if payload.attack_damage_type is not None:
+            artifact.attack_damage_type = payload.attack_damage_type.strip()[:40]
+        if payload.attack_ability is not None:
+            artifact.attack_ability = payload.attack_ability
+        if payload.attack_range_kind is not None:
+            artifact.attack_range_kind = payload.attack_range_kind
+        if payload.clear_weight:
+            artifact.weight_lb = None
+        elif payload.weight_lb is not None:
+            artifact.weight_lb = payload.weight_lb
+        if payload.sort_order is not None:
+            artifact.sort_order = payload.sort_order
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed, is_owner=True)
+
+    def delete_setting_artifact(self, user: User, artifact_id: UUID) -> SettingDetail:
+        artifact = self.lobbies.get_setting_artifact(artifact_id)
+        if artifact is None:
+            raise NotFoundError("Артефакт не найден", code="setting_artifact_not_found")
+        setting = self.lobbies.get_setting(artifact.setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_owner(lobby, user)
+        self.lobbies.delete_setting_artifact(artifact)
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
@@ -2364,18 +2474,48 @@ class LobbyService:
                 {"items": [], "coins": {k: 0 for k in coin_keys}},
             )
             if grant.item is not None:
-                name = grant.item.name.strip()
-                if not name:
-                    raise AppError("Укажите имя предмета", code="loot_item_name", status_code=400)
                 qty = max(1, int(grant.item.qty))
-                bucket["items"].append(
-                    {
-                        "name": name,
-                        "qty": qty,
-                        "notes": (grant.item.notes or "").strip() or None,
-                    }
-                )
-                lines.append(f"{name}×{qty}" if qty > 1 else name)
+                artifact_id = grant.item.artifact_id
+                if artifact_id is not None:
+                    artifact = self.lobbies.get_setting_artifact(artifact_id)
+                    if artifact is None:
+                        raise NotFoundError(
+                            "Артефакт не найден",
+                            code="setting_artifact_not_found",
+                        )
+                    if session.setting_id is None or artifact.setting_id != session.setting_id:
+                        raise AppError(
+                            "Артефакт не из сеттинга этой сессии",
+                            code="loot_artifact_setting_mismatch",
+                            status_code=400,
+                        )
+                    name = artifact.name.strip() or "Артефакт"
+                    bucket["items"].append(
+                        {
+                            "name": name,
+                            "qty": qty,
+                            "notes": (grant.item.notes or "").strip() or None,
+                            "artifact_id": artifact.id,
+                        }
+                    )
+                    lines.append(f"{name}×{qty}" if qty > 1 else name)
+                else:
+                    name = grant.item.name.strip()
+                    if not name:
+                        raise AppError(
+                            "Укажите имя предмета",
+                            code="loot_item_name",
+                            status_code=400,
+                        )
+                    bucket["items"].append(
+                        {
+                            "name": name,
+                            "qty": qty,
+                            "notes": (grant.item.notes or "").strip() or None,
+                            "artifact_id": None,
+                        }
+                    )
+                    lines.append(f"{name}×{qty}" if qty > 1 else name)
             if grant.coins is not None:
                 raw = grant.coins.model_dump()
                 parts = []
@@ -2409,23 +2549,46 @@ class LobbyService:
             items = list(inventory.get("items") or [])
             if not isinstance(items, list):
                 items = []
-            for entry in bucket["items"]:
-                items.append(
-                    {
-                        "id": str(uuid4()),
-                        "name": entry["name"],
-                        "catalog_id": None,
-                        "qty": entry["qty"],
-                        "weight_lb": None,
-                        "equipped": False,
-                        "armor_kind": "none",
-                        "base_ac": None,
-                        "notes": entry["notes"] or "",
-                    }
-                )
             inventory["coins"] = {k: int(coins.get(k) or 0) for k in coin_keys}
             inventory["items"] = items
             sheet["inventory"] = inventory
+
+            from app.services.artifact_apply import apply_artifact_to_sheet
+
+            for entry in bucket["items"]:
+                artifact_id = entry.get("artifact_id")
+                if artifact_id is not None:
+                    artifact = self.lobbies.get_setting_artifact(artifact_id)
+                    if artifact is None:
+                        raise NotFoundError(
+                            "Артефакт не найден",
+                            code="setting_artifact_not_found",
+                        )
+                    apply_artifact_to_sheet(sheet, artifact=artifact, qty=entry["qty"])
+                else:
+                    inv = dict(sheet.get("inventory") or {})
+                    inv_items = list(inv.get("items") or [])
+                    if not isinstance(inv_items, list):
+                        inv_items = []
+                    inv_items.append(
+                        {
+                            "id": str(uuid4()),
+                            "name": entry["name"],
+                            "catalog_id": None,
+                            "qty": entry["qty"],
+                            "weight_lb": None,
+                            "equipped": False,
+                            "armor_kind": "none",
+                            "base_ac": None,
+                            "notes": entry["notes"] or "",
+                            "item_kind": "gear",
+                        }
+                    )
+                    inv["items"] = inv_items
+                    if "coins" not in inv:
+                        inv["coins"] = {k: int(coins.get(k) or 0) for k in coin_keys}
+                    sheet["inventory"] = inv
+
             character.sheet = sheet
             character.sheet_version = int(character.sheet_version or 1) + 1
             flag_modified(character, "sheet")

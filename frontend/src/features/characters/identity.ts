@@ -1,3 +1,4 @@
+import { canonicalLanguageList } from '../../shared/dnd/languages'
 import { readNameList } from './languagesTools'
 import { asRecord, readNumber } from './sheetTypes'
 
@@ -11,12 +12,16 @@ export type ArmorProficiency = {
 export type WeaponProficiency = {
   simple: boolean
   martial: boolean
+  /** Specific weapons (рапира, короткий меч…) when not covered by simple/martial. */
+  extras: string[]
 }
 
 export type IdentityExtras = {
   experience: number
   subclassName: string
   background: string
+  /** Catalog slug when picked from kind=background; used for feat prereqs. */
+  backgroundSlug: string | null
   alignment: string
   size: string
   darkvision: number
@@ -38,6 +43,7 @@ export const EMPTY_ARMOR: ArmorProficiency = {
 export const EMPTY_WEAPONS: WeaponProficiency = {
   simple: false,
   martial: false,
+  extras: [],
 }
 
 export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtras {
@@ -51,6 +57,12 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
     experience: Math.max(0, Math.floor(readNumber(identity.experience, 0))),
     subclassName: typeof identity.subclass_name === 'string' ? identity.subclass_name : '',
     background: typeof identity.background === 'string' ? identity.background : '',
+    backgroundSlug:
+      typeof identity.background_slug === 'string' && identity.background_slug.trim()
+        ? identity.background_slug.trim()
+        : typeof identity.backgroundSlug === 'string' && identity.backgroundSlug.trim()
+          ? identity.backgroundSlug.trim()
+          : null,
     alignment: typeof identity.alignment === 'string' ? identity.alignment : '',
     size: typeof identity.size === 'string' && identity.size.trim() ? identity.size : 'medium',
     darkvision: Math.max(0, Math.floor(readNumber(combat.darkvision, 0))),
@@ -63,10 +75,11 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
     weapons: {
       simple: Boolean(weapons.simple),
       martial: Boolean(weapons.martial),
+      extras: readNameList(weapons.extras),
     },
-    languages: readNameList(proficiency.languages),
+    languages: canonicalLanguageList(readNameList(proficiency.languages)),
     tools: readNameList(proficiency.tools),
-    raceAppliedLanguages: readNameList(identity.race_applied_languages),
+    raceAppliedLanguages: canonicalLanguageList(readNameList(identity.race_applied_languages)),
   }
 }
 
@@ -85,6 +98,7 @@ export function identityExtrasToSheet(extras: IdentityExtras): {
       experience: Math.max(0, Math.floor(extras.experience)),
       subclass_name: extras.subclassName.trim() || null,
       background: extras.background.trim() || null,
+      background_slug: extras.backgroundSlug?.trim() || null,
       alignment: extras.alignment.trim() || null,
       size: extras.size.trim() || 'medium',
       race_applied_languages: extras.raceAppliedLanguages
@@ -96,7 +110,11 @@ export function identityExtrasToSheet(extras: IdentityExtras): {
     },
     proficiencyPatch: {
       armor: { ...extras.armor },
-      weapons: { ...extras.weapons },
+      weapons: {
+        simple: extras.weapons.simple,
+        martial: extras.weapons.martial,
+        extras: (extras.weapons.extras ?? []).map((item) => item.trim()).filter(Boolean),
+      },
       languages: extras.languages.map((item) => item.trim()).filter(Boolean),
       tools: extras.tools.map((item) => item.trim()).filter(Boolean),
     },
@@ -110,7 +128,10 @@ export const ARMOR_PROF_OPTIONS: Array<{ key: keyof ArmorProficiency; label: str
   { key: 'shields', label: 'Щиты' },
 ]
 
-export const WEAPON_PROF_OPTIONS: Array<{ key: keyof WeaponProficiency; label: string }> = [
+export const WEAPON_PROF_OPTIONS: Array<{
+  key: 'simple' | 'martial'
+  label: string
+}> = [
   { key: 'simple', label: 'Простое' },
   { key: 'martial', label: 'Воинское' },
 ]

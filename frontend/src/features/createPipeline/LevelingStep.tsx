@@ -1,0 +1,459 @@
+import { useMemo, useState } from 'react'
+import { Button, Field, NumberInput, Stack, Text } from '../../ui'
+import type { CatalogEntry } from '../../shared/api/catalog'
+import type { PactSlotState, SpellSlotState } from '../../shared/dnd/spells'
+import {
+  canTakeMulticlassLevel,
+  formatPrerequisite,
+  hitDieForClass,
+  unmetPrerequisiteDetail,
+  type AbilityScores,
+  MULTICLASS_PREREQUISITES,
+} from '../../shared/dnd/multiclassRules'
+import {
+  addMulticlassLevel,
+  bumpClassLevel,
+  createClassLevel,
+  reduceClassLevel,
+  totalCharacterLevel,
+  type ClassLevelEntry,
+} from '../../shared/dnd/classLevels'
+import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
+import { pruneInvalidMulticlassRows } from '../../shared/dnd/multiclassPrune'
+import type { RaceRacialSpell } from '../../shared/dnd/raceGrants'
+import type { HpLevelChoice } from './createPipelineTypes'
+import { RacialEffectsPanel } from './RacialEffectsPanel'
+
+type LevelingStepProps = {
+  classes: ClassLevelEntry[]
+  classCatalog: CatalogEntry[]
+  abilities: AbilityScores
+  hpChoices: HpLevelChoice[]
+  primaryClassEntryId: string
+  /** classEntryId → whether class grant picks (skills/equipment) are saved. */
+  hasClassGrantPicks?: Record<string, boolean>
+  racialSpells?: RaceRacialSpell[]
+  hasCasterClass?: boolean
+  featNoteRu?: string | null
+  onClassesChange: (classes: ClassLevelEntry[]) => void
+  onHpChoicesChange: (choices: HpLevelChoice[]) => void
+  /** Opens GuidedWizard (subclass gate / feature_choice / ASI / expertise). MC may open ClassSetup first. */
+  onOpenChoices: (classEntryId: string) => void
+  /**
+   * After a new multiclass row is added (not a level bump on an existing class).
+   * Parent applies / opens grant setup; empty MC packages should not leave a dialog open.
+   */
+  onMulticlassAdded?: (classEntryId: string, classes: ClassLevelEntry[]) => void
+  /** Change already-selected archetype (not the primary pick path). */
+  onChangeArchetype: (classEntryId: string) => void
+  onOpenSpells: () => void
+  /** Prepared / spellbook casters — open prepare dialog (optional). */
+  onOpenPrepare?: () => void
+  /** Live caster tables from class levels (slots / prepare / known mode). */
+  spellcasting?: {
+    labelRu: string
+    mode?: 'known' | 'prepared_list' | 'spellbook'
+    maxPrepared: number | null
+    knownLeveled: number
+    preparedLeveled: number
+    /** PHB cantrips known on sheet / cap (null cap = not tracked). */
+    cantripsKnown?: number
+    cantripsMax?: number | null
+    /** Cap for leveled known / spellbook free research (null = full-list prepare caster). */
+    leveledKnownMax?: number | null
+    /** Wizard: remaining free book fills at current level. */
+    freeBookLeft?: number | null
+    /** Leveled on sheet that are not prepared (prepared_list / spellbook). */
+    unpreparedLeveled?: number
+    slots: Record<string, SpellSlotState>
+    pactSlots: PactSlotState | null
+  } | null
+}
+
+function formatSlotBrief(slots: Record<string, SpellSlotState>): string {
+  const parts: string[] = []
+  for (let level = 1; level <= 9; level += 1) {
+    const max = slots[String(level)]?.max ?? 0
+    if (max > 0) parts.push(`${level}×${max}`)
+  }
+  return parts.length ? parts.join(' · ') : 'нет ячеек'
+}
+
+function averageFace(die: HitDie): number {
+  return Math.floor(hitDieSides(die) / 2) + 1
+}
+
+function ensureHpChoices(
+  classes: ClassLevelEntry[],
+  previous: HpLevelChoice[],
+): HpLevelChoice[] {
+  const prevMap = new Map(previous.map((row) => [row.key, row]))
+  const next: HpLevelChoice[] = []
+  classes.forEach((cls, classIndex) => {
+    for (let lvl = 1; lvl <= cls.level; lvl += 1) {
+      const key = `${cls.id}:${lvl}`
+      const existing = prevMap.get(key)
+      const isOriginFirst = classIndex === 0 && lvl === 1
+      next.push(
+        existing ?? {
+          key,
+          classEntryId: cls.id,
+          classLevel: lvl,
+          mode: isOriginFirst ? 'average' : 'average',
+          rolled: null,
+        },
+      )
+    }
+  })
+  return next
+}
+
+export function LevelingStep({
+  classes,
+  classCatalog,
+  abilities,
+  hpChoices,
+  primaryClassEntryId,
+  hasClassGrantPicks = {},
+  racialSpells = [],
+  hasCasterClass = false,
+  featNoteRu = null,
+  onClassesChange,
+  onHpChoicesChange,
+  onOpenChoices,
+  onMulticlassAdded,
+  onChangeArchetype,
+  onOpenSpells,
+  onOpenPrepare,
+  spellcasting = null,
+}: LevelingStepProps) {
+  const [mcOpen, setMcOpen] = useState(false)
+  const [pruneWarn, setPruneWarn] = useState<{
+    next: ClassLevelEntry[]
+    removed: ClassLevelEntry[]
+    reasons: string[]
+  } | null>(null)
+  const totalLevel = totalCharacterLevel(classes)
+
+  function commitClasses(next: ClassLevelEntry[]): boolean {
+    const pruned = pruneInvalidMulticlassRows({
+      classes: next,
+      abilities,
+      primaryClassEntryId,
+    })
+    if (pruned.removed.length > 0) {
+      setPruneWarn({
+        next: pruned.classes,
+        removed: pruned.removed,
+        reasons: pruned.reasons,
+      })
+      return false
+    }
+    onClassesChange(next)
+    onHpChoicesChange(ensureHpChoices(next, hpChoices))
+    return true
+  }
+
+  const mcOptions = useMemo(() => {
+    return classCatalog
+      .filter((entry) => !entry.parent_id)
+      .map((entry) => {
+        const slug = entry.slug
+        const check = canTakeMulticlassLevel({
+          newClassName: entry.name_ru,
+          currentClassNames: classes.map((row) => row.name),
+          abilities,
+        })
+        const prereq = MULTICLASS_PREREQUISITES[slug]
+        const detail = check.ok
+          ? null
+          : unmetPrerequisiteDetail(prereq, abilities) ?? check.reason
+        return { entry, ok: check.ok, detail, prereq }
+      })
+      .sort(
+        (a, b) =>
+          Number(b.ok) - Number(a.ok) || a.entry.name_ru.localeCompare(b.entry.name_ru, 'ru'),
+      )
+  }, [abilities, classCatalog, classes])
+
+  function setClassLevel(classId: string, level: number) {
+    const clamped = Math.max(0, Math.min(20, Math.floor(level)))
+    let next = classes.map((row) =>
+      row.id === classId ? { ...row, level: Math.max(1, clamped) } : row,
+    )
+    if (clamped <= 0) {
+      if (classes.length === 1) {
+        next = classes.map((row) => (row.id === classId ? { ...row, level: 1 } : row))
+      } else {
+        next = reduceClassLevel(classes, classId)
+      }
+    }
+    commitClasses(next)
+  }
+
+  function addMulticlass(entry: CatalogEntry) {
+    const check = canTakeMulticlassLevel({
+      newClassName: entry.name_ru,
+      currentClassNames: classes.map((row) => row.name),
+      abilities,
+    })
+    if (!check.ok) return
+    const prevIds = new Set(classes.map((row) => row.id))
+    const next = addMulticlassLevel(classes, {
+      name: entry.name_ru,
+      catalog_id: entry.id,
+    })
+    const normalized = next.map((row) =>
+      row.name.trim().toLowerCase() === entry.name_ru.trim().toLowerCase() && !row.catalog_id
+        ? { ...row, catalog_id: entry.id }
+        : row,
+    )
+    const applied = commitClasses(normalized)
+    setMcOpen(false)
+    if (!applied) return
+    const added = normalized.find((row) => !prevIds.has(row.id))
+    if (added) onMulticlassAdded?.(added.id, normalized)
+  }
+
+  function patchHp(key: string, patch: Partial<HpLevelChoice>) {
+    onHpChoicesChange(hpChoices.map((row) => (row.key === key ? { ...row, ...patch } : row)))
+  }
+
+  function rollDie(die: HitDie): number {
+    return 1 + Math.floor(Math.random() * hitDieSides(die))
+  }
+
+  return (
+    <Stack gap={16}>
+      <div>
+        <Text as="h2">Прокачка</Text>
+        <Text tone="muted">
+          Уровни, HP (среднее/бросок), развилки (архетип на гейте уровня, умения, ASI), мультикласс и
+          заклинания. Стартовые навыки и снаряжение основного класса уже выбраны на шаге «Класс».
+        </Text>
+      </div>
+
+      <RacialEffectsPanel
+        racialSpells={racialSpells}
+        characterLevel={totalLevel}
+        hasCasterClass={hasCasterClass}
+        featNoteRu={featNoteRu}
+      />
+
+      {classes.map((row, index) => {
+        const die = hitDieForClass({ className: row.name }) ?? 'd8'
+        const isPrimary = row.id === primaryClassEntryId || index === 0
+        const hasGrants = Boolean(hasClassGrantPicks[row.id])
+        return (
+          <div key={row.id} className="create-pipeline__level-block">
+            <div className="create-pipeline__level-head">
+              <Text>
+                {row.name || 'Класс'} {isPrimary ? '(основной)' : '(мультикласс)'}
+              </Text>
+              <Field label="Уровень">
+                <NumberInput
+                  value={row.level}
+                  min={1}
+                  max={20}
+                  onValueChange={(value) => setClassLevel(row.id, value ?? 1)}
+                />
+              </Field>
+            </div>
+            <div className="create-pipeline__level-actions">
+              <Button variant="secondary" onClick={() => onOpenChoices(row.id)}>
+                {isPrimary && hasGrants
+                  ? 'Развилки и умения'
+                  : hasGrants
+                    ? 'Развилки и умения'
+                    : isPrimary
+                      ? 'Развилки и умения'
+                      : 'Владения мультикласса'}
+              </Button>
+              {row.subclass_name.trim() || row.subclass_catalog_id ? (
+                <Button variant="ghost" onClick={() => onChangeArchetype(row.id)}>
+                  Сменить архетип: {row.subclass_name.trim() || '—'}
+                </Button>
+              ) : (
+                <Text tone="muted">Архетип — в развилках, когда откроется гейт класса</Text>
+              )}
+              {!isPrimary ? (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    if (classes.length <= 1) return
+                    const next = classes.filter((item) => item.id !== row.id)
+                    commitClasses(next.length ? next : [createClassLevel({ level: 1 })])
+                  }}
+                >
+                  Убрать класс
+                </Button>
+              ) : null}
+            </div>
+            <div className="create-pipeline__hp-list">
+              {hpChoices
+                .filter((choice) => choice.classEntryId === row.id)
+                .map((choice) => {
+                  const originMax = isPrimary && choice.classLevel === 1
+                  return (
+                    <div key={choice.key} className="create-pipeline__hp-row">
+                      <Text>
+                        {row.name} {choice.classLevel} · {die}
+                      </Text>
+                      {originMax ? (
+                        <Text tone="muted">макс. кости</Text>
+                      ) : (
+                        <div className="create-pipeline__method-row">
+                          <Button
+                            variant={choice.mode === 'average' ? 'primary' : 'secondary'}
+                            onClick={() => patchHp(choice.key, { mode: 'average', rolled: null })}
+                          >
+                            Среднее ({averageFace(die)})
+                          </Button>
+                          <Button
+                            variant={choice.mode === 'roll' ? 'primary' : 'secondary'}
+                            onClick={() => {
+                              const rolled = rollDie(die)
+                              patchHp(choice.key, { mode: 'roll', rolled })
+                            }}
+                          >
+                            Бросок{choice.rolled != null ? `: ${choice.rolled}` : ''}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+            </div>
+          </div>
+        )
+      })}
+
+      <div className="create-pipeline__mc">
+        <Button onClick={() => setMcOpen((open) => !open)}>Добавить мультикласс</Button>
+        {mcOpen ? (
+          <ul className="create-pipeline__card-list">
+            {mcOptions.map(({ entry, ok, detail, prereq }) => (
+              <li key={entry.id}>
+                <button
+                  type="button"
+                  className={
+                    ok
+                      ? 'create-pipeline__card'
+                      : 'create-pipeline__card create-pipeline__card--blocked'
+                  }
+                  disabled={!ok}
+                  onClick={() => addMulticlass(entry)}
+                >
+                  <span className="create-pipeline__card-title">{entry.name_ru}</span>
+                  <span className="create-pipeline__card-sub">
+                    {ok
+                      ? prereq
+                        ? `ОК · ${formatPrerequisite(prereq)}`
+                        : 'ОК'
+                      : detail || 'недоступно'}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+
+      <div className="create-pipeline__spells-block">
+        <div className="create-pipeline__method-row">
+          <Button variant="secondary" onClick={onOpenSpells}>
+            Заклинания
+          </Button>
+          {onOpenPrepare ? (
+            <Button variant="secondary" onClick={onOpenPrepare}>
+              Подготовить
+            </Button>
+          ) : null}
+        </div>
+        {spellcasting ? (
+          <Stack gap={4}>
+            <Text tone="muted">{spellcasting.labelRu}</Text>
+            <Text>
+              {[
+                spellcasting.cantripsMax != null
+                  ? `Заговоры: ${spellcasting.cantripsKnown ?? 0}/${spellcasting.cantripsMax}`
+                  : null,
+                spellcasting.mode === 'spellbook'
+                  ? `В книге: ${spellcasting.knownLeveled}${
+                      spellcasting.freeBookLeft != null
+                        ? ` · бесплатно ещё ${spellcasting.freeBookLeft}`
+                        : ''
+                    }`
+                  : spellcasting.mode === 'known' || spellcasting.maxPrepared == null
+                    ? spellcasting.leveledKnownMax != null
+                      ? `Известно: ${spellcasting.knownLeveled}/${spellcasting.leveledKnownMax}`
+                      : `Известно (на листе): ${spellcasting.knownLeveled}`
+                    : `На листе: ${spellcasting.knownLeveled}${
+                        spellcasting.unpreparedLeveled
+                          ? ` · не подг. ${spellcasting.unpreparedLeveled}`
+                          : ''
+                      }`,
+                spellcasting.mode !== 'known' && spellcasting.maxPrepared != null
+                  ? `Подготовка: ${spellcasting.preparedLeveled}/${spellcasting.maxPrepared}`
+                  : null,
+                `Ячейки: ${formatSlotBrief(spellcasting.slots)}`,
+                spellcasting.pactSlots && spellcasting.pactSlots.max > 0
+                  ? `Pact ${spellcasting.pactSlots.max}×${spellcasting.pactSlots.level}`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </Text>
+            <Text tone="muted">
+              {spellcasting.mode === 'spellbook'
+                ? 'Волшебник: на 1 ур. — 6 бесплатно в книгу, каждый новый уровень — +2 бесплатно. Сверх этого — золото. Гримуар ≠ подготовка.'
+                : spellcasting.mode === 'known'
+                  ? 'Известные сразу готовы к бою. Новые — только через гримуар (кнопка «Подготовить» не нужна).'
+                  : '«На лист» в гримуаре наполняет пул; «Подготовить» выбирает сегодняшний набор. При мультиклассе ячейки/лимит — по PHB 2014.'}
+            </Text>
+          </Stack>
+        ) : (
+          <Text tone="muted">Нет класса с заклинаниями — ячейки появятся после мультикласса-кастера.</Text>
+        )}
+      </div>
+
+      <Text tone="muted">
+        Если мультикласс перестанет проходить по характеристикам — покажем предупреждение и снимем
+        лишние классы после подтверждения.
+      </Text>
+
+      {pruneWarn ? (
+        <div className="create-pipeline__modal">
+          <Stack gap={12}>
+            <Text as="h3">Мультикласс больше не подходит</Text>
+            <Text>
+              Будут сняты: {pruneWarn.removed.map((row) => row.name).join(', ')}.
+            </Text>
+            {pruneWarn.reasons.map((reason) => (
+              <Text key={reason} tone="muted">
+                {reason}
+              </Text>
+            ))}
+            <div className="create-pipeline__method-row">
+              <Button variant="ghost" onClick={() => setPruneWarn(null)}>
+                Отмена
+              </Button>
+              <Button
+                onClick={() => {
+                  onClassesChange(pruneWarn.next)
+                  onHpChoicesChange(ensureHpChoices(pruneWarn.next, hpChoices))
+                  setPruneWarn(null)
+                }}
+              >
+                Подтвердить и снять
+              </Button>
+            </div>
+          </Stack>
+        </div>
+      ) : null}
+    </Stack>
+  )
+}
+
+/** Re-export bump for parent warnings. */
+export { bumpClassLevel, ensureHpChoices }

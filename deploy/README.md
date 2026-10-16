@@ -3,7 +3,7 @@
 **URL:** http://201.34.132.252/  
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
-**Current prod tip branch:** `cursor/setting-c4-embeds-bacd`  
+**Current prod tip branch:** `cursor/setting-artifacts-d1-bacd`  
 (обновляй эту строку после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
 
 ---
@@ -23,11 +23,13 @@
 
 Перед деплоем обязательно:
 
-1. Ветка = merge/rebase от **prod tip** (не параллельная развилка от старого Phase A).
-2. `./deploy/preflight-prod.sh` — зелёный (вызывается из `sync-and-up.sh` автоматически).
-3. После деплоя — проверить живые маркеры + обновить `PRODUCT_STATUS.md`.
+1. Ветка = merge/rebase от **prod tip** (`deploy/prod-tip` + таблица в `AGENTS.md`).
+2. `./deploy/preflight-prod.sh` — зелёный (маркеры дерева).
+3. `./deploy/preflight-live.sh` — зелёный (tip на VPS ancestor of HEAD + alembic file in tree).
+4. После деплоя — проверить живые маркеры + обновить `PRODUCT_STATUS.md`.
 
-Обход preflight только с явного ok Игоря: `DVARF_SKIP_PREFLIGHT=1`.
+Оба preflight вызывает `sync-and-up.sh`. Обход только с явного ok Игоря:  
+`DVARF_SKIP_PREFLIGHT=1` и/или `DVARF_SKIP_LIVE_PREFLIGHT=1`.
 
 ---
 
@@ -54,17 +56,22 @@ Secret must include `BEGIN OPENSSH PRIVATE KEY` … `END` (не обрезанн
 
 ```bash
 # from full prod tip lineage
-./deploy/preflight-prod.sh   # optional; sync-and-up runs it
+./deploy/preflight-prod.sh   # optional; sync-and-up runs both
+./deploy/preflight-live.sh
 ./deploy/sync-and-up.sh
 ```
 
 What `sync-and-up.sh` does:
 
-1. Runs **preflight** (anti-overwrite markers)
+1. Runs **preflight-prod** (anti-overwrite markers) + **preflight-live** (VPS tip/alembic)
 2. Packs the repo (no `.git`, no `node_modules`, no local `.env`)
 3. Extracts into `/opt/dvarf` while keeping the existing server `.env`
 4. Runs `docker compose -f docker-compose.prod.yml --env-file .env up -d --build`
 5. Curls `http://127.0.0.1/health` on the server (retries briefly)
+
+Seed JSON for classes/feats/races/gear lives under `backend/data/`.  
+Orphan alembic files from the old forms-adapt id-collision lineage are archived at  
+`backend/alembic/archive_forms_adapt_versions/` (not loaded by alembic).
 
 Override host/key if needed:
 
