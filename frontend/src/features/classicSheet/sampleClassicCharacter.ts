@@ -120,5 +120,25 @@ export const sampleClassic2014Character: CharacterDetail = {
         { id: 's8', name: 'Контрзаклинание', level: 3, prepared: true },
       ],
     },
+    companions: [
+      {
+        id: 'comp-owl',
+        kind: 'familiar',
+        name: 'Угуша',
+        catalog_ref: null,
+        source: null,
+        stats: { hp: 1, ac: 11, speed: 60 },
+        notes: 'Сова-фамильяр. Тёмное зрение 120 фт. Помощь на проверки Внимательности.',
+      },
+      {
+        id: 'comp-lirael',
+        kind: 'ally',
+        name: 'Лираэль',
+        catalog_ref: null,
+        source: null,
+        stats: { hp: 28, ac: 14, speed: 30 },
+        notes: 'Эльфийка-следопыт. Временно в отряде. Не путать с полем «Союзники» на P2.',
+      },
+    ],
   },
 }

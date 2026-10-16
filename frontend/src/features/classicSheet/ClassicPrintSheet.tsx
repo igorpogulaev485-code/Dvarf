@@ -34,6 +34,13 @@ import {
   setSpellNameAt,
   toggleSpellPrepared,
 } from './classicSpells'
+import {
+  COMPANION_KIND_LABELS,
+  classicCompanions,
+  paddedCompanionSlots,
+  patchCompanionField,
+} from './classicCompanions'
+import type { CompanionKind } from '../characters/companions'
 import './classicPrint.css'
 
 type Props = {
@@ -112,6 +119,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
   const deathFails = clampMarks(Number(combatField(c, 'death_fails') ?? 0))
   const spells = classicSpellsState(c)
   const spellStats = classicSpellStats(c, spells)
+  const companionSlots = paddedCompanionSlots(classicCompanions(c))
   const passivePerception =
     10 +
     abilityModifier(abilityScore(c, 'wis')) +
@@ -611,6 +619,91 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
             {renderSpellLevel(8)}
             {renderSpellLevel(9)}
           </div>
+        </div>
+      </article>
+
+      <article className="classic-sheet classic-page4" aria-label="Классический лист 2014, напарники">
+        <header className="classic-header classic-header--companions">
+          <div className="classic-brand">
+            <strong>D&amp;D</strong>
+            <span>5e · 2014</span>
+          </div>
+          <label className="classic-name">
+            <span>Имя персонажа</span>
+            <input value={c.name} onChange={(e) => patch({ name: e.target.value })} />
+          </label>
+          <div className="classic-companions-banner">
+            <strong>Напарники</strong>
+            <span>Спутники, фамильяры и призывы — страница Dvarf (нет в официальном бланке)</span>
+          </div>
+        </header>
+
+        <div className="classic-companions-grid">
+          {companionSlots.map((row, index) => (
+            <section className="classic-panel classic-companion-card" key={row?.id ?? `slot-${index}`}>
+              <div className="classic-companion-card__top">
+                <label className="classic-companion-card__name">
+                  <span>Имя</span>
+                  <input
+                    value={row?.name ?? ''}
+                    onChange={(e) => onPatch(patchCompanionField(c, index, { name: e.target.value }))}
+                  />
+                </label>
+                <label className="classic-companion-card__kind">
+                  <span>Тип</span>
+                  <select
+                    value={row?.kind ?? 'other'}
+                    onChange={(e) =>
+                      onPatch(
+                        patchCompanionField(c, index, {
+                          kind: e.target.value as CompanionKind,
+                        }),
+                      )
+                    }
+                  >
+                    {(Object.keys(COMPANION_KIND_LABELS) as CompanionKind[]).map((kind) => (
+                      <option key={kind} value={kind}>
+                        {COMPANION_KIND_LABELS[kind]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <div className="classic-companion-card__stats">
+                <label>
+                  <span>КД</span>
+                  <input
+                    value={row?.stats.ac ?? ''}
+                    onChange={(e) => onPatch(patchCompanionField(c, index, { ac: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  <span>Хиты</span>
+                  <input
+                    value={row?.stats.hp ?? ''}
+                    onChange={(e) => onPatch(patchCompanionField(c, index, { hp: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  <span>Скорость</span>
+                  <input
+                    value={row?.stats.speed ?? ''}
+                    onChange={(e) =>
+                      onPatch(patchCompanionField(c, index, { speed: e.target.value }))
+                    }
+                  />
+                </label>
+              </div>
+              <Expanding
+                fill
+                value={row?.notes ?? ''}
+                printMaxHeight="5.5rem"
+                ariaLabel="Заметки напарника"
+                onChange={(notes) => onPatch(patchCompanionField(c, index, { notes }))}
+              />
+              <div className="classic-caption">Карточка напарника</div>
+            </section>
+          ))}
         </div>
       </article>
     </div>
