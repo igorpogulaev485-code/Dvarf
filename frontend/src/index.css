@@ -6838,9 +6838,10 @@ button.spells-settings__derived-stat--btn:hover {
 
 .play-desk__top {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: center;
+  min-width: 0;
   padding: 4px 2px 10px;
   border-bottom: 1px solid var(--desk-line);
   background:
@@ -6961,6 +6962,7 @@ button.spells-settings__derived-stat--btn:hover {
   align-items: center;
   gap: 8px 12px;
   min-width: 0;
+  max-width: 100%;
   overflow: visible;
 }
 
@@ -6970,11 +6972,13 @@ button.spells-settings__derived-stat--btn:hover {
 }
 
 .play-desk-header__who {
-  /* Shrink when the name is long — never push HP / death off-screen. */
+  /* Shrink when the name is long — never push HP / death off-screen.
+     Stay in one row with vitals (no full-width wrap — that made the
+     header look «разъехавшейся» on iPad). */
   flex: 0 1 auto;
   width: auto;
   min-width: 0;
-  max-width: min(420px, 42vw);
+  max-width: min(300px, 32vw);
   display: grid;
   gap: 5px;
   justify-items: stretch;
@@ -8559,53 +8563,97 @@ button.play-desk-compact__more--btn:hover {
 }
 
 /*
- * Tablet / narrow laptop desk (≥960 play-desk--wide, but not full desktop):
- * who on its own row; vitals scroll as a carousel; HP + death stay pinned
- * on the right so death saves never clip off-screen (Wave A header LOCK).
- * Breakpoint 1439: iPad landscape ~1024–1194 and 13" laptops still overflow
- * a single who|vitals|hp|death row (esp. when death slot opens, +~118px).
+ * Tablet / narrow laptop desk: keep ONE compact header row (Wave A LOCK).
+ * Who stays capped + ellipsis; mid vitals scroll; HP + death stay pinned.
+ * Do NOT wrap who onto its own full-width row — that stretched the XP band
+ * and made the шапка look broken on iPad Pro 11".
  */
-@media (max-width: 1439px) {
+@media (max-width: 1280px) {
   .play-desk--wide .play-desk__top {
     min-width: 0;
+    gap: 8px;
   }
 
   .play-desk--wide .play-desk-header {
-    flex-wrap: wrap;
-    row-gap: 8px;
-    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 6px 8px;
+    min-width: 0;
   }
 
   .play-desk--wide .play-desk-header__who {
-    max-width: none;
-    flex: 1 1 100%;
-    min-width: 0;
+    max-width: min(240px, 28vw);
   }
 
-  .play-desk--wide .play-desk-header__mid {
-    flex: 1 1 0;
-    min-width: 0;
-    margin-left: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    overscroll-behavior-x: contain;
+  .play-desk--wide .play-desk-header__name {
+    font-size: 1.15rem;
   }
 
-  .play-desk--wide .play-desk-header__mid::-webkit-scrollbar {
-    display: none;
+  .play-desk--wide .play-desk-header__identity {
+    font-size: 0.78rem;
   }
 
-  .play-desk--wide .play-desk-header__vitals {
-    flex-wrap: nowrap;
-    width: max-content;
-    max-width: none;
+  .play-desk--wide .char-avatar--md .char-avatar__face {
+    width: 56px;
+    height: 56px;
+    font-size: 1.15rem;
   }
 
-  .play-desk--wide .play-desk-header__right {
-    flex: 0 0 auto;
-    margin-left: 0;
+  .play-desk--wide .play-desk-vital {
+    width: 50px;
+    min-width: 50px;
+    height: 56px;
+    padding: 4px 4px 3px;
+  }
+
+  .play-desk--wide .play-desk-vital b {
+    font-size: 1.05rem;
+  }
+
+  .play-desk--wide .play-desk-vital--jump {
+    width: 58px;
+    min-width: 58px;
+  }
+
+  .play-desk--wide .play-desk-vital--jump b {
+    font-size: 0.92rem;
+  }
+
+  .play-desk--wide .play-desk-vital--modes {
+    min-width: 48px;
+    max-width: 64px;
+  }
+
+  .play-desk--wide .play-desk-header__stack {
+    min-height: 56px;
+    gap: 3px;
+  }
+
+  .play-desk--wide .play-desk-header__chip {
+    padding: 3px 6px;
+    font-size: 0.62rem;
+  }
+
+  .play-desk--wide .play-desk-header__coin,
+  .play-desk--wide .play-desk-header__rest {
+    min-height: 26px;
+    padding: 4px 8px;
+    font-size: 0.74rem;
+  }
+
+  .play-desk--wide .play-desk-header__hp {
+    min-width: 112px;
+    min-height: 56px;
+    padding: 6px 10px;
+  }
+
+  .play-desk--wide .play-desk-header__hp strong {
+    font-size: 1.2rem;
+  }
+
+  .play-desk--wide .play-desk-header__death {
+    min-width: 108px;
+    min-height: 56px;
+    padding: 5px 6px;
   }
 }
 
