@@ -45,6 +45,65 @@
   font-size: 0.75rem;
 }
 
+.classic-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 0.85rem;
+  align-items: center;
+}
+
+.classic-layout-switch {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 0.45rem;
+  background: rgb(0 0 0 / 22%);
+}
+
+.classic-layout-switch__label {
+  padding: 0 0.35rem 0 0.45rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.classic-layout-switch button {
+  min-width: 3.1rem;
+  padding: 0.35rem 0.65rem;
+  border: 0;
+  border-radius: 0.32rem;
+  background: transparent;
+  color: #e8e4db;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.classic-layout-switch button:hover:not(:disabled) {
+  background: rgb(255 255 255 / 10%);
+}
+
+.classic-layout-switch button.is-active {
+  background: #f5f2eb;
+  color: #1f2420;
+}
+
+.classic-layout-switch button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.classic-layout-switch__hint {
+  padding: 0 0.5rem 0 0.15rem;
+  font-size: 0.68rem;
+  opacity: 0.55;
+}
+
 .classic-background-picker {
   max-width: 8.5in;
   margin: 0 auto 0.75rem;
@@ -1211,6 +1270,329 @@
   font-weight: 650;
   text-decoration: none;
   color: var(--accent);
+}
+
+/* ——— Classic 2024 layout (display-only; same paper tokens) ——— */
+
+.classic-2024-header {
+  grid-template-columns: 0.72in 2.1in 1fr;
+}
+
+.classic-2024-meta {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.classic-2024-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 2.55in 1fr 2.05in;
+  gap: 0.12in;
+  align-items: stretch;
+}
+
+.classic-2024-left,
+.classic-2024-mid,
+.classic-2024-right {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1in;
+  min-height: 0;
+}
+
+.classic-2024-prof-row {
+  display: flex;
+}
+
+.classic-2024-prof {
+  width: 100%;
+}
+
+.classic-2024-abilities {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.08in;
+  align-content: start;
+}
+
+.classic-2024-ability {
+  display: grid;
+  grid-template-columns: 0.72in 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 0.05in 0.06in;
+  padding: 0.06in;
+  border: 1px solid var(--c-line);
+  border-radius: var(--c-radius-panel);
+  background: var(--c-paper-tint);
+}
+
+.classic-2024-ability__score {
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.04in;
+  text-align: center;
+}
+
+.classic-2024-ability__label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.classic-2024-ability__score input {
+  width: 100%;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 0.25rem;
+  background: #fff;
+}
+
+.classic-2024-ability__mod {
+  width: 100%;
+  padding: 0.08rem 0;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.classic-2024-ability__save {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.62rem;
+}
+
+.classic-2024-ability__save strong {
+  min-width: 1.4rem;
+  font-size: 0.72rem;
+}
+
+.classic-2024-skills {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.02in;
+}
+
+.classic-2024-skills li {
+  display: flex;
+  align-items: center;
+  gap: 0.18rem;
+  font-size: 0.58rem;
+  line-height: 1.15;
+}
+
+.classic-2024-skills strong {
+  min-width: 1.35rem;
+  font-size: 0.68rem;
+}
+
+.classic-2024-insp {
+  margin-top: auto;
+}
+
+.classic-2024-combat-bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.06in;
+}
+
+.classic-2024-hp-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.08in;
+}
+
+.classic-2024-weapons-head,
+.classic-2024-weapon {
+  grid-template-columns: 1.35fr 0.7fr 1fr 0.85fr;
+}
+
+.classic-2024-page2-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 0.12in;
+}
+
+.classic-2024-spells,
+.classic-2024-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1in;
+  min-height: 0;
+}
+
+.classic-2024-spell-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.06in;
+}
+
+.classic-2024-spell-stats label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--c-muted);
+}
+
+.classic-2024-spell-stats input {
+  width: 100%;
+  padding: 0.2rem 0.28rem;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--c-ink);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.classic-2024-slots {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 0.04in;
+}
+
+.classic-2024-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  padding: 0.08rem;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 0.28rem;
+  background: var(--c-paper-tint);
+  text-align: center;
+}
+
+.classic-2024-slot strong {
+  font-size: 0.78rem;
+}
+
+.classic-2024-slot label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  font-size: 0.5rem;
+  color: var(--c-muted);
+  text-transform: uppercase;
+}
+
+.classic-2024-slot input {
+  width: 100%;
+  padding: 0.1rem;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 0.2rem;
+  text-align: center;
+  font-size: 0.72rem;
+}
+
+.classic-2024-spell-table {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.classic-2024-spell-table__head,
+.classic-2024-spell-table__rows li {
+  display: grid;
+  grid-template-columns: 0.28in 0.28in 1.35fr 0.7fr 0.7fr 1fr 0.22in 0.22in 0.22in;
+  gap: 0.04in;
+  align-items: center;
+}
+
+.classic-2024-spell-table__head {
+  padding: 0.06in 0.04in;
+  font-size: 0.52rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--c-muted);
+  border-bottom: 1px solid var(--c-line-soft);
+}
+
+.classic-2024-spell-table__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.classic-2024-spell-table__rows li {
+  min-height: 0.28in;
+  padding: 0.02in 0.04in;
+  border-bottom: 1px solid rgb(200 192 180 / 55%);
+  font-size: 0.62rem;
+}
+
+.classic-2024-spell-table__rows input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+}
+
+.classic-2024-spell-lvl {
+  text-align: center;
+  font-weight: 700;
+}
+
+.classic-2024-spell-notes {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.classic-2024-spell-table__rows .is-on {
+  text-align: center;
+  font-weight: 700;
+}
+
+.classic-2024-alignment {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  margin-bottom: 0.2rem;
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--c-muted);
+}
+
+.classic-2024-alignment input {
+  width: 100%;
+  padding: 0.2rem 0.28rem;
+  border: 1px solid var(--c-line-soft);
+  border-radius: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--c-ink);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.classic-2024-attune {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 650;
 }
 
 @media print {

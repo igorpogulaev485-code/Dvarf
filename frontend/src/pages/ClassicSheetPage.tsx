@@ -2,6 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ClassicBackgroundPicker } from '../features/classicSheet/ClassicBackgroundPicker'
 import { ClassicPrintSheet } from '../features/classicSheet/ClassicPrintSheet'
+import {
+  readClassicSheetLayout,
+  setClassicSheetLayout,
+  type ClassicSheetLayout,
+} from '../features/classicSheet/classicSheetLayout'
 import type { ClassicPatch } from '../features/classicSheet/fromApi'
 import {
   getCharacter,
@@ -105,6 +110,17 @@ export function ClassicSheetPage() {
     }, 500)
   }, [persist])
 
+  const sheetLayout = character ? readClassicSheetLayout(character) : '2014'
+
+  const handleLayoutChange = useCallback(
+    (layout: ClassicSheetLayout) => {
+      const current = latestRef.current
+      if (!current) return
+      handlePatch(setClassicSheetLayout(current, layout))
+    },
+    [handlePatch],
+  )
+
   return (
     <div className="classic-print-page">
       <header className="classic-print-toolbar no-print">
@@ -121,9 +137,26 @@ export function ClassicSheetPage() {
             </small>
           </div>
         </div>
-        <Button variant="secondary" onClick={() => window.print()}>
-          Печать / PDF
-        </Button>
+        <div className="classic-toolbar-actions">
+          <div className="classic-layout-switch" role="group" aria-label="Макет классического листа">
+            <span className="classic-layout-switch__label">Макет</span>
+            {(['2014', '2024'] as const).map((year) => (
+              <button
+                key={year}
+                type="button"
+                className={sheetLayout === year ? 'is-active' : undefined}
+                disabled={!character}
+                onClick={() => handleLayoutChange(year)}
+              >
+                {year}
+              </button>
+            ))}
+            <span className="classic-layout-switch__hint">только отображение</span>
+          </div>
+          <Button variant="secondary" onClick={() => window.print()}>
+            Печать / PDF
+          </Button>
+        </div>
       </header>
       {error ? (
         <Text tone="danger" className="no-print">

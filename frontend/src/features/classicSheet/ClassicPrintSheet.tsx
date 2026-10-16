@@ -1,4 +1,3 @@
-import { useLayoutEffect, useRef, type CSSProperties } from 'react'
 import type { CharacterDetail } from '../../shared/api/characters'
 import {
   ABILITY_KEYS,
@@ -46,65 +45,31 @@ import {
   SPELL_CARDS_PER_PAGE,
 } from './classicSpellCards'
 import type { CompanionKind } from '../characters/companions'
+import {
+  Expanding,
+  Bubble,
+  asProfBonus,
+  asRecordNotes,
+  brandYearLabel,
+  clampMarks,
+  numOrNull,
+} from './classicPrintShared'
+import {
+  readClassicSheetLayout,
+  type ClassicSheetLayout,
+} from './classicSheetLayout'
+import { ClassicPrint2024 } from './ClassicPrint2024'
 import './classicPrint.css'
 
 type Props = {
   character: CharacterDetail
   onPatch: (patch: ReturnType<typeof applyClassicEdits>) => void
+  /** Override sheet.ui.classic_sheet_layout (e.g. preview). */
+  layout?: ClassicSheetLayout
 }
 
-function Expanding({
-  value,
-  onChange,
-  printMaxHeight,
-  ariaLabel,
-  className,
-  fill,
-}: {
-  value: string
-  onChange: (value: string) => void
-  printMaxHeight?: string
-  ariaLabel?: string
-  className?: string
-  /** Stretch to fill a growable panel instead of hugging text height. */
-  fill?: boolean
-}) {
-  const ref = useRef<HTMLTextAreaElement>(null)
-  useLayoutEffect(() => {
-    if (fill) return
-    const el = ref.current
-    if (!el) return
-    el.style.height = '0px'
-    el.style.height = `${Math.max(el.scrollHeight, 24)}px`
-  }, [value, fill])
-  const style = printMaxHeight
-    ? ({ ['--print-max-height']: printMaxHeight } as CSSProperties)
-    : undefined
-  const classes = ['classic-expand', fill ? 'classic-expand--fill' : '', className]
-    .filter(Boolean)
-    .join(' ')
-  return (
-    <textarea
-      ref={ref}
-      className={classes}
-      value={value}
-      aria-label={ariaLabel}
-      rows={1}
-      style={style}
-      onChange={(e) => onChange(e.target.value)}
-    />
-  )
-}
-
-function Bubble({ filled, onClick, label }: { filled: boolean; onClick: () => void; label?: string }) {
-  return (
-    <button type="button" className="classic-bubble-btn" onClick={onClick} aria-label={label}>
-      <span className={`classic-bubble ${filled ? 'is-filled' : ''}`} />
-    </button>
-  )
-}
-
-export function ClassicPrintSheet({ character: c, onPatch }: Props) {
+export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
+  const sheetLayout = layout ?? readClassicSheetLayout(c)
   const combatNum = (key: string): string => {
     const v = combatField(c, key)
     return v == null ? '' : String(v)
@@ -134,11 +99,15 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
 
   return (
     <div className="classic-stack">
+      {sheetLayout === '2024' ? (
+        <ClassicPrint2024 character={c} onPatch={onPatch} />
+      ) : (
+        <>
       <article className="classic-sheet classic-page1" aria-label="Классический лист 2014, страница 1">
         <header className="classic-header">
           <div className="classic-brand">
             <strong>D&amp;D</strong>
-            <span>5e · 2014</span>
+            <span>{brandYearLabel('2014')}</span>
           </div>
           <label className="classic-name">
             <span>Имя персонажа</span>
@@ -484,7 +453,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
         <header className="classic-header classic-header--page2">
           <div className="classic-brand">
             <strong>D&amp;D</strong>
-            <span>5e · 2014</span>
+            <span>{brandYearLabel('2014')}</span>
           </div>
           <label className="classic-name">
             <span>Имя персонажа</span>
@@ -575,7 +544,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
         <header className="classic-spell-header">
           <div className="classic-brand">
             <strong>D&amp;D</strong>
-            <span>5e · 2014</span>
+            <span>{brandYearLabel('2014')}</span>
           </div>
           <label className="classic-name">
             <span>Класс заклинателя</span>
@@ -627,12 +596,14 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
           </div>
         </div>
       </article>
+        </>
+      )}
 
-      <article className="classic-sheet classic-page4" aria-label="Классический лист 2014, напарники">
+      <article className="classic-sheet classic-page4" aria-label="Классический лист, напарники">
         <header className="classic-header classic-header--companions">
           <div className="classic-brand">
             <strong>D&amp;D</strong>
-            <span>5e · 2014</span>
+            <span>{brandYearLabel(sheetLayout)}</span>
           </div>
           <label className="classic-name">
             <span>Имя персонажа</span>
@@ -722,7 +693,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
           <header className="classic-spell-cards-header no-print">
             <div className="classic-brand">
               <strong>D&amp;D</strong>
-              <span>5e · 2014</span>
+              <span>{brandYearLabel(sheetLayout)}</span>
             </div>
             <div className="classic-companions-banner">
               <strong>Карточки заклинаний</strong>
@@ -884,33 +855,3 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
   }
 }
 
-function numOrNull(value: string): number | null {
-  if (value.trim() === '') return null
-  const n = Number(value)
-  return Number.isFinite(n) ? n : null
-}
-
-function clampMarks(value: number): number {
-  if (!Number.isFinite(value)) return 0
-  return Math.max(0, Math.min(3, Math.floor(value)))
-}
-
-function asProfBonus(character: CharacterDetail): number {
-  const proficiency = asRecordSafe(asRecordSafe(character.sheet).proficiency)
-  return readNumber(proficiency.bonus, 2)
-}
-
-function asRecordSafe(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {}
-}
-
-function asRecordNotes(character: CharacterDetail): string {
-  const notes = asRecordSafe(asRecordSafe(character.sheet).notes)
-  return typeof notes.proficiencies === 'string' ? notes.proficiencies : ''
-}
-
-function readNumber(value: unknown, fallback = 0): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
-}
