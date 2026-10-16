@@ -1,7 +1,5 @@
-import type { ReactNode } from 'react'
-import { createPortal } from 'react-dom'
+import { useEffect, type MouseEvent, type ReactNode } from 'react'
 import { Button } from './Button'
-import { Stack } from './Stack'
 
 type DialogProps = {
   open: boolean
@@ -12,8 +10,13 @@ type DialogProps = {
   onPrimary: () => void
   onSecondary?: () => void
   busy?: boolean
+  /** Disables only the primary action (Cancel stays available). */
   primaryDisabled?: boolean
+  /** Primary button style; use `danger` for destructive confirms. */
+  primaryVariant?: 'primary' | 'secondary' | 'ghost' | 'danger'
   size?: 'default' | 'wide'
+  /** Close when clicking the dimmed backdrop. Default: true if onSecondary is set. */
+  closeOnBackdrop?: boolean
 }
 
 export function Dialog({
@@ -26,38 +29,75 @@ export function Dialog({
   onSecondary,
   busy = false,
   primaryDisabled = false,
+  primaryVariant = 'primary',
   size = 'default',
+  closeOnBackdrop,
 }: DialogProps) {
-  if (!open || typeof document === 'undefined') {
+  const canClose = Boolean(onSecondary) && !busy
+  const backdropCloses = closeOnBackdrop ?? canClose
+
+  useEffect(() => {
+    if (!open) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape' && canClose && onSecondary) {
+        event.preventDefault()
+        onSecondary()
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [open, canClose, onSecondary])
+
+  if (!open) {
     return null
   }
 
-  return createPortal(
-    <div className="ui-dialog-backdrop" role="presentation">
+  function handleBackdropClick(event: MouseEvent<HTMLDivElement>) {
+    if (event.target !== event.currentTarget) return
+    if (!backdropCloses || !onSecondary) return
+    onSecondary()
+  }
+
+  return (
+    <div
+      className="ui-dialog-backdrop"
+      role="presentation"
+      onMouseDown={handleBackdropClick}
+    >
       <div
         className={`ui-dialog${size === 'wide' ? ' ui-dialog--wide' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="ui-dialog-title"
+        onMouseDown={(event) => event.stopPropagation()}
       >
-        <Stack gap={14}>
-          <h2 id="ui-dialog-title" className="ui-text">
-            {title}
-          </h2>
-          {children}
-          <div className="ui-dialog__actions">
-            {secondaryLabel && onSecondary ? (
-              <Button variant="ghost" onClick={onSecondary} disabled={busy}>
-                {secondaryLabel}
-              </Button>
-            ) : null}
-            <Button onClick={onPrimary} disabled={busy || primaryDisabled}>
-              {primaryLabel}
+        <h2 id="ui-dialog-title" className="ui-text ui-dialog__title">
+          {title}
+        </h2>
+        <div className="ui-dialog__body">{children}</div>
+        <div className="ui-dialog__actions">
+          {secondaryLabel && onSecondary ? (
+            <Button variant="ghost" onClick={onSecondary} disabled={busy}>
+              {secondaryLabel}
             </Button>
-          </div>
-        </Stack>
+          ) : null}
+          <Button
+            variant={primaryVariant}
+            onClick={onPrimary}
+            disabled={busy || primaryDisabled}
+          >
+            {primaryLabel}
+          </Button>
+        </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   )
 }

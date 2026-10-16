@@ -73,6 +73,12 @@ require "backend/app/models/setting_artifact.py" "артефакты сетти�
 require "frontend/src/features/lobby/SettingArtifactsPanel.tsx" "UI библиотеки артефактов"
 require "backend/app/services/artifact_apply.py" "применение способностей артефакта"
 
+require "frontend/src/features/characters/PlayDeskHeader.tsx" "Play Desk шапка стола"
+require "frontend/src/features/characters/AbilitySkillsColumn.tsx" "Play Desk рельс характеристик"
+require "frontend/src/features/cabinet/AppearancePanel.tsx" "кабинет: тема аккаунта"
+require "frontend/src/shared/theme/accountAppearance.ts" "токены темы аккаунта"
+require "frontend/src/shared/dnd/abilityScoreCaps.ts" "потолок характеристик PHB 20"
+
 # Spot-check: digital sheet must not still say multiclass is backlog-only
 if grep -q 'Мультикласс — в backlog; пока один класс' \
   frontend/src/features/characters/MinimalSheetEditor.tsx 2>/dev/null; then

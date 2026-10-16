@@ -2,6 +2,7 @@ import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
 import type { InventoryItem } from './inventory'
 import {
   MAX_ATTUNEMENTS,
+  attunementPickerItems,
   createAttunementSlot,
   filledAttunementCount,
   type AttunementSlot,
@@ -19,6 +20,13 @@ export function AttunementPanel({
   onChange,
 }: AttunementPanelProps) {
   const filled = filledAttunementCount(attunements)
+  const needingAttune = inventoryItems.filter(
+    (item) => !item.parent_id && item.requires_attunement,
+  )
+  const linkedNeeding = needingAttune.filter((item) =>
+    attunements.some((slot) => slot.item_id === item.id),
+  )
+  const unlinkedNeeding = needingAttune.length - linkedNeeding.length
 
   function updateSlot(id: string, patch: Partial<AttunementSlot>) {
     onChange(attunements.map((slot) => (slot.id === id ? { ...slot, ...patch } : slot)))
@@ -49,9 +57,37 @@ export function AttunementPanel({
     <Panel title="Настройка (attunement)">
       <Stack gap={12}>
         <Text tone="muted">
-          До {MAX_ATTUNEMENTS} предметов · занято {filled}/{MAX_ATTUNEMENTS}. Можно привязать к
-          строке инвентаря.
+          До {MAX_ATTUNEMENTS} предметов · занято {filled}/{MAX_ATTUNEMENTS}. В списке — только
+          вещи с «нужна настройка», которые ещё не привязаны к слоту (или текущий выбор слота).
+          Привязка слота автоматически надевает предмет с wear-слотом / доспех / щит.
         </Text>
+
+        <div className="attune-panel__toolbar">
+          <span className={`sheet-chip${filled > 0 ? ' is-on' : ''}`}>
+            {filled}/{MAX_ATTUNEMENTS}
+          </span>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={attunements.length >= MAX_ATTUNEMENTS}
+            onClick={addSlot}
+          >
+            + слот
+          </Button>
+        </div>
+
+        {needingAttune.length > 0 ? (
+          <Text tone={unlinkedNeeding > 0 ? 'danger' : 'muted'}>
+            Нужна настройка: {linkedNeeding.length}/{needingAttune.length} уже в слотах
+            {unlinkedNeeding > 0 ? ` · ещё ${unlinkedNeeding} без настройки` : ''}
+            {needingAttune.length > MAX_ATTUNEMENTS
+              ? ` · лимит PHB ${MAX_ATTUNEMENTS}, выбери какие активны`
+              : ''}
+            .
+          </Text>
+        ) : (
+          <Text tone="muted">В инвентаре нет предметов с флагом «нужна настройка».</Text>
+        )}
 
         {attunements.length === 0 ? (
           <Text tone="muted">Пока пусто — добавь слот настройки.</Text>
@@ -64,14 +100,18 @@ export function AttunementPanel({
                   Удалить
                 </button>
               </div>
-              <Field label="Из инвентаря">
+              <Field label="Из инвентаря (нужна настройка, ещё не настроено)">
                 <select
                   className="play-select"
                   value={slot.item_id ?? ''}
                   onChange={(event) => linkItem(slot.id, event.target.value)}
                 >
                   <option value="">— вручную —</option>
-                  {inventoryItems.map((item) => (
+                  {attunementPickerItems({
+                    items: inventoryItems,
+                    attunements,
+                    currentSlotId: slot.id,
+                  }).map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name || 'Без названия'}
                     </option>
@@ -97,14 +137,6 @@ export function AttunementPanel({
           ))
         )}
 
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={attunements.length >= MAX_ATTUNEMENTS}
-          onClick={addSlot}
-        >
-          + слот настройки
-        </Button>
       </Stack>
     </Panel>
   )

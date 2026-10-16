@@ -1,13 +1,17 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { MinimalSheetEditor } from '../features/characters/MinimalSheetEditor'
 import { getCharacter, type CharacterDetail } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import { joinLobby } from '../shared/api/lobbies'
-import { Button, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import { Button, Dialog, Field, Input, Stack, Text, Toast } from '../ui'
 
 type LocationState = {
   toast?: string
+  /** Fresh create: nudge background → class → race path on the sheet. */
+  createGuide?: 'background-first' | 'class-first'
+  /** Create at level N (1–20); wizard covers picks up to N. */
+  startingLevel?: number
 }
 
 export function CharacterDetailPage() {
@@ -19,15 +23,25 @@ export function CharacterDetailPage() {
   const [loading, setLoading] = useState(true)
   const [remoteNotice, setRemoteNotice] = useState<number | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [lobbyOpen, setLobbyOpen] = useState(false)
   const [lobbyCode, setLobbyCode] = useState('')
+  const [lobbyError, setLobbyError] = useState<string | null>(null)
   const [joining, setJoining] = useState(false)
-  const [toast, setToast] = useState<string | null>(
-    (location.state as LocationState | null)?.toast ?? null,
+  const initialState = location.state as LocationState | null
+  const [toast, setToast] = useState<string | null>(initialState?.toast ?? null)
+  const [createGuide, setCreateGuide] = useState<'background-first' | 'class-first' | null>(
+    initialState?.createGuide ?? null,
+  )
+  const [startingLevel, setStartingLevel] = useState<number>(
+    initialState?.startingLevel && initialState.startingLevel > 1
+      ? initialState.startingLevel
+      : 1,
   )
   const closeToast = useCallback(() => setToast(null), [])
 
   useEffect(() => {
-    if ((location.state as LocationState | null)?.toast) {
+    const state = location.state as LocationState | null
+    if (state?.toast || state?.createGuide || state?.startingLevel) {
       navigate(location.pathname, { replace: true, state: null })
     }
   }, [location.pathname, location.state, navigate])
@@ -90,19 +104,26 @@ export function CharacterDetailPage() {
     }
   }
 
-  async function joinWithCode(e: FormEvent) {
-    e.preventDefault()
-    if (!character) return
+  function closeLobbyDialog() {
+    if (joining) return
+    setLobbyOpen(false)
+    setLobbyCode('')
+    setLobbyError(null)
+  }
+
+  async function joinWithCode() {
+    if (!character || !lobbyCode.trim()) return
     setJoining(true)
-    setError(null)
+    setLobbyError(null)
     try {
       const lobby = await joinLobby(lobbyCode.trim(), character.id)
       setLobbyCode('')
+      setLobbyOpen(false)
       navigate(`/lobbies/${lobby.id}`, {
         state: { toast: `${character.name} добавлен в лобби` },
       })
     } catch (err) {
-      setError(err instanceof ApiRequestError ? err.message : 'Не удалось войти в лобби')
+      setLobbyError(err instanceof ApiRequestError ? err.message : 'Не удалось войти в лобби')
     } finally {
       setJoining(false)
     }
@@ -111,37 +132,26 @@ export function CharacterDetailPage() {
   return (
     <main className="page page--app">
       <Stack gap={16}>
-        <Link className="back-link" to="/characters">
-          ← К списку персонажей
-        </Link>
-        {character ? (
-          <Link className="back-link" to={`/characters/${character.id}/classic`}>
-            Классический лист 2014
+        <div className="sheet-topbar">
+          <Link className="back-link" to="/characters">
+            ← К списку персонажей
           </Link>
-        ) : null}
+          {character ? (
+            <div className="sheet-topbar__actions">
+              <Link className="back-link" to={`/characters/${character.id}/classic`}>
+                Классический лист 2014
+              </Link>
+              <Button variant="ghost" onClick={() => setLobbyOpen(true)}>
+                В лобби
+              </Button>
+            </div>
+          ) : null}
+        </div>
 
         {loading ? <Text tone="muted">Открываем лист...</Text> : null}
         {error ? <Text tone="danger">{error}</Text> : null}
 
-        {character && character.can_edit !== false ? (
-          <Panel title="Вступить в лобби кодом">
-            <form className="inline-form" onSubmit={joinWithCode}>
-              <Field label="Код от мастера" hint="Или отсканируйте QR → /join/КОД">
-                <Input
-                  value={lobbyCode}
-                  onChange={(e) => setLobbyCode(e.target.value.toUpperCase())}
-                  placeholder="ABC123"
-                  required
-                />
-              </Field>
-              <Button type="submit" disabled={joining || !lobbyCode.trim()}>
-                {joining ? 'Добавляем…' : 'Добавить этого персонажа'}
-              </Button>
-            </form>
-          </Panel>
-        ) : null}
-
-        {remoteNotice != null && character?.can_edit !== false ? (
+        {remoteNotice != null ? (
           <div className="sheet-banner" role="status">
             <Text>
               Лист сохранён в другой вкладке (v{remoteNotice}). Локальные несохранённые правки могут
@@ -162,16 +172,45 @@ export function CharacterDetailPage() {
           <MinimalSheetEditor
             key={character.id}
             character={character}
-            readOnly={character.can_edit === false}
+            createGuide={createGuide}
+            startingLevel={startingLevel}
+            onCreateGuideConsumed={() => {
+              setCreateGuide(null)
+              setStartingLevel(1)
+            }}
             onSaved={(item) => {
               setCharacter(item)
               setRemoteNotice(null)
             }}
             onToast={setToast}
-            onRemoteSave={character.can_edit === false ? undefined : handleRemoteSave}
+            onRemoteSave={handleRemoteSave}
           />
         ) : null}
       </Stack>
+
+      <Dialog
+        open={lobbyOpen}
+        title="Вступить в лобби кодом"
+        primaryLabel={joining ? 'Добавляем…' : 'Добавить этого персонажа'}
+        secondaryLabel="Отмена"
+        onPrimary={() => void joinWithCode()}
+        onSecondary={closeLobbyDialog}
+        busy={joining}
+        primaryDisabled={!lobbyCode.trim()}
+      >
+        <Stack gap={10}>
+          <Field label="Код от мастера" hint="Или отсканируйте QR → /join/КОД">
+            <Input
+              value={lobbyCode}
+              onChange={(e) => setLobbyCode(e.target.value.toUpperCase())}
+              placeholder="ABC123"
+              autoComplete="off"
+            />
+          </Field>
+          {lobbyError ? <Text tone="danger">{lobbyError}</Text> : null}
+        </Stack>
+      </Dialog>
+
       <Toast message={toast} onClose={closeToast} />
     </main>
   )

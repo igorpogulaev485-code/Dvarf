@@ -4,16 +4,16 @@ import {
   AppHeader,
   CharacterList,
   CreateCharacterButton,
+  type CreateCharacterRequest,
 } from '../features/characters'
 import { getMe, type User } from '../shared/api/auth'
 import {
   createCharacter,
   listCharacters,
   type CharacterSummary,
-  type RulesEdition,
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
-import { Stack, Text, Toast } from '../ui'
+import { Button, Stack, Text, Toast } from '../ui'
 
 function listSubtitle(user: User | null, count: number): string {
   const who = user?.display_name || user?.login || user?.email
@@ -31,48 +31,67 @@ export function CharactersPage() {
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
   const closeToast = useCallback(() => setToast(null), [])
 
   useEffect(() => {
     let active = true
     setLoading(true)
-    Promise.all([listCharacters(), getMe().catch(() => null)])
-      .then(([items, me]) => {
-        if (!active) {
-          return
-        }
+    setError(null)
+
+    // Load profile and list independently so a list failure still shows who is logged in.
+    void getMe()
+      .then((me) => {
+        if (active) setUser(me)
+      })
+      .catch(() => {
+        if (active) setUser(null)
+      })
+
+    listCharacters()
+      .then((items) => {
+        if (!active) return
         setCharacters(items)
-        setUser(me)
       })
       .catch((err: unknown) => {
-        if (!active) {
-          return
-        }
+        if (!active) return
         if (err instanceof ApiRequestError && err.status === 401) {
           navigate('/login', { replace: true })
           return
         }
-        setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить персонажей')
+        const message =
+          err instanceof ApiRequestError
+            ? err.message
+            : err instanceof Error
+              ? err.message
+              : 'Не удалось загрузить персонажей'
+        setError(message)
         setCharacters([])
       })
       .finally(() => {
-        if (active) {
-          setLoading(false)
-        }
+        if (active) setLoading(false)
       })
+
     return () => {
       active = false
     }
-  }, [navigate])
+  }, [navigate, reloadKey])
 
-  async function handleCreate(edition: RulesEdition) {
+  async function handleCreate(request: CreateCharacterRequest) {
+    if (request.edition === '2014') {
+      navigate('/characters/create')
+      return
+    }
     setCreating(true)
     setError(null)
     try {
-      const created = await createCharacter(edition)
+      const created = await createCharacter(request.edition)
       navigate(`/characters/${created.id}`, {
-        state: { toast: 'Персонаж создан' },
+        state: {
+          toast: 'Персонаж создан — сначала предыстория, потом класс, потом раса',
+          createGuide: 'background-first',
+        },
       })
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось создать персонажа')
@@ -95,7 +114,14 @@ export function CharactersPage() {
           <CreateCharacterButton pending={creating} onCreate={handleCreate} />
         </section>
 
-        {error ? <Text tone="danger">{error}</Text> : null}
+        {error ? (
+          <Stack gap={8}>
+            <Text tone="danger">{error}</Text>
+            <Button variant="secondary" onClick={() => setReloadKey((key) => key + 1)}>
+              Повторить загрузку
+            </Button>
+          </Stack>
+        ) : null}
 
         {loading ? (
           <Text tone="muted">Загружаем персонажей...</Text>
@@ -103,6 +129,10 @@ export function CharactersPage() {
           <CharacterList
             characters={characters}
             emptyAction={<CreateCharacterButton pending={creating} onCreate={handleCreate} />}
+            onDeleted={(id) => {
+              setCharacters((prev) => prev.filter((item) => item.id !== id))
+              setToast('Персонаж удалён')
+            }}
           />
         )}
       </Stack>

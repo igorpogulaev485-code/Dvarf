@@ -1,0 +1,1170 @@
+{
+  "meta": {
+    "purpose": "PHB 2014 Fighter + all official martial archetypes for sheet unlock",
+    "edition": "2014",
+    "source": "phb+scag+xgte+tcoe+egtw+ftd",
+    "notes_ru": "Все 10 оф. архетипов. BM: кости + Relentless. Psi Warrior: пси-кости. Arcane Shot / Fighting Spirit / Giant's Might — пулы. H4b depth: martial/half-caster pools/scales/linked ki·BI."
+  },
+  "class_slug": "fighter",
+  "features": [
+    {
+      "id": "fighting_style",
+      "level": 1,
+      "name_ru": "Боевой стиль",
+      "name_en": "Fighting Style",
+      "summary_ru": "Выбери боевой стиль (см. список PHB).",
+      "kind": "passive",
+      "choice": {
+        "id": "fighting_style",
+        "label_ru": "Боевой стиль",
+        "options_from": "fighter_fighting_styles"
+      }
+    },
+    {
+      "id": "second_wind",
+      "level": 1,
+      "name_ru": "Второе дыхание",
+      "name_en": "Second Wind",
+      "summary_ru": "Бонусным действием: хиты = 1к10 + уровень воина. 1× / короткий или продолжительный отдых.",
+      "kind": "bonus",
+      "resource": {
+        "uses": 1,
+        "recharge": "short_rest",
+        "pool_id": "second_wind",
+        "pool_name_ru": "Второе дыхание",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "action_surge",
+      "level": 2,
+      "name_ru": "Всплеск действий",
+      "name_en": "Action Surge",
+      "summary_ru": "В свой ход: ещё одно действие. 1× (с 17 ур. — 2×) / короткий или продолжительный отдых.",
+      "kind": "resource",
+      "resource": {
+        "uses": 1,
+        "recharge": "short_rest",
+        "scale_uses": {
+          "2": 1,
+          "17": 2
+        },
+        "pool_id": "action_surge",
+        "pool_name_ru": "Всплеск действий",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "martial_archetype",
+      "level": 3,
+      "name_ru": "Боевой архетип",
+      "name_en": "Martial Archetype",
+      "summary_ru": "Выбери архетип воина.",
+      "kind": "passive"
+    },
+    {
+      "id": "asi_4",
+      "level": 4,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_4_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "extra_attack_1",
+      "level": 5,
+      "name_ru": "Дополнительная атака",
+      "name_en": "Extra Attack",
+      "summary_ru": "Атакой: две атаки оружием.",
+      "kind": "passive",
+      "scale": {
+        "label_ru": "Атак",
+        "by_level": {
+          "5": "2",
+          "11": "3",
+          "20": "4"
+        }
+      }
+    },
+    {
+      "id": "asi_6",
+      "level": 6,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_6_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "asi_8",
+      "level": 8,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_8_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "indomitable",
+      "level": 9,
+      "name_ru": "Непоколебимость",
+      "name_en": "Indomitable",
+      "summary_ru": "Перебрось проваленный спасбросок. 1× (13 — 2×, 17 — 3×) / продолжительный отдых.",
+      "kind": "resource",
+      "resource": {
+        "uses": 1,
+        "recharge": "long_rest",
+        "scale_uses": {
+          "9": 1,
+          "13": 2,
+          "17": 3
+        },
+        "pool_id": "indomitable",
+        "pool_name_ru": "Непоколебимость",
+        "track": "spend"
+      }
+    },
+    {
+      "id": "asi_12",
+      "level": 12,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_12_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "asi_14",
+      "level": 14,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_14_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "asi_16",
+      "level": 16,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_16_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    },
+    {
+      "id": "asi_19",
+      "level": 19,
+      "name_ru": "Увеличение характеристик",
+      "name_en": "Ability Score Improvement",
+      "summary_ru": "+2 к одной характеристике или +1 к двум (макс. 20), либо черта (скоро).",
+      "kind": "passive",
+      "choice": {
+        "id": "asi_19_mode",
+        "label_ru": "Увеличение характеристик",
+        "options": [
+          "plus2",
+          "plus1x2",
+          "feat_coming_soon"
+        ]
+      }
+    }
+  ],
+  "subclasses": {
+    "battle_master": [
+      {
+        "id": "combat_superiority",
+        "level": 3,
+        "name_ru": "Боевое превосходство",
+        "name_en": "Combat Superiority",
+        "summary_ru": "Кости превосходства + манёвры (3 на 3 ур., +2 на 7/10/15). Кости на коротком/прод. отдыхе.",
+        "kind": "resource",
+        "scale": {
+          "label_ru": "Кость / манёвры",
+          "by_level": {
+            "3": "к8",
+            "10": "к10",
+            "18": "к12"
+          }
+        },
+        "resource": {
+          "uses": 4,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "3": 4,
+            "7": 5,
+            "15": 6
+          },
+          "pool_id": "superiority_dice",
+          "pool_name_ru": "Кости превосходства",
+          "track": "spend"
+        },
+        "choice": {
+          "id": "maneuvers",
+          "label_ru": "Манёвры",
+          "options_from": "battle_master_maneuvers",
+          "max_picks_by_level": {
+            "3": 3,
+            "7": 5,
+            "10": 7,
+            "15": 9
+          }
+        }
+      },
+      {
+        "id": "student_of_war",
+        "level": 3,
+        "name_ru": "Ученик войны",
+        "name_en": "Student of War",
+        "summary_ru": "Владение одним ремесленным инструментом.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Инструмент",
+          "by_level": {
+            "3": "1 ремесленный инструмент"
+          }
+        }
+      },
+      {
+        "id": "know_your_enemy",
+        "level": 7,
+        "name_ru": "Знай своего врага",
+        "name_en": "Know Your Enemy",
+        "summary_ru": "Минута наблюдения: сравни характеристики/КД/класс с целью.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Наблюдение",
+          "by_level": {
+            "7": "1 мин. → сравнение хар-к/КД/класса"
+          }
+        }
+      },
+      {
+        "id": "improved_combat_superiority",
+        "level": 10,
+        "name_ru": "Улучшенное превосходство",
+        "name_en": "Improved Combat Superiority",
+        "summary_ru": "Кость превосходства становится к10 (на 18 ур. — к12).",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Кость",
+          "by_level": {
+            "10": "к10",
+            "18": "к12"
+          }
+        }
+      },
+      {
+        "id": "relentless",
+        "level": 15,
+        "name_ru": "Неутомимый",
+        "name_en": "Relentless",
+        "summary_ru": "В начале боя при 0 костей превосходства получаешь 1.",
+        "kind": "passive",
+        "resource": {
+          "uses": 4,
+          "recharge": "short_rest",
+          "scale_uses": {
+            "3": 4,
+            "7": 5,
+            "15": 6
+          },
+          "pool_id": "superiority_dice",
+          "pool_name_ru": "Кости превосходства",
+          "track": "spend",
+          "grant_one_on_initiative_if_empty": true
+        }
+      }
+    ],
+    "champion": [
+      {
+        "id": "improved_critical",
+        "level": 3,
+        "name_ru": "Улучшенный критический удар",
+        "name_en": "Improved Critical",
+        "summary_ru": "Твои атаки оружием считают критическим попаданием при броске 19 или 20.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Крит. диапазон",
+          "by_level": {
+            "3": "19–20",
+            "15": "18–20 (Superior Critical)"
+          }
+        }
+      },
+      {
+        "id": "remarkable_athlete",
+        "level": 7,
+        "name_ru": "Выдающийся атлет",
+        "name_en": "Remarkable Athlete",
+        "summary_ru": "К проверкам Силы, Ловкости и Телосложения без владения добавляй половину бонуса мастерства. Прыжок в длину с разбега +футы = мод. Силы.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Бонус",
+          "by_level": {
+            "7": "+½ БМ к Сил./Ловк./Тел. без владения; прыжок +Сил. фт."
+          }
+        }
+      },
+      {
+        "id": "additional_fighting_style",
+        "level": 10,
+        "name_ru": "Доп. боевой стиль",
+        "name_en": "Additional Fighting Style",
+        "summary_ru": "Выбери второй боевой стиль из списка воина (не тот же, что уже есть).",
+        "kind": "passive",
+        "choice": {
+          "id": "fighting_style_2",
+          "label_ru": "Второй боевой стиль",
+          "options_from": "fighter_fighting_styles"
+        }
+      },
+      {
+        "id": "superior_critical",
+        "level": 15,
+        "name_ru": "Превосходный критический удар",
+        "name_en": "Superior Critical",
+        "summary_ru": "Твои атаки оружием считают критическим попаданием при броске 18–20.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Крит. диапазон",
+          "by_level": {
+            "15": "18–20"
+          }
+        }
+      },
+      {
+        "id": "survivor",
+        "level": 18,
+        "name_ru": "Выживший",
+        "name_en": "Survivor",
+        "summary_ru": "В начале своего хода, если хиты ≤ половины максимума и ты не при 0: восстанавливаешь 5 + мод. Телосложения хитов.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Реген в начале хода",
+          "by_level": {
+            "18": "5 + мод. Тел. (если ≤½ хитов)"
+          }
+        }
+      }
+    ],
+    "eldritch_knight": [
+      {
+        "id": "spellcasting_ek",
+        "level": 3,
+        "name_ru": "Использование заклинаний",
+        "name_en": "Spellcasting",
+        "summary_ru": "Треть кастера (таблица EK). Интеллект — базовая. Минимум две школы — ограждение и воплощение; 1 «любая» школа на определённых уровнях.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Прогрессия",
+          "by_level": {
+            "3": "⅓ кастер (таблица EK); Int; ограждение+воплощение"
+          }
+        }
+      },
+      {
+        "id": "weapon_bond",
+        "level": 3,
+        "name_ru": "Связь с оружием",
+        "name_en": "Weapon Bond",
+        "summary_ru": "Ритуал 1 ч. с оружием: связь (до двух единиц). Бонусным призвать связанное оружие в руку; нельзя обезоружить против воли.",
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Связанного оружия",
+          "by_level": {
+            "3": "до 2"
+          }
+        },
+        "resource": {
+          "uses": 2,
+          "recharge": "manual",
+          "pool_id": "weapon_bond",
+          "pool_name_ru": "Связь с оружием",
+          "track": "stock",
+          "stock_gain_label_ru": "+ связь (ритуал 1 ч.)",
+          "stock_spend_label_ru": "Снять связь"
+        }
+      },
+      {
+        "id": "war_magic_ek",
+        "level": 7,
+        "name_ru": "Боевая магия",
+        "name_en": "War Magic",
+        "summary_ru": "После заговора действием — бонусная атака оружием.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Связка",
+          "by_level": {
+            "7": "заговор действием → бонусная атака оружием"
+          }
+        }
+      },
+      {
+        "id": "eldritch_strike",
+        "level": 10,
+        "name_ru": "Мистический удар",
+        "name_en": "Eldritch Strike",
+        "summary_ru": "При попадании оружием: цель с помехой на след. спас vs твоего заклинания до конца твоего след. хода.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Эффект",
+          "by_level": {
+            "10": "помеха на след. спас vs твоего заклинания"
+          }
+        }
+      },
+      {
+        "id": "arcane_charge",
+        "level": 15,
+        "name_ru": "Магический рывок",
+        "name_en": "Arcane Charge",
+        "summary_ru": "При Action Surge можешь телепортироваться до 30 фт. до или после доп. действия.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Телепорт при Action Surge",
+          "by_level": {
+            "15": "до 30 фт."
+          }
+        }
+      },
+      {
+        "id": "improved_war_magic",
+        "level": 18,
+        "name_ru": "Улучшенная боевая магия",
+        "name_en": "Improved War Magic",
+        "summary_ru": "После заклинания ≥1 ур. действием — бонусная атака оружием.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Связка",
+          "by_level": {
+            "18": "заклинание ≥1 ур. → бонусная атака оружием"
+          }
+        }
+      }
+    ],
+    "purple_dragon_knight": [
+      {
+        "id": "rallying_cry",
+        "level": 3,
+        "name_ru": "Воодушевляющий клич",
+        "name_en": "Rallying Cry",
+        "summary_ru": "Когда используешь Second Wind: до трёх союзников в 60 фт. восстанавливают хиты = твой уровень воина.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Лечение союзников",
+          "by_level": {
+            "3": "ур. воина"
+          }
+        }
+      },
+      {
+        "id": "royal_envoy",
+        "level": 7,
+        "name_ru": "Королевский посланник",
+        "name_en": "Royal Envoy",
+        "summary_ru": "Владение Убеждением (или другим навыком, если уже есть); компетентность в Убеждении.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Убеждение",
+          "by_level": {
+            "7": "владение (или другой навык) + компетентность"
+          }
+        }
+      },
+      {
+        "id": "inspiring_surge",
+        "level": 10,
+        "name_ru": "Воодушевляющий всплеск",
+        "name_en": "Inspiring Surge",
+        "summary_ru": "При Action Surge выбери союзника в 60 фт.: он может реакцией сделать одну атаку оружием. На 18 ур. — два союзника.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Союзников",
+          "by_level": {
+            "10": "1",
+            "18": "2"
+          }
+        }
+      },
+      {
+        "id": "bulwark",
+        "level": 15,
+        "name_ru": "Оплот",
+        "name_en": "Bulwark",
+        "summary_ru": "При Indomitable на спас Интеллекта/Мудр./Хар.: союзник в 60 фт. тоже может перебросить свой спас той же хар-ки.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Indomitable Int/Wis/Cha",
+          "by_level": {
+            "15": "союзник в 60 фт. тоже перебрасывает"
+          }
+        }
+      }
+    ],
+    "arcane_archer": [
+      {
+        "id": "arcane_archer_lore",
+        "level": 3,
+        "name_ru": "Знания мистического лучника",
+        "name_en": "Arcane Archer Lore",
+        "summary_ru": "Владение Природой или Магией; заговор prestidigitation или druidcraft.",
+        "kind": "passive",
+        "choice": {
+          "id": "arcane_archer_skill",
+          "label_ru": "Навык",
+          "options": [
+            "nature",
+            "arcana"
+          ]
+        },
+        "scale": {
+          "label_ru": "Заговор",
+          "by_level": {
+            "3": "prestidigitation или druidcraft"
+          }
+        }
+      },
+      {
+        "id": "arcane_shot",
+        "level": 3,
+        "name_ru": "Мистический выстрел",
+        "name_en": "Arcane Shot",
+        "summary_ru": "При попадании/промахе дальнобойным: применить выстрел (2 известных; больше на 7/10/15/18). 2× / короткий или прод. отдых.",
+        "kind": "passive",
+        "resource": {
+          "uses": 2,
+          "recharge": "short_rest",
+          "pool_id": "arcane_shot",
+          "pool_name_ru": "Мистический выстрел",
+          "track": "spend"
+        },
+        "scale": {
+          "label_ru": "Известно выстрелов",
+          "by_level": {
+            "3": "2",
+            "7": "3",
+            "10": "4",
+            "15": "5",
+            "18": "6"
+          }
+        }
+      },
+      {
+        "id": "magic_arrow",
+        "level": 7,
+        "name_ru": "Магическая стрела",
+        "name_en": "Magic Arrow",
+        "summary_ru": "Немагические боеприпасы дальнобойного оружия считаются магическими vs сопротивление/иммунитет.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Боеприпасы",
+          "by_level": {
+            "7": "немагические считаются магическими"
+          }
+        }
+      },
+      {
+        "id": "curving_shot",
+        "level": 7,
+        "name_ru": "Кривой выстрел",
+        "name_en": "Curving Shot",
+        "summary_ru": "При промахе дальнобойным: бонусным направить тот же боеприпас на другое существо в 60 фт. от цели (новый бросок).",
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "При промахе",
+          "by_level": {
+            "7": "бонусным → другая цель в 60 фт. от первой"
+          }
+        }
+      },
+      {
+        "id": "ever_ready_shot",
+        "level": 15,
+        "name_ru": "Всегда готовый выстрел",
+        "name_en": "Ever-Ready Shot",
+        "summary_ru": "В начале боя при 0 использований Arcane Shot — восстанавливаешь 1.",
+        "kind": "passive",
+        "resource": {
+          "uses": 2,
+          "recharge": "short_rest",
+          "pool_id": "arcane_shot",
+          "pool_name_ru": "Мистический выстрел",
+          "track": "spend",
+          "grant_one_on_initiative_if_empty": true
+        }
+      }
+    ],
+    "cavalier": [
+      {
+        "id": "bonus_proficiency_cavalier",
+        "level": 3,
+        "name_ru": "Доп. владение",
+        "name_en": "Bonus Proficiency",
+        "summary_ru": "Навык (Животноводство/История/Проницательность/Выступление/Убеждение) или стиль Unarmed Fighting; + язык.",
+        "kind": "passive",
+        "choice": {
+          "id": "cavalier_bonus",
+          "label_ru": "Навык или Unarmed Fighting",
+          "options": [
+            "animal_handling",
+            "history",
+            "insight",
+            "performance",
+            "persuasion",
+            "unarmed_fighting"
+          ]
+        }
+      },
+      {
+        "id": "born_to_the_saddle",
+        "level": 3,
+        "name_ru": "Рождённый в седле",
+        "name_en": "Born to the Saddle",
+        "summary_ru": "Преимущество vs спешивания; приземление с падения ≤10 фт. с маунта — 0 урона; маунт с тобой встаёт с ½ стоимости.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Маунт",
+          "by_level": {
+            "3": "преим. vs спешивания; падение ≤10 фт. = 0"
+          }
+        }
+      },
+      {
+        "id": "unwavering_mark",
+        "level": 3,
+        "name_ru": "Непоколебимая метка",
+        "name_en": "Unwavering Mark",
+        "summary_ru": "При попадании рукопашным отметь цель до конца твоего след. хода: помеха атаковать не тебя; если бьёт другого в 5 фт. — реакция атака с бонусом. PB раз / прод. отдых (бонусный урон).",
+        "kind": "reaction",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "unwavering_mark",
+          "pool_name_ru": "Непоколебимая метка",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "warding_maneuver",
+        "level": 7,
+        "name_ru": "Охраняющий манёвр",
+        "name_en": "Warding Maneuver",
+        "summary_ru": "Реакция: ты/союзник в 5 фт. атакован — +1к8 к КД; при всё же попадании — сопротивление урону. PB раз / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "warding_maneuver",
+          "pool_name_ru": "Охраняющий манёвр",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "hold_the_line",
+        "level": 10,
+        "name_ru": "Держать строй",
+        "name_en": "Hold the Line",
+        "summary_ru": "Существа провоцируют при выходе из досягаемости; при попадании провокацией скорость цели = 0 до конца хода.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Провокация",
+          "by_level": {
+            "10": "выход из досягаемости; скорость 0 при попадании"
+          }
+        }
+      },
+      {
+        "id": "ferocious_charger",
+        "level": 15,
+        "name_ru": "Свирепый наездник",
+        "name_en": "Ferocious Charger",
+        "summary_ru": "Если переместился ≥10 фт. к цели и попал рукопашным: бонусным сбить с ног (спас Сил.).",
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Сбить",
+          "by_level": {
+            "15": "после ≥10 фт. сближения — бонусным спас Сил."
+          }
+        }
+      },
+      {
+        "id": "vigilant_defender",
+        "level": 18,
+        "name_ru": "Бдительный защитник",
+        "name_en": "Vigilant Defender",
+        "summary_ru": "Неограниченные реакции на атаки Opportunity (кроме своего хода).",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Реакции",
+          "by_level": {
+            "18": "неограниченные Opportunity (не в свой ход)"
+          }
+        }
+      }
+    ],
+    "samurai": [
+      {
+        "id": "bonus_proficiency_samurai",
+        "level": 3,
+        "name_ru": "Доп. владение",
+        "name_en": "Bonus Proficiency",
+        "summary_ru": "Навык (История/Проницательность/Выступление/Убеждение) + язык.",
+        "kind": "passive",
+        "choice": {
+          "id": "samurai_skill",
+          "label_ru": "Навык",
+          "options": [
+            "history",
+            "insight",
+            "performance",
+            "persuasion"
+          ]
+        },
+        "scale": {
+          "label_ru": "Язык",
+          "by_level": {
+            "3": "+1 язык"
+          }
+        }
+      },
+      {
+        "id": "fighting_spirit",
+        "level": 3,
+        "name_ru": "Боевой дух",
+        "name_en": "Fighting Spirit",
+        "summary_ru": "Бонусным: преимущество на атаки оружия до конца хода + вр. хиты (5 → 10@10 → 15@15). 3× / прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 3,
+          "recharge": "long_rest",
+          "pool_id": "fighting_spirit",
+          "pool_name_ru": "Боевой дух",
+          "track": "spend"
+        },
+        "scale": {
+          "label_ru": "Вр. хиты",
+          "by_level": {
+            "3": "5",
+            "10": "10",
+            "15": "15"
+          }
+        }
+      },
+      {
+        "id": "elegant_courtier",
+        "level": 7,
+        "name_ru": "Изящный придворный",
+        "name_en": "Elegant Courtier",
+        "summary_ru": "+мод. Мудр. к Убеждению; владение спас Мудр. (или спас Инт/Хар., если уже есть).",
+        "kind": "passive",
+        "choice": {
+          "id": "elegant_courtier_save",
+          "label_ru": "Спас (если Мудр. уже есть)",
+          "options": [
+            "wisdom",
+            "intelligence",
+            "charisma"
+          ]
+        },
+        "scale": {
+          "label_ru": "Убеждение",
+          "by_level": {
+            "7": "+мод. Мудр."
+          }
+        }
+      },
+      {
+        "id": "tireless_spirit",
+        "level": 10,
+        "name_ru": "Неутомимый дух",
+        "name_en": "Tireless Spirit",
+        "summary_ru": "В начале боя при 0 Fighting Spirit — восстанавливаешь 1.",
+        "kind": "passive",
+        "resource": {
+          "uses": 3,
+          "recharge": "long_rest",
+          "pool_id": "fighting_spirit",
+          "pool_name_ru": "Боевой дух",
+          "track": "spend",
+          "grant_one_on_initiative_if_empty": true
+        }
+      },
+      {
+        "id": "rapid_strike",
+        "level": 15,
+        "name_ru": "Стремительный удар",
+        "name_en": "Rapid Strike",
+        "summary_ru": "При преимуществе на атаку оружием в свой ход: отказаться от преимущества → доп. атака этим оружием (1× / ход).",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "При преимуществе на атаку оружием",
+          "by_level": {
+            "15": "отказаться → доп. атака этим оружием"
+          }
+        }
+      },
+      {
+        "id": "strength_before_death",
+        "level": 18,
+        "name_ru": "Сила перед смертью",
+        "name_en": "Strength before Death",
+        "summary_ru": "Реакция при сбросе до 0 хитов: отложить падение, ходить на 0; при уроне — спас смертью. 1× / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "strength_before_death",
+          "pool_name_ru": "Сила перед смертью",
+          "track": "spend"
+        }
+      }
+    ],
+    "echo_knight": [
+      {
+        "id": "manifest_echo",
+        "level": 3,
+        "name_ru": "Проявить эхо",
+        "name_en": "Manifest Echo",
+        "summary_ru": "Бонусным: создать эхо в 15 фт. Атаки через эхо; бонусным переместить/телепорт с обменом.",
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Эхо",
+          "by_level": {
+            "3": "бонусным в 15 фт.; атаки/перемещение/обмен"
+          }
+        }
+      },
+      {
+        "id": "unleash_incarnation",
+        "level": 3,
+        "name_ru": "Высвободить воплощение",
+        "name_en": "Unleash Incarnation",
+        "summary_ru": "При действии Атака: доп. атака из пространства эха. PB раз / прод. отдых.",
+        "kind": "passive",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "unleash_incarnation",
+          "pool_name_ru": "Высвободить воплощение",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "echo_avatar",
+        "level": 7,
+        "name_ru": "Аватар эха",
+        "name_en": "Echo Avatar",
+        "summary_ru": "Действием: на 10 мин. видеть/слышать через эхо в 1000 фт.; бонусным приказывать ему двигаться.",
+        "kind": "action",
+        "scale": {
+          "label_ru": "Действием",
+          "by_level": {
+            "7": "10 мин. видеть через эхо ≤1000 фт."
+          }
+        }
+      },
+      {
+        "id": "shadow_martyr",
+        "level": 10,
+        "name_ru": "Теневой мученик",
+        "name_en": "Shadow Martyr",
+        "summary_ru": "Реакция при атаке по существу в 30 фт.: телепорт эха, атака по эху. 1× / короткий или прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 1,
+          "recharge": "short_rest",
+          "pool_id": "shadow_martyr",
+          "pool_name_ru": "Теневой мученик",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "reclaim_potential",
+        "level": 15,
+        "name_ru": "Вернуть потенциал",
+        "name_en": "Reclaim Potential",
+        "summary_ru": "Когда эхо уничтожено уроном: вр. хиты = 2к6 + Тел (если нет вр. хитов).",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Эхо уничтожено",
+          "by_level": {
+            "15": "вр. хиты 2к6 + Тел."
+          }
+        }
+      },
+      {
+        "id": "legion_of_one",
+        "level": 18,
+        "name_ru": "Легион одного",
+        "name_en": "Legion of One",
+        "summary_ru": "Два эха сразу. В начале боя при 0 Unleash Incarnation — восстанавливаешь 1.",
+        "kind": "passive",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "unleash_incarnation",
+          "pool_name_ru": "Высвободить воплощение",
+          "track": "spend",
+          "grant_one_on_initiative_if_empty": true
+        }
+      }
+    ],
+    "psi_warrior": [
+      {
+        "id": "psionic_power",
+        "level": 3,
+        "name_ru": "Псионическая сила",
+        "name_en": "Psionic Power",
+        "summary_ru": "Пси-кости (число = 2×PB, кость d6→d12). Protective Field / Psionic Strike / Telekinetic Movement. 1 кость восстанавливается бонусным 1× / короткий (кроме полного сброса на long).",
+        "kind": "resource",
+        "scale": {
+          "label_ru": "Кость",
+          "by_level": {
+            "3": "к6",
+            "5": "к8",
+            "11": "к10",
+            "17": "к12"
+          }
+        },
+        "resource": {
+          "uses": 4,
+          "uses_from": "twice_proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "psionic_energy",
+          "pool_name_ru": "Пси-энергия",
+          "track": "spend",
+          "recover_one": {
+            "label_ru": "Вернуть 1 кость (бонусное)",
+            "recharge": "short_rest"
+          }
+        }
+      },
+      {
+        "id": "telekinetic_adept",
+        "level": 7,
+        "name_ru": "Телекинетический адепт",
+        "name_en": "Telekinetic Adept",
+        "summary_ru": "Psi-Powered Leap (без кости, 1× short). Telekinetic Thrust: при Psionic Strike — спас Сил. или сбить/толкнуть 10 фт.",
+        "kind": "bonus",
+        "scale": {
+          "label_ru": "Psi-powered Leap / Telekinetic Thrust",
+          "by_level": {
+            "7": "за пси-энергию"
+          }
+        }
+      },
+      {
+        "id": "guarded_mind",
+        "level": 10,
+        "name_ru": "Охраняемый разум",
+        "name_en": "Guarded Mind",
+        "summary_ru": "Сопр. психическому; действием потратить кость — снять очарование/испуг.",
+        "kind": "action",
+        "scale": {
+          "label_ru": "Разум",
+          "by_level": {
+            "10": "преим. vs очарования; снять очарование/испуг за кость"
+          }
+        }
+      },
+      {
+        "id": "bulwark_of_force",
+        "level": 15,
+        "name_ru": "Оплот силы",
+        "name_en": "Bulwark of Force",
+        "summary_ru": "Бонусным: ¾ укрытие себе и выбранным в 30 фт. на 1 мин. 1× / прод. отдых (или пси-кость).",
+        "kind": "bonus",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "bulwark_of_force",
+          "pool_name_ru": "Оплот силы",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "telekinetic_master",
+        "level": 18,
+        "name_ru": "Мастер телекинеза",
+        "name_en": "Telekinetic Master",
+        "summary_ru": "Бесплатный telekinesis (Инт); концентрация. При поддержании — атака оружием бонусным. 1× / прод. (или пси-кость).",
+        "kind": "action",
+        "resource": {
+          "uses": 1,
+          "recharge": "long_rest",
+          "pool_id": "telekinetic_master",
+          "pool_name_ru": "Мастер телекинеза",
+          "track": "spend"
+        }
+      }
+    ],
+    "rune_knight": [
+      {
+        "id": "bonus_proficiencies_rune",
+        "level": 3,
+        "name_ru": "Доп. владения",
+        "name_en": "Bonus Proficiencies",
+        "summary_ru": "Инструменты кузнеца; язык великанов.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Владения",
+          "by_level": {
+            "3": "кузнец; язык великанов"
+          }
+        }
+      },
+      {
+        "id": "rune_carver",
+        "level": 3,
+        "name_ru": "Резчик рун",
+        "name_en": "Rune Carver",
+        "summary_ru": "Известно рун: 2 (3@7, 4@10, 5@15). Инфузируй предметы; вызови свойство. Сброс свойств на коротком/прод.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Рун",
+          "by_level": {
+            "3": "2",
+            "7": "3",
+            "10": "4",
+            "15": "5"
+          }
+        }
+      },
+      {
+        "id": "giants_might",
+        "level": 3,
+        "name_ru": "Мощь великана",
+        "name_en": "Giant's Might",
+        "summary_ru": "Бонусным: Large (если есть место) 1 мин.; преимущество Сил.; +1к6 урона 1×/ход оружием/безоружным (1к8@10, 1к10@18). PB раз / прод. отдых.",
+        "kind": "bonus",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "giants_might",
+          "pool_name_ru": "Мощь великана",
+          "track": "spend"
+        },
+        "scale": {
+          "label_ru": "Доп. урон",
+          "by_level": {
+            "3": "1к6",
+            "10": "1к8",
+            "18": "1к10"
+          }
+        }
+      },
+      {
+        "id": "runic_shield",
+        "level": 7,
+        "name_ru": "Рунный щит",
+        "name_en": "Runic Shield",
+        "summary_ru": "Реакция: существо в 60 фт. попали — заставить перебросить. PB раз / прод. отдых.",
+        "kind": "reaction",
+        "resource": {
+          "uses": 2,
+          "uses_from": "proficiency_bonus",
+          "recharge": "long_rest",
+          "pool_id": "runic_shield",
+          "pool_name_ru": "Рунный щит",
+          "track": "spend"
+        }
+      },
+      {
+        "id": "great_stature",
+        "level": 10,
+        "name_ru": "Великий рост",
+        "name_en": "Great Stature",
+        "summary_ru": "+3д10 хитов; в Giant's Might рост +10 фт. (Huge если место); доп. урон кости растёт.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Хиты / размер",
+          "by_level": {
+            "10": "+3к10 хитов; Giant's Might Huge; урон кости растёт"
+          }
+        }
+      },
+      {
+        "id": "master_of_runes",
+        "level": 15,
+        "name_ru": "Мастер рун",
+        "name_en": "Master of Runes",
+        "summary_ru": "Каждую руну можно вызвать 2× / короткий или прод. отдых.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Вызов руны",
+          "by_level": {
+            "15": "2× / короткий или прод. отдых каждая"
+          }
+        }
+      },
+      {
+        "id": "runic_juggernaut",
+        "level": 18,
+        "name_ru": "Рунный джаггернаут",
+        "name_en": "Runic Juggernaut",
+        "summary_ru": "Giant's Might: Huge (+10 фт. ещё); доп. урон 1к10.",
+        "kind": "passive",
+        "scale": {
+          "label_ru": "Giant's Might",
+          "by_level": {
+            "18": "Huge +10 фт.; доп. урон 1к10"
+          }
+        }
+      }
+    ]
+  }
+}

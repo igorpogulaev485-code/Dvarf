@@ -15,15 +15,55 @@ type CatalogComboboxProps = {
   value: string
   placeholder?: string
   disabled?: boolean
+  /** Limit list to children of this catalog parent (e.g. subclasses of a class). */
+  parentId?: string | null
   optionLabel?: (entry: CatalogEntry) => string
+  /** Keep only matching catalog rows in the dropdown. */
+  filterEntry?: (entry: CatalogEntry) => boolean
   onChange: (value: string, selected: CatalogEntry | null) => void
 }
 
 function kindLabel(kind: CatalogKind): string {
   if (kind === 'weapon') return 'оружие'
   if (kind === 'item') return 'артефакт'
-  if (kind === 'bestiary') return 'бестиарий'
   return kind
+}
+
+/**
+ * Prefer the requested rules edition; collapse same-name rows across editions
+ * (e.g. class «Плут» 2014 + 2024) so the dropdown never shows twins.
+ */
+function dedupeCatalogEntries(
+  entries: CatalogEntry[],
+  edition: RulesEdition,
+): CatalogEntry[] {
+  const bySlug = new Map<string, CatalogEntry>()
+  for (const item of entries) {
+    const key = `${item.kind}:${item.slug}`
+    const prev = bySlug.get(key)
+    if (!prev) {
+      bySlug.set(key, item)
+      continue
+    }
+    const prevExact = prev.rules_edition === edition
+    const nextExact = item.rules_edition === edition
+    if (nextExact && !prevExact) bySlug.set(key, item)
+  }
+
+  const byName = new Map<string, CatalogEntry>()
+  for (const item of bySlug.values()) {
+    const key = `${item.kind}:${item.name_ru.trim().toLowerCase()}`
+    const prev = byName.get(key)
+    if (!prev) {
+      byName.set(key, item)
+      continue
+    }
+    const prevExact = prev.rules_edition === edition
+    const nextExact = item.rules_edition === edition
+    if (nextExact && !prevExact) byName.set(key, item)
+  }
+
+  return [...byName.values()]
 }
 
 export function CatalogCombobox({
@@ -34,7 +74,9 @@ export function CatalogCombobox({
   value,
   placeholder,
   disabled,
+  parentId,
   optionLabel,
+  filterEntry,
   onChange,
 }: CatalogComboboxProps) {
   const [options, setOptions] = useState<ComboboxOption[]>([])
@@ -57,12 +99,20 @@ export function CatalogCombobox({
       setLoading(true)
       Promise.all(
         resolvedKinds.map((entryKind) =>
-          listCatalogEntries({ kind: entryKind, edition, q: query || undefined }),
+          listCatalogEntries({
+            kind: entryKind,
+            edition,
+            q: query || undefined,
+            parentId: parentId || undefined,
+          }),
         ),
       )
         .then((groups) => {
           if (!active) return
-          const items = groups.flat().sort((a, b) => {
+          const filtered = groups
+            .flat()
+            .filter((item) => (filterEntry ? filterEntry(item) : true))
+          const items = dedupeCatalogEntries(filtered, edition).sort((a, b) => {
             if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
             return a.name_ru.localeCompare(b.name_ru, 'ru')
           })
@@ -92,7 +142,7 @@ export function CatalogCombobox({
       active = false
       window.clearTimeout(timer)
     }
-  }, [edition, optionLabel, query, resolvedKinds])
+  }, [edition, filterEntry, optionLabel, parentId, query, resolvedKinds])
 
   return (
     <Combobox

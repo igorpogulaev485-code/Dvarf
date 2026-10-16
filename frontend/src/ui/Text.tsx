@@ -5,6 +5,7 @@ type TextProps = {
   as?: 'p' | 'span' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5'
   tone?: 'default' | 'muted' | 'danger' | 'success'
   className?: string
+  title?: string
 }
 
 export function Text({
@@ -12,8 +13,9 @@ export function Text({
   as: Tag = 'p',
   tone = 'default',
   className = '',
+  title,
 }: TextProps) {
   return (
-    <Tag className={`ui-text ui-text--${tone} ${className}`.trim()}>{children}</Tag>
+    <Tag className={`ui-text ui-text--${tone} ${className}`.trim()} title={title}>{children}</Tag>
   )
 }

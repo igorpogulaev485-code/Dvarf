@@ -6,9 +6,10 @@ import { CharacterCard } from './CharacterCard'
 type CharacterListProps = {
   characters: CharacterSummary[]
   emptyAction?: ReactNode
+  onDeleted?: (id: string) => void
 }
 
-export function CharacterList({ characters, emptyAction }: CharacterListProps) {
+export function CharacterList({ characters, emptyAction, onDeleted }: CharacterListProps) {
   if (!characters.length) {
     return (
       <EmptyState
@@ -22,7 +23,11 @@ export function CharacterList({ characters, emptyAction }: CharacterListProps) {
   return (
     <div className="character-grid">
       {characters.map((character) => (
-        <CharacterCard key={character.id} character={character} />
+        <CharacterCard
+          key={character.id}
+          character={character}
+          onDeleted={onDeleted}
+        />
       ))}
     </div>
   )
