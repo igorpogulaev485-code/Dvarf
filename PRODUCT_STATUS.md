@@ -304,3 +304,16 @@
 | 2026-10-16 | `cursor/setting-artifacts-d1-bacd` · PR #192 | hotfix: вернули Wave A Play Desk + тему кабинета (затёрлись линией B3–C4/D1) |
 | 2026-10-16 | `cursor/setting-artifacts-d1-bacd` · PR #192 | hotfix: вернули полный лист с `forms-adapt-tip` (прыжки, история бросков, дикий облик, гримуар) |
 | 2026-10-16 | `cursor/setting-artifacts-d1-bacd` · PR #192 | сиды `backend/data` + `preflight-live`/`prod-tip`/`remote-up`; orphan alembic → archive |
+| 2026-10-16 | `cursor/setting-artifacts-d1-bacd` · PR #192 | hotfix: CSS хаба лобби A1→D1 + UI Kit LOCK в preflight/AGENTS (состав снова сетка карточек) |
+
+### 2026-10-16 — хаб лобби: CSS LOCK после overwrite
+
+После restore `index.css` с forms-adapt пропали стили состава/табов/стола/вики (карточки стали «голым» списком).
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Состав кампании | сетка `.lobby-member-grid` + карточки с HP-полоской | как на скринах A1 (~8 игроков) |
+| Табы хаба | active = solid accent | «Состав» и др. снова pill-китом |
+| Anti-overwrite UI | preflight требует маркеры CSS + §2q в ui-kit | следующий агент не затрёт кит checkout’ом CSS |
+
+На проде: **после этого деплоя** · ветка `cursor/setting-artifacts-d1-bacd` · PR #192

@@ -369,6 +369,25 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | **Классический бланк** | отдельный print-трек |
 | **Теги списка** | sync на аккаунт (сейчас localStorage) |
 
+## 2q. Хаб лобби (A1) — LOCK
+
+> **LOCK (Lobby Hub A1):** зафиксировано с Игорем 2026-10-15 (превью 8 игроков + скрины a1-roster).  
+> **Инцидент 2026-10-16:** `index.css` от forms-adapt затёр блок A1→D1 — состав «поехал» (вертикальный список без карточек/табов).  
+> Блок CSS помечен `UI KIT LOCK — Lobby Hub` в `frontend/src/index.css`. **Не удалять и не «упрощать»** без ok Игоря + обновления этого § и preflight.
+
+| Компонент | Правило |
+|-----------|---------|
+| Табы | `.lobby-hub-tabs` sticky; `.lobby-hub-tab` pill; **active = solid `--accent` + белый текст** |
+| Состав | `.lobby-member-grid` → 1→2→3→4 колонки (640 / 1000 / 1280); ориентир **~8**, запас до 10 |
+| Карточка | `.lobby-member-card`: HP-полоска сверху (ok/warn/down) · аватар-инициал · имя · ур./раса/класс · HP · «Лист/Смотреть» + «Убрать» |
+| Ширина хаба | `.page.page--lobby-hub` расширяется media (1120→1560), не узкий 720 на desktop |
+| Код комнаты | `.lobby-hub-code__value` mono, accent, копируется кликом |
+| Доска / эталон | `boards/dvarf-ui-kit-lobbies.jpg` · артефакты `a1-roster-*-desktop.png` |
+
+Связанные блоки в том же LOCK-хвосте CSS (тоже священны): Session A2–A3, Journal A4, Chats A5, Notes A6, бой B1–B8, вики C1–C4, артефакты D1 (`.setting-wiki*`, `.setting-artifact*`).
+
+**Статус:** Идеал / LOCK.
+
 ### 6b. Логика прода священна
 
 Пиксельный restyle = CSS / className / обёртки.  

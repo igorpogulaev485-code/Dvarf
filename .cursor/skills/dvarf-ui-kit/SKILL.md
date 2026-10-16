@@ -33,6 +33,9 @@ description: Canonical Dvarf frontend UI kit contract — tokens, 6 account them
 
 Live-эталоны уже в продукте: **Inventory / Attacks / Texts** — равняться на них + доски.
 
+**Lobby Hub A1 LOCK** (`docs/ui-kit/README.md` §2q): сетка `.lobby-member-grid`, pill-табы `.lobby-hub-tab.is-active`, карточки `.lobby-member-card`.  
+CSS-хвост в `frontend/src/index.css` помечен `UI KIT LOCK — Lobby Hub` (A1→D1). **Запрещено** подменять весь `index.css` с другой ветки — только merge классов. Preflight падает без этих маркеров.
+
 ---
 
 ## Порядок внедрения UI

@@ -72,6 +72,7 @@ git merge origin/<live-prod-tip>
 | Tip file | `deploy/prod-tip` (совпадает с AGENTS) |
 | Wave A identity | `IdentityDialog.tsx` + wiring; **нет** `label: 'ЕЩЁ'` |
 | Wave B theme | `shared/theme/accountAppearance.ts` |
+| UI Kit CSS LOCK | `index.css` содержит `UI KIT LOCK — Lobby Hub` + `.lobby-member-grid` + `.setting-wiki` |
 
 `deploy/preflight-live.sh` — до затирания сервера:
 

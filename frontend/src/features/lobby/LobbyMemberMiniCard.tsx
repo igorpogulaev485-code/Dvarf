@@ -29,7 +29,7 @@ export function LobbyMemberMiniCard({
     .filter(Boolean)
     .join(' · ')
   const tone = hpTone(member.hp_current, member.hp_max)
-  const initial = (member.character_name.trim().charAt(0) || '?').toUpperCase()
+  const initial = ((member.character_name ?? '').trim().charAt(0) || '?').toUpperCase()
 
   return (
     <article className="lobby-member-card">

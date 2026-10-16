@@ -200,6 +200,31 @@ input {
   border-color: var(--danger);
 }
 
+a.ui-button,
+a.ui-button:hover,
+a.ui-button:visited {
+  text-decoration: none;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  line-height: 1.25;
+  min-height: 44px;
+}
+
+a.ui-button--ghost {
+  color: var(--ink);
+}
+
+a.ui-button--secondary {
+  color: var(--accent);
+}
+
+a.ui-button--primary {
+  color: #f8fffb;
+}
+
 .ui-button {
   border: 1px solid transparent;
   border-radius: 12px;
@@ -11313,4 +11338,2261 @@ button.play-desk-compact__more--btn:hover {
     min-height: 48px;
     text-decoration: none;
   }
+}
+
+/* =============================================================================
+ * UI KIT LOCK — Lobby Hub A1 → Session A–B → Setting C–D1 (DO NOT DELETE)
+ * Source of truth: docs/ui-kit/README.md §2q + AGENTS.md §8
+ * Restored from tip commit 02dafe9 after forms-adapt index.css overwrite.
+ * Preflight greps for: lobby-member-grid, lobby-hub-tab.is-active, setting-wiki
+ * ============================================================================= */
+/* —— Lobby hub (A1) —— */
+.page.page--lobby-hub {
+  width: min(100% - 20px, 720px);
+  max-width: none;
+}
+
+.lobby-hub-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lobby-hub-code {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.lobby-hub-code__value {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  color: var(--accent);
+}
+
+.lobby-hub-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 0 -4px;
+  padding: 4px 0 8px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 96%, transparent) 60%, transparent);
+}
+
+.lobby-hub-tabs__scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 4px 6px;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lobby-hub-tab {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.lobby-hub-tab.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* Состав: ориентир ~8 игроков (бывает 3–6, запас до 10) */
+.lobby-member-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.lobby-member-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.lobby-member-card__hp {
+  height: 6px;
+  background: var(--line);
+}
+
+.lobby-member-card__hp--ok {
+  background: var(--success);
+}
+
+.lobby-member-card__hp--warn {
+  background: #b54708;
+}
+
+.lobby-member-card__hp--down {
+  background: var(--danger);
+}
+
+.lobby-member-card__hp--unknown {
+  background: var(--line);
+}
+
+/* Всегда: аватар+мета сверху, кнопки снизу — без наложений на узких колонках */
+.lobby-member-card__body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    'avatar meta'
+    'actions actions';
+  gap: 10px 12px;
+  padding: 14px;
+  align-items: start;
+}
+
+.lobby-member-card__avatar {
+  grid-area: avatar;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.lobby-member-card__meta {
+  grid-area: meta;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.lobby-member-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.lobby-member-card__sub,
+.lobby-member-card__hp-text {
+  margin: 0;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+.lobby-member-card__actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.lobby-member-card__actions .ui-button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+.visibility-preview-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.visibility-preview-toggle {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.visibility-chip-row {
+  margin-top: 8px;
+}
+
+.visibility-sections {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.visibility-section {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.visibility-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.visibility-section__check {
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.visibility-section__toggle {
+  min-width: 44px;
+  flex-shrink: 0;
+}
+
+.visibility-section__body {
+  padding: 0 12px 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.visibility-field__label {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+@media (min-width: 640px) {
+  /* 3–4 игрока комфортно в 2 колонки */
+  .lobby-member-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .page.page--lobby-hub {
+    width: min(100% - 48px, 1120px);
+  }
+
+  .lobby-hub-tabs__scroll {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+}
+
+@media (min-width: 1000px) {
+  /* 6 игроков → 3×2 */
+  .lobby-member-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .page.page--lobby-hub {
+    width: min(100% - 64px, 1400px);
+  }
+
+  .visibility-sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+@media (min-width: 1280px) {
+  /* Ориентир 8 → 4×2; 10 → 4+4+2 */
+  .page.page--lobby-hub {
+    width: min(100% - 64px, 1480px);
+  }
+
+  .lobby-member-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1440px) {
+  .page.page--lobby-hub {
+    width: min(100% - 80px, 1560px);
+  }
+}
+
+/* —— Session attendance (A2) —— */
+.session-attendance-list {
+  display: grid;
+  gap: 8px;
+}
+
+.session-attendance-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+.session-attendance-row.is-present {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, white);
+}
+
+.session-attendance-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.session-attendance-row__body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.session-attendance-row__body strong {
+  overflow-wrap: anywhere;
+}
+
+.session-attendance-row__meta {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.session-attendance-row__badge {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.session-attendance-row.is-present .session-attendance-row__badge {
+  color: var(--accent);
+}
+
+@media (min-width: 900px) {
+  .session-attendance-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .session-attendance-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* —— Session live table (A3) —— */
+.session-live-tabs {
+  margin: 0 -2px;
+}
+
+.session-live-tabs__scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  scrollbar-width: thin;
+}
+
+.session-live-tab {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.session-live-tab.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.session-table-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.session-table-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.session-table-card__hp {
+  height: 6px;
+  background: var(--line);
+}
+
+.session-table-card__hp--ok {
+  background: var(--success);
+}
+
+.session-table-card__hp--warn {
+  background: #b54708;
+}
+
+.session-table-card__hp--down {
+  background: var(--danger);
+}
+
+.session-table-card__hp--unknown {
+  background: var(--line);
+}
+
+.session-table-card__body {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.session-table-card__top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px 10px;
+  align-items: center;
+}
+
+.session-table-card__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.session-table-card__meta {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.session-table-card__name {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.session-table-card__insp {
+  color: var(--accent);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 4px;
+}
+
+.session-table-card__sub,
+.session-table-card__stat {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.session-table-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.session-table-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--panel) 80%, white);
+  line-height: 1.2;
+}
+
+.session-table-card__chip--hp.is-ok {
+  border-color: color-mix(in srgb, var(--success) 35%, var(--line));
+  color: var(--success);
+}
+
+.session-table-card__chip--hp.is-warn {
+  border-color: color-mix(in srgb, #b54708 35%, var(--line));
+  color: #b54708;
+}
+
+.session-table-card__chip--hp.is-down {
+  border-color: color-mix(in srgb, #b42318 35%, var(--line));
+  color: #b42318;
+}
+
+.session-table-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.session-table-card__actions .ui-button {
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 0.88rem;
+  line-height: 1.2;
+}
+
+.session-feed-filter {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.session-feed-filter input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.session-event-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  max-height: min(52vh, 480px);
+  overflow-y: auto;
+}
+
+.session-event-feed__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.session-event-feed__head {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.session-event-feed__who {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.session-event-feed__time {
+  margin: 0;
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.session-event-feed__body {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.session-event-feed__title {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.session-event-feed__badge {
+  margin-left: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 7px;
+  vertical-align: middle;
+}
+
+.session-event-feed__formula {
+  margin: 0;
+  font-size: 0.88rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+.session-event-feed__total {
+  align-self: center;
+  min-width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.manual-roll-form {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.manual-roll-form__heading {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.manual-roll-form__hint {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.manual-roll-form__row {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.manual-roll-form__check {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.manual-roll-form__check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+@media (min-width: 640px) {
+  .session-table-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .manual-roll-form__row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1000px) {
+  /* Не больше 3 колонок — иначе карточки узкие и «вытянутые» */
+  .session-table-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.session-top-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* —— Campaign journal (A4) —— */
+.journal-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.journal-entry {
+  display: grid;
+  gap: 8px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+
+.journal-entry:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.journal-entry__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.journal-entry__type {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.journal-entry__date {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.journal-entry__title {
+  margin: 0;
+  font-size: 1.08rem;
+  font-family: var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.journal-entry--chapter .journal-entry__title {
+  font-size: 1.25rem;
+}
+
+.journal-entry__session {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.journal-entry__body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+.journal-entry__image-link {
+  display: block;
+  max-width: 100%;
+}
+
+.journal-entry__image {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+}
+
+.journal-entry__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.journal-composer {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--card) 70%, transparent);
+  padding: 14px;
+}
+
+.journal-composer__heading {
+  margin: 0;
+  font-size: 1rem;
+  font-family: var(--font-display);
+  color: var(--accent);
+}
+
+/* —— Chats + master letters (A5) —— */
+.chat-mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chat-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.chat-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.chat-layout--compact .chat-channels {
+  order: 0;
+}
+
+.chat-channel-list,
+.chat-message-list,
+.letter-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.chat-channel-item,
+.letter-list__item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+}
+
+.chat-channel-item.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 60%, white);
+  color: var(--accent);
+}
+
+.chat-channel-item__count {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.chat-thread__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.chat-message-list {
+  max-height: min(42vh, 420px);
+  overflow-y: auto;
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.chat-message {
+  display: grid;
+  gap: 2px;
+}
+
+.chat-message__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 10px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.chat-message__head strong {
+  color: var(--text);
+}
+
+.chat-message__body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chat-composer {
+  display: grid;
+  gap: 8px;
+}
+
+.chat-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.letter-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.letter-badge-chip {
+  border: 1px solid color-mix(in srgb, #b42318 35%, var(--line));
+  background: color-mix(in srgb, #b42318 12%, white);
+  color: #b42318;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.letter-list__item {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.letter-list__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+
+.letter-list__meta {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 400;
+}
+
+@media (min-width: 900px) {
+  .chat-layout:not(.chat-layout--compact) {
+    grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+/* —— Notes (A6) —— */
+.notes-composer {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--card) 70%, transparent);
+  padding: 14px;
+}
+
+.notes-feed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.notes-item {
+  display: grid;
+  gap: 6px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+
+.notes-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.notes-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 12px;
+  align-items: baseline;
+}
+
+.notes-item__scope {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.notes-item--personal .notes-item__scope {
+  color: var(--muted);
+}
+
+.notes-item--master .notes-item__scope {
+  color: #b42318;
+}
+
+.notes-item__date {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.notes-item__title {
+  margin: 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.notes-item__who {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.notes-item__body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+
+/* —— Session master panel (B1) —— */
+.session-seat-stack {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.session-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+}
+
+.session-table-toolbar__hint {
+  margin: 0;
+  font-size: 0.88rem;
+  flex: 1 1 12rem;
+}
+
+.session-insp-toggle {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 12px;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--muted);
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+
+.session-insp-toggle.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.session-table-card__conditions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-condition-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--line));
+  background: color-mix(in srgb, var(--danger) 10%, white);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--danger);
+  line-height: 1.2;
+}
+
+button.session-condition-tag {
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+}
+
+.session-condition-tag.is-removable:hover:not(:disabled),
+.session-condition-tag.is-picked {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 18%, white);
+}
+
+.session-condition-tag.is-picked {
+  box-shadow: inset 0 0 0 1px var(--danger);
+}
+
+.session-effect-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, white);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.2;
+}
+
+button.session-effect-tag {
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+}
+
+.session-effect-tag.is-removable:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, white);
+}
+
+.session-effect-tag__link {
+  opacity: 0.75;
+  font-size: 0.85em;
+}
+
+.session-concentration-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid color-mix(in srgb, #0f766e 40%, var(--line));
+  background: color-mix(in srgb, #0f766e 12%, white);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f766e;
+  line-height: 1.2;
+}
+
+button.session-concentration-tag {
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+}
+
+.session-concentration-tag.is-removable:hover:not(:disabled) {
+  border-color: #0f766e;
+  background: color-mix(in srgb, #0f766e 20%, white);
+}
+
+.session-table-card__concentration {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.apply-effect__suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.apply-effect__hint {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.ally-targets {
+  display: grid;
+  gap: 10px;
+}
+
+.ally-targets__lobby {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.apply-condition__heading {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-family: var(--font-display);
+  color: var(--accent);
+  font-weight: 650;
+}
+
+.apply-condition__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.apply-condition__targets-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.apply-condition__targets-head .apply-condition__heading {
+  margin: 0;
+}
+
+.apply-condition__targets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.apply-condition__target {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  background: var(--card);
+  min-height: 48px;
+}
+
+.apply-condition__target.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.apply-condition__target strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.apply-condition__already {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+}
+
+.session-companion-card {
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  overflow: hidden;
+  margin-left: 16px;
+}
+
+.session-companion-card__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+}
+
+.session-companion-card__main {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.session-companion-card__name {
+  margin: 0;
+  font-size: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  line-height: 1.25;
+}
+
+.session-companion-card__tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+.session-companion-card__stat {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.session-companion-card__remove {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.session-companion-card--down {
+  border-color: color-mix(in srgb, #b42318 35%, var(--line));
+}
+
+.session-companion-card--warn {
+  border-color: color-mix(in srgb, #b54708 35%, var(--line));
+}
+
+/* —— B3 enemies on session table —— */
+.session-enemies-title {
+  margin: 8px 0 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.session-enemies-grid {
+  /* иначе раскрытый статблок растягивает соседей в ряду */
+  align-items: start;
+}
+
+.session-enemies-grid .session-enemy-card {
+  border-top: 3px solid color-mix(in srgb, #9a3412 55%, var(--line));
+}
+
+.session-enemy-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  min-width: 0;
+  height: auto;
+  align-self: start;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.session-enemy-card--player {
+  border-top-color: color-mix(in srgb, #57534e 40%, var(--line));
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.session-enemy-card--player .session-enemy-card__name {
+  font-size: 1rem;
+}
+
+.session-enemy-card__pack-tag {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  vertical-align: middle;
+}
+
+.session-enemy-card__roster {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--line);
+}
+
+.session-enemy-roster {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.session-enemy-roster__row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--card) 92%, #78716c);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.session-enemy-roster__row.is-dead {
+  opacity: 0.72;
+}
+
+.session-enemy-roster__row.is-selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-enemy-roster__who {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+}
+
+.session-enemy-roster__name {
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
+.session-enemy-roster__pick {
+  margin-left: auto;
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--accent);
+}
+
+.session-enemy-card--warn {
+  border-color: color-mix(in srgb, #b54708 35%, var(--line));
+}
+
+.session-enemy-card--down {
+  border-color: color-mix(in srgb, #b42318 35%, var(--line));
+}
+
+.session-enemy-card__top {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.session-enemy-card__meta {
+  min-width: 0;
+}
+
+.session-enemy-card__name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.session-enemy-card__sub,
+.session-enemy-card__block-title {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+.session-enemy-card__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-enemy-card__hp-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.session-enemy-card__hp-controls .ui-button {
+  min-height: 36px;
+  padding-inline: 12px;
+}
+
+.session-enemy-card__damage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.session-enemy-card__damage-input {
+  width: 5.5rem;
+  min-height: 36px;
+  text-align: center;
+}
+
+.session-enemy-card__kit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-enemy-kit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 88%, #78716c);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.session-enemy-kit-chip__kind {
+  flex: 0 0 auto;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+  color: var(--muted);
+}
+
+.session-enemy-kit-chip--trait {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+
+.session-enemy-kit-chip--action {
+  border-color: color-mix(in srgb, var(--ink) 22%, var(--line));
+}
+
+.session-enemy-kit-chip--reaction {
+  border-color: color-mix(in srgb, #b45309 40%, var(--line));
+}
+
+.session-enemy-kit-chip--legendary {
+  border-color: color-mix(in srgb, #a16207 45%, var(--line));
+}
+
+.session-enemy-kit-chip.is-active,
+.session-enemy-kit-chip:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-enemy-card.is-active-turn {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.session-enemy-card__ability-text {
+  margin: 4px 0 8px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.session-enemy-card__remove {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.session-enemy-card__details {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--line);
+}
+
+.session-enemy-card__block-title {
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.session-enemy-card__actions-list {
+  margin: 4px 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+.session-combat-track {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--panel) 92%, #78716c);
+}
+
+.session-combat-track__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+}
+
+.session-combat-track__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.session-combat-track__now {
+  margin: 0;
+  flex: 1 1 10rem;
+  font-size: 0.95rem;
+}
+
+.session-combat-track__kind {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.session-combat-track__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.session-combat-order {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.session-combat-order__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.session-combat-order__chip:disabled {
+  cursor: default;
+}
+
+.session-combat-order__chip.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 650;
+}
+
+.session-combat-order__chip.is-enemy:not(.is-active) {
+  border-color: color-mix(in srgb, #b45309 30%, var(--line));
+}
+
+.session-combat-order__init {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.session-combat-order__chip.is-active .session-combat-order__init {
+  color: var(--accent);
+}
+
+.session-init-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.session-init-list__row {
+  display: grid;
+  grid-template-columns: 1fr minmax(5.5rem, 7rem);
+  gap: 10px 14px;
+  align-items: end;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.session-init-list__name {
+  font-weight: 650;
+}
+
+.session-init-list__meta {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 520px) {
+  .session-init-list__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.session-xp-defeat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.session-xp-defeat-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  font-size: 0.92rem;
+}
+
+.session-xp-defeat-list__xp {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.session-xp-recipients__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.session-xp-recipients__title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.session-xp-link {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.session-xp-recipients {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.session-xp-recipient {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+.session-xp-recipient.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-encounter-save {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.session-encounter-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.session-encounter-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.session-encounter-list__main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 12rem;
+}
+
+.session-encounter-list__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 520px) {
+  .session-encounter-save {
+    grid-template-columns: 1fr;
+  }
+}
+
+.session-gen-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session-gen-chip {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: inherit;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.session-gen-chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-gen-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.session-gen-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.session-gen-option {
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: inherit;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 2px;
+}
+
+.session-gen-option span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.session-gen-option.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.session-gen-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.inventory-coins-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.session-loot-compose {
+  display: grid;
+  grid-template-columns: 1.4fr 5.5rem 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.session-loot-compose--coins {
+  grid-template-columns: repeat(3, minmax(4.5rem, 1fr)) 1fr;
+}
+
+.session-loot-compose__coin-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.session-loot-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.session-loot-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.session-loot-list__main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.session-loot-list__remove {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .session-loot-compose,
+  .session-loot-compose--coins {
+    grid-template-columns: 1fr;
+  }
+}
+
+.session-combatant-mode {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.session-combatant-mode__btn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.session-combatant-mode__btn.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.session-combatant-custom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 520px) {
+  .session-combatant-custom-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* C1: вики сеттинга */
+.setting-wiki {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .setting-wiki {
+    grid-template-columns: 1fr;
+  }
+}
+
+.setting-wiki__nav {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 12px;
+}
+
+.setting-wiki__nav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.setting-wiki-tree,
+.setting-wiki-tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.setting-wiki-tree__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 10px;
+}
+
+.setting-wiki-tree__row.is-on {
+  background: var(--accent-soft);
+}
+
+.setting-wiki-tree__link {
+  flex: 1;
+  text-align: left;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.setting-wiki-tree__add {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.setting-wiki__editor {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 14px;
+}
+
+/* C2: связи / бэклинки */
+.setting-wiki-links {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting-wiki-links__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.setting-wiki-links__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.setting-wiki-links__jump {
+  appearance: none;
+  border: 0;
+  background: var(--accent-soft);
+  color: inherit;
+  font: inherit;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.setting-wiki-links__remove {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.setting-wiki-links__add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.setting-wiki-links__add .ui-input {
+  flex: 1;
+  min-width: 10rem;
+}
+
+/* C3: раскрытие игрокам */
+.setting-wiki-reveal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.setting-wiki-reveal__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.setting-wiki-tree__row.is-revealed .setting-wiki-tree__link {
+  font-weight: 600;
+}
+
+.setting-wiki-tree__eye {
+  margin-left: 4px;
+  color: var(--accent, #3d5a3a);
+  font-weight: 700;
+}
+
+/* C4: кликабельные пути сеттинга в чате */
+.chat-message__wiki-link {
+  color: var(--accent, #3d5a3a);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* D1: артефакты сеттинга */
+.setting-artifact-editor {
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--panel-muted, rgba(0, 0, 0, 0.03));
+}
+
+.setting-artifact-editor__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 10px;
+}
+
+.setting-artifact-ability {
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface, #fff);
+}
+
+.setting-artifact-ability__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.setting-artifact-attack {
+  font: inherit;
+}
+
+.setting-artifact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-artifact-list__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+}
+
+.setting-artifact-list__main {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.setting-artifact-list__tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  background: rgba(61, 90, 58, 0.12);
+  color: var(--accent, #3d5a3a);
+}
+
+.setting-artifact-list__abilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.setting-artifact-list__chip {
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
 }
