@@ -1507,13 +1507,27 @@
 }
 
 .classic-lss-death .classic-death-line {
-  gap: 0.12rem;
-  font-size: 0.52rem;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.1rem;
+  font-size: 0.5rem;
+  margin-bottom: 0.08rem;
+}
+
+.classic-lss-death .classic-death-line > span:first-child {
+  flex: 0 0 0.7in;
+  min-width: 0;
 }
 
 .classic-lss-death .classic-bubble {
-  width: 0.16in;
-  height: 0.16in;
+  width: 0.15in;
+  height: 0.15in;
+}
+
+.classic-lss-death .classic-lss-block-title {
+  margin-bottom: 0.18rem;
+  line-height: 1.15;
 }
 
 .classic-lss-brand-rule {
@@ -1538,7 +1552,7 @@
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: 2.9in minmax(0, 1fr);
+  grid-template-columns: 3.15in minmax(0, 1fr);
   gap: 0.1in;
   align-items: stretch;
   overflow: hidden;
@@ -1600,12 +1614,10 @@
   flex: 1 1 0;
   min-width: 0;
   min-height: 0;
-  display: grid;
-  grid-template-columns: 0.78in minmax(0, 1fr);
-  grid-template-rows: auto 1fr;
-  column-gap: 0.04in;
-  row-gap: 0.02in;
-  padding: 0.04in;
+  display: flex;
+  flex-direction: column;
+  gap: 0.03in;
+  padding: 0.045in;
   border: 1.25px solid var(--lss-line);
   border-radius: 0.28rem;
   background: var(--c-paper-tint);
@@ -1613,21 +1625,19 @@
 }
 
 .classic-lss-ability__name {
-  grid-column: 1 / -1;
   font-size: 0.5rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   line-height: 1.1;
+  text-align: center;
 }
 
 .classic-lss-ability__nums {
-  grid-column: 1;
-  grid-row: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 0.04in;
+  align-items: end;
   min-width: 0;
 }
 
@@ -1637,12 +1647,11 @@
   flex-direction: column;
   align-items: center;
   gap: 0.01in;
-  width: 100%;
+  min-width: 0;
 }
 
 .classic-lss-ability__scorebox input {
   width: 100%;
-  max-width: 100%;
   box-sizing: border-box;
   text-align: center;
   font-size: 0.78rem;
@@ -1664,12 +1673,12 @@
   display: block;
   width: 100%;
   box-sizing: border-box;
-  padding: 0.1rem 0;
+  padding: 0.12rem 0;
   border: 1.5px solid var(--lss-line);
   border-radius: 999px;
   background: #fff;
   text-align: center;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   line-height: 1;
 }
 
@@ -1683,8 +1692,6 @@
 }
 
 .classic-lss-ability__skills {
-  grid-column: 2;
-  grid-row: 2;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1692,34 +1699,35 @@
   flex-direction: column;
   gap: 0;
   min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
 }
 
 .classic-lss-ability .classic-bubble-btn {
-  width: 0.2in;
-  height: 0.2in;
+  width: 0.18in;
+  height: 0.18in;
   padding: 0;
   flex: 0 0 auto;
 }
 
 .classic-lss-ability .classic-bubble {
-  width: 0.14in;
-  height: 0.14in;
+  width: 0.13in;
+  height: 0.13in;
 }
 
 .classic-lss-ability__skills li {
   display: grid;
-  grid-template-columns: 0.2in 0.38in minmax(0, 1fr);
+  grid-template-columns: 0.18in 0.36in minmax(0, 1fr);
   align-items: center;
-  gap: 0.05rem;
-  font-size: 0.48rem;
-  line-height: 1.05;
+  gap: 0.08rem;
+  font-size: 0.5rem;
+  line-height: 1.1;
   min-height: 0.15in;
   min-width: 0;
 }
 
 .classic-lss-ability__skills strong {
-  font-size: 0.52rem;
+  font-size: 0.54rem;
   text-align: right;
 }
 
