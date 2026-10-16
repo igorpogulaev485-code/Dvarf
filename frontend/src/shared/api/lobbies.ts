@@ -44,8 +44,19 @@ export type SettingPage = {
   updated_at: string
 }
 
+export type SettingPageLink = {
+  id: string
+  from_page_id: string
+  to_page_id: string
+  from_title: string
+  to_title: string
+  label: string
+  created_at: string
+}
+
 export type SettingDetail = SettingSummary & {
   pages: SettingPage[]
+  links: SettingPageLink[]
 }
 
 export type SessionSummary = {
@@ -402,6 +413,22 @@ export async function updateSettingPage(
 
 export async function deleteSettingPage(pageId: string): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function createSettingPageLink(
+  pageId: string,
+  payload: { to_page_id: string; label?: string },
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/pages/${pageId}/links`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteSettingPageLink(linkId: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/page-links/${linkId}`, {
     method: 'DELETE',
   })
 }

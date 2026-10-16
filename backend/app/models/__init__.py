@@ -6,6 +6,7 @@ from app.models.lobby import Lobby, LobbyMember, PlaySession, SessionSeat, Setti
 from app.models.note import Note
 from app.models.session_event import SessionEvent
 from app.models.setting_page import SettingPage
+from app.models.setting_page_link import SettingPageLink
 from app.models.user import (
     AuthProvider,
     AuthSession,
@@ -40,6 +41,7 @@ __all__ = [
     "SessionSeat",
     "Setting",
     "SettingPage",
+    "SettingPageLink",
     "User",
     "UserIdentity",
 ]

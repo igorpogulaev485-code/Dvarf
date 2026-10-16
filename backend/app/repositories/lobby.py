@@ -170,6 +170,46 @@ class LobbyRepository:
         self.db.delete(page)
         self.db.flush()
 
+    def list_setting_page_links(self, setting_id: UUID) -> list:
+        from app.models.setting_page import SettingPage
+        from app.models.setting_page_link import SettingPageLink
+
+        return list(
+            self.db.scalars(
+                select(SettingPageLink)
+                .join(SettingPage, SettingPageLink.from_page_id == SettingPage.id)
+                .where(SettingPage.setting_id == setting_id)
+                .order_by(SettingPageLink.created_at.asc())
+            ).all()
+        )
+
+    def get_setting_page_link(self, link_id: UUID):
+        from app.models.setting_page_link import SettingPageLink
+
+        return self.db.get(SettingPageLink, link_id)
+
+    def create_setting_page_link(
+        self,
+        *,
+        from_page_id: UUID,
+        to_page_id: UUID,
+        label: str,
+    ):
+        from app.models.setting_page_link import SettingPageLink
+
+        link = SettingPageLink(
+            from_page_id=from_page_id,
+            to_page_id=to_page_id,
+            label=label,
+        )
+        self.db.add(link)
+        self.db.flush()
+        return link
+
+    def delete_setting_page_link(self, link) -> None:
+        self.db.delete(link)
+        self.db.flush()
+
     def delete_setting(self, setting: Setting) -> None:
         self.db.delete(setting)
         self.db.flush()

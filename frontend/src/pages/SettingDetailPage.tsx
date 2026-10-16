@@ -3,13 +3,16 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import {
   buildSettingPageTree,
+  linksForPage,
   type SettingPageNode,
 } from '../features/lobby/settingPages'
 import { ApiRequestError } from '../shared/api/client'
 import {
   createSession,
   createSettingPage,
+  createSettingPageLink,
   deleteSettingPage,
+  deleteSettingPageLink,
   getSetting,
   updateSetting,
   updateSettingPage,
@@ -28,6 +31,7 @@ export function SettingDetailPage() {
   const [draftTitle, setDraftTitle] = useState('')
   const [draftBody, setDraftBody] = useState('')
   const [settingName, setSettingName] = useState('')
+  const [linkTargetId, setLinkTargetId] = useState('')
 
   const tree = useMemo(
     () => buildSettingPageTree(setting?.pages ?? []),
@@ -38,6 +42,21 @@ export function SettingDetailPage() {
     () => setting?.pages.find((p) => p.id === selectedId) ?? null,
     [setting, selectedId],
   )
+
+  const pageLinks = useMemo(
+    () => linksForPage(setting?.links ?? [], selectedId ?? ''),
+    [setting?.links, selectedId],
+  )
+
+  const linkCandidates = useMemo(() => {
+    if (!setting || !selectedId) return []
+    const linked = new Set(
+      (setting.links ?? [])
+        .filter((l) => l.from_page_id === selectedId)
+        .map((l) => l.to_page_id),
+    )
+    return setting.pages.filter((p) => p.id !== selectedId && !linked.has(p.id))
+  }, [setting, selectedId])
 
   useEffect(() => {
     let active = true
@@ -69,6 +88,7 @@ export function SettingDetailPage() {
     if (!selected) return
     setDraftTitle(selected.title)
     setDraftBody(selected.body)
+    setLinkTargetId('')
   }, [selected?.id])
 
   function applyDetail(next: SettingDetail, preferPageId?: string | null) {
@@ -156,6 +176,37 @@ export function SettingDetailPage() {
       setToast('Страница удалена')
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось удалить')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function addLink() {
+    if (!selected || !linkTargetId) return
+    setBusy(true)
+    setError(null)
+    try {
+      const next = await createSettingPageLink(selected.id, { to_page_id: linkTargetId })
+      applyDetail(next, selected.id)
+      setLinkTargetId('')
+      setToast('Связь добавлена')
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : 'Не удалось связать')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function removeLink(linkId: string) {
+    if (!selected) return
+    setBusy(true)
+    setError(null)
+    try {
+      const next = await deleteSettingPageLink(linkId)
+      applyDetail(next, selected.id)
+      setToast('Связь удалена')
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : 'Не удалось удалить связь')
     } finally {
       setBusy(false)
     }
@@ -295,6 +346,84 @@ export function SettingDetailPage() {
                   >
                     Удалить
                   </Button>
+                </div>
+
+                <div className="setting-wiki-links">
+                  <Text as="h3">Связи →</Text>
+                  {pageLinks.outgoing.length === 0 ? (
+                    <Text tone="muted">Пока нет переходов с этой страницы.</Text>
+                  ) : (
+                    <ul className="setting-wiki-links__list">
+                      {pageLinks.outgoing.map((link) => (
+                        <li key={link.id} className="setting-wiki-links__row">
+                          <button
+                            type="button"
+                            className="setting-wiki-links__jump"
+                            disabled={busy}
+                            onClick={() => setSelectedId(link.to_page_id)}
+                          >
+                            {link.label || link.to_title || 'Без названия'}
+                          </button>
+                          <button
+                            type="button"
+                            className="setting-wiki-links__remove"
+                            disabled={busy}
+                            title="Убрать связь"
+                            onClick={() => void removeLink(link.id)}
+                          >
+                            ×
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="setting-wiki-links__add">
+                    <select
+                      className="ui-input"
+                      value={linkTargetId}
+                      disabled={busy || linkCandidates.length === 0}
+                      onChange={(e) => setLinkTargetId(e.target.value)}
+                    >
+                      <option value="">
+                        {linkCandidates.length === 0
+                          ? 'Некуда связать'
+                          : 'Страница для связи…'}
+                      </option>
+                      {linkCandidates.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.title || 'Без названия'}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={busy || !linkTargetId}
+                      onClick={() => void addLink()}
+                    >
+                      Связать
+                    </Button>
+                  </div>
+
+                  <Text as="h3">Ссылаются сюда</Text>
+                  {pageLinks.incoming.length === 0 ? (
+                    <Text tone="muted">Бэклинков пока нет.</Text>
+                  ) : (
+                    <ul className="setting-wiki-links__list">
+                      {pageLinks.incoming.map((link) => (
+                        <li key={link.id} className="setting-wiki-links__row">
+                          <button
+                            type="button"
+                            className="setting-wiki-links__jump"
+                            disabled={busy}
+                            onClick={() => setSelectedId(link.from_page_id)}
+                          >
+                            {link.from_title || 'Без названия'}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </Stack>
             ) : (
