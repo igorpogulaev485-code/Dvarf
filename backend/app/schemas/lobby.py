@@ -33,6 +33,42 @@ class SettingSummary(BaseModel):
     updated_at: datetime
 
 
+class SettingPageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    setting_id: UUID
+    parent_id: UUID | None = None
+    title: str
+    body: str
+    sort_order: int = 0
+    revealed: bool = False
+    created_at: datetime
+    updated_at: datetime
+
+
+class SettingDetail(SettingSummary):
+    """C1: сеттинг + плоский список страниц (дерево собирает клиент)."""
+
+    pages: list[SettingPageOut] = Field(default_factory=list)
+
+
+class SettingPageCreateRequest(BaseModel):
+    title: str = Field(default="Новая страница", max_length=200)
+    body: str = ""
+    parent_id: UUID | None = None
+    sort_order: int | None = None
+
+
+class SettingPageUpdateRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=200)
+    body: str | None = None
+    parent_id: UUID | None = None
+    sort_order: int | None = None
+    # clear_parent: переместить в корень
+    clear_parent: bool = False
+
+
 class SessionSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

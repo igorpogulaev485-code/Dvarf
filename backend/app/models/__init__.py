@@ -5,6 +5,7 @@ from app.models.journal import CampaignJournalEntry
 from app.models.lobby import Lobby, LobbyMember, PlaySession, SessionSeat, Setting
 from app.models.note import Note
 from app.models.session_event import SessionEvent
+from app.models.setting_page import SettingPage
 from app.models.user import (
     AuthProvider,
     AuthSession,
@@ -38,6 +39,7 @@ __all__ = [
     "SessionEvent",
     "SessionSeat",
     "Setting",
+    "SettingPage",
     "User",
     "UserIdentity",
 ]

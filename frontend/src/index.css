@@ -3473,3 +3473,79 @@ button.session-concentration-tag {
     grid-template-columns: 1fr;
   }
 }
+
+/* C1: вики сеттинга */
+.setting-wiki {
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .setting-wiki {
+    grid-template-columns: 1fr;
+  }
+}
+
+.setting-wiki__nav {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 12px;
+}
+
+.setting-wiki__nav-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.setting-wiki-tree,
+.setting-wiki-tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.setting-wiki-tree__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 10px;
+}
+
+.setting-wiki-tree__row.is-on {
+  background: var(--accent-soft);
+}
+
+.setting-wiki-tree__link {
+  flex: 1;
+  text-align: left;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.setting-wiki-tree__add {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.setting-wiki__editor {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 14px;
+}

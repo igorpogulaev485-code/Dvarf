@@ -103,13 +103,72 @@ class LobbyRepository:
         self.db.flush()
 
     def get_setting(self, setting_id: UUID) -> Setting | None:
-        return self.db.scalar(select(Setting).where(Setting.id == setting_id))
+        return self.db.scalar(
+            select(Setting)
+            .where(Setting.id == setting_id)
+            .options(selectinload(Setting.pages))
+        )
 
     def create_setting(self, *, lobby_id: UUID, name: str, world_notes: str) -> Setting:
+        from app.models.setting_page import SettingPage
+
         setting = Setting(lobby_id=lobby_id, name=name, world_notes=world_notes)
         self.db.add(setting)
         self.db.flush()
+        # C1: сразу корневая страница «Мир»
+        self.db.add(
+            SettingPage(
+                setting_id=setting.id,
+                parent_id=None,
+                title="Мир",
+                body=world_notes or "",
+                sort_order=0,
+            )
+        )
+        self.db.flush()
         return setting
+
+    def list_setting_pages(self, setting_id: UUID) -> list:
+        from app.models.setting_page import SettingPage
+
+        return list(
+            self.db.scalars(
+                select(SettingPage)
+                .where(SettingPage.setting_id == setting_id)
+                .order_by(SettingPage.sort_order.asc(), SettingPage.created_at.asc())
+            ).all()
+        )
+
+    def get_setting_page(self, page_id: UUID):
+        from app.models.setting_page import SettingPage
+
+        return self.db.get(SettingPage, page_id)
+
+    def create_setting_page(
+        self,
+        *,
+        setting_id: UUID,
+        title: str,
+        body: str,
+        parent_id: UUID | None,
+        sort_order: int,
+    ):
+        from app.models.setting_page import SettingPage
+
+        page = SettingPage(
+            setting_id=setting_id,
+            parent_id=parent_id,
+            title=title,
+            body=body,
+            sort_order=sort_order,
+        )
+        self.db.add(page)
+        self.db.flush()
+        return page
+
+    def delete_setting_page(self, page) -> None:
+        self.db.delete(page)
+        self.db.flush()
 
     def delete_setting(self, setting: Setting) -> None:
         self.db.delete(setting)

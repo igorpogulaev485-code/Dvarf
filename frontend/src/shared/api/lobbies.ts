@@ -32,6 +32,22 @@ export type SettingSummary = {
   updated_at: string
 }
 
+export type SettingPage = {
+  id: string
+  setting_id: string
+  parent_id: string | null
+  title: string
+  body: string
+  sort_order: number
+  revealed: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type SettingDetail = SettingSummary & {
+  pages: SettingPage[]
+}
+
 export type SessionSummary = {
   id: string
   lobby_id: string
@@ -340,8 +356,8 @@ export async function createSetting(
   })
 }
 
-export async function getSetting(id: string): Promise<SettingSummary> {
-  return apiRequest<SettingSummary>(`/settings/${id}`)
+export async function getSetting(id: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${id}`)
 }
 
 export async function updateSetting(
@@ -356,6 +372,38 @@ export async function updateSetting(
 
 export async function deleteSetting(id: string): Promise<void> {
   await apiRequest<void>(`/settings/${id}`, { method: 'DELETE' })
+}
+
+export async function createSettingPage(
+  settingId: string,
+  payload: { title?: string; body?: string; parent_id?: string | null },
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${settingId}/pages`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateSettingPage(
+  pageId: string,
+  payload: {
+    title?: string
+    body?: string
+    parent_id?: string | null
+    clear_parent?: boolean
+    sort_order?: number
+  },
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteSettingPage(pageId: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {
+    method: 'DELETE',
+  })
 }
 
 export async function createSession(
