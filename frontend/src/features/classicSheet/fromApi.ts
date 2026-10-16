@@ -168,8 +168,7 @@ export function applyClassicEdits(
         key === 'quests' ||
         key === 'free' ||
         key === 'treasure' ||
-        key === 'allies' ||
-        key === 'symbol'
+        key === 'allies'
       ) {
         notes[key] = value
       }

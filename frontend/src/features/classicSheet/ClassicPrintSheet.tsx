@@ -497,25 +497,13 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
           </section>
 
           <section className="classic-panel classic-panel--grow classic-page2-allies">
-            <div className="classic-allies-layout">
-              <div className="classic-symbol">
-                <Expanding
-                  fill
-                  value={textBlockValue(c, 'symbol')}
-                  printMaxHeight="6rem"
-                  ariaLabel="Символ организации"
-                  onChange={(value) => patch({ textBlocks: { symbol: value } })}
-                />
-                <div className="classic-caption">Символ</div>
-              </div>
-              <Expanding
-                fill
-                value={textBlockValue(c, 'allies')}
-                printMaxHeight="10rem"
-                ariaLabel="Союзники и организации"
-                onChange={(value) => patch({ textBlocks: { allies: value } })}
-              />
-            </div>
+            <Expanding
+              fill
+              value={textBlockValue(c, 'allies')}
+              printMaxHeight="12rem"
+              ariaLabel="Союзники и организации"
+              onChange={(value) => patch({ textBlocks: { allies: value } })}
+            />
             <div className="classic-caption">Союзники и организации</div>
           </section>
 
