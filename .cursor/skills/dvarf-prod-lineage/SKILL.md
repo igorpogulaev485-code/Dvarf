@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/prod-lineage-rules-acbe
+cursor/setting-c4-embeds-bacd
 ```
 
 URL: http://201.34.132.252/
@@ -38,7 +38,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-acbe origin/cursor/prod-lineage-rules-acbe
+git checkout -b cursor/<descriptive>-bacd origin/cursor/setting-c4-embeds-bacd
 # если tip уже другой — подставь актуальный из AGENTS.md / этого skill
 ```
 
@@ -46,14 +46,14 @@ git checkout -b cursor/<descriptive>-acbe origin/cursor/prod-lineage-rules-acbe
 
 ```bash
 git fetch origin
-git merge origin/cursor/prod-lineage-rules-acbe
+git merge origin/cursor/setting-c4-embeds-bacd
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```
 
 ## Обязательные маркеры (preflight)
 
-Скрипт `deploy/preflight-prod.sh` проверяет наличие файлов. Минимум на 2026-10-06:
+Скрипт `deploy/preflight-prod.sh` проверяет наличие файлов. Минимум на 2026-10-16:
 
 | Контур | Маркер |
 |--------|--------|
@@ -62,6 +62,8 @@ git merge origin/cursor/prod-lineage-rules-acbe
 | Аватар | `frontend/src/features/cabinet/AvatarEditor.tsx`, `backend/app/services/avatar.py` |
 | Лист P1–P6 | `raceEffects.ts`, `LevelUpDialog.tsx`, `casterProgression.ts`, `armor.ts`, `LanguagesToolsPanel.tsx`, `concentration.ts` |
 | Classic | `frontend/src/pages/ClassicSheetPage.tsx` |
+| Бой / стол B | `StartCombatDialog.tsx`, `EnemyCard.tsx`, `AwardXpDialog.tsx`, `AwardLootDialog.tsx`, `EncounterGenerateDialog.tsx` |
+| Вики сеттинга C | `SettingDetailPage.tsx`, `setting_page.py`, `JournalComposer.tsx` |
 | Статус | `PRODUCT_STATUS.md` |
 
 Если добавляешь новый «неубиваемый» контур на прод — **добавь маркер в preflight** в том же PR.
