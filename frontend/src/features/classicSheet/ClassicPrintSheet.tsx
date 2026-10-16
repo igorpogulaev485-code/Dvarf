@@ -34,27 +34,34 @@ function Expanding({
   printMaxHeight,
   ariaLabel,
   className,
+  fill,
 }: {
   value: string
   onChange: (value: string) => void
   printMaxHeight?: string
   ariaLabel?: string
   className?: string
+  /** Stretch to fill a growable panel instead of hugging text height. */
+  fill?: boolean
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useLayoutEffect(() => {
+    if (fill) return
     const el = ref.current
     if (!el) return
     el.style.height = '0px'
     el.style.height = `${Math.max(el.scrollHeight, 24)}px`
-  }, [value])
+  }, [value, fill])
   const style = printMaxHeight
     ? ({ ['--print-max-height']: printMaxHeight } as CSSProperties)
     : undefined
+  const classes = ['classic-expand', fill ? 'classic-expand--fill' : '', className]
+    .filter(Boolean)
+    .join(' ')
   return (
     <textarea
       ref={ref}
-      className={className ? `classic-expand ${className}` : 'classic-expand'}
+      className={classes}
       value={value}
       aria-label={ariaLabel}
       rows={1}
@@ -252,10 +259,11 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
               <strong>{passivePerception}</strong>
               <span>Пассивная мудрость (Восприятие)</span>
             </div>
-            <div className="classic-panel">
+            <div className="classic-panel classic-panel--grow">
               <Expanding
+                fill
                 value={String(asRecordNotes(c))}
-                printMaxHeight="8.5rem"
+                printMaxHeight="12rem"
                 ariaLabel="Прочие владения и языки"
                 onChange={(otherProficiencies) => patch({ otherProficiencies })}
               />
@@ -288,7 +296,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
               </label>
             </div>
 
-            <div className="classic-panel">
+            <div className="classic-panel classic-panel--hp">
               <label className="classic-hp-max">
                 Максимум хитов
                 <input
@@ -305,7 +313,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
               <div className="classic-caption">Текущие хиты</div>
             </div>
 
-            <div className="classic-panel">
+            <div className="classic-panel classic-panel--hp-temp">
               <input
                 className="classic-hp"
                 value={combatNum('hp_temp')}
@@ -365,7 +373,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
               </section>
             </div>
 
-            <div className="classic-panel">
+            <div className="classic-panel classic-panel--grow">
               <div className="classic-attacks-head">
                 <span>Название</span>
                 <span>Бонус атаки</span>
@@ -379,15 +387,16 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
                 </div>
               ))}
               <Expanding
+                fill
                 value={textBlockValue(c, 'attacks')}
-                printMaxHeight="3.8rem"
+                printMaxHeight="6rem"
                 ariaLabel="Заметки к атакам и заклинаниям"
                 onChange={(value) => patch({ textBlocks: { attacks: value } })}
               />
               <div className="classic-caption">Атаки и заклинания</div>
             </div>
 
-            <div className="classic-panel classic-equip">
+            <div className="classic-panel classic-equip classic-panel--grow classic-panel--grow-lg">
               <div className="classic-coins">
                 {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map((k) => (
                   <label key={k}>
@@ -404,8 +413,9 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
                 ))}
               </div>
               <Expanding
+                fill
                 value={equipmentText(c)}
-                printMaxHeight="9rem"
+                printMaxHeight="14rem"
                 ariaLabel="Снаряжение"
                 onChange={() => undefined}
               />
@@ -416,11 +426,11 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
           <div className="classic-col">
             {(
               [
-                ['personality', 'Черты характера', '3rem', true],
-                ['ideals', 'Идеалы', '2.4rem', true],
-                ['bonds', 'Привязанности', '2.4rem', true],
-                ['flaws', 'Слабости', '2.4rem', true],
-                ['features', 'Умения и особенности', '16rem', false],
+                ['personality', 'Черты характера', '3.6rem', true],
+                ['ideals', 'Идеалы', '3rem', true],
+                ['bonds', 'Привязанности', '3rem', true],
+                ['flaws', 'Слабости', '3rem', true],
+                ['features', 'Умения и особенности', '22rem', false],
               ] as const
             ).map(([key, label, height, personality]) => (
               <div
@@ -428,6 +438,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
                 key={key}
               >
                 <Expanding
+                  fill={!personality}
                   value={textBlockValue(c, key)}
                   printMaxHeight={height}
                   ariaLabel={label}
