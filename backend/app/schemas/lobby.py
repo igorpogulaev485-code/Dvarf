@@ -62,18 +62,61 @@ class SettingPageLinkOut(BaseModel):
 
 
 class ArtifactAbilityIn(BaseModel):
-    """Способность на артефакте сеттинга."""
+    """Способность на артефакте — поля согласованы со справочником и листом."""
 
     id: str | None = None
-    kind: Literal["passive", "resource", "action", "trait"] = "trait"
+    kind: Literal[
+        "passive",
+        "resource",
+        "action",
+        "trait",
+        "spell_slot",
+        "spell",
+        "companion",
+        "resistance",
+        "weapon",
+    ] = "trait"
     name: str = Field(default="", max_length=120)
     text: str = Field(default="", max_length=2000)
-    bonus_target: Literal["attack", "damage", "ac", "save", "ability"] | None = None
-    bonus_value: int | None = Field(default=None, ge=-10, le=10)
+    # passive
+    bonus_target: (
+        Literal["attack", "damage", "ac", "save", "ability", "speed", "darkvision"] | None
+    ) = None
+    bonus_value: int | None = Field(default=None, ge=-30, le=120)
     ability_key: Literal["str", "dex", "con", "int", "wis", "cha"] | None = None
+    # resource / action charges
     charges: int | None = Field(default=None, ge=1, le=99)
     reset: Literal["short", "long", "manual", "dawn"] | None = None
     action_cost: Literal["action", "bonus", "reaction", "free", "special"] | None = None
+    # spell_slot (slot_level 0 = pact)
+    slot_level: int | None = Field(default=None, ge=0, le=9)
+    slot_count: int | None = Field(default=None, ge=1, le=9)
+    pact_level: int | None = Field(default=None, ge=1, le=9)
+    # spell (catalog-aligned)
+    spell_name: str | None = Field(default=None, max_length=120)
+    spell_level: int | None = Field(default=None, ge=0, le=9)
+    catalog_id: str | None = Field(default=None, max_length=80)
+    prepared: bool | None = None
+    casting_time: str | None = Field(default=None, max_length=80)
+    range: str | None = Field(default=None, max_length=80)
+    attack_or_save: str | None = Field(default=None, max_length=80)
+    damage: str | None = Field(default=None, max_length=40)
+    concentration: bool | None = None
+    # companion
+    companion_name: str | None = Field(default=None, max_length=80)
+    hp_max: int | None = Field(default=None, ge=1, le=999)
+    ac: int | None = Field(default=None, ge=1, le=40)
+    companion_type: str | None = Field(default=None, max_length=40)
+    # resistance
+    damage_type: str | None = Field(default=None, max_length=40)
+    resist_mode: Literal["resistance", "immunity", "vulnerability"] | None = None
+    # weapon (catalog attack_role shape)
+    attack_damage: str | None = Field(default=None, max_length=40)
+    attack_damage_type: str | None = Field(default=None, max_length=40)
+    attack_ability: Literal["str", "dex", "con", "int", "wis", "cha"] | None = None
+    attack_range_kind: Literal["melee", "ranged", "reach", "thrown"] | None = None
+    ranged: bool | None = None
+    magic_bonus: int | None = Field(default=None, ge=-5, le=5)
 
 
 class SettingArtifactOut(BaseModel):

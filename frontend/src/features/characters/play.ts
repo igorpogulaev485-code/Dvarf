@@ -124,6 +124,7 @@ function readResource(raw: unknown, index: number): SheetResource {
       typeof appliesExplicit === 'boolean'
         ? appliesExplicit
         : guessResourceAppliesToAllies(name),
+    source_item_id: typeof row.source_item_id === 'string' ? row.source_item_id : null,
   })
 }
 

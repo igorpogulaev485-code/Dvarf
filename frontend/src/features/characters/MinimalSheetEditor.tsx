@@ -111,6 +111,8 @@ type Draft = {
   identity: IdentityExtras
   abilities: Record<AbilityKey, number>
   saves: Record<AbilityKey, boolean>
+  /** Бонусы спасбросков от артефактов (cloak of protection и т.п.) */
+  saveMagic: Record<AbilityKey, number>
   skills: Record<string, { is_proficient: boolean; is_expertise: boolean }>
   hpCurrent: number | null
   hpMax: number | null
@@ -187,6 +189,13 @@ function buildDraft(character: CharacterDetail): Draft {
     }),
   ) as Record<AbilityKey, boolean>
 
+  const saveMagic = Object.fromEntries(
+    ABILITY_KEYS.map((key) => {
+      const block = asRecord(savesRaw[key])
+      return [key, readNumber(block.magic_bonus, 0)]
+    }),
+  ) as Record<AbilityKey, number>
+
   const skills = Object.fromEntries(
     SKILL_DEFS.map((skill) => {
       const block = asRecord(skillsRaw[skill.key])
@@ -219,6 +228,7 @@ function buildDraft(character: CharacterDetail): Draft {
     identity: identityExtras,
     abilities,
     saves,
+    saveMagic,
     skills,
     hpCurrent: character.hp_current ?? readNullableNumber(combat.hp_current),
     hpMax: character.hp_max ?? readNullableNumber(combat.hp_max),
@@ -491,6 +501,7 @@ export function MinimalSheetEditor({
         saves[key] = {
           ...asRecord(saves[key]),
           is_proficient: draft.saves[key],
+          magic_bonus: draft.saveMagic[key] || 0,
         }
       }
       sheet.abilities = abilities
@@ -1026,7 +1037,9 @@ export function MinimalSheetEditor({
             >
               {ABILITY_LABELS[key]}{' '}
               {formatModifier(
-                abilityModifier(draft.abilities[key]) + (draft.saves[key] ? proficiencyBonus : 0),
+                abilityModifier(draft.abilities[key]) +
+                  (draft.saves[key] ? proficiencyBonus : 0) +
+                  (draft.saveMagic[key] || 0),
               )}
             </button>
           ))}

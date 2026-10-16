@@ -65,6 +65,7 @@ export type InventoryItem = {
   magic_mods?: InventoryMagicMods | null
   requires_attunement?: boolean
   setting_artifact_id?: string | null
+  artifact_snapshot?: Record<string, unknown> | null
 }
 
 export type InventoryState = {
@@ -133,6 +134,10 @@ function readItem(raw: unknown, index: number): InventoryItem {
     requires_attunement: Boolean(row.requires_attunement),
     setting_artifact_id:
       typeof row.setting_artifact_id === 'string' ? row.setting_artifact_id : null,
+    artifact_snapshot:
+      row.artifact_snapshot && typeof row.artifact_snapshot === 'object'
+        ? (row.artifact_snapshot as Record<string, unknown>)
+        : null,
   }
 }
 
@@ -173,6 +178,7 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         ...(item.setting_artifact_id
           ? { setting_artifact_id: item.setting_artifact_id }
           : {}),
+        ...(item.artifact_snapshot ? { artifact_snapshot: item.artifact_snapshot } : {}),
       })),
     },
   }

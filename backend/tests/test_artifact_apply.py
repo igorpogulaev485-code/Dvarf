@@ -1,4 +1,4 @@
-"""D1: apply setting-artifact abilities onto a character sheet."""
+"""D1+: apply setting-artifact abilities onto a character sheet."""
 
 from __future__ import annotations
 
@@ -13,94 +13,177 @@ from app.services.artifact_apply import (
 )
 
 
-def test_normalize_and_sum_passives():
+def test_normalize_extended_kinds():
     abilities = normalize_abilities(
         [
+            {"kind": "passive", "name": "+1 КД", "bonus_target": "ac", "bonus_value": 1},
             {
                 "kind": "passive",
-                "name": "+1 КД",
-                "bonus_target": "ac",
-                "bonus_value": 1,
+                "name": "бег",
+                "bonus_target": "speed",
+                "bonus_value": 10,
             },
             {
                 "kind": "passive",
-                "name": "+1 атака",
-                "bonus_target": "attack",
+                "name": "спас",
+                "bonus_target": "save",
                 "bonus_value": 1,
+                "ability_key": "wis",
+            },
+            {"kind": "spell_slot", "name": "Ячейка", "slot_level": 2, "slot_count": 1},
+            {
+                "kind": "spell_slot",
+                "name": "Pact",
+                "slot_level": 0,
+                "slot_count": 1,
+                "pact_level": 3,
             },
             {
-                "kind": "passive",
-                "name": "Сила",
-                "bonus_target": "ability",
-                "bonus_value": 2,
-                "ability_key": "str",
+                "kind": "spell",
+                "spell_name": "Огненный снаряд",
+                "spell_level": 1,
+                "damage": "3d6",
+                "casting_time": "1 действие",
+                "range": "120 фт",
+            },
+            {
+                "kind": "companion",
+                "companion_name": "Волк",
+                "hp_max": 11,
+                "ac": 13,
+                "companion_type": "зверь",
+            },
+            {
+                "kind": "resistance",
+                "damage_type": "огонь",
+                "resist_mode": "resistance",
+            },
+            {
+                "kind": "weapon",
+                "name": "Удар",
+                "damage": "1d8",
+                "damage_type": "рубящий",
+                "ability": "str",
+                "magic_bonus": 1,
+                "ranged": False,
             },
             {"kind": "resource", "name": "Заряды", "charges": 3, "reset": "dawn"},
             {
                 "kind": "action",
                 "name": "Вспышка",
                 "action_cost": "bonus",
+                "charges": 1,
+                "reset": "long",
                 "text": "Свет 20 фт",
             },
         ]
     )
-    assert len(abilities) == 5
-    assert abilities[3]["reset"] == "long"  # dawn → long
+    assert len(abilities) == 11
+    assert abilities[9]["reset"] == "long"  # dawn → long
     mods = sum_passive_bonuses(abilities)
     assert mods["ac"] == 1
-    assert mods["attack"] == 1
-    assert mods["abilities"]["str"] == 2
+    assert mods["speed"] == 10
+    assert mods["saves"]["wis"] == 1
     notes = format_abilities_notes(abilities, "Клинок бури")
     assert "Клинок бури" in notes
-    assert "+1 КД" in notes or "+1" in notes
+    assert "ячейка" in notes.lower() or "Ячейка" in notes
 
 
-def test_apply_artifact_to_sheet_active():
+def test_apply_full_kit():
     artifact = SimpleNamespace(
         id=uuid4(),
-        name="Кольцо защиты",
-        rarity="редкий",
-        description="Тёплый металл",
+        name="Посох архимага",
+        rarity="легендарный",
+        description="Древний дуб",
         requires_attunement=True,
         abilities=[
+            {"kind": "passive", "name": "Страж", "bonus_target": "ac", "bonus_value": 1},
             {
                 "kind": "passive",
-                "name": "Страж",
-                "bonus_target": "ac",
+                "name": "Спас",
+                "bonus_target": "save",
                 "bonus_value": 1,
+                "ability_key": "dex",
             },
             {
-                "kind": "resource",
-                "name": "Щит",
-                "charges": 2,
-                "reset": "long",
+                "kind": "passive",
+                "name": "Ночь",
+                "bonus_target": "darkvision",
+                "bonus_value": 60,
+            },
+            {"kind": "spell_slot", "slot_level": 3, "slot_count": 1, "name": "Ячейка 3"},
+            {
+                "kind": "spell",
+                "spell_name": "Огненный шар",
+                "spell_level": 3,
+                "damage": "8d6",
+                "prepared": True,
+            },
+            {
+                "kind": "companion",
+                "companion_name": "Бес",
+                "hp_max": 10,
+                "ac": 13,
+                "companion_type": "фамильяр",
+            },
+            {
+                "kind": "resistance",
+                "damage_type": "огонь",
+                "resist_mode": "resistance",
+            },
+            {"kind": "resource", "name": "Заряды", "charges": 7, "reset": "long"},
+            {
+                "kind": "weapon",
+                "name": "Удар посохом",
+                "damage": "1d6",
+                "damage_type": "дробящий",
+                "ability": "str",
+                "magic_bonus": 1,
             },
         ],
         attack_damage="",
         attack_damage_type="",
         attack_ability="str",
         attack_range_kind="melee",
-        weight_lb=0.1,
+        weight_lb=4,
     )
     sheet = {
         "abilities": {"dex": {"score": 14}, "str": {"score": 10}},
-        "combat": {},
+        "saves": {},
+        "combat": {"speed": 30},
+        "identity": {},
         "inventory": {"coins": {"gp": 5}, "items": []},
         "attunements": [],
         "resources": [],
         "weapons": [],
+        "spells": {"slots": {"3": {"max": 1, "used": 0}}, "known": []},
+        "companions": [],
     }
     result = apply_artifact_to_sheet(sheet, artifact=artifact, qty=1)
     assert result["active"] is True
+
     items = sheet["inventory"]["items"]
-    assert len(items) == 1
     assert items[0]["item_kind"] == "magic"
-    assert items[0]["magic_mods"]["ac"] == 1
+    assert items[0]["artifact_snapshot"]["attack_role"] == "artifact"
     assert len(sheet["attunements"]) == 1
-    assert sheet["attunements"][0]["item_id"] == items[0]["id"]
-    assert len(sheet["resources"]) == 1
-    assert sheet["resources"][0]["max"] == 2
-    assert sheet["combat"]["ac"] == 10 + 2 + 1  # 10+dex(+2)+1
+
+    assert sheet["combat"]["ac"] == 10 + 2 + 1
+    assert sheet["combat"]["speed"] == 30
+    assert any(
+        r.get("damage_type") == "огонь" for r in sheet["combat"]["damage_resistances"]
+    )
+    assert sheet["identity"]["darkvision"] == 60
+    assert sheet["saves"]["dex"]["magic_bonus"] == 1
+
+    assert sheet["spells"]["slots"]["3"]["max"] == 2  # was 1 + 1
+    assert any(s.get("name") == "Огненный шар" for s in sheet["spells"]["known"])
+
+    assert len(sheet["companions"]) == 1
+    assert sheet["companions"][0]["name"] == "Бес"
+    assert sheet["companions"][0]["type"] == "фамильяр"
+
+    assert any(r.get("max") == 7 for r in sheet["resources"])
+    assert any(w.get("magic_bonus") == 1 for w in sheet["weapons"])
 
 
 def test_apply_weapon_artifact_bakes_bonuses():
@@ -120,7 +203,15 @@ def test_apply_weapon_artifact_bakes_bonuses():
         attack_range_kind="melee",
         weight_lb=3,
     )
-    sheet: dict = {"inventory": {"items": []}, "weapons": [], "combat": {}, "abilities": {}}
+    sheet: dict = {
+        "inventory": {"items": []},
+        "weapons": [],
+        "combat": {},
+        "abilities": {},
+        "saves": {},
+        "spells": {},
+        "companions": [],
+    }
     apply_artifact_to_sheet(sheet, artifact=artifact)
     assert sheet["weapons"][0]["magic_bonus"] == 1
     assert "1d8" in sheet["weapons"][0]["damage"]

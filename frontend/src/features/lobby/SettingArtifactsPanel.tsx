@@ -20,6 +20,11 @@ const KIND_OPTIONS: { id: ArtifactAbilityKind; label: string }[] = [
   { id: 'passive', label: 'Пассив' },
   { id: 'resource', label: 'Заряды' },
   { id: 'action', label: 'Действие' },
+  { id: 'spell_slot', label: 'Ячейка' },
+  { id: 'spell', label: 'Заклинание' },
+  { id: 'companion', label: 'Призыв' },
+  { id: 'resistance', label: 'Сопр.' },
+  { id: 'weapon', label: 'Атака' },
   { id: 'trait', label: 'Черта' },
 ]
 
@@ -29,6 +34,8 @@ const BONUS_TARGETS: { id: ArtifactBonusTarget; label: string }[] = [
   { id: 'damage', label: 'Урон' },
   { id: 'ability', label: 'Характеристика' },
   { id: 'save', label: 'Спасбросок' },
+  { id: 'speed', label: 'Скорость' },
+  { id: 'darkvision', label: 'Тёмное зрение' },
 ]
 
 const ABILITY_KEYS = [
@@ -47,17 +54,62 @@ function newAbilityId(): string {
 }
 
 function emptyAbility(kind: ArtifactAbilityKind = 'passive'): ArtifactAbility {
-  return {
+  const base: ArtifactAbility = {
     id: newAbilityId(),
     kind,
-    name: kind === 'passive' ? '+1 КД' : kind === 'resource' ? 'Заряды' : kind === 'action' ? 'Действие' : 'Свойство',
+    name: KIND_OPTIONS.find((k) => k.id === kind)?.label ?? 'Свойство',
     text: '',
-    bonus_target: kind === 'passive' ? 'ac' : null,
-    bonus_value: kind === 'passive' ? 1 : null,
-    ability_key: 'str',
-    charges: kind === 'resource' ? 3 : null,
-    reset: kind === 'resource' ? 'long' : null,
-    action_cost: kind === 'action' ? 'action' : null,
+  }
+  switch (kind) {
+    case 'passive':
+      return { ...base, name: '+1 КД', bonus_target: 'ac', bonus_value: 1, ability_key: 'str' }
+    case 'resource':
+      return { ...base, name: 'Заряды', charges: 3, reset: 'long' }
+    case 'action':
+      return { ...base, name: 'Действие', action_cost: 'action' }
+    case 'spell_slot':
+      return { ...base, name: 'Ячейка', slot_level: 1, slot_count: 1, pact_level: 1 }
+    case 'spell':
+      return {
+        ...base,
+        name: 'Заклинание',
+        spell_name: '',
+        spell_level: 1,
+        prepared: true,
+        casting_time: '1 действие',
+        range: '60 фт',
+        attack_or_save: '',
+        damage: '',
+        concentration: false,
+      }
+    case 'companion':
+      return {
+        ...base,
+        name: 'Напарник',
+        companion_name: 'Волк',
+        hp_max: 11,
+        ac: 13,
+        companion_type: 'зверь',
+      }
+    case 'resistance':
+      return {
+        ...base,
+        name: 'Сопротивление',
+        damage_type: 'огонь',
+        resist_mode: 'resistance',
+      }
+    case 'weapon':
+      return {
+        ...base,
+        name: 'Удар',
+        damage: '1d8',
+        damage_type: 'рубящий',
+        ability: 'str',
+        range_kind: 'melee',
+        magic_bonus: 0,
+      }
+    default:
+      return { ...base, name: 'Свойство' }
   }
 }
 
@@ -76,7 +128,9 @@ function emptyDraft(): SettingArtifactCreatePayload & { abilities: ArtifactAbili
   }
 }
 
-function fromArtifact(a: SettingArtifact): SettingArtifactCreatePayload & { abilities: ArtifactAbility[] } {
+function fromArtifact(
+  a: SettingArtifact,
+): SettingArtifactCreatePayload & { abilities: ArtifactAbility[] } {
   return {
     name: a.name,
     rarity: a.rarity,
@@ -101,19 +155,43 @@ function abilitySummary(ab: ArtifactAbility): string {
     const target = BONUS_TARGETS.find((t) => t.id === ab.bonus_target)?.label ?? ab.bonus_target
     return `${ab.name || 'Пассив'}: ${sign} ${target}`
   }
-  if (ab.kind === 'resource') {
-    return `${ab.name || 'Заряды'}: ${ab.charges ?? 1} зар.`
+  if (ab.kind === 'resource') return `${ab.name || 'Заряды'}: ${ab.charges ?? 1} зар.`
+  if (ab.kind === 'action') return `${ab.name || 'Действие'} (${ab.action_cost || 'action'})`
+  if (ab.kind === 'spell_slot') {
+    const lvl = ab.slot_level ?? 1
+    if (lvl === 0) return `Pact ×${ab.slot_count ?? 1}`
+    return `Ячейка ${lvl}-го ×${ab.slot_count ?? 1}`
   }
-  if (ab.kind === 'action') {
-    return `${ab.name || 'Действие'} (${ab.action_cost || 'action'})`
+  if (ab.kind === 'spell') {
+    const lvl = ab.spell_level ?? 0
+    return `${ab.spell_name || ab.name || 'Закл.'} (${lvl === 0 ? 'заговор' : `${lvl}-й`})`
+  }
+  if (ab.kind === 'companion') {
+    return `${ab.companion_name || ab.name || 'Призыв'} · ХП ${ab.hp_max ?? '—'} КД ${ab.ac ?? '—'}`
+  }
+  if (ab.kind === 'resistance') {
+    const mode =
+      ab.resist_mode === 'immunity'
+        ? 'имм.'
+        : ab.resist_mode === 'vulnerability'
+          ? 'уязв.'
+          : 'сопр.'
+    return `${mode} ${ab.damage_type || ''}`
+  }
+  if (ab.kind === 'weapon') {
+    const bonus = ab.magic_bonus ? ` ${ab.magic_bonus >= 0 ? '+' : ''}${ab.magic_bonus}` : ''
+    return `${ab.name || 'Атака'}: ${ab.damage || ''}${bonus}`
   }
   return ab.name || 'Черта'
 }
 
-/**
- * Библиотека артефактов сеттинга: конструктор способностей + список.
- */
-export function SettingArtifactsPanel({ artifacts, busy = false, onCreate, onUpdate, onDelete }: Props) {
+export function SettingArtifactsPanel({
+  artifacts,
+  busy = false,
+  onCreate,
+  onUpdate,
+  onDelete,
+}: Props) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [draft, setDraft] = useState(() => emptyDraft())
@@ -154,7 +232,7 @@ export function SettingArtifactsPanel({ artifacts, busy = false, onCreate, onUpd
       abilities: (prev.abilities ?? []).map((ab) => {
         if (ab.id !== id) return ab
         const next = emptyAbility(kind)
-        return { ...next, id: ab.id, name: ab.name || next.name, text: ab.text || '' }
+        return { ...next, id: ab.id, text: ab.text || '' }
       }),
     }))
   }
@@ -174,11 +252,8 @@ export function SettingArtifactsPanel({ artifacts, busy = false, onCreate, onUpd
       attack_range_kind: draft.attack_range_kind || 'melee',
       weight_lb: draft.weight_lb ?? null,
     }
-    if (editingId) {
-      await onUpdate(editingId, payload)
-    } else {
-      await onCreate(payload)
-    }
+    if (editingId) await onUpdate(editingId, payload)
+    else await onCreate(payload)
     closeEditor()
   }
 
@@ -188,8 +263,8 @@ export function SettingArtifactsPanel({ artifacts, busy = false, onCreate, onUpd
     <Panel title="Артефакты">
       <Stack gap={14}>
         <Text tone="muted">
-          Создай предмет мира со способностями — потом добавь его в лут сессии. Пассивы
-          сразу применяются на лист при выдаче.
+          Предмет мира со способностями. При выдаче в лут выбранное сразу ложится на лист:
+          КД, атаки, ячейки, заклинания, призыв, сопротивления, ресурсы.
         </Text>
 
         {!editorOpen ? (
@@ -241,7 +316,7 @@ export function SettingArtifactsPanel({ artifacts, busy = false, onCreate, onUpd
                     setDraft((p) => ({ ...p, requires_attunement: e.target.checked }))
                   }
                 />
-                <span>Нужна настройка</span>
+                <span>Нужна настройка (attunement)</span>
               </label>
               <Field label="Описание">
                 <textarea
@@ -302,6 +377,7 @@ export function SettingArtifactsPanel({ artifacts, busy = false, onCreate, onUpd
                         Удалить
                       </Button>
                     </div>
+
                     <Field label="Название">
                       <Input
                         value={ab.name}
@@ -330,17 +406,29 @@ export function SettingArtifactsPanel({ artifacts, busy = false, onCreate, onUpd
                             ))}
                           </select>
                         </Field>
-                        <Field label="Бонус">
+                        <Field
+                          label={
+                            ab.bonus_target === 'speed' || ab.bonus_target === 'darkvision'
+                              ? 'Футы'
+                              : 'Бонус'
+                          }
+                        >
                           <NumberInput
                             value={ab.bonus_value ?? 1}
-                            min={-10}
-                            max={10}
+                            min={
+                              ab.bonus_target === 'speed' || ab.bonus_target === 'darkvision'
+                                ? -30
+                                : -10
+                            }
+                            max={
+                              ab.bonus_target === 'speed' || ab.bonus_target === 'darkvision'
+                                ? 120
+                                : 10
+                            }
                             integer
                             emptyValue={1}
                             disabled={busy}
-                            onValueChange={(v) =>
-                              patchAbility(ab.id!, { bonus_value: v ?? 1 })
-                            }
+                            onValueChange={(v) => patchAbility(ab.id!, { bonus_value: v ?? 1 })}
                           />
                         </Field>
                         {ab.bonus_target === 'ability' || ab.bonus_target === 'save' ? (
@@ -399,27 +487,329 @@ export function SettingArtifactsPanel({ artifacts, busy = false, onCreate, onUpd
                     ) : null}
 
                     {ab.kind === 'action' ? (
-                      <Field label="Стоимость">
-                        <select
-                          className="ui-input"
-                          value={ab.action_cost ?? 'action'}
-                          disabled={busy}
-                          onChange={(e) =>
-                            patchAbility(ab.id!, {
-                              action_cost: e.target.value as ArtifactAbility['action_cost'],
-                            })
-                          }
-                        >
-                          <option value="action">Действие</option>
-                          <option value="bonus">Бонусное</option>
-                          <option value="reaction">Реакция</option>
-                          <option value="free">Свободно</option>
-                          <option value="special">Особое</option>
-                        </select>
-                      </Field>
+                      <div className="setting-artifact-editor__row">
+                        <Field label="Стоимость">
+                          <select
+                            className="ui-input"
+                            value={ab.action_cost ?? 'action'}
+                            disabled={busy}
+                            onChange={(e) =>
+                              patchAbility(ab.id!, {
+                                action_cost: e.target.value as ArtifactAbility['action_cost'],
+                              })
+                            }
+                          >
+                            <option value="action">Действие</option>
+                            <option value="bonus">Бонусное</option>
+                            <option value="reaction">Реакция</option>
+                            <option value="free">Свободно</option>
+                            <option value="special">Особое</option>
+                          </select>
+                        </Field>
+                        <Field label="Заряды (опц.)" hint="1/день → 1 + п. отдых">
+                          <NumberInput
+                            value={ab.charges ?? null}
+                            min={1}
+                            max={99}
+                            integer
+                            emptyValue={null}
+                            disabled={busy}
+                            onValueChange={(v) =>
+                              patchAbility(ab.id!, {
+                                charges: v,
+                                reset: v ? ab.reset || 'long' : null,
+                              })
+                            }
+                          />
+                        </Field>
+                      </div>
                     ) : null}
 
-                    <Field label="Текст">
+                    {ab.kind === 'spell_slot' ? (
+                      <div className="setting-artifact-editor__row">
+                        <Field label="Уровень ячейки" hint="0 = pact magic">
+                          <NumberInput
+                            value={ab.slot_level ?? 1}
+                            min={0}
+                            max={9}
+                            integer
+                            emptyValue={1}
+                            disabled={busy}
+                            onValueChange={(v) => patchAbility(ab.id!, { slot_level: v ?? 1 })}
+                          />
+                        </Field>
+                        <Field label="Сколько">
+                          <NumberInput
+                            value={ab.slot_count ?? 1}
+                            min={1}
+                            max={9}
+                            integer
+                            emptyValue={1}
+                            disabled={busy}
+                            onValueChange={(v) => patchAbility(ab.id!, { slot_count: v ?? 1 })}
+                          />
+                        </Field>
+                        {(ab.slot_level ?? 1) === 0 ? (
+                          <Field label="Ур. pact">
+                            <NumberInput
+                              value={ab.pact_level ?? 1}
+                              min={1}
+                              max={9}
+                              integer
+                              emptyValue={1}
+                              disabled={busy}
+                              onValueChange={(v) => patchAbility(ab.id!, { pact_level: v ?? 1 })}
+                            />
+                          </Field>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {ab.kind === 'spell' ? (
+                      <Stack gap={8}>
+                        <div className="setting-artifact-editor__row">
+                          <Field label="Название заклинания">
+                            <Input
+                              value={ab.spell_name ?? ''}
+                              disabled={busy}
+                              placeholder="Огненный снаряд"
+                              onChange={(e) =>
+                                patchAbility(ab.id!, {
+                                  spell_name: e.target.value,
+                                  name: e.target.value || ab.name,
+                                })
+                              }
+                            />
+                          </Field>
+                          <Field label="Уровень">
+                            <NumberInput
+                              value={ab.spell_level ?? 0}
+                              min={0}
+                              max={9}
+                              integer
+                              emptyValue={0}
+                              disabled={busy}
+                              onValueChange={(v) => patchAbility(ab.id!, { spell_level: v ?? 0 })}
+                            />
+                          </Field>
+                        </div>
+                        <div className="setting-artifact-editor__row">
+                          <Field label="Время">
+                            <Input
+                              value={ab.casting_time ?? ''}
+                              disabled={busy}
+                              placeholder="1 действие"
+                              onChange={(e) =>
+                                patchAbility(ab.id!, { casting_time: e.target.value })
+                              }
+                            />
+                          </Field>
+                          <Field label="Дистанция">
+                            <Input
+                              value={ab.range ?? ''}
+                              disabled={busy}
+                              placeholder="60 фт"
+                              onChange={(e) => patchAbility(ab.id!, { range: e.target.value })}
+                            />
+                          </Field>
+                          <Field label="Атака / спас">
+                            <Input
+                              value={ab.attack_or_save ?? ''}
+                              disabled={busy}
+                              placeholder="атака / ЛОВ"
+                              onChange={(e) =>
+                                patchAbility(ab.id!, { attack_or_save: e.target.value })
+                              }
+                            />
+                          </Field>
+                          <Field label="Урон">
+                            <Input
+                              value={ab.damage ?? ''}
+                              disabled={busy}
+                              placeholder="3d6"
+                              onChange={(e) => patchAbility(ab.id!, { damage: e.target.value })}
+                            />
+                          </Field>
+                        </div>
+                        <div className="inline-actions">
+                          <label className="setting-wiki-reveal__toggle">
+                            <input
+                              type="checkbox"
+                              checked={ab.prepared !== false}
+                              disabled={busy}
+                              onChange={(e) =>
+                                patchAbility(ab.id!, { prepared: e.target.checked })
+                              }
+                            />
+                            <span>Подготовлено</span>
+                          </label>
+                          <label className="setting-wiki-reveal__toggle">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(ab.concentration)}
+                              disabled={busy}
+                              onChange={(e) =>
+                                patchAbility(ab.id!, { concentration: e.target.checked })
+                              }
+                            />
+                            <span>Концентрация</span>
+                          </label>
+                        </div>
+                      </Stack>
+                    ) : null}
+
+                    {ab.kind === 'companion' ? (
+                      <div className="setting-artifact-editor__row">
+                        <Field label="Имя">
+                          <Input
+                            value={ab.companion_name ?? ''}
+                            disabled={busy}
+                            placeholder="Волк"
+                            onChange={(e) =>
+                              patchAbility(ab.id!, {
+                                companion_name: e.target.value,
+                                name: e.target.value || ab.name,
+                              })
+                            }
+                          />
+                        </Field>
+                        <Field label="Тип">
+                          <Input
+                            value={ab.companion_type ?? ''}
+                            disabled={busy}
+                            placeholder="зверь / фамильяр"
+                            onChange={(e) =>
+                              patchAbility(ab.id!, { companion_type: e.target.value })
+                            }
+                          />
+                        </Field>
+                        <Field label="ХП">
+                          <NumberInput
+                            value={ab.hp_max ?? 10}
+                            min={1}
+                            max={999}
+                            integer
+                            emptyValue={10}
+                            disabled={busy}
+                            onValueChange={(v) => patchAbility(ab.id!, { hp_max: v ?? 10 })}
+                          />
+                        </Field>
+                        <Field label="КД">
+                          <NumberInput
+                            value={ab.ac ?? 12}
+                            min={1}
+                            max={40}
+                            integer
+                            emptyValue={12}
+                            disabled={busy}
+                            onValueChange={(v) => patchAbility(ab.id!, { ac: v ?? 12 })}
+                          />
+                        </Field>
+                      </div>
+                    ) : null}
+
+                    {ab.kind === 'resistance' ? (
+                      <div className="setting-artifact-editor__row">
+                        <Field label="Тип урона">
+                          <Input
+                            value={ab.damage_type ?? ''}
+                            disabled={busy}
+                            placeholder="огонь"
+                            onChange={(e) =>
+                              patchAbility(ab.id!, { damage_type: e.target.value })
+                            }
+                          />
+                        </Field>
+                        <Field label="Режим">
+                          <select
+                            className="ui-input"
+                            value={ab.resist_mode ?? 'resistance'}
+                            disabled={busy}
+                            onChange={(e) =>
+                              patchAbility(ab.id!, {
+                                resist_mode: e.target.value as ArtifactAbility['resist_mode'],
+                              })
+                            }
+                          >
+                            <option value="resistance">Сопротивление</option>
+                            <option value="immunity">Иммунитет</option>
+                            <option value="vulnerability">Уязвимость</option>
+                          </select>
+                        </Field>
+                      </div>
+                    ) : null}
+
+                    {ab.kind === 'weapon' ? (
+                      <div className="setting-artifact-editor__row">
+                        <Field label="Урон">
+                          <Input
+                            value={ab.damage ?? ''}
+                            disabled={busy}
+                            placeholder="1d8"
+                            onChange={(e) => patchAbility(ab.id!, { damage: e.target.value })}
+                          />
+                        </Field>
+                        <Field label="Тип">
+                          <Input
+                            value={ab.damage_type ?? ''}
+                            disabled={busy}
+                            placeholder="рубящий"
+                            onChange={(e) =>
+                              patchAbility(ab.id!, { damage_type: e.target.value })
+                            }
+                          />
+                        </Field>
+                        <Field label="Хар-ка">
+                          <select
+                            className="ui-input"
+                            value={ab.ability ?? 'str'}
+                            disabled={busy}
+                            onChange={(e) =>
+                              patchAbility(ab.id!, {
+                                ability: e.target.value as ArtifactAbility['ability'],
+                              })
+                            }
+                          >
+                            {ABILITY_KEYS.map((k) => (
+                              <option key={k.id} value={k.id}>
+                                {k.label}
+                              </option>
+                            ))}
+                          </select>
+                        </Field>
+                        <Field label="Дистанция">
+                          <select
+                            className="ui-input"
+                            value={ab.range_kind ?? 'melee'}
+                            disabled={busy}
+                            onChange={(e) =>
+                              patchAbility(ab.id!, {
+                                range_kind: e.target.value as ArtifactAbility['range_kind'],
+                                ranged: e.target.value === 'ranged',
+                              })
+                            }
+                          >
+                            <option value="melee">Ближнее</option>
+                            <option value="ranged">Дальнее</option>
+                            <option value="reach">Досяг.</option>
+                            <option value="thrown">Метат.</option>
+                          </select>
+                        </Field>
+                        <Field label="Маг. бонус">
+                          <NumberInput
+                            value={ab.magic_bonus ?? 0}
+                            min={-5}
+                            max={5}
+                            integer
+                            emptyValue={0}
+                            disabled={busy}
+                            onValueChange={(v) => patchAbility(ab.id!, { magic_bonus: v ?? 0 })}
+                          />
+                        </Field>
+                      </div>
+                    ) : null}
+
+                    <Field label="Текст / уточнение">
                       <textarea
                         className="ui-input ui-textarea"
                         rows={2}
@@ -434,7 +824,7 @@ export function SettingArtifactsPanel({ artifacts, busy = false, onCreate, onUpd
               </Stack>
 
               <details className="setting-artifact-attack">
-                <summary>Атака оружием (если это клинок / посох…)</summary>
+                <summary>Базовая атака предмета (как в справочнике: ability / damage / ranged)</summary>
                 <div className="setting-artifact-editor__row" style={{ marginTop: 8 }}>
                   <Field label="Урон">
                     <Input
@@ -473,6 +863,24 @@ export function SettingArtifactsPanel({ artifacts, busy = false, onCreate, onUpd
                           {k.label}
                         </option>
                       ))}
+                    </select>
+                  </Field>
+                  <Field label="Дистанция">
+                    <select
+                      className="ui-input"
+                      value={draft.attack_range_kind ?? 'melee'}
+                      disabled={busy}
+                      onChange={(e) =>
+                        setDraft((p) => ({
+                          ...p,
+                          attack_range_kind: e.target.value as 'melee',
+                        }))
+                      }
+                    >
+                      <option value="melee">Ближнее</option>
+                      <option value="ranged">Дальнее</option>
+                      <option value="reach">Досяг.</option>
+                      <option value="thrown">Метат.</option>
                     </select>
                   </Field>
                 </div>

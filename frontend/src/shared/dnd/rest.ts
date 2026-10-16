@@ -13,6 +13,8 @@ export type SheetResource = {
   reset: ResourceReset
   /** Трата ресурса → выбор союзника (вдохновение барда, инфузия…). */
   applies_to_allies?: boolean
+  /** Связь с предметом инвентаря (артефакт). */
+  source_item_id?: string | null
 }
 
 export function clampExhaustion(value: number): number {
@@ -32,6 +34,7 @@ export function clampResource(resource: SheetResource): SheetResource {
     used,
     reset,
     applies_to_allies: Boolean(resource.applies_to_allies),
+    source_item_id: resource.source_item_id ?? null,
   }
 }
 

@@ -54,10 +54,27 @@ export type SettingPageLink = {
   created_at: string
 }
 
-export type ArtifactAbilityKind = 'passive' | 'resource' | 'action' | 'trait'
-export type ArtifactBonusTarget = 'attack' | 'damage' | 'ac' | 'save' | 'ability'
+export type ArtifactAbilityKind =
+  | 'passive'
+  | 'resource'
+  | 'action'
+  | 'trait'
+  | 'spell_slot'
+  | 'spell'
+  | 'companion'
+  | 'resistance'
+  | 'weapon'
+export type ArtifactBonusTarget =
+  | 'attack'
+  | 'damage'
+  | 'ac'
+  | 'save'
+  | 'ability'
+  | 'speed'
+  | 'darkvision'
 export type ArtifactActionCost = 'action' | 'bonus' | 'reaction' | 'free' | 'special'
 export type ArtifactResourceReset = 'short' | 'long' | 'manual' | 'dawn'
+export type ArtifactResistMode = 'resistance' | 'immunity' | 'vulnerability'
 
 export type ArtifactAbility = {
   id?: string
@@ -70,6 +87,32 @@ export type ArtifactAbility = {
   charges?: number | null
   reset?: ArtifactResourceReset | null
   action_cost?: ArtifactActionCost | null
+  slot_level?: number | null
+  slot_count?: number | null
+  pact_level?: number | null
+  spell_name?: string | null
+  spell_level?: number | null
+  catalog_id?: string | null
+  prepared?: boolean | null
+  casting_time?: string | null
+  range?: string | null
+  attack_or_save?: string | null
+  damage?: string | null
+  concentration?: boolean | null
+  companion_name?: string | null
+  hp_max?: number | null
+  ac?: number | null
+  companion_type?: string | null
+  damage_type?: string | null
+  resist_mode?: ArtifactResistMode | null
+  attack_damage?: string | null
+  attack_damage_type?: string | null
+  attack_ability?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null
+  attack_range_kind?: 'melee' | 'ranged' | 'reach' | 'thrown' | null
+  ranged?: boolean | null
+  magic_bonus?: number | null
+  ability?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null
+  range_kind?: 'melee' | 'ranged' | 'reach' | 'thrown' | null
 }
 
 export type SettingArtifact = {

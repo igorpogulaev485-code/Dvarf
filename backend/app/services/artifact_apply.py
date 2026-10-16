@@ -1,4 +1,8 @@
-"""Apply setting-artifact abilities onto a character sheet (grant / loot)."""
+"""Apply setting-artifact abilities onto a character sheet (grant / loot).
+
+Ability kinds align with catalog item/weapon/spell shapes and sheet surfaces:
+passive, resource, action, trait, spell_slot, spell, companion, resistance, weapon.
+"""
 
 from __future__ import annotations
 
@@ -6,54 +10,156 @@ from typing import Any
 from uuid import uuid4
 
 ABILITY_KEYS = ("str", "dex", "con", "int", "wis", "cha")
-PASSIVE_TARGETS = ("attack", "damage", "ac", "save", "ability")
+PASSIVE_TARGETS = (
+    "attack",
+    "damage",
+    "ac",
+    "save",
+    "ability",
+    "speed",
+    "darkvision",
+)
 ACTION_COSTS = ("action", "bonus", "reaction", "free", "special")
 RESOURCE_RESETS = ("short", "long", "manual")
+ABILITY_KINDS = (
+    "passive",
+    "resource",
+    "action",
+    "trait",
+    "spell_slot",
+    "spell",
+    "companion",
+    "resistance",
+    "weapon",
+)
+RESIST_MODES = ("resistance", "immunity", "vulnerability")
+RANGE_KINDS = ("melee", "ranged", "reach", "thrown")
 
 
 def normalize_ability(raw: dict[str, Any] | None) -> dict[str, Any] | None:
     if not isinstance(raw, dict):
         return None
     kind = str(raw.get("kind") or "trait").strip().lower()
-    if kind not in ("passive", "resource", "action", "trait"):
+    if kind not in ABILITY_KINDS:
         kind = "trait"
     name = str(raw.get("name") or "").strip()[:120]
     text = str(raw.get("text") or "").strip()[:2000]
     aid = str(raw.get("id") or "").strip() or str(uuid4())
-    out: dict[str, Any] = {"id": aid, "kind": kind, "name": name or _default_name(kind), "text": text}
+    out: dict[str, Any] = {
+        "id": aid,
+        "kind": kind,
+        "name": name or _default_name(kind),
+        "text": text,
+    }
 
     if kind == "passive":
         target = str(raw.get("bonus_target") or "ac").strip().lower()
         if target not in PASSIVE_TARGETS:
             target = "ac"
-        try:
-            value = int(raw.get("bonus_value") or 0)
-        except (TypeError, ValueError):
-            value = 0
-        value = max(-10, min(10, value))
+        # speed / darkvision — футы (до 120); остальное — обычный бонус
+        if target in ("speed", "darkvision"):
+            value = _clamp_int(raw.get("bonus_value"), 0, -30, 120)
+        else:
+            value = _clamp_int(raw.get("bonus_value"), 0, -10, 10)
         out["bonus_target"] = target
         out["bonus_value"] = value
         key = str(raw.get("ability_key") or "str").strip().lower()
         if key not in ABILITY_KEYS:
             key = "str"
         out["ability_key"] = key
+
     elif kind == "resource":
-        try:
-            charges = int(raw.get("charges") or 1)
-        except (TypeError, ValueError):
-            charges = 1
-        out["charges"] = max(1, min(99, charges))
+        out["charges"] = _clamp_int(raw.get("charges"), 1, 1, 99)
         reset = str(raw.get("reset") or "long").strip().lower()
         if reset == "dawn":
             reset = "long"
         if reset not in RESOURCE_RESETS:
             reset = "long"
         out["reset"] = reset
+
     elif kind == "action":
         cost = str(raw.get("action_cost") or "action").strip().lower()
         if cost not in ACTION_COSTS:
             cost = "action"
         out["action_cost"] = cost
+        # optional auto-resource for «1/день»
+        if raw.get("charges"):
+            out["charges"] = _clamp_int(raw.get("charges"), 1, 1, 99)
+            reset = str(raw.get("reset") or "long").strip().lower()
+            if reset == "dawn":
+                reset = "long"
+            if reset not in RESOURCE_RESETS:
+                reset = "long"
+            out["reset"] = reset
+
+    elif kind == "spell_slot":
+        # slot_level 0 = pact magic; 1–9 = leveled slot
+        level = _clamp_int(raw.get("slot_level"), 1, 0, 9)
+        out["slot_level"] = level
+        out["slot_count"] = _clamp_int(raw.get("slot_count"), 1, 1, 9)
+        if level == 0:
+            # pact slot level (cast level)
+            out["pact_level"] = _clamp_int(raw.get("pact_level"), 1, 1, 9)
+
+    elif kind == "spell":
+        out["spell_name"] = str(raw.get("spell_name") or name or "Заклинание").strip()[:120]
+        out["spell_level"] = _clamp_int(raw.get("spell_level"), 0, 0, 9)
+        out["catalog_id"] = (
+            str(raw.get("catalog_id")).strip()[:80] if raw.get("catalog_id") else None
+        )
+        out["prepared"] = bool(raw.get("prepared", True))
+        out["casting_time"] = str(raw.get("casting_time") or "").strip()[:80]
+        out["range"] = str(raw.get("range") or "").strip()[:80]
+        out["attack_or_save"] = str(raw.get("attack_or_save") or raw.get("save") or "").strip()[
+            :80
+        ]
+        out["damage"] = str(raw.get("damage") or "").strip()[:40]
+        out["concentration"] = bool(raw.get("concentration", False))
+        out["name"] = out["spell_name"]
+
+    elif kind == "companion":
+        out["companion_name"] = str(
+            raw.get("companion_name") or name or "Напарник"
+        ).strip()[:80]
+        out["hp_max"] = _clamp_int(raw.get("hp_max"), 10, 1, 999)
+        out["ac"] = _clamp_int(raw.get("ac"), 12, 1, 40)
+        out["companion_type"] = str(raw.get("companion_type") or "").strip()[:40]
+        out["name"] = out["companion_name"]
+
+    elif kind == "resistance":
+        dtype = str(raw.get("damage_type") or text or "огонь").strip()[:40]
+        mode = str(raw.get("resist_mode") or "resistance").strip().lower()
+        if mode not in RESIST_MODES:
+            mode = "resistance"
+        out["damage_type"] = dtype
+        out["resist_mode"] = mode
+        if not name or name == _default_name(kind):
+            mode_ru = {
+                "resistance": "Сопр.",
+                "immunity": "Имм.",
+                "vulnerability": "Уязв.",
+            }[mode]
+            out["name"] = f"{mode_ru} {dtype}"
+
+    elif kind == "weapon":
+        # Catalog-aligned attack line (ability, damage, damage_type, ranged…)
+        out["damage"] = str(raw.get("damage") or raw.get("attack_damage") or "1d8").strip()[:40]
+        out["damage_type"] = str(
+            raw.get("damage_type") or raw.get("attack_damage_type") or ""
+        ).strip()[:40]
+        ability = str(raw.get("ability") or raw.get("attack_ability") or "str").strip().lower()
+        if ability not in ABILITY_KEYS:
+            ability = "str"
+        out["ability"] = ability
+        range_kind = str(
+            raw.get("range_kind") or raw.get("attack_range_kind") or "melee"
+        ).strip().lower()
+        if raw.get("ranged") is True:
+            range_kind = "ranged"
+        if range_kind not in RANGE_KINDS:
+            range_kind = "melee"
+        out["range_kind"] = range_kind
+        out["magic_bonus"] = _clamp_int(raw.get("magic_bonus") or raw.get("bonus_value"), 0, -5, 5)
 
     return out
 
@@ -75,7 +181,20 @@ def _default_name(kind: str) -> str:
         "resource": "Заряды",
         "action": "Действие",
         "trait": "Свойство",
+        "spell_slot": "Ячейка",
+        "spell": "Заклинание",
+        "companion": "Призыв",
+        "resistance": "Сопротивление",
+        "weapon": "Атака",
     }.get(kind, "Свойство")
+
+
+def _clamp_int(raw: object, default: int, lo: int, hi: int) -> int:
+    try:
+        value = int(raw)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        value = default
+    return max(lo, min(hi, value))
 
 
 def format_abilities_notes(abilities: list[dict[str, Any]], description: str = "") -> str:
@@ -97,6 +216,8 @@ def format_abilities_notes(abilities: list[dict[str, Any]], description: str = "
                 "ac": "КД",
                 "save": f"спас. {ab.get('ability_key', '')}",
                 "ability": str(ab.get("ability_key") or ""),
+                "speed": "скорость",
+                "darkvision": "тёмное зрение",
             }.get(str(target), str(target))
             head = f"{name}: {sign} {label}".strip()
             lines.append(f"{head}" + (f" — {text}" if text else ""))
@@ -116,17 +237,62 @@ def format_abilities_notes(abilities: list[dict[str, Any]], description: str = "
                 "free": "свободно",
                 "special": "особое",
             }.get(str(cost), str(cost))
-            lines.append(f"{name} ({cost_ru})" + (f" — {text}" if text else ""))
+            extra = ""
+            if ab.get("charges"):
+                extra = f", {ab.get('charges')}×"
+            lines.append(f"{name} ({cost_ru}{extra})" + (f" — {text}" if text else ""))
+        elif kind == "spell_slot":
+            level = int(ab.get("slot_level") or 1)
+            count = int(ab.get("slot_count") or 1)
+            if level == 0:
+                lines.append(
+                    f"{name}: pact ×{count} (ур. {ab.get('pact_level') or 1})"
+                    + (f" — {text}" if text else "")
+                )
+            else:
+                lines.append(
+                    f"{name}: ячейка {level}-го ×{count}" + (f" — {text}" if text else "")
+                )
+        elif kind == "spell":
+            lvl = int(ab.get("spell_level") or 0)
+            lvl_s = "заговор" if lvl == 0 else f"{lvl}-й"
+            lines.append(f"{name} ({lvl_s})" + (f" — {text}" if text else ""))
+        elif kind == "companion":
+            bits = [name]
+            if ab.get("companion_type"):
+                bits.append(str(ab["companion_type"]))
+            bits.append(f"ХП {ab.get('hp_max')}")
+            bits.append(f"КД {ab.get('ac')}")
+            lines.append(" · ".join(bits) + (f" — {text}" if text else ""))
+        elif kind == "resistance":
+            mode_ru = {
+                "resistance": "сопр.",
+                "immunity": "имм.",
+                "vulnerability": "уязв.",
+            }.get(str(ab.get("resist_mode")), "сопр.")
+            lines.append(
+                f"{name}: {mode_ru} {ab.get('damage_type')}"
+                + (f" — {text}" if text else "")
+            )
+        elif kind == "weapon":
+            dmg = ab.get("damage") or ""
+            bonus = int(ab.get("magic_bonus") or 0)
+            bonus_s = f" {bonus:+d}" if bonus else ""
+            lines.append(
+                f"{name}: {dmg}{bonus_s} {ab.get('damage_type') or ''}".strip()
+                + (f" — {text}" if text else "")
+            )
         else:
             lines.append(f"{name}" + (f" — {text}" if text else ""))
     return "\n".join(lines)[:2000]
 
 
 def sum_passive_bonuses(abilities: list[dict[str, Any]]) -> dict[str, Any]:
-    """Aggregate passive mods for apply + inventory snapshot."""
     ac = 0
     attack = 0
     damage = 0
+    speed = 0
+    darkvision = 0
     ability_scores: dict[str, int] = {k: 0 for k in ABILITY_KEYS}
     saves: dict[str, int] = {k: 0 for k in ABILITY_KEYS}
     for ab in abilities:
@@ -141,6 +307,10 @@ def sum_passive_bonuses(abilities: list[dict[str, Any]]) -> dict[str, Any]:
             attack += value
         elif target == "damage":
             damage += value
+        elif target == "speed":
+            speed += value
+        elif target == "darkvision":
+            darkvision += value
         elif target == "ability" and key in ability_scores:
             ability_scores[key] += value
         elif target == "save" and key in saves:
@@ -149,6 +319,8 @@ def sum_passive_bonuses(abilities: list[dict[str, Any]]) -> dict[str, Any]:
         "ac": ac,
         "attack": attack,
         "damage": damage,
+        "speed": speed,
+        "darkvision": darkvision,
         "abilities": {k: v for k, v in ability_scores.items() if v},
         "saves": {k: v for k, v in saves.items() if v},
     }
@@ -161,6 +333,13 @@ def _ensure_list(sheet: dict[str, Any], key: str) -> list:
     return []
 
 
+def _ensure_dict(sheet: dict[str, Any], key: str) -> dict:
+    raw = sheet.get(key)
+    if isinstance(raw, dict):
+        return dict(raw)
+    return {}
+
+
 def apply_artifact_to_sheet(
     sheet: dict[str, Any],
     *,
@@ -168,8 +347,8 @@ def apply_artifact_to_sheet(
     qty: int = 1,
 ) -> dict[str, Any]:
     """
-    Mutate sheet dict in place: inventory item + attunement + resources + attack + passives.
-    Returns the new inventory item id.
+    Mutate sheet: inventory + attunement + resources + weapons + spells/slots +
+    companions + resistances + passives (AC/scores/saves/speed/darkvision).
     """
     abilities = normalize_abilities(getattr(artifact, "abilities", None) or [])
     mods = sum_passive_bonuses(abilities)
@@ -184,6 +363,11 @@ def apply_artifact_to_sheet(
     except (TypeError, ValueError):
         weight_lb = None
 
+    attack_damage = str(getattr(artifact, "attack_damage", "") or "").strip()
+    attack_damage_type = str(getattr(artifact, "attack_damage_type", "") or "").strip()
+    attack_ability = str(getattr(artifact, "attack_ability", "") or "str").lower()
+    attack_range_kind = str(getattr(artifact, "attack_range_kind", "") or "melee")
+
     snapshot = {
         "artifact_id": str(getattr(artifact, "id", "")),
         "name": name,
@@ -192,13 +376,17 @@ def apply_artifact_to_sheet(
         "requires_attunement": requires,
         "abilities": abilities,
         "mods": mods,
-        "attack_damage": str(getattr(artifact, "attack_damage", "") or ""),
-        "attack_damage_type": str(getattr(artifact, "attack_damage_type", "") or ""),
-        "attack_ability": str(getattr(artifact, "attack_ability", "") or "str"),
-        "attack_range_kind": str(getattr(artifact, "attack_range_kind", "") or "melee"),
+        "attack_damage": attack_damage,
+        "attack_damage_type": attack_damage_type,
+        "attack_ability": attack_ability,
+        "attack_range_kind": attack_range_kind,
+        "attack_role": "artifact",
+        "item_kind": "magic",
+        "attunement": requires,
+        "weight_lb": weight_lb,
     }
 
-    inventory = dict(sheet.get("inventory") or {})
+    inventory = _ensure_dict(sheet, "inventory")
     items = list(inventory.get("items") or [])
     if not isinstance(items, list):
         items = []
@@ -225,7 +413,6 @@ def apply_artifact_to_sheet(
         inventory["coins"] = {"cp": 0, "sp": 0, "ep": 0, "gp": 0, "pp": 0}
     sheet["inventory"] = inventory
 
-    # Attunement slot
     attuned = False
     if requires:
         attunements = _ensure_list(sheet, "attunements")
@@ -246,67 +433,81 @@ def apply_artifact_to_sheet(
             sheet["attunements"] = attunements[:3]
             attuned = True
     else:
-        attuned = True  # no attunement required → active immediately
+        attuned = True
 
     if not attuned:
-        # Item granted but not active yet — still store, skip mechanical apply
         return {"item_id": item_id, "active": False, "mods": mods}
 
-    # Resources
+    # --- Resources (resource kind + action with charges) ---
     resources = _ensure_list(sheet, "resources")
     for ab in abilities:
-        if ab.get("kind") != "resource":
-            continue
-        resources.append(
-            {
-                "id": str(uuid4()),
-                "name": f"{name}: {ab.get('name') or 'Заряды'}"[:80],
-                "max": int(ab.get("charges") or 1),
-                "used": 0,
-                "reset": ab.get("reset") or "long",
-                "applies_to_allies": False,
-                "source_item_id": item_id,
-            }
-        )
+        if ab.get("kind") == "resource" or (
+            ab.get("kind") == "action" and ab.get("charges")
+        ):
+            resources.append(
+                {
+                    "id": str(uuid4()),
+                    "name": f"{name}: {ab.get('name') or 'Заряды'}"[:80],
+                    "max": int(ab.get("charges") or 1),
+                    "used": 0,
+                    "reset": ab.get("reset") or "long",
+                    "applies_to_allies": False,
+                    "source_item_id": item_id,
+                }
+            )
     sheet["resources"] = resources
 
-    # Attack line
-    dmg = str(getattr(artifact, "attack_damage", "") or "").strip()
-    if dmg or mods.get("attack") or mods.get("damage"):
-        damage = dmg or "1d4"
-        dmg_bonus = int(mods.get("damage") or 0)
-        if dmg_bonus:
-            sign = f"+{dmg_bonus}" if dmg_bonus > 0 else str(dmg_bonus)
-            if not any(ch in damage for ch in "+-") or damage.replace(" ", "").endswith(
-                ("d4", "d6", "d8", "d10", "d12")
-            ):
+    # --- Weapons: top-level attack fields + weapon abilities + attack/damage passives ---
+    weapons = _ensure_list(sheet, "weapons")
+    weapon_abs = [a for a in abilities if a.get("kind") == "weapon"]
+    if attack_damage or mods.get("attack") or mods.get("damage") or weapon_abs:
+        if attack_damage or mods.get("attack") or mods.get("damage"):
+            damage = attack_damage or "1d4"
+            dmg_bonus = int(mods.get("damage") or 0)
+            if dmg_bonus:
+                sign = f"+{dmg_bonus}" if dmg_bonus > 0 else str(dmg_bonus)
                 damage = f"{damage}{sign}"
-        weapons = _ensure_list(sheet, "weapons")
-        ability = str(getattr(artifact, "attack_ability", "") or "str").lower()
-        if ability not in ABILITY_KEYS:
-            ability = "str"
-        range_kind = str(getattr(artifact, "attack_range_kind", "") or "melee")
-        if range_kind not in ("melee", "ranged", "reach", "thrown"):
-            range_kind = "melee"
-        weapons.append(
-            {
-                "id": str(uuid4()),
-                "name": name,
-                "catalog_id": None,
-                "source_kind": "artifact",
-                "ability": ability,
-                "is_proficient": True,
-                "damage": damage,
-                "damage_type": str(getattr(artifact, "attack_damage_type", "") or ""),
-                "range_kind": range_kind,
-                "magic_bonus": int(mods.get("attack") or 0),
-                "source_item_id": item_id,
-            }
-        )
+            ability = attack_ability if attack_ability in ABILITY_KEYS else "str"
+            range_kind = attack_range_kind if attack_range_kind in RANGE_KINDS else "melee"
+            weapons.append(
+                {
+                    "id": str(uuid4()),
+                    "name": name,
+                    "catalog_id": None,
+                    "source_kind": "artifact",
+                    "ability": ability,
+                    "is_proficient": True,
+                    "damage": damage,
+                    "damage_type": attack_damage_type,
+                    "range_kind": range_kind,
+                    "magic_bonus": int(mods.get("attack") or 0),
+                    "source_item_id": item_id,
+                    "attack_role": "artifact",
+                }
+            )
+        for ab in weapon_abs:
+            weapons.append(
+                {
+                    "id": str(uuid4()),
+                    "name": f"{name}: {ab.get('name')}"[:80]
+                    if ab.get("name") and ab.get("name") != name
+                    else name,
+                    "catalog_id": None,
+                    "source_kind": "artifact",
+                    "ability": ab.get("ability") or "str",
+                    "is_proficient": True,
+                    "damage": ab.get("damage") or "1d8",
+                    "damage_type": ab.get("damage_type") or "",
+                    "range_kind": ab.get("range_kind") or "melee",
+                    "magic_bonus": int(ab.get("magic_bonus") or 0) + int(mods.get("attack") or 0),
+                    "source_item_id": item_id,
+                    "attack_role": "artifact",
+                }
+            )
         sheet["weapons"] = weapons
 
-    # Ability scores
-    abilities_block = dict(sheet.get("abilities") or {})
+    # --- Ability scores ---
+    abilities_block = _ensure_dict(sheet, "abilities")
     for key, delta in (mods.get("abilities") or {}).items():
         if not delta:
             continue
@@ -319,26 +520,174 @@ def apply_artifact_to_sheet(
         abilities_block[key] = row
     sheet["abilities"] = abilities_block
 
-    # AC on combat (seat cards read this)
-    combat = dict(sheet.get("combat") or {})
+    # --- Saves: magic_bonus (cloak of protection etc.) ---
+    saves_block = _ensure_dict(sheet, "saves")
+    for key, delta in (mods.get("saves") or {}).items():
+        if not delta:
+            continue
+        row = dict(saves_block.get(key) or {})
+        try:
+            cur = int(row.get("magic_bonus") or 0)
+        except (TypeError, ValueError):
+            cur = 0
+        row["magic_bonus"] = cur + int(delta)
+        if "is_proficient" not in row:
+            row["is_proficient"] = False
+        saves_block[key] = row
+    sheet["saves"] = saves_block
+
+    # --- Combat: AC, speed ---
+    combat = _ensure_dict(sheet, "combat")
     ac_delta = int(mods.get("ac") or 0)
     if ac_delta:
         try:
             cur = combat.get("ac")
             if cur is None:
-                # seed from 10 + dex if present
                 dex_row = abilities_block.get("dex") or {}
                 try:
                     dex = int(dex_row.get("score") or 10)
                 except (TypeError, ValueError):
                     dex = 10
-                dex_mod = (dex - 10) // 2
-                cur = 10 + dex_mod
+                cur = 10 + (dex - 10) // 2
             combat["ac"] = int(cur) + ac_delta
         except (TypeError, ValueError):
             combat["ac"] = 10 + ac_delta
-        # track applied so UI can show hint
         combat["magic_ac_bonus"] = int(combat.get("magic_ac_bonus") or 0) + ac_delta
+
+    speed_delta = int(mods.get("speed") or 0)
+    if speed_delta:
+        try:
+            cur_speed = int(combat.get("speed") or 30)
+        except (TypeError, ValueError):
+            cur_speed = 30
+        combat["speed"] = max(0, cur_speed + speed_delta)
+
+    # Resistances
+    resists = list(combat.get("damage_resistances") or [])
+    if not isinstance(resists, list):
+        resists = []
+    for ab in abilities:
+        if ab.get("kind") != "resistance":
+            continue
+        entry = {
+            "id": str(uuid4()),
+            "damage_type": ab.get("damage_type") or "",
+            "mode": ab.get("resist_mode") or "resistance",
+            "source_item_id": item_id,
+            "source_name": name,
+        }
+        # dedupe same type+mode from same item
+        if not any(
+            isinstance(r, dict)
+            and r.get("damage_type") == entry["damage_type"]
+            and r.get("mode") == entry["mode"]
+            and r.get("source_item_id") == item_id
+            for r in resists
+        ):
+            resists.append(entry)
+    if resists:
+        combat["damage_resistances"] = resists
     sheet["combat"] = combat
+
+    # --- Darkvision → identity ---
+    dv_delta = int(mods.get("darkvision") or 0)
+    if dv_delta:
+        identity = _ensure_dict(sheet, "identity")
+        try:
+            cur_dv = int(identity.get("darkvision") or 0)
+        except (TypeError, ValueError):
+            cur_dv = 0
+        identity["darkvision"] = max(0, cur_dv + dv_delta)
+        sheet["identity"] = identity
+
+    # --- Spell slots ---
+    spells = _ensure_dict(sheet, "spells")
+    slots = dict(spells.get("slots") or {})
+    if not isinstance(slots, dict):
+        slots = {}
+    for ab in abilities:
+        if ab.get("kind") != "spell_slot":
+            continue
+        level = int(ab.get("slot_level") or 1)
+        count = int(ab.get("slot_count") or 1)
+        if level == 0:
+            pact = dict(spells.get("pact_slots") or {})
+            try:
+                pmax = int(pact.get("max") or 0)
+            except (TypeError, ValueError):
+                pmax = 0
+            pact["max"] = pmax + count
+            pact["used"] = int(pact.get("used") or 0)
+            pact["level"] = max(
+                int(pact.get("level") or 1),
+                int(ab.get("pact_level") or 1),
+            )
+            spells["pact_slots"] = pact
+        else:
+            key = str(level)
+            row = dict(slots.get(key) or {"max": 0, "used": 0})
+            try:
+                smax = int(row.get("max") or 0)
+            except (TypeError, ValueError):
+                smax = 0
+            row["max"] = smax + count
+            row["used"] = int(row.get("used") or 0)
+            slots[key] = row
+    spells["slots"] = slots
+
+    # --- Known spells ---
+    known = list(spells.get("known") or [])
+    if not isinstance(known, list):
+        known = []
+    for ab in abilities:
+        if ab.get("kind") != "spell":
+            continue
+        spell_name = str(ab.get("spell_name") or ab.get("name") or "Заклинание")
+        catalog_id = ab.get("catalog_id")
+        if catalog_id and any(
+            isinstance(s, dict) and s.get("catalog_id") == catalog_id for s in known
+        ):
+            continue
+        known.append(
+            {
+                "id": str(uuid4()),
+                "name": spell_name,
+                "catalog_id": catalog_id,
+                "level": int(ab.get("spell_level") or 0),
+                "prepared": bool(ab.get("prepared", True)),
+                "notes": f"от {name}" + (f": {ab.get('text')}" if ab.get("text") else ""),
+                "casting_time": ab.get("casting_time") or "",
+                "range": ab.get("range") or "",
+                "attack_or_save": ab.get("attack_or_save") or "",
+                "damage": ab.get("damage") or "",
+                "concentration": bool(ab.get("concentration")),
+                "applies_to_allies": False,
+                "ally_target_count": 1,
+                "source_item_id": item_id,
+            }
+        )
+    spells["known"] = known
+    sheet["spells"] = spells
+
+    # --- Companions / summons ---
+    companions = _ensure_list(sheet, "companions")
+    for ab in abilities:
+        if ab.get("kind") != "companion":
+            continue
+        hp_max = int(ab.get("hp_max") or 10)
+        companions.append(
+            {
+                "id": str(uuid4()),
+                "name": str(ab.get("companion_name") or ab.get("name") or "Напарник")[:80],
+                "hp_current": hp_max,
+                "hp_max": hp_max,
+                "ac": int(ab.get("ac") or 12),
+                "conditions": [],
+                "type": ab.get("companion_type") or "",
+                "source_item_id": item_id,
+                "source_name": name,
+            }
+        )
+    sheet["companions"] = companions
 
     return {"item_id": item_id, "active": True, "mods": mods}
