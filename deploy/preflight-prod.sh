@@ -77,6 +77,24 @@ require "frontend/src/features/characters/PlayDeskHeader.tsx" "Play Desk шап�
 require "frontend/src/features/characters/AbilitySkillsColumn.tsx" "Play Desk рельс характеристик"
 require "frontend/src/features/cabinet/AppearancePanel.tsx" "кабинет: тема аккаунта"
 require "frontend/src/shared/theme/accountAppearance.ts" "токены темы аккаунта"
+require "frontend/src/shared/theme/AccountAppearanceSync.tsx" "синк темы с /auth/me"
+
+# Schema must expose theme fields — without them PATCH is dropped and /auth/me
+# resets the UI to Листва after every thin-branch deploy (2026-10-16 regression).
+require_py_theme() {
+  local pattern="$1"
+  local why="$2"
+  if ! grep -qE "$pattern" backend/app/schemas/user.py 2>/dev/null; then
+    echo "MISSING: backend/app/schemas/user.py /$pattern/  ($why)" >&2
+    MISSING=1
+  else
+    echo "ok schema: $pattern"
+  fi
+}
+require_py_theme 'theme_id: ThemeId = "wis"' "UserResponse.theme_id"
+require_py_theme 'ability_colors: AbilityColorsMode = "identity"' "UserResponse.ability_colors"
+require_py_theme 'theme_id: ThemeId \| None = None' "UserUpdateRequest.theme_id"
+require_py_theme 'ability_colors: AbilityColorsMode \| None = None' "UserUpdateRequest.ability_colors"
 require "frontend/src/shared/dnd/abilityScoreCaps.ts" "потолок характеристик PHB 20"
 require "frontend/src/features/characters/WildShapeDialog.tsx" "дикий облик друида"
 require "frontend/src/shared/dnd/jumpDistance.ts" "прыжки на столе"

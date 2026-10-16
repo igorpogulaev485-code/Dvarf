@@ -11,6 +11,22 @@
       rel="stylesheet"
     />
     <title>Dvarf</title>
+    <!-- Instant theme from local cache before JS modules load (survives hard refresh / deploy). -->
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('dvarf.accountAppearance.v1')
+          if (!raw) return
+          var a = JSON.parse(raw)
+          if (a && typeof a.themeId === 'string') {
+            document.documentElement.setAttribute('data-theme', a.themeId)
+          }
+          if (a && typeof a.abilityColors === 'string') {
+            document.documentElement.setAttribute('data-ability-colors', a.abilityColors)
+          }
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
