@@ -638,6 +638,60 @@ export async function transferLobbyInventory(
   })
 }
 
+export type EncounterGenerateDifficulty = 'easy' | 'medium' | 'hard' | 'deadly'
+
+export type EncounterMonsterOption = {
+  slug: string
+  name_ru: string
+  cr: string
+  xp: number
+  type?: string | null
+  subtype?: string | null
+  fly?: boolean
+}
+
+export type EncounterRoleProposal = {
+  role: 'boss' | 'pack'
+  options: EncounterMonsterOption[]
+  suggested_count: number
+}
+
+export type EncounterWaveProposal = {
+  wave_index: number
+  budget_xp: number
+  boss: EncounterRoleProposal
+  pack: EncounterRoleProposal
+}
+
+export type EncounterGenerateResult = {
+  difficulty: EncounterGenerateDifficulty | string
+  party_power: number
+  budget_total: number
+  anti_air_ok: boolean
+  waves: EncounterWaveProposal[]
+  notes: string[]
+  theme_ids: string[]
+  similar: boolean
+  environments: string[]
+}
+
+/** B8: умный генератор (UI draft). */
+export async function generateSessionEncounter(
+  sessionId: string,
+  payload: {
+    difficulty: EncounterGenerateDifficulty
+    environments?: string[]
+    theme_ids: string[]
+    similar?: boolean
+    waves?: number
+  },
+): Promise<EncounterGenerateResult> {
+  return apiRequest<EncounterGenerateResult>(
+    `/sessions/${sessionId}/encounters/generate`,
+    { method: 'POST', body: JSON.stringify(payload) },
+  )
+}
+
 export async function saveSessionEncounterTemplate(
   sessionId: string,
   payload: { name: string },

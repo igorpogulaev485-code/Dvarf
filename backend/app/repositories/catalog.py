@@ -54,6 +54,26 @@ class CatalogRepository:
             stmt = stmt.limit(max(1, min(int(effective_limit), 500)))
         return list(self.db.scalars(stmt).all())
 
+    def list_bestiary_for_generator(
+        self,
+        *,
+        edition: str = "2014",
+    ) -> list[CatalogEntry]:
+        """Полный активный бестиарий для B8 (без лимита combobox)."""
+        stmt = (
+            select(CatalogEntry)
+            .where(CatalogEntry.is_active.is_(True))
+            .where(CatalogEntry.kind == CatalogKind.bestiary)
+            .where(
+                or_(
+                    CatalogEntry.rules_edition == CatalogRulesEdition(edition),
+                    CatalogEntry.rules_edition == CatalogRulesEdition.both,
+                )
+            )
+            .order_by(CatalogEntry.name_ru.asc())
+        )
+        return list(self.db.scalars(stmt).all())
+
     def get_by_id(self, entry_id: UUID) -> CatalogEntry | None:
         return self.db.get(CatalogEntry, entry_id)
 

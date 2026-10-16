@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -240,6 +241,51 @@ class EncounterTemplateCreateRequest(BaseModel):
 
 class EncounterTemplateSaveFromSessionRequest(BaseModel):
     name: str = Field(min_length=1, max_length=120)
+
+
+class EncounterGenerateRequest(BaseModel):
+    """B8: запрос генератора (UI ещё draft)."""
+
+    difficulty: Literal["easy", "medium", "hard", "deadly"] = "medium"
+    environments: list[str] = Field(default_factory=list)
+    theme_ids: list[str] = Field(default_factory=list, min_length=1)
+    similar: bool = False
+    waves: int = Field(default=1, ge=1, le=8)
+
+
+class EncounterMonsterOptionOut(BaseModel):
+    slug: str
+    name_ru: str
+    cr: str
+    xp: int
+    type: str | None = None
+    subtype: str | None = None
+    fly: bool = False
+
+
+class EncounterRoleOut(BaseModel):
+    role: Literal["boss", "pack"]
+    options: list[EncounterMonsterOptionOut] = Field(default_factory=list)
+    suggested_count: int = 1
+
+
+class EncounterWaveOut(BaseModel):
+    wave_index: int
+    budget_xp: int
+    boss: EncounterRoleOut
+    pack: EncounterRoleOut
+
+
+class EncounterGenerateResult(BaseModel):
+    difficulty: str
+    party_power: float
+    budget_total: int
+    anti_air_ok: bool
+    waves: list[EncounterWaveOut] = Field(default_factory=list)
+    notes: list[str] = Field(default_factory=list)
+    theme_ids: list[str] = Field(default_factory=list)
+    similar: bool = False
+    environments: list[str] = Field(default_factory=list)
 
 
 class CombatantMemberOut(BaseModel):
