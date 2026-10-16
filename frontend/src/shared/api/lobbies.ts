@@ -259,6 +259,8 @@ export type JournalEntry = {
   image_url: string | null
   setting_id: string | null
   setting_name: string | null
+  page_id: string | null
+  page_title: string | null
   from_session_id: string | null
   from_session_name: string | null
   created_at: string
@@ -903,6 +905,7 @@ export async function createJournalEntry(
     body?: string
     image_url?: string | null
     setting_id?: string | null
+    page_id?: string | null
   },
 ): Promise<JournalEntry> {
   return apiRequest<JournalEntry>(`/lobbies/${lobbyId}/journal`, {

@@ -41,6 +41,13 @@ class CampaignJournalEntry(Base):
         ForeignKey("settings.id", ondelete="SET NULL"),
         nullable=True,
     )
+    # C4: опциональная страница вики внутри сеттинга
+    page_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("setting_pages.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     from_session_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("play_sessions.id", ondelete="SET NULL"),

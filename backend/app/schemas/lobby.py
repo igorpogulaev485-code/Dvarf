@@ -563,6 +563,9 @@ class JournalEntryOut(BaseModel):
     image_url: str | None = None
     setting_id: UUID | None = None
     setting_name: str | None = None
+    # C4: страница вики (если не раскрыта — скрыта у игрока)
+    page_id: UUID | None = None
+    page_title: str | None = None
     from_session_id: UUID | None = None
     from_session_name: str | None = None
     created_at: datetime
@@ -582,6 +585,7 @@ class JournalEntryCreateRequest(BaseModel):
     body: str = Field(default="", max_length=20000)
     image_url: str | None = Field(default=None, max_length=500)
     setting_id: UUID | None = None
+    page_id: UUID | None = None
 
 
 class JournalEntryUpdateRequest(BaseModel):
@@ -591,6 +595,8 @@ class JournalEntryUpdateRequest(BaseModel):
     setting_id: UUID | None = None
     clear_setting: bool = False
     clear_image: bool = False
+    page_id: UUID | None = None
+    clear_page: bool = False
 
 
 class SessionCloseRequest(BaseModel):
