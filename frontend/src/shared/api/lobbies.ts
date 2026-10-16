@@ -66,6 +66,9 @@ export type ArtifactAbilityKind =
   | 'weapon'
   | 'requirement'
   | 'mode'
+  | 'skill'
+  | 'tool'
+  | 'condition_immunity'
 export type ArtifactBonusTarget =
   | 'attack'
   | 'damage'
@@ -121,6 +124,12 @@ export type ArtifactAbility = {
   active_damage?: string | null
   active_damage_type?: string | null
   advantage?: boolean | null
+  max_score?: number | null
+  skill_key?: string | null
+  tool_name?: string | null
+  condition_slug?: string | null
+  condition_name?: string | null
+  attack_bonus?: number | null
 }
 
 export type SettingArtifact = {
@@ -233,6 +242,13 @@ export type SeatCompanion = {
   hp_max: number | null
   ac: number | null
   conditions: SeatCondition[]
+  type?: string | null
+  duration?: string | null
+  duration_rounds?: number | null
+  attack_bonus?: number | null
+  attack_damage?: string | null
+  attack_damage_type?: string | null
+  attack_range_kind?: string | null
 }
 
 export type SeatConcentration = {

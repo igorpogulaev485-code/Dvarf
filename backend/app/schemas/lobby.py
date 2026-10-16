@@ -77,6 +77,9 @@ class ArtifactAbilityIn(BaseModel):
         "weapon",
         "requirement",
         "mode",
+        "skill",
+        "tool",
+        "condition_immunity",
     ] = "trait"
     name: str = Field(default="", max_length=120)
     text: str = Field(default="", max_length=2000)
@@ -127,6 +130,15 @@ class ArtifactAbilityIn(BaseModel):
     active_damage: str | None = Field(default=None, max_length=40)
     active_damage_type: str | None = Field(default=None, max_length=40)
     advantage: bool | None = None
+    # ability max (маска: +2 ИНТ, макс 22)
+    max_score: int | None = Field(default=None, ge=1, le=30)
+    # skill / tool / condition immunity
+    skill_key: str | None = Field(default=None, max_length=40)
+    tool_name: str | None = Field(default=None, max_length=80)
+    condition_slug: str | None = Field(default=None, max_length=40)
+    condition_name: str | None = Field(default=None, max_length=80)
+    # companion attack
+    attack_bonus: int | None = Field(default=None, ge=-5, le=15)
 
 
 class SettingArtifactOut(BaseModel):
@@ -239,6 +251,13 @@ class SeatCompanionOut(BaseModel):
     hp_max: int | None = None
     ac: int | None = None
     conditions: list[SeatConditionOut] = Field(default_factory=list)
+    type: str | None = None
+    duration: str | None = None
+    duration_rounds: int | None = None
+    attack_bonus: int | None = None
+    attack_damage: str | None = None
+    attack_damage_type: str | None = None
+    attack_range_kind: str | None = None
 
 
 class SeatConcentrationOut(BaseModel):

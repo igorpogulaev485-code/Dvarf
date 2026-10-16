@@ -33,9 +33,52 @@ ABILITY_KINDS = (
     "weapon",
     "requirement",
     "mode",
+    "skill",
+    "tool",
+    "condition_immunity",
 )
 RESIST_MODES = ("resistance", "immunity", "vulnerability")
 RANGE_KINDS = ("melee", "ranged", "reach", "thrown")
+SKILL_KEYS = (
+    "acrobatics",
+    "animal_handling",
+    "arcana",
+    "athletics",
+    "deception",
+    "history",
+    "insight",
+    "intimidation",
+    "investigation",
+    "medicine",
+    "nature",
+    "perception",
+    "performance",
+    "persuasion",
+    "religion",
+    "sleight_of_hand",
+    "stealth",
+    "survival",
+)
+SKILL_LABELS_RU = {
+    "acrobatics": "Акробатика",
+    "animal_handling": "Уход за животными",
+    "arcana": "Магия",
+    "athletics": "Атлетика",
+    "deception": "Обман",
+    "history": "История",
+    "insight": "Проницательность",
+    "intimidation": "Запугивание",
+    "investigation": "Анализ",
+    "medicine": "Медицина",
+    "nature": "Природа",
+    "perception": "Внимательность",
+    "performance": "Выступление",
+    "persuasion": "Убеждение",
+    "religion": "Религия",
+    "sleight_of_hand": "Ловкость рук",
+    "stealth": "Скрытность",
+    "survival": "Выживание",
+}
 
 
 def normalize_ability(raw: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -69,6 +112,44 @@ def normalize_ability(raw: dict[str, Any] | None) -> dict[str, Any] | None:
         if key not in ABILITY_KEYS:
             key = "str"
         out["ability_key"] = key
+        # потолок характеристики (маска лича: +2 ИНТ, макс 22)
+        if target == "ability" and raw.get("max_score") is not None:
+            out["max_score"] = _clamp_int(raw.get("max_score"), 20, 1, 30)
+
+    elif kind == "skill":
+        skill = str(raw.get("skill_key") or "").strip().lower()
+        if skill not in SKILL_KEYS:
+            skill = "nature"
+        out["skill_key"] = skill
+        out["bonus_value"] = _clamp_int(raw.get("bonus_value"), 2, -10, 10)
+        if not name or name == _default_name(kind):
+            label = SKILL_LABELS_RU.get(skill, skill)
+            sign = out["bonus_value"]
+            out["name"] = f"{'+' if sign >= 0 else ''}{sign} {label}"
+
+    elif kind == "tool":
+        tool = str(raw.get("tool_name") or name or "Инструмент").strip()[:80]
+        out["tool_name"] = tool
+        out["name"] = tool if not name or name == _default_name(kind) else name
+
+    elif kind == "condition_immunity":
+        slug = str(raw.get("condition_slug") or "").strip().lower()[:40]
+        cname = str(raw.get("condition_name") or "").strip()[:80]
+        if not slug and cname:
+            slug = cname.lower().replace(" ", "_")[:40]
+        if not slug:
+            slug = "frightened"
+        if not cname:
+            cname = {
+                "frightened": "Испуганный",
+                "charmed": "Очарованный",
+                "poisoned": "Отравленный",
+                "illusions": "Иллюзии",
+            }.get(slug, slug)
+        out["condition_slug"] = slug
+        out["condition_name"] = cname
+        if not name or name == _default_name(kind):
+            out["name"] = f"Имм. {cname}"
 
     elif kind == "resource":
         out["charges"] = _clamp_int(raw.get("charges"), 1, 1, 99)
@@ -127,6 +208,33 @@ def normalize_ability(raw: dict[str, Any] | None) -> dict[str, Any] | None:
         out["ac"] = _clamp_int(raw.get("ac"), 12, 1, 40)
         out["companion_type"] = str(raw.get("companion_type") or "").strip()[:40]
         out["name"] = out["companion_name"]
+        # атака призванного (коготь Араха)
+        if raw.get("attack_damage") or raw.get("damage") or raw.get("attack_bonus") is not None:
+            out["attack_damage"] = str(
+                raw.get("attack_damage") or raw.get("damage") or "1d8"
+            ).strip()[:40]
+            out["attack_damage_type"] = str(
+                raw.get("attack_damage_type") or raw.get("damage_type") or ""
+            ).strip()[:40]
+            out["attack_bonus"] = _clamp_int(raw.get("attack_bonus"), 0, -5, 15)
+            rk = str(raw.get("attack_range_kind") or raw.get("range_kind") or "melee").strip().lower()
+            if raw.get("ranged") is True:
+                rk = "ranged"
+            if rk not in RANGE_KINDS:
+                rk = "melee"
+            out["attack_range_kind"] = rk
+        # 1/день + длительность
+        if raw.get("charges"):
+            out["charges"] = _clamp_int(raw.get("charges"), 1, 1, 99)
+            reset = str(raw.get("reset") or "long").strip().lower()
+            if reset == "dawn":
+                reset = "long"
+            if reset not in RESOURCE_RESETS:
+                reset = "long"
+            out["reset"] = reset
+        if raw.get("duration") or raw.get("duration_rounds"):
+            out["duration"] = str(raw.get("duration") or "1 минута").strip()[:80]
+            out["duration_rounds"] = _clamp_int(raw.get("duration_rounds"), 10, 1, 600)
 
     elif kind == "resistance":
         dtype = str(raw.get("damage_type") or text or "огонь").strip()[:40]
@@ -229,6 +337,9 @@ def _default_name(kind: str) -> str:
         "weapon": "Атака",
         "requirement": "Требование",
         "mode": "Активация",
+        "skill": "Навык",
+        "tool": "Инструмент",
+        "condition_immunity": "Имм. состояния",
     }.get(kind, "Свойство")
 
 
@@ -263,6 +374,8 @@ def format_abilities_notes(abilities: list[dict[str, Any]], description: str = "
                 "darkvision": "тёмное зрение",
             }.get(str(target), str(target))
             head = f"{name}: {sign} {label}".strip()
+            if target == "ability" and ab.get("max_score") is not None:
+                head = f"{head} (макс {ab['max_score']})"
             lines.append(f"{head}" + (f" — {text}" if text else ""))
         elif kind == "resource":
             charges = ab.get("charges") or 1
@@ -306,6 +419,13 @@ def format_abilities_notes(abilities: list[dict[str, Any]], description: str = "
                 bits.append(str(ab["companion_type"]))
             bits.append(f"ХП {ab.get('hp_max')}")
             bits.append(f"КД {ab.get('ac')}")
+            if ab.get("attack_damage"):
+                bonus = int(ab.get("attack_bonus") or 0)
+                bits.append(
+                    f"атака {bonus:+d} {ab.get('attack_damage')} {ab.get('attack_damage_type') or ''}".strip()
+                )
+            if ab.get("duration"):
+                bits.append(str(ab["duration"]))
             lines.append(" · ".join(bits) + (f" — {text}" if text else ""))
         elif kind == "resistance":
             mode_ru = {
@@ -327,6 +447,20 @@ def format_abilities_notes(abilities: list[dict[str, Any]], description: str = "
             )
         elif kind == "requirement":
             lines.append(f"{name}" + (f" — {text}" if text else ""))
+        elif kind == "skill":
+            label = SKILL_LABELS_RU.get(str(ab.get("skill_key")), ab.get("skill_key"))
+            v = int(ab.get("bonus_value") or 0)
+            sign = f"+{v}" if v >= 0 else str(v)
+            lines.append(f"{name}: {sign} {label}" + (f" — {text}" if text else ""))
+        elif kind == "tool":
+            lines.append(
+                f"Владение: {ab.get('tool_name') or name}" + (f" — {text}" if text else "")
+            )
+        elif kind == "condition_immunity":
+            lines.append(
+                f"Имм. {ab.get('condition_name') or ab.get('condition_slug')}"
+                + (f" — {text}" if text else "")
+            )
         elif kind == "mode":
             cost = ab.get("action_cost") or "bonus"
             cost_ru = {
@@ -646,8 +780,14 @@ def apply_artifact_to_sheet(
             weapons.append(_attach_modes(row))
         sheet["weapons"] = weapons
 
-    # --- Ability scores ---
+    # --- Ability scores (+ optional max_score from passives) ---
     abilities_block = _ensure_dict(sheet, "abilities")
+    max_scores: dict[str, int] = {}
+    for ab in abilities:
+        if ab.get("kind") == "passive" and ab.get("bonus_target") == "ability":
+            if ab.get("max_score") is not None:
+                key = str(ab.get("ability_key") or "str")
+                max_scores[key] = max(int(max_scores.get(key) or 0), int(ab["max_score"]))
     for key, delta in (mods.get("abilities") or {}).items():
         if not delta:
             continue
@@ -656,9 +796,55 @@ def apply_artifact_to_sheet(
             score = int(row.get("score") or 10)
         except (TypeError, ValueError):
             score = 10
-        row["score"] = max(1, min(30, score + int(delta)))
+        ceiling = int(max_scores.get(key) or row.get("max_score") or 30)
+        row["score"] = max(1, min(ceiling, score + int(delta)))
+        if key in max_scores:
+            row["max_score"] = max(int(row.get("max_score") or 0), max_scores[key])
+        abilities_block[key] = row
+    for key, ceiling in max_scores.items():
+        row = dict(abilities_block.get(key) or {"score": 10})
+        row["max_score"] = max(int(row.get("max_score") or 0), ceiling)
         abilities_block[key] = row
     sheet["abilities"] = abilities_block
+
+    # --- Skill bonuses ---
+    skills_block = _ensure_dict(sheet, "skills")
+    for ab in abilities:
+        if ab.get("kind") != "skill":
+            continue
+        skey = str(ab.get("skill_key") or "")
+        if skey not in SKILL_KEYS:
+            continue
+        row = dict(skills_block.get(skey) or {})
+        try:
+            cur = int(row.get("magic_bonus") or 0)
+        except (TypeError, ValueError):
+            cur = 0
+        row["magic_bonus"] = cur + int(ab.get("bonus_value") or 0)
+        if "is_proficient" not in row:
+            row["is_proficient"] = False
+        if "is_expertise" not in row:
+            row["is_expertise"] = False
+        skills_block[skey] = row
+    sheet["skills"] = skills_block
+
+    # --- Tool proficiencies ---
+    proficiency = _ensure_dict(sheet, "proficiency")
+    tools = list(proficiency.get("tools") or [])
+    if not isinstance(tools, list):
+        tools = []
+    tool_names = {str(t).strip().lower() for t in tools if isinstance(t, str)}
+    for ab in abilities:
+        if ab.get("kind") != "tool":
+            continue
+        tool = str(ab.get("tool_name") or "").strip()
+        if not tool:
+            continue
+        if tool.lower() not in tool_names:
+            tools.append(tool)
+            tool_names.add(tool.lower())
+    proficiency["tools"] = tools
+    sheet["proficiency"] = proficiency
 
     # --- Saves: magic_bonus (cloak of protection etc.) ---
     saves_block = _ensure_dict(sheet, "saves")
@@ -727,6 +913,30 @@ def apply_artifact_to_sheet(
             resists.append(entry)
     if resists:
         combat["damage_resistances"] = resists
+
+    # Condition immunities (fear, illusions, …)
+    cond_imm = list(combat.get("condition_immunities") or [])
+    if not isinstance(cond_imm, list):
+        cond_imm = []
+    for ab in abilities:
+        if ab.get("kind") != "condition_immunity":
+            continue
+        entry = {
+            "id": str(uuid4()),
+            "slug": ab.get("condition_slug") or "",
+            "name": ab.get("condition_name") or ab.get("condition_slug") or "",
+            "source_item_id": item_id,
+            "source_name": name,
+        }
+        if not any(
+            isinstance(c, dict)
+            and c.get("slug") == entry["slug"]
+            and c.get("source_item_id") == item_id
+            for c in cond_imm
+        ):
+            cond_imm.append(entry)
+    if cond_imm:
+        combat["condition_immunities"] = cond_imm
     sheet["combat"] = combat
 
     # --- Darkvision → identity ---
@@ -811,23 +1021,46 @@ def apply_artifact_to_sheet(
 
     # --- Companions / summons ---
     companions = _ensure_list(sheet, "companions")
+    resources = _ensure_list(sheet, "resources")
     for ab in abilities:
         if ab.get("kind") != "companion":
             continue
         hp_max = int(ab.get("hp_max") or 10)
-        companions.append(
-            {
-                "id": str(uuid4()),
-                "name": str(ab.get("companion_name") or ab.get("name") or "Напарник")[:80],
-                "hp_current": hp_max,
-                "hp_max": hp_max,
-                "ac": int(ab.get("ac") or 12),
-                "conditions": [],
-                "type": ab.get("companion_type") or "",
-                "source_item_id": item_id,
-                "source_name": name,
-            }
-        )
+        companion_id = str(uuid4())
+        row: dict[str, Any] = {
+            "id": companion_id,
+            "name": str(ab.get("companion_name") or ab.get("name") or "Напарник")[:80],
+            "hp_current": hp_max,
+            "hp_max": hp_max,
+            "ac": int(ab.get("ac") or 12),
+            "conditions": [],
+            "type": ab.get("companion_type") or "",
+            "source_item_id": item_id,
+            "source_name": name,
+        }
+        if ab.get("attack_damage"):
+            row["attack_bonus"] = int(ab.get("attack_bonus") or 0)
+            row["attack_damage"] = ab.get("attack_damage")
+            row["attack_damage_type"] = ab.get("attack_damage_type") or ""
+            row["attack_range_kind"] = ab.get("attack_range_kind") or "melee"
+        if ab.get("duration"):
+            row["duration"] = ab.get("duration")
+            row["duration_rounds"] = int(ab.get("duration_rounds") or 10)
+        companions.append(row)
+        if ab.get("charges"):
+            resources.append(
+                {
+                    "id": str(uuid4()),
+                    "name": f"{name}: {ab.get('name') or 'Призыв'}"[:80],
+                    "max": int(ab.get("charges") or 1),
+                    "used": 0,
+                    "reset": ab.get("reset") or "long",
+                    "applies_to_allies": False,
+                    "source_item_id": item_id,
+                    "companion_id": companion_id,
+                }
+            )
     sheet["companions"] = companions
+    sheet["resources"] = resources
 
     return {"item_id": item_id, "active": True, "mods": mods}

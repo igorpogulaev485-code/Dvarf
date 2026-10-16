@@ -9,8 +9,10 @@ export function skillModifierFromState(input: {
   proficiencyBonus: number
   isProficient: boolean
   isExpertise: boolean
+  magicBonus?: number
 }): number {
-  if (input.isExpertise) return input.abilityMod + input.proficiencyBonus * 2
-  if (input.isProficient) return input.abilityMod + input.proficiencyBonus
-  return input.abilityMod
+  const magic = input.magicBonus ?? 0
+  if (input.isExpertise) return input.abilityMod + input.proficiencyBonus * 2 + magic
+  if (input.isProficient) return input.abilityMod + input.proficiencyBonus + magic
+  return input.abilityMod + magic
 }

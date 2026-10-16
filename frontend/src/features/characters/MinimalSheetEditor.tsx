@@ -110,16 +110,26 @@ type Draft = {
   classes: ClassLevelEntry[]
   identity: IdentityExtras
   abilities: Record<AbilityKey, number>
+  /** Потолок характеристики от артефактов (маска: макс 22) */
+  abilityMax: Record<AbilityKey, number | null>
   saves: Record<AbilityKey, boolean>
   /** Бонусы спасбросков от артефактов (cloak of protection и т.п.) */
   saveMagic: Record<AbilityKey, number>
-  skills: Record<string, { is_proficient: boolean; is_expertise: boolean }>
+  skills: Record<
+    string,
+    { is_proficient: boolean; is_expertise: boolean; magic_bonus: number }
+  >
   hpCurrent: number | null
   hpMax: number | null
   ac: number | null
   speed: number | null
   initiativeOverride: number | null
   inspiration: boolean
+  /** Сопр./имм. урона и иммунитеты состояний с артефактов */
+  defenses: {
+    damage: Array<{ id: string; damage_type: string; mode: string; source_name?: string }>
+    conditions: Array<{ id: string; slug: string; name: string; source_name?: string }>
+  }
   weapons: WeaponAttack[]
   inventory: InventoryState
   attunements: AttunementSlot[]
@@ -218,6 +228,17 @@ function buildDraft(character: CharacterDetail): Draft {
     }),
   ) as Record<AbilityKey, number>
 
+  const abilityMax = Object.fromEntries(
+    ABILITY_KEYS.map((key) => {
+      const block = asRecord(abilitiesRaw[key])
+      const raw = block.max_score
+      if (typeof raw === 'number' && Number.isFinite(raw) && raw > 0) {
+        return [key, Math.floor(raw)]
+      }
+      return [key, null]
+    }),
+  ) as Record<AbilityKey, number | null>
+
   const saves = Object.fromEntries(
     ABILITY_KEYS.map((key) => {
       const block = asRecord(savesRaw[key])
@@ -240,10 +261,49 @@ function buildDraft(character: CharacterDetail): Draft {
         {
           is_proficient: Boolean(block.is_proficient),
           is_expertise: Boolean(block.is_expertise),
+          magic_bonus: readNumber(block.magic_bonus, 0),
         },
       ]
     }),
   ) as Draft['skills']
+
+  const damageRaw = Array.isArray(combat.damage_resistances) ? combat.damage_resistances : []
+  const condImmRaw = Array.isArray(combat.condition_immunities)
+    ? combat.condition_immunities
+    : []
+  const defenses: Draft['defenses'] = {
+    damage: damageRaw
+      .map((item, index) => {
+        const row = asRecord(item)
+        const damage_type = typeof row.damage_type === 'string' ? row.damage_type : ''
+        if (!damage_type) return null
+        return {
+          id: typeof row.id === 'string' ? row.id : `dr-${index}`,
+          damage_type,
+          mode: typeof row.mode === 'string' ? row.mode : 'resistance',
+          source_name: typeof row.source_name === 'string' ? row.source_name : undefined,
+        }
+      })
+      .filter((item): item is Draft['defenses']['damage'][number] => item != null),
+    conditions: condImmRaw
+      .map((item, index) => {
+        const row = asRecord(item)
+        const name =
+          typeof row.name === 'string' && row.name.trim()
+            ? row.name.trim()
+            : typeof row.slug === 'string'
+              ? row.slug
+              : ''
+        if (!name) return null
+        return {
+          id: typeof row.id === 'string' ? row.id : `ci-${index}`,
+          slug: typeof row.slug === 'string' ? row.slug : name,
+          name,
+          source_name: typeof row.source_name === 'string' ? row.source_name : undefined,
+        }
+      })
+      .filter((item): item is Draft['defenses']['conditions'][number] => item != null),
+  }
 
   const identityExtras = readIdentityExtras(sheet)
   const classes = readClassLevels(sheet, {
@@ -263,6 +323,7 @@ function buildDraft(character: CharacterDetail): Draft {
     classes,
     identity: identityExtras,
     abilities,
+    abilityMax,
     saves,
     saveMagic,
     skills,
@@ -272,6 +333,7 @@ function buildDraft(character: CharacterDetail): Draft {
     speed: readNullableNumber(combat.speed),
     initiativeOverride: readNullableNumber(combat.initiative),
     inspiration: Boolean(combat.inspiration),
+    defenses,
     weapons: readWeapons(sheet),
     inventory: readInventory(sheet),
     attunements: readAttunements(sheet),
@@ -281,14 +343,18 @@ function buildDraft(character: CharacterDetail): Draft {
   }
 }
 
-function cycleSkill(state: { is_proficient: boolean; is_expertise: boolean }) {
+function cycleSkill(state: {
+  is_proficient: boolean
+  is_expertise: boolean
+  magic_bonus: number
+}) {
   if (!state.is_proficient && !state.is_expertise) {
-    return { is_proficient: true, is_expertise: false }
+    return { ...state, is_proficient: true, is_expertise: false }
   }
   if (state.is_proficient && !state.is_expertise) {
-    return { is_proficient: true, is_expertise: true }
+    return { ...state, is_proficient: true, is_expertise: true }
   }
-  return { is_proficient: false, is_expertise: false }
+  return { ...state, is_proficient: false, is_expertise: false }
 }
 
 function skillMark(state: { is_proficient: boolean; is_expertise: boolean }) {
@@ -454,6 +520,7 @@ export function MinimalSheetEditor({
         proficiencyBonus,
         isProficient: state.is_proficient,
         isExpertise: state.is_expertise,
+        magicBonus: state.magic_bonus,
       })
     }
     return {
@@ -533,7 +600,13 @@ export function MinimalSheetEditor({
       Object.assign(sheet, classLevelsToSheet(draft.classes))
 
       for (const key of ABILITY_KEYS) {
-        abilities[key] = { ...asRecord(abilities[key]), score: draft.abilities[key] }
+        const row: Record<string, unknown> = {
+          ...asRecord(abilities[key]),
+          score: draft.abilities[key],
+        }
+        const ceiling = draft.abilityMax[key]
+        if (ceiling != null) row.max_score = ceiling
+        abilities[key] = row
         saves[key] = {
           ...asRecord(saves[key]),
           is_proficient: draft.saves[key],
@@ -550,6 +623,7 @@ export function MinimalSheetEditor({
           base_stat: skill.base,
           is_proficient: draft.skills[skill.key].is_proficient,
           is_expertise: draft.skills[skill.key].is_expertise,
+          magic_bonus: draft.skills[skill.key].magic_bonus || 0,
         }
       }
       sheet.skills = skills
@@ -571,6 +645,8 @@ export function MinimalSheetEditor({
       combat.death_successes = playSheet.combatPatch.death_successes
       combat.death_fails = playSheet.combatPatch.death_fails
       combat.concentration = playSheet.combatPatch.concentration
+      combat.damage_resistances = draft.defenses.damage
+      combat.condition_immunities = draft.defenses.conditions
       sheet.combat = combat
       const proficiency = asRecord(sheet.proficiency)
       proficiency.armor = identityExtras.proficiencyPatch.armor
@@ -938,12 +1014,14 @@ export function MinimalSheetEditor({
         <div className="ability-grid">
           {ABILITY_KEYS.map((key) => {
             const score = draft.abilities[key]
+            const ceiling = draft.abilityMax[key]
+            const max = ceiling != null ? Math.min(30, ceiling) : 30
             return (
               <label key={key} className="ability-card">
                 <span className="ability-card__label">{ABILITY_LABELS[key]}</span>
                 <NumberInput
                   min={1}
-                  max={30}
+                  max={max}
                   emptyValue={10}
                   value={score}
                   onValueChange={(next) =>
@@ -951,12 +1029,15 @@ export function MinimalSheetEditor({
                       ...prev,
                       abilities: {
                         ...prev.abilities,
-                        [key]: next ?? 10,
+                        [key]: Math.min(max, next ?? 10),
                       },
                     }))
                   }
                 />
-                <span className="ability-card__mod">{formatModifier(abilityModifier(score))}</span>
+                <span className="ability-card__mod">
+                  {formatModifier(abilityModifier(score))}
+                  {ceiling != null ? ` · макс ${ceiling}` : ''}
+                </span>
               </label>
             )
           })}
@@ -1094,13 +1175,17 @@ export function MinimalSheetEditor({
         <div className="skill-list">
           {SKILL_DEFS.map((skill) => {
             const state = draft.skills[skill.key]
-            const mod =
-              abilityModifier(draft.abilities[skill.base]) +
-              (state.is_expertise
-                ? proficiencyBonus * 2
-                : state.is_proficient
-                  ? proficiencyBonus
-                  : 0)
+            const mod = skillModifierFromState({
+              abilityMod: abilityModifier(draft.abilities[skill.base]),
+              proficiencyBonus,
+              isProficient: state.is_proficient,
+              isExpertise: state.is_expertise,
+              magicBonus: state.magic_bonus,
+            })
+            const magicHint =
+              state.magic_bonus !== 0
+                ? ` · маг. ${formatModifier(state.magic_bonus)}`
+                : ''
             return (
               <button
                 key={skill.key}
@@ -1118,7 +1203,8 @@ export function MinimalSheetEditor({
               >
                 <span>{skill.label}</span>
                 <span className="skill-row__meta">
-                  {ABILITY_LABELS[skill.base]} · {skillMark(state)} · {formatModifier(mod)}
+                  {ABILITY_LABELS[skill.base]} · {skillMark(state)}
+                  {magicHint} · {formatModifier(mod)}
                 </span>
               </button>
             )
@@ -1126,6 +1212,45 @@ export function MinimalSheetEditor({
         </div>
         <Text tone="muted">Клик: нет → владение → экспертиза → нет</Text>
       </Panel>
+
+      {draft.defenses.damage.length > 0 || draft.defenses.conditions.length > 0 ? (
+        <Panel title="Защиты от артефактов">
+          {draft.defenses.damage.length > 0 ? (
+            <div style={{ marginBottom: 8 }}>
+              <Text tone="muted">Урон</Text>
+              <div className="chip-row" style={{ marginTop: 6 }}>
+                {draft.defenses.damage.map((item) => {
+                  const mode =
+                    item.mode === 'immunity'
+                      ? 'имм.'
+                      : item.mode === 'vulnerability'
+                        ? 'уязв.'
+                        : 'сопр.'
+                  return (
+                    <span key={item.id} className="sheet-chip is-on">
+                      {mode} {item.damage_type}
+                      {item.source_name ? ` · ${item.source_name}` : ''}
+                    </span>
+                  )
+                })}
+              </div>
+            </div>
+          ) : null}
+          {draft.defenses.conditions.length > 0 ? (
+            <div>
+              <Text tone="muted">Иммунитет к состояниям</Text>
+              <div className="chip-row" style={{ marginTop: 6 }}>
+                {draft.defenses.conditions.map((item) => (
+                  <span key={item.id} className="sheet-chip is-on">
+                    {item.name}
+                    {item.source_name ? ` · ${item.source_name}` : ''}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </Panel>
+      ) : null}
 
       <TextBlocksPanel
         blocks={draft.textBlocks}

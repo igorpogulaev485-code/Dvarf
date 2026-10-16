@@ -160,16 +160,26 @@ def _parse_companions(raw: object) -> list[dict]:
         name = str(item.get("name") or "").strip()
         if not cid or not name:
             continue
-        out.append(
-            {
-                "id": cid,
-                "name": name,
-                "hp_current": item.get("hp_current") if isinstance(item.get("hp_current"), int) else None,
-                "hp_max": item.get("hp_max") if isinstance(item.get("hp_max"), int) else None,
-                "ac": item.get("ac") if isinstance(item.get("ac"), int) else None,
-                "conditions": _parse_conditions(item.get("conditions")),
-            }
-        )
+        row = {
+            "id": cid,
+            "name": name,
+            "hp_current": item.get("hp_current") if isinstance(item.get("hp_current"), int) else None,
+            "hp_max": item.get("hp_max") if isinstance(item.get("hp_max"), int) else None,
+            "ac": item.get("ac") if isinstance(item.get("ac"), int) else None,
+            "conditions": _parse_conditions(item.get("conditions")),
+            "type": str(item.get("type") or "").strip() or None,
+            "duration": str(item.get("duration") or "").strip() or None,
+            "duration_rounds": item.get("duration_rounds")
+            if isinstance(item.get("duration_rounds"), int)
+            else None,
+            "attack_bonus": item.get("attack_bonus")
+            if isinstance(item.get("attack_bonus"), int)
+            else None,
+            "attack_damage": str(item.get("attack_damage") or "").strip() or None,
+            "attack_damage_type": str(item.get("attack_damage_type") or "").strip() or None,
+            "attack_range_kind": str(item.get("attack_range_kind") or "").strip() or None,
+        }
+        out.append(row)
     return out
 
 

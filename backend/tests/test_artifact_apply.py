@@ -277,3 +277,198 @@ def test_apply_weapon_artifact_bakes_bonuses():
     assert "1d8" in sheet["weapons"][0]["damage"]
     assert "+1" in sheet["weapons"][0]["damage"]
     assert sheet["weapons"][0]["source_kind"] == "artifact"
+
+
+def test_apply_vezul_feather_skills_and_tool():
+    """Перо Везула: +2 природа/история + владение инструментами фальсификатора."""
+    artifact = SimpleNamespace(
+        id=uuid4(),
+        name="Перо Везула",
+        rarity="редкий",
+        description="",
+        requires_attunement=True,
+        abilities=[
+            {"kind": "skill", "skill_key": "nature", "bonus_value": 2},
+            {"kind": "skill", "skill_key": "history", "bonus_value": 2},
+            {
+                "kind": "tool",
+                "tool_name": "Инструменты фальсификатора",
+            },
+        ],
+        attack_damage="",
+        attack_damage_type="",
+        attack_ability="str",
+        attack_range_kind="melee",
+        weight_lb=0,
+    )
+    sheet: dict = {
+        "inventory": {"items": []},
+        "weapons": [],
+        "combat": {},
+        "abilities": {},
+        "saves": {},
+        "skills": {"nature": {"is_proficient": True}},
+        "proficiency": {"tools": ["Воровские инструменты"]},
+        "spells": {},
+        "companions": [],
+        "resources": [],
+    }
+    apply_artifact_to_sheet(sheet, artifact=artifact)
+    assert sheet["skills"]["nature"]["magic_bonus"] == 2
+    assert sheet["skills"]["nature"]["is_proficient"] is True
+    assert sheet["skills"]["history"]["magic_bonus"] == 2
+    tools = sheet["proficiency"]["tools"]
+    assert "Воровские инструменты" in tools
+    assert "Инструменты фальсификатора" in tools
+
+
+def test_apply_lich_mask_max_int_and_condition_immunities():
+    """Маска Лича: +2 ИНТ (макс 22), иммунитет к страху и иллюзиям."""
+    artifact = SimpleNamespace(
+        id=uuid4(),
+        name="Маска Лича",
+        rarity="очень редкий",
+        description="",
+        requires_attunement=True,
+        abilities=[
+            {
+                "kind": "passive",
+                "name": "+2 ИНТ",
+                "bonus_target": "ability",
+                "bonus_value": 2,
+                "ability_key": "int",
+                "max_score": 22,
+            },
+            {
+                "kind": "condition_immunity",
+                "condition_slug": "frightened",
+                "condition_name": "Испуганный",
+            },
+            {
+                "kind": "condition_immunity",
+                "condition_slug": "illusions",
+                "condition_name": "Иллюзии",
+            },
+        ],
+        attack_damage="",
+        attack_damage_type="",
+        attack_ability="str",
+        attack_range_kind="melee",
+        weight_lb=1,
+    )
+    sheet: dict = {
+        "inventory": {"items": []},
+        "weapons": [],
+        "combat": {},
+        "abilities": {"int": {"score": 18}},
+        "saves": {},
+        "skills": {},
+        "spells": {},
+        "companions": [],
+        "resources": [],
+    }
+    apply_artifact_to_sheet(sheet, artifact=artifact)
+    assert sheet["abilities"]["int"]["score"] == 20
+    assert sheet["abilities"]["int"]["max_score"] == 22
+    slugs = {c["slug"] for c in sheet["combat"]["condition_immunities"]}
+    assert "frightened" in slugs
+    assert "illusions" in slugs
+    notes = format_abilities_notes(
+        normalize_abilities(artifact.abilities), artifact.name
+    )
+    assert "макс 22" in notes
+
+
+def test_apply_arah_claw_companion_attack_and_duration():
+    """Коготь Араха: дух предка 1/день, атака +4 1d8 некрот., 1 минута."""
+    artifact = SimpleNamespace(
+        id=uuid4(),
+        name="Коготь Араха",
+        rarity="редкий",
+        description="",
+        requires_attunement=True,
+        abilities=[
+            {
+                "kind": "companion",
+                "companion_name": "Дух предка",
+                "companion_type": "дух",
+                "hp_max": 30,
+                "ac": 16,
+                "attack_bonus": 4,
+                "attack_damage": "1d8",
+                "attack_damage_type": "некротический",
+                "attack_range_kind": "ranged",
+                "duration": "1 минута",
+                "duration_rounds": 10,
+                "charges": 1,
+                "reset": "long",
+            },
+        ],
+        attack_damage="",
+        attack_damage_type="",
+        attack_ability="str",
+        attack_range_kind="melee",
+        weight_lb=1,
+    )
+    sheet: dict = {
+        "inventory": {"items": []},
+        "weapons": [],
+        "combat": {},
+        "abilities": {},
+        "saves": {},
+        "spells": {},
+        "companions": [],
+        "resources": [],
+    }
+    apply_artifact_to_sheet(sheet, artifact=artifact)
+    companion = sheet["companions"][0]
+    assert companion["name"] == "Дух предка"
+    assert companion["hp_max"] == 30
+    assert companion["ac"] == 16
+    assert companion["attack_bonus"] == 4
+    assert companion["attack_damage"] == "1d8"
+    assert companion["attack_damage_type"] == "некротический"
+    assert companion["attack_range_kind"] == "ranged"
+    assert companion["duration"] == "1 минута"
+    assert companion["duration_rounds"] == 10
+    assert len(sheet["resources"]) == 1
+    assert sheet["resources"][0]["max"] == 1
+    assert sheet["resources"][0]["companion_id"] == companion["id"]
+
+
+def test_normalize_skill_tool_condition_kinds():
+    abilities = normalize_abilities(
+        [
+            {"kind": "skill", "skill_key": "nature", "bonus_value": 2},
+            {"kind": "tool", "tool_name": "Перо"},
+            {
+                "kind": "condition_immunity",
+                "condition_slug": "frightened",
+            },
+            {
+                "kind": "passive",
+                "bonus_target": "ability",
+                "bonus_value": 2,
+                "ability_key": "int",
+                "max_score": 22,
+            },
+            {
+                "kind": "companion",
+                "companion_name": "Дух",
+                "hp_max": 30,
+                "ac": 16,
+                "attack_damage": "1d8",
+                "attack_bonus": 4,
+                "duration": "1 минута",
+                "charges": 1,
+            },
+        ]
+    )
+    assert abilities[0]["kind"] == "skill"
+    assert abilities[0]["skill_key"] == "nature"
+    assert abilities[1]["tool_name"] == "Перо"
+    assert abilities[2]["condition_name"] == "Испуганный"
+    assert abilities[3]["max_score"] == 22
+    assert abilities[4]["attack_bonus"] == 4
+    assert abilities[4]["duration"] == "1 минута"
+    assert abilities[4]["charges"] == 1
