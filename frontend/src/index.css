@@ -6838,9 +6838,10 @@ button.spells-settings__derived-stat--btn:hover {
 
 .play-desk__top {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 12px;
   align-items: center;
+  min-width: 0;
   padding: 4px 2px 10px;
   border-bottom: 1px solid var(--desk-line);
   background:
@@ -6961,6 +6962,7 @@ button.spells-settings__derived-stat--btn:hover {
   align-items: center;
   gap: 8px 12px;
   min-width: 0;
+  max-width: 100%;
   overflow: visible;
 }
 
@@ -6970,10 +6972,13 @@ button.spells-settings__derived-stat--btn:hover {
 }
 
 .play-desk-header__who {
-  flex: 0 0 auto;
-  width: max-content;
-  min-width: 220px;
-  max-width: min(480px, 46vw);
+  /* Shrink when the name is long — never push HP / death off-screen.
+     Stay in one row with vitals (no full-width wrap — that made the
+     header look «разъехавшейся» on iPad). */
+  flex: 0 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: min(300px, 32vw);
   display: grid;
   gap: 5px;
   justify-items: stretch;
@@ -7186,9 +7191,22 @@ button.play-desk-header__xp:hover .play-desk-header__xp-bar {
 }
 
 .play-desk-header__mid {
-  flex: 0 0 auto;
+  /* Take leftover space between who and HP; scroll vitals if tight.
+     flex-end keeps vitals hugged to HP when there is spare room. */
+  flex: 1 1 auto;
   min-width: 0;
   margin-left: auto;
+  display: flex;
+  justify-content: flex-end;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.play-desk-header__mid::-webkit-scrollbar {
+  display: none;
 }
 
 .play-desk-header__stack {
@@ -7267,9 +7285,11 @@ button.play-desk-header__chip {
 
 .play-desk-header__vitals {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   align-items: center;
+  width: max-content;
+  max-width: none;
 }
 
 .play-desk-vital {
@@ -7502,7 +7522,8 @@ button.play-desk-vital:hover,
   flex-wrap: nowrap;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
+  margin-left: 0;
+  /* Pin coins / rest / HP / death — never clip when the name is long. */
   flex: 0 0 auto;
   min-width: 0;
 }
@@ -8541,17 +8562,102 @@ button.play-desk-compact__more--btn:hover {
   font-weight: 700;
 }
 
+/*
+ * Tablet / narrow laptop desk: keep ONE compact header row (Wave A LOCK).
+ * Who stays capped + ellipsis; mid vitals scroll; HP + death stay pinned.
+ * Do NOT wrap who onto its own full-width row — that stretched the XP band
+ * and made the шапка look broken on iPad Pro 11".
+ */
+@media (max-width: 1280px) {
+  .play-desk--wide .play-desk__top {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .play-desk--wide .play-desk-header {
+    flex-wrap: nowrap;
+    gap: 6px 8px;
+    min-width: 0;
+  }
+
+  .play-desk--wide .play-desk-header__who {
+    max-width: min(240px, 28vw);
+  }
+
+  .play-desk--wide .play-desk-header__name {
+    font-size: 1.15rem;
+  }
+
+  .play-desk--wide .play-desk-header__identity {
+    font-size: 0.78rem;
+  }
+
+  .play-desk--wide .char-avatar--md .char-avatar__face {
+    width: 56px;
+    height: 56px;
+    font-size: 1.15rem;
+  }
+
+  .play-desk--wide .play-desk-vital {
+    width: 50px;
+    min-width: 50px;
+    height: 56px;
+    padding: 4px 4px 3px;
+  }
+
+  .play-desk--wide .play-desk-vital b {
+    font-size: 1.05rem;
+  }
+
+  .play-desk--wide .play-desk-vital--jump {
+    width: 58px;
+    min-width: 58px;
+  }
+
+  .play-desk--wide .play-desk-vital--jump b {
+    font-size: 0.92rem;
+  }
+
+  .play-desk--wide .play-desk-vital--modes {
+    min-width: 48px;
+    max-width: 64px;
+  }
+
+  .play-desk--wide .play-desk-header__stack {
+    min-height: 56px;
+    gap: 3px;
+  }
+
+  .play-desk--wide .play-desk-header__chip {
+    padding: 3px 6px;
+    font-size: 0.62rem;
+  }
+
+  .play-desk--wide .play-desk-header__coin,
+  .play-desk--wide .play-desk-header__rest {
+    min-height: 26px;
+    padding: 4px 8px;
+    font-size: 0.74rem;
+  }
+
+  .play-desk--wide .play-desk-header__hp {
+    min-width: 112px;
+    min-height: 56px;
+    padding: 6px 10px;
+  }
+
+  .play-desk--wide .play-desk-header__hp strong {
+    font-size: 1.2rem;
+  }
+
+  .play-desk--wide .play-desk-header__death {
+    min-width: 108px;
+    min-height: 56px;
+    padding: 5px 6px;
+  }
+}
+
 @media (max-width: 1100px) {
-  .play-desk-header {
-    flex-wrap: wrap;
-  }
-  .play-desk-header__who {
-    max-width: none;
-    flex: 1 1 100%;
-  }
-  .play-desk-header__right {
-    margin-left: 0;
-  }
   .play-desk-compact__hit,
   .play-desk-compact__row.is-action {
     grid-template-columns: 1fr auto;
@@ -8653,6 +8759,8 @@ button.play-desk-compact__more--btn:hover {
   gap: 8px;
   align-items: center;
   padding: 2px 0 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .play-desk__mode {
@@ -8804,6 +8912,42 @@ button.play-desk-compact__more--btn:hover {
   flex-wrap: wrap;
   gap: 6px;
   align-items: stretch;
+}
+
+/*
+ * Desk hot strip (≥960): horizontal carousel when chips overflow
+ * (conditions · concentration · resource pips · skill chips).
+ * Matches mobile HotStrip scroll; no wrap that pushes stage down.
+ */
+.play-desk--wide .play-desk__hot {
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+}
+
+.play-desk--wide .play-desk__hot-item {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+
+.play-desk--wide .play-desk__hot-item--wide {
+  flex: 0 0 auto;
+  min-width: min(200px, 72%);
+  max-width: min(360px, 85%);
+}
+
+.play-desk--wide .play-desk__hot-item--res {
+  flex: 0 0 auto;
+  min-width: 120px;
 }
 
 .play-desk__hot-item {
