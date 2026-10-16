@@ -3467,6 +3467,10 @@ export function MinimalSheetEditor({
 
   function runDeskCast(spell: SheetSpell, choice: CastChoice) {
     const name = spell.name || 'Заклинание'
+    const allyNote =
+      choice.allyTargetIds && choice.allyTargetIds.length > 0
+        ? ` · целей ${choice.allyTargetIds.length}`
+        : ''
     const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
     const grantSpellId = choice.grantSpellId || spell.id
     const grantRow =
@@ -3510,8 +3514,8 @@ export function MinimalSheetEditor({
         : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         spell.concentration
-          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)${naparnikNote}${formNote}`
-          : `Каст: ${name}${effectNote}${consumeNote}${naparnikNote}${formNote}`,
+          ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}`
+          : `Каст: ${name}${effectNote}${consumeNote}${allyNote}${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3533,7 +3537,7 @@ export function MinimalSheetEditor({
         ? ''
         : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
-        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }${naparnikNote}${formNote}`,
       )
@@ -3555,7 +3559,7 @@ export function MinimalSheetEditor({
         ? ''
         : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
-        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
+        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }${naparnikNote}${formNote}`,
       )
@@ -3580,7 +3584,7 @@ export function MinimalSheetEditor({
         ? ''
         : applyDeskNaparnikFromCast(spell, pactResult.pact.level)
       onToast(
-        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
         }${naparnikNote}${formNote}`,
       )
@@ -3606,7 +3610,7 @@ export function MinimalSheetEditor({
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast(
-      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
         spell.concentration ? ' · концентрация' : ''
       }${naparnikNote}${formNote}`,
     )
@@ -5709,6 +5713,7 @@ export function MinimalSheetEditor({
           classes={draft.classes}
           subclassCasters={subclassCastersForSpells}
           spells={draft.spells}
+          characterId={character.id}
           companions={draft.companions}
           onCompanionsChange={(update) =>
             setDraft((prev) => ({
@@ -6087,6 +6092,7 @@ export function MinimalSheetEditor({
         spells={draft.spells}
         inventoryItems={draft.inventory.items}
         characterLevel={characterLevel}
+        characterId={character.id}
         wizardRitualFromBook={spellLearnBudget?.mode === 'spellbook'}
         onConfirm={confirmDeskCast}
         onClose={() => setDeskCastSpell(null)}

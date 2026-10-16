@@ -3,6 +3,7 @@ import {
   type SpellComponents,
   type SpellScaleTable,
 } from '../../shared/dnd/spellCatalog'
+import { guessAllyTargetCount, guessAppliesToAllies } from '../../shared/dnd/allyTargets'
 import {
   clampPactSlots,
   clampSlot,
@@ -84,6 +85,10 @@ export type SheetSpell = {
    * Cleared on lose/destroy; prepared flags stay for casting from memory.
    */
   in_spellbook?: boolean
+  /** При касте — опциональные select’ы себя/союзников (если персонаж в лобби). */
+  applies_to_allies?: boolean
+  /** Сколько слотов целей (Благословение = 3); заполнение необязательно. */
+  ally_target_count?: number
 }
 
 /** Free cast charge from a grant source (race innate, Fey Touched, …). */
@@ -237,6 +242,19 @@ function readSpell(raw: unknown, index: number): SheetSpell {
           : '',
     damage: typeof row.damage === 'string' ? row.damage : '',
     concentration: Boolean(row.concentration),
+    ...(() => {
+      const name = typeof row.name === 'string' ? row.name : ''
+      const appliesExplicit = row.applies_to_allies
+      const applies =
+        typeof appliesExplicit === 'boolean' ? appliesExplicit : guessAppliesToAllies(name)
+      if (!applies) return {}
+      const countRaw = row.ally_target_count
+      const count =
+        typeof countRaw === 'number' && countRaw >= 1
+          ? Math.min(6, Math.floor(countRaw))
+          : guessAllyTargetCount(name)
+      return { applies_to_allies: true as const, ally_target_count: count }
+    })(),
     ...(typeof row.duration === 'string' && row.duration
       ? { duration: row.duration }
       : {}),
@@ -804,6 +822,12 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         attack_or_save: spell.attack_or_save,
         damage: spell.damage,
         concentration: spell.concentration,
+        ...(spell.applies_to_allies
+          ? {
+              applies_to_allies: true,
+              ally_target_count: Math.max(1, Math.min(6, spell.ally_target_count ?? 1)),
+            }
+          : {}),
         ...(spell.duration ? { duration: spell.duration } : {}),
         ...(spell.ritual ? { ritual: true } : {}),
         ...(spell.school ? { school: spell.school } : {}),
@@ -1018,6 +1042,14 @@ export function sheetSpellFromCatalog(entry: {
     attack_or_save: fields.attack_or_save ?? '',
     damage: fields.damage ?? '',
     concentration: Boolean(fields.concentration),
+    ...(() => {
+      const applies = guessAppliesToAllies(entry.name_ru)
+      if (!applies) return {}
+      return {
+        applies_to_allies: true as const,
+        ally_target_count: guessAllyTargetCount(entry.name_ru),
+      }
+    })(),
     ...(fields.duration ? { duration: fields.duration } : {}),
     ...(fields.ritual ? { ritual: true } : {}),
     ...(fields.school ? { school: fields.school } : {}),

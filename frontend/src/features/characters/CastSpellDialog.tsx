@@ -10,8 +10,11 @@ import {
   levelLabel,
   slotsRemaining,
 } from '../../shared/dnd/spells'
+import { guessAllyTargetCount, guessAppliesToAllies } from '../../shared/dnd/allyTargets'
 import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
 import { Button, Dialog, Stack, Text } from '../../ui'
+import { AllyTargetFields } from '../lobby/AllyTargetFields'
+import { useLobbyParty, type AllyPickDemo } from '../lobby/useLobbyParty'
 import {
   listCastGrantOptions,
   type SheetSpell,
@@ -38,6 +41,9 @@ export type CastChoice = {
    * self → open form picker; other → spend only, no self_form card.
    */
   selfFormTarget?: 'self' | 'other'
+  /** Выбранные цели (себя и/или союзники), без пустых слотов */
+  allyTargetIds?: string[]
+  lobbyId?: string | null
 }
 
 type CastSpellDialogProps = {
@@ -48,12 +54,16 @@ type CastSpellDialogProps = {
   inventoryItems: MaterialInventoryItem[]
   /** Total character level — cantrip scaling 1/5/11/17. */
   characterLevel: number
+  /** Нужен для выбора союзников из лобби этого персонажа. */
+  characterId?: string
   /**
    * Wizard: ritual casting requires the spell in the physical spellbook (PHB).
    * When true, ritual path is gated by canCastWizardRitualFromBook.
    */
   wizardRitualFromBook?: boolean
   busy?: boolean
+  /** Превью без API */
+  allyDemo?: AllyPickDemo | null
   onConfirm: (choice: CastChoice) => void
   onClose: () => void
   /** K14: open Rest when no free slots (inline recovery). */
@@ -68,8 +78,10 @@ export function CastSpellDialog({
   spells,
   inventoryItems,
   characterLevel,
+  characterId,
   wizardRitualFromBook = false,
   busy = false,
+  allyDemo = null,
   onConfirm,
   onClose,
   onRequestRest,
@@ -109,6 +121,25 @@ export function CastSpellDialog({
   const [selfFormTarget, setSelfFormTarget] = useState<'self' | 'other'>('self')
   const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
 
+  const appliesToAllies = Boolean(
+    spell &&
+      (spell.applies_to_allies === true ||
+        (spell.applies_to_allies !== false && guessAppliesToAllies(spell.name))),
+  )
+  const showTargets = Boolean(appliesToAllies && characterId)
+  const targetCount = Math.max(
+    1,
+    Math.min(
+      6,
+      spell?.ally_target_count ??
+        (spell ? guessAllyTargetCount(spell.name) : 1),
+    ),
+  )
+  const [targetSlots, setTargetSlots] = useState<string[]>(() =>
+    Array.from({ length: targetCount }, () => ''),
+  )
+  const party = useLobbyParty(showTargets ? characterId : undefined, allyDemo)
+
   const materialText = spell?.components?.m
 
   const materialCheck = useMemo(
@@ -132,7 +163,8 @@ export function CastSpellDialog({
   useEffect(() => {
     if (!open) return
     setConsumeMaterial(true)
-  }, [open, spell?.id])
+    setTargetSlots(Array.from({ length: targetCount }, () => ''))
+  }, [open, spell?.id, targetCount])
 
   useEffect(() => {
     if (!spell || isCantrip) {
@@ -202,6 +234,19 @@ export function CastSpellDialog({
     })
   }, [spell, characterLevel, effectiveSlotLevel])
 
+  const selectedIds = useMemo(
+    () => targetSlots.filter((id) => id.trim().length > 0),
+    [targetSlots],
+  )
+  const duplicateTarget = useMemo(() => {
+    const seen = new Set<string>()
+    for (const id of selectedIds) {
+      if (seen.has(id)) return true
+      seen.add(id)
+    }
+    return false
+  }, [selectedIds])
+
   if (!spell) {
     return null
   }
@@ -221,6 +266,8 @@ export function CastSpellDialog({
       grantOk ||
       (useRitual && isRitual) ||
       (!useGrant && !useRitual && hasSlotPath))
+  /** Цели необязательны; блок только при дублях в слотах */
+  const targetsOk = !showTargets || !duplicateTarget
   const selectedSlot =
     !usePact && !useRitual && !useGrant ? spells.slots[String(slotLevel)] : null
   const remaining = selectedSlot ? slotsRemaining(selectedSlot) : 0
@@ -270,8 +317,9 @@ export function CastSpellDialog({
       title={isCantrip ? 'Использовать заговор?' : 'Кастовать заклинание?'}
       primaryLabel={primaryLabel}
       secondaryLabel="Отмена"
+      size={showTargets ? 'wide' : undefined}
       onPrimary={() => {
-        if (!canCast || busy) return
+        if (!canCast || busy || !targetsOk) return
         onConfirm({
           useGrant: !isCantrip && grantOk,
           grantSpellId: !isCantrip && grantOk ? grantSpellId : null,
@@ -289,11 +337,13 @@ export function CastSpellDialog({
               ? materialCheck.cheapest?.item.id ?? null
               : null,
           selfFormTarget: isTransformSelf ? selfFormTarget : undefined,
+          allyTargetIds: showTargets ? selectedIds : [],
+          lobbyId: showTargets ? party.lobbyId : null,
         })
       }}
       onSecondary={onClose}
       busy={busy}
-      primaryDisabled={!canCast || busy}
+      primaryDisabled={!canCast || busy || !targetsOk}
     >
       <Stack gap={10}>
         <Text>
@@ -302,6 +352,7 @@ export function CastSpellDialog({
           {levelLabel(spell.level)}
           {spell.ritual ? ' · ритуал' : ''}
           {spell.concentration ? ' · концентрация' : ''}
+          {appliesToAllies ? ` · до ${targetCount} цел.` : ''}
           {spell.source_book ? ` · ${spell.source_book}` : ''}
         </Text>
         {metaParts.length > 0 ? <Text tone="muted">{metaParts.join(' · ')}</Text> : null}
@@ -547,6 +598,32 @@ export function CastSpellDialog({
               v1 карточку не создаём.
             </Text>
           </div>
+        ) : null}
+
+        {showTargets ? (
+          <>
+            <AllyTargetFields
+              count={targetCount}
+              values={targetSlots}
+              onChange={(index, nextId) => {
+                setTargetSlots((prev) => {
+                  const next = [...prev]
+                  next[index] = nextId
+                  return next
+                })
+              }}
+              options={party.options}
+              loading={party.loading}
+              busy={busy}
+              lobbyName={party.lobbyName}
+              lobbies={party.lobbies}
+              lobbyId={party.lobbyId}
+              onLobbyIdChange={party.setLobbyId}
+            />
+            {duplicateTarget ? (
+              <Text tone="danger">Одна и та же цель в двух слотах — выберите разных.</Text>
+            ) : null}
+          </>
         ) : null}
       </Stack>
     </Dialog>

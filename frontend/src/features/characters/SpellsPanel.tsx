@@ -93,6 +93,8 @@ type SpellsPanelProps = {
   /** EK / Arcane Trickster etc. — unlocks ⅓ caster slot math. */
   subclassCasters?: SubclassCasterOverlay[]
   spells: SpellsState
+  /** Для выбора союзников при касте (Щит веры и т.п.). */
+  characterId?: string
   companions?: CompanionEntry[]
   /** Prefer functional update so cast+concentration dismiss don't clobber each other. */
   onCompanionsChange?: (
@@ -125,6 +127,7 @@ export function SpellsPanel({
   classes,
   subclassCasters,
   spells,
+  characterId,
   companions = [],
   onCompanionsChange,
   knownForms = [],
@@ -471,6 +474,10 @@ export function SpellsPanel({
 
   function runCast(castSpell: SheetSpell, choice: CastChoice) {
     const name = castSpell.name || 'Заклинание'
+    const allyNote =
+      choice.allyTargetIds && choice.allyTargetIds.length > 0
+        ? ` · целей ${choice.allyTargetIds.length}`
+        : ''
     const ritualCast = Boolean(choice.ritual && castSpell.ritual && castSpell.level > 0)
     const grantSpellId = choice.grantSpellId || castSpell.id
     const grantRow =
@@ -499,8 +506,8 @@ export function SpellsPanel({
       const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
         castSpell.concentration
-          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)${naparnikNote}${formNote}`
-          : `Каст: ${name}${effectNote}${consumeNote}${naparnikNote}${formNote}`,
+          ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}`
+          : `Каст: ${name}${effectNote}${consumeNote}${allyNote}${naparnikNote}${formNote}`,
       )
       setCastSpell(null)
       return
@@ -514,7 +521,7 @@ export function SpellsPanel({
       applyConcentrationIfNeeded(castSpell)
       const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
-        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
           castSpell.concentration ? ' · концентрация' : ''
         }${naparnikNote}${formNote}`,
       )
@@ -535,7 +542,7 @@ export function SpellsPanel({
       applyConcentrationIfNeeded(castSpell)
       const naparnikNote = wantsForm ? '' : applyNaparnikFromCast(castSpell, naparnikSlot)
       onToast?.(
-        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
+        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           castSpell.concentration ? ' · концентрация' : ''
         }${naparnikNote}${formNote}`,
       )
@@ -554,7 +561,7 @@ export function SpellsPanel({
         ? ''
         : applyNaparnikFromCast(castSpell, pactResult.pact.level)
       onToast?.(
-        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           castSpell.concentration ? ' · концентрация' : ''
         }${naparnikNote}${formNote}`,
       )
@@ -574,7 +581,7 @@ export function SpellsPanel({
     const upcast =
       choice.slotLevel > castSpell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast?.(
-      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
         castSpell.concentration ? ' · концентрация' : ''
       }${naparnikNote}${formNote}`,
     )
@@ -1259,6 +1266,7 @@ export function SpellsPanel({
         spells={spells}
         inventoryItems={inventoryItems}
         characterLevel={level}
+        characterId={characterId}
         wizardRitualFromBook={learnBudget?.mode === 'spellbook'}
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
