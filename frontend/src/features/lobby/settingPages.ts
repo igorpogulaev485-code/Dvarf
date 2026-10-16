@@ -2,11 +2,15 @@ import type { SettingPage, SettingPageLink } from '../../shared/api/lobbies'
 
 export type SettingPageNode = SettingPage & { children: SettingPageNode[] }
 
-/** Плоский список → дерево по parent_id / sort_order. */
+/** Плоский список → дерево по parent_id / sort_order.
+ * Если родителя нет в списке (C3: скрыт у игрока) — страница становится корнем.
+ */
 export function buildSettingPageTree(pages: SettingPage[]): SettingPageNode[] {
+  const ids = new Set(pages.map((p) => p.id))
   const byParent = new Map<string | null, SettingPage[]>()
   for (const page of pages) {
-    const key = page.parent_id
+    const key =
+      page.parent_id != null && ids.has(page.parent_id) ? page.parent_id : null
     const list = byParent.get(key) ?? []
     list.push(page)
     byParent.set(key, list)
@@ -22,6 +26,28 @@ export function buildSettingPageTree(pages: SettingPage[]): SettingPageNode[] {
     }))
   }
   return walk(null)
+}
+
+/** Потомки страницы (не включая саму). */
+export function collectDescendantIds(
+  pages: SettingPage[],
+  rootId: string,
+): string[] {
+  const byParent = new Map<string | null, SettingPage[]>()
+  for (const page of pages) {
+    const list = byParent.get(page.parent_id) ?? []
+    list.push(page)
+    byParent.set(page.parent_id, list)
+  }
+  const out: string[] = []
+  function walk(id: string) {
+    for (const child of byParent.get(id) ?? []) {
+      out.push(child.id)
+      walk(child.id)
+    }
+  }
+  walk(rootId)
+  return out
 }
 
 export function flattenSettingPageTree(nodes: SettingPageNode[]): SettingPage[] {

@@ -57,6 +57,7 @@ export type SettingPageLink = {
 export type SettingDetail = SettingSummary & {
   pages: SettingPage[]
   links: SettingPageLink[]
+  is_owner: boolean
 }
 
 export type SessionSummary = {
@@ -403,6 +404,8 @@ export async function updateSettingPage(
     parent_id?: string | null
     clear_parent?: boolean
     sort_order?: number
+    revealed?: boolean
+    reveal_subtree?: boolean
   },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {

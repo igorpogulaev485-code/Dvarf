@@ -62,10 +62,11 @@ class SettingPageLinkOut(BaseModel):
 
 
 class SettingDetail(SettingSummary):
-    """C1/C2: страницы + плоский список связей (граф собирает клиент)."""
+    """C1–C3: страницы + связи; игрокам — только revealed."""
 
     pages: list[SettingPageOut] = Field(default_factory=list)
     links: list[SettingPageLinkOut] = Field(default_factory=list)
+    is_owner: bool = False
 
 
 class SettingPageCreateRequest(BaseModel):
@@ -82,6 +83,10 @@ class SettingPageUpdateRequest(BaseModel):
     sort_order: int | None = None
     # clear_parent: переместить в корень
     clear_parent: bool = False
+    # C3: раскрытие игрокам
+    revealed: bool | None = None
+    # C3: применить revealed ко всей ветке (эта + потомки)
+    reveal_subtree: bool = False
 
 
 class SettingPageLinkCreateRequest(BaseModel):
