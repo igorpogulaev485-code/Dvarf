@@ -16,6 +16,7 @@ import {
   identityField,
   inventoryCoins,
   isSaveProficient,
+  physiqueField,
   setCoins,
   skillFlags,
   textBlockValue,
@@ -452,7 +453,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
       </article>
 
       <article className="classic-sheet classic-page2" aria-label="Классический лист 2014, страница 2">
-        <header className="classic-header classic-header--simple">
+        <header className="classic-header classic-header--page2">
           <div className="classic-brand">
             <strong>D&amp;D</strong>
             <span>5e · 2014</span>
@@ -461,39 +462,95 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
             <span>Имя персонажа</span>
             <input value={c.name} onChange={(e) => patch({ name: e.target.value })} />
           </label>
+          <div className="classic-physique">
+            {(
+              [
+                ['age', 'Возраст'],
+                ['height', 'Рост'],
+                ['weight', 'Вес'],
+                ['eyes', 'Глаза'],
+                ['skin', 'Кожа'],
+                ['hair', 'Волосы'],
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key}>
+                <span>{label}</span>
+                <input
+                  value={physiqueField(c, key)}
+                  onChange={(e) => patch({ identity: { [key]: e.target.value || null } })}
+                />
+              </label>
+            ))}
+          </div>
         </header>
+
         <div className="classic-page2-grid">
-          <div className="classic-panel">
+          <section className="classic-panel classic-panel--grow classic-page2-appearance">
             <Expanding
+              fill
               value={textBlockValue(c, 'appearance')}
-              printMaxHeight="16rem"
+              printMaxHeight="18rem"
+              ariaLabel="Внешность персонажа"
               onChange={(value) => patch({ textBlocks: { appearance: value } })}
             />
             <div className="classic-caption">Внешность персонажа</div>
-          </div>
-          <div className="classic-panel">
+          </section>
+
+          <section className="classic-panel classic-panel--grow classic-page2-allies">
+            <div className="classic-allies-layout">
+              <div className="classic-symbol">
+                <Expanding
+                  fill
+                  value={textBlockValue(c, 'symbol')}
+                  printMaxHeight="6rem"
+                  ariaLabel="Символ организации"
+                  onChange={(value) => patch({ textBlocks: { symbol: value } })}
+                />
+                <div className="classic-caption">Символ</div>
+              </div>
+              <Expanding
+                fill
+                value={textBlockValue(c, 'allies')}
+                printMaxHeight="10rem"
+                ariaLabel="Союзники и организации"
+                onChange={(value) => patch({ textBlocks: { allies: value } })}
+              />
+            </div>
+            <div className="classic-caption">Союзники и организации</div>
+          </section>
+
+          <section className="classic-panel classic-panel--grow classic-page2-backstory">
             <Expanding
-              value={textBlockValue(c, 'quests')}
-              printMaxHeight="10rem"
-              onChange={(value) => patch({ textBlocks: { quests: value } })}
-            />
-            <div className="classic-caption">Союзники / цели</div>
-          </div>
-          <div className="classic-panel">
-            <Expanding
+              fill
               value={textBlockValue(c, 'background')}
-              printMaxHeight="20rem"
+              printMaxHeight="24rem"
+              ariaLabel="Предыстория персонажа"
               onChange={(value) => patch({ textBlocks: { background: value } })}
             />
             <div className="classic-caption">Предыстория персонажа</div>
-          </div>
-          <div className="classic-panel">
-            <Expanding
-              value={textBlockValue(c, 'feats')}
-              printMaxHeight="12rem"
-              onChange={(value) => patch({ textBlocks: { feats: value } })}
-            />
-            <div className="classic-caption">Дополнительные умения</div>
+          </section>
+
+          <div className="classic-page2-right-stack">
+            <section className="classic-panel classic-panel--grow">
+              <Expanding
+                fill
+                value={textBlockValue(c, 'feats')}
+                printMaxHeight="12rem"
+                ariaLabel="Дополнительные умения и особенности"
+                onChange={(value) => patch({ textBlocks: { feats: value } })}
+              />
+              <div className="classic-caption">Дополнительные умения и особенности</div>
+            </section>
+            <section className="classic-panel classic-panel--grow classic-panel--grow-lg">
+              <Expanding
+                fill
+                value={textBlockValue(c, 'treasure')}
+                printMaxHeight="12rem"
+                ariaLabel="Сокровища"
+                onChange={(value) => patch({ textBlocks: { treasure: value } })}
+              />
+              <div className="classic-caption">Сокровища</div>
+            </section>
           </div>
         </div>
       </article>

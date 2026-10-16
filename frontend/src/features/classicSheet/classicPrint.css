@@ -110,6 +110,49 @@
   grid-template-columns: 0.72in 1fr;
 }
 
+.classic-header--page2 {
+  grid-template-columns: 0.72in 2.2in 1fr;
+  flex: 0 0 auto;
+}
+
+.classic-physique {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.1in;
+}
+
+.classic-physique label {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.08rem;
+  border: 1.75px solid var(--c-line);
+  border-radius: 0.45rem;
+  padding: 0.14rem 0.32rem 0.24rem;
+  background: #fff;
+}
+
+.classic-physique span {
+  font-size: 0.54rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  font-weight: 700;
+}
+
+.classic-physique input {
+  border: none;
+  border-bottom: 1px solid var(--c-line-soft);
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 550;
+  min-height: 1.1rem;
+  padding: 0.05rem 0;
+}
+
 .classic-brand {
   display: flex;
   flex-direction: column;
@@ -226,8 +269,76 @@
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
-  gap: 0.14in;
+  grid-template-columns: 1.2fr 0.95fr;
+  grid-template-rows: minmax(2.8in, 1.05fr) minmax(0, 1.35fr);
+  gap: 0.1in;
+}
+
+.classic-page2-appearance {
+  grid-column: 1;
+  grid-row: 1;
+  margin-bottom: 0;
+  min-height: 0;
+}
+
+.classic-page2-allies {
+  grid-column: 2;
+  grid-row: 1;
+  margin-bottom: 0;
+  min-height: 0;
+}
+
+.classic-page2-backstory {
+  grid-column: 1;
+  grid-row: 2;
+  margin-bottom: 0;
+  min-height: 0;
+}
+
+.classic-page2-right-stack {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1in;
+  min-height: 0;
+}
+
+.classic-page2-right-stack > .classic-panel {
+  margin-bottom: 0;
+}
+
+.classic-allies-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.35in 1fr;
+  gap: 0.28rem;
+  align-items: stretch;
+  margin-bottom: 0.45rem;
+}
+
+.classic-symbol {
+  position: relative;
+  border: 1.75px solid var(--c-line);
+  border-radius: 18% / 14%;
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  background: var(--c-paper-tint);
+  display: flex;
+  flex-direction: column;
+  min-height: 1.6in;
+  padding: 0.55rem 0.4rem 0.7rem;
+  overflow: hidden;
+}
+
+.classic-symbol .classic-expand--fill {
+  text-align: center;
+  font-size: 0.65rem;
+  min-height: 2.2rem;
+}
+
+.classic-symbol .classic-caption {
+  bottom: 0.2rem;
 }
 
 .classic-abilities-wrap {
