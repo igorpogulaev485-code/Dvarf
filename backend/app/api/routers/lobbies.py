@@ -64,6 +64,7 @@ from app.schemas.lobby import (
     SettingCreateRequest,
     SettingDetail,
     SettingPageCreateRequest,
+    SettingPageLinkCreateRequest,
     SettingPageUpdateRequest,
     SettingSummary,
     SettingUpdateRequest,
@@ -235,6 +236,29 @@ def delete_setting_page(
     db: DbSession,
 ) -> SettingDetail:
     return LobbyService(db).delete_setting_page(current_user, page_id)
+
+
+@router.post(
+    "/settings/pages/{page_id}/links",
+    response_model=SettingDetail,
+    status_code=201,
+)
+def create_setting_page_link(
+    page_id: UUID,
+    payload: SettingPageLinkCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).create_setting_page_link(current_user, page_id, payload)
+
+
+@router.delete("/settings/page-links/{link_id}", response_model=SettingDetail)
+def delete_setting_page_link(
+    link_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).delete_setting_page_link(current_user, link_id)
 
 
 @router.patch("/settings/{setting_id}", response_model=SettingSummary)

@@ -3549,3 +3549,64 @@ button.session-concentration-tag {
   background: var(--card);
   padding: 14px;
 }
+
+/* C2: связи / бэклинки */
+.setting-wiki-links {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting-wiki-links__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.setting-wiki-links__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.setting-wiki-links__jump {
+  appearance: none;
+  border: 0;
+  background: var(--accent-soft);
+  color: inherit;
+  font: inherit;
+  padding: 6px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.setting-wiki-links__remove {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.setting-wiki-links__add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.setting-wiki-links__add .ui-input {
+  flex: 1;
+  min-width: 10rem;
+}

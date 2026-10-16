@@ -1,4 +1,4 @@
-import type { SettingPage } from '../../shared/api/lobbies'
+import type { SettingPage, SettingPageLink } from '../../shared/api/lobbies'
 
 export type SettingPageNode = SettingPage & { children: SettingPageNode[] }
 
@@ -35,4 +35,18 @@ export function flattenSettingPageTree(nodes: SettingPageNode[]): SettingPage[] 
   }
   walk(nodes)
   return out
+}
+
+/** Исходящие и входящие рёбра для выбранной страницы. */
+export function linksForPage(
+  links: SettingPageLink[],
+  pageId: string,
+): { outgoing: SettingPageLink[]; incoming: SettingPageLink[] } {
+  const outgoing: SettingPageLink[] = []
+  const incoming: SettingPageLink[] = []
+  for (const link of links) {
+    if (link.from_page_id === pageId) outgoing.push(link)
+    if (link.to_page_id === pageId) incoming.push(link)
+  }
+  return { outgoing, incoming }
 }

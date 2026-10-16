@@ -47,10 +47,25 @@ class SettingPageOut(BaseModel):
     updated_at: datetime
 
 
+class SettingPageLinkOut(BaseModel):
+    """C2: ребро графа; заголовки удобны клиенту для бэклинков."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    from_page_id: UUID
+    to_page_id: UUID
+    from_title: str = ""
+    to_title: str = ""
+    label: str = ""
+    created_at: datetime
+
+
 class SettingDetail(SettingSummary):
-    """C1: сеттинг + плоский список страниц (дерево собирает клиент)."""
+    """C1/C2: страницы + плоский список связей (граф собирает клиент)."""
 
     pages: list[SettingPageOut] = Field(default_factory=list)
+    links: list[SettingPageLinkOut] = Field(default_factory=list)
 
 
 class SettingPageCreateRequest(BaseModel):
@@ -67,6 +82,11 @@ class SettingPageUpdateRequest(BaseModel):
     sort_order: int | None = None
     # clear_parent: переместить в корень
     clear_parent: bool = False
+
+
+class SettingPageLinkCreateRequest(BaseModel):
+    to_page_id: UUID
+    label: str = Field(default="", max_length=120)
 
 
 class SessionSummary(BaseModel):

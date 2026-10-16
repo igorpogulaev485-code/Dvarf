@@ -53,3 +53,14 @@ class SettingPage(Base):
 
     setting = relationship("Setting", back_populates="pages")
     parent = relationship("SettingPage", remote_side=[id], backref="children")
+    # Удаление рёбер — через FK ON DELETE CASCADE; cascade на обеих сторонах ломает ORM.
+    outgoing_links = relationship(
+        "SettingPageLink",
+        foreign_keys="SettingPageLink.from_page_id",
+        back_populates="from_page",
+    )
+    incoming_links = relationship(
+        "SettingPageLink",
+        foreign_keys="SettingPageLink.to_page_id",
+        back_populates="to_page",
+    )

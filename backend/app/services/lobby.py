@@ -85,6 +85,8 @@ from app.schemas.lobby import (
     SettingCreateRequest,
     SettingDetail,
     SettingPageCreateRequest,
+    SettingPageLinkCreateRequest,
+    SettingPageLinkOut,
     SettingPageOut,
     SettingPageUpdateRequest,
     SettingSummary,
@@ -778,10 +780,24 @@ class LobbyService:
 
     def _setting_detail(self, setting: Setting) -> SettingDetail:
         pages = self.lobbies.list_setting_pages(setting.id)
+        title_by_id = {p.id: p.title for p in pages}
+        links = self.lobbies.list_setting_page_links(setting.id)
         base = SettingSummary.model_validate(setting)
         return SettingDetail(
             **base.model_dump(),
             pages=[SettingPageOut.model_validate(p) for p in pages],
+            links=[
+                SettingPageLinkOut(
+                    id=link.id,
+                    from_page_id=link.from_page_id,
+                    to_page_id=link.to_page_id,
+                    from_title=title_by_id.get(link.from_page_id, ""),
+                    to_title=title_by_id.get(link.to_page_id, ""),
+                    label=link.label or "",
+                    created_at=link.created_at,
+                )
+                for link in links
+            ],
         )
 
     def create_setting_page(
@@ -899,6 +915,73 @@ class LobbyService:
                 status_code=400,
             )
         self.lobbies.delete_setting_page(page)
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed)
+
+    def create_setting_page_link(
+        self,
+        user: User,
+        page_id: UUID,
+        payload: SettingPageLinkCreateRequest,
+    ) -> SettingDetail:
+        from_page = self.lobbies.get_setting_page(page_id)
+        if from_page is None:
+            raise NotFoundError("Страница не найдена", code="setting_page_not_found")
+        setting = self.lobbies.get_setting(from_page.setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_owner(lobby, user)
+
+        to_page = self.lobbies.get_setting_page(payload.to_page_id)
+        if to_page is None or to_page.setting_id != setting.id:
+            raise AppError(
+                "Целевая страница не из этого сеттинга",
+                code="page_link_target_bad",
+                status_code=400,
+            )
+        if to_page.id == from_page.id:
+            raise AppError(
+                "Страница не может ссылаться на себя",
+                code="page_link_self",
+                status_code=400,
+            )
+        existing = [
+            link
+            for link in self.lobbies.list_setting_page_links(setting.id)
+            if link.from_page_id == from_page.id and link.to_page_id == to_page.id
+        ]
+        if existing:
+            raise AppError(
+                "Такая связь уже есть",
+                code="page_link_duplicate",
+                status_code=400,
+            )
+        self.lobbies.create_setting_page_link(
+            from_page_id=from_page.id,
+            to_page_id=to_page.id,
+            label=(payload.label or "").strip()[:120],
+        )
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed)
+
+    def delete_setting_page_link(self, user: User, link_id: UUID) -> SettingDetail:
+        link = self.lobbies.get_setting_page_link(link_id)
+        if link is None:
+            raise NotFoundError("Связь не найдена", code="setting_page_link_not_found")
+        from_page = self.lobbies.get_setting_page(link.from_page_id)
+        if from_page is None:
+            raise NotFoundError("Страница не найдена", code="setting_page_not_found")
+        setting = self.lobbies.get_setting(from_page.setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_owner(lobby, user)
+        self.lobbies.delete_setting_page_link(link)
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
