@@ -30,6 +30,8 @@ from app.schemas.lobby import (
     CombatantCreateRequest,
     CombatantPatchRequest,
     JoinLobbyRequest,
+    EncounterGenerateRequest,
+    EncounterGenerateResult,
     EncounterTemplateCreateRequest,
     EncounterTemplateSaveFromSessionRequest,
     InventoryTransferRequest,
@@ -529,6 +531,20 @@ async def deploy_session_encounter(
     return await LobbyService(db).deploy_encounter_template(
         current_user, session_id, template_id
     )
+
+
+@router.post(
+    "/sessions/{session_id}/encounters/generate",
+    response_model=EncounterGenerateResult,
+)
+def generate_session_encounter(
+    session_id: UUID,
+    payload: EncounterGenerateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> EncounterGenerateResult:
+    """B8: умный генератор — предложения босс+пачка (UI draft)."""
+    return LobbyService(db).generate_encounter(current_user, session_id, payload)
 
 
 @router.get("/sessions/{session_id}/events", response_model=list[SessionEventOut])

@@ -22,6 +22,10 @@ from app.services.sheet_effects import (
     parse_effects,
 )
 from app.repositories.catalog import CatalogRepository
+from app.dnd.encounter_budget import EncounterDifficulty
+from app.dnd.encounter_compose import compose_encounter
+from app.dnd.encounter_pool import monster_from_catalog_entry
+from app.dnd.sheet_signals import PartyMemberSnapshot
 from app.dnd.xp import xp_from_cr
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
@@ -34,6 +38,11 @@ from app.schemas.lobby import (
     CombatantPatchRequest,
     JoinLobbyRequest,
     SessionCombatOut,
+    EncounterGenerateRequest,
+    EncounterGenerateResult,
+    EncounterMonsterOptionOut,
+    EncounterRoleOut,
+    EncounterWaveOut,
     EncounterTemplateCreateRequest,
     EncounterTemplateOut,
     EncounterTemplateSaveFromSessionRequest,
@@ -2447,6 +2456,122 @@ class LobbyService:
         flag_modified(lobby, "encounter_templates")
         self.db.commit()
         return self._to_detail(self._require_lobby(lobby.id), user)
+
+    def generate_encounter(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: EncounterGenerateRequest,
+    ) -> EncounterGenerateResult:
+        """B8: предложить босс+пачку по листам за столом (UI draft)."""
+        session, lobby = self._require_session_owner(user, session_id)
+        if session.closed_at is not None:
+            raise AppError("Сессия закрыта", code="session_closed", status_code=400)
+        if not session.seats:
+            raise AppError(
+                "За столом никого нет — нечего анализировать",
+                code="encounter_no_seats",
+                status_code=400,
+            )
+
+        seat_ids = [s.character_id for s in session.seats]
+        chars = self.lobbies.get_characters_map(seat_ids)
+
+        members: list[PartyMemberSnapshot] = []
+        for seat in session.seats:
+            ch = chars.get(seat.character_id)
+            if ch is None:
+                continue
+            sheet = ch.sheet if isinstance(ch.sheet, dict) else {}
+            extras = _seat_combat_fields(ch)
+            effects = extras.get("effects") or []
+            effect_names = tuple(
+                str(e.get("name") or "")
+                for e in effects
+                if isinstance(e, dict)
+            )
+            members.append(
+                PartyMemberSnapshot(
+                    level=int(ch.level or 1),
+                    hp_max=ch.hp_max if isinstance(ch.hp_max, int) else None,
+                    sheet=sheet,
+                    seat_effects=effect_names,
+                    race_name=ch.race_name,
+                    class_name=ch.class_name,
+                )
+            )
+        if not members:
+            raise AppError(
+                "Не удалось прочитать листы за столом",
+                code="encounter_no_sheets",
+                status_code=400,
+            )
+
+        catalog_rows = self.catalog.list_bestiary_for_generator(edition="2014")
+        monsters = []
+        for row in catalog_rows:
+            ref = monster_from_catalog_entry(
+                {
+                    "slug": row.slug,
+                    "name_ru": row.name_ru,
+                    "data": row.data if isinstance(row.data, dict) else {},
+                }
+            )
+            if ref is not None:
+                monsters.append(ref)
+
+        try:
+            difficulty = EncounterDifficulty(payload.difficulty)
+        except ValueError as exc:
+            raise AppError("Неизвестная сложность", code="bad_difficulty", status_code=400) from exc
+
+        proposal = compose_encounter(
+            members=members,
+            monsters=monsters,
+            difficulty=difficulty,
+            environments=list(payload.environments or []),
+            theme_ids=list(payload.theme_ids),
+            similar=bool(payload.similar),
+            waves=int(payload.waves),
+        )
+
+        def _role(role) -> EncounterRoleOut:
+            return EncounterRoleOut(
+                role=role.role,  # type: ignore[arg-type]
+                suggested_count=role.suggested_count,
+                options=[
+                    EncounterMonsterOptionOut(
+                        slug=o.slug,
+                        name_ru=o.name_ru,
+                        cr=o.cr,
+                        xp=o.xp,
+                        type=o.type_en or None,
+                        subtype=o.subtype,
+                        fly=o.fly,
+                    )
+                    for o in role.options
+                ],
+            )
+
+        return EncounterGenerateResult(
+            difficulty=proposal.difficulty.value,
+            party_power=round(proposal.party_power, 4),
+            budget_total=proposal.budget_total,
+            anti_air_ok=proposal.anti_air_ok,
+            notes=list(proposal.notes),
+            theme_ids=list(payload.theme_ids),
+            similar=bool(payload.similar),
+            environments=list(payload.environments or []),
+            waves=[
+                EncounterWaveOut(
+                    wave_index=w.wave_index,
+                    budget_xp=w.budget_xp,
+                    boss=_role(w.boss),
+                    pack=_role(w.pack),
+                )
+                for w in proposal.waves
+            ],
+        )
 
     async def deploy_encounter_template(
         self,

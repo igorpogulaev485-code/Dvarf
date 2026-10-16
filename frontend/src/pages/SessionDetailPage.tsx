@@ -10,6 +10,7 @@ import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
 import { AwardLootDialog } from '../features/lobby/AwardLootDialog'
 import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
+import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDialog'
 import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { StartCombatDialog } from '../features/lobby/StartCombatDialog'
@@ -33,6 +34,8 @@ import {
   deleteSeatCompanion,
   deleteSessionCombatant,
   deploySessionEncounterTemplate,
+  createLobbyEncounterTemplate,
+  generateSessionEncounter,
   getLobby,
   getSession,
   listSessionEvents,
@@ -44,6 +47,7 @@ import {
   startSessionCombat,
   unseatCharacter,
   updateSession,
+  type EncounterGenerateResult,
   type EncounterTemplate,
   type SeatCondition,
   type SeatEffect,
@@ -82,6 +86,10 @@ export function SessionDetailPage() {
   const [xpOpen, setXpOpen] = useState(false)
   const [lootOpen, setLootOpen] = useState(false)
   const [encounterOpen, setEncounterOpen] = useState(false)
+  const [generatorOpen, setGeneratorOpen] = useState(false)
+  const [generatorResult, setGeneratorResult] = useState<EncounterGenerateResult | null>(
+    null,
+  )
   const [templates, setTemplates] = useState<EncounterTemplate[]>([])
 
   const reload = useCallback(async () => {
@@ -394,8 +402,21 @@ export function SessionDetailPage() {
                         Энкаунтер
                       </Button>
                     ) : null}
+                    {session.is_owner ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy || session.seats.length === 0}
+                        onClick={() => {
+                          setGeneratorResult(null)
+                          setGeneratorOpen(true)
+                        }}
+                      >
+                        Генератор
+                      </Button>
+                    ) : null}
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Энкаунтер — шаблон состава. Лут / XP — после боя.
+                      Генератор — подобрать бой. Энкаунтер — шаблон.
                     </Text>
                   </div>
                 ) : null}
@@ -900,6 +921,64 @@ export function SessionDetailPage() {
             )
             setTemplates(lobby.encounter_templates ?? [])
             setToast('Шаблон удалён')
+          })
+        }}
+      />
+
+      <EncounterGenerateDialog
+        open={generatorOpen}
+        busy={busy}
+        result={generatorResult}
+        onClose={() => {
+          setGeneratorOpen(false)
+          setGeneratorResult(null)
+        }}
+        onInvalidate={() => setGeneratorResult(null)}
+        onGenerate={(payload) => {
+          void run(async () => {
+            const next = await generateSessionEncounter(session.id, payload)
+            setGeneratorResult(next)
+            if (!next.waves.some((w) => w.boss.options.length || w.pack.options.length)) {
+              setToast('Пустой пул — смени темы или локацию')
+            }
+          })
+        }}
+        onDeploy={({ boss, pack, packCount }) => {
+          void run(async () => {
+            let updated = await addSessionCombatants(session.id, {
+              slug: boss.slug,
+              count: 1,
+            })
+            updated = await addSessionCombatants(session.id, {
+              slug: pack.slug,
+              count: Math.max(1, Math.min(20, packCount)),
+            })
+            setSession(updated)
+            setGeneratorOpen(false)
+            setGeneratorResult(null)
+            setToast(
+              `На столе: ${boss.name_ru} + ${pack.name_ru}${
+                packCount > 1 ? `×${packCount}` : ''
+              }`,
+            )
+          })
+        }}
+        onSaveAsTemplate={({ name, boss, pack, packCount }) => {
+          void run(async () => {
+            const lobby = await createLobbyEncounterTemplate(session.lobby_id, {
+              name,
+              entries: [
+                { name: boss.name_ru, slug: boss.slug, count: 1, xp: boss.xp },
+                {
+                  name: pack.name_ru,
+                  slug: pack.slug,
+                  count: Math.max(1, Math.min(20, packCount)),
+                  xp: pack.xp,
+                },
+              ],
+            })
+            setTemplates(lobby.encounter_templates ?? [])
+            setToast(`Шаблон «${name}» сохранён`)
           })
         }}
       />
