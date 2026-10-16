@@ -22,6 +22,18 @@ import {
   textBlockValue,
   weaponsSummary,
 } from './fromApi'
+import {
+  classicSpellAbilityLabel,
+  classicSpellStats,
+  classicSpellsState,
+  paddedSpellLines,
+  parseCastingAbilityInput,
+  setCastingAbility,
+  setSlotExpended,
+  setSlotTotal,
+  setSpellNameAt,
+  toggleSpellPrepared,
+} from './classicSpells'
 import './classicPrint.css'
 
 type Props = {
@@ -98,6 +110,8 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
   const hitDiceCurrent = combatNum('hp_dice_current') || hitDiceTotal
   const deathSuccesses = clampMarks(Number(combatField(c, 'death_successes') ?? 0))
   const deathFails = clampMarks(Number(combatField(c, 'death_fails') ?? 0))
+  const spells = classicSpellsState(c)
+  const spellStats = classicSpellStats(c, spells)
   const passivePerception =
     10 +
     abilityModifier(abilityScore(c, 'wis')) +
@@ -542,8 +556,140 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
           </div>
         </div>
       </article>
+
+      <article className="classic-sheet classic-page3" aria-label="Классический лист 2014, страница 3">
+        <header className="classic-spell-header">
+          <div className="classic-brand">
+            <strong>D&amp;D</strong>
+            <span>5e · 2014</span>
+          </div>
+          <label className="classic-name">
+            <span>Класс заклинателя</span>
+            <input
+              value={c.class_name ?? ''}
+              onChange={(e) => patch({ class_name: e.target.value || null })}
+            />
+          </label>
+          <div className="classic-spell-stats">
+            <label>
+              <span>Базовая характеристика</span>
+              <input
+                value={classicSpellAbilityLabel(spells.casting_ability)}
+                placeholder="ИНТ / МУД / ХАР"
+                onChange={(e) => onPatch(setCastingAbility(c, parseCastingAbilityInput(e.target.value)))}
+              />
+            </label>
+            <label>
+              <span>Сложность спасброска</span>
+              <input value={spellStats.saveDc} readOnly title="Считается от характеристики и бонуса владения" />
+            </label>
+            <label>
+              <span>Бонус атаки заклинанием</span>
+              <input
+                value={spellStats.attackBonus}
+                readOnly
+                title="Считается от характеристики и бонуса владения"
+              />
+            </label>
+          </div>
+        </header>
+
+        <div className="classic-spell-columns">
+          <div className="classic-spell-col">
+            {renderCantrips()}
+            {renderSpellLevel(1)}
+            {renderSpellLevel(2)}
+          </div>
+          <div className="classic-spell-col">
+            {renderSpellLevel(3)}
+            {renderSpellLevel(4)}
+            {renderSpellLevel(5)}
+          </div>
+          <div className="classic-spell-col">
+            {renderSpellLevel(6)}
+            {renderSpellLevel(7)}
+            {renderSpellLevel(8)}
+            {renderSpellLevel(9)}
+          </div>
+        </div>
+      </article>
     </div>
   )
+
+  function renderCantrips() {
+    const rows = paddedSpellLines(spells.known, 0)
+    return (
+      <section className="classic-spell-level classic-spell-level--grow">
+        <div className="classic-spell-level__head">
+          <div className="classic-spell-level__badge">0</div>
+          <div className="classic-spell-level__title">Заговоры</div>
+        </div>
+        <ul className="classic-spell-lines classic-spell-lines--cantrips">
+          {rows.map((spell, i) => (
+            <li key={spell?.id ?? `cantrip-${i}`}>
+              <input
+                value={spell?.name ?? ''}
+                onChange={(e) => onPatch(setSpellNameAt(c, 0, i, e.target.value))}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  function renderSpellLevel(level: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9) {
+    const slot = spells.slots[String(level)] ?? { max: 0, used: 0 }
+    const rows = paddedSpellLines(spells.known, level)
+    return (
+      <section className="classic-spell-level classic-spell-level--grow" key={level}>
+        <div className="classic-spell-level__head">
+          <div className="classic-spell-level__badge">{level}</div>
+          <div className="classic-spell-level__slots">
+            <label>
+              Всего ячеек
+              <input
+                type="number"
+                value={slot.max || ''}
+                onChange={(e) => onPatch(setSlotTotal(c, level, Number(e.target.value) || 0))}
+              />
+            </label>
+            <label>
+              Потрачено
+              <input
+                type="number"
+                value={slot.used || ''}
+                onChange={(e) => onPatch(setSlotExpended(c, level, Number(e.target.value) || 0))}
+              />
+            </label>
+          </div>
+        </div>
+        <ul className="classic-spell-lines">
+          {rows.map((spell, i) => (
+            <li key={spell?.id ?? `spell-${level}-${i}`}>
+              <button
+                type="button"
+                className="classic-bubble-btn"
+                aria-label="Подготовлено"
+                disabled={!spell}
+                onClick={() => {
+                  if (spell) onPatch(toggleSpellPrepared(c, spell.id))
+                }}
+              >
+                <span
+                  className={`classic-bubble ${spell?.prepared ? 'is-filled' : ''}`}
+                />
+              </button>
+              <input
+                value={spell?.name ?? ''}
+                onChange={(e) => onPatch(setSpellNameAt(c, level, i, e.target.value))}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
 }
 
 function numOrNull(value: string): number | null {

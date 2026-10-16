@@ -580,15 +580,16 @@
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
 
-### 2026-10-16 — Classic 2014: S1–S4 визуал P1+P2
+### 2026-10-16 — Classic 2014: визуал P1–P3
 
 | Функция | Как работает | Эффект для пользователя |
 |--------|--------------|-------------------------|
 | Классический лист P1 ближе к WotC 2014 | Токены бумаги/линий, шапка, статы, спасброски/навыки, КД·иниц·скорость, хиты, кости хитов, спасброски от смерти, атаки, монеты, личность, features; блоки stretch на Letter | Печатный вид не «черновик», а узнаваемый официальный лист |
-| Классический лист P2 | Возраст/рост/вес/глаза/кожа/волосы; внешность; союзники+символ; предыстория; доп. умения; сокровища | Вторая страница как у официального бланка |
+| Классический лист P2 | Возраст/рост/вес/глаза/кожа/волосы; внешность; союзники; предыстория; доп. умения; сокровища | Вторая страница как у официального бланка |
+| Классический лист P3 | Класс заклинателя, характеристика, DC/атака; заговоры + уровни 1–9 с ячейками и подготовкой; данные из `sheet.spells` | Третья страница — spell sheet 2014 |
 | Print Letter | `@page letter`, скрыт тулбар/picker, страница 11in | Печать/PDF без лишней каши |
 
-На проде: **нет** · ветка `cursor/classic-2014-p1-visual-8bfd` · база tip `cursor/cleric-create-bugs-244b` · дальше по плану: P3 заклинания → P4 напарники
+На проде: **нет** · ветка `cursor/classic-2014-p1-visual-8bfd` · база tip `cursor/cleric-create-bugs-244b` · дальше по плану: P4 напарники
 
 ### 2026-10-12 — Play desk vitals wave (HP pad / концентрация / без дублей отдыха)
 
@@ -1525,4 +1526,4 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 | 2026-10-13 | `cursor/restore-wave-a-desk-0ed9` · PR #148 | Restore Wave A desk (без ЕЩЁ) + deploy guards; **tip** |
 | 2026-10-14 | `cursor/reunify-levelup-feat-gift-244b` | Reunify levelup-feat (сессия 12ч/90д, XP→уровень, ASI-черта) + «Мастер выдал черту» в Основное; tip → cleric-create-bugs |
 | 2026-10-14 | `cursor/cleric-create-bugs-244b` · PR #150 | Cleric create A–G (grants/domain/background parts/CD picker/cast Cancel/show all); **новый tip**; `/health` ok; `CharacterDetailPage-BQMBocIc.js` |
-| 2026-10-16 | `cursor/classic-2014-p1-visual-8bfd` | Classic 2014 S1–S4: визуал P1+P2 + print Letter → «В ветках» |
+| 2026-10-16 | `cursor/classic-2014-p1-visual-8bfd` | Classic 2014: визуал P1–P3 + print Letter → «В ветках» |

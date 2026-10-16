@@ -97,5 +97,28 @@ export const sampleClassic2014Character: CharacterDetail = {
       attacks: { value: 'Кантрипы: Огненный снаряд, Свет, Фокусы.' },
       feats: { value: 'Ритуальное заклинание: Обнаружение магии.\nЗаметка: связаться с гильдией после Луны Жатвы.' },
     },
+    spells: {
+      casting_ability: 'int',
+      max_prepared: 9,
+      slots: {
+        '1': { max: 4, used: 1 },
+        '2': { max: 3, used: 0 },
+        '3': { max: 2, used: 0 },
+      },
+      known: [
+        { id: 'c1', name: 'Огненный снаряд', level: 0, prepared: true },
+        { id: 'c2', name: 'Свет', level: 0, prepared: true },
+        { id: 'c3', name: 'Фокусы', level: 0, prepared: true },
+        { id: 'c4', name: 'Волшебная рука', level: 0, prepared: true },
+        { id: 's1', name: 'Волшебная стрела', level: 1, prepared: true },
+        { id: 's2', name: 'Щит', level: 1, prepared: true },
+        { id: 's3', name: 'Обнаружение магии', level: 1, prepared: true },
+        { id: 's4', name: 'Туманное облако', level: 1, prepared: false },
+        { id: 's5', name: 'Невидимость', level: 2, prepared: true },
+        { id: 's6', name: 'Паутина', level: 2, prepared: true },
+        { id: 's7', name: 'Огненный шар', level: 3, prepared: true },
+        { id: 's8', name: 'Контрзаклинание', level: 3, prepared: true },
+      ],
+    },
   },
 }
