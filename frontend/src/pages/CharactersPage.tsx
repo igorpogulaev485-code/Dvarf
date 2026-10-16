@@ -21,6 +21,7 @@ import {
   type CharacterSummary,
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
+import { prefetchSheetRoutes } from '../shared/lazy/routes'
 import { Button, Stack, Text, Toast } from '../ui'
 import { forceReleaseBodyScrollLock } from '../ui/bodyScrollLock'
 
@@ -76,6 +77,8 @@ export function CharactersPage() {
       .then((items) => {
         if (!active) return
         setCharacters(items)
+        // Warm the ~500KB sheet chunk while the user still looks at cards.
+        prefetchSheetRoutes()
       })
       .catch((err: unknown) => {
         if (!active) return

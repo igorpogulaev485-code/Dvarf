@@ -1,48 +1,26 @@
-import { lazy, Suspense, type ReactNode } from 'react'
+import { Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useSearchParams } from 'react-router-dom'
 import { AuthDebugPage } from './pages/AuthDebugPage'
 import { CharactersPage } from './pages/CharactersPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
 import { safeNextPath } from './shared/auth/nextPath'
+import {
+  LazyCabinetPage,
+  LazyCharacterDetailPage,
+  LazyClassicSheetPage,
+  LazyConfirmEmailPage,
+  LazyCreateCharacterPage,
+  LazyJoinLobbyPage,
+  LazyLobbiesPage,
+  LazyLobbyDetailPage,
+  LazyResetPasswordPage,
+  LazyRouteErrorBoundary,
+  LazySessionDetailPage,
+  LazySettingDetailPage,
+  LazyVerifyEmailPage,
+} from './shared/lazy/routes'
 import { AccountAppearanceSync } from './shared/theme/AccountAppearanceSync'
-
-const CabinetPage = lazy(() =>
-  import('./pages/CabinetPage').then((m) => ({ default: m.CabinetPage })),
-)
-const CharacterDetailPage = lazy(() =>
-  import('./pages/CharacterDetailPage').then((m) => ({ default: m.CharacterDetailPage })),
-)
-const CreateCharacterPage = lazy(() =>
-  import('./pages/CreateCharacterPage').then((m) => ({ default: m.CreateCharacterPage })),
-)
-const ClassicSheetPage = lazy(() =>
-  import('./pages/ClassicSheetPage').then((m) => ({ default: m.ClassicSheetPage })),
-)
-const ConfirmEmailPage = lazy(() =>
-  import('./pages/ConfirmEmailPage').then((m) => ({ default: m.ConfirmEmailPage })),
-)
-const JoinLobbyPage = lazy(() =>
-  import('./pages/JoinLobbyPage').then((m) => ({ default: m.JoinLobbyPage })),
-)
-const LobbiesPage = lazy(() =>
-  import('./pages/LobbiesPage').then((m) => ({ default: m.LobbiesPage })),
-)
-const LobbyDetailPage = lazy(() =>
-  import('./pages/LobbyDetailPage').then((m) => ({ default: m.LobbyDetailPage })),
-)
-const ResetPasswordPage = lazy(() =>
-  import('./pages/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })),
-)
-const SessionDetailPage = lazy(() =>
-  import('./pages/SessionDetailPage').then((m) => ({ default: m.SessionDetailPage })),
-)
-const SettingDetailPage = lazy(() =>
-  import('./pages/SettingDetailPage').then((m) => ({ default: m.SettingDetailPage })),
-)
-const VerifyEmailPage = lazy(() =>
-  import('./pages/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage })),
-)
 
 function HomeRedirect() {
   return <Navigate to={getAccessToken() ? '/characters' : '/login'} replace />
@@ -59,15 +37,17 @@ function LoginRoute() {
 
 function LazyPage({ children }: { children: ReactNode }) {
   return (
-    <Suspense
-      fallback={
-        <main className="page page--app">
-          <p className="ui-text ui-text--muted">Загрузка экрана…</p>
-        </main>
-      }
-    >
-      {children}
-    </Suspense>
+    <LazyRouteErrorBoundary>
+      <Suspense
+        fallback={
+          <main className="page page--app">
+            <p className="ui-text ui-text--muted">Загрузка экрана…</p>
+          </main>
+        }
+      >
+        {children}
+      </Suspense>
+    </LazyRouteErrorBoundary>
   )
 }
 
@@ -90,7 +70,7 @@ export default function App() {
           path="/reset-password"
           element={
             <LazyPage>
-              <ResetPasswordPage />
+              <LazyResetPasswordPage />
             </LazyPage>
           }
         />
@@ -98,7 +78,7 @@ export default function App() {
           path="/confirm-email"
           element={
             <LazyPage>
-              <ConfirmEmailPage />
+              <LazyConfirmEmailPage />
             </LazyPage>
           }
         />
@@ -106,7 +86,7 @@ export default function App() {
           path="/verify-email"
           element={
             <LazyPage>
-              <VerifyEmailPage />
+              <LazyVerifyEmailPage />
             </LazyPage>
           }
         />
@@ -114,7 +94,7 @@ export default function App() {
           path="/join"
           element={
             <LazyPage>
-              <JoinLobbyPage />
+              <LazyJoinLobbyPage />
             </LazyPage>
           }
         />
@@ -122,7 +102,7 @@ export default function App() {
           path="/join/:code"
           element={
             <LazyPage>
-              <JoinLobbyPage />
+              <LazyJoinLobbyPage />
             </LazyPage>
           }
         />
@@ -138,7 +118,7 @@ export default function App() {
           path="/characters/create"
           element={
             <AuthLazy>
-              <CreateCharacterPage />
+              <LazyCreateCharacterPage />
             </AuthLazy>
           }
         />
@@ -146,7 +126,7 @@ export default function App() {
           path="/characters/create/:characterId"
           element={
             <AuthLazy>
-              <CreateCharacterPage />
+              <LazyCreateCharacterPage />
             </AuthLazy>
           }
         />
@@ -154,7 +134,7 @@ export default function App() {
           path="/characters/:characterId"
           element={
             <AuthLazy>
-              <CharacterDetailPage />
+              <LazyCharacterDetailPage />
             </AuthLazy>
           }
         />
@@ -162,7 +142,7 @@ export default function App() {
           path="/characters/:characterId/classic"
           element={
             <AuthLazy>
-              <ClassicSheetPage />
+              <LazyClassicSheetPage />
             </AuthLazy>
           }
         />
@@ -170,7 +150,7 @@ export default function App() {
           path="/lobbies"
           element={
             <AuthLazy>
-              <LobbiesPage />
+              <LazyLobbiesPage />
             </AuthLazy>
           }
         />
@@ -178,7 +158,7 @@ export default function App() {
           path="/lobbies/:lobbyId"
           element={
             <AuthLazy>
-              <LobbyDetailPage />
+              <LazyLobbyDetailPage />
             </AuthLazy>
           }
         />
@@ -186,7 +166,7 @@ export default function App() {
           path="/settings/:settingId"
           element={
             <AuthLazy>
-              <SettingDetailPage />
+              <LazySettingDetailPage />
             </AuthLazy>
           }
         />
@@ -194,7 +174,7 @@ export default function App() {
           path="/sessions/:sessionId"
           element={
             <AuthLazy>
-              <SessionDetailPage />
+              <LazySessionDetailPage />
             </AuthLazy>
           }
         />
@@ -202,7 +182,7 @@ export default function App() {
           path="/cabinet"
           element={
             <AuthLazy>
-              <CabinetPage />
+              <LazyCabinetPage />
             </AuthLazy>
           }
         />
