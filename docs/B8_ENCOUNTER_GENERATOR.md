@@ -7,7 +7,10 @@
 - `backend/app/dnd/encounter_budget.py` — пороги DMG + budget × party_power  
 - `backend/app/dnd/encounter_themes.py` — мультивыбор тем + семейства  
 - `backend/app/dnd/party_power.py` — формула множителя по агрегатам листа  
-- `backend/tests/test_encounter_budget.py`
+- `backend/app/dnd/sheet_signals.py` — парсер sheet → `PartyAnalysis` / anti-air  
+- `backend/app/dnd/encounter_pool.py` — фильтр пула + кандидаты босса  
+- `backend/app/dnd/encounter_compose.py` — волны босс+пачка, count под бюджет  
+- `backend/tests/test_encounter_budget.py`, `test_sheet_signals_and_pool.py`
 
 ## Проблема
 
@@ -215,10 +218,10 @@ dnd.su / сырой CR: «сложный» бой оказывается лёг�
 
 1. ~~Инвентаризация листа~~ (§A).  
 2. ~~`party_power` + пороги DMG + темы + unit-тесты~~.  
-3. **Сейчас:** парсер сигналов с `Character.sheet` → `PartyPowerSignals` (прокси для пробелов §A).  
-4. Фильтр пула: environment ∩ themes ∩ similar ∩ anti-fly.  
-5. Подбор босс/пачка + count.  
+3. ~~Парсер `Character.sheet` → `PartyAnalysis` (прокси §A)~~.  
+4. ~~Фильтр пула: environment ∩ themes ∩ similar ∩ anti-fly~~.  
+5. **Сейчас:** подбор босс/пачка + count под бюджет волны.  
 6. API + диалог на столе.  
 7. Eval: пати Игоря × 4 сложности × (нежить / демоны / орки / микс).
 
-UI генератора **не релизить**, пока п.3–5 не закрывают все строки §A (прямо или задокументированным прокси).
+UI генератора **не релизить**, пока п.5 не закрывает все строки §A (прямо или задокументированным прокси) и есть eval на сильной пати.
