@@ -10,6 +10,7 @@ import { ApplyEffectDialog } from '../features/lobby/ApplyEffectDialog'
 import { AwardLootDialog } from '../features/lobby/AwardLootDialog'
 import { AwardXpDialog } from '../features/lobby/AwardXpDialog'
 import { CombatTrack } from '../features/lobby/CombatTrack'
+import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDialog'
 import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
@@ -22,6 +23,7 @@ import {
   defaultVisibilityProfile,
 } from '../features/lobby/visibilityProfile'
 import type {
+  EncounterGenerateResult,
   EncounterTemplate,
   SessionCombat,
   SessionCombatant,
@@ -379,6 +381,10 @@ export function SessionLiveTablePreviewPage() {
   const [xpOpen, setXpOpen] = useState(false)
   const [lootOpen, setLootOpen] = useState(false)
   const [encounterOpen, setEncounterOpen] = useState(false)
+  const [generatorOpen, setGeneratorOpen] = useState(false)
+  const [generatorResult, setGeneratorResult] = useState<EncounterGenerateResult | null>(
+    null,
+  )
   const [templates, setTemplates] = useState<EncounterTemplate[]>(SEED_TEMPLATES)
   const [combat, setCombat] = useState<SessionCombat>({
     active: false,
@@ -510,8 +516,18 @@ export function SessionLiveTablePreviewPage() {
                     >
                       Энкаунтер
                     </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        setGeneratorResult(null)
+                        setGeneratorOpen(true)
+                      }}
+                    >
+                      Генератор
+                    </Button>
                     <Text tone="muted" className="session-table-toolbar__hint">
-                      Энкаунтер — шаблон состава. Лут / XP — после боя.
+                      Генератор — подобрать бой. Энкаунтер — шаблон.
                     </Text>
                   </div>
                 ) : null}
@@ -1061,6 +1077,132 @@ export function SessionLiveTablePreviewPage() {
         onDelete={(templateId) => {
           setTemplates((prev) => prev.filter((t) => t.id !== templateId))
           setToast('Шаблон удалён')
+        }}
+      />
+
+      <EncounterGenerateDialog
+        open={generatorOpen}
+        result={generatorResult}
+        onClose={() => {
+          setGeneratorOpen(false)
+          setGeneratorResult(null)
+        }}
+        onInvalidate={() => setGeneratorResult(null)}
+        onGenerate={(payload) => {
+          const theme = payload.theme_ids[0] ?? 'orc'
+          const bossName =
+            theme === 'undead'
+              ? 'Вампир'
+              : theme === 'demon'
+                ? 'Балор'
+                : 'Боевой вождь орков'
+          const packName =
+            theme === 'undead' ? 'Зомби' : theme === 'demon' ? 'Дретч' : 'Орк'
+          const budget =
+            payload.difficulty === 'deadly'
+              ? 4400
+              : payload.difficulty === 'hard'
+                ? 3000
+                : payload.difficulty === 'easy'
+                  ? 1000
+                  : 2000
+          const waveN = Math.max(1, payload.waves)
+          const per = Math.floor(budget / waveN)
+          setGeneratorResult({
+            difficulty: payload.difficulty,
+            party_power: 1.35,
+            budget_total: budget,
+            anti_air_ok: true,
+            notes: payload.similar ? ['preview', 'similar'] : ['preview'],
+            theme_ids: payload.theme_ids,
+            similar: payload.similar,
+            environments: payload.environments ?? [],
+            waves: Array.from({ length: waveN }, (_, i) => ({
+              wave_index: i + 1,
+              budget_xp: per,
+              boss: {
+                role: 'boss',
+                suggested_count: 1,
+                options: [
+                  {
+                    slug: `preview-boss-${theme}`,
+                    name_ru: bossName,
+                    cr: '4',
+                    xp: 1100,
+                    subtype: theme === 'orc' ? 'орк' : null,
+                  },
+                  {
+                    slug: `preview-boss-alt-${theme}`,
+                    name_ru: `${bossName} (альт)`,
+                    cr: '3',
+                    xp: 700,
+                  },
+                ],
+              },
+              pack: {
+                role: 'pack',
+                suggested_count: theme === 'undead' ? 6 : 4,
+                options: [
+                  {
+                    slug: `preview-pack-${theme}`,
+                    name_ru: packName,
+                    cr: '1/2',
+                    xp: 100,
+                    subtype: theme === 'orc' ? 'орк' : null,
+                  },
+                  {
+                    slug: `preview-pack-alt-${theme}`,
+                    name_ru: `${packName} разведчик`,
+                    cr: '1/4',
+                    xp: 50,
+                  },
+                ],
+              },
+            })),
+          })
+        }}
+        onDeploy={({ boss, pack, packCount }) => {
+          const stamped = Date.now()
+          const mk = (
+            opt: { slug: string; name_ru: string; xp?: number },
+            count: number,
+            i: number,
+          ): SessionCombatant => {
+            const id = `gen-${stamped}-${i}`
+            const hp = 15
+            return {
+              id,
+              name: opt.name_ru,
+              hp_current: hp,
+              hp_max: hp,
+              alive_count: count,
+              member_count: count,
+              ac: 13,
+              speed: 30,
+              slug: opt.slug,
+              xp: opt.xp ?? 100,
+              xp_claimed_count: 0,
+              actions: [],
+              members: Array.from({ length: count }, (_, m) => ({
+                id: `${id}-m${m + 1}`,
+                name: count > 1 ? `${opt.name_ru} ${m + 1}` : opt.name_ru,
+                hp_current: hp,
+                hp_max: hp,
+              })),
+            }
+          }
+          setCombatants((prev) => [
+            ...prev,
+            mk(boss, 1, 0),
+            mk(pack, Math.max(1, packCount), 1),
+          ])
+          setGeneratorOpen(false)
+          setGeneratorResult(null)
+          setToast(
+            `На столе: ${boss.name_ru} + ${pack.name_ru}${
+              packCount > 1 ? `×${packCount}` : ''
+            }`,
+          )
         }}
       />
 
