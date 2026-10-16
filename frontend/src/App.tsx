@@ -18,6 +18,7 @@ import { SessionDetailPage } from './pages/SessionDetailPage'
 import { SessionLiveTablePreviewPage } from './pages/SessionLiveTablePreviewPage'
 import { TransferPreviewPage } from './pages/TransferPreviewPage'
 import { SettingDetailPage } from './pages/SettingDetailPage'
+import { SettingWikiPreviewPage } from './pages/SettingWikiPreviewPage'
 import { VerifyEmailPage } from './pages/VerifyEmailPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
@@ -63,6 +64,7 @@ export default function App() {
         <Route path="/dev/lobby-chats-preview" element={<LobbyChatsPreviewPage />} />
         <Route path="/dev/lobby-notes-preview" element={<LobbyNotesPreviewPage />} />
         <Route path="/dev/transfer-preview" element={<TransferPreviewPage />} />
+        <Route path="/dev/setting-wiki-preview" element={<SettingWikiPreviewPage />} />
         <Route
           path="/characters"
           element={

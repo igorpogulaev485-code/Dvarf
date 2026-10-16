@@ -132,6 +132,7 @@ class Setting(Base):
         index=True,
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False, default="Новый сеттинг")
+    # Legacy: C1 мигрирует в setting_pages; поле остаётся для превью в списке лобби.
     world_notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -147,6 +148,12 @@ class Setting(Base):
 
     lobby: Mapped[Lobby] = relationship(back_populates="settings")
     sessions: Mapped[list[PlaySession]] = relationship(back_populates="setting")
+    pages: Mapped[list["SettingPage"]] = relationship(
+        "SettingPage",
+        back_populates="setting",
+        cascade="all, delete-orphan",
+        order_by="SettingPage.sort_order",
+    )
 
 
 class PlaySession(Base):

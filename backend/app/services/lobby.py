@@ -83,6 +83,10 @@ from app.schemas.lobby import (
     SessionSummary,
     SessionUpdateRequest,
     SettingCreateRequest,
+    SettingDetail,
+    SettingPageCreateRequest,
+    SettingPageOut,
+    SettingPageUpdateRequest,
     SettingSummary,
     SettingUpdateRequest,
 )
@@ -764,13 +768,141 @@ class LobbyService:
         self.lobbies.delete_setting(setting)
         self.db.commit()
 
-    def get_setting(self, user: User, setting_id: UUID) -> SettingSummary:
+    def get_setting(self, user: User, setting_id: UUID) -> SettingDetail:
         setting = self.lobbies.get_setting(setting_id)
         if setting is None:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
         self._require_view(lobby, user)
-        return SettingSummary.model_validate(setting)
+        return self._setting_detail(setting)
+
+    def _setting_detail(self, setting: Setting) -> SettingDetail:
+        pages = self.lobbies.list_setting_pages(setting.id)
+        base = SettingSummary.model_validate(setting)
+        return SettingDetail(
+            **base.model_dump(),
+            pages=[SettingPageOut.model_validate(p) for p in pages],
+        )
+
+    def create_setting_page(
+        self,
+        user: User,
+        setting_id: UUID,
+        payload: SettingPageCreateRequest,
+    ) -> SettingDetail:
+        setting = self.lobbies.get_setting(setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_owner(lobby, user)
+        parent_id = payload.parent_id
+        if parent_id is not None:
+            parent = self.lobbies.get_setting_page(parent_id)
+            if parent is None or parent.setting_id != setting.id:
+                raise AppError(
+                    "Родительская страница не из этого сеттинга",
+                    code="page_parent_bad",
+                    status_code=400,
+                )
+        siblings = [
+            p
+            for p in self.lobbies.list_setting_pages(setting.id)
+            if p.parent_id == parent_id
+        ]
+        sort_order = (
+            payload.sort_order
+            if payload.sort_order is not None
+            else (max((p.sort_order for p in siblings), default=-1) + 1)
+        )
+        self.lobbies.create_setting_page(
+            setting_id=setting.id,
+            title=(payload.title or "Новая страница").strip() or "Новая страница",
+            body=payload.body or "",
+            parent_id=parent_id,
+            sort_order=sort_order,
+        )
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed)
+
+    def update_setting_page(
+        self,
+        user: User,
+        page_id: UUID,
+        payload: SettingPageUpdateRequest,
+    ) -> SettingDetail:
+        page = self.lobbies.get_setting_page(page_id)
+        if page is None:
+            raise NotFoundError("Страница не найдена", code="setting_page_not_found")
+        setting = self.lobbies.get_setting(page.setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_owner(lobby, user)
+
+        if payload.title is not None:
+            page.title = payload.title.strip() or "Без названия"
+        if payload.body is not None:
+            page.body = payload.body
+        if payload.clear_parent:
+            page.parent_id = None
+        elif payload.parent_id is not None:
+            if payload.parent_id == page.id:
+                raise AppError(
+                    "Страница не может быть родителем себе",
+                    code="page_cycle",
+                    status_code=400,
+                )
+            parent = self.lobbies.get_setting_page(payload.parent_id)
+            if parent is None or parent.setting_id != setting.id:
+                raise AppError(
+                    "Родительская страница не из этого сеттинга",
+                    code="page_parent_bad",
+                    status_code=400,
+                )
+            page.parent_id = payload.parent_id
+        if payload.sort_order is not None:
+            page.sort_order = payload.sort_order
+
+        if page.parent_id is None and payload.body is not None:
+            roots = [
+                p
+                for p in self.lobbies.list_setting_pages(setting.id)
+                if p.parent_id is None
+            ]
+            roots_sorted = sorted(roots, key=lambda p: (p.sort_order, str(p.created_at)))
+            if roots_sorted and roots_sorted[0].id == page.id:
+                setting.world_notes = page.body
+
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed)
+
+    def delete_setting_page(self, user: User, page_id: UUID) -> SettingDetail:
+        page = self.lobbies.get_setting_page(page_id)
+        if page is None:
+            raise NotFoundError("Страница не найдена", code="setting_page_not_found")
+        setting = self.lobbies.get_setting(page.setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_owner(lobby, user)
+        remaining = [
+            p for p in self.lobbies.list_setting_pages(setting.id) if p.id != page_id
+        ]
+        if len(remaining) == 0:
+            raise AppError(
+                "Нельзя удалить последнюю страницу сеттинга",
+                code="setting_page_last",
+                status_code=400,
+            )
+        self.lobbies.delete_setting_page(page)
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed)
 
     def create_session(
         self,

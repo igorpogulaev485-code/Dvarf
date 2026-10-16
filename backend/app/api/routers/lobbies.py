@@ -62,6 +62,9 @@ from app.schemas.lobby import (
     SessionRollCreateRequest,
     SessionUpdateRequest,
     SettingCreateRequest,
+    SettingDetail,
+    SettingPageCreateRequest,
+    SettingPageUpdateRequest,
     SettingSummary,
     SettingUpdateRequest,
 )
@@ -192,13 +195,46 @@ def create_setting(
     return LobbyService(db).create_setting(current_user, lobby_id, payload)
 
 
-@router.get("/settings/{setting_id}", response_model=SettingSummary)
+@router.get("/settings/{setting_id}", response_model=SettingDetail)
 def get_setting(
     setting_id: UUID,
     current_user: CurrentUser,
     db: DbSession,
-) -> SettingSummary:
+) -> SettingDetail:
     return LobbyService(db).get_setting(current_user, setting_id)
+
+
+@router.post(
+    "/settings/{setting_id}/pages",
+    response_model=SettingDetail,
+    status_code=201,
+)
+def create_setting_page(
+    setting_id: UUID,
+    payload: SettingPageCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).create_setting_page(current_user, setting_id, payload)
+
+
+@router.patch("/settings/pages/{page_id}", response_model=SettingDetail)
+def update_setting_page(
+    page_id: UUID,
+    payload: SettingPageUpdateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).update_setting_page(current_user, page_id, payload)
+
+
+@router.delete("/settings/pages/{page_id}", response_model=SettingDetail)
+def delete_setting_page(
+    page_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).delete_setting_page(current_user, page_id)
 
 
 @router.patch("/settings/{setting_id}", response_model=SettingSummary)
