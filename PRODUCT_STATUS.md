@@ -316,4 +316,4 @@
 | Табы хаба | active = solid accent | «Состав» и др. снова pill-китом |
 | Anti-overwrite UI | preflight требует маркеры CSS + §2q в ui-kit | следующий агент не затрёт кит checkout’ом CSS |
 
-На проде: **после этого деплоя** · ветка `cursor/setting-artifacts-d1-bacd` · PR #192
+На проде: **да** · ветка `cursor/setting-artifacts-d1-bacd` · PR #192 · проверено: сетка карточек + active tab «Состав»
