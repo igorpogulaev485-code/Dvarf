@@ -54,8 +54,11 @@ export const sampleClassic2014Character: CharacterDetail = {
       inspiration: true,
       hp_temp: 0,
       hp_dice_current: 5,
+      hit_die: 'к6',
       death_successes: 0,
       death_fails: 0,
+      training_armor_light: true,
+      training_weapon_simple: true,
     },
     personality: {
       personality: 'Говорит короткими фразами. Любит карты и камни.',

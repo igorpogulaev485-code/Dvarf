@@ -195,7 +195,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     value={c.hp_current ?? ''}
                     onChange={(e) => patch({ hp_current: numOrNull(e.target.value) })}
                   />
-                  <span>Текущие</span>
+                  <span>Тек.</span>
                 </label>
                 <label>
                   <input
@@ -204,14 +204,14 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                       patch({ combat: { hp_temp: Number(e.target.value) || 0 } })
                     }
                   />
-                  <span>Временные</span>
+                  <span>Врем.</span>
                 </label>
                 <label>
                   <input
                     value={c.hp_max ?? ''}
                     onChange={(e) => patch({ hp_max: numOrNull(e.target.value) })}
                   />
-                  <span>Максимум</span>
+                  <span>Макс.</span>
                 </label>
               </div>
             </div>
@@ -231,8 +231,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               </label>
               <label>
                 <input
-                  value={String(combatField(c, 'hit_die') ?? '')}
-                  placeholder="к6"
+                  value={String(combatField(c, 'hit_die') ?? '') || 'к6'}
                   onChange={(e) => patch({ combat: { hit_die: e.target.value || null } })}
                 />
                 <span>Кость</span>
@@ -450,7 +449,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <Expanding
                 fill
                 value={textBlockValue(c, 'features')}
-                printMaxHeight="14rem"
+                printMaxHeight="9rem"
                 ariaLabel="Умения и способности"
                 onChange={(value) => patch({ textBlocks: { features: value } })}
               />
@@ -462,7 +461,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                 <Expanding
                   fill
                   value={textBlockValue(c, 'attacks')}
-                  printMaxHeight="5rem"
+                  printMaxHeight="3.5rem"
                   ariaLabel="Атаки и заклинания"
                   onChange={(value) => patch({ textBlocks: { attacks: value } })}
                 />
@@ -472,7 +471,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                 <Expanding
                   fill
                   value={textBlockValue(c, 'feats')}
-                  printMaxHeight="5rem"
+                  printMaxHeight="3.5rem"
                   ariaLabel="Черты"
                   onChange={(value) => patch({ textBlocks: { feats: value } })}
                 />
@@ -849,8 +848,12 @@ function AbilityBlock({
 
   return (
     <section className="classic-lss-ability">
-      <div className="classic-lss-ability__head">
-        <div className="classic-lss-ability__name">{ABILITY_NAMES[ability]}</div>
+      <div className="classic-lss-ability__name">{ABILITY_NAMES[ability]}</div>
+      <div className="classic-lss-ability__nums">
+        <div className="classic-lss-ability__modbox">
+          <strong>{formatModifier(mod)}</strong>
+          <em>Мод.</em>
+        </div>
         <div className="classic-lss-ability__scorebox">
           <input
             type="number"
@@ -859,11 +862,7 @@ function AbilityBlock({
               onPatch({ abilities: { [ability]: Number(e.target.value) || 0 } })
             }
           />
-          <em>Значение</em>
-        </div>
-        <div className="classic-lss-ability__modbox">
-          <strong>{formatModifier(mod)}</strong>
-          <em>Модификатор</em>
+          <em>Знач.</em>
         </div>
       </div>
       <ul className="classic-lss-ability__skills">
