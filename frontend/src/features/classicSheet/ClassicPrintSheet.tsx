@@ -40,6 +40,11 @@ import {
   paddedCompanionSlots,
   patchCompanionField,
 } from './classicCompanions'
+import {
+  chunkSpellCardPages,
+  classicSpellCardFaces,
+  SPELL_CARDS_PER_PAGE,
+} from './classicSpellCards'
 import type { CompanionKind } from '../characters/companions'
 import './classicPrint.css'
 
@@ -120,6 +125,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
   const spells = classicSpellsState(c)
   const spellStats = classicSpellStats(c, spells)
   const companionSlots = paddedCompanionSlots(classicCompanions(c))
+  const spellCardPages = chunkSpellCardPages(classicSpellCardFaces(c))
   const passivePerception =
     10 +
     abilityModifier(abilityScore(c, 'wis')) +
@@ -706,6 +712,99 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
           ))}
         </div>
       </article>
+
+      {spellCardPages.map((pageFaces, pageIndex) => (
+        <article
+          className="classic-sheet classic-page-spell-cards"
+          aria-label={`Карточки заклинаний, лист ${pageIndex + 1}`}
+          key={`spell-cards-${pageIndex}`}
+        >
+          <header className="classic-spell-cards-header no-print">
+            <div className="classic-brand">
+              <strong>D&amp;D</strong>
+              <span>5e · 2014</span>
+            </div>
+            <div className="classic-companions-banner">
+              <strong>Карточки заклинаний</strong>
+              <span>
+                {c.name} · лист {pageIndex + 1}/{spellCardPages.length} · покерный размер · режь по
+                пунктиру
+              </span>
+            </div>
+          </header>
+          <div className="classic-spell-cards-grid">
+            {Array.from({ length: SPELL_CARDS_PER_PAGE }, (_, slot) => {
+              const face = pageFaces[slot]
+              if (!face) {
+                return <div className="classic-spell-card classic-spell-card--empty" key={`empty-${slot}`} />
+              }
+              return (
+                <div
+                  className={`classic-spell-card ${face.isContinuation ? 'classic-spell-card--cont' : ''}`}
+                  key={face.key}
+                >
+                  <div className="classic-spell-card__head">
+                    <div className="classic-spell-card__title">{face.name}</div>
+                    <div className="classic-spell-card__meta">
+                      <span>{face.levelLabel}</span>
+                      {face.school ? <span>{face.school}</span> : null}
+                      {face.partsTotal > 1 ? (
+                        <span>
+                          {face.part}/{face.partsTotal}
+                        </span>
+                      ) : null}
+                    </div>
+                    {face.badges.length ? (
+                      <div className="classic-spell-card__badges">
+                        {face.badges.map((badge) => (
+                          <span key={badge}>{badge}</span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                  {!face.isContinuation ? (
+                    <div className="classic-spell-card__facts">
+                      {face.castingTime ? (
+                        <div>
+                          <em>Время</em> {face.castingTime}
+                        </div>
+                      ) : null}
+                      {face.range ? (
+                        <div>
+                          <em>Дист.</em> {face.range}
+                        </div>
+                      ) : null}
+                      {face.components ? (
+                        <div>
+                          <em>Комп.</em> {face.components}
+                        </div>
+                      ) : null}
+                      {face.duration ? (
+                        <div>
+                          <em>Длит.</em> {face.duration}
+                        </div>
+                      ) : null}
+                      {face.attackOrSave ? (
+                        <div>
+                          <em>Атака/спас</em> {face.attackOrSave}
+                        </div>
+                      ) : null}
+                      {face.damage ? (
+                        <div>
+                          <em>Урон</em> {face.damage}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <div className="classic-spell-card__cont-label">Продолжение</div>
+                  )}
+                  <div className="classic-spell-card__body">{face.body}</div>
+                </div>
+              )
+            })}
+          </div>
+        </article>
+      ))}
     </div>
   )
 

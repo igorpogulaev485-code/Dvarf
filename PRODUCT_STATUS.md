@@ -580,7 +580,7 @@
 <!-- GEAR G1–G9 + W1–W6 залиты 2026-10-08 → tip gear-dmg-polish-db96; детали ниже помечены «на проде: да» -->
 <!-- archetype-level-forks + forks-setup-form залиты 2026-10-11 → tip archetype-forks-setup-form-45d0; затем play-desk-layout-e788 → create-bugs-layer1-a73e -->
 
-### 2026-10-16 — Classic 2014: визуал P1–P4
+### 2026-10-16 — Classic 2014: визуал P1–P4 + карточки заклинаний
 
 | Функция | Как работает | Эффект для пользователя |
 |--------|--------------|-------------------------|
@@ -588,6 +588,7 @@
 | Классический лист P2 | Возраст/рост/вес/глаза/кожа/волосы; внешность; союзники; предыстория; доп. умения; сокровища | Вторая страница как у официального бланка |
 | Классический лист P3 | Класс заклинателя, характеристика, DC/атака; заговоры + уровни 1–9 с ячейками и подготовкой; данные из `sheet.spells` | Третья страница — spell sheet 2014 |
 | Классический лист P4 | Напарники (6 карточек: имя, тип, КД/HP/скорость, заметки) из `sheet.companions` | Спутники после заклинаний — расширение Dvarf |
+| Карточки заклинаний | В конце листа: покерная сетка 3×3, мета + текст; длинные спеллы на несколько карт | Вырезать и играть, как у ЛСС по духу |
 | Print Letter | `@page letter`, скрыт тулбар/picker, страница 11in | Печать/PDF без лишней каши |
 
 На проде: **нет** · ветка `cursor/classic-2014-p1-visual-8bfd` · база tip `cursor/cleric-create-bugs-244b`
@@ -1527,4 +1528,4 @@ Stage «Бой» приведён к киту; общий chrome (шапка / r
 | 2026-10-13 | `cursor/restore-wave-a-desk-0ed9` · PR #148 | Restore Wave A desk (без ЕЩЁ) + deploy guards; **tip** |
 | 2026-10-14 | `cursor/reunify-levelup-feat-gift-244b` | Reunify levelup-feat (сессия 12ч/90д, XP→уровень, ASI-черта) + «Мастер выдал черту» в Основное; tip → cleric-create-bugs |
 | 2026-10-14 | `cursor/cleric-create-bugs-244b` · PR #150 | Cleric create A–G (grants/domain/background parts/CD picker/cast Cancel/show all); **новый tip**; `/health` ok; `CharacterDetailPage-BQMBocIc.js` |
-| 2026-10-16 | `cursor/classic-2014-p1-visual-8bfd` | Classic 2014: визуал P1–P4 + print Letter → «В ветках» |
+| 2026-10-16 | `cursor/classic-2014-p1-visual-8bfd` | Classic 2014: P1–P4 + карточки заклинаний → «В ветках» |
