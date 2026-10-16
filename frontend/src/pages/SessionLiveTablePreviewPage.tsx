@@ -1161,6 +1161,26 @@ export function SessionLiveTablePreviewPage() {
             })),
           })
         }}
+        onSaveAsTemplate={({ name, boss, pack, packCount }) => {
+          setTemplates((prev) => [
+            ...prev,
+            {
+              id: `tpl-gen-${Date.now()}`,
+              name,
+              entries: [
+                { name: boss.name_ru, slug: boss.slug, count: 1, xp: boss.xp },
+                {
+                  name: pack.name_ru,
+                  slug: pack.slug,
+                  count: Math.max(1, packCount),
+                  xp: pack.xp,
+                },
+              ],
+              updated_at: new Date().toISOString(),
+            },
+          ])
+          setToast(`Шаблон «${name}» сохранён`)
+        }}
         onDeploy={({ boss, pack, packCount }) => {
           const stamped = Date.now()
           const mk = (
