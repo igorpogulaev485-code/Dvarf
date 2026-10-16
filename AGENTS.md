@@ -21,7 +21,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/setting-artifacts-d1-bacd` |
+| Prod tip (сейчас) | `cursor/characters-load-perf-f3ee` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
