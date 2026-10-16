@@ -376,13 +376,6 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                   <span />
                 </div>
               ))}
-              <Expanding
-                fill
-                value={textBlockValue(c, 'attacks')}
-                printMaxHeight="4rem"
-                ariaLabel="Заметки к оружию и заговорам урона"
-                onChange={(value) => patch({ textBlocks: { attacks: value } })}
-              />
               <div className="classic-caption">Оружие и заговоры урона</div>
             </div>
 
@@ -390,7 +383,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               <Expanding
                 fill
                 value={asRecordNotes(c)}
-                printMaxHeight="6rem"
+                printMaxHeight="5rem"
                 ariaLabel="Владения и обучение"
                 onChange={(otherProficiencies) => patch({ otherProficiencies })}
               />
