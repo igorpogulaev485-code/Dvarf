@@ -69,6 +69,10 @@ require "backend/app/models/setting_page_link.py" "вики: связи"
 require "frontend/src/features/lobby/JournalComposer.tsx" "дневник + ссылка на вики"
 require "frontend/src/features/lobby/ChatBodyText.tsx" "чат: linkify /settings"
 
+require "backend/app/models/setting_artifact.py" "артефакты сеттинга"
+require "frontend/src/features/lobby/SettingArtifactsPanel.tsx" "UI библиотеки артефактов"
+require "backend/app/services/artifact_apply.py" "применение способностей артефакта"
+
 # Spot-check: digital sheet must not still say multiclass is backlog-only
 if grep -q 'Мультикласс — в backlog; пока один класс' \
   frontend/src/features/characters/MinimalSheetEditor.tsx 2>/dev/null; then

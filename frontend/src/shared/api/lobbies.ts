@@ -54,9 +54,64 @@ export type SettingPageLink = {
   created_at: string
 }
 
+export type ArtifactAbilityKind = 'passive' | 'resource' | 'action' | 'trait'
+export type ArtifactBonusTarget = 'attack' | 'damage' | 'ac' | 'save' | 'ability'
+export type ArtifactActionCost = 'action' | 'bonus' | 'reaction' | 'free' | 'special'
+export type ArtifactResourceReset = 'short' | 'long' | 'manual' | 'dawn'
+
+export type ArtifactAbility = {
+  id?: string
+  kind: ArtifactAbilityKind
+  name: string
+  text?: string
+  bonus_target?: ArtifactBonusTarget | null
+  bonus_value?: number | null
+  ability_key?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null
+  charges?: number | null
+  reset?: ArtifactResourceReset | null
+  action_cost?: ArtifactActionCost | null
+}
+
+export type SettingArtifact = {
+  id: string
+  setting_id: string
+  name: string
+  rarity: string
+  description: string
+  requires_attunement: boolean
+  abilities: ArtifactAbility[]
+  attack_damage: string
+  attack_damage_type: string
+  attack_ability: string
+  attack_range_kind: string
+  weight_lb: number | null
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export type SettingArtifactCreatePayload = {
+  name?: string
+  rarity?: string
+  description?: string
+  requires_attunement?: boolean
+  abilities?: ArtifactAbility[]
+  attack_damage?: string
+  attack_damage_type?: string
+  attack_ability?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
+  attack_range_kind?: 'melee' | 'ranged' | 'reach' | 'thrown'
+  weight_lb?: number | null
+  sort_order?: number
+}
+
+export type SettingArtifactUpdatePayload = SettingArtifactCreatePayload & {
+  clear_weight?: boolean
+}
+
 export type SettingDetail = SettingSummary & {
   pages: SettingPage[]
   links: SettingPageLink[]
+  artifacts?: SettingArtifact[]
   is_owner: boolean
 }
 
@@ -438,6 +493,32 @@ export async function deleteSettingPageLink(linkId: string): Promise<SettingDeta
   })
 }
 
+export async function createSettingArtifact(
+  settingId: string,
+  payload: SettingArtifactCreatePayload,
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${settingId}/artifacts`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateSettingArtifact(
+  artifactId: string,
+  payload: SettingArtifactUpdatePayload,
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/artifacts/${artifactId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteSettingArtifact(artifactId: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/artifacts/${artifactId}`, {
+    method: 'DELETE',
+  })
+}
+
 export async function createSession(
   lobbyId: string,
   payload: {
@@ -675,7 +756,12 @@ export async function awardSessionLoot(
   payload: {
     grants: Array<{
       character_id: string
-      item?: { name: string; qty: number; notes?: string | null }
+      item?: {
+        name?: string
+        qty: number
+        notes?: string | null
+        artifact_id?: string | null
+      }
       coins?: {
         cp?: number
         sp?: number

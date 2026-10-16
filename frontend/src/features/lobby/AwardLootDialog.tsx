@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { SessionSeat } from '../../shared/api/lobbies'
+import type { SessionSeat, SettingArtifact } from '../../shared/api/lobbies'
 import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
 
 type CoinKey = 'cp' | 'sp' | 'ep' | 'gp' | 'pp'
@@ -11,6 +11,7 @@ type LootRow =
       name: string
       qty: number
       character_id: string
+      artifact_id?: string | null
     }
   | {
       key: string
@@ -27,11 +28,17 @@ type Props = {
   open: boolean
   busy?: boolean
   seats: SessionSeat[]
+  /** Артефакты сеттинга сессии — можно добавить в лут */
+  artifacts?: SettingArtifact[]
   onClose: () => void
   onSubmit: (payload: {
     grants: Array<{
       character_id: string
-      item?: { name: string; qty: number }
+      item?: {
+        name?: string
+        qty: number
+        artifact_id?: string | null
+      }
       coins?: Partial<Record<CoinKey, number>>
     }>
     note?: string
@@ -52,11 +59,13 @@ function newKey(): string {
 
 /**
  * Мастер: находка → кому → сразу в инвентарь / кошелёк.
+ * Артефакты сеттинга применяются со способностями.
  */
 export function AwardLootDialog({
   open,
   busy = false,
   seats,
+  artifacts = [],
   onClose,
   onSubmit,
 }: Props) {
@@ -66,6 +75,7 @@ export function AwardLootDialog({
   const [draftName, setDraftName] = useState('')
   const [draftQty, setDraftQty] = useState<number | null>(1)
   const [draftWho, setDraftWho] = useState(defaultSeat)
+  const [draftArtifactId, setDraftArtifactId] = useState('')
   const [coinWho, setCoinWho] = useState(defaultSeat)
   const [coinGp, setCoinGp] = useState<number | null>(null)
   const [coinSp, setCoinSp] = useState<number | null>(null)
@@ -79,6 +89,7 @@ export function AwardLootDialog({
     setDraftName('')
     setDraftQty(1)
     setDraftWho(first)
+    setDraftArtifactId('')
     setCoinWho(first)
     setCoinGp(null)
     setCoinSp(null)
@@ -89,14 +100,35 @@ export function AwardLootDialog({
     if (seats.length === 0 || rows.length === 0) return false
     return rows.every((row) => {
       if (!row.character_id) return false
-      if (row.kind === 'item') return Boolean(row.name.trim()) && row.qty > 0
+      if (row.kind === 'item') {
+        if (row.artifact_id) return row.qty > 0
+        return Boolean(row.name.trim()) && row.qty > 0
+      }
       return row.cp + row.sp + row.ep + row.gp + row.pp > 0
     })
   }, [rows, seats.length])
 
   function addItem() {
+    if (!draftWho) return
+    const artifact = artifacts.find((a) => a.id === draftArtifactId)
+    if (artifact) {
+      setRows((prev) => [
+        ...prev,
+        {
+          key: newKey(),
+          kind: 'item',
+          name: artifact.name,
+          qty: Math.max(1, draftQty ?? 1),
+          character_id: draftWho,
+          artifact_id: artifact.id,
+        },
+      ])
+      setDraftArtifactId('')
+      setDraftQty(1)
+      return
+    }
     const name = draftName.trim()
-    if (!name || !draftWho) return
+    if (!name) return
     setRows((prev) => [
       ...prev,
       {
@@ -105,6 +137,7 @@ export function AwardLootDialog({
         name,
         qty: Math.max(1, draftQty ?? 1),
         character_id: draftWho,
+        artifact_id: null,
       },
     ])
     setDraftName('')
@@ -166,6 +199,8 @@ export function AwardLootDialog({
     return seats.find((s) => s.character_id === id)?.character_name ?? '—'
   }
 
+  const canAddItem = Boolean(draftWho) && (Boolean(draftArtifactId) || Boolean(draftName.trim()))
+
   return (
     <Dialog
       open={open}
@@ -183,7 +218,9 @@ export function AwardLootDialog({
             if (row.kind === 'item') {
               return {
                 character_id: row.character_id,
-                item: { name: row.name.trim(), qty: row.qty },
+                item: row.artifact_id
+                  ? { qty: row.qty, artifact_id: row.artifact_id }
+                  : { name: row.name.trim(), qty: row.qty },
               }
             }
             return {
@@ -203,19 +240,45 @@ export function AwardLootDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Находка → кому → сразу в инвентарь и кошелёк. За столом можно распределить
-          вслух, мастер фиксирует доли.
+          Находка → кому → сразу в инвентарь. Артефакт из сеттинга несёт способности и
+          пассивы на лист.
         </Text>
 
         <Stack gap={8}>
           <Text as="h4" className="session-xp-recipients__title">
             Предмет
           </Text>
-          <div className="session-loot-compose">
-            <Field label="Название">
-              <Input
-                value={draftName}
+          {artifacts.length > 0 ? (
+            <Field label="Из библиотеки сеттинга">
+              <select
+                className="ui-input"
+                value={draftArtifactId}
                 disabled={busy || seats.length === 0}
+                onChange={(e) => {
+                  setDraftArtifactId(e.target.value)
+                  if (e.target.value) setDraftName('')
+                }}
+              >
+                <option value="">— свободный текст / не артефакт —</option>
+                {artifacts.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                    {a.rarity ? ` (${a.rarity})` : ''}
+                    {a.requires_attunement ? ' · настройка' : ''}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          ) : (
+            <Text tone="muted">
+              В сеттинге сессии пока нет артефактов — создай их на странице сеттинга.
+            </Text>
+          )}
+          <div className="session-loot-compose">
+            <Field label={draftArtifactId ? 'Выбран артефакт' : 'Название'}>
+              <Input
+                value={draftArtifactId ? artifacts.find((a) => a.id === draftArtifactId)?.name ?? '' : draftName}
+                disabled={busy || seats.length === 0 || Boolean(draftArtifactId)}
                 placeholder="Зелье лечения"
                 onChange={(e) => setDraftName(e.target.value)}
               />
@@ -248,7 +311,7 @@ export function AwardLootDialog({
             <Button
               type="button"
               variant="secondary"
-              disabled={busy || !draftName.trim() || !draftWho}
+              disabled={busy || !canAddItem}
               onClick={addItem}
             >
               + В список
@@ -344,8 +407,10 @@ export function AwardLootDialog({
                 <div className="session-loot-list__main">
                   {row.kind === 'item' ? (
                     <span>
+                      {row.artifact_id ? '✦ ' : ''}
                       {row.name}
                       {row.qty > 1 ? ` × ${row.qty}` : ''}
+                      {row.artifact_id ? ' (артефакт)' : ''}
                     </span>
                   ) : (
                     <span>

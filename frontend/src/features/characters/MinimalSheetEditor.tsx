@@ -61,6 +61,7 @@ import { applyRaceCatalogToDraft } from './raceEffects'
 import {
   equippedArmorPieces,
   inventoryToSheet,
+  magicAcBonusFromInventory,
   readInventory,
   type InventoryState,
 } from './inventory'
@@ -145,6 +146,9 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
     const range_kind = isAttackRangeKind(row.range_kind)
       ? row.range_kind
       : inferAttackRangeKind(name, row)
+    const magicRaw = row.magic_bonus
+    const magic_bonus =
+      typeof magicRaw === 'number' && Number.isFinite(magicRaw) ? Math.floor(magicRaw) : 0
     return {
       id: typeof row.id === 'string' ? row.id : `weapon-${index}`,
       name,
@@ -155,6 +159,8 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
       damage: typeof row.damage === 'string' ? row.damage : '',
       damage_type: typeof row.damage_type === 'string' ? row.damage_type : '',
       range_kind,
+      magic_bonus,
+      source_item_id: typeof row.source_item_id === 'string' ? row.source_item_id : null,
     }
   })
 }
@@ -413,12 +419,24 @@ export function MinimalSheetEditor({
 
   const armorClass = useMemo(() => {
     const pieces = equippedArmorPieces(draft.inventory.items)
-    return computeArmorClass({
+    const base = computeArmorClass({
       dexMod: abilityModifier(draft.abilities.dex),
       armor: pieces.armor,
       shield: pieces.shield,
     })
-  }, [draft.abilities.dex, draft.inventory.items])
+    const attunedIds = new Set(
+      draft.attunements
+        .map((s) => s.item_id)
+        .filter((id): id is string => Boolean(id)),
+    )
+    const magicAc = magicAcBonusFromInventory(draft.inventory.items, attunedIds)
+    if (!magicAc) return base
+    const sign = magicAc >= 0 ? `+${magicAc}` : String(magicAc)
+    return {
+      ac: base.ac + magicAc,
+      summary: `${base.summary} · магия ${sign}`,
+    }
+  }, [draft.abilities.dex, draft.attunements, draft.inventory.items])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
     setDraft((prev) => ({ ...prev, identity: { ...prev.identity, ...patch } }))

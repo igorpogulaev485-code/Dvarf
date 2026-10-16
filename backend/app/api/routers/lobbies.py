@@ -61,6 +61,8 @@ from app.schemas.lobby import (
     SessionEventOut,
     SessionRollCreateRequest,
     SessionUpdateRequest,
+    SettingArtifactCreateRequest,
+    SettingArtifactUpdateRequest,
     SettingCreateRequest,
     SettingDetail,
     SettingPageCreateRequest,
@@ -259,6 +261,39 @@ def delete_setting_page_link(
     db: DbSession,
 ) -> SettingDetail:
     return LobbyService(db).delete_setting_page_link(current_user, link_id)
+
+
+@router.post(
+    "/settings/{setting_id}/artifacts",
+    response_model=SettingDetail,
+    status_code=201,
+)
+def create_setting_artifact(
+    setting_id: UUID,
+    payload: SettingArtifactCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).create_setting_artifact(current_user, setting_id, payload)
+
+
+@router.patch("/settings/artifacts/{artifact_id}", response_model=SettingDetail)
+def update_setting_artifact(
+    artifact_id: UUID,
+    payload: SettingArtifactUpdateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).update_setting_artifact(current_user, artifact_id, payload)
+
+
+@router.delete("/settings/artifacts/{artifact_id}", response_model=SettingDetail)
+def delete_setting_artifact(
+    artifact_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).delete_setting_artifact(current_user, artifact_id)
 
 
 @router.patch("/settings/{setting_id}", response_model=SettingSummary)

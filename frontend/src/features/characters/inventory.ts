@@ -44,6 +44,12 @@ export function isInventoryItemKind(value: unknown): value is InventoryItemKind 
   return value === 'gear' || value === 'consumable' || value === 'magic' || value === 'other'
 }
 
+export type InventoryMagicMods = {
+  ac: number
+  attack: number
+  damage: number
+}
+
 export type InventoryItem = {
   id: string
   name: string
@@ -55,6 +61,10 @@ export type InventoryItem = {
   base_ac: number | null
   notes: string
   item_kind: InventoryItemKind
+  /** Snapshot mods from setting artifact (D1) */
+  magic_mods?: InventoryMagicMods | null
+  requires_attunement?: boolean
+  setting_artifact_id?: string | null
 }
 
 export type InventoryState = {
@@ -99,6 +109,15 @@ function readItem(raw: unknown, index: number): InventoryItem {
   const item_kind = isInventoryItemKind(row.item_kind)
     ? row.item_kind
     : inferInventoryItemKind(name, notes, row)
+  const modsRaw = asRecord(row.magic_mods)
+  const magic_mods: InventoryMagicMods | null =
+    Object.keys(modsRaw).length > 0
+      ? {
+          ac: readNumber(modsRaw.ac, 0),
+          attack: readNumber(modsRaw.attack, 0),
+          damage: readNumber(modsRaw.damage, 0),
+        }
+      : null
   return {
     id: typeof row.id === 'string' ? row.id : `item-${index}`,
     name,
@@ -110,6 +129,10 @@ function readItem(raw: unknown, index: number): InventoryItem {
     base_ac: readNullableNumber(row.base_ac ?? row.ac_bonus),
     notes,
     item_kind,
+    magic_mods,
+    requires_attunement: Boolean(row.requires_attunement),
+    setting_artifact_id:
+      typeof row.setting_artifact_id === 'string' ? row.setting_artifact_id : null,
   }
 }
 
@@ -145,9 +168,28 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         base_ac: item.base_ac,
         notes: item.notes,
         item_kind: item.item_kind,
+        ...(item.magic_mods ? { magic_mods: item.magic_mods } : {}),
+        ...(item.requires_attunement ? { requires_attunement: true } : {}),
+        ...(item.setting_artifact_id
+          ? { setting_artifact_id: item.setting_artifact_id }
+          : {}),
       })),
     },
   }
+}
+
+/** Sum AC bonuses from magic items that are active (attuned if required). */
+export function magicAcBonusFromInventory(
+  items: InventoryItem[],
+  attunedItemIds: Set<string>,
+): number {
+  let total = 0
+  for (const item of items) {
+    if (!item.magic_mods?.ac) continue
+    if (item.requires_attunement && !attunedItemIds.has(item.id)) continue
+    total += item.magic_mods.ac
+  }
+  return total
 }
 
 export function asWeighableItems(items: InventoryItem[]): WeighableItem[] {

@@ -7,14 +7,18 @@ import {
   type SettingPageNode,
 } from '../features/lobby/settingPages'
 import { ApiRequestError } from '../shared/api/client'
+import { SettingArtifactsPanel } from '../features/lobby/SettingArtifactsPanel'
 import {
   createSession,
+  createSettingArtifact,
   createSettingPage,
   createSettingPageLink,
+  deleteSettingArtifact,
   deleteSettingPage,
   deleteSettingPageLink,
   getSetting,
   updateSetting,
+  updateSettingArtifact,
   updateSettingPage,
   type SettingDetail,
 } from '../shared/api/lobbies'
@@ -315,6 +319,61 @@ export function SettingDetailPage() {
             <Text tone="muted">Мастер ещё не раскрыл всё — ниже только то, что видно игрокам.</Text>
           )}
         </Panel>
+
+        {isOwner ? (
+          <SettingArtifactsPanel
+            artifacts={setting.artifacts ?? []}
+            busy={busy}
+            onCreate={async (payload) => {
+              setBusy(true)
+              setError(null)
+              try {
+                const next = await createSettingArtifact(setting.id, payload)
+                applyDetail(next, selectedId)
+                setToast(`Артефакт «${payload.name}» создан`)
+              } catch (err) {
+                setError(
+                  err instanceof ApiRequestError ? err.message : 'Не удалось создать артефакт',
+                )
+                throw err
+              } finally {
+                setBusy(false)
+              }
+            }}
+            onUpdate={async (id, payload) => {
+              setBusy(true)
+              setError(null)
+              try {
+                const next = await updateSettingArtifact(id, payload)
+                applyDetail(next, selectedId)
+                setToast('Артефакт сохранён')
+              } catch (err) {
+                setError(
+                  err instanceof ApiRequestError ? err.message : 'Не удалось сохранить',
+                )
+                throw err
+              } finally {
+                setBusy(false)
+              }
+            }}
+            onDelete={async (id) => {
+              setBusy(true)
+              setError(null)
+              try {
+                const next = await deleteSettingArtifact(id)
+                applyDetail(next, selectedId)
+                setToast('Артефакт удалён')
+              } catch (err) {
+                setError(
+                  err instanceof ApiRequestError ? err.message : 'Не удалось удалить',
+                )
+                throw err
+              } finally {
+                setBusy(false)
+              }
+            }}
+          />
+        ) : null}
 
         <div className="setting-wiki">
           <aside className="setting-wiki__nav">

@@ -3645,3 +3645,87 @@ button.session-concentration-tag {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* D1: артефакты сеттинга */
+.setting-artifact-editor {
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--panel-muted, rgba(0, 0, 0, 0.03));
+}
+
+.setting-artifact-editor__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 10px;
+}
+
+.setting-artifact-ability {
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface, #fff);
+}
+
+.setting-artifact-ability__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.setting-artifact-attack {
+  font: inherit;
+}
+
+.setting-artifact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.setting-artifact-list__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+}
+
+.setting-artifact-list__main {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.setting-artifact-list__tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  background: rgba(61, 90, 58, 0.12);
+  color: var(--accent, #3d5a3a);
+}
+
+.setting-artifact-list__abilities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.setting-artifact-list__chip {
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+}

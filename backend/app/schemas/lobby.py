@@ -61,11 +61,76 @@ class SettingPageLinkOut(BaseModel):
     created_at: datetime
 
 
+class ArtifactAbilityIn(BaseModel):
+    """Способность на артефакте сеттинга."""
+
+    id: str | None = None
+    kind: Literal["passive", "resource", "action", "trait"] = "trait"
+    name: str = Field(default="", max_length=120)
+    text: str = Field(default="", max_length=2000)
+    bonus_target: Literal["attack", "damage", "ac", "save", "ability"] | None = None
+    bonus_value: int | None = Field(default=None, ge=-10, le=10)
+    ability_key: Literal["str", "dex", "con", "int", "wis", "cha"] | None = None
+    charges: int | None = Field(default=None, ge=1, le=99)
+    reset: Literal["short", "long", "manual", "dawn"] | None = None
+    action_cost: Literal["action", "bonus", "reaction", "free", "special"] | None = None
+
+
+class SettingArtifactOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    setting_id: UUID
+    name: str
+    rarity: str = ""
+    description: str = ""
+    requires_attunement: bool = False
+    abilities: list[dict] = Field(default_factory=list)
+    attack_damage: str = ""
+    attack_damage_type: str = ""
+    attack_ability: str = "str"
+    attack_range_kind: str = "melee"
+    weight_lb: float | None = None
+    sort_order: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+
+class SettingArtifactCreateRequest(BaseModel):
+    name: str = Field(default="Новый артефакт", max_length=120)
+    rarity: str = Field(default="", max_length=40)
+    description: str = Field(default="", max_length=4000)
+    requires_attunement: bool = False
+    abilities: list[ArtifactAbilityIn] = Field(default_factory=list)
+    attack_damage: str = Field(default="", max_length=40)
+    attack_damage_type: str = Field(default="", max_length=40)
+    attack_ability: Literal["str", "dex", "con", "int", "wis", "cha"] = "str"
+    attack_range_kind: Literal["melee", "ranged", "reach", "thrown"] = "melee"
+    weight_lb: float | None = Field(default=None, ge=0, le=1000)
+    sort_order: int | None = None
+
+
+class SettingArtifactUpdateRequest(BaseModel):
+    name: str | None = Field(default=None, max_length=120)
+    rarity: str | None = Field(default=None, max_length=40)
+    description: str | None = Field(default=None, max_length=4000)
+    requires_attunement: bool | None = None
+    abilities: list[ArtifactAbilityIn] | None = None
+    attack_damage: str | None = Field(default=None, max_length=40)
+    attack_damage_type: str | None = Field(default=None, max_length=40)
+    attack_ability: Literal["str", "dex", "con", "int", "wis", "cha"] | None = None
+    attack_range_kind: Literal["melee", "ranged", "reach", "thrown"] | None = None
+    weight_lb: float | None = Field(default=None, ge=0, le=1000)
+    clear_weight: bool = False
+    sort_order: int | None = None
+
+
 class SettingDetail(SettingSummary):
-    """C1–C3: страницы + связи; игрокам — только revealed."""
+    """C1–C3: страницы + связи; игрокам — только revealed. D1: артефакты у мастера."""
 
     pages: list[SettingPageOut] = Field(default_factory=list)
     links: list[SettingPageLinkOut] = Field(default_factory=list)
+    artifacts: list[SettingArtifactOut] = Field(default_factory=list)
     is_owner: bool = False
 
 
@@ -463,9 +528,12 @@ class LootCoinsIn(BaseModel):
 
 
 class LootItemIn(BaseModel):
-    name: str = Field(min_length=1, max_length=120)
+    """Свободный предмет или артефакт из библиотеки сеттинга (`artifact_id`)."""
+
+    name: str = Field(default="", max_length=120)
     qty: int = Field(default=1, ge=1, le=9999)
     notes: str | None = Field(default=None, max_length=240)
+    artifact_id: UUID | None = None
 
 
 class LootGrantIn(BaseModel):

@@ -25,6 +25,9 @@ export type WeaponAttack = {
   damage: string
   damage_type: string
   range_kind: AttackRangeKind
+  /** Бонус магии к атаке (артефакт +1 и т.п.) */
+  magic_bonus?: number
+  source_item_id?: string | null
 }
 
 const RANGE_KIND_OPTIONS: Array<{ id: AttackRangeKind; label: string }> = [
@@ -144,9 +147,11 @@ export function AttacksPanel({
         ) : null}
 
         {weapons.map((attack) => {
+          const magic = Math.floor(attack.magic_bonus ?? 0)
           const attackBonus =
             abilityModifier(abilities[attack.ability]) +
-            (attack.is_proficient ? proficiencyBonus : 0)
+            (attack.is_proficient ? proficiencyBonus : 0) +
+            magic
           return (
             <div key={attack.id} className="attack-card">
               <div className="attack-card__meta">
