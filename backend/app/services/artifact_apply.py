@@ -9,6 +9,13 @@ from __future__ import annotations
 from typing import Any
 from uuid import uuid4
 
+from app.services.ability_score_caps import (
+    DEFAULT_ABILITY_SCORE_MAX,
+    HARD_ABILITY_SCORE_CEILING,
+    clamp_ability_score,
+    resolve_ability_maxes,
+)
+
 ABILITY_KEYS = ("str", "dex", "con", "int", "wis", "cha")
 PASSIVE_TARGETS = (
     "attack",
@@ -112,9 +119,14 @@ def normalize_ability(raw: dict[str, Any] | None) -> dict[str, Any] | None:
         if key not in ABILITY_KEYS:
             key = "str"
         out["ability_key"] = key
-        # потолок характеристики (маска лича: +2 ИНТ, макс 22)
+        # потолок характеристики (маска лича: +2 ИНТ, макс 22); PHB default 20
         if target == "ability" and raw.get("max_score") is not None:
-            out["max_score"] = _clamp_int(raw.get("max_score"), 20, 1, 30)
+            out["max_score"] = _clamp_int(
+                raw.get("max_score"),
+                DEFAULT_ABILITY_SCORE_MAX,
+                1,
+                HARD_ABILITY_SCORE_CEILING,
+            )
 
     elif kind == "skill":
         skill = str(raw.get("skill_key") or "").strip().lower()
@@ -492,6 +504,7 @@ def sum_passive_bonuses(abilities: list[dict[str, Any]]) -> dict[str, Any]:
     speed = 0
     darkvision = 0
     ability_scores: dict[str, int] = {k: 0 for k in ABILITY_KEYS}
+    ability_max: dict[str, int] = {}
     saves: dict[str, int] = {k: 0 for k in ABILITY_KEYS}
     for ab in abilities:
         if ab.get("kind") != "passive":
@@ -511,9 +524,12 @@ def sum_passive_bonuses(abilities: list[dict[str, Any]]) -> dict[str, Any]:
             darkvision += value
         elif target == "ability" and key in ability_scores:
             ability_scores[key] += value
+            if ab.get("max_score") is not None:
+                ceiling = int(ab["max_score"])
+                ability_max[key] = max(int(ability_max.get(key) or 0), ceiling)
         elif target == "save" and key in saves:
             saves[key] += value
-    return {
+    result: dict[str, Any] = {
         "ac": ac,
         "attack": attack,
         "damage": damage,
@@ -522,6 +538,9 @@ def sum_passive_bonuses(abilities: list[dict[str, Any]]) -> dict[str, Any]:
         "abilities": {k: v for k, v in ability_scores.items() if v},
         "saves": {k: v for k, v in saves.items() if v},
     }
+    if ability_max:
+        result["ability_max"] = ability_max
+    return result
 
 
 def _ensure_list(sheet: dict[str, Any], key: str) -> list:
@@ -780,14 +799,24 @@ def apply_artifact_to_sheet(
             weapons.append(_attach_modes(row))
         sheet["weapons"] = weapons
 
-    # --- Ability scores (+ optional max_score from passives) ---
+    # --- Ability scores (+ optional max_score from passives; PHB base 20) ---
     abilities_block = _ensure_dict(sheet, "abilities")
-    max_scores: dict[str, int] = {}
+    # Bake this artifact's max_score onto the sheet first so resolve sees it.
     for ab in abilities:
-        if ab.get("kind") == "passive" and ab.get("bonus_target") == "ability":
-            if ab.get("max_score") is not None:
-                key = str(ab.get("ability_key") or "str")
-                max_scores[key] = max(int(max_scores.get(key) or 0), int(ab["max_score"]))
+        if ab.get("kind") != "passive" or ab.get("bonus_target") != "ability":
+            continue
+        if ab.get("max_score") is None:
+            continue
+        key = str(ab.get("ability_key") or "str")
+        if key not in ABILITY_KEYS:
+            continue
+        row = dict(abilities_block.get(key) or {"score": 10})
+        prev = int(row.get("max_score") or 0)
+        row["max_score"] = max(prev, int(ab["max_score"]))
+        abilities_block[key] = row
+    sheet["abilities"] = abilities_block
+
+    ceilings = resolve_ability_maxes(sheet)
     for key, delta in (mods.get("abilities") or {}).items():
         if not delta:
             continue
@@ -796,12 +825,14 @@ def apply_artifact_to_sheet(
             score = int(row.get("score") or 10)
         except (TypeError, ValueError):
             score = 10
-        ceiling = int(max_scores.get(key) or row.get("max_score") or 30)
-        row["score"] = max(1, min(ceiling, score + int(delta)))
-        if key in max_scores:
-            row["max_score"] = max(int(row.get("max_score") or 0), max_scores[key])
+        ceiling = int(ceilings.get(key) or DEFAULT_ABILITY_SCORE_MAX)
+        row["score"] = clamp_ability_score(score + int(delta), ceiling)
+        if ceiling > DEFAULT_ABILITY_SCORE_MAX:
+            row["max_score"] = max(int(row.get("max_score") or 0), ceiling)
         abilities_block[key] = row
-    for key, ceiling in max_scores.items():
+    for key, ceiling in ceilings.items():
+        if ceiling <= DEFAULT_ABILITY_SCORE_MAX:
+            continue
         row = dict(abilities_block.get(key) or {"score": 10})
         row["max_score"] = max(int(row.get("max_score") or 0), ceiling)
         abilities_block[key] = row

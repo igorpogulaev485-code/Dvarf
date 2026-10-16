@@ -572,7 +572,10 @@ export function SettingArtifactsPanel({
                           </Field>
                         ) : null}
                         {ab.bonus_target === 'ability' ? (
-                          <Field label="Макс. значение" hint="Маска: +2 ИНТ, макс 22">
+                          <Field
+                            label="Макс. значение"
+                            hint="По умолчанию 20. Маска: +2 ИНТ, макс 22"
+                          >
                             <NumberInput
                               value={ab.max_score ?? null}
                               min={1}

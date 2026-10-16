@@ -48,6 +48,10 @@ export type InventoryMagicMods = {
   ac: number
   attack: number
   damage: number
+  /** Permanent ability deltas from setting artifacts */
+  abilities?: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>
+  /** Raised score ceilings from items (mask → INT 22, etc.) */
+  ability_max?: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>
 }
 
 export type InventoryItem = {
@@ -111,12 +115,31 @@ function readItem(raw: unknown, index: number): InventoryItem {
     ? row.item_kind
     : inferInventoryItemKind(name, notes, row)
   const modsRaw = asRecord(row.magic_mods)
+  const abilitiesRaw = asRecord(modsRaw.abilities)
+  const abilityMaxRaw = asRecord(modsRaw.ability_max ?? modsRaw.abilityMax)
+  const abilityKeys = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const
+  const abilitiesMods = Object.fromEntries(
+    abilityKeys
+      .filter((key) => abilitiesRaw[key] != null)
+      .map((key) => [key, readNumber(abilitiesRaw[key], 0)]),
+  ) as InventoryMagicMods['abilities']
+  const abilityMaxMods = Object.fromEntries(
+    abilityKeys
+      .filter((key) => abilityMaxRaw[key] != null)
+      .map((key) => [key, readNumber(abilityMaxRaw[key], 0)]),
+  ) as InventoryMagicMods['ability_max']
   const magic_mods: InventoryMagicMods | null =
     Object.keys(modsRaw).length > 0
       ? {
           ac: readNumber(modsRaw.ac, 0),
           attack: readNumber(modsRaw.attack, 0),
           damage: readNumber(modsRaw.damage, 0),
+          ...(abilitiesMods && Object.keys(abilitiesMods).length
+            ? { abilities: abilitiesMods }
+            : {}),
+          ...(abilityMaxMods && Object.keys(abilityMaxMods).length
+            ? { ability_max: abilityMaxMods }
+            : {}),
         }
       : null
   return {

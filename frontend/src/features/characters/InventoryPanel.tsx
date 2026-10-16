@@ -101,6 +101,21 @@ export function InventoryPanel({
     const data = selected.data ?? {}
     const armor = armorFieldsFromCatalog(selected)
     const prev = inventory.items.find((item) => item.id === id)
+    const abilityMaxRaw =
+      data.ability_max && typeof data.ability_max === 'object' && !Array.isArray(data.ability_max)
+        ? (data.ability_max as Record<string, unknown>)
+        : data.abilityMax && typeof data.abilityMax === 'object' && !Array.isArray(data.abilityMax)
+          ? (data.abilityMax as Record<string, unknown>)
+          : null
+    const abilityKeys = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const
+    const ability_max = abilityMaxRaw
+      ? Object.fromEntries(
+          abilityKeys
+            .filter((key) => typeof abilityMaxRaw[key] === 'number')
+            .map((key) => [key, Math.floor(abilityMaxRaw[key] as number)]),
+        )
+      : null
+    const prevMods = prev?.magic_mods ?? null
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
@@ -116,6 +131,20 @@ export function InventoryPanel({
         prev?.notes ?? '',
         data,
       ),
+      ...(ability_max && Object.keys(ability_max).length
+        ? {
+            magic_mods: {
+              ac: prevMods?.ac ?? 0,
+              attack: prevMods?.attack ?? 0,
+              damage: prevMods?.damage ?? 0,
+              ...(prevMods?.abilities ? { abilities: prevMods.abilities } : {}),
+              ability_max,
+            },
+            requires_attunement:
+              Boolean(data.attunement) || Boolean(data.requires_attunement) || prev?.requires_attunement,
+            equipped: prev?.equipped ?? true,
+          }
+        : {}),
     })
   }
 

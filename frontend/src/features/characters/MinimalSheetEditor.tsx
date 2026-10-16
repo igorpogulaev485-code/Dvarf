@@ -93,6 +93,11 @@ import {
   type AbilityKey,
 } from './sheetTypes'
 import { passiveScore, skillModifierFromState } from '../../shared/dnd/passives'
+import {
+  DEFAULT_ABILITY_SCORE_MAX,
+  clampAbilityScore,
+  resolveAbilityMaxes,
+} from '../../shared/dnd/abilityScoreCaps'
 
 type MinimalSheetEditorProps = {
   character: CharacterDetail
@@ -510,6 +515,28 @@ export function MinimalSheetEditor({
     )
   }
 
+  const attunedItemIds = useMemo(
+    () =>
+      new Set(
+        draft.attunements
+          .map((s) => s.item_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    [draft.attunements],
+  )
+
+  // Live sources only (class/archetype + active inventory). Baked sheet.max_score
+  // is written on save from this resolve — so unequipping an artifact drops the cap.
+  const abilityCeilings = useMemo(
+    () =>
+      resolveAbilityMaxes({
+        classes: draft.classes,
+        inventoryItems: draft.inventory.items,
+        attunedItemIds,
+      }),
+    [draft.classes, draft.inventory.items, attunedItemIds],
+  )
+
   const passives = useMemo(() => {
     const modFor = (skillKey: string) => {
       const def = SKILL_DEFS.find((skill) => skill.key === skillKey)
@@ -537,19 +564,14 @@ export function MinimalSheetEditor({
       armor: pieces.armor,
       shield: pieces.shield,
     })
-    const attunedIds = new Set(
-      draft.attunements
-        .map((s) => s.item_id)
-        .filter((id): id is string => Boolean(id)),
-    )
-    const magicAc = magicAcBonusFromInventory(draft.inventory.items, attunedIds)
+    const magicAc = magicAcBonusFromInventory(draft.inventory.items, attunedItemIds)
     if (!magicAc) return base
     const sign = magicAc >= 0 ? `+${magicAc}` : String(magicAc)
     return {
       ac: base.ac + magicAc,
       summary: `${base.summary} · магия ${sign}`,
     }
-  }, [draft.abilities.dex, draft.attunements, draft.inventory.items])
+  }, [draft.abilities.dex, attunedItemIds, draft.inventory.items])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
     setDraft((prev) => ({ ...prev, identity: { ...prev.identity, ...patch } }))
@@ -600,12 +622,16 @@ export function MinimalSheetEditor({
       Object.assign(sheet, classLevelsToSheet(draft.classes))
 
       for (const key of ABILITY_KEYS) {
+        const ceiling = abilityCeilings[key]?.max ?? DEFAULT_ABILITY_SCORE_MAX
         const row: Record<string, unknown> = {
           ...asRecord(abilities[key]),
-          score: draft.abilities[key],
+          score: clampAbilityScore(draft.abilities[key], ceiling),
         }
-        const ceiling = draft.abilityMax[key]
-        if (ceiling != null) row.max_score = ceiling
+        if (ceiling > DEFAULT_ABILITY_SCORE_MAX) {
+          row.max_score = ceiling
+        } else {
+          delete row.max_score
+        }
         abilities[key] = row
         saves[key] = {
           ...asRecord(saves[key]),
@@ -1014,8 +1040,12 @@ export function MinimalSheetEditor({
         <div className="ability-grid">
           {ABILITY_KEYS.map((key) => {
             const score = draft.abilities[key]
-            const ceiling = draft.abilityMax[key]
-            const max = ceiling != null ? Math.min(30, ceiling) : 30
+            const resolved = abilityCeilings[key]
+            const max = resolved?.max ?? DEFAULT_ABILITY_SCORE_MAX
+            const sourceHint =
+              resolved?.raised && resolved.sources[0]
+                ? resolved.sources[0]
+                : null
             return (
               <label key={key} className="ability-card">
                 <span className="ability-card__label">{ABILITY_LABELS[key]}</span>
@@ -1029,19 +1059,31 @@ export function MinimalSheetEditor({
                       ...prev,
                       abilities: {
                         ...prev.abilities,
-                        [key]: Math.min(max, next ?? 10),
+                        [key]: clampAbilityScore(next ?? 10, max),
                       },
                     }))
                   }
                 />
                 <span className="ability-card__mod">
                   {formatModifier(abilityModifier(score))}
-                  {ceiling != null ? ` · макс ${ceiling}` : ''}
                 </span>
+                {resolved?.raised ? (
+                  <span
+                    className="ability-card__cap"
+                    title={sourceHint ?? undefined}
+                  >
+                    макс {max}
+                    {sourceHint ? ` · ${sourceHint}` : ''}
+                  </span>
+                ) : null}
               </label>
             )
           })}
         </div>
+        <Text tone="muted" className="ability-grid-hint">
+          Потолок 20 по правилам; выше — от класса, архетипа или артефакта.
+          Временные эффекты на столе не поднимают этот лимит.
+        </Text>
       </Panel>
 
       <PlayPanel

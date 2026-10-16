@@ -761,6 +761,23 @@ a.ui-button--primary {
   color: var(--accent);
 }
 
+.ability-card__cap {
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--muted, #6b7280);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ability-grid-hint {
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
 .ability-card .ui-input {
   text-align: center;
   padding: 8px;
