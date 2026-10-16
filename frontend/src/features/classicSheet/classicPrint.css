@@ -1717,9 +1717,9 @@
 
 .classic-lss-ability__skills li {
   display: grid;
-  grid-template-columns: 0.18in 0.36in minmax(0, 1fr);
+  grid-template-columns: 0.18in 0.42in minmax(0, 1fr);
   align-items: center;
-  gap: 0.08rem;
+  column-gap: 0.12rem;
   font-size: 0.5rem;
   line-height: 1.1;
   min-height: 0.15in;
@@ -1729,6 +1729,7 @@
 .classic-lss-ability__skills strong {
   font-size: 0.54rem;
   text-align: right;
+  padding-right: 0.08rem;
 }
 
 .classic-lss-ability__skills span {
