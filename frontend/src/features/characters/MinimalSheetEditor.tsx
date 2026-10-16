@@ -276,38 +276,44 @@ function buildDraft(character: CharacterDetail): Draft {
   const condImmRaw = Array.isArray(combat.condition_immunities)
     ? combat.condition_immunities
     : []
+  const defensesDamage: Draft['defenses']['damage'] = []
+  for (let index = 0; index < damageRaw.length; index += 1) {
+    const row = asRecord(damageRaw[index])
+    const damage_type = typeof row.damage_type === 'string' ? row.damage_type : ''
+    if (!damage_type) continue
+    const entry: Draft['defenses']['damage'][number] = {
+      id: typeof row.id === 'string' ? row.id : `dr-${index}`,
+      damage_type,
+      mode: typeof row.mode === 'string' ? row.mode : 'resistance',
+    }
+    if (typeof row.source_name === 'string' && row.source_name) {
+      entry.source_name = row.source_name
+    }
+    defensesDamage.push(entry)
+  }
+  const defensesConditions: Draft['defenses']['conditions'] = []
+  for (let index = 0; index < condImmRaw.length; index += 1) {
+    const row = asRecord(condImmRaw[index])
+    const name =
+      typeof row.name === 'string' && row.name.trim()
+        ? row.name.trim()
+        : typeof row.slug === 'string'
+          ? row.slug
+          : ''
+    if (!name) continue
+    const entry: Draft['defenses']['conditions'][number] = {
+      id: typeof row.id === 'string' ? row.id : `ci-${index}`,
+      slug: typeof row.slug === 'string' ? row.slug : name,
+      name,
+    }
+    if (typeof row.source_name === 'string' && row.source_name) {
+      entry.source_name = row.source_name
+    }
+    defensesConditions.push(entry)
+  }
   const defenses: Draft['defenses'] = {
-    damage: damageRaw
-      .map((item, index) => {
-        const row = asRecord(item)
-        const damage_type = typeof row.damage_type === 'string' ? row.damage_type : ''
-        if (!damage_type) return null
-        return {
-          id: typeof row.id === 'string' ? row.id : `dr-${index}`,
-          damage_type,
-          mode: typeof row.mode === 'string' ? row.mode : 'resistance',
-          source_name: typeof row.source_name === 'string' ? row.source_name : undefined,
-        }
-      })
-      .filter((item): item is Draft['defenses']['damage'][number] => item != null),
-    conditions: condImmRaw
-      .map((item, index) => {
-        const row = asRecord(item)
-        const name =
-          typeof row.name === 'string' && row.name.trim()
-            ? row.name.trim()
-            : typeof row.slug === 'string'
-              ? row.slug
-              : ''
-        if (!name) return null
-        return {
-          id: typeof row.id === 'string' ? row.id : `ci-${index}`,
-          slug: typeof row.slug === 'string' ? row.slug : name,
-          name,
-          source_name: typeof row.source_name === 'string' ? row.source_name : undefined,
-        }
-      })
-      .filter((item): item is Draft['defenses']['conditions'][number] => item != null),
+    damage: defensesDamage,
+    conditions: defensesConditions,
   }
 
   const identityExtras = readIdentityExtras(sheet)
