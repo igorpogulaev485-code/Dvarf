@@ -212,6 +212,34 @@ export function SettingDetailPage() {
     }
   }
 
+  async function setRevealed(revealed: boolean, subtree: boolean) {
+    if (!selected) return
+    setBusy(true)
+    setError(null)
+    try {
+      const next = await updateSettingPage(selected.id, {
+        revealed,
+        reveal_subtree: subtree,
+      })
+      applyDetail(next, selected.id)
+      setToast(
+        subtree
+          ? revealed
+            ? 'Ветка раскрыта игрокам'
+            : 'Ветка скрыта'
+          : revealed
+            ? 'Страница раскрыта игрокам'
+            : 'Страница скрыта',
+      )
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : 'Не удалось изменить видимость')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const isOwner = setting?.is_owner ?? false
+
   if (!setting && !error) {
     return (
       <main className="page page--app">
@@ -233,7 +261,7 @@ export function SettingDetailPage() {
       <Stack gap={20}>
         <AppHeader
           title={setting.name}
-          subtitle="Сеттинг — вики мира"
+          subtitle={isOwner ? 'Сеттинг — вики мира' : 'Сеттинг — раскрытые страницы'}
           onOfficialSite={() => setToast('Официальный сайт скоро появится')}
         />
         <Text>
@@ -242,68 +270,79 @@ export function SettingDetailPage() {
         {error ? <Text tone="danger">{error}</Text> : null}
 
         <Panel title="Сеттинг">
-          <form className="stack-form" onSubmit={saveMeta}>
-            <Field label="Название">
-              <Input value={settingName} onChange={(e) => setSettingName(e.target.value)} />
-            </Field>
-            <div className="inline-actions">
-              <Button type="submit" disabled={busy}>
-                Сохранить название
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={busy}
-                onClick={async () => {
-                  setBusy(true)
-                  try {
-                    const session = await createSession(setting.lobby_id, {
-                      setting_id: setting.id,
-                      name: `${setting.name} — сессия`,
-                    })
-                    navigate(`/sessions/${session.id}`)
-                  } catch (err) {
-                    setError(
-                      err instanceof ApiRequestError
-                        ? err.message
-                        : 'Не удалось открыть сессию',
-                    )
-                    setBusy(false)
-                  }
-                }}
-              >
-                Открыть сессию в этом сеттинге
-              </Button>
-            </div>
-          </form>
+          {isOwner ? (
+            <form className="stack-form" onSubmit={saveMeta}>
+              <Field label="Название">
+                <Input value={settingName} onChange={(e) => setSettingName(e.target.value)} />
+              </Field>
+              <div className="inline-actions">
+                <Button type="submit" disabled={busy}>
+                  Сохранить название
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true)
+                    try {
+                      const session = await createSession(setting.lobby_id, {
+                        setting_id: setting.id,
+                        name: `${setting.name} — сессия`,
+                      })
+                      navigate(`/sessions/${session.id}`)
+                    } catch (err) {
+                      setError(
+                        err instanceof ApiRequestError
+                          ? err.message
+                          : 'Не удалось открыть сессию',
+                      )
+                      setBusy(false)
+                    }
+                  }}
+                >
+                  Открыть сессию в этом сеттинге
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <Text tone="muted">Мастер ещё не раскрыл всё — ниже только то, что видно игрокам.</Text>
+          )}
         </Panel>
 
         <div className="setting-wiki">
           <aside className="setting-wiki__nav">
             <div className="setting-wiki__nav-head">
               <Text as="h3">Страницы</Text>
-              <Button
-                type="button"
-                variant="ghost"
-                disabled={busy}
-                onClick={() => void addPage(null)}
-              >
-                + Корень
-              </Button>
+              {isOwner ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={busy}
+                  onClick={() => void addPage(null)}
+                >
+                  + Корень
+                </Button>
+              ) : null}
             </div>
-            <ul className="setting-wiki-tree">
-              {tree.map((node) => (
-                <TreeNode
-                  key={node.id}
-                  node={node}
-                  depth={0}
-                  selectedId={selectedId}
-                  busy={busy}
-                  onSelect={(id) => setSelectedId(id)}
-                  onAddChild={(id) => void addPage(id)}
-                />
-              ))}
-            </ul>
+            {tree.length === 0 ? (
+              <Text tone="muted">Пока ничего не раскрыто.</Text>
+            ) : (
+              <ul className="setting-wiki-tree">
+                {tree.map((node) => (
+                  <TreeNode
+                    key={node.id}
+                    node={node}
+                    depth={0}
+                    selectedId={selectedId}
+                    busy={busy}
+                    isOwner={isOwner}
+                    onSelect={(id) => setSelectedId(id)}
+                    onAddChild={(id) => void addPage(id)}
+                  />
+                ))}
+              </ul>
+            )}
           </aside>
 
           <section className="setting-wiki__editor">
@@ -312,41 +351,67 @@ export function SettingDetailPage() {
                 <Field label="Заголовок страницы">
                   <Input
                     value={draftTitle}
-                    disabled={busy}
+                    disabled={busy || !isOwner}
                     onChange={(e) => setDraftTitle(e.target.value)}
                   />
                 </Field>
-                <Field label="Текст" hint="C3: раскрытие игрокам — позже">
+                <Field
+                  label="Текст"
+                  hint={isOwner ? 'Скрытые страницы игроки не видят' : undefined}
+                >
                   <textarea
                     className="ui-input ui-textarea"
                     rows={14}
                     value={draftBody}
-                    disabled={busy}
+                    disabled={busy || !isOwner}
                     onChange={(e) => setDraftBody(e.target.value)}
                     placeholder="География, фракции, НПС…"
                   />
                 </Field>
-                <div className="inline-actions">
-                  <Button type="button" disabled={busy} onClick={() => void savePage()}>
-                    Сохранить страницу
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    disabled={busy}
-                    onClick={() => void addPage(selected.id)}
-                  >
-                    + Дочерняя
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    disabled={busy || setting.pages.length <= 1}
-                    onClick={() => void removePage()}
-                  >
-                    Удалить
-                  </Button>
-                </div>
+                {isOwner ? (
+                  <>
+                    <div className="setting-wiki-reveal">
+                      <label className="setting-wiki-reveal__toggle">
+                        <input
+                          type="checkbox"
+                          checked={selected.revealed}
+                          disabled={busy}
+                          onChange={(e) => void setRevealed(e.target.checked, false)}
+                        />
+                        <span>Раскрыто игрокам</span>
+                      </label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={busy}
+                        onClick={() => void setRevealed(!selected.revealed, true)}
+                      >
+                        {selected.revealed ? 'Скрыть ветку' : 'Раскрыть ветку'}
+                      </Button>
+                    </div>
+                    <div className="inline-actions">
+                      <Button type="button" disabled={busy} onClick={() => void savePage()}>
+                        Сохранить страницу
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => void addPage(selected.id)}
+                      >
+                        + Дочерняя
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={busy || setting.pages.length <= 1}
+                        onClick={() => void removePage()}
+                      >
+                        Удалить
+                      </Button>
+                    </div>
+                  </>
+                ) : null}
 
                 <div className="setting-wiki-links">
                   <Text as="h3">Связи →</Text>
@@ -364,46 +429,50 @@ export function SettingDetailPage() {
                           >
                             {link.label || link.to_title || 'Без названия'}
                           </button>
-                          <button
-                            type="button"
-                            className="setting-wiki-links__remove"
-                            disabled={busy}
-                            title="Убрать связь"
-                            onClick={() => void removeLink(link.id)}
-                          >
-                            ×
-                          </button>
+                          {isOwner ? (
+                            <button
+                              type="button"
+                              className="setting-wiki-links__remove"
+                              disabled={busy}
+                              title="Убрать связь"
+                              onClick={() => void removeLink(link.id)}
+                            >
+                              ×
+                            </button>
+                          ) : null}
                         </li>
                       ))}
                     </ul>
                   )}
-                  <div className="setting-wiki-links__add">
-                    <select
-                      className="ui-input"
-                      value={linkTargetId}
-                      disabled={busy || linkCandidates.length === 0}
-                      onChange={(e) => setLinkTargetId(e.target.value)}
-                    >
-                      <option value="">
-                        {linkCandidates.length === 0
-                          ? 'Некуда связать'
-                          : 'Страница для связи…'}
-                      </option>
-                      {linkCandidates.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.title || 'Без названия'}
+                  {isOwner ? (
+                    <div className="setting-wiki-links__add">
+                      <select
+                        className="ui-input"
+                        value={linkTargetId}
+                        disabled={busy || linkCandidates.length === 0}
+                        onChange={(e) => setLinkTargetId(e.target.value)}
+                      >
+                        <option value="">
+                          {linkCandidates.length === 0
+                            ? 'Некуда связать'
+                            : 'Страница для связи…'}
                         </option>
-                      ))}
-                    </select>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      disabled={busy || !linkTargetId}
-                      onClick={() => void addLink()}
-                    >
-                      Связать
-                    </Button>
-                  </div>
+                        {linkCandidates.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.title || 'Без названия'}
+                          </option>
+                        ))}
+                      </select>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy || !linkTargetId}
+                        onClick={() => void addLink()}
+                      >
+                        Связать
+                      </Button>
+                    </div>
+                  ) : null}
 
                   <Text as="h3">Ссылаются сюда</Text>
                   {pageLinks.incoming.length === 0 ? (
@@ -427,7 +496,11 @@ export function SettingDetailPage() {
                 </div>
               </Stack>
             ) : (
-              <Text tone="muted">Выбери страницу слева или добавь корневую.</Text>
+              <Text tone="muted">
+                {isOwner
+                  ? 'Выбери страницу слева или добавь корневую.'
+                  : 'Нет раскрытых страниц.'}
+              </Text>
             )}
           </section>
         </div>
@@ -442,6 +515,7 @@ function TreeNode({
   depth,
   selectedId,
   busy,
+  isOwner,
   onSelect,
   onAddChild,
 }: {
@@ -449,6 +523,7 @@ function TreeNode({
   depth: number
   selectedId: string | null
   busy: boolean
+  isOwner: boolean
   onSelect: (id: string) => void
   onAddChild: (id: string) => void
 }) {
@@ -456,7 +531,9 @@ function TreeNode({
   return (
     <li>
       <div
-        className={`setting-wiki-tree__row${on ? ' is-on' : ''}`}
+        className={`setting-wiki-tree__row${on ? ' is-on' : ''}${
+          isOwner && node.revealed ? ' is-revealed' : ''
+        }`}
         style={{ paddingLeft: 8 + depth * 14 }}
       >
         <button
@@ -466,16 +543,23 @@ function TreeNode({
           onClick={() => onSelect(node.id)}
         >
           {node.title || 'Без названия'}
+          {isOwner && node.revealed ? (
+            <span className="setting-wiki-tree__eye" title="Раскрыто игрокам">
+              ·
+            </span>
+          ) : null}
         </button>
-        <button
-          type="button"
-          className="setting-wiki-tree__add"
-          disabled={busy}
-          title="Дочерняя страница"
-          onClick={() => onAddChild(node.id)}
-        >
-          +
-        </button>
+        {isOwner ? (
+          <button
+            type="button"
+            className="setting-wiki-tree__add"
+            disabled={busy}
+            title="Дочерняя страница"
+            onClick={() => onAddChild(node.id)}
+          >
+            +
+          </button>
+        ) : null}
       </div>
       {node.children.length > 0 ? (
         <ul>
@@ -486,6 +570,7 @@ function TreeNode({
               depth={depth + 1}
               selectedId={selectedId}
               busy={busy}
+              isOwner={isOwner}
               onSelect={onSelect}
               onAddChild={onAddChild}
             />

@@ -776,15 +776,27 @@ class LobbyService:
             raise NotFoundError("Сеттинг не найден", code="setting_not_found")
         lobby = self._require_lobby(setting.lobby_id)
         self._require_view(lobby, user)
-        return self._setting_detail(setting)
+        return self._setting_detail(setting, is_owner=lobby.owner_id == user.id)
 
-    def _setting_detail(self, setting: Setting) -> SettingDetail:
+    def _setting_detail(self, setting: Setting, *, is_owner: bool) -> SettingDetail:
         pages = self.lobbies.list_setting_pages(setting.id)
-        title_by_id = {p.id: p.title for p in pages}
         links = self.lobbies.list_setting_page_links(setting.id)
+        if not is_owner:
+            pages = [p for p in pages if p.revealed]
+            visible = {p.id for p in pages}
+            links = [
+                link
+                for link in links
+                if link.from_page_id in visible and link.to_page_id in visible
+            ]
+        title_by_id = {p.id: p.title for p in pages}
         base = SettingSummary.model_validate(setting)
+        data = base.model_dump()
+        if not is_owner:
+            # не светить legacy notes целиком — у игрока только раскрытые страницы
+            data["world_notes"] = ""
         return SettingDetail(
-            **base.model_dump(),
+            **data,
             pages=[SettingPageOut.model_validate(p) for p in pages],
             links=[
                 SettingPageLinkOut(
@@ -798,7 +810,23 @@ class LobbyService:
                 )
                 for link in links
             ],
+            is_owner=is_owner,
         )
+
+    @staticmethod
+    def _descendant_pages(pages: list, root_id) -> list:
+        by_parent: dict = {}
+        for p in pages:
+            by_parent.setdefault(p.parent_id, []).append(p)
+        out: list = []
+
+        def walk(pid) -> None:
+            for child in by_parent.get(pid, []):
+                out.append(child)
+                walk(child.id)
+
+        walk(root_id)
+        return out
 
     def create_setting_page(
         self,
@@ -840,7 +868,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed)
+        return self._setting_detail(refreshed, is_owner=True)
 
     def update_setting_page(
         self,
@@ -881,6 +909,13 @@ class LobbyService:
         if payload.sort_order is not None:
             page.sort_order = payload.sort_order
 
+        if payload.revealed is not None:
+            page.revealed = payload.revealed
+            if payload.reveal_subtree:
+                all_pages = self.lobbies.list_setting_pages(setting.id)
+                for child in self._descendant_pages(all_pages, page.id):
+                    child.revealed = payload.revealed
+
         if page.parent_id is None and payload.body is not None:
             roots = [
                 p
@@ -894,7 +929,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed)
+        return self._setting_detail(refreshed, is_owner=True)
 
     def delete_setting_page(self, user: User, page_id: UUID) -> SettingDetail:
         page = self.lobbies.get_setting_page(page_id)
@@ -918,7 +953,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed)
+        return self._setting_detail(refreshed, is_owner=True)
 
     def create_setting_page_link(
         self,
@@ -967,7 +1002,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed)
+        return self._setting_detail(refreshed, is_owner=True)
 
     def delete_setting_page_link(self, user: User, link_id: UUID) -> SettingDetail:
         link = self.lobbies.get_setting_page_link(link_id)
@@ -985,7 +1020,7 @@ class LobbyService:
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
-        return self._setting_detail(refreshed)
+        return self._setting_detail(refreshed, is_owner=True)
 
     def create_session(
         self,
