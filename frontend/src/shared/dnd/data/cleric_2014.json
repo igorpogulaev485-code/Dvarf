@@ -64,6 +64,26 @@
       }
     },
     {
+      "id": "cd_harness_divine_power",
+      "level": 2,
+      "name_ru": "Праведное восстановление",
+      "name_en": "Harness Divine Power",
+      "summary_ru": "Бонусным действием Channel Divinity: восстановить одну потраченную ячейку заклинаний (уровень ≤ половины уровня жреца, округление вверх). Число раз = бонус мастерства / долгий отдых (Tasha).",
+      "kind": "bonus",
+      "resource": {
+        "uses": 1,
+        "recharge": "short_rest",
+        "scale_uses": {
+          "2": 1,
+          "6": 2,
+          "18": 3
+        },
+        "pool_id": "channel_divinity",
+        "pool_name_ru": "Божественный канал",
+        "track": "spend"
+      }
+    },
+    {
       "id": "asi_4_cleric",
       "level": 4,
       "name_ru": "Увеличение характеристик",

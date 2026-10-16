@@ -77,6 +77,7 @@ export function SubclassSetupDialog({
       primaryLabel="Применить"
       secondaryLabel="Отмена"
       size="wide"
+      primaryDisabled={Boolean(error)}
       onPrimary={() => {
         if (error) return
         onConfirm(picks)
@@ -149,6 +150,7 @@ export function SubclassSetupDialog({
                       key={key}
                       type="button"
                       className={`sheet-chip${on ? ' is-on' : ''}`}
+                      aria-pressed={on}
                       onClick={() => {
                         if (choice.kind === 'single') setSingle(choice.id, key)
                         else toggleMulti(choice.id, key, choice.count)

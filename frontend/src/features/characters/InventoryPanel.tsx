@@ -8,6 +8,8 @@ import {
   type GearAddResult,
 } from './gearFromCatalog'
 import { syncAttacksHeldFromInventory, type WeaponAttack } from './AttacksPanel'
+import { MAX_ATTUNEMENTS } from './attunement'
+import { MAX_COMBAT_CONSUMABLE_FAVORITES } from './combatConsumables'
 import {
   canShowEquipChip,
   equipLabel,
@@ -49,14 +51,22 @@ import {
 import {
   coinWeightLb,
   carryingCapacityLb,
+  coinsToGp,
+  formatCoinBreakdown,
+  formatGpTotal,
   formatLb,
   itemLineWeightLb,
   itemsWeightLb,
   totalCarriedLb,
-  type CoinPurse,
 } from '../../shared/dnd/weight'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
-import { TransferDialog, type TransferPeer } from './TransferDialog'
+import { CoinPadDialog } from './CoinPadDialog'
+import { SpellScrollBindDialog } from './SpellScrollBindDialog'
+import {
+  isCastableSpellScroll,
+  isSpellScrollCatalogSlug,
+  isSpellScrollItem,
+} from './spellScroll'
 import {
   armorFieldsFromCatalog,
   asWeighableItems,
@@ -80,18 +90,6 @@ import {
   resolvePackContents,
   sumContentsWeightLb,
 } from './inventoryPacks'
-
-const COIN_FIELDS: Array<{
-  key: keyof CoinPurse
-  label: string
-  tone: 'copper' | 'silver' | 'electrum' | 'gold' | 'platinum'
-}> = [
-  { key: 'cp', label: 'ММ', tone: 'copper' },
-  { key: 'sp', label: 'СМ', tone: 'silver' },
-  { key: 'ep', label: 'ЭМ', tone: 'electrum' },
-  { key: 'gp', label: 'ЗМ', tone: 'gold' },
-  { key: 'pp', label: 'ПМ', tone: 'platinum' },
-]
 
 function IconBook() {
   return (
@@ -165,21 +163,6 @@ function IconTrash() {
         strokeLinejoin="round"
       />
     </svg>
-  )
-}
-
-function CoinIcon({ tone }: { tone: (typeof COIN_FIELDS)[number]['tone'] }) {
-  return (
-    <span className={`inventory-coin__icon inventory-coin__icon--${tone}`} aria-hidden>
-      <svg viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10" fill="none" />
-        <circle cx="12" cy="12" r="7.2" fill="none" />
-        <path
-          d="M12 7.2v9.6M9.2 9.4c.7-1 2-1.6 2.8-1.6s2.1.6 2.1 1.6-1 1.5-2.1 1.9-2.8.9-2.8 2.2 1.2 2 2.8 2 2.3-.7 2.8-1.5"
-          fill="none"
-        />
-      </svg>
-    </span>
   )
 }
 
@@ -320,16 +303,21 @@ type InventoryPanelProps = {
   /** When set, catalog weapon picks also append attack cards. */
   onWeaponsChange?: (weapons: WeaponAttack[]) => void
   onToast?: (message: string) => void
-  transferPeers?: TransferPeer[]
-  transferBusy?: boolean
-  onTransfer?: (payload: {
-    lobby_id: string
-    to_character_id: string
-    item_id?: string
-    qty?: number
-    coin_currency?: keyof CoinPurse
-    coin_amount?: number
-  }) => void
+  /** Desk explore meta — КД from worn gear. */
+  autoAc?: number
+  acHint?: string
+  attunementFilled?: number
+  onOpenAttunement?: () => void
+  /**
+   * Open header CoinPad. When omitted, panel opens its own CoinPadDialog
+   * (same pad UX — no inline coin editors).
+   */
+  onOpenCoins?: () => void
+  /** Combat consumable favorites (★ in explore → расходники в бою). */
+  favoriteConsumableIds?: string[]
+  onToggleConsumableFavorite?: (itemId: string) => void
+  /** Cast a bound spell scroll from inventory (explore / combat). */
+  onCastScroll?: (itemId: string) => void
 }
 
 export function InventoryPanel({
@@ -341,19 +329,25 @@ export function InventoryPanel({
   onChange,
   onWeaponsChange,
   onToast,
-  transferPeers = [],
-  transferBusy = false,
-  onTransfer,
+  autoAc,
+  acHint,
+  attunementFilled,
+  onOpenAttunement,
+  onOpenCoins,
+  favoriteConsumableIds = [],
+  onToggleConsumableFavorite,
+  onCastScroll,
 }: InventoryPanelProps) {
+  const favoriteSet = useMemo(() => new Set(favoriteConsumableIds), [favoriteConsumableIds])
+  const favoriteCount = favoriteConsumableIds.length
   const [catalogItems, setCatalogItems] = useState<CatalogEntry[]>([])
-  void transferPeers
-  void transferBusy
-  void onTransfer
-  void TransferDialog
   const [packBusyId, setPackBusyId] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [coinPadOpen, setCoinPadOpen] = useState(false)
+  const [scrollBindItemId, setScrollBindItemId] = useState<string | null>(null)
   const [filter, setFilter] = useState<InventoryFilter>('all')
-  const [openIds, setOpenIds] = useState<Set<string>>(() => new Set())
+  /** Accordion: at most one root detail open. */
+  const [openId, setOpenId] = useState<string | null>(null)
   const inventoryRef = useRef(inventory)
   const onChangeRef = useRef(onChange)
   inventoryRef.current = inventory
@@ -408,11 +402,12 @@ export function InventoryPanel({
     })
   }, [ordered, filter, catalogItems])
 
-  function setCoins(patch: Partial<CoinPurse>) {
-    onChange({
-      ...inventory,
-      coins: { ...inventory.coins, ...patch },
-    })
+  function openCoinsPad() {
+    if (onOpenCoins) {
+      onOpenCoins()
+      return
+    }
+    setCoinPadOpen(true)
   }
 
   function updateItem(id: string, patch: Partial<InventoryItem>) {
@@ -423,10 +418,15 @@ export function InventoryPanel({
   }
 
   function toggleDetails(id: string) {
-    setOpenIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+    setOpenId((prev) => {
+      const next = prev === id ? null : id
+      if (next) {
+        window.requestAnimationFrame(() => {
+          document
+            .getElementById(`inventory-card-${next}`)
+            ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+        })
+      }
       return next
     })
   }
@@ -494,6 +494,7 @@ export function InventoryPanel({
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
+      catalog_slug: selected.slug,
       weight_lb: weight,
       armor_kind: armor.armor_kind ?? 'none',
       base_ac: armor.base_ac ?? null,
@@ -514,7 +515,15 @@ export function InventoryPanel({
       wear_slot: wear,
       requires_attunement: attune,
       effects,
+      scroll_spell: null,
     })
+    const isScroll =
+      isSpellScrollCatalogSlug(selected.slug) ||
+      parsedItem.family_slug === 'spell_scroll'
+    if (isScroll) {
+      setScrollBindItemId(id)
+      onToast?.('Укажи заклинание на свитке')
+    }
   }
 
   function toggleEquip(item: InventoryItem) {
@@ -532,24 +541,6 @@ export function InventoryPanel({
     if (onWeaponsChange) {
       onWeaponsChange(syncAttacksHeldFromInventory(weapons, items))
     }
-  }
-
-  function applyPreset(id: string, presetKey: string) {
-    if (!presetKey) return
-    const preset = ARMOR_PRESETS.find((item) => item.key === presetKey)
-    if (!preset) return
-    const maxDex =
-      preset.kind === 'medium' ? 2 : preset.kind === 'heavy' ? 0 : null
-    const strReq =
-      preset.key === 'chain_mail' ? 13 : preset.key === 'splint' || preset.key === 'plate' ? 15 : null
-    updateItem(id, {
-      name: preset.labelRu,
-      armor_kind: preset.kind,
-      base_ac: preset.baseAc,
-      weight_lb: preset.weight_lb,
-      max_dex_bonus: maxDex,
-      strength_requirement: strReq,
-    })
   }
 
   function setArmorKind(id: string, armor_kind: ArmorKind) {
@@ -625,7 +616,7 @@ export function InventoryPanel({
         ...inventory,
         items: expandPack({ items, packId: item.id, contents: resolved }),
       })
-      setOpenIds((prev) => new Set(prev).add(item.id))
+      setOpenId(item.id)
     } finally {
       setPackBusyId(null)
     }
@@ -663,7 +654,7 @@ export function InventoryPanel({
 
   function renderItemCard(item: InventoryItem, nested: boolean) {
     const expandedPack = isExpandedPack(inventory.items, item.id)
-    const detailsOpen = openIds.has(item.id) || nested
+    const detailsOpen = openId === item.id || nested
     const role = roleLabel(item, catalogItems)
     const bucket = itemBucket(item, catalogItems)
     const lineLb = formatLb(
@@ -705,9 +696,6 @@ export function InventoryPanel({
                 {statusTag}
               </span>
             ) : null}
-            {item.requires_attunement && bucket === 'other' ? (
-              <span className="attack-held-tag">настройка</span>
-            ) : null}
             {item.wear_slot && item.wear_slot !== 'none' && bucket === 'other' ? (
               <span className="attack-held-tag">{WEAR_SLOT_LABEL_RU[item.wear_slot]}</span>
             ) : null}
@@ -729,6 +717,26 @@ export function InventoryPanel({
               </button>
             ) : null}
             {renderEquipChip(item)}
+            {onToggleConsumableFavorite && item.name.trim() && !item.parent_id ? (
+              <button
+                type="button"
+                className={`inventory-fav${favoriteSet.has(item.id) ? ' is-on' : ''}`}
+                title={
+                  favoriteSet.has(item.id)
+                    ? 'Убрать из расходников боя'
+                    : favoriteCount >= MAX_COMBAT_CONSUMABLE_FAVORITES
+                      ? `Уже ${MAX_COMBAT_CONSUMABLE_FAVORITES} избранных`
+                      : 'В расходники боя'
+                }
+                disabled={
+                  !favoriteSet.has(item.id) &&
+                  favoriteCount >= MAX_COMBAT_CONSUMABLE_FAVORITES
+                }
+                onClick={() => onToggleConsumableFavorite(item.id)}
+              >
+                {favoriteSet.has(item.id) ? '★' : '☆'}
+              </button>
+            ) : null}
             <button
               type="button"
               className="inventory-card__chevron-btn"
@@ -745,9 +753,10 @@ export function InventoryPanel({
     return (
       <div
         key={item.id}
-        className={`inventory-card${nested ? ' inventory-card--nested' : ''}${
-          expandedPack ? ' inventory-card--pack-open' : ''
-        }`}
+        id={`inventory-card-${item.id}`}
+        className={`inventory-card inventory-card--expand${
+          nested ? ' inventory-card--nested' : ''
+        }${expandedPack ? ' inventory-card--pack-open' : ''}`}
       >
         {nested ? (
           <Text tone="muted" className="inventory-card__nest-label">
@@ -761,6 +770,22 @@ export function InventoryPanel({
             <span className={`attack-held-tag${item.equipped ? ' is-on' : ''}`}>
               {statusTag}
             </span>
+          ) : null}
+          {!nested && isArmorRow(item) ? (
+            <span className="inventory-card__ac-pill" aria-label="КД">
+              {item.armor_kind === 'shield'
+                ? `щит +${item.base_ac ?? 2}`
+                : `кд ${item.base_ac ?? '—'}`}
+            </span>
+          ) : null}
+          {!nested ? (
+            <button
+              type="button"
+              className="inventory-card__collapse"
+              onClick={() => toggleDetails(item.id)}
+            >
+              свернуть
+            </button>
           ) : null}
         </div>
 
@@ -777,71 +802,42 @@ export function InventoryPanel({
         </div>
 
         {!nested && isArmorRow(item) ? (
-          <div className="inventory-card__armor-row">
-            <div className="inventory-card__stats" aria-label="КД">
-              <div className="inventory-card__stat">
-                <span className="inventory-card__stat-label">
-                  {item.armor_kind === 'shield' ? 'щит' : 'кд'}
-                </span>
-                <span className="inventory-card__stat-value">
-                  {item.armor_kind === 'shield'
-                    ? `+${item.base_ac ?? 2}`
-                    : item.base_ac ?? '—'}
-                </span>
-              </div>
-            </div>
-            <div className="inventory-card__grid inventory-card__grid--armor">
-              <Field label="Тип для КД">
-                <select
-                  className="play-select"
-                  value={item.armor_kind}
-                  onChange={(event) =>
-                    setArmorKind(item.id, event.target.value as ArmorKind)
-                  }
-                >
-                  {ARMOR_KINDS.map((kind) => (
-                    <option key={kind} value={kind}>
-                      {armorKindLabel(kind)}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field
-                label={
-                  item.armor_kind === 'shield' ? 'Бонус КД' : 'Базовый КД'
+          <div className="inventory-card__grid inventory-card__grid--armor">
+            <Field label="Тип">
+              <select
+                className="play-select"
+                value={item.armor_kind}
+                onChange={(event) =>
+                  setArmorKind(item.id, event.target.value as ArmorKind)
                 }
               >
-                <NumberInput
-                  min={0}
-                  max={30}
-                  emptyValue={item.armor_kind === 'shield' ? 2 : 10}
-                  value={item.base_ac}
-                  onValueChange={(base_ac) => updateItem(item.id, { base_ac })}
-                />
-              </Field>
-              <Field label="Вес">
-                <NumberInput
-                  min={0}
-                  step={0.1}
-                  integer={false}
-                  emptyValue={null}
-                  value={item.weight_lb}
-                  onValueChange={(weight_lb) => updateItem(item.id, { weight_lb })}
-                />
-              </Field>
-              <Field label="Кол-во">
-                <NumberInput
-                  min={0}
-                  emptyValue={1}
-                  value={item.qty}
-                  onValueChange={(qty) => updateItem(item.id, { qty: qty ?? 0 })}
-                />
-              </Field>
-            </div>
-          </div>
-        ) : (
-          <div className="inventory-card__grid">
-            <Field label="Кол-во">
+                {ARMOR_KINDS.map((kind) => (
+                  <option key={kind} value={kind}>
+                    {armorKindLabel(kind)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label={item.armor_kind === 'shield' ? 'Бонус' : 'База КД'}>
+              <NumberInput
+                min={0}
+                max={30}
+                emptyValue={item.armor_kind === 'shield' ? 2 : 10}
+                value={item.base_ac}
+                onValueChange={(base_ac) => updateItem(item.id, { base_ac })}
+              />
+            </Field>
+            <Field label="Вес">
+              <NumberInput
+                min={0}
+                step={0.1}
+                integer={false}
+                emptyValue={null}
+                value={item.weight_lb}
+                onValueChange={(weight_lb) => updateItem(item.id, { weight_lb })}
+              />
+            </Field>
+            <Field label="×">
               <NumberInput
                 min={0}
                 emptyValue={1}
@@ -849,7 +845,18 @@ export function InventoryPanel({
                 onValueChange={(qty) => updateItem(item.id, { qty: qty ?? 0 })}
               />
             </Field>
-            <Field label="Вес, фнт" hint="за 1 шт.">
+          </div>
+        ) : (
+          <div className="inventory-card__grid inventory-card__grid--dense">
+            <Field label="×">
+              <NumberInput
+                min={0}
+                emptyValue={1}
+                value={item.qty}
+                onValueChange={(qty) => updateItem(item.id, { qty: qty ?? 0 })}
+              />
+            </Field>
+            <Field label="фнт">
               <NumberInput
                 min={0}
                 step={0.1}
@@ -862,95 +869,59 @@ export function InventoryPanel({
           </div>
         )}
 
-        {!nested && isArmorRow(item) ? (
-          <Field label="Шаблон брони" hint="быстро подставить PHB">
-            <select
-              className="play-select"
-              value=""
-              onChange={(event) => applyPreset(item.id, event.target.value)}
-            >
-              <option value="">— выбрать —</option>
-              {ARMOR_PRESETS.map((preset) => (
-                <option key={preset.key} value={preset.key}>
-                  {preset.labelRu} (
-                  {preset.kind === 'shield' ? `+${preset.baseAc}` : preset.baseAc})
-                </option>
-              ))}
-            </select>
-          </Field>
-        ) : null}
-
         {!nested && !isArmorRow(item) ? (
-          <Field
-            label="Для заклинаний"
-            hint="Тип строки — каст смотрит на него, не на имя"
-          >
-            <select
-              className="play-select"
-              value={item.spell_tooling ?? 'none'}
-              onChange={(event) => {
-                const spell_tooling = event.target.value as SpellTooling
-                if (spell_tooling === 'focus') {
-                  updateItem(item.id, {
-                    spell_tooling: 'focus',
-                    focus_kind: item.focus_kind ?? 'any',
-                  })
-                  return
-                }
-                updateItem(item.id, {
-                  spell_tooling,
-                  focus_kind: null,
-                })
-              }}
-            >
-              {(Object.keys(SPELL_TOOLING_LABEL_RU) as SpellTooling[]).map((key) => (
-                <option key={key} value={key}>
-                  {SPELL_TOOLING_LABEL_RU[key]}
-                </option>
-              ))}
-            </select>
-          </Field>
-        ) : null}
-
-        {!nested && item.spell_tooling === 'focus' ? (
-          <FocusCatalogSelect
-            edition={edition}
-            family={item.focus_kind ?? 'any'}
-            allowFamilyPick
-            label="Фокус из справочника"
-            value={focusSelectionFromItem(item, catalogItems)}
-            onChange={(selection) => {
-              const fields = applyFocusSelectionToItemFields(selection)
-              updateItem(item.id, fields)
-            }}
-          />
-        ) : null}
-
-        {!nested && !isArmorRow(item) && !isWeaponRow(item) ? (
-          <div className="sheet-grid sheet-grid--2">
-            <Field label="Слот ношения" hint="Плащ, кольцо×2…">
+          <div className="inventory-card__role-row">
+            <Field label="Для заклинаний">
               <select
                 className="play-select"
-                value={item.wear_slot ?? 'none'}
-                onChange={(event) =>
+                value={item.spell_tooling ?? 'none'}
+                onChange={(event) => {
+                  const spell_tooling = event.target.value as SpellTooling
+                  if (spell_tooling === 'focus') {
+                    updateItem(item.id, {
+                      spell_tooling: 'focus',
+                      focus_kind: item.focus_kind ?? 'any',
+                    })
+                    return
+                  }
                   updateItem(item.id, {
-                    wear_slot: event.target.value as WearSlot,
+                    spell_tooling,
+                    focus_kind: null,
                   })
-                }
+                }}
               >
-                {WEAR_SLOTS.filter(
-                  (slot) =>
-                    slot === 'none' ||
-                    isWornMagicSlot(slot) ||
-                    slot === item.wear_slot,
-                ).map((slot) => (
-                  <option key={slot} value={slot}>
-                    {WEAR_SLOT_LABEL_RU[slot]}
+                {(Object.keys(SPELL_TOOLING_LABEL_RU) as SpellTooling[]).map((key) => (
+                  <option key={key} value={key}>
+                    {SPELL_TOOLING_LABEL_RU[key]}
                   </option>
                 ))}
               </select>
             </Field>
-            <Field label="Настройка">
+            {!isWeaponRow(item) ? (
+              <Field label="Слот">
+                <select
+                  className="play-select"
+                  value={item.wear_slot ?? 'none'}
+                  onChange={(event) =>
+                    updateItem(item.id, {
+                      wear_slot: event.target.value as WearSlot,
+                    })
+                  }
+                >
+                  {WEAR_SLOTS.filter(
+                    (slot) =>
+                      slot === 'none' ||
+                      isWornMagicSlot(slot) ||
+                      slot === item.wear_slot,
+                  ).map((slot) => (
+                    <option key={slot} value={slot}>
+                      {WEAR_SLOT_LABEL_RU[slot]}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            ) : null}
+            {!isWeaponRow(item) ? (
               <button
                 type="button"
                 className={`sheet-chip${item.requires_attunement ? ' is-on' : ''}`}
@@ -960,17 +931,54 @@ export function InventoryPanel({
                   })
                 }
               >
-                {item.requires_attunement ? 'Нужна настройка' : 'Без настройки'}
+                {item.requires_attunement ? 'Настройка' : 'Без настр.'}
               </button>
-            </Field>
+            ) : null}
           </div>
         ) : null}
 
+        {!nested && item.spell_tooling === 'focus' ? (
+          <FocusCatalogSelect
+            edition={edition}
+            family={item.focus_kind ?? 'any'}
+            allowFamilyPick
+            label="Фокус"
+            value={focusSelectionFromItem(item, catalogItems)}
+            onChange={(selection) => {
+              const fields = applyFocusSelectionToItemFields(selection)
+              updateItem(item.id, fields)
+            }}
+          />
+        ) : null}
+
         {effectsLine ? (
-          <Text tone="muted">
-            Эффекты: {effectsLine}
+          <Text tone="muted" className="inventory-card__effects">
+            {effectsLine}
             {item.requires_attunement ? ' · нужна настройка' : ''}
           </Text>
+        ) : null}
+
+        {isSpellScrollItem(item) ? (
+          <div className="chip-row" style={{ marginTop: 4 }}>
+            <button
+              type="button"
+              className={`sheet-chip${item.scroll_spell ? ' is-on' : ''}`}
+              onClick={() => setScrollBindItemId(item.id)}
+            >
+              {item.scroll_spell
+                ? `Заклинание: ${item.scroll_spell.name}`
+                : 'Указать заклинание свитка'}
+            </button>
+            {isCastableSpellScroll(item) && onCastScroll ? (
+              <button
+                type="button"
+                className="sheet-chip is-on"
+                onClick={() => onCastScroll(item.id)}
+              >
+                Кастовать свиток
+              </button>
+            ) : null}
+          </div>
         ) : null}
 
         <Field label="Примечания">
@@ -1002,16 +1010,6 @@ export function InventoryPanel({
               Свернуть набор
             </button>
           ) : null}
-          {!nested ? (
-            <button
-              type="button"
-              className="inventory-action"
-              onClick={() => toggleDetails(item.id)}
-            >
-              <IconChevronUp />
-              Свернуть
-            </button>
-          ) : null}
           <button
             type="button"
             className="inventory-action inventory-action--danger"
@@ -1033,7 +1031,10 @@ export function InventoryPanel({
   return (
     <Panel title="Инвентарь" className="inventory-panel">
       <Stack gap={12}>
-        <Text tone="muted">Управляйте вещами, весом и монетами персонажа.</Text>
+        <Text tone="muted">
+          Ноша и вещи. Строка — взгляд; клик — детали (одна открыта). ★ — в расходники боя. Монеты —
+          через pad.
+        </Text>
 
         <div className="inventory-panel__toolbar">
           <Button
@@ -1053,7 +1054,7 @@ export function InventoryPanel({
                 ...inventory,
                 items: [...inventory.items, row],
               })
-              setOpenIds((prev) => new Set(prev).add(row.id))
+              setOpenId(row.id)
               setFilter('all')
             }}
           >
@@ -1062,30 +1063,79 @@ export function InventoryPanel({
           </Button>
         </div>
 
-        <p className={`inventory-summary-line${overEncumbered ? ' is-over' : ''}`}>
-          Вещи {formatLb(itemsLb)} фнт · Монеты {formatLb(coinsLb)} фнт · Итого{' '}
-          <strong>
-            {formatLb(totalLb)} / {formatLb(capacityLb)} фнт
-          </strong>
-        </p>
-        {overEncumbered ? (
-          <Text tone="danger">Перегруз: итого больше лимита переноски (СИЛ × 15).</Text>
-        ) : null}
-
-        <div className="inventory-coins" aria-label="Монеты">
-          {COIN_FIELDS.map((field) => (
-            <label key={field.key} className="inventory-coin">
-              <CoinIcon tone={field.tone} />
-              <span className="inventory-coin__label">{field.label}</span>
-              <NumberInput
-                min={0}
-                emptyValue={0}
-                value={inventory.coins[field.key]}
-                onValueChange={(next) => setCoins({ [field.key]: next ?? 0 })}
-              />
-            </label>
-          ))}
+        <div
+          className={`inventory-summary${overEncumbered ? ' is-over' : ''}`}
+          aria-label="Ноша и настройка"
+        >
+          <div className="inventory-summary__top">
+            <p className="inventory-summary__weights">
+              Вещи {formatLb(itemsLb)} · монеты {formatLb(coinsLb)} ·{' '}
+              <strong>
+                {formatLb(totalLb)} / {formatLb(capacityLb)} фнт
+              </strong>
+            </p>
+            <div className="inventory-summary__chips">
+              {autoAc != null ? (
+                <span
+                  className="inventory-summary__chip"
+                  title={acHint || undefined}
+                >
+                  КД {autoAc}
+                </span>
+              ) : null}
+              {attunementFilled != null ? (
+                onOpenAttunement ? (
+                  <button
+                    type="button"
+                    className="inventory-summary__chip inventory-summary__chip--action"
+                    onClick={onOpenAttunement}
+                  >
+                    Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                  </button>
+                ) : (
+                  <span className="inventory-summary__chip">
+                    Настройка {attunementFilled}/{MAX_ATTUNEMENTS}
+                  </span>
+                )
+              ) : null}
+            </div>
+          </div>
+          <div
+            className="inventory-summary__bar"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={Math.max(1, Math.round(capacityLb))}
+            aria-valuenow={Math.round(totalLb)}
+            aria-label={`Ноша ${formatLb(totalLb)} из ${formatLb(capacityLb)} фунтов`}
+          >
+            <div
+              className="inventory-summary__fill"
+              style={{
+                width: `${Math.min(100, capacityLb > 0 ? (totalLb / capacityLb) * 100 : 0)}%`,
+              }}
+            />
+          </div>
+          {overEncumbered ? (
+            <Text tone="danger" className="inventory-summary__over">
+              Перегруз: больше лимита переноски (СИЛ × 15).
+            </Text>
+          ) : null}
         </div>
+
+        <button
+          type="button"
+          className="inventory-coins inventory-coins--pad"
+          aria-label="Монеты — открыть pad"
+          onClick={openCoinsPad}
+        >
+          <span className="inventory-coins__total">
+            <strong>{formatGpTotal(coinsToGp(inventory.coins))} зм</strong>
+            <span>кошелёк · pad</span>
+          </span>
+          <span className="inventory-coins__breakdown">
+            {formatCoinBreakdown(inventory.coins)}
+          </span>
+        </button>
 
         <div className="inventory-filters" role="tablist" aria-label="Фильтр инвентаря">
           {FILTERS.map((row) => (
@@ -1153,8 +1203,51 @@ export function InventoryPanel({
             onWeaponsChange(next.weapons)
           }
           setPickerOpen(false)
+          const added = toAdd.item
+          if (
+            isSpellScrollCatalogSlug(added.catalog_slug) ||
+            isSpellScrollItem(added)
+          ) {
+            setScrollBindItemId(added.id)
+            onToast?.('Укажи заклинание на свитке')
+          }
         }}
       />
+
+      <SpellScrollBindDialog
+        open={scrollBindItemId != null}
+        edition={edition}
+        item={
+          scrollBindItemId
+            ? inventory.items.find((row) => row.id === scrollBindItemId) ?? null
+            : null
+        }
+        onConfirm={(bound) => {
+          onChange({
+            ...inventory,
+            items: inventory.items.map((row) =>
+              row.id === bound.id ? bound : row,
+            ),
+          })
+          setScrollBindItemId(null)
+          onToast?.(
+            bound.scroll_spell
+              ? `Свиток: ${bound.scroll_spell.name}`
+              : 'Свиток обновлён',
+          )
+        }}
+        onClose={() => setScrollBindItemId(null)}
+      />
+
+      {!onOpenCoins ? (
+        <CoinPadDialog
+          open={coinPadOpen}
+          coins={inventory.coins}
+          onClose={() => setCoinPadOpen(false)}
+          onChange={(coins) => onChange({ ...inventory, coins })}
+          onToast={onToast ?? (() => undefined)}
+        />
+      ) : null}
     </Panel>
   )
 }

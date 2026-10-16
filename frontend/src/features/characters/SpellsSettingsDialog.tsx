@@ -4,6 +4,7 @@ import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
   applySpellcastingSuggestion,
+  resolveSpellLearnBudget,
   warlockLevels,
   warlockPactForLevel,
   type SpellcastingSuggestion,
@@ -22,10 +23,20 @@ import {
   formatSpellComponents,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
+import type { FormulaVars } from '../../shared/dnd/formulas'
+import type { CoinPurse } from '../../shared/dnd/weight'
 import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { GrimoireDialog } from './GrimoireDialog'
+import {
+  type BonusLine,
+  withSpellCastBonuses,
+} from './modifiers'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
+import { SpellbookManageDialog } from './SpellbookManageDialog'
+import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
+import { wizardSpellbookStatusLabel } from './wizardSpellbookInventory'
+import { SpellCastBreakdownDialog } from './SpellCastBreakdownDialog'
 import {
   IconFocus,
   IconPouch,
@@ -56,9 +67,24 @@ type SpellsSettingsDialogProps = {
   proficiencyBonus: number
   suggestion: SpellcastingSuggestion | null
   knownCaster: boolean
+  /** Purse for wizard paid spellbook copies. */
+  coins?: CoinPurse | null
+  onCoinsChange?: (coins: CoinPurse) => void
+  inventoryItems?: import('./inventory').InventoryItem[]
+  onInventoryItemsChange?: (items: import('./inventory').InventoryItem[]) => void
+  onChangeInventory?: (next: {
+    coins: CoinPurse
+    items: import('./inventory').InventoryItem[]
+  }) => void
+  /** Sheet modifiers + formula vars for spell DC / attack buffs. */
+  modifiers?: BonusLine[]
+  formulaVars?: FormulaVars
+  onModifiersChange?: (next: BonusLine[]) => void
   onChange: (spells: SpellsState) => void
   onClose: () => void
   onToast?: (message: string) => void
+  /** Mobile kit M1.1: «Книга заклинаний»; desk keeps default. */
+  title?: string
 }
 
 export function SpellsSettingsDialog({
@@ -73,13 +99,26 @@ export function SpellsSettingsDialog({
   proficiencyBonus,
   suggestion,
   knownCaster,
+  coins = null,
+  onCoinsChange,
+  inventoryItems = [],
+  onInventoryItemsChange,
+  onChangeInventory,
+  modifiers = [],
+  formulaVars = {},
+  onModifiersChange,
   onChange,
   onClose,
   onToast,
+  title = 'Настройки заклинаний',
 }: SpellsSettingsDialogProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
+  const [bookManageOpen, setBookManageOpen] = useState(false)
   const [advancedOpen, setAdvancedOpen] = useState(false)
+  const [castBuffFocus, setCastBuffFocus] = useState<
+    'spell_dc' | 'spell_attack' | null
+  >(null)
 
   const classRows = useMemo(
     () =>
@@ -105,12 +144,31 @@ export function SpellsSettingsDialog({
     return null
   }, [suggestion, warlockLvl])
 
+  const learnBudget = useMemo(
+    () =>
+      resolveSpellLearnBudget({
+        classes: classRows,
+        subclassCasters,
+        abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      }),
+    [classRows, subclassCasters, abilities],
+  )
+
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const saveDc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
-  const attackBonus = abilityKey
+  const baseSaveDc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
+  const baseAttackBonus = abilityKey
     ? spellAttackBonus(abilityMod, proficiencyBonus)
     : null
+  const castStats = withSpellCastBonuses({
+    baseDc: baseSaveDc,
+    baseAttack: baseAttackBonus,
+    modifiers,
+    vars: formulaVars,
+  })
+  const saveDc = castStats.dc
+  const attackBonus = castStats.attack
+  const canEditCastBuffs = Boolean(onModifiersChange && abilityKey)
 
   function patch(next: Partial<SpellsState>) {
     onChange({ ...spells, ...next })
@@ -219,7 +277,7 @@ export function SpellsSettingsDialog({
     <>
       <Dialog
         open={open && !prepareOpen && !grimoireOpen}
-        title="Настройки заклинаний"
+        title={title}
         size="wide"
         primaryLabel="Готово"
         onPrimary={onClose}
@@ -254,14 +312,17 @@ export function SpellsSettingsDialog({
           </div>
 
           <div className="spells-settings-dialog__books">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => setPrepareOpen(true)}
-            >
-              <IconWizardHat className="spells-btn-icon" />
-              Подготовить
-            </Button>
+            {!knownCaster ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setPrepareOpen(true)}
+                title="Выбрать заклинания на сегодня (лимит подготовки класса)"
+              >
+                <IconWizardHat className="spells-btn-icon" />
+                Подготовить
+              </Button>
+            ) : null}
             <Button
               type="button"
               variant="secondary"
@@ -270,6 +331,17 @@ export function SpellsSettingsDialog({
               <IconSpellBook className="spells-btn-icon" />
               Гримуар
             </Button>
+            {learnBudget?.mode === 'spellbook' ? (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setBookManageOpen(true)}
+                title="Утеря / замена книги заклинаний"
+              >
+                <IconSpellBook className="spells-btn-icon" />
+                {wizardSpellbookStatusLabel(spells).label}
+              </Button>
+            ) : null}
           </div>
 
           <div className="spells-settings">
@@ -295,18 +367,46 @@ export function SpellsSettingsDialog({
                     className="spells-settings__derived"
                     aria-label="Сл. спас. и атака заклинаний"
                   >
-                    <div className="spells-settings__derived-stat">
-                      <span>Сл. спас.</span>
-                      <strong>{saveDc == null ? '—' : saveDc}</strong>
-                    </div>
-                    <div className="spells-settings__derived-stat">
-                      <span>Атака</span>
-                      <strong>
-                        {attackBonus == null ? '—' : formatModifier(attackBonus)}
-                      </strong>
-                    </div>
+                    {canEditCastBuffs ? (
+                      <button
+                        type="button"
+                        className="spells-settings__derived-stat spells-settings__derived-stat--btn"
+                        title="Разборка сл. спас. — бонусы и формулы"
+                        onClick={() => setCastBuffFocus('spell_dc')}
+                      >
+                        <span>Сл. спас.</span>
+                        <strong>{saveDc == null ? '—' : saveDc}</strong>
+                      </button>
+                    ) : (
+                      <div className="spells-settings__derived-stat">
+                        <span>Сл. спас.</span>
+                        <strong>{saveDc == null ? '—' : saveDc}</strong>
+                      </div>
+                    )}
+                    {canEditCastBuffs ? (
+                      <button
+                        type="button"
+                        className="spells-settings__derived-stat spells-settings__derived-stat--btn"
+                        title="Разборка атаки заклинанием — бонусы и формулы"
+                        onClick={() => setCastBuffFocus('spell_attack')}
+                      >
+                        <span>Атака</span>
+                        <strong>
+                          {attackBonus == null ? '—' : formatModifier(attackBonus)}
+                        </strong>
+                      </button>
+                    ) : (
+                      <div className="spells-settings__derived-stat">
+                        <span>Атака</span>
+                        <strong>
+                          {attackBonus == null ? '—' : formatModifier(attackBonus)}
+                        </strong>
+                      </div>
+                    )}
                     <Text tone="muted" className="spells-settings__derived-hint">
-                      8+БМ+мод / БМ+мод — считаются сами
+                      {canEditCastBuffs
+                        ? '8+БМ+мод / БМ+мод · клик — бонусы'
+                        : '8+БМ+мод / БМ+мод — считаются сами'}
                     </Text>
                   </div>
                 </div>
@@ -658,21 +758,67 @@ export function SpellsSettingsDialog({
       <PrepareSpellsDialog
         open={prepareOpen}
         spells={spells}
+        learnMode={learnBudget?.mode ?? (knownCaster ? 'known' : 'prepared_list')}
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />
+      {learnBudget?.mode === 'spellbook' && onCoinsChange ? (
+        <SpellbookManageDialog
+          open={bookManageOpen}
+          spells={spells}
+          inventoryItems={inventoryItems}
+          coins={coins ?? { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 }}
+          wizardLevel={
+            classRows.find((row) => /волшебник|wizard|маг/i.test(row.name))?.level ??
+            level
+          }
+          subclassSlug={(() => {
+            const row = classRows.find((item) => /волшебник|wizard|маг/i.test(item.name))
+            const raw = row?.subclass_name?.trim() || ''
+            if (!raw) return null
+            return resolveSubclassFeatureSlug(raw) ?? raw.toLowerCase().replace(/\s+/g, '_')
+          })()}
+          onChangeSpells={onChange}
+          onChangeCoins={onCoinsChange}
+          onChangeInventoryItems={onInventoryItemsChange}
+          onChangeInventory={onChangeInventory}
+          onClose={() => setBookManageOpen(false)}
+          onToast={onToast}
+        />
+      ) : null}
       <GrimoireDialog
         open={grimoireOpen}
         edition={edition}
         spells={spells}
         knownCaster={knownCaster}
+        learnBudget={learnBudget}
         abilityModFor={(ability) => abilityModifier(abilities[ability])}
         classes={classRows}
         subclassCasters={subclassCasters}
+        coins={coins}
+        onCoinsChange={onCoinsChange}
+        inventoryItems={inventoryItems}
         onChange={onChange}
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}
       />
+      {onModifiersChange && baseSaveDc != null && baseAttackBonus != null ? (
+        <SpellCastBreakdownDialog
+          open={castBuffFocus != null}
+          focus={castBuffFocus ?? 'spell_dc'}
+          baseDc={baseSaveDc}
+          baseAttack={baseAttackBonus}
+          baseHint={
+            abilityKey
+              ? `8+БМ+${SPELLCASTING_ABILITY_LABELS[abilityKey]} / БМ+${SPELLCASTING_ABILITY_LABELS[abilityKey]}`
+              : '8+БМ+мод / БМ+мод'
+          }
+          formulaVars={formulaVars}
+          modifiers={modifiers}
+          onModifiersChange={onModifiersChange}
+          onClose={() => setCastBuffFocus(null)}
+        />
+      ) : null}
     </>
   )
 }

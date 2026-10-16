@@ -51,6 +51,22 @@
           "14": "10 / 5",
           "18": "12 / 6"
         }
+      },
+      "resource": {
+        "uses": 2,
+        "recharge": "long_rest",
+        "scale_uses": {
+          "2": 2,
+          "6": 3,
+          "10": 4,
+          "14": 5,
+          "18": 6
+        },
+        "pool_id": "infusion_slots",
+        "pool_name_ru": "Активные инфузии",
+        "track": "stock",
+        "stock_gain_label_ru": "+ слот (не вручную — через диалог)",
+        "stock_spend_label_ru": "Активно на предметах"
       }
     },
     {

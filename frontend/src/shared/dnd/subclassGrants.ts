@@ -102,6 +102,11 @@ export type AppliedSubclassGrant = {
   caster: { progression: 'third' | 'none'; ability: 'int' | 'wis' | 'cha' | null } | null
   /** Sheet spell ids injected as always-prepared from this grant. */
   grantedSpellIds: string[]
+  /**
+   * Full always-prepared list from the catalog (domain/oath spells).
+   * Used to unlock higher-level spells when the caster gains slots.
+   */
+  alwaysPreparedSpells?: AlwaysPreparedSpell[]
 }
 
 /** How a mid-campaign archetype swap rewrites abilities. */

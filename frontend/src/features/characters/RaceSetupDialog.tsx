@@ -497,6 +497,12 @@ export function RaceSetupDialog({
               </Text>
             ) : null}
 
+            {def.languages.length > 0 ? (
+              <Text>
+                Языки расы: <strong>{def.languages.join(', ')}</strong>
+              </Text>
+            ) : null}
+
             {asiModes.length > 0 && def.abilityBonusChoices ? (
               <Stack gap={10}>
                 <Field

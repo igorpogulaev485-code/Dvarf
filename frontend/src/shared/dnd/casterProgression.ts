@@ -663,6 +663,23 @@ export function highestSpellSlotLevel(
 }
 
 /**
+ * Highest spell level the character's class mix can cast (slots / pact).
+ * Used to gate always-prepared domain/oath spells before sheet slots exist.
+ */
+export function highestSpellSlotLevelForClasses(
+  classes: ClassLevelEntry[],
+  subclassCasters?: SubclassCasterOverlay[],
+): number {
+  const suggestion = suggestSpellcastingFromClasses({
+    classes,
+    abilityModFor: () => 0,
+    subclassCasters,
+  })
+  if (!suggestion) return 0
+  return highestSpellSlotLevel(suggestion.slots, suggestion.pact_slots)
+}
+
+/**
  * Class spell-list slugs this character may learn from (union for multiclass).
  * Third-casters (EK / Arcane Trickster) use the wizard list.
  */
@@ -777,7 +794,11 @@ function tableAtLevel(table: number[] | undefined, level: number): number {
   return table[clampLevel(level) - 1] ?? table[table.length - 1] ?? 0
 }
 
-/** Wizard spellbook: 6 at 1st, +2 each level after. */
+/**
+ * Wizard free-research size: 6 at 1st, +2 each level after (PHB).
+ * Soft budget for free adds — paid copies may exceed this.
+ * Physical book / copy cost / lose-replace: see wizardSpellbook.ts.
+ */
 export function wizardSpellbookLeveledCap(wizardLevel: number): number {
   const lv = clampLevel(wizardLevel)
   return 6 + 2 * (lv - 1)

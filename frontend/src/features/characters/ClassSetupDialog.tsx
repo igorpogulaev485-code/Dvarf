@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  buildItemsFromEquipmentLines,
+  equipmentLinesFor,
   equipmentPackagesFor,
   grantNeedsSetupDialog,
   packageForMode,
+  PHB_LINES_PACKAGE_ID,
   skillOptionsForPackage,
+  validateEquipmentLinePicks,
   type ClassEquipmentFocusPick,
+  type ClassEquipmentLinePick,
   type ClassGrantDef,
   type ClassGrantPicks,
 } from '../../shared/dnd/classGrants'
+import { listWeaponPresetsByGroup } from '../../shared/dnd/weaponPresets'
 import type { RulesEdition } from '../../shared/api/characters'
 import { SKILL_DEFS } from './sheetTypes'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
@@ -63,6 +69,7 @@ export function ClassSetupDialog({
     return skillOptionsForPackage(packageForMode(def, mode))
   }, [def, mode])
   const toolOptions = def ? packageForMode(def, mode).toolChoices?.from ?? [] : []
+  const equipmentLines = def && mode === 'start' ? equipmentLinesFor(def) : []
   const equipmentPackages = def && mode === 'start' ? equipmentPackagesFor(def) : []
   const blockedSkills = useMemo(() => new Set(blockedSkillKeys), [blockedSkillKeys])
   const blockedTools = useMemo(
@@ -73,15 +80,24 @@ export function ClassSetupDialog({
   const [skills, setSkills] = useState<string[]>([])
   const [tools, setTools] = useState<string[]>([])
   const [equipmentPackageId, setEquipmentPackageId] = useState<string | null>(null)
+  const [linePicks, setLinePicks] = useState<Record<string, ClassEquipmentLinePick>>({})
   const [focusSelection, setFocusSelection] = useState<FocusSelection | null>(null)
 
   useEffect(() => {
-    if (!open) return
+    if (!open || !def) return
+    const lines = mode === 'start' ? equipmentLinesFor(def) : []
     setSkills([])
     setTools([])
-    setEquipmentPackageId(null)
+    setEquipmentPackageId(lines.length > 0 ? PHB_LINES_PACKAGE_ID : null)
+    const initial: Record<string, ClassEquipmentLinePick> = {}
+    for (const line of lines) {
+      if (line.options.length === 1) {
+        initial[line.id] = { optionId: line.options[0]!.id }
+      }
+    }
+    setLinePicks(initial)
     setFocusSelection(null)
-  }, [open, def?.slug, mode])
+  }, [open, def, mode])
 
   // Multiclass with only fixed armor/weapons (друид, колдун…): nothing to pick —
   // apply empty picks immediately so the dialog does not sit waiting for «Отмена».
@@ -93,6 +109,7 @@ export function ClassSetupDialog({
       tools: [],
       equipmentPackageId: null,
       equipmentFocusPick: null,
+      equipmentLinePicks: {},
     })
     // Intentionally omit onConfirm: parent often passes an inline function.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- open/def/mode gate the auto-apply
@@ -103,18 +120,31 @@ export function ClassSetupDialog({
     [equipmentPackages, equipmentPackageId],
   )
 
+  const lineItems = useMemo(() => {
+    if (equipmentPackageId !== PHB_LINES_PACKAGE_ID || equipmentLines.length === 0) {
+      return null
+    }
+    if (validateEquipmentLinePicks({ lines: equipmentLines, picks: linePicks })) {
+      return null
+    }
+    return buildItemsFromEquipmentLines({ lines: equipmentLines, picks: linePicks })
+  }, [equipmentPackageId, equipmentLines, linePicks])
+
   const focusPlaceholder = useMemo(() => {
-    if (!selectedPack) return null
-    for (const item of selectedPack.items) {
-      const kind = detectFocusPlaceholder(item.name)
-      if (kind) return { name: item.name, kind }
+    const items =
+      equipmentPackageId === PHB_LINES_PACKAGE_ID
+        ? lineItems ?? []
+        : selectedPack?.items ?? []
+    for (const row of items) {
+      const kind = detectFocusPlaceholder(row.name)
+      if (kind) return { name: row.name, kind }
     }
     return null
-  }, [selectedPack])
+  }, [equipmentPackageId, lineItems, selectedPack])
 
   useEffect(() => {
     setFocusSelection(null)
-  }, [equipmentPackageId])
+  }, [equipmentPackageId, linePicks])
 
   function toggleSkill(key: string) {
     if (blockedSkills.has(key)) return
@@ -134,10 +164,28 @@ export function ClassSetupDialog({
     })
   }
 
+  function setLineOption(lineId: string, optionId: string) {
+    setEquipmentPackageId(PHB_LINES_PACKAGE_ID)
+    setLinePicks((prev) => ({
+      ...prev,
+      [lineId]: { optionId, weaponName: null },
+    }))
+  }
+
+  function setLineWeapon(lineId: string, weaponName: string) {
+    setLinePicks((prev) => {
+      const current = prev[lineId]
+      if (!current) return prev
+      return { ...prev, [lineId]: { ...current, weaponName } }
+    })
+  }
+
   const equipmentOk =
     mode !== 'start' ||
-    equipmentPackages.length === 0 ||
-    Boolean(equipmentPackageId)
+    (equipmentLines.length === 0 && equipmentPackages.length === 0) ||
+    (equipmentPackageId === PHB_LINES_PACKAGE_ID
+      ? !validateEquipmentLinePicks({ lines: equipmentLines, picks: linePicks })
+      : Boolean(equipmentPackageId))
 
   const focusOk = !focusPlaceholder || focusSelection != null
 
@@ -165,6 +213,10 @@ export function ClassSetupDialog({
           tools,
           equipmentPackageId: mode === 'start' ? equipmentPackageId : null,
           equipmentFocusPick: focusSelection ? toPick(focusSelection) : null,
+          equipmentLinePicks:
+            mode === 'start' && equipmentPackageId === PHB_LINES_PACKAGE_ID
+              ? linePicks
+              : {},
         })
       }}
       onSecondary={onClose}
@@ -172,7 +224,9 @@ export function ClassSetupDialog({
       <Stack gap={14}>
         <Text tone="muted">
           {mode === 'start'
-            ? 'Выбери навыки, инструменты и снаряжение. Серые — уже с предыстории.'
+            ? equipmentLines.length > 0
+              ? 'Выбери навыки и снаряжение по каждой строке PHB. Серые навыки — уже с предыстории.'
+              : 'Выбери навыки, инструменты и снаряжение. Серые — уже с предыстории.'
             : 'Мультикласс: только владения из таблицы PHB (без стартового снаряжения).'}
         </Text>
 
@@ -224,7 +278,79 @@ export function ClassSetupDialog({
           </Field>
         ) : null}
 
-        {mode === 'start' && equipmentPackages.length > 0 ? (
+        {mode === 'start' && equipmentLines.length > 0 ? (
+          <Field label="Стартовое снаряжение (по строкам)">
+            <Stack gap={12}>
+              {equipmentLines.map((line) => {
+                const pick = linePicks[line.id]
+                const selectedOption = line.options.find((row) => row.id === pick?.optionId)
+                return (
+                  <div key={line.id}>
+                    <Text>
+                      <strong>{line.labelRu}</strong>
+                    </Text>
+                    <div className="chip-row" style={{ marginTop: 6 }}>
+                      {line.options.map((option) => {
+                        const on = pick?.optionId === option.id
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            className={`sheet-chip${on ? ' is-on' : ''}`}
+                            aria-pressed={on}
+                            title={option.noteRu}
+                            onClick={() => setLineOption(line.id, option.id)}
+                          >
+                            {option.labelRu}
+                            {option.noteRu ? ' *' : ''}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {selectedOption?.noteRu ? (
+                      <Text tone="muted">{selectedOption.noteRu}</Text>
+                    ) : null}
+                    {selectedOption?.pickWeapon ? (
+                      <div className="chip-row" style={{ marginTop: 8 }}>
+                        {listWeaponPresetsByGroup(selectedOption.pickWeapon).map((weapon) => {
+                          const on = pick?.weaponName === weapon.labelRu
+                          return (
+                            <button
+                              key={weapon.labelRu}
+                              type="button"
+                              className={`sheet-chip${on ? ' is-on' : ''}`}
+                              aria-pressed={on}
+                              onClick={() => setLineWeapon(line.id, weapon.labelRu)}
+                            >
+                              {weapon.labelRu}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              })}
+              {equipmentPackages.map((pack) => {
+                const on = equipmentPackageId === pack.id
+                return (
+                  <button
+                    key={pack.id}
+                    type="button"
+                    className={`sheet-chip sheet-chip--block${on ? ' is-on' : ''}`}
+                    aria-pressed={on}
+                    onClick={() => setEquipmentPackageId(pack.id)}
+                  >
+                    <strong className="sheet-chip__title">{pack.labelRu}</strong>
+                    <div className="sheet-chip__meta">{pack.summary}</div>
+                  </button>
+                )
+              })}
+            </Stack>
+          </Field>
+        ) : null}
+
+        {mode === 'start' && equipmentLines.length === 0 && equipmentPackages.length > 0 ? (
           <Field label="Стартовое снаряжение">
             <Stack gap={8}>
               {equipmentPackages.map((pack) => {
@@ -233,12 +359,12 @@ export function ClassSetupDialog({
                   <button
                     key={pack.id}
                     type="button"
-                    className={`sheet-chip${on ? ' is-on' : ''}`}
-                    style={{ display: 'block', width: '100%', textAlign: 'left' }}
+                    className={`sheet-chip sheet-chip--block${on ? ' is-on' : ''}`}
+                    aria-pressed={on}
                     onClick={() => setEquipmentPackageId(pack.id)}
                   >
-                    <strong>{pack.labelRu}</strong>
-                    <div style={{ opacity: 0.85, fontWeight: 400 }}>{pack.summary}</div>
+                    <strong className="sheet-chip__title">{pack.labelRu}</strong>
+                    <div className="sheet-chip__meta">{pack.summary}</div>
                   </button>
                 )
               })}

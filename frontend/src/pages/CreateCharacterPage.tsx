@@ -78,12 +78,16 @@ import type { AbilityScores } from '../shared/dnd/multiclassRules'
 import {
   buildPendingWizardSteps,
   isSubclassGateFeature,
+  isWizardClassName,
   listUnlockedExpertiseKeys,
+  withWizardSpellbookPicksStep,
+  type GuidedWizardStep,
 } from '../shared/dnd/pendingFeatureChoices'
 import {
   isPointBuyValid,
   isStandardArrayComplete,
   isManualScoresValid,
+  isRollScoresValid,
   mergeRacialBonuses,
 } from '../shared/dnd/pointBuy'
 import {
@@ -104,6 +108,7 @@ import {
 import { EMPTY_ARMOR } from '../features/characters/identity'
 import { abilityModifier } from '../features/characters/sheetTypes'
 import {
+  addCatalogSpellToKnown,
   countLearnedCantrips,
   countLearnedLeveled,
   countPreparedLeveled,
@@ -115,10 +120,17 @@ import {
 } from '../features/characters/spells'
 import {
   applySpellcastingSuggestion,
+  highestSpellSlotLevelForClasses,
   resolveSpellLearnBudget,
   suggestSpellcastingFromClasses,
 } from '../shared/dnd/casterProgression'
 import type { SpellcastingAbility } from '../shared/dnd/spells'
+import { remainingFreeSpellbookSlots } from '../shared/dnd/wizardSpellbook'
+import { inventoryToSheet, readInventory } from '../features/characters/inventory'
+import {
+  isSpellbookInventoryItem,
+  wizardHasUsableSpellbook,
+} from '../features/characters/wizardSpellbookInventory'
 import { Button, Stack, Text, Toast } from '../ui'
 
 const CASTER_NAME_RE =
@@ -491,6 +503,22 @@ export function CreateCharacterPage() {
     })
   }, [spellcastingClassKey, spellcastingSuggestion])
 
+  /** Slice 1: when wizard level rises, remind about +2 free book fills. */
+  const prevWizardLevelRef = useRef<number | null>(null)
+  useEffect(() => {
+    const wizardRow = state.classes.find((row) =>
+      /волшебник|wizard|маг/i.test(row.name),
+    )
+    const level = wizardRow ? Math.max(1, Math.floor(wizardRow.level) || 1) : 0
+    const prev = prevWizardLevelRef.current
+    prevWizardLevelRef.current = level > 0 ? level : null
+    if (prev == null || level <= 0 || level <= prev) return
+    const freeLeft = remainingFreeSpellbookSlots(spells.known, level)
+    setToast(
+      `Волшебник ${level} ур.: +2 бесплатно в книгу · осталось free-слотов: ${freeLeft}. Открой гримуар.`,
+    )
+  }, [state.classes, spells.known])
+
   const wizardProficiencies = useMemo(
     () => buildWizardProficiencies(state),
     [state],
@@ -639,7 +667,7 @@ export function CreateCharacterPage() {
     for (const item of classRows) {
       hasSubclass[item.id] = hasSubclassSelected(item)
     }
-    const steps = buildPendingWizardSteps({
+    let steps: GuidedWizardStep[] = buildPendingWizardSteps({
       unlocked,
       featurePicks: picksState,
       classAsi: state.classAsi ?? [],
@@ -650,6 +678,18 @@ export function CreateCharacterPage() {
       },
       hasSubclassByEntryId: hasSubclass,
     }).filter((step) => step.kind !== 'class_grant' && step.kind !== 'background')
+    if (isWizardClassName(row.name)) {
+      const freeLeft = remainingFreeSpellbookSlots(spells.known, row.level)
+      if (freeLeft > 0) {
+        steps = withWizardSpellbookPicksStep(steps, {
+          classEntryId,
+          className: row.name,
+          classLevel: row.level,
+          // Opening full class forks (up_to) — catch up outstanding free research.
+          picksNeeded: freeLeft,
+        })
+      }
+    }
     if (steps.length === 0) {
       if (!options?.silentIfEmpty) {
         setToast('Все развилки и ASI для этого класса закрыты')
@@ -1090,6 +1130,7 @@ export function CreateCharacterPage() {
     if (state.abilityMethod === 'standard_array') {
       return isStandardArrayComplete(state.baseAbilities)
     }
+    if (state.abilityMethod === 'roll') return isRollScoresValid(state.baseAbilities)
     return isManualScoresValid(state.baseAbilities)
   }
 
@@ -1134,12 +1175,74 @@ export function CreateCharacterPage() {
 
   const step = state.step
   const featNote = raceFeatNoteRu(state.raceSetup)
+  /** Phone create hides detail (Сводка only) — open setup from card/footer. */
+  const createPhoneLayout =
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 860px)').matches
+
+  async function openRaceSetupFor(entry: CatalogEntry) {
+    setSelectedRace(entry)
+    let all = races
+    try {
+      all = await listCatalogEntries({ kind: 'race', edition: '2014' })
+    } catch {
+      // keep cached roots
+    }
+    const subraces = all.filter((row) => row.parent_id === entry.id)
+    setRaceSetup({
+      root: entry,
+      subraces,
+      required: raceSubraceRequired(entry.data),
+    })
+  }
+
+  function openBackgroundSetupFor(entry: CatalogEntry) {
+    setSelectedBackground(entry)
+    const variants = backgrounds.filter((row) => row.parent_id === entry.id)
+    setBgSetup({ root: entry, variants })
+  }
+
+  function openClassSetupFor(entry: CatalogEntry) {
+    setSelectedClass(entry)
+    const def = resolveClassGrantDef({
+      className: entry.name_ru,
+      catalogSlug: entry.slug,
+      catalogData: entry.data,
+    })
+    if (!def) {
+      setToast('Нет пакета владений для класса')
+      return
+    }
+    const entryId = state.classEntryId || createClassLevel().id
+    const nextClasses = [
+      createClassLevel({
+        id: entryId,
+        name: entry.name_ru,
+        catalog_id: entry.id,
+        level: 1,
+      }),
+    ]
+    patchState({
+      classRef: catalogRef(entry),
+      classEntryId: entryId,
+      classes: nextClasses,
+      hpChoices: ensureHpChoices(nextClasses, []),
+      classGrantPicks: {},
+      stepDirty: { ...state.stepDirty, class: true },
+    })
+    setClassSetup({
+      def,
+      mode: 'start',
+      classEntryId: entryId,
+      openWizardAfter: false,
+    })
+  }
 
   let cards = null
   let detail = null
   let footer = null
 
   if (step === 'race') {
+    const raceReady = Boolean(state.race && state.characterName.trim())
     cards = (
       <CatalogCardList
         resetToken={step}
@@ -1151,7 +1254,11 @@ export function CreateCharacterPage() {
           meta: raceCardMeta(entry),
         }))}
         selectedId={selectedRace?.id ?? state.race?.id ?? null}
-        onSelect={(id) => setSelectedRace(races.find((row) => row.id === id) ?? null)}
+        onSelect={(id) => {
+          const entry = races.find((row) => row.id === id) ?? null
+          setSelectedRace(entry)
+          if (entry && createPhoneLayout) void openRaceSetupFor(entry)
+        }}
       />
     )
     detail = (
@@ -1167,20 +1274,9 @@ export function CreateCharacterPage() {
         )}
         <Button
           disabled={!selectedRace}
-          onClick={async () => {
+          onClick={() => {
             if (!selectedRace) return
-            let all = races
-            try {
-              all = await listCatalogEntries({ kind: 'race', edition: '2014' })
-            } catch {
-              // keep cached roots
-            }
-            const subraces = all.filter((row) => row.parent_id === selectedRace.id)
-            setRaceSetup({
-              root: selectedRace,
-              subraces,
-              required: raceSubraceRequired(selectedRace.data),
-            })
+            void openRaceSetupFor(selectedRace)
           }}
         >
           Выбрать и настроить
@@ -1190,10 +1286,20 @@ export function CreateCharacterPage() {
     )
     footer = (
       <Button
-        disabled={!state.race || !state.characterName.trim()}
-        onClick={() => advanceFrom('race')}
+        disabled={!raceReady && !selectedRace}
+        onClick={() => {
+          if (raceReady) {
+            advanceFrom('race')
+            return
+          }
+          if (selectedRace) void openRaceSetupFor(selectedRace)
+        }}
       >
-        {raceNeedsFeatStep(state.raceSetup) ? 'Далее · Черта' : 'Далее · Предыстория'}
+        {raceReady
+          ? raceNeedsFeatStep(state.raceSetup)
+            ? 'Далее · Черта'
+            : 'Далее · Предыстория'
+          : 'Настроить расу'}
       </Button>
     )
   }
@@ -1286,6 +1392,7 @@ export function CreateCharacterPage() {
         onSelect={(id) => {
           const entry = backgrounds.find((row) => row.id === id) ?? null
           setSelectedBackground(entry)
+          if (entry && createPhoneLayout) openBackgroundSetupFor(entry)
         }}
       />
     )
@@ -1299,10 +1406,7 @@ export function CreateCharacterPage() {
           disabled={!selectedBackground}
           onClick={() => {
             if (!selectedBackground) return
-            const variants = backgrounds.filter(
-              (row) => row.parent_id === selectedBackground.id,
-            )
-            setBgSetup({ root: selectedBackground, variants })
+            openBackgroundSetupFor(selectedBackground)
           }}
         >
           Выбрать и настроить
@@ -1313,8 +1417,17 @@ export function CreateCharacterPage() {
       </CatalogDetailPanel>
     )
     footer = (
-      <Button disabled={!state.background} onClick={() => advanceFrom('background')}>
-        Далее · Класс
+      <Button
+        disabled={!state.background && !selectedBackground}
+        onClick={() => {
+          if (state.background) {
+            advanceFrom('background')
+            return
+          }
+          if (selectedBackground) openBackgroundSetupFor(selectedBackground)
+        }}
+      >
+        {state.background ? 'Далее · Класс' : 'Настроить предысторию'}
       </Button>
     )
   }
@@ -1330,7 +1443,11 @@ export function CreateCharacterPage() {
           source: entry.source,
         }))}
         selectedId={selectedClass?.id ?? state.classRef?.id ?? null}
-        onSelect={(id) => setSelectedClass(classes.find((row) => row.id === id) ?? null)}
+        onSelect={(id) => {
+          const entry = classes.find((row) => row.id === id) ?? null
+          setSelectedClass(entry)
+          if (entry && createPhoneLayout) openClassSetupFor(entry)
+        }}
       />
     )
     detail = (
@@ -1343,39 +1460,7 @@ export function CreateCharacterPage() {
           disabled={!selectedClass}
           onClick={() => {
             if (!selectedClass) return
-            const def = resolveClassGrantDef({
-              className: selectedClass.name_ru,
-              catalogSlug: selectedClass.slug,
-              catalogData: selectedClass.data,
-            })
-            if (!def) {
-              setToast('Нет пакета владений для класса')
-              return
-            }
-            const entryId = state.classEntryId || createClassLevel().id
-            const nextClasses = [
-              createClassLevel({
-                id: entryId,
-                name: selectedClass.name_ru,
-                catalog_id: selectedClass.id,
-                level: 1,
-              }),
-            ]
-            patchState({
-              classRef: catalogRef(selectedClass),
-              classEntryId: entryId,
-              classes: nextClasses,
-              hpChoices: ensureHpChoices(nextClasses, []),
-              // Re-picking class clears prior primary grant picks.
-              classGrantPicks: {},
-              stepDirty: { ...state.stepDirty, class: true },
-            })
-            setClassSetup({
-              def,
-              mode: 'start',
-              classEntryId: entryId,
-              openWizardAfter: false,
-            })
+            openClassSetupFor(selectedClass)
           }}
         >
           Выбрать и настроить
@@ -1389,12 +1474,21 @@ export function CreateCharacterPage() {
         ) : null}
       </CatalogDetailPanel>
     )
+    const classReady = Boolean(
+      state.classRef && state.classGrantPicks?.[state.classEntryId],
+    )
     footer = (
       <Button
-        disabled={!state.classRef || !state.classGrantPicks?.[state.classEntryId]}
-        onClick={() => advanceFrom('class')}
+        disabled={!classReady && !selectedClass}
+        onClick={() => {
+          if (classReady) {
+            advanceFrom('class')
+            return
+          }
+          if (selectedClass) openClassSetupFor(selectedClass)
+        }}
       >
-        Далее · Характеристики
+        {classReady ? 'Далее · Характеристики' : 'Настроить класс'}
       </Button>
     )
   }
@@ -1508,12 +1602,25 @@ export function CreateCharacterPage() {
           spellcastingSuggestion && spellcastingSuggestion.progression !== 'none'
             ? {
                 labelRu: spellLearnBudget?.labelRu ?? spellcastingSuggestion.labelRu,
+                mode: spellLearnBudget?.mode,
                 maxPrepared: spellcastingSuggestion.max_prepared,
                 knownLeveled: countLearnedLeveled(spells.known),
                 preparedLeveled: countPreparedLeveled(spells.known),
                 cantripsKnown: countLearnedCantrips(spells.known),
                 cantripsMax: spellLearnBudget?.cantrips ?? null,
                 leveledKnownMax: spellLearnBudget?.leveledKnown ?? null,
+                freeBookLeft:
+                  spellLearnBudget?.mode === 'spellbook'
+                    ? remainingFreeSpellbookSlots(
+                        spells.known,
+                        state.classes.find((row) =>
+                          /волшебник|wizard|маг/i.test(row.name),
+                        )?.level ?? 1,
+                      )
+                    : null,
+                unpreparedLeveled: spells.known.filter(
+                  (spell) => spell.level > 0 && !spell.prepared,
+                ).length,
                 slots: spellcastingSuggestion.slots,
                 pactSlots: spellcastingSuggestion.pact_slots,
               }
@@ -1550,6 +1657,7 @@ export function CreateCharacterPage() {
         cards={cards}
         detail={detail}
         footer={footer}
+        detailPrimary={step === 'abilities' || step === 'leveling'}
         onStepClick={goToStep}
         onBack={
           backTarget
@@ -1741,6 +1849,42 @@ export function CreateCharacterPage() {
           setAdvanceWizardAfterSubclass(true)
           beginSubclassSelection(classEntryId, entry, { advanceWizardAfter: true })
         }}
+        spellbookPicksContext={(() => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          if (!step || step.kind !== 'spellbook_picks') return null
+          const inv = readInventory(state.sheetDraft)
+          const hasBook =
+            wizardHasUsableSpellbook(spells) ||
+            inv.items.some(isSpellbookInventoryItem)
+          const slotCap = highestSpellSlotLevelForClasses(state.classes)
+          return {
+            maxSpellLevel: Math.max(1, slotCap || 1),
+            blockedCatalogIds: spells.known
+              .map((spell) => spell.catalog_id)
+              .filter((id): id is string => Boolean(id)),
+            // Create kit includes a spellbook; don't block starting free fills.
+            hasBook: hasBook || step.classLevel <= 1,
+            classListSlugs: ['wizard'],
+          }
+        })()}
+        onConfirmSpellbookPicks={(entries) => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          const acquisition =
+            step?.kind === 'spellbook_picks' && step.classLevel <= 1
+              ? 'starting'
+              : 'level_up'
+          setSpells((prev) => {
+            let known = prev.known
+            for (const entry of entries) {
+              known = addCatalogSpellToKnown(known, entry, {
+                prepare: false,
+                spellbook_acquisition: acquisition,
+                in_spellbook: true,
+              })
+            }
+            return { ...prev, known }
+          })
+        }}
       />
 
       <SubclassSetupDialog
@@ -1832,6 +1976,18 @@ export function CreateCharacterPage() {
         knownCaster={spellLearnBudget?.mode === 'known'}
         learnBudget={spellLearnBudget}
         abilityModFor={abilityModFor}
+        coins={readInventory(state.sheetDraft).coins}
+        onCoinsChange={(coins) => {
+          const inv = readInventory(state.sheetDraft)
+          setState((prev) => ({
+            ...prev,
+            sheetDraft: {
+              ...prev.sheetDraft,
+              ...inventoryToSheet({ ...inv, coins }),
+            },
+          }))
+        }}
+        inventoryItems={readInventory(state.sheetDraft).items}
         onChange={setSpells}
         onClose={() => setSpellsOpen(null)}
         onToast={setToast}
@@ -1839,6 +1995,7 @@ export function CreateCharacterPage() {
       <PrepareSpellsDialog
         open={spellsOpen === 'prepare'}
         spells={spells}
+        learnMode={spellLearnBudget?.mode ?? null}
         onChange={setSpells}
         onClose={() => setSpellsOpen(null)}
       />

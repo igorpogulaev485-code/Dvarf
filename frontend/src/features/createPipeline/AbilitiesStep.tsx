@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Button, Field, NumberInput, Stack, Text } from '../../ui'
 import type { AbilityScores } from '../../shared/dnd/multiclassRules'
 import {
@@ -11,8 +12,11 @@ import {
   applyStandardArrayByPriority,
   emptyBaseScores,
   pointBuyRemaining,
+  roll4d6DropLowest,
+  rollAllAbilities,
   type AbilityKey,
   type AbilityMethod,
+  type AbilityRollDetail,
 } from '../../shared/dnd/pointBuy'
 
 type AbilitiesStepProps = {
@@ -24,8 +28,43 @@ type AbilitiesStepProps = {
   onBaseChange: (scores: AbilityScores) => void
 }
 
+type MethodCard = {
+  id: AbilityMethod
+  title: string
+  subtitle: string
+}
+
+const METHOD_CARDS: MethodCard[] = [
+  {
+    id: 'standard_array',
+    title: 'Массив',
+    subtitle: STANDARD_ARRAY.join(', '),
+  },
+  {
+    id: 'point_buy',
+    title: 'Point buy',
+    subtitle: `${POINT_BUY_BUDGET} очков · до ${POINT_BUY_MAX}`,
+  },
+  {
+    id: 'roll',
+    title: 'Бросок',
+    subtitle: '4d6, отбросить младший',
+  },
+  {
+    id: 'manual',
+    title: 'Вручную',
+    subtitle: 'Значения 1–20',
+  },
+]
+
 function finalScore(base: number, bonus: number | undefined): number {
   return base + (bonus ?? 0)
+}
+
+function formatDice(detail: AbilityRollDetail): string {
+  return detail.dice
+    .map((n, index) => (index === detail.dropIndex ? `[${n}]` : String(n)))
+    .join(' · ')
 }
 
 export function AbilitiesStep({
@@ -38,6 +77,27 @@ export function AbilitiesStep({
 }: AbilitiesStepProps) {
   const remaining = pointBuyRemaining(baseAbilities)
   const usedArrayValues = ABILITY_ORDER.map((key) => baseAbilities[key]).filter((v) => v > 0)
+  const [rollDetails, setRollDetails] = useState<
+    Partial<Record<AbilityKey, AbilityRollDetail>>
+  >({})
+
+  function applyMethod(id: AbilityMethod) {
+    onMethodChange(id)
+    if (id === 'standard_array') {
+      setRollDetails({})
+      onBaseChange(applyStandardArrayByPriority(classSlug))
+    } else if (id === 'point_buy') {
+      setRollDetails({})
+      onBaseChange(applyPointBuyByPriority(classSlug))
+    } else if (id === 'manual') {
+      setRollDetails({})
+      onBaseChange(emptyBaseScores(10))
+    } else if (id === 'roll') {
+      const { scores, details } = rollAllAbilities()
+      setRollDetails(details)
+      onBaseChange(scores)
+    }
+  }
 
   function setScore(key: AbilityKey, value: number) {
     onBaseChange({ ...baseAbilities, [key]: value })
@@ -45,7 +105,6 @@ export function AbilitiesStep({
 
   function assignArrayValue(key: AbilityKey, value: number) {
     const next = { ...baseAbilities }
-    // Free the previous holder of this value if unique assignment.
     for (const other of ABILITY_ORDER) {
       if (other !== key && next[other] === value) next[other] = 0
     }
@@ -53,39 +112,48 @@ export function AbilitiesStep({
     onBaseChange(next)
   }
 
+  function rerollOne(key: AbilityKey) {
+    const detail = roll4d6DropLowest()
+    setRollDetails((prev) => ({ ...prev, [key]: detail }))
+    setScore(key, detail.total)
+  }
+
+  function rerollAll() {
+    const { scores, details } = rollAllAbilities()
+    setRollDetails(details)
+    onBaseChange(scores)
+  }
+
   return (
     <Stack gap={14}>
-      <Text as="h2">Характеристики</Text>
+      <Text as="h2" className="create-pipeline__section-title">
+        Характеристики
+      </Text>
       <Text tone="muted">
         База без расовых бонусов. Справа в сумме уже с расой. Point buy — {POINT_BUY_BUDGET} очков,
         до расы максимум {POINT_BUY_MAX}.
       </Text>
 
-      <div className="create-pipeline__method-row">
-        {(
-          [
-            ['manual', 'Вручную'],
-            ['standard_array', 'Массив 15–8'],
-            ['point_buy', 'Point buy'],
-          ] as const
-        ).map(([id, label]) => (
-          <Button
-            key={id}
-            variant={method === id ? 'primary' : 'secondary'}
-            onClick={() => {
-              onMethodChange(id)
-              if (id === 'standard_array') {
-                onBaseChange(applyStandardArrayByPriority(classSlug))
-              } else if (id === 'point_buy') {
-                onBaseChange(applyPointBuyByPriority(classSlug))
-              } else if (id === 'manual') {
-                onBaseChange(emptyBaseScores(10))
+      <div className="create-pipeline__method-cards" role="group" aria-label="Метод характеристик">
+        {METHOD_CARDS.map((card) => {
+          const selected = method === card.id
+          return (
+            <button
+              key={card.id}
+              type="button"
+              className={
+                selected
+                  ? 'create-pipeline__method-card create-pipeline__method-card--selected'
+                  : 'create-pipeline__method-card'
               }
-            }}
-          >
-            {label}
-          </Button>
-        ))}
+              aria-pressed={selected}
+              onClick={() => applyMethod(card.id)}
+            >
+              <span className="create-pipeline__method-card-title">{card.title}</span>
+              <span className="create-pipeline__method-card-sub">{card.subtitle}</span>
+            </button>
+          )
+        })}
       </div>
 
       {method === 'point_buy' ? (
@@ -98,9 +166,22 @@ export function AbilitiesStep({
         <Text tone="muted">Массив: {STANDARD_ARRAY.join(', ')}. Каждое число — один раз.</Text>
       ) : null}
 
+      {method === 'roll' ? (
+        <Stack gap={8}>
+          <Text tone="muted">
+            Для каждой характеристики: 4d6, младший в скобках не считается. Можно перебросить одну
+            или все.
+          </Text>
+          <Button variant="secondary" onClick={rerollAll}>
+            Перебросить все
+          </Button>
+        </Stack>
+      ) : null}
+
       <div className="create-pipeline__ability-grid">
         {ABILITY_ORDER.map((key) => {
           const bonus = racialBonuses[key] ?? 0
+          const detail = rollDetails[key]
           return (
             <div key={key} className="create-pipeline__ability-row">
               <div>
@@ -108,6 +189,11 @@ export function AbilitiesStep({
                 {bonus ? (
                   <Text tone="muted" className="create-pipeline__ability-bonus">
                     раса {bonus > 0 ? `+${bonus}` : bonus}
+                  </Text>
+                ) : null}
+                {method === 'roll' && detail ? (
+                  <Text tone="muted" className="create-pipeline__ability-dice">
+                    {formatDice(detail)}
                   </Text>
                 ) : null}
               </div>
@@ -135,6 +221,13 @@ export function AbilitiesStep({
                     )
                   })}
                 </select>
+              ) : method === 'roll' ? (
+                <div className="create-pipeline__roll-controls">
+                  <Text className="create-pipeline__ability-roll-total">{baseAbilities[key]}</Text>
+                  <Button variant="ghost" onClick={() => rerollOne(key)}>
+                    Ещё раз
+                  </Button>
+                </div>
               ) : (
                 <Field label="база">
                   <NumberInput
@@ -153,7 +246,7 @@ export function AbilitiesStep({
         })}
       </div>
 
-      {classSlug ? (
+      {classSlug && method !== 'roll' ? (
         <Button
           variant="ghost"
           onClick={() => {

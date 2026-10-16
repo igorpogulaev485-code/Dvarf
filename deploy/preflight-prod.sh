@@ -78,6 +78,10 @@ require "frontend/src/features/characters/AbilitySkillsColumn.tsx" "Play Desk р
 require "frontend/src/features/cabinet/AppearancePanel.tsx" "кабинет: тема аккаунта"
 require "frontend/src/shared/theme/accountAppearance.ts" "токены темы аккаунта"
 require "frontend/src/shared/dnd/abilityScoreCaps.ts" "потолок характеристик PHB 20"
+require "frontend/src/features/characters/WildShapeDialog.tsx" "дикий облик друида"
+require "frontend/src/shared/dnd/jumpDistance.ts" "прыжки на столе"
+require "frontend/src/shared/dnd/wizardSpellbook.ts" "книга волшебника"
+require "frontend/src/features/characters/SpellbookManageDialog.tsx" "UI книги заклинаний"
 
 # Spot-check: digital sheet must not still say multiclass is backlog-only
 if grep -q 'Мультикласс — в backlog; пока один класс' \

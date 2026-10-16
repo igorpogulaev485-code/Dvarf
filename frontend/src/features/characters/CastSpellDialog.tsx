@@ -10,15 +10,15 @@ import {
   levelLabel,
   slotsRemaining,
 } from '../../shared/dnd/spells'
-import { Dialog, Stack, Text } from '../../ui'
-import { AllyTargetFields } from '../lobby/AllyTargetFields'
-import { useLobbyParty, type AllyPickDemo } from '../lobby/useLobbyParty'
+import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
+import { Button, Dialog, Stack, Text } from '../../ui'
 import {
   listCastGrantOptions,
   type SheetSpell,
   type SpellsState,
 } from './spells'
 import { checkSpellMaterials, type MaterialInventoryItem } from './spellMaterials'
+import { isSpellSelfFormCast } from './spellForms'
 
 export type CastChoice = {
   usePact: boolean
@@ -33,9 +33,11 @@ export type CastChoice = {
   consumeMaterial?: boolean
   /** Inventory item id to consume (cheapest sufficient). */
   consumeItemId?: string | null
-  /** Выбранные цели (себя и/или союзники), без пустых слотов */
-  allyTargetIds?: string[]
-  lobbyId?: string | null
+  /**
+   * Polymorph / Shapechange / True Polymorph:
+   * self → open form picker; other → spend only, no self_form card.
+   */
+  selfFormTarget?: 'self' | 'other'
 }
 
 type CastSpellDialogProps = {
@@ -46,12 +48,18 @@ type CastSpellDialogProps = {
   inventoryItems: MaterialInventoryItem[]
   /** Total character level — cantrip scaling 1/5/11/17. */
   characterLevel: number
-  characterId?: string
+  /**
+   * Wizard: ritual casting requires the spell in the physical spellbook (PHB).
+   * When true, ritual path is gated by canCastWizardRitualFromBook.
+   */
+  wizardRitualFromBook?: boolean
   busy?: boolean
-  /** Превью без API */
-  allyDemo?: AllyPickDemo | null
   onConfirm: (choice: CastChoice) => void
   onClose: () => void
+  /** K14: open Rest when no free slots (inline recovery). */
+  onRequestRest?: () => void
+  /** K14: reset warlock pact used → 0 without leaving cast sheet. */
+  onRestorePact?: () => void
 }
 
 export function CastSpellDialog({
@@ -60,15 +68,29 @@ export function CastSpellDialog({
   spells,
   inventoryItems,
   characterLevel,
-  characterId,
+  wizardRitualFromBook = false,
   busy = false,
-  allyDemo = null,
   onConfirm,
   onClose,
+  onRequestRest,
+  onRestorePact,
 }: CastSpellDialogProps) {
   const isCantrip = spell != null && spell.level <= 0
   const spellLevel = spell?.level ?? 0
-  const isRitual = Boolean(spell?.ritual && !isCantrip)
+  const wizardRitualGate = useMemo(() => {
+    if (!wizardRitualFromBook || !spell || isCantrip || !spell.ritual) {
+      return { ok: true, message: '' }
+    }
+    return canCastWizardRitualFromBook({
+      spell,
+      book: spells.wizard_spellbook,
+    })
+  }, [wizardRitualFromBook, spell, isCantrip, spells.wizard_spellbook])
+  const isRitual = Boolean(spell?.ritual && !isCantrip && wizardRitualGate.ok)
+  const ritualBlockedReason =
+    wizardRitualFromBook && spell?.ritual && !isCantrip && !wizardRitualGate.ok
+      ? wizardRitualGate.message
+      : null
   const grantOptions = useMemo(
     () => (spell && !isCantrip ? listCastGrantOptions(spell, spells.known) : []),
     [spell, isCantrip, spells.known],
@@ -84,13 +106,8 @@ export function CastSpellDialog({
   const [grantSpellId, setGrantSpellId] = useState<string | null>(null)
   const [slotLevel, setSlotLevel] = useState(1)
   const [consumeMaterial, setConsumeMaterial] = useState(true)
-
-  const showTargets = Boolean(spell?.applies_to_allies && characterId)
-  const targetCount = Math.max(1, Math.min(6, spell?.ally_target_count ?? 1))
-  const [targetSlots, setTargetSlots] = useState<string[]>(() =>
-    Array.from({ length: targetCount }, () => ''),
-  )
-  const party = useLobbyParty(showTargets ? characterId : undefined, allyDemo)
+  const [selfFormTarget, setSelfFormTarget] = useState<'self' | 'other'>('self')
+  const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
 
   const materialText = spell?.components?.m
 
@@ -115,16 +132,17 @@ export function CastSpellDialog({
   useEffect(() => {
     if (!open) return
     setConsumeMaterial(true)
-    setTargetSlots(Array.from({ length: targetCount }, () => ''))
-  }, [open, spell?.id, targetCount])
+  }, [open, spell?.id])
 
   useEffect(() => {
     if (!spell || isCantrip) {
       setUseRitual(false)
       setUseGrant(false)
       setGrantSpellId(null)
+      setSelfFormTarget('self')
       return
     }
+    setSelfFormTarget('self')
     // Prefer first available grant; else slots/pact; else ritual.
     if (grantAvailable.length > 0) {
       setUseGrant(true)
@@ -184,19 +202,6 @@ export function CastSpellDialog({
     })
   }, [spell, characterLevel, effectiveSlotLevel])
 
-  const selectedIds = useMemo(
-    () => targetSlots.filter((id) => id.trim().length > 0),
-    [targetSlots],
-  )
-  const duplicateTarget = useMemo(() => {
-    const seen = new Set<string>()
-    for (const id of selectedIds) {
-      if (seen.has(id)) return true
-      seen.add(id)
-    }
-    return false
-  }, [selectedIds])
-
   if (!spell) {
     return null
   }
@@ -216,8 +221,6 @@ export function CastSpellDialog({
       grantOk ||
       (useRitual && isRitual) ||
       (!useGrant && !useRitual && hasSlotPath))
-  /** Цели необязательны; блок только при дублях в слотах */
-  const targetsOk = !showTargets || !duplicateTarget
   const selectedSlot =
     !usePact && !useRitual && !useGrant ? spells.slots[String(slotLevel)] : null
   const remaining = selectedSlot ? slotsRemaining(selectedSlot) : 0
@@ -267,9 +270,8 @@ export function CastSpellDialog({
       title={isCantrip ? 'Использовать заговор?' : 'Кастовать заклинание?'}
       primaryLabel={primaryLabel}
       secondaryLabel="Отмена"
-      size={showTargets ? 'wide' : undefined}
       onPrimary={() => {
-        if (!canCast || busy || !targetsOk) return
+        if (!canCast || busy) return
         onConfirm({
           useGrant: !isCantrip && grantOk,
           grantSpellId: !isCantrip && grantOk ? grantSpellId : null,
@@ -286,13 +288,12 @@ export function CastSpellDialog({
             needsConsumeChoice && consumeMaterial
               ? materialCheck.cheapest?.item.id ?? null
               : null,
-          allyTargetIds: showTargets ? selectedIds : [],
-          lobbyId: showTargets ? party.lobbyId : null,
+          selfFormTarget: isTransformSelf ? selfFormTarget : undefined,
         })
       }}
       onSecondary={onClose}
       busy={busy}
-      primaryDisabled={!canCast || !targetsOk}
+      primaryDisabled={!canCast || busy}
     >
       <Stack gap={10}>
         <Text>
@@ -301,7 +302,6 @@ export function CastSpellDialog({
           {levelLabel(spell.level)}
           {spell.ritual ? ' · ритуал' : ''}
           {spell.concentration ? ' · концентрация' : ''}
-          {spell.applies_to_allies ? ` · до ${targetCount} цел.` : ''}
           {spell.source_book ? ` · ${spell.source_book}` : ''}
         </Text>
         {metaParts.length > 0 ? <Text tone="muted">{metaParts.join(' · ')}</Text> : null}
@@ -416,6 +416,7 @@ export function CastSpellDialog({
                   <button
                     type="button"
                     className={`sheet-chip cast-source-chip${useRitual ? ' is-on' : ''}`}
+                    title="Ритуал: +10 мин, без ячейки"
                     onClick={() => {
                       setUseRitual(true)
                       clearGrant()
@@ -424,8 +425,20 @@ export function CastSpellDialog({
                   >
                     Ритуал
                   </button>
+                ) : ritualBlockedReason ? (
+                  <button
+                    type="button"
+                    className="sheet-chip cast-source-chip is-disabled"
+                    disabled
+                    title={ritualBlockedReason}
+                  >
+                    Ритуал (книга)
+                  </button>
                 ) : null}
               </div>
+              {ritualBlockedReason ? (
+                <Text tone="muted">{ritualBlockedReason}</Text>
+              ) : null}
             </div>
             {useGrant && selectedGrant ? (
               <Text tone="muted">
@@ -454,19 +467,52 @@ export function CastSpellDialog({
                 </Text>
               )
             ) : (
-              <Text tone="danger">
-                Нет свободных ячеек {spell.level}-го уровня или выше
-                {spells.pact_slots ? ' и подходящей ячейки договора' : ''}. Верни пипс или
-                сделай отдых
-                {isRitual || grantOptions.some((row) => row.remaining <= 0)
-                  ? `, либо ${
-                      grantOptions.some((row) => row.remaining <= 0)
-                        ? 'восстанови заряд умения/предмета'
-                        : 'выбери ритуал'
-                    }`
-                  : ''}
-                .
-              </Text>
+              <Stack gap={8}>
+                <Text tone="danger">
+                  Нет свободных ячеек {spell.level}-го уровня или выше
+                  {spells.pact_slots ? ' и подходящей ячейки договора' : ''}. Верни пипс или
+                  сделай отдых
+                  {isRitual || grantOptions.some((row) => row.remaining <= 0)
+                    ? `, либо ${
+                        grantOptions.some((row) => row.remaining <= 0)
+                          ? 'восстанови заряд умения/предмета'
+                          : 'выбери ритуал'
+                      }`
+                    : ''}
+                  .
+                </Text>
+                {onRequestRest ||
+                (onRestorePact &&
+                  spells.pact_slots &&
+                  spells.pact_slots.max > 0 &&
+                  spells.pact_slots.used > 0) ? (
+                  <div className="cast-recovery" role="group" aria-label="Восстановить ресурс">
+                    {onRequestRest ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={onRequestRest}
+                      >
+                        Отдых…
+                      </Button>
+                    ) : null}
+                    {onRestorePact &&
+                    spells.pact_slots &&
+                    spells.pact_slots.max > 0 &&
+                    spells.pact_slots.used > 0 ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={onRestorePact}
+                      >
+                        Сброс ячеек договора
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
+              </Stack>
             )}
           </>
         )}
@@ -477,30 +523,30 @@ export function CastSpellDialog({
           </Text>
         ) : null}
 
-        {showTargets ? (
-          <>
-            <AllyTargetFields
-              count={targetCount}
-              values={targetSlots}
-              onChange={(index, nextId) => {
-                setTargetSlots((prev) => {
-                  const next = [...prev]
-                  next[index] = nextId
-                  return next
-                })
-              }}
-              options={party.options}
-              loading={party.loading}
-              busy={busy}
-              lobbyName={party.lobbyName}
-              lobbies={party.lobbies}
-              lobbyId={party.lobbyId}
-              onLobbyIdChange={party.setLobbyId}
-            />
-            {duplicateTarget ? (
-              <Text tone="danger">Одна и та же цель в двух слотах — выберите разных.</Text>
-            ) : null}
-          </>
+        {isTransformSelf ? (
+          <div>
+            <Text tone="muted">Цель превращения (v1)</Text>
+            <div className="chip-row" style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                className={`sheet-chip${selfFormTarget === 'self' ? ' is-on' : ''}`}
+                onClick={() => setSelfFormTarget('self')}
+              >
+                На себя → облик
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${selfFormTarget === 'other' ? ' is-on' : ''}`}
+                onClick={() => setSelfFormTarget('other')}
+              >
+                Другая цель (без карточки)
+              </button>
+            </div>
+            <Text tone="muted">
+              «На себя» после каста откроет пикер формы в Напарниках. На союзника/врага в
+              v1 карточку не создаём.
+            </Text>
+          </div>
         ) : null}
       </Stack>
     </Dialog>

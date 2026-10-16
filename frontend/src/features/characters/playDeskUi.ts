@@ -12,24 +12,25 @@ export type PlayDeskMode =
   | 'social'
   | 'companions'
   | 'features'
-  | 'more'
 
 export type PlayDeskPanelId =
-  | 'identity'
-  | 'play'
   | 'attacks'
   | 'inventory'
-  | 'attunement'
   | 'features'
   | 'spells'
   | 'companions'
   | 'texts'
-  | 'ownership'
 
 export type XpHistoryEntry = {
   id: string
   delta: number
   reason: string
+  at: string
+}
+
+export type RollHistoryEntry = {
+  id: string
+  text: string
   at: string
 }
 
@@ -43,9 +44,55 @@ export type SheetUiState = {
   combatConsumableFavoriteIds: string[]
   /** XP awards / spends with optional «за что». Newest first. */
   xpHistory: XpHistoryEntry[]
+  /** Desk dice rolls (attacks, checks, …). Newest first; persisted on the sheet. */
+  rollHistory: RollHistoryEntry[]
 }
 
 const MAX_XP_HISTORY = 40
+const MAX_ROLL_HISTORY = 50
+
+export function isDeskRollToast(message: string): boolean {
+  return /\bd20\b|урон\s|\(\d+d\d+/i.test(message)
+}
+
+export function normalizeRollHistory(raw: unknown): RollHistoryEntry[] {
+  if (!Array.isArray(raw)) return []
+  const out: RollHistoryEntry[] = []
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue
+    const item = row as Record<string, unknown>
+    const text = typeof item.text === 'string' ? item.text.trim() : ''
+    if (!text) continue
+    const at =
+      typeof item.at === 'string' && item.at.trim()
+        ? item.at
+        : new Date().toISOString()
+    const id =
+      typeof item.id === 'string' && item.id.trim()
+        ? item.id
+        : `roll-${at}-${out.length}`
+    out.push({ id, text, at })
+    if (out.length >= MAX_ROLL_HISTORY) break
+  }
+  return out
+}
+
+export function appendRollHistory(
+  history: RollHistoryEntry[],
+  entry: Omit<RollHistoryEntry, 'id' | 'at'> & { id?: string; at?: string },
+): RollHistoryEntry[] {
+  const next: RollHistoryEntry = {
+    id:
+      entry.id ??
+      (typeof crypto !== 'undefined' && 'randomUUID' in crypto
+        ? crypto.randomUUID()
+        : `roll-${Date.now()}`),
+    text: entry.text.trim(),
+    at: entry.at ?? new Date().toISOString(),
+  }
+  if (!next.text) return history
+  return [next, ...history].slice(0, MAX_ROLL_HISTORY)
+}
 
 export function normalizeXpHistory(raw: unknown): XpHistoryEntry[] {
   if (!Array.isArray(raw)) return []
@@ -95,7 +142,6 @@ const PLAY_DESK_MODES: PlayDeskMode[] = [
   'social',
   'companions',
   'features',
-  'more',
 ]
 
 export function normalizeAbilityOrder(raw: unknown): AbilityKey[] {
@@ -118,6 +164,8 @@ export function normalizeAbilityOrder(raw: unknown): AbilityKey[] {
 }
 
 function normalizeDeskMode(raw: unknown): PlayDeskMode {
+  // Legacy ЕЩЁ scene → combat; identity lives in avatar dialog now.
+  if (raw === 'more') return 'combat'
   if (typeof raw === 'string' && PLAY_DESK_MODES.includes(raw as PlayDeskMode)) {
     return raw as PlayDeskMode
   }
@@ -143,6 +191,7 @@ export function readSheetUi(sheet: Record<string, unknown>): SheetUiState {
       ui.combat_consumable_favorites,
     ),
     xpHistory: normalizeXpHistory(ui.xp_history),
+    rollHistory: normalizeRollHistory(ui.roll_history),
   }
 }
 
@@ -154,6 +203,7 @@ export function sheetUiToPatch(ui: SheetUiState): Record<string, unknown> {
     desk_split: ui.deskSplit,
     combat_consumable_favorites: ui.combatConsumableFavoriteIds,
     xp_history: ui.xpHistory,
+    roll_history: ui.rollHistory,
   }
 }
 
@@ -163,7 +213,6 @@ export const MODE_DEFAULT_PANEL: Record<PlayDeskMode, PlayDeskPanelId> = {
   social: 'texts',
   companions: 'companions',
   features: 'features',
-  more: 'play',
 }
 
 /** Scenes that keep spells pinned beside the primary panel. */
@@ -206,12 +255,8 @@ export const PLAY_DESK_PANELS: Array<{ id: PlayDeskPanelId; label: string }> = [
   { id: 'features', label: 'Способности' },
   { id: 'spells', label: 'Заклинания' },
   { id: 'inventory', label: 'Снаряжение' },
-  { id: 'attunement', label: 'Настройка' },
   { id: 'companions', label: 'Напарники' },
   { id: 'texts', label: 'Тексты и заметки' },
-  { id: 'play', label: 'Состояния и ресурсы' },
-  { id: 'identity', label: 'Основное' },
-  { id: 'ownership', label: 'Владения' },
 ]
 
 /**
@@ -224,27 +269,14 @@ export const MODE_SCENE_PANELS: Record<PlayDeskMode, PlayDeskPanelId[]> = {
   social: ['texts', 'spells'],
   companions: ['companions'],
   features: ['features'],
-  more: ['play', 'identity', 'attunement', 'ownership'],
 }
-
-/** Dump scene «ЕЩЁ» — former EXTRA panels; rebuild later. */
-export const MODE_MORE_PANELS: PlayDeskPanelId[] = [
-  'play',
-  'identity',
-  'attunement',
-  'ownership',
-]
-
-/** @deprecated use MODE_MORE_PANELS — kept for older imports */
-export const MODE_EXTRA_PANELS: PlayDeskPanelId[] = MODE_MORE_PANELS
 
 export const MODE_HINT: Record<PlayDeskMode, string> = {
   combat: 'Бой: атаки + заклинания рядом',
   explore: 'Исследование: снаряжение + заклинания рядом',
   social: 'Общение: тексты + заклинания рядом',
-  companions: 'Напарники: свита и призывы',
-  features: 'Способности: умения и ресурсы класса',
-  more: 'ЕЩЁ: основное, состояния, настройка, владения — потом разберём',
+  companions: 'Напарники: спутники и призывы (glance→expand)',
+  features: 'Способности: сводка умений класса, черт и расы',
 }
 
 export const MODE_LABELS: Array<{ id: PlayDeskMode; label: string }> = [
@@ -253,8 +285,16 @@ export const MODE_LABELS: Array<{ id: PlayDeskMode; label: string }> = [
   { id: 'social', label: 'Общение' },
   { id: 'companions', label: 'Напарники' },
   { id: 'features', label: 'Способности' },
-  { id: 'more', label: 'ЕЩЁ' },
 ]
+
+/** Short labels under Bottom Scene Nav icons (<960). aria-label stays full. */
+export const MODE_SHORT_LABELS: Record<PlayDeskMode, string> = {
+  combat: 'Бой',
+  explore: 'Исслед.',
+  social: 'Общение',
+  companions: 'Напарн.',
+  features: 'Способн.',
+}
 
 export function panelLabel(id: PlayDeskPanelId): string {
   return PLAY_DESK_PANELS.find((panel) => panel.id === id)?.label ?? id

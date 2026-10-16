@@ -1,5 +1,7 @@
 /** 2014 race catalog effects for the digital sheet (thin auto-apply). */
 
+import { canonicalLanguageList, canonicalLanguageName } from './languages'
+
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
 export type RaceEffectData = {
@@ -186,7 +188,7 @@ export function parseRaceEffectData(raw: unknown): RaceEffectData | null {
     size: readSize(data.size),
     darkvision,
     ability_bonuses: readAbilityBonuses(data.ability_bonuses ?? data.abilityBonuses),
-    languages: readLanguages(data.languages),
+    languages: canonicalLanguageList(readLanguages(data.languages)),
     languages_choose: Math.max(0, Math.floor(readNumber(data.languages_choose, 0))),
     traits_text: traits,
   }
@@ -208,17 +210,13 @@ export function mergeRaceLanguages(input: {
   previousApplied: string[]
   next: string[]
 }): string[] {
-  const remove = new Set(input.previousApplied.map((item) => item.toLowerCase()))
-  const kept = input.current.filter((item) => !remove.has(item.toLowerCase()))
-  const seen = new Set(kept.map((item) => item.toLowerCase()))
-  const result = [...kept]
-  for (const lang of input.next) {
-    const key = lang.toLowerCase()
-    if (seen.has(key)) continue
-    seen.add(key)
-    result.push(lang)
-  }
-  return result
+  const remove = new Set(
+    input.previousApplied.map((item) => canonicalLanguageName(item).toLowerCase()),
+  )
+  const kept = input.current.filter(
+    (item) => !remove.has(canonicalLanguageName(item).toLowerCase()),
+  )
+  return canonicalLanguageList([...kept, ...input.next])
 }
 
 export function upsertRaceTraitsBlock(current: string, traitsText: string): string {

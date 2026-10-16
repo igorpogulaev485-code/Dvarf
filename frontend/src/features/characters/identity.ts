@@ -1,3 +1,4 @@
+import { canonicalLanguageList } from '../../shared/dnd/languages'
 import { readNameList } from './languagesTools'
 import { asRecord, readNumber } from './sheetTypes'
 
@@ -76,9 +77,9 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
       martial: Boolean(weapons.martial),
       extras: readNameList(weapons.extras),
     },
-    languages: readNameList(proficiency.languages),
+    languages: canonicalLanguageList(readNameList(proficiency.languages)),
     tools: readNameList(proficiency.tools),
-    raceAppliedLanguages: readNameList(identity.race_applied_languages),
+    raceAppliedLanguages: canonicalLanguageList(readNameList(identity.race_applied_languages)),
   }
 }
 

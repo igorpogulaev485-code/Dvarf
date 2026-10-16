@@ -49,6 +49,17 @@ export function IconBoot(props: IconProps) {
   )
 }
 
+/** Jump — leap arc */
+export function IconJump(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path {...stroke} d="M4.5 17.2c3.2-1.2 5.2-5.4 7.5-5.4s4.2 4.2 7.5 5.4" />
+      <path {...stroke} d="M9.2 11.2 12 6.8l2.2 3.2" />
+      <path {...stroke} d="M5.2 18.4h2.4M16.4 18.4h2.4" />
+    </Svg>
+  )
+}
+
 /** Initiative — spark / bolt */
 export function IconBolt(props: IconProps) {
   return (
@@ -111,6 +122,57 @@ export function IconSkull(props: IconProps) {
       <circle {...stroke} cx="9.2" cy="10.2" r="1.15" />
       <circle {...stroke} cx="14.8" cy="10.2" r="1.15" />
       <path {...stroke} d="M10.2 14.2h3.6M11.2 16.8v1.6M12.8 16.8v1.6" />
+    </Svg>
+  )
+}
+
+/** Conditions — linked nodes (kit desk-chrome §D) */
+export function IconConditions(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle {...stroke} cx="7.2" cy="8.2" r="2.4" />
+      <circle {...stroke} cx="16.8" cy="8.2" r="2.4" />
+      <circle {...stroke} cx="12" cy="16.2" r="2.4" />
+      <path {...stroke} d="M9.2 9.4 10.4 14.2M14.8 9.4 13.6 14.2M9.6 8.2h4.8" />
+    </Svg>
+  )
+}
+
+/** Exhaustion — stacked bars */
+export function IconExhaustion(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path {...stroke} d="M5.5 17.5h13" />
+      <path {...stroke} d="M6.5 14h11" />
+      <path {...stroke} d="M7.5 10.5h9" />
+      <path {...stroke} d="M8.5 7h7" />
+      <path {...stroke} d="M9.5 3.5h5" />
+    </Svg>
+  )
+}
+
+/** Concentration — orbit (kit desk-chrome §D / hot-bar) */
+export function IconConcentration(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle {...stroke} cx="12" cy="12" r="3.2" />
+      <path {...stroke} d="M12 4.2a7.8 7.8 0 0 1 7.8 7.8" />
+      <path {...stroke} d="M12 19.8A7.8 7.8 0 0 1 4.2 12" />
+      <path {...stroke} d="M18.6 7.2l1.4-.8M5.4 16.8l-1.4.8" />
+    </Svg>
+  )
+}
+
+/** Resources — pouch (kit desk-chrome §D) */
+export function IconPouch(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path
+        {...stroke}
+        d="M8.2 9.2h7.6c1.2 0 2.1 1 2 2.2l-.6 7.2c-.1 1.1-1 1.9-2.1 1.9H8.9c-1.1 0-2-.8-2.1-1.9l-.6-7.2c-.1-1.2.8-2.2 2-2.2Z"
+      />
+      <path {...stroke} d="M9.5 9.2V7.6A2.5 2.5 0 0 1 12 5.1 2.5 2.5 0 0 1 14.5 7.6v1.6" />
+      <path {...stroke} d="M10.5 13.2h3" />
     </Svg>
   )
 }

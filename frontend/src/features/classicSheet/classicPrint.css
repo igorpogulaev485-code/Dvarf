@@ -28,6 +28,26 @@
   font-size: 0.75rem;
 }
 
+.classic-background-picker {
+  max-width: 8.5in;
+  margin: 0 auto 0.75rem;
+  padding: 0.9rem 1rem;
+  background: #f3efe6;
+  border: 1px solid #c9c0b0;
+  border-radius: 8px;
+}
+
+.classic-background-picker__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.classic-background-picker__row > *:first-child {
+  flex: 1 1 16rem;
+}
+
 .classic-stack {
   display: grid;
   gap: 1.25rem;
@@ -128,12 +148,26 @@
 }
 
 .classic-ability {
+  --abil: #5a6b3d;
   border: 2px solid #2b2b2b;
   border-radius: 10px;
   text-align: center;
   padding: 0.18rem 0.1rem 0.45rem;
   margin-bottom: 0.12in;
   position: relative;
+}
+
+/* Kit identity A on print blank (screen + print) */
+.classic-ability[data-abil='str'] { --abil: #9a4a32; }
+.classic-ability[data-abil='dex'] { --abil: #3d6b5a; }
+.classic-ability[data-abil='con'] { --abil: #8a6a2f; }
+.classic-ability[data-abil='int'] { --abil: #3f5f8a; }
+.classic-ability[data-abil='wis'] { --abil: #5a6b3d; }
+.classic-ability[data-abil='cha'] { --abil: #7a4a6e; }
+
+.classic-ability__label {
+  color: var(--abil);
+  font-weight: 700;
 }
 
 .classic-ability input {
