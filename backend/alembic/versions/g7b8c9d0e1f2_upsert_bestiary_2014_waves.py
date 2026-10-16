@@ -51,6 +51,12 @@ def _load_wave(name: str) -> list[dict[str, Any]]:
 
 def upgrade() -> None:
     conn = op.get_bind()
+    # Прод уже засеян B5 (~2380) параллельной веткой; JSON может не быть в образе.
+    existing_count = conn.execute(
+        sa.text("SELECT COUNT(*) FROM catalog_entries WHERE kind = 'bestiary'")
+    ).scalar()
+    if existing_count is not None and int(existing_count) >= 2000:
+        return
     total = 0
     sort_base = 20000
     for wave in WAVE_FILES:
