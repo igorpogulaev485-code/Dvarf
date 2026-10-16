@@ -11,7 +11,11 @@ import {
 } from '../features/cabinet'
 import { getMe, type User } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
-import { applyAccountAppearance, normalizeAppearance } from '../shared/theme/accountAppearance'
+import {
+  applyAccountAppearance,
+  mergeAppearanceFromUser,
+  readCachedAppearance,
+} from '../shared/theme/accountAppearance'
 import { Panel, Stack, Text, Toast } from '../ui'
 
 export function CabinetPage() {
@@ -24,8 +28,15 @@ export function CabinetPage() {
   const closeToast = useCallback(() => setToast(null), [])
 
   const handleUser = useCallback((next: User) => {
-    setUser(next)
-    applyAccountAppearance(normalizeAppearance(next))
+    // Prefer server fields when present; otherwise keep cache (thin-deploy safety).
+    const appearance = mergeAppearanceFromUser(readCachedAppearance(), next)
+    const merged: User = {
+      ...next,
+      theme_id: appearance.themeId,
+      ability_colors: appearance.abilityColors,
+    }
+    setUser(merged)
+    applyAccountAppearance(appearance)
   }, [])
 
   useEffect(() => {
