@@ -312,33 +312,60 @@
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: 1.35in 1fr;
-  gap: 0.28rem;
-  align-items: stretch;
+  grid-template-columns: 1.45in 1fr;
+  grid-template-rows: 1.45in 1fr;
+  gap: 0.28rem 0.35rem;
+  align-items: start;
   margin-bottom: 0.45rem;
 }
 
+.classic-allies-layout > .classic-expand--fill {
+  grid-column: 2;
+  grid-row: 1 / -1;
+  min-height: 0;
+  align-self: stretch;
+}
+
 .classic-symbol {
+  grid-column: 1;
+  grid-row: 1;
   position: relative;
-  border: 1.75px solid var(--c-line);
-  border-radius: 18% / 14%;
-  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  width: 1.45in;
+  height: 1.45in;
+  min-height: 1.45in;
+  max-height: 1.45in;
+  justify-self: start;
+  align-self: start;
   background: var(--c-paper-tint);
+  /* Flat-top hex like the official org crest box — fixed size, never stretch */
+  clip-path: polygon(25% 2%, 75% 2%, 98% 50%, 75% 98%, 25% 98%, 2% 50%);
+  box-shadow: inset 0 0 0 1.75px var(--c-line);
   display: flex;
   flex-direction: column;
-  min-height: 1.6in;
-  padding: 0.55rem 0.4rem 0.7rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.5rem 0.55rem;
   overflow: hidden;
 }
 
 .classic-symbol .classic-expand--fill {
   text-align: center;
-  font-size: 0.65rem;
-  min-height: 2.2rem;
+  font-size: 0.62rem;
+  line-height: 1.25;
+  min-height: 0;
+  width: 100%;
+  margin-bottom: 0.35rem;
 }
 
 .classic-symbol .classic-caption {
-  bottom: 0.2rem;
+  bottom: 0.28rem;
+  font-size: 0.48rem;
+  background: var(--c-paper-tint);
+  padding: 0 0.15rem;
+}
+
+.classic-page2-allies .classic-allies-layout > .classic-expand--fill {
+  padding-top: 0.1rem;
 }
 
 .classic-abilities-wrap {
