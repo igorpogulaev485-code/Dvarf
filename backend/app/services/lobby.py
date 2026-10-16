@@ -704,20 +704,14 @@ class LobbyService:
         lobby_id: UUID,
         payload: AddLobbyMemberRequest,
     ) -> LobbyDetail:
-        lobby = self._require_lobby(lobby_id)
-        self._require_owner(lobby, user)
-        character = self.characters.get_for_user(payload.character_id, user.id)
-        if character is None:
-            raise NotFoundError("Персонаж не найден", code="character_not_found")
-        if self.lobbies.get_member(lobby.id, character.id) is None:
-            self.lobbies.add_member(
-                lobby_id=lobby.id,
-                character_id=character.id,
-                user_id=user.id,
-            )
-            self.db.commit()
-        lobby = self._require_lobby(lobby_id)
-        return self._to_detail(lobby, user)
+        """Устарело: состав только через join по коду (/lobbies/join), не из ростера лобби."""
+        _ = (user, lobby_id, payload)
+        raise AppError(
+            "Персонажа нельзя добавить из лобби. Войдите по коду комнаты "
+            "(страница /join или «В лобби» на листе).",
+            code="lobby_join_by_code_only",
+            status_code=400,
+        )
 
     def remove_member(self, user: User, lobby_id: UUID, character_id: UUID) -> LobbyDetail:
         lobby = self._require_lobby(lobby_id)

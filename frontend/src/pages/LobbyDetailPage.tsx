@@ -16,7 +16,6 @@ import {
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import {
-  addLobbyMember,
   createSession,
   createSetting,
   deleteLobby,
@@ -107,12 +106,7 @@ export function LobbyDetailPage() {
     }
   }, [navigate, reload])
 
-  const memberIds = useMemo(
-    () => new Set(lobby?.members.map((m) => m.character_id) ?? []),
-    [lobby],
-  )
   const ownCharacterIds = useMemo(() => new Set(characters.map((c) => c.id)), [characters])
-  const available = characters.filter((c) => !memberIds.has(c.id))
 
   async function run(action: () => Promise<void>) {
     setBusy(true)
@@ -194,9 +188,14 @@ export function LobbyDetailPage() {
             <Stack gap={12}>
               <Text tone="muted">
                 Упрощённые карточки участников (ориентир ~8, бывает 3–10). Полные статы — в сессии.
+                Персонажи попадают в лобби только по коду / QR со своего аккаунта — своих из
+                ростера здесь не сажаем.
               </Text>
               {lobby.members.length === 0 ? (
-                <Text tone="muted">Пока никого. Игроки входят по коду / QR.</Text>
+                <Text tone="muted">
+                  Пока никого. Раздай код комнаты — каждый участник (и мастер тоже) входит со
+                  своим персонажем через «В лобби» /join.
+                </Text>
               ) : (
                 <div className="lobby-member-grid">
                   {lobby.members.map((m) => {
@@ -221,32 +220,6 @@ export function LobbyDetailPage() {
                   })}
                 </div>
               )}
-
-              {lobby.is_owner && available.length > 0 ? (
-                <Stack gap={8}>
-                  <Text as="h3">Добавить своего персонажа</Text>
-                  {available.map((c) => (
-                    <div className="list-row" key={c.id}>
-                      <Text>
-                        {c.name} · {c.class_name || 'без класса'}
-                      </Text>
-                      <Button
-                        type="button"
-                        disabled={busy}
-                        onClick={() =>
-                          run(async () => {
-                            const next = await addLobbyMember(lobby.id, c.id)
-                            setLobby(next)
-                            setToast('Персонаж в лобби')
-                          })
-                        }
-                      >
-                        В лобби
-                      </Button>
-                    </div>
-                  ))}
-                </Stack>
-              ) : null}
             </Stack>
           </Panel>
         ) : null}

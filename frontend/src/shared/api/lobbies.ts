@@ -448,6 +448,7 @@ export async function joinLobby(code: string, characterId: string): Promise<Lobb
   })
 }
 
+/** @deprecated Состав только через joinLobby(code). Эндпоинт отвечает 400. */
 export async function addLobbyMember(lobbyId: string, characterId: string): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/members`, {
     method: 'POST',
