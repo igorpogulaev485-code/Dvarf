@@ -1031,6 +1031,8 @@ export function ensureKnownSpellsReady(known: SheetSpell[]): SheetSpell[] {
 export function sheetSpellFromCatalog(entry: {
   id: string
   name_ru: string
+  /** Prefer for ally heuristics — id is often a UUID. */
+  slug?: string
   data?: Record<string, unknown>
 }): SheetSpell {
   const fields = readCatalogSpellFields(entry.data ?? {})
