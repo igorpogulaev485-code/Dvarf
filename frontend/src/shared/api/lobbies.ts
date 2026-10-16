@@ -692,6 +692,19 @@ export async function generateSessionEncounter(
   )
 }
 
+export async function createLobbyEncounterTemplate(
+  lobbyId: string,
+  payload: {
+    name: string
+    entries: EncounterEntry[]
+  },
+): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/encounters`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
 export async function saveSessionEncounterTemplate(
   sessionId: string,
   payload: { name: string },

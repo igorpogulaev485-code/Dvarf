@@ -3366,6 +3366,12 @@ button.session-concentration-tag {
   background: var(--accent-soft);
 }
 
+.session-gen-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .inventory-coins-head {
   display: flex;
   align-items: center;

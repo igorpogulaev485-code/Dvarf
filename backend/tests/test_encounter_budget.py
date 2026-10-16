@@ -56,6 +56,25 @@ def test_similar_expands_orc_family() -> None:
     assert "goblinoid" in wide and "kobold" in wide
 
 
+def test_race_themes_elf_human_tiefling() -> None:
+    assert monster_matches_themes(
+        type_en="humanoid", subtype="эльф", theme_ids=["elf"]
+    )
+    assert not monster_matches_themes(
+        type_en="humanoid", subtype="полуэльф", theme_ids=["elf"]
+    )
+    assert monster_matches_themes(
+        type_en="humanoid", subtype="человек", theme_ids=["human"]
+    )
+    assert monster_matches_themes(
+        type_en="humanoid", subtype="тифлинг", theme_ids=["tiefling"]
+    )
+    wide = expand_theme_ids(["elf"], similar=True)
+    assert monster_matches_themes(
+        type_en="humanoid", subtype="полуэльф", theme_ids=wide
+    )
+
+
 def test_party_power_clamped_and_grows() -> None:
     weak = compute_party_power(PartyPowerSignals())
     strong = compute_party_power(

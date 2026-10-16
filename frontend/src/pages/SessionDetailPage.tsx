@@ -34,6 +34,7 @@ import {
   deleteSeatCompanion,
   deleteSessionCombatant,
   deploySessionEncounterTemplate,
+  createLobbyEncounterTemplate,
   generateSessionEncounter,
   getLobby,
   getSession,
@@ -960,6 +961,24 @@ export function SessionDetailPage() {
                 packCount > 1 ? `×${packCount}` : ''
               }`,
             )
+          })
+        }}
+        onSaveAsTemplate={({ name, boss, pack, packCount }) => {
+          void run(async () => {
+            const lobby = await createLobbyEncounterTemplate(session.lobby_id, {
+              name,
+              entries: [
+                { name: boss.name_ru, slug: boss.slug, count: 1, xp: boss.xp },
+                {
+                  name: pack.name_ru,
+                  slug: pack.slug,
+                  count: Math.max(1, Math.min(20, packCount)),
+                  xp: pack.xp,
+                },
+              ],
+            })
+            setTemplates(lobby.encounter_templates ?? [])
+            setToast(`Шаблон «${name}» сохранён`)
           })
         }}
       />

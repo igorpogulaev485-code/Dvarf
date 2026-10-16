@@ -20,6 +20,9 @@ class ThemeDef:
     types: tuple[str, ...] = ()
     # подстроки subtype (нижний регистр), любая из них = hit
     subtypes: tuple[str, ...] = ()
+    # если подстрока из excludes есть в subtype — не считать hit
+    # (эльф не должен ловить «полуэльф», пока не выбрана тема half_elf)
+    subtype_excludes: tuple[str, ...] = ()
     # id других тем, которые подмешиваются при similar=True
     similar_theme_ids: tuple[str, ...] = ()
 
@@ -91,6 +94,63 @@ THEMES: dict[str, ThemeDef] = {
         subtypes=("людоящер",),
         similar_theme_ids=("orc",),
     ),
+    # Играбельные / «городские» расы (subtype гуманоида в бестиарии)
+    "human": ThemeDef(
+        "human",
+        "Люди",
+        subtypes=("человек",),
+        subtype_excludes=("полуорк", "полуэльф"),
+        similar_theme_ids=("half_elf", "tiefling"),
+    ),
+    "elf": ThemeDef(
+        "elf",
+        "Эльфы",
+        subtypes=("эльф",),
+        subtype_excludes=("полуэльф",),
+        similar_theme_ids=("half_elf", "fey"),
+    ),
+    "half_elf": ThemeDef(
+        "half_elf",
+        "Полуэльфы",
+        subtypes=("полуэльф",),
+        similar_theme_ids=("elf", "human"),
+    ),
+    "dwarf": ThemeDef(
+        "dwarf",
+        "Дварфы",
+        subtypes=("дварф",),
+        similar_theme_ids=("gnome",),
+    ),
+    "gnome": ThemeDef(
+        "gnome",
+        "Гномы",
+        subtypes=("гном",),
+        similar_theme_ids=("dwarf",),
+    ),
+    "tiefling": ThemeDef(
+        "tiefling",
+        "Тифлинги",
+        subtypes=("тифлинг",),
+        similar_theme_ids=("human", "fiend"),
+    ),
+    "gith": ThemeDef(
+        "gith",
+        "Гит",
+        subtypes=("гит",),
+        similar_theme_ids=(),
+    ),
+    "kenku": ThemeDef(
+        "kenku",
+        "Кенку",
+        subtypes=("кенку",),
+        similar_theme_ids=(),
+    ),
+    "tortle": ThemeDef(
+        "tortle",
+        "Тортлы",
+        subtypes=("тортл",),
+        similar_theme_ids=(),
+    ),
     "sahuagin": ThemeDef(
         "sahuagin",
         "Сахуагин",
@@ -139,6 +199,9 @@ def monster_matches_themes(
             continue
         if type_l and type_l in theme.types:
             return True
-        if sub_l and any(token in sub_l for token in theme.subtypes):
-            return True
+        if sub_l and theme.subtypes:
+            if any(ex and ex in sub_l for ex in theme.subtype_excludes):
+                continue
+            if any(token in sub_l for token in theme.subtypes):
+                return True
     return False

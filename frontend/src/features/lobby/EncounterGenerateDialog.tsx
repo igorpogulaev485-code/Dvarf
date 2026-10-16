@@ -1,16 +1,22 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type {
   EncounterGenerateDifficulty,
   EncounterGenerateResult,
   EncounterMonsterOption,
 } from '../../shared/api/lobbies'
-import { Button, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
+import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
 import {
   ENCOUNTER_DIFFICULTIES,
   ENCOUNTER_ENVIRONMENTS,
   ENCOUNTER_THEMES,
   type EncounterDifficultyId,
 } from './encounterGeneratorMeta'
+
+const THEME_GROUPS: Array<{ id: 'type' | 'tribe' | 'race'; title: string }> = [
+  { id: 'type', title: 'Тип' },
+  { id: 'tribe', title: 'Племя / фракция' },
+  { id: 'race', title: 'Раса гуманоида' },
+]
 
 type Props = {
   open: boolean
@@ -31,6 +37,12 @@ type Props = {
     packCount: number
     waveIndex: number
   }) => void
+  onSaveAsTemplate?: (payload: {
+    name: string
+    boss: EncounterMonsterOption
+    pack: EncounterMonsterOption
+    packCount: number
+  }) => void
 }
 
 /**
@@ -44,6 +56,7 @@ export function EncounterGenerateDialog({
   onInvalidate,
   onGenerate,
   onDeploy,
+  onSaveAsTemplate,
 }: Props) {
   const [difficulty, setDifficulty] = useState<EncounterDifficultyId>('medium')
   const [waves, setWaves] = useState<number | null>(1)
@@ -53,6 +66,7 @@ export function EncounterGenerateDialog({
   const [waveIndex, setWaveIndex] = useState(0)
   const [bossSlug, setBossSlug] = useState<string | null>(null)
   const [packSlug, setPackSlug] = useState<string | null>(null)
+  const [templateName, setTemplateName] = useState('')
 
   useEffect(() => {
     if (!open) return
@@ -64,7 +78,16 @@ export function EncounterGenerateDialog({
     setWaveIndex(0)
     setBossSlug(null)
     setPackSlug(null)
+    setTemplateName('')
   }, [open])
+
+  const themesByGroup = useMemo(() => {
+    return {
+      type: ENCOUNTER_THEMES.filter((t) => t.group === 'type'),
+      tribe: ENCOUNTER_THEMES.filter((t) => t.group === 'tribe'),
+      race: ENCOUNTER_THEMES.filter((t) => t.group === 'race'),
+    }
+  }, [])
 
   useEffect(() => {
     if (!result?.waves.length) {
@@ -213,23 +236,28 @@ export function EncounterGenerateDialog({
           </div>
         </Stack>
 
-        <Stack gap={8}>
+        <Stack gap={10}>
           <Text as="h4" className="session-xp-recipients__title">
             Тема (мультивыбор)
           </Text>
-          <div className="session-gen-chips">
-            {ENCOUNTER_THEMES.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                className={`session-gen-chip${themes.has(t.id) ? ' is-on' : ''}`}
-                disabled={busy}
-                onClick={() => toggleTheme(t.id)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
+          {THEME_GROUPS.map((g) => (
+            <Stack key={g.id} gap={6}>
+              <Text tone="muted">{g.title}</Text>
+              <div className="session-gen-chips">
+                {themesByGroup[g.id].map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={`session-gen-chip${themes.has(t.id) ? ' is-on' : ''}`}
+                    disabled={busy}
+                    onClick={() => toggleTheme(t.id)}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+            </Stack>
+          ))}
           <label className="session-feed-filter">
             <input
               type="checkbox"
@@ -290,22 +318,53 @@ export function EncounterGenerateDialog({
               <Text tone="muted">Пустой пул — смени темы или локацию.</Text>
             )}
 
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={busy || !canGenerate}
-              onClick={() =>
-                onGenerate({
-                  difficulty,
-                  environments: envPayload,
-                  theme_ids: [...themes],
-                  similar,
-                  waves: Math.max(1, Math.min(8, waves ?? 1)),
-                })
-              }
-            >
-              Перекинуть
-            </Button>
+            <div className="session-gen-actions">
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy || !canGenerate}
+                onClick={() =>
+                  onGenerate({
+                    difficulty,
+                    environments: envPayload,
+                    theme_ids: [...themes],
+                    similar,
+                    waves: Math.max(1, Math.min(8, waves ?? 1)),
+                  })
+                }
+              >
+                Перекинуть
+              </Button>
+            </div>
+
+            {onSaveAsTemplate && canDeploy && boss && pack ? (
+              <div className="session-encounter-save">
+                <Field label="В шаблон лобби">
+                  <Input
+                    value={templateName}
+                    disabled={busy}
+                    placeholder="Засада эльфов"
+                    onChange={(e) => setTemplateName(e.target.value)}
+                  />
+                </Field>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={busy || !templateName.trim()}
+                  onClick={() => {
+                    onSaveAsTemplate({
+                      name: templateName.trim(),
+                      boss,
+                      pack,
+                      packCount,
+                    })
+                    setTemplateName('')
+                  }}
+                >
+                  Сохранить
+                </Button>
+              </div>
+            ) : null}
           </Stack>
         ) : null}
       </Stack>
