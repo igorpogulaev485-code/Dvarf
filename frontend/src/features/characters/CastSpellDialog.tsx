@@ -10,7 +10,12 @@ import {
   levelLabel,
   slotsRemaining,
 } from '../../shared/dnd/spells'
-import { guessAllyTargetCount, guessAppliesToAllies } from '../../shared/dnd/allyTargets'
+/**
+   * Namespace import: named `guess*` bindings were colliding under Rolldown minify
+   * with locals in the same CharacterDetailPage chunk (e.g. stealth `io`), so the
+   * cast dialog never saw ally targets on prod. Keep heuristics local too.
+   */
+import * as AllyTargets from '../../shared/dnd/allyTargets'
 import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
 import { Button, Dialog, Stack, Text } from '../../ui'
 import { AllyTargetFields } from '../lobby/AllyTargetFields'
@@ -22,6 +27,41 @@ import {
 } from './spells'
 import { checkSpellMaterials, type MaterialInventoryItem } from './spellMaterials'
 import { isSpellSelfFormCast } from './spellForms'
+
+/** Local copy — never call cross-chunk mangled guess* from this dialog. */
+const CAST_ALLY_NAME_RE =
+  /благословен|bless|ускорен|haste|щит\s*вер|shield of faith|наставлен|guidance|помощ[ьи]|\baid\b|героизм|heroism|вардинг|warding bond|вдохновен|inspiration|инфуз|infusion|бафф?|\bбаф\b/i
+const CAST_ALLY_CATALOG_RE =
+  /shield_of_faith|\bbless\b|\baid\b|\bhaste\b|\bheroism\b|warding_bond|\bguidance\b|beacon_of_hope|enhance_ability/i
+const CAST_MULTI_TARGET_RE = /благословен|bless|помощ[ьи]|\baid\b/i
+const CAST_MULTI_CATALOG_RE = /\bbless\b|\baid\b/i
+
+function castSpellAppliesToAllies(spell: SheetSpell): boolean {
+  if (spell.applies_to_allies === true) return true
+  const catalog = String(spell.catalog_id ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, '_')
+  if (catalog && CAST_ALLY_CATALOG_RE.test(catalog)) return true
+  const name = String(spell.name ?? '').trim()
+  if (name && CAST_ALLY_NAME_RE.test(name)) return true
+  // Stale explicit false must not hide known buffs; heuristic already ran.
+  return AllyTargets.guessAppliesToAllies(spell.name, spell.catalog_id)
+}
+
+function castSpellAllyTargetCount(spell: SheetSpell): number {
+  if (typeof spell.ally_target_count === 'number' && spell.ally_target_count >= 1) {
+    return Math.min(6, Math.floor(spell.ally_target_count))
+  }
+  const catalog = String(spell.catalog_id ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, '_')
+  if (catalog && CAST_MULTI_CATALOG_RE.test(catalog)) return 3
+  const name = String(spell.name ?? '').trim()
+  if (name && CAST_MULTI_TARGET_RE.test(name)) return 3
+  return AllyTargets.guessAllyTargetCount(spell.name, spell.catalog_id)
+}
 
 export type CastChoice = {
   usePact: boolean
@@ -121,19 +161,12 @@ export function CastSpellDialog({
   const [selfFormTarget, setSelfFormTarget] = useState<'self' | 'other'>('self')
   const isTransformSelf = spell != null && isSpellSelfFormCast(spell)
 
-  const appliesToAllies = Boolean(
-    spell &&
-      (spell.applies_to_allies === true ||
-        (spell.applies_to_allies !== false && guessAppliesToAllies(spell.name))),
-  )
-  const showTargets = Boolean(appliesToAllies && characterId)
+  const appliesToAllies = Boolean(spell && castSpellAppliesToAllies(spell))
+  /** Показываем блок целей всегда для ally-баффов: в лобби — select, иначе подсказка. */
+  const showTargets = appliesToAllies
   const targetCount = Math.max(
     1,
-    Math.min(
-      6,
-      spell?.ally_target_count ??
-        (spell ? guessAllyTargetCount(spell.name) : 1),
-    ),
+    Math.min(6, spell ? castSpellAllyTargetCount(spell) : 1),
   )
   const [targetSlots, setTargetSlots] = useState<string[]>(() =>
     Array.from({ length: targetCount }, () => ''),

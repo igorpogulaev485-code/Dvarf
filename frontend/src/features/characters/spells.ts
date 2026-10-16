@@ -3,7 +3,7 @@ import {
   type SpellComponents,
   type SpellScaleTable,
 } from '../../shared/dnd/spellCatalog'
-import { guessAllyTargetCount, guessAppliesToAllies } from '../../shared/dnd/allyTargets'
+import * as AllyTargets from '../../shared/dnd/allyTargets'
 import {
   clampPactSlots,
   clampSlot,
@@ -244,15 +244,19 @@ function readSpell(raw: unknown, index: number): SheetSpell {
     concentration: Boolean(row.concentration),
     ...(() => {
       const name = typeof row.name === 'string' ? row.name : ''
+      const catalogId = typeof row.catalog_id === 'string' ? row.catalog_id : null
       const appliesExplicit = row.applies_to_allies
+      const guessed = AllyTargets.guessAppliesToAllies(name, catalogId)
+      // Heuristic wins over a stale explicit false (prod cast dialog had no targets).
       const applies =
-        typeof appliesExplicit === 'boolean' ? appliesExplicit : guessAppliesToAllies(name)
+        guessed ||
+        (typeof appliesExplicit === 'boolean' ? appliesExplicit : false)
       if (!applies) return {}
       const countRaw = row.ally_target_count
       const count =
         typeof countRaw === 'number' && countRaw >= 1
           ? Math.min(6, Math.floor(countRaw))
-          : guessAllyTargetCount(name)
+          : AllyTargets.guessAllyTargetCount(name, catalogId)
       return { applies_to_allies: true as const, ally_target_count: count }
     })(),
     ...(typeof row.duration === 'string' && row.duration
@@ -1043,11 +1047,13 @@ export function sheetSpellFromCatalog(entry: {
     damage: fields.damage ?? '',
     concentration: Boolean(fields.concentration),
     ...(() => {
-      const applies = guessAppliesToAllies(entry.name_ru)
+      // Prefer slug: catalog_id is a UUID and won't match ALLY_CATALOG_RE.
+      const catalogKey = entry.slug || entry.id
+      const applies = AllyTargets.guessAppliesToAllies(entry.name_ru, catalogKey)
       if (!applies) return {}
       return {
         applies_to_allies: true as const,
-        ally_target_count: guessAllyTargetCount(entry.name_ru),
+        ally_target_count: AllyTargets.guessAllyTargetCount(entry.name_ru, catalogKey),
       }
     })(),
     ...(fields.duration ? { duration: fields.duration } : {}),
