@@ -94,10 +94,16 @@ export function applyClassicEdits(
     skillProficiency?: Record<string, boolean>
     textBlocks?: Record<string, string>
     otherProficiencies?: string
+    proficiencyBonus?: number
   },
 ): ClassicPatch {
   const sheet = cloneSheet(asRecord(character.sheet))
 
+  if (edits.proficiencyBonus != null) {
+    const proficiency = asRecord(sheet.proficiency)
+    proficiency.bonus = edits.proficiencyBonus
+    sheet.proficiency = proficiency
+  }
   if (edits.identity) {
     const identity = asRecord(sheet.identity)
     Object.assign(identity, edits.identity)

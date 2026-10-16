@@ -3,6 +3,7 @@ import type { CharacterDetail } from '../../shared/api/characters'
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
+  ABILITY_NAMES,
   SKILL_DEFS,
   abilityModifier,
   formatModifier,
@@ -32,11 +33,13 @@ function Expanding({
   onChange,
   printMaxHeight,
   ariaLabel,
+  className,
 }: {
   value: string
   onChange: (value: string) => void
   printMaxHeight?: string
   ariaLabel?: string
+  className?: string
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useLayoutEffect(() => {
@@ -51,7 +54,7 @@ function Expanding({
   return (
     <textarea
       ref={ref}
-      className="classic-expand"
+      className={className ? `classic-expand ${className}` : 'classic-expand'}
       value={value}
       aria-label={ariaLabel}
       rows={1}
@@ -61,9 +64,9 @@ function Expanding({
   )
 }
 
-function Bubble({ filled, onClick }: { filled: boolean; onClick: () => void }) {
+function Bubble({ filled, onClick, label }: { filled: boolean; onClick: () => void; label?: string }) {
   return (
-    <button type="button" className="classic-bubble-btn" onClick={onClick}>
+    <button type="button" className="classic-bubble-btn" onClick={onClick} aria-label={label}>
       <span className={`classic-bubble ${filled ? 'is-filled' : ''}`} />
     </button>
   )
@@ -83,6 +86,10 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
   const coins = inventoryCoins(c)
   const weapons = weaponsSummary(c)
   const proficiency = Number(asProfBonus(c))
+  const hitDiceTotal = String(c.level || '')
+  const hitDiceCurrent = combatNum('hp_dice_current') || hitDiceTotal
+  const deathSuccesses = clampMarks(Number(combatField(c, 'death_successes') ?? 0))
+  const deathFails = clampMarks(Number(combatField(c, 'death_fails') ?? 0))
   const passivePerception =
     10 +
     abilityModifier(abilityScore(c, 'wis')) +
@@ -91,11 +98,11 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
 
   return (
     <div className="classic-stack">
-      <article className="classic-sheet classic-page1">
+      <article className="classic-sheet classic-page1" aria-label="Классический лист 2014, страница 1">
         <header className="classic-header">
           <div className="classic-brand">
             <strong>D&amp;D</strong>
-            <span>5e · {c.rules_edition}</span>
+            <span>5e · 2014</span>
           </div>
           <label className="classic-name">
             <span>Имя персонажа</span>
@@ -123,6 +130,13 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
               />
             </label>
             <label>
+              <span>Имя игрока</span>
+              <input
+                value={String(identityField(c, 'player_name') ?? '')}
+                onChange={(e) => patch({ identity: { player_name: e.target.value || null } })}
+              />
+            </label>
+            <label>
               <span>Раса</span>
               <input
                 value={c.race_name ?? ''}
@@ -145,13 +159,6 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
                 }
               />
             </label>
-            <label>
-              <span>Имя игрока</span>
-              <input
-                value={String(identityField(c, 'player_name') ?? '')}
-                onChange={(e) => patch({ identity: { player_name: e.target.value || null } })}
-              />
-            </label>
           </div>
         </header>
 
@@ -160,8 +167,8 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
             <div className="classic-abilities-wrap">
               <div>
                 {ABILITY_KEYS.map((key) => (
-                  <div className="classic-ability" data-abil={key} key={key}>
-                    <div className="classic-ability__label">{ABILITY_LABELS[key]}</div>
+                  <div className="classic-ability" key={key}>
+                    <div className="classic-ability__label">{ABILITY_NAMES[key]}</div>
                     <input
                       type="number"
                       value={abilityScore(c, key)}
@@ -184,11 +191,20 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
                   />
                   Вдохновение
                 </label>
+                <div className="classic-prof">
+                  <input
+                    type="number"
+                    value={proficiency}
+                    onChange={(e) => patch({ proficiencyBonus: Number(e.target.value) || 0 })}
+                  />
+                  <span>Бонус владения</span>
+                </div>
                 <div className="classic-panel">
                   {ABILITY_KEYS.map((key) => (
                     <div className="classic-check" key={key}>
                       <Bubble
                         filled={isSaveProficient(c, key)}
+                        label={`Владение спасброском: ${ABILITY_NAMES[key]}`}
                         onClick={() =>
                           patch({ saveProficiency: { [key]: !isSaveProficient(c, key) } })
                         }
@@ -199,7 +215,7 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
                             (isSaveProficient(c, key) ? proficiency : 0),
                         )}
                       </strong>
-                      <span>{ABILITY_LABELS[key]}</span>
+                      <span>{ABILITY_NAMES[key]}</span>
                     </div>
                   ))}
                   <div className="classic-caption">Спасброски</div>
@@ -213,7 +229,8 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
                     return (
                       <div className="classic-check" key={skill.key}>
                         <Bubble
-                          filled={flags.is_proficient}
+                          filled={flags.is_proficient || flags.is_expertise}
+                          label={`Владение навыком: ${skill.label}`}
                           onClick={() =>
                             patch({
                               skillProficiency: { [skill.key]: !flags.is_proficient },
@@ -221,7 +238,9 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
                           }
                         />
                         <strong>{formatModifier(bonus)}</strong>
-                        <span>{skill.label}</span>
+                        <span>
+                          {skill.label} <em>({ABILITY_LABELS[skill.base].toLowerCase()})</em>
+                        </span>
                       </div>
                     )
                   })}
@@ -236,8 +255,8 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
             <div className="classic-panel">
               <Expanding
                 value={String(asRecordNotes(c))}
-                printMaxHeight="9rem"
-                ariaLabel="Прочие владения"
+                printMaxHeight="8.5rem"
+                ariaLabel="Прочие владения и языки"
                 onChange={(otherProficiencies) => patch({ otherProficiencies })}
               />
               <div className="classic-caption">Прочие владения и языки</div>
@@ -246,21 +265,21 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
 
           <div className="classic-col">
             <div className="classic-combat-row">
-              <label>
+              <label className="classic-combat-stat classic-combat-stat--ac">
                 <input
                   value={combatNum('ac')}
                   onChange={(e) => patch({ combat: { ac: numOrNull(e.target.value) } })}
                 />
-                <span>КЗ</span>
+                <span>Класс доспеха</span>
               </label>
-              <label>
+              <label className="classic-combat-stat">
                 <input
                   value={combatNum('initiative')}
                   onChange={(e) => patch({ combat: { initiative: numOrNull(e.target.value) } })}
                 />
                 <span>Инициатива</span>
               </label>
-              <label>
+              <label className="classic-combat-stat">
                 <input
                   value={combatNum('speed')}
                   onChange={(e) => patch({ combat: { speed: numOrNull(e.target.value) } })}
@@ -268,9 +287,10 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
                 <span>Скорость</span>
               </label>
             </div>
+
             <div className="classic-panel">
               <label className="classic-hp-max">
-                Максимум
+                Максимум хитов
                 <input
                   value={c.hp_max ?? ''}
                   onChange={(e) => patch({ hp_max: numOrNull(e.target.value) })}
@@ -279,28 +299,94 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
               <input
                 className="classic-hp"
                 value={c.hp_current ?? ''}
+                aria-label="Текущие хиты"
                 onChange={(e) => patch({ hp_current: numOrNull(e.target.value) })}
               />
               <div className="classic-caption">Текущие хиты</div>
             </div>
+
             <div className="classic-panel">
               <input
                 className="classic-hp"
                 value={combatNum('hp_temp')}
+                aria-label="Временные хиты"
                 onChange={(e) => patch({ combat: { hp_temp: Number(e.target.value) || 0 } })}
               />
               <div className="classic-caption">Временные хиты</div>
             </div>
+
+            <div className="classic-hit-death-row">
+              <section className="classic-panel classic-hit-dice">
+                <label>
+                  Всего
+                  <input value={hitDiceTotal} readOnly title="По уровню персонажа" />
+                </label>
+                <input
+                  value={hitDiceCurrent}
+                  aria-label="Текущие кости хитов"
+                  onChange={(e) =>
+                    patch({ combat: { hp_dice_current: numOrNull(e.target.value) } })
+                  }
+                />
+                <div className="classic-caption">Кости хитов</div>
+              </section>
+              <section className="classic-panel classic-death-saves">
+                <div className="classic-death-line">
+                  <span>Успехи</span>
+                  {[0, 1, 2].map((i) => (
+                    <Bubble
+                      key={`s${i}`}
+                      filled={deathSuccesses > i}
+                      label={`Успех спасброска от смерти ${i + 1}`}
+                      onClick={() =>
+                        patch({
+                          combat: { death_successes: deathSuccesses === i + 1 ? i : i + 1 },
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+                <div className="classic-death-line">
+                  <span>Провалы</span>
+                  {[0, 1, 2].map((i) => (
+                    <Bubble
+                      key={`f${i}`}
+                      filled={deathFails > i}
+                      label={`Провал спасброска от смерти ${i + 1}`}
+                      onClick={() =>
+                        patch({
+                          combat: { death_fails: deathFails === i + 1 ? i : i + 1 },
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+                <div className="classic-caption">Спасброски от смерти</div>
+              </section>
+            </div>
+
             <div className="classic-panel">
+              <div className="classic-attacks-head">
+                <span>Название</span>
+                <span>Бонус атаки</span>
+                <span>Урон / тип</span>
+              </div>
               {weapons.map((row, idx) => (
                 <div className="classic-weapon" key={idx}>
                   <span>{row.name || '—'}</span>
-                  <span>{row.attackBonus}</span>
-                  <span>{row.damageType}</span>
+                  <span>{row.attackBonus || '—'}</span>
+                  <span>{row.damageType || '—'}</span>
                 </div>
               ))}
-              <div className="classic-caption">Атаки (из карточки)</div>
+              <Expanding
+                value={textBlockValue(c, 'attacks')}
+                printMaxHeight="3.8rem"
+                ariaLabel="Заметки к атакам и заклинаниям"
+                onChange={(value) => patch({ textBlocks: { attacks: value } })}
+              />
+              <div className="classic-caption">Атаки и заклинания</div>
             </div>
+
             <div className="classic-panel classic-equip">
               <div className="classic-coins">
                 {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map((k) => (
@@ -317,7 +403,12 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
                   </label>
                 ))}
               </div>
-              <Expanding value={equipmentText(c)} printMaxHeight="8rem" ariaLabel="Снаряжение" onChange={() => undefined} />
+              <Expanding
+                value={equipmentText(c)}
+                printMaxHeight="9rem"
+                ariaLabel="Снаряжение"
+                onChange={() => undefined}
+              />
               <div className="classic-caption">Снаряжение</div>
             </div>
           </div>
@@ -325,14 +416,17 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
           <div className="classic-col">
             {(
               [
-                ['personality', 'Черты характера', '3.2rem'],
-                ['ideals', 'Идеалы', '2.6rem'],
-                ['bonds', 'Привязанности', '2.6rem'],
-                ['flaws', 'Слабости', '2.6rem'],
-                ['features', 'Умения и особенности', '18rem'],
+                ['personality', 'Черты характера', '3rem', true],
+                ['ideals', 'Идеалы', '2.4rem', true],
+                ['bonds', 'Привязанности', '2.4rem', true],
+                ['flaws', 'Слабости', '2.4rem', true],
+                ['features', 'Умения и особенности', '16rem', false],
               ] as const
-            ).map(([key, label, height]) => (
-              <div className="classic-panel" key={key}>
+            ).map(([key, label, height, personality]) => (
+              <div
+                className={`classic-panel ${personality ? 'classic-panel--personality' : 'classic-panel--features'}`}
+                key={key}
+              >
                 <Expanding
                   value={textBlockValue(c, key)}
                   printMaxHeight={height}
@@ -346,10 +440,11 @@ export function ClassicPrintSheet({ character: c, onPatch }: Props) {
         </div>
       </article>
 
-      <article className="classic-sheet classic-page2">
+      <article className="classic-sheet classic-page2" aria-label="Классический лист 2014, страница 2">
         <header className="classic-header classic-header--simple">
           <div className="classic-brand">
             <strong>D&amp;D</strong>
+            <span>5e · 2014</span>
           </div>
           <label className="classic-name">
             <span>Имя персонажа</span>
@@ -401,6 +496,11 @@ function numOrNull(value: string): number | null {
   return Number.isFinite(n) ? n : null
 }
 
+function clampMarks(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.max(0, Math.min(3, Math.floor(value)))
+}
+
 function asProfBonus(character: CharacterDetail): number {
   const proficiency = asRecordSafe(asRecordSafe(character.sheet).proficiency)
   return readNumber(proficiency.bonus, 2)
@@ -420,5 +520,3 @@ function asRecordNotes(character: CharacterDetail): string {
 function readNumber(value: unknown, fallback = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback
 }
-
-void ABILITY_KEYS

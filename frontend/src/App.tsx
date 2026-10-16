@@ -19,6 +19,9 @@ const CreateCharacterPage = lazy(() =>
 const ClassicSheetPage = lazy(() =>
   import('./pages/ClassicSheetPage').then((m) => ({ default: m.ClassicSheetPage })),
 )
+const ClassicSheetPreviewPage = lazy(() =>
+  import('./pages/ClassicSheetPreviewPage').then((m) => ({ default: m.ClassicSheetPreviewPage })),
+)
 const ConfirmEmailPage = lazy(() =>
   import('./pages/ConfirmEmailPage').then((m) => ({ default: m.ConfirmEmailPage })),
 )
@@ -166,6 +169,16 @@ export default function App() {
             </AuthLazy>
           }
         />
+        {import.meta.env.DEV ? (
+          <Route
+            path="/dev/classic-2014"
+            element={
+              <LazyPage>
+                <ClassicSheetPreviewPage />
+              </LazyPage>
+            }
+          />
+        ) : null}
         <Route
           path="/lobbies"
           element={
