@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/characters-load-perf-f3ee`  
+**Prod tip (ветка линии прода):** `cursor/appearance-persist-f3ee`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -61,6 +61,16 @@
 
 > Стартовый срез по живому серверу. Агенты дополняют и правят ниже.
 
+### 2026-10-16 — Тема аккаунта не слетает после релиза
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Bootstrap темы | localStorage → `data-theme` до React | После обновления сразу свой цвет, не вспышка «Листва» |
+| Защита синка | Если `/auth/me` без theme-полей — кэш не затираем | Тонкий деплой больше не сбрасывает оформление |
+| Preflight | Схема User обязана иметь `theme_id` / `ability_colors` | Нельзя залить API, который молча дропает тему |
+
+На проде: **да** · **это новый prod tip** `cursor/appearance-persist-f3ee` · PR #194 · залито 2026-10-16 поверх tip `characters-load-perf-f3ee` · проверено: `/health` ok; `index.html` с `dvarf.accountAppearance.v1`; бандл `index-raePqBHy.js`; схема theme в preflight
+
 ### 2026-10-16 — Быстрее «Мои персонажи» + без вечного «Загрузка экрана…»
 
 | Функция | Как работает | Эффект для пользователя |
@@ -70,7 +80,7 @@
 | API не блокируется | 2 worker’а + таймауты Postgres / nginx | Сохранение листа в другой вкладке не тормозит список |
 | Чанк листа | Prefetch с списка + таймаут/ретрай lazy-import + «Обновить» | Открытие персонажа не зависает на «Загрузка экрана…» |
 
-На проде: **да** · **это новый prod tip** `cursor/characters-load-perf-f3ee` · PR #193 · залито 2026-10-16 поверх tip `setting-artifacts-d1-bacd` · проверено: `/health` ok; бандл `index-H5qzryUz.js` (`chunk_timeout` / «Загрузка экрана» / «Лобби» / «Классический лист»); на диске `defer(Character.sheet)` + `uvicorn --workers 2` + `statement_timeout`
+На проде: **да** · tip дальше → `appearance-persist-f3ee` · PR #193 · залито 2026-10-16 поверх tip `setting-artifacts-d1-bacd` · бандл с `chunk_timeout`
 
 ### Аккаунт
 - Регистрация с обязательным никнеймом + подтверждение email
@@ -263,15 +273,7 @@
 
 <!-- load-perf залито 2026-10-16 → tip characters-load-perf-f3ee; блок в «Сейчас в продукте» -->
 
-### 2026-10-16 — Тема аккаунта не слетает после релиза
-
-| Функция | Как работает | Эффект для пользователя |
-|--------|--------------|-------------------------|
-| Bootstrap темы | localStorage → `data-theme` до React | После обновления страницы сразу свой цвет, не вспышка «Листва» |
-| Защита синка | Если `/auth/me` без theme-полей — кэш не затираем | Тонкий деплой больше не сбрасывает оформление |
-| Preflight | Схема User обязана иметь `theme_id` / `ability_colors` | Нельзя залить API, который молча дропает тему |
-
-На проде: **нет** · ветка `cursor/appearance-persist-f3ee` · от tip `characters-load-perf-f3ee`
+<!-- appearance-persist залито 2026-10-16 → tip appearance-persist-f3ee; блок в «Сейчас в продукте» -->
 
 ---
 
@@ -323,7 +325,8 @@
 | 2026-10-06 | `cursor/restore-sheet-classic-acbe` | Восстановлены лист P1–P6 + classic поверх lobby/cabinet; снято ложное «только в ветках» |
 | 2026-10-06 | `cursor/prod-lineage-rules-acbe` | Анти-overwrite: AGENTS.md, skills, preflight; tip сдвинут на эту ветку |
 | 2026-10-16 | `cursor/setting-c4-embeds-bacd` · PR #191 | B3–C4 на прод; tip сдвинут; preflight + маркеры боя/вики |
-| 2026-10-16 | `cursor/characters-load-perf-f3ee` · PR #193 | Быстрый список + fail-fast «Загрузка экрана…»; **новый tip** |
+| 2026-10-16 | `cursor/appearance-persist-f3ee` · PR #194 | Тема аккаунта не слетает после релиза; **новый tip** |
+| 2026-10-16 | `cursor/characters-load-perf-f3ee` · PR #193 | Быстрый список + fail-fast «Загрузка экрана…»; tip → appearance-persist |
 | 2026-10-16 | `cursor/setting-artifacts-d1-bacd` · PR #192 | D1 артефакты + потолок хар-к 20 на прод; tip → load-perf |
 | 2026-10-16 | `cursor/setting-artifacts-d1-bacd` · PR #192 | hotfix: вернули Wave A Play Desk + тему кабинета (затёрлись линией B3–C4/D1) |
 | 2026-10-16 | `cursor/setting-artifacts-d1-bacd` · PR #192 | hotfix: вернули полный лист с `forms-adapt-tip` (прыжки, история бросков, дикий облик, гримуар) |
