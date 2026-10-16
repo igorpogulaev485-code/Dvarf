@@ -10,12 +10,6 @@ import {
   levelLabel,
   slotsRemaining,
 } from '../../shared/dnd/spells'
-/**
-   * Namespace import: named `guess*` bindings were colliding under Rolldown minify
-   * with locals in the same CharacterDetailPage chunk (e.g. stealth `io`), so the
-   * cast dialog never saw ally targets on prod. Keep heuristics local too.
-   */
-import * as AllyTargets from '../../shared/dnd/allyTargets'
 import { canCastWizardRitualFromBook } from '../../shared/dnd/wizardSpellbook'
 import { Button, Dialog, Stack, Text } from '../../ui'
 import { AllyTargetFields } from '../lobby/AllyTargetFields'
@@ -28,7 +22,12 @@ import {
 import { checkSpellMaterials, type MaterialInventoryItem } from './spellMaterials'
 import { isSpellSelfFormCast } from './spellForms'
 
-/** Local copy — never call cross-chunk mangled guess* from this dialog. */
+/**
+ * Ally-target heuristics live IN this module on purpose.
+ * Cross-chunk named imports of guessAppliesToAllies were mangled to the same
+ * short names as locals in MinimalSheetEditor (stealth `io`), so prod cast
+ * dialog never opened the lobby target picker for Щит веры / Bless / …
+ */
 const CAST_ALLY_NAME_RE =
   /благословен|bless|ускорен|haste|щит\s*вер|shield of faith|наставлен|guidance|помощ[ьи]|\baid\b|героизм|heroism|вардинг|warding bond|вдохновен|inspiration|инфуз|infusion|бафф?|\bбаф\b/i
 const CAST_ALLY_CATALOG_RE =
@@ -44,9 +43,7 @@ function castSpellAppliesToAllies(spell: SheetSpell): boolean {
     .replace(/-/g, '_')
   if (catalog && CAST_ALLY_CATALOG_RE.test(catalog)) return true
   const name = String(spell.name ?? '').trim()
-  if (name && CAST_ALLY_NAME_RE.test(name)) return true
-  // Stale explicit false must not hide known buffs; heuristic already ran.
-  return AllyTargets.guessAppliesToAllies(spell.name, spell.catalog_id)
+  return Boolean(name) && CAST_ALLY_NAME_RE.test(name)
 }
 
 function castSpellAllyTargetCount(spell: SheetSpell): number {
@@ -60,7 +57,7 @@ function castSpellAllyTargetCount(spell: SheetSpell): number {
   if (catalog && CAST_MULTI_CATALOG_RE.test(catalog)) return 3
   const name = String(spell.name ?? '').trim()
   if (name && CAST_MULTI_TARGET_RE.test(name)) return 3
-  return AllyTargets.guessAllyTargetCount(spell.name, spell.catalog_id)
+  return 1
 }
 
 export type CastChoice = {
