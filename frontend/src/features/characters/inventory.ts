@@ -14,6 +14,36 @@ import {
 } from '../../shared/dnd/weight'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
+export type InventoryItemKind = 'gear' | 'consumable' | 'magic' | 'other'
+
+export const INVENTORY_ITEM_KINDS: Array<{ id: InventoryItemKind; label: string }> = [
+  { id: 'gear', label: 'Вещь' },
+  { id: 'consumable', label: 'Расходник' },
+  { id: 'magic', label: 'Магия' },
+  { id: 'other', label: 'Иное' },
+]
+
+const CONSUMABLE_NAME_RE =
+  /зелье|potion|свиток|scroll|эликсир|elixir|осколок|пыль|oil|масло|бомба|flask/i
+
+export function inferInventoryItemKind(
+  name: string,
+  notes = '',
+  data?: Record<string, unknown> | null,
+): InventoryItemKind {
+  const kind = data?.item_kind ?? data?.kind
+  if (kind === 'consumable' || kind === 'potion' || kind === 'scroll') return 'consumable'
+  if (kind === 'magic' || kind === 'wondrous' || data?.attunement === true) return 'magic'
+  const blob = `${name} ${notes}`
+  if (CONSUMABLE_NAME_RE.test(blob)) return 'consumable'
+  if (/кольцо|плащ|амулет|жезл|посох|ring|cloak|wand|staff/i.test(blob)) return 'magic'
+  return 'gear'
+}
+
+export function isInventoryItemKind(value: unknown): value is InventoryItemKind {
+  return value === 'gear' || value === 'consumable' || value === 'magic' || value === 'other'
+}
+
 export type InventoryItem = {
   id: string
   name: string
@@ -24,6 +54,7 @@ export type InventoryItem = {
   armor_kind: ArmorKind
   base_ac: number | null
   notes: string
+  item_kind: InventoryItemKind
 }
 
 export type InventoryState = {
@@ -45,6 +76,7 @@ export function createInventoryItem(): InventoryItem {
     armor_kind: 'none',
     base_ac: null,
     notes: '',
+    item_kind: 'gear',
   }
 }
 
@@ -62,16 +94,22 @@ function readCoins(raw: unknown): CoinPurse {
 function readItem(raw: unknown, index: number): InventoryItem {
   const row = asRecord(raw)
   const armor_kind = isArmorKind(row.armor_kind) ? row.armor_kind : 'none'
+  const name = typeof row.name === 'string' ? row.name : ''
+  const notes = typeof row.notes === 'string' ? row.notes : ''
+  const item_kind = isInventoryItemKind(row.item_kind)
+    ? row.item_kind
+    : inferInventoryItemKind(name, notes, row)
   return {
     id: typeof row.id === 'string' ? row.id : `item-${index}`,
-    name: typeof row.name === 'string' ? row.name : '',
+    name,
     catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
     qty: Math.max(0, readNumber(row.qty, 1)),
     weight_lb: readNullableNumber(row.weight_lb ?? row.weight),
     equipped: Boolean(row.equipped),
     armor_kind,
     base_ac: readNullableNumber(row.base_ac ?? row.ac_bonus),
-    notes: typeof row.notes === 'string' ? row.notes : '',
+    notes,
+    item_kind,
   }
 }
 
@@ -106,6 +144,7 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         armor_kind: item.armor_kind,
         base_ac: item.base_ac,
         notes: item.notes,
+        item_kind: item.item_kind,
       })),
     },
   }

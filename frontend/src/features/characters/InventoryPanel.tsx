@@ -23,6 +23,8 @@ import {
   asWeighableItems,
   createInventoryItem,
   equipInventoryItem,
+  inferInventoryItemKind,
+  INVENTORY_ITEM_KINDS,
   readCatalogWeightLb,
   type InventoryItem,
   type InventoryState,
@@ -98,16 +100,22 @@ export function InventoryPanel({
     }
     const data = selected.data ?? {}
     const armor = armorFieldsFromCatalog(selected)
+    const prev = inventory.items.find((item) => item.id === id)
     updateItem(id, {
       name: selected.name_ru,
       catalog_id: selected.id,
       weight_lb:
         armor.weight_lb ??
         readCatalogWeightLb(data) ??
-        inventory.items.find((item) => item.id === id)?.weight_lb ??
+        prev?.weight_lb ??
         null,
       armor_kind: armor.armor_kind ?? 'none',
       base_ac: armor.base_ac ?? null,
+      item_kind: inferInventoryItemKind(
+        selected.name_ru,
+        prev?.notes ?? '',
+        data,
+      ),
     })
   }
 
@@ -294,6 +302,18 @@ export function InventoryPanel({
                 >
                   {item.equipped ? 'Надето' : 'Не надето'}
                 </button>
+                <div className="session-gen-chips" aria-label="Тип предмета">
+                  {INVENTORY_ITEM_KINDS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      className={`session-gen-chip${item.item_kind === opt.id ? ' is-on' : ''}`}
+                      onClick={() => updateItem(item.id, { item_kind: opt.id })}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
                 <Text tone="muted">
                   Строка: {formatLb(itemLineWeightLb(item))} фнт
                   {item.armor_kind !== 'none'

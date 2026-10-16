@@ -12,6 +12,9 @@ import {
 
 export type AttackSourceKind = 'weapon' | 'artifact' | 'custom'
 
+/** B8: ближнее / дальнее — для anti-air и бюджета. */
+export type AttackRangeKind = 'melee' | 'ranged' | 'reach' | 'thrown'
+
 export type WeaponAttack = {
   id: string
   name: string
@@ -21,6 +24,41 @@ export type WeaponAttack = {
   is_proficient: boolean
   damage: string
   damage_type: string
+  range_kind: AttackRangeKind
+}
+
+const RANGE_KIND_OPTIONS: Array<{ id: AttackRangeKind; label: string }> = [
+  { id: 'melee', label: 'Ближнее' },
+  { id: 'ranged', label: 'Дальнее' },
+  { id: 'reach', label: 'Досяг.' },
+  { id: 'thrown', label: 'Метат.' },
+]
+
+const RANGED_NAME_RE =
+  /лук|арбалет|пращ|дротик|javelin|bow|crossbow|sling|dart|пистолет|ружь/i
+
+export function inferAttackRangeKind(
+  name: string,
+  data?: Record<string, unknown> | null,
+): AttackRangeKind {
+  if (data?.ranged === true) return 'ranged'
+  if (data?.thrown === true) return 'thrown'
+  if (data?.reach === true) return 'reach'
+  const props = data?.properties
+  if (Array.isArray(props)) {
+    const joined = props.map(String).join(' ').toLowerCase()
+    if (joined.includes('ammunition') || joined.includes('ranged') || joined.includes('дальн')) {
+      return 'ranged'
+    }
+    if (joined.includes('thrown') || joined.includes('метат')) return 'thrown'
+    if (joined.includes('reach') || joined.includes('досяг')) return 'reach'
+  }
+  if (RANGED_NAME_RE.test(name)) return 'ranged'
+  return 'melee'
+}
+
+export function isAttackRangeKind(value: unknown): value is AttackRangeKind {
+  return value === 'melee' || value === 'ranged' || value === 'reach' || value === 'thrown'
 }
 
 type AttacksPanelProps = {
@@ -44,6 +82,7 @@ function createAttack(): WeaponAttack {
     is_proficient: true,
     damage: '',
     damage_type: '',
+    range_kind: 'melee',
   }
 }
 
@@ -88,6 +127,7 @@ export function AttacksPanel({
       ability: readCatalogAbility(data),
       damage: typeof data.damage === 'string' ? data.damage : '',
       damage_type: typeof data.damage_type === 'string' ? data.damage_type : '',
+      range_kind: inferAttackRangeKind(selected.name_ru, data),
     })
   }
 
@@ -171,6 +211,18 @@ export function AttacksPanel({
                 >
                   {attack.is_proficient ? 'Владение' : 'Без владения'}
                 </button>
+                <div className="session-gen-chips" aria-label="Дистанция атаки">
+                  {RANGE_KIND_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      className={`session-gen-chip${attack.range_kind === opt.id ? ' is-on' : ''}`}
+                      onClick={() => updateAttack(attack.id, { range_kind: opt.id })}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
                 <Button
                   variant="ghost"
                   onClick={() => onChange(weapons.filter((item) => item.id !== attack.id))}

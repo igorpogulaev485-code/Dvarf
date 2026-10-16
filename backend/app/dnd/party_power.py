@@ -34,6 +34,8 @@ class PartyPowerSignals:
     has_concentration_buff: bool = False
     # 0..1 квантиль DPR proxy
     dpr_quantile: float = 0.0
+    # 0..1 прокси сопротивлений/иммунитетов (раса/спеллы/аттюн)
+    resistance_proxy: float = 0.0
 
 
 def compute_party_power(signals: PartyPowerSignals) -> float:
@@ -56,6 +58,7 @@ def compute_party_power(signals: PartyPowerSignals) -> float:
     if signals.has_concentration_buff:
         power += 0.03
     power += 0.15 * _clamp01(signals.dpr_quantile)
+    power += 0.08 * _clamp01(signals.resistance_proxy)
 
     return clamp_party_power(power)
 

@@ -2496,6 +2496,8 @@ class LobbyService:
                     hp_max=ch.hp_max if isinstance(ch.hp_max, int) else None,
                     sheet=sheet,
                     seat_effects=effect_names,
+                    race_name=ch.race_name,
+                    class_name=ch.class_name,
                 )
             )
         if not members:

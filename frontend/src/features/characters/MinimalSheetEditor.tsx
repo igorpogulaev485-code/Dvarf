@@ -26,7 +26,12 @@ import {
 } from '../../shared/dnd/classLevels'
 import { computeArmorClass } from '../../shared/dnd/armor'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
-import { AttacksPanel, type WeaponAttack } from './AttacksPanel'
+import {
+  AttacksPanel,
+  inferAttackRangeKind,
+  isAttackRangeKind,
+  type WeaponAttack,
+} from './AttacksPanel'
 import { AttunementPanel } from './AttunementPanel'
 import {
   attunementsToSheet,
@@ -136,15 +141,20 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
         : row.catalog_id
           ? 'weapon'
           : 'custom'
+    const name = typeof row.name === 'string' ? row.name : ''
+    const range_kind = isAttackRangeKind(row.range_kind)
+      ? row.range_kind
+      : inferAttackRangeKind(name, row)
     return {
       id: typeof row.id === 'string' ? row.id : `weapon-${index}`,
-      name: typeof row.name === 'string' ? row.name : '',
+      name,
       catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
       source_kind: sourceKind,
       ability,
       is_proficient: Boolean(row.is_proficient),
       damage: typeof row.damage === 'string' ? row.damage : '',
       damage_type: typeof row.damage_type === 'string' ? row.damage_type : '',
+      range_kind,
     }
   })
 }
