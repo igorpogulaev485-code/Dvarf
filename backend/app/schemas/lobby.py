@@ -75,6 +75,8 @@ class ArtifactAbilityIn(BaseModel):
         "companion",
         "resistance",
         "weapon",
+        "requirement",
+        "mode",
     ] = "trait"
     name: str = Field(default="", max_length=120)
     text: str = Field(default="", max_length=2000)
@@ -117,6 +119,14 @@ class ArtifactAbilityIn(BaseModel):
     attack_range_kind: Literal["melee", "ranged", "reach", "thrown"] | None = None
     ranged: bool | None = None
     magic_bonus: int | None = Field(default=None, ge=-5, le=5)
+    # requirement (Сила 15+)
+    min_score: int | None = Field(default=None, ge=1, le=30)
+    # mode — активация зарядом на время
+    duration: str | None = Field(default=None, max_length=80)
+    duration_rounds: int | None = Field(default=None, ge=1, le=600)
+    active_damage: str | None = Field(default=None, max_length=40)
+    active_damage_type: str | None = Field(default=None, max_length=40)
+    advantage: bool | None = None
 
 
 class SettingArtifactOut(BaseModel):

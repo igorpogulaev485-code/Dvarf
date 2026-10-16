@@ -31,6 +31,8 @@ ABILITY_KINDS = (
     "companion",
     "resistance",
     "weapon",
+    "requirement",
+    "mode",
 )
 RESIST_MODES = ("resistance", "immunity", "vulnerability")
 RANGE_KINDS = ("melee", "ranged", "reach", "thrown")
@@ -161,6 +163,45 @@ def normalize_ability(raw: dict[str, Any] | None) -> dict[str, Any] | None:
         out["range_kind"] = range_kind
         out["magic_bonus"] = _clamp_int(raw.get("magic_bonus") or raw.get("bonus_value"), 0, -5, 5)
 
+    elif kind == "requirement":
+        # «только с Силой 15+»
+        key = str(raw.get("ability_key") or "str").strip().lower()
+        if key not in ABILITY_KEYS:
+            key = "str"
+        out["ability_key"] = key
+        out["min_score"] = _clamp_int(raw.get("min_score") or raw.get("bonus_value"), 15, 1, 30)
+        if not name or name == _default_name(kind):
+            labels = {
+                "str": "СИЛ",
+                "dex": "ЛОВ",
+                "con": "ТЕЛ",
+                "int": "ИНТ",
+                "wis": "МДР",
+                "cha": "ХАР",
+            }
+            out["name"] = f"Требуется {labels[key]} {out['min_score']}+"
+
+    elif kind == "mode":
+        # Активация зарядом: на N времени смена урона / типа / преимущество
+        cost = str(raw.get("action_cost") or "bonus").strip().lower()
+        if cost not in ACTION_COSTS:
+            cost = "bonus"
+        out["action_cost"] = cost
+        out["charges"] = _clamp_int(raw.get("charges"), 1, 1, 99)
+        reset = str(raw.get("reset") or "short").strip().lower()
+        if reset == "dawn":
+            reset = "long"
+        if reset not in RESOURCE_RESETS:
+            reset = "short"
+        out["reset"] = reset
+        out["duration"] = str(raw.get("duration") or "1 минута").strip()[:80]
+        out["duration_rounds"] = _clamp_int(raw.get("duration_rounds"), 10, 1, 600)
+        out["active_damage"] = str(raw.get("active_damage") or "").strip()[:40]
+        out["active_damage_type"] = str(raw.get("active_damage_type") or "").strip()[:40]
+        out["advantage"] = bool(raw.get("advantage", True))
+        if not name or name == _default_name(kind):
+            out["name"] = "Активация"
+
     return out
 
 
@@ -186,6 +227,8 @@ def _default_name(kind: str) -> str:
         "companion": "Призыв",
         "resistance": "Сопротивление",
         "weapon": "Атака",
+        "requirement": "Требование",
+        "mode": "Активация",
     }.get(kind, "Свойство")
 
 
@@ -282,6 +325,27 @@ def format_abilities_notes(abilities: list[dict[str, Any]], description: str = "
                 f"{name}: {dmg}{bonus_s} {ab.get('damage_type') or ''}".strip()
                 + (f" — {text}" if text else "")
             )
+        elif kind == "requirement":
+            lines.append(f"{name}" + (f" — {text}" if text else ""))
+        elif kind == "mode":
+            cost = ab.get("action_cost") or "bonus"
+            cost_ru = {
+                "action": "действие",
+                "bonus": "бонус",
+                "reaction": "реакция",
+                "free": "свободно",
+                "special": "особое",
+            }.get(str(cost), str(cost))
+            bits = [
+                f"{name} ({cost_ru})",
+                f"{ab.get('charges') or 1} зар.",
+                str(ab.get("duration") or ""),
+            ]
+            if ab.get("active_damage"):
+                bits.append(str(ab["active_damage"]))
+            if ab.get("advantage"):
+                bits.append("преимущество")
+            lines.append(" · ".join(b for b in bits if b) + (f" — {text}" if text else ""))
         else:
             lines.append(f"{name}" + (f" — {text}" if text else ""))
     return "\n".join(lines)[:2000]
@@ -386,6 +450,18 @@ def apply_artifact_to_sheet(
         "weight_lb": weight_lb,
     }
 
+    requirements = [
+        {
+            "ability_key": ab.get("ability_key") or "str",
+            "min_score": int(ab.get("min_score") or 15),
+            "name": ab.get("name") or "Требование",
+        }
+        for ab in abilities
+        if ab.get("kind") == "requirement"
+    ]
+    # primary requirement (first) for quick UI checks
+    primary_req = requirements[0] if requirements else None
+
     inventory = _ensure_dict(sheet, "inventory")
     items = list(inventory.get("items") or [])
     if not isinstance(items, list):
@@ -406,6 +482,9 @@ def apply_artifact_to_sheet(
             "magic_mods": mods,
             "artifact_snapshot": snapshot,
             "requires_attunement": requires,
+            "requirements": requirements,
+            "req_ability": (primary_req or {}).get("ability_key"),
+            "req_score": (primary_req or {}).get("min_score"),
         }
     )
     inventory["items"] = items
@@ -438,8 +517,9 @@ def apply_artifact_to_sheet(
     if not attuned:
         return {"item_id": item_id, "active": False, "mods": mods}
 
-    # --- Resources (resource kind + action with charges) ---
+    # --- Resources (resource / action charges / mode charges) ---
     resources = _ensure_list(sheet, "resources")
+    mode_resource_ids: dict[str, str] = {}  # ability id → resource id
     for ab in abilities:
         if ab.get("kind") == "resource" or (
             ab.get("kind") == "action" and ab.get("charges")
@@ -455,55 +535,115 @@ def apply_artifact_to_sheet(
                     "source_item_id": item_id,
                 }
             )
+        elif ab.get("kind") == "mode":
+            rid = str(uuid4())
+            mode_resource_ids[str(ab.get("id"))] = rid
+            resources.append(
+                {
+                    "id": rid,
+                    "name": f"{name}: {ab.get('name') or 'Активация'}"[:80],
+                    "max": int(ab.get("charges") or 1),
+                    "used": 0,
+                    "reset": ab.get("reset") or "short",
+                    "applies_to_allies": False,
+                    "source_item_id": item_id,
+                    "mode_ability_id": ab.get("id"),
+                }
+            )
     sheet["resources"] = resources
+
+    def _weapon_req_fields() -> dict[str, Any]:
+        if not primary_req:
+            return {}
+        return {
+            "req_ability": primary_req.get("ability_key") or "str",
+            "req_score": int(primary_req.get("min_score") or 15),
+            "requirements": requirements,
+        }
+
+    def _attach_modes(weapon: dict[str, Any]) -> dict[str, Any]:
+        modes = [a for a in abilities if a.get("kind") == "mode"]
+        if not modes:
+            return weapon
+        # one primary activation on the weapon (first mode)
+        ab = modes[0]
+        base_dmg = str(weapon.get("damage") or "")
+        base_type = str(weapon.get("damage_type") or "")
+        weapon["activation"] = {
+            "id": str(ab.get("id") or uuid4()),
+            "name": ab.get("name") or "Активация",
+            "action_cost": ab.get("action_cost") or "bonus",
+            "duration": ab.get("duration") or "1 минута",
+            "duration_rounds": int(ab.get("duration_rounds") or 10),
+            "active_damage": ab.get("active_damage") or base_dmg,
+            "active_damage_type": ab.get("active_damage_type") or base_type,
+            "advantage": bool(ab.get("advantage", True)),
+            "resource_id": mode_resource_ids.get(str(ab.get("id"))),
+            "base_damage": base_dmg,
+            "base_damage_type": base_type,
+            "text": ab.get("text") or "",
+        }
+        weapon["mode_active"] = False
+        return weapon
 
     # --- Weapons: top-level attack fields + weapon abilities + attack/damage passives ---
     weapons = _ensure_list(sheet, "weapons")
     weapon_abs = [a for a in abilities if a.get("kind") == "weapon"]
-    if attack_damage or mods.get("attack") or mods.get("damage") or weapon_abs:
-        if attack_damage or mods.get("attack") or mods.get("damage"):
-            damage = attack_damage or "1d4"
+    modes = [a for a in abilities if a.get("kind") == "mode"]
+    # If only mode/requirement without explicit attack — still create weapon from top-level fields
+    need_weapon = bool(
+        attack_damage
+        or mods.get("attack")
+        or mods.get("damage")
+        or weapon_abs
+        or modes
+    )
+    if need_weapon:
+        if attack_damage or mods.get("attack") or mods.get("damage") or (
+            modes and not weapon_abs
+        ):
+            damage = attack_damage or "1d12"
             dmg_bonus = int(mods.get("damage") or 0)
             if dmg_bonus:
                 sign = f"+{dmg_bonus}" if dmg_bonus > 0 else str(dmg_bonus)
                 damage = f"{damage}{sign}"
             ability = attack_ability if attack_ability in ABILITY_KEYS else "str"
             range_kind = attack_range_kind if attack_range_kind in RANGE_KINDS else "melee"
-            weapons.append(
-                {
-                    "id": str(uuid4()),
-                    "name": name,
-                    "catalog_id": None,
-                    "source_kind": "artifact",
-                    "ability": ability,
-                    "is_proficient": True,
-                    "damage": damage,
-                    "damage_type": attack_damage_type,
-                    "range_kind": range_kind,
-                    "magic_bonus": int(mods.get("attack") or 0),
-                    "source_item_id": item_id,
-                    "attack_role": "artifact",
-                }
-            )
+            row = {
+                "id": str(uuid4()),
+                "name": name,
+                "catalog_id": None,
+                "source_kind": "artifact",
+                "ability": ability,
+                "is_proficient": True,
+                "damage": damage,
+                "damage_type": attack_damage_type or "рубящий",
+                "range_kind": range_kind,
+                "magic_bonus": int(mods.get("attack") or 0),
+                "source_item_id": item_id,
+                "attack_role": "artifact",
+                **_weapon_req_fields(),
+            }
+            weapons.append(_attach_modes(row))
         for ab in weapon_abs:
-            weapons.append(
-                {
-                    "id": str(uuid4()),
-                    "name": f"{name}: {ab.get('name')}"[:80]
-                    if ab.get("name") and ab.get("name") != name
-                    else name,
-                    "catalog_id": None,
-                    "source_kind": "artifact",
-                    "ability": ab.get("ability") or "str",
-                    "is_proficient": True,
-                    "damage": ab.get("damage") or "1d8",
-                    "damage_type": ab.get("damage_type") or "",
-                    "range_kind": ab.get("range_kind") or "melee",
-                    "magic_bonus": int(ab.get("magic_bonus") or 0) + int(mods.get("attack") or 0),
-                    "source_item_id": item_id,
-                    "attack_role": "artifact",
-                }
-            )
+            row = {
+                "id": str(uuid4()),
+                "name": f"{name}: {ab.get('name')}"[:80]
+                if ab.get("name") and ab.get("name") != name
+                else name,
+                "catalog_id": None,
+                "source_kind": "artifact",
+                "ability": ab.get("ability") or "str",
+                "is_proficient": True,
+                "damage": ab.get("damage") or "1d8",
+                "damage_type": ab.get("damage_type") or "",
+                "range_kind": ab.get("range_kind") or "melee",
+                "magic_bonus": int(ab.get("magic_bonus") or 0) + int(mods.get("attack") or 0),
+                "source_item_id": item_id,
+                "attack_role": "artifact",
+                **_weapon_req_fields(),
+            }
+            weapons.append(_attach_modes(row))
         sheet["weapons"] = weapons
 
     # --- Ability scores ---

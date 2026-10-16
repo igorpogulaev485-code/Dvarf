@@ -3729,3 +3729,31 @@ button.session-concentration-tag {
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.06);
 }
+
+.attack-card--mode-on {
+  outline: 2px solid var(--accent, #3d5a3a);
+  outline-offset: 2px;
+}
+
+.attack-mode-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  background: rgba(61, 90, 58, 0.15);
+  color: var(--accent, #3d5a3a);
+  font-weight: 600;
+}
+
+.attack-mode-badge--adv {
+  background: rgba(180, 120, 20, 0.18);
+  color: #8a5a00;
+}
+
+.attack-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0 4px;
+}

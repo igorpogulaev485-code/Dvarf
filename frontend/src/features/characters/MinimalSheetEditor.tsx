@@ -151,6 +151,38 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
     const magicRaw = row.magic_bonus
     const magic_bonus =
       typeof magicRaw === 'number' && Number.isFinite(magicRaw) ? Math.floor(magicRaw) : 0
+    const reqAbility =
+      typeof row.req_ability === 'string' && ABILITY_KEYS.includes(row.req_ability as AbilityKey)
+        ? (row.req_ability as AbilityKey)
+        : null
+    const activationRaw = asRecord(row.activation)
+    const activation =
+      Object.keys(activationRaw).length > 0
+        ? {
+            id: typeof activationRaw.id === 'string' ? activationRaw.id : `mode-${index}`,
+            name: typeof activationRaw.name === 'string' ? activationRaw.name : 'Активация',
+            action_cost:
+              typeof activationRaw.action_cost === 'string' ? activationRaw.action_cost : 'bonus',
+            duration: typeof activationRaw.duration === 'string' ? activationRaw.duration : '',
+            duration_rounds: readNumber(activationRaw.duration_rounds, 10),
+            active_damage:
+              typeof activationRaw.active_damage === 'string' ? activationRaw.active_damage : '',
+            active_damage_type:
+              typeof activationRaw.active_damage_type === 'string'
+                ? activationRaw.active_damage_type
+                : '',
+            advantage: activationRaw.advantage !== false,
+            resource_id:
+              typeof activationRaw.resource_id === 'string' ? activationRaw.resource_id : null,
+            base_damage:
+              typeof activationRaw.base_damage === 'string' ? activationRaw.base_damage : '',
+            base_damage_type:
+              typeof activationRaw.base_damage_type === 'string'
+                ? activationRaw.base_damage_type
+                : '',
+            text: typeof activationRaw.text === 'string' ? activationRaw.text : '',
+          }
+        : null
     return {
       id: typeof row.id === 'string' ? row.id : `weapon-${index}`,
       name,
@@ -163,6 +195,10 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
       range_kind,
       magic_bonus,
       source_item_id: typeof row.source_item_id === 'string' ? row.source_item_id : null,
+      req_ability: reqAbility,
+      req_score: readNullableNumber(row.req_score),
+      activation,
+      mode_active: Boolean(row.mode_active),
     }
   })
 }
@@ -948,7 +984,14 @@ export function MinimalSheetEditor({
         weapons={draft.weapons}
         abilities={draft.abilities}
         proficiencyBonus={proficiencyBonus}
+        resources={draft.play.resources}
         onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
+        onResourcesChange={(resources) =>
+          setDraft((prev) => ({
+            ...prev,
+            play: { ...prev.play, resources },
+          }))
+        }
       />
 
       <InventoryPanel

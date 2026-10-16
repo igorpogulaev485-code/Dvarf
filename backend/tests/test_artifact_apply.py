@@ -186,6 +186,66 @@ def test_apply_full_kit():
     assert any(w.get("magic_bonus") == 1 for w in sheet["weapons"])
 
 
+def test_apply_greataxe_mode_and_requirement():
+    """Секира из кампании: СИЛ 15+, 1d12, режим бонусом → 2d12 + преимущество."""
+    artifact = SimpleNamespace(
+        id=uuid4(),
+        name="Секира бури",
+        rarity="редкий",
+        description="Только для сильных",
+        requires_attunement=False,
+        abilities=[
+            {
+                "kind": "requirement",
+                "ability_key": "str",
+                "min_score": 15,
+            },
+            {
+                "kind": "mode",
+                "name": "Ярость клинка",
+                "action_cost": "bonus",
+                "charges": 1,
+                "reset": "short",
+                "duration": "1 минута",
+                "duration_rounds": 10,
+                "active_damage": "2d12",
+                "active_damage_type": "магический",
+                "advantage": True,
+            },
+        ],
+        attack_damage="1d12",
+        attack_damage_type="рубящий",
+        attack_ability="str",
+        attack_range_kind="melee",
+        weight_lb=7,
+    )
+    sheet: dict = {
+        "inventory": {"items": []},
+        "weapons": [],
+        "combat": {},
+        "abilities": {"str": {"score": 16}},
+        "saves": {},
+        "spells": {},
+        "companions": [],
+        "resources": [],
+    }
+    apply_artifact_to_sheet(sheet, artifact=artifact)
+    item = sheet["inventory"]["items"][0]
+    assert item["req_ability"] == "str"
+    assert item["req_score"] == 15
+    weapon = sheet["weapons"][0]
+    assert weapon["damage"] == "1d12"
+    assert weapon["req_score"] == 15
+    assert weapon["activation"]["active_damage"] == "2d12"
+    assert weapon["activation"]["advantage"] is True
+    assert weapon["activation"]["action_cost"] == "bonus"
+    assert weapon["mode_active"] is False
+    assert len(sheet["resources"]) == 1
+    assert sheet["resources"][0]["max"] == 1
+    assert sheet["resources"][0]["reset"] == "short"
+    assert weapon["activation"]["resource_id"] == sheet["resources"][0]["id"]
+
+
 def test_apply_weapon_artifact_bakes_bonuses():
     artifact = SimpleNamespace(
         id=uuid4(),

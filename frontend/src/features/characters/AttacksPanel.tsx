@@ -1,6 +1,7 @@
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
+import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
 import {
   ABILITY_KEYS,
@@ -15,6 +16,22 @@ export type AttackSourceKind = 'weapon' | 'artifact' | 'custom'
 /** B8: ближнее / дальнее — для anti-air и бюджета. */
 export type AttackRangeKind = 'melee' | 'ranged' | 'reach' | 'thrown'
 
+/** Режим активации артефакта (заряд → баф на время). */
+export type WeaponActivation = {
+  id: string
+  name: string
+  action_cost: string
+  duration: string
+  duration_rounds: number
+  active_damage: string
+  active_damage_type: string
+  advantage: boolean
+  resource_id: string | null
+  base_damage: string
+  base_damage_type: string
+  text?: string
+}
+
 export type WeaponAttack = {
   id: string
   name: string
@@ -28,6 +45,10 @@ export type WeaponAttack = {
   /** Бонус магии к атаке (артефакт +1 и т.п.) */
   magic_bonus?: number
   source_item_id?: string | null
+  req_ability?: AbilityKey | null
+  req_score?: number | null
+  activation?: WeaponActivation | null
+  mode_active?: boolean
 }
 
 const RANGE_KIND_OPTIONS: Array<{ id: AttackRangeKind; label: string }> = [
@@ -39,6 +60,14 @@ const RANGE_KIND_OPTIONS: Array<{ id: AttackRangeKind; label: string }> = [
 
 const RANGED_NAME_RE =
   /лук|арбалет|пращ|дротик|javelin|bow|crossbow|sling|dart|пистолет|ружь/i
+
+const COST_LABEL: Record<string, string> = {
+  action: 'действие',
+  bonus: 'бонусное',
+  reaction: 'реакция',
+  free: 'свободно',
+  special: 'особое',
+}
 
 export function inferAttackRangeKind(
   name: string,
@@ -69,7 +98,9 @@ type AttacksPanelProps = {
   weapons: WeaponAttack[]
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  resources?: SheetResource[]
   onChange: (weapons: WeaponAttack[]) => void
+  onResourcesChange?: (resources: SheetResource[]) => void
 }
 
 function createAttack(): WeaponAttack {
@@ -111,7 +142,9 @@ export function AttacksPanel({
   weapons,
   abilities,
   proficiencyBonus,
+  resources = [],
   onChange,
+  onResourcesChange,
 }: AttacksPanelProps) {
   function updateAttack(id: string, patch: Partial<WeaponAttack>) {
     onChange(weapons.map((item) => (item.id === id ? { ...item, ...patch } : item)))
@@ -134,12 +167,48 @@ export function AttacksPanel({
     })
   }
 
+  function activateMode(attack: WeaponAttack) {
+    const mode = attack.activation
+    if (!mode || attack.mode_active) return
+    const resource = resources.find((r) => r.id === mode.resource_id)
+    if (resource && resource.used >= resource.max) return
+    if (resource && onResourcesChange) {
+      onResourcesChange(
+        resources.map((r) =>
+          r.id === resource.id ? { ...r, used: Math.min(r.max, r.used + 1) } : r,
+        ),
+      )
+    }
+    const baseDamage = mode.base_damage || attack.damage
+    const baseType = mode.base_damage_type || attack.damage_type
+    updateAttack(attack.id, {
+      mode_active: true,
+      damage: mode.active_damage || attack.damage,
+      damage_type: mode.active_damage_type || attack.damage_type,
+      activation: {
+        ...mode,
+        base_damage: baseDamage,
+        base_damage_type: baseType,
+      },
+    })
+  }
+
+  function deactivateMode(attack: WeaponAttack) {
+    const mode = attack.activation
+    if (!mode || !attack.mode_active) return
+    updateAttack(attack.id, {
+      mode_active: false,
+      damage: mode.base_damage || attack.damage,
+      damage_type: mode.base_damage_type || attack.damage_type,
+    })
+  }
+
   return (
     <Panel title="Атаки">
       <Stack gap={12}>
         <Text tone="muted">
-          Атака может быть обычным оружием или артефактом — у обоих есть урон. Можно выбрать из
-          справочника или вписать своё название.
+          Атака может быть обычным оружием или артефактом — у обоих есть урон. Артефакт с
+          режимом: потрать заряд → урон/тип/преимущество на время.
         </Text>
 
         {weapons.length === 0 ? (
@@ -152,13 +221,51 @@ export function AttacksPanel({
             abilityModifier(abilities[attack.ability]) +
             (attack.is_proficient ? proficiencyBonus : 0) +
             magic
+          const reqKey = attack.req_ability
+          const reqScore = attack.req_score ?? 0
+          const reqMet =
+            !reqKey || !reqScore
+              ? true
+              : (abilities[reqKey] ?? 0) >= reqScore
+          const mode = attack.activation
+          const resource = mode?.resource_id
+            ? resources.find((r) => r.id === mode.resource_id)
+            : null
+          const chargesLeft = resource
+            ? Math.max(0, resource.max - resource.used)
+            : mode
+              ? 1
+              : 0
+          const canActivate =
+            Boolean(mode) &&
+            !attack.mode_active &&
+            chargesLeft > 0 &&
+            Boolean(onResourcesChange || !mode?.resource_id)
+
           return (
-            <div key={attack.id} className="attack-card">
+            <div
+              key={attack.id}
+              className={`attack-card${attack.mode_active ? ' attack-card--mode-on' : ''}`}
+            >
               <div className="attack-card__meta">
                 <span className={`attack-source attack-source--${attack.source_kind}`}>
                   {sourceLabel(attack.source_kind)}
                 </span>
+                {attack.mode_active ? (
+                  <span className="attack-mode-badge">режим активен</span>
+                ) : null}
+                {attack.mode_active && mode?.advantage ? (
+                  <span className="attack-mode-badge attack-mode-badge--adv">преимущество</span>
+                ) : null}
               </div>
+
+              {reqKey && reqScore ? (
+                <Text tone={reqMet ? 'muted' : 'danger'}>
+                  Требуется {ABILITY_LABELS[reqKey]} {reqScore}+
+                  {reqMet ? '' : ` · сейчас ${abilities[reqKey] ?? 0}`}
+                </Text>
+              ) : null}
+
               <div className="attack-card__grid">
                 <Field label="Оружие или артефакт">
                   <CatalogCombobox
@@ -206,6 +313,40 @@ export function AttacksPanel({
                   />
                 </Field>
               </div>
+
+              {mode ? (
+                <div className="attack-mode">
+                  <Text tone="muted">
+                    {mode.name}: {COST_LABEL[mode.action_cost] || mode.action_cost} ·{' '}
+                    {mode.duration || `${mode.duration_rounds} раунд.`}
+                    {mode.active_damage ? ` · → ${mode.active_damage}` : ''}
+                    {mode.active_damage_type ? ` ${mode.active_damage_type}` : ''}
+                    {mode.advantage ? ' · преимущество' : ''}
+                    {resource ? ` · заряды ${chargesLeft}/${resource.max}` : ''}
+                  </Text>
+                  <div className="inline-actions">
+                    {!attack.mode_active ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={!canActivate}
+                        onClick={() => activateMode(attack)}
+                      >
+                        Активировать
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => deactivateMode(attack)}
+                      >
+                        Снять режим
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="attack-card__footer">
                 <button
                   type="button"

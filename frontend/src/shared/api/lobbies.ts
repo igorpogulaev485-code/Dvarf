@@ -64,6 +64,8 @@ export type ArtifactAbilityKind =
   | 'companion'
   | 'resistance'
   | 'weapon'
+  | 'requirement'
+  | 'mode'
 export type ArtifactBonusTarget =
   | 'attack'
   | 'damage'
@@ -113,6 +115,12 @@ export type ArtifactAbility = {
   magic_bonus?: number | null
   ability?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null
   range_kind?: 'melee' | 'ranged' | 'reach' | 'thrown' | null
+  min_score?: number | null
+  duration?: string | null
+  duration_rounds?: number | null
+  active_damage?: string | null
+  active_damage_type?: string | null
+  advantage?: boolean | null
 }
 
 export type SettingArtifact = {
