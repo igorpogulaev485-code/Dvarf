@@ -1,8 +1,12 @@
-"""Add setting_artifacts library (D1).
+"""Ensure setting_artifacts (D1) after classic↔T5 merge.
 
-Revision ID: n5o6p7q8r9s0
-Revises: m4n5o6p7q8r9
-Create Date: 2026-10-16 03:40:00.000000
+Revision ID: u7v8w9x0y1z2
+Revises: t6u7v8w9x0y1
+Create Date: 2026-10-17
+
+Historically D1 used revision id n5o6p7q8r9s0 which collided with C5.
+Live DB already has the table from the classic tip deploy; this revision
+is idempotent so upgrade head succeeds on merged tip trees.
 """
 
 from __future__ import annotations
@@ -13,13 +17,17 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision: str = "n5o6p7q8r9s0"
-down_revision: Union[str, Sequence[str], None] = "m4n5o6p7q8r9"
+revision: str = "u7v8w9x0y1z2"
+down_revision: Union[str, Sequence[str], None] = "t6u7v8w9x0y1"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    bind = op.get_bind()
+    tables = set(sa.inspect(bind).get_table_names())
+    if "setting_artifacts" in tables:
+        return
     op.create_table(
         "setting_artifacts",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
@@ -76,5 +84,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    bind = op.get_bind()
+    tables = set(sa.inspect(bind).get_table_names())
+    if "setting_artifacts" not in tables:
+        return
     op.drop_index("ix_setting_artifacts_setting_id", table_name="setting_artifacts")
     op.drop_table("setting_artifacts")
