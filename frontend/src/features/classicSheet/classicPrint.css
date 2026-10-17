@@ -1431,27 +1431,9 @@
   }
 }
 
-.character-card {
-  grid-template-columns: 64px 1fr;
-}
-
-.character-card__wrap {
-  display: grid;
-  gap: 8px;
-}
-
-.character-card__actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.character-card__actions a {
-  font-size: 0.85rem;
-  font-weight: 650;
-  text-decoration: none;
-  color: var(--accent);
-}
+/* Do NOT put `.character-card*` here — classicPrint.css is lazy-loaded with
+   ClassicSheetPage and would override the characters-list card layout
+   (Открыть button overlaps name/HP after visiting classic). */
 
 /* ——— Classic 2024 layout — LSS-style 4 pages (display-only) ——— */
 
