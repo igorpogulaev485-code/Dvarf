@@ -100,7 +100,7 @@ export const sampleClassic2014Character: CharacterDetail = {
       attacks: { value: 'Кантрипы: Огненный снаряд, Свет, Фокусы.' },
       feats: { value: 'Ритуальное заклинание: Обнаружение магии.\nЗаметка: связаться с гильдией после Луны Жатвы.' },
       'notes-1': {
-        customLabel: 'Гильд-контакты',
+        customLabel: 'Заметка 1',
         isHidden: false,
         value:
           'Связаться с гильдией картографов после Луны Жатвы.\nПароль у двери: «жила Эха».',
@@ -114,7 +114,7 @@ export const sampleClassic2014Character: CharacterDetail = {
         ],
       },
       'notes-2': {
-        customLabel: 'Долги и обещания',
+        customLabel: 'Заметка 2',
         isHidden: false,
         value: '200 зм — расписка у торговца Варенна.\nВернуть книгу рун в архив Цитадели.',
         parts: [

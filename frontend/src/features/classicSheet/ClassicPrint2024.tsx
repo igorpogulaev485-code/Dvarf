@@ -580,29 +580,34 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
         className="classic-sheet classic-lss classic-lss-p3"
         aria-label="Классический лист 2024, страница 3 — заметки"
       >
-        <div className="classic-notes-toolbar no-print">
-          <button type="button" onClick={() => onPatch(addClassicNote(c))}>
-            Добавить заметку
-          </button>
-          <span>
-            {customNotes.length === 0
-              ? 'Те же блоки, что в «Тексты и заметки»'
-              : `${customNotes.length} ${customNotes.length === 1 ? 'заметка' : 'заметок'}`}
-          </span>
-        </div>
+        <header className="classic-lss-notes-head">
+          <div className="classic-brand">
+            <strong>D&amp;D</strong>
+            <span>{brandYearLabel('2024')}</span>
+          </div>
+          <div className="classic-companions-banner">
+            <strong>Заметки</strong>
+            <span>Свободные блоки из цифрового листа — не секции бланка</span>
+          </div>
+          <div className="classic-notes-toolbar no-print">
+            <button type="button" onClick={() => onPatch(addClassicNote(c))}>
+              Добавить заметку
+            </button>
+          </div>
+        </header>
         <div className="classic-lss-notes-grid">
           {noteSlots.map((block, i) =>
             block ? (
               <section className="classic-panel classic-lss-note classic-note-card" key={block.key}>
-                <label className="classic-note-card__title">
-                  <span>Название</span>
-                  <input
-                    value={classicNoteLabel(block)}
-                    onChange={(e) =>
-                      onPatch(setClassicNoteLabel(c, block.key, e.target.value))
-                    }
-                  />
-                </label>
+                <input
+                  className="classic-note-card__title-input"
+                  value={classicNoteLabel(block)}
+                  placeholder="Название заметки"
+                  aria-label="Название заметки"
+                  onChange={(e) =>
+                    onPatch(setClassicNoteLabel(c, block.key, e.target.value))
+                  }
+                />
                 <ClassicTextBlock
                   blockId={`note_${block.key}`}
                   character={c}
@@ -613,20 +618,14 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                   ariaLabel={classicNoteLabel(block)}
                   onChange={(value) => onPatch(setClassicNoteText(c, block.key, value))}
                 />
-                <div className="classic-caption">{classicNoteLabel(block)}</div>
+                <div className="classic-caption">Заметка</div>
               </section>
             ) : (
               <section
-                className="classic-panel classic-lss-note classic-note-card classic-note-card--empty"
-                key={`empty-note-${i}`}
+                className="classic-panel classic-lss-note classic-note-card classic-note-card--blank"
+                key={`blank-note-${i}`}
+                aria-label="Пустая заметка"
               >
-                <button
-                  type="button"
-                  className="classic-note-card__add no-print"
-                  onClick={() => onPatch(addClassicNote(c))}
-                >
-                  + Заметка
-                </button>
                 <div className="classic-caption">Заметка</div>
               </section>
             ),

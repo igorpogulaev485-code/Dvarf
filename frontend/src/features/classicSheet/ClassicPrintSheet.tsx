@@ -754,7 +754,7 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
             <div className="classic-companions-banner">
               <strong>Заметки</strong>
               <span>
-                Те же блоки, что в интерактивном листе («Тексты и заметки»)
+                Свободные блоки из цифрового листа
                 {notePages.length > 1
                   ? ` · лист ${pageIndex + 1}/${notePages.length}`
                   : ''}
@@ -767,42 +767,41 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
               <button type="button" onClick={() => onPatch(addClassicNote(c))}>
                 Добавить заметку
               </button>
-              {customNotes.length === 0 ? (
-                <span>Пока пусто — создай заметку, она появится и в цифровом листе.</span>
-              ) : (
-                <span>
-                  {customNotes.length}{' '}
-                  {customNotes.length === 1 ? 'заметка' : 'заметок'}
-                </span>
-              )}
+              <span>Свободные заметки персонажа (как в цифровом листе)</span>
             </div>
           ) : null}
 
           <div className="classic-notes-grid">
-            {pageNotes.map((block) => (
-              <section className="classic-panel classic-note-card" key={block.key}>
-                <label className="classic-note-card__title">
-                  <span>Название</span>
+            {pageNotes.length === 0 ? (
+              <p className="classic-notes-empty no-print">
+                Пока нет заметок — нажми «Добавить заметку».
+              </p>
+            ) : (
+              pageNotes.map((block) => (
+                <section className="classic-panel classic-note-card" key={block.key}>
                   <input
+                    className="classic-note-card__title-input"
                     value={classicNoteLabel(block)}
+                    placeholder="Название заметки"
+                    aria-label="Название заметки"
                     onChange={(e) =>
                       onPatch(setClassicNoteLabel(c, block.key, e.target.value))
                     }
                   />
-                </label>
-                <ClassicTextBlock
-                  blockId={`note_${block.key}`}
-                  character={c}
-                  onPatch={onPatch}
-                  fill
-                  value={classicNoteText(block)}
-                  printMaxHeight="9rem"
-                  ariaLabel={classicNoteLabel(block)}
-                  onChange={(value) => onPatch(setClassicNoteText(c, block.key, value))}
-                />
-                <div className="classic-caption">{classicNoteLabel(block)}</div>
-              </section>
-            ))}
+                  <ClassicTextBlock
+                    blockId={`note_${block.key}`}
+                    character={c}
+                    onPatch={onPatch}
+                    fill
+                    value={classicNoteText(block)}
+                    printMaxHeight="9rem"
+                    ariaLabel={classicNoteLabel(block)}
+                    onChange={(value) => onPatch(setClassicNoteText(c, block.key, value))}
+                  />
+                  <div className="classic-caption">Заметка</div>
+                </section>
+              ))
+            )}
           </div>
         </article>
       ))}
