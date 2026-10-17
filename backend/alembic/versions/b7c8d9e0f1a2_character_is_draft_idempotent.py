@@ -1,8 +1,11 @@
 """Add characters.is_draft if missing (Play Desk create pipeline).
 
 Revision ID: b7c8d9e0f1a2
-Revises: a6b7c8d9e0f1
-Create Date: 2026-10-16
+Revises: None (parallel classic root; merged into lobby/C line via t6u7v8w9x0y1)
+
+Prod was stamped here after a classic deploy while lobby/C4 schema
+already existed. Kept as locatable root so alembic does not crash;
+upgrade is idempotent.
 """
 
 from __future__ import annotations
@@ -11,7 +14,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "b7c8d9e0f1a2"
-down_revision = "a6b7c8d9e0f1"
+down_revision = None
 branch_labels = None
 depends_on = None
 

@@ -13,6 +13,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 Инциденты:
 
 - 2026-10-06: аватар, кабинет, лист P1–P6, classic — затирались параллельными развилками.
+- **2026-10-17:** T5 setting с линии C4 затёр Play Desk + полный classic (см. docs/INCIDENT_OVERWRITE_2026-10-17.md).
 - 2026-10-13: orphan kit-ветка (пустой merge-base), час cherry-pick, API падал из‑за alembic в БД без файла в дереве, Docker Hub/BuildKit ~27+ мин.
 
 ## Hard rules
@@ -27,12 +28,13 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 4. **PRODUCT_STATUS** — только после проверки живого сервера.
 5. Параллельные агенты: ветки от tip; на сервер — один деплой после merge tip.
 6. **Запрещено** собирать deploy-ветку cherry-pick’ами мимо tip при пустом `merge-base`.
-7. **Запрещено** откатывать fast-path (`deploy/remote-up.sh`, nginx+dist) на `docker compose up -d --build` / node Dockerfile на VPS.
+7. **Запрещено** деплоить параллельную «линию tip» (сеттинг от C4, пока live=classic). Сначала `git merge origin/<live-tip>`.
+8. **Запрещено** откатывать fast-path (`deploy/remote-up.sh`, nginx+dist) на `docker compose up -d --build` / node Dockerfile на VPS.
 
 ## Текущий prod tip
 
 ```text
-cursor/classic-2014-p1-visual-8bfd
+cursor/restore-sheet-classic-setting-3d0d
 ```
 
 URL: http://201.34.132.252/

@@ -50,6 +50,11 @@ require "frontend/src/features/characters/CastSpellDialog.tsx" "каст / upcas
 
 require "frontend/src/pages/ClassicSheetPage.tsx" "classic 2014"
 require "frontend/src/features/classicSheet/ClassicPrintSheet.tsx" "classic sheet UI"
+require "frontend/src/features/classicSheet/ClassicPrint2024.tsx" "classic 2024/LSS макет — 2026-10-17 overwrite"
+require "frontend/src/features/classicSheet/classicSheetLayout.ts" "переключатель макета 2014/2024"
+require "frontend/src/features/classicSheet/classicBlockFonts.ts" "шрифт блоков classic"
+require "frontend/src/features/classicSheet/classicWeapons.ts" "parity атак classic↔digital"
+require "frontend/src/features/classicSheet/classicSpellCards.ts" "карточки заклинаний"
 
 require "backend/app/api/routers/catalog.py" "справочник API"
 
@@ -66,6 +71,16 @@ require "frontend/src/pages/SettingDetailPage.tsx" "вики сеттинга UI
 require "frontend/src/pages/SettingWikiPreviewPage.tsx" "вики preview"
 require "backend/app/models/setting_page.py" "вики: страницы"
 require "backend/app/models/setting_page_link.py" "вики: связи"
+require "backend/app/models/setting_page_template.py" "вики C5: шаблоны"
+require "backend/app/dnd/setting_templates.py" "вики C5: системные шаблоны"
+require "frontend/src/features/lobby/SettingQuickCreateDialog.tsx" "вики C5: quick create"
+require "frontend/src/features/lobby/settingKinds.ts" "вики C5: типы"
+require "frontend/src/features/lobby/settingMentions.ts" "вики C6: mentions"
+require "frontend/src/features/lobby/SettingMentionBody.tsx" "вики C6: рендер mentions"
+require "backend/app/dnd/setting_mentions.py" "вики C6: парсер mentions"
+require "backend/alembic/versions/p7q8r9s0t1u2_setting_c7_gm_body.py" "вики C7: gm_body migration"
+require "backend/app/dnd/setting_link_presets.py" "вики C8: пресеты связей"
+require "frontend/src/features/lobby/settingLinkPresets.ts" "вики C8: пресеты UI"
 require "frontend/src/features/lobby/JournalComposer.tsx" "дневник + ссылка на вики"
 require "frontend/src/features/lobby/ChatBodyText.tsx" "чат: linkify /settings"
 
@@ -73,8 +88,34 @@ require "backend/app/models/setting_artifact.py" "артефакты сетти�
 require "frontend/src/features/lobby/SettingArtifactsPanel.tsx" "UI библиотеки артефактов"
 require "backend/app/services/artifact_apply.py" "применение способностей артефакта"
 
-require "frontend/src/features/characters/PlayDeskHeader.tsx" "Play Desk шапка стола"
+require "frontend/src/features/characters/PlayDeskHeader.tsx" "Play Desk шапка стола (планшет)"
+require "frontend/src/features/characters/PlayDeskHotBar.tsx" "Play Desk hot-панель — 2026-10-17 overwrite"
 require "frontend/src/features/characters/AbilitySkillsColumn.tsx" "Play Desk рельс характеристик"
+require "frontend/src/features/characters/IdentityDialog.tsx" "Wave A identity"
+require "frontend/src/features/createPipeline/CreatePipelineShell.tsx" "create pipeline"
+
+# Сеттинг ↔ стол (T1–T5) — нельзя деплоить «только вики» без мостов, и наоборот
+require "frontend/src/features/lobby/SettingTableHandoffDialog.tsx" "T1 handoff стол→вики"
+require "frontend/src/features/lobby/SettingTableRevealDialog.tsx" "T2 reveal mid-session"
+require "frontend/src/features/lobby/SessionLorePanel.tsx" "T3 лор на столе"
+require "frontend/src/features/lobby/SessionQuestStatusDialog.tsx" "T4 квест↔дневник"
+require "frontend/src/features/lobby/journalTableBridge.ts" "T5 дневник→стол"
+
+# Hard floor: интерактивный лист не должен снова сжаться до «тонкой» ветки
+CHAR_COUNT="$(find frontend/src/features/characters -maxdepth 1 -type f -name '*.tsx' 2>/dev/null | wc -l | tr -d ' ')"
+CLASSIC_COUNT="$(find frontend/src/features/classicSheet -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')"
+if [[ "${CHAR_COUNT:-0}" -lt 80 ]]; then
+  echo "FAIL: frontend/src/features/characters имеет только ${CHAR_COUNT} tsx (нужно ≥80). Похоже на тонкую ветку без Play Desk." >&2
+  MISSING=1
+else
+  echo "ok: characters tsx count=${CHAR_COUNT}"
+fi
+if [[ "${CLASSIC_COUNT:-0}" -lt 10 ]]; then
+  echo "FAIL: classicSheet имеет только ${CLASSIC_COUNT} файлов (нужно ≥10). Полный classic затёрт." >&2
+  MISSING=1
+else
+  echo "ok: classicSheet file count=${CLASSIC_COUNT}"
+fi
 require "frontend/src/features/cabinet/AppearancePanel.tsx" "кабинет: тема аккаунта"
 require "frontend/src/shared/theme/accountAppearance.ts" "токены темы аккаунта"
 require "frontend/src/shared/theme/AccountAppearanceSync.tsx" "синк темы с /auth/me"

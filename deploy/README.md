@@ -1,9 +1,10 @@
+<!-- See docs/INCIDENT_OVERWRITE_2026-10-17.md -->
 # Prod deploy (Timeweb VPS)
 
 **URL:** http://201.34.132.252/  
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
-**Current prod tip branch:** `cursor/classic-2014-p1-visual-8bfd`  
+**Current prod tip branch:** `cursor/restore-sheet-classic-setting-3d0d`  
 (обновляй эту строку после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
 
 ---

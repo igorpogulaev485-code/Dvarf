@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
@@ -13,6 +13,13 @@ import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDialog'
 import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
+import { SessionLoreBindDialog } from '../features/lobby/SessionLoreBindDialog'
+import { SessionLorePanel } from '../features/lobby/SessionLorePanel'
+import { SessionQuestStatusDialog } from '../features/lobby/SessionQuestStatusDialog'
+import { SettingPagePreviewDialog } from '../features/lobby/SettingPagePreviewDialog'
+import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoffDialog'
+import { SettingTableRevealDialog } from '../features/lobby/SettingTableRevealDialog'
+import { draftFromCombatant, type SettingHandoffDraft } from '../features/lobby/settingHandoff'
 import { StartCombatDialog } from '../features/lobby/StartCombatDialog'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
@@ -35,11 +42,14 @@ import {
   deleteSessionCombatant,
   deploySessionEncounterTemplate,
   createLobbyEncounterTemplate,
+  createSettingPage,
   generateSessionEncounter,
   getLobby,
   getSession,
   getSetting,
   listSessionEvents,
+  revealSessionPage,
+  updateSessionQuestStatus,
   patchSeatCombat,
   patchSessionCombat,
   patchSessionCombatant,
@@ -54,12 +64,18 @@ import {
   type SeatEffect,
   type SessionDetail,
   type SessionEvent,
+  type SessionCombatant,
+  type SessionLorePage,
   type SettingArtifact,
+  type SettingDetail,
+  type SettingPage,
 } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text, Toast } from '../ui'
 
 export function SessionDetailPage() {
   const { sessionId = '' } = useParams()
+  const [searchParams] = useSearchParams()
+  const pageFromQuery = searchParams.get('page')
   const navigate = useNavigate()
   const [session, setSession] = useState<SessionDetail | null>(null)
   const [ownCharacterIds, setOwnCharacterIds] = useState<Set<string>>(() => new Set())
@@ -94,6 +110,20 @@ export function SessionDetailPage() {
   )
   const [templates, setTemplates] = useState<EncounterTemplate[]>([])
   const [settingArtifacts, setSettingArtifacts] = useState<SettingArtifact[]>([])
+  const [handoffOpen, setHandoffOpen] = useState(false)
+  const [handoffDraft, setHandoffDraft] = useState<SettingHandoffDraft | null>(null)
+  const [handoffSetting, setHandoffSetting] = useState<SettingDetail | null>(null)
+  const [handoffLink, setHandoffLink] = useState<string | null>(null)
+  const [revealOpen, setRevealOpen] = useState(false)
+  const [revealSetting, setRevealSetting] = useState<SettingDetail | null>(null)
+  const [loreBindOpen, setLoreBindOpen] = useState(false)
+  const [loreSetting, setLoreSetting] = useState<SettingDetail | null>(null)
+  const [previewPageId, setPreviewPageId] = useState<string | null>(null)
+  const [questDialogOpen, setQuestDialogOpen] = useState(false)
+  const [questTarget, setQuestTarget] = useState<SessionLorePage | null>(null)
+  const isOwnerRef = useRef(false)
+  /** T5: ?page= из дневника — открыть превью один раз */
+  const pageDeepLinkDone = useRef(false)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -127,6 +157,10 @@ export function SessionDetailPage() {
   }, [sessionId, rollsOnly])
 
   useEffect(() => {
+    pageDeepLinkDone.current = false
+  }, [sessionId])
+
+  useEffect(() => {
     let active = true
     reload().catch((err: unknown) => {
       if (!active) return
@@ -153,6 +187,42 @@ export function SessionDetailPage() {
     }
   }, [session, reloadEvents])
 
+  // T5: дневник → /sessions/{id}?page=… → превью лора
+  useEffect(() => {
+    if (!session || !pageFromQuery || pageDeepLinkDone.current) return
+    if (!session.setting_id) return
+    pageDeepLinkDone.current = true
+    const settingId = session.setting_id
+    let cancelled = false
+    setLiveTab('table')
+    setBusy(true)
+    setError(null)
+    void (async () => {
+      try {
+        const setting = await getSetting(settingId)
+        if (cancelled) return
+        setLoreSetting(setting)
+        if (setting.pages.some((p) => p.id === pageFromQuery)) {
+          setPreviewPageId(pageFromQuery)
+        }
+      } catch (err) {
+        if (cancelled) return
+        setError(
+          err instanceof ApiRequestError
+            ? err.message
+            : 'Не удалось открыть страницу из дневника',
+        )
+      } finally {
+        if (!cancelled) setBusy(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [session, pageFromQuery])
+
+  isOwnerRef.current = Boolean(session?.is_owner)
+
   useSessionRealtime(session?.id, {
     onEvent: (incoming) => {
       setEvents((prev) => {
@@ -160,6 +230,14 @@ export function SessionDetailPage() {
         if (rollsOnly && incoming.event_type !== 'roll') return prev
         return [incoming, ...prev]
       })
+      // T2/T4: игрокам toast при reveal / квесте (мастер уже тостнул локально)
+      if (
+        (incoming.event_type === 'reveal' || incoming.event_type === 'quest_status') &&
+        !isOwnerRef.current &&
+        incoming.title
+      ) {
+        setToast(incoming.title)
+      }
     },
     onSessionUpdate: (next) => {
       setSession(next)
@@ -203,6 +281,94 @@ export function SessionDetailPage() {
       setBusy(false)
     }
   }
+
+  async function openHandoff(enemy: SessionCombatant) {
+    if (!session?.setting_id) {
+      setToast('Привяжи сеттинг к сессии')
+      return
+    }
+    setHandoffLink(null)
+    setHandoffDraft(
+      draftFromCombatant(enemy, { sessionName: session.name }),
+    )
+    setHandoffOpen(true)
+    setBusy(true)
+    setError(null)
+    try {
+      const setting = await getSetting(session.setting_id)
+      setHandoffSetting(setting)
+    } catch (err) {
+      setHandoffOpen(false)
+      setHandoffDraft(null)
+      setError(
+        err instanceof ApiRequestError ? err.message : 'Не удалось открыть сеттинг',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function openRevealDialog() {
+    if (!session?.setting_id) {
+      setToast('Привяжи сеттинг к сессии')
+      return
+    }
+    setRevealOpen(true)
+    setBusy(true)
+    setError(null)
+    try {
+      const setting = await getSetting(session.setting_id)
+      setRevealSetting(setting)
+    } catch (err) {
+      setRevealOpen(false)
+      setError(
+        err instanceof ApiRequestError ? err.message : 'Не удалось открыть сеттинг',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function ensureLoreSetting(): Promise<SettingDetail | null> {
+    if (!session?.setting_id) {
+      setToast('Привяжи сеттинг к сессии')
+      return null
+    }
+    if (loreSetting && loreSetting.id === session.setting_id) {
+      return loreSetting
+    }
+    setBusy(true)
+    setError(null)
+    try {
+      const setting = await getSetting(session.setting_id)
+      setLoreSetting(setting)
+      return setting
+    } catch (err) {
+      setError(
+        err instanceof ApiRequestError ? err.message : 'Не удалось открыть сеттинг',
+      )
+      return null
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function openLoreBind() {
+    const setting = await ensureLoreSetting()
+    if (!setting) return
+    setLoreBindOpen(true)
+  }
+
+  async function openLorePreview(pageId: string) {
+    const setting = await ensureLoreSetting()
+    if (!setting) return
+    setPreviewPageId(pageId)
+  }
+
+  const previewPage: SettingPage | null = useMemo(() => {
+    if (!previewPageId || !loreSetting) return null
+    return loreSetting.pages.find((p) => p.id === previewPageId) ?? null
+  }, [previewPageId, loreSetting])
 
   function openAttendanceEditor() {
     setDraftPresentIds(new Set(presentIds))
@@ -339,6 +505,19 @@ export function SessionDetailPage() {
 
             {liveTab === 'table' ? (
               <Stack gap={12}>
+                <SessionLorePanel
+                  hasSetting={Boolean(session.setting_id)}
+                  locationPage={session.location_page ?? null}
+                  involvedPages={session.involved_pages ?? []}
+                  isOwner={session.is_owner && !session.closed_at}
+                  busy={busy}
+                  onOpenPage={(id) => void openLorePreview(id)}
+                  onEdit={() => void openLoreBind()}
+                  onQuestStatus={(page) => {
+                    setQuestTarget(page)
+                    setQuestDialogOpen(true)
+                  }}
+                />
                 {!session.closed_at &&
                 (session.is_owner ||
                   session.seats.some((s) => ownCharacterIds.has(s.character_id))) ? (
@@ -415,6 +594,16 @@ export function SessionDetailPage() {
                         onClick={() => setEncounterOpen(true)}
                       >
                         Энкаунтер
+                      </Button>
+                    ) : null}
+                    {session.is_owner && session.setting_id && !session.closed_at ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => void openRevealDialog()}
+                      >
+                        Раскрыть
                       </Button>
                     ) : null}
                     {session.is_owner ? (
@@ -594,6 +783,14 @@ export function SessionDetailPage() {
                           masterControls={session.is_owner && !session.closed_at}
                           forceAbilitiesOpen={Boolean(isActiveTurn && session.is_owner)}
                           busy={busy}
+                          canSaveToSetting={Boolean(
+                            session.is_owner &&
+                              !session.closed_at &&
+                              session.setting_id,
+                          )}
+                          onSaveToSetting={() => {
+                            void openHandoff(enemy)
+                          }}
                           onDamage={(amount, memberId) => {
                             void run(async () => {
                               const updated = await patchSessionCombatant(
@@ -841,6 +1038,163 @@ export function SessionDetailPage() {
         }}
       />
 
+      <SessionQuestStatusDialog
+        open={questDialogOpen}
+        busy={busy}
+        quest={questTarget}
+        onClose={() => {
+          setQuestDialogOpen(false)
+          setQuestTarget(null)
+        }}
+        onSave={(payload) => {
+          void run(async () => {
+            const result = await updateSessionQuestStatus(session.id, payload)
+            setSession(result.session)
+            setEvents((prev) => {
+              if (prev.some((e) => e.id === result.event.id)) return prev
+              return [result.event, ...prev]
+            })
+            setQuestDialogOpen(false)
+            setQuestTarget(null)
+            setToast(
+              result.journal_entry
+                ? `${result.event.title} · в дневнике`
+                : result.event.title,
+            )
+          })
+        }}
+      />
+
+      <SessionLoreBindDialog
+        open={loreBindOpen}
+        busy={busy}
+        pages={loreSetting?.pages ?? []}
+        locationPageId={session.location_page_id ?? null}
+        involvedPageIds={session.involved_page_ids ?? []}
+        onClose={() => setLoreBindOpen(false)}
+        onSave={(payload) => {
+          void run(async () => {
+            const next = await updateSession(session.id, {
+              location_page_id: payload.location_page_id,
+              clear_location_page: payload.clear_location_page,
+              involved_page_ids: payload.involved_page_ids,
+            })
+            setSession(next)
+            setLoreBindOpen(false)
+            setToast('Лор сессии обновлён')
+          })
+        }}
+      />
+
+      <SettingPagePreviewDialog
+        open={Boolean(previewPageId)}
+        page={previewPage}
+        pages={loreSetting?.pages ?? []}
+        templates={loreSetting?.templates ?? []}
+        isOwner={session.is_owner}
+        settingId={session.setting_id}
+        onClose={() => setPreviewPageId(null)}
+        onOpenPage={(id) => setPreviewPageId(id)}
+        onOpenInWiki={(id) => {
+          if (!session.setting_id) return
+          navigate(`/settings/${session.setting_id}?page=${id}`)
+        }}
+      />
+
+      <SettingTableRevealDialog
+        open={revealOpen}
+        busy={busy}
+        settingId={session.setting_id}
+        settingName={session.setting_name ?? revealSetting?.name}
+        pages={revealSetting?.pages ?? []}
+        onClose={() => {
+          setRevealOpen(false)
+        }}
+        onReveal={(payload) => {
+          void run(async () => {
+            const result = await revealSessionPage(session.id, {
+              page_id: payload.page_id,
+              reveal_subtree: payload.reveal_subtree,
+              revealed: true,
+            })
+            setSession(result.session)
+            setEvents((prev) => {
+              if (prev.some((e) => e.id === result.event.id)) return prev
+              return [result.event, ...prev]
+            })
+            if (revealSetting) {
+              const rootId = result.page_id
+              const byParent = new Map<string | null, string[]>()
+              for (const p of revealSetting.pages) {
+                const list = byParent.get(p.parent_id) ?? []
+                list.push(p.id)
+                byParent.set(p.parent_id, list)
+              }
+              const ids = new Set<string>([rootId])
+              if (result.reveal_subtree) {
+                const walk = (id: string) => {
+                  for (const child of byParent.get(id) ?? []) {
+                    ids.add(child)
+                    walk(child)
+                  }
+                }
+                walk(rootId)
+              }
+              setRevealSetting({
+                ...revealSetting,
+                pages: revealSetting.pages.map((p) =>
+                  ids.has(p.id) ? { ...p, revealed: true } : p,
+                ),
+              })
+            }
+            setRevealOpen(false)
+            setToast(result.event.title)
+          })
+        }}
+      />
+
+      <SettingTableHandoffDialog
+        open={handoffOpen}
+        busy={busy}
+        settingName={session.setting_name ?? handoffSetting?.name}
+        draft={handoffDraft}
+        templates={handoffSetting?.templates ?? []}
+        pages={handoffSetting?.pages ?? []}
+        onClose={() => {
+          setHandoffOpen(false)
+          setHandoffDraft(null)
+        }}
+        onCreate={(payload) => {
+          if (!session.setting_id) return
+          void run(async () => {
+            const next = await createSettingPage(session.setting_id!, {
+              title: payload.title,
+              body: payload.body,
+              gm_body: payload.gm_body,
+              parent_id: payload.parent_id,
+              page_kind: payload.page_kind,
+              template_id: payload.template_id,
+              fields: payload.fields,
+              tags: payload.tags,
+            })
+            setHandoffSetting(next)
+            const created = [...next.pages]
+              .filter((p) => p.title === payload.title)
+              .sort(
+                (a, b) =>
+                  new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+              )[0]
+            const href = created
+              ? `/settings/${session.setting_id}?page=${created.id}`
+              : `/settings/${session.setting_id}`
+            setHandoffLink(href)
+            setHandoffOpen(false)
+            setHandoffDraft(null)
+            setToast(`В сеттинг: ${payload.title}`)
+          })
+        }}
+      />
+
       <AddCombatantDialog
         open={combatantOpen}
         busy={busy}
@@ -1043,7 +1397,21 @@ export function SessionDetailPage() {
         </Stack>
       </Dialog>
 
-      <Toast message={toast} onClose={() => setToast(null)} />
+      <Toast
+        message={toast}
+        onClose={() => {
+          setToast(null)
+          setHandoffLink(null)
+        }}
+        durationMs={handoffLink ? 6000 : 2800}
+      />
+      {handoffLink && toast ? (
+        <div className="session-handoff-toast-link">
+          <Link to={handoffLink} onClick={() => setHandoffLink(null)}>
+            Открыть в вики →
+          </Link>
+        </div>
+      ) : null}
     </main>
   )
 }

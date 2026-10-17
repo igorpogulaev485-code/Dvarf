@@ -8,6 +8,7 @@ from app.models.session_event import SessionEvent
 from app.models.setting_artifact import SettingArtifact
 from app.models.setting_page import SettingPage
 from app.models.setting_page_link import SettingPageLink
+from app.models.setting_page_template import SettingPageTemplate
 from app.models.user import (
     AuthProvider,
     AuthSession,
@@ -44,6 +45,7 @@ __all__ = [
     "SettingArtifact",
     "SettingPage",
     "SettingPageLink",
+    "SettingPageTemplate",
     "User",
     "UserIdentity",
 ]

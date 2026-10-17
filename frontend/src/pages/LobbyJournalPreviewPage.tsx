@@ -1,12 +1,12 @@
 /**
- * Превью A4: дневник мастера как в продукте (без dev-тумблеров).
+ * Превью A4/T5: дневник мастера + «Открыть за столом».
  * /dev/lobby-journal-preview
  */
 import { useMemo, useState } from 'react'
 import { JournalComposer } from '../features/lobby/JournalComposer'
 import { JournalEntryCard } from '../features/lobby/JournalEntryCard'
 import { LobbyHubTabs, type LobbyHubTabId } from '../features/lobby/LobbyHubTabs'
-import type { JournalEntry, SettingSummary } from '../shared/api/lobbies'
+import type { JournalEntry, SessionSummary, SettingSummary } from '../shared/api/lobbies'
 import { Button, Panel, Stack, Text, Toast } from '../ui'
 
 const DEMO_SETTINGS: SettingSummary[] = [
@@ -17,6 +17,34 @@ const DEMO_SETTINGS: SettingSummary[] = [
     world_notes: '',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
+  },
+]
+
+const now = Date.now()
+
+/** Открытая сессия того же сеттинга — для T5 «Открыть за столом» */
+const DEMO_SESSIONS: SessionSummary[] = [
+  {
+    id: 's-open',
+    lobby_id: 'lob1',
+    setting_id: 'set1',
+    setting_name: 'Серые Болота',
+    name: 'Глава 4 — Туннель',
+    seat_count: 3,
+    closed_at: null,
+    created_at: new Date(now - 7200000).toISOString(),
+    updated_at: new Date(now - 600000).toISOString(),
+  },
+  {
+    id: 's1',
+    lobby_id: 'lob1',
+    setting_id: 'set1',
+    setting_name: 'Серые Болота',
+    name: 'Глава 3 — Мост',
+    seat_count: 3,
+    closed_at: new Date(now - 3600000).toISOString(),
+    created_at: new Date(now - 86400000).toISOString(),
+    updated_at: new Date(now - 3600000).toISOString(),
   },
 ]
 
@@ -35,8 +63,25 @@ const SEED: JournalEntry[] = [
     page_title: null,
     from_session_id: 's1',
     from_session_name: 'Глава 3 — Мост',
-    created_at: new Date(Date.now() - 3600000).toISOString(),
-    updated_at: new Date(Date.now() - 3600000).toISOString(),
+    created_at: new Date(now - 3600000).toISOString(),
+    updated_at: new Date(now - 3600000).toISOString(),
+  },
+  {
+    id: 'j-quest',
+    lobby_id: 'lob1',
+    author_user_id: 'u0',
+    entry_type: 'quest_status',
+    title: 'Квест закрыт: Найти Лиру',
+    body: 'Статус: выполнено. Лира выведена из шахт.',
+    image_url: null,
+    setting_id: 'set1',
+    setting_name: 'Серые Болота',
+    page_id: 'page-quest-lira',
+    page_title: 'Найти Лиру',
+    from_session_id: 's-open',
+    from_session_name: 'Глава 4 — Туннель',
+    created_at: new Date(now - 1800000).toISOString(),
+    updated_at: new Date(now - 1800000).toISOString(),
   },
   {
     id: 'j2',
@@ -52,8 +97,8 @@ const SEED: JournalEntry[] = [
     page_title: null,
     from_session_id: null,
     from_session_name: null,
-    created_at: new Date(Date.now() - 7200000).toISOString(),
-    updated_at: new Date(Date.now() - 7200000).toISOString(),
+    created_at: new Date(now - 7200000).toISOString(),
+    updated_at: new Date(now - 7200000).toISOString(),
   },
   {
     id: 'j3',
@@ -69,8 +114,8 @@ const SEED: JournalEntry[] = [
     page_title: 'Карта болот',
     from_session_id: null,
     from_session_name: null,
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    updated_at: new Date(Date.now() - 86400000).toISOString(),
+    created_at: new Date(now - 86400000).toISOString(),
+    updated_at: new Date(now - 86400000).toISOString(),
   },
   {
     id: 'j4',
@@ -86,8 +131,8 @@ const SEED: JournalEntry[] = [
     page_title: null,
     from_session_id: null,
     from_session_name: null,
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-    updated_at: new Date(Date.now() - 172800000).toISOString(),
+    created_at: new Date(now - 172800000).toISOString(),
+    updated_at: new Date(now - 172800000).toISOString(),
   },
 ]
 
@@ -111,7 +156,7 @@ export function LobbyJournalPreviewPage() {
         <header className="app-header">
           <div>
             <Text as="h1">Эхо Рассвета</Text>
-            <Text tone="muted">Превью A4/C4 · дневник + ссылки на вики</Text>
+            <Text tone="muted">Превью A4/T5 · дневник → стол</Text>
           </div>
         </header>
 
@@ -166,6 +211,7 @@ export function LobbyJournalPreviewPage() {
                     <JournalEntryCard
                       entry={entry}
                       isOwner
+                      sessions={DEMO_SESSIONS}
                       onDelete={(id) => {
                         setItems((prev) => prev.filter((e) => e.id !== id))
                         setToast('Пост удалён')

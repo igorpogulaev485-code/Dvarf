@@ -1,8 +1,11 @@
 # Правила для агентов (Dvarf) — читать первым
 
-Этот файл — **жёсткий контракт**. Нарушение уже один раз сожгло прод (кабинет, аватар, лист P1–P6, classic).
+Этот файл — **жёсткий контракт**. Нарушение уже **дважды** сожгло прод:
 
-Подробности: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod-lineage/SKILL.md) · [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) · [`deploy/README.md`](deploy/README.md).
+- 2026-10-06: кабинет, аватар, лист P1–P6, classic
+- **2026-10-17 ~05:33 UTC:** tip `setting-t5-journal-table` с линии C4 затёр Play Desk (шапка планшета / hot-bar, ~145→30 файлов) и полный classic (17→3), хотя сеттинг C5–T5 сам по себе был ок
+
+Подробности: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod-lineage/SKILL.md) · [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](docs/INCIDENT_OVERWRITE_2026-10-17.md) · [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) · [`deploy/README.md`](deploy/README.md).
 
 ---
 
@@ -13,7 +16,11 @@
 - Деплой с «тонкой» ветки = **удаление** всего, чего в ней нет.
 - «У меня в PR фича есть» ≠ «на проде она останется после чужого деплоя».
 
-**Запрещено** деплоить с ветки, которая не содержит актуальный prod tip.
+**Запрещено** деплоить с ветки, которая не содержит актуальный **живой** prod tip (читается с VPS, не из устаревшего AGENTS в своей feature-ветке).
+
+**Запрещено** вести «вторую линию tip» (пример: сеттинг от C4, пока live tip = classic/tablet). Новые слайсы — **только** `git merge origin/<live-tip>` в свою ветку **до** любого `sync-and-up`.
+
+**Запрещено** `DVARF_SKIP_PREFLIGHT=1` / `DVARF_SKIP_LIVE_PREFLIGHT=1` без явного ok Игоря в чате этого деплоя.
 
 ---
 
@@ -21,7 +28,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/classic-2014-p1-visual-8bfd` |
+| Prod tip (сейчас) | `cursor/restore-sheet-classic-setting-3d0d` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
@@ -68,9 +75,13 @@
 
 1. `curl -fsS http://201.34.132.252/health`
 2. Проверь **живые маркеры** в бандле/на диске (не только свой слайс):
-   - кабинет / аватар / лобби / лист (мультикласс, концентрация, classic) / бой на сессии / вики сеттинга
-3. Обнови `PRODUCT_STATUS.md` **по факту проверки** (да/нет, ветка, дата).
-4. Если что-то пропало — **стоп**, восстанавливай до tip+твой слайс, не пиши что «всё ок».
+   - кабинет / аватар / лобби
+   - **Play Desk:** `PlayDeskHeader`, `PlayDeskHotBar`, прыжки, spend-пикеры
+   - **Classic:** `ClassicPrint2024`, переключатель 2014/2024
+   - бой на сессии / вики C5–T5 (QuickCreate, handoff, lore panel)
+3. Счётчики: `characters/*.tsx` ≫ 80, `classicSheet/*` ≫ 10 — иначе снова тонкая заливка
+4. Обнови `PRODUCT_STATUS.md` **по факту проверки** (да/нет, ветка, дата).
+5. Если что-то пропало — **стоп**, восстанавливай до tip+твой слайс, не пиши что «всё ок».
 
 **Запрещено** писать в `PRODUCT_STATUS` «на проде: да», если на сервере файла/строки UI нет.
 

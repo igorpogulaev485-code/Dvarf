@@ -32,17 +32,55 @@ export type SettingSummary = {
   updated_at: string
 }
 
+export type SettingPageKind =
+  | 'location'
+  | 'npc'
+  | 'faction'
+  | 'quest'
+  | 'item_lore'
+  | 'note'
+
+export type QuestStatus = 'planned' | 'active' | 'done' | 'failed'
+
+export type SettingPageTemplateField = {
+  key: string
+  label: string
+  type: 'text' | 'long' | 'select' | 'number' | 'url'
+  gm_only?: boolean
+  options?: string[] | null
+}
+
+export type SettingPageTemplate = {
+  id: string
+  setting_id: string | null
+  page_kind: SettingPageKind
+  name: string
+  body_seed: string
+  schema: SettingPageTemplateField[]
+  enabled: boolean
+  is_system: boolean
+}
+
 export type SettingPage = {
   id: string
   setting_id: string
   parent_id: string | null
   title: string
   body: string
+  gm_body: string
   sort_order: number
   revealed: boolean
+  page_kind: SettingPageKind
+  template_id: string | null
+  fields: Record<string, string | number | boolean | null>
+  quest_status: QuestStatus | null
+  tags: string[]
   created_at: string
   updated_at: string
 }
+
+export type SettingPageLinkKind = 'semantic' | 'mention'
+export type SettingPageLinkVisibility = 'all' | 'gm'
 
 export type SettingPageLink = {
   id: string
@@ -51,6 +89,8 @@ export type SettingPageLink = {
   from_title: string
   to_title: string
   label: string
+  kind: SettingPageLinkKind
+  visibility: SettingPageLinkVisibility
   created_at: string
 }
 
@@ -171,6 +211,9 @@ export type SettingArtifactUpdatePayload = SettingArtifactCreatePayload & {
 export type SettingDetail = SettingSummary & {
   pages: SettingPage[]
   links: SettingPageLink[]
+  templates: SettingPageTemplate[]
+  /** C9: уникальные теги по видимым страницам */
+  all_tags: string[]
   artifacts?: SettingArtifact[]
   is_owner: boolean
 }
@@ -351,6 +394,14 @@ export type SessionCombat = {
   entries: CombatEntry[]
 }
 
+export type SessionLorePage = {
+  id: string
+  title: string
+  page_kind: SettingPageKind
+  revealed: boolean
+  quest_status?: QuestStatus | null
+}
+
 export type SessionDetail = {
   id: string
   lobby_id: string
@@ -364,12 +415,23 @@ export type SessionDetail = {
   combat?: SessionCombat
   lobby_members: LobbyMember[]
   visibility_profile?: unknown
+  /** T3 */
+  location_page_id?: string | null
+  involved_page_ids?: string[]
+  location_page?: SessionLorePage | null
+  involved_pages?: SessionLorePage[]
   closed_at?: string | null
   created_at: string
   updated_at: string
 }
 
-export type JournalEntryType = 'text' | 'chapter' | 'setting_link' | 'image' | 'session_summary'
+export type JournalEntryType =
+  | 'text'
+  | 'chapter'
+  | 'setting_link'
+  | 'image'
+  | 'session_summary'
+  | 'quest_status'
 
 export type JournalEntry = {
   id: string
@@ -513,9 +575,35 @@ export async function deleteSetting(id: string): Promise<void> {
 
 export async function createSettingPage(
   settingId: string,
-  payload: { title?: string; body?: string; parent_id?: string | null },
+  payload: {
+    title?: string
+    body?: string
+    gm_body?: string
+    parent_id?: string | null
+    page_kind?: SettingPageKind
+    template_id?: string | null
+    fields?: Record<string, string | number | boolean | null>
+    quest_status?: QuestStatus | null
+    tags?: string[]
+  },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/${settingId}/pages`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function bulkCreateSettingPages(
+  settingId: string,
+  payload: {
+    titles: string[]
+    page_kind?: SettingPageKind
+    template_id?: string | null
+    parent_id?: string | null
+    body?: string
+  },
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${settingId}/pages/bulk`, {
     method: 'POST',
     body: JSON.stringify(payload),
   })
@@ -526,11 +614,20 @@ export async function updateSettingPage(
   payload: {
     title?: string
     body?: string
+    gm_body?: string
     parent_id?: string | null
     clear_parent?: boolean
     sort_order?: number
     revealed?: boolean
     reveal_subtree?: boolean
+    page_kind?: SettingPageKind
+    template_id?: string | null
+    clear_template?: boolean
+    fields?: Record<string, string | number | boolean | null>
+    quest_status?: QuestStatus | null
+    clear_quest_status?: boolean
+    create_missing_mentions?: boolean
+    tags?: string[]
   },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {
@@ -547,7 +644,14 @@ export async function deleteSettingPage(pageId: string): Promise<SettingDetail> 
 
 export async function createSettingPageLink(
   pageId: string,
-  payload: { to_page_id: string; label?: string },
+  payload: {
+    to_page_id: string
+    label?: string
+    kind?: SettingPageLinkKind
+    visibility?: SettingPageLinkVisibility
+    bidirectional?: boolean
+    reverse_label?: string | null
+  },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/pages/${pageId}/links`, {
     method: 'POST',
@@ -608,7 +712,14 @@ export async function getSession(id: string): Promise<SessionDetail> {
 
 export async function updateSession(
   id: string,
-  payload: { name?: string; setting_id?: string | null; clear_setting?: boolean },
+  payload: {
+    name?: string
+    setting_id?: string | null
+    clear_setting?: boolean
+    location_page_id?: string | null
+    clear_location_page?: boolean
+    involved_page_ids?: string[]
+  },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${id}`, {
     method: 'PATCH',
@@ -808,6 +919,57 @@ export async function awardSessionXp(
   },
 ): Promise<XpAwardResult> {
   return apiRequest<XpAwardResult>(`/sessions/${sessionId}/xp`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type SessionRevealPageResult = {
+  session: SessionDetail
+  event: SessionEvent
+  page_id: string
+  page_title: string
+  revealed: boolean
+  reveal_subtree: boolean
+  affected_count: number
+}
+
+/** T2: раскрыть страницу сеттинга mid-session → лента. */
+export async function revealSessionPage(
+  sessionId: string,
+  payload: {
+    page_id: string
+    reveal_subtree?: boolean
+    revealed?: boolean
+  },
+): Promise<SessionRevealPageResult> {
+  return apiRequest<SessionRevealPageResult>(`/sessions/${sessionId}/reveal-page`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type SessionQuestStatusResult = {
+  session: SessionDetail
+  event: SessionEvent
+  page_id: string
+  page_title: string
+  quest_status: QuestStatus
+  journal_entry: JournalEntry | null
+}
+
+/** T4: статус квеста mid-session → лента + опционально дневник. */
+export async function updateSessionQuestStatus(
+  sessionId: string,
+  payload: {
+    page_id: string
+    quest_status: QuestStatus
+    write_journal?: boolean
+    title?: string
+    summary?: string
+  },
+): Promise<SessionQuestStatusResult> {
+  return apiRequest<SessionQuestStatusResult>(`/sessions/${sessionId}/quest-status`, {
     method: 'POST',
     body: JSON.stringify(payload),
   })

@@ -33,6 +33,39 @@ class SettingSummary(BaseModel):
     updated_at: datetime
 
 
+SettingPageKind = Literal[
+    "location",
+    "npc",
+    "faction",
+    "quest",
+    "item_lore",
+    "note",
+]
+
+QuestStatus = Literal["planned", "active", "done", "failed"]
+
+
+class SettingPageTemplateField(BaseModel):
+    key: str
+    label: str
+    type: Literal["text", "long", "select", "number", "url"] = "text"
+    gm_only: bool = False
+    options: list[str] | None = None
+
+
+class SettingPageTemplateOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    setting_id: UUID | None = None
+    page_kind: SettingPageKind
+    name: str
+    body_seed: str = ""
+    schema: list[SettingPageTemplateField] = Field(default_factory=list)
+    enabled: bool = True
+    is_system: bool = False
+
+
 class SettingPageOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -41,14 +74,24 @@ class SettingPageOut(BaseModel):
     parent_id: UUID | None = None
     title: str
     body: str
+    gm_body: str = ""
     sort_order: int = 0
     revealed: bool = False
+    page_kind: SettingPageKind = "note"
+    template_id: UUID | None = None
+    fields: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
+    quest_status: QuestStatus | None = None
+    tags: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
 
+LinkKind = Literal["semantic", "mention"]
+LinkVisibility = Literal["all", "gm"]
+
+
 class SettingPageLinkOut(BaseModel):
-    """C2: ребро графа; заголовки удобны клиенту для бэклинков."""
+    """C2/C6/C8: ребро графа; заголовки удобны клиенту для бэклинков."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -58,6 +101,8 @@ class SettingPageLinkOut(BaseModel):
     from_title: str = ""
     to_title: str = ""
     label: str = ""
+    kind: LinkKind = "semantic"
+    visibility: LinkVisibility = "all"
     created_at: datetime
 
 
@@ -191,10 +236,12 @@ class SettingArtifactUpdateRequest(BaseModel):
 
 
 class SettingDetail(SettingSummary):
-    """C1–C3: страницы + связи; игрокам — только revealed. D1: артефакты у мастера."""
+    """C1–C9 + D1: страницы, связи, шаблоны, теги; артефакты у мастера."""
 
     pages: list[SettingPageOut] = Field(default_factory=list)
     links: list[SettingPageLinkOut] = Field(default_factory=list)
+    templates: list[SettingPageTemplateOut] = Field(default_factory=list)
+    all_tags: list[str] = Field(default_factory=list)
     artifacts: list[SettingArtifactOut] = Field(default_factory=list)
     is_owner: bool = False
 
@@ -202,13 +249,30 @@ class SettingDetail(SettingSummary):
 class SettingPageCreateRequest(BaseModel):
     title: str = Field(default="Новая страница", max_length=200)
     body: str = ""
+    gm_body: str = ""
     parent_id: UUID | None = None
     sort_order: int | None = None
+    page_kind: SettingPageKind = "note"
+    template_id: UUID | None = None
+    fields: dict[str, str | int | float | bool | None] | None = None
+    quest_status: QuestStatus | None = None
+    tags: list[str] | None = None
+
+
+class SettingPageBulkCreateRequest(BaseModel):
+    """C5 quick create: несколько имён одного типа/шаблона."""
+
+    titles: list[str] = Field(min_length=1, max_length=50)
+    page_kind: SettingPageKind = "npc"
+    template_id: UUID | None = None
+    parent_id: UUID | None = None
+    body: str = ""
 
 
 class SettingPageUpdateRequest(BaseModel):
     title: str | None = Field(default=None, max_length=200)
     body: str | None = None
+    gm_body: str | None = None
     parent_id: UUID | None = None
     sort_order: int | None = None
     # clear_parent: переместить в корень
@@ -217,11 +281,44 @@ class SettingPageUpdateRequest(BaseModel):
     revealed: bool | None = None
     # C3: применить revealed ко всей ветке (эта + потомки)
     reveal_subtree: bool = False
+    page_kind: SettingPageKind | None = None
+    template_id: UUID | None = None
+    clear_template: bool = False
+    fields: dict[str, str | int | float | bool | None] | None = None
+    quest_status: QuestStatus | None = None
+    clear_quest_status: bool = False
+    # C6: если @Новое_Имя не найдено — создать страницу note
+    create_missing_mentions: bool = False
+    tags: list[str] | None = None
 
 
 class SettingPageLinkCreateRequest(BaseModel):
     to_page_id: UUID
     label: str = Field(default="", max_length=120)
+    kind: LinkKind = "semantic"
+    visibility: LinkVisibility = "all"
+    # C8: создать зеркальное ребро to → from
+    bidirectional: bool = False
+    reverse_label: str | None = Field(default=None, max_length=120)
+
+
+class SessionRevealPageRequest(BaseModel):
+    """T2: раскрыть страницу сеттинга mid-session → лента."""
+
+    page_id: UUID
+    reveal_subtree: bool = False
+    # false = скрыть снова (редко со стола, но симметрично)
+    revealed: bool = True
+
+
+class SessionRevealPageResult(BaseModel):
+    session: "SessionDetail"
+    event: "SessionEventOut"
+    page_id: UUID
+    page_title: str
+    revealed: bool
+    reveal_subtree: bool
+    affected_count: int
 
 
 class SessionSummary(BaseModel):
@@ -404,6 +501,39 @@ class SessionUpdateRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     setting_id: UUID | None = None
     clear_setting: bool = False
+    # T3: привязка лора
+    location_page_id: UUID | None = None
+    clear_location_page: bool = False
+    involved_page_ids: list[UUID] | None = None
+
+
+class SessionLorePageOut(BaseModel):
+    """Краткая карточка страницы, привязанной к сессии."""
+
+    id: UUID
+    title: str
+    page_kind: SettingPageKind = "note"
+    revealed: bool = False
+    quest_status: QuestStatus | None = None
+
+
+class SessionQuestStatusRequest(BaseModel):
+    """T4: сменить статус квеста mid-session (+ опционально дневник)."""
+
+    page_id: UUID
+    quest_status: QuestStatus
+    write_journal: bool = False
+    title: str | None = Field(default=None, max_length=200)
+    summary: str | None = Field(default=None, max_length=4000)
+
+
+class SessionQuestStatusResult(BaseModel):
+    session: "SessionDetail"
+    event: "SessionEventOut"
+    page_id: UUID
+    page_title: str
+    quest_status: QuestStatus
+    journal_entry: "JournalEntryOut | None" = None
 
 
 class CombatantActionOut(BaseModel):
@@ -686,6 +816,11 @@ class SessionDetail(BaseModel):
     combat: SessionCombatOut = Field(default_factory=SessionCombatOut)
     lobby_members: list[LobbyMemberOut]
     visibility_profile: dict = Field(default_factory=dict)
+    # T3
+    location_page_id: UUID | None = None
+    involved_page_ids: list[UUID] = Field(default_factory=list)
+    location_page: SessionLorePageOut | None = None
+    involved_pages: list[SessionLorePageOut] = Field(default_factory=list)
     closed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime

@@ -17,6 +17,9 @@ type Props = {
   /** Урон: без memberId — первый живой; с memberId — выбранный в составе */
   onDamage?: (amount: number, memberId?: string) => void
   onRemove?: () => void
+  /** T1: сохранить в вики сеттинга сессии */
+  canSaveToSetting?: boolean
+  onSaveToSetting?: () => void
 }
 
 type KitItem = CombatantAction & { kind: string }
@@ -102,6 +105,8 @@ export function EnemyCard({
   forceAbilitiesOpen = false,
   onDamage,
   onRemove,
+  canSaveToSetting = false,
+  onSaveToSetting,
 }: Props) {
   const [abilitiesOpen, setAbilitiesOpen] = useState(forceAbilitiesOpen)
   const [rosterOpen, setRosterOpen] = useState(false)
@@ -348,6 +353,17 @@ export function EnemyCard({
               }}
             >
               {abilitiesOpen ? 'Свернуть' : 'Текст'}
+            </Button>
+          ) : null}
+          {canSaveToSetting && onSaveToSetting ? (
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={busy}
+              title="Создать страницу НПС в сеттинге сессии"
+              onClick={onSaveToSetting}
+            >
+              В сеттинг
             </Button>
           ) : null}
         </div>

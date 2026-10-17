@@ -59,12 +59,17 @@ from app.schemas.lobby import (
     SessionCreateRequest,
     SessionDetail,
     SessionEventOut,
+    SessionQuestStatusRequest,
+    SessionQuestStatusResult,
+    SessionRevealPageRequest,
+    SessionRevealPageResult,
     SessionRollCreateRequest,
     SessionUpdateRequest,
     SettingArtifactCreateRequest,
     SettingArtifactUpdateRequest,
     SettingCreateRequest,
     SettingDetail,
+    SettingPageBulkCreateRequest,
     SettingPageCreateRequest,
     SettingPageLinkCreateRequest,
     SettingPageUpdateRequest,
@@ -219,6 +224,20 @@ def create_setting_page(
     db: DbSession,
 ) -> SettingDetail:
     return LobbyService(db).create_setting_page(current_user, setting_id, payload)
+
+
+@router.post(
+    "/settings/{setting_id}/pages/bulk",
+    response_model=SettingDetail,
+    status_code=201,
+)
+def bulk_create_setting_pages(
+    setting_id: UUID,
+    payload: SettingPageBulkCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).bulk_create_setting_pages(current_user, setting_id, payload)
 
 
 @router.patch("/settings/pages/{page_id}", response_model=SettingDetail)
@@ -528,6 +547,36 @@ async def patch_session_combat(
     db: DbSession,
 ) -> SessionDetail:
     return await LobbyService(db).patch_combat(current_user, session_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/reveal-page",
+    response_model=SessionRevealPageResult,
+)
+async def reveal_session_page(
+    session_id: UUID,
+    payload: SessionRevealPageRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionRevealPageResult:
+    """T2: раскрыть страницу сеттинга mid-session → лента + realtime."""
+    return await LobbyService(db).reveal_session_page(current_user, session_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/quest-status",
+    response_model=SessionQuestStatusResult,
+)
+async def update_session_quest_status(
+    session_id: UUID,
+    payload: SessionQuestStatusRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionQuestStatusResult:
+    """T4: статус квеста mid-session → лента + опционально дневник."""
+    return await LobbyService(db).update_session_quest_status(
+        current_user, session_id, payload
+    )
 
 
 @router.post(

@@ -229,6 +229,7 @@ export function LobbyDetailPage() {
             lobbyId={lobby.id}
             isOwner={lobby.is_owner}
             settings={lobby.settings}
+            sessions={lobby.sessions}
             onToast={setToast}
             onError={setError}
           />

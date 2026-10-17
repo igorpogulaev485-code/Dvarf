@@ -152,6 +152,12 @@ class LobbyRepository:
         body: str,
         parent_id: UUID | None,
         sort_order: int,
+        page_kind: str = "note",
+        template_id: UUID | None = None,
+        fields: dict | None = None,
+        quest_status: str | None = None,
+        gm_body: str = "",
+        tags: list[str] | None = None,
     ):
         from app.models.setting_page import SettingPage
 
@@ -160,11 +166,43 @@ class LobbyRepository:
             parent_id=parent_id,
             title=title,
             body=body,
+            gm_body=gm_body or "",
             sort_order=sort_order,
+            page_kind=page_kind,
+            template_id=template_id,
+            fields=fields if fields is not None else {},
+            quest_status=quest_status,
+            tags=list(tags) if tags is not None else [],
         )
         self.db.add(page)
         self.db.flush()
         return page
+
+    def list_setting_page_templates(self, setting_id: UUID | None = None) -> list:
+        """Системные (setting_id IS NULL) + шаблоны этого сеттинга."""
+        from app.models.setting_page_template import SettingPageTemplate
+
+        stmt = select(SettingPageTemplate).where(SettingPageTemplate.enabled.is_(True))
+        if setting_id is None:
+            stmt = stmt.where(SettingPageTemplate.setting_id.is_(None))
+        else:
+            stmt = stmt.where(
+                (SettingPageTemplate.setting_id.is_(None))
+                | (SettingPageTemplate.setting_id == setting_id)
+            )
+        return list(
+            self.db.scalars(
+                stmt.order_by(
+                    SettingPageTemplate.page_kind.asc(),
+                    SettingPageTemplate.name.asc(),
+                )
+            ).all()
+        )
+
+    def get_setting_page_template(self, template_id: UUID):
+        from app.models.setting_page_template import SettingPageTemplate
+
+        return self.db.get(SettingPageTemplate, template_id)
 
     def delete_setting_page(self, page) -> None:
         self.db.delete(page)
@@ -194,6 +232,8 @@ class LobbyRepository:
         from_page_id: UUID,
         to_page_id: UUID,
         label: str,
+        kind: str = "semantic",
+        visibility: str = "all",
     ):
         from app.models.setting_page_link import SettingPageLink
 
@@ -201,10 +241,29 @@ class LobbyRepository:
             from_page_id=from_page_id,
             to_page_id=to_page_id,
             label=label,
+            kind=kind,
+            visibility=visibility if visibility in ("all", "gm") else "all",
         )
         self.db.add(link)
         self.db.flush()
         return link
+
+    def delete_setting_page_links_of_kind(self, *, from_page_id: UUID, kind: str) -> int:
+        from app.models.setting_page_link import SettingPageLink
+
+        links = list(
+            self.db.scalars(
+                select(SettingPageLink).where(
+                    SettingPageLink.from_page_id == from_page_id,
+                    SettingPageLink.kind == kind,
+                )
+            ).all()
+        )
+        for link in links:
+            self.db.delete(link)
+        if links:
+            self.db.flush()
+        return len(links)
 
     def delete_setting_page_link(self, link) -> None:
         self.db.delete(link)

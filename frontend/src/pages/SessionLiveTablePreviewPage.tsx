@@ -13,6 +13,13 @@ import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDialog'
 import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
+import { SessionLoreBindDialog } from '../features/lobby/SessionLoreBindDialog'
+import { SessionLorePanel } from '../features/lobby/SessionLorePanel'
+import { SessionQuestStatusDialog } from '../features/lobby/SessionQuestStatusDialog'
+import { SettingPagePreviewDialog } from '../features/lobby/SettingPagePreviewDialog'
+import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoffDialog'
+import { SettingTableRevealDialog } from '../features/lobby/SettingTableRevealDialog'
+import { draftFromCombatant, type SettingHandoffDraft } from '../features/lobby/settingHandoff'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
@@ -28,7 +35,10 @@ import type {
   SessionCombat,
   SessionCombatant,
   SessionEvent,
+  SessionLorePage,
   SessionSeat,
+  SettingPage,
+  SettingPageTemplate,
 } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
@@ -301,6 +311,108 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
   }),
 ]
 
+const DEMO_SETTING_TEMPLATES: SettingPageTemplate[] = [
+  {
+    id: 't-npc',
+    setting_id: null,
+    page_kind: 'npc',
+    name: 'НПС',
+    body_seed: '',
+    schema: [
+      { key: 'role', label: 'Роль', type: 'text' },
+      {
+        key: 'disposition',
+        label: 'Отношение',
+        type: 'select',
+        options: ['дружелюбный', 'нейтральный', 'враждебный', 'неизвестно'],
+      },
+    ],
+    enabled: true,
+    is_system: true,
+  },
+  {
+    id: 't-note',
+    setting_id: null,
+    page_kind: 'note',
+    name: 'Заметка',
+    body_seed: '',
+    schema: [],
+    enabled: true,
+    is_system: true,
+  },
+]
+
+const DEMO_SETTING_PAGES: SettingPage[] = [
+  {
+    id: 'p-root',
+    setting_id: 'set1',
+    parent_id: null,
+    title: 'Мир',
+    body: '',
+    gm_body: '',
+    sort_order: 0,
+    revealed: true,
+    page_kind: 'note',
+    template_id: 't-note',
+    fields: {},
+    quest_status: null,
+    tags: ['мир'],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-swamp',
+    setting_id: 'set1',
+    parent_id: 'p-root',
+    title: 'Серые Болота',
+    body: 'Туман и топь.',
+    gm_body: 'Культ под кочками.',
+    sort_order: 0,
+    revealed: false,
+    page_kind: 'location',
+    template_id: null,
+    fields: {},
+    quest_status: null,
+    tags: ['болото', 'секрет'],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-cult',
+    setting_id: 'set1',
+    parent_id: 'p-swamp',
+    title: 'Культ моста',
+    body: '',
+    gm_body: '',
+    sort_order: 0,
+    revealed: false,
+    page_kind: 'faction',
+    template_id: null,
+    fields: {},
+    quest_status: null,
+    tags: ['культ'],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-quest',
+    setting_id: 'set1',
+    parent_id: 'p-swamp',
+    title: 'Найти пропавший груз',
+    body: 'Капитан Вера ищет ящик с печатями культа.',
+    gm_body: 'Груз в катакомбах под портом.',
+    sort_order: 1,
+    revealed: true,
+    page_kind: 'quest',
+    template_id: null,
+    fields: {},
+    quest_status: 'active',
+    tags: ['квест', 'порт'],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+]
+
 const SEED_TEMPLATES: EncounterTemplate[] = [
   {
     id: 'tpl-bridge',
@@ -392,6 +504,47 @@ export function SessionLiveTablePreviewPage() {
     active_index: 0,
     entries: [],
   })
+  const [handoffOpen, setHandoffOpen] = useState(false)
+  const [handoffDraft, setHandoffDraft] = useState<SettingHandoffDraft | null>(null)
+  const [wikiPages, setWikiPages] = useState<SettingPage[]>(DEMO_SETTING_PAGES)
+  const [revealOpen, setRevealOpen] = useState(false)
+  const [loreBindOpen, setLoreBindOpen] = useState(false)
+  const [locationPageId, setLocationPageId] = useState<string | null>('p-swamp')
+  const [involvedPageIds, setInvolvedPageIds] = useState<string[]>(['p-cult', 'p-quest'])
+  const [previewPageId, setPreviewPageId] = useState<string | null>(null)
+  const [questDialogOpen, setQuestDialogOpen] = useState(false)
+  const [questTarget, setQuestTarget] = useState<SessionLorePage | null>(null)
+
+  const locationPage: SessionLorePage | null = useMemo(() => {
+    const p = wikiPages.find((x) => x.id === locationPageId)
+    if (!p) return null
+    return {
+      id: p.id,
+      title: p.title,
+      page_kind: p.page_kind,
+      revealed: p.revealed,
+    }
+  }, [wikiPages, locationPageId])
+
+  const involvedPages: SessionLorePage[] = useMemo(
+    () =>
+      involvedPageIds
+        .map((id) => wikiPages.find((p) => p.id === id))
+        .filter(Boolean)
+        .map((p) => ({
+          id: p!.id,
+          title: p!.title,
+          page_kind: p!.page_kind,
+          revealed: p!.revealed,
+          quest_status: p!.quest_status,
+        })),
+    [wikiPages, involvedPageIds],
+  )
+
+  const previewPage = useMemo(
+    () => wikiPages.find((p) => p.id === previewPageId) ?? null,
+    [wikiPages, previewPageId],
+  )
 
   // Как в продукте: профиль из настроек лобби; здесь — дефолт (всё видно игрокам).
   // Мастер на реальном экране = is_owner лобби, не отдельный переключатель.
@@ -416,7 +569,7 @@ export function SessionLiveTablePreviewPage() {
           <div>
             <Text as="h1">Эхо Рассвета</Text>
             <Text tone="muted">
-              Превью A3 · сессия · за столом {DEMO_SEATS.length}
+              Превью A3+T1–T4 · квест на столе · за столом {DEMO_SEATS.length}
             </Text>
           </div>
         </header>
@@ -451,7 +604,7 @@ export function SessionLiveTablePreviewPage() {
           <Stack gap={8}>
             <Text as="h2">Глава 3 — Мост</Text>
             <Text tone="muted">
-              Ваншот — без сеттинга · за столом: {DEMO_SEATS.length}
+              Мир: Эхо Рассвета · за столом: {DEMO_SEATS.length}
               {closed ? ' · закрыта' : ''}
             </Text>
           </Stack>
@@ -463,6 +616,18 @@ export function SessionLiveTablePreviewPage() {
 
             {liveTab === 'table' ? (
               <Stack gap={12}>
+                <SessionLorePanel
+                  hasSetting
+                  locationPage={locationPage}
+                  involvedPages={involvedPages}
+                  isOwner={!closed}
+                  onOpenPage={(id) => setPreviewPageId(id)}
+                  onEdit={() => setLoreBindOpen(true)}
+                  onQuestStatus={(page) => {
+                    setQuestTarget(page)
+                    setQuestDialogOpen(true)
+                  }}
+                />
                 {!closed ? (
                   <div className="session-table-toolbar">
                     <Button
@@ -515,6 +680,13 @@ export function SessionLiveTablePreviewPage() {
                       onClick={() => setEncounterOpen(true)}
                     >
                       Энкаунтер
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setRevealOpen(true)}
+                    >
+                      Раскрыть
                     </Button>
                     <Button
                       type="button"
@@ -679,6 +851,15 @@ export function SessionLiveTablePreviewPage() {
                             revealAll
                             masterControls={!closed}
                             forceAbilitiesOpen={activeEnemyId === enemy.id}
+                            canSaveToSetting={!closed}
+                            onSaveToSetting={() => {
+                              setHandoffDraft(
+                                draftFromCombatant(enemy, {
+                                  sessionName: 'Глава 3 — Мост',
+                                }),
+                              )
+                              setHandoffOpen(true)
+                            }}
                             onDamage={(amount, memberId) => {
                               setCombatants((prev) =>
                                 prev.map((c) => {
@@ -1270,6 +1451,181 @@ export function SessionLiveTablePreviewPage() {
           ) : null}
         </Stack>
       </Dialog>
+
+      <SessionQuestStatusDialog
+        open={questDialogOpen}
+        quest={questTarget}
+        onClose={() => {
+          setQuestDialogOpen(false)
+          setQuestTarget(null)
+        }}
+        onSave={(payload) => {
+          setWikiPages((prev) =>
+            prev.map((p) =>
+              p.id === payload.page_id
+                ? { ...p, quest_status: payload.quest_status }
+                : p,
+            ),
+          )
+          const page = wikiPages.find((p) => p.id === payload.page_id)
+          const labels: Record<string, string> = {
+            planned: 'План',
+            active: 'Активен',
+            done: 'Готово',
+            failed: 'Провал',
+          }
+          const label = labels[payload.quest_status] ?? payload.quest_status
+          const title = `Квест: ${label} · ${page?.title ?? ''}`
+          setEvents((prev) => [
+            {
+              id: `ev-quest-${Date.now()}`,
+              session_id: 's1',
+              event_type: 'quest_status',
+              character_id: null,
+              actor_user_id: 'u0',
+              character_name: 'Мастер',
+              title,
+              formula: null,
+              breakdown: null,
+              total: null,
+              is_master_roll: false,
+              payload: {
+                page_id: payload.page_id,
+                quest_status: payload.quest_status,
+              },
+              created_at: new Date().toISOString(),
+            },
+            ...prev,
+          ])
+          setQuestDialogOpen(false)
+          setQuestTarget(null)
+          setToast(
+            payload.write_journal ? `${title} · в дневнике` : title,
+          )
+        }}
+      />
+
+      <SessionLoreBindDialog
+        open={loreBindOpen}
+        pages={wikiPages}
+        locationPageId={locationPageId}
+        involvedPageIds={involvedPageIds}
+        onClose={() => setLoreBindOpen(false)}
+        onSave={(payload) => {
+          setLocationPageId(payload.location_page_id)
+          setInvolvedPageIds(payload.involved_page_ids)
+          setLoreBindOpen(false)
+          setToast('Лор сессии обновлён')
+        }}
+      />
+
+      <SettingPagePreviewDialog
+        open={Boolean(previewPageId)}
+        page={previewPage}
+        pages={wikiPages}
+        templates={DEMO_SETTING_TEMPLATES}
+        isOwner
+        settingId="set1"
+        onClose={() => setPreviewPageId(null)}
+        onOpenPage={(id) => setPreviewPageId(id)}
+      />
+
+      <SettingTableRevealDialog
+        open={revealOpen}
+        settingId="set1"
+        settingName="Эхо Рассвета"
+        pages={wikiPages}
+        onClose={() => setRevealOpen(false)}
+        onReveal={(payload) => {
+          const root = wikiPages.find((p) => p.id === payload.page_id)
+          if (!root) return
+          const byParent = new Map<string | null, string[]>()
+          for (const p of wikiPages) {
+            const list = byParent.get(p.parent_id) ?? []
+            list.push(p.id)
+            byParent.set(p.parent_id, list)
+          }
+          const ids = new Set<string>([root.id])
+          if (payload.reveal_subtree) {
+            const walk = (id: string) => {
+              for (const child of byParent.get(id) ?? []) {
+                ids.add(child)
+                walk(child)
+              }
+            }
+            walk(root.id)
+          }
+          setWikiPages((prev) =>
+            prev.map((p) => (ids.has(p.id) ? { ...p, revealed: true } : p)),
+          )
+          const title =
+            payload.reveal_subtree && ids.size > 1
+              ? `Открыто: ${root.title} · ветка`
+              : `Открыто: ${root.title}`
+          setEvents((prev) => [
+            {
+              id: `ev-reveal-${Date.now()}`,
+              session_id: 's1',
+              event_type: 'reveal',
+              character_id: null,
+              actor_user_id: 'u0',
+              character_name: 'Мастер',
+              title,
+              formula: null,
+              breakdown: null,
+              total: null,
+              is_master_roll: false,
+              payload: {
+                page_id: root.id,
+                reveal_subtree: payload.reveal_subtree,
+                affected_count: ids.size,
+              },
+              created_at: new Date().toISOString(),
+            },
+            ...prev,
+          ])
+          setRevealOpen(false)
+          setToast(title)
+        }}
+      />
+
+      <SettingTableHandoffDialog
+        open={handoffOpen}
+        settingName="Эхо Рассвета"
+        draft={handoffDraft}
+        templates={DEMO_SETTING_TEMPLATES}
+        pages={wikiPages}
+        onClose={() => {
+          setHandoffOpen(false)
+          setHandoffDraft(null)
+        }}
+        onCreate={(payload) => {
+          const id = `p-${Date.now()}`
+          setWikiPages((prev) => [
+            ...prev,
+            {
+              id,
+              setting_id: 'set1',
+              parent_id: payload.parent_id,
+              title: payload.title,
+              body: payload.body,
+              gm_body: payload.gm_body,
+              sort_order: prev.length,
+              revealed: false,
+              page_kind: payload.page_kind,
+              template_id: payload.template_id,
+              fields: payload.fields,
+              quest_status: null,
+              tags: payload.tags,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          ])
+          setHandoffOpen(false)
+          setHandoffDraft(null)
+          setToast(`В сеттинг: ${payload.title}`)
+        }}
+      />
 
       <Toast message={toast} onClose={() => setToast(null)} />
     </main>

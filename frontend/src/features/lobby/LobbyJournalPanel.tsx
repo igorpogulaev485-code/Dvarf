@@ -4,6 +4,7 @@ import {
   deleteJournalEntry,
   listJournal,
   type JournalEntry,
+  type SessionSummary,
   type SettingSummary,
 } from '../../shared/api/lobbies'
 import { ApiRequestError } from '../../shared/api/client'
@@ -15,6 +16,8 @@ type Props = {
   lobbyId: string
   isOwner: boolean
   settings: SettingSummary[]
+  /** Сессии лобби — для T5 «Открыть за столом» */
+  sessions?: SessionSummary[]
   onToast?: (message: string) => void
   onError?: (message: string) => void
 }
@@ -25,6 +28,7 @@ export function LobbyJournalPanel({
   lobbyId,
   isOwner,
   settings,
+  sessions = [],
   onToast,
   onError,
 }: Props) {
@@ -117,6 +121,7 @@ export function LobbyJournalPanel({
                   entry={entry}
                   isOwner={isOwner}
                   busy={busy}
+                  sessions={sessions}
                   onDelete={(id) => {
                     void run(async () => {
                       await deleteJournalEntry(id)

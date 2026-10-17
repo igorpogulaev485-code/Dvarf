@@ -25,6 +25,16 @@ from app.repositories.catalog import CatalogRepository
 from app.dnd.encounter_budget import EncounterDifficulty
 from app.dnd.encounter_compose import compose_encounter
 from app.dnd.encounter_pool import monster_from_catalog_entry
+from app.dnd.setting_link_presets import reverse_label as mirror_link_label
+from app.dnd.setting_mentions import extract_mention_titles, titles_index
+from app.dnd.setting_tags import collect_all_tags, normalize_tags
+from app.dnd.setting_templates import (
+    PAGE_KINDS,
+    QUEST_STATUSES,
+    SYSTEM_TEMPLATE_IDS,
+    default_quest_status,
+    empty_fields_for_schema,
+)
 from app.dnd.sheet_signals import PartyMemberSnapshot
 from app.dnd.xp import xp_from_cr
 from app.schemas.lobby import (
@@ -78,6 +88,11 @@ from app.schemas.lobby import (
     SessionCreateRequest,
     SessionDetail,
     SessionEventOut,
+    SessionLorePageOut,
+    SessionQuestStatusRequest,
+    SessionQuestStatusResult,
+    SessionRevealPageRequest,
+    SessionRevealPageResult,
     SessionRollCreateRequest,
     SessionSeatOut,
     SessionSummary,
@@ -87,16 +102,21 @@ from app.schemas.lobby import (
     SettingArtifactUpdateRequest,
     SettingCreateRequest,
     SettingDetail,
+    SettingPageBulkCreateRequest,
     SettingPageCreateRequest,
     SettingPageLinkCreateRequest,
     SettingPageLinkOut,
     SettingPageOut,
+    SettingPageTemplateField,
+    SettingPageTemplateOut,
     SettingPageUpdateRequest,
     SettingSummary,
     SettingUpdateRequest,
 )
 
-JOURNAL_ENTRY_TYPES = frozenset({"text", "chapter", "setting_link", "image", "session_summary"})
+JOURNAL_ENTRY_TYPES = frozenset(
+    {"text", "chapter", "setting_link", "image", "session_summary", "quest_status"}
+)
 
 
 def _ability_mod(score: int | None) -> int:
@@ -785,9 +805,63 @@ class LobbyService:
         self._require_view(lobby, user)
         return self._setting_detail(setting, is_owner=lobby.owner_id == user.id)
 
+    def _template_out(self, template) -> SettingPageTemplateOut:
+        raw_schema = template.schema if isinstance(template.schema, list) else []
+        fields: list[SettingPageTemplateField] = []
+        for item in raw_schema:
+            if not isinstance(item, dict) or not item.get("key"):
+                continue
+            try:
+                fields.append(SettingPageTemplateField.model_validate(item))
+            except Exception:
+                continue
+        return SettingPageTemplateOut(
+            id=template.id,
+            setting_id=template.setting_id,
+            page_kind=template.page_kind,
+            name=template.name,
+            body_seed=template.body_seed or "",
+            schema=fields,
+            enabled=bool(template.enabled),
+            is_system=template.setting_id is None,
+        )
+
+    def _resolve_page_template(
+        self,
+        *,
+        setting_id: UUID,
+        page_kind: str,
+        template_id: UUID | None,
+    ):
+        if page_kind not in PAGE_KINDS:
+            raise AppError("Неизвестный тип страницы", code="page_kind_bad", status_code=400)
+        if template_id is not None:
+            template = self.lobbies.get_setting_page_template(template_id)
+            if template is None or not template.enabled:
+                raise AppError("Шаблон не найден", code="page_template_not_found", status_code=404)
+            if template.setting_id is not None and template.setting_id != setting_id:
+                raise AppError(
+                    "Шаблон не из этого сеттинга",
+                    code="page_template_bad",
+                    status_code=400,
+                )
+            if template.page_kind != page_kind:
+                raise AppError(
+                    "Шаблон не подходит к типу страницы",
+                    code="page_template_kind_mismatch",
+                    status_code=400,
+                )
+            return template
+        # Системный шаблон по типу
+        sys_id = SYSTEM_TEMPLATE_IDS.get(page_kind)
+        if sys_id is None:
+            return None
+        return self.lobbies.get_setting_page_template(sys_id)
+
     def _setting_detail(self, setting: Setting, *, is_owner: bool) -> SettingDetail:
         pages = self.lobbies.list_setting_pages(setting.id)
         links = self.lobbies.list_setting_page_links(setting.id)
+        templates = self.lobbies.list_setting_page_templates(setting.id)
         artifacts = self.lobbies.list_setting_artifacts(setting.id) if is_owner else []
         if not is_owner:
             pages = [p for p in pages if p.revealed]
@@ -795,8 +869,33 @@ class LobbyService:
             links = [
                 link
                 for link in links
-                if link.from_page_id in visible and link.to_page_id in visible
+                if link.from_page_id in visible
+                and link.to_page_id in visible
+                and (getattr(link, "visibility", None) or "all") != "gm"
             ]
+            # Игроку не отдаём gm_only значения полей
+            filtered_pages = []
+            for p in pages:
+                out = SettingPageOut.model_validate(p)
+                schema_by_key: dict[str, bool] = {}
+                for t in templates:
+                    if t.id == p.template_id:
+                        for f in t.schema if isinstance(t.schema, list) else []:
+                            if isinstance(f, dict) and f.get("key"):
+                                schema_by_key[str(f["key"])] = bool(f.get("gm_only"))
+                        break
+                public_fields = {
+                    k: v
+                    for k, v in (out.fields or {}).items()
+                    if not schema_by_key.get(k, False)
+                }
+                # C7: gm_body никогда не отдаём игроку
+                filtered_pages.append(
+                    out.model_copy(update={"fields": public_fields, "gm_body": ""})
+                )
+            pages_out = filtered_pages
+        else:
+            pages_out = [SettingPageOut.model_validate(p) for p in pages]
         title_by_id = {p.id: p.title for p in pages}
         base = SettingSummary.model_validate(setting)
         data = base.model_dump()
@@ -805,7 +904,7 @@ class LobbyService:
             data["world_notes"] = ""
         return SettingDetail(
             **data,
-            pages=[SettingPageOut.model_validate(p) for p in pages],
+            pages=pages_out,
             links=[
                 SettingPageLinkOut(
                     id=link.id,
@@ -814,13 +913,72 @@ class LobbyService:
                     from_title=title_by_id.get(link.from_page_id, ""),
                     to_title=title_by_id.get(link.to_page_id, ""),
                     label=link.label or "",
+                    kind=getattr(link, "kind", None) or "semantic",
+                    visibility=getattr(link, "visibility", None) or "all",
                     created_at=link.created_at,
                 )
                 for link in links
             ],
+            templates=[self._template_out(t) for t in templates],
+            all_tags=collect_all_tags(pages_out),
             artifacts=[SettingArtifactOut.model_validate(a) for a in artifacts],
             is_owner=is_owner,
         )
+
+    def _sync_page_mentions(
+        self,
+        *,
+        setting_id: UUID,
+        page,
+        body: str,
+        create_missing: bool,
+    ) -> None:
+        """C6: mention-рёбра из @ / [[…]] в body."""
+        titles = extract_mention_titles(body)
+        self.lobbies.delete_setting_page_links_of_kind(
+            from_page_id=page.id,
+            kind="mention",
+        )
+        if not titles:
+            return
+        pages = self.lobbies.list_setting_pages(setting_id)
+        by_title = titles_index(pages)
+        for title in titles:
+            target = by_title.get(title.casefold())
+            if target is None and create_missing:
+                siblings = [p for p in pages if p.parent_id == page.parent_id]
+                sort_order = max((p.sort_order for p in siblings), default=-1) + 1
+                template = self._resolve_page_template(
+                    setting_id=setting_id,
+                    page_kind="note",
+                    template_id=None,
+                )
+                target = self.lobbies.create_setting_page(
+                    setting_id=setting_id,
+                    title=title[:200],
+                    body="",
+                    parent_id=page.parent_id,
+                    sort_order=sort_order,
+                    page_kind="note",
+                    template_id=template.id if template is not None else None,
+                    fields=empty_fields_for_schema(
+                        template.schema if template is not None else []
+                    ),
+                    quest_status=None,
+                )
+                pages.append(target)
+                by_title[title.casefold()] = target
+            if target is None:
+                continue
+            if target.id == page.id:
+                continue
+            self.lobbies.create_setting_page_link(
+                from_page_id=page.id,
+                to_page_id=target.id,
+                label="",
+                kind="mention",
+                visibility="all",
+            )
 
     @staticmethod
     def _descendant_pages(pages: list, root_id) -> list:
@@ -867,13 +1025,104 @@ class LobbyService:
             if payload.sort_order is not None
             else (max((p.sort_order for p in siblings), default=-1) + 1)
         )
-        self.lobbies.create_setting_page(
+        page_kind = payload.page_kind or "note"
+        template = self._resolve_page_template(
+            setting_id=setting.id,
+            page_kind=page_kind,
+            template_id=payload.template_id,
+        )
+        template_id = template.id if template is not None else None
+        schema = template.schema if template is not None else []
+        fields = empty_fields_for_schema(schema if isinstance(schema, list) else [])
+        if payload.fields:
+            fields.update({str(k): v for k, v in payload.fields.items()})
+        body = payload.body if payload.body else (
+            (template.body_seed or "") if template is not None else ""
+        )
+        quest_status = payload.quest_status
+        if quest_status is None:
+            quest_status = default_quest_status(page_kind)
+        if quest_status is not None and quest_status not in QUEST_STATUSES:
+            raise AppError("Неверный статус квеста", code="quest_status_bad", status_code=400)
+        created = self.lobbies.create_setting_page(
             setting_id=setting.id,
             title=(payload.title or "Новая страница").strip() or "Новая страница",
-            body=payload.body or "",
+            body=body or "",
+            gm_body=payload.gm_body or "",
             parent_id=parent_id,
             sort_order=sort_order,
+            page_kind=page_kind,
+            template_id=template_id,
+            fields=fields,
+            quest_status=quest_status,
+            tags=normalize_tags(payload.tags),
         )
+        if body:
+            self._sync_page_mentions(
+                setting_id=setting.id,
+                page=created,
+                body=body,
+                create_missing=False,
+            )
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed, is_owner=True)
+
+    def bulk_create_setting_pages(
+        self,
+        user: User,
+        setting_id: UUID,
+        payload: SettingPageBulkCreateRequest,
+    ) -> SettingDetail:
+        setting = self.lobbies.get_setting(setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_owner(lobby, user)
+        titles = [t.strip() for t in payload.titles if t and t.strip()]
+        if not titles:
+            raise AppError("Нужно хотя бы одно имя", code="bulk_titles_empty", status_code=400)
+        parent_id = payload.parent_id
+        if parent_id is not None:
+            parent = self.lobbies.get_setting_page(parent_id)
+            if parent is None or parent.setting_id != setting.id:
+                raise AppError(
+                    "Родительская страница не из этого сеттинга",
+                    code="page_parent_bad",
+                    status_code=400,
+                )
+        page_kind = payload.page_kind or "npc"
+        template = self._resolve_page_template(
+            setting_id=setting.id,
+            page_kind=page_kind,
+            template_id=payload.template_id,
+        )
+        template_id = template.id if template is not None else None
+        schema = template.schema if template is not None else []
+        base_fields = empty_fields_for_schema(schema if isinstance(schema, list) else [])
+        body_seed = payload.body if payload.body else (
+            (template.body_seed or "") if template is not None else ""
+        )
+        quest_status = default_quest_status(page_kind)
+        siblings = [
+            p
+            for p in self.lobbies.list_setting_pages(setting.id)
+            if p.parent_id == parent_id
+        ]
+        next_order = max((p.sort_order for p in siblings), default=-1) + 1
+        for i, title in enumerate(titles):
+            self.lobbies.create_setting_page(
+                setting_id=setting.id,
+                title=title[:200],
+                body=body_seed or "",
+                parent_id=parent_id,
+                sort_order=next_order + i,
+                page_kind=page_kind,
+                template_id=template_id,
+                fields=dict(base_fields),
+                quest_status=quest_status,
+            )
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
@@ -898,6 +1147,8 @@ class LobbyService:
             page.title = payload.title.strip() or "Без названия"
         if payload.body is not None:
             page.body = payload.body
+        if payload.gm_body is not None:
+            page.gm_body = payload.gm_body
         if payload.clear_parent:
             page.parent_id = None
         elif payload.parent_id is not None:
@@ -924,6 +1175,54 @@ class LobbyService:
                 all_pages = self.lobbies.list_setting_pages(setting.id)
                 for child in self._descendant_pages(all_pages, page.id):
                     child.revealed = payload.revealed
+
+        if payload.page_kind is not None:
+            if payload.page_kind not in PAGE_KINDS:
+                raise AppError("Неизвестный тип страницы", code="page_kind_bad", status_code=400)
+            page.page_kind = payload.page_kind
+            if page.page_kind == "quest" and page.quest_status is None:
+                page.quest_status = "planned"
+            if page.page_kind != "quest":
+                page.quest_status = None
+        if payload.clear_template:
+            page.template_id = None
+        elif payload.template_id is not None or payload.page_kind is not None:
+            kind = payload.page_kind or page.page_kind or "note"
+            template = self._resolve_page_template(
+                setting_id=setting.id,
+                page_kind=kind,
+                template_id=payload.template_id,
+            )
+            if template is not None:
+                page.template_id = template.id
+                if payload.template_id is not None:
+                    base = empty_fields_for_schema(
+                        template.schema if isinstance(template.schema, list) else []
+                    )
+                    merged = dict(base)
+                    merged.update(page.fields or {})
+                    page.fields = merged
+        if payload.fields is not None:
+            merged = dict(page.fields or {})
+            merged.update({str(k): v for k, v in payload.fields.items()})
+            page.fields = merged
+        if payload.clear_quest_status:
+            page.quest_status = None
+        elif payload.quest_status is not None:
+            if payload.quest_status not in QUEST_STATUSES:
+                raise AppError("Неверный статус квеста", code="quest_status_bad", status_code=400)
+            page.quest_status = payload.quest_status
+
+        if payload.tags is not None:
+            page.tags = normalize_tags(payload.tags)
+
+        if payload.body is not None:
+            self._sync_page_mentions(
+                setting_id=setting.id,
+                page=page,
+                body=page.body or "",
+                create_missing=bool(payload.create_missing_mentions),
+            )
 
         if page.parent_id is None and payload.body is not None:
             roots = [
@@ -992,10 +1291,20 @@ class LobbyService:
                 code="page_link_self",
                 status_code=400,
             )
+        link_kind = getattr(payload, "kind", None) or "semantic"
+        if link_kind not in ("semantic", "mention"):
+            raise AppError("Неверный тип связи", code="page_link_kind_bad", status_code=400)
+        visibility = getattr(payload, "visibility", None) or "all"
+        if visibility not in ("all", "gm"):
+            raise AppError("Неверная видимость связи", code="page_link_visibility_bad", status_code=400)
+        label = (payload.label or "").strip()[:120]
+        all_links = self.lobbies.list_setting_page_links(setting.id)
         existing = [
             link
-            for link in self.lobbies.list_setting_page_links(setting.id)
-            if link.from_page_id == from_page.id and link.to_page_id == to_page.id
+            for link in all_links
+            if link.from_page_id == from_page.id
+            and link.to_page_id == to_page.id
+            and (getattr(link, "kind", None) or "semantic") == link_kind
         ]
         if existing:
             raise AppError(
@@ -1006,8 +1315,31 @@ class LobbyService:
         self.lobbies.create_setting_page_link(
             from_page_id=from_page.id,
             to_page_id=to_page.id,
-            label=(payload.label or "").strip()[:120],
+            label=label,
+            kind=link_kind,
+            visibility=visibility,
         )
+        if payload.bidirectional and link_kind == "semantic":
+            reverse_existing = [
+                link
+                for link in all_links
+                if link.from_page_id == to_page.id
+                and link.to_page_id == from_page.id
+                and (getattr(link, "kind", None) or "semantic") == "semantic"
+            ]
+            if not reverse_existing:
+                rev = payload.reverse_label
+                reverse = (
+                    (rev.strip()[:120] if rev is not None and rev.strip() else None)
+                    or mirror_link_label(label)
+                )
+                self.lobbies.create_setting_page_link(
+                    from_page_id=to_page.id,
+                    to_page_id=from_page.id,
+                    label=reverse,
+                    kind="semantic",
+                    visibility=visibility,
+                )
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
@@ -1193,13 +1525,70 @@ class LobbyService:
             session.name = payload.name.strip() or session.name
         if payload.clear_setting:
             session.setting_id = None
+            session.location_page_id = None
+            session.involved_page_ids = []
         elif payload.setting_id is not None:
             setting = self.lobbies.get_setting(payload.setting_id)
             if setting is None or setting.lobby_id != lobby.id:
                 raise AppError("Сеттинг не из этого лобби", code="setting_lobby_mismatch")
+            # смена сеттинга сбрасывает привязки лора
+            if session.setting_id != setting.id:
+                session.location_page_id = None
+                session.involved_page_ids = []
             session.setting_id = setting.id
+
+        if payload.clear_location_page:
+            session.location_page_id = None
+        elif payload.location_page_id is not None:
+            self._require_session_lore_page(session, payload.location_page_id)
+            session.location_page_id = payload.location_page_id
+
+        if payload.involved_page_ids is not None:
+            unique: list[UUID] = []
+            seen: set[UUID] = set()
+            for page_id in payload.involved_page_ids[:20]:
+                if page_id in seen:
+                    continue
+                self._require_session_lore_page(session, page_id)
+                seen.add(page_id)
+                unique.append(page_id)
+            session.involved_page_ids = unique
+
         self.db.commit()
         return self.get_session(user, session_id)
+
+    def _require_session_lore_page(self, session: PlaySession, page_id: UUID):
+        if session.setting_id is None:
+            raise AppError(
+                "К сессии не привязан сеттинг",
+                code="session_no_setting",
+                status_code=400,
+            )
+        page = self.lobbies.get_setting_page(page_id)
+        if page is None or page.setting_id != session.setting_id:
+            raise AppError(
+                "Страница не из сеттинга сессии",
+                code="session_lore_page_bad",
+                status_code=400,
+            )
+        return page
+
+    def _lore_page_out(self, page, *, is_owner: bool) -> SessionLorePageOut | None:
+        if page is None:
+            return None
+        if not is_owner and not page.revealed:
+            return None
+        kind = getattr(page, "page_kind", None) or "note"
+        quest_status = getattr(page, "quest_status", None)
+        if kind != "quest":
+            quest_status = None
+        return SessionLorePageOut(
+            id=page.id,
+            title=page.title,
+            page_kind=kind,
+            revealed=bool(page.revealed),
+            quest_status=quest_status,
+        )
 
     def delete_session(self, user: User, session_id: UUID) -> None:
         session = self.lobbies.get_session(session_id)
@@ -1294,6 +1683,25 @@ class LobbyService:
             )
         members = [_member_out(m, char_map.get(m.character_id)) for m in lobby.members]
         combatants = [_combatant_out(c) for c in _parse_combatants(session.combatants)]
+        is_owner = lobby.owner_id == user.id
+        location_page = None
+        location_page_id = getattr(session, "location_page_id", None)
+        if location_page_id is not None:
+            location_page = self._lore_page_out(
+                self.lobbies.get_setting_page(location_page_id),
+                is_owner=is_owner,
+            )
+            if location_page is None and not is_owner:
+                location_page_id = None
+        involved_raw = list(getattr(session, "involved_page_ids", None) or [])
+        involved_pages: list[SessionLorePageOut] = []
+        visible_involved_ids: list = []
+        for pid in involved_raw:
+            out = self._lore_page_out(self.lobbies.get_setting_page(pid), is_owner=is_owner)
+            if out is None:
+                continue
+            involved_pages.append(out)
+            visible_involved_ids.append(pid)
         return SessionDetail(
             id=session.id,
             lobby_id=lobby.id,
@@ -1301,12 +1709,16 @@ class LobbyService:
             setting_id=session.setting_id,
             setting_name=session.setting.name if session.setting else None,
             name=session.name,
-            is_owner=lobby.owner_id == user.id,
+            is_owner=is_owner,
             seats=seats,
             combatants=combatants,
             combat=_combat_out(getattr(session, "combat", None) or {}),
             lobby_members=members,
             visibility_profile=lobby.visibility_profile or {},
+            location_page_id=location_page_id if is_owner else (location_page.id if location_page else None),
+            involved_page_ids=list(involved_raw) if is_owner else visible_involved_ids,
+            location_page=location_page,
+            involved_pages=involved_pages,
             closed_at=session.closed_at,
             created_at=session.created_at,
             updated_at=session.updated_at,
@@ -1389,6 +1801,12 @@ class LobbyService:
         if entry_type == "session_summary":
             raise AppError(
                 "Итог сессии создаётся через «Закрыть сессию»",
+                code="journal_type_forbidden",
+                status_code=400,
+            )
+        if entry_type == "quest_status":
+            raise AppError(
+                "Статус квеста пишется со стола",
                 code="journal_type_forbidden",
                 status_code=400,
             )
@@ -1946,6 +2364,184 @@ class LobbyService:
         if session.closed_at is not None:
             raise AppError("Сессия закрыта", code="session_closed", status_code=400)
         return session, lobby
+
+    async def update_session_quest_status(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: SessionQuestStatusRequest,
+    ) -> SessionQuestStatusResult:
+        """T4: статус квеста mid-session → лента + опционально дневник."""
+        session, lobby = self._require_session_owner(user, session_id)
+        if session.setting_id is None:
+            raise AppError(
+                "К сессии не привязан сеттинг",
+                code="session_no_setting",
+                status_code=400,
+            )
+        if payload.quest_status not in QUEST_STATUSES:
+            raise AppError("Неверный статус квеста", code="quest_status_bad", status_code=400)
+
+        page = self._require_session_lore_page(session, payload.page_id)
+        if (page.page_kind or "note") != "quest":
+            raise AppError(
+                "Страница не квест",
+                code="quest_page_required",
+                status_code=400,
+            )
+
+        # Разрешаем любой квест сеттинга; приоритет — задействованные на сессии.
+        page.quest_status = payload.quest_status
+
+        status_labels = {
+            "planned": "План",
+            "active": "Активен",
+            "done": "Готово",
+            "failed": "Провал",
+        }
+        label = status_labels.get(payload.quest_status, payload.quest_status)
+        title = f"Квест: {label} · {page.title}"[:200]
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="quest_status",
+            character_id=None,
+            actor_user_id=user.id,
+            character_name="Мастер",
+            title=title,
+            formula=None,
+            breakdown=None,
+            total=None,
+            is_master_roll=False,
+            payload={
+                "page_id": str(page.id),
+                "setting_id": str(session.setting_id),
+                "quest_status": payload.quest_status,
+                "page_title": page.title,
+            },
+        )
+        self.lobbies.add_session_event(event)
+
+        journal_out = None
+        if payload.write_journal and payload.quest_status in ("done", "failed"):
+            summary = (payload.summary or "").strip()
+            j_title = (payload.title or "").strip() or title
+            if not summary:
+                summary = (
+                    f"Квест «{page.title}» завершён ({label}) на сессии «{session.name}»."
+                )
+            entry = CampaignJournalEntry(
+                lobby_id=lobby.id,
+                author_user_id=user.id,
+                entry_type="quest_status",
+                title=j_title[:200],
+                body=summary,
+                setting_id=session.setting_id,
+                page_id=page.id,
+                from_session_id=session.id,
+            )
+            self.lobbies.add_journal_entry(entry)
+            self.db.flush()
+            journal_out = entry
+
+        self.db.commit()
+        self.db.refresh(event)
+        if journal_out is not None:
+            self.db.refresh(journal_out)
+
+        detail = self._session_detail(session, lobby, user)
+        out_event = SessionEventOut.model_validate(event)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out_event.model_dump(mode="json")},
+        )
+        return SessionQuestStatusResult(
+            session=detail,
+            event=out_event,
+            page_id=page.id,
+            page_title=page.title,
+            quest_status=payload.quest_status,
+            journal_entry=(
+                self._journal_out(journal_out, is_owner=True) if journal_out is not None else None
+            ),
+        )
+
+    async def reveal_session_page(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: SessionRevealPageRequest,
+    ) -> SessionRevealPageResult:
+        """T2: раскрыть (или скрыть) страницу сеттинга mid-session + событие в ленте."""
+        session, lobby = self._require_session_owner(user, session_id)
+        if session.setting_id is None:
+            raise AppError(
+                "К сессии не привязан сеттинг",
+                code="session_no_setting",
+                status_code=400,
+            )
+        page = self.lobbies.get_setting_page(payload.page_id)
+        if page is None or page.setting_id != session.setting_id:
+            raise NotFoundError("Страница не найдена", code="setting_page_not_found")
+
+        revealed = bool(payload.revealed)
+        page.revealed = revealed
+        affected = 1
+        if payload.reveal_subtree:
+            all_pages = self.lobbies.list_setting_pages(session.setting_id)
+            for child in self._descendant_pages(all_pages, page.id):
+                child.revealed = revealed
+                affected += 1
+
+        verb = "Открыто" if revealed else "Скрыто"
+        subtree_note = " · ветка" if payload.reveal_subtree and affected > 1 else ""
+        title = f"{verb}: {page.title}{subtree_note}"[:200]
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="reveal",
+            character_id=None,
+            actor_user_id=user.id,
+            character_name="Мастер",
+            title=title,
+            formula=None,
+            breakdown=None,
+            total=None,
+            is_master_roll=False,
+            payload={
+                "page_id": str(page.id),
+                "setting_id": str(session.setting_id),
+                "revealed": revealed,
+                "reveal_subtree": bool(payload.reveal_subtree),
+                "affected_count": affected,
+                "page_title": page.title,
+            },
+        )
+        self.lobbies.add_session_event(event)
+        self.db.commit()
+        self.db.refresh(event)
+
+        detail = self._session_detail(session, lobby, user)
+        out_event = SessionEventOut.model_validate(event)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out_event.model_dump(mode="json")},
+        )
+        return SessionRevealPageResult(
+            session=detail,
+            event=out_event,
+            page_id=page.id,
+            page_title=page.title,
+            revealed=revealed,
+            reveal_subtree=bool(payload.reveal_subtree),
+            affected_count=affected,
+        )
 
     async def add_combatants(
         self,
