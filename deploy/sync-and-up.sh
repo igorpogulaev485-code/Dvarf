@@ -15,7 +15,16 @@ bash "$ROOT/deploy/preflight-prod.sh"
 if [[ ! -f "$KEY" && -n "${DVARF_SSH_PRIVATE_KEY:-}" ]]; then
   mkdir -p "$(dirname "$KEY")"
   chmod 700 "$(dirname "$KEY")"
-  printf '%s\n' "$DVARF_SSH_PRIVATE_KEY" > "$KEY"
+  # Secret may be full PEM or raw OpenSSH base64 body without headers.
+  if [[ "${DVARF_SSH_PRIVATE_KEY}" == *"BEGIN"* ]]; then
+    printf '%s\n' "$DVARF_SSH_PRIVATE_KEY" > "$KEY"
+  else
+    {
+      echo "-----BEGIN OPENSSH PRIVATE KEY-----"
+      printf '%s\n' "$DVARF_SSH_PRIVATE_KEY" | fold -w 70
+      echo "-----END OPENSSH PRIVATE KEY-----"
+    } > "$KEY"
+  fi
   chmod 600 "$KEY"
 fi
 

@@ -27,7 +27,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/setting-c4-embeds-bacd
+cursor/setting-t5-journal-table-c440
 ```
 
 URL: http://201.34.132.252/
@@ -38,7 +38,7 @@ URL: http://201.34.132.252/
 
 ```bash
 git fetch origin
-git checkout -b cursor/<descriptive>-bacd origin/cursor/setting-c4-embeds-bacd
+git checkout -b cursor/<descriptive>-c440 origin/cursor/setting-t5-journal-table-c440
 # если tip уже другой — подставь актуальный из AGENTS.md / этого skill
 ```
 
@@ -46,7 +46,7 @@ git checkout -b cursor/<descriptive>-bacd origin/cursor/setting-c4-embeds-bacd
 
 ```bash
 git fetch origin
-git merge origin/cursor/setting-c4-embeds-bacd
+git merge origin/cursor/setting-t5-journal-table-c440
 # разрешить конфликты, НЕ выкидывать чужие фичи
 ./deploy/preflight-prod.sh
 ```
