@@ -6,12 +6,12 @@ import { generateRaceName, pickFromPool, resolveNamingSpec } from './raceNaming'
 import { PHB_RACE_NAMING } from './raceNamingTables'
 import { MPMM_RACE_NAMING } from './raceNamingTables.mpmm'
 import { SETTING_RACE_NAMING } from './raceNamingTables.setting'
+import { parseCharacterGender } from './characterGender'
 
 function assert(cond: unknown, message: string): void {
   if (!cond) throw new Error(message)
 }
 
-// Deterministic RNG cycle
 function seqRandom(values: number[]): () => number {
   let i = 0
   return () => {
@@ -20,6 +20,11 @@ function seqRandom(values: number[]): () => number {
     return v
   }
 }
+
+assert(parseCharacterGender('male') === 'male', 'male ok')
+assert(parseCharacterGender('female') === 'female', 'female ok')
+assert(parseCharacterGender('nonbinary') === null, 'legacy nonbinary rejected')
+assert(parseCharacterGender('unspecified') === null, 'legacy unspecified rejected')
 
 assert(PHB_RACE_NAMING.tiefling?.modes?.length === 4, 'tiefling has 4 modes')
 assert(PHB_RACE_NAMING.dwarf, 'dwarf naming present')
@@ -34,7 +39,7 @@ const seaElf = resolveNamingSpec({ slug: 'sea_elf', parentSlug: 'elf' })
 assert(seaElf.patterns.some((p) => p.template.includes('{given}')), 'sea_elf inherits elf')
 
 const virtue = generateRaceName({
-  gender: 'nonbinary',
+  gender: 'female',
   slug: 'tiefling',
   modeId: 'virtue',
   random: seqRandom([0.1, 0.2, 0.3, 0.4]),
@@ -60,22 +65,19 @@ const dwarfName = generateRaceName({
 assert(dwarfName, 'dwarf female name')
 assert(dwarfName!.name.includes(' ') || dwarfName!.name.length > 2, 'dwarf name non-empty')
 
-// nonbinary prefers any
 const anyPool = { any: ['Эш'], male: ['Борис'], female: ['Анна'] }
-assert(pickFromPool(anyPool, 'nonbinary', () => 0) === 'Эш', 'nonbinary uses any')
-assert(pickFromPool({ male: ['А'], female: ['Б'] }, 'nonbinary', () => 0) === 'А', 'nonbinary falls back to union')
-assert(pickFromPool({ male: ['А'], female: ['Б'] }, 'male', () => 0) === 'А', 'male uses male')
-assert(pickFromPool({ male: ['А'], female: ['Б'] }, 'female', () => 0) === 'Б', 'female uses female')
+assert(pickFromPool(anyPool, 'male', () => 0) === 'Борис', 'male uses male')
+assert(pickFromPool(anyPool, 'female', () => 0) === 'Анна', 'female uses female')
+assert(pickFromPool({ male: ['А'], female: ['Б'] }, 'male', () => 0) === 'А', 'male pool')
+assert(pickFromPool({ male: ['А'], female: ['Б'] }, 'female', () => 0) === 'Б', 'female pool')
 
-// Variety: many generations should not all be identical for tiefling virtue
 const seen = new Set<string>()
 for (let i = 0; i < 40; i += 1) {
-  const n = generateRaceName({ gender: 'unspecified', slug: 'tiefling', modeId: 'virtue' })
+  const n = generateRaceName({ gender: 'male', slug: 'tiefling', modeId: 'virtue' })
   if (n) seen.add(n.name)
 }
 assert(seen.size >= 8, `virtue variety expected >=8 unique, got ${seen.size}`)
 
-// Catalog data.naming overrides curated
 const custom = generateRaceName({
   gender: 'male',
   slug: 'dwarf',
@@ -90,11 +92,11 @@ assert(custom?.name === 'Тестовик', 'catalog naming overrides curated')
 assert(Object.keys(MPMM_RACE_NAMING).length >= 20, 'mpmm roots covered')
 assert(Object.keys(SETTING_RACE_NAMING).length >= 15, 'setting roots covered')
 
-const tabaxi = generateRaceName({ gender: 'nonbinary', slug: 'tabaxi', random: () => 0.2 })
+const tabaxi = generateRaceName({ gender: 'female', slug: 'tabaxi', random: () => 0.2 })
 assert(tabaxi?.name, 'tabaxi name')
 
 const warforged = generateRaceName({
-  gender: 'unspecified',
+  gender: 'male',
   slug: 'warforged',
   random: () => 0.1,
 })

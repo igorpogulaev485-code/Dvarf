@@ -190,10 +190,9 @@ function pickOne(list: string[], random: () => number): string | null {
 }
 
 /**
- * Pool pick rules (product):
+ * Pool pick rules (product): only male | female.
  * - male → male, fallback any
  * - female → female, fallback any
- * - nonbinary / unspecified → any first; else male ∪ female uniformly
  */
 export function pickFromPool(
   pool: NamingPool | string[] | undefined,
@@ -208,13 +207,7 @@ export function pickFromPool(
   if (gender === 'male') {
     return pickOne(male, random) ?? pickOne(any, random)
   }
-  if (gender === 'female') {
-    return pickOne(female, random) ?? pickOne(any, random)
-  }
-  // nonbinary | unspecified
-  if (any.length > 0) return pickOne(any, random)
-  const mixed = [...male, ...female]
-  return pickOne(mixed, random)
+  return pickOne(female, random) ?? pickOne(any, random)
 }
 
 function placeholdersIn(template: string): string[] {

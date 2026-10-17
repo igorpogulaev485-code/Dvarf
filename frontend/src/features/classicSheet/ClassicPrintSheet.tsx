@@ -533,8 +533,6 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                 <option value="">—</option>
                 <option value="male">Мужской</option>
                 <option value="female">Женский</option>
-                <option value="nonbinary">Небинарный</option>
-                <option value="unspecified">Не указан</option>
               </select>
             </label>
             {(

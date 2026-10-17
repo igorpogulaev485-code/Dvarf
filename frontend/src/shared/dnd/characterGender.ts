@@ -1,20 +1,19 @@
-/** Character gender for create-pipeline + sheet.identity.gender */
+/** Character gender for create-pipeline + sheet.identity.gender — only М/Ж. */
 
-export const CHARACTER_GENDERS = ['male', 'female', 'nonbinary', 'unspecified'] as const
+export const CHARACTER_GENDERS = ['male', 'female'] as const
 
 export type CharacterGender = (typeof CHARACTER_GENDERS)[number]
 
 export const CHARACTER_GENDER_LABELS: Record<CharacterGender, string> = {
   male: 'Мужской',
   female: 'Женский',
-  nonbinary: 'Небинарный',
-  unspecified: 'Не указан',
 }
 
 export function isCharacterGender(value: unknown): value is CharacterGender {
-  return typeof value === 'string' && (CHARACTER_GENDERS as readonly string[]).includes(value)
+  return value === 'male' || value === 'female'
 }
 
+/** Accepts only male/female. Legacy nonbinary/unspecified → null (нужно выбрать заново). */
 export function parseCharacterGender(value: unknown): CharacterGender | null {
   return isCharacterGender(value) ? value : null
 }
@@ -23,6 +22,4 @@ export function parseCharacterGender(value: unknown): CharacterGender | null {
 export const CHARACTER_GENDER_SHORT: Record<CharacterGender, string> = {
   male: 'М',
   female: 'Ж',
-  nonbinary: 'Нб',
-  unspecified: '—',
 }

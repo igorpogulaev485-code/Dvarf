@@ -5333,8 +5333,6 @@ export function MinimalSheetEditor({
                   [
                     ['male', 'Мужской'],
                     ['female', 'Женский'],
-                    ['nonbinary', 'Небинарный'],
-                    ['unspecified', 'Не указан'],
                   ] as const
                 ).map(([key, label]) => (
                   <button
