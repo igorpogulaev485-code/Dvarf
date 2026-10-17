@@ -173,6 +173,25 @@ class SettingPageLinkCreateRequest(BaseModel):
     reverse_label: str | None = Field(default=None, max_length=120)
 
 
+class SessionRevealPageRequest(BaseModel):
+    """T2: раскрыть страницу сеттинга mid-session → лента."""
+
+    page_id: UUID
+    reveal_subtree: bool = False
+    # false = скрыть снова (редко со стола, но симметрично)
+    revealed: bool = True
+
+
+class SessionRevealPageResult(BaseModel):
+    session: "SessionDetail"
+    event: "SessionEventOut"
+    page_id: UUID
+    page_title: str
+    revealed: bool
+    reveal_subtree: bool
+    affected_count: int
+
+
 class SessionSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -59,6 +59,8 @@ from app.schemas.lobby import (
     SessionCreateRequest,
     SessionDetail,
     SessionEventOut,
+    SessionRevealPageRequest,
+    SessionRevealPageResult,
     SessionRollCreateRequest,
     SessionUpdateRequest,
     SettingCreateRequest,
@@ -508,6 +510,20 @@ async def patch_session_combat(
     db: DbSession,
 ) -> SessionDetail:
     return await LobbyService(db).patch_combat(current_user, session_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/reveal-page",
+    response_model=SessionRevealPageResult,
+)
+async def reveal_session_page(
+    session_id: UUID,
+    payload: SessionRevealPageRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionRevealPageResult:
+    """T2: раскрыть страницу сеттинга mid-session → лента + realtime."""
+    return await LobbyService(db).reveal_session_page(current_user, session_id, payload)
 
 
 @router.post(

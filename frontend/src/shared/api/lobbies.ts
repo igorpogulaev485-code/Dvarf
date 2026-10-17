@@ -749,6 +749,31 @@ export async function awardSessionXp(
   })
 }
 
+export type SessionRevealPageResult = {
+  session: SessionDetail
+  event: SessionEvent
+  page_id: string
+  page_title: string
+  revealed: boolean
+  reveal_subtree: boolean
+  affected_count: number
+}
+
+/** T2: раскрыть страницу сеттинга mid-session → лента. */
+export async function revealSessionPage(
+  sessionId: string,
+  payload: {
+    page_id: string
+    reveal_subtree?: boolean
+    revealed?: boolean
+  },
+): Promise<SessionRevealPageResult> {
+  return apiRequest<SessionRevealPageResult>(`/sessions/${sessionId}/reveal-page`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
 export type LootAwardResult = {
   session: SessionDetail
   summary: string

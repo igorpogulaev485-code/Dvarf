@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
@@ -14,6 +14,7 @@ import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDial
 import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoffDialog'
+import { SettingTableRevealDialog } from '../features/lobby/SettingTableRevealDialog'
 import { draftFromCombatant, type SettingHandoffDraft } from '../features/lobby/settingHandoff'
 import { StartCombatDialog } from '../features/lobby/StartCombatDialog'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
@@ -43,6 +44,7 @@ import {
   getSession,
   getSetting,
   listSessionEvents,
+  revealSessionPage,
   patchSeatCombat,
   patchSessionCombat,
   patchSessionCombatant,
@@ -101,6 +103,9 @@ export function SessionDetailPage() {
   const [handoffDraft, setHandoffDraft] = useState<SettingHandoffDraft | null>(null)
   const [handoffSetting, setHandoffSetting] = useState<SettingDetail | null>(null)
   const [handoffLink, setHandoffLink] = useState<string | null>(null)
+  const [revealOpen, setRevealOpen] = useState(false)
+  const [revealSetting, setRevealSetting] = useState<SettingDetail | null>(null)
+  const isOwnerRef = useRef(false)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -148,6 +153,8 @@ export function SessionDetailPage() {
     }
   }, [session, reloadEvents])
 
+  isOwnerRef.current = Boolean(session?.is_owner)
+
   useSessionRealtime(session?.id, {
     onEvent: (incoming) => {
       setEvents((prev) => {
@@ -155,6 +162,14 @@ export function SessionDetailPage() {
         if (rollsOnly && incoming.event_type !== 'roll') return prev
         return [incoming, ...prev]
       })
+      // T2: игрокам toast при раскрытии со стола (мастер уже тостнул локально)
+      if (
+        incoming.event_type === 'reveal' &&
+        !isOwnerRef.current &&
+        incoming.title
+      ) {
+        setToast(incoming.title)
+      }
     },
     onSessionUpdate: (next) => {
       setSession(next)
@@ -217,6 +232,27 @@ export function SessionDetailPage() {
     } catch (err) {
       setHandoffOpen(false)
       setHandoffDraft(null)
+      setError(
+        err instanceof ApiRequestError ? err.message : 'Не удалось открыть сеттинг',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function openRevealDialog() {
+    if (!session?.setting_id) {
+      setToast('Привяжи сеттинг к сессии')
+      return
+    }
+    setRevealOpen(true)
+    setBusy(true)
+    setError(null)
+    try {
+      const setting = await getSetting(session.setting_id)
+      setRevealSetting(setting)
+    } catch (err) {
+      setRevealOpen(false)
       setError(
         err instanceof ApiRequestError ? err.message : 'Не удалось открыть сеттинг',
       )
@@ -436,6 +472,16 @@ export function SessionDetailPage() {
                         onClick={() => setEncounterOpen(true)}
                       >
                         Энкаунтер
+                      </Button>
+                    ) : null}
+                    {session.is_owner && session.setting_id && !session.closed_at ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => void openRevealDialog()}
+                      >
+                        Раскрыть
                       </Button>
                     ) : null}
                     {session.is_owner ? (
@@ -866,6 +912,58 @@ export function SessionDetailPage() {
                 ? `Эффект: ${effect.name}`
                 : `Эффект: ${effect.name} · ${characterIds.length}`,
             )
+          })
+        }}
+      />
+
+      <SettingTableRevealDialog
+        open={revealOpen}
+        busy={busy}
+        settingId={session.setting_id}
+        settingName={session.setting_name ?? revealSetting?.name}
+        pages={revealSetting?.pages ?? []}
+        onClose={() => {
+          setRevealOpen(false)
+        }}
+        onReveal={(payload) => {
+          void run(async () => {
+            const result = await revealSessionPage(session.id, {
+              page_id: payload.page_id,
+              reveal_subtree: payload.reveal_subtree,
+              revealed: true,
+            })
+            setSession(result.session)
+            setEvents((prev) => {
+              if (prev.some((e) => e.id === result.event.id)) return prev
+              return [result.event, ...prev]
+            })
+            if (revealSetting) {
+              const rootId = result.page_id
+              const byParent = new Map<string | null, string[]>()
+              for (const p of revealSetting.pages) {
+                const list = byParent.get(p.parent_id) ?? []
+                list.push(p.id)
+                byParent.set(p.parent_id, list)
+              }
+              const ids = new Set<string>([rootId])
+              if (result.reveal_subtree) {
+                const walk = (id: string) => {
+                  for (const child of byParent.get(id) ?? []) {
+                    ids.add(child)
+                    walk(child)
+                  }
+                }
+                walk(rootId)
+              }
+              setRevealSetting({
+                ...revealSetting,
+                pages: revealSetting.pages.map((p) =>
+                  ids.has(p.id) ? { ...p, revealed: true } : p,
+                ),
+              })
+            }
+            setRevealOpen(false)
+            setToast(result.event.title)
           })
         }}
       />

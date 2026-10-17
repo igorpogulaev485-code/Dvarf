@@ -14,6 +14,7 @@ import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDial
 import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoffDialog'
+import { SettingTableRevealDialog } from '../features/lobby/SettingTableRevealDialog'
 import { draftFromCombatant, type SettingHandoffDraft } from '../features/lobby/settingHandoff'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
@@ -350,7 +351,41 @@ const DEMO_SETTING_PAGES: SettingPage[] = [
     template_id: 't-note',
     fields: {},
     quest_status: null,
-    tags: [],
+    tags: ['мир'],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-swamp',
+    setting_id: 'set1',
+    parent_id: 'p-root',
+    title: 'Серые Болота',
+    body: 'Туман и топь.',
+    gm_body: 'Культ под кочками.',
+    sort_order: 0,
+    revealed: false,
+    page_kind: 'location',
+    template_id: null,
+    fields: {},
+    quest_status: null,
+    tags: ['болото', 'секрет'],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'p-cult',
+    setting_id: 'set1',
+    parent_id: 'p-swamp',
+    title: 'Культ моста',
+    body: '',
+    gm_body: '',
+    sort_order: 0,
+    revealed: false,
+    page_kind: 'faction',
+    template_id: null,
+    fields: {},
+    quest_status: null,
+    tags: ['культ'],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
@@ -450,6 +485,7 @@ export function SessionLiveTablePreviewPage() {
   const [handoffOpen, setHandoffOpen] = useState(false)
   const [handoffDraft, setHandoffDraft] = useState<SettingHandoffDraft | null>(null)
   const [wikiPages, setWikiPages] = useState<SettingPage[]>(DEMO_SETTING_PAGES)
+  const [revealOpen, setRevealOpen] = useState(false)
 
   // Как в продукте: профиль из настроек лобби; здесь — дефолт (всё видно игрокам).
   // Мастер на реальном экране = is_owner лобби, не отдельный переключатель.
@@ -474,7 +510,7 @@ export function SessionLiveTablePreviewPage() {
           <div>
             <Text as="h1">Эхо Рассвета</Text>
             <Text tone="muted">
-              Превью A3+T1 · стол → сеттинг · за столом {DEMO_SEATS.length}
+              Превью A3+T1+T2 · стол → сеттинг · reveal · за столом {DEMO_SEATS.length}
             </Text>
           </div>
         </header>
@@ -573,6 +609,13 @@ export function SessionLiveTablePreviewPage() {
                       onClick={() => setEncounterOpen(true)}
                     >
                       Энкаунтер
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setRevealOpen(true)}
+                    >
+                      Раскрыть
                     </Button>
                     <Button
                       type="button"
@@ -1337,6 +1380,65 @@ export function SessionLiveTablePreviewPage() {
           ) : null}
         </Stack>
       </Dialog>
+
+      <SettingTableRevealDialog
+        open={revealOpen}
+        settingId="set1"
+        settingName="Эхо Рассвета"
+        pages={wikiPages}
+        onClose={() => setRevealOpen(false)}
+        onReveal={(payload) => {
+          const root = wikiPages.find((p) => p.id === payload.page_id)
+          if (!root) return
+          const byParent = new Map<string | null, string[]>()
+          for (const p of wikiPages) {
+            const list = byParent.get(p.parent_id) ?? []
+            list.push(p.id)
+            byParent.set(p.parent_id, list)
+          }
+          const ids = new Set<string>([root.id])
+          if (payload.reveal_subtree) {
+            const walk = (id: string) => {
+              for (const child of byParent.get(id) ?? []) {
+                ids.add(child)
+                walk(child)
+              }
+            }
+            walk(root.id)
+          }
+          setWikiPages((prev) =>
+            prev.map((p) => (ids.has(p.id) ? { ...p, revealed: true } : p)),
+          )
+          const title =
+            payload.reveal_subtree && ids.size > 1
+              ? `Открыто: ${root.title} · ветка`
+              : `Открыто: ${root.title}`
+          setEvents((prev) => [
+            {
+              id: `ev-reveal-${Date.now()}`,
+              session_id: 's1',
+              event_type: 'reveal',
+              character_id: null,
+              actor_user_id: 'u0',
+              character_name: 'Мастер',
+              title,
+              formula: null,
+              breakdown: null,
+              total: null,
+              is_master_roll: false,
+              payload: {
+                page_id: root.id,
+                reveal_subtree: payload.reveal_subtree,
+                affected_count: ids.size,
+              },
+              created_at: new Date().toISOString(),
+            },
+            ...prev,
+          ])
+          setRevealOpen(false)
+          setToast(title)
+        }}
+      />
 
       <SettingTableHandoffDialog
         open={handoffOpen}

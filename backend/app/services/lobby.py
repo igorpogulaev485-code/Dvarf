@@ -88,6 +88,8 @@ from app.schemas.lobby import (
     SessionCreateRequest,
     SessionDetail,
     SessionEventOut,
+    SessionRevealPageRequest,
+    SessionRevealPageResult,
     SessionRollCreateRequest,
     SessionSeatOut,
     SessionSummary,
@@ -2161,6 +2163,80 @@ class LobbyService:
         if session.closed_at is not None:
             raise AppError("Сессия закрыта", code="session_closed", status_code=400)
         return session, lobby
+
+    async def reveal_session_page(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: SessionRevealPageRequest,
+    ) -> SessionRevealPageResult:
+        """T2: раскрыть (или скрыть) страницу сеттинга mid-session + событие в ленте."""
+        session, lobby = self._require_session_owner(user, session_id)
+        if session.setting_id is None:
+            raise AppError(
+                "К сессии не привязан сеттинг",
+                code="session_no_setting",
+                status_code=400,
+            )
+        page = self.lobbies.get_setting_page(payload.page_id)
+        if page is None or page.setting_id != session.setting_id:
+            raise NotFoundError("Страница не найдена", code="setting_page_not_found")
+
+        revealed = bool(payload.revealed)
+        page.revealed = revealed
+        affected = 1
+        if payload.reveal_subtree:
+            all_pages = self.lobbies.list_setting_pages(session.setting_id)
+            for child in self._descendant_pages(all_pages, page.id):
+                child.revealed = revealed
+                affected += 1
+
+        verb = "Открыто" if revealed else "Скрыто"
+        subtree_note = " · ветка" if payload.reveal_subtree and affected > 1 else ""
+        title = f"{verb}: {page.title}{subtree_note}"[:200]
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="reveal",
+            character_id=None,
+            actor_user_id=user.id,
+            character_name="Мастер",
+            title=title,
+            formula=None,
+            breakdown=None,
+            total=None,
+            is_master_roll=False,
+            payload={
+                "page_id": str(page.id),
+                "setting_id": str(session.setting_id),
+                "revealed": revealed,
+                "reveal_subtree": bool(payload.reveal_subtree),
+                "affected_count": affected,
+                "page_title": page.title,
+            },
+        )
+        self.lobbies.add_session_event(event)
+        self.db.commit()
+        self.db.refresh(event)
+
+        detail = self._session_detail(session, lobby, user)
+        out_event = SessionEventOut.model_validate(event)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out_event.model_dump(mode="json")},
+        )
+        return SessionRevealPageResult(
+            session=detail,
+            event=out_event,
+            page_id=page.id,
+            page_title=page.title,
+            revealed=revealed,
+            reveal_subtree=bool(payload.reveal_subtree),
+            affected_count=affected,
+        )
 
     async def add_combatants(
         self,
