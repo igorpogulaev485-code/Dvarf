@@ -3241,7 +3241,6 @@ a.ui-button--primary {
     max(12px, env(safe-area-inset-bottom, 0px))
     max(12px, env(safe-area-inset-left, 0px));
   background: rgba(28, 25, 23, 0.45);
-  pointer-events: none;
 }
 
 .ui-dialog {
