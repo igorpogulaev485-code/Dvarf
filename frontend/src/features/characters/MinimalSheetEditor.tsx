@@ -5327,6 +5327,25 @@ export function MinimalSheetEditor({
                 onChange={(event) => patchIdentity({ alignment: event.target.value })}
               />
             </Field>
+            <Field label="Пол">
+              <div className="chip-row" role="group" aria-label="Пол персонажа">
+                {(
+                  [
+                    ['male', 'Мужской'],
+                    ['female', 'Женский'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`sheet-chip${draft.identity.gender === key ? ' is-on' : ''}`}
+                    onClick={() => patchIdentity({ gender: key })}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </Field>
           </div>
           </section>
       </IdentityDialog>
@@ -7062,11 +7081,14 @@ export function MinimalSheetEditor({
         ownedFeatEnums={ownedFeatEnums}
         proficientSkills={proficientSkills}
         characterName={draft.name}
+        gender={draft.identity.gender}
+        enableNameGeneration={false}
         onClose={() => setRaceGrantPicker(null)}
         onConfirm={(result) => {
           if (result.characterName.trim()) {
             setDraft((prev) => ({ ...prev, name: result.characterName.trim() }))
           }
+          patchIdentity({ gender: result.gender })
           commitRaceGrant({
             selected: result.entry,
             picks: result.picks,

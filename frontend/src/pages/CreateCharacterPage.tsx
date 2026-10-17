@@ -8,6 +8,7 @@ import {
   RaceSetupDialog,
   type RaceSetupConfirm,
 } from '../features/characters/RaceSetupDialog'
+import { CHARACTER_GENDER_LABELS } from '../shared/dnd/characterGender'
 import { ClassSetupDialog } from '../features/characters/ClassSetupDialog'
 import {
   GuidedWizardDialog,
@@ -1145,6 +1146,7 @@ export function CreateCharacterPage() {
       return 'Выберите навыки и снаряжение класса'
     }
     if (!state.characterName.trim()) return 'Укажите имя на шаге расы'
+    if (state.gender == null) return 'Укажите пол на шаге расы'
     if (!abilitiesValid()) return 'Закройте характеристики'
     if (!state.classes.some((row) => row.level > 0 && row.name.trim())) {
       return 'Задайте уровни в прокачке'
@@ -1242,7 +1244,9 @@ export function CreateCharacterPage() {
   let footer = null
 
   if (step === 'race') {
-    const raceReady = Boolean(state.race && state.characterName.trim())
+    const raceReady = Boolean(
+      state.race && state.characterName.trim() && state.gender != null,
+    )
     cards = (
       <CatalogCardList
         resetToken={step}
@@ -1270,8 +1274,11 @@ export function CreateCharacterPage() {
         {state.characterName.trim() ? (
           <Text tone="muted">Имя: {state.characterName.trim()}</Text>
         ) : (
-          <Text tone="muted">Имя укажешь в окне настройки расы.</Text>
+          <Text tone="muted">Имя и пол укажешь в окне настройки расы.</Text>
         )}
+        {state.gender ? (
+          <Text tone="muted">Пол: {CHARACTER_GENDER_LABELS[state.gender]}</Text>
+        ) : null}
         <Button
           disabled={!selectedRace}
           onClick={() => {
@@ -1706,6 +1713,8 @@ export function CreateCharacterPage() {
         hasSpellcasting={hasCasterClass}
         backgroundSlug={state.backgroundSetup?.entry.slug ?? null}
         characterName={state.characterName}
+        gender={state.gender}
+        enableNameGeneration
         onClose={() => setRaceSetup(null)}
         onConfirm={(result: RaceSetupConfirm) => {
           setRacialBonuses(
@@ -1726,6 +1735,7 @@ export function CreateCharacterPage() {
           const needsFeat = Boolean(result.def.featNoteRu?.trim())
           patchState({
             characterName: result.characterName,
+            gender: result.gender,
             race: isSub
               ? state.race ??
                 (rootEntry ? catalogRef(rootEntry) : catalogRef(result.entry))
