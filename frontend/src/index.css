@@ -568,48 +568,6 @@ a.ui-button--primary {
   background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 82%, white);
 }
 
-.custom-spell-journey {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 16px 16px 40px;
-  display: grid;
-  gap: 16px;
-}
-
-.custom-spell-journey__chrome {
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--panel) 92%, white);
-}
-
-.custom-spell-journey__steps {
-  margin: 0;
-  padding-left: 1.25rem;
-  color: var(--ink);
-  line-height: 1.45;
-}
-
-.custom-spell-journey__desk {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--desk-paper, #f7f3ea);
-  overflow: hidden;
-}
-
-.custom-spell-journey__desk-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-start;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--desk-paper, #f7f3ea) 70%, white);
-}
-
-.custom-spell-journey__stage {
-  padding: 12px 14px 18px;
-}
 
 .app-header__actions {
   display: flex;
