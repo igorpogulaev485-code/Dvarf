@@ -510,8 +510,62 @@ a.ui-button--primary {
 
 .ui-textarea {
   resize: vertical;
-  min-height: 10rem;
+  min-height: 6rem;
   line-height: 1.4;
+  font: inherit;
+}
+
+.grimoire-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.grimoire-toolbar .ui-field {
+  margin: 0;
+}
+
+.grimoire-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.custom-spell-form__section {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+}
+
+.custom-spell-form__section:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.custom-spell-form__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .grimoire-toolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .custom-spell-form__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.play-desk-compact__source.is-custom {
+  border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 40%, var(--desk-line));
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 82%, white);
 }
 
 .app-header__actions {
