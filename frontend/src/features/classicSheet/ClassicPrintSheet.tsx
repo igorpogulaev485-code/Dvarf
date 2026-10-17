@@ -47,7 +47,6 @@ import {
 } from './classicSpellCards'
 import type { CompanionKind } from '../characters/companions'
 import {
-  Expanding,
   Bubble,
   asProfBonus,
   asRecordNotes,
@@ -59,6 +58,7 @@ import {
   readClassicSheetLayout,
   type ClassicSheetLayout,
 } from './classicSheetLayout'
+import { ClassicTextBlock } from './ClassicTextBlock'
 import { ClassicPrint2024 } from './ClassicPrint2024'
 import './classicPrint.css'
 
@@ -256,7 +256,10 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
               <span>Пассивная мудрость (Восприятие)</span>
             </div>
             <div className="classic-panel classic-panel--grow">
-              <Expanding
+              <ClassicTextBlock
+                blockId="other_proficiencies"
+                character={c}
+                onPatch={onPatch}
                 fill
                 value={String(asRecordNotes(c))}
                 printMaxHeight="12rem"
@@ -382,7 +385,10 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                   <span>{row.damageType || '—'}</span>
                 </div>
               ))}
-              <Expanding
+              <ClassicTextBlock
+                blockId="attacks"
+                character={c}
+                onPatch={onPatch}
                 fill
                 value={textBlockValue(c, 'attacks')}
                 printMaxHeight="6rem"
@@ -408,7 +414,10 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                   </label>
                 ))}
               </div>
-              <Expanding
+              <ClassicTextBlock
+                blockId="equipment"
+                character={c}
+                onPatch={onPatch}
                 fill
                 value={equipmentText(c)}
                 printMaxHeight="14rem"
@@ -433,7 +442,10 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                 className={`classic-panel ${personality ? 'classic-panel--personality' : 'classic-panel--features'}`}
                 key={key}
               >
-                <Expanding
+                <ClassicTextBlock
+                  blockId={key}
+                  character={c}
+                  onPatch={onPatch}
                   fill={!personality}
                   value={textBlockValue(c, key)}
                   printMaxHeight={height}
@@ -481,7 +493,10 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
 
         <div className="classic-page2-grid">
           <section className="classic-panel classic-panel--grow classic-page2-appearance">
-            <Expanding
+            <ClassicTextBlock
+              blockId="appearance"
+              character={c}
+              onPatch={onPatch}
               fill
               value={textBlockValue(c, 'appearance')}
               printMaxHeight="18rem"
@@ -492,7 +507,10 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
           </section>
 
           <section className="classic-panel classic-panel--grow classic-page2-allies">
-            <Expanding
+            <ClassicTextBlock
+              blockId="allies"
+              character={c}
+              onPatch={onPatch}
               fill
               value={textBlockValue(c, 'allies')}
               printMaxHeight="12rem"
@@ -503,7 +521,10 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
           </section>
 
           <section className="classic-panel classic-panel--grow classic-page2-backstory">
-            <Expanding
+            <ClassicTextBlock
+              blockId="background"
+              character={c}
+              onPatch={onPatch}
               fill
               value={textBlockValue(c, 'background')}
               printMaxHeight="24rem"
@@ -515,7 +536,10 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
 
           <div className="classic-page2-right-stack">
             <section className="classic-panel classic-panel--grow">
-              <Expanding
+              <ClassicTextBlock
+                blockId="feats"
+                character={c}
+                onPatch={onPatch}
                 fill
                 value={textBlockValue(c, 'feats')}
                 printMaxHeight="12rem"
@@ -525,7 +549,10 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
               <div className="classic-caption">Дополнительные умения и особенности</div>
             </section>
             <section className="classic-panel classic-panel--grow classic-panel--grow-lg">
-              <Expanding
+              <ClassicTextBlock
+                blockId="treasure"
+                character={c}
+                onPatch={onPatch}
                 fill
                 value={textBlockValue(c, 'treasure')}
                 printMaxHeight="12rem"
@@ -669,7 +696,10 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                   />
                 </label>
               </div>
-              <Expanding
+              <ClassicTextBlock
+                blockId={`companion_${index}`}
+                character={c}
+                onPatch={onPatch}
                 fill
                 value={row?.notes ?? ''}
                 printMaxHeight="5.5rem"

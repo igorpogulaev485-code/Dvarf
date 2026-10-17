@@ -9,6 +9,7 @@ export function Expanding({
   ariaLabel,
   className,
   fill,
+  style: styleProp,
 }: {
   value: string
   onChange: (value: string) => void
@@ -17,6 +18,7 @@ export function Expanding({
   className?: string
   /** Stretch to fill a growable panel instead of hugging text height. */
   fill?: boolean
+  style?: CSSProperties
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useLayoutEffect(() => {
@@ -26,9 +28,10 @@ export function Expanding({
     el.style.height = '0px'
     el.style.height = `${Math.max(el.scrollHeight, 24)}px`
   }, [value, fill])
-  const style = printMaxHeight
-    ? ({ ['--print-max-height']: printMaxHeight } as CSSProperties)
-    : undefined
+  const style: CSSProperties = {
+    ...(printMaxHeight ? ({ ['--print-max-height']: printMaxHeight } as CSSProperties) : null),
+    ...styleProp,
+  }
   const classes = ['classic-expand', fill ? 'classic-expand--fill' : '', className]
     .filter(Boolean)
     .join(' ')

@@ -13,6 +13,8 @@
   --c-radius-pill: 999px;
   --font-display: 'Source Serif 4', 'Times New Roman', serif;
   --font-ui: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  --font-classic-script: 'Caveat', 'Segoe Script', cursive;
+  --font-classic-mono: 'IBM Plex Mono', 'Consolas', monospace;
 
   min-height: 100vh;
   background: var(--c-desk);
@@ -791,6 +793,49 @@
   margin-bottom: 0.55rem;
 }
 
+.classic-text-block {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.classic-text-block__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  align-items: center;
+  margin: 0 0 0.15rem;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--c-muted);
+}
+
+.classic-text-block__tools label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.classic-text-block__tools select {
+  border: 1px solid var(--c-line-soft);
+  border-radius: 0.2rem;
+  background: #fff;
+  color: var(--c-ink);
+  font: inherit;
+  font-size: 0.58rem;
+  padding: 0.05rem 0.2rem;
+  max-width: 7.5rem;
+}
+
+.classic-panel--personality > .classic-text-block,
+.classic-panel--features > .classic-text-block,
+.classic-panel--grow > .classic-text-block {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .classic-panel--features .classic-expand--fill,
 .classic-panel--grow .classic-expand--fill {
   min-height: 4.5rem;
@@ -808,7 +853,8 @@
   grid-row: 1;
 }
 
-.classic-equip.classic-panel--grow .classic-expand--fill {
+.classic-equip.classic-panel--grow .classic-expand--fill,
+.classic-equip.classic-panel--grow .classic-text-block {
   grid-row: 1;
   min-height: 5.5rem;
 }
@@ -1798,6 +1844,17 @@
 }
 
 .classic-lss .classic-panel--grow .classic-expand--fill {
+  min-height: 0;
+}
+
+/* 2024 gear panel has no coin column — drop the 2014 two-column equip grid. */
+.classic-lss .classic-equip.classic-panel--grow {
+  display: flex;
+  flex-direction: column;
+}
+
+.classic-lss .classic-equip.classic-panel--grow .classic-text-block {
+  flex: 1 1 auto;
   min-height: 0;
 }
 

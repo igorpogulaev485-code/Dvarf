@@ -33,7 +33,6 @@ import {
   toggleSpellPrepared,
 } from './classicSpells'
 import {
-  Expanding,
   Bubble,
   asProfBonus,
   asRecordNotes,
@@ -41,6 +40,7 @@ import {
   clampMarks,
   numOrNull,
 } from './classicPrintShared'
+import { ClassicTextBlock } from './ClassicTextBlock'
 
 type Props = {
   character: CharacterDetail
@@ -375,7 +375,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               </div>
               <div className="classic-lss-training__tools">
                 <span className="classic-lss-block-title">Владение инструментами и языками</span>
-                <Expanding
+                <ClassicTextBlock
+                  blockId="tools_languages"
+                  character={c}
+                  onPatch={onPatch}
                   fill
                   value={asRecordNotes(c)}
                   printMaxHeight="2.4rem"
@@ -447,7 +450,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             </div>
 
             <div className="classic-panel classic-panel--grow classic-lss-features">
-              <Expanding
+              <ClassicTextBlock
+                blockId="features"
+                character={c}
+                onPatch={onPatch}
                 fill
                 value={textBlockValue(c, 'features')}
                 printMaxHeight="9rem"
@@ -459,7 +465,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
 
             <div className="classic-lss-p1-bottom">
               <div className="classic-panel classic-panel--grow">
-                <Expanding
+                <ClassicTextBlock
+                  blockId="attacks"
+                  character={c}
+                  onPatch={onPatch}
                   fill
                   value={textBlockValue(c, 'attacks')}
                   printMaxHeight="3.5rem"
@@ -469,7 +478,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                 <div className="classic-caption">Атаки и заклинания</div>
               </div>
               <div className="classic-panel classic-panel--grow">
-                <Expanding
+                <ClassicTextBlock
+                  blockId="feats"
+                  character={c}
+                  onPatch={onPatch}
                   fill
                   value={textBlockValue(c, 'feats')}
                   printMaxHeight="3.5rem"
@@ -494,7 +506,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             <div className="classic-caption">Портрет</div>
           </section>
           <section className="classic-panel classic-panel--grow classic-lss-allies">
-            <Expanding
+            <ClassicTextBlock
+              blockId="allies"
+              character={c}
+              onPatch={onPatch}
               fill
               value={textBlockValue(c, 'allies')}
               printMaxHeight="10rem"
@@ -504,7 +519,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             <div className="classic-caption">Союзники и организации</div>
           </section>
           <section className="classic-panel classic-panel--grow classic-lss-goals">
-            <Expanding
+            <ClassicTextBlock
+              blockId="quests"
+              character={c}
+              onPatch={onPatch}
               fill
               value={textBlockValue(c, 'quests')}
               printMaxHeight="16rem"
@@ -514,7 +532,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             <div className="classic-caption">Цели и задачи</div>
           </section>
           <section className="classic-panel classic-panel--grow classic-lss-extra">
-            <Expanding
+            <ClassicTextBlock
+              blockId="free"
+              character={c}
+              onPatch={onPatch}
               fill
               value={textBlockValue(c, 'free')}
               printMaxHeight="8rem"
@@ -524,7 +545,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             <div className="classic-caption">Дополнительные способности и умения</div>
           </section>
           <section className="classic-panel classic-panel--grow classic-lss-treasure">
-            <Expanding
+            <ClassicTextBlock
+              blockId="treasure"
+              character={c}
+              onPatch={onPatch}
               fill
               value={textBlockValue(c, 'treasure')}
               printMaxHeight="8rem"
@@ -544,7 +568,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
         <div className="classic-lss-notes-grid">
           {featureChunks.map((chunk, i) => (
             <section className="classic-panel classic-lss-note" key={`note-${i}`}>
-              <Expanding
+              <ClassicTextBlock
+                blockId={`features_note_${i}`}
+                character={c}
+                onPatch={onPatch}
                 fill
                 value={chunk}
                 printMaxHeight="12rem"
@@ -742,7 +769,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
 
           <div className="classic-lss-p4-right">
             <div className="classic-panel classic-panel--grow">
-              <Expanding
+              <ClassicTextBlock
+                blockId="appearance"
+                character={c}
+                onPatch={onPatch}
                 fill
                 value={textBlockValue(c, 'appearance')}
                 printMaxHeight="6rem"
@@ -753,7 +783,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             </div>
 
             <div className="classic-panel classic-panel--grow">
-              <Expanding
+              <ClassicTextBlock
+                blockId="background_story"
+                character={c}
+                onPatch={onPatch}
                 fill
                 value={[
                   textBlockValue(c, 'background'),
@@ -781,7 +814,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             </div>
 
             <div className="classic-panel classic-equip classic-panel--grow classic-panel--grow-lg">
-              <Expanding
+              <ClassicTextBlock
+                blockId="equipment"
+                character={c}
+                onPatch={onPatch}
                 fill
                 value={equipmentText(c)}
                 printMaxHeight="8rem"
