@@ -1,11 +1,18 @@
 import { Link } from 'react-router-dom'
-import type { JournalEntry } from '../../shared/api/lobbies'
+import type { JournalEntry, SessionSummary } from '../../shared/api/lobbies'
 import { Button, Text } from '../../ui'
+import {
+  canOpenAtTable,
+  resolveOpenSessionForEntry,
+  tableHrefForEntry,
+} from './journalTableBridge'
 
 type Props = {
   entry: JournalEntry
   isOwner?: boolean
   busy?: boolean
+  /** Открытые/все сессии лобби — для «Открыть за столом» (T5) */
+  sessions?: SessionSummary[]
   onDelete?: (id: string) => void
 }
 
@@ -44,7 +51,17 @@ function formatDate(iso: string): string {
   }
 }
 
-export function JournalEntryCard({ entry, isOwner = false, busy = false, onDelete }: Props) {
+export function JournalEntryCard({
+  entry,
+  isOwner = false,
+  busy = false,
+  sessions = [],
+  onDelete,
+}: Props) {
+  const openSession =
+    canOpenAtTable(entry) ? resolveOpenSessionForEntry(entry, sessions) : null
+  const tableHref = openSession ? tableHrefForEntry(entry, openSession) : null
+
   return (
     <article className={`journal-entry journal-entry--${entry.entry_type}`}>
       <div className="journal-entry__meta">
@@ -93,16 +110,24 @@ export function JournalEntryCard({ entry, isOwner = false, busy = false, onDelet
         <Text className="journal-entry__body">{entry.body}</Text>
       ) : null}
 
-      {isOwner && onDelete ? (
+      {tableHref || (isOwner && onDelete) ? (
         <div className="journal-entry__actions">
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={busy}
-            onClick={() => onDelete(entry.id)}
-          >
-            Удалить
-          </Button>
+          {tableHref ? (
+            <Link className="journal-entry__table-link" to={tableHref}>
+              Открыть за столом
+              {openSession?.name ? ` · ${openSession.name}` : ''}
+            </Link>
+          ) : null}
+          {isOwner && onDelete ? (
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={busy}
+              onClick={() => onDelete(entry.id)}
+            >
+              Удалить
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </article>

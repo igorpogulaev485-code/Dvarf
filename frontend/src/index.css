@@ -2388,6 +2388,18 @@ a.ui-button--primary {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
+}
+
+.journal-entry__table-link {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.journal-entry__table-link:hover {
+  text-decoration: underline;
 }
 
 .journal-composer {

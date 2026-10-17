@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
@@ -73,6 +73,8 @@ import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text, Toast } 
 
 export function SessionDetailPage() {
   const { sessionId = '' } = useParams()
+  const [searchParams] = useSearchParams()
+  const pageFromQuery = searchParams.get('page')
   const navigate = useNavigate()
   const [session, setSession] = useState<SessionDetail | null>(null)
   const [ownCharacterIds, setOwnCharacterIds] = useState<Set<string>>(() => new Set())
@@ -118,6 +120,8 @@ export function SessionDetailPage() {
   const [questDialogOpen, setQuestDialogOpen] = useState(false)
   const [questTarget, setQuestTarget] = useState<SessionLorePage | null>(null)
   const isOwnerRef = useRef(false)
+  /** T5: ?page= из дневника — открыть превью один раз */
+  const pageDeepLinkDone = useRef(false)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -137,6 +141,10 @@ export function SessionDetailPage() {
     const list = await listSessionEvents(sessionId, { rollsOnly })
     setEvents(list)
   }, [sessionId, rollsOnly])
+
+  useEffect(() => {
+    pageDeepLinkDone.current = false
+  }, [sessionId])
 
   useEffect(() => {
     let active = true
@@ -164,6 +172,40 @@ export function SessionDetailPage() {
       active = false
     }
   }, [session, reloadEvents])
+
+  // T5: дневник → /sessions/{id}?page=… → превью лора
+  useEffect(() => {
+    if (!session || !pageFromQuery || pageDeepLinkDone.current) return
+    if (!session.setting_id) return
+    pageDeepLinkDone.current = true
+    const settingId = session.setting_id
+    let cancelled = false
+    setLiveTab('table')
+    setBusy(true)
+    setError(null)
+    void (async () => {
+      try {
+        const setting = await getSetting(settingId)
+        if (cancelled) return
+        setLoreSetting(setting)
+        if (setting.pages.some((p) => p.id === pageFromQuery)) {
+          setPreviewPageId(pageFromQuery)
+        }
+      } catch (err) {
+        if (cancelled) return
+        setError(
+          err instanceof ApiRequestError
+            ? err.message
+            : 'Не удалось открыть страницу из дневника',
+        )
+      } finally {
+        if (!cancelled) setBusy(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [session, pageFromQuery])
 
   isOwnerRef.current = Boolean(session?.is_owner)
 
