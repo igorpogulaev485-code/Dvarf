@@ -5,7 +5,9 @@
 - 2026-10-06: кабинет, аватар, лист P1–P6, classic
 - **2026-10-17 ~05:33 UTC:** tip `setting-t5-journal-table` с линии C4 затёр Play Desk (шапка планшета / hot-bar, ~145→30 файлов) и полный classic (17→3), хотя сеттинг C5–T5 сам по себе был ок
 
-Подробности: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod-lineage/SKILL.md) · [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](docs/INCIDENT_OVERWRITE_2026-10-17.md) · [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) · [`deploy/README.md`](deploy/README.md).
+Подробности: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod-lineage/SKILL.md) · [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](docs/INCIDENT_OVERWRITE_2026-10-17.md) · [`docs/CLASSIC_SHEET_PROD.md`](docs/CLASSIC_SHEET_PROD.md) · [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) · [`deploy/README.md`](deploy/README.md).
+
+**Сеттинг / classic / tablet:** доработки ок, деплой **только** после `git merge origin/<live-tip>`. Сам слайс не имеет права затирать чужие контуры — см. инцидент 2026-10-17.
 
 ---
 

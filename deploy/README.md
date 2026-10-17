@@ -18,9 +18,13 @@
 | Полный tip + твой слайс | ОКый прод + новое |
 | Тонкая ветка без кабинета/листа/лобби | Эти контуры **исчезают** |
 
-Именно так 2026-10-06 пропали аватар, кабинет, лист P1–P6 и classic.
+Именно так 2026-10-06 пропали аватар, кабинет, лист P1–P6 и classic.  
+**2026-10-17:** tip сеттинга T5 с линии C4 затёр Play Desk + полный classic — см. [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](../docs/INCIDENT_OVERWRITE_2026-10-17.md).  
+Classic ↔ продукт: [`docs/CLASSIC_SHEET_PROD.md`](../docs/CLASSIC_SHEET_PROD.md).
 
 **Правила:** [`AGENTS.md`](../AGENTS.md) · [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](../.cursor/skills/dvarf-prod-lineage/SKILL.md)
+
+**Сеттинг не ломает прод:** ветка слайса C5–T5 / дальше — только от live tip; preflight обязан видеть PlayDeskHotBar + ClassicPrint2024 + SettingQuickCreate вместе.
 
 Перед деплоем обязательно:
 

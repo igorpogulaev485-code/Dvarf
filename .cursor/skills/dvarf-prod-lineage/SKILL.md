@@ -100,6 +100,19 @@ curl -fsS http://201.34.132.252/health
 2. Взять live tip + недостающие коммиты (`git merge`, не час cherry-pick).
 3. Preflight local+live → деплой → маркеры → PRODUCT_STATUS.
 
+## Сеттинг / classic — не ломать прод
+
+Доработки C5–T5 и classic **сами по себе ок**. Ломает только деплой с параллельной линии tip.
+
+Перед деплоем сеттинга:
+
+1. Live tip с VPS — ancestor of HEAD.
+2. В дереве есть Play Desk + полный classic + ваш сеттинг.
+3. `preflight-prod` + `preflight-live` зелёные (counts не ниже live).
+
+Контракт classic ↔ продукт: [`docs/CLASSIC_SHEET_PROD.md`](../../../docs/CLASSIC_SHEET_PROD.md).  
+Постмортем: [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](../../../docs/INCIDENT_OVERWRITE_2026-10-17.md).
+
 ## Связанные файлы
 
 - [`AGENTS.md`](../../../AGENTS.md)
@@ -108,4 +121,6 @@ curl -fsS http://201.34.132.252/health
 - [`deploy/preflight-live.sh`](../../../deploy/preflight-live.sh)
 - [`deploy/remote-up.sh`](../../../deploy/remote-up.sh)
 - [`PRODUCT_STATUS.md`](../../../PRODUCT_STATUS.md)
+- [`docs/CLASSIC_SHEET_PROD.md`](../../../docs/CLASSIC_SHEET_PROD.md)
+- [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](../../../docs/INCIDENT_OVERWRITE_2026-10-17.md)
 - [`dvarf-dev-workflow`](../dvarf-dev-workflow/SKILL.md)
