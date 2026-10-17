@@ -1,5 +1,6 @@
 import type { CharacterDetail } from '../../shared/api/characters'
 import {
+  COMPANION_KIND_LABELS,
   createCompanion,
   readCompanions,
   type CompanionEntry,
@@ -8,19 +9,10 @@ import {
 import { asRecord } from '../characters/sheetTypes'
 import type { ClassicPatch } from './fromApi'
 
+export { COMPANION_KIND_LABELS }
+
 /** How many companion slots to show on classic P4 (fill Letter page). */
 export const CLASSIC_COMPANION_SLOTS = 6
-
-export const COMPANION_KIND_LABELS: Record<CompanionKind, string> = {
-  beast_companion: 'Зверь-спутник',
-  steel_defender: 'Стальной защитник',
-  eldritch_cannon: 'Мистическая пушка',
-  drake: 'Дрейк',
-  primal_companion: 'Первобытный спутник',
-  familiar: 'Фамилиар',
-  ally: 'Напарник / призыв',
-  other: 'Спутник',
-}
 
 export function classicCompanions(character: CharacterDetail): CompanionEntry[] {
   return readCompanions(asRecord(character.sheet).companions)
@@ -40,6 +32,7 @@ function isBlank(row: CompanionEntry): boolean {
     !row.name.trim() &&
     !row.notes.trim() &&
     row.stats.hp == null &&
+    row.stats.hp_max == null &&
     row.stats.ac == null &&
     row.stats.speed == null
   )
@@ -50,17 +43,7 @@ function writeCompanions(
   companions: CompanionEntry[],
 ): ClassicPatch {
   const sheet = structuredClone(asRecord(character.sheet))
-  sheet.companions = companions
-    .filter((row) => !isBlank(row))
-    .map((row) => ({
-      id: row.id,
-      kind: row.kind,
-      name: row.name,
-      catalog_ref: row.catalog_ref,
-      source: row.source,
-      stats: { ...row.stats },
-      notes: row.notes,
-    }))
+  sheet.companions = companions.filter((row) => !isBlank(row))
   return { sheet }
 }
 
@@ -95,6 +78,7 @@ export function patchCompanionField(
     kind: patch.kind ?? entry.kind,
     notes: patch.notes !== undefined ? patch.notes : entry.notes,
     stats: {
+      ...entry.stats,
       hp: parseStat(patch.hp, entry.stats.hp),
       ac: parseStat(patch.ac, entry.stats.ac),
       speed: parseStat(patch.speed, entry.stats.speed),
