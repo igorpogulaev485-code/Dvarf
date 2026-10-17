@@ -2,6 +2,7 @@ import { Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useSearchParams } from 'react-router-dom'
 import { AuthDebugPage } from './pages/AuthDebugPage'
 import { CharactersPage } from './pages/CharactersPage'
+import { DevCustomSpellJourneyPage } from './pages/DevCustomSpellJourneyPage'
 import { DevCustomSpellPreviewPage } from './pages/DevCustomSpellPreviewPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
@@ -67,7 +68,13 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
         {import.meta.env.DEV ? (
-          <Route path="/dev/custom-spell" element={<DevCustomSpellPreviewPage />} />
+          <>
+            <Route path="/dev/custom-spell" element={<DevCustomSpellPreviewPage />} />
+            <Route
+              path="/dev/custom-spell-journey"
+              element={<DevCustomSpellJourneyPage />}
+            />
+          </>
         ) : null}
         <Route path="/login" element={<LoginRoute />} />
         <Route
