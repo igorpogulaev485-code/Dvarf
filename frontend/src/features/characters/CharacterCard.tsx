@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   deleteCharacter,
   type CharacterSummary,
@@ -33,6 +33,7 @@ function hpParts(character: CharacterSummary): {
 }
 
 export function CharacterCard({ character, tags = [], onDeleted }: CharacterCardProps) {
+  const navigate = useNavigate()
   const subtitleBits = [
     character.race_name,
     character.class_name
@@ -154,14 +155,20 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
       >
         <div className="character-card__actions-sheet" id={menuId} role="menu">
           {!isDraft ? (
-            <Link
+            <button
+              type="button"
               role="menuitem"
               className="character-card__actions-item"
-              to={`/characters/${character.id}/classic`}
-              onClick={() => setActionsOpen(false)}
+              onClick={() => {
+                // navigate first — closing the dialog unmounts a <Link> mid-tap on iOS
+                // and cancels the route change (user stays on /characters or hits «Открыть»).
+                const classicPath = `/characters/${character.id}/classic`
+                setActionsOpen(false)
+                navigate(classicPath)
+              }}
             >
               Классический лист
-            </Link>
+            </button>
           ) : null}
           <button
             type="button"

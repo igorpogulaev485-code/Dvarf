@@ -128,6 +128,7 @@ export const LazyVerifyEmailPage = lazyWithRetry(loadVerifyEmailPage)
 export function prefetchSheetRoutes(): void {
   void loadCharacterDetailPage().catch(() => undefined)
   void loadCreateCharacterPage().catch(() => undefined)
+  void loadClassicSheetPage().catch(() => undefined)
 }
 
 type BoundaryState = { error: Error | null }

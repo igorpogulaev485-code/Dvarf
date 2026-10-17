@@ -10891,6 +10891,17 @@ button.play-desk-compact__more--btn:hover {
   gap: 8px;
 }
 
+.sheet-topbar__desk-only .back-link {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-decoration: none;
+  padding: 0;
+}
+
 @media (max-width: 959px) {
   /* Densify play sheet: kill empty bands under the chrome.
      Use padding gutters (not width: calc(100%-20px) + margin) so a tall

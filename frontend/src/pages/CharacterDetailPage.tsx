@@ -168,9 +168,14 @@ export function CharacterDetailPage() {
           {character ? (
             <div className="sheet-topbar__actions">
               <div className="sheet-topbar__desk-only">
-                <Link className="back-link" to={`/characters/${character.id}/classic`}>
-                  Классический лист 2014
-                </Link>
+                <button
+                  type="button"
+                  className="back-link"
+                  onClick={() => navigate(`/characters/${character.id}/classic`)}
+                >
+                  <span className="sheet-topbar__classic-full">Классический лист 2014</span>
+                  <span className="sheet-topbar__classic-short">Классический</span>
+                </button>
                 <Button variant="ghost" onClick={() => setLobbyOpen(true)}>
                   В лобби
                 </Button>
@@ -188,13 +193,17 @@ export function CharacterDetailPage() {
                 </button>
                 {moreOpen ? (
                   <div className="sheet-topbar__more-pop" role="menu">
-                    <Link
+                    <button
+                      type="button"
                       role="menuitem"
-                      to={`/characters/${character.id}/classic`}
-                      onClick={() => setMoreOpen(false)}
+                      onClick={() => {
+                        const classicPath = `/characters/${character.id}/classic`
+                        setMoreOpen(false)
+                        navigate(classicPath)
+                      }}
                     >
                       Классический лист 2014
-                    </Link>
+                    </button>
                     <button
                       type="button"
                       role="menuitem"

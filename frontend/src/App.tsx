@@ -130,19 +130,20 @@ export default function App() {
             </AuthLazy>
           }
         />
-        <Route
-          path="/characters/:characterId"
-          element={
-            <AuthLazy>
-              <LazyCharacterDetailPage />
-            </AuthLazy>
-          }
-        />
+        {/* classic BEFORE :characterId — explicit path must win over the interactive sheet */}
         <Route
           path="/characters/:characterId/classic"
           element={
             <AuthLazy>
               <LazyClassicSheetPage />
+            </AuthLazy>
+          }
+        />
+        <Route
+          path="/characters/:characterId"
+          element={
+            <AuthLazy>
+              <LazyCharacterDetailPage />
             </AuthLazy>
           }
         />
