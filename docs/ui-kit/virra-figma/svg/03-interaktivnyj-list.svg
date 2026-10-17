@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" fill="none">
+  <title>8@@0 v2  =B5@0:B82=K9 ;8AB / AB>;</title>
+  <defs>
+    <linearGradient id="gradPrimary" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#9B4DFF"/>
+      <stop offset="100%" stop-color="#C45CFF"/>
+    </linearGradient>
+    <filter id="glassGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="0" stdDeviation="2.2" flood-color="#C45CFF" flood-opacity="0.5"/>
+    </filter>
+    <style>
+      .bg { fill: #0B0614; }
+      .plate { fill: rgba(30,22,48,0.72); stroke: #C45CFF; stroke-width: 1; filter: url(#glassGlow); }
+      .title { fill: #EFE6FA; font-family: "Source Serif 4", Georgia, serif; font-size: 28px; font-weight: 700; }
+      .meta { fill: #9A8FB3; font-family: "IBM Plex Sans", Arial, sans-serif; font-size: 13px; }
+      .label { fill: #9A8FB3; font-family: "IBM Plex Sans", Arial, sans-serif; font-size: 11px; letter-spacing: 0.04em; }
+      .value { fill: #EFE6FA; font-family: "IBM Plex Sans", Arial, sans-serif; font-size: 20px; font-weight: 700; }
+      .body { fill: #EFE6FA; font-family: "IBM Plex Sans", Arial, sans-serif; font-size: 14px; }
+      .btnText { fill: #EFE6FA; font-family: "IBM Plex Sans", Arial, sans-serif; font-size: 13px; font-weight: 600; }
+      .btnTextOn { fill: #FFFFFF; font-family: "IBM Plex Sans", Arial, sans-serif; font-size: 13px; font-weight: 600; }
+      .pillOutline { fill: rgba(22,16,34,0.55); stroke: #C45CFF; stroke-width: 1; filter: url(#glassGlow); }
+      .pillFill { fill: url(#gradPrimary); }
+      .track { fill: rgba(15,10,24,0.9); }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1280" height="800"/>
+
+  <!-- Header plate -->
+  <g id="Plate/Header">
+    <rect class="plate" x="24" y="24" width="1232" height="120" rx="14"/>
+    <text class="title" x="48" y="64">">@8=</text>
+    <text class="meta" x="48" y="88">20@D · >8= 5</text>
+    <text class="label" x="48" y="112">XP</text>
+    <rect class="track" x="80" y="100" width="280" height="14" rx="7"/>
+    <rect class="pillFill" x="80" y="100" width="170" height="14" rx="7"/>
+
+    <!-- Stat tiles -->
+    <g id="Stats">
+      <rect class="plate" x="720" y="44" width="120" height="80" rx="14"/>
+      <text class="label" x="760" y="72"></text>
+      <text class="value" x="758" y="102">16</text>
+      <rect class="plate" x="856" y="44" width="120" height="80" rx="14"/>
+      <text class="label" x="888" y="72">!:>@.</text>
+      <text class="value" x="894" y="102">25</text>
+      <rect class="plate" x="992" y="44" width="120" height="80" rx="14"/>
+      <text class="label" x="1024" y="72">=8F.</text>
+      <text class="value" x="1030" y="102">+2</text>
+      <rect class="plate" x="1128" y="44" width="104" height="80" rx="14"/>
+      <text class="label" x="1160" y="72"></text>
+      <text class="value" x="1158" y="102">+3</text>
+    </g>
+  </g>
+
+  <!-- HP -->
+  <g id="Plate/HP">
+    <rect class="plate" x="24" y="160" width="600" height="72" rx="14"/>
+    <text class="label" x="48" y="190">%8BK</text>
+    <text class="value" x="48" y="216">28 / 28</text>
+    <rect class="track" x="200" y="196" width="380" height="16" rx="8"/>
+    <rect class="pillFill" x="200" y="196" width="380" height="16" rx="8"/>
+  </g>
+
+  <!-- Modes -->
+  <g id="Modes">
+    <rect class="pillFill" x="24" y="252" width="88" height="36" rx="18"/>
+    <text class="btnTextOn" x="50" y="275">>9</text>
+    <rect class="pillOutline" x="124" y="252" width="140" height="36" rx="18"/>
+    <text class="btnText" x="148" y="275"> 0AA;54>20=85</text>
+    <rect class="pillOutline" x="276" y="252" width="110" height="36" rx="18"/>
+    <text class="btnText" x="300" y="275">1I5=85</text>
+    <rect class="pillOutline" x="398" y="252" width="110" height="36" rx="18"/>
+    <text class="btnText" x="418" y="275">!?CB=8:8</text>
+  </g>
+
+  <!-- Skills -->
+  <g id="Skills">
+    <rect class="pillOutline" x="24" y="308" width="150" height="40" rx="20"/>
+    <text class="btnText" x="48" y="333">B;5B8:0 +5</text>
+    <rect class="pillOutline" x="186" y="308" width="150" height="40" rx="20"/>
+    <text class="btnText" x="210" y="333">0?C3820=85 +4</text>
+    <rect class="pillOutline" x="348" y="308" width="150" height="40" rx="20"/>
+    <text class="btnText" x="372" y="333">=8<0=85 +1</text>
+    <rect class="pillOutline" x="510" y="308" width="150" height="40" rx="20"/>
+    <text class="btnText" x="540" y="333">AB>@8O +0</text>
+  </g>
+
+  <!-- Hotbar -->
+  <g id="Hotbar">
+    <rect class="pillOutline" x="24" y="368" width="140" height="40" rx="20"/>
+    <text class="btnText" x="52" y="393">!>AB>O=8O</text>
+    <rect class="pillOutline" x="176" y="368" width="150" height="40" rx="20"/>
+    <text class="btnText" x="198" y="393">>=F5=B@0F8O</text>
+    <rect class="pillOutline" x="338" y="368" width="110" height="40" rx="20"/>
+    <text class="btnText" x="370" y="393">B4KE</text>
+    <rect class="pillOutline" x="460" y="368" width="120" height="40" rx="20"/>
+    <text class="btnText" x="484" y="393"> 5AC@AK</text>
+  </g>
+
+  <!-- Attacks -->
+  <g id="Plate/Attacks">
+    <rect class="plate" x="24" y="432" width="820" height="220" rx="14"/>
+    <text class="h2" x="48" y="468" style="fill:#EFE6FA;font-family:IBM Plex Sans,Arial,sans-serif;font-size:16px;font-weight:600">B0:8</text>
+    <text class="body" x="48" y="508">>52>9 B>?>@</text>
+    <text class="meta" x="280" y="508">+6 · 1d8+3 @C1OI89</text>
+    <text class="body" x="48" y="548">>;>B</text>
+    <text class="meta" x="280" y="548">+6 · 1d8+3 4@>1OI89</text>
+    <text class="body" x="48" y="588">Q3:89 0@10;5B</text>
+    <text class="meta" x="280" y="588">+4 · 1d8 :>;NI89</text>
+  </g>
+
+  <!-- Companions: initials only -->
+  <g id="Plate/Companions">
+    <rect class="plate" x="868" y="432" width="388" height="220" rx="14"/>
+    <text class="h2" x="892" y="468" style="fill:#EFE6FA;font-family:IBM Plex Sans,Arial,sans-serif;font-size:16px;font-weight:600">!?CB=8:8</text>
+    <circle cx="932" cy="540" r="28" fill="rgba(196,92,255,0.2)" stroke="#C45CFF" stroke-width="1"/>
+    <text class="value" x="922" y="548" style="font-size:18px"></text>
+    <circle cx="1020" cy="540" r="28" fill="rgba(196,92,255,0.2)" stroke="#C45CFF" stroke-width="1"/>
+    <text class="value" x="1010" y="548" style="font-size:18px"></text>
+    <circle cx="1108" cy="540" r="28" fill="rgba(196,92,255,0.2)" stroke="#C45CFF" stroke-width="1"/>
+    <text class="value" x="1098" y="548" style="font-size:18px"></text>
+    <text class="meta" x="892" y="610">20B0@K = 8=8F80;K · 157 ;8F</text>
+  </g>
+
+  <text class="meta" x="24" y="780">8@@0 v2 · glass plates · radius 14 · pill buttons · 157 BC<0=0 ?> :@0O<</text>
+</svg>

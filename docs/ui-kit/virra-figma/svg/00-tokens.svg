@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540" fill="none">
+  <title>8@@0 v2  B>:5=K</title>
+  <rect width="960" height="540" fill="#FBF7EC"/>
+  <text x="40" y="56" fill="#2D2D2A" font-family="Source Serif 4, Georgia, serif" font-size="28" font-weight="700">8@@0 v2 · B>:5=K 4;O Figma</text>
+  <text x="40" y="84" fill="#6F675C" font-family="IBM Plex Sans, Arial, sans-serif" font-size="14">!>7409 Color styles / Variables 87 MB8E AM<?;>2</text>
+
+  <!-- swatches -->
+  <g font-family="IBM Plex Sans, Arial, sans-serif" font-size="12" fill="#2D2D2A">
+    <circle cx="80" cy="160" r="28" fill="#0B0614"/><text x="120" y="156">bg</text><text x="120" y="174" fill="#6F675C">#0B0614</text>
+    <circle cx="280" cy="160" r="28" fill="#161022"/><text x="320" y="156">panel</text><text x="320" y="174" fill="#6F675C">#161022</text>
+    <circle cx="480" cy="160" r="28" fill="#1E1630"/><text x="520" y="156">card</text><text x="520" y="174" fill="#6F675C">#1E1630</text>
+    <circle cx="680" cy="160" r="28" fill="#EFE6FA" stroke="#CCC"/><text x="720" y="156">ink</text><text x="720" y="174" fill="#6F675C">#EFE6FA</text>
+
+    <circle cx="80" cy="260" r="28" fill="#9A8FB3"/><text x="120" y="256">muted</text><text x="120" y="274" fill="#6F675C">#9A8FB3</text>
+    <circle cx="280" cy="260" r="28" fill="#C45CFF"/><text x="320" y="256">accent / 8@@0</text><text x="320" y="274" fill="#6F675C">#C45CFF</text>
+    <circle cx="480" cy="260" r="28" fill="#2A1740"/><text x="520" y="256">accent-soft</text><text x="520" y="274" fill="#6F675C">#2A1740</text>
+    <circle cx="680" cy="260" r="28" fill="#D4677A"/><text x="720" y="256">danger</text><text x="720" y="274" fill="#6F675C">#D4677A</text>
+  </g>
+
+  <text x="40" y="360" fill="#2D2D2A" font-family="IBM Plex Sans, Arial, sans-serif" font-size="16" font-weight="600">@028;0</text>
+  <text x="40" y="392" fill="#2D2D2A" font-family="IBM Plex Sans, Arial, sans-serif" font-size="14">" radius :0@B>G5:/?>;59 = 14</text>
+  <text x="40" y="416" fill="#2D2D2A" font-family="IBM Plex Sans, Arial, sans-serif" font-size="14">" :=>?:8 / chips = pill (?>;=K9 @048CA ?> 2KA>B5)</text>
+  <text x="40" y="440" fill="#2D2D2A" font-family="IBM Plex Sans, Arial, sans-serif" font-size="14">" border 1px #C45CFF + soft outer glow (:@09 AB5:;0)</text>
+  <text x="40" y="464" fill="#2D2D2A" font-family="IBM Plex Sans, Arial, sans-serif" font-size="14">" ?;0H:8: rgba panel + backdrop blur · 157 BC<0=0 ?> :@0O<</text>
+  <text x="40" y="488" fill="#2D2D2A" font-family="IBM Plex Sans, Arial, sans-serif" font-size="14">" 0=8<5-;8F0 70?@5I5=K · .sheet/print = ?5@30<5=B LOCK</text>
+</svg>
