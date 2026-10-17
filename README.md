@@ -4,40 +4,32 @@
 
 Цель продукта: быстро вести стол за столом и онлайн — от листа персонажа к общей пачке, подготовке боя и луту.
 
-**North star MVP:**
+**North star (срез прода 2026-10-17):**
 
 ```text
-Лист персонажа  →  Лобби (код/QR)  →  Сессия / бой  →  Лут
-     (есть)            (есть)            (далее)       (позже)
+Лист + classic  →  Лобби (код/QR)  →  Сессия / бой / лут  →  Сеттинг ↔ стол
+     (есть)             (есть)              (есть)              (есть)
 ```
 
 ```text
 Мои персонажи (аккаунт)
         ↓ код / QR → выбор персонажа
 Лобби (создал мастер)
-├── Сеттинг (мир, необязательно)
-└── Сессия (этот раз; может быть без сеттинга)
+├── Сеттинг (вики C1–T5 + артефакты D1)
+└── Сессия (бой B1–B8: инициатива, бестиарий, XP, лут, генератор)
 ```
 
-## Срез агента «Фрейм для пачки» (2026-10-06)
+Живой срез: [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) · экосистема: [`ECOSYSTEM_PLAN.md`](ECOSYSTEM_PLAN.md) · сеттинг: [`SETTING_PLAN.md`](SETTING_PLAN.md).  
+**Prod tip:** `cursor/name-generation-plan-de51` · http://201.34.132.252/
 
-Сделано в серверном продукте (не в Pages/`main`), залито на прод.
+### Что дальше (не «с нуля»)
 
-| Что | Статус |
-|-----|--------|
-| Модель: лобби → опциональный сеттинг → сессия (ваншот ок) | ✅ |
-| Мастер создаёт лобби, получает код + QR | ✅ |
-| Игрок: `/join/КОД` → выбирает персонажа | ✅ |
-| Код на карточке персонажа | ✅ |
-| Seat/unseat в сессии из состава лобби | ✅ |
-| Nginx `/lobbies` `/sessions` `/settings` → API (фикс 405) | ✅ |
-| Прод http://201.34.132.252/ `/health` ok, alembic `c9d0e1f2a3b4` | ✅ |
-| Боевой фрейм / лут / realtime | ❌ очередь |
-
-Ветка/PR: `cursor/lobby-join-table-3333` — https://github.com/igorpogulaev485-code/Dvarf/pull/18  
-Ошибочный PR на localStorage/`main` (#12) закрыт.
-
-Дальше этому контуру: **боевой фрейм на сессии** (план → ok). Не начинать encounter/loot раньше.
+| Тема | Статус |
+|------|--------|
+| C10 карта / C11 граф | по запросу |
+| Калибровка генератора (`party_power`) | очередь |
+| Лист polish (rich-text, авто-ASI) · classic UX | очередь |
+| Стол polish (напарники-стек, mobile чипы) | очередь |
 
 ## Для агентов (обязательно прочитать)
 
@@ -48,7 +40,7 @@ Skills: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod
 
 - Итерации: **короткий план → ok от Игоря → код / commit / push / PR**. Без ok код не писать.
 - Ветки: `cursor/<name>-acbe` (от **prod tip**, не от голого `main`/старой развилки). В `main` только через PR.
-- **Prod tip сейчас:** `cursor/prod-lineage-rules-acbe`. Деплой только с дерева, где tip уже влит.
+- **Prod tip сейчас:** `cursor/name-generation-plan-de51` (читай живой VPS / `deploy/prod-tip`, не устаревший README). Деплой только с дерева, где tip уже влит.
 - Деплой на Timeweb **только** по явной просьбе («залей на сервер»). `./deploy/sync-and-up.sh` **затирает весь** `/opt/dvarf` кроме `.env` — тонкая ветка убивает чужие фичи. Перед деплоем: `./deploy/preflight-prod.sh`. См. [`deploy/README.md`](deploy/README.md).
 - После деплоя: проверить маркеры (лобби, кабинет, лист, classic) на живом сервере; в `PRODUCT_STATUS` писать «на проде» только по факту.
 - Параллельные агенты: PR можно параллельно; **на сервер — один интегрированный деплой от tip**. Не деплоить каждый свою развилку.
@@ -77,10 +69,10 @@ flowchart TB
 
   subgraph table [Стол]
     Lobby[Лобби + invite code / QR]
-    Setting[Сеттинг — мир, опционально]
-    Session[Сессия — этот раз]
-    Encounter[Подготовка боя — позже]
-    Loot[Лут — позже]
+    Setting[Сеттинг вики C1–T5 + D1]
+    Session[Сессия + бой B1–B8]
+    Encounter[Энкаунтер / генератор]
+    Loot[Лут + P2P Передать]
   end
 
   User --> Cabinet
@@ -92,6 +84,7 @@ flowchart TB
   Setting -.->|опционально| Session
   Session --> Encounter
   Encounter --> Loot
+  Session <-->|T-мосты| Setting
 ```
 
 ## Лобби / сеттинг / сессия
@@ -100,60 +93,33 @@ flowchart TB
 - **Вход игрока:** QR/код → логин → выбрать персонажа; или код на карточке персонажа.
 - **Сеттинг** — мир внутри лобби (необязателен).
 - **Сессия** — сегодняшний стол; `setting_id` может быть `null` (ваншот). Удаление сеттинга отвязывает сессии.
-- Бой и лут — на сессии (ещё не сделано).
+- Бой и лут — на сессии (**есть**: инициатива, бестиарий, XP, лут, шаблоны, генератор).
+- Сеттинг — вики + мосты стол/дневник (**есть**: C1–T5) + артефакты D1.
+- Classic 2014/2024 — второй UI того же `sheet`.
 - У LSS «комната» ближе к **сессии**, не к сеттингу.
-- **Прод:** залито; nginx проксирует `/lobbies`, `/sessions`, `/settings` на API (как `/characters`). SPA-навигация с `Accept: text/html` без Bearer по-прежнему отдаёт `index.html`.
+- **Прод:** tip `cursor/name-generation-plan-de51`; nginx проксирует `/lobbies`, `/sessions`, `/settings` на API.
 
-## Дорожная карта
+## Дорожная карта (срез прода 2026-10-17)
 
-### Фаза A — Digital sheet MVP *(закрыт для соло-игры)*
+Детальный статус слайсов: [`ECOSYSTEM_PLAN.md`](ECOSYSTEM_PLAN.md) · [`SETTING_PLAN.md`](SETTING_PLAN.md) · [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md).
 
-Одиночный интерактивный лист: создать → заполнить → играть (бой/отдых/заклинания).  
-**Готово как playable MVP**, не как полный автомат PHB: много правил всё ещё вручную (см. Polish / gaps ниже).
-
-| Слайс | Содержание | Статус |
-|-------|------------|--------|
-| Auth + characters | JWT, CRUD, JSONB sheet | ✅ |
-| Core sheet | abilities / saves / skills / sticky combat | ✅ |
-| Attacks + inventory | оружие/артефакты, вес STR×15 | ✅ |
-| Text blocks | rename / hide / reorder | ✅ |
-| Spells S1–S4 | slots, prepare, cast, grimoire | ✅ |
-| Play S1–S2 | conditions, exhaustion, resources, rest, temp HP, hit dice, death saves | ✅ |
-| Sheet S3 | XP, subclass/background/alignment, passives, darkvision, armor/weapon prof | ✅ |
-| Sheet S4+ | pact magic UI, attunement, короткий/продолжительный отдых | ✅ |
-| Polish | multiclass, race→эффекты, rich-text, auto AC/slots/upcast | backlog |
-
-### Фаза B — Classic PDF-like *(параллельно другим агентом)*
-
-Второй UI поверх **того же** `Character.sheet` (не вторая модель данных).
-
-- Цель: привычная «бумажная» раскладка + интерактив.
-- Зависимость: digital JSON-контракт листа стабилен (фаза A).
-- Агентам PDF: не ломать digital-роуты и `shared/dnd` без согласования.
-
-### Фаза C — Лобби + сессия *(каркас на проде)*
-
-1. ✅ Модель Lobby / Setting / PlaySession + seat  
-2. ✅ Invite code + QR join + код на персонаже  
-3. ✅ UI `/lobbies`, `/join/:code`, сеттинг, фрейм сессии (состав стола)  
-4. ✅ Nginx proxy `/lobbies|/sessions|/settings` → API (иначе POST ловил 405)  
-5. ⏳ Общий **боевой** фрейм на сессии (инициатива / статусы)  
-6. ⏳ Realtime (WebSocket) по необходимости  
-
-### Фаза D — Подготовка боя → лут
-
-Зависимости: сессия в лобби (C).
-
-1. Encounter prep (инициатива, участники боя, статусы стола).
-2. Loot (раздача / учёт после боя).
+| Ось | Содержание | Статус |
+|-----|------------|--------|
+| Digital sheet | Play Desk, мультикласс, раса→эффекты, заклинания, инвентарь | ✅ прод · polish: rich-text, авто-ASI |
+| Classic | Бланк 2014/2024, тот же sheet | ✅ прод |
+| Лобби (A1–A6) | Хаб, состав, дневник, чаты, заметки, видимость | ✅ прод |
+| Бой (B1–B8) | Противники, инициатива, XP, лут, P2P, шаблоны, генератор | ✅ прод · калибровка `party_power` |
+| Сеттинг (C1–T5) | Вики + типы/mentions/секреты + мосты стол↔дневник | ✅ прод · C10/C11 по запросу |
+| Артефакты (D1) | Библиотека способностей → лут → лист | ✅ прод |
+| Имена | Пол + генерация по расе на создании | ✅ прод |
 
 ```mermaid
 flowchart LR
-  A[A Digital sheet] --> B[B Classic PDF-like]
-  A --> C[C Lobby + Session]
-  B -.->|тот же sheet JSON| C
-  C --> D1[D Encounter prep]
-  D1 --> D2[D Loot]
+  Sheet[Digital + Classic] --> Lobby[Lobby A]
+  Lobby --> Session[Session + Combat B]
+  Lobby --> Setting[Setting C + T bridges]
+  Session --> Setting
+  Setting --> Artifacts[D1 artifacts → sheet]
 ```
 
 ## Статус кода (сейчас)

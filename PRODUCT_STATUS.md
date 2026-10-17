@@ -448,11 +448,13 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 ## Ближайшая очередь (коротко)
 
-Не детальный бэклог — только то, что Игорь явно держит следующим:
+Не детальный бэклог — только то, что Игорь явно держит следующим.  
+Срез прода 2026-10-17: **A + B1–B8 + C1–T5 + D1 + classic 2014/2024 + генерация имени** уже на tip `cursor/name-generation-plan-de51`.
 
-1. C5–T5 на проде (tip `setting-t5-journal-table`); C10 карта / C11 граф — по запросу — см. `SETTING_PLAN.md`
-2. Калибровка генератора боя (`party_power`) на реальных ПС после создания персонажей на проде
-3. Rich-text в текстовых блоках листа; опционально авто-ASI от расы
+1. **C10 карта / C11 граф** — только по запросу · см. `SETTING_PLAN.md`
+2. Калибровка генератора боя (`party_power`) на реальных ПС
+3. Лист polish: rich-text текстовых блоков · авто-ASI от расы · classic UX
+4. Стол polish: стек напарников · mobile чипы сессии · см. `ECOSYSTEM_PLAN.md` §9
 
 ---
 
@@ -480,6 +482,8 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-17 | `cursor/strategic-plan-from-prod-3d0d` | Очередь: C5–T5 сняты (уже на проде); next = C10/C11 + калибровка B8 + лист/стол polish · ECOSYSTEM/SETTING/README синхронизированы с tip |
+| 2026-10-17 | `cursor/name-generation-plan-de51` · PR #211 | Генерация имени + пол → **новый tip** на Timeweb |
 | 2026-10-17 | `cursor/fix-list-create-fixes-6dc8` | Dialog/pad clicks: drop backdrop `pointer-events:none` → **новый tip** |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic 2014/2024 бланк + заметки + font size → **новый tip** на Timeweb |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic parity: weapons/equipment/conditions/attunement → тот же tip, redeploy |
