@@ -88,6 +88,7 @@ from app.schemas.lobby import (
     SessionCreateRequest,
     SessionDetail,
     SessionEventOut,
+    SessionLorePageOut,
     SessionRevealPageRequest,
     SessionRevealPageResult,
     SessionRollCreateRequest,
@@ -1410,13 +1411,65 @@ class LobbyService:
             session.name = payload.name.strip() or session.name
         if payload.clear_setting:
             session.setting_id = None
+            session.location_page_id = None
+            session.involved_page_ids = []
         elif payload.setting_id is not None:
             setting = self.lobbies.get_setting(payload.setting_id)
             if setting is None or setting.lobby_id != lobby.id:
                 raise AppError("Сеттинг не из этого лобби", code="setting_lobby_mismatch")
+            # смена сеттинга сбрасывает привязки лора
+            if session.setting_id != setting.id:
+                session.location_page_id = None
+                session.involved_page_ids = []
             session.setting_id = setting.id
+
+        if payload.clear_location_page:
+            session.location_page_id = None
+        elif payload.location_page_id is not None:
+            self._require_session_lore_page(session, payload.location_page_id)
+            session.location_page_id = payload.location_page_id
+
+        if payload.involved_page_ids is not None:
+            unique: list[UUID] = []
+            seen: set[UUID] = set()
+            for page_id in payload.involved_page_ids[:20]:
+                if page_id in seen:
+                    continue
+                self._require_session_lore_page(session, page_id)
+                seen.add(page_id)
+                unique.append(page_id)
+            session.involved_page_ids = unique
+
         self.db.commit()
         return self.get_session(user, session_id)
+
+    def _require_session_lore_page(self, session: PlaySession, page_id: UUID):
+        if session.setting_id is None:
+            raise AppError(
+                "К сессии не привязан сеттинг",
+                code="session_no_setting",
+                status_code=400,
+            )
+        page = self.lobbies.get_setting_page(page_id)
+        if page is None or page.setting_id != session.setting_id:
+            raise AppError(
+                "Страница не из сеттинга сессии",
+                code="session_lore_page_bad",
+                status_code=400,
+            )
+        return page
+
+    def _lore_page_out(self, page, *, is_owner: bool) -> SessionLorePageOut | None:
+        if page is None:
+            return None
+        if not is_owner and not page.revealed:
+            return None
+        return SessionLorePageOut(
+            id=page.id,
+            title=page.title,
+            page_kind=getattr(page, "page_kind", None) or "note",
+            revealed=bool(page.revealed),
+        )
 
     def delete_session(self, user: User, session_id: UUID) -> None:
         session = self.lobbies.get_session(session_id)
@@ -1511,6 +1564,25 @@ class LobbyService:
             )
         members = [_member_out(m, char_map.get(m.character_id)) for m in lobby.members]
         combatants = [_combatant_out(c) for c in _parse_combatants(session.combatants)]
+        is_owner = lobby.owner_id == user.id
+        location_page = None
+        location_page_id = getattr(session, "location_page_id", None)
+        if location_page_id is not None:
+            location_page = self._lore_page_out(
+                self.lobbies.get_setting_page(location_page_id),
+                is_owner=is_owner,
+            )
+            if location_page is None and not is_owner:
+                location_page_id = None
+        involved_raw = list(getattr(session, "involved_page_ids", None) or [])
+        involved_pages: list[SessionLorePageOut] = []
+        visible_involved_ids: list = []
+        for pid in involved_raw:
+            out = self._lore_page_out(self.lobbies.get_setting_page(pid), is_owner=is_owner)
+            if out is None:
+                continue
+            involved_pages.append(out)
+            visible_involved_ids.append(pid)
         return SessionDetail(
             id=session.id,
             lobby_id=lobby.id,
@@ -1518,12 +1590,16 @@ class LobbyService:
             setting_id=session.setting_id,
             setting_name=session.setting.name if session.setting else None,
             name=session.name,
-            is_owner=lobby.owner_id == user.id,
+            is_owner=is_owner,
             seats=seats,
             combatants=combatants,
             combat=_combat_out(getattr(session, "combat", None) or {}),
             lobby_members=members,
             visibility_profile=lobby.visibility_profile or {},
+            location_page_id=location_page_id if is_owner else (location_page.id if location_page else None),
+            involved_page_ids=list(involved_raw) if is_owner else visible_involved_ids,
+            location_page=location_page,
+            involved_pages=involved_pages,
             closed_at=session.closed_at,
             created_at=session.created_at,
             updated_at=session.updated_at,

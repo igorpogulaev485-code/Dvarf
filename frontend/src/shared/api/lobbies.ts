@@ -272,6 +272,13 @@ export type SessionCombat = {
   entries: CombatEntry[]
 }
 
+export type SessionLorePage = {
+  id: string
+  title: string
+  page_kind: SettingPageKind
+  revealed: boolean
+}
+
 export type SessionDetail = {
   id: string
   lobby_id: string
@@ -285,6 +292,11 @@ export type SessionDetail = {
   combat?: SessionCombat
   lobby_members: LobbyMember[]
   visibility_profile?: unknown
+  /** T3 */
+  location_page_id?: string | null
+  involved_page_ids?: string[]
+  location_page?: SessionLorePage | null
+  involved_pages?: SessionLorePage[]
   closed_at?: string | null
   created_at: string
   updated_at: string
@@ -544,7 +556,14 @@ export async function getSession(id: string): Promise<SessionDetail> {
 
 export async function updateSession(
   id: string,
-  payload: { name?: string; setting_id?: string | null; clear_setting?: boolean },
+  payload: {
+    name?: string
+    setting_id?: string | null
+    clear_setting?: boolean
+    location_page_id?: string | null
+    clear_location_page?: boolean
+    involved_page_ids?: string[]
+  },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${id}`, {
     method: 'PATCH',

@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -179,6 +179,18 @@ class PlaySession(Base):
         index=True,
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False, default="Новая сессия")
+    # T3: локация и задействованные страницы вики на сессии
+    location_page_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("setting_pages.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    involved_page_ids: Mapped[list[uuid.UUID]] = mapped_column(
+        ARRAY(UUID(as_uuid=True)),
+        nullable=False,
+        default=list,
+    )
     combatants: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
     combat: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
     closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -13,6 +13,9 @@ import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDialog'
 import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
+import { SessionLoreBindDialog } from '../features/lobby/SessionLoreBindDialog'
+import { SessionLorePanel } from '../features/lobby/SessionLorePanel'
+import { SettingPagePreviewDialog } from '../features/lobby/SettingPagePreviewDialog'
 import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoffDialog'
 import { SettingTableRevealDialog } from '../features/lobby/SettingTableRevealDialog'
 import { draftFromCombatant, type SettingHandoffDraft } from '../features/lobby/settingHandoff'
@@ -31,6 +34,7 @@ import type {
   SessionCombat,
   SessionCombatant,
   SessionEvent,
+  SessionLorePage,
   SessionSeat,
   SettingPage,
   SettingPageTemplate,
@@ -486,6 +490,40 @@ export function SessionLiveTablePreviewPage() {
   const [handoffDraft, setHandoffDraft] = useState<SettingHandoffDraft | null>(null)
   const [wikiPages, setWikiPages] = useState<SettingPage[]>(DEMO_SETTING_PAGES)
   const [revealOpen, setRevealOpen] = useState(false)
+  const [loreBindOpen, setLoreBindOpen] = useState(false)
+  const [locationPageId, setLocationPageId] = useState<string | null>('p-swamp')
+  const [involvedPageIds, setInvolvedPageIds] = useState<string[]>(['p-cult'])
+  const [previewPageId, setPreviewPageId] = useState<string | null>(null)
+
+  const locationPage: SessionLorePage | null = useMemo(() => {
+    const p = wikiPages.find((x) => x.id === locationPageId)
+    if (!p) return null
+    return {
+      id: p.id,
+      title: p.title,
+      page_kind: p.page_kind,
+      revealed: p.revealed,
+    }
+  }, [wikiPages, locationPageId])
+
+  const involvedPages: SessionLorePage[] = useMemo(
+    () =>
+      involvedPageIds
+        .map((id) => wikiPages.find((p) => p.id === id))
+        .filter(Boolean)
+        .map((p) => ({
+          id: p!.id,
+          title: p!.title,
+          page_kind: p!.page_kind,
+          revealed: p!.revealed,
+        })),
+    [wikiPages, involvedPageIds],
+  )
+
+  const previewPage = useMemo(
+    () => wikiPages.find((p) => p.id === previewPageId) ?? null,
+    [wikiPages, previewPageId],
+  )
 
   // Как в продукте: профиль из настроек лобби; здесь — дефолт (всё видно игрокам).
   // Мастер на реальном экране = is_owner лобби, не отдельный переключатель.
@@ -510,7 +548,7 @@ export function SessionLiveTablePreviewPage() {
           <div>
             <Text as="h1">Эхо Рассвета</Text>
             <Text tone="muted">
-              Превью A3+T1+T2 · стол → сеттинг · reveal · за столом {DEMO_SEATS.length}
+              Превью A3+T1–T3 · лор на столе · за столом {DEMO_SEATS.length}
             </Text>
           </div>
         </header>
@@ -557,6 +595,14 @@ export function SessionLiveTablePreviewPage() {
 
             {liveTab === 'table' ? (
               <Stack gap={12}>
+                <SessionLorePanel
+                  hasSetting
+                  locationPage={locationPage}
+                  involvedPages={involvedPages}
+                  isOwner={!closed}
+                  onOpenPage={(id) => setPreviewPageId(id)}
+                  onEdit={() => setLoreBindOpen(true)}
+                />
                 {!closed ? (
                   <div className="session-table-toolbar">
                     <Button
@@ -1380,6 +1426,31 @@ export function SessionLiveTablePreviewPage() {
           ) : null}
         </Stack>
       </Dialog>
+
+      <SessionLoreBindDialog
+        open={loreBindOpen}
+        pages={wikiPages}
+        locationPageId={locationPageId}
+        involvedPageIds={involvedPageIds}
+        onClose={() => setLoreBindOpen(false)}
+        onSave={(payload) => {
+          setLocationPageId(payload.location_page_id)
+          setInvolvedPageIds(payload.involved_page_ids)
+          setLoreBindOpen(false)
+          setToast('Лор сессии обновлён')
+        }}
+      />
+
+      <SettingPagePreviewDialog
+        open={Boolean(previewPageId)}
+        page={previewPage}
+        pages={wikiPages}
+        templates={DEMO_SETTING_TEMPLATES}
+        isOwner
+        settingId="set1"
+        onClose={() => setPreviewPageId(null)}
+        onOpenPage={(id) => setPreviewPageId(id)}
+      />
 
       <SettingTableRevealDialog
         open={revealOpen}

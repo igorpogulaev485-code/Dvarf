@@ -478,6 +478,86 @@ a.ui-button--primary {
   box-shadow: 0 10px 30px rgba(23, 53, 40, 0.25);
 }
 
+/* T3: лор сессии на столе */
+.session-lore-panel {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 10px 12px;
+}
+
+.session-lore-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.session-lore-panel__title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.session-lore-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.session-lore-chip {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  max-width: 100%;
+  text-align: left;
+}
+
+.session-lore-chip--location {
+  background: var(--accent-soft);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.session-lore-chip__kind {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: lowercase;
+}
+
+.session-lore-bind-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 14rem;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 6px;
+}
+
+.session-lore-bind-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.session-lore-bind-row.is-on {
+  background: var(--accent-soft);
+}
+
 /* T1: ссылка после handoff со стола */
 .session-handoff-toast-link {
   position: fixed;

@@ -365,6 +365,19 @@ class SessionUpdateRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     setting_id: UUID | None = None
     clear_setting: bool = False
+    # T3: привязка лора
+    location_page_id: UUID | None = None
+    clear_location_page: bool = False
+    involved_page_ids: list[UUID] | None = None
+
+
+class SessionLorePageOut(BaseModel):
+    """Краткая карточка страницы, привязанной к сессии."""
+
+    id: UUID
+    title: str
+    page_kind: SettingPageKind = "note"
+    revealed: bool = False
 
 
 class CombatantActionOut(BaseModel):
@@ -644,6 +657,11 @@ class SessionDetail(BaseModel):
     combat: SessionCombatOut = Field(default_factory=SessionCombatOut)
     lobby_members: list[LobbyMemberOut]
     visibility_profile: dict = Field(default_factory=dict)
+    # T3
+    location_page_id: UUID | None = None
+    involved_page_ids: list[UUID] = Field(default_factory=list)
+    location_page: SessionLorePageOut | None = None
+    involved_pages: list[SessionLorePageOut] = Field(default_factory=list)
     closed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime

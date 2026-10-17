@@ -13,6 +13,9 @@ import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDialog'
 import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
+import { SessionLoreBindDialog } from '../features/lobby/SessionLoreBindDialog'
+import { SessionLorePanel } from '../features/lobby/SessionLorePanel'
+import { SettingPagePreviewDialog } from '../features/lobby/SettingPagePreviewDialog'
 import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoffDialog'
 import { SettingTableRevealDialog } from '../features/lobby/SettingTableRevealDialog'
 import { draftFromCombatant, type SettingHandoffDraft } from '../features/lobby/settingHandoff'
@@ -61,6 +64,7 @@ import {
   type SessionEvent,
   type SessionCombatant,
   type SettingDetail,
+  type SettingPage,
 } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text, Toast } from '../ui'
 
@@ -105,6 +109,9 @@ export function SessionDetailPage() {
   const [handoffLink, setHandoffLink] = useState<string | null>(null)
   const [revealOpen, setRevealOpen] = useState(false)
   const [revealSetting, setRevealSetting] = useState<SettingDetail | null>(null)
+  const [loreBindOpen, setLoreBindOpen] = useState(false)
+  const [loreSetting, setLoreSetting] = useState<SettingDetail | null>(null)
+  const [previewPageId, setPreviewPageId] = useState<string | null>(null)
   const isOwnerRef = useRef(false)
 
   const reload = useCallback(async () => {
@@ -261,6 +268,47 @@ export function SessionDetailPage() {
     }
   }
 
+  async function ensureLoreSetting(): Promise<SettingDetail | null> {
+    if (!session?.setting_id) {
+      setToast('Привяжи сеттинг к сессии')
+      return null
+    }
+    if (loreSetting && loreSetting.id === session.setting_id) {
+      return loreSetting
+    }
+    setBusy(true)
+    setError(null)
+    try {
+      const setting = await getSetting(session.setting_id)
+      setLoreSetting(setting)
+      return setting
+    } catch (err) {
+      setError(
+        err instanceof ApiRequestError ? err.message : 'Не удалось открыть сеттинг',
+      )
+      return null
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function openLoreBind() {
+    const setting = await ensureLoreSetting()
+    if (!setting) return
+    setLoreBindOpen(true)
+  }
+
+  async function openLorePreview(pageId: string) {
+    const setting = await ensureLoreSetting()
+    if (!setting) return
+    setPreviewPageId(pageId)
+  }
+
+  const previewPage: SettingPage | null = useMemo(() => {
+    if (!previewPageId || !loreSetting) return null
+    return loreSetting.pages.find((p) => p.id === previewPageId) ?? null
+  }, [previewPageId, loreSetting])
+
   function openAttendanceEditor() {
     setDraftPresentIds(new Set(presentIds))
     setAttendanceOpen(true)
@@ -396,6 +444,15 @@ export function SessionDetailPage() {
 
             {liveTab === 'table' ? (
               <Stack gap={12}>
+                <SessionLorePanel
+                  hasSetting={Boolean(session.setting_id)}
+                  locationPage={session.location_page ?? null}
+                  involvedPages={session.involved_pages ?? []}
+                  isOwner={session.is_owner && !session.closed_at}
+                  busy={busy}
+                  onOpenPage={(id) => void openLorePreview(id)}
+                  onEdit={() => void openLoreBind()}
+                />
                 {!session.closed_at &&
                 (session.is_owner ||
                   session.seats.some((s) => ownCharacterIds.has(s.character_id))) ? (
@@ -913,6 +970,42 @@ export function SessionDetailPage() {
                 : `Эффект: ${effect.name} · ${characterIds.length}`,
             )
           })
+        }}
+      />
+
+      <SessionLoreBindDialog
+        open={loreBindOpen}
+        busy={busy}
+        pages={loreSetting?.pages ?? []}
+        locationPageId={session.location_page_id ?? null}
+        involvedPageIds={session.involved_page_ids ?? []}
+        onClose={() => setLoreBindOpen(false)}
+        onSave={(payload) => {
+          void run(async () => {
+            const next = await updateSession(session.id, {
+              location_page_id: payload.location_page_id,
+              clear_location_page: payload.clear_location_page,
+              involved_page_ids: payload.involved_page_ids,
+            })
+            setSession(next)
+            setLoreBindOpen(false)
+            setToast('Лор сессии обновлён')
+          })
+        }}
+      />
+
+      <SettingPagePreviewDialog
+        open={Boolean(previewPageId)}
+        page={previewPage}
+        pages={loreSetting?.pages ?? []}
+        templates={loreSetting?.templates ?? []}
+        isOwner={session.is_owner}
+        settingId={session.setting_id}
+        onClose={() => setPreviewPageId(null)}
+        onOpenPage={(id) => setPreviewPageId(id)}
+        onOpenInWiki={(id) => {
+          if (!session.setting_id) return
+          navigate(`/settings/${session.setting_id}?page=${id}`)
         }}
       />
 
