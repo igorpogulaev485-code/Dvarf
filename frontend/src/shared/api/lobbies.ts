@@ -277,6 +277,7 @@ export type SessionLorePage = {
   title: string
   page_kind: SettingPageKind
   revealed: boolean
+  quest_status?: QuestStatus | null
 }
 
 export type SessionDetail = {
@@ -302,7 +303,13 @@ export type SessionDetail = {
   updated_at: string
 }
 
-export type JournalEntryType = 'text' | 'chapter' | 'setting_link' | 'image' | 'session_summary'
+export type JournalEntryType =
+  | 'text'
+  | 'chapter'
+  | 'setting_link'
+  | 'image'
+  | 'session_summary'
+  | 'quest_status'
 
 export type JournalEntry = {
   id: string
@@ -788,6 +795,32 @@ export async function revealSessionPage(
   },
 ): Promise<SessionRevealPageResult> {
   return apiRequest<SessionRevealPageResult>(`/sessions/${sessionId}/reveal-page`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type SessionQuestStatusResult = {
+  session: SessionDetail
+  event: SessionEvent
+  page_id: string
+  page_title: string
+  quest_status: QuestStatus
+  journal_entry: JournalEntry | null
+}
+
+/** T4: статус квеста mid-session → лента + опционально дневник. */
+export async function updateSessionQuestStatus(
+  sessionId: string,
+  payload: {
+    page_id: string
+    quest_status: QuestStatus
+    write_journal?: boolean
+    title?: string
+    summary?: string
+  },
+): Promise<SessionQuestStatusResult> {
+  return apiRequest<SessionQuestStatusResult>(`/sessions/${sessionId}/quest-status`, {
     method: 'POST',
     body: JSON.stringify(payload),
   })

@@ -51,6 +51,11 @@ export function SessionEventFeed({
                   мир
                 </span>
               ) : null}
+              {ev.event_type === 'quest_status' ? (
+                <span className="session-event-feed__badge" title="Статус квеста">
+                  квест
+                </span>
+              ) : null}
             </Text>
             {ev.formula || ev.breakdown ? (
               <Text tone="muted" className="session-event-feed__formula">

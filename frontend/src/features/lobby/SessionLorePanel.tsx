@@ -3,7 +3,7 @@
  */
 import type { SessionLorePage } from '../../shared/api/lobbies'
 import { Button, Text } from '../../ui'
-import { pageKindLabel } from './settingKinds'
+import { pageKindLabel, QUEST_STATUS_LABELS, type QuestStatus } from './settingKinds'
 
 type Props = {
   locationPage: SessionLorePage | null
@@ -13,6 +13,12 @@ type Props = {
   hasSetting: boolean
   onOpenPage: (pageId: string) => void
   onEdit?: () => void
+  onQuestStatus?: (page: SessionLorePage) => void
+}
+
+function questStatusLabel(status: string | null | undefined): string {
+  if (!status) return ''
+  return QUEST_STATUS_LABELS[status as QuestStatus] ?? status
 }
 
 export function SessionLorePanel({
@@ -23,6 +29,7 @@ export function SessionLorePanel({
   hasSetting,
   onOpenPage,
   onEdit,
+  onQuestStatus,
 }: Props) {
   if (!hasSetting) return null
   const empty = !locationPage && involvedPages.length === 0
@@ -57,19 +64,34 @@ export function SessionLorePanel({
             </button>
           ) : null}
           {involvedPages.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              className="session-lore-chip"
-              disabled={busy}
-              onClick={() => onOpenPage(p.id)}
-              title={pageKindLabel(p.page_kind)}
-            >
-              <span className="session-lore-chip__kind">
-                {pageKindLabel(p.page_kind)}
-              </span>
-              {p.title}
-            </button>
+            <span key={p.id} className="session-lore-chip-wrap">
+              <button
+                type="button"
+                className={`session-lore-chip${p.page_kind === 'quest' ? ' session-lore-chip--quest' : ''}`}
+                disabled={busy}
+                onClick={() => onOpenPage(p.id)}
+                title={pageKindLabel(p.page_kind)}
+              >
+                <span className="session-lore-chip__kind">
+                  {pageKindLabel(p.page_kind)}
+                  {p.page_kind === 'quest' && p.quest_status
+                    ? ` · ${questStatusLabel(p.quest_status)}`
+                    : ''}
+                </span>
+                {p.title}
+              </button>
+              {isOwner && p.page_kind === 'quest' && onQuestStatus ? (
+                <button
+                  type="button"
+                  className="session-lore-chip__status"
+                  disabled={busy}
+                  title="Сменить статус квеста"
+                  onClick={() => onQuestStatus(p)}
+                >
+                  статус
+                </button>
+              ) : null}
+            </span>
           ))}
         </div>
       )}

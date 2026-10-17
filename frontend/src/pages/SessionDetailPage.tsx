@@ -15,6 +15,7 @@ import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDi
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { SessionLoreBindDialog } from '../features/lobby/SessionLoreBindDialog'
 import { SessionLorePanel } from '../features/lobby/SessionLorePanel'
+import { SessionQuestStatusDialog } from '../features/lobby/SessionQuestStatusDialog'
 import { SettingPagePreviewDialog } from '../features/lobby/SettingPagePreviewDialog'
 import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoffDialog'
 import { SettingTableRevealDialog } from '../features/lobby/SettingTableRevealDialog'
@@ -48,6 +49,7 @@ import {
   getSetting,
   listSessionEvents,
   revealSessionPage,
+  updateSessionQuestStatus,
   patchSeatCombat,
   patchSessionCombat,
   patchSessionCombatant,
@@ -63,6 +65,7 @@ import {
   type SessionDetail,
   type SessionEvent,
   type SessionCombatant,
+  type SessionLorePage,
   type SettingDetail,
   type SettingPage,
 } from '../shared/api/lobbies'
@@ -112,6 +115,8 @@ export function SessionDetailPage() {
   const [loreBindOpen, setLoreBindOpen] = useState(false)
   const [loreSetting, setLoreSetting] = useState<SettingDetail | null>(null)
   const [previewPageId, setPreviewPageId] = useState<string | null>(null)
+  const [questDialogOpen, setQuestDialogOpen] = useState(false)
+  const [questTarget, setQuestTarget] = useState<SessionLorePage | null>(null)
   const isOwnerRef = useRef(false)
 
   const reload = useCallback(async () => {
@@ -169,9 +174,9 @@ export function SessionDetailPage() {
         if (rollsOnly && incoming.event_type !== 'roll') return prev
         return [incoming, ...prev]
       })
-      // T2: игрокам toast при раскрытии со стола (мастер уже тостнул локально)
+      // T2/T4: игрокам toast при reveal / квесте (мастер уже тостнул локально)
       if (
-        incoming.event_type === 'reveal' &&
+        (incoming.event_type === 'reveal' || incoming.event_type === 'quest_status') &&
         !isOwnerRef.current &&
         incoming.title
       ) {
@@ -452,6 +457,10 @@ export function SessionDetailPage() {
                   busy={busy}
                   onOpenPage={(id) => void openLorePreview(id)}
                   onEdit={() => void openLoreBind()}
+                  onQuestStatus={(page) => {
+                    setQuestTarget(page)
+                    setQuestDialogOpen(true)
+                  }}
                 />
                 {!session.closed_at &&
                 (session.is_owner ||
@@ -968,6 +977,33 @@ export function SessionDetailPage() {
               characterIds.length === 1
                 ? `Эффект: ${effect.name}`
                 : `Эффект: ${effect.name} · ${characterIds.length}`,
+            )
+          })
+        }}
+      />
+
+      <SessionQuestStatusDialog
+        open={questDialogOpen}
+        busy={busy}
+        quest={questTarget}
+        onClose={() => {
+          setQuestDialogOpen(false)
+          setQuestTarget(null)
+        }}
+        onSave={(payload) => {
+          void run(async () => {
+            const result = await updateSessionQuestStatus(session.id, payload)
+            setSession(result.session)
+            setEvents((prev) => {
+              if (prev.some((e) => e.id === result.event.id)) return prev
+              return [result.event, ...prev]
+            })
+            setQuestDialogOpen(false)
+            setQuestTarget(null)
+            setToast(
+              result.journal_entry
+                ? `${result.event.title} · в дневнике`
+                : result.event.title,
             )
           })
         }}

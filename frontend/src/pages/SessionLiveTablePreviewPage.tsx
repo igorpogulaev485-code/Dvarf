@@ -15,6 +15,7 @@ import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDi
 import { EnemyCard } from '../features/lobby/EnemyCard'
 import { SessionLoreBindDialog } from '../features/lobby/SessionLoreBindDialog'
 import { SessionLorePanel } from '../features/lobby/SessionLorePanel'
+import { SessionQuestStatusDialog } from '../features/lobby/SessionQuestStatusDialog'
 import { SettingPagePreviewDialog } from '../features/lobby/SettingPagePreviewDialog'
 import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoffDialog'
 import { SettingTableRevealDialog } from '../features/lobby/SettingTableRevealDialog'
@@ -393,6 +394,23 @@ const DEMO_SETTING_PAGES: SettingPage[] = [
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
+  {
+    id: 'p-quest',
+    setting_id: 'set1',
+    parent_id: 'p-swamp',
+    title: 'Найти пропавший груз',
+    body: 'Капитан Вера ищет ящик с печатями культа.',
+    gm_body: 'Груз в катакомбах под портом.',
+    sort_order: 1,
+    revealed: true,
+    page_kind: 'quest',
+    template_id: null,
+    fields: {},
+    quest_status: 'active',
+    tags: ['квест', 'порт'],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
 ]
 
 const SEED_TEMPLATES: EncounterTemplate[] = [
@@ -492,8 +510,10 @@ export function SessionLiveTablePreviewPage() {
   const [revealOpen, setRevealOpen] = useState(false)
   const [loreBindOpen, setLoreBindOpen] = useState(false)
   const [locationPageId, setLocationPageId] = useState<string | null>('p-swamp')
-  const [involvedPageIds, setInvolvedPageIds] = useState<string[]>(['p-cult'])
+  const [involvedPageIds, setInvolvedPageIds] = useState<string[]>(['p-cult', 'p-quest'])
   const [previewPageId, setPreviewPageId] = useState<string | null>(null)
+  const [questDialogOpen, setQuestDialogOpen] = useState(false)
+  const [questTarget, setQuestTarget] = useState<SessionLorePage | null>(null)
 
   const locationPage: SessionLorePage | null = useMemo(() => {
     const p = wikiPages.find((x) => x.id === locationPageId)
@@ -516,6 +536,7 @@ export function SessionLiveTablePreviewPage() {
           title: p!.title,
           page_kind: p!.page_kind,
           revealed: p!.revealed,
+          quest_status: p!.quest_status,
         })),
     [wikiPages, involvedPageIds],
   )
@@ -548,7 +569,7 @@ export function SessionLiveTablePreviewPage() {
           <div>
             <Text as="h1">Эхо Рассвета</Text>
             <Text tone="muted">
-              Превью A3+T1–T3 · лор на столе · за столом {DEMO_SEATS.length}
+              Превью A3+T1–T4 · квест на столе · за столом {DEMO_SEATS.length}
             </Text>
           </div>
         </header>
@@ -602,6 +623,10 @@ export function SessionLiveTablePreviewPage() {
                   isOwner={!closed}
                   onOpenPage={(id) => setPreviewPageId(id)}
                   onEdit={() => setLoreBindOpen(true)}
+                  onQuestStatus={(page) => {
+                    setQuestTarget(page)
+                    setQuestDialogOpen(true)
+                  }}
                 />
                 {!closed ? (
                   <div className="session-table-toolbar">
@@ -1426,6 +1451,59 @@ export function SessionLiveTablePreviewPage() {
           ) : null}
         </Stack>
       </Dialog>
+
+      <SessionQuestStatusDialog
+        open={questDialogOpen}
+        quest={questTarget}
+        onClose={() => {
+          setQuestDialogOpen(false)
+          setQuestTarget(null)
+        }}
+        onSave={(payload) => {
+          setWikiPages((prev) =>
+            prev.map((p) =>
+              p.id === payload.page_id
+                ? { ...p, quest_status: payload.quest_status }
+                : p,
+            ),
+          )
+          const page = wikiPages.find((p) => p.id === payload.page_id)
+          const labels: Record<string, string> = {
+            planned: 'План',
+            active: 'Активен',
+            done: 'Готово',
+            failed: 'Провал',
+          }
+          const label = labels[payload.quest_status] ?? payload.quest_status
+          const title = `Квест: ${label} · ${page?.title ?? ''}`
+          setEvents((prev) => [
+            {
+              id: `ev-quest-${Date.now()}`,
+              session_id: 's1',
+              event_type: 'quest_status',
+              character_id: null,
+              actor_user_id: 'u0',
+              character_name: 'Мастер',
+              title,
+              formula: null,
+              breakdown: null,
+              total: null,
+              is_master_roll: false,
+              payload: {
+                page_id: payload.page_id,
+                quest_status: payload.quest_status,
+              },
+              created_at: new Date().toISOString(),
+            },
+            ...prev,
+          ])
+          setQuestDialogOpen(false)
+          setQuestTarget(null)
+          setToast(
+            payload.write_journal ? `${title} · в дневнике` : title,
+          )
+        }}
+      />
 
       <SessionLoreBindDialog
         open={loreBindOpen}

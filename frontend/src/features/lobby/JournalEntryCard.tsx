@@ -14,6 +14,7 @@ function typeLabel(type: string): string {
   if (type === 'setting_link') return 'Вики'
   if (type === 'image') return 'Картинка'
   if (type === 'session_summary') return 'Итог сессии'
+  if (type === 'quest_status') return 'Квест'
   return 'Пост'
 }
 
@@ -59,13 +60,15 @@ export function JournalEntryCard({ entry, isOwner = false, busy = false, onDelet
         </Text>
       ) : null}
 
-      {entry.entry_type === 'setting_link' && entry.setting_id ? (
+      {(entry.entry_type === 'setting_link' || entry.entry_type === 'quest_status') &&
+      entry.setting_id ? (
         <Text>
           <Link to={settingHref(entry)}>{settingLabel(entry)}</Link>
         </Text>
       ) : null}
 
-      {entry.entry_type === 'session_summary' && entry.from_session_name ? (
+      {(entry.entry_type === 'session_summary' || entry.entry_type === 'quest_status') &&
+      entry.from_session_name ? (
         <Text tone="muted" className="journal-entry__session">
           Сессия: {entry.from_session_name}
         </Text>

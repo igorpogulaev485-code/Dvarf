@@ -59,6 +59,8 @@ from app.schemas.lobby import (
     SessionCreateRequest,
     SessionDetail,
     SessionEventOut,
+    SessionQuestStatusRequest,
+    SessionQuestStatusResult,
     SessionRevealPageRequest,
     SessionRevealPageResult,
     SessionRollCreateRequest,
@@ -524,6 +526,22 @@ async def reveal_session_page(
 ) -> SessionRevealPageResult:
     """T2: раскрыть страницу сеттинга mid-session → лента + realtime."""
     return await LobbyService(db).reveal_session_page(current_user, session_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/quest-status",
+    response_model=SessionQuestStatusResult,
+)
+async def update_session_quest_status(
+    session_id: UUID,
+    payload: SessionQuestStatusRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionQuestStatusResult:
+    """T4: статус квеста mid-session → лента + опционально дневник."""
+    return await LobbyService(db).update_session_quest_status(
+        current_user, session_id, payload
+    )
 
 
 @router.post(

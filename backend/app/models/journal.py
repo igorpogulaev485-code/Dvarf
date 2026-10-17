@@ -31,7 +31,7 @@ class CampaignJournalEntry(Base):
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
-    # text | chapter | setting_link | image | session_summary
+    # text | chapter | setting_link | image | session_summary | quest_status
     entry_type: Mapped[str] = mapped_column(String(32), nullable=False, default="text")
     title: Mapped[str] = mapped_column(String(200), nullable=False, default="")
     body: Mapped[str] = mapped_column(Text, nullable=False, default="")

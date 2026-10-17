@@ -89,6 +89,8 @@ from app.schemas.lobby import (
     SessionDetail,
     SessionEventOut,
     SessionLorePageOut,
+    SessionQuestStatusRequest,
+    SessionQuestStatusResult,
     SessionRevealPageRequest,
     SessionRevealPageResult,
     SessionRollCreateRequest,
@@ -109,7 +111,9 @@ from app.schemas.lobby import (
     SettingUpdateRequest,
 )
 
-JOURNAL_ENTRY_TYPES = frozenset({"text", "chapter", "setting_link", "image", "session_summary"})
+JOURNAL_ENTRY_TYPES = frozenset(
+    {"text", "chapter", "setting_link", "image", "session_summary", "quest_status"}
+)
 
 
 def _ability_mod(score: int | None) -> int:
@@ -1464,11 +1468,16 @@ class LobbyService:
             return None
         if not is_owner and not page.revealed:
             return None
+        kind = getattr(page, "page_kind", None) or "note"
+        quest_status = getattr(page, "quest_status", None)
+        if kind != "quest":
+            quest_status = None
         return SessionLorePageOut(
             id=page.id,
             title=page.title,
-            page_kind=getattr(page, "page_kind", None) or "note",
+            page_kind=kind,
             revealed=bool(page.revealed),
+            quest_status=quest_status,
         )
 
     def delete_session(self, user: User, session_id: UUID) -> None:
@@ -1682,6 +1691,12 @@ class LobbyService:
         if entry_type == "session_summary":
             raise AppError(
                 "Итог сессии создаётся через «Закрыть сессию»",
+                code="journal_type_forbidden",
+                status_code=400,
+            )
+        if entry_type == "quest_status":
+            raise AppError(
+                "Статус квеста пишется со стола",
                 code="journal_type_forbidden",
                 status_code=400,
             )
@@ -2239,6 +2254,110 @@ class LobbyService:
         if session.closed_at is not None:
             raise AppError("Сессия закрыта", code="session_closed", status_code=400)
         return session, lobby
+
+    async def update_session_quest_status(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: SessionQuestStatusRequest,
+    ) -> SessionQuestStatusResult:
+        """T4: статус квеста mid-session → лента + опционально дневник."""
+        session, lobby = self._require_session_owner(user, session_id)
+        if session.setting_id is None:
+            raise AppError(
+                "К сессии не привязан сеттинг",
+                code="session_no_setting",
+                status_code=400,
+            )
+        if payload.quest_status not in QUEST_STATUSES:
+            raise AppError("Неверный статус квеста", code="quest_status_bad", status_code=400)
+
+        page = self._require_session_lore_page(session, payload.page_id)
+        if (page.page_kind or "note") != "quest":
+            raise AppError(
+                "Страница не квест",
+                code="quest_page_required",
+                status_code=400,
+            )
+
+        # Разрешаем любой квест сеттинга; приоритет — задействованные на сессии.
+        page.quest_status = payload.quest_status
+
+        status_labels = {
+            "planned": "План",
+            "active": "Активен",
+            "done": "Готово",
+            "failed": "Провал",
+        }
+        label = status_labels.get(payload.quest_status, payload.quest_status)
+        title = f"Квест: {label} · {page.title}"[:200]
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="quest_status",
+            character_id=None,
+            actor_user_id=user.id,
+            character_name="Мастер",
+            title=title,
+            formula=None,
+            breakdown=None,
+            total=None,
+            is_master_roll=False,
+            payload={
+                "page_id": str(page.id),
+                "setting_id": str(session.setting_id),
+                "quest_status": payload.quest_status,
+                "page_title": page.title,
+            },
+        )
+        self.lobbies.add_session_event(event)
+
+        journal_out = None
+        if payload.write_journal and payload.quest_status in ("done", "failed"):
+            summary = (payload.summary or "").strip()
+            j_title = (payload.title or "").strip() or title
+            if not summary:
+                summary = (
+                    f"Квест «{page.title}» завершён ({label}) на сессии «{session.name}»."
+                )
+            entry = CampaignJournalEntry(
+                lobby_id=lobby.id,
+                author_user_id=user.id,
+                entry_type="quest_status",
+                title=j_title[:200],
+                body=summary,
+                setting_id=session.setting_id,
+                page_id=page.id,
+                from_session_id=session.id,
+            )
+            self.lobbies.add_journal_entry(entry)
+            self.db.flush()
+            journal_out = entry
+
+        self.db.commit()
+        self.db.refresh(event)
+        if journal_out is not None:
+            self.db.refresh(journal_out)
+
+        detail = self._session_detail(session, lobby, user)
+        out_event = SessionEventOut.model_validate(event)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_update", "session": detail.model_dump(mode="json")},
+        )
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out_event.model_dump(mode="json")},
+        )
+        return SessionQuestStatusResult(
+            session=detail,
+            event=out_event,
+            page_id=page.id,
+            page_title=page.title,
+            quest_status=payload.quest_status,
+            journal_entry=(
+                self._journal_out(journal_out, is_owner=True) if journal_out is not None else None
+            ),
+        )
 
     async def reveal_session_page(
         self,

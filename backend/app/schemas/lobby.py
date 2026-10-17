@@ -378,6 +378,26 @@ class SessionLorePageOut(BaseModel):
     title: str
     page_kind: SettingPageKind = "note"
     revealed: bool = False
+    quest_status: QuestStatus | None = None
+
+
+class SessionQuestStatusRequest(BaseModel):
+    """T4: сменить статус квеста mid-session (+ опционально дневник)."""
+
+    page_id: UUID
+    quest_status: QuestStatus
+    write_journal: bool = False
+    title: str | None = Field(default=None, max_length=200)
+    summary: str | None = Field(default=None, max_length=4000)
+
+
+class SessionQuestStatusResult(BaseModel):
+    session: "SessionDetail"
+    event: "SessionEventOut"
+    page_id: UUID
+    page_title: str
+    quest_status: QuestStatus
+    journal_entry: "JournalEntryOut | None" = None
 
 
 class CombatantActionOut(BaseModel):

@@ -525,6 +525,34 @@ a.ui-button--primary {
   font-weight: 600;
 }
 
+.session-lore-chip-wrap {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.session-lore-chip--quest {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.session-lore-chip__status {
+  appearance: none;
+  border: 1px solid var(--line);
+  border-left: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 0 10px 10px 0;
+  cursor: pointer;
+}
+
+.session-lore-chip-wrap:not(:has(.session-lore-chip__status)) .session-lore-chip--quest {
+  border-radius: 10px;
+}
+
 .session-lore-chip__kind {
   display: block;
   font-size: 0.7rem;
