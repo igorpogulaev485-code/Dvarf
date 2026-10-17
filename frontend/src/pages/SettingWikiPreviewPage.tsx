@@ -528,6 +528,24 @@ export function SettingWikiPreviewPage() {
                                 })
                               }
                             />
+                          ) : field.type === 'select' && field.options?.length ? (
+                            <select
+                              className="ui-input"
+                              value={value}
+                              disabled={!asOwner}
+                              onChange={(e) =>
+                                patchSelected({
+                                  fields: { ...selected.fields, [field.key]: e.target.value },
+                                })
+                              }
+                            >
+                              <option value="">—</option>
+                              {field.options.map((opt) => (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              ))}
+                            </select>
                           ) : (
                             <Input
                               value={value}
