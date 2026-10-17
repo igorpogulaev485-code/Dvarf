@@ -25,6 +25,13 @@ from app.repositories.catalog import CatalogRepository
 from app.dnd.encounter_budget import EncounterDifficulty
 from app.dnd.encounter_compose import compose_encounter
 from app.dnd.encounter_pool import monster_from_catalog_entry
+from app.dnd.setting_templates import (
+    PAGE_KINDS,
+    QUEST_STATUSES,
+    SYSTEM_TEMPLATE_IDS,
+    default_quest_status,
+    empty_fields_for_schema,
+)
 from app.dnd.sheet_signals import PartyMemberSnapshot
 from app.dnd.xp import xp_from_cr
 from app.schemas.lobby import (
@@ -84,10 +91,13 @@ from app.schemas.lobby import (
     SessionUpdateRequest,
     SettingCreateRequest,
     SettingDetail,
+    SettingPageBulkCreateRequest,
     SettingPageCreateRequest,
     SettingPageLinkCreateRequest,
     SettingPageLinkOut,
     SettingPageOut,
+    SettingPageTemplateField,
+    SettingPageTemplateOut,
     SettingPageUpdateRequest,
     SettingSummary,
     SettingUpdateRequest,
@@ -778,9 +788,63 @@ class LobbyService:
         self._require_view(lobby, user)
         return self._setting_detail(setting, is_owner=lobby.owner_id == user.id)
 
+    def _template_out(self, template) -> SettingPageTemplateOut:
+        raw_schema = template.schema if isinstance(template.schema, list) else []
+        fields: list[SettingPageTemplateField] = []
+        for item in raw_schema:
+            if not isinstance(item, dict) or not item.get("key"):
+                continue
+            try:
+                fields.append(SettingPageTemplateField.model_validate(item))
+            except Exception:
+                continue
+        return SettingPageTemplateOut(
+            id=template.id,
+            setting_id=template.setting_id,
+            page_kind=template.page_kind,
+            name=template.name,
+            body_seed=template.body_seed or "",
+            schema=fields,
+            enabled=bool(template.enabled),
+            is_system=template.setting_id is None,
+        )
+
+    def _resolve_page_template(
+        self,
+        *,
+        setting_id: UUID,
+        page_kind: str,
+        template_id: UUID | None,
+    ):
+        if page_kind not in PAGE_KINDS:
+            raise AppError("Неизвестный тип страницы", code="page_kind_bad", status_code=400)
+        if template_id is not None:
+            template = self.lobbies.get_setting_page_template(template_id)
+            if template is None or not template.enabled:
+                raise AppError("Шаблон не найден", code="page_template_not_found", status_code=404)
+            if template.setting_id is not None and template.setting_id != setting_id:
+                raise AppError(
+                    "Шаблон не из этого сеттинга",
+                    code="page_template_bad",
+                    status_code=400,
+                )
+            if template.page_kind != page_kind:
+                raise AppError(
+                    "Шаблон не подходит к типу страницы",
+                    code="page_template_kind_mismatch",
+                    status_code=400,
+                )
+            return template
+        # Системный шаблон по типу
+        sys_id = SYSTEM_TEMPLATE_IDS.get(page_kind)
+        if sys_id is None:
+            return None
+        return self.lobbies.get_setting_page_template(sys_id)
+
     def _setting_detail(self, setting: Setting, *, is_owner: bool) -> SettingDetail:
         pages = self.lobbies.list_setting_pages(setting.id)
         links = self.lobbies.list_setting_page_links(setting.id)
+        templates = self.lobbies.list_setting_page_templates(setting.id)
         if not is_owner:
             pages = [p for p in pages if p.revealed]
             visible = {p.id for p in pages}
@@ -789,6 +853,26 @@ class LobbyService:
                 for link in links
                 if link.from_page_id in visible and link.to_page_id in visible
             ]
+            # Игроку не отдаём gm_only значения полей
+            filtered_pages = []
+            for p in pages:
+                out = SettingPageOut.model_validate(p)
+                schema_by_key: dict[str, bool] = {}
+                for t in templates:
+                    if t.id == p.template_id:
+                        for f in t.schema if isinstance(t.schema, list) else []:
+                            if isinstance(f, dict) and f.get("key"):
+                                schema_by_key[str(f["key"])] = bool(f.get("gm_only"))
+                        break
+                public_fields = {
+                    k: v
+                    for k, v in (out.fields or {}).items()
+                    if not schema_by_key.get(k, False)
+                }
+                filtered_pages.append(out.model_copy(update={"fields": public_fields}))
+            pages_out = filtered_pages
+        else:
+            pages_out = [SettingPageOut.model_validate(p) for p in pages]
         title_by_id = {p.id: p.title for p in pages}
         base = SettingSummary.model_validate(setting)
         data = base.model_dump()
@@ -797,7 +881,7 @@ class LobbyService:
             data["world_notes"] = ""
         return SettingDetail(
             **data,
-            pages=[SettingPageOut.model_validate(p) for p in pages],
+            pages=pages_out,
             links=[
                 SettingPageLinkOut(
                     id=link.id,
@@ -810,6 +894,7 @@ class LobbyService:
                 )
                 for link in links
             ],
+            templates=[self._template_out(t) for t in templates],
             is_owner=is_owner,
         )
 
@@ -858,13 +943,95 @@ class LobbyService:
             if payload.sort_order is not None
             else (max((p.sort_order for p in siblings), default=-1) + 1)
         )
+        page_kind = payload.page_kind or "note"
+        template = self._resolve_page_template(
+            setting_id=setting.id,
+            page_kind=page_kind,
+            template_id=payload.template_id,
+        )
+        template_id = template.id if template is not None else None
+        schema = template.schema if template is not None else []
+        fields = empty_fields_for_schema(schema if isinstance(schema, list) else [])
+        if payload.fields:
+            fields.update({str(k): v for k, v in payload.fields.items()})
+        body = payload.body if payload.body else (
+            (template.body_seed or "") if template is not None else ""
+        )
+        quest_status = payload.quest_status
+        if quest_status is None:
+            quest_status = default_quest_status(page_kind)
+        if quest_status is not None and quest_status not in QUEST_STATUSES:
+            raise AppError("Неверный статус квеста", code="quest_status_bad", status_code=400)
         self.lobbies.create_setting_page(
             setting_id=setting.id,
             title=(payload.title or "Новая страница").strip() or "Новая страница",
-            body=payload.body or "",
+            body=body or "",
             parent_id=parent_id,
             sort_order=sort_order,
+            page_kind=page_kind,
+            template_id=template_id,
+            fields=fields,
+            quest_status=quest_status,
         )
+        self.db.commit()
+        refreshed = self.lobbies.get_setting(setting.id)
+        assert refreshed is not None
+        return self._setting_detail(refreshed, is_owner=True)
+
+    def bulk_create_setting_pages(
+        self,
+        user: User,
+        setting_id: UUID,
+        payload: SettingPageBulkCreateRequest,
+    ) -> SettingDetail:
+        setting = self.lobbies.get_setting(setting_id)
+        if setting is None:
+            raise NotFoundError("Сеттинг не найден", code="setting_not_found")
+        lobby = self._require_lobby(setting.lobby_id)
+        self._require_owner(lobby, user)
+        titles = [t.strip() for t in payload.titles if t and t.strip()]
+        if not titles:
+            raise AppError("Нужно хотя бы одно имя", code="bulk_titles_empty", status_code=400)
+        parent_id = payload.parent_id
+        if parent_id is not None:
+            parent = self.lobbies.get_setting_page(parent_id)
+            if parent is None or parent.setting_id != setting.id:
+                raise AppError(
+                    "Родительская страница не из этого сеттинга",
+                    code="page_parent_bad",
+                    status_code=400,
+                )
+        page_kind = payload.page_kind or "npc"
+        template = self._resolve_page_template(
+            setting_id=setting.id,
+            page_kind=page_kind,
+            template_id=payload.template_id,
+        )
+        template_id = template.id if template is not None else None
+        schema = template.schema if template is not None else []
+        base_fields = empty_fields_for_schema(schema if isinstance(schema, list) else [])
+        body_seed = payload.body if payload.body else (
+            (template.body_seed or "") if template is not None else ""
+        )
+        quest_status = default_quest_status(page_kind)
+        siblings = [
+            p
+            for p in self.lobbies.list_setting_pages(setting.id)
+            if p.parent_id == parent_id
+        ]
+        next_order = max((p.sort_order for p in siblings), default=-1) + 1
+        for i, title in enumerate(titles):
+            self.lobbies.create_setting_page(
+                setting_id=setting.id,
+                title=title[:200],
+                body=body_seed or "",
+                parent_id=parent_id,
+                sort_order=next_order + i,
+                page_kind=page_kind,
+                template_id=template_id,
+                fields=dict(base_fields),
+                quest_status=quest_status,
+            )
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
@@ -915,6 +1082,43 @@ class LobbyService:
                 all_pages = self.lobbies.list_setting_pages(setting.id)
                 for child in self._descendant_pages(all_pages, page.id):
                     child.revealed = payload.revealed
+
+        if payload.page_kind is not None:
+            if payload.page_kind not in PAGE_KINDS:
+                raise AppError("Неизвестный тип страницы", code="page_kind_bad", status_code=400)
+            page.page_kind = payload.page_kind
+            if page.page_kind == "quest" and page.quest_status is None:
+                page.quest_status = "planned"
+            if page.page_kind != "quest":
+                page.quest_status = None
+        if payload.clear_template:
+            page.template_id = None
+        elif payload.template_id is not None or payload.page_kind is not None:
+            kind = payload.page_kind or page.page_kind or "note"
+            template = self._resolve_page_template(
+                setting_id=setting.id,
+                page_kind=kind,
+                template_id=payload.template_id,
+            )
+            if template is not None:
+                page.template_id = template.id
+                if payload.template_id is not None:
+                    base = empty_fields_for_schema(
+                        template.schema if isinstance(template.schema, list) else []
+                    )
+                    merged = dict(base)
+                    merged.update(page.fields or {})
+                    page.fields = merged
+        if payload.fields is not None:
+            merged = dict(page.fields or {})
+            merged.update({str(k): v for k, v in payload.fields.items()})
+            page.fields = merged
+        if payload.clear_quest_status:
+            page.quest_status = None
+        elif payload.quest_status is not None:
+            if payload.quest_status not in QUEST_STATUSES:
+                raise AppError("Неверный статус квеста", code="quest_status_bad", status_code=400)
+            page.quest_status = payload.quest_status
 
         if page.parent_id is None and payload.body is not None:
             roots = [

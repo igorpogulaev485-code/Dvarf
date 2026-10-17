@@ -63,6 +63,7 @@ from app.schemas.lobby import (
     SessionUpdateRequest,
     SettingCreateRequest,
     SettingDetail,
+    SettingPageBulkCreateRequest,
     SettingPageCreateRequest,
     SettingPageLinkCreateRequest,
     SettingPageUpdateRequest,
@@ -217,6 +218,20 @@ def create_setting_page(
     db: DbSession,
 ) -> SettingDetail:
     return LobbyService(db).create_setting_page(current_user, setting_id, payload)
+
+
+@router.post(
+    "/settings/{setting_id}/pages/bulk",
+    response_model=SettingDetail,
+    status_code=201,
+)
+def bulk_create_setting_pages(
+    setting_id: UUID,
+    payload: SettingPageBulkCreateRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SettingDetail:
+    return LobbyService(db).bulk_create_setting_pages(current_user, setting_id, payload)
 
 
 @router.patch("/settings/pages/{page_id}", response_model=SettingDetail)

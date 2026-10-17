@@ -32,6 +32,35 @@ export type SettingSummary = {
   updated_at: string
 }
 
+export type SettingPageKind =
+  | 'location'
+  | 'npc'
+  | 'faction'
+  | 'quest'
+  | 'item_lore'
+  | 'note'
+
+export type QuestStatus = 'planned' | 'active' | 'done' | 'failed'
+
+export type SettingPageTemplateField = {
+  key: string
+  label: string
+  type: 'text' | 'long' | 'select' | 'number' | 'url'
+  gm_only?: boolean
+  options?: string[] | null
+}
+
+export type SettingPageTemplate = {
+  id: string
+  setting_id: string | null
+  page_kind: SettingPageKind
+  name: string
+  body_seed: string
+  schema: SettingPageTemplateField[]
+  enabled: boolean
+  is_system: boolean
+}
+
 export type SettingPage = {
   id: string
   setting_id: string
@@ -40,6 +69,10 @@ export type SettingPage = {
   body: string
   sort_order: number
   revealed: boolean
+  page_kind: SettingPageKind
+  template_id: string | null
+  fields: Record<string, string | number | boolean | null>
+  quest_status: QuestStatus | null
   created_at: string
   updated_at: string
 }
@@ -57,6 +90,7 @@ export type SettingPageLink = {
 export type SettingDetail = SettingSummary & {
   pages: SettingPage[]
   links: SettingPageLink[]
+  templates: SettingPageTemplate[]
   is_owner: boolean
 }
 
@@ -390,9 +424,33 @@ export async function deleteSetting(id: string): Promise<void> {
 
 export async function createSettingPage(
   settingId: string,
-  payload: { title?: string; body?: string; parent_id?: string | null },
+  payload: {
+    title?: string
+    body?: string
+    parent_id?: string | null
+    page_kind?: SettingPageKind
+    template_id?: string | null
+    fields?: Record<string, string | number | boolean | null>
+    quest_status?: QuestStatus | null
+  },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/${settingId}/pages`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function bulkCreateSettingPages(
+  settingId: string,
+  payload: {
+    titles: string[]
+    page_kind?: SettingPageKind
+    template_id?: string | null
+    parent_id?: string | null
+    body?: string
+  },
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${settingId}/pages/bulk`, {
     method: 'POST',
     body: JSON.stringify(payload),
   })
@@ -408,6 +466,12 @@ export async function updateSettingPage(
     sort_order?: number
     revealed?: boolean
     reveal_subtree?: boolean
+    page_kind?: SettingPageKind
+    template_id?: string | null
+    clear_template?: boolean
+    fields?: Record<string, string | number | boolean | null>
+    quest_status?: QuestStatus | null
+    clear_quest_status?: boolean
   },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {

@@ -1,6 +1,38 @@
-import type { SettingPage, SettingPageLink } from '../../shared/api/lobbies'
+import type {
+  SettingPage,
+  SettingPageKind,
+  SettingPageLink,
+  SettingPageTemplate,
+} from '../../shared/api/lobbies'
 
 export type SettingPageNode = SettingPage & { children: SettingPageNode[] }
+
+/** Фильтр дерева: поиск по title + опциональный тип. */
+export function filterSettingPages(
+  pages: SettingPage[],
+  opts: { query?: string; kind?: SettingPageKind | 'all' },
+): SettingPage[] {
+  const q = (opts.query ?? '').trim().toLowerCase()
+  const kind = opts.kind ?? 'all'
+  return pages.filter((p) => {
+    if (kind !== 'all' && p.page_kind !== kind) return false
+    if (!q) return true
+    const hay = `${p.title} ${p.body}`.toLowerCase()
+    return hay.includes(q)
+  })
+}
+
+export function templateForPage(
+  templates: SettingPageTemplate[],
+  page: SettingPage | null,
+): SettingPageTemplate | null {
+  if (!page) return null
+  if (page.template_id) {
+    const byId = templates.find((t) => t.id === page.template_id)
+    if (byId) return byId
+  }
+  return templates.find((t) => t.page_kind === page.page_kind && t.is_system) ?? null
+}
 
 /** Плоский список → дерево по parent_id / sort_order.
  * Если родителя нет в списке (C3: скрыт у игрока) — страница становится корнем.

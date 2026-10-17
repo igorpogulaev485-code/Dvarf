@@ -3645,3 +3645,53 @@ button.session-concentration-tag {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* C5: типы / фильтры / поля шаблона */
+.setting-wiki-kind-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+
+.setting-wiki-kind-chip {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 4px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.setting-wiki-kind-chip.is-on {
+  background: var(--accent-soft);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.setting-wiki-tree__kind {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-right: 6px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  vertical-align: middle;
+}
+
+.setting-wiki-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}

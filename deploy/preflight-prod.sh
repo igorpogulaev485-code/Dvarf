@@ -66,6 +66,10 @@ require "frontend/src/pages/SettingDetailPage.tsx" "вики сеттинга UI
 require "frontend/src/pages/SettingWikiPreviewPage.tsx" "вики preview"
 require "backend/app/models/setting_page.py" "вики: страницы"
 require "backend/app/models/setting_page_link.py" "вики: связи"
+require "backend/app/models/setting_page_template.py" "вики C5: шаблоны"
+require "backend/app/dnd/setting_templates.py" "вики C5: системные шаблоны"
+require "frontend/src/features/lobby/SettingQuickCreateDialog.tsx" "вики C5: quick create"
+require "frontend/src/features/lobby/settingKinds.ts" "вики C5: типы"
 require "frontend/src/features/lobby/JournalComposer.tsx" "дневник + ссылка на вики"
 require "frontend/src/features/lobby/ChatBodyText.tsx" "чат: linkify /settings"
 

@@ -1,16 +1,120 @@
 /**
- * Превью C1–C3: вики сеттинга (дерево + связи + раскрытие).
+ * Превью C1–C5: вики + связи + раскрытие + типы/шаблоны/quick create.
  * /dev/setting-wiki-preview
  */
 import { useMemo, useState } from 'react'
+import { SettingQuickCreateDialog } from '../features/lobby/SettingQuickCreateDialog'
+import {
+  QUEST_STATUS_LABELS,
+  SETTING_PAGE_KIND_LABELS,
+  SETTING_PAGE_KINDS,
+  pageKindLabel,
+  type QuestStatus,
+  type SettingPageKind,
+} from '../features/lobby/settingKinds'
 import {
   buildSettingPageTree,
   collectDescendantIds,
+  filterSettingPages,
   linksForPage,
+  templateForPage,
   type SettingPageNode,
 } from '../features/lobby/settingPages'
-import type { SettingPage, SettingPageLink } from '../shared/api/lobbies'
+import type {
+  SettingPage,
+  SettingPageLink,
+  SettingPageTemplate,
+} from '../shared/api/lobbies'
 import { Button, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+
+const SEED_TEMPLATES: SettingPageTemplate[] = [
+  {
+    id: 't-location',
+    setting_id: null,
+    page_kind: 'location',
+    name: 'Локация',
+    body_seed: '',
+    schema: [
+      { key: 'region', label: 'Регион', type: 'text' },
+      { key: 'atmosphere', label: 'Атмосфера', type: 'long' },
+      { key: 'dangers', label: 'Опасности', type: 'long' },
+      { key: 'gm_notes', label: 'Заметки мастера', type: 'long', gm_only: true },
+    ],
+    enabled: true,
+    is_system: true,
+  },
+  {
+    id: 't-npc',
+    setting_id: null,
+    page_kind: 'npc',
+    name: 'НПС',
+    body_seed: '',
+    schema: [
+      { key: 'role', label: 'Роль', type: 'text' },
+      {
+        key: 'disposition',
+        label: 'Отношение',
+        type: 'select',
+        options: ['дружелюбный', 'нейтральный', 'враждебный', 'неизвестно'],
+      },
+      { key: 'hooks', label: 'Зацепки', type: 'long' },
+      { key: 'secrets', label: 'Секреты', type: 'long', gm_only: true },
+    ],
+    enabled: true,
+    is_system: true,
+  },
+  {
+    id: 't-faction',
+    setting_id: null,
+    page_kind: 'faction',
+    name: 'Фракция',
+    body_seed: '',
+    schema: [
+      { key: 'goals', label: 'Цели', type: 'long' },
+      { key: 'resources', label: 'Ресурсы', type: 'long' },
+    ],
+    enabled: true,
+    is_system: true,
+  },
+  {
+    id: 't-quest',
+    setting_id: null,
+    page_kind: 'quest',
+    name: 'Квест',
+    body_seed: '',
+    schema: [{ key: 'reward', label: 'Награда', type: 'long' }],
+    enabled: true,
+    is_system: true,
+  },
+  {
+    id: 't-item',
+    setting_id: null,
+    page_kind: 'item_lore',
+    name: 'Предмет (лор)',
+    body_seed: '',
+    schema: [{ key: 'origin', label: 'Происхождение', type: 'long' }],
+    enabled: true,
+    is_system: true,
+  },
+  {
+    id: 't-note',
+    setting_id: null,
+    page_kind: 'note',
+    name: 'Заметка',
+    body_seed: '',
+    schema: [],
+    enabled: true,
+    is_system: true,
+  },
+]
+
+function emptyFields(template: SettingPageTemplate | undefined) {
+  const out: Record<string, string> = {}
+  for (const f of template?.schema ?? []) out[f.key] = ''
+  return out
+}
+
+const now = () => new Date().toISOString()
 
 const SEED_PAGES: SettingPage[] = [
   {
@@ -21,8 +125,12 @@ const SEED_PAGES: SettingPage[] = [
     body: 'Континент Эхо. Тон — сумерки и дорожная пыль.',
     sort_order: 0,
     revealed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    page_kind: 'note',
+    template_id: 't-note',
+    fields: {},
+    quest_status: null,
+    created_at: now(),
+    updated_at: now(),
   },
   {
     id: 'p-cities',
@@ -32,8 +140,12 @@ const SEED_PAGES: SettingPage[] = [
     body: 'Рассветный порт, Мостовой холм.',
     sort_order: 0,
     revealed: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    page_kind: 'note',
+    template_id: 't-note',
+    fields: {},
+    quest_status: null,
+    created_at: now(),
+    updated_at: now(),
   },
   {
     id: 'p-port',
@@ -43,8 +155,17 @@ const SEED_PAGES: SettingPage[] = [
     body: 'Гавань на севере. Гильдия лодочников.',
     sort_order: 0,
     revealed: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    page_kind: 'location',
+    template_id: 't-location',
+    fields: {
+      region: 'Север',
+      atmosphere: 'Соль и смола',
+      dangers: 'Контрабандисты',
+      gm_notes: 'Культ моста в подвалах',
+    },
+    quest_status: null,
+    created_at: now(),
+    updated_at: now(),
   },
   {
     id: 'p-factions',
@@ -54,8 +175,32 @@ const SEED_PAGES: SettingPage[] = [
     body: 'Вестники праха · Культ моста.',
     sort_order: 1,
     revealed: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
+    page_kind: 'faction',
+    template_id: 't-faction',
+    fields: { goals: 'Контроль мостов', resources: 'Шпионы' },
+    quest_status: null,
+    created_at: now(),
+    updated_at: now(),
+  },
+  {
+    id: 'p-npc',
+    setting_id: 's1',
+    parent_id: 'p-port',
+    title: 'Капитан Вера',
+    body: 'Хозяйка причала.',
+    sort_order: 0,
+    revealed: true,
+    page_kind: 'npc',
+    template_id: 't-npc',
+    fields: {
+      role: 'Капитан гильдии',
+      disposition: 'нейтральный',
+      hooks: 'Ищет пропавший груз',
+      secrets: 'Платит культу',
+    },
+    quest_status: null,
+    created_at: now(),
+    updated_at: now(),
   },
 ]
 
@@ -67,7 +212,7 @@ const SEED_LINKS: SettingPageLink[] = [
     from_title: 'Мир',
     to_title: 'Фракции',
     label: '',
-    created_at: new Date().toISOString(),
+    created_at: now(),
   },
   {
     id: 'l2',
@@ -76,7 +221,7 @@ const SEED_LINKS: SettingPageLink[] = [
     from_title: 'Фракции',
     to_title: 'Рассветный порт',
     label: 'база гильдии',
-    created_at: new Date().toISOString(),
+    created_at: now(),
   },
   {
     id: 'l3',
@@ -85,7 +230,7 @@ const SEED_LINKS: SettingPageLink[] = [
     from_title: 'Мир',
     to_title: 'Города',
     label: '',
-    created_at: new Date().toISOString(),
+    created_at: now(),
   },
 ]
 
@@ -96,11 +241,16 @@ export function SettingWikiPreviewPage() {
   const [selectedId, setSelectedId] = useState('p-root')
   const [linkTargetId, setLinkTargetId] = useState('')
   const [toast, setToast] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [kindFilter, setKindFilter] = useState<SettingPageKind | 'all'>('all')
+  const [quickOpen, setQuickOpen] = useState(false)
 
-  const visiblePages = useMemo(
-    () => (asOwner ? pages : pages.filter((p) => p.revealed)),
-    [asOwner, pages],
-  )
+  const ownerPages = pages
+  const visiblePages = useMemo(() => {
+    const base = asOwner ? ownerPages : ownerPages.filter((p) => p.revealed)
+    return filterSettingPages(base, { query: searchQuery, kind: kindFilter })
+  }, [asOwner, ownerPages, searchQuery, kindFilter])
+
   const visibleIds = useMemo(() => new Set(visiblePages.map((p) => p.id)), [visiblePages])
   const visibleLinks = useMemo(
     () =>
@@ -114,6 +264,7 @@ export function SettingWikiPreviewPage() {
 
   const tree = useMemo(() => buildSettingPageTree(visiblePages), [visiblePages])
   const selected = visiblePages.find((p) => p.id === selectedId) ?? null
+  const activeTemplate = templateForPage(SEED_TEMPLATES, selected)
   const pageLinks = useMemo(
     () => linksForPage(visibleLinks, selectedId),
     [visibleLinks, selectedId],
@@ -138,12 +289,59 @@ export function SettingWikiPreviewPage() {
         body: '',
         sort_order: prev.filter((p) => p.parent_id === parentId).length,
         revealed: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        page_kind: 'note',
+        template_id: 't-note',
+        fields: {},
+        quest_status: null,
+        created_at: now(),
+        updated_at: now(),
       },
     ])
     setSelectedId(id)
     setToast('Страница добавлена')
+  }
+
+  function quickCreate(payload: {
+    page_kind: SettingPageKind
+    template_id: string | null
+    parent_id: string | null
+    titles: string[]
+  }) {
+    const template =
+      SEED_TEMPLATES.find((t) => t.id === payload.template_id) ??
+      SEED_TEMPLATES.find((t) => t.page_kind === payload.page_kind)
+    const createdIds: string[] = []
+    setPages((prev) => {
+      let order = prev.filter((p) => p.parent_id === payload.parent_id).length
+      const next = [...prev]
+      for (const title of payload.titles) {
+        const id = `p-${Date.now()}-${order}`
+        createdIds.push(id)
+        next.push({
+          id,
+          setting_id: 's1',
+          parent_id: payload.parent_id,
+          title,
+          body: '',
+          sort_order: order++,
+          revealed: false,
+          page_kind: payload.page_kind,
+          template_id: template?.id ?? null,
+          fields: emptyFields(template),
+          quest_status: payload.page_kind === 'quest' ? 'planned' : null,
+          created_at: now(),
+          updated_at: now(),
+        })
+      }
+      return next
+    })
+    setSelectedId(createdIds[createdIds.length - 1] ?? selectedId)
+    setQuickOpen(false)
+    setToast(
+      payload.titles.length > 1
+        ? `Создано: ${payload.titles.length}`
+        : 'Страница создана',
+    )
   }
 
   function addLink() {
@@ -159,7 +357,7 @@ export function SettingWikiPreviewPage() {
         from_title: selected.title,
         to_title: target.title,
         label: '',
-        created_at: new Date().toISOString(),
+        created_at: now(),
       },
     ])
     setLinkTargetId('')
@@ -171,9 +369,7 @@ export function SettingWikiPreviewPage() {
     const ids = new Set(
       subtree ? [selected.id, ...collectDescendantIds(pages, selected.id)] : [selected.id],
     )
-    setPages((prev) =>
-      prev.map((p) => (ids.has(p.id) ? { ...p, revealed } : p)),
-    )
+    setPages((prev) => prev.map((p) => (ids.has(p.id) ? { ...p, revealed } : p)))
     setToast(
       subtree
         ? revealed
@@ -182,6 +378,13 @@ export function SettingWikiPreviewPage() {
         : revealed
           ? 'Страница раскрыта игрокам'
           : 'Страница скрыта',
+    )
+  }
+
+  function patchSelected(patch: Partial<SettingPage>) {
+    if (!selected) return
+    setPages((prev) =>
+      prev.map((p) => (p.id === selected.id ? { ...p, ...patch, updated_at: now() } : p)),
     )
   }
 
@@ -198,7 +401,7 @@ export function SettingWikiPreviewPage() {
         <header className="app-header">
           <div>
             <Text as="h1">Эхо Рассвета</Text>
-            <Text tone="muted">Превью C1–C3 · вики + связи + раскрытие</Text>
+            <Text tone="muted">Превью C1–C5 · типы · шаблоны · quick create</Text>
           </div>
         </header>
         <Text tone="muted">/dev/setting-wiki-preview</Text>
@@ -230,13 +433,44 @@ export function SettingWikiPreviewPage() {
             <div className="setting-wiki__nav-head">
               <Text as="h3">Страницы</Text>
               {asOwner ? (
-                <Button type="button" variant="ghost" onClick={() => addChild(null)}>
-                  + Корень
-                </Button>
+                <div className="inline-actions">
+                  <Button type="button" variant="ghost" onClick={() => setQuickOpen(true)}>
+                    Быстро
+                  </Button>
+                  <Button type="button" variant="ghost" onClick={() => addChild(null)}>
+                    + Корень
+                  </Button>
+                </div>
               ) : null}
             </div>
+            <Field label="Поиск">
+              <Input
+                value={searchQuery}
+                placeholder="Название…"
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </Field>
+            <div className="setting-wiki-kind-filters" role="group" aria-label="Тип">
+              <button
+                type="button"
+                className={`setting-wiki-kind-chip${kindFilter === 'all' ? ' is-on' : ''}`}
+                onClick={() => setKindFilter('all')}
+              >
+                Все
+              </button>
+              {SETTING_PAGE_KINDS.map((kind) => (
+                <button
+                  key={kind}
+                  type="button"
+                  className={`setting-wiki-kind-chip${kindFilter === kind ? ' is-on' : ''}`}
+                  onClick={() => setKindFilter(kind)}
+                >
+                  {SETTING_PAGE_KIND_LABELS[kind]}
+                </button>
+              ))}
+            </div>
             {tree.length === 0 ? (
-              <Text tone="muted">Пока ничего не раскрыто.</Text>
+              <Text tone="muted">Ничего не найдено.</Text>
             ) : (
               <ul className="setting-wiki-tree">
                 {tree.map((node) => (
@@ -253,6 +487,7 @@ export function SettingWikiPreviewPage() {
               </ul>
             )}
           </aside>
+
           <section className="setting-wiki__editor">
             {selected ? (
               <Stack gap={12}>
@@ -260,28 +495,62 @@ export function SettingWikiPreviewPage() {
                   <Input
                     value={selected.title}
                     disabled={!asOwner}
-                    onChange={(e) =>
-                      setPages((prev) =>
-                        prev.map((p) =>
-                          p.id === selected.id ? { ...p, title: e.target.value } : p,
-                        ),
-                      )
-                    }
+                    onChange={(e) => patchSelected({ title: e.target.value })}
                   />
                 </Field>
+                <Text tone="muted">Тип: {pageKindLabel(selected.page_kind)}</Text>
+                {selected.page_kind === 'quest' ? (
+                  <Text tone="muted">
+                    Статус:{' '}
+                    {QUEST_STATUS_LABELS[(selected.quest_status as QuestStatus) || 'planned']}
+                  </Text>
+                ) : null}
+                {(activeTemplate?.schema ?? []).length > 0 ? (
+                  <div className="setting-wiki-fields">
+                    <Text as="h3">Поля шаблона</Text>
+                    {(activeTemplate?.schema ?? []).map((field) => {
+                      if (!asOwner && field.gm_only) return null
+                      const value = String(selected.fields?.[field.key] ?? '')
+                      return (
+                        <Field
+                          key={field.key}
+                          label={field.gm_only ? `${field.label} (мастер)` : field.label}
+                        >
+                          {field.type === 'long' ? (
+                            <textarea
+                              className="ui-input ui-textarea"
+                              rows={2}
+                              value={value}
+                              disabled={!asOwner}
+                              onChange={(e) =>
+                                patchSelected({
+                                  fields: { ...selected.fields, [field.key]: e.target.value },
+                                })
+                              }
+                            />
+                          ) : (
+                            <Input
+                              value={value}
+                              disabled={!asOwner}
+                              onChange={(e) =>
+                                patchSelected({
+                                  fields: { ...selected.fields, [field.key]: e.target.value },
+                                })
+                              }
+                            />
+                          )}
+                        </Field>
+                      )
+                    })}
+                  </div>
+                ) : null}
                 <Field label="Текст">
                   <textarea
                     className="ui-input ui-textarea"
                     rows={8}
                     value={selected.body}
                     disabled={!asOwner}
-                    onChange={(e) =>
-                      setPages((prev) =>
-                        prev.map((p) =>
-                          p.id === selected.id ? { ...p, body: e.target.value } : p,
-                        ),
-                      )
-                    }
+                    onChange={(e) => patchSelected({ body: e.target.value })}
                   />
                 </Field>
                 {asOwner ? (
@@ -303,16 +572,18 @@ export function SettingWikiPreviewPage() {
                         {selected.revealed ? 'Скрыть ветку' : 'Раскрыть ветку'}
                       </Button>
                     </div>
-                    <Button type="button" onClick={() => setToast('Страница сохранена')}>
-                      Сохранить страницу
-                    </Button>
+                    <div className="inline-actions">
+                      <Button type="button" variant="secondary" onClick={() => addChild(selected.id)}>
+                        + Дочерняя
+                      </Button>
+                    </div>
                   </>
                 ) : null}
 
                 <div className="setting-wiki-links">
                   <Text as="h3">Связи →</Text>
                   {pageLinks.outgoing.length === 0 ? (
-                    <Text tone="muted">Пока нет переходов с этой страницы.</Text>
+                    <Text tone="muted">Пока нет переходов.</Text>
                   ) : (
                     <ul className="setting-wiki-links__list">
                       {pageLinks.outgoing.map((link) => (
@@ -344,17 +615,12 @@ export function SettingWikiPreviewPage() {
                       <select
                         className="ui-input"
                         value={linkTargetId}
-                        disabled={linkCandidates.length === 0}
                         onChange={(e) => setLinkTargetId(e.target.value)}
                       >
-                        <option value="">
-                          {linkCandidates.length === 0
-                            ? 'Некуда связать'
-                            : 'Страница для связи…'}
-                        </option>
+                        <option value="">Страница для связи…</option>
                         {linkCandidates.map((p) => (
                           <option key={p.id} value={p.id}>
-                            {p.title}
+                            {pageKindLabel(p.page_kind)} · {p.title}
                           </option>
                         ))}
                       </select>
@@ -368,14 +634,13 @@ export function SettingWikiPreviewPage() {
                       </Button>
                     </div>
                   ) : null}
-
                   <Text as="h3">Ссылаются сюда</Text>
                   {pageLinks.incoming.length === 0 ? (
                     <Text tone="muted">Бэклинков пока нет.</Text>
                   ) : (
                     <ul className="setting-wiki-links__list">
                       {pageLinks.incoming.map((link) => (
-                        <li key={link.id} className="setting-wiki-links__row">
+                        <li key={link.id}>
                           <button
                             type="button"
                             className="setting-wiki-links__jump"
@@ -390,11 +655,19 @@ export function SettingWikiPreviewPage() {
                 </div>
               </Stack>
             ) : (
-              <Text tone="muted">Нет раскрытых страниц.</Text>
+              <Text tone="muted">Выбери страницу слева.</Text>
             )}
           </section>
         </div>
       </Stack>
+      <SettingQuickCreateDialog
+        open={quickOpen && asOwner}
+        templates={SEED_TEMPLATES}
+        parentOptions={pages.map((p) => ({ id: p.id, title: p.title }))}
+        defaultParentId={selectedId}
+        onClose={() => setQuickOpen(false)}
+        onCreate={quickCreate}
+      />
       <Toast message={toast} onClose={() => setToast(null)} />
     </main>
   )
@@ -429,11 +702,12 @@ function PreviewNode({
           className="setting-wiki-tree__link"
           onClick={() => onSelect(node.id)}
         >
+          <span className="setting-wiki-tree__kind">
+            {SETTING_PAGE_KIND_LABELS[node.page_kind]?.slice(0, 1) ?? '?'}
+          </span>
           {node.title}
           {isOwner && node.revealed ? (
-            <span className="setting-wiki-tree__eye" title="Раскрыто игрокам">
-              ·
-            </span>
+            <span className="setting-wiki-tree__eye">·</span>
           ) : null}
         </button>
         {isOwner ? (

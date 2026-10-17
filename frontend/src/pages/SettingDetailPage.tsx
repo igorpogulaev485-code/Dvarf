@@ -1,13 +1,25 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
+import { SettingQuickCreateDialog } from '../features/lobby/SettingQuickCreateDialog'
+import {
+  QUEST_STATUS_LABELS,
+  SETTING_PAGE_KIND_LABELS,
+  SETTING_PAGE_KINDS,
+  pageKindLabel,
+  type QuestStatus,
+  type SettingPageKind,
+} from '../features/lobby/settingKinds'
 import {
   buildSettingPageTree,
+  filterSettingPages,
   linksForPage,
+  templateForPage,
   type SettingPageNode,
 } from '../features/lobby/settingPages'
 import { ApiRequestError } from '../shared/api/client'
 import {
+  bulkCreateSettingPages,
   createSession,
   createSettingPage,
   createSettingPageLink,
@@ -17,6 +29,7 @@ import {
   updateSetting,
   updateSettingPage,
   type SettingDetail,
+  type SettingPageTemplateField,
 } from '../shared/api/lobbies'
 import { Button, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
@@ -32,17 +45,34 @@ export function SettingDetailPage() {
   const [busy, setBusy] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
   const [draftBody, setDraftBody] = useState('')
+  const [draftFields, setDraftFields] = useState<Record<string, string>>({})
+  const [draftKind, setDraftKind] = useState<SettingPageKind>('note')
+  const [draftQuestStatus, setDraftQuestStatus] = useState<QuestStatus | ''>('')
   const [settingName, setSettingName] = useState('')
   const [linkTargetId, setLinkTargetId] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [kindFilter, setKindFilter] = useState<SettingPageKind | 'all'>('all')
+  const [quickOpen, setQuickOpen] = useState(false)
 
-  const tree = useMemo(
-    () => buildSettingPageTree(setting?.pages ?? []),
-    [setting?.pages],
+  const filteredPages = useMemo(
+    () =>
+      filterSettingPages(setting?.pages ?? [], {
+        query: searchQuery,
+        kind: kindFilter,
+      }),
+    [setting?.pages, searchQuery, kindFilter],
   )
+
+  const tree = useMemo(() => buildSettingPageTree(filteredPages), [filteredPages])
 
   const selected = useMemo(
     () => setting?.pages.find((p) => p.id === selectedId) ?? null,
     [setting, selectedId],
+  )
+
+  const activeTemplate = useMemo(
+    () => templateForPage(setting?.templates ?? [], selected),
+    [setting?.templates, selected],
   )
 
   const pageLinks = useMemo(
@@ -74,8 +104,7 @@ export function SettingDetailPage() {
         const first = fromQuery ?? item.pages[0]?.id ?? null
         setSelectedId(first)
         const page = item.pages.find((p) => p.id === first)
-        setDraftTitle(page?.title ?? '')
-        setDraftBody(page?.body ?? '')
+        applyDraftFromPage(page ?? null)
       })
       .catch((err: unknown) => {
         if (!active) return
@@ -92,10 +121,21 @@ export function SettingDetailPage() {
 
   useEffect(() => {
     if (!selected) return
-    setDraftTitle(selected.title)
-    setDraftBody(selected.body)
+    applyDraftFromPage(selected)
     setLinkTargetId('')
   }, [selected?.id])
+
+  function applyDraftFromPage(page: SettingDetail['pages'][number] | null) {
+    setDraftTitle(page?.title ?? '')
+    setDraftBody(page?.body ?? '')
+    setDraftKind(page?.page_kind ?? 'note')
+    setDraftQuestStatus(page?.quest_status ?? '')
+    const nextFields: Record<string, string> = {}
+    for (const [k, v] of Object.entries(page?.fields ?? {})) {
+      nextFields[k] = v == null ? '' : String(v)
+    }
+    setDraftFields(nextFields)
+  }
 
   function applyDetail(next: SettingDetail, preferPageId?: string | null) {
     setSetting(next)
@@ -107,8 +147,7 @@ export function SettingDetailPage() {
       null
     setSelectedId(pick)
     const page = next.pages.find((p) => p.id === pick)
-    setDraftTitle(page?.title ?? '')
-    setDraftBody(page?.body ?? '')
+    applyDraftFromPage(page ?? null)
   }
 
   async function saveMeta(e: FormEvent) {
@@ -136,6 +175,10 @@ export function SettingDetailPage() {
       const next = await updateSettingPage(selected.id, {
         title: draftTitle,
         body: draftBody,
+        page_kind: draftKind,
+        fields: draftFields,
+        quest_status: draftKind === 'quest' ? draftQuestStatus || 'planned' : undefined,
+        clear_quest_status: draftKind !== 'quest',
       })
       applyDetail(next, selected.id)
       setToast('Страница сохранена')
@@ -155,6 +198,7 @@ export function SettingDetailPage() {
         title: parentId ? 'Новый раздел' : 'Новая страница',
         body: '',
         parent_id: parentId,
+        page_kind: 'note',
       })
       const created = next.pages
         .filter((p) => p.parent_id === parentId)
@@ -163,6 +207,49 @@ export function SettingDetailPage() {
       setToast('Страница добавлена')
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось добавить')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleQuickCreate(payload: {
+    page_kind: SettingPageKind
+    template_id: string | null
+    parent_id: string | null
+    titles: string[]
+  }) {
+    if (!setting) return
+    setBusy(true)
+    setError(null)
+    try {
+      let next: SettingDetail
+      if (payload.titles.length === 1) {
+        next = await createSettingPage(setting.id, {
+          title: payload.titles[0],
+          parent_id: payload.parent_id,
+          page_kind: payload.page_kind,
+          template_id: payload.template_id,
+        })
+      } else {
+        next = await bulkCreateSettingPages(setting.id, {
+          titles: payload.titles,
+          parent_id: payload.parent_id,
+          page_kind: payload.page_kind,
+          template_id: payload.template_id,
+        })
+      }
+      const created = next.pages
+        .filter((p) => payload.titles.includes(p.title))
+        .sort((a, b) => b.sort_order - a.sort_order)[0]
+      applyDetail(next, created?.id ?? null)
+      setQuickOpen(false)
+      setToast(
+        payload.titles.length > 1
+          ? `Создано: ${payload.titles.length}`
+          : 'Страница создана',
+      )
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : 'Не удалось создать')
     } finally {
       setBusy(false)
     }
@@ -245,6 +332,7 @@ export function SettingDetailPage() {
   }
 
   const isOwner = setting?.is_owner ?? false
+  const schemaFields: SettingPageTemplateField[] = activeTemplate?.schema ?? []
 
   if (!setting && !error) {
     return (
@@ -321,18 +409,58 @@ export function SettingDetailPage() {
             <div className="setting-wiki__nav-head">
               <Text as="h3">Страницы</Text>
               {isOwner ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={busy}
-                  onClick={() => void addPage(null)}
-                >
-                  + Корень
-                </Button>
+                <div className="inline-actions">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={busy}
+                    onClick={() => setQuickOpen(true)}
+                  >
+                    Быстро
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={busy}
+                    onClick={() => void addPage(null)}
+                  >
+                    + Корень
+                  </Button>
+                </div>
               ) : null}
             </div>
+            <Field label="Поиск">
+              <Input
+                value={searchQuery}
+                placeholder="Название…"
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </Field>
+            <div className="setting-wiki-kind-filters" role="group" aria-label="Тип страницы">
+              <button
+                type="button"
+                className={`setting-wiki-kind-chip${kindFilter === 'all' ? ' is-on' : ''}`}
+                onClick={() => setKindFilter('all')}
+              >
+                Все
+              </button>
+              {SETTING_PAGE_KINDS.map((kind) => (
+                <button
+                  key={kind}
+                  type="button"
+                  className={`setting-wiki-kind-chip${kindFilter === kind ? ' is-on' : ''}`}
+                  onClick={() => setKindFilter(kind)}
+                >
+                  {SETTING_PAGE_KIND_LABELS[kind]}
+                </button>
+              ))}
+            </div>
             {tree.length === 0 ? (
-              <Text tone="muted">Пока ничего не раскрыто.</Text>
+              <Text tone="muted">
+                {searchQuery || kindFilter !== 'all'
+                  ? 'Ничего не найдено.'
+                  : 'Пока ничего не раскрыто.'}
+              </Text>
             ) : (
               <ul className="setting-wiki-tree">
                 {tree.map((node) => (
@@ -361,13 +489,117 @@ export function SettingDetailPage() {
                     onChange={(e) => setDraftTitle(e.target.value)}
                   />
                 </Field>
+                {isOwner ? (
+                  <Field label="Тип">
+                    <select
+                      className="ui-input"
+                      value={draftKind}
+                      disabled={busy}
+                      onChange={(e) => {
+                        const next = e.target.value as SettingPageKind
+                        setDraftKind(next)
+                        if (next === 'quest' && !draftQuestStatus) {
+                          setDraftQuestStatus('planned')
+                        }
+                      }}
+                    >
+                      {SETTING_PAGE_KINDS.map((kind) => (
+                        <option key={kind} value={kind}>
+                          {SETTING_PAGE_KIND_LABELS[kind]}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                ) : (
+                  <Text tone="muted">Тип: {pageKindLabel(selected.page_kind)}</Text>
+                )}
+                {draftKind === 'quest' || selected.page_kind === 'quest' ? (
+                  <Field label="Статус квеста">
+                    <select
+                      className="ui-input"
+                      value={draftQuestStatus || selected.quest_status || 'planned'}
+                      disabled={busy || !isOwner}
+                      onChange={(e) =>
+                        setDraftQuestStatus(e.target.value as QuestStatus)
+                      }
+                    >
+                      {(Object.keys(QUEST_STATUS_LABELS) as QuestStatus[]).map((s) => (
+                        <option key={s} value={s}>
+                          {QUEST_STATUS_LABELS[s]}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                ) : null}
+                {schemaFields.length > 0 ? (
+                  <div className="setting-wiki-fields">
+                    <Text as="h3">Поля шаблона</Text>
+                    {schemaFields.map((field) => {
+                      if (!isOwner && field.gm_only) return null
+                      const value = draftFields[field.key] ?? ''
+                      return (
+                        <Field
+                          key={field.key}
+                          label={
+                            field.gm_only ? `${field.label} (мастер)` : field.label
+                          }
+                        >
+                          {field.type === 'long' ? (
+                            <textarea
+                              className="ui-input ui-textarea"
+                              rows={3}
+                              value={value}
+                              disabled={busy || !isOwner}
+                              onChange={(e) =>
+                                setDraftFields((prev) => ({
+                                  ...prev,
+                                  [field.key]: e.target.value,
+                                }))
+                              }
+                            />
+                          ) : field.type === 'select' && field.options?.length ? (
+                            <select
+                              className="ui-input"
+                              value={value}
+                              disabled={busy || !isOwner}
+                              onChange={(e) =>
+                                setDraftFields((prev) => ({
+                                  ...prev,
+                                  [field.key]: e.target.value,
+                                }))
+                              }
+                            >
+                              <option value="">—</option>
+                              {field.options.map((opt) => (
+                                <option key={opt} value={opt}>
+                                  {opt}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <Input
+                              value={value}
+                              disabled={busy || !isOwner}
+                              onChange={(e) =>
+                                setDraftFields((prev) => ({
+                                  ...prev,
+                                  [field.key]: e.target.value,
+                                }))
+                              }
+                            />
+                          )}
+                        </Field>
+                      )
+                    })}
+                  </div>
+                ) : null}
                 <Field
                   label="Текст"
                   hint={isOwner ? 'Скрытые страницы игроки не видят' : undefined}
                 >
                   <textarea
                     className="ui-input ui-textarea"
-                    rows={14}
+                    rows={10}
                     value={draftBody}
                     disabled={busy || !isOwner}
                     onChange={(e) => setDraftBody(e.target.value)}
@@ -465,7 +697,7 @@ export function SettingDetailPage() {
                         </option>
                         {linkCandidates.map((p) => (
                           <option key={p.id} value={p.id}>
-                            {p.title || 'Без названия'}
+                            {pageKindLabel(p.page_kind)} · {p.title || 'Без названия'}
                           </option>
                         ))}
                       </select>
@@ -504,13 +736,22 @@ export function SettingDetailPage() {
             ) : (
               <Text tone="muted">
                 {isOwner
-                  ? 'Выбери страницу слева или добавь корневую.'
+                  ? 'Выбери страницу слева или добавь через «Быстро».'
                   : 'Нет раскрытых страниц.'}
               </Text>
             )}
           </section>
         </div>
       </Stack>
+      <SettingQuickCreateDialog
+        open={quickOpen && isOwner}
+        busy={busy}
+        templates={setting.templates ?? []}
+        parentOptions={setting.pages.map((p) => ({ id: p.id, title: p.title }))}
+        defaultParentId={selectedId}
+        onClose={() => setQuickOpen(false)}
+        onCreate={(payload) => void handleQuickCreate(payload)}
+      />
       <Toast message={toast} onClose={() => setToast(null)} />
     </main>
   )
@@ -548,6 +789,9 @@ function TreeNode({
           disabled={busy}
           onClick={() => onSelect(node.id)}
         >
+          <span className="setting-wiki-tree__kind" title={pageKindLabel(node.page_kind)}>
+            {SETTING_PAGE_KIND_LABELS[node.page_kind]?.slice(0, 1) ?? '?'}
+          </span>
           {node.title || 'Без названия'}
           {isOwner && node.revealed ? (
             <span className="setting-wiki-tree__eye" title="Раскрыто игрокам">

@@ -33,6 +33,39 @@ class SettingSummary(BaseModel):
     updated_at: datetime
 
 
+SettingPageKind = Literal[
+    "location",
+    "npc",
+    "faction",
+    "quest",
+    "item_lore",
+    "note",
+]
+
+QuestStatus = Literal["planned", "active", "done", "failed"]
+
+
+class SettingPageTemplateField(BaseModel):
+    key: str
+    label: str
+    type: Literal["text", "long", "select", "number", "url"] = "text"
+    gm_only: bool = False
+    options: list[str] | None = None
+
+
+class SettingPageTemplateOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    setting_id: UUID | None = None
+    page_kind: SettingPageKind
+    name: str
+    body_seed: str = ""
+    schema: list[SettingPageTemplateField] = Field(default_factory=list)
+    enabled: bool = True
+    is_system: bool = False
+
+
 class SettingPageOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -43,6 +76,10 @@ class SettingPageOut(BaseModel):
     body: str
     sort_order: int = 0
     revealed: bool = False
+    page_kind: SettingPageKind = "note"
+    template_id: UUID | None = None
+    fields: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
+    quest_status: QuestStatus | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -62,10 +99,11 @@ class SettingPageLinkOut(BaseModel):
 
 
 class SettingDetail(SettingSummary):
-    """C1–C3: страницы + связи; игрокам — только revealed."""
+    """C1–C5: страницы + связи + шаблоны; игрокам — только revealed."""
 
     pages: list[SettingPageOut] = Field(default_factory=list)
     links: list[SettingPageLinkOut] = Field(default_factory=list)
+    templates: list[SettingPageTemplateOut] = Field(default_factory=list)
     is_owner: bool = False
 
 
@@ -74,6 +112,20 @@ class SettingPageCreateRequest(BaseModel):
     body: str = ""
     parent_id: UUID | None = None
     sort_order: int | None = None
+    page_kind: SettingPageKind = "note"
+    template_id: UUID | None = None
+    fields: dict[str, str | int | float | bool | None] | None = None
+    quest_status: QuestStatus | None = None
+
+
+class SettingPageBulkCreateRequest(BaseModel):
+    """C5 quick create: несколько имён одного типа/шаблона."""
+
+    titles: list[str] = Field(min_length=1, max_length=50)
+    page_kind: SettingPageKind = "npc"
+    template_id: UUID | None = None
+    parent_id: UUID | None = None
+    body: str = ""
 
 
 class SettingPageUpdateRequest(BaseModel):
@@ -87,6 +139,12 @@ class SettingPageUpdateRequest(BaseModel):
     revealed: bool | None = None
     # C3: применить revealed ко всей ветке (эта + потомки)
     reveal_subtree: bool = False
+    page_kind: SettingPageKind | None = None
+    template_id: UUID | None = None
+    clear_template: bool = False
+    fields: dict[str, str | int | float | bool | None] | None = None
+    quest_status: QuestStatus | None = None
+    clear_quest_status: bool = False
 
 
 class SettingPageLinkCreateRequest(BaseModel):
