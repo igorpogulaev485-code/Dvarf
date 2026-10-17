@@ -73,6 +73,7 @@ require "frontend/src/features/lobby/settingKinds.ts" "вики C5: типы"
 require "frontend/src/features/lobby/settingMentions.ts" "вики C6: mentions"
 require "frontend/src/features/lobby/SettingMentionBody.tsx" "вики C6: рендер mentions"
 require "backend/app/dnd/setting_mentions.py" "вики C6: парсер mentions"
+require "backend/alembic/versions/p7q8r9s0t1u2_setting_c7_gm_body.py" "вики C7: gm_body migration"
 require "frontend/src/features/lobby/JournalComposer.tsx" "дневник + ссылка на вики"
 require "frontend/src/features/lobby/ChatBodyText.tsx" "чат: linkify /settings"
 

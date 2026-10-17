@@ -870,7 +870,10 @@ class LobbyService:
                     for k, v in (out.fields or {}).items()
                     if not schema_by_key.get(k, False)
                 }
-                filtered_pages.append(out.model_copy(update={"fields": public_fields}))
+                # C7: gm_body никогда не отдаём игроку
+                filtered_pages.append(
+                    out.model_copy(update={"fields": public_fields, "gm_body": ""})
+                )
             pages_out = filtered_pages
         else:
             pages_out = [SettingPageOut.model_validate(p) for p in pages]
@@ -1022,6 +1025,7 @@ class LobbyService:
             setting_id=setting.id,
             title=(payload.title or "Новая страница").strip() or "Новая страница",
             body=body or "",
+            gm_body=payload.gm_body or "",
             parent_id=parent_id,
             sort_order=sort_order,
             page_kind=page_kind,
@@ -1119,6 +1123,8 @@ class LobbyService:
             page.title = payload.title.strip() or "Без названия"
         if payload.body is not None:
             page.body = payload.body
+        if payload.gm_body is not None:
+            page.gm_body = payload.gm_body
         if payload.clear_parent:
             page.parent_id = None
         elif payload.parent_id is not None:

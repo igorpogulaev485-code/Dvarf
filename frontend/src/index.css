@@ -3710,6 +3710,15 @@ button.session-concentration-tag {
   border-bottom: 1px solid var(--line);
 }
 
+/* C7: блок только для мастера */
+.setting-wiki-gm-block {
+  margin-top: 4px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--line);
+  background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+}
+
 /* C6: @mentions в тексте */
 .setting-mention-body {
   white-space: pre-wrap;

@@ -46,6 +46,7 @@ export function SettingDetailPage() {
   const [busy, setBusy] = useState(false)
   const [draftTitle, setDraftTitle] = useState('')
   const [draftBody, setDraftBody] = useState('')
+  const [draftGmBody, setDraftGmBody] = useState('')
   const [draftFields, setDraftFields] = useState<Record<string, string>>({})
   const [draftKind, setDraftKind] = useState<SettingPageKind>('note')
   const [draftQuestStatus, setDraftQuestStatus] = useState<QuestStatus | ''>('')
@@ -131,6 +132,7 @@ export function SettingDetailPage() {
   function applyDraftFromPage(page: SettingDetail['pages'][number] | null) {
     setDraftTitle(page?.title ?? '')
     setDraftBody(page?.body ?? '')
+    setDraftGmBody(page?.gm_body ?? '')
     setDraftKind(page?.page_kind ?? 'note')
     setDraftQuestStatus(page?.quest_status ?? '')
     const nextFields: Record<string, string> = {}
@@ -178,6 +180,7 @@ export function SettingDetailPage() {
       const next = await updateSettingPage(selected.id, {
         title: draftTitle,
         body: draftBody,
+        gm_body: draftGmBody,
         page_kind: draftKind,
         fields: draftFields,
         quest_status: draftKind === 'quest' ? draftQuestStatus || 'planned' : undefined,
@@ -642,6 +645,24 @@ export function SettingDetailPage() {
                       />
                       <span>Создавать отсутствующие @упоминания</span>
                     </label>
+                  </div>
+                ) : null}
+
+                {isOwner ? (
+                  <div className="setting-wiki-gm-block">
+                    <Field
+                      label="Заметки мастера"
+                      hint="Видно только тебе — даже если страница раскрыта игрокам"
+                    >
+                      <textarea
+                        className="ui-input ui-textarea"
+                        rows={5}
+                        value={draftGmBody}
+                        disabled={busy}
+                        onChange={(e) => setDraftGmBody(e.target.value)}
+                        placeholder="Секреты, статусы, что сказать за столом…"
+                      />
+                    </Field>
                   </div>
                 ) : null}
                 {isOwner ? (

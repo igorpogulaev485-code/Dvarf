@@ -74,6 +74,7 @@ class SettingPageOut(BaseModel):
     parent_id: UUID | None = None
     title: str
     body: str
+    gm_body: str = ""
     sort_order: int = 0
     revealed: bool = False
     page_kind: SettingPageKind = "note"
@@ -114,6 +115,7 @@ class SettingDetail(SettingSummary):
 class SettingPageCreateRequest(BaseModel):
     title: str = Field(default="Новая страница", max_length=200)
     body: str = ""
+    gm_body: str = ""
     parent_id: UUID | None = None
     sort_order: int | None = None
     page_kind: SettingPageKind = "note"
@@ -135,6 +137,7 @@ class SettingPageBulkCreateRequest(BaseModel):
 class SettingPageUpdateRequest(BaseModel):
     title: str | None = Field(default=None, max_length=200)
     body: str | None = None
+    gm_body: str | None = None
     parent_id: UUID | None = None
     sort_order: int | None = None
     # clear_parent: переместить в корень

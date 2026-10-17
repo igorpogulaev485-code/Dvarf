@@ -37,6 +37,8 @@ class SettingPage(Base):
     )
     title: Mapped[str] = mapped_column(String(200), nullable=False, default="Мир")
     body: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # C7: свободный блок только для мастера (даже на revealed-странице)
+    gm_body: Mapped[str] = mapped_column(Text, nullable=False, default="")
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     # C3: раскрытие игрокам
     revealed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

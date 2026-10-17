@@ -156,6 +156,7 @@ class LobbyRepository:
         template_id: UUID | None = None,
         fields: dict | None = None,
         quest_status: str | None = None,
+        gm_body: str = "",
     ):
         from app.models.setting_page import SettingPage
 
@@ -164,6 +165,7 @@ class LobbyRepository:
             parent_id=parent_id,
             title=title,
             body=body,
+            gm_body=gm_body or "",
             sort_order=sort_order,
             page_kind=page_kind,
             template_id=template_id,

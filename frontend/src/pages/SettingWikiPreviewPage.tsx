@@ -125,6 +125,7 @@ const SEED_PAGES: SettingPage[] = [
     parent_id: null,
     title: 'Мир',
     body: 'Континент Эхо. Тон — сумерки и дорожная пыль.\nСм. [[Рассветный порт]] и @Капитан_Вера. Тайный [[Культ моста]].',
+    gm_body: 'Мета: кампания про контрабанду мостов. Не светить культ до сессии 3.',
     sort_order: 0,
     revealed: true,
     page_kind: 'note',
@@ -140,6 +141,7 @@ const SEED_PAGES: SettingPage[] = [
     parent_id: 'p-root',
     title: 'Города',
     body: 'Рассветный порт, Мостовой холм.',
+    gm_body: '',
     sort_order: 0,
     revealed: true,
     page_kind: 'note',
@@ -155,6 +157,7 @@ const SEED_PAGES: SettingPage[] = [
     parent_id: 'p-cities',
     title: 'Рассветный порт',
     body: 'Гавань на севере. Гильдия лодочников.',
+    gm_body: 'Под причалом — вход в катакомбы культа.',
     sort_order: 0,
     revealed: false,
     page_kind: 'location',
@@ -175,6 +178,7 @@ const SEED_PAGES: SettingPage[] = [
     parent_id: null,
     title: 'Фракции',
     body: 'Вестники праха · Культ моста.',
+    gm_body: '',
     sort_order: 1,
     revealed: false,
     page_kind: 'faction',
@@ -190,6 +194,7 @@ const SEED_PAGES: SettingPage[] = [
     parent_id: 'p-port',
     title: 'Капитан Вера',
     body: 'Хозяйка причала.',
+    gm_body: 'Если пати давит — предложит сделку: груз в обмен на молчание о культе.',
     sort_order: 0,
     revealed: true,
     page_kind: 'npc',
@@ -312,6 +317,7 @@ export function SettingWikiPreviewPage() {
         parent_id: parentId,
         title: parentId ? 'Новый раздел' : 'Новая страница',
         body: '',
+        gm_body: '',
         sort_order: prev.filter((p) => p.parent_id === parentId).length,
         revealed: false,
         page_kind: 'note',
@@ -348,6 +354,7 @@ export function SettingWikiPreviewPage() {
           parent_id: payload.parent_id,
           title,
           body: '',
+          gm_body: '',
           sort_order: order++,
           revealed: false,
           page_kind: payload.page_kind,
@@ -427,7 +434,7 @@ export function SettingWikiPreviewPage() {
         <header className="app-header">
           <div>
             <Text as="h1">Эхо Рассвета</Text>
-            <Text tone="muted">Превью C1–C6 · типы · шаблоны · @mentions</Text>
+            <Text tone="muted">Превью C1–C7 · типы · @mentions · заметки мастера</Text>
           </div>
         </header>
         <Text tone="muted">/dev/setting-wiki-preview</Text>
@@ -651,6 +658,23 @@ export function SettingWikiPreviewPage() {
                       isOwner
                       onOpenPage={setSelectedId}
                     />
+                  </div>
+                ) : null}
+
+                {asOwner ? (
+                  <div className="setting-wiki-gm-block">
+                    <Field
+                      label="Заметки мастера"
+                      hint="Игрок не видит — даже на раскрытой странице"
+                    >
+                      <textarea
+                        className="ui-input ui-textarea"
+                        rows={4}
+                        value={selected.gm_body}
+                        onChange={(e) => patchSelected({ gm_body: e.target.value })}
+                        placeholder="Секреты, статусы, что сказать за столом…"
+                      />
+                    </Field>
                   </div>
                 ) : null}
                 {asOwner ? (

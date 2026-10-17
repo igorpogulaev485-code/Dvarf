@@ -67,6 +67,7 @@ export type SettingPage = {
   parent_id: string | null
   title: string
   body: string
+  gm_body: string
   sort_order: number
   revealed: boolean
   page_kind: SettingPageKind
@@ -430,6 +431,7 @@ export async function createSettingPage(
   payload: {
     title?: string
     body?: string
+    gm_body?: string
     parent_id?: string | null
     page_kind?: SettingPageKind
     template_id?: string | null
@@ -464,6 +466,7 @@ export async function updateSettingPage(
   payload: {
     title?: string
     body?: string
+    gm_body?: string
     parent_id?: string | null
     clear_parent?: boolean
     sort_order?: number
