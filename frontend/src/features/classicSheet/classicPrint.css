@@ -13,8 +13,6 @@
   --c-radius-pill: 999px;
   --font-display: 'Source Serif 4', 'Times New Roman', serif;
   --font-ui: 'IBM Plex Sans', 'Segoe UI', sans-serif;
-  --font-classic-script: 'Caveat', 'Segoe Script', cursive;
-  --font-classic-mono: 'IBM Plex Mono', 'Consolas', monospace;
 
   min-height: 100vh;
   background: var(--c-desk);
@@ -794,39 +792,41 @@
 }
 
 .classic-text-block {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
 }
 
-.classic-text-block__tools {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.5rem;
-  align-items: center;
-  margin: 0 0 0.15rem;
-  font-size: 0.58rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--c-muted);
-}
-
-.classic-text-block__tools label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-}
-
-.classic-text-block__tools select {
+.classic-text-block__size {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  width: 1.85rem;
+  height: 1.15rem;
+  padding: 0;
   border: 1px solid var(--c-line-soft);
-  border-radius: 0.2rem;
-  background: #fff;
-  color: var(--c-ink);
+  border-radius: 0.15rem;
+  background: rgba(255, 253, 248, 0.92);
+  color: var(--c-muted);
   font: inherit;
   font-size: 0.58rem;
-  padding: 0.05rem 0.2rem;
-  max-width: 7.5rem;
+  font-weight: 650;
+  text-align: center;
+  line-height: 1.1;
+  -moz-appearance: textfield;
+}
+
+.classic-text-block__size::-webkit-outer-spin-button,
+.classic-text-block__size::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.classic-text-block > .classic-expand {
+  padding-right: 2rem;
 }
 
 .classic-panel--personality > .classic-text-block,
@@ -1159,6 +1159,11 @@
 
 .classic-companion-card .classic-expand--fill {
   min-height: 2.8rem;
+}
+
+.classic-companion-card .classic-text-block {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* ——— Spell cards (poker size, cut grid) ——— */
