@@ -1,6 +1,6 @@
 import type { CharacterDetail } from '../../shared/api/characters'
 import {
-  blockPlainText,
+  blockTextPartsPlain,
   createCustomTextBlock,
   displayLabel,
   readTextBlocks,
@@ -28,8 +28,9 @@ export function classicNoteLabel(block: TextBlock): string {
   return displayLabel(block)
 }
 
+/** Editable plain text — text parts only, so spoilers/resources stay intact. */
 export function classicNoteText(block: TextBlock): string {
-  return blockPlainText(block)
+  return blockTextPartsPlain(block)
 }
 
 /** Same as interactive «Добавить блок» — creates `notes-N`. */

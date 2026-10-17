@@ -201,7 +201,7 @@ function emptyIdentity(): IdentityExtras {
 }
 
 function emptyInventory(): InventoryState {
-  return { coins: { ...EMPTY_COINS }, items: [] }
+  return { coins: { ...EMPTY_COINS }, items: [], notes: '' }
 }
 
 function createWorkingDraft(baseAbilities: AbilityScores): WorkingDraft {

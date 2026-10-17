@@ -102,6 +102,11 @@ export type InventoryItem = {
 export type InventoryState = {
   coins: CoinPurse
   items: InventoryItem[]
+  /**
+   * Freeform equipment notes (classic print box + digital extras).
+   * Survives interactive save; not an item row.
+   */
+  notes: string
 }
 
 function newInventoryItemId(): string {
@@ -244,11 +249,19 @@ export function readInventory(sheet: Record<string, unknown>): InventoryState {
   const items = Array.isArray(itemsRaw)
     ? dedupeInventoryItemIds(itemsRaw.map((item, index) => readItem(item, index)))
     : []
+  // Prefer inventory.notes; migrate retired classic_text overlay once.
+  const notes =
+    typeof inventory.notes === 'string'
+      ? inventory.notes
+      : typeof inventory.classic_text === 'string'
+        ? inventory.classic_text
+        : ''
   return {
     coins: Object.keys(asRecord(inventory.coins)).length
       ? readCoins(inventory.coins)
       : { ...EMPTY_COINS },
     items,
+    notes,
   }
 }
 
@@ -262,6 +275,7 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         gp: state.coins.gp,
         pp: state.coins.pp,
       },
+      notes: state.notes ?? '',
       items: state.items.map((item) => ({
         id: item.id,
         name: item.name,

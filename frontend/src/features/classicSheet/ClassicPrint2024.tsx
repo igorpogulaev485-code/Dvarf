@@ -12,15 +12,21 @@ import {
   applyClassicEdits,
   combatField,
   cycleSkillMastery,
-  equipmentText,
+  equipmentItemsLine,
+  equipmentNotes,
   identityField,
   inventoryCoins,
   isSaveProficient,
   setCoins,
   skillFlags,
   textBlockValue,
-  weaponsSummary,
 } from './fromApi'
+import {
+  classicAttunementFilled,
+  patchClassicAttunementCount,
+} from './classicAttunement'
+import { classicConditionsLabel } from './classicConditions'
+import { classicWeaponRows, patchClassicWeapon } from './classicWeapons'
 import {
   classicSpellAbilityLabel,
   classicSpellStats,
@@ -94,11 +100,13 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
   const deathSuccesses = clampMarks(Number(combatField(c, 'death_successes') ?? 0))
   const deathFails = clampMarks(Number(combatField(c, 'death_fails') ?? 0))
   const exhaustion = clampExhaustion(Number(combatField(c, 'exhaustion') ?? 0))
-  const attunement = clampMarks(Number(combatField(c, 'attunement_used') ?? 0))
+  const attunement = classicAttunementFilled(c)
+  const conditionsLabel = classicConditionsLabel(c)
+  const equipItems = equipmentItemsLine(c)
   const spells = classicSpellsState(c)
   const spellStats = classicSpellStats(c, spells)
   const coins = inventoryCoins(c)
-  const weapons = weaponsSummary(c)
+  const weapons = classicWeaponRows(c)
   const passivePerception =
     10 +
     abilityModifier(abilityScore(c, 'wis')) +
@@ -431,10 +439,9 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               </label>
               <label>
                 <input
-                  value={String(identityField(c, 'conditions') ?? '')}
-                  onChange={(e) =>
-                    patch({ identity: { conditions: e.target.value || null } })
-                  }
+                  value={conditionsLabel}
+                  readOnly
+                  title="Состояния с цифрового листа (combat.conditions). Меняй на Play Desk."
                 />
                 <span>Состояния</span>
               </label>
@@ -448,10 +455,35 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                 <span>Заметки</span>
               </div>
               {weapons.map((row, idx) => (
-                <div className="classic-weapon classic-lss-weapon-row" key={idx}>
-                  <span>{row.name || '—'}</span>
-                  <span>{row.attackBonus || '—'}</span>
-                  <span>{row.damageType || '—'}</span>
+                <div className="classic-weapon classic-lss-weapon-row" key={row.id}>
+                  <input
+                    value={row.name}
+                    aria-label={`Оружие ${idx + 1}: название`}
+                    placeholder="—"
+                    onChange={(e) =>
+                      onPatch(patchClassicWeapon(c, idx, { name: e.target.value }))
+                    }
+                  />
+                  <input
+                    value={row.attackBonus}
+                    aria-label={`Оружие ${idx + 1}: бонус`}
+                    placeholder="—"
+                    onChange={(e) =>
+                      onPatch(
+                        patchClassicWeapon(c, idx, { attackBonus: e.target.value }),
+                      )
+                    }
+                  />
+                  <input
+                    value={row.damageLine}
+                    aria-label={`Оружие ${idx + 1}: урон`}
+                    placeholder="—"
+                    onChange={(e) =>
+                      onPatch(
+                        patchClassicWeapon(c, idx, { damageLine: e.target.value }),
+                      )
+                    }
+                  />
                   <span />
                 </div>
               ))}
@@ -859,15 +891,20 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             </div>
 
             <div className="classic-panel classic-equip classic-panel--grow classic-panel--grow-lg">
+              {equipItems ? (
+                <div className="classic-equip-items" aria-label="Предметы из инвентаря">
+                  {equipItems}
+                </div>
+              ) : null}
               <ClassicTextBlock
                 blockId="equipment"
                 character={c}
                 onPatch={onPatch}
                 fill
-                value={equipmentText(c)}
+                value={equipmentNotes(c)}
                 printMaxHeight="8rem"
-                ariaLabel="Снаряжение"
-                onChange={(value) => patch({ equipmentText: value })}
+                ariaLabel="Заметки по снаряжению"
+                onChange={(value) => patch({ equipmentNotes: value })}
               />
               <div className="classic-lss-attune">
                 <span>Настройка на магические предметы</span>
@@ -877,9 +914,12 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                     filled={attunement > i}
                     label={`Настройка ${i + 1}`}
                     onClick={() =>
-                      patch({
-                        combat: { attunement_used: attunement === i + 1 ? i : i + 1 },
-                      })
+                      onPatch(
+                        patchClassicAttunementCount(
+                          c,
+                          attunement === i + 1 ? i : i + 1,
+                        ),
+                      )
                     }
                   />
                 ))}

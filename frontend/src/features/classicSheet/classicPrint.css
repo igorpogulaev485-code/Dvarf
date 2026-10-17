@@ -740,6 +740,20 @@
   white-space: nowrap;
 }
 
+.classic-equip-items {
+  padding: 0.15rem 0.25rem 0.05rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--c-ink, #1a1a1a);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.classic-lss .classic-equip-items {
+  font-size: 0.68rem;
+  padding: 0.1rem 0.2rem 0;
+}
+
 .classic-equip {
   display: grid;
   grid-template-columns: 0.82in 1fr;

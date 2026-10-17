@@ -9,6 +9,7 @@ import { Stack, Text } from '../ui'
 
 const SEED: InventoryState = {
   coins: { cp: 40, sp: 12, ep: 0, gp: 85, pp: 0 },
+  notes: '',
   items: [
     {
       id: 'sword-1',

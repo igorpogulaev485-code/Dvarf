@@ -11,7 +11,8 @@ import {
   abilityScore,
   applyClassicEdits,
   combatField,
-  equipmentText,
+  equipmentItemsLine,
+  equipmentNotes,
   identityField,
   inventoryCoins,
   isSaveProficient,
@@ -20,8 +21,8 @@ import {
   setCoins,
   skillFlags,
   textBlockValue,
-  weaponsSummary,
 } from './fromApi'
+import { classicWeaponRows, patchClassicWeapon } from './classicWeapons'
 import {
   classicSpellAbilityLabel,
   classicSpellStats,
@@ -92,7 +93,8 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
 
   const classAndLevel = [c.class_name, c.level].filter(Boolean).join(' ')
   const coins = inventoryCoins(c)
-  const weapons = weaponsSummary(c)
+  const weapons = classicWeaponRows(c)
+  const equipItems = equipmentItemsLine(c)
   const proficiency = Number(asProfBonus(c))
   const hitDiceTotal = String(c.level || '')
   const hitDiceCurrent = combatNum('hp_dice_current') || hitDiceTotal
@@ -397,10 +399,35 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                 <span>Урон / тип</span>
               </div>
               {weapons.map((row, idx) => (
-                <div className="classic-weapon" key={idx}>
-                  <span>{row.name || '—'}</span>
-                  <span>{row.attackBonus || '—'}</span>
-                  <span>{row.damageType || '—'}</span>
+                <div className="classic-weapon" key={row.id}>
+                  <input
+                    value={row.name}
+                    aria-label={`Атака ${idx + 1}: название`}
+                    placeholder="—"
+                    onChange={(e) =>
+                      onPatch(patchClassicWeapon(c, idx, { name: e.target.value }))
+                    }
+                  />
+                  <input
+                    value={row.attackBonus}
+                    aria-label={`Атака ${idx + 1}: бонус`}
+                    placeholder="—"
+                    onChange={(e) =>
+                      onPatch(
+                        patchClassicWeapon(c, idx, { attackBonus: e.target.value }),
+                      )
+                    }
+                  />
+                  <input
+                    value={row.damageLine}
+                    aria-label={`Атака ${idx + 1}: урон`}
+                    placeholder="—"
+                    onChange={(e) =>
+                      onPatch(
+                        patchClassicWeapon(c, idx, { damageLine: e.target.value }),
+                      )
+                    }
+                  />
                 </div>
               ))}
               <ClassicTextBlock
@@ -432,15 +459,20 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                   </label>
                 ))}
               </div>
+              {equipItems ? (
+                <div className="classic-equip-items" aria-label="Предметы из инвентаря">
+                  {equipItems}
+                </div>
+              ) : null}
               <ClassicTextBlock
                 blockId="equipment"
                 character={c}
                 onPatch={onPatch}
                 fill
-                value={equipmentText(c)}
+                value={equipmentNotes(c)}
                 printMaxHeight="14rem"
-                ariaLabel="Снаряжение"
-                onChange={(value) => patch({ equipmentText: value })}
+                ariaLabel="Заметки по снаряжению"
+                onChange={(value) => patch({ equipmentNotes: value })}
               />
               <div className="classic-caption">Снаряжение</div>
             </div>

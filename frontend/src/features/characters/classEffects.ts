@@ -186,6 +186,7 @@ export function revokeClassGrant(
   const inventory: InventoryState = {
     coins: { ...draft.inventory.coins },
     items: draft.inventory.items.filter((item) => !removeIds.has(item.id)),
+    notes: draft.inventory.notes ?? '',
   }
   if ((previous.equipmentCoinsGp ?? 0) > 0) {
     inventory.coins.gp = Math.max(0, inventory.coins.gp - previous.equipmentCoinsGp)
@@ -353,6 +354,7 @@ export function applyClassGrantToDraft(input: {
   let inventory: InventoryState = {
     coins: { ...cleared.inventory.coins },
     items: [...cleared.inventory.items],
+    notes: cleared.inventory.notes ?? '',
   }
   let nextWeapons: WeaponAttack[] = [...cleared.weapons]
   const equipmentPackageId =
