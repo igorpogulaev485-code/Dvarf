@@ -1632,8 +1632,12 @@
 }
 
 .classic-lss-death {
-  flex: 1 1 0;
-  min-width: 1.15in;
+  flex: 1.05 1 0;
+  min-width: 1.25in;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.08rem;
 }
 
 .classic-lss-hp,
@@ -1670,27 +1674,34 @@
 }
 
 .classic-lss-death .classic-death-line {
-  display: flex;
-  flex-wrap: nowrap;
+  display: grid;
+  grid-template-columns: 1.7rem repeat(3, 0.18in);
+  column-gap: 0.12rem;
   align-items: center;
-  gap: 0.1rem;
-  font-size: 0.5rem;
-  margin-bottom: 0.08rem;
+  justify-content: start;
+  font-size: 0.48rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  margin: 0;
 }
 
 .classic-lss-death .classic-death-line > span:first-child {
-  flex: 0 0 0.7in;
+  flex: none;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .classic-lss-death .classic-bubble {
-  width: 0.15in;
-  height: 0.15in;
+  width: 0.16in;
+  height: 0.16in;
 }
 
 .classic-lss-death .classic-lss-block-title {
-  margin-bottom: 0.18rem;
-  line-height: 1.15;
+  margin-bottom: 0.1rem;
+  line-height: 1.1;
 }
 
 .classic-lss-brand-rule {
@@ -1959,15 +1970,24 @@
   min-height: 0;
 }
 
-/* 2024 gear panel has no coin column — drop the 2014 two-column equip grid. */
+/* 2024 gear: coins as compact strip, list + notes take the rest. */
 .classic-lss .classic-equip.classic-panel--grow {
   display: flex;
   flex-direction: column;
+  gap: 0.04in;
+  min-height: 0;
+}
+
+.classic-lss .classic-equip.classic-panel--grow .classic-equip-items {
+  flex: 0 1 auto;
+  max-height: 38%;
+  overflow: auto;
+  margin: 0;
 }
 
 .classic-lss .classic-equip.classic-panel--grow .classic-text-block {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 1.2in;
 }
 
 .classic-lss-combat-bar {
@@ -2306,6 +2326,15 @@
   border-radius: 0.28rem;
 }
 
+.classic-lss-coins--inline {
+  flex: 0 0 auto;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.04in;
+  padding: 0.04in 0.05in;
+  margin: 0 0 0.06in;
+  background: #fff;
+}
+
 .classic-lss-coins label {
   display: flex;
   flex-direction: column;
@@ -2316,6 +2345,11 @@
   text-align: center;
 }
 
+.classic-lss-coins--inline label {
+  gap: 0.04rem;
+  font-size: 0.42rem;
+}
+
 .classic-lss-coins input {
   width: 100%;
   border: 1px solid var(--lss-soft);
@@ -2323,6 +2357,12 @@
   text-align: center;
   padding: 0.15rem;
   font-size: 0.78rem;
+}
+
+.classic-lss-coins--inline input {
+  padding: 0.08rem 0.04rem;
+  font-size: 0.68rem;
+  min-height: 0;
 }
 
 

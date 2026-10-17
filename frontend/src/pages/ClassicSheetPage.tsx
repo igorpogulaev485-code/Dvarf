@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ClassicBackgroundPicker } from '../features/classicSheet/ClassicBackgroundPicker'
 import { ClassicPrintSheet } from '../features/classicSheet/ClassicPrintSheet'
 import {
   readClassicSheetLayout,
@@ -25,7 +24,6 @@ export function ClassicSheetPage() {
   const navigate = useNavigate()
   const [character, setCharacter] = useState<CharacterDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
   const [status, setStatus] = useState<'loading' | 'saving' | 'saved'>('loading')
   const saveTimer = useRef<number | null>(null)
   const versionRef = useRef(0)
@@ -163,25 +161,8 @@ export function ClassicSheetPage() {
           {error}
         </Text>
       ) : null}
-      {toast ? (
-        <div className="no-print" style={{ padding: '0 1.25rem' }}>
-          <Text>{toast}</Text>
-        </div>
-      ) : null}
       {character ? (
-        <>
-          <div style={{ padding: '0.75rem 1.25rem 0' }}>
-            <ClassicBackgroundPicker
-              character={character}
-              onPatch={handlePatch}
-              onToast={(message) => {
-                setToast(message)
-                window.setTimeout(() => setToast(null), 4000)
-              }}
-            />
-          </div>
-          <ClassicPrintSheet character={character} onPatch={handlePatch} />
-        </>
+        <ClassicPrintSheet character={character} onPatch={handlePatch} />
       ) : null}
     </div>
   )

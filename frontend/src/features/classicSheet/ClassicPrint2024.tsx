@@ -254,9 +254,9 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
               </label>
             </div>
             <div className="classic-lss-death">
-              <span className="classic-lss-block-title">Спасброски от смерти</span>
+              <span className="classic-lss-block-title">Смерть</span>
               <div className="classic-death-line">
-                <span>Успехи</span>
+                <span>Усп.</span>
                 {[0, 1, 2].map((i) => (
                   <Bubble
                     key={`s${i}`}
@@ -271,7 +271,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                 ))}
               </div>
               <div className="classic-death-line">
-                <span>Провалы</span>
+                <span>Пров.</span>
                 {[0, 1, 2].map((i) => (
                   <Bubble
                     key={`f${i}`}
@@ -889,6 +889,23 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
             </div>
 
             <div className="classic-panel classic-equip classic-panel--grow classic-panel--grow-lg">
+              <div className="classic-lss-coins classic-lss-coins--inline" aria-label="Монеты">
+                {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map((k) => (
+                  <label key={k}>
+                    <span>
+                      {({ cp: 'ММ', sp: 'СМ', ep: 'ЭМ', gp: 'ЗМ', pp: 'ПМ' } as const)[k]}
+                    </span>
+                    <input
+                      value={coins[k]}
+                      onChange={(e) =>
+                        onPatch({
+                          sheet: setCoins(c, { ...coins, [k]: e.target.value }),
+                        })
+                      }
+                    />
+                  </label>
+                ))}
+              </div>
               {equipItems ? (
                 <div className="classic-equip-items" aria-label="Предметы из инвентаря">
                   {equipItems}
@@ -905,7 +922,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                 onChange={(value) => patch({ equipmentNotes: value })}
               />
               <div className="classic-lss-attune">
-                <span>Настройка на магические предметы</span>
+                <span>Настройка</span>
                 {[0, 1, 2].map((i) => (
                   <Bubble
                     key={`a${i}`}
@@ -923,25 +940,6 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                 ))}
               </div>
               <div className="classic-caption">Снаряжение</div>
-            </div>
-
-            <div className="classic-lss-coins">
-              <span className="classic-lss-block-title">Монеты</span>
-              {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map((k) => (
-                <label key={k}>
-                  <span>
-                    {({ cp: 'ММ', sp: 'СМ', ep: 'ЭМ', gp: 'ЗМ', pp: 'ПМ' } as const)[k]}
-                  </span>
-                  <input
-                    value={coins[k]}
-                    onChange={(e) =>
-                      onPatch({
-                        sheet: setCoins(c, { ...coins, [k]: e.target.value }),
-                      })
-                    }
-                  />
-                </label>
-              ))}
             </div>
           </div>
         </div>
