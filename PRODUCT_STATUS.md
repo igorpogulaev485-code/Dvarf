@@ -69,9 +69,12 @@
 | Макет 2024 (LSS, 4 стр.) | Переключатель в тулбаре; `sheet.ui.classic_sheet_layout`; не меняет `rules_edition` | 2014-перс может смотреть бланк 2024 |
 | Размер шрифта по блокам | Число 5–12 pt на текстовом поле; `sheet.ui.classic_block_fonts` | Как у LSS |
 | Заметки | 2014: страница в конце; 2024: P3; те же `notes-N` / «Добавить заметку» | Синхрон с цифровым «Тексты и заметки» |
-| Синхрон текстов / портрет / узкий экран | `withBlockPlainText`; аватар на 2024 P2; Letter со скроллом | Без поломки прода и цифрового листа |
+| Синхрон текст / портрет / узкий экран | `withBlockPlainText`; аватар на 2024 P2; Letter со скроллом | Без поломки прода и цифрового листа |
+| Атаки с бланка | Правка строк → `sheet.weapons` (+ optional `attack_bonus`) | Тот же список атак, что на цифровом листе |
+| Снаряжение | Предметы из инвентаря + `inventory.notes`; `classic_text` снят | Один список, без вечного оверлея |
+| Состояния / настройка | 2024: `combat.conditions` (read-only); пузырьки → `sheet.attunements` | Те же поля, что Play Desk |
 
-На проде: **да** · **это новый prod tip** `cursor/classic-2014-p1-visual-8bfd` · залито 2026-10-17 поверх tip `tablet-header-hotbar-ship-4dea` · `/health` ok; бандл ClassicSheetPage с `classic_block_fonts` / `classic_sheet_layout` / «Добавить заметку»; IdentityDialog + remote-up + тема на месте
+На проде: **да** · tip `cursor/classic-2014-p1-visual-8bfd` · parity-догон залит 2026-10-17 · `/health` ok; бандл `ClassicSheetPage-B0hxKxBD.js` с `equipmentNotes` / attunement / weapons; lobby+cabinet+avatar+remote-up на месте
 
 ### 2026-10-16 — Tablet: шапка с длинным именем + hot-карусель
 
@@ -339,6 +342,7 @@
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
 | 2026-10-17 | `cursor/classic-2014-p1-visual-8bfd` | Classic 2014/2024 бланк + заметки + font size → **новый tip** на Timeweb |
+| 2026-10-17 | `cursor/classic-2014-p1-visual-8bfd` | Classic parity: weapons/equipment/conditions/attunement → тот же tip, redeploy |
 | 2026-10-06 | `cursor/product-status-log-acbe` | Создан файл + стартовый срез прода |
 | 2026-10-06 | `cursor/sheet-race-effects-eb8e` · PR #20 | Мультикласс + эффекты расы → «Сейчас в продукте» |
 | 2026-10-06 | `cursor/sheet-race-effects-eb8e` · PR #20 | Полный срез агента листа P1–P6 (функция / как / эффект) |
