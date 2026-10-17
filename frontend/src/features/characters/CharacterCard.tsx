@@ -166,11 +166,11 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
               role="menuitem"
               className="character-card__actions-item"
               onClick={() => {
-                // navigate before unmounting the sheet — on iOS closing first can
-                // cancel the route change (user stays on /characters).
+                // navigate first — closing the dialog unmounts a <Link> mid-tap on iOS
+                // and cancels the route change (user stays on /characters or hits «Открыть»).
                 const classicPath = `/characters/${character.id}/classic`
-                navigate(classicPath)
                 setActionsOpen(false)
+                navigate(classicPath)
               }}
             >
               Классический лист
@@ -181,11 +181,9 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
             role="menuitem"
             className="character-card__actions-item character-card__actions-item--danger"
             onClick={() => {
-              setDeleteError(null)
               setActionsOpen(false)
-              // Defer confirm so the same tap cannot dismiss the new dialog
-              // (ghost click on backdrop after the actions sheet unmounts).
-              window.setTimeout(() => setConfirmOpen(true), 0)
+              setDeleteError(null)
+              setConfirmOpen(true)
             }}
           >
             Удалить
