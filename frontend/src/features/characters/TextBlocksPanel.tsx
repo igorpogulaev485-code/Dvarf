@@ -10,6 +10,10 @@ import {
   Text,
 } from '../../ui'
 import type { ResourceReset, SheetResource } from '../../shared/dnd/rest'
+import {
+  storeTextBlockFromEditor,
+  stripDvarfInternalMarkers,
+} from '../../shared/dnd/backgroundGrants'
 import { createResource, RESET_LABELS } from './play'
 import {
   appendBlockPart,
@@ -62,7 +66,7 @@ const PERSONALITY_KEYS = new Set([
 const FEATURE_KEYS = new Set(['traits', 'features', 'feats'])
 
 function previewText(value: string, max = 110): string {
-  const flat = value.replace(/\s+/g, ' ').trim()
+  const flat = stripDvarfInternalMarkers(value).replace(/\s+/g, ' ').trim()
   if (!flat) return ''
   if (flat.length <= max) return flat
   return `${flat.slice(0, max - 1)}…`
@@ -451,11 +455,17 @@ export function TextBlocksPanel({
         <textarea
           className="ui-input text-block__area"
           rows={4}
-          value={part.value}
+          value={stripDvarfInternalMarkers(part.value)}
           placeholder="Текст…"
           onChange={(event) =>
             replaceBlock(
-              patchBlockPart(block, part.id, { value: event.target.value }),
+              patchBlockPart(block, part.id, {
+                value: storeTextBlockFromEditor(
+                  block.key,
+                  part.value,
+                  event.target.value,
+                ),
+              }),
             )
           }
         />
@@ -505,7 +515,9 @@ export function TextBlocksPanel({
     const bucket = blockBucket(block)
     const role = roleLabel(block)
     const preview = previewText(block.value)
-    const filled = Boolean(block.value.trim()) || blockHasResource(block)
+    const filled =
+      Boolean(stripDvarfInternalMarkers(block.value).trim()) ||
+      blockHasResource(block)
     const detailsOpen = openKeys.has(block.key)
     const drop = blockDropProps(block)
     const hasResource = blockHasResource(block)

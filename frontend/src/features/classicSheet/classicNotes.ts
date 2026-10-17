@@ -1,4 +1,5 @@
 import type { CharacterDetail } from '../../shared/api/characters'
+import { stripDvarfInternalMarkers } from '../../shared/dnd/backgroundGrants'
 import {
   blockTextPartsPlain,
   createCustomTextBlock,
@@ -30,7 +31,7 @@ export function classicNoteLabel(block: TextBlock): string {
 
 /** Editable plain text — text parts only, so spoilers/resources stay intact. */
 export function classicNoteText(block: TextBlock): string {
-  return blockTextPartsPlain(block)
+  return stripDvarfInternalMarkers(blockTextPartsPlain(block))
 }
 
 /** Same as interactive «Добавить блок» — creates `notes-N`. */

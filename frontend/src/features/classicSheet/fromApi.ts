@@ -1,5 +1,9 @@
 import type { CharacterDetail } from '../../shared/api/characters'
 import {
+  storeTextBlockFromEditor,
+  stripDvarfInternalMarkers,
+} from '../../shared/dnd/backgroundGrants'
+import {
   blockTextPartsPlain,
   createTextPart,
   readTextBlocks,
@@ -116,15 +120,23 @@ export function textBlockValue(character: CharacterDetail, key: string): string 
   const sheet = asRecord(character.sheet)
   // Prefer structured text blocks so classic plain edits don't pull spoiler bodies.
   const block = readTextBlocks(sheet).find((row) => row.key === key)
-  if (block) return blockTextPartsPlain(block)
+  if (block) return stripDvarfInternalMarkers(blockTextPartsPlain(block))
   const features = asRecord(sheet.features_text)
   const personality = asRecord(sheet.personality)
   const notes = asRecord(sheet.notes)
-  if (typeof features[key] === 'string') return features[key] as string
-  if (typeof personality[key] === 'string') return personality[key] as string
-  if (typeof notes[key] === 'string') return notes[key] as string
+  if (typeof features[key] === 'string') {
+    return stripDvarfInternalMarkers(features[key] as string)
+  }
+  if (typeof personality[key] === 'string') {
+    return stripDvarfInternalMarkers(personality[key] as string)
+  }
+  if (typeof notes[key] === 'string') {
+    return stripDvarfInternalMarkers(notes[key] as string)
+  }
   // Classic P2: allies used to live under «quests» on early classic builds
-  if (key === 'allies' && typeof notes.quests === 'string') return notes.quests
+  if (key === 'allies' && typeof notes.quests === 'string') {
+    return stripDvarfInternalMarkers(notes.quests)
+  }
   return ''
 }
 
@@ -231,9 +243,12 @@ export function applyClassicEdits(
     const extraMirrors: Record<string, string> = {}
     for (const [key, value] of Object.entries(edits.textBlocks)) {
       const index = blocks.findIndex((block) => block.key === key)
+      const previous =
+        index >= 0 ? blockTextPartsPlain(blocks[index]) : ''
+      const stored = storeTextBlockFromEditor(key, previous, value)
       if (index >= 0) {
         const next = [...blocks]
-        next[index] = withBlockPlainText(next[index], value)
+        next[index] = withBlockPlainText(next[index], stored)
         blocks = next
       } else {
         const stub: TextBlock = withBlockPlainText(
@@ -247,11 +262,11 @@ export function applyClassicEdits(
             resourceId: null,
             parts: [createTextPart('')],
           },
-          value,
+          stored,
         )
         blocks = [...blocks, stub]
       }
-      if (CLASSIC_EXTRA_NOTE_KEYS.has(key)) extraMirrors[key] = value
+      if (CLASSIC_EXTRA_NOTE_KEYS.has(key)) extraMirrors[key] = stored
     }
     const patched = mergeClassicTextBlocks(
       { ...character, sheet },

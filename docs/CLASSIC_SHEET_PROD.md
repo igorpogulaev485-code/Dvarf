@@ -69,3 +69,4 @@ ssh … 'test -f /opt/dvarf/frontend/src/features/characters/PlayDeskHotBar.tsx'
 2. Залить сеттинг мимо tip с classic → classic снова 3 файла.
 3. Считать наличие `ClassicPrintSheet.tsx` достаточным — без 2024/parity это тонкий stub.
 4. Ломать `characterSheetChannel` / `sheet_version` — classic и digital разъедутся.
+5. Показывать пользователю `<!-- dvarf-bg-* -->` из гранта предыстории — UI обязан звать `stripDvarfInternalMarkers` (Play Desk + classic).
