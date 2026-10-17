@@ -297,7 +297,7 @@
 | Лента | `event_type=reveal` · «Открыто: …» | игроки видят без F5 |
 | Toast игроку | realtime `session_event` | мгновенно понятно, что открылось |
 
-На проде: **нет** · ветка `cursor/setting-t2-reveal-c440`
+На проде: **нет** · ветка `cursor/setting-t2-reveal-c440` · PR #205
 
 ---
 
