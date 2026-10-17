@@ -188,6 +188,8 @@ export function RaceSetupDialog({
   useEffect(() => {
     if (!open) return
     setSubraceKey(hasSubraceFork ? null : SKIP_SUBRACE)
+    // Seed name only when the dialog opens / race root changes — do not
+    // depend on characterNameProp or every parent re-render wipes keystrokes.
     setCharacterName(characterNameProp)
     const empty = emptyRacePicks()
     setAbilityBonusModeId(empty.abilityBonusModeId)
@@ -200,7 +202,8 @@ export function RaceSetupDialog({
     setSkills(empty.skills)
     setTools(empty.tools)
     setAncestryId(empty.ancestryId)
-  }, [open, root?.id, hasSubraceFork, characterNameProp])
+    // characterNameProp intentionally omitted: re-seeding on prop churn wipes typing.
+  }, [open, root?.id, hasSubraceFork])
 
   useEffect(() => {
     // Reset fork picks when subrace changes.
