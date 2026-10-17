@@ -317,7 +317,7 @@
 | `POST …/quest-status` | меняет `quest_status` + событие в ленте | игроки видят без F5 |
 | Дневник | при done/failed опционально `entry_type=quest_status` | след в кампании |
 
-На проде: **нет** · ветка `cursor/setting-t4-quest-journal-c440`
+На проде: **нет** · ветка `cursor/setting-t4-quest-journal-c440` · PR #207
 
 ---
 
