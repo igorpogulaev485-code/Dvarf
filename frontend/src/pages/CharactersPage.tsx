@@ -21,7 +21,9 @@ import {
   type CharacterSummary,
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
+import { prefetchSheetRoutes } from '../shared/lazy/routes'
 import { Button, Stack, Text, Toast } from '../ui'
+import { forceReleaseBodyScrollLock } from '../ui/bodyScrollLock'
 
 function listSubtitle(user: User | null, shown: number, total: number): string {
   const who = user?.display_name || user?.login || user?.email
@@ -54,6 +56,10 @@ export function CharactersPage() {
   }, [])
 
   useEffect(() => {
+    forceReleaseBodyScrollLock()
+  }, [])
+
+  useEffect(() => {
     let active = true
     setLoading(true)
     setError(null)
@@ -71,6 +77,8 @@ export function CharactersPage() {
       .then((items) => {
         if (!active) return
         setCharacters(items)
+        // Warm the ~500KB sheet chunk while the user still looks at cards.
+        prefetchSheetRoutes()
       })
       .catch((err: unknown) => {
         if (!active) return

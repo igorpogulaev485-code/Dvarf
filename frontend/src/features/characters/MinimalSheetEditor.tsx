@@ -81,8 +81,43 @@ import {
 } from './subclassEffects'
 import { SubclassSetupDialog } from './SubclassSetupDialog'
 import { SubclassChangeConfirmDialog } from './SubclassChangeConfirmDialog'
-import { readCompanions, type CompanionEntry } from './companions'
-import { computeArmorClass } from '../../shared/dnd/armor'
+import {
+  dismissSelfFormsOnRest,
+  isSelfForm,
+  readCompanions,
+  type CompanionEntry,
+} from './companions'
+import { readKnownForms, type KnownForm } from './knownForms'
+import {
+  applyConcentrationChangeToCompanions,
+  applySpellCastToCompanions,
+} from './spellCompanions'
+import {
+  isSpellSelfFormCast,
+  resolveSpellSelfFormSlug,
+  type SpellSelfFormSlug,
+} from './spellForms'
+import {
+  SpellFormDialog,
+  type SpellFormDialogResult,
+} from './SpellFormDialog'
+import { armorKindLabel, computeArmorClass } from '../../shared/dnd/armor'
+import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
+import { AbilityBreakdownDialog } from './AbilityBreakdownDialog'
+import { AcBreakdownDialog } from './AcBreakdownDialog'
+import { InitiativeBreakdownDialog } from './InitiativeBreakdownDialog'
+import {
+  abilityCheckBonus,
+  abilitySaveBonus,
+  applyAbilityScoreBonuses,
+  applyBonusStack,
+  bonusesForTarget,
+  formatBonusSummary,
+  modifiersToSheet,
+  readModifiers,
+  withInitiativeBonus,
+  type BonusLine,
+} from './modifiers'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
@@ -98,6 +133,17 @@ import {
   type RaceGrantDef,
   type RaceGrantPicks,
 } from '../../shared/dnd/raceGrants'
+import { jumpDistances } from '../../shared/dnd/jumpDistance'
+import {
+  DEFAULT_ABILITY_SCORE_MAX,
+  clampAbilityScore,
+  resolveAbilityMaxes,
+} from '../../shared/dnd/abilityScoreCaps'
+import {
+  customFeaturesToSheet,
+  readCustomFeatures,
+  type CustomFeature,
+} from './customFeatures'
 import {
   AttacksPanel,
   syncAttacksHeldFromInventory,
@@ -113,7 +159,8 @@ import {
   syncGearGrantSpells,
   syncGearResources,
 } from './gearGrantsSync'
-import { canWearArmor } from './equipmentProficiency'
+import { canWearArmor, armorProficiencyHint } from './equipmentProficiency'
+import { listShieldItems, toggleShieldInHand } from './heldEquip'
 import { AttunementDialog } from './AttunementDialog'
 import {
   attunementsToSheet,
@@ -126,7 +173,6 @@ import {
   readClassLevels,
   type ClassLevelEntry,
 } from './classLevels'
-import { CombatStickyHeader } from './CombatStickyHeader'
 import { InventoryPanel } from './InventoryPanel'
 import { LanguagesToolsPanel } from './LanguagesToolsPanel'
 import { GuidedWizardDialog, type GuidedWizardSession } from './GuidedWizardDialog'
@@ -149,8 +195,10 @@ import {
   buildPendingWizardSteps,
   clearFeaturePicksAboveClassLevel,
   featWizardStep,
+  isWizardClassName,
   listUnlockedExpertiseKeys,
   withBackgroundStepIfNeeded,
+  withWizardSpellbookPicksStep,
   type GuidedWizardStep,
 } from '../../shared/dnd/pendingFeatureChoices'
 import {
@@ -190,10 +238,12 @@ import { SpellsSettingsDialog } from './SpellsSettingsDialog'
 import { useSpellcastingSheetSync } from './useSpellcastingSheetSync'
 import {
   desiredResourcesFromFeatures,
+  spendFeatureUse,
   syncFeatureResources,
 } from '../../shared/dnd/featureResources'
 import {
   listSubclassFeatureIdsAboveLevel,
+  resolveClassFeatureSlug,
   unlockFeaturesForClasses,
 } from '../../shared/dnd/classFeatures'
 import {
@@ -206,8 +256,20 @@ import {
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
-import { ClassFeaturesPanel, saveBonusFromFeatures } from './ClassFeaturesPanel'
+import {
+  ClassFeaturesPanel,
+  saveBonusFromFeatures,
+  type FeatureSelfFormRequest,
+  type WildShapeForkRequest,
+} from './ClassFeaturesPanel'
 import { CompanionsPanel } from './CompanionsPanel'
+import {
+  FeatureSelfFormDialog,
+  type FeatureSelfFormDialogResult,
+} from './FeatureSelfFormDialog'
+import { shapechangerFormLimits } from './featureForms'
+import { WildShapeDialog, type WildShapeDialogResult } from './WildShapeDialog'
+import { healSelfForm, rollDice } from './wildShape'
 import { TextBlocksPanel } from './TextBlocksPanel'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
@@ -219,7 +281,24 @@ import { PlayDeskHeader } from './PlayDeskHeader'
 import { PlayDeskHotBar } from './PlayDeskHotBar'
 import { RestDialog } from './RestDialog'
 import { SorceryPointsSpendDialog } from './SorceryPointsSpendDialog'
+import { BottomSceneNav } from './BottomSceneNav'
+import { MobileAbilitiesPage } from './MobileAbilitiesPage'
+import { MobileVitalsBar } from './MobileVitalsBar'
 import { ChannelDivinitySpendDialog } from './ChannelDivinitySpendDialog'
+import { KiSpendDialog } from './KiSpendDialog'
+import { BardicInspirationSpendDialog } from './BardicInspirationSpendDialog'
+import { LayOnHandsSpendDialog } from './LayOnHandsSpendDialog'
+import { SuperiorityDiceSpendDialog } from './SuperiorityDiceSpendDialog'
+import { ArcaneRecoverySpendDialog } from './ArcaneRecoverySpendDialog'
+import {
+  InfusionsActiveDialog,
+  parseInfusionSlotsResourceId,
+} from './InfusionsActiveDialog'
+import { WarlockArcanumSpendDialog } from './WarlockArcanumSpendDialog'
+import { WarlockInvocationsDialog } from './WarlockInvocationsDialog'
+import { PsionicDiceSpendDialog } from './PsionicDiceSpendDialog'
+import { SoulTrinketsSpendDialog } from './SoulTrinketsSpendDialog'
+import { RangerFavoredDeskDialog } from './RangerFavoredDeskDialog'
 import { PlayDeskSkillStrip } from './PlayDeskSkillStrip'
 import { PlayDeskSpellsCompact } from './PlayDeskSpellsCompact'
 import {
@@ -229,7 +308,9 @@ import {
   type DeskRollMode,
 } from './deskRolls'
 import {
+  appendRollHistory,
   appendXpHistory,
+  isDeskRollToast,
   MODE_DEFAULT_PANEL,
   MODE_HINT,
   MODE_LABELS,
@@ -254,6 +335,7 @@ const COMPANION_KIND_SHORT: Record<CompanionKind, string> = {
   primal_companion: 'Спутник',
   familiar: 'Фамилиар',
   ally: 'Напарник',
+  transformed_self: 'Облик',
   other: 'Спутник',
 }
 import {
@@ -278,6 +360,7 @@ import {
   resolveSpellLearnBudget,
 } from '../../shared/dnd/casterProgression'
 import {
+  type InventoryItem,
   equipInventoryItem,
   equippedArmorPieces,
   inventoryToSheet,
@@ -290,13 +373,29 @@ import {
   withSpellFocusFlags,
 } from './spellFocus'
 import {
+  canCastWizardRitualFromBook,
+  freeBookSlotsAtLevel,
+  remainingFreeSpellbookSlots,
+} from '../../shared/dnd/wizardSpellbook'
+import {
+  syncWizardSpellbookWithInventory,
+  wizardHasUsableSpellbook,
+} from './wizardSpellbookInventory'
+import {
   playToSheet,
   readPlay,
   type PlayState,
 } from './play'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
+import { CastScrollDialog } from './CastScrollDialog'
+import {
+  consumeScrollItem,
+  isCastableSpellScroll,
+  spellScrollCastStats,
+} from './spellScroll'
 import { consumeMaterialItem } from './spellMaterials'
 import {
+  addCatalogSpellToKnown,
   canSpendGrantCast,
   readSpells,
   spendGrantCast,
@@ -314,6 +413,7 @@ import {
 import {
   ABILITY_KEYS,
   ABILITY_LABELS,
+  ABILITY_NAMES,
   SKILL_DEFS,
   abilityModifier,
   asRecord,
@@ -367,9 +467,14 @@ type Draft = {
   backgroundGrant: AppliedBackgroundGrant | null
   backgroundCatalogId: string | null
   companions: CompanionEntry[]
+  /** Wild Shape / form library — seen or learned forms. */
+  knownForms: KnownForm[]
   featurePicks: FeaturePicksState
   classAsi: AppliedClassAsi[]
   featGrants: AppliedFeatGrant[]
+  customFeatures: CustomFeature[]
+  /** Named buff/debuff stack (AC formulas, later abilities). */
+  modifiers: BonusLine[]
   sheetUi: SheetUiState
 }
 
@@ -539,9 +644,12 @@ function buildDraft(character: CharacterDetail): Draft {
         ? identity.background_catalog_id
         : null,
     companions: readCompanions(sheet.companions),
+    knownForms: readKnownForms(sheet.known_forms),
     featurePicks: readFeaturePicks(sheet.feature_picks),
     classAsi: readClassAsiLedger(sheet.class_asi),
     featGrants: readFeatGrantLedger(sheet.feat_grants),
+    customFeatures: readCustomFeatures(sheet.custom_features ?? sheet.customFeatures),
+    modifiers: readModifiers(sheet),
     sheetUi: readSheetUi(sheet),
   }
 }
@@ -718,6 +826,11 @@ export function MinimalSheetEditor({
   const onToastRef = useRef(onToast)
   onToastRef.current = onToast
   const [raceCatalogRows, setRaceCatalogRows] = useState<CatalogEntry[]>([])
+  const [wildShapeFork, setWildShapeFork] = useState<WildShapeForkRequest | null>(
+    null,
+  )
+  const [featureSelfForm, setFeatureSelfForm] =
+    useState<FeatureSelfFormRequest | null>(null)
 
   const characterLevel = useMemo(
     () => totalCharacterLevel(draft.classes),
@@ -812,6 +925,61 @@ export function MinimalSheetEditor({
   )
   const primaryClass = draft.classes[0]
   const rulesEdition = baseCharacter.rules_edition as RulesEdition
+  const druidClassRow = useMemo(() => {
+    if (wildShapeFork) {
+      return (
+        draft.classes.find((row) => row.id === wildShapeFork.classEntryId) ?? null
+      )
+    }
+    return (
+      draft.classes.find(
+        (row) => resolveClassFeatureSlug(row.name) === 'druid',
+      ) ?? null
+    )
+  }, [draft.classes, wildShapeFork])
+  const druidLevel = druidClassRow?.level ?? characterLevel
+  const druidSubclassSlug =
+    (druidClassRow && subclassSlugByEntryId[druidClassRow.id]) || null
+
+  function applyWildShapeResult(result: WildShapeDialogResult) {
+    setDraft((prev) => ({
+      ...prev,
+      companions: result.companions,
+      knownForms: result.knownForms,
+      play: {
+        ...prev.play,
+        resources: result.resources,
+        ...(result.hpTemp != null
+          ? { hpTemp: Math.max(prev.play.hpTemp, result.hpTemp) }
+          : {}),
+      },
+    }))
+    if (result.toast) onToast(result.toast)
+  }
+
+  function clearConcentrationDismissingCompanions(
+    next: typeof draft.play.concentration | null = null,
+  ) {
+    let dismissed: string[] = []
+    setDraft((prev) => {
+      const result = applyConcentrationChangeToCompanions({
+        companions: prev.companions,
+        previous: prev.play.concentration,
+        next,
+      })
+      dismissed = result.dismissedNames
+      return {
+        ...prev,
+        companions: result.companions,
+        play: { ...prev.play, concentration: next },
+      }
+    })
+    if (dismissed.length) {
+      onToast(
+        `Концентрация снята · напарник неактивен: ${dismissed.join(', ')}`,
+      )
+    }
+  }
 
   useEffect(() => {
     // New character open — full reset.
@@ -951,6 +1119,15 @@ export function MinimalSheetEditor({
           }
           if (catalogDef?.racialSpells && catalogDef.racialSpells.length > 0) {
             nextGrant = { ...nextGrant, racialSpells: catalogDef.racialSpells }
+          }
+          if (catalogDef?.traitCards && catalogDef.traitCards.length > 0) {
+            const had = nextGrant.traitCards?.length ?? 0
+            if (had === 0) {
+              nextGrant = { ...nextGrant, traitCards: catalogDef.traitCards }
+            }
+          }
+          if (catalogDef?.traitsText && !nextGrant.traitsText?.trim()) {
+            nextGrant = { ...nextGrant, traitsText: catalogDef.traitsText }
           }
 
           const nextSpells = syncRaceSpellsForSheetState({
@@ -1569,6 +1746,15 @@ export function MinimalSheetEditor({
   }
 
   function mergeGrantSlice(prev: Draft, slice: ClassGrantDraftSlice): Draft {
+    const focusSpells = withSpellFocusFlags(prev.spells, slice.inventory.items)
+    const isWizard = prev.classes.some((row) =>
+      /волшебник|wizard|маг/i.test(row.name),
+    )
+    const synced = syncWizardSpellbookWithInventory({
+      isWizard,
+      spells: focusSpells,
+      items: slice.inventory.items,
+    })
     const merged: Draft = {
       ...prev,
       identity: slice.identity,
@@ -1579,11 +1765,14 @@ export function MinimalSheetEditor({
       hpCurrent: slice.hpCurrent,
       inventory: slice.inventory,
       weapons: slice.weapons,
-      spells: withSpellFocusFlags(prev.spells, slice.inventory.items),
+      spells: synced.spells,
       play: {
         ...prev.play,
         hitDie: slice.playHitDie,
       },
+    }
+    if (synced.message) {
+      queueMicrotask(() => onToast(synced.message!))
     }
     const restored = reapplyRaceOverlays(raceSliceFrom(merged), {
       characterLevel: totalCharacterLevel(merged.classes),
@@ -1646,6 +1835,7 @@ export function MinimalSheetEditor({
   }
 
   function openGuidedWizard(session: GuidedWizardSession) {
+    setIdentityOpen(false)
     if (session.steps.length === 0) {
       setGuidedWizard(null)
       return
@@ -1698,7 +1888,7 @@ export function MinimalSheetEditor({
     hasBackgroundGrant?: boolean
   }): GuidedWizardStep[] {
     const maxLevel = input.upToLevel ?? input.classLevel
-    const steps = buildPendingWizardSteps({
+    let steps = buildPendingWizardSteps({
       unlocked: input.unlocked ?? unlockedFeatures,
       featurePicks: input.featurePicks ?? draft.featurePicks,
       classAsi: input.classAsi ?? draft.classAsi,
@@ -1716,9 +1906,28 @@ export function MinimalSheetEditor({
             },
       hasSubclassByEntryId: input.hasSubclass ?? hasSubclassByEntryId,
     })
-    return withBackgroundStepIfNeeded(steps, {
+    steps = withBackgroundStepIfNeeded(steps, {
       include: Boolean(input.includeBackground) && !input.hasBackgroundGrant,
     })
+    const classRow = draft.classes.find((row) => row.id === input.classEntryId)
+    if (classRow && isWizardClassName(classRow.name)) {
+      const wizardLevel = Math.max(1, maxLevel)
+      const freeLeft = remainingFreeSpellbookSlots(draft.spells.known, wizardLevel)
+      if (freeLeft > 0) {
+        steps = withWizardSpellbookPicksStep(steps, {
+          classEntryId: input.classEntryId,
+          className: classRow.name,
+          classLevel: wizardLevel,
+          picksNeeded:
+            input.upToLevel != null
+              ? freeLeft
+              : wizardLevel <= 1
+                ? Math.min(6, freeLeft)
+                : Math.min(freeBookSlotsAtLevel(wizardLevel), freeLeft),
+        })
+      }
+    }
+    return steps
   }
 
   function commitClassGrant(input: {
@@ -2029,6 +2238,7 @@ export function MinimalSheetEditor({
     const subraceRequired = raceSubraceRequired(selected.data)
 
     if (subraces.length > 0 || raceGrantNeedsSetupDialog(rootDef)) {
+      setIdentityOpen(false)
       setRaceGrantPicker({
         root: selected,
         subraces,
@@ -2200,6 +2410,7 @@ export function MinimalSheetEditor({
     }
 
     if (variants.length > 0 || backgroundGrantNeedsSetupDialog(def)) {
+      setIdentityOpen(false)
       setBackgroundGrantPicker({ root: selected, variants })
       return
     }
@@ -2359,7 +2570,7 @@ export function MinimalSheetEditor({
       for (const row of nextClasses) {
         hasSubclass[row.id] = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
       }
-      const steps = buildPendingWizardSteps({
+      let steps = buildPendingWizardSteps({
         unlocked,
         featurePicks: draft.featurePicks,
         classAsi: draft.classAsi,
@@ -2370,6 +2581,14 @@ export function MinimalSheetEditor({
         },
         hasSubclassByEntryId: hasSubclass,
       })
+      if (isWizardClassName(leveledRow.name) && leveledRow.level >= 2) {
+        steps = withWizardSpellbookPicksStep(steps, {
+          classEntryId: leveledRow.id,
+          className: leveledRow.name,
+          classLevel: leveledRow.level,
+          picksNeeded: freeBookSlotsAtLevel(leveledRow.level),
+        })
+      }
       if (
         !hasSubclass[leveledRow.id] &&
         steps.some((step) => step.kind === 'subclass')
@@ -2505,6 +2724,44 @@ export function MinimalSheetEditor({
     [draft.inventory.items, draft.attunements],
   )
 
+  const attunedItemIds = useMemo(
+    () =>
+      new Set(
+        draft.attunements
+          .map((slot) => slot.item_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    [draft.attunements],
+  )
+
+  // Live sources only (class/archetype + active inventory). Baked sheet.max_score
+  // is written on save from this resolve — so unequipping an artifact drops the cap.
+  const abilityCeilings = useMemo(
+    () =>
+      resolveAbilityMaxes({
+        classes: draft.classes,
+        inventoryItems: draft.inventory.items.map((item) => {
+          const extra = item as InventoryItem & {
+            item_kind?: string
+            magic_mods?: Record<string, unknown> | null
+            artifact_snapshot?: Record<string, unknown> | null
+          }
+          return {
+            id: item.id,
+            name: item.name,
+            qty: item.qty,
+            equipped: item.equipped,
+            item_kind: extra.item_kind ?? 'other',
+            requires_attunement: item.requires_attunement,
+            magic_mods: extra.magic_mods ?? null,
+            artifact_snapshot: extra.artifact_snapshot ?? null,
+          }
+        }),
+        attunedItemIds,
+      }),
+    [draft.classes, draft.inventory.items, attunedItemIds],
+  )
+
   // Keep gear-granted companions / charge pools / spells / slot deltas in sync.
   useEffect(() => {
     setDraft((prev) => {
@@ -2546,10 +2803,49 @@ export function MinimalSheetEditor({
     })
   }, [gearEffects])
 
-  const effectiveAbilities = useMemo(
+  const gearAbilities = useMemo(
     () => applyGearAbilityScores(draft.abilities, gearEffects),
     [draft.abilities, gearEffects],
   )
+
+  const formulaVarsBase = useMemo(() => {
+    const mods = {
+      str: abilityModifier(gearAbilities.str),
+      dex: abilityModifier(gearAbilities.dex),
+      con: abilityModifier(gearAbilities.con),
+      int: abilityModifier(gearAbilities.int),
+      wis: abilityModifier(gearAbilities.wis),
+      cha: abilityModifier(gearAbilities.cha),
+    }
+    return buildSheetFormulaVars({
+      mods,
+      proficiencyBonus,
+      level: characterLevel,
+    })
+  }, [gearAbilities, proficiencyBonus, characterLevel])
+
+  const effectiveAbilities = useMemo(
+    () => applyAbilityScoreBonuses(gearAbilities, draft.modifiers, formulaVarsBase),
+    [gearAbilities, draft.modifiers, formulaVarsBase],
+  )
+
+  const abilityCheckExtras = useMemo(() => {
+    const out: Partial<Record<AbilityKey, number>> = {}
+    for (const key of ABILITY_KEYS) {
+      const n = abilityCheckBonus(key, draft.modifiers, formulaVarsBase)
+      if (n) out[key] = n
+    }
+    return out
+  }, [draft.modifiers, formulaVarsBase])
+
+  const abilitySaveExtras = useMemo(() => {
+    const out: Partial<Record<AbilityKey, number>> = {}
+    for (const key of ABILITY_KEYS) {
+      const n = abilitySaveBonus(key, draft.modifiers, formulaVarsBase)
+      if (n) out[key] = n
+    }
+    return out
+  }, [draft.modifiers, formulaVarsBase])
 
   const armorClass = useMemo(() => {
     const pieces = equippedArmorPieces(draft.inventory.items)
@@ -2597,6 +2893,14 @@ export function MinimalSheetEditor({
       }
       return null
     })()
+    const withoutShield = computeArmorClass({
+      dexMod: mods.dex,
+      abilityMods: mods,
+      armor: pieces.armor,
+      shield: null,
+      naturalArmor,
+      unarmoredDefense,
+    })
     const base = computeArmorClass({
       dexMod: mods.dex,
       abilityMods: mods,
@@ -2612,26 +2916,54 @@ export function MinimalSheetEditor({
       styleId,
       wearingArmor: Boolean(pieces.armor),
     })
-    let ac = base.ac
-    let summary = base.summary
+    let coreAc = base.ac
+    let gearSummary = base.summary
     if (styleBonus > 0) {
-      ac += styleBonus
-      summary = `${summary} · стиль +${styleBonus}`
+      coreAc += styleBonus
+      gearSummary = `${gearSummary} · стиль +${styleBonus}`
     }
     if (gearEffects.acBonus) {
-      ac += gearEffects.acBonus
-      summary = `${summary} · магия +${gearEffects.acBonus}`
+      coreAc += gearEffects.acBonus
+      gearSummary = `${gearSummary} · магия +${gearEffects.acBonus}`
     }
-    return { ac, summary }
+    const formulaVars = buildSheetFormulaVars({
+      mods,
+      proficiencyBonus,
+      level: characterLevel,
+    })
+    const acBonuses = bonusesForTarget(draft.modifiers, 'ac')
+    const stacked = applyBonusStack(coreAc, acBonuses, formulaVars)
+    const bonusSummary = formatBonusSummary(stacked.applied)
+    const summary = bonusSummary ? `${gearSummary} · ${bonusSummary}` : gearSummary
+    const baseLabel = pieces.armor
+      ? `${pieces.armor.baseAc} ${
+          pieces.armor.name || armorKindLabel(pieces.armor.kind)
+        } · ${armorKindLabel(pieces.armor.kind).toLowerCase()} доспех`
+      : withoutShield.summary
+    const spareShield = listShieldItems(draft.inventory.items)[0]
+    const shieldBonus = pieces.shield
+      ? Math.max(0, Math.floor(pieces.shield.baseAc || 2))
+      : Math.max(0, Math.floor(spareShield?.base_ac ?? 2))
+    return {
+      ac: stacked.total,
+      summary,
+      gearSummary,
+      baseLabel,
+      shieldBonus,
+      formulaVars,
+    }
   }, [
     effectiveAbilities,
     draft.inventory.items,
     draft.raceGrant,
     draft.featurePicks,
     draft.featGrants,
+    draft.modifiers,
     raceCatalogRows,
     unlockedFeatures,
     gearEffects.acBonus,
+    proficiencyBonus,
+    characterLevel,
   ])
 
   function patchIdentity(patch: Partial<IdentityExtras>) {
@@ -2725,12 +3057,24 @@ export function MinimalSheetEditor({
       sheet.race_grant = draftSnap.raceGrant
       sheet.background_grant = draftSnap.backgroundGrant
       sheet.companions = draftSnap.companions
+      sheet.known_forms = draftSnap.knownForms
       sheet.feature_picks = featurePicksToSheet(draftSnap.featurePicks)
       sheet.class_asi = draftSnap.classAsi
       sheet.feat_grants = draftSnap.featGrants
+      Object.assign(sheet, customFeaturesToSheet(draftSnap.customFeatures))
 
       for (const key of ABILITY_KEYS) {
-        abilities[key] = { ...asRecord(abilities[key]), score: draftSnap.abilities[key] }
+        const ceiling = abilityCeilings[key]?.max ?? DEFAULT_ABILITY_SCORE_MAX
+        const row: Record<string, unknown> = {
+          ...asRecord(abilities[key]),
+          score: clampAbilityScore(draftSnap.abilities[key], ceiling),
+        }
+        if (ceiling > DEFAULT_ABILITY_SCORE_MAX) {
+          row.max_score = ceiling
+        } else {
+          delete row.max_score
+        }
+        abilities[key] = row
         saves[key] = {
           ...asRecord(saves[key]),
           is_proficient: draftSnap.saves[key],
@@ -2784,6 +3128,7 @@ export function MinimalSheetEditor({
       Object.assign(sheet, attunementsToSheet(draftSnap.attunements))
       Object.assign(sheet, spellsToSheet(draftSnap.spells))
       Object.assign(sheet, textBlocksToSheet(draftSnap.textBlocks))
+      Object.assign(sheet, modifiersToSheet(draftSnap.modifiers))
       sheet.ui = {
         ...asRecord(sheet.ui),
         ...sheetUiToPatch(draftSnap.sheetUi),
@@ -2901,22 +3246,63 @@ export function MinimalSheetEditor({
   const [channelDivinitySpendId, setChannelDivinitySpendId] = useState<string | null>(
     null,
   )
+  const [kiSpendId, setKiSpendId] = useState<string | null>(null)
+  const [bardicInspirationSpendId, setBardicInspirationSpendId] = useState<
+    string | null
+  >(null)
+  const [layOnHandsSpendId, setLayOnHandsSpendId] = useState<string | null>(null)
+  const [superioritySpendId, setSuperioritySpendId] = useState<string | null>(null)
+  const [arcaneRecoverySpendId, setArcaneRecoverySpendId] = useState<string | null>(
+    null,
+  )
+  const [infusionsSpendId, setInfusionsSpendId] = useState<string | null>(null)
+  const [arcanumSpendId, setArcanumSpendId] = useState<string | null>(null)
+  const [invocationsOpen, setInvocationsOpen] = useState<{
+    classEntryId: string
+  } | null>(null)
+  const [psionicSpendId, setPsionicSpendId] = useState<string | null>(null)
+  const [soulTrinketsSpendId, setSoulTrinketsSpendId] = useState<string | null>(
+    null,
+  )
+  const [rangerFavoredOpen, setRangerFavoredOpen] = useState<{
+    classEntryId: string
+  } | null>(null)
   const [concDamageAsk, setConcDamageAsk] = useState<{
     damage: number
     spellName: string
     dc: number
   } | null>(null)
   const [hotConditionsOpen, setHotConditionsOpen] = useState(false)
+  const [acBreakdownOpen, setAcBreakdownOpen] = useState(false)
+  const [abilityBreakdownKey, setAbilityBreakdownKey] = useState<AbilityKey | null>(
+    null,
+  )
+  const [initiativeBreakdownOpen, setInitiativeBreakdownOpen] = useState(false)
   /** Compact play-desk cast (dialog), not the full spells editor. */
   const [deskCastSpell, setDeskCastSpell] = useState<SheetSpell | null>(null)
+  const [pendingSpellSelfForm, setPendingSpellSelfForm] = useState<{
+    spell: SheetSpell
+    slug: SpellSelfFormSlug
+  } | null>(null)
+  const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
+  const [deskCastScrollPending, setDeskCastScrollPending] = useState<{
+    itemId: string
+    name: string
+    concentration: boolean
+  } | null>(null)
   /** Play-desk spells setup (replaces force-full SpellsPanel). */
   const [spellsSettingsOpen, setSpellsSettingsOpen] = useState(false)
+  /** Mobile M1.1: Бой (ready list) | Книга (settings / grimoire sheet). */
+  const [mobileSpellSurface, setMobileSpellSurface] = useState<'combat' | 'book'>(
+    'combat',
+  )
   /** Play-desk attacks setup (replaces force-full AttacksPanel). */
   const [attacksSettingsOpen, setAttacksSettingsOpen] = useState(false)
   /** Explore summary → attunement pad (not stage jump). */
   const [attunementDialogOpen, setAttunementDialogOpen] = useState(false)
   /** Shared header CoinPad — also opened from inventory readout. */
   const [coinPadOpen, setCoinPadOpen] = useState(false)
+  const [mobileAbilitiesOpen, setMobileAbilitiesOpen] = useState(false)
   const [deskCastPending, setDeskCastPending] = useState<{
     spell: SheetSpell
     choice: CastChoice
@@ -2927,8 +3313,24 @@ export function MinimalSheetEditor({
   /** When set, show full editor panel instead of combat compact strip. */
   const [forceFullPanel, setForceFullPanel] = useState<PlayDeskPanelId | null>(null)
   const [deskRollMode, setDeskRollMode] = useState<DeskRollMode>('normal')
+  const [rollHistoryOpen, setRollHistoryOpen] = useState(false)
   const [isPlayDesk, setIsPlayDesk] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches,
+  )
+
+  const emitToast = useCallback(
+    (message: string) => {
+      onToast(message)
+      if (!isDeskRollToast(message)) return
+      setDraft((prev) => ({
+        ...prev,
+        sheetUi: {
+          ...prev.sheetUi,
+          rollHistory: appendRollHistory(prev.sheetUi.rollHistory, { text: message }),
+        },
+      }))
+    },
+    [onToast],
   )
 
   useEffect(() => {
@@ -2979,25 +3381,32 @@ export function MinimalSheetEditor({
     setForceFullPanel(null)
     setAttacksSettingsOpen(false)
     setSpellsSettingsOpen(false)
+    setMobileSpellSurface('combat')
   }
 
   function applyDeskConcentration(spell: SheetSpell) {
     setDraft((prev) => withDeskConcentration(prev, spell))
   }
 
-  function withDeskConcentration<T extends { play: typeof draft.play }>(
-    prev: T,
-    spell: SheetSpell,
-  ): T {
+  function withDeskConcentration<
+    T extends { play: typeof draft.play; companions: CompanionEntry[] },
+  >(prev: T, spell: SheetSpell): T {
     if (!spell.concentration) return prev
+    const next = setConcentration({
+      spellId: spell.id,
+      name: spell.name || 'Заклинание',
+    })
+    const result = applyConcentrationChangeToCompanions({
+      companions: prev.companions,
+      previous: prev.play.concentration,
+      next,
+    })
     return {
       ...prev,
+      companions: result.companions,
       play: {
         ...prev.play,
-        concentration: setConcentration({
-          spellId: spell.id,
-          name: spell.name || 'Заклинание',
-        }),
+        concentration: next,
       },
     }
   }
@@ -3011,8 +3420,57 @@ export function MinimalSheetEditor({
     )
   }
 
+  function applyDeskNaparnikFromCast(spell: SheetSpell, slotLevel: number): string {
+    const abilityKey = draft.spells.casting_ability
+    const spellMod = abilityKey ? abilityModifier(effectiveAbilities[abilityKey]) : 0
+    const castCtx = {
+      spell,
+      slotLevel,
+      characterLevel,
+      spellMod,
+    }
+    const preview = applySpellCastToCompanions({
+      companions: draft.companions,
+      ...castCtx,
+    })
+    if (!preview) return ''
+    setDraft((prev) => {
+      const result = applySpellCastToCompanions({
+        companions: prev.companions,
+        ...castCtx,
+      })
+      return result ? { ...prev, companions: result.companions } : prev
+    })
+    return preview.refreshed
+      ? ` · напарник «${preview.name}» снова в строю`
+      : ` · напарник «${preview.name}»`
+  }
+
+  function openDeskSelfFormPickerIfNeeded(spell: SheetSpell, choice: CastChoice) {
+    if (choice.selfFormTarget === 'other') return false
+    if (!isSpellSelfFormCast(spell)) return false
+    const slug = resolveSpellSelfFormSlug(spell)
+    if (!slug) return false
+    setPendingSpellSelfForm({ spell, slug })
+    return true
+  }
+
+  function applySpellSelfFormResult(result: SpellFormDialogResult) {
+    setDraft((prev) => ({
+      ...prev,
+      companions: result.companions,
+      knownForms: result.knownForms,
+    }))
+    if (result.toast) onToast(result.toast)
+    setPendingSpellSelfForm(null)
+  }
+
   function runDeskCast(spell: SheetSpell, choice: CastChoice) {
     const name = spell.name || 'Заклинание'
+    const allyNote =
+      choice.allyTargetIds && choice.allyTargetIds.length > 0
+        ? ` · целей ${choice.allyTargetIds.length}`
+        : ''
     const ritualCast = Boolean(choice.ritual && spell.ritual && spell.level > 0)
     const grantSpellId = choice.grantSpellId || spell.id
     const grantRow =
@@ -3045,13 +3503,19 @@ export function MinimalSheetEditor({
         consumeNote = ` · −1 «${target.name}»`
       }
     }
+    const naparnikSlot = slotForEffect || spell.level
+    const wantsForm = openDeskSelfFormPickerIfNeeded(spell, choice)
+    const formNote = wantsForm ? ' · выбери форму' : ''
 
     if (spell.level <= 0) {
       if (spell.concentration) applyDeskConcentration(spell)
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
         spell.concentration
-          ? `Каст: ${name}${effectNote}${consumeNote} (концентрация)`
-          : `Каст: ${name}${effectNote}${consumeNote}`,
+          ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}`
+          : `Каст: ${name}${effectNote}${consumeNote}${allyNote}${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3069,19 +3533,35 @@ export function MinimalSheetEditor({
           spell,
         ),
       )
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
-        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       return
     }
     if (ritualCast) {
+      if (spellLearnBudget?.mode === 'spellbook') {
+        const gate = canCastWizardRitualFromBook({
+          spell,
+          book: draft.spells.wizard_spellbook,
+        })
+        if (!gate.ok) {
+          onToast(gate.message)
+          return
+        }
+      }
       if (spell.concentration) applyDeskConcentration(spell)
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, naparnikSlot)
       onToast(
-        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${
+        `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3100,10 +3580,13 @@ export function MinimalSheetEditor({
           spell,
         ),
       )
+      const naparnikNote = wantsForm
+        ? ''
+        : applyDeskNaparnikFromCast(spell, pactResult.pact.level)
       onToast(
-        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${
+        `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
-        }`,
+        }${naparnikNote}${formNote}`,
       )
       return
     }
@@ -3121,12 +3604,15 @@ export function MinimalSheetEditor({
         spell,
       ),
     )
+    const naparnikNote = wantsForm
+      ? ''
+      : applyDeskNaparnikFromCast(spell, choice.slotLevel)
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     onToast(
-      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${
+      `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
         spell.concentration ? ' · концентрация' : ''
-      }`,
+      }${naparnikNote}${formNote}`,
     )
   }
 
@@ -3182,8 +3668,8 @@ export function MinimalSheetEditor({
   }
 
   function showCompact(id: PlayDeskCompactPanelId): boolean {
-    // Spells / attacks: compact is the only play surface; setup lives in settings dialogs.
-    if (id === 'spells' || id === 'attacks') return isPlayDesk
+    // Spells / attacks: compact is the only play surface (desk + phone); setup in dialogs.
+    if (id === 'spells' || id === 'attacks') return true
     // Explore / Social / Features / Companions: glance→expand — no compact/full flip.
     if (
       id === 'inventory' ||
@@ -3193,7 +3679,7 @@ export function MinimalSheetEditor({
     ) {
       return false
     }
-    return isPlayDesk && forceFullPanel !== id
+    return forceFullPanel !== id
   }
 
   function skillModFor(skillKey: string): number {
@@ -3244,9 +3730,30 @@ export function MinimalSheetEditor({
             ? ' · помеха от доспеха'
             : ''
         : ''
-    onToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
+    emitToast(`${formatSkillRoll(skill.label, skill.mod, mode)}${note}`)
   }
 
+  function rollAbilityCheck(key: AbilityKey, mod: number) {
+    emitToast(
+      formatSkillRoll(
+        `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
+        mod,
+        effectiveRollMode(),
+      ),
+    )
+  }
+
+  function rollAbilitySave(key: AbilityKey, mod: number) {
+    emitToast(
+      formatSkillRoll(
+        `Спас · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
+        mod,
+        effectiveRollMode(),
+      ),
+    )
+  }
+
+  /** Split only on wide desk; phone = one scene panel (+ combat segment for spells). */
   const deskSplit = isPlayDesk && draft.sheetUi.deskSplit
   const splitSecondary =
     deskSplit && modeUsesSpellSplit(draft.sheetUi.deskMode)
@@ -3254,16 +3761,33 @@ export function MinimalSheetEditor({
       : null
 
   function stageHidden(id: PlayDeskPanelId): boolean {
-    if (!isPlayDesk) return false
+    // Mobile kit: always one panel (no all-panels stack).
     if (deskSplit && splitSecondary && (id === activePanel || id === splitSecondary)) {
       return false
     }
     return activePanel !== id
   }
 
-  const initiativeValue =
-    draft.initiativeOverride ??
-    abilityModifier(draft.abilities.dex) + featInitiativeBonus
+  const initiativeAutoCore =
+    abilityModifier(effectiveAbilities.dex) + featInitiativeBonus
+  const initiativeCore = draft.initiativeOverride ?? initiativeAutoCore
+  const initiativeValue = withInitiativeBonus({
+    core: initiativeCore,
+    modifiers: draft.modifiers,
+    vars: formulaVarsBase,
+  }).total
+  const initiativeAutoLabel = [
+    `ЛОВ ${formatModifier(abilityModifier(effectiveAbilities.dex))}`,
+    featInitiativeBonus
+      ? `черта ${formatModifier(featInitiativeBonus)}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+  const jump = jumpDistances({
+    strengthScore: effectiveAbilities.str,
+    strengthMod: abilityModifier(effectiveAbilities.str),
+  })
   const hotConditionNames = draft.play.conditions
     .filter((item) => item.slug !== 'exhaustion')
     .map((item) => formatConditionLabel(item))
@@ -3291,7 +3815,7 @@ export function MinimalSheetEditor({
   }, [draft.classes, subclassCastersForSpells, draft.abilities])
 
   const spellcastingSync = useSpellcastingSheetSync({
-    enabled: isPlayDesk,
+    enabled: true,
     className: classSummary || primaryClass?.name || '',
     level: characterLevel,
     classes: draft.classes,
@@ -3320,6 +3844,68 @@ export function MinimalSheetEditor({
     channelDivinitySpendId == null
       ? null
       : (draft.play.resources.find((row) => row.id === channelDivinitySpendId) ?? null)
+  const kiResource =
+    kiSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === kiSpendId) ?? null)
+  const bardicInspirationResource =
+    bardicInspirationSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === bardicInspirationSpendId) ??
+        null)
+  const layOnHandsResource =
+    layOnHandsSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === layOnHandsSpendId) ?? null)
+  const superiorityResource =
+    superioritySpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === superioritySpendId) ?? null)
+  const arcaneRecoveryResource =
+    arcaneRecoverySpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === arcaneRecoverySpendId) ??
+        null)
+
+  const arcaneRecoveryWizardLevel = useMemo(() => {
+    if (!arcaneRecoverySpendId) return 1
+    // feat:wizard:arcane_recovery:{classEntryId}
+    const parts = arcaneRecoverySpendId.split(':')
+    const classEntryId = parts[parts.length - 1]
+    const row = draft.classes.find((c) => c.id === classEntryId)
+    return Math.max(1, Math.floor(row?.level ?? 1))
+  }, [arcaneRecoverySpendId, draft.classes])
+
+  const infusionsResource =
+    infusionsSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === infusionsSpendId) ?? null)
+  const infusionsContext = useMemo(() => {
+    if (!infusionsSpendId) return null
+    const parsed = parseInfusionSlotsResourceId(infusionsSpendId)
+    if (!parsed) return null
+    const row = draft.classes.find((c) => c.id === parsed.classEntryId)
+    return {
+      classEntryId: parsed.classEntryId,
+      level: Math.max(1, Math.floor(row?.level ?? 1)),
+    }
+  }, [infusionsSpendId, draft.classes])
+
+  const arcanumResource =
+    arcanumSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === arcanumSpendId) ?? null)
+
+  const psionicResource =
+    psionicSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === psionicSpendId) ?? null)
+
+  const soulTrinketsResource =
+    soulTrinketsSpendId == null
+      ? null
+      : (draft.play.resources.find((row) => row.id === soulTrinketsSpendId) ??
+        null)
 
   function isSorceryPointsResource(row: { id: string; name: string }): boolean {
     return (
@@ -3337,16 +3923,126 @@ export function MinimalSheetEditor({
     )
   }
 
-  function spendResourceOrOpenSorcery(id: string) {
+  function isKiResource(row: { id: string; name: string }): boolean {
+    // feat:{class}:ki:{entryId} — avoid matching unrelated names that contain «ки».
+    return /:ki:/.test(row.id) || /^ки$/i.test(row.name.trim())
+  }
+
+  function isBardicInspirationResource(row: { id: string; name: string }): boolean {
+    return (
+      /:bardic_inspiration:/.test(row.id) ||
+      /бардовское вдохновение/i.test(row.name) ||
+      /bardic inspiration/i.test(row.name)
+    )
+  }
+
+  function isLayOnHandsResource(row: { id: string; name: string }): boolean {
+    return (
+      /:lay_on_hands:/.test(row.id) ||
+      /возложение рук/i.test(row.name) ||
+      /lay on hands/i.test(row.name)
+    )
+  }
+
+  function isSuperiorityDiceResource(row: { id: string; name: string }): boolean {
+    return (
+      /:superiority_dice:/.test(row.id) ||
+      /кости превосходства/i.test(row.name) ||
+      /superiority dice/i.test(row.name)
+    )
+  }
+
+  function isArcaneRecoveryResource(row: { id: string; name: string }): boolean {
+    return (
+      /:arcane_recovery:/.test(row.id) ||
+      /магическое восстановление/i.test(row.name) ||
+      /arcane recovery/i.test(row.name)
+    )
+  }
+
+  function isInfusionSlotsResource(row: { id: string; name: string }): boolean {
+    return (
+      /:infusion_slots:/.test(row.id) ||
+      /активные инфузии/i.test(row.name)
+    )
+  }
+
+  function isMysticArcanumResource(row: { id: string; name: string }): boolean {
+    return (
+      /:mystic_arcanum_/.test(row.id) ||
+      /арканум/i.test(row.name) ||
+      /mystic arcanum/i.test(row.name)
+    )
+  }
+
+  function isPsionicDiceResource(row: { id: string; name: string }): boolean {
+    return (
+      /:psionic_energy_dice:/.test(row.id) ||
+      /пси-кост/i.test(row.name) ||
+      /psionic energy/i.test(row.name)
+    )
+  }
+
+  function isSoulTrinketsResource(row: { id: string; name: string }): boolean {
+    return (
+      /:soul_trinkets:/.test(row.id) ||
+      /частиц/i.test(row.name) ||
+      /soul trinket/i.test(row.name)
+    )
+  }
+
+  function openResourceSpendDialog(id: string): boolean {
     const row = draft.play.resources.find((item) => item.id === id)
-    if (row && isSorceryPointsResource(row)) {
+    if (!row) return false
+    if (isSorceryPointsResource(row)) {
       setSorcerySpendId(id)
-      return
+      return true
     }
-    if (row && isChannelDivinityResource(row)) {
+    if (isChannelDivinityResource(row)) {
       setChannelDivinitySpendId(id)
-      return
+      return true
     }
+    if (isKiResource(row)) {
+      setKiSpendId(id)
+      return true
+    }
+    if (isBardicInspirationResource(row)) {
+      setBardicInspirationSpendId(id)
+      return true
+    }
+    if (isLayOnHandsResource(row)) {
+      setLayOnHandsSpendId(id)
+      return true
+    }
+    if (isSuperiorityDiceResource(row)) {
+      setSuperioritySpendId(id)
+      return true
+    }
+    if (isArcaneRecoveryResource(row)) {
+      setArcaneRecoverySpendId(id)
+      return true
+    }
+    if (isInfusionSlotsResource(row)) {
+      setInfusionsSpendId(id)
+      return true
+    }
+    if (isMysticArcanumResource(row)) {
+      setArcanumSpendId(id)
+      return true
+    }
+    if (isPsionicDiceResource(row)) {
+      setPsionicSpendId(id)
+      return true
+    }
+    if (isSoulTrinketsResource(row)) {
+      setSoulTrinketsSpendId(id)
+      return true
+    }
+    return false
+  }
+
+  function spendResourceOrOpenSorcery(id: string) {
+    if (openResourceSpendDialog(id)) return
     setDraft((prev) => ({
       ...prev,
       play: {
@@ -3360,6 +4056,18 @@ export function MinimalSheetEditor({
     }))
   }
 
+  const mergedSaveExtras = useMemo(() => {
+    const out: Partial<Record<AbilityKey | 'all', number>> = {
+      ...gearEffects.saveBonuses,
+    }
+    for (const key of ABILITY_KEYS) {
+      const extra = abilitySaveExtras[key] ?? 0
+      if (!extra) continue
+      out[key] = (out[key] ?? 0) + extra
+    }
+    return out
+  }, [gearEffects.saveBonuses, abilitySaveExtras])
+
   const abilityColumn = (
     <AbilitySkillsColumn
       abilityOrder={draft.sheetUi.abilityOrder}
@@ -3370,13 +4078,30 @@ export function MinimalSheetEditor({
       skills={draft.skills}
       proficiencyBonus={proficiencyBonus}
       auraSaveBonus={auraSaveBonus}
-      saveBonusExtra={gearEffects.saveBonuses}
+      saveBonusExtra={mergedSaveExtras}
+      checkBonusExtra={abilityCheckExtras}
       skillBonusExtra={gearEffects.skillBonuses}
+      onOpenAbility={(key) => setAbilityBreakdownKey(key)}
+      onRollCheck={rollAbilityCheck}
+      onRollSave={rollAbilitySave}
+      onRollSkill={rollModeSkill}
+      abilityMaxes={Object.fromEntries(
+        ABILITY_KEYS.map((key) => [
+          key,
+          abilityCeilings[key]?.max ?? DEFAULT_ABILITY_SCORE_MAX,
+        ]),
+      ) as Record<AbilityKey, number>}
       onAbilityScoreChange={(key, score) =>
-        setDraft((prev) => ({
-          ...prev,
-          abilities: { ...prev.abilities, [key]: score },
-        }))
+        setDraft((prev) => {
+          const max = abilityCeilings[key]?.max ?? DEFAULT_ABILITY_SCORE_MAX
+          return {
+            ...prev,
+            abilities: {
+              ...prev.abilities,
+              [key]: clampAbilityScore(score, max),
+            },
+          }
+        })
       }
       onSaveToggle={(key) =>
         setDraft((prev) => ({
@@ -3418,30 +4143,39 @@ export function MinimalSheetEditor({
     </div>
   )
 
-  const dockCompanions = draft.companions.filter((row) => row.name.trim()).slice(0, 4)
+  const dockCompanions = [...draft.companions]
+    .filter((row) => row.name.trim())
+    .sort((a, b) => {
+      const aForm = isSelfForm(a) && a.active ? 0 : 1
+      const bForm = isSelfForm(b) && b.active ? 0 : 1
+      if (aForm !== bForm) return aForm - bForm
+      if (a.active !== b.active) return a.active ? -1 : 1
+      return 0
+    })
+    .slice(0, 4)
 
   return (
     <div
       className={[
         'play-desk',
-        isPlayDesk ? 'play-desk--wide' : '',
+        isPlayDesk ? 'play-desk--wide' : 'play-desk--mobile',
         deskSplit ? 'play-desk--split' : '',
       ]
         .filter(Boolean)
         .join(' ')}
     >
-      <div className="play-desk__top">
-        <CharacterAvatarControl
-          character={baseCharacter}
-          size={isPlayDesk ? 'md' : 'sm'}
-          showActions={false}
-          onOpen={() => setIdentityOpen(true)}
-          onChanged={(updated) => {
-            setBaseCharacter(updated)
-            onSaved(updated)
-          }}
-        />
-        {isPlayDesk ? (
+      {isPlayDesk ? (
+        <div className="play-desk__top">
+          <CharacterAvatarControl
+            character={baseCharacter}
+            size="md"
+            showActions={false}
+            onOpen={() => setIdentityOpen(true)}
+            onChanged={(updated) => {
+              setBaseCharacter(updated)
+              onSaved(updated)
+            }}
+          />
           <PlayDeskHeader
             name={draft.name}
             raceName={draft.raceName}
@@ -3458,6 +4192,32 @@ export function MinimalSheetEditor({
             play={draft.play}
             autoAc={armorClass.ac}
             acHint={armorClass.summary}
+            onOpenAc={() => setAcBreakdownOpen(true)}
+            shieldInHand={Boolean(equippedArmorPieces(draft.inventory.items).shield)}
+            shieldAvailable={listShieldItems(draft.inventory.items).length > 0}
+            onToggleShield={() => {
+              const shields = listShieldItems(draft.inventory.items)
+              const anyOn = shields.some((row) => row.equipped)
+              if (!anyOn && !canWearArmor('shield', draft.identity.armor)) {
+                onToast(armorProficiencyHint('shield'))
+                return
+              }
+              const result = toggleShieldInHand(draft.inventory.items)
+              if (!result.ok) {
+                onToast(result.reason)
+                return
+              }
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, items: result.items },
+                weapons: syncAttacksHeldFromInventory(prev.weapons, result.items),
+              }))
+              onToast(
+                result.equipped
+                  ? `Щит «${result.name}» в руке`
+                  : `Щит «${result.name}» убран`,
+              )
+            }}
             speed={
               draft.speed == null && !gearEffects.speedBonusFt
                 ? null
@@ -3466,6 +4226,8 @@ export function MinimalSheetEditor({
             climbSpeed={draft.climbSpeed}
             swimSpeed={draft.swimSpeed}
             flySpeed={draft.flySpeed}
+            jumpLongFt={jump.longFt}
+            jumpHighFt={jump.highFt}
             movementHint={
               gearEffects.speedBonusFt
                 ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
@@ -3507,8 +4269,9 @@ export function MinimalSheetEditor({
                 play: { ...prev.play, exhaustion },
               }))
             }
+            onOpenInitiative={() => setInitiativeBreakdownOpen(true)}
             onInitiativeRoll={() =>
-              onToast(
+              emitToast(
                 formatSkillRoll('Инициатива', initiativeValue, effectiveRollMode()),
               )
             }
@@ -3538,75 +4301,113 @@ export function MinimalSheetEditor({
               })
             }}
           />
-        ) : (
-          <CombatStickyHeader
-            name={draft.name}
-            raceName={draft.raceName}
-            className={classSummary || primaryClass?.name || ''}
-            alignment={draft.identity.alignment}
-            level={characterLevel}
-            abilities={draft.abilities}
-            classes={draft.classes}
-            hitDie={draft.play.hitDie}
-            constitutionMod={abilityModifier(draft.abilities.con)}
-            hpCurrent={draft.hpCurrent}
-            hpMax={draft.hpMax}
-            hpTemp={draft.play.hpTemp}
-            acOverride={draft.ac}
-            autoAc={armorClass.ac}
-            acHint={armorClass.summary}
-            speed={
-              draft.speed == null && !gearEffects.speedBonusFt
-                ? null
-                : (draft.speed ?? 0) + gearEffects.speedBonusFt
+        </div>
+      ) : (
+        <MobileVitalsBar
+          character={baseCharacter}
+          name={draft.name}
+          raceName={draft.raceName}
+          classSummary={classSummary || primaryClass?.name || ''}
+          alignment={draft.identity.alignment}
+          level={characterLevel}
+          hpCurrent={draft.hpCurrent}
+          hpMax={draft.hpMax}
+          play={draft.play}
+          autoAc={armorClass.ac}
+          acOverride={draft.ac}
+          acHint={armorClass.summary}
+          onOpenAc={() => setAcBreakdownOpen(true)}
+          shieldInHand={Boolean(equippedArmorPieces(draft.inventory.items).shield)}
+          shieldAvailable={listShieldItems(draft.inventory.items).length > 0}
+          onToggleShield={() => {
+            const shields = listShieldItems(draft.inventory.items)
+            const anyOn = shields.some((row) => row.equipped)
+            if (!anyOn && !canWearArmor('shield', draft.identity.armor)) {
+              onToast(armorProficiencyHint('shield'))
+              return
             }
-            movementHint={[
-              formatRaceMovementHint({
-                climb: draft.climbSpeed,
-                swim: draft.swimSpeed,
-                fly: draft.flySpeed,
-              }),
-              gearEffects.speedBonusFt
-                ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(' · ') || null}
-            initiativeOverride={draft.initiativeOverride}
-            initiativeBonus={featInitiativeBonus}
-            inspiration={draft.inspiration}
-            exhaustion={draft.play.exhaustion}
-            isDying={draft.play.isDying}
-            deathSuccesses={draft.play.deathSuccesses}
-            deathFails={draft.play.deathFails}
-            conditionNames={[
-              ...(draft.play.exhaustion > 0 ? [`Истощение ${draft.play.exhaustion}`] : []),
-              ...draft.play.conditions
-                .filter((item) => item.slug !== 'exhaustion')
-                .map((item) => formatConditionLabel(item)),
-            ]}
-            concentration={draft.play.concentration}
-            onClearConcentration={() =>
-              setDraft((prev) => ({
-                ...prev,
-                play: { ...prev.play, concentration: null },
-              }))
+            const result = toggleShieldInHand(draft.inventory.items)
+            if (!result.ok) {
+              onToast(result.reason)
+              return
             }
-            onChange={(patch) =>
-              setDraft((prev) => {
-                const next = { ...prev, ...patch }
-                if (patch.speed !== undefined && gearEffects.speedBonusFt) {
-                  next.speed =
-                    patch.speed == null
-                      ? null
-                      : Math.max(0, patch.speed - gearEffects.speedBonusFt)
-                }
-                return next
-              })
-            }
-          />
-        )}
-      </div>
+            setDraft((prev) => ({
+              ...prev,
+              inventory: { ...prev.inventory, items: result.items },
+              weapons: syncAttacksHeldFromInventory(prev.weapons, result.items),
+            }))
+            onToast(
+              result.equipped
+                ? `Щит «${result.name}» в руке`
+                : `Щит «${result.name}» убран`,
+            )
+          }}
+          speed={
+            draft.speed == null && !gearEffects.speedBonusFt
+              ? null
+              : (draft.speed ?? 0) + gearEffects.speedBonusFt
+          }
+          movementHint={[
+            formatRaceMovementHint({
+              climb: draft.climbSpeed,
+              swim: draft.swimSpeed,
+              fly: draft.flySpeed,
+            }),
+            gearEffects.speedBonusFt
+              ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(' · ') || null}
+          climbSpeed={draft.climbSpeed}
+          swimSpeed={draft.swimSpeed}
+          flySpeed={draft.flySpeed}
+          jumpLongFt={jump.longFt}
+          jumpHighFt={jump.highFt}
+          initiative={initiativeValue}
+          onOpenInitiative={() => setInitiativeBreakdownOpen(true)}
+          proficiencyBonus={proficiencyBonus}
+          inspiration={draft.inspiration}
+          coins={draft.inventory.coins}
+          constitutionMod={abilityModifier(draft.abilities.con)}
+          classes={draft.classes}
+          hitDie={draft.play.hitDie}
+          onOpenIdentity={() => setIdentityOpen(true)}
+          onOpenAbilities={() => setMobileAbilitiesOpen(true)}
+          onOpenRest={() => setRestOpen(true)}
+          onOpenConditions={() => setHotConditionsOpen(true)}
+          onToggleInspiration={() =>
+            setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
+          }
+          onAvatarChanged={(updated) => {
+            setBaseCharacter(updated)
+            onSaved(updated)
+          }}
+          onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
+          onCoinsChange={(coins) =>
+            setDraft((prev) => ({
+              ...prev,
+              inventory: { ...prev.inventory, coins },
+            }))
+          }
+          onCombatChange={(patch) =>
+            setDraft((prev) => ({
+              ...prev,
+              ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
+              ...(patch.hpMax !== undefined ? { hpMax: patch.hpMax } : {}),
+            }))
+          }
+          onDamaged={(damageToHp) => {
+            if (!draft.play.concentration || damageToHp <= 0) return
+            setConcDamageAsk({
+              damage: damageToHp,
+              spellName: draft.play.concentration.name,
+              dc: Math.max(10, Math.floor(damageToHp / 2)),
+            })
+          }}
+          onToast={onToast}
+        />
+      )}
 
       {isPlayDesk && dockCompanions.length > 0 ? (
         <div className="play-desk__dock" aria-label="Напарники">
@@ -3614,12 +4415,13 @@ export function MinimalSheetEditor({
           {dockCompanions.map((row, index) => {
             const initial = (row.name.trim()[0] || '?').toUpperCase()
             const isPrimary = index === 0
+            const inForm = isSelfForm(row) && row.active
             const kind = COMPANION_KIND_SHORT[row.kind] ?? 'Спутник'
             return (
               <button
                 key={row.id}
                 type="button"
-                className={`play-desk__comp${isPrimary ? ' is-primary' : ''}`}
+                className={`play-desk__comp${isPrimary ? ' is-primary' : ''}${inForm ? ' is-form' : ''}`}
                 onClick={() => {
                   setDeskMode('companions')
                   setActivePanel('companions')
@@ -3631,7 +4433,7 @@ export function MinimalSheetEditor({
                 <span className="play-desk__comp-text">
                   <b>{row.name || 'Без имени'}</b>
                   <span>
-                    {isPrimary ? 'Основной' : kind}
+                    {inForm ? 'В облике' : isPrimary ? 'Основной' : kind}
                     {row.stats.hp != null ? ` · ${row.stats.hp} HP` : ''}
                   </span>
                 </span>
@@ -3695,6 +4497,17 @@ export function MinimalSheetEditor({
                     {label}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  className="play-desk__roll-mode-btn"
+                  title="История бросков на этом листе"
+                  onClick={() => setRollHistoryOpen(true)}
+                >
+                  броски
+                  {draft.sheetUi.rollHistory.length > 0
+                    ? ` ${Math.min(draft.sheetUi.rollHistory.length, 99)}`
+                    : ''}
+                </button>
               </div>
               {modeUsesSpellSplit(draft.sheetUi.deskMode) ? (
                 <button
@@ -3715,34 +4528,135 @@ export function MinimalSheetEditor({
             </div>
           ) : null}
 
-          {isPlayDesk ? (
-            <PlayDeskHotBar
-              conditionNames={hotConditionNames}
-              exhaustion={draft.play.exhaustion}
-              concentration={draft.play.concentration}
-              resources={draft.play.resources}
-              onOpenConditions={() => setHotConditionsOpen(true)}
-              onClearConcentration={() =>
-                setDraft((prev) => ({
-                  ...prev,
-                  play: { ...prev.play, concentration: null },
-                }))
-              }
-              onResourceUsedChange={(id, used) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  play: {
-                    ...prev.play,
-                    resources: prev.play.resources.map((row) =>
-                      row.id === id ? { ...row, used } : row,
-                    ),
-                  },
-                }))
-              }
-            />
+          <PlayDeskHotBar
+            conditionNames={hotConditionNames}
+            exhaustion={draft.play.exhaustion}
+            concentration={draft.play.concentration}
+            resources={draft.play.resources}
+            onOpenConditions={() => setHotConditionsOpen(true)}
+            onClearConcentration={() => clearConcentrationDismissingCompanions(null)}
+            onResourceUsedChange={(id, used) => {
+              const row = draft.play.resources.find((item) => item.id === id)
+              // Spending a special pool → open picker instead of blind ±1.
+              if (row && used > row.used && openResourceSpendDialog(id)) return
+              setDraft((prev) => ({
+                ...prev,
+                play: {
+                  ...prev.play,
+                  resources: prev.play.resources.map((item) =>
+                    item.id === id ? { ...item, used } : item,
+                  ),
+                },
+              }))
+            }}
+          />
+
+          {!isPlayDesk && draft.sheetUi.deskMode === 'combat' ? (
+            <div className="mobile-combat-seg-stack">
+              <div className="mobile-combat-seg" role="tablist" aria-label="Бой">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activePanel === 'attacks'}
+                  className={`mobile-combat-seg__btn${
+                    activePanel === 'attacks' ? ' is-on' : ''
+                  }`}
+                  onClick={() => {
+                    setActivePanel('attacks')
+                    setMobileSpellSurface('combat')
+                    setSpellsSettingsOpen(false)
+                  }}
+                >
+                  Атаки
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activePanel === 'spells'}
+                  className={`mobile-combat-seg__btn${
+                    activePanel === 'spells' ? ' is-on' : ''
+                  }`}
+                  onClick={() => setActivePanel('spells')}
+                >
+                  Заклинания
+                </button>
+              </div>
+              {activePanel === 'spells' ? (
+                <div
+                  className="mobile-combat-seg mobile-combat-seg--spell"
+                  role="tablist"
+                  aria-label="Заклинания"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={mobileSpellSurface === 'combat'}
+                    className={`mobile-combat-seg__btn${
+                      mobileSpellSurface === 'combat' ? ' is-on' : ''
+                    }`}
+                    onClick={() => {
+                      setMobileSpellSurface('combat')
+                      setSpellsSettingsOpen(false)
+                    }}
+                  >
+                    Бой
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={mobileSpellSurface === 'book'}
+                    className={`mobile-combat-seg__btn${
+                      mobileSpellSurface === 'book' ? ' is-on' : ''
+                    }`}
+                    onClick={() => {
+                      setMobileSpellSurface('book')
+                      setSpellsSettingsOpen(true)
+                    }}
+                  >
+                    Книга
+                  </button>
+                </div>
+              ) : null}
+              <div
+                className="mobile-combat-roll"
+                role="group"
+                aria-label="Преимущество / помеха"
+              >
+                {(
+                  [
+                    ['normal', 'норм'],
+                    ['advantage', 'преим.'],
+                    ['disadvantage', 'помеха'],
+                  ] as const
+                ).map(([mode, label]) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    className={`mobile-combat-roll__btn${
+                      deskRollMode === mode ? ' is-on' : ''
+                    }`}
+                    aria-pressed={deskRollMode === mode}
+                    onClick={() => setDeskRollMode(mode)}
+                  >
+                    {label}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
+                  title="История бросков на этом листе"
+                  onClick={() => setRollHistoryOpen(true)}
+                >
+                  броски
+                  {draft.sheetUi.rollHistory.length > 0
+                    ? ` ${Math.min(draft.sheetUi.rollHistory.length, 99)}`
+                    : ''}
+                </button>
+              </div>
+            </div>
           ) : null}
 
-          {isPlayDesk && draft.sheetUi.deskMode === 'combat' ? (
+          {draft.sheetUi.deskMode === 'combat' ? (
             <PlayDeskSkillStrip
               ariaLabel="Навыки боя"
               skills={modeSkillChips('combat')}
@@ -3750,7 +4664,46 @@ export function MinimalSheetEditor({
             />
           ) : null}
 
-          {isPlayDesk && draft.sheetUi.deskMode === 'explore' ? (
+          {!isPlayDesk && draft.sheetUi.deskMode === 'explore' ? (
+            <div
+              className="mobile-combat-roll mobile-combat-roll--explore"
+              role="group"
+              aria-label="Преимущество / помеха"
+            >
+              {(
+                [
+                  ['normal', 'норм'],
+                  ['advantage', 'преим.'],
+                  ['disadvantage', 'помеха'],
+                ] as const
+              ).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={`mobile-combat-roll__btn${
+                    deskRollMode === mode ? ' is-on' : ''
+                  }`}
+                  aria-pressed={deskRollMode === mode}
+                  onClick={() => setDeskRollMode(mode)}
+                >
+                  {label}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
+                title="История бросков на этом листе"
+                onClick={() => setRollHistoryOpen(true)}
+              >
+                броски
+                {draft.sheetUi.rollHistory.length > 0
+                  ? ` ${Math.min(draft.sheetUi.rollHistory.length, 99)}`
+                  : ''}
+              </button>
+            </div>
+          ) : null}
+
+          {draft.sheetUi.deskMode === 'explore' ? (
             <PlayDeskSkillStrip
               ariaLabel="Навыки исследования"
               skills={modeSkillChips('explore')}
@@ -3758,7 +4711,46 @@ export function MinimalSheetEditor({
             />
           ) : null}
 
-          {isPlayDesk && draft.sheetUi.deskMode === 'social' ? (
+          {!isPlayDesk && draft.sheetUi.deskMode === 'social' ? (
+            <div
+              className="mobile-combat-roll mobile-combat-roll--social"
+              role="group"
+              aria-label="Преимущество / помеха"
+            >
+              {(
+                [
+                  ['normal', 'норм'],
+                  ['advantage', 'преим.'],
+                  ['disadvantage', 'помеха'],
+                ] as const
+              ).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className={`mobile-combat-roll__btn${
+                    deskRollMode === mode ? ' is-on' : ''
+                  }`}
+                  aria-pressed={deskRollMode === mode}
+                  onClick={() => setDeskRollMode(mode)}
+                >
+                  {label}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
+                title="История бросков на этом листе"
+                onClick={() => setRollHistoryOpen(true)}
+              >
+                броски
+                {draft.sheetUi.rollHistory.length > 0
+                  ? ` ${Math.min(draft.sheetUi.rollHistory.length, 99)}`
+                  : ''}
+              </button>
+            </div>
+          ) : null}
+
+          {draft.sheetUi.deskMode === 'social' ? (
             <PlayDeskSkillStrip
               ariaLabel="Навыки общения"
               skills={modeSkillChips('social')}
@@ -3801,18 +4793,48 @@ export function MinimalSheetEditor({
                   type="button"
                   variant="secondary"
                   disabled={characterLevel >= 20}
-                  onClick={() => setLevelUpOpen(true)}
+                  onClick={() => {
+                    setIdentityOpen(false)
+                    setLevelUpOpen(true)
+                  }}
                 >
                   +1 уровень
                 </Button>
               </div>
             </Field>
-            <Field label="Опыт (XP)" htmlFor="sheet-xp">
+            <Field
+              label="Опыт (XP)"
+              htmlFor="sheet-xp"
+              hint="Начисление не поднимает уровень само — после порога жми «+1 уровень» / ссылку ниже."
+            >
               <XpProgressField
                 xp={draft.identity.experience}
                 level={characterLevel}
-                onChange={(experience) => patchIdentity({ experience })}
-                onRequestLevelUp={() => setLevelUpOpen(true)}
+                xpHistory={draft.sheetUi.xpHistory}
+                onRequestLevelUp={() => {
+                  setIdentityOpen(false)
+                  setLevelUpOpen(true)
+                }}
+                levelUpDisabled={characterLevel >= 20}
+                onChange={(experience, meta) => {
+                  setDraft((prev) => {
+                    const prevXp = prev.identity.experience
+                    const delta = experience - prevXp
+                    return {
+                      ...prev,
+                      identity: { ...prev.identity, experience },
+                      sheetUi: {
+                        ...prev.sheetUi,
+                        xpHistory: delta
+                          ? appendXpHistory(prev.sheetUi.xpHistory, {
+                              delta,
+                              reason: meta?.reason ?? '',
+                            })
+                          : prev.sheetUi.xpHistory,
+                      },
+                    }
+                  })
+                }}
               />
             </Field>
           </div>
@@ -4321,14 +5343,25 @@ export function MinimalSheetEditor({
             resources={draft.play.resources}
             inventoryItems={draft.inventory.items}
             favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
+            combatFeatures={unlockedFeatures}
             rollMode={effectiveRollMode()}
             onOpenSettings={() => setAttacksSettingsOpen(true)}
-            onToast={onToast}
+            onCombatFeatureToggle={(featureId, active) => {
+              if (featureId === 'reckless_attack') {
+                setDeskRollMode(active ? 'advantage' : 'normal')
+              }
+            }}
+            onToast={emitToast}
             onSpendResource={spendResourceOrOpenSorcery}
             onToggleConsumableFavorite={toggleCombatFavorite}
+            onCastScroll={(itemId) => setDeskCastScrollId(itemId)}
             onSpendConsumable={(itemId) => {
               const item = draft.inventory.items.find((row) => row.id === itemId)
               if (!item || (item.qty ?? 0) <= 0) return
+              if (isCastableSpellScroll(item)) {
+                setDeskCastScrollId(itemId)
+                return
+              }
               const nextQty = Math.max(0, (item.qty ?? 0) - 1)
               setDraft((prev) => ({
                 ...prev,
@@ -4440,17 +5473,30 @@ export function MinimalSheetEditor({
         attunementFilled={filledAttunementCount(draft.attunements)}
         favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
         onToggleConsumableFavorite={toggleCombatFavorite}
+        onCastScroll={(itemId) => setDeskCastScrollId(itemId)}
         onOpenAttunement={() => setAttunementDialogOpen(true)}
         /* Header owns CoinPad only on wide desk; compact uses panel-local pad. */
-        onOpenCoins={isPlayDesk ? () => setCoinPadOpen(true) : undefined}
+        onOpenCoins={() => setCoinPadOpen(true)}
         onToast={onToast}
         onChange={(inventory) =>
-          setDraft((prev) => ({
-            ...prev,
-            inventory,
-            weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
-            spells: withSpellFocusFlags(prev.spells, inventory.items),
-          }))
+          setDraft((prev) => {
+            const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)
+            const isWizard =
+              spellLearnBudget?.mode === 'spellbook' ||
+              prev.classes.some((row) => /волшебник|wizard|маг/i.test(row.name))
+            const synced = syncWizardSpellbookWithInventory({
+              isWizard,
+              spells: focusSpells,
+              items: inventory.items,
+            })
+            if (synced.message) queueMicrotask(() => onToast(synced.message!))
+            return {
+              ...prev,
+              inventory,
+              weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
+              spells: synced.spells,
+            }
+          })
         }
         onWeaponsChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
       />
@@ -4495,7 +5541,57 @@ export function MinimalSheetEditor({
         featGrants={draft.featGrants}
         darkvision={draft.identity.darkvision}
         raceName={draft.raceName}
+        raceTraitCards={draft.raceGrant?.traitCards ?? []}
+        raceTraitsText={draft.raceGrant?.traitsText ?? ''}
+        customFeatures={draft.customFeatures}
+        onCustomFeaturesChange={(customFeatures) =>
+          setDraft((prev) => ({ ...prev, customFeatures }))
+        }
         onToast={onToast}
+        onOpenInfusions={(classEntryId) => {
+          const row = draft.play.resources.find(
+            (r) =>
+              r.id.includes(':infusion_slots:') &&
+              r.id.endsWith(`:${classEntryId}`),
+          )
+          if (row) setInfusionsSpendId(row.id)
+          else onToast('Пул активных инфузий ещё не синхронизирован')
+        }}
+        onOpenInvocations={(classEntryId) =>
+          setInvocationsOpen({ classEntryId })
+        }
+        onOpenRangerFavored={(classEntryId) =>
+          setRangerFavoredOpen({ classEntryId })
+        }
+        onOpenSoulTrinkets={(classEntryId) => {
+          const row = draft.play.resources.find(
+            (r) =>
+              r.id.includes(':soul_trinkets:') &&
+              r.id.endsWith(`:${classEntryId}`),
+          )
+          if (row) setSoulTrinketsSpendId(row.id)
+          else onToast('Пул частиц души ещё не синхронизирован')
+        }}
+        onWildShapeFork={(request) => setWildShapeFork(request)}
+        onFeatureSelfForm={(request) => setFeatureSelfForm(request)}
+        onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
+          const form = draft.companions.find(
+            (c) => c.role === 'self_form' && c.active,
+          )
+          if (!form || form.stats.hp == null) return null
+          const rolled = rollDice(diceCount, diceSize)
+          let message = ''
+          setDraft((prev) => {
+            const healed = healSelfForm({
+              companions: prev.companions,
+              amount: rolled.total,
+              formId: form.id,
+            })
+            message = `Исцеление в облике: ячейка ${slotLevel} → ${diceCount}к${diceSize} = ${rolled.total} [${rolled.rolls.join('+')}] · ${healed.message}`
+            return { ...prev, companions: healed.companions }
+          })
+          return message || null
+        }}
       />
 
       </div>
@@ -4508,13 +5604,19 @@ export function MinimalSheetEditor({
         <>
           <PlayDeskSpellsCompact
             spells={draft.spells}
-            abilities={draft.abilities}
+            abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
+            modifiers={draft.modifiers}
+            formulaVars={formulaVarsBase}
             learnBudget={spellLearnBudget}
             pinned={deskSplit && splitSecondary === 'spells'}
             concentration={draft.play.concentration}
             edition={rulesEdition}
-            onOpenSettings={() => setSpellsSettingsOpen(true)}
+            settingsLabel={isPlayDesk ? 'Настройки' : 'Книга'}
+            onOpenSettings={() => {
+              if (!isPlayDesk) setMobileSpellSurface('book')
+              setSpellsSettingsOpen(true)
+            }}
             onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
             onCastSpell={(spell) => setDeskCastSpell(spell)}
             onConcentrateSpell={(spell) => setDeskCastSpell(spell)}
@@ -4565,12 +5667,41 @@ export function MinimalSheetEditor({
             classes={draft.classes}
             subclassCasters={subclassCastersForSpells}
             spells={draft.spells}
-            abilities={draft.abilities}
+            abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
+            modifiers={draft.modifiers}
+            formulaVars={formulaVarsBase}
+            onModifiersChange={(modifiers) =>
+              setDraft((prev) => ({ ...prev, modifiers }))
+            }
             suggestion={spellcastingSync.suggestion}
             knownCaster={spellcastingSync.knownCaster}
+            coins={draft.inventory.coins}
+            onCoinsChange={(coins) =>
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, coins },
+              }))
+            }
+            inventoryItems={draft.inventory.items}
+            onInventoryItemsChange={(items) =>
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, items },
+              }))
+            }
+            onChangeInventory={({ coins, items }) =>
+              setDraft((prev) => ({
+                ...prev,
+                inventory: { ...prev.inventory, coins, items },
+              }))
+            }
+            title={isPlayDesk ? 'Настройки заклинаний' : 'Книга заклинаний'}
             onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
-            onClose={() => setSpellsSettingsOpen(false)}
+            onClose={() => {
+              setSpellsSettingsOpen(false)
+              if (!isPlayDesk) setMobileSpellSurface('combat')
+            }}
             onToast={onToast}
           />
         </>
@@ -4582,25 +5713,65 @@ export function MinimalSheetEditor({
           classes={draft.classes}
           subclassCasters={subclassCastersForSpells}
           spells={draft.spells}
-          abilities={draft.abilities}
+          characterId={character.id}
+          companions={draft.companions}
+          onCompanionsChange={(update) =>
+            setDraft((prev) => ({
+              ...prev,
+              companions:
+                typeof update === 'function' ? update(prev.companions) : update,
+            }))
+          }
+          knownForms={draft.knownForms}
+          onKnownFormsChange={(knownForms) =>
+            setDraft((prev) => ({ ...prev, knownForms }))
+          }
+          hostHp={draft.hpCurrent}
+          hostHpMax={draft.hpMax}
+          abilities={effectiveAbilities}
           proficiencyBonus={proficiencyBonus}
+          modifiers={draft.modifiers}
+          formulaVars={formulaVarsBase}
           inventoryItems={draft.inventory.items}
           inventory={draft.inventory}
           concentration={draft.play.concentration}
           onChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
           onInventoryChange={(inventory) =>
-            setDraft((prev) => ({
-              ...prev,
-              inventory,
-              spells: withSpellFocusFlags(prev.spells, inventory.items),
-            }))
+            setDraft((prev) => {
+              const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)
+              const isWizard =
+                spellLearnBudget?.mode === 'spellbook' ||
+                prev.classes.some((row) => /волшебник|wizard|маг/i.test(row.name))
+              const synced = syncWizardSpellbookWithInventory({
+                isWizard,
+                spells: focusSpells,
+                items: inventory.items,
+              })
+              if (synced.message) queueMicrotask(() => onToast(synced.message!))
+              return { ...prev, inventory, spells: synced.spells }
+            })
           }
-          onConcentrationChange={(concentration) =>
-            setDraft((prev) => ({
-              ...prev,
-              play: { ...prev.play, concentration },
-            }))
-          }
+          onConcentrationChange={(concentration) => {
+            let dismissed: string[] = []
+            setDraft((prev) => {
+              const result = applyConcentrationChangeToCompanions({
+                companions: prev.companions,
+                previous: prev.play.concentration,
+                next: concentration,
+              })
+              dismissed = result.dismissedNames
+              return {
+                ...prev,
+                companions: result.companions,
+                play: { ...prev.play, concentration },
+              }
+            })
+            if (dismissed.length) {
+              onToast(
+                `Концентрация снята · напарник неактивен: ${dismissed.join(', ')}`,
+              )
+            }
+          }}
           onToast={onToast}
         />
       )}
@@ -4612,6 +5783,16 @@ export function MinimalSheetEditor({
       <CompanionsPanel
         companions={draft.companions}
         onChange={(companions) => setDraft((prev) => ({ ...prev, companions }))}
+        hostHp={draft.hpCurrent}
+        onHostHpChange={(hp) =>
+          setDraft((prev) => ({ ...prev, hpCurrent: hp }))
+        }
+        moonHealEnabled={unlockedFeatures.some(
+          (f) => f.id === 'combat_wild_shape',
+        )}
+        spells={draft.spells}
+        onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
+        onToast={onToast}
       />
 
       </div>
@@ -4662,6 +5843,24 @@ export function MinimalSheetEditor({
 
       </div>{/* stage */}
       </div>{/* body */}
+
+      {!isPlayDesk ? (
+        <BottomSceneNav mode={draft.sheetUi.deskMode} onModeChange={setDeskMode} />
+      ) : null}
+
+      {!isPlayDesk ? (
+        <MobileAbilitiesPage
+          open={mobileAbilitiesOpen}
+          onClose={() => setMobileAbilitiesOpen(false)}
+          onOpenOwnership={() => {
+            // Keep Характеристики under the ownership sheet.
+            setOwnershipOpen(true)
+          }}
+          passives={passivesCompact}
+        >
+          {abilityColumn}
+        </MobileAbilitiesPage>
+      ) : null}
 
       {ownershipOpen ? (
         <>
@@ -4790,6 +5989,61 @@ export function MinimalSheetEditor({
       ) : null}
 
       <Dialog
+        open={rollHistoryOpen}
+        title="История бросков"
+        primaryLabel="Закрыть"
+        secondaryLabel="Отмена"
+        onPrimary={() => setRollHistoryOpen(false)}
+        onSecondary={() => setRollHistoryOpen(false)}
+        closeOnBackdrop
+        size="wide"
+      >
+        {draft.sheetUi.rollHistory.length === 0 ? (
+          <Text tone="muted">Пока пусто — бросай атаки, навыки или инициативу.</Text>
+        ) : (
+          <Stack gap={10}>
+            <div className="desk-roll-history__toolbar">
+              <Text tone="muted">
+                {draft.sheetUi.rollHistory.length} запис.
+                {draft.sheetUi.rollHistory.length >= 50 ? ' (лимит 50)' : ''}
+              </Text>
+              <Button
+                variant="ghost"
+                onClick={() => patchSheetUi({ rollHistory: [] })}
+              >
+                Очистить
+              </Button>
+            </div>
+            <ul className="desk-roll-history">
+              {draft.sheetUi.rollHistory.map((row) => {
+                const when = (() => {
+                  try {
+                    return new Date(row.at).toLocaleTimeString('ru-RU', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })
+                  } catch {
+                    return ''
+                  }
+                })()
+                return (
+                  <li key={row.id} className="desk-roll-history__row">
+                    {when ? (
+                      <time className="desk-roll-history__time" dateTime={row.at}>
+                        {when}
+                      </time>
+                    ) : null}
+                    <span className="desk-roll-history__text">{row.text}</span>
+                  </li>
+                )
+              })}
+            </ul>
+          </Stack>
+        )}
+      </Dialog>
+
+      <Dialog
         open={conflictOpen}
         title="Конфликт версий листа"
         primaryLabel={reloading ? 'Сохраняем…' : 'Сохранить мои правки'}
@@ -4820,10 +6074,7 @@ export function MinimalSheetEditor({
           onToast('Концентрация удержана')
         }}
         onSecondary={() => {
-          setDraft((prev) => ({
-            ...prev,
-            play: { ...prev.play, concentration: null },
-          }))
+          clearConcentrationDismissingCompanions(null)
           setConcDamageAsk(null)
           onToast('Концентрация сорвалась')
         }}
@@ -4841,9 +6092,153 @@ export function MinimalSheetEditor({
         spells={draft.spells}
         inventoryItems={draft.inventory.items}
         characterLevel={characterLevel}
+        characterId={character.id}
+        wizardRitualFromBook={spellLearnBudget?.mode === 'spellbook'}
         onConfirm={confirmDeskCast}
         onClose={() => setDeskCastSpell(null)}
+        onRequestRest={() => {
+          setDeskCastSpell(null)
+          setRestOpen(true)
+        }}
+        onRestorePact={() => {
+          setDraft((prev) => {
+            const pact = prev.spells.pact_slots
+            if (!pact || pact.used <= 0) return prev
+            return {
+              ...prev,
+              spells: {
+                ...prev.spells,
+                pact_slots: { ...pact, used: 0 },
+              },
+            }
+          })
+          onToast('Ячейки договора восстановлены')
+        }}
       />
+
+      <CastScrollDialog
+        open={deskCastScrollId != null}
+        item={
+          deskCastScrollId
+            ? draft.inventory.items.find((row) => row.id === deskCastScrollId) ?? null
+            : null
+        }
+        onConfirm={() => {
+          const itemId = deskCastScrollId
+          if (!itemId) return
+          const item = draft.inventory.items.find((row) => row.id === itemId)
+          if (!item || !isCastableSpellScroll(item) || !item.scroll_spell) {
+            setDeskCastScrollId(null)
+            return
+          }
+          const binding = item.scroll_spell
+          const stats = spellScrollCastStats(binding.level)
+          const scrollSpellId = `scroll:${item.id}:${binding.catalog_id ?? binding.name}`
+          if (
+            binding.concentration &&
+            draft.play.concentration &&
+            draft.play.concentration.spell_id !== scrollSpellId &&
+            draft.play.concentration.name.trim() !== binding.name.trim()
+          ) {
+            setDeskCastScrollPending({
+              itemId,
+              name: binding.name,
+              concentration: true,
+            })
+            setDeskCastScrollId(null)
+            return
+          }
+          setDraft((prev) => {
+            let next = {
+              ...prev,
+              inventory: {
+                ...prev.inventory,
+                items: consumeScrollItem(prev.inventory.items, itemId),
+              },
+            }
+            if (binding.concentration) {
+              const nextConc = setConcentration({
+                spellId: scrollSpellId,
+                name: binding.name,
+              })
+              const result = applyConcentrationChangeToCompanions({
+                companions: next.companions,
+                previous: next.play.concentration,
+                next: nextConc,
+              })
+              next = {
+                ...next,
+                companions: result.companions,
+                play: {
+                  ...next.play,
+                  concentration: nextConc,
+                },
+              }
+            }
+            return next
+          })
+          setDeskCastScrollId(null)
+          onToast(
+            `Свиток: ${binding.name} · Сл ${stats.saveDc} · +${stats.attackBonus}${
+              binding.concentration ? ' · концентрация' : ''
+            } · свиток израсходован`,
+          )
+        }}
+        onClose={() => setDeskCastScrollId(null)}
+      />
+
+      <Dialog
+        open={deskCastScrollPending != null}
+        title="Смена концентрации"
+        primaryLabel="Сменить и кастовать свиток"
+        secondaryLabel="Отмена"
+        primaryVariant="danger"
+        onPrimary={() => {
+          if (!deskCastScrollPending) return
+          const { itemId, name } = deskCastScrollPending
+          const item = draft.inventory.items.find((row) => row.id === itemId)
+          const binding = item?.scroll_spell
+          setDeskCastScrollPending(null)
+          if (!item || !binding || !isCastableSpellScroll(item)) return
+          const stats = spellScrollCastStats(binding.level)
+          const scrollSpellId = `scroll:${item.id}:${binding.catalog_id ?? binding.name}`
+          setDraft((prev) => {
+            const nextConc = setConcentration({
+              spellId: scrollSpellId,
+              name,
+            })
+            const result = applyConcentrationChangeToCompanions({
+              companions: prev.companions,
+              previous: prev.play.concentration,
+              next: nextConc,
+            })
+            return {
+              ...prev,
+              companions: result.companions,
+              inventory: {
+                ...prev.inventory,
+                items: consumeScrollItem(prev.inventory.items, itemId),
+              },
+              play: {
+                ...prev.play,
+                concentration: nextConc,
+              },
+            }
+          })
+          onToast(
+            `Свиток: ${name} · Сл ${stats.saveDc} · +${stats.attackBonus} · концентрация · свиток израсходован`,
+          )
+        }}
+        onSecondary={() => {
+          if (deskCastScrollPending) setDeskCastScrollId(deskCastScrollPending.itemId)
+          setDeskCastScrollPending(null)
+        }}
+      >
+        <Text>
+          Сейчас концентрация: «{draft.play.concentration?.name ?? '—'}». Сменить на «
+          {deskCastScrollPending?.name ?? 'Заклинание'}» со свитка?
+        </Text>
+      </Dialog>
 
       <Dialog
         open={deskCastPending != null}
@@ -4878,6 +6273,101 @@ export function MinimalSheetEditor({
         onClose={() => setHotConditionsOpen(false)}
       />
 
+      <AcBreakdownDialog
+        open={acBreakdownOpen}
+        totalAc={armorClass.ac}
+        summary={armorClass.gearSummary}
+        baseLabel={armorClass.baseLabel}
+        shieldBonus={armorClass.shieldBonus}
+        shieldInHand={Boolean(equippedArmorPieces(draft.inventory.items).shield)}
+        shieldAvailable={listShieldItems(draft.inventory.items).length > 0}
+        onToggleShield={() => {
+          const shields = listShieldItems(draft.inventory.items)
+          const anyOn = shields.some((row) => row.equipped)
+          if (!anyOn && !canWearArmor('shield', draft.identity.armor)) {
+            onToast(armorProficiencyHint('shield'))
+            return
+          }
+          const result = toggleShieldInHand(draft.inventory.items)
+          if (!result.ok) {
+            onToast(result.reason)
+            return
+          }
+          setDraft((prev) => ({
+            ...prev,
+            inventory: { ...prev.inventory, items: result.items },
+            weapons: syncAttacksHeldFromInventory(prev.weapons, result.items),
+          }))
+          onToast(
+            result.equipped
+              ? `Щит «${result.name}» в руке`
+              : `Щит «${result.name}» убран`,
+          )
+        }}
+        formulaVars={armorClass.formulaVars}
+        modifiers={draft.modifiers}
+        onModifiersChange={(modifiers) =>
+          setDraft((prev) => ({ ...prev, modifiers }))
+        }
+        onClose={() => setAcBreakdownOpen(false)}
+      />
+
+      <AbilityBreakdownDialog
+        open={abilityBreakdownKey != null}
+        ability={abilityBreakdownKey ?? 'str'}
+        baseScore={
+          abilityBreakdownKey ? draft.abilities[abilityBreakdownKey] : 10
+        }
+        gearScore={
+          abilityBreakdownKey ? gearAbilities[abilityBreakdownKey] : 10
+        }
+        proficientSave={
+          abilityBreakdownKey ? draft.saves[abilityBreakdownKey] : false
+        }
+        proficiencyBonus={proficiencyBonus}
+        formulaVars={formulaVarsBase}
+        modifiers={draft.modifiers}
+        onBaseScoreChange={(score) => {
+          if (!abilityBreakdownKey) return
+          setDraft((prev) => ({
+            ...prev,
+            abilities: { ...prev.abilities, [abilityBreakdownKey]: score },
+          }))
+        }}
+        onSaveProficiencyChange={(proficient) => {
+          if (!abilityBreakdownKey) return
+          setDraft((prev) => ({
+            ...prev,
+            saves: { ...prev.saves, [abilityBreakdownKey]: proficient },
+          }))
+        }}
+        onModifiersChange={(modifiers) =>
+          setDraft((prev) => ({ ...prev, modifiers }))
+        }
+        onClose={() => setAbilityBreakdownKey(null)}
+      />
+
+      <InitiativeBreakdownDialog
+        open={initiativeBreakdownOpen}
+        autoCore={initiativeAutoCore}
+        autoLabel={initiativeAutoLabel || 'ЛОВ'}
+        override={draft.initiativeOverride}
+        onOverrideChange={(initiativeOverride) =>
+          setDraft((prev) => ({ ...prev, initiativeOverride }))
+        }
+        formulaVars={formulaVarsBase}
+        modifiers={draft.modifiers}
+        onModifiersChange={(modifiers) =>
+          setDraft((prev) => ({ ...prev, modifiers }))
+        }
+        onRoll={() => {
+          emitToast(
+            formatSkillRoll('Инициатива', initiativeValue, effectiveRollMode()),
+          )
+        }}
+        onClose={() => setInitiativeBreakdownOpen(false)}
+      />
+
       <RestDialog
         open={restOpen}
         level={characterLevel}
@@ -4887,7 +6377,20 @@ export function MinimalSheetEditor({
         play={draft.play}
         spells={draft.spells}
         featureDesiredResources={featureDesiredResources}
-        onPlayChange={(play) => setDraft((prev) => ({ ...prev, play }))}
+        onPlayChange={(play) =>
+          setDraft((prev) => {
+            const result = applyConcentrationChangeToCompanions({
+              companions: prev.companions,
+              previous: prev.play.concentration,
+              next: play.concentration,
+            })
+            return {
+              ...prev,
+              play,
+              companions: result.companions,
+            }
+          })
+        }
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         onCombatChange={(patch) =>
           setDraft((prev) => ({
@@ -4895,6 +6398,17 @@ export function MinimalSheetEditor({
             ...(patch.hpCurrent !== undefined ? { hpCurrent: patch.hpCurrent } : {}),
           }))
         }
+        onCompanionRest={(kind) => {
+          let dismissed: string[] = []
+          setDraft((prev) => {
+            const result = dismissSelfFormsOnRest(prev.companions, kind)
+            dismissed = result.dismissedNames
+            return { ...prev, companions: result.companions }
+          })
+          if (dismissed.length) {
+            onToast(`Отдых: облик сброшен (${dismissed.join(', ')})`)
+          }
+        }}
         onToast={onToast}
         onClose={() => setRestOpen(false)}
       />
@@ -4948,6 +6462,325 @@ export function MinimalSheetEditor({
         }}
         onToast={onToast}
         onClose={() => setChannelDivinitySpendId(null)}
+      />
+
+      <KiSpendDialog
+        open={kiSpendId != null}
+        resource={kiResource}
+        features={unlockedFeatures}
+        onSpend={(label, cost) => {
+          if (!kiSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) => {
+                if (row.id !== kiSpendId) return row
+                const nextUsed = Math.min(row.max, row.used + cost)
+                if (nextUsed === row.used) return row
+                return { ...row, used: nextUsed }
+              }),
+            },
+          }))
+          onToast(`${label}: −${cost} ки`)
+          setKiSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setKiSpendId(null)}
+      />
+
+      {wildShapeFork ? (
+        <WildShapeDialog
+          open
+          onClose={() => setWildShapeFork(null)}
+          features={unlockedFeatures.filter(
+            (f) => f.classEntryId === wildShapeFork.classEntryId,
+          )}
+          resources={draft.play.resources}
+          companions={draft.companions}
+          knownForms={draft.knownForms}
+          classSlug={wildShapeFork.classSlug}
+          classEntryId={wildShapeFork.classEntryId}
+          druidLevel={druidLevel}
+          subclassSlug={druidSubclassSlug}
+          hostHp={draft.hpCurrent ?? 0}
+          hostHpMax={draft.hpMax ?? 0}
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={(result) => {
+            applyWildShapeResult(result)
+            setWildShapeFork(null)
+          }}
+        />
+      ) : null}
+
+      {featureSelfForm ? (
+        <FeatureSelfFormDialog
+          open
+          onClose={() => setFeatureSelfForm(null)}
+          limits={shapechangerFormLimits()}
+          companions={draft.companions}
+          knownForms={draft.knownForms}
+          hostHp={draft.hpCurrent ?? 0}
+          hostHpMax={draft.hpMax ?? 0}
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={(result: FeatureSelfFormDialogResult) => {
+            const spent = spendFeatureUse({
+              resources: draft.play.resources,
+              feature: featureSelfForm.feature,
+              classSlug: featureSelfForm.classSlug,
+            })
+            if (!spent.ok) {
+              onToast(spent.message)
+              return
+            }
+            setDraft((prev) => ({
+              ...prev,
+              companions: result.companions,
+              knownForms: result.knownForms,
+              play: { ...prev.play, resources: spent.resources },
+            }))
+            onToast(result.toast)
+            setFeatureSelfForm(null)
+          }}
+        />
+      ) : null}
+
+      {pendingSpellSelfForm ? (
+        <SpellFormDialog
+          open
+          spell={pendingSpellSelfForm.spell}
+          slug={pendingSpellSelfForm.slug}
+          companions={draft.companions}
+          knownForms={draft.knownForms}
+          characterLevel={characterLevel}
+          hostHp={draft.hpCurrent ?? 0}
+          hostHpMax={draft.hpMax ?? 0}
+          edition={rulesEdition === '2024' ? '2024' : '2014'}
+          onConfirm={applySpellSelfFormResult}
+          onClose={() => {
+            setPendingSpellSelfForm(null)
+            onToast(
+              'Облик не выбран — концентрация активна; карточку можно не создавать',
+            )
+          }}
+        />
+      ) : null}
+
+      <BardicInspirationSpendDialog
+        open={bardicInspirationSpendId != null}
+        resource={bardicInspirationResource}
+        features={unlockedFeatures}
+        onSpend={(label, cost) => {
+          if (!bardicInspirationSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) => {
+                if (row.id !== bardicInspirationSpendId) return row
+                const nextUsed = Math.min(row.max, row.used + cost)
+                if (nextUsed === row.used) return row
+                return { ...row, used: nextUsed }
+              }),
+            },
+          }))
+          onToast(`${label}: −${cost} Бардовское вдохновение`)
+          setBardicInspirationSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setBardicInspirationSpendId(null)}
+      />
+
+      <LayOnHandsSpendDialog
+        open={layOnHandsSpendId != null}
+        resource={layOnHandsResource}
+        onSpend={(label, cost) => {
+          if (!layOnHandsSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) => {
+                if (row.id !== layOnHandsSpendId) return row
+                const nextUsed = Math.min(row.max, row.used + cost)
+                if (nextUsed === row.used) return row
+                return { ...row, used: nextUsed }
+              }),
+            },
+          }))
+          onToast(`${label}: −${cost} из пула Возложения рук`)
+          setLayOnHandsSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setLayOnHandsSpendId(null)}
+      />
+
+      <SuperiorityDiceSpendDialog
+        open={superioritySpendId != null}
+        resource={superiorityResource}
+        features={unlockedFeatures}
+        featurePicks={draft.featurePicks}
+        onSpend={(label, cost) => {
+          if (!superioritySpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) => {
+                if (row.id !== superioritySpendId) return row
+                const nextUsed = Math.min(row.max, row.used + cost)
+                if (nextUsed === row.used) return row
+                return { ...row, used: nextUsed }
+              }),
+            },
+          }))
+          onToast(`${label}: −${cost} кость превосходства`)
+          setSuperioritySpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setSuperioritySpendId(null)}
+      />
+
+      <ArcaneRecoverySpendDialog
+        open={arcaneRecoverySpendId != null}
+        resource={arcaneRecoveryResource}
+        wizardLevel={arcaneRecoveryWizardLevel}
+        slots={draft.spells.slots}
+        onRecover={(slots, label) => {
+          if (!arcaneRecoverySpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            spells: { ...prev.spells, slots },
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) =>
+                row.id === arcaneRecoverySpendId && row.used < row.max
+                  ? { ...row, used: row.used + 1 }
+                  : row,
+              ),
+            },
+          }))
+          onToast(label)
+          setArcaneRecoverySpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setArcaneRecoverySpendId(null)}
+      />
+
+      <InfusionsActiveDialog
+        open={infusionsSpendId != null && infusionsContext != null}
+        resource={infusionsResource}
+        classEntryId={infusionsContext?.classEntryId ?? ''}
+        artificerLevel={infusionsContext?.level ?? 1}
+        featurePicks={draft.featurePicks}
+        onFeaturePicksChange={(featurePicks) =>
+          setDraft((prev) => ({ ...prev, featurePicks }))
+        }
+        onSlotsUsedChange={(used) => {
+          if (!infusionsSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) =>
+                row.id === infusionsSpendId
+                  ? { ...row, used: Math.min(row.max, Math.max(0, used)) }
+                  : row,
+              ),
+            },
+          }))
+        }}
+        onToast={onToast}
+        onClose={() => setInfusionsSpendId(null)}
+      />
+
+      <WarlockArcanumSpendDialog
+        open={arcanumSpendId != null}
+        resource={arcanumResource}
+        features={unlockedFeatures}
+        resources={draft.play.resources}
+        onSpend={(poolResourceId, label) => {
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) =>
+                row.id === poolResourceId && row.used < row.max
+                  ? { ...row, used: row.used + 1 }
+                  : row,
+              ),
+            },
+          }))
+          onToast(`${label}: −1`)
+          setArcanumSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setArcanumSpendId(null)}
+      />
+
+      <WarlockInvocationsDialog
+        open={invocationsOpen != null}
+        classEntryId={invocationsOpen?.classEntryId ?? ''}
+        featurePicks={draft.featurePicks}
+        onToast={onToast}
+        onClose={() => setInvocationsOpen(null)}
+      />
+
+      <PsionicDiceSpendDialog
+        open={psionicSpendId != null}
+        resource={psionicResource}
+        features={unlockedFeatures}
+        onSpend={(label, cost) => {
+          if (!psionicSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) => {
+                if (row.id !== psionicSpendId) return row
+                const nextUsed = Math.min(row.max, row.used + cost)
+                if (nextUsed === row.used) return row
+                return { ...row, used: nextUsed }
+              }),
+            },
+          }))
+          onToast(`${label}: −${cost} пси`)
+          setPsionicSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setPsionicSpendId(null)}
+      />
+
+      <SoulTrinketsSpendDialog
+        open={soulTrinketsSpendId != null}
+        resource={soulTrinketsResource}
+        features={unlockedFeatures}
+        onBurn={(label) => {
+          if (!soulTrinketsSpendId) return
+          setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) =>
+                row.id === soulTrinketsSpendId && row.used > 0
+                  ? { ...row, used: row.used - 1 }
+                  : row,
+              ),
+            },
+          }))
+          onToast(`${label}: −1 частица`)
+          setSoulTrinketsSpendId(null)
+        }}
+        onToast={onToast}
+        onClose={() => setSoulTrinketsSpendId(null)}
+      />
+
+      <RangerFavoredDeskDialog
+        open={rangerFavoredOpen != null}
+        classEntryId={rangerFavoredOpen?.classEntryId ?? ''}
+        featurePicks={draft.featurePicks}
+        onToast={onToast}
+        onClose={() => setRangerFavoredOpen(null)}
       />
 
       <LevelUpDialog
@@ -5041,6 +6874,29 @@ export function MinimalSheetEditor({
                     },
               hasSubclassByEntryId: hasSubclass,
             })
+            if (isWizardClassName(step.className)) {
+              const wizardLevel =
+                next.classes.find((row) => row.id === step.classEntryId)?.level ??
+                classLevel
+              const freeLeft = remainingFreeSpellbookSlots(
+                next.spells.known,
+                wizardLevel,
+              )
+              if (freeLeft > 0) {
+                remaining = withWizardSpellbookPicksStep(remaining, {
+                  classEntryId: step.classEntryId,
+                  className: step.className,
+                  classLevel: wizardLevel,
+                  // Jump to N: catch up all free research; L1 start: up to 6.
+                  picksNeeded:
+                    jumpTo > 1
+                      ? freeLeft
+                      : wizardLevel <= 1
+                        ? Math.min(6, freeLeft)
+                        : Math.min(freeBookSlotsAtLevel(wizardLevel), freeLeft),
+                })
+              }
+            }
             return next
           })
           if (summary) {
@@ -5082,6 +6938,43 @@ export function MinimalSheetEditor({
             classEntryId,
             selected: entry,
             advanceWizardAfter: true,
+          })
+        }}
+        spellbookPicksContext={(() => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          if (!step || step.kind !== 'spellbook_picks') return null
+          const slotCap = highestSpellSlotLevelForClasses(
+            draft.classes,
+            subclassCastersForSpells,
+          )
+          return {
+            maxSpellLevel: Math.max(1, slotCap || 1),
+            blockedCatalogIds: draft.spells.known
+              .map((spell) => spell.catalog_id)
+              .filter((id): id is string => Boolean(id)),
+            hasBook: wizardHasUsableSpellbook(draft.spells),
+            classListSlugs: ['wizard'],
+          }
+        })()}
+        onConfirmSpellbookPicks={(entries) => {
+          const step = guidedWizard?.steps[guidedWizard.index]
+          const acquisition =
+            step?.kind === 'spellbook_picks' && step.classLevel <= 1
+              ? 'starting'
+              : 'level_up'
+          setDraft((prev) => {
+            let known = prev.spells.known
+            for (const entry of entries) {
+              known = addCatalogSpellToKnown(known, entry, {
+                prepare: false,
+                spellbook_acquisition: acquisition,
+                in_spellbook: true,
+              })
+            }
+            return {
+              ...prev,
+              spells: { ...prev.spells, known },
+            }
           })
         }}
       />

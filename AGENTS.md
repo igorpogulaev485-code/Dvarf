@@ -6,31 +6,6 @@
 
 ---
 
-## 0. UI Kit — основа фронтенда (обязательно)
-
-Любая работа в `frontend/` (UI, CSS, панели, кабинет, auth, лобби, create, print) идёт **только** по UI Kit.
-
-| Что | Где |
-|-----|-----|
-| Контракт | [`docs/ui-kit/README.md`](docs/ui-kit/README.md) |
-| Доски | [`docs/ui-kit/boards/`](docs/ui-kit/boards/) |
-| Skill | [`.cursor/skills/dvarf-ui-kit/SKILL.md`](.cursor/skills/dvarf-ui-kit/SKILL.md) |
-| Каталог | [`docs/ui-kit/boards/dvarf-ui-kit-catalog-final.jpg`](docs/ui-kit/boards/dvarf-ui-kit-catalog-final.jpg) |
-
-**Жёстко:**
-
-- Тема аккаунта = только `--accent` / `--accent-soft`; дефолт **Листва** `#5a6b3d`.
-- 6 тем (= цвета характеристик): медь / хвоя / охра / чернила / листва / слива.
-- Характеристики по умолчанию вариант A (identity); в кабинете можно выбрать «Цвет темы».
-- Нейтрали (`--panel #fbf7ec` …) и `--danger` общие.
-- Display: Source Serif 4 · UI: IBM Plex Sans.
-- Новый паттерн → доска в `docs/ui-kit/boards/` → ok Игоря → код. Атомы — из кита.
-- Порядок внедрения: **сначала** единый кит в одном цвете (Листва), **потом** выбор темы в кабинете.
-
-Запрещено вводить параллельную палитру «на вкус» или кодить UI в обход досок.
-
----
-
 ## 1. Прод = ровно то, что в твоём дереве при деплое
 
 `./deploy/sync-and-up.sh` **полностью затирает** `/opt/dvarf` (кроме `.env`) и заливает **весь** текущий workspace.
@@ -46,17 +21,14 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/cleric-create-bugs-244b` |
+| Prod tip (сейчас) | `cursor/tablet-header-hotbar-ship-4dea` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
-
-**Источник истины для tip перед деплоем — живой сервер**, не устаревшая копия `AGENTS.md` в своей ветке.  
-`deploy/preflight-live.sh` читает tip с VPS и требует: `origin/<live-tip>` — ancestor of `HEAD`.
 
 Перед работой над продом / перед деплоем:
 
 1. `git fetch origin`
-2. Взять **prod tip** с живого `/opt/dvarf/AGENTS.md` (или из таблицы выше, если только что сверял сервер).
+2. Взять **prod tip** из таблицы выше (или из `PRODUCT_STATUS` / skill, если tip обновили).
 3. Свою ветку строить **от tip**: `git checkout -b cursor/<slice>-acbe origin/<prod-tip>`  
    или влить tip в свою ветку: `git merge origin/<prod-tip>` (без потери чужих файлов).
 4. Убедиться, что маркер-файлы tip на месте (см. preflight).
@@ -66,37 +38,29 @@
 - обнови tip в этом файле, в skill `dvarf-prod-lineage`, в `deploy/README.md`, в `PRODUCT_STATUS.md`;
 - напиши в PR: «это новый prod tip».
 
-### Запрещённые антипаттерны (уже жгли часы релизов)
-
-| Нельзя | Почему | Что делать |
-|--------|--------|------------|
-| Деплой с orphan / пустым `merge-base` vs tip | Час cherry-pick, потеря 30+ коммитов прода | `git merge origin/<live-tip>` или ветка заново от tip |
-| Заливать дерево без миграции, которая уже в prod DB | API падает на `alembic upgrade` | Подтянуть файл ревизии с tip до деплоя |
-| Вернуть `docker compose up -d --build` / node Dockerfile на VPS | Hub/BuildKit висят 27–60+ мин | Оставить `remote-up.sh` + nginx+dist prebuild |
-| Считать tip = то, что написано в своей старой ветке | Tip уже сменился на сервере | Сверить live AGENTS / `preflight-live` |
-| Две параллельные «я tip» ветки без merge | 2026-10-13: `cabinet-theme` (без ЕЩЁ) затёрт линией `create-pipeline`→`deploy-guardrails` | Перед деплоем `git merge` **всех** линий, которые уже писали «на проде: да» / LOCK |
-| Писать tip только в `AGENTS.md` своей ветки | Другой агент деплоит от устаревшего tip | Единый `deploy/prod-tip` + live disk markers в `preflight-live` |
-| Документы UI Kit LOCK без кода в tip | На проде «Сцена ЕЩЁ \| нет», а в бандле кнопка ЕЩЁ | Preflight требует `IdentityDialog.tsx` и запрещает `label: 'ЕЩЁ'` |
-
 ---
 
 ## 3. Чеклист ДО `sync-and-up.sh`
 
-Обязательно (вызывается из `sync-and-up` само):
+Обязательно:
 
 ```bash
-./deploy/preflight-prod.sh   # файлы + fast-deploy path
-./deploy/preflight-live.sh   # live tip ancestry + alembic vs DB (нужен SSH)
+./deploy/preflight-prod.sh
+./deploy/preflight-live.sh   # tip на VPS — ancestor of HEAD; alembic revision есть в дереве
 ```
 
-Падает, если: нет контуров прода; нет `remote-up`; frontend снова на node; **live tip не ancestor**; **в БД alembic-ревизия, которой нет в дереве**.  
-Обход только с явного ok Игоря: `DVARF_SKIP_PREFLIGHT=1` и/или `DVARF_SKIP_LIVE_PREFLIGHT=1`.
+`preflight-prod` падает, если нет обязательных файлов текущего прода (lobby + cabinet + avatar + sheet + forms-adapt маркеры + classic + бой/вики).  
+`preflight-live` читает tip/alembic **с сервера** и ловит orphan-ветки / missing migration files.  
+`sync-and-up.sh` вызывает оба. Обход: `DVARF_SKIP_PREFLIGHT=1` и/или `DVARF_SKIP_LIVE_PREFLIGHT=1` — только с явного ok Игоря.
+
+Единый файл tip: `deploy/prod-tip` (сейчас = ветка в таблице выше).
 
 Дополнительно глазами:
 
-- [ ] Ветка = merge/rebase **live tip**, не cherry-pick сшивка
+- [ ] Ветка содержит merge/rebase **prod tip**, не параллельную «пустую» развилку от старого Phase A
 - [ ] `PRODUCT_STATUS.md` актуален; не пишешь «на проде: да» заранее
-- [ ] Нет удаления чужих роутов/панелей / `deploy/remote-up.sh`
+- [ ] Нет удаления чужих роутов/панелей «потому что мне не нужны»
+- [ ] Сиды `backend/data/` (классы/фиты/расы) на месте — иначе свежая БД не воспроизведёт каталог
 
 ---
 
@@ -104,14 +68,11 @@
 
 1. `curl -fsS http://201.34.132.252/health`
 2. Проверь **живые маркеры** в бандле/на диске (не только свой слайс):
-   - кабинет / аватар / лобби / лист (мультикласс, концентрация, classic)
-   - Wave A: **нет** кнопки «ЕЩЁ» в `.play-desk__mode`; есть `IdentityDialog` / клик по аватару → Основное
-   - Create pipeline + `deploy/remote-up.sh` на диске
-3. Обнови `PRODUCT_STATUS.md` **и** `deploy/prod-tip` **по факту проверки** (да/нет, ветка, дата).
+   - кабинет / аватар / лобби / лист (мультикласс, концентрация, classic) / бой на сессии / вики сеттинга
+3. Обнови `PRODUCT_STATUS.md` **по факту проверки** (да/нет, ветка, дата).
 4. Если что-то пропало — **стоп**, восстанавливай до tip+твой слайс, не пиши что «всё ок».
 
-**Запрещено** писать в `PRODUCT_STATUS` «на проде: да», если на сервере файла/строки UI нет.  
-**Запрещено** объявлять «новый prod tip» в ветке, которая не содержит merge предыдущего live tip **и** параллельных Wave A LOCK-линий.
+**Запрещено** писать в `PRODUCT_STATUS` «на проде: да», если на сервере файла/строки UI нет.
 
 ---
 
@@ -136,16 +97,23 @@ Skill: [`.cursor/skills/dvarf-dev-workflow/SKILL.md`](.cursor/skills/dvarf-dev-w
 
 ---
 
-## 6b. Сообщение для друзей
-
-Если Игорь просит **«сообщение для друзей»** / пост / анонс в стандартном формате — пиши готовый текст по skill:
-
-→ [`.cursor/skills/dvarf-friends-announce/SKILL.md`](.cursor/skills/dvarf-friends-announce/SKILL.md)
-
-Не подменяй changelog’ом. Цифры и tip — после проверки прода (или явно пометь черновик).
-
----
-
 ## 7. Секреты
 
 Не коммитить `.env`. Cloud Agent: secret `DVARF_SSH_PRIVATE_KEY` = полный OpenSSH PEM (`BEGIN`…`END`).
+
+---
+
+## 8. UI Kit LOCK — нельзя ломать визуал прода
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) + skill [`dvarf-ui-kit`](.cursor/skills/dvarf-ui-kit/SKILL.md).
+
+**Жёстко запрещено** без явного ok Игоря:
+
+1. Заменять / «откатывать» `frontend/src/index.css` целиком с другой ветки (forms-adapt, orphan kit, «чистый» CSS).
+2. Удалять блок с маркером `UI KIT LOCK — Lobby Hub` (хаб лобби A1, стол сессии, дневник/чаты/заметки, вики, артефакты).
+3. Менять LOCK-паттерны Wave A стола (шапка, спеллы, атаки, hot-bar, identity, companions…) вразрез с §2b–2l.
+4. Деплоить дерево, где preflight не находит CSS-маркеры лобби/вики (см. `deploy/preflight-prod.sh`).
+
+Если нужен CSS с другой ветки — **мержить классы**, не checkout файла. После любого restyle `index.css`:  
+`rg 'lobby-member-grid|lobby-hub-tab\.is-active|setting-wiki|UI KIT LOCK — Lobby Hub' frontend/src/index.css`  
+должно быть зелёным, иначе визуал лобби снова «поедет».

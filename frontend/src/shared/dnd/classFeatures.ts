@@ -70,12 +70,21 @@ export type FeatureResource = {
   pool_name_ru?: string
   /** spend = expended uses; stock = current holdings (soul trinkets). */
   track?: 'spend' | 'stock'
+  /**
+   * When this feature shares a pool (Ki, Channel Divinity), how many uses to
+   * expend per activation. Default 1. Monk Empty Body = 4, etc.
+   */
+  spend_cost?: number
   /** If spend pool is empty, pay via linked pool (stock burn or spend die). */
   linked_spend?: {
     pool_id: string
     label_ru: string
     /** stock = decrement holdings; spend = expend one from linked spend pool. */
     mode?: 'stock' | 'spend'
+    /** How many to take from the linked pool (default 1). Shadow Arts = 2 ki. */
+    amount?: number
+    /** Optional upper bound for variable spends (Touch of the Long Death 1–10). */
+    amount_max?: number
   }
   /** Soulknife: regain 1 die as an action, once per short/long rest. */
   recover_one?: {
@@ -185,6 +194,8 @@ export type ClassFeatureDef = {
   summary_ru: string
   body_ru?: string
   kind: FeatureKind
+  /** Pin a glance chip on the play-desk mode (e.g. Reckless Attack → combat). */
+  desk?: 'combat' | 'explore' | 'social'
   scale?: FeatureScale
   resource?: FeatureResource
   /** Persistent pick (fighting style). */
@@ -396,6 +407,12 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       if (!summon.name_ru) summon = undefined
     }
 
+    const deskRaw = row.desk
+    const desk =
+      deskRaw === 'combat' || deskRaw === 'explore' || deskRaw === 'social'
+        ? deskRaw
+        : undefined
+
     out.push({
       id: row.id,
       level: typeof row.level === 'number' ? Math.max(1, row.level) : 1,
@@ -404,6 +421,7 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       summary_ru: typeof row.summary_ru === 'string' ? row.summary_ru : '',
       body_ru: typeof row.body_ru === 'string' ? row.body_ru : undefined,
       kind,
+      desk,
       scale:
         scaleRaw && scaleRaw.by_level && typeof scaleRaw.by_level === 'object'
           ? {
@@ -633,6 +651,10 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
     pool_name_ru:
       typeof resourceRaw.pool_name_ru === 'string' ? resourceRaw.pool_name_ru : undefined,
     track: resourceRaw.track === 'stock' ? 'stock' : resourceRaw.track === 'spend' ? 'spend' : undefined,
+    spend_cost:
+      typeof resourceRaw.spend_cost === 'number'
+        ? Math.max(1, Math.floor(resourceRaw.spend_cost))
+        : undefined,
     linked_spend:
       linkedRaw && typeof linkedRaw.pool_id === 'string'
         ? {
@@ -642,6 +664,14 @@ function parseFeatureResource(resourceRaw: Record<string, unknown> | null): Feat
                 ? linkedRaw.label_ru
                 : 'сжечь частицу души',
             mode: linkedRaw.mode === 'spend' ? 'spend' : 'stock',
+            amount:
+              typeof linkedRaw.amount === 'number'
+                ? Math.max(1, Math.floor(linkedRaw.amount))
+                : undefined,
+            amount_max:
+              typeof linkedRaw.amount_max === 'number'
+                ? Math.max(1, Math.floor(linkedRaw.amount_max))
+                : undefined,
           }
         : undefined,
     recover_one:

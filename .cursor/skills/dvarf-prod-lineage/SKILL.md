@@ -32,7 +32,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/cleric-create-bugs-244b
+cursor/tablet-header-hotbar-ship-4dea
 ```
 
 URL: http://201.34.132.252/
@@ -72,6 +72,7 @@ git merge origin/<live-prod-tip>
 | Tip file | `deploy/prod-tip` (совпадает с AGENTS) |
 | Wave A identity | `IdentityDialog.tsx` + wiring; **нет** `label: 'ЕЩЁ'` |
 | Wave B theme | `shared/theme/accountAppearance.ts` |
+| UI Kit CSS LOCK | `index.css` содержит `UI KIT LOCK — Lobby Hub` + `.lobby-member-grid` + `.setting-wiki` |
 
 `deploy/preflight-live.sh` — до затирания сервера:
 

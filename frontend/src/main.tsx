@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import { startSessionKeepAlive } from './shared/api/client'
 import './index.css'
 import App from './App.tsx'
+import { bootstrapAccountAppearance } from './shared/theme/accountAppearance'
+
+// Apply cached theme before first paint of React — avoids «Листва» flash after deploy.
+bootstrapAccountAppearance()
 
 startSessionKeepAlive()
 

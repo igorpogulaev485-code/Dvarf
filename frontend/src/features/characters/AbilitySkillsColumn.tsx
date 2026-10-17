@@ -22,12 +22,24 @@ type AbilitySkillsColumnProps = {
   proficiencyBonus: number
   auraSaveBonus?: number
   saveBonusExtra?: Partial<Record<AbilityKey | 'all', number>>
+  /** Extra flat bonus on ability checks (not skills). */
+  checkBonusExtra?: Partial<Record<AbilityKey, number>>
   skillBonusExtra?: Record<string, number>
   onAbilityScoreChange: (key: AbilityKey, score: number) => void
   onSaveToggle: (key: AbilityKey) => void
   onSkillCycle: (skillKey: string) => void
   onReorder: (order: AbilityKey[]) => void
   onCollapsedChange: (collapsed: AbilityKey[]) => void
+  /** Per-ability permanent score ceilings (PHB 20 + class/item raises). */
+  abilityMaxes?: Partial<Record<AbilityKey, number>>
+  /** Open ability breakdown / buffs dialog. */
+  onOpenAbility?: (key: AbilityKey) => void
+  /** Click the check number → roll. */
+  onRollCheck?: (key: AbilityKey, mod: number) => void
+  /** Click the save number → roll (pip still toggles proficiency). */
+  onRollSave?: (key: AbilityKey, mod: number) => void
+  /** Click the skill number → roll (pip cycles владение / экспертиза). */
+  onRollSkill?: (skill: { key: string; label: string; mod: number }) => void
 }
 
 function cycleSkill(state: SkillState): SkillState {
@@ -40,16 +52,10 @@ function cycleSkill(state: SkillState): SkillState {
   return { is_proficient: false, is_expertise: false }
 }
 
-function skillMark(state: SkillState): string {
-  if (state.is_expertise) return 'Эксп.'
-  if (state.is_proficient) return 'Влад.'
-  return '—'
-}
-
-function skillMeta(state: SkillState, modLabel: string, gearLabel: string): string {
-  const mark = skillMark(state)
-  if (mark === '—') return `— ${modLabel}${gearLabel}`
-  return `${mark} ${modLabel}${gearLabel}`
+function skillProfTitle(state: SkillState): string {
+  if (state.is_expertise) return 'Экспертиза — клик: снять'
+  if (state.is_proficient) return 'Владение — клик: экспертиза'
+  return 'Нет владения — клик: владение'
 }
 
 export { cycleSkill }
@@ -64,12 +70,18 @@ export function AbilitySkillsColumn({
   proficiencyBonus,
   auraSaveBonus = 0,
   saveBonusExtra = {},
+  checkBonusExtra = {},
   skillBonusExtra = {},
   onAbilityScoreChange,
   onSaveToggle,
   onSkillCycle,
   onReorder,
   onCollapsedChange,
+  abilityMaxes,
+  onOpenAbility,
+  onRollCheck,
+  onRollSave,
+  onRollSkill,
 }: AbilitySkillsColumnProps) {
   const order = abilityOrder.length === ABILITY_KEYS.length ? abilityOrder : [...ABILITY_KEYS]
   const collapsed = new Set(collapsedAbilities)
@@ -105,16 +117,20 @@ export function AbilitySkillsColumn({
         </button>
       </div>
       <Text tone="muted" className="abil-column__hint">
-        название ▾ · ⋮⋮ порядок · клик по навыку: владение / экспертиза
+        число → бросок · кружок → владение/эксп. · название → разборка
       </Text>
       <div className="abil-column__list" id="abil-column-list">
         {order.map((key) => {
           const baseScore = abilities[key]
           const score = shown[key]
-          const check = abilityModifier(score)
+          const abilityMod = abilityModifier(score)
+          const check = abilityMod + (checkBonusExtra[key] ?? 0)
           const gearSave = (saveBonusExtra.all ?? 0) + (saveBonusExtra[key] ?? 0)
           const saveMod =
-            check + (saves[key] ? proficiencyBonus : 0) + auraSaveBonus + gearSave
+            abilityMod +
+            (saves[key] ? proficiencyBonus : 0) +
+            auraSaveBonus +
+            gearSave
           const isCollapsed = collapsed.has(key)
           const related = SKILL_DEFS.filter((skill) => skill.base === key)
           return (
@@ -155,48 +171,112 @@ export function AbilitySkillsColumn({
                 >
                   ⋮⋮
                 </span>
-                <button
-                  type="button"
-                  className="abil-block__label"
-                  aria-expanded={!isCollapsed}
-                  title={isCollapsed ? 'Развернуть навыки' : 'Свернуть навыки'}
-                  onClick={() => setCollapsed(key, !isCollapsed)}
-                >
-                  <span className="abil-block__label-text">{ABILITY_NAMES[key]}</span>
-                  <span className="abil-block__label-chevron" aria-hidden>
+                <div className="abil-block__label">
+                  <button
+                    type="button"
+                    className="abil-block__label-open"
+                    title={
+                      onOpenAbility
+                        ? `Разборка «${ABILITY_NAMES[key]}» — значение, проверки, спас`
+                        : ABILITY_NAMES[key]
+                    }
+                    onClick={() => {
+                      if (onOpenAbility) onOpenAbility(key)
+                      else setCollapsed(key, !isCollapsed)
+                    }}
+                  >
+                    <span className="abil-block__label-text">{ABILITY_NAMES[key]}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="abil-block__label-chevron"
+                    aria-expanded={!isCollapsed}
+                    title={isCollapsed ? 'Развернуть навыки' : 'Свернуть навыки'}
+                    onClick={() => setCollapsed(key, !isCollapsed)}
+                  >
                     {isCollapsed ? '▸' : '▾'}
-                  </span>
-                </button>
+                  </button>
+                </div>
                 <div className="abil-block__meta">
                   <div className="abil-block__score-wrap">
                     <NumberInput
                       className="abil-block__score"
                       min={1}
-                      max={30}
+                      max={abilityMaxes?.[key] ?? 20}
                       emptyValue={10}
                       value={baseScore}
                       onValueChange={(next) => onAbilityScoreChange(key, next ?? 10)}
                       inputMode="numeric"
-                      title="Базовое значение"
+                      title={
+                        abilityMaxes?.[key]
+                          ? `Базовое значение (макс. ${abilityMaxes[key]})`
+                          : 'Базовое значение'
+                      }
                     />
                     {score !== baseScore ? (
-                      <span className="abil-block__effective is-buffed" title="С учётом предметов">
+                      <span
+                        className="abil-block__effective is-buffed"
+                        title="С учётом предметов и бафов"
+                      >
                         → {score}
                       </span>
                     ) : null}
                   </div>
                   <div className="abil-block__mods">
-                    <span className="abil-mod" title="Проверка характеристики">
-                      Пр {formatModifier(check)}
-                    </span>
                     <button
                       type="button"
-                      className={`abil-mod abil-mod--btn${saves[key] ? ' is-on' : ''}`}
-                      title="Спасбросок — клик: владение"
-                      onClick={() => onSaveToggle(key)}
+                      className="abil-mod abil-mod--btn abil-mod--roll"
+                      title={
+                        onRollCheck
+                          ? `Проверка ${ABILITY_NAMES[key]} — бросок`
+                          : onOpenAbility
+                            ? 'Проверка — открыть разборку'
+                            : 'Проверка характеристики'
+                      }
+                      onClick={() => {
+                        if (onRollCheck) onRollCheck(key, check)
+                        else onOpenAbility?.(key)
+                      }}
                     >
-                      Сп {formatModifier(saveMod)}
+                      <span className="abil-mod__tag">Пр</span>
+                      <span className="abil-mod__num">{formatModifier(check)}</span>
                     </button>
+                    <div className="abil-mod-pair">
+                      <button
+                        type="button"
+                        className={`abil-prof-pip${saves[key] ? ' is-on' : ''}`}
+                        aria-pressed={saves[key]}
+                        aria-label={
+                          saves[key]
+                            ? `Владение спасброском ${ABILITY_NAMES[key]} — снять`
+                            : `Нет владения спасброском ${ABILITY_NAMES[key]} — дать`
+                        }
+                        title={
+                          saves[key]
+                            ? 'Владение спасброском — клик: снять'
+                            : 'Нет владения — клик: владение'
+                        }
+                        onClick={() => onSaveToggle(key)}
+                      />
+                      <button
+                        type="button"
+                        className={`abil-mod abil-mod--btn abil-mod--roll${
+                          saves[key] ? ' is-proficient' : ''
+                        }`}
+                        title={
+                          onRollSave
+                            ? `Спасбросок ${ABILITY_NAMES[key]} — бросок`
+                            : 'Спасбросок'
+                        }
+                        onClick={() => {
+                          if (onRollSave) onRollSave(key, saveMod)
+                          else onSaveToggle(key)
+                        }}
+                      >
+                        <span className="abil-mod__tag">Сп</span>
+                        <span className="abil-mod__num">{formatModifier(saveMod)}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -222,21 +302,45 @@ export function AbilitySkillsColumn({
                             : 0) +
                         gearSkill
                       return (
-                        <button
+                        <div
                           key={skill.key}
-                          type="button"
-                          className={`abil-skill${state.is_proficient ? ' is-on' : ''}${state.is_expertise ? ' is-expert' : ''}`}
-                          onClick={() => onSkillCycle(skill.key)}
+                          className={`abil-skill${state.is_proficient ? ' is-on' : ''}${
+                            state.is_expertise ? ' is-expert' : ''
+                          }`}
                         >
-                          <span>{skill.label}</span>
-                          <span className="abil-skill__meta">
-                            {skillMeta(
-                              state,
-                              formatModifier(mod),
-                              gearSkill ? ` · предм. ${formatModifier(gearSkill)}` : '',
-                            )}
-                          </span>
-                        </button>
+                          <button
+                            type="button"
+                            className={`abil-prof-pip${
+                              state.is_proficient ? ' is-on' : ''
+                            }${state.is_expertise ? ' is-expert' : ''}`}
+                            aria-label={`${skill.label}: ${skillProfTitle(state)}`}
+                            title={skillProfTitle(state)}
+                            onClick={() => onSkillCycle(skill.key)}
+                          />
+                          <span className="abil-skill__name">{skill.label}</span>
+                          <button
+                            type="button"
+                            className="abil-skill__roll"
+                            title={
+                              onRollSkill
+                                ? `${skill.label} — бросок${
+                                    gearSkill
+                                      ? ` · предм. ${formatModifier(gearSkill)}`
+                                      : ''
+                                  }`
+                                : formatModifier(mod)
+                            }
+                            onClick={() =>
+                              onRollSkill?.({
+                                key: skill.key,
+                                label: skill.label,
+                                mod,
+                              })
+                            }
+                          >
+                            {formatModifier(mod)}
+                          </button>
+                        </div>
                       )
                     })
                   )}

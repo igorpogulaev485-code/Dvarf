@@ -794,7 +794,11 @@ function tableAtLevel(table: number[] | undefined, level: number): number {
   return table[clampLevel(level) - 1] ?? table[table.length - 1] ?? 0
 }
 
-/** Wizard spellbook: 6 at 1st, +2 each level after. */
+/**
+ * Wizard free-research size: 6 at 1st, +2 each level after (PHB).
+ * Soft budget for free adds — paid copies may exceed this.
+ * Physical book / copy cost / lose-replace: see wizardSpellbook.ts.
+ */
 export function wizardSpellbookLeveledCap(wizardLevel: number): number {
   const lv = clampLevel(wizardLevel)
   return 6 + 2 * (lv - 1)

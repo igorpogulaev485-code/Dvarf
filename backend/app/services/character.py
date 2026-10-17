@@ -8,6 +8,7 @@ from app.core.exceptions import AppError, ConflictError
 from app.models.character import Character
 from app.models.user import User
 from app.repositories.character import CharacterRepository
+from app.repositories.lobby import LobbyRepository
 from app.schemas.character import (
     CharacterCreateRequest,
     CharacterDetail,
@@ -26,14 +27,16 @@ def to_summary(character: Character) -> CharacterSummary:
     return CharacterSummary.model_validate(character)
 
 
-def to_detail(character: Character) -> CharacterDetail:
-    return CharacterDetail.model_validate(character)
+def to_detail(character: Character, *, can_edit: bool = True) -> CharacterDetail:
+    data = CharacterDetail.model_validate(character)
+    return data.model_copy(update={"can_edit": can_edit})
 
 
 class CharacterService:
     def __init__(self, db: Session) -> None:
         self.db = db
         self.characters = CharacterRepository(db)
+        self.lobbies = LobbyRepository(db)
 
     def list_mine(self, user: User) -> list[CharacterSummary]:
         return [to_summary(item) for item in self.characters.list_for_user(user.id)]
@@ -45,17 +48,29 @@ class CharacterService:
             rules_edition=payload.rules_edition,
             name=name,
             sheet=empty_character_sheet(),
-            is_draft=bool(payload.is_draft),
+            is_draft=bool(getattr(payload, 'is_draft', False)),
         )
         self.db.commit()
         self.db.refresh(character)
         return to_detail(character)
 
     def get_mine(self, user: User, character_id: UUID) -> CharacterDetail:
+        """Владелец — полный доступ; мастер лобби с этим персонажем — только просмотр."""
         character = self.characters.get_for_user(character_id, user.id)
+        if character is not None:
+            return to_detail(character, can_edit=True)
+
+        character = self.characters.get_active(character_id)
         if character is None:
             raise AppError("Персонаж не найден", code="character_not_found", status_code=404)
-        return to_detail(character)
+
+        if self.lobbies.is_owner_of_character_lobby(
+            owner_id=user.id,
+            character_id=character_id,
+        ):
+            return to_detail(character, can_edit=False)
+
+        raise AppError("Персонаж не найден", code="character_not_found", status_code=404)
 
     def update(
         self,
@@ -65,6 +80,16 @@ class CharacterService:
     ) -> CharacterDetail:
         character = self.characters.get_for_user(character_id, user.id)
         if character is None:
+            active = self.characters.get_active(character_id)
+            if active is not None and self.lobbies.is_owner_of_character_lobby(
+                owner_id=user.id,
+                character_id=character_id,
+            ):
+                raise AppError(
+                    "Мастер может только смотреть лист, не редактировать",
+                    code="character_edit_forbidden",
+                    status_code=403,
+                )
             raise AppError("Персонаж не найден", code="character_not_found", status_code=404)
 
         if payload.sheet_version != character.sheet_version:
@@ -120,8 +145,6 @@ class CharacterService:
             data=data,
             content_type=content_type,
         )
-        # Avatar is a column, not sheet JSON — do not bump sheet_version
-        # (avoids fighting an open sheet editor).
         self.db.commit()
         self.db.refresh(character)
         return to_detail(character)

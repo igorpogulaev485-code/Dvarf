@@ -29,6 +29,8 @@ class CharacterSummary(BaseModel):
 
 class CharacterDetail(CharacterSummary):
     sheet: dict[str, Any]
+    # True для владельца; False если мастер лобби смотрит чужой лист
+    can_edit: bool = True
 
 
 class CharacterCreateRequest(BaseModel):

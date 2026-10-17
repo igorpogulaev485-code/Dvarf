@@ -14,20 +14,24 @@ import {
   grantCastRemaining,
   groupSpellsByLevel,
   isGrantedSpellHighlight,
-  isReadyInCombat,
+  isAvailableToCast,
   spellSourceBadge,
   type SheetSpell,
   type SpellsState,
 } from './spells'
 import { IconCast, IconConcentration, IconRitual, IconWizardHat } from './spellIcons'
 import { spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
+import type { FormulaVars } from '../../shared/dnd/formulas'
 import { clampPactSlots, levelLabel, spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
+import { type BonusLine, withSpellCastBonuses } from './modifiers'
 
 type PlayDeskSpellsCompactProps = {
   spells: SpellsState
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  modifiers?: BonusLine[]
+  formulaVars?: FormulaVars
   /** PHB learn budget caps for compact quota chips. */
   learnBudget?: {
     mode: 'known' | 'prepared_list' | 'spellbook'
@@ -41,6 +45,8 @@ type PlayDeskSpellsCompactProps = {
   edition?: RulesEdition
   /** Open caster setup (slots / grimoire / advanced) — replaces full panel. */
   onOpenSettings: () => void
+  /** Label for settings / book entry (mobile kit: «Книга»). */
+  settingsLabel?: string
   onClearSplit?: () => void
   /** Patch spells (prepare dialog). */
   onSpellsChange?: (spells: SpellsState) => void
@@ -58,11 +64,14 @@ export function PlayDeskSpellsCompact({
   spells,
   abilities,
   proficiencyBonus,
+  modifiers = [],
+  formulaVars = {},
   learnBudget = null,
   pinned = false,
   concentration = null,
   edition = '2014',
   onOpenSettings,
+  settingsLabel = 'Настройки',
   onClearSplit,
   onSpellsChange,
   onSlotUsedChange,
@@ -73,13 +82,33 @@ export function PlayDeskSpellsCompact({
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [detailSpell, setDetailSpell] = useState<SheetSpell | null>(null)
   const [showAllSpells, setShowAllSpells] = useState(false)
-  const ready = spells.known.filter(isReadyInCombat)
+  const hasSpellbook =
+    learnBudget?.mode === 'spellbook' &&
+    Boolean(
+      spells.wizard_spellbook &&
+        !spells.wizard_spellbook.bookLost &&
+        spells.wizard_spellbook.primaryBookItemId,
+    )
+  const ready = spells.known.filter((spell) =>
+    isAvailableToCast(spell, {
+      learnMode: learnBudget?.mode ?? null,
+      hasSpellbook,
+    }),
+  )
   const pact = spells.pact_slots ? clampPactSlots(spells.pact_slots) : null
   const pactRemaining = pact && pact.max > 0 ? Math.max(0, pact.max - pact.used) : null
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
-  const dc = abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null
-  const attack = abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : null
+  const castStats = withSpellCastBonuses({
+    baseDc: abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : null,
+    baseAttack: abilityKey
+      ? spellAttackBonus(abilityMod, proficiencyBonus)
+      : null,
+    modifiers,
+    vars: formulaVars,
+  })
+  const dc = castStats.dc
+  const attack = castStats.attack
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
@@ -103,6 +132,17 @@ export function PlayDeskSpellsCompact({
     learnBudget?.cantrips != null
       ? `заг. ${learnedCantrips}/${learnBudget.cantrips}`
       : null
+  /**
+   * «Подготовить» только для prepared_list / spellbook (жрец, друид, паладин,
+   * изобретатель, волшебник). Known-кастеры (бард, чародей, колдун, следопыт)
+   * уже имеют всё известное готовым к бою — кнопка их путает.
+   */
+  const showPrepare =
+    Boolean(onSpellsChange) &&
+    learnBudget?.mode !== 'known' &&
+    (learnBudget?.mode === 'prepared_list' ||
+      learnBudget?.mode === 'spellbook' ||
+      (learnBudget == null && spells.max_prepared != null))
 
   const maxRows = 14
   const levelGroups = (() => {
@@ -129,11 +169,16 @@ export function PlayDeskSpellsCompact({
       <div className="play-desk-compact__head">
         <h3>{pinned ? 'Заклинания (закреплено)' : 'Заклинания'}</h3>
         <div className="play-desk-compact__head-actions">
-          {onSpellsChange ? (
+          {showPrepare ? (
             <button
               type="button"
               className="play-desk-compact__link play-desk-compact__link--prepare"
               onClick={() => setPrepareOpen(true)}
+              title={
+                learnBudget?.mode === 'spellbook'
+                  ? 'Выбрать на сегодня из книги (лимит = Инт + ур. волшебника)'
+                  : 'Выбрать на сегодня из списка класса (лимит = мод + уровень)'
+              }
             >
               <IconWizardHat className="play-desk-compact__link-icon" />
               Подготовить
@@ -149,7 +194,7 @@ export function PlayDeskSpellsCompact({
             className="play-desk-compact__link play-desk-compact__link--settings"
             onClick={onOpenSettings}
           >
-            Настройки
+            {settingsLabel}
           </button>
         </div>
       </div>
@@ -314,6 +359,7 @@ export function PlayDeskSpellsCompact({
         <PrepareSpellsDialog
           open={prepareOpen}
           spells={spells}
+          learnMode={learnBudget?.mode ?? null}
           onChange={onSpellsChange}
           onClose={() => setPrepareOpen(false)}
         />

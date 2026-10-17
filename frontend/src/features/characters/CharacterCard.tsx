@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useId, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   deleteCharacter,
@@ -49,29 +49,10 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
   const hp = hpParts(character)
 
   const menuId = useId()
-  const menuRef = useRef<HTMLDivElement>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [actionsOpen, setActionsOpen] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!menuOpen) return
-    function onPointerDown(event: MouseEvent) {
-      if (!menuRef.current?.contains(event.target as Node)) {
-        setMenuOpen(false)
-      }
-    }
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setMenuOpen(false)
-    }
-    document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [menuOpen])
 
   async function handleConfirmDelete() {
     setDeleting(true)
@@ -92,44 +73,19 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
   return (
     <article className="character-card__wrap">
       <div className="character-card">
-        <div className="character-card__menu" ref={menuRef}>
+        <div className="character-card__menu">
           <Button
             type="button"
             variant="ghost"
             className="character-card__menu-btn"
             aria-label="Действия с персонажем"
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
+            aria-haspopup="dialog"
+            aria-expanded={actionsOpen}
             aria-controls={menuId}
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => setActionsOpen(true)}
           >
             ⋯
           </Button>
-          {menuOpen ? (
-            <div className="character-card__menu-pop" id={menuId} role="menu">
-              {!isDraft ? (
-                <Link
-                  role="menuitem"
-                  to={`/characters/${character.id}/classic`}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Классический лист
-                </Link>
-              ) : null}
-              <button
-                type="button"
-                role="menuitem"
-                className="character-card__menu-danger"
-                onClick={() => {
-                  setMenuOpen(false)
-                  setDeleteError(null)
-                  setConfirmOpen(true)
-                }}
-              >
-                Удалить
-              </button>
-            </div>
-          ) : null}
         </div>
 
         <Link className="character-card__main" to={href}>
@@ -186,6 +142,41 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
           </Link>
         </div>
       </div>
+
+      <Dialog
+        open={actionsOpen}
+        title={character.name}
+        primaryLabel="Закрыть"
+        secondaryLabel="Отмена"
+        onPrimary={() => setActionsOpen(false)}
+        onSecondary={() => setActionsOpen(false)}
+        closeOnBackdrop
+      >
+        <div className="character-card__actions-sheet" id={menuId} role="menu">
+          {!isDraft ? (
+            <Link
+              role="menuitem"
+              className="character-card__actions-item"
+              to={`/characters/${character.id}/classic`}
+              onClick={() => setActionsOpen(false)}
+            >
+              Классический лист
+            </Link>
+          ) : null}
+          <button
+            type="button"
+            role="menuitem"
+            className="character-card__actions-item character-card__actions-item--danger"
+            onClick={() => {
+              setActionsOpen(false)
+              setDeleteError(null)
+              setConfirmOpen(true)
+            }}
+          >
+            Удалить
+          </button>
+        </div>
+      </Dialog>
 
       <Dialog
         open={confirmOpen}
