@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1060"
+     viewBox="0 0 900 1060" role="img"
+     aria-label="02 · Аккаунт и кабинет" data-name="02 · Аккаунт и кабинет">
+  <title>02 · Аккаунт и кабинет</title>
+  <desc>Регистрация, verify, OAuth, сброс пароля, смена email</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B7B6B"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#F7F5F0"/>
+  <rect x="24" y="24" width="852" height="1012"
+        rx="16" fill="#EDE8DC" stroke="#D5CFC0" stroke-width="1"/>
+  <text x="48" y="64" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="22" font-weight="700" fill="#1C241C">02 · Аккаунт и кабинет</text>
+  <text x="48" y="88" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="13" fill="#5C6B5C">Регистрация, verify, OAuth, сброс пароля, смена email</text>
+  <g id="edges">
+<g id="edge-0" data-name="s→login">
+  <polyline points="180.0,172.0 180.0,210.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-1" data-name="login→mode">
+  <polyline points="180.0,262.0 180.0,300.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-2" data-name="mode→in">
+  <polyline points="180.0,370.0 180.0,420.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="152.0" y="400" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="180.0" y="412" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">вход</text>
+</g>
+<g id="edge-3" data-name="mode→reg">
+  <polyline points="180.0,370.0 180.0,520.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="152.0" y="500" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="180.0" y="512" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">регистрация</text>
+</g>
+<g id="edge-4" data-name="mode→oauth">
+  <polyline points="300.0,335.0 340.0,446.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="312" y="426.0" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="340" y="438.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">oauth</text>
+</g>
+<g id="edge-5" data-name="oauth→vk">
+  <polyline points="540.0,446.0 580.0,446.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-6" data-name="in→next">
+  <polyline points="180.0,472.0 430.0,720.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-7" data-name="oauth→next">
+  <polyline points="440.0,472.0 430.0,720.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-8" data-name="reg→mail">
+  <polyline points="180.0,572.0 180.0,620.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-9" data-name="mail→ver">
+  <polyline points="180.0,672.0 180.0,720.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-10" data-name="ver→chars">
+  <polyline points="180.0,772.0 180.0,840.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-11" data-name="in→forgot">
+  <polyline points="280.0,446.0 340.0,546.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-12" data-name="forgot→reset">
+  <polyline points="440.0,572.0 440.0,620.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-13" data-name="reset→login">
+  <polyline points="440.0,620.0 180.0,262.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-14" data-name="cab→email2">
+  <polyline points="680.0,672.0 680.0,720.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-15" data-name="email2→cab">
+  <polyline points="680.0,720.0 680.0,672.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-16" data-name="next→chars">
+  <polyline points="320.0,755.0 280.0,866.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="252" y="846.0" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="280" y="858.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">нет</text>
+</g>
+<g id="edge-17" data-name="next→dest">
+  <polyline points="430.0,790.0 440.0,840.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="412.0" y="820" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="440.0" y="832" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">да</text>
+</g>
+<g id="edge-18" data-name="chars→e">
+  <polyline points="180.0,892.0 180.0,940.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-19" data-name="dest→e">
+  <polyline points="340.0,866.0 280.0,966.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+  </g>
+  <g id="nodes">
+<g id="node-s" data-name="Нужен аккаунт">
+  <rect x="80" y="120" width="200" height="52" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="180.0" y="151.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Нужен аккаунт</text>
+</g>
+<g id="node-login" data-name="/login">
+  <rect x="80" y="210" width="200" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="180.0" y="241.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">/login</text>
+</g>
+<g id="node-mode" data-name="Вход или регистрация?">
+  <path d="M180.0,300 L300,335.0 L180.0,370 L60,335.0 Z" fill="#FFF3D6" stroke="#A67C2A" stroke-width="2"/>
+  <text x="180.0" y="332.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Вход или</text>
+  <text x="180.0" y="348.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">регистрация?</text>
+</g>
+<g id="node-in" data-name="Email + пароль">
+  <rect x="80" y="420" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="180.0" y="451.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Email + пароль</text>
+</g>
+<g id="node-oauth" data-name="Яндекс OAuth">
+  <rect x="340" y="420" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="440.0" y="451.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Яндекс OAuth</text>
+</g>
+<g id="node-vk" data-name="VK — заглушка">
+  <rect x="580" y="420" width="180" height="52" rx="8" fill="#F3E4DC" stroke="#9A4F2E" stroke-width="1.5" stroke-dasharray="5 3"/>
+  <text x="670.0" y="451.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">VK — заглушка</text>
+</g>
+<g id="node-reg" data-name="Регистрация + ник">
+  <rect x="80" y="520" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="180.0" y="551.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Регистрация + ник</text>
+</g>
+<g id="node-mail" data-name="Письмо на email">
+  <rect x="80" y="620" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="180.0" y="651.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Письмо на email</text>
+</g>
+<g id="node-ver" data-name="/verify-email">
+  <rect x="80" y="720" width="200" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="180.0" y="751.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">/verify-email</text>
+</g>
+<g id="node-forgot" data-name="Забыл пароль">
+  <rect x="340" y="520" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="440.0" y="551.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Забыл пароль</text>
+</g>
+<g id="node-reset" data-name="/reset-password">
+  <rect x="340" y="620" width="200" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="440.0" y="651.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">/reset-password</text>
+</g>
+<g id="node-cab" data-name="/cabinet">
+  <rect x="580" y="620" width="200" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="680.0" y="651.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">/cabinet</text>
+</g>
+<g id="node-email2" data-name="/confirm-email">
+  <rect x="580" y="720" width="200" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="680.0" y="751.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">/confirm-email</text>
+</g>
+<g id="node-next" data-name="Есть ?next= ?">
+  <path d="M430.0,720 L540,755.0 L430.0,790 L320,755.0 Z" fill="#FFF3D6" stroke="#A67C2A" stroke-width="2"/>
+  <text x="430.0" y="760.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Есть ?next= ?</text>
+</g>
+<g id="node-chars" data-name="/characters">
+  <rect x="80" y="840" width="200" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="180.0" y="871.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">/characters</text>
+</g>
+<g id="node-dest" data-name="Вернуться в next">
+  <rect x="340" y="840" width="200" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="440.0" y="871.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">Вернуться в next</text>
+</g>
+<g id="node-e" data-name="В системе">
+  <rect x="80" y="940" width="200" height="52" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="180.0" y="971.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">В системе</text>
+</g>
+  </g>
+<g id="legend" data-name="Legend" transform="translate(48,1004)">
+<text x="0" y="0" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#5C6B5C">Легенда</text>
+<rect x="0" y="14" width="28" height="16" rx="8" fill="#2F4A3A"/>
+<text x="34" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Старт / финиш</text>
+<rect x="150" y="14" width="28" height="16" rx="4" fill="#DCE8DC" stroke="#2F4A3A"/>
+<text x="184" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Экран / маршрут</text>
+<rect x="300" y="14" width="28" height="16" rx="3" fill="#F0E6D4" stroke="#8A6A3A"/>
+<text x="334" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Действие пользователя</text>
+<path d="M464,12 L478,21 L464,30 L450,21 Z" fill="#FFF3D6" stroke="#A67C2A"/>
+<text x="484" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Развилка</text>
+<rect x="600" y="14" width="28" height="16" rx="3" fill="#F3E4DC" stroke="#9A4F2E" stroke-dasharray="3 2"/>
+<text x="634" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Ограничение / stub</text>
+<rect x="750" y="14" width="28" height="16" rx="4" fill="#D9E3F0" stroke="#3A557A"/>
+<text x="784" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Роль</text>
+</g>
+</svg>

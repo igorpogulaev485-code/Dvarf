@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="662"
+     viewBox="0 0 420 662" role="img"
+     aria-label="K16 · Level-up / мультикласс" data-name="K16 · Level-up / мультикласс">
+  <title>K16 · Level-up / мультикласс</title>
+  <desc>+1 уровень</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B7B6B"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#F7F5F0"/>
+  <rect x="24" y="24" width="372" height="614"
+        rx="16" fill="#EDE8DC" stroke="#D5CFC0" stroke-width="1"/>
+  <text x="48" y="64" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="22" font-weight="700" fill="#1C241C">K16 · Level-up / мультикласс</text>
+  <text x="48" y="88" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="13" fill="#5C6B5C">+1 уровень</text>
+  <g id="edges">
+<g id="edge-0" data-name="n0→n1">
+  <polyline points="210.0,172.0 210.0,194.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-1" data-name="n1→n2">
+  <polyline points="210.0,246.0 210.0,268.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-2" data-name="n2→n3">
+  <polyline points="210.0,338.0 210.0,360.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-3" data-name="n3→n4">
+  <polyline points="210.0,412.0 210.0,434.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-4" data-name="n4→n5">
+  <polyline points="210.0,486.0 210.0,508.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+  </g>
+  <g id="nodes">
+<g id="node-n0" data-name="Основное → +1 уровень">
+  <rect x="80" y="120" width="260" height="52" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="151.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Основное → +1 уровень</text>
+</g>
+<g id="node-n1" data-name="Повышение уровня">
+  <rect x="80" y="194" width="260" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="225.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">Повышение уровня</text>
+</g>
+<g id="node-n2" data-name="Этот класс | Мультикласс">
+  <path d="M210.0,268 L340,303.0 L210.0,338 L80,303.0 Z" fill="#FFF3D6" stroke="#A67C2A" stroke-width="2"/>
+  <text x="210.0" y="300.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Этот класс |</text>
+  <text x="210.0" y="316.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Мультикласс</text>
+</g>
+<g id="node-n3" data-name="HP среднее / вручную">
+  <rect x="80" y="360" width="260" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="210.0" y="391.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">HP среднее / вручную</text>
+</g>
+<g id="node-n4" data-name="Wizard / ASI">
+  <rect x="80" y="434" width="260" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="465.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">Wizard / ASI</text>
+</g>
+<g id="node-n5" data-name="Уровень +1">
+  <rect x="80" y="508" width="260" height="52" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="210.0" y="539.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Уровень +1</text>
+</g>
+  </g>
+
+</svg>

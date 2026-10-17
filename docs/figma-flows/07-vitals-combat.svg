@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="760"
+     viewBox="0 0 960 760" role="img"
+     aria-label="07 · Vitals и бой (K3–K5)" data-name="07 · Vitals и бой (K3–K5)">
+  <title>07 · Vitals и бой (K3–K5)</title>
+  <desc>Урон, смерть, концентрация, вдохновение</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6B7B6B"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#F7F5F0"/>
+  <rect x="24" y="24" width="912" height="712"
+        rx="16" fill="#EDE8DC" stroke="#D5CFC0" stroke-width="1"/>
+  <text x="48" y="64" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="22" font-weight="700" fill="#1C241C">07 · Vitals и бой (K3–K5)</text>
+  <text x="48" y="88" font-family="IBM Plex Sans, Inter, Arial, sans-serif"
+        font-size="13" fill="#5C6B5C">Урон, смерть, концентрация, вдохновение</text>
+  <g id="edges">
+<g id="edge-0" data-name="s→hp">
+  <polyline points="180.0,172.0 180.0,210.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-1" data-name="hp→dmg">
+  <polyline points="180.0,262.0 180.0,300.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-2" data-name="dmg→zero">
+  <polyline points="180.0,352.0 180.0,390.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-3" data-name="zero→death">
+  <polyline points="180.0,454.0 180.0,510.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="152.0" y="490" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="180.0" y="502" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">да</text>
+</g>
+<g id="edge-4" data-name="zero→e">
+  <polyline points="180.0,454.0 180.0,620.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="152.0" y="600" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="180.0" y="612" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">нет</text>
+</g>
+<g id="edge-5" data-name="death→e">
+  <polyline points="180.0,562.0 180.0,620.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-6" data-name="dmg→conc">
+  <polyline points="280.0,326.0 360.0,332.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-7" data-name="conc→hold">
+  <polyline points="480.0,364.0 490.0,420.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="462.0" y="400" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="490.0" y="412" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">да</text>
+</g>
+<g id="edge-8" data-name="conc→e">
+  <polyline points="480.0,364.0 180.0,620.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="152.0" y="600" width="56" height="16" rx="4" fill="#F7F5F0" opacity="0.92"/><text x="180.0" y="612" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#5C6B5C">нет</text>
+</g>
+<g id="edge-9" data-name="hold→e">
+  <polyline points="380.0,446.0 280.0,646.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-10" data-name="s→insp">
+  <polyline points="280.0,146.0 640.0,236.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-11" data-name="s→exh">
+  <polyline points="280.0,146.0 640.0,326.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-12" data-name="s→coin">
+  <polyline points="280.0,146.0 640.0,416.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+<g id="edge-13" data-name="s→rest">
+  <polyline points="280.0,146.0 640.0,506.0" fill="none" stroke="#6B7B6B" stroke-width="2" marker-end="url(#arrow)"/>
+  
+</g>
+  </g>
+  <g id="nodes">
+<g id="node-s" data-name="Бой / vitals">
+  <rect x="80" y="120" width="200" height="52" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="180.0" y="151.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Бой / vitals</text>
+</g>
+<g id="node-hp" data-name="Tap HP">
+  <rect x="80" y="210" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="180.0" y="241.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Tap HP</text>
+</g>
+<g id="node-dmg" data-name="Урон / Вылечить">
+  <rect x="80" y="300" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="180.0" y="331.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Урон / Вылечить</text>
+</g>
+<g id="node-zero" data-name="HP ≤ 0?">
+  <path d="M180.0,390 L290,422.0 L180.0,454 L70,422.0 Z" fill="#FFF3D6" stroke="#A67C2A" stroke-width="2"/>
+  <text x="180.0" y="427.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">HP ≤ 0?</text>
+</g>
+<g id="node-death" data-name="Успехи / Провалы">
+  <rect x="80" y="510" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="180.0" y="541.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Успехи / Провалы</text>
+</g>
+<g id="node-conc" data-name="Есть концентрация?">
+  <path d="M480.0,300 L600,332.0 L480.0,364 L360,332.0 Z" fill="#FFF3D6" stroke="#A67C2A" stroke-width="2"/>
+  <text x="480.0" y="337.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Есть концентрация?</text>
+</g>
+<g id="node-hold" data-name="Удержал / Сорвалось">
+  <rect x="380" y="420" width="220" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="490.0" y="451.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Удержал / Сорвалось</text>
+</g>
+<g id="node-insp" data-name="Вдохновение toggle">
+  <rect x="640" y="210" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="740.0" y="241.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Вдохновение toggle</text>
+</g>
+<g id="node-exh" data-name="Истощение 0→6">
+  <rect x="640" y="300" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="740.0" y="331.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Истощение 0→6</text>
+</g>
+<g id="node-coin" data-name="Монеты [WAVE]">
+  <rect x="640" y="390" width="200" height="52" rx="8" fill="#F0E6D4" stroke="#8A6A3A" stroke-width="2"/>
+  <text x="740.0" y="421.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="500" fill="#1C241C">Монеты [WAVE]</text>
+</g>
+<g id="node-rest" data-name="→ Отдых">
+  <rect x="640" y="480" width="200" height="52" rx="10" fill="#DCE8DC" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="740.0" y="511.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#1C241C">→ Отдых</text>
+</g>
+<g id="node-e" data-name="Статус обновлён">
+  <rect x="80" y="620" width="200" height="52" rx="28" fill="#2F4A3A" stroke="#2F4A3A" stroke-width="2"/>
+  <text x="180.0" y="651.0" text-anchor="middle" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="13" font-weight="600" fill="#F7F5F0">Статус обновлён</text>
+</g>
+  </g>
+<g id="legend" data-name="Legend" transform="translate(48,704)">
+<text x="0" y="0" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="12" font-weight="600" fill="#5C6B5C">Легенда</text>
+<rect x="0" y="14" width="28" height="16" rx="8" fill="#2F4A3A"/>
+<text x="34" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Старт / финиш</text>
+<rect x="150" y="14" width="28" height="16" rx="4" fill="#DCE8DC" stroke="#2F4A3A"/>
+<text x="184" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Экран / маршрут</text>
+<rect x="300" y="14" width="28" height="16" rx="3" fill="#F0E6D4" stroke="#8A6A3A"/>
+<text x="334" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Действие пользователя</text>
+<path d="M464,12 L478,21 L464,30 L450,21 Z" fill="#FFF3D6" stroke="#A67C2A"/>
+<text x="484" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Развилка</text>
+<rect x="600" y="14" width="28" height="16" rx="3" fill="#F3E4DC" stroke="#9A4F2E" stroke-dasharray="3 2"/>
+<text x="634" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Ограничение / stub</text>
+<rect x="750" y="14" width="28" height="16" rx="4" fill="#D9E3F0" stroke="#3A557A"/>
+<text x="784" y="26" font-family="IBM Plex Sans, Inter, Arial, sans-serif" font-size="11" fill="#1C241C">Роль</text>
+</g>
+</svg>
