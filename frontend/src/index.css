@@ -661,15 +661,15 @@ a.ui-button--primary {
 }
 
 .character-card__wrap {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
   min-width: 0;
 }
 
 .character-card {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 12px;
-  align-items: center;
+  display: block;
   min-height: 96px;
   padding: 14px;
   padding-right: 44px;
@@ -677,6 +677,19 @@ a.ui-button--primary {
   border-radius: 14px;
   background: var(--card);
   color: inherit;
+  overflow: hidden; /* clip overflow so hit-boxes don't bleed into neighbors */
+}
+
+.character-card__hit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  z-index: 1;
 }
 
 .character-card__main {
@@ -685,8 +698,7 @@ a.ui-button--primary {
   gap: 14px;
   align-items: center;
   min-width: 0;
-  text-decoration: none;
-  color: inherit;
+  overflow: hidden;
 }
 
 .character-card__body {
@@ -759,25 +771,24 @@ a.ui-button--primary {
   margin-top: 4px;
 }
 
-.character-card__side {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-}
-
 .character-card__open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   min-height: 40px;
   padding-inline: 14px;
   text-decoration: none;
   white-space: nowrap;
+  flex: 0 0 auto;
+  pointer-events: none; /* chrome inside .character-card__hit */
 }
 
 .character-card__menu {
   position: absolute;
   top: 6px;
   right: 6px;
-  z-index: 2;
+  z-index: 4;
 }
 
 .character-card__menu-btn {
@@ -947,6 +958,9 @@ a.ui-button--primary {
 .character-grid--medium .character-card {
   min-height: 80px;
   padding: 12px;
+}
+
+.character-grid--medium .character-card__hit {
   gap: 10px;
 }
 
@@ -976,8 +990,11 @@ a.ui-button--primary {
 .character-grid--compact .character-card {
   min-height: 0;
   padding: 8px 10px;
-  gap: 8px;
   border-radius: 12px;
+}
+
+.character-grid--compact .character-card__hit {
+  gap: 8px;
 }
 
 .character-grid--compact .character-card__main {
@@ -5668,6 +5685,7 @@ button.spells-settings__derived-stat--btn:hover {
   .character-grid--large .character-card {
     min-height: 110px;
     padding: 16px;
+    padding-right: 44px;
   }
 
   .app-header__actions .ui-button,
@@ -5697,6 +5715,20 @@ button.spells-settings__derived-stat--btn:hover {
 
   .character-grid--compact {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* 3-col is too tight for side-by-side CTA — stack Открыть under info */
+  .character-grid--medium .character-card__hit,
+  .character-grid--large .character-card__hit {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .character-grid--medium .character-card__open,
+  .character-grid--large .character-card__open {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
   }
 }
 
@@ -5838,15 +5870,14 @@ button.spells-settings__derived-stat--btn:hover {
   }
 
   .character-card {
-    grid-template-columns: 1fr;
-    gap: 10px;
     padding: 12px;
     padding-right: 48px;
     min-height: 0;
   }
 
-  .character-card__side {
-    width: 100%;
+  .character-card__hit {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .character-card__open {

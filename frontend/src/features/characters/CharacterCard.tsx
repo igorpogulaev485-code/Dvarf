@@ -83,65 +83,71 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
             aria-haspopup="dialog"
             aria-expanded={actionsOpen}
             aria-controls={menuId}
-            onClick={() => setActionsOpen(true)}
+            onClick={(event) => {
+              event.preventDefault()
+              event.stopPropagation()
+              setActionsOpen(true)
+            }}
           >
             ⋯
           </Button>
         </div>
 
-        <Link className="character-card__main" to={href}>
-          <div className="character-card__avatar" aria-hidden="true">
-            {character.avatar_url ? (
-              <img src={character.avatar_url} alt="" />
-            ) : (
-              initial
-            )}
-          </div>
-          <div className="character-card__body">
-            <div className="character-card__title-row">
-              <Text as="h3" className="character-card__name">
-                {character.name}
-              </Text>
-              {isDraft ? <span className="character-card__draft-badge">Черновик</span> : null}
+        {/* One link for the whole card — avoids dual <a> hit-boxes overlapping
+            neighbors on tight tablet grids (tap «Открыть» opened another char). */}
+        <Link className="character-card__hit" to={href}>
+          <div className="character-card__main">
+            <div className="character-card__avatar" aria-hidden="true">
+              {character.avatar_url ? (
+                <img src={character.avatar_url} alt="" />
+              ) : (
+                initial
+              )}
             </div>
-            <Text tone="muted" className="character-card__meta">
-              {subtitle || (isDraft ? 'Создание не завершено' : 'Без расы/класса')}
-            </Text>
-            <div
-              className={`character-card__hp${hp.low ? ' is-low' : ''}${hp.ratio == null ? ' is-empty' : ''}`}
-            >
-              <span className="character-card__hp-label">{hp.label}</span>
-              {hp.ratio != null ? (
-                <span className="character-card__hp-track" aria-hidden="true">
-                  <span
-                    className="character-card__hp-fill"
-                    style={{ width: `${Math.round(hp.ratio * 100)}%` }}
-                  />
-                </span>
+            <div className="character-card__body">
+              <div className="character-card__title-row">
+                <Text as="h3" className="character-card__name">
+                  {character.name}
+                </Text>
+                {isDraft ? <span className="character-card__draft-badge">Черновик</span> : null}
+              </div>
+              <Text tone="muted" className="character-card__meta">
+                {subtitle || (isDraft ? 'Создание не завершено' : 'Без расы/класса')}
+              </Text>
+              <div
+                className={`character-card__hp${hp.low ? ' is-low' : ''}${hp.ratio == null ? ' is-empty' : ''}`}
+              >
+                <span className="character-card__hp-label">{hp.label}</span>
+                {hp.ratio != null ? (
+                  <span className="character-card__hp-track" aria-hidden="true">
+                    <span
+                      className="character-card__hp-fill"
+                      style={{ width: `${Math.round(hp.ratio * 100)}%` }}
+                    />
+                  </span>
+                ) : null}
+              </div>
+              {tags.length ? (
+                <div className="character-card__tags" aria-label="Теги">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="character-list-tag character-list-tag--sm"
+                      style={{ ['--tag-color' as string]: tag.color }}
+                      title={tag.name}
+                    >
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
               ) : null}
             </div>
-            {tags.length ? (
-              <div className="character-card__tags" aria-label="Теги">
-                {tags.map((tag) => (
-                  <span
-                    key={tag.id}
-                    className="character-list-tag character-list-tag--sm"
-                    style={{ ['--tag-color' as string]: tag.color }}
-                    title={tag.name}
-                  >
-                    {tag.name}
-                  </span>
-                ))}
-              </div>
-            ) : null}
           </div>
-        </Link>
 
-        <div className="character-card__side">
-          <Link className="ui-button ui-button--secondary character-card__open" to={href}>
+          <span className="ui-button ui-button--secondary character-card__open" aria-hidden="true">
             {isDraft ? 'Продолжить' : 'Открыть'}
-          </Link>
-        </div>
+          </span>
+        </Link>
       </div>
 
       <Dialog
