@@ -13,6 +13,8 @@ import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDialog'
 import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
+import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoffDialog'
+import { draftFromCombatant, type SettingHandoffDraft } from '../features/lobby/settingHandoff'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
 import { SessionLiveTabs, type SessionLiveTabId } from '../features/lobby/SessionLiveTabs'
@@ -29,6 +31,8 @@ import type {
   SessionCombatant,
   SessionEvent,
   SessionSeat,
+  SettingPage,
+  SettingPageTemplate,
 } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
@@ -301,6 +305,57 @@ const DEMO_COMBATANTS: SessionCombatant[] = [
   }),
 ]
 
+const DEMO_SETTING_TEMPLATES: SettingPageTemplate[] = [
+  {
+    id: 't-npc',
+    setting_id: null,
+    page_kind: 'npc',
+    name: 'НПС',
+    body_seed: '',
+    schema: [
+      { key: 'role', label: 'Роль', type: 'text' },
+      {
+        key: 'disposition',
+        label: 'Отношение',
+        type: 'select',
+        options: ['дружелюбный', 'нейтральный', 'враждебный', 'неизвестно'],
+      },
+    ],
+    enabled: true,
+    is_system: true,
+  },
+  {
+    id: 't-note',
+    setting_id: null,
+    page_kind: 'note',
+    name: 'Заметка',
+    body_seed: '',
+    schema: [],
+    enabled: true,
+    is_system: true,
+  },
+]
+
+const DEMO_SETTING_PAGES: SettingPage[] = [
+  {
+    id: 'p-root',
+    setting_id: 'set1',
+    parent_id: null,
+    title: 'Мир',
+    body: '',
+    gm_body: '',
+    sort_order: 0,
+    revealed: true,
+    page_kind: 'note',
+    template_id: 't-note',
+    fields: {},
+    quest_status: null,
+    tags: [],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+]
+
 const SEED_TEMPLATES: EncounterTemplate[] = [
   {
     id: 'tpl-bridge',
@@ -392,6 +447,9 @@ export function SessionLiveTablePreviewPage() {
     active_index: 0,
     entries: [],
   })
+  const [handoffOpen, setHandoffOpen] = useState(false)
+  const [handoffDraft, setHandoffDraft] = useState<SettingHandoffDraft | null>(null)
+  const [wikiPages, setWikiPages] = useState<SettingPage[]>(DEMO_SETTING_PAGES)
 
   // Как в продукте: профиль из настроек лобби; здесь — дефолт (всё видно игрокам).
   // Мастер на реальном экране = is_owner лобби, не отдельный переключатель.
@@ -416,7 +474,7 @@ export function SessionLiveTablePreviewPage() {
           <div>
             <Text as="h1">Эхо Рассвета</Text>
             <Text tone="muted">
-              Превью A3 · сессия · за столом {DEMO_SEATS.length}
+              Превью A3+T1 · стол → сеттинг · за столом {DEMO_SEATS.length}
             </Text>
           </div>
         </header>
@@ -451,7 +509,7 @@ export function SessionLiveTablePreviewPage() {
           <Stack gap={8}>
             <Text as="h2">Глава 3 — Мост</Text>
             <Text tone="muted">
-              Ваншот — без сеттинга · за столом: {DEMO_SEATS.length}
+              Мир: Эхо Рассвета · за столом: {DEMO_SEATS.length}
               {closed ? ' · закрыта' : ''}
             </Text>
           </Stack>
@@ -679,6 +737,15 @@ export function SessionLiveTablePreviewPage() {
                             revealAll
                             masterControls={!closed}
                             forceAbilitiesOpen={activeEnemyId === enemy.id}
+                            canSaveToSetting={!closed}
+                            onSaveToSetting={() => {
+                              setHandoffDraft(
+                                draftFromCombatant(enemy, {
+                                  sessionName: 'Глава 3 — Мост',
+                                }),
+                              )
+                              setHandoffOpen(true)
+                            }}
                             onDamage={(amount, memberId) => {
                               setCombatants((prev) =>
                                 prev.map((c) => {
@@ -1270,6 +1337,44 @@ export function SessionLiveTablePreviewPage() {
           ) : null}
         </Stack>
       </Dialog>
+
+      <SettingTableHandoffDialog
+        open={handoffOpen}
+        settingName="Эхо Рассвета"
+        draft={handoffDraft}
+        templates={DEMO_SETTING_TEMPLATES}
+        pages={wikiPages}
+        onClose={() => {
+          setHandoffOpen(false)
+          setHandoffDraft(null)
+        }}
+        onCreate={(payload) => {
+          const id = `p-${Date.now()}`
+          setWikiPages((prev) => [
+            ...prev,
+            {
+              id,
+              setting_id: 'set1',
+              parent_id: payload.parent_id,
+              title: payload.title,
+              body: payload.body,
+              gm_body: payload.gm_body,
+              sort_order: prev.length,
+              revealed: false,
+              page_kind: payload.page_kind,
+              template_id: payload.template_id,
+              fields: payload.fields,
+              quest_status: null,
+              tags: payload.tags,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          ])
+          setHandoffOpen(false)
+          setHandoffDraft(null)
+          setToast(`В сеттинг: ${payload.title}`)
+        }}
+      />
 
       <Toast message={toast} onClose={() => setToast(null)} />
     </main>

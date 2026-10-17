@@ -13,6 +13,8 @@ import { CombatTrack } from '../features/lobby/CombatTrack'
 import { EncounterGenerateDialog } from '../features/lobby/EncounterGenerateDialog'
 import { EncounterTemplatesDialog } from '../features/lobby/EncounterTemplatesDialog'
 import { EnemyCard } from '../features/lobby/EnemyCard'
+import { SettingTableHandoffDialog } from '../features/lobby/SettingTableHandoffDialog'
+import { draftFromCombatant, type SettingHandoffDraft } from '../features/lobby/settingHandoff'
 import { StartCombatDialog } from '../features/lobby/StartCombatDialog'
 import { SessionAttendancePanel } from '../features/lobby/SessionAttendancePanel'
 import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
@@ -35,9 +37,11 @@ import {
   deleteSessionCombatant,
   deploySessionEncounterTemplate,
   createLobbyEncounterTemplate,
+  createSettingPage,
   generateSessionEncounter,
   getLobby,
   getSession,
+  getSetting,
   listSessionEvents,
   patchSeatCombat,
   patchSessionCombat,
@@ -53,6 +57,8 @@ import {
   type SeatEffect,
   type SessionDetail,
   type SessionEvent,
+  type SessionCombatant,
+  type SettingDetail,
 } from '../shared/api/lobbies'
 import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text, Toast } from '../ui'
 
@@ -91,6 +97,10 @@ export function SessionDetailPage() {
     null,
   )
   const [templates, setTemplates] = useState<EncounterTemplate[]>([])
+  const [handoffOpen, setHandoffOpen] = useState(false)
+  const [handoffDraft, setHandoffDraft] = useState<SettingHandoffDraft | null>(null)
+  const [handoffSetting, setHandoffSetting] = useState<SettingDetail | null>(null)
+  const [handoffLink, setHandoffLink] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
     const [detail, chars] = await Promise.all([getSession(sessionId), listCharacters()])
@@ -184,6 +194,32 @@ export function SessionDetailPage() {
       await action()
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Ошибка')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function openHandoff(enemy: SessionCombatant) {
+    if (!session?.setting_id) {
+      setToast('Привяжи сеттинг к сессии')
+      return
+    }
+    setHandoffLink(null)
+    setHandoffDraft(
+      draftFromCombatant(enemy, { sessionName: session.name }),
+    )
+    setHandoffOpen(true)
+    setBusy(true)
+    setError(null)
+    try {
+      const setting = await getSetting(session.setting_id)
+      setHandoffSetting(setting)
+    } catch (err) {
+      setHandoffOpen(false)
+      setHandoffDraft(null)
+      setError(
+        err instanceof ApiRequestError ? err.message : 'Не удалось открыть сеттинг',
+      )
     } finally {
       setBusy(false)
     }
@@ -579,6 +615,14 @@ export function SessionDetailPage() {
                           masterControls={session.is_owner && !session.closed_at}
                           forceAbilitiesOpen={Boolean(isActiveTurn && session.is_owner)}
                           busy={busy}
+                          canSaveToSetting={Boolean(
+                            session.is_owner &&
+                              !session.closed_at &&
+                              session.setting_id,
+                          )}
+                          onSaveToSetting={() => {
+                            void openHandoff(enemy)
+                          }}
                           onDamage={(amount, memberId) => {
                             void run(async () => {
                               const updated = await patchSessionCombatant(
@@ -826,6 +870,48 @@ export function SessionDetailPage() {
         }}
       />
 
+      <SettingTableHandoffDialog
+        open={handoffOpen}
+        busy={busy}
+        settingName={session.setting_name ?? handoffSetting?.name}
+        draft={handoffDraft}
+        templates={handoffSetting?.templates ?? []}
+        pages={handoffSetting?.pages ?? []}
+        onClose={() => {
+          setHandoffOpen(false)
+          setHandoffDraft(null)
+        }}
+        onCreate={(payload) => {
+          if (!session.setting_id) return
+          void run(async () => {
+            const next = await createSettingPage(session.setting_id!, {
+              title: payload.title,
+              body: payload.body,
+              gm_body: payload.gm_body,
+              parent_id: payload.parent_id,
+              page_kind: payload.page_kind,
+              template_id: payload.template_id,
+              fields: payload.fields,
+              tags: payload.tags,
+            })
+            setHandoffSetting(next)
+            const created = [...next.pages]
+              .filter((p) => p.title === payload.title)
+              .sort(
+                (a, b) =>
+                  new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+              )[0]
+            const href = created
+              ? `/settings/${session.setting_id}?page=${created.id}`
+              : `/settings/${session.setting_id}`
+            setHandoffLink(href)
+            setHandoffOpen(false)
+            setHandoffDraft(null)
+            setToast(`В сеттинг: ${payload.title}`)
+          })
+        }}
+      />
+
       <AddCombatantDialog
         open={combatantOpen}
         busy={busy}
@@ -1027,7 +1113,21 @@ export function SessionDetailPage() {
         </Stack>
       </Dialog>
 
-      <Toast message={toast} onClose={() => setToast(null)} />
+      <Toast
+        message={toast}
+        onClose={() => {
+          setToast(null)
+          setHandoffLink(null)
+        }}
+        durationMs={handoffLink ? 6000 : 2800}
+      />
+      {handoffLink && toast ? (
+        <div className="session-handoff-toast-link">
+          <Link to={handoffLink} onClick={() => setHandoffLink(null)}>
+            Открыть в вики →
+          </Link>
+        </div>
+      ) : null}
     </main>
   )
 }

@@ -478,6 +478,26 @@ a.ui-button--primary {
   box-shadow: 0 10px 30px rgba(23, 53, 40, 0.25);
 }
 
+/* T1: ссылка после handoff со стола */
+.session-handoff-toast-link {
+  position: fixed;
+  left: 50%;
+  bottom: 72px;
+  transform: translateX(-50%);
+  z-index: 41;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 24px rgba(23, 53, 40, 0.12);
+}
+
+.session-handoff-toast-link a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
 .back-link {
   color: var(--accent);
   text-decoration: none;
