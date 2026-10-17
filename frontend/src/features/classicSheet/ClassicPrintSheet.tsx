@@ -442,7 +442,7 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
             </div>
 
             <div className="classic-panel classic-equip classic-panel--grow classic-panel--grow-lg">
-              <div className="classic-coins">
+              <div className="classic-coins" aria-label="Монеты">
                 {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map((k) => (
                   <label key={k}>
                     {k.toUpperCase()}
@@ -457,21 +457,23 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                   </label>
                 ))}
               </div>
-              {equipItems ? (
-                <div className="classic-equip-items" aria-label="Предметы из инвентаря">
-                  {equipItems}
-                </div>
-              ) : null}
-              <ClassicTextBlock
-                blockId="equipment"
-                character={c}
-                onPatch={onPatch}
-                fill
-                value={equipmentNotes(c)}
-                printMaxHeight="14rem"
-                ariaLabel="Заметки по снаряжению"
-                onChange={(value) => patch({ equipmentNotes: value })}
-              />
+              <div className="classic-equip-main">
+                {equipItems ? (
+                  <div className="classic-equip-items" aria-label="Предметы из инвентаря">
+                    {equipItems}
+                  </div>
+                ) : null}
+                <ClassicTextBlock
+                  blockId="equipment"
+                  character={c}
+                  onPatch={onPatch}
+                  fill
+                  value={equipmentNotes(c)}
+                  printMaxHeight="14rem"
+                  ariaLabel="Заметки по снаряжению"
+                  onChange={(value) => patch({ equipmentNotes: value })}
+                />
+              </div>
               <div className="classic-caption">Снаряжение</div>
             </div>
           </div>
