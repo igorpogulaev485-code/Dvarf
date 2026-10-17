@@ -17,6 +17,7 @@ Classic — не отдельное приложение. Это **второй 
 | Синхронизация вкладок | BroadcastChannel с Play Desk | `shared/sync/characterSheetChannel` — `sheet-saved` |
 | Макет 2014 / 2024 | `sheet.ui.classic_sheet_layout` | `classicSheetLayout.ts`, `ClassicPrint2024.tsx` |
 | Паритет атак / оружия | те же поля, что digital | `classicWeapons.ts` |
+| КД / инициатива / скорость | Play Desk считает live; `combat.ac`/`initiative` = override (null→auto). Classic показывает то же | `classicDerivedCombat.ts` (2014+2024) |
 | Спеллы / карточки | sheet spells + карточки | `classicSpells.ts`, `classicSpellCards.ts` |
 | Заметки / текст-блоки | `text_blocks` + classic mirrors | `fromApi.mergeClassicTextBlocks`, `classicNotes.ts` |
 | Состояния / attunement | `combat.conditions`, `sheet.attunements` | `classicConditions.ts`, `classicAttunement.ts` |

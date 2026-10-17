@@ -46,6 +46,7 @@ import {
   clampMarks,
   numOrNull,
 } from './classicPrintShared'
+import { classicCombatDisplay } from './classicDerivedCombat'
 import {
   addClassicNote,
   classicNoteLabel,
@@ -83,10 +84,7 @@ const SPELL_TABLE_ROWS = 28
  * Same paper tokens as 2014; structure follows Long Story Short 2024 blank.
  */
 export function ClassicPrint2024({ character: c, onPatch }: Props) {
-  const combatNum = (key: string): string => {
-    const v = combatField(c, key)
-    return v == null ? '' : String(v)
-  }
+  const combatNum = (key: string): string => classicCombatDisplay(c, key)
 
   const combatBool = (key: string): boolean => Boolean(combatField(c, key))
 
@@ -185,10 +183,10 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
 
           <div className="classic-lss-ac">
             <div className="classic-lss-ac__shield">
-              <span className="classic-lss-ac__label">КЗ</span>
+              <span className="classic-lss-ac__label">КД</span>
               <input
                 value={combatNum('ac')}
-                aria-label="Класс защиты"
+                aria-label="Класс доспеха"
                 onChange={(e) => patch({ combat: { ac: numOrNull(e.target.value) } })}
               />
               <label className="classic-lss-ac__shield-flag">

@@ -65,6 +65,7 @@ import {
   clampMarks,
   numOrNull,
 } from './classicPrintShared'
+import { classicCombatDisplay } from './classicDerivedCombat'
 import {
   readClassicSheetLayout,
   type ClassicSheetLayout,
@@ -82,10 +83,7 @@ type Props = {
 
 export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
   const sheetLayout = layout ?? readClassicSheetLayout(c)
-  const combatNum = (key: string): string => {
-    const v = combatField(c, key)
-    return v == null ? '' : String(v)
-  }
+  const combatNum = (key: string): string => classicCombatDisplay(c, key)
 
   const patch = (edits: Parameters<typeof applyClassicEdits>[1]) => {
     onPatch(applyClassicEdits(c, edits))
