@@ -1,4 +1,4 @@
-"""Upsert naming tables onto PHB 2014 race catalog entries.
+"""Upsert naming tables onto 2014 race catalog entries (PHB+MPMM+setting).
 
 Revision ID: v8w9x0y1z2a3
 Revises: u7v8w9x0y1z2

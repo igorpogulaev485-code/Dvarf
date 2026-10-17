@@ -30,6 +30,7 @@ import {
 import {
   generateRaceName,
   namingModesFor,
+  preferredNamingModeId,
 } from '../../shared/dnd/raceNaming'
 import { LANGUAGE_PRESETS } from './languagesTools'
 import { ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
@@ -151,12 +152,13 @@ export function RaceSetupDialog({
       setNamingModeId(null)
       return
     }
-    setNamingModeId((prev) =>
-      prev && namingModes.some((mode) => mode.id === prev)
-        ? prev
-        : (namingModes[0]?.id ?? null),
-    )
-  }, [namingModes])
+    const hinted = preferredNamingModeId(namingContext?.slug)
+    setNamingModeId((prev) => {
+      if (hinted && namingModes.some((mode) => mode.id === hinted)) return hinted
+      if (prev && namingModes.some((mode) => mode.id === prev)) return prev
+      return namingModes[0]?.id ?? null
+    })
+  }, [namingModes, namingContext?.slug])
 
   const asiModes = useMemo(
     () => resolveAbilityBonusModes(def?.abilityBonusChoices ?? null),
@@ -433,62 +435,10 @@ export function RaceSetupDialog({
       onSecondary={onClose}
     >
       <Stack gap={14}>
-        <Field label="Пол">
-          <div className="chip-row" role="group" aria-label="Пол персонажа">
-            {CHARACTER_GENDERS.map((key) => (
-              <button
-                key={key}
-                type="button"
-                className={`sheet-chip${gender === key ? ' is-on' : ''}`}
-                onClick={() => setGender(key)}
-              >
-                {CHARACTER_GENDER_LABELS[key]}
-              </button>
-            ))}
-          </div>
-        </Field>
-        <Field label="Имя персонажа">
-          <Stack gap={8}>
-            <Input
-              value={characterName}
-              onChange={(event) => setCharacterName(event.target.value)}
-              placeholder="Имя героя"
-              autoComplete="off"
-            />
-            {enableNameGeneration && namingModes.length > 1 ? (
-              <div className="chip-row" role="group" aria-label="Стиль имени">
-                {namingModes.map((mode) => (
-                  <button
-                    key={mode.id}
-                    type="button"
-                    className={`sheet-chip${namingModeId === mode.id ? ' is-on' : ''}`}
-                    onClick={() => setNamingModeId(mode.id)}
-                  >
-                    {mode.labelRu}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            {enableNameGeneration ? (
-              <>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  disabled={!gender || !namingContext}
-                  onClick={handleGenerateName}
-                >
-                  Сгенерировать имя
-                </Button>
-                {!gender ? (
-                  <Text tone="muted">Сначала укажи пол — от него зависят имена.</Text>
-                ) : null}
-              </>
-            ) : null}
-          </Stack>
-        </Field>
         <Text tone="muted">
-          Сначала раса из списка, развилки — здесь (как у класса). Подрасу выбираешь в этом окне
-          {subraceRequired ? ' — обязательно' : hasSubraceFork ? ' — можно оставить без подрасы' : ''}.
+          {hasSubraceFork
+            ? `Сначала разновидность${subraceRequired ? ' (обязательно)' : ''} — от неё зависят имена и черты. Затем пол и имя.`
+            : 'Укажи пол и имя. Имя можно ввести сам или сгенерировать.'}
         </Text>
 
         {hasSubraceFork ? (
@@ -552,6 +502,62 @@ export function RaceSetupDialog({
             </Stack>
           </Field>
         ) : null}
+
+        <Field label="Пол">
+          <div className="chip-row" role="group" aria-label="Пол персонажа">
+            {CHARACTER_GENDERS.map((key) => (
+              <button
+                key={key}
+                type="button"
+                className={`sheet-chip${gender === key ? ' is-on' : ''}`}
+                onClick={() => setGender(key)}
+              >
+                {CHARACTER_GENDER_LABELS[key]}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <Field label="Имя персонажа">
+          <Stack gap={8}>
+            <Input
+              value={characterName}
+              onChange={(event) => setCharacterName(event.target.value)}
+              placeholder="Имя героя"
+              autoComplete="off"
+            />
+            {enableNameGeneration && namingModes.length > 1 ? (
+              <div className="chip-row" role="group" aria-label="Стиль имени">
+                {namingModes.map((mode) => (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    className={`sheet-chip${namingModeId === mode.id ? ' is-on' : ''}`}
+                    onClick={() => setNamingModeId(mode.id)}
+                  >
+                    {mode.labelRu}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {enableNameGeneration ? (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!gender || !namingContext || !subraceOk}
+                  onClick={handleGenerateName}
+                >
+                  Сгенерировать имя
+                </Button>
+                {!subraceOk ? (
+                  <Text tone="muted">Сначала выбери разновидность — от неё зависят имена.</Text>
+                ) : !gender ? (
+                  <Text tone="muted">Сначала укажи пол — от него зависят имена.</Text>
+                ) : null}
+              </>
+            ) : null}
+          </Stack>
+        </Field>
 
         {!def && subraceOk ? (
           <Text tone="muted">Для этой записи пока нет пакета эффектов — закрой и заполни вручную.</Text>

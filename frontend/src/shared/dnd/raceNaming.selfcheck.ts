@@ -4,6 +4,8 @@
 
 import { generateRaceName, pickFromPool, resolveNamingSpec } from './raceNaming'
 import { PHB_RACE_NAMING } from './raceNamingTables'
+import { MPMM_RACE_NAMING } from './raceNamingTables.mpmm'
+import { SETTING_RACE_NAMING } from './raceNamingTables.setting'
 
 function assert(cond: unknown, message: string): void {
   if (!cond) throw new Error(message)
@@ -84,5 +86,28 @@ const custom = generateRaceName({
   random: () => 0,
 })
 assert(custom?.name === 'Тестовик', 'catalog naming overrides curated')
+
+assert(Object.keys(MPMM_RACE_NAMING).length >= 20, 'mpmm roots covered')
+assert(Object.keys(SETTING_RACE_NAMING).length >= 15, 'setting roots covered')
+
+const tabaxi = generateRaceName({ gender: 'nonbinary', slug: 'tabaxi', random: () => 0.2 })
+assert(tabaxi?.name, 'tabaxi name')
+
+const warforged = generateRaceName({
+  gender: 'unspecified',
+  slug: 'warforged',
+  random: () => 0.1,
+})
+assert(warforged?.name, 'warforged designation')
+
+const genasiAir = generateRaceName({
+  gender: 'male',
+  slug: 'genasi_air',
+  parentSlug: 'genasi',
+  modeId: 'air',
+  random: () => 0,
+})
+assert(genasiAir?.modeId === 'air', 'genasi_air mode')
+assert(genasiAir?.name, 'genasi air name')
 
 console.log('raceNaming.selfcheck: ok')

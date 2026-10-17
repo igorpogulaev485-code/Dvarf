@@ -9,6 +9,11 @@ import {
   RACE_NAMING_PARENT,
   GLOBAL_FANTASY_FALLBACK,
 } from './raceNamingTables'
+import { MPMM_RACE_NAMING, MPMM_NAMING_PARENT } from './raceNamingTables.mpmm'
+import {
+  SETTING_RACE_NAMING,
+  SETTING_NAMING_PARENT,
+} from './raceNamingTables.setting'
 
 export type NamingGenderKey = 'any' | 'male' | 'female'
 
@@ -127,12 +132,24 @@ export function parseNamingSpec(raw: unknown): NamingSpec | null {
   return { modes: modes.length > 0 ? modes : undefined, patterns, pools }
 }
 
+const ALL_NAMING: Record<string, NamingSpec> = {
+  ...PHB_RACE_NAMING,
+  ...MPMM_RACE_NAMING,
+  ...SETTING_RACE_NAMING,
+}
+
+const ALL_PARENT: Record<string, string> = {
+  ...RACE_NAMING_PARENT,
+  ...MPMM_NAMING_PARENT,
+  ...SETTING_NAMING_PARENT,
+}
+
 function namingForSlug(slug: string | null | undefined): NamingSpec | null {
   const key = slug?.trim() || null
   if (!key) return null
-  if (PHB_RACE_NAMING[key]) return PHB_RACE_NAMING[key]
-  const mapped = RACE_NAMING_PARENT[key]
-  if (mapped && PHB_RACE_NAMING[mapped]) return PHB_RACE_NAMING[mapped]
+  if (ALL_NAMING[key]) return ALL_NAMING[key]
+  const mapped = ALL_PARENT[key]
+  if (mapped && ALL_NAMING[mapped]) return ALL_NAMING[mapped]
   return null
 }
 
@@ -263,4 +280,20 @@ export function namingModesFor(input: {
   parentSlug?: string | null
 }): NamingMode[] {
   return resolveNamingSpec(input).modes ?? []
+}
+
+/** Subrace slug → preferred naming mode (genasi element, gith fork, …). */
+const SLUG_MODE_HINT: Record<string, string> = {
+  genasi_air: 'air',
+  genasi_earth: 'earth',
+  genasi_fire: 'fire',
+  genasi_water: 'water',
+  githyanki: 'yanki',
+  githzerai: 'zerai',
+}
+
+export function preferredNamingModeId(slug: string | null | undefined): string | null {
+  const key = slug?.trim() || null
+  if (!key) return null
+  return SLUG_MODE_HINT[key] ?? null
 }
