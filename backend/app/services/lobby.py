@@ -25,6 +25,7 @@ from app.repositories.catalog import CatalogRepository
 from app.dnd.encounter_budget import EncounterDifficulty
 from app.dnd.encounter_compose import compose_encounter
 from app.dnd.encounter_pool import monster_from_catalog_entry
+from app.dnd.setting_link_presets import reverse_label as mirror_link_label
 from app.dnd.setting_mentions import extract_mention_titles, titles_index
 from app.dnd.setting_templates import (
     PAGE_KINDS,
@@ -852,7 +853,9 @@ class LobbyService:
             links = [
                 link
                 for link in links
-                if link.from_page_id in visible and link.to_page_id in visible
+                if link.from_page_id in visible
+                and link.to_page_id in visible
+                and (getattr(link, "visibility", None) or "all") != "gm"
             ]
             # Игроку не отдаём gm_only значения полей
             filtered_pages = []
@@ -895,6 +898,7 @@ class LobbyService:
                     to_title=title_by_id.get(link.to_page_id, ""),
                     label=link.label or "",
                     kind=getattr(link, "kind", None) or "semantic",
+                    visibility=getattr(link, "visibility", None) or "all",
                     created_at=link.created_at,
                 )
                 for link in links
@@ -955,6 +959,7 @@ class LobbyService:
                 to_page_id=target.id,
                 label="",
                 kind="mention",
+                visibility="all",
             )
 
     @staticmethod
@@ -1267,9 +1272,14 @@ class LobbyService:
         link_kind = getattr(payload, "kind", None) or "semantic"
         if link_kind not in ("semantic", "mention"):
             raise AppError("Неверный тип связи", code="page_link_kind_bad", status_code=400)
+        visibility = getattr(payload, "visibility", None) or "all"
+        if visibility not in ("all", "gm"):
+            raise AppError("Неверная видимость связи", code="page_link_visibility_bad", status_code=400)
+        label = (payload.label or "").strip()[:120]
+        all_links = self.lobbies.list_setting_page_links(setting.id)
         existing = [
             link
-            for link in self.lobbies.list_setting_page_links(setting.id)
+            for link in all_links
             if link.from_page_id == from_page.id
             and link.to_page_id == to_page.id
             and (getattr(link, "kind", None) or "semantic") == link_kind
@@ -1283,9 +1293,31 @@ class LobbyService:
         self.lobbies.create_setting_page_link(
             from_page_id=from_page.id,
             to_page_id=to_page.id,
-            label=(payload.label or "").strip()[:120],
+            label=label,
             kind=link_kind,
+            visibility=visibility,
         )
+        if payload.bidirectional and link_kind == "semantic":
+            reverse_existing = [
+                link
+                for link in all_links
+                if link.from_page_id == to_page.id
+                and link.to_page_id == from_page.id
+                and (getattr(link, "kind", None) or "semantic") == "semantic"
+            ]
+            if not reverse_existing:
+                rev = payload.reverse_label
+                reverse = (
+                    (rev.strip()[:120] if rev is not None and rev.strip() else None)
+                    or mirror_link_label(label)
+                )
+                self.lobbies.create_setting_page_link(
+                    from_page_id=to_page.id,
+                    to_page_id=from_page.id,
+                    label=reverse,
+                    kind="semantic",
+                    visibility=visibility,
+                )
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None

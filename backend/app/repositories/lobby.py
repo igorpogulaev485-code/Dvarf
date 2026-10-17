@@ -231,6 +231,7 @@ class LobbyRepository:
         to_page_id: UUID,
         label: str,
         kind: str = "semantic",
+        visibility: str = "all",
     ):
         from app.models.setting_page_link import SettingPageLink
 
@@ -239,6 +240,7 @@ class LobbyRepository:
             to_page_id=to_page_id,
             label=label,
             kind=kind,
+            visibility=visibility if visibility in ("all", "gm") else "all",
         )
         self.db.add(link)
         self.db.flush()

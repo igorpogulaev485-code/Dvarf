@@ -45,6 +45,8 @@ class SettingPageLink(Base):
     label: Mapped[str] = mapped_column(String(120), nullable=False, default="")
     # C6: semantic (ручная) | mention (из @ / [[…]] в тексте)
     kind: Mapped[str] = mapped_column(String(16), nullable=False, default="semantic", index=True)
+    # C8: all | gm — секретность самой связи
+    visibility: Mapped[str] = mapped_column(String(8), nullable=False, default="all", index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

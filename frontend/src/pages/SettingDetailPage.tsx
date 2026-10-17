@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
 import { SettingMentionBody } from '../features/lobby/SettingMentionBody'
 import { SettingQuickCreateDialog } from '../features/lobby/SettingQuickCreateDialog'
+import { SETTING_LINK_PRESETS } from '../features/lobby/settingLinkPresets'
 import {
   QUEST_STATUS_LABELS,
   SETTING_PAGE_KIND_LABELS,
@@ -52,6 +53,9 @@ export function SettingDetailPage() {
   const [draftQuestStatus, setDraftQuestStatus] = useState<QuestStatus | ''>('')
   const [settingName, setSettingName] = useState('')
   const [linkTargetId, setLinkTargetId] = useState('')
+  const [linkLabel, setLinkLabel] = useState('')
+  const [linkBidirectional, setLinkBidirectional] = useState(true)
+  const [linkGmOnly, setLinkGmOnly] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [kindFilter, setKindFilter] = useState<SettingPageKind | 'all'>('all')
   const [quickOpen, setQuickOpen] = useState(false)
@@ -286,10 +290,16 @@ export function SettingDetailPage() {
     setBusy(true)
     setError(null)
     try {
-      const next = await createSettingPageLink(selected.id, { to_page_id: linkTargetId })
+      const next = await createSettingPageLink(selected.id, {
+        to_page_id: linkTargetId,
+        label: linkLabel.trim(),
+        visibility: linkGmOnly ? 'gm' : 'all',
+        bidirectional: linkBidirectional,
+      })
       applyDetail(next, selected.id)
       setLinkTargetId('')
-      setToast('Связь добавлена')
+      setLinkLabel('')
+      setToast(linkBidirectional ? 'Связь ↔ добавлена' : 'Связь добавлена')
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось связать')
     } finally {
@@ -721,17 +731,26 @@ export function SettingDetailPage() {
                           key={link.id}
                           className={`setting-wiki-links__row${
                             link.kind === 'mention' ? ' is-mention' : ''
-                          }`}
+                          }${link.visibility === 'gm' ? ' is-gm-only' : ''}`}
                         >
                           <button
                             type="button"
                             className="setting-wiki-links__jump"
                             disabled={busy}
                             onClick={() => setSelectedId(link.to_page_id)}
-                            title={link.kind === 'mention' ? 'Из текста (@ / [[…]])' : undefined}
+                            title={
+                              link.kind === 'mention'
+                                ? 'Из текста (@ / [[…]])'
+                                : link.visibility === 'gm'
+                                  ? 'Только мастер'
+                                  : undefined
+                            }
                           >
+                            {link.visibility === 'gm' ? '🔒 ' : ''}
                             {link.kind === 'mention' ? '@ ' : ''}
-                            {link.label || link.to_title || 'Без названия'}
+                            {link.label
+                              ? `${link.label}: ${link.to_title || '…'}`
+                              : link.to_title || 'Без названия'}
                           </button>
                           {isOwner ? (
                             <button
@@ -767,6 +786,43 @@ export function SettingDetailPage() {
                           </option>
                         ))}
                       </select>
+                      <select
+                        className="ui-input"
+                        value={linkLabel}
+                        disabled={busy}
+                        onChange={(e) => setLinkLabel(e.target.value)}
+                      >
+                        <option value="">Подпись…</option>
+                        {SETTING_LINK_PRESETS.map((p) => (
+                          <option key={p.label} value={p.label}>
+                            {p.label}
+                          </option>
+                        ))}
+                      </select>
+                      <Input
+                        value={linkLabel}
+                        disabled={busy}
+                        placeholder="или свой текст"
+                        onChange={(e) => setLinkLabel(e.target.value)}
+                      />
+                      <label className="setting-wiki-reveal__toggle">
+                        <input
+                          type="checkbox"
+                          checked={linkBidirectional}
+                          disabled={busy}
+                          onChange={(e) => setLinkBidirectional(e.target.checked)}
+                        />
+                        <span>↔ двусторонняя</span>
+                      </label>
+                      <label className="setting-wiki-reveal__toggle">
+                        <input
+                          type="checkbox"
+                          checked={linkGmOnly}
+                          disabled={busy}
+                          onChange={(e) => setLinkGmOnly(e.target.checked)}
+                        />
+                        <span>только мастер</span>
+                      </label>
                       <Button
                         type="button"
                         variant="secondary"

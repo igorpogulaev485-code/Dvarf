@@ -86,10 +86,11 @@ class SettingPageOut(BaseModel):
 
 
 LinkKind = Literal["semantic", "mention"]
+LinkVisibility = Literal["all", "gm"]
 
 
 class SettingPageLinkOut(BaseModel):
-    """C2/C6: ребро графа; заголовки удобны клиенту для бэклинков."""
+    """C2/C6/C8: ребро графа; заголовки удобны клиенту для бэклинков."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -100,6 +101,7 @@ class SettingPageLinkOut(BaseModel):
     to_title: str = ""
     label: str = ""
     kind: LinkKind = "semantic"
+    visibility: LinkVisibility = "all"
     created_at: datetime
 
 
@@ -160,6 +162,10 @@ class SettingPageLinkCreateRequest(BaseModel):
     to_page_id: UUID
     label: str = Field(default="", max_length=120)
     kind: LinkKind = "semantic"
+    visibility: LinkVisibility = "all"
+    # C8: создать зеркальное ребро to → from
+    bidirectional: bool = False
+    reverse_label: str | None = Field(default=None, max_length=120)
 
 
 class SessionSummary(BaseModel):

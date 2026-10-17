@@ -79,6 +79,7 @@ export type SettingPage = {
 }
 
 export type SettingPageLinkKind = 'semantic' | 'mention'
+export type SettingPageLinkVisibility = 'all' | 'gm'
 
 export type SettingPageLink = {
   id: string
@@ -88,6 +89,7 @@ export type SettingPageLink = {
   to_title: string
   label: string
   kind: SettingPageLinkKind
+  visibility: SettingPageLinkVisibility
   created_at: string
 }
 
@@ -495,7 +497,14 @@ export async function deleteSettingPage(pageId: string): Promise<SettingDetail> 
 
 export async function createSettingPageLink(
   pageId: string,
-  payload: { to_page_id: string; label?: string },
+  payload: {
+    to_page_id: string
+    label?: string
+    kind?: SettingPageLinkKind
+    visibility?: SettingPageLinkVisibility
+    bidirectional?: boolean
+    reverse_label?: string | null
+  },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/pages/${pageId}/links`, {
     method: 'POST',

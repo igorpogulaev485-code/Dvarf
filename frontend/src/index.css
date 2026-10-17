@@ -3761,3 +3761,8 @@ button.session-concentration-tag {
 .setting-wiki-links__row.is-mention .setting-wiki-links__jump {
   font-style: italic;
 }
+
+.setting-wiki-links__row.is-gm-only .setting-wiki-links__jump {
+  border: 1px dashed var(--line);
+  background: color-mix(in srgb, var(--accent-soft) 40%, transparent);
+}

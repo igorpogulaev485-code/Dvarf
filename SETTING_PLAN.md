@@ -155,7 +155,7 @@ Kanka почти не «играет» с вами за столом. Dvarf до
 | **C5** | Типы страниц + шаблоны полей + quick create (+ bulk) + поиск/фильтр · **PR #199** (`cursor/setting-c5-types-templates-c440`) | C1–C4 | Создать 10 НПС шаблоном за <1 мин; фильтр «только npc» |
 | **C6** | `@mentions` / `[[…]]` в body; автобэклинки; create-if-missing; hidden → «неизвестно» у игрока · **PR** (`cursor/setting-c6-mentions-c440`) | C5 (тип при create) | Правка текста создаёт связи; rename обновляет отображение |
 | **C7** | `gm_body` + gm_only поля шаблона; preview глазами игрока · **PR** (`cursor/setting-c7-gm-blocks-c440`) | C3 | На раскрытой странице игрок не видит Secrets |
-| **C8** | Связи v2: пресеты label, bidirectional, visibility на ребре, цепочка с revealed | C2, C7 | Секретная связь не светится игроку |
+| **C8** | Связи v2: пресеты label, bidirectional, visibility на ребре, цепочка с revealed · **PR** (`cursor/setting-c8-links-v2-c440`) | C2, C7 | Секретная связь не светится игроку |
 | **C9** | Теги + сохранённые фильтры; опционально «недавние» для mid-session search | C5 | Поиск с телефона находит страницу в 2 тапа |
 | **T1** | Quick create / handoff со стола → сеттинг | C5, A3/B стол | Из боя «сохранить НПС в сеттинг» |
 | **T2** | Reveal со стола + событие в ленте | C3/C7, realtime | Игроки видят раскрытие без F5 |

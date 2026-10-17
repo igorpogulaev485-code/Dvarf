@@ -5,6 +5,7 @@
 import { useMemo, useState } from 'react'
 import { SettingMentionBody } from '../features/lobby/SettingMentionBody'
 import { SettingQuickCreateDialog } from '../features/lobby/SettingQuickCreateDialog'
+import { SETTING_LINK_PRESETS, reverseLinkLabel } from '../features/lobby/settingLinkPresets'
 import { extractMentionTitles } from '../features/lobby/settingMentions'
 import {
   QUEST_STATUS_LABELS,
@@ -220,6 +221,7 @@ const SEED_LINKS: SettingPageLink[] = [
     to_title: 'Фракции',
     label: '',
     kind: 'semantic',
+    visibility: 'all',
     created_at: now(),
   },
   {
@@ -230,6 +232,18 @@ const SEED_LINKS: SettingPageLink[] = [
     to_title: 'Рассветный порт',
     label: 'база гильдии',
     kind: 'semantic',
+    visibility: 'all',
+    created_at: now(),
+  },
+  {
+    id: 'l2r',
+    from_page_id: 'p-port',
+    to_page_id: 'p-factions',
+    from_title: 'Рассветный порт',
+    to_title: 'Фракции',
+    label: 'гильдия здесь',
+    kind: 'semantic',
+    visibility: 'all',
     created_at: now(),
   },
   {
@@ -240,6 +254,18 @@ const SEED_LINKS: SettingPageLink[] = [
     to_title: 'Города',
     label: '',
     kind: 'semantic',
+    visibility: 'all',
+    created_at: now(),
+  },
+  {
+    id: 'l-secret',
+    from_page_id: 'p-npc',
+    to_page_id: 'p-factions',
+    from_title: 'Капитан Вера',
+    to_title: 'Фракции',
+    label: 'знает секрет',
+    kind: 'semantic',
+    visibility: 'gm',
     created_at: now(),
   },
   {
@@ -250,6 +276,7 @@ const SEED_LINKS: SettingPageLink[] = [
     to_title: 'Рассветный порт',
     label: '',
     kind: 'mention',
+    visibility: 'all',
     created_at: now(),
   },
   {
@@ -260,6 +287,7 @@ const SEED_LINKS: SettingPageLink[] = [
     to_title: 'Капитан Вера',
     label: '',
     kind: 'mention',
+    visibility: 'all',
     created_at: now(),
   },
 ]
@@ -270,6 +298,9 @@ export function SettingWikiPreviewPage() {
   const [asOwner, setAsOwner] = useState(true)
   const [selectedId, setSelectedId] = useState('p-root')
   const [linkTargetId, setLinkTargetId] = useState('')
+  const [linkLabel, setLinkLabel] = useState('член')
+  const [linkBidirectional, setLinkBidirectional] = useState(true)
+  const [linkGmOnly, setLinkGmOnly] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [kindFilter, setKindFilter] = useState<SettingPageKind | 'all'>('all')
@@ -287,7 +318,10 @@ export function SettingWikiPreviewPage() {
       asOwner
         ? links
         : links.filter(
-            (l) => visibleIds.has(l.from_page_id) && visibleIds.has(l.to_page_id),
+            (l) =>
+              visibleIds.has(l.from_page_id) &&
+              visibleIds.has(l.to_page_id) &&
+              l.visibility !== 'gm',
           ),
     [asOwner, links, visibleIds],
   )
@@ -380,21 +414,41 @@ export function SettingWikiPreviewPage() {
     if (!linkTargetId || !selected) return
     const target = pages.find((p) => p.id === linkTargetId)
     if (!target) return
-    setLinks((prev) => [
-      ...prev,
-      {
-        id: `l-${Date.now()}`,
-        from_page_id: selected.id,
-        to_page_id: target.id,
-        from_title: selected.title,
-        to_title: target.title,
-        label: '',
-        kind: 'semantic',
-        created_at: now(),
-      },
-    ])
+    const visibility = linkGmOnly ? 'gm' : 'all'
+    const label = linkLabel.trim()
+    const stamp = Date.now()
+    setLinks((prev) => {
+      const next = [
+        ...prev,
+        {
+          id: `l-${stamp}`,
+          from_page_id: selected.id,
+          to_page_id: target.id,
+          from_title: selected.title,
+          to_title: target.title,
+          label,
+          kind: 'semantic' as const,
+          visibility: visibility as 'all' | 'gm',
+          created_at: now(),
+        },
+      ]
+      if (linkBidirectional) {
+        next.push({
+          id: `l-${stamp}-r`,
+          from_page_id: target.id,
+          to_page_id: selected.id,
+          from_title: target.title,
+          to_title: selected.title,
+          label: reverseLinkLabel(label),
+          kind: 'semantic',
+          visibility,
+          created_at: now(),
+        })
+      }
+      return next
+    })
     setLinkTargetId('')
-    setToast('Связь добавлена')
+    setToast(linkBidirectional ? 'Связь ↔ добавлена' : 'Связь добавлена')
   }
 
   function setRevealed(revealed: boolean, subtree: boolean) {
@@ -434,7 +488,7 @@ export function SettingWikiPreviewPage() {
         <header className="app-header">
           <div>
             <Text as="h1">Эхо Рассвета</Text>
-            <Text tone="muted">Превью C1–C7 · типы · @mentions · заметки мастера</Text>
+            <Text tone="muted">Превью C1–C8 · связи v2 · @mentions · gm notes</Text>
           </div>
         </header>
         <Text tone="muted">/dev/setting-wiki-preview</Text>
@@ -633,6 +687,7 @@ export function SettingWikiPreviewPage() {
                               to_title: target.title,
                               label: '',
                               kind: 'mention',
+                              visibility: 'all',
                               created_at: now(),
                             })
                           }
@@ -715,15 +770,18 @@ export function SettingWikiPreviewPage() {
                           key={link.id}
                           className={`setting-wiki-links__row${
                             link.kind === 'mention' ? ' is-mention' : ''
-                          }`}
+                          }${link.visibility === 'gm' ? ' is-gm-only' : ''}`}
                         >
                           <button
                             type="button"
                             className="setting-wiki-links__jump"
                             onClick={() => setSelectedId(link.to_page_id)}
                           >
+                            {link.visibility === 'gm' ? '🔒 ' : ''}
                             {link.kind === 'mention' ? '@ ' : ''}
-                            {link.label || link.to_title}
+                            {link.label
+                              ? `${link.label}: ${link.to_title}`
+                              : link.to_title}
                           </button>
                           {asOwner ? (
                             <button
@@ -754,6 +812,34 @@ export function SettingWikiPreviewPage() {
                           </option>
                         ))}
                       </select>
+                      <select
+                        className="ui-input"
+                        value={linkLabel}
+                        onChange={(e) => setLinkLabel(e.target.value)}
+                      >
+                        <option value="">Подпись…</option>
+                        {SETTING_LINK_PRESETS.map((p) => (
+                          <option key={p.label} value={p.label}>
+                            {p.label}
+                          </option>
+                        ))}
+                      </select>
+                      <label className="setting-wiki-reveal__toggle">
+                        <input
+                          type="checkbox"
+                          checked={linkBidirectional}
+                          onChange={(e) => setLinkBidirectional(e.target.checked)}
+                        />
+                        <span>↔ двусторонняя</span>
+                      </label>
+                      <label className="setting-wiki-reveal__toggle">
+                        <input
+                          type="checkbox"
+                          checked={linkGmOnly}
+                          onChange={(e) => setLinkGmOnly(e.target.checked)}
+                        />
+                        <span>только мастер</span>
+                      </label>
                       <Button
                         type="button"
                         variant="secondary"
