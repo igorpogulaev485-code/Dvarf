@@ -1166,6 +1166,100 @@
   min-height: 0;
 }
 
+/* ——— Custom notes (same text_blocks notes-N as interactive sheet) ——— */
+.classic-page-notes {
+  justify-content: flex-start;
+}
+
+.classic-notes-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.85rem;
+  margin: 0 0 0.12in;
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  color: var(--c-muted);
+}
+
+.classic-notes-toolbar button {
+  border: 1.5px solid var(--c-line);
+  border-radius: 0.28rem;
+  background: #fff;
+  color: var(--c-ink);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 650;
+  padding: 0.28rem 0.65rem;
+  cursor: pointer;
+}
+
+.classic-notes-toolbar button:hover {
+  background: var(--c-paper-tint);
+}
+
+.classic-notes-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 0.1in;
+}
+
+.classic-note-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin-bottom: 0;
+}
+
+.classic-note-card__title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  border: 1.25px solid var(--c-line);
+  border-radius: 0.35rem;
+  padding: 0.12rem 0.28rem 0.18rem;
+  background: #fff;
+  margin-bottom: 0.2rem;
+  flex: 0 0 auto;
+}
+
+.classic-note-card__title span {
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  font-weight: 700;
+}
+
+.classic-note-card__title input {
+  border: none;
+  border-bottom: 1px solid var(--c-line-soft);
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 650;
+}
+
+.classic-note-card .classic-text-block {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.classic-note-card .classic-expand--fill {
+  min-height: 4rem;
+}
+
+@media print {
+  .classic-page-notes--empty {
+    display: none !important;
+  }
+}
+
 /* ——— Spell cards (poker size, cut grid) ——— */
 .classic-page-spell-cards {
   justify-content: flex-start;

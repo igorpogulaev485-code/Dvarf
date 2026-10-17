@@ -41,6 +41,15 @@ import {
   patchCompanionField,
 } from './classicCompanions'
 import {
+  addClassicNote,
+  chunkClassicNotePages,
+  classicNoteLabel,
+  classicNoteText,
+  listClassicNotes,
+  setClassicNoteLabel,
+  setClassicNoteText,
+} from './classicNotes'
+import {
   chunkSpellCardPages,
   classicSpellCardFaces,
   SPELL_CARDS_PER_PAGE,
@@ -91,6 +100,8 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
   const spells = classicSpellsState(c)
   const spellStats = classicSpellStats(c, spells)
   const companionSlots = paddedCompanionSlots(classicCompanions(c))
+  const customNotes = listClassicNotes(c)
+  const notePages = chunkClassicNotePages(customNotes)
   const spellCardPages = chunkSpellCardPages(classicSpellCardFaces(c))
   const passivePerception =
     10 +
@@ -711,6 +722,83 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
           ))}
         </div>
       </article>
+
+      {notePages.map((pageNotes, pageIndex) => (
+        <article
+          className={`classic-sheet classic-page-notes${
+            customNotes.length === 0 ? ' classic-page-notes--empty' : ''
+          }`}
+          aria-label={
+            notePages.length > 1
+              ? `Заметки, лист ${pageIndex + 1}`
+              : 'Заметки'
+          }
+          key={`notes-${pageIndex}`}
+        >
+          <header className="classic-header classic-header--companions">
+            <div className="classic-brand">
+              <strong>D&amp;D</strong>
+              <span>{brandYearLabel(sheetLayout)}</span>
+            </div>
+            <label className="classic-name">
+              <span>Имя персонажа</span>
+              <input value={c.name} onChange={(e) => patch({ name: e.target.value })} />
+            </label>
+            <div className="classic-companions-banner">
+              <strong>Заметки</strong>
+              <span>
+                Те же блоки, что в интерактивном листе («Тексты и заметки»)
+                {notePages.length > 1
+                  ? ` · лист ${pageIndex + 1}/${notePages.length}`
+                  : ''}
+              </span>
+            </div>
+          </header>
+
+          {pageIndex === 0 ? (
+            <div className="classic-notes-toolbar no-print">
+              <button type="button" onClick={() => onPatch(addClassicNote(c))}>
+                Добавить заметку
+              </button>
+              {customNotes.length === 0 ? (
+                <span>Пока пусто — создай заметку, она появится и в цифровом листе.</span>
+              ) : (
+                <span>
+                  {customNotes.length}{' '}
+                  {customNotes.length === 1 ? 'заметка' : 'заметок'}
+                </span>
+              )}
+            </div>
+          ) : null}
+
+          <div className="classic-notes-grid">
+            {pageNotes.map((block) => (
+              <section className="classic-panel classic-note-card" key={block.key}>
+                <label className="classic-note-card__title">
+                  <span>Название</span>
+                  <input
+                    value={classicNoteLabel(block)}
+                    onChange={(e) =>
+                      onPatch(setClassicNoteLabel(c, block.key, e.target.value))
+                    }
+                  />
+                </label>
+                <ClassicTextBlock
+                  blockId={`note_${block.key}`}
+                  character={c}
+                  onPatch={onPatch}
+                  fill
+                  value={classicNoteText(block)}
+                  printMaxHeight="9rem"
+                  ariaLabel={classicNoteLabel(block)}
+                  onChange={(value) => onPatch(setClassicNoteText(c, block.key, value))}
+                />
+                <div className="classic-caption">{classicNoteLabel(block)}</div>
+              </section>
+            ))}
+          </div>
+        </article>
+      ))}
 
       {spellCardPages.map((pageFaces, pageIndex) => (
         <article

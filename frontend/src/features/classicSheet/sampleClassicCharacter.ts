@@ -99,7 +99,46 @@ export const sampleClassic2014Character: CharacterDetail = {
     text_blocks: {
       attacks: { value: 'Кантрипы: Огненный снаряд, Свет, Фокусы.' },
       feats: { value: 'Ритуальное заклинание: Обнаружение магии.\nЗаметка: связаться с гильдией после Луны Жатвы.' },
+      'notes-1': {
+        customLabel: 'Гильд-контакты',
+        isHidden: false,
+        value:
+          'Связаться с гильдией картографов после Луны Жатвы.\nПароль у двери: «жила Эха».',
+        parts: [
+          {
+            id: 'part-preview-notes-1',
+            kind: 'text',
+            value:
+              'Связаться с гильдией картографов после Луны Жатвы.\nПароль у двери: «жила Эха».',
+          },
+        ],
+      },
+      'notes-2': {
+        customLabel: 'Долги и обещания',
+        isHidden: false,
+        value: '200 зм — расписка у торговца Варенна.\nВернуть книгу рун в архив Цитадели.',
+        parts: [
+          {
+            id: 'part-preview-notes-2',
+            kind: 'text',
+            value: '200 зм — расписка у торговца Варенна.\nВернуть книгу рун в архив Цитадели.',
+          },
+        ],
+      },
     },
+    text_blocks_order: [
+      'personality',
+      'ideals',
+      'bonds',
+      'flaws',
+      'features',
+      'appearance',
+      'background',
+      'feats',
+      'attacks',
+      'notes-1',
+      'notes-2',
+    ],
     spells: {
       casting_ability: 'int',
       max_prepared: 9,
