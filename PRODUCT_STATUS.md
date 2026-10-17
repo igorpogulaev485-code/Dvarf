@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/restore-sheet-classic-setting-3d0d`  
+**Prod tip (ветка линии прода):** `cursor/fix-list-create-fixes-6dc8`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -58,6 +58,16 @@
 ---
 
 ## Сейчас в продукте (прод)
+
+### 2026-10-17 — клики в диалогах/падах
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Пады и диалоги | Убран `pointer-events: none` с `.ui-dialog-backdrop` | Клик по форме (опыт, HP, ⋯ Удалить / Классический лист, создание) больше не пробивает в кнопку под ней |
+
+На проде: **да** · **это новый prod tip** `cursor/fix-list-create-fixes-6dc8` · PR #210 · `/health` ok; CSS без `pointer-events:none` на backdrop; lobby+cabinet+classic+hotbar на диске
+
+---
 
 ### 2026-10-17 — ВОССТАНОВЛЕНИЕ: Play Desk + classic после overwrite T5
 
@@ -457,6 +467,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-17 | `cursor/fix-list-create-fixes-6dc8` | Dialog/pad clicks: drop backdrop `pointer-events:none` → **новый tip** |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic 2014/2024 бланк + заметки + font size → **новый tip** на Timeweb |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic parity: weapons/equipment/conditions/attunement → тот же tip, redeploy |
 | 2026-10-06 | `cursor/product-status-log-acbe` | Создан файл + стартовый срез прода |
