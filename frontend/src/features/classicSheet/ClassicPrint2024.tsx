@@ -11,6 +11,7 @@ import {
   abilityScore,
   applyClassicEdits,
   combatField,
+  cycleSkillMastery,
   equipmentText,
   identityField,
   inventoryCoins,
@@ -785,7 +786,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
                 value={equipmentText(c)}
                 printMaxHeight="8rem"
                 ariaLabel="Снаряжение"
-                onChange={() => undefined}
+                onChange={(value) => patch({ equipmentText: value })}
               />
               <div className="classic-lss-attune">
                 <span>Настройка на магические предметы</span>
@@ -884,12 +885,9 @@ function AbilityBlock({
             <li key={skill.key}>
               <Bubble
                 filled={flags.is_proficient || flags.is_expertise}
-                label={skill.label}
-                onClick={() =>
-                  onPatch({
-                    skillProficiency: { [skill.key]: !flags.is_proficient },
-                  })
-                }
+                expertise={flags.is_expertise}
+                label={`${skill.label} (клик: нет → владение → экспертиза)`}
+                onClick={() => onPatch(cycleSkillMastery(c, skill.key))}
               />
               <strong>{formatModifier(bonus)}</strong>
               <span>{skill.label}</span>

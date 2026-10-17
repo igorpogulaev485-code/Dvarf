@@ -16,6 +16,7 @@ import {
   inventoryCoins,
   isSaveProficient,
   physiqueField,
+  cycleSkillMastery,
   setCoins,
   skillFlags,
   textBlockValue,
@@ -235,12 +236,9 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                       <div className="classic-check" key={skill.key}>
                         <Bubble
                           filled={flags.is_proficient || flags.is_expertise}
-                          label={`Владение навыком: ${skill.label}`}
-                          onClick={() =>
-                            patch({
-                              skillProficiency: { [skill.key]: !flags.is_proficient },
-                            })
-                          }
+                          expertise={flags.is_expertise}
+                          label={`Владение навыком: ${skill.label} (клик: нет → владение → экспертиза)`}
+                          onClick={() => onPatch(cycleSkillMastery(c, skill.key))}
                         />
                         <strong>{formatModifier(bonus)}</strong>
                         <span>
@@ -415,7 +413,7 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
                 value={equipmentText(c)}
                 printMaxHeight="14rem"
                 ariaLabel="Снаряжение"
-                onChange={() => undefined}
+                onChange={(value) => patch({ equipmentText: value })}
               />
               <div className="classic-caption">Снаряжение</div>
             </div>

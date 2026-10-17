@@ -47,16 +47,20 @@ export function Expanding({
 
 export function Bubble({
   filled,
+  expertise,
   onClick,
   label,
 }: {
   filled: boolean
+  /** Double-filled look for expertise (classic skill bubble). */
+  expertise?: boolean
   onClick: () => void
   label?: string
 }) {
+  const state = expertise ? 'is-expertise' : filled ? 'is-filled' : ''
   return (
     <button type="button" className="classic-bubble-btn" onClick={onClick} aria-label={label}>
-      <span className={`classic-bubble ${filled ? 'is-filled' : ''}`} />
+      <span className={`classic-bubble ${state}`.trim()} />
     </button>
   )
 }

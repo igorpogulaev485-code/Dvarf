@@ -576,6 +576,11 @@
   background: var(--c-ink);
 }
 
+.classic-bubble.is-expertise {
+  background: var(--c-ink);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--c-ink);
+}
+
 .classic-passive {
   display: grid;
   grid-template-columns: 1.35rem 1fr;
@@ -2120,6 +2125,8 @@
 
   .classic-print-page {
     background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .classic-stack {
@@ -2137,6 +2144,8 @@
     box-shadow: none;
     page-break-after: always;
     break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   .classic-sheet:last-child {
@@ -2145,8 +2154,22 @@
   }
 
   .classic-expand {
-    overflow: hidden;
+    overflow: hidden !important;
     max-height: var(--print-max-height, none);
+  }
+
+  .classic-lss-brand-rule__line,
+  .classic-lss-features,
+  .classic-lss-p1-bottom .classic-panel,
+  .classic-lss-p2 .classic-panel--grow,
+  .classic-lss-p3 .classic-panel,
+  .classic-lss-p4 .classic-panel--grow {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .classic-bubble-btn {
+    print-color-adjust: exact;
   }
 }
 

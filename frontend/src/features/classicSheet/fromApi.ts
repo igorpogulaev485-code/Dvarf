@@ -100,9 +100,13 @@ export function applyClassicEdits(
     abilities?: Partial<Record<AbilityKey, number>>
     saveProficiency?: Partial<Record<AbilityKey, boolean>>
     skillProficiency?: Record<string, boolean>
+    /** When true, also forces proficiency on. */
+    skillExpertise?: Record<string, boolean>
     textBlocks?: Record<string, string>
     otherProficiencies?: string
     proficiencyBonus?: number
+    /** Freeform classic equipment box (overrides derived item list). */
+    equipmentText?: string
   },
 ): ClassicPatch {
   const sheet = cloneSheet(asRecord(character.sheet))
@@ -149,6 +153,21 @@ export function applyClassicEdits(
       const block = asRecord(skills[skill.key])
       block.base_stat = skill.base
       block.is_proficient = edits.skillProficiency[skill.key]
+      // Turning proficiency off also clears expertise.
+      if (!edits.skillProficiency[skill.key]) block.is_expertise = false
+      skills[skill.key] = block
+    }
+    sheet.skills = skills
+  }
+  if (edits.skillExpertise) {
+    const skills = asRecord(sheet.skills)
+    for (const skill of SKILL_DEFS) {
+      if (edits.skillExpertise[skill.key] == null) continue
+      const block = asRecord(skills[skill.key])
+      block.base_stat = skill.base
+      const expertise = edits.skillExpertise[skill.key]
+      block.is_expertise = expertise
+      if (expertise) block.is_proficient = true
       skills[skill.key] = block
     }
     sheet.skills = skills
@@ -183,6 +202,11 @@ export function applyClassicEdits(
   }
   if (edits.otherProficiencies != null) {
     setPath(sheet, ['notes', 'proficiencies'], edits.otherProficiencies)
+  }
+  if (edits.equipmentText != null) {
+    const inventory = asRecord(sheet.inventory)
+    inventory.classic_text = edits.equipmentText
+    sheet.inventory = inventory
   }
   if (edits.hp_current !== undefined) {
     const combat = asRecord(sheet.combat)
@@ -253,6 +277,7 @@ export function weaponsSummary(character: CharacterDetail): Array<{
 
 export function equipmentText(character: CharacterDetail): string {
   const inventory = asRecord(asRecord(character.sheet).inventory)
+  if (typeof inventory.classic_text === 'string') return inventory.classic_text
   const items = inventory.items
   if (!Array.isArray(items)) return typeof inventory.notes === 'string' ? inventory.notes : ''
   const names = items
@@ -263,4 +288,25 @@ export function equipmentText(character: CharacterDetail): string {
     .filter(Boolean)
   const notes = typeof inventory.notes === 'string' ? inventory.notes : ''
   return [names.join(', '), notes].filter(Boolean).join('\n')
+}
+
+/**
+ * Classic skill bubble cycle: none → proficient → expertise → none.
+ * Matches how players usually mark the print sheet.
+ */
+export function cycleSkillMastery(
+  character: CharacterDetail,
+  skillKey: string,
+): ReturnType<typeof applyClassicEdits> {
+  const flags = skillFlags(character, skillKey)
+  if (flags.is_expertise) {
+    return applyClassicEdits(character, {
+      skillProficiency: { [skillKey]: false },
+      skillExpertise: { [skillKey]: false },
+    })
+  }
+  if (flags.is_proficient) {
+    return applyClassicEdits(character, { skillExpertise: { [skillKey]: true } })
+  }
+  return applyClassicEdits(character, { skillProficiency: { [skillKey]: true } })
 }
