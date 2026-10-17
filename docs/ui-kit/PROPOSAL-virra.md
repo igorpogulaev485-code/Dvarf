@@ -27,25 +27,27 @@
 Тема кабинета: рядом с 6 identity-темами как **дополнительная** `virra` (не ломает Медь…Слива).  
 Identity характеристик (вариант A) **не** перекрашиваются Виррой.
 
-## Стиль
+## Стиль (v2 — правки по вложениям)
 
-- **Фон:** динамичный фиолетовый дым (медленный дрейф). При `prefers-reduced-motion` — статичный кадр.
-- **Иконки:**  
-  - функциональные — thin line + soft violet glow;  
-  - наградные/лут — vessel/potion-craft (без аниме).
-- **Аватары:** руна / инициал / силуэт без лица — не аниме.
-- **Glow:** только на accent / active / progress; не на абзацах.
-- **Print / `.sheet`:** пергамент как в ките.
+- **Поверхности:** полупрозрачные плашки (`rgba` panel) поверх **backdrop-blur**, всплывают над фоном.
+- **Грань:** тонкая (~1px) сиреневая/фиолетовая, лёгкий glow «край стекла». Без толстых рамок.
+- **Скругления:** единый радиус карточек/полей/панелей (`--radius: 14px`). Кнопки/chips — pill (stadium).
+- **Кнопки:** active = градиент violet→lilac; inactive = только thin glass outline.
+- **Фон:** тёмный; **без тумана/дыма по краям экрана и плашек**. (Опциональный мягкий blur только под плашкой.)
+- **Иконки:** line-glow + rune/diamond; vessel — точечно. Без аниме-лиц.
+- **Аватары:** руна / инициал — не портреты.
+- **Print / `.sheet`:** пергамент LOCK.
 
 ## Доски
 
 | Доска | Содержание |
 |-------|------------|
-| `dvarf-ui-kit-virra-foundations.jpg` | токены + атомы |
+| `dvarf-ui-kit-virra-foundations.jpg` | токены + атомы (v1) |
 | `dvarf-ui-kit-virra-icons.jpg` | line-glow + vessel |
-| `dvarf-ui-kit-virra-smoke-motion.jpg` | динамический дым (фазы) |
-| `dvarf-ui-kit-virra-flow-1.jpg` | Вход → Список → Создание |
-| `dvarf-ui-kit-virra-flow-2.jpg` | Стол → Кабинет (Вирра) → Лист LOCK |
+| `dvarf-ui-kit-virra-v2-list.jpg` | **v2** Мои персонажи (стекло) |
+| `dvarf-ui-kit-virra-v2-cabinet.jpg` | **v2** Кабинет |
+| `dvarf-ui-kit-virra-v2-desk.jpg` | **v2** Интерактивный лист / стол |
+| `dvarf-ui-kit-virra-v2-triptych.jpg` | **v2** сводная оценка 3 экранов |
 
 ## User flow для оценки
 
