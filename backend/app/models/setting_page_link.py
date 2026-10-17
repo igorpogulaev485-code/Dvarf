@@ -1,4 +1,4 @@
-"""C2: направленные связи между страницами сеттинга (переходы + бэклинки)."""
+"""C2/C6: направленные связи (semantic + mention из текста)."""
 
 from __future__ import annotations
 
@@ -20,7 +20,8 @@ class SettingPageLink(Base):
         UniqueConstraint(
             "from_page_id",
             "to_page_id",
-            name="uq_setting_page_links_from_to",
+            "kind",
+            name="uq_setting_page_links_from_to_kind",
         ),
     )
 
@@ -42,6 +43,8 @@ class SettingPageLink(Base):
         index=True,
     )
     label: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    # C6: semantic (ручная) | mention (из @ / [[…]] в тексте)
+    kind: Mapped[str] = mapped_column(String(16), nullable=False, default="semantic", index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

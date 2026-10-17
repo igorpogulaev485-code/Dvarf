@@ -25,6 +25,7 @@ from app.repositories.catalog import CatalogRepository
 from app.dnd.encounter_budget import EncounterDifficulty
 from app.dnd.encounter_compose import compose_encounter
 from app.dnd.encounter_pool import monster_from_catalog_entry
+from app.dnd.setting_mentions import extract_mention_titles, titles_index
 from app.dnd.setting_templates import (
     PAGE_KINDS,
     QUEST_STATUSES,
@@ -890,6 +891,7 @@ class LobbyService:
                     from_title=title_by_id.get(link.from_page_id, ""),
                     to_title=title_by_id.get(link.to_page_id, ""),
                     label=link.label or "",
+                    kind=getattr(link, "kind", None) or "semantic",
                     created_at=link.created_at,
                 )
                 for link in links
@@ -897,6 +899,60 @@ class LobbyService:
             templates=[self._template_out(t) for t in templates],
             is_owner=is_owner,
         )
+
+    def _sync_page_mentions(
+        self,
+        *,
+        setting_id: UUID,
+        page,
+        body: str,
+        create_missing: bool,
+    ) -> None:
+        """C6: mention-рёбра из @ / [[…]] в body."""
+        titles = extract_mention_titles(body)
+        self.lobbies.delete_setting_page_links_of_kind(
+            from_page_id=page.id,
+            kind="mention",
+        )
+        if not titles:
+            return
+        pages = self.lobbies.list_setting_pages(setting_id)
+        by_title = titles_index(pages)
+        for title in titles:
+            target = by_title.get(title.casefold())
+            if target is None and create_missing:
+                siblings = [p for p in pages if p.parent_id == page.parent_id]
+                sort_order = max((p.sort_order for p in siblings), default=-1) + 1
+                template = self._resolve_page_template(
+                    setting_id=setting_id,
+                    page_kind="note",
+                    template_id=None,
+                )
+                target = self.lobbies.create_setting_page(
+                    setting_id=setting_id,
+                    title=title[:200],
+                    body="",
+                    parent_id=page.parent_id,
+                    sort_order=sort_order,
+                    page_kind="note",
+                    template_id=template.id if template is not None else None,
+                    fields=empty_fields_for_schema(
+                        template.schema if template is not None else []
+                    ),
+                    quest_status=None,
+                )
+                pages.append(target)
+                by_title[title.casefold()] = target
+            if target is None:
+                continue
+            if target.id == page.id:
+                continue
+            self.lobbies.create_setting_page_link(
+                from_page_id=page.id,
+                to_page_id=target.id,
+                label="",
+                kind="mention",
+            )
 
     @staticmethod
     def _descendant_pages(pages: list, root_id) -> list:
@@ -962,7 +1018,7 @@ class LobbyService:
             quest_status = default_quest_status(page_kind)
         if quest_status is not None and quest_status not in QUEST_STATUSES:
             raise AppError("Неверный статус квеста", code="quest_status_bad", status_code=400)
-        self.lobbies.create_setting_page(
+        created = self.lobbies.create_setting_page(
             setting_id=setting.id,
             title=(payload.title or "Новая страница").strip() or "Новая страница",
             body=body or "",
@@ -973,6 +1029,13 @@ class LobbyService:
             fields=fields,
             quest_status=quest_status,
         )
+        if body:
+            self._sync_page_mentions(
+                setting_id=setting.id,
+                page=created,
+                body=body,
+                create_missing=False,
+            )
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)
         assert refreshed is not None
@@ -1120,6 +1183,14 @@ class LobbyService:
                 raise AppError("Неверный статус квеста", code="quest_status_bad", status_code=400)
             page.quest_status = payload.quest_status
 
+        if payload.body is not None:
+            self._sync_page_mentions(
+                setting_id=setting.id,
+                page=page,
+                body=page.body or "",
+                create_missing=bool(payload.create_missing_mentions),
+            )
+
         if page.parent_id is None and payload.body is not None:
             roots = [
                 p
@@ -1187,10 +1258,15 @@ class LobbyService:
                 code="page_link_self",
                 status_code=400,
             )
+        link_kind = getattr(payload, "kind", None) or "semantic"
+        if link_kind not in ("semantic", "mention"):
+            raise AppError("Неверный тип связи", code="page_link_kind_bad", status_code=400)
         existing = [
             link
             for link in self.lobbies.list_setting_page_links(setting.id)
-            if link.from_page_id == from_page.id and link.to_page_id == to_page.id
+            if link.from_page_id == from_page.id
+            and link.to_page_id == to_page.id
+            and (getattr(link, "kind", None) or "semantic") == link_kind
         ]
         if existing:
             raise AppError(
@@ -1202,6 +1278,7 @@ class LobbyService:
             from_page_id=from_page.id,
             to_page_id=to_page.id,
             label=(payload.label or "").strip()[:120],
+            kind=link_kind,
         )
         self.db.commit()
         refreshed = self.lobbies.get_setting(setting.id)

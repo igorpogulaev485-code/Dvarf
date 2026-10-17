@@ -3,7 +3,9 @@
  * /dev/setting-wiki-preview
  */
 import { useMemo, useState } from 'react'
+import { SettingMentionBody } from '../features/lobby/SettingMentionBody'
 import { SettingQuickCreateDialog } from '../features/lobby/SettingQuickCreateDialog'
+import { extractMentionTitles } from '../features/lobby/settingMentions'
 import {
   QUEST_STATUS_LABELS,
   SETTING_PAGE_KIND_LABELS,
@@ -122,7 +124,7 @@ const SEED_PAGES: SettingPage[] = [
     setting_id: 's1',
     parent_id: null,
     title: 'Мир',
-    body: 'Континент Эхо. Тон — сумерки и дорожная пыль.',
+    body: 'Континент Эхо. Тон — сумерки и дорожная пыль.\nСм. [[Рассветный порт]] и @Капитан_Вера. Тайный [[Культ моста]].',
     sort_order: 0,
     revealed: true,
     page_kind: 'note',
@@ -212,6 +214,7 @@ const SEED_LINKS: SettingPageLink[] = [
     from_title: 'Мир',
     to_title: 'Фракции',
     label: '',
+    kind: 'semantic',
     created_at: now(),
   },
   {
@@ -221,6 +224,7 @@ const SEED_LINKS: SettingPageLink[] = [
     from_title: 'Фракции',
     to_title: 'Рассветный порт',
     label: 'база гильдии',
+    kind: 'semantic',
     created_at: now(),
   },
   {
@@ -230,6 +234,27 @@ const SEED_LINKS: SettingPageLink[] = [
     from_title: 'Мир',
     to_title: 'Города',
     label: '',
+    kind: 'semantic',
+    created_at: now(),
+  },
+  {
+    id: 'lm1',
+    from_page_id: 'p-root',
+    to_page_id: 'p-port',
+    from_title: 'Мир',
+    to_title: 'Рассветный порт',
+    label: '',
+    kind: 'mention',
+    created_at: now(),
+  },
+  {
+    id: 'lm2',
+    from_page_id: 'p-root',
+    to_page_id: 'p-npc',
+    from_title: 'Мир',
+    to_title: 'Капитан Вера',
+    label: '',
+    kind: 'mention',
     created_at: now(),
   },
 ]
@@ -357,6 +382,7 @@ export function SettingWikiPreviewPage() {
         from_title: selected.title,
         to_title: target.title,
         label: '',
+        kind: 'semantic',
         created_at: now(),
       },
     ])
@@ -401,7 +427,7 @@ export function SettingWikiPreviewPage() {
         <header className="app-header">
           <div>
             <Text as="h1">Эхо Рассвета</Text>
-            <Text tone="muted">Превью C1–C5 · типы · шаблоны · quick create</Text>
+            <Text tone="muted">Превью C1–C6 · типы · шаблоны · @mentions</Text>
           </div>
         </header>
         <Text tone="muted">/dev/setting-wiki-preview</Text>
@@ -562,15 +588,71 @@ export function SettingWikiPreviewPage() {
                     })}
                   </div>
                 ) : null}
-                <Field label="Текст">
-                  <textarea
-                    className="ui-input ui-textarea"
-                    rows={8}
-                    value={selected.body}
-                    disabled={!asOwner}
-                    onChange={(e) => patchSelected({ body: e.target.value })}
-                  />
+                <Field
+                  label="Текст"
+                  hint={
+                    asOwner
+                      ? '@Имя или [[Название]] — упоминание; у игрока скрытое → «неизвестно»'
+                      : undefined
+                  }
+                >
+                  {asOwner ? (
+                    <textarea
+                      className="ui-input ui-textarea"
+                      rows={8}
+                      value={selected.body}
+                      onChange={(e) => {
+                        const body = e.target.value
+                        patchSelected({ body })
+                        // синхрон mention-рёбер (как на бэке)
+                        const titles = extractMentionTitles(body)
+                        setLinks((prev) => {
+                          const kept = prev.filter(
+                            (l) =>
+                              !(l.from_page_id === selected.id && l.kind === 'mention'),
+                          )
+                          const byTitle = new Map(
+                            pages.map((p) => [p.title.trim().toLowerCase(), p]),
+                          )
+                          const added: SettingPageLink[] = []
+                          for (const title of titles) {
+                            const target = byTitle.get(title.toLowerCase())
+                            if (!target || target.id === selected.id) continue
+                            added.push({
+                              id: `lm-${selected.id}-${target.id}`,
+                              from_page_id: selected.id,
+                              to_page_id: target.id,
+                              from_title: selected.title,
+                              to_title: target.title,
+                              label: '',
+                              kind: 'mention',
+                              created_at: now(),
+                            })
+                          }
+                          return [...kept, ...added]
+                        })
+                      }}
+                    />
+                  ) : (
+                    <SettingMentionBody
+                      body={selected.body}
+                      pages={pages}
+                      isOwner={false}
+                      onOpenPage={setSelectedId}
+                    />
+                  )}
                 </Field>
+                {asOwner ? (
+                  <div className="setting-mention-body" style={{ marginTop: 4 }}>
+                    <Text tone="muted">Превью:</Text>
+                    <SettingMentionBody
+                      body={selected.body}
+                      pages={pages}
+                      isOwner
+                      onOpenPage={setSelectedId}
+                    />
+                  </div>
+                ) : null}
                 {asOwner ? (
                   <>
                     <div className="setting-wiki-reveal">
@@ -605,12 +687,18 @@ export function SettingWikiPreviewPage() {
                   ) : (
                     <ul className="setting-wiki-links__list">
                       {pageLinks.outgoing.map((link) => (
-                        <li key={link.id} className="setting-wiki-links__row">
+                        <li
+                          key={link.id}
+                          className={`setting-wiki-links__row${
+                            link.kind === 'mention' ? ' is-mention' : ''
+                          }`}
+                        >
                           <button
                             type="button"
                             className="setting-wiki-links__jump"
                             onClick={() => setSelectedId(link.to_page_id)}
                           >
+                            {link.kind === 'mention' ? '@ ' : ''}
                             {link.label || link.to_title}
                           </button>
                           {asOwner ? (

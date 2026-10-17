@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
+import { SettingMentionBody } from '../features/lobby/SettingMentionBody'
 import { SettingQuickCreateDialog } from '../features/lobby/SettingQuickCreateDialog'
 import {
   QUEST_STATUS_LABELS,
@@ -53,6 +54,8 @@ export function SettingDetailPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [kindFilter, setKindFilter] = useState<SettingPageKind | 'all'>('all')
   const [quickOpen, setQuickOpen] = useState(false)
+  const [createMissingMentions, setCreateMissingMentions] = useState(false)
+  const [bodyPreview, setBodyPreview] = useState(false)
 
   const filteredPages = useMemo(
     () =>
@@ -179,6 +182,7 @@ export function SettingDetailPage() {
         fields: draftFields,
         quest_status: draftKind === 'quest' ? draftQuestStatus || 'planned' : undefined,
         clear_quest_status: draftKind !== 'quest',
+        create_missing_mentions: createMissingMentions,
       })
       applyDetail(next, selected.id)
       setToast('Страница сохранена')
@@ -595,17 +599,51 @@ export function SettingDetailPage() {
                 ) : null}
                 <Field
                   label="Текст"
-                  hint={isOwner ? 'Скрытые страницы игроки не видят' : undefined}
+                  hint={
+                    isOwner
+                      ? '@Имя или [[Точное название]] — ссылка на страницу; скрытое → «неизвестно» у игрока'
+                      : undefined
+                  }
                 >
-                  <textarea
-                    className="ui-input ui-textarea"
-                    rows={10}
-                    value={draftBody}
-                    disabled={busy || !isOwner}
-                    onChange={(e) => setDraftBody(e.target.value)}
-                    placeholder="География, фракции, НПС…"
-                  />
+                  {isOwner && !bodyPreview ? (
+                    <textarea
+                      className="ui-input ui-textarea"
+                      rows={10}
+                      value={draftBody}
+                      disabled={busy}
+                      onChange={(e) => setDraftBody(e.target.value)}
+                      placeholder={'География…\nУпоминание: @Капитан_Вера или [[Рассветный порт]]'}
+                    />
+                  ) : (
+                    <SettingMentionBody
+                      body={isOwner ? draftBody : selected.body}
+                      pages={setting.pages}
+                      isOwner={isOwner}
+                      onOpenPage={(id) => setSelectedId(id)}
+                    />
+                  )}
                 </Field>
+                {isOwner ? (
+                  <div className="inline-actions">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      disabled={busy}
+                      onClick={() => setBodyPreview((v) => !v)}
+                    >
+                      {bodyPreview ? 'Редактировать текст' : 'Превью упоминаний'}
+                    </Button>
+                    <label className="setting-wiki-reveal__toggle">
+                      <input
+                        type="checkbox"
+                        checked={createMissingMentions}
+                        disabled={busy}
+                        onChange={(e) => setCreateMissingMentions(e.target.checked)}
+                      />
+                      <span>Создавать отсутствующие @упоминания</span>
+                    </label>
+                  </div>
+                ) : null}
                 {isOwner ? (
                   <>
                     <div className="setting-wiki-reveal">
@@ -658,13 +696,20 @@ export function SettingDetailPage() {
                   ) : (
                     <ul className="setting-wiki-links__list">
                       {pageLinks.outgoing.map((link) => (
-                        <li key={link.id} className="setting-wiki-links__row">
+                        <li
+                          key={link.id}
+                          className={`setting-wiki-links__row${
+                            link.kind === 'mention' ? ' is-mention' : ''
+                          }`}
+                        >
                           <button
                             type="button"
                             className="setting-wiki-links__jump"
                             disabled={busy}
                             onClick={() => setSelectedId(link.to_page_id)}
+                            title={link.kind === 'mention' ? 'Из текста (@ / [[…]])' : undefined}
                           >
+                            {link.kind === 'mention' ? '@ ' : ''}
                             {link.label || link.to_title || 'Без названия'}
                           </button>
                           {isOwner ? (

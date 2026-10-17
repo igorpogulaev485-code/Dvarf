@@ -84,8 +84,11 @@ class SettingPageOut(BaseModel):
     updated_at: datetime
 
 
+LinkKind = Literal["semantic", "mention"]
+
+
 class SettingPageLinkOut(BaseModel):
-    """C2: ребро графа; заголовки удобны клиенту для бэклинков."""
+    """C2/C6: ребро графа; заголовки удобны клиенту для бэклинков."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -95,6 +98,7 @@ class SettingPageLinkOut(BaseModel):
     from_title: str = ""
     to_title: str = ""
     label: str = ""
+    kind: LinkKind = "semantic"
     created_at: datetime
 
 
@@ -145,11 +149,14 @@ class SettingPageUpdateRequest(BaseModel):
     fields: dict[str, str | int | float | bool | None] | None = None
     quest_status: QuestStatus | None = None
     clear_quest_status: bool = False
+    # C6: если @Новое_Имя не найдено — создать страницу note
+    create_missing_mentions: bool = False
 
 
 class SettingPageLinkCreateRequest(BaseModel):
     to_page_id: UUID
     label: str = Field(default="", max_length=120)
+    kind: LinkKind = "semantic"
 
 
 class SessionSummary(BaseModel):

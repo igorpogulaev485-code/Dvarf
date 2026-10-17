@@ -228,6 +228,7 @@ class LobbyRepository:
         from_page_id: UUID,
         to_page_id: UUID,
         label: str,
+        kind: str = "semantic",
     ):
         from app.models.setting_page_link import SettingPageLink
 
@@ -235,10 +236,28 @@ class LobbyRepository:
             from_page_id=from_page_id,
             to_page_id=to_page_id,
             label=label,
+            kind=kind,
         )
         self.db.add(link)
         self.db.flush()
         return link
+
+    def delete_setting_page_links_of_kind(self, *, from_page_id: UUID, kind: str) -> int:
+        from app.models.setting_page_link import SettingPageLink
+
+        links = list(
+            self.db.scalars(
+                select(SettingPageLink).where(
+                    SettingPageLink.from_page_id == from_page_id,
+                    SettingPageLink.kind == kind,
+                )
+            ).all()
+        )
+        for link in links:
+            self.db.delete(link)
+        if links:
+            self.db.flush()
+        return len(links)
 
     def delete_setting_page_link(self, link) -> None:
         self.db.delete(link)

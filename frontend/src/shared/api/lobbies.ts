@@ -77,6 +77,8 @@ export type SettingPage = {
   updated_at: string
 }
 
+export type SettingPageLinkKind = 'semantic' | 'mention'
+
 export type SettingPageLink = {
   id: string
   from_page_id: string
@@ -84,6 +86,7 @@ export type SettingPageLink = {
   from_title: string
   to_title: string
   label: string
+  kind: SettingPageLinkKind
   created_at: string
 }
 
@@ -472,6 +475,7 @@ export async function updateSettingPage(
     fields?: Record<string, string | number | boolean | null>
     quest_status?: QuestStatus | null
     clear_quest_status?: boolean
+    create_missing_mentions?: boolean
   },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {

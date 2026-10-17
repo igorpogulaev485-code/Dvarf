@@ -70,6 +70,9 @@ require "backend/app/models/setting_page_template.py" "вики C5: шаблон
 require "backend/app/dnd/setting_templates.py" "вики C5: системные шаблоны"
 require "frontend/src/features/lobby/SettingQuickCreateDialog.tsx" "вики C5: quick create"
 require "frontend/src/features/lobby/settingKinds.ts" "вики C5: типы"
+require "frontend/src/features/lobby/settingMentions.ts" "вики C6: mentions"
+require "frontend/src/features/lobby/SettingMentionBody.tsx" "вики C6: рендер mentions"
+require "backend/app/dnd/setting_mentions.py" "вики C6: парсер mentions"
 require "frontend/src/features/lobby/JournalComposer.tsx" "дневник + ссылка на вики"
 require "frontend/src/features/lobby/ChatBodyText.tsx" "чат: linkify /settings"
 
