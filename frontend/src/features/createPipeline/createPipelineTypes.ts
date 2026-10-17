@@ -1,6 +1,7 @@
 /** State for the 2014 create-pipeline page. */
 
 import type { CatalogEntry } from '../../shared/api/catalog'
+import type { CharacterGender } from '../../shared/dnd/characterGender'
 import type { AbilityScores } from '../../shared/dnd/multiclassRules'
 import type { AbilityMethod } from '../../shared/dnd/pointBuy'
 import { emptyBaseScores } from '../../shared/dnd/pointBuy'
@@ -96,6 +97,8 @@ export type CreatePipelineState = {
   version: typeof CREATE_PIPELINE_VERSION
   step: CreatePipelineStepId
   characterName: string
+  /** Required on race step before advance; null = not chosen yet. */
+  gender: CharacterGender | null
   /** Persisted draft character id, if saved. */
   characterId: string | null
   sheetVersion: number | null
@@ -172,6 +175,7 @@ export function createEmptyPipelineState(): CreatePipelineState {
     version: CREATE_PIPELINE_VERSION,
     step: 'race',
     characterName: '',
+    gender: null,
     characterId: null,
     sheetVersion: null,
     background: null,

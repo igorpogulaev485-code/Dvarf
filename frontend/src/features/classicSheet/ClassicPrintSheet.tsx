@@ -520,6 +520,23 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
             <input value={c.name} onChange={(e) => patch({ name: e.target.value })} />
           </label>
           <div className="classic-physique">
+            <label>
+              <span>Пол</span>
+              <select
+                value={physiqueField(c, 'gender')}
+                onChange={(e) =>
+                  patch({
+                    identity: { gender: e.target.value || null },
+                  })
+                }
+              >
+                <option value="">—</option>
+                <option value="male">Мужской</option>
+                <option value="female">Женский</option>
+                <option value="nonbinary">Небинарный</option>
+                <option value="unspecified">Не указан</option>
+              </select>
+            </label>
             {(
               [
                 ['age', 'Возраст'],

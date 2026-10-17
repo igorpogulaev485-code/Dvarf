@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import type { RulesEdition } from '../../shared/api/characters'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
+  CHARACTER_GENDERS,
+  CHARACTER_GENDER_LABELS,
+  type CharacterGender,
+} from '../../shared/dnd/characterGender'
+import {
   abilityBonusModeSlotCount,
   abilityKeysForBonusChoice,
   emptyRacePicks,
@@ -22,6 +27,10 @@ import {
   type ArmorProfKey,
   type OwnedFeatEnumSnapshot,
 } from '../../shared/dnd/featGrants'
+import {
+  generateRaceName,
+  namingModesFor,
+} from '../../shared/dnd/raceNaming'
 import { LANGUAGE_PRESETS } from './languagesTools'
 import { ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
@@ -34,6 +43,8 @@ export type RaceSetupConfirm = {
   featResult: FeatSetupResult | null
   /** Required character name from race setup. */
   characterName: string
+  /** Required gender — null is rejected by canConfirm. */
+  gender: CharacterGender
 }
 
 type RaceSetupDialogProps = {
@@ -54,6 +65,10 @@ type RaceSetupDialogProps = {
   proficientSkills?: string[]
   /** Initial / current character name (required to confirm). */
   characterName?: string
+  /** Initial gender from pipeline (null until chosen). */
+  gender?: CharacterGender | null
+  /** Name dice only in create-pipeline; sheet race re-pick keeps manual name. */
+  enableNameGeneration?: boolean
   onConfirm: (result: RaceSetupConfirm) => void
   onClose: () => void
 }
@@ -90,12 +105,16 @@ export function RaceSetupDialog({
   ownedFeatEnums = [],
   proficientSkills = [],
   characterName: characterNameProp = '',
+  gender: genderProp = null,
+  enableNameGeneration = false,
   onConfirm,
   onClose,
 }: RaceSetupDialogProps) {
   const hasSubraceFork = subraces.length > 0
   const [subraceKey, setSubraceKey] = useState<string | null>(null)
   const [characterName, setCharacterName] = useState(characterNameProp)
+  const [gender, setGender] = useState<CharacterGender | null>(genderProp)
+  const [namingModeId, setNamingModeId] = useState<string | null>(null)
 
   const effectiveEntry = useMemo(() => {
     if (!root) return null
@@ -109,6 +128,35 @@ export function RaceSetupDialog({
     () => (effectiveEntry ? defForEntry(effectiveEntry) : null),
     [effectiveEntry],
   )
+
+  const namingContext = useMemo(() => {
+    const entry = effectiveEntry ?? root
+    if (!entry) return null
+    const parentSlug =
+      entry.parent_id && root && entry.id !== root.id ? root.slug : null
+    return {
+      naming: entry.data?.naming,
+      slug: entry.slug,
+      parentSlug,
+    }
+  }, [effectiveEntry, root])
+
+  const namingModes = useMemo(
+    () => (namingContext ? namingModesFor(namingContext) : []),
+    [namingContext],
+  )
+
+  useEffect(() => {
+    if (namingModes.length === 0) {
+      setNamingModeId(null)
+      return
+    }
+    setNamingModeId((prev) =>
+      prev && namingModes.some((mode) => mode.id === prev)
+        ? prev
+        : (namingModes[0]?.id ?? null),
+    )
+  }, [namingModes])
 
   const asiModes = useMemo(
     () => resolveAbilityBonusModes(def?.abilityBonusChoices ?? null),
@@ -200,7 +248,8 @@ export function RaceSetupDialog({
     setSkills(empty.skills)
     setTools(empty.tools)
     setAncestryId(empty.ancestryId)
-  }, [open, root?.id, hasSubraceFork, characterNameProp])
+    setGender(genderProp)
+  }, [open, root?.id, hasSubraceFork, characterNameProp, genderProp])
 
   useEffect(() => {
     // Reset fork picks when subrace changes.
@@ -312,9 +361,11 @@ export function RaceSetupDialog({
   const featOk = !featNeed || Boolean(featResult)
 
   const nameOk = characterName.trim().length > 0
+  const genderOk = gender != null
   const canConfirm =
     Boolean(root && def && effectiveEntry) &&
     nameOk &&
+    genderOk &&
     subraceOk &&
     sizeOk &&
     variableTraitOk &&
@@ -324,6 +375,18 @@ export function RaceSetupDialog({
     tools.length === toolNeed &&
     ancestryOk &&
     featOk
+
+  function handleGenerateName() {
+    if (!gender || !namingContext) return
+    const generated = generateRaceName({
+      gender,
+      naming: namingContext.naming,
+      slug: namingContext.slug,
+      parentSlug: namingContext.parentSlug,
+      modeId: namingModeId,
+    })
+    if (generated) setCharacterName(generated.name)
+  }
 
   if (!root) return null
 
@@ -346,7 +409,7 @@ export function RaceSetupDialog({
       size="wide"
       primaryDisabled={!canConfirm}
       onPrimary={() => {
-        if (!canConfirm || !def || !effectiveEntry) return
+        if (!canConfirm || !def || !effectiveEntry || !gender) return
         onConfirm({
           entry: effectiveEntry,
           def,
@@ -364,18 +427,64 @@ export function RaceSetupDialog({
           },
           featResult,
           characterName: characterName.trim(),
+          gender,
         })
       }}
       onSecondary={onClose}
     >
       <Stack gap={14}>
+        <Field label="Пол">
+          <div className="chip-row" role="group" aria-label="Пол персонажа">
+            {CHARACTER_GENDERS.map((key) => (
+              <button
+                key={key}
+                type="button"
+                className={`sheet-chip${gender === key ? ' is-on' : ''}`}
+                onClick={() => setGender(key)}
+              >
+                {CHARACTER_GENDER_LABELS[key]}
+              </button>
+            ))}
+          </div>
+        </Field>
         <Field label="Имя персонажа">
-          <Input
-            value={characterName}
-            onChange={(event) => setCharacterName(event.target.value)}
-            placeholder="Имя героя"
-            autoComplete="off"
-          />
+          <Stack gap={8}>
+            <Input
+              value={characterName}
+              onChange={(event) => setCharacterName(event.target.value)}
+              placeholder="Имя героя"
+              autoComplete="off"
+            />
+            {enableNameGeneration && namingModes.length > 1 ? (
+              <div className="chip-row" role="group" aria-label="Стиль имени">
+                {namingModes.map((mode) => (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    className={`sheet-chip${namingModeId === mode.id ? ' is-on' : ''}`}
+                    onClick={() => setNamingModeId(mode.id)}
+                  >
+                    {mode.labelRu}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {enableNameGeneration ? (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!gender || !namingContext}
+                  onClick={handleGenerateName}
+                >
+                  Сгенерировать имя
+                </Button>
+                {!gender ? (
+                  <Text tone="muted">Сначала укажи пол — от него зависят имена.</Text>
+                ) : null}
+              </>
+            ) : null}
+          </Stack>
         </Field>
         <Text tone="muted">
           Сначала раса из списка, развилки — здесь (как у класса). Подрасу выбираешь в этом окне
