@@ -1,5 +1,5 @@
 /**
- * Превью C1–C5: вики + связи + раскрытие + типы/шаблоны/quick create.
+ * Превью C1–C9: вики + связи + типы + mentions + gm + теги.
  * /dev/setting-wiki-preview
  */
 import { useMemo, useState } from 'react'
@@ -18,8 +18,10 @@ import {
 import {
   buildSettingPageTree,
   collectDescendantIds,
+  collectPageTags,
   filterSettingPages,
   linksForPage,
+  normalizeClientTags,
   templateForPage,
   type SettingPageNode,
 } from '../features/lobby/settingPages'
@@ -133,6 +135,7 @@ const SEED_PAGES: SettingPage[] = [
     template_id: 't-note',
     fields: {},
     quest_status: null,
+    tags: ['мир', 'тон'],
     created_at: now(),
     updated_at: now(),
   },
@@ -149,6 +152,7 @@ const SEED_PAGES: SettingPage[] = [
     template_id: 't-note',
     fields: {},
     quest_status: null,
+    tags: ['города'],
     created_at: now(),
     updated_at: now(),
   },
@@ -170,6 +174,7 @@ const SEED_PAGES: SettingPage[] = [
       gm_notes: 'Культ моста в подвалах',
     },
     quest_status: null,
+    tags: ['порт', 'север', 'культ'],
     created_at: now(),
     updated_at: now(),
   },
@@ -186,6 +191,7 @@ const SEED_PAGES: SettingPage[] = [
     template_id: 't-faction',
     fields: { goals: 'Контроль мостов', resources: 'Шпионы' },
     quest_status: null,
+    tags: ['культ', 'фракции'],
     created_at: now(),
     updated_at: now(),
   },
@@ -207,6 +213,7 @@ const SEED_PAGES: SettingPage[] = [
       secrets: 'Платит культу',
     },
     quest_status: null,
+    tags: ['порт', 'npc', 'культ'],
     created_at: now(),
     updated_at: now(),
   },
@@ -304,13 +311,16 @@ export function SettingWikiPreviewPage() {
   const [toast, setToast] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [kindFilter, setKindFilter] = useState<SettingPageKind | 'all'>('all')
+  const [tagFilter, setTagFilter] = useState('')
+  const [tagDraft, setTagDraft] = useState('')
   const [quickOpen, setQuickOpen] = useState(false)
 
   const ownerPages = pages
+  const allTags = useMemo(() => collectPageTags(ownerPages), [ownerPages])
   const visiblePages = useMemo(() => {
     const base = asOwner ? ownerPages : ownerPages.filter((p) => p.revealed)
-    return filterSettingPages(base, { query: searchQuery, kind: kindFilter })
-  }, [asOwner, ownerPages, searchQuery, kindFilter])
+    return filterSettingPages(base, { query: searchQuery, kind: kindFilter, tag: tagFilter })
+  }, [asOwner, ownerPages, searchQuery, kindFilter, tagFilter])
 
   const visibleIds = useMemo(() => new Set(visiblePages.map((p) => p.id)), [visiblePages])
   const visibleLinks = useMemo(
@@ -358,6 +368,7 @@ export function SettingWikiPreviewPage() {
         template_id: 't-note',
         fields: {},
         quest_status: null,
+        tags: [],
         created_at: now(),
         updated_at: now(),
       },
@@ -395,6 +406,7 @@ export function SettingWikiPreviewPage() {
           template_id: template?.id ?? null,
           fields: emptyFields(template),
           quest_status: payload.page_kind === 'quest' ? 'planned' : null,
+          tags: [],
           created_at: now(),
           updated_at: now(),
         })
@@ -488,7 +500,7 @@ export function SettingWikiPreviewPage() {
         <header className="app-header">
           <div>
             <Text as="h1">Эхо Рассвета</Text>
-            <Text tone="muted">Превью C1–C8 · связи v2 · @mentions · gm notes</Text>
+            <Text tone="muted">Превью C1–C9 · теги · связи · @mentions · gm notes</Text>
           </div>
         </header>
         <Text tone="muted">/dev/setting-wiki-preview</Text>
@@ -533,7 +545,7 @@ export function SettingWikiPreviewPage() {
             <Field label="Поиск">
               <Input
                 value={searchQuery}
-                placeholder="Название…"
+                placeholder="Название или тег…"
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </Field>
@@ -556,6 +568,31 @@ export function SettingWikiPreviewPage() {
                 </button>
               ))}
             </div>
+            {allTags.length > 0 ? (
+              <div className="setting-wiki-kind-filters" role="group" aria-label="Теги">
+                <button
+                  type="button"
+                  className={`setting-wiki-kind-chip${tagFilter === '' ? ' is-on' : ''}`}
+                  onClick={() => setTagFilter('')}
+                >
+                  Любой тег
+                </button>
+                {allTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`setting-wiki-kind-chip setting-wiki-tag-chip${tagFilter.toLowerCase() === tag.toLowerCase() ? ' is-on' : ''}`}
+                    onClick={() =>
+                      setTagFilter((prev) =>
+                        prev.toLowerCase() === tag.toLowerCase() ? '' : tag,
+                      )
+                    }
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             {tree.length === 0 ? (
               <Text tone="muted">Ничего не найдено.</Text>
             ) : (
@@ -592,6 +629,74 @@ export function SettingWikiPreviewPage() {
                     {QUEST_STATUS_LABELS[(selected.quest_status as QuestStatus) || 'planned']}
                   </Text>
                 ) : null}
+                <div className="setting-wiki-tags">
+                  <Text as="h3">Теги</Text>
+                  <div className="setting-wiki-tags__list">
+                    {(selected.tags ?? []).length === 0 ? (
+                      <Text tone="muted">Нет тегов</Text>
+                    ) : (
+                      (selected.tags ?? []).map((tag) => (
+                        <span key={tag} className="setting-wiki-tags__chip">
+                          #{tag}
+                          {asOwner ? (
+                            <button
+                              type="button"
+                              className="setting-wiki-tags__remove"
+                              aria-label={`Убрать ${tag}`}
+                              onClick={() =>
+                                patchSelected({
+                                  tags: (selected.tags ?? []).filter(
+                                    (t) => t.toLowerCase() !== tag.toLowerCase(),
+                                  ),
+                                })
+                              }
+                            >
+                              ×
+                            </button>
+                          ) : null}
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  {asOwner ? (
+                    <div className="setting-wiki-tags__add">
+                      <Input
+                        value={tagDraft}
+                        placeholder="порт, культ…"
+                        list="preview-tag-suggestions"
+                        onChange={(e) => setTagDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ',') {
+                            e.preventDefault()
+                            if (!tagDraft.trim()) return
+                            patchSelected({
+                              tags: normalizeClientTags([...(selected.tags ?? []), tagDraft]),
+                            })
+                            setTagDraft('')
+                          }
+                        }}
+                      />
+                      <datalist id="preview-tag-suggestions">
+                        {allTags.map((t) => (
+                          <option key={t} value={t} />
+                        ))}
+                      </datalist>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={!tagDraft.trim()}
+                        onClick={() => {
+                          patchSelected({
+                            tags: normalizeClientTags([...(selected.tags ?? []), tagDraft]),
+                          })
+                          setTagDraft('')
+                        }}
+                      >
+                        + Тег
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
                 {(activeTemplate?.schema ?? []).length > 0 ? (
                   <div className="setting-wiki-fields">
                     <Text as="h3">Поля шаблона</Text>

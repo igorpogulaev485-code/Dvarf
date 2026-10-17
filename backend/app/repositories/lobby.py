@@ -157,6 +157,7 @@ class LobbyRepository:
         fields: dict | None = None,
         quest_status: str | None = None,
         gm_body: str = "",
+        tags: list[str] | None = None,
     ):
         from app.models.setting_page import SettingPage
 
@@ -171,6 +172,7 @@ class LobbyRepository:
             template_id=template_id,
             fields=fields if fields is not None else {},
             quest_status=quest_status,
+            tags=list(tags) if tags is not None else [],
         )
         self.db.add(page)
         self.db.flush()

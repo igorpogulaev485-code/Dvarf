@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -52,6 +52,8 @@ class SettingPage(Base):
     )
     fields: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
     quest_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # C9: теги для фильтра mid-session
+    tags: Mapped[list[str]] = mapped_column(ARRAY(String(48)), nullable=False, default=list)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

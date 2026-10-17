@@ -81,6 +81,7 @@ class SettingPageOut(BaseModel):
     template_id: UUID | None = None
     fields: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
     quest_status: QuestStatus | None = None
+    tags: list[str] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 
@@ -106,11 +107,13 @@ class SettingPageLinkOut(BaseModel):
 
 
 class SettingDetail(SettingSummary):
-    """C1–C5: страницы + связи + шаблоны; игрокам — только revealed."""
+    """C1–C9: страницы + связи + шаблоны + теги; игрокам — только revealed."""
 
     pages: list[SettingPageOut] = Field(default_factory=list)
     links: list[SettingPageLinkOut] = Field(default_factory=list)
     templates: list[SettingPageTemplateOut] = Field(default_factory=list)
+    # C9: уникальные теги по видимым страницам
+    all_tags: list[str] = Field(default_factory=list)
     is_owner: bool = False
 
 
@@ -124,6 +127,7 @@ class SettingPageCreateRequest(BaseModel):
     template_id: UUID | None = None
     fields: dict[str, str | int | float | bool | None] | None = None
     quest_status: QuestStatus | None = None
+    tags: list[str] | None = None
 
 
 class SettingPageBulkCreateRequest(BaseModel):
@@ -156,6 +160,7 @@ class SettingPageUpdateRequest(BaseModel):
     clear_quest_status: bool = False
     # C6: если @Новое_Имя не найдено — создать страницу note
     create_missing_mentions: bool = False
+    tags: list[str] | None = None
 
 
 class SettingPageLinkCreateRequest(BaseModel):

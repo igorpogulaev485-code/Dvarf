@@ -74,6 +74,7 @@ export type SettingPage = {
   template_id: string | null
   fields: Record<string, string | number | boolean | null>
   quest_status: QuestStatus | null
+  tags: string[]
   created_at: string
   updated_at: string
 }
@@ -97,6 +98,8 @@ export type SettingDetail = SettingSummary & {
   pages: SettingPage[]
   links: SettingPageLink[]
   templates: SettingPageTemplate[]
+  /** C9: уникальные теги по видимым страницам */
+  all_tags: string[]
   is_owner: boolean
 }
 
@@ -439,6 +442,7 @@ export async function createSettingPage(
     template_id?: string | null
     fields?: Record<string, string | number | boolean | null>
     quest_status?: QuestStatus | null
+    tags?: string[]
   },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/${settingId}/pages`, {
@@ -481,6 +485,7 @@ export async function updateSettingPage(
     quest_status?: QuestStatus | null
     clear_quest_status?: boolean
     create_missing_mentions?: boolean
+    tags?: string[]
   },
 ): Promise<SettingDetail> {
   return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {

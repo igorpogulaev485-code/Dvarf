@@ -27,6 +27,7 @@ from app.dnd.encounter_compose import compose_encounter
 from app.dnd.encounter_pool import monster_from_catalog_entry
 from app.dnd.setting_link_presets import reverse_label as mirror_link_label
 from app.dnd.setting_mentions import extract_mention_titles, titles_index
+from app.dnd.setting_tags import collect_all_tags, normalize_tags
 from app.dnd.setting_templates import (
     PAGE_KINDS,
     QUEST_STATUSES,
@@ -904,6 +905,7 @@ class LobbyService:
                 for link in links
             ],
             templates=[self._template_out(t) for t in templates],
+            all_tags=collect_all_tags(pages_out),
             is_owner=is_owner,
         )
 
@@ -1037,6 +1039,7 @@ class LobbyService:
             template_id=template_id,
             fields=fields,
             quest_status=quest_status,
+            tags=normalize_tags(payload.tags),
         )
         if body:
             self._sync_page_mentions(
@@ -1193,6 +1196,9 @@ class LobbyService:
             if payload.quest_status not in QUEST_STATUSES:
                 raise AppError("Неверный статус квеста", code="quest_status_bad", status_code=400)
             page.quest_status = payload.quest_status
+
+        if payload.tags is not None:
+            page.tags = normalize_tags(payload.tags)
 
         if payload.body is not None:
             self._sync_page_mentions(

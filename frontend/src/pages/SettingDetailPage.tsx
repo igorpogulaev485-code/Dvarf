@@ -14,11 +14,19 @@ import {
 } from '../features/lobby/settingKinds'
 import {
   buildSettingPageTree,
+  collectPageTags,
   filterSettingPages,
   linksForPage,
+  normalizeClientTags,
   templateForPage,
   type SettingPageNode,
 } from '../features/lobby/settingPages'
+import {
+  pushRecentPageId,
+  readRecentPageIds,
+  readSettingFilter,
+  writeSettingFilter,
+} from '../features/lobby/settingRecent'
 import { ApiRequestError } from '../shared/api/client'
 import {
   bulkCreateSettingPages,
@@ -58,18 +66,36 @@ export function SettingDetailPage() {
   const [linkGmOnly, setLinkGmOnly] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [kindFilter, setKindFilter] = useState<SettingPageKind | 'all'>('all')
+  const [tagFilter, setTagFilter] = useState('')
+  const [draftTags, setDraftTags] = useState<string[]>([])
+  const [tagDraft, setTagDraft] = useState('')
+  const [recentIds, setRecentIds] = useState<string[]>([])
   const [quickOpen, setQuickOpen] = useState(false)
   const [createMissingMentions, setCreateMissingMentions] = useState(false)
   const [bodyPreview, setBodyPreview] = useState(false)
+
+  const allTags = useMemo(
+    () => setting?.all_tags?.length
+      ? setting.all_tags
+      : collectPageTags(setting?.pages ?? []),
+    [setting?.all_tags, setting?.pages],
+  )
 
   const filteredPages = useMemo(
     () =>
       filterSettingPages(setting?.pages ?? [], {
         query: searchQuery,
         kind: kindFilter,
+        tag: tagFilter,
       }),
-    [setting?.pages, searchQuery, kindFilter],
+    [setting?.pages, searchQuery, kindFilter, tagFilter],
   )
+
+  const recentPages = useMemo(() => {
+    if (!setting) return []
+    const byId = new Map(setting.pages.map((p) => [p.id, p]))
+    return recentIds.map((id) => byId.get(id)).filter(Boolean) as SettingDetail['pages']
+  }, [setting, recentIds])
 
   const tree = useMemo(() => buildSettingPageTree(filteredPages), [filteredPages])
 
@@ -100,6 +126,14 @@ export function SettingDetailPage() {
 
   useEffect(() => {
     let active = true
+    const saved = readSettingFilter(settingId)
+    if (saved) {
+      if (saved.kind === 'all' || (SETTING_PAGE_KINDS as readonly string[]).includes(saved.kind)) {
+        setKindFilter(saved.kind as SettingPageKind | 'all')
+      }
+      setTagFilter(saved.tag)
+    }
+    setRecentIds(readRecentPageIds(settingId))
     getSetting(settingId)
       .then((item) => {
         if (!active) return
@@ -113,6 +147,9 @@ export function SettingDetailPage() {
         setSelectedId(first)
         const page = item.pages.find((p) => p.id === first)
         applyDraftFromPage(page ?? null)
+        if (first) {
+          setRecentIds(pushRecentPageId(settingId, first))
+        }
       })
       .catch((err: unknown) => {
         if (!active) return
@@ -128,10 +165,18 @@ export function SettingDetailPage() {
   }, [navigate, settingId, pageFromQuery])
 
   useEffect(() => {
+    if (!settingId) return
+    writeSettingFilter(settingId, { kind: kindFilter, tag: tagFilter })
+  }, [settingId, kindFilter, tagFilter])
+
+  useEffect(() => {
     if (!selected) return
     applyDraftFromPage(selected)
     setLinkTargetId('')
-  }, [selected?.id])
+    if (settingId && selected.id) {
+      setRecentIds(pushRecentPageId(settingId, selected.id))
+    }
+  }, [selected?.id, settingId])
 
   function applyDraftFromPage(page: SettingDetail['pages'][number] | null) {
     setDraftTitle(page?.title ?? '')
@@ -139,11 +184,23 @@ export function SettingDetailPage() {
     setDraftGmBody(page?.gm_body ?? '')
     setDraftKind(page?.page_kind ?? 'note')
     setDraftQuestStatus(page?.quest_status ?? '')
+    setDraftTags(page?.tags ?? [])
+    setTagDraft('')
     const nextFields: Record<string, string> = {}
     for (const [k, v] of Object.entries(page?.fields ?? {})) {
       nextFields[k] = v == null ? '' : String(v)
     }
     setDraftFields(nextFields)
+  }
+
+  function addDraftTag(raw: string) {
+    const next = normalizeClientTags([...draftTags, raw])
+    setDraftTags(next)
+    setTagDraft('')
+  }
+
+  function removeDraftTag(tag: string) {
+    setDraftTags((prev) => prev.filter((t) => t.toLowerCase() !== tag.toLowerCase()))
   }
 
   function applyDetail(next: SettingDetail, preferPageId?: string | null) {
@@ -190,6 +247,7 @@ export function SettingDetailPage() {
         quest_status: draftKind === 'quest' ? draftQuestStatus || 'planned' : undefined,
         clear_quest_status: draftKind !== 'quest',
         create_missing_mentions: createMissingMentions,
+        tags: normalizeClientTags(draftTags),
       })
       applyDetail(next, selected.id)
       setToast('Страница сохранена')
@@ -449,10 +507,29 @@ export function SettingDetailPage() {
             <Field label="Поиск">
               <Input
                 value={searchQuery}
-                placeholder="Название…"
+                placeholder="Название или тег…"
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </Field>
+            {recentPages.length > 0 ? (
+              <div className="setting-wiki-recent" aria-label="Недавние">
+                <Text tone="muted" className="setting-wiki-recent__label">
+                  Недавние
+                </Text>
+                <div className="setting-wiki-recent__list">
+                  {recentPages.slice(0, 5).map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      className={`setting-wiki-recent__chip${selectedId === p.id ? ' is-on' : ''}`}
+                      onClick={() => setSelectedId(p.id)}
+                    >
+                      {p.title || 'Без названия'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="setting-wiki-kind-filters" role="group" aria-label="Тип страницы">
               <button
                 type="button"
@@ -472,9 +549,34 @@ export function SettingDetailPage() {
                 </button>
               ))}
             </div>
+            {allTags.length > 0 ? (
+              <div className="setting-wiki-kind-filters" role="group" aria-label="Теги">
+                <button
+                  type="button"
+                  className={`setting-wiki-kind-chip${tagFilter === '' ? ' is-on' : ''}`}
+                  onClick={() => setTagFilter('')}
+                >
+                  Любой тег
+                </button>
+                {allTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    className={`setting-wiki-kind-chip setting-wiki-tag-chip${tagFilter.toLowerCase() === tag.toLowerCase() ? ' is-on' : ''}`}
+                    onClick={() =>
+                      setTagFilter((prev) =>
+                        prev.toLowerCase() === tag.toLowerCase() ? '' : tag,
+                      )
+                    }
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             {tree.length === 0 ? (
               <Text tone="muted">
-                {searchQuery || kindFilter !== 'all'
+                {searchQuery || kindFilter !== 'all' || tagFilter
                   ? 'Ничего не найдено.'
                   : 'Пока ничего не раскрыто.'}
               </Text>
@@ -548,6 +650,61 @@ export function SettingDetailPage() {
                     </select>
                   </Field>
                 ) : null}
+                <div className="setting-wiki-tags">
+                  <Text as="h3">Теги</Text>
+                  <div className="setting-wiki-tags__list">
+                    {(isOwner ? draftTags : selected.tags ?? []).length === 0 ? (
+                      <Text tone="muted">Нет тегов</Text>
+                    ) : (
+                      (isOwner ? draftTags : selected.tags ?? []).map((tag) => (
+                        <span key={tag} className="setting-wiki-tags__chip">
+                          #{tag}
+                          {isOwner ? (
+                            <button
+                              type="button"
+                              className="setting-wiki-tags__remove"
+                              disabled={busy}
+                              aria-label={`Убрать ${tag}`}
+                              onClick={() => removeDraftTag(tag)}
+                            >
+                              ×
+                            </button>
+                          ) : null}
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  {isOwner ? (
+                    <div className="setting-wiki-tags__add">
+                      <Input
+                        value={tagDraft}
+                        disabled={busy}
+                        placeholder="порт, культ…"
+                        list="setting-wiki-tag-suggestions"
+                        onChange={(e) => setTagDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ',') {
+                            e.preventDefault()
+                            if (tagDraft.trim()) addDraftTag(tagDraft)
+                          }
+                        }}
+                      />
+                      <datalist id="setting-wiki-tag-suggestions">
+                        {allTags.map((t) => (
+                          <option key={t} value={t} />
+                        ))}
+                      </datalist>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        disabled={busy || !tagDraft.trim()}
+                        onClick={() => addDraftTag(tagDraft)}
+                      >
+                        + Тег
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
                 {schemaFields.length > 0 ? (
                   <div className="setting-wiki-fields">
                     <Text as="h3">Поля шаблона</Text>

@@ -3766,3 +3766,96 @@ button.session-concentration-tag {
   border: 1px dashed var(--line);
   background: color-mix(in srgb, var(--accent-soft) 40%, transparent);
 }
+
+/* C9: теги + недавние */
+.setting-wiki-tag-chip {
+  font-size: 0.8rem;
+}
+
+.setting-wiki-recent {
+  margin: 4px 0 8px;
+}
+
+.setting-wiki-recent__label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.78rem;
+}
+
+.setting-wiki-recent__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.setting-wiki-recent__chip {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.setting-wiki-recent__chip.is-on {
+  background: var(--accent-soft);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.setting-wiki-tags {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.setting-wiki-tags__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  min-height: 1.6rem;
+}
+
+.setting-wiki-tags__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  font-size: 0.85rem;
+}
+
+.setting-wiki-tags__remove {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.setting-wiki-tags__add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.setting-wiki-tags__add .ui-input {
+  flex: 1;
+  min-width: 8rem;
+}
