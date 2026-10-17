@@ -198,8 +198,8 @@ export function CharacterDetailPage() {
                       role="menuitem"
                       onClick={() => {
                         const classicPath = `/characters/${character.id}/classic`
-                        setMoreOpen(false)
                         navigate(classicPath)
+                        setMoreOpen(false)
                       }}
                     >
                       Классический лист 2014
@@ -209,7 +209,7 @@ export function CharacterDetailPage() {
                       role="menuitem"
                       onClick={() => {
                         setMoreOpen(false)
-                        setLobbyOpen(true)
+                        window.setTimeout(() => setLobbyOpen(true), 0)
                       }}
                     >
                       В лобби
