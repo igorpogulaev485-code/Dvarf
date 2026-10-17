@@ -23,8 +23,8 @@
 }
 
 .classic-print-toolbar {
-  position: sticky;
-  top: 0;
+  /* Not sticky: Letter pages are tall; sticky bar was clipping page headers. */
+  position: relative;
   z-index: 20;
   display: flex;
   flex-wrap: wrap;
