@@ -32,7 +32,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/tablet-header-hotbar-ship-4dea
+cursor/classic-2014-p1-visual-8bfd
 ```
 
 URL: http://201.34.132.252/

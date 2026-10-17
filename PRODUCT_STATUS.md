@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/tablet-header-hotbar-ship-4dea`  
+**Prod tip (ветка линии прода):** `cursor/classic-2014-p1-visual-8bfd`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -71,7 +71,7 @@
 | Заметки | 2014: страница в конце; 2024: P3; те же `notes-N` / «Добавить заметку» | Синхрон с цифровым «Тексты и заметки» |
 | Синхрон текстов / портрет / узкий экран | `withBlockPlainText`; аватар на 2024 P2; Letter со скроллом | Без поломки прода и цифрового листа |
 
-На проде: **нет** · ветка `cursor/classic-2014-p1-visual-8bfd` · база live tip `cursor/tablet-header-hotbar-ship-4dea` · ждёт деплоя
+На проде: **да** · **это новый prod tip** `cursor/classic-2014-p1-visual-8bfd` · залито 2026-10-17 поверх tip `tablet-header-hotbar-ship-4dea` · `/health` ok; бандл ClassicSheetPage с `classic_block_fonts` / `classic_sheet_layout` / «Добавить заметку»; IdentityDialog + remote-up + тема на месте
 
 ### 2026-10-16 — Tablet: шапка с длинным именем + hot-карусель
 
@@ -81,7 +81,7 @@
 | Плотность на планшете (≤1280) | Чуть меньше vitals / аватар / имя — без второго ряда who | На iPad Pro 11" шапка компактная |
 | Hot-полоска на столе (≥960) | Горизонтальный скролл (карусель), как на телефоне | Состояния / концентрация / ресурсы / навыки проматываются пальцем |
 
-На проде: **да** · **это новый prod tip** `cursor/tablet-header-hotbar-ship-4dea` · залито 2026-10-16 поверх tip `appearance-persist-f3ee` · догон: компактный один ряд (без wrap who)
+На проде: **да** · **это новый prod tip** `cursor/classic-2014-p1-visual-8bfd` · залито 2026-10-16 поверх tip `appearance-persist-f3ee` · догон: компактный один ряд (без wrap who)
 
 ### 2026-10-16 — Тема аккаунта не слетает после релиза
 
@@ -338,7 +338,7 @@
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
-| 2026-10-17 | `cursor/classic-2014-p1-visual-8bfd` | Classic 2014/2024 бланк + заметки + font size → «В ветках» |
+| 2026-10-17 | `cursor/classic-2014-p1-visual-8bfd` | Classic 2014/2024 бланк + заметки + font size → **новый tip** на Timeweb |
 | 2026-10-06 | `cursor/product-status-log-acbe` | Создан файл + стартовый срез прода |
 | 2026-10-06 | `cursor/sheet-race-effects-eb8e` · PR #20 | Мультикласс + эффекты расы → «Сейчас в продукте» |
 | 2026-10-06 | `cursor/sheet-race-effects-eb8e` · PR #20 | Полный срез агента листа P1–P6 (функция / как / эффект) |
