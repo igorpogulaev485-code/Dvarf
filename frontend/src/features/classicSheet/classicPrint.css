@@ -1254,8 +1254,35 @@
   min-height: 4rem;
 }
 
+.classic-note-card--empty {
+  align-items: center;
+  justify-content: center;
+}
+
+.classic-note-card__add {
+  border: 1.5px dashed var(--c-line-soft);
+  border-radius: 0.28rem;
+  background: transparent;
+  color: var(--c-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 650;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+}
+
+.classic-note-card__add:hover {
+  border-color: var(--c-line);
+  color: var(--c-ink);
+  background: var(--c-paper-tint);
+}
+
 @media print {
   .classic-page-notes--empty {
+    display: none !important;
+  }
+
+  .classic-note-card--empty {
     display: none !important;
   }
 }
@@ -2029,7 +2056,13 @@
   gap: 0.12in;
 }
 
-.classic-lss-portrait { grid-column: 1; grid-row: 1; }
+.classic-lss-portrait {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 .classic-lss-allies { grid-column: 2; grid-row: 1; }
 .classic-lss-goals { grid-column: 1; grid-row: 2 / 4; }
 .classic-lss-extra { grid-column: 2; grid-row: 2; }
@@ -2041,6 +2074,25 @@
   border: 1px dashed var(--lss-soft);
   border-radius: 0.2rem;
   background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.classic-lss-portrait__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.classic-lss-portrait__empty {
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-muted);
 }
 
 .classic-lss-p2 .classic-panel--grow,
@@ -2332,4 +2384,35 @@
 @page {
   size: letter;
   margin: 0;
+}
+
+/* Narrow screens: Letter canvas stays full size; page scrolls horizontally. */
+@media screen and (max-width: 900px) {
+  .classic-print-page {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .classic-print-toolbar {
+    position: sticky;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .classic-stack {
+    padding: 0.65rem;
+    justify-items: start;
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .classic-background-picker {
+    margin-left: 0.65rem;
+    margin-right: 0.65rem;
+  }
+
+  .classic-layout-switch {
+    flex-wrap: wrap;
+  }
 }

@@ -1,11 +1,58 @@
 import type { CharacterDetail } from '../../shared/api/characters'
 import {
+  createTextPart,
+  readTextBlocks,
+  textBlocksToSheet,
+  withBlockPlainText,
+  type TextBlock,
+} from '../characters/textBlocks'
+import {
   ABILITY_KEYS,
   SKILL_DEFS,
   asRecord,
   readNumber,
   type AbilityKey,
 } from '../characters/sheetTypes'
+
+/** Classic-only note mirrors that textBlocksToSheet does not always own. */
+export const CLASSIC_EXTRA_NOTE_KEYS = new Set([
+  'allies',
+  'treasure',
+  'attacks',
+  'free',
+  'appearance',
+  'background',
+  'quests',
+])
+
+/** Merge full text-block write-back without dropping classic-only note mirrors. */
+export function mergeClassicTextBlocks(
+  character: CharacterDetail,
+  blocks: TextBlock[],
+  extraNoteMirrors?: Record<string, string>,
+): ClassicPatch {
+  const sheet = cloneSheet(asRecord(character.sheet))
+  const packed = textBlocksToSheet(blocks)
+  const prevNotes = asRecord(sheet.notes)
+  const nextNotes = asRecord(packed.notes)
+
+  sheet.text_blocks = packed.text_blocks
+  sheet.text_blocks_order = packed.text_blocks_order
+  sheet.features_text = {
+    ...asRecord(sheet.features_text),
+    ...asRecord(packed.features_text),
+  }
+  sheet.personality = {
+    ...asRecord(sheet.personality),
+    ...asRecord(packed.personality),
+  }
+  sheet.notes = {
+    ...prevNotes,
+    ...nextNotes,
+    ...(extraNoteMirrors ?? {}),
+  }
+  return { sheet }
+}
 
 export type ClassicPatch = {
   name?: string
@@ -173,32 +220,39 @@ export function applyClassicEdits(
     sheet.skills = skills
   }
   if (edits.textBlocks) {
-    const features = asRecord(sheet.features_text)
-    const personality = asRecord(sheet.personality)
-    const notes = asRecord(sheet.notes)
-    const blocks = asRecord(sheet.text_blocks)
+    // Rebuild via the same path as the interactive sheet so `parts` stay in sync.
+    let blocks = readTextBlocks(sheet)
+    const extraMirrors: Record<string, string> = {}
     for (const [key, value] of Object.entries(edits.textBlocks)) {
-      if (key === 'features' || key === 'traits' || key === 'feats') features[key] = value
-      else if (key === 'personality' || key === 'ideals' || key === 'bonds' || key === 'flaws') {
-        personality[key] = value
-      } else if (
-        key === 'appearance' ||
-        key === 'background' ||
-        key === 'quests' ||
-        key === 'free' ||
-        key === 'treasure' ||
-        key === 'allies'
-      ) {
-        notes[key] = value
+      const index = blocks.findIndex((block) => block.key === key)
+      if (index >= 0) {
+        const next = [...blocks]
+        next[index] = withBlockPlainText(next[index], value)
+        blocks = next
+      } else {
+        const stub: TextBlock = withBlockPlainText(
+          {
+            key,
+            defaultLabel: key,
+            customLabel: null,
+            isHidden: false,
+            isCustom: false,
+            value: '',
+            resourceId: null,
+            parts: [createTextPart('')],
+          },
+          value,
+        )
+        blocks = [...blocks, stub]
       }
-      const existing = asRecord(blocks[key])
-      existing.value = value
-      blocks[key] = existing
+      if (CLASSIC_EXTRA_NOTE_KEYS.has(key)) extraMirrors[key] = value
     }
-    sheet.features_text = features
-    sheet.personality = personality
-    sheet.notes = notes
-    sheet.text_blocks = blocks
+    const patched = mergeClassicTextBlocks(
+      { ...character, sheet },
+      blocks,
+      extraMirrors,
+    )
+    if (patched.sheet) Object.assign(sheet, patched.sheet)
   }
   if (edits.otherProficiencies != null) {
     setPath(sheet, ['notes', 'proficiencies'], edits.otherProficiencies)

@@ -40,6 +40,15 @@ import {
   clampMarks,
   numOrNull,
 } from './classicPrintShared'
+import {
+  addClassicNote,
+  classicNoteLabel,
+  classicNoteText,
+  listClassicNotes,
+  paddedClassicNoteSlots,
+  setClassicNoteLabel,
+  setClassicNoteText,
+} from './classicNotes'
 import { ClassicTextBlock } from './ClassicTextBlock'
 
 type Props = {
@@ -62,7 +71,6 @@ const ABILITY_COL_LEFT: AbilityKey[] = ['str', 'dex', 'con']
 const ABILITY_COL_RIGHT: AbilityKey[] = ['int', 'wis', 'cha']
 
 const SPELL_TABLE_ROWS = 28
-const NOTES_SLOTS = 6
 
 /**
  * Classic 2024 printable layout — LSS-style 4 pages (display only).
@@ -98,7 +106,8 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
     (skillFlags(c, 'perception').is_expertise ? proficiency : 0)
 
   const spellRows = buildSpellTableRows(spells.known)
-  const featureChunks = splitFeatureNotes(textBlockValue(c, 'features'), NOTES_SLOTS)
+  const customNotes = listClassicNotes(c)
+  const noteSlots = paddedClassicNoteSlots(customNotes)
 
   return (
     <>
@@ -502,7 +511,13 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
       >
         <div className="classic-lss-p2-grid">
           <section className="classic-panel classic-lss-portrait">
-            <div className="classic-lss-portrait__frame" aria-hidden />
+            <div className="classic-lss-portrait__frame">
+              {c.avatar_url ? (
+                <img src={c.avatar_url} alt={`Портрет: ${c.name}`} />
+              ) : (
+                <span className="classic-lss-portrait__empty">Нет портрета</span>
+              )}
+            </div>
             <div className="classic-caption">Портрет</div>
           </section>
           <section className="classic-panel classic-panel--grow classic-lss-allies">
@@ -560,31 +575,62 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
         </div>
       </article>
 
-      {/* ——— P3 feature notes ——— */}
+      {/* ——— P3 custom notes (same notes-N as interactive sheet) ——— */}
       <article
         className="classic-sheet classic-lss classic-lss-p3"
-        aria-label="Классический лист 2024, страница 3"
+        aria-label="Классический лист 2024, страница 3 — заметки"
       >
+        <div className="classic-notes-toolbar no-print">
+          <button type="button" onClick={() => onPatch(addClassicNote(c))}>
+            Добавить заметку
+          </button>
+          <span>
+            {customNotes.length === 0
+              ? 'Те же блоки, что в «Тексты и заметки»'
+              : `${customNotes.length} ${customNotes.length === 1 ? 'заметка' : 'заметок'}`}
+          </span>
+        </div>
         <div className="classic-lss-notes-grid">
-          {featureChunks.map((chunk, i) => (
-            <section className="classic-panel classic-lss-note" key={`note-${i}`}>
-              <ClassicTextBlock
-                blockId={`features_note_${i}`}
-                character={c}
-                onPatch={onPatch}
-                fill
-                value={chunk}
-                printMaxHeight="12rem"
-                ariaLabel={`Заметки ${i + 1}`}
-                onChange={(value) => {
-                  const next = [...featureChunks]
-                  next[i] = value
-                  patch({ textBlocks: { features: next.filter(Boolean).join('\n\n') } })
-                }}
-              />
-              <div className="classic-caption">Заметки</div>
-            </section>
-          ))}
+          {noteSlots.map((block, i) =>
+            block ? (
+              <section className="classic-panel classic-lss-note classic-note-card" key={block.key}>
+                <label className="classic-note-card__title">
+                  <span>Название</span>
+                  <input
+                    value={classicNoteLabel(block)}
+                    onChange={(e) =>
+                      onPatch(setClassicNoteLabel(c, block.key, e.target.value))
+                    }
+                  />
+                </label>
+                <ClassicTextBlock
+                  blockId={`note_${block.key}`}
+                  character={c}
+                  onPatch={onPatch}
+                  fill
+                  value={classicNoteText(block)}
+                  printMaxHeight="9rem"
+                  ariaLabel={classicNoteLabel(block)}
+                  onChange={(value) => onPatch(setClassicNoteText(c, block.key, value))}
+                />
+                <div className="classic-caption">{classicNoteLabel(block)}</div>
+              </section>
+            ) : (
+              <section
+                className="classic-panel classic-lss-note classic-note-card classic-note-card--empty"
+                key={`empty-note-${i}`}
+              >
+                <button
+                  type="button"
+                  className="classic-note-card__add no-print"
+                  onClick={() => onPatch(addClassicNote(c))}
+                >
+                  + Заметка
+                </button>
+                <div className="classic-caption">Заметка</div>
+              </section>
+            ),
+          )}
         </div>
       </article>
 
@@ -962,15 +1008,3 @@ function hasMaterial(spell: SheetSpell | null): boolean {
   return Boolean(spell?.components?.m)
 }
 
-function splitFeatureNotes(text: string, slots: number): string[] {
-  const parts = text
-    .split(/\n{2,}/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-  const out: string[] = []
-  for (let i = 0; i < slots; i += 1) out.push(parts[i] ?? '')
-  if (parts.length > slots) {
-    out[slots - 1] = [out[slots - 1], ...parts.slice(slots)].filter(Boolean).join('\n\n')
-  }
-  return out
-}

@@ -42,6 +42,7 @@ import {
 } from './classicCompanions'
 import {
   addClassicNote,
+  CLASSIC_NOTES_PER_PAGE,
   chunkClassicNotePages,
   classicNoteLabel,
   classicNoteText,
@@ -101,7 +102,13 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
   const spellStats = classicSpellStats(c, spells)
   const companionSlots = paddedCompanionSlots(classicCompanions(c))
   const customNotes = listClassicNotes(c)
-  const notePages = chunkClassicNotePages(customNotes)
+  // 2024 puts the first 6 notes on LSS P3; trailing pages only for overflow (or all pages on 2014).
+  const trailingNotes =
+    sheetLayout === '2024' ? customNotes.slice(CLASSIC_NOTES_PER_PAGE) : customNotes
+  const notePages =
+    sheetLayout === '2014' && trailingNotes.length === 0
+      ? [[]]
+      : chunkClassicNotePages(trailingNotes)
   const spellCardPages = chunkSpellCardPages(classicSpellCardFaces(c))
   const passivePerception =
     10 +
