@@ -1,15 +1,31 @@
+/*
+  App chrome = dark theme (list, card, modals, toolbar).
+  Classic character sheet (.sheet) re-declares paper tokens and stays light.
+*/
 :root {
-  --ink: #1a1a1a;
-  --muted: #5a5a5a;
-  --line: #2b2b2b;
-  --panel: #fff;
-  --paper: #f3f0ea;
-  --accent: #3d4a3c;
-  --toolbar: #1f2420;
-  --danger: #8b3a3a;
+  color-scheme: dark;
+
+  --ink: #e8e4dc;
+  --muted: #9a958c;
+  --line: #3d4540;
+  --panel: #1c211e;
+  --panel-raised: #262c28;
+  --paper: #121613;
+  --accent: #6a7d68;
+  --accent-strong: #849882;
+  --toolbar: #0e110f;
+  --danger: #c46b6b;
+  --on-accent: #f5f2eb;
+  --border: #3f4842;
+  --border-soft: #2e3531;
+  --input-bg: #0e110f;
+  --hover: #2a322c;
+  --shadow: rgb(0 0 0 / 40%);
+  --backdrop: rgb(6 8 7 / 72%);
+
   font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
   color: var(--ink);
-  background: #d8d2c6;
+  background: var(--paper);
   line-height: 1.25;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -53,8 +69,9 @@ button {
   justify-content: space-between;
   padding: 0.75rem 1.25rem;
   background: var(--toolbar);
-  color: #f5f2eb;
-  box-shadow: 0 2px 12px rgb(0 0 0 / 25%);
+  color: var(--on-accent);
+  box-shadow: 0 2px 12px var(--shadow);
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .toolbar__brand {
@@ -87,24 +104,24 @@ button {
 }
 
 .toolbar select {
-  border: 1px solid #667066;
-  background: #2a312c;
-  color: #f5f2eb;
+  border: 1px solid var(--border);
+  background: var(--panel-raised);
+  color: var(--on-accent);
   border-radius: 4px;
   padding: 0.25rem 0.45rem;
 }
 
 .toolbar button {
-  border: 1px solid #8a9488;
-  background: #3d4a3c;
-  color: #fff;
+  border: 1px solid var(--accent-strong);
+  background: var(--accent);
+  color: var(--on-accent);
   border-radius: 4px;
   padding: 0.4rem 0.85rem;
   font-weight: 600;
 }
 
 .toolbar button:hover {
-  background: #4d5c4c;
+  background: var(--accent-strong);
 }
 
 .toolbar button:disabled {
@@ -126,7 +143,7 @@ button {
 }
 
 .toolbar__back:hover {
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .btn {
@@ -134,9 +151,9 @@ button {
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  border: 1px solid #8a9488;
-  background: #2f3831;
-  color: #f5f2eb;
+  border: 1px solid var(--border);
+  background: var(--panel-raised);
+  color: var(--ink);
   border-radius: 4px;
   padding: 0.4rem 0.85rem;
   font-weight: 600;
@@ -145,12 +162,17 @@ button {
 }
 
 .btn:hover {
-  background: #3d4a3c;
+  background: var(--hover);
 }
 
 .btn--primary {
-  background: #3d4a3c;
-  border-color: #9bb092;
+  background: var(--accent);
+  border-color: var(--accent-strong);
+  color: var(--on-accent);
+}
+
+.btn--primary:hover {
+  background: var(--accent-strong);
 }
 
 .btn--large {
@@ -160,8 +182,8 @@ button {
 
 .btn--quiet {
   background: transparent;
-  border-color: #667066;
-  color: #c5cec2;
+  border-color: var(--border);
+  color: var(--muted);
 }
 
 .list-viewport,
@@ -178,11 +200,11 @@ button {
 }
 
 .character-card {
-  background: #fffaf2;
-  border: 1px solid #cfc5b4;
+  background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 1rem;
-  box-shadow: 0 8px 20px rgb(0 0 0 / 8%);
+  box-shadow: 0 8px 20px var(--shadow);
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
@@ -208,7 +230,7 @@ button {
 }
 
 .character-card__stats div {
-  background: #f3eee4;
+  background: var(--panel-raised);
   border-radius: 6px;
   padding: 0.35rem;
   text-align: center;
@@ -238,11 +260,11 @@ button {
 }
 
 .card-panel {
-  background: #fffaf2;
-  border: 1px solid #cfc5b4;
+  background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.25rem;
-  box-shadow: 0 10px 24px rgb(0 0 0 / 8%);
+  box-shadow: 0 10px 24px var(--shadow);
 }
 
 .card-panel h1,
@@ -276,7 +298,7 @@ button {
 
 .card-form input,
 .card-form select {
-  border: 1px solid #cfc5b4;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0.45rem 0.55rem;
   font-size: 1rem;
@@ -284,7 +306,7 @@ button {
   text-transform: none;
   letter-spacing: normal;
   color: var(--ink);
-  background: #fff;
+  background: var(--input-bg);
 }
 
 .card-abilities {
@@ -295,17 +317,17 @@ button {
 }
 
 .card-abilities div {
-  border: 1px solid #d7d0c3;
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.55rem 0.65rem;
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
-  background: #f7f2e8;
+  background: var(--panel-raised);
 }
 
 .card-cta {
-  border-top: 1px solid #e0d8ca;
+  border-top: 1px solid var(--border-soft);
   padding-top: 1rem;
   display: grid;
   gap: 0.5rem;
@@ -341,20 +363,20 @@ button {
 }
 
 .race-field input {
-  border: 1px solid #cfc5b4;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0.45rem 0.55rem;
   font-size: 1rem;
   font-weight: 400;
   color: var(--ink);
-  background: #fff;
+  background: var(--input-bg);
   width: 100%;
   box-sizing: border-box;
 }
 
 .race-field--compact input {
   border: none;
-  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid var(--ink);
   border-radius: 0;
   padding: 0.15rem 0;
   background: transparent;
@@ -370,10 +392,10 @@ button {
   margin: 0;
   padding: 0.25rem 0;
   list-style: none;
-  background: #fff;
-  border: 1px solid #cfc5b4;
+  background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  box-shadow: 0 12px 28px rgb(0 0 0 / 14%);
+  box-shadow: 0 12px 28px var(--shadow);
   max-height: 260px;
   overflow: auto;
 }
@@ -395,7 +417,7 @@ button {
 
 .race-field__list button:hover,
 .race-field__list button:focus-visible {
-  background: #f3ebe0;
+  background: var(--hover);
 }
 
 .race-field__list small {
@@ -412,7 +434,7 @@ button {
   position: fixed;
   inset: 0;
   z-index: 80;
-  background: rgb(20 16 10 / 45%);
+  background: var(--backdrop);
   display: grid;
   place-items: center;
   padding: 1rem;
@@ -423,10 +445,11 @@ button {
   max-height: min(86vh, 720px);
   display: flex;
   flex-direction: column;
-  background: #fffaf2;
-  border: 1px solid #cfc5b4;
+  background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 0 18px 40px rgb(0 0 0 / 22%);
+  box-shadow: 0 18px 40px var(--shadow);
+  color: var(--ink);
 }
 
 .modal__header,
@@ -436,12 +459,12 @@ button {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.85rem 1rem;
-  border-bottom: 1px solid #e0d8ca;
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .modal__footer {
   border-bottom: 0;
-  border-top: 1px solid #e0d8ca;
+  border-top: 1px solid var(--border-soft);
   justify-content: flex-end;
 }
 
@@ -476,11 +499,12 @@ button {
 }
 
 .race-modal__field input {
-  border: 1px solid #cfc5b4;
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 0.45rem 0.55rem;
   font: inherit;
-  background: #fff;
+  color: var(--ink);
+  background: var(--input-bg);
 }
 
 .race-modal__options {
@@ -509,8 +533,8 @@ button {
 }
 
 .chip {
-  border: 1px solid #cfc5b4;
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
   border-radius: 999px;
   padding: 0.3rem 0.65rem;
   font: inherit;
@@ -524,9 +548,9 @@ button {
 }
 
 .chip--on {
-  background: #2c2418;
-  border-color: #2c2418;
-  color: #fffaf2;
+  background: var(--accent);
+  border-color: var(--accent-strong);
+  color: var(--on-accent);
 }
 
 .race-modal__fixed,
@@ -539,7 +563,7 @@ button {
 
 .race-modal__error {
   margin: 0;
-  color: #8b1e1e;
+  color: var(--danger);
   font-weight: 600;
 }
 
@@ -556,19 +580,37 @@ button {
   justify-items: center;
 }
 
+/* Classic sheet: keep paper look regardless of app chrome theme */
 .sheet {
+  --ink: #1a1a1a;
+  --muted: #5a5a5a;
+  --line: #2b2b2b;
+  --panel: #fff;
+  --paper: #f3f0ea;
+  --accent: #3d4a3c;
+  --panel-raised: #faf8f4;
+  --border: #cfc5b4;
+  --border-soft: #e0d8ca;
+  --input-bg: #fff;
+  --hover: #f3ebe0;
+  --shadow: rgb(0 0 0 / 12%);
+  --on-accent: #f5f2eb;
+  --danger: #8b3a3a;
+  color-scheme: light;
+
   width: 8.5in;
   min-height: 11in;
   background: var(--panel);
   color: var(--ink);
   padding: 0.28in 0.28in 0.22in;
   border: 1px solid #b7b1a6;
-  box-shadow: 0 10px 30px rgb(0 0 0 / 12%);
+  box-shadow: 0 10px 30px var(--shadow);
 }
 
 .sheet-placeholder {
   width: min(40rem, 100%);
   background: #fff;
+  color: #1a1a1a;
   padding: 1.5rem;
   border-radius: 8px;
 }
@@ -1088,7 +1130,13 @@ button {
 
 @media print {
   :root {
+    color-scheme: light;
     background: #fff;
+    --ink: #1a1a1a;
+    --muted: #5a5a5a;
+    --line: #2b2b2b;
+    --panel: #fff;
+    --paper: #fff;
   }
 
   .toolbar {
