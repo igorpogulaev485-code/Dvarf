@@ -837,11 +837,25 @@ a.ui-button--primary {
   justify-items: center;
   align-items: start;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 24px 20px;
+  /* Затемнение на ::before:fixed — иначе при scroll/full-page
+     фон обрывается на высоте контента диалога */
+  background: transparent;
+}
+
+.ui-dialog-backdrop::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
   background: rgba(28, 25, 23, 0.45);
+  pointer-events: none;
 }
 
 .ui-dialog {
+  position: relative;
+  z-index: 1;
   width: min(440px, 100%);
   max-height: min(90vh, 880px);
   overflow: auto;
