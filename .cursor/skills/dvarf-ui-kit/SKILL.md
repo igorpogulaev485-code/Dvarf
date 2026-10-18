@@ -33,6 +33,11 @@ description: Canonical Dvarf frontend UI kit contract — tokens, 6 account them
 
 Live-эталоны уже в продукте: **Inventory / Attacks / Texts** — равняться на них + доски.
 
+**Play Desk / лист персонажа LOCK** ([`docs/PLAY_DESK_SOURCE_OF_TRUTH.md`](../../../docs/PLAY_DESK_SOURCE_OF_TRUTH.md), ui-kit §2r):  
+единственный вид = **прод** + доски `desk-header-lock` / `desk-chrome` / спеллы·атаки + `MinimalSheetEditor`.  
+**Запрещено** рисовать второй лист, `/dev` fake-стол с самодельной шапкой, скрины фейка как «путь на проде».  
+Скрины: только `prod` | полный tip Play Desk | `dialog-only` | ui-kit board.
+
 **Lobby Hub A1 LOCK** (`docs/ui-kit/README.md` §2q): сетка `.lobby-member-grid`, pill-табы `.lobby-hub-tab.is-active`, карточки `.lobby-member-card`.  
 CSS-хвост в `frontend/src/index.css` помечен `UI KIT LOCK — Lobby Hub` (A1→D1). **Запрещено** подменять весь `index.css` с другой ветки — только merge классов. Preflight падает без этих маркеров.
 
