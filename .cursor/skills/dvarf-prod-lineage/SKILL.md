@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/name-generation-plan-de51
+cursor/grimoire-custom-spell-b33f
 ```
 
 URL: http://201.34.132.252/
