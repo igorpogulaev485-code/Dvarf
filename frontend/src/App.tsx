@@ -2,7 +2,6 @@ import { Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useSearchParams } from 'react-router-dom'
 import { AuthDebugPage } from './pages/AuthDebugPage'
 import { CharactersPage } from './pages/CharactersPage'
-import { DevSpellDialogsHarnessPage } from './pages/DevSpellDialogsHarnessPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
 import { safeNextPath } from './shared/auth/nextPath'
@@ -66,12 +65,6 @@ export default function App() {
       <AccountAppearanceSync />
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
-        {import.meta.env.DEV ? (
-          <Route
-            path="/dev/spell-dialogs"
-            element={<DevSpellDialogsHarnessPage />}
-          />
-        ) : null}
         <Route path="/login" element={<LoginRoute />} />
         <Route
           path="/reset-password"
