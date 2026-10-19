@@ -1340,7 +1340,12 @@ export function CreateCharacterPage() {
           source: entry.source,
         }))}
         selectedId={selectedFeat?.id ?? state.feat?.id ?? null}
-        onSelect={(id) => setSelectedFeat(feats.find((row) => row.id === id) ?? null)}
+        onSelect={(id) => {
+          const entry = feats.find((row) => row.id === id) ?? null
+          setSelectedFeat(entry)
+          // Phone hides detail (Сводка only) — open setup like race/background/class.
+          if (entry && createPhoneLayout) setFeatSetupOpen(true)
+        }}
         emptyText={
           needsCatalogFeat
             ? 'Выбери черту из каталога (раса даёт черту с 1 уровня)'
@@ -1366,9 +1371,10 @@ export function CreateCharacterPage() {
         ) : null}
         <div className="create-pipeline__method-row">
           <Button
+            disabled={!selectedFeat && !state.featSetup}
             onClick={() => setFeatSetupOpen(true)}
           >
-            {state.featSetup ? 'Сменить черту' : 'Настроить черту'}
+            {state.featSetup ? 'Сменить черту' : 'Выбрать и настроить'}
           </Button>
           {!needsCatalogFeat ? (
             <Button
@@ -1398,10 +1404,16 @@ export function CreateCharacterPage() {
     )
     footer = (
       <Button
-        disabled={!featStepReady}
-        onClick={() => advanceFrom('feat')}
+        disabled={!featStepReady && !selectedFeat && needsCatalogFeat}
+        onClick={() => {
+          if (featStepReady) {
+            advanceFrom('feat')
+            return
+          }
+          setFeatSetupOpen(true)
+        }}
       >
-        Далее · Предыстория
+        {featStepReady ? 'Далее · Предыстория' : 'Настроить черту'}
       </Button>
     )
   }
@@ -1811,6 +1823,7 @@ export function CreateCharacterPage() {
         backgroundSlug={state.backgroundSetup?.entry.slug ?? null}
         proficientSkills={blockedSkillKeys}
         forcedSlug={selectedFeat?.slug ?? state.feat?.slug ?? null}
+        initialEntry={selectedFeat}
         onClose={() => setFeatSetupOpen(false)}
         onConfirm={(result: FeatSetupResult) => {
           const racePicks = state.raceSetup?.picks
