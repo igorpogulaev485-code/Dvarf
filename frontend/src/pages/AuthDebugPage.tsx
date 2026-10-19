@@ -8,6 +8,10 @@ import {
   ForgotPasswordForm,
   OAuthButtons,
 } from '../features/auth'
+import {
+  AppLegalFooter,
+  Creed20Wordmark,
+} from '../shared/brand/creed20'
 import { Panel, Stack, Text } from '../ui'
 
 type AuthView = 'register' | 'login' | 'forgot'
@@ -58,7 +62,9 @@ export function AuthDebugPage({ nextPath = null }: AuthDebugPageProps) {
     <main className="page page--auth-debug">
       <Stack gap={20}>
         <Stack gap={6}>
-          <Text as="h1">Dvarf — вход</Text>
+          <Text as="h1">
+            <Creed20Wordmark /> — вход
+          </Text>
           <Text tone="muted">Войдите, чтобы открыть список персонажей.</Text>
         </Stack>
 
@@ -109,6 +115,8 @@ export function AuthDebugPage({ nextPath = null }: AuthDebugPageProps) {
             {oauthMessage ? <Text tone="muted">{oauthMessage}</Text> : null}
           </Stack>
         </Panel>
+
+        <AppLegalFooter />
       </Stack>
     </main>
   )

@@ -4,7 +4,8 @@ import { AppHeader } from '../features/characters'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError, getAccessToken } from '../shared/api/client'
 import { joinLobby } from '../shared/api/lobbies'
-import { Button, EmptyState, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
+import { Button, EmptyState, Field, Input, Panel, Stack, Text } from '../ui'
 
 function characterMeta(c: CharacterSummary): string {
   const bits = [c.race_name, c.class_name, c.level != null ? `ур. ${c.level}` : null].filter(
@@ -24,7 +25,6 @@ export function JoinLobbyPage() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
 
   const codeReady = code.trim().length >= 4
   const selected = useMemo(
@@ -89,7 +89,7 @@ export function JoinLobbyPage() {
         <AppHeader
           title="Вход в лобби"
           subtitle="Код или QR от мастера → ваш персонаж в лобби"
-          onOfficialSite={() => setToast('Официальный сайт скоро появится')}
+          onOfficialSite={openProductSite}
         />
 
         <Panel title="Присоединиться">
@@ -196,8 +196,9 @@ export function JoinLobbyPage() {
             </form>
           )}
         </Panel>
+
+        <AppLegalFooter />
       </Stack>
-      <Toast message={toast} onClose={() => setToast(null)} />
     </main>
   )
 }

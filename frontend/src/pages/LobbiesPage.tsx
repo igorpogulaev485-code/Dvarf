@@ -7,7 +7,8 @@ import {
   type LobbySummary,
 } from '../shared/api/lobbies'
 import { ApiRequestError } from '../shared/api/client'
-import { Button, EmptyState, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
+import { Button, EmptyState, Field, Input, Panel, Stack, Text } from '../ui'
 
 export function LobbiesPage() {
   const navigate = useNavigate()
@@ -16,7 +17,6 @@ export function LobbiesPage() {
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -61,7 +61,7 @@ export function LobbiesPage() {
         <AppHeader
           title="Лобби"
           subtitle="Место игры: код и QR для игроков, внутри — сеттинг и сессии"
-          onOfficialSite={() => setToast('Официальный сайт скоро появится')}
+          onOfficialSite={openProductSite}
         />
 
         <Panel title="Создать лобби">
@@ -126,8 +126,9 @@ export function LobbiesPage() {
             </Link>
           </Stack>
         </Panel>
+
+        <AppLegalFooter />
       </Stack>
-      <Toast message={toast} onClose={() => setToast(null)} />
     </main>
   )
 }
