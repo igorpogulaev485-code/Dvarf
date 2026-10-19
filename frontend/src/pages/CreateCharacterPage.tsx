@@ -1856,10 +1856,12 @@ export function CreateCharacterPage() {
                 : state.sheetDraft.race_grant,
             },
             stepDirty: { ...state.stepDirty, feat: true },
+            // Same as race/background: finish setup → jump to next block.
+            step: 'background',
           })
           setSelectedFeat(result.entry)
           setFeatSetupOpen(false)
-          setToast(`Черта «${result.entry.name_ru}»`)
+          setToast(`Черта «${result.entry.name_ru}». Далее — предыстория.`)
         }}
       />
 
