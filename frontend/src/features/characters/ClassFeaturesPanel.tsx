@@ -190,6 +190,15 @@ function previewSummary(value: string, max = 110): string {
   return `${flat.slice(0, max - 1)}…`
 }
 
+/** Split catalog summaries that use blank lines as paragraph breaks. */
+function summaryParagraphs(value: string): string[] {
+  const parts = value
+    .split(/\n\s*\n/)
+    .map((part) => part.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+  return parts.length > 0 ? parts : value.trim() ? [value.trim()] : []
+}
+
 function featureRowKey(feature: UnlockedFeature): string {
   return `${feature.classEntryId}:${feature.source}:${feature.id}`
 }
@@ -1835,7 +1844,9 @@ export function ClassFeaturesPanel({
                       </button>
                     </div>
                     <h3 className="feature-card__title">{trait.nameRu}</h3>
-                    <Text>{trait.summaryRu}</Text>
+                    {summaryParagraphs(trait.summaryRu).map((paragraph, index) => (
+                      <Text key={`${key}:p:${index}`}>{paragraph}</Text>
+                    ))}
                   </div>
                 )
               })}
