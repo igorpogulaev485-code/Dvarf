@@ -21,6 +21,7 @@ import {
   type CharacterSummary,
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
+import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
 import { prefetchSheetRoutes } from '../shared/lazy/routes'
 import { Button, Stack, Text, Toast } from '../ui'
 import { forceReleaseBodyScrollLock } from '../ui/bodyScrollLock'
@@ -153,7 +154,7 @@ export function CharactersPage() {
               : listSubtitle(user, visibleCharacters.length, characters.length)
           }
           user={user}
-          onOfficialSite={() => setToast('Официальный сайт скоро появится')}
+          onOfficialSite={openProductSite}
         />
 
         <section className="toolbar character-list-toolbar">
@@ -246,6 +247,8 @@ export function CharactersPage() {
             }}
           />
         )}
+
+        <AppLegalFooter />
       </Stack>
 
       <CharacterTagsDialog

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AppHeader } from '../features/characters'
+import { openProductSite } from '../shared/brand/creed20'
 import { SettingMentionBody } from '../features/lobby/SettingMentionBody'
 import { SettingQuickCreateDialog } from '../features/lobby/SettingQuickCreateDialog'
 import { SETTING_LINK_PRESETS } from '../features/lobby/settingLinkPresets'
@@ -435,7 +436,7 @@ export function SettingDetailPage() {
         <AppHeader
           title={setting.name}
           subtitle={isOwner ? 'Сеттинг — вики мира' : 'Сеттинг — раскрытые страницы'}
-          onOfficialSite={() => setToast('Официальный сайт скоро появится')}
+          onOfficialSite={openProductSite}
         />
         <Text>
           <Link to={`/lobbies/${setting.lobby_id}`}>← В лобби</Link>

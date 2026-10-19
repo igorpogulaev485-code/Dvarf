@@ -374,6 +374,54 @@ a.ui-button--primary {
   width: min(980px, calc(100% - 32px));
 }
 
+.brand-wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.brand-wordmark__struck {
+  text-decoration: line-through;
+  opacity: 0.45;
+  margin-right: 0.02em;
+}
+
+.brand-wordmark__d {
+  color: var(--accent);
+}
+
+.app-legal-footer {
+  margin-top: 8px;
+  padding: 16px 0 8px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.app-legal-footer__disclaimer,
+.app-legal-footer__links {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted, var(--ink-muted, #6b6358));
+  line-height: 1.4;
+}
+
+.app-legal-footer__links a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.app-legal-footer__links a:hover {
+  text-decoration: underline;
+}
+
+.page--legal .legal-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .app-header {
   display: flex;
   flex-wrap: wrap;

@@ -4,7 +4,8 @@ import { AppHeader } from '../features/characters'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError, getAccessToken } from '../shared/api/client'
 import { joinLobby } from '../shared/api/lobbies'
-import { Button, EmptyState, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
+import { Button, EmptyState, Field, Input, Panel, Stack, Text } from '../ui'
 
 export function JoinLobbyPage() {
   const { code: routeCode = '' } = useParams()
@@ -17,7 +18,6 @@ export function JoinLobbyPage() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     if (!getAccessToken()) {
@@ -72,7 +72,7 @@ export function JoinLobbyPage() {
         <AppHeader
           title="Вход в лобби"
           subtitle="Код или QR от мастера → ваш персонаж в лобби"
-          onOfficialSite={() => setToast('Официальный сайт скоро появится')}
+          onOfficialSite={openProductSite}
         />
 
         <Panel title="Присоединиться">
@@ -119,8 +119,9 @@ export function JoinLobbyPage() {
             </form>
           )}
         </Panel>
+
+        <AppLegalFooter />
       </Stack>
-      <Toast message={toast} onClose={() => setToast(null)} />
     </main>
   )
 }

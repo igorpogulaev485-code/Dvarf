@@ -65,7 +65,7 @@ export function AppHeader({ title, subtitle, user, onOfficialSite }: AppHeaderPr
           className="app-header__official"
           onClick={onOfficialSite}
         >
-          Официальный сайт
+          Сайт КриD20
         </Button>
         <Button
           type="button"
@@ -99,7 +99,7 @@ export function AppHeader({ title, subtitle, user, onOfficialSite }: AppHeaderPr
               onOfficialSite()
             }}
           >
-            Официальный сайт
+            Сайт КриD20
           </button>
           <NavLink
             role="menuitem"

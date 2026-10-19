@@ -11,6 +11,7 @@ import {
 } from '../features/cabinet'
 import { getMe, type User } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
+import { AppLegalFooter } from '../shared/brand/creed20'
 import {
   applyAccountAppearance,
   mergeAppearanceFromUser,
@@ -146,6 +147,8 @@ export function CabinetPage() {
             </Panel>
           </div>
         ) : null}
+
+        <AppLegalFooter />
       </Stack>
 
       {toast ? <Toast message={toast} onClose={closeToast} /> : null}
