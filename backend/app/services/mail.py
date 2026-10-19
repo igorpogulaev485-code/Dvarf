@@ -57,9 +57,9 @@ def send_email(*, to: str, subject: str, text_body: str) -> None:
 def send_password_reset_email(*, to: str, reset_url: str) -> None:
     send_email(
         to=to,
-        subject="Dvarf — восстановление пароля",
+        subject="КриD20 — восстановление пароля",
         text_body=(
-            "Вы запросили восстановление пароля в Dvarf.\n\n"
+            "Вы запросили восстановление пароля в КриD20.\n\n"
             f"Перейдите по ссылке (действует ограниченное время):\n{reset_url}\n\n"
             "Если это были не вы — просто проигнорируйте письмо.\n"
         ),
@@ -69,9 +69,9 @@ def send_password_reset_email(*, to: str, reset_url: str) -> None:
 def send_email_change_confirm(*, to: str, new_email: str, confirm_url: str) -> None:
     send_email(
         to=to,
-        subject="Dvarf — подтверждение смены email",
+        subject="КриD20 — подтверждение смены email",
         text_body=(
-            "Вы запросили смену email в Dvarf.\n\n"
+            "Вы запросили смену email в КриD20.\n\n"
             f"Новый адрес: {new_email}\n\n"
             "Email сменится только после перехода по ссылке "
             f"(письмо отправлено на текущую почту):\n{confirm_url}\n\n"
@@ -83,9 +83,9 @@ def send_email_change_confirm(*, to: str, new_email: str, confirm_url: str) -> N
 def send_registration_verify_email(*, to: str, verify_url: str) -> None:
     send_email(
         to=to,
-        subject="Dvarf — подтверждение регистрации",
+        subject="КриD20 — подтверждение регистрации",
         text_body=(
-            "Добро пожаловать в Dvarf!\n\n"
+            "Добро пожаловать в КриD20!\n\n"
             "Чтобы завершить регистрацию, подтвердите email по ссылке "
             f"(действует ограниченное время):\n{verify_url}\n\n"
             "Если вы не регистрировались — просто проигнорируйте письмо.\n"
