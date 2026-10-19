@@ -1121,10 +1121,9 @@ export function MinimalSheetEditor({
             nextGrant = { ...nextGrant, racialSpells: catalogDef.racialSpells }
           }
           if (catalogDef?.traitCards && catalogDef.traitCards.length > 0) {
-            const had = nextGrant.traitCards?.length ?? 0
-            if (had === 0) {
-              nextGrant = { ...nextGrant, traitCards: catalogDef.traitCards }
-            }
+            // Always refresh from catalog so trait renames/copy fixes (e.g. Hungry Jaws)
+            // reach sheets that already snapshotted an older trait_cards blob.
+            nextGrant = { ...nextGrant, traitCards: catalogDef.traitCards }
           }
           if (catalogDef?.traitsText && !nextGrant.traitsText?.trim()) {
             nextGrant = { ...nextGrant, traitsText: catalogDef.traitsText }
