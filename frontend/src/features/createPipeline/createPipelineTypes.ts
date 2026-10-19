@@ -9,6 +9,11 @@ import { createClassLevel } from '../../shared/dnd/classLevels'
 import type { BackgroundGrantPicks } from '../../shared/dnd/backgroundGrants'
 import type { RaceGrantPicks } from '../../shared/dnd/raceGrants'
 import { resolveRaceGrantDef } from '../../shared/dnd/raceGrants'
+import { raceRequiresFeatPick } from '../../shared/dnd/featGrants'
+import type {
+  FeatGrantPicks,
+  FeatGrantsPackage,
+} from '../../shared/dnd/featGrants'
 import type { ClassGrantPicks } from '../../shared/dnd/classGrants'
 import type {
   SubclassChangeMode,
@@ -17,7 +22,7 @@ import type {
 import type { AppliedClassAsi } from '../../shared/dnd/classAsi'
 import { emptyFeaturePicks, type FeaturePicksState } from '../../shared/dnd/featurePicks'
 
-/** Canonical order. `feat` is skipped when the race has no featNoteRu. */
+/** Canonical order. `feat` is skipped when the race does not grant a feat. */
 export const CREATE_PIPELINE_STEPS = [
   'race',
   'feat',
@@ -70,6 +75,13 @@ export type RaceSetupStored = {
   picks: RaceGrantPicks
 }
 
+/** Full feat setup from the dedicated create-pipeline step (race grant). */
+export type FeatSetupStored = {
+  entry: PipelineCatalogSnapshot
+  picks: FeatGrantPicks
+  applied: FeatGrantsPackage
+}
+
 export type SubclassSetupStored = {
   entry: PipelineCatalogSnapshot
   picks: SubclassGrantPicks
@@ -112,8 +124,10 @@ export type CreatePipelineState = {
   subrace: PipelineCatalogRef | null
   /** Full race confirm payload for re-apply on save. */
   raceSetup: RaceSetupStored | null
-  /** Feat from race (featNoteRu path); optional catalog pick. */
+  /** Feat from race (featNoteRu / feat_pick path); optional catalog pick. */
   feat: PipelineCatalogRef | null
+  /** Full feat package when chosen via FeatSetupDialog on the feat step. */
+  featSetup: FeatSetupStored | null
   /** User acknowledged racial feat note without a catalog card. */
   featAcknowledged: boolean
   abilityMethod: AbilityMethod
@@ -143,20 +157,31 @@ export function catalogSnapshot(entry: CatalogEntry): PipelineCatalogSnapshot {
   }
 }
 
-/** Racial feat note from stored race setup (if any). */
-export function raceFeatNoteRu(raceSetup: RaceSetupStored | null): string | null {
+function raceDefFromSetup(raceSetup: RaceSetupStored | null) {
   if (!raceSetup) return null
-  const def = resolveRaceGrantDef({
+  return resolveRaceGrantDef({
     raceName: raceSetup.entry.name_ru,
     catalogSlug: raceSetup.entry.slug,
     catalogData: raceSetup.entry.data,
     nameRu: raceSetup.entry.name_ru,
   })
-  const note = def?.featNoteRu?.trim()
+}
+
+/** Racial feat note from stored race setup (if any). */
+export function raceFeatNoteRu(raceSetup: RaceSetupStored | null): string | null {
+  const note = raceDefFromSetup(raceSetup)?.featNoteRu?.trim()
   return note || null
 }
 
+/** Race grants a real feat pick (Variant Human / Custom Lineage) — catalog required. */
+export function raceRequiresCatalogFeat(raceSetup: RaceSetupStored | null): boolean {
+  const def = raceDefFromSetup(raceSetup)
+  return Boolean(def && raceRequiresFeatPick(def))
+}
+
+/** Show the dedicated «Черта» step (feat_pick and/or legacy feat note). */
 export function raceNeedsFeatStep(raceSetup: RaceSetupStored | null): boolean {
+  if (raceRequiresCatalogFeat(raceSetup)) return true
   return Boolean(raceFeatNoteRu(raceSetup))
 }
 
@@ -184,6 +209,7 @@ export function createEmptyPipelineState(): CreatePipelineState {
     subrace: null,
     raceSetup: null,
     feat: null,
+    featSetup: null,
     featAcknowledged: false,
     abilityMethod: 'standard_array',
     baseAbilities: emptyBaseScores(8),

@@ -913,8 +913,14 @@ export function abilityKeysForBonusChoice(choice: AbilityBonusChoice): AbilityKe
 export function validateRaceGrantPicks(input: {
   def: RaceGrantDef
   picks: RaceGrantPicks
+  /**
+   * When false, feat_pick races may omit featCatalogId (create-pipeline defers
+   * the pick to the dedicated «Черта» step).
+   */
+  requireFeat?: boolean
 }): string | null {
   const { def, picks } = input
+  const requireFeat = input.requireFeat !== false
   const asi = def.abilityBonusChoices
   const modes = resolveAbilityBonusModes(asi)
   if (modes.length > 0) {
@@ -994,7 +1000,7 @@ export function validateRaceGrantPicks(input: {
 
   const needsFeat =
     def.featPick || def.slug === 'custom_lineage' || def.slug === 'human_variant'
-  if (needsFeat && !picks.featCatalogId) {
+  if (requireFeat && needsFeat && !picks.featCatalogId) {
     return 'Выбери черту'
   }
   if (!needsFeat && picks.featCatalogId) {

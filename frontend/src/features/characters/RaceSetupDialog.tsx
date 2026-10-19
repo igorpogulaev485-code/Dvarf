@@ -54,6 +54,11 @@ type RaceSetupDialogProps = {
   proficientSkills?: string[]
   /** Initial / current character name (required to confirm). */
   characterName?: string
+  /**
+   * Create-pipeline has a dedicated «Черта» step — skip feat picker here so
+   * Variant Human / Custom Lineage are not asked twice.
+   */
+  deferFeatPick?: boolean
   onConfirm: (result: RaceSetupConfirm) => void
   onClose: () => void
 }
@@ -90,6 +95,7 @@ export function RaceSetupDialog({
   ownedFeatEnums = [],
   proficientSkills = [],
   characterName: characterNameProp = '',
+  deferFeatPick = false,
   onConfirm,
   onClose,
 }: RaceSetupDialogProps) {
@@ -308,7 +314,7 @@ export function RaceSetupDialog({
     asiModes.length === 0 ||
     (Boolean(selectedAsiMode) && abilityBonusKeys.length === asiNeed)
 
-  const featNeed = Boolean(def && raceRequiresFeatPick(def))
+  const featNeed = Boolean(def && raceRequiresFeatPick(def) && !deferFeatPick)
   const featOk = !featNeed || Boolean(featResult)
 
   const nameOk = characterName.trim().length > 0
@@ -396,9 +402,9 @@ export function RaceSetupDialog({
             skills,
             tools,
             ancestryId,
-            featCatalogId: featResult?.entry.id ?? null,
+            featCatalogId: deferFeatPick ? null : (featResult?.entry.id ?? null),
           },
-          featResult,
+          featResult: deferFeatPick ? null : featResult,
           characterName: characterName.trim(),
         })
       }}
@@ -707,6 +713,10 @@ export function RaceSetupDialog({
                   </Button>
                 </Stack>
               </Field>
+            ) : deferFeatPick && raceRequiresFeatPick(def) ? (
+              <Text tone="muted">
+                Черту расы выберешь на следующем шаге «Черта».
+              </Text>
             ) : def.featNoteRu ? (
               <Text tone="muted">{def.featNoteRu}</Text>
             ) : null}
