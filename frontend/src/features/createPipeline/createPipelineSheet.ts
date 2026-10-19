@@ -1,5 +1,6 @@
 /** Serialize create-pipeline state into a character sheet document. */
 
+import { parseCharacterGender } from '../../shared/dnd/characterGender'
 import type { AbilityScores } from '../../shared/dnd/multiclassRules'
 import { mergeRacialBonuses } from '../../shared/dnd/pointBuy'
 import { totalCharacterLevel } from '../../shared/dnd/classLevels'
@@ -49,6 +50,7 @@ export function buildSheetFromPipeline(
   identity.background_catalog_id = state.background?.id ?? null
   identity.class_catalog_id = state.classRef?.id ?? null
   identity.background = state.background?.nameRu ?? identity.background ?? null
+  identity.gender = state.gender
   identity.experience = xpToReachLevel(totalCharacterLevel(classes))
   sheet.identity = identity
 
@@ -84,12 +86,14 @@ export function buildSheetFromPipeline(
     baseAbilities: state.baseAbilities,
     hpChoices: state.hpChoices,
     characterName: state.characterName,
+    gender: state.gender,
     classEntryId: state.classEntryId,
     background: state.background,
     classRef: state.classRef,
     race: state.race,
     subrace: state.subrace,
     feat: state.feat,
+    featSetup: state.featSetup,
     featAcknowledged: state.featAcknowledged,
     backgroundSetup: state.backgroundSetup,
     raceSetup: state.raceSetup,
@@ -143,6 +147,10 @@ export function hydratePipelineFromSheet(
     step: (meta.step as CreatePipelineState['step']) || fallback.step,
     characterName:
       typeof meta.characterName === 'string' ? meta.characterName : fallback.characterName,
+    gender:
+      parseCharacterGender(meta.gender) ??
+      parseCharacterGender(asRecord(sheet.identity).gender) ??
+      fallback.gender,
     abilityMethod:
       (meta.abilityMethod as CreatePipelineState['abilityMethod']) || fallback.abilityMethod,
     baseAbilities:
@@ -165,6 +173,8 @@ export function hydratePipelineFromSheet(
     raceSetup:
       (meta.raceSetup as CreatePipelineState['raceSetup']) || fallback.raceSetup,
     feat: (meta.feat as CreatePipelineState['feat']) || fallback.feat,
+    featSetup:
+      (meta.featSetup as CreatePipelineState['featSetup']) || fallback.featSetup,
     featAcknowledged: Boolean(meta.featAcknowledged),
     classes: classes.length ? classes : fallback.classes,
     featurePicks,

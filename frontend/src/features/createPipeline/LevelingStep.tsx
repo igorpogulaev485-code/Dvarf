@@ -52,14 +52,19 @@ type LevelingStepProps = {
   /** Live caster tables from class levels (slots / prepare / known mode). */
   spellcasting?: {
     labelRu: string
+    mode?: 'known' | 'prepared_list' | 'spellbook'
     maxPrepared: number | null
     knownLeveled: number
     preparedLeveled: number
     /** PHB cantrips known on sheet / cap (null cap = not tracked). */
     cantripsKnown?: number
     cantripsMax?: number | null
-    /** Cap for leveled known / spellbook (null = full-list prepare caster). */
+    /** Cap for leveled known / spellbook free research (null = full-list prepare caster). */
     leveledKnownMax?: number | null
+    /** Wizard: remaining free book fills at current level. */
+    freeBookLeft?: number | null
+    /** Leveled on sheet that are not prepared (prepared_list / spellbook). */
+    unpreparedLeveled?: number
     slots: Record<string, SpellSlotState>
     pactSlots: PactSlotState | null
   } | null
@@ -373,11 +378,24 @@ export function LevelingStep({
                 spellcasting.cantripsMax != null
                   ? `Заговоры: ${spellcasting.cantripsKnown ?? 0}/${spellcasting.cantripsMax}`
                   : null,
-                spellcasting.maxPrepared == null
-                  ? spellcasting.leveledKnownMax != null
-                    ? `Известно: ${spellcasting.knownLeveled}/${spellcasting.leveledKnownMax}`
-                    : `Известно (на листе): ${spellcasting.knownLeveled}`
-                  : `Подготовка: ${spellcasting.preparedLeveled}/${spellcasting.maxPrepared}`,
+                spellcasting.mode === 'spellbook'
+                  ? `В книге: ${spellcasting.knownLeveled}${
+                      spellcasting.freeBookLeft != null
+                        ? ` · бесплатно ещё ${spellcasting.freeBookLeft}`
+                        : ''
+                    }`
+                  : spellcasting.mode === 'known' || spellcasting.maxPrepared == null
+                    ? spellcasting.leveledKnownMax != null
+                      ? `Известно: ${spellcasting.knownLeveled}/${spellcasting.leveledKnownMax}`
+                      : `Известно (на листе): ${spellcasting.knownLeveled}`
+                    : `На листе: ${spellcasting.knownLeveled}${
+                        spellcasting.unpreparedLeveled
+                          ? ` · не подг. ${spellcasting.unpreparedLeveled}`
+                          : ''
+                      }`,
+                spellcasting.mode !== 'known' && spellcasting.maxPrepared != null
+                  ? `Подготовка: ${spellcasting.preparedLeveled}/${spellcasting.maxPrepared}`
+                  : null,
                 `Ячейки: ${formatSlotBrief(spellcasting.slots)}`,
                 spellcasting.pactSlots && spellcasting.pactSlots.max > 0
                   ? `Pact ${spellcasting.pactSlots.max}×${spellcasting.pactSlots.level}`
@@ -387,8 +405,11 @@ export function LevelingStep({
                 .join(' · ')}
             </Text>
             <Text tone="muted">
-              При мультиклассе ячейки и лимит подготовки пересчитываются по таблицам PHB 2014.
-              Выбор — в гримуаре (только список класса и доступные круги).
+              {spellcasting.mode === 'spellbook'
+                ? 'Волшебник: на 1 ур. — 6 бесплатно в книгу, каждый новый уровень — +2 бесплатно. Сверх этого — золото. Гримуар ≠ подготовка.'
+                : spellcasting.mode === 'known'
+                  ? 'Известные сразу готовы к бою. Новые — только через гримуар (кнопка «Подготовить» не нужна).'
+                  : '«На лист» в гримуаре наполняет пул; «Подготовить» выбирает сегодняшний набор. При мультиклассе ячейки/лимит — по PHB 2014.'}
             </Text>
           </Stack>
         ) : (

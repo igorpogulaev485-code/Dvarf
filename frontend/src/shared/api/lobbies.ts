@@ -32,6 +32,192 @@ export type SettingSummary = {
   updated_at: string
 }
 
+export type SettingPageKind =
+  | 'location'
+  | 'npc'
+  | 'faction'
+  | 'quest'
+  | 'item_lore'
+  | 'note'
+
+export type QuestStatus = 'planned' | 'active' | 'done' | 'failed'
+
+export type SettingPageTemplateField = {
+  key: string
+  label: string
+  type: 'text' | 'long' | 'select' | 'number' | 'url'
+  gm_only?: boolean
+  options?: string[] | null
+}
+
+export type SettingPageTemplate = {
+  id: string
+  setting_id: string | null
+  page_kind: SettingPageKind
+  name: string
+  body_seed: string
+  schema: SettingPageTemplateField[]
+  enabled: boolean
+  is_system: boolean
+}
+
+export type SettingPage = {
+  id: string
+  setting_id: string
+  parent_id: string | null
+  title: string
+  body: string
+  gm_body: string
+  sort_order: number
+  revealed: boolean
+  page_kind: SettingPageKind
+  template_id: string | null
+  fields: Record<string, string | number | boolean | null>
+  quest_status: QuestStatus | null
+  tags: string[]
+  created_at: string
+  updated_at: string
+}
+
+export type SettingPageLinkKind = 'semantic' | 'mention'
+export type SettingPageLinkVisibility = 'all' | 'gm'
+
+export type SettingPageLink = {
+  id: string
+  from_page_id: string
+  to_page_id: string
+  from_title: string
+  to_title: string
+  label: string
+  kind: SettingPageLinkKind
+  visibility: SettingPageLinkVisibility
+  created_at: string
+}
+
+export type ArtifactAbilityKind =
+  | 'passive'
+  | 'resource'
+  | 'action'
+  | 'trait'
+  | 'spell_slot'
+  | 'spell'
+  | 'companion'
+  | 'resistance'
+  | 'weapon'
+  | 'requirement'
+  | 'mode'
+  | 'skill'
+  | 'tool'
+  | 'condition_immunity'
+export type ArtifactBonusTarget =
+  | 'attack'
+  | 'damage'
+  | 'ac'
+  | 'save'
+  | 'ability'
+  | 'speed'
+  | 'darkvision'
+export type ArtifactActionCost = 'action' | 'bonus' | 'reaction' | 'free' | 'special'
+export type ArtifactResourceReset = 'short' | 'long' | 'manual' | 'dawn'
+export type ArtifactResistMode = 'resistance' | 'immunity' | 'vulnerability'
+
+export type ArtifactAbility = {
+  id?: string
+  kind: ArtifactAbilityKind
+  name: string
+  text?: string
+  bonus_target?: ArtifactBonusTarget | null
+  bonus_value?: number | null
+  ability_key?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null
+  charges?: number | null
+  reset?: ArtifactResourceReset | null
+  action_cost?: ArtifactActionCost | null
+  slot_level?: number | null
+  slot_count?: number | null
+  pact_level?: number | null
+  spell_name?: string | null
+  spell_level?: number | null
+  catalog_id?: string | null
+  prepared?: boolean | null
+  casting_time?: string | null
+  range?: string | null
+  attack_or_save?: string | null
+  damage?: string | null
+  concentration?: boolean | null
+  companion_name?: string | null
+  hp_max?: number | null
+  ac?: number | null
+  companion_type?: string | null
+  damage_type?: string | null
+  resist_mode?: ArtifactResistMode | null
+  attack_damage?: string | null
+  attack_damage_type?: string | null
+  attack_ability?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null
+  attack_range_kind?: 'melee' | 'ranged' | 'reach' | 'thrown' | null
+  ranged?: boolean | null
+  magic_bonus?: number | null
+  ability?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha' | null
+  range_kind?: 'melee' | 'ranged' | 'reach' | 'thrown' | null
+  min_score?: number | null
+  duration?: string | null
+  duration_rounds?: number | null
+  active_damage?: string | null
+  active_damage_type?: string | null
+  advantage?: boolean | null
+  max_score?: number | null
+  skill_key?: string | null
+  tool_name?: string | null
+  condition_slug?: string | null
+  condition_name?: string | null
+  attack_bonus?: number | null
+}
+
+export type SettingArtifact = {
+  id: string
+  setting_id: string
+  name: string
+  rarity: string
+  description: string
+  requires_attunement: boolean
+  abilities: ArtifactAbility[]
+  attack_damage: string
+  attack_damage_type: string
+  attack_ability: string
+  attack_range_kind: string
+  weight_lb: number | null
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export type SettingArtifactCreatePayload = {
+  name?: string
+  rarity?: string
+  description?: string
+  requires_attunement?: boolean
+  abilities?: ArtifactAbility[]
+  attack_damage?: string
+  attack_damage_type?: string
+  attack_ability?: 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
+  attack_range_kind?: 'melee' | 'ranged' | 'reach' | 'thrown'
+  weight_lb?: number | null
+  sort_order?: number
+}
+
+export type SettingArtifactUpdatePayload = SettingArtifactCreatePayload & {
+  clear_weight?: boolean
+}
+
+export type SettingDetail = SettingSummary & {
+  pages: SettingPage[]
+  links: SettingPageLink[]
+  templates: SettingPageTemplate[]
+  /** C9: уникальные теги по видимым страницам */
+  all_tags: string[]
+  artifacts?: SettingArtifact[]
+  is_owner: boolean
+}
+
 export type SessionSummary = {
   id: string
   lobby_id: string
@@ -39,6 +225,7 @@ export type SessionSummary = {
   setting_name: string | null
   name: string
   seat_count: number
+  closed_at?: string | null
   created_at: string
   updated_at: string
 }
@@ -53,8 +240,71 @@ export type LobbyDetail = {
   members: LobbyMember[]
   settings: SettingSummary[]
   sessions: SessionSummary[]
+  /** JSON профиля видимости; нормализуется на клиенте */
+  visibility_profile?: unknown
+  encounter_templates?: EncounterTemplate[]
   created_at: string
   updated_at: string
+}
+
+export type EncounterEntry = {
+  catalog_id?: string | null
+  slug?: string | null
+  name: string
+  count: number
+  hp_max?: number | null
+  ac?: number | null
+  speed?: number | null
+  xp?: number | null
+  custom?: boolean
+  actions?: CombatantAction[]
+}
+
+export type EncounterTemplate = {
+  id: string
+  name: string
+  entries: EncounterEntry[]
+  updated_at?: string | null
+}
+
+export type LobbyUpdatePayload = {
+  name?: string
+  visibility_profile?: unknown
+}
+
+export type SeatCondition = {
+  slug: string
+  name: string
+  catalog_id?: string | null
+}
+
+export type SeatCompanion = {
+  id: string
+  name: string
+  hp_current: number | null
+  hp_max: number | null
+  ac: number | null
+  conditions: SeatCondition[]
+  type?: string | null
+  duration?: string | null
+  duration_rounds?: number | null
+  attack_bonus?: number | null
+  attack_damage?: string | null
+  attack_damage_type?: string | null
+  attack_range_kind?: string | null
+}
+
+export type SeatConcentration = {
+  spell_id: string
+  name: string
+}
+
+export type SeatEffect = {
+  id: string
+  name: string
+  source_character_id?: string | null
+  source_name?: string | null
+  linked_concentration?: boolean
 }
 
 export type SessionSeat = {
@@ -65,7 +315,91 @@ export type SessionSeat = {
   character_race_name: string | null
   hp_current: number | null
   hp_max: number | null
+  ac?: number | null
+  speed?: number | null
+  inspiration?: boolean
+  conditions?: SeatCondition[]
+  effects?: SeatEffect[]
+  concentration?: SeatConcentration | null
+  /** Conc + подготовленные Conc-заклинания с листа кастера */
+  effect_suggestions?: string[]
+  companions?: SeatCompanion[]
+  passive_perception?: number | null
+  passive_insight?: number | null
+  passive_investigation?: number | null
+  dex_mod?: number | null
   seated_at: string
+}
+
+export type CombatantAction = {
+  name_ru: string
+  text_ru?: string
+  name_en?: string | null
+}
+
+export type CombatantMember = {
+  id: string
+  name: string
+  hp_current: number
+  hp_max: number
+}
+
+export type SessionCombatant = {
+  id: string
+  name: string
+  /** HP первого живого / выбранной цели для быстрого урона */
+  hp_current: number
+  hp_max: number
+  alive_count?: number
+  member_count?: number
+  ac?: number | null
+  speed?: number | null
+  cr?: string | null
+  catalog_id?: string | null
+  slug?: string | null
+  source_book?: string | null
+  type_ru?: string | null
+  custom?: boolean
+  conditions?: SeatCondition[]
+  traits?: CombatantAction[]
+  actions?: CombatantAction[]
+  bonus_actions?: CombatantAction[]
+  reactions?: CombatantAction[]
+  legendary_actions?: CombatantAction[]
+  members?: CombatantMember[]
+  dex_mod?: number | null
+  xp?: number | null
+  /** Сколько поверженных из пачки уже учтены в раздаче XP. */
+  xp_claimed_count?: number
+  /** @deprecated используй xp_claimed_count */
+  xp_claimed?: boolean
+}
+
+export type CombatEntryKind = 'pc' | 'companion' | 'enemy'
+
+export type CombatEntry = {
+  id: string
+  kind: CombatEntryKind | string
+  ref_id: string
+  companion_id?: string | null
+  name: string
+  initiative: number
+  dex_mod?: number | null
+}
+
+export type SessionCombat = {
+  active: boolean
+  round: number
+  active_index: number
+  entries: CombatEntry[]
+}
+
+export type SessionLorePage = {
+  id: string
+  title: string
+  page_kind: SettingPageKind
+  revealed: boolean
+  quest_status?: QuestStatus | null
 }
 
 export type SessionDetail = {
@@ -77,9 +411,67 @@ export type SessionDetail = {
   name: string
   is_owner: boolean
   seats: SessionSeat[]
+  combatants?: SessionCombatant[]
+  combat?: SessionCombat
   lobby_members: LobbyMember[]
+  visibility_profile?: unknown
+  /** T3 */
+  location_page_id?: string | null
+  involved_page_ids?: string[]
+  location_page?: SessionLorePage | null
+  involved_pages?: SessionLorePage[]
+  closed_at?: string | null
   created_at: string
   updated_at: string
+}
+
+export type JournalEntryType =
+  | 'text'
+  | 'chapter'
+  | 'setting_link'
+  | 'image'
+  | 'session_summary'
+  | 'quest_status'
+
+export type JournalEntry = {
+  id: string
+  lobby_id: string
+  author_user_id: string | null
+  entry_type: JournalEntryType | string
+  title: string
+  body: string
+  image_url: string | null
+  setting_id: string | null
+  setting_name: string | null
+  page_id: string | null
+  page_title: string | null
+  from_session_id: string | null
+  from_session_name: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type JournalPage = {
+  items: JournalEntry[]
+  total: number
+  offset: number
+  limit: number
+}
+
+export type SessionEvent = {
+  id: string
+  session_id: string
+  event_type: string
+  character_id: string | null
+  actor_user_id: string | null
+  character_name: string | null
+  title: string
+  formula: string | null
+  breakdown: string | null
+  total: number | null
+  is_master_roll: boolean
+  payload: Record<string, unknown>
+  created_at: string
 }
 
 export async function listLobbies(): Promise<LobbySummary[]> {
@@ -97,10 +489,13 @@ export async function getLobby(id: string): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>(`/lobbies/${id}`)
 }
 
-export async function updateLobby(id: string, name: string): Promise<LobbyDetail> {
+export async function updateLobby(
+  id: string,
+  payload: LobbyUpdatePayload,
+): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>(`/lobbies/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ name }),
+    body: JSON.stringify(payload),
   })
 }
 
@@ -115,11 +510,30 @@ export async function joinLobby(code: string, characterId: string): Promise<Lobb
   })
 }
 
+/** @deprecated Состав только через joinLobby(code). Эндпоинт отвечает 400. */
 export async function addLobbyMember(lobbyId: string, characterId: string): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/members`, {
     method: 'POST',
     body: JSON.stringify({ character_id: characterId }),
   })
+}
+
+export async function shareLobbyEffect(
+  lobbyId: string,
+  payload: {
+    source_character_id: string
+    name: string
+    target_character_ids: string[]
+    linked_concentration?: boolean
+  },
+): Promise<{ applied: number; lobby: LobbyDetail }> {
+  return apiRequest<{ applied: number; lobby: LobbyDetail }>(
+    `/lobbies/${lobbyId}/share-effect`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  )
 }
 
 export async function removeLobbyMember(
@@ -141,8 +555,8 @@ export async function createSetting(
   })
 }
 
-export async function getSetting(id: string): Promise<SettingSummary> {
-  return apiRequest<SettingSummary>(`/settings/${id}`)
+export async function getSetting(id: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${id}`)
 }
 
 export async function updateSetting(
@@ -159,9 +573,132 @@ export async function deleteSetting(id: string): Promise<void> {
   await apiRequest<void>(`/settings/${id}`, { method: 'DELETE' })
 }
 
+export async function createSettingPage(
+  settingId: string,
+  payload: {
+    title?: string
+    body?: string
+    gm_body?: string
+    parent_id?: string | null
+    page_kind?: SettingPageKind
+    template_id?: string | null
+    fields?: Record<string, string | number | boolean | null>
+    quest_status?: QuestStatus | null
+    tags?: string[]
+  },
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${settingId}/pages`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function bulkCreateSettingPages(
+  settingId: string,
+  payload: {
+    titles: string[]
+    page_kind?: SettingPageKind
+    template_id?: string | null
+    parent_id?: string | null
+    body?: string
+  },
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${settingId}/pages/bulk`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateSettingPage(
+  pageId: string,
+  payload: {
+    title?: string
+    body?: string
+    gm_body?: string
+    parent_id?: string | null
+    clear_parent?: boolean
+    sort_order?: number
+    revealed?: boolean
+    reveal_subtree?: boolean
+    page_kind?: SettingPageKind
+    template_id?: string | null
+    clear_template?: boolean
+    fields?: Record<string, string | number | boolean | null>
+    quest_status?: QuestStatus | null
+    clear_quest_status?: boolean
+    create_missing_mentions?: boolean
+    tags?: string[]
+  },
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteSettingPage(pageId: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/pages/${pageId}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function createSettingPageLink(
+  pageId: string,
+  payload: {
+    to_page_id: string
+    label?: string
+    kind?: SettingPageLinkKind
+    visibility?: SettingPageLinkVisibility
+    bidirectional?: boolean
+    reverse_label?: string | null
+  },
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/pages/${pageId}/links`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteSettingPageLink(linkId: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/page-links/${linkId}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function createSettingArtifact(
+  settingId: string,
+  payload: SettingArtifactCreatePayload,
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/${settingId}/artifacts`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateSettingArtifact(
+  artifactId: string,
+  payload: SettingArtifactUpdatePayload,
+): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/artifacts/${artifactId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteSettingArtifact(artifactId: string): Promise<SettingDetail> {
+  return apiRequest<SettingDetail>(`/settings/artifacts/${artifactId}`, {
+    method: 'DELETE',
+  })
+}
+
 export async function createSession(
   lobbyId: string,
-  payload: { name?: string; setting_id?: string | null },
+  payload: {
+    name?: string
+    setting_id?: string | null
+    /** Кто пришёл — сразу за стол (посещаемость) */
+    character_ids?: string[]
+  },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/lobbies/${lobbyId}/sessions`, {
     method: 'POST',
@@ -175,7 +712,14 @@ export async function getSession(id: string): Promise<SessionDetail> {
 
 export async function updateSession(
   id: string,
-  payload: { name?: string; setting_id?: string | null; clear_setting?: boolean },
+  payload: {
+    name?: string
+    setting_id?: string | null
+    clear_setting?: boolean
+    location_page_id?: string | null
+    clear_location_page?: boolean
+    involved_page_ids?: string[]
+  },
 ): Promise<SessionDetail> {
   return apiRequest<SessionDetail>(`/sessions/${id}`, {
     method: 'PATCH',
@@ -203,7 +747,499 @@ export async function unseatCharacter(
   })
 }
 
+export async function patchSeatCombat(
+  sessionId: string,
+  characterId: string,
+  payload: {
+    inspiration?: boolean
+    conditions?: SeatCondition[]
+    effects?: SeatEffect[]
+    concentration?: SeatConcentration | null
+    clear_concentration?: boolean
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/seats/${characterId}/combat`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
+export async function addSeatCompanion(
+  sessionId: string,
+  characterId: string,
+  payload: {
+    name: string
+    hp_current?: number | null
+    hp_max?: number | null
+    ac?: number | null
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/seats/${characterId}/companions`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
+export async function patchSeatCompanion(
+  sessionId: string,
+  characterId: string,
+  companionId: string,
+  payload: {
+    name?: string
+    hp_current?: number | null
+    hp_max?: number | null
+    ac?: number | null
+    conditions?: SeatCondition[]
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/seats/${characterId}/companions/${companionId}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    },
+  )
+}
+
+export async function deleteSeatCompanion(
+  sessionId: string,
+  characterId: string,
+  companionId: string,
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/seats/${characterId}/companions/${companionId}`,
+    { method: 'DELETE' },
+  )
+}
+
+export async function addSessionCombatants(
+  sessionId: string,
+  payload: {
+    catalog_id?: string | null
+    slug?: string | null
+    name?: string | null
+    hp_max?: number | null
+    ac?: number | null
+    speed?: number | null
+    count?: number
+    actions?: CombatantAction[]
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(`/sessions/${sessionId}/combatants`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function patchSessionCombatant(
+  sessionId: string,
+  combatantId: string,
+  payload: {
+    hp_current?: number
+    hp_max?: number
+    ac?: number | null
+    name?: string
+    damage?: number
+    member_id?: string
+    member_damages?: { member_id: string; damage: number }[]
+    conditions?: SeatCondition[]
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(`/sessions/${sessionId}/combatants/${combatantId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteSessionCombatant(
+  sessionId: string,
+  combatantId: string,
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(`/sessions/${sessionId}/combatants/${combatantId}`, {
+    method: 'DELETE',
+  })
+}
+
+export type CombatEntryInput = {
+  kind: CombatEntryKind
+  ref_id: string
+  companion_id?: string | null
+  name: string
+  initiative: number
+  dex_mod?: number | null
+}
+
+export async function startSessionCombat(
+  sessionId: string,
+  payload: { entries: CombatEntryInput[] },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(`/sessions/${sessionId}/combat/start`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function patchSessionCombat(
+  sessionId: string,
+  payload: {
+    action?: 'next' | 'prev' | 'end' | null
+    active_index?: number
+    round?: number
+    entries?: CombatEntryInput[]
+  },
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(`/sessions/${sessionId}/combat`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type XpAwardResult = {
+  session: SessionDetail
+  awarded_each: number
+  awarded_total: number
+  recipients: string[]
+}
+
+export async function awardSessionXp(
+  sessionId: string,
+  payload: {
+    character_ids: string[]
+    total_xp?: number | null
+    per_character_xp?: number | null
+    source?: string
+    note?: string | null
+    claim_combatant_ids?: string[]
+  },
+): Promise<XpAwardResult> {
+  return apiRequest<XpAwardResult>(`/sessions/${sessionId}/xp`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type SessionRevealPageResult = {
+  session: SessionDetail
+  event: SessionEvent
+  page_id: string
+  page_title: string
+  revealed: boolean
+  reveal_subtree: boolean
+  affected_count: number
+}
+
+/** T2: раскрыть страницу сеттинга mid-session → лента. */
+export async function revealSessionPage(
+  sessionId: string,
+  payload: {
+    page_id: string
+    reveal_subtree?: boolean
+    revealed?: boolean
+  },
+): Promise<SessionRevealPageResult> {
+  return apiRequest<SessionRevealPageResult>(`/sessions/${sessionId}/reveal-page`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type SessionQuestStatusResult = {
+  session: SessionDetail
+  event: SessionEvent
+  page_id: string
+  page_title: string
+  quest_status: QuestStatus
+  journal_entry: JournalEntry | null
+}
+
+/** T4: статус квеста mid-session → лента + опционально дневник. */
+export async function updateSessionQuestStatus(
+  sessionId: string,
+  payload: {
+    page_id: string
+    quest_status: QuestStatus
+    write_journal?: boolean
+    title?: string
+    summary?: string
+  },
+): Promise<SessionQuestStatusResult> {
+  return apiRequest<SessionQuestStatusResult>(`/sessions/${sessionId}/quest-status`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type LootAwardResult = {
+  session: SessionDetail
+  summary: string
+  recipient_names: string[]
+}
+
+export async function awardSessionLoot(
+  sessionId: string,
+  payload: {
+    grants: Array<{
+      character_id: string
+      item?: {
+        name?: string
+        qty: number
+        notes?: string | null
+        artifact_id?: string | null
+      }
+      coins?: {
+        cp?: number
+        sp?: number
+        ep?: number
+        gp?: number
+        pp?: number
+      }
+    }>
+    note?: string | null
+  },
+): Promise<LootAwardResult> {
+  return apiRequest<LootAwardResult>(`/sessions/${sessionId}/loot`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type InventoryTransferResult = {
+  summary: string
+  from_character_id: string
+  to_character_id: string
+  to_character_name: string
+}
+
+export async function transferLobbyInventory(
+  lobbyId: string,
+  payload: {
+    from_character_id: string
+    to_character_id: string
+    item_id?: string | null
+    qty?: number | null
+    coin_currency?: 'cp' | 'sp' | 'ep' | 'gp' | 'pp' | null
+    coin_amount?: number | null
+    session_id?: string | null
+  },
+): Promise<InventoryTransferResult> {
+  return apiRequest<InventoryTransferResult>(`/lobbies/${lobbyId}/transfers`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export type EncounterGenerateDifficulty = 'easy' | 'medium' | 'hard' | 'deadly'
+
+export type EncounterMonsterOption = {
+  slug: string
+  name_ru: string
+  cr: string
+  xp: number
+  type?: string | null
+  subtype?: string | null
+  fly?: boolean
+}
+
+export type EncounterRoleProposal = {
+  role: 'boss' | 'pack'
+  options: EncounterMonsterOption[]
+  suggested_count: number
+}
+
+export type EncounterWaveProposal = {
+  wave_index: number
+  budget_xp: number
+  boss: EncounterRoleProposal
+  pack: EncounterRoleProposal
+}
+
+export type EncounterGenerateResult = {
+  difficulty: EncounterGenerateDifficulty | string
+  party_power: number
+  budget_total: number
+  anti_air_ok: boolean
+  waves: EncounterWaveProposal[]
+  notes: string[]
+  theme_ids: string[]
+  similar: boolean
+  environments: string[]
+}
+
+/** B8: умный генератор (UI draft). */
+export async function generateSessionEncounter(
+  sessionId: string,
+  payload: {
+    difficulty: EncounterGenerateDifficulty
+    environments?: string[]
+    theme_ids: string[]
+    similar?: boolean
+    waves?: number
+  },
+): Promise<EncounterGenerateResult> {
+  return apiRequest<EncounterGenerateResult>(
+    `/sessions/${sessionId}/encounters/generate`,
+    { method: 'POST', body: JSON.stringify(payload) },
+  )
+}
+
+export async function createLobbyEncounterTemplate(
+  lobbyId: string,
+  payload: {
+    name: string
+    entries: EncounterEntry[]
+  },
+): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/encounters`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function saveSessionEncounterTemplate(
+  sessionId: string,
+  payload: { name: string },
+): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(`/sessions/${sessionId}/encounters/save`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deploySessionEncounterTemplate(
+  sessionId: string,
+  templateId: string,
+): Promise<SessionDetail> {
+  return apiRequest<SessionDetail>(
+    `/sessions/${sessionId}/encounters/${templateId}/deploy`,
+    { method: 'POST' },
+  )
+}
+
+export async function deleteLobbyEncounterTemplate(
+  lobbyId: string,
+  templateId: string,
+): Promise<LobbyDetail> {
+  return apiRequest<LobbyDetail>(`/lobbies/${lobbyId}/encounters/${templateId}`, {
+    method: 'DELETE',
+  })
+}
+
+/** Сколько XP ещё не раздано за поверженных в пачке/карточке. */
+export function unclaimedDefeatXp(combatant: SessionCombatant): {
+  dead: number
+  claimed: number
+  unclaimed: number
+  xpEach: number
+  total: number
+  claimable: boolean
+} {
+  const xpEach = Math.max(0, combatant.xp ?? 0)
+  const members = combatant.members ?? []
+  const dead =
+    members.length > 0
+      ? members.filter((m) => m.hp_current <= 0).length
+      : combatant.hp_current <= 0
+        ? 1
+        : 0
+  const claimedRaw =
+    typeof combatant.xp_claimed_count === 'number'
+      ? combatant.xp_claimed_count
+      : combatant.xp_claimed
+        ? dead
+        : 0
+  const claimed = Math.max(0, Math.min(dead, claimedRaw))
+  const unclaimed = Math.max(0, dead - claimed)
+  const claimable = unclaimed > 0 && xpEach > 0
+  return {
+    dead,
+    claimed,
+    unclaimed,
+    xpEach,
+    total: claimable ? unclaimed * xpEach : 0,
+    claimable,
+  }
+}
+
 export function lobbyQrUrl(inviteCode: string): string {
   const joinUrl = `${window.location.origin}/join/${inviteCode}`
   return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(joinUrl)}`
+}
+
+export async function listSessionEvents(
+  sessionId: string,
+  opts?: { rollsOnly?: boolean },
+): Promise<SessionEvent[]> {
+  const q = opts?.rollsOnly ? '?rolls_only=true' : ''
+  return apiRequest<SessionEvent[]>(`/sessions/${sessionId}/events${q}`)
+}
+
+export async function createSessionRoll(
+  sessionId: string,
+  payload: {
+    character_id?: string | null
+    title: string
+    formula?: string | null
+    breakdown?: string | null
+    total: number
+    is_master_roll?: boolean
+  },
+): Promise<SessionEvent> {
+  return apiRequest<SessionEvent>(`/sessions/${sessionId}/rolls`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function sessionWsUrl(sessionId: string, accessToken: string): string {
+  const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
+  const host = window.location.host
+  return `${proto}://${host}/sessions/${sessionId}/ws?token=${encodeURIComponent(accessToken)}`
+}
+
+export async function listJournal(
+  lobbyId: string,
+  opts?: { offset?: number; limit?: number },
+): Promise<JournalPage> {
+  const params = new URLSearchParams()
+  if (opts?.offset != null) params.set('offset', String(opts.offset))
+  if (opts?.limit != null) params.set('limit', String(opts.limit))
+  const q = params.toString()
+  return apiRequest<JournalPage>(`/lobbies/${lobbyId}/journal${q ? `?${q}` : ''}`)
+}
+
+export async function createJournalEntry(
+  lobbyId: string,
+  payload: {
+    entry_type: JournalEntryType | string
+    title?: string
+    body?: string
+    image_url?: string | null
+    setting_id?: string | null
+    page_id?: string | null
+  },
+): Promise<JournalEntry> {
+  return apiRequest<JournalEntry>(`/lobbies/${lobbyId}/journal`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteJournalEntry(entryId: string): Promise<void> {
+  await apiRequest<void>(`/journal/${entryId}`, { method: 'DELETE' })
+}
+
+export async function closeSession(
+  sessionId: string,
+  payload: { title?: string; summary?: string; write_journal?: boolean },
+): Promise<{ session: SessionDetail; journal_entry: JournalEntry | null }> {
+  return apiRequest(`/sessions/${sessionId}/close`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
 }

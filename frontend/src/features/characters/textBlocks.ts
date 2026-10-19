@@ -367,13 +367,56 @@ export function updateBlockParts(
  * Replace plain-text content while keeping resource/spoiler/divider parts.
  * Grant writers must use this (not `value` alone) — the UI edits `parts`, and
  * `textBlocksToSheet` rebuilds `value` from parts via syncDerived.
+ *
+ * When a single text part exists, update it in place (preserve id + order among
+ * non-text parts). Multiple text parts collapse into the first; extras drop.
  */
 export function withBlockPlainText(block: TextBlock, plain: string): TextBlock {
-  const nonText = block.parts.filter((part) => part.kind !== 'text')
-  return syncDerived({
-    ...block,
-    parts: [...nonText, createTextPart(plain)],
-  })
+  const textIndices: number[] = []
+  for (let i = 0; i < block.parts.length; i += 1) {
+    if (block.parts[i].kind === 'text') textIndices.push(i)
+  }
+
+  if (textIndices.length === 1) {
+    const idx = textIndices[0]
+    const part = block.parts[idx]
+    if (part.kind === 'text') {
+      const parts = block.parts.slice()
+      parts[idx] = { ...part, value: plain }
+      return syncDerived({ ...block, parts })
+    }
+  }
+
+  if (textIndices.length === 0) {
+    return syncDerived({
+      ...block,
+      parts: [...block.parts, createTextPart(plain)],
+    })
+  }
+
+  // Several text parts → keep non-text in order, put plain on the first text slot.
+  const parts: TextBlockPart[] = []
+  let textWritten = false
+  for (const part of block.parts) {
+    if (part.kind === 'text') {
+      if (!textWritten) {
+        parts.push({ ...part, value: plain })
+        textWritten = true
+      }
+      continue
+    }
+    parts.push(part)
+  }
+  return syncDerived({ ...block, parts })
+}
+
+/** Plain text from text parts only (classic editors — leave spoilers alone). */
+export function blockTextPartsPlain(block: TextBlock): string {
+  const chunks = block.parts
+    .filter((part): part is Extract<TextBlockPart, { kind: 'text' }> => part.kind === 'text')
+    .map((part) => part.value)
+  if (chunks.length > 0) return chunks.join('\n')
+  return block.value
 }
 
 /** Read current plain text from parts, falling back to legacy `value`. */

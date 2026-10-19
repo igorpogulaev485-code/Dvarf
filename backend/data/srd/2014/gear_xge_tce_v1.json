@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "notes": "W4: XGE/TCE (+ few EGW/DMG gap) magic items — RU, wear_slot, focus category, effects MVP. Upsert by slug.",
+  "notes": "W4: XGE/TCE (+ few EGW/DMG gap) magic items — RU, wear_slot, focus category, effects MVP. Upsert by slug. Includes spell_scroll_4..9 (DMG/XGE).",
   "inserts": [
     {
       "op": "insert",
@@ -290,6 +290,228 @@
         "family_label_ru": "Свитки заклинаний",
         "variant_key": "3",
         "variant_label_ru": "3 уровень"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "b406be59-879b-56ac-acbd-ddd6fdd0c03c",
+      "slug": "spell_scroll_4",
+      "name_ru": "Свиток 4 уровня",
+      "name_en": "Spell Scroll (4th)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9808,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 2500,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Свиток заклинания 4 уровня.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Свиток заклинания 4 уровня (одноразово)."
+          }
+        ],
+        "family_slug": "spell_scroll",
+        "family_label_ru": "Свитки заклинаний",
+        "variant_key": "4",
+        "variant_label_ru": "4 уровень"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "79be57ce-d7ae-5ef5-8734-b74cc6ac97a8",
+      "slug": "spell_scroll_5",
+      "name_ru": "Свиток 5 уровня",
+      "name_en": "Spell Scroll (5th)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9809,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Свиток заклинания 5 уровня.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Свиток заклинания 5 уровня (одноразово)."
+          }
+        ],
+        "family_slug": "spell_scroll",
+        "family_label_ru": "Свитки заклинаний",
+        "variant_key": "5",
+        "variant_label_ru": "5 уровень"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "882fa3a7-b017-5136-b510-79d4216e8c29",
+      "slug": "spell_scroll_6",
+      "name_ru": "Свиток 6 уровня",
+      "name_en": "Spell Scroll (6th)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9810,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 15000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Свиток заклинания 6 уровня.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Свиток заклинания 6 уровня (одноразово)."
+          }
+        ],
+        "family_slug": "spell_scroll",
+        "family_label_ru": "Свитки заклинаний",
+        "variant_key": "6",
+        "variant_label_ru": "6 уровень"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "c178049a-c811-53bb-9748-618ad9332deb",
+      "slug": "spell_scroll_7",
+      "name_ru": "Свиток 7 уровня",
+      "name_en": "Spell Scroll (7th)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9811,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 25000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Свиток заклинания 7 уровня.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Свиток заклинания 7 уровня (одноразово)."
+          }
+        ],
+        "family_slug": "spell_scroll",
+        "family_label_ru": "Свитки заклинаний",
+        "variant_key": "7",
+        "variant_label_ru": "7 уровень"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "038297be-733c-5dc0-8bfe-6baf7643b852",
+      "slug": "spell_scroll_8",
+      "name_ru": "Свиток 8 уровня",
+      "name_en": "Spell Scroll (8th)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9812,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Свиток заклинания 8 уровня.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Свиток заклинания 8 уровня (одноразово)."
+          }
+        ],
+        "family_slug": "spell_scroll",
+        "family_label_ru": "Свитки заклинаний",
+        "variant_key": "8",
+        "variant_label_ru": "8 уровень"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "e184b9dd-2a4a-5ca3-8c1a-61989f8e15e1",
+      "slug": "spell_scroll_9",
+      "name_ru": "Свиток 9 уровня",
+      "name_en": "Spell Scroll (9th)",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 9813,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 250000,
+          "unit": "gp"
+        },
+        "item_category": "consumable",
+        "stackable": true,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Свиток заклинания 9 уровня.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Свиток заклинания 9 уровня (одноразово)."
+          }
+        ],
+        "family_slug": "spell_scroll",
+        "family_label_ru": "Свитки заклинаний",
+        "variant_key": "9",
+        "variant_label_ru": "9 уровень"
       }
     },
     {

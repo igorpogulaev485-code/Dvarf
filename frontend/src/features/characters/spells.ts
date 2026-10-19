@@ -3,6 +3,7 @@ import {
   type SpellComponents,
   type SpellScaleTable,
 } from '../../shared/dnd/spellCatalog'
+import * as AllyTargets from '../../shared/dnd/allyTargets'
 import {
   clampPactSlots,
   clampSlot,
@@ -12,6 +13,10 @@ import {
   type SpellSlotState,
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
+import type {
+  SpellbookAcquisition,
+  WizardSpellbookState,
+} from '../../shared/dnd/wizardSpellbook'
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 
 export type SpellSourceKind =
@@ -70,6 +75,20 @@ export type SheetSpell = {
    * Cast picker can spend this instead of a slot/pact; rest recovers `used`.
    */
   grant_cast?: SpellGrantCast
+  /**
+   * Wizard spellbook: how this leveled spell entered the book continuum.
+   * Cantrips omit this. See docs/wizard-spellbook.md.
+   */
+  spellbook_acquisition?: SpellbookAcquisition
+  /**
+   * Wizard: currently written in the active physical spellbook.
+   * Cleared on lose/destroy; prepared flags stay for casting from memory.
+   */
+  in_spellbook?: boolean
+  /** При касте — опциональные select’ы себя/союзников (если персонаж в лобби). */
+  applies_to_allies?: boolean
+  /** Сколько слотов целей (Благословение = 3); заполнение необязательно. */
+  ally_target_count?: number
 }
 
 /** Free cast charge from a grant source (race innate, Fey Touched, …). */
@@ -96,6 +115,11 @@ export type SpellsState = {
   has_component_pouch?: boolean
   /** Last applied gear spell_slots deltas — unequip restores base max. */
   gear_slot_deltas?: Record<string, number>
+  /**
+   * Wizard-only: physical spellbook binding, lose/replace, backups.
+   * Absent / undefined for non-wizard sheets.
+   */
+  wizard_spellbook?: WizardSpellbookState
 }
 
 const EMPTY_SLOTS: Record<string, SpellSlotState> = Object.fromEntries(
@@ -118,6 +142,102 @@ export function createSheetSpell(): SheetSpell {
     attack_or_save: '',
     damage: '',
     concentration: false,
+  }
+}
+
+/** Default source label for player-authored homebrew spells. */
+export const CUSTOM_SPELL_SOURCE_DEFAULT = 'Хомбрю'
+
+export function isCustomSheetSpell(spell: SheetSpell): boolean {
+  return spell.source_kind === 'custom'
+}
+
+export type CustomSheetSpellInput = {
+  name: string
+  level: number
+  casting_time?: string
+  range?: string
+  duration?: string
+  concentration?: boolean
+  ritual?: boolean
+  components?: SpellComponents
+  attack_or_save?: string
+  damage?: string
+  school?: string
+  description?: string
+  higher_levels?: string
+  /** Shown as source badge; default «Хомбрю». */
+  source_book?: string
+  applies_to_allies?: boolean
+  ally_target_count?: number
+  notes?: string
+}
+
+/** Build a personal (non-catalog) sheet spell. Does not set prepared / book meta. */
+export function createCustomSheetSpell(input: CustomSheetSpellInput): SheetSpell {
+  const name = input.name.trim()
+  const level = Math.max(0, Math.min(9, Math.floor(input.level)))
+  const source = input.source_book?.trim() || CUSTOM_SPELL_SOURCE_DEFAULT
+  const comps = input.components
+  return {
+    ...createSheetSpell(),
+    name,
+    catalog_id: null,
+    level,
+    prepared: level <= 0,
+    source_kind: 'custom',
+    source_book: source,
+    casting_time: input.casting_time?.trim() ?? '',
+    range: input.range?.trim() ?? '',
+    attack_or_save: input.attack_or_save?.trim() ?? '',
+    damage: input.damage?.trim() ?? '',
+    concentration: Boolean(input.concentration),
+    notes: input.notes?.trim() ?? '',
+    ...(input.duration?.trim() ? { duration: input.duration.trim() } : {}),
+    ...(input.ritual ? { ritual: true } : {}),
+    ...(input.school?.trim() ? { school: input.school.trim() } : {}),
+    ...(comps && (comps.v || comps.s || comps.m != null) ? { components: comps } : {}),
+    ...(input.description?.trim() ? { description: input.description.trim() } : {}),
+    ...(input.higher_levels?.trim() ? { higher_levels: input.higher_levels.trim() } : {}),
+    ...(input.applies_to_allies
+      ? {
+          applies_to_allies: true as const,
+          ally_target_count: Math.max(
+            1,
+            Math.min(6, Math.floor(input.ally_target_count ?? 1)),
+          ),
+        }
+      : {}),
+  }
+}
+
+/** Patch fields of an existing custom row (keeps id / prepare / book meta). */
+export function updateCustomSheetSpell(
+  spell: SheetSpell,
+  input: CustomSheetSpellInput,
+): SheetSpell {
+  const next = createCustomSheetSpell(input)
+  return {
+    ...spell,
+    name: next.name,
+    level: next.level,
+    catalog_id: null,
+    source_kind: 'custom',
+    source_book: next.source_book,
+    casting_time: next.casting_time,
+    range: next.range,
+    attack_or_save: next.attack_or_save,
+    damage: next.damage,
+    concentration: next.concentration,
+    notes: next.notes,
+    duration: next.duration,
+    ritual: next.ritual,
+    school: next.school,
+    components: next.components,
+    description: next.description,
+    higher_levels: next.higher_levels,
+    applies_to_allies: next.applies_to_allies,
+    ally_target_count: next.ally_target_count,
   }
 }
 
@@ -192,6 +312,15 @@ function readSpell(raw: unknown, index: number): SheetSpell {
   const damageAtCharacter = readScaleTable(row.damage_at_character_level)
   const damageAtSlot = readScaleTable(row.damage_at_slot_level)
   const grantCast = readGrantCast(row.grant_cast ?? row.grantCast)
+  const acquisition = readSpellbookAcquisition(
+    row.spellbook_acquisition ?? row.spellbookAcquisition,
+  )
+  const inSpellbook =
+    row.in_spellbook === true || row.inSpellbook === true
+      ? true
+      : row.in_spellbook === false || row.inSpellbook === false
+        ? false
+        : undefined
   return {
     id,
     name: typeof row.name === 'string' ? row.name : '',
@@ -209,6 +338,23 @@ function readSpell(raw: unknown, index: number): SheetSpell {
           : '',
     damage: typeof row.damage === 'string' ? row.damage : '',
     concentration: Boolean(row.concentration),
+    ...(() => {
+      const name = typeof row.name === 'string' ? row.name : ''
+      const catalogId = typeof row.catalog_id === 'string' ? row.catalog_id : null
+      const appliesExplicit = row.applies_to_allies
+      const guessed = AllyTargets.guessAppliesToAllies(name, catalogId)
+      // Heuristic wins over a stale explicit false (prod cast dialog had no targets).
+      const applies =
+        guessed ||
+        (typeof appliesExplicit === 'boolean' ? appliesExplicit : false)
+      if (!applies) return {}
+      const countRaw = row.ally_target_count
+      const count =
+        typeof countRaw === 'number' && countRaw >= 1
+          ? Math.min(6, Math.floor(countRaw))
+          : AllyTargets.guessAllyTargetCount(name, catalogId)
+      return { applies_to_allies: true as const, ally_target_count: count }
+    })(),
     ...(typeof row.duration === 'string' && row.duration
       ? { duration: row.duration }
       : {}),
@@ -232,6 +378,62 @@ function readSpell(raw: unknown, index: number): SheetSpell {
     ...(preparedLocked ? { prepared_locked: true } : {}),
     ...(prepareSourceLabel ? { prepare_source_label: prepareSourceLabel } : {}),
     ...(grantCast ? { grant_cast: grantCast } : {}),
+    ...(acquisition ? { spellbook_acquisition: acquisition } : {}),
+    ...(inSpellbook !== undefined ? { in_spellbook: inSpellbook } : {}),
+  }
+}
+
+function readSpellbookAcquisition(raw: unknown): SpellbookAcquisition | undefined {
+  if (
+    raw === 'starting' ||
+    raw === 'level_up' ||
+    raw === 'copied' ||
+    raw === 'restored' ||
+    raw === 'backup_copy'
+  ) {
+    return raw
+  }
+  return undefined
+}
+
+function readWizardSpellbook(raw: unknown): WizardSpellbookState | undefined {
+  if (raw == null || typeof raw !== 'object') return undefined
+  const row = asRecord(raw)
+  const primary =
+    typeof row.primaryBookItemId === 'string'
+      ? row.primaryBookItemId
+      : typeof row.primary_book_item_id === 'string'
+        ? row.primary_book_item_id
+        : null
+  const bookLost = row.bookLost === true || row.book_lost === true
+  const lostRaw = row.lostBookContents ?? row.lost_book_contents
+  const lostBookContents = Array.isArray(lostRaw)
+    ? lostRaw
+        .map((item) => {
+          const r = asRecord(item)
+          const name = typeof r.name === 'string' ? r.name : ''
+          const level = Math.max(0, Math.min(9, Math.floor(readNumber(r.level, 0))))
+          if (!name && level <= 0) return null
+          return {
+            catalog_id: typeof r.catalog_id === 'string' ? r.catalog_id : null,
+            name,
+            level,
+          }
+        })
+        .filter((x): x is NonNullable<typeof x> => x != null)
+    : undefined
+  const backupsRaw = row.backupBookItemIds ?? row.backup_book_item_ids
+  const backupBookItemIds = Array.isArray(backupsRaw)
+    ? backupsRaw.filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+    : undefined
+  if (!primary && !bookLost && !lostBookContents?.length && !backupBookItemIds?.length) {
+    return undefined
+  }
+  return {
+    primaryBookItemId: primary,
+    bookLost,
+    ...(lostBookContents?.length ? { lostBookContents } : {}),
+    ...(backupBookItemIds?.length ? { backupBookItemIds } : {}),
   }
 }
 
@@ -482,11 +684,12 @@ export type SpellSourceBadge = {
   label: string
   title: string
   /** Origin bucket for styling / analytics. */
-  kind: 'race' | 'feat' | 'subclass' | 'feature' | 'grant'
+  kind: 'race' | 'feat' | 'subclass' | 'feature' | 'grant' | 'custom'
 }
 
 /**
- * Badge for spells granted by race / feat / archetype / gear / feature.
+ * Badge for spells granted by race / feat / archetype / gear / feature,
+ * plus personal homebrew («Хомбрю»).
  * Covers both always-prepared (innate, domain) and mark/list expansions
  * that the player prepares into normal slots.
  */
@@ -496,6 +699,15 @@ export function spellSourceBadge(spell: SheetSpell): SpellSourceBadge | null {
     spell.grant_cast && spell.grant_cast.max > 0
       ? ` · ${spell.grant_cast.label} ${grantCastRemaining(spell)}/${spell.grant_cast.max} без ячейки`
       : ''
+
+  if (isCustomSheetSpell(spell)) {
+    const label = spell.source_book?.trim() || CUSTOM_SPELL_SOURCE_DEFAULT
+    return {
+      label,
+      title: `Своё заклинание · ${label} — только на этом листе`,
+      kind: 'custom',
+    }
+  }
 
   if (isRaceSheetSpell(spell) || spell.race_grant) {
     if (spell.race_grant === 'spell_list') {
@@ -560,9 +772,39 @@ export function spellSourceBadge(spell: SheetSpell): SpellSourceBadge | null {
   return null
 }
 
-/** Soft highlight for any grant-origin spell (race / feat / archetype / gear). */
+/** Soft highlight for grant-origin spells (not catalog / custom homebrew). */
 export function isGrantedSpellHighlight(spell: SheetSpell): boolean {
-  return spellSourceBadge(spell) != null
+  const badge = spellSourceBadge(spell)
+  return badge != null && badge.kind !== 'custom'
+}
+
+/** Append a custom spell to known; optional prepare / wizard book meta like catalog adds. */
+export function addCustomSpellToKnown(
+  known: SheetSpell[],
+  input: CustomSheetSpellInput,
+  options?: {
+    prepare?: boolean
+    maxPrepared?: number | null
+    spellbook_acquisition?: SpellbookAcquisition
+    in_spellbook?: boolean
+  },
+): SheetSpell[] {
+  const spell = createCustomSheetSpell(input)
+  const withBookMeta: SheetSpell = {
+    ...spell,
+    ...(options?.spellbook_acquisition && spell.level > 0
+      ? { spellbook_acquisition: options.spellbook_acquisition }
+      : {}),
+    ...(options?.in_spellbook !== undefined && spell.level > 0
+      ? { in_spellbook: options.in_spellbook }
+      : {}),
+  }
+  let next = [...known, withBookMeta]
+  const prepare = options?.prepare ?? withBookMeta.level <= 0
+  if (prepare && withBookMeta.level > 0) {
+    next = setSpellPrepared(next, withBookMeta.id, true, options?.maxPrepared ?? null)
+  }
+  return next
 }
 
 export function preparedLockChip(spell: SheetSpell): {
@@ -666,6 +908,12 @@ export function readSpells(sheet: Record<string, unknown>): SpellsState {
     has_spell_focus: Boolean(spells.has_spell_focus),
     has_component_pouch: Boolean(spells.has_component_pouch),
     ...(Object.keys(gear_slot_deltas).length > 0 ? { gear_slot_deltas } : {}),
+    ...((): { wizard_spellbook?: WizardSpellbookState } => {
+      const wizard_spellbook = readWizardSpellbook(
+        spells.wizard_spellbook ?? spells.wizardSpellbook,
+      )
+      return wizard_spellbook ? { wizard_spellbook } : {}
+    })(),
   }
 }
 
@@ -688,6 +936,20 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
       ...(state.gear_slot_deltas && Object.keys(state.gear_slot_deltas).length > 0
         ? { gear_slot_deltas: state.gear_slot_deltas }
         : {}),
+      ...(state.wizard_spellbook
+        ? {
+            wizard_spellbook: {
+              primaryBookItemId: state.wizard_spellbook.primaryBookItemId,
+              bookLost: Boolean(state.wizard_spellbook.bookLost),
+              ...(state.wizard_spellbook.lostBookContents?.length
+                ? { lostBookContents: state.wizard_spellbook.lostBookContents }
+                : {}),
+              ...(state.wizard_spellbook.backupBookItemIds?.length
+                ? { backupBookItemIds: state.wizard_spellbook.backupBookItemIds }
+                : {}),
+            },
+          }
+        : {}),
       known: state.known.map((spell) => ({
         id: spell.id,
         name: spell.name,
@@ -700,6 +962,12 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         attack_or_save: spell.attack_or_save,
         damage: spell.damage,
         concentration: spell.concentration,
+        ...(spell.applies_to_allies
+          ? {
+              applies_to_allies: true,
+              ally_target_count: Math.max(1, Math.min(6, spell.ally_target_count ?? 1)),
+            }
+          : {}),
         ...(spell.duration ? { duration: spell.duration } : {}),
         ...(spell.ritual ? { ritual: true } : {}),
         ...(spell.school ? { school: spell.school } : {}),
@@ -732,6 +1000,10 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
               },
             }
           : {}),
+        ...(spell.spellbook_acquisition
+          ? { spellbook_acquisition: spell.spellbook_acquisition }
+          : {}),
+        ...(spell.in_spellbook !== undefined ? { in_spellbook: spell.in_spellbook } : {}),
       })),
       prepared: state.known
         .filter((spell) => spell.level <= 0 || spell.prepared)
@@ -807,6 +1079,30 @@ export function isReadyInCombat(spell: SheetSpell): boolean {
   return spell.level <= 0 || spell.prepared
 }
 
+/**
+ * Combat/cast availability including wizard ritual-from-book (PHB):
+ * ritual in the active book may be cast without preparing when the book is present.
+ */
+export function isAvailableToCast(
+  spell: SheetSpell,
+  opts?: {
+    learnMode?: 'known' | 'prepared_list' | 'spellbook' | null
+    hasSpellbook?: boolean
+  },
+): boolean {
+  if (isReadyInCombat(spell)) return true
+  if (
+    opts?.learnMode === 'spellbook' &&
+    opts.hasSpellbook &&
+    spell.ritual &&
+    spell.level > 0 &&
+    spell.in_spellbook !== false
+  ) {
+    return true
+  }
+  return false
+}
+
 export function canPrepareSpell(
   known: SheetSpell[],
   spell: SheetSpell,
@@ -871,6 +1167,8 @@ export function ensureKnownSpellsReady(known: SheetSpell[]): SheetSpell[] {
 export function sheetSpellFromCatalog(entry: {
   id: string
   name_ru: string
+  /** Prefer for ally heuristics — id is often a UUID. */
+  slug?: string
   data?: Record<string, unknown>
 }): SheetSpell {
   const fields = readCatalogSpellFields(entry.data ?? {})
@@ -886,6 +1184,16 @@ export function sheetSpellFromCatalog(entry: {
     attack_or_save: fields.attack_or_save ?? '',
     damage: fields.damage ?? '',
     concentration: Boolean(fields.concentration),
+    ...(() => {
+      // Prefer slug: catalog_id is a UUID and won't match ALLY_CATALOG_RE.
+      const catalogKey = entry.slug || entry.id
+      const applies = AllyTargets.guessAppliesToAllies(entry.name_ru, catalogKey)
+      if (!applies) return {}
+      return {
+        applies_to_allies: true as const,
+        ally_target_count: AllyTargets.guessAllyTargetCount(entry.name_ru, catalogKey),
+      }
+    })(),
     ...(fields.duration ? { duration: fields.duration } : {}),
     ...(fields.ritual ? { ritual: true } : {}),
     ...(fields.school ? { school: fields.school } : {}),
@@ -909,15 +1217,85 @@ export function knownHasCatalogId(known: SheetSpell[], catalogId: string): boole
 export function addCatalogSpellToKnown(
   known: SheetSpell[],
   entry: { id: string; name_ru: string; data?: Record<string, unknown> },
-  options?: { prepare?: boolean; maxPrepared?: number | null },
+  options?: {
+    prepare?: boolean
+    maxPrepared?: number | null
+    spellbook_acquisition?: SpellbookAcquisition
+    in_spellbook?: boolean
+  },
 ): SheetSpell[] {
   if (knownHasCatalogId(known, entry.id)) return known
   const spell = sheetSpellFromCatalog(entry)
   const prepare = options?.prepare ?? spell.level <= 0
   const maxPrepared = options?.maxPrepared ?? null
+  const withBookMeta: SheetSpell = {
+    ...spell,
+    ...(options?.spellbook_acquisition && spell.level > 0
+      ? { spellbook_acquisition: options.spellbook_acquisition }
+      : {}),
+    ...(options?.in_spellbook !== undefined && spell.level > 0
+      ? { in_spellbook: options.in_spellbook }
+      : {}),
+  }
+  let next = [...known, withBookMeta]
+  if (prepare && withBookMeta.level > 0) {
+    next = setSpellPrepared(next, withBookMeta.id, true, maxPrepared)
+  }
+  return next
+}
+
+/** Add a scroll-bound spell into the sheet / spellbook (no catalog fetch required). */
+export function addScrollSpellToKnown(
+  known: SheetSpell[],
+  binding: {
+    catalog_id: string | null
+    name: string
+    level: number
+    school?: string | null
+    ritual?: boolean
+  },
+  options?: {
+    prepare?: boolean
+    maxPrepared?: number | null
+    spellbook_acquisition?: SpellbookAcquisition
+    in_spellbook?: boolean
+  },
+): SheetSpell[] {
+  if (binding.catalog_id && knownHasCatalogId(known, binding.catalog_id)) {
+    // Already on sheet — ensure in_spellbook if requested.
+    if (options?.in_spellbook) {
+      return known.map((spell) =>
+        spell.catalog_id === binding.catalog_id && spell.level > 0
+          ? {
+              ...spell,
+              in_spellbook: true,
+              spellbook_acquisition:
+                spell.spellbook_acquisition ?? options.spellbook_acquisition ?? 'copied',
+            }
+          : spell,
+      )
+    }
+    return known
+  }
+  const level = Math.max(0, Math.floor(binding.level))
+  const spell: SheetSpell = {
+    ...createSheetSpell(),
+    name: binding.name.trim(),
+    catalog_id: binding.catalog_id,
+    level,
+    prepared: level <= 0,
+    ...(binding.school ? { school: binding.school } : {}),
+    ...(binding.ritual ? { ritual: true } : {}),
+    ...(options?.spellbook_acquisition && level > 0
+      ? { spellbook_acquisition: options.spellbook_acquisition }
+      : {}),
+    ...(options?.in_spellbook !== undefined && level > 0
+      ? { in_spellbook: options.in_spellbook }
+      : {}),
+  }
   let next = [...known, spell]
-  if (prepare && spell.level > 0) {
-    next = setSpellPrepared(next, spell.id, true, maxPrepared)
+  if ((options?.prepare ?? false) && level > 0) {
+    next = setSpellPrepared(next, spell.id, true, options?.maxPrepared ?? null)
   }
   return next
 }

@@ -69,6 +69,25 @@ export function normalizeAppearance(partial: {
   }
 }
 
+/**
+ * Merge server user fields onto a base appearance without inventing defaults
+ * for missing keys (used when patching profile while keeping theme).
+ */
+export function mergeAppearanceFromUser(
+  base: AccountAppearance,
+  user: {
+    theme_id?: string | null
+    ability_colors?: string | null
+  },
+): AccountAppearance {
+  return {
+    themeId: isThemeId(user.theme_id) ? user.theme_id : base.themeId,
+    abilityColors: isAbilityColors(user.ability_colors)
+      ? user.ability_colors
+      : base.abilityColors,
+  }
+}
+
 export function applyAccountAppearance(appearance: AccountAppearance): void {
   const root = document.documentElement
   root.setAttribute('data-theme', appearance.themeId)

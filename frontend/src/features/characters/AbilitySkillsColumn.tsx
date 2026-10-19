@@ -30,6 +30,8 @@ type AbilitySkillsColumnProps = {
   onSkillCycle: (skillKey: string) => void
   onReorder: (order: AbilityKey[]) => void
   onCollapsedChange: (collapsed: AbilityKey[]) => void
+  /** Per-ability permanent score ceilings (PHB 20 + class/item raises). */
+  abilityMaxes?: Partial<Record<AbilityKey, number>>
   /** Open ability breakdown / buffs dialog. */
   onOpenAbility?: (key: AbilityKey) => void
   /** Click the check number → roll. */
@@ -75,6 +77,7 @@ export function AbilitySkillsColumn({
   onSkillCycle,
   onReorder,
   onCollapsedChange,
+  abilityMaxes,
   onOpenAbility,
   onRollCheck,
   onRollSave,
@@ -199,12 +202,16 @@ export function AbilitySkillsColumn({
                     <NumberInput
                       className="abil-block__score"
                       min={1}
-                      max={30}
+                      max={abilityMaxes?.[key] ?? 20}
                       emptyValue={10}
                       value={baseScore}
                       onValueChange={(next) => onAbilityScoreChange(key, next ?? 10)}
                       inputMode="numeric"
-                      title="Базовое значение"
+                      title={
+                        abilityMaxes?.[key]
+                          ? `Базовое значение (макс. ${abilityMaxes[key]})`
+                          : 'Базовое значение'
+                      }
                     />
                     {score !== baseScore ? (
                       <span

@@ -49,12 +49,14 @@ import {
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import type { RulesEdition } from '../../shared/api/characters'
-import type { CatalogEntry } from '../../shared/api/catalog'
+import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
+import { parseSpellCatalogData } from '../../shared/dnd/spellCatalog'
+import { levelLabel } from '../../shared/dnd/spells'
 import { CatalogCombobox } from '../catalog'
 import { AsiChoiceBody } from './AsiChoiceBody'
 import { SKILL_DEFS } from './sheetTypes'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
-import { Button, Dialog, Field, Stack, Text } from '../../ui'
+import { Button, Dialog, Field, Input, Stack, Text } from '../../ui'
 
 export type GuidedFeatContext = {
   armor: Partial<Record<ArmorProfKey, boolean>>
@@ -119,6 +121,16 @@ type GuidedWizardDialogProps = {
   subclassParentCatalogIdByEntryId?: Record<string, string | null | undefined>
   /** classEntryId → already selected subclass display name. */
   selectedSubclassNameByEntryId?: Record<string, string | undefined>
+  /** Context for wizard spellbook free picks (level-up / create fork). */
+  spellbookPicksContext?: {
+    maxSpellLevel: number
+    /** Catalog ids already in the book / on sheet. */
+    blockedCatalogIds?: string[]
+    hasBook: boolean
+    classListSlugs?: string[]
+  } | null
+  /** Persist free research picks into the spellbook, then parent advances. */
+  onConfirmSpellbookPicks?: (entries: CatalogEntry[]) => void
 }
 
 function skillLabel(key: string): string {
@@ -477,6 +489,156 @@ function FeatureChoiceStepBody({
   )
 }
 
+function SpellbookPicksStepBody({
+  picksNeeded,
+  classLevel,
+  edition,
+  selected,
+  onChange,
+  maxSpellLevel,
+  blockedCatalogIds,
+  hasBook,
+  classListSlugs,
+}: {
+  picksNeeded: number
+  classLevel: number
+  edition: RulesEdition
+  selected: CatalogEntry[]
+  onChange: (next: CatalogEntry[]) => void
+  maxSpellLevel: number
+  blockedCatalogIds: string[]
+  hasBook: boolean
+  classListSlugs: string[]
+}) {
+  const [query, setQuery] = useState('')
+  const [entries, setEntries] = useState<CatalogEntry[]>([])
+  const [loading, setLoading] = useState(false)
+  const blocked = useMemo(() => new Set(blockedCatalogIds), [blockedCatalogIds])
+  const selectedIds = useMemo(() => new Set(selected.map((row) => row.id)), [selected])
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    listCatalogEntries({ kind: 'spell', edition })
+      .then((rows) => {
+        if (!cancelled) setEntries(rows)
+      })
+      .catch(() => {
+        if (!cancelled) setEntries([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [edition])
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const slugs = new Set(classListSlugs.map((s) => s.toLowerCase()))
+    return entries
+      .filter((entry) => {
+        if (blocked.has(entry.id) || selectedIds.has(entry.id)) return false
+        const parsed = parseSpellCatalogData(entry.data ?? {})
+        if (parsed.level < 1 || parsed.level > maxSpellLevel) return false
+        const classes = (parsed.classes ?? []).map((c) => c.toLowerCase())
+        if (slugs.size > 0 && !classes.some((c) => slugs.has(c))) return false
+        if (!q) return true
+        return (
+          entry.name_ru.toLowerCase().includes(q) ||
+          (entry.name_en ?? '').toLowerCase().includes(q) ||
+          entry.slug.toLowerCase().includes(q)
+        )
+      })
+      .slice(0, 30)
+  }, [entries, query, maxSpellLevel, blocked, selectedIds, classListSlugs])
+
+  function toggle(entry: CatalogEntry) {
+    if (selectedIds.has(entry.id)) {
+      onChange(selected.filter((row) => row.id !== entry.id))
+      return
+    }
+    if (selected.length >= picksNeeded) return
+    onChange([...selected, entry])
+  }
+
+  return (
+    <Stack gap={12}>
+      <Text>
+        {classLevel <= 1
+          ? `Стартовая книга: выбери ${picksNeeded} заклинания 1 ур. бесплатно.`
+          : `Повышение уровня: +${picksNeeded} бесплатно в книгу (ур. ≤ ${maxSpellLevel}).`}
+      </Text>
+      {!hasBook ? (
+        <Text tone="danger">
+          Нет активной книги заклинаний — внести нельзя. «Позже» или возьми книгу в инвентаре.
+        </Text>
+      ) : null}
+      <Text tone="muted">
+        Выбрано: {selected.length}/{picksNeeded}
+        {selected.length
+          ? ` · ${selected.map((row) => row.name_ru).join(', ')}`
+          : ''}
+      </Text>
+      {selected.length > 0 ? (
+        <div className="chip-row">
+          {selected.map((row) => (
+            <button
+              key={row.id}
+              type="button"
+              className="sheet-chip is-on"
+              onClick={() => toggle(row)}
+            >
+              {row.name_ru} ×
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <Field label="Поиск по списку волшебника">
+        <Input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Название заклинания"
+          disabled={!hasBook || selected.length >= picksNeeded}
+        />
+      </Field>
+      {loading ? <Text tone="muted">Загрузка…</Text> : null}
+      {!loading && hasBook ? (
+        <ul className="prepare-list">
+          {filtered.map((entry) => {
+            const parsed = parseSpellCatalogData(entry.data ?? {})
+            const full = selected.length >= picksNeeded
+            return (
+              <li key={entry.id} className="prepare-row">
+                <span>
+                  {entry.name_ru}
+                  <span className="prepare-meta">
+                    {' '}
+                    · {levelLabel(parsed.level)}
+                    {parsed.ritual ? ' · ритуал' : ''}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="sheet-chip is-on"
+                  disabled={full}
+                  onClick={() => toggle(entry)}
+                >
+                  В книгу
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      ) : null}
+      {!loading && hasBook && filtered.length === 0 ? (
+        <Text tone="muted">Нет подходящих заклинаний по фильтру.</Text>
+      ) : null}
+    </Stack>
+  )
+}
+
 export function GuidedWizardDialog({
   open,
   session,
@@ -502,6 +664,8 @@ export function GuidedWizardDialog({
   onPickSubclass,
   subclassParentCatalogIdByEntryId,
   selectedSubclassNameByEntryId,
+  spellbookPicksContext = null,
+  onConfirmSpellbookPicks,
 }: GuidedWizardDialogProps) {
   const step = session?.steps[session.index] ?? null
   const total = session?.steps.length ?? 0
@@ -519,6 +683,7 @@ export function GuidedWizardDialog({
   const [asiError, setAsiError] = useState<string | null>(null)
   const [featOpen, setFeatOpen] = useState(false)
   const [backgroundDraftName, setBackgroundDraftName] = useState('')
+  const [spellbookDraft, setSpellbookDraft] = useState<CatalogEntry[]>([])
 
   useEffect(() => {
     if (!open || !step) return
@@ -550,6 +715,9 @@ export function GuidedWizardDialog({
     }
     if (step.kind === 'background') {
       setBackgroundDraftName(backgroundName)
+    }
+    if (step.kind === 'spellbook_picks') {
+      setSpellbookDraft([])
     }
   }, [open, step?.id, step?.kind, backgroundName])
 
@@ -606,6 +774,11 @@ export function GuidedWizardDialog({
       ? subclassParentCatalogIdByEntryId?.[step.classEntryId] ?? null
       : null
 
+  const spellbookReady =
+    step?.kind === 'spellbook_picks' &&
+    Boolean(spellbookPicksContext?.hasBook) &&
+    spellbookDraft.length === step.picksNeeded
+
   const primaryDisabled =
     step?.kind === 'class_grant'
       ? !grantReady
@@ -617,7 +790,9 @@ export function GuidedWizardDialog({
             ? !backgroundReady
             : step?.kind === 'subclass'
               ? !subclassReady
-              : false
+              : step?.kind === 'spellbook_picks'
+                ? !spellbookReady
+                : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -631,9 +806,11 @@ export function GuidedWizardDialog({
             ? 'Предыстория'
             : step.kind === 'feat'
               ? 'Черта'
-              : step.kind === 'feature_choice'
-                ? `${step.choice.label_ru} · ${step.className}`
-                : 'Настройка персонажа'
+              : step.kind === 'spellbook_picks'
+                ? `Книга заклинаний · ${step.className} ${step.classLevel}`
+                : step.kind === 'feature_choice'
+                  ? `${step.choice.label_ru} · ${step.className}`
+                  : 'Настройка персонажа'
 
   const choosingFeat =
     (step?.kind === 'asi' && asiUiMode === 'feat') || step?.kind === 'feat'
@@ -712,6 +889,23 @@ export function GuidedWizardDialog({
 
     if (step.kind === 'feat') {
       setFeatOpen(true)
+      return
+    }
+
+    if (step.kind === 'spellbook_picks') {
+      if (!spellbookPicksContext?.hasBook) {
+        onToast?.('Нужна книга заклинаний в инвентаре — иначе нельзя внести бесплатные')
+        return
+      }
+      if (spellbookDraft.length !== step.picksNeeded) {
+        onToast?.(`Выбери ${step.picksNeeded} заклинания в книгу`)
+        return
+      }
+      onConfirmSpellbookPicks?.(spellbookDraft)
+      onToast?.(
+        `В книгу (бесплатно): ${spellbookDraft.map((row) => row.name_ru).join(', ')}`,
+      )
+      onAdvance(index + 1)
     }
   }
 
@@ -898,6 +1092,19 @@ export function GuidedWizardDialog({
             {step.noteRu ? <Text tone="muted">{step.noteRu}</Text> : null}
             <Text tone="muted">«Выбрать черту» откроет каталог.</Text>
           </Stack>
+        ) : null}
+        {step.kind === 'spellbook_picks' ? (
+          <SpellbookPicksStepBody
+            picksNeeded={step.picksNeeded}
+            classLevel={step.classLevel}
+            edition={edition}
+            selected={spellbookDraft}
+            onChange={setSpellbookDraft}
+            maxSpellLevel={spellbookPicksContext?.maxSpellLevel ?? 1}
+            blockedCatalogIds={spellbookPicksContext?.blockedCatalogIds ?? []}
+            hasBook={Boolean(spellbookPicksContext?.hasBook)}
+            classListSlugs={spellbookPicksContext?.classListSlugs ?? ['wizard']}
+          />
         ) : null}
       </Stack>
     </Dialog>

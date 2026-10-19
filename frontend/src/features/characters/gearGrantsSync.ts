@@ -83,9 +83,17 @@ export function syncGearCompanions(
       id: spec.key,
       kind: asCompanionKind(spec.kind),
       name: prev?.name?.trim() ? prev.name : spec.nameRu,
-      catalog_ref: prev?.catalog_ref ?? null,
-      source: null,
-      stats: prev?.stats ?? { hp: null, ac: null, speed: null },
+      bestiary_ref: prev?.bestiary_ref ?? null,
+      source: {
+        kind: 'item',
+        labelRu: 'Из предмета (снаряжение)',
+      },
+      stats: prev?.stats ?? {
+        hp: null,
+        hp_max: null,
+        ac: null,
+        speed: null,
+      },
       notes: prev?.notes?.trim()
         ? prev.notes
         : `Из предмета (снаряжение)`,

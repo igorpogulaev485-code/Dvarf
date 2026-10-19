@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ClassicBackgroundPicker } from '../features/classicSheet/ClassicBackgroundPicker'
 import { ClassicPrintSheet } from '../features/classicSheet/ClassicPrintSheet'
+import {
+  readClassicSheetLayout,
+  setClassicSheetLayout,
+  type ClassicSheetLayout,
+} from '../features/classicSheet/classicSheetLayout'
 import type { ClassicPatch } from '../features/classicSheet/fromApi'
 import {
   getCharacter,
   updateCharacter,
   type CharacterDetail,
 } from '../shared/api/characters'
-import { ApiRequestError, clearTokens } from '../shared/api/client'
+import { ApiRequestError } from '../shared/api/client'
 import {
   createSheetSyncChannel,
   publishSheetSync,
@@ -20,8 +24,7 @@ export function ClassicSheetPage() {
   const navigate = useNavigate()
   const [character, setCharacter] = useState<CharacterDetail | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
-  const [status, setStatus] = useState<'loading' | 'saving' | 'saved' | 'auth'>('loading')
+  const [status, setStatus] = useState<'loading' | 'saving' | 'saved'>('loading')
   const saveTimer = useRef<number | null>(null)
   const versionRef = useRef(0)
   const latestRef = useRef<CharacterDetail | null>(null)
@@ -29,8 +32,6 @@ export function ClassicSheetPage() {
 
   useEffect(() => {
     let active = true
-    setStatus('loading')
-    setError(null)
     getCharacter(characterId)
       .then((item) => {
         if (!active) return
@@ -42,23 +43,10 @@ export function ClassicSheetPage() {
       .catch((err: unknown) => {
         if (!active) return
         if (err instanceof ApiRequestError && err.status === 401) {
-          clearTokens()
-          setCharacter(null)
-          setStatus('auth')
-          setError('Сессия истекла — войдите снова, чтобы открыть классический лист.')
-          window.setTimeout(() => {
-            navigate('/login', {
-              replace: true,
-              state: { from: `/characters/${characterId}/classic` },
-            })
-          }, 50)
+          navigate('/login', { replace: true })
           return
         }
-        setError(
-          err instanceof ApiRequestError
-            ? err.message
-            : 'Не удалось открыть персонажа',
-        )
+        setError(err instanceof ApiRequestError ? err.message : 'Не удалось открыть персонажа')
         setStatus('saved')
       })
     return () => {
@@ -93,20 +81,10 @@ export function ClassicSheetPage() {
         sheetVersion: updated.sheet_version,
       })
     } catch (err) {
-      if (err instanceof ApiRequestError && err.status === 401) {
-        clearTokens()
-        setStatus('auth')
-        setError('Сессия истекла — войдите снова.')
-        navigate('/login', {
-          replace: true,
-          state: { from: `/characters/${characterId}/classic` },
-        })
-        return
-      }
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить лист')
       setStatus('saved')
     }
-  }, [characterId, navigate])
+  }, [])
 
   const handlePatch = useCallback((patch: ClassicPatch) => {
     const current = latestRef.current
@@ -130,6 +108,17 @@ export function ClassicSheetPage() {
     }, 500)
   }, [persist])
 
+  const sheetLayout = character ? readClassicSheetLayout(character) : '2014'
+
+  const handleLayoutChange = useCallback(
+    (layout: ClassicSheetLayout) => {
+      const current = latestRef.current
+      if (!current) return
+      handlePatch(setClassicSheetLayout(current, layout))
+    },
+    [handlePatch],
+  )
+
   return (
     <div className="classic-print-page">
       <header className="classic-print-toolbar no-print">
@@ -140,51 +129,40 @@ export function ClassicSheetPage() {
             <small>
               {status === 'loading'
                 ? 'Загрузка…'
-                : status === 'auth'
-                  ? 'Нужен вход'
-                  : status === 'saving'
-                    ? 'Сохраняем в карточку…'
-                    : 'Сохранено в персонажа'}
+                : status === 'saving'
+                  ? 'Сохраняем в карточку…'
+                  : 'Сохранено в персонажа'}
             </small>
           </div>
         </div>
-        <Button
-          variant="secondary"
-          disabled={!character || status === 'auth'}
-          onClick={() => window.print()}
-        >
-          Печать / PDF
-        </Button>
+        <div className="classic-toolbar-actions">
+          <div className="classic-layout-switch" role="group" aria-label="Макет классического листа">
+            <span className="classic-layout-switch__label">Макет</span>
+            {(['2014', '2024'] as const).map((year) => (
+              <button
+                key={year}
+                type="button"
+                className={sheetLayout === year ? 'is-active' : undefined}
+                disabled={!character}
+                onClick={() => handleLayoutChange(year)}
+              >
+                {year}
+              </button>
+            ))}
+            <span className="classic-layout-switch__hint">только отображение</span>
+          </div>
+          <Button variant="secondary" onClick={() => window.print()}>
+            Печать / PDF
+          </Button>
+        </div>
       </header>
       {error ? (
         <Text tone="danger" className="no-print">
           {error}
         </Text>
       ) : null}
-      {status === 'loading' && !character ? (
-        <div className="no-print" style={{ padding: '1.25rem' }}>
-          <Text>Загружаем классический лист…</Text>
-        </div>
-      ) : null}
-      {toast ? (
-        <div className="no-print" style={{ padding: '0 1.25rem' }}>
-          <Text>{toast}</Text>
-        </div>
-      ) : null}
       {character ? (
-        <>
-          <div style={{ padding: '0.75rem 1.25rem 0' }}>
-            <ClassicBackgroundPicker
-              character={character}
-              onPatch={handlePatch}
-              onToast={(message) => {
-                setToast(message)
-                window.setTimeout(() => setToast(null), 4000)
-              }}
-            />
-          </div>
-          <ClassicPrintSheet character={character} onPatch={handlePatch} />
-        </>
+        <ClassicPrintSheet character={character} onPatch={handlePatch} />
       ) : null}
     </div>
   )

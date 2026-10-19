@@ -287,7 +287,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость Бардовского вдохновения",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -321,7 +322,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость Бардовского вдохновения",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       }
@@ -363,7 +365,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость Бардовского вдохновения",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -411,6 +414,19 @@
             "5": "8",
             "10": "11",
             "15": "14"
+          }
+        },
+        "resource": {
+          "uses": 0,
+          "recharge": "long_rest",
+          "pool_id": "mantle_of_inspiration",
+          "pool_name_ru": "Мантия вдохновения",
+          "track": "spend",
+          "linked_spend": {
+            "pool_id": "bardic_inspiration",
+            "label_ru": "кость Бардовского вдохновения",
+            "mode": "spend",
+            "amount": 1
           }
         }
       },
@@ -490,7 +506,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость Бардовского вдохновения",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         },
         "choice": {
@@ -630,7 +647,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость Бардовского вдохновения",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         },
         "scale": {
@@ -793,7 +811,8 @@
           "linked_spend": {
             "pool_id": "bardic_inspiration",
             "label_ru": "кость → бросок таблицы VRGtR",
-            "mode": "spend"
+            "mode": "spend",
+            "amount": 1
           }
         }
       },

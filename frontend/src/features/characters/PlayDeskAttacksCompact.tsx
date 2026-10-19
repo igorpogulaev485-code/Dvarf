@@ -13,6 +13,7 @@ import {
 } from './sheetTypes'
 import type { WeaponAttack } from './AttacksPanel'
 import type { InventoryItem } from './inventory'
+import { isCastableSpellScroll } from './spellScroll'
 import {
   IconConsumable,
   IconMelee,
@@ -37,6 +38,8 @@ type PlayDeskAttacksCompactProps = {
   onSpendResource?: (id: string) => void
   /** Spend 1 from inventory qty (ammo, potions, …). */
   onSpendConsumable?: (itemId: string) => void
+  /** Bound spell scroll: open cast flow (consumes on confirm). */
+  onCastScroll?: (itemId: string) => void
   onToggleConsumableFavorite?: (itemId: string) => void
   onToast?: (message: string) => void
   onOpenSettings: () => void
@@ -56,6 +59,7 @@ export function PlayDeskAttacksCompact({
   onToggleHeld,
   onSpendResource,
   onSpendConsumable,
+  onCastScroll,
   onToggleConsumableFavorite,
   onToast,
   onOpenSettings,
@@ -253,20 +257,35 @@ export function PlayDeskAttacksCompact({
         ) : (
           consumables.map(({ item, favorite }) => {
             const qty = item.qty ?? 0
-            const canSpend = Boolean(onSpendConsumable) && qty > 0
+            const scrollCast = isCastableSpellScroll(item) && Boolean(onCastScroll)
+            const canSpend =
+              qty > 0 && (scrollCast || Boolean(onSpendConsumable))
+            const actionLabel = scrollCast ? 'каст' : 'потратить'
             return (
               <div
                 key={item.id}
-                className={`play-desk-compact__cons-row${favorite ? ' is-fav' : ''}`}
+                className={`play-desk-compact__cons-row${favorite ? ' is-fav' : ''}${
+                  scrollCast ? ' is-scroll' : ''
+                }`}
               >
                 <button
                   type="button"
                   className="play-desk-compact__cons-main is-action"
                   disabled={!canSpend}
-                  title={canSpend ? `Потратить 1 «${item.name}»` : item.name}
+                  title={
+                    scrollCast
+                      ? `Каст со свитка: ${item.scroll_spell?.name ?? item.name}`
+                      : canSpend
+                        ? `Потратить 1 «${item.name}»`
+                        : item.name
+                  }
                   onClick={() => {
                     if (!canSpend) {
                       onToast?.(`${item.name}: ×${qty}`)
+                      return
+                    }
+                    if (scrollCast) {
+                      onCastScroll?.(item.id)
                       return
                     }
                     onSpendConsumable?.(item.id)
@@ -276,10 +295,13 @@ export function PlayDeskAttacksCompact({
                     {favorite ? (
                       <span className="play-desk-compact__tag is-fav">избр.</span>
                     ) : null}
+                    {scrollCast ? (
+                      <span className="play-desk-compact__tag">свиток</span>
+                    ) : null}
                     {item.name}
                   </span>
                   <b>{qty}</b>
-                  <span className="play-desk-compact__cons-spend">потратить</span>
+                  <span className="play-desk-compact__cons-spend">{actionLabel}</span>
                 </button>
                 {onToggleConsumableFavorite ? (
                   <button
