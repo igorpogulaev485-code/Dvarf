@@ -5,7 +5,7 @@
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
 **Current prod tip branch:** `cursor/legal-shell-prod-6151`  
-**Public URL:** https://creed20.tech (host nginx + Let’s Encrypt; docker web on `127.0.0.1:8080`)  
+**Public URL:** https://creed20.tech (Caddy `edge` + Let’s Encrypt; `web` only on docker network)  
 (обновляй эту строку после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
 
 ---
