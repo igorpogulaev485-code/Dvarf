@@ -60,8 +60,9 @@ services:
       context: ./frontend
     container_name: dvarf-web
     restart: unless-stopped
+    # Public :80/:443 — host nginx (deploy/setup-https.sh). Docker stays local-only.
     ports:
-      - "80:80"
+      - "127.0.0.1:8080:80"
     volumes:
       - dvarf_uploads:/var/www/uploads:ro
     depends_on:

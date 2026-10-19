@@ -19,8 +19,8 @@ export function Creed20Wordmark({ className }: { className?: string }) {
 }
 
 export function openProductSite(): void {
-  // Prefer in-app legal page until creed20.tech HTTPS is confirmed on VPS.
-  window.location.assign('/legal')
+  // Same app on creed20.tech; fall back to in-app /legal if domain unreachable.
+  window.location.assign(PRODUCT_SITE_URL)
 }
 
 export function AppLegalFooter({ extra }: { extra?: ReactNode }) {

@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/human-race-apply-stuck-9502`  
+**Prod tip (ветка линии прода):** `cursor/legal-shell-prod-6151`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -58,6 +58,17 @@
 ---
 
 ## Сейчас в продукте (прод)
+
+### 2026-10-19 — Legal shell КриD20 + HTTPS creed20.tech
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| `/legal` | Коротко: КриD20, лист+стол, info@, одна строка SRD CC BY | Без «фан/Wizards/$» на старте |
+| Footer | «Правовая информация · info@creed20.tech» на логине/персонажах/лобби/кабинете | Куда писать |
+| Кнопка «Сайт КриD20» | Ведёт на https://creed20.tech | Бренд в хедере |
+| HTTPS | Host nginx + Let’s Encrypt; docker web на `127.0.0.1:8080` | Замочек вместо «!» в Safari |
+
+На проде: **да** · **это новый prod tip** `cursor/legal-shell-prod-6151` · залито 2026-10-19 · `/health` ok · https://creed20.tech
 
 ### 2026-10-19 — Human variant: ASI hint + черта только на шаге
 
