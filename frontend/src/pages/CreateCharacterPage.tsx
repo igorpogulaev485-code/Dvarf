@@ -1385,8 +1385,10 @@ export function CreateCharacterPage() {
                   featSetup: null,
                   featAcknowledged: true,
                   stepDirty: { ...state.stepDirty, feat: true },
+                  // Same as catalog feat confirm: finish block → next step.
+                  step: 'background',
                 })
-                setToast('Черта: отметьте на листе / в заметках')
+                setToast('Черта отмечена. Далее — предыстория.')
               }}
             >
               Отметить без каталога
