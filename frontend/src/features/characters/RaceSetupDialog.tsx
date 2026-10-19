@@ -325,6 +325,42 @@ export function RaceSetupDialog({
     ancestryOk &&
     featOk
 
+  /** Concrete reason Apply stays off — generic «развилки» confused players (Human variant ASI). */
+  const blockingReason = ((): string | null => {
+    if (canConfirm) return null
+    if (!nameOk) return 'Укажи имя персонажа, чтобы продолжить.'
+    if (!subraceOk) {
+      return subraceRequired
+        ? 'Выбери разновидность, чтобы продолжить.'
+        : 'Выбери разновидность или «Без подрасы».'
+    }
+    if (!def || !effectiveEntry) {
+      return 'Для этой записи пока нет пакета эффектов — закрой и заполни вручную.'
+    }
+    if (!sizeOk) return 'Выбери размер персонажа.'
+    if (!variableTraitOk) return 'Выбери переменную черту.'
+    if (!asiModeOk) {
+      if (asiModes.length > 1 && !selectedAsiMode) {
+        return 'Выбери вариант увеличения характеристик.'
+      }
+      const need = asiNeed || 2
+      const have = abilityBonusKeys.length
+      return `Выбери характеристики выше: нужно ${need}, сейчас ${have}.`
+    }
+    if (languages.length !== langNeed) {
+      return `Выбери языки: нужно ${langNeed}, сейчас ${languages.length}.`
+    }
+    if (skills.length !== skillNeed) {
+      return `Выбери навыки: нужно ${skillNeed}, сейчас ${skills.length}.`
+    }
+    if (tools.length !== toolNeed) {
+      return `Выбери инструменты: нужно ${toolNeed}, сейчас ${tools.length}.`
+    }
+    if (!ancestryOk) return 'Выбери драконье происхождение.'
+    if (!featOk) return 'Выбери черту, чтобы продолжить.'
+    return 'Отметь все обязательные развилки, чтобы продолжить.'
+  })()
+
   if (!root) return null
 
   const fixedAsi = def
@@ -505,17 +541,8 @@ export function RaceSetupDialog({
 
             {asiModes.length > 0 && def.abilityBonusChoices ? (
               <Stack gap={10}>
-                <Field
-                  label="Увеличение характеристик"
-                  hint={
-                    asiModes.length > 1
-                      ? 'Выберите одно из:'
-                      : selectedAsiMode
-                        ? selectedAsiMode.labelRu
-                        : undefined
-                  }
-                >
-                  {asiModes.length > 1 ? (
+                {asiModes.length > 1 ? (
+                  <Field label="Увеличение характеристик" hint="Выберите одно из:">
                     <Stack gap={8}>
                       {asiModes.map((mode) => {
                         const on = abilityBonusModeId === mode.id
@@ -532,8 +559,12 @@ export function RaceSetupDialog({
                         )
                       })}
                     </Stack>
-                  ) : null}
-                </Field>
+                  </Field>
+                ) : selectedAsiMode ? (
+                  <Text>
+                    Увеличение характеристик: <strong>{selectedAsiMode.labelRu}</strong>
+                  </Text>
+                ) : null}
 
                 {selectedAsiMode
                   ? selectedAsiMode.buckets.map((bucket, bucketIndex) => {
@@ -543,15 +574,17 @@ export function RaceSetupDialog({
                           .flatMap((keys, idx) => (idx === bucketIndex ? [] : keys))
                           .filter(Boolean),
                       )
+                      // Instruction in the label (above chips): Field puts hint *below*
+                      // children, so on mobile players scrolled past ASI chips and only
+                      // saw the trailing hint + languages — Apply stayed disabled.
+                      const label =
+                        bucket.count === 1
+                          ? `+${bucket.amount} — выбери одну (${picked.length}/${bucket.count})`
+                          : `+${bucket.amount} — выбери ${bucket.count} разные (${picked.length}/${bucket.count})`
                       return (
                         <Field
                           key={`${selectedAsiMode.id}-${bucketIndex}-${bucket.amount}`}
-                          label={`+${bucket.amount} (${picked.length}/${bucket.count})`}
-                          hint={
-                            bucket.count === 1
-                              ? 'Выбери одну характеристику'
-                              : `Выбери ${bucket.count} разные характеристики`
-                          }
+                          label={label}
                         >
                           <div className="chip-row">
                             {asiOptions.map((key) => {
@@ -664,7 +697,6 @@ export function RaceSetupDialog({
             {featNeed ? (
               <Field label="Черта (обязательно)">
                 <Stack gap={8}>
-                  {def.featNoteRu ? <Text tone="muted">{def.featNoteRu}</Text> : null}
                   <Text>
                     {featResult
                       ? `Выбрано: ${featResult.entry.name_ru}`
@@ -681,19 +713,7 @@ export function RaceSetupDialog({
           </>
         ) : null}
 
-        {!canConfirm ? (
-          <Text tone="muted">
-            {!nameOk
-              ? 'Укажи имя персонажа, чтобы продолжить.'
-              : !subraceOk
-                ? subraceRequired
-                  ? 'Выбери разновидность, чтобы продолжить.'
-                  : 'Выбери разновидность или «Без подрасы».'
-                : !featOk
-                  ? 'Выбери черту, чтобы продолжить.'
-                  : 'Отметь все обязательные развилки, чтобы продолжить.'}
-          </Text>
-        ) : null}
+        {blockingReason ? <Text tone="muted">{blockingReason}</Text> : null}
       </Stack>
     </Dialog>
 
