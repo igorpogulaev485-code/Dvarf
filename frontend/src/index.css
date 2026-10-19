@@ -399,12 +399,16 @@ a.ui-button--primary {
   gap: 6px;
 }
 
-.app-legal-footer__disclaimer,
 .app-legal-footer__links {
   margin: 0;
   font-size: 0.85rem;
   color: var(--muted, var(--ink-muted, #6b6358));
   line-height: 1.4;
+}
+
+.legal-page__srd {
+  font-size: 0.85rem;
+  max-width: 42rem;
 }
 
 .app-legal-footer__links a {
