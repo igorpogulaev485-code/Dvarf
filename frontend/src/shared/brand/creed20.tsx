@@ -26,9 +26,6 @@ export function openProductSite(): void {
 export function AppLegalFooter({ extra }: { extra?: ReactNode }) {
   return (
     <footer className="app-legal-footer">
-      <p className="app-legal-footer__disclaimer">
-        Неофициальный фан-проект. Не связан с Wizards of the Coast.
-      </p>
       <p className="app-legal-footer__links">
         <Link to="/legal">Правовая информация</Link>
         <span aria-hidden="true"> · </span>
