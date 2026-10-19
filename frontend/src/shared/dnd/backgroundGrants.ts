@@ -664,6 +664,30 @@ const RP_MARKERS: Record<
   },
 }
 
+/** text_blocks.key → RP marker used when applying background grants. */
+export const TEXT_BLOCK_RP_MARKER: Partial<
+  Record<string, keyof typeof RP_MARKERS>
+> = {
+  personality: 'personality',
+  ideals: 'ideals',
+  bonds: 'bonds',
+  flaws: 'flaws',
+  background: 'backgroundStory',
+}
+
+/**
+ * Internal HTML comments (`<!-- dvarf-… -->`) mark grant-owned slices so
+ * re-apply can replace them. Never show them in Play Desk / classic UI.
+ */
+export function stripDvarfInternalMarkers(text: string): string {
+  if (!text || !text.includes('<!--')) return text
+  return text
+    .replace(/<!--\s*\/?dvarf\b[\s\S]*?-->/gi, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 export function upsertMarkedTextBlock(
   current: string,
   markerKey: keyof typeof RP_MARKERS,
@@ -683,6 +707,23 @@ export function upsertMarkedTextBlock(
   if (!block) return current.trim()
   if (!current.trim()) return block
   return `${current.trim()}\n\n${block}`
+}
+
+/** Editor write-back: keep RP markers so background re-apply still finds the slice. */
+export function storeTextBlockFromEditor(
+  blockKey: string,
+  previous: string,
+  editedVisible: string,
+): string {
+  const markerKey = TEXT_BLOCK_RP_MARKER[blockKey]
+  if (markerKey) {
+    return upsertMarkedTextBlock(previous, markerKey, editedVisible)
+  }
+  if (/<!--\s*\/?dvarf\b/i.test(previous)) {
+    // Mixed grant fields (traits / race / feat): keep user-visible text only.
+    return editedVisible.trim()
+  }
+  return editedVisible
 }
 
 const FEATURE_START = '<!-- dvarf-background-feature -->'

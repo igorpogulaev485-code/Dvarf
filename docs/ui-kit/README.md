@@ -369,6 +369,40 @@ Live-эталоны в продукте (уже близки к киту): Inven
 | **Классический бланк** | отдельный print-трек |
 | **Теги списка** | sync на аккаунт (сейчас localStorage) |
 
+## 2r. Play Desk = единственный лист (LOCK)
+
+> **LOCK (Play Desk source of truth):** зафиксировано с Игорем 2026-10-17 после инцидента с фейковым «листом» в превью агента.  
+> Полный канон: [`../PLAY_DESK_SOURCE_OF_TRUTH.md`](../PLAY_DESK_SOURCE_OF_TRUTH.md).
+
+| Правило | Деталь |
+|---------|--------|
+| Эталон | живой прод + доски §2b–2l + код `MinimalSheetEditor` / `PlayDeskHeader` / hot-bar |
+| Запрет | второй layout листа; `/dev` mock-стол с самодельной шапкой; скрин фейка как «путь на проде» |
+| Classic | только print (`/classic`), не digital Play Desk |
+| Скрины для Игоря | `prod` \| `tip Play Desk` \| `dialog-only` \| `ui-kit board` — с подписью |
+| ЛСС | референс поведения, **не** визуал стола Dvarf |
+
+**Статус:** LOCK.
+
+## 2q. Хаб лобби (A1) — LOCK
+
+> **LOCK (Lobby Hub A1):** зафиксировано с Игорем 2026-10-15 (превью 8 игроков + скрины a1-roster).  
+> **Инцидент 2026-10-16:** `index.css` от forms-adapt затёр блок A1→D1 — состав «поехал» (вертикальный список без карточек/табов).  
+> Блок CSS помечен `UI KIT LOCK — Lobby Hub` в `frontend/src/index.css`. **Не удалять и не «упрощать»** без ok Игоря + обновления этого § и preflight.
+
+| Компонент | Правило |
+|-----------|---------|
+| Табы | `.lobby-hub-tabs` sticky; `.lobby-hub-tab` pill; **active = solid `--accent` + белый текст** |
+| Состав | `.lobby-member-grid` → 1→2→3→4 колонки (640 / 1000 / 1280); ориентир **~8**, запас до 10 |
+| Карточка | `.lobby-member-card`: HP-полоска сверху (ok/warn/down) · аватар-инициал · имя · ур./раса/класс · HP · «Лист/Смотреть» + «Убрать» |
+| Ширина хаба | `.page.page--lobby-hub` расширяется media (1120→1560), не узкий 720 на desktop |
+| Код комнаты | `.lobby-hub-code__value` mono, accent, копируется кликом |
+| Доска / эталон | `boards/dvarf-ui-kit-lobbies.jpg` · артефакты `a1-roster-*-desktop.png` |
+
+Связанные блоки в том же LOCK-хвосте CSS (тоже священны): Session A2–A3, Journal A4, Chats A5, Notes A6, бой B1–B8, вики C1–C4, артефакты D1 (`.setting-wiki*`, `.setting-artifact*`).
+
+**Статус:** Идеал / LOCK.
+
 ### 6b. Логика прода священна
 
 Пиксельный restyle = CSS / className / обёртки.  
@@ -384,3 +418,4 @@ Live-эталоны в продукте (уже близки к киту): Inven
 - Не перекрашивать identity характеристик темой аккаунта **по умолчанию** — только если пользователь явно выбрал `ability_colors=theme`.
 - Не кодить UI «в обход» досок, если паттерн новый.
 - Не возвращать purple-glow / default Inter-only / плоский white dashboard без пергамента.
+- Не создавать альтернативный / упрощённый «лист персонажа» или fake Play Desk для демо (§2r).

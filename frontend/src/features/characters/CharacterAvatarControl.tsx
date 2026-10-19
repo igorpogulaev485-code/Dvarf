@@ -34,7 +34,7 @@ export function CharacterAvatarControl({
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  const initial = character.name.trim().slice(0, 1).toUpperCase() || '?'
+  const initial = (character.name ?? '').trim().slice(0, 1).toUpperCase() || '?'
   const hint =
     faceHint ?? (pending ? '…' : onOpen ? 'основное' : 'фото')
 

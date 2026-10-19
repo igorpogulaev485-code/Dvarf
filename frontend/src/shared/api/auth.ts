@@ -15,6 +15,7 @@ export type User = {
   full_name: string | null
   phone: string | null
   avatar_url: string | null
+  /** Required on /auth/me — preflight guards schema; optional only if API regressed. */
   theme_id?: ThemeId
   ability_colors?: AbilityColorsMode
   email_verified_at: string | null

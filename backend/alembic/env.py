@@ -15,6 +15,9 @@ from app.models import (  # noqa: F401
     PasswordResetToken,
     PlaySession,
     Setting,
+    SettingPage,
+    SettingPageLink,
+    SettingPageTemplate,
     User,
     UserIdentity,
 )

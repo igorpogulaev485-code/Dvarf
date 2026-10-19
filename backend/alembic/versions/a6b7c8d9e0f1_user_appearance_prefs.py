@@ -1,7 +1,7 @@
 """Add users.theme_id and users.ability_colors for cabinet Wave B.
 
 Revision ID: a6b7c8d9e0f1
-Revises: z5i6j7k8l9m0
+Revises: n5o6p7q8r9s0
 Create Date: 2026-10-13
 
 Idempotent: columns may already exist if cabinet-theme was deployed then
@@ -15,7 +15,7 @@ from alembic import op
 
 revision = "a6b7c8d9e0f1"
 # Must follow live prod head z5i6 (Aquan rename), not sibling of it under y4h5.
-down_revision = "z5i6j7k8l9m0"
+down_revision = "n5o6p7q8r9s0"
 branch_labels = None
 depends_on = None
 

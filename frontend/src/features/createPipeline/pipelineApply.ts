@@ -199,6 +199,7 @@ function emptyIdentity(): IdentityExtras {
     background: '',
     backgroundSlug: null,
     alignment: '',
+    gender: null,
     size: 'medium',
     darkvision: 0,
     armor: { ...EMPTY_ARMOR },
@@ -210,7 +211,7 @@ function emptyIdentity(): IdentityExtras {
 }
 
 function emptyInventory(): InventoryState {
-  return { coins: { ...EMPTY_COINS }, items: [] }
+  return { coins: { ...EMPTY_COINS }, items: [], notes: '' }
 }
 
 function createWorkingDraft(baseAbilities: AbilityScores): WorkingDraft {
@@ -714,6 +715,7 @@ function serializeSheet(input: {
     ...draft.identity,
     subclassName: primary?.subclass_name ?? draft.identity.subclassName,
     background: state.background?.nameRu ?? draft.identity.background,
+    gender: state.gender ?? draft.identity.gender,
     experience: xpToReachLevel(totalLevel),
   }
   const identityExtras = identityExtrasToSheet(identityForSave)
@@ -808,6 +810,7 @@ function serializeSheet(input: {
     baseAbilities: state.baseAbilities,
     hpChoices: state.hpChoices,
     characterName: state.characterName,
+    gender: state.gender,
     classEntryId: state.classEntryId,
     background: state.background,
     classRef: state.classRef,

@@ -293,6 +293,7 @@ export function inventoryItemFromCatalog(input: {
   const created = createInventoryItem()
   created.name = entry.name_ru
   created.catalog_id = entry.id
+  created.catalog_slug = entry.slug
   created.qty = qty
   created.notes = 'Из справочника'
 

@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.exc import OperationalError
 
 from app.api.routers import auth as auth_router
 from app.api.routers import catalog as catalog_router
@@ -39,6 +40,18 @@ async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
     return JSONResponse(
         status_code=exc.status_code,
         content={"detail": exc.message, "code": exc.code},
+    )
+
+
+@app.exception_handler(OperationalError)
+async def operational_error_handler(_: Request, _exc: OperationalError) -> JSONResponse:
+    # statement_timeout / lock_timeout / pool checkout — return JSON 503, not a hang.
+    return JSONResponse(
+        status_code=503,
+        content={
+            "detail": "Сервер временно недоступен — подождите пару секунд и повторите",
+            "code": "api_unavailable",
+        },
     )
 
 

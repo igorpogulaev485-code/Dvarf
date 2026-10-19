@@ -26,7 +26,7 @@ function item(partial: Partial<InventoryItem> & { id: string; name: string }): I
     notes: '',
     catalog_id: null,
     spell_tooling: 'none',
-    focus_kind: 'none',
+    focus_kind: null,
     wear_slot: 'none',
     requires_attunement: false,
     effects: [],

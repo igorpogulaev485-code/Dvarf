@@ -4,9 +4,10 @@ import secrets
 import string
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -37,6 +38,17 @@ class Lobby(Base):
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False, default="Новое лобби")
     invite_code: Mapped[str] = mapped_column(String(16), nullable=False, unique=True, index=True)
+    visibility_profile: Mapped[dict] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=dict,
+        server_default="{}",
+    )
+    encounter_templates: Mapped[list[Any]] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=list,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -120,6 +132,7 @@ class Setting(Base):
         index=True,
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False, default="Новый сеттинг")
+    # Legacy: C1 мигрирует в setting_pages; поле остаётся для превью в списке лобби.
     world_notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -135,6 +148,18 @@ class Setting(Base):
 
     lobby: Mapped[Lobby] = relationship(back_populates="settings")
     sessions: Mapped[list[PlaySession]] = relationship(back_populates="setting")
+    pages: Mapped[list["SettingPage"]] = relationship(
+        "SettingPage",
+        back_populates="setting",
+        cascade="all, delete-orphan",
+        order_by="SettingPage.sort_order",
+    )
+    artifacts: Mapped[list["SettingArtifact"]] = relationship(
+        "SettingArtifact",
+        back_populates="setting",
+        cascade="all, delete-orphan",
+        order_by="SettingArtifact.sort_order",
+    )
 
 
 class PlaySession(Base):
@@ -160,6 +185,21 @@ class PlaySession(Base):
         index=True,
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False, default="Новая сессия")
+    # T3: локация и задействованные страницы вики на сессии
+    location_page_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("setting_pages.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    involved_page_ids: Mapped[list[uuid.UUID]] = mapped_column(
+        ARRAY(UUID(as_uuid=True)),
+        nullable=False,
+        default=list,
+    )
+    combatants: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
+    combat: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
