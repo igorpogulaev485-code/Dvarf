@@ -117,6 +117,7 @@ else
 fi
 
 ensure_base postgres:16-alpine
+ensure_base caddy:2.8-alpine
 if [[ ${#BUILD_SERVICES[@]} -gt 0 ]]; then
   if [[ " ${BUILD_SERVICES[*]} " == *" api "* ]]; then
     ensure_base python:3.12-slim
