@@ -18,15 +18,19 @@ export type WeaponPreset = {
   light?: boolean
   /** Thrown/ammo flavour flag; attack rows always stack qty the same way. */
   ammoStack?: boolean
+  /** PHB two-handed — occupies both hands while drawn. */
+  twoHanded?: boolean
+  /** PHB versatile — one-hand die in `damage`, two-hand die here. */
+  versatileDamage?: string
 }
 
 const PRESETS: WeaponPreset[] = [
   { labelRu: 'Секира', damage: '1к12', damageType: 'рубящий', ability: 'str',
-  group: 'martial', aliases: ['большое топорище', 'greataxe'] },
+  group: 'martial', aliases: ['большое топорище', 'greataxe'], twoHanded: true },
   { labelRu: 'Боевой топор', damage: '1к8', damageType: 'рубящий', ability: 'str',
-  group: 'martial', aliases: ['battleaxe'] },
+  group: 'martial', aliases: ['battleaxe'], versatileDamage: '1к10' },
   { labelRu: 'Молот', damage: '2к6', damageType: 'дробящий', ability: 'str',
-  group: 'martial', aliases: ['maul', 'двуручный молот'] },
+  group: 'martial', aliases: ['maul', 'двуручный молот'], twoHanded: true },
   { labelRu: 'Ручной топор', damage: '1к6', damageType: 'рубящий', ability: 'str',
   group: 'simple', aliases: ['handaxe'], light: true },
   {
@@ -39,7 +43,7 @@ const PRESETS: WeaponPreset[] = [
     ammoStack: true,
   },
   { labelRu: 'Длинный меч', damage: '1к8', damageType: 'рубящий', ability: 'str',
-  group: 'martial', aliases: ['длинный меч', 'longsword'] },
+  group: 'martial', aliases: ['длинный меч', 'longsword'], versatileDamage: '1к10' },
   { labelRu: 'Короткий меч', damage: '1к6', damageType: 'колющий', ability: 'dex',
   group: 'martial', aliases: ['shortsword'], light: true },
   { labelRu: 'Рапира', damage: '1к8', damageType: 'колющий', ability: 'dex',
@@ -58,17 +62,17 @@ const PRESETS: WeaponPreset[] = [
   { labelRu: 'Булава', damage: '1к6', damageType: 'дробящий', ability: 'str',
   group: 'simple', aliases: ['mace'] },
   { labelRu: 'Боевой молот', damage: '1к8', damageType: 'дробящий', ability: 'str',
-  group: 'martial', aliases: ['warhammer'] },
+  group: 'martial', aliases: ['warhammer'], versatileDamage: '1к10' },
   { labelRu: 'Боевой посох', damage: '1к6', damageType: 'дробящий', ability: 'str',
-  group: 'simple', aliases: ['посох', 'quarterstaff'] },
+  group: 'simple', aliases: ['посох', 'quarterstaff'], versatileDamage: '1к8' },
   { labelRu: 'Дубинка', damage: '1к4', damageType: 'дробящий', ability: 'str',
   group: 'simple', aliases: ['club'], light: true },
   { labelRu: 'Дротик', damage: '1к4', damageType: 'колющий', ability: 'dex',
   group: 'simple', aliases: ['dart'], ammoStack: true },
   { labelRu: 'Копьё', damage: '1к6', damageType: 'колющий', ability: 'str',
-  group: 'simple', aliases: ['копье', 'spear'], ammoStack: true },
+  group: 'simple', aliases: ['копье', 'spear'], ammoStack: true, versatileDamage: '1к8' },
   { labelRu: 'Лёгкий арбалет', damage: '1к8', damageType: 'колющий', ability: 'dex',
-  group: 'simple', aliases: ['легкий арбалет', 'light crossbow'] },
+  group: 'simple', aliases: ['легкий арбалет', 'light crossbow'], twoHanded: true },
   {
     labelRu: 'Ручной арбалет',
     damage: '1к6',
@@ -79,11 +83,11 @@ const PRESETS: WeaponPreset[] = [
     light: true,
   },
   { labelRu: 'Короткий лук', damage: '1к6', damageType: 'колющий', ability: 'dex',
-  group: 'simple', aliases: ['shortbow'] },
+  group: 'simple', aliases: ['shortbow'], twoHanded: true },
   { labelRu: 'Длинный лук', damage: '1к8', damageType: 'колющий', ability: 'dex',
-  group: 'martial', aliases: ['longbow'] },
+  group: 'martial', aliases: ['longbow'], twoHanded: true },
   { labelRu: 'Трезубец', damage: '1к6', damageType: 'колющий', ability: 'str',
-  group: 'martial', aliases: ['trident'] },
+  group: 'martial', aliases: ['trident'], versatileDamage: '1к8' },
   { labelRu: 'Сеть', damage: '—', damageType: 'особый', ability: 'dex',
   group: 'martial', aliases: ['net'] },
   {
@@ -96,19 +100,19 @@ const PRESETS: WeaponPreset[] = [
     light: true,
   },
   { labelRu: 'Палица', damage: '1к8', damageType: 'дробящий', ability: 'str',
-  group: 'simple', aliases: ['двуручная дубина', 'greatclub'] },
+  group: 'simple', aliases: ['двуручная дубина', 'greatclub'], twoHanded: true },
   { labelRu: 'Серп', damage: '1к4', damageType: 'рубящий', ability: 'str',
   group: 'simple', aliases: ['sickle'], light: true },
   { labelRu: 'Праща', damage: '1к4', damageType: 'дробящий', ability: 'dex',
   group: 'simple', aliases: ['sling'] },
   { labelRu: 'Алебарда', damage: '1к10', damageType: 'рубящий', ability: 'str',
-  group: 'martial', aliases: ['halberd'] },
+  group: 'martial', aliases: ['halberd'], twoHanded: true },
   { labelRu: 'Глефа', damage: '1к10', damageType: 'рубящий', ability: 'str',
-  group: 'martial', aliases: ['glaive'] },
+  group: 'martial', aliases: ['glaive'], twoHanded: true },
   { labelRu: 'Двуручный меч', damage: '2к6', damageType: 'рубящий', ability: 'str',
-  group: 'martial', aliases: ['greatsword'] },
+  group: 'martial', aliases: ['greatsword'], twoHanded: true },
   { labelRu: 'Пика', damage: '1к10', damageType: 'колющий', ability: 'str',
-  group: 'martial', aliases: ['pike'] },
+  group: 'martial', aliases: ['pike'], twoHanded: true },
   { labelRu: 'Цеп', damage: '1к8', damageType: 'дробящий', ability: 'str',
   group: 'martial', aliases: ['flail'] },
   { labelRu: 'Моргенштерн', damage: '1к8', damageType: 'колющий', ability: 'str',
@@ -120,7 +124,7 @@ const PRESETS: WeaponPreset[] = [
   { labelRu: 'Длинное копьё', damage: '1к12', damageType: 'колющий', ability: 'str',
   group: 'martial', aliases: ['длинное копье', 'lance'] },
   { labelRu: 'Тяжёлый арбалет', damage: '1к10', damageType: 'колющий', ability: 'dex',
-  group: 'martial', aliases: ['тяжелый арбалет', 'heavy crossbow'] },
+  group: 'martial', aliases: ['тяжелый арбалет', 'heavy crossbow'], twoHanded: true },
   { labelRu: 'Духовая трубка', damage: '1', damageType: 'колющий', ability: 'dex',
   group: 'martial', aliases: ['blowgun'] },
 ]
