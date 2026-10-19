@@ -5,7 +5,7 @@
 >
 > Это playbook стратегии, не заключение адвоката. Перед монетизацией — короткая сверка оферты с IP-юристом.
 
-Связано: [`GTM_STRATEGY_PLAN.md`](GTM_STRATEGY_PLAN.md) · [`PRODUCT_PHILOSOPHY.md`](PRODUCT_PHILOSOPHY.md) · аудиты на tip (`RACES_AUDIT_2014.md`, `BESTIARY_AUDIT_2014.md`).
+Связано: [`EXPLAINED_FOR_HUMANS.md`](EXPLAINED_FOR_HUMANS.md) (разбор с нуля) · [`GTM_STRATEGY_PLAN.md`](GTM_STRATEGY_PLAN.md) · [`PRODUCT_PHILOSOPHY.md`](PRODUCT_PHILOSOPHY.md) · аудиты на tip (`RACES_AUDIT_2014.md`, `BESTIARY_AUDIT_2014.md`).
 
 ---
 
