@@ -12,6 +12,11 @@ import {
 } from './sheetTypes'
 import { isWeaponProficient } from './equipmentProficiency'
 import type { WeaponProficiency } from './identity'
+import {
+  resolveActiveWeaponDamage,
+  resolveWeaponDamageProfile,
+} from './heldEquip'
+import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 
 export type AttackSourceKind = 'weapon' | 'artifact' | 'custom' | 'race'
 
@@ -96,19 +101,63 @@ export function createCustomAttack(): WeaponAttack {
   }
 }
 
-/** Mirror inventory.equipped onto linked attack cards. */
+type HeldSyncItem = {
+  id: string
+  name?: string
+  equipped: boolean
+  armor_kind?: string | null
+  weapon_grip?: string | null
+  data?: Record<string, unknown> | null
+}
+
+function occupiesHandSlot(item: HeldSyncItem): boolean {
+  if (item.armor_kind === 'shield') return true
+  if (item.armor_kind && item.armor_kind !== 'none') return false
+  if (item.weapon_grip === 'one_hand' || item.weapon_grip === 'two_hand') return true
+  return Boolean(item.name && findWeaponPreset(item.name))
+}
+
+/** Mirror inventory.equipped onto linked attack cards; swap versatile dice. */
 export function syncAttacksHeldFromInventory(
   weapons: WeaponAttack[],
-  items: Array<{ id: string; equipped: boolean }>,
+  items: HeldSyncItem[],
 ): WeaponAttack[] {
-  const equippedById = new Map(items.map((item) => [item.id, item.equipped]))
+  const byId = new Map(items.map((item) => [item.id, item]))
+  const heldOtherThan = (weaponItemId: string): boolean =>
+    items.some(
+      (item) => item.id !== weaponItemId && item.equipped && occupiesHandSlot(item),
+    )
+
   let changed = false
   const next = weapons.map((attack) => {
-    if (!attack.inventory_item_id) return attack
-    const held = Boolean(equippedById.get(attack.inventory_item_id))
-    if (attack.held === held) return attack
+    const itemId = attack.inventory_item_id
+    if (!itemId) return attack
+    const item = byId.get(itemId)
+    if (!item) return attack
+
+    const held = Boolean(item.equipped)
+    const name = (item.name || attack.name || '').trim()
+    const data = item.data ?? null
+    const profile = name ? resolveWeaponDamageProfile({ name, data }) : null
+
+    let damage = attack.damage
+    if (profile && (profile.damage || profile.versatileDamage)) {
+      if (held) {
+        const active = resolveActiveWeaponDamage({
+          name,
+          data,
+          twoHandedWield: !heldOtherThan(itemId),
+        })
+        if (active) damage = active
+      } else if (profile.damage) {
+        // Stowed — show the one-hand die as the default face of the weapon.
+        damage = profile.damage
+      }
+    }
+
+    if (attack.held === held && attack.damage === damage) return attack
     changed = true
-    return { ...attack, held }
+    return { ...attack, held, damage }
   })
   return changed ? next : weapons
 }
