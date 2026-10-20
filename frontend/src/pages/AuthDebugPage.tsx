@@ -92,6 +92,8 @@ export function AuthDebugPage({ nextPath = null }: AuthDebugPageProps) {
                     Вход
                   </button>
                 </div>
+                <OAuthButtons onMessage={setOauthMessage} />
+                {oauthMessage ? <Text tone="muted">{oauthMessage}</Text> : null}
                 <EmailAuthForm
                   mode={view}
                   onSuccess={(nextUser) => {
@@ -106,13 +108,6 @@ export function AuthDebugPage({ nextPath = null }: AuthDebugPageProps) {
             {view === 'forgot' ? (
               <ForgotPasswordForm onBackToLogin={() => setView('login')} />
             ) : null}
-          </Stack>
-        </Panel>
-
-        <Panel title="Вход через сервисы">
-          <Stack gap={10}>
-            <OAuthButtons onMessage={setOauthMessage} />
-            {oauthMessage ? <Text tone="muted">{oauthMessage}</Text> : null}
           </Stack>
         </Panel>
 
