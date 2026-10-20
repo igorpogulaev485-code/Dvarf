@@ -37,8 +37,9 @@ class YandexOAuthProvider(OAuthProvider):
         *,
         device_id: str | None = None,
         code_verifier: str | None = None,
+        state: str | None = None,
     ) -> OAuthProfile:
-        del device_id, code_verifier  # unused for Yandex
+        del device_id, code_verifier, state  # unused for Yandex
         self.require_configured()
         redirect_uri = effective_yandex_redirect_uri()
 
