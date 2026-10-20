@@ -1,9 +1,11 @@
+<!-- See docs/INCIDENT_OVERWRITE_2026-10-17.md -->
 # Prod deploy (Timeweb VPS)
 
 **URL:** http://201.34.132.252/  
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
-**Current prod tip branch:** `cursor/create-pipeline-kit-prod-244b`  
+**Current prod tip branch:** `cursor/sirocco-ranger-sync-e6f4`  
+**Public URL:** https://creed20.tech (Caddy `edge` + Let’s Encrypt; `web` only on docker network)  
 (обновляй эту строку после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
 
 ---
@@ -17,17 +19,23 @@
 | Полный tip + твой слайс | ОКый прод + новое |
 | Тонкая ветка без кабинета/листа/лобби | Эти контуры **исчезают** |
 
-Именно так 2026-10-06 пропали аватар, кабинет, лист P1–P6 и classic.
+Именно так 2026-10-06 пропали аватар, кабинет, лист P1–P6 и classic.  
+**2026-10-17:** tip сеттинга T5 с линии C4 затёр Play Desk + полный classic — см. [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](../docs/INCIDENT_OVERWRITE_2026-10-17.md).  
+Classic ↔ продукт: [`docs/CLASSIC_SHEET_PROD.md`](../docs/CLASSIC_SHEET_PROD.md).
 
 **Правила:** [`AGENTS.md`](../AGENTS.md) · [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](../.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
+**Сеттинг не ломает прод:** ветка слайса C5–T5 / дальше — только от live tip; preflight обязан видеть PlayDeskHotBar + ClassicPrint2024 + SettingQuickCreate вместе.
+
 Перед деплоем обязательно:
 
-1. Ветка = merge/rebase от **prod tip** (не параллельная развилка от старого Phase A).
-2. `./deploy/preflight-prod.sh` — зелёный (вызывается из `sync-and-up.sh` автоматически).
-3. После деплоя — проверить живые маркеры + обновить `PRODUCT_STATUS.md`.
+1. Ветка = merge/rebase от **prod tip** (`deploy/prod-tip` + таблица в `AGENTS.md`).
+2. `./deploy/preflight-prod.sh` — зелёный (маркеры дерева).
+3. `./deploy/preflight-live.sh` — зелёный (tip на VPS ancestor of HEAD + alembic file in tree).
+4. После деплоя — проверить живые маркеры + обновить `PRODUCT_STATUS.md`.
 
-Обход preflight только с явного ok Игоря: `DVARF_SKIP_PREFLIGHT=1`.
+Оба preflight вызывает `sync-and-up.sh`. Обход только с явного ok Игоря:  
+`DVARF_SKIP_PREFLIGHT=1` и/или `DVARF_SKIP_LIVE_PREFLIGHT=1`.
 
 ---
 
@@ -54,17 +62,22 @@ Secret must include `BEGIN OPENSSH PRIVATE KEY` … `END` (не обрезанн
 
 ```bash
 # from full prod tip lineage
-./deploy/preflight-prod.sh   # optional; sync-and-up runs it
+./deploy/preflight-prod.sh   # optional; sync-and-up runs both
+./deploy/preflight-live.sh
 ./deploy/sync-and-up.sh
 ```
 
 What `sync-and-up.sh` does:
 
-1. Runs **preflight** (anti-overwrite markers)
+1. Runs **preflight-prod** (anti-overwrite markers) + **preflight-live** (VPS tip/alembic)
 2. Packs the repo (no `.git`, no `node_modules`, no local `.env`)
 3. Extracts into `/opt/dvarf` while keeping the existing server `.env`
 4. Runs `docker compose -f docker-compose.prod.yml --env-file .env up -d --build`
 5. Curls `http://127.0.0.1/health` on the server (retries briefly)
+
+Seed JSON for classes/feats/races/gear lives under `backend/data/`.  
+Orphan alembic files from the old forms-adapt id-collision lineage are archived at  
+`backend/alembic/archive_forms_adapt_versions/` (not loaded by alembic).
 
 Override host/key if needed:
 

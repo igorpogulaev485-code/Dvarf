@@ -5,6 +5,16 @@ description: Workflow for building Dvarf with Игорь — plan first, code on
 
 # Dvarf development workflow
 
+## Hard rule — UI Kit first (frontend)
+
+Any change under `frontend/` must follow the canonical UI Kit:
+
+→ [`docs/ui-kit/README.md`](../../../docs/ui-kit/README.md)  
+→ [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../dvarf-ui-kit/SKILL.md)  
+→ boards in `docs/ui-kit/boards/`
+
+Plan slices that touch UI must name the kit boards they follow. New patterns need a board + Игорь ok before code. Implementation order: unified kit in default **Листва** first, account theme picker second.
+
 ## Hard rule — plan first
 
 Before writing or changing product code:
@@ -28,11 +38,13 @@ Do not start coding, scaffolding, or migrations until the plan is approved for t
 → [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](../dvarf-prod-lineage/SKILL.md)  
 → корневой [`AGENTS.md`](../../../AGENTS.md)
 
-Кратко:
+Кратко (обязательный рецепт, иначе релиз снова уйдёт в час):
 
 - `sync-and-up.sh` **затирает весь** `/opt/dvarf` (кроме `.env`).
-- Работай и деплой **только от текущего prod tip** (сейчас `cursor/prod-lineage-rules-acbe`).
-- Перед деплоем: `./deploy/preflight-prod.sh` (вызывается из sync-and-up).
+- Tip брать с **живого сервера** (`/opt/dvarf/AGENTS.md`), не из своей устаревшей копии. Сейчас tip: `cursor/deploy-guardrails-93e5` (сверяй live).
+- Ветку строить / вливать **только** `git merge origin/<live-tip>`. **Запрещено** сшивать orphan cherry-pick’ами при пустом `merge-base`.
+- Перед деплоем (само из `sync-and-up`): `preflight-prod.sh` + **`preflight-live.sh`** (tip = ancestor; alembic из prod DB есть в дереве).
+- Не откатывать fast-path: нужны `deploy/remote-up.sh` и nginx+dist `frontend/Dockerfile` (не `docker compose up -d --build` / node на VPS).
 - В `PRODUCT_STATUS.md` пиши «на проде: да» только после проверки живого сервера.
 
 ## Plan format (keep short)
@@ -66,7 +78,8 @@ Do not start coding, scaffolding, or migrations until the plan is approved for t
 6. **Do not commit broken half-migrations** — a pushed slice must apply cleanly (migrate up works).
 7. **Plan changes mid-flight** — if scope changes, stop, re-plan, get ok, then continue with a new commit.
 8. **Main** — do not push product work straight to `main`; use feature branches `cursor/<name>-acbe` (или `-eb8e` у старых PR).
-9. **Prod tip** — branch from / merge current tip before Timeweb deploy; never deploy a divergent thin fork.
+9. **Prod tip** — branch from / merge **live** tip before Timeweb deploy; never deploy a divergent thin fork / orphan cherry-pick tree.
+10. **Migrations** — if prod DB already has an alembic revision, that file **must** be in your tree before `sync-and-up` (live preflight fails otherwise).
 
 ## Collaboration notes
 

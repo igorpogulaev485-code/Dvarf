@@ -9,6 +9,7 @@ const KIND_LABEL: Record<CompanionKind, string> = {
   familiar: 'Фамилиар',
   ally: 'Призыв',
   other: 'Спутник',
+  transformed_self: 'Облик',
 }
 
 type PlayDeskCompanionsCompactProps = {

@@ -70,10 +70,16 @@ class UserRepository:
         display_name: str | None,
         full_name: str | None,
         phone: str | None,
+        theme_id: str | None = None,
+        ability_colors: str | None = None,
     ) -> User:
         user.display_name = display_name
         user.full_name = full_name
         user.phone = phone
+        if theme_id is not None:
+            user.theme_id = theme_id
+        if ability_colors is not None:
+            user.ability_colors = ability_colors
         self.db.add(user)
         self.db.flush()
         return user
@@ -109,3 +115,14 @@ class UserRepository:
         self.db.add(identity)
         self.db.flush()
         return identity
+
+    def remove_identity(self, *, user: User, provider: AuthProvider) -> bool:
+        """Delete identity for provider on this user. Returns True if removed."""
+        removed = False
+        for identity in list(user.identities):
+            if identity.provider == provider:
+                self.db.delete(identity)
+                removed = True
+        if removed:
+            self.db.flush()
+        return removed

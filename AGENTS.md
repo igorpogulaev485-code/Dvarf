@@ -1,8 +1,13 @@
 # Правила для агентов (Dvarf) — читать первым
 
-Этот файл — **жёсткий контракт**. Нарушение уже один раз сожгло прод (кабинет, аватар, лист P1–P6, classic).
+Этот файл — **жёсткий контракт**. Нарушение уже **дважды** сожгло прод:
 
-Подробности: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod-lineage/SKILL.md) · [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) · [`deploy/README.md`](deploy/README.md).
+- 2026-10-06: кабинет, аватар, лист P1–P6, classic
+- **2026-10-17 ~05:33 UTC:** tip `setting-t5-journal-table` с линии C4 затёр Play Desk (шапка планшета / hot-bar, ~145→30 файлов) и полный classic (17→3), хотя сеттинг C5–T5 сам по себе был ок
+
+Подробности: [`.cursor/skills/dvarf-prod-lineage/SKILL.md`](.cursor/skills/dvarf-prod-lineage/SKILL.md) · [`docs/INCIDENT_OVERWRITE_2026-10-17.md`](docs/INCIDENT_OVERWRITE_2026-10-17.md) · [`docs/CLASSIC_SHEET_PROD.md`](docs/CLASSIC_SHEET_PROD.md) · [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) · [`deploy/README.md`](deploy/README.md).
+
+**Сеттинг / classic / tablet:** доработки ок, деплой **только** после `git merge origin/<live-tip>`. Сам слайс не имеет права затирать чужие контуры — см. инцидент 2026-10-17.
 
 ---
 
@@ -13,7 +18,11 @@
 - Деплой с «тонкой» ветки = **удаление** всего, чего в ней нет.
 - «У меня в PR фича есть» ≠ «на проде она останется после чужого деплоя».
 
-**Запрещено** деплоить с ветки, которая не содержит актуальный prod tip.
+**Запрещено** деплоить с ветки, которая не содержит актуальный **живой** prod tip (читается с VPS, не из устаревшего AGENTS в своей feature-ветке).
+
+**Запрещено** вести «вторую линию tip» (пример: сеттинг от C4, пока live tip = classic/tablet). Новые слайсы — **только** `git merge origin/<live-tip>` в свою ветку **до** любого `sync-and-up`.
+
+**Запрещено** `DVARF_SKIP_PREFLIGHT=1` / `DVARF_SKIP_LIVE_PREFLIGHT=1` без явного ok Игоря в чате этого деплоя.
 
 ---
 
@@ -21,7 +30,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/create-pipeline-kit-prod-244b` |
+| Prod tip (сейчас) | `cursor/sirocco-ranger-sync-e6f4` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
@@ -46,16 +55,21 @@
 
 ```bash
 ./deploy/preflight-prod.sh
+./deploy/preflight-live.sh   # tip на VPS — ancestor of HEAD; alembic revision есть в дереве
 ```
 
-Скрипт падает, если нет обязательных файлов текущего прода (lobby + cabinet + avatar + sheet P1–P6 + classic).  
-`sync-and-up.sh` вызывает preflight сам. Обход только так: `DVARF_SKIP_PREFLIGHT=1` — и только с явного ok Игоря.
+`preflight-prod` падает, если нет обязательных файлов текущего прода (lobby + cabinet + avatar + sheet + forms-adapt маркеры + classic + бой/вики).  
+`preflight-live` читает tip/alembic **с сервера** и ловит orphan-ветки / missing migration files.  
+`sync-and-up.sh` вызывает оба. Обход: `DVARF_SKIP_PREFLIGHT=1` и/или `DVARF_SKIP_LIVE_PREFLIGHT=1` — только с явного ok Игоря.
+
+Единый файл tip: `deploy/prod-tip` (сейчас = ветка в таблице выше).
 
 Дополнительно глазами:
 
 - [ ] Ветка содержит merge/rebase **prod tip**, не параллельную «пустую» развилку от старого Phase A
 - [ ] `PRODUCT_STATUS.md` актуален; не пишешь «на проде: да» заранее
 - [ ] Нет удаления чужих роутов/панелей «потому что мне не нужны»
+- [ ] Сиды `backend/data/` (классы/фиты/расы) на месте — иначе свежая БД не воспроизведёт каталог
 
 ---
 
@@ -63,9 +77,13 @@
 
 1. `curl -fsS http://201.34.132.252/health`
 2. Проверь **живые маркеры** в бандле/на диске (не только свой слайс):
-   - кабинет / аватар / лобби / лист (мультикласс, концентрация, classic)
-3. Обнови `PRODUCT_STATUS.md` **по факту проверки** (да/нет, ветка, дата).
-4. Если что-то пропало — **стоп**, восстанавливай до tip+твой слайс, не пиши что «всё ок».
+   - кабинет / аватар / лобби
+   - **Play Desk:** `PlayDeskHeader`, `PlayDeskHotBar`, прыжки, spend-пикеры
+   - **Classic:** `ClassicPrint2024`, переключатель 2014/2024
+   - бой на сессии / вики C5–T5 (QuickCreate, handoff, lore panel)
+3. Счётчики: `characters/*.tsx` ≫ 80, `classicSheet/*` ≫ 10 — иначе снова тонкая заливка
+4. Обнови `PRODUCT_STATUS.md` **по факту проверки** (да/нет, ветка, дата).
+5. Если что-то пропало — **стоп**, восстанавливай до tip+твой слайс, не пиши что «всё ок».
 
 **Запрещено** писать в `PRODUCT_STATUS` «на проде: да», если на сервере файла/строки UI нет.
 
@@ -92,16 +110,41 @@ Skill: [`.cursor/skills/dvarf-dev-workflow/SKILL.md`](.cursor/skills/dvarf-dev-w
 
 ---
 
-## 6b. Сообщение для друзей
-
-Если Игорь просит **«сообщение для друзей»** / пост / анонс в стандартном формате — пиши готовый текст по skill:
-
-→ [`.cursor/skills/dvarf-friends-announce/SKILL.md`](.cursor/skills/dvarf-friends-announce/SKILL.md)
-
-Не подменяй changelog’ом. Цифры и tip — после проверки прода (или явно пометь черновик).
-
----
-
 ## 7. Секреты
 
 Не коммитить `.env`. Cloud Agent: secret `DVARF_SSH_PRIVATE_KEY` = полный OpenSSH PEM (`BEGIN`…`END`).
+
+---
+
+## 8. UI Kit LOCK — нельзя ломать визуал прода
+
+Контракт: [`docs/ui-kit/README.md`](docs/ui-kit/README.md) + skill [`dvarf-ui-kit`](.cursor/skills/dvarf-ui-kit/SKILL.md).
+
+**Жёстко запрещено** без явного ok Игоря:
+
+1. Заменять / «откатывать» `frontend/src/index.css` целиком с другой ветки (forms-adapt, orphan kit, «чистый» CSS).
+2. Удалять блок с маркером `UI KIT LOCK — Lobby Hub` (хаб лобби A1, стол сессии, дневник/чаты/заметки, вики, артефакты).
+3. Менять LOCK-паттерны Wave A стола (шапка, спеллы, атаки, hot-bar, identity, companions…) вразрез с §2b–2l.
+4. Деплоить дерево, где preflight не находит CSS-маркеры лобби/вики (см. `deploy/preflight-prod.sh`).
+
+Если нужен CSS с другой ветки — **мержить классы**, не checkout файла. После любого restyle `index.css`:  
+`rg 'lobby-member-grid|lobby-hub-tab\.is-active|setting-wiki|UI KIT LOCK — Lobby Hub' frontend/src/index.css`  
+должно быть зелёным, иначе визуал лобби снова «поедет».
+
+---
+
+## 8a. Play Desk / лист персонажа — единственный вид (LOCK)
+
+Канон: [`docs/PLAY_DESK_SOURCE_OF_TRUTH.md`](docs/PLAY_DESK_SOURCE_OF_TRUTH.md) + доски `desk-header-lock` / `desk-chrome` / `spells` + **живой прод** http://201.34.132.252/
+
+**Эталон листа = полный Play Desk** (`PlayDeskHeader` + сцены + rail + hot-bar + `MinimalSheetEditor`).  
+Не эталон: `main`-SPA, classic-бланк как digital, ЛСС-скрин как layout, самодельные `/dev` «столы».
+
+**Запрещено всем агентам** без явного ok Игоря:
+
+1. Рисовать / коммитить **альтернативный вид** листа или «упрощённый стол персонажа».
+2. Делать mock/preview-страницы с фальшивой шапкой персонажа и выдавать их за путь на проде.
+3. Класть в ответ Игорю скрины такого фейка. Допустимы только: **prod** · **полный tip Play Desk** · **dialog-only** · **ui-kit board** (подпись обязательна).
+4. Копировать визуал листа из ЛСС / других приложений.
+
+Нарушение = регрессия прода (уже было). При сомнении — открой прод и доску, не выдумывай layout.

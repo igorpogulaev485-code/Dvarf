@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AppHeader,
@@ -6,6 +6,14 @@ import {
   CreateCharacterButton,
   type CreateCharacterRequest,
 } from '../features/characters'
+import { CharacterTagsDialog } from '../features/characters/CharacterTagsDialog'
+import {
+  CARD_SIZE_OPTIONS,
+  characterMatchesTagFilter,
+  loadCharacterListPrefs,
+  saveCharacterListPrefs,
+  type CharacterListPrefs,
+} from '../features/characters/characterListPrefs'
 import { getMe, type User } from '../shared/api/auth'
 import {
   createCharacter,
@@ -13,14 +21,19 @@ import {
   type CharacterSummary,
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
+import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
+import { prefetchSheetRoutes } from '../shared/lazy/routes'
 import { Button, Stack, Text, Toast } from '../ui'
+import { forceReleaseBodyScrollLock } from '../ui/bodyScrollLock'
 
-function listSubtitle(user: User | null, count: number): string {
+function listSubtitle(user: User | null, shown: number, total: number): string {
   const who = user?.display_name || user?.login || user?.email
+  const count =
+    shown === total ? `${total} в списке` : `${shown} из ${total}`
   if (who) {
-    return `${who} · ${count} в списке`
+    return `${who} · ${count}`
   }
-  return `${count} в вашем списке`
+  return count
 }
 
 export function CharactersPage() {
@@ -32,8 +45,20 @@ export function CharactersPage() {
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [prefs, setPrefs] = useState<CharacterListPrefs>(() => loadCharacterListPrefs())
+  const [filterTagIds, setFilterTagIds] = useState<string[]>([])
+  const [tagsOpen, setTagsOpen] = useState(false)
 
   const closeToast = useCallback(() => setToast(null), [])
+
+  const updatePrefs = useCallback((next: CharacterListPrefs) => {
+    setPrefs(next)
+    saveCharacterListPrefs(next)
+  }, [])
+
+  useEffect(() => {
+    forceReleaseBodyScrollLock()
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -53,6 +78,8 @@ export function CharactersPage() {
       .then((items) => {
         if (!active) return
         setCharacters(items)
+        // Warm the ~500KB sheet chunk while the user still looks at cards.
+        prefetchSheetRoutes()
       })
       .catch((err: unknown) => {
         if (!active) return
@@ -78,6 +105,20 @@ export function CharactersPage() {
     }
   }, [navigate, reloadKey])
 
+  const visibleCharacters = useMemo(
+    () =>
+      characters.filter((character) =>
+        characterMatchesTagFilter(prefs, character.id, filterTagIds),
+      ),
+    [characters, prefs, filterTagIds],
+  )
+
+  function toggleFilterTag(tagId: string) {
+    setFilterTagIds((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId],
+    )
+  }
+
   async function handleCreate(request: CreateCharacterRequest) {
     if (request.edition === '2014') {
       navigate('/characters/create')
@@ -100,19 +141,76 @@ export function CharactersPage() {
     }
   }
 
+  const titleCount = loading ? '' : ` (${characters.length})`
+
   return (
     <main className="page page--app">
       <Stack gap={20}>
         <AppHeader
-          title="Мои персонажи"
-          subtitle={loading ? 'Загрузка...' : listSubtitle(user, characters.length)}
+          title={`Мои персонажи${titleCount}`}
+          subtitle={
+            loading
+              ? 'Загрузка...'
+              : listSubtitle(user, visibleCharacters.length, characters.length)
+          }
           user={user}
-          onOfficialSite={() => setToast('Официальный сайт скоро появится')}
+          onOfficialSite={openProductSite}
         />
 
-        <section className="toolbar">
+        <section className="toolbar character-list-toolbar">
           <CreateCharacterButton pending={creating} onCreate={handleCreate} />
+
+          <div
+            className="character-list-toolbar__sizes"
+            role="group"
+            aria-label="Размер карточек"
+          >
+            {CARD_SIZE_OPTIONS.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={`sheet-chip${prefs.cardSize === option.id ? ' is-on' : ''}`}
+                aria-pressed={prefs.cardSize === option.id}
+                onClick={() => updatePrefs({ ...prefs, cardSize: option.id })}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setTagsOpen(true)}
+          >
+            Теги{prefs.tags.length ? ` (${prefs.tags.length})` : ''}
+          </Button>
         </section>
+
+        {prefs.tags.length ? (
+          <div className="character-list-filters" aria-label="Фильтр по тегам">
+            {prefs.tags.map((tag) => {
+              const on = filterTagIds.includes(tag.id)
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  className={`character-list-tag${on ? ' is-on' : ''}`}
+                  style={{ ['--tag-color' as string]: tag.color }}
+                  aria-pressed={on}
+                  onClick={() => toggleFilterTag(tag.id)}
+                >
+                  {tag.name}
+                </button>
+              )
+            })}
+            {filterTagIds.length ? (
+              <Button type="button" variant="ghost" onClick={() => setFilterTagIds([])}>
+                Сбросить
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
 
         {error ? (
           <Stack gap={8}>
@@ -127,15 +225,39 @@ export function CharactersPage() {
           <Text tone="muted">Загружаем персонажей...</Text>
         ) : (
           <CharacterList
-            characters={characters}
-            emptyAction={<CreateCharacterButton pending={creating} onCreate={handleCreate} />}
+            characters={visibleCharacters}
+            prefs={prefs}
+            cardSize={prefs.cardSize}
+            listEmpty={characters.length === 0}
+            emptyAction={
+              filterTagIds.length ? (
+                <Button type="button" variant="secondary" onClick={() => setFilterTagIds([])}>
+                  Сбросить фильтр тегов
+                </Button>
+              ) : (
+                <CreateCharacterButton pending={creating} onCreate={handleCreate} />
+              )
+            }
             onDeleted={(id) => {
               setCharacters((prev) => prev.filter((item) => item.id !== id))
+              const assignments = { ...prefs.assignments }
+              delete assignments[id]
+              updatePrefs({ ...prefs, assignments })
               setToast('Персонаж удалён')
             }}
           />
         )}
+
+        <AppLegalFooter />
       </Stack>
+
+      <CharacterTagsDialog
+        open={tagsOpen}
+        characters={characters}
+        prefs={prefs}
+        onClose={() => setTagsOpen(false)}
+        onChange={updatePrefs}
+      />
       <Toast message={toast} onClose={closeToast} />
     </main>
   )

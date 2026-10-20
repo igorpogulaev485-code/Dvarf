@@ -23,7 +23,11 @@ import {
   equipInventoryItem,
   type InventoryState,
 } from './inventory'
-import type { TextBlock } from './textBlocks'
+import {
+  blockPlainText,
+  withBlockPlainText,
+  type TextBlock,
+} from './textBlocks'
 import { type WeaponAttack } from './AttacksPanel'
 import { resolveWeaponGrip } from './heldEquip'
 import { canWearArmor, isWeaponProficient } from './equipmentProficiency'
@@ -203,6 +207,7 @@ export function revokeBackgroundGrant(
   const inventory: InventoryState = {
     coins: { ...draft.inventory.coins },
     items: draft.inventory.items.filter((item) => !removeIds.has(item.id)),
+    notes: draft.inventory.notes ?? '',
   }
   if (previous.equipmentCoinsGp > 0) {
     inventory.coins.gp = Math.max(0, inventory.coins.gp - previous.equipmentCoinsGp)
@@ -210,25 +215,40 @@ export function revokeBackgroundGrant(
 
   const textBlocks = draft.textBlocks.map((block) => {
     if (block.key === 'traits') {
-      return { ...block, value: upsertBackgroundFeatureBlock(block.value, '') }
+      return withBlockPlainText(
+        block,
+        upsertBackgroundFeatureBlock(blockPlainText(block), ''),
+      )
     }
     if (block.key === 'personality') {
-      return { ...block, value: upsertMarkedTextBlock(block.value, 'personality', '') }
+      return withBlockPlainText(
+        block,
+        upsertMarkedTextBlock(blockPlainText(block), 'personality', ''),
+      )
     }
     if (block.key === 'ideals') {
-      return { ...block, value: upsertMarkedTextBlock(block.value, 'ideals', '') }
+      return withBlockPlainText(
+        block,
+        upsertMarkedTextBlock(blockPlainText(block), 'ideals', ''),
+      )
     }
     if (block.key === 'bonds') {
-      return { ...block, value: upsertMarkedTextBlock(block.value, 'bonds', '') }
+      return withBlockPlainText(
+        block,
+        upsertMarkedTextBlock(blockPlainText(block), 'bonds', ''),
+      )
     }
     if (block.key === 'flaws') {
-      return { ...block, value: upsertMarkedTextBlock(block.value, 'flaws', '') }
+      return withBlockPlainText(
+        block,
+        upsertMarkedTextBlock(blockPlainText(block), 'flaws', ''),
+      )
     }
     if (block.key === 'background') {
-      return {
-        ...block,
-        value: upsertMarkedTextBlock(block.value, 'backgroundStory', ''),
-      }
+      return withBlockPlainText(
+        block,
+        upsertMarkedTextBlock(blockPlainText(block), 'backgroundStory', ''),
+      )
     }
     return block
   })
@@ -306,6 +326,7 @@ export function applyBackgroundGrantToDraft(input: {
   let inventory: InventoryState = {
     coins: { ...cleared.inventory.coins },
     items: [...cleared.inventory.items],
+    notes: cleared.inventory.notes ?? '',
   }
   let nextWeapons: WeaponAttack[] = [...cleared.weapons]
   const gearArmorProf = cleared.identity.armor
@@ -372,37 +393,40 @@ export function applyBackgroundGrantToDraft(input: {
   const storyText = storyBits.join('\n')
   const textBlocks = cleared.textBlocks.map((block) => {
     if (block.key === 'traits') {
-      return { ...block, value: upsertBackgroundFeatureBlock(block.value, featureText) }
+      return withBlockPlainText(
+        block,
+        upsertBackgroundFeatureBlock(blockPlainText(block), featureText),
+      )
     }
     if (block.key === 'personality') {
-      return {
-        ...block,
-        value: upsertMarkedTextBlock(block.value, 'personality', personalityText),
-      }
+      return withBlockPlainText(
+        block,
+        upsertMarkedTextBlock(blockPlainText(block), 'personality', personalityText),
+      )
     }
     if (block.key === 'ideals') {
-      return {
-        ...block,
-        value: upsertMarkedTextBlock(block.value, 'ideals', picks.ideal ?? ''),
-      }
+      return withBlockPlainText(
+        block,
+        upsertMarkedTextBlock(blockPlainText(block), 'ideals', picks.ideal ?? ''),
+      )
     }
     if (block.key === 'bonds') {
-      return {
-        ...block,
-        value: upsertMarkedTextBlock(block.value, 'bonds', picks.bond ?? ''),
-      }
+      return withBlockPlainText(
+        block,
+        upsertMarkedTextBlock(blockPlainText(block), 'bonds', picks.bond ?? ''),
+      )
     }
     if (block.key === 'flaws') {
-      return {
-        ...block,
-        value: upsertMarkedTextBlock(block.value, 'flaws', picks.flaw ?? ''),
-      }
+      return withBlockPlainText(
+        block,
+        upsertMarkedTextBlock(blockPlainText(block), 'flaws', picks.flaw ?? ''),
+      )
     }
     if (block.key === 'background') {
-      return {
-        ...block,
-        value: upsertMarkedTextBlock(block.value, 'backgroundStory', storyText),
-      }
+      return withBlockPlainText(
+        block,
+        upsertMarkedTextBlock(blockPlainText(block), 'backgroundStory', storyText),
+      )
     }
     return block
   })

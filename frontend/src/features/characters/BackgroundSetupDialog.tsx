@@ -9,6 +9,7 @@ import {
   type BackgroundGrantDef,
   type BackgroundGrantPicks,
 } from '../../shared/dnd/backgroundGrants'
+import { canonicalLanguageName } from '../../shared/dnd/languages'
 import { LANGUAGE_PRESETS } from './languagesTools'
 import { SKILL_DEFS } from './sheetTypes'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
@@ -38,7 +39,7 @@ const KEEP_ROOT = '__root__'
 const COMMON_LANGUAGE = 'общий'
 
 function normLang(name: string): string {
-  return name.trim().toLowerCase()
+  return canonicalLanguageName(name).toLowerCase()
 }
 
 function skillLabel(key: string): string {
@@ -64,8 +65,8 @@ function ChipList({
           <button
             key={name}
             type="button"
-            className={`sheet-chip${block ? ' sheet-chip--block' : ''}${on ? ' is-on' : ''}`}
-            aria-pressed={on}
+            className={`sheet-chip${on ? ' is-on' : ''}`}
+            style={block ? { display: 'block', width: '100%', textAlign: 'left' } : undefined}
             onClick={() => onToggle(name)}
           >
             {name}
@@ -260,7 +261,6 @@ export function BackgroundSetupDialog({
       primaryLabel="Применить"
       secondaryLabel="Отмена"
       size="wide"
-      primaryDisabled={!canConfirm}
       onPrimary={() => {
         if (!canConfirm || !def || !effectiveEntry) return
         onConfirm({
@@ -441,26 +441,26 @@ export function BackgroundSetupDialog({
                       <button
                         key={pack.id}
                         type="button"
-                        className={`sheet-chip sheet-chip--block${on ? ' is-on' : ''}`}
-                        aria-pressed={on}
+                        className={`sheet-chip${on ? ' is-on' : ''}`}
+                        style={{ display: 'block', width: '100%', textAlign: 'left' }}
                         onClick={() => setEquipmentPackageId(pack.id)}
                       >
-                        <strong className="sheet-chip__title">{pack.labelRu}</strong>
-                        <div className="sheet-chip__meta">{pack.summary}</div>
+                        <strong>{pack.labelRu}</strong>
+                        <div style={{ opacity: 0.85, fontWeight: 400 }}>{pack.summary}</div>
                       </button>
                     )
                   })}
                   <button
                     type="button"
-                    className={`sheet-chip sheet-chip--block${equipmentPackageId === 'skip' ? ' is-on' : ''}`}
-                    aria-pressed={equipmentPackageId === 'skip'}
+                    className={`sheet-chip${equipmentPackageId === 'skip' ? ' is-on' : ''}`}
+                    style={{ display: 'block', width: '100%', textAlign: 'left' }}
                     onClick={() => {
                       setEquipmentPackageId('skip')
                       setEquipmentOrPicks({})
                     }}
                   >
-                    <strong className="sheet-chip__title">Без снаряжения</strong>
-                    <div className="sheet-chip__meta">
+                    <strong>Без снаряжения</strong>
+                    <div style={{ opacity: 0.85, fontWeight: 400 }}>
                       Куплю снаряжение за золото / заполню сам
                     </div>
                   </button>
@@ -497,7 +497,7 @@ export function BackgroundSetupDialog({
               <Stack gap={12}>
                 <Text>
                   <strong>Персонализация</strong>
-                  <Text as="span" tone="muted"> — по желанию</Text>
+                  <span style={{ opacity: 0.8 }}> — по желанию</span>
                 </Text>
 
                 {traitNeed > 0 ? (

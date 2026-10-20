@@ -1,11 +1,63 @@
 import type { CharacterDetail } from '../../shared/api/characters'
 import {
+  storeTextBlockFromEditor,
+  stripDvarfInternalMarkers,
+} from '../../shared/dnd/backgroundGrants'
+import {
+  blockTextPartsPlain,
+  createTextPart,
+  readTextBlocks,
+  textBlocksToSheet,
+  withBlockPlainText,
+  type TextBlock,
+} from '../characters/textBlocks'
+import {
   ABILITY_KEYS,
   SKILL_DEFS,
   asRecord,
   readNumber,
   type AbilityKey,
 } from '../characters/sheetTypes'
+
+/** Classic-only note mirrors that textBlocksToSheet does not always own. */
+export const CLASSIC_EXTRA_NOTE_KEYS = new Set([
+  'allies',
+  'treasure',
+  'attacks',
+  'free',
+  'appearance',
+  'background',
+  'quests',
+])
+
+/** Merge full text-block write-back without dropping classic-only note mirrors. */
+export function mergeClassicTextBlocks(
+  character: CharacterDetail,
+  blocks: TextBlock[],
+  extraNoteMirrors?: Record<string, string>,
+): ClassicPatch {
+  const sheet = cloneSheet(asRecord(character.sheet))
+  const packed = textBlocksToSheet(blocks)
+  const prevNotes = asRecord(sheet.notes)
+  const nextNotes = asRecord(packed.notes)
+
+  sheet.text_blocks = packed.text_blocks
+  sheet.text_blocks_order = packed.text_blocks_order
+  sheet.features_text = {
+    ...asRecord(sheet.features_text),
+    ...asRecord(packed.features_text),
+  }
+  sheet.personality = {
+    ...asRecord(sheet.personality),
+    ...asRecord(packed.personality),
+  }
+  sheet.notes = {
+    ...prevNotes,
+    ...nextNotes,
+    ...(extraNoteMirrors ?? {}),
+  }
+  return { sheet }
+}
 
 export type ClassicPatch = {
   name?: string
@@ -66,16 +118,32 @@ export function identityField(character: CharacterDetail, key: string): unknown 
 
 export function textBlockValue(character: CharacterDetail, key: string): string {
   const sheet = asRecord(character.sheet)
+  // Prefer structured text blocks so classic plain edits don't pull spoiler bodies.
+  const block = readTextBlocks(sheet).find((row) => row.key === key)
+  if (block) return stripDvarfInternalMarkers(blockTextPartsPlain(block))
   const features = asRecord(sheet.features_text)
   const personality = asRecord(sheet.personality)
   const notes = asRecord(sheet.notes)
-  const blocks = asRecord(sheet.text_blocks)
-  const fromBlocks = asRecord(blocks[key])
-  if (typeof fromBlocks.value === 'string') return fromBlocks.value
-  if (typeof features[key] === 'string') return features[key] as string
-  if (typeof personality[key] === 'string') return personality[key] as string
-  if (typeof notes[key] === 'string') return notes[key] as string
+  if (typeof features[key] === 'string') {
+    return stripDvarfInternalMarkers(features[key] as string)
+  }
+  if (typeof personality[key] === 'string') {
+    return stripDvarfInternalMarkers(personality[key] as string)
+  }
+  if (typeof notes[key] === 'string') {
+    return stripDvarfInternalMarkers(notes[key] as string)
+  }
+  // Classic P2: allies used to live under «quests» on early classic builds
+  if (key === 'allies' && typeof notes.quests === 'string') {
+    return stripDvarfInternalMarkers(notes.quests)
+  }
   return ''
+}
+
+/** Physical description fields on official 2014 page 2 header. */
+export function physiqueField(character: CharacterDetail, key: string): string {
+  const value = identityField(character, key)
+  return typeof value === 'string' ? value : value == null ? '' : String(value)
 }
 
 export function applyClassicEdits(
@@ -92,12 +160,27 @@ export function applyClassicEdits(
     abilities?: Partial<Record<AbilityKey, number>>
     saveProficiency?: Partial<Record<AbilityKey, boolean>>
     skillProficiency?: Record<string, boolean>
+    /** When true, also forces proficiency on. */
+    skillExpertise?: Record<string, boolean>
     textBlocks?: Record<string, string>
     otherProficiencies?: string
+    proficiencyBonus?: number
+    /**
+     * Freeform equipment notes (classic box). Writes inventory.notes and
+     * clears retired inventory.classic_text — items stay the source of truth.
+     */
+    equipmentNotes?: string
+    /** @deprecated Prefer equipmentNotes — kept for call-site compatibility. */
+    equipmentText?: string
   },
 ): ClassicPatch {
   const sheet = cloneSheet(asRecord(character.sheet))
 
+  if (edits.proficiencyBonus != null) {
+    const proficiency = asRecord(sheet.proficiency)
+    proficiency.bonus = edits.proficiencyBonus
+    sheet.proficiency = proficiency
+  }
   if (edits.identity) {
     const identity = asRecord(sheet.identity)
     Object.assign(identity, edits.identity)
@@ -135,33 +218,75 @@ export function applyClassicEdits(
       const block = asRecord(skills[skill.key])
       block.base_stat = skill.base
       block.is_proficient = edits.skillProficiency[skill.key]
+      // Turning proficiency off also clears expertise.
+      if (!edits.skillProficiency[skill.key]) block.is_expertise = false
+      skills[skill.key] = block
+    }
+    sheet.skills = skills
+  }
+  if (edits.skillExpertise) {
+    const skills = asRecord(sheet.skills)
+    for (const skill of SKILL_DEFS) {
+      if (edits.skillExpertise[skill.key] == null) continue
+      const block = asRecord(skills[skill.key])
+      block.base_stat = skill.base
+      const expertise = edits.skillExpertise[skill.key]
+      block.is_expertise = expertise
+      if (expertise) block.is_proficient = true
       skills[skill.key] = block
     }
     sheet.skills = skills
   }
   if (edits.textBlocks) {
-    const features = asRecord(sheet.features_text)
-    const personality = asRecord(sheet.personality)
-    const notes = asRecord(sheet.notes)
-    const blocks = asRecord(sheet.text_blocks)
+    // Rebuild via the same path as the interactive sheet so `parts` stay in sync.
+    let blocks = readTextBlocks(sheet)
+    const extraMirrors: Record<string, string> = {}
     for (const [key, value] of Object.entries(edits.textBlocks)) {
-      if (key === 'features' || key === 'traits' || key === 'feats') features[key] = value
-      else if (key === 'personality' || key === 'ideals' || key === 'bonds' || key === 'flaws') {
-        personality[key] = value
-      } else if (key === 'appearance' || key === 'background' || key === 'quests' || key === 'free') {
-        notes[key] = value
+      const index = blocks.findIndex((block) => block.key === key)
+      const previous =
+        index >= 0 ? blockTextPartsPlain(blocks[index]) : ''
+      const stored = storeTextBlockFromEditor(key, previous, value)
+      if (index >= 0) {
+        const next = [...blocks]
+        next[index] = withBlockPlainText(next[index], stored)
+        blocks = next
+      } else {
+        const stub: TextBlock = withBlockPlainText(
+          {
+            key,
+            defaultLabel: key,
+            customLabel: null,
+            isHidden: false,
+            isCustom: false,
+            value: '',
+            resourceId: null,
+            parts: [createTextPart('')],
+          },
+          stored,
+        )
+        blocks = [...blocks, stub]
       }
-      const existing = asRecord(blocks[key])
-      existing.value = value
-      blocks[key] = existing
+      if (CLASSIC_EXTRA_NOTE_KEYS.has(key)) extraMirrors[key] = stored
     }
-    sheet.features_text = features
-    sheet.personality = personality
-    sheet.notes = notes
-    sheet.text_blocks = blocks
+    const patched = mergeClassicTextBlocks(
+      { ...character, sheet },
+      blocks,
+      extraMirrors,
+    )
+    if (patched.sheet) Object.assign(sheet, patched.sheet)
   }
   if (edits.otherProficiencies != null) {
     setPath(sheet, ['notes', 'proficiencies'], edits.otherProficiencies)
+  }
+  {
+    const notesEdit = edits.equipmentNotes ?? edits.equipmentText
+    if (notesEdit != null) {
+      const inventory = asRecord(sheet.inventory)
+      inventory.notes = notesEdit
+      // Retire the classic-only overlay so digital inventory items stay visible.
+      delete inventory.classic_text
+      sheet.inventory = inventory
+    }
   }
   if (edits.hp_current !== undefined) {
     const combat = asRecord(sheet.combat)
@@ -230,16 +355,64 @@ export function weaponsSummary(character: CharacterDetail): Array<{
   return rows.slice(0, 6)
 }
 
-export function equipmentText(character: CharacterDetail): string {
+/** Derived item names for the classic equipment box (source of truth). */
+export function equipmentItemsLine(character: CharacterDetail): string {
   const inventory = asRecord(asRecord(character.sheet).inventory)
   const items = inventory.items
-  if (!Array.isArray(items)) return typeof inventory.notes === 'string' ? inventory.notes : ''
-  const names = items
+  if (!Array.isArray(items)) return ''
+  return items
     .map((item) => {
       const row = asRecord(item)
-      return typeof row.name === 'string' ? row.name : ''
+      const name = typeof row.name === 'string' ? row.name.trim() : ''
+      if (!name) return ''
+      // Nested pack children stay in the digital list but clutter the blank.
+      if (row.parent_id) return ''
+      const qty =
+        typeof row.qty === 'number' && Number.isFinite(row.qty) && row.qty > 1
+          ? Math.floor(row.qty)
+          : null
+      return qty ? `${name} ×${qty}` : name
     })
     .filter(Boolean)
-  const notes = typeof inventory.notes === 'string' ? inventory.notes : ''
-  return [names.join(', '), notes].filter(Boolean).join('\n')
+    .join(', ')
+}
+
+/**
+ * Freeform equipment notes. Migrates retired `classic_text` when `notes` is empty.
+ */
+export function equipmentNotes(character: CharacterDetail): string {
+  const inventory = asRecord(asRecord(character.sheet).inventory)
+  if (typeof inventory.notes === 'string' && inventory.notes.length > 0) {
+    return inventory.notes
+  }
+  if (typeof inventory.classic_text === 'string') return inventory.classic_text
+  return typeof inventory.notes === 'string' ? inventory.notes : ''
+}
+
+/** Full classic equipment box: items + freeform notes (print / glance). */
+export function equipmentText(character: CharacterDetail): string {
+  return [equipmentItemsLine(character), equipmentNotes(character)]
+    .filter(Boolean)
+    .join('\n')
+}
+
+/**
+ * Classic skill bubble cycle: none → proficient → expertise → none.
+ * Matches how players usually mark the print sheet.
+ */
+export function cycleSkillMastery(
+  character: CharacterDetail,
+  skillKey: string,
+): ReturnType<typeof applyClassicEdits> {
+  const flags = skillFlags(character, skillKey)
+  if (flags.is_expertise) {
+    return applyClassicEdits(character, {
+      skillProficiency: { [skillKey]: false },
+      skillExpertise: { [skillKey]: false },
+    })
+  }
+  if (flags.is_proficient) {
+    return applyClassicEdits(character, { skillExpertise: { [skillKey]: true } })
+  }
+  return applyClassicEdits(character, { skillProficiency: { [skillKey]: true } })
 }

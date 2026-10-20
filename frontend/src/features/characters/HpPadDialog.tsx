@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   spendHitDieFromPool,
   totalHitDiceCurrent,
@@ -11,6 +12,7 @@ import {
   suggestedHitDieHeal,
 } from '../../shared/dnd/hitDice'
 import { Button, SlotPips } from '../../ui'
+import { acquireBodyScrollLock } from '../../ui/bodyScrollLock'
 import { withSyncedHitDiceSummary, type PlayState } from './play'
 
 type HpPadDialogProps = {
@@ -59,8 +61,7 @@ export function HpPadDialog({
   useEffect(() => {
     if (!open) return
     setDigits('')
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const releaseScroll = acquireBodyScrollLock()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.preventDefault()
@@ -79,7 +80,7 @@ export function HpPadDialog({
     }
     document.addEventListener('keydown', onKeyDown)
     return () => {
-      document.body.style.overflow = previousOverflow
+      releaseScroll()
       document.removeEventListener('keydown', onKeyDown)
     }
   }, [open, onClose])
@@ -131,7 +132,7 @@ export function HpPadDialog({
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
       className="ui-dialog-backdrop"
       role="presentation"
@@ -314,7 +315,8 @@ export function HpPadDialog({
           </div>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

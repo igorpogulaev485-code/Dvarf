@@ -9,7 +9,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.exceptions import AppError, ConflictError, UnauthorizedError
+from app.core.exceptions import AppError, ConflictError, NotFoundError, UnauthorizedError
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -44,6 +44,12 @@ logger = logging.getLogger(__name__)
 
 
 def serialize_user(user: User) -> UserResponse:
+    theme_id = getattr(user, "theme_id", None) or "wis"
+    ability_colors = getattr(user, "ability_colors", None) or "identity"
+    if theme_id not in {"str", "dex", "con", "int", "wis", "cha"}:
+        theme_id = "wis"
+    if ability_colors not in {"identity", "theme"}:
+        ability_colors = "identity"
     return UserResponse(
         id=user.id,
         email=user.email,
@@ -52,6 +58,8 @@ def serialize_user(user: User) -> UserResponse:
         full_name=user.full_name,
         phone=user.phone,
         avatar_url=user.avatar_url,
+        theme_id=theme_id,  # type: ignore[arg-type]
+        ability_colors=ability_colors,  # type: ignore[arg-type]
         email_verified_at=user.email_verified_at,
         created_at=user.created_at,
         updated_at=user.updated_at,
@@ -393,12 +401,20 @@ class AuthService:
         if user is None:
             raise UnauthorizedError("Пользователь не найден")
 
-        self.users.update_profile(
-            user,
-            display_name=payload.display_name,
-            full_name=payload.full_name,
-            phone=payload.phone,
-        )
+        data = payload.model_dump(exclude_unset=True)
+        if any(key in data for key in ("display_name", "full_name", "phone")):
+            self.users.update_profile(
+                user,
+                display_name=data["display_name"] if "display_name" in data else user.display_name,
+                full_name=data["full_name"] if "full_name" in data else user.full_name,
+                phone=data["phone"] if "phone" in data else user.phone,
+            )
+        if "theme_id" in data and data["theme_id"] is not None:
+            user.theme_id = data["theme_id"]
+            self.db.add(user)
+        if "ability_colors" in data and data["ability_colors"] is not None:
+            user.ability_colors = data["ability_colors"]
+            self.db.add(user)
         self.db.commit()
         loaded = self.users.get_by_id(user_id)
         assert loaded is not None
@@ -445,6 +461,88 @@ class AuthService:
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
         return self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
+
+    def link_oauth_profile(self, user_id: UUID, profile: OAuthProfile) -> UserResponse:
+        """Attach provider identity to an existing logged-in account (cabinet)."""
+        if profile.provider == AuthProvider.password:
+            raise AppError(
+                "Нельзя привязать пароль через OAuth",
+                code="invalid_provider",
+                status_code=400,
+            )
+
+        user = self.users.get_by_id(user_id)
+        if user is None:
+            raise NotFoundError("Пользователь не найден")
+
+        owner = self.users.get_by_identity(profile.provider, profile.provider_user_id)
+        if owner is not None and owner.id != user.id:
+            raise ConflictError(
+                "Этот аккаунт Яндекс/VK уже привязан к другому пользователю КриD20.",
+                code="oauth_identity_taken",
+            )
+        if owner is not None and owner.id == user.id:
+            return serialize_user(owner)
+
+        already = next(
+            (identity for identity in user.identities if identity.provider == profile.provider),
+            None,
+        )
+        if already is not None:
+            raise ConflictError(
+                "Этот способ входа уже привязан. Сначала отвяжите его, затем привяжите снова.",
+                code="oauth_provider_already_linked",
+            )
+
+        self.users.add_identity(
+            user=user,
+            provider=profile.provider,
+            provider_user_id=profile.provider_user_id,
+        )
+        if profile.avatar_url and not user.avatar_url:
+            user.avatar_url = profile.avatar_url
+        if profile.display_name and not user.display_name:
+            user.display_name = profile.display_name
+        if profile.full_name and not user.full_name:
+            user.full_name = profile.full_name
+        self.db.commit()
+        loaded = self.users.get_by_id(user.id)
+        assert loaded is not None
+        return serialize_user(loaded)
+
+    def unlink_oauth_provider(self, user: User, provider: AuthProvider) -> UserResponse:
+        if provider == AuthProvider.password:
+            raise AppError(
+                "Пароль нельзя отвязать здесь — смените или удалите аккаунт.",
+                code="cannot_unlink_password",
+                status_code=400,
+            )
+        if provider not in {AuthProvider.yandex, AuthProvider.vk}:
+            raise AppError(
+                "Неподдерживаемый OAuth-провайдер",
+                code="unsupported_provider",
+                status_code=400,
+            )
+
+        loaded = self.users.get_by_id(user.id)
+        if loaded is None:
+            raise NotFoundError("Пользователь не найден")
+
+        if not any(identity.provider == provider for identity in loaded.identities):
+            raise NotFoundError("Этот способ входа не привязан")
+
+        if len(loaded.identities) <= 1:
+            raise AppError(
+                "Нельзя отвязать единственный способ входа — иначе вы потеряете доступ к аккаунту.",
+                code="last_login_method",
+                status_code=400,
+            )
+
+        self.users.remove_identity(user=loaded, provider=provider)
+        self.db.commit()
+        refreshed = self.users.get_by_id(user.id)
+        assert refreshed is not None
+        return serialize_user(refreshed)
 
     def forgot_password(self, email: str) -> ForgotPasswordResponse:
         """Always returns the same public message (no email enumeration)."""

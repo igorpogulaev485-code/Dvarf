@@ -30,6 +30,8 @@ import { emptyPicks as emptyClassGrantPicks } from '../characters/classEffects'
 import {
   applySpellcastingSuggestion,
   characterHasCasterClass,
+  highestSpellSlotLevel,
+  highestSpellSlotLevelForClasses,
   suggestSpellcastingFromClasses,
 } from '../../shared/dnd/casterProgression'
 import {
@@ -50,8 +52,13 @@ import {
   type SubclassTransition,
 } from '../../shared/dnd/subclassGrants'
 import {
+  proficiencyBonusForTotalLevel,
   unlockFeaturesForClasses,
 } from '../../shared/dnd/classFeatures'
+import {
+  classWalkSpeedBonusFt,
+  resolveWalkSpeedFt,
+} from '../../shared/dnd/classMovement'
 import {
   syncSkillsExpertiseFromPicks,
 } from '../../shared/dnd/expertise'
@@ -67,6 +74,14 @@ import {
   type RaceGrantDraftSlice,
 } from '../characters/raceEffects'
 import {
+  applyFeatGrantToDraft,
+  type FeatGrantDraftSlice,
+} from '../characters/featEffects'
+import {
+  newFeatGrantId,
+  type AppliedFeatGrant,
+} from '../../shared/dnd/featGrants'
+import {
   applyClassGrantToDraft,
   type ClassGrantDraftSlice,
   type SaveState,
@@ -74,6 +89,7 @@ import {
 import {
   applySubclassGrantToDraft,
   resolveSubclassDefFromCatalog,
+  syncSubclassAlwaysPreparedSpells,
   type SubclassGrantDraftSlice,
 } from '../characters/subclassEffects'
 import {
@@ -145,6 +161,7 @@ type WorkingDraft = {
   companions: SubclassGrantDraftSlice['companions']
   backgroundGrant: BackgroundGrantDraftSlice['backgroundGrant']
   raceGrant: RaceGrantDraftSlice['raceGrant']
+  featGrants: AppliedFeatGrant[]
   playHitDie: HitDie | null
   hpMax: number | null
   hpCurrent: number | null
@@ -176,6 +193,7 @@ function emptyTextBlocks(): TextBlock[] {
     value: '',
     isCustom: false,
     resourceId: null,
+    parts: [{ id: `part-${item.key}`, kind: 'text' as const, value: '' }],
   }))
 }
 
@@ -186,6 +204,7 @@ function emptyIdentity(): IdentityExtras {
     background: '',
     backgroundSlug: null,
     alignment: '',
+    gender: null,
     size: 'medium',
     darkvision: 0,
     armor: { ...EMPTY_ARMOR },
@@ -197,7 +216,7 @@ function emptyIdentity(): IdentityExtras {
 }
 
 function emptyInventory(): InventoryState {
-  return { coins: { ...EMPTY_COINS }, items: [] }
+  return { coins: { ...EMPTY_COINS }, items: [], notes: '' }
 }
 
 function createWorkingDraft(baseAbilities: AbilityScores): WorkingDraft {
@@ -216,6 +235,7 @@ function createWorkingDraft(baseAbilities: AbilityScores): WorkingDraft {
     companions: [],
     backgroundGrant: null,
     raceGrant: null,
+    featGrants: [],
     playHitDie: null,
     hpMax: null,
     hpCurrent: null,
@@ -390,6 +410,53 @@ function normalizeRacePicks(raw: unknown): RaceGrantPicks {
   }
 }
 
+function normalizeFocusPick(
+  raw: unknown,
+): ClassGrantPicks['equipmentFocusPick'] {
+  if (raw == null) return null
+  if (!raw || typeof raw !== 'object') return null
+  const row = raw as Record<string, unknown>
+  const name = typeof row.name === 'string' ? row.name.trim() : ''
+  if (!name) return null
+  const focusKind = row.focus_kind
+  return {
+    name,
+    catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+    cost_gp: typeof row.cost_gp === 'number' ? row.cost_gp : null,
+    weight_lb: typeof row.weight_lb === 'number' ? row.weight_lb : null,
+    focus_kind:
+      focusKind === 'arcane' ||
+      focusKind === 'druidic' ||
+      focusKind === 'holy' ||
+      focusKind === 'any'
+        ? focusKind
+        : 'any',
+    custom: Boolean(row.custom),
+  }
+}
+
+function normalizeLinePicks(
+  raw: unknown,
+): NonNullable<ClassGrantPicks['equipmentLinePicks']> {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
+  const out: NonNullable<ClassGrantPicks['equipmentLinePicks']> = {}
+  for (const [lineId, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) continue
+    const row = value as Record<string, unknown>
+    const optionId = typeof row.optionId === 'string' ? row.optionId.trim() : ''
+    if (!optionId) continue
+    const weaponRaw = row.weaponName
+    const weaponName =
+      typeof weaponRaw === 'string' && weaponRaw.trim()
+        ? weaponRaw.trim()
+        : weaponRaw === null
+          ? null
+          : undefined
+    out[lineId] = { optionId, weaponName }
+  }
+  return out
+}
+
 function normalizeClassPicks(raw: unknown): ClassGrantPicks {
   if (!raw || typeof raw !== 'object') return emptyClassGrantPicks()
   const row = raw as Partial<ClassGrantPicks>
@@ -398,6 +465,8 @@ function normalizeClassPicks(raw: unknown): ClassGrantPicks {
     tools: Array.isArray(row.tools) ? row.tools.filter((v) => typeof v === 'string') : [],
     equipmentPackageId:
       typeof row.equipmentPackageId === 'string' ? row.equipmentPackageId : null,
+    equipmentFocusPick: normalizeFocusPick(row.equipmentFocusPick),
+    equipmentLinePicks: normalizeLinePicks(row.equipmentLinePicks),
   }
 }
 
@@ -575,6 +644,48 @@ function mergeRace(draft: WorkingDraft, slice: RaceGrantDraftSlice): WorkingDraf
   }
 }
 
+function featSlice(draft: WorkingDraft, totalLevel: number): FeatGrantDraftSlice {
+  return {
+    abilities: draft.abilities,
+    saves: draft.saves,
+    skills: draft.skills,
+    speed: draft.speed,
+    hpMax: draft.hpMax,
+    hpCurrent: draft.hpCurrent,
+    featGrants: draft.featGrants,
+    identity: {
+      languages: draft.identity.languages,
+      tools: draft.identity.tools,
+      armor: draft.identity.armor,
+    },
+    textBlocks: draft.textBlocks,
+    resources: [],
+    spells: draft.spells,
+    totalLevel,
+  }
+}
+
+function mergeFeat(draft: WorkingDraft, slice: FeatGrantDraftSlice): WorkingDraft {
+  return {
+    ...draft,
+    abilities: slice.abilities,
+    saves: slice.saves,
+    skills: slice.skills,
+    speed: slice.speed,
+    hpMax: slice.hpMax,
+    hpCurrent: slice.hpCurrent,
+    featGrants: slice.featGrants,
+    textBlocks: slice.textBlocks,
+    spells: slice.spells,
+    identity: {
+      ...draft.identity,
+      languages: slice.identity.languages,
+      tools: slice.identity.tools,
+      armor: slice.identity.armor,
+    },
+  }
+}
+
 function mergeClass(draft: WorkingDraft, slice: ClassGrantDraftSlice): WorkingDraft {
   return {
     ...draft,
@@ -609,6 +720,7 @@ function serializeSheet(input: {
     ...draft.identity,
     subclassName: primary?.subclass_name ?? draft.identity.subclassName,
     background: state.background?.nameRu ?? draft.identity.background,
+    gender: state.gender ?? draft.identity.gender,
     experience: xpToReachLevel(totalLevel),
   }
   const identityExtras = identityExtrasToSheet(identityForSave)
@@ -625,6 +737,7 @@ function serializeSheet(input: {
   sheet.subclass_transitions = draft.subclassTransitions
   sheet.race_grant = draft.raceGrant
   sheet.background_grant = draft.backgroundGrant
+  sheet.feat_grants = draft.featGrants
   sheet.companions = draft.companions
   sheet.feature_picks = featurePicksToSheet(input.featurePicks)
   sheet.class_asi = input.classAsi
@@ -668,11 +781,25 @@ function serializeSheet(input: {
   })
   const playSheet = playToSheet(play)
 
+  const raceSpeed = draft.raceGrant?.speed ?? draft.speed
+  const classSpeedBonus = classWalkSpeedBonusFt({
+    classes,
+    wearingHeavyArmor: false,
+    wearingArmorOrShield: false,
+  })
+  const classSpeedBonusMax = classSpeedBonus
+  const resolvedSpeed = resolveWalkSpeedFt({
+    storedSpeed: draft.speed,
+    raceSpeed,
+    classBonusFt: classSpeedBonus,
+    classBonusFtMax: classSpeedBonusMax,
+  })
+
   const combat: Record<string, unknown> = {
     hp_current: draft.hpCurrent,
     hp_max: draft.hpMax,
     ac: null,
-    speed: draft.speed,
+    speed: resolvedSpeed,
     climb_speed: draft.climbSpeed,
     swim_speed: draft.swimSpeed,
     fly_speed: draft.flySpeed,
@@ -685,6 +812,7 @@ function serializeSheet(input: {
   sheet.resources = playSheet.resources
 
   sheet.proficiency = {
+    bonus: proficiencyBonusForTotalLevel(totalLevel),
     armor: identityExtras.proficiencyPatch.armor,
     weapons: identityExtras.proficiencyPatch.weapons,
     languages: identityExtras.proficiencyPatch.languages,
@@ -702,11 +830,15 @@ function serializeSheet(input: {
     baseAbilities: state.baseAbilities,
     hpChoices: state.hpChoices,
     characterName: state.characterName,
+    gender: state.gender,
     classEntryId: state.classEntryId,
     background: state.background,
     classRef: state.classRef,
     race: state.race,
     subrace: state.subrace,
+    feat: state.feat,
+    featSetup: state.featSetup,
+    featAcknowledged: state.featAcknowledged,
     backgroundSetup: state.backgroundSetup,
     raceSetup: state.raceSetup,
     classGrantPicks: state.classGrantPicks,
@@ -786,15 +918,23 @@ export async function applyPipelineToSheet(input: {
     cache: input.catalog?.races,
   })
   if (raceEntry) {
-    const picks = normalizeRacePicks(
+    const basePicks = normalizeRacePicks(
       raceSetup?.picks ?? asRecord(state.sheetDraft.race_grant).picks,
     )
+    const featCatalogId =
+      state.featSetup?.entry.id ?? state.feat?.id ?? basePicks.featCatalogId
+    const picks: RaceGrantPicks = {
+      ...basePicks,
+      featCatalogId,
+    }
     const applied = applyRaceGrantToDraft({
       draft: raceSlice(draft),
       selected: raceEntry,
       picks,
       characterLevel: totalCharacterLevel(classes),
       hasCasterClass: characterHasCasterClass(classes),
+      // Feat package is applied below from the dedicated pipeline step.
+      requireFeat: false,
     })
     if (applied) Object.assign(draft, mergeRace(draft, applied.draft))
     const liveDef = liveRaceEntry
@@ -828,6 +968,33 @@ export async function applyPipelineToSheet(input: {
     draft.abilities = { ...state.baseAbilities } as Record<AbilityKey, number>
   }
 
+  // Race feat package after ability reset so feat ASI is not wiped.
+  if (state.featSetup && raceEntry) {
+    const grant: AppliedFeatGrant = {
+      id: newFeatGrantId(),
+      featCatalogId: state.featSetup.entry.id,
+      slug: state.featSetup.entry.slug,
+      nameRu: state.featSetup.entry.name_ru,
+      source: {
+        kind: 'race',
+        raceCatalogId: raceEntry.id,
+        raceSlug: raceEntry.slug,
+      },
+      applied: state.featSetup.applied,
+      picks: state.featSetup.picks,
+    }
+    Object.assign(
+      draft,
+      mergeFeat(
+        draft,
+        applyFeatGrantToDraft({
+          draft: featSlice(draft, totalCharacterLevel(classes)),
+          grant,
+        }),
+      ),
+    )
+  }
+
   // 3) Class grants (primary start, others multiclass)
   const classPicksByEntry = readStoredClassPicks(state)
   for (let index = 0; index < classes.length; index += 1) {
@@ -855,6 +1022,7 @@ export async function applyPipelineToSheet(input: {
   }
 
   // 4) Subclass grants (after class grants)
+  const maxSpellLevelForCreate = highestSpellSlotLevelForClasses(classes)
   for (const row of classes) {
     const setup = state.subclassSetups?.[row.id]
     if (!setup) continue
@@ -890,6 +1058,8 @@ export async function applyPipelineToSheet(input: {
           def: previousDef,
           picks: normalizeSubclassPicks(setup.previousPicks ?? { values: {} }),
           changeMode: 'initial',
+          classLevel: row.level,
+          maxSpellLevel: maxSpellLevelForCreate,
         })
         if (retained) Object.assign(draft, mergeSubclass(draft, retained.draft))
       }
@@ -900,11 +1070,13 @@ export async function applyPipelineToSheet(input: {
         def,
         picks: normalizeSubclassPicks(setup.picks),
         changeMode: 'future_only',
+        classLevel: row.level,
         changedAtClassLevel: setup.changedAtClassLevel ?? row.level,
         previousNameRu: previousEntry.name_ru,
         previousCatalogId: previousEntry.id,
         previousSlug: previousEntry.slug,
         previousDef: previousDef ?? null,
+        maxSpellLevel: maxSpellLevelForCreate,
       })
       if (swapped) Object.assign(draft, mergeSubclass(draft, swapped.draft))
     } else {
@@ -915,6 +1087,8 @@ export async function applyPipelineToSheet(input: {
         def,
         picks: normalizeSubclassPicks(setup.picks),
         changeMode: setup.changeMode === 'replace_all' ? 'replace_all' : 'initial',
+        classLevel: row.level,
+        maxSpellLevel: maxSpellLevelForCreate,
       })
       if (applied) Object.assign(draft, mergeSubclass(draft, applied.draft))
     }
@@ -1017,13 +1191,27 @@ export async function applyPipelineToSheet(input: {
     abilityModFor: (ability) => abilityModifier(draft.abilities[ability] ?? 10),
     subclassCasters,
   })
-  const finalSpells: SpellsState =
+  let finalSpells: SpellsState =
     castingSuggestion && castingSuggestion.progression !== 'none'
       ? {
           ...mergedSpells,
           ...applySpellcastingSuggestion(mergedSpells, castingSuggestion),
         }
       : mergedSpells
+
+  // Domain/oath spells must match final slot table (create applies subclass before slots).
+  {
+    const slotCap = highestSpellSlotLevel(finalSpells.slots, finalSpells.pact_slots)
+    const synced = syncSubclassAlwaysPreparedSpells({
+      draft: {
+        ...subclassSlice(draft),
+        spells: finalSpells,
+      },
+      maxSpellLevel: slotCap,
+    })
+    Object.assign(draft, mergeSubclass(draft, synced))
+    finalSpells = synced.spells
+  }
 
   const raceName = state.subrace?.nameRu || state.race?.nameRu || null
   const className = formatClassSummary(classes) || null

@@ -1,18 +1,23 @@
 /** Apply / revoke PHB class proficiency grants on the digital sheet draft. */
 
 import {
+  buildItemsFromEquipmentLines,
   classGrantDef,
   classGrantDefFromName,
+  equipmentLinesFor,
   equipmentPackagesFor,
   formatClassGrantSummary,
   grantNeedsPicks,
   packageForMode,
+  PHB_LINES_PACKAGE_ID,
   resolveClassGrantDef,
+  validateEquipmentLinePicks,
   type AbilityKey,
   type AppliedClassGrant,
   type ArmorProfKey,
   type ClassGrantDef,
   type ClassGrantPicks,
+  type StartingGearItem,
   type WeaponProfKey,
 } from '../../shared/dnd/classGrants'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
@@ -181,6 +186,7 @@ export function revokeClassGrant(
   const inventory: InventoryState = {
     coins: { ...draft.inventory.coins },
     items: draft.inventory.items.filter((item) => !removeIds.has(item.id)),
+    notes: draft.inventory.notes ?? '',
   }
   if ((previous.equipmentCoinsGp ?? 0) > 0) {
     inventory.coins.gp = Math.max(0, inventory.coins.gp - previous.equipmentCoinsGp)
@@ -235,9 +241,39 @@ export function validateClassGrantPicks(input: {
     }
   }
   if (input.mode === 'start') {
+    const lines = equipmentLinesFor(input.def)
     const packs = equipmentPackagesFor(input.def)
-    if (packs.length > 0) {
-      const id = input.picks.equipmentPackageId
+    const id = input.picks.equipmentPackageId
+    if (lines.length > 0) {
+      if (!id || id === '' || id === 'skip') {
+        return 'Выбери стартовое снаряжение или «Золото»'
+      }
+      if (id === PHB_LINES_PACKAGE_ID) {
+        const lineError = validateEquipmentLinePicks({
+          lines,
+          picks: input.picks.equipmentLinePicks ?? {},
+        })
+        if (lineError) return lineError
+        const items = buildItemsFromEquipmentLines({
+          lines,
+          picks: input.picks.equipmentLinePicks ?? {},
+        })
+        const needsFocus = Boolean(
+          items?.some((row) => isFocusPlaceholderItem(row.name)),
+        )
+        if (needsFocus && !input.picks.equipmentFocusPick?.name?.trim()) {
+          return 'Выбери фокус из справочника или своё название'
+        }
+      } else if (!packs.some((pack) => pack.id === id)) {
+        return 'Неизвестный пакет снаряжения'
+      } else {
+        const pack = packs.find((row) => row.id === id)
+        const needsFocus = pack?.items.some((row) => isFocusPlaceholderItem(row.name))
+        if (needsFocus && !input.picks.equipmentFocusPick?.name?.trim()) {
+          return 'Выбери фокус из справочника или своё название'
+        }
+      }
+    } else if (packs.length > 0) {
       if (!id || id === '' || id === 'skip') {
         return 'Выбери стартовое снаряжение или «Золото»'
       }
@@ -245,7 +281,7 @@ export function validateClassGrantPicks(input: {
         return 'Неизвестный пакет снаряжения'
       }
       const pack = packs.find((row) => row.id === id)
-      const needsFocus = pack?.items.some((item) => isFocusPlaceholderItem(item.name))
+      const needsFocus = pack?.items.some((row) => isFocusPlaceholderItem(row.name))
       if (needsFocus && !input.picks.equipmentFocusPick?.name?.trim()) {
         return 'Выбери фокус из справочника или своё название'
       }
@@ -318,15 +354,28 @@ export function applyClassGrantToDraft(input: {
   let inventory: InventoryState = {
     coins: { ...cleared.inventory.coins },
     items: [...cleared.inventory.items],
+    notes: cleared.inventory.notes ?? '',
   }
   let nextWeapons: WeaponAttack[] = [...cleared.weapons]
   const equipmentPackageId =
     input.mode === 'start' ? input.picks.equipmentPackageId : null
   if (input.mode === 'start' && equipmentPackageId && equipmentPackageId !== 'skip') {
+    const lines = equipmentLinesFor(def)
     const pack = equipmentPackagesFor(def).find((row) => row.id === equipmentPackageId)
-    if (pack) {
+    let gearItems: StartingGearItem[] | null = null
+    let coinsFromPack = 0
+    if (equipmentPackageId === PHB_LINES_PACKAGE_ID && lines.length > 0) {
+      gearItems = buildItemsFromEquipmentLines({
+        lines,
+        picks: input.picks.equipmentLinePicks ?? {},
+      })
+    } else if (pack) {
+      gearItems = pack.items
+      coinsFromPack = pack.coinsGp && pack.coinsGp > 0 ? pack.coinsGp : 0
+    }
+    if (gearItems) {
       const focusPick = input.picks.equipmentFocusPick
-      for (const spec of pack.items) {
+      for (const spec of gearItems) {
         const created = createInventoryItem()
         created.name = spec.name
         created.qty = Math.max(1, Math.floor(spec.qty ?? 1))
@@ -361,6 +410,10 @@ export function applyClassGrantToDraft(input: {
             created.focus_kind = inferFocusKind({ name: created.name }) ?? 'any'
           }
         }
+        // Wizard starting book — tag slug so inventory sync can bind primaryBookItemId.
+        if (/книга\s+заклинаний/i.test(created.name) || /spell\s*book/i.test(created.name)) {
+          created.catalog_slug = 'spellbook'
+        }
         inventory.items.push(created)
         equipmentItemIds.push(created.id)
 
@@ -381,7 +434,7 @@ export function applyClassGrantToDraft(input: {
 
         // Weapons → Attacks: qty>1 → one card + qty (handaxes like javelins; no "×N" in name).
         const built = buildStartingWeaponAttacks({
-          name: spec.name,
+          name: created.name,
           qty: created.qty,
           makeId: (index, cardCount) =>
             classEquipmentAttackIdAt(input.classEntryId, created.id, index, cardCount),
@@ -398,9 +451,9 @@ export function applyClassGrantToDraft(input: {
         nextWeapons.push(...withProf)
         equipmentAttackIds.push(...built.attackIds)
       }
-      if (pack.coinsGp && pack.coinsGp > 0) {
-        equipmentCoinsGp = pack.coinsGp
-        inventory.coins.gp += pack.coinsGp
+      if (coinsFromPack > 0) {
+        equipmentCoinsGp = coinsFromPack
+        inventory.coins.gp += coinsFromPack
       }
     }
   }
@@ -511,6 +564,7 @@ export function emptyPicks(): ClassGrantPicks {
     tools: [],
     equipmentPackageId: null,
     equipmentFocusPick: null,
+    equipmentLinePicks: {},
   }
 }
 

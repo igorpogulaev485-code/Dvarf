@@ -64,6 +64,15 @@ export type GuidedWizardStep =
       promptRu: string
       noteRu: string | null
     }
+  | {
+      id: string
+      kind: 'spellbook_picks'
+      classEntryId: string
+      className: string
+      classLevel: number
+      /** How many free research fills to pick in this step (6 at L1, +2 per level). */
+      picksNeeded: number
+    }
 
 export function backgroundWizardStep(): GuidedWizardStep {
   return {
@@ -79,9 +88,72 @@ export function featWizardStep(input: { noteRu: string | null }): GuidedWizardSt
     id: 'feat',
     kind: 'feat',
     promptRu:
-      'Эта раса даёт черту с 1 уровня. Каталог черт ещё собирается — пока зафиксируй выбор вручную или вернись сюда позже.',
+      'Эта раса даёт черту с 1 уровня. Выбери её из каталога — гранты лягут на лист.',
     noteRu: input.noteRu,
   }
+}
+
+const WIZARD_CLASS_RE = /волшебник|wizard|маг/i
+
+export function isWizardClassName(name: string): boolean {
+  return WIZARD_CLASS_RE.test(name.trim())
+}
+
+/** Free spellbook research picks for a guided-wizard step. */
+export function wizardSpellbookPicksStep(input: {
+  classEntryId: string
+  className: string
+  classLevel: number
+  picksNeeded: number
+}): Extract<GuidedWizardStep, { kind: 'spellbook_picks' }> | null {
+  const picks = Math.max(0, Math.floor(input.picksNeeded))
+  if (picks <= 0) return null
+  if (!isWizardClassName(input.className)) return null
+  const level = Math.max(1, Math.floor(input.classLevel) || 1)
+  return {
+    id: `spellbook-picks:${input.classEntryId}:${level}:${picks}`,
+    kind: 'spellbook_picks',
+    classEntryId: input.classEntryId,
+    className: input.className.trim() || 'Волшебник',
+    classLevel: level,
+    picksNeeded: picks,
+  }
+}
+
+/**
+ * Insert spellbook picks after subclass (if any), else at the front —
+ * so the player fills the book as part of the same level-up fork queue.
+ */
+export function withWizardSpellbookPicksStep(
+  steps: GuidedWizardStep[],
+  input: {
+    classEntryId: string
+    className: string
+    classLevel: number
+    picksNeeded: number
+  },
+): GuidedWizardStep[] {
+  const step = wizardSpellbookPicksStep(input)
+  if (!step) return steps
+  if (
+    steps.some(
+      (row) =>
+        row.kind === 'spellbook_picks' &&
+        row.classEntryId === step.classEntryId &&
+        row.classLevel === step.classLevel,
+    )
+  ) {
+    return steps
+  }
+  const subclassIdx = steps.findIndex((row) => row.kind === 'subclass')
+  if (subclassIdx >= 0) {
+    return [
+      ...steps.slice(0, subclassIdx + 1),
+      step,
+      ...steps.slice(subclassIdx + 1),
+    ]
+  }
+  return [step, ...steps]
 }
 
 /** Put background before class_grant / choices when create still has no background. */
@@ -140,12 +212,18 @@ export function isSubclassGateFeature(feature: Pick<UnlockedFeature, 'choice' | 
     en.includes('druid circle') ||
     en.includes('monastic tradition') ||
     en.includes('sorcerous origin') ||
-    en.includes('otherworldly')
+    en.includes('otherworldly') ||
+    en.includes('primal path') ||
+    en.includes('arcane tradition') ||
+    en.includes('artificer specialist')
   ) {
     return true
   }
   return (
     feature.id === 'otherworldly_patron' ||
+    feature.id === 'primal_path' ||
+    feature.id === 'arcane_tradition' ||
+    feature.id === 'artificer_specialist' ||
     feature.id.endsWith('_archetype') ||
     feature.id.includes('patron')
   )

@@ -61,6 +61,8 @@ export type SubclassSheetGrants = {
 export type AlwaysPreparedSpell = {
   name: string
   level: number
+  /** Class level at which this spell is granted (ranger conclave tables). */
+  fromClassLevel?: number
 }
 
 export type SubclassFeatureCard = {
@@ -102,6 +104,11 @@ export type AppliedSubclassGrant = {
   caster: { progression: 'third' | 'none'; ability: 'int' | 'wis' | 'cha' | null } | null
   /** Sheet spell ids injected as always-prepared from this grant. */
   grantedSpellIds: string[]
+  /**
+   * Full always-prepared list from the catalog (domain/oath spells).
+   * Used to unlock higher-level spells when the caster gains slots.
+   */
+  alwaysPreparedSpells?: AlwaysPreparedSpell[]
 }
 
 /** How a mid-campaign archetype swap rewrites abilities. */
@@ -297,9 +304,13 @@ export function parseSubclassGrantDef(input: {
   for (const item of rawAlways) {
     const row = asRecord(item)
     if (typeof row.name !== 'string' || !row.name.trim()) continue
+    const fromClassRaw = row.from_class_level ?? row.fromClassLevel
     alwaysPreparedSpells.push({
       name: row.name.trim(),
       level: typeof row.level === 'number' ? Math.max(0, Math.min(9, row.level)) : 1,
+      ...(typeof fromClassRaw === 'number' && Number.isFinite(fromClassRaw)
+        ? { fromClassLevel: Math.max(1, Math.min(20, Math.floor(fromClassRaw))) }
+        : {}),
     })
   }
 

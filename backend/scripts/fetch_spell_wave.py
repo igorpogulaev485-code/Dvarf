@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Fetch official 2014 spells from 5e14.dnd.su into schema v1 JSON.
+"""LEGACY importer — historical spell fetch from dnd.su (B2: disabled by default).
 
-Examples:
-  python3 backend/scripts/fetch_spell_wave.py --source-id 102 --book PHB --out spells_phb_gap_v1.json
-  python3 backend/scripts/fetch_spell_wave.py --source-id 109 --book XGE --out spells_xge_v1.json
+Product SoT is official books + our catalog structure, not dnd.su.
+Unlock: DVARF_ALLOW_LEGACY_FETCH=1
 """
 
 from __future__ import annotations
@@ -11,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 import time
 import urllib.request
 from html import unescape
@@ -18,6 +18,11 @@ from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
 ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS = Path(__file__).resolve().parent
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
+
+from legacy_fetch_guard import require_legacy_fetch_allowed  # noqa: E402
 CATALOG = ROOT / "backend/data/srd/2014/catalog.json"
 INDEX_URL = "https://5e14.dnd.su/piece/spells/index-list/"
 BASE = "https://5e14.dnd.su"
@@ -254,6 +259,7 @@ def known_cores(catalog: list[dict]) -> set[str]:
 
 
 def main() -> None:
+    require_legacy_fetch_allowed("fetch_spell_wave.py")
     parser = argparse.ArgumentParser()
     parser.add_argument("--source-id", type=int, required=True)
     parser.add_argument("--book", required=True, help="PHB / XGE / TCE / …")

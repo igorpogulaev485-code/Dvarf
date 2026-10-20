@@ -49,6 +49,8 @@ type FeatSetupDialogProps = {
   proficientSkills?: string[]
   /** Lock picker to one feat (background / race grant). */
   forcedSlug?: string | null
+  /** Prefill selection when opening from a catalog card (create pipeline). */
+  initialEntry?: CatalogEntry | null
   onConfirm: (result: FeatSetupResult) => void
   onClose: () => void
 }
@@ -71,6 +73,7 @@ export function FeatSetupDialog({
   ownedFeatEnums = [],
   proficientSkills = [],
   forcedSlug = null,
+  initialEntry = null,
   onConfirm,
   onClose,
 }: FeatSetupDialogProps) {
@@ -142,14 +145,19 @@ export function FeatSetupDialog({
 
   useEffect(() => {
     if (!open) return
-    setSelected(null)
-    setValue('')
+    const seed =
+      initialEntry &&
+      (!forcedSlug || initialEntry.slug === forcedSlug)
+        ? initialEntry
+        : null
+    setSelected(seed)
+    setValue(seed?.name_ru ?? '')
     setPicks(emptyFeatPicks())
     setCustomTool('')
     setCustomWeapon('')
     setCustomLanguage('')
     setError(null)
-  }, [open])
+  }, [open, initialEntry, forcedSlug])
 
   useEffect(() => {
     setPicks(emptyFeatPicks())
@@ -345,7 +353,7 @@ export function FeatSetupDialog({
             }}
           />
         </Field>
-        {forcedSlug ? (
+        {forcedSlug && !selected ? (
           <Text tone="muted">Черта предыстории / расы: выбери «{forcedSlug}» в списке.</Text>
         ) : null}
 

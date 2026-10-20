@@ -60,10 +60,18 @@ class AuthSessionRepository:
             )
         )
 
-    def touch(self, session: AuthSession, *, refresh_token_hash: str | None = None) -> None:
+    def touch(
+        self,
+        session: AuthSession,
+        *,
+        refresh_token_hash: str | None = None,
+        expires_at: datetime | None = None,
+    ) -> None:
         session.last_seen_at = datetime.now(UTC)
         if refresh_token_hash is not None:
             session.refresh_token_hash = refresh_token_hash
+        if expires_at is not None:
+            session.expires_at = expires_at
         self.db.add(session)
         self.db.flush()
 

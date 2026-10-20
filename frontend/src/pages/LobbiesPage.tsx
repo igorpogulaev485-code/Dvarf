@@ -7,7 +7,8 @@ import {
   type LobbySummary,
 } from '../shared/api/lobbies'
 import { ApiRequestError } from '../shared/api/client'
-import { Button, EmptyState, Field, Input, Panel, Stack, Text, Toast } from '../ui'
+import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
+import { Button, EmptyState, Field, Input, Panel, Stack, Text } from '../ui'
 
 export function LobbiesPage() {
   const navigate = useNavigate()
@@ -16,7 +17,6 @@ export function LobbiesPage() {
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -61,7 +61,7 @@ export function LobbiesPage() {
         <AppHeader
           title="Лобби"
           subtitle="Место игры: код и QR для игроков, внутри — сеттинг и сессии"
-          onOfficialSite={() => setToast('Официальный сайт скоро появится')}
+          onOfficialSite={openProductSite}
         />
 
         <Panel title="Создать лобби">
@@ -92,7 +92,7 @@ export function LobbiesPage() {
             description="Создайте своё или зайдите по коду / QR с персонажем."
           />
         ) : (
-          <Stack gap={12}>
+          <Stack gap={12} className="lobbies-list">
             {items.map((lobby) => (
               <Panel key={lobby.id}>
                 <div className="list-row">
@@ -104,9 +104,11 @@ export function LobbiesPage() {
                       {lobby.invite_code ? ` · код ${lobby.invite_code}` : ''}
                     </Text>
                   </div>
-                  <Link className="ui-button" to={`/lobbies/${lobby.id}`}>
-                    Открыть
-                  </Link>
+                  <div className="list-row__actions">
+                    <Link className="ui-button" to={`/lobbies/${lobby.id}`}>
+                      Открыть
+                    </Link>
+                  </div>
                 </div>
               </Panel>
             ))}
@@ -114,13 +116,19 @@ export function LobbiesPage() {
         )}
 
         <Panel title="Войти по коду">
-          <Text tone="muted">
-            Есть код от мастера? Откройте{' '}
-            <Link to="/join">страницу входа</Link> или впишите код в карточку персонажа.
-          </Text>
+          <Stack gap={10}>
+            <Text tone="muted">
+              Есть код от мастера? Введите его на странице входа или впишите в карточку
+              персонажа.
+            </Text>
+            <Link className="ui-button join-entry-cta" to="/join">
+              Ввести код
+            </Link>
+          </Stack>
         </Panel>
+
+        <AppLegalFooter />
       </Stack>
-      <Toast message={toast} onClose={() => setToast(null)} />
     </main>
   )
 }

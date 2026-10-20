@@ -1,0 +1,372 @@
+{
+  "version": 1,
+  "notes": "DMG 2014 artifacts + SRD legendary Apparatus/Cubic Gate. MVP catalog cards.",
+  "inserts": [
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "34a0d79f-b981-5df4-a9e7-4df066e75dec",
+      "slug": "axe_of_the_dwarvish_lords",
+      "name_ru": "Топор повелителей дварфов",
+      "name_en": "Axe of the Dwarvish Lords",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10900,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 7,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "weapon",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Легендарный артефакт дварфов. Боевой топор с властью над дварфами и камнем (DMG).",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Артефакт/легенда DMG — полные правила в книге. MVP-карточка."
+          }
+        ],
+        "ability": "str",
+        "damage": "1к12",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "heavy",
+          "two-handed"
+        ],
+        "base_weapon_slug": "greataxe",
+        "magic_bonus": 3
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "088e600a-31c9-5baa-8891-61d5d81d5b87",
+      "slug": "book_of_exalted_deeds",
+      "name_ru": "Книга возвышенных деяний",
+      "name_en": "Book of Exalted Deeds",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10901,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Артефакт добра. Чтение меняет мировоззрение и даёт дары (DMG).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Артефакт/легенда DMG — полные правила в книге. MVP-карточка."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "cb6df3ef-e6ae-53af-a661-a0947bcd1c2e",
+      "slug": "book_of_vile_darkness",
+      "name_ru": "Книга мерзкой тьмы",
+      "name_en": "Book of Vile Darkness",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10902,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Артефакт зла. Чтение калечит и даёт тёмные силы (DMG).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Артефакт/легенда DMG — полные правила в книге. MVP-карточка."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "475814a7-b7ce-5e0e-8e5f-82d19c5f676b",
+      "slug": "eye_of_vecna",
+      "name_ru": "Глаз Векны",
+      "name_en": "Eye of Vecna",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10903,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "wear_slot": "head",
+        "description_ru": "Артефакт. Заменяет глаз; тёмное зрение и заклинания Векны (DMG). Нужен вместе с Рукой для полного набора.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Артефакт/легенда DMG — полные правила в книге. MVP-карточка."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "0ec39f67-e1e1-5c08-9b0b-9606a396dc4c",
+      "slug": "hand_of_vecna",
+      "name_ru": "Рука Векны",
+      "name_en": "Hand of Vecna",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10904,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "wear_slot": "hands",
+        "description_ru": "Артефакт. Заменяет руку; сила и заклинания Векны (DMG).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Артефакт/легенда DMG — полные правила в книге. MVP-карточка."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "cf621a34-69c7-535f-9963-286e56672c47",
+      "slug": "orb_of_dragonkind",
+      "name_ru": "Сфера драконьего рода",
+      "name_en": "Orb of Dragonkind",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10905,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Артефакт. Контроль/вызов драконов; пять сфер (DMG).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Артефакт/легенда DMG — полные правила в книге. MVP-карточка."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "51cc2256-cbdb-51fa-9fed-99c864072684",
+      "slug": "sword_of_kas",
+      "name_ru": "Меч Каса",
+      "name_en": "Sword of Kas",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10906,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 4,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "weapon",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Артефакт — клинок предателя Векны. Интеллектуальное оружие (DMG).",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "custom_note",
+            "text": "Артефакт/легенда DMG — полные правила в книге. MVP-карточка."
+          }
+        ],
+        "ability": "str",
+        "damage": "1к10",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "properties": [
+          "versatile"
+        ],
+        "versatile_damage": "1к12",
+        "base_weapon_slug": "longsword",
+        "magic_bonus": 3
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "023a3d1d-1465-5647-95bd-25a823aaeb8b",
+      "slug": "wand_of_orcus",
+      "name_ru": "Жезл Оркуса",
+      "name_en": "Wand of Orcus",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10907,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "wand",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "artifact",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Артефакт демонического принца нежити. Жезл с черепом (DMG).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Артефакт/легенда DMG — полные правила в книге. MVP-карточка."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "1e6de328-199b-5732-827e-dba82d371543",
+      "slug": "apparatus_of_the_crab",
+      "name_ru": "Аппарат Краба",
+      "name_en": "Apparatus of the Crab",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10908,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Легендарный механизм-краб (SRD/DMG). Кабина с рычагами.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Артефакт/легенда DMG — полные правила в книге. MVP-карточка."
+          }
+        ]
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "item",
+      "id": "2f9a908c-7d0e-576c-ac32-5d4e46f89c0a",
+      "slug": "cubic_gate",
+      "name_ru": "Кубические врата",
+      "name_en": "Cubic Gate",
+      "rules_edition": "2014",
+      "source": "DMG 2014",
+      "sort_order": 10909,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "weight_lb": 0,
+        "cost": {
+          "amount": 0,
+          "unit": "gp"
+        },
+        "item_category": "wondrous",
+        "stackable": false,
+        "source_book": "DMG",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "none",
+        "description_ru": "Легендарный куб порталов на шесть планов (SRD/DMG).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Артефакт/легенда DMG — полные правила в книге. MVP-карточка."
+          }
+        ]
+      }
+    }
+  ]
+}

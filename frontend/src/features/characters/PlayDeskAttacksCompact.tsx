@@ -4,6 +4,8 @@ import {
   listCombatConsumables,
   MAX_COMBAT_CONSUMABLE_FAVORITES,
 } from './combatConsumables'
+import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
+import { fightingStyleAttackBonus } from '../../shared/dnd/fightingStyles'
 import { formatAttackRoll, type DeskRollMode } from './deskRolls'
 import {
   abilityModifier,
@@ -12,22 +14,38 @@ import {
 } from './sheetTypes'
 import type { WeaponAttack } from './AttacksPanel'
 import type { InventoryItem } from './inventory'
+import { isCastableSpellScroll } from './spellScroll'
+import {
+  IconConsumable,
+  IconMelee,
+  IconRanged,
+  IconResource,
+  attackRowIconKind,
+} from './attackIcons'
 
 type PlayDeskAttacksCompactProps = {
   weapons: WeaponAttack[]
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
+  /** Active fighting style id (archery → +2 on ranged attacks). */
+  fightingStyleId?: string | null
   resources: SheetResource[]
   inventoryItems: InventoryItem[]
   favoriteConsumableIds?: string[]
+  /** Combat-desk class features (e.g. Reckless Attack). */
+  combatFeatures?: UnlockedFeature[]
+  /** Fired when a combat feature chip is toggled (e.g. Reckless → advantage). */
+  onCombatFeatureToggle?: (featureId: string, active: boolean) => void
   onToggleHeld?: (attack: WeaponAttack) => void
   onSpendResource?: (id: string) => void
   /** Spend 1 from inventory qty (ammo, potions, …). */
   onSpendConsumable?: (itemId: string) => void
+  /** Bound spell scroll: open cast flow (consumes on confirm). */
+  onCastScroll?: (itemId: string) => void
   onToggleConsumableFavorite?: (itemId: string) => void
   onToast?: (message: string) => void
-  onOpenFull: () => void
+  onOpenSettings: () => void
   rollMode?: DeskRollMode
 }
 
@@ -36,21 +54,31 @@ export function PlayDeskAttacksCompact({
   abilities,
   proficiencyBonus,
   gearBonusesByItem = {},
+  fightingStyleId = null,
   resources,
   inventoryItems,
   favoriteConsumableIds = [],
+  combatFeatures = [],
+  onCombatFeatureToggle,
   onToggleHeld,
   onSpendResource,
   onSpendConsumable,
+  onCastScroll,
   onToggleConsumableFavorite,
   onToast,
-  onOpenFull,
+  onOpenSettings,
   rollMode = 'normal',
 }: PlayDeskAttacksCompactProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [activeCombatFeatureIds, setActiveCombatFeatureIds] = useState<Set<string>>(
+    () => new Set(),
+  )
   const named = weapons.filter((row) => row.name.trim())
   const combatResources = resources.filter(
     (row) => row.max > 0 && row.name.trim() && row.used < row.max,
+  )
+  const deskCombatFeatures = combatFeatures.filter(
+    (row) => row.desk === 'combat' && row.name_ru.trim(),
   )
   const consumables = useMemo(
     () => listCombatConsumables(inventoryItems, favoriteConsumableIds),
@@ -72,31 +100,79 @@ export function PlayDeskAttacksCompact({
     <div className="play-desk-compact">
       <div className="play-desk-compact__head">
         <h3>Атаки</h3>
-        <button type="button" className="play-desk-compact__link" onClick={onOpenFull}>
-          полностью
-        </button>
+        <div className="play-desk-compact__head-actions">
+          <button
+            type="button"
+            className="play-desk-compact__link play-desk-compact__link--settings"
+            onClick={onOpenSettings}
+          >
+            Настройки
+          </button>
+        </div>
       </div>
+
+      {deskCombatFeatures.length > 0 ? (
+        <div className="chip-row" style={{ marginBottom: 8 }}>
+          {deskCombatFeatures.map((feature) => {
+            const on = activeCombatFeatureIds.has(feature.id)
+            return (
+              <button
+                key={`${feature.classEntryId}:${feature.id}`}
+                type="button"
+                className={`sheet-chip${on ? ' is-on' : ''}`}
+                title={feature.summary_ru}
+                onClick={() => {
+                  const nextOn = !on
+                  setActiveCombatFeatureIds((prev) => {
+                    const next = new Set(prev)
+                    if (nextOn) next.add(feature.id)
+                    else next.delete(feature.id)
+                    return next
+                  })
+                  onCombatFeatureToggle?.(feature.id, nextOn)
+                  onToast?.(
+                    nextOn
+                      ? `${feature.name_ru}: вкл. · ${feature.summary_ru}`
+                      : `${feature.name_ru}: выкл.`,
+                  )
+                }}
+              >
+                {feature.name_ru}
+              </button>
+            )
+          })}
+        </div>
+      ) : null}
 
       <div className="play-desk-compact__list play-desk-compact__list--dense">
         {named.length === 0 ? (
-          <p className="play-desk-compact__empty">Нет атак — добавьте в полной панели</p>
+          <p className="play-desk-compact__empty">Нет атак — добавь в полной панели</p>
         ) : (
           named.map((attack) => {
             const mod = abilityModifier(abilities[attack.ability])
             const gear = attack.inventory_item_id
               ? gearBonusesByItem[attack.inventory_item_id]
               : undefined
+            const styleAtk = fightingStyleAttackBonus({
+              styleId: fightingStyleId,
+              weaponName: attack.name,
+            })
             const attackBonus =
               mod +
               (attack.is_proficient ? proficiencyBonus : 0) +
-              (gear?.attackBonus ?? 0)
-            const dmgBonus = gear?.damageBonus ?? 0
+              (gear?.attackBonus ?? 0) +
+              styleAtk
+            const dmgBonus = mod + (gear?.damageBonus ?? 0)
             const dmg =
               attack.damage +
-              (dmgBonus ? ` ${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
+              (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
             const dmgLine = `${dmg || '—'}${attack.damage_type ? ` ${attack.damage_type}` : ''}`
+            const iconKind = attackRowIconKind({
+              name: attack.name,
+              ability: attack.ability,
+            })
             return (
-              <div key={attack.id} className="play-desk-compact__row is-dense">
+              <div key={attack.id} className="play-desk-compact__row is-dense is-attack">
                 <button
                   type="button"
                   className="play-desk-compact__hit"
@@ -114,6 +190,11 @@ export function PlayDeskAttacksCompact({
                   }
                 >
                   <div className="play-desk-compact__row-main">
+                    {iconKind === 'ranged' ? (
+                      <IconRanged className="play-desk-compact__row-icon" />
+                    ) : (
+                      <IconMelee className="play-desk-compact__row-icon" />
+                    )}
                     <b>{attack.name}</b>
                     {attack.qty != null && attack.qty > 1 ? (
                       <span className="play-desk-compact__tag">×{attack.qty}</span>
@@ -128,10 +209,11 @@ export function PlayDeskAttacksCompact({
                 {onToggleHeld && attack.inventory_item_id ? (
                   <button
                     type="button"
-                    className="play-desk-compact__hold"
+                    className={`play-desk-compact__hold${attack.held ? ' is-on' : ''}`}
                     onClick={() => onToggleHeld(attack)}
+                    title={attack.held ? 'Убрать из рук' : 'Взять в руки'}
                   >
-                    {attack.held ? 'убрать' : 'взять'}
+                    {attack.held ? 'удерж.' : 'взять'}
                   </button>
                 ) : null}
               </div>
@@ -150,6 +232,7 @@ export function PlayDeskAttacksCompact({
                 onClick={() => onSpendResource?.(row.id)}
               >
                 <div className="play-desk-compact__row-main">
+                  <IconResource className="play-desk-compact__row-icon" />
                   <b>{row.name}</b>
                   <span className="play-desk-compact__tag">ресурс</span>
                 </div>
@@ -165,7 +248,10 @@ export function PlayDeskAttacksCompact({
 
       <div className="play-desk-compact__consumables">
         <div className="play-desk-compact__subhead">
-          Расходники
+          <span className="play-desk-compact__subhead-label">
+            <IconConsumable className="play-desk-compact__tag-icon" />
+            Расходники
+          </span>
           {favoriteCount > 0 ? (
             <span className="play-desk-compact__subhead-meta">
               избр. {favoriteCount}/{MAX_COMBAT_CONSUMABLE_FAVORITES}
@@ -180,20 +266,35 @@ export function PlayDeskAttacksCompact({
         ) : (
           consumables.map(({ item, favorite }) => {
             const qty = item.qty ?? 0
-            const canSpend = Boolean(onSpendConsumable) && qty > 0
+            const scrollCast = isCastableSpellScroll(item) && Boolean(onCastScroll)
+            const canSpend =
+              qty > 0 && (scrollCast || Boolean(onSpendConsumable))
+            const actionLabel = scrollCast ? 'каст' : 'потратить'
             return (
               <div
                 key={item.id}
-                className={`play-desk-compact__cons-row${favorite ? ' is-fav' : ''}`}
+                className={`play-desk-compact__cons-row${favorite ? ' is-fav' : ''}${
+                  scrollCast ? ' is-scroll' : ''
+                }`}
               >
                 <button
                   type="button"
                   className="play-desk-compact__cons-main is-action"
                   disabled={!canSpend}
-                  title={canSpend ? `Потратить 1 «${item.name}»` : item.name}
+                  title={
+                    scrollCast
+                      ? `Каст со свитка: ${item.scroll_spell?.name ?? item.name}`
+                      : canSpend
+                        ? `Потратить 1 «${item.name}»`
+                        : item.name
+                  }
                   onClick={() => {
                     if (!canSpend) {
                       onToast?.(`${item.name}: ×${qty}`)
+                      return
+                    }
+                    if (scrollCast) {
+                      onCastScroll?.(item.id)
                       return
                     }
                     onSpendConsumable?.(item.id)
@@ -203,10 +304,13 @@ export function PlayDeskAttacksCompact({
                     {favorite ? (
                       <span className="play-desk-compact__tag is-fav">избр.</span>
                     ) : null}
+                    {scrollCast ? (
+                      <span className="play-desk-compact__tag">свиток</span>
+                    ) : null}
                     {item.name}
                   </span>
                   <b>{qty}</b>
-                  <span className="play-desk-compact__cons-spend">потратить</span>
+                  <span className="play-desk-compact__cons-spend">{actionLabel}</span>
                 </button>
                 {onToggleConsumableFavorite ? (
                   <button

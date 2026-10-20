@@ -39,7 +39,8 @@
       ],
       "movement": {
         "fly": "walk"
-      }
+      },
+      "content_layer": "community_ref"
     },
     {
       "slug": "aasimar",
@@ -78,7 +79,8 @@
           "casting_ability": "cha",
           "notes_ru": "Носитель света"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "aasimar_protector",
@@ -120,7 +122,8 @@
           "casting_ability": "cha",
           "notes_ru": "Носитель света"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "aasimar_scourge",
@@ -159,7 +162,8 @@
           "casting_ability": "cha",
           "notes_ru": "Носитель света"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "aasimar_fallen",
@@ -198,7 +202,8 @@
           "casting_ability": "cha",
           "notes_ru": "Носитель света"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "bugbear",
@@ -221,7 +226,8 @@
       ],
       "languages_choose": 1,
       "traits_text": "Багбир (MPMM): ASI гибкий. Тёмное зрение 60. Длинные конечности (+5 фт досягаемость в свой ход для атак ближнего боя). Мощное телосложение. Скрытная атака (боязни): доп. 2к6 однажды за бой при сюрпризе/первом ходу. Наследие фей.",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "centaur",
@@ -254,7 +260,8 @@
           "ability": "str",
           "proficient": true
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "changeling",
@@ -291,7 +298,8 @@
         ]
       },
       "traits_text": "Чейнджлинг (MPMM): ASI гибкий. Размер Средний или Маленький. Перевёртыш: действием менять внешность (и голос). Инстинкты чейнджлинга: 2 навыка из Обмана / Проницательности / Запугивания / Выступления / Убеждения.",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "fairy",
@@ -349,7 +357,8 @@
           "casting_ability": "cha",
           "notes_ru": "ПБ раз / длинный отдых"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "firbolg",
@@ -372,7 +381,8 @@
       ],
       "languages_choose": 1,
       "traits_text": "Фирболг (MPMM): ASI гибкий. Магия фирболга (обнаружение магии / маскировка, ПБ раз). Скрытый шаг (невидимость бонусом, ПБ раз). Мощное телосложение. Речь зверей и листьев (ограниченное общение с зверями и растениями).",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "genasi",
@@ -395,7 +405,8 @@
       ],
       "languages_choose": 1,
       "traits_text": "Дженази (MPMM): ASI гибкий. Тёмное зрение 60. Выбери наследие стихии в попапе (воздух / земля / огонь / вода).",
-      "subrace_required": true
+      "subrace_required": true,
+      "content_layer": "community_ref"
     },
     {
       "slug": "gith",
@@ -418,7 +429,8 @@
       ],
       "languages_choose": 1,
       "traits_text": "Гит (MPMM): ASI гибкий. Выбери подрасу в попапе — гитъянки или гитцерай.",
-      "subrace_required": true
+      "subrace_required": true,
+      "content_layer": "community_ref"
     },
     {
       "slug": "githyanki",
@@ -471,7 +483,8 @@
           "unlock_level": 5,
           "casting_ability": "int"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "githzerai",
@@ -524,7 +537,8 @@
           "unlock_level": 5,
           "casting_ability": "wis"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "goblin",
@@ -547,7 +561,8 @@
       ],
       "languages_choose": 1,
       "traits_text": "Гоблин (MPMM): ASI гибкий. Маленький. Тёмное зрение 60. Наследие фей. Ярость малого (доп. урон ПБ один раз между отдыхами по существу крупнее вас). Проворный побег (отступление/скрытие бонусом).",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "goliath",
@@ -570,7 +585,8 @@
       ],
       "languages_choose": 1,
       "traits_text": "Голиаф (MPMM): ASI гибкий. Маленький великан (мощное телосложение; считаешься большим для переноса/толкания). Каменная стойкость (реакция: 1к12+ТЕЛ урона, ПБ раз / длинный отдых). Горное происхождение (сопротивление холоду).",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "harengon",
@@ -600,7 +616,8 @@
         "perception"
       ],
       "traits_text": "Зайцегон (MPMM): ASI гибкий. Размер Средний или Маленький. Заячья реакция (бонус инициативы = ПБ). Заячьи чувства (Восприятие). Удачливая поступь (d4 к спас. Ловкости при провале, ПБ раз). Кроличий прыжок (бонусное прыжок, ПБ раз).",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "hobgoblin",
@@ -623,7 +640,8 @@
       ],
       "languages_choose": 1,
       "traits_text": "Хобгоблин (MPMM): ASI гибкий. Тёмное зрение 60. Дар фей (помощь бонусом → временные эффекты: атака с преимуществом / сопротивление / доп. урон ПБ — на выбор). Удача многих (бонус к проваленному спас./проверке равный числу союзников в 30 фт, макс. 5; ПБ раз).",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "kenku",
@@ -654,7 +672,8 @@
         "from": "any"
       },
       "traits_text": "Кенку (MPMM): ASI гибкий. Размер Средний или Маленький. Экспертное копирование (подделка письма/ремесла). Память кенку (преимущество проверок на повтор/изученное; 2 навыка на выбор). Мимикрия (звуки/голоса).",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "kobold",
@@ -677,7 +696,8 @@
       ],
       "languages_choose": 1,
       "traits_text": "Кобольд (MPMM): ASI гибкий. Маленький. Тёмное зрение 60. Рёв дракона (бонусом: вы и союзники — преимущество к атакам по выбранным врагам в 10 фт до конца след. хода; ПБ раз). Выбери наследие кобольда в попапе.",
-      "subrace_required": true
+      "subrace_required": true,
+      "content_layer": "community_ref"
     },
     {
       "slug": "kobold_craftiness",
@@ -710,7 +730,8 @@
         ]
       },
       "traits_text": "Наследие «Хитрость» (MPMM): ASI гибкий. Общие черты кобольда. Владение одним навыком: Магия / Расследование / Медицина / Ловкость рук / Выживание.",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "kobold_defiance",
@@ -733,7 +754,8 @@
       ],
       "languages_choose": 1,
       "traits_text": "Наследие «Неповиновение» (MPMM): ASI гибкий. Общие черты кобольда. Преимущество к спасброскам против состояния «Испуган» и чтобы окончить его.",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "kobold_draconic_sorcery",
@@ -757,7 +779,8 @@
       "languages_choose": 1,
       "traits_text": "Наследие «Драконье чародейство» (MPMM): ASI гибкий. Общие черты кобольда. Один заговор из списка чародея (базовая хар-ка ИНТ/МУД/ХАР — на выбор; укажи в заметках).",
       "subrace_required": false,
-      "cantrip_note_ru": "Выбери любой заговор чародея; базовая характеристика — ИНТ, МУД или ХАР."
+      "cantrip_note_ru": "Выбери любой заговор чародея; базовая характеристика — ИНТ, МУД или ХАР.",
+      "content_layer": "community_ref"
     },
     {
       "slug": "lizardfolk",
@@ -790,8 +813,11 @@
           "survival"
         ]
       },
-      "traits_text": "Людоящер (MPMM): ASI гибкий. Укус (1к6+СИЛ рубящий). Голодные челюсти (бонус: укус + временные хиты). Задержка дыхания 15 мин. Природный доспех (13+Лов без доспеха). Природная интуиция: 2 навыка из списка природы/выживания.",
+      "traits_text": "Людоящер (MPMM + Volo): ASI гибкий. Скорость 30, плавание 30. Укус (1к6+СИЛ рубящий). Голодные челюсти: бонусным действием укус; при попадании — временные хиты = БМ (число раз = БМ / долгий отдых). Задержка дыхания 15 мин. Умелый ремесленник (Volo): за короткий отдых из останков твари — дубинка, метательное копьё, щит или 1к4 дротиков. Природный доспех (13+Лов, щит можно). Природная интуиция: 2 навыка из списка.",
       "subrace_required": false,
+      "movement": {
+        "swim": 30
+      },
       "natural_armor": {
         "base": 13,
         "mod": "dex",
@@ -807,7 +833,30 @@
           "ability": "str",
           "proficient": true
         }
-      ]
+      ],
+      "trait_cards": [
+        {
+          "id": "hold_breath",
+          "name_ru": "Задержка дыхания",
+          "summary_ru": "Вы можете задерживать дыхание на 15 минут."
+        },
+        {
+          "id": "hungry_jaws",
+          "name_ru": "Голодные челюсти",
+          "summary_ru": "Бонусным действием совершите атаку укусом. При попадании получаете временные хиты, равные бонусу мастерства. Число использований = бонус мастерства, все восстанавливаются после продолжительного отдыха."
+        },
+        {
+          "id": "cunning_artisan",
+          "name_ru": "Умелый ремесленник",
+          "summary_ru": "За короткий отдых вы можете изготовить частицы останков убитого вами существа: дубинку, метательное копьё, щит или 1к4 дротиков. Чтобы использовать эти предметы, вы должны иметь соответствующие владения."
+        },
+        {
+          "id": "natural_armor_trait",
+          "name_ru": "Природный доспех",
+          "summary_ru": "Пока вы не носите доспех, ваш КД равен 13 + модификатор Ловкости. Вы можете пользоваться щитом и сохранять это преимущество."
+        }
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "minotaur",
@@ -840,7 +889,8 @@
           "ability": "str",
           "proficient": true
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "orc",
@@ -863,7 +913,8 @@
       ],
       "languages_choose": 1,
       "traits_text": "Орк (MPMM): ASI гибкий. Тёмное зрение 60. Мощное телосложение. Прилив адреналина (Dash бонусом + временные хиты ПБ; ПБ раз / короткий или длинный отдых). Непреклонная выносливость (1/длинный отдых).",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "satyr",
@@ -900,7 +951,8 @@
           "ability": "str",
           "proficient": true
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "shifter",
@@ -932,7 +984,8 @@
         ]
       },
       "traits_text": "Шифтер (MPMM): ASI гибкий. Тёмное зрение 60. Звериный инстинкт (1 навык: Акробатика/Атлетика/Запугивание/Выживание). Смена формы бонусом (1 мин, врем. хиты = 2×ПБ). Выбери вариант смены в попапе.",
-      "subrace_required": true
+      "subrace_required": true,
+      "content_layer": "community_ref"
     },
     {
       "slug": "shifter_beasthide",
@@ -964,7 +1017,8 @@
         ]
       },
       "traits_text": "Зверошкур (MPMM): ASI гибкий. Тёмное зрение 60. Звериный инстинкт. Смена формы: +1к6 врем. хитов; пока изменён — +1 КД.",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "shifter_longtooth",
@@ -1007,7 +1061,8 @@
           "proficient": true,
           "notes_ru": "бонусом в смене формы"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "shifter_swiftstride",
@@ -1039,7 +1094,8 @@
         ]
       },
       "traits_text": "Быстроног (MPMM): ASI гибкий. Тёмное зрение 60. Звериный инстинкт. Смена формы: скорость +10 фт; реакцией отойти до 10 фт, когда существо заканчивает ход рядом (без провоцированной атаки).",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "shifter_wildhunt",
@@ -1071,7 +1127,8 @@
         ]
       },
       "traits_text": "Дикий охотник (MPMM): ASI гибкий. Тёмное зрение 60. Звериный инстинкт. Смена формы: преимущество к проверкам Мудрости; существа в 30 фт не атакуют вас с преимуществом, пока вы дееспособны.",
-      "subrace_required": false
+      "subrace_required": false,
+      "content_layer": "community_ref"
     },
     {
       "slug": "tabaxi",
@@ -1111,7 +1168,8 @@
       ],
       "movement": {
         "climb": 30
-      }
+      },
+      "content_layer": "community_ref"
     },
     {
       "slug": "tortle",
@@ -1157,7 +1215,8 @@
           "ability": "str",
           "proficient": true
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "triton",
@@ -1215,7 +1274,8 @@
           "casting_ability": "cha",
           "notes_ru": "ПБ раз / длинный отдых"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "yuan_ti",
@@ -1273,7 +1333,8 @@
           "unlock_level": 3,
           "casting_ability": "cha"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "genasi_air",
@@ -1325,7 +1386,8 @@
           "unlock_level": 5,
           "casting_ability": "con"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "genasi_earth",
@@ -1376,7 +1438,8 @@
           "unlock_level": 5,
           "casting_ability": "con"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "genasi_fire",
@@ -1427,7 +1490,8 @@
           "unlock_level": 5,
           "casting_ability": "con"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     },
     {
       "slug": "genasi_water",
@@ -1481,7 +1545,8 @@
           "unlock_level": 5,
           "casting_ability": "wis"
         }
-      ]
+      ],
+      "content_layer": "community_ref"
     }
   ]
 }

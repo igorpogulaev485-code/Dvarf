@@ -14,6 +14,9 @@ type CharacterAvatarControlProps = {
   onChanged: (character: CharacterDetail) => void
   size?: 'sm' | 'md'
   showActions?: boolean
+  /** When set, face button opens this instead of the file picker (upload via actions). */
+  onOpen?: () => void
+  faceHint?: string
 }
 
 function isUploadedCharacterAvatar(url: string | null): boolean {
@@ -25,11 +28,15 @@ export function CharacterAvatarControl({
   onChanged,
   size = 'md',
   showActions = true,
+  onOpen,
+  faceHint,
 }: CharacterAvatarControlProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  const initial = character.name.trim().slice(0, 1).toUpperCase() || '?'
+  const initial = (character.name ?? '').trim().slice(0, 1).toUpperCase() || '?'
+  const hint =
+    faceHint ?? (pending ? '…' : onOpen ? 'основное' : 'фото')
 
   async function handleFile(file: File | undefined) {
     if (!file) return
@@ -64,16 +71,22 @@ export function CharacterAvatarControl({
       <button
         type="button"
         className="char-avatar__face"
-        disabled={pending}
-        title="Сменить аватарку персонажа"
-        onClick={() => inputRef.current?.click()}
+        disabled={pending && !onOpen}
+        title={onOpen ? 'Открыть основное' : 'Сменить аватарку персонажа'}
+        onClick={() => {
+          if (onOpen) {
+            onOpen()
+            return
+          }
+          inputRef.current?.click()
+        }}
       >
         {character.avatar_url ? (
           <img src={character.avatar_url} alt="" />
         ) : (
           <span aria-hidden="true">{initial}</span>
         )}
-        <span className="char-avatar__hint">{pending ? '…' : 'фото'}</span>
+        <span className="char-avatar__hint">{pending && !onOpen ? '…' : hint}</span>
       </button>
       <input
         ref={inputRef}

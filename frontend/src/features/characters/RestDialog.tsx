@@ -42,6 +42,8 @@ type RestDialogProps = {
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
+  /** Dismiss active self_forms and reset naparnik resources after short/long rest. */
+  onCompanionRest?: (kind: 'short' | 'long') => void
   onToast: (message: string) => void
   onClose: () => void
 }
@@ -58,6 +60,7 @@ export function RestDialog({
   onPlayChange,
   onSpellsChange,
   onCombatChange,
+  onCompanionRest,
   onToast,
   onClose,
 }: RestDialogProps) {
@@ -102,6 +105,7 @@ export function RestDialog({
         known,
       })
     }
+    onCompanionRest?.('short')
     onToast(
       spells.pact_slots
         ? 'Короткий отдых: ресурсы «короткий» + pact-ячейки восстановлены'
@@ -204,6 +208,7 @@ export function RestDialog({
         : play.exhaustion > 0
           ? ' · −1 истощение'
           : ''
+    onCompanionRest?.('long')
     onToast(
       `Продолжительный отдых: HP, кости, ячейки, ресурсы сброшены${exhaustionNote}`,
     )

@@ -1,4 +1,11 @@
 import { apiRequest, clearTokens, setTokens } from './client'
+import {
+  applyAccountAppearance,
+  clearCachedAppearance,
+  normalizeAppearance,
+  type AbilityColorsMode,
+  type ThemeId,
+} from '../theme/accountAppearance'
 
 export type User = {
   id: string
@@ -8,6 +15,9 @@ export type User = {
   full_name: string | null
   phone: string | null
   avatar_url: string | null
+  /** Required on /auth/me — preflight guards schema; optional only if API regressed. */
+  theme_id?: ThemeId
+  ability_colors?: AbilityColorsMode
   email_verified_at: string | null
   created_at: string
   updated_at: string
@@ -15,9 +25,11 @@ export type User = {
 }
 
 export type UserUpdatePayload = {
-  display_name: string | null
-  full_name: string | null
-  phone: string | null
+  display_name?: string | null
+  full_name?: string | null
+  phone?: string | null
+  theme_id?: ThemeId
+  ability_colors?: AbilityColorsMode
 }
 
 export type TokenResponse = {
@@ -55,6 +67,7 @@ export async function login(email: string, password: string): Promise<TokenRespo
     body: JSON.stringify({ email, password }),
   })
   setTokens(result.access_token, result.refresh_token)
+  applyAccountAppearance(normalizeAppearance(result.user))
   return result
 }
 
@@ -72,6 +85,7 @@ export async function verifyEmail(token: string): Promise<VerifyEmailResponse> {
     body: JSON.stringify({ token }),
   })
   setTokens(result.access_token, result.refresh_token)
+  applyAccountAppearance(normalizeAppearance(result.user))
   return result
 }
 
@@ -93,6 +107,7 @@ export async function logout(): Promise<void> {
     await apiRequest<void>('/auth/logout', { method: 'POST' })
   } finally {
     clearTokens()
+    clearCachedAppearance()
   }
 }
 
@@ -224,6 +239,18 @@ export async function deleteAccount(
 
 export async function startOAuth(provider: 'yandex' | 'vk'): Promise<OAuthStartResponse> {
   return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/start`)
+}
+
+export async function startOAuthLink(
+  provider: 'yandex' | 'vk',
+): Promise<OAuthStartResponse> {
+  return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/link/start`)
+}
+
+export async function unlinkOAuth(provider: 'yandex' | 'vk'): Promise<User> {
+  return apiRequest<User>(`/auth/oauth/${provider}/link`, {
+    method: 'DELETE',
+  })
 }
 
 export type ForgotPasswordResponse = {

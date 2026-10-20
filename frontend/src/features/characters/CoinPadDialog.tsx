@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from '../../ui'
+import { acquireBodyScrollLock } from '../../ui/bodyScrollLock'
 import { coinsToGp, formatGpTotal, type CoinPurse } from '../../shared/dnd/weight'
 
 type CoinKey = keyof CoinPurse
@@ -36,8 +38,7 @@ export function CoinPadDialog({
     if (!open) return
     setDigits('')
     setCoin('gp')
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const releaseScroll = acquireBodyScrollLock()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.preventDefault()
@@ -56,7 +57,7 @@ export function CoinPadDialog({
     }
     document.addEventListener('keydown', onKeyDown)
     return () => {
-      document.body.style.overflow = previousOverflow
+      releaseScroll()
       document.removeEventListener('keydown', onKeyDown)
     }
   }, [open, onClose])
@@ -92,7 +93,7 @@ export function CoinPadDialog({
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
       className="ui-dialog-backdrop"
       role="presentation"
@@ -191,6 +192,7 @@ export function CoinPadDialog({
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

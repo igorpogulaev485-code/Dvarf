@@ -2,9 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import { clampExhaustion } from '../../shared/dnd/rest'
-import { formatXp, xpProgress, xpToReachLevel } from '../../shared/dnd/experience'
+import {
+  formatXp,
+  xpCrossedLevelThreshold,
+  xpProgress,
+  xpReadyToLevel,
+  xpToReachLevel,
+} from '../../shared/dnd/experience'
 import { clampDeathMarks, type HitDie } from '../../shared/dnd/hitDice'
-import { formatRaceMovementHint } from '../../shared/dnd/raceGrants'
 import {
   coinsToGp,
   formatCoinBreakdown,
@@ -15,15 +20,36 @@ import { NumberPadDialog } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
+import { XpLevelOffer } from './XpProgressField'
 import type { XpHistoryEntry } from './playDeskUi'
 import type { PlayState } from './play'
+import {
+  IconBadge,
+  IconBolt,
+  IconBoot,
+  IconCoin,
+  IconJump,
+  IconRest,
+  IconShield,
+  IconSkull,
+  IconSpark,
+} from './deskIcons'
+import { formatJumpTitle } from '../../shared/dnd/jumpDistance'
 import { formatModifier } from './sheetTypes'
+
+type SpeedMode = {
+  key: 'walk' | 'climb' | 'swim' | 'fly'
+  label: string
+  value: number
+}
 
 type PlayDeskHeaderProps = {
   name: string
   raceName: string
   className: string
   alignment?: string
+  /** Rules edition label in who line (2014 / 2024). */
+  rulesEdition?: string
   level: number
   experience: number
   classes: ClassLevelEntry[]
@@ -34,6 +60,14 @@ type PlayDeskHeaderProps = {
   play: PlayState
   autoAc: number
   acHint: string
+  /** Open AC breakdown / buffs dialog. */
+  onOpenAc?: () => void
+  /** Shield currently in hand (affects AC). */
+  shieldInHand?: boolean
+  /** At least one shield exists in inventory for the quick toggle. */
+  shieldAvailable?: boolean
+  /** Draw / stow shield from the AC vital. */
+  onToggleShield?: () => void
   speed: number | null
   /** Extra walk-speed note (e.g. gear bonus) for title tooltip. */
   movementHint?: string | null
@@ -41,6 +75,9 @@ type PlayDeskHeaderProps = {
   climbSpeed?: number | null
   swimSpeed?: number | null
   flySpeed?: number | null
+  /** PHB running long / high jump (ft) — shown as a vital like speed. */
+  jumpLongFt?: number | null
+  jumpHighFt?: number | null
   proficiencyBonus: number
   initiative: number
   inspiration: boolean
@@ -49,9 +86,13 @@ type PlayDeskHeaderProps = {
   onOpenRest: () => void
   onOpenIdentity?: () => void
   onExperienceChange: (experience: number, meta?: { reason: string }) => void
+  /** XP band is full — open the level-up dialog. */
+  onRequestLevelUp?: () => void
   onToggleInspiration: () => void
   onExhaustionChange: (exhaustion: number) => void
   onInitiativeRoll?: () => void
+  /** Open initiative breakdown / buffs (preferred over direct roll). */
+  onOpenInitiative?: () => void
   onPlayChange: (play: PlayState) => void
   onCoinsChange: (coins: CoinPurse) => void
   onCombatChange: (patch: {
@@ -61,6 +102,9 @@ type PlayDeskHeaderProps = {
   onToast: (message: string) => void
   /** Called after real HP damage (after temp soak), for concentration check. */
   onDamaged?: (damageToHp: number) => void
+  /** Controlled CoinPad (Explore inventory readout opens the same pad). */
+  coinPadOpen?: boolean
+  onCoinPadOpenChange?: (open: boolean) => void
 }
 
 export function PlayDeskHeader({
@@ -68,6 +112,7 @@ export function PlayDeskHeader({
   raceName,
   className,
   alignment = '',
+  rulesEdition = '2014',
   level,
   experience,
   classes,
@@ -78,11 +123,17 @@ export function PlayDeskHeader({
   play,
   autoAc,
   acHint,
+  onOpenAc,
+  shieldInHand = false,
+  shieldAvailable = false,
+  onToggleShield,
   speed,
   movementHint = null,
   climbSpeed = null,
   swimSpeed = null,
   flySpeed = null,
+  jumpLongFt = null,
+  jumpHighFt = null,
   proficiencyBonus,
   initiative,
   inspiration,
@@ -91,23 +142,45 @@ export function PlayDeskHeader({
   onOpenRest,
   onOpenIdentity,
   onExperienceChange,
+  onRequestLevelUp,
   onToggleInspiration,
   onExhaustionChange,
   onInitiativeRoll,
+  onOpenInitiative,
   onPlayChange,
   onCoinsChange,
   onCombatChange,
   onToast,
   onDamaged,
+  coinPadOpen: coinPadOpenProp,
+  onCoinPadOpenChange,
 }: PlayDeskHeaderProps) {
-  const whoLine = [raceName, className].filter(Boolean).join(' — ') || 'Черновик'
   const alignmentLabel = alignment.trim()
-  const subtitleBits = [whoLine, alignmentLabel || null, '2014'].filter(Boolean)
+  const editionLabel = String(rulesEdition).trim() || '2014'
+  const classRows = classes.filter((row) => row.name.trim() && row.level > 0)
+  const classChips =
+    classRows.length > 0
+      ? classRows.map((row) => ({
+          id: row.id,
+          label: `${row.name.trim()} ${Math.floor(row.level)}`,
+          subclass: row.subclass_name.trim(),
+        }))
+      : className.trim()
+        ? [{ id: 'summary', label: className.trim(), subclass: '' }]
+        : []
+  const raceLabel = raceName.trim() || 'Черновик'
   const xp = xpProgress(experience, level)
+  const xpReady = xpReadyToLevel(experience, level)
   const [hpPulse, setHpPulse] = useState(false)
   const [hpPadOpen, setHpPadOpen] = useState(false)
   const [xpPadOpen, setXpPadOpen] = useState(false)
-  const [coinPadOpen, setCoinPadOpen] = useState(false)
+  const [coinPadOpenLocal, setCoinPadOpenLocal] = useState(false)
+  const coinPadControlled = onCoinPadOpenChange != null
+  const coinPadOpen = coinPadControlled ? Boolean(coinPadOpenProp) : coinPadOpenLocal
+  function setCoinPadOpen(open: boolean) {
+    if (coinPadControlled) onCoinPadOpenChange?.(open)
+    else setCoinPadOpenLocal(open)
+  }
   const [xpHistoryOpen, setXpHistoryOpen] = useState(false)
   const [xpReason, setXpReason] = useState('')
   const [maxDialogOpen, setMaxDialogOpen] = useState(false)
@@ -127,21 +200,42 @@ export function PlayDeskHeader({
     if (!xpPadOpen) setXpReason('')
   }, [xpPadOpen])
 
+  const xpRemainLabel =
+    xp.remaining == null ? 'макс.' : `ещё ${formatXp(xp.remaining)}`
   const xpLabel =
-    xp.nextThreshold == null ? `${xp.xp}` : `${xp.xp}/${xp.nextThreshold}`
+    xp.nextThreshold == null
+      ? `${formatXp(xp.xp)} · ${xpRemainLabel}`
+      : `${formatXp(xp.floor)} · ${xpRemainLabel} · ${formatXp(xp.nextThreshold)}`
   const nextLevel = xp.level >= 20 ? null : xp.level + 1
   const hpTemp = play.hpTemp
-  const showDeath = play.isDying || (hpCurrent != null && hpCurrent <= 0)
+  const atZeroHp = hpCurrent != null && hpCurrent <= 0
+  const showDeath = play.isDying || atZeroHp
+  const deathTracksActive = play.isDying || atZeroHp
   const exhaustionStage =
     play.exhaustion > 0 ? conditionLevelLabel('exhaustion', play.exhaustion) : null
-  const altSpeedHint = formatRaceMovementHint({
-    climb: climbSpeed,
-    swim: swimSpeed,
-    fly: flySpeed,
-  })
+
+  const altModes: SpeedMode[] = []
+  if (climbSpeed != null) altModes.push({ key: 'climb', label: 'лаз.', value: climbSpeed })
+  if (swimSpeed != null) altModes.push({ key: 'swim', label: 'плав.', value: swimSpeed })
+  if (flySpeed != null) altModes.push({ key: 'fly', label: 'полёт', value: flySpeed })
+
+  const hasWalk = speed != null
+  const primarySpeed: SpeedMode | null = hasWalk
+    ? { key: 'walk', label: 'Скор.', value: speed }
+    : altModes[0]
+      ? { ...altModes[0], label: altModes[0].label }
+      : null
+  const secondarySpeeds = hasWalk ? altModes : altModes.slice(1)
   const speedTitle =
-    [altSpeedHint, movementHint].filter(Boolean).join(' · ') ||
-    'Скорость (из расы / снаряжения)'
+    [
+      primarySpeed
+        ? `${primarySpeed.key === 'walk' ? 'ход' : primarySpeed.label} ${primarySpeed.value}`
+        : null,
+      ...secondarySpeeds.map((mode) => `${mode.label} ${mode.value}`),
+      movementHint,
+    ]
+      .filter(Boolean)
+      .join(' · ') || 'Скорость (из расы / снаряжения)'
 
   function applyHeal(amount: number) {
     const current = hpCurrent ?? 0
@@ -183,195 +277,382 @@ export function PlayDeskHeader({
   return (
     <section className="play-desk-header" aria-label="Шапка стола">
       <div className="play-desk-header__who">
-        <h1 className="play-desk-header__name">{name || 'Без имени'}</h1>
-        {onOpenIdentity ? (
-          <button
-            type="button"
-            className="play-desk-header__sub play-desk-header__sub--btn"
-            title={
-              alignmentLabel
-                ? 'Открыть основное (мировоззрение, предыстория…)'
-                : 'Мировоззрение не задано — нажми, чтобы указать'
-            }
-            onClick={onOpenIdentity}
-          >
-            {whoLine}
-            {alignmentLabel ? (
-              <>
-                {' · '}
+        {/* 1) Имя · Раса · Мировоззрение · издание */}
+        <div className="play-desk-header__who-line">
+          <h1 className="play-desk-header__name">{name || 'Без имени'}</h1>
+          {onOpenIdentity ? (
+            <button
+              type="button"
+              className="play-desk-header__identity play-desk-header__sub--btn"
+              title={
+                alignmentLabel
+                  ? 'Открыть основное (мировоззрение, предыстория…)'
+                  : 'Мировоззрение не задано — нажми, чтобы указать'
+              }
+              onClick={onOpenIdentity}
+            >
+              <span>{raceLabel}</span>
+              <span className="play-desk-header__dot" aria-hidden>
+                ·
+              </span>
+              {alignmentLabel ? (
                 <span className="play-desk-header__alignment">{alignmentLabel}</span>
-              </>
-            ) : (
-              <>
-                {' · '}
+              ) : (
                 <span className="play-desk-header__alignment is-empty">мировоззрение</span>
-              </>
-            )}
-            {' · 2014'}
-          </button>
-        ) : (
-          <p className="play-desk-header__sub">{subtitleBits.join(' · ')}</p>
-        )}
+              )}
+              <span className="play-desk-header__dot" aria-hidden>
+                ·
+              </span>
+              <span className="play-desk-header__edition">{editionLabel}</span>
+            </button>
+          ) : (
+            <p className="play-desk-header__identity">
+              <span>{raceLabel}</span>
+              {alignmentLabel ? (
+                <>
+                  <span className="play-desk-header__dot" aria-hidden>
+                    ·
+                  </span>
+                  <span className="play-desk-header__alignment">{alignmentLabel}</span>
+                </>
+              ) : null}
+              <span className="play-desk-header__dot" aria-hidden>
+                ·
+              </span>
+              <span className="play-desk-header__edition">{editionLabel}</span>
+            </p>
+          )}
+        </div>
+
+        {/* 2) Классы */}
+        {classChips.length > 0 ? (
+          <ul
+            className={`play-desk-header__classes${classChips.length >= 3 ? ' is-many' : ''}`}
+            aria-label="Классы"
+          >
+            {classChips.map((chip) => (
+              <li
+                key={chip.id}
+                className={`play-desk-header__class-chip${
+                  chip.subclass ? ' has-subclass' : ''
+                }`}
+                title={
+                  chip.subclass ? `${chip.label} · ${chip.subclass}` : chip.label
+                }
+              >
+                <span className="play-desk-header__class-main">{chip.label}</span>
+                {chip.subclass ? (
+                  <span className="play-desk-header__class-archetype">
+                    {chip.subclass}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
+        {/* 3) Опыт — полоска; под ней: порог ур. | ещё N | порог след. */}
         <button
           type="button"
           className="play-desk-header__xp"
-          title={`Опыт ${xpLabel}. Нажми, чтобы начислить или убавить`}
-          aria-label={`Опыт ${formatXp(xp.xp)}. Открыть клавиатуру`}
+          title={`Опыт ${formatXp(xp.xp)}. ${xpLabel}. Нажми, чтобы начислить или убавить`}
+          aria-label={`Опыт ${formatXp(xp.xp)}. ${xpRemainLabel}. Открыть клавиатуру`}
           onClick={() => setXpPadOpen(true)}
         >
-          <span>ур. {level}</span>
-          <div className="play-desk-header__xp-bar" aria-hidden>
-            <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
+          <div className="play-desk-header__xp-row">
+            <span className="play-desk-header__xp-level">ур. {level}</span>
+            <div className="play-desk-header__xp-track">
+              <div className="play-desk-header__xp-bar" aria-hidden>
+                <i style={{ width: `${Math.round(xp.ratio * 100)}%` }} />
+              </div>
+              <div className="play-desk-header__xp-nums">
+                <span className="play-desk-header__xp-floor">{formatXp(xp.floor)}</span>
+                <span className="play-desk-header__xp-remain">{xpRemainLabel}</span>
+                <span className="play-desk-header__xp-next">
+                  {xp.nextThreshold == null ? '—' : formatXp(xp.nextThreshold)}
+                </span>
+              </div>
+            </div>
           </div>
-          <span>{xpLabel}</span>
         </button>
       </div>
 
       <div className="play-desk-header__mid">
         <div className="play-desk-header__vitals">
-          <div className="play-desk-vital play-desk-vital--shield" title={acHint}>
+          <div
+            className={`play-desk-vital play-desk-vital--shield${
+              shieldInHand ? ' is-shield-on' : ''
+            }${onOpenAc ? ' play-desk-vital--clickable' : ''}`}
+            title={
+              onOpenAc
+                ? `${acHint}. Нажми, чтобы открыть разборку КД и бонусы`
+                : acHint
+            }
+            role={onOpenAc ? 'button' : undefined}
+            tabIndex={onOpenAc ? 0 : undefined}
+            aria-label={
+              onOpenAc
+                ? `Класс защиты ${autoAc}. Открыть разборку`
+                : `Класс защиты ${autoAc}`
+            }
+            onClick={() => onOpenAc?.()}
+            onKeyDown={(event) => {
+              if (!onOpenAc) return
+              if (event.key !== 'Enter' && event.key !== ' ') return
+              event.preventDefault()
+              onOpenAc()
+            }}
+          >
+            <IconShield className="play-desk-vital__icon" />
             <b>{autoAc}</b>
             <span>КД</span>
-          </div>
-          <div
-            className={`play-desk-vital${altSpeedHint ? ' play-desk-vital--speed' : ''}`}
-            title={speedTitle}
-          >
-            <b>{speed ?? '—'}</b>
-            <span>Скор.</span>
-            {altSpeedHint ? (
-              <small className="play-desk-vital__alt-speed">{altSpeedHint}</small>
+            {onToggleShield ? (
+              <button
+                type="button"
+                className={`play-desk-vital__shield-tog${
+                  shieldInHand ? ' is-on' : ''
+                }${shieldAvailable || shieldInHand ? '' : ' is-empty'}`}
+                aria-pressed={shieldInHand}
+                aria-label={
+                  shieldInHand ? 'Убрать щит из руки' : 'Взять щит в руку'
+                }
+                title={
+                  shieldInHand
+                    ? 'Щит в руке — нажми, чтобы убрать (КД −бонус щита)'
+                    : shieldAvailable
+                      ? 'Взять щит в руку — КД с бонусом щита'
+                      : 'Нет щита в инвентаре'
+                }
+                disabled={!shieldAvailable && !shieldInHand}
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onToggleShield()
+                }}
+              >
+                щит
+              </button>
             ) : null}
           </div>
-          {onInitiativeRoll ? (
+          <div
+            className={`play-desk-vital play-desk-vital--speed${
+              primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
+            }`}
+            title={speedTitle}
+          >
+            <IconBoot className="play-desk-vital__icon" />
+            <b>{primarySpeed ? primarySpeed.value : '—'}</b>
+            <span>
+              {primarySpeed
+                ? primarySpeed.key === 'walk'
+                  ? 'Скор.'
+                  : primarySpeed.label
+                : 'Скор.'}
+            </span>
+          </div>
+          {secondarySpeeds.length > 0 ? (
+            <div
+              className="play-desk-vital play-desk-vital--modes"
+              aria-label="Дополнительные скорости"
+              title={secondarySpeeds.map((m) => `${m.label} ${m.value}`).join(' · ')}
+            >
+              <ul className="play-desk-vital__tags">
+                {secondarySpeeds.map((mode) => (
+                  <li key={mode.key} className="play-desk-vital__tag">
+                    {mode.label} {mode.value}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {jumpLongFt != null && jumpHighFt != null ? (
+            <div
+              className="play-desk-vital play-desk-vital--jump"
+              aria-label={`Прыжок: длинный ${jumpLongFt} фт, высокий ${jumpHighFt} фт`}
+              title={formatJumpTitle({ longFt: jumpLongFt, highFt: jumpHighFt })}
+            >
+              <IconJump className="play-desk-vital__icon" />
+              <b>
+                {jumpLongFt}
+                <span className="play-desk-vital__slash" aria-hidden>
+                  /
+                </span>
+                {jumpHighFt}
+              </b>
+              <span>Прыж.</span>
+            </div>
+          ) : null}
+          {onOpenInitiative ? (
+            <button
+              type="button"
+              className="play-desk-vital play-desk-vital--clickable"
+              title={`${formatModifier(initiative)} инициатива. Нажми — разборка и бонусы`}
+              aria-label={`Инициатива ${formatModifier(initiative)}. Открыть разборку`}
+              onClick={onOpenInitiative}
+            >
+              <IconBolt className="play-desk-vital__icon" />
+              <b>{formatModifier(initiative)}</b>
+              <span>Иниц.</span>
+            </button>
+          ) : onInitiativeRoll ? (
             <button
               type="button"
               className="play-desk-vital"
               title="Бросок инициативы (значение считается автоматически)"
               onClick={onInitiativeRoll}
             >
+              <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
               <span>Иниц.</span>
             </button>
           ) : (
             <div className="play-desk-vital" title="Инициатива (авто)">
+              <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
               <span>Иниц.</span>
             </div>
           )}
           <div className="play-desk-vital" title="Бонус мастерства (от уровня)">
+            <IconBadge className="play-desk-vital__icon" />
             <b>{formatModifier(proficiencyBonus)}</b>
             <span>БМ</span>
           </div>
-        </div>
-        <div className="play-desk-header__play">
-          <button
-            type="button"
-            className={`play-desk-header__chip${inspiration ? ' is-on' : ''}`}
-            onClick={onToggleInspiration}
-            aria-pressed={inspiration}
-            title="Вдохновение — нажми, чтобы переключить"
-          >
-            <span>Вдохн.</span>
-            <b>{inspiration ? 'да' : '—'}</b>
-          </button>
-          <button
-            type="button"
-            className={`play-desk-header__chip${play.exhaustion > 0 ? ' is-warn' : ''}`}
-            title={
-              exhaustionStage
-                ? `Истощение ${play.exhaustion}: ${exhaustionStage}`
-                : 'Истощение — нажми, чтобы изменить уровень (0–6)'
-            }
-            onClick={() => {
-              const next = play.exhaustion >= 6 ? 0 : play.exhaustion + 1
-              onExhaustionChange(clampExhaustion(next))
-            }}
-          >
-            <span>Истощ.</span>
-            <b>{play.exhaustion}</b>
-          </button>
-          {exhaustionStage ? (
-            <span className="play-desk-header__exh-hint" title={exhaustionStage}>
-              {exhaustionStage}
-            </span>
-          ) : null}
+          <div className="play-desk-header__stack">
+            <button
+              type="button"
+              className={`play-desk-header__chip${inspiration ? ' is-on' : ''}`}
+              onClick={onToggleInspiration}
+              aria-pressed={inspiration}
+              title="Вдохновение — нажми, чтобы переключить"
+            >
+              <IconSpark className="play-desk-header__chip-icon" />
+              <span>Вдохн.</span>
+              <b>{inspiration ? 'да' : '—'}</b>
+            </button>
+            <button
+              type="button"
+              className={`play-desk-header__chip${play.exhaustion > 0 ? ' is-warn' : ''}`}
+              title={
+                exhaustionStage
+                  ? `Истощение ${play.exhaustion}: ${exhaustionStage}`
+                  : 'Истощение — нажми, чтобы изменить уровень (0–6)'
+              }
+              onClick={() => {
+                const next = play.exhaustion >= 6 ? 0 : play.exhaustion + 1
+                onExhaustionChange(clampExhaustion(next))
+              }}
+            >
+              <span>Истощ.</span>
+              <b>{play.exhaustion}</b>
+            </button>
+            {exhaustionStage ? (
+              <span className="play-desk-header__exh-hint" title={exhaustionStage}>
+                {exhaustionStage}
+              </span>
+            ) : null}
+          </div>
         </div>
       </div>
 
       <div className="play-desk-header__right">
-        <button
-          type="button"
-          className="play-desk-header__coin"
-          title={`Всего ≈ ${formatGpTotal(coinsToGp(coins))} зм (${formatCoinBreakdown(coins)}). Нажми — взять / отдать`}
-          onClick={() => setCoinPadOpen(true)}
-        >
-          {formatGpTotal(coinsToGp(coins))} зм
-        </button>
-        <button type="button" className="play-desk-header__rest" onClick={onOpenRest}>
-          ✦ Отдых
-        </button>
+        <div className="play-desk-header__right-tools">
+          <button
+            type="button"
+            className="play-desk-header__coin"
+            aria-label={`${formatGpTotal(coinsToGp(coins))} зм — кошелёк`}
+            aria-describedby="play-desk-coin-tip"
+            onClick={() => setCoinPadOpen(true)}
+          >
+            <IconCoin className="play-desk-header__btn-icon" />
+            <span aria-hidden="true">{formatGpTotal(coinsToGp(coins))} зм</span>
+            <span id="play-desk-coin-tip" className="play-desk-header__coin-tip" role="tooltip">
+              <b>Кошелёк</b>
+              <strong>≈ {formatGpTotal(coinsToGp(coins))} зм</strong>
+              <em>{formatCoinBreakdown(coins)}</em>
+              <small>Нажми — взять / отдать</small>
+            </span>
+          </button>
+          <button type="button" className="play-desk-header__rest" onClick={onOpenRest}>
+            <IconRest className="play-desk-header__btn-icon" />
+            <span>Отдых</span>
+          </button>
+        </div>
         <div className="play-desk-header__hp-wrap">
           <button
             type="button"
-            className={`play-desk-header__hp${hpPulse ? ' is-pulse' : ''}`}
-            title={hpTemp > 0 ? `врем. +${hpTemp}` : 'Хиты — лечение, урон, кости, смерть'}
+            className={`play-desk-header__hp${hpPulse ? ' is-pulse' : ''}${
+              showDeath ? ' is-critical' : ''
+            }`}
+            title={
+              showDeath
+                ? 'Хиты ≤ 0 — спасброски от смерти рядом'
+                : hpTemp > 0
+                  ? `врем. +${hpTemp}`
+                  : 'Хиты — лечение, урон, кости, смерть'
+            }
             onClick={() => setHpPadOpen(true)}
           >
             <strong>
               {hpCurrent ?? '—'} / {hpMax ?? '—'}
             </strong>
             <small>
-              хиты
+              {showDeath ? 'при смерти' : 'хиты'}
               {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
             </small>
           </button>
-          {showDeath ? (
-            <div className="play-desk-header__death" aria-label="Спасброски от смерти">
-              <button
-                type="button"
-                className={`play-desk-header__dying-toggle${play.isDying ? ' is-on' : ''}`}
-                onClick={() =>
-                  onPlayChange({
-                    ...play,
-                    isDying: !play.isDying,
-                    deathSuccesses: play.isDying ? 0 : play.deathSuccesses,
-                    deathFails: play.isDying ? 0 : play.deathFails,
-                  })
-                }
-              >
-                {play.isDying ? 'При смерти' : 'Смерть'}
-              </button>
-              <div
-                className={`play-desk-header__death-tracks${play.isDying ? '' : ' is-dim'}`}
-              >
-                <HeaderDeathTrack
-                  label="Успехи"
-                  value={play.deathSuccesses}
-                  tone="ok"
-                  onChange={(next) =>
+          <div
+            className={`play-desk-header__death-slot${showDeath ? ' is-open' : ''}`}
+            aria-hidden={!showDeath}
+          >
+            {showDeath ? (
+              <div className="play-desk-header__death" aria-label="Спасброски от смерти">
+                <button
+                  type="button"
+                  className={`play-desk-header__dying-toggle${deathTracksActive ? ' is-on' : ''}`}
+                  onClick={() =>
                     onPlayChange({
                       ...play,
-                      isDying: true,
-                      deathSuccesses: clampDeathMarks(next),
+                      isDying: !play.isDying,
+                      deathSuccesses: play.isDying ? 0 : play.deathSuccesses,
+                      deathFails: play.isDying ? 0 : play.deathFails,
                     })
                   }
-                />
-                <HeaderDeathTrack
-                  label="Провалы"
-                  value={play.deathFails}
-                  tone="bad"
-                  onChange={(next) =>
-                    onPlayChange({
-                      ...play,
-                      isDying: true,
-                      deathFails: clampDeathMarks(next),
-                    })
-                  }
-                />
+                >
+                  <IconSkull className="play-desk-header__death-icon" />
+                  <span>{play.isDying || atZeroHp ? 'При смерти' : 'Смерть'}</span>
+                </button>
+                <div
+                  className={`play-desk-header__death-tracks${
+                    deathTracksActive ? '' : ' is-dim'
+                  }`}
+                >
+                  <HeaderDeathTrack
+                    label="Успехи"
+                    value={play.deathSuccesses}
+                    tone="ok"
+                    onChange={(next) =>
+                      onPlayChange({
+                        ...play,
+                        isDying: true,
+                        deathSuccesses: clampDeathMarks(next),
+                      })
+                    }
+                  />
+                  <HeaderDeathTrack
+                    label="Провалы"
+                    value={play.deathFails}
+                    tone="bad"
+                    onChange={(next) =>
+                      onPlayChange({
+                        ...play,
+                        isDying: true,
+                        deathFails: clampDeathMarks(next),
+                      })
+                    }
+                  />
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -402,6 +683,7 @@ export function PlayDeskHeader({
         onChange={onCoinsChange}
         onToast={onToast}
       />
+      {/* CoinPad is portaled to document.body — safe above sticky stage toolbars. */}
 
       <NumberPadDialog
         open={xpPadOpen}
@@ -412,7 +694,14 @@ export function PlayDeskHeader({
         addLabel="Начислить"
         subtractLabel="Убавить"
         onClose={() => setXpPadOpen(false)}
-        onAdd={(delta) => onExperienceChange(xp.xp + delta, { reason: xpReason })}
+        onAdd={(delta) => {
+          const next = xp.xp + delta
+          onExperienceChange(next, { reason: xpReason })
+          if (xpCrossedLevelThreshold(xp.xp, next, level)) {
+            setXpPadOpen(false)
+            onRequestLevelUp?.()
+          }
+        }}
         onSubtract={(delta) =>
           onExperienceChange(Math.max(0, xp.xp - delta), { reason: xpReason })
         }
@@ -445,6 +734,15 @@ export function PlayDeskHeader({
                 ? ` · порог ${formatXp(xpToReachLevel(xp.level + 1))}`
                 : ''}
             </p>
+            {xpReady && nextLevel != null ? (
+              <XpLevelOffer
+                nextLevel={nextLevel}
+                onLevelUp={() => {
+                  setXpPadOpen(false)
+                  onRequestLevelUp?.()
+                }}
+              />
+            ) : null}
             <label className="xp-pad-header__reason">
               За что
               <input

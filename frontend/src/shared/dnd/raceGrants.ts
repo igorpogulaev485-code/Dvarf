@@ -1,6 +1,11 @@
 /** PHB 2014 race grants: catalog.data → picks → ledger (mirrors classGrants). */
 
 import type { NaturalArmor } from './armor'
+import { canonicalLanguageList } from './languages'
+import {
+  readRaceTraitCards,
+  type RaceTraitCard,
+} from './raceTraitCards'
 
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
@@ -179,6 +184,8 @@ export type RaceGrantDef = {
   /** Explicit feat grant at race setup (Custom Lineage / human variant). */
   featPick: boolean
   traitsText: string
+  /** Named trait cards for abilities panel (optional catalog.data.trait_cards). */
+  traitCards: RaceTraitCard[]
   naturalArmor: NaturalArmor | null
   naturalWeapons: RaceNaturalWeapon[]
   movement: RaceMovementSpec
@@ -220,6 +227,7 @@ export type AppliedRaceGrant = {
   armorKeys: Array<'light' | 'medium' | 'heavy' | 'shields'>
   weaponNames: string[]
   traitsText: string
+  traitCards: RaceTraitCard[]
   ancestryId: string | null
   featNoteRu: string | null
   naturalArmor: NaturalArmor | null
@@ -774,7 +782,7 @@ export function raceGrantDefFromCatalog(input: {
     abilityBonusChoices: readAbilityBonusChoices(
       data.ability_bonus_choices ?? data.abilityBonusChoices,
     ),
-    languages: readStringList(data.languages),
+    languages: canonicalLanguageList(readStringList(data.languages)),
     languagesChoose: Math.max(0, Math.floor(readNumber(data.languages_choose, 0))),
     skillProficiencies: readStringList(
       data.skill_proficiencies ?? data.skillProficiencies,
@@ -802,6 +810,7 @@ export function raceGrantDefFromCatalog(input: {
         : typeof data.traitsText === 'string'
           ? data.traitsText.trim()
           : '',
+    traitCards: readRaceTraitCards(data.trait_cards ?? data.traitCards),
     naturalArmor: readNaturalArmor(data.natural_armor ?? data.naturalArmor),
     naturalWeapons: readNaturalWeapons(data.natural_weapons ?? data.naturalWeapons),
     movement: readMovementSpec(data.movement),
@@ -904,8 +913,14 @@ export function abilityKeysForBonusChoice(choice: AbilityBonusChoice): AbilityKe
 export function validateRaceGrantPicks(input: {
   def: RaceGrantDef
   picks: RaceGrantPicks
+  /**
+   * When false, feat_pick races may omit featCatalogId (create-pipeline defers
+   * the pick to the dedicated «Черта» step).
+   */
+  requireFeat?: boolean
 }): string | null {
   const { def, picks } = input
+  const requireFeat = input.requireFeat !== false
   const asi = def.abilityBonusChoices
   const modes = resolveAbilityBonusModes(asi)
   if (modes.length > 0) {
@@ -985,7 +1000,7 @@ export function validateRaceGrantPicks(input: {
 
   const needsFeat =
     def.featPick || def.slug === 'custom_lineage' || def.slug === 'human_variant'
-  if (needsFeat && !picks.featCatalogId) {
+  if (requireFeat && needsFeat && !picks.featCatalogId) {
     return 'Выбери черту'
   }
   if (!needsFeat && picks.featCatalogId) {
@@ -1089,12 +1104,13 @@ export function readAppliedRaceGrant(raw: unknown): AppliedRaceGrant | null {
     size: typeof row.size === 'string' ? row.size : 'medium',
     darkvision: Math.max(0, Math.floor(readNumber(row.darkvision, 0))),
     abilityBonuses,
-    languages: readStringList(row.languages),
+    languages: canonicalLanguageList(readStringList(row.languages)),
     skills: readStringList(row.skills),
     tools: readStringList(row.tools),
     armorKeys: readArmor(row.armorKeys),
     weaponNames: readStringList(row.weaponNames),
     traitsText: typeof row.traitsText === 'string' ? row.traitsText : '',
+    traitCards: readRaceTraitCards(row.traitCards ?? row.trait_cards),
     ancestryId: typeof row.ancestryId === 'string' ? row.ancestryId : null,
     featNoteRu: typeof row.featNoteRu === 'string' ? row.featNoteRu : null,
     naturalArmor: readNaturalArmor(row.naturalArmor ?? row.natural_armor),

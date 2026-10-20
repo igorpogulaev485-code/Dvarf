@@ -61,9 +61,22 @@ export type RaceGrantDraftSlice = {
   classGrantedWeaponExtras: Set<string>
 }
 
+/** Short chip label from race nameRu («Эльф (метка тени)» → «метка тени»). */
+function raceSpellSourceLabel(
+  raceLabelRu: string | undefined,
+  grant: 'innate' | 'spell_list',
+): string {
+  const raw = (raceLabelRu || '').trim()
+  if (!raw) return grant === 'spell_list' ? 'Метка' : 'Раса'
+  const paren = raw.match(/\(([^)]+)\)/)
+  if (paren?.[1]?.trim()) return paren[1].trim()
+  return raw
+}
+
 function racialSpellToSheetSpell(
   raceSlug: string,
   spell: RaceRacialSpell,
+  raceLabelRu?: string,
 ): SheetSpell {
   const abilityNote = spell.castingAbility
     ? `хар-ка: ${spell.castingAbility.toUpperCase()}`
@@ -78,6 +91,7 @@ function racialSpellToSheetSpell(
     .filter(Boolean)
     .join(' · ')
   const innate = spell.grant === 'innate'
+  const sourceLabel = raceSpellSourceLabel(raceLabelRu, spell.grant)
   const base = {
     id: raceSpellId(raceSlug, spell.id),
     name: spell.nameRu,
@@ -93,9 +107,8 @@ function racialSpellToSheetSpell(
     concentration: false,
     source_kind: 'race' as const,
     race_grant: spell.grant,
-    ...(innate
-      ? { prepared_locked: true as const, prepare_source_label: 'Раса' }
-      : {}),
+    prepare_source_label: sourceLabel,
+    ...(innate ? { prepared_locked: true as const } : {}),
   }
   // Free-cast charges attached later via withInnateGrantCast (needs PB / preserve used).
   return base
@@ -107,6 +120,8 @@ function syncRaceRacialSpells(input: {
   racialSpells: RaceRacialSpell[]
   characterLevel: number
   hasCasterClass: boolean
+  /** Race display name for prepare_source_label chips. */
+  raceLabelRu?: string
 }): SpellsState {
   const active = selectActiveRacialSpells({
     racialSpells: input.racialSpells,
@@ -120,8 +135,9 @@ function syncRaceRacialSpells(input: {
   )
   const withoutRace = stripRaceSheetSpells(input.spells.known)
   const pb = proficiencyBonusForLevel(input.characterLevel)
+  const castLabel = raceSpellSourceLabel(input.raceLabelRu, 'innate')
   const nextRaceRows = active.map((spell) => {
-    let next = racialSpellToSheetSpell(input.raceSlug, spell)
+    let next = racialSpellToSheetSpell(input.raceSlug, spell, input.raceLabelRu)
     const prev = previousById.get(next.id)
     // Preserve player's prepare toggle for mark-list leveled spells.
     if (prev && next.race_grant === 'spell_list' && next.level > 0) {
@@ -130,7 +146,7 @@ function syncRaceRacialSpells(input: {
     if (prev?.grant_cast) {
       next = { ...next, grant_cast: prev.grant_cast }
     }
-    next = withInnateGrantCast(next, { proficiencyBonus: pb, label: 'Раса' })
+    next = withInnateGrantCast(next, { proficiencyBonus: pb, label: castLabel })
     return next
   })
   return { ...input.spells, known: [...withoutRace, ...nextRaceRows] }
@@ -278,6 +294,8 @@ export function applyRaceGrantToDraft(input: {
   characterLevel?: number
   /** Spellcasting or Pact Magic present on any class. */
   hasCasterClass?: boolean
+  /** Forwarded to validateRaceGrantPicks (default true). */
+  requireFeat?: boolean
 }): { draft: RaceGrantDraftSlice; summary: string } | null {
   const def =
     input.def ??
@@ -291,7 +309,11 @@ export function applyRaceGrantToDraft(input: {
   if (!def || !def.selectable) return null
 
   const picks = input.picks ?? emptyRacePicks()
-  const pickError = validateRaceGrantPicks({ def, picks })
+  const pickError = validateRaceGrantPicks({
+    def,
+    picks,
+    requireFeat: input.requireFeat,
+  })
   if (pickError) return null
 
   const cleared = revokeRaceGrant(input.draft)
@@ -349,6 +371,7 @@ export function applyRaceGrantToDraft(input: {
     racialSpells,
     characterLevel,
     hasCasterClass,
+    raceLabelRu: def.labelRu,
   })
 
   const size = resolveRaceSize({ def, picks })
@@ -372,6 +395,7 @@ export function applyRaceGrantToDraft(input: {
     armorKeys: [...def.armorProficiencies],
     weaponNames: [...def.weaponProficiencies],
     traitsText,
+    traitCards: def.traitCards,
     ancestryId: picks.ancestryId,
     featNoteRu: def.featNoteRu,
     naturalArmor: def.naturalArmor,
@@ -419,7 +443,11 @@ export function applyRaceGrantToDraft(input: {
 /** Re-apply race ledger overlays after class/level mutations (skills/tools/armor/spells). */
 export function reapplyRaceOverlays(
   draft: RaceGrantDraftSlice,
-  options?: { characterLevel?: number; hasCasterClass?: boolean },
+  options?: {
+    characterLevel?: number
+    hasCasterClass?: boolean
+    raceLabelRu?: string
+  },
 ): RaceGrantDraftSlice {
   const grant = draft.raceGrant
   if (!grant) return draft
@@ -446,6 +474,7 @@ export function reapplyRaceOverlays(
     racialSpells: grant.racialSpells ?? [],
     characterLevel: Math.max(1, Math.floor(options?.characterLevel ?? 1)),
     hasCasterClass: Boolean(options?.hasCasterClass),
+    raceLabelRu: options?.raceLabelRu,
   })
 
   return {
@@ -475,6 +504,8 @@ export function syncRaceSpellsForSheetState(input: {
   hasCasterClass: boolean
   /** Prefer fresher catalog spells when available. */
   catalogSpells?: RaceRacialSpell[] | null
+  /** Race display name for prepare_source_label chips. */
+  raceLabelRu?: string
 }): SpellsState {
   const grant = input.grant
   if (!grant) return input.spells
@@ -488,6 +519,7 @@ export function syncRaceSpellsForSheetState(input: {
     racialSpells,
     characterLevel: input.characterLevel,
     hasCasterClass: input.hasCasterClass,
+    raceLabelRu: input.raceLabelRu,
   })
 }
 

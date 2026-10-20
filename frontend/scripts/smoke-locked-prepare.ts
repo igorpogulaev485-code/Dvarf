@@ -6,10 +6,12 @@ import {
   countPreparedLeveled,
   createSheetSpell,
   featSpellId,
+  isGrantedSpellHighlight,
   isPreparedLocked,
   preparedLockChip,
   setSpellPrepared,
   spellCountsTowardPrepareCap,
+  spellSourceBadge,
   subclassSpellId,
   type SheetSpell,
 } from '../src/features/characters/spells.ts'
@@ -59,6 +61,38 @@ const race: SheetSpell = {
   prepared_locked: true,
 }
 assert(isPreparedLocked(race), 'race innate locked')
+assert(spellSourceBadge(race)?.kind === 'race', 'race badge kind')
+assert(isGrantedSpellHighlight(race), 'race highlight')
+
+const markList: SheetSpell = {
+  ...createSheetSpell(),
+  id: 'race-spell:mark-of-shadow:disguise-self',
+  name: 'Disguise Self',
+  level: 1,
+  prepared: true,
+  source_kind: 'race',
+  race_grant: 'spell_list',
+  prepare_source_label: 'Метка',
+}
+assert(!isPreparedLocked(markList), 'spell_list not locked')
+assert(spellSourceBadge(markList)?.label === 'Метка', 'mark list badge')
+assert(isGrantedSpellHighlight(markList), 'mark list highlight')
+
+const gear: SheetSpell = {
+  ...createSheetSpell(),
+  id: 'gear-spell:ring:invisibility',
+  name: 'Invisibility',
+  level: 2,
+  prepared: true,
+  prepared_locked: true,
+  source_kind: 'feature',
+  prepare_source_label: 'Кольцо невидимости',
+  grant_cast: { max: 1, used: 0, reset: 'long', label: 'Кольцо невидимости' },
+  concentration: true,
+  ritual: false,
+}
+assert(spellSourceBadge(gear)?.label === 'Кольцо невидимости', 'gear badge')
+assert(isGrantedSpellHighlight(gear), 'gear highlight')
 
 const manual: SheetSpell = {
   ...createSheetSpell(),

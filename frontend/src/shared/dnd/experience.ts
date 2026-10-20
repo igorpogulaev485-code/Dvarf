@@ -79,3 +79,23 @@ export function xpProgress(xpRaw: number, levelRaw: number): XpProgress {
 export function formatXp(n: number): string {
   return n.toLocaleString('ru-RU')
 }
+
+/** Current level's XP band is full — the character can take +1 level. */
+export function xpReadyToLevel(xp: number, level: number): boolean {
+  const progress = xpProgress(xp, level)
+  return progress.nextThreshold != null && progress.remaining === 0
+}
+
+/**
+ * True only on the award that first reaches the next level's threshold.
+ * Extra XP after the threshold is already met does not count as a new crossing.
+ */
+export function xpCrossedLevelThreshold(
+  beforeXp: number,
+  afterXp: number,
+  level: number,
+): boolean {
+  const before = xpProgress(beforeXp, level)
+  const after = xpProgress(afterXp, level)
+  return (before.remaining ?? 0) > 0 && after.remaining === 0
+}

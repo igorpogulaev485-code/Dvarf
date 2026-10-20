@@ -14,6 +14,7 @@ export type CatalogKind =
   | 'armor'
   | 'item'
   | 'condition'
+  | 'bestiary'
 
 export type CatalogEntry = {
   id: string
@@ -68,11 +69,12 @@ export function clearCatalogCache(): void {
  */
 export async function listCatalogEntries(
   params: CatalogListParams,
+  signal?: AbortSignal,
 ): Promise<CatalogEntry[]> {
   const key = cacheKey(params)
   const now = Date.now()
   const hit = listCache.get(key)
-  if (hit && now - hit.at < CACHE_TTL_MS) {
+  if (hit && now - hit.at < CACHE_TTL_MS && !signal?.aborted) {
     return hit.promise
   }
 
@@ -83,7 +85,9 @@ export async function listCatalogEntries(
   if (params.parentId) search.set('parent_id', params.parentId)
   const query = search.toString()
 
-  const promise = apiRequest<CatalogEntry[]>(`/catalog${query ? `?${query}` : ''}`).catch(
+  const promise = apiRequest<CatalogEntry[]>(`/catalog${query ? `?${query}` : ''}`, {
+    signal,
+  }).catch(
     (err: unknown) => {
       const current = listCache.get(key)
       if (current?.promise === promise) listCache.delete(key)

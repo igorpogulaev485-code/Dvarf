@@ -41,10 +41,23 @@ function readEffects(value: unknown): GearEffect[] {
 
 export type InventoryContainerKind = 'none' | 'pack' | 'kit' | 'container'
 
+/** Concrete spell bound to a generic Spell Scroll catalog blank (I-17). */
+export type ScrollSpellBinding = {
+  catalog_id: string | null
+  slug?: string | null
+  name: string
+  level: number
+  school?: string | null
+  ritual?: boolean
+  concentration?: boolean
+}
+
 export type InventoryItem = {
   id: string
   name: string
   catalog_id: string | null
+  /** Catalog slug when known (e.g. spellbook) — survives rename of display name. */
+  catalog_slug?: string | null
   qty: number
   weight_lb: number | null
   equipped: boolean
@@ -79,11 +92,21 @@ export type InventoryItem = {
   requires_attunement?: boolean
   /** Typed catalog effects (ac_bonus, sense, …) — active when equipped (+ attuned). */
   effects?: GearEffect[]
+  /**
+   * Spell Scroll: which spell this consumable holds.
+   * Catalog blanks are level-only; binding is set when the item enters inventory.
+   */
+  scroll_spell?: ScrollSpellBinding | null
 }
 
 export type InventoryState = {
   coins: CoinPurse
   items: InventoryItem[]
+  /**
+   * Freeform equipment notes (classic print box + digital extras).
+   * Survives interactive save; not an item row.
+   */
+  notes: string
 }
 
 function newInventoryItemId(): string {
@@ -147,6 +170,27 @@ function readCoins(raw: unknown): CoinPurse {
   }
 }
 
+function readScrollSpell(raw: unknown): ScrollSpellBinding | null {
+  if (!raw || typeof raw !== 'object') return null
+  const row = raw as Record<string, unknown>
+  const name = typeof row.name === 'string' ? row.name.trim() : ''
+  if (!name) return null
+  const levelRaw = row.level
+  const level =
+    typeof levelRaw === 'number' && Number.isFinite(levelRaw)
+      ? Math.max(0, Math.floor(levelRaw))
+      : 0
+  return {
+    catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+    slug: typeof row.slug === 'string' ? row.slug : null,
+    name,
+    level,
+    school: typeof row.school === 'string' ? row.school : null,
+    ritual: Boolean(row.ritual),
+    concentration: Boolean(row.concentration),
+  }
+}
+
 function readItem(raw: unknown, index: number): InventoryItem {
   const row = asRecord(raw)
   const armor_kind = isArmorKind(row.armor_kind) ? row.armor_kind : 'none'
@@ -154,6 +198,7 @@ function readItem(raw: unknown, index: number): InventoryItem {
     id: typeof row.id === 'string' ? row.id : `item-${index}`,
     name: typeof row.name === 'string' ? row.name : '',
     catalog_id: typeof row.catalog_id === 'string' ? row.catalog_id : null,
+    catalog_slug: typeof row.catalog_slug === 'string' ? row.catalog_slug : null,
     qty: Math.max(0, readNumber(row.qty, 1)),
     weight_lb: readNullableNumber(row.weight_lb ?? row.weight),
     equipped: Boolean(row.equipped),
@@ -173,6 +218,7 @@ function readItem(raw: unknown, index: number): InventoryItem {
     wear_slot: readWearSlot(row.wear_slot),
     requires_attunement: Boolean(row.requires_attunement),
     effects: readEffects(row.effects),
+    scroll_spell: readScrollSpell(row.scroll_spell),
   }
 }
 
@@ -203,11 +249,19 @@ export function readInventory(sheet: Record<string, unknown>): InventoryState {
   const items = Array.isArray(itemsRaw)
     ? dedupeInventoryItemIds(itemsRaw.map((item, index) => readItem(item, index)))
     : []
+  // Prefer inventory.notes; migrate retired classic_text overlay once.
+  const notes =
+    typeof inventory.notes === 'string'
+      ? inventory.notes
+      : typeof inventory.classic_text === 'string'
+        ? inventory.classic_text
+        : ''
   return {
     coins: Object.keys(asRecord(inventory.coins)).length
       ? readCoins(inventory.coins)
       : { ...EMPTY_COINS },
     items,
+    notes,
   }
 }
 
@@ -221,10 +275,12 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         gp: state.coins.gp,
         pp: state.coins.pp,
       },
+      notes: state.notes ?? '',
       items: state.items.map((item) => ({
         id: item.id,
         name: item.name,
         catalog_id: item.catalog_id,
+        ...(item.catalog_slug ? { catalog_slug: item.catalog_slug } : {}),
         qty: item.qty,
         weight_lb: item.weight_lb,
         equipped: item.equipped,
@@ -244,6 +300,23 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         wear_slot: item.wear_slot ?? null,
         requires_attunement: Boolean(item.requires_attunement),
         effects: item.effects ?? [],
+        ...(item.scroll_spell
+          ? {
+              scroll_spell: {
+                catalog_id: item.scroll_spell.catalog_id,
+                ...(item.scroll_spell.slug ? { slug: item.scroll_spell.slug } : {}),
+                name: item.scroll_spell.name,
+                level: item.scroll_spell.level,
+                ...(item.scroll_spell.school
+                  ? { school: item.scroll_spell.school }
+                  : {}),
+                ...(item.scroll_spell.ritual ? { ritual: true } : {}),
+                ...(item.scroll_spell.concentration
+                  ? { concentration: true }
+                  : {}),
+              },
+            }
+          : {}),
       })),
     },
   }
