@@ -1,7 +1,8 @@
 """Bestiary catalog `data` contract (D&D 2014).
 
 JSONB on catalog_entries for kind=bestiary — writers emit schema_version=1.
-Stats source of truth on conflict: ttg.club (see docs/BESTIARY_AUDIT_2014.md).
+Product SoT: official books + our structure (B2). Legacy ttg/dnd.su importers
+are archived behind DVARF_ALLOW_LEGACY_FETCH — see docs/BESTIARY_AUDIT_2014.md.
 """
 
 from __future__ import annotations

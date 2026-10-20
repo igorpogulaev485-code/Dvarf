@@ -20,7 +20,7 @@
 
 | # | Слайс | Статус | Док |
 | --- | --- | --- | --- |
-| **1** | **B2 анти-зеркало** (разрыв ttg/dnd.su) | **ждём ok на план** | [`SLICE_B2_ANTI_MIRROR_PLAN.md`](SLICE_B2_ANTI_MIRROR_PLAN.md) |
+| **1** | **B2 анти-зеркало** (разрыв ttg/dnd.su) | код готов · **ждём ok → прод** | [`SLICE_B2_ANTI_MIRROR_PLAN.md`](SLICE_B2_ANTI_MIRROR_PLAN.md) · [`B2_ANTI_MIRROR_REPORT.md`](B2_ANTI_MIRROR_REPORT.md) |
 | 2 | OAuth Google + Telegram (не-РФ) | **отложено** · не первостепенно | [`SLICE_OAUTH_GOOGLE_TELEGRAM_PLAN.md`](SLICE_OAUTH_GOOGLE_TELEGRAM_PLAN.md) |
 | — | Отдельный справочник «как dnd.su» | **не делаем** | [`CATALOG_PUBLIC_STANCE.md`](CATALOG_PUBLIC_STANCE.md) |
 

@@ -1,6 +1,6 @@
 # План слайса B2: анти-зеркало (разрыв происхождения ttg / dnd.su)
 
-**Статус:** ждём **ok** Игоря на код  
+**Статус:** код в ветке `cursor/b2-anti-mirror-6151` · **ждём ok на скрины → прод**  
 **Контур:** план → **ok** → код → скрины → **ok** → прод  
 **База после ok:** live tip (`cursor/ragnar-sheet-bugs-ba21` или актуальный `deploy/prod-tip`)  
 **Связано:** [`KEEP_CATALOGS_PLAYBOOK.md`](KEEP_CATALOGS_PLAYBOOK.md) щит 2 · [`CATALOG_PUBLIC_STANCE.md`](CATALOG_PUBLIC_STANCE.md) · B0 `content_layer` ✅ · Legal ✅
