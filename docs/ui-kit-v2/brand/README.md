@@ -1,13 +1,32 @@
-# Brand · app icon (черновик)
+# Brand · app icon d20 в огне
 
-**Источник:** реф с красным d20 в огне (персонаж/пейзаж не берём).  
-**Правка:** на лицевой грани **20** вместо 1.  
-**Формат:** PNG с альфой (без фона) → можно кидать в Figma.
+Чистый контур огня + мягкое **цветное** neon-свечение (без чёрной каймы).  
+PNG с альфой → Place image в Figma.
 
-| Файл | Размер | Зачем |
-|------|--------|--------|
-| [`dvarf-app-icon-d20-fire.png`](dvarf-app-icon-d20-fire.png) | crop, ~870² | мастер для Figma |
-| [`dvarf-app-icon-d20-fire-1024.png`](dvarf-app-icon-d20-fire-1024.png) | 1024×1024 | store / high-res |
-| [`dvarf-app-icon-d20-fire-512.png`](dvarf-app-icon-d20-fire-512.png) | 512×512 | превью / mid |
+## Основной (crimson)
 
-В Figma: **File → Place image** / drag-and-drop PNG — фон уже прозрачный.
+| Файл | Зачем |
+|------|--------|
+| [`dvarf-app-icon-d20-fire.png`](dvarf-app-icon-d20-fire.png) | мастер (clean) |
+| [`dvarf-app-icon-d20-fire-1024.png`](dvarf-app-icon-d20-fire-1024.png) | 1024² |
+| [`dvarf-app-icon-d20-fire-512.png`](dvarf-app-icon-d20-fire-512.png) | 512² |
+
+Алиасы `*-clean*` = то же содержимое.
+
+## Цветовой пак (под интерфейс)
+
+Превью-лист: [`color-pack-sheet.png`](color-pack-sheet.png)
+
+| Имя | Файл | Ощущение |
+|-----|------|----------|
+| crimson | `dvarf-d20-crimson.png` | крит / бой (база) |
+| ember | `dvarf-d20-ember.png` | тёплый ginger |
+| amber | `dvarf-d20-amber.png` | золото / XP |
+| leaf | `dvarf-d20-leaf.png` | Листва / Keyleth |
+| azure | `dvarf-d20-azure.png` | info / mist |
+| violet | `dvarf-d20-violet.png` | редкий accent |
+| magenta | `dvarf-d20-magenta.png` | яркий spark |
+
+У каждого цвета также есть `-512.png`.
+
+Свечение — полупрозрачный цветной градиент снаружи контура огня: на белом, пергаменте и тёмном фоне не даёт чёрного ореола.
