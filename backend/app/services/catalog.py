@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundError
+from app.dnd.content_layer import layer_for_source
 from app.models.catalog import CatalogEntry, CatalogKind
 from app.repositories.catalog import CatalogRepository
 from app.schemas.catalog import CatalogEntryOut
@@ -14,6 +15,13 @@ from app.schemas.catalog import CatalogEntryOut
 def to_out(entry: CatalogEntry) -> CatalogEntryOut:
     data = entry.data if isinstance(entry.data, dict) else {}
     external_ref = entry.external_ref if isinstance(entry.external_ref, dict) else None
+    kind_val = entry.kind.value if hasattr(entry.kind, "value") else str(entry.kind)
+    layer = layer_for_source(
+        entry.source,
+        kind=kind_val,
+        slug=entry.slug,
+        data=data,
+    )
     return CatalogEntryOut.model_validate(
         {
             "id": entry.id,
@@ -26,6 +34,7 @@ def to_out(entry: CatalogEntry) -> CatalogEntryOut:
             "source": entry.source,
             "external_ref": external_ref,
             "data": data,
+            "content_layer": layer,
             "sort_order": entry.sort_order or 0,
             "is_active": bool(entry.is_active),
             "created_at": entry.created_at,
