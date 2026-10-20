@@ -20,8 +20,8 @@
 
 | # | Слайс | Статус | Док |
 | --- | --- | --- | --- |
-| 1 | OAuth Google + Telegram (не-РФ) | **отложено** · не первостепенно (решение Игоря 2026-10-20) | [`SLICE_OAUTH_GOOGLE_TELEGRAM_PLAN.md`](SLICE_OAUTH_GOOGLE_TELEGRAM_PLAN.md) |
-| 2 | B2 разрыв происхождения ttg | очередь · после явного ok | playbook / GTM |
+| **1** | **B2 анти-зеркало** (разрыв ttg/dnd.su) | **ждём ok на план** | [`SLICE_B2_ANTI_MIRROR_PLAN.md`](SLICE_B2_ANTI_MIRROR_PLAN.md) |
+| 2 | OAuth Google + Telegram (не-РФ) | **отложено** · не первостепенно | [`SLICE_OAUTH_GOOGLE_TELEGRAM_PLAN.md`](SLICE_OAUTH_GOOGLE_TELEGRAM_PLAN.md) |
 | — | Отдельный справочник «как dnd.su» | **не делаем** | [`CATALOG_PUBLIC_STANCE.md`](CATALOG_PUBLIC_STANCE.md) |
 
 ---
