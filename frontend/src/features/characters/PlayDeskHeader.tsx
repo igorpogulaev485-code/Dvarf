@@ -444,7 +444,11 @@ export function PlayDeskHeader({
             className={`play-desk-vital play-desk-vital--speed${
               primarySpeed && primarySpeed.key !== 'walk' ? ' play-desk-vital--alt-primary' : ''
             }`}
-            title={speedTitle}
+            title={
+              showValueTips
+                ? `${VITAL_TIPS.speed.meaning} ${VITAL_TIPS.speed.use}`
+                : speedTitle
+            }
           >
             <IconBoot className="play-desk-vital__icon" />
             <b>{primarySpeed ? primarySpeed.value : '—'}</b>
@@ -454,7 +458,6 @@ export function PlayDeskHeader({
                   ? 'Скор.'
                   : primarySpeed.label
                 : 'Скор.'}
-              {showValueTips ? <ValueTip tip={VITAL_TIPS.speed} /> : null}
             </span>
           </div>
           {secondarySpeeds.length > 0 ? (
@@ -476,7 +479,11 @@ export function PlayDeskHeader({
             <div
               className="play-desk-vital play-desk-vital--jump"
               aria-label={`Прыжок: длинный ${jumpLongFt} фт, высокий ${jumpHighFt} фт`}
-              title={formatJumpTitle({ longFt: jumpLongFt, highFt: jumpHighFt })}
+              title={
+                showValueTips
+                  ? `${VITAL_TIPS.jump.meaning} ${VITAL_TIPS.jump.use}`
+                  : formatJumpTitle({ longFt: jumpLongFt, highFt: jumpHighFt })
+              }
             >
               <IconJump className="play-desk-vital__icon" />
               <b>
@@ -486,58 +493,65 @@ export function PlayDeskHeader({
                 </span>
                 {jumpHighFt}
               </b>
-              <span className="play-desk-vital__label-row">
-                Прыж.
-                {showValueTips ? <ValueTip tip={VITAL_TIPS.jump} /> : null}
-              </span>
+              <span className="play-desk-vital__label-row">Прыж.</span>
             </div>
           ) : null}
           {onOpenInitiative ? (
             <button
               type="button"
               className="play-desk-vital play-desk-vital--clickable"
-              title={`${formatModifier(initiative)} инициатива. Нажми — разборка и бонусы`}
+              title={
+                showValueTips
+                  ? `${VITAL_TIPS.initiative.meaning} ${VITAL_TIPS.initiative.use}`
+                  : `${formatModifier(initiative)} инициатива. Нажми — разборка и бонусы`
+              }
               aria-label={`Инициатива ${formatModifier(initiative)}. Открыть разборку`}
               onClick={onOpenInitiative}
             >
               <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
-              <span className="play-desk-vital__label-row">
-                Иниц.
-                {showValueTips ? <ValueTip tip={VITAL_TIPS.initiative} /> : null}
-              </span>
+              <span className="play-desk-vital__label-row">Иниц.</span>
             </button>
           ) : onInitiativeRoll ? (
             <button
               type="button"
               className="play-desk-vital"
-              title="Бросок инициативы (значение считается автоматически)"
+              title={
+                showValueTips
+                  ? `${VITAL_TIPS.initiative.meaning} ${VITAL_TIPS.initiative.use}`
+                  : 'Бросок инициативы (значение считается автоматически)'
+              }
               onClick={onInitiativeRoll}
             >
               <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
-              <span className="play-desk-vital__label-row">
-                Иниц.
-                {showValueTips ? <ValueTip tip={VITAL_TIPS.initiative} /> : null}
-              </span>
+              <span className="play-desk-vital__label-row">Иниц.</span>
             </button>
           ) : (
-            <div className="play-desk-vital" title="Инициатива (авто)">
+            <div
+              className="play-desk-vital"
+              title={
+                showValueTips
+                  ? `${VITAL_TIPS.initiative.meaning} ${VITAL_TIPS.initiative.use}`
+                  : 'Инициатива (авто)'
+              }
+            >
               <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
-              <span className="play-desk-vital__label-row">
-                Иниц.
-                {showValueTips ? <ValueTip tip={VITAL_TIPS.initiative} /> : null}
-              </span>
+              <span className="play-desk-vital__label-row">Иниц.</span>
             </div>
           )}
-          <div className="play-desk-vital" title="Бонус мастерства (от уровня)">
+          <div
+            className="play-desk-vital"
+            title={
+              showValueTips
+                ? `${VITAL_TIPS.proficiency.meaning} ${VITAL_TIPS.proficiency.use}`
+                : 'Бонус мастерства (от уровня)'
+            }
+          >
             <IconBadge className="play-desk-vital__icon" />
             <b>{formatModifier(proficiencyBonus)}</b>
-            <span className="play-desk-vital__label-row">
-              БМ
-              {showValueTips ? <ValueTip tip={VITAL_TIPS.proficiency} /> : null}
-            </span>
+            <span className="play-desk-vital__label-row">БМ</span>
           </div>
           <div className="play-desk-header__stack">
             <button
@@ -545,32 +559,32 @@ export function PlayDeskHeader({
               className={`play-desk-header__chip${inspiration ? ' is-on' : ''}`}
               onClick={onToggleInspiration}
               aria-pressed={inspiration}
-              title="Вдохновение — нажми, чтобы переключить"
+              title={
+                showValueTips
+                  ? `${VITAL_TIPS.inspiration.meaning} ${VITAL_TIPS.inspiration.use}`
+                  : 'Вдохновение — нажми, чтобы переключить'
+              }
             >
               <IconSpark className="play-desk-header__chip-icon" />
-              <span className="play-desk-vital__label-row">
-                Вдохн.
-                {showValueTips ? <ValueTip tip={VITAL_TIPS.inspiration} /> : null}
-              </span>
+              <span className="play-desk-vital__label-row">Вдохн.</span>
               <b>{inspiration ? 'да' : '—'}</b>
             </button>
             <button
               type="button"
               className={`play-desk-header__chip${play.exhaustion > 0 ? ' is-warn' : ''}`}
               title={
-                exhaustionStage
-                  ? `Истощение ${play.exhaustion}: ${exhaustionStage}`
-                  : 'Истощение — нажми, чтобы изменить уровень (0–6)'
+                showValueTips
+                  ? `${VITAL_TIPS.exhaustion.meaning} ${VITAL_TIPS.exhaustion.use}`
+                  : exhaustionStage
+                    ? `Истощение ${play.exhaustion}: ${exhaustionStage}`
+                    : 'Истощение — нажми, чтобы изменить уровень (0–6)'
               }
               onClick={() => {
                 const next = play.exhaustion >= 6 ? 0 : play.exhaustion + 1
                 onExhaustionChange(clampExhaustion(next))
               }}
             >
-              <span className="play-desk-vital__label-row">
-                Истощ.
-                {showValueTips ? <ValueTip tip={VITAL_TIPS.exhaustion} /> : null}
-              </span>
+              <span className="play-desk-vital__label-row">Истощ.</span>
               <b>{play.exhaustion}</b>
             </button>
             {exhaustionStage ? (
@@ -600,12 +614,18 @@ export function PlayDeskHeader({
               <small>Нажми — взять / отдать</small>
             </span>
           </button>
-          <button type="button" className="play-desk-header__rest" onClick={onOpenRest}>
+          <button
+            type="button"
+            className="play-desk-header__rest"
+            onClick={onOpenRest}
+            title={
+              showValueTips
+                ? `${VITAL_TIPS.rest.meaning} ${VITAL_TIPS.rest.use}`
+                : undefined
+            }
+          >
             <IconRest className="play-desk-header__btn-icon" />
-            <span className="play-desk-vital__label-row">
-              Отдых
-              {showValueTips ? <ValueTip tip={VITAL_TIPS.rest} /> : null}
-            </span>
+            <span className="play-desk-vital__label-row">Отдых</span>
           </button>
         </div>
         <div className="play-desk-header__hp-wrap">

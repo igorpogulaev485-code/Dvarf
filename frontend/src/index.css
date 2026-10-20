@@ -14693,25 +14693,28 @@ button.session-concentration-tag {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
   padding: 0;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
-  background: var(--accent-soft);
-  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--desk-muted, var(--muted)) 55%, var(--line));
+  background: transparent;
+  color: var(--desk-muted, var(--muted));
   font: inherit;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
   user-select: none;
+  opacity: 0.72;
 }
 
 .onboarding-value-tip__btn:hover,
 .onboarding-value-tip__btn[aria-expanded='true'] {
-  border-color: var(--accent);
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  color: var(--accent);
   background: #fffdf9;
 }
 

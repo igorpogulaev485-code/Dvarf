@@ -1,4 +1,4 @@
-import { ABILITY_TIPS, ValueTip } from '../onboarding'
+import { ABILITY_TIPS } from '../onboarding'
 import { NumberInput, Text } from '../../ui'
 import {
   ABILITY_KEYS,
@@ -41,7 +41,10 @@ type AbilitySkillsColumnProps = {
   onRollSave?: (key: AbilityKey, mod: number) => void
   /** Click the skill number → roll (pip cycles владение / экспертиза). */
   onRollSkill?: (skill: { key: string; label: string; mod: number }) => void
-  /** Absolute beginner: «?» next to СИЛ/ЛОВ/… */
+  /**
+   * Absolute beginner: richer titles on ability names (no «?» icons —
+   * those stay only on КД/хиты in the header).
+   */
   showValueTips?: boolean
 }
 
@@ -121,9 +124,7 @@ export function AbilitySkillsColumn({
         </button>
       </div>
       <Text tone="muted" className="abil-column__hint">
-        {showValueTips
-          ? '«?» у названия — что значит характеристика · число → бросок'
-          : 'число → бросок · кружок → владение/эксп. · название → разборка'}
+        число → бросок · кружок → владение/эксп. · название → разборка
       </Text>
       <div className="abil-column__list" id="abil-column-list">
         {order.map((key) => {
@@ -182,9 +183,11 @@ export function AbilitySkillsColumn({
                     type="button"
                     className="abil-block__label-open"
                     title={
-                      onOpenAbility
-                        ? `Разборка «${ABILITY_NAMES[key]}» — значение, проверки, спас`
-                        : ABILITY_NAMES[key]
+                      showValueTips
+                        ? `${ABILITY_TIPS[key].meaning} ${ABILITY_TIPS[key].use}`
+                        : onOpenAbility
+                          ? `Разборка «${ABILITY_NAMES[key]}» — значение, проверки, спас`
+                          : ABILITY_NAMES[key]
                     }
                     onClick={() => {
                       if (onOpenAbility) onOpenAbility(key)
@@ -193,9 +196,6 @@ export function AbilitySkillsColumn({
                   >
                     <span className="abil-block__label-text">{ABILITY_NAMES[key]}</span>
                   </button>
-                  {showValueTips ? (
-                    <ValueTip tip={ABILITY_TIPS[key]} className="abil-block__value-tip" />
-                  ) : null}
                   <button
                     type="button"
                     className="abil-block__label-chevron"

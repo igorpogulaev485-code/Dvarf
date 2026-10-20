@@ -50,6 +50,11 @@ await page.goto(`${BASE}/characters/${CHAR_ID}`, { waitUntil: 'networkidle0' })
 await page.waitForSelector('.onboarding-value-tip__btn', { timeout: 25000 })
 await new Promise((r) => setTimeout(r, 800))
 
+const tipCount = await page.$$eval('.onboarding-value-tip__btn', (els) => els.length)
+if (tipCount !== 2) {
+  throw new Error(`expected exactly 2 value-tip icons (КД+хиты), got ${tipCount}`)
+}
+
 async function clickTip(selector) {
   const el = await page.$(selector)
   if (!el) throw new Error(`missing tip: ${selector}`)
@@ -72,7 +77,7 @@ await page.screenshot({
   path: join(OUT, 'real_09_value_tips_vitals_overview.png'),
   fullPage: false,
 })
-console.log('ok overview')
+console.log('ok overview, tips=', tipCount)
 
 await clickTip('.play-desk-vital--shield .onboarding-value-tip__btn')
 await page.screenshot({
@@ -88,13 +93,5 @@ await page.screenshot({
   fullPage: false,
 })
 console.log('ok hp')
-
-await closeTip()
-await clickTip('.abil-block[data-abil="str"] .onboarding-value-tip__btn')
-await page.screenshot({
-  path: join(OUT, 'real_12_value_tip_strength.png'),
-  fullPage: false,
-})
-console.log('ok str')
 
 await browser.close()
