@@ -142,7 +142,7 @@ Keyleth перед Aramenté = **сборы в путь**, не сам бой д
 
 | Компонент | Как обыграть |
 |-----------|----------------|
-| Primary button | accent зелень, скругление 10–12, не pill-неон |
+| Primary button | accent зелень, **tactile pill** (raised/pressed), не flat SaaS |
 | Mode «Бой» | мягкий soft → solid; внутри силы, снаружи спокойствие |
 | Success / rest | leaf / soft gold, не кислотный green |
 | Create steps | «Aramenté»: progress как тропа (dots / path), не агрессивный wizard |
@@ -162,7 +162,8 @@ Keyleth перед Aramenté = **сборы в путь**, не сам бой д
 
 **Don’t**
 - Весь UI в рыжем «под волосы».  
-- Фиолетовый glow / glassmorphism.  
+- Фиолетовый glow / neon-glass (AI-клише). Soft frosted glass для оболочек — ок, см. [`FOUNDATIONS_GLASS_TACTILE.md`](FOUNDATIONS_GLASS_TACTILE.md).  
+- Стекло на боевых цифрах и плотных таблицах.  
 - Вставлять фан-арт Keyleth в продукт.  
 - Писать «официальная тема Critical Role».  
 - Ломать rail A identity под «всё зелёное».

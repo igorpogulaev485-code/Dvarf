@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="900" viewBox="0 0 1100 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#D5E6D8"/>
+      <stop offset="45%" stop-color="#EEF3EE"/>
+      <stop offset="100%" stop-color="#E4D5C8"/>
+    </linearGradient>
+    <filter id="raised" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#1A241E" flood-opacity="0.18"/>
+      <feDropShadow dx="0" dy="-1" stdDeviation="1" flood-color="#FFFFFF" flood-opacity="0.7"/>
+    </filter>
+    <filter id="insetlook" x="-20%" y="-20%" width="140%" height="140%">
+      <feComponentTransfer in="SourceAlpha"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>
+      <feGaussianBlur stdDeviation="2"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feFlood flood-color="#1A241E" flood-opacity="0.18"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glass" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="0.5"/>
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#1A241E" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <text x="48" y="48" font-family="Source Serif 4, Georgia, serif" font-size="26" font-weight="700" fill="#2F6A42">Компоненты · tactile controls × Листва</text>
+  <text x="48" y="74" font-family="IBM Plex Sans, Arial" font-size="13" fill="#5C6B5F">По мотивам neo-skeuomorphic рефа: raised / pressed · цвета Keyleth (зелень + ginger)</text>
+
+  <!-- BUTTONS CARD -->
+  <rect x="40" y="100" width="500" height="360" rx="28" fill="rgba(255,255,255,0.55)" stroke="rgba(255,255,255,0.75)" stroke-width="1.5" filter="url(#glass)"/>
+  <text x="64" y="140" font-family="Source Serif 4, Georgia, serif" font-size="18" fill="#1A241E">Buttons</text>
+
+  <text x="64" y="175" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Primary / default</text>
+  <rect x="64" y="190" width="180" height="52" rx="26" fill="#2F6A42" filter="url(#raised)"/>
+  <text x="154" y="222" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="15" font-weight="600" fill="#fff">Собрать героя</text>
+
+  <text x="270" y="175" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Pressed (вдавлен)</text>
+  <rect x="270" y="190" width="180" height="52" rx="26" fill="#275A38"/>
+  <rect x="270" y="190" width="180" height="52" rx="26" fill="rgba(0,0,0,0.12)"/>
+  <text x="360" y="222" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="15" font-weight="600" fill="#E8F2EA">Собрать героя</text>
+
+  <text x="64" y="275" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Soft / secondary</text>
+  <rect x="64" y="290" width="180" height="52" rx="26" fill="#D9EBD9" filter="url(#raised)"/>
+  <text x="154" y="322" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="15" font-weight="600" fill="#2F6A42">Из справочника</text>
+
+  <text x="270" y="275" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Disabled</text>
+  <rect x="270" y="290" width="180" height="52" rx="26" fill="#C9D4C9"/>
+  <text x="360" y="322" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="15" font-weight="600" fill="#8A968A">Недоступно</text>
+
+  <text x="64" y="375" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Danger</text>
+  <rect x="64" y="390" width="140" height="44" rx="22" fill="#fff" stroke="#B42318" stroke-width="1.5" filter="url(#raised)"/>
+  <text x="134" y="417" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="14" font-weight="600" fill="#B42318">Удалить</text>
+
+  <text x="230" y="375" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Ginger spark</text>
+  <rect x="230" y="390" width="140" height="44" rx="22" fill="#C45A2C" filter="url(#raised)"/>
+  <text x="300" y="417" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="14" font-weight="600" fill="#fff">Поделиться</text>
+
+  <!-- SWITCHES CARD -->
+  <rect x="560" y="100" width="500" height="360" rx="28" fill="rgba(255,255,255,0.55)" stroke="rgba(255,255,255,0.75)" stroke-width="1.5" filter="url(#glass)"/>
+  <text x="584" y="140" font-family="Source Serif 4, Georgia, serif" font-size="18" fill="#1A241E">Switch / Checkbox / Radio</text>
+
+  <!-- switch ON -->
+  <text x="584" y="185" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Switch ON</text>
+  <rect x="584" y="200" width="84" height="44" rx="22" fill="#2F6A42" filter="url(#raised)"/>
+  <circle cx="646" cy="222" r="18" fill="#fff" filter="url(#raised)"/>
+
+  <!-- switch OFF -->
+  <text x="720" y="185" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Switch OFF</text>
+  <rect x="720" y="200" width="84" height="44" rx="22" fill="#C5D0C5"/>
+  <circle cx="742" cy="222" r="18" fill="#fff" filter="url(#raised)"/>
+
+  <!-- checkbox -->
+  <text x="584" y="280" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Checkbox</text>
+  <rect x="584" y="295" width="36" height="36" rx="10" fill="#E7EEE7" stroke="#B8C6B8"/>
+  <rect x="640" y="295" width="36" height="36" rx="10" fill="#2F6A42" filter="url(#raised)"/>
+  <path d="M648 313 l6 6 12 -14" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- radio -->
+  <text x="720" y="280" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Radio</text>
+  <circle cx="738" cy="313" r="18" fill="#E7EEE7" stroke="#B8C6B8"/>
+  <circle cx="800" cy="313" r="18" fill="#fff" stroke="#2F6A42" stroke-width="2" filter="url(#raised)"/>
+  <circle cx="800" cy="313" r="9" fill="#2F6A42"/>
+
+  <!-- chips -->
+  <text x="584" y="370" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Chips</text>
+  <rect x="584" y="385" width="70" height="34" rx="17" fill="#2F6A42" filter="url(#raised)"/>
+  <text x="619" y="407" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="13" fill="#fff">Бой</text>
+  <rect x="666" y="385" width="90" height="34" rx="17" fill="rgba(255,255,255,0.7)" stroke="rgba(255,255,255,0.9)"/>
+  <text x="711" y="407" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="13" fill="#1A241E">Исслед.</text>
+  <rect x="768" y="385" width="80" height="34" rx="17" fill="#C45A2C" filter="url(#raised)"/>
+  <text x="808" y="407" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="13" fill="#fff">XP +50</text>
+
+  <!-- INPUT + SLIDER -->
+  <rect x="40" y="490" width="1020" height="360" rx="28" fill="rgba(255,255,255,0.55)" stroke="rgba(255,255,255,0.75)" stroke-width="1.5" filter="url(#glass)"/>
+  <text x="64" y="535" font-family="Source Serif 4, Georgia, serif" font-size="18" fill="#1A241E">Input · Slider · Steps</text>
+
+  <text x="64" y="575" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Default field</text>
+  <rect x="64" y="590" width="360" height="52" rx="16" fill="rgba(255,255,255,0.45)" stroke="rgba(180,200,180,0.8)"/>
+  <text x="84" y="622" font-family="IBM Plex Sans, Arial" font-size="14" fill="#5C6B5F">Имя персонажа</text>
+
+  <text x="460" y="575" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Active / focus</text>
+  <rect x="460" y="590" width="360" height="52" rx="16" fill="rgba(255,255,255,0.7)" stroke="#2F6A42" stroke-width="2" filter="url(#raised)"/>
+  <text x="480" y="622" font-family="IBM Plex Sans, Arial" font-size="14" fill="#1A241E">Keyara|</text>
+
+  <text x="64" y="690" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Slider (уровень / громкость UI)</text>
+  <rect x="64" y="715" width="520" height="16" rx="8" fill="#C9D6C9"/>
+  <rect x="64" y="715" width="300" height="16" rx="8" fill="#2F6A42"/>
+  <circle cx="364" cy="723" r="16" fill="#fff" filter="url(#raised)" stroke="#D9EBD9" stroke-width="3"/>
+
+  <text x="640" y="690" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Steps (create / Aramenté)</text>
+  <circle cx="670" cy="723" r="14" fill="#2F6A42"/>
+  <text x="670" y="728" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="12" fill="#fff">1</text>
+  <rect x="686" y="720" width="40" height="4" fill="#2F6A42"/>
+  <circle cx="750" cy="723" r="14" fill="#2F6A42"/>
+  <text x="750" y="728" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="12" fill="#fff">2</text>
+  <rect x="766" y="720" width="40" height="4" fill="#C9D6C9"/>
+  <circle cx="830" cy="723" r="14" fill="#C9D6C9"/>
+  <text x="830" y="728" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">3</text>
+  <rect x="846" y="720" width="40" height="4" fill="#C9D6C9"/>
+  <circle cx="910" cy="723" r="14" fill="#C9D6C9"/>
+  <text x="910" y="728" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">4</text>
+
+  <text x="64" y="800" font-family="IBM Plex Sans, Arial" font-size="13" fill="#5C6B5F">Правило: tactile = soft shadow + pill radius · primary всегда leaf-green · ginger только spark</text>
+</svg>

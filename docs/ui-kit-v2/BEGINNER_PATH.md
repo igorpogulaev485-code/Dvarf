@@ -43,15 +43,20 @@
 **Как ответить в чат:** `Беру A Zephrah Spring` (или B / C).
 
 ### Этап 2 — Foundations в Figma (1 страница)
-На одной странице Figma:
-- [ ] Цвета: bg, panel, ink, muted, line, accent, soft, danger  
-- [ ] 2 шрифта: display + UI  
-- [ ] Кнопка: default / hover / disabled / danger  
-- [ ] Chip / tab Бой  
-- [ ] Поле ввода  
-- [ ] Пример HP / КД  
 
-Имя страницы: `UI Kit v2 · Foundations · <имя>`.
+**Зафиксировано в черновике:** tactile controls + hybrid glass → [`FOUNDATIONS_GLASS_TACTILE.md`](FOUNDATIONS_GLASS_TACTILE.md)
+
+На одной странице Figma:
+- [ ] Цвета: bg, panel, ink, muted, line, accent, soft, danger, ginger  
+- [ ] 2 шрифта: display + UI  
+- [ ] Кнопка tactile: default / pressed / soft / disabled / danger / ginger spark  
+- [ ] Switch / checkbox / radio / chip  
+- [ ] Поле ввода + slider + steps  
+- [ ] Glass recipe (модалка / карточка)  
+- [ ] Hybrid: glass shell + solid HP / КД  
+
+Имя страницы: `UI Kit v2 · Foundations · Keyleth Listva`.  
+Референс-доски: `boards/05` … `07`.
 
 ### Этап 3 — Три экрана-пилота
 Перекрась/собери заново (не весь продукт):

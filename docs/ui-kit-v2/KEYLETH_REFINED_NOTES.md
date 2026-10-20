@@ -19,3 +19,22 @@
 
 В репо SVG: `boards/01-foundations.svg` … `04-lobby-hero.svg`  
 PNG для просмотра: артефакты `keyleth-refined/`.
+
+---
+
+## Tactile + glass (зафиксировано)
+
+Рефы Pinterest (mood only):
+- neo-skeuomorphic buttons / switches
+- frosted glass cards / modals
+
+| Решение | Статус |
+|---------|--------|
+| Кнопки, свитчи, чекбоксы, слайдеры — tactile raised/pressed | **да** |
+| Стекло на карточках / всплывашках / оболочках | **да** |
+| Стекло на HP / КД / плотных таблицах | **нет** → solid soft-card |
+| Паттерн листа | **hybrid:** glass chrome + solid vitals + tactile controls |
+
+Спека: [`FOUNDATIONS_GLASS_TACTILE.md`](FOUNDATIONS_GLASS_TACTILE.md)  
+Доски: `boards/05-controls-tactile.svg`, `06-glass-surfaces.svg`, `07-hybrid-sheet-preview.svg`  
+PNG: артефакты `keyleth-glass/`.

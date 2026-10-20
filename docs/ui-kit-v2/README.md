@@ -8,6 +8,8 @@
 Как придумывать кит (для стажёра): [`HOW_TO.md`](HOW_TO.md)  
 Полная спека рекомендованного направления: [`ATLAS.md`](ATLAS.md)
 
+**Активный трек (2026-10):** Листва × Keyleth + tactile + hybrid glass — [`KEYLETH_LISTVA.md`](KEYLETH_LISTVA.md) · [`FOUNDATIONS_GLASS_TACTILE.md`](FOUNDATIONS_GLASS_TACTILE.md)
+
 ---
 
 ## Зачем новый кит, если Листва уже есть?
