@@ -1,6 +1,14 @@
 /** Feat catalog → picks → ledger (mirrors race/class grants). */
 
 import type { NaturalArmor } from './armor'
+import {
+  spellOptionsForClassList,
+  type FeatSpellCatalogRow,
+  type FeatSpellListOption,
+} from './featSpellListOptions'
+
+export type { FeatSpellCatalogRow, FeatSpellListOption }
+export type FeatSpellOneOptionsFrom = 'class_spell_list' | 'class_ritual_list'
 
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
@@ -87,6 +95,13 @@ export type FeatChoiceDef =
        * are valid (Magic Initiate / Strixhaven college lists).
        */
       filterEnum: string | null
+      /**
+       * Resolve options from the spell catalog for the class picked via
+       * filterEnum (`class_spell_list`) or ritual-only subset
+       * (`class_ritual_list`). Hardcoded `options` are a fallback when the
+       * catalog is unavailable.
+       */
+      optionsFrom: FeatSpellOneOptionsFrom | null
       /** Picks in the same uniqueGroup must be distinct spell ids. */
       uniqueGroup: string | null
       /** Fixed casting ability for this pick (e.g. artificer INT). */
@@ -504,6 +519,13 @@ function parseChoices(raw: unknown): FeatChoiceDef[] {
         typeof abilityRaw === 'string' && ABILITY_KEYS.includes(abilityRaw as AbilityKey)
           ? (abilityRaw as AbilityKey)
           : null
+      const optionsFromRaw =
+        readString(row.options_from) ?? readString(row.optionsFrom)
+      const optionsFrom: FeatSpellOneOptionsFrom | null =
+        optionsFromRaw === 'class_spell_list' ||
+        optionsFromRaw === 'class_ritual_list'
+          ? optionsFromRaw
+          : null
       out.push({
         id,
         type: 'spell_one',
@@ -513,6 +535,7 @@ function parseChoices(raw: unknown): FeatChoiceDef[] {
         notesRu: readString(row.notes_ru) ?? readString(row.notesRu),
         filterEnum:
           readString(row.filter_enum) ?? readString(row.filterEnum) ?? null,
+        optionsFrom,
         uniqueGroup:
           readString(row.unique_group) ?? readString(row.uniqueGroup) ?? null,
         castingAbility,
@@ -527,7 +550,21 @@ function parseChoices(raw: unknown): FeatChoiceDef[] {
 export function spellOneOptionsForPicks(
   choice: Extract<FeatChoiceDef, { type: 'spell_one' }>,
   enumIds: Partial<Record<string, string>>,
+  spellCatalog?: FeatSpellCatalogRow[] | null,
 ): Array<{ id: string; label_ru: string; level?: number; lists?: string[] }> {
+  if (choice.optionsFrom && choice.filterEnum) {
+    const selected = enumIds[choice.filterEnum]?.trim().toLowerCase()
+    if (!selected) return []
+    if (spellCatalog?.length) {
+      return spellOptionsForClassList({
+        spells: spellCatalog,
+        classSlug: selected,
+        level: choice.level,
+        ritualOnly: choice.optionsFrom === 'class_ritual_list',
+      })
+    }
+    // Catalog not loaded yet — fall back to hardcoded lists if present.
+  }
   if (!choice.filterEnum) return choice.options
   const selected = enumIds[choice.filterEnum]?.trim().toLowerCase()
   if (!selected) return []
@@ -971,6 +1008,8 @@ export function validateFeatGrantPicks(input: {
   ownedFeatEnums?: OwnedFeatEnumSnapshot[]
   /** Skill keys the character is proficient in (for expertise). */
   proficientSkills?: string[]
+  /** Required when a spell_one choice uses options_from class_* lists. */
+  spellCatalog?: FeatSpellCatalogRow[] | null
 }): string | null {
   const { def, picks } = input
   const prereqFail = featPrerequisitesUnmet(def, input)
@@ -1027,13 +1066,20 @@ export function validateFeatGrantPicks(input: {
     }
     if (choice.type === 'spell_one') {
       const id = picks.enumIds[choice.id]
-      const allowed = spellOneOptionsForPicks(choice, picks.enumIds)
+      const allowed = spellOneOptionsForPicks(
+        choice,
+        picks.enumIds,
+        input.spellCatalog,
+      )
       if (!id || !allowed.some((opt) => opt.id === id)) {
         if (choice.filterEnum && !picks.enumIds[choice.filterEnum]) {
           return `Сначала выбери: ${
             def.choices.find((row) => row.id === choice.filterEnum)?.label_ru ??
             'список'
           }`
+        }
+        if (choice.optionsFrom && !input.spellCatalog?.length) {
+          return 'Список заклинаний ещё загружается — подожди секунду'
         }
         return `Выбери: ${choice.label_ru}`
       }
@@ -1105,6 +1151,7 @@ export function buildAppliedFeatPackage(input: {
   def: FeatGrantDef
   picks: FeatGrantPicks
   characterLevel?: number
+  spellCatalog?: FeatSpellCatalogRow[] | null
 }): FeatGrantsPackage {
   const { def, picks } = input
   const abilityBonuses: Partial<Record<AbilityKey, number>> = {
@@ -1162,9 +1209,11 @@ export function buildAppliedFeatPackage(input: {
     if (choice.type === 'spell_one') {
       const id = picks.enumIds[choice.id]
       if (!id) continue
-      const opt = spellOneOptionsForPicks(choice, picks.enumIds).find(
-        (row) => row.id === id,
-      )
+      const opt = spellOneOptionsForPicks(
+        choice,
+        picks.enumIds,
+        input.spellCatalog,
+      ).find((row) => row.id === id)
       if (!opt) continue
       enumPicks[choice.id] = id
       pickedSpells.push({
