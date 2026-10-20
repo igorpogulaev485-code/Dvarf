@@ -30,7 +30,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/ragnar-sheet-bugs-ba21` |
+| Prod tip (сейчас) | `cursor/b2-anti-mirror-6151` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
