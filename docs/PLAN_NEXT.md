@@ -1,7 +1,7 @@
 # Живой порядок слайсов (GTM / legal / auth)
 
 **Контур каждого слайса:** план → **ok** → код → скрины → **ok** → прод  
-**Текущий tip:** `cursor/ragnar-sheet-bugs-ba21`
+**Текущий tip:** `cursor/b2-anti-mirror-6151`
 
 ---
 
@@ -20,7 +20,7 @@
 
 | # | Слайс | Статус | Док |
 | --- | --- | --- | --- |
-| **1** | **B2 анти-зеркало** (разрыв ttg/dnd.su) | код готов · **ждём ok → прод** | [`SLICE_B2_ANTI_MIRROR_PLAN.md`](SLICE_B2_ANTI_MIRROR_PLAN.md) · [`B2_ANTI_MIRROR_REPORT.md`](B2_ANTI_MIRROR_REPORT.md) |
+| **1** | **B2 анти-зеркало** (разрыв ttg/dnd.su) | ✅ на проде | [`SLICE_B2_ANTI_MIRROR_PLAN.md`](SLICE_B2_ANTI_MIRROR_PLAN.md) · [`B2_ANTI_MIRROR_REPORT.md`](B2_ANTI_MIRROR_REPORT.md) |
 | 2 | OAuth Google + Telegram (не-РФ) | **отложено** · не первостепенно | [`SLICE_OAUTH_GOOGLE_TELEGRAM_PLAN.md`](SLICE_OAUTH_GOOGLE_TELEGRAM_PLAN.md) |
 | — | Отдельный справочник «как dnd.su» | **не делаем** | [`CATALOG_PUBLIC_STANCE.md`](CATALOG_PUBLIC_STANCE.md) |
 

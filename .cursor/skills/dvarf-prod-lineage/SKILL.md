@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/ragnar-sheet-bugs-ba21
+cursor/b2-anti-mirror-6151
 ```
 
 URL: http://201.34.132.252/

@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/ · https://creed20.tech  
-**Prod tip (ветка линии прода):** `cursor/ragnar-sheet-bugs-ba21`  
+**Prod tip (ветка линии прода):** `cursor/b2-anti-mirror-6151`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -59,6 +59,18 @@
 
 ## Сейчас в продукте (прод)
 
+
+### 2026-10-20 — B2 анти-зеркало (ttg/dnd.su)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Каталоги | Охват на месте, ничего не вырезали | Справочник как был |
+| Fetch | Скрипты к ttg/dnd.su по умолчанию выкл. | Нет live-зеркала |
+| API | `external_ref` всегда null | Нет ссылок на чужие справочники |
+
+На проде: **да** · **это новый prod tip** `cursor/b2-anti-mirror-6151` · PR #232 · залито 2026-10-20
+
+
 ### 2026-10-20 — QA Рагнар: варвар / classic / ASI / скорость
 
 | Функция | Как работает | Эффект для пользователя |
@@ -69,7 +81,7 @@
 | Атаки classic | Как цифровой лист: live владение + мод урона | Боевой посох +9 и «1к6+5», не расхождение с настройками |
 | ASI в умениях | Читает ledger `class_asi` | После выбора не висит «не выбрано» |
 
-На проде: **да** · **это новый prod tip** `cursor/ragnar-sheet-bugs-ba21` · PR #228 · залито 2026-10-20 · `/health` ok · бандл `classMovement-*` на creed20
+На проде: **да** · **это новый prod tip** `cursor/b2-anti-mirror-6151` · PR #228 · залито 2026-10-20 · `/health` ok · бандл `classMovement-*` на creed20
 
 ### 2026-10-20 — OAuth Яндекс + VK ID
 
@@ -516,7 +528,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Не детальный бэклог — только то, что Игорь явно держит следующим:
 
-1. GTM: OAuth Google + Telegram — **отложено** (не первостепенно); B2 разрыв ttg — по ok · см. `docs/PLAN_NEXT.md`
+1. GTM: OAuth Google + Telegram — **отложено**; B2 анти-зеркало ✅ · см. `docs/PLAN_NEXT.md`
 2. C10 карта / C11 граф — по запросу — см. `SETTING_PLAN.md`
 3. Калибровка генератора боя (`party_power`) на реальных ПС
 4. Rich-text в текстовых блоках листа; опционально авто-ASI от расы
@@ -547,7 +559,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
-| 2026-10-20 | `cursor/ragnar-sheet-bugs-ba21` · PR #228 | QA Рагнар: subclass/PB/speed/classic attacks/ASI → **новый tip** после Timeweb |
+| 2026-10-20 | `cursor/b2-anti-mirror-6151` · PR #228 | QA Рагнар: subclass/PB/speed/classic attacks/ASI → **новый tip** после Timeweb |
 | 2026-10-17 | `cursor/fix-list-create-fixes-6dc8` | Dialog/pad clicks: drop backdrop `pointer-events:none` → **новый tip** |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic 2014/2024 бланк + заметки + font size → **новый tip** на Timeweb |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic parity: weapons/equipment/conditions/attunement → тот же tip, redeploy |
