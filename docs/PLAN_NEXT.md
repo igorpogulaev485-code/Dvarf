@@ -26,6 +26,14 @@
 
 ---
 
+## Очередь UX / creed-долги
+
+| # | Слайс | Статус | Док |
+| --- | --- | --- | --- |
+| **O** | **Онбординг новичка** (welcome → create → sheet tour → panel help) | **ждём ok на план** | [`SLICE_ONBOARDING_PLAN.md`](SLICE_ONBOARDING_PLAN.md) |
+
+---
+
 ## Позиция по справочнику (кратко)
 
 Не клонируем dnd.su/ttg и не ссылаемся на них как на SoT.  
