@@ -79,6 +79,7 @@ import {
 } from '../characters/featEffects'
 import {
   newFeatGrantId,
+  sumFeatSpeedBonus,
   type AppliedFeatGrant,
 } from '../../shared/dnd/featGrants'
 import {
@@ -788,11 +789,13 @@ function serializeSheet(input: {
     wearingArmorOrShield: false,
   })
   const classSpeedBonusMax = classSpeedBonus
+  const featSpeedBonus = sumFeatSpeedBonus(draft.featGrants)
   const resolvedSpeed = resolveWalkSpeedFt({
     storedSpeed: draft.speed,
     raceSpeed,
     classBonusFt: classSpeedBonus,
     classBonusFtMax: classSpeedBonusMax,
+    featBonusFt: featSpeedBonus,
   })
 
   const combat: Record<string, unknown> = {

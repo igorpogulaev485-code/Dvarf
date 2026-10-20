@@ -31,6 +31,8 @@
 13. **Success lock** — `success_lock` + `failure_spend_label_ru` (Divine Intervention: провал → long rest; успех → manual 7 дней)
 14. **Slot spend** — `slot_spend` тратит ячейку заклинаний с ряда умения (Divine Smite)
 15. **Save bonus self** — `save_bonus_self` добавляет мод. характеристики к спасам на листе (Aura of Protection)
+16. **Save proficiency** — `save_proficiency: "all" | ["str", …]` выставляет владение спасбросками (Diamond Soul)
+17. **Martial Arts die** — scale «Кость БИ» подменяет урон monk weapon / безоружного на столе (не one-off в UI атаки)
 
 Если не ложится — сначала расширь контракт, потом UI. Не one-off компонент на архетип.
 

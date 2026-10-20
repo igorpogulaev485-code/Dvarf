@@ -4105,6 +4105,12 @@ button.spells-settings__derived-stat--btn:hover {
   border-color: #6ee7b7;
 }
 
+.attack-source--class {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #93c5fd;
+}
+
 .combat-sticky {
   position: sticky;
   top: 0;
