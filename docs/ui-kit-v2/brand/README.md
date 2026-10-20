@@ -39,6 +39,7 @@ PNG с альфой → Place image в Figma.
 | Жест | Файл |
 |------|------|
 | Victory (✌️) | [`dragon-paw-victory.png`](dragon-paw-victory.png) |
-| Rock (🤘) | [`dragon-paw-rock.png`](dragon-paw-rock.png) |
+| Rock (🤘 палец прижат) | [`dragon-paw-rock.png`](dragon-paw-rock.png) |
+| Koza (🤘 большой палец оттопырен) | [`dragon-paw-koza.png`](dragon-paw-koza.png) |
 
 Превью: [`dragon-paws-sheet.png`](dragon-paws-sheet.png). Есть также `-512` / `-1024`.
