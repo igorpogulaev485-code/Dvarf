@@ -4382,7 +4382,7 @@ export function MinimalSheetEditor({
           />
         </div>
       ) : (
-        <div data-onboarding="combat-header">
+        <div className="play-desk__mobile-chrome" data-onboarding="combat-header">
         <MobileVitalsBar
           character={baseCharacter}
           name={draft.name}

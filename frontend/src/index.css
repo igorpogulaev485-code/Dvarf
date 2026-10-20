@@ -10462,11 +10462,12 @@ button.play-desk-compact__more--btn:hover {
 
 .mobile-vitals__row {
   display: grid;
-  /* min() lets tracks shrink below 64px so the page never grows sideways */
-  grid-template-columns: repeat(auto-fit, minmax(min(56px, 100%), 1fr));
+  /* 3+2 wrap: five chips (КД…БМ) stay inside the phone; no sideways page grow */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   min-width: 0;
   width: 100%;
+  max-width: 100%;
 }
 
 .mobile-vitals__chip {
@@ -11187,18 +11188,72 @@ button.play-desk-compact__more--btn:hover {
 
   .play-desk--mobile {
     gap: 6px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
   }
+
+  /* Bare wrapper around MobileVitalsBar was sizing to max-content and
+     blowing past the desk (chips clipped / user must pinch-zoom). */
+  .play-desk--mobile > .play-desk__mobile-chrome,
+  .play-desk--mobile > [data-onboarding='combat-header'] {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    overflow-x: clip;
+  }
+
   .mobile-vitals {
     gap: 6px;
     margin: 0;
     padding: 8px 8px 6px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: clip;
   }
+
+  /* 5 chips on ~360px: 3+2 wrap instead of one overflowing row */
+  .mobile-vitals__row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .mobile-vitals__chip {
     min-height: 42px;
     padding: 4px 2px;
   }
+
+  .mobile-vitals__hp-row {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .mobile-vitals__hp {
+    min-width: 0;
+  }
+
   .mobile-vitals__collapse {
     padding: 0;
+  }
+
+  /* Hot/skills strips scroll inside the desk — never widen the page */
+  .play-desk--mobile .play-desk__hot {
+    max-width: 100%;
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .play-desk--mobile .play-desk__hot-item,
+  .play-desk--mobile .play-desk__hot-item--wide {
+    min-width: min(132px, 62vw);
+  }
+
+  .play-desk--mobile .play-desk__hot-item--res {
+    min-width: min(104px, 48vw);
   }
 }
 
