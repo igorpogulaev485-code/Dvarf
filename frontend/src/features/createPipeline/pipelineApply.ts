@@ -52,8 +52,13 @@ import {
   type SubclassTransition,
 } from '../../shared/dnd/subclassGrants'
 import {
+  proficiencyBonusForTotalLevel,
   unlockFeaturesForClasses,
 } from '../../shared/dnd/classFeatures'
+import {
+  classWalkSpeedBonusFt,
+  resolveWalkSpeedFt,
+} from '../../shared/dnd/classMovement'
 import {
   syncSkillsExpertiseFromPicks,
 } from '../../shared/dnd/expertise'
@@ -776,11 +781,25 @@ function serializeSheet(input: {
   })
   const playSheet = playToSheet(play)
 
+  const raceSpeed = draft.raceGrant?.speed ?? draft.speed
+  const classSpeedBonus = classWalkSpeedBonusFt({
+    classes,
+    wearingHeavyArmor: false,
+    wearingArmorOrShield: false,
+  })
+  const classSpeedBonusMax = classSpeedBonus
+  const resolvedSpeed = resolveWalkSpeedFt({
+    storedSpeed: draft.speed,
+    raceSpeed,
+    classBonusFt: classSpeedBonus,
+    classBonusFtMax: classSpeedBonusMax,
+  })
+
   const combat: Record<string, unknown> = {
     hp_current: draft.hpCurrent,
     hp_max: draft.hpMax,
     ac: null,
-    speed: draft.speed,
+    speed: resolvedSpeed,
     climb_speed: draft.climbSpeed,
     swim_speed: draft.swimSpeed,
     fly_speed: draft.flySpeed,
@@ -793,6 +812,7 @@ function serializeSheet(input: {
   sheet.resources = playSheet.resources
 
   sheet.proficiency = {
+    bonus: proficiencyBonusForTotalLevel(totalLevel),
     armor: identityExtras.proficiencyPatch.armor,
     weapons: identityExtras.proficiencyPatch.weapons,
     languages: identityExtras.proficiencyPatch.languages,

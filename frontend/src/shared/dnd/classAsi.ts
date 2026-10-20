@@ -59,6 +59,45 @@ export function asiAlreadyApplied(
   )
 }
 
+export function findAppliedClassAsi(
+  ledger: AppliedClassAsi[],
+  classEntryId: string,
+  featureId: string,
+): AppliedClassAsi | null {
+  return (
+    ledger.find(
+      (row) => row.classEntryId === classEntryId && row.featureId === featureId,
+    ) ?? null
+  )
+}
+
+const ASI_SCORE_LABELS: Record<AbilityKey, string> = {
+  str: 'СИЛ',
+  dex: 'ЛОВ',
+  con: 'ТЕЛ',
+  int: 'ИНТ',
+  wis: 'МУД',
+  cha: 'ХАР',
+}
+
+/** Short label for ASI ledger row in abilities/features UI. */
+export function formatAppliedClassAsiLabel(entry: AppliedClassAsi): string {
+  if (entry.resolution.kind === 'feat') {
+    return entry.resolution.featSlug
+      ? `черта «${entry.resolution.featSlug}»`
+      : 'черта'
+  }
+  const parts: string[] = []
+  for (const [key, amount] of Object.entries(entry.bonuses) as Array<
+    [AbilityKey, number]
+  >) {
+    if (!amount) continue
+    parts.push(`${ASI_SCORE_LABELS[key]} ${amount >= 0 ? '+' : ''}${amount}`)
+  }
+  if (parts.length) return parts.join(', ')
+  return entry.resolution.modeId === 'plus2' ? '+2' : '+1/+1'
+}
+
 export function validateClassAsiPicks(input: {
   modeId: ClassAsiModeId
   keys: AbilityKey[]

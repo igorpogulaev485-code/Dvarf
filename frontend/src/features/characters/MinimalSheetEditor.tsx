@@ -243,9 +243,14 @@ import {
 } from '../../shared/dnd/featureResources'
 import {
   listSubclassFeatureIdsAboveLevel,
+  proficiencyBonusForTotalLevel,
   resolveClassFeatureSlug,
   unlockFeaturesForClasses,
 } from '../../shared/dnd/classFeatures'
+import {
+  classWalkSpeedBonusFt,
+  resolveWalkSpeedFt,
+} from '../../shared/dnd/classMovement'
 import {
   clearFeaturePicksForClass,
   clearFeaturePicksForFeatureIds,
@@ -573,6 +578,25 @@ function buildDraft(character: CharacterDetail): Draft {
           legacyCurrent: play.hitDiceCurrent,
         })
 
+  const raceGrant = readAppliedRaceGrant(sheet.race_grant)
+  // Un-bake Fast Movement / Unarmored Movement that create (or manual fix) wrote
+  // into combat.speed so armor-aware display can add the bonus live.
+  let speed = readNullableNumber(combat.speed)
+  const raceSpeed = raceGrant?.speed ?? null
+  const maxClassSpeedBonus = classWalkSpeedBonusFt({
+    classes,
+    wearingHeavyArmor: false,
+    wearingArmorOrShield: false,
+  })
+  if (
+    speed != null &&
+    raceSpeed != null &&
+    maxClassSpeedBonus > 0 &&
+    speed === raceSpeed + maxClassSpeedBonus
+  ) {
+    speed = raceSpeed
+  }
+
   return {
     name: character.name,
     raceName: character.race_name ?? '',
@@ -586,7 +610,7 @@ function buildDraft(character: CharacterDetail): Draft {
     hpCurrent: character.hp_current ?? readNullableNumber(combat.hp_current),
     hpMax: character.hp_max ?? readNullableNumber(combat.hp_max),
     ac: readNullableNumber(combat.ac),
-    speed: readNullableNumber(combat.speed),
+    speed,
     climbSpeed: readNullableNumber(combat.climb_speed ?? combat.climbSpeed),
     swimSpeed: readNullableNumber(combat.swim_speed ?? combat.swimSpeed),
     flySpeed: readNullableNumber(combat.fly_speed ?? combat.flySpeed),
@@ -637,7 +661,7 @@ function buildDraft(character: CharacterDetail): Draft {
     classGrants: readAppliedClassGrants(sheet.class_grants),
     subclassGrants: readAppliedSubclassGrants(sheet.subclass_grants),
     subclassTransitions: readSubclassTransitions(sheet.subclass_transitions),
-    raceGrant: readAppliedRaceGrant(sheet.race_grant),
+    raceGrant,
     backgroundGrant: readAppliedBackgroundGrant(sheet.background_grant),
     backgroundCatalogId:
       typeof identity.background_catalog_id === 'string'
@@ -2724,6 +2748,59 @@ export function MinimalSheetEditor({
     [draft.inventory.items, draft.attunements],
   )
 
+  const armorPiecesForSpeed = useMemo(
+    () => equippedArmorPieces(draft.inventory.items),
+    [draft.inventory.items],
+  )
+  const displaySpeed = useMemo(() => {
+    const wearingHeavy = armorPiecesForSpeed.armor?.kind === 'heavy'
+    const wearingArmorOrShield = Boolean(
+      armorPiecesForSpeed.armor || armorPiecesForSpeed.shield,
+    )
+    const classBonus = classWalkSpeedBonusFt({
+      classes: draft.classes,
+      wearingHeavyArmor: wearingHeavy,
+      wearingArmorOrShield,
+    })
+    const classBonusMax = classWalkSpeedBonusFt({
+      classes: draft.classes,
+      wearingHeavyArmor: false,
+      wearingArmorOrShield: false,
+    })
+    return resolveWalkSpeedFt({
+      storedSpeed: draft.speed,
+      raceSpeed: draft.raceGrant?.speed ?? null,
+      classBonusFt: classBonus,
+      classBonusFtMax: classBonusMax,
+      gearBonusFt: gearEffects.speedBonusFt,
+    })
+  }, [
+    armorPiecesForSpeed,
+    draft.classes,
+    draft.speed,
+    draft.raceGrant?.speed,
+    gearEffects.speedBonusFt,
+  ])
+  const classSpeedHint = useMemo(() => {
+    const wearingHeavy = armorPiecesForSpeed.armor?.kind === 'heavy'
+    const wearingArmorOrShield = Boolean(
+      armorPiecesForSpeed.armor || armorPiecesForSpeed.shield,
+    )
+    const classBonus = classWalkSpeedBonusFt({
+      classes: draft.classes,
+      wearingHeavyArmor: wearingHeavy,
+      wearingArmorOrShield,
+    })
+    const bits: string[] = []
+    if (classBonus) bits.push(`класс +${classBonus}`)
+    if (gearEffects.speedBonusFt) {
+      bits.push(
+        `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`,
+      )
+    }
+    return bits.length ? bits.join(', ') : null
+  }, [armorPiecesForSpeed, draft.classes, gearEffects.speedBonusFt])
+
   const attunedItemIds = useMemo(
     () =>
       new Set(
@@ -3117,6 +3194,7 @@ export function MinimalSheetEditor({
       combat.concentration = playSheet.combatPatch.concentration
       sheet.combat = combat
       const proficiency = asRecord(sheet.proficiency)
+      proficiency.bonus = proficiencyBonusForTotalLevel(totalLevel)
       proficiency.armor = identityExtras.proficiencyPatch.armor
       proficiency.weapons = identityExtras.proficiencyPatch.weapons
       proficiency.languages = identityExtras.proficiencyPatch.languages
@@ -4218,21 +4296,13 @@ export function MinimalSheetEditor({
                   : `Щит «${result.name}» убран`,
               )
             }}
-            speed={
-              draft.speed == null && !gearEffects.speedBonusFt
-                ? null
-                : (draft.speed ?? 0) + gearEffects.speedBonusFt
-            }
+            speed={displaySpeed}
             climbSpeed={draft.climbSpeed}
             swimSpeed={draft.swimSpeed}
             flySpeed={draft.flySpeed}
             jumpLongFt={jump.longFt}
             jumpHighFt={jump.highFt}
-            movementHint={
-              gearEffects.speedBonusFt
-                ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
-                : null
-            }
+            movementHint={classSpeedHint}
             proficiencyBonus={proficiencyBonus}
             initiative={initiativeValue}
             inspiration={draft.inspiration}
@@ -4342,20 +4412,14 @@ export function MinimalSheetEditor({
                 : `Щит «${result.name}» убран`,
             )
           }}
-          speed={
-            draft.speed == null && !gearEffects.speedBonusFt
-              ? null
-              : (draft.speed ?? 0) + gearEffects.speedBonusFt
-          }
+          speed={displaySpeed}
           movementHint={[
             formatRaceMovementHint({
               climb: draft.climbSpeed,
               swim: draft.swimSpeed,
               fly: draft.flySpeed,
             }),
-            gearEffects.speedBonusFt
-              ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
-              : null,
+            classSpeedHint,
           ]
             .filter(Boolean)
             .join(' · ') || null}
@@ -5548,6 +5612,7 @@ export function MinimalSheetEditor({
         onFeaturePicksChange={applyFeaturePicksWithExpertise}
         skills={draft.skills}
         tools={draft.identity.tools}
+        classAsi={draft.classAsi}
         spells={draft.spells}
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         wearingHeavyArmor={
