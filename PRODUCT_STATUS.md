@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/ · https://creed20.tech  
-**Prod tip (ветка линии прода):** `cursor/onboarding-plan-37ff`  
+**Prod tip (ветка линии прода):** `cursor/resource-pips-compact-10d6`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -69,7 +69,16 @@
 | Справка | Кнопка в шапке листа — карта и словарь | Можно вернуться, если тур уже прошёл |
 | Mobile fit | Play Desk не шире экрана; статусы/навыки свайпаются внутри | Не нужно pinch-zoom всей страницы |
 
-На проде: **да** · **это новый prod tip** `cursor/onboarding-plan-37ff` · PR #233 · залито 2026-10-20 · `/health` ok · бандл `CharacterDetailPage-CGm8GU8U.js` · onboarding на диске · лобби onboarding **не** делали
+На проде: **да** · было tip `cursor/onboarding-plan-37ff` · PR #233 · залито 2026-10-20 · `/health` ok · onboarding на диске · лобби onboarding **не** делали
+
+### 2026-10-20 — большие пулы ресурсов: stepper вместо 45 пипов
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Hot-bar / SlotPips | Если max &gt; 10 — `±` и `осталось/max`, не ряд квадратиков | Паладин 9 (Возложение рук 45) снова читабелен |
+| Диалог Возложения рук | Число хитов — поле ввода, не select на 45 пунктов | Быстро выбрать «исцелить N» |
+
+На проде: **да** · **это новый prod tip** `cursor/resource-pips-compact-10d6` · PR #237 · залито 2026-10-20 · `/health` ok · бандл `CharacterDetailPage-BVrGk0A-.js` / `index-BAKu1uHT.css` (`play-desk__stepper`) · characters=91 · onboarding/classic/identity на диске
 
 ### 2026-10-20 — Сирокко / Следопыт: Archery, Сумрачный охотник, Moonbow
 
@@ -570,14 +579,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 <!-- appearance-persist залито 2026-10-16 → tip appearance-persist-f3ee; блок в «Сейчас в продукте» -->
 <!-- tablet-header-hotbar-ship залито 2026-10-16 → tip tablet-header-hotbar-ship-4dea; блок в «Сейчас в продукте» -->
 
-### 2026-10-20 — большие пулы ресурсов: stepper вместо 45 пипов
-
-| Функция | Как работает | Эффект для пользователя |
-|--------|--------------|-------------------------|
-| Hot-bar / SlotPips | Если max &gt; 10 — `±` и `осталось/max`, не ряд квадратиков | Паладин 9 (Возложение рук 45) снова читабелен |
-| Диалог Возложения рук | Число хитов — поле ввода, не select на 45 пунктов | Быстро выбрать «исцелить N» |
-
-На проде: **нет** · ветка `cursor/resource-pips-compact-10d6`
+<!-- resource-pips-compact залито 2026-10-20 → tip resource-pips-compact-10d6; блок в «Сейчас в продукте» -->
 
 ---
 
@@ -622,14 +624,11 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
-<<<<<<< HEAD
-| 2026-10-20 | `cursor/resource-pips-compact-10d6` | Большие пулы (LoH и др.): compact stepper в «В ветках» |
-=======
-| 2026-10-20 | `cursor/onboarding-plan-37ff` · PR #233 | Онбординг O0+O1 (welcome/tour/tips/mobile) → **новый tip** после Timeweb |
+| 2026-10-20 | `cursor/resource-pips-compact-10d6` · PR #237 | Compact stepper для больших пулов (LoH) → **новый tip** после Timeweb |
+| 2026-10-20 | `cursor/onboarding-plan-37ff` · PR #233 | Онбординг O0+O1 (welcome/tour/tips/mobile) → tip после Timeweb |
 | 2026-10-20 | `cursor/sirocco-ranger-sync-e6f4` · PR #235 | Сирокко: Archery / Gloom Stalker / Moonbow → **новый tip** после Timeweb |
 | 2026-10-20 | `cursor/b2-anti-mirror-6151` · PR #228 | QA Рагнар: subclass/PB/speed/classic attacks/ASI → **новый tip** после Timeweb |
 | 2026-10-17 | `cursor/fix-list-create-fixes-6dc8` | Dialog/pad clicks: drop backdrop `pointer-events:none` → **новый tip** |
->>>>>>> origin/cursor/onboarding-plan-37ff
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic 2014/2024 бланк + заметки + font size → **новый tip** на Timeweb |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic parity: weapons/equipment/conditions/attunement → тот же tip, redeploy |
 | 2026-10-06 | `cursor/product-status-log-acbe` | Создан файл + стартовый срез прода |
