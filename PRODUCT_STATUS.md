@@ -93,7 +93,15 @@
 |--------|--------------|-------------------------|
 | 31 предмет BMT | Каталог `item`: колоды, кольца Sage/Fate Dealer, посохи, жезлы, мантии… | В справочнике; MVP + RU |
 
-На проде: **нет** · alembic `s1r0c0bmtq01` · дальше: артефакты DMG
+На проде: **да** · alembic `s1r0c0bmtq01`
+
+### 2026-10-20 — DMG артефакты (волна 4)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| 8 артефактов DMG + 2 legendary SRD | Vecna, Kas, Orcus, Exalted/Vile, Orb of Dragonkind, Dwarvish Lords; Apparatus / Cubic Gate | Карточки rarity `artifact` / legendary в справочнике (MVP) |
+
+На проде: **нет** · alembic `s1r0c0dmgart1`
 
 ### 2026-10-20 — B2 анти-зеркало (ttg/dnd.su)
 
