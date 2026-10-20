@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/ · https://creed20.tech  
-**Prod tip (ветка линии прода):** `cursor/magic-initiate-spell-lists-10d6`  
+**Prod tip (ветка линии прода):** `cursor/create-skills-equip-fix-1dbf`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -90,6 +90,15 @@
 
 На проде: **да** · tip `cursor/monk-l20-automation-10d6` · PR #238 · залито 2026-10-20 · `/health` ok · бандл `CharacterDetailPage-Nl8qI7Ct.js` / `classMovement-ssC2V3fj.js` · `martialArts.ts` + `featureSaveProficiency.ts` + `diamond_soul` на диске
 
+### 2026-10-20 — создание: навыки предыстории + снаряжение класса по строкам
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Серые навыки на шаге класса | В блок «уже есть» входят фиксированные навыки расы/предыстории **и** выбранные, не только picks | Нельзя снова взять Insight/Religion и т.п. с аколита — чипы серые с пометкой «уже есть» |
+| Стартовое снаряжение класса | У всех PHB-классов (+ artificer) выбор **по строкам a/b/c**, как у жреца; пакеты A/B убраны; остаётся «Золото» | Можно собрать набор по блокам (оружие / доспех / набор…), а не брать целый готовый пакет |
+
+На проде: **да** · **это новый prod tip** `cursor/create-skills-equip-fix-1dbf` · PR #240 · залито 2026-10-20 · `/health` ok · бандл `CreateCharacterPage-j2wwe_3M.js` · `CLASS_EQUIPMENT_LINES` + `EquipmentLinesField` + `backgroundGrantDef` на диске
+
 ### 2026-10-20 — Посвящённый в магию / ритуалы: полный список класса
 
 | Функция | Как работает | Эффект для пользователя |
@@ -98,7 +107,7 @@
 | Ritual Caster | `options_from: class_ritual_list` | Ритуалы 1 круга не урезаны curated-списком |
 | Огонь фей | В каталоге снова бард+друид (PHB) | Бард видит Огонь фей в списках |
 
-На проде: **да** · **это новый prod tip** `cursor/magic-initiate-spell-lists-10d6` · PR #239 · залито 2026-10-20 · alembic `s1r0c0mifeat1` · `/health` ok · бандл `CreateCharacterPage-CUd19ww3.js` / `CharacterDetailPage-8Lc-2eDJ.js` · `featSpellListOptions.ts` + `options_from=class_spell_list` в DB
+На проде: **да** · tip `cursor/magic-initiate-spell-lists-10d6` · PR #239 · залито 2026-10-20 · alembic `s1r0c0mifeat1`
 
 ### 2026-10-20 — Сирокко / Следопыт: Archery, Сумрачный охотник, Moonbow
 
@@ -595,15 +604,6 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Сюда агенты пишут то, что сделано в PR, но **ещё не залито** на сервер.
 
-### 2026-10-20 — создание: навыки предыстории + снаряжение класса по строкам
-
-| Функция | Как работает | Эффект для пользователя |
-|--------|--------------|-------------------------|
-| Серые навыки на шаге класса | В блок «уже есть» входят фиксированные навыки расы/предыстории **и** выбранные, не только picks | Нельзя снова взять Insight/Religion и т.п. с аколита — чипы серые с пометкой «уже есть» |
-| Стартовое снаряжение класса | У всех PHB-классов (+ artificer) выбор **по строкам a/b/c**, как у жреца; пакеты A/B убраны; остаётся «Золото» | Можно собрать набор по блокам (оружие / доспех / набор…), а не брать целый готовый пакет |
-
-На проде: **нет** · ветка `cursor/create-skills-equip-fix-1dbf` · PR #240
-
 <!-- load-perf залито 2026-10-16 → tip characters-load-perf-f3ee; блок в «Сейчас в продукте» -->
 <!-- appearance-persist залито 2026-10-16 → tip appearance-persist-f3ee; блок в «Сейчас в продукте» -->
 <!-- tablet-header-hotbar-ship залито 2026-10-16 → tip tablet-header-hotbar-ship-4dea; блок в «Сейчас в продукте» -->
@@ -611,6 +611,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 <!-- resource-pips-compact залито 2026-10-20 → tip resource-pips-compact-10d6; блок в «Сейчас в продукте» -->
 <!-- monk-l20-automation залито 2026-10-20 → tip monk-l20-automation-10d6; блок в «Сейчас в продукте» -->
 <!-- magic-initiate-spell-lists залито 2026-10-20 → tip magic-initiate-spell-lists-10d6; блок в «Сейчас в продукте» -->
+<!-- create-skills-equip-fix залито 2026-10-20 → tip create-skills-equip-fix-1dbf; блок в «Сейчас в продукте» -->
 
 ---
 
@@ -655,7 +656,8 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
-| 2026-10-20 | `cursor/magic-initiate-spell-lists-10d6` · PR #239 | MI/Ritual Caster: полный список класса из каталога → **новый tip** после Timeweb |
+| 2026-10-20 | `cursor/create-skills-equip-fix-1dbf` · PR #240 | Create: серые навыки предыстории + PHB equip lines → **новый tip** после Timeweb |
+| 2026-10-20 | `cursor/magic-initiate-spell-lists-10d6` · PR #239 | MI/Ritual Caster: полный список класса из каталога → tip после Timeweb |
 | 2026-10-20 | `cursor/monk-l20-automation-10d6` · PR #238 | Монах L20: Алмазная душа / БИ / скорость → tip после Timeweb |
 | 2026-10-20 | `cursor/resource-pips-compact-10d6` · PR #237 | Compact stepper для больших пулов (LoH) → tip после Timeweb |
 | 2026-10-20 | `cursor/onboarding-plan-37ff` · PR #233 | Онбординг O0+O1 (welcome/tour/tips/mobile) → tip после Timeweb |
