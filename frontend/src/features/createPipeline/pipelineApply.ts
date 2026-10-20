@@ -1058,6 +1058,7 @@ export async function applyPipelineToSheet(input: {
           def: previousDef,
           picks: normalizeSubclassPicks(setup.previousPicks ?? { values: {} }),
           changeMode: 'initial',
+          classLevel: row.level,
           maxSpellLevel: maxSpellLevelForCreate,
         })
         if (retained) Object.assign(draft, mergeSubclass(draft, retained.draft))
@@ -1069,6 +1070,7 @@ export async function applyPipelineToSheet(input: {
         def,
         picks: normalizeSubclassPicks(setup.picks),
         changeMode: 'future_only',
+        classLevel: row.level,
         changedAtClassLevel: setup.changedAtClassLevel ?? row.level,
         previousNameRu: previousEntry.name_ru,
         previousCatalogId: previousEntry.id,
@@ -1085,6 +1087,7 @@ export async function applyPipelineToSheet(input: {
         def,
         picks: normalizeSubclassPicks(setup.picks),
         changeMode: setup.changeMode === 'replace_all' ? 'replace_all' : 'initial',
+        classLevel: row.level,
         maxSpellLevel: maxSpellLevelForCreate,
       })
       if (applied) Object.assign(draft, mergeSubclass(draft, applied.draft))
