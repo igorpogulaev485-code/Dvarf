@@ -288,6 +288,7 @@
       "name_en": "Diamond Soul",
       "summary_ru": "Владение всеми спасбросками. Трата 1 ки — переброс спасброска.",
       "kind": "passive",
+      "save_proficiency": "all",
       "resource": {
         "uses": 0,
         "recharge": "short_rest",

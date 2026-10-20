@@ -21,6 +21,12 @@ import {
   type CharacterSummary,
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
+import {
+  EMPTY_CHARACTERS,
+  HelpDrawer,
+  WelcomeDialog,
+  useOnboardingState,
+} from '../features/onboarding'
 import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
 import { prefetchSheetRoutes } from '../shared/lazy/routes'
 import { Button, Stack, Text, Toast } from '../ui'
@@ -48,6 +54,8 @@ export function CharactersPage() {
   const [prefs, setPrefs] = useState<CharacterListPrefs>(() => loadCharacterListPrefs())
   const [filterTagIds, setFilterTagIds] = useState<string[]>([])
   const [tagsOpen, setTagsOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
+  const onboarding = useOnboardingState(user?.id ?? null)
 
   const closeToast = useCallback(() => setToast(null), [])
 
@@ -159,6 +167,16 @@ export function CharactersPage() {
 
         <section className="toolbar character-list-toolbar">
           <CreateCharacterButton pending={creating} onCreate={handleCreate} />
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              onboarding.markHelpOpened()
+              setHelpOpen(true)
+            }}
+          >
+            Справка
+          </Button>
 
           <div
             className="character-list-toolbar__sizes"
@@ -235,7 +253,19 @@ export function CharactersPage() {
                   Сбросить фильтр тегов
                 </Button>
               ) : (
-                <CreateCharacterButton pending={creating} onCreate={handleCreate} />
+                <Stack gap={8}>
+                  <CreateCharacterButton pending={creating} onCreate={handleCreate} />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      onboarding.markHelpOpened()
+                      setHelpOpen(true)
+                    }}
+                  >
+                    {EMPTY_CHARACTERS.howItWorks}
+                  </Button>
+                </Stack>
               )
             }
             onDeleted={(id) => {
@@ -258,6 +288,11 @@ export function CharactersPage() {
         onClose={() => setTagsOpen(false)}
         onChange={updatePrefs}
       />
+      <WelcomeDialog
+        open={Boolean(user) && !loading && onboarding.showWelcome}
+        onChoose={onboarding.completeWelcome}
+      />
+      <HelpDrawer open={helpOpen} onClose={() => setHelpOpen(false)} />
       <Toast message={toast} onClose={closeToast} />
     </main>
   )

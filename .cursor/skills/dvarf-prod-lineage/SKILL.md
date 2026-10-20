@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/b2-anti-mirror-6151
+cursor/magic-initiate-spell-lists-10d6
 ```
 
 URL: http://201.34.132.252/

@@ -36,6 +36,8 @@ import {
 } from '../features/createPipeline/catalogCardMeta'
 import { CatalogDetailPanel } from '../features/createPipeline/CatalogDetailPanel'
 import { CreatePipelineShell } from '../features/createPipeline/CreatePipelineShell'
+import { StepHint, useOnboardingState } from '../features/onboarding'
+import { getMe } from '../shared/api/auth'
 import { hydratePipelineFromSheet } from '../features/createPipeline/createPipelineSheet'
 import { applyPipelineToSheet } from '../features/createPipeline/pipelineApply'
 import {
@@ -311,7 +313,23 @@ function prevVisibleStep(
 export function CreateCharacterPage() {
   const navigate = useNavigate()
   const { characterId: routeCharacterId } = useParams<{ characterId?: string }>()
+  const [userId, setUserId] = useState<string | null>(null)
+  const onboarding = useOnboardingState(userId)
   const [state, setState] = useState<CreatePipelineState>(() => loadOrCreatePipelineState())
+
+  useEffect(() => {
+    let active = true
+    getMe()
+      .then((me) => {
+        if (active) setUserId(me.id)
+      })
+      .catch(() => {
+        if (active) setUserId(null)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
   const [backgrounds, setBackgrounds] = useState<CatalogEntry[]>([])
   const [classes, setClasses] = useState<CatalogEntry[]>([])
   const [races, setRaces] = useState<CatalogEntry[]>([])
@@ -1182,8 +1200,13 @@ export function CreateCharacterPage() {
         navigate('/characters')
         return
       }
+      onboarding.markCreateHintsSeen()
+      onboarding.queueAfterCreate()
       navigate(`/characters/${saved.id}`, {
-        state: { toast: 'Персонаж готов' },
+        state: {
+          toast: 'Персонаж готов',
+          onboardingReady: true,
+        },
       })
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить')
@@ -1752,6 +1775,9 @@ export function CreateCharacterPage() {
         steps={visibleSteps}
         title="Создание персонажа"
         subtitle="Раса → черта* → предыстория → класс → характеристики → прокачка"
+        stepHint={
+          <StepHint step={step} visible={onboarding.state.segment !== 'skip'} />
+        }
         cards={cards}
         detail={detail}
         footer={footer}

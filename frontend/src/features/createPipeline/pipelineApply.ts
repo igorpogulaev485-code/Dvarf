@@ -79,6 +79,7 @@ import {
 } from '../characters/featEffects'
 import {
   newFeatGrantId,
+  sumFeatSpeedBonus,
   type AppliedFeatGrant,
 } from '../../shared/dnd/featGrants'
 import {
@@ -794,11 +795,13 @@ function serializeSheet(input: {
     wearingArmorOrShield: false,
   })
   const classSpeedBonusMax = classSpeedBonus
+  const featSpeedBonus = sumFeatSpeedBonus(draft.featGrants)
   const resolvedSpeed = resolveWalkSpeedFt({
     storedSpeed: draft.speed,
     raceSpeed,
     classBonusFt: classSpeedBonus,
     classBonusFtMax: classSpeedBonusMax,
+    featBonusFt: featSpeedBonus,
   })
 
   const combat: Record<string, unknown> = {
@@ -1064,6 +1067,7 @@ export async function applyPipelineToSheet(input: {
           def: previousDef,
           picks: normalizeSubclassPicks(setup.previousPicks ?? { values: {} }),
           changeMode: 'initial',
+          classLevel: row.level,
           maxSpellLevel: maxSpellLevelForCreate,
         })
         if (retained) Object.assign(draft, mergeSubclass(draft, retained.draft))
@@ -1075,6 +1079,7 @@ export async function applyPipelineToSheet(input: {
         def,
         picks: normalizeSubclassPicks(setup.picks),
         changeMode: 'future_only',
+        classLevel: row.level,
         changedAtClassLevel: setup.changedAtClassLevel ?? row.level,
         previousNameRu: previousEntry.name_ru,
         previousCatalogId: previousEntry.id,
@@ -1091,6 +1096,7 @@ export async function applyPipelineToSheet(input: {
         def,
         picks: normalizeSubclassPicks(setup.picks),
         changeMode: setup.changeMode === 'replace_all' ? 'replace_all' : 'initial',
+        classLevel: row.level,
         maxSpellLevel: maxSpellLevelForCreate,
       })
       if (applied) Object.assign(draft, mergeSubclass(draft, applied.draft))

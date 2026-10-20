@@ -45,10 +45,30 @@ export function classWalkSpeedBonusFt(input: {
 }
 
 /**
- * Resolve displayed walk speed without double-counting a class bonus that was
- * already baked into `storedSpeed` (create wrote race+10, or tester fixed to 40).
+ * Strip class / feat bonuses that create or feat-apply baked into `storedSpeed`,
+ * so live armor-aware class bonus can be re-added without double-counting.
+ * Returns race baseline when stored matches a known bake; null = manual override.
+ */
+function stripBakedWalkBase(input: {
+  stored: number
+  race: number
+  featBonusFt: number
+  maxClassBonusFt: number
+}): number | null {
+  const { stored, race, featBonusFt: feat, maxClassBonusFt: maxClass } = input
+  if (stored === race) return race
+  if (feat > 0 && stored === race + feat) return race
+  if (maxClass > 0 && stored === race + maxClass) return race
+  if (feat > 0 && maxClass > 0 && stored === race + feat + maxClass) return race
+  return null
+}
+
+/**
+ * Resolve displayed walk speed without double-counting class/feat bonuses
+ * already baked into `storedSpeed` (create wrote race+class, Mobile wrote +10).
  *
- * Manual overrides (stored ≠ race and ≠ race+maxClassBonus) stay as-is + gear.
+ * Manual overrides (stored ≠ race / race+feat / race+class / race+feat+class)
+ * stay as-is + gear.
  */
 export function resolveWalkSpeedFt(input: {
   storedSpeed: number | null
@@ -60,6 +80,8 @@ export function resolveWalkSpeedFt(input: {
    * Fast Movement / Unarmored Movement already sitting in storedSpeed.
    */
   classBonusFtMax?: number
+  /** Mobile and other feat speed bonuses (from feat ledger, not gear). */
+  featBonusFt?: number
   gearBonusFt?: number
 }): number | null {
   const activeBonus = Math.max(0, Math.floor(input.classBonusFt))
@@ -67,26 +89,37 @@ export function resolveWalkSpeedFt(input: {
     activeBonus,
     Math.max(0, Math.floor(input.classBonusFtMax ?? activeBonus)),
   )
+  const feat = Math.max(0, Math.floor(input.featBonusFt ?? 0))
   const gear = Math.floor(input.gearBonusFt ?? 0)
   const race = input.raceSpeed
   const stored = input.storedSpeed
 
-  if (stored == null && race == null && !activeBonus && !gear) return null
+  if (stored == null && race == null && !activeBonus && !feat && !gear) return null
 
-  // Without a race baseline we cannot detect a baked class bonus — trust stored.
+  // Without a race baseline we cannot detect baked class/feat — trust stored.
   if (race == null) {
-    if (stored == null) return gear ? gear : null
+    if (stored == null) {
+      const bare = feat + activeBonus + gear
+      return bare || null
+    }
     return stored + gear
   }
 
-  const looksBaked = maxBonus > 0 && stored === race + maxBonus
-  const matchesRace = stored != null && stored === race
+  if (stored == null) {
+    return race + feat + activeBonus + gear
+  }
 
-  if (stored != null && !looksBaked && !matchesRace) {
-    // Explicit manual override — do not re-add class bonus.
+  const stripped = stripBakedWalkBase({
+    stored,
+    race,
+    featBonusFt: feat,
+    maxClassBonusFt: maxBonus,
+  })
+
+  if (stripped == null) {
+    // Explicit manual override — do not re-add class/feat (already in stored).
     return stored + gear
   }
 
-  const base = looksBaked ? race : (stored ?? race)
-  return base + activeBonus + gear
+  return stripped + feat + activeBonus + gear
 }

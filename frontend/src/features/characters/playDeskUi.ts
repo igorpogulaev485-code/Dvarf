@@ -272,11 +272,11 @@ export const MODE_SCENE_PANELS: Record<PlayDeskMode, PlayDeskPanelId[]> = {
 }
 
 export const MODE_HINT: Record<PlayDeskMode, string> = {
-  combat: 'Бой: атаки + заклинания рядом',
-  explore: 'Исследование: снаряжение + заклинания рядом',
-  social: 'Общение: тексты + заклинания рядом',
-  companions: 'Напарники: спутники и призывы (glance→expand)',
-  features: 'Способности: сводка умений класса, черт и расы',
+  combat: 'Сцена боя: атаки и заклинания рядом',
+  explore: 'Сцена исследования: снаряжение под рукой',
+  social: 'Сцена общения: тексты и роль',
+  companions: 'Сцена напарников: спутники и призывы',
+  features: 'Сцена способностей: что умеет герой',
 }
 
 export const MODE_LABELS: Array<{ id: PlayDeskMode; label: string }> = [

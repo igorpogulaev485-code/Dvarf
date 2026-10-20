@@ -30,7 +30,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/b2-anti-mirror-6151` |
+| Prod tip (сейчас) | `cursor/magic-initiate-spell-lists-10d6` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 
