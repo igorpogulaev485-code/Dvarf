@@ -1,61 +1,106 @@
-# Чеклист: OAuth Яндекс / VK на creed20.tech
+# OAuth Яндекс / VK — зачем ключи и где их взять
 
-**Статус (прод):** код + redirect URI залиты · tip `cursor/oauth-yandex-vk-6151`  
-**Блокер:** `YANDEX_CLIENT_ID/SECRET` и `VK_CLIENT_ID/SECRET` в `/opt/dvarf/.env` сейчас **пустые** → `/auth/oauth/*/start` отдаёт `configured:false`.
-
----
-
-## 1. Callback URL в кабинетах (уже прописаны на VPS)
-
-### Яндекс OAuth (https://oauth.yandex.ru/)
-
-```
-https://creed20.tech/auth/oauth/yandex/callback
-```
-
-### VK ID — Trusted redirect URL
-
-```
-https://creed20.tech/auth/oauth/vk/callback
-```
+**Статус прода:** код + кнопки «Я» / «VK» на https://creed20.tech/login уже залиты.  
+**Блокер:** в `/opt/dvarf/.env` пустые `CLIENT_ID` / `CLIENT_SECRET` → вход через иконки ещё не открывается.
 
 ---
 
-## 2. Секреты на VPS
+## Зачем это вообще (на пальцах)
 
-В `/opt/dvarf/.env` нужны четыре значения из кабинетов:
+Когда человек жмёт **Я** или **VK**, происходит не «магия», а договор между тремя сторонами:
 
-```
-YANDEX_CLIENT_ID=…
-YANDEX_CLIENT_SECRET=…
-VK_CLIENT_ID=…
-VK_CLIENT_SECRET=…
-```
+1. **Пользователь** — у него уже есть аккаунт Яндекса или VK.
+2. **Яндекс / VK** — проверяют пароль у себя и спрашивают: «Разрешить КриD20 увидеть имя и email?»
+3. **Наш сервер creed20.tech** — принимает ответ и создаёт/логинит аккаунт в КриD20 **без** нашего пароля.
 
-Redirect уже стоят:
+Чтобы Яндекс и VK знали, что запрос идёт именно от **нашего** сайта (а не от мошенника), у каждого приложения есть пара ключей:
 
-```
-YANDEX_REDIRECT_URI=https://creed20.tech/auth/oauth/yandex/callback
-VK_REDIRECT_URI=https://creed20.tech/auth/oauth/vk/callback
-```
+| Что | Простыми словами | Секретность |
+| --- | --- | --- |
+| **CLIENT_ID** | Публичный «номер приложения» (можно светить в браузере) | не секрет |
+| **CLIENT_SECRET** | Пароль приложения: сервер доказывает Яндексу/VK, что это мы | **секрет**, не в git |
 
-После вставки — пересоздать api:
+Без этой пары наш бэкенд отвечает `configured:false` и кнопка не ведёт на настоящий вход.
 
-```
-cd /opt/dvarf && docker compose -f docker-compose.prod.yml --env-file .env up -d --force-recreate --no-deps api
-```
+**Redirect URI (callback)** — адрес, куда Яндекс/VK вернут пользователя после «Разрешить».  
+Должен совпасть **буква в букву** с тем, что прописано у нас и в кабинете:
 
-Проверка:
+- Яндекс: `https://creed20.tech/auth/oauth/yandex/callback`
+- VK: `https://creed20.tech/auth/oauth/vk/callback`
 
-```
-curl -sS https://creed20.tech/auth/oauth/yandex/start   # configured:true
-curl -sS https://creed20.tech/auth/oauth/vk/start
-```
+Эти URI на VPS **уже стоят**. Тебе нужно только создать приложения в кабинетах и прислать четыре значения.
 
-**Не коммить** client_secret в git.
+Мы просим у провайдеров минимум данных: имя + email (чтобы связать аккаунт). Пароль Яндекса/VK мы **никогда** не видим и не храним.
 
 ---
 
-## 3. Как передать агенту
+## Часть A. Яндекс ID
 
-Пришли в чат четыре строки (как с SMTP-паролем) — агент сам пропишет `.env` и пересоздаст api.
+Официально: [регистрация приложения](https://yandex.ru/dev/id/doc/ru/register-auth)
+
+### Шаги
+
+1. Войди в Яндекс под аккаунтом, который не потеряешь (удобно тот же, что `info@creed20.tech`).
+2. Открой создание приложения:  
+   **https://oauth.yandex.ru/client/new/id/**
+3. Тип: **Для авторизации пользователей**.
+4. Название: например **КриD20**. Контактная почта: `info@creed20.tech`.
+5. Платформа: **Веб-сервисы**.  
+   Redirect URI (ровно так):
+
+   ```
+   https://creed20.tech/auth/oauth/yandex/callback
+   ```
+
+6. Доступ к данным — отметь минимум:
+   - логин / имя;
+   - адрес электронной почты.
+7. Сохрани. На странице приложения скопируй:
+   - **ClientID** → это `YANDEX_CLIENT_ID`
+   - **Client secret** (секретный ключ) → это `YANDEX_CLIENT_SECRET`
+
+> Верификация сервиса у Яндекса желательна (иначе пользователи видят предупреждение), но для старта ключи уже работают и без неё.
+
+---
+
+## Часть B. VK ID
+
+Официально: [создание приложения VK ID](https://id.vk.ru/about/business/go/docs/ru/vkid/latest/vk-id/connection/create-application)
+
+### Шаги
+
+1. Открой кабинет VK ID (войди через VK):  
+   **https://id.vk.ru/about/business** → раздел **Мои приложения**  
+   (если редиректит — ищи «VK ID» / «для бизнеса» → приложения).
+2. **Добавить приложение**.
+3. Название: **КриD20**. Платформа: **Web**.
+4. Заполни:
+   - **Базовый домен:** `creed20.tech`
+   - **Доверенный redirect URL** (ровно так):
+
+     ```
+     https://creed20.tech/auth/oauth/vk/callback
+     ```
+
+5. Подтверди профиль VK, если кабинет просит (иначе через ~60 дней приложение могут заблокировать).
+6. В параметрах приложения скопируй:
+   - **ID приложения** → `VK_CLIENT_ID`
+   - **Защищённый ключ** → `VK_CLIENT_SECRET`  
+     (сервисный ключ отдельно не обязателен — у нас хватает защищённого).
+
+---
+
+## Что прислать агенту
+
+Четыре строки в чат (как с SMTP-паролем) — агент сам пропишет `/opt/dvarf/.env` и пересоздаст api:
+
+```
+YANDEX_CLIENT_ID=сюда
+YANDEX_CLIENT_SECRET=сюда
+VK_CLIENT_ID=сюда
+VK_CLIENT_SECRET=сюда
+```
+
+После этого `/auth/oauth/yandex/start` и `/auth/oauth/vk/start` станут `configured:true`, и вход по иконкам заработает.
+
+**Не коммить** секреты в git и не кидай их в публичные issues.
