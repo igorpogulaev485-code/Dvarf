@@ -17,6 +17,7 @@
     "selfcheck:subclass-grants": "tsx src/shared/dnd/subclassGrants.selfcheck.ts",
     "selfcheck:attunement": "tsx src/features/characters/attunement.selfcheck.ts",
     "selfcheck:starting-gear-attacks": "tsx src/features/characters/startingGearAttacks.selfcheck.ts",
+    "selfcheck:class-equipment-lines": "tsx src/shared/dnd/classEquipmentLines.selfcheck.ts",
     "selfcheck:desk-rolls": "tsx --tsconfig tsconfig.app.json src/features/characters/deskRolls.selfcheck.ts",
     "selfcheck:race-naming": "tsx src/shared/dnd/raceNaming.selfcheck.ts"
   },

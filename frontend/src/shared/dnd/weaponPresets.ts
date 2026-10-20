@@ -18,6 +18,8 @@ export type WeaponPreset = {
   light?: boolean
   /** Thrown/ammo flavour flag; attack rows always stack qty the same way. */
   ammoStack?: boolean
+  /** Ranged weapon table row (bows, crossbows, sling, dart, net, blowgun). */
+  ranged?: boolean
 }
 
 const PRESETS: WeaponPreset[] = [
@@ -64,11 +66,11 @@ const PRESETS: WeaponPreset[] = [
   { labelRu: 'Дубинка', damage: '1к4', damageType: 'дробящий', ability: 'str',
   group: 'simple', aliases: ['club'], light: true },
   { labelRu: 'Дротик', damage: '1к4', damageType: 'колющий', ability: 'dex',
-  group: 'simple', aliases: ['dart'], ammoStack: true },
+  group: 'simple', aliases: ['dart'], ammoStack: true, ranged: true },
   { labelRu: 'Копьё', damage: '1к6', damageType: 'колющий', ability: 'str',
   group: 'simple', aliases: ['копье', 'spear'], ammoStack: true },
   { labelRu: 'Лёгкий арбалет', damage: '1к8', damageType: 'колющий', ability: 'dex',
-  group: 'simple', aliases: ['легкий арбалет', 'light crossbow'] },
+  group: 'simple', aliases: ['легкий арбалет', 'light crossbow'], ranged: true },
   {
     labelRu: 'Ручной арбалет',
     damage: '1к6',
@@ -77,15 +79,16 @@ const PRESETS: WeaponPreset[] = [
   group: 'martial',
     aliases: ['hand crossbow', 'handcrossbow'],
     light: true,
+    ranged: true,
   },
   { labelRu: 'Короткий лук', damage: '1к6', damageType: 'колющий', ability: 'dex',
-  group: 'simple', aliases: ['shortbow'] },
+  group: 'simple', aliases: ['shortbow'], ranged: true },
   { labelRu: 'Длинный лук', damage: '1к8', damageType: 'колющий', ability: 'dex',
-  group: 'martial', aliases: ['longbow'] },
+  group: 'martial', aliases: ['longbow'], ranged: true },
   { labelRu: 'Трезубец', damage: '1к6', damageType: 'колющий', ability: 'str',
   group: 'martial', aliases: ['trident'] },
   { labelRu: 'Сеть', damage: '—', damageType: 'особый', ability: 'dex',
-  group: 'martial', aliases: ['net'] },
+  group: 'martial', aliases: ['net'], ranged: true },
   {
     labelRu: 'Лёгкий молот',
     damage: '1к4',
@@ -100,7 +103,7 @@ const PRESETS: WeaponPreset[] = [
   { labelRu: 'Серп', damage: '1к4', damageType: 'рубящий', ability: 'str',
   group: 'simple', aliases: ['sickle'], light: true },
   { labelRu: 'Праща', damage: '1к4', damageType: 'дробящий', ability: 'dex',
-  group: 'simple', aliases: ['sling'] },
+  group: 'simple', aliases: ['sling'], ranged: true },
   { labelRu: 'Алебарда', damage: '1к10', damageType: 'рубящий', ability: 'str',
   group: 'martial', aliases: ['halberd'] },
   { labelRu: 'Глефа', damage: '1к10', damageType: 'рубящий', ability: 'str',
@@ -120,9 +123,9 @@ const PRESETS: WeaponPreset[] = [
   { labelRu: 'Длинное копьё', damage: '1к12', damageType: 'колющий', ability: 'str',
   group: 'martial', aliases: ['длинное копье', 'lance'] },
   { labelRu: 'Тяжёлый арбалет', damage: '1к10', damageType: 'колющий', ability: 'dex',
-  group: 'martial', aliases: ['тяжелый арбалет', 'heavy crossbow'] },
+  group: 'martial', aliases: ['тяжелый арбалет', 'heavy crossbow'], ranged: true },
   { labelRu: 'Духовая трубка', damage: '1', damageType: 'колющий', ability: 'dex',
-  group: 'martial', aliases: ['blowgun'] },
+  group: 'martial', aliases: ['blowgun'], ranged: true },
 ]
 
 function normalize(value: string): string {
@@ -153,7 +156,18 @@ export function findWeaponPreset(name: string): WeaponPreset | null {
   return best
 }
 
+export type WeaponPickGroup =
+  | WeaponProfGroup
+  | 'simple_melee'
+  | 'martial_melee'
+
 /** PHB simple / martial lists for class equipment «any … weapon» picks. */
-export function listWeaponPresetsByGroup(group: WeaponProfGroup): WeaponPreset[] {
+export function listWeaponPresetsByGroup(group: WeaponPickGroup): WeaponPreset[] {
+  if (group === 'simple_melee') {
+    return PRESETS.filter((row) => row.group === 'simple' && !row.ranged)
+  }
+  if (group === 'martial_melee') {
+    return PRESETS.filter((row) => row.group === 'martial' && !row.ranged)
+  }
   return PRESETS.filter((row) => row.group === group)
 }
