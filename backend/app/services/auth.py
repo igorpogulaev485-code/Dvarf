@@ -192,8 +192,29 @@ class AuthService:
                 status_code=400,
             )
 
-        if self.users.get_by_email(email):
-            raise ConflictError("Такой email уже зарегистрирован", code="email_taken")
+        existing = self.users.get_by_email(email)
+        if existing is not None:
+            # Unverified signup stuck without mail: re-apply password/nickname and resend.
+            if existing.password_hash and existing.email_verified_at is None:
+                existing.password_hash = hash_password(password)
+                existing.display_name = name
+                self.db.add(existing)
+                self.db.commit()
+                message, debug_url = self._issue_verification_and_send(existing)
+                return RegisterResponse(
+                    message=(
+                        f"Этот email уже ждёт подтверждения. "
+                        f"Мы отправили новую ссылку на {existing.email}."
+                    )
+                    if not settings.auth_email_stub
+                    else message,
+                    stub=settings.auth_email_stub,
+                    debug_verify_url=debug_url,
+                )
+            raise ConflictError(
+                "Такой email уже зарегистрирован. Войдите или восстановите пароль.",
+                code="email_taken",
+            )
 
         user = self.users.create_user(
             email=email,
