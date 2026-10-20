@@ -391,6 +391,30 @@ a.ui-button--primary {
   outline-offset: 2px;
 }
 
+.oauth-icons__glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: #fff;
+}
+
+.oauth-icons__glyph--yandex {
+  background: #fc3f1d;
+  font-size: 0.95rem;
+}
+
+.oauth-icons__glyph--vk {
+  background: #0077ff;
+  font-size: 0.72rem;
+}
+
 .page--auth-debug {
   width: min(480px, calc(100% - 32px));
 }
