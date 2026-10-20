@@ -1,3 +1,4 @@
+import { ABILITY_TIPS, ValueTip } from '../onboarding'
 import { NumberInput, Text } from '../../ui'
 import {
   ABILITY_KEYS,
@@ -40,6 +41,8 @@ type AbilitySkillsColumnProps = {
   onRollSave?: (key: AbilityKey, mod: number) => void
   /** Click the skill number → roll (pip cycles владение / экспертиза). */
   onRollSkill?: (skill: { key: string; label: string; mod: number }) => void
+  /** Absolute beginner: «?» next to СИЛ/ЛОВ/… */
+  showValueTips?: boolean
 }
 
 function cycleSkill(state: SkillState): SkillState {
@@ -82,6 +85,7 @@ export function AbilitySkillsColumn({
   onRollCheck,
   onRollSave,
   onRollSkill,
+  showValueTips = false,
 }: AbilitySkillsColumnProps) {
   const order = abilityOrder.length === ABILITY_KEYS.length ? abilityOrder : [...ABILITY_KEYS]
   const collapsed = new Set(collapsedAbilities)
@@ -117,7 +121,9 @@ export function AbilitySkillsColumn({
         </button>
       </div>
       <Text tone="muted" className="abil-column__hint">
-        число → бросок · кружок → владение/эксп. · название → разборка
+        {showValueTips
+          ? '«?» у названия — что значит характеристика · число → бросок'
+          : 'число → бросок · кружок → владение/эксп. · название → разборка'}
       </Text>
       <div className="abil-column__list" id="abil-column-list">
         {order.map((key) => {
@@ -187,6 +193,9 @@ export function AbilitySkillsColumn({
                   >
                     <span className="abil-block__label-text">{ABILITY_NAMES[key]}</span>
                   </button>
+                  {showValueTips ? (
+                    <ValueTip tip={ABILITY_TIPS[key]} className="abil-block__value-tip" />
+                  ) : null}
                   <button
                     type="button"
                     className="abil-block__label-chevron"

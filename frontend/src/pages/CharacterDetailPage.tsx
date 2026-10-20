@@ -297,6 +297,7 @@ export function CharacterDetailPage() {
               onboarding.state.segment === 'product_new' ||
               tourArmed
             }
+            showValueTips={onboarding.state.segment === 'dnd_new'}
             onCreateGuideConsumed={() => {
               setCreateGuide(null)
               setStartingLevel(1)

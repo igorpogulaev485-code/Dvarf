@@ -438,6 +438,8 @@ type MinimalSheetEditorProps = {
   startingLevel?: number
   /** First-run checklist under the ability rail. */
   showOnboardingChecklist?: boolean
+  /** Absolute beginner: value «?» on КД/хиты/СИЛ… */
+  showValueTips?: boolean
   onCreateGuideConsumed?: () => void
   onSaved: (character: CharacterDetail) => void
   onToast: (message: string) => void
@@ -749,6 +751,7 @@ export function MinimalSheetEditor({
   createGuide = null,
   startingLevel: startingLevelProp = 1,
   showOnboardingChecklist = false,
+  showValueTips = false,
   onCreateGuideConsumed,
   onSaved,
   onToast,
@@ -4202,6 +4205,7 @@ export function MinimalSheetEditor({
       }
       onReorder={(abilityOrder) => patchSheetUi({ abilityOrder })}
       onCollapsedChange={(collapsedAbilities) => patchSheetUi({ collapsedAbilities })}
+      showValueTips={showValueTips}
     />
   )
 
@@ -4361,6 +4365,7 @@ export function MinimalSheetEditor({
             }
             coinPadOpen={coinPadOpen}
             onCoinPadOpenChange={setCoinPadOpen}
+            showValueTips={showValueTips}
             onCombatChange={(patch) =>
               setDraft((prev) => ({
                 ...prev,
