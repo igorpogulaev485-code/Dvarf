@@ -52,8 +52,13 @@ import {
   type SubclassTransition,
 } from '../../shared/dnd/subclassGrants'
 import {
+  proficiencyBonusForTotalLevel,
   unlockFeaturesForClasses,
 } from '../../shared/dnd/classFeatures'
+import {
+  classWalkSpeedBonusFt,
+  resolveWalkSpeedFt,
+} from '../../shared/dnd/classMovement'
 import {
   syncSkillsExpertiseFromPicks,
 } from '../../shared/dnd/expertise'
@@ -74,6 +79,7 @@ import {
 } from '../characters/featEffects'
 import {
   newFeatGrantId,
+  sumFeatSpeedBonus,
   type AppliedFeatGrant,
 } from '../../shared/dnd/featGrants'
 import {
@@ -447,7 +453,13 @@ function normalizeLinePicks(
         : weaponRaw === null
           ? null
           : undefined
-    out[lineId] = { optionId, weaponName }
+    let weaponNames: Array<string | null> | undefined
+    if (Array.isArray(row.weaponNames)) {
+      weaponNames = row.weaponNames.map((value) =>
+        typeof value === 'string' && value.trim() ? value.trim() : null,
+      )
+    }
+    out[lineId] = { optionId, weaponName, weaponNames }
   }
   return out
 }
@@ -776,11 +788,27 @@ function serializeSheet(input: {
   })
   const playSheet = playToSheet(play)
 
+  const raceSpeed = draft.raceGrant?.speed ?? draft.speed
+  const classSpeedBonus = classWalkSpeedBonusFt({
+    classes,
+    wearingHeavyArmor: false,
+    wearingArmorOrShield: false,
+  })
+  const classSpeedBonusMax = classSpeedBonus
+  const featSpeedBonus = sumFeatSpeedBonus(draft.featGrants)
+  const resolvedSpeed = resolveWalkSpeedFt({
+    storedSpeed: draft.speed,
+    raceSpeed,
+    classBonusFt: classSpeedBonus,
+    classBonusFtMax: classSpeedBonusMax,
+    featBonusFt: featSpeedBonus,
+  })
+
   const combat: Record<string, unknown> = {
     hp_current: draft.hpCurrent,
     hp_max: draft.hpMax,
     ac: null,
-    speed: draft.speed,
+    speed: resolvedSpeed,
     climb_speed: draft.climbSpeed,
     swim_speed: draft.swimSpeed,
     fly_speed: draft.flySpeed,
@@ -793,6 +821,7 @@ function serializeSheet(input: {
   sheet.resources = playSheet.resources
 
   sheet.proficiency = {
+    bonus: proficiencyBonusForTotalLevel(totalLevel),
     armor: identityExtras.proficiencyPatch.armor,
     weapons: identityExtras.proficiencyPatch.weapons,
     languages: identityExtras.proficiencyPatch.languages,
@@ -1038,6 +1067,7 @@ export async function applyPipelineToSheet(input: {
           def: previousDef,
           picks: normalizeSubclassPicks(setup.previousPicks ?? { values: {} }),
           changeMode: 'initial',
+          classLevel: row.level,
           maxSpellLevel: maxSpellLevelForCreate,
         })
         if (retained) Object.assign(draft, mergeSubclass(draft, retained.draft))
@@ -1049,6 +1079,7 @@ export async function applyPipelineToSheet(input: {
         def,
         picks: normalizeSubclassPicks(setup.picks),
         changeMode: 'future_only',
+        classLevel: row.level,
         changedAtClassLevel: setup.changedAtClassLevel ?? row.level,
         previousNameRu: previousEntry.name_ru,
         previousCatalogId: previousEntry.id,
@@ -1065,6 +1096,7 @@ export async function applyPipelineToSheet(input: {
         def,
         picks: normalizeSubclassPicks(setup.picks),
         changeMode: setup.changeMode === 'replace_all' ? 'replace_all' : 'initial',
+        classLevel: row.level,
         maxSpellLevel: maxSpellLevelForCreate,
       })
       if (applied) Object.assign(draft, mergeSubclass(draft, applied.draft))

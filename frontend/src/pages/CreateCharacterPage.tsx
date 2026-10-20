@@ -36,6 +36,8 @@ import {
 } from '../features/createPipeline/catalogCardMeta'
 import { CatalogDetailPanel } from '../features/createPipeline/CatalogDetailPanel'
 import { CreatePipelineShell } from '../features/createPipeline/CreatePipelineShell'
+import { StepHint, useOnboardingState } from '../features/onboarding'
+import { getMe } from '../shared/api/auth'
 import { hydratePipelineFromSheet } from '../features/createPipeline/createPipelineSheet'
 import { applyPipelineToSheet } from '../features/createPipeline/pipelineApply'
 import {
@@ -69,6 +71,7 @@ import {
   type AppliedClassAsi,
 } from '../shared/dnd/classAsi'
 import { unlockFeaturesForClasses } from '../shared/dnd/classFeatures'
+import { resolveBackgroundGrantDef } from '../shared/dnd/backgroundGrants'
 import {
   grantNeedsSetupDialog,
   resolveClassGrantDef,
@@ -182,13 +185,37 @@ function buildWizardProficiencies(state: CreatePipelineState): {
     }
   }
 
-  if (state.backgroundSetup?.picks) {
-    skills = markProficient(skills, state.backgroundSetup.picks.skills)
-    pushTools(state.backgroundSetup.picks.tools)
+  if (state.backgroundSetup) {
+    const bgDef = resolveBackgroundGrantDef({
+      backgroundName: state.backgroundSetup.entry.name_ru,
+      catalogSlug: state.backgroundSetup.entry.slug,
+      catalogData: state.backgroundSetup.entry.data,
+      nameRu: state.backgroundSetup.entry.name_ru,
+    })
+    skills = markProficient(skills, [
+      ...(bgDef?.skillProficiencies ?? []),
+      ...(state.backgroundSetup.picks.skills ?? []),
+    ])
+    pushTools([
+      ...(bgDef?.toolProficiencies ?? []),
+      ...(state.backgroundSetup.picks.tools ?? []),
+    ])
   }
-  if (state.raceSetup?.picks) {
-    skills = markProficient(skills, state.raceSetup.picks.skills)
-    pushTools(state.raceSetup.picks.tools)
+  if (state.raceSetup) {
+    const raceDef = resolveRaceGrantDef({
+      raceName: state.raceSetup.entry.name_ru,
+      catalogSlug: state.raceSetup.entry.slug,
+      catalogData: state.raceSetup.entry.data,
+      nameRu: state.raceSetup.entry.name_ru,
+    })
+    skills = markProficient(skills, [
+      ...(raceDef?.skillProficiencies ?? []),
+      ...(state.raceSetup.picks.skills ?? []),
+    ])
+    pushTools([
+      ...(raceDef?.toolProficiencies ?? []),
+      ...(state.raceSetup.picks.tools ?? []),
+    ])
   }
   for (const picks of Object.values(state.classGrantPicks ?? {})) {
     skills = markProficient(skills, picks.skills)
@@ -286,7 +313,23 @@ function prevVisibleStep(
 export function CreateCharacterPage() {
   const navigate = useNavigate()
   const { characterId: routeCharacterId } = useParams<{ characterId?: string }>()
+  const [userId, setUserId] = useState<string | null>(null)
+  const onboarding = useOnboardingState(userId)
   const [state, setState] = useState<CreatePipelineState>(() => loadOrCreatePipelineState())
+
+  useEffect(() => {
+    let active = true
+    getMe()
+      .then((me) => {
+        if (active) setUserId(me.id)
+      })
+      .catch(() => {
+        if (active) setUserId(null)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
   const [backgrounds, setBackgrounds] = useState<CatalogEntry[]>([])
   const [classes, setClasses] = useState<CatalogEntry[]>([])
   const [races, setRaces] = useState<CatalogEntry[]>([])
@@ -608,23 +651,53 @@ export function CreateCharacterPage() {
     [state.classes],
   )
 
+  const backgroundGrantDef = useMemo(() => {
+    const setup = state.backgroundSetup
+    if (!setup) return null
+    return resolveBackgroundGrantDef({
+      backgroundName: setup.entry.name_ru,
+      catalogSlug: setup.entry.slug,
+      catalogData: setup.entry.data,
+      nameRu: setup.entry.name_ru,
+    })
+  }, [state.backgroundSetup])
+
   const blockedSkillKeys = useMemo(() => {
     const keys = new Set<string>()
+    // Fixed grants + choice picks (picks alone miss PHB fixed skills like Insight/Religion).
+    for (const key of backgroundGrantDef?.skillProficiencies ?? []) keys.add(key)
     for (const key of state.backgroundSetup?.picks.skills ?? []) keys.add(key)
+    for (const key of raceGrantDef?.skillProficiencies ?? []) keys.add(key)
     for (const key of state.raceSetup?.picks.skills ?? []) keys.add(key)
     return [...keys]
-  }, [state.backgroundSetup?.picks.skills, state.raceSetup?.picks.skills])
+  }, [
+    backgroundGrantDef?.skillProficiencies,
+    state.backgroundSetup?.picks.skills,
+    raceGrantDef?.skillProficiencies,
+    state.raceSetup?.picks.skills,
+  ])
 
   const blockedToolNames = useMemo(() => {
     const tools = new Set<string>()
+    for (const name of backgroundGrantDef?.toolProficiencies ?? []) {
+      if (name.trim()) tools.add(name.trim())
+    }
     for (const name of state.backgroundSetup?.picks.tools ?? []) {
+      if (name.trim()) tools.add(name.trim())
+    }
+    for (const name of raceGrantDef?.toolProficiencies ?? []) {
       if (name.trim()) tools.add(name.trim())
     }
     for (const name of state.raceSetup?.picks.tools ?? []) {
       if (name.trim()) tools.add(name.trim())
     }
     return [...tools]
-  }, [state.backgroundSetup?.picks.tools, state.raceSetup?.picks.tools])
+  }, [
+    backgroundGrantDef?.toolProficiencies,
+    state.backgroundSetup?.picks.tools,
+    raceGrantDef?.toolProficiencies,
+    state.raceSetup?.picks.tools,
+  ])
 
   /** Race fixed languages + race language picks — block in background language chips. */
   const blockedLanguageNames = useMemo(() => {
@@ -1127,8 +1200,13 @@ export function CreateCharacterPage() {
         navigate('/characters')
         return
       }
+      onboarding.markCreateHintsSeen()
+      onboarding.queueAfterCreate()
       navigate(`/characters/${saved.id}`, {
-        state: { toast: 'Персонаж готов' },
+        state: {
+          toast: 'Персонаж готов',
+          onboardingReady: true,
+        },
       })
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить')
@@ -1697,6 +1775,9 @@ export function CreateCharacterPage() {
         steps={visibleSteps}
         title="Создание персонажа"
         subtitle="Раса → черта* → предыстория → класс → характеристики → прокачка"
+        stepHint={
+          <StepHint step={step} visible={onboarding.state.segment !== 'skip'} />
+        }
         cards={cards}
         detail={detail}
         footer={footer}

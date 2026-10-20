@@ -1,7 +1,7 @@
 """Upsert UA 2014 Stealthy feat (skill_or_expertise: stealth).
 
 Revision ID: x0y1z2a3b4c5
-Revises: w9x0y1z2a3b4
+Revises: s1r0c0mifeat1
 Create Date: 2026-10-20
 
 """
@@ -17,7 +17,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "x0y1z2a3b4c5"
-down_revision: Union[str, Sequence[str], None] = "w9x0y1z2a3b4"
+down_revision: Union[str, Sequence[str], None] = "s1r0c0mifeat1"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

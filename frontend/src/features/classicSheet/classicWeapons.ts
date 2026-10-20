@@ -3,6 +3,11 @@ import {
   createCustomAttack,
   type WeaponAttack,
 } from '../characters/AttacksPanel'
+import { readAttunements } from '../characters/attunement'
+import { isWeaponProficient } from '../characters/equipmentProficiency'
+import { aggregateGearEffects } from '../characters/gearEffects'
+import { readIdentityExtras } from '../characters/identity'
+import { readInventory } from '../characters/inventory'
 import {
   ABILITY_KEYS,
   abilityModifier,
@@ -84,31 +89,77 @@ export function splitDamageLine(raw: string): { damage: string; damageType: stri
 function computedAttackBonus(
   character: CharacterDetail,
   attack: WeaponAttack,
+  weaponProficiency: ReturnType<typeof readIdentityExtras>['weapons'],
+  magicAtk: number,
 ): string {
   const mod = abilityModifier(abilityScore(character, attack.ability))
-  const pb = attack.is_proficient ? asProfBonus(character) : 0
-  return formatModifier(mod + pb)
+  const proficient = isWeaponProficient({
+    name: attack.name,
+    weapons: weaponProficiency,
+    sourceKind: attack.source_kind,
+    attackId: attack.id,
+  })
+  const pb = proficient ? asProfBonus(character) : 0
+  return formatModifier(mod + pb + magicAtk)
+}
+
+/** True when the stored damage string already ends with ±N (manual classic edit). */
+function damageAlreadyHasModifier(damage: string): boolean {
+  return /[+-]\d+\s*$/.test(damage.trim())
+}
+
+function computedDamageLine(
+  character: CharacterDetail,
+  attack: WeaponAttack,
+  magicDmg: number,
+): string {
+  if (!attack.damage.trim()) return joinDamageLine('', attack.damage_type)
+  // Respect a full line typed into the classic blank («1к12+5»).
+  if (damageAlreadyHasModifier(attack.damage)) {
+    return joinDamageLine(attack.damage, attack.damage_type)
+  }
+  const abilityDmg = abilityModifier(abilityScore(character, attack.ability))
+  const totalDmgBonus = abilityDmg + magicDmg
+  const damageWithMod = totalDmgBonus
+    ? `${attack.damage}${totalDmgBonus >= 0 ? '+' : ''}${totalDmgBonus}`
+    : attack.damage
+  return joinDamageLine(damageWithMod, attack.damage_type)
 }
 
 function rowAttackBonus(
   character: CharacterDetail,
   attack: WeaponAttack & { attack_bonus?: string },
+  weaponProficiency: ReturnType<typeof readIdentityExtras>['weapons'],
+  magicAtk: number,
 ): string {
   const manual = attack.attack_bonus?.trim()
   if (manual) return manual
   if (!attack.name.trim() && !attack.damage.trim()) return ''
-  return computedAttackBonus(character, attack)
+  return computedAttackBonus(character, attack, weaponProficiency, magicAtk)
 }
 
 export function classicWeaponRows(character: CharacterDetail): ClassicWeaponRow[] {
-  const attacks = readWeaponAttacks(asRecord(character.sheet))
+  const sheet = asRecord(character.sheet)
+  const attacks = readWeaponAttacks(sheet)
+  const weaponProficiency = readIdentityExtras(sheet).weapons
+  const inventory = readInventory(sheet)
+  const gear = aggregateGearEffects({
+    items: inventory.items,
+    attunements: readAttunements(sheet),
+  })
   const rows = attacks.map((attack) => {
     const withBonus = attack as WeaponAttack & { attack_bonus?: string }
+    const gearRow =
+      attack.inventory_item_id && attack.held
+        ? gear.byItem[attack.inventory_item_id]
+        : undefined
+    const magicAtk = gearRow?.attackBonus ?? 0
+    const magicDmg = gearRow?.damageBonus ?? 0
     return {
       id: attack.id,
       name: attack.name,
-      attackBonus: rowAttackBonus(character, withBonus),
-      damageLine: joinDamageLine(attack.damage, attack.damage_type),
+      attackBonus: rowAttackBonus(character, withBonus, weaponProficiency, magicAtk),
+      damageLine: computedDamageLine(character, attack, magicDmg),
     }
   })
   while (rows.length < CLASSIC_WEAPON_SLOTS) {

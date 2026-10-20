@@ -14,7 +14,6 @@ from app.schemas.catalog import CatalogEntryOut
 
 def to_out(entry: CatalogEntry) -> CatalogEntryOut:
     data = entry.data if isinstance(entry.data, dict) else {}
-    external_ref = entry.external_ref if isinstance(entry.external_ref, dict) else None
     kind_val = entry.kind.value if hasattr(entry.kind, "value") else str(entry.kind)
     layer = layer_for_source(
         entry.source,
@@ -22,6 +21,8 @@ def to_out(entry: CatalogEntry) -> CatalogEntryOut:
         slug=entry.slug,
         data=data,
     )
+    # B2 anti-mirror: never expose ttg/dnd.su (or any) external_ref publicly.
+    # Rows in DB/JSON may still carry legacy refs for archaeology — not in API.
     return CatalogEntryOut.model_validate(
         {
             "id": entry.id,
@@ -32,7 +33,7 @@ def to_out(entry: CatalogEntry) -> CatalogEntryOut:
             "rules_edition": entry.rules_edition,
             "parent_id": entry.parent_id,
             "source": entry.source,
-            "external_ref": external_ref,
+            "external_ref": None,
             "data": data,
             "content_layer": layer,
             "sort_order": entry.sort_order or 0,

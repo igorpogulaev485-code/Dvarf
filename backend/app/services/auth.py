@@ -9,7 +9,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.exceptions import AppError, ConflictError, UnauthorizedError
+from app.core.exceptions import AppError, ConflictError, NotFoundError, UnauthorizedError
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -461,6 +461,88 @@ class AuthService:
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
         return self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
+
+    def link_oauth_profile(self, user_id: UUID, profile: OAuthProfile) -> UserResponse:
+        """Attach provider identity to an existing logged-in account (cabinet)."""
+        if profile.provider == AuthProvider.password:
+            raise AppError(
+                "Нельзя привязать пароль через OAuth",
+                code="invalid_provider",
+                status_code=400,
+            )
+
+        user = self.users.get_by_id(user_id)
+        if user is None:
+            raise NotFoundError("Пользователь не найден")
+
+        owner = self.users.get_by_identity(profile.provider, profile.provider_user_id)
+        if owner is not None and owner.id != user.id:
+            raise ConflictError(
+                "Этот аккаунт Яндекс/VK уже привязан к другому пользователю КриD20.",
+                code="oauth_identity_taken",
+            )
+        if owner is not None and owner.id == user.id:
+            return serialize_user(owner)
+
+        already = next(
+            (identity for identity in user.identities if identity.provider == profile.provider),
+            None,
+        )
+        if already is not None:
+            raise ConflictError(
+                "Этот способ входа уже привязан. Сначала отвяжите его, затем привяжите снова.",
+                code="oauth_provider_already_linked",
+            )
+
+        self.users.add_identity(
+            user=user,
+            provider=profile.provider,
+            provider_user_id=profile.provider_user_id,
+        )
+        if profile.avatar_url and not user.avatar_url:
+            user.avatar_url = profile.avatar_url
+        if profile.display_name and not user.display_name:
+            user.display_name = profile.display_name
+        if profile.full_name and not user.full_name:
+            user.full_name = profile.full_name
+        self.db.commit()
+        loaded = self.users.get_by_id(user.id)
+        assert loaded is not None
+        return serialize_user(loaded)
+
+    def unlink_oauth_provider(self, user: User, provider: AuthProvider) -> UserResponse:
+        if provider == AuthProvider.password:
+            raise AppError(
+                "Пароль нельзя отвязать здесь — смените или удалите аккаунт.",
+                code="cannot_unlink_password",
+                status_code=400,
+            )
+        if provider not in {AuthProvider.yandex, AuthProvider.vk}:
+            raise AppError(
+                "Неподдерживаемый OAuth-провайдер",
+                code="unsupported_provider",
+                status_code=400,
+            )
+
+        loaded = self.users.get_by_id(user.id)
+        if loaded is None:
+            raise NotFoundError("Пользователь не найден")
+
+        if not any(identity.provider == provider for identity in loaded.identities):
+            raise NotFoundError("Этот способ входа не привязан")
+
+        if len(loaded.identities) <= 1:
+            raise AppError(
+                "Нельзя отвязать единственный способ входа — иначе вы потеряете доступ к аккаунту.",
+                code="last_login_method",
+                status_code=400,
+            )
+
+        self.users.remove_identity(user=loaded, provider=provider)
+        self.db.commit()
+        refreshed = self.users.get_by_id(user.id)
+        assert refreshed is not None
+        return serialize_user(refreshed)
 
     def forgot_password(self, email: str) -> ForgotPasswordResponse:
         """Always returns the same public message (no email enumeration)."""

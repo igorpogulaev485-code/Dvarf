@@ -1,8 +1,14 @@
 import {
   createCustomAttack,
+  isClassMartialArtsAttack,
   isRaceNaturalWeaponAttack,
   type WeaponAttack,
 } from './AttacksPanel'
+import {
+  effectiveMartialArtsDamage,
+  isMonkWeaponName,
+  monkAttackAbility,
+} from '../../shared/dnd/martialArts'
 import { isWeaponProficient } from './equipmentProficiency'
 import type { WeaponProficiency } from './identity'
 import {
@@ -21,6 +27,7 @@ type AttacksSettingsDialogProps = {
   proficiencyBonus: number
   weaponProficiency: WeaponProficiency
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
+  martialArtsDie?: string | null
   onChange: (weapons: WeaponAttack[]) => void
   onToggleHeld?: (attack: WeaponAttack) => void
   onClose: () => void
@@ -30,6 +37,7 @@ function sourceLabel(kind: WeaponAttack['source_kind']): string {
   if (kind === 'weapon') return 'Оружие'
   if (kind === 'artifact') return 'Артефакт'
   if (kind === 'race') return 'Раса'
+  if (kind === 'class') return 'Класс'
   return 'Своё'
 }
 
@@ -40,6 +48,7 @@ export function AttacksSettingsDialog({
   proficiencyBonus,
   weaponProficiency,
   gearBonusesByItem,
+  martialArtsDie = null,
   onChange,
   onToggleHeld,
   onClose,
@@ -90,26 +99,46 @@ export function AttacksSettingsDialog({
 
         {weapons.map((attack) => {
           const raceNatural = isRaceNaturalWeaponAttack(attack)
+          const classMa = isClassMartialArtsAttack(attack)
+          const monkWeapon =
+            Boolean(martialArtsDie) &&
+            (classMa || isMonkWeaponName(attack.name))
+          const attackAbility = monkWeapon
+            ? monkAttackAbility({
+                str: abilities.str,
+                dex: abilities.dex,
+                weaponAbility: attack.ability,
+              })
+            : attack.ability
+          const baseDamage = monkWeapon
+            ? effectiveMartialArtsDamage({
+                weaponDamage: attack.damage,
+                martialArtsDie,
+                forceMartialArts: classMa,
+              })
+            : attack.damage
           const gear =
-            !raceNatural && attack.inventory_item_id && attack.held
+            !raceNatural && !classMa && attack.inventory_item_id && attack.held
               ? gearBonusesByItem?.[attack.inventory_item_id]
               : undefined
           const magicAtk = gear?.attackBonus ?? 0
           const magicDmg = gear?.damageBonus ?? 0
-          const proficient = isWeaponProficient({
-            name: attack.name,
-            weapons: weaponProficiency,
-            sourceKind: attack.source_kind,
-            attackId: attack.id,
-          })
+          const proficient =
+            classMa ||
+            isWeaponProficient({
+              name: attack.name,
+              weapons: weaponProficiency,
+              sourceKind: attack.source_kind,
+              attackId: attack.id,
+            })
+          const abilityDmg = abilityModifier(abilities[attackAbility])
           const attackBonus =
-            abilityModifier(abilities[attack.ability]) +
-            (proficient ? proficiencyBonus : 0) +
-            magicAtk
+            abilityDmg + (proficient ? proficiencyBonus : 0) + magicAtk
+          const totalDmgBonus = abilityDmg + magicDmg
           const damageDisplay =
-            magicDmg && attack.damage
-              ? `${attack.damage}${magicDmg >= 0 ? '+' : ''}${magicDmg}`
-              : attack.damage
+            baseDamage && totalDmgBonus
+              ? `${baseDamage}${totalDmgBonus >= 0 ? '+' : ''}${totalDmgBonus}`
+              : baseDamage
           const damageHero = damageDisplay || '—'
           const linked = Boolean(attack.inventory_item_id)
 
@@ -117,7 +146,9 @@ export function AttacksSettingsDialog({
             <div
               key={attack.id}
               className={`attack-card${
-                !raceNatural && linked && !attack.held ? ' attack-card--stowed' : ''
+                !raceNatural && !classMa && linked && !attack.held
+                  ? ' attack-card--stowed'
+                  : ''
               }`}
             >
               <div className="attack-card__meta">
@@ -126,6 +157,8 @@ export function AttacksSettingsDialog({
                 </span>
                 {raceNatural ? (
                   <span className="attack-held-tag">природное</span>
+                ) : classMa ? (
+                  <span className="attack-held-tag">боевые искусства</span>
                 ) : linked ? (
                   <span className="attack-held-tag">
                     {attack.held ? 'в руках' : 'убран'}
@@ -144,16 +177,18 @@ export function AttacksSettingsDialog({
                       ? 'Из инвентаря — имя правится там'
                       : raceNatural
                         ? 'С расы'
-                        : undefined
+                        : classMa
+                          ? 'С класса'
+                          : undefined
                   }
                 >
                   <Input
                     value={attack.name}
                     className="attack-card__name-input"
-                    readOnly={raceNatural || linked}
+                    readOnly={raceNatural || classMa || linked}
                     placeholder="Своя атака"
                     onChange={
-                      raceNatural || linked
+                      raceNatural || classMa || linked
                         ? undefined
                         : (event) => updateAttack(attack.id, { name: event.target.value })
                     }
@@ -190,10 +225,16 @@ export function AttacksSettingsDialog({
               <div className="attack-card__grid">
                 <Field
                   label="Характеристика"
-                  hint={raceNatural ? 'От расы' : undefined}
+                  hint={
+                    raceNatural
+                      ? 'От расы'
+                      : monkWeapon && attackAbility !== attack.ability
+                        ? `Боевые искусства → ${ABILITY_LABELS[attackAbility]}`
+                        : undefined
+                  }
                 >
-                  {raceNatural ? (
-                    <Input value={ABILITY_LABELS[attack.ability]} readOnly />
+                  {raceNatural || classMa ? (
+                    <Input value={ABILITY_LABELS[attackAbility]} readOnly />
                   ) : (
                     <select
                       className="ui-input"
@@ -216,37 +257,46 @@ export function AttacksSettingsDialog({
                   label="Урон"
                   hint={
                     raceNatural
-                      ? `От расы (+${ABILITY_LABELS[attack.ability]})`
-                      : magicDmg
-                        ? `с магией ${damageDisplay} (${magicDmg >= 0 ? '+' : ''}${magicDmg})`
-                        : undefined
+                      ? `От расы (+${ABILITY_LABELS[attackAbility]})`
+                      : classMa || (monkWeapon && baseDamage !== attack.damage)
+                        ? `Боевые искусства · ${damageDisplay || baseDamage}`
+                        : magicDmg
+                          ? `с магией ${damageDisplay} (${magicDmg >= 0 ? '+' : ''}${magicDmg})`
+                          : undefined
                   }
                 >
                   <Input
-                    value={attack.damage}
+                    value={
+                      raceNatural || classMa || (monkWeapon && baseDamage !== attack.damage)
+                        ? damageDisplay || baseDamage
+                        : attack.damage
+                    }
                     placeholder="1к8"
-                    readOnly={raceNatural}
+                    readOnly={raceNatural || classMa}
                     onChange={
-                      raceNatural
+                      raceNatural || classMa
                         ? undefined
                         : (event) => updateAttack(attack.id, { damage: event.target.value })
                     }
                   />
                 </Field>
-                <Field label="Тип урона" hint={raceNatural ? 'От расы' : undefined}>
+                <Field
+                  label="Тип урона"
+                  hint={raceNatural ? 'От расы' : classMa ? 'Боевые искусства' : undefined}
+                >
                   <Input
                     value={attack.damage_type}
                     placeholder="дробящий"
-                    readOnly={raceNatural}
+                    readOnly={raceNatural || classMa}
                     onChange={
-                      raceNatural
+                      raceNatural || classMa
                         ? undefined
                         : (event) =>
                             updateAttack(attack.id, { damage_type: event.target.value })
                     }
                   />
                 </Field>
-                {!raceNatural ? (
+                {!raceNatural && !classMa ? (
                   <Field label="Кол-во" hint="для метательных / запасов">
                     <NumberInput
                       min={1}
@@ -263,7 +313,7 @@ export function AttacksSettingsDialog({
               </div>
 
               <div className="attack-card__footer">
-                {!raceNatural && linked && onToggleHeld ? (
+                {!raceNatural && !classMa && linked && onToggleHeld ? (
                   <button
                     type="button"
                     className={`sheet-chip${attack.held ? ' is-on' : ''}`}
@@ -277,13 +327,17 @@ export function AttacksSettingsDialog({
                   title={
                     raceNatural
                       ? 'Природное оружие расы — всегда владение'
-                      : 'Из владений снаряжением на листе'
+                      : classMa
+                        ? 'Боевые искусства — всегда владение'
+                        : 'Из владений снаряжением на листе'
                   }
                 >
                   {proficient ? 'Владение' : 'Нет владения'}
                 </span>
                 {raceNatural ? (
                   <Text tone="muted">С расы</Text>
+                ) : classMa ? (
+                  <Text tone="muted">С класса</Text>
                 ) : (
                   <Button
                     variant="ghost"

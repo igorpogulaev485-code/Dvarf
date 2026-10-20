@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { RulesEdition } from '../../shared/api/characters'
-import type { CatalogEntry } from '../../shared/api/catalog'
+import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
   buildAppliedFeatPackage,
   commonLanguageOptions,
@@ -15,11 +15,52 @@ import {
   type FeatGrantDef,
   type FeatGrantPicks,
   type FeatGrantsPackage,
+  type FeatSpellCatalogRow,
   type OwnedFeatEnumSnapshot,
 } from '../../shared/dnd/featGrants'
 import { CatalogCombobox } from '../catalog'
 import { ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
 import { Button, Dialog, Field, Stack, Text } from '../../ui'
+
+const SPELL_CATALOG_TIMEOUT_MS = 8000
+
+let bundledSpells2014: Promise<CatalogEntry[]> | null = null
+
+function loadBundledSpells2014(): Promise<CatalogEntry[]> {
+  if (!bundledSpells2014) {
+    bundledSpells2014 = fetch('/spells-2014.json')
+      .then(async (response) => {
+        const contentType = response.headers.get('content-type') || ''
+        if (!response.ok || contentType.includes('text/html')) {
+          throw new Error('bundled spells missing')
+        }
+        const data = (await response.json()) as unknown
+        if (!Array.isArray(data)) throw new Error('bundled spells shape')
+        return data as CatalogEntry[]
+      })
+      .catch((err: unknown) => {
+        bundledSpells2014 = null
+        throw err
+      })
+  }
+  return bundledSpells2014
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error('timeout')), ms)
+    promise.then(
+      (value) => {
+        window.clearTimeout(timer)
+        resolve(value)
+      },
+      (err: unknown) => {
+        window.clearTimeout(timer)
+        reject(err)
+      },
+    )
+  })
+}
 
 export type FeatSetupResult = {
   entry: CatalogEntry
@@ -84,6 +125,10 @@ export function FeatSetupDialog({
   const [customWeapon, setCustomWeapon] = useState('')
   const [customLanguage, setCustomLanguage] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [spellCatalog, setSpellCatalog] = useState<FeatSpellCatalogRow[]>([])
+  const [spellQueryByChoice, setSpellQueryByChoice] = useState<
+    Record<string, string>
+  >({})
 
   const def = useMemo(
     () =>
@@ -96,6 +141,59 @@ export function FeatSetupDialog({
         : null,
     [selected],
   )
+
+  const needsSpellCatalog = useMemo(
+    () =>
+      Boolean(
+        def?.choices.some(
+          (choice) =>
+            choice.type === 'spell_one' && Boolean(choice.optionsFrom),
+        ),
+      ),
+    [def],
+  )
+
+  useEffect(() => {
+    if (!open || !needsSpellCatalog) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const rows = await withTimeout(
+          listCatalogEntries({ kind: 'spell', edition }),
+          SPELL_CATALOG_TIMEOUT_MS,
+        )
+        if (cancelled) return
+        if (rows.length) {
+          setSpellCatalog(
+            rows.map((row) => ({
+              slug: row.slug,
+              name_ru: row.name_ru,
+              data: row.data,
+            })),
+          )
+          return
+        }
+      } catch {
+        /* fall through to bundled */
+      }
+      try {
+        const bundled = await loadBundledSpells2014()
+        if (cancelled) return
+        setSpellCatalog(
+          bundled.map((row) => ({
+            slug: row.slug,
+            name_ru: row.name_ru,
+            data: row.data,
+          })),
+        )
+      } catch {
+        if (!cancelled) setSpellCatalog([])
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [open, needsSpellCatalog, edition])
 
   const prereqContext = useMemo(
     () => ({
@@ -311,6 +409,7 @@ export function FeatSetupDialog({
       backgroundSlug,
       ownedFeatEnums,
       proficientSkills,
+      spellCatalog,
     })
     if (check) {
       setError(check)
@@ -325,6 +424,7 @@ export function FeatSetupDialog({
         picks,
         characterLevel,
         proficientSkills,
+        spellCatalog,
       }),
     })
   }
@@ -410,13 +510,22 @@ export function FeatSetupDialog({
                             // Clear dependent spell_one picks when list/college changes.
                             setPicks((prev) => {
                               const nextEnum = { ...prev.enumIds, [choice.id]: opt.id }
+                              const clearedSpellIds: string[] = []
                               for (const row of def.choices) {
                                 if (
                                   row.type === 'spell_one' &&
                                   row.filterEnum === choice.id
                                 ) {
                                   delete nextEnum[row.id]
+                                  clearedSpellIds.push(row.id)
                                 }
+                              }
+                              if (clearedSpellIds.length) {
+                                setSpellQueryByChoice((qPrev) => {
+                                  const next = { ...qPrev }
+                                  for (const id of clearedSpellIds) delete next[id]
+                                  return next
+                                })
                               }
                               return { ...prev, enumIds: nextEnum }
                             })
@@ -430,7 +539,11 @@ export function FeatSetupDialog({
                 )
               }
               if (choice.type === 'spell_one') {
-                const options = spellOneOptionsForPicks(choice, picks.enumIds)
+                const options = spellOneOptionsForPicks(
+                  choice,
+                  picks.enumIds,
+                  spellCatalog,
+                )
                 const current = picks.enumIds[choice.id]
                 if (choice.filterEnum && !picks.enumIds[choice.filterEnum]) {
                   return (
@@ -439,10 +552,44 @@ export function FeatSetupDialog({
                     </Text>
                   )
                 }
+                if (
+                  choice.optionsFrom &&
+                  !spellCatalog.length &&
+                  !choice.options.length
+                ) {
+                  return (
+                    <Text key={choice.id} tone="muted">
+                      {choice.label_ru}: загружаю список заклинаний…
+                    </Text>
+                  )
+                }
+                const query = (spellQueryByChoice[choice.id] ?? '')
+                  .trim()
+                  .toLowerCase()
+                const visible = query
+                  ? options.filter(
+                      (opt) =>
+                        opt.label_ru.toLowerCase().includes(query) ||
+                        opt.id.toLowerCase().includes(query),
+                    )
+                  : options
                 return (
                   <Field key={choice.id} label={choice.label_ru}>
+                    {options.length > 12 ? (
+                      <input
+                        value={spellQueryByChoice[choice.id] ?? ''}
+                        onChange={(event) =>
+                          setSpellQueryByChoice((prev) => ({
+                            ...prev,
+                            [choice.id]: event.target.value,
+                          }))
+                        }
+                        placeholder="Поиск заклинания…"
+                        style={{ marginBottom: 8, width: '100%' }}
+                      />
+                    ) : null}
                     <div className="chip-row" role="group">
-                      {options.map((opt) => (
+                      {visible.map((opt) => (
                         <Button
                           key={opt.id}
                           type="button"
@@ -453,6 +600,17 @@ export function FeatSetupDialog({
                         </Button>
                       ))}
                     </div>
+                    {options.length > 12 ? (
+                      <Text tone="muted">
+                        {visible.length}/{options.length}
+                        {current
+                          ? ` · выбрано: ${
+                              options.find((o) => o.id === current)?.label_ru ??
+                              current
+                            }`
+                          : ''}
+                      </Text>
+                    ) : null}
                   </Field>
                 )
               }

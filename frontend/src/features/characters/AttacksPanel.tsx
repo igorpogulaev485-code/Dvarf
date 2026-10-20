@@ -2,6 +2,14 @@ import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { parseWeaponCatalogData } from '../../shared/dnd/gearCatalog'
+import { fightingStyleAttackBonus } from '../../shared/dnd/fightingStyles'
+import {
+  effectiveMartialArtsDamage,
+  isMonkUnarmedAttack,
+  isMonkWeaponName,
+  monkAttackAbility,
+} from '../../shared/dnd/martialArts'
+import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
   ABILITY_KEYS,
@@ -12,8 +20,11 @@ import {
 } from './sheetTypes'
 import { isWeaponProficient } from './equipmentProficiency'
 import type { WeaponProficiency } from './identity'
+import { syncAttacksHeldFromInventory } from './attacksInventorySync'
 
-export type AttackSourceKind = 'weapon' | 'artifact' | 'custom' | 'race'
+export { syncAttacksHeldFromInventory }
+
+export type AttackSourceKind = 'weapon' | 'artifact' | 'custom' | 'race' | 'class'
 
 export type WeaponAttack = {
   id: string
@@ -39,6 +50,12 @@ export function raceNaturalWeaponAttackId(raceSlug: string, weaponId: string): s
 
 export function isRaceNaturalWeaponAttack(attack: Pick<WeaponAttack, 'id' | 'source_kind'>): boolean {
   return attack.source_kind === 'race' || attack.id.startsWith('race-nw:')
+}
+
+export function isClassMartialArtsAttack(
+  attack: Pick<WeaponAttack, 'id' | 'source_kind'>,
+): boolean {
+  return attack.source_kind === 'class' || isMonkUnarmedAttack(attack)
 }
 
 /** Stable attack id for class starting-equipment weapons. */
@@ -74,6 +91,10 @@ type AttacksPanelProps = {
   onToggleHeld?: (attack: WeaponAttack) => void
   /** Per inventory item: magic attack/damage from active gear effects. */
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
+  /** Active fighting style id (archery → +2 on ranged attacks). */
+  fightingStyleId?: string | null
+  /** Monk Martial Arts die (e.g. "1к10") — overrides monk weapon / unarmed damage. */
+  martialArtsDie?: string | null
 }
 
 /** Empty custom attack card («Своё» / Добавить атаку). */
@@ -96,23 +117,6 @@ export function createCustomAttack(): WeaponAttack {
   }
 }
 
-/** Mirror inventory.equipped onto linked attack cards. */
-export function syncAttacksHeldFromInventory(
-  weapons: WeaponAttack[],
-  items: Array<{ id: string; equipped: boolean }>,
-): WeaponAttack[] {
-  const equippedById = new Map(items.map((item) => [item.id, item.equipped]))
-  let changed = false
-  const next = weapons.map((attack) => {
-    if (!attack.inventory_item_id) return attack
-    const held = Boolean(equippedById.get(attack.inventory_item_id))
-    if (attack.held === held) return attack
-    changed = true
-    return { ...attack, held }
-  })
-  return changed ? next : weapons
-}
-
 function sourceFromCatalog(entry: CatalogEntry): AttackSourceKind {
   if (entry.kind === 'weapon') return 'weapon'
   if (entry.kind === 'item') return 'artifact'
@@ -123,6 +127,7 @@ function sourceLabel(kind: AttackSourceKind): string {
   if (kind === 'weapon') return 'Оружие'
   if (kind === 'artifact') return 'Артефакт'
   if (kind === 'race') return 'Раса'
+  if (kind === 'class') return 'Класс'
   return 'Своё'
 }
 
@@ -135,6 +140,8 @@ export function AttacksPanel({
   onChange,
   onToggleHeld,
   gearBonusesByItem,
+  fightingStyleId = null,
+  martialArtsDie = null,
 }: AttacksPanelProps) {
   function updateAttack(id: string, patch: Partial<WeaponAttack>) {
     onChange(weapons.map((item) => (item.id === id ? { ...item, ...patch } : item)))
@@ -157,7 +164,11 @@ export function AttacksPanel({
   }
 
   return (
-    <Panel title="Атаки" className="attack-panel">
+    <Panel
+      title="Атаки"
+      className="attack-panel"
+      titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.attacks)} />}
+    >
       <Stack gap={12}>
         <Text tone="muted">
           Оружие из инвентаря появляется здесь само. «В руках» — держишь сейчас; убрать = в ножны
@@ -176,34 +187,59 @@ export function AttacksPanel({
 
         {weapons.map((attack) => {
           const raceNatural = isRaceNaturalWeaponAttack(attack)
+          const classMa = isClassMartialArtsAttack(attack)
+          const monkWeapon =
+            Boolean(martialArtsDie) &&
+            (classMa || isMonkWeaponName(attack.name))
+          const attackAbility = monkWeapon
+            ? monkAttackAbility({
+                str: abilities.str,
+                dex: abilities.dex,
+                weaponAbility: attack.ability,
+              })
+            : attack.ability
+          const baseDamage = monkWeapon
+            ? effectiveMartialArtsDamage({
+                weaponDamage: attack.damage,
+                martialArtsDie,
+                forceMartialArts: classMa,
+              })
+            : attack.damage
           const gear =
-            !raceNatural && attack.inventory_item_id && attack.held
+            !raceNatural && !classMa && attack.inventory_item_id && attack.held
               ? gearBonusesByItem?.[attack.inventory_item_id]
               : undefined
           const magicAtk = gear?.attackBonus ?? 0
           const magicDmg = gear?.damageBonus ?? 0
-          const proficient = isWeaponProficient({
-            name: attack.name,
-            weapons: weaponProficiency,
-            sourceKind: attack.source_kind,
-            attackId: attack.id,
+          const proficient =
+            classMa ||
+            isWeaponProficient({
+              name: attack.name,
+              weapons: weaponProficiency,
+              sourceKind: attack.source_kind,
+              attackId: attack.id,
+            })
+          const styleAtk = fightingStyleAttackBonus({
+            styleId: fightingStyleId,
+            weaponName: attack.name,
           })
           const attackBonus =
-            abilityModifier(abilities[attack.ability]) +
+            abilityModifier(abilities[attackAbility]) +
             (proficient ? proficiencyBonus : 0) +
-            magicAtk
-          const abilityDmg = abilityModifier(abilities[attack.ability])
+            magicAtk +
+            styleAtk
+          const abilityDmg = abilityModifier(abilities[attackAbility])
           const totalDmgBonus = abilityDmg + magicDmg
           const damageDisplay =
-            attack.damage && totalDmgBonus
-              ? `${attack.damage}${totalDmgBonus >= 0 ? '+' : ''}${totalDmgBonus}`
-              : attack.damage
+            baseDamage && totalDmgBonus
+              ? `${baseDamage}${totalDmgBonus >= 0 ? '+' : ''}${totalDmgBonus}`
+              : baseDamage
           const damageHero = damageDisplay || '—'
           return (
             <div
               key={attack.id}
               className={`attack-card${
-                !raceNatural && attack.inventory_item_id && !attack.held
+                !raceNatural && !classMa && attack.inventory_item_id && !attack.held
                   ? ' attack-card--stowed'
                   : ''
               }`}
@@ -214,6 +250,8 @@ export function AttacksPanel({
                 </span>
                 {raceNatural ? (
                   <span className="attack-held-tag">природное</span>
+                ) : classMa ? (
+                  <span className="attack-held-tag">боевые искусства</span>
                 ) : attack.inventory_item_id ? (
                   <span className="attack-held-tag">
                     {attack.held ? 'в руках' : 'убран'}
@@ -269,10 +307,16 @@ export function AttacksPanel({
               <div className="attack-card__grid">
                 <Field
                   label="Характеристика"
-                  hint={raceNatural ? 'От расы' : undefined}
+                  hint={
+                    raceNatural
+                      ? 'От расы'
+                      : monkWeapon && attackAbility !== attack.ability
+                        ? `Боевые искусства → ${ABILITY_LABELS[attackAbility]}`
+                        : undefined
+                  }
                 >
-                  {raceNatural ? (
-                    <Input value={ABILITY_LABELS[attack.ability]} readOnly />
+                  {raceNatural || classMa ? (
+                    <Input value={ABILITY_LABELS[attackAbility]} readOnly />
                   ) : (
                     <select
                       className="ui-input"
@@ -295,37 +339,48 @@ export function AttacksPanel({
                   label="Урон"
                   hint={
                     raceNatural
-                      ? `От расы · итого ${damageDisplay || attack.damage} (+${ABILITY_LABELS[attack.ability]})`
-                      : damageDisplay && damageDisplay !== attack.damage
-                        ? `итого ${damageDisplay}`
-                        : undefined
+                      ? `От расы · итого ${damageDisplay || attack.damage} (+${ABILITY_LABELS[attackAbility]})`
+                      : classMa
+                        ? `Боевые искусства · итого ${damageDisplay || baseDamage}`
+                        : monkWeapon && baseDamage !== attack.damage
+                          ? `Боевые искусства · итого ${damageDisplay || baseDamage}`
+                          : damageDisplay && damageDisplay !== attack.damage
+                            ? `итого ${damageDisplay}`
+                            : undefined
                   }
                 >
                   <Input
-                    value={raceNatural ? damageDisplay || attack.damage : attack.damage}
+                    value={
+                      raceNatural || classMa || (monkWeapon && baseDamage !== attack.damage)
+                        ? damageDisplay || baseDamage
+                        : attack.damage
+                    }
                     placeholder="1к8"
-                    readOnly={raceNatural}
+                    readOnly={raceNatural || classMa}
                     onChange={
-                      raceNatural
+                      raceNatural || classMa
                         ? undefined
                         : (event) => updateAttack(attack.id, { damage: event.target.value })
                     }
                   />
                 </Field>
-                <Field label="Тип урона" hint={raceNatural ? 'От расы' : undefined}>
+                <Field
+                  label="Тип урона"
+                  hint={raceNatural ? 'От расы' : classMa ? 'Боевые искусства' : undefined}
+                >
                   <Input
                     value={attack.damage_type}
                     placeholder="дробящий"
-                    readOnly={raceNatural}
+                    readOnly={raceNatural || classMa}
                     onChange={
-                      raceNatural
+                      raceNatural || classMa
                         ? undefined
                         : (event) =>
                             updateAttack(attack.id, { damage_type: event.target.value })
                     }
                   />
                 </Field>
-                {!raceNatural ? (
+                {!raceNatural && !classMa ? (
                   <Field label="Кол-во" hint="для метательных / запасов">
                     <NumberInput
                       min={1}
@@ -341,7 +396,7 @@ export function AttacksPanel({
                 ) : null}
               </div>
               <div className="attack-card__footer">
-                {!raceNatural && attack.inventory_item_id && onToggleHeld ? (
+                {!raceNatural && !classMa && attack.inventory_item_id && onToggleHeld ? (
                   <button
                     type="button"
                     className={`sheet-chip${attack.held ? ' is-on' : ''}`}
@@ -355,13 +410,17 @@ export function AttacksPanel({
                   title={
                     raceNatural
                       ? 'Природное оружие расы — всегда владение'
-                      : 'Из владений снаряжением на листе'
+                      : classMa
+                        ? 'Боевые искусства — всегда владение'
+                        : 'Из владений снаряжением на листе'
                   }
                 >
                   {proficient ? 'Владение' : 'Нет владения'}
                 </span>
                 {raceNatural ? (
                   <Text tone="muted">С расы</Text>
+                ) : classMa ? (
+                  <Text tone="muted">С класса</Text>
                 ) : (
                   <Button
                     variant="ghost"
