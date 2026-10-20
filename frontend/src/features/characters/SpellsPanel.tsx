@@ -24,6 +24,7 @@ import {
   spellSaveDc,
   type SpellcastingAbility,
 } from '../../shared/dnd/spells'
+import { PanelHelpButton } from '../onboarding'
 import { Button, Dialog, Field, Input, NumberInput, Panel, SlotPips, Stack, Text } from '../../ui'
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
@@ -663,7 +664,7 @@ export function SpellsPanel({
     spells.max_prepared == null ? String(preparedCount) : `${preparedCount}/${spells.max_prepared}`
 
   return (
-    <Panel title="Заклинания">
+    <Panel title="Заклинания" titleAside={<PanelHelpButton panelId="spells" />}>
       <Stack gap={14}>
         <Text tone="muted">
           {knownCaster

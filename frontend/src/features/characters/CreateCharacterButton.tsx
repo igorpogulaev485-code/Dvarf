@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { RulesEdition } from '../../shared/api/characters'
+import { EDITION_HINT } from '../onboarding'
 import { Button, Stack, Text } from '../../ui'
 
 export type CreateCharacterRequest = {
@@ -31,9 +32,8 @@ export function CreateCharacterButton({ pending, onCreate }: CreateCharacterButt
     <div className="create-character">
       <Stack gap={10}>
         <Text>Выберите редакцию правил</Text>
-        <Text tone="muted">
-          2014 — новая форма создания. 2024 — пока прежний путь через лист.
-        </Text>
+        <Text tone="muted">{EDITION_HINT}</Text>
+        <Text tone="muted">2014 — пошаговая форма. 2024 — пока путь через лист.</Text>
         <div className="create-character__actions">
           <Button disabled={pending} onClick={() => submit('2014')}>
             {pending ? '...' : 'D&D 2014'}

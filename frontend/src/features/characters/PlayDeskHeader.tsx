@@ -16,6 +16,7 @@ import {
   formatGpTotal,
   type CoinPurse,
 } from '../../shared/dnd/weight'
+import { ValueTip, VITAL_TIPS } from '../onboarding'
 import { NumberPadDialog } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { HpPadDialog } from './HpPadDialog'
@@ -105,6 +106,8 @@ type PlayDeskHeaderProps = {
   /** Controlled CoinPad (Explore inventory readout opens the same pad). */
   coinPadOpen?: boolean
   onCoinPadOpenChange?: (open: boolean) => void
+  /** Absolute beginner: «?» next to key numbers (КД, хиты, БМ…). */
+  showValueTips?: boolean
 }
 
 export function PlayDeskHeader({
@@ -154,6 +157,7 @@ export function PlayDeskHeader({
   onDamaged,
   coinPadOpen: coinPadOpenProp,
   onCoinPadOpenChange,
+  showValueTips = false,
 }: PlayDeskHeaderProps) {
   const alignmentLabel = alignment.trim()
   const editionLabel = String(rulesEdition).trim() || '2014'
@@ -405,7 +409,10 @@ export function PlayDeskHeader({
           >
             <IconShield className="play-desk-vital__icon" />
             <b>{autoAc}</b>
-            <span>КД</span>
+            <span className="play-desk-vital__label-row">
+              КД
+              {showValueTips ? <ValueTip tip={VITAL_TIPS.ac} /> : null}
+            </span>
             {onToggleShield ? (
               <button
                 type="button"
@@ -441,12 +448,13 @@ export function PlayDeskHeader({
           >
             <IconBoot className="play-desk-vital__icon" />
             <b>{primarySpeed ? primarySpeed.value : '—'}</b>
-            <span>
+            <span className="play-desk-vital__label-row">
               {primarySpeed
                 ? primarySpeed.key === 'walk'
                   ? 'Скор.'
                   : primarySpeed.label
                 : 'Скор.'}
+              {showValueTips ? <ValueTip tip={VITAL_TIPS.speed} /> : null}
             </span>
           </div>
           {secondarySpeeds.length > 0 ? (
@@ -478,7 +486,10 @@ export function PlayDeskHeader({
                 </span>
                 {jumpHighFt}
               </b>
-              <span>Прыж.</span>
+              <span className="play-desk-vital__label-row">
+                Прыж.
+                {showValueTips ? <ValueTip tip={VITAL_TIPS.jump} /> : null}
+              </span>
             </div>
           ) : null}
           {onOpenInitiative ? (
@@ -491,7 +502,10 @@ export function PlayDeskHeader({
             >
               <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
-              <span>Иниц.</span>
+              <span className="play-desk-vital__label-row">
+                Иниц.
+                {showValueTips ? <ValueTip tip={VITAL_TIPS.initiative} /> : null}
+              </span>
             </button>
           ) : onInitiativeRoll ? (
             <button
@@ -502,19 +516,28 @@ export function PlayDeskHeader({
             >
               <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
-              <span>Иниц.</span>
+              <span className="play-desk-vital__label-row">
+                Иниц.
+                {showValueTips ? <ValueTip tip={VITAL_TIPS.initiative} /> : null}
+              </span>
             </button>
           ) : (
             <div className="play-desk-vital" title="Инициатива (авто)">
               <IconBolt className="play-desk-vital__icon" />
               <b>{formatModifier(initiative)}</b>
-              <span>Иниц.</span>
+              <span className="play-desk-vital__label-row">
+                Иниц.
+                {showValueTips ? <ValueTip tip={VITAL_TIPS.initiative} /> : null}
+              </span>
             </div>
           )}
           <div className="play-desk-vital" title="Бонус мастерства (от уровня)">
             <IconBadge className="play-desk-vital__icon" />
             <b>{formatModifier(proficiencyBonus)}</b>
-            <span>БМ</span>
+            <span className="play-desk-vital__label-row">
+              БМ
+              {showValueTips ? <ValueTip tip={VITAL_TIPS.proficiency} /> : null}
+            </span>
           </div>
           <div className="play-desk-header__stack">
             <button
@@ -525,7 +548,10 @@ export function PlayDeskHeader({
               title="Вдохновение — нажми, чтобы переключить"
             >
               <IconSpark className="play-desk-header__chip-icon" />
-              <span>Вдохн.</span>
+              <span className="play-desk-vital__label-row">
+                Вдохн.
+                {showValueTips ? <ValueTip tip={VITAL_TIPS.inspiration} /> : null}
+              </span>
               <b>{inspiration ? 'да' : '—'}</b>
             </button>
             <button
@@ -541,7 +567,10 @@ export function PlayDeskHeader({
                 onExhaustionChange(clampExhaustion(next))
               }}
             >
-              <span>Истощ.</span>
+              <span className="play-desk-vital__label-row">
+                Истощ.
+                {showValueTips ? <ValueTip tip={VITAL_TIPS.exhaustion} /> : null}
+              </span>
               <b>{play.exhaustion}</b>
             </button>
             {exhaustionStage ? (
@@ -573,7 +602,10 @@ export function PlayDeskHeader({
           </button>
           <button type="button" className="play-desk-header__rest" onClick={onOpenRest}>
             <IconRest className="play-desk-header__btn-icon" />
-            <span>Отдых</span>
+            <span className="play-desk-vital__label-row">
+              Отдых
+              {showValueTips ? <ValueTip tip={VITAL_TIPS.rest} /> : null}
+            </span>
           </button>
         </div>
         <div className="play-desk-header__hp-wrap">
@@ -594,9 +626,10 @@ export function PlayDeskHeader({
             <strong>
               {hpCurrent ?? '—'} / {hpMax ?? '—'}
             </strong>
-            <small>
+            <small className="play-desk-vital__label-row">
               {showDeath ? 'при смерти' : 'хиты'}
               {hpTemp > 0 ? ` · врем. +${hpTemp}` : ''}
+              {showValueTips ? <ValueTip tip={VITAL_TIPS.hp} /> : null}
             </small>
           </button>
           <div

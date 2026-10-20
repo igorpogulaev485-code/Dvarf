@@ -2,6 +2,7 @@ import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { parseWeaponCatalogData } from '../../shared/dnd/gearCatalog'
+import { PanelHelpButton } from '../onboarding'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
   ABILITY_KEYS,
@@ -157,7 +158,11 @@ export function AttacksPanel({
   }
 
   return (
-    <Panel title="Атаки" className="attack-panel">
+    <Panel
+      title="Атаки"
+      className="attack-panel"
+      titleAside={<PanelHelpButton panelId="attacks" />}
+    >
       <Stack gap={12}>
         <Text tone="muted">
           Оружие из инвентаря появляется здесь само. «В руках» — держишь сейчас; убрать = в ножны

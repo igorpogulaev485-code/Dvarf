@@ -276,6 +276,7 @@ import { shapechangerFormLimits } from './featureForms'
 import { WildShapeDialog, type WildShapeDialogResult } from './WildShapeDialog'
 import { healSelfForm, rollDice } from './wildShape'
 import { TextBlocksPanel } from './TextBlocksPanel'
+import { OnboardingChecklist, PanelHelpButton } from '../onboarding'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { IdentityDialog } from './IdentityDialog'
@@ -435,6 +436,10 @@ type MinimalSheetEditorProps = {
   createGuide?: 'background-first' | 'class-first' | null
   /** Create at level N — after class grant, jump and queue picks 1…N. */
   startingLevel?: number
+  /** First-run checklist under the ability rail. */
+  showOnboardingChecklist?: boolean
+  /** Absolute beginner: value «?» on КД/хиты/СИЛ… */
+  showValueTips?: boolean
   onCreateGuideConsumed?: () => void
   onSaved: (character: CharacterDetail) => void
   onToast: (message: string) => void
@@ -745,6 +750,8 @@ export function MinimalSheetEditor({
   character,
   createGuide = null,
   startingLevel: startingLevelProp = 1,
+  showOnboardingChecklist = false,
+  showValueTips = false,
   onCreateGuideConsumed,
   onSaved,
   onToast,
@@ -4198,6 +4205,7 @@ export function MinimalSheetEditor({
       }
       onReorder={(abilityOrder) => patchSheetUi({ abilityOrder })}
       onCollapsedChange={(collapsedAbilities) => patchSheetUi({ collapsedAbilities })}
+      showValueTips={showValueTips}
     />
   )
 
@@ -4243,7 +4251,7 @@ export function MinimalSheetEditor({
         .join(' ')}
     >
       {isPlayDesk ? (
-        <div className="play-desk__top">
+        <div className="play-desk__top" data-onboarding="combat-header">
           <CharacterAvatarControl
             character={baseCharacter}
             size="md"
@@ -4254,6 +4262,9 @@ export function MinimalSheetEditor({
               onSaved(updated)
             }}
           />
+          <div className="play-desk__top-help">
+            <PanelHelpButton panelId="combat_header" />
+          </div>
           <PlayDeskHeader
             name={draft.name}
             raceName={draft.raceName}
@@ -4354,6 +4365,7 @@ export function MinimalSheetEditor({
             }
             coinPadOpen={coinPadOpen}
             onCoinPadOpenChange={setCoinPadOpen}
+            showValueTips={showValueTips}
             onCombatChange={(patch) =>
               setDraft((prev) => ({
                 ...prev,
@@ -4373,6 +4385,7 @@ export function MinimalSheetEditor({
           />
         </div>
       ) : (
+        <div data-onboarding="combat-header">
         <MobileVitalsBar
           character={baseCharacter}
           name={draft.name}
@@ -4471,6 +4484,7 @@ export function MinimalSheetEditor({
           }}
           onToast={onToast}
         />
+        </div>
       )}
 
       {isPlayDesk && dockCompanions.length > 0 ? (
@@ -4514,19 +4528,25 @@ export function MinimalSheetEditor({
       ) : null}
 
       <div className="play-desk__body">
-        <aside className="play-desk__left">
+        <aside className="play-desk__left" data-onboarding="abilities">
+          <div className="play-desk__rail-help">
+            <PanelHelpButton panelId="abilities" />
+            <PanelHelpButton panelId="skills" />
+          </div>
           {abilityColumn}
           <div className="play-desk__rail-foot">
             {passivesCompact}
             <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
               Владения ▸
             </Button>
+            {showOnboardingChecklist ? <OnboardingChecklist compact /> : null}
           </div>
         </aside>
 
-        <div className="play-desk__stage">
+        <div className="play-desk__stage" data-onboarding="actions">
           {isPlayDesk ? (
-            <div className="play-desk__modes">
+            <div className="play-desk__modes" data-onboarding="desk-modes">
+              <PanelHelpButton panelId="desk_modes" className="play-desk__modes-help" />
               {MODE_LABELS.map(({ id: mode, label }) => (
                 <button
                   key={mode}

@@ -26,6 +26,14 @@
 
 ---
 
+## Очередь UX / creed-долги
+
+| # | Слайс | Статус | Док |
+| --- | --- | --- | --- |
+| **O** | **Онбординг новичка** (welcome → create → sheet tour → panel help + value tips для `dnd_new`) | **код O0+O1 + value tips** · прод после полной сборки | [`SLICE_ONBOARDING_PLAN.md`](SLICE_ONBOARDING_PLAN.md) · ветка `cursor/onboarding-plan-37ff` |
+
+---
+
 ## Позиция по справочнику (кратко)
 
 Не клонируем dnd.su/ttg и не ссылаемся на них как на SoT.  

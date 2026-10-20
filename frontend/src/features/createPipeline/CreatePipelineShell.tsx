@@ -12,6 +12,8 @@ type CreatePipelineShellProps = {
   steps?: readonly CreatePipelineStepId[]
   title: string
   subtitle?: string
+  /** Optional onboarding what/why under the subtitle. */
+  stepHint?: ReactNode
   cards: ReactNode
   detail: ReactNode
   footer?: ReactNode
@@ -31,6 +33,7 @@ export function CreatePipelineShell({
   steps = CREATE_PIPELINE_STEPS,
   title,
   subtitle,
+  stepHint,
   cards,
   detail,
   footer,
@@ -66,6 +69,7 @@ export function CreatePipelineShell({
               {subtitle}
             </Text>
           ) : null}
+          {stepHint}
         </Stack>
 
         <div className="create-pipeline__progress" aria-live="polite">
