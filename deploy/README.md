@@ -4,7 +4,7 @@
 **URL:** http://201.34.132.252/  
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
-**Current prod tip branch:** `cursor/monk-l20-automation-10d6`  
+**Current prod tip branch:** `cursor/magic-initiate-spell-lists-10d6`  
 **Public URL:** https://creed20.tech (Caddy `edge` + Let’s Encrypt; `web` only on docker network)  
 (обновляй эту строку после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
 
