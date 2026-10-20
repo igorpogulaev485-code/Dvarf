@@ -192,6 +192,11 @@ export type FeatGrantDef = {
   }
   choices: FeatChoiceDef[]
   fixedGrants: FeatGrantsPackage
+  /**
+   * Fixed skills that become proficiency, or expertise if the character
+   * already has proficiency (UA Stealthy / skill feats).
+   */
+  skillOrExpertise: string[]
 }
 
 export type FeatGrantPicks = {
@@ -759,6 +764,9 @@ export function featGrantDefFromCatalog(input: {
       featEnumsAll: featEnumsAll.length ? featEnumsAll : undefined,
     },
     choices: parseChoices(data.choices),
+    skillOrExpertise: parseStringList(
+      grants.skill_or_expertise ?? grants.skillOrExpertise,
+    ),
     fixedGrants: emptyPackage({
       abilityBonuses: parseAbilityMap(grants.ability_bonuses ?? grants.abilityBonuses),
       armorProficiencies: parseArmorList(
@@ -789,6 +797,9 @@ export function featGrantDefFromCatalog(input: {
         grants.natural_armor ?? grants.naturalArmor,
       ),
       spells: parseFeatSpells(grants.spells ?? grants.feat_spells ?? grants.featSpells),
+      expertiseSkills: parseStringList(
+        grants.expertise_skills ?? grants.expertiseSkills,
+      ),
       benefitsRu: readString(data.benefits_ru) ?? readString(data.benefitsRu) ?? '',
       summaryRu: readString(data.summary_ru) ?? readString(data.summaryRu) ?? '',
     }),
@@ -1105,6 +1116,8 @@ export function buildAppliedFeatPackage(input: {
   def: FeatGrantDef
   picks: FeatGrantPicks
   characterLevel?: number
+  /** Skill keys the character is already proficient in (skill_or_expertise). */
+  proficientSkills?: string[]
 }): FeatGrantsPackage {
   const { def, picks } = input
   const abilityBonuses: Partial<Record<AbilityKey, number>> = {
@@ -1114,8 +1127,31 @@ export function buildAppliedFeatPackage(input: {
   const enumPicks: Record<string, string> = {}
   const enumMultiPicks: Record<string, string[]> = {}
   const skillsFromEnum: string[] = []
+  const skillsFromOrExpertise: string[] = []
   const pickedSpells: FeatSpell[] = []
-  const expertiseSkills = [...picks.expertiseSkills]
+  const expertiseSkills = [
+    ...def.fixedGrants.expertiseSkills,
+    ...picks.expertiseSkills,
+  ]
+
+  const proficient = new Set(
+    (input.proficientSkills ?? []).map((key) => key.trim().toLowerCase()),
+  )
+  // Skills granted by this package also count as proficient for skill_or_expertise
+  // (e.g. same feat grants a skill pick + expertise path — not used by Stealthy).
+  for (const key of [...def.fixedGrants.skills, ...picks.skills]) {
+    proficient.add(key.trim().toLowerCase())
+  }
+  for (const skill of def.skillOrExpertise) {
+    const key = skill.trim().toLowerCase()
+    if (!key) continue
+    if (proficient.has(key)) {
+      expertiseSkills.push(key)
+    } else {
+      skillsFromOrExpertise.push(key)
+      proficient.add(key)
+    }
+  }
 
   for (const choice of def.choices) {
     if (choice.type === 'ability_one') {
@@ -1283,6 +1319,7 @@ export function buildAppliedFeatPackage(input: {
       ...def.fixedGrants.skills,
       ...picks.skills,
       ...skillsFromEnum,
+      ...skillsFromOrExpertise,
     ]),
     tools: uniqueStrings([...def.fixedGrants.tools, ...picks.tools]),
     languages: uniqueStrings([...def.fixedGrants.languages, ...picks.languages]),

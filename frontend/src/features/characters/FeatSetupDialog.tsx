@@ -320,7 +320,12 @@ export function FeatSetupDialog({
       entry: selected,
       def,
       picks,
-      applied: buildAppliedFeatPackage({ def, picks, characterLevel }),
+      applied: buildAppliedFeatPackage({
+        def,
+        picks,
+        characterLevel,
+        proficientSkills,
+      }),
     })
   }
 
