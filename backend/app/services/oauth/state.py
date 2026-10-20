@@ -1,6 +1,7 @@
 """Signed OAuth state (works across multiple uvicorn workers).
 
 Optional PKCE code_verifier is embedded for VK ID.
+Optional link purpose + user_id for cabinet «Привязать».
 """
 
 from __future__ import annotations
@@ -12,10 +13,13 @@ import json
 import secrets
 import time
 from dataclasses import dataclass
+from uuid import UUID
 
 from app.core.config import settings
 
 _STATE_TTL_SECONDS = 600
+_PURPOSE_LOGIN = "login"
+_PURPOSE_LINK = "link"
 
 
 def _signing_key() -> bytes:
@@ -42,15 +46,34 @@ class OAuthStatePayload:
     nonce: str
     exp: int
     code_verifier: str | None = None
+    purpose: str = _PURPOSE_LOGIN
+    user_id: UUID | None = None
+
+    @property
+    def is_link(self) -> bool:
+        return self.purpose == _PURPOSE_LINK and self.user_id is not None
 
 
-def issue_oauth_state(*, code_verifier: str | None = None) -> str:
-    payload = {
+def issue_oauth_state(
+    *,
+    code_verifier: str | None = None,
+    purpose: str = _PURPOSE_LOGIN,
+    user_id: UUID | None = None,
+) -> str:
+    if purpose not in {_PURPOSE_LOGIN, _PURPOSE_LINK}:
+        raise ValueError(f"unsupported oauth purpose: {purpose}")
+    if purpose == _PURPOSE_LINK and user_id is None:
+        raise ValueError("link purpose requires user_id")
+
+    payload: dict = {
         "n": secrets.token_urlsafe(16),
         "e": int(time.time()) + _STATE_TTL_SECONDS,
+        "p": purpose,
     }
     if code_verifier:
         payload["v"] = code_verifier
+    if user_id is not None:
+        payload["u"] = str(user_id)
     payload_b64 = _b64url(json.dumps(payload, separators=(",", ":")).encode("utf-8"))
     return f"{payload_b64}.{_sign(payload_b64)}"
 
@@ -77,11 +100,25 @@ def consume_oauth_state(state: str | None) -> OAuthStatePayload | None:
     nonce = str(raw.get("n") or "").strip()
     if not nonce:
         return None
+    purpose = str(raw.get("p") or _PURPOSE_LOGIN).strip() or _PURPOSE_LOGIN
+    if purpose not in {_PURPOSE_LOGIN, _PURPOSE_LINK}:
+        return None
     verifier = raw.get("v")
+    user_id: UUID | None = None
+    raw_uid = raw.get("u")
+    if raw_uid:
+        try:
+            user_id = UUID(str(raw_uid))
+        except (TypeError, ValueError):
+            return None
+    if purpose == _PURPOSE_LINK and user_id is None:
+        return None
     return OAuthStatePayload(
         nonce=nonce,
         exp=exp,
         code_verifier=str(verifier) if verifier else None,
+        purpose=purpose,
+        user_id=user_id,
     )
 
 

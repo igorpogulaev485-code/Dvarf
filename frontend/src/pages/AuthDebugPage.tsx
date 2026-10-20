@@ -32,6 +32,13 @@ export function AuthDebugPage({ nextPath = null }: AuthDebugPageProps) {
     const accessToken = params.get('access_token')
     const refreshToken = params.get('refresh_token')
     const oauthProvider = params.get('oauth')
+    const oauthError = params.get('oauth_error')
+
+    if (oauthError) {
+      setOauthMessage(oauthError)
+      window.history.replaceState({}, '', '/login')
+      return
+    }
 
     if (!accessToken || !refreshToken) {
       return

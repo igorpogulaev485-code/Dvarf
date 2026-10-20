@@ -234,6 +234,22 @@ def delete_account(
     )
 
 
+def _oauth_labels() -> dict[AuthProvider, str]:
+    return {AuthProvider.yandex: "Яндекс", AuthProvider.vk: "VK ID"}
+
+
+def _oauth_public_base() -> str:
+    return (settings.app_public_url or "https://creed20.tech").rstrip("/")
+
+
+def _oauth_redirect(path: str, **params: str) -> RedirectResponse:
+    query = urlencode({k: v for k, v in params.items() if v})
+    url = f"{_oauth_public_base()}{path}"
+    if query:
+        url = f"{url}?{query}"
+    return RedirectResponse(url=url, status_code=302)
+
+
 @router.get("/oauth/{provider}/start", response_model=OAuthStartResponse)
 def oauth_start(provider: AuthProvider) -> OAuthStartResponse:
     if provider not in {AuthProvider.yandex, AuthProvider.vk}:
@@ -244,7 +260,7 @@ def oauth_start(provider: AuthProvider) -> OAuthStartResponse:
         )
 
     oauth = _provider(provider)
-    labels = {AuthProvider.yandex: "Яндекс", AuthProvider.vk: "VK ID"}
+    labels = _oauth_labels()
     if not oauth.is_configured():
         return OAuthStartResponse(
             provider=provider.value,
@@ -271,6 +287,67 @@ def oauth_start(provider: AuthProvider) -> OAuthStartResponse:
     )
 
 
+@router.get("/oauth/{provider}/link/start", response_model=OAuthStartResponse)
+def oauth_link_start(
+    provider: AuthProvider,
+    current_user: CurrentUser,
+) -> OAuthStartResponse:
+    """Start OAuth in «link to current account» mode (cabinet)."""
+    if provider not in {AuthProvider.yandex, AuthProvider.vk}:
+        raise AppError(
+            "Неподдерживаемый OAuth-провайдер",
+            code="unsupported_provider",
+            status_code=400,
+        )
+
+    oauth = _provider(provider)
+    labels = _oauth_labels()
+    if not oauth.is_configured():
+        return OAuthStartResponse(
+            provider=provider.value,
+            configured=False,
+            authorize_url=None,
+            message=(
+                f"Привязка {labels[provider]} не настроена: "
+                "добавьте client id/secret в env."
+            ),
+        )
+
+    if any(identity.provider == provider for identity in current_user.identities):
+        raise AppError(
+            f"{labels[provider]} уже привязан к этому аккаунту.",
+            code="oauth_provider_already_linked",
+            status_code=409,
+        )
+
+    code_challenge: str | None = None
+    if provider == AuthProvider.vk:
+        verifier, code_challenge = make_pkce_pair()
+        state = issue_oauth_state(
+            code_verifier=verifier,
+            purpose="link",
+            user_id=current_user.id,
+        )
+    else:
+        state = issue_oauth_state(purpose="link", user_id=current_user.id)
+
+    return OAuthStartResponse(
+        provider=provider.value,
+        configured=True,
+        authorize_url=oauth.get_authorize_url(state, code_challenge=code_challenge),
+        message=f"Готово к привязке {labels[provider]}.",
+    )
+
+
+@router.delete("/oauth/{provider}/link", response_model=UserResponse)
+def oauth_unlink(
+    provider: AuthProvider,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> UserResponse:
+    return AuthService(db).unlink_oauth_provider(current_user, provider)
+
+
 @router.get("/oauth/{provider}/callback")
 async def oauth_callback(
     provider: AuthProvider,
@@ -281,52 +358,75 @@ async def oauth_callback(
     error: str | None = None,
     device_id: str | None = None,
 ):
-    if provider not in {AuthProvider.yandex, AuthProvider.vk}:
-        raise AppError(
-            "Неподдерживаемый OAuth-провайдер",
-            code="unsupported_provider",
-            status_code=400,
+    labels = _oauth_labels()
+    is_link_hint = False
+    try:
+        if provider not in {AuthProvider.yandex, AuthProvider.vk}:
+            raise AppError(
+                "Неподдерживаемый OAuth-провайдер",
+                code="unsupported_provider",
+                status_code=400,
+            )
+
+        # Peek state early so errors redirect to cabinet when linking.
+        peek = consume_oauth_state(state)
+        is_link_hint = bool(peek and peek.is_link)
+
+        if error:
+            raise AppError(
+                f"Провайдер вернул ошибку: {error}",
+                code="oauth_provider_error",
+                status_code=400,
+            )
+
+        if not code:
+            raise AppError("Не передан код OAuth", code="missing_code", status_code=400)
+
+        state_payload = peek
+        if state_payload is None:
+            raise AppError(
+                "Некорректный или просроченный state OAuth",
+                code="invalid_oauth_state",
+                status_code=400,
+            )
+
+        oauth = _provider(provider)
+        profile = await oauth.exchange_code(
+            code,
+            device_id=device_id,
+            code_verifier=state_payload.code_verifier,
+            state=state,
         )
 
-    if error:
-        raise AppError(
-            f"Провайдер вернул ошибку: {error}",
-            code="oauth_provider_error",
-            status_code=400,
+        if state_payload.is_link:
+            assert state_payload.user_id is not None
+            AuthService(db).link_oauth_profile(state_payload.user_id, profile)
+            return _oauth_redirect(
+                "/cabinet",
+                oauth_linked=provider.value,
+            )
+
+        user_agent, ip_address = client_meta(request)
+        tokens = AuthService(db).login_with_oauth_profile(
+            profile,
+            user_agent=user_agent,
+            ip_address=ip_address,
         )
-
-    if not code:
-        raise AppError("Не передан код OAuth", code="missing_code", status_code=400)
-
-    state_payload = consume_oauth_state(state)
-    if state_payload is None:
-        raise AppError(
-            "Некорректный или просроченный state OAuth",
-            code="invalid_oauth_state",
-            status_code=400,
+        # Must land on /login — HomeRedirect on / strips query and drops tokens.
+        return _oauth_redirect(
+            "/login",
+            oauth=provider.value,
+            access_token=tokens.access_token,
+            refresh_token=tokens.refresh_token,
         )
-
-    oauth = _provider(provider)
-    profile = await oauth.exchange_code(
-        code,
-        device_id=device_id,
-        code_verifier=state_payload.code_verifier,
-        state=state,
-    )
-    user_agent, ip_address = client_meta(request)
-    tokens = AuthService(db).login_with_oauth_profile(
-        profile,
-        user_agent=user_agent,
-        ip_address=ip_address,
-    )
-
-    query = urlencode(
-        {
-            "oauth": provider.value,
-            "access_token": tokens.access_token,
-            "refresh_token": tokens.refresh_token,
-        }
-    )
-    # Must land on /login — HomeRedirect on / strips query and drops tokens.
-    base = (settings.app_public_url or "https://creed20.tech").rstrip("/")
-    return RedirectResponse(url=f"{base}/login?{query}", status_code=302)
+    except AppError as exc:
+        label = labels.get(provider, provider.value)
+        if is_link_hint:
+            return _oauth_redirect(
+                "/cabinet",
+                oauth_error=exc.message or f"Не удалось привязать {label}",
+            )
+        return _oauth_redirect(
+            "/login",
+            oauth_error=exc.message or f"Не удалось войти через {label}",
+        )
