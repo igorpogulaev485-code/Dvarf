@@ -31,3 +31,14 @@ PNG с альфой → Place image в Figma.
 У каждого цвета также есть `-512.png`.
 
 Свечение — полупрозрачный цветной градиент снаружи контура огня: на белом, пергаменте и тёмном фоне не даёт чёрного ореола.
+
+## Лапа дракона (жесты)
+
+Стиль как в рефе (жирный контур, olive green, кремовые когти). PNG без фона.
+
+| Жест | Файл |
+|------|------|
+| Victory (✌️) | [`dragon-paw-victory.png`](dragon-paw-victory.png) |
+| Rock (🤘) | [`dragon-paw-rock.png`](dragon-paw-rock.png) |
+
+Превью: [`dragon-paws-sheet.png`](dragon-paws-sheet.png). Есть также `-512` / `-1024`.
