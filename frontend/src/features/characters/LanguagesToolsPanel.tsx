@@ -1,3 +1,4 @@
+import { PanelHelpButton } from '../onboarding'
 import { Panel, Stack } from '../../ui'
 import {
   LANGUAGE_PRESETS,
@@ -17,7 +18,10 @@ export function LanguagesToolsPanel({
   onChange,
 }: LanguagesToolsPanelProps) {
   return (
-    <Panel title="Языки и инструменты">
+    <Panel
+      title="Языки и инструменты"
+      titleAside={<PanelHelpButton panelId="languages_tools" />}
+    >
       <Stack gap={14}>
         <NameListPicker
           title="Языки"
