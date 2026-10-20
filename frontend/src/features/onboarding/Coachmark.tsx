@@ -43,13 +43,36 @@ export function Coachmark({
       setRect(null)
       return
     }
+    let cancelled = false
+    let raf = 0
     function measure() {
-      setRect(readRect(anchorSelector))
+      if (cancelled) return
+      const next = readRect(anchorSelector)
+      // Ignore absurd readings (e.g. mid-layout flashes below the fold).
+      if (next && next.top > window.innerHeight + 40) return
+      setRect(next)
     }
     measure()
+    raf = window.requestAnimationFrame(() => {
+      measure()
+      raf = window.requestAnimationFrame(measure)
+    })
+    const target = document.querySelector(anchorSelector)
+    const ro =
+      target && 'ResizeObserver' in window
+        ? new ResizeObserver(() => measure())
+        : null
+    if (target && ro) ro.observe(target)
     window.addEventListener('resize', measure)
     window.addEventListener('scroll', measure, true)
+    const t1 = window.setTimeout(measure, 50)
+    const t2 = window.setTimeout(measure, 200)
     return () => {
+      cancelled = true
+      window.cancelAnimationFrame(raf)
+      window.clearTimeout(t1)
+      window.clearTimeout(t2)
+      ro?.disconnect()
       window.removeEventListener('resize', measure)
       window.removeEventListener('scroll', measure, true)
     }
@@ -57,6 +80,7 @@ export function Coachmark({
 
   useEffect(() => {
     if (!open) return
+    // Lock after first layout measure so anchors keep stable viewport rects.
     const release = acquireBodyScrollLock()
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape' && onSecondary) {
@@ -83,18 +107,25 @@ export function Coachmark({
       }
     : null
 
+  const cardWidth = Math.min(300, window.innerWidth - 24)
   const cardStyle = hole
-    ? {
-        top: Math.min(
-          hole.top + hole.height + 12,
-          window.innerHeight - 220,
-        ),
-        left: Math.min(
-          Math.max(12, hole.left),
-          window.innerWidth - 320,
-        ),
+    ? (() => {
+        const preferBelow = hole.top + hole.height + 12
+        const placeAbove = preferBelow > window.innerHeight - 230
+        const top = placeAbove
+          ? Math.max(12, hole.top - 210)
+          : Math.min(preferBelow, window.innerHeight - 230)
+        return {
+          top,
+          left: Math.min(Math.max(12, hole.left), window.innerWidth - cardWidth - 12),
+          width: cardWidth,
+        }
+      })()
+    : {
+        top: Math.max(24, window.innerHeight * 0.28),
+        left: Math.max(12, (window.innerWidth - cardWidth) / 2),
+        width: cardWidth,
       }
-    : { top: '30%', left: '50%', transform: 'translateX(-50%)' as const }
 
   return createPortal(
     <div className="onboarding-coach" role="dialog" aria-modal="true" aria-labelledby="onboarding-coach-title">

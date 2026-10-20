@@ -14096,6 +14096,8 @@ button.session-concentration-tag {
   padding: 2px 8px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.06);
+}
+
 /* C5: типы / фильтры / поля шаблона */
 .setting-wiki-kind-filters {
   display: flex;
@@ -14481,10 +14483,11 @@ button.session-concentration-tag {
 }
 
 .onboarding-drawer {
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 0;
   bottom: 0;
+  z-index: 2;
   width: min(400px, 100%);
   display: flex;
   flex-direction: column;
@@ -14621,4 +14624,51 @@ button.session-concentration-tag {
 
 .play-desk__rail-foot .onboarding-checklist {
   margin-top: 8px;
+}
+
+/* Onboarding preview (review only) */
+.onboarding-preview__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.onboarding-preview__stage {
+  min-height: 420px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+
+.onboarding-preview__fake-page,
+.onboarding-preview__fake-desk {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--line);
+  background: #fffdf9;
+}
+
+.onboarding-preview__anchor {
+  padding: 14px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 50%, #fff);
+  font-size: 0.9rem;
+}
+
+.onboarding-preview__anchor--lg {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.onboarding-preview--clean .onboarding-preview__stage {
+  border: 0;
+  background: transparent;
+  padding: 12px;
+  min-height: 0;
 }

@@ -41,6 +41,7 @@ export function HelpDrawer({ open, onClose }: HelpDrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="onboarding-help-drawer-title"
+        style={{ position: 'fixed', top: 0, right: 0, bottom: 0 }}
       >
         <header className="onboarding-drawer__header">
           <h2 id="onboarding-help-drawer-title" className="ui-text">

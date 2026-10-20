@@ -6,11 +6,17 @@ import type { OnboardingPanelId } from './types'
 type PanelHelpButtonProps = {
   panelId: OnboardingPanelId
   className?: string
+  /** Preview / tests: start with popover open. */
+  forceOpen?: boolean
 }
 
-export function PanelHelpButton({ panelId, className = '' }: PanelHelpButtonProps) {
+export function PanelHelpButton({
+  panelId,
+  className = '',
+  forceOpen = false,
+}: PanelHelpButtonProps) {
   const help = PANEL_HELP[panelId]
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(forceOpen)
   const rootRef = useRef<HTMLDivElement | null>(null)
   const popoverId = useId()
 
