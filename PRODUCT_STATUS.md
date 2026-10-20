@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/b0-content-layer-6151`  
+**Prod tip (ветка линии прода):** `cursor/oauth-yandex-vk-6151`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -58,6 +58,15 @@
 ---
 
 ## Сейчас в продукте (прод)
+
+### 2026-10-20 — OAuth Яндекс + VK ID
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Яндекс / VK | Компактные лого у формы входа; PKCE + signed state | Быстрый вход без пароля |
+| Callback | `https://creed20.tech/auth/oauth/…/callback` → `/login` | Токены не теряются |
+
+На проде: **да** · **это новый prod tip** `cursor/oauth-yandex-vk-6151` · PR #227 · залито 2026-10-20
 
 ### 2026-10-20 — B0 content_layer (заклинания + расы)
 
