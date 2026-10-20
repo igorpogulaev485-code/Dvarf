@@ -1,0 +1,984 @@
+{
+  "version": 1,
+  "notes": "BMT weapons wave (Book of Many Things). Effects MVP; RU names. Moonbow already in gear_bmt_moonbow_v1.",
+  "inserts": [
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "cb8007f3-4e69-572b-bd6e-4fcf64c517af",
+      "slug": "bloodrage_greataxe",
+      "name_ru": "Секира кровавой ярости",
+      "name_en": "Bloodrage Greataxe",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10610,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к12",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 7,
+        "properties": [
+          "heavy",
+          "two-handed"
+        ],
+        "cost": {
+          "amount": 2000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "description_ru": "Секира. Пока у вас половина хитов или меньше — +2 к атаке и урону этим оружием.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+2 к атаке/урону, пока HP ≤ половины максимума."
+          }
+        ],
+        "base_weapon_slug": "greataxe"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "d6627faa-0792-5739-8999-9a7a9cc69905",
+      "slug": "dried_leech",
+      "name_ru": "Сушёная пиявка",
+      "name_en": "Dried Leech",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10611,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 0,
+        "properties": [
+          "ammunition"
+        ],
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Боеприпас (стрела/болт). При попадании пиявка оживает и впивается: колющий урон в начале хода цели, пока не снимет действием или не наберёт ≥10 урона / цель не умрёт.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "После попадания: DoT колющим в начале хода цели; снять действием; отпадает при ≥10 урона или смерти цели."
+          }
+        ],
+        "range": {
+          "normal": 80,
+          "long": 320
+        },
+        "item_category": "ammunition",
+        "stackable": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "49101460-45c1-5d66-9abb-c693e7c7643c",
+      "slug": "sling_of_giant_felling",
+      "name_ru": "Праща повержения великанов",
+      "name_en": "Sling of Giant Felling",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10612,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "дробящий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 0,
+        "properties": [
+          "ammunition"
+        ],
+        "cost": {
+          "amount": 75,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "description_ru": "Праща. При попадании по существу типа Giant — спасбросок Телосложения Сл 18 или оно падает ничком.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "По Giant: Con DC 18 или prone."
+          }
+        ],
+        "range": {
+          "normal": 30,
+          "long": 120
+        },
+        "base_weapon_slug": "sling"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "7d025655-12f3-5bd6-b0bd-b1239d8ed310",
+      "slug": "winged_ammunition",
+      "name_ru": "Крылатый боеприпас",
+      "name_en": "Winged Ammunition",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10613,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 0,
+        "properties": [
+          "ammunition"
+        ],
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "uncommon",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Боеприпас. Игнорирует полуукрытие и укрытие на ¾; дальняя дистанция без помехи.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Игнор half/three-quarters cover; нет помехи на long range."
+          }
+        ],
+        "range": {
+          "normal": 80,
+          "long": 320
+        },
+        "item_category": "ammunition",
+        "stackable": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "738a3a73-68d4-516d-973b-cddf42634530",
+      "slug": "bow_of_conflagration",
+      "name_ru": "Лук пожара",
+      "name_en": "Bow of Conflagration",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10614,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к8+1к6",
+        "damage_type": "колющий + огонь",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 2,
+        "properties": [
+          "ammunition",
+          "heavy",
+          "two-handed"
+        ],
+        "cost": {
+          "amount": 1000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Оружие (любой лук), редкое (настройка). +1к6 огня при попадании; воспламеняемый немагический объект может загореться (1к6 огня в начале ваших ходов, пока не потушат действием).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "+1к6 огня при попадании; объект может гореть 1к6/ваш ход."
+          }
+        ],
+        "range": {
+          "normal": 150,
+          "long": 600
+        },
+        "base_weapon_slug": "longbow"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "1a0823a5-72ad-5961-8ca7-6e75e1591ae4",
+      "slug": "grasping_whip",
+      "name_ru": "Хватающий кнут",
+      "name_en": "Grasping Whip",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10615,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": true,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "finesse",
+          "reach"
+        ],
+        "cost": {
+          "amount": 2000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "description_ru": "Кнут +1. Вместо урона можно притянуть Large или меньше на 5 фт к себе.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Вместо урона: pull Large− на 5 фт."
+          }
+        ],
+        "magic_bonus": 1,
+        "base_weapon_slug": "whip"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "cd8eed15-06c1-5be3-9b48-157ff57ded3c",
+      "slug": "ruinous_flail",
+      "name_ru": "Губительный цеп",
+      "name_en": "Ruinous Flail",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10616,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [],
+        "cost": {
+          "amount": 750,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Цеп +1, двойной урон объектам и строениям. 1/рассвет: при попадании Con DC 15 или отравлен на 1 мин (2к4 некротики в начале хода; повторный спас в конце хода).",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "resource",
+            "id": "ruinous_flail_poison",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "×2 урона объектам/строениям. 1/рассвет: poison DoT 2к4 necrotic, Con DC 15."
+          }
+        ],
+        "magic_bonus": 1,
+        "base_weapon_slug": "flail"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "6d415431-a6e1-5087-a03f-4b9e2953f454",
+      "slug": "starshot_crossbow",
+      "name_ru": "Звёздный арбалет",
+      "name_en": "Starshot Crossbow",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10617,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к10",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 18,
+        "properties": [
+          "ammunition",
+          "heavy",
+          "two-handed"
+        ],
+        "cost": {
+          "amount": 6000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Арбалет (любой), редкий (настройка). Без свойства loading; сам создаёт боеприпас. 3 заряда (рассвет 1к3): бонусным — Balance / Flames / Rogue.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "starshot_crossbow_charges",
+            "max": 3,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Без loading; свои болты. Заряды: Balance (heal 1к8+PB), Flames (+2к8 огня), Rogue (невидимость до конца след. хода)."
+          }
+        ],
+        "range": {
+          "normal": 100,
+          "long": 400
+        },
+        "base_weapon_slug": "heavy_crossbow"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "6657f0a1-c9a2-5c86-9000-d0bf51b1b03e",
+      "slug": "baleful_talon",
+      "name_ru": "Зловещий коготь",
+      "name_en": "Baleful Talon",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10618,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": true,
+        "ranged": false,
+        "weight_lb": 1,
+        "properties": [
+          "finesse",
+          "light",
+          "thrown"
+        ],
+        "cost": {
+          "amount": 3000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "description_ru": "Кинжал +1. На 19–20 атаке цель Con DC 15: некротический урон (половина при успехе); при 0 HP — рассыпается в прах.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Крит 19–20: Con DC 15 necrotic; 0 HP → disintegration."
+          }
+        ],
+        "range": {
+          "normal": 20,
+          "long": 60
+        },
+        "magic_bonus": 1,
+        "base_weapon_slug": "dagger"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "d96ab6d7-c46a-5f3a-a4dc-ecfb8d01bea1",
+      "slug": "bloodseeker_ammunition",
+      "name_ru": "Кровоискатель",
+      "name_en": "Bloodseeker Ammunition",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10619,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 0,
+        "properties": [
+          "ammunition"
+        ],
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "none",
+        "description_ru": "Боеприпас. Преимущество к атаке против существ не на полном HP.",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Преимущество vs цели не на max HP."
+          }
+        ],
+        "range": {
+          "normal": 80,
+          "long": 320
+        },
+        "item_category": "ammunition",
+        "stackable": true
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "19135bfb-b8c1-5934-8fc7-821febd9ffc3",
+      "slug": "bow_of_melodies",
+      "name_ru": "Лук мелодий",
+      "name_en": "Bow of Melodies",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10620,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 2,
+        "properties": [
+          "ammunition",
+          "heavy",
+          "two-handed"
+        ],
+        "cost": {
+          "amount": 10000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Лук-лира (настройка). Перед атакой можно сыграть мелодию (одна на атаку): бонус к атаке / экспертиза / доп. урон громом = мод. Харизмы (см. BMT).",
+        "effects": [
+          {
+            "type": "custom_note",
+            "text": "Мелодии перед атакой: +атака / expertise echo / +гром = Cha mod."
+          }
+        ],
+        "range": {
+          "normal": 150,
+          "long": 600
+        },
+        "base_weapon_slug": "longbow"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "0453004d-0469-555e-aeca-a28aa2793909",
+      "slug": "fate_cutter_shears",
+      "name_ru": "Ножницы судьбы",
+      "name_en": "Fate Cutter Shears",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10621,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к4",
+        "damage_type": "колющий",
+        "category": "simple",
+        "finesse": true,
+        "ranged": false,
+        "weight_lb": 1,
+        "properties": [
+          "finesse",
+          "light",
+          "thrown"
+        ],
+        "cost": {
+          "amount": 2000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Магический кинжал (настройка). Доп. урон при попадании; 1/рассвет: «срезать судьбу» — по цели криты с 19–20 до конца её длинного отдыха.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "fate_cutter_shear",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Доп. урон (BMT). 1/рассвет: crits 19–20 по цели до её long rest."
+          }
+        ],
+        "range": {
+          "normal": 20,
+          "long": 60
+        },
+        "base_weapon_slug": "dagger"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "33a63799-1013-5b33-aae8-012e9ad77989",
+      "slug": "fools_blade",
+      "name_ru": "Клинок шута",
+      "name_en": "Fool's Blade",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10622,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Оружие (меч), очень редкое (настройка). +2 к атаке и урону. 1/рассвет бонусным: преимущество к атакам по цели в 5 фт. 1/рассвет реакцией: Int DC 15 — атака по вам перенаправляется на другую цель в досягаемости.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "resource",
+            "id": "fools_feint",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "resource",
+            "id": "fools_misdirect",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Fool's Feint (бонус, adv). Misdirect (реакция, Int DC 15)."
+          }
+        ],
+        "versatile_damage": "1к10",
+        "magic_bonus": 2,
+        "base_weapon_slug": "longsword"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "ac18df6d-0cfb-50f6-ba4e-6cac9d7fa934",
+      "slug": "forcebreaker_weapon",
+      "name_ru": "Оружие сокрушения силы",
+      "name_en": "Forcebreaker Weapon",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10623,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "description_ru": "Оружие (любое), очень редкое. +2 к атаке и урону. Разрушает структуры из магической силы (force): Large− целиком; Huge+ — куб 20 фт.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "custom_note",
+            "text": "Шатает force-структуры (wall of force и т.п.)."
+          }
+        ],
+        "versatile_damage": "1к10",
+        "magic_bonus": 2,
+        "base_weapon_slug": "longsword"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "67c07222-7972-5a93-9c4d-88f05208e0bb",
+      "slug": "hammer_of_runic_focus",
+      "name_ru": "Молот рунического фокуса",
+      "name_en": "Hammer of Runic Focus",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10624,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "дробящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 8000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Боевой молот (настройка), 3 заряда. Бонусным: удар о землю — круг рун 15 фт; внутри усиливает молот (см. BMT). Рассвет восстанавливает заряды.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "runic_focus_charges",
+            "max": 3,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "3 заряда: рунный круг 15 фт (усиление молота внутри)."
+          }
+        ],
+        "versatile_damage": "1к10",
+        "base_weapon_slug": "warhammer"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "b65fde8a-cf59-524c-a0dc-ecd73dda98c4",
+      "slug": "stonemaker_war_pick",
+      "name_ru": "Кирка камнедела",
+      "name_en": "Stonemaker War Pick",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10625,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 2,
+        "properties": [],
+        "cost": {
+          "amount": 7000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Боевая кирка +1 (настройка). 1/рассвет: заклинание с кирки; на крите vs цель <100 HP — заряд: Con DC 15 или окаменение (см. BMT).",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "resource",
+            "id": "stonemaker_spell",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Spell 1/dawn; crit + charge → petrify Con DC 15 (<100 HP)."
+          }
+        ],
+        "magic_bonus": 1,
+        "base_weapon_slug": "war_pick"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "962b9239-768a-5499-a7b4-69d787bfd94e",
+      "slug": "tidecaller_trident",
+      "name_ru": "Трезубец призыва прилива",
+      "name_en": "Tidecaller Trident",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10626,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к6",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 4,
+        "properties": [
+          "thrown",
+          "versatile"
+        ],
+        "cost": {
+          "amount": 8000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Трезубец +2 (настройка). Преимущество к атакам под водой. 3 заряда: 1 — заклинание (DC 15), 3 — более сильное; рассвет восстанавливает.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 2
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2
+          },
+          {
+            "type": "resource",
+            "id": "tidecaller_charges",
+            "max": 3,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Adv под водой. Заряды → заклинания DC 15 (BMT)."
+          }
+        ],
+        "range": {
+          "normal": 20,
+          "long": 60
+        },
+        "versatile_damage": "1к8",
+        "magic_bonus": 2,
+        "base_weapon_slug": "trident"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "9fc2a637-77d6-51c8-b496-9c433ac13f10",
+      "slug": "weapon_of_thrones_command",
+      "name_ru": "Оружие повеления трона",
+      "name_en": "Weapon of Throne's Command",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10627,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 8000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "very_rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Оружие (любое), очень редкое (настройка). +1 к атаке и урону; владение Intimidation. 5 зарядов: бонусным — заклинания повеления (DC 16, см. BMT).",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "resource",
+            "id": "throne_command_charges",
+            "max": 5,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "Proficiency Intimidation. 5 зарядов → command spells DC 16."
+          }
+        ],
+        "versatile_damage": "1к10",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longsword"
+      }
+    },
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "8b8cce02-161e-54ee-a25b-1f7523503e2f",
+      "slug": "sword_of_the_planes",
+      "name_ru": "Меч планов",
+      "name_en": "Sword of the Planes",
+      "rules_edition": "2014",
+      "source": "BMT 2014",
+      "sort_order": 10628,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "str",
+        "damage": "1к8",
+        "damage_type": "рубящий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": false,
+        "weight_lb": 3,
+        "properties": [
+          "versatile"
+        ],
+        "cost": {
+          "amount": 50000,
+          "unit": "gp"
+        },
+        "source_book": "BMT",
+        "rarity": "legendary",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "description_ru": "Меч +3 (настройка). Действием 1/рассвет: разрез в пустом пространстве в 5 фт — разлом на другой план (до 10×10 фт, 1 мин).",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 3
+          },
+          {
+            "type": "damage_bonus",
+            "value": 3
+          },
+          {
+            "type": "resource",
+            "id": "planes_rift",
+            "max": 1,
+            "restore": "dawn"
+          },
+          {
+            "type": "custom_note",
+            "text": "1/рассвет: planar rift 10×10 фт, 1 мин."
+          }
+        ],
+        "versatile_damage": "1к10",
+        "magic_bonus": 3,
+        "base_weapon_slug": "longsword"
+      }
+    }
+  ]
+}

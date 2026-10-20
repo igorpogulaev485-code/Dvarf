@@ -10550,6 +10550,7 @@
       "concentration": true,
       "ritual": false,
       "classes": [
+        "bard",
         "druid"
       ],
       "attack_or_save": "ЛОВ",

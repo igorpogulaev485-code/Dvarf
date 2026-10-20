@@ -91,4 +91,24 @@ const champion = parseSubclassGrantDef({
 assert(champion, 'champion def parses')
 assert(!subclassNeedsSetupDialog(champion), 'Champion: empty choices skip dialog')
 
+const gloom = parseSubclassGrantDef({
+  slug: 'gloom_stalker',
+  nameRu: 'Сумрачный охотник',
+  parentSlug: 'ranger',
+  catalogData: {
+    parent_slug: 'ranger',
+    grants_level: 3,
+    sheet_grants: {},
+    choices: [],
+    always_prepared_spells: [
+      { name: 'Disguise Self', level: 1, from_class_level: 3 },
+      { name: 'Rope Trick', level: 2, from_class_level: 5 },
+    ],
+  },
+})
+assert(gloom, 'gloom def parses')
+assert(gloom.alwaysPreparedSpells.length === 2, 'gloom spells parsed')
+assert(gloom.alwaysPreparedSpells[0]?.fromClassLevel === 3, 'from_class_level kept')
+assert(!subclassNeedsSetupDialog(gloom), 'Gloom: no setup dialog')
+
 console.log('subclassGrants.selfcheck: ok')
