@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
-"""Diff official bestiary coverage: ttg.club Basic vs dnd.su official index.
+"""LEGACY gap-check vs ttg/dnd.su indexes (B2: disabled by default).
 
-Also optional field-level compare when a local ttg JSON wave file is provided
-(for B6 conflict→ttg logging).
-
-Examples:
-  python3 backend/scripts/diff_bestiary_sources.py
-  python3 backend/scripts/diff_bestiary_sources.py --json-out /tmp/bestiary_gap.json
-  python3 backend/scripts/diff_bestiary_sources.py --our backend/data/srd/2014/bestiary_mm_v1.json
+Historical audit helper only — not product SoT.
+Unlock: DVARF_ALLOW_LEGACY_FETCH=1
 """
 
 from __future__ import annotations
@@ -19,6 +14,12 @@ import sys
 import urllib.request
 from collections import Counter
 from pathlib import Path
+
+SCRIPTS = Path(__file__).resolve().parent
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
+
+from legacy_fetch_guard import require_legacy_fetch_allowed  # noqa: E402
 
 TTG_INDEX = "https://5e14.ttg.club/api/v2/bestiary"
 DNDSU_INDEX = "https://5e14.dnd.su/piece/bestiary/index-list/"
@@ -112,6 +113,7 @@ def load_our(path: Path) -> list[dict]:
 
 
 def main() -> int:
+    require_legacy_fetch_allowed("diff_bestiary_sources.py")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--our", type=Path, help="Local wave JSON to compare vs ttg")
     parser.add_argument("--json-out", type=Path, help="Write full gap report JSON")

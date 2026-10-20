@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import type { RulesEdition } from '../../shared/api/characters'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
+  CHARACTER_GENDERS,
+  CHARACTER_GENDER_LABELS,
+  type CharacterGender,
+} from '../../shared/dnd/characterGender'
+import {
   abilityBonusModeSlotCount,
   abilityKeysForBonusChoice,
   emptyRacePicks,
@@ -22,6 +27,11 @@ import {
   type ArmorProfKey,
   type OwnedFeatEnumSnapshot,
 } from '../../shared/dnd/featGrants'
+import {
+  generateRaceName,
+  namingModesFor,
+  preferredNamingModeId,
+} from '../../shared/dnd/raceNaming'
 import { LANGUAGE_PRESETS } from './languagesTools'
 import { ABILITY_LABELS, SKILL_DEFS } from './sheetTypes'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
@@ -34,6 +44,8 @@ export type RaceSetupConfirm = {
   featResult: FeatSetupResult | null
   /** Required character name from race setup. */
   characterName: string
+  /** Required gender — null is rejected by canConfirm. */
+  gender: CharacterGender
 }
 
 type RaceSetupDialogProps = {
@@ -54,6 +66,15 @@ type RaceSetupDialogProps = {
   proficientSkills?: string[]
   /** Initial / current character name (required to confirm). */
   characterName?: string
+  /**
+   * Create-pipeline has a dedicated «Черта» step — skip feat picker here so
+   * Variant Human / Custom Lineage are not asked twice.
+   */
+  deferFeatPick?: boolean
+  /** Initial gender from pipeline (null until chosen). */
+  gender?: CharacterGender | null
+  /** Name dice only in create-pipeline; sheet race re-pick keeps manual name. */
+  enableNameGeneration?: boolean
   onConfirm: (result: RaceSetupConfirm) => void
   onClose: () => void
 }
@@ -90,12 +111,17 @@ export function RaceSetupDialog({
   ownedFeatEnums = [],
   proficientSkills = [],
   characterName: characterNameProp = '',
+  deferFeatPick = false,
+  gender: genderProp = null,
+  enableNameGeneration = false,
   onConfirm,
   onClose,
 }: RaceSetupDialogProps) {
   const hasSubraceFork = subraces.length > 0
   const [subraceKey, setSubraceKey] = useState<string | null>(null)
   const [characterName, setCharacterName] = useState(characterNameProp)
+  const [gender, setGender] = useState<CharacterGender | null>(genderProp)
+  const [namingModeId, setNamingModeId] = useState<string | null>(null)
 
   const effectiveEntry = useMemo(() => {
     if (!root) return null
@@ -109,6 +135,36 @@ export function RaceSetupDialog({
     () => (effectiveEntry ? defForEntry(effectiveEntry) : null),
     [effectiveEntry],
   )
+
+  const namingContext = useMemo(() => {
+    const entry = effectiveEntry ?? root
+    if (!entry) return null
+    const parentSlug =
+      entry.parent_id && root && entry.id !== root.id ? root.slug : null
+    return {
+      naming: entry.data?.naming,
+      slug: entry.slug,
+      parentSlug,
+    }
+  }, [effectiveEntry, root])
+
+  const namingModes = useMemo(
+    () => (namingContext ? namingModesFor(namingContext) : []),
+    [namingContext],
+  )
+
+  useEffect(() => {
+    if (namingModes.length === 0) {
+      setNamingModeId(null)
+      return
+    }
+    const hinted = preferredNamingModeId(namingContext?.slug)
+    setNamingModeId((prev) => {
+      if (hinted && namingModes.some((mode) => mode.id === hinted)) return hinted
+      if (prev && namingModes.some((mode) => mode.id === prev)) return prev
+      return namingModes[0]?.id ?? null
+    })
+  }, [namingModes, namingContext?.slug])
 
   const asiModes = useMemo(
     () => resolveAbilityBonusModes(def?.abilityBonusChoices ?? null),
@@ -200,7 +256,8 @@ export function RaceSetupDialog({
     setSkills(empty.skills)
     setTools(empty.tools)
     setAncestryId(empty.ancestryId)
-  }, [open, root?.id, hasSubraceFork, characterNameProp])
+    setGender(genderProp)
+  }, [open, root?.id, hasSubraceFork, characterNameProp, genderProp])
 
   useEffect(() => {
     // Reset fork picks when subrace changes.
@@ -308,13 +365,15 @@ export function RaceSetupDialog({
     asiModes.length === 0 ||
     (Boolean(selectedAsiMode) && abilityBonusKeys.length === asiNeed)
 
-  const featNeed = Boolean(def && raceRequiresFeatPick(def))
+  const featNeed = Boolean(def && raceRequiresFeatPick(def) && !deferFeatPick)
   const featOk = !featNeed || Boolean(featResult)
 
   const nameOk = characterName.trim().length > 0
+  const genderOk = gender != null
   const canConfirm =
     Boolean(root && def && effectiveEntry) &&
     nameOk &&
+    genderOk &&
     subraceOk &&
     sizeOk &&
     variableTraitOk &&
@@ -324,6 +383,55 @@ export function RaceSetupDialog({
     tools.length === toolNeed &&
     ancestryOk &&
     featOk
+
+  /** Concrete reason Apply stays off — generic «развилки» confused players (Human variant ASI). */
+  const blockingReason = ((): string | null => {
+    if (canConfirm) return null
+    if (!nameOk) return 'Укажи имя персонажа, чтобы продолжить.'
+    if (!genderOk) return 'Выбери пол персонажа.'
+    if (!subraceOk) {
+      return subraceRequired
+        ? 'Выбери разновидность, чтобы продолжить.'
+        : 'Выбери разновидность или «Без подрасы».'
+    }
+    if (!def || !effectiveEntry) {
+      return 'Для этой записи пока нет пакета эффектов — закрой и заполни вручную.'
+    }
+    if (!sizeOk) return 'Выбери размер персонажа.'
+    if (!variableTraitOk) return 'Выбери переменную черту.'
+    if (!asiModeOk) {
+      if (asiModes.length > 1 && !selectedAsiMode) {
+        return 'Выбери вариант увеличения характеристик.'
+      }
+      const need = asiNeed || 2
+      const have = abilityBonusKeys.length
+      return `Выбери характеристики выше: нужно ${need}, сейчас ${have}.`
+    }
+    if (languages.length !== langNeed) {
+      return `Выбери языки: нужно ${langNeed}, сейчас ${languages.length}.`
+    }
+    if (skills.length !== skillNeed) {
+      return `Выбери навыки: нужно ${skillNeed}, сейчас ${skills.length}.`
+    }
+    if (tools.length !== toolNeed) {
+      return `Выбери инструменты: нужно ${toolNeed}, сейчас ${tools.length}.`
+    }
+    if (!ancestryOk) return 'Выбери драконье происхождение.'
+    if (!featOk) return 'Выбери черту, чтобы продолжить.'
+    return 'Отметь все обязательные развилки, чтобы продолжить.'
+  })()
+
+  function handleGenerateName() {
+    if (!gender || !namingContext) return
+    const generated = generateRaceName({
+      gender,
+      naming: namingContext.naming,
+      slug: namingContext.slug,
+      parentSlug: namingContext.parentSlug,
+      modeId: namingModeId,
+    })
+    if (generated) setCharacterName(generated.name)
+  }
 
   if (!root) return null
 
@@ -346,7 +454,7 @@ export function RaceSetupDialog({
       size="wide"
       primaryDisabled={!canConfirm}
       onPrimary={() => {
-        if (!canConfirm || !def || !effectiveEntry) return
+        if (!canConfirm || !def || !effectiveEntry || !gender) return
         onConfirm({
           entry: effectiveEntry,
           def,
@@ -360,26 +468,20 @@ export function RaceSetupDialog({
             skills,
             tools,
             ancestryId,
-            featCatalogId: featResult?.entry.id ?? null,
+            featCatalogId: deferFeatPick ? null : (featResult?.entry.id ?? null),
           },
-          featResult,
+          featResult: deferFeatPick ? null : featResult,
           characterName: characterName.trim(),
+          gender,
         })
       }}
       onSecondary={onClose}
     >
       <Stack gap={14}>
-        <Field label="Имя персонажа">
-          <Input
-            value={characterName}
-            onChange={(event) => setCharacterName(event.target.value)}
-            placeholder="Имя героя"
-            autoComplete="off"
-          />
-        </Field>
         <Text tone="muted">
-          Сначала раса из списка, развилки — здесь (как у класса). Подрасу выбираешь в этом окне
-          {subraceRequired ? ' — обязательно' : hasSubraceFork ? ' — можно оставить без подрасы' : ''}.
+          {hasSubraceFork
+            ? `Сначала разновидность${subraceRequired ? ' (обязательно)' : ''} — от неё зависят имена и черты. Затем пол и имя.`
+            : 'Укажи пол и имя. Имя можно ввести сам или сгенерировать.'}
         </Text>
 
         {hasSubraceFork ? (
@@ -444,6 +546,62 @@ export function RaceSetupDialog({
           </Field>
         ) : null}
 
+        <Field label="Пол">
+          <div className="chip-row" role="group" aria-label="Пол персонажа">
+            {CHARACTER_GENDERS.map((key) => (
+              <button
+                key={key}
+                type="button"
+                className={`sheet-chip${gender === key ? ' is-on' : ''}`}
+                onClick={() => setGender(key)}
+              >
+                {CHARACTER_GENDER_LABELS[key]}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <Field label="Имя персонажа">
+          <Stack gap={8}>
+            <Input
+              value={characterName}
+              onChange={(event) => setCharacterName(event.target.value)}
+              placeholder="Имя героя"
+              autoComplete="off"
+            />
+            {enableNameGeneration && namingModes.length > 1 ? (
+              <div className="chip-row" role="group" aria-label="Стиль имени">
+                {namingModes.map((mode) => (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    className={`sheet-chip${namingModeId === mode.id ? ' is-on' : ''}`}
+                    onClick={() => setNamingModeId(mode.id)}
+                  >
+                    {mode.labelRu}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {enableNameGeneration ? (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!gender || !namingContext || !subraceOk}
+                  onClick={handleGenerateName}
+                >
+                  Сгенерировать имя
+                </Button>
+                {!subraceOk ? (
+                  <Text tone="muted">Сначала выбери разновидность — от неё зависят имена.</Text>
+                ) : !gender ? (
+                  <Text tone="muted">Сначала укажи пол — от него зависят имена.</Text>
+                ) : null}
+              </>
+            ) : null}
+          </Stack>
+        </Field>
+
         {!def && subraceOk ? (
           <Text tone="muted">Для этой записи пока нет пакета эффектов — закрой и заполни вручную.</Text>
         ) : null}
@@ -505,17 +663,8 @@ export function RaceSetupDialog({
 
             {asiModes.length > 0 && def.abilityBonusChoices ? (
               <Stack gap={10}>
-                <Field
-                  label="Увеличение характеристик"
-                  hint={
-                    asiModes.length > 1
-                      ? 'Выберите одно из:'
-                      : selectedAsiMode
-                        ? selectedAsiMode.labelRu
-                        : undefined
-                  }
-                >
-                  {asiModes.length > 1 ? (
+                {asiModes.length > 1 ? (
+                  <Field label="Увеличение характеристик" hint="Выберите одно из:">
                     <Stack gap={8}>
                       {asiModes.map((mode) => {
                         const on = abilityBonusModeId === mode.id
@@ -532,8 +681,12 @@ export function RaceSetupDialog({
                         )
                       })}
                     </Stack>
-                  ) : null}
-                </Field>
+                  </Field>
+                ) : selectedAsiMode ? (
+                  <Text>
+                    Увеличение характеристик: <strong>{selectedAsiMode.labelRu}</strong>
+                  </Text>
+                ) : null}
 
                 {selectedAsiMode
                   ? selectedAsiMode.buckets.map((bucket, bucketIndex) => {
@@ -543,15 +696,17 @@ export function RaceSetupDialog({
                           .flatMap((keys, idx) => (idx === bucketIndex ? [] : keys))
                           .filter(Boolean),
                       )
+                      // Instruction in the label (above chips): Field puts hint *below*
+                      // children, so on mobile players scrolled past ASI chips and only
+                      // saw the trailing hint + languages — Apply stayed disabled.
+                      const label =
+                        bucket.count === 1
+                          ? `+${bucket.amount} — выбери одну (${picked.length}/${bucket.count})`
+                          : `+${bucket.amount} — выбери ${bucket.count} разные (${picked.length}/${bucket.count})`
                       return (
                         <Field
                           key={`${selectedAsiMode.id}-${bucketIndex}-${bucket.amount}`}
-                          label={`+${bucket.amount} (${picked.length}/${bucket.count})`}
-                          hint={
-                            bucket.count === 1
-                              ? 'Выбери одну характеристику'
-                              : `Выбери ${bucket.count} разные характеристики`
-                          }
+                          label={label}
                         >
                           <div className="chip-row">
                             {asiOptions.map((key) => {
@@ -664,7 +819,6 @@ export function RaceSetupDialog({
             {featNeed ? (
               <Field label="Черта (обязательно)">
                 <Stack gap={8}>
-                  {def.featNoteRu ? <Text tone="muted">{def.featNoteRu}</Text> : null}
                   <Text>
                     {featResult
                       ? `Выбрано: ${featResult.entry.name_ru}`
@@ -675,25 +829,17 @@ export function RaceSetupDialog({
                   </Button>
                 </Stack>
               </Field>
+            ) : deferFeatPick && raceRequiresFeatPick(def) ? (
+              <Text tone="muted">
+                Черту расы выберешь на следующем шаге «Черта».
+              </Text>
             ) : def.featNoteRu ? (
               <Text tone="muted">{def.featNoteRu}</Text>
             ) : null}
           </>
         ) : null}
 
-        {!canConfirm ? (
-          <Text tone="muted">
-            {!nameOk
-              ? 'Укажи имя персонажа, чтобы продолжить.'
-              : !subraceOk
-                ? subraceRequired
-                  ? 'Выбери разновидность, чтобы продолжить.'
-                  : 'Выбери разновидность или «Без подрасы».'
-                : !featOk
-                  ? 'Выбери черту, чтобы продолжить.'
-                  : 'Отметь все обязательные развилки, чтобы продолжить.'}
-          </Text>
-        ) : null}
+        {blockingReason ? <Text tone="muted">{blockingReason}</Text> : null}
       </Stack>
     </Dialog>
 

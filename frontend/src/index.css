@@ -347,6 +347,74 @@ a.ui-button--primary {
   font-weight: 600;
 }
 
+.oauth-icons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.oauth-icons__label {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.oauth-icons__row {
+  display: flex;
+  gap: 8px;
+}
+
+.oauth-icons__btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card, #fff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.oauth-icons__btn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.oauth-icons__btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.oauth-icons__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.oauth-icons__glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: #fff;
+}
+
+.oauth-icons__glyph--yandex {
+  background: #fc3f1d;
+  font-size: 0.95rem;
+}
+
+.oauth-icons__glyph--vk {
+  background: #0077ff;
+  font-size: 0.72rem;
+}
+
 .page--auth-debug {
   width: min(480px, calc(100% - 32px));
 }
@@ -372,6 +440,58 @@ a.ui-button--primary {
 .page--app {
   /* Base: leave side gutters, but don't leave huge empty bands on desktop. */
   width: min(980px, calc(100% - 32px));
+}
+
+.brand-wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.brand-wordmark__struck {
+  text-decoration: line-through;
+  opacity: 0.45;
+  margin-right: 0.02em;
+}
+
+.brand-wordmark__d {
+  color: var(--accent);
+}
+
+.app-legal-footer {
+  margin-top: 8px;
+  padding: 16px 0 8px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.app-legal-footer__links {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted, var(--ink-muted, #6b6358));
+  line-height: 1.4;
+}
+
+.legal-page__srd {
+  font-size: 0.85rem;
+  max-width: 42rem;
+}
+
+.app-legal-footer__links a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.app-legal-footer__links a:hover {
+  text-decoration: underline;
+}
+
+.page--legal .legal-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .app-header {
@@ -510,9 +630,64 @@ a.ui-button--primary {
 
 .ui-textarea {
   resize: vertical;
-  min-height: 10rem;
+  min-height: 6rem;
   line-height: 1.4;
+  font: inherit;
 }
+
+.grimoire-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.grimoire-toolbar .ui-field {
+  margin: 0;
+}
+
+.grimoire-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.custom-spell-form__section {
+  display: grid;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+}
+
+.custom-spell-form__section:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.custom-spell-form__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .grimoire-toolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .custom-spell-form__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.play-desk-compact__source.is-custom {
+  border-color: color-mix(in srgb, var(--desk-accent, var(--accent)) 40%, var(--desk-line));
+  background: color-mix(in srgb, var(--desk-accent-soft, var(--accent-soft)) 82%, white);
+}
+
 
 .app-header__actions {
   display: flex;
@@ -3241,7 +3416,6 @@ a.ui-button--primary {
     max(12px, env(safe-area-inset-bottom, 0px))
     max(12px, env(safe-area-inset-left, 0px));
   background: rgba(28, 25, 23, 0.45);
-  pointer-events: none;
 }
 
 .ui-dialog {
@@ -10391,11 +10565,12 @@ button.play-desk-compact__more--btn:hover {
 
 .mobile-vitals__row {
   display: grid;
-  /* min() lets tracks shrink below 64px so the page never grows sideways */
-  grid-template-columns: repeat(auto-fit, minmax(min(56px, 100%), 1fr));
+  /* 3+2 wrap: five chips (КД…БМ) stay inside the phone; no sideways page grow */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   min-width: 0;
   width: 100%;
+  max-width: 100%;
 }
 
 .mobile-vitals__chip {
@@ -11116,18 +11291,72 @@ button.play-desk-compact__more--btn:hover {
 
   .play-desk--mobile {
     gap: 6px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
   }
+
+  /* Bare wrapper around MobileVitalsBar was sizing to max-content and
+     blowing past the desk (chips clipped / user must pinch-zoom). */
+  .play-desk--mobile > .play-desk__mobile-chrome,
+  .play-desk--mobile > [data-onboarding='combat-header'] {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    overflow-x: clip;
+  }
+
   .mobile-vitals {
     gap: 6px;
     margin: 0;
     padding: 8px 8px 6px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-x: clip;
   }
+
+  /* 5 chips on ~360px: 3+2 wrap instead of one overflowing row */
+  .mobile-vitals__row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .mobile-vitals__chip {
     min-height: 42px;
     padding: 4px 2px;
   }
+
+  .mobile-vitals__hp-row {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .mobile-vitals__hp {
+    min-width: 0;
+  }
+
   .mobile-vitals__collapse {
     padding: 0;
+  }
+
+  /* Hot/skills strips scroll inside the desk — never widen the page */
+  .play-desk--mobile .play-desk__hot {
+    max-width: 100%;
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+  }
+
+  .play-desk--mobile .play-desk__hot-item,
+  .play-desk--mobile .play-desk__hot-item--wide {
+    min-width: min(132px, 62vw);
+  }
+
+  .play-desk--mobile .play-desk__hot-item--res {
+    min-width: min(104px, 48vw);
   }
 }
 
@@ -14025,6 +14254,8 @@ button.session-concentration-tag {
   padding: 2px 8px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.06);
+}
+
 /* C5: типы / фильтры / поля шаблона */
 .setting-wiki-kind-filters {
   display: flex;
@@ -14223,4 +14454,497 @@ button.session-concentration-tag {
 .setting-wiki-tags__add .ui-input {
   flex: 1;
   min-width: 8rem;
+}
+
+/* ——— Onboarding (creed20 first-run) ——— */
+.ui-panel__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.ui-panel__heading .ui-panel__title {
+  margin-bottom: 0;
+  flex: 1 1 auto;
+}
+
+.onboarding-welcome__alt {
+  appearance: none;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.onboarding-welcome__alt:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.onboarding-step-hint {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 70%, #fffdf9);
+  display: grid;
+  gap: 4px;
+}
+
+.onboarding-help {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.onboarding-help__btn {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--desk-muted, var(--muted)) 50%, var(--line));
+  background: transparent;
+  color: var(--desk-muted, var(--muted));
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.72rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+}
+
+.onboarding-help__btn:hover,
+.onboarding-help__btn[aria-expanded='true'],
+.onboarding-help__btn:focus-visible {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  color: var(--accent);
+  background: #fffdf9;
+}
+
+/* Desktop: hide panel «?» until the block is hovered — cuts visual noise. */
+@media (hover: hover) and (pointer: fine) {
+  .onboarding-help__btn {
+    opacity: 0;
+  }
+
+  .ui-panel:hover > .ui-panel__heading .onboarding-help__btn,
+  .play-desk__top:hover .onboarding-help__btn,
+  .play-desk__left:hover .onboarding-help__btn,
+  .play-desk__modes:hover .onboarding-help__btn,
+  .onboarding-help:focus-within .onboarding-help__btn,
+  .onboarding-help__btn[aria-expanded='true'],
+  .onboarding-help__btn:focus-visible {
+    opacity: 1;
+  }
+}
+
+.onboarding-help__pop {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  right: 0;
+  width: min(280px, 70vw);
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fffdf9;
+  box-shadow: 0 12px 28px rgba(28, 25, 23, 0.18);
+  text-align: left;
+}
+
+.onboarding-help__title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.onboarding-help__line {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.onboarding-help__line--muted {
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.onboarding-coach {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+}
+
+.onboarding-coach__dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(28, 25, 23, 0.5);
+  pointer-events: auto;
+}
+
+.onboarding-coach__hole {
+  position: absolute;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 9999px rgba(28, 25, 23, 0.5),
+    0 0 0 2px var(--accent);
+  background: transparent;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.onboarding-coach__dim {
+  z-index: 0;
+}
+
+.onboarding-coach__card {
+  position: absolute;
+  z-index: 2;
+  width: min(300px, calc(100vw - 24px));
+  padding: 14px 14px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #fffdf9;
+  box-shadow: 0 16px 36px rgba(28, 25, 23, 0.22);
+  pointer-events: auto;
+}
+
+.onboarding-coach__step {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.75rem;
+}
+
+.onboarding-coach__title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.onboarding-coach__body {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.onboarding-coach__actions {
+  flex-direction: row;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.onboarding-drawer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+}
+
+.onboarding-drawer__backdrop {
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(28, 25, 23, 0.4);
+  cursor: pointer;
+}
+
+.onboarding-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: min(400px, 100%);
+  display: flex;
+  flex-direction: column;
+  background: #fffdf9;
+  border-left: 1px solid var(--line);
+  box-shadow: -12px 0 32px rgba(28, 25, 23, 0.18);
+}
+
+.onboarding-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.onboarding-drawer__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 14px 16px 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.onboarding-drawer__section {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.onboarding-drawer__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.onboarding-drawer__muted {
+  color: var(--muted);
+}
+
+.onboarding-checklist {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, #fffdf9);
+}
+
+.onboarding-checklist__title {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.onboarding-checklist__intro {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.onboarding-checklist__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.onboarding-checklist__list li {
+  display: grid;
+  gap: 2px;
+}
+
+.onboarding-checklist__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.onboarding-checklist__hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.onboarding-checklist--compact {
+  padding: 8px 10px;
+}
+
+.sheet-topbar__help {
+  min-height: 36px;
+}
+
+@media (max-width: 640px) {
+  .onboarding-coach__card {
+    left: 12px !important;
+    right: 12px;
+    width: auto;
+    transform: none;
+  }
+
+  .onboarding-drawer {
+    width: 100%;
+    border-left: 0;
+    border-radius: 16px 16px 0 0;
+    top: auto;
+    max-height: min(88dvh, 720px);
+  }
+}
+
+.play-desk__top {
+  position: relative;
+}
+
+.play-desk__top-help {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+}
+
+.play-desk__rail-help {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+.play-desk__modes-help {
+  margin-right: 4px;
+  align-self: center;
+}
+
+.play-desk__rail-foot .onboarding-checklist {
+  margin-top: 8px;
+}
+
+/* Onboarding preview (review only) */
+.onboarding-preview__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.onboarding-preview__stage {
+  min-height: 420px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+
+.onboarding-preview__fake-page,
+.onboarding-preview__fake-desk {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--line);
+  background: #fffdf9;
+}
+
+.onboarding-preview__anchor {
+  padding: 14px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 50%, #fff);
+  font-size: 0.9rem;
+}
+
+.onboarding-preview__anchor--lg {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.onboarding-preview--clean .onboarding-preview__stage {
+  border: 0;
+  background: transparent;
+  padding: 12px;
+  min-height: 0;
+}
+
+
+/* Hover explain tips — tip on the value itself, no «?» icons (portal, no clip) */
+.play-desk-vital__label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.has-onboarding-tip {
+  position: relative;
+}
+
+.onboarding-hover-tip {
+  display: inline-flex;
+  position: relative;
+}
+
+.onboarding-hover-tip__probe {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.onboarding-hover-tip__card--fixed {
+  position: fixed;
+  z-index: 1200;
+  display: grid;
+  gap: 4px;
+  width: min(280px, 72vw);
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 34%, var(--desk-line, var(--line)));
+  background: #fffdf8;
+  box-shadow: 0 10px 28px rgba(45, 45, 42, 0.18);
+  color: var(--desk-ink, var(--ink));
+  text-align: left;
+  font-weight: 500;
+  white-space: normal;
+  pointer-events: none;
+}
+
+@media (max-width: 959px) {
+  .onboarding-coach__card {
+    width: min(340px, calc(100vw - 24px));
+  }
+
+  .onboarding-coach__actions .ui-button {
+    min-height: 44px;
+  }
+
+  .onboarding-hover-tip__card--fixed {
+    width: min(300px, calc(100vw - 16px));
+  }
+}
+
+.onboarding-hover-tip__card--fixed b {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--desk-muted, var(--muted));
+}
+
+.onboarding-hover-tip__meaning {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--desk-ink, var(--ink));
+}
+
+.onboarding-hover-tip__card--fixed small {
+  display: block;
+  margin-top: 2px;
+  padding-top: 5px;
+  border-top: 1px solid color-mix(in srgb, var(--desk-line, var(--line)) 70%, transparent);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--desk-muted, var(--muted));
+}
+
+.abil-block__label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.ui-panel__title.has-onboarding-tip {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
 }

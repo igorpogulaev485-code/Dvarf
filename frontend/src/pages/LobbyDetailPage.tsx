@@ -27,6 +27,7 @@ import {
   updateLobby,
   type LobbyDetail,
 } from '../shared/api/lobbies'
+import { openProductSite } from '../shared/brand/creed20'
 import { Button, Field, Input, Panel, Stack, Text, Toast } from '../ui'
 
 type LocationState = { toast?: string }
@@ -155,7 +156,7 @@ export function LobbyDetailPage() {
         <AppHeader
           title={lobby.name}
           subtitle={lobby.is_owner ? 'Вы мастер этого лобби' : 'Вы участник'}
-          onOfficialSite={() => setToast('Официальный сайт скоро появится')}
+          onOfficialSite={openProductSite}
         />
 
         <div className="lobby-hub-top">

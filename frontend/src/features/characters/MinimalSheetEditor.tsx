@@ -243,9 +243,14 @@ import {
 } from '../../shared/dnd/featureResources'
 import {
   listSubclassFeatureIdsAboveLevel,
+  proficiencyBonusForTotalLevel,
   resolveClassFeatureSlug,
   unlockFeaturesForClasses,
 } from '../../shared/dnd/classFeatures'
+import {
+  classWalkSpeedBonusFt,
+  resolveWalkSpeedFt,
+} from '../../shared/dnd/classMovement'
 import {
   clearFeaturePicksForClass,
   clearFeaturePicksForFeatureIds,
@@ -256,6 +261,11 @@ import {
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
+import {
+  darkvisionFtFromFeatures,
+  initiativeBonusFromFeatures,
+} from './featureCombatBonuses'
+import { syncRangerConclaveSpells } from './rangerConclaveSpells'
 import {
   ClassFeaturesPanel,
   saveBonusFromFeatures,
@@ -271,6 +281,7 @@ import { shapechangerFormLimits } from './featureForms'
 import { WildShapeDialog, type WildShapeDialogResult } from './WildShapeDialog'
 import { healSelfForm, rollDice } from './wildShape'
 import { TextBlocksPanel } from './TextBlocksPanel'
+import { OnboardingChecklist, HoverTipCard, SCENE_TIPS } from '../onboarding'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { IdentityDialog } from './IdentityDialog'
@@ -430,6 +441,10 @@ type MinimalSheetEditorProps = {
   createGuide?: 'background-first' | 'class-first' | null
   /** Create at level N — after class grant, jump and queue picks 1…N. */
   startingLevel?: number
+  /** First-run checklist under the ability rail. */
+  showOnboardingChecklist?: boolean
+  /** Absolute beginner: value «?» on КД/хиты/СИЛ… */
+  showValueTips?: boolean
   onCreateGuideConsumed?: () => void
   onSaved: (character: CharacterDetail) => void
   onToast: (message: string) => void
@@ -573,6 +588,25 @@ function buildDraft(character: CharacterDetail): Draft {
           legacyCurrent: play.hitDiceCurrent,
         })
 
+  const raceGrant = readAppliedRaceGrant(sheet.race_grant)
+  // Un-bake Fast Movement / Unarmored Movement that create (or manual fix) wrote
+  // into combat.speed so armor-aware display can add the bonus live.
+  let speed = readNullableNumber(combat.speed)
+  const raceSpeed = raceGrant?.speed ?? null
+  const maxClassSpeedBonus = classWalkSpeedBonusFt({
+    classes,
+    wearingHeavyArmor: false,
+    wearingArmorOrShield: false,
+  })
+  if (
+    speed != null &&
+    raceSpeed != null &&
+    maxClassSpeedBonus > 0 &&
+    speed === raceSpeed + maxClassSpeedBonus
+  ) {
+    speed = raceSpeed
+  }
+
   return {
     name: character.name,
     raceName: character.race_name ?? '',
@@ -586,7 +620,7 @@ function buildDraft(character: CharacterDetail): Draft {
     hpCurrent: character.hp_current ?? readNullableNumber(combat.hp_current),
     hpMax: character.hp_max ?? readNullableNumber(combat.hp_max),
     ac: readNullableNumber(combat.ac),
-    speed: readNullableNumber(combat.speed),
+    speed,
     climbSpeed: readNullableNumber(combat.climb_speed ?? combat.climbSpeed),
     swimSpeed: readNullableNumber(combat.swim_speed ?? combat.swimSpeed),
     flySpeed: readNullableNumber(combat.fly_speed ?? combat.flySpeed),
@@ -637,7 +671,7 @@ function buildDraft(character: CharacterDetail): Draft {
     classGrants: readAppliedClassGrants(sheet.class_grants),
     subclassGrants: readAppliedSubclassGrants(sheet.subclass_grants),
     subclassTransitions: readSubclassTransitions(sheet.subclass_transitions),
-    raceGrant: readAppliedRaceGrant(sheet.race_grant),
+    raceGrant,
     backgroundGrant: readAppliedBackgroundGrant(sheet.background_grant),
     backgroundCatalogId:
       typeof identity.background_catalog_id === 'string'
@@ -721,6 +755,8 @@ export function MinimalSheetEditor({
   character,
   createGuide = null,
   startingLevel: startingLevelProp = 1,
+  showOnboardingChecklist = false,
+  showValueTips = false,
   onCreateGuideConsumed,
   onSaved,
   onToast,
@@ -1499,6 +1535,8 @@ export function MinimalSheetEditor({
             ability: row.caster?.ability ?? null,
           })),
       )
+      const classLevel =
+        prev.classes.find((row) => row.id === input.classEntryId)?.level ?? 1
       const applied = applySubclassGrantToDraft({
         draft: subclassSliceFrom(prev),
         classEntryId: input.classEntryId,
@@ -1508,10 +1546,8 @@ export function MinimalSheetEditor({
         copyOldTextToNotes: input.copyOldTextToNotes,
         previousDef: input.previousDef ?? null,
         changeMode,
-        changedAtClassLevel:
-          input.changedAtClassLevel ??
-          prev.classes.find((row) => row.id === input.classEntryId)?.level ??
-          1,
+        classLevel,
+        changedAtClassLevel: input.changedAtClassLevel ?? classLevel,
         previousNameRu: input.previousNameRu,
         previousCatalogId: input.previousCatalogId,
         previousSlug: input.previousSlug,
@@ -2686,6 +2722,29 @@ export function MinimalSheetEditor({
     () => sumFeatInitiativeBonus(draft.featGrants),
     [draft.featGrants],
   )
+  const featureInitiativeBonus = useMemo(
+    () =>
+      initiativeBonusFromFeatures({
+        features: unlockedFeatures,
+        abilities: draft.abilities,
+      }),
+    [unlockedFeatures, draft.abilities],
+  )
+  const totalInitiativeBonus = featInitiativeBonus + featureInitiativeBonus
+  const activeFightingStyleId = useMemo(
+    () =>
+      findFightingStylePick(draft.featurePicks) ??
+      fightingStyleFromFeatGrants(draft.featGrants),
+    [draft.featurePicks, draft.featGrants],
+  )
+  const featureDarkvisionFt = useMemo(
+    () =>
+      darkvisionFtFromFeatures({
+        features: unlockedFeatures,
+        baseDarkvision: draft.identity.darkvision,
+      }),
+    [unlockedFeatures, draft.identity.darkvision],
+  )
 
   const passives = useMemo(() => {
     const modFor = (skillKey: string) => {
@@ -2723,6 +2782,59 @@ export function MinimalSheetEditor({
       }),
     [draft.inventory.items, draft.attunements],
   )
+
+  const armorPiecesForSpeed = useMemo(
+    () => equippedArmorPieces(draft.inventory.items),
+    [draft.inventory.items],
+  )
+  const displaySpeed = useMemo(() => {
+    const wearingHeavy = armorPiecesForSpeed.armor?.kind === 'heavy'
+    const wearingArmorOrShield = Boolean(
+      armorPiecesForSpeed.armor || armorPiecesForSpeed.shield,
+    )
+    const classBonus = classWalkSpeedBonusFt({
+      classes: draft.classes,
+      wearingHeavyArmor: wearingHeavy,
+      wearingArmorOrShield,
+    })
+    const classBonusMax = classWalkSpeedBonusFt({
+      classes: draft.classes,
+      wearingHeavyArmor: false,
+      wearingArmorOrShield: false,
+    })
+    return resolveWalkSpeedFt({
+      storedSpeed: draft.speed,
+      raceSpeed: draft.raceGrant?.speed ?? null,
+      classBonusFt: classBonus,
+      classBonusFtMax: classBonusMax,
+      gearBonusFt: gearEffects.speedBonusFt,
+    })
+  }, [
+    armorPiecesForSpeed,
+    draft.classes,
+    draft.speed,
+    draft.raceGrant?.speed,
+    gearEffects.speedBonusFt,
+  ])
+  const classSpeedHint = useMemo(() => {
+    const wearingHeavy = armorPiecesForSpeed.armor?.kind === 'heavy'
+    const wearingArmorOrShield = Boolean(
+      armorPiecesForSpeed.armor || armorPiecesForSpeed.shield,
+    )
+    const classBonus = classWalkSpeedBonusFt({
+      classes: draft.classes,
+      wearingHeavyArmor: wearingHeavy,
+      wearingArmorOrShield,
+    })
+    const bits: string[] = []
+    if (classBonus) bits.push(`класс +${classBonus}`)
+    if (gearEffects.speedBonusFt) {
+      bits.push(
+        `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`,
+      )
+    }
+    return bits.length ? bits.join(', ') : null
+  }, [armorPiecesForSpeed, draft.classes, gearEffects.speedBonusFt])
 
   const attunedItemIds = useMemo(
     () =>
@@ -2802,6 +2914,24 @@ export function MinimalSheetEditor({
       }
     })
   }, [gearEffects])
+
+  // Gloom Stalker (etc.) bonus spells: keep always-prepared list in sync with level.
+  useEffect(() => {
+    setDraft((prev) => {
+      const synced = syncRangerConclaveSpells({
+        spells: prev.spells,
+        classes: prev.classes,
+        subclassSlugByEntryId,
+      })
+      if (!synced.changed) return prev
+      return { ...prev, spells: synced.spells }
+    })
+  }, [draft.classes, subclassSlugByEntryId])
+
+  const effectiveDarkvisionFt = useMemo(
+    () => Math.max(featureDarkvisionFt, gearDarkvisionFt(gearEffects)),
+    [featureDarkvisionFt, gearEffects],
+  )
 
   const gearAbilities = useMemo(
     () => applyGearAbilityScores(draft.abilities, gearEffects),
@@ -2909,11 +3039,8 @@ export function MinimalSheetEditor({
       naturalArmor,
       unarmoredDefense,
     })
-    const styleId =
-      findFightingStylePick(draft.featurePicks) ??
-      fightingStyleFromFeatGrants(draft.featGrants)
     const styleBonus = fightingStyleAcBonus({
-      styleId,
+      styleId: activeFightingStyleId,
       wearingArmor: Boolean(pieces.armor),
     })
     let coreAc = base.ac
@@ -2956,8 +3083,7 @@ export function MinimalSheetEditor({
     effectiveAbilities,
     draft.inventory.items,
     draft.raceGrant,
-    draft.featurePicks,
-    draft.featGrants,
+    activeFightingStyleId,
     draft.modifiers,
     raceCatalogRows,
     unlockedFeatures,
@@ -3117,6 +3243,7 @@ export function MinimalSheetEditor({
       combat.concentration = playSheet.combatPatch.concentration
       sheet.combat = combat
       const proficiency = asRecord(sheet.proficiency)
+      proficiency.bonus = proficiencyBonusForTotalLevel(totalLevel)
       proficiency.armor = identityExtras.proficiencyPatch.armor
       proficiency.weapons = identityExtras.proficiencyPatch.weapons
       proficiency.languages = identityExtras.proficiencyPatch.languages
@@ -3769,7 +3896,7 @@ export function MinimalSheetEditor({
   }
 
   const initiativeAutoCore =
-    abilityModifier(effectiveAbilities.dex) + featInitiativeBonus
+    abilityModifier(effectiveAbilities.dex) + totalInitiativeBonus
   const initiativeCore = draft.initiativeOverride ?? initiativeAutoCore
   const initiativeValue = withInitiativeBonus({
     core: initiativeCore,
@@ -3780,6 +3907,9 @@ export function MinimalSheetEditor({
     `ЛОВ ${formatModifier(abilityModifier(effectiveAbilities.dex))}`,
     featInitiativeBonus
       ? `черта ${formatModifier(featInitiativeBonus)}`
+      : null,
+    featureInitiativeBonus
+      ? `умение ${formatModifier(featureInitiativeBonus)}`
       : null,
   ]
     .filter(Boolean)
@@ -4120,6 +4250,7 @@ export function MinimalSheetEditor({
       }
       onReorder={(abilityOrder) => patchSheetUi({ abilityOrder })}
       onCollapsedChange={(collapsedAbilities) => patchSheetUi({ collapsedAbilities })}
+      showValueTips={showValueTips}
     />
   )
 
@@ -4165,7 +4296,7 @@ export function MinimalSheetEditor({
         .join(' ')}
     >
       {isPlayDesk ? (
-        <div className="play-desk__top">
+        <div className="play-desk__top" data-onboarding="combat-header">
           <CharacterAvatarControl
             character={baseCharacter}
             size="md"
@@ -4218,21 +4349,13 @@ export function MinimalSheetEditor({
                   : `Щит «${result.name}» убран`,
               )
             }}
-            speed={
-              draft.speed == null && !gearEffects.speedBonusFt
-                ? null
-                : (draft.speed ?? 0) + gearEffects.speedBonusFt
-            }
+            speed={displaySpeed}
             climbSpeed={draft.climbSpeed}
             swimSpeed={draft.swimSpeed}
             flySpeed={draft.flySpeed}
             jumpLongFt={jump.longFt}
             jumpHighFt={jump.highFt}
-            movementHint={
-              gearEffects.speedBonusFt
-                ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
-                : null
-            }
+            movementHint={classSpeedHint}
             proficiencyBonus={proficiencyBonus}
             initiative={initiativeValue}
             inspiration={draft.inspiration}
@@ -4284,6 +4407,7 @@ export function MinimalSheetEditor({
             }
             coinPadOpen={coinPadOpen}
             onCoinPadOpenChange={setCoinPadOpen}
+            showValueTips={showValueTips}
             onCombatChange={(patch) =>
               setDraft((prev) => ({
                 ...prev,
@@ -4303,6 +4427,7 @@ export function MinimalSheetEditor({
           />
         </div>
       ) : (
+        <div className="play-desk__mobile-chrome" data-onboarding="combat-header">
         <MobileVitalsBar
           character={baseCharacter}
           name={draft.name}
@@ -4342,20 +4467,14 @@ export function MinimalSheetEditor({
                 : `Щит «${result.name}» убран`,
             )
           }}
-          speed={
-            draft.speed == null && !gearEffects.speedBonusFt
-              ? null
-              : (draft.speed ?? 0) + gearEffects.speedBonusFt
-          }
+          speed={displaySpeed}
           movementHint={[
             formatRaceMovementHint({
               climb: draft.climbSpeed,
               swim: draft.swimSpeed,
               fly: draft.flySpeed,
             }),
-            gearEffects.speedBonusFt
-              ? `предметы ${gearEffects.speedBonusFt >= 0 ? '+' : ''}${gearEffects.speedBonusFt}`
-              : null,
+            classSpeedHint,
           ]
             .filter(Boolean)
             .join(' · ') || null}
@@ -4406,7 +4525,9 @@ export function MinimalSheetEditor({
             })
           }}
           onToast={onToast}
+          showValueTips={showValueTips}
         />
+        </div>
       )}
 
       {isPlayDesk && dockCompanions.length > 0 ? (
@@ -4450,27 +4571,31 @@ export function MinimalSheetEditor({
       ) : null}
 
       <div className="play-desk__body">
-        <aside className="play-desk__left">
+        <aside className="play-desk__left" data-onboarding="abilities">
           {abilityColumn}
           <div className="play-desk__rail-foot">
             {passivesCompact}
             <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
               Владения ▸
             </Button>
+            {showOnboardingChecklist ? <OnboardingChecklist compact /> : null}
           </div>
         </aside>
 
-        <div className="play-desk__stage">
+        <div className="play-desk__stage" data-onboarding="actions">
           {isPlayDesk ? (
-            <div className="play-desk__modes">
+            <div className="play-desk__modes" data-onboarding="desk-modes" aria-label="Сцены листа">
               {MODE_LABELS.map(({ id: mode, label }) => (
                 <button
                   key={mode}
                   type="button"
-                  className={`play-desk__mode${draft.sheetUi.deskMode === mode ? ' is-on' : ''}`}
+                  className={`play-desk__mode${draft.sheetUi.deskMode === mode ? ' is-on' : ''}${
+                    showValueTips ? ' has-onboarding-tip' : ''
+                  }`}
                   onClick={() => setDeskMode(mode)}
                 >
                   {label}
+                  {showValueTips ? <HoverTipCard tip={SCENE_TIPS[mode]} /> : null}
                 </button>
               ))}
               <div
@@ -5327,6 +5452,25 @@ export function MinimalSheetEditor({
                 onChange={(event) => patchIdentity({ alignment: event.target.value })}
               />
             </Field>
+            <Field label="Пол">
+              <div className="chip-row" role="group" aria-label="Пол персонажа">
+                {(
+                  [
+                    ['male', 'Мужской'],
+                    ['female', 'Женский'],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    className={`sheet-chip${draft.identity.gender === key ? ' is-on' : ''}`}
+                    onClick={() => patchIdentity({ gender: key })}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </Field>
           </div>
           </section>
       </IdentityDialog>
@@ -5340,6 +5484,7 @@ export function MinimalSheetEditor({
             abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
             gearBonusesByItem={gearEffects.byItem}
+            fightingStyleId={activeFightingStyleId}
             resources={draft.play.resources}
             inventoryItems={draft.inventory.items}
             favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
@@ -5436,6 +5581,7 @@ export function MinimalSheetEditor({
           proficiencyBonus={proficiencyBonus}
           weaponProficiency={draft.identity.weapons}
           gearBonusesByItem={gearEffects.byItem}
+          fightingStyleId={activeFightingStyleId}
           onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
           onToggleHeld={(attack) => {
             if (!attack.inventory_item_id) return
@@ -5529,6 +5675,7 @@ export function MinimalSheetEditor({
         onFeaturePicksChange={applyFeaturePicksWithExpertise}
         skills={draft.skills}
         tools={draft.identity.tools}
+        classAsi={draft.classAsi}
         spells={draft.spells}
         onSpellsChange={(spells) => setDraft((prev) => ({ ...prev, spells }))}
         wearingHeavyArmor={
@@ -5539,7 +5686,7 @@ export function MinimalSheetEditor({
           setDraft((prev) => ({ ...prev, companions }))
         }
         featGrants={draft.featGrants}
-        darkvision={draft.identity.darkvision}
+        darkvision={effectiveDarkvisionFt}
         raceName={draft.raceName}
         raceTraitCards={draft.raceGrant?.traitCards ?? []}
         raceTraitsText={draft.raceGrant?.traitsText ?? ''}
@@ -5845,7 +5992,11 @@ export function MinimalSheetEditor({
       </div>{/* body */}
 
       {!isPlayDesk ? (
-        <BottomSceneNav mode={draft.sheetUi.deskMode} onModeChange={setDeskMode} />
+        <BottomSceneNav
+          mode={draft.sheetUi.deskMode}
+          onModeChange={setDeskMode}
+          showValueTips={showValueTips}
+        />
       ) : null}
 
       {!isPlayDesk ? (
@@ -5882,11 +6033,8 @@ export function MinimalSheetEditor({
                     label="Тёмное зрение, фт"
                     htmlFor="sheet-darkvision"
                     hint={
-                      gearDarkvisionFt(gearEffects) > 0
-                        ? `предметы: ${gearDarkvisionFt(gearEffects)} фт · итого ${Math.max(
-                            draft.identity.darkvision,
-                            gearDarkvisionFt(gearEffects),
-                          )}`
+                      effectiveDarkvisionFt !== draft.identity.darkvision
+                        ? `база ${draft.identity.darkvision || 0} · итого ${effectiveDarkvisionFt} фт (умения/предметы)`
                         : '0 = нет'
                     }
                   >
@@ -7062,11 +7210,14 @@ export function MinimalSheetEditor({
         ownedFeatEnums={ownedFeatEnums}
         proficientSkills={proficientSkills}
         characterName={draft.name}
+        gender={draft.identity.gender}
+        enableNameGeneration={false}
         onClose={() => setRaceGrantPicker(null)}
         onConfirm={(result) => {
           if (result.characterName.trim()) {
             setDraft((prev) => ({ ...prev, name: result.characterName.trim() }))
           }
+          patchIdentity({ gender: result.gender })
           commitRaceGrant({
             selected: result.entry,
             picks: result.picks,

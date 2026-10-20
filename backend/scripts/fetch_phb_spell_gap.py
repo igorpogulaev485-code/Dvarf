@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Fetch missing PHB 2014 spells from 5e14.dnd.su into schema v1 JSON.
+"""LEGACY importer — PHB spell gap from dnd.su (B2: disabled by default).
 
-Writes: backend/data/srd/2014/spells_phb_gap_v1.json
-Run: python3 backend/scripts/fetch_phb_spell_gap.py
+Unlock: DVARF_ALLOW_LEGACY_FETCH=1
 """
 
 from __future__ import annotations
 
 import json
 import re
+import sys
 import time
 import urllib.request
 from html import unescape
@@ -16,6 +16,11 @@ from pathlib import Path
 from uuid import uuid5, NAMESPACE_URL
 
 ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS = Path(__file__).resolve().parent
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
+
+from legacy_fetch_guard import require_legacy_fetch_allowed  # noqa: E402
 CATALOG = ROOT / "backend/data/srd/2014/catalog.json"
 OUT = ROOT / "backend/data/srd/2014/spells_phb_gap_v1.json"
 INDEX_URL = "https://5e14.dnd.su/piece/spells/index-list/"
@@ -221,6 +226,7 @@ def parse_spell_page(html: str, card: dict) -> dict:
 
 
 def main() -> None:
+    require_legacy_fetch_allowed("fetch_phb_spell_gap.py")
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     ours = {
         norm_en(e.get("name_en") or "")

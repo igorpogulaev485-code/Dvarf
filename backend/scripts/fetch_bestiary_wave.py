@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
-"""Fetch official 2014 bestiary entries from ttg.club into schema v1 JSON.
+"""LEGACY importer — historical bestiary fetch from ttg.club (B2: disabled by default).
 
-Official only: source.group.shortName == Basic (no HB / UA / 3rd).
-Stats: ttg is canonical on conflicts with dnd.su.
+Product SoT is official books + our catalog structure, not ttg.
+Unlock: DVARF_ALLOW_LEGACY_FETCH=1
 
-Examples:
-  python3 backend/scripts/fetch_bestiary_wave.py --book MM --out bestiary_mm_v1.json
-  python3 backend/scripts/fetch_bestiary_wave.py --book MM --limit 5 --out /tmp/mm_sample.json
-  python3 backend/scripts/fetch_bestiary_wave.py --slugs wolf,brown_bear,wildfire_spirit --out bestiary_fixture_v1.json
+Examples (legacy only):
+  DVARF_ALLOW_LEGACY_FETCH=1 python3 backend/scripts/fetch_bestiary_wave.py --book MM --out bestiary_mm_v1.json
 """
 
 from __future__ import annotations
@@ -26,6 +24,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from bestiary_normalize import ttg_detail_to_entry, validate_entry  # noqa: E402
+from legacy_fetch_guard import require_legacy_fetch_allowed  # noqa: E402
 
 TTG_INDEX = "https://5e14.ttg.club/api/v2/bestiary"
 TTG_DETAIL = "https://5e14.ttg.club/api/v2/bestiary/{slug}"
@@ -106,6 +105,7 @@ def fetch_detail(path_slug: str, sleep_s: float, cache: bool) -> dict:
 
 
 def main() -> int:
+    require_legacy_fetch_allowed("fetch_bestiary_wave.py")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--book",

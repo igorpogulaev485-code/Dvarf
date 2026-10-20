@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, type CSSProperties } from 'react'
 import type { CharacterDetail } from '../../shared/api/characters'
-import { asRecord, readNumber } from '../characters/sheetTypes'
+import { proficiencyBonusForTotalLevel } from '../../shared/dnd/classFeatures'
+import { asRecord } from '../characters/sheetTypes'
 
 export function Expanding({
   value,
@@ -81,7 +82,16 @@ export function clampMarks(value: number): number {
 
 export function asProfBonus(character: CharacterDetail): number {
   const proficiency = asRecord(asRecord(character.sheet).proficiency)
-  return readNumber(proficiency.bonus, 2)
+  const stored = proficiency.bonus
+  if (typeof stored === 'number' && Number.isFinite(stored)) {
+    return Math.floor(stored)
+  }
+  // Create/save historically omitted proficiency.bonus — derive from level.
+  const level =
+    typeof character.level === 'number' && Number.isFinite(character.level)
+      ? character.level
+      : 1
+  return proficiencyBonusForTotalLevel(level)
 }
 
 export function asRecordNotes(character: CharacterDetail): string {

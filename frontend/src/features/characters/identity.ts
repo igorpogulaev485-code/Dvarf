@@ -1,6 +1,12 @@
+import {
+  parseCharacterGender,
+  type CharacterGender,
+} from '../../shared/dnd/characterGender'
 import { canonicalLanguageList } from '../../shared/dnd/languages'
 import { readNameList } from './languagesTools'
 import { asRecord, readNumber } from './sheetTypes'
+
+export type { CharacterGender }
 
 export type ArmorProficiency = {
   light: boolean
@@ -23,6 +29,8 @@ export type IdentityExtras = {
   /** Catalog slug when picked from kind=background; used for feat prereqs. */
   backgroundSlug: string | null
   alignment: string
+  /** Character gender from create-pipeline / identity editor. */
+  gender: CharacterGender | null
   size: string
   darkvision: number
   armor: ArmorProficiency
@@ -64,6 +72,7 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
           ? identity.backgroundSlug.trim()
           : null,
     alignment: typeof identity.alignment === 'string' ? identity.alignment : '',
+    gender: parseCharacterGender(identity.gender),
     size: typeof identity.size === 'string' && identity.size.trim() ? identity.size : 'medium',
     darkvision: Math.max(0, Math.floor(readNumber(combat.darkvision, 0))),
     armor: {
@@ -100,6 +109,7 @@ export function identityExtrasToSheet(extras: IdentityExtras): {
       background: extras.background.trim() || null,
       background_slug: extras.backgroundSlug?.trim() || null,
       alignment: extras.alignment.trim() || null,
+      gender: extras.gender,
       size: extras.size.trim() || 'medium',
       race_applied_languages: extras.raceAppliedLanguages
         .map((item) => item.trim())

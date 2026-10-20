@@ -1,6 +1,9 @@
-# Аудит бестиария 2014 (ttg.club / dnd.su → catalog kind=bestiary)
+# Аудит бестиария 2014 (catalog kind=bestiary)
 
-Источник правды: [ttg 5e14 bestiary API](https://5e14.ttg.club/api/v2/bestiary) · зеркало [dnd.su / 5e14 bestiary](https://5e14.dnd.su/bestiary/).  
+**SoT продукта (B2):** официальные книги 2014 + наша структура каталога.  
+ttg.club / dnd.su — только *исторический* импорт и gap-check (скрипты под `DVARF_ALLOW_LEGACY_FETCH`); не источник правды продукта.
+
+Исторические зеркала аудита: [ttg 5e14 bestiary API](https://5e14.ttg.club/api/v2/bestiary) · [dnd.su / 5e14 bestiary](https://5e14.dnd.su/bestiary/).  
 Контракт обликов / порядок слайсов: [`forms-and-wild-shape.md`](forms-and-wild-shape.md) §7–§8.  
 Прод tip (на момент старта дизайна): `cursor/companions-naparniki-b378` · `kind=bestiary` в enum есть, **записей 0**.
 

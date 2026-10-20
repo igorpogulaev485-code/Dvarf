@@ -382,6 +382,8 @@ export function applySubclassGrantToDraft(input: {
   previousDef?: SubclassGrantDef | null
   changeMode?: SubclassChangeMode | 'initial'
   changedAtClassLevel?: number
+  /** Current class level — gates from_class_level always-prepared spells. */
+  classLevel?: number
   previousNameRu?: string
   previousCatalogId?: string | null
   previousSlug?: string
@@ -541,8 +543,16 @@ export function applySubclassGrantToDraft(input: {
       : 9
   const grantedSpellIds: string[] = []
   const known = [...cleared.spells.known]
+  const classLevel = Math.min(
+    20,
+    Math.max(
+      1,
+      Math.floor(input.classLevel ?? input.changedAtClassLevel ?? input.def.grantsLevel),
+    ),
+  )
   for (const spell of input.def.alwaysPreparedSpells) {
     if (spell.level > maxSpellLevel) continue
+    if (spell.fromClassLevel != null && spell.fromClassLevel > classLevel) continue
     const nameRu = alwaysPreparedSpellNameRu(spell.name)
     const key = spellKeyFromName(spell.name)
     const created = asAlwaysPreparedSpell(

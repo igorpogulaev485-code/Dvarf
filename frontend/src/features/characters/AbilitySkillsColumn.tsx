@@ -1,3 +1,4 @@
+import { ABILITY_TIPS, HoverTipCard } from '../onboarding'
 import { NumberInput, Text } from '../../ui'
 import {
   ABILITY_KEYS,
@@ -40,6 +41,8 @@ type AbilitySkillsColumnProps = {
   onRollSave?: (key: AbilityKey, mod: number) => void
   /** Click the skill number → roll (pip cycles владение / экспертиза). */
   onRollSkill?: (skill: { key: string; label: string; mod: number }) => void
+  /** Absolute beginner: hover tip on ability name (no «?» icons). */
+  showValueTips?: boolean
 }
 
 function cycleSkill(state: SkillState): SkillState {
@@ -82,6 +85,7 @@ export function AbilitySkillsColumn({
   onRollCheck,
   onRollSave,
   onRollSkill,
+  showValueTips = false,
 }: AbilitySkillsColumnProps) {
   const order = abilityOrder.length === ABILITY_KEYS.length ? abilityOrder : [...ABILITY_KEYS]
   const collapsed = new Set(collapsedAbilities)
@@ -171,14 +175,16 @@ export function AbilitySkillsColumn({
                 >
                   ⋮⋮
                 </span>
-                <div className="abil-block__label">
+                <div className={`abil-block__label${showValueTips ? ' has-onboarding-tip' : ''}`}>
                   <button
                     type="button"
                     className="abil-block__label-open"
                     title={
-                      onOpenAbility
-                        ? `Разборка «${ABILITY_NAMES[key]}» — значение, проверки, спас`
-                        : ABILITY_NAMES[key]
+                      showValueTips
+                        ? undefined
+                        : onOpenAbility
+                          ? `Разборка «${ABILITY_NAMES[key]}» — значение, проверки, спас`
+                          : ABILITY_NAMES[key]
                     }
                     onClick={() => {
                       if (onOpenAbility) onOpenAbility(key)
@@ -187,6 +193,7 @@ export function AbilitySkillsColumn({
                   >
                     <span className="abil-block__label-text">{ABILITY_NAMES[key]}</span>
                   </button>
+                  {showValueTips ? <HoverTipCard tip={ABILITY_TIPS[key]} /> : null}
                   <button
                     type="button"
                     className="abil-block__label-chevron"

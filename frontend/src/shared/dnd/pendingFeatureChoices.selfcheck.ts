@@ -351,4 +351,63 @@ assert(queued[0]?.kind === 'subclass', 'subclass stays first')
 assert(queued[1]?.kind === 'spellbook_picks', 'spellbook after subclass')
 assert(queued[2]?.kind === 'asi', 'asi after spellbook')
 
+// Barbarian / wizard / artificer subclass gates (Primal Path etc.)
+const barbClasses = [
+  {
+    id: 'b1',
+    name: 'Варвар',
+    level: 3,
+    catalog_id: null,
+    subclass_name: '',
+    subclass_catalog_id: null,
+  },
+]
+const barbUnlocked = unlockFeaturesForClasses({
+  classes: barbClasses,
+  characterLevel: 3,
+  abilities: { str: 16, dex: 14, con: 14, int: 8, wis: 10, cha: 8 },
+})
+assert(
+  barbUnlocked.some((f) => f.id === 'primal_path'),
+  'barbarian unlocks primal_path at 3',
+)
+const barbSteps = buildPendingWizardSteps({
+  unlocked: barbUnlocked,
+  featurePicks: emptyFeaturePicks(),
+  classAsi: [],
+  filter: { mode: 'up_to_class_level', classEntryId: 'b1', maxClassLevel: 3 },
+  hasSubclassByEntryId: { b1: false },
+})
+assert(
+  barbSteps.some((s) => s.kind === 'subclass' && s.featureId === 'primal_path'),
+  'barbarian create queues Primal Path subclass gate',
+)
+
+const wizardClasses = [
+  {
+    id: 'w2',
+    name: 'Волшебник',
+    level: 2,
+    catalog_id: null,
+    subclass_name: '',
+    subclass_catalog_id: null,
+  },
+]
+const wizardUnlocked = unlockFeaturesForClasses({
+  classes: wizardClasses,
+  characterLevel: 2,
+  abilities: { str: 8, dex: 14, con: 12, int: 16, wis: 12, cha: 10 },
+})
+const wizardSteps = buildPendingWizardSteps({
+  unlocked: wizardUnlocked,
+  featurePicks: emptyFeaturePicks(),
+  classAsi: [],
+  filter: { mode: 'up_to_class_level', classEntryId: 'w2', maxClassLevel: 2 },
+  hasSubclassByEntryId: { w2: false },
+})
+assert(
+  wizardSteps.some((s) => s.kind === 'subclass' && s.featureId === 'arcane_tradition'),
+  'wizard create queues Arcane Tradition subclass gate',
+)
+
 console.log('pendingFeatureChoices.selfcheck: ok')
