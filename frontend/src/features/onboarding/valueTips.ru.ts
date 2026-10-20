@@ -118,6 +118,45 @@ export const MODIFIER_TIP: ValueTipCard = {
   use: 'Проверка = d20 + модификатор (+ БМ, если есть владение).',
 }
 
+/** Brief hover tips for Play Desk scenes (tabs). */
+export const SCENE_TIPS: Record<
+  'combat' | 'explore' | 'social' | 'companions' | 'features',
+  ValueTipCard
+> = {
+  combat: {
+    title: 'Сцена «Бой»',
+    meaning: 'Атаки, ресурсы раунда и заклинания рядом — всё для хода в бою.',
+    use: 'Зачем отдельная сцена: в раунде не копаешься в инвентаре и текстах.',
+  },
+  explore: {
+    title: 'Сцена «Исследование»',
+    meaning: 'Снаряжение, вещи и то, что нужно вне боя (часто со сплитом заклинаний).',
+    use: 'Зачем: рюкзак и подготовка — до или после стычки, не в середине хода.',
+  },
+  social: {
+    title: 'Сцена «Общение»',
+    meaning: 'Тексты персонажа и заметки для ролевых / социальных сцен.',
+    use: 'Зачем: характер и реплики под рукой, без боевой панели.',
+  },
+  companions: {
+    title: 'Сцена «Напарники»',
+    meaning: 'Спутники, фамильяры, призванные — кто рядом с тобой.',
+    use: 'Зачем отдельной сценой: не путать чужие хиты с твоими в бою.',
+  },
+  features: {
+    title: 'Сцена «Способности»',
+    meaning: 'Умения класса, расы и черт — что уникального умеет герой.',
+    use: 'Зачем: справочник «что я умею», когда мастер спросил, а не лента атак.',
+  },
+}
+
+/** Whole strip: what scenes are / why five. */
+export const SCENES_STRIP_TIP: ValueTipCard = {
+  title: 'Сцены листа',
+  meaning: 'Пять вкладок = пять контекстов за столом, не пять копий всего листа.',
+  use: 'Одна сцена — один job. Наведи на вкладку: что внутри и зачем она такая.',
+}
+
 /** Adapt panel help copy into the hover-tip shape. */
 export function panelExplain(help: {
   title: string

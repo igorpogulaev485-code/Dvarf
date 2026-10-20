@@ -15,4 +15,11 @@ export {
   type OnboardingState,
 } from './types'
 export { EDITION_HINT, EMPTY_CHARACTERS, PANEL_HELP } from './copy.ru'
-export { ABILITY_TIPS, MODIFIER_TIP, VITAL_TIPS, panelExplain } from './valueTips.ru'
+export {
+  ABILITY_TIPS,
+  MODIFIER_TIP,
+  SCENE_TIPS,
+  SCENES_STRIP_TIP,
+  VITAL_TIPS,
+  panelExplain,
+} from './valueTips.ru'

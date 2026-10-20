@@ -276,7 +276,7 @@ import { shapechangerFormLimits } from './featureForms'
 import { WildShapeDialog, type WildShapeDialogResult } from './WildShapeDialog'
 import { healSelfForm, rollDice } from './wildShape'
 import { TextBlocksPanel } from './TextBlocksPanel'
-import { OnboardingChecklist, PANEL_HELP, HoverTipCard, panelExplain } from '../onboarding'
+import { OnboardingChecklist, HoverTipCard, SCENE_TIPS } from '../onboarding'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { IdentityDialog } from './IdentityDialog'
@@ -4538,21 +4538,18 @@ export function MinimalSheetEditor({
 
         <div className="play-desk__stage" data-onboarding="actions">
           {isPlayDesk ? (
-            <div
-              className={`play-desk__modes${showValueTips ? ' has-onboarding-tip' : ''}`}
-              data-onboarding="desk-modes"
-            >
-              {showValueTips ? (
-                <HoverTipCard tip={panelExplain(PANEL_HELP.desk_modes)} />
-              ) : null}
+            <div className="play-desk__modes" data-onboarding="desk-modes" aria-label="Сцены листа">
               {MODE_LABELS.map(({ id: mode, label }) => (
                 <button
                   key={mode}
                   type="button"
-                  className={`play-desk__mode${draft.sheetUi.deskMode === mode ? ' is-on' : ''}`}
+                  className={`play-desk__mode${draft.sheetUi.deskMode === mode ? ' is-on' : ''}${
+                    showValueTips ? ' has-onboarding-tip' : ''
+                  }`}
                   onClick={() => setDeskMode(mode)}
                 >
                   {label}
+                  {showValueTips ? <HoverTipCard tip={SCENE_TIPS[mode]} /> : null}
                 </button>
               ))}
               <div
@@ -5947,7 +5944,11 @@ export function MinimalSheetEditor({
       </div>{/* body */}
 
       {!isPlayDesk ? (
-        <BottomSceneNav mode={draft.sheetUi.deskMode} onModeChange={setDeskMode} />
+        <BottomSceneNav
+          mode={draft.sheetUi.deskMode}
+          onModeChange={setDeskMode}
+          showValueTips={showValueTips}
+        />
       ) : null}
 
       {!isPlayDesk ? (
