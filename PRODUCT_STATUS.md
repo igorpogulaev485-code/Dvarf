@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/ · https://creed20.tech  
-**Prod tip (ветка линии прода):** `cursor/resource-pips-compact-10d6`  
+**Prod tip (ветка линии прода):** `cursor/monk-l20-automation-10d6`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -78,7 +78,17 @@
 | Hot-bar / SlotPips | Если max &gt; 10 — `±` и `осталось/max`, не ряд квадратиков | Паладин 9 (Возложение рук 45) снова читабелен |
 | Диалог Возложения рук | Число хитов — поле ввода, не select на 45 пунктов | Быстро выбрать «исцелить N» |
 
-На проде: **да** · **это новый prod tip** `cursor/resource-pips-compact-10d6` · PR #237 · залито 2026-10-20 · `/health` ok · бандл `CharacterDetailPage-BVrGk0A-.js` / `index-BAKu1uHT.css` (`play-desk__stepper`) · characters=91 · onboarding/classic/identity на диске
+На проде: **да** · tip `cursor/resource-pips-compact-10d6` · PR #237 · залито 2026-10-20 · `/health` ok · бандл `CharacterDetailPage-BVrGk0A-.js` / `index-BAKu1uHT.css` (`play-desk__stepper`) · characters=91 · onboarding/classic/identity на диске
+
+### 2026-10-20 — монах L20: Алмазная душа / БИ / скорость
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Алмазная душа | `save_proficiency: all` → все шесть спасбросков | Не нужно включать вручную с 14 ур. |
+| Боевые искусства | Кость БИ на monk weapon + карточка «Безоружный удар» | Короткий меч 1к10+Ловк на L17+ |
+| Скорость | Mobile + Unarmored Movement суммируются в шапке | Человек+Подвижный+монах 20 = 70 фт |
+
+На проде: **да** · **это новый prod tip** `cursor/monk-l20-automation-10d6` · PR #238 · залито 2026-10-20 · `/health` ok · бандл `CharacterDetailPage-Nl8qI7Ct.js` / `classMovement-ssC2V3fj.js` · `martialArts.ts` + `featureSaveProficiency.ts` + `diamond_soul` на диске
 
 ### 2026-10-20 — Сирокко / Следопыт: Archery, Сумрачный охотник, Moonbow
 
@@ -580,16 +590,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 <!-- tablet-header-hotbar-ship залито 2026-10-16 → tip tablet-header-hotbar-ship-4dea; блок в «Сейчас в продукте» -->
 
 <!-- resource-pips-compact залито 2026-10-20 → tip resource-pips-compact-10d6; блок в «Сейчас в продукте» -->
-
-### 2026-10-20 — монах L20: Алмазная душа / БИ / скорость
-
-| Функция | Как работает | Эффект для пользователя |
-|--------|--------------|-------------------------|
-| Алмазная душа | `save_proficiency: all` → все шесть спасбросков | Не нужно включать вручную с 14 ур. |
-| Боевые искусства | Кость БИ на monk weapon + карточка «Безоружный удар» | Короткий меч 1к10+Ловк на L17+ |
-| Скорость | Mobile + Unarmored Movement суммируются в шапке | Человек+Подвижный+монах 20 = 70 фт |
-
-На проде: **нет** · ветка `cursor/monk-l20-automation-10d6`
+<!-- monk-l20-automation залито 2026-10-20 → tip monk-l20-automation-10d6; блок в «Сейчас в продукте» -->
 
 ---
 
@@ -634,7 +635,8 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
-| 2026-10-20 | `cursor/resource-pips-compact-10d6` · PR #237 | Compact stepper для больших пулов (LoH) → **новый tip** после Timeweb |
+| 2026-10-20 | `cursor/monk-l20-automation-10d6` · PR #238 | Монах L20: Алмазная душа / БИ / скорость → **новый tip** после Timeweb |
+| 2026-10-20 | `cursor/resource-pips-compact-10d6` · PR #237 | Compact stepper для больших пулов (LoH) → tip после Timeweb |
 | 2026-10-20 | `cursor/onboarding-plan-37ff` · PR #233 | Онбординг O0+O1 (welcome/tour/tips/mobile) → tip после Timeweb |
 | 2026-10-20 | `cursor/sirocco-ranger-sync-e6f4` · PR #235 | Сирокко: Archery / Gloom Stalker / Moonbow → **новый tip** после Timeweb |
 | 2026-10-20 | `cursor/b2-anti-mirror-6151` · PR #228 | QA Рагнар: subclass/PB/speed/classic attacks/ASI → **новый tip** после Timeweb |
