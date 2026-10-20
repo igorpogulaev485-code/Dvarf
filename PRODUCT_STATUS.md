@@ -486,7 +486,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 | Скрытность | Нет владения → владение; уже есть → экспертиза (×2 БМ) | Модификатор Скрытности на листе обновляется сам |
 | +1 Лов + текст | ASI и описание (10 фт. скрытности на виду) на лист | Как в карточке черты |
 
-На проде: **нет** · ветка `cursor/feat-stealthy-3565` · alembic `x0y1z2a3b4c5`
+На проде: **нет** · ветка `cursor/feat-stealthy-3565` · PR #241 · alembic `x0y1z2a3b4c5`
 
 <!-- load-perf залито 2026-10-16 → tip characters-load-perf-f3ee; блок в «Сейчас в продукте» -->
 <!-- appearance-persist залито 2026-10-16 → tip appearance-persist-f3ee; блок в «Сейчас в продукте» -->
