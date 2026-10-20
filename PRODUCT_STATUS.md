@@ -70,7 +70,14 @@
 
 На проде: **да** · **это новый prod tip** `cursor/sirocco-ranger-sync-e6f4` · PR #235 · залито 2026-10-20 · alembic `s1r0c0m00nbw` · `/health` ok · бандл `CharacterDetailPage-CVPY4P_t.js` / `classMovement-CIG_JWrl.js` · Moonbow+Gloom в catalog_entries
 
+### 2026-10-20 — BMT оружие (волна 1)
 
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| 19 оружий BMT | Каталог `weapon`: от Bloodrage Greataxe до Sword of the Planes (без Moonbow — уже был) | Можно добавить из справочника; эффекты MVP + RU |
+| Пресеты атак | Лук пожара / мелодий, звёздный арбалет, цеп, кнут, клинок шута, меч планов… | Имя оружия матчится в панели атак |
+
+На проде: **нет** · ветка `cursor/sirocco-ranger-sync-e6f4` · alembic `s1r0c0bmtw01` · дальше: доспехи BMT → wondrous → артефакты DMG
 
 ### 2026-10-20 — B2 анти-зеркало (ttg/dnd.su)
 
