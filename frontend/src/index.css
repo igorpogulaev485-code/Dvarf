@@ -14349,24 +14349,46 @@ button.session-concentration-tag {
 
 .onboarding-help__btn {
   appearance: none;
-  width: 28px;
-  height: 28px;
-  min-width: 28px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: #fffdf9;
-  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--desk-muted, var(--muted)) 50%, var(--line));
+  background: transparent;
+  color: var(--desk-muted, var(--muted));
   font: inherit;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   line-height: 1;
   cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
 }
 
 .onboarding-help__btn:hover,
-.onboarding-help__btn[aria-expanded='true'] {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+.onboarding-help__btn[aria-expanded='true'],
+.onboarding-help__btn:focus-visible {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  color: var(--accent);
+  background: #fffdf9;
+}
+
+/* Desktop: hide panel «?» until the block is hovered — cuts visual noise. */
+@media (hover: hover) and (pointer: fine) {
+  .onboarding-help__btn {
+    opacity: 0;
+  }
+
+  .ui-panel:hover > .ui-panel__heading .onboarding-help__btn,
+  .play-desk__top:hover .onboarding-help__btn,
+  .play-desk__left:hover .onboarding-help__btn,
+  .play-desk__modes:hover .onboarding-help__btn,
+  .onboarding-help:focus-within .onboarding-help__btn,
+  .onboarding-help__btn[aria-expanded='true'],
+  .onboarding-help__btn:focus-visible {
+    opacity: 1;
+  }
 }
 
 .onboarding-help__pop {

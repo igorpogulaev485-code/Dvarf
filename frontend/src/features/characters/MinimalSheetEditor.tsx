@@ -4531,7 +4531,6 @@ export function MinimalSheetEditor({
         <aside className="play-desk__left" data-onboarding="abilities">
           <div className="play-desk__rail-help">
             <PanelHelpButton panelId="abilities" />
-            <PanelHelpButton panelId="skills" />
           </div>
           {abilityColumn}
           <div className="play-desk__rail-foot">
