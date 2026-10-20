@@ -415,6 +415,15 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 <!-- appearance-persist залито 2026-10-16 → tip appearance-persist-f3ee; блок в «Сейчас в продукте» -->
 <!-- tablet-header-hotbar-ship залито 2026-10-16 → tip tablet-header-hotbar-ship-4dea; блок в «Сейчас в продукте» -->
 
+### 2026-10-20 — большие пулы ресурсов: stepper вместо 45 пипов
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Hot-bar / SlotPips | Если max &gt; 10 — `±` и `осталось/max`, не ряд квадратиков | Паладин 9 (Возложение рук 45) снова читабелен |
+| Диалог Возложения рук | Число хитов — поле ввода, не select на 45 пунктов | Быстро выбрать «исцелить N» |
+
+На проде: **нет** · ветка `cursor/resource-pips-compact-10d6`
+
 ---
 
 ## Убрано / заменено
@@ -457,6 +466,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-20 | `cursor/resource-pips-compact-10d6` | Большие пулы (LoH и др.): compact stepper в «В ветках» |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic 2014/2024 бланк + заметки + font size → **новый tip** на Timeweb |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic parity: weapons/equipment/conditions/attunement → тот же tip, redeploy |
 | 2026-10-06 | `cursor/product-status-log-acbe` | Создан файл + стартовый срез прода |

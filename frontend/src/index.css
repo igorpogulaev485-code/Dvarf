@@ -4816,6 +4816,51 @@ button.spells-settings__derived-stat--btn:hover {
   gap: 8px;
 }
 
+.slot-pips__stepper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.slot-pips__step {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.slot-pips__step:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.slot-pips__step:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 40%, white);
+  outline-offset: 2px;
+}
+
+.slot-pips__value {
+  width: 4.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.slot-pips__of {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--muted, #6b6358);
+  font-variant-numeric: tabular-nums;
+}
+
 .slot-pip {
   width: 28px;
   height: 28px;
@@ -9212,6 +9257,55 @@ button.play-desk-compact__more--btn:hover {
   background: var(--desk-accent);
 }
 
+.play-desk__hot-item--res-compact {
+  min-width: 132px;
+  max-width: 180px;
+}
+
+.play-desk__stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.play-desk__step {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--desk-accent);
+  background: #fff;
+  color: var(--desk-ink);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.play-desk__step:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.play-desk__step:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--desk-accent) 45%, white);
+  outline-offset: 1px;
+}
+
+.play-desk__stepper-value {
+  min-width: 3.4rem;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--desk-ink);
+}
+
+.play-desk__stepper-max {
+  font-weight: 600;
+  color: var(--desk-muted);
+}
+
 .play-desk__stage {
   display: grid;
   gap: 10px;
@@ -9920,6 +10014,15 @@ button.play-desk-compact__more--btn:hover {
 .play-desk--mobile .play-desk__hot-item--res {
   flex: 0 0 auto;
   min-width: min(112px, 52vw);
+}
+.play-desk--mobile .play-desk__hot-item--res-compact {
+  min-width: min(148px, 58vw);
+  max-width: min(180px, 70vw);
+}
+.play-desk--mobile .play-desk__step {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
 }
 .play-desk--mobile .play-desk__hot-label {
   font-size: 0.78rem;

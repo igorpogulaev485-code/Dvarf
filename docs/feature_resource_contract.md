@@ -72,8 +72,10 @@
   → unlockFeaturesForClasses
   → desiredResourcesFromFeatures (max / reset / track)
   → syncFeatureResources → play.resources (feat:*)
-  → UI умений (траты) + PlayPanel (отдых по recharge)
+  → UI умений (траты) + PlayPanel / hot-bar (отдых по recharge)
 ```
+
+**UI трека:** если `max > 10` (`shouldUseCompactResourceTrack`), пипы не рисуем — stepper `±` и число `осталось/max` (`SlotPips`, `PlayDeskHotBar`). Мелкие пулы (Divine Sense, Rage, слоты) остаются пипами.
 
 Правила sync: пересчёт max при level-up; used/stock clamp; revoke при смене архетипа; ручные ресурсы не трогаем.
 
