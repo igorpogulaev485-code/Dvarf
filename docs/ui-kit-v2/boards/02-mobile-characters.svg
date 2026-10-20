@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="860" viewBox="0 0 420 860">
+  <defs>
+    <filter id="s" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#1A241E" flood-opacity="0.10"/>
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="#EEF3EE"/>
+  <rect x="24" y="24" width="372" height="812" rx="36" fill="#FFFFFF" filter="url(#s)"/>
+  <rect x="160" y="40" width="100" height="8" rx="4" fill="#D7E0D7"/>
+  <text x="48" y="100" font-family="Source Serif 4, Georgia, serif" font-size="26" font-weight="700" fill="#1A241E">Мои персонажи</text>
+  <text x="48" y="128" font-family="IBM Plex Sans, Arial" font-size="13" fill="#5C6B5F">До приключения — один клик</text>
+  <rect x="48" y="150" width="324" height="52" rx="16" fill="#2F6A42"/>
+  <text x="210" y="182" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="15" font-weight="600" fill="#fff">+ Новый персонаж</text>
+
+  <!-- character cards -->
+  <rect x="48" y="224" width="324" height="110" rx="20" fill="#F7FAF7" stroke="#D7E0D7"/>
+  <circle cx="92" cy="279" r="28" fill="#D9EBD9"/>
+  <text x="92" y="285" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="14" font-weight="700" fill="#2F6A42">К</text>
+  <text x="136" y="268" font-family="IBM Plex Sans, Arial" font-size="16" font-weight="700" fill="#1A241E">Keyara</text>
+  <text x="136" y="290" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Друид · 5 ур. · Листва</text>
+  <rect x="136" y="304" width="54" height="22" rx="8" fill="#D9EBD9"/>
+  <text x="163" y="319" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="11" fill="#2F6A42">2014</text>
+  <rect x="198" y="304" width="70" height="22" rx="8" fill="#C45A2C"/>
+  <text x="233" y="319" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="11" fill="#fff">HP полный</text>
+
+  <rect x="48" y="352" width="324" height="110" rx="20" fill="#F7FAF7" stroke="#D7E0D7"/>
+  <circle cx="92" cy="407" r="28" fill="#E8E0D8"/>
+  <text x="92" y="413" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="14" font-weight="700" fill="#6B5344">Т</text>
+  <text x="136" y="396" font-family="IBM Plex Sans, Arial" font-size="16" font-weight="700" fill="#1A241E">Торин</text>
+  <text x="136" y="418" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Воин · 3 ур.</text>
+  <rect x="136" y="432" width="54" height="22" rx="8" fill="#D9EBD9"/>
+  <text x="163" y="447" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="11" fill="#2F6A42">2014</text>
+
+  <rect x="48" y="480" width="324" height="110" rx="20" fill="#F7FAF7" stroke="#D7E0D7"/>
+  <circle cx="92" cy="535" r="28" fill="#E5DCE8"/>
+  <text x="92" y="541" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="14" font-weight="700" fill="#7A4A6E">Л</text>
+  <text x="136" y="524" font-family="IBM Plex Sans, Arial" font-size="16" font-weight="700" fill="#1A241E">Лилит</text>
+  <text x="136" y="546" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Черновик · продолжить</text>
+  <rect x="136" y="560" width="100" height="22" rx="8" fill="#B08A3E"/>
+  <text x="186" y="575" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="11" fill="#fff">Черновик</text>
+
+  <!-- bottom nav -->
+  <rect x="48" y="720" width="324" height="72" rx="20" fill="#F7FAF7"/>
+  <text x="110" y="762" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="12" font-weight="700" fill="#2F6A42">Персонажи</text>
+  <text x="210" y="762" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Лобби</text>
+  <text x="300" y="762" text-anchor="middle" font-family="IBM Plex Sans, Arial" font-size="12" fill="#5C6B5F">Кабинет</text>
+</svg>
