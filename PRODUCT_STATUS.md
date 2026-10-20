@@ -3,8 +3,8 @@
 Единый файл «что уже есть в продукте».  
 Игорь шарит его с друзьями и использует как срез для агентов.
 
-Прод: http://201.34.132.252/  
-**Prod tip (ветка линии прода):** `cursor/oauth-yandex-vk-6151`  
+Прод: http://201.34.132.252/ · https://creed20.tech  
+**Prod tip (ветка линии прода):** `cursor/ragnar-sheet-bugs-ba21`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -59,6 +59,18 @@
 
 ## Сейчас в продукте (прод)
 
+### 2026-10-20 — QA Рагнар: варвар / classic / ASI / скорость
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Подкласс в мастере | Гейт ловит Путь дикости / школу волшебника / специалиста изобретателя | Нельзя закончить создание без архетипа |
+| Скорость класса | Fast Movement +10 с 5 ур. (не в тяжёлом); Unarmored Movement у монаха | Варвар 5+ ходит 40 без ручной правки |
+| БМ classic | Пишется при создании/сохранении; иначе считается от уровня | На 10 ур. classic показывает +4, не +2 |
+| Атаки classic | Как цифровой лист: live владение + мод урона | Боевой посох +9 и «1к6+5», не расхождение с настройками |
+| ASI в умениях | Читает ledger `class_asi` | После выбора не висит «не выбрано» |
+
+На проде: **да** · **это новый prod tip** `cursor/ragnar-sheet-bugs-ba21` · PR #228 · залито 2026-10-20 · `/health` ok · бандл `classMovement-*` на creed20
+
 ### 2026-10-20 — OAuth Яндекс + VK ID
 
 | Функция | Как работает | Эффект для пользователя |
@@ -66,7 +78,7 @@
 | Яндекс / VK | Компактные лого у формы входа; PKCE + signed state | Быстрый вход без пароля |
 | Callback | `https://creed20.tech/auth/oauth/…/callback` → `/login` | Токены не теряются |
 
-На проде: **да** · **это новый prod tip** `cursor/oauth-yandex-vk-6151` · PR #227 · залито 2026-10-20
+На проде: **да** · tip на момент заливки `cursor/oauth-yandex-vk-6151` · PR #227 · залито 2026-10-20
 
 ### 2026-10-20 — B0 content_layer (заклинания + расы)
 
@@ -534,6 +546,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-20 | `cursor/ragnar-sheet-bugs-ba21` · PR #228 | QA Рагнар: subclass/PB/speed/classic attacks/ASI → **новый tip** после Timeweb |
 | 2026-10-17 | `cursor/fix-list-create-fixes-6dc8` | Dialog/pad clicks: drop backdrop `pointer-events:none` → **новый tip** |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic 2014/2024 бланк + заметки + font size → **новый tip** на Timeweb |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic parity: weapons/equipment/conditions/attunement → тот же tip, redeploy |
