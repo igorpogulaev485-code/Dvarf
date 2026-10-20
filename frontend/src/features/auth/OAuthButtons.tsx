@@ -22,7 +22,7 @@ export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
       if (!result.configured || !result.authorize_url) {
         onMessage?.(
           result.message ||
-            `Вход через ${PROVIDER_LABELS[provider]} пока в заглушке`,
+            `Вход через ${PROVIDER_LABELS[provider]} сейчас недоступен`,
         )
         return
       }
@@ -40,9 +40,7 @@ export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
 
   return (
     <Stack gap={10}>
-      <Text tone="muted">
-        Яндекс — рабочий поток (нужны ключи в env). VK ID пока заглушка.
-      </Text>
+      <Text tone="muted">Быстрый вход без пароля</Text>
       <Button
         variant="secondary"
         disabled={pendingProvider !== null}

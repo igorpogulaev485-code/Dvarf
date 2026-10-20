@@ -38,7 +38,11 @@ from app.schemas.auth import (
 from app.schemas.user import UserResponse, UserUpdateRequest
 from app.services.auth import AuthService, serialize_user
 from app.services.oauth import VkOAuthProvider, YandexOAuthProvider
-from app.services.oauth.state import consume_oauth_state, issue_oauth_state
+from app.services.oauth.state import (
+    consume_oauth_state,
+    issue_oauth_state,
+    make_pkce_pair,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -252,17 +256,18 @@ def oauth_start(provider: AuthProvider) -> OAuthStartResponse:
             ),
         )
 
-    state = issue_oauth_state()
-    message = (
-        "Готово к входу через Яндекс."
-        if provider == AuthProvider.yandex
-        else "Ссылка авторизации сформирована. Обмен кода VK пока в заглушке."
-    )
+    code_challenge: str | None = None
+    if provider == AuthProvider.vk:
+        verifier, code_challenge = make_pkce_pair()
+        state = issue_oauth_state(code_verifier=verifier)
+    else:
+        state = issue_oauth_state()
+
     return OAuthStartResponse(
         provider=provider.value,
         configured=True,
-        authorize_url=oauth.get_authorize_url(state),
-        message=message,
+        authorize_url=oauth.get_authorize_url(state, code_challenge=code_challenge),
+        message=f"Готово к входу через {labels[provider]}.",
     )
 
 
@@ -274,6 +279,7 @@ async def oauth_callback(
     code: str | None = None,
     state: str | None = None,
     error: str | None = None,
+    device_id: str | None = None,
 ):
     if provider not in {AuthProvider.yandex, AuthProvider.vk}:
         raise AppError(
@@ -292,7 +298,8 @@ async def oauth_callback(
     if not code:
         raise AppError("Не передан код OAuth", code="missing_code", status_code=400)
 
-    if not consume_oauth_state(state):
+    state_payload = consume_oauth_state(state)
+    if state_payload is None:
         raise AppError(
             "Некорректный или просроченный state OAuth",
             code="invalid_oauth_state",
@@ -300,7 +307,12 @@ async def oauth_callback(
         )
 
     oauth = _provider(provider)
-    profile = await oauth.exchange_code(code)
+    profile = await oauth.exchange_code(
+        code,
+        device_id=device_id,
+        code_verifier=state_payload.code_verifier,
+        state=state,
+    )
     user_agent, ip_address = client_meta(request)
     tokens = AuthService(db).login_with_oauth_profile(
         profile,
@@ -315,4 +327,6 @@ async def oauth_callback(
             "refresh_token": tokens.refresh_token,
         }
     )
-    return RedirectResponse(url=f"{settings.app_public_url}/?{query}", status_code=302)
+    # Must land on /login — HomeRedirect on / strips query and drops tokens.
+    base = (settings.app_public_url or "https://creed20.tech").rstrip("/")
+    return RedirectResponse(url=f"{base}/login?{query}", status_code=302)
