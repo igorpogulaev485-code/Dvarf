@@ -108,9 +108,12 @@ export function isWeaponProficient(input: {
   attackId?: string | null
 }): boolean {
   // Natural weapons from race grants: always trained (PHB), never gated by inventory.
+  // Monk unarmed (class Martial Arts) — always proficient.
   if (
     input.sourceKind === 'race' ||
-    (typeof input.attackId === 'string' && input.attackId.startsWith('race-nw:'))
+    input.sourceKind === 'class' ||
+    (typeof input.attackId === 'string' && input.attackId.startsWith('race-nw:')) ||
+    (typeof input.attackId === 'string' && input.attackId.startsWith('class-ma:'))
   ) {
     return true
   }
