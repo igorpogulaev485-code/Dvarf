@@ -23,10 +23,15 @@ def send_email(*, to: str, subject: str, text_body: str) -> None:
     if settings.auth_email_stub or not smtp_configured():
         raise MailError("SMTP не настроен или включён режим заглушки")
 
+    from_header = settings.smtp_from or settings.smtp_user
     message = EmailMessage()
     message["Subject"] = subject
-    message["From"] = settings.smtp_from or settings.smtp_user
+    message["From"] = from_header
     message["To"] = to
+    # Envelope sender alignment helps providers that check From vs SMTP auth user.
+    if settings.smtp_user and settings.smtp_user not in from_header:
+        message["Sender"] = settings.smtp_user
+    message["Reply-To"] = settings.smtp_user or from_header
     message.set_content(text_body)
 
     try:
@@ -39,14 +44,14 @@ def send_email(*, to: str, subject: str, text_body: str) -> None:
                 timeout=12,
             ) as smtp:
                 smtp.login(settings.smtp_user, settings.smtp_password)
-                smtp.send_message(message)
+                smtp.send_message(message, from_addr=settings.smtp_user, to_addrs=[to])
         else:
             with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=12) as smtp:
                 smtp.ehlo()
                 smtp.starttls(context=ssl.create_default_context())
                 smtp.ehlo()
                 smtp.login(settings.smtp_user, settings.smtp_password)
-                smtp.send_message(message)
+                smtp.send_message(message, from_addr=settings.smtp_user, to_addrs=[to])
     except Exception as exc:  # noqa: BLE001 — surface as MailError to callers
         logger.exception("Failed to send email to %s", to)
         raise MailError("Не удалось отправить письмо") from exc
@@ -57,9 +62,9 @@ def send_email(*, to: str, subject: str, text_body: str) -> None:
 def send_password_reset_email(*, to: str, reset_url: str) -> None:
     send_email(
         to=to,
-        subject="Dvarf — восстановление пароля",
+        subject="КриD20 — восстановление пароля",
         text_body=(
-            "Вы запросили восстановление пароля в Dvarf.\n\n"
+            "Вы запросили восстановление пароля в КриD20.\n\n"
             f"Перейдите по ссылке (действует ограниченное время):\n{reset_url}\n\n"
             "Если это были не вы — просто проигнорируйте письмо.\n"
         ),
@@ -69,9 +74,9 @@ def send_password_reset_email(*, to: str, reset_url: str) -> None:
 def send_email_change_confirm(*, to: str, new_email: str, confirm_url: str) -> None:
     send_email(
         to=to,
-        subject="Dvarf — подтверждение смены email",
+        subject="КриD20 — подтверждение смены email",
         text_body=(
-            "Вы запросили смену email в Dvarf.\n\n"
+            "Вы запросили смену email в КриD20.\n\n"
             f"Новый адрес: {new_email}\n\n"
             "Email сменится только после перехода по ссылке "
             f"(письмо отправлено на текущую почту):\n{confirm_url}\n\n"
@@ -83,9 +88,9 @@ def send_email_change_confirm(*, to: str, new_email: str, confirm_url: str) -> N
 def send_registration_verify_email(*, to: str, verify_url: str) -> None:
     send_email(
         to=to,
-        subject="Dvarf — подтверждение регистрации",
+        subject="КриD20 — подтверждение регистрации",
         text_body=(
-            "Добро пожаловать в Dvarf!\n\n"
+            "Добро пожаловать в КриD20!\n\n"
             "Чтобы завершить регистрацию, подтвердите email по ссылке "
             f"(действует ограниченное время):\n{verify_url}\n\n"
             "Если вы не регистрировались — просто проигнорируйте письмо.\n"

@@ -84,6 +84,11 @@ export function EmailAuthForm({ mode, onSuccess, onForgotPassword }: EmailAuthFo
         } else if (err.code === 'email_not_verified') {
           setNeedsVerification(true)
           setError(err.message)
+        } else if (mode === 'register' && err.code === 'email_taken') {
+          // Verified account — point to login / forgot password; still allow resend
+          // in case the server state is pending (older API).
+          setNeedsVerification(true)
+          setError(err.message)
         } else {
           setError(err.message)
         }
