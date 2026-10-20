@@ -218,7 +218,7 @@ UI-примитивы (из кита, не изобретать):
 1. Novice path: рега → welcome → create → мост → tour ≤5 → чеклист.  
 2. Skip на welcome → tour не стартует.  
 3. Повторный вход: welcome/tour не достают.  
-4. Mobile: coachmark читаем, CTA ≥44px.  
+4. Mobile: coachmark читаем, CTA ≥44px; якоря сцен/характеристик/справки видны; пояснения чисел — **long-press** (не hover).  
 5. Не ломает create-pipeline / GuidedWizard.
 
 ### Волна O1 — «каждый блок» (то, о чём просил фидбек)

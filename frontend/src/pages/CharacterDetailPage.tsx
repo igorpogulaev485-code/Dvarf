@@ -204,6 +204,7 @@ export function CharacterDetailPage() {
                 type="button"
                 variant="ghost"
                 className="sheet-topbar__help"
+                data-onboarding="help"
                 onClick={() => {
                   onboarding.markHelpOpened()
                   setHelpOpen(true)

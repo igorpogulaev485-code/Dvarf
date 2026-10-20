@@ -4480,6 +4480,7 @@ export function MinimalSheetEditor({
             })
           }}
           onToast={onToast}
+          showValueTips={showValueTips}
         />
         </div>
       )}

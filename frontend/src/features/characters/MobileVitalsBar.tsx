@@ -10,6 +10,7 @@ import { HpPadDialog } from './HpPadDialog'
 import { CoinPadDialog } from './CoinPadDialog'
 import { MaxHpByLevelsDialog } from './MaxHpByLevelsDialog'
 import { formatJumpTitle } from '../../shared/dnd/jumpDistance'
+import { HoverTipCard, VITAL_TIPS } from '../onboarding'
 import { IconCoin, IconJump, IconRest, IconSkull } from './deskIcons'
 
 const COLLAPSE_KEY = 'dvarf.mobileVitals.collapsed'
@@ -62,6 +63,8 @@ type MobileVitalsBarProps = {
   }) => void
   onDamaged?: (damageToHp: number) => void
   onToast: (message: string) => void
+  /** Absolute beginner: long-press tip on КД / хиты. */
+  showValueTips?: boolean
 }
 
 function readCollapsed(): boolean {
@@ -116,6 +119,7 @@ export function MobileVitalsBar({
   onCombatChange,
   onDamaged,
   onToast,
+  showValueTips = false,
 }: MobileVitalsBarProps) {
   const [collapsed, setCollapsed] = useState(readCollapsed)
   const [hpPadOpen, setHpPadOpen] = useState(false)
@@ -268,12 +272,14 @@ export function MobileVitalsBar({
           type="button"
           className={`mobile-vitals__collapse-hp${hpPulse ? ' is-pulse' : ''}${
             isDying ? ' is-danger' : ''
-          }`}
+          }${showValueTips ? ' has-onboarding-tip' : ''}`}
           onClick={() => setHpPadOpen(true)}
           title={
-            isDying
-              ? `При смерти · успехи ${play.deathSuccesses} · провалы ${play.deathFails}`
-              : undefined
+            showValueTips
+              ? undefined
+              : isDying
+                ? `При смерти · успехи ${play.deathSuccesses} · провалы ${play.deathFails}`
+                : undefined
           }
         >
           {isDying ? (
@@ -284,10 +290,12 @@ export function MobileVitalsBar({
           ) : (
             hpLabel
           )}
+          {showValueTips ? <HoverTipCard tip={VITAL_TIPS.hp} /> : null}
         </button>
         <button
           type="button"
           className="mobile-vitals__collapse-abil"
+          data-onboarding="abilities"
           onClick={onOpenAbilities}
         >
           СИЛ
@@ -337,18 +345,20 @@ export function MobileVitalsBar({
         <div
           className={`mobile-vitals__chip mobile-vitals__chip--ac${
             shieldInHand ? ' is-shield-on' : ''
-          }${onOpenAc ? ' is-tap' : ''}`}
+          }${onOpenAc ? ' is-tap' : ''}${showValueTips ? ' has-onboarding-tip' : ''}`}
           role="listitem"
         >
           <button
             type="button"
             className="mobile-vitals__chip-main"
             title={
-              onOpenAc
-                ? `Класс защиты ${ac}. Открыть разборку`
-                : acOverride == null
-                  ? acHint
-                  : 'вручную'
+              showValueTips
+                ? undefined
+                : onOpenAc
+                  ? `Класс защиты ${ac}. Открыть разборку`
+                  : acOverride == null
+                    ? acHint
+                    : 'вручную'
             }
             disabled={!onOpenAc}
             onClick={() => onOpenAc?.()}
@@ -356,6 +366,7 @@ export function MobileVitalsBar({
             <b>{ac}</b>
             <span>КД</span>
           </button>
+          {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}
           {onToggleShield ? (
             <button
               type="button"
@@ -444,7 +455,7 @@ export function MobileVitalsBar({
           type="button"
           className={`mobile-vitals__hp${hpPulse ? ' is-pulse' : ''}${
             isDying ? ' is-danger' : ''
-          }`}
+          }${showValueTips ? ' has-onboarding-tip' : ''}`}
           onClick={() => setHpPadOpen(true)}
         >
           <span className="mobile-vitals__hp-num">{hpLabel}</span>
@@ -455,6 +466,7 @@ export function MobileVitalsBar({
                 ? `Хиты · врем. +${play.hpTemp}`
                 : 'Хиты · tap → pad'}
           </span>
+          {showValueTips ? <HoverTipCard tip={VITAL_TIPS.hp} /> : null}
         </button>
         <button
           type="button"
@@ -495,6 +507,7 @@ export function MobileVitalsBar({
       <button
         type="button"
         className="mobile-vitals__abil"
+        data-onboarding="abilities"
         onClick={onOpenAbilities}
       >
         {abilityPeek}

@@ -14738,6 +14738,20 @@ button.session-concentration-tag {
   pointer-events: none;
 }
 
+@media (max-width: 959px) {
+  .onboarding-coach__card {
+    width: min(340px, calc(100vw - 24px));
+  }
+
+  .onboarding-coach__actions .ui-button {
+    min-height: 44px;
+  }
+
+  .onboarding-hover-tip__card--fixed {
+    width: min(300px, calc(100vw - 16px));
+  }
+}
+
 .onboarding-hover-tip__card--fixed b {
   font-size: 0.68rem;
   font-weight: 700;

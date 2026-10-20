@@ -1,4 +1,4 @@
-import { SCENE_TIPS } from '../onboarding'
+import { HoverTipCard, SCENE_TIPS } from '../onboarding'
 import { MODE_LABELS, type PlayDeskMode } from './playDeskUi'
 
 const MODE_SHORT: Record<PlayDeskMode, string> = {
@@ -20,7 +20,7 @@ const MODE_ICON: Record<PlayDeskMode, string> = {
 type BottomSceneNavProps = {
   mode: PlayDeskMode
   onModeChange: (mode: PlayDeskMode) => void
-  /** Absolute beginner: native title = short scene explain (no hover on touch). */
+  /** Absolute beginner: long-press tip on scene tab. */
   showValueTips?: boolean
 }
 
@@ -31,11 +31,10 @@ export function BottomSceneNav({
   showValueTips = false,
 }: BottomSceneNavProps) {
   return (
-    <nav className="mobile-scene-nav" aria-label="Сцены листа">
+    <nav className="mobile-scene-nav" aria-label="Сцены листа" data-onboarding="desk-modes">
       <div className="mobile-scene-nav__tabs" role="tablist">
         {MODE_LABELS.map(({ id, label }) => {
           const on = mode === id
-          const tip = SCENE_TIPS[id]
           return (
             <button
               key={id}
@@ -43,16 +42,16 @@ export function BottomSceneNav({
               role="tab"
               aria-selected={on}
               aria-label={label}
-              title={
-                showValueTips ? `${tip.meaning} ${tip.use}` : undefined
-              }
-              className={`mobile-scene-nav__tab${on ? ' is-on' : ''}`}
+              className={`mobile-scene-nav__tab${on ? ' is-on' : ''}${
+                showValueTips ? ' has-onboarding-tip' : ''
+              }`}
               onClick={() => onModeChange(id)}
             >
               <span className="mobile-scene-nav__ico" aria-hidden>
                 {MODE_ICON[id]}
               </span>
               <span className="mobile-scene-nav__label">{MODE_SHORT[id]}</span>
+              {showValueTips ? <HoverTipCard tip={SCENE_TIPS[id]} /> : null}
             </button>
           )
         })}
