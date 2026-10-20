@@ -19,8 +19,9 @@
 
 | # | Слайс | Статус | Док |
 | --- | --- | --- | --- |
-| **1** | **OAuth Яндекс + VK ID** | **ждём ok на план** | [`SLICE_OAUTH_YANDEX_VK_PLAN.md`](SLICE_OAUTH_YANDEX_VK_PLAN.md) |
-| 2 | B2 разрыв происхождения ttg (позже) | очередь | playbook / GTM |
+| **1** | **OAuth Яндекс + VK ID** (РФ) | **ждём ok на план** | [`SLICE_OAUTH_YANDEX_VK_PLAN.md`](SLICE_OAUTH_YANDEX_VK_PLAN.md) |
+| **2** | **OAuth Google + Telegram** (не-РФ) | в очереди после #1 | [`SLICE_OAUTH_GOOGLE_TELEGRAM_PLAN.md`](SLICE_OAUTH_GOOGLE_TELEGRAM_PLAN.md) |
+| 3 | B2 разрыв происхождения ttg (позже) | очередь | playbook / GTM |
 | — | Отдельный справочник «как dnd.su» | **не делаем** | [`CATALOG_PUBLIC_STANCE.md`](CATALOG_PUBLIC_STANCE.md) |
 
 ---

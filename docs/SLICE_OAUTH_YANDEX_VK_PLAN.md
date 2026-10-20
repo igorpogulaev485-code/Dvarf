@@ -67,7 +67,7 @@
 
 - Новый справочник «как dnd.su» (см. `CATALOG_PUBLIC_STANCE.md`)  
 - B2 ttg  
-- Google/Apple OAuth  
+- **Google / Telegram OAuth** — отдельный следующий слайс (не-РФ), см. `SLICE_OAUTH_GOOGLE_TELEGRAM_PLAN.md`  
 - Смена SMTP / Legal shell
 
 ---
