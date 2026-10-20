@@ -205,7 +205,8 @@
   font-weight: 700;
 }
 
-.classic-physique input {
+.classic-physique input,
+.classic-physique select {
   border: none;
   border-bottom: 1px solid var(--c-line-soft);
   background: transparent;

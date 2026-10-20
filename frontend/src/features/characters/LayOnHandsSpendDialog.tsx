@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { SheetResource } from '../../shared/dnd/rest'
-import { Button, Dialog, Field, Stack, Text } from '../../ui'
+import { Button, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
 type LayOnHandsSpendDialogProps = {
   open: boolean
@@ -21,14 +21,8 @@ export function LayOnHandsSpendDialog({
 }: LayOnHandsSpendDialogProps) {
   const remaining = resource ? Math.max(0, resource.max - resource.used) : 0
   const [healAmount, setHealAmount] = useState(1)
-
-  const healChoices = useMemo(() => {
-    const max = Math.max(0, remaining)
-    if (max <= 0) return [1]
-    return Array.from({ length: max }, (_, i) => i + 1)
-  }, [remaining])
-
-  const clampedHeal = Math.min(remaining, Math.max(1, healAmount))
+  const clampedHeal =
+    remaining <= 0 ? 1 : Math.min(remaining, Math.max(1, healAmount))
 
   function spend(label: string, cost: number) {
     if (remaining <= 0) {
@@ -63,18 +57,18 @@ export function LayOnHandsSpendDialog({
               <b>Исцелить хиты</b>
               <span>Действием коснись существа — восстанови хиты из пула.</span>
               <Field label="Сколько хитов">
-                <select
-                  className="play-select"
+                <NumberInput
                   value={clampedHeal}
+                  min={1}
+                  max={Math.max(1, remaining)}
                   disabled={remaining <= 0}
-                  onChange={(event) => setHealAmount(Number(event.target.value))}
-                >
-                  {healChoices.map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
+                  emptyValue={1}
+                  aria-label="Сколько хитов исцелить"
+                  onValueChange={(next) => {
+                    if (next == null) return
+                    setHealAmount(next)
+                  }}
+                />
               </Field>
             </div>
             <Button

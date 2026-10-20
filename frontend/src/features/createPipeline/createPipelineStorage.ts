@@ -1,5 +1,6 @@
 /** localStorage persistence for create-pipeline F5 protection. */
 
+import { parseCharacterGender } from '../../shared/dnd/characterGender'
 import { emptyFeaturePicks } from '../../shared/dnd/featurePicks'
 import {
   CREATE_PIPELINE_VERSION,
@@ -24,7 +25,9 @@ function normalizeLoadedState(parsed: CreatePipelineState): CreatePipelineState 
     sheetDraft: parsed.sheetDraft ?? {},
     stepDirty: parsed.stepDirty ?? {},
     feat: parsed.feat ?? null,
+    featSetup: parsed.featSetup ?? null,
     featAcknowledged: Boolean(parsed.featAcknowledged),
+    gender: parseCharacterGender((parsed as { gender?: unknown }).gender),
   }
 }
 

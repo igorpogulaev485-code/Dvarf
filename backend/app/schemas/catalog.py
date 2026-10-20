@@ -20,8 +20,11 @@ class CatalogEntryOut(BaseModel):
     rules_edition: CatalogRulesEdition
     parent_id: UUID | None = None
     source: str | None = None
+    # Always null in public API (B2) — legacy refs may exist in DB only.
     external_ref: dict[str, Any] | None = None
     data: dict[str, Any] = Field(default_factory=dict)
+    # B0 legal tag — derived; not shown in player UI.
+    content_layer: str | None = None
     sort_order: int
     is_active: bool
     created_at: datetime

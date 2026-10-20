@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""Fetch remaining official 2014 spells (non-homebrew) not yet in catalog.
+"""LEGACY importer — remaining spells from dnd.su (B2: disabled by default).
 
-Writes: backend/data/srd/2014/spells_rest_books_v1.json
+Unlock: DVARF_ALLOW_LEGACY_FETCH=1
 """
 
 from __future__ import annotations
 
 import json
 import re
+import sys
 import time
 import urllib.request
 from html import unescape
@@ -15,6 +16,11 @@ from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
 ROOT = Path(__file__).resolve().parents[2]
+SCRIPTS = Path(__file__).resolve().parent
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
+
+from legacy_fetch_guard import require_legacy_fetch_allowed  # noqa: E402
 CATALOG = ROOT / "backend/data/srd/2014/catalog.json"
 OUT = ROOT / "backend/data/srd/2014/spells_rest_books_v1.json"
 INDEX_URL = "https://5e14.dnd.su/piece/spells/index-list/"
@@ -252,6 +258,7 @@ def parse_page(html: str, card: dict, book: str, source_label: str) -> dict:
 
 
 def main() -> None:
+    require_legacy_fetch_allowed("fetch_remaining_official_spells.py")
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     ours = set()
     for e in catalog:

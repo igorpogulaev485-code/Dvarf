@@ -15,6 +15,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 - 2026-10-06: аватар, кабинет, лист P1–P6, classic — затирались параллельными развилками.
 - **2026-10-17:** T5 setting с линии C4 затёр Play Desk + полный classic (см. docs/INCIDENT_OVERWRITE_2026-10-17.md).
 - 2026-10-13: orphan kit-ветка (пустой merge-base), час cherry-pick, API падал из‑за alembic в БД без файла в дереве, Docker Hub/BuildKit ~27+ мин.
+- **2026-10-17:** агент показал Игорю **фейковый упрощённый «лист»** (`/dev` mock-стол) вместо Play Desk — канон: [`docs/PLAY_DESK_SOURCE_OF_TRUTH.md`](../../../docs/PLAY_DESK_SOURCE_OF_TRUTH.md). Не повторять.
 
 ## Hard rules
 
@@ -34,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/restore-sheet-classic-setting-3d0d
+cursor/resource-pips-compact-10d6
 ```
 
 URL: http://201.34.132.252/

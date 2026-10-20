@@ -71,6 +71,12 @@ import {
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import {
+  findAppliedClassAsi,
+  formatAppliedClassAsiLabel,
+  isAsiFeature,
+  type AppliedClassAsi,
+} from '../../shared/dnd/classAsi'
+import {
   isFeatureChoiceComplete,
   listUnlockedExpertiseKeys,
 } from '../../shared/dnd/pendingFeatureChoices'
@@ -127,6 +133,8 @@ type ClassFeaturesPanelProps = {
   /** For Expertise pickers — proficient skills + tools on the sheet. */
   skills?: SkillExpertiseState
   tools?: string[]
+  /** Class ASI ledger — drives labels for Ability Score Improvement rows. */
+  classAsi?: AppliedClassAsi[]
   /** Equipped heavy body armor — blocks Rage benefits (PHB). */
   wearingHeavyArmor?: boolean
   companions?: CompanionEntry[]
@@ -1258,6 +1266,7 @@ function FeatureRow({
   skills,
   tools,
   expertiseKeys,
+  classAsi,
   companions,
   onCompanionsChange,
   onToast,
@@ -1285,6 +1294,7 @@ function FeatureRow({
   skills: SkillExpertiseState
   tools: string[]
   expertiseKeys: Array<{ classEntryId: string; featureId: string }>
+  classAsi: AppliedClassAsi[]
   companions?: CompanionEntry[]
   onCompanionsChange?: (companions: CompanionEntry[]) => void
   onToast?: (message: string) => void
@@ -1319,29 +1329,40 @@ function FeatureRow({
       )
     : null
 
+  const asiEntry = isAsiFeature(feature)
+    ? findAppliedClassAsi(classAsi, feature.classEntryId, feature.id)
+    : null
+  const asiLabel = asiEntry ? formatAppliedClassAsiLabel(asiEntry) : null
+  const isAsi = isAsiFeature(feature)
+
   const choiceMulti =
+    !isAsi &&
     feature.choice &&
     (Boolean(feature.choice.max_picks_by_level) ||
       Boolean(feature.choice.max_picks && feature.choice.max_picks > 1) ||
       resolveChoiceMaxPicks(feature.choice, feature.classLevel) > 1)
-  const choicePick = feature.choice
-    ? choiceMulti
-      ? getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
-          .map(choiceOptionLabel)
-          .join(', ')
-      : getFeaturePick(featurePicks, feature.classEntryId, feature.id)
-    : null
+  const choicePick =
+    !isAsi && feature.choice
+      ? choiceMulti
+        ? getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
+            .map(choiceOptionLabel)
+            .join(', ')
+        : getFeaturePick(featurePicks, feature.classEntryId, feature.id)
+      : null
   const choiceLabel =
     typeof choicePick === 'string' && choicePick
       ? choiceMulti
         ? choicePick
         : choiceOptionLabel(choicePick)
       : null
-  const choicePending =
-    Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)
+  const choicePending = isAsi
+    ? !asiEntry
+    : Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)
 
   let metaExtra = ''
-  if (choiceLabel) {
+  if (asiLabel) {
+    metaExtra = asiLabel
+  } else if (choiceLabel) {
     metaExtra = choiceLabel
   } else if (choicePending) {
     metaExtra = 'не выбрано'
@@ -1440,15 +1461,33 @@ function FeatureRow({
           {feature.scale.labelRu}: сейчас <strong>{feature.scaleValue}</strong>
         </Text>
       ) : null}
-      <FeatureChoiceControls
-        feature={feature}
-        featurePicks={featurePicks}
-        onFeaturePicksChange={onFeaturePicksChange}
-        skills={skills}
-        tools={tools}
-        expertiseKeys={expertiseKeys}
-        onToast={onToast}
-      />
+      {isAsi ? (
+        <div className="feature-resource">
+          <Text>
+            Увеличение характеристик
+            {asiLabel ? (
+              <>
+                : <strong>{asiLabel}</strong>
+              </>
+            ) : (
+              <>
+                {' '}
+                <span className="feature-choice-badge">не выбрано</span>
+              </>
+            )}
+          </Text>
+        </div>
+      ) : (
+        <FeatureChoiceControls
+          feature={feature}
+          featurePicks={featurePicks}
+          onFeaturePicksChange={onFeaturePicksChange}
+          skills={skills}
+          tools={tools}
+          expertiseKeys={expertiseKeys}
+          onToast={onToast}
+        />
+      )}
       <MetamagicSpendControls
         feature={feature}
         featurePicks={featurePicks}
@@ -1555,6 +1594,7 @@ export function ClassFeaturesPanel({
   onSpellsChange,
   skills = {},
   tools = [],
+  classAsi = [],
   wearingHeavyArmor = false,
   companions = [],
   onCompanionsChange,
@@ -1868,6 +1908,7 @@ export function ClassFeaturesPanel({
                     skills={skills}
                     tools={tools}
                     expertiseKeys={expertiseKeys}
+                    classAsi={classAsi}
                     companions={companions}
                     onCompanionsChange={onCompanionsChange}
                     onToast={onToast}

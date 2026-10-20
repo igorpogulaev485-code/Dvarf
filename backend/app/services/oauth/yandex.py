@@ -6,6 +6,7 @@ import httpx
 
 from app.core.config import settings
 from app.core.exceptions import AppError
+from app.core.oauth_urls import effective_yandex_redirect_uri
 from app.models.user import AuthProvider
 from app.services.oauth.base import OAuthProfile, OAuthProvider
 
@@ -16,21 +17,31 @@ class YandexOAuthProvider(OAuthProvider):
     def is_configured(self) -> bool:
         return bool(settings.yandex_client_id and settings.yandex_client_secret)
 
-    def get_authorize_url(self, state: str) -> str:
+    def get_authorize_url(self, state: str, *, code_challenge: str | None = None) -> str:
+        del code_challenge
         self.require_configured()
         query = urlencode(
             {
                 "response_type": "code",
                 "client_id": settings.yandex_client_id,
-                "redirect_uri": settings.yandex_redirect_uri,
+                "redirect_uri": effective_yandex_redirect_uri(),
                 "state": state,
                 "scope": "login:info login:email",
             }
         )
         return f"https://oauth.yandex.ru/authorize?{query}"
 
-    async def exchange_code(self, code: str) -> OAuthProfile:
+    async def exchange_code(
+        self,
+        code: str,
+        *,
+        device_id: str | None = None,
+        code_verifier: str | None = None,
+        state: str | None = None,
+    ) -> OAuthProfile:
+        del device_id, code_verifier, state  # unused for Yandex
         self.require_configured()
+        redirect_uri = effective_yandex_redirect_uri()
 
         async with httpx.AsyncClient(timeout=20) as client:
             token_response = await client.post(
@@ -40,6 +51,7 @@ class YandexOAuthProvider(OAuthProvider):
                     "code": code,
                     "client_id": settings.yandex_client_id,
                     "client_secret": settings.yandex_client_secret,
+                    "redirect_uri": redirect_uri,
                 },
             )
             if token_response.status_code >= 400:

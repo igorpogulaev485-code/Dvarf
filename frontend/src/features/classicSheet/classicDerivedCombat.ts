@@ -37,6 +37,10 @@ import {
   asRecord,
   type AbilityKey,
 } from '../characters/sheetTypes'
+import {
+  classWalkSpeedBonusFt,
+  resolveWalkSpeedFt,
+} from '../../shared/dnd/classMovement'
 import { asProfBonus } from './classicPrintShared'
 import { abilityScore, combatField } from './fromApi'
 
@@ -199,22 +203,45 @@ export function classicDisplayInitiative(character: CharacterDetail): string {
 }
 
 /**
- * Speed: stored combat.speed + gear bonus (Play Desk). If nothing stored and
- * no gear, fall back to race grant walk speed so the blank is not empty.
+ * Speed: race / stored + class movement (Fast Movement / Unarmored Movement)
+ * + gear — same derivation as Play Desk.
  */
 export function classicDisplaySpeed(character: CharacterDetail): string {
   const stored = readNullableCombatNumber(character, 'speed')
   const sheet = asRecord(character.sheet)
+  const inventory = readInventory(sheet)
   const gear = aggregateGearEffects({
-    items: readInventory(sheet).items,
+    items: inventory.items,
     attunements: readAttunements(sheet),
   })
-  if (stored == null && !gear.speedBonusFt) {
-    const race = readAppliedRaceGrant(sheet.race_grant)
-    if (race?.speed != null && race.speed > 0) return String(race.speed)
-    return ''
-  }
-  return String((stored ?? 0) + gear.speedBonusFt)
+  const race = readAppliedRaceGrant(sheet.race_grant)
+  const classes = readClassLevels(sheet, {
+    className: character.class_name ?? '',
+    level: character.level,
+    subclassName: '',
+    classCatalogId: null,
+  })
+  const pieces = equippedArmorPieces(inventory.items)
+  const wearingHeavy = pieces.armor?.kind === 'heavy'
+  const wearingArmorOrShield = Boolean(pieces.armor || pieces.shield)
+  const classBonus = classWalkSpeedBonusFt({
+    classes,
+    wearingHeavyArmor: wearingHeavy,
+    wearingArmorOrShield,
+  })
+  const classBonusMax = classWalkSpeedBonusFt({
+    classes,
+    wearingHeavyArmor: false,
+    wearingArmorOrShield: false,
+  })
+  const resolved = resolveWalkSpeedFt({
+    storedSpeed: stored,
+    raceSpeed: race?.speed ?? null,
+    classBonusFt: classBonus,
+    classBonusFtMax: classBonusMax,
+    gearBonusFt: gear.speedBonusFt,
+  })
+  return resolved == null || resolved === 0 ? '' : String(resolved)
 }
 
 export function classicCombatDisplay(

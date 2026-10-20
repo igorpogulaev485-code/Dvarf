@@ -59,6 +59,7 @@ import {
   itemsWeightLb,
   totalCarriedLb,
 } from '../../shared/dnd/weight'
+import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { SpellScrollBindDialog } from './SpellScrollBindDialog'
@@ -1029,7 +1030,11 @@ export function InventoryPanel({
   }
 
   return (
-    <Panel title="Инвентарь" className="inventory-panel">
+    <Panel
+      title="Инвентарь"
+      className="inventory-panel"
+      titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.inventory)} />}
+    >
       <Stack gap={12}>
         <Text tone="muted">
           Ноша и вещи. Строка — взгляд; клик — детали (одна открыта). ★ — в расходники боя. Монеты —

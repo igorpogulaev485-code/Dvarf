@@ -1,6 +1,9 @@
-# Аудит рас PHB 2014 (ttg.club / dnd.su → каталог → попап → apply/revoke → прод)
+# Аудит рас PHB 2014 (каталог → попап → apply/revoke → прод)
 
-Источник правды: [ttg.club / 5e14](https://5e14.ttg.club/races) · зеркало [dnd.su](https://dnd.su/race/).  
+**SoT продукта (B2):** официальные книги 2014 + наша структура каталога.  
+ttg.club / dnd.su — исторический gap-check / импорт, не SoT продукта.
+
+Исторические зеркала аудита: [ttg.club / 5e14](https://5e14.ttg.club/races) · [dnd.su](https://dnd.su/race/).  
 Прод tip: `cursor/race-level-unlocks-f10e` · http://201.34.132.252/ · alembic `m2b3c4d5e6f7`  
 Гибкий ASI: `preset=tasha_flexible` (+2/+1 **или** три +1).
 

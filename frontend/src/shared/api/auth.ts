@@ -241,6 +241,18 @@ export async function startOAuth(provider: 'yandex' | 'vk'): Promise<OAuthStartR
   return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/start`)
 }
 
+export async function startOAuthLink(
+  provider: 'yandex' | 'vk',
+): Promise<OAuthStartResponse> {
+  return apiRequest<OAuthStartResponse>(`/auth/oauth/${provider}/link/start`)
+}
+
+export async function unlinkOAuth(provider: 'yandex' | 'vk'): Promise<User> {
+  return apiRequest<User>(`/auth/oauth/${provider}/link`, {
+    method: 'DELETE',
+  })
+}
+
 export type ForgotPasswordResponse = {
   message: string
   stub: boolean

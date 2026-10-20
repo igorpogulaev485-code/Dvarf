@@ -8,6 +8,11 @@ import {
   RaceSetupDialog,
   type RaceSetupConfirm,
 } from '../features/characters/RaceSetupDialog'
+import {
+  FeatSetupDialog,
+  type FeatSetupResult,
+} from '../features/characters/FeatSetupDialog'
+import { CHARACTER_GENDER_LABELS } from '../shared/dnd/characterGender'
 import { ClassSetupDialog } from '../features/characters/ClassSetupDialog'
 import {
   GuidedWizardDialog,
@@ -31,6 +36,8 @@ import {
 } from '../features/createPipeline/catalogCardMeta'
 import { CatalogDetailPanel } from '../features/createPipeline/CatalogDetailPanel'
 import { CreatePipelineShell } from '../features/createPipeline/CreatePipelineShell'
+import { StepHint, useOnboardingState } from '../features/onboarding'
+import { getMe } from '../shared/api/auth'
 import { hydratePipelineFromSheet } from '../features/createPipeline/createPipelineSheet'
 import { applyPipelineToSheet } from '../features/createPipeline/pipelineApply'
 import {
@@ -44,6 +51,7 @@ import {
   createEmptyPipelineState,
   raceFeatNoteRu,
   raceNeedsFeatStep,
+  raceRequiresCatalogFeat,
   stepIndex,
   visiblePipelineSteps,
   type CreatePipelineState,
@@ -96,6 +104,7 @@ import {
   raceSubraceRequired,
   resolveRaceGrantDef,
 } from '../shared/dnd/raceGrants'
+import { raceRequiresFeatPick } from '../shared/dnd/featGrants'
 import type {
   SubclassChangeMode,
   SubclassGrantDef,
@@ -279,7 +288,23 @@ function prevVisibleStep(
 export function CreateCharacterPage() {
   const navigate = useNavigate()
   const { characterId: routeCharacterId } = useParams<{ characterId?: string }>()
+  const [userId, setUserId] = useState<string | null>(null)
+  const onboarding = useOnboardingState(userId)
   const [state, setState] = useState<CreatePipelineState>(() => loadOrCreatePipelineState())
+
+  useEffect(() => {
+    let active = true
+    getMe()
+      .then((me) => {
+        if (active) setUserId(me.id)
+      })
+      .catch(() => {
+        if (active) setUserId(null)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
   const [backgrounds, setBackgrounds] = useState<CatalogEntry[]>([])
   const [classes, setClasses] = useState<CatalogEntry[]>([])
   const [races, setRaces] = useState<CatalogEntry[]>([])
@@ -288,6 +313,7 @@ export function CreateCharacterPage() {
   const [selectedClass, setSelectedClass] = useState<CatalogEntry | null>(null)
   const [selectedRace, setSelectedRace] = useState<CatalogEntry | null>(null)
   const [selectedFeat, setSelectedFeat] = useState<CatalogEntry | null>(null)
+  const [featSetupOpen, setFeatSetupOpen] = useState(false)
   const [bgSetup, setBgSetup] = useState<{
     root: CatalogEntry
     variants: CatalogEntry[]
@@ -1016,10 +1042,12 @@ export function CreateCharacterPage() {
       patchState({
         step: nextStep,
         feat: null,
+        featSetup: null,
         featAcknowledged: false,
         stepDirty: { ...state.stepDirty, feat: false },
       })
       setSelectedFeat(null)
+      setFeatSetupOpen(false)
       return
     }
     if (step === 'race') {
@@ -1029,6 +1057,7 @@ export function CreateCharacterPage() {
         subrace: null,
         raceSetup: null,
         feat: null,
+        featSetup: null,
         featAcknowledged: false,
         characterName: state.characterName,
         stepDirty: { ...state.stepDirty, race: false, feat: false },
@@ -1036,6 +1065,7 @@ export function CreateCharacterPage() {
       setRacialBonuses({})
       setSelectedRace(null)
       setSelectedFeat(null)
+      setFeatSetupOpen(false)
       return
     }
     patchState({ step: nextStep })
@@ -1115,8 +1145,13 @@ export function CreateCharacterPage() {
         navigate('/characters')
         return
       }
+      onboarding.markCreateHintsSeen()
+      onboarding.queueAfterCreate()
       navigate(`/characters/${saved.id}`, {
-        state: { toast: 'Персонаж готов' },
+        state: {
+          toast: 'Персонаж готов',
+          onboardingReady: true,
+        },
       })
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить')
@@ -1136,6 +1171,9 @@ export function CreateCharacterPage() {
 
   function canFinishHardBlocks(): string | null {
     if (!state.race) return 'Выберите расу'
+    if (raceRequiresCatalogFeat(state.raceSetup) && !state.featSetup) {
+      return 'Выберите черту расы'
+    }
     if (raceNeedsFeatStep(state.raceSetup) && !state.feat && !state.featAcknowledged) {
       return 'Закройте шаг черты'
     }
@@ -1145,6 +1183,7 @@ export function CreateCharacterPage() {
       return 'Выберите навыки и снаряжение класса'
     }
     if (!state.characterName.trim()) return 'Укажите имя на шаге расы'
+    if (state.gender == null) return 'Укажите пол на шаге расы'
     if (!abilitiesValid()) return 'Закройте характеристики'
     if (!state.classes.some((row) => row.level > 0 && row.name.trim())) {
       return 'Задайте уровни в прокачке'
@@ -1175,6 +1214,10 @@ export function CreateCharacterPage() {
 
   const step = state.step
   const featNote = raceFeatNoteRu(state.raceSetup)
+  const needsCatalogFeat = raceRequiresCatalogFeat(state.raceSetup)
+  const featStepReady = needsCatalogFeat
+    ? Boolean(state.featSetup)
+    : Boolean(state.feat || state.featAcknowledged)
   /** Phone create hides detail (Сводка only) — open setup from card/footer. */
   const createPhoneLayout =
     typeof window !== 'undefined' && window.matchMedia('(max-width: 860px)').matches
@@ -1242,7 +1285,9 @@ export function CreateCharacterPage() {
   let footer = null
 
   if (step === 'race') {
-    const raceReady = Boolean(state.race && state.characterName.trim())
+    const raceReady = Boolean(
+      state.race && state.characterName.trim() && state.gender != null,
+    )
     cards = (
       <CatalogCardList
         resetToken={step}
@@ -1270,8 +1315,11 @@ export function CreateCharacterPage() {
         {state.characterName.trim() ? (
           <Text tone="muted">Имя: {state.characterName.trim()}</Text>
         ) : (
-          <Text tone="muted">Имя укажешь в окне настройки расы.</Text>
+          <Text tone="muted">Имя и пол укажешь в окне настройки расы.</Text>
         )}
+        {state.gender ? (
+          <Text tone="muted">Пол: {CHARACTER_GENDER_LABELS[state.gender]}</Text>
+        ) : null}
         <Button
           disabled={!selectedRace}
           onClick={() => {
@@ -1315,8 +1363,17 @@ export function CreateCharacterPage() {
           source: entry.source,
         }))}
         selectedId={selectedFeat?.id ?? state.feat?.id ?? null}
-        onSelect={(id) => setSelectedFeat(feats.find((row) => row.id === id) ?? null)}
-        emptyText="В каталоге пока мало черт — можно отметить заметку расы и продолжить"
+        onSelect={(id) => {
+          const entry = feats.find((row) => row.id === id) ?? null
+          setSelectedFeat(entry)
+          // Phone hides detail (Сводка only) — open setup like race/background/class.
+          if (entry && createPhoneLayout) setFeatSetupOpen(true)
+        }}
+        emptyText={
+          needsCatalogFeat
+            ? 'Выбери черту из каталога (раса даёт черту с 1 уровня)'
+            : 'В каталоге пока мало черт — можно отметить заметку расы и продолжить'
+        }
       />
     )
     detail = (
@@ -1324,43 +1381,46 @@ export function CreateCharacterPage() {
         kind="feat"
         entry={selectedFeat}
         emptyTitle="Черта"
-        emptyHint={featNote || 'Раса даёт черту с 1 уровня.'}
+        emptyHint={
+          needsCatalogFeat
+            ? 'Раса даёт черту с 1 уровня — настрой её здесь (не в попапе расы).'
+            : featNote || 'Раса даёт черту с 1 уровня.'
+        }
       >
-        {featNote ? (
+        {featNote && !needsCatalogFeat ? (
           <Text>
             Заметка расы: {featNote}
           </Text>
         ) : null}
         <div className="create-pipeline__method-row">
           <Button
-            disabled={!selectedFeat}
-            onClick={() => {
-              if (!selectedFeat) return
-              patchState({
-                feat: catalogRef(selectedFeat),
-                featAcknowledged: true,
-                stepDirty: { ...state.stepDirty, feat: true },
-              })
-              setToast(`Черта «${selectedFeat.name_ru}»`)
-            }}
+            disabled={!selectedFeat && !state.featSetup}
+            onClick={() => setFeatSetupOpen(true)}
           >
-            Выбрать черту
+            {state.featSetup ? 'Сменить черту' : 'Выбрать и настроить'}
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              patchState({
-                feat: null,
-                featAcknowledged: true,
-                stepDirty: { ...state.stepDirty, feat: true },
-              })
-              setToast('Черта: отметьте на листе / в заметках')
-            }}
-          >
-            Отметить без каталога
-          </Button>
+          {!needsCatalogFeat ? (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                patchState({
+                  feat: null,
+                  featSetup: null,
+                  featAcknowledged: true,
+                  stepDirty: { ...state.stepDirty, feat: true },
+                  // Same as catalog feat confirm: finish block → next step.
+                  step: 'background',
+                })
+                setToast('Черта отмечена. Далее — предыстория.')
+              }}
+            >
+              Отметить без каталога
+            </Button>
+          ) : null}
         </div>
-        {state.feat ? (
+        {state.featSetup ? (
+          <Text tone="muted">Выбрано: {state.featSetup.entry.name_ru}</Text>
+        ) : state.feat ? (
           <Text tone="muted">Выбрано: {state.feat.nameRu}</Text>
         ) : state.featAcknowledged ? (
           <Text tone="muted">Черта отмечена без карточки каталога</Text>
@@ -1369,10 +1429,16 @@ export function CreateCharacterPage() {
     )
     footer = (
       <Button
-        disabled={!state.feat && !state.featAcknowledged}
-        onClick={() => advanceFrom('feat')}
+        disabled={!featStepReady && !selectedFeat && needsCatalogFeat}
+        onClick={() => {
+          if (featStepReady) {
+            advanceFrom('feat')
+            return
+          }
+          setFeatSetupOpen(true)
+        }}
       >
-        Далее · Предыстория
+        {featStepReady ? 'Далее · Предыстория' : 'Настроить черту'}
       </Button>
     )
   }
@@ -1654,6 +1720,9 @@ export function CreateCharacterPage() {
         steps={visibleSteps}
         title="Создание персонажа"
         subtitle="Раса → черта* → предыстория → класс → характеристики → прокачка"
+        stepHint={
+          <StepHint step={step} visible={onboarding.state.segment !== 'skip'} />
+        }
         cards={cards}
         detail={detail}
         footer={footer}
@@ -1706,6 +1775,9 @@ export function CreateCharacterPage() {
         hasSpellcasting={hasCasterClass}
         backgroundSlug={state.backgroundSetup?.entry.slug ?? null}
         characterName={state.characterName}
+        deferFeatPick
+        gender={state.gender}
+        enableNameGeneration
         onClose={() => setRaceSetup(null)}
         onConfirm={(result: RaceSetupConfirm) => {
           setRacialBonuses(
@@ -1723,17 +1795,22 @@ export function CreateCharacterPage() {
             rootEntry: rootEntry ? catalogSnapshot(rootEntry) : null,
             picks: result.picks,
           }
-          const needsFeat = Boolean(result.def.featNoteRu?.trim())
+          const needsFeat =
+            raceRequiresFeatPick(result.def) ||
+            Boolean(result.def.featNoteRu?.trim())
           patchState({
             characterName: result.characterName,
+            gender: result.gender,
             race: isSub
               ? state.race ??
                 (rootEntry ? catalogRef(rootEntry) : catalogRef(result.entry))
               : catalogRef(result.entry),
             subrace: isSub ? catalogRef(result.entry) : null,
             raceSetup: nextRaceSetup,
-            feat: needsFeat ? state.feat : null,
-            featAcknowledged: needsFeat ? state.featAcknowledged : false,
+            // Race popup no longer picks the feat — clear stale picks on race change.
+            feat: null,
+            featSetup: null,
+            featAcknowledged: false,
             sheetDraft: {
               ...state.sheetDraft,
               race_grant: {
@@ -1742,16 +1819,77 @@ export function CreateCharacterPage() {
                 picks: result.picks,
               },
             },
-            stepDirty: { ...state.stepDirty, race: true },
+            stepDirty: { ...state.stepDirty, race: true, feat: false },
             // Auto-advance past feat when race does not grant one.
             step: needsFeat ? 'feat' : 'background',
           })
           setRaceSetup(null)
+          setSelectedFeat(null)
+          setFeatSetupOpen(false)
           if (needsFeat) {
             setToast(`Раса «${result.entry.name_ru}». Далее — черта.`)
           } else {
             setToast(`Раса «${result.entry.name_ru}». Далее — предыстория.`)
           }
+        }}
+      />
+
+      <FeatSetupDialog
+        open={featSetupOpen}
+        edition="2014"
+        title="Черта расы"
+        abilities={state.baseAbilities as Record<AbilityKey, number>}
+        armor={EMPTY_ARMOR}
+        hasSpellcasting={hasCasterClass}
+        raceSlug={state.subrace?.slug ?? state.race?.slug ?? null}
+        raceParentSlug={
+          state.subrace && state.race ? state.race.slug : null
+        }
+        characterLevel={1}
+        takenSlugs={[]}
+        classSlugs={state.classRef ? [state.classRef.slug] : []}
+        backgroundSlug={state.backgroundSetup?.entry.slug ?? null}
+        proficientSkills={blockedSkillKeys}
+        forcedSlug={selectedFeat?.slug ?? state.feat?.slug ?? null}
+        initialEntry={selectedFeat}
+        onClose={() => setFeatSetupOpen(false)}
+        onConfirm={(result: FeatSetupResult) => {
+          const racePicks = state.raceSetup?.picks
+          const nextRaceSetup = state.raceSetup
+            ? {
+                ...state.raceSetup,
+                picks: {
+                  ...(racePicks ?? state.raceSetup.picks),
+                  featCatalogId: result.entry.id,
+                },
+              }
+            : null
+          patchState({
+            feat: catalogRef(result.entry),
+            featSetup: {
+              entry: catalogSnapshot(result.entry),
+              picks: result.picks,
+              applied: result.applied,
+            },
+            featAcknowledged: true,
+            raceSetup: nextRaceSetup,
+            sheetDraft: {
+              ...state.sheetDraft,
+              race_grant: nextRaceSetup
+                ? {
+                    raceCatalogId: nextRaceSetup.entry.id,
+                    raceSlug: nextRaceSetup.entry.slug,
+                    picks: nextRaceSetup.picks,
+                  }
+                : state.sheetDraft.race_grant,
+            },
+            stepDirty: { ...state.stepDirty, feat: true },
+            // Same as race/background: finish setup → jump to next block.
+            step: 'background',
+          })
+          setSelectedFeat(result.entry)
+          setFeatSetupOpen(false)
+          setToast(`Черта «${result.entry.name_ru}». Далее — предыстория.`)
         }}
       />
 

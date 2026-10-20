@@ -117,6 +117,7 @@ else
 fi
 
 ensure_base postgres:16-alpine
+ensure_base caddy:2.8-alpine
 if [[ ${#BUILD_SERVICES[@]} -gt 0 ]]; then
   if [[ " ${BUILD_SERVICES[*]} " == *" api "* ]]; then
     ensure_base python:3.12-slim
@@ -158,7 +159,8 @@ save_fp api "$API_FP"
 save_fp web "$WEB_FP"
 
 for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
-  if curl -fsS http://127.0.0.1/health; then
+  # :80 = host nginx (HTTPS setup); :8080 = docker web loopback before/without host proxy
+  if curl -fsS http://127.0.0.1/health || curl -fsS http://127.0.0.1:8080/health; then
     echo
     echo "remote-up: healthy"
     exit 0

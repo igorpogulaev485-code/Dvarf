@@ -25,15 +25,22 @@ class OAuthProvider(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_authorize_url(self, state: str) -> str:
+    def get_authorize_url(self, state: str, *, code_challenge: str | None = None) -> str:
         raise NotImplementedError
 
     @abstractmethod
-    async def exchange_code(self, code: str) -> OAuthProfile:
+    async def exchange_code(
+        self,
+        code: str,
+        *,
+        device_id: str | None = None,
+        code_verifier: str | None = None,
+        state: str | None = None,
+    ) -> OAuthProfile:
         raise NotImplementedError
 
     def require_configured(self) -> None:
         if not self.is_configured():
             raise NotConfiguredError(
-                f"OAuth-провайдер {self.provider.value} ещё не настроен (заглушка)."
+                f"OAuth-провайдер {self.provider.value} ещё не настроен."
             )
