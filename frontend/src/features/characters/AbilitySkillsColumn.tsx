@@ -1,4 +1,4 @@
-import { ABILITY_TIPS } from '../onboarding'
+import { ABILITY_TIPS, HoverTipCard } from '../onboarding'
 import { NumberInput, Text } from '../../ui'
 import {
   ABILITY_KEYS,
@@ -41,10 +41,7 @@ type AbilitySkillsColumnProps = {
   onRollSave?: (key: AbilityKey, mod: number) => void
   /** Click the skill number → roll (pip cycles владение / экспертиза). */
   onRollSkill?: (skill: { key: string; label: string; mod: number }) => void
-  /**
-   * Absolute beginner: richer titles on ability names (no «?» icons —
-   * those stay only on КД/хиты in the header).
-   */
+  /** Absolute beginner: hover tip on ability name (no «?» icons). */
   showValueTips?: boolean
 }
 
@@ -178,13 +175,13 @@ export function AbilitySkillsColumn({
                 >
                   ⋮⋮
                 </span>
-                <div className="abil-block__label">
+                <div className={`abil-block__label${showValueTips ? ' has-onboarding-tip' : ''}`}>
                   <button
                     type="button"
                     className="abil-block__label-open"
                     title={
                       showValueTips
-                        ? `${ABILITY_TIPS[key].meaning} ${ABILITY_TIPS[key].use}`
+                        ? undefined
                         : onOpenAbility
                           ? `Разборка «${ABILITY_NAMES[key]}» — значение, проверки, спас`
                           : ABILITY_NAMES[key]
@@ -196,6 +193,7 @@ export function AbilitySkillsColumn({
                   >
                     <span className="abil-block__label-text">{ABILITY_NAMES[key]}</span>
                   </button>
+                  {showValueTips ? <HoverTipCard tip={ABILITY_TIPS[key]} /> : null}
                   <button
                     type="button"
                     className="abil-block__label-chevron"

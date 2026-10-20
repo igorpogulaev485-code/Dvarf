@@ -14696,104 +14696,72 @@ button.session-concentration-tag {
 }
 
 
-/* Value tips for dnd_new beginners */
+/* Hover explain tips — tip on the value itself, no «?» icons (portal, no clip) */
 .play-desk-vital__label-row {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.onboarding-value-tip {
+.has-onboarding-tip {
   position: relative;
+}
+
+.onboarding-hover-tip {
   display: inline-flex;
-  flex: 0 0 auto;
-  vertical-align: middle;
+  position: relative;
 }
 
-.onboarding-value-tip__btn {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  min-width: 16px;
-  padding: 0;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--desk-muted, var(--muted)) 55%, var(--line));
-  background: transparent;
-  color: var(--desk-muted, var(--muted));
-  font: inherit;
-  font-size: 0.62rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  user-select: none;
-  opacity: 0.72;
-}
-
-.onboarding-value-tip__btn:hover,
-.onboarding-value-tip__btn[aria-expanded='true'] {
-  opacity: 1;
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
-  color: var(--accent);
-  background: #fffdf9;
-}
-
-.onboarding-value-tip__btn:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  outline-offset: 2px;
-}
-
-.onboarding-value-tip__pop {
+.onboarding-hover-tip__probe {
   position: absolute;
-  z-index: 40;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(260px, 72vw);
-  padding: 10px 12px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: #fffdf9;
-  box-shadow: 0 12px 28px rgba(28, 25, 23, 0.2);
-  text-align: left;
-  white-space: normal;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-.onboarding-value-tip__pop--portal {
+.onboarding-hover-tip__card--fixed {
   position: fixed;
-  transform: none;
   z-index: 1200;
+  display: grid;
+  gap: 4px;
+  width: min(280px, 72vw);
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--desk-accent, var(--accent)) 34%, var(--desk-line, var(--line)));
+  background: #fffdf8;
+  box-shadow: 0 10px 28px rgba(45, 45, 42, 0.18);
+  color: var(--desk-ink, var(--ink));
+  text-align: left;
+  font-weight: 500;
+  white-space: normal;
+  pointer-events: none;
 }
 
-.onboarding-value-tip--up .onboarding-value-tip__pop {
-  top: auto;
-  bottom: calc(100% + 6px);
-}
-
-.onboarding-value-tip__title {
-  margin: 0 0 6px;
-  font-family: var(--font-display);
-  font-size: 0.9rem;
-  color: var(--accent);
+.onboarding-hover-tip__card--fixed b {
+  font-size: 0.68rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--desk-muted, var(--muted));
 }
 
-.onboarding-value-tip__line {
-  margin: 0 0 6px;
-  font-size: 0.8rem;
+.onboarding-hover-tip__meaning {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--desk-ink, var(--ink));
+}
+
+.onboarding-hover-tip__card--fixed small {
+  display: block;
+  margin-top: 2px;
+  padding-top: 5px;
+  border-top: 1px solid color-mix(in srgb, var(--desk-line, var(--line)) 70%, transparent);
+  font-size: 0.72rem;
   line-height: 1.35;
-  color: var(--ink);
-}
-
-.onboarding-value-tip__line--muted {
-  color: var(--muted);
-  margin-bottom: 0;
-}
-
-.abil-block__value-tip {
-  margin-left: 2px;
+  color: var(--desk-muted, var(--muted));
 }
 
 .abil-block__label {
@@ -14801,4 +14769,10 @@ button.session-concentration-tag {
   align-items: center;
   gap: 4px;
   flex-wrap: wrap;
+}
+
+.ui-panel__title.has-onboarding-tip {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
 }

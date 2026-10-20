@@ -59,7 +59,7 @@ import {
   itemsWeightLb,
   totalCarriedLb,
 } from '../../shared/dnd/weight'
-import { PanelHelpButton } from '../onboarding'
+import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import { CoinPadDialog } from './CoinPadDialog'
 import { SpellScrollBindDialog } from './SpellScrollBindDialog'
@@ -1033,7 +1033,7 @@ export function InventoryPanel({
     <Panel
       title="Инвентарь"
       className="inventory-panel"
-      titleAside={<PanelHelpButton panelId="inventory" />}
+      titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.inventory)} />}
     >
       <Stack gap={12}>
         <Text tone="muted">

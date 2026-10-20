@@ -276,7 +276,7 @@ import { shapechangerFormLimits } from './featureForms'
 import { WildShapeDialog, type WildShapeDialogResult } from './WildShapeDialog'
 import { healSelfForm, rollDice } from './wildShape'
 import { TextBlocksPanel } from './TextBlocksPanel'
-import { OnboardingChecklist, PanelHelpButton } from '../onboarding'
+import { OnboardingChecklist, PANEL_HELP, HoverTipCard, panelExplain } from '../onboarding'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { IdentityDialog } from './IdentityDialog'
@@ -4262,9 +4262,6 @@ export function MinimalSheetEditor({
               onSaved(updated)
             }}
           />
-          <div className="play-desk__top-help">
-            <PanelHelpButton panelId="combat_header" />
-          </div>
           <PlayDeskHeader
             name={draft.name}
             raceName={draft.raceName}
@@ -4529,9 +4526,6 @@ export function MinimalSheetEditor({
 
       <div className="play-desk__body">
         <aside className="play-desk__left" data-onboarding="abilities">
-          <div className="play-desk__rail-help">
-            <PanelHelpButton panelId="abilities" />
-          </div>
           {abilityColumn}
           <div className="play-desk__rail-foot">
             {passivesCompact}
@@ -4544,8 +4538,13 @@ export function MinimalSheetEditor({
 
         <div className="play-desk__stage" data-onboarding="actions">
           {isPlayDesk ? (
-            <div className="play-desk__modes" data-onboarding="desk-modes">
-              <PanelHelpButton panelId="desk_modes" className="play-desk__modes-help" />
+            <div
+              className={`play-desk__modes${showValueTips ? ' has-onboarding-tip' : ''}`}
+              data-onboarding="desk-modes"
+            >
+              {showValueTips ? (
+                <HoverTipCard tip={panelExplain(PANEL_HELP.desk_modes)} />
+              ) : null}
               {MODE_LABELS.map(({ id: mode, label }) => (
                 <button
                   key={mode}

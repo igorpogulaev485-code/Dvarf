@@ -47,51 +47,42 @@ await page.evaluate(
 )
 
 await page.goto(`${BASE}/characters/${CHAR_ID}`, { waitUntil: 'networkidle0' })
-await page.waitForSelector('.onboarding-value-tip__btn', { timeout: 25000 })
+await page.waitForSelector('.play-desk-vital--shield.has-onboarding-tip', { timeout: 25000 })
 await new Promise((r) => setTimeout(r, 800))
 
-const tipCount = await page.$$eval('.onboarding-value-tip__btn', (els) => els.length)
-if (tipCount !== 2) {
-  throw new Error(`expected exactly 2 value-tip icons (КД+хиты), got ${tipCount}`)
-}
-
-async function clickTip(selector) {
-  const el = await page.$(selector)
-  if (!el) throw new Error(`missing tip: ${selector}`)
-  const box = await el.boundingBox()
-  if (!box) throw new Error(`no box: ${selector}`)
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
-  await page.waitForSelector('.onboarding-value-tip__pop--portal', { timeout: 5000 })
-  await new Promise((r) => setTimeout(r, 250))
-}
-
-async function closeTip() {
-  await page.keyboard.press('Escape')
-  await page.waitForFunction(() => !document.querySelector('.onboarding-value-tip__pop--portal'), {
-    timeout: 3000,
-  })
-  await new Promise((r) => setTimeout(r, 150))
+const qCount = await page.$$eval(
+  'button.onboarding-help__btn, .onboarding-value-tip__btn',
+  (els) => els.length,
+)
+if (qCount !== 0) {
+  throw new Error(`expected 0 floating/value «?» buttons, got ${qCount}`)
 }
 
 await page.screenshot({
   path: join(OUT, 'real_09_value_tips_vitals_overview.png'),
   fullPage: false,
 })
-console.log('ok overview, tips=', tipCount)
+console.log('ok overview, ?-buttons=', qCount)
 
-await clickTip('.play-desk-vital--shield .onboarding-value-tip__btn')
-await page.screenshot({
-  path: join(OUT, 'real_10_value_tip_ac.png'),
-  fullPage: false,
-})
-console.log('ok ac')
+async function hoverShot(selector, outName) {
+  await page.hover(selector)
+  await page.waitForSelector('.onboarding-hover-tip__card--fixed', { timeout: 4000 })
+  await new Promise((r) => setTimeout(r, 250))
+  await page.screenshot({ path: join(OUT, outName), fullPage: false })
+  await page.mouse.move(0, 0)
+  await page.waitForFunction(() => !document.querySelector('.onboarding-hover-tip__card--fixed'), {
+    timeout: 3000,
+  })
+}
 
-await closeTip()
-await clickTip('.play-desk-header__hp .onboarding-value-tip__btn')
-await page.screenshot({
-  path: join(OUT, 'real_11_value_tip_hp.png'),
-  fullPage: false,
-})
-console.log('ok hp')
+await hoverShot('.play-desk-vital--shield.has-onboarding-tip', 'real_10_value_tip_ac.png')
+console.log('ok ac hover')
+await hoverShot('.play-desk-header__hp.has-onboarding-tip', 'real_11_value_tip_hp.png')
+console.log('ok hp hover')
+await hoverShot(
+  '.abil-block[data-abil="str"] .abil-block__label.has-onboarding-tip',
+  'real_12_value_tip_strength.png',
+)
+console.log('ok str hover')
 
 await browser.close()

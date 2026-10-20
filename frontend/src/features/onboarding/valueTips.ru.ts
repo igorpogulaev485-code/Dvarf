@@ -117,3 +117,12 @@ export const MODIFIER_TIP: ValueTipCard = {
   meaning: 'Число от характеристики (например 16 → +3). Его добавляют к d20.',
   use: 'Проверка = d20 + модификатор (+ БМ, если есть владение).',
 }
+
+/** Adapt panel help copy into the hover-tip shape. */
+export function panelExplain(help: {
+  title: string
+  what: string
+  why: string
+}): ValueTipCard {
+  return { title: help.title, meaning: help.what, use: help.why }
+}

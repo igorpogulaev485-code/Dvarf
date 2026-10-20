@@ -2,7 +2,7 @@
 
 **Статус:** план **ok** · код O0+O1 + **value tips** (`dnd_new`) в ветке · **на прод не льём**, пока фича не собрана целиком  
 **Контур:** план → ok → **код O0+O1 одной фичей** → скрины → **ok** → прод  
-**Решение Игоря (2026-10-20):** визуал (Dialog + spotlight coachmark + `?`/empty) ок; value tips для абсолютных новичков — **только КД + хиты** (остальное через title / справку, без россыпи «?»); **прод только когда O0+O1 готовы вместе** (не катить O0 отдельно).  
+**Решение Игоря (2026-10-20):** визуал (Dialog + spotlight coachmark + empty) ок; пояснения чисел — **hover-тултип на самом значении** (как у монет), без россыпи «?» в воздухе; **прод только когда O0+O1 готовы вместе** (не катить O0 отдельно).  
 **База кода:** live tip `cursor/b2-anti-mirror-6151` (или актуальный `deploy/prod-tip`)  
 **Связано:** миссия в философии продукта («сделать D&D простым») · [`create-pipeline.md`](create-pipeline.md) · [`guided-onboarding-wizard.md`](guided-onboarding-wizard.md) · coachmarks в [`redesign/REDESIGN_PLAN.md`](redesign/REDESIGN_PLAN.md) P2 · [`redesign/MOBILE_REDESIGN_PLAN.md`](redesign/MOBILE_REDESIGN_PLAN.md) (open)
 

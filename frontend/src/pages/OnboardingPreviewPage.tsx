@@ -7,12 +7,14 @@ import { useSearchParams } from 'react-router-dom'
 import {
   CharacterReadyDialog,
   HelpDrawer,
+  HoverTipCard,
   OnboardingChecklist,
-  PanelHelpButton,
+  PANEL_HELP,
   SheetTour,
   StepHint,
   WelcomeDialog,
   EMPTY_CHARACTERS,
+  panelExplain,
 } from '../features/onboarding'
 import type { CreatePipelineStepId } from '../features/createPipeline/createPipelineTypes'
 import { Button, EmptyState, Panel, Stack, Text } from '../ui'
@@ -189,14 +191,20 @@ export function OnboardingPreviewPage() {
             <Stack gap={12}>
               <Panel
                 title="Атаки"
-                titleAside={<PanelHelpButton panelId="attacks" forceOpen />}
+                titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.attacks)} />}
               >
-                <Text tone="muted">Справа «?» — what / зачем / если не знаешь</Text>
+                <Text tone="muted">Наведи на заголовок — тултип what / зачем</Text>
               </Panel>
-              <Panel title="Заклинания" titleAside={<PanelHelpButton panelId="spells" />}>
+              <Panel
+                title="Заклинания"
+                titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.spells)} />}
+              >
                 <Text tone="muted">То же для остальных панелей листа</Text>
               </Panel>
-              <Panel title="Инвентарь" titleAside={<PanelHelpButton panelId="inventory" />}>
+              <Panel
+                title="Инвентарь"
+                titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.inventory)} />}
+              >
                 <Text tone="muted">КД от доспеха</Text>
               </Panel>
             </Stack>

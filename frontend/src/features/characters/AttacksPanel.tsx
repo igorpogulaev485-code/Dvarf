@@ -2,7 +2,7 @@ import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { parseWeaponCatalogData } from '../../shared/dnd/gearCatalog'
-import { PanelHelpButton } from '../onboarding'
+import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
   ABILITY_KEYS,
@@ -161,7 +161,7 @@ export function AttacksPanel({
     <Panel
       title="Атаки"
       className="attack-panel"
-      titleAside={<PanelHelpButton panelId="attacks" />}
+      titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.attacks)} />}
     >
       <Stack gap={12}>
         <Text tone="muted">
