@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/human-race-apply-stuck-9502
+cursor/feat-stealthy-3565
 ```
 
 URL: http://201.34.132.252/

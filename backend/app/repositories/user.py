@@ -115,3 +115,14 @@ class UserRepository:
         self.db.add(identity)
         self.db.flush()
         return identity
+
+    def remove_identity(self, *, user: User, provider: AuthProvider) -> bool:
+        """Delete identity for provider on this user. Returns True if removed."""
+        removed = False
+        for identity in list(user.identities):
+            if identity.provider == provider:
+                self.db.delete(identity)
+                removed = True
+        if removed:
+            self.db.flush()
+        return removed

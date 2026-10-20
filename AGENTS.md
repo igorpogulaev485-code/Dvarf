@@ -30,7 +30,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/b0-content-layer-6151` |
+| Prod tip (сейчас) | `cursor/feat-stealthy-3565` |
 | URL | http://201.34.132.252/ |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
 

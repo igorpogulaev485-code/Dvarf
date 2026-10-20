@@ -1,7 +1,7 @@
 /**
  * Bestiary catalog `data` contract (D&D 2014).
  * Mirrors backend/app/schemas/bestiary_catalog.py — kind=bestiary JSONB.
- * On dnd.su ↔ ttg stat conflicts, product writes ttg values.
+ * Product SoT: official books + our structure (B2 anti-mirror).
  */
 
 export const BESTIARY_DATA_SCHEMA_VERSION = 1

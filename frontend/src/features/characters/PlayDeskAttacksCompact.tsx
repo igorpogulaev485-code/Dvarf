@@ -5,6 +5,13 @@ import {
   MAX_COMBAT_CONSUMABLE_FAVORITES,
 } from './combatConsumables'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
+import { fightingStyleAttackBonus } from '../../shared/dnd/fightingStyles'
+import {
+  effectiveMartialArtsDamage,
+  isMonkUnarmedAttack,
+  isMonkWeaponName,
+  monkAttackAbility,
+} from '../../shared/dnd/martialArts'
 import { formatAttackRoll, type DeskRollMode } from './deskRolls'
 import {
   abilityModifier,
@@ -27,6 +34,10 @@ type PlayDeskAttacksCompactProps = {
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
+  /** Active fighting style id (archery → +2 on ranged attacks). */
+  fightingStyleId?: string | null
+  /** Monk Martial Arts die (e.g. "1к10"). */
+  martialArtsDie?: string | null
   resources: SheetResource[]
   inventoryItems: InventoryItem[]
   favoriteConsumableIds?: string[]
@@ -51,6 +62,8 @@ export function PlayDeskAttacksCompact({
   abilities,
   proficiencyBonus,
   gearBonusesByItem = {},
+  fightingStyleId = null,
+  martialArtsDie = null,
   resources,
   inventoryItems,
   favoriteConsumableIds = [],
@@ -145,22 +158,45 @@ export function PlayDeskAttacksCompact({
           <p className="play-desk-compact__empty">Нет атак — добавь в полной панели</p>
         ) : (
           named.map((attack) => {
-            const mod = abilityModifier(abilities[attack.ability])
+            const unarmed = isMonkUnarmedAttack(attack)
+            const monkWeapon =
+              Boolean(martialArtsDie) &&
+              (unarmed || isMonkWeaponName(attack.name))
+            const attackAbility = monkWeapon
+              ? monkAttackAbility({
+                  str: abilities.str,
+                  dex: abilities.dex,
+                  weaponAbility: attack.ability,
+                })
+              : attack.ability
+            const baseDamage = monkWeapon
+              ? effectiveMartialArtsDamage({
+                  weaponDamage: attack.damage,
+                  martialArtsDie,
+                  forceMartialArts: unarmed,
+                })
+              : attack.damage
+            const mod = abilityModifier(abilities[attackAbility])
             const gear = attack.inventory_item_id
               ? gearBonusesByItem[attack.inventory_item_id]
               : undefined
+            const styleAtk = fightingStyleAttackBonus({
+              styleId: fightingStyleId,
+              weaponName: attack.name,
+            })
             const attackBonus =
               mod +
-              (attack.is_proficient ? proficiencyBonus : 0) +
-              (gear?.attackBonus ?? 0)
+              (attack.is_proficient || unarmed ? proficiencyBonus : 0) +
+              (gear?.attackBonus ?? 0) +
+              styleAtk
             const dmgBonus = mod + (gear?.damageBonus ?? 0)
             const dmg =
-              attack.damage +
+              baseDamage +
               (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
             const dmgLine = `${dmg || '—'}${attack.damage_type ? ` ${attack.damage_type}` : ''}`
             const iconKind = attackRowIconKind({
               name: attack.name,
-              ability: attack.ability,
+              ability: attackAbility,
             })
             return (
               <div key={attack.id} className="play-desk-compact__row is-dense is-attack">
@@ -173,7 +209,7 @@ export function PlayDeskAttacksCompact({
                       formatAttackRoll({
                         name: attack.name,
                         attackBonus,
-                        damageExpr: dmg || attack.damage,
+                        damageExpr: dmg || baseDamage,
                         damageType: attack.damage_type,
                         mode: rollMode,
                       }),
