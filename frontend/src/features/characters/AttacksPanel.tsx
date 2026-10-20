@@ -2,6 +2,7 @@ import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { parseWeaponCatalogData } from '../../shared/dnd/gearCatalog'
+import { fightingStyleAttackBonus } from '../../shared/dnd/fightingStyles'
 import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 import {
@@ -13,6 +14,9 @@ import {
 } from './sheetTypes'
 import { isWeaponProficient } from './equipmentProficiency'
 import type { WeaponProficiency } from './identity'
+import { syncAttacksHeldFromInventory } from './attacksInventorySync'
+
+export { syncAttacksHeldFromInventory }
 
 export type AttackSourceKind = 'weapon' | 'artifact' | 'custom' | 'race'
 
@@ -75,6 +79,8 @@ type AttacksPanelProps = {
   onToggleHeld?: (attack: WeaponAttack) => void
   /** Per inventory item: magic attack/damage from active gear effects. */
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
+  /** Active fighting style id (archery → +2 on ranged attacks). */
+  fightingStyleId?: string | null
 }
 
 /** Empty custom attack card («Своё» / Добавить атаку). */
@@ -95,23 +101,6 @@ export function createCustomAttack(): WeaponAttack {
     inventory_item_id: null,
     held: false,
   }
-}
-
-/** Mirror inventory.equipped onto linked attack cards. */
-export function syncAttacksHeldFromInventory(
-  weapons: WeaponAttack[],
-  items: Array<{ id: string; equipped: boolean }>,
-): WeaponAttack[] {
-  const equippedById = new Map(items.map((item) => [item.id, item.equipped]))
-  let changed = false
-  const next = weapons.map((attack) => {
-    if (!attack.inventory_item_id) return attack
-    const held = Boolean(equippedById.get(attack.inventory_item_id))
-    if (attack.held === held) return attack
-    changed = true
-    return { ...attack, held }
-  })
-  return changed ? next : weapons
 }
 
 function sourceFromCatalog(entry: CatalogEntry): AttackSourceKind {
@@ -136,6 +125,7 @@ export function AttacksPanel({
   onChange,
   onToggleHeld,
   gearBonusesByItem,
+  fightingStyleId = null,
 }: AttacksPanelProps) {
   function updateAttack(id: string, patch: Partial<WeaponAttack>) {
     onChange(weapons.map((item) => (item.id === id ? { ...item, ...patch } : item)))
@@ -193,10 +183,15 @@ export function AttacksPanel({
             sourceKind: attack.source_kind,
             attackId: attack.id,
           })
+          const styleAtk = fightingStyleAttackBonus({
+            styleId: fightingStyleId,
+            weaponName: attack.name,
+          })
           const attackBonus =
             abilityModifier(abilities[attack.ability]) +
             (proficient ? proficiencyBonus : 0) +
-            magicAtk
+            magicAtk +
+            styleAtk
           const abilityDmg = abilityModifier(abilities[attack.ability])
           const totalDmgBonus = abilityDmg + magicDmg
           const damageDisplay =

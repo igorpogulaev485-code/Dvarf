@@ -262,6 +262,11 @@ import {
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
 import {
+  darkvisionFtFromFeatures,
+  initiativeBonusFromFeatures,
+} from './featureCombatBonuses'
+import { syncRangerConclaveSpells } from './rangerConclaveSpells'
+import {
   ClassFeaturesPanel,
   saveBonusFromFeatures,
   type FeatureSelfFormRequest,
@@ -1530,6 +1535,8 @@ export function MinimalSheetEditor({
             ability: row.caster?.ability ?? null,
           })),
       )
+      const classLevel =
+        prev.classes.find((row) => row.id === input.classEntryId)?.level ?? 1
       const applied = applySubclassGrantToDraft({
         draft: subclassSliceFrom(prev),
         classEntryId: input.classEntryId,
@@ -1539,10 +1546,8 @@ export function MinimalSheetEditor({
         copyOldTextToNotes: input.copyOldTextToNotes,
         previousDef: input.previousDef ?? null,
         changeMode,
-        changedAtClassLevel:
-          input.changedAtClassLevel ??
-          prev.classes.find((row) => row.id === input.classEntryId)?.level ??
-          1,
+        classLevel,
+        changedAtClassLevel: input.changedAtClassLevel ?? classLevel,
         previousNameRu: input.previousNameRu,
         previousCatalogId: input.previousCatalogId,
         previousSlug: input.previousSlug,
@@ -2717,6 +2722,29 @@ export function MinimalSheetEditor({
     () => sumFeatInitiativeBonus(draft.featGrants),
     [draft.featGrants],
   )
+  const featureInitiativeBonus = useMemo(
+    () =>
+      initiativeBonusFromFeatures({
+        features: unlockedFeatures,
+        abilities: draft.abilities,
+      }),
+    [unlockedFeatures, draft.abilities],
+  )
+  const totalInitiativeBonus = featInitiativeBonus + featureInitiativeBonus
+  const activeFightingStyleId = useMemo(
+    () =>
+      findFightingStylePick(draft.featurePicks) ??
+      fightingStyleFromFeatGrants(draft.featGrants),
+    [draft.featurePicks, draft.featGrants],
+  )
+  const featureDarkvisionFt = useMemo(
+    () =>
+      darkvisionFtFromFeatures({
+        features: unlockedFeatures,
+        baseDarkvision: draft.identity.darkvision,
+      }),
+    [unlockedFeatures, draft.identity.darkvision],
+  )
 
   const passives = useMemo(() => {
     const modFor = (skillKey: string) => {
@@ -2887,6 +2915,24 @@ export function MinimalSheetEditor({
     })
   }, [gearEffects])
 
+  // Gloom Stalker (etc.) bonus spells: keep always-prepared list in sync with level.
+  useEffect(() => {
+    setDraft((prev) => {
+      const synced = syncRangerConclaveSpells({
+        spells: prev.spells,
+        classes: prev.classes,
+        subclassSlugByEntryId,
+      })
+      if (!synced.changed) return prev
+      return { ...prev, spells: synced.spells }
+    })
+  }, [draft.classes, subclassSlugByEntryId])
+
+  const effectiveDarkvisionFt = useMemo(
+    () => Math.max(featureDarkvisionFt, gearDarkvisionFt(gearEffects)),
+    [featureDarkvisionFt, gearEffects],
+  )
+
   const gearAbilities = useMemo(
     () => applyGearAbilityScores(draft.abilities, gearEffects),
     [draft.abilities, gearEffects],
@@ -2993,11 +3039,8 @@ export function MinimalSheetEditor({
       naturalArmor,
       unarmoredDefense,
     })
-    const styleId =
-      findFightingStylePick(draft.featurePicks) ??
-      fightingStyleFromFeatGrants(draft.featGrants)
     const styleBonus = fightingStyleAcBonus({
-      styleId,
+      styleId: activeFightingStyleId,
       wearingArmor: Boolean(pieces.armor),
     })
     let coreAc = base.ac
@@ -3040,8 +3083,7 @@ export function MinimalSheetEditor({
     effectiveAbilities,
     draft.inventory.items,
     draft.raceGrant,
-    draft.featurePicks,
-    draft.featGrants,
+    activeFightingStyleId,
     draft.modifiers,
     raceCatalogRows,
     unlockedFeatures,
@@ -3854,7 +3896,7 @@ export function MinimalSheetEditor({
   }
 
   const initiativeAutoCore =
-    abilityModifier(effectiveAbilities.dex) + featInitiativeBonus
+    abilityModifier(effectiveAbilities.dex) + totalInitiativeBonus
   const initiativeCore = draft.initiativeOverride ?? initiativeAutoCore
   const initiativeValue = withInitiativeBonus({
     core: initiativeCore,
@@ -3865,6 +3907,9 @@ export function MinimalSheetEditor({
     `ЛОВ ${formatModifier(abilityModifier(effectiveAbilities.dex))}`,
     featInitiativeBonus
       ? `черта ${formatModifier(featInitiativeBonus)}`
+      : null,
+    featureInitiativeBonus
+      ? `умение ${formatModifier(featureInitiativeBonus)}`
       : null,
   ]
     .filter(Boolean)
@@ -5439,6 +5484,7 @@ export function MinimalSheetEditor({
             abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
             gearBonusesByItem={gearEffects.byItem}
+            fightingStyleId={activeFightingStyleId}
             resources={draft.play.resources}
             inventoryItems={draft.inventory.items}
             favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
@@ -5535,6 +5581,7 @@ export function MinimalSheetEditor({
           proficiencyBonus={proficiencyBonus}
           weaponProficiency={draft.identity.weapons}
           gearBonusesByItem={gearEffects.byItem}
+          fightingStyleId={activeFightingStyleId}
           onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
           onToggleHeld={(attack) => {
             if (!attack.inventory_item_id) return
@@ -5639,7 +5686,7 @@ export function MinimalSheetEditor({
           setDraft((prev) => ({ ...prev, companions }))
         }
         featGrants={draft.featGrants}
-        darkvision={draft.identity.darkvision}
+        darkvision={effectiveDarkvisionFt}
         raceName={draft.raceName}
         raceTraitCards={draft.raceGrant?.traitCards ?? []}
         raceTraitsText={draft.raceGrant?.traitsText ?? ''}
@@ -5986,11 +6033,8 @@ export function MinimalSheetEditor({
                     label="Тёмное зрение, фт"
                     htmlFor="sheet-darkvision"
                     hint={
-                      gearDarkvisionFt(gearEffects) > 0
-                        ? `предметы: ${gearDarkvisionFt(gearEffects)} фт · итого ${Math.max(
-                            draft.identity.darkvision,
-                            gearDarkvisionFt(gearEffects),
-                          )}`
+                      effectiveDarkvisionFt !== draft.identity.darkvision
+                        ? `база ${draft.identity.darkvision || 0} · итого ${effectiveDarkvisionFt} фт (умения/предметы)`
                         : '0 = нет'
                     }
                   >

@@ -5,6 +5,7 @@ import {
   MAX_COMBAT_CONSUMABLE_FAVORITES,
 } from './combatConsumables'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
+import { fightingStyleAttackBonus } from '../../shared/dnd/fightingStyles'
 import { formatAttackRoll, type DeskRollMode } from './deskRolls'
 import {
   abilityModifier,
@@ -27,6 +28,8 @@ type PlayDeskAttacksCompactProps = {
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
+  /** Active fighting style id (archery → +2 on ranged attacks). */
+  fightingStyleId?: string | null
   resources: SheetResource[]
   inventoryItems: InventoryItem[]
   favoriteConsumableIds?: string[]
@@ -51,6 +54,7 @@ export function PlayDeskAttacksCompact({
   abilities,
   proficiencyBonus,
   gearBonusesByItem = {},
+  fightingStyleId = null,
   resources,
   inventoryItems,
   favoriteConsumableIds = [],
@@ -149,10 +153,15 @@ export function PlayDeskAttacksCompact({
             const gear = attack.inventory_item_id
               ? gearBonusesByItem[attack.inventory_item_id]
               : undefined
+            const styleAtk = fightingStyleAttackBonus({
+              styleId: fightingStyleId,
+              weaponName: attack.name,
+            })
             const attackBonus =
               mod +
               (attack.is_proficient ? proficiencyBonus : 0) +
-              (gear?.attackBonus ?? 0)
+              (gear?.attackBonus ?? 0) +
+              styleAtk
             const dmgBonus = mod + (gear?.damageBonus ?? 0)
             const dmg =
               attack.damage +

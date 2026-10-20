@@ -100,3 +100,31 @@ export function fightingStyleAcBonus(input: {
   if (!input.wearingArmor) return 0
   return style.acBonusWhileArmored
 }
+
+/**
+ * Archery: +2 to attack rolls with ranged weapons (PHB).
+ * Thrown melee (handaxe/javelin as a throw) are not ranged weapons.
+ */
+const RANGED_WEAPON_NAME_RE =
+  /лук|арбалет|пращ|дротик|сеть|blowgun|bow|crossbow|sling|dart|\bnet\b/i
+
+export function isRangedWeaponAttackName(name: string): boolean {
+  const trimmed = name.trim()
+  if (!trimmed) return false
+  return RANGED_WEAPON_NAME_RE.test(trimmed)
+}
+
+export function fightingStyleAttackBonus(input: {
+  styleId: string | null | undefined
+  /** Attack / weapon display name (RU or EN). */
+  weaponName: string
+  /** Optional catalog flag when known. */
+  ranged?: boolean | null
+}): number {
+  const style = fightingStyleById(input.styleId)
+  if (!style || style.id !== 'archery') return 0
+  const ranged =
+    input.ranged === true ||
+    (input.ranged !== false && isRangedWeaponAttackName(input.weaponName))
+  return ranged ? 2 : 0
+}

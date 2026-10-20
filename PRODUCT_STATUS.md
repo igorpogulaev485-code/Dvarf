@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: http://201.34.132.252/ · https://creed20.tech  
-**Prod tip (ветка линии прода):** `cursor/b2-anti-mirror-6151`  
+**Prod tip (ветка линии прода):** `cursor/sirocco-ranger-sync-e6f4`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -59,6 +59,49 @@
 
 ## Сейчас в продукте (прод)
 
+### 2026-10-20 — Сирокко / Следопыт: Archery, Сумрачный охотник, Moonbow
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Стиль «Стрельба» | +2 к атаке дальнобойным оружием в панели атак и компакте | Лук +8 при Лов 18 / БМ +2, не +6 |
+| Сумрачный охотник | Conclave-заклинания always-prepared; иниц +Мудр.; ТЗ 60/+30 | Маскировка/иниц/зрение без ручной правки |
+| Атаки↔инвентарь | Карточка с `inventory_item_id` уходит вместе с предметом | Нет «сирот» после удаления оружия |
+| Сверкающий Лунный Лук (BMT) | Каталог: +1 атака/урон, 1к8+1к6, настройка, 1/рассвет | Со «Стрельбой» атака как в PDF (+9) |
+
+На проде: **да** · **это новый prod tip** `cursor/sirocco-ranger-sync-e6f4` · PR #235 · залито 2026-10-20 · alembic `s1r0c0m00nbw` · `/health` ok · бандл `CharacterDetailPage-CVPY4P_t.js` / `classMovement-CIG_JWrl.js` · Moonbow+Gloom в catalog_entries
+
+### 2026-10-20 — BMT оружие (волна 1)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| 19 оружий BMT | Каталог `weapon`: от Bloodrage Greataxe до Sword of the Planes (без Moonbow — уже был) | Можно добавить из справочника; эффекты MVP + RU |
+| Пресеты атак | Лук пожара / мелодий, звёздный арбалет, цеп, кнут, клинок шута, меч планов… | Имя оружия матчится в панели атак |
+
+На проде: **да** · tip `cursor/sirocco-ranger-sync-e6f4` · PR #235 · залито 2026-10-20 · alembic `s1r0c0bmtw01` · 19 weapon rows
+
+### 2026-10-20 — BMT доспехи/щиты (волна 2)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| 13 доспехов/щитов BMT | Каталог `armor`: Fungal Spores … Euryale's Aegis | В справочнике; эффекты MVP + RU |
+
+На проде: **да** · alembic `s1r0c0bmta01`
+
+### 2026-10-20 — BMT wondrous / колоды / кольца (волна 3)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| 31 предмет BMT | Каталог `item`: колоды, кольца Sage/Fate Dealer, посохи, жезлы, мантии… | В справочнике; MVP + RU |
+
+На проде: **да** · alembic `s1r0c0bmtq01`
+
+### 2026-10-20 — DMG артефакты (волна 4)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| 8 артефактов DMG + 2 legendary SRD | Vecna, Kas, Orcus, Exalted/Vile, Orb of Dragonkind, Dwarvish Lords; Apparatus / Cubic Gate | Карточки rarity `artifact` / legendary в справочнике (MVP) |
+
+На проде: **да** · tip `cursor/sirocco-ranger-sync-e6f4` · alembic `s1r0c0dmgart1` · backlog BMT+DMG artifacts закрыт (MVP)
 
 ### 2026-10-20 — B2 анти-зеркало (ttg/dnd.su)
 
@@ -511,7 +554,6 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Сюда агенты пишут то, что сделано в PR, но **ещё не залито** на сервер.
 
-
 <!-- load-perf залито 2026-10-16 → tip characters-load-perf-f3ee; блок в «Сейчас в продукте» -->
 <!-- appearance-persist залито 2026-10-16 → tip appearance-persist-f3ee; блок в «Сейчас в продукте» -->
 <!-- tablet-header-hotbar-ship залито 2026-10-16 → tip tablet-header-hotbar-ship-4dea; блок в «Сейчас в продукте» -->
@@ -559,6 +601,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-20 | `cursor/sirocco-ranger-sync-e6f4` · PR #235 | Сирокко: Archery / Gloom Stalker / Moonbow → **новый tip** после Timeweb |
 | 2026-10-20 | `cursor/b2-anti-mirror-6151` · PR #228 | QA Рагнар: subclass/PB/speed/classic attacks/ASI → **новый tip** после Timeweb |
 | 2026-10-17 | `cursor/fix-list-create-fixes-6dc8` | Dialog/pad clicks: drop backdrop `pointer-events:none` → **новый tip** |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic 2014/2024 бланк + заметки + font size → **новый tip** на Timeweb |
