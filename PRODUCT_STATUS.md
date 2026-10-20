@@ -101,7 +101,7 @@
 |--------|--------------|-------------------------|
 | 8 артефактов DMG + 2 legendary SRD | Vecna, Kas, Orcus, Exalted/Vile, Orb of Dragonkind, Dwarvish Lords; Apparatus / Cubic Gate | Карточки rarity `artifact` / legendary в справочнике (MVP) |
 
-На проде: **нет** · alembic `s1r0c0dmgart1`
+На проде: **да** · tip `cursor/sirocco-ranger-sync-e6f4` · alembic `s1r0c0dmgart1` · backlog BMT+DMG artifacts закрыт (MVP)
 
 ### 2026-10-20 — B2 анти-зеркало (ttg/dnd.su)
 
