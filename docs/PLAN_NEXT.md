@@ -1,7 +1,7 @@
 # Живой порядок слайсов (GTM / legal / auth)
 
 **Контур каждого слайса:** план → **ok** → код → скрины → **ok** → прод  
-**Текущий tip:** `cursor/b2-anti-mirror-6151`
+**Текущий tip:** `cursor/onboarding-plan-37ff`
 
 ---
 
@@ -30,7 +30,7 @@
 
 | # | Слайс | Статус | Док |
 | --- | --- | --- | --- |
-| **O** | **Онбординг новичка** (welcome → create → sheet tour → panel help + value tips для `dnd_new`) | **код O0+O1 + value tips** · прод после полной сборки | [`SLICE_ONBOARDING_PLAN.md`](SLICE_ONBOARDING_PLAN.md) · ветка `cursor/onboarding-plan-37ff` |
+| **O** | **Онбординг новичка** (welcome → create → sheet tour → panel help + value tips для `dnd_new`) | ✅ на проде · tip `cursor/onboarding-plan-37ff` · лобби не в scope | [`SLICE_ONBOARDING_PLAN.md`](SLICE_ONBOARDING_PLAN.md) · PR #233 |
 
 ---
 

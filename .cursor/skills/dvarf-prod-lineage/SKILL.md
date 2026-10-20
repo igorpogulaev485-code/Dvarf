@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/sirocco-ranger-sync-e6f4
+cursor/onboarding-plan-37ff
 ```
 
 URL: http://201.34.132.252/
