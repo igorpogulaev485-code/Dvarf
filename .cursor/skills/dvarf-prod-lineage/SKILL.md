@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/monk-l20-automation-10d6
+cursor/magic-initiate-spell-lists-10d6
 ```
 
 URL: http://201.34.132.252/
