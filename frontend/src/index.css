@@ -347,6 +347,50 @@ a.ui-button--primary {
   font-weight: 600;
 }
 
+.oauth-icons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.oauth-icons__label {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.oauth-icons__row {
+  display: flex;
+  gap: 8px;
+}
+
+.oauth-icons__btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card, #fff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.oauth-icons__btn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.oauth-icons__btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.oauth-icons__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .page--auth-debug {
   width: min(480px, calc(100% - 32px));
 }
