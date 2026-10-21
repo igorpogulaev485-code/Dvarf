@@ -1199,6 +1199,10 @@ export function SpellsPanel({
 
       <PrepareSpellsDialog
         open={prepareOpen}
+        edition={edition}
+        className={className}
+        level={level}
+        classes={classes}
         spells={spells}
         learnMode={learnBudget?.mode ?? (knownCaster ? 'known' : 'prepared_list')}
         onChange={onChange}

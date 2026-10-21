@@ -2187,6 +2187,10 @@ export function CreateCharacterPage() {
       />
       <PrepareSpellsDialog
         open={spellsOpen === 'prepare'}
+        edition="2014"
+        className={state.classes[0]?.name ?? ''}
+        level={totalCharacterLevel(state.classes)}
+        classes={state.classes}
         spells={spells}
         learnMode={spellLearnBudget?.mode ?? null}
         onChange={setSpells}
