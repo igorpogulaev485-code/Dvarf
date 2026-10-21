@@ -66,7 +66,6 @@ import {
   countPreparedLeveled,
   groupSpellsByLevel,
   isCustomSheetSpell,
-  knownHasCatalogId,
   knownHasCatalogIdForSlug,
   otherClassBindingsForCatalog,
   setSpellPrepared,
