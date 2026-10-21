@@ -49,6 +49,7 @@ import {
 } from '../../shared/dnd/featurePicks'
 import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
+import { infusionOptionIdsAtLevel } from '../../shared/dnd/artificerInfusions'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import type { RulesEdition } from '../../shared/api/characters'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
@@ -374,11 +375,24 @@ function FeatureChoiceStepBody({
         label: row.kind === 'tool' ? row.labelRu : skillLabel(row.id),
       }))
     }
-    return resolveFeatureChoiceOptions(choice).map((id) => ({
+    const ids =
+      choice.options_from === 'artificer_infusions'
+        ? infusionOptionIdsAtLevel(step.classLevel)
+        : resolveFeatureChoiceOptions(choice)
+    return ids.map((id) => ({
       id,
       label: choiceOptionLabel(id, choice),
     }))
-  }, [choice, skills, tools, featurePicks, expertiseKeys, step.classEntryId, step.featureId])
+  }, [
+    choice,
+    skills,
+    tools,
+    featurePicks,
+    expertiseKeys,
+    step.classEntryId,
+    step.featureId,
+    step.classLevel,
+  ])
 
   const selectedDef = fightingStyleById(selected)
 

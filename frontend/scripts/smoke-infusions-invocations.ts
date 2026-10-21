@@ -9,11 +9,15 @@ import {
   setFeaturePick,
 } from '../src/shared/dnd/featurePicks'
 import {
+  infusionCanTargetAlly,
   infusionSlotsMax,
+  listActiveInfusionBindings,
   listActiveInfusionIds,
   listKnownInfusions,
+  setActiveInfusionBindings,
   setActiveInfusions,
 } from '../src/shared/dnd/infusionsActive'
+import { infusionById } from '../src/shared/dnd/artificerInfusions'
 import { listKnownInvocations } from '../src/features/characters/WarlockInvocationsDialog'
 import { listWarlockArcanumOptions } from '../src/features/characters/WarlockArcanumSpendDialog'
 import { parseInfusionSlotsResourceId } from '../src/features/characters/InfusionsActiveDialog'
@@ -79,6 +83,37 @@ picks = setActiveInfusions(picks, artEntry, [
 assert(
   listActiveInfusionIds(picks, artEntry).join(',') === 'enhanced_defense',
   'unknown filtered',
+)
+
+// Ally targeting: armor infusion on teammate, weapon on self
+picks = setFeaturePick(
+  picks,
+  artEntry,
+  'infuse_item',
+  'enhanced_defense,enhanced_weapon,repeating_shot,returning_weapon',
+)
+picks = setActiveInfusionBindings(picks, artEntry, [
+  { infusionId: 'enhanced_defense', target: 'ally-fighter-1' },
+  { infusionId: 'enhanced_weapon', target: 'self' },
+])
+const bindings = listActiveInfusionBindings(picks, artEntry)
+assert(bindings.length === 2, '2 bindings with ally target')
+assert(
+  bindings.find((b) => b.infusionId === 'enhanced_defense')?.target ===
+    'ally-fighter-1',
+  'enhanced defense on ally',
+)
+assert(
+  bindings.find((b) => b.infusionId === 'enhanced_weapon')?.target === 'self',
+  'enhanced weapon on self',
+)
+assert(
+  infusionCanTargetAlly(infusionById('enhanced_defense')),
+  'enhanced defense can target ally',
+)
+assert(
+  !infusionCanTargetAlly(infusionById('homunculus_servant')),
+  'homunculus self-only',
 )
 
 const artDesired = desiredResourcesFromFeatures({

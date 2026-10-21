@@ -13,7 +13,10 @@ import {
   type AbilityScoreKey,
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
-import { infusionById } from '../../shared/dnd/artificerInfusions'
+import {
+  infusionById,
+  infusionOptionIdsAtLevel,
+} from '../../shared/dnd/artificerInfusions'
 import { maneuverById } from '../../shared/dnd/battleMasterManeuvers'
 import { elementalDisciplineById } from '../../shared/dnd/monkElementalDisciplines'
 import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
@@ -655,7 +658,9 @@ function FeatureChoiceControls({
           except: { classEntryId: feature.classEntryId, featureId: feature.id },
         }),
       }).map((row) => row.id)
-    : resolveFeatureChoiceOptions(choice)
+    : choice.options_from === 'artificer_infusions'
+      ? infusionOptionIdsAtLevel(feature.classLevel)
+      : resolveFeatureChoiceOptions(choice)
   const maxPicks = resolveChoiceMaxPicks(choice, feature.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level) || Boolean(choice.max_picks && choice.max_picks > 1)
   const selectedList = multi
@@ -724,7 +729,8 @@ function FeatureChoiceControls({
             return (
               <Text key={id} tone="muted">
                 {inf.nameRu}
-                {inf.minLevel ? ` (с ${inf.minLevel} ур.)` : ''}: {inf.summaryRu}
+                {inf.minLevel ? ` (с ${inf.minLevel} ур.)` : ''}
+                {inf.replicate ? ' · реплика' : ''}: {inf.abilityRu || inf.summaryRu}
               </Text>
             )
           })

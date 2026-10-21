@@ -760,6 +760,19 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Сюда агенты пишут то, что сделано в PR, но **ещё не залито** на сервер.
 
+### 2026-10-21 — Полный каталог инфузий + цели в лобби
+
+Ветка: `cursor/artificer-infusions-full-ab30` (от tip `spells-feats-infusions-ab30`)
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Каталог инфузий | Core + Replicate Magic Item, RU + `effects` | Выбор с L2 по уровню; реплики Bag of Holding… |
+| Активные на себе / союзнике | `infusions_active` + `infusions_active_targets` | «Усиленная защита» на доспех напарника в лобби |
+| Автоматизация | `aggregateInfusionBonuses` только self; ally → `shareLobbyEffect` | КД/атаки/спас/тёмное зрение на листе; союзнику — эффект в лобби |
+| Guided / лист | `infusionOptionIdsAtLevel` в wizard и ClassFeatures | Не предлагаются инфузии выше уровня |
+
+На проде: **нет** · ждёт merge + Timeweb
+
 <!-- spells-feats-infusions залито 2026-10-21 → tip spells-feats-infusions-ab30; блок в «Сейчас в продукте» -->
 <!-- grimoire-prepare-home залито 2026-10-21 → tip grimoire-prepare-home-3aba; блок в «Сейчас в продукте» -->
 <!-- prepare-class-list-available залито 2026-10-21 → tip prepare-class-list-available-3aba; блок в «Сейчас в продукте» -->

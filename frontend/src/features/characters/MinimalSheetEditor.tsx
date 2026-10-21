@@ -302,6 +302,10 @@ import {
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
 import {
+  aggregateInfusionBonuses,
+  applyInfusionAbilityFloors,
+} from '../../shared/dnd/infusionEffects'
+import {
   darkvisionFtFromFeatures,
   initiativeBonusFromFeatures,
   initiativeBonusFromRace,
@@ -3335,9 +3339,30 @@ export function MinimalSheetEditor({
     }
   }, [draft.featurePicks, draft.classes, rulesEdition])
 
+  const infusionBonuses = useMemo(
+    () =>
+      aggregateInfusionBonuses({
+        featurePicks: draft.featurePicks,
+        classes: draft.classes,
+        wearingArmor: Boolean(armorPiecesForSpeed.armor),
+        wearingShield: Boolean(armorPiecesForSpeed.shield),
+      }),
+    [
+      draft.featurePicks,
+      draft.classes,
+      armorPiecesForSpeed.armor,
+      armorPiecesForSpeed.shield,
+    ],
+  )
+
   const effectiveDarkvisionFt = useMemo(
-    () => Math.max(featureDarkvisionFt, gearDarkvisionFt(gearEffects)),
-    [featureDarkvisionFt, gearEffects],
+    () =>
+      Math.max(
+        featureDarkvisionFt,
+        gearDarkvisionFt(gearEffects),
+        infusionBonuses.darkvisionFt,
+      ),
+    [featureDarkvisionFt, gearEffects, infusionBonuses.darkvisionFt],
   )
 
   const gearAbilities = useMemo(
@@ -3361,10 +3386,19 @@ export function MinimalSheetEditor({
     })
   }, [gearAbilities, proficiencyBonus, characterLevel])
 
-  const effectiveAbilities = useMemo(
-    () => applyAbilityScoreBonuses(gearAbilities, draft.modifiers, formulaVarsBase),
-    [gearAbilities, draft.modifiers, formulaVarsBase],
-  )
+  const effectiveAbilities = useMemo(() => {
+    const boosted = applyAbilityScoreBonuses(
+      gearAbilities,
+      draft.modifiers,
+      formulaVarsBase,
+    )
+    return applyInfusionAbilityFloors(boosted, infusionBonuses.abilityFloor)
+  }, [
+    gearAbilities,
+    draft.modifiers,
+    formulaVarsBase,
+    infusionBonuses.abilityFloor,
+  ])
 
   const abilityCheckExtras = useMemo(() => {
     const out: Partial<Record<AbilityKey, number>> = {}
@@ -3460,6 +3494,10 @@ export function MinimalSheetEditor({
       coreAc += gearEffects.acBonus
       gearSummary = `${gearSummary} · магия +${gearEffects.acBonus}`
     }
+    if (infusionBonuses.acBonus) {
+      coreAc += infusionBonuses.acBonus
+      gearSummary = `${gearSummary} · инфузия +${infusionBonuses.acBonus}`
+    }
     const formulaVars = buildSheetFormulaVars({
       mods,
       proficiencyBonus,
@@ -3495,6 +3533,7 @@ export function MinimalSheetEditor({
     raceCatalogRows,
     unlockedFeatures,
     gearEffects.acBonus,
+    infusionBonuses.acBonus,
     proficiencyBonus,
     characterLevel,
   ])
@@ -4713,8 +4752,11 @@ export function MinimalSheetEditor({
       if (!extra) continue
       out[key] = (out[key] ?? 0) + extra
     }
+    if (infusionBonuses.saveBonus) {
+      out.all = (out.all ?? 0) + infusionBonuses.saveBonus
+    }
     return out
-  }, [gearEffects.saveBonuses, abilitySaveExtras])
+  }, [gearEffects.saveBonuses, abilitySaveExtras, infusionBonuses.saveBonus])
 
   const abilityColumn = (
     <AbilitySkillsColumn
@@ -6003,6 +6045,8 @@ export function MinimalSheetEditor({
             proficiencyBonus={proficiencyBonus}
             gearBonusesByItem={gearEffects.byItem}
             fightingStyleId={activeFightingStyleId}
+            infusionAttackBonus={infusionBonuses.weaponAttackBonus}
+            infusionDamageBonus={infusionBonuses.weaponDamageBonus}
             martialArtsDie={martialArtsDie}
             resources={draft.play.resources}
             inventoryItems={draft.inventory.items}
@@ -6083,6 +6127,8 @@ export function MinimalSheetEditor({
           weaponProficiency={draft.identity.weapons}
           gearBonusesByItem={gearEffects.byItem}
           fightingStyleId={activeFightingStyleId}
+          infusionAttackBonus={infusionBonuses.weaponAttackBonus}
+          infusionDamageBonus={infusionBonuses.weaponDamageBonus}
           martialArtsDie={martialArtsDie}
           onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
           onToggleHeld={(attack) => {
@@ -6262,7 +6308,23 @@ export function MinimalSheetEditor({
             spells={draft.spells}
             abilities={effectiveAbilities}
             proficiencyBonus={proficiencyBonus}
-            modifiers={draft.modifiers}
+            modifiers={
+              infusionBonuses.spellAttackBonus
+                ? [
+                    ...draft.modifiers,
+                    {
+                      id: 'infusion:spell_attack',
+                      target: 'spell_attack' as const,
+                      label: 'Инфузия (фокус)',
+                      op: '+' as const,
+                      expr: String(infusionBonuses.spellAttackBonus),
+                      enabled: true,
+                      source: 'system' as const,
+                      class_slug: 'artificer',
+                    },
+                  ]
+                : draft.modifiers
+            }
             formulaVars={formulaVarsBase}
             learnBudget={spellLearnBudget}
             learnBudgets={spellLearnBudgets}
@@ -7362,6 +7424,8 @@ export function MinimalSheetEditor({
       <InfusionsActiveDialog
         open={infusionsSpendId != null && infusionsContext != null}
         resource={infusionsResource}
+        characterId={baseCharacter.id}
+        characterName={draft.name?.trim() || baseCharacter.name || 'Изобретатель'}
         classEntryId={infusionsContext?.classEntryId ?? ''}
         artificerLevel={infusionsContext?.level ?? 1}
         featurePicks={draft.featurePicks}
