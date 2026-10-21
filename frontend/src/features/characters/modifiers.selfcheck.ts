@@ -175,13 +175,16 @@ const wlkScoped = withSpellCastBonuses({
   classSlug: 'warlock',
 })
 assert(wlkScoped.dc === 20, `wlk dc scoped got ${wlkScoped.dc}`)
-const monoScoped = withSpellCastBonuses({
+const unlabeled = withSpellCastBonuses({
   baseDc: 13,
   baseAttack: 5,
   modifiers: scoped,
   vars,
 })
-assert(monoScoped.dc === 15, `mono no slug still gets scoped lines ${monoScoped.dc}`)
+assert(
+  unlabeled.dc === 14,
+  `unlabeled cast gets only unscoped lines got ${unlabeled.dc}`,
+)
 
 const initLines = normalizeBonusLines([
   {

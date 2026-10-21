@@ -244,8 +244,10 @@ export function spellCastBonus(
   const slug = classSlug?.trim().toLowerCase() || null
   const lines = bonusesForTarget(modifiers, target).filter((row) => {
     const scope = row.class_slug?.trim().toLowerCase() || null
+    // Unscoped lines always apply. Scoped lines only match that class —
+    // unlabeled casts (race/feat without class) do not inherit class gear.
     if (!scope) return true
-    if (!slug) return true
+    if (!slug) return false
     return scope === slug
   })
   if (lines.length === 0) return 0
