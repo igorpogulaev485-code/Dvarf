@@ -18,7 +18,7 @@
 | Soft collapse набора | Сворачивание прячет содержимое, но не удаляет строки |
 | Повторное раскрытие | Те же предметы с уже изменённым количеством (бурдюк 1→9 остаётся 9) |
 
-На проде: **да** · **это новый prod tip** `cursor/pack-qty-persist-2683` · PR #256 · залито 2026-10-21 · поверх tip `optional-class-features-8215` (Tasha optionals + расходники/гримуар сохранены) · `/health` ok
+На проде: **да** · **это новый prod tip** `cursor/pack-qty-persist-2683` · PR #256 · залито 2026-10-21 · поверх tip `optional-class-features-8215` (Tasha optionals + расходники/гримуар сохранены) · `/health` ok · бандл `CharacterDetailPage-DanoONwv.js` · soft collapse на диске · characters=94 classic=19
 
 ### 2026-10-21 — Optional class features + умение предыстории на листе
 
