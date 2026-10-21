@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/sirocco-ranger-sync-e6f4
+cursor/vpn-https-stable-fab2
 ```
 
 URL: https://creed20.tech/

@@ -4,23 +4,23 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/sirocco-ranger-sync-e6f4`  
+**Prod tip (ветка линии прода):** `cursor/vpn-https-stable-fab2`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
-## В ветках / ещё не на проде
+## Сейчас в продукте — свежее
 
-### VPN + HTTPS канон (`cursor/vpn-https-stable-fab2`)
+### 2026-10-21 — VPN + канон https://creed20.tech
 
-| Что | Зачем |
+| Что | Эффект |
 |-----|--------|
-| `http://201.34…` → `https://creed20.tech` | Старые закладки по IP ломаются на мобильном VPN (MTU) |
-| Boot splash + ошибка через 20с | Не бесконечный белый экран |
-| TCPMSS :80/:443 + `tcp_mtu_probing` | Туннели VPN с битым PMTUD |
-| Шрифты Google не блокируют старт | Некоторые VPN тормозят fonts.googleapis.com |
+| Канон URL | Только **https://creed20.tech** |
+| IP → HTTPS | Старые закладки `http://201.34…` уводят на creed20 |
+| Boot splash | Если модули не пришли за 20с — текст ошибки, не белый экран |
+| MTU harden | TCPMSS + probing на :80/:443 для мобильного VPN |
 
-На проде: **нет** (ждём деплой этой ветки).
+На проде: **да** · **это новый prod tip** `cursor/vpn-https-stable-fab2` · PR #243 · залито 2026-10-21
 
 ---
 
@@ -83,7 +83,7 @@
 | Атаки↔инвентарь | Карточка с `inventory_item_id` уходит вместе с предметом | Нет «сирот» после удаления оружия |
 | Сверкающий Лунный Лук (BMT) | Каталог: +1 атака/урон, 1к8+1к6, настройка, 1/рассвет | Со «Стрельбой» атака как в PDF (+9) |
 
-На проде: **да** · **это новый prod tip** `cursor/sirocco-ranger-sync-e6f4` · PR #235 · залито 2026-10-20 · alembic `s1r0c0m00nbw` · `/health` ok · бандл `CharacterDetailPage-CVPY4P_t.js` / `classMovement-CIG_JWrl.js` · Moonbow+Gloom в catalog_entries
+На проде: **да** · **это новый prod tip** `cursor/vpn-https-stable-fab2` · PR #235 · залито 2026-10-20 · alembic `s1r0c0m00nbw` · `/health` ok · бандл `CharacterDetailPage-CVPY4P_t.js` / `classMovement-CIG_JWrl.js` · Moonbow+Gloom в catalog_entries
 
 ### 2026-10-20 — BMT оружие (волна 1)
 
@@ -92,7 +92,7 @@
 | 19 оружий BMT | Каталог `weapon`: от Bloodrage Greataxe до Sword of the Planes (без Moonbow — уже был) | Можно добавить из справочника; эффекты MVP + RU |
 | Пресеты атак | Лук пожара / мелодий, звёздный арбалет, цеп, кнут, клинок шута, меч планов… | Имя оружия матчится в панели атак |
 
-На проде: **да** · tip `cursor/sirocco-ranger-sync-e6f4` · PR #235 · залито 2026-10-20 · alembic `s1r0c0bmtw01` · 19 weapon rows
+На проде: **да** · tip `cursor/vpn-https-stable-fab2` · PR #235 · залито 2026-10-20 · alembic `s1r0c0bmtw01` · 19 weapon rows
 
 ### 2026-10-20 — BMT доспехи/щиты (волна 2)
 
@@ -116,7 +116,7 @@
 |--------|--------------|-------------------------|
 | 8 артефактов DMG + 2 legendary SRD | Vecna, Kas, Orcus, Exalted/Vile, Orb of Dragonkind, Dwarvish Lords; Apparatus / Cubic Gate | Карточки rarity `artifact` / legendary в справочнике (MVP) |
 
-На проде: **да** · tip `cursor/sirocco-ranger-sync-e6f4` · alembic `s1r0c0dmgart1` · backlog BMT+DMG artifacts закрыт (MVP)
+На проде: **да** · tip `cursor/vpn-https-stable-fab2` · alembic `s1r0c0dmgart1` · backlog BMT+DMG artifacts закрыт (MVP)
 
 ### 2026-10-20 — B2 анти-зеркало (ttg/dnd.su)
 
@@ -616,7 +616,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
-| 2026-10-20 | `cursor/sirocco-ranger-sync-e6f4` · PR #235 | Сирокко: Archery / Gloom Stalker / Moonbow → **новый tip** после Timeweb |
+| 2026-10-20 | `cursor/vpn-https-stable-fab2` · PR #235 | Сирокко: Archery / Gloom Stalker / Moonbow → **новый tip** после Timeweb |
 | 2026-10-20 | `cursor/b2-anti-mirror-6151` · PR #228 | QA Рагнар: subclass/PB/speed/classic attacks/ASI → **новый tip** после Timeweb |
 | 2026-10-17 | `cursor/fix-list-create-fixes-6dc8` | Dialog/pad clicks: drop backdrop `pointer-events:none` → **новый tip** |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic 2014/2024 бланк + заметки + font size → **новый tip** на Timeweb |
