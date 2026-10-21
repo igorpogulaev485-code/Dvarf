@@ -15,7 +15,7 @@
 
 Ship `create-feedback-ship-fc00` собрали от `vpn-https` **без** live tip `grimoire-prepare-home-3aba` → с прода пропали Undo/×N расходников и UX «Гримуар = дом подготовки». Classic / cabinet / lobby / Play Desk каркас **на месте**.
 
-На проде: **нет до Timeweb** · ветка `cursor/restore-consumables-grimoire-0bc3` · merge #245+#246 в ship #253 · после деплоя это новый tip
+На проде: **да** · **это новый prod tip** `cursor/restore-consumables-grimoire-0bc3` · PR #254 · залито 2026-10-21 · `/health` ok · бандл `CharacterDetailPage-DA3Hh2L6.js` · `consumableSpend.ts` на диске · ship U/A/C/F/E сохранены
 
 ### 2026-10-21 — Фидбек создания (U/A/C/F/E)
 
@@ -38,7 +38,7 @@ Ship `create-feedback-ship-fc00` собрали от `vpn-https` **без** live
 | Волшебник | «Подготовить» = набор **из книги** на сегодня; новые записи — Гримуар («В книгу») | Как PHB: книга ≠ подготовка |
 | Alone-max | В гримуаре список класса до alone-max уровня (мультикласс) | Видно полный пул класса, не общий CR |
 
-На проде: **нет** · код в `cursor/restore-consumables-grimoire-0bc3` · PR #245 · затёрто ship fc00 · ждёт redeploy
+На проде: **да** · tip `cursor/restore-consumables-grimoire-0bc3` · PR #245/#254 · восстановлено 2026-10-21 · `/health` ok
 
 ### 2026-10-21 — Расходники: защита от случайных тапов
 
@@ -49,7 +49,7 @@ Ship `create-feedback-ship-fc00` собрали от `vpn-https` **без** live
 | ×N | Pad «Потратить: {предмет}» → qty → confirm | Несколько штук за раз, имя в заголовке |
 | Журнал трат | Под расходниками, сессия + «вернуть» | История коротких трат на столе |
 
-На проде: **нет** · код в `cursor/restore-consumables-grimoire-0bc3` · PR #246 · затёрто ship fc00 · ждёт redeploy
+На проде: **да** · tip `cursor/restore-consumables-grimoire-0bc3` · PR #246/#254 · восстановлено 2026-10-21 · бандл `CharacterDetailPage-DA3Hh2L6.js` · `consumableSpend` в бандле
 
 ### 2026-10-21 — VPN + канон https://creed20.tech
 
