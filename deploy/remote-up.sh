@@ -155,6 +155,12 @@ fi
 echo "starting stack (no pull)..."
 "${COMPOSE[@]}" up -d --pull never --remove-orphans
 
+# sync-and-up replaces /opt/dvarf (new inodes). Docker bind-mounts can keep the
+# old Caddyfile inode → `caddy reload` says "config unchanged" while disk is new.
+# Force-recreate edge so the mount picks up deploy/Caddyfile (IP→creed20 redirect).
+echo "recreating Caddy edge (fresh Caddyfile bind-mount)..."
+"${COMPOSE[@]}" up -d --pull never --force-recreate --no-deps edge || true
+
 save_fp api "$API_FP"
 save_fp web "$WEB_FP"
 

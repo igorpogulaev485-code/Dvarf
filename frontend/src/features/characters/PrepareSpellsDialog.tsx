@@ -1,4 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
+import type { RulesEdition } from '../../shared/api/characters'
+import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import {
+  classListPrepareSources,
+  describeClassListSources,
+  isClassListVirtualSpell,
+  mergeAvailableForPrepare,
+} from '../../shared/dnd/prepareAvailability'
 import {
   spellAccessUiCopy,
   type SpellLearnModeUi,
@@ -6,12 +15,14 @@ import {
 import { countsTowardPrepareLimit, levelLabel } from '../../shared/dnd/spells'
 import { Dialog, Stack, Text } from '../../ui'
 import {
+  addCatalogSpellToKnown,
   countPreparedLeveled,
   groupSpellsByLevel,
   isGrantedSpellHighlight,
   isPreparedLocked,
   preparedLockChip,
   setSpellPrepared,
+  sheetSpellFromCatalog,
   spellSourceBadge,
   type SheetSpell,
   type SpellsState,
@@ -19,6 +30,11 @@ import {
 
 type PrepareSpellsDialogProps = {
   open: boolean
+  /** Needed to load class-list spells from the catalog; defaults are fine for known/spellbook. */
+  edition?: RulesEdition
+  className?: string
+  level?: number
+  classes?: ClassLevelEntry[]
   spells: SpellsState
   /** PHB learn mode — copy differs for spellbook vs prepared_list. */
   learnMode?: SpellLearnModeUi | null
@@ -30,13 +46,57 @@ type Tab = 'prepared' | 'available'
 
 export function PrepareSpellsDialog({
   open,
+  edition = '2014',
+  className = '',
+  level = 1,
+  classes,
   spells,
   learnMode = 'prepared_list',
   onChange,
   onClose,
 }: PrepareSpellsDialogProps) {
   const [tab, setTab] = useState<Tab>('prepared')
+  const [catalog, setCatalog] = useState<CatalogEntry[]>([])
+  const [catalogLoading, setCatalogLoading] = useState(false)
+  const [catalogError, setCatalogError] = useState<string | null>(null)
   const uiCopy = spellAccessUiCopy(learnMode ?? 'prepared_list')
+
+  const sources = useMemo(() => {
+    // Only prepared_list casters auto-fill from the class grimoire list.
+    if ((learnMode ?? 'prepared_list') !== 'prepared_list') return []
+    return classListPrepareSources({ className, level, classes })
+  }, [learnMode, className, level, classes])
+  const sourcesKey = sources.map((row) => `${row.slug}:${row.maxSpellLevel}`).join('|')
+  const usesClassList = sources.length > 0
+  const sourceHint = describeClassListSources(sources)
+
+  useEffect(() => {
+    if (!open || !usesClassList) {
+      setCatalog([])
+      setCatalogError(null)
+      setCatalogLoading(false)
+      return
+    }
+    let active = true
+    setCatalogLoading(true)
+    setCatalogError(null)
+    listCatalogEntries({ kind: 'spell', edition })
+      .then((items) => {
+        if (!active) return
+        setCatalog(items)
+      })
+      .catch(() => {
+        if (!active) return
+        setCatalogError('Не удалось загрузить список класса из гримуара')
+        setCatalog([])
+      })
+      .finally(() => {
+        if (active) setCatalogLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [open, edition, usesClassList, sourcesKey])
 
   const preparedCount = countPreparedLeveled(spells.known)
   const limitLabel =
@@ -46,10 +106,19 @@ export function PrepareSpellsDialog({
     () => spells.known.filter((spell) => spell.level > 0 && spell.prepared),
     [spells.known],
   )
-  const availableList = useMemo(
-    () => spells.known.filter((spell) => spell.level > 0),
-    [spells.known],
-  )
+
+  const availableList = useMemo(() => {
+    if (!usesClassList) {
+      return spells.known.filter((spell) => spell.level > 0)
+    }
+    return mergeAvailableForPrepare({
+      known: spells.known,
+      catalog,
+      sources,
+      sheetSpellFromCatalog,
+    }) as SheetSpell[]
+  }, [usesClassList, spells.known, catalog, sources])
+
   /** Pool not yet prepared — the reason «Все доступные» differs from «Подготовленные». */
   const unpreparedList = useMemo(
     () => availableList.filter((spell) => !spell.prepared),
@@ -70,6 +139,21 @@ export function PrepareSpellsDialog({
   function togglePrepared(spell: SheetSpell) {
     if (!countsTowardPrepareLimit(spell.level)) return
     if (isPreparedLocked(spell)) return
+
+    if (isClassListVirtualSpell(spell) && spell.catalog_id) {
+      if (bookLost) return
+      const entry = catalog.find((item) => item.id === spell.catalog_id)
+      if (!entry) return
+      onChange({
+        ...spells,
+        known: addCatalogSpellToKnown(spells.known, entry, {
+          prepare: true,
+          maxPrepared: spells.max_prepared,
+        }),
+      })
+      return
+    }
+
     const nextPrepared = !spell.prepared
     // PHB: without the book you cannot prepare a new list (can keep existing).
     if (bookLost && nextPrepared) return
@@ -103,6 +187,11 @@ export function PrepareSpellsDialog({
           {spell.ritual ? (
             <span className="prepare-row__badge" title="Ритуал">
               ритуал
+            </span>
+          ) : null}
+          {isClassListVirtualSpell(spell) ? (
+            <span className="prepare-row__badge is-source" title="Из списка класса">
+              список класса
             </span>
           ) : null}
           {source && !lock ? (
@@ -145,7 +234,7 @@ export function PrepareSpellsDialog({
     emptyText: string,
   ) {
     if (groups.length === 0) {
-      return <Text tone="muted">{emptyText}</Text>
+      return emptyText ? <Text tone="muted">{emptyText}</Text> : null
     }
     return groups.map((group) => (
       <div key={group.level} className="prepare-section">
@@ -154,6 +243,15 @@ export function PrepareSpellsDialog({
       </div>
     ))
   }
+
+  const emptyAvailableText = usesClassList
+    ? catalogLoading
+      ? 'Загружаем список класса…'
+      : catalogError ??
+        (sourceHint
+          ? `Нет заклинаний в каталоге для: ${sourceHint}. Проверь гримуар.`
+          : 'Сначала добавь заклинания 1+ уровня через Гримуар («На лист»).')
+    : 'Сначала добавь заклинания 1+ уровня через Гримуар («На лист»).'
 
   return (
     <Dialog
@@ -167,11 +265,14 @@ export function PrepareSpellsDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          {uiCopy.prepareHint} Лимит сегодня: {limitLabel}. Пополнить пул — через Гримуар (
-          {learnMode === 'spellbook'
-            ? '«В книгу» / «В книгу + подготовить»'
-            : '«На лист» / «Подготовить»'}
-          ).
+          {uiCopy.prepareHint} Лимит сегодня: {limitLabel}.
+          {usesClassList
+            ? ` Сейчас в пуле: ${sourceHint}.`
+            : ` Пополнить пул — через Гримуар (${
+                learnMode === 'spellbook'
+                  ? '«В книгу» / «В книгу + подготовить»'
+                  : '«На лист» / «Подготовить»'
+              }).`}
         </Text>
         {bookLost ? (
           <Text tone="muted">
@@ -207,7 +308,8 @@ export function PrepareSpellsDialog({
             className={`sheet-chip${tab === 'available' ? ' is-on' : ''}`}
             onClick={() => setTab('available')}
           >
-            Все доступные ({availableList.length})
+            Все доступные ({availableList.length}
+            {usesClassList && catalogLoading ? '…' : ''})
             {unpreparedList.length > 0 ? ` · ещё ${unpreparedList.length}` : ''}
           </button>
         </div>
@@ -217,7 +319,9 @@ export function PrepareSpellsDialog({
             preparedGroups,
             unpreparedList.length > 0
               ? 'Ничего не подготовлено — открой «Все доступные» и нажми «Подготовить».'
-              : 'Пул пуст. Сначала добавь заклинания через Гримуар («На лист»).',
+              : usesClassList
+                ? 'Пул класса загружается во вкладке «Все доступные».'
+                : 'Пул пуст. Сначала добавь заклинания через Гримуар («На лист»).',
           )
         ) : (
           <Stack gap={12}>
@@ -230,7 +334,7 @@ export function PrepareSpellsDialog({
               <Text tone="muted">
                 {availableList.length > 0
                   ? 'Все доступные уже подготовлены. Сними лишние во вкладке «Подготовленные» или добавь новые через Гримуар.'
-                  : 'Сначала добавь заклинания 1+ уровня через Гримуар («На лист»).'}
+                  : emptyAvailableText}
               </Text>
             )}
             {preparedList.length > 0 && unpreparedList.length > 0 ? (

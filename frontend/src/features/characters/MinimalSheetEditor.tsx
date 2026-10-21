@@ -118,7 +118,27 @@ import {
   withInitiativeBonus,
   type BonusLine,
 } from './modifiers'
-import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
+import {
+  Button,
+  Dialog,
+  Field,
+  Input,
+  NumberInput,
+  Panel,
+  Stack,
+  Text,
+  type ToastInput,
+} from '../../ui'
+import { ConsumableSpendPadDialog } from './ConsumableSpendPadDialog'
+import {
+  appendConsumableSpendLog,
+  formatConsumableSpendToast,
+  formatConsumableUndoToast,
+  markConsumableSpendUndone,
+  newConsumableSpendId,
+  type ConsumableSpendLogEntry,
+  type ConsumableUndoSession,
+} from './consumableSpend'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
   emptyRacePicks,
@@ -210,6 +230,7 @@ import {
   sumFeatHpPerLevel,
   sumFeatInitiativeBonus,
   sumFeatPassiveBonus,
+  sumFeatSpeedBonus,
   type AppliedFeatGrant,
 } from '../../shared/dnd/featGrants'
 import {
@@ -251,6 +272,11 @@ import {
   classWalkSpeedBonusFt,
   resolveWalkSpeedFt,
 } from '../../shared/dnd/classMovement'
+import { applyFeatureSaveProficiencies } from '../../shared/dnd/featureSaveProficiency'
+import {
+  martialArtsDieFromFeatures,
+  syncMonkUnarmedAttack,
+} from '../../shared/dnd/martialArts'
 import {
   clearFeaturePicksForClass,
   clearFeaturePicksForFeatureIds,
@@ -281,6 +307,7 @@ import { shapechangerFormLimits } from './featureForms'
 import { WildShapeDialog, type WildShapeDialogResult } from './WildShapeDialog'
 import { healSelfForm, rollDice } from './wildShape'
 import { TextBlocksPanel } from './TextBlocksPanel'
+import { OnboardingChecklist, HoverTipCard, SCENE_TIPS } from '../onboarding'
 import { AbilitySkillsColumn } from './AbilitySkillsColumn'
 import { CharacterAvatarControl } from './CharacterAvatarControl'
 import { IdentityDialog } from './IdentityDialog'
@@ -440,9 +467,13 @@ type MinimalSheetEditorProps = {
   createGuide?: 'background-first' | 'class-first' | null
   /** Create at level N — after class grant, jump and queue picks 1…N. */
   startingLevel?: number
+  /** First-run checklist under the ability rail. */
+  showOnboardingChecklist?: boolean
+  /** Absolute beginner: value «?» on КД/хиты/СИЛ… */
+  showValueTips?: boolean
   onCreateGuideConsumed?: () => void
   onSaved: (character: CharacterDetail) => void
-  onToast: (message: string) => void
+  onToast: (message: ToastInput) => void
   onRemoteSave?: (message: Extract<SheetSyncMessage, { type: 'sheet-saved' }>) => void
 }
 
@@ -502,13 +533,16 @@ function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
       row.source_kind === 'weapon' ||
       row.source_kind === 'artifact' ||
       row.source_kind === 'custom' ||
-      row.source_kind === 'race'
+      row.source_kind === 'race' ||
+      row.source_kind === 'class'
         ? row.source_kind
         : typeof row.id === 'string' && row.id.startsWith('race-nw:')
           ? 'race'
-          : row.catalog_id
-            ? 'weapon'
-            : 'custom'
+          : typeof row.id === 'string' && row.id.startsWith('class-ma:')
+            ? 'class'
+            : row.catalog_id
+              ? 'weapon'
+              : 'custom'
     return {
       id: typeof row.id === 'string' ? row.id : `weapon-${index}`,
       name: typeof row.name === 'string' ? row.name : '',
@@ -584,22 +618,24 @@ function buildDraft(character: CharacterDetail): Draft {
         })
 
   const raceGrant = readAppliedRaceGrant(sheet.race_grant)
-  // Un-bake Fast Movement / Unarmored Movement that create (or manual fix) wrote
-  // into combat.speed so armor-aware display can add the bonus live.
+  // Un-bake Fast Movement / Unarmored Movement (+ optional Mobile) that create
+  // wrote into combat.speed so armor-aware display can add the bonus live.
   let speed = readNullableNumber(combat.speed)
   const raceSpeed = raceGrant?.speed ?? null
+  const featSpeedBonus = sumFeatSpeedBonus(readFeatGrantLedger(sheet.feat_grants))
   const maxClassSpeedBonus = classWalkSpeedBonusFt({
     classes,
     wearingHeavyArmor: false,
     wearingArmorOrShield: false,
   })
-  if (
-    speed != null &&
-    raceSpeed != null &&
-    maxClassSpeedBonus > 0 &&
-    speed === raceSpeed + maxClassSpeedBonus
-  ) {
-    speed = raceSpeed
+  if (speed != null && raceSpeed != null) {
+    if (
+      maxClassSpeedBonus > 0 &&
+      (speed === raceSpeed + maxClassSpeedBonus ||
+        speed === raceSpeed + featSpeedBonus + maxClassSpeedBonus)
+    ) {
+      speed = raceSpeed + featSpeedBonus
+    }
   }
 
   return {
@@ -750,6 +786,8 @@ export function MinimalSheetEditor({
   character,
   createGuide = null,
   startingLevel: startingLevelProp = 1,
+  showOnboardingChecklist = false,
+  showValueTips = false,
   onCreateGuideConsumed,
   onSaved,
   onToast,
@@ -951,6 +989,14 @@ export function MinimalSheetEditor({
         abilities: draft.abilities,
       }),
     [unlockedFeatures, characterLevel, draft.abilities],
+  )
+  const martialArtsDie = useMemo(
+    () => martialArtsDieFromFeatures(unlockedFeatures),
+    [unlockedFeatures],
+  )
+  const featSpeedBonusFt = useMemo(
+    () => sumFeatSpeedBonus(draft.featGrants),
+    [draft.featGrants],
   )
   const primaryClass = draft.classes[0]
   const rulesEdition = baseCharacter.rules_edition as RulesEdition
@@ -1228,6 +1274,43 @@ export function MinimalSheetEditor({
       }
     })
   }, [featureDesiredResources])
+
+  // Diamond Soul (and similar): force-enable save proficiencies from features.
+  useEffect(() => {
+    setDraft((prev) => {
+      const nextSaves = applyFeatureSaveProficiencies(prev.saves, unlockedFeatures)
+      if (nextSaves === prev.saves) return prev
+      return { ...prev, saves: nextSaves }
+    })
+  }, [unlockedFeatures])
+
+  // Martial Arts: keep a live «Безоружный удар» card while the feature is unlocked.
+  useEffect(() => {
+    setDraft((prev) => {
+      const nextWeapons = syncMonkUnarmedAttack({
+        weapons: prev.weapons,
+        martialArtsDie,
+        str: prev.abilities.str,
+        dex: prev.abilities.dex,
+      })
+      if (
+        nextWeapons.length === prev.weapons.length &&
+        nextWeapons.every((row, index) => {
+          const cur = prev.weapons[index]
+          return (
+            cur &&
+            cur.id === row.id &&
+            cur.name === row.name &&
+            cur.damage === row.damage &&
+            cur.ability === row.ability
+          )
+        })
+      ) {
+        return prev
+      }
+      return { ...prev, weapons: nextWeapons }
+    })
+  }, [martialArtsDie, draft.abilities.str, draft.abilities.dex])
 
   const onRemoteSaveRef = useRef(onRemoteSave)
   useEffect(() => {
@@ -2800,6 +2883,7 @@ export function MinimalSheetEditor({
       raceSpeed: draft.raceGrant?.speed ?? null,
       classBonusFt: classBonus,
       classBonusFtMax: classBonusMax,
+      featBonusFt: featSpeedBonusFt,
       gearBonusFt: gearEffects.speedBonusFt,
     })
   }, [
@@ -2807,6 +2891,7 @@ export function MinimalSheetEditor({
     draft.classes,
     draft.speed,
     draft.raceGrant?.speed,
+    featSpeedBonusFt,
     gearEffects.speedBonusFt,
   ])
   const classSpeedHint = useMemo(() => {
@@ -2820,6 +2905,7 @@ export function MinimalSheetEditor({
       wearingArmorOrShield,
     })
     const bits: string[] = []
+    if (featSpeedBonusFt) bits.push(`черта +${featSpeedBonusFt}`)
     if (classBonus) bits.push(`класс +${classBonus}`)
     if (gearEffects.speedBonusFt) {
       bits.push(
@@ -2827,7 +2913,7 @@ export function MinimalSheetEditor({
       )
     }
     return bits.length ? bits.join(', ') : null
-  }, [armorPiecesForSpeed, draft.classes, gearEffects.speedBonusFt])
+  }, [armorPiecesForSpeed, draft.classes, featSpeedBonusFt, gearEffects.speedBonusFt])
 
   const attunedItemIds = useMemo(
     () =>
@@ -3405,6 +3491,11 @@ export function MinimalSheetEditor({
     slug: SpellSelfFormSlug
   } | null>(null)
   const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
+  const [consumableSpendPadId, setConsumableSpendPadId] = useState<string | null>(null)
+  const [consumableSpendLog, setConsumableSpendLog] = useState<ConsumableSpendLogEntry[]>(
+    [],
+  )
+  const consumableUndoRef = useRef<ConsumableUndoSession | null>(null)
   const [deskCastScrollPending, setDeskCastScrollPending] = useState<{
     itemId: string
     name: string
@@ -3439,18 +3530,110 @@ export function MinimalSheetEditor({
   )
 
   const emitToast = useCallback(
-    (message: string) => {
+    (message: ToastInput) => {
       onToast(message)
-      if (!isDeskRollToast(message)) return
+      const text = typeof message === 'string' ? message : message.message
+      if (!isDeskRollToast(text)) return
       setDraft((prev) => ({
         ...prev,
         sheetUi: {
           ...prev.sheetUi,
-          rollHistory: appendRollHistory(prev.sheetUi.rollHistory, { text: message }),
+          rollHistory: appendRollHistory(prev.sheetUi.rollHistory, { text }),
         },
       }))
     },
     [onToast],
+  )
+
+  const undoConsumableSpend = useCallback(
+    (session: ConsumableUndoSession) => {
+      if (consumableUndoRef.current?.token === session.token) {
+        consumableUndoRef.current = null
+      }
+      setDraft((prev) => ({
+        ...prev,
+        inventory: {
+          ...prev.inventory,
+          items: prev.inventory.items.map((row) =>
+            row.id === session.itemId
+              ? { ...row, qty: (row.qty ?? 0) + session.amount }
+              : row,
+          ),
+        },
+      }))
+      setConsumableSpendLog((prev) => markConsumableSpendUndone(prev, session.logId))
+      onToast(formatConsumableUndoToast(session.name, session.amount))
+    },
+    [onToast],
+  )
+
+  const spendConsumableFromDesk = useCallback(
+    (itemId: string, amount = 1) => {
+      const item = draft.inventory.items.find((row) => row.id === itemId)
+      if (!item || (item.qty ?? 0) <= 0) return
+      if (isCastableSpellScroll(item)) {
+        setDeskCastScrollId(itemId)
+        return
+      }
+      const spendAmount = Math.max(1, Math.min(amount, item.qty ?? 0))
+      const nextQty = Math.max(0, (item.qty ?? 0) - spendAmount)
+      const logId = newConsumableSpendId()
+      const token = Date.now()
+      const session: ConsumableUndoSession = {
+        token,
+        itemId,
+        name: item.name,
+        amount: spendAmount,
+        logId,
+      }
+      consumableUndoRef.current = session
+      setDraft((prev) => ({
+        ...prev,
+        inventory: {
+          ...prev.inventory,
+          items: prev.inventory.items.map((row) =>
+            row.id === itemId
+              ? { ...row, qty: Math.max(0, (row.qty ?? 0) - spendAmount) }
+              : row,
+          ),
+        },
+      }))
+      setConsumableSpendLog((prev) =>
+        appendConsumableSpendLog(prev, {
+          id: logId,
+          itemId,
+          name: item.name,
+          amount: spendAmount,
+          atMs: token,
+        }),
+      )
+      onToast({
+        message: formatConsumableSpendToast(item.name, spendAmount, nextQty),
+        durationMs: 8000,
+        actionLabel: 'Отменить',
+        onAction: () => {
+          if (consumableUndoRef.current?.token !== token) return
+          undoConsumableSpend(session)
+        },
+      })
+    },
+    [draft.inventory.items, onToast, undoConsumableSpend],
+  )
+
+  const undoConsumableSpendFromLog = useCallback(
+    (logId: string) => {
+      const entry = consumableSpendLog.find((row) => row.id === logId)
+      if (!entry || entry.undone) return
+      const session: ConsumableUndoSession = {
+        token: entry.atMs,
+        itemId: entry.itemId,
+        name: entry.name,
+        amount: entry.amount,
+        logId: entry.id,
+      }
+      undoConsumableSpend(session)
+    },
+    [consumableSpendLog, undoConsumableSpend],
   )
 
   useEffect(() => {
@@ -4243,6 +4426,7 @@ export function MinimalSheetEditor({
       }
       onReorder={(abilityOrder) => patchSheetUi({ abilityOrder })}
       onCollapsedChange={(collapsedAbilities) => patchSheetUi({ collapsedAbilities })}
+      showValueTips={showValueTips}
     />
   )
 
@@ -4288,7 +4472,7 @@ export function MinimalSheetEditor({
         .join(' ')}
     >
       {isPlayDesk ? (
-        <div className="play-desk__top">
+        <div className="play-desk__top" data-onboarding="combat-header">
           <CharacterAvatarControl
             character={baseCharacter}
             size="md"
@@ -4399,6 +4583,7 @@ export function MinimalSheetEditor({
             }
             coinPadOpen={coinPadOpen}
             onCoinPadOpenChange={setCoinPadOpen}
+            showValueTips={showValueTips}
             onCombatChange={(patch) =>
               setDraft((prev) => ({
                 ...prev,
@@ -4418,6 +4603,7 @@ export function MinimalSheetEditor({
           />
         </div>
       ) : (
+        <div className="play-desk__mobile-chrome" data-onboarding="combat-header">
         <MobileVitalsBar
           character={baseCharacter}
           name={draft.name}
@@ -4515,7 +4701,9 @@ export function MinimalSheetEditor({
             })
           }}
           onToast={onToast}
+          showValueTips={showValueTips}
         />
+        </div>
       )}
 
       {isPlayDesk && dockCompanions.length > 0 ? (
@@ -4559,27 +4747,31 @@ export function MinimalSheetEditor({
       ) : null}
 
       <div className="play-desk__body">
-        <aside className="play-desk__left">
+        <aside className="play-desk__left" data-onboarding="abilities">
           {abilityColumn}
           <div className="play-desk__rail-foot">
             {passivesCompact}
             <Button type="button" variant="secondary" onClick={() => setOwnershipOpen(true)}>
               Владения ▸
             </Button>
+            {showOnboardingChecklist ? <OnboardingChecklist compact /> : null}
           </div>
         </aside>
 
-        <div className="play-desk__stage">
+        <div className="play-desk__stage" data-onboarding="actions">
           {isPlayDesk ? (
-            <div className="play-desk__modes">
+            <div className="play-desk__modes" data-onboarding="desk-modes" aria-label="Сцены листа">
               {MODE_LABELS.map(({ id: mode, label }) => (
                 <button
                   key={mode}
                   type="button"
-                  className={`play-desk__mode${draft.sheetUi.deskMode === mode ? ' is-on' : ''}`}
+                  className={`play-desk__mode${draft.sheetUi.deskMode === mode ? ' is-on' : ''}${
+                    showValueTips ? ' has-onboarding-tip' : ''
+                  }`}
                   onClick={() => setDeskMode(mode)}
                 >
                   {label}
+                  {showValueTips ? <HoverTipCard tip={SCENE_TIPS[mode]} /> : null}
                 </button>
               ))}
               <div
@@ -5469,6 +5661,7 @@ export function MinimalSheetEditor({
             proficiencyBonus={proficiencyBonus}
             gearBonusesByItem={gearEffects.byItem}
             fightingStyleId={activeFightingStyleId}
+            martialArtsDie={martialArtsDie}
             resources={draft.play.resources}
             inventoryItems={draft.inventory.items}
             favoriteConsumableIds={draft.sheetUi.combatConsumableFavoriteIds}
@@ -5484,29 +5677,10 @@ export function MinimalSheetEditor({
             onSpendResource={spendResourceOrOpenSorcery}
             onToggleConsumableFavorite={toggleCombatFavorite}
             onCastScroll={(itemId) => setDeskCastScrollId(itemId)}
-            onSpendConsumable={(itemId) => {
-              const item = draft.inventory.items.find((row) => row.id === itemId)
-              if (!item || (item.qty ?? 0) <= 0) return
-              if (isCastableSpellScroll(item)) {
-                setDeskCastScrollId(itemId)
-                return
-              }
-              const nextQty = Math.max(0, (item.qty ?? 0) - 1)
-              setDraft((prev) => ({
-                ...prev,
-                inventory: {
-                  ...prev.inventory,
-                  items: prev.inventory.items.map((row) =>
-                    row.id === itemId ? { ...row, qty: Math.max(0, (row.qty ?? 0) - 1) } : row,
-                  ),
-                },
-              }))
-              onToast(
-                nextQty > 0
-                  ? `−1 «${item.name}» · осталось ${nextQty}`
-                  : `−1 «${item.name}» · кончилось`,
-              )
-            }}
+            onSpendConsumable={spendConsumableFromDesk}
+            onOpenConsumableSpendPad={(itemId) => setConsumableSpendPadId(itemId)}
+            consumableSpendLog={consumableSpendLog}
+            onUndoConsumableSpend={undoConsumableSpendFromLog}
             onToggleHeld={(attack) => {
               if (!attack.inventory_item_id) return
               setDraft((prev) => {
@@ -5534,6 +5708,7 @@ export function MinimalSheetEditor({
             proficiencyBonus={proficiencyBonus}
             weaponProficiency={draft.identity.weapons}
             gearBonusesByItem={gearEffects.byItem}
+            martialArtsDie={martialArtsDie}
             onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
             onClose={() => setAttacksSettingsOpen(false)}
             onToggleHeld={(attack) => {
@@ -5566,6 +5741,7 @@ export function MinimalSheetEditor({
           weaponProficiency={draft.identity.weapons}
           gearBonusesByItem={gearEffects.byItem}
           fightingStyleId={activeFightingStyleId}
+          martialArtsDie={martialArtsDie}
           onChange={(weapons) => setDraft((prev) => ({ ...prev, weapons }))}
           onToggleHeld={(attack) => {
             if (!attack.inventory_item_id) return
@@ -5976,7 +6152,11 @@ export function MinimalSheetEditor({
       </div>{/* body */}
 
       {!isPlayDesk ? (
-        <BottomSceneNav mode={draft.sheetUi.deskMode} onModeChange={setDeskMode} />
+        <BottomSceneNav
+          mode={draft.sheetUi.deskMode}
+          onModeChange={setDeskMode}
+          showValueTips={showValueTips}
+        />
       ) : null}
 
       {!isPlayDesk ? (
@@ -6241,6 +6421,32 @@ export function MinimalSheetEditor({
             }
           })
           onToast('Ячейки договора восстановлены')
+        }}
+      />
+
+      <ConsumableSpendPadDialog
+        key={consumableSpendPadId ?? 'consumable-spend-pad-closed'}
+        open={consumableSpendPadId != null}
+        itemName={
+          consumableSpendPadId
+            ? draft.inventory.items.find((row) => row.id === consumableSpendPadId)?.name ??
+              'Расходник'
+            : 'Расходник'
+        }
+        maxQty={
+          consumableSpendPadId
+            ? Math.max(
+                0,
+                draft.inventory.items.find((row) => row.id === consumableSpendPadId)?.qty ?? 0,
+              )
+            : 0
+        }
+        onClose={() => setConsumableSpendPadId(null)}
+        onConfirm={(amount) => {
+          const itemId = consumableSpendPadId
+          setConsumableSpendPadId(null)
+          if (!itemId) return
+          spendConsumableFromDesk(itemId, amount)
         }}
       />
 

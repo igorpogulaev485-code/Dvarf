@@ -18,12 +18,8 @@ www.creed20.tech {
 	redir https://creed20.tech{uri} permanent
 }
 
-# Keep IP bookmarks working over HTTP (no cert for bare IP).
+# Old bookmarks used bare IP over HTTP — that path breaks under many mobile VPNs
+# (MTU blackhole / no TLS). Canon is HTTPS on the real domain.
 http://201.34.132.252 {
-	encode gzip
-	reverse_proxy web:80 {
-		header_up X-Forwarded-Proto {scheme}
-		header_up X-Real-IP {remote_host}
-		header_up X-Forwarded-For {remote_host}
-	}
+	redir https://creed20.tech{uri} permanent
 }
