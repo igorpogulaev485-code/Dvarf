@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/spells-feats-infusions-ab30`  
+**Prod tip (ветка линии прода):** `cursor/artificer-infusions-full-ab30`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
