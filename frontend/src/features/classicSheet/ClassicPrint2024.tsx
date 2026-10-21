@@ -28,6 +28,7 @@ import {
 import { classicConditionsLabel } from './classicConditions'
 import { classicWeaponRows, patchClassicWeapon } from './classicWeapons'
 import {
+  classicCastProfiles,
   classicSpellAbilityLabel,
   classicSpellStats,
   classicSpellsState,
@@ -38,6 +39,7 @@ import {
   setSpellNameAt,
   toggleSpellPrepared,
 } from './classicSpells'
+import { SPELLCASTING_ABILITY_LABELS } from '../../shared/dnd/spells'
 import {
   Bubble,
   asProfBonus,
@@ -103,6 +105,7 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
   const equipItems = equipmentItemsLine(c)
   const spells = classicSpellsState(c)
   const spellStats = classicSpellStats(c, spells)
+  const castProfiles = classicCastProfiles(c)
   const coins = inventoryCoins(c)
   const weapons = classicWeaponRows(c)
   const passivePerception =
@@ -670,37 +673,65 @@ export function ClassicPrint2024({ character: c, onPatch }: Props) {
       >
         <div className="classic-lss-p4-grid">
           <div className="classic-lss-p4-left">
-            <div className="classic-lss-spell-stats">
-              <label>
-                <input
-                  value={classicSpellAbilityLabel(spells.casting_ability)}
-                  placeholder="ИНТ / МУД / ХАР"
-                  onChange={(e) =>
-                    onPatch(setCastingAbility(c, parseCastingAbilityInput(e.target.value)))
-                  }
-                />
-                <span>Характеристика</span>
-              </label>
-              <label>
-                <input
-                  value={
-                    spells.casting_ability
-                      ? formatModifier(abilityModifier(abilityScore(c, spells.casting_ability)))
-                      : ''
-                  }
-                  readOnly
-                />
-                <span>Заклинательный модификатор</span>
-              </label>
-              <label>
-                <input value={spellStats.saveDc} readOnly />
-                <span>Сложность спасброска</span>
-              </label>
-              <label>
-                <input value={spellStats.attackBonus} readOnly />
-                <span>Бонус атаки заклинанием</span>
-              </label>
-            </div>
+            {castProfiles.length > 1 ? (
+              <div
+                className="classic-spell-profiles classic-spell-profiles--lss"
+                aria-label="Профили заклинателей"
+              >
+                <table className="classic-spell-profiles__table">
+                  <thead>
+                    <tr>
+                      <th>Класс</th>
+                      <th>Хар-ка</th>
+                      <th>Сл</th>
+                      <th>Атака</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {castProfiles.map((row) => (
+                      <tr key={row.id}>
+                        <td>{row.labelRu}</td>
+                        <td>{SPELLCASTING_ABILITY_LABELS[row.ability]}</td>
+                        <td>{row.saveDc}</td>
+                        <td>{formatModifier(row.attackBonus)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="classic-lss-spell-stats">
+                <label>
+                  <input
+                    value={classicSpellAbilityLabel(spells.casting_ability)}
+                    placeholder="ИНТ / МУД / ХАР"
+                    onChange={(e) =>
+                      onPatch(setCastingAbility(c, parseCastingAbilityInput(e.target.value)))
+                    }
+                  />
+                  <span>Характеристика</span>
+                </label>
+                <label>
+                  <input
+                    value={
+                      spells.casting_ability
+                        ? formatModifier(abilityModifier(abilityScore(c, spells.casting_ability)))
+                        : ''
+                    }
+                    readOnly
+                  />
+                  <span>Заклинательный модификатор</span>
+                </label>
+                <label>
+                  <input value={spellStats.saveDc} readOnly />
+                  <span>Сложность спасброска</span>
+                </label>
+                <label>
+                  <input value={spellStats.attackBonus} readOnly />
+                  <span>Бонус атаки заклинанием</span>
+                </label>
+              </div>
+            )}
 
             <div className="classic-lss-phys-bar">
               <label>

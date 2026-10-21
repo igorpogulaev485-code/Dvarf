@@ -24,6 +24,7 @@ import {
 } from './fromApi'
 import { classicWeaponRows, patchClassicWeapon } from './classicWeapons'
 import {
+  classicCastProfiles,
   classicSpellAbilityLabel,
   classicSpellStats,
   classicSpellsState,
@@ -35,6 +36,7 @@ import {
   setSpellNameAt,
   toggleSpellPrepared,
 } from './classicSpells'
+import { SPELLCASTING_ABILITY_LABELS } from '../../shared/dnd/spells'
 import {
   COMPANION_KIND_LABELS,
   classicCompanions,
@@ -100,6 +102,7 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
   const deathFails = clampMarks(Number(combatField(c, 'death_fails') ?? 0))
   const spells = classicSpellsState(c)
   const spellStats = classicSpellStats(c, spells)
+  const castProfiles = classicCastProfiles(c)
   const companionSlots = paddedCompanionSlots(classicCompanions(c))
   const customNotes = listClassicNotes(c)
   // 2024 puts the first 6 notes on LSS P3; trailing pages only for overflow (or all pages on 2014).
@@ -643,28 +646,62 @@ export function ClassicPrintSheet({ character: c, onPatch, layout }: Props) {
               onChange={(e) => patch({ class_name: e.target.value || null })}
             />
           </label>
-          <div className="classic-spell-stats">
-            <label>
-              <span>Базовая характеристика</span>
-              <input
-                value={classicSpellAbilityLabel(spells.casting_ability)}
-                placeholder="ИНТ / МУД / ХАР"
-                onChange={(e) => onPatch(setCastingAbility(c, parseCastingAbilityInput(e.target.value)))}
-              />
-            </label>
-            <label>
-              <span>Сложность спасброска</span>
-              <input value={spellStats.saveDc} readOnly title="Считается от характеристики и бонуса владения" />
-            </label>
-            <label>
-              <span>Бонус атаки заклинанием</span>
-              <input
-                value={spellStats.attackBonus}
-                readOnly
-                title="Считается от характеристики и бонуса владения"
-              />
-            </label>
-          </div>
+          {castProfiles.length > 1 ? (
+            <div
+              className="classic-spell-profiles"
+              aria-label="Профили заклинателей"
+            >
+              <table className="classic-spell-profiles__table">
+                <thead>
+                  <tr>
+                    <th>Класс</th>
+                    <th>Хар-ка</th>
+                    <th>Сл</th>
+                    <th>Атака</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {castProfiles.map((row) => (
+                    <tr key={row.id}>
+                      <td>{row.labelRu}</td>
+                      <td>{SPELLCASTING_ABILITY_LABELS[row.ability]}</td>
+                      <td>{row.saveDc}</td>
+                      <td>{formatModifier(row.attackBonus)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="classic-spell-stats">
+              <label>
+                <span>Базовая характеристика</span>
+                <input
+                  value={classicSpellAbilityLabel(spells.casting_ability)}
+                  placeholder="ИНТ / МУД / ХАР"
+                  onChange={(e) =>
+                    onPatch(setCastingAbility(c, parseCastingAbilityInput(e.target.value)))
+                  }
+                />
+              </label>
+              <label>
+                <span>Сложность спасброска</span>
+                <input
+                  value={spellStats.saveDc}
+                  readOnly
+                  title="Считается от характеристики и бонуса владения"
+                />
+              </label>
+              <label>
+                <span>Бонус атаки заклинанием</span>
+                <input
+                  value={spellStats.attackBonus}
+                  readOnly
+                  title="Считается от характеристики и бонуса владения"
+                />
+              </label>
+            </div>
+          )}
         </header>
 
         <div className="classic-spell-columns">

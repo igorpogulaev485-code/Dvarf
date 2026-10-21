@@ -1,6 +1,6 @@
 # План: мультиклассная магия (источник → Сл/атака → UI-kit)
 
-**Статус:** ok §12 · **M1–M5 в коде** · скрины шапка+cast+полки ✅ · далее M6 print / M7 UI-kit  
+**Статус:** ok §12 · **M1–M6 в коде** · скрины desk/cast/полки/print ✅ · далее M7 UI-kit  
 **Контур:** план → ok → срезы M1… → **скрины с реальных листов** → ok → прод  
 **Дата:** 2026-10-21  
 **План PR:** `#262` · **M1 tip base:** `cursor/restore-consumables-grimoire-0bc3`  
@@ -393,9 +393,15 @@ M0 ok решений
 
 Стык с SPELL_ACCESS §7 (секции/фильтр) — без ожидания полного ok §11 ACCESS.
 
-### Срез M6 — Classic / print
+### Срез M6 — Classic / print ✅
 
-Таблица профилей на P3; print R1.
+| Задача | Где | Статус |
+|--------|-----|--------|
+| `classicCastProfiles` | `classicSpells.ts` | ✅ |
+| Таблица профилей на 2014 P3 | `ClassicPrintSheet` | ✅ |
+| Паритет 2024 P4 | `ClassicPrint2024` | ✅ |
+| Фикстура Квакк + DEV preview | `/dev/classic-sheet-preview` | ✅ |
+| Скрин R1 | `quack-classic-p3-profiles.png` | ✅ |
 
 ### Срез M7 — UI-kit LOCK Wave MC
 

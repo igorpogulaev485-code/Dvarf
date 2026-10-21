@@ -5,13 +5,24 @@ import {
   setClassicSheetLayout,
   type ClassicSheetLayout,
 } from '../features/classicSheet/classicSheetLayout'
-import { sampleClassic2014Character } from '../features/classicSheet/sampleClassicCharacter'
+import {
+  sampleClassic2014Character,
+  sampleQuackClassicCharacter,
+} from '../features/classicSheet/sampleClassicCharacter'
 import type { CharacterDetail } from '../shared/api/characters'
 import { Button } from '../ui'
 
+type FixtureId = 'torin' | 'quack'
+
+const FIXTURES: Record<FixtureId, CharacterDetail> = {
+  torin: sampleClassic2014Character,
+  quack: sampleQuackClassicCharacter,
+}
+
 /** DEV-only visual sandbox for classic printable layouts (no API). */
 export function ClassicSheetPreviewPage() {
-  const [character, setCharacter] = useState<CharacterDetail>(sampleClassic2014Character)
+  const [fixture, setFixture] = useState<FixtureId>('quack')
+  const [character, setCharacter] = useState<CharacterDetail>(FIXTURES.quack)
   const layout = readClassicSheetLayout(character)
 
   const applyPatch = (patch: {
@@ -39,16 +50,42 @@ export function ClassicSheetPreviewPage() {
     applyPatch(setClassicSheetLayout(character, next))
   }
 
+  const loadFixture = (id: FixtureId) => {
+    setFixture(id)
+    setCharacter(FIXTURES[id])
+  }
+
   return (
-    <div className="classic-print-page">
+    <div className="classic-print-page" data-testid="classic-sheet-preview">
       <header className="classic-print-toolbar no-print">
         <div>
           <div>
             Classic · preview
-            <small>Локальный образец без API · макет {layout}</small>
+            <small>
+              Локальный образец без API · макет {layout} ·{' '}
+              {fixture === 'quack' ? 'Квакк R1' : 'Торин mono'}
+            </small>
           </div>
         </div>
         <div className="classic-toolbar-actions">
+          <div className="classic-layout-switch" role="group" aria-label="Фикстура">
+            <span className="classic-layout-switch__label">Лист</span>
+            <button
+              type="button"
+              className={fixture === 'quack' ? 'is-active' : undefined}
+              data-testid="classic-fixture-quack"
+              onClick={() => loadFixture('quack')}
+            >
+              Квакк
+            </button>
+            <button
+              type="button"
+              className={fixture === 'torin' ? 'is-active' : undefined}
+              onClick={() => loadFixture('torin')}
+            >
+              Торин
+            </button>
+          </div>
           <div className="classic-layout-switch" role="group" aria-label="Макет классического листа">
             <span className="classic-layout-switch__label">Макет</span>
             {(['2014', '2024'] as const).map((year) => (
