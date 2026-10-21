@@ -438,7 +438,19 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 <!-- appearance-persist залито 2026-10-16 → tip appearance-persist-f3ee; блок в «Сейчас в продукте» -->
 <!-- tablet-header-hotbar-ship залито 2026-10-16 → tip tablet-header-hotbar-ship-4dea; блок в «Сейчас в продукте» -->
 
+### 2026-10-21 — универсальное оружие (щит + куб 1к8 / две руки 1к10)
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Боевой молот + щит | Универсальное оружие = 1 рука (баг `молот` → «двуручное» снят) | Можно держать молот и щит вместе |
+| Куб урона | Свободная рука → versatile-куб (часто 1к10); со щитом / одной рукой → базовый (1к8) | Урон в атаках совпадает с хватом |
+| Покрытие PHB | Боевой топор, длинный меч, боевой молот, посох, копьё, трезубец | Одно правило на всё универсальное |
+
+На проде: **нет** · ветка `cursor/versatile-weapons-grip-57bf` · от tip `cursor/name-generation-plan-de51` · ранее draft PR #217 не был залит
+
 ---
+
+## Убрано / заменено
 
 ## Убрано / заменено
 
@@ -480,6 +492,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-21 | `cursor/versatile-weapons-grip-57bf` | Универсальное оружие (щит + 1к8/1к10) → «В ветках» |
 | 2026-10-17 | `cursor/fix-list-create-fixes-6dc8` | Dialog/pad clicks: drop backdrop `pointer-events:none` → **новый tip** |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic 2014/2024 бланк + заметки + font size → **новый tip** на Timeweb |
 | 2026-10-17 | `cursor/restore-sheet-classic-setting-3d0d` | Classic parity: weapons/equipment/conditions/attunement → тот же tip, redeploy |
