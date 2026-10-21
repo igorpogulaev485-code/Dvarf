@@ -48,6 +48,7 @@ import {
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
+import { WARLOCK_PACT_BOONS } from '../../shared/dnd/warlockInvocations'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import type { RulesEdition } from '../../shared/api/characters'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
@@ -57,6 +58,11 @@ import { CatalogCombobox } from '../catalog'
 import { AsiChoiceBody } from './AsiChoiceBody'
 import { SKILL_DEFS } from './sheetTypes'
 import { FeatSetupDialog, type FeatSetupResult } from './FeatSetupDialog'
+import { PactTomeCantripsPicker } from './PactTomeCantripsPicker'
+import {
+  isPactTomeCantripsComplete,
+  PACT_TOME_CANTRIPS_LIMIT,
+} from './pactTomeEffects'
 import { Button, Dialog, Field, Input, Stack, Text } from '../../ui'
 
 export type GuidedFeatContext = {
@@ -152,8 +158,10 @@ function choiceOptionLabel(optionId: string, choice?: FeatureChoiceDef | null): 
   if (isExpertiseChoice(choice)) {
     return skillLabel(optionId)
   }
+  const pact = WARLOCK_PACT_BOONS.find((row) => row.id === optionId)
   return (
     fightingStyleById(optionId)?.nameRu ||
+    pact?.nameRu ||
     skillLabel(optionId) ||
     optionId
   )
@@ -738,6 +746,10 @@ export function GuidedWizardDialog({
     Boolean(spellbookPicksContext?.hasBook) &&
     spellbookDraft.length === step.picksNeeded
 
+  const pactTomeReady =
+    step?.kind === 'pact_tome_cantrips' &&
+    isPactTomeCantripsComplete(featurePicks, step.classEntryId)
+
   const primaryDisabled =
     step?.kind === 'class_grant'
       ? !grantReady
@@ -751,7 +763,9 @@ export function GuidedWizardDialog({
               ? !subclassReady
               : step?.kind === 'spellbook_picks'
                 ? !spellbookReady
-                : false
+                : step?.kind === 'pact_tome_cantrips'
+                  ? !pactTomeReady
+                  : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -767,9 +781,11 @@ export function GuidedWizardDialog({
               ? 'Черта'
               : step.kind === 'spellbook_picks'
                 ? `Книга заклинаний · ${step.className} ${step.classLevel}`
-                : step.kind === 'feature_choice'
-                  ? `${step.choice.label_ru} · ${step.className}`
-                  : 'Настройка персонажа'
+                : step.kind === 'pact_tome_cantrips'
+                  ? `Заговоры договора · ${step.className}`
+                  : step.kind === 'feature_choice'
+                    ? `${step.choice.label_ru} · ${step.className}`
+                    : 'Настройка персонажа'
 
   const choosingFeat =
     (step?.kind === 'asi' && asiUiMode === 'feat') || step?.kind === 'feat'
@@ -864,6 +880,16 @@ export function GuidedWizardDialog({
       onToast?.(
         `В книгу (бесплатно): ${spellbookDraft.map((row) => row.name_ru).join(', ')}`,
       )
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'pact_tome_cantrips') {
+      if (!pactTomeReady) {
+        onToast?.(`Выбери ${PACT_TOME_CANTRIPS_LIMIT} заговора договора`)
+        return
+      }
+      onToast?.('Заговоры договора: готово')
       onAdvance(index + 1)
     }
   }
@@ -1064,6 +1090,20 @@ export function GuidedWizardDialog({
             hasBook={Boolean(spellbookPicksContext?.hasBook)}
             classListSlugs={spellbookPicksContext?.classListSlugs ?? ['wizard']}
           />
+        ) : null}
+        {step.kind === 'pact_tome_cantrips' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Гримуар · {step.className} {step.classLevel} · выбери {PACT_TOME_CANTRIPS_LIMIT}
+            </Text>
+            <PactTomeCantripsPicker
+              classEntryId={step.classEntryId}
+              edition={edition}
+              featurePicks={featurePicks}
+              onFeaturePicksChange={onFeaturePicksChange}
+              onToast={onToast}
+            />
+          </Stack>
         ) : null}
       </Stack>
     </Dialog>

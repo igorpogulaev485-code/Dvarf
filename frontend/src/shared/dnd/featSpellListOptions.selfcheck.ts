@@ -8,7 +8,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   FEAT_CLASS_SPELL_LISTS,
+  PACT_TOME_CANTRIP_CLASS_LISTS,
   spellOptionsForClassList,
+  spellOptionsForPactTomeCantrips,
   type FeatSpellCatalogRow,
 } from './featSpellListOptions'
 
@@ -83,6 +85,23 @@ assert(
     level: 0,
   }).length === 0,
   'non-MI class yields empty',
+)
+
+const sorcererViaAny = spellOptionsForClassList({
+  spells: rows,
+  classSlug: 'sorcerer',
+  level: 0,
+  anyClassList: true,
+})
+assert(sorcererViaAny.length >= 4, 'sorcerer cantrips via anyClassList')
+
+const tome = spellOptionsForPactTomeCantrips({ spells: rows })
+assert(tome.length >= 20, `tome any-list cantrips expected many, got ${tome.length}`)
+assert(tome.some((o) => o.id === 'fire_bolt'), 'tome includes fire_bolt')
+assert(tome.some((o) => o.id === 'sacred_flame'), 'tome includes sacred_flame')
+assert(
+  PACT_TOME_CANTRIP_CLASS_LISTS.includes('sorcerer'),
+  'tome lists include sorcerer',
 )
 
 console.log('featSpellListOptions.selfcheck: ok')
