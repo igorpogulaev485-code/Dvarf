@@ -4,12 +4,23 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/vpn-https-stable-fab2`  
+**Prod tip (ветка линии прода):** `cursor/consumables-tap-guard-plan-3b91`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-21 — Расходники: защита от случайных тапов
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Чип «потратить» | Тратит только кнопка, не тап по имени строки | Меньше случайных −1 в бою |
+| Undo в тосте | После траты тост с именем + **Отменить** (~8 с) | Видно что ушло; можно вернуть |
+| ×N | Pad «Потратить: {предмет}» → qty → confirm | Несколько штук за раз, имя в заголовке |
+| Журнал трат | Под расходниками, сессия + «вернуть» | История коротких трат на столе |
+
+На проде: **да** · **это новый prod tip** `cursor/consumables-tap-guard-plan-3b91` · PR #246 · залито 2026-10-21 · `/health` ok · бандл `CharacterDetailPage-tNHUxQg7.js` · `consumableSpend.ts` на диске · mobile+desktop один compact
 
 ### 2026-10-21 — VPN + канон https://creed20.tech
 
@@ -701,6 +712,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-21 | `cursor/consumables-tap-guard-plan-3b91` · PR #246 | Расходники: Undo / ×N / журнал → **новый tip** |
 | 2026-10-21 | `cursor/vpn-https-stable-fab2` · PR #243 | VPN + канон https://creed20.tech → **новый tip** |
 | 2026-10-21 | `cursor/prepare-class-list-available-3aba` · PR #242 | Prepare: class list → «Все доступные» → tip после Timeweb |
 | 2026-10-20 | `cursor/create-skills-equip-fix-1dbf` · PR #240 | Create: серые навыки предыстории + PHB equip lines → **новый tip** после Timeweb |

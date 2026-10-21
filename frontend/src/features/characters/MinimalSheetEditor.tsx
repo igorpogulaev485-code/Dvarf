@@ -118,7 +118,27 @@ import {
   withInitiativeBonus,
   type BonusLine,
 } from './modifiers'
-import { Button, Dialog, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
+import {
+  Button,
+  Dialog,
+  Field,
+  Input,
+  NumberInput,
+  Panel,
+  Stack,
+  Text,
+  type ToastInput,
+} from '../../ui'
+import { ConsumableSpendPadDialog } from './ConsumableSpendPadDialog'
+import {
+  appendConsumableSpendLog,
+  formatConsumableSpendToast,
+  formatConsumableUndoToast,
+  markConsumableSpendUndone,
+  newConsumableSpendId,
+  type ConsumableSpendLogEntry,
+  type ConsumableUndoSession,
+} from './consumableSpend'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
   emptyRacePicks,
@@ -453,7 +473,7 @@ type MinimalSheetEditorProps = {
   showValueTips?: boolean
   onCreateGuideConsumed?: () => void
   onSaved: (character: CharacterDetail) => void
-  onToast: (message: string) => void
+  onToast: (message: ToastInput) => void
   onRemoteSave?: (message: Extract<SheetSyncMessage, { type: 'sheet-saved' }>) => void
 }
 
@@ -3471,6 +3491,11 @@ export function MinimalSheetEditor({
     slug: SpellSelfFormSlug
   } | null>(null)
   const [deskCastScrollId, setDeskCastScrollId] = useState<string | null>(null)
+  const [consumableSpendPadId, setConsumableSpendPadId] = useState<string | null>(null)
+  const [consumableSpendLog, setConsumableSpendLog] = useState<ConsumableSpendLogEntry[]>(
+    [],
+  )
+  const consumableUndoRef = useRef<ConsumableUndoSession | null>(null)
   const [deskCastScrollPending, setDeskCastScrollPending] = useState<{
     itemId: string
     name: string
@@ -3505,18 +3530,110 @@ export function MinimalSheetEditor({
   )
 
   const emitToast = useCallback(
-    (message: string) => {
+    (message: ToastInput) => {
       onToast(message)
-      if (!isDeskRollToast(message)) return
+      const text = typeof message === 'string' ? message : message.message
+      if (!isDeskRollToast(text)) return
       setDraft((prev) => ({
         ...prev,
         sheetUi: {
           ...prev.sheetUi,
-          rollHistory: appendRollHistory(prev.sheetUi.rollHistory, { text: message }),
+          rollHistory: appendRollHistory(prev.sheetUi.rollHistory, { text }),
         },
       }))
     },
     [onToast],
+  )
+
+  const undoConsumableSpend = useCallback(
+    (session: ConsumableUndoSession) => {
+      if (consumableUndoRef.current?.token === session.token) {
+        consumableUndoRef.current = null
+      }
+      setDraft((prev) => ({
+        ...prev,
+        inventory: {
+          ...prev.inventory,
+          items: prev.inventory.items.map((row) =>
+            row.id === session.itemId
+              ? { ...row, qty: (row.qty ?? 0) + session.amount }
+              : row,
+          ),
+        },
+      }))
+      setConsumableSpendLog((prev) => markConsumableSpendUndone(prev, session.logId))
+      onToast(formatConsumableUndoToast(session.name, session.amount))
+    },
+    [onToast],
+  )
+
+  const spendConsumableFromDesk = useCallback(
+    (itemId: string, amount = 1) => {
+      const item = draft.inventory.items.find((row) => row.id === itemId)
+      if (!item || (item.qty ?? 0) <= 0) return
+      if (isCastableSpellScroll(item)) {
+        setDeskCastScrollId(itemId)
+        return
+      }
+      const spendAmount = Math.max(1, Math.min(amount, item.qty ?? 0))
+      const nextQty = Math.max(0, (item.qty ?? 0) - spendAmount)
+      const logId = newConsumableSpendId()
+      const token = Date.now()
+      const session: ConsumableUndoSession = {
+        token,
+        itemId,
+        name: item.name,
+        amount: spendAmount,
+        logId,
+      }
+      consumableUndoRef.current = session
+      setDraft((prev) => ({
+        ...prev,
+        inventory: {
+          ...prev.inventory,
+          items: prev.inventory.items.map((row) =>
+            row.id === itemId
+              ? { ...row, qty: Math.max(0, (row.qty ?? 0) - spendAmount) }
+              : row,
+          ),
+        },
+      }))
+      setConsumableSpendLog((prev) =>
+        appendConsumableSpendLog(prev, {
+          id: logId,
+          itemId,
+          name: item.name,
+          amount: spendAmount,
+          atMs: token,
+        }),
+      )
+      onToast({
+        message: formatConsumableSpendToast(item.name, spendAmount, nextQty),
+        durationMs: 8000,
+        actionLabel: 'Отменить',
+        onAction: () => {
+          if (consumableUndoRef.current?.token !== token) return
+          undoConsumableSpend(session)
+        },
+      })
+    },
+    [draft.inventory.items, onToast, undoConsumableSpend],
+  )
+
+  const undoConsumableSpendFromLog = useCallback(
+    (logId: string) => {
+      const entry = consumableSpendLog.find((row) => row.id === logId)
+      if (!entry || entry.undone) return
+      const session: ConsumableUndoSession = {
+        token: entry.atMs,
+        itemId: entry.itemId,
+        name: entry.name,
+        amount: entry.amount,
+        logId: entry.id,
+      }
+      undoConsumableSpend(session)
+    },
+    [consumableSpendLog, undoConsumableSpend],
   )
 
   useEffect(() => {
@@ -5560,29 +5677,10 @@ export function MinimalSheetEditor({
             onSpendResource={spendResourceOrOpenSorcery}
             onToggleConsumableFavorite={toggleCombatFavorite}
             onCastScroll={(itemId) => setDeskCastScrollId(itemId)}
-            onSpendConsumable={(itemId) => {
-              const item = draft.inventory.items.find((row) => row.id === itemId)
-              if (!item || (item.qty ?? 0) <= 0) return
-              if (isCastableSpellScroll(item)) {
-                setDeskCastScrollId(itemId)
-                return
-              }
-              const nextQty = Math.max(0, (item.qty ?? 0) - 1)
-              setDraft((prev) => ({
-                ...prev,
-                inventory: {
-                  ...prev.inventory,
-                  items: prev.inventory.items.map((row) =>
-                    row.id === itemId ? { ...row, qty: Math.max(0, (row.qty ?? 0) - 1) } : row,
-                  ),
-                },
-              }))
-              onToast(
-                nextQty > 0
-                  ? `−1 «${item.name}» · осталось ${nextQty}`
-                  : `−1 «${item.name}» · кончилось`,
-              )
-            }}
+            onSpendConsumable={spendConsumableFromDesk}
+            onOpenConsumableSpendPad={(itemId) => setConsumableSpendPadId(itemId)}
+            consumableSpendLog={consumableSpendLog}
+            onUndoConsumableSpend={undoConsumableSpendFromLog}
             onToggleHeld={(attack) => {
               if (!attack.inventory_item_id) return
               setDraft((prev) => {
@@ -6323,6 +6421,32 @@ export function MinimalSheetEditor({
             }
           })
           onToast('Ячейки договора восстановлены')
+        }}
+      />
+
+      <ConsumableSpendPadDialog
+        key={consumableSpendPadId ?? 'consumable-spend-pad-closed'}
+        open={consumableSpendPadId != null}
+        itemName={
+          consumableSpendPadId
+            ? draft.inventory.items.find((row) => row.id === consumableSpendPadId)?.name ??
+              'Расходник'
+            : 'Расходник'
+        }
+        maxQty={
+          consumableSpendPadId
+            ? Math.max(
+                0,
+                draft.inventory.items.find((row) => row.id === consumableSpendPadId)?.qty ?? 0,
+              )
+            : 0
+        }
+        onClose={() => setConsumableSpendPadId(null)}
+        onConfirm={(amount) => {
+          const itemId = consumableSpendPadId
+          setConsumableSpendPadId(null)
+          if (!itemId) return
+          spendConsumableFromDesk(itemId, amount)
         }}
       />
 
