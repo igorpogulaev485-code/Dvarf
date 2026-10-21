@@ -1,4 +1,5 @@
 import { useMemo, useState, type DragEvent as ReactDragEvent } from 'react'
+import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import {
   Button,
   Field,
@@ -698,7 +699,11 @@ export function TextBlocksPanel({
   }
 
   return (
-    <Panel title="Тексты и заметки" className="text-panel">
+    <Panel
+      title="Тексты и заметки"
+      className="text-panel"
+      titleTip={<HoverTipCard tip={panelExplain(PANEL_HELP.text_blocks)} />}
+    >
       <p className="text-panel__lede">
         Личность и заметки. Вставки: ресурс · спойлер · разделитель. ☆ hot — на полосу.
       </p>

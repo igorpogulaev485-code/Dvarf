@@ -61,13 +61,23 @@ export type StartingEquipmentPackage = {
 /** Synthetic pack id when the player fills PHB a/b/c equipment lines. */
 export const PHB_LINES_PACKAGE_ID = 'phb_lines'
 
+export type ClassEquipmentWeaponGroup =
+  | 'simple'
+  | 'martial'
+  | 'simple_melee'
+  | 'martial_melee'
+
 export type ClassEquipmentLineOption = {
   id: string
   labelRu: string
-  /** Fixed gear for this fork. */
+  /** Fixed gear for this fork (also stacked with pickWeapon / pickFrom). */
   items?: StartingGearItem[]
   /** Player must pick a concrete weapon from this PHB group. */
-  pickWeapon?: 'simple' | 'martial'
+  pickWeapon?: ClassEquipmentWeaponGroup
+  /** How many weapons to pick when pickWeapon is set (default 1). */
+  pickWeaponCount?: number
+  /** Free name pick from a fixed list (instruments, …) — stored in weaponName. */
+  pickFrom?: string[]
   /** Soft hint (e.g. «если владеете») — does not block the pick. */
   noteRu?: string
 }
@@ -80,8 +90,40 @@ export type ClassEquipmentLine = {
 
 export type ClassEquipmentLinePick = {
   optionId: string
-  /** Required when the chosen option has pickWeapon. */
+  /** Required when the chosen option has pickWeapon (count 1) or pickFrom. */
   weaponName?: string | null
+  /** When pickWeaponCount > 1. */
+  weaponNames?: Array<string | null> | null
+}
+
+export function weaponPickCount(option: ClassEquipmentLineOption): number {
+  if (!option.pickWeapon) return 0
+  return Math.max(1, option.pickWeaponCount ?? 1)
+}
+
+/** Resolved weapon / pickFrom names for a line option pick. */
+export function resolvedPickNames(
+  option: ClassEquipmentLineOption,
+  pick: ClassEquipmentLinePick | null | undefined,
+): string[] {
+  if (option.pickFrom?.length) {
+    const name = pick?.weaponName?.trim()
+    return name ? [name] : []
+  }
+  const need = weaponPickCount(option)
+  if (need <= 0) return []
+  if (need === 1) {
+    const name = pick?.weaponName?.trim()
+    return name ? [name] : []
+  }
+  const names = pick?.weaponNames ?? []
+  const out: string[] = []
+  for (let i = 0; i < need; i += 1) {
+    const name = names[i]?.trim()
+    if (!name) return out
+    out.push(name)
+  }
+  return out
 }
 
 function gear(
@@ -99,394 +141,6 @@ function item(
   extra?: Partial<StartingGearItem>,
 ): StartingGearItem {
   return { name, qty: 1, armor_kind: 'none', ...extra }
-}
-
-/** Simplified PHB 2014 starting equipment forks (RU labels). */
-export const CLASS_STARTING_EQUIPMENT: Record<string, StartingEquipmentPackage[]> = {
-  barbarian: [
-    gear('a', 'Вариант A', 'Секира + 2 ручных топора + набор исследователя + 4 метательных копья', [
-      item('Секира'),
-      item('Ручной топор', { qty: 2 }),
-      item('Набор исследователя'),
-      item('Метательное копьё', { qty: 4 }),
-    ]),
-    gear('b', 'Вариант B · длинный меч', 'Воинское оружие (длинный меч) + щит + набор исследователя + 4 копья', [
-      item('Длинный меч'),
-      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
-      item('Набор исследователя'),
-      item('Метательное копьё', { qty: 4 }),
-    ]),
-    gear('b2', 'Вариант B · боевой топор', 'Воинское оружие (боевой топор) + щит + набор исследователя + 4 копья', [
-      item('Боевой топор'),
-      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
-      item('Набор исследователя'),
-      item('Метательное копьё', { qty: 4 }),
-    ]),
-    gear('gold', 'Золото', '2к4×10 зм вместо снаряжения (на старте: 50 зм)', [], 50),
-  ],
-  bard: [
-    gear('a', 'Вариант A', 'Рапира + дипломатский набор + лютня + кожаный доспех + кинжал', [
-      item('Рапира'),
-      item('Набор дипломата'),
-      item('Лютня'),
-      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
-      item('Кинжал'),
-    ]),
-    gear('b', 'Вариант B', 'Длинный меч + артистский набор + лютня + кожаный + кинжал', [
-      item('Длинный меч'),
-      item('Набор артиста'),
-      item('Лютня'),
-      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
-      item('Кинжал'),
-    ]),
-    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
-  ],
-  cleric: [
-    // PHB a/b/c forks live in CLASS_EQUIPMENT_LINES; gold remains a package.
-    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
-  ],
-  druid: [
-    gear('a', 'Вариант A', 'Щит + ятаган + кожаный + набор исследователя + фокус друида', [
-      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
-      item('Ятаган'),
-      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
-      item('Набор исследователя'),
-      item('Фокус друида'),
-    ]),
-    gear('b', 'Вариант B', 'Деревянный щит + простая дубинка + кожаный + набор травника + фокус', [
-      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6, notes: 'деревянный' }),
-      item('Дубинка'),
-      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
-      item('Набор травника'),
-      item('Фокус друида'),
-    ]),
-    gear('gold', 'Золото', '2к4×10 зм (на старте: 50 зм)', [], 50),
-  ],
-  fighter: [
-    gear('a', 'Вариант A · меч и щит', 'Кольчуга + длинный меч + щит + лёгкий арбалет + набор исследователя', [
-      item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 }),
-      item('Длинный меч'),
-      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
-      item('Лёгкий арбалет'),
-      item('Болты арбалета', { qty: 20 }),
-      item('Набор исследователя'),
-    ]),
-    gear('a2', 'Вариант A · два оружия', 'Кольчуга + два длинных меча + лёгкий арбалет + набор исследователя', [
-      item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 }),
-      item('Длинный меч', { qty: 2 }),
-      item('Лёгкий арбалет'),
-      item('Болты арбалета', { qty: 20 }),
-      item('Набор исследователя'),
-    ]),
-    gear('b', 'Вариант B · лучник', 'Кожаный + длинный лук + два длинных меча + набор исследователя', [
-      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
-      item('Длинный лук'),
-      item('Стрелы', { qty: 20 }),
-      item('Длинный меч', { qty: 2 }),
-      item('Набор исследователя'),
-    ]),
-    gear('b2', 'Вариант B · топоры', 'Кожаный + длинный лук + два ручных топора + набор исследователя', [
-      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
-      item('Длинный лук'),
-      item('Стрелы', { qty: 20 }),
-      item('Ручной топор', { qty: 2 }),
-      item('Набор исследователя'),
-    ]),
-    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
-  ],
-  monk: [
-    gear('a', 'Вариант A', 'Короткий меч + набор исследователя + 10 дротиков', [
-      item('Короткий меч'),
-      item('Набор исследователя'),
-      item('Дротик', { qty: 10 }),
-    ]),
-    gear('b', 'Вариант B', 'Простая дубинка + набор исследователя + 10 дротиков', [
-      item('Дубинка'),
-      item('Набор исследователя'),
-      item('Дротик', { qty: 10 }),
-    ]),
-    gear('gold', 'Золото', '5к4 зм (на старте: 12 зм)', [], 12),
-  ],
-  paladin: [
-    gear('a', 'Вариант A', 'Длинный меч + щит + 5 метательных копий + кольчуга + священный символ + набор жреца', [
-      item('Длинный меч'),
-      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
-      item('Метательное копьё', { qty: 5 }),
-      item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 }),
-      item('Священный символ'),
-      item('Набор жреца'),
-    ]),
-    gear('b', 'Вариант B', 'Боевой молот + щит + лёгкий арбалет + кольчуга + священный символ + набор исследователя', [
-      item('Боевой молот'),
-      item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
-      item('Лёгкий арбалет'),
-      item('Болты арбалета', { qty: 20 }),
-      item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 }),
-      item('Священный символ'),
-      item('Набор исследователя'),
-    ]),
-    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
-  ],
-  ranger: [
-    gear('a', 'Вариант A', 'Чешуйчатый + 2 коротких меча + длинный лук + набор исследователя', [
-      item('Чешуйчатый доспех', { armor_kind: 'medium', base_ac: 14, weight_lb: 45 }),
-      item('Короткий меч', { qty: 2 }),
-      item('Длинный лук'),
-      item('Стрелы', { qty: 20 }),
-      item('Набор исследователя'),
-    ]),
-    gear('b', 'Вариант B', 'Кожаный + 2 коротких меча + длинный лук + набор исследователя', [
-      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
-      item('Короткий меч', { qty: 2 }),
-      item('Длинный лук'),
-      item('Стрелы', { qty: 20 }),
-      item('Набор исследователя'),
-    ]),
-    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
-  ],
-  rogue: [
-    gear('a', 'Вариант A', 'Рапира + короткий лук + набор взломщика + кожаный + 2 кинжала + воровские инструменты', [
-      item('Рапира'),
-      item('Короткий лук'),
-      item('Стрелы', { qty: 20 }),
-      item('Набор взломщика'),
-      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
-      item('Кинжал', { qty: 2 }),
-      item('Воровские инструменты'),
-    ]),
-    gear('b', 'Вариант B', 'Короткий меч + короткий лук + набор исследователя + кожаный + 2 кинжала + воровские инструменты', [
-      item('Короткий меч'),
-      item('Короткий лук'),
-      item('Стрелы', { qty: 20 }),
-      item('Набор исследователя'),
-      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
-      item('Кинжал', { qty: 2 }),
-      item('Воровские инструменты'),
-    ]),
-    gear('gold', 'Золото', '4к4×10 зм (на старте: 100 зм)', [], 100),
-  ],
-  sorcerer: [
-    gear('a', 'Вариант A', 'Лёгкий арбалет + компонентская сумка + набор исследователя + 2 кинжала', [
-      item('Лёгкий арбалет'),
-      item('Болты арбалета', { qty: 20 }),
-      item('Сумка с компонентами'),
-      item('Набор исследователя'),
-      item('Кинжал', { qty: 2 }),
-    ]),
-    gear('b', 'Вариант B', 'Боевой посох + фокус заклинателя + набор исследователя + 2 кинжала', [
-      item('Боевой посох'),
-      item('Магический фокус'),
-      item('Набор исследователя'),
-      item('Кинжал', { qty: 2 }),
-    ]),
-    gear('gold', 'Золото', '3к4×10 зм (на старте: 75 зм)', [], 75),
-  ],
-  warlock: [
-    gear('a', 'Вариант A', 'Лёгкий арбалет + компонентская сумка + кожаный + простое оружие + набор учёного + 2 кинжала', [
-      item('Лёгкий арбалет'),
-      item('Болты арбалета', { qty: 20 }),
-      item('Сумка с компонентами'),
-      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
-      item('Боевой посох'),
-      item('Набор учёного'),
-      item('Кинжал', { qty: 2 }),
-    ]),
-    gear('b', 'Вариант B', 'Боевой посох + фокус + кожаный + набор исследователя + 2 кинжала', [
-      item('Боевой посох'),
-      item('Магический фокус'),
-      item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 }),
-      item('Набор исследователя'),
-      item('Кинжал', { qty: 2 }),
-    ]),
-    gear('gold', 'Золото', '4к4×10 зм (на старте: 100 зм)', [], 100),
-  ],
-  wizard: [
-    gear('a', 'Вариант A', 'Боевой посох + компонентская сумка + набор учёного + книга заклинаний', [
-      item('Боевой посох'),
-      item('Сумка с компонентами'),
-      item('Набор учёного'),
-      item('Книга заклинаний'),
-    ]),
-    gear('b', 'Вариант B', 'Кинжал + фокус + набор исследователя + книга заклинаний', [
-      item('Кинжал'),
-      item('Магический фокус'),
-      item('Набор исследователя'),
-      item('Книга заклинаний'),
-    ]),
-    gear('gold', 'Золото', '4к4×10 зм (на старте: 100 зм)', [], 100),
-  ],
-  artificer: [
-    gear(
-      'a',
-      'Вариант A',
-      '2 простых оружия + лёгкий арбалет + клёпаный кожаный + воровские + набор исследователя',
-      [
-        item('Боевой посох'),
-        item('Кинжал'),
-        item('Лёгкий арбалет'),
-        item('Болты арбалета', { qty: 20 }),
-        item('Клёпаный кожаный доспех', { armor_kind: 'light', base_ac: 12, weight_lb: 13 }),
-        item('Воровские инструменты'),
-        item('Набор исследователя'),
-      ],
-    ),
-    gear(
-      'b',
-      'Вариант B',
-      '2 простых оружия + лёгкий арбалет + чешуйчатый + воровские + набор исследователя',
-      [
-        item('Боевой посох'),
-        item('Кинжал'),
-        item('Лёгкий арбалет'),
-        item('Болты арбалета', { qty: 20 }),
-        item('Чешуйчатый доспех', { armor_kind: 'medium', base_ac: 14, weight_lb: 45 }),
-        item('Воровские инструменты'),
-        item('Набор исследователя'),
-      ],
-    ),
-    gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125),
-  ],
-}
-
-export function startingEquipmentFor(slug: string): StartingEquipmentPackage[] {
-  return CLASS_STARTING_EQUIPMENT[slug] ?? []
-}
-
-/** Prefer packages attached to a resolved def (catalog), else local fallback. */
-export function equipmentPackagesFor(def: ClassGrantDef): StartingEquipmentPackage[] {
-  const raw =
-    def.equipment && def.equipment.length > 0
-      ? def.equipment
-      : startingEquipmentFor(def.slug)
-  // When PHB line forks exist, hide pre-baked A/B packs — keep gold (or empty) only.
-  if ((CLASS_EQUIPMENT_LINES[def.slug] ?? []).length > 0) {
-    return raw.filter((pack) => pack.id === 'gold' || pack.items.length === 0)
-  }
-  return raw
-}
-
-/** PHB line-by-line starting equipment (cleric first; other classes keep packages). */
-export const CLASS_EQUIPMENT_LINES: Record<string, ClassEquipmentLine[]> = {
-  cleric: [
-    {
-      id: 'weapon',
-      labelRu: 'Оружие ближнего боя',
-      options: [
-        { id: 'mace', labelRu: 'Булава', items: [item('Булава')] },
-        {
-          id: 'warhammer',
-          labelRu: 'Боевой молот',
-          items: [item('Боевой молот')],
-          noteRu: 'если владеете (раса / домен)',
-        },
-      ],
-    },
-    {
-      id: 'armor',
-      labelRu: 'Доспех',
-      options: [
-        {
-          id: 'scale',
-          labelRu: 'Чешуйчатый доспех',
-          items: [item('Чешуйчатый доспех', { armor_kind: 'medium', base_ac: 14, weight_lb: 45 })],
-        },
-        {
-          id: 'leather',
-          labelRu: 'Кожаный доспех',
-          items: [item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 })],
-        },
-        {
-          id: 'chain',
-          labelRu: 'Кольчуга',
-          items: [item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 })],
-          noteRu: 'надеть можно только с владением тяжёлыми (домен Бури…)',
-        },
-      ],
-    },
-    {
-      id: 'ranged',
-      labelRu: 'Дальний бой / простое оружие',
-      options: [
-        {
-          id: 'crossbow',
-          labelRu: 'Лёгкий арбалет и 20 болтов',
-          items: [item('Лёгкий арбалет'), item('Болты арбалета', { qty: 20 })],
-        },
-        {
-          id: 'any_simple',
-          labelRu: 'Любое простое оружие',
-          pickWeapon: 'simple',
-        },
-      ],
-    },
-    {
-      id: 'pack',
-      labelRu: 'Набор',
-      options: [
-        { id: 'priest', labelRu: 'Набор священника', items: [item('Набор жреца')] },
-        {
-          id: 'explorer',
-          labelRu: 'Набор путешественника',
-          items: [item('Набор исследователя')],
-        },
-      ],
-    },
-    {
-      id: 'fixed',
-      labelRu: 'Щит и священный символ',
-      options: [
-        {
-          id: 'shield_symbol',
-          labelRu: 'Щит и священный символ',
-          items: [
-            item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6 }),
-            item('Священный символ'),
-          ],
-        },
-      ],
-    },
-  ],
-}
-
-export function equipmentLinesFor(def: ClassGrantDef): ClassEquipmentLine[] {
-  return CLASS_EQUIPMENT_LINES[def.slug] ?? []
-}
-
-export function buildItemsFromEquipmentLines(input: {
-  lines: ClassEquipmentLine[]
-  picks: Record<string, ClassEquipmentLinePick>
-}): StartingGearItem[] | null {
-  const items: StartingGearItem[] = []
-  for (const line of input.lines) {
-    const pick = input.picks[line.id]
-    if (!pick?.optionId) return null
-    const option = line.options.find((row) => row.id === pick.optionId)
-    if (!option) return null
-    if (option.pickWeapon) {
-      const weaponName = pick.weaponName?.trim()
-      if (!weaponName) return null
-      items.push(item(weaponName))
-      continue
-    }
-    for (const row of option.items ?? []) items.push({ ...row })
-  }
-  return items
-}
-
-export function validateEquipmentLinePicks(input: {
-  lines: ClassEquipmentLine[]
-  picks: Record<string, ClassEquipmentLinePick>
-}): string | null {
-  for (const line of input.lines) {
-    const pick = input.picks[line.id]
-    if (!pick?.optionId) return `Выбери: ${line.labelRu}`
-    const option = line.options.find((row) => row.id === pick.optionId)
-    if (!option) return `Неизвестный вариант в «${line.labelRu}»`
-    if (option.pickWeapon && !pick.weaponName?.trim()) {
-      return `Выбери оружие в «${line.labelRu}»`
-    }
-  }
-  return null
 }
 
 /** Common artisan tools (PHB) for monk tool choice. */
@@ -521,6 +175,755 @@ export const MUSICAL_INSTRUMENT_CHOICES = [
   'Виола',
   'Шалмей',
 ]
+
+/**
+ * Gold-only fallback packages. PHB a/b/c forks live in CLASS_EQUIPMENT_LINES;
+ * equipmentPackagesFor hides non-gold packs when lines exist.
+ */
+export const CLASS_STARTING_EQUIPMENT: Record<string, StartingEquipmentPackage[]> = {
+  barbarian: [gear('gold', 'Золото', '2к4×10 зм вместо снаряжения (на старте: 50 зм)', [], 50)],
+  bard: [gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125)],
+  cleric: [gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125)],
+  druid: [gear('gold', 'Золото', '2к4×10 зм (на старте: 50 зм)', [], 50)],
+  fighter: [gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125)],
+  monk: [gear('gold', 'Золото', '5к4 зм (на старте: 12 зм)', [], 12)],
+  paladin: [gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125)],
+  ranger: [gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125)],
+  rogue: [gear('gold', 'Золото', '4к4×10 зм (на старте: 100 зм)', [], 100)],
+  sorcerer: [gear('gold', 'Золото', '3к4×10 зм (на старте: 75 зм)', [], 75)],
+  warlock: [gear('gold', 'Золото', '4к4×10 зм (на старте: 100 зм)', [], 100)],
+  wizard: [gear('gold', 'Золото', '4к4×10 зм (на старте: 100 зм)', [], 100)],
+  artificer: [gear('gold', 'Золото', '5к4×10 зм (на старте: 125 зм)', [], 125)],
+}
+
+const leather = () =>
+  item('Кожаный доспех', { armor_kind: 'light', base_ac: 11, weight_lb: 10 })
+const studded = () =>
+  item('Клёпаный кожаный доспех', { armor_kind: 'light', base_ac: 12, weight_lb: 13 })
+const scale = () =>
+  item('Чешуйчатый доспех', { armor_kind: 'medium', base_ac: 14, weight_lb: 45 })
+const chain = () => item('Кольчуга', { armor_kind: 'heavy', base_ac: 16, weight_lb: 55 })
+const shield = (extra?: Partial<StartingGearItem>) =>
+  item('Щит', { armor_kind: 'shield', base_ac: 2, weight_lb: 6, ...extra })
+
+export function startingEquipmentFor(slug: string): StartingEquipmentPackage[] {
+  return CLASS_STARTING_EQUIPMENT[slug] ?? []
+}
+
+/** Prefer packages attached to a resolved def (catalog), else local fallback. */
+export function equipmentPackagesFor(def: ClassGrantDef): StartingEquipmentPackage[] {
+  const raw =
+    def.equipment && def.equipment.length > 0
+      ? def.equipment
+      : startingEquipmentFor(def.slug)
+  // When PHB line forks exist, hide pre-baked A/B packs — keep gold (or empty) only.
+  if ((CLASS_EQUIPMENT_LINES[def.slug] ?? []).length > 0) {
+    return raw.filter((pack) => pack.id === 'gold' || pack.items.length === 0)
+  }
+  return raw
+}
+
+/** PHB line-by-line starting equipment for all core classes (+ artificer). */
+export const CLASS_EQUIPMENT_LINES: Record<string, ClassEquipmentLine[]> = {
+  barbarian: [
+    {
+      id: 'primary',
+      labelRu: 'Основное оружие',
+      options: [
+        { id: 'greataxe', labelRu: 'Секира', items: [item('Секира')] },
+        {
+          id: 'any_martial_melee',
+          labelRu: 'Любое воинское оружие ближнего боя',
+          pickWeapon: 'martial_melee',
+        },
+      ],
+    },
+    {
+      id: 'secondary',
+      labelRu: 'Дополнительное оружие',
+      options: [
+        { id: 'handaxes', labelRu: 'Два ручных топора', items: [item('Ручной топор', { qty: 2 })] },
+        { id: 'any_simple', labelRu: 'Любое простое оружие', pickWeapon: 'simple' },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Набор и метательные копья',
+      options: [
+        {
+          id: 'pack_javelins',
+          labelRu: 'Набор исследователя и 4 метательных копья',
+          items: [item('Набор исследователя'), item('Метательное копьё', { qty: 4 })],
+        },
+      ],
+    },
+  ],
+  bard: [
+    {
+      id: 'weapon',
+      labelRu: 'Оружие',
+      options: [
+        { id: 'rapier', labelRu: 'Рапира', items: [item('Рапира')] },
+        { id: 'longsword', labelRu: 'Длинный меч', items: [item('Длинный меч')] },
+        { id: 'any_simple', labelRu: 'Любое простое оружие', pickWeapon: 'simple' },
+      ],
+    },
+    {
+      id: 'pack',
+      labelRu: 'Набор',
+      options: [
+        { id: 'diplomat', labelRu: 'Набор дипломата', items: [item('Набор дипломата')] },
+        { id: 'entertainer', labelRu: 'Набор артиста', items: [item('Набор артиста')] },
+      ],
+    },
+    {
+      id: 'instrument',
+      labelRu: 'Музыкальный инструмент',
+      options: [
+        { id: 'lute', labelRu: 'Лютня', items: [item('Лютня')] },
+        {
+          id: 'any_instrument',
+          labelRu: 'Любой другой инструмент',
+          pickFrom: [...MUSICAL_INSTRUMENT_CHOICES],
+        },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Доспех и кинжал',
+      options: [
+        {
+          id: 'leather_dagger',
+          labelRu: 'Кожаный доспех и кинжал',
+          items: [leather(), item('Кинжал')],
+        },
+      ],
+    },
+  ],
+  cleric: [
+    {
+      id: 'weapon',
+      labelRu: 'Оружие ближнего боя',
+      options: [
+        { id: 'mace', labelRu: 'Булава', items: [item('Булава')] },
+        {
+          id: 'warhammer',
+          labelRu: 'Боевой молот',
+          items: [item('Боевой молот')],
+          noteRu: 'если владеете (раса / домен)',
+        },
+      ],
+    },
+    {
+      id: 'armor',
+      labelRu: 'Доспех',
+      options: [
+        { id: 'scale', labelRu: 'Чешуйчатый доспех', items: [scale()] },
+        { id: 'leather', labelRu: 'Кожаный доспех', items: [leather()] },
+        {
+          id: 'chain',
+          labelRu: 'Кольчуга',
+          items: [chain()],
+          noteRu: 'надеть можно только с владением тяжёлыми (домен Бури…)',
+        },
+      ],
+    },
+    {
+      id: 'ranged',
+      labelRu: 'Дальний бой / простое оружие',
+      options: [
+        {
+          id: 'crossbow',
+          labelRu: 'Лёгкий арбалет и 20 болтов',
+          items: [item('Лёгкий арбалет'), item('Болты арбалета', { qty: 20 })],
+        },
+        { id: 'any_simple', labelRu: 'Любое простое оружие', pickWeapon: 'simple' },
+      ],
+    },
+    {
+      id: 'pack',
+      labelRu: 'Набор',
+      options: [
+        { id: 'priest', labelRu: 'Набор священника', items: [item('Набор жреца')] },
+        {
+          id: 'explorer',
+          labelRu: 'Набор путешественника',
+          items: [item('Набор исследователя')],
+        },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Щит и священный символ',
+      options: [
+        {
+          id: 'shield_symbol',
+          labelRu: 'Щит и священный символ',
+          items: [shield(), item('Священный символ')],
+        },
+      ],
+    },
+  ],
+  druid: [
+    {
+      id: 'shield_or_weapon',
+      labelRu: 'Щит или оружие',
+      options: [
+        {
+          id: 'wooden_shield',
+          labelRu: 'Деревянный щит',
+          items: [shield({ notes: 'деревянный' })],
+        },
+        { id: 'any_simple', labelRu: 'Любое простое оружие', pickWeapon: 'simple' },
+      ],
+    },
+    {
+      id: 'melee',
+      labelRu: 'Оружие ближнего боя',
+      options: [
+        { id: 'scimitar', labelRu: 'Ятаган', items: [item('Ятаган')] },
+        {
+          id: 'any_simple_melee',
+          labelRu: 'Любое простое оружие ближнего боя',
+          pickWeapon: 'simple_melee',
+        },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Доспех, набор и фокус',
+      options: [
+        {
+          id: 'leather_pack_focus',
+          labelRu: 'Кожаный доспех, набор исследователя и фокус друида',
+          items: [leather(), item('Набор исследователя'), item('Фокус друида')],
+        },
+      ],
+    },
+  ],
+  fighter: [
+    {
+      id: 'armor',
+      labelRu: 'Доспех',
+      options: [
+        { id: 'chain', labelRu: 'Кольчуга', items: [chain()] },
+        {
+          id: 'leather_bow',
+          labelRu: 'Кожаный доспех, длинный лук и 20 стрел',
+          items: [leather(), item('Длинный лук'), item('Стрелы', { qty: 20 })],
+        },
+      ],
+    },
+    {
+      id: 'weapons',
+      labelRu: 'Оружие ближнего боя',
+      options: [
+        {
+          id: 'martial_shield',
+          labelRu: 'Воинское оружие и щит',
+          pickWeapon: 'martial',
+          items: [shield()],
+        },
+        {
+          id: 'two_martial',
+          labelRu: 'Два воинских оружия',
+          pickWeapon: 'martial',
+          pickWeaponCount: 2,
+        },
+      ],
+    },
+    {
+      id: 'ranged',
+      labelRu: 'Дальний бой / топоры',
+      options: [
+        {
+          id: 'crossbow',
+          labelRu: 'Лёгкий арбалет и 20 болтов',
+          items: [item('Лёгкий арбалет'), item('Болты арбалета', { qty: 20 })],
+        },
+        {
+          id: 'handaxes',
+          labelRu: 'Два ручных топора',
+          items: [item('Ручной топор', { qty: 2 })],
+        },
+      ],
+    },
+    {
+      id: 'pack',
+      labelRu: 'Набор',
+      options: [
+        {
+          id: 'dungeoneer',
+          labelRu: 'Набор исследователя подземелий',
+          items: [item('Набор исследователя подземелий')],
+        },
+        {
+          id: 'explorer',
+          labelRu: 'Набор исследователя',
+          items: [item('Набор исследователя')],
+        },
+      ],
+    },
+  ],
+  monk: [
+    {
+      id: 'weapon',
+      labelRu: 'Оружие',
+      options: [
+        { id: 'shortsword', labelRu: 'Короткий меч', items: [item('Короткий меч')] },
+        { id: 'any_simple', labelRu: 'Любое простое оружие', pickWeapon: 'simple' },
+      ],
+    },
+    {
+      id: 'pack',
+      labelRu: 'Набор',
+      options: [
+        {
+          id: 'dungeoneer',
+          labelRu: 'Набор исследователя подземелий',
+          items: [item('Набор исследователя подземелий')],
+        },
+        {
+          id: 'explorer',
+          labelRu: 'Набор исследователя',
+          items: [item('Набор исследователя')],
+        },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Дротики',
+      options: [
+        {
+          id: 'darts',
+          labelRu: '10 дротиков',
+          items: [item('Дротик', { qty: 10 })],
+        },
+      ],
+    },
+  ],
+  paladin: [
+    {
+      id: 'weapons',
+      labelRu: 'Оружие',
+      options: [
+        {
+          id: 'martial_shield',
+          labelRu: 'Воинское оружие и щит',
+          pickWeapon: 'martial',
+          items: [shield()],
+        },
+        {
+          id: 'two_martial',
+          labelRu: 'Два воинских оружия',
+          pickWeapon: 'martial',
+          pickWeaponCount: 2,
+        },
+      ],
+    },
+    {
+      id: 'thrown',
+      labelRu: 'Метательное / простое оружие',
+      options: [
+        {
+          id: 'javelins',
+          labelRu: '5 метательных копий',
+          items: [item('Метательное копьё', { qty: 5 })],
+        },
+        {
+          id: 'any_simple_melee',
+          labelRu: 'Любое простое оружие ближнего боя',
+          pickWeapon: 'simple_melee',
+        },
+      ],
+    },
+    {
+      id: 'pack',
+      labelRu: 'Набор',
+      options: [
+        { id: 'priest', labelRu: 'Набор священника', items: [item('Набор жреца')] },
+        {
+          id: 'explorer',
+          labelRu: 'Набор исследователя',
+          items: [item('Набор исследователя')],
+        },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Кольчуга и священный символ',
+      options: [
+        {
+          id: 'chain_symbol',
+          labelRu: 'Кольчуга и священный символ',
+          items: [chain(), item('Священный символ')],
+        },
+      ],
+    },
+  ],
+  ranger: [
+    {
+      id: 'armor',
+      labelRu: 'Доспех',
+      options: [
+        { id: 'scale', labelRu: 'Чешуйчатый доспех', items: [scale()] },
+        { id: 'leather', labelRu: 'Кожаный доспех', items: [leather()] },
+      ],
+    },
+    {
+      id: 'weapons',
+      labelRu: 'Оружие ближнего боя',
+      options: [
+        {
+          id: 'shortswords',
+          labelRu: 'Два коротких меча',
+          items: [item('Короткий меч', { qty: 2 })],
+        },
+        {
+          id: 'two_simple_melee',
+          labelRu: 'Два простых оружия ближнего боя',
+          pickWeapon: 'simple_melee',
+          pickWeaponCount: 2,
+        },
+      ],
+    },
+    {
+      id: 'pack',
+      labelRu: 'Набор',
+      options: [
+        {
+          id: 'dungeoneer',
+          labelRu: 'Набор исследователя подземелий',
+          items: [item('Набор исследователя подземелий')],
+        },
+        {
+          id: 'explorer',
+          labelRu: 'Набор исследователя',
+          items: [item('Набор исследователя')],
+        },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Длинный лук',
+      options: [
+        {
+          id: 'longbow',
+          labelRu: 'Длинный лук и 20 стрел',
+          items: [item('Длинный лук'), item('Стрелы', { qty: 20 })],
+        },
+      ],
+    },
+  ],
+  rogue: [
+    {
+      id: 'primary',
+      labelRu: 'Основное оружие',
+      options: [
+        { id: 'rapier', labelRu: 'Рапира', items: [item('Рапира')] },
+        { id: 'shortsword', labelRu: 'Короткий меч', items: [item('Короткий меч')] },
+      ],
+    },
+    {
+      id: 'secondary',
+      labelRu: 'Дальний бой / второй меч',
+      options: [
+        {
+          id: 'shortbow',
+          labelRu: 'Короткий лук и 20 стрел',
+          items: [item('Короткий лук'), item('Стрелы', { qty: 20 })],
+        },
+        { id: 'shortsword', labelRu: 'Короткий меч', items: [item('Короткий меч')] },
+      ],
+    },
+    {
+      id: 'pack',
+      labelRu: 'Набор',
+      options: [
+        { id: 'burglar', labelRu: 'Набор взломщика', items: [item('Набор взломщика')] },
+        {
+          id: 'dungeoneer',
+          labelRu: 'Набор исследователя подземелий',
+          items: [item('Набор исследователя подземелий')],
+        },
+        {
+          id: 'explorer',
+          labelRu: 'Набор исследователя',
+          items: [item('Набор исследователя')],
+        },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Доспех, кинжалы и инструменты',
+      options: [
+        {
+          id: 'leather_daggers_tools',
+          labelRu: 'Кожаный доспех, 2 кинжала и воровские инструменты',
+          items: [leather(), item('Кинжал', { qty: 2 }), item('Воровские инструменты')],
+        },
+      ],
+    },
+  ],
+  sorcerer: [
+    {
+      id: 'weapon',
+      labelRu: 'Оружие',
+      options: [
+        {
+          id: 'crossbow',
+          labelRu: 'Лёгкий арбалет и 20 болтов',
+          items: [item('Лёгкий арбалет'), item('Болты арбалета', { qty: 20 })],
+        },
+        { id: 'any_simple', labelRu: 'Любое простое оружие', pickWeapon: 'simple' },
+      ],
+    },
+    {
+      id: 'focus',
+      labelRu: 'Фокус компонентов',
+      options: [
+        {
+          id: 'pouch',
+          labelRu: 'Сумка с компонентами',
+          items: [item('Сумка с компонентами')],
+        },
+        { id: 'arcane', labelRu: 'Магический фокус', items: [item('Магический фокус')] },
+      ],
+    },
+    {
+      id: 'pack',
+      labelRu: 'Набор',
+      options: [
+        {
+          id: 'dungeoneer',
+          labelRu: 'Набор исследователя подземелий',
+          items: [item('Набор исследователя подземелий')],
+        },
+        {
+          id: 'explorer',
+          labelRu: 'Набор исследователя',
+          items: [item('Набор исследователя')],
+        },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Кинжалы',
+      options: [
+        {
+          id: 'daggers',
+          labelRu: 'Два кинжала',
+          items: [item('Кинжал', { qty: 2 })],
+        },
+      ],
+    },
+  ],
+  warlock: [
+    {
+      id: 'weapon',
+      labelRu: 'Оружие',
+      options: [
+        {
+          id: 'crossbow',
+          labelRu: 'Лёгкий арбалет и 20 болтов',
+          items: [item('Лёгкий арбалет'), item('Болты арбалета', { qty: 20 })],
+        },
+        { id: 'any_simple', labelRu: 'Любое простое оружие', pickWeapon: 'simple' },
+      ],
+    },
+    {
+      id: 'focus',
+      labelRu: 'Фокус компонентов',
+      options: [
+        {
+          id: 'pouch',
+          labelRu: 'Сумка с компонентами',
+          items: [item('Сумка с компонентами')],
+        },
+        { id: 'arcane', labelRu: 'Магический фокус', items: [item('Магический фокус')] },
+      ],
+    },
+    {
+      id: 'pack',
+      labelRu: 'Набор',
+      options: [
+        { id: 'scholar', labelRu: 'Набор учёного', items: [item('Набор учёного')] },
+        {
+          id: 'dungeoneer',
+          labelRu: 'Набор исследователя подземелий',
+          items: [item('Набор исследователя подземелий')],
+        },
+      ],
+    },
+    {
+      id: 'simple2',
+      labelRu: 'Простое оружие (второе)',
+      options: [
+        {
+          id: 'any_simple',
+          labelRu: 'Любое простое оружие',
+          pickWeapon: 'simple',
+        },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Доспех и кинжалы',
+      options: [
+        {
+          id: 'leather_daggers',
+          labelRu: 'Кожаный доспех и два кинжала',
+          items: [leather(), item('Кинжал', { qty: 2 })],
+        },
+      ],
+    },
+  ],
+  wizard: [
+    {
+      id: 'weapon',
+      labelRu: 'Оружие',
+      options: [
+        { id: 'quarterstaff', labelRu: 'Боевой посох', items: [item('Боевой посох')] },
+        { id: 'dagger', labelRu: 'Кинжал', items: [item('Кинжал')] },
+      ],
+    },
+    {
+      id: 'focus',
+      labelRu: 'Фокус компонентов',
+      options: [
+        {
+          id: 'pouch',
+          labelRu: 'Сумка с компонентами',
+          items: [item('Сумка с компонентами')],
+        },
+        { id: 'arcane', labelRu: 'Магический фокус', items: [item('Магический фокус')] },
+      ],
+    },
+    {
+      id: 'pack',
+      labelRu: 'Набор',
+      options: [
+        { id: 'scholar', labelRu: 'Набор учёного', items: [item('Набор учёного')] },
+        {
+          id: 'explorer',
+          labelRu: 'Набор исследователя',
+          items: [item('Набор исследователя')],
+        },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Книга заклинаний',
+      options: [
+        {
+          id: 'spellbook',
+          labelRu: 'Книга заклинаний',
+          items: [item('Книга заклинаний')],
+        },
+      ],
+    },
+  ],
+  artificer: [
+    {
+      id: 'weapons',
+      labelRu: 'Два простых оружия',
+      options: [
+        {
+          id: 'two_simple',
+          labelRu: 'Выбрать два простых оружия',
+          pickWeapon: 'simple',
+          pickWeaponCount: 2,
+        },
+      ],
+    },
+    {
+      id: 'crossbow',
+      labelRu: 'Арбалет',
+      options: [
+        {
+          id: 'light_crossbow',
+          labelRu: 'Лёгкий арбалет и 20 болтов',
+          items: [item('Лёгкий арбалет'), item('Болты арбалета', { qty: 20 })],
+        },
+      ],
+    },
+    {
+      id: 'armor',
+      labelRu: 'Доспех',
+      options: [
+        { id: 'studded', labelRu: 'Клёпаный кожаный доспех', items: [studded()] },
+        { id: 'scale', labelRu: 'Чешуйчатый доспех', items: [scale()] },
+      ],
+    },
+    {
+      id: 'fixed',
+      labelRu: 'Инструменты и набор',
+      options: [
+        {
+          id: 'tools_pack',
+          labelRu: 'Воровские инструменты и набор исследователя',
+          items: [item('Воровские инструменты'), item('Набор исследователя')],
+        },
+      ],
+    },
+  ],
+}
+
+export function equipmentLinesFor(def: ClassGrantDef): ClassEquipmentLine[] {
+  return CLASS_EQUIPMENT_LINES[def.slug] ?? []
+}
+
+export function buildItemsFromEquipmentLines(input: {
+  lines: ClassEquipmentLine[]
+  picks: Record<string, ClassEquipmentLinePick>
+}): StartingGearItem[] | null {
+  const items: StartingGearItem[] = []
+  for (const line of input.lines) {
+    const pick = input.picks[line.id]
+    if (!pick?.optionId) return null
+    const option = line.options.find((row) => row.id === pick.optionId)
+    if (!option) return null
+    const need = weaponPickCount(option)
+    if (option.pickFrom?.length || need > 0) {
+      const names = resolvedPickNames(option, pick)
+      const expected = option.pickFrom?.length ? 1 : need
+      if (names.length < expected) return null
+      for (const name of names) items.push(item(name))
+    }
+    for (const row of option.items ?? []) items.push({ ...row })
+  }
+  return items
+}
+
+export function validateEquipmentLinePicks(input: {
+  lines: ClassEquipmentLine[]
+  picks: Record<string, ClassEquipmentLinePick>
+}): string | null {
+  for (const line of input.lines) {
+    const pick = input.picks[line.id]
+    if (!pick?.optionId) return `Выбери: ${line.labelRu}`
+    const option = line.options.find((row) => row.id === pick.optionId)
+    if (!option) return `Неизвестный вариант в «${line.labelRu}»`
+    if (option.pickFrom?.length) {
+      const name = pick.weaponName?.trim()
+      if (!name) return `Выбери предмет в «${line.labelRu}»`
+      if (!option.pickFrom.includes(name)) {
+        return `Неизвестный вариант в «${line.labelRu}»`
+      }
+      continue
+    }
+    const need = weaponPickCount(option)
+    if (need > 0) {
+      const names = resolvedPickNames(option, pick)
+      if (names.length < need) {
+        return need === 1
+          ? `Выбери оружие в «${line.labelRu}»`
+          : `Выбери оружие (${names.length}/${need}) в «${line.labelRu}»`
+      }
+    }
+  }
+  return null
+}
 
 const ALL_SKILL_KEYS = [
   'acrobatics',

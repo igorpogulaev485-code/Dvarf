@@ -8,15 +8,16 @@ import {
   PHB_LINES_PACKAGE_ID,
   skillOptionsForPackage,
   validateEquipmentLinePicks,
+  weaponPickCount,
   type ClassEquipmentFocusPick,
   type ClassEquipmentLinePick,
   type ClassGrantDef,
   type ClassGrantPicks,
 } from '../../shared/dnd/classGrants'
-import { listWeaponPresetsByGroup } from '../../shared/dnd/weaponPresets'
 import type { RulesEdition } from '../../shared/api/characters'
 import { SKILL_DEFS } from './sheetTypes'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
+import { EquipmentLinesField } from './EquipmentLinesField'
 import { FocusCatalogSelect } from './FocusCatalogSelect'
 import {
   detectFocusPlaceholder,
@@ -166,16 +167,29 @@ export function ClassSetupDialog({
 
   function setLineOption(lineId: string, optionId: string) {
     setEquipmentPackageId(PHB_LINES_PACKAGE_ID)
+    const line = equipmentLines.find((row) => row.id === lineId)
+    const option = line?.options.find((row) => row.id === optionId)
+    const need = option ? weaponPickCount(option) : 0
     setLinePicks((prev) => ({
       ...prev,
-      [lineId]: { optionId, weaponName: null },
+      [lineId]: {
+        optionId,
+        weaponName: null,
+        weaponNames: need > 1 ? Array.from({ length: need }, () => null) : null,
+      },
     }))
   }
 
-  function setLineWeapon(lineId: string, weaponName: string) {
+  function setLineWeapon(lineId: string, weaponName: string, slotIndex?: number) {
     setLinePicks((prev) => {
       const current = prev[lineId]
       if (!current) return prev
+      if (typeof slotIndex === 'number') {
+        const nextNames = [...(current.weaponNames ?? [])]
+        while (nextNames.length <= slotIndex) nextNames.push(null)
+        nextNames[slotIndex] = weaponName
+        return { ...prev, [lineId]: { ...current, weaponNames: nextNames } }
+      }
       return { ...prev, [lineId]: { ...current, weaponName } }
     })
   }
@@ -225,8 +239,8 @@ export function ClassSetupDialog({
         <Text tone="muted">
           {mode === 'start'
             ? equipmentLines.length > 0
-              ? 'Выбери навыки и снаряжение по каждой строке PHB. Серые навыки — уже с предыстории.'
-              : 'Выбери навыки, инструменты и снаряжение. Серые — уже с предыстории.'
+              ? 'Выбери навыки и снаряжение по каждой строке PHB. Серые навыки — уже есть (раса / предыстория).'
+              : 'Выбери навыки, инструменты и снаряжение. Серые — уже есть (раса / предыстория).'
             : 'Мультикласс: только владения из таблицы PHB (без стартового снаряжения).'}
         </Text>
 
@@ -241,7 +255,7 @@ export function ClassSetupDialog({
                     key={key}
                     type="button"
                     disabled={blocked}
-                    title={blocked ? 'Уже есть с предыстории' : undefined}
+                    title={blocked ? 'Уже есть (раса / предыстория)' : undefined}
                     className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                     onClick={() => toggleSkill(key)}
                   >
@@ -265,7 +279,7 @@ export function ClassSetupDialog({
                     key={name}
                     type="button"
                     disabled={blocked}
-                    title={blocked ? 'Уже есть с предыстории' : undefined}
+                    title={blocked ? 'Уже есть (раса / предыстория)' : undefined}
                     className={`sheet-chip${on ? ' is-on' : ''}${blocked ? ' is-blocked' : ''}`}
                     onClick={() => toggleTool(name)}
                   >
@@ -279,75 +293,15 @@ export function ClassSetupDialog({
         ) : null}
 
         {mode === 'start' && equipmentLines.length > 0 ? (
-          <Field label="Стартовое снаряжение (по строкам)">
-            <Stack gap={12}>
-              {equipmentLines.map((line) => {
-                const pick = linePicks[line.id]
-                const selectedOption = line.options.find((row) => row.id === pick?.optionId)
-                return (
-                  <div key={line.id}>
-                    <Text>
-                      <strong>{line.labelRu}</strong>
-                    </Text>
-                    <div className="chip-row" style={{ marginTop: 6 }}>
-                      {line.options.map((option) => {
-                        const on = pick?.optionId === option.id
-                        return (
-                          <button
-                            key={option.id}
-                            type="button"
-                            className={`sheet-chip${on ? ' is-on' : ''}`}
-                            aria-pressed={on}
-                            title={option.noteRu}
-                            onClick={() => setLineOption(line.id, option.id)}
-                          >
-                            {option.labelRu}
-                            {option.noteRu ? ' *' : ''}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    {selectedOption?.noteRu ? (
-                      <Text tone="muted">{selectedOption.noteRu}</Text>
-                    ) : null}
-                    {selectedOption?.pickWeapon ? (
-                      <div className="chip-row" style={{ marginTop: 8 }}>
-                        {listWeaponPresetsByGroup(selectedOption.pickWeapon).map((weapon) => {
-                          const on = pick?.weaponName === weapon.labelRu
-                          return (
-                            <button
-                              key={weapon.labelRu}
-                              type="button"
-                              className={`sheet-chip${on ? ' is-on' : ''}`}
-                              aria-pressed={on}
-                              onClick={() => setLineWeapon(line.id, weapon.labelRu)}
-                            >
-                              {weapon.labelRu}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    ) : null}
-                  </div>
-                )
-              })}
-              {equipmentPackages.map((pack) => {
-                const on = equipmentPackageId === pack.id
-                return (
-                  <button
-                    key={pack.id}
-                    type="button"
-                    className={`sheet-chip sheet-chip--block${on ? ' is-on' : ''}`}
-                    aria-pressed={on}
-                    onClick={() => setEquipmentPackageId(pack.id)}
-                  >
-                    <strong className="sheet-chip__title">{pack.labelRu}</strong>
-                    <div className="sheet-chip__meta">{pack.summary}</div>
-                  </button>
-                )
-              })}
-            </Stack>
-          </Field>
+          <EquipmentLinesField
+            lines={equipmentLines}
+            linePicks={linePicks}
+            equipmentPackageId={equipmentPackageId}
+            packages={equipmentPackages}
+            onSelectOption={setLineOption}
+            onSelectWeapon={setLineWeapon}
+            onSelectPackage={setEquipmentPackageId}
+          />
         ) : null}
 
         {mode === 'start' && equipmentLines.length === 0 && equipmentPackages.length > 0 ? (
