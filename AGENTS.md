@@ -30,7 +30,7 @@
 
 | Поле | Значение |
 |------|----------|
-| Prod tip (сейчас) | `cursor/optional-class-features-8215` |
+| Prod tip (сейчас) | `cursor/pack-qty-persist-2683` |
 | URL | https://creed20.tech/ |
 | SSH / deploy host | `201.34.132.252` (не открывать в браузере — редирект на creed20) |
 | Статус фич | только [`PRODUCT_STATUS.md`](PRODUCT_STATUS.md) после **проверки** живого сервера |
