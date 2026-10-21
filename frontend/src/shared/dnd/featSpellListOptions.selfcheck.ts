@@ -69,6 +69,71 @@ assert(
   'ritual-only excludes magic_missile',
 )
 
+/** PHB baseline cantrips each Magic Initiate list must expose. */
+const MI_PHB_CANTRIPS: Record<(typeof FEAT_CLASS_SPELL_LISTS)[number], string[]> = {
+  bard: [
+    'blade_ward',
+    'dancing_lights',
+    'friends',
+    'light',
+    'mage_hand',
+    'mending',
+    'message',
+    'minor_illusion',
+    'prestidigitation',
+    'true_strike',
+    'vicious_mockery',
+  ],
+  cleric: [
+    'guidance',
+    'light',
+    'mending',
+    'resistance',
+    'sacred_flame',
+    'spare_the_dying',
+    'thaumaturgy',
+  ],
+  druid: [
+    'druidcraft',
+    'guidance',
+    'mending',
+    'poison_spray',
+    'produce_flame',
+    'resistance',
+    'shillelagh',
+    'thorn_whip',
+  ],
+  warlock: [
+    'blade_ward',
+    'chill_touch',
+    'eldritch_blast',
+    'friends',
+    'mage_hand',
+    'minor_illusion',
+    'poison_spray',
+    'prestidigitation',
+    'true_strike',
+  ],
+  wizard: [
+    'acid_splash',
+    'blade_ward',
+    'chill_touch',
+    'dancing_lights',
+    'fire_bolt',
+    'friends',
+    'light',
+    'mage_hand',
+    'mending',
+    'message',
+    'minor_illusion',
+    'poison_spray',
+    'prestidigitation',
+    'ray_of_frost',
+    'shocking_grasp',
+    'true_strike',
+  ],
+}
+
 for (const cls of FEAT_CLASS_SPELL_LISTS) {
   const cans = spellOptionsForClassList({
     spells: rows,
@@ -76,7 +141,55 @@ for (const cls of FEAT_CLASS_SPELL_LISTS) {
     level: 0,
   })
   assert(cans.length >= 4, `${cls} has >=4 cantrips (got ${cans.length})`)
+  const ids = new Set(cans.map((o) => o.id))
+  for (const slug of MI_PHB_CANTRIPS[cls]) {
+    assert(ids.has(slug), `Magic Initiate ${cls} missing PHB cantrip ${slug}`)
+  }
+  const l1 = spellOptionsForClassList({
+    spells: rows,
+    classSlug: cls,
+    level: 1,
+  })
+  assert(l1.length >= 8, `Magic Initiate ${cls} L1 expected many, got ${l1.length}`)
 }
+
+// Artificer class list (grimoire / prepare / Pact Tome) — PHB staples tagged.
+const artificerCantrips = spellOptionsForClassList({
+  spells: rows,
+  classSlug: 'artificer',
+  level: 0,
+  anyClassList: true,
+})
+const artificerIds = new Set(artificerCantrips.map((o) => o.id))
+for (const slug of [
+  'fire_bolt',
+  'mage_hand',
+  'mending',
+  'guidance',
+  'prestidigitation',
+  'ray_of_frost',
+  'acid_splash',
+]) {
+  assert(artificerIds.has(slug), `artificer cantrips include ${slug}`)
+}
+assert(
+  artificerCantrips.length >= 20,
+  `artificer cantrips expected >=20, got ${artificerCantrips.length}`,
+)
+const artificerL1 = spellOptionsForClassList({
+  spells: rows,
+  classSlug: 'artificer',
+  level: 1,
+  anyClassList: true,
+})
+assert(
+  artificerL1.length >= 16,
+  `artificer L1 expected >=16, got ${artificerL1.length}`,
+)
+assert(
+  artificerL1.some((o) => o.id === 'cure_wounds'),
+  'artificer L1 includes cure_wounds',
+)
 
 assert(
   spellOptionsForClassList({
