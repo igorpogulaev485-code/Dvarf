@@ -4,6 +4,7 @@ import {
   listCombatConsumables,
   MAX_COMBAT_CONSUMABLE_FAVORITES,
 } from './combatConsumables'
+import type { ConsumableSpendLogEntry } from './consumableSpend'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import { fightingStyleAttackBonus } from '../../shared/dnd/fightingStyles'
 import {
@@ -47,14 +48,30 @@ type PlayDeskAttacksCompactProps = {
   onCombatFeatureToggle?: (featureId: string, active: boolean) => void
   onToggleHeld?: (attack: WeaponAttack) => void
   onSpendResource?: (id: string) => void
-  /** Spend 1 from inventory qty (ammo, potions, …). */
-  onSpendConsumable?: (itemId: string) => void
+  /** Spend N from inventory qty (ammo, potions, …). Default 1. */
+  onSpendConsumable?: (itemId: string, amount?: number) => void
+  /** Open qty pad (item name → amount → confirm). */
+  onOpenConsumableSpendPad?: (itemId: string) => void
   /** Bound spell scroll: open cast flow (consumes on confirm). */
   onCastScroll?: (itemId: string) => void
   onToggleConsumableFavorite?: (itemId: string) => void
+  /** Session spend journal (recent, soft-undo). */
+  consumableSpendLog?: ConsumableSpendLogEntry[]
+  onUndoConsumableSpend?: (logId: string) => void
   onToast?: (message: string) => void
   onOpenSettings: () => void
   rollMode?: DeskRollMode
+}
+
+function formatSpendTime(atMs: number): string {
+  try {
+    return new Date(atMs).toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return ''
+  }
 }
 
 export function PlayDeskAttacksCompact({
@@ -72,13 +89,17 @@ export function PlayDeskAttacksCompact({
   onToggleHeld,
   onSpendResource,
   onSpendConsumable,
+  onOpenConsumableSpendPad,
   onCastScroll,
   onToggleConsumableFavorite,
+  consumableSpendLog = [],
+  onUndoConsumableSpend,
   onToast,
   onOpenSettings,
   rollMode = 'normal',
 }: PlayDeskAttacksCompactProps) {
   const [pickerOpen, setPickerOpen] = useState(false)
+  const [logOpen, setLogOpen] = useState(false)
   const [activeCombatFeatureIds, setActiveCombatFeatureIds] = useState<Set<string>>(
     () => new Set(),
   )
@@ -104,6 +125,7 @@ export function PlayDeskAttacksCompact({
         !favored.has(item.id),
     )
   }, [inventoryItems, favoriteConsumableIds])
+  const restoreableLogCount = consumableSpendLog.filter((row) => !row.undone).length
 
   return (
     <div className="play-desk-compact">
@@ -296,7 +318,8 @@ export function PlayDeskAttacksCompact({
             const scrollCast = isCastableSpellScroll(item) && Boolean(onCastScroll)
             const canSpend =
               qty > 0 && (scrollCast || Boolean(onSpendConsumable))
-            const actionLabel = scrollCast ? 'каст' : 'потратить'
+            const showQtyPad =
+              !scrollCast && qty > 1 && Boolean(onOpenConsumableSpendPad) && Boolean(onSpendConsumable)
             return (
               <div
                 key={item.id}
@@ -304,29 +327,7 @@ export function PlayDeskAttacksCompact({
                   scrollCast ? ' is-scroll' : ''
                 }`}
               >
-                <button
-                  type="button"
-                  className="play-desk-compact__cons-main is-action"
-                  disabled={!canSpend}
-                  title={
-                    scrollCast
-                      ? `Каст со свитка: ${item.scroll_spell?.name ?? item.name}`
-                      : canSpend
-                        ? `Потратить 1 «${item.name}»`
-                        : item.name
-                  }
-                  onClick={() => {
-                    if (!canSpend) {
-                      onToast?.(`${item.name}: ×${qty}`)
-                      return
-                    }
-                    if (scrollCast) {
-                      onCastScroll?.(item.id)
-                      return
-                    }
-                    onSpendConsumable?.(item.id)
-                  }}
-                >
+                <div className="play-desk-compact__cons-main">
                   <span className="play-desk-compact__cons-name">
                     {favorite ? (
                       <span className="play-desk-compact__tag is-fav">избр.</span>
@@ -337,8 +338,45 @@ export function PlayDeskAttacksCompact({
                     {item.name}
                   </span>
                   <b>{qty}</b>
-                  <span className="play-desk-compact__cons-spend">{actionLabel}</span>
-                </button>
+                  <div className="play-desk-compact__cons-actions">
+                    {showQtyPad ? (
+                      <button
+                        type="button"
+                        className="play-desk-compact__cons-qty"
+                        disabled={!canSpend}
+                        title={`Потратить несколько «${item.name}»`}
+                        onClick={() => onOpenConsumableSpendPad?.(item.id)}
+                      >
+                        ×N
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="play-desk-compact__cons-spend"
+                      disabled={!canSpend}
+                      title={
+                        scrollCast
+                          ? `Каст со свитка: ${item.scroll_spell?.name ?? item.name}`
+                          : canSpend
+                            ? `Потратить 1 «${item.name}»`
+                            : item.name
+                      }
+                      onClick={() => {
+                        if (!canSpend) {
+                          onToast?.(`${item.name}: ×${qty}`)
+                          return
+                        }
+                        if (scrollCast) {
+                          onCastScroll?.(item.id)
+                          return
+                        }
+                        onSpendConsumable?.(item.id, 1)
+                      }}
+                    >
+                      {scrollCast ? 'каст' : 'потратить'}
+                    </button>
+                  </div>
+                </div>
                 {onToggleConsumableFavorite ? (
                   <button
                     type="button"
@@ -360,6 +398,45 @@ export function PlayDeskAttacksCompact({
             )
           })
         )}
+
+        {consumableSpendLog.length > 0 ? (
+          <div className="play-desk-compact__cons-log">
+            <button
+              type="button"
+              className="play-desk-compact__cons-log-toggle"
+              onClick={() => setLogOpen((prev) => !prev)}
+            >
+              {logOpen ? '▾' : '▸'} Журнал трат
+              {restoreableLogCount > 0 ? ` · ${restoreableLogCount}` : ''}
+            </button>
+            {logOpen ? (
+              <ul className="play-desk-compact__cons-log-list">
+                {consumableSpendLog.map((entry) => (
+                  <li
+                    key={entry.id}
+                    className={`play-desk-compact__cons-log-row${
+                      entry.undone ? ' is-undone' : ''
+                    }`}
+                  >
+                    <span>
+                      {formatSpendTime(entry.atMs)} −{entry.amount} «{entry.name}»
+                      {entry.undone ? ' · отменено' : ''}
+                    </span>
+                    {!entry.undone && onUndoConsumableSpend ? (
+                      <button
+                        type="button"
+                        className="play-desk-compact__cons-log-undo"
+                        onClick={() => onUndoConsumableSpend(entry.id)}
+                      >
+                        вернуть
+                      </button>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
 
         {onToggleConsumableFavorite && favoriteCount < MAX_COMBAT_CONSUMABLE_FAVORITES ? (
           <div className="play-desk-compact__cons-add">

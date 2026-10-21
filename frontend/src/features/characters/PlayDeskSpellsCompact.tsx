@@ -133,16 +133,11 @@ export function PlayDeskSpellsCompact({
       ? `заг. ${learnedCantrips}/${learnBudget.cantrips}`
       : null
   /**
-   * «Подготовить» только для prepared_list / spellbook (жрец, друид, паладин,
-   * изобретатель, волшебник). Known-кастеры (бард, чародей, колдун, следопыт)
-   * уже имеют всё известное готовым к бою — кнопка их путает.
+   * «Подготовить» на листе — только волшебник (быстрый набор из книги).
+   * Жрец и компания готовят в гримуаре; known — без daily prepare.
    */
   const showPrepare =
-    Boolean(onSpellsChange) &&
-    learnBudget?.mode !== 'known' &&
-    (learnBudget?.mode === 'prepared_list' ||
-      learnBudget?.mode === 'spellbook' ||
-      (learnBudget == null && spells.max_prepared != null))
+    Boolean(onSpellsChange) && learnBudget?.mode === 'spellbook'
 
   const maxRows = 14
   const levelGroups = (() => {
@@ -357,9 +352,9 @@ export function PlayDeskSpellsCompact({
 
       {onSpellsChange ? (
         <PrepareSpellsDialog
-          open={prepareOpen}
+          open={prepareOpen && learnBudget?.mode === 'spellbook'}
           spells={spells}
-          learnMode={learnBudget?.mode ?? null}
+          learnMode="spellbook"
           onChange={onSpellsChange}
           onClose={() => setPrepareOpen(false)}
         />
