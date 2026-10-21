@@ -19,10 +19,24 @@ assert(
 )
 assert(
   initiativeBonusFromFeatures({
+    features: [{ id: 'rakish_audacity' }],
+    abilities: { cha: 13 },
+  }) === 1,
+  'rakish audacity +CHA',
+)
+assert(
+  initiativeBonusFromFeatures({
+    features: [{ id: 'dread_ambusher' }, { id: 'rakish_audacity' }],
+    abilities: { wis: 14, cha: 16 },
+  }) === 5,
+  'dread + rakish stack',
+)
+assert(
+  initiativeBonusFromFeatures({
     features: [{ id: 'other' }],
-    abilities: { wis: 20 },
+    abilities: { wis: 20, cha: 20 },
   }) === 0,
-  'no dread = 0',
+  'no matching feature = 0',
 )
 
 assert(

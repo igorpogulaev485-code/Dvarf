@@ -7,8 +7,9 @@ type FeatureLike = { id: string }
 type AbilitiesLike = Partial<Record<AbilityKey, number>>
 
 /**
- * Dread Ambusher (Gloom Stalker): add Wisdom modifier to initiative.
- * Other initiative sources (Alert feat) are summed elsewhere.
+ * Class/subclass initiative add-ons (stack with Alert and other feat bonuses).
+ * - Dread Ambusher (Gloom Stalker): +Wisdom modifier
+ * - Rakish Audacity (Swashbuckler): +Charisma modifier
  */
 export function initiativeBonusFromFeatures(input: {
   features: FeatureLike[]
@@ -16,9 +17,15 @@ export function initiativeBonusFromFeatures(input: {
 }): number {
   let bonus = 0
   for (const feature of input.features) {
-    if (feature.id !== 'dread_ambusher') continue
-    const wis = input.abilities.wis
-    bonus += typeof wis === 'number' ? abilityModifier(wis) : 0
+    if (feature.id === 'dread_ambusher') {
+      const wis = input.abilities.wis
+      bonus += typeof wis === 'number' ? abilityModifier(wis) : 0
+      continue
+    }
+    if (feature.id === 'rakish_audacity') {
+      const cha = input.abilities.cha
+      bonus += typeof cha === 'number' ? abilityModifier(cha) : 0
+    }
   }
   return bonus
 }
