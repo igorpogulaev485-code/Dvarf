@@ -41,7 +41,6 @@ import {
   type SkillExpertiseState,
 } from '../../shared/dnd/expertise'
 import {
-  addFeaturePickToList,
   getFeaturePick,
   getFeaturePickList,
   setFeaturePick,
@@ -53,7 +52,14 @@ import { fightingStyleById } from '../../shared/dnd/fightingStyles'
 import {
   infusionOptionIdsAtLevel,
   REPLICATE_MAGIC_ITEM_ID,
+  replicateItemBySlug,
+  replicateItemsAtLevel,
 } from '../../shared/dnd/artificerInfusions'
+import {
+  isReplicateLearnOption,
+  learnReplicateMagicItem,
+  unlearnInfusionPick,
+} from '../../shared/dnd/infusionsActive'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import type { RulesEdition } from '../../shared/api/characters'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
@@ -358,6 +364,8 @@ function FeatureChoiceStepBody({
   onFeaturePicksChange: (picks: FeaturePicksState) => void
 }) {
   const choice = step.choice
+  const [pendingReplicate, setPendingReplicate] = useState(false)
+  const [pendingReplicateSlug, setPendingReplicateSlug] = useState('')
   const maxPicks = resolveChoiceMaxPicks(choice, step.classLevel)
   const multi = maxPicks > 1 || Boolean(choice.max_picks_by_level)
   const selectedList = multi
@@ -366,6 +374,13 @@ function FeatureChoiceStepBody({
   const selected = multi
     ? null
     : getFeaturePick(featurePicks, step.classEntryId, step.featureId)
+  const replicateChoices = useMemo(
+    () => replicateItemsAtLevel(step.classLevel),
+    [step.classLevel],
+  )
+  const replicateKnown = selectedList.filter((id) =>
+    id.startsWith(`${REPLICATE_MAGIC_ITEM_ID}:`),
+  )
 
   const options = useMemo(() => {
     if (isExpertiseChoice(choice)) {
@@ -413,71 +428,133 @@ function FeatureChoiceStepBody({
         </Text>
       ) : null}
       {selectedDef ? <Text tone="muted">{selectedDef.summaryRu}</Text> : null}
+      {pendingReplicate ? (
+        <Stack gap={10}>
+          <Text>
+            Копия магического предмета — выбери предмет (таблицы до {step.classLevel}{' '}
+            ур.):
+          </Text>
+          <select
+            className="play-select"
+            value={pendingReplicateSlug}
+            onChange={(e) => setPendingReplicateSlug(e.target.value)}
+          >
+            <option value="">— выбрать —</option>
+            {replicateChoices.map((item) => (
+              <option key={item.slug} value={item.slug}>
+                {item.nameRu}
+                {item.minLevel > 2 ? ` · с ${item.minLevel} ур.` : ''}
+                {item.attune ? ' · настройка' : ''}
+              </option>
+            ))}
+          </select>
+          {pendingReplicateSlug ? (
+            <Text tone="muted">
+              {replicateItemBySlug(pendingReplicateSlug)?.abilityRu}
+            </Text>
+          ) : null}
+          <div className="chip-row">
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => {
+                const slug = pendingReplicateSlug.trim()
+                if (!slug || !replicateItemBySlug(slug)) return
+                onFeaturePicksChange(
+                  learnReplicateMagicItem(
+                    featurePicks,
+                    step.classEntryId,
+                    step.featureId,
+                    slug,
+                    maxPicks,
+                  ),
+                )
+                setPendingReplicate(false)
+                setPendingReplicateSlug('')
+              }}
+            >
+              Выучить копию
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setPendingReplicate(false)
+                setPendingReplicateSlug('')
+              }}
+            >
+              Отмена
+            </Button>
+          </div>
+        </Stack>
+      ) : null}
       <div className="chip-row" role="group" aria-label={choice.label_ru}>
         {options.map((option) => {
-          const stackable =
-            choice.options_from === 'artificer_infusions' &&
-            option.id === REPLICATE_MAGIC_ITEM_ID
-          const stackCount = stackable
-            ? selectedList.filter((id) => id === option.id).length
-            : 0
+          const replicateLearn = isReplicateLearnOption(option.id)
           const active = multi
-            ? stackable
-              ? stackCount > 0
+            ? replicateLearn
+              ? replicateKnown.length > 0
               : selectedList.includes(option.id)
             : selected === option.id
           return (
-            <span key={option.id} className="chip-row">
-              <Button
-                type="button"
-                variant={active ? 'primary' : 'ghost'}
-                onClick={() => {
-                  if (multi) {
-                    onFeaturePicksChange(
-                      toggleFeaturePickInList(
-                        featurePicks,
-                        step.classEntryId,
-                        step.featureId,
-                        option.id,
-                        maxPicks,
-                        stackable ? { stackable: true } : undefined,
-                      ),
-                    )
-                    return
-                  }
+            <Button
+              key={option.id}
+              type="button"
+              variant={active ? 'primary' : 'ghost'}
+              disabled={pendingReplicate}
+              onClick={() => {
+                if (replicateLearn && multi) {
+                  if (selectedList.length >= maxPicks) return
+                  setPendingReplicate(true)
+                  setPendingReplicateSlug('')
+                  return
+                }
+                if (multi) {
                   onFeaturePicksChange(
-                    setFeaturePick(featurePicks, step.classEntryId, step.featureId, option.id),
+                    toggleFeaturePickInList(
+                      featurePicks,
+                      step.classEntryId,
+                      step.featureId,
+                      option.id,
+                      maxPicks,
+                    ),
                   )
-                }}
-              >
-                {active && multi
-                  ? stackable && stackCount > 1
-                    ? `✓ ${option.label} ×${stackCount}`
-                    : `✓ ${option.label}`
+                  return
+                }
+                onFeaturePicksChange(
+                  setFeaturePick(featurePicks, step.classEntryId, step.featureId, option.id),
+                )
+              }}
+            >
+              {active && multi
+                ? replicateLearn
+                  ? `✓ ${option.label} ×${replicateKnown.length}`
+                  : `✓ ${option.label}`
+                : replicateLearn
+                  ? `${option.label}…`
                   : option.label}
-              </Button>
-              {multi && stackable && active && selectedList.length < maxPicks ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={() =>
-                    onFeaturePicksChange(
-                      addFeaturePickToList(
-                        featurePicks,
-                        step.classEntryId,
-                        step.featureId,
-                        option.id,
-                        maxPicks,
-                      ),
-                    )
-                  }
-                >
-                  + ещё
-                </Button>
-              ) : null}
-            </span>
+            </Button>
           )
         })}
+        {replicateKnown.map((id) => (
+          <Button
+            key={id}
+            type="button"
+            variant="ghost"
+            onClick={() =>
+              onFeaturePicksChange(
+                unlearnInfusionPick(
+                  featurePicks,
+                  step.classEntryId,
+                  step.featureId,
+                  id,
+                ),
+              )
+            }
+          >
+            ✕ {choiceOptionLabel(id, choice)}
+          </Button>
+        ))}
       </div>
       {options.length === 0 ? (
         <Text tone="muted">Пока нет доступных вариантов — сначала возьми владения.</Text>

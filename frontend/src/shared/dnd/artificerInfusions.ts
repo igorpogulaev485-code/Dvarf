@@ -1,9 +1,12 @@
 /**
  * TCoE / ERftLW Artificer infusions — pick catalog (RU) + effect metadata.
  *
- * «Копия магического предмета» — одна инфузия (`replicate_magic_item`).
- * Предмет из таблиц выбирается при активации (после отдыха), с фильтром по уровню.
- * Известную инфузию можно взять несколько раз (stackable).
+ * RAW «Replicate Magic Item»:
+ * — одна инфузия; можно выучить несколько раз;
+ * — каждый раз при изучении выбираешь предмет из таблиц (фильтр по уровню);
+ * — при активации после отдыха предмет уже зафиксирован (только вкл/выкл + цель).
+ *
+ * Known pick id: `replicate_magic_item:<slug>` (legacy `replicate_<slug>` нормализуется).
  */
 
 export type AbilityScoreKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
@@ -237,9 +240,9 @@ const CORE_INFUSIONS: ArtificerInfusionDef[] = [
     nameRu: 'Копия магического предмета',
     nameEn: 'Replicate Magic Item',
     summaryRu:
-      'Создай реплику предмета из таблиц (выбор при активации, фильтр по уровню). Можно выучить несколько раз.',
+      'Выучи несколько раз; каждый раз выбери предмет из таблиц своего уровня. При активации создаёшь именно его.',
     abilityRu:
-      'Одна инфузия: при активации после отдыха выбери магический предмет из таблиц, доступных твоему уровню изобретателя. Можно выучить эту инфузию несколько раз — каждый раз отдельный слот известной инфузии и отдельная активная копия.',
+      'По правилам: каждый раз, когда учишь эту инфузию, выбираешь магический предмет из таблиц (2/6/10/14 ур.). После отдыха активируешь уже выбранную копию — предмет заново не выбираешь. Одну и ту же копию можно выучить повторно.',
     replicate: true,
     effects: {},
   },
@@ -746,13 +749,98 @@ export function infusedItemCount(classLevel: number): number {
   return 0
 }
 
+export function replicateItemBySlug(
+  slug: string | null | undefined,
+): ReplicateMagicItemDef | null {
+  if (!slug) return null
+  // Strip optional instance suffix `slug~2`
+  const base = String(slug).split('~')[0]!.trim()
+  return REPLICATE_MAGIC_ITEMS.find((row) => row.slug === base) ?? null
+}
+
+/** Items choosable when *learning* Replicate Magic Item at this artificer level. */
+export function replicateItemsAtLevel(classLevel: number): ReplicateMagicItemDef[] {
+  const lvl = Math.max(0, Math.floor(classLevel))
+  return REPLICATE_MAGIC_ITEMS.filter((row) => row.minLevel <= lvl)
+}
+
+/**
+ * Parse `replicate_magic_item:<slug>`, legacy `replicate_<slug>`, or bare id.
+ * Optional `~N` instance suffix allows learning the same item twice.
+ */
+export function parseReplicateItemRef(
+  raw: string | null | undefined,
+): { infusionId: typeof REPLICATE_MAGIC_ITEM_ID; slug: string | null; instance: number } | null {
+  const id = String(raw ?? '').trim()
+  if (!id) return null
+  if (id === REPLICATE_MAGIC_ITEM_ID) {
+    return { infusionId: REPLICATE_MAGIC_ITEM_ID, slug: null, instance: 1 }
+  }
+  let body = id
+  let instance = 1
+  const tilde = body.lastIndexOf('~')
+  if (tilde > 0) {
+    const n = Number(body.slice(tilde + 1))
+    if (Number.isFinite(n) && n >= 1) {
+      instance = Math.floor(n)
+      body = body.slice(0, tilde)
+    }
+  }
+  if (body.startsWith(`${REPLICATE_MAGIC_ITEM_ID}:`)) {
+    const slug = body.slice(REPLICATE_MAGIC_ITEM_ID.length + 1).trim()
+    return { infusionId: REPLICATE_MAGIC_ITEM_ID, slug: slug || null, instance }
+  }
+  if (body.startsWith('replicate_') && body !== REPLICATE_MAGIC_ITEM_ID) {
+    const slug = body.slice('replicate_'.length).trim()
+    return { infusionId: REPLICATE_MAGIC_ITEM_ID, slug: slug || null, instance }
+  }
+  return null
+}
+
+export function formatReplicateKnownId(slug: string, instance = 1): string {
+  const base = `${REPLICATE_MAGIC_ITEM_ID}:${slug}`
+  return instance > 1 ? `${base}~${instance}` : base
+}
+
+/** Normalize known-pick id; preserve chosen item (RAW). Drop bare replicate without slug. */
+export function normalizeKnownInfusionId(id: string): string | null {
+  const parsed = parseReplicateItemRef(id)
+  if (parsed) {
+    if (!parsed.slug || !replicateItemBySlug(parsed.slug)) return null
+    return formatReplicateKnownId(parsed.slug, parsed.instance)
+  }
+  return id
+}
+
+function replicateBaseDef(): ArtificerInfusionDef | null {
+  return ARTIFICER_INFUSIONS.find((row) => row.id === REPLICATE_MAGIC_ITEM_ID) ?? null
+}
+
 export function infusionById(id: string | null | undefined): ArtificerInfusionDef | null {
   if (!id) return null
-  // Legacy flattened ids → canonical infusion.
-  if (id === REPLICATE_MAGIC_ITEM_ID || id.startsWith('replicate_')) {
-    return (
-      ARTIFICER_INFUSIONS.find((row) => row.id === REPLICATE_MAGIC_ITEM_ID) ?? null
-    )
+  const parsed = parseReplicateItemRef(id)
+  if (parsed) {
+    const base = replicateBaseDef()
+    if (!base) return null
+    if (!parsed.slug) return base
+    const item = replicateItemBySlug(parsed.slug)
+    if (!item) return base
+    return {
+      id: formatReplicateKnownId(item.slug, parsed.instance),
+      nameRu:
+        parsed.instance > 1
+          ? `Копия: ${item.nameRu} (${parsed.instance})`
+          : `Копия: ${item.nameRu}`,
+      nameEn: `Replicate: ${item.nameEn}`,
+      minLevel: item.minLevel,
+      summaryRu: item.summaryRu,
+      abilityRu: `Реплика «${item.nameRu}» (выбрана при изучении). ${item.abilityRu}`,
+      replicate: true,
+      effects: {
+        ...item.effects,
+        requiresAttunement: item.attune || item.effects?.requiresAttunement,
+      },
+    }
   }
   return ARTIFICER_INFUSIONS.find((row) => row.id === id) ?? null
 }
@@ -761,50 +849,14 @@ export function infusionLabel(id: string): string {
   return infusionById(id)?.nameRu || id
 }
 
-export function replicateItemBySlug(
-  slug: string | null | undefined,
-): ReplicateMagicItemDef | null {
-  if (!slug) return null
-  return REPLICATE_MAGIC_ITEMS.find((row) => row.slug === slug) ?? null
-}
-
-/** Items choosable when activating Replicate Magic Item at this artificer level. */
-export function replicateItemsAtLevel(classLevel: number): ReplicateMagicItemDef[] {
-  const lvl = Math.max(0, Math.floor(classLevel))
-  return REPLICATE_MAGIC_ITEMS.filter((row) => row.minLevel <= lvl)
-}
-
-/**
- * Parse legacy `replicate_<slug>` or active token `replicate_magic_item:<slug>`.
- */
-export function parseReplicateItemRef(
-  raw: string | null | undefined,
-): { infusionId: typeof REPLICATE_MAGIC_ITEM_ID; slug: string | null } | null {
-  const id = String(raw ?? '').trim()
-  if (!id) return null
-  if (id === REPLICATE_MAGIC_ITEM_ID) {
-    return { infusionId: REPLICATE_MAGIC_ITEM_ID, slug: null }
+/** Next instance number when learning the same replicate item again. */
+export function nextReplicateInstance(existingKnownIds: string[], slug: string): number {
+  let max = 0
+  for (const id of existingKnownIds) {
+    const parsed = parseReplicateItemRef(id)
+    if (parsed?.slug === slug) max = Math.max(max, parsed.instance)
   }
-  if (id.startsWith(`${REPLICATE_MAGIC_ITEM_ID}:`)) {
-    const slug = id.slice(REPLICATE_MAGIC_ITEM_ID.length + 1).trim()
-    return { infusionId: REPLICATE_MAGIC_ITEM_ID, slug: slug || null }
-  }
-  if (id.startsWith('replicate_') && id !== REPLICATE_MAGIC_ITEM_ID) {
-    const slug = id.slice('replicate_'.length).trim()
-    return { infusionId: REPLICATE_MAGIC_ITEM_ID, slug: slug || null }
-  }
-  return null
-}
-
-export function formatReplicateActiveToken(slug: string): string {
-  return `${REPLICATE_MAGIC_ITEM_ID}:${slug}`
-}
-
-/** Normalize a known-pick id (legacy replicate_* → replicate_magic_item). */
-export function normalizeKnownInfusionId(id: string): string {
-  const parsed = parseReplicateItemRef(id)
-  if (parsed) return REPLICATE_MAGIC_ITEM_ID
-  return id
+  return max + 1
 }
 
 /** Infusions an artificer of this level may learn (core list; replicate is L2+). */
@@ -813,11 +865,12 @@ export function infusionsAvailableAtLevel(classLevel: number): ArtificerInfusion
   return ARTIFICER_INFUSIONS.filter((row) => (row.minLevel ?? 2) <= lvl)
 }
 
+/** Option chips for learning: core + single «Копия…» entry (item picked in UI). */
 export function infusionOptionIdsAtLevel(classLevel: number): string[] {
   return infusionsAvailableAtLevel(classLevel).map((row) => row.id)
 }
 
-/** Effects to apply for an active binding (core infusion or chosen replicate item). */
+/** Effects to apply for an active binding (core or known replicate token). */
 export function resolveActiveInfusionEffects(
   infusionId: string,
   replicateItemSlug?: string | null,

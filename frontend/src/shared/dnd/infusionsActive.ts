@@ -1,19 +1,23 @@
 /**
  * Known vs active Artificer infusions.
- * Active bindings may target self or a lobby ally (item on their gear).
- * Replicate Magic Item stores the chosen item slug on the binding.
+ * Active bindings may target self or a lobby ally.
+ *
+ * Replicate Magic Item (RAW): known id already includes the chosen item
+ * (`replicate_magic_item:<slug>[~N]`). Activation only toggles that known slot.
  */
 
 import {
+  addFeaturePickToList,
   getFeaturePick,
   getFeaturePickList,
   setFeaturePick,
   type FeaturePicksState,
 } from './featurePicks'
 import {
-  formatReplicateActiveToken,
+  formatReplicateKnownId,
   infusionById,
   infusedItemCount,
+  nextReplicateInstance,
   normalizeKnownInfusionId,
   parseReplicateItemRef,
   REPLICATE_MAGIC_ITEM_ID,
@@ -21,82 +25,34 @@ import {
   type ArtificerInfusionDef,
 } from './artificerInfusions'
 
-/** feature_picks key for which known infusions are currently on items. */
 export const INFUSIONS_ACTIVE_FEATURE_ID = 'infusions_active'
-
-/**
- * Parallel map: `token=self|characterId,...`
- * Token is infusion id or `replicate_magic_item:<slug>`.
- * Missing entry → self (backward compatible).
- */
 export const INFUSIONS_ACTIVE_TARGETS_FEATURE_ID = 'infusions_active_targets'
 
 export type InfusionTargetRef = 'self' | string
 
 export type ActiveInfusionBinding = {
+  /** Exact known pick id (may be `replicate_magic_item:bag_of_holding`). */
   infusionId: string
-  /** `self` or lobby ally character id. */
   target: InfusionTargetRef
-  /** Set when infusionId is Replicate Magic Item. */
+  /** Derived from infusionId for replicate; kept for callers/effects. */
   replicateItemSlug?: string | null
 }
 
-function parseTargetMap(raw: string | null | undefined): Map<string, InfusionTargetRef> {
-  const out = new Map<string, InfusionTargetRef>()
-  if (!raw?.trim()) return out
-  for (const part of raw.split(',')) {
-    const chunk = part.trim()
-    if (!chunk) continue
-    const eq = chunk.indexOf('=')
-    if (eq <= 0) continue
-    const id = chunk.slice(0, eq).trim()
-    const target = chunk.slice(eq + 1).trim() || 'self'
-    if (!id) continue
-    out.set(id, target === 'self' ? 'self' : target)
-  }
-  return out
+function slugFromId(infusionId: string): string | null {
+  return parseReplicateItemRef(infusionId)?.slug ?? null
 }
 
-function bindingToken(row: ActiveInfusionBinding): string {
-  if (
-    row.infusionId === REPLICATE_MAGIC_ITEM_ID ||
-    parseReplicateItemRef(row.infusionId)
-  ) {
-    const slug = row.replicateItemSlug?.trim()
-    if (slug) return formatReplicateActiveToken(slug)
-    // Legacy / incomplete — keep bare id
-    return REPLICATE_MAGIC_ITEM_ID
-  }
-  return row.infusionId
-}
-
-function parseActiveToken(token: string): ActiveInfusionBinding {
-  const parsed = parseReplicateItemRef(token)
-  if (parsed) {
-    return {
-      infusionId: REPLICATE_MAGIC_ITEM_ID,
-      target: 'self',
-      replicateItemSlug: parsed.slug,
-    }
-  }
-  return { infusionId: token, target: 'self', replicateItemSlug: null }
-}
-
-function serializeTargetMap(bindings: ActiveInfusionBinding[]): string | null {
-  const parts = bindings
-    .filter((row) => row.target && row.target !== 'self')
-    .map((row) => `${bindingToken(row)}=${row.target}`)
-  return parts.length ? parts.join(',') : null
-}
-
-/** Known infusion ids with legacy replicate_* collapsed to replicate_magic_item (keeps multiplicity). */
+/** Known ids with legacy replicate_* → replicate_magic_item:<slug>. */
 export function listKnownInfusionIds(
   featurePicks: FeaturePicksState,
   classEntryId: string,
 ): string[] {
-  return getFeaturePickList(featurePicks, classEntryId, 'infuse_item').map(
-    normalizeKnownInfusionId,
-  )
+  const out: string[] = []
+  for (const raw of getFeaturePickList(featurePicks, classEntryId, 'infuse_item')) {
+    const id = normalizeKnownInfusionId(raw)
+    if (id) out.push(id)
+  }
+  return out
 }
 
 export function countKnownInfusion(
@@ -104,24 +60,54 @@ export function countKnownInfusion(
   classEntryId: string,
   infusionId: string,
 ): number {
-  const want = normalizeKnownInfusionId(infusionId)
+  const want = normalizeKnownInfusionId(infusionId) ?? infusionId
   return listKnownInfusionIds(featurePicks, classEntryId).filter((id) => id === want)
     .length
 }
 
+/** One def per known pick (duplicates kept — two Bags of Holding = two rows). */
 export function listKnownInfusions(
   featurePicks: FeaturePicksState,
   classEntryId: string,
 ): ArtificerInfusionDef[] {
-  const seen = new Set<string>()
   const rows: ArtificerInfusionDef[] = []
   for (const id of listKnownInfusionIds(featurePicks, classEntryId)) {
-    if (seen.has(id)) continue
-    seen.add(id)
     const def = infusionById(id)
     if (def) rows.push(def)
   }
   return rows
+}
+
+function parseTargetsOrdered(
+  raw: string | null | undefined,
+  tokens: string[],
+): InfusionTargetRef[] {
+  if (!raw?.trim()) return tokens.map(() => 'self')
+  // Legacy map: `id=target,id2=target2`
+  if (raw.includes('=')) {
+    const map = new Map<string, InfusionTargetRef>()
+    for (const part of raw.split(',')) {
+      const chunk = part.trim()
+      if (!chunk) continue
+      const eq = chunk.indexOf('=')
+      if (eq <= 0) continue
+      const id = chunk.slice(0, eq).trim()
+      const target = chunk.slice(eq + 1).trim() || 'self'
+      if (id) map.set(id, target === 'self' ? 'self' : target)
+    }
+    return tokens.map((token) => map.get(token) ?? 'self')
+  }
+  // Parallel list: `self,allyId,self`
+  const parts = raw.split(',').map((p) => p.trim())
+  return tokens.map((_, i) => {
+    const t = parts[i] ?? 'self'
+    return !t || t === 'self' ? 'self' : t
+  })
+}
+
+function serializeTargetsOrdered(bindings: ActiveInfusionBinding[]): string | null {
+  if (!bindings.some((row) => row.target && row.target !== 'self')) return null
+  return bindings.map((row) => (row.target === 'self' ? 'self' : row.target)).join(',')
 }
 
 export function listActiveInfusionIds(
@@ -133,47 +119,44 @@ export function listActiveInfusionIds(
   )
 }
 
-/** Active infusions with target (self or ally) + optional replicate item. */
 export function listActiveInfusionBindings(
   featurePicks: FeaturePicksState,
   classEntryId: string,
 ): ActiveInfusionBinding[] {
-  const knownCounts = new Map<string, number>()
-  for (const id of listKnownInfusionIds(featurePicks, classEntryId)) {
-    knownCounts.set(id, (knownCounts.get(id) ?? 0) + 1)
+  const known = listKnownInfusionIds(featurePicks, classEntryId)
+  const knownAvailable = new Map<string, number>()
+  for (const id of known) {
+    knownAvailable.set(id, (knownAvailable.get(id) ?? 0) + 1)
   }
-  const usedCounts = new Map<string, number>()
-  const targets = parseTargetMap(
+  const used = new Map<string, number>()
+  const rawTokens = getFeaturePickList(
+    featurePicks,
+    classEntryId,
+    INFUSIONS_ACTIVE_FEATURE_ID,
+  )
+  const tokens: string[] = []
+  for (const raw of rawTokens) {
+    const id = normalizeKnownInfusionId(raw)
+    if (!id) continue
+    const have = knownAvailable.get(id) ?? 0
+    const took = used.get(id) ?? 0
+    if (took >= have) continue
+    used.set(id, took + 1)
+    tokens.push(id)
+  }
+  const targets = parseTargetsOrdered(
     getFeaturePick(
       featurePicks,
       classEntryId,
       INFUSIONS_ACTIVE_TARGETS_FEATURE_ID,
     ),
+    tokens,
   )
-  const out: ActiveInfusionBinding[] = []
-  for (const token of getFeaturePickList(
-    featurePicks,
-    classEntryId,
-    INFUSIONS_ACTIVE_FEATURE_ID,
-  )) {
-    const binding = parseActiveToken(token)
-    const knownId = binding.infusionId
-    if (!knownCounts.has(knownId)) continue
-    const used = usedCounts.get(knownId) ?? 0
-    if (used >= (knownCounts.get(knownId) ?? 0)) continue
-    usedCounts.set(knownId, used + 1)
-    // Drop replicate rows without a valid item slug.
-    if (knownId === REPLICATE_MAGIC_ITEM_ID) {
-      if (!binding.replicateItemSlug || !replicateItemBySlug(binding.replicateItemSlug)) {
-        continue
-      }
-    }
-    out.push({
-      ...binding,
-      target: targets.get(token) ?? targets.get(knownId) ?? 'self',
-    })
-  }
-  return out
+  return tokens.map((infusionId, i) => ({
+    infusionId,
+    target: targets[i] ?? 'self',
+    replicateItemSlug: slugFromId(infusionId),
+  }))
 }
 
 export function setActiveInfusions(
@@ -184,17 +167,11 @@ export function setActiveInfusions(
   return setActiveInfusionBindings(
     featurePicks,
     classEntryId,
-    activeIds.map((raw) => {
-      const parsed = parseReplicateItemRef(raw)
-      if (parsed) {
-        return {
-          infusionId: REPLICATE_MAGIC_ITEM_ID,
-          target: 'self' as const,
-          replicateItemSlug: parsed.slug,
-        }
-      }
-      return { infusionId: raw, target: 'self' as const, replicateItemSlug: null }
-    }),
+    activeIds.map((infusionId) => ({
+      infusionId,
+      target: 'self' as const,
+      replicateItemSlug: slugFromId(infusionId),
+    })),
   )
 }
 
@@ -203,36 +180,26 @@ export function setActiveInfusionBindings(
   classEntryId: string,
   bindings: ActiveInfusionBinding[],
 ): FeaturePicksState {
-  const knownCounts = new Map<string, number>()
+  const knownAvailable = new Map<string, number>()
   for (const id of listKnownInfusionIds(featurePicks, classEntryId)) {
-    knownCounts.set(id, (knownCounts.get(id) ?? 0) + 1)
+    knownAvailable.set(id, (knownAvailable.get(id) ?? 0) + 1)
   }
-  const usedCounts = new Map<string, number>()
+  const used = new Map<string, number>()
   const cleaned: ActiveInfusionBinding[] = []
   for (const row of bindings) {
     const id = normalizeKnownInfusionId(row.infusionId)
-    const known = knownCounts.get(id) ?? 0
-    if (!known) continue
-    const used = usedCounts.get(id) ?? 0
-    if (used >= known) continue
-    if (id === REPLICATE_MAGIC_ITEM_ID) {
-      const slug = row.replicateItemSlug?.trim()
-      if (!slug || !replicateItemBySlug(slug)) continue
-      cleaned.push({
-        infusionId: REPLICATE_MAGIC_ITEM_ID,
-        target: row.target || 'self',
-        replicateItemSlug: slug,
-      })
-    } else {
-      cleaned.push({
-        infusionId: id,
-        target: row.target || 'self',
-        replicateItemSlug: null,
-      })
-    }
-    usedCounts.set(id, used + 1)
+    if (!id) continue
+    const have = knownAvailable.get(id) ?? 0
+    const took = used.get(id) ?? 0
+    if (took >= have) continue
+    used.set(id, took + 1)
+    cleaned.push({
+      infusionId: id,
+      target: row.target || 'self',
+      replicateItemSlug: slugFromId(id),
+    })
   }
-  const tokens = cleaned.map(bindingToken)
+  const tokens = cleaned.map((row) => row.infusionId)
   let next = setFeaturePick(
     featurePicks,
     classEntryId,
@@ -243,7 +210,7 @@ export function setActiveInfusionBindings(
     next,
     classEntryId,
     INFUSIONS_ACTIVE_TARGETS_FEATURE_ID,
-    serializeTargetMap(cleaned),
+    serializeTargetsOrdered(cleaned),
   )
   return next
 }
@@ -252,7 +219,6 @@ export function infusionSlotsMax(artificerLevel: number): number {
   return infusedItemCount(artificerLevel)
 }
 
-/** Infusions that can be placed on an ally's item (most item infusions). */
 export function infusionCanTargetAlly(def: ArtificerInfusionDef | null): boolean {
   if (!def) return false
   // Homunculus is tied to the artificer's gem — self only.
@@ -260,9 +226,54 @@ export function infusionCanTargetAlly(def: ArtificerInfusionDef | null): boolean
   return true
 }
 
-/** How many active replicate copies are already slotted. */
-export function countActiveReplicate(
-  bindings: ActiveInfusionBinding[],
-): number {
-  return bindings.filter((row) => row.infusionId === REPLICATE_MAGIC_ITEM_ID).length
+/** True if this option chip is the learn-time Replicate entry (not a concrete item). */
+export function isReplicateLearnOption(optionId: string): boolean {
+  return optionId === REPLICATE_MAGIC_ITEM_ID
+}
+
+/**
+ * Learn Replicate Magic Item with a chosen table item (RAW — choose at learn time).
+ * Adds `replicate_magic_item:<slug>[~N]` to known infusions.
+ */
+export function learnReplicateMagicItem(
+  featurePicks: FeaturePicksState,
+  classEntryId: string,
+  featureId: string,
+  slug: string,
+  maxPicks: number,
+): FeaturePicksState {
+  if (!replicateItemBySlug(slug)) return featurePicks
+  const known = listKnownInfusionIds(featurePicks, classEntryId)
+  if (known.length >= maxPicks) return featurePicks
+  const instance = nextReplicateInstance(known, slug)
+  const token = formatReplicateKnownId(slug, instance)
+  return addFeaturePickToList(
+    featurePicks,
+    classEntryId,
+    featureId,
+    token,
+    maxPicks,
+  )
+}
+
+/** Remove one known infusion pick (core id or replicate token). */
+export function unlearnInfusionPick(
+  featurePicks: FeaturePicksState,
+  classEntryId: string,
+  featureId: string,
+  optionId: string,
+): FeaturePicksState {
+  const current = getFeaturePickList(featurePicks, classEntryId, featureId)
+  const want = normalizeKnownInfusionId(optionId) ?? optionId
+  const idx = current.findIndex(
+    (raw) => raw === optionId || (normalizeKnownInfusionId(raw) ?? raw) === want,
+  )
+  if (idx < 0) return featurePicks
+  const nextList = current.filter((_, i) => i !== idx)
+  return setFeaturePick(
+    featurePicks,
+    classEntryId,
+    featureId,
+    nextList.length ? nextList.join(',') : null,
+  )
 }
