@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/feat-stealthy-3565
+cursor/prepare-class-list-available-3aba
 ```
 
 URL: http://201.34.132.252/

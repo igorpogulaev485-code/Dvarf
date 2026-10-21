@@ -4,7 +4,7 @@
 **URL:** http://201.34.132.252/  
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
-**Current prod tip branch:** `cursor/feat-stealthy-3565`  
+**Current prod tip branch:** `cursor/prepare-class-list-available-3aba`  
 **Public URL:** https://creed20.tech (Caddy `edge` + Let’s Encrypt; `web` only on docker network)  
 (обновляй эту строку после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
 
