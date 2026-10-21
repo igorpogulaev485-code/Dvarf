@@ -19,7 +19,7 @@
 | Умение предыстории | Карточка в «Способности»; classic читает `traits`; backfill при открытии |
 | Миграция | Unlock из JSON; `ensureBackgroundFeatureOnDraft`; alembic `z2a3b4c5d6e7` |
 
-На проде: **ожидает verify после sync-and-up** · ветка `cursor/optional-class-features-8215` · PR #255 · поверх tip `restore-consumables-grimoire-0bc3`
+На проде: **да** · **это новый prod tip** `cursor/optional-class-features-8215` · PR #255 · залито 2026-10-21 · alembic `z2a3b4c5d6e7` · `/health` ok · бандл `CharacterDetailPage-DpIAteFJ.js` · `steady_aim` + `ConsumableSpendPadDialog` на диске · поверх tip `restore-consumables-grimoire-0bc3` (расходники/гримуар сохранены)
 
 
 ### 2026-10-21 — Restore: расходники + гримуар поверх ship
