@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/pack-qty-persist-2683`  
+**Prod tip (ветка линии прода):** `cursor/versatile-weapons-grip-57bf`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
