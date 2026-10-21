@@ -3,7 +3,7 @@
     "purpose": "2014 Paladin + all 9 official oaths for sheet unlock",
     "edition": "2014",
     "source": "phb+dmg+scag+xgte+tcoe",
-    "notes_ru": "9 клятв. Lay on Hands = spend 5×ур. Channel Divinity общий (1× short). Divine Sense / Cleansing Touch = Cha-mod. Always-prepared — в каталоге."
+    "notes_ru": "9 клятв. Lay on Hands = spend 5×ур. Channel Divinity общий (1× short). Divine Sense / Cleansing Touch = Cha-mod. Always-prepared — в каталоге. · TCoE optional class features."
   },
   "class_slug": "paladin",
   "features": [
@@ -62,6 +62,24 @@
       }
     },
     {
+      "id": "divine_smite",
+      "level": 2,
+      "name_ru": "Божественная кара",
+      "name_en": "Divine Smite",
+      "summary_ru": "При попадании оружием ближнего боя: потратить ячейку → +2к8 лучистого (+1к8 за уровень ячейки выше 1-го, макс. 5к8 от ячейки); +1к8 vs нежить/фиенд.",
+      "kind": "action",
+      "slot_spend": {
+        "label_ru": "Божественная кара",
+        "min_slot": 1,
+        "max_slot": 4,
+        "dice_base": 2,
+        "dice_per_slot_above": 1,
+        "dice_cap": 5,
+        "dice_size": 8,
+        "extra_vs_note_ru": "+1к8 vs нежить/фиенд"
+      }
+    },
+    {
       "id": "fighting_style_paladin",
       "level": 2,
       "name_ru": "Боевой стиль",
@@ -83,21 +101,18 @@
       "kind": "passive"
     },
     {
-      "id": "divine_smite",
-      "level": 2,
-      "name_ru": "Божественная кара",
-      "name_en": "Divine Smite",
-      "summary_ru": "При попадании оружием ближнего боя: потратить ячейку → +2к8 лучистого (+1к8 за уровень ячейки выше 1-го, макс. 5к8 от ячейки); +1к8 vs нежить/фиенд.",
-      "kind": "action",
-      "slot_spend": {
-        "label_ru": "Божественная кара",
-        "min_slot": 1,
-        "max_slot": 4,
-        "dice_base": 2,
-        "dice_per_slot_above": 1,
-        "dice_cap": 5,
-        "dice_size": 8,
-        "extra_vs_note_ru": "+1к8 vs нежить/фиенд"
+      "id": "channel_divinity_paladin",
+      "level": 3,
+      "name_ru": "Божественный канал",
+      "name_en": "Channel Divinity",
+      "summary_ru": "1 использование между коротким или продолжительным отдыхом. Общий пул на опции клятвы.",
+      "kind": "resource",
+      "resource": {
+        "uses": 1,
+        "recharge": "short_rest",
+        "pool_id": "channel_divinity",
+        "pool_name_ru": "Божественный канал",
+        "track": "spend"
       }
     },
     {
@@ -117,12 +132,14 @@
       "kind": "passive"
     },
     {
-      "id": "channel_divinity_paladin",
+      "id": "cd_harness_divine_power",
       "level": 3,
-      "name_ru": "Божественный канал",
-      "name_en": "Channel Divinity",
-      "summary_ru": "1 использование между коротким или продолжительным отдыхом. Общий пул на опции клятвы.",
-      "kind": "resource",
+      "name_ru": "Праведное восстановление",
+      "name_en": "Harness Divine Power",
+      "summary_ru": "Tasha (optional): бонусным Channel Divinity — восстановить одну потраченную ячейку (ур. ≤ половины ур. паладина, вверх). Число раз = бонус мастерства / долгий отдых.",
+      "kind": "bonus",
+      "optional": true,
+      "source_book": "tcoe",
       "resource": {
         "uses": 1,
         "recharge": "short_rest",
@@ -147,6 +164,16 @@
           "feat_coming_soon"
         ]
       }
+    },
+    {
+      "id": "martial_versatility_paladin",
+      "level": 4,
+      "name_ru": "Боевая универсальность",
+      "name_en": "Martial Versatility",
+      "summary_ru": "Tasha (optional): когда берёшь ASI, можешь заменить один боевой стиль на другой, доступный паладину.",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
     },
     {
       "id": "extra_attack_paladin",

@@ -27,8 +27,25 @@ export function childrenOf(items: InventoryItem[], parentId: string): InventoryI
   return items.filter((item) => item.parent_id === parentId)
 }
 
+/**
+ * UI «раскрыт»: показываем вложенные строки.
+ * Soft-collapse хранит детей в инвентаре, но прячет их — флаг container_expanded.
+ * Legacy (без флага): наличие детей = раскрыт.
+ */
 export function isExpandedPack(items: InventoryItem[], packId: string): boolean {
+  const pack = items.find((item) => item.id === packId)
+  if (!pack) return false
+  if (pack.container_expanded === true) return true
+  if (pack.container_expanded === false) return false
   return items.some((item) => item.parent_id === packId)
+}
+
+/** Soft-collapsed: children exist but UI is closed — re-open without catalog reset. */
+export function hasSoftCollapsedChildren(
+  items: InventoryItem[],
+  packId: string,
+): boolean {
+  return !isExpandedPack(items, packId) && childrenOf(items, packId).length > 0
 }
 
 export function hasPackContents(data: Record<string, unknown> | null | undefined): boolean {
@@ -197,6 +214,7 @@ function newId(): string {
  * Expand one pack row into child inventory lines.
  * Multiplies content qty by pack.qty. Sets pack weight to 0 (children carry mass).
  * Stores prior pack weight in pack_weight_lb for collapse.
+ * Re-expand after soft collapse reuses existing children (qty edits persist).
  */
 export function expandPack(input: {
   items: InventoryItem[]
@@ -209,6 +227,23 @@ export function expandPack(input: {
   // Duplicate instance ids would mark every root with that id as expanded.
   if (packMatches.length !== 1) return input.items
   if (isExpandedPack(input.items, input.packId)) return input.items
+
+  const existingKids = childrenOf(input.items, input.packId)
+  if (existingKids.length > 0) {
+    // Soft re-open: keep edited qty / spent contents, only flip the UI flag.
+    return input.items.map((item) =>
+      item.id === pack.id
+        ? {
+            ...item,
+            qty: 1,
+            weight_lb: 0,
+            container_expanded: true,
+            container_kind: item.container_kind ?? 'pack',
+          }
+        : item,
+    )
+  }
+
   if (input.contents.length === 0) return input.items
 
   const packQty = Math.max(1, Math.floor(pack.qty))
@@ -247,7 +282,8 @@ export function expandPack(input: {
 }
 
 /**
- * Collapse: remove children, put their *current* total weight back on the pack.
+ * Soft collapse: keep children in inventory (qty edits survive re-expand),
+ * hide them in UI via container_expanded=false, mirror live weight onto the pack shell.
  * Spent waterskins / eaten rations stay reflected — we do not restore the pre-expand snapshot.
  */
 export function collapsePack(input: {
@@ -276,18 +312,16 @@ export function collapsePack(input: {
       ? pack.pack_weight_lb
       : kidsWeight
 
-  return input.items
-    .filter((item) => item.parent_id !== pack.id)
-    .map((item) =>
-      item.id === pack.id
-        ? {
-            ...item,
-            weight_lb: restored,
-            container_expanded: false,
-            pack_weight_lb: restored,
-          }
-        : item,
-    )
+  return input.items.map((item) =>
+    item.id === pack.id
+      ? {
+          ...item,
+          weight_lb: restored,
+          container_expanded: false,
+          pack_weight_lb: restored,
+        }
+      : item,
+  )
 }
 
 /** Delete item; if pack, also drop children. */

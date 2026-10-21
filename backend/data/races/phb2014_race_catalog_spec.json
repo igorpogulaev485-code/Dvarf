@@ -4173,10 +4173,11 @@
           "id": "hellish_rebuke",
           "spell_slug": "hellish_rebuke",
           "name_ru": "Адская месть",
-          "level": 1,
+          "level": 2,
           "grant": "innate",
           "unlock_level": 3,
-          "casting_ability": "cha"
+          "casting_ability": "cha",
+          "notes_ru": "как заклинание 2 ур. (наследие)"
         },
         {
           "id": "darkness",
@@ -4585,10 +4586,11 @@
           "id": "ray_of_sickness",
           "spell_slug": "ray_of_sickness",
           "name_ru": "Луч болезни",
-          "level": 1,
+          "level": 2,
           "grant": "innate",
           "unlock_level": 3,
-          "casting_ability": "cha"
+          "casting_ability": "cha",
+          "notes_ru": "как заклинание 2 ур. (наследие)"
         },
         {
           "id": "crown_of_madness",
@@ -4637,10 +4639,11 @@
           "id": "disguise_self",
           "spell_slug": "disguise_self",
           "name_ru": "Маскировка",
-          "level": 1,
+          "level": 2,
           "grant": "innate",
           "unlock_level": 3,
-          "casting_ability": "cha"
+          "casting_ability": "cha",
+          "notes_ru": "как заклинание 2 ур. (наследие)"
         },
         {
           "id": "detect_thoughts",
@@ -4689,10 +4692,11 @@
           "id": "charm_person",
           "spell_slug": "charm_person",
           "name_ru": "Очарование личности",
-          "level": 1,
+          "level": 2,
           "grant": "innate",
           "unlock_level": 3,
-          "casting_ability": "cha"
+          "casting_ability": "cha",
+          "notes_ru": "как заклинание 2 ур. (наследие)"
         },
         {
           "id": "suggestion",
@@ -4741,10 +4745,11 @@
           "id": "disguise_self",
           "spell_slug": "disguise_self",
           "name_ru": "Маскировка",
-          "level": 1,
+          "level": 2,
           "grant": "innate",
           "unlock_level": 3,
-          "casting_ability": "cha"
+          "casting_ability": "cha",
+          "notes_ru": "как заклинание 2 ур. (наследие)"
         },
         {
           "id": "invisibility",
@@ -4793,10 +4798,11 @@
           "id": "armor_of_agathys",
           "spell_slug": "armor_of_agathys",
           "name_ru": "Доспех Агатиса",
-          "level": 1,
+          "level": 2,
           "grant": "innate",
           "unlock_level": 3,
-          "casting_ability": "cha"
+          "casting_ability": "cha",
+          "notes_ru": "как заклинание 2 ур. (наследие)"
         },
         {
           "id": "darkness",
@@ -4845,10 +4851,11 @@
           "id": "tensers_floating_disk",
           "spell_slug": "tensers_floating_disk",
           "name_ru": "Диск Тензера",
-          "level": 1,
+          "level": 2,
           "grant": "innate",
           "unlock_level": 3,
-          "casting_ability": "cha"
+          "casting_ability": "cha",
+          "notes_ru": "как заклинание 2 ур. (наследие)"
         },
         {
           "id": "arcane_lock",
@@ -4897,10 +4904,11 @@
           "id": "burning_hands",
           "spell_slug": "burning_hands",
           "name_ru": "Огненные ладони",
-          "level": 1,
+          "level": 2,
           "grant": "innate",
           "unlock_level": 3,
-          "casting_ability": "cha"
+          "casting_ability": "cha",
+          "notes_ru": "как заклинание 2 ур. (наследие)"
         },
         {
           "id": "flame_blade",
@@ -4949,10 +4957,11 @@
           "id": "searing_smite",
           "spell_slug": "searing_smite",
           "name_ru": "Палящая кара",
-          "level": 1,
+          "level": 2,
           "grant": "innate",
           "unlock_level": 3,
-          "casting_ability": "cha"
+          "casting_ability": "cha",
+          "notes_ru": "как заклинание 2 ур. (наследие)"
         },
         {
           "id": "branding_smite",

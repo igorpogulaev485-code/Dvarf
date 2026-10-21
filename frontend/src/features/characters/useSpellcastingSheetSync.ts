@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useRef } from 'react'
 import {
+  backfillSpellClassFields,
+  buildCastProfiles,
+} from '../../shared/dnd/castProfiles'
+import {
   applySpellcastingSuggestion,
   suggestSpellcasting,
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
-import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import { createClassLevel, type ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { abilityModifier, type AbilityKey } from './sheetTypes'
 import {
   ensureInnateGrantCasts,
@@ -30,6 +34,7 @@ type UseSpellcastingSheetSyncArgs = {
 /**
  * Keep slots / prepare cap / known-ready / innate grant_cast aligned with class
  * levels — same side-effects that used to live only inside SpellsPanel.
+ * M1: also exposes castProfiles and backfills class_slug when safe.
  */
 export function useSpellcastingSheetSync({
   enabled = true,
@@ -43,6 +48,13 @@ export function useSpellcastingSheetSync({
   onChange,
   onToast,
 }: UseSpellcastingSheetSyncArgs) {
+  const classRows = useMemo(() => {
+    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
+    if (rows.length > 0) return rows
+    if (!className.trim()) return []
+    return [createClassLevel({ name: className, level })]
+  }, [classes, className, level])
+
   const suggestion = useMemo(
     () =>
       suggestSpellcasting({
@@ -53,6 +65,17 @@ export function useSpellcastingSheetSync({
         abilityModFor: (ability) => abilityModifier(abilities[ability]),
       }),
     [className, level, classes, subclassCasters, abilities],
+  )
+
+  const castProfiles = useMemo(
+    () =>
+      buildCastProfiles({
+        classes: classRows,
+        subclassCasters,
+        proficiencyBonus,
+        abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      }),
+    [classRows, subclassCasters, proficiencyBonus, abilities],
   )
 
   const knownCaster = isKnownSpellcastingMode({
@@ -87,6 +110,19 @@ export function useSpellcastingSheetSync({
           `${s.id}:${s.race_grant ?? ''}:${s.feat_grant ?? ''}:${s.notes}:${s.grant_cast?.max ?? ''}`,
       )
       .join('|'),
+  ])
+
+  // M1: backfill class_slug on mono / labeled rows (no toast — silent migrate).
+  useEffect(() => {
+    if (!enabled || castProfiles.length === 0) return
+    const next = backfillSpellClassFields(spells.known, castProfiles)
+    if (next === spells.known) return
+    onChange({ ...spells, known: next })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    enabled,
+    castProfiles.map((row) => `${row.id}:${row.slug}`).join('|'),
+    spells.known.map((s) => `${s.id}:${s.class_slug ?? ''}`).join('|'),
   ])
 
   const subclassCasterKey = (subclassCasters ?? [])
@@ -131,5 +167,5 @@ export function useSpellcastingSheetSync({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, prepareKey])
 
-  return { suggestion, knownCaster }
+  return { suggestion, knownCaster, castProfiles }
 }

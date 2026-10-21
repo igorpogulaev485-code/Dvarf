@@ -120,7 +120,11 @@ import {
   raceSubraceRequired,
   resolveRaceGrantDef,
 } from '../shared/dnd/raceGrants'
-import { raceRequiresFeatPick } from '../shared/dnd/featGrants'
+import {
+  raceRequiresFeatPick,
+  readFeatGrantLedger,
+  type AppliedFeatGrant,
+} from '../shared/dnd/featGrants'
 import type {
   SubclassChangeMode,
   SubclassGrantDef,
@@ -128,14 +132,21 @@ import type {
 } from '../shared/dnd/subclassGrants'
 import {
   emptyFeaturePicks,
+  featurePicksToSheet,
   type FeaturePicksState,
 } from '../shared/dnd/featurePicks'
+import {
+  bridgeManeuversIntoFeaturePicks,
+  extractManeuverIdsFromSubclassPicks,
+} from '../shared/dnd/battleMasterManeuverBridge'
 import { EMPTY_ARMOR } from '../features/characters/identity'
 import { abilityModifier } from '../features/characters/sheetTypes'
 import {
   addCatalogSpellToKnown,
   countLearnedCantrips,
+  countLearnedCantripsForSlug,
   countLearnedLeveled,
+  countLearnedLeveledForSlug,
   countPreparedLeveled,
   ensureKnownSpellsReady,
   isKnownSpellcastingMode,
@@ -143,6 +154,11 @@ import {
   spellsToSheet,
   type SpellsState,
 } from '../features/characters/spells'
+import {
+  formatNamedCantripBudgets,
+  resolveSpellLearnBudgets,
+  totalCantripsBudget,
+} from '../shared/dnd/castProfiles'
 import {
   applySpellcastingSuggestion,
   highestSpellSlotLevelForClasses,
@@ -397,6 +413,7 @@ export function CreateCharacterPage() {
     useState<GuidedWizardSession | null>(null)
   const [advanceWizardAfterSubclass, setAdvanceWizardAfterSubclass] = useState(false)
   const [spellsOpen, setSpellsOpen] = useState<'prepare' | 'grimoire' | null>(null)
+  const [grimoireClassFilter, setGrimoireClassFilter] = useState<string | null>(null)
   const [spells, setSpells] = useState<SpellsState>(() => readSpells({}))
   const [racialBonuses, setRacialBonuses] = useState<Partial<AbilityScores>>({})
   const [toast, setToast] = useState<string | null>(null)
@@ -525,6 +542,16 @@ export function CreateCharacterPage() {
       resolveSpellLearnBudget({
         classes: state.classes,
         abilityModFor,
+      }),
+    [state.classes, abilityModFor],
+  )
+
+  const spellLearnBudgets = useMemo(
+    () =>
+      resolveSpellLearnBudgets({
+        classes: state.classes,
+        abilityModFor,
+        proficiencyBonus: 2,
       }),
     [state.classes, abilityModFor],
   )
@@ -987,12 +1014,21 @@ export function CreateCharacterPage() {
           : {}),
       },
     }
+    // Battle Master: maneuvers_3 (flavor) → feature_picks.combat_superiority
+    const nextFeaturePicks = bridgeManeuversIntoFeaturePicks({
+      featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+      classEntryId,
+      maneuverIds: extractManeuverIdsFromSubclassPicks(picks),
+      mode: 'merge_missing',
+    })
     patchState({
       classes: nextClasses,
       subclassSetups: nextSetups,
+      featurePicks: nextFeaturePicks,
       sheetDraft: {
         ...state.sheetDraft,
         subclass_setups: nextSetups,
+        feature_picks: featurePicksToSheet(nextFeaturePicks),
       },
       stepDirty: { ...state.stepDirty, leveling: true },
     })
@@ -1760,11 +1796,45 @@ export function CreateCharacterPage() {
           }
           openFeatureWizardForClass(classEntryId)
         }}
-        onOpenSpells={() => setSpellsOpen('grimoire')}
+        onOpenSpells={() => {
+          setGrimoireClassFilter(null)
+          setSpellsOpen('grimoire')
+        }}
+        onOpenSpellsForClass={(slug) => {
+          setGrimoireClassFilter(slug)
+          setSpellsOpen('grimoire')
+        }}
         onOpenPrepare={
+          spellLearnBudgets.some((row) => row.mode === 'spellbook') ||
           spellLearnBudget?.mode === 'spellbook'
             ? () => setSpellsOpen('prepare')
             : undefined
+        }
+        spellBudgetMeta={
+          spellLearnBudgets.length > 1
+            ? formatNamedCantripBudgets(
+                spellLearnBudgets,
+                Object.fromEntries(
+                  spellLearnBudgets.map((row) => [
+                    row.slug,
+                    countLearnedCantripsForSlug(spells.known, row.slug),
+                  ]),
+                ),
+              )
+            : null
+        }
+        spellClassBudgets={
+          spellLearnBudgets.length > 0
+            ? spellLearnBudgets.map((row) => ({
+                slug: row.slug,
+                labelRu: row.labelRu,
+                mode: row.mode,
+                cantripsKnown: countLearnedCantripsForSlug(spells.known, row.slug),
+                cantripsMax: row.cantrips,
+                leveledKnown: countLearnedLeveledForSlug(spells.known, row.slug),
+                leveledKnownMax: row.leveledKnown,
+              }))
+            : null
         }
         spellcasting={
           spellcastingSuggestion && spellcastingSuggestion.progression !== 'none'
@@ -1775,7 +1845,10 @@ export function CreateCharacterPage() {
                 knownLeveled: countLearnedLeveled(spells.known),
                 preparedLeveled: countPreparedLeveled(spells.known),
                 cantripsKnown: countLearnedCantrips(spells.known),
-                cantripsMax: spellLearnBudget?.cantrips ?? null,
+                cantripsMax:
+                  spellLearnBudgets.length > 1
+                    ? totalCantripsBudget(spellLearnBudgets)
+                    : (spellLearnBudget?.cantrips ?? null),
                 leveledKnownMax: spellLearnBudget?.leveledKnown ?? null,
                 freeBookLeft:
                   spellLearnBudget?.mode === 'spellbook'
@@ -2112,15 +2185,24 @@ export function CreateCharacterPage() {
         onConfirmClassGrant={() => {
           // Class grants are handled by ClassSetupDialog in the pipeline.
         }}
-        onConfirmAsi={(entry: AppliedClassAsi) => {
+        onConfirmAsi={(entry: AppliedClassAsi, featGrant?: AppliedFeatGrant) => {
           const nextAsi = [...(state.classAsi ?? []), entry]
+          const prevFeats = readFeatGrantLedger(state.sheetDraft.feat_grants)
+          const nextFeats = featGrant
+            ? [...prevFeats.filter((row) => row.id !== featGrant.id), featGrant]
+            : prevFeats
           patchState({
             classAsi: nextAsi,
             sheetDraft: {
               ...state.sheetDraft,
               class_asi: nextAsi,
+              feat_grants: nextFeats,
             },
           })
+          if (featGrant) {
+            setToast(`ASI → черта «${featGrant.nameRu}»`)
+            return
+          }
           const bits = Object.entries(entry.bonuses)
             .filter(([, amount]) => amount)
             .map(([key, amount]) => `${ABILITY_LABELS[key as AbilityKey]}+${amount}`)
@@ -2284,9 +2366,14 @@ export function CreateCharacterPage() {
         edition="2014"
         spells={spells}
         classes={state.classes}
-        knownCaster={spellLearnBudget?.mode === 'known'}
+        knownCaster={
+          spellLearnBudgets.some((row) => row.mode === 'known') ||
+          spellLearnBudget?.mode === 'known'
+        }
         learnBudget={spellLearnBudget}
         abilityModFor={abilityModFor}
+        initialClassFilter={grimoireClassFilter}
+        accessContext="create"
         coins={readInventory(state.sheetDraft).coins}
         onCoinsChange={(coins) => {
           const inv = readInventory(state.sheetDraft)
@@ -2300,11 +2387,18 @@ export function CreateCharacterPage() {
         }}
         inventoryItems={readInventory(state.sheetDraft).items}
         onChange={setSpells}
-        onClose={() => setSpellsOpen(null)}
+        onClose={() => {
+          setSpellsOpen(null)
+          setGrimoireClassFilter(null)
+        }}
         onToast={setToast}
       />
       <PrepareSpellsDialog
-        open={spellsOpen === 'prepare' && spellLearnBudget?.mode === 'spellbook'}
+        open={
+          spellsOpen === 'prepare' &&
+          (spellLearnBudget?.mode === 'spellbook' ||
+            spellLearnBudgets.some((row) => row.mode === 'spellbook'))
+        }
         spells={spells}
         learnMode="spellbook"
         onChange={setSpells}

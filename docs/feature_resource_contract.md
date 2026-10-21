@@ -12,6 +12,38 @@
 | **Scale** | Какое значение сейчас? | `scale.by_level` → `scaleValue` |
 | **Pool** | Сколько зарядов и как тратить? | `resource` → `feat:*` в `sheet.resources` |
 
+## Опциональные умения (Tasha / TCoE)
+
+Поля на `ClassFeatureDef`:
+
+| Поле | Смысл |
+|------|--------|
+| `optional: true` | Умение из optional class features; бейдж «Tasha · опционально» в UI |
+| `source_book: "tcoe"` | Источник контента |
+| `replaces` | Id PHB-умения, которое это row заменяет (оба остаются в unlock — стол выбирает) |
+
+**Политика v1:** optional = **не opt-in pick**. Как `wild_companion` / `cd_harness_divine_power`: при `level <= classLevel` умение видно всем. Стол может игнорировать.
+
+**Миграция существующих персонажей:** список умений **не хранится** в sheet — он считается `unlockFeaturesForClasses` из пакетов. Достаточно обновить JSON (backend + frontend копия). При следующем открытии листа:
+1. новые rows появляются в панели умений;
+2. `syncFeatureResources` дописывает новые `feat:*` пулы (Favored Foe, Nature's Veil, …).
+
+Alembic по персонажам **не нужен**. Эпоха контента: `OPTIONAL_CLASS_FEATURES_EPOCH` в `classFeatures.ts` (для самопроверок / будущих stamp'ов).
+
+Инжект контента: `backend/scripts/inject_tcoe_optional_features.py` (идемпотентно).
+
+## Умение предыстории (PHB feature)
+
+| Куда | Что |
+|------|-----|
+| Каталог | `feature_name_ru` / `feature_text_ru` в `phb2014_background_catalog_spec.json` |
+| Ledger | `sheet.background_grant.featureNameRu` / `featureTextRu` |
+| Текст | marked-блок в `text_blocks.traits` (`<!-- dvarf-background-feature -->`) |
+| UI способностей | карточка «предыстория» в `ClassFeaturesPanel` |
+| Classic | бокс «Умения и особенности» читает `traits` (+ merge `features`) |
+
+Миграция старых листов: при открытии `ensureBackgroundFeatureOnDraft` / soft-stamp из каталога по slug/имени; alembic `z2a3b4c5d6e7` обновляет тексты в `catalog_entries`.
+
 ## Паттерны (чеклист нового умения)
 
 1. **Passive scale** — только таблица (Скрытая атака, Martial Arts)

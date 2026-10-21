@@ -56,6 +56,18 @@ export type SheetSpell = {
    */
   source_kind?: SpellSourceKind
   /**
+   * Multiclass: which class this acquisition belongs to (PHB association).
+   * Drives spell attack / save DC via cast profiles (M1+).
+   */
+  class_slug?: string | null
+  /** Sheet class-level row id when known (stable across renames). */
+  class_entry_id?: string | null
+  /**
+   * When the same catalog spell is learned under two classes, share a group id
+   * so combat can show one row with dual cast options (M3).
+   */
+  acquisition_group_id?: string | null
+  /**
    * Race grant mode mirrored from catalog.
    * innate: free racial cast, does not count toward prepare cap.
    * spell_list: mark/class-list expansion; player prepares like class spells.
@@ -373,6 +385,21 @@ function readSpell(raw: unknown, index: number): SheetSpell {
       ? { description: row.description }
       : {}),
     ...(sourceKind ? { source_kind: sourceKind } : {}),
+    ...(typeof row.class_slug === 'string' && row.class_slug.trim()
+      ? { class_slug: row.class_slug.trim() }
+      : typeof row.classSlug === 'string' && row.classSlug.trim()
+        ? { class_slug: row.classSlug.trim() }
+        : {}),
+    ...(typeof row.class_entry_id === 'string' && row.class_entry_id.trim()
+      ? { class_entry_id: row.class_entry_id.trim() }
+      : typeof row.classEntryId === 'string' && row.classEntryId.trim()
+        ? { class_entry_id: row.classEntryId.trim() }
+        : {}),
+    ...(typeof row.acquisition_group_id === 'string' && row.acquisition_group_id.trim()
+      ? { acquisition_group_id: row.acquisition_group_id.trim() }
+      : typeof row.acquisitionGroupId === 'string' && row.acquisitionGroupId.trim()
+        ? { acquisition_group_id: row.acquisitionGroupId.trim() }
+        : {}),
     ...(raceGrant ? { race_grant: raceGrant } : {}),
     ...(featGrant ? { feat_grant: featGrant } : {}),
     ...(preparedLocked ? { prepared_locked: true } : {}),
@@ -982,6 +1009,11 @@ export function spellsToSheet(state: SpellsState): Record<string, unknown> {
         ...(spell.higher_levels ? { higher_levels: spell.higher_levels } : {}),
         ...(spell.description ? { description: spell.description } : {}),
         ...(spell.source_kind ? { source_kind: spell.source_kind } : {}),
+        ...(spell.class_slug ? { class_slug: spell.class_slug } : {}),
+        ...(spell.class_entry_id ? { class_entry_id: spell.class_entry_id } : {}),
+        ...(spell.acquisition_group_id
+          ? { acquisition_group_id: spell.acquisition_group_id }
+          : {}),
         ...(spell.race_grant ? { race_grant: spell.race_grant } : {}),
         ...(spell.feat_grant ? { feat_grant: spell.feat_grant } : {}),
         ...(spell.prepared_locked || isPreparedLocked(spell)
@@ -1069,9 +1101,62 @@ export function countLearnedCantrips(known: SheetSpell[]): number {
   return known.filter((spell) => spell.level <= 0 && canRemoveSheetSpell(spell)).length
 }
 
+/** Player cantrips tagged with class_slug (M2 per-class budgets). */
+export function countLearnedCantripsForSlug(
+  known: SheetSpell[],
+  classSlug: string,
+): number {
+  const slug = classSlug.trim().toLowerCase()
+  if (!slug) return 0
+  return known.filter(
+    (spell) =>
+      spell.level <= 0 &&
+      canRemoveSheetSpell(spell) &&
+      (spell.class_slug ?? '').trim().toLowerCase() === slug,
+  ).length
+}
+
+/** Counts player cantrips per class_slug (untagged omitted). */
+export function countLearnedCantripsBySlug(
+  known: SheetSpell[],
+): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const spell of known) {
+    if (spell.level > 0 || !canRemoveSheetSpell(spell)) continue
+    const slug = (spell.class_slug ?? '').trim().toLowerCase()
+    if (!slug) continue
+    out[slug] = (out[slug] ?? 0) + 1
+  }
+  return out
+}
+
+/** Locked feature cantrips (e.g. Pact of the Tome) — shown outside class budgets. */
+export function countLockedFeatureCantrips(known: SheetSpell[]): number {
+  return known.filter(
+    (spell) =>
+      spell.level <= 0 &&
+      isPreparedLocked(spell) &&
+      (spell.source_kind === 'feature' || spell.id.startsWith('feature-spell:')),
+  ).length
+}
+
 /** Player-chosen leveled spells on the known list / in the spellbook. */
 export function countLearnedLeveled(known: SheetSpell[]): number {
   return known.filter((spell) => spell.level > 0 && canRemoveSheetSpell(spell)).length
+}
+
+export function countLearnedLeveledForSlug(
+  known: SheetSpell[],
+  classSlug: string,
+): number {
+  const slug = classSlug.trim().toLowerCase()
+  if (!slug) return 0
+  return known.filter(
+    (spell) =>
+      spell.level > 0 &&
+      canRemoveSheetSpell(spell) &&
+      (spell.class_slug ?? '').trim().toLowerCase() === slug,
+  ).length
 }
 
 /** Combat list: cantrips + prepared leveled spells. */
@@ -1214,6 +1299,36 @@ export function knownHasCatalogId(known: SheetSpell[], catalogId: string): boole
   return known.some((spell) => spell.catalog_id === catalogId)
 }
 
+/** True when the same catalog spell is already bound to this class (M4 dual-learn). */
+export function knownHasCatalogIdForSlug(
+  known: SheetSpell[],
+  catalogId: string,
+  classSlug?: string | null,
+): boolean {
+  const slug = classSlug?.trim().toLowerCase() || null
+  if (!slug) return knownHasCatalogId(known, catalogId)
+  return known.some(
+    (spell) =>
+      spell.catalog_id === catalogId &&
+      (spell.class_slug ?? '').trim().toLowerCase() === slug,
+  )
+}
+
+/** Other class bindings of the same catalog spell (for §2.4 warn). */
+export function otherClassBindingsForCatalog(
+  known: SheetSpell[],
+  catalogId: string,
+  classSlug?: string | null,
+): SheetSpell[] {
+  const slug = classSlug?.trim().toLowerCase() || null
+  return known.filter((spell) => {
+    if (spell.catalog_id !== catalogId) return false
+    const rowSlug = (spell.class_slug ?? '').trim().toLowerCase() || null
+    if (!slug) return true
+    return rowSlug !== slug
+  })
+}
+
 export function addCatalogSpellToKnown(
   known: SheetSpell[],
   entry: { id: string; name_ru: string; data?: Record<string, unknown> },
@@ -1222,9 +1337,13 @@ export function addCatalogSpellToKnown(
     maxPrepared?: number | null
     spellbook_acquisition?: SpellbookAcquisition
     in_spellbook?: boolean
+    /** Multiclass: which class this acquisition belongs to. */
+    class_slug?: string | null
+    class_entry_id?: string | null
   },
 ): SheetSpell[] {
-  if (knownHasCatalogId(known, entry.id)) return known
+  // Same catalog under a different class_slug is a second binding (M4 §2.4).
+  if (knownHasCatalogIdForSlug(known, entry.id, options?.class_slug)) return known
   const spell = sheetSpellFromCatalog(entry)
   const prepare = options?.prepare ?? spell.level <= 0
   const maxPrepared = options?.maxPrepared ?? null
@@ -1236,6 +1355,8 @@ export function addCatalogSpellToKnown(
     ...(options?.in_spellbook !== undefined && spell.level > 0
       ? { in_spellbook: options.in_spellbook }
       : {}),
+    ...(options?.class_slug ? { class_slug: options.class_slug } : {}),
+    ...(options?.class_entry_id ? { class_entry_id: options.class_entry_id } : {}),
   }
   let next = [...known, withBookMeta]
   if (prepare && withBookMeta.level > 0) {
