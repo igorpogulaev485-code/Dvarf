@@ -2,9 +2,11 @@
 import {
   backfillSpellClassFields,
   buildCastProfiles,
+  buildGrimoireShelfSources,
+  catalogSpellMatchesAnyShelf,
+  findDualCastSiblings,
   formatNamedCantripBudgets,
   mergeCastProfilesForDisplay,
-  findDualCastSiblings,
   resolveSpellCastStats,
   resolveSpellLearnBudgets,
   totalCantripsBudget,
@@ -162,5 +164,33 @@ const dual = findDualCastSiblings(dualKnown, dualKnown[0]!)
 assert(dual.length === 2, `dual siblings got ${dual.length}`)
 const solo = findDualCastSiblings(dualKnown, dualKnown[2]!)
 assert(solo.length === 1 && solo[0]!.id === 'c', 'solo no dual')
+
+// --- M5 shelves + alone-max (Art15 / War5) ---
+const shelves = buildGrimoireShelfSources(kvakProfiles)
+assert(shelves.length === 2, `shelves ${shelves.length}`)
+assert(
+  shelves.some((row) => row.slug === 'artificer' && row.aloneMaxLevel === 4),
+  'art alone-max 4 at 15 (half_up)',
+)
+assert(
+  shelves.some((row) => row.slug === 'warlock' && row.aloneMaxLevel === 3),
+  'warlock alone-max = pact 3 at 5',
+)
+assert(
+  catalogSpellMatchesAnyShelf(['artificer'], 4, shelves),
+  'art can see 4th',
+)
+assert(
+  !catalogSpellMatchesAnyShelf(['warlock'], 4, shelves),
+  'warlock cannot see 4th via shared slots',
+)
+assert(
+  catalogSpellMatchesAnyShelf(['warlock'], 3, shelves),
+  'warlock sees 3rd',
+)
+assert(
+  catalogSpellMatchesAnyShelf(['warlock', 'artificer'], 0, shelves),
+  'cantrip on either list',
+)
 
 console.log('castProfiles.selfcheck: ok')

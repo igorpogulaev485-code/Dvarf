@@ -401,10 +401,71 @@ export function formatNamedCantripBudgets(
   return parts.join(' · ')
 }
 
+/** One grimoire shelf = one caster profile (M5). */
+export type GrimoireShelfSource = {
+  slug: string
+  labelRu: string
+  mode: SpellLearnMode | null
+  aloneMaxLevel: number
+}
+
+export function buildGrimoireShelfSources(
+  profiles: SpellCastProfile[],
+): GrimoireShelfSource[] {
+  const seen = new Set<string>()
+  const out: GrimoireShelfSource[] = []
+  for (const row of profiles) {
+    const slug = row.slug.trim().toLowerCase()
+    if (!slug || seen.has(slug)) continue
+    seen.add(slug)
+    out.push({
+      slug,
+      labelRu: row.labelRu,
+      mode: row.mode,
+      aloneMaxLevel: row.aloneMaxLevel,
+    })
+  }
+  return out
+}
+
 /**
- * Pick which class acquires a catalog spell (for caps + class_slug stamp).
- * Prefer explicit class filter; else unique list overlap; else first profile overlap.
+ * Catalog row belongs on a shelf if it is on that class list and
+ * level ≤ that class’s alone-max (cantrips always when on list).
  */
+export function catalogSpellMatchesShelf(
+  catalogClassSlugs: string[],
+  spellLevel: number,
+  shelf: GrimoireShelfSource,
+): boolean {
+  const onList = catalogClassSlugs.some(
+    (slug) => slug.trim().toLowerCase() === shelf.slug,
+  )
+  if (!onList) return false
+  if (spellLevel <= 0) return true
+  return spellLevel <= shelf.aloneMaxLevel
+}
+
+export function catalogSpellMatchesAnyShelf(
+  catalogClassSlugs: string[],
+  spellLevel: number,
+  shelves: GrimoireShelfSource[],
+): boolean {
+  return shelves.some((shelf) =>
+    catalogSpellMatchesShelf(catalogClassSlugs, spellLevel, shelf),
+  )
+}
+
+export function describeGrimoireShelves(shelves: GrimoireShelfSource[]): string {
+  if (shelves.length === 0) return ''
+  return shelves
+    .map((shelf) =>
+      shelf.aloneMaxLevel > 0
+        ? `${shelf.labelRu} 1–${shelf.aloneMaxLevel}`
+        : `${shelf.labelRu} · заговоры`,
+    )
+    .join(' · ')
+}
+
 /**
  * Same catalog/name known under multiple class_slug → dual-cast options (M3).
  */

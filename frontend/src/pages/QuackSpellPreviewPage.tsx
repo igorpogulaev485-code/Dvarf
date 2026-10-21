@@ -1,9 +1,10 @@
 /**
- * DEV harness: Квакк-клон (Грунг Art15 / Warlock5) для скринов M1–M3.
- * Реальные компоненты PlayDesk — без auth/API. Статы как у репорта Ильи.
+ * DEV harness: Квакк-клон (Грунг Art15 / Warlock5) для скринов M1–M5.
+ * Реальные компоненты PlayDesk / Grimoire — без auth/API. Статы как у репорта Ильи.
  */
 import { useMemo, useState } from 'react'
 import { CastSpellDialog } from '../features/characters/CastSpellDialog'
+import { GrimoireDialog } from '../features/characters/GrimoireDialog'
 import { PlayDeskSpellsCompact } from '../features/characters/PlayDeskSpellsCompact'
 import type { SpellsState } from '../features/characters/spells'
 import { createClassLevel } from '../shared/dnd/classLevels'
@@ -14,6 +15,7 @@ import {
 import { createBonusLine } from '../features/characters/modifiers'
 import { abilityModifier, type AbilityKey } from '../features/characters/sheetTypes'
 import type { SheetSpell } from '../features/characters/spells'
+import { Button } from '../ui'
 
 const ABILITIES: Record<AbilityKey, number> = {
   str: 8,
@@ -203,6 +205,7 @@ function buildSpells(): SpellsState {
 export function QuackSpellPreviewPage() {
   const [spells, setSpells] = useState<SpellsState>(() => buildSpells())
   const [castSpell, setCastSpell] = useState<SheetSpell | null>(null)
+  const [grimoireOpen, setGrimoireOpen] = useState(false)
   const classes = useMemo(
     () => [
       createClassLevel({
@@ -267,6 +270,16 @@ export function QuackSpellPreviewPage() {
           Грунг · Изобретатель 15 (Артиллерист) / Колдун 5 (Исчадие) · БМ +6 · ИНТ 20 · ХАР 19 ·
           хиты 143
         </p>
+        <div style={{ marginTop: 10 }}>
+          <Button
+            type="button"
+            variant="secondary"
+            data-testid="quack-open-grimoire"
+            onClick={() => setGrimoireOpen(true)}
+          >
+            Гримуар (полки)
+          </Button>
+        </div>
       </header>
       <div
         className="play-desk"
@@ -315,6 +328,17 @@ export function QuackSpellPreviewPage() {
         onSelectSpellVariant={setCastSpell}
         onConfirm={() => setCastSpell(null)}
         onClose={() => setCastSpell(null)}
+      />
+      <GrimoireDialog
+        open={grimoireOpen}
+        edition="2014"
+        spells={spells}
+        classes={classes}
+        knownCaster
+        abilityModFor={(ability) => abilityModifier(ABILITIES[ability])}
+        accessContext="sheet"
+        onChange={setSpells}
+        onClose={() => setGrimoireOpen(false)}
       />
     </main>
   )
