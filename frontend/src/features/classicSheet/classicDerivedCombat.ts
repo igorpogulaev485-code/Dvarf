@@ -17,7 +17,10 @@ import {
 import { findFightingStylePick, readFeaturePicks } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
 import { buildSheetFormulaVars } from '../../shared/dnd/formulas'
-import { readAppliedRaceGrant } from '../../shared/dnd/raceGrants'
+import {
+  initiativeBonusFromRaceGrant,
+  readAppliedRaceGrant,
+} from '../../shared/dnd/raceGrants'
 import { totalCharacterLevel } from '../../shared/dnd/classLevels'
 import { readAttunements } from '../characters/attunement'
 import { readClassLevels } from '../characters/classLevels'
@@ -181,18 +184,25 @@ export function classicDisplayInitiative(character: CharacterDetail): string {
     cha: abilityModifier(abilities.cha),
   }
   const featGrants = readFeatGrantLedger(sheet.feat_grants)
-  const core =
-    override ??
-    abilityModifier(abilities.dex) + sumFeatInitiativeBonus(featGrants)
   const classes = readClassLevels(sheet, {
     className: character.class_name ?? '',
     level: character.level,
     subclassName: String(asRecord(sheet.identity).subclass_name ?? ''),
     classCatalogId: null,
   })
+  const proficiencyBonus = Number(asProfBonus(character))
+  const raceGrant = readAppliedRaceGrant(sheet.race_grant)
+  const core =
+    override ??
+    abilityModifier(abilities.dex) +
+      sumFeatInitiativeBonus(featGrants) +
+      initiativeBonusFromRaceGrant({
+        grant: raceGrant,
+        proficiencyBonus,
+      })
   const formulaVars = buildSheetFormulaVars({
     mods,
-    proficiencyBonus: Number(asProfBonus(character)),
+    proficiencyBonus,
     level: totalCharacterLevel(classes),
   })
   const total = withInitiativeBonus({

@@ -41,6 +41,11 @@ import { getMe } from '../shared/api/auth'
 import { hydratePipelineFromSheet } from '../features/createPipeline/createPipelineSheet'
 import { applyPipelineToSheet } from '../features/createPipeline/pipelineApply'
 import {
+  createDraftHasUsableSpellbook,
+  materializeCreatePipelineGear,
+  resolveBackgroundEntryForGear,
+} from '../features/createPipeline/createPipelineGear'
+import {
   clearPipelineState,
   loadOrCreatePipelineState,
   savePipelineState,
@@ -93,6 +98,16 @@ import {
   type GuidedWizardStep,
 } from '../shared/dnd/pendingFeatureChoices'
 import {
+  sanitizeFeaturePicksForPactBoons,
+  syncPactTomeCantrips,
+  withPactTomeCantripsStep,
+} from '../features/characters/pactTomeEffects'
+import {
+  ensurePactTomeSpellCatalog,
+  resolvePactTomeCantripFromOptions,
+} from '../features/characters/PactTomeCantripsPicker'
+import { spellOptionsForPactTomeCantrips } from '../shared/dnd/featSpellListOptions'
+import {
   isPointBuyValid,
   isStandardArrayComplete,
   isManualScoresValid,
@@ -137,10 +152,6 @@ import {
 import type { SpellcastingAbility } from '../shared/dnd/spells'
 import { remainingFreeSpellbookSlots } from '../shared/dnd/wizardSpellbook'
 import { inventoryToSheet, readInventory } from '../features/characters/inventory'
-import {
-  isSpellbookInventoryItem,
-  wizardHasUsableSpellbook,
-} from '../features/characters/wizardSpellbookInventory'
 import { Button, Stack, Text, Toast } from '../ui'
 
 const CASTER_NAME_RE =
@@ -771,6 +782,12 @@ export function CreateCharacterPage() {
         })
       }
     }
+    steps = withPactTomeCantripsStep(steps, {
+      classEntryId,
+      className: row.name,
+      classLevel: row.level,
+      featurePicks: picksState,
+    })
     if (steps.length === 0) {
       if (!options?.silentIfEmpty) {
         setToast('Все развилки и ASI для этого класса закрыты')
@@ -792,29 +809,59 @@ export function CreateCharacterPage() {
       advanceToStep?: CreatePipelineStepId
     },
   ) {
-    const classesForWizard = options?.classes
-    setState((prev) => {
-      const nextPicks = {
-        ...prev.classGrantPicks,
-        [entryId]: picks,
-      }
-      return {
-        ...prev,
-        ...(classesForWizard ? { classes: classesForWizard } : {}),
-        classGrantPicks: nextPicks,
-        sheetDraft: {
-          ...prev.sheetDraft,
-          class_grant_picks: nextPicks,
-        },
-        stepDirty: { ...prev.stepDirty, class: true, leveling: true },
-        ...(options?.advanceToStep ? { step: options.advanceToStep } : {}),
-      }
+    const classesForWizard = options?.classes ?? state.classes
+    const nextPicks = {
+      ...state.classGrantPicks,
+      [entryId]: picks,
+    }
+    const nextState: CreatePipelineState = {
+      ...state,
+      classes: classesForWizard,
+      classGrantPicks: nextPicks,
+    }
+    const classCatalogByEntryId = Object.fromEntries(
+      classesForWizard.map((row) => {
+        const catalog =
+          classes.find((item) => item.id === row.catalog_id) ||
+          classes.find(
+            (item) =>
+              item.name_ru.trim().toLowerCase() === row.name.trim().toLowerCase(),
+          ) ||
+          null
+        return [row.id, catalog]
+      }),
+    )
+    const gear = materializeCreatePipelineGear({
+      state: nextState,
+      backgroundEntry: resolveBackgroundEntryForGear(nextState, backgrounds),
+      classCatalogByEntryId,
+      spells,
+      ensureWizardBook: true,
+    })
+    setSpells(gear.spells)
+    setState({
+      ...nextState,
+      sheetDraft: {
+        ...nextState.sheetDraft,
+        class_grant_picks: nextPicks,
+        ...gear.sheetDraftPatch,
+      },
+      stepDirty: { ...nextState.stepDirty, class: true, leveling: true },
+      ...(options?.advanceToStep ? { step: options.advanceToStep } : {}),
     })
     setClassSetup(null)
-    if (options?.toast) setToast(options.toast)
+    if (options?.toast) {
+      setToast(
+        gear.ensuredSpellbook
+          ? `${options.toast} · добавлена книга заклинаний`
+          : options.toast,
+      )
+    } else if (gear.ensuredSpellbook) {
+      setToast('Добавлена книга заклинаний волшебника')
+    }
     if (!options?.openWizardAfter) return
     openFeatureWizardForClass(entryId, {
-      classes: classesForWizard ?? state.classes,
+      classes: classesForWizard,
       featurePicks: state.featurePicks ?? emptyFeaturePicks(),
       silentIfEmpty: true,
     })
@@ -1797,21 +1844,47 @@ export function CreateCharacterPage() {
         blockedLanguageNames={blockedLanguageNames}
         onClose={() => setBgSetup(null)}
         onConfirm={(result: BackgroundSetupConfirm) => {
-          patchState({
+          const nextState: CreatePipelineState = {
+            ...state,
             background: catalogRef(result.entry),
             backgroundSetup: {
               entry: catalogSnapshot(result.entry),
               picks: result.picks,
             },
+          }
+          const classCatalogByEntryId = Object.fromEntries(
+            nextState.classes.map((row) => {
+              const catalog =
+                classes.find((item) => item.id === row.catalog_id) ||
+                classes.find(
+                  (item) =>
+                    item.name_ru.trim().toLowerCase() ===
+                    row.name.trim().toLowerCase(),
+                ) ||
+                null
+              return [row.id, catalog]
+            }),
+          )
+          const gear = materializeCreatePipelineGear({
+            state: nextState,
+            backgroundEntry: result.entry,
+            classCatalogByEntryId,
+            spells,
+            ensureWizardBook: true,
+          })
+          setSpells(gear.spells)
+          setState({
+            ...nextState,
             sheetDraft: {
-              ...state.sheetDraft,
+              ...nextState.sheetDraft,
+              ...gear.sheetDraftPatch,
               background_grant: {
                 backgroundCatalogId: result.entry.id,
                 backgroundSlug: result.entry.slug,
                 picks: result.picks,
               },
             },
-            stepDirty: { ...state.stepDirty, background: true },
+            stepDirty: { ...nextState.stepDirty, background: true },
             step: 'class',
           })
           setBgSetup(null)
@@ -1984,13 +2057,57 @@ export function CreateCharacterPage() {
         blockedSkillKeys={blockedSkillKeys}
         blockedToolNames={blockedToolNames}
         onFeaturePicksChange={(featurePicks: FeaturePicksState) => {
-          patchState({
+          const sanitized = sanitizeFeaturePicksForPactBoons({
             featurePicks,
+            classes: state.classes,
+          })
+          patchState({
+            featurePicks: sanitized,
             sheetDraft: {
               ...state.sheetDraft,
-              feature_picks: featurePicks,
+              feature_picks: sanitized,
             },
           })
+          setGuidedWizard((prev) => {
+            if (!prev) return null
+            const step = prev.steps[prev.index]
+            if (
+              !step ||
+              (step.kind !== 'feature_choice' && step.kind !== 'pact_tome_cantrips')
+            ) {
+              return prev
+            }
+            const classEntryId = step.classEntryId
+            const classRow = state.classes.find((row) => row.id === classEntryId)
+            if (!classRow) return prev
+            const nextSteps = withPactTomeCantripsStep(prev.steps, {
+              classEntryId,
+              className: classRow.name,
+              classLevel: classRow.level,
+              featurePicks: sanitized,
+            })
+            if (nextSteps === prev.steps) return prev
+            return { ...prev, steps: nextSteps }
+          })
+          void (async () => {
+            let rows: Awaited<ReturnType<typeof ensurePactTomeSpellCatalog>> = []
+            try {
+              rows = await ensurePactTomeSpellCatalog('2014')
+            } catch {
+              rows = []
+            }
+            const options = spellOptionsForPactTomeCantrips({ spells: rows })
+            setSpells((prev) => {
+              const synced = syncPactTomeCantrips({
+                spells: prev,
+                featurePicks: sanitized,
+                classes: state.classes,
+                resolveSpell: (slug) =>
+                  resolvePactTomeCantripFromOptions(slug, options),
+              })
+              return synced.changed ? synced.spells : prev
+            })
+          })()
         }}
         onConfirmClassGrant={() => {
           // Class grants are handled by ClassSetupDialog in the pipeline.
@@ -2046,16 +2163,17 @@ export function CreateCharacterPage() {
           const step = guidedWizard?.steps[guidedWizard.index]
           if (!step || step.kind !== 'spellbook_picks') return null
           const inv = readInventory(state.sheetDraft)
-          const hasBook =
-            wizardHasUsableSpellbook(spells) ||
-            inv.items.some(isSpellbookInventoryItem)
+          const hasBook = createDraftHasUsableSpellbook({
+            spells,
+            inventory: inv,
+          })
           const slotCap = highestSpellSlotLevelForClasses(state.classes)
           return {
             maxSpellLevel: Math.max(1, slotCap || 1),
             blockedCatalogIds: spells.known
               .map((spell) => spell.catalog_id)
               .filter((id): id is string => Boolean(id)),
-            // Create kit includes a spellbook; don't block starting free fills.
+            // Real draft inventory + bind; L1 OR only as last-resort safety net.
             hasBook: hasBook || step.classLevel <= 1,
             classListSlugs: ['wizard'],
           }

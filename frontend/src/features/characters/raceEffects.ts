@@ -401,6 +401,9 @@ export function applyRaceGrantToDraft(input: {
     naturalArmor: def.naturalArmor,
     naturalWeapons,
     movement,
+    activatedMovement: def.activatedMovement,
+    damageResistances: [...def.damageResistances],
+    combatBonuses: { ...def.combatBonuses },
     racialSpells,
   }
 
@@ -410,6 +413,7 @@ export function applyRaceGrantToDraft(input: {
     abilities,
     skills,
     speed: def.speed,
+    // Permanent movement only — activated fly (Radiant Soul, …) stays off the vitals row.
     climbSpeed: movement.climb,
     swimSpeed: movement.swim,
     flySpeed: movement.fly,

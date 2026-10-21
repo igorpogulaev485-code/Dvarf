@@ -35,6 +35,8 @@ import { classifySpellTooling, inferFocusKind } from './spellFocus'
 import {
   backgroundEquipmentAttackIdAt,
   buildStartingWeaponAttacks,
+  filterAttackIdsAfterMerge,
+  mergeStartingWeaponAttacksByIdentity,
 } from './startingGearAttacks'
 import { resolveWeaponExtraName } from './weaponProficiencyExtras'
 
@@ -381,6 +383,12 @@ export function applyBackgroundGrantToDraft(input: {
         equipmentCoinsGp = pack.coinsGp
         inventory.coins.gp += pack.coinsGp
       }
+      nextWeapons = mergeStartingWeaponAttacksByIdentity(nextWeapons)
+      equipmentAttackIds.splice(
+        0,
+        equipmentAttackIds.length,
+        ...filterAttackIdsAfterMerge(equipmentAttackIds, nextWeapons),
+      )
     }
   }
 

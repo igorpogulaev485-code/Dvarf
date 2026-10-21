@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import type { RulesEdition } from '../../shared/api/characters'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   kindLabelRu,
@@ -95,6 +96,12 @@ import { isFeatureSelfFormId } from './featureForms'
 import type { SpellsState } from './spells'
 import { abilityModifier, SKILL_DEFS } from './sheetTypes'
 import { isWildShapeForkFeature, moonHealDiceCount } from './wildShape'
+import { PactTomeCantripsPicker } from './PactTomeCantripsPicker'
+import {
+  isPactTomeActive,
+  isPactTomeCantripsComplete,
+  PACT_BOON_FEATURE_ID,
+} from './pactTomeEffects'
 
 export type WildShapeForkRequest = {
   feature: UnlockedFeature
@@ -170,6 +177,8 @@ type ClassFeaturesPanelProps = {
   onOpenInvocations?: (classEntryId: string) => void
   onOpenRangerFavored?: (classEntryId: string) => void
   onOpenSoulTrinkets?: (classEntryId: string) => void
+  /** Spell catalog edition for Pact of the Tome cantrip picks. */
+  edition?: RulesEdition
 }
 
 type FeatureFilter =
@@ -1280,6 +1289,7 @@ function FeatureRow({
   onFeatureSelfForm,
   moonCombatWildShape = false,
   onMoonFormSlotHeal,
+  edition = '2014',
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -1312,6 +1322,7 @@ function FeatureRow({
     diceCount: number
     diceSize: number
   }) => string | null
+  edition?: RulesEdition
 }) {
   const sourceLabel =
     feature.source === 'subclass'
@@ -1355,9 +1366,14 @@ function FeatureRow({
         ? choicePick
         : choiceOptionLabel(choicePick)
       : null
+  const tomeCantripsPending =
+    feature.id === PACT_BOON_FEATURE_ID &&
+    isPactTomeActive(featurePicks, feature.classEntryId) &&
+    !isPactTomeCantripsComplete(featurePicks, feature.classEntryId)
   const choicePending = isAsi
     ? !asiEntry
-    : Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)
+    : (Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)) ||
+      tomeCantripsPending
 
   let metaExtra = ''
   if (asiLabel) {
@@ -1488,6 +1504,19 @@ function FeatureRow({
           onToast={onToast}
         />
       )}
+      {feature.id === PACT_BOON_FEATURE_ID &&
+      isPactTomeActive(featurePicks, feature.classEntryId) ? (
+        <div className="feature-resource">
+          <PactTomeCantripsPicker
+            classEntryId={feature.classEntryId}
+            edition={edition}
+            featurePicks={featurePicks}
+            onFeaturePicksChange={onFeaturePicksChange}
+            onToast={onToast}
+            compact
+          />
+        </div>
+      ) : null}
       <MetamagicSpendControls
         feature={feature}
         featurePicks={featurePicks}
@@ -1613,6 +1642,7 @@ export function ClassFeaturesPanel({
   onOpenInvocations,
   onOpenRangerFavored,
   onOpenSoulTrinkets,
+  edition = '2014',
 }: ClassFeaturesPanelProps) {
   const [filter, setFilter] = useState<FeatureFilter>('all')
   const [openKeys, setOpenKeys] = useState<Set<string>>(() => new Set())
@@ -1922,6 +1952,7 @@ export function ClassFeaturesPanel({
                     onFeatureSelfForm={onFeatureSelfForm}
                     moonCombatWildShape={moonCombatWildShape}
                     onMoonFormSlotHeal={onMoonFormSlotHeal}
+                    edition={edition}
                   />
                 )
               })}

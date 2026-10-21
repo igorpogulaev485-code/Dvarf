@@ -159,6 +159,9 @@ function emptyGrant(
     naturalArmor: null,
     naturalWeapons,
     movement: { climb: null, swim: null, fly: null },
+    activatedMovement: [],
+    damageResistances: [],
+    combatBonuses: { initiative: null },
     racialSpells: [],
   }
 }
