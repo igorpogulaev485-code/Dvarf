@@ -6343,6 +6343,7 @@ export function MinimalSheetEditor({
       />
 
       <ConsumableSpendPadDialog
+        key={consumableSpendPadId ?? 'consumable-spend-pad-closed'}
         open={consumableSpendPadId != null}
         itemName={
           consumableSpendPadId

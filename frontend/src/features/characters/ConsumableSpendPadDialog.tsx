@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Dialog, Field, NumberInput, Text } from '../../ui'
 
 type ConsumableSpendPadDialogProps = {
@@ -18,12 +18,8 @@ export function ConsumableSpendPadDialog({
   onConfirm,
 }: ConsumableSpendPadDialogProps) {
   const ceiling = Math.max(1, maxQty)
+  // Parent should remount via key=itemId when opening a different item.
   const [amount, setAmount] = useState(1)
-
-  useEffect(() => {
-    if (!open) return
-    setAmount(1)
-  }, [open, itemName, maxQty])
 
   const canConfirm = amount >= 1 && amount <= ceiling
 

@@ -167,6 +167,7 @@ export function ConsumablesTapGuardPreviewPage() {
       </div>
 
       <ConsumableSpendPadDialog
+        key={padId ?? 'consumable-spend-pad-closed'}
         open={padItem != null}
         itemName={padItem?.name ?? 'Расходник'}
         maxQty={padItem?.qty ?? 0}
