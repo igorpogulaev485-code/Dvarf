@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/versatile-weapons-grip-57bf
+cursor/satyr-rogue-init-speed-d602
 ```
 
 URL: https://creed20.tech/

@@ -4,7 +4,7 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/versatile-weapons-grip-57bf`  
+**Prod tip (ветка линии прода):** `cursor/satyr-rogue-init-speed-d602`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
@@ -133,6 +133,16 @@ Ship `create-feedback-ship-fc00` собрали от `vpn-https` **без** live
 ---
 
 ## Сейчас в продукте (прод)
+
+### 2026-10-21 — плут-сатир: скорость Mobile + инициатива Alert/Rakish
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Лихая дерзость | +мод. Хар. к инициативе (вместе с Alert и ЛОВ) | Дуэлянт видит полный бонус, не только ЛОВ |
+| ASI→черта в создании | «Подвижный» / «Бдительный» пишутся в ledger и применяются | Скорость +10 и init +5 не теряются после создания |
+| Старые листы | При открытии один раз восстанавливают missing ASI-черты из каталога | Лисандр: 35→45 скорости, +5→+11 инициативы после переоткрытия |
+
+На проде: **да** · **это новый prod tip** `cursor/satyr-rogue-init-speed-d602` · PR #258 · залито 2026-10-21 · поверх tip `versatile-weapons-grip-57bf` · `/health` ok · бандл `featureCombatBonuses-BZncBTaZ.js` / `CharacterDetailPage-CvL-fnWU.js` · `rakish_audacity` на диске · characters=94 classic=19
 
 ### 2026-10-21 — универсальное оружие (щит + куб 1к8 / две руки 1к10)
 
@@ -766,6 +776,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-21 | `cursor/satyr-rogue-init-speed-d602` · PR #258 | Mobile/Alert/Rakish init+speed → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/versatile-weapons-grip-57bf` · PR #257 | Универсальное оружие (щит + 1к8/1к10) → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/restore-consumables-grimoire-0bc3` | Audit: restore расходники+гримуар после overwrite ship fc00 → **новый tip** (после Timeweb) |
 | 2026-10-21 | `cursor/create-feedback-ship-fc00` · PR #253 | U/A/C/F/E фидбек создания → tip (затёр 3b91/3aba) |
