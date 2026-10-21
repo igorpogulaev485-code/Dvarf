@@ -8,7 +8,11 @@ import {
   markSpellbookLost,
   type WizardSpellbookState,
 } from '../../shared/dnd/wizardSpellbook'
-import type { InventoryItem } from './inventory'
+import {
+  createInventoryItem,
+  type InventoryItem,
+  type InventoryState,
+} from './inventory'
 import type { SpellsState } from './spells'
 
 export type SpellbookItemRef = {
@@ -162,4 +166,34 @@ export function tagSpellbookInventoryItem<T extends InventoryItem>(item: T): T {
   if (!isSpellbookInventoryItem(item)) return item
   if (item.catalog_slug === 'spellbook') return item
   return { ...item, catalog_slug: 'spellbook' }
+}
+
+/**
+ * Slice C2: ensure a physical spellbook exists (skip gear / multiclass wizard).
+ * Does not replace an existing book.
+ */
+export function ensureBlankSpellbookInInventory(inventory: InventoryState): {
+  inventory: InventoryState
+  item: InventoryItem
+  created: boolean
+} {
+  const existing = inventory.items.find(isSpellbookInventoryItem)
+  if (existing) {
+    return { inventory, item: existing, created: false }
+  }
+  const item = tagSpellbookInventoryItem({
+    ...createInventoryItem(),
+    name: 'Книга заклинаний',
+    catalog_slug: 'spellbook',
+    notes: 'Книга заклинаний волшебника (создана при сборке персонажа)',
+    qty: 1,
+  })
+  return {
+    inventory: {
+      ...inventory,
+      items: [...inventory.items, item],
+    },
+    item,
+    created: true,
+  }
 }
