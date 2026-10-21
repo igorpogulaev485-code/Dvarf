@@ -1,6 +1,6 @@
 # План: мультиклассная магия (источник → Сл/атака → UI-kit)
 
-**Статус:** ok §12 · **M1–M6 в коде** · скрины desk/cast/полки/print ✅ · далее M7 UI-kit  
+**Статус:** ok §12 · **M1–M7 candidate** · доски Wave MC собраны · **ждём ok Игоря на LOCK**  
 **Контур:** план → ok → срезы M1… → **скрины с реальных листов** → ok → прод  
 **Дата:** 2026-10-21  
 **План PR:** `#262` · **M1 tip base:** `cursor/restore-consumables-grimoire-0bc3`  
@@ -403,11 +403,19 @@ M0 ok решений
 | Фикстура Квакк + DEV preview | `/dev/classic-sheet-preview` | ✅ |
 | Скрин R1 | `quack-classic-p3-profiles.png` | ✅ |
 
-### Срез M7 — UI-kit LOCK Wave MC
+### Срез M7 — UI-kit LOCK Wave MC (candidate ✅)
 
-Собрать доски §4.2 из **реальных** кадров M3–M5.  
-Обновить README §2c.  
-Ok Игоря на LOCK → можно считать визуальный контракт закрытым.
+| Доска §4.2 | Файл | Источник |
+|------------|------|----------|
+| profiles | `docs/ui-kit/boards/dvarf-ui-kit-spells-mc-profiles.jpg` | desk + classic P3 |
+| row | `…-spells-mc-row.jpg` | desk full |
+| cast | `…-spells-mc-cast.jpg` | cast dialog dual/pact |
+| budgets | `…-spells-mc-budgets.jpg` | named meta + header |
+| grimoire | `…-spells-mc-grimoire.jpg` | shelves Art/War |
+| create | `…-create-mc-spells.jpg` | LevelingStep overview |
+
+README §2c обновлён (Wave MC **на ok Игоря** → LOCK).  
+Wave A `spells.jpg` / `spell-icons.jpg` сохранены.
 
 ---
 
