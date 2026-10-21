@@ -1,6 +1,6 @@
 # План: мультиклассная магия (источник → Сл/атака → UI-kit)
 
-**Статус:** ok §12 (2026-10-21) · **M1+M2 в коде** · далее M3 (шапка + каст + скрины)  
+**Статус:** ok §12 · **M1+M2+M3(шапка) в коде** · скрины клон-Квакка ✅ · далее cast-dialog dual + UI-kit доски  
 **Контур:** план → ok → срезы M1… → **скрины с реальных листов** → ok → прод  
 **Дата:** 2026-10-21  
 **План PR:** `#262` · **M1 tip base:** `cursor/restore-consumables-grimoire-0bc3`  
@@ -340,17 +340,18 @@ M0 ok решений
 **Приёмка:** unit green; mono ≡ 1 профиль.  
 **Скрины:** не обязательны (logic-only). UI шапки — M3.
 
-### Срез M2 — Бюджеты
+### Срез M2 — Бюджеты ✅
 
-| Задача | Где |
-|--------|-----|
-| `resolveSpellLearnBudgets` | `casterProgression.ts` |
-| Desk meta named | `PlayDeskSpellsCompact` |
-| Create validation per profile | create pipeline |
-| Tome вне warlock cantrip budget — регресс F | selfcheck |
+| Задача | Где | Статус |
+|--------|-----|--------|
+| `resolveSpellLearnBudgets` + named meta helpers | `castProfiles.ts` | ✅ |
+| Desk meta named | `PlayDeskSpellsCompact` | ✅ |
+| Grimoire: per-class / sum cantrip caps + `class_slug` stamp | `GrimoireDialog` | ✅ |
+| Create: cantripsMax = сумма при MC | `CreateCharacterPage` | ✅ |
+| Selfcheck named meta Квакк | `castProfiles.selfcheck.ts` | ✅ |
 
-**Приёмка R1:** meta `Изобретатель n/n · Колдун n/n · Гримуар 3` (если tome).  
-**Скрин:** budgets на реальном Квакке.
+**Приёмка R1:** meta `Изобретатель n/n · Колдун n/n · Гримуар 3` (если tome) — на скрине в M3.  
+**Скрин:** вместе с M3 (нужен реальный Квакк).
 
 ### Срез M3 — Каст + шапка + modifiers scope
 

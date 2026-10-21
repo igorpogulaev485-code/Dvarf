@@ -6023,6 +6023,8 @@ export function MinimalSheetEditor({
             formulaVars={formulaVarsBase}
             learnBudget={spellLearnBudget}
             learnBudgets={spellLearnBudgets}
+            classes={draft.classes}
+            castProfiles={spellcastingSync.castProfiles}
             pinned={deskSplit && splitSecondary === 'spells'}
             concentration={draft.play.concentration}
             edition={rulesEdition}

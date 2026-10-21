@@ -5,6 +5,7 @@ import { CharactersPage } from './pages/CharactersPage'
 import { ConsumablesTapGuardPreviewPage } from './pages/ConsumablesTapGuardPreviewPage'
 import { LegalPage } from './pages/LegalPage'
 import { OnboardingPreviewPage } from './pages/OnboardingPreviewPage'
+import { QuackSpellPreviewPage } from './pages/QuackSpellPreviewPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
 import { safeNextPath } from './shared/auth/nextPath'
@@ -70,6 +71,7 @@ export default function App() {
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/legal" element={<LegalPage />} />
         <Route path="/dev/onboarding-preview" element={<OnboardingPreviewPage />} />
+        <Route path="/dev/quack-spell-preview" element={<QuackSpellPreviewPage />} />
         <Route path="/login" element={<LoginRoute />} />
         {import.meta.env.DEV ? (
           <Route

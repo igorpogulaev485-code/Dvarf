@@ -8,7 +8,13 @@ import type { ConcentrationState } from './play'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import { SpellDetailDialog } from './SpellDetailDialog'
 import type { SpellLearnBudget } from '../../shared/dnd/casterProgression'
-import { formatNamedCantripBudgets } from '../../shared/dnd/castProfiles'
+import {
+  buildCastProfiles,
+  formatNamedCantripBudgets,
+  mergeCastProfilesForDisplay,
+  type SpellCastProfile,
+} from '../../shared/dnd/castProfiles'
+import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   countLearnedCantrips,
   countLearnedCantripsBySlug,
@@ -26,7 +32,13 @@ import {
 import { IconCast, IconConcentration, IconRitual, IconWizardHat } from './spellIcons'
 import { spellSchoolLabelRu } from '../../shared/dnd/spellCatalog'
 import type { FormulaVars } from '../../shared/dnd/formulas'
-import { clampPactSlots, levelLabel, spellAttackBonus, spellSaveDc } from '../../shared/dnd/spells'
+import {
+  SPELLCASTING_ABILITY_LABELS,
+  clampPactSlots,
+  levelLabel,
+  spellAttackBonus,
+  spellSaveDc,
+} from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
 import { type BonusLine, withSpellCastBonuses } from './modifiers'
 
@@ -45,6 +57,9 @@ type PlayDeskSpellsCompactProps = {
   } | null
   /** M2: per-class budgets for named cantrip meta. */
   learnBudgets?: SpellLearnBudget[] | null
+  /** M3: class rows for cast profiles (Сл/атака по источнику). */
+  classes?: ClassLevelEntry[]
+  castProfiles?: SpellCastProfile[] | null
   pinned?: boolean
   concentration?: ConcentrationState | null
   /** Rules edition for catalog description lookup in detail dialog. */
@@ -74,6 +89,8 @@ export function PlayDeskSpellsCompact({
   formulaVars = {},
   learnBudget = null,
   learnBudgets = null,
+  classes = [],
+  castProfiles = null,
   pinned = false,
   concentration = null,
   edition = '2014',
@@ -116,6 +133,39 @@ export function PlayDeskSpellsCompact({
   })
   const dc = castStats.dc
   const attack = castStats.attack
+  const profileRows = (() => {
+    const built =
+      castProfiles && castProfiles.length > 0
+        ? castProfiles
+        : classes.filter((row) => row.name.trim() && row.level > 0).length > 0
+          ? buildCastProfiles({
+              classes,
+              proficiencyBonus,
+              abilityModFor: (ability) => abilityModifier(abilities[ability]),
+              dcExtra: (dc ?? 0) - (abilityKey ? spellSaveDc(abilityMod, proficiencyBonus) : 0),
+              attackExtra:
+                (attack ?? 0) -
+                (abilityKey ? spellAttackBonus(abilityMod, proficiencyBonus) : 0),
+            })
+          : []
+    if (built.length === 0) return null
+    // Apply global modifiers onto each profile base (M3 scope comes later).
+    return mergeCastProfilesForDisplay(
+      built.map((row) => {
+        const boosted = withSpellCastBonuses({
+          baseDc: row.saveDc,
+          baseAttack: row.attackBonus,
+          modifiers,
+          vars: formulaVars,
+        })
+        return {
+          ...row,
+          saveDc: boosted.dc ?? row.saveDc,
+          attackBonus: boosted.attack ?? row.attackBonus,
+        }
+      }),
+    )
+  })()
   const learnedCantrips = countLearnedCantrips(spells.known)
   const learnedLeveled = countLearnedLeveled(spells.known)
   const preparedCount = countPreparedLeveled(spells.known)
@@ -210,7 +260,35 @@ export function PlayDeskSpellsCompact({
         </div>
       </div>
 
-      {(dc != null || attack != null) && (
+      {profileRows && profileRows.length > 0 ? (
+        <div
+          className={`play-desk-compact__combat-stats play-desk-compact__combat-stats--profiles${
+            profileRows.length > 1 ? ' is-multi' : ''
+          }`}
+          aria-label="Сл. спас. и атака заклинаний по классам"
+        >
+          {profileRows.map((row) => (
+            <div
+              key={row.id}
+              className={`play-desk-compact__cast-profile is-${row.ability}`}
+              title={`${row.labelRu} · ${SPELLCASTING_ABILITY_LABELS[row.ability]}`}
+            >
+              <span className="play-desk-compact__cast-profile-source">
+                {row.labelRu}
+                <em>{SPELLCASTING_ABILITY_LABELS[row.ability]}</em>
+              </span>
+              <span className="play-desk-compact__cast-profile-nums">
+                <span>
+                  Сл <b>{row.saveDc}</b>
+                </span>
+                <span>
+                  Атака <b>{formatModifier(row.attackBonus)}</b>
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (dc != null || attack != null) ? (
         <div className="play-desk-compact__combat-stats" aria-label="Сл. спас. и атака заклинаний">
           {dc != null ? (
             <div className="play-desk-compact__combat-stat">
@@ -225,7 +303,7 @@ export function PlayDeskSpellsCompact({
             </div>
           ) : null}
         </div>
-      )}
+      ) : null}
 
       {(quotaLabel || cantripLabel || concentration) && (
         <div className="play-desk-compact__meta">
