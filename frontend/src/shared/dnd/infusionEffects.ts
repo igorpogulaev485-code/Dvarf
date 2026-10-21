@@ -7,9 +7,12 @@
 import type { ClassLevelEntry } from './classLevels'
 import {
   infusionById,
+  replicateItemBySlug,
+  resolveActiveInfusionEffects,
   resolveInfusionNumericBonus,
   type AbilityScoreKey,
   type ArtificerInfusionDef,
+  type ArtificerInfusionEffects,
 } from './artificerInfusions'
 import {
   listActiveInfusionBindings,
@@ -58,23 +61,32 @@ export function listArtificerEntries(classes: ClassLevelEntry[]): ClassLevelEntr
   return classes.filter(isArtificerEntry)
 }
 
-function accumulateDef(
-  def: ArtificerInfusionDef,
+function displayName(binding: ActiveInfusionBinding, def: ArtificerInfusionDef): string {
+  if (def.replicate && binding.replicateItemSlug) {
+    const item = replicateItemBySlug(binding.replicateItemSlug)
+    if (item) return `${def.nameRu}: ${item.nameRu}`
+  }
+  return def.nameRu
+}
+
+function accumulateEffects(
+  label: string,
+  fx: ArtificerInfusionEffects | undefined,
   level: number,
   input: { wearingArmor: boolean; wearingShield: boolean },
   acc: InfusionBonuses,
+  def: ArtificerInfusionDef,
 ): void {
   acc.activeDefs.push(def)
-  const fx = def.effects
   if (!fx) {
-    acc.labels.push(def.nameRu)
+    acc.labels.push(label)
     return
   }
 
   const ac = resolveInfusionNumericBonus(fx.acBonus, level)
   if (ac) {
     acc.acBonus += ac
-    acc.labels.push(`${def.nameRu} +${ac} КД`)
+    acc.labels.push(`${label} +${ac} КД`)
   }
   if (
     fx.acBonusUnarmoredUnshielded &&
@@ -82,7 +94,7 @@ function accumulateDef(
     !input.wearingShield
   ) {
     acc.acBonus += fx.acBonusUnarmoredUnshielded
-    acc.labels.push(`${def.nameRu} +${fx.acBonusUnarmoredUnshielded} КД`)
+    acc.labels.push(`${label} +${fx.acBonusUnarmoredUnshielded} КД`)
   }
 
   const wAtk = resolveInfusionNumericBonus(fx.weaponAttackBonus, level)
@@ -90,18 +102,18 @@ function accumulateDef(
   if (wAtk) acc.weaponAttackBonus += wAtk
   if (wDmg) acc.weaponDamageBonus += wDmg
   if (wAtk || wDmg) {
-    acc.labels.push(`${def.nameRu} оружие +${wAtk || 0}/+${wDmg || 0}`)
+    acc.labels.push(`${label} оружие +${wAtk || 0}/+${wDmg || 0}`)
   }
 
   const sAtk = resolveInfusionNumericBonus(fx.spellAttackBonus, level)
   if (sAtk) {
     acc.spellAttackBonus += sAtk
-    acc.labels.push(`${def.nameRu} атака закл. +${sAtk}`)
+    acc.labels.push(`${label} атака закл. +${sAtk}`)
   }
 
   if (fx.saveBonus) {
     acc.saveBonus += fx.saveBonus
-    acc.labels.push(`${def.nameRu} спас +${fx.saveBonus}`)
+    acc.labels.push(`${label} спас +${fx.saveBonus}`)
   }
 
   if (fx.darkvisionFt) {
@@ -115,7 +127,7 @@ function accumulateDef(
       fx.abilityFloor.score,
     )
     acc.labels.push(
-      `${def.nameRu}: ${fx.abilityFloor.ability.toUpperCase()}≥${fx.abilityFloor.score}`,
+      `${label}: ${fx.abilityFloor.ability.toUpperCase()}≥${fx.abilityFloor.score}`,
     )
   }
 
@@ -128,7 +140,7 @@ function accumulateDef(
     !fx.saveBonus &&
     !fx.abilityFloor
   ) {
-    acc.labels.push(def.nameRu)
+    acc.labels.push(label)
   }
 }
 
@@ -168,7 +180,18 @@ export function aggregateInfusionBonuses(input: {
         acc.allyBindings.push(binding)
         continue
       }
-      accumulateDef(def, level, input, acc)
+      const fx = resolveActiveInfusionEffects(
+        binding.infusionId,
+        binding.replicateItemSlug,
+      )
+      accumulateEffects(
+        displayName(binding, def),
+        fx,
+        level,
+        input,
+        acc,
+        def,
+      )
     }
   }
 
@@ -193,11 +216,18 @@ export function applyInfusionAbilityFloors<T extends Record<AbilityScoreKey, num
 
 /** RU label for lobby share-effect on an ally. */
 export function infusionShareEffectName(
-  def: ArtificerInfusionDef,
+  binding: ActiveInfusionBinding,
   artificerLevel: number,
 ): string {
-  const fx = def.effects
-  const bits: string[] = [def.nameRu]
+  const def = infusionById(binding.infusionId)
+  const fx = resolveActiveInfusionEffects(
+    binding.infusionId,
+    binding.replicateItemSlug,
+  )
+  const label = def
+    ? displayName(binding, def)
+    : binding.infusionId
+  const bits: string[] = [label]
   if (fx?.acBonus) {
     const n = resolveInfusionNumericBonus(fx.acBonus, artificerLevel)
     if (n) bits.push(`+${n} КД`)

@@ -17,7 +17,11 @@ import {
   setActiveInfusionBindings,
   setActiveInfusions,
 } from '../src/shared/dnd/infusionsActive'
-import { infusionById } from '../src/shared/dnd/artificerInfusions'
+import {
+  infusionById,
+  REPLICATE_MAGIC_ITEM_ID,
+  replicateItemsAtLevel,
+} from '../src/shared/dnd/artificerInfusions'
 import { listKnownInvocations } from '../src/features/characters/WarlockInvocationsDialog'
 import { listWarlockArcanumOptions } from '../src/features/characters/WarlockArcanumSpendDialog'
 import { parseInfusionSlotsResourceId } from '../src/features/characters/InfusionsActiveDialog'
@@ -114,6 +118,49 @@ assert(
 assert(
   !infusionCanTargetAlly(infusionById('homunculus_servant')),
   'homunculus self-only',
+)
+
+// Replicate Magic Item: one known infusion, item chosen on activate
+picks = setFeaturePick(
+  picks,
+  artEntry,
+  'infuse_item',
+  `enhanced_defense,${REPLICATE_MAGIC_ITEM_ID},${REPLICATE_MAGIC_ITEM_ID},returning_weapon`,
+)
+assert(
+  listKnownInfusions(picks, artEntry).some((d) => d.id === REPLICATE_MAGIC_ITEM_ID),
+  'known includes replicate_magic_item once',
+)
+assert(
+  replicateItemsAtLevel(6).some((r) => r.slug === 'boots_of_elvenkind'),
+  'L6 replicate table has boots of elvenkind',
+)
+assert(
+  !replicateItemsAtLevel(6).some((r) => r.slug === 'winged_boots'),
+  'L6 replicate table no winged boots',
+)
+picks = setActiveInfusionBindings(picks, artEntry, [
+  {
+    infusionId: REPLICATE_MAGIC_ITEM_ID,
+    target: 'self',
+    replicateItemSlug: 'bag_of_holding',
+  },
+  {
+    infusionId: REPLICATE_MAGIC_ITEM_ID,
+    target: 'ally-fighter-1',
+    replicateItemSlug: 'goggles_of_night',
+  },
+])
+const repBindings = listActiveInfusionBindings(picks, artEntry)
+assert(repBindings.length === 2, 'two active replicate copies')
+assert(
+  repBindings.every((b) => b.infusionId === REPLICATE_MAGIC_ITEM_ID),
+  'both are replicate_magic_item',
+)
+assert(
+  repBindings.map((b) => b.replicateItemSlug).sort().join(',') ===
+    'bag_of_holding,goggles_of_night',
+  'items stored on bindings',
 )
 
 const artDesired = desiredResourcesFromFeatures({

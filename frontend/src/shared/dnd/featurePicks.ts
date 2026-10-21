@@ -104,6 +104,9 @@ export function clearFeaturePicksForFeatureIds(
  * When the list is already full, clicking a new option is ignored —
  * deselect one first, then pick a replacement (no FIFO eviction).
  * Single-select (maxPicks === 1): clicking another option replaces the current.
+ *
+ * `stackable`: option may appear multiple times (Replicate Magic Item).
+ * Click removes one occurrence; use `addFeaturePickToList` to add another.
  */
 export function toggleFeaturePickInList(
   picks: FeaturePicksState,
@@ -111,8 +114,28 @@ export function toggleFeaturePickInList(
   featureId: string,
   optionId: string,
   maxPicks: number,
+  opts?: { stackable?: boolean },
 ): FeaturePicksState {
   const current = getFeaturePickList(picks, classEntryId, featureId)
+  if (opts?.stackable) {
+    const idx = current.lastIndexOf(optionId)
+    let nextList: string[]
+    if (idx >= 0) {
+      nextList = current.filter((_, i) => i !== idx)
+    } else if (maxPicks <= 1) {
+      nextList = [optionId]
+    } else if (current.length >= maxPicks) {
+      nextList = current
+    } else {
+      nextList = [...current, optionId]
+    }
+    return setFeaturePick(
+      picks,
+      classEntryId,
+      featureId,
+      nextList.length ? nextList.join(',') : null,
+    )
+  }
   const exists = current.includes(optionId)
   let nextList: string[]
   if (exists) {
@@ -129,6 +152,24 @@ export function toggleFeaturePickInList(
     classEntryId,
     featureId,
     nextList.length ? nextList.join(',') : null,
+  )
+}
+
+/** Add one more stackable option (e.g. second Replicate Magic Item known). */
+export function addFeaturePickToList(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  featureId: string,
+  optionId: string,
+  maxPicks: number,
+): FeaturePicksState {
+  const current = getFeaturePickList(picks, classEntryId, featureId)
+  if (current.length >= maxPicks) return picks
+  return setFeaturePick(
+    picks,
+    classEntryId,
+    featureId,
+    [...current, optionId].join(','),
   )
 }
 

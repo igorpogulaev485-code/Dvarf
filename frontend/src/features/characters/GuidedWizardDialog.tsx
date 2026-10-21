@@ -41,6 +41,7 @@ import {
   type SkillExpertiseState,
 } from '../../shared/dnd/expertise'
 import {
+  addFeaturePickToList,
   getFeaturePick,
   getFeaturePickList,
   setFeaturePick,
@@ -49,7 +50,10 @@ import {
 } from '../../shared/dnd/featurePicks'
 import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
-import { infusionOptionIdsAtLevel } from '../../shared/dnd/artificerInfusions'
+import {
+  infusionOptionIdsAtLevel,
+  REPLICATE_MAGIC_ITEM_ID,
+} from '../../shared/dnd/artificerInfusions'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import type { RulesEdition } from '../../shared/api/characters'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
@@ -411,34 +415,67 @@ function FeatureChoiceStepBody({
       {selectedDef ? <Text tone="muted">{selectedDef.summaryRu}</Text> : null}
       <div className="chip-row" role="group" aria-label={choice.label_ru}>
         {options.map((option) => {
+          const stackable =
+            choice.options_from === 'artificer_infusions' &&
+            option.id === REPLICATE_MAGIC_ITEM_ID
+          const stackCount = stackable
+            ? selectedList.filter((id) => id === option.id).length
+            : 0
           const active = multi
-            ? selectedList.includes(option.id)
+            ? stackable
+              ? stackCount > 0
+              : selectedList.includes(option.id)
             : selected === option.id
           return (
-            <Button
-              key={option.id}
-              type="button"
-              variant={active ? 'primary' : 'ghost'}
-              onClick={() => {
-                if (multi) {
+            <span key={option.id} className="chip-row">
+              <Button
+                type="button"
+                variant={active ? 'primary' : 'ghost'}
+                onClick={() => {
+                  if (multi) {
+                    onFeaturePicksChange(
+                      toggleFeaturePickInList(
+                        featurePicks,
+                        step.classEntryId,
+                        step.featureId,
+                        option.id,
+                        maxPicks,
+                        stackable ? { stackable: true } : undefined,
+                      ),
+                    )
+                    return
+                  }
                   onFeaturePicksChange(
-                    toggleFeaturePickInList(
-                      featurePicks,
-                      step.classEntryId,
-                      step.featureId,
-                      option.id,
-                      maxPicks,
-                    ),
+                    setFeaturePick(featurePicks, step.classEntryId, step.featureId, option.id),
                   )
-                  return
-                }
-                onFeaturePicksChange(
-                  setFeaturePick(featurePicks, step.classEntryId, step.featureId, option.id),
-                )
-              }}
-            >
-              {active && multi ? `✓ ${option.label}` : option.label}
-            </Button>
+                }}
+              >
+                {active && multi
+                  ? stackable && stackCount > 1
+                    ? `✓ ${option.label} ×${stackCount}`
+                    : `✓ ${option.label}`
+                  : option.label}
+              </Button>
+              {multi && stackable && active && selectedList.length < maxPicks ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() =>
+                    onFeaturePicksChange(
+                      addFeaturePickToList(
+                        featurePicks,
+                        step.classEntryId,
+                        step.featureId,
+                        option.id,
+                        maxPicks,
+                      ),
+                    )
+                  }
+                >
+                  + ещё
+                </Button>
+              ) : null}
+            </span>
           )
         })}
       </div>

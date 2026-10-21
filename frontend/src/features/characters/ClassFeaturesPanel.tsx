@@ -16,6 +16,7 @@ import {
 import {
   infusionById,
   infusionOptionIdsAtLevel,
+  REPLICATE_MAGIC_ITEM_ID,
 } from '../../shared/dnd/artificerInfusions'
 import { maneuverById } from '../../shared/dnd/battleMasterManeuvers'
 import { elementalDisciplineById } from '../../shared/dnd/monkElementalDisciplines'
@@ -54,6 +55,7 @@ import {
   type SkillExpertiseState,
 } from '../../shared/dnd/expertise'
 import {
+  addFeaturePickToList,
   getFeaturePick,
   getFeaturePickList,
   setFeaturePick,
@@ -723,17 +725,25 @@ function FeatureChoiceControls({
           })
         : null}
       {choice?.options_from === 'artificer_infusions'
-        ? selectedList.map((id) => {
-            const inf = infusionById(id)
-            if (!inf) return null
-            return (
-              <Text key={id} tone="muted">
-                {inf.nameRu}
-                {inf.minLevel ? ` (с ${inf.minLevel} ур.)` : ''}
-                {inf.replicate ? ' · реплика' : ''}: {inf.abilityRu || inf.summaryRu}
-              </Text>
-            )
-          })
+        ? (() => {
+            const counts = new Map<string, number>()
+            for (const id of selectedList) {
+              counts.set(id, (counts.get(id) ?? 0) + 1)
+            }
+            return [...counts.entries()].map(([id, count]) => {
+              const inf = infusionById(id)
+              if (!inf) return null
+              return (
+                <Text key={id} tone="muted">
+                  {inf.nameRu}
+                  {count > 1 ? ` ×${count}` : ''}
+                  {inf.minLevel ? ` (с ${inf.minLevel} ур.)` : ''}
+                  {inf.replicate ? ' · предмет выбирается при активации' : ''}:{' '}
+                  {inf.abilityRu || inf.summaryRu}
+                </Text>
+              )
+            })
+          })()
         : null}
       {choice?.options_from === 'monk_elemental_disciplines'
         ? selectedList.map((id) => {
@@ -786,12 +796,20 @@ function FeatureChoiceControls({
         <div className="feature-resource__actions">
           {options.map((optionId) => {
             const label = choiceOptionLabel(optionId)
+            const stackable =
+              choice.options_from === 'artificer_infusions' &&
+              optionId === REPLICATE_MAGIC_ITEM_ID
+            const stackCount = stackable
+              ? selectedList.filter((id) => id === optionId).length
+              : 0
             const active = multi
-              ? selectedList.includes(optionId)
+              ? stackable
+                ? stackCount > 0
+                : selectedList.includes(optionId)
               : selected === optionId
             return (
+              <span key={optionId} className="chip-row">
               <Button
-                key={optionId}
                 type="button"
                 disabled={!multi && active}
                 onClick={() => {
@@ -802,6 +820,7 @@ function FeatureChoiceControls({
                       feature.id,
                       optionId,
                       maxPicks,
+                      stackable ? { stackable: true } : undefined,
                     )
                     onFeaturePicksChange(next)
                     onToast?.(
@@ -815,8 +834,34 @@ function FeatureChoiceControls({
                   onToast?.(`${choice.label_ru}: ${label}`)
                 }}
               >
-                {active && multi ? `✓ ${label}` : label}
+                {active && multi
+                  ? stackable && stackCount > 1
+                    ? `✓ ${label} ×${stackCount}`
+                    : `✓ ${label}`
+                  : label}
               </Button>
+              {multi && stackable && active && selectedList.length < maxPicks ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    const next = addFeaturePickToList(
+                      featurePicks,
+                      feature.classEntryId,
+                      feature.id,
+                      optionId,
+                      maxPicks,
+                    )
+                    onFeaturePicksChange(next)
+                    onToast?.(
+                      `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+                    )
+                  }}
+                >
+                  + ещё копия
+                </Button>
+              ) : null}
+              </span>
             )
           })}
         </div>

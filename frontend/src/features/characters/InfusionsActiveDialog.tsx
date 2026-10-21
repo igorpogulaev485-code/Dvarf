@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   infusionById,
+  REPLICATE_MAGIC_ITEM_ID,
+  replicateItemBySlug,
+  replicateItemsAtLevel,
 } from '../../shared/dnd/artificerInfusions'
 import {
+  countActiveReplicate,
+  countKnownInfusion,
   infusionCanTargetAlly,
   infusionSlotsMax,
   listActiveInfusionBindings,
@@ -18,7 +23,7 @@ import type { SheetResource } from '../../shared/dnd/rest'
 import { shareLobbyEffect } from '../../shared/api/lobbies'
 import { AllyTargetFields } from '../lobby/AllyTargetFields'
 import { useLobbyParty } from '../lobby/useLobbyParty'
-import { Button, Dialog, Stack, Text } from '../../ui'
+import { Button, Dialog, Field, Stack, Text } from '../../ui'
 
 type InfusionsActiveDialogProps = {
   open: boolean
@@ -49,8 +54,18 @@ export function parseInfusionSlotsResourceId(
 }
 
 type DraftRow = {
+  key: string
   infusionId: string
   target: InfusionTargetRef
+  replicateItemSlug: string | null
+}
+
+type PendingKind = 'target' | 'replicate'
+
+let draftKeySeq = 0
+function nextDraftKey(): string {
+  draftKeySeq += 1
+  return `d${draftKeySeq}`
 }
 
 export function InfusionsActiveDialog({
@@ -71,18 +86,31 @@ export function InfusionsActiveDialog({
     () => listKnownInfusions(featurePicks, classEntryId),
     [featurePicks, classEntryId],
   )
+  const knownReplicateCount = useMemo(
+    () => countKnownInfusion(featurePicks, classEntryId, REPLICATE_MAGIC_ITEM_ID),
+    [featurePicks, classEntryId],
+  )
+  const replicateOptions = useMemo(
+    () => replicateItemsAtLevel(artificerLevel),
+    [artificerLevel],
+  )
   const initialBindings = useMemo(
     () => listActiveInfusionBindings(featurePicks, classEntryId),
     [featurePicks, classEntryId],
   )
   const [draft, setDraft] = useState<DraftRow[]>(() =>
     initialBindings.map((row) => ({
+      key: nextDraftKey(),
       infusionId: row.infusionId,
       target: row.target,
+      replicateItemSlug: row.replicateItemSlug ?? null,
     })),
   )
   const [pendingId, setPendingId] = useState<string | null>(null)
+  const [pendingKind, setPendingKind] = useState<PendingKind>('target')
   const [pendingTarget, setPendingTarget] = useState<string>('')
+  const [pendingReplicateSlug, setPendingReplicateSlug] = useState<string>('')
+  const [pendingEditKey, setPendingEditKey] = useState<string | null>(null)
   const [sharing, setSharing] = useState(false)
 
   const party = useLobbyParty(open ? characterId : undefined)
@@ -91,18 +119,26 @@ export function InfusionsActiveDialog({
     if (!open) return
     setDraft(
       initialBindings.map((row) => ({
+        key: nextDraftKey(),
         infusionId: row.infusionId,
         target: row.target,
+        replicateItemSlug: row.replicateItemSlug ?? null,
       })),
     )
     setPendingId(null)
+    setPendingKind('target')
     setPendingTarget('')
+    setPendingReplicateSlug('')
+    setPendingEditKey(null)
   }, [open, initialBindings])
 
-  const activeIds = useMemo(
-    () => new Set(draft.map((row) => row.infusionId)),
-    [draft],
-  )
+  const activeCountById = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const row of draft) {
+      map.set(row.infusionId, (map.get(row.infusionId) ?? 0) + 1)
+    }
+    return map
+  }, [draft])
 
   function targetLabel(target: InfusionTargetRef): string {
     if (target === 'self') return 'на себе'
@@ -110,38 +146,145 @@ export function InfusionsActiveDialog({
     return opt?.character_name ?? 'союзник'
   }
 
+  function resolveTarget(raw: string): InfusionTargetRef {
+    const trimmed = raw.trim()
+    if (trimmed && trimmed !== characterId) return trimmed
+    return 'self'
+  }
+
   function beginActivate(id: string) {
-    if (activeIds.has(id)) {
+    const def = infusionById(id)
+    const knownCount =
+      id === REPLICATE_MAGIC_ITEM_ID
+        ? knownReplicateCount
+        : countKnownInfusion(featurePicks, classEntryId, id)
+    const activeCount = activeCountById.get(id) ?? 0
+
+    // Non-replicate: toggle off if already active once.
+    if (id !== REPLICATE_MAGIC_ITEM_ID && activeCount > 0) {
       setDraft((prev) => prev.filter((row) => row.infusionId !== id))
+      return
+    }
+
+    if (activeCount >= knownCount) {
+      if (id === REPLICATE_MAGIC_ITEM_ID) {
+        onToast(
+          knownCount <= 1
+            ? 'Сначала выучи «Копия магического предмета» ещё раз (известные инфузии)'
+            : `Уже активно ${activeCount} из ${knownCount} копий`,
+        )
+      }
       return
     }
     if (draft.length >= maxSlots) {
       onToast(`Лимит активных инфузий: ${maxSlots}`)
       return
     }
-    const def = infusionById(id)
+
+    if (id === REPLICATE_MAGIC_ITEM_ID) {
+      if (!replicateOptions.length) {
+        onToast('Нет предметов для копии на этом уровне')
+        return
+      }
+      setPendingId(id)
+      setPendingKind('replicate')
+      setPendingReplicateSlug('')
+      setPendingTarget('')
+      setPendingEditKey(null)
+      return
+    }
+
     if (!infusionCanTargetAlly(def) || party.options.length <= 1) {
-      setDraft((prev) => [...prev, { infusionId: id, target: 'self' }])
+      setDraft((prev) => [
+        ...prev,
+        {
+          key: nextDraftKey(),
+          infusionId: id,
+          target: 'self',
+          replicateItemSlug: null,
+        },
+      ])
       return
     }
     setPendingId(id)
+    setPendingKind('target')
     setPendingTarget('')
+    setPendingEditKey(null)
   }
 
   function confirmPending() {
     if (!pendingId) return
-    if (draft.length >= maxSlots) {
+    if (draft.length >= maxSlots && !pendingEditKey) {
       onToast(`Лимит активных инфузий: ${maxSlots}`)
       setPendingId(null)
       return
     }
-    const target: InfusionTargetRef =
-      pendingTarget.trim() && pendingTarget.trim() !== characterId
-        ? pendingTarget.trim()
-        : 'self'
-    setDraft((prev) => [...prev, { infusionId: pendingId, target }])
+
+    if (pendingKind === 'replicate') {
+      const slug = pendingReplicateSlug.trim()
+      if (!slug || !replicateItemBySlug(slug)) {
+        onToast('Выбери предмет для копии')
+        return
+      }
+      // Level filter already applied to options; double-check.
+      if (!replicateOptions.some((row) => row.slug === slug)) {
+        onToast('Этот предмет недоступен на твоём уровне')
+        return
+      }
+      const target = resolveTarget(pendingTarget)
+      if (pendingEditKey) {
+        setDraft((prev) =>
+          prev.map((row) =>
+            row.key === pendingEditKey
+              ? { ...row, replicateItemSlug: slug, target }
+              : row,
+          ),
+        )
+      } else {
+        setDraft((prev) => [
+          ...prev,
+          {
+            key: nextDraftKey(),
+            infusionId: REPLICATE_MAGIC_ITEM_ID,
+            target,
+            replicateItemSlug: slug,
+          },
+        ])
+      }
+    } else {
+      const target = resolveTarget(pendingTarget)
+      if (pendingEditKey) {
+        setDraft((prev) =>
+          prev.map((row) =>
+            row.key === pendingEditKey ? { ...row, target } : row,
+          ),
+        )
+      } else {
+        setDraft((prev) => [
+          ...prev,
+          {
+            key: nextDraftKey(),
+            infusionId: pendingId,
+            target,
+            replicateItemSlug: null,
+          },
+        ])
+      }
+    }
+
     setPendingId(null)
+    setPendingKind('target')
     setPendingTarget('')
+    setPendingReplicateSlug('')
+    setPendingEditKey(null)
+  }
+
+  function deactivateRow(key: string) {
+    setDraft((prev) => prev.filter((row) => row.key !== key))
+  }
+
+  function deactivateAllOf(infusionId: string) {
+    setDraft((prev) => prev.filter((row) => row.infusionId !== infusionId))
   }
 
   async function shareAllyBindings(bindings: ActiveInfusionBinding[]) {
@@ -153,9 +296,8 @@ export function InfusionsActiveDialog({
     }
     const byTarget = new Map<string, string[]>()
     for (const row of allyRows) {
-      const def = infusionById(row.infusionId)
-      if (!def || row.target === 'self') continue
-      const name = infusionShareEffectName(def, artificerLevel)
+      if (row.target === 'self') continue
+      const name = infusionShareEffectName(row, artificerLevel)
       const list = byTarget.get(row.target) ?? []
       list.push(name)
       byTarget.set(row.target, list)
@@ -192,6 +334,7 @@ export function InfusionsActiveDialog({
     const bindings: ActiveInfusionBinding[] = draft.map((row) => ({
       infusionId: row.infusionId,
       target: row.target,
+      replicateItemSlug: row.replicateItemSlug,
     }))
     onFeaturePicksChange(
       setActiveInfusionBindings(featurePicks, classEntryId, bindings),
@@ -208,6 +351,15 @@ export function InfusionsActiveDialog({
     )
     onClose()
   }
+
+  const pendingDef = pendingId ? infusionById(pendingId) : null
+  const activeReplicate = countActiveReplicate(
+    draft.map((row) => ({
+      infusionId: row.infusionId,
+      target: row.target,
+      replicateItemSlug: row.replicateItemSlug,
+    })),
+  )
 
   return (
     <Dialog
@@ -226,8 +378,8 @@ export function InfusionsActiveDialog({
         <Text tone="muted">
           После долгого отдыха отметь инфузии на предметах. Можно на себя или
           на союзника в лобби (например «Усиленная защита» на доспех напарника).
-          Бонусы на себе считаются автоматически; союзнику уходит эффект в
-          лобби. Слотов:{' '}
+          «Копия магического предмета» — одна инфузия: при активации выбери
+          предмет из таблиц своего уровня. Слотов:{' '}
           <strong>
             {draft.length}/{maxSlots}
           </strong>
@@ -236,23 +388,74 @@ export function InfusionsActiveDialog({
 
         {pendingId ? (
           <Stack gap={10}>
-            <Text>
-              Куда поставить «{infusionById(pendingId)?.nameRu ?? pendingId}»?
-            </Text>
-            <AllyTargetFields
-              count={1}
-              values={[pendingTarget]}
-              onChange={(_index, nextId) => setPendingTarget(nextId)}
-              options={party.options}
-              loading={party.loading}
-              lobbyName={party.lobbyName}
-              lobbies={party.lobbies}
-              lobbyId={party.lobbyId}
-              onLobbyIdChange={party.setLobbyId}
-            />
-            <Text tone="muted">
-              Пустой слот = на себе ({characterName || 'ты'}).
-            </Text>
+            {pendingKind === 'replicate' ? (
+              <>
+                <Text>
+                  Какой предмет скопировать? (доступно с {artificerLevel} ур.
+                  изобретателя)
+                </Text>
+                <Field label="Предмет">
+                  <select
+                    className="play-select"
+                    value={pendingReplicateSlug}
+                    onChange={(e) => setPendingReplicateSlug(e.target.value)}
+                  >
+                    <option value="">— выбрать —</option>
+                    {replicateOptions.map((item) => (
+                      <option key={item.slug} value={item.slug}>
+                        {item.nameRu}
+                        {item.minLevel > 2 ? ` · с ${item.minLevel} ур.` : ''}
+                        {item.attune ? ' · настройка' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                {pendingReplicateSlug ? (
+                  <Text tone="muted">
+                    {replicateItemBySlug(pendingReplicateSlug)?.abilityRu}
+                  </Text>
+                ) : null}
+                {party.options.length > 1 ? (
+                  <>
+                    <Text>Кому отдать предмет?</Text>
+                    <AllyTargetFields
+                      count={1}
+                      values={[pendingTarget]}
+                      onChange={(_index, nextId) => setPendingTarget(nextId)}
+                      options={party.options}
+                      loading={party.loading}
+                      lobbyName={party.lobbyName}
+                      lobbies={party.lobbies}
+                      lobbyId={party.lobbyId}
+                      onLobbyIdChange={party.setLobbyId}
+                    />
+                    <Text tone="muted">
+                      Пустой слот = на себе ({characterName || 'ты'}).
+                    </Text>
+                  </>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <Text>
+                  Куда поставить «{pendingDef?.nameRu ?? pendingId}»?
+                </Text>
+                <AllyTargetFields
+                  count={1}
+                  values={[pendingTarget]}
+                  onChange={(_index, nextId) => setPendingTarget(nextId)}
+                  options={party.options}
+                  loading={party.loading}
+                  lobbyName={party.lobbyName}
+                  lobbies={party.lobbies}
+                  lobbyId={party.lobbyId}
+                  onLobbyIdChange={party.setLobbyId}
+                />
+                <Text tone="muted">
+                  Пустой слот = на себе ({characterName || 'ты'}).
+                </Text>
+              </>
+            )}
             <div className="chip-row">
               <Button type="button" variant="primary" onClick={confirmPending}>
                 Подтвердить
@@ -262,7 +465,10 @@ export function InfusionsActiveDialog({
                 variant="secondary"
                 onClick={() => {
                   setPendingId(null)
+                  setPendingKind('target')
                   setPendingTarget('')
+                  setPendingReplicateSlug('')
+                  setPendingEditKey(null)
                 }}
               >
                 Отмена
@@ -278,53 +484,92 @@ export function InfusionsActiveDialog({
         ) : (
           <div className="sorcery-spend-list">
             {known.map((def) => {
-              const row = draft.find((item) => item.infusionId === def.id)
-              const on = Boolean(row)
+              const rows = draft.filter((item) => item.infusionId === def.id)
+              const knownCount =
+                def.id === REPLICATE_MAGIC_ITEM_ID
+                  ? knownReplicateCount
+                  : countKnownInfusion(featurePicks, classEntryId, def.id)
+              const on = rows.length > 0
+              const isReplicate = def.id === REPLICATE_MAGIC_ITEM_ID
               return (
                 <div key={def.id} className="sorcery-spend-row">
                   <div className="sorcery-spend-row__text">
                     <b>
                       {def.nameRu}
-                      {def.replicate ? ' · реплика' : ''}
+                      {isReplicate
+                        ? ` · ${activeReplicate}/${knownCount}`
+                        : knownCount > 1
+                          ? ` · ×${knownCount}`
+                          : ''}
                     </b>
                     <span>{def.abilityRu || def.summaryRu}</span>
-                    {on && row ? (
-                      <span>
-                        Цель: {targetLabel(row.target)}
-                        {infusionCanTargetAlly(def) &&
-                        party.options.length > 1 ? (
-                          <>
-                            {' · '}
-                            <button
-                              type="button"
-                              className="linkish"
-                              onClick={() => {
-                                setDraft((prev) =>
-                                  prev.filter(
-                                    (item) => item.infusionId !== def.id,
-                                  ),
-                                )
-                                setPendingId(def.id)
-                                setPendingTarget(
-                                  row.target === 'self' ? '' : row.target,
-                                )
-                              }}
-                            >
-                              сменить
-                            </button>
-                          </>
-                        ) : null}
-                      </span>
-                    ) : null}
+                    {rows.map((row) => {
+                      const itemName = row.replicateItemSlug
+                        ? replicateItemBySlug(row.replicateItemSlug)?.nameRu
+                        : null
+                      return (
+                        <span key={row.key}>
+                          {itemName ? `Копия: ${itemName} · ` : ''}
+                          Цель: {targetLabel(row.target)}
+                          {' · '}
+                          <button
+                            type="button"
+                            className="linkish"
+                            onClick={() => {
+                              setPendingId(def.id)
+                              setPendingKind(
+                                isReplicate ? 'replicate' : 'target',
+                              )
+                              setPendingEditKey(row.key)
+                              setPendingTarget(
+                                row.target === 'self' ? '' : row.target,
+                              )
+                              setPendingReplicateSlug(
+                                row.replicateItemSlug ?? '',
+                              )
+                            }}
+                          >
+                            сменить
+                          </button>
+                          {isReplicate ? (
+                            <>
+                              {' · '}
+                              <button
+                                type="button"
+                                className="linkish"
+                                onClick={() => deactivateRow(row.key)}
+                              >
+                                снять
+                              </button>
+                            </>
+                          ) : null}
+                        </span>
+                      )
+                    })}
                   </div>
-                  <Button
-                    type="button"
-                    variant={on ? 'primary' : 'secondary'}
-                    disabled={pendingId != null}
-                    onClick={() => beginActivate(def.id)}
-                  >
-                    {on ? 'Активна' : 'Выкл'}
-                  </Button>
+                  <div className="chip-row">
+                    {isReplicate ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={pendingId != null}
+                        onClick={() => beginActivate(def.id)}
+                      >
+                        {rows.length ? 'Ещё копия' : 'Выбрать предмет'}
+                      </Button>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant={on ? 'primary' : 'secondary'}
+                        disabled={pendingId != null}
+                        onClick={() =>
+                          on ? deactivateAllOf(def.id) : beginActivate(def.id)
+                        }
+                      >
+                        {on ? 'Активна' : 'Выкл'}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )
             })}
