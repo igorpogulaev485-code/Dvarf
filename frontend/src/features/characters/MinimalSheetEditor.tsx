@@ -270,6 +270,7 @@ import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
 import {
   darkvisionFtFromFeatures,
   initiativeBonusFromFeatures,
+  initiativeBonusFromRace,
 } from './featureCombatBonuses'
 import { syncRangerConclaveSpells } from './rangerConclaveSpells'
 import {
@@ -2786,7 +2787,16 @@ export function MinimalSheetEditor({
       }),
     [unlockedFeatures, draft.abilities],
   )
-  const totalInitiativeBonus = featInitiativeBonus + featureInitiativeBonus
+  const raceInitiativeBonus = useMemo(
+    () =>
+      initiativeBonusFromRace({
+        grant: draft.raceGrant,
+        proficiencyBonus,
+      }),
+    [draft.raceGrant, proficiencyBonus],
+  )
+  const totalInitiativeBonus =
+    featInitiativeBonus + featureInitiativeBonus + raceInitiativeBonus
   const activeFightingStyleId = useMemo(
     () =>
       findFightingStylePick(draft.featurePicks) ??
@@ -3964,6 +3974,9 @@ export function MinimalSheetEditor({
   }).total
   const initiativeAutoLabel = [
     `ЛОВ ${formatModifier(abilityModifier(effectiveAbilities.dex))}`,
+    raceInitiativeBonus
+      ? `раса ${formatModifier(raceInitiativeBonus)}`
+      : null,
     featInitiativeBonus
       ? `черта ${formatModifier(featInitiativeBonus)}`
       : null,
