@@ -32,6 +32,18 @@ Alembic по персонажам **не нужен**. Эпоха контент
 
 Инжект контента: `backend/scripts/inject_tcoe_optional_features.py` (идемпотентно).
 
+## Умение предыстории (PHB feature)
+
+| Куда | Что |
+|------|-----|
+| Каталог | `feature_name_ru` / `feature_text_ru` в `phb2014_background_catalog_spec.json` |
+| Ledger | `sheet.background_grant.featureNameRu` / `featureTextRu` |
+| Текст | marked-блок в `text_blocks.traits` (`<!-- dvarf-background-feature -->`) |
+| UI способностей | карточка «предыстория» в `ClassFeaturesPanel` |
+| Classic | бокс «Умения и особенности» читает `traits` (+ merge `features`) |
+
+Миграция старых листов: при открытии `ensureBackgroundFeatureOnDraft` / soft-stamp из каталога по slug/имени; alembic `z2a3b4c5d6e7` обновляет тексты в `catalog_entries`.
+
 ## Паттерны (чеклист нового умения)
 
 1. **Passive scale** — только таблица (Скрытая атака, Martial Arts)
