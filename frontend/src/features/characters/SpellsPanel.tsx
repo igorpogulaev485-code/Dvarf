@@ -750,11 +750,11 @@ export function SpellsPanel({
           <Button variant="secondary" onClick={() => setSettingsOpen((open) => !open)}>
             {settingsOpen ? 'Скрыть настройки' : 'Настройки'}
           </Button>
-          {!knownCaster ? (
+          {learnBudget?.mode === 'spellbook' ? (
             <Button
               variant="secondary"
               onClick={() => setPrepareOpen(true)}
-              title="Выбрать заклинания на сегодня (лимит подготовки класса)"
+              title="Выбрать на сегодня из книги заклинаний"
             >
               <IconWizardHat className="spells-btn-icon" />
               Подготовить
@@ -945,7 +945,11 @@ export function SpellsPanel({
           <Text tone="muted">
             {spells.known.length === 0
               ? 'Пока нет заклинаний — добавь ниже или подготовь из списка.'
-              : 'В боевом виде пусто — нажми «Подготовить» или «Все известные».'}
+              : knownCaster
+                ? 'В боевом виде пусто — открой гримуар или «Все известные».'
+                : learnBudget?.mode === 'spellbook'
+                  ? 'В боевом виде пусто — «Подготовить» из книги или гримуар.'
+                  : 'В боевом виде пусто — открой гримуар и подготовь заклинания.'}
           </Text>
         ) : (
           visibleSpells.map((group) => {
@@ -1198,13 +1202,9 @@ export function SpellsPanel({
       </Stack>
 
       <PrepareSpellsDialog
-        open={prepareOpen}
-        edition={edition}
-        className={className}
-        level={level}
-        classes={classes}
+        open={prepareOpen && learnBudget?.mode === 'spellbook'}
         spells={spells}
-        learnMode={learnBudget?.mode ?? (knownCaster ? 'known' : 'prepared_list')}
+        learnMode="spellbook"
         onChange={onChange}
         onClose={() => setPrepareOpen(false)}
       />
