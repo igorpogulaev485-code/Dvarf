@@ -20,7 +20,8 @@
     "selfcheck:class-equipment-lines": "tsx src/shared/dnd/classEquipmentLines.selfcheck.ts",
     "selfcheck:desk-rolls": "tsx --tsconfig tsconfig.app.json src/features/characters/deskRolls.selfcheck.ts",
     "selfcheck:race-naming": "tsx src/shared/dnd/raceNaming.selfcheck.ts",
-    "selfcheck:feat-stealthy": "tsx src/shared/dnd/featGrants.stealthy.selfcheck.ts"
+    "selfcheck:feat-stealthy": "tsx src/shared/dnd/featGrants.stealthy.selfcheck.ts",
+    "selfcheck:create-pipeline-gear": "tsx src/features/createPipeline/createPipelineGear.selfcheck.ts"
   },
   "dependencies": {
     "react": "^19.2.8",
