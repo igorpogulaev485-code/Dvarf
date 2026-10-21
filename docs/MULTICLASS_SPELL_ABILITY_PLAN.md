@@ -353,22 +353,20 @@ M0 ok решений
 **Приёмка R1:** meta `Изобретатель n/n · Колдун n/n · Гримуар 3` (если tome) — на скрине в M3.  
 **Скрин:** вместе с M3 (нужен реальный Квакк).
 
-### Срез M3 — Каст + шапка + modifiers scope
+### Срез M3 — Каст + шапка + modifiers scope (частично ✅)
 
-| Задача | Где |
-|--------|-----|
-| Шапка профилей §2.3 | Desk + SpellsPanel + settings readout |
-| Cast использует `resolveSpellCastStats` | CastSpellDialog, breakdown |
-| Dual-cast picker если ≥2 привязки | CastSpellDialog |
-| Rest labels на путях ячеек §2.8 | CastSpellDialog |
-| `BonusLine.scope` для spell_dc/attack | `modifiers.ts` + selfcheck |
-| Status chips §2.6 на строке (минимум) | compact / panel |
+| Задача | Где | Статус |
+|--------|-----|--------|
+| Шапка профилей §2.3 | `PlayDeskSpellsCompact` + CSS ability colors | ✅ |
+| DEV превью клон-Квакка | `/dev/quack-spell-preview` | ✅ |
+| Скрины шапка + budgets | artifacts `quack-*` | ✅ |
+| Cast использует `resolveSpellCastStats` | CastSpellDialog | ⏳ |
+| Dual-cast picker | CastSpellDialog | ⏳ |
+| Rest labels §2.8 | CastSpellDialog | ⏳ |
+| `BonusLine.scope` | modifiers | ⏳ |
 
-**Приёмка R1:**  
-- шапка две строки 19/+11 и 18/+10;  
-- каст artificer vs warlock — разные цифры;  
-- mono R2 без регресса.  
-**Скрины/видео:** обязательно (§5.3 п.1–3,5).
+**Скрины (клон Квакка, статы как у Ильи):**  
+`quack-profiles-closeup.png` · `quack-budgets-meta.png` · `quack-spell-header-block.png` · `quack-spell-desk-full.png`
 
 ### Срез M4 — Create / Level-up
 
