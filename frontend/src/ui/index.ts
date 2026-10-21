@@ -12,4 +12,10 @@ export { PasswordInput } from './PasswordInput'
 export { SlotPips } from './SlotPips'
 export { Stack } from './Stack'
 export { Text } from './Text'
-export { Toast, toastDurationFor } from './Toast'
+export {
+  Toast,
+  toastDurationFor,
+  toastMessageOf,
+  normalizeToast,
+} from './Toast'
+export type { ToastInput, ToastPayload } from './Toast'

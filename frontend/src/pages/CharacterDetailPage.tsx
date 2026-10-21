@@ -4,7 +4,19 @@ import { MinimalSheetEditor } from '../features/characters/MinimalSheetEditor'
 import { getCharacter, type CharacterDetail } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
 import { joinLobby } from '../shared/api/lobbies'
-import { Button, Dialog, Field, Input, Stack, Text, Toast } from '../ui'
+import {
+  Button,
+  Dialog,
+  Field,
+  Input,
+  Stack,
+  Text,
+  Toast,
+  normalizeToast,
+  toastMessageOf,
+  type ToastInput,
+  type ToastPayload,
+} from '../ui'
 import { forceReleaseBodyScrollLock } from '../ui/bodyScrollLock'
 
 type LocationState = {
@@ -31,7 +43,12 @@ export function CharacterDetailPage() {
   const [moreOpen, setMoreOpen] = useState(false)
   const moreRef = useRef<HTMLDivElement | null>(null)
   const initialState = location.state as LocationState | null
-  const [toast, setToast] = useState<string | null>(initialState?.toast ?? null)
+  const [toast, setToastState] = useState<ToastPayload | null>(
+    initialState?.toast ? { message: initialState.toast } : null,
+  )
+  const setToast = useCallback((input: ToastInput | null) => {
+    setToastState(input == null ? null : normalizeToast(input))
+  }, [])
   const [createGuide, setCreateGuide] = useState<'background-first' | 'class-first' | null>(
     initialState?.createGuide ?? null,
   )
@@ -40,7 +57,7 @@ export function CharacterDetailPage() {
       ? initialState.startingLevel
       : 1,
   )
-  const closeToast = useCallback(() => setToast(null), [])
+  const closeToast = useCallback(() => setToastState(null), [])
 
   useEffect(() => {
     const state = location.state as LocationState | null
@@ -284,7 +301,21 @@ export function CharacterDetailPage() {
         </Stack>
       </Dialog>
 
-      <Toast message={toast} onClose={closeToast} />
+      <Toast
+        message={toastMessageOf(toast)}
+        durationMs={toast?.durationMs}
+        actionLabel={toast?.actionLabel}
+        onAction={
+          toast?.onAction
+            ? () => {
+                const action = toast.onAction
+                closeToast()
+                action?.()
+              }
+            : undefined
+        }
+        onClose={closeToast}
+      />
     </main>
   )
 }
