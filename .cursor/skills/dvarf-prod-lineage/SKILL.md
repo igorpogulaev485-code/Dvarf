@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/optional-class-features-8215
+cursor/pack-qty-persist-2683
 ```
 
 URL: https://creed20.tech/
