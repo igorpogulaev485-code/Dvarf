@@ -132,8 +132,13 @@ import type {
 } from '../shared/dnd/subclassGrants'
 import {
   emptyFeaturePicks,
+  featurePicksToSheet,
   type FeaturePicksState,
 } from '../shared/dnd/featurePicks'
+import {
+  bridgeManeuversIntoFeaturePicks,
+  extractManeuverIdsFromSubclassPicks,
+} from '../shared/dnd/battleMasterManeuverBridge'
 import { EMPTY_ARMOR } from '../features/characters/identity'
 import { abilityModifier } from '../features/characters/sheetTypes'
 import {
@@ -991,12 +996,21 @@ export function CreateCharacterPage() {
           : {}),
       },
     }
+    // Battle Master: maneuvers_3 (flavor) → feature_picks.combat_superiority
+    const nextFeaturePicks = bridgeManeuversIntoFeaturePicks({
+      featurePicks: state.featurePicks ?? emptyFeaturePicks(),
+      classEntryId,
+      maneuverIds: extractManeuverIdsFromSubclassPicks(picks),
+      mode: 'merge_missing',
+    })
     patchState({
       classes: nextClasses,
       subclassSetups: nextSetups,
+      featurePicks: nextFeaturePicks,
       sheetDraft: {
         ...state.sheetDraft,
         subclass_setups: nextSetups,
+        feature_picks: featurePicksToSheet(nextFeaturePicks),
       },
       stepDirty: { ...state.stepDirty, leveling: true },
     })

@@ -994,7 +994,7 @@
               "from": "maneuver_catalog_phb",
               "applies_to": "flavor_only",
               "required": true,
-              "notes_ru": "Список приёмов PHB — отдельный мини-каталог в следующей подволне; на листе сохранить picks + superiority dice в play/resources позже."
+              "notes_ru": "Приёмы пишутся в subclass_grants и мостом в feature_picks.combat_superiority (блок архетипа / кости превосходства)."
             }
           ],
           "notes_ru": "Student of War: 1 artisan tool. Maneuvers — выбор, не владение.",

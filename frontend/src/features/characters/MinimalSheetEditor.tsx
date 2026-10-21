@@ -243,6 +243,11 @@ import {
   matchFeatCatalogEntry,
 } from './asiFeatHydrate'
 import {
+  bridgeManeuversIntoFeaturePicks,
+  extractManeuverIdsFromSubclassPicks,
+  hydrateManeuversFromSubclassGrants,
+} from '../../shared/dnd/battleMasterManeuverBridge'
+import {
   applyFeatGrantToDraft,
   revokeFeatGrantFromDraft,
   revokeFeatGrantsForAsi,
@@ -897,6 +902,7 @@ export function MinimalSheetEditor({
   const raceCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const backgroundCatalogCacheRef = useRef<CatalogEntry[] | null>(null)
   const asiFeatHydrateAttemptedRef = useRef(false)
+  const bmManeuverHydrateAttemptedRef = useRef(false)
   const [backgroundCatalogRows, setBackgroundCatalogRows] = useState<CatalogEntry[]>(
     [],
   )
@@ -1769,6 +1775,27 @@ export function MinimalSheetEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
   }, [draft.classAsi, draft.featGrants, draft.classes, rulesEdition])
 
+  // Older create stored BM maneuvers only in subclass_grants (flavor); copy into feature_picks.
+  useEffect(() => {
+    if (bmManeuverHydrateAttemptedRef.current) return
+    const probe = hydrateManeuversFromSubclassGrants({
+      featurePicks: draft.featurePicks,
+      subclassGrants: draft.subclassGrants,
+    })
+    if (!probe.bridgedClassEntryIds.length) return
+    bmManeuverHydrateAttemptedRef.current = true
+    setDraft((prev) => {
+      const again = hydrateManeuversFromSubclassGrants({
+        featurePicks: prev.featurePicks,
+        subclassGrants: prev.subclassGrants,
+      })
+      if (!again.bridgedClassEntryIds.length) return prev
+      onToast('Восстановлены манёвры Мастера боя из выбора архетипа')
+      return { ...prev, featurePicks: again.featurePicks }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot backfill
+  }, [draft.subclassGrants, draft.featurePicks])
+
   function subclassSliceFrom(prev: Draft): SubclassGrantDraftSlice {
     return {
       identity: prev.identity,
@@ -1873,6 +1900,13 @@ export function MinimalSheetEditor({
       } else if (changeMode === 'replace_all') {
         nextPicks = clearFeaturePicksForClass(withGrant.featurePicks, input.classEntryId)
       }
+      // Battle Master: maneuvers_3 → combat_superiority (sheet archetype block / spend)
+      nextPicks = bridgeManeuversIntoFeaturePicks({
+        featurePicks: nextPicks,
+        classEntryId: input.classEntryId,
+        maneuverIds: extractManeuverIdsFromSubclassPicks(input.picks),
+        mode: 'merge_missing',
+      })
       return {
         ...withGrant,
         featurePicks: nextPicks,
