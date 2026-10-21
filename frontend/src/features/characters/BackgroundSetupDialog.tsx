@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
   backgroundHasRoleplayTables,
+  backgroundSetupBlockingReasons,
   emptyBackgroundPicks,
   personalityPickCount,
   resolveBackgroundGrantDef,
@@ -222,29 +223,33 @@ export function BackgroundSetupDialog({
   }
 
   const variantOk = !hasVariantFork || Boolean(variantKey)
-  const equipmentOk =
-    !def || equipmentPackages.length === 0 || Boolean(equipmentPackageId)
   const orNeed =
     def && equipmentPackageId && equipmentPackageId !== 'skip'
       ? def.equipmentOrChoices
       : []
-  const orOk = orNeed.every((choice) => Boolean(equipmentOrPicks[choice.id]))
-  const tablesOk = choiceTables.every((table) => {
-    const picked = choiceTablePicks[table.id] ?? []
-    return picked.length === table.count
-  })
-  const traitsOk =
-    personalityTraits.length === 0 || personalityTraits.length === traitNeed
 
-  const canConfirm =
-    Boolean(def && effectiveEntry && variantOk) &&
-    skills.length === skillNeed &&
-    tools.length === toolNeed &&
-    languages.length === langNeed &&
-    equipmentOk &&
-    orOk &&
-    tablesOk &&
-    traitsOk
+  const picksForValidation: BackgroundGrantPicks = {
+    skills,
+    tools,
+    languages,
+    equipmentPackageId:
+      equipmentPackages.length > 0 ? equipmentPackageId : null,
+    equipmentOrPicks,
+    choiceTablePicks,
+    personalityTraits,
+    ideal,
+    bond,
+    flaw,
+  }
+
+  const blockingReasons = backgroundSetupBlockingReasons({
+    def: variantOk ? def : null,
+    picks: picksForValidation,
+    variantPending: hasVariantFork && !variantKey,
+  })
+  // When variant not yet chosen, helper returns only the variant line (def is null).
+  // After variant, list every open fork (languages + gear + OR + partial traits…).
+  const canConfirm = Boolean(effectiveEntry) && blockingReasons.length === 0
 
   if (!root) return null
 
@@ -261,24 +266,13 @@ export function BackgroundSetupDialog({
       primaryLabel="Применить"
       secondaryLabel="Отмена"
       size="wide"
+      primaryDisabled={!canConfirm}
       onPrimary={() => {
         if (!canConfirm || !def || !effectiveEntry) return
         onConfirm({
           entry: effectiveEntry,
           def,
-          picks: {
-            skills,
-            tools,
-            languages,
-            equipmentPackageId:
-              equipmentPackages.length > 0 ? equipmentPackageId : null,
-            equipmentOrPicks,
-            choiceTablePicks,
-            personalityTraits,
-            ideal,
-            bond,
-            flaw,
-          },
+          picks: picksForValidation,
         })
       }}
       onSecondary={onClose}
@@ -311,10 +305,6 @@ export function BackgroundSetupDialog({
               ))}
             </div>
           </Field>
-        ) : null}
-
-        {!variantOk ? (
-          <Text tone="muted">Выбери базовый вариант или ответвление.</Text>
         ) : null}
 
         {def && effectiveEntry ? (
@@ -556,8 +546,14 @@ export function BackgroundSetupDialog({
           </>
         ) : null}
 
-        {!canConfirm && variantOk ? (
-          <Text tone="muted">Отметь обязательные развилки, чтобы продолжить.</Text>
+        {blockingReasons.length > 0 ? (
+          <Stack gap={4}>
+            {blockingReasons.map((reason) => (
+              <Text key={reason} tone="danger">
+                {reason}
+              </Text>
+            ))}
+          </Stack>
         ) : null}
       </Stack>
     </Dialog>
@@ -593,6 +589,7 @@ export function HomebrewBackgroundDialog({
       title="Хомбрю-предыстория"
       primaryLabel="Применить"
       secondaryLabel="Отмена"
+      primaryDisabled={!canConfirm}
       onPrimary={() => {
         if (!canConfirm) return
         onConfirm(trimmed)
