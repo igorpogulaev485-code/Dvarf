@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   buildItemsFromEquipmentLines,
+  equipmentLineBlockingReasons,
   equipmentLinesFor,
   equipmentPackagesFor,
   grantNeedsSetupDialog,
@@ -194,21 +195,43 @@ export function ClassSetupDialog({
     })
   }
 
-  const equipmentOk =
-    mode !== 'start' ||
-    (equipmentLines.length === 0 && equipmentPackages.length === 0) ||
-    (equipmentPackageId === PHB_LINES_PACKAGE_ID
-      ? !validateEquipmentLinePicks({ lines: equipmentLines, picks: linePicks })
-      : Boolean(equipmentPackageId))
+  const blockingReasons = ((): string[] => {
+    const reasons: string[] = []
+    if (!def || !pkg) {
+      reasons.push(
+        'Для этого класса пока нет пакета эффектов — закрой и заполни вручную.',
+      )
+      return reasons
+    }
+    if (skills.length !== skillNeed) {
+      reasons.push(
+        `Выбери навыки: нужно ${skillNeed}, сейчас ${skills.length}.`,
+      )
+    }
+    if (tools.length !== toolNeed) {
+      reasons.push(
+        `Выбери инструменты: нужно ${toolNeed}, сейчас ${tools.length}.`,
+      )
+    }
+    if (mode === 'start') {
+      if (equipmentPackageId === PHB_LINES_PACKAGE_ID) {
+        reasons.push(
+          ...equipmentLineBlockingReasons({
+            lines: equipmentLines,
+            picks: linePicks,
+          }),
+        )
+      } else if (equipmentPackages.length > 0 && !equipmentPackageId) {
+        reasons.push('Выбери стартовое снаряжение.')
+      }
+    }
+    if (focusPlaceholder && focusSelection == null) {
+      reasons.push('Выбери фокус / символ.')
+    }
+    return reasons
+  })()
 
-  const focusOk = !focusPlaceholder || focusSelection != null
-
-  const canConfirm =
-    Boolean(def && pkg) &&
-    skills.length === skillNeed &&
-    tools.length === toolNeed &&
-    equipmentOk &&
-    focusOk
+  const canConfirm = blockingReasons.length === 0
 
   if (!def || !pkg) return null
 
@@ -344,8 +367,14 @@ export function ClassSetupDialog({
           </Stack>
         ) : null}
 
-        {!canConfirm ? (
-          <Text tone="muted">Отметь все обязательные развилки, чтобы продолжить.</Text>
+        {blockingReasons.length > 0 ? (
+          <Stack gap={4}>
+            {blockingReasons.map((reason) => (
+              <Text key={reason} tone="danger">
+                {reason}
+              </Text>
+            ))}
+          </Stack>
         ) : null}
       </Stack>
     </Dialog>
@@ -381,6 +410,7 @@ export function HomebrewClassDialog({
       title="Хомбрю-класс"
       primaryLabel="Применить"
       secondaryLabel="Отмена"
+      primaryDisabled={!canConfirm}
       onPrimary={() => {
         if (!canConfirm) return
         onConfirm(trimmed)
