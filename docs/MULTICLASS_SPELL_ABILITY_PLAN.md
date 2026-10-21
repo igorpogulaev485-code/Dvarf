@@ -381,13 +381,17 @@ M0 ok решений
 **Приёмка:** новый Art/Warlock проходит cantrips+known колдуна; черновик сохраняется; prepare недобор ок.  
 **Скрины:** create flow на **новом** реальном прогоне — после стенда/второго персонажа.
 
-### Срез M5 — Гримуар секции
+### Срез M5 — Гримуар секции ✅
 
-Стык с SPELL_ACCESS.  
-Секции/фильтр по профилю; verbs; alone-max; без второго Prepare-дома.
+| Задача | Где | Статус |
+|--------|-----|--------|
+| Полки по профилю (Art / Warlock) | `GrimoireDialog` shelfSections | ✅ |
+| Alone-max membership (не shared slots) | `buildGrimoireShelfSources` + filter | ✅ |
+| Per-shelf verbs / acquisition | rowMode + shelfSlug stamp | ✅ |
+| Без второго Prepare-дома | без изменений (wizard-only) | ✅ |
+| Скрин R1 | `quack-grimoire-shelves.png` | ✅ |
 
-**Приёмка:** R1 гримуар показывает полки изобретатель/колдун.  
-**Скрины:** grimoire R1.
+Стык с SPELL_ACCESS §7 (секции/фильтр) — без ожидания полного ok §11 ACCESS.
 
 ### Срез M6 — Classic / print
 
