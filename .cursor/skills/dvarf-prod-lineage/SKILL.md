@@ -35,7 +35,7 @@ description: Prevent prod overwrite regressions on Dvarf Timeweb. Use before any
 ## Текущий prod tip
 
 ```text
-cursor/multiclass-spell-m1-c9ba
+cursor/spells-feats-infusions-ab30
 ```
 
 URL: https://creed20.tech/

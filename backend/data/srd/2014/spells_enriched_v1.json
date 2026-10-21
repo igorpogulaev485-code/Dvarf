@@ -82,7 +82,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "ЛОВ",
       "damage": "1d6 кислота",
@@ -131,7 +132,8 @@
       "ritual": false,
       "classes": [
         "cleric",
-        "paladin"
+        "paladin",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": "5",
@@ -185,7 +187,8 @@
       "ritual": true,
       "classes": [
         "ranger",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -227,7 +230,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -445,7 +449,8 @@
       "classes": [
         "bard",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -616,7 +621,8 @@
       "ritual": false,
       "classes": [
         "cleric",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -701,7 +707,8 @@
       "concentration": false,
       "ritual": false,
       "classes": [
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -1410,7 +1417,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -1452,7 +1460,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -2763,7 +2772,8 @@
       "ritual": false,
       "classes": [
         "cleric",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -3074,7 +3084,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -3120,7 +3131,8 @@
         "cleric",
         "druid",
         "paladin",
-        "ranger"
+        "ranger",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": "1d8 + MOD",
@@ -3265,7 +3277,8 @@
         "druid",
         "ranger",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -3532,7 +3545,8 @@
         "paladin",
         "ranger",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -3711,7 +3725,8 @@
       "classes": [
         "bard",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -4332,7 +4347,8 @@
         "bard",
         "cleric",
         "druid",
-        "sorcerer"
+        "sorcerer",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -4376,7 +4392,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "ТЕЛ",
       "damage": null,
@@ -4548,7 +4565,8 @@
       "classes": [
         "sorcerer",
         "warlock",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -4633,7 +4651,8 @@
       "concentration": false,
       "ritual": false,
       "classes": [
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -4675,7 +4694,8 @@
       "ritual": false,
       "classes": [
         "bard",
-        "druid"
+        "druid",
+        "artificer"
       ],
       "attack_or_save": "ЛОВ",
       "damage": null,
@@ -4717,7 +4737,8 @@
       "concentration": false,
       "ritual": false,
       "classes": [
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "атака",
       "damage": "4d8 колющий",
@@ -4763,7 +4784,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": "1d4 + 4",
@@ -4865,7 +4887,8 @@
       "classes": [
         "bard",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -5171,7 +5194,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "атака",
       "damage": "1d10 огонь",
@@ -5603,7 +5627,8 @@
       "classes": [
         "sorcerer",
         "warlock",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -5825,7 +5850,8 @@
         "bard",
         "cleric",
         "druid",
-        "ranger"
+        "ranger",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -6219,7 +6245,8 @@
       "classes": [
         "bard",
         "cleric",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -6305,7 +6332,8 @@
       "concentration": false,
       "ritual": false,
       "classes": [
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "ЛОВ",
       "damage": null,
@@ -6392,7 +6420,8 @@
       "classes": [
         "bard",
         "cleric",
-        "druid"
+        "druid",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -6521,7 +6550,8 @@
       "ritual": false,
       "classes": [
         "cleric",
-        "druid"
+        "druid",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -6792,7 +6822,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -6939,7 +6970,8 @@
       "ritual": false,
       "classes": [
         "bard",
-        "druid"
+        "druid",
+        "artificer"
       ],
       "attack_or_save": "ТЕЛ",
       "damage": "2d8 огонь",
@@ -7451,7 +7483,8 @@
       "ritual": true,
       "classes": [
         "bard",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -7775,7 +7808,8 @@
         "bard",
         "sorcerer",
         "warlock",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -7863,7 +7897,8 @@
         "druid",
         "ranger",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -7995,7 +8030,8 @@
         "cleric",
         "druid",
         "paladin",
-        "ranger"
+        "ranger",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -8038,7 +8074,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -8083,7 +8120,8 @@
         "bard",
         "cleric",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "ЛОВ",
       "damage": null,
@@ -8319,7 +8357,8 @@
         "bard",
         "druid",
         "ranger",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -8407,7 +8446,8 @@
         "bard",
         "sorcerer",
         "warlock",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -8592,7 +8632,8 @@
       "ritual": true,
       "classes": [
         "bard",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -8634,7 +8675,8 @@
       "ritual": false,
       "classes": [
         "paladin",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -9044,7 +9086,8 @@
         "bard",
         "druid",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -9088,7 +9131,8 @@
       "classes": [
         "bard",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -9966,7 +10010,8 @@
         "sorcerer",
         "warlock",
         "wizard",
-        "druid"
+        "druid",
+        "artificer"
       ],
       "attack_or_save": "ТЕЛ",
       "damage": "1d12 яд",
@@ -10201,7 +10246,8 @@
         "bard",
         "sorcerer",
         "warlock",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -10329,7 +10375,8 @@
       "concentration": false,
       "ritual": false,
       "classes": [
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -10508,7 +10555,8 @@
         "druid",
         "ranger",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -10597,7 +10645,8 @@
         "cleric",
         "druid",
         "paladin",
-        "ranger"
+        "ranger",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -10640,7 +10689,8 @@
       "classes": [
         "cleric",
         "druid",
-        "paladin"
+        "paladin",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -10768,7 +10818,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "атака",
       "damage": "1d8 холод",
@@ -10949,7 +11000,8 @@
       "concentration": true,
       "ritual": false,
       "classes": [
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "ЛОВ",
       "damage": null,
@@ -10992,7 +11044,8 @@
       "ritual": false,
       "classes": [
         "cleric",
-        "druid"
+        "druid",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -11122,7 +11175,8 @@
       "ritual": false,
       "classes": [
         "cleric",
-        "paladin"
+        "paladin",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -11164,7 +11218,8 @@
       "concentration": false,
       "ritual": false,
       "classes": [
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -11253,7 +11308,8 @@
       "concentration": false,
       "ritual": false,
       "classes": [
-        "cleric"
+        "cleric",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -11431,7 +11487,8 @@
       "classes": [
         "bard",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -11829,7 +11886,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "атака",
       "damage": "1d8 электричество",
@@ -12140,7 +12198,8 @@
       "concentration": false,
       "ritual": false,
       "classes": [
-        "cleric"
+        "cleric",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -12313,7 +12372,8 @@
       "classes": [
         "sorcerer",
         "warlock",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -12539,7 +12599,8 @@
       "classes": [
         "cleric",
         "druid",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -13796,7 +13857,8 @@
       "classes": [
         "druid",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -13932,7 +13994,8 @@
         "druid",
         "ranger",
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -13977,7 +14040,8 @@
         "cleric",
         "druid",
         "ranger",
-        "sorcerer"
+        "sorcerer",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,
@@ -14020,7 +14084,8 @@
       "ritual": false,
       "classes": [
         "sorcerer",
-        "wizard"
+        "wizard",
+        "artificer"
       ],
       "attack_or_save": "—",
       "damage": null,

@@ -4,12 +4,22 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/multiclass-spell-m1-c9ba`  
+**Prod tip (ветка линии прода):** `cursor/spells-feats-infusions-ab30`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-21 — Инфузии RU + список изобретателя + аудит Magic Initiate
+
+| Функция | Как работает | Эффект |
+|--------|--------------|--------|
+| Подписи опций фич | Один резолвер `featureChoiceOptionLabel` в create-wizard и на листе | При создании изобретателя инфузии на русском |
+| Заклинания изобретателя | Тег `artificer` на 65 PHB/TCE заклинаний + alembic `b4c5d6e7f8a9` | ~22 заговора / ~18 L1 (fire bolt, cure wounds…) |
+| Magic Initiate | Списки класса из каталога; selfcheck по 5 классам | Полные списки барда/жреца/друида/колдуна/волшебника |
+
+На проде: **да** · **это новый prod tip** `cursor/spells-feats-infusions-ab30` · PR #264 · залито 2026-10-21 · поверх tip `multiclass-spell-m1-c9ba` · `/health` ok · alembic `b4c5d6e7f8a9` · fire_bolt classes включают artificer · cantrips artificer=22 · бандл `CharacterDetailPage-BeiXZkAN.js` · characters=94 classic=20
 
 ### 2026-10-21 — Мультикласс: Сл/атака по классам (M1–M7)
 
@@ -22,7 +32,7 @@
 | Classic P3 | Таблица профилей при ≥2 кастерах | Печать совпадает со столом |
 | Wave MC UI-kit | Candidate boards `*-mc-*.jpg` | LOCK после ok Игоря; Wave A не откатывали |
 
-На проде: **да** · **это новый prod tip** `cursor/multiclass-spell-m1-c9ba` · PR #263 · залито 2026-10-21 · поверх tip `tiefling-hellish-rebuke-2-6682` · `/health` ok · бандл `CharacterDetailPage-BAC-WGUq.js` · `castProfiles.ts` + `play-desk-compact__cast-profile` на диске · characters=94 classic=20
+На проде: **да** · tip `cursor/multiclass-spell-m1-c9ba` · PR #263 · залито 2026-10-21 · поверх tip `tiefling-hellish-rebuke-2-6682` · `/health` ok · бандл `CharacterDetailPage-BAC-WGUq.js` · `castProfiles.ts` + `play-desk-compact__cast-profile` на диске · characters=94 classic=20
 
 ### 2026-10-21 — Тифлинг: Адская месть как 2-й круг
 
@@ -750,6 +760,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 Сюда агенты пишут то, что сделано в PR, но **ещё не залито** на сервер.
 
+<!-- spells-feats-infusions залито 2026-10-21 → tip spells-feats-infusions-ab30; блок в «Сейчас в продукте» -->
 <!-- grimoire-prepare-home залито 2026-10-21 → tip grimoire-prepare-home-3aba; блок в «Сейчас в продукте» -->
 <!-- prepare-class-list-available залито 2026-10-21 → tip prepare-class-list-available-3aba; блок в «Сейчас в продукте» -->
 <!-- stealthy залито 2026-10-20 → tip feat-stealthy-3565; блок в «Сейчас в продукте» -->
@@ -807,7 +818,8 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
-| 2026-10-21 | `cursor/multiclass-spell-m1-c9ba` · PR #263 | MC spell profiles/budgets/cast/grimoire/classic → **новый tip** после Timeweb |
+| 2026-10-21 | `cursor/spells-feats-infusions-ab30` · PR #264 | Инфузии RU + artificer spell tags + MI audit → tip после Timeweb |
+| 2026-10-21 | `cursor/multiclass-spell-m1-c9ba` · PR #263 | MC spell profiles/budgets/cast/grimoire/classic → tip после Timeweb |
 | 2026-10-21 | `cursor/tiefling-hellish-rebuke-2-6682` · PR #261 | Tiefling Hellish Rebuke cast-as 2 → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/bm-maneuvers-bridge-6682` · PR #260 | BM maneuvers → feature_picks bridge → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/satyr-rogue-init-speed-d602` · PR #258 | Mobile/Alert/Rakish init+speed → **новый tip** после Timeweb |

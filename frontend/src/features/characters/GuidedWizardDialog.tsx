@@ -47,8 +47,8 @@ import {
   toggleFeaturePickInList,
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
+import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
 import { fightingStyleById } from '../../shared/dnd/fightingStyles'
-import { WARLOCK_PACT_BOONS } from '../../shared/dnd/warlockInvocations'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import type { RulesEdition } from '../../shared/api/characters'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
@@ -144,26 +144,13 @@ function skillLabel(key: string): string {
   return SKILL_DEFS.find((item) => item.key === key)?.label ?? key
 }
 
-const OPTION_LABEL_FALLBACKS_RU: Record<string, string> = {
-  plus2: '+2 к одной характеристике',
-  plus1x2: '+1 к двум характеристикам',
-  feat_coming_soon: 'Черта',
-}
-
 function choiceOptionLabel(optionId: string, choice?: FeatureChoiceDef | null): string {
-  if (optionId === THIEVES_TOOLS_OPTION_ID) return THIEVES_TOOLS_LABEL_RU
-  const labeled = choice?.option_labels_ru?.[optionId]?.trim()
-  if (labeled) return labeled
-  if (OPTION_LABEL_FALLBACKS_RU[optionId]) return OPTION_LABEL_FALLBACKS_RU[optionId]
   if (isExpertiseChoice(choice)) {
+    if (optionId === THIEVES_TOOLS_OPTION_ID) return THIEVES_TOOLS_LABEL_RU
     return skillLabel(optionId)
   }
-  const pact = WARLOCK_PACT_BOONS.find((row) => row.id === optionId)
-  return (
-    fightingStyleById(optionId)?.nameRu ||
-    pact?.nameRu ||
-    skillLabel(optionId) ||
-    optionId
+  return featureChoiceOptionLabel(optionId, choice, (id) =>
+    SKILL_DEFS.find((item) => item.key === id)?.label,
   )
 }
 
