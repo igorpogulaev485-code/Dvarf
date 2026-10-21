@@ -3,6 +3,8 @@
  */
 import {
   buildStartingWeaponAttacks,
+  filterAttackIdsAfterMerge,
+  mergeStartingWeaponAttacksByIdentity,
   resolveStartingWeaponAttacks,
 } from './startingGearAttacks'
 
@@ -41,5 +43,57 @@ assert(shorts?.cardCount === 1 && shorts.stackQty === 2, 'shortsword×2 stacks')
 // Unique weapon → no qty.
 const greataxe = resolveStartingWeaponAttacks('Секира', 1)
 assert(greataxe?.cardCount === 1 && greataxe.stackQty == null, 'greataxe: no qty')
+
+// Separate inventory lines (class pack + pick / class + background) → one card.
+const classDagger = buildStartingWeaponAttacks({
+  name: 'Кинжал',
+  qty: 1,
+  makeId: () => 'class-eq:w:inv-a',
+  inventoryItemId: 'inv-a',
+})
+const pickDagger = buildStartingWeaponAttacks({
+  name: 'кинжал',
+  qty: 1,
+  makeId: () => 'class-eq:w:inv-b',
+  inventoryItemId: 'inv-b',
+})
+const bgDagger = buildStartingWeaponAttacks({
+  name: 'Dagger',
+  qty: 1,
+  makeId: () => 'bg-eq:criminal:inv-c',
+  inventoryItemId: 'inv-c',
+})
+const merged = mergeStartingWeaponAttacksByIdentity([
+  ...classDagger.attacks,
+  ...pickDagger.attacks,
+  ...bgDagger.attacks,
+])
+assert(merged.length === 1, 'cross-line daggers: one attack card')
+assert(merged[0]?.name === 'Кинжал', 'cross-line: canonical labelRu')
+assert(merged[0]?.qty === 3, 'cross-line: qty summed to 3')
+assert(merged[0]?.id === 'class-eq:w:inv-a', 'cross-line: first id survives')
+
+const ids = filterAttackIdsAfterMerge(
+  ['class-eq:w:inv-a', 'class-eq:w:inv-b', 'bg-eq:criminal:inv-c', 'gone'],
+  merged,
+)
+assert(
+  ids.length === 1 && ids[0] === 'class-eq:w:inv-a',
+  'filterAttackIdsAfterMerge keeps survivor only',
+)
+
+// Unresolvable custom names do not collapse into each other.
+const customA = {
+  ...classDagger.attacks[0]!,
+  id: 'custom-a',
+  name: 'Клинок тени',
+}
+const customB = {
+  ...classDagger.attacks[0]!,
+  id: 'custom-b',
+  name: 'Клинок пламени',
+}
+const customs = mergeStartingWeaponAttacksByIdentity([customA, customB])
+assert(customs.length === 2, 'unknown names: no fuzzy merge')
 
 console.log('startingGearAttacks.selfcheck: ok')
