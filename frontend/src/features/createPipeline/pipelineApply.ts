@@ -41,6 +41,11 @@ import {
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
 import {
+  bridgeManeuversIntoFeaturePicks,
+  extractManeuverIdsFromSubclassGrant,
+  extractManeuverIdsFromSubclassPicks,
+} from '../../shared/dnd/battleMasterManeuverBridge'
+import {
   applyClassAsiBonuses,
   readClassAsiLedger,
   type AppliedClassAsi,
@@ -1113,11 +1118,29 @@ export async function applyPipelineToSheet(input: {
   }
 
   // 5) Feature picks / class ASI / expertise
-  const featurePicks =
+  let featurePicks =
     input.featurePicks ??
     state.featurePicks ??
     readFeaturePicks(state.sheetDraft.feature_picks) ??
     emptyFeaturePicks()
+
+  // Battle Master: subclass setup maneuvers_3 → combat_superiority feature_picks
+  for (const row of classes) {
+    const setup = state.subclassSetups?.[row.id]
+    const fromSetup = setup
+      ? extractManeuverIdsFromSubclassPicks(normalizeSubclassPicks(setup.picks))
+      : []
+    const grant = draft.subclassGrants.find((item) => item.classEntryId === row.id)
+    const fromGrant = grant ? extractManeuverIdsFromSubclassGrant(grant) : []
+    const maneuverIds = fromSetup.length ? fromSetup : fromGrant
+    featurePicks = bridgeManeuversIntoFeaturePicks({
+      featurePicks,
+      classEntryId: row.id,
+      maneuverIds,
+      mode: 'merge_missing',
+    })
+  }
+
   const classAsi =
     input.classAsi ??
     (Array.isArray(state.classAsi) && state.classAsi.length
