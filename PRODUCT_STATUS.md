@@ -4,12 +4,21 @@
 Игорь шарит его с друзьями и использует как срез для агентов.
 
 Прод: https://creed20.tech/  
-**Prod tip (ветка линии прода):** `cursor/satyr-rogue-init-speed-d602`  
+**Prod tip (ветка линии прода):** `cursor/bm-maneuvers-bridge-6682`  
 Контракт агентов: [`AGENTS.md`](AGENTS.md) · skill [`dvarf-prod-lineage`](.cursor/skills/dvarf-prod-lineage/SKILL.md)
 
 ---
 
 ## Сейчас в продукте — свежее
+
+### 2026-10-21 — Battle Master: манёвры из create → блок архетипа
+
+| Функция | Как работает | Эффект для пользователя |
+|--------|--------------|-------------------------|
+| Мост `maneuvers_3` → `feature_picks` | Create/setup + pipelineApply пишут в `combat_superiority` | Приёмы видны в «Боевое превосходство» без ручного ввода |
+| Гидратация старых листов | При открытии копирует манёвры из `subclass_grants`, если picks пусты | Рагнар и др. BM восстанавливаются после переоткрытия |
+
+На проде: **да** · **это новый prod tip** `cursor/bm-maneuvers-bridge-6682` · PR #260 · залито 2026-10-21 · поверх tip `satyr-rogue-init-speed-d602` · `/health` ok · бандл `CharacterDetailPage-CytG2UIW.js` / `CreateCharacterPage-CN1reRzG.js` · `battleMasterManeuverBridge.ts` на диске · characters=94 classic=19
 
 ### 2026-10-21 — Наборы: qty содержимого не сбрасывается
 
@@ -776,6 +785,7 @@ Tip сдвинут 2026-10-17 → `cursor/restore-sheet-classic-setting-3d0d` (C
 
 | Дата | Кто / ветка | Что изменили в этом файле |
 |------|-------------|---------------------------|
+| 2026-10-21 | `cursor/bm-maneuvers-bridge-6682` · PR #260 | BM maneuvers → feature_picks bridge → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/satyr-rogue-init-speed-d602` · PR #258 | Mobile/Alert/Rakish init+speed → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/versatile-weapons-grip-57bf` · PR #257 | Универсальное оружие (щит + 1к8/1к10) → **новый tip** после Timeweb |
 | 2026-10-21 | `cursor/restore-consumables-grimoire-0bc3` | Audit: restore расходники+гримуар после overwrite ship fc00 → **новый tip** (после Timeweb) |
