@@ -4,6 +4,7 @@ import { AuthDebugPage } from './pages/AuthDebugPage'
 import { CharactersPage } from './pages/CharactersPage'
 import { ConsumablesTapGuardPreviewPage } from './pages/ConsumablesTapGuardPreviewPage'
 import { LegalPage } from './pages/LegalPage'
+import { OnboardingPreviewPage } from './pages/OnboardingPreviewPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
 import { safeNextPath } from './shared/auth/nextPath'
@@ -68,6 +69,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/legal" element={<LegalPage />} />
+        <Route path="/dev/onboarding-preview" element={<OnboardingPreviewPage />} />
         <Route path="/login" element={<LoginRoute />} />
         {import.meta.env.DEV ? (
           <Route

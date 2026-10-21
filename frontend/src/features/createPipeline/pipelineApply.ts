@@ -79,6 +79,7 @@ import {
 } from '../characters/featEffects'
 import {
   newFeatGrantId,
+  sumFeatSpeedBonus,
   type AppliedFeatGrant,
 } from '../../shared/dnd/featGrants'
 import {
@@ -452,7 +453,13 @@ function normalizeLinePicks(
         : weaponRaw === null
           ? null
           : undefined
-    out[lineId] = { optionId, weaponName }
+    let weaponNames: Array<string | null> | undefined
+    if (Array.isArray(row.weaponNames)) {
+      weaponNames = row.weaponNames.map((value) =>
+        typeof value === 'string' && value.trim() ? value.trim() : null,
+      )
+    }
+    out[lineId] = { optionId, weaponName, weaponNames }
   }
   return out
 }
@@ -788,11 +795,13 @@ function serializeSheet(input: {
     wearingArmorOrShield: false,
   })
   const classSpeedBonusMax = classSpeedBonus
+  const featSpeedBonus = sumFeatSpeedBonus(draft.featGrants)
   const resolvedSpeed = resolveWalkSpeedFt({
     storedSpeed: draft.speed,
     raceSpeed,
     classBonusFt: classSpeedBonus,
     classBonusFtMax: classSpeedBonusMax,
+    featBonusFt: featSpeedBonus,
   })
 
   const combat: Record<string, unknown> = {

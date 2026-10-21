@@ -1,12 +1,13 @@
 <!-- See docs/INCIDENT_OVERWRITE_2026-10-17.md -->
 # Prod deploy (Timeweb VPS)
 
-**URL:** http://201.34.132.252/  
+**Public URL:** https://creed20.tech/ (канон для браузера и друзей)  
+**SSH / deploy host:** `201.34.132.252` (HTTP по IP редиректит на creed20 — не открывать как прод)  
 **Path on server:** `/opt/dvarf`  
 **Compose file:** `docker-compose.prod.yml`  
-**Current prod tip branch:** `cursor/sirocco-ranger-sync-e6f4`  
-**Public URL:** https://creed20.tech (Caddy `edge` + Let’s Encrypt; `web` only on docker network)  
-(обновляй эту строку после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
+**Current prod tip branch:** `cursor/consumables-tap-guard-plan-3b91`  
+**Edge:** Caddy + Let’s Encrypt (`web` only on docker network)  
+(обновляй tip после деплоя, который становится новым tip — также в `AGENTS.md` и skill `dvarf-prod-lineage`)
 
 ---
 

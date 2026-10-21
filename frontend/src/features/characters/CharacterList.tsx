@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import type { CharacterSummary } from '../../shared/api/characters'
 import { EmptyState } from '../../ui'
+import { EMPTY_CHARACTERS } from '../onboarding'
 import { CharacterCard } from './CharacterCard'
 import {
   tagsForCharacter,
@@ -14,6 +15,8 @@ type CharacterListProps = {
   cardSize: CharacterCardSize
   /** True when the full account list is empty (not just a tag filter). */
   listEmpty?: boolean
+  emptyTitle?: string
+  emptyDescription?: string
   emptyAction?: ReactNode
   onDeleted?: (id: string) => void
 }
@@ -23,17 +26,23 @@ export function CharacterList({
   prefs,
   cardSize,
   listEmpty = false,
+  emptyTitle,
+  emptyDescription,
   emptyAction,
   onDeleted,
 }: CharacterListProps) {
   if (!characters.length) {
     return (
       <EmptyState
-        title={listEmpty ? 'Пока нет персонажей' : 'Нет совпадений'}
+        title={
+          emptyTitle ??
+          (listEmpty ? EMPTY_CHARACTERS.title : 'Нет совпадений')
+        }
         description={
-          listEmpty
-            ? 'Создайте первого — откроется страница листа.'
-            : 'Сбросьте фильтр тегов или назначьте теги другим персонажам.'
+          emptyDescription ??
+          (listEmpty
+            ? EMPTY_CHARACTERS.description
+            : 'Сбросьте фильтр тегов или назначьте теги другим персонажам.')
         }
         action={emptyAction}
       />

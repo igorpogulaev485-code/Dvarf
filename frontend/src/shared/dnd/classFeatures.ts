@@ -204,6 +204,11 @@ export type ClassFeatureDef = {
   slot_spend?: FeatureSlotSpendDef
   /** Add ability mod (min) to own saves while unlocked (Aura of Protection). */
   save_bonus_self?: FeatureSaveBonusSelfDef
+  /**
+   * Grant save proficiency while unlocked (Diamond Soul → all).
+   * `"all"` or a list of ability keys.
+   */
+  save_proficiency?: 'all' | AbilityScoreKey[]
   /** On successful resource spend — create/replace companion or ally card. */
   summon?: FeatureSummonDef
 }
@@ -262,6 +267,7 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       row.save_bonus_self && typeof row.save_bonus_self === 'object'
         ? (row.save_bonus_self as Record<string, unknown>)
         : null
+    const saveProfRaw = row.save_proficiency
     const summonRaw =
       row.summon && typeof row.summon === 'object'
         ? (row.summon as Record<string, unknown>)
@@ -375,6 +381,22 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       }
     }
 
+    let save_proficiency: ClassFeatureDef['save_proficiency']
+    if (saveProfRaw === 'all') {
+      save_proficiency = 'all'
+    } else if (Array.isArray(saveProfRaw)) {
+      const keys = saveProfRaw.filter(
+        (key): key is AbilityScoreKey =>
+          key === 'str' ||
+          key === 'dex' ||
+          key === 'con' ||
+          key === 'int' ||
+          key === 'wis' ||
+          key === 'cha',
+      )
+      if (keys.length) save_proficiency = keys
+    }
+
     let summon: FeatureSummonDef | undefined
     if (summonRaw && typeof summonRaw.name_ru === 'string') {
       const kindRaw = summonRaw.kind
@@ -438,6 +460,7 @@ function asFeatureList(raw: unknown): ClassFeatureDef[] {
       choice,
       slot_spend,
       save_bonus_self,
+      save_proficiency,
       summon,
     })
   }

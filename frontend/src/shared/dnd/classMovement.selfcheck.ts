@@ -38,6 +38,13 @@ assert(
 )
 assert(
   classWalkSpeedBonusFt({
+    classes: [{ name: 'Монах', level: 20 }],
+    wearingArmorOrShield: false,
+  }) === 30,
+  'monk L20 unarmored +30',
+)
+assert(
+  classWalkSpeedBonusFt({
     classes: [{ name: 'Монах', level: 10 }],
     wearingArmorOrShield: true,
   }) === 0,
@@ -89,6 +96,38 @@ assert(
     gearBonusFt: 5,
   }) === 45,
   'null stored derives race + class + gear',
+)
+
+// Mobile (+10) baked into stored=40 must still add monk Unarmored Movement.
+assert(
+  resolveWalkSpeedFt({
+    storedSpeed: 40,
+    raceSpeed: 30,
+    classBonusFt: 30,
+    classBonusFtMax: 30,
+    featBonusFt: 10,
+  }) === 70,
+  'human + Mobile + monk L20 = 70',
+)
+assert(
+  resolveWalkSpeedFt({
+    storedSpeed: 70,
+    raceSpeed: 30,
+    classBonusFt: 30,
+    classBonusFtMax: 30,
+    featBonusFt: 10,
+  }) === 70,
+  'fully baked race+feat+class strips cleanly',
+)
+assert(
+  resolveWalkSpeedFt({
+    storedSpeed: 40,
+    raceSpeed: 30,
+    classBonusFt: 0,
+    classBonusFtMax: 30,
+    featBonusFt: 10,
+  }) === 40,
+  'armor blocks monk bonus; keep race+Mobile',
 )
 
 console.log('classMovement.selfcheck: ok')

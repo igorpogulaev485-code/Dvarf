@@ -121,6 +121,8 @@ if [[ -f /tmp/dvarf.env.bak ]]; then
 fi
 chmod +x ${REMOTE_DIR}/deploy/*.sh
 bash ${REMOTE_DIR}/deploy/remote-up.sh
+# Mobile VPN / broken PMTUD: clamp MSS + tcp_mtu_probing (idempotent).
+bash ${REMOTE_DIR}/deploy/apply-vpn-mtu.sh
 EOF
 
-echo "Deployed: http://${HOST}/"
+echo "Deployed: https://creed20.tech/ (SSH host ${HOST})"

@@ -12,6 +12,7 @@ import {
   naturalArmorFromFeatGrants,
   readFeatGrantLedger,
   sumFeatInitiativeBonus,
+  sumFeatSpeedBonus,
 } from '../../shared/dnd/featGrants'
 import { findFightingStylePick, readFeaturePicks } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonus } from '../../shared/dnd/fightingStyles'
@@ -234,11 +235,13 @@ export function classicDisplaySpeed(character: CharacterDetail): string {
     wearingHeavyArmor: false,
     wearingArmorOrShield: false,
   })
+  const featBonus = sumFeatSpeedBonus(readFeatGrantLedger(sheet.feat_grants))
   const resolved = resolveWalkSpeedFt({
     storedSpeed: stored,
     raceSpeed: race?.speed ?? null,
     classBonusFt: classBonus,
     classBonusFtMax: classBonusMax,
+    featBonusFt: featBonus,
     gearBonusFt: gear.speedBonusFt,
   })
   return resolved == null || resolved === 0 ? '' : String(resolved)
